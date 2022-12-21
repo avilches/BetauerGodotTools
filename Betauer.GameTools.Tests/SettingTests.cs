@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Betauer.Application;
 using Betauer.Application.Screen;
 using Betauer.Application.Settings;
+using Betauer.Core;
 using Betauer.DI;
 using Betauer.Input;
 using Betauer.TestRunner;
@@ -11,7 +12,7 @@ using NUnit.Framework;
 
 namespace Betauer.GameTools.Tests {
     [TestFixture]
-    public class SettingTests : Node {
+    public partial class SettingTests : Node {
 
         const string SettingsFile = "./test-settings.ini";
         const string SettingsFile1 = "./test-settings-1.ini";
@@ -55,7 +56,7 @@ namespace Betauer.GameTools.Tests {
 
             var cf = new ConfigFile();
             cf.Load(SettingsFile);
-            Assert.That(cf.GetValue(saved.Section, saved.Name, "WRONG"), Is.EqualTo(changed));
+            Assert.That(cf.GetValue<string>(saved.Section, saved.Name, "WRONG"), Is.EqualTo(changed));
         } 
 
         [Test]
@@ -79,11 +80,11 @@ namespace Betauer.GameTools.Tests {
 
             var cf = new ConfigFile();
             cf.Load(SettingsFile);
-            Assert.That(cf.GetValue(saved.Section, saved.Name, "NOT SAVED"), Is.EqualTo("NOT SAVED"));
+            Assert.That(cf.GetValue<string>(saved.Section, saved.Name, "NOT SAVED"), Is.EqualTo("NOT SAVED"));
 
             saved.SettingsContainer.Save();
             cf.Load(SettingsFile);
-            Assert.That(cf.GetValue(saved.Section, saved.Name, "WRONG"), Is.EqualTo(changed));
+            Assert.That(cf.GetValue<string>(saved.Section, saved.Name, "WRONG"), Is.EqualTo(changed));
         } 
 
         [Test]
@@ -107,7 +108,7 @@ namespace Betauer.GameTools.Tests {
 
             var cf = new ConfigFile();
             cf.Load(SettingsFile);
-            Assert.That(cf.GetValue(savedDisabled.Section, savedDisabled.Name, "NOT FOUND"), Is.EqualTo("NOT FOUND"));
+            Assert.That(cf.GetValue<string>(savedDisabled.Section, savedDisabled.Name, "NOT FOUND"), Is.EqualTo("NOT FOUND"));
         } 
 
         [Configuration]
@@ -196,47 +197,47 @@ namespace Betauer.GameTools.Tests {
             Assert.That(b.SettingsContainerByType.Dirty, Is.False);
             var cf = new ConfigFile();
             cf.Load(SettingsFile);
-            Assert.That(cf.GetValue(b.BoolSetting.Section, b.BoolSetting.Name, false), Is.True);
-            Assert.That(cf.GetValue(b.StringSetting.Section, b.StringSetting.Name, "XXX"), Is.EqualTo("Default"));
-            Assert.That(cf.GetValue(b.Resolution.Section, b.Resolution.Name, "XXX"), Is.EqualTo(Resolutions.WXGA.Size));
-            Assert.That(cf.GetValue(b.NoAutoSave.Section, b.NoAutoSave.Name, "XXX"), Is.EqualTo("DEFAULT"));
-            Assert.That(cf.GetValue(b.NoEnabled.Section, b.NoEnabled.Name, "XXX"), Is.EqualTo("XXX")); // not written to file
+            Assert.That(cf.GetValue<bool>(b.BoolSetting.Section, b.BoolSetting.Name), Is.True);
+            Assert.That(cf.GetValue<string>(b.StringSetting.Section, b.StringSetting.Name, "XXX"), Is.EqualTo("Default"));
+            Assert.That(cf.GetValue<Vector2i>(b.Resolution.Section, b.Resolution.Name), Is.EqualTo(Resolutions.WXGA.Size));
+            Assert.That(cf.GetValue<string>(b.NoAutoSave.Section, b.NoAutoSave.Name, "XXX"), Is.EqualTo("DEFAULT"));
+            Assert.That(cf.GetValue<string>(b.NoEnabled.Section, b.NoEnabled.Name, "XXX"), Is.EqualTo("XXX")); // not written to file
 
             b.NoEnabled.Value = "NEW VALUE";
             Assert.That(b.NoEnabled.Value, Is.EqualTo("NEW VALUE"));
             Assert.That(b.SettingsContainerByType.Dirty, Is.False);
             cf.Load(SettingsFile);
-            Assert.That(cf.GetValue(b.NoEnabled.Section, b.NoEnabled.Name, "XXX"), Is.EqualTo("XXX")); // not present in file
+            Assert.That(cf.GetValue<string>(b.NoEnabled.Section, b.NoEnabled.Name, "XXX"), Is.EqualTo("XXX")); // not present in file
             
             // When changed, only the auto-saved are stored
             b.BoolSetting.Value = false;
             Assert.That(b.SettingsContainerByType.Dirty, Is.False);
             cf.Load(SettingsFile);
-            Assert.That(cf.GetValue(b.BoolSetting.Section, b.BoolSetting.Name, true), Is.False);
+            Assert.That(cf.GetValue<bool>(b.BoolSetting.Section, b.BoolSetting.Name, true), Is.False);
 
             b.StringSetting.Value = "CHANGED";
             Assert.That(b.SettingsContainerByType.Dirty, Is.False);
             cf.Load(SettingsFile);
-            Assert.That(cf.GetValue(b.StringSetting.Section, b.StringSetting.Name, "XXX"), Is.EqualTo("CHANGED"));
+            Assert.That(cf.GetValue<string>(b.StringSetting.Section, b.StringSetting.Name, "XXX"), Is.EqualTo("CHANGED"));
             
             b.Resolution.Value = Resolutions.FULLHD;
             Assert.That(b.SettingsContainerByType.Dirty, Is.False);
             cf.Load(SettingsFile);
-            Assert.That(cf.GetValue(b.Resolution.Section, b.Resolution.Name, "XXX"), Is.EqualTo(Resolutions.FULLHD.Size));
+            Assert.That(cf.GetValue<Vector2i>(b.Resolution.Section, b.Resolution.Name), Is.EqualTo(Resolutions.FULLHD.Size));
 
             // No autosave, dirty and the value is still the old value
             b.NoAutoSave.Value = "CHANGED";
             Assert.That(b.SettingsContainerByType.Dirty, Is.True);
             
-            Assert.That(cf.GetValue(b.NoAutoSave.Section, b.NoAutoSave.Name, "XXX"), Is.EqualTo("DEFAULT"));
+            Assert.That(cf.GetValue<string>(b.NoAutoSave.Section, b.NoAutoSave.Name, "XXX"), Is.EqualTo("DEFAULT"));
             b.NoAutoSave.SettingsContainer.Save();
             cf.Load(SettingsFile);
-            Assert.That(cf.GetValue(b.NoAutoSave.Section, b.NoAutoSave.Name, "XXX"), Is.EqualTo("CHANGED"));
+            Assert.That(cf.GetValue<string>(b.NoAutoSave.Section, b.NoAutoSave.Name, "XXX"), Is.EqualTo("CHANGED"));
             
             // Change the data from the disk
             cf.Clear();
-            cf.SetValue(b.NoAutoSave.Section, b.NoAutoSave.Name, "FROM DISK");
-            cf.SetValue(b.NoEnabled.Section, b.NoEnabled.Name, "FROM DISK");
+            cf.SetTypedValue(b.NoAutoSave.Section, b.NoAutoSave.Name, "FROM DISK");
+            cf.SetTypedValue(b.NoEnabled.Section, b.NoEnabled.Name, "FROM DISK");
             cf.Save(SettingsFile);
             Assert.That(b.NoAutoSave.Value, Is.EqualTo("CHANGED"));
             Assert.That(b.NoEnabled.Value, Is.EqualTo("NEW VALUE"));
@@ -248,9 +249,9 @@ namespace Betauer.GameTools.Tests {
         [Test]
         public void ConfigWithSettingContainerLoadTest() {
             var cf = new ConfigFile();
-            cf.SetValue("Section", "PixelPerfect", false);
-            cf.SetValue("Section", "Name", "CHANGED");
-            cf.SetValue("Video", "Screen", Resolutions.FULLHD_DIV1_875.Size);
+            cf.SetTypedValue("Section", "PixelPerfect", false);
+            cf.SetTypedValue("Section", "Name", "CHANGED");
+            cf.SetTypedValue("Video", "Screen", Resolutions.FULLHD_DIV1_875.Size);
             cf.Save(SettingsFile);
             cf.Clear();
             cf.Dispose();

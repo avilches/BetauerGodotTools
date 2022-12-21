@@ -1,6 +1,6 @@
 using System;
 
-namespace Betauer {
+namespace Betauer.Core {
     public static class StringTools {
         public static string HumanReadableBytes(this long numBytes) {
             return numBytes < 0

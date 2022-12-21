@@ -1,101 +1,60 @@
 using System;
 using System.Linq;
+using System.Numerics;
 using Godot;
+using Vector2 = Godot.Vector2;
 
 namespace Betauer {
     public interface IFlipper {
-        public bool Flip();
-
-        public bool Flip(bool left);
-
-        public bool Flip(float xInput);
-
+        public void Flip();
+        public void Flip(float xInput);
         public bool IsFacingRight { get; }
     }
 
     public class FlipperList : IFlipper {
-        private IFlipper _main;
         private IFlipper[] _flippers = Array.Empty<IFlipper>();
 
-        public FlipperList() {
-        }
-
-        public FlipperList(params IFlipper[] flippers) {
-            SetFlippers(flippers);
-        }
-
-        public FlipperList AddSprite(Sprite sprite) {
-            AddFlipper(new SpriteFlipper(sprite));
-            return this;
-        }
-
-        public FlipperList AddNode2D(Node2D node2D) {
-            AddFlipper(new Node2DFlipper(node2D));
-            return this;
-        }
+        public FlipperList AddSprite(Sprite2D sprite) => AddFlipper(new Sprite2DFlipH(sprite));
+        public FlipperList AddArea2D(Area2D area2D) => AddFlipper(new FlipScaleX(area2D));
+        public FlipperList AddRayCast2D(RayCast2D rayCast2D) => AddFlipper(new FlipScaleX(rayCast2D));
 
         public FlipperList AddFlipper(IFlipper flipper) {
-            if (_main == null) {
-                _main = flipper;
-            } else {
-                _flippers = _flippers.Concat(new[] { flipper }).ToArray();
-            }
+            _flippers = _flippers.Concat(new[] { flipper }).ToArray();
             return this;
         }
 
-        public void SetFlippers(params IFlipper[] flippers) {
-            _main = flippers[0];
-            if (flippers.Length <= 1) return;
-            _flippers = new IFlipper[flippers.Length - 1];
-            Array.Copy(flippers, 1, _flippers, 0, flippers.Length - 1);
+        public FlipperList SetFlippers(params IFlipper[] flippers) {
+            _flippers = flippers;
+            return this;
         }
 
-        public bool Flip() {
+        public void Flip() {
             Array.ForEach(_flippers, flipper => flipper.Flip());
-            return _main.Flip();
         }
 
-        public bool Flip(bool left) {
-            Array.ForEach(_flippers, flipper => flipper.Flip(left));
-            return _main.Flip(left);
-        }
-
-        public bool Flip(float xInput) {
+        public void Flip(float xInput) {
             Array.ForEach(_flippers, flipper => flipper.Flip(xInput));
-            return _main.Flip(xInput);
         }
 
-        public bool IsFacingRight => _main.IsFacingRight;
+        public bool IsFacingRight => _flippers[0].IsFacingRight;
     }
 
     public abstract class Flipper<T> : IFlipper {
-        protected T Node2D { get; }
+        protected T Node { get; }
         private bool _isFacingRight = false;
 
-        protected Flipper(T node2D) {
-            Node2D = node2D;
-            _isFacingRight = LoadIsFacingRight();
+        protected Flipper(T node) {
+            Node = node;
+            _isFacingRight = GetFacingRight();
         }
 
-        public abstract bool LoadIsFacingRight();
-        public abstract void ChangeFacingRight(bool right);
+        public abstract bool GetFacingRight();
+        public abstract void SetFacingRight(bool right);
 
-        public bool Flip() {
-            IsFacingRight = !_isFacingRight;
-            return _isFacingRight;
-        }
+        public void Flip() => IsFacingRight = !_isFacingRight;
 
-        public bool Flip(bool left) {
-            IsFacingRight = !left;
-            return _isFacingRight;
-        }
-
-        public bool Flip(float xInput) {
-            if (xInput != 0) {
-                bool shouldFaceRight = xInput > 0;
-                IsFacingRight = shouldFaceRight;
-            }
-            return _isFacingRight;
+        public void Flip(float xInput) {
+            if (xInput != 0) IsFacingRight = xInput > 0;
         }
 
         public bool IsFacingRight {
@@ -103,41 +62,58 @@ namespace Betauer {
             set {
                 if (value == _isFacingRight) return;
                 _isFacingRight = value;
-                ChangeFacingRight(_isFacingRight);
+                SetFacingRight(_isFacingRight);
             }
         }
     }
 
-    public class SpriteFlipper : Flipper<Sprite> {
-        public SpriteFlipper(Sprite node2D) : base(node2D) {
+    public class Sprite2DFlipH : Flipper<Sprite2D> {
+        public Sprite2DFlipH(Sprite2D node) : base(node) {
         }
 
-        public override bool LoadIsFacingRight() {
-            return !Node2D.FlipH;
+        public override bool GetFacingRight() {
+            return !Node.FlipH;
         }
 
-        public override void ChangeFacingRight(bool right) {
-            Node2D.FlipH = !right;
+        public override void SetFacingRight(bool right) {
+            Node.FlipH = !right;
         }
     }
 
-    public class Node2DFlipper : Flipper<Node2D> {
-        public Node2DFlipper(Node2D node2D) : base(node2D) {
+    public class FlipScaleX : Flipper<Node2D> {
+        private static readonly Vector2 FlipX = new(-1, 1);
+
+        public FlipScaleX(Node2D node) : base(node) {
         }
 
-        public override bool LoadIsFacingRight() {
-            return (int)Node2D.Scale.y == 1 && (Node2D.Transform.Rotation == 0);
+        public override bool GetFacingRight() {
+            return (int)Node.Scale.x == 1;
         }
 
-        public override void ChangeFacingRight(bool right) {
+        public override void SetFacingRight(bool right) {
+            Node.Scale = right ? Vector2.One : FlipX;
+        }
+    }
+
+    public class FlipScaleYAndRotate : Flipper<Node2D> {
+        private static readonly Vector2 FlipY = new(1, -1);
+
+        public FlipScaleYAndRotate(Node2D node) : base(node) {
+        }
+
+        public override bool GetFacingRight() {
+            return (int)Node.Scale.y == 1 && (Node.Transform.Rotation == 0);
+        }
+
+        public override void SetFacingRight(bool right) {
             if (right) {
                 // Return to normal position
-                Node2D.Scale = Vector2.One; // 1,1
-                Node2D.Rotation = 0;
+                Node.Scale = Vector2.One; // 1,1
+                Node.Rotation = 0;
             } else {
-                // Flip to the left: scale y -1 and rotate 180 degrees
-                Node2D.Scale = new Vector2(1, -1);
-                Node2D.Rotate(Mathf.Pi);
+                // Flip to the left = flip Y axis + rotate 180 degrees
+                Node.Scale = FlipY;
+                Node.Rotate(Mathf.Pi);
             }
         }
     }

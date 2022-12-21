@@ -1,6 +1,6 @@
 using System;
 using System.Threading.Tasks;
-using Betauer.Signal;
+using Betauer.Core.Signal;
 using Godot;
 
 namespace Betauer.Tests.Signal {
@@ -16,8 +16,8 @@ namespace Betauer.Tests.Signal {
             return area2D;
         }
 
-        public KinematicBody2D CreateKinematicBody2D(string name, int x = 0, int y = 0) {
-            var body2D = new KinematicBody2D();
+        public CharacterBody2D CreateKinematicBody2D(string name, int x = 0, int y = 0) {
+            var body2D = new CharacterBody2D();
             body2D.Position = new Vector2(x, y);
             body2D.Name = name;
             body2D.AddChild(CreateCollisionShape());
@@ -29,14 +29,14 @@ namespace Betauer.Tests.Signal {
         public CollisionShape2D CreateCollisionShape() {
             return new CollisionShape2D {
                 Shape = new RectangleShape2D {
-                    Extents = new Vector2(4, 4)
+                    Size = new Vector2(4, 4)
                 },
             };
         }
         
         
         public async Task ForceCollision(Area2D area2D, Node2D body) {
-            await this.AwaitIdleFrame();
+            await this.AwaitProcessFrame();
             body.Position = area2D.Position = Vector2.Zero;
             var x = 0;
             while (!CollideWith(area2D, body) && x < 60) {
@@ -53,7 +53,7 @@ namespace Betauer.Tests.Signal {
         }
 
         public async Task ForceNotCollision(Area2D area2D, Node2D body) {
-            await this.AwaitIdleFrame();
+            await this.AwaitProcessFrame();
             area2D.Position = new Vector2(-2000, -2000);
             body.Position = new Vector2(2000, 2000);
             var x = 0;

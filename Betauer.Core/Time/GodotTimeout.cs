@@ -1,16 +1,9 @@
 using System;
-using Betauer.Signal;
+using System.Threading.Tasks;
+using Betauer.Core.Signal;
 using Godot;
 
-namespace Betauer.Time {
-    public static class GodotTimeoutExtensions {
-        public static GodotTimeout OnTimeout(this SceneTree sceneTree, float timeout, Action action,
-            Node.PauseModeEnum pauseMode = Node.PauseModeEnum.Inherit) {
-            return new GodotTimeout(sceneTree, timeout, action, pauseMode);
-        }
-    }
-    
-    
+namespace Betauer.Core.Time {
     /// <summary>
     /// Executes an action after the timeout in seconds.
     ///  
@@ -26,37 +19,61 @@ namespace Betauer.Time {
         private SceneTreeTimer? _sceneTreeTimer;
         private bool _paused = true;
         private bool _running = false;
-        private float _timeLeft = 0;
-        private Action _action;
+        private double _timeLeft = 0;
+        private event Action _OnTimeout;
 
-        public float Timeout { get; private set; } = 0;
-        public readonly Node.PauseModeEnum PauseMode;
+        public double Timeout { get; private set; } = 0;
+        public bool ProcessAlways = true;
+        public bool ProcessInPhysics = false;
+        public bool IgnoreTimeScale = false;
+
         public bool IsRunning => _running && !_paused;
 
-        public GodotTimeout(SceneTree sceneTree, float timeout, Action action, Node.PauseModeEnum pauseMode = Node.PauseModeEnum.Inherit) {
+        public GodotTimeout(SceneTree sceneTree, double timeout, Action onTimeout, bool processAlways = false,
+            bool processInPhysics = false, bool ignoreTimeScale = false) {
             _sceneTree = sceneTree;
-            PauseMode = pauseMode;
             Timeout = _timeLeft = timeout;
-            _action = action;
+            _OnTimeout += onTimeout;
+            ProcessAlways = processAlways;
+            ProcessInPhysics = processInPhysics;
+            IgnoreTimeScale = ignoreTimeScale;
         }
 
-        public GodotTimeout OnTimeout(Action action) {
-            _action = action;
+        public GodotTimeout(double timeout, Action onTimeout, bool processAlways = false, bool processInPhysics = false, bool ignoreTimeScale = false) : 
+            this(Engine.GetMainLoop() as SceneTree, timeout, onTimeout, processAlways, processInPhysics, ignoreTimeScale) {
+        }
+
+        public GodotTimeout AddOnTimeout(Action action) {
+            _OnTimeout += action;
             return this;
         }
 
-        public GodotTimeout SetTimeout(float timeout) {
+        public GodotTimeout RemoveOnTimeout(Action action) {
+            _OnTimeout -= action;
+            return this;
+        }
+        
+        public GodotTimeout SetTimeout(double timeout) {
+            if (timeout < Elapsed) {
+                End();
+            } else {
+                if (_running && !_paused) {
+                    _sceneTreeTimer!.TimeLeft = timeout - Elapsed;
+                } else {
+                    _timeLeft = timeout - Elapsed;
+                }
+            }
             Timeout = timeout;
-            Reset();
             return this;
         }
 
-        public float TimeLeft {
+        public double TimeLeft {
             get {
                 if (_running && !_paused) return _sceneTreeTimer!.TimeLeft;
                 return _timeLeft;
             }
         }
+        public double Elapsed => Timeout - TimeLeft;
 
         /// <summary>
         /// Starts, or resumes, the timer. Elapsed field will start to increase in every frame.
@@ -82,7 +99,7 @@ namespace Betauer.Time {
         public GodotTimeout Reset() {
             if (!_running || _paused) {
                 _timeLeft = Timeout;
-            } else { 
+            } else {
                 // running and not paused 
                 _sceneTreeTimer!.TimeLeft = Timeout;
             }
@@ -114,20 +131,33 @@ namespace Betauer.Time {
             return this;
         }
 
-        private SceneTreeTimer CreateTimer(float timeout) {
-            var pauseModeProcess = PauseMode == Node.PauseModeEnum.Process; // false = pausing the scene pause the timer 
-            var sceneTreeTimer =_sceneTree.CreateTimer(timeout, pauseModeProcess);
+        private SceneTreeTimer CreateTimer(double timeout) {
+            var sceneTreeTimer = _sceneTree.CreateTimer(timeout, ProcessAlways, ProcessInPhysics, IgnoreTimeScale);
             var sceneTreeTimerId = sceneTreeTimer.GetHashCode();
             sceneTreeTimer.AwaitTimeout().OnCompleted(() => {
                 if (_sceneTreeTimer != null && _sceneTreeTimer.GetHashCode() == sceneTreeTimerId) {
-                    _action();
-                    _timeLeft = 0;
-                    _sceneTreeTimer = null;
-                    _running = false;
-                    _paused = true;
+                    End();
                 }
             });
             return sceneTreeTimer;
+        }
+
+        private void End() {
+            _timeLeft = 0;
+            _sceneTreeTimer = null;
+            _running = false;
+            _paused = true;
+            _OnTimeout?.Invoke();
+        }
+
+        public Task Await() {
+            TaskCompletionSource promise = new();
+            void ToAdd() {
+                RemoveOnTimeout(ToAdd);
+                promise.TrySetResult();
+            }
+            AddOnTimeout(ToAdd);
+            return promise.Task;
         }
 
         public override string ToString() {

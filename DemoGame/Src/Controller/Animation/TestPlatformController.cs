@@ -1,18 +1,14 @@
 using Godot;
-using Betauer;
 using Betauer.Animation;
 using Betauer.Animation.Easing;
-using Betauer.Animation.Tween;
-using Betauer.DI;
-using Betauer.Nodes.Property;
-using Betauer.Nodes.Property.Callback;
+using Betauer.Core.Nodes.Property;
 using Betauer.OnReady;
 
 namespace Veronenger.Controller.Animation {
-    public class TestPlatformController : Node2D {
-        [OnReady("Body1")] private KinematicBody2D body1;
-        [OnReady("Body2")] private KinematicBody2D body2;
-        [OnReady("Body3")] private KinematicBody2D body3;
+    public partial class TestPlatformController : Node2D {
+        [OnReady("Body1")] private CharacterBody2D body1;
+        [OnReady("Body2")] private CharacterBody2D body2;
+        [OnReady("Body3")] private CharacterBody2D body3;
 
         public override void _Ready() {
             KeyframeAnimation.Create(body1)

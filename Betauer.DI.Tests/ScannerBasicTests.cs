@@ -70,6 +70,8 @@ namespace Betauer.DI.Tests {
                 Assert.That(node3, Is.EqualTo(n3));
                 Assert.That(_node4, Is.EqualTo(n4));
                 Assert.That(_node5, Is.EqualTo(n5));
+                Assert.That(p1, Is.EqualTo(1));
+                Assert.That(p2, Is.EqualTo(1));
             }
             
             [Inject] public Node node3 { get; set; }
@@ -87,6 +89,18 @@ namespace Betauer.DI.Tests {
             [Inject("node5")]
             public void node5method(Node n) {
                 _node5 = n;
+            }
+
+            internal int p1 = 0;
+            [PostInject]
+            public void Post1() {
+                p1++;
+            }
+
+            internal int p2 = 0;
+            [PostInject]
+            public void Post2() {
+                p2++;
             }
         }
 
@@ -108,6 +122,27 @@ namespace Betauer.DI.Tests {
             var c = di.Build();
 
             var i = c.Resolve<InjectClass>();
+            i.AssertInjectClass();
+        }
+
+        [Test(Description = "Inject instance not created by Container")]
+        public void ManualInjectTest() {
+            InjectClass.n1 = new Node();
+            InjectClass.n2 = new Node();
+            InjectClass.n3 = new Node();
+            InjectClass.n4 = new Node();
+            InjectClass.n5 = new Node();
+            var di = new ContainerBuilder();
+            di.Static(InjectClass.n1, "node1");
+            di.Static(InjectClass.n2, "node2");
+            di.Static(InjectClass.n3, "node3");
+            di.Static(InjectClass.n4, "node4");
+            di.Static(InjectClass.n5, "node5");
+            var c = di.Build();
+            
+            var i = new InjectClass();
+            c.InjectServices(i);
+            
             i.AssertInjectClass();
         }
 
@@ -181,7 +216,14 @@ namespace Betauer.DI.Tests {
             Assert.That(c.GetProvider("noPrimary").Primary, Is.False);
             Assert.That(c.GetProvider("primaryTag").Primary, Is.True);
             Assert.That(c.GetProvider("primary").Primary, Is.True);
-                
+        }
+        
+        [Test(Description = "Check if [Scan] works in configuration instances")]
+        public void CheckConfigurationScanAttributeWorksInConfigurationInstances() {
+            var di = new ContainerBuilder();
+            di.ScanConfiguration(new PrimaryConfiguration());
+            var c = di.Build();
+            Assert.That(c.Contains<PrimaryClass>());
         }
         
         [Service]
@@ -797,51 +839,51 @@ namespace Betauer.DI.Tests {
 
         [Service]
         [Lazy]
-        class LazyPostCreatedA1 {
-            [Inject] internal PostCreatedA2 A2 { get; set; }
+        class LazyPostInjectdA1 {
+            [Inject] internal PostInjectdA2 A2 { get; set; }
             [Inject] internal Container container { get; set; }
 
             internal int Called = 0;
-            [PostCreate]
-            void PostCreateMethod() {
+            [PostInject]
+            void PostInjectMethod() {
                 Assert.That(A2, Is.Not.Null);
                 Called++;
             }
         }
 
         [Service]
-        class PostCreatedA2 {
+        class PostInjectdA2 {
             [Inject] internal Container container { get; set; }
 
             internal int Called = 0;
-            [PostCreate]
-            void PostCreateMethod() {
+            [PostInject]
+            void PostInjectMethod() {
                 Called++;
             }
             
             internal bool more1 = false;
             internal bool more2 = false;
 
-            [PostCreate] void More1() => more1 = true;
-            [PostCreate] void More2() => more2 = true;
+            [PostInject] void More1() => more1 = true;
+            [PostInject] void More2() => more2 = true;
         }
 
-        [Test(Description = "Test if the [PostCreate] methods are invoked + Lazy using a non lazy")]
-        public void PostCreateMethodLazyWithNoLazyTest() {
+        [Test(Description = "Test if the [PostInject] methods are invoked + Lazy using a non lazy")]
+        public void PostInjectMethodLazyWithNoLazyTest() {
             var c = new Container();
             var di = c.CreateBuilder();
-            di.Scan<LazyPostCreatedA1>();
-            di.Scan<PostCreatedA2>();
+            di.Scan<LazyPostInjectdA1>();
+            di.Scan<PostInjectdA2>();
             di.Build();
 
-            Assert.That(c.GetProvider<LazyPostCreatedA1>() is ISingletonProvider { IsInstanceCreated: false });
-            Assert.That(c.GetProvider<PostCreatedA2>() is ISingletonProvider { IsInstanceCreated: true });
-            var A1 = c.Resolve<LazyPostCreatedA1>();
+            Assert.That(c.GetProvider<LazyPostInjectdA1>() is ISingletonProvider { IsInstanceCreated: false });
+            Assert.That(c.GetProvider<PostInjectdA2>() is ISingletonProvider { IsInstanceCreated: true });
+            var A1 = c.Resolve<LazyPostInjectdA1>();
             Assert.That(A1.Called, Is.EqualTo(1));
             
-            Assert.That(c.GetProvider<LazyPostCreatedA1>() is ISingletonProvider { IsInstanceCreated: true });
+            Assert.That(c.GetProvider<LazyPostInjectdA1>() is ISingletonProvider { IsInstanceCreated: true });
             
-            var A2 = c.Resolve<PostCreatedA2>();
+            var A2 = c.Resolve<PostInjectdA2>();
             Assert.That(A1.A2, Is.EqualTo(A2));
             Assert.That(A2.Called, Is.EqualTo(1));
             Assert.That(A2.more1, Is.True);
@@ -849,13 +891,13 @@ namespace Betauer.DI.Tests {
         }
 
         [Service]
-        class PostCreatedB1 {
-            [Inject] internal LazyPostCreatedB2 B2 { get; set; }
+        class PostInjectdB1 {
+            [Inject] internal LazyPostInjectdB2 B2 { get; set; }
             [Inject] internal Container container { get; set; }
 
             internal int Called = 0;
-            [PostCreate]
-            void PostCreateMethod() {
+            [PostInject]
+            void PostInjectMethod() {
                 Assert.That(B2, Is.Not.Null);
                 Assert.That(B2.B1, Is.Not.Null);
                 Called++;
@@ -864,13 +906,13 @@ namespace Betauer.DI.Tests {
 
         [Service]
         [Lazy]
-        class LazyPostCreatedB2 {
-            [Inject] internal PostCreatedB1 B1 { get; set; }
+        class LazyPostInjectdB2 {
+            [Inject] internal PostInjectdB1 B1 { get; set; }
             [Inject] internal Container container { get; set; }
 
             internal int Called = 0;
-            [PostCreate]
-            void PostCreateMethod() {
+            [PostInject]
+            void PostInjectMethod() {
                 Assert.That(B1, Is.Not.Null);
                 Assert.That(B1.B2, Is.Not.Null);
                 Called++;
@@ -879,24 +921,24 @@ namespace Betauer.DI.Tests {
             internal bool more1 = false;
             internal bool more2 = false;
 
-            [PostCreate] void More1() => more1 = true;
-            [PostCreate] void More2() => more2 = true;
+            [PostInject] void More1() => more1 = true;
+            [PostInject] void More2() => more2 = true;
 
         }
 
-        [Test(Description = "Test if the [PostCreate] methods are invoked + Non Lazy using Lazy")]
-        public void PostCreateMethodTest() {
+        [Test(Description = "Test if the [PostInject] methods are invoked + Non Lazy using Lazy")]
+        public void PostInjectMethodTest() {
             var c = new Container();
             var di = c.CreateBuilder();
-            di.Scan<PostCreatedB1>();
-            di.Scan<LazyPostCreatedB2>();
+            di.Scan<PostInjectdB1>();
+            di.Scan<LazyPostInjectdB2>();
             di.Build();
 
-            Assert.That(c.GetProvider<PostCreatedB1>() is ISingletonProvider { IsInstanceCreated: true });
-            Assert.That(c.GetProvider<LazyPostCreatedB2>() is ISingletonProvider { IsInstanceCreated: true });
+            Assert.That(c.GetProvider<PostInjectdB1>() is ISingletonProvider { IsInstanceCreated: true });
+            Assert.That(c.GetProvider<LazyPostInjectdB2>() is ISingletonProvider { IsInstanceCreated: true });
 
-            var B1 = c.Resolve<PostCreatedB1>();
-            var B2 = c.Resolve<LazyPostCreatedB2>();
+            var B1 = c.Resolve<PostInjectdB1>();
+            var B2 = c.Resolve<LazyPostInjectdB2>();
             
             Assert.That(B1.B2, Is.EqualTo(B2));
             Assert.That(B1.Called, Is.EqualTo(1));
@@ -910,13 +952,13 @@ namespace Betauer.DI.Tests {
         
         [Service]
         [Lazy]
-        class LazyPostCreatedC1 {
-            [Inject] internal LazyPostCreatedC2 C2 { get; set; }
+        class LazyPostInjectdC1 {
+            [Inject] internal LazyPostInjectdC2 C2 { get; set; }
             [Inject] internal Container container { get; set; }
 
             internal int Called = 0;
-            [PostCreate]
-            void PostCreateMethod() {
+            [PostInject]
+            void PostInjectMethod() {
                 Assert.That(C2, Is.Not.Null);
                 Assert.That(C2.C1, Is.Not.Null);
                 Called++;
@@ -925,13 +967,13 @@ namespace Betauer.DI.Tests {
 
         [Service]
         [Lazy]
-        class LazyPostCreatedC2 {
-            [Inject] internal LazyPostCreatedC1 C1 { get; set; }
+        class LazyPostInjectdC2 {
+            [Inject] internal LazyPostInjectdC1 C1 { get; set; }
             [Inject] internal Container container { get; set; }
 
             internal int Called = 0;
-            [PostCreate]
-            void PostCreateMethod() {
+            [PostInject]
+            void PostInjectMethod() {
                 Assert.That(C1, Is.Not.Null);
                 Assert.That(C1.C2, Is.Not.Null);
                 Called++;
@@ -940,27 +982,27 @@ namespace Betauer.DI.Tests {
             internal bool more1 = false;
             internal bool more2 = false;
 
-            [PostCreate] void More1() => more1 = true;
-            [PostCreate] void More2() => more2 = true;
+            [PostInject] void More1() => more1 = true;
+            [PostInject] void More2() => more2 = true;
 
         }
 
-        [Test(Description = "Test if the [PostCreate] methods are invoked + Lazy using Lazy")]
-        public void PostCreateMethodLazyWithLazyTest() {
+        [Test(Description = "Test if the [PostInject] methods are invoked + Lazy using Lazy")]
+        public void PostInjectMethodLazyWithLazyTest() {
             var c = new Container();
             var di = c.CreateBuilder();
-            di.Scan<LazyPostCreatedC1>();
-            di.Scan<LazyPostCreatedC2>();
+            di.Scan<LazyPostInjectdC1>();
+            di.Scan<LazyPostInjectdC2>();
             di.Build();
 
-            Assert.That(c.GetProvider<LazyPostCreatedC1>() is ISingletonProvider { IsInstanceCreated: false });
-            Assert.That(c.GetProvider<LazyPostCreatedC2>() is ISingletonProvider { IsInstanceCreated: false });
+            Assert.That(c.GetProvider<LazyPostInjectdC1>() is ISingletonProvider { IsInstanceCreated: false });
+            Assert.That(c.GetProvider<LazyPostInjectdC2>() is ISingletonProvider { IsInstanceCreated: false });
 
-            var C1 = c.Resolve<LazyPostCreatedC1>();
-            Assert.That(c.GetProvider<LazyPostCreatedC1>() is ISingletonProvider { IsInstanceCreated: true });
-            Assert.That(c.GetProvider<LazyPostCreatedC2>() is ISingletonProvider { IsInstanceCreated: true });
+            var C1 = c.Resolve<LazyPostInjectdC1>();
+            Assert.That(c.GetProvider<LazyPostInjectdC1>() is ISingletonProvider { IsInstanceCreated: true });
+            Assert.That(c.GetProvider<LazyPostInjectdC2>() is ISingletonProvider { IsInstanceCreated: true });
             
-            var C2 = c.Resolve<LazyPostCreatedC2>();
+            var C2 = c.Resolve<LazyPostInjectdC2>();
             Assert.That(C1.C2, Is.EqualTo(C2));
             Assert.That(C1.Called, Is.EqualTo(1));
             Assert.That(C2.C1, Is.EqualTo(C1));
@@ -970,64 +1012,104 @@ namespace Betauer.DI.Tests {
             Assert.That(C2.more2, Is.True);
 
         }
+
+        public class LazySingleton {
+            public static int Calls = 0;
+
+            public LazySingleton() {
+                Calls++;
+            }
+        }
         
-        [Service]
-        [Lazy]
-        class LazyPostCreatedD1 {
-            [Inject] internal Factory<LazyPostCreatedD2> D2 { get; set; }
+        [Configuration]
+        public class LazySingletonConfiguration {
+            [Service()]
+            [Lazy] 
+            public LazySingleton LazySingleton => new();
         }
 
         [Service]
-        [Lazy]
-        class LazyPostCreatedD2 {
-            [Inject] internal Factory<LazyPostCreatedD1> D1 { get; set; }
+        public class AnotherSingleton {
+            [Inject] public Factory<LazySingleton> LazySingleton { get; set; }
+            
         }
 
-        [Test(Description = "Test if the [PostCreate] methods are invoked + Lazy using Lazy and Factory<T>")]
-        public void PostCreateMethodLazyWithLazyTypedAsLazyTest() {
+
+        [Test(Description = "Test defining a Lazy service by name")]
+        public void LazySingletonFromConfiguration() {
             var c = new Container();
             var di = c.CreateBuilder();
-            di.Scan<LazyPostCreatedD1>();
-            di.Scan<LazyPostCreatedD2>();
+            di.Scan<LazySingletonConfiguration>();
+            di.Scan<AnotherSingleton>();
             di.Build();
 
-            Assert.That(c.GetProvider<LazyPostCreatedD1>() is ISingletonProvider { IsInstanceCreated: false });
-            Assert.That(c.GetProvider<LazyPostCreatedD2>() is ISingletonProvider { IsInstanceCreated: false });
+            AnotherSingleton another = c.Resolve<AnotherSingleton>();
 
-            var D1 = c.Resolve<LazyPostCreatedD1>();
-            Assert.That(c.GetProvider<LazyPostCreatedD1>() is ISingletonProvider { IsInstanceCreated: true });
-            Assert.That(c.GetProvider<LazyPostCreatedD2>() is ISingletonProvider { IsInstanceCreated: false });
+            Assert.That(LazySingleton.Calls, Is.EqualTo(0));
+            Assert.That(c.GetProvider<LazySingleton>() is ISingletonProvider { IsInstanceCreated: false });
+
+            another.LazySingleton.Get();
+            Assert.That(LazySingleton.Calls, Is.EqualTo(1));
+            Assert.That(c.GetProvider<LazySingleton>() is ISingletonProvider { IsInstanceCreated: true });
+        }
+
+        [Service]
+        [Lazy]
+        class LazyPostInjectdD1 {
+            [Inject] internal Factory<LazyPostInjectdD2> D2 { get; set; }
+        }
+
+        [Service]
+        [Lazy]
+        class LazyPostInjectdD2 {
+            [Inject] internal Factory<LazyPostInjectdD1> D1 { get; set; }
+        }
+
+        [Test(Description = "Test if the [PostInject] methods are invoked + Lazy using Lazy and Factory<T>")]
+        public void PostInjectMethodLazyWithLazyTypedAsLazyTest() {
+            var c = new Container();
+            var di = c.CreateBuilder();
+            di.Scan<LazyPostInjectdD1>();
+            di.Scan<LazyPostInjectdD2>();
+            di.Build();
+
+            Assert.That(c.GetProvider<LazyPostInjectdD1>() is ISingletonProvider { IsInstanceCreated: false });
+            Assert.That(c.GetProvider<LazyPostInjectdD2>() is ISingletonProvider { IsInstanceCreated: false });
+
+            var D1 = c.Resolve<LazyPostInjectdD1>();
+            Assert.That(c.GetProvider<LazyPostInjectdD1>() is ISingletonProvider { IsInstanceCreated: true });
+            Assert.That(c.GetProvider<LazyPostInjectdD2>() is ISingletonProvider { IsInstanceCreated: false });
 
             var D2 = D1.D2.Get();
-            Assert.That(c.GetProvider<LazyPostCreatedD1>() is ISingletonProvider { IsInstanceCreated: true });
-            Assert.That(c.GetProvider<LazyPostCreatedD2>() is ISingletonProvider { IsInstanceCreated: true });
+            Assert.That(c.GetProvider<LazyPostInjectdD1>() is ISingletonProvider { IsInstanceCreated: true });
+            Assert.That(c.GetProvider<LazyPostInjectdD2>() is ISingletonProvider { IsInstanceCreated: true });
 
-            Assert.That(D2, Is.EqualTo(c.Resolve<LazyPostCreatedD2>()));
+            Assert.That(D2, Is.EqualTo(c.Resolve<LazyPostInjectdD2>()));
             Assert.That(D2.D1.Get(), Is.EqualTo(D1));
         }
 
         [Service]
         class SingletonWithTransient {
-            [Inject] public PostCreateTransient Transient { get; set; }
+            [Inject] public PostInjectTransient Transient { get; set; }
         }
         
         [Service(Lifetime.Transient)]
-        public class PostCreateTransient {
+        public class PostInjectTransient {
             public static int Created = 0;
 
-            public PostCreateTransient() {
+            public PostInjectTransient() {
                 Created++;
             }
             public int Called = 0;
-            [PostCreate]
-            void PostCreateMethod() {
+            [PostInject]
+            void PostInjectMethod() {
                 Called++;
             }
         }
 
         [Test(Description = "Inject transient on singletons, test OnCreate when a singleton creates a transient")]
         public void OnCreateTests() {
-            PostCreateTransient.Created = 0;
+            PostInjectTransient.Created = 0;
             var singletons = new List<object>();
             var transients = new List<object>();
             var c = new Container();
@@ -1041,10 +1123,10 @@ namespace Betauer.DI.Tests {
 
             var di = c.CreateBuilder();
             di.Scan<SingletonWithTransient>();
-            di.Scan<PostCreateTransient>();
+            di.Scan<PostInjectTransient>();
             di.Build();
 
-            Assert.That(PostCreateTransient.Created, Is.EqualTo(1));
+            Assert.That(PostInjectTransient.Created, Is.EqualTo(1));
             Assert.That(singletons.Count, Is.EqualTo(1));
             Assert.That(transients.Count, Is.EqualTo(1));
 
@@ -1057,13 +1139,13 @@ namespace Betauer.DI.Tests {
 
         [Service(Lifetime.Transient)]
         class TransientWithTransient {
-            [Inject] public PostCreateTransient Transient { get; set; }
+            [Inject] public PostInjectTransient Transient { get; set; }
         }
         
         
         [Test(Description = "Inject transient on transient, test OnCreate when a singleton creates a transient")]
         public void OnCreateTests2() {
-            PostCreateTransient.Created = 0;
+            PostInjectTransient.Created = 0;
             var singletons = new List<object>();
             var transients = new List<object>();
             var c = new Container();
@@ -1077,15 +1159,15 @@ namespace Betauer.DI.Tests {
 
             var di = c.CreateBuilder();
             di.Scan<TransientWithTransient>();
-            di.Scan<PostCreateTransient>();
+            di.Scan<PostInjectTransient>();
             di.Build();
             
             Assert.That(singletons.Count, Is.EqualTo(0));
             Assert.That(transients.Count, Is.EqualTo(0));
-            Assert.That(PostCreateTransient.Created, Is.EqualTo(0));
+            Assert.That(PostInjectTransient.Created, Is.EqualTo(0));
 
             var s = c.Resolve<TransientWithTransient>();
-            Assert.That(PostCreateTransient.Created, Is.EqualTo(1));
+            Assert.That(PostInjectTransient.Created, Is.EqualTo(1));
             Assert.That(s.Transient.Called, Is.EqualTo(1));
             Assert.That(singletons.Count, Is.EqualTo(0));
             Assert.That(transients.Count, Is.EqualTo(2));

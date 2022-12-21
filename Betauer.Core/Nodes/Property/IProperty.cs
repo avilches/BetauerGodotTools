@@ -1,9 +1,9 @@
 using Godot;
 
-namespace Betauer.Nodes.Property {
+namespace Betauer.Core.Nodes.Property {
     public interface IProperty {
-        public object GetValue(Node node);
-        public void SetValue(Node node, object value);
+        public Variant GetValue(Node node);
+        public void SetValue(Node node, Variant value);
         public bool IsCompatibleWith(Node node);
     }
 

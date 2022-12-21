@@ -8,8 +8,7 @@ ROOT_FOLDER    := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 
 
 TARGET_PLATFORM    ?= osx
-GODOT_EXECUTABLE   ?= "/Applications/Godot_mono.app/Contents/MacOS/Godot"
-GODOT_SHARP_FOLDER ?= /Applications/Godot_mono.app/Contents/Resources/GodotSharp/Api
+GODOT_EXECUTABLE   ?= "/Applications/Godot-4.0.0-beta.9.app/Contents/MacOS/Godot"
 
 
 .PHONY: help
@@ -25,20 +24,17 @@ help:
 .PHONY: clean
 clean:
 	rm -rf "${ROOT_FOLDER}/.mono"
-
-
-	mkdir -p "${ROOT_FOLDER}/.mono/assemblies/Debug"
-	cp -pr "${GODOT_SHARP_FOLDER}/Debug/"* "${ROOT_FOLDER}/.mono/assemblies/Debug"
+	rm -rf "${ROOT_FOLDER}/.godot/mono"
 	
 .PHONY: build
 build:
 	#msbuild "${ROOT_FOLDER}/Generator.sln" /restore /t:Build "/p:Configuration=Debug" /v:normal /p:GodotTargetPlatform=${TARGET_PLATFORM}
-	dotnet build "${ROOT_FOLDER}/Generator.sln" --configuration Debug 
+	dotnet build "${ROOT_FOLDER}/Generator4.sln" --configuration Debug 
 
 
 .PHONY: run
 run:
-	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" -s "GeneratorScript.cs" --no-window --verbose
+	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" -s "GeneratorScript.cs" --headless --verbose
 
 
 

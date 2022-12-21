@@ -1,9 +1,22 @@
 using System;
+using Betauer.Core;
 using Betauer.Tools.Logging;
 using Godot;
 using File = System.IO.File;
 
 namespace Betauer.Application {
+    public static class ConfigFileExtensions {
+        public static void SetTypedValue<T>(this ConfigFile configFile, string section, string key, T value) {
+            var variantValue = VariantHelper.CreateFrom(value);
+            configFile.SetValue(section, key, variantValue);
+        }
+        public static T GetValue<[MustBeVariant] T>(this ConfigFile configFile, string section, string key, T @default = default) {
+            var variantDefault = VariantHelper.CreateFrom(@default);
+            var variantValue = configFile.GetValue(section, key, variantDefault);
+            return VariantHelper.ConvertTo<T>(variantValue);
+        }
+    }
+    
     public class ConfigFileWrapper {
         private readonly ConfigFile _configFile = new();
         public string? FilePath { get; private set; }
@@ -21,7 +34,7 @@ namespace Betauer.Application {
         }
 
         public ConfigFileWrapper SetPassword(string password) {
-            EncryptionKey = password.ToUTF8();
+            EncryptionKey = password.ToUTF8Buffer();
             return this;
         }
 
@@ -36,11 +49,14 @@ namespace Betauer.Application {
         }
 
         public void SetValue<T>(string section, string property, T val) {
-            _configFile.SetValue(section, property, val);
+            _configFile.SetTypedValue<T>(section, property, val);
             Dirty = true;
         }
 
-        public T GetValue<T>(string section, string property, T def) => (T)_configFile.GetValue(section, property, def);
+        public T GetValue<T>(string section, string property, T @default = default) {
+            return _configFile.GetValue(section, property, @default);
+        }
+
         public string[] GetSections() => _configFile.GetSections();
         public string[] GetKeys(string section) => _configFile.GetSectionKeys(section);
         public bool ContainsSection(string section) => _configFile.HasSection(section);

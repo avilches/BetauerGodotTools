@@ -6,17 +6,19 @@
 ;   [section] ; section goes between []
 ;   param=value ; assign values to parameters
 
-config_version=4
+config_version=5
 
 [application]
 
-config/name="DemoGame"
+config/name="DemoGame4"
 run/main_scene="res://Scenes/SplashScreen.tscn"
 config/use_custom_user_dir=true
 config/project_settings_override="user://override.cfg"
+config/features=PackedStringArray("4.0", "C#")
+boot_splash/show_image=false
 boot_splash/fullsize=false
 boot_splash/use_filter=false
-boot_splash/bg_color=Color( 0.141176, 0.141176, 0.141176, 1 )
+boot_splash/bg_color=Color(0.141176, 0.141176, 0.141176, 1)
 config/icon="res://icon.png"
 config/version="1.0.0"
 
@@ -27,12 +29,22 @@ Global="*res://Src/Managers/Autoload/Global.cs"
 
 [display]
 
-window/size/width=640
-window/size/height=360
-window/size/test_width=960
-window/size/test_height=540
-window/stretch/mode="viewport"
-window/stretch/aspect="keep"
+window/size/viewport_width=1920
+window/size/viewport_height=1080
+window/dpi/allow_hidpi=false
+window/stretch/mode="canvas_items"
+window/size/width=1920
+window/size/height=1080
+window/size/test_width=1920
+window/size/test_height=1080
+
+[dotnet]
+
+project/assembly_name="DemoGame4"
+
+[editor]
+
+scene/scene_naming=1
 
 [importer_defaults]
 
@@ -62,13 +74,9 @@ texture={
 file_logging/log_path="user://logs/dev.log"
 file_logging/log_path.standalone="user://logs/game.log"
 
-[mono]
-
-project/c#_project_directory="Src"
-runtime/unhandled_exception_policy.standalone=0
-
 [rendering]
 
-environment/default_clear_color=Color( 0, 0, 0, 1 )
-environment/default_environment="res://default_env.tres"
+environment/defaults/default_clear_color=Color(0, 0, 0, 1)
+2d/snap/snap_2d_transforms_to_pixel=true
+textures/canvas_textures/default_texture_filter=0
 quality/2d/use_nvidia_rect_flicker_workaround=true

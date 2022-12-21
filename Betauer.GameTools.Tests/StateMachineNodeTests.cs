@@ -10,7 +10,7 @@ using NUnit.Framework;
 
 namespace Betauer.GameTools.Tests {
     [TestFixture]
-    public class StateMachineNodeTests : Node {
+    public partial class StateMachineNodeTests : Node {
         enum State {
             A,
             Idle,
@@ -31,20 +31,20 @@ namespace Betauer.GameTools.Tests {
         public void StateMachineNodeConstructors() {
             var sm1 = new StateMachineNodeSync<State, Trans>(State.A, "X");
             Assert.That(sm1.StateMachine.Name, Is.EqualTo("X"));
-            Assert.That(sm1.Mode, Is.EqualTo(ProcessMode.Idle));
+            Assert.That(sm1.ProcessInPhysics, Is.False);
 
-            var sm2 = new StateMachineNodeSync<State, Trans>(State.A, null, ProcessMode.Physics);
+            var sm2 = new StateMachineNodeSync<State, Trans>(State.A, null, true);
             Assert.That(sm2.StateMachine.Name, Is.Null);
-            Assert.That(sm2.Mode, Is.EqualTo(ProcessMode.Physics));
+            Assert.That(sm2.ProcessInPhysics, Is.True);
 
             var sm3 = new StateMachineNodeSync<State, Trans>(State.A);
             Assert.That(sm3.StateMachine.Name, Is.Null);
-            Assert.That(sm3.Mode, Is.EqualTo(ProcessMode.Idle));
+            Assert.That(sm3.ProcessInPhysics, Is.False);
         }
 
         [Test(Description = "StateMachineNode, BeforeExecute and AfterExecute events with idle frames in the execute")]
         public async Task AsyncStateMachineNodeWithIdleFrame() {
-            var sm = new StateMachineNodeSync<State, Trans>(State.Start, null, ProcessMode.Idle);
+            var sm = new StateMachineNodeSync<State, Trans>(State.Start);
 
             var x = 0;
             List<string> states = new List<string>();
@@ -90,7 +90,7 @@ namespace Betauer.GameTools.Tests {
             
             Stopwatch stopwatch = Stopwatch.StartNew();
             while (sm.CurrentState?.Key != State.End && stopwatch.ElapsedMilliseconds < 1000) {
-                await this.AwaitIdleFrame();
+                await this.AwaitProcessFrame();
                 
             }
             Assert.That(string.Join(",", states),
@@ -123,7 +123,7 @@ namespace Betauer.GameTools.Tests {
             sm.AddOnSuspend((args)  => states.Add(args.From + ":suspend"));
             sm.AddOnExit((args)  => states.Add(args.From + ":exit"));
             sm.AddOnTransition((args)  => states.Add("from:" + args.From + "-to:" + args.To));
-            sm.AddOnExecuteStart((float delta, State state)  => states.Add(state + ":execute.start"));
+            sm.AddOnExecuteStart((double delta, State state)  => states.Add(state + ":execute.start"));
             sm.AddOnExecuteEnd((State state)  => states.Add(state + ":execute.end"));
 
             AddChild(sm);
@@ -131,7 +131,7 @@ namespace Betauer.GameTools.Tests {
             Stopwatch stopwatch = Stopwatch.StartNew();
             while (sm.CurrentState?.Key != State.End && stopwatch.ElapsedMilliseconds < 1000) {
                 Console.Write(sm.CurrentState?.Key + " ");
-                await this.AwaitIdleFrame();
+                await this.AwaitProcessFrame();
             }
 
             Console.WriteLine(string.Join(",", states));

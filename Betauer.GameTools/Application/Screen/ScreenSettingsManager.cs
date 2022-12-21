@@ -12,7 +12,7 @@ namespace Betauer.Application.Screen {
         private const bool DontSave = false;
 
         private readonly ScreenConfiguration _initialScreenConfiguration;
-        public ScreenService ScreenService => _service ??= new ScreenService(SceneTree, _initialScreenConfiguration);
+        public ScreenService ScreenService => _service ??= new ScreenService(SceneTree, _initialScreenConfiguration, FixedViewportStrategy.Instance);
         public ScreenConfiguration ScreenConfiguration => ScreenService.ScreenConfiguration;
 
         private ScreenService? _service;
@@ -33,7 +33,7 @@ namespace Betauer.Application.Screen {
             _initialScreenConfiguration = initialScreenConfiguration;
         }
 
-        [PostCreate]
+        [PostInject]
         private void ConfigureSettings() {
             _pixelPerfect = Container.ResolveOr<ISetting<bool>>("Settings.Screen.PixelPerfect", 
                 () => Setting<bool>.Memory(false));
@@ -62,28 +62,35 @@ namespace Betauer.Application.Screen {
             }
         }
 
-        public void SetScreenConfiguration(ScreenConfiguration screenConfiguration, ScreenService.ScreenStrategyKey? strategy = null) {
-            ScreenService.SetScreenConfiguration(screenConfiguration, strategy);
+        public void SetScreenConfiguration(ScreenConfiguration screenConfiguration) {
+            ScreenService.SetScreenConfiguration(screenConfiguration);
+        }
+
+        public void SetStrategy(IScreenStrategy strategy) {
+            ScreenService.SetStrategy(strategy);
         }
 
         public bool IsFullscreen() => ScreenService.IsFullscreen();
         public List<ScaledResolution> GetResolutions() => ScreenService.GetResolutions();
 
         public void SetPixelPerfect(bool pixelPerfect, bool save = true) {
-            var strategy = pixelPerfect
-                ? ScreenService.ScreenStrategyKey.IntegerScale
-                : ScreenService.ScreenStrategyKey.ViewportSize;
-            ScreenService.SetStrategy(strategy);
+            // TODO Godot 4
+            // var strategy = pixelPerfect
+                // ? ScreenService.ScreenStrategyKey.WindowSize // IntegerScale
+                // : ScreenService.ScreenStrategyKey.ViewportSize;
+            // ScreenService.SetStrategy(strategy);
             if (save) _pixelPerfect.Value = pixelPerfect;
         }
 
         public void SetBorderless(bool borderless, bool save = true) {
-            ScreenService.SetBorderless(borderless);
+            // TODO Godot 4
+            // ScreenService.SetBorderless(borderless);
             if (save) _borderless.Value = borderless;
         }
 
         public void SetVSync(bool vsync, bool save = true) {
-            OS.VsyncEnabled = vsync;
+            // TODO Godot 4: allow more VSync modes
+            // DisplayServer.WindowSetVsyncMode(vsync ? DisplayServer.VSyncMode.Enabled : DisplayServer.VSyncMode.Disabled);
             if (save) _vSync.Value = vsync;
         }
 
@@ -106,16 +113,12 @@ namespace Betauer.Application.Screen {
             ScreenService.CenterWindow();
         }
 
-        public string GetStateAsString() {
-            return ScreenService.GetStateAsString();
-        }
-
         /*
         private int _currentScreen = -1;
         private Vector2 _screenSize = Vector2.Zero;
 
         // Detect current screen change or monitor resolution (screen size) changed
-        public override void _PhysicsProcess(float delta) {
+        public override void _PhysicsProcess(double delta) {
             var screenSize = OS.GetScreenSize();
             if (_currentScreen != OS.CurrentScreen || screenSize != _screenSize) {
                 _screenSize = screenSize;

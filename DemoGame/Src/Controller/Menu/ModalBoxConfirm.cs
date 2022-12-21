@@ -1,86 +1,93 @@
 using System.Threading.Tasks;
-using Betauer;
+using Betauer.Animation;
 using Betauer.DI;
 using Betauer.Input;
 using Betauer.OnReady;
-using Betauer.Signal;
+using Betauer.Core.Signal;
 using Betauer.UI;
 using Godot;
 
 namespace Veronenger.Controller.Menu {
-    public class ModalBoxConfirm : Node {
-        [OnReady("Panel/VBoxContainer/Menu")]
-        private Godot.Container _menuBase;
+	public partial class ModalBoxConfirm : CanvasFaderLayer {
 
-        [OnReady("Panel/VBoxContainer/VBoxContainerDouble")]
-        private Godot.Container doubleContainer;
+		[OnReady("%ContainerDouble")]
+		private Godot.Container _containerDouble;
+		[OnReady("%DTitle")]
+		private Label _titleDouble;
+		[OnReady("%DSubtitle")]
+		private Label _subtitleDouble;
 
-        [OnReady("Panel/VBoxContainer/VBoxContainerDouble/Title")]
-        private Label _title;
-        [OnReady("Panel/VBoxContainer/VBoxContainerDouble/Subtitle")]
-        private Label _subtitle;
+		[OnReady("%ContainerSingle")]
+		private Godot.Container _containerSingle;
+		[OnReady("%STitle")]
+		private Label _titleSingle;
 
-        [OnReady("Panel/VBoxContainer/VBoxContainerSingle")]
-        private Godot.Container singleContainer;
+		[OnReady("%Accept")] private Button _acceptButton;
+		[OnReady("%Cancel")] private Button _cancelButton;
 
-        [OnReady("Panel/VBoxContainer/VBoxContainerSingle/Title")]
-        private Label _singleTitle;
+		[Inject] private InputAction UiCancel { get; set; }
 
-        [OnReady("ColorRect")] private ColorRect _colorRect;
+		private readonly TaskCompletionSource<bool> _promise = new();
 
-        private MenuContainer _menuContainer;
+		private string _titleText;
+		private string? _subtitleText;
+		private string _acceptText = "Accept";
+		private string _cancelText = "Cancel";
+		private bool _acceptIsDefault = true;
 
-        [Inject] private InputAction UiCancel { get; set; }
+		public ModalBoxConfirm Title(string title, string subtitle = null) {
+			_titleText = title;
+			_subtitleText = subtitle;
+			return this;
+		}
 
-        private readonly TaskCompletionSource<bool> _promise = new();
+		public ModalBoxConfirm Buttons(string accept, string cancel) {
+			_acceptText = accept;
+			_cancelText = cancel;
+			return this;
+		}
 
-        private string? _titleText;
-        private string? _subtitleText;
+		public ModalBoxConfirm SetAcceptIsDefault(bool acceptIsDefault) {
+			_acceptIsDefault = acceptIsDefault;
+			return this;
+		}
+		
+		public override void _Ready() {
+			// TODO i18n
+			if (_subtitleText != null) {
+				_containerSingle.Visible = false;
+				_containerDouble.Visible = true;
+				_titleDouble.Text = _titleText;
+				_subtitleDouble.Text = _subtitleText;
+			} else {
+				_containerDouble.Visible = false;
+				_containerSingle.Visible = true;
+				_titleSingle.Text = _titleText;
+			}
+			_acceptButton.Text = $"  {_acceptText}  ";
+			_cancelButton.Text = $"  {_cancelText}  ";
+			_acceptButton.OnPressed(() => SetResult(true));
+			_cancelButton.OnPressed(() => SetResult(false));
+			if (_acceptIsDefault) {
+				_acceptButton.GrabFocus();
+			} else {
+				_cancelButton.GrabFocus();
+			}
+		}
 
-        public void Title(string title, string subtitle = null) {
-            _titleText = title;
-            _subtitleText = subtitle;
-        }
+		public Task<bool> AwaitResult() {
+			return _promise.Task;
+		}
 
-        public override async void _Ready() {
-            // TODO i18n
-            if (_subtitleText != null) {
-                doubleContainer.Visible = true;
-                singleContainer.Visible = false;
-                _title.Text = _titleText;
-                _subtitle.Text = _subtitleText;
-            } else {
-                doubleContainer.Visible = false;
-                singleContainer.Visible = true;
-                _singleTitle.Text = _titleText;
-            }
+		public override void _Input(InputEvent e) {
+			if (UiCancel.IsEventJustPressed(e)) {
+				SetResult(false);
+				GetViewport().SetInputAsHandled();
+			}
+		}
 
-            _menuContainer = BuildMenu();
-            await _menuContainer.Start();
-        }
-
-        public Task<bool> AwaitResult() {
-            return _promise.Task;
-        }
-
-        public MenuContainer BuildMenu() {
-            foreach (var child in _menuBase.GetChildren()) (child as Node)?.Free();
-
-            var mainMenu = new MenuContainer(_menuBase);
-            var startMenu = mainMenu.GetRootMenu();
-            var noButton = startMenu.AddButton("No", "No");
-            var yesButton = startMenu.AddButton("Yes", "Yes");
-            noButton.OnPressed(() => _promise.TrySetResult(false));
-            yesButton.OnPressed(() => _promise.TrySetResult(true));
-            noButton!.RectMinSize = yesButton!.RectMinSize = new Vector2(60, 0);
-
-            return mainMenu;
-        }
-
-        public override void _Process(float delta) {
-            if (UiCancel.IsJustPressed()) {
-                _promise.TrySetResult(false);
-            }
-        }
-    }
+		private void SetResult(bool result) {
+			_promise.TrySetResult(result);
+		}
+	}
 }

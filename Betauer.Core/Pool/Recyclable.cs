@@ -1,7 +1,7 @@
 using System;
 using Object = Godot.Object;
 
-namespace Betauer.Pool {
+namespace Betauer.Core.Pool {
     public interface IRecyclable {
         string GetToken();
         int GetUsages();
@@ -27,7 +27,7 @@ namespace Betauer.Pool {
         }
     }
 
-    public abstract class GodotObjectRecyclable : Object, IRecyclable {
+    public abstract partial class GodotObjectRecyclable : Object, IRecyclable {
         private IObjectPool? _pool;
         private string _token;
         private int _usages;

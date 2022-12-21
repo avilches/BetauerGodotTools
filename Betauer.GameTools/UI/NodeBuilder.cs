@@ -1,5 +1,5 @@
 using System;
-using Betauer.Signal;
+using Betauer.Core.Signal;
 using Godot;
 
 namespace Betauer.UI {
@@ -70,6 +70,7 @@ namespace Betauer.UI {
             var b = new ToggleButton();
             b.Text = label;
             b.PressedIf = pressedId;
+            // TODO use Button group instead
             b.OnPressed(() => {
                 action(b);
                 b.Refresh();

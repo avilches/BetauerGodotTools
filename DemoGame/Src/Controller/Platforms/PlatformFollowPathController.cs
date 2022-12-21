@@ -1,10 +1,9 @@
 using System;
 using Godot;
-using Betauer;
-using Betauer.Nodes;
+using Betauer.Core.Nodes;
 
 namespace Veronenger.Controller.Platforms {
-	public class PlatformFollowPathController : PlatformController {
+	public partial class PlatformFollowPathController : StaticBody2D {
 
 		[Export] public float Speed = 10;
 		[Export] public PathFollow2D? PathFollow2D;
@@ -16,18 +15,17 @@ namespace Veronenger.Controller.Platforms {
 			Configure();
 		}
 
-		public override void _PhysicsProcess(float delta) {
+		public override void _PhysicsProcess(double delta) {
 			if (!Enabled) return;
 			UpdatePosition(delta);
 		}
 
 		private void Configure() {
-			PlatformManager.ConfigurePlatform(this, IsFallingPlatform, true);
 			_original = Position;
 			if (PathFollow2D == null) {
-				var path2D = this.GetNode<Path2D>();
+				var path2D = this.FirstNode<Path2D>();
 				if (path2D != null) {
-					PathFollow2D = path2D.GetNode<PathFollow2D>();
+					PathFollow2D = path2D.FirstNode<PathFollow2D>();
 				}
 			}
 
@@ -36,9 +34,9 @@ namespace Veronenger.Controller.Platforms {
 			}
 		}
 
-		private void UpdatePosition(float delta) {
+		private void UpdatePosition(double delta) {
 			Position = _original + PathFollow2D.Position;
-			PathFollow2D.Offset += Speed * delta;
+			PathFollow2D.Progress += Speed * (float)delta;
 		}
 	}
 }

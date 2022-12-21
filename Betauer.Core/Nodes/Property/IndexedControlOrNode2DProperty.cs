@@ -1,7 +1,7 @@
 using System;
 using Godot;
 
-namespace Betauer.Nodes.Property {
+namespace Betauer.Core.Nodes.Property {
     public class IndexedControlOrNode2DProperty<TProperty> : IndexedProperty<TProperty> {
         private readonly NodePath? _node2DProperty;
         private readonly NodePath? _controlProperty;

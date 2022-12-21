@@ -1,9 +1,7 @@
 using System;
 using System.Diagnostics;
-using Betauer.Animation.Tween;
 using Betauer.Tools.Logging;
-using Betauer.Memory;
-using Betauer.Signal;
+using Betauer.Core.Signal;
 using Godot;
 using Object = Godot.Object;
 
@@ -127,7 +125,7 @@ namespace Betauer.Animation {
 
         private class LoopTween : LoopStatus, IKillable {
             private readonly IAnimation _animation;
-            private SceneTreeTween _sceneTreeTween;
+            private Tween _sceneTreeTween;
 
             internal LoopTween(AnimationStack animationStack, Logger logger, string name, IAnimation animation) : base(
                 animationStack, logger, name) {
@@ -152,7 +150,7 @@ namespace Betauer.Animation {
 
         private class OnceTween : OnceStatus, IKillable {
             private readonly IAnimation _animation;
-            private SceneTreeTween _sceneTreeTween;
+            private Tween _sceneTreeTween;
 
             internal OnceTween(AnimationStack animationStack, Logger logger, string name, bool canBeInterrupted,
                 bool killPrevious, IAnimation animation) :
@@ -239,14 +237,14 @@ namespace Betauer.Animation {
             return this;
         }
 
-        public ILoopStatus AddLoopAnimation(string name) {
+        public ILoopStatus AddLoopAnimation(string name, bool pingPong = false) {
             Debug.Assert(AnimationPlayer != null, "_animationPlayer != null");
             Godot.Animation animation = AnimationPlayer.GetAnimation(name);
             if (animation == null) {
                 throw new Exception(
                     $"Animation {name} not found in AnimationPlayer {AnimationPlayer.Name}");
             }
-            animation.Loop = true;
+            animation.LoopMode = pingPong ? Godot.Animation.LoopModeEnum.Pingpong : Godot.Animation.LoopModeEnum.Linear;
             var loopAnimationStatus = new LoopAnimation(this, _logger, name, AnimationPlayer);
             _loopAnimations.Add(name, loopAnimationStatus);
             return loopAnimationStatus;
@@ -260,7 +258,7 @@ namespace Betauer.Animation {
                 throw new Exception(
                     $"Animation {name} not found in AnimationPlayer {AnimationPlayer.Name}");
             }
-            animation.Loop = false;
+            animation.LoopMode = Godot.Animation.LoopModeEnum.None;
             var onceAnimationStatus =
                 new OnceAnimation(this, _logger, name, canBeInterrupted, killPrevious, AnimationPlayer);
             _onceAnimations.Add(name, onceAnimationStatus);
@@ -394,7 +392,7 @@ namespace Betauer.Animation {
             _currentLoopAnimation?.ExecuteOnStart();
         }
 
-        private void OnceAnimationFinished(string animation) {
+        private void OnceAnimationFinished(StringName animation) {
             if (_currentOnceAnimation == null) {
                 // This could happen when a LoopAnimation is not infinite (configured as loop in the animator)
                 // This event is very unusual, but just in case, ignore it

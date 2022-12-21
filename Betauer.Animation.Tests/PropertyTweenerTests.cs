@@ -3,17 +3,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Betauer.Animation.Easing;
-using Betauer.Animation.Tween;
-using Betauer.Nodes.Property;
+using Betauer.Core.Nodes.Property;
 using Godot;
 using NUnit.Framework;
-using Betauer.Signal;
+using Betauer.Core.Signal;
 using Betauer.TestRunner;
 using Vector2 = Godot.Vector2;
 
 namespace Betauer.Animation.Tests {
     [TestFixture]
-    public class PropertyTweenerTests : NodeTest {
+    public partial class PropertyTweenerTests : NodeTest {
         [SetUp]
         public void SetUp() {
             Engine.TimeScale = 10;
@@ -29,7 +28,7 @@ namespace Betauer.Animation.Tests {
             var x = 0;
             var y = 0;
             var sequence = SequenceAnimation.Create(this)
-                .SetProcessMode(Godot.Tween.TweenProcessMode.Idle)
+                .SetProcessMode(Tween.TweenProcessMode.Idle)
                 .Callback((node) => {
                     Assert.That(node, Is.EqualTo(this));
                     y++;
@@ -76,23 +75,11 @@ namespace Betauer.Animation.Tests {
             Assert.That(e.Message, Is.EqualTo("Animation without steps"));
         }
 
-        [Test(Description = "Callback with method name")]
-        public async Task MethodCallbackWithOverloadAndParameters() {
-            var sequence = SequenceAnimation.Create(this)
-                .SetProcessMode(Godot.Tween.TweenProcessMode.Idle)
-                .Callback(this, nameof(Method))
-                .Callback(this, nameof(Method), 0, X,V,S1,S2,S3);
-
-            await sequence.Play(this).AwaitFinished();
-            Assert.That(_calls1, Is.EqualTo(1));
-            Assert.That(_calls2, Is.EqualTo(1));
-        }
-
         [Test(Description = "Callback with lambda")]
         public async Task MethodCallback() {
             int called = 0;
             var sequence = SequenceAnimation.Create(this)
-                .SetProcessMode(Godot.Tween.TweenProcessMode.Idle)
+                .SetProcessMode(Tween.TweenProcessMode.Idle)
                 .Callback(() => called++);
 
             await sequence.Play(this).AwaitFinished();

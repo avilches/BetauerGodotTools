@@ -11,12 +11,10 @@ namespace Veronenger.Character.Player {
         public float Acceleration = -1; // pixels/frame
         public float StopIfSpeedIsLessThan = 20f; // pixels/seconds
         public float Friction = 0.9f; // 0 = stop immediately 0.9 = 10 %/frame 0.99 = ice!!
+        public float FloorGravity = 1000;
 
-        public float MaxFloorGravity = 80; // pixels/seconds. This value must be high enough to climb down a slope in constant speed.
-                                           // It should match the negative vertical speed needed to climb up a slope.
-        
         // CONFIG: air
-        public float AirGravity; // pixels/frame (it's accumulative)
+        public float AirGravity; // pixels/seconds (it's accumulative)
         public float JumpSpeed;
         public float JumpSpeedMin;
 

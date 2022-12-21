@@ -3,12 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Betauer.Animation.Easing;
-using Betauer.Animation.Tween;
 using Betauer.Tools.Logging;
-using Betauer.Nodes;
-using Betauer.Nodes.Property;
-using Betauer.Nodes.Property.Callback;
-using Betauer.Signal;
+using Betauer.Core.Nodes;
+using Betauer.Core.Nodes.Property;
+using Betauer.Core.Nodes.Property.Callback;
+using Betauer.Core.Signal;
 using Godot;
 using NUnit.Framework;
 using Betauer.TestRunner;
@@ -16,7 +15,7 @@ using Vector2 = Godot.Vector2;
 
 namespace Betauer.Animation.Tests {
     [TestFixture]
-    public class PropertyTests : NodeTest {
+    public partial class PropertyTests : NodeTest {
         [SetUp]
         public void SetUp() {
             Engine.TimeScale = 10;
@@ -152,7 +151,7 @@ namespace Betauer.Animation.Tests {
             Assert.That(values1rk.Last(), Is.EqualTo(23));
         }
 
-        private float _stringProperty = 0;
+        public float _stringProperty = 0;
 
         [Test(Description = "classic string property tween")]
         public async Task StringProperty() {
@@ -289,7 +288,7 @@ namespace Betauer.Animation.Tests {
                     new Vector2(initialPosition + width * percentTo * 2, initialPosition + width * percentTo * 2)));
 
             var controlX = await CreateLabel(width);
-            controlX.RectPosition = new Vector2(initialPosition, 0);
+            controlX.Position = new Vector2(initialPosition, 0);
             await SequenceAnimation.Create()
                 .AnimateSteps(Properties.PositionBySizeX)
                 .From(percentFrom)
@@ -298,10 +297,10 @@ namespace Betauer.Animation.Tests {
                 .EndAnimate()
                 .Play(controlX)
                 .AwaitFinished();
-            Assert.That(controlX.RectPosition.x, Is.EqualTo(initialPosition + width * percentTo * 2));
+            Assert.That(controlX.Position.x, Is.EqualTo(initialPosition + width * percentTo * 2));
 
             var controlY = await CreateLabel(width);
-            controlY.RectPosition = new Vector2(0, initialPosition);
+            controlY.Position = new Vector2(0, initialPosition);
             await SequenceAnimation.Create()
                 .AnimateSteps(Properties.PositionBySizeY)
                 .From(percentFrom)
@@ -310,10 +309,10 @@ namespace Betauer.Animation.Tests {
                 .EndAnimate()
                 .Play(controlY)
                 .AwaitFinished();
-            Assert.That(controlY.RectPosition.y, Is.EqualTo(initialPosition + width * percentTo * 2));
+            Assert.That(controlY.Position.y, Is.EqualTo(initialPosition + width * percentTo * 2));
 
             var control2D = await CreateLabel(width);
-            control2D.RectPosition = new Vector2(initialPosition, initialPosition);
+            control2D.Position = new Vector2(initialPosition, initialPosition);
             await SequenceAnimation.Create()
                 .AnimateSteps(Properties.PositionBySize2D)
                 .From(new Vector2(percentFrom, percentFrom))
@@ -322,7 +321,7 @@ namespace Betauer.Animation.Tests {
                 .EndAnimate()
                 .Play(control2D)
                 .AwaitFinished();
-            Assert.That(control2D.RectPosition, Is.EqualTo(
+            Assert.That(control2D.Position, Is.EqualTo(
                 new Vector2(initialPosition + width * percentTo * 2, initialPosition + width * percentTo * 2)));
 
             var node = await CreateNode();
@@ -452,7 +451,48 @@ namespace Betauer.Animation.Tests {
         }
 
 
+        [Test(Description = "IndexedProperty compatibleWith")]
+        public async Task IndexedPropertyCompatibleWithTests() {
+            
+            IndexedSingleProperty.Cache.Clear();
+
+            Assert.Throws<ArgumentException>(() => IndexedSingleProperty.Create<Vector2>("x", typeof(Array)));
+
+            var a1 = IndexedSingleProperty.Create<Vector2>("position", typeof(Node));
+            Assert.That(a1.IsCompatibleWith(new Node()));
+            Assert.That(a1.IsCompatibleWith(new Node2D()));
+
+            var c1 = IndexedSingleProperty.Create<Vector2>("x", typeof(Control));
+            Assert.That(!c1.IsCompatibleWith(new Node()));
+            Assert.That(!c1.IsCompatibleWith(new Node2D()));
+            Assert.That(c1.IsCompatibleWith(new Control()));
+            Assert.That(c1.IsCompatibleWith(new Label()));
+
+        }
+
         public Vector2 follow;
+        
+        [Test(Description = "Custom IndexedProperty + test cache")]
+        public async Task IndexedPropertyTests() {
+            
+            IndexedSingleProperty.Cache.Clear();
+
+            var a1 = (IndexedSingleProperty<Vector2>)"position";
+            var a2 = (IndexedSingleProperty<Vector2>)"position";
+            Assert.That(a1.IsCompatibleWith(new Node()));
+            Assert.That(a1.IsCompatibleWith(new Node2D()));
+
+            Assert.That(a1 == a2);
+
+            var b1 = (IndexedSingleProperty<Vector2>)"x";
+            var b2 = (IndexedSingleProperty<Vector2>)"x";
+            Assert.That(b1 == b2);
+            Assert.That(a1 != b1);
+
+            var c1 = IndexedSingleProperty.Create<Vector2>("x", typeof(Control));
+            var c2 = IndexedSingleProperty.Create<Vector2>("x", typeof(Node2D));
+            Assert.That(c1 != c2);
+        }
 
         [Test(Description = "Custom IndexedProperty + test cache")]
         public async Task TweenPropertyBasicPropertyString() {
@@ -464,7 +504,7 @@ namespace Betauer.Animation.Tests {
             Assert.That(follow, Is.EqualTo(Vector2.Up));
 
             follow = Vector2.Zero;
-            await CreateTweenPropertyVariants(this, IndexedSingleProperty.Create<Vector2>(nameof(follow)), Vector2.Zero,
+            await CreateTweenPropertyVariants(this, IndexedSingleProperty.Create<Vector2>(nameof(follow), typeof(Node)), Vector2.Zero,
                 Vector2.Up);
             Assert.That(follow, Is.EqualTo(Vector2.Up));
             
@@ -598,7 +638,7 @@ namespace Betauer.Animation.Tests {
             sprite.Scale = original;
             // GD.Print(sprite.Offset);
             // GD.Print(sprite.GlobalPosition);
-            await this.AwaitIdleFrame();
+            await this.AwaitProcessFrame();
 
             var pivotCenterBottom = sprite.SetRotateOriginToBottomCenter();
             // GD.Print(sprite.Offset);

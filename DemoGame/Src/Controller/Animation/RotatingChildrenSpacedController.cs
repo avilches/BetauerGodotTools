@@ -1,17 +1,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
-using Betauer;
 using Betauer.Animation;
 using Betauer.Animation.Easing;
-using Betauer.Animation.Tween;
 using Betauer.Application.Monitor;
 using Betauer.DI;
-using Betauer.Nodes;
+using Betauer.Core.Nodes;
 using Veronenger.Managers;
 
 namespace Veronenger.Controller.Animation {
-    public class RotatingChildrenSpacedController : Node2D {
+    public partial class RotatingChildrenSpacedController : Node2D {
         [Export] public bool IsFallingPlatform = false;
         [Export] public Vector2 Radius = new Vector2(50, 50);
         [Export] public float RotationDuration = 4.0f;
@@ -20,14 +18,14 @@ namespace Veronenger.Controller.Animation {
 
         private List<PhysicsBody2D> _platforms;
         private SequenceAnimation _sequence;
-        private SceneTreeTween _sceneTreeTween;
+        private Tween _sceneTreeTween;
 
         // var _speed = Tau / RotationDuration;
         // _angle = Wrap(_angle + _speed * delta, 0, Tau); // Infinite rotation(in radians
         private void RotateSpaced(float angle) => RotateSpaced(_platforms, angle, Radius);
 
         public override void _Ready() {
-            _platforms = this.GetChildren<PhysicsBody2D>();
+            _platforms = this.GetChildren().OfType<PhysicsBody2D>().ToList();
             PlatformManager.ConfigurePlatformList(_platforms, IsFallingPlatform, true);
             _sequence = SequenceAnimation.Create(this)
                 .SetProcessMode(Tween.TweenProcessMode.Physics)

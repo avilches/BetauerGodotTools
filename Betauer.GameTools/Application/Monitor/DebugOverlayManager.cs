@@ -1,13 +1,14 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Betauer.Core;
 using Betauer.DI;
 using Betauer.Input;
 using Betauer.UI;
 using Godot;
 
 namespace Betauer.Application.Monitor {
-    public class DebugOverlayManager : CanvasLayer {
+    public partial class DebugOverlayManager : CanvasLayer {
 
         private int _count = 0;
         private HashSet<int> _actives = new();
@@ -40,16 +41,16 @@ namespace Betauer.Application.Monitor {
         public override void _Ready() {
             Name = "DebugOverlayManager";
             Layer = 1000000;
-            PauseMode = PauseModeEnum.Process;
+            ProcessMode = ProcessModeEnum.Always;
             Visible = false;
             this.NodeBuilder()
                 .Child(Right).
                     Config(label => {
-                        label.SetAnchorsAndMarginsPreset(Control.LayoutPreset.TopRight);
+                        label.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.TopRight);
                         label.GrowHorizontal = Control.GrowDirection.Begin;
-                        label.MarginLeft = 0;
-                        label.MarginRight = 0;
-                        label.Align = Label.AlignEnum.Right;
+                        // label.MarginLeft = 0;
+                        // label.MarginRight = 0;
+                        label.HorizontalAlignment = HorizontalAlignment.Right;
                 })
                 .End()
                 .Child(OverlayContainer)
@@ -103,7 +104,7 @@ namespace Betauer.Application.Monitor {
             }
         }
 
-        public override void _PhysicsProcess(float delta) {
+        public override void _PhysicsProcess(double delta) {
             if (!Visible) {
                 Disable();
             } else {

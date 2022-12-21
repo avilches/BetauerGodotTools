@@ -1,12 +1,12 @@
 using Godot;
 
-namespace Betauer.Restorer {
+namespace Betauer.Core.Restorer {
     public class SpritePivotOffsetRestorer : Restorer {
-        private readonly Sprite _node;
+        private readonly Sprite2D _node;
         private Vector2 _offset;
         private Vector2 _globalPosition;
 
-        public SpritePivotOffsetRestorer(Sprite node) {
+        public SpritePivotOffsetRestorer(Sprite2D node) {
             _node = node;
         }
 

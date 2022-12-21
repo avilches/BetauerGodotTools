@@ -1,4 +1,5 @@
 using System;
+using Betauer.Core.Nodes;
 using Betauer.Nodes;
 using Godot;
 using Object = Godot.Object;
@@ -40,9 +41,9 @@ namespace Betauer.Application.Monitor {
             return this;
         }
 
-        public void Update(float delta) {
+        public void Update(double delta) {
             var position = Provider.Invoke();
-            SpeedVector = (_prevPosition - position) / delta;
+            SpeedVector = (_prevPosition - position) / (float)delta;
             Speed = SpeedVector.Length();
             _prevPosition = position;
             MaxSpeed = Math.Max(MaxSpeed, Speed);

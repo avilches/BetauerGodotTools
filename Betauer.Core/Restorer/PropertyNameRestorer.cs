@@ -2,10 +2,10 @@ using System;
 using System.Linq;
 using Godot;
 
-namespace Betauer.Restorer {
+namespace Betauer.Core.Restorer {
     public class PropertyNameRestorer : Restorer {
         private readonly Node _node;
-        private object[] _values;
+        private Variant[] _values;
         private readonly NodePath[] _properties;
 
         public PropertyNameRestorer(Node node, params string[] properties) {

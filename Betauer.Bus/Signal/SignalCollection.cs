@@ -12,7 +12,7 @@ namespace Betauer.Bus.Signal {
             Name = name;
         }
 
-        protected readonly HashSet<TObject> Set = new HashSet<TObject>();
+        protected readonly HashSet<TObject> Set = new();
 
         public bool Contains(TObject o) {
             lock (Set) {

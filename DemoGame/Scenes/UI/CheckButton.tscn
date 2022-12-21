@@ -1,16 +1,16 @@
-[gd_scene load_steps=8 format=2]
+[gd_scene load_steps=7 format=3 uid="uid://bcmwxxdfmwf7a"]
 
-[ext_resource path="res://Assets/UI/Buttons/FakeButton_Normal.tres" type="StyleBox" id=2]
-[ext_resource path="res://Assets/UI/Buttons/FakeButton_Hover.tres" type="StyleBox" id=3]
-[ext_resource path="res://Assets/UI/Buttons/FakeButton_Pressed.tres" type="StyleBox" id=4]
-[ext_resource path="res://Assets/UI/Buttons/FakeButton_Disabled.tres" type="StyleBox" id=5]
-[ext_resource path="res://Assets/UI/Buttons/FakeButton_Focussed.tres" type="StyleBox" id=6]
-[ext_resource path="res://Assets/UI/Buttons/FakeButton_Hover_Pressed.tres" type="StyleBox" id=7]
+[ext_resource type="StyleBox" path="res://Assets/UI/Buttons/FakeButton_Normal.tres" id="1_xs840"]
+[ext_resource type="StyleBox" path="res://Assets/UI/Buttons/FakeButton_Pressed.tres" id="2_wlkwy"]
+[ext_resource type="StyleBox" path="res://Assets/UI/Buttons/FakeButton_Disabled.tres" id="3_ph3dn"]
+[ext_resource type="StyleBox" path="res://Assets/UI/Buttons/FakeButton_Hover.tres" id="4_rskn6"]
+[ext_resource type="StyleBox" path="res://Assets/UI/Buttons/FakeButton_Hover_Pressed.tres" id="5_5vo3d"]
+[ext_resource type="StyleBox" path="res://Assets/UI/Buttons/FakeButton_Focussed.tres" id="6_j5g3h"]
 
-[node name="CheckButton" type="CheckButton"]
-custom_styles/hover = ExtResource( 3 )
-custom_styles/pressed = ExtResource( 4 )
-custom_styles/focus = ExtResource( 6 )
-custom_styles/disabled = ExtResource( 5 )
-custom_styles/hover_pressed = ExtResource( 7 )
-custom_styles/normal = ExtResource( 2 )
+[node name="FlatCheckButton" type="CheckButton"]
+theme_override_styles/normal = ExtResource("1_xs840")
+theme_override_styles/pressed = ExtResource("2_wlkwy")
+theme_override_styles/disabled = ExtResource("3_ph3dn")
+theme_override_styles/hover = ExtResource("4_rskn6")
+theme_override_styles/hover_pressed = ExtResource("5_5vo3d")
+theme_override_styles/focus = ExtResource("6_j5g3h")

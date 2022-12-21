@@ -4,12 +4,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using Betauer;
 using Betauer.Animation;
-using Betauer.Animation.Tween;
+using Betauer.Animation;
 using Betauer.DI;
 using Betauer.Input;
 using Betauer.OnReady;
-using Betauer.Restorer;
-using Betauer.Signal;
+using Betauer.Core.Restorer;
+using Betauer.Core.Signal;
 using Betauer.UI;
 using DemoAnimation.Managers;
 using Godot;
@@ -33,7 +33,7 @@ namespace DemoAnimation.Controller.Menu {
         private Label _labelToAnimate;
 
         [OnReady("HBoxContainer/Animator/SpriteToAnimate")]
-        private Sprite _logo;
+        private Sprite2D _logo;
 
         [OnReady("HBoxContainer/Animator/TextureRectToAnimate")]
         private TextureRect _texture;
@@ -188,7 +188,7 @@ namespace DemoAnimation.Controller.Menu {
             return mainMenu;
         }
 
-        private SceneTreeTween? _effectsMenuSceneTreeTween;
+        private Tween? _effectsMenuSceneTreeTween;
         private Action? _effectsMenuOnFinish;
         private void CreateEffectsMenu(Betauer.UI.Menu effectsMenu) {
             string oldCategory = null;
@@ -231,7 +231,7 @@ namespace DemoAnimation.Controller.Menu {
         }
 
 
-        private SceneTreeTween _sceneTreeTweenDimEffect;
+        private Tween _sceneTreeTweenDimEffect;
         public void DimOut() {
             _sceneTreeTweenDimEffect?.Kill();
             _sceneTreeTweenDimEffect = Templates.FadeOut.Play(this, 0f, 1f);
@@ -297,7 +297,7 @@ namespace DemoAnimation.Controller.Menu {
             if (UiCancel.IsEventJustPressed(e)) { 
                 if (!_menuContainer.IsRootMenuActive()) {
                     _menuContainer.Back();
-                    GetTree().SetInputAsHandled();
+                    GetViewport().SetInputAsHandled();
                 }
             }
         }

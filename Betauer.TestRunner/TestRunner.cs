@@ -7,7 +7,6 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Godot;
 using NUnit.Framework;
-using NUnit.Framework.Internal;
 
 namespace Betauer.TestRunner {
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class | AttributeTargets.Assembly, AllowMultiple = false,
@@ -24,11 +23,11 @@ namespace Betauer.TestRunner {
         public static SignalAwaiter AwaitPhysicsFrame() =>
             SceneTree.ToSignal(SceneTree, "physics_frame");
 
-        public static SignalAwaiter AwaitIdleFrame(this object _) =>
-            AwaitIdleFrame();
+        public static SignalAwaiter AwaitProcessFrame(this object _) =>
+            AwaitProcessFrame();
         
-        public static SignalAwaiter AwaitIdleFrame() =>
-            SceneTree.ToSignal(SceneTree, "idle_frame");
+        public static SignalAwaiter AwaitProcessFrame() =>
+            SceneTree.ToSignal(SceneTree, "process_frame");
         
     }
 
@@ -66,9 +65,8 @@ namespace Betauer.TestRunner {
         public class TestMethod {
             private static readonly object[] EmptyParameters = { };
 
-            public readonly Stopwatch Stopwatch = new Stopwatch();
+            public readonly Stopwatch Stopwatch = new();
 
-            public readonly object FixtureInstance;
             public readonly MethodInfo Method;
 
             public Type FixtureType { get; }
@@ -82,23 +80,27 @@ namespace Betauer.TestRunner {
             public IEnumerable<MethodInfo>? TearDown { get; set; }
             public string Id { get; set; }
 
-            public TestMethod(MethodInfo method, object fixtureInstance, string? description, bool only) {
-                FixtureInstance = fixtureInstance;
+            public TestMethod(MethodInfo method, Type type, string? description, bool only) {
+                FixtureType = type;
                 Method = method;
-                FixtureType = fixtureInstance.GetType();
                 Name = method.Name;
                 Description = description;
                 Only = only;
             }
 
             public async Task Execute(SceneTree sceneTree) {
+                object? fixtureInstance = null;
+                Node? node = fixtureInstance as Node;
                 try {
                     Stopwatch.Start();
-                    if (FixtureInstance is Node node) {
+                    fixtureInstance = Activator.CreateInstance(FixtureType);
+                    node = fixtureInstance as Node;
+                    if (node != null) {
                         sceneTree.Root.AddChild(node);
+                        await TestExtensions.AwaitProcessFrame();
                     }
-                    if (Setup != null) foreach (var methodInfo in Setup) methodInfo.Invoke(FixtureInstance, EmptyParameters);
-                    var obj = Method.Invoke(FixtureInstance, EmptyParameters);
+                    if (Setup != null) foreach (var methodInfo in Setup) methodInfo.Invoke(fixtureInstance, EmptyParameters);
+                    var obj = Method.Invoke(fixtureInstance, EmptyParameters);
                     if (obj is Task task) {
                         await task;
                     } else if (obj is IEnumerator coroutine) {
@@ -107,24 +109,26 @@ namespace Betauer.TestRunner {
                             if (next is Task coTask) {
                                 await coTask;
                             } else {
-                                await TestExtensions.AwaitIdleFrame();
+                                await TestExtensions.AwaitProcessFrame();
                             }
                         }
                     }
                     Result = Result.Passed;
-                    if (TearDown != null) foreach (var methodInfo in TearDown) methodInfo.Invoke(FixtureInstance, EmptyParameters);
+                    if (TearDown != null) foreach (var methodInfo in TearDown) methodInfo.Invoke(fixtureInstance, EmptyParameters);
                 } catch (Exception e) {
                     Exception = e.InnerException ?? e;
                     Result = Result.Failed;
                     try {
-                        if (TearDown != null) foreach (var methodInfo in TearDown) methodInfo.Invoke(FixtureInstance, EmptyParameters);
+                        if (TearDown != null && fixtureInstance != null) {
+                            foreach (var methodInfo in TearDown) methodInfo.Invoke(fixtureInstance, EmptyParameters);
+                        }
                     } catch (Exception) {
                         // ignore tearDown error in failed tests
                     }
                 }
-                if (FixtureInstance is Node node2) {
-                    node2.QueueFree();
-                    await TestExtensions.AwaitIdleFrame();
+                if (Godot.Object.IsInstanceValid(node)) {
+                    node.QueueFree();
+                    await TestExtensions.AwaitProcessFrame();
                 }
                 Stopwatch.Stop();
             }
@@ -200,20 +204,13 @@ namespace Betauer.TestRunner {
                             continue;
                         }
 
-                        ConstructorInfo[] constructors = type.GetConstructors();
-                        if (constructors.Length > 0) {
-                            var testInstance = constructors[0].Invoke(null);
-                            if (testInstance != null) {
-                                var onlyThisMethod = false;
-                                if (Attribute.GetCustomAttribute(method, typeof(OnlyAttribute),
-                                        false) is OnlyAttribute) {
-                                    onlyThisMethod = true;
-                                    isAnyMethodWithOnly = true;
-                                }
-                                testMethods.Add(new TestMethod(method, testInstance, testAttribute.Description,
-                                    onlyThisMethod));
-                            }
+                        var onlyThisMethod = false;
+                        if (Attribute.GetCustomAttribute(method, typeof(OnlyAttribute),
+                                false) is OnlyAttribute) {
+                            onlyThisMethod = true;
+                            isAnyMethodWithOnly = true;
                         }
+                        testMethods.Add(new TestMethod(method, type, testAttribute.Description, onlyThisMethod));
                     } catch {
                         // Fail the test here?
                     }

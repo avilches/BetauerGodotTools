@@ -92,7 +92,7 @@ size_flags_vertical = 3
 size_flags_stretch_ratio = 0.4
 custom_styles/panel = SubResource( 2 )
 
-[node name="Anima" type="Sprite" parent="Container/SpriteContainer"]
+[node name="Anima" type="Sprite2D" parent="Container/SpriteContainer"]
 scale = Vector2( 0.5, 0.5 )
 texture = ExtResource( 2 )
 centered = false

@@ -11,7 +11,7 @@ namespace Betauer.Application.Settings {
 
     public class ResolutionTransformer : ITransformer {
         public object ToVariant(object d) => ((Resolution)d).Size;
-        public object FromVariant(object d) => new Resolution((Vector2)d);
+        public object FromVariant(object d) => new Resolution((Vector2i)d);
     }
 
     public static class Transformers {

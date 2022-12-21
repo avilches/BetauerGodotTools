@@ -1,4 +1,4 @@
-using Betauer.Signal;
+using Betauer.Core.Signal;
 using Godot;
 
 namespace Betauer.Bus.Signal {
@@ -34,59 +34,4 @@ namespace Betauer.Bus.Signal {
         }
     }
 
-    public static class BodyOnArea2DEntered {
-        public class Multicast : SignalMulticast<Area2D, Node, Node> {
-            public Multicast(string name) : base(name) {
-            }
-
-            public override SignalHandler Connect(Area2D area2D) {
-                return area2D.OnBodyEntered(target => Publish(area2D, target));
-            }
-
-            protected override bool Matches(Node e, Node detect) {
-                return e == detect;
-            }
-        }
-
-        public class Unicast : SignalUnicast<Area2D, Node, Node> {
-            public Unicast(string name) : base(name) {
-            }
-
-            public override SignalHandler Connect(Area2D area2D) {
-                return area2D.OnBodyEntered(target => Publish(area2D, target));
-            }
-
-            protected override bool Matches(Node e, Node detect) {
-                return e == detect;
-            }
-        }
-    }
-
-    public static class BodyOnArea2DExited {
-        public class Multicast : SignalMulticast<Area2D, Node, Node> {
-            public Multicast(string name) : base(name) {
-            }
-
-            public override SignalHandler Connect(Area2D area2D) {
-                return area2D.OnBodyExited(target => Publish(area2D, target));
-            }
-
-            protected override bool Matches(Node e, Node detect) {
-                return e == detect;
-            }
-        }
-
-        public class Unicast : SignalUnicast<Area2D, Node, Node> {
-            public Unicast(string name) : base(name) {
-            }
-
-            public override SignalHandler Connect(Area2D area2D) {
-                return area2D.OnBodyExited(target => Publish(area2D, target));
-            }
-
-            protected override bool Matches(Node e, Node detect) {
-                return e == detect;
-            }
-        }
-    }
 }

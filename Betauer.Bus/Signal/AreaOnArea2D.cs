@@ -1,4 +1,4 @@
-using Betauer.Signal;
+using Betauer.Core.Signal;
 using Godot;
 
 namespace Betauer.Bus.Signal {
@@ -30,62 +30,6 @@ namespace Betauer.Bus.Signal {
                 area2D.OnAreaEntered(target => OnEnter(area2D, target));
                 area2D.OnAreaExited(target => OnExit(area2D, target));
                 return this;
-            }
-        }
-    }
-
-    public static class AreaOnArea2DEntered {
-        public class Multicast : SignalMulticast<Area2D, Area2D, Area2D> {
-            public Multicast(string name) : base(name) {
-            }
-
-            public override SignalHandler Connect(Area2D area2D) {
-                return area2D.OnAreaEntered(target => Publish(area2D, target));
-            }
-
-            protected override bool Matches(Area2D e, Area2D detect) {
-                return e == detect;
-            }
-        }
-
-        public class Unicast : SignalUnicast<Area2D, Area2D, Area2D> {
-            public Unicast(string name) : base(name) {
-            }
-
-            public override SignalHandler Connect(Area2D area2D) {
-                return area2D.OnAreaEntered(target => Publish(area2D, target));
-            }
-
-            protected override bool Matches(Area2D e, Area2D detect) {
-                return e == detect;
-            }
-        }
-    }
-
-    public static class AreaOnArea2DExited {
-        public class Multicast : SignalMulticast<Area2D, Area2D, Area2D> {
-            public Multicast(string name) : base(name) {
-            }
-
-            public override SignalHandler Connect(Area2D area2D) {
-                return area2D.OnAreaExited(target => Publish(area2D, target));
-            }
-
-            protected override bool Matches(Area2D e, Area2D detect) {
-                return e == detect;
-            }
-        }
-
-        public class Unicast : SignalUnicast<Area2D, Area2D, Area2D> {
-            public Unicast(string name) : base(name) {
-            }
-
-            public override SignalHandler Connect(Area2D area2D) {
-                return area2D.OnAreaExited(target => Publish(area2D, target));
-            }
-
-            protected override bool Matches(Area2D e, Area2D detect) {
-                return e == detect;
             }
         }
     }

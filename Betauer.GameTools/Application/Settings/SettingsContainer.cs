@@ -16,7 +16,7 @@ namespace Betauer.Application.Settings {
             _configFileWrapper.Load();
         }
 
-        // Used from [PostCreate] Setting
+        // Used from [PostInject] Setting
         internal void Add(SaveSetting saveSetting) {
             Settings.Add(saveSetting);
             saveSetting.OnAddToSettingsContainer(this);

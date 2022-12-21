@@ -1,7 +1,8 @@
 using System;
-using System.Linq.Expressions;
+using Godot;
+using Expression = System.Linq.Expressions.Expression;
 
-namespace Betauer {
+namespace Betauer.Core {
     public static class EnumExtensions {
         /// <summary>
         /// Cast a generic enum to int without boxing (that means not allocating new memory during the conversion)
@@ -25,5 +26,6 @@ namespace Betauer {
                 return lambda.Compile();
             }
         }
+
     }
 }

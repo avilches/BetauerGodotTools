@@ -1,10 +1,16 @@
 # Created by https://www.toptal.com/developers/gitignore/api/godot
 # Edit at https://www.toptal.com/developers/gitignore?templates=godot
 
+.DS_Store
+
 ### Godot ###
 
 # Godot-specific ignores
-.import/
+.godot/editor/
+.godot/mono/
+.godot/shader_cache/
+.godot/.gdignore
+.godot/uid_cache.bin
 
 # Imported translations (automatically generated from CSV files)
 *.translation

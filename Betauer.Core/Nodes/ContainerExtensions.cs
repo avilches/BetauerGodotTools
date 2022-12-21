@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
-using Betauer.Restorer;
+using Betauer.Core.Restorer;
 using Godot;
 
-namespace Betauer.Nodes {
+namespace Betauer.Core.Nodes {
     public static partial class ContainerExtensions {
         /// <summary>
-        /// It loops the children (only the buttons) and fixes all the FocusNeighbour* fields, taking into account
+        /// It loops the children (only the buttons) and fixes all the FocusNeighbor* fields, taking into account
         /// if any button is disabled. It tries to find (and returns) the right button to focus, which will be always a
         /// non-disabled button. The focused button could be the <paramref name="focused">focused</paramref> parameter
         /// or, if the parameter is null, the already focused button.
@@ -37,11 +37,11 @@ namespace Betauer.Nodes {
 
                 if (previous != null) {
                     if (container is VBoxContainer) {
-                        previous.FocusNeighbourBottom = "../" + button.Name;
-                        button.FocusNeighbourTop = "../" + previous.Name;
+                        previous.FocusNeighborBottom = "../" + button.Name;
+                        button.FocusNeighborTop = "../" + previous.Name;
                     } else if (container is HBoxContainer) {
-                        previous.FocusNeighbourRight = "../" + button.Name;
-                        button.FocusNeighbourLeft = "../" + previous.Name;
+                        previous.FocusNeighborRight = "../" + button.Name;
+                        button.FocusNeighborLeft = "../" + previous.Name;
                     }
                 }
                 first ??= button;
@@ -51,11 +51,11 @@ namespace Betauer.Nodes {
 
             if (wrapButtons && first != null && last != null && first != last) {
                 if (container is VBoxContainer) {
-                    first.FocusNeighbourTop = "../" + last.Name;
-                    last.FocusNeighbourBottom = "../" + first.Name;
+                    first.FocusNeighborTop = "../" + last.Name;
+                    last.FocusNeighborBottom = "../" + first.Name;
                 } else if (container is HBoxContainer) {
-                    first.FocusNeighbourLeft = "../" + last.Name;
-                    last.FocusNeighbourRight = "../" + first.Name;
+                    first.FocusNeighborLeft = "../" + last.Name;
+                    last.FocusNeighborRight = "../" + first.Name;
                 }
             }
             return focused ?? first;
@@ -82,14 +82,14 @@ namespace Betauer.Nodes {
         public static List<T> GetVisibleControl<T>(this Container container) where T : Control{
             if (container is ScrollContainer scrollContainer) {
                 var topVisible = scrollContainer.ScrollVertical;
-                var bottomVisible = scrollContainer.RectSize.y + scrollContainer.ScrollVertical;
+                var bottomVisible = scrollContainer.Size.y + scrollContainer.ScrollVertical;
                 return scrollContainer.GetChild(0).GetChildren().OfType<T>()
                     .Where(control =>
-                        control.RectPosition.y >= topVisible &&
-                        control.RectPosition.y + control.RectSize.y <= bottomVisible)
+                        control.Position.y >= topVisible &&
+                        control.Position.y + control.Size.y <= bottomVisible)
                     .ToList();
             }
-            return container.GetChildren<T>();
+            return container.GetChildren().OfType<T>().ToList();
         }
         
         /// <summary>
@@ -98,7 +98,7 @@ namespace Betauer.Nodes {
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
         public static T? GetChildFocused<T>(this Container container) where T : Control {
-            var globalFocused = container.GetFocusOwner();
+            Control globalFocused = container.GetViewport().GuiGetFocusOwner();
             var children = container is ScrollContainer scrollContainer
                 ? scrollContainer.GetChild(0).GetChildren()
                 : container.GetChildren();
@@ -106,10 +106,10 @@ namespace Betauer.Nodes {
         }
 
         public static MarginContainer SetMargin(this MarginContainer margin, int top, int right, int bottom, int left) {
-            margin.AddConstantOverride("margin_top", top);
-            margin.AddConstantOverride("margin_right", right);
-            margin.AddConstantOverride("margin_bottom", bottom);
-            margin.AddConstantOverride("margin_left", left);
+            margin.AddThemeConstantOverride("margin_top", top);
+            margin.AddThemeConstantOverride("margin_right", right);
+            margin.AddThemeConstantOverride("margin_bottom", bottom);
+            margin.AddThemeConstantOverride("margin_left", left);
             return margin;
         }
 

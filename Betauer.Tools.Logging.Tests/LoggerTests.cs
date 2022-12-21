@@ -1,8 +1,6 @@
-using Betauer.Tools.Logging;
-using Betauer.TestRunner;
 using NUnit.Framework;
 
-namespace Betauer.Tests {
+namespace Betauer.Tools.Logging.Tests {
     [TestFixture]
     public class LoggerTests {
         [SetUp]

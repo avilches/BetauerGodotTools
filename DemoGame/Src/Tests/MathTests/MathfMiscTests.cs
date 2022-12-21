@@ -15,42 +15,42 @@ namespace Veronenger.Tests.MathTests {
             Assert.That(Mathf.Pi, Is.EqualTo(System.Math.PI).Within(0.0000001));
         }
 
-        // Mathf.Deg2Rad
+        // Mathf.DegToRad
 
         [Test]
         public void Deg2RadOf180ShouldBePI() {
-            Assert.That(Mathf.Deg2Rad(180), Is.EqualTo(Mathf.Pi).Within(marginOfError));
+            Assert.That(Mathf.DegToRad(180), Is.EqualTo(Mathf.Pi).Within(marginOfError));
         }
 
 
         [Test]
         public void Deg2RadOf270ShouldBePIAndAHalf() {
-            Assert.That(Mathf.Deg2Rad(270), Is.EqualTo(Mathf.Pi + Mathf.Pi / 2).Within(marginOfError));
+            Assert.That(Mathf.DegToRad(270), Is.EqualTo(Mathf.Pi + Mathf.Pi / 2).Within(marginOfError));
         }
 
 
         [Test]
         public void Deg2RadOf540ShouldBeThreePI() {
-            Assert.That(Mathf.Deg2Rad(540), Is.EqualTo(Mathf.Pi * 3).Within(marginOfError));
+            Assert.That(Mathf.DegToRad(540), Is.EqualTo(Mathf.Pi * 3).Within(marginOfError));
         }
 
-        // Mathf.Rad2Deg
+        // Mathf.RadToDeg
 
         [Test]
-        public void Rad2DegOfPIShouldBe180() {
-            Assert.That(Mathf.Rad2Deg(Mathf.Pi), Is.EqualTo(180).Within(marginOfError));
-        }
-
-
-        [Test]
-        public void Rad2DegOfPIAndAHalfShouldBe270() {
-            Assert.That(Mathf.Rad2Deg(Mathf.Pi + Mathf.Pi / 2), Is.EqualTo(270).Within(marginOfError));
+        public void RadToDegOfPIShouldBe180() {
+            Assert.That(Mathf.RadToDeg(Mathf.Pi), Is.EqualTo(180).Within(marginOfError));
         }
 
 
         [Test]
-        public void Rad2DegOfThreePIShouldBe540() {
-            Assert.That(Mathf.Rad2Deg(Mathf.Pi * 3), Is.EqualTo(540).Within(marginOfError));
+        public void RadToDegOfPIAndAHalfShouldBe270() {
+            Assert.That(Mathf.RadToDeg(Mathf.Pi + Mathf.Pi / 2), Is.EqualTo(270).Within(marginOfError));
+        }
+
+
+        [Test]
+        public void RadToDegOfThreePIShouldBe540() {
+            Assert.That(Mathf.RadToDeg(Mathf.Pi * 3), Is.EqualTo(540).Within(marginOfError));
         }
 
         // Mathf.Clamp

@@ -1,17 +1,22 @@
 #!/usr/bin/env make
 
-.DEFAULT_SHELL ?= /bin/bash
-.DEFAULT_GOAL  := help
-ROOT_FOLDER    := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
-include ${ROOT_FOLDER}/application.properties
-TIMESTAMP      := $(shell date "+%Y-%m-%d_%H.%M.%S")
-EXPORT_OSX     := ${ROOT_FOLDER}/export/releases/${VERSION}/${TIMESTAMP}/osx
-EXPORT_WIN     := ${ROOT_FOLDER}/export/releases/${VERSION}/${TIMESTAMP}/win
-EXPORT_LINUX   := ${ROOT_FOLDER}/export/releases/${VERSION}/${TIMESTAMP}/linux
+TARGET_PLATFORM  := "macos"
+GODOT_APP        := "/Applications/Godot-4.0.0-beta.9.app"
 
-TARGET_PLATFORM    ?= osx
-GODOT_EXECUTABLE   ?= "/Applications/Godot_mono.app/Contents/MacOS/Godot"
-GODOT_SHARP_FOLDER ?= /Applications/Godot_mono.app/Contents/Resources/GodotSharp/Api
+
+
+.DEFAULT_SHELL   ?= /bin/bash
+.DEFAULT_GOAL    := help
+ROOT_FOLDER      := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
+include ${ROOT_FOLDER}/application.properties
+TIMESTAMP        := $(shell date "+%Y-%m-%d_%H.%M.%S")
+EXPORT_OSX       := ${ROOT_FOLDER}/export/releases/${VERSION}/${TIMESTAMP}/osx
+EXPORT_WIN       := ${ROOT_FOLDER}/export/releases/${VERSION}/${TIMESTAMP}/win
+EXPORT_LINUX     := ${ROOT_FOLDER}/export/releases/${VERSION}/${TIMESTAMP}/linux
+DELAY_IMPORT     := 15
+
+GODOT_EXECUTABLE := ${GODOT_APP}/Contents/MacOS/Godot
+GODOT_LOGGER_DLL := -l:GodotTools.BuildLogger.GodotBuildLogger,/Applications/Godot-4.0.0-beta.9.app/Contents/Resources/GodotSharp/Tools/GodotTools.BuildLogger.dll;${ROOT_FOLDER}/.godot/mono/build_logs
 
 CURRENT_VERSION:= $(shell cat ${ROOT_FOLDER}/project.godot | grep "config/version" | cut -d'=' -f2| tr -d '"')
 SOLUTION:= $(shell cat ${ROOT_FOLDER}/project.godot | grep "config/name" | cut -d'=' -f2| tr -d '"')
@@ -26,7 +31,9 @@ help:
 	@echo "    test           run tests"
 	@echo "    run            run the game"
 	@echo "    editor         open the Godot editor"
-	@echo "    build          build with Configuration='Debug'"
+	@echo "    build/Debug           dotnet build with Configuration='Debug'"
+	@echo "    build/ExportDebug     dotnet build with Configuration='ExportDebug'"
+	@echo "    build/ExportRelease   dotnet build with Configuration='ExportRelease'"
 	@echo "    release        run Release.cs, it uses the [application.properties] file to bump version and fixes the project"
 	@echo "    export/osx     create binary for osx"
 	@echo "    export/win     create binary for Windows"
@@ -47,58 +54,76 @@ help:
 .PHONY: clean
 clean:
 	rm -rf "${ROOT_FOLDER}/.mono"
-
-
-	mkdir -p "${ROOT_FOLDER}/.mono/assemblies/Debug"
-	mkdir -p "${ROOT_FOLDER}/.mono/assemblies/Release"
-	cp -pr "${GODOT_SHARP_FOLDER}/Debug/"* "${ROOT_FOLDER}/.mono/assemblies/Debug"
-	cp -pr "${GODOT_SHARP_FOLDER}/Release/"* "${ROOT_FOLDER}/.mono/assemblies/Release"
+	rm -rf "${ROOT_FOLDER}/.godot/mono"
 	
 .PHONY: import
-import: clean
+import:
+# Delete and run editor
 	rm -rf "${ROOT_FOLDER}/.import"
-	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" --no-window -v --build-solutions -q
-	@echo "project.godot:"  
-	@echo "    config/version=\"${CURRENT_VERSION}\""
-	@echo "    config/name=\"${SOLUTION}\""
+	rm -rf "${ROOT_FOLDER}/.godot/imported"
+	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" --headless -v --editor & echo "$$!" > "${ROOT_FOLDER}/.godot.editor.pid"
+	@echo "Editor pid is:" 
+	@cat "${ROOT_FOLDER}/.godot.editor.pid"
+
+# Wait
+	@echo "Giving some time to the editor to create the imported files..."
+	@for (( i=${DELAY_IMPORT}; i>0; i-- )) do echo "$$i..." ; sleep 1 ; done
+
+# Kill 
+	@echo "Killing editor..." 
+	@pkill -F "${ROOT_FOLDER}/.godot.editor.pid"
+	@rm "${ROOT_FOLDER}/.godot.editor.pid"
  
-.PHONY: build
-build:
-	dotnet msbuild "${ROOT_FOLDER}/${SOLUTION}.sln" /restore /t:Build "/p:Configuration=Debug" /v:normal /p:GodotTargetPlatform=${TARGET_PLATFORM}
-	#dotnet msbuild "${ROOT_FOLDER}/${SOLUTION}.sln" /restore /t:Build "/p:Configuration=ExportDebug" /v:normal /p:GodotTargetPlatform=${TARGET_PLATFORM}
-	#dotnet msbuild "${ROOT_FOLDER}/${SOLUTION}.sln" /restore /t:Build "/p:Configuration=ExportRelease" /v:normal /p:GodotTargetPlatform=${TARGET_PLATFORM}
+.PHONY: build/Debug
+build/Debug:
+	dotnet build "${ROOT_FOLDER}/${SOLUTION}.sln" -c Debug -v normal -p:GodotTargetPlatform=${TARGET_PLATFORM} "${GODOT_LOGGER_DLL}/Debug"
 	@echo "project.godot:"  
 	@echo "    config/version=\"${CURRENT_VERSION}\""
 	@echo "    config/name=\"${SOLUTION}\""
+
+.PHONY: build/ExportDebug
+build/ExportDebug:
+	dotnet build "${ROOT_FOLDER}/${SOLUTION}.sln" -c ExportDebug -v normal -p:GodotTargetPlatform=${TARGET_PLATFORM} "${GODOT_LOGGER_DLL}/ExportDebug"
+	@echo "project.godot:"  
+	@echo "    config/version=\"${CURRENT_VERSION}\""
+	@echo "    config/name=\"${SOLUTION}\""
+
+.PHONY: build/ExportRelease
+build/ExportRelease:
+	dotnet build "${ROOT_FOLDER}/${SOLUTION}.sln" -c ExportRelease -v normal -p:GodotTargetPlatform=${TARGET_PLATFORM} "${GODOT_LOGGER_DLL}/ExportRelease"
+	@echo "project.godot:"  
+	@echo "    config/version=\"${CURRENT_VERSION}\""
+	@echo "    config/name=\"${SOLUTION}\""
+
  
 .PHONY: run
 run:
-	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}"
+	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" --verbose
 
 .PHONY: test
 test:
-	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" -s "${CSPRJ_FOLDER}/Tests/RunTests.cs" --no-window --verbose
+	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" -s "${CSPRJ_FOLDER}/Tests/RunTests.cs" --headless --verbose
 
 .PHONY: editor
 editor:
-	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" --editor
+	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" --editor --verbose
 
 .PHONY: export/osx
 export/osx: check-version
 	mkdir -p ${EXPORT_OSX} 
-	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" --no-window -v --export "Mac OSX" "${EXPORT_OSX}/${NAME}-${VERSION}.zip" 2>&1 | tee "${EXPORT_OSX}/../osx.log"
+	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" --headless -v --export "Mac OSX" "${EXPORT_OSX}/${NAME}-${VERSION}.zip" 2>&1 | tee "${EXPORT_OSX}/../osx.log"
 	unzip "${EXPORT_OSX}/${NAME}-${VERSION}.zip" -d "${EXPORT_OSX}"
 	open "${EXPORT_OSX}" 
 
 .PHONY: export/win
 export/win: check-version
 	mkdir -p ${EXPORT_WIN} 
-	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" --no-window -v --export "Windows Desktop" "${EXPORT_WIN}/${NAME}.exe" 2>&1 | tee "${EXPORT_WIN}/../win.log"
+	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" --headless -v --export "Windows Desktop" "${EXPORT_WIN}/${NAME}.exe" 2>&1 | tee "${EXPORT_WIN}/../win.log"
 
 .PHONY: export/linux 
 export/linux: check-version
 	mkdir -p ${EXPORT_LINUX} 
-	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" --no-window -v --export "Linux/X11" "${EXPORT_LINUX}/${NAME}.x86_64" 2>&1 | tee "${EXPORT_LINUX}/../linux.log"
+	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" --headless -v --export "Linux/X11" "${EXPORT_LINUX}/${NAME}.x86_64" 2>&1 | tee "${EXPORT_LINUX}/../linux.log"
 
 .PHONY: release
 release:
@@ -118,10 +143,10 @@ release:
 	@echo "Update project.godot and exports_presets.cfg?"
 	@echo "(CTRL+C to stop)"
 	@read -p ""
-	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" -s "${CSPRJ_FOLDER}/Build/Release.cs" --no-window
+	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" -s "${CSPRJ_FOLDER}/Build/Release.cs" --headless
 
 .PHONY: export/all
-export/all: clean build release export/win export/osx export/linux
+export/all: clean build/Debug release export/win export/osx export/linux
 
 check-version:
 	@echo "Checking version..."

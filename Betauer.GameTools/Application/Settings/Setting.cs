@@ -40,7 +40,7 @@ namespace Betauer.Application.Settings {
         internal object InternalValue;
         internal bool Initialized;
 
-        [PostCreate]
+        [PostInject]
         internal void ConfigureAndAddToSettingContainer() {
             SettingsContainer = _settingsContainerName != null
                 ? Container.Resolve<SettingsContainer>(_settingsContainerName)

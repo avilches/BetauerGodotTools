@@ -7,14 +7,12 @@ using Godot;
 using Container = Betauer.DI.Container;
 
 namespace Betauer.Input {
-    public class InputAction {
-        private const ButtonList InvalidMouseButton = ButtonList.MaskXbutton2;
+    public class InputAction : IAction {
+        public static NormalBuilder Create(string name) => new(name);
+        public static NormalBuilder Create(string inputActionsContainerName, string name) => new(inputActionsContainerName, name);
 
-        public static NormalBuilder Create(string name) => new NormalBuilder(name);
-        public static NormalBuilder Create(string inputActionsContainerName, string name) => new NormalBuilder(inputActionsContainerName, name);
-
-        public static ConfigurableBuilder Configurable(string name) => new ConfigurableBuilder(name);
-        public static ConfigurableBuilder Configurable(string inputActionsContainerName, string name) => new ConfigurableBuilder(inputActionsContainerName, name);
+        public static ConfigurableBuilder Configurable(string name) => new(name);
+        public static ConfigurableBuilder Configurable(string inputActionsContainerName, string name) => new(inputActionsContainerName, name);
 
         public string Name { get; }
         public InputActionsContainer InputActionsContainer { get; private set; }
@@ -46,17 +44,19 @@ namespace Betauer.Input {
         public void SimulatePress(float strength = 1f) => Godot.Input.ActionPress(Name, strength);
         public void SimulateRelease() => Godot.Input.ActionRelease(Name);
         
-        public List<JoystickList> Buttons => _buttons.ToList();
-        public List<KeyList> Keys => _keys.ToList();
-        public int Axis { get; private set; } = -1;
-        public int AxisValue { get; private set; } = 1;
+        public List<JoyButton> Buttons => _buttons.ToList();
+        public List<Key> Keys => _keys.ToList();
+        public JoyAxis Axis { get; private set; } = JoyAxis.Invalid;
+        public float AxisValue { get; private set; } = 1;
         public float DeadZone { get; private set; } = 0.5f;
+        public MouseButton MouseButton = MouseButton.None;
+
         public SaveSetting<string>? SaveSetting { get; private set; }
         
         [Inject] private Container Container { get; set; }
-        private readonly HashSet<JoystickList> _buttons = new HashSet<JoystickList>();
-        private readonly HashSet<KeyList> _keys = new HashSet<KeyList>();
-        private ButtonList _mouseButton = InvalidMouseButton;
+        [Inject] private SceneTree SceneTree { get; set; }
+        private readonly HashSet<JoyButton> _buttons = new();
+        private readonly HashSet<Key> _keys = new();
         private readonly string? _inputActionsContainerName;
         private readonly string? _settingsContainerName;
         private readonly string? _settingsSection;
@@ -74,22 +74,33 @@ namespace Betauer.Input {
             _settingsSection = settingsSection;
             if (keepProjectSettings) LoadFromProjectSettings();
         }
-        
-        public void LoadFromProjectSettings() {
-            if (!InputMap.HasAction(Name)) return;
-            foreach (var inputEvent in InputMap.GetActionList(Name))
-                if (inputEvent is InputEventKey key) AddKey((KeyList)key.Scancode);
-                else if (inputEvent is InputEventJoypadButton button) AddButton((JoystickList)button.ButtonIndex);
-                else if (inputEvent is InputEventJoypadMotion motion) {
-                    // TODO: feature missing, not tested!!!
-                    SetAxis(motion.Axis);
-                    SetAxisValue((int)motion.AxisValue);
-                }
-                else if (inputEvent is InputEventMouseButton mouseButton) SetMouse((ButtonList)mouseButton.ButtonIndex);
+
+        public DelayedAction CreateDelayed(bool processAlways = false, bool processInPhysics = false, bool ignoreTimeScale = false) {
+            return new DelayedAction(SceneTree, this, processAlways, processInPhysics, ignoreTimeScale);
         }
 
-        [PostCreate]
-        private void PostCreate() {
+        public void LoadFromProjectSettings() {
+            if (!InputMap.HasAction(Name)) {
+                GD.PushWarning($"LoadFromProjectSettings: Action {Name} not found in project");
+                return;
+            }
+            foreach (var inputEvent in InputMap.ActionGetEvents(Name)) {
+                if (inputEvent is InputEventKey key) {
+                    AddKey(key.Keycode);
+                } else if (inputEvent is InputEventJoypadButton button) {
+                    AddButton(button.ButtonIndex);
+                } else if (inputEvent is InputEventJoypadMotion motion) {
+                    // TODO: feature missing, not tested!!!
+                    SetAxis(motion.Axis);
+                    SetAxisValue(motion.AxisValue);
+                } else if (inputEvent is InputEventMouseButton mouseButton) {
+                    SetClick(mouseButton.ButtonIndex);
+                }
+            }
+        }
+
+        [PostInject]
+        private void Configure() {
             // Configure and load settings
             if (_isConfigurable) {
                 var section = _settingsSection ?? "Controls";
@@ -138,22 +149,22 @@ namespace Betauer.Input {
                 new List<InputEvent>(_keys.Count + _buttons.Count + 1);
             foreach (var key in _keys) {
                 var e = new InputEventKey();
-                e.Scancode = (uint)key;
+                e.Keycode = key;
                 events.Add(e);
             }
-            if (_mouseButton != InvalidMouseButton) {
+            if (MouseButton != MouseButton.None) {
                 var e = new InputEventMouseButton();
-                e.ButtonIndex = (int)_mouseButton;
+                e.ButtonIndex = MouseButton;
                 events.Add(e);
             }
             foreach (var button in _buttons) {
                 var e = new InputEventJoypadButton();
                 // e.Device = -1; // TODO: you can add a device id here
-                e.ButtonIndex = (int)button;
+                e.ButtonIndex = button;
                 events.Add(e);
             }
 
-            if (Axis > -1 && AxisValue != 0) {
+            if (Axis != JoyAxis.Invalid && AxisValue != 0) {
                 var axisEvent = new InputEventJoypadMotion();
                 axisEvent.Device = -1; // TODO: you can add a device id here
                 axisEvent.Axis = Axis;
@@ -163,13 +174,13 @@ namespace Betauer.Input {
             return events;
         }
 
-        public InputAction SetMouse(ButtonList mouseButton) {
-            _mouseButton = mouseButton;
+        public InputAction SetClick(MouseButton mouseButton) {
+            MouseButton = mouseButton;
             return this;
         }
 
         public InputAction ClearMouse() {
-            _mouseButton = InvalidMouseButton;
+            MouseButton = MouseButton.None;
             return this;
         }
 
@@ -178,12 +189,12 @@ namespace Betauer.Input {
             return this;
         }
 
-        public InputAction SetAxis(int axis) {
+        public InputAction SetAxis(JoyAxis axis) {
             Axis = axis;
             return this;
         }
 
-        public InputAction SetAxisValue(int axisValue) {
+        public InputAction SetAxisValue(float axisValue) {
             AxisValue = axisValue;
             return this;
         }
@@ -198,41 +209,54 @@ namespace Betauer.Input {
             return this;
         }
 
-        public bool HasKey(KeyList key) {
+        public InputAction ClearAxis() {
+            SetAxis(JoyAxis.Invalid);
+            return this;
+        }
+
+        public bool HasMouseButton() {
+            return MouseButton != MouseButton.None;
+        }
+
+        public bool HasAxis() {
+            return Axis != JoyAxis.Invalid;
+        }
+
+        public bool HasKey(Key key) {
             return _keys.Contains(key);
         }
 
-        public bool HasButton(JoystickList button) {
+        public bool HasButton(JoyButton button) {
             return _buttons.Contains(button);
         }
 
-        public InputAction RemoveKey(KeyList key) {
+        public InputAction RemoveKey(Key key) {
             _keys.Remove(key);
             return this;
         }
 
-        public InputAction RemoveButton(JoystickList button) {
+        public InputAction RemoveButton(JoyButton button) {
             _buttons.Remove(button);
             return this;
         }
 
-        public InputAction AddKey(KeyList key) {
+        public InputAction AddKey(Key key) {
             _keys.Add(key);
             return this;
         }
 
-        public InputAction AddButton(JoystickList button) {
+        public InputAction AddButton(JoyButton button) {
             _buttons.Add(button);
             return this;
         }
 
-        public InputAction AddKeys(params KeyList[] keys) {
-            keys.ForEach(key => AddKey(key));
+        public InputAction AddKeys(params Key[] keys) {
+            Array.ForEach(keys, key => AddKey(key));
             return this;
         }
 
-        public InputAction AddButtons(params JoystickList[] buttons) {
-            buttons.ForEach(button => AddButton(button));
+        public InputAction AddButtons(params JoyButton[] buttons) {
+            Array.ForEach(buttons, button => AddButton(button));
             return this;
         }
 
@@ -257,35 +281,61 @@ namespace Betauer.Input {
         public string Export() {
             var export = new List<string>(_keys.Count + _buttons.Count + 1);
             export.AddRange(_keys.Select(key => $"Key:{key}"));
-            export.AddRange(_buttons.Select(button => $"Button:{(int)button}"));
-            if (Axis > -1) {
-                export.Add("Axis:"+Axis);
+            export.AddRange(_buttons.Select(button => $"Button:{button}"));
+            if (Axis != JoyAxis.Invalid) {
+                export.Add($"Axis:{(int)Axis}");
             }
             return string.Join(",", export);
         }
 
         public InputAction Import(string export) {
             if (string.IsNullOrWhiteSpace(export)) return this;
-            ClearButtons().ClearKeys();
+            ClearButtons().ClearKeys().ClearAxis();
             export.Split(",").ToList().ForEach(ImportItem);
             return this;
         }
 
         private void ImportItem(string item) {
-            if (!item.Contains(":")) return;
+            if (!item.Contains(':')) return;
             var parts = item.Split(":");
             var key = parts[0].ToLower().Trim();
             var value = parts[1].Trim();
             if (key == "key") {
-                try {
-                    var keyList = Parse<KeyList>(value);
-                    AddKey(keyList);
-                } catch (Exception) {
-                }
+                ImportKey(value);
             } else if (key == "button") {
-                if (value.IsValidInteger()) AddButton((JoystickList)value.ToInt());
+                ImportButton(value);
             } else if (key == "axis") {
-                if (value.IsValidInteger()) SetAxis(value.ToInt());
+                ImportAxis(value);
+            }
+        }
+
+        private bool ImportKey(string value) {
+            try {
+                var key = int.TryParse(value, out _) ? (Key)value.ToInt() : Parse<Key>(value); 
+                AddKey(key);
+                return true;
+            } catch (Exception) {
+                return false;
+            }
+        }
+
+        private bool ImportButton(string value) {
+            try {
+                var joyButton = int.TryParse(value, out _) ? (JoyButton)value.ToInt() : Parse<JoyButton>(value); 
+                AddButton(joyButton);
+                return true;
+            } catch (Exception) {
+                return false;
+            }
+        }
+
+        private bool ImportAxis(string value) {
+            try {
+                var axis = int.TryParse(value, out _) ? (JoyAxis)value.ToInt() : Parse<JoyAxis>(value); 
+                SetAxis(axis);
+                return true;
+            } catch (Exception) {
+                return false;
             }
         }
 
@@ -294,14 +344,14 @@ namespace Betauer.Input {
         public abstract class Builder<TBuilder> where TBuilder : class {
             protected readonly string _name;
             protected readonly string _inputActionsContainerName;
-            protected readonly ISet<JoystickList> _buttons = new HashSet<JoystickList>();
-            protected readonly ISet<KeyList> _keys = new HashSet<KeyList>();
-            protected int _axis = -1;
-            protected int _axisValue = 0;
+            protected readonly ISet<JoyButton> _buttons = new HashSet<JoyButton>();
+            protected readonly ISet<Key> _keys = new HashSet<Key>();
+            protected JoyAxis _axis = JoyAxis.Invalid;
+            protected float _axisValue = 0;
             protected string? _oppositeActionName;
             protected float _deadZone = -1f;
-            protected bool _keepProjectSettings = true;
-            protected ButtonList _mouseButton = InvalidMouseButton;
+            protected bool _keepProjectSettings = false;
+            protected MouseButton _mouseButton = MouseButton.None;
 
             internal Builder(string name) {
                 _name = name;
@@ -317,14 +367,14 @@ namespace Betauer.Input {
                 return this as TBuilder;
             }
 
-            public TBuilder NegativeAxis(int axis, string positiveActionName) {
+            public TBuilder NegativeAxis(JoyAxis axis, string positiveActionName) {
                 _axis = axis;
                 _axisValue = -1;
                 _oppositeActionName = positiveActionName;
                 return this as TBuilder;
             }
 
-            public TBuilder PositiveAxis(int axis, string negativeActionName) {
+            public TBuilder PositiveAxis(JoyAxis axis, string negativeActionName) {
                 _axis = axis;
                 _axisValue = 1;
                 _oppositeActionName = negativeActionName;
@@ -336,19 +386,39 @@ namespace Betauer.Input {
                 return this as TBuilder;
             } 
 
-            public TBuilder Keys(params KeyList[] keys) {
-                keys.ForEach(key => _keys.Add(key));
+            public TBuilder Keys(params Key[] keys) {
+                Array.ForEach(keys, key => _keys.Add(key));
                 return this as TBuilder;
             }
 
-            public TBuilder Buttons(params JoystickList[] buttons) {
-                buttons.ForEach(button => _buttons.Add(button));
+            public TBuilder Buttons(params JoyButton[] buttons) {
+                Array.ForEach(buttons, button => _buttons.Add(button));
                 return this as TBuilder;
             }
 
-            public TBuilder Mouse(ButtonList mouseButton) {
+            public TBuilder Click(MouseButton mouseButton) {
                 _mouseButton = mouseButton;
                 return this as TBuilder;
+            }
+            
+            protected InputAction Build(InputAction inputAction) {
+                if (_axis != JoyAxis.Invalid) {
+                    inputAction.SetAxis(_axis);
+                    inputAction.SetAxisValue(_axisValue);
+                }
+                if (_deadZone >= 0f) {
+                    inputAction.SetDeadZone(_deadZone);
+                }
+                if (_mouseButton != MouseButton.None) {
+                    inputAction.SetClick(_mouseButton);
+                }
+                if (_keys.Count > 0) {
+                    inputAction.AddKeys(_keys.ToArray());
+                }
+                if (_buttons.Count > 0) {
+                    inputAction.AddButtons(_buttons.ToArray());
+                }
+                return inputAction;
             }
         }
 
@@ -362,14 +432,8 @@ namespace Betauer.Input {
             }
 
             public InputAction Build() {
-                return new InputAction(_inputActionsContainerName, _name, _oppositeActionName, _keepProjectSettings,
-                        false, null, null)
-                    .SetAxis(_axis)
-                    .SetAxisValue(_axisValue)
-                    .SetDeadZone(_deadZone)
-                    .SetMouse(_mouseButton)
-                    .AddKeys(_keys.ToArray())
-                    .AddButtons(_buttons.ToArray());
+                return Build(new InputAction(_inputActionsContainerName, _name, _oppositeActionName,
+                    _keepProjectSettings, false, null, null));
             }
         }
         
@@ -395,59 +459,9 @@ namespace Betauer.Input {
             }
 
             public InputAction Build() {
-                return new InputAction(_inputActionsContainerName, _name, _oppositeActionName, _keepProjectSettings, 
-                        true, _settingsContainerName, _settingsSection)
-                    .SetAxis(_axis)
-                    .SetAxisValue(_axisValue)
-                    .SetDeadZone(_deadZone)
-                    .SetMouse(_mouseButton)
-                    .AddKeys(_keys.ToArray())
-                    .AddButtons(_buttons.ToArray());
+                return Build(new InputAction(_inputActionsContainerName, _name, _oppositeActionName,
+                    _keepProjectSettings, true, _settingsContainerName, _settingsSection));
             }
-        }
-    }
-
-    public class AxisAction {
-        public readonly string NegativeName;
-        public readonly string PositiveName;
-
-        public float Strength => Godot.Input.GetAxis(NegativeName, PositiveName);
-
-        internal AxisAction(string negativeName, string positiveName) {
-            NegativeName = negativeName;
-            PositiveName = positiveName;
-        }
-
-        public bool IsRightEventPressed(InputEvent e, bool echo = false) {
-            return e.IsActionPressed(PositiveName, echo);
-        }
-
-        public bool IsLeftEventPressed(InputEvent e, bool echo = false) {
-            return e.IsActionPressed(NegativeName, echo);
-        }
-        
-        public bool IsRightEventReleased(InputEvent e, bool echo = false) {
-            return e.IsActionReleased(PositiveName, echo);
-        }
-
-        public bool IsLeftEventReleased(InputEvent e, bool echo = false) {
-            return e.IsActionReleased(NegativeName, echo);
-        }
-
-        public bool IsDownEventPressed(InputEvent e, bool echo = false) {
-            return e.IsActionPressed(PositiveName, echo);
-        }
-
-        public bool IsUpEventPressed(InputEvent e, bool echo = false) {
-            return e.IsActionPressed(NegativeName, echo);
-        }
-        
-        public bool IsDownEventReleased(InputEvent e, bool echo = false) {
-            return e.IsActionReleased(PositiveName, echo);
-        }
-
-        public bool IsUpEventReleased(InputEvent e, bool echo = false) {
-            return e.IsActionReleased(NegativeName, echo);
         }
     }
 }

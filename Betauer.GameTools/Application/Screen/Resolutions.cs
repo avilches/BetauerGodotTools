@@ -4,9 +4,16 @@ using Godot;
 
 namespace Betauer.Application.Screen {
     public static class Resolutions {
-        private static readonly List<Resolution> _all = new List<Resolution>();
+        private static readonly List<Resolution> _all = new();
 
-        // 16:9 https://en.wikipedia.org/wiki/16:9_aspect_ratio
+        // 4:3 (1.33) https://www.videoproc.com/video-process/4-3-resolutions.htm 
+        public static Resolution QVGA = AddToAll(new Resolution(320, 240));
+        public static Resolution VGA = AddToAll(new Resolution(640, 480));
+        public static Resolution SVGA = AddToAll(new Resolution(800, 600));
+        public static Resolution XGA = AddToAll(new Resolution(1024, 768));
+        public static Resolution UXGA = AddToAll(new Resolution(1600, 1200));
+        
+        // 16:9 (1.77) https://en.wikipedia.org/wiki/16:9_aspect_ratio
         public static Resolution FULLHD_DIV6 = AddToAll(new Resolution(320, 180)); // 1920x1080 / 6
         public static Resolution FULLHD_DIV4 = AddToAll(new Resolution(480, 270)); // 1920x1080 / 4
         public static Resolution FULLHD_DIV2 = AddToAll(new Resolution(960, 540)); // 1920x1080 / 2
@@ -19,7 +26,7 @@ namespace Betauer.Application.Screen {
         public static Resolution FULLHD_DIV1_2 = AddToAll(new Resolution(1600, 900)); // 1920x1080 / 1.2
         public static Resolution FULLHD_DIV3 = AddToAll(new Resolution(640, 360)); // 1920x1080 / 3
 
-        // 16:10 https://en.wikipedia.org/wiki/16:10_aspect_ratio
+        // 16:10 (1.6) https://en.wikipedia.org/wiki/16:10_aspect_ratio
         public static Resolution R1610SMALL1 = AddToAll(new Resolution(640, 400));
         public static Resolution R1610SMALL2 = AddToAll(new Resolution(960, 600));
         public static Resolution WXGA = AddToAll(new Resolution(1280, 800));
@@ -29,19 +36,19 @@ namespace Betauer.Application.Screen {
         public static Resolution WQXGA = AddToAll(new Resolution(2560, 1600));
         public static Resolution WQUXGA = AddToAll(new Resolution(3840, 2400));
 
-        // 21:9 https://en.wikipedia.org/wiki/21:9_aspect_ratio
-        // 64:27	2.370
+        // 21:9 (2.333) https://en.wikipedia.org/wiki/21:9_aspect_ratio
+        // 64:27 (2.370)
         public static Resolution UWDIE237_0 = AddToAll(new Resolution(2560, 1080));
         public static Resolution UWDIE237_1 = AddToAll(new Resolution(5120, 2160));
         public static Resolution UWDIE237_2 = AddToAll(new Resolution(7680, 3240));
         public static Resolution UWDIE237_3 = AddToAll(new Resolution(10240, 4320));
 
-        // 43:18	2.38
+        // 43:18 (2.38)
         public static Resolution UWDI238_0 = AddToAll(new Resolution(3440, 1440));
         public static Resolution UWDI238_1 = AddToAll(new Resolution(5160, 2160));
         public static Resolution UWDI238_2 = AddToAll(new Resolution(6880, 2880));
 
-        //	12:5	2.4
+        //	12:5 (2.4)
         public static Resolution UWDIE24_0 = AddToAll(new Resolution(1920, 800));
         public static Resolution UWDIE24_1 = AddToAll(new Resolution(2880, 1200));
         public static Resolution UWDIE24_2 = AddToAll(new Resolution(3840, 1600));
@@ -73,7 +80,7 @@ namespace Betauer.Application.Screen {
         /// <param name="aspectRatios"></param>
         /// <returns></returns>
         public static List<ScaledResolution> ExpandResolutionByWith(this Resolution from, Resolution baseResolution, IEnumerable<AspectRatio> aspectRatios, Resolution? maxSize = null) {
-            if (maxSize == null) maxSize = new Resolution(OS.GetScreenSize());
+            if (maxSize == null) maxSize = new Resolution(DisplayServer.ScreenGetSize());
             var maxScale = Resolution.CalculateMaxScale(from.Size, maxSize.Size);
             List<ScaledResolution> resolutions = new List<ScaledResolution>();
             for (var scale = 1; scale <= maxScale; scale++) {
@@ -92,7 +99,7 @@ namespace Betauer.Application.Screen {
                             // 2520x1080 = 2,3333 21:9
                             var newWidth = scaledResolution.y * aspectRatio.Ratio;
                             if (newWidth <= maxSize.x) {
-                                var newResolution = new Vector2(newWidth, scaledResolution.y);
+                                var newResolution = new Vector2i((int)newWidth, scaledResolution.y);
                                 var scaledResolutionUpdated = new ScaledResolution(baseResolution.Size, newResolution);
                                 resolutions.Add(scaledResolutionUpdated);
                             }
@@ -104,7 +111,7 @@ namespace Betauer.Application.Screen {
                             // 1920x1440 = 1,3333 3:4
                             var newHeight = scaledResolution.x / aspectRatio.Ratio;
                             if (newHeight <= maxSize.y) {
-                                var newResolution = new Vector2(scaledResolution.x, newHeight);
+                                var newResolution = new Vector2i(scaledResolution.x, (int)newHeight);
                                 var scaledResolutionUpdated = new ScaledResolution(baseResolution.Size, newResolution);
                                 resolutions.Add(scaledResolutionUpdated);
                             }
@@ -116,7 +123,7 @@ namespace Betauer.Application.Screen {
         }
 
         public static IEnumerable<Resolution> Clamp(this IEnumerable<Resolution> resolutions, Vector2 min) {
-            return Clamp(resolutions, min, OS.GetScreenSize());
+            return Clamp(resolutions, min, DisplayServer.ScreenGetSize());
         }
 
         public static IEnumerable<Resolution> Clamp(this IEnumerable<Resolution> resolutions, Vector2 min, Vector2 max) {

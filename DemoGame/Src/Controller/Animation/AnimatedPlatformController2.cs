@@ -1,23 +1,21 @@
 using Godot;
 using Betauer.Animation.Easing;
-using Betauer.Animation.Tween;
+using Betauer.Animation;
 using Betauer.Application.Monitor;
 using Betauer.DI;
-using Betauer.Nodes.Property;
+using Betauer.Core.Nodes.Property;
 using Veronenger.Managers;
 
 namespace Veronenger.Controller.Animation {
-    public class AnimatedPlatformController2 : KinematicBody2D {
-        [Export] public bool IsFallingPlatform = false;
+    public partial class AnimatedPlatformController2 : CharacterBody2D {
         [Inject] public PlatformManager PlatformManager { get; set;}
         [Inject] public DebugOverlayManager DebugOverlayManager { get; set;}
-        private SceneTreeTween _sceneTreeTween;
+        private Tween _sceneTreeTween;
         private Vector2 _original;
 
         public override void _Ready() {
             // DebugOverlayManager.Overlay(this).GraphSpeed().SetChartSize(200, 50);
             
-            PlatformManager.ConfigurePlatform(this, IsFallingPlatform, true);
             _original = Position;
 
             _sceneTreeTween = SequenceAnimation.Create()

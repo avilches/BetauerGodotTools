@@ -11,7 +11,7 @@ namespace Veronenger.Tests.StructTests {
 
         [SetUp]
         public void SetUp() {
-            b = new Basis(Quat.Identity);
+            b = new Basis(Quaternion.Identity);
         }
 
         // Z value after Rotations

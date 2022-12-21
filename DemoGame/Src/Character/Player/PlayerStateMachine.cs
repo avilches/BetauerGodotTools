@@ -1,18 +1,21 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Betauer;
 using Betauer.Application.Monitor;
 using Betauer.DI;
 using Betauer.DI.ServiceProvider;
 using Betauer.Input;
 
-using Betauer.StateMachine;
 using Betauer.StateMachine.Sync;
-using Betauer.Time;
+using Betauer.Core.Time;
+using Godot;
+using Veronenger.Character.Handler;
 using Veronenger.Controller.Character;
 using Veronenger.Managers;
 
 namespace Veronenger.Character.Player {
-    
+
     public enum PlayerState {
         Idle,
         Landing,
@@ -30,49 +33,53 @@ namespace Veronenger.Character.Player {
     }
 
     [Service(Lifetime.Transient)]
-    public class PlayerStateMachine : StateMachineNodeSync<PlayerState, PlayerEvent> {
-        public PlayerStateMachine() : base(PlayerState.Idle, "Player.StateMachine", ProcessMode.Physics) {
+    public partial class PlayerStateMachine : StateMachineNodeSync<PlayerState, PlayerEvent> {
+        public PlayerStateMachine() : base(PlayerState.Idle, "Player.StateMachine", true) {
         }
 
+        [Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
         [Inject] private PlatformManager PlatformManager { get; set;}
+        
         [Inject] public PlayerConfig PlayerConfig { get; set;}
-        [Inject] private InputAction Left { get; set;}
-        [Inject] private InputAction Up { get; set;}
-        [Inject] private InputAction Jump { get; set;}
-        [Inject] private InputAction Attack { get; set;}
-        [Inject] private InputAction Float { get; set;}
         [Inject] public KinematicPlatformMotion Body { get; set; }
+        [Inject] private SceneTree SceneTree { get; set; }
+        [Inject] private Bus Bus { get; set; }
+        [Inject] private InputActionCharacterHandler Handler { get; set; }
 
-        private PlayerController _player;
+        private PlayerNode _player;
 
-        // Input from the player
-        private AxisAction LateralMotion => Left.AxisAction;
-        private AxisAction VerticalMotion => Up.AxisAction;
-        private float XInput => LateralMotion.Strength;
-        private float YInput => VerticalMotion.Strength;
-        private bool IsRight => XInput > 0;
-        private bool IsLeft => XInput < 0;
-        private bool IsPressingUp => YInput < 0;
-        private bool IsPressingDown => YInput > 0;
+        private float XInput => Handler.Directional.XInput;
+        private float YInput => Handler.Directional.YInput;
+        private bool IsPressingRight => Handler.Directional.IsPressingRight;
+        private bool IsPressingLeft => Handler.Directional.IsPressingLeft;
+        private bool IsPressingUp => Handler.Directional.IsPressingUp;
+        private bool IsPressingDown => Handler.Directional.IsPressingDown;
+        private IAction Jump => Handler.Jump;
+        private IAction Attack => Handler.Attack;
+        private IAction Float => Handler.Float;
+        
         private float MotionX => Body.MotionX;
         private float MotionY => Body.MotionY;
 
-        [Inject] private GodotStopwatch LastJumpOnAirTimer { get; set; }
-        [Inject] private GodotStopwatch CoyoteFallingTimer { get; set; }
-        [Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
-        [Inject] private Bus Bus { get; set; }
 
-        private bool IsOnPlatform() => PlatformManager.IsPlatform(Body.GetFloor());
-        private bool IsOnFallingPlatform() => PlatformManager.IsFallingPlatform(Body.GetFloor());
-        private bool IsMovingPlatform() => PlatformManager.IsMovingPlatform(Body.GetFloor());
+        // private bool IsOnPlatform() => PlatformManager.IsPlatform(Body.GetFloor());
+        private bool IsOnFallingPlatform() => Body.IsOnFloor() && PlatformManager.IsFallingPlatform(Body.GetFloorColliders<PhysicsBody2D>().FirstOrDefault());
+        // private bool IsMovingPlatform() => PlatformManager.IsMovingPlatform(Body.GetFloor());
         private MonitorText? _coyoteMonitor;
         private MonitorText? _jumpHelperMonitor;
+        private DelayedAction _delayedJump;
+        private readonly GodotStopwatch _coyoteFallingTimer = new GodotStopwatch();
+        
+        public void Start(string name, PlayerNode playerNode, IFlipper flippers, List<RayCast2D> floorRaycasts) {
+            _player = playerNode;
+            _delayedJump = ((InputAction)Jump).CreateDelayed();
+            playerNode.AddChild(this);
 
-        public void Start(string name, PlayerController playerController, IFlipper flippers) {
-            _player = playerController;
-
-            Body.Configure(name, playerController, flippers, _player.FloorRaycasts, _player.SlopeRaycast, _player.Position2D, MotionConfig.SnapToFloorVector, MotionConfig.FloorUpDirection);
-            Body.ConfigureGravity(PlayerConfig.AirGravity, PlayerConfig.MaxFallingSpeed, PlayerConfig.MaxFloorGravity);
+            Body.Configure(name, playerNode, flippers, _player.Marker2D, MotionConfig.FloorUpDirection, floorRaycasts);
+            playerNode.FloorStopOnSlope = true;
+            // playerController.FloorBlockOnWall = true;
+            playerNode.FloorConstantSpeed = true;
+            playerNode.FloorSnapLength = MotionConfig.SnapLength;
             
             AddOnExecuteStart((delta, _) => Body.SetDelta(delta));
             AddOnTransition(args => Console.WriteLine(args.To));
@@ -81,13 +88,13 @@ namespace Veronenger.Character.Player {
             AirStates();
 
             var debugOverlay = DebugOverlayManager.Overlay(_player);
-            debugOverlay.Text("JumpHelperTimer", () => LastJumpOnAirTimer.ToString());
             _jumpHelperMonitor = debugOverlay.Text("JumpHelper");
-            debugOverlay.Text("CoyoteFallingTimer", () => CoyoteFallingTimer.ToString());
+            debugOverlay.Text("CoyoteFallingTimer", () => _coyoteFallingTimer.ToString());
             _coyoteMonitor = debugOverlay.Text("Coyote");
 
             debugOverlay
                 .Text("State", () => CurrentState.Key.ToString()).EndMonitor()
+                .SetMaxSize(1000, 1000)
                 .OpenBox()
                     .Vector("Motion", () => Body.Motion, PlayerConfig.MaxSpeed).SetChartWidth(100).EndMonitor()
                     .Graph("MotionX", () => Body.MotionX, -PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed).AddSeparator(0)
@@ -95,10 +102,28 @@ namespace Veronenger.Character.Player {
                 .CloseBox()
                 .Graph("Floor", () => Body.IsOnFloor()).Keep(10).SetChartHeight(10)
                     .AddSerie("Slope").Load(() => Body.IsOnSlope()).EndSerie().EndMonitor()
-                .GraphSpeed("Speed", PlayerConfig.JumpSpeed*2).EndMonitor()
+                .GraphSpeed("Speed", _player , PlayerConfig.JumpSpeed*2, "000").EndMonitor()
                 .Text("Floor", () => Body.GetFloorCollisionInfo()).EndMonitor()
                 .Text("Ceiling", () => Body.GetCeilingCollisionInfo()).EndMonitor()
-                .Text("Wall", () => Body.GetWallCollisionInfo());
+                .Text("Wall", () => Body.GetWallCollisionInfo()).EndMonitor()
+                .Disable();
+            
+            
+            // debugOverlay.AddChild(new Consol);
+        }
+
+        public void ApplyFloorGravity(float factor = 1.0F) {
+            Body.ApplyGravity(PlayerConfig.FloorGravity * factor, PlayerConfig.MaxFallingSpeed);
+        }
+
+        public void ApplyAirGravity(float factor = 1.0F) {
+            Body.ApplyGravity(PlayerConfig.AirGravity * factor, PlayerConfig.MaxFallingSpeed);
+        }
+
+        public override void _Notification(long what) {
+            if (what == NotificationPredelete) {
+                _delayedJump?.Dispose();
+            }
         }
 
         public void GroundStates() {
@@ -109,41 +134,33 @@ namespace Veronenger.Character.Player {
                 return true;
             }
 
-            void EnableSlopeStairs() {
-                if (_player.IsOnSlopeStairsDown()) {
-                    if (IsPressingUp) {
-                        _player.EnableSlopeStairs();
-                    } else {
-                        _player.DisableSlopeStairs();
-                    }
-                } else if (_player.IsOnSlopeStairsUp()) {
-                    if (IsPressingDown) {
-                        _player.EnableSlopeStairs();
-                    } else {
-                        _player.DisableSlopeStairs();
-                    }
-                }
+            PhysicsBody2D? fallingPlatform = null;
+            void FallFromPlatform() {
+                fallingPlatform = Body.GetFloorCollider<PhysicsBody2D>()!;
+                PlatformManager.RemovePlatformCollision(fallingPlatform);
+            }
+
+            void FinishFallFromPlatform() {
+                 if (fallingPlatform != null) PlatformManager.ConfigurePlatformCollision(fallingPlatform);
             }
 
             On(PlayerEvent.Death).Then(ctx => ctx.Set(PlayerState.Death));
 
+            var jumpJustInTime = false;
             State(PlayerState.Landing)
                 .Enter(() => {
-                    CoyoteFallingTimer.Stop(); // not really needed, but less noise in the debug overlay
-                    PlatformManager.BodyStopFallFromPlatform(_player);
+                    FinishFallFromPlatform();
+                    _coyoteFallingTimer.Stop(); // not really needed, but less noise in the debug overlay
+                    jumpJustInTime = _delayedJump.WasPressed(PlayerConfig.JumpHelperTime);
                 })
                 .Execute(() => {
-                    if (LastJumpOnAirTimer.IsRunning) {
-                        if (LastJumpOnAirTimer.Elapsed <= PlayerConfig.JumpHelperTime) {
-                            _jumpHelperMonitor?.Show($"{LastJumpOnAirTimer.Elapsed.ToString()} <= {PlayerConfig.JumpHelperTime.ToString()} Done!");
-                        } else {
-                            // The timer acts like a flag: if running, the player can jump, if stopped, the player can't
-                            LastJumpOnAirTimer.Stop();
-                            _jumpHelperMonitor?.Show($"{LastJumpOnAirTimer.Elapsed.ToString()} > {PlayerConfig.JumpHelperTime.ToString()} TOO MUCH TIME");
-                        }
+                    if (jumpJustInTime) {
+                        _jumpHelperMonitor?.Show($"{_delayedJump.LastPressed} <= {PlayerConfig.JumpHelperTime.ToString()} Done!");
+                    } else {
+                        _jumpHelperMonitor?.Show($"{_delayedJump.LastPressed} > {PlayerConfig.JumpHelperTime.ToString()} TOO MUCH TIME");
                     }
                 })
-                .If(() => LastJumpOnAirTimer.IsRunning).Set(PlayerState.Jump)
+                .If(() => jumpJustInTime).Set(PlayerState.Jump)
                 .If(() => XInput == 0).Set(PlayerState.Idle)
                 .If(() => true).Set(PlayerState.Run)
                 .Build();
@@ -151,25 +168,22 @@ namespace Veronenger.Character.Player {
             State(PlayerState.Idle)
                 .Enter(() => {
                     _player.AnimationIdle.PlayLoop();
-                    if (Body.IsOnSlope()) {
-                        // Stop go down fast when the player lands in a slope
-                        Body.MotionX = 0;
-                    }
                 })
                 .Execute(() => {
                     CheckGroundAttack();
+                    ApplyFloorGravity();
                     Body.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
                 })
                 .If(() => !Body.IsOnFloor()).Set(PlayerState.FallShort)
                 .If(() => Jump.IsJustPressed() && IsPressingDown && IsOnFallingPlatform()).Then(
                     context => {
-                        PlatformManager.BodyFallFromPlatform(_player);
+                        FallFromPlatform();
                         return context.Set(PlayerState.FallShort);
                     })
                 .If(() => Jump.IsJustPressed()).Set(PlayerState.Jump)
                 .If(() => XInput != 0).Set(PlayerState.Run)
                 .Build();
-                
+
             State(PlayerState.Run)
                 .Enter(() => {
                     _player.AnimationRun.PlayLoop();
@@ -177,25 +191,23 @@ namespace Veronenger.Character.Player {
                 .Execute(() => {
                     CheckGroundAttack();
 
-                    // Suelo + no salto + movimiento/inercia
-                    EnableSlopeStairs();
-
+                    ApplyFloorGravity();
                     if (_player.IsAttacking) {
                         Body.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
                     } else {
                         Body.Flip(XInput);
-                        Body.Run(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.Friction, 
+                        Body.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.Friction, 
                             PlayerConfig.StopIfSpeedIsLessThan, 0);
                     }
                 })
                 .If(() => !Body.IsOnFloor()).Then( 
                     context => {
-                        CoyoteFallingTimer.Restart();
+                        _coyoteFallingTimer.Restart();
                         return context.Set(PlayerState.FallShort);
                     })
                 .If(() => Jump.IsJustPressed() && IsPressingDown && IsOnFallingPlatform()).Then(
                     context => {
-                        PlatformManager.BodyFallFromPlatform(_player);
+                        FallFromPlatform();
                         return context.Set(PlayerState.FallShort);
                     })
                 .If(() => Jump.IsJustPressed()).Set(PlayerState.Jump)
@@ -223,15 +235,14 @@ namespace Veronenger.Character.Player {
             bool CheckCoyoteJump() {
                 if (!Jump.IsJustPressed()) return false;
                 // Jump was pressed
-                LastJumpOnAirTimer.Restart();
-                if (!CoyoteFallingTimer.IsRunning) return false;
+                if (!_coyoteFallingTimer.IsRunning) return false;
                 
-                CoyoteFallingTimer.Stop();
-                if (CoyoteFallingTimer.Elapsed <= PlayerConfig.CoyoteJumpTime) {
-                    _coyoteMonitor?.Show($"{CoyoteFallingTimer.Elapsed.ToString()} <= {PlayerConfig.CoyoteJumpTime.ToString()} Done!");
+                _coyoteFallingTimer.Stop();
+                if (_coyoteFallingTimer.Elapsed <= PlayerConfig.CoyoteJumpTime) {
+                    _coyoteMonitor?.Show($"{_coyoteFallingTimer.Elapsed.ToString()} <= {PlayerConfig.CoyoteJumpTime.ToString()} Done!");
                     return true;
                 }
-                _coyoteMonitor?.Show($"{CoyoteFallingTimer.Elapsed.ToString()} > {PlayerConfig.CoyoteJumpTime.ToString()} TOO LATE");
+                _coyoteMonitor?.Show($"{_coyoteFallingTimer.Elapsed.ToString()} > {PlayerConfig.CoyoteJumpTime.ToString()} TOO LATE");
                 return false;
             }
 
@@ -248,7 +259,8 @@ namespace Veronenger.Character.Player {
                     }
 
                     Body.Flip(XInput);
-                    Body.FallLateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
+                    ApplyAirGravity();
+                    Body.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
                         PlayerConfig.StopIfSpeedIsLessThan, 0);
                 })
                 .If(() => Float.IsPressed()).Set(PlayerState.Float)
@@ -262,7 +274,8 @@ namespace Veronenger.Character.Player {
                     CheckAirAttack();
 
                     Body.Flip(XInput);
-                    Body.FallLateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
+                    ApplyAirGravity();
+                    Body.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
                         PlayerConfig.StopIfSpeedIsLessThan, 0);
                 })
                 .If(() => Float.IsPressed()).Set(PlayerState.Float)
@@ -278,7 +291,8 @@ namespace Veronenger.Character.Player {
                 .Execute(() => {
                     CheckAirAttack();
                     Body.Flip(XInput);
-                    Body.FallLateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed,
+                    ApplyAirGravity();
+                    Body.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed,
                         PlayerConfig.AirResistance, PlayerConfig.StopIfSpeedIsLessThan, 0);
                 })
                 .If(() => Float.IsPressed()).Set(PlayerState.Float)
@@ -287,12 +301,18 @@ namespace Veronenger.Character.Player {
                 .Build();
 
             State(PlayerState.Float)
+                .Enter(() => {
+                    Body.Body.MotionMode = CharacterBody2D.MotionModeEnum.Floating;
+                })
                 .Execute(() => {
                     Body.AddSpeed(XInput, YInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed,
                         PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan, 0);
-                    Body.Slide();
+                    Body.Move();
                 })
                 .If(() => Float.IsPressed()).Set(PlayerState.FallShort)
+                .Exit(() => {
+                    Body.Body.MotionMode = CharacterBody2D.MotionModeEnum.Grounded;
+                })
                 .Build();
 
         }

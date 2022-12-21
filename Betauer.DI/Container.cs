@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
+using Betauer.Core;
 using Betauer.DI.ServiceProvider;
 using Betauer.Tools.Logging;
 using Betauer.Tools.Reflection;
@@ -113,35 +114,61 @@ namespace Betauer.DI {
 
         public T Resolve<T>() => (T)Resolve(typeof(T));
         public object Resolve(Type type) {
-            var context = new ResolveContext(this);
-            var instance = Resolve(type, context);
-            context.End();
-            return instance;
+            if (TryResolve(type, out var instance)) {
+                return instance;
+            }
+            throw new KeyNotFoundException($"Service not found. Type: {type.Name}");
         }
 
         public T Resolve<T>(string name) => (T)Resolve(name);
         public object Resolve(string name) {
-            var context = new ResolveContext(this);
-            var instance = Resolve(name, context);
-            context.End();
-            return instance;
+            if (TryResolve(name, out var instance)) {
+                return instance;
+            }
+            throw new KeyNotFoundException($"Service not found. name: {name}");
+        }
+    
+        public bool TryResolve<T>(out T instance) {
+            var result = TryResolve(typeof(T), out var o);
+            instance = (T)o;
+            return result;
         }
 
-        public T ResolveOr<T>(Func<T> or) {
-            try {
-                return (T)Resolve(typeof(T));
-            } catch (KeyNotFoundException) {
-                return or();
+        public bool TryResolve(Type type, out object instance) {
+            if (TryGetProvider(type, out IProvider? provider)) {
+                var context = new ResolveContext(this);
+                instance = provider.Get(context);
+                context.End();
+                return true;
             }
+            if (CreateIfNotFound) {
+                CreateBuilder().Register(type, type, () => Activator.CreateInstance(type), Lifetime.Transient).Build();
+                // ReSharper disable once TailRecursiveCall
+                return TryResolve(type, out instance);
+            }
+            instance = null;
+            return false;
         }
 
-        public T ResolveOr<T>(string name, Func<T> or) {
-            try {
-                return Resolve<T>(name);
-            } catch (KeyNotFoundException) {
-                return or();
-            }
+        public bool TryResolve<T>(string name, out T instance) {
+            var result = TryResolve(name, out var o);
+            instance = (T)o;
+            return result;
         }
+
+        public bool TryResolve(string name, out object instance) {
+            if (TryGetProvider(name, out IProvider? provider)) {
+                var context = new ResolveContext(this);
+                instance = provider.Get(context);
+                context.End();
+                return true;
+            }
+            instance = null;
+            return false;
+        }
+      
+        public T ResolveOr<T>(Func<T> or) => TryResolve(typeof(T), out var instance) ? (T)instance : or();
+        public T ResolveOr<T>(string name, Func<T> or) => TryResolve(name, out T instance) ? instance : or();
 
         public List<T> GetAllInstances<T>() {
             var instances = _registry.Values
@@ -157,10 +184,10 @@ namespace Betauer.DI {
             OnCreated?.Invoke(lifetime, instance);
         }
 
-        internal static void ExecutePostCreateMethods<T>(T instance) {
+        internal static void ExecutePostInjectMethods<T>(T instance) {
             var methods = instance.GetType().GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             foreach (var method in methods) {
-                if (method.HasAttribute<PostCreateAttribute>()) {
+                if (method.HasAttribute<PostInjectAttribute>()) {
                     if (method.GetParameters().Length == 0) {
                         try {
                             method.Invoke(instance, new object[] { });
@@ -168,15 +195,16 @@ namespace Betauer.DI {
                             ExceptionDispatchInfo.Capture(e.InnerException).Throw();
                         }
                     } else {
-                        throw new Exception($"Method [PostCreate] {method.Name}(...) must have only 0 parameters");
+                        throw new Exception($"Method [PostInject] {method.Name}(...) must have only 0 parameters");
                     }
                 }
             }
         }
         
         internal object Resolve(Type type, ResolveContext context) {
-            TryGetProvider(type, out IProvider? provider);
-            if (provider != null) return provider.Get(context);
+            if (TryGetProvider(type, out IProvider? provider)) {
+                return provider.Get(context);
+            }
             if (CreateIfNotFound) {
                 CreateBuilder().Register(type, type, () => Activator.CreateInstance(type), Lifetime.Transient).Build();
                 // ReSharper disable once TailRecursiveCall
@@ -186,8 +214,9 @@ namespace Betauer.DI {
         }
 
         internal object Resolve(string name, ResolveContext context) {
-            TryGetProvider(name, out IProvider? provider);
-            if (provider != null) return provider.Get(context);
+            if (TryGetProvider(name, out IProvider? provider)) {
+                return provider.Get(context);
+            }
             throw new KeyNotFoundException($"Service not found. name: {name}");
         }
 
@@ -196,6 +225,7 @@ namespace Betauer.DI {
             var context = new ResolveContext(this);
             InjectServices(o, context);
             context.End();
+            ExecutePostInjectMethods(o);
         }
 
         internal void InjectServices(object o, ResolveContext context) {

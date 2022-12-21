@@ -5,11 +5,11 @@ using Godot;
 using Object = Godot.Object;
 
 namespace Betauer.Application.Monitor {
-    public abstract class BaseMonitor : VBoxContainer {
+    public abstract partial class BaseMonitor : VBoxContainer {
 
         public static readonly Color DefaultSeparatorColor = new(1,1,1,0.05f);
         public static readonly Color DefaultBorderColor = new(1,1,1,0.1f);
-        public static readonly Color DefaultLabelColor = new Color(0.584314f, 0.584314f, 0.584314f, 1);
+        public static readonly Color DefaultLabelColor = new(0.584314f, 0.584314f, 0.584314f, 1);
         
         public bool IsEnabled => Visible;
         public DebugOverlay DebugOverlayOwner { get; set; }
@@ -37,9 +37,9 @@ namespace Betauer.Application.Monitor {
         }
     }
 
-    public abstract class BaseMonitor<TBuilder> : BaseMonitor where TBuilder : class {
-        private float _timeElapsed = 0;
-        private float _updateEvery = 0;
+    public abstract partial class BaseMonitor<TBuilder> : BaseMonitor where TBuilder : class {
+        private double _timeElapsed = 0;
+        private double _updateEvery = 0;
         public Object? Watch { get; set; }
         public Func<bool>? RemoveIfFunc { get; private set; }
 
@@ -68,7 +68,7 @@ namespace Betauer.Application.Monitor {
             return this as TBuilder;
         }
 
-        public override void _PhysicsProcess(float delta) {
+        public override void _PhysicsProcess(double delta) {
             var watching = Watch ?? DebugOverlayOwner.Target;
             if ((watching != null && !IsInstanceValid(watching)) || (RemoveIfFunc != null && RemoveIfFunc())) {
                 QueueFree();
@@ -96,6 +96,6 @@ namespace Betauer.Application.Monitor {
             }
         }
 
-        public abstract void UpdateMonitor(float delta);
+        public abstract void UpdateMonitor(double delta);
     }
 }

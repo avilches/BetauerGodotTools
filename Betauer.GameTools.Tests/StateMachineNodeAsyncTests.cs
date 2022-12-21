@@ -10,7 +10,7 @@ using NUnit.Framework;
 
 namespace Betauer.GameTools.Tests {
     [TestFixture]
-    public class StateMachineNodeAsyncTests : Node {
+    public partial class StateMachineNodeAsyncTests : Node {
         enum State {
             A,
             Idle,
@@ -29,20 +29,20 @@ namespace Betauer.GameTools.Tests {
         public void StateMachineNodeConstructors() {
             var sm1 = new StateMachineNodeAsync<State, Trans>(State.A, "X");
             Assert.That(sm1.StateMachine.Name, Is.EqualTo("X"));
-            Assert.That(sm1.Mode, Is.EqualTo(ProcessMode.Idle));
+            Assert.That(sm1.ProcessInPhysics, Is.False);
 
-            var sm2 = new StateMachineNodeAsync<State, Trans>(State.A, null, ProcessMode.Physics);
+            var sm2 = new StateMachineNodeAsync<State, Trans>(State.A, null, true);
             Assert.That(sm2.StateMachine.Name, Is.Null);
-            Assert.That(sm2.Mode, Is.EqualTo(ProcessMode.Physics));
+            Assert.That(sm2.ProcessInPhysics, Is.True);
 
             var sm3 = new StateMachineNodeAsync<State, Trans>(State.A);
             Assert.That(sm3.StateMachine.Name, Is.Null);
-            Assert.That(sm3.Mode, Is.EqualTo(ProcessMode.Idle));
+            Assert.That(sm3.ProcessInPhysics, Is.False);
         }
 
         [Test(Description = "StateMachineNode, BeforeExecute and AfterExecute events with idle frames in the execute")]
         public async Task AsyncStateMachineNodeWithIdleFrame() {
-            var sm = new StateMachineNodeAsync<State, Trans>(State.Start, null, ProcessMode.Idle);
+            var sm = new StateMachineNodeAsync<State, Trans>(State.Start);
 
             var x = 0;
             List<string> states = new List<string>();
@@ -88,7 +88,7 @@ namespace Betauer.GameTools.Tests {
             
             Stopwatch stopwatch = Stopwatch.StartNew();
             while (sm.CurrentState?.Key != State.End && stopwatch.ElapsedMilliseconds < 1000) {
-                await this.AwaitIdleFrame();
+                await this.AwaitProcessFrame();
                 
             }
             Assert.That(string.Join(",", states),
@@ -121,24 +121,24 @@ namespace Betauer.GameTools.Tests {
             sm.AddOnSuspend((args)  => states.Add(args.From + ":suspend"));
             sm.AddOnExit((args)  => states.Add(args.From + ":exit"));
             sm.AddOnTransition((args)  => states.Add("from:" + args.From + "-to:" + args.To));
-            sm.AddOnExecuteStart((float delta, State state)  => states.Add(state + ":execute.start"));
-            sm.AddOnExecuteEnd((State state)  => states.Add(state + ":execute.end"));
+            sm.AddOnExecuteStart((double delta, State state)  => states.Add(state + ":process.start"));
+            sm.AddOnExecuteEnd((State state)  => states.Add(state + ":process.end"));
 
             AddChild(sm);
 
             Stopwatch stopwatch = Stopwatch.StartNew();
             while (sm.CurrentState?.Key != State.End && stopwatch.ElapsedMilliseconds < 1000) {
                 Console.Write(sm.CurrentState?.Key + " ");
-                await this.AwaitIdleFrame();
+                await this.AwaitProcessFrame();
             }
 
             Console.WriteLine(string.Join(",", states));
             Assert.That(string.Join(",", states), Is.EqualTo(
-                "MainMenu:execute.start,MainMenu:enter,MainMenu:execute.end," +
-                "MainMenu:execute.start,MainMenu:exit,from:MainMenu-to:Debug,Debug:enter,Debug:execute.end," +
-                "Debug:execute.start,Debug:suspend,from:Debug-to:Settings,Settings:enter,Settings:execute.end," +
-                "Settings:execute.start,Settings:exit,from:Settings-to:Debug,Debug:awake,Debug:execute.end," +
-                "Debug:execute.start,Debug:exit,from:Debug-to:End,End:enter,End:execute.end"));
+                "MainMenu:process.start,MainMenu:enter,MainMenu:process.end," +
+                "MainMenu:process.start,MainMenu:exit,from:MainMenu-to:Debug,Debug:enter,Debug:process.end," +
+                "Debug:process.start,Debug:suspend,from:Debug-to:Settings,Settings:enter,Settings:process.end," +
+                "Settings:process.start,Settings:exit,from:Settings-to:Debug,Debug:awake,Debug:process.end," +
+                "Debug:process.start,Debug:exit,from:Debug-to:End,End:enter,End:process.end"));
         }
     }
 }

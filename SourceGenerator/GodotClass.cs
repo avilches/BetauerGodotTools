@@ -3,10 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using Godot;
 using Godot.Collections;
+using Godot.NativeInterop;
 using Array = Godot.Collections.Array;
 
 namespace Generator {
     public class Signal {
+        private static readonly System.Collections.Generic.Dictionary<string, string> SignalMap =
+            new() {
+                { "GraphNode:Selected", "SelectedSignal" },
+            };
+
         public readonly string signal_name;
         public readonly string SignalName;
         public readonly string SignalCsharpConstantName;
@@ -17,8 +23,8 @@ namespace Generator {
         public Signal(GodotClass godotClass, string name, List<SignalArg> args) {
             GodotClass = godotClass;
             signal_name = name; // "on_button_pressed"
-            // Some signals include a "on_" prefix. The camel case version will not include it
-            SignalName = (name.StartsWith("on") ? name.Substring(2) : name).CamelCase(); // "ButtonPressed"
+            var camelCase = signal_name.CamelCase();
+            SignalName = SignalMap.ContainsKey($"{GodotClass.ClassName}:{camelCase}") ? SignalMap[$"{GodotClass.ClassName}:{camelCase}"] : camelCase; // "ButtonPressed"
             // IsStatic "VirtualServerButtonPressed"
             // !IsStatic "ButtonPressed"
             MethodName = GodotClass.IsStatic ? $"{GodotClass.ClassName}{SignalName}" : SignalName;
@@ -42,47 +48,58 @@ namespace Generator {
 
     public class GodotClass {
         private static readonly System.Collections.Generic.Dictionary<string, string> ClassMap =
-            new System.Collections.Generic.Dictionary<string, string> {
-                { "_VisualScriptEditor", "VisualScriptEditor" },
-                { "TCPServer", "TCP_Server" },
+            new() {
+                // { "_VisualScriptEditor", "VisualScriptEditor" },
+                // { "TCPServer", "TCP_Server" },
             };
 
         private static readonly System.Collections.Generic.Dictionary<string, string> ReservedNames =
-            new System.Collections.Generic.Dictionary<string, string> {
+            new() {
                 { "event", "@event" },
                 { "object", "@object" },
             };
 
-        private static readonly System.Collections.Generic.Dictionary<int, string> TypeMap =
-            new System.Collections.Generic.Dictionary<int, string> {
-                { 0, "object" },
-                { 1, "bool" },
-                { 2, "int" },
-                { 3, "float" },
-                { 4, "string" },
-                { 5, "Vector2" },
-                { 6, "Rect2" },
-                { 7, "Vector3" },
-                { 8, "Transform2D" },
-                { 9, "Plane" },
-                { 10, "Quat" },
-                { 11, "AABB" },
-                { 12, "Basis" },
-                { 13, "Transform" },
-                { 14, "Color" },
-                { 15, "NodePath" },
-                { 16, "RID" },
-                { 17, "Object" },
-                { 18, "Godot.Collections.Dictionary" },
-                { 19, "Godot.Collections.Array" },
-                { 20, "byte[]" },
-                { 21, "int[]" },
-                { 22, "float[]" },
-                { 23, "string[]" },
-                { 24, "Vector2[]" },
-                { 25, "Vector3[]" },
-                { 26, "Color[]" }
-            };
+        private static readonly System.Collections.Generic.Dictionary<Variant.Type, string> TypeMap =
+            new() {
+                  { Variant.Type.Nil,                      typeof(Godot.Variant).FullName },                    
+                  { Variant.Type.Bool,                     typeof(System.Boolean).FullName },                    
+                  { Variant.Type.Int,                      typeof(System.Int32).FullName },                      
+                  { Variant.Type.Float,                    typeof(System.Single).FullName },                     
+                  { Variant.Type.String,                   typeof(System.String).FullName },                     
+                  { Variant.Type.Vector2,                  typeof(Godot.Vector2).FullName },                     
+                  { Variant.Type.Vector2i,                 typeof(Godot.Vector2i).FullName },                    
+                  { Variant.Type.Rect2,                    typeof(Godot.Rect2).FullName },                       
+                  { Variant.Type.Rect2i,                   typeof(Godot.Rect2i).FullName },                      
+                  { Variant.Type.Vector3,                  typeof(Godot.Vector3).FullName },                     
+                  { Variant.Type.Vector3i,                 typeof(Godot.Vector3i).FullName },                    
+                  { Variant.Type.Transform2d,              typeof(Godot.Transform2D).FullName },                 
+                  { Variant.Type.Vector4,                  typeof(Godot.Vector4).FullName },                     
+                  { Variant.Type.Vector4i,                 typeof(Godot.Vector4i).FullName },                    
+                  { Variant.Type.Plane,                    typeof(Godot.Plane).FullName },                       
+                  { Variant.Type.Quaternion,               typeof(Godot.Quaternion).FullName },                  
+                  { Variant.Type.Aabb,                     typeof(Godot.AABB).FullName },                        
+                  { Variant.Type.Basis,                    typeof(Godot.Basis).FullName },                       
+                  { Variant.Type.Transform3d,              typeof(Godot.Transform3D).FullName },                 
+                  { Variant.Type.Projection,               typeof(Godot.Projection).FullName },                  
+                  { Variant.Type.Color,                    typeof(Godot.Color).FullName },                       
+                  { Variant.Type.StringName,               typeof(Godot.StringName).FullName },                  
+                  { Variant.Type.NodePath,                 typeof(Godot.NodePath).FullName },                    
+                  { Variant.Type.Rid,                      typeof(Godot.RID).FullName },                         
+                  { Variant.Type.Object,                   typeof(Godot.Object).FullName },                      
+                  { Variant.Type.Callable,                 typeof(Godot.Callable).FullName },                    
+                  { Variant.Type.Signal,                   typeof(Godot.SignalInfo).FullName },                  
+                  { Variant.Type.Dictionary,               typeof(Godot.Collections.Dictionary).FullName },      
+                  { Variant.Type.Array,                    typeof(Godot.Collections.Array).FullName },           
+                  { Variant.Type.PackedByteArray,          typeof(System.Byte[]).FullName },                     
+                  { Variant.Type.PackedInt32Array,         typeof(System.Int32[]).FullName },                    
+                  { Variant.Type.PackedInt64Array,         typeof(System.Int64[]).FullName },                    
+                  { Variant.Type.PackedFloat32Array,       typeof(System.Single[]).FullName },                   
+                  { Variant.Type.PackedFloat64Array,       typeof(System.Double[]).FullName },                   
+                  { Variant.Type.PackedStringArray,        typeof(System.String[]).FullName },                   
+                  { Variant.Type.PackedVector2Array,       typeof(Godot.Vector2[]).FullName },                   
+                  { Variant.Type.PackedVector3Array,       typeof(Godot.Vector3[]).FullName },                   
+                  { Variant.Type.PackedColorArray,         typeof(Godot.Color[]).FullName },                     
+                };
 
 
         public readonly string class_name;
@@ -134,7 +151,8 @@ namespace Generator {
             foreach (Dictionary arg in signalGodotArgs) {
                 string? argClassName = (string)arg["class_name"];
                 var argName = (string)arg["name"];
-                var argType = TypeMap[(int)arg["type"]];
+                Variant.Type t = (Variant.Type)(long)arg["type"];
+                var argType = TypeMap[t];
                 argName = ReservedNames.ContainsKey(argName) ? ReservedNames[argName] : argName;
                 args.Add(new SignalArg(argClassName?.Length > 0 ? argClassName : argType, argName));
             }

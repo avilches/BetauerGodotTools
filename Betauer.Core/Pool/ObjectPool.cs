@@ -2,10 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Betauer.Tools.Logging;
-using Betauer.Memory;
 using Object = Godot.Object;
 
-namespace Betauer.Pool {
+namespace Betauer.Core.Pool {
 
     public interface IObjectPool {
         bool Return(IRecyclable o);

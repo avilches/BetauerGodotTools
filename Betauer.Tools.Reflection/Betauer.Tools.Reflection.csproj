@@ -1,9 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>netstandard2.1</TargetFramework>
-        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-        <IsPackable>false</IsPackable>
-        <LangVersion>preview</LangVersion>
+        <TargetFramework>net6.0</TargetFramework>
+        <EnableDynamicLoading>true</EnableDynamicLoading>
+        <LangVersion>10.0</LangVersion>
         <RootNamespace>Betauer.Tools.Reflection</RootNamespace>
         <PackageId>Betauer.Tools.Reflection</PackageId>
         <AssemblyName>Betauer.Tools.Reflection</AssemblyName>

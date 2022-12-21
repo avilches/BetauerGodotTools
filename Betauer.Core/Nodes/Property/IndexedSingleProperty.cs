@@ -1,28 +1,36 @@
+using System;
 using System.Collections.Generic;
 using Godot;
 
-namespace Betauer.Nodes.Property {
+namespace Betauer.Core.Nodes.Property {
     public static class IndexedSingleProperty {
-        public static readonly Dictionary<string, IProperty> Cache = new Dictionary<string, IProperty>();
+        public static readonly Dictionary<(string, Type), IProperty> Cache = new();
 
-        public static IndexedSingleProperty<TProperty> Create<TProperty>(string propertyName) {
-            if (Cache.TryGetValue(propertyName, out var property)) {
+        public static IndexedSingleProperty<TProperty> Create<TProperty>(string propertyName, Type? type) {
+            type ??= typeof(Node);
+            if (!type.IsAssignableTo(typeof(Node)))
+                throw new ArgumentException($"{type.Name} should be Node or inherit from Node");
+
+            var key = (propertyName, type);
+            if (Cache.TryGetValue(key, out var property)) {
                 return (IndexedSingleProperty<TProperty>)property;
             }
-            var indexedSingleProperty = new IndexedSingleProperty<TProperty>(propertyName);
-            Cache[propertyName] = indexedSingleProperty;
+            var indexedSingleProperty = new IndexedSingleProperty<TProperty>(propertyName, type);
+            Cache[key] = indexedSingleProperty;
             return indexedSingleProperty;
         }
     }
 
     public class IndexedSingleProperty<TProperty> : IndexedProperty<TProperty> {
         private readonly NodePath _propertyName;
-
-        internal IndexedSingleProperty(NodePath propertyName) {
+        private readonly Type _type;
+        
+        internal IndexedSingleProperty(NodePath propertyName, Type? type) {
             _propertyName = propertyName;
+            _type = type;
         }
 
-        public override bool IsCompatibleWith(Node node) => true;
+        public override bool IsCompatibleWith(Node node) => node.GetType().IsAssignableTo(_type);
 
         public override NodePath GetIndexedPropertyName(Node node) => _propertyName;
 
@@ -30,7 +38,7 @@ namespace Betauer.Nodes.Property {
             return $"IndexedSingleProperty<{typeof(TProperty).Name}>(\"{_propertyName}\")";
         }
 
-        public static implicit operator IndexedSingleProperty<TProperty>(string from) => IndexedSingleProperty.Create<TProperty>(from);
+        public static implicit operator IndexedSingleProperty<TProperty>(string from) => IndexedSingleProperty.Create<TProperty>(from, typeof(Node));
 
         public static implicit operator string(IndexedSingleProperty<TProperty> from) => from._propertyName;
     }

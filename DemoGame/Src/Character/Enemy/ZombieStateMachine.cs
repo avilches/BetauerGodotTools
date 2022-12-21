@@ -3,10 +3,10 @@ using Betauer.Application.Monitor;
 using Betauer.DI;
 using Betauer.DI.ServiceProvider;
 using Betauer.Input;
-using Betauer.StateMachine;
 using Betauer.StateMachine.Sync;
-using Betauer.Time;
+using Betauer.Core.Time;
 using Godot;
+using Veronenger.Character.Handler;
 using Veronenger.Character.Player;
 using Veronenger.Controller.Character;
 using Veronenger.Managers;
@@ -41,43 +41,93 @@ namespace Veronenger.Character.Enemy {
         }
     }
 
+    public class ZombieIA {
+        private readonly CharacterController _handler;
+        private readonly ZombieNode _node;
+        private readonly GodotStopwatch _stateTimer = new GodotStopwatch().Start();
+        
+        public ZombieIA(ICharacterHandler handler, ZombieNode node) {
+            _handler = handler is CharacterController h ? h : null;
+            _node = node;
+        }
+
+
+        public void HandleIA(double delta) {
+            if (_handler == null) return;
+            
+            if (_stateTimer.Elapsed > 1f) {
+                _stateTimer.Reset();
+                ChangeDirection();
+            } else {
+                KeepMoving();
+            }
+            // GD.Print("Pressed:"+handler.HandlerJump.IsPressed()+
+                     // " JustPressed:"+handler.HandlerJump.IsJustPressed()+
+                     // " Released:"+handler.HandlerJump.IsReleased());
+        }
+
+        private void ChangeDirection() {
+            _handler.DirectionalController.XInput = _node.IsFacingRight ? -1 : 1;
+        }
+        
+        private void KeepMoving() {
+            _handler.DirectionalController.XInput = _node.IsFacingRight ? 1 : -1;
+        }
+    }
+
     [Service(Lifetime.Transient)]
-    public class ZombieStateMachine : StateMachineNodeSync<ZombieState, ZombieEvent> {
+    public partial class ZombieStateMachine : StateMachineNodeSync<ZombieState, ZombieEvent> {
         public ZombieStateMachine() : base(ZombieState.Idle, "Zombie.StateMachine") {
         }
 
         [Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
-        [Inject] private InputAction Left { get; set;}
-        [Inject] private InputAction Up { get; set;}
-        [Inject] private InputAction Jump { get; set;}
-        private AxisAction LateralMotion => Left.AxisAction;
-        private AxisAction VerticalMotion => Up.AxisAction;
-        private float XInput => LateralMotion.Strength;
-        private float YInput => VerticalMotion.Strength;
-        private bool IsRight => XInput > 0;
-        private bool IsLeft => XInput < 0;
-
         [Inject] private CharacterManager CharacterManager { get; set; }
+        
+        [Inject] private PlayerConfig PlayerConfig { get; set; }
+        [Inject] private EnemyConfig EnemyConfig { get; set; }
         [Inject] public KinematicPlatformMotion Body { get; set; }
+        // [Inject] private InputActionCharacterHandler Handler { get; set; }
+        [Inject] private CharacterController Handler { get; set; }
+
+        private ZombieNode _zombieNode;
+
+        private float XInput => Handler.Directional.XInput;
+        private float YInput => Handler.Directional.YInput;
+        private IAction Jump => Handler.Jump;
+        private IAction Attack => Handler.Attack;
+        private IAction Float => Handler.Float;
+
         private float MotionX => Body.MotionX;
         private float MotionY => Body.MotionY;
-        [Inject] private EnemyConfig EnemyConfig { get; set; }
-        [Inject] private PlayerConfig PlayerConfig { get; set; }
-        
-        [Inject] private GodotStopwatch StateTimer  { get; set; }
-
-        private ZombieController _zombieController;
 
         public readonly EnemyStatus Status = new();
+        private readonly GodotStopwatch _stateTimer = new();
 
-        public void Start(string name, ZombieController zombie, IFlipper flippers, RayCast2D slopeRaycast, Position2D position2D) {
-            _zombieController = zombie;
+        public void ApplyFloorGravity(float factor = 1.0F) {
+            Body.ApplyGravity(PlayerConfig.FloorGravity * factor, PlayerConfig.MaxFallingSpeed);
+        }
+
+        public void ApplyAirGravity(float factor = 1.0F) {
+            Body.ApplyGravity(PlayerConfig.AirGravity * factor, PlayerConfig.MaxFallingSpeed);
+        }
+
+        private ZombieIA _zombieIA;
+
+        public void Start(string name, ZombieNode zombie, IFlipper flippers, Marker2D marker2D) {
+            _zombieNode = zombie;
             zombie.AddChild(this);
 
-            Body.Configure(name, zombie, flippers, null, slopeRaycast, position2D, MotionConfig.SnapToFloorVector, MotionConfig.FloorUpDirection);
-            Body.ConfigureGravity(PlayerConfig.AirGravity, PlayerConfig.MaxFallingSpeed, PlayerConfig.MaxFloorGravity);
+            Body.Configure(name, zombie, flippers, marker2D, MotionConfig.FloorUpDirection);
+            zombie.FloorStopOnSlope = true;
+            // playerController.FloorBlockOnWall = true;
+            zombie.FloorConstantSpeed = true;
+            zombie.FloorSnapLength = MotionConfig.SnapLength;
+
+            _zombieIA = new ZombieIA(Handler, zombie);
 
             AddOnExecuteStart((delta, state) => Body.SetDelta(delta));
+            AddOnExecuteStart((delta, state) => _zombieIA.HandleIA(delta));
+            AddOnExecuteEnd((state) => Handler.EndFrame());
             AddOnTransition((args) => zombie.Label.Text = args.To.ToString());
 
             var debugOverlay = DebugOverlayManager.Follow(zombie);
@@ -85,16 +135,16 @@ namespace Veronenger.Character.Enemy {
             debugOverlay
                 .Text("State", () => CurrentState.Key.ToString()).EndMonitor()
                 .OpenBox()
-                    .Vector("Motion", () => Body.Motion, PlayerConfig.MaxSpeed).SetChartWidth(100).EndMonitor()
-                    .Graph("MotionX", () => Body.MotionX, -PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed).AddSeparator(0)
-                        .AddSerie("MotionY").Load(() => Body.MotionY).EndSerie().EndMonitor()
+                .Vector("Motion", () => Body.Motion, PlayerConfig.MaxSpeed).SetChartWidth(100).EndMonitor()
+                .Graph("MotionX", () => Body.MotionX, -PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed).AddSeparator(0)
+                .AddSerie("MotionY").Load(() => Body.MotionY).EndSerie().EndMonitor()
                 .CloseBox()
                 .Graph("Floor", () => Body.IsOnFloor()).Keep(10).SetChartHeight(10)
-                    .AddSerie("Slope").Load(() => Body.IsOnSlope()).EndSerie().EndMonitor()
-                .GraphSpeed("Speed", PlayerConfig.JumpSpeed*2).EndMonitor()
+                .AddSerie("Slope").Load(() => Body.IsOnSlope()).EndSerie().EndMonitor()
+                .GraphSpeed("Speed", PlayerConfig.JumpSpeed * 2).EndMonitor()
                 .Text("Floor", () => Body.GetFloorCollisionInfo()).EndMonitor()
                 .Text("Ceiling", () => Body.GetCeilingCollisionInfo()).EndMonitor()
-                .Text("Wall", () => Body.GetWallCollisionInfo());
+                .Text("Wall", () => Body.GetWallCollisionInfo()).EndMonitor();
 
             On(ZombieEvent.Attacked).Then(context => IsState(ZombieState.Attacked) ? context.None() : context.Push(ZombieState.Attacked));
             On(ZombieEvent.Dead).Then(context=> context.Set(ZombieState.Destroy));
@@ -106,9 +156,10 @@ namespace Veronenger.Character.Enemy {
 
             State(ZombieState.Idle)
                 .Enter(() => {
-                    _zombieController.AnimationIdle.PlayLoop();
+                    _zombieNode.AnimationIdle.PlayLoop();
                 })
                 .Execute(() => {
+                    ApplyFloorGravity();
                     Body.Stop(EnemyConfig.Friction, EnemyConfig.StopIfSpeedIsLessThan);
                 })
                 .If(() => !Body.IsOnFloor()).Set(ZombieState.FallShort)
@@ -118,11 +169,12 @@ namespace Veronenger.Character.Enemy {
 
             State(ZombieState.Run)
                 .Enter(() => {
-                    _zombieController.AnimationStep.PlayLoop();
+                    _zombieNode.AnimationStep.PlayLoop();
                 })
                 .Execute(() => {
                     Body.Flip(XInput);
-                    Body.Run(XInput, EnemyConfig.Acceleration, EnemyConfig.MaxSpeed, 
+                    ApplyFloorGravity();
+                    Body.Lateral(XInput, EnemyConfig.Acceleration, EnemyConfig.MaxSpeed, 
                         EnemyConfig.Friction, EnemyConfig.StopIfSpeedIsLessThan, 0);
                 })
                 .If(() => !Body.IsOnFloor()).Set(ZombieState.FallShort)
@@ -132,32 +184,32 @@ namespace Veronenger.Character.Enemy {
 
             State(ZombieState.Attacked)
                 .Enter(() => {
-                    Body.FaceTo(CharacterManager.PlayerController.PlayerDetector);
+                    Body.FaceTo(CharacterManager.PlayerNode.PlayerDetector);
                     Body.MotionY = EnemyConfig.MiniJumpOnAttack.y;
-                    Body.MotionX = EnemyConfig.MiniJumpOnAttack.x * (Body.IsToTheLeftOf(CharacterManager.PlayerController.PlayerDetector) ? 1 : -1);
-                    _zombieController.PlayAnimationAttacked();
-                    StateTimer.Restart().SetAlarm(1f);
+                    Body.MotionX = EnemyConfig.MiniJumpOnAttack.x * (Body.IsToTheLeftOf(CharacterManager.PlayerNode.PlayerDetector) ? 1 : -1);
+                    _zombieNode.PlayAnimationAttacked();
+                    _stateTimer.Restart().SetAlarm(1f);
                 })
                 .Execute(() => {
-                    Body.ApplyDefaultGravity();
-                    Body.Slide();
+                    ApplyAirGravity();
+                    Body.Move();
                 })
-                .If(() => StateTimer.IsAlarm()).Pop()
+                .If(() => _stateTimer.IsAlarm()).Pop()
                 .Build();
 
             State(ZombieState.Destroy)
                 .Enter(() => {
-                    _zombieController.DisableAll();
+                    _zombieNode.DisableAll();
 
-                    if (Body.IsToTheLeftOf(CharacterManager.PlayerController.PlayerDetector)) {
-                        _zombieController.AnimationDieLeft.PlayOnce(true);
+                    if (Body.IsToTheLeftOf(CharacterManager.PlayerNode.PlayerDetector)) {
+                        _zombieNode.AnimationDieLeft.PlayOnce(true);
                     } else {
-                        _zombieController.AnimationDieRight.PlayOnce(true);
+                        _zombieNode.AnimationDieRight.PlayOnce(true);
                     }
                 })
                 .Execute(() => {
-                    if (!_zombieController.AnimationDieRight.Playing && !_zombieController.AnimationDieLeft.Playing) {
-                        _zombieController.QueueFree();
+                    if (!_zombieNode.AnimationDieRight.Playing && !_zombieNode.AnimationDieLeft.Playing) {
+                        _zombieNode.QueueFree();
                     }
                 })
                 .Build();
@@ -169,9 +221,9 @@ namespace Veronenger.Character.Enemy {
                     // _player.AnimationJump.PlayLoop();
                 })
                 .Execute(() => {
-                    Body.ApplyDefaultGravity();
+                    ApplyAirGravity();
                     Body.Flip(XInput);
-                    Body.FallLateral(XInput, EnemyConfig.Acceleration, EnemyConfig.MaxSpeed,
+                    Body.Lateral(XInput, EnemyConfig.Acceleration, EnemyConfig.MaxSpeed,
                         EnemyConfig.Friction, EnemyConfig.StopIfSpeedIsLessThan, 0);
                 })
                 .If(() => MotionY >= 0).Set(ZombieState.FallShort)
@@ -180,17 +232,14 @@ namespace Veronenger.Character.Enemy {
 
             State(ZombieState.FallShort)
                 .Execute(() => {
-                    Body.ApplyDefaultGravity();
+                    ApplyAirGravity();
                     Body.Flip(XInput);
-                    Body.FallLateral(XInput, EnemyConfig.Acceleration, EnemyConfig.MaxSpeed,
+                    Body.Lateral(XInput, EnemyConfig.Acceleration, EnemyConfig.MaxSpeed,
                         EnemyConfig.Friction, EnemyConfig.StopIfSpeedIsLessThan, 0);
                 })
                 .If(Body.IsOnFloor).Set(ZombieState.Landing)
                 .Build();
-
         }
-
-        
         
         public void TriggerAttacked(Attack attack) {
             Status.Attack(attack);

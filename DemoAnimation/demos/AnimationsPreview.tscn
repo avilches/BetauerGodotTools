@@ -29,7 +29,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 margin_right = 1000.0
 margin_bottom = 600.0
-rect_min_size = Vector2( 1000, 600 )
+min_size = Vector2( 1000, 600 )
 script = ExtResource( 2 )
 
 [node name="HBoxContainer" type="HBoxContainer" parent="Node2D/AnimationsPreview"]
@@ -76,7 +76,7 @@ margin_bottom = 302.0
 margin_top = 306.0
 margin_right = 676.0
 margin_bottom = 320.0
-text = "Sprite node:"
+text = "Sprite2D node:"
 
 [node name="SpriteContainer" type="CenterContainer" parent="Node2D/AnimationsPreview/HBoxContainer/VBoxContainer"]
 margin_top = 324.0
@@ -93,14 +93,14 @@ margin_bottom = 138.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="SpriteTest" type="Sprite" parent="Node2D/AnimationsPreview/HBoxContainer/VBoxContainer/SpriteContainer/Control2"]
+[node name="SpriteTest" type="Sprite2D" parent="Node2D/AnimationsPreview/HBoxContainer/VBoxContainer/SpriteContainer/Control2"]
 texture = ExtResource( 1 )
 
 [node name="ScrollContainer" type="ScrollContainer" parent="Node2D/AnimationsPreview/HBoxContainer"]
 margin_left = 680.0
 margin_right = 1000.0
 margin_bottom = 600.0
-rect_min_size = Vector2( 320, 0 )
+min_size = Vector2( 320, 0 )
 custom_styles/bg = SubResource( 2 )
 
 [node name="PanelContainer" type="PanelContainer" parent="Node2D/AnimationsPreview/HBoxContainer/ScrollContainer"]
@@ -168,7 +168,7 @@ margin_right = 296.0
 margin_bottom = 24.0
 size_flags_horizontal = 3
 pressed = true
-text = "Sprite node"
+text = "Sprite2D node"
 
 [node name="ShowAllDemos" parent="Node2D/AnimationsPreview" instance=ExtResource( 4 )]
 anchor_left = 0.3
@@ -216,7 +216,7 @@ margin_bottom = 128.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="SpriteTest" type="Sprite" parent="Node2D2/SpriteContainer/Control2"]
+[node name="SpriteTest" type="Sprite2D" parent="Node2D2/SpriteContainer/Control2"]
 texture = ExtResource( 1 )
 
 [connection signal="pressed" from="Node2D/AnimationsPreview/HBoxContainer/ScrollContainer/PanelContainer/ListContainer/VBoxContainer/ControlCheckbox" to="Node2D/AnimationsPreview" method="_on_ControlCheckbox_pressed"]

@@ -1,8 +1,7 @@
 using System;
-using Betauer.Signal;
 using Godot;
 
-namespace Betauer.Time {
+namespace Betauer.Core.Time {
     /// <summary>
     /// Execute a lambda periodically. It uses internally the "timeout" signal from a SceneTree timer,
     /// so it's affected by the Engine.Timescale and the SceneTree.Pause state.
@@ -15,48 +14,53 @@ namespace Betauer.Time {
     /// </code> 
     /// </summary>
     public class GodotScheduler {
-        private readonly Action _action;
-        public readonly Node.PauseModeEnum PauseMode;
-        private bool _paused = false;
-        private bool _requestStop = false;
-        private bool _running = false;
+        private Action _action;
+        private readonly GodotTimeout _godotTimeout;
 
-        public GodotScheduler(Action action, Node.PauseModeEnum pauseMode = Node.PauseModeEnum.Inherit) {
+        public GodotScheduler(SceneTree sceneTree, double seconds, Action action, bool processAlways = false, bool processInPhysics = false, bool ignoreTimeScale = false) {
             _action = action;
-            PauseMode = pauseMode;
+            _godotTimeout = new GodotTimeout(sceneTree, seconds, () => _action(), processAlways, processInPhysics, ignoreTimeScale);
+            _godotTimeout.Start().Stop();
+            _Start();
         }
 
-        public GodotScheduler Start(SceneTree sceneTree, float seconds) {
-            lock (this) {
-                if (_running) return this;
-                _running = true;
+        public GodotScheduler(double seconds, Action action, bool processAlways = false, bool processInPhysics = false, bool ignoreTimeScale = false) :
+            this(Engine.GetMainLoop() as SceneTree, seconds, action, processAlways, processInPhysics, ignoreTimeScale) {
+        }
+
+        private async void _Start() {
+            while (true) {
+                await _godotTimeout.Await();
+                _godotTimeout.Restart();
             }
-            _Start(sceneTree, seconds);
+        }
+
+        public GodotScheduler Execute(Action action) {
+            _action = action;
             return this;
         }
 
-        private async void _Start(SceneTree sceneTree, float seconds) {
-            _paused = false;
-            while (true) {
-                var pauseModeProcess = PauseMode == Node.PauseModeEnum.Process; // false = pausing the scene pause the timer 
-                await sceneTree.CreateTimer(seconds, pauseModeProcess).AwaitTimeout();
-                if (_requestStop) {
-                    _requestStop = false;
-                    break;
-                }
-                if (!_paused) _action();
-            }
-            lock (this) {
-                _running = false;
-            }
+        public GodotScheduler Start(double seconds) {
+            _godotTimeout.SetTimeout(seconds);
+            _godotTimeout.Start();
+            return this;
         }
 
-        public bool IsRunning() => _running;
-        public bool IsPaused() =>  _paused;
+        public GodotScheduler Start() {
+            _godotTimeout.Start();
+            return this;
+        }
 
-        public void Pause() => _paused = true;
-        public void Resume() => _paused = false;
-        
-        public void Stop() => _requestStop = true;
+        public GodotScheduler Stop() {
+            _godotTimeout.Stop();
+            return this;
+        }
+
+        public GodotScheduler Reset() {
+            _godotTimeout.Reset();
+            return this;
+        }
+
+        public bool IsRunning() => _godotTimeout.IsRunning;
     }
 }

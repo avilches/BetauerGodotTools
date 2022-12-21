@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
-using Betauer.Animation.Tween;
+using System.Text;
 using Betauer.Application.Screen;
+using Betauer.Core;
+using Betauer.Core.Nodes;
+using Betauer.Input;
 using Betauer.Nodes;
-using Betauer.Memory;
-using Betauer.Signal;
 using Betauer.UI;
 using Godot;
 
@@ -51,7 +53,10 @@ namespace Betauer.Application.Monitor {
         }
 
         public static MonitorGraph GraphSpeed(this DebugOverlay overlay, string label = "Speed", float limit = 0, string format = "000.00") {
-            if (overlay.Target is not Node2D node2D) throw new Exception("GraphSpeed() needs the overlay follows a Node2D");
+            if (overlay.Target is CharacterBody2D characterBody2D)
+                return overlay.GraphSpeed(label, characterBody2D, limit, format);
+            if (overlay.Target is not Node2D node2D) 
+                throw new Exception("GraphSpeed() needs the overlay follows a Node2D");
             var speedometer2D = Speedometer2D.Position(node2D);
             speedometer2D.UpdateOnPhysicsProcess(node2D);
             return overlay.GraphSpeed(label, speedometer2D, limit, format);
@@ -62,7 +67,19 @@ namespace Betauer.Application.Monitor {
                 .CreateMonitor<MonitorGraph>()
                 .AddSerie()
                 .Load(() => speedometer2D.Speed)
-                .Format((v) => $"{speedometer2D.SpeedVector.ToString(format)} {speedometer2D.Speed.ToString(format)}")
+                .Format((v) => $"{speedometer2D.Speed.ToString(format)} {speedometer2D.SpeedVector.ToString(format)}")
+                .SetLabel(label)
+                .EndSerie();
+            if (limit > 0) monitorGraph.Range(0, limit);
+            return monitorGraph;
+        }
+
+        public static MonitorGraph GraphSpeed(this DebugOverlay overlay, string label, CharacterBody2D characterBody2D, float limit = 0, string format = "000.00") {
+            var monitorGraph = overlay
+                .CreateMonitor<MonitorGraph>()
+                .AddSerie()
+                .Load(() => characterBody2D.GetRealVelocity().Length())
+                .Format((v) => $"{characterBody2D.GetRealVelocity().Length().ToString(format)} {characterBody2D.GetRealVelocity().ToString(format)}")
                 .SetLabel(label)
                 .EndSerie();
             if (limit > 0) monitorGraph.Range(0, limit);
@@ -106,12 +123,13 @@ namespace Betauer.Application.Monitor {
 
 
         public static DebugOverlay AddMonitorVideoInfo(this DebugOverlay overlay) {
-            overlay.OpenBox()
-                .Text("Driver", () => OS.GetCurrentVideoDriver().ToString()).UpdateEvery(1f).EndMonitor()
-                .Text("Screen", () => $"#{(OS.CurrentScreen + 1).ToString()}/{OS.GetScreenCount().ToString()}").UpdateEvery(1f).EndMonitor()
-                .Text("Resolution", () => $"{OS.GetScreenSize(OS.CurrentScreen).ToString("0")}").UpdateEvery(1f).EndMonitor()
-                .Text("Window", () => $"{OS.WindowSize.ToString("0")}").UpdateEvery(1f).EndMonitor()
-                .CloseBox();
+            // TODO Godot 4
+            // overlay.OpenBox()
+                // .Text("Driver", () => OS.GetCurrentVideoDriver().ToString()).UpdateEvery(1f).EndMonitor()
+                // .Text("Screen", () => $"#{(OS.CurrentScreen + 1).ToString()}/{OS.GetScreenCount().ToString()}").UpdateEvery(1f).EndMonitor()
+                // .Text("Resolution", () => $"{OS.GetScreenSize(OS.CurrentScreen).ToString("0")}").UpdateEvery(1f).EndMonitor()
+                // .Text("Window", () => $"{OS.WindowSize.ToString("0")}").UpdateEvery(1f).EndMonitor()
+                // .CloseBox();
             return overlay;
         }
 
@@ -149,11 +167,6 @@ namespace Betauer.Application.Monitor {
                         return $"{count.ToString()}/{maxObjects.ToString()}";
                     }).UpdateEvery(1f)
                     .EndMonitor()
-                .CloseBox()
-                .OpenBox()
-                    .Text("Watching/max", () => $"{DefaultObjectWatcherTask.Instance.Size}/{DefaultObjectWatcherTask.Instance.PeakSize}").UpdateEvery(1f).EndMonitor()
-                    .Text("Tweens/max", () => $"{DefaultTweenCallbackManager.Instance.Size.ToString()}/{DefaultTweenCallbackManager.Instance.PeakSize.ToString()}").UpdateEvery(1f).EndMonitor()
-                    .Text("Signals", () => $"{DefaultSignalManager.Instance.Size.ToString()}").UpdateEvery(1f).EndMonitor()
                 .CloseBox();
             return overlay;
         }
@@ -161,10 +174,10 @@ namespace Betauer.Application.Monitor {
         public static DebugOverlay AddMonitorFpsTimeScaleAndUptime(this DebugOverlay overlay) {
             return overlay
                 .OpenBox()
-                    .Text("FPS/limit", () => $"{((int)Engine.GetFramesPerSecond()).ToString()}/{Engine.TargetFps.ToString()}").UpdateEvery(1f).EndMonitor()
+                    .Text("FPS/limit", () => $"{((int)Engine.GetFramesPerSecond()).ToString()}/{Engine.MaxFps.ToString()}").UpdateEvery(1f).EndMonitor()
                     .Text("TimeScale", () => Engine.TimeScale.ToString("0.0")).UpdateEvery(1f).EndMonitor()
                     .Text("Uptime", () => {
-                        var timespan = TimeSpan.FromMilliseconds(OS.GetTicksMsec());
+                        var timespan = TimeSpan.FromMilliseconds(Time.GetTicksMsec());
                         return $"{(int)timespan.TotalMinutes}:{timespan.Seconds:00}";
                     }).UpdateEvery(1f)
                     .EndMonitor()
@@ -177,112 +190,177 @@ namespace Betauer.Application.Monitor {
                 .OpenBox()
                 .Text("Static", () => ((long)OS.GetStaticMemoryUsage()).HumanReadableBytes()).UpdateEvery(1f).EndMonitor()
                 .Text("Max", () => ((long)OS.GetStaticMemoryPeakUsage()).HumanReadableBytes()).UpdateEvery(1f).EndMonitor()
-                .Text("Dynamic", () => ((long)OS.GetDynamicMemoryUsage()).HumanReadableBytes()).UpdateEvery(1f).EndMonitor()
-                .Text("Max", () => ((long)Performance.GetMonitor(Performance.Monitor.MemoryDynamicMax)).HumanReadableBytes()).UpdateEvery(1f).EndMonitor()
+                // TODO Godot 4
+                // .Text("Dynamic", () => ((long)OS.GetDynamicMemoryUsage()).HumanReadableBytes()).UpdateEvery(1f).EndMonitor()
+                // .Text("Max", () => ((long)Performance.GetMonitor(Performance.Monitor.MemoryDynamicMax)).HumanReadableBytes()).UpdateEvery(1f).EndMonitor()
                 .CloseBox();
             #endif
+            return overlay;
+        }
+        
+        public static DebugOverlay AddMonitorInputEvent(this DebugOverlay overlay, InputActionsContainer inputActionsContainer, int history = 10) {
+            var inputs = new LinkedList<string>();
+            overlay.OnInput(e => {
+                var pressed = e.IsJustPressed()?"just pressed":e.IsPressed()?"pressed":e.IsReleased()?"released": "unknown";
+                var modifiers = new List<string>(5);
+                if (e.HasShift()) modifiers.Add("Shift");
+                if (e.HasAlt()) modifiers.Add("Alt");
+                if (e.HasControl()) modifiers.Add("Ctrl");
+                if (e.HasMeta()) modifiers.Add("Meta");
+                var action = inputActionsContainer.FindAction(e);
+                var actionName = action != null ? $" | Action [{action.Name}]" : "";
+                if (e.IsAnyKey()) {
+                    modifiers.Add(e.GetKeyString());
+                    inputs.AddLast($"Key {(int)e.GetKey()} [{string.Join('+', modifiers)}] {pressed} {actionName}");
+                } else if (e.IsAnyClick()) {
+                    modifiers.Add(e.GetClick().ToString());
+                    inputs.AddLast($"Click {(int)e.GetClick()} [{string.Join('+', modifiers)}] {pressed} {actionName}");
+                } else if (e.IsAnyButton()) {
+                    modifiers.Add(e.GetButton().ToString());
+                    inputs.AddLast($"Button {(int)e.GetButton()} [{string.Join('+', modifiers)}] {pressed} | {e.GetButtonPressure()} {actionName}");
+                } else if (e.IsAnyAxis())
+                    inputs.AddLast($"Axis {(int)e.GetAxis()} [{e.GetAxis()}] {pressed} | {e.GetAxisValue()} {actionName}");
+                // else if (e.IsMouseMotion())
+                    // inputs.AddLast($"Mouse motion {e.GetMouseGlobalPosition()} {actionName}");
+                if (inputs.Count > history) inputs.RemoveFirst();
+            });
+            overlay.Text(() => string.Join('\n', inputs)).EndMonitor();
+            return overlay;
+        }
+        
+        public static DebugOverlay AddMonitorInputAction(this DebugOverlay overlay, InputActionsContainer inputActionsContainer) {
+            overlay
+                .Text(() => {
+                    var s = new StringBuilder();
+                    foreach (var inputAction in inputActionsContainer.ActionList) {
+                        var keys = inputAction.Keys.Select(key => $"Key:{key}").ToList();
+                        keys.AddRange(inputAction.Buttons.Select(button => $"Button:{button}"));
+                        s.Append($"{inputAction.Name}: {string.Join(" | ", keys)}");
+                        if (inputAction.HasAxis()) {
+                            s.Append($" AxisValue:{inputAction.AxisValue} DeadZone:{inputAction.DeadZone}");
+                        }
+                        if (inputAction.HasMouseButton()) {
+                            s.Append($" Mouse:{inputAction.MouseButton}");
+                        }
+                        if (inputAction.IsPressed(true)) s.Append(" [Exact pressed]");
+                        else if (inputAction.IsPressed()) s.Append(" [Pressed]");
+                        s.Append('\n');
+                    }
+                    return s.ToString();
+                }).EndMonitor();
             return overlay;
         }
         
         public static DebugOverlay AddMonitorScreenSettings(this DebugOverlay overlay, ScreenSettingsManager screenSettingsManager) {
             return overlay
                 .OpenBox()
-                    .Text("Strategy", () => screenSettingsManager.ScreenService.StrategyKey.ToString()).UpdateEvery(1f).EndMonitor()
-                    .Text("Stretch", () => $"{screenSettingsManager.ScreenService.ScreenConfiguration.StretchMode.ToString()}/{screenSettingsManager.ScreenService.ScreenConfiguration.StretchAspect.ToString()}").UpdateEvery(1f).EndMonitor()
-                    .Text("Zoom", () => screenSettingsManager.ScreenService.ScreenConfiguration.Zoom.ToString()).UpdateEvery(1f).EndMonitor()
+                    .Text("Strategy", () => screenSettingsManager.ScreenService.GetType().Name).UpdateEvery(1f).EndMonitor()
+                    .Text("Stretch", () => $"{screenSettingsManager.ScreenService.ScreenConfiguration.ScaleMode.ToString()}/{screenSettingsManager.ScreenService.ScreenConfiguration.ScaleAspect.ToString()}").UpdateEvery(1f).EndMonitor()
+                    .Text("Zoom", () => screenSettingsManager.ScreenService.ScreenConfiguration.ScaleFactor.ToString()).UpdateEvery(1f).EndMonitor()
                     .Text("Viewport", () => $"{overlay.GetTree().Root.Size.ToString("0")}").UpdateEvery(1f).EndMonitor()
                 .CloseBox()
                 .Add(new HBoxContainer().NodeBuilder()
                     .Label("Strategy").End()
-                    .ToggleButton(nameof(ScreenService.ScreenStrategyKey.WindowSize), 
+                    .ToggleButton(nameof(DoNothingStrategy), 
                         (button) => {
-                            screenSettingsManager.SetScreenConfiguration(screenSettingsManager.ScreenConfiguration, ScreenService.ScreenStrategyKey.WindowSize);
-                            button.GetParent().GetChildren<ToggleButton>().ForEach(b => b.Refresh());
+                            screenSettingsManager.SetStrategy(DoNothingStrategy.Instance);
+                            screenSettingsManager.ScreenService.Apply();
+                            button.GetParent().GetChildren().OfType<ToggleButton>().ForEach(b => b.Refresh());
                         }, 
-                        () => screenSettingsManager.ScreenService.StrategyKey == ScreenService.ScreenStrategyKey.WindowSize)
+                        () => screenSettingsManager.ScreenService.ScreenStrategy is DoNothingStrategy)
                     .End()
-                    .ToggleButton(nameof(ScreenService.ScreenStrategyKey.ViewportSize), 
+                    .ToggleButton(nameof(FixedViewportStrategy), 
                         (button) => {
-                            screenSettingsManager.SetScreenConfiguration(screenSettingsManager.ScreenConfiguration, ScreenService.ScreenStrategyKey.ViewportSize);
-                            button.GetParent().GetChildren<ToggleButton>().ForEach(b => b.Refresh());
+                            screenSettingsManager.SetStrategy(FixedViewportStrategy.Instance);
+                            screenSettingsManager.ScreenService.Apply();
+                            button.GetParent().GetChildren().OfType<ToggleButton>().ForEach(b => b.Refresh());
                         }, 
-                        () => screenSettingsManager.ScreenService.StrategyKey == ScreenService.ScreenStrategyKey.ViewportSize)
+                        () => screenSettingsManager.ScreenService.ScreenStrategy is FixedViewportStrategy)
                     .End()
-                    .ToggleButton(nameof(ScreenService.ScreenStrategyKey.IntegerScale), 
+                    .ToggleButton(nameof(ResizeViewportStrategy), 
                         (button) => {
-                            screenSettingsManager.SetScreenConfiguration(screenSettingsManager.ScreenConfiguration, ScreenService.ScreenStrategyKey.IntegerScale);
-                            button.GetParent().GetChildren<ToggleButton>().ForEach(b => b.Refresh());
+                            screenSettingsManager.SetStrategy(ResizeViewportStrategy.Instance);
+                            screenSettingsManager.ScreenService.Apply();
+                            button.GetParent().GetChildren().OfType<ToggleButton>().ForEach(b => b.Refresh());
                         }, 
-                        () => screenSettingsManager.ScreenService.StrategyKey == ScreenService.ScreenStrategyKey.IntegerScale)
+                        () => screenSettingsManager.ScreenService.ScreenStrategy is ResizeViewportStrategy)
+                    .End()
+                    .ToggleButton(nameof(ResizeIntegerScaledStrategy), 
+                        (button) => {
+                            screenSettingsManager.SetStrategy(ResizeIntegerScaledStrategy.Instance);
+                            screenSettingsManager.ScreenService.Apply();
+                            button.GetParent().GetChildren().OfType<ToggleButton>().ForEach(b => b.Refresh());
+                        }, 
+                        () => screenSettingsManager.ScreenService.ScreenStrategy is ResizeIntegerScaledStrategy)
                     .End()
                     .TypedNode)
                 .Add(new HBoxContainer().NodeBuilder()
                     .Label("Mode").End()
-                    .ToggleButton(nameof(SceneTree.StretchMode.Disabled), 
+                    .ToggleButton(nameof(Window.ContentScaleModeEnum.Disabled), 
                         (button) => {
-                            screenSettingsManager.ScreenConfiguration.StretchMode = SceneTree.StretchMode.Disabled;
-                            screenSettingsManager.SetScreenConfiguration(screenSettingsManager.ScreenConfiguration);
-                            button.GetParent().GetChildren<ToggleButton>().ForEach(b => b.Refresh());
+                            screenSettingsManager.ScreenConfiguration.ScaleMode = Window.ContentScaleModeEnum.Disabled;
+                            screenSettingsManager.ScreenService.Apply();
+                            button.GetParent().GetChildren().OfType<ToggleButton>().ForEach(b => b.Refresh());
                         }, 
-                        () => screenSettingsManager.ScreenConfiguration.StretchMode == SceneTree.StretchMode.Disabled)
+                        () => screenSettingsManager.ScreenConfiguration.ScaleMode == Window.ContentScaleModeEnum.Disabled)
                     .End()
-                    .ToggleButton(nameof(SceneTree.StretchMode.Mode2d), 
+                    .ToggleButton(nameof(Window.ContentScaleModeEnum.CanvasItems), 
                         (button) => {
-                            screenSettingsManager.ScreenConfiguration.StretchMode = SceneTree.StretchMode.Mode2d;
-                            screenSettingsManager.SetScreenConfiguration(screenSettingsManager.ScreenConfiguration);
-                            button.GetParent().GetChildren<ToggleButton>().ForEach(b => b.Refresh());
+                            screenSettingsManager.ScreenConfiguration.ScaleMode = Window.ContentScaleModeEnum.CanvasItems;
+                            screenSettingsManager.ScreenService.Apply();
+                            button.GetParent().GetChildren().OfType<ToggleButton>().ForEach(b => b.Refresh());
                         }, 
-                        () => screenSettingsManager.ScreenConfiguration.StretchMode == SceneTree.StretchMode.Mode2d)
+                        () => screenSettingsManager.ScreenConfiguration.ScaleMode == Window.ContentScaleModeEnum.CanvasItems)
                     .End()
-                    .ToggleButton(nameof(SceneTree.StretchMode.Viewport), 
+                    .ToggleButton(nameof(Window.ContentScaleModeEnum.Viewport), 
                         (button) => {
-                            screenSettingsManager.ScreenConfiguration.StretchMode = SceneTree.StretchMode.Viewport;
-                            screenSettingsManager.SetScreenConfiguration(screenSettingsManager.ScreenConfiguration);
-                            button.GetParent().GetChildren<ToggleButton>().ForEach(b => b.Refresh());
+                            screenSettingsManager.ScreenConfiguration.ScaleMode = Window.ContentScaleModeEnum.Viewport;
+                            screenSettingsManager.ScreenService.Apply();
+                            button.GetParent().GetChildren().OfType<ToggleButton>().ForEach(b => b.Refresh());
                         }, 
-                        () => screenSettingsManager.ScreenConfiguration.StretchMode == SceneTree.StretchMode.Viewport)
+                        () => screenSettingsManager.ScreenConfiguration.ScaleMode == Window.ContentScaleModeEnum.Viewport)
                     .End()
                     .TypedNode)
                 .Add(new HBoxContainer().NodeBuilder()
                     .Label("Aspect").End()
-                    .ToggleButton(nameof(SceneTree.StretchAspect.Ignore), 
+                    .ToggleButton(nameof(Window.ContentScaleAspectEnum.Ignore), 
                         (button) => {
-                            screenSettingsManager.ScreenConfiguration.StretchAspect = SceneTree.StretchAspect.Ignore;
-                            screenSettingsManager.SetScreenConfiguration(screenSettingsManager.ScreenConfiguration);
-                            button.GetParent().GetChildren<ToggleButton>().ForEach(b => b.Refresh());
+                            screenSettingsManager.ScreenConfiguration.ScaleAspect = Window.ContentScaleAspectEnum.Ignore;
+                            screenSettingsManager.ScreenService.Apply();
+                            button.GetParent().GetChildren().OfType<ToggleButton>().ForEach(b => b.Refresh());
                         }, 
-                        () => screenSettingsManager.ScreenConfiguration.StretchAspect == SceneTree.StretchAspect.Ignore)
+                        () => screenSettingsManager.ScreenConfiguration.ScaleAspect == Window.ContentScaleAspectEnum.Ignore)
                     .End()
-                    .ToggleButton(nameof(SceneTree.StretchAspect.Expand), 
+                    .ToggleButton(nameof(Window.ContentScaleAspectEnum.Expand), 
                         (button) => {
-                            screenSettingsManager.ScreenConfiguration.StretchAspect = SceneTree.StretchAspect.Expand;
+                            screenSettingsManager.ScreenConfiguration.ScaleAspect = Window.ContentScaleAspectEnum.Expand;
                             screenSettingsManager.SetScreenConfiguration(screenSettingsManager.ScreenConfiguration);
-                            button.GetParent().GetChildren<ToggleButton>().ForEach(b => b.Refresh());
+                            button.GetParent().GetChildren().OfType<ToggleButton>().ForEach(b => b.Refresh());
                         }, 
-                        () => screenSettingsManager.ScreenConfiguration.StretchAspect == SceneTree.StretchAspect.Expand)
+                        () => screenSettingsManager.ScreenConfiguration.ScaleAspect == Window.ContentScaleAspectEnum.Expand)
                     .End()
-                    .ToggleButton(nameof(SceneTree.StretchAspect.Keep), 
+                    .ToggleButton(nameof(Window.ContentScaleAspectEnum.Keep), 
                         (button) => {
-                            screenSettingsManager.ScreenConfiguration.StretchAspect = SceneTree.StretchAspect.Keep;
+                            screenSettingsManager.ScreenConfiguration.ScaleAspect = Window.ContentScaleAspectEnum.Keep;
                             screenSettingsManager.SetScreenConfiguration(screenSettingsManager.ScreenConfiguration);
-                            button.GetParent().GetChildren<ToggleButton>().ForEach(b => b.Refresh());
+                            button.GetParent().GetChildren().OfType<ToggleButton>().ForEach(b => b.Refresh());
                         }, 
-                        () => screenSettingsManager.ScreenConfiguration.StretchAspect == SceneTree.StretchAspect.Keep)
+                        () => screenSettingsManager.ScreenConfiguration.ScaleAspect == Window.ContentScaleAspectEnum.Keep)
                     .End()
-                    .ToggleButton(nameof(SceneTree.StretchAspect.KeepHeight), 
+                    .ToggleButton(nameof(Window.ContentScaleAspectEnum.KeepHeight), 
                         (button) => {
-                            screenSettingsManager.ScreenConfiguration.StretchAspect = SceneTree.StretchAspect.KeepHeight;
+                            screenSettingsManager.ScreenConfiguration.ScaleAspect = Window.ContentScaleAspectEnum.KeepHeight;
                             screenSettingsManager.SetScreenConfiguration(screenSettingsManager.ScreenConfiguration);
-                            button.GetParent().GetChildren<ToggleButton>().ForEach(b => b.Refresh());
+                            button.GetParent().GetChildren().OfType<ToggleButton>().ForEach(b => b.Refresh());
                         }, 
-                        () => screenSettingsManager.ScreenConfiguration.StretchAspect == SceneTree.StretchAspect.KeepHeight)
+                        () => screenSettingsManager.ScreenConfiguration.ScaleAspect == Window.ContentScaleAspectEnum.KeepHeight)
                     .End()
-                    .ToggleButton(nameof(SceneTree.StretchAspect.KeepWidth), 
+                    .ToggleButton(nameof(Window.ContentScaleAspectEnum.KeepWidth), 
                         () => {
-                            screenSettingsManager.ScreenConfiguration.StretchAspect = SceneTree.StretchAspect.KeepWidth;
+                            screenSettingsManager.ScreenConfiguration.ScaleAspect = Window.ContentScaleAspectEnum.KeepWidth;
                             screenSettingsManager.SetScreenConfiguration(screenSettingsManager.ScreenConfiguration);
                         }, 
-                        () => screenSettingsManager.ScreenConfiguration.StretchAspect == SceneTree.StretchAspect.KeepWidth)
+                        () => screenSettingsManager.ScreenConfiguration.ScaleAspect == Window.ContentScaleAspectEnum.KeepWidth)
                     .End()
                 .TypedNode);
         }

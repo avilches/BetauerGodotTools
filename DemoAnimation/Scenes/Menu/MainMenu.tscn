@@ -22,19 +22,19 @@ margin_right = 260.0
 margin_bottom = 1082.0
 grow_horizontal = 0
 grow_vertical = 0
-rect_min_size = Vector2( 240, 2 )
+min_size = Vector2( 240, 2 )
 
 [node name="ScrollContainer" type="ScrollContainer" parent="MainMenu/VBoxContainer"]
 margin_right = 240.0
 margin_bottom = 500.0
-rect_min_size = Vector2( 240, 500 )
+min_size = Vector2( 240, 500 )
 follow_focus = true
 scroll_horizontal_enabled = false
 
 [node name="Menu" type="VBoxContainer" parent="MainMenu/VBoxContainer/ScrollContainer"]
 margin_right = 240.0
 margin_bottom = 500.0
-rect_min_size = Vector2( 240, 0 )
+min_size = Vector2( 240, 0 )
 size_flags_vertical = 3
 theme = ExtResource( 2 )
 
@@ -71,7 +71,7 @@ margin_bottom = 550.0
 visible = false
 margin_right = 364.0
 margin_bottom = 500.0
-rect_min_size = Vector2( 200, 0 )
+min_size = Vector2( 200, 0 )
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
@@ -89,14 +89,14 @@ margin_bottom = 40.0
 [node name="Label1" type="Label" parent="HBoxContainer/DemoMenu/HBoxLabels"]
 margin_right = 180.0
 margin_bottom = 14.0
-rect_min_size = Vector2( 180, 0 )
+min_size = Vector2( 180, 0 )
 text = "On exit menu"
 
 [node name="Label2" type="Label" parent="HBoxContainer/DemoMenu/HBoxLabels"]
 margin_left = 184.0
 margin_right = 364.0
 margin_bottom = 14.0
-rect_min_size = Vector2( 180, 0 )
+min_size = Vector2( 180, 0 )
 text = "On enter menu:"
 
 [node name="HBoxOptions" type="HBoxContainer" parent="HBoxContainer/DemoMenu"]
@@ -107,13 +107,13 @@ margin_bottom = 64.0
 [node name="OptionButtonExit" type="OptionButton" parent="HBoxContainer/DemoMenu/HBoxOptions"]
 margin_right = 180.0
 margin_bottom = 20.0
-rect_min_size = Vector2( 180, 0 )
+min_size = Vector2( 180, 0 )
 
 [node name="OptionButtonEnter" type="OptionButton" parent="HBoxContainer/DemoMenu/HBoxOptions"]
 margin_left = 184.0
 margin_right = 364.0
 margin_bottom = 20.0
-rect_min_size = Vector2( 180, 0 )
+min_size = Vector2( 180, 0 )
 
 [node name="Label4" type="Label" parent="HBoxContainer/DemoMenu"]
 margin_top = 68.0
@@ -126,7 +126,7 @@ and *In animations only to enter."
 margin_top = 103.0
 margin_right = 364.0
 margin_bottom = 143.0
-rect_min_size = Vector2( 0, 40 )
+min_size = Vector2( 0, 40 )
 
 [node name="Label2" type="Label" parent="HBoxContainer/DemoMenu"]
 margin_top = 147.0
@@ -139,7 +139,7 @@ text = "2. Test the animations using the menu"
 margin_top = 173.0
 margin_right = 364.0
 margin_bottom = 193.0
-rect_min_size = Vector2( 0, 20 )
+min_size = Vector2( 0, 20 )
 
 [node name="HBox" type="HBoxContainer" parent="HBoxContainer/DemoMenu"]
 margin_top = 197.0
@@ -149,13 +149,13 @@ margin_bottom = 301.0
 [node name="Control" type="Control" parent="HBoxContainer/DemoMenu/HBox"]
 margin_right = 40.0
 margin_bottom = 104.0
-rect_min_size = Vector2( 40, 0 )
+min_size = Vector2( 40, 0 )
 
 [node name="Menu" type="VBoxContainer" parent="HBoxContainer/DemoMenu/HBox"]
 margin_left = 44.0
 margin_right = 244.0
 margin_bottom = 104.0
-rect_min_size = Vector2( 200, 0 )
+min_size = Vector2( 200, 0 )
 size_flags_horizontal = 0
 theme = ExtResource( 2 )
 
@@ -186,7 +186,7 @@ text = "Exit"
 margin_top = 305.0
 margin_right = 364.0
 margin_bottom = 325.0
-rect_min_size = Vector2( 0, 20 )
+min_size = Vector2( 0, 20 )
 
 [node name="MenuLabel" type="Label" parent="HBoxContainer/DemoMenu"]
 margin_top = 329.0
@@ -198,7 +198,7 @@ text = "asdasdasd"
 margin_top = 347.0
 margin_right = 364.0
 margin_bottom = 387.0
-rect_min_size = Vector2( 0, 40 )
+min_size = Vector2( 0, 40 )
 
 [node name="Label3" type="Label" parent="HBoxContainer/DemoMenu"]
 margin_top = 391.0
@@ -211,7 +211,7 @@ text = "3. In case you break the menu"
 margin_top = 417.0
 margin_right = 364.0
 margin_bottom = 431.0
-rect_min_size = Vector2( 140, 0 )
+min_size = Vector2( 140, 0 )
 text = "(Some effects move the options out of the screen)"
 
 [node name="HBoxOptions2" type="HBoxContainer" parent="HBoxContainer/DemoMenu"]
@@ -222,13 +222,13 @@ margin_bottom = 455.0
 [node name="Button" type="Button" parent="HBoxContainer/DemoMenu/HBoxOptions2"]
 margin_right = 280.0
 margin_bottom = 20.0
-rect_min_size = Vector2( 280, 0 )
+min_size = Vector2( 280, 0 )
 text = "Reset menu"
 
 [node name="Animator" type="VBoxContainer" parent="HBoxContainer"]
 margin_right = 344.0
 margin_bottom = 500.0
-rect_min_size = Vector2( 200, 0 )
+min_size = Vector2( 200, 0 )
 
 [node name="ControlTitle" type="Label" parent="HBoxContainer/Animator"]
 margin_right = 344.0
@@ -251,20 +251,20 @@ align = 2
 margin_left = 35.0
 margin_right = 235.0
 margin_bottom = 24.0
-rect_min_size = Vector2( 200, 0 )
+min_size = Vector2( 200, 0 )
 text = "Animate me!"
 
 [node name="Sep" type="Control" parent="HBoxContainer/Animator"]
 margin_top = 46.0
 margin_right = 344.0
 margin_bottom = 66.0
-rect_min_size = Vector2( 0, 20 )
+min_size = Vector2( 0, 20 )
 
 [node name="LabelToAnimate" type="Label" parent="HBoxContainer/Animator"]
 margin_top = 70.0
 margin_right = 344.0
 margin_bottom = 112.0
-rect_min_size = Vector2( 200, 0 )
+min_size = Vector2( 200, 0 )
 custom_fonts/font = ExtResource( 3 )
 text = "Animate me!"
 align = 1
@@ -273,13 +273,13 @@ align = 1
 margin_top = 116.0
 margin_right = 344.0
 margin_bottom = 136.0
-rect_min_size = Vector2( 0, 20 )
+min_size = Vector2( 0, 20 )
 
 [node name="Sep3" type="Control" parent="HBoxContainer/Animator"]
 margin_top = 140.0
 margin_right = 344.0
 margin_bottom = 180.0
-rect_min_size = Vector2( 0, 40 )
+min_size = Vector2( 0, 40 )
 
 [node name="HBoxContainer2" type="HBoxContainer" parent="HBoxContainer/Animator"]
 margin_top = 184.0
@@ -290,7 +290,7 @@ margin_bottom = 215.0
 margin_right = 170.0
 margin_bottom = 31.0
 grow_vertical = 2
-rect_min_size = Vector2( 170, 30 )
+min_size = Vector2( 170, 30 )
 text = "TextureRect node
 (Control)"
 
@@ -298,15 +298,15 @@ text = "TextureRect node
 margin_left = 174.0
 margin_right = 344.0
 margin_bottom = 31.0
-rect_min_size = Vector2( 170, 30 )
-text = "Sprite node
+min_size = Vector2( 170, 30 )
+text = "Sprite2D node
 (Node2D)"
 
 [node name="Sep2" type="Control" parent="HBoxContainer/Animator"]
 margin_top = 219.0
 margin_right = 344.0
 margin_bottom = 239.0
-rect_min_size = Vector2( 0, 20 )
+min_size = Vector2( 0, 20 )
 
 [node name="TextureRectToAnimate" type="TextureRect" parent="HBoxContainer/Animator"]
 margin_top = 243.0
@@ -314,6 +314,6 @@ margin_right = 344.0
 margin_bottom = 371.0
 texture = ExtResource( 1 )
 
-[node name="SpriteToAnimate" type="Sprite" parent="HBoxContainer/Animator"]
+[node name="SpriteToAnimate" type="Sprite2D" parent="HBoxContainer/Animator"]
 position = Vector2( 237, 307 )
 texture = ExtResource( 1 )

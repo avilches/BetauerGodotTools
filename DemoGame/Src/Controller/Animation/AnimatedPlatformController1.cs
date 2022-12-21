@@ -1,27 +1,26 @@
 using Godot;
 using Betauer.Animation.Easing;
-using Betauer.Animation.Tween;
+using Betauer.Animation;
 using Betauer.Application.Monitor;
 using Betauer.DI;
-using Betauer.Nodes;
+using Betauer.Core.Nodes;
 using Veronenger.Character;
 using Veronenger.Managers;
 
 namespace Veronenger.Controller.Animation {
-    public class AnimatedPlatformController1 : KinematicBody2D {
-        [Export] public bool IsFallingPlatform = false;
+    public partial class AnimatedPlatformController1 : StaticBody2D {
         [Inject] public PlatformManager PlatformManager { get; set;}
         [Inject] public DebugOverlayManager DebugOverlayManager { get; set;}
         [Inject] public KinematicPlatformMotion PlatformBody { get; set; }
-        private SceneTreeTween _sceneTreeTween;
+        private Tween _sceneTreeTween;
         private Vector2 _original;
 
         public override void _Ready() {
             // DebugOverlayManager.Overlay(this).GraphSpeed().SetChartSize(200, 50);
             
-            PlatformManager.ConfigurePlatform(this, IsFallingPlatform, true);
             _original = Position;
-            Motion__syncToPhysics = false;
+            // TODO Godot 4
+            // Motion__syncToPhysics = false;
 
             // tween the _newPosition property and use it like this:
             // this.OnPhysicsProcess((delta) => {

@@ -10,7 +10,7 @@ namespace Generator {
      * 
      * call with -s GeneratorScript.cs --no-window
      */
-    public class GeneratorScript : SceneTree {
+    public partial class GeneratorScript : SceneTree {
         public override void _Initialize() {
             var stopwatch = Stopwatch.StartNew();
             while (Root.GetChildCount() > 0) Root.RemoveChild(Root.GetChild(0));
@@ -23,7 +23,6 @@ namespace Generator {
             // Signal extensions
             GenerateSignalHandlerExtensions.Write(classes);
             GenerateAwaitExtensions.Write(classes);
-            GenerateSignalConstants.Write(classes);
             Console.WriteLine("End. "+stopwatch.ElapsedMilliseconds + "ms");
             Quit(0);
         }

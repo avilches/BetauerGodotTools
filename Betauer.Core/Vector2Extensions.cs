@@ -1,6 +1,6 @@
 using Godot;
 
-namespace Betauer {
+namespace Betauer.Core {
     public static class Vector2Extensions {
         
         /// <summary>
@@ -31,7 +31,7 @@ namespace Betauer {
         }
 
         public static Vector2 AngleToVector(this float angle) {
-            var rad = Mathf.Deg2Rad(angle);
+            var rad = Mathf.DegToRad(angle);
             return new Vector2(Mathf.Cos(rad),-Mathf.Sin(rad));
         }
         
@@ -91,7 +91,9 @@ namespace Betauer {
             return Mathf.Acos(normal.Dot(-floorUpDirection)) <= maxSlope + 0.01f;
         }
         
-        
+        public static bool IsWall(this Vector2 normal, Vector2 floorUpDirection, float maxSlope = 0.785398f) {
+            return !normal.IsFloor(floorUpDirection, maxSlope) && !normal.IsCeiling(floorUpDirection, maxSlope);
+        }
         
     }
 }

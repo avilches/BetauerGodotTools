@@ -36,19 +36,19 @@ namespace Betauer.Application.Screen {
                 Mathf.Floor(Mathf.Min(maxSize.x / size.x, maxSize.y / size.y)), 1);
         }
 
-        public readonly Vector2 Size;
+        public readonly Vector2i Size;
         public readonly AspectRatio AspectRatio;
 
-        public Resolution(Vector2 size) {
+        public Resolution(Vector2i size) {
             Size = size;
             AspectRatio = AspectRatios.Get(this);
         }
 
-        public Resolution(int x, int y) : this(new Vector2(x, y)) {
+        public Resolution(int x, int y) : this(new Vector2i(x, y)) {
         }
 
-        public int x => (int)Size.x;
-        public int y => (int)Size.y;
+        public int x => Size.x;
+        public int y => Size.y;
 
         public override string ToString() {
             return $"{AspectRatio.Name} {x}x{y}";

@@ -10,47 +10,45 @@ namespace Betauer.Application.Screen {
      * 
      */
     public class ResizeIntegerScaledStrategy : BaseScreenResolutionService, IScreenStrategy {
-        public ResizeIntegerScaledStrategy(SceneTree tree) : base(tree) {
-        }
+        public static readonly ResizeIntegerScaledStrategy Instance = new();
 
         public List<ScaledResolution> GetResolutions() {
             return BaseResolution.ExpandResolutionByWith(BaseResolution, AspectRatios);
         }
         
-        protected override void Setup() {
+        protected override void DoApply() {
             // Viewport means no interpolation when stretching, which it doesn't matter for bitmap graphics
             // because the image is scaled by x1 x2... so, viewport means fonts will shown worse
             // Mode2D shows betters fonts
-
-            // Enforce minimum resolution.
-            OS.MinWindowSize = ScreenConfiguration.BaseResolution.Size;
-            if (OS.WindowSize < OS.MinWindowSize) {
-                OS.WindowSize = OS.MinWindowSize;
-            }
-            OS.WindowResizable = ScreenConfiguration.IsResizeable;
-            Tree.SetScreenStretch(SceneTree.StretchMode.Disabled, SceneTree.StretchAspect.Ignore, BaseResolution.Size, 1);
+            // TODO Godot 4
+            
+            // Tree.Root.ContentScaleMode = Window.ContentScaleModeEnum.Disabled;
+            // Tree.Root.ContentScaleAspect = Window.ContentScaleAspectEnum.Ignore;
+            // Tree.Root.ContentScaleFactor = 1;
+            // Tree.Root.ContentScaleSize = BaseResolution.Size;
+            /*
             var rootViewport = Tree.Root;
-            var windowSize = OS.WindowFullscreen ? OS.GetScreenSize() : OS.WindowSize;
+            var windowSize = DisplayServer.WindowGetSize();
             var scale = Resolution.CalculateMaxScale(BaseResolution.Size, windowSize);
             var screenSize = BaseResolution.Size;
             var viewportSize = screenSize * scale;
-            var overScan = ((windowSize - viewportSize) / scale).Floor();
+            var overScan = ((windowSize - viewportSize) / scale); // .Floor();
 
             switch (StretchAspect) {
-                case SceneTree.StretchAspect.KeepWidth: {
+                case Window.ContentScaleAspectEnum.KeepWidth: {
                     screenSize.y += overScan.y;
                     break;
                 }
-                case SceneTree.StretchAspect.KeepHeight: {
+                case Window.ContentScaleAspectEnum.KeepHeight: {
                     screenSize.x += overScan.x;
                     break;
                 }
-                case SceneTree.StretchAspect.Expand:
-                case SceneTree.StretchAspect.Ignore: {
+                case Window.ContentScaleAspectEnum.Expand:
+                case Window.ContentScaleAspectEnum.Ignore: {
                     screenSize += overScan;
                     break;
                 }
-                case SceneTree.StretchAspect.Keep:
+                case Window.ContentScaleAspectEnum.Keep:
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -58,17 +56,17 @@ namespace Betauer.Application.Screen {
 
             viewportSize = screenSize * scale;
             var margin = (windowSize - viewportSize) / 2;
-            var margin2 = margin.Ceil();
-            margin = margin.Floor();
+            var margin2 = margin; // .Ceil();
+            margin = margin; //.Floor();
             var attachToScreenRect = new Rect2(margin, viewportSize);
             
-            if (StretchMode == SceneTree.StretchMode.Viewport) {
-                rootViewport.Size = (screenSize / Zoom).Floor();
+            if (StretchMode == Window.ContentScaleModeEnum.Viewport) {
+                rootViewport.Size = (screenSize / (int)Zoom); // .Floor();
                 rootViewport.SetAttachToScreenRect(attachToScreenRect);
                 rootViewport.SizeOverrideStretch = false;
                 rootViewport.SetSizeOverride(false);
             } else {
-                // Mode2d || Disabled
+                // CanvasItems || Disabled
                 rootViewport.Size = (viewportSize / Zoom).Floor();
                 rootViewport.SetAttachToScreenRect(attachToScreenRect);
                 rootViewport.SizeOverrideStretch = true;
@@ -81,10 +79,7 @@ namespace Betauer.Application.Screen {
                 Mathf.Max(0, (int)margin2.y));
 
             _state = $"ResizeIntegerScaled {StretchMode}/{StretchAspect} | Zoom {Zoom} | WindowSize {windowSize.x}x{windowSize.y} | Viewport {screenSize.x}x{screenSize.y}";
-            Logger.Debug(_state);
+            */
         }
-        
-        private string _state;
-        public override string GetStateAsString() => _state;
     }
 }

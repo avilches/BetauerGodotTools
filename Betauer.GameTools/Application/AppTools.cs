@@ -1,6 +1,6 @@
 using System;
 using System.Threading.Tasks;
-using Betauer.Nodes;
+using Betauer.Core.Nodes;
 using Betauer.Tools.Logging;
 using Godot;
 
@@ -14,10 +14,15 @@ namespace Betauer.Application {
             System.IO.Path.Combine(GetUserFolder(), System.IO.Path.GetFileName(file));
         
 
-        public static T GetProjectSetting<T>(string key, T defaultValue) {
-            var value = ProjectSettings.GetSetting(key);
-            if (value is T r) return r;
-            return defaultValue;
+        public static T GetProjectSetting<[MustBeVariant] T>(string key, T defaultValue) {
+            if (!ProjectSettings.HasSetting(key)) return defaultValue;
+            var variant = ProjectSettings.GetSetting(key);
+            return variant.As<T>();
+        }
+
+        public static void SetProjectSetting<T>(string key, T value) {
+            var variant = Variant.From(value);
+            ProjectSettings.SetSetting(key, variant);
         }
 
         public static string GetProjectName() => GetProjectSetting("application/config/name", "(unknown)");
@@ -41,8 +46,10 @@ namespace Betauer.Application {
                     sceneTree().QuitSafely(1);
                 }
             };
+            
+            
 
-            /*
+            // TODO Godot 4
             AppDomain.CurrentDomain.UnhandledException += (o, args) => {
                 // This event logs errors in _Input/_Ready or any other method called from Godot (async or non-async)
                 // but it only works if runtime/unhandled_exception_policy is "0" (terminate),
@@ -52,13 +59,14 @@ namespace Betauer.Application {
                 LoggerFactory.GetLogger(o?.GetType() ?? typeof(AppTools))
                     .Error("AppDomain.CurrentDomain.UnhandledException {0}", e);
             };
-            */
             
+            /*
             GD.UnhandledException += (o, args) => {
-                var e = args.Exception;
-                LoggerFactory.GetLogger(o?.GetType() ?? typeof(AppTools))
-                    .Error("GD.UnhandledException {0}", e);
-            };
+              var e = args.Exception;
+              LoggerFactory.GetLogger(o?.GetType() ?? typeof(AppTools))
+                  .Error("GD.UnhandledException {0}", e);
+          };
+          */
         }
 
     }

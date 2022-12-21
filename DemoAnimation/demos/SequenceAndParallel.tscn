@@ -73,7 +73,7 @@ margin_left = 212.0
 margin_top = 100.0
 margin_right = 812.0
 margin_bottom = 500.0
-rect_min_size = Vector2( 600, 400 )
+min_size = Vector2( 600, 400 )
 custom_styles/panel = SubResource( 1 )
 __meta__ = {
 "_edit_use_anchors_": false

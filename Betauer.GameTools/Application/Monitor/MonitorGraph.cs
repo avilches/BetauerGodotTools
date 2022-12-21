@@ -1,13 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Betauer.Nodes;
+using Betauer.Core;
+using Betauer.Core.Nodes;
 using Betauer.UI;
 using Godot;
 using Object = Godot.Object;
 
 namespace Betauer.Application.Monitor {
-    public class MonitorGraph : BaseMonitor<MonitorGraph> {
+    public partial class MonitorGraph : BaseMonitor<MonitorGraph> {
 
         public class Serie {
             private readonly MonitorGraph _graph;
@@ -93,7 +94,7 @@ namespace Betauer.Application.Monitor {
                 }
             }
 
-            internal void Process(float delta) {
+            internal void Process(double delta) {
                 var value = _loadValue.Invoke();
                 CurrentValue.Text = _formatValue != null? _formatValue.Invoke(value) : value.ToString("000.00");
                 Add(value);
@@ -222,13 +223,13 @@ namespace Betauer.Application.Monitor {
             _legend.NodeBuilder()
                 .Child(serie.Label)
                     .Config(label => {
-                        label.Align = Label.AlignEnum.Right;
+                    label.HorizontalAlignment = HorizontalAlignment.Right;
                         label.SetFontColor(DefaultLabelColor);
                     })
                 .End()
                 .Child(serie.CurrentValue)
                     .Config(label => {
-                        label.Align = Label.AlignEnum.Left;
+                        label.HorizontalAlignment = HorizontalAlignment.Right;
                     })
                 .End();
             _dirty = true;
@@ -247,7 +248,7 @@ namespace Betauer.Application.Monitor {
                 .End();
 
             _legend.GrowHorizontal = GrowDirection.Begin;
-            _legend.SetAnchorsAndMarginsPreset(LayoutPreset.RightWide);
+            _legend.SetAnchorsAndOffsetsPreset(LayoutPreset.RightWide);
             _dirty = true;
         }
 
@@ -264,8 +265,8 @@ namespace Betauer.Application.Monitor {
         }
 
         private void ConfigureChartSpaceAndBorder() {
-            SizeFlagsHorizontal = 0; // Don't expand, so the size will be the RectMinSize
-            RectMinSize = new Vector2(ChartWidth, 0);
+            SizeFlagsHorizontal = 0; // Don't expand, so the size will be the CustomMinimumSize
+            CustomMinimumSize = new Vector2(ChartWidth, 0);
 
             BorderLine.ClearPoints();
             BorderLine.AddPoint(new Vector2(0, 0));
@@ -277,7 +278,7 @@ namespace Betauer.Application.Monitor {
             BorderLine.DefaultColor = DefaultBorderColor;
             _borderConfig.Invoke(BorderLine);
             
-            _chartSpacer.RectMinSize = new Vector2(ChartWidth, ChartHeight);
+            _chartSpacer.CustomMinimumSize = new Vector2(ChartWidth, ChartHeight);
 
         }
 
@@ -328,7 +329,7 @@ namespace Betauer.Application.Monitor {
             }
         }
 
-        public override void UpdateMonitor(float delta) {
+        public override void UpdateMonitor(double delta) {
             if (_dirty) {
                 foreach (var serie in _series) {
                     serie.ConfigureChartLine();

@@ -1,10 +1,10 @@
 using System;
-using Betauer.Nodes;
+using Betauer.Core.Nodes;
 using Betauer.UI;
 using Godot;
 
 namespace Betauer.Application.Monitor {
-    public class MonitorVector2 : BaseMonitor<MonitorVector2> {
+    public partial class MonitorVector2 : BaseMonitor<MonitorVector2> {
 
         public static readonly Color DefaultLineXColor = Colors.Red;
         public static readonly Color DefaultLineYColor = Colors.Blue;
@@ -89,19 +89,19 @@ namespace Betauer.Application.Monitor {
                     .Child(_legend)
                         .Child(Label)
                             .Config(label => {
-                                label.Align = Label.AlignEnum.Right;
+                    label.HorizontalAlignment = HorizontalAlignment.Right;
                                 label.SetFontColor(DefaultLabelColor);
                             })
                         .End()
                         .Child(CurrentValue)
                             .Config(label => {
-                                label.Align = Label.AlignEnum.Left;
+                                label.HorizontalAlignment = HorizontalAlignment.Left;
                             }).End()
                         .End()
                     .End();
         }
 
-        public override void UpdateMonitor(float delta) {
+        public override void UpdateMonitor(double delta) {
             if (_dirty) {
                 ConfigureChart();
             }
@@ -116,9 +116,9 @@ namespace Betauer.Application.Monitor {
         }
 
         private void ConfigureChart() {
-            SizeFlagsHorizontal = 0; // Don't expand, so the size will be the RectMinSize
-            RectMinSize = new Vector2(ChartSize, 0);
-            _chartSpacer.RectMinSize = new Vector2(ChartSize, ChartSize);
+            SizeFlagsHorizontal = 0; // Don't expand, so the size will be the CustomMinimumSize
+            CustomMinimumSize = new Vector2(ChartSize, 0);
+            _chartSpacer.CustomMinimumSize = new Vector2(ChartSize, ChartSize);
 
             var center = ChartSize / 2;
             LineX.SetPointPosition(0, new Vector2(center, center));
@@ -126,7 +126,7 @@ namespace Betauer.Application.Monitor {
             LineLength.SetPointPosition(0, new Vector2(center, center));
 
             _legend.GrowHorizontal = GrowDirection.Begin;
-            _legend.SetAnchorsAndMarginsPreset(LayoutPreset.RightWide);
+            _legend.SetAnchorsAndOffsetsPreset(LayoutPreset.RightWide);
 
             BorderLine.ClearPoints();
             BorderLine.AddPoint(new Vector2(0, 0));

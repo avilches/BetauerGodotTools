@@ -5,9 +5,8 @@ using Veronenger.Managers;
 using static Godot.Mathf;
 
 namespace Veronenger.Controller.Animation {
-    public class RotatingPlatformController : KinematicBody2D {
+    public partial class RotatingPlatformController : CharacterBody2D {
 
-        [Export] public bool IsFallingPlatform = false;
         [Export] public Vector2 Radius = new Vector2(50, 50);
         [Export] public float RotationDuration = 4.0f;
         [Inject] public PlatformManager PlatformManager { get; set;}
@@ -18,18 +17,17 @@ namespace Veronenger.Controller.Animation {
             Configure();
         }
 
-        public override void _PhysicsProcess(float delta) {
+        public override void _PhysicsProcess(double delta) {
             UpdateAngle(delta);
             UpdatePosition();
         }
 
         private void Configure() {
-            PlatformManager.ConfigurePlatform(this, IsFallingPlatform, true);
             _speed = Tau / RotationDuration;
         }
 
-        private void UpdateAngle(float delta) {
-            _angle = Wrap(_angle + _speed * delta, 0, Tau); // # Infinite rotation(in radians)
+        private void UpdateAngle(double delta) {
+            _angle = Wrap(_angle + _speed * (float)delta, 0, Tau); // # Infinite rotation(in radians)
         }
 
         private void UpdatePosition() {

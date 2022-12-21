@@ -9,7 +9,7 @@ using NUnit.Framework;
 
 namespace Betauer.GameTools.Tests {
     [TestFixture]
-    public class InputActionTests : Node {
+    public partial class InputActionTests : Node {
 
         const string SettingsFile = "./action-test-settings.ini";
 
@@ -27,14 +27,14 @@ namespace Betauer.GameTools.Tests {
             Assert.That(empty.Buttons, Is.Empty);
 
             var reg = InputAction.Create("N")
-                .Keys(KeyList.A)
-                .Keys(KeyList.K, KeyList.Alt)
-                .Buttons(JoystickList.Button0)
-                .Buttons(JoystickList.Button1, JoystickList.Button2)
+                .Keys(Key.A)
+                .Keys(Key.K, Key.Alt)
+                .Buttons(JoyButton.A)
+                .Buttons(JoyButton.B, JoyButton.Back)
                 .Build();
             Assert.That(reg.Name, Is.EqualTo("N"));
-            Assert.That(reg.Keys, Is.EqualTo(new [] {KeyList.A, KeyList.K, KeyList.Alt}.ToList()));
-            Assert.That(reg.Buttons, Is.EqualTo(new [] {JoystickList.Button0, JoystickList.Button1, JoystickList.Button2}.ToList()));
+            Assert.That(reg.Keys, Is.EqualTo(new [] {Key.A, Key.K, Key.Alt}.ToList()));
+            Assert.That(reg.Buttons, Is.EqualTo(new [] {JoyButton.A, JoyButton.B, JoyButton.Back}.ToList()));
         }
 
         [Test]
@@ -47,29 +47,29 @@ namespace Betauer.GameTools.Tests {
             jump.SetSaveSettings(b).Load();
             Assert.That(jump.Buttons, Is.Empty);
             Assert.That(jump.Keys, Is.Empty);
-            Assert.That(jump.Axis, Is.EqualTo(-1));
+            Assert.That(jump.Axis, Is.EqualTo(JoyAxis.Invalid));
 
             // Configure and save
-            jump.AddKeys(KeyList.A, KeyList.Acircumflex);
-            jump.AddButtons(JoystickList.Button3, JoystickList.SonyX);
-            jump.SetAxis(2);
-            Assert.That(jump.Buttons, Is.EqualTo(new [] {JoystickList.Button3, JoystickList.SonyX}.ToList()));
-            Assert.That(jump.Keys, Is.EqualTo(new [] {KeyList.A, KeyList.Acircumflex}.ToList()));
-            Assert.That(jump.Axis, Is.EqualTo(2));
+            jump.AddKeys(Key.A, Key.Acircumflex);
+            jump.AddButtons(JoyButton.Paddle1, JoyButton.X);
+            jump.SetAxis(JoyAxis.RightX);
+            Assert.That(jump.Buttons, Is.EqualTo(new [] {JoyButton.Paddle1, JoyButton.X}.ToList()));
+            Assert.That(jump.Keys, Is.EqualTo(new [] {Key.A, Key.Acircumflex}.ToList()));
+            Assert.That(jump.Axis, Is.EqualTo(JoyAxis.RightX));
             jump.Save();
 
             // Delete
             jump.ClearKeys().ClearButtons();
-            jump.SetAxis(-1);
+            jump.SetAxis(JoyAxis.Invalid);
             Assert.That(jump.Buttons, Is.Empty);
             Assert.That(jump.Keys, Is.Empty);
-            Assert.That(jump.Axis, Is.EqualTo(-1));
+            Assert.That(jump.Axis, Is.EqualTo(JoyAxis.Invalid));
 
             // Load
             jump.Load();
-            Assert.That(jump.Buttons, Is.EqualTo(new [] {JoystickList.Button3, JoystickList.SonyX}.ToList()));
-            Assert.That(jump.Keys, Is.EqualTo(new [] {KeyList.A, KeyList.Acircumflex}.ToList()));
-            Assert.That(jump.Axis, Is.EqualTo(2));
+            Assert.That(jump.Buttons, Is.EqualTo(new [] {JoyButton.Paddle1, JoyButton.X}.ToList()));
+            Assert.That(jump.Keys, Is.EqualTo(new [] {Key.A, Key.Acircumflex}.ToList()));
+            Assert.That(jump.Axis, Is.EqualTo(JoyAxis.RightX));
 
         }
 
@@ -88,8 +88,8 @@ namespace Betauer.GameTools.Tests {
             jump.SetSaveSettings(b).Load();
             Assert.That(jump.SaveSetting, Is.EqualTo(b));
             
-            Assert.That(jump.Buttons, Is.EqualTo(new [] {JoystickList.Button0, JoystickList.Button1}.ToList()));
-            Assert.That(jump.Keys, Is.EqualTo(new [] {KeyList.H, KeyList.F}.ToList()));
+            Assert.That(jump.Buttons, Is.EqualTo(new [] {JoyButton.A, JoyButton.B}.ToList()));
+            Assert.That(jump.Keys, Is.EqualTo(new [] {Key.H, Key.F}.ToList()));
             
             Assert.That(InputMap.HasAction("ManualJump"), Is.False);
             jump.Setup();
@@ -146,7 +146,7 @@ namespace Betauer.GameTools.Tests {
         public void InputWithoutInputActionsContainerTest() {
             var di = new ContainerBuilder();
             di.Scan<InputWithoutInputActionsContainer>();
-            Assert.Throws<KeyNotFoundException>(() => di.Build());
+            Assert.Throws<InjectMemberException>(() => di.Build());
         }
         
         [Configuration]
@@ -158,6 +158,7 @@ namespace Betauer.GameTools.Tests {
         [Test(Description = "Error if there is not a SettingContainer when a Configurable() action is used")]
         public void ConfigurableInputWithContainerButWithoutSettingContainerTest() {
             var di = new ContainerBuilder();
+            di.Singleton<SceneTree>(GetTree);
             di.Scan<ConfigurableInputWithContainerButWithoutSettingContainer>();
             var e = Assert.Throws<KeyNotFoundException>(() => di.Build());
             Assert.That(e.Message, Contains.Substring(nameof(SettingsContainer)));
@@ -175,6 +176,7 @@ namespace Betauer.GameTools.Tests {
         [Test(Description = "Use a custom InputActionsContainer")]
         public void InputActionContainerTests() {
             var di = new ContainerBuilder();
+            di.Singleton<SceneTree>(GetTree);
             di.Scan<InputWithContainer>();
             var c = di.Build();
             var s = c.Resolve<InputActionsContainer>();
@@ -219,6 +221,7 @@ namespace Betauer.GameTools.Tests {
             var di = new ContainerBuilder();
             di.Scan<ConfigurableInputWithContainerAndSettings>();
             di.Scan<Service4>();
+            di.Singleton<SceneTree>(GetTree);
             var c = di.Build();
             var s = c.Resolve<Service4>();
 
@@ -268,6 +271,7 @@ namespace Betauer.GameTools.Tests {
             var di = new ContainerBuilder();
             di.Scan<MultipleInputActionContainer>();
             di.Scan<Service5>();
+            di.Singleton<SceneTree>(GetTree);
             var c = di.Build();
             var s = c.Resolve<Service5>();
             

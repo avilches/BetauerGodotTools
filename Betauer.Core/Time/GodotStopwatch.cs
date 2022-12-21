@@ -1,7 +1,7 @@
-using Betauer.Signal;
+using Betauer.Core.Signal;
 using Godot;
 
-namespace Betauer.Time {
+namespace Betauer.Core.Time {
     /// <summary>
     /// A Stopwatch to measure elapsed time since start. It has Start/Stop and Reset.
     /// 
@@ -14,26 +14,30 @@ namespace Betauer.Time {
 
         private readonly SceneTree _sceneTree;
         private SceneTreeTimer _sceneTreeTimer;
-        private float _elapsed = 0;
-        private float _accumulated = 0;
-        private float _timeLeftOnPause = 0;
+        private double _elapsed = 0;
+        private double _accumulated = 0;
+        private double _timeLeftOnPause = 0;
         private bool _paused = true;
         private bool _running = false;
 
-        public readonly Node.PauseModeEnum PauseMode;
+        public bool ProcessAlways = true;
+        public bool ProcessInPhysics = false;
+        public bool IgnoreTimeScale = false;
+
         public bool IsRunning => _running && !_paused;
 
         /// <summary>
-        /// Creates a new Stopwatch not running, so it needs to be started with Start() 
+        /// Creates a new Stopwatch not running, so it needs to be started with Start() or Restart() 
         /// </summary>
         /// <param name="sceneTree"></param>
-        /// <param name="pauseMode">
-        /// PauseModeEnum.Inherit or PauseModeEnum.Stop: the timer will pause along with the SceneTree
-        /// PauseModeEnum.Process: timer run always, ignoring the SceneTree.Pause state 
-        /// </param>
-        public GodotStopwatch(SceneTree sceneTree, Node.PauseModeEnum pauseMode = Node.PauseModeEnum.Inherit) {
+        /// <param name="processAlways">If <c>processAlways</c> is set to <c>false</c>, pausing the <see cref="T:Godot.SceneTree" /> will also pause the timer.</param>
+        /// <param name="processInPhysics">If <c>processInPhysics</c> is set to <c>true</c>, will update the <see cref="T:Godot.SceneTreeTimer" /> during the physics frame instead of the process frame (fixed framerate processing).</param>
+        /// <param name="ignoreTimeScale">If <c>ignoreTimeScale</c> is set to <c>true</c>, will ignore <see cref="P:Godot.Engine.TimeScale" /> and update the <see cref="T:Godot.SceneTreeTimer" /> with the actual frame delta.</param>
+        public GodotStopwatch(SceneTree sceneTree, bool processAlways = false, bool processInPhysics = false, bool ignoreTimeScale = false) {
             _sceneTree = sceneTree;
-            PauseMode = pauseMode;
+            ProcessAlways = processAlways;
+            ProcessInPhysics = processInPhysics;
+            IgnoreTimeScale = ignoreTimeScale;
             _sceneTreeTimer = CreateTimer();
             // Not running when it starts
             _paused = true;
@@ -41,7 +45,11 @@ namespace Betauer.Time {
             _elapsed = 0;
         }
 
-        public float Elapsed {
+        public GodotStopwatch(bool processAlways = false, bool processInPhysics = false, bool ignoreTimeScale = false) : 
+            this(Engine.GetMainLoop() as SceneTree, processAlways, processInPhysics, ignoreTimeScale) {
+        }
+
+        public double Elapsed {
             get {
                 if (_running && !_paused) return InternalStartTime - _sceneTreeTimer.TimeLeft + _accumulated;
                 return _elapsed;
@@ -90,14 +98,14 @@ namespace Betauer.Time {
             return this;
         }
 
-        public float Alarm { get; private set; } = float.MaxValue;
+        public double Alarm { get; private set; } = double.MaxValue;
 
         public GodotStopwatch RemoveAlarm() {
-            Alarm = float.MaxValue;
+            Alarm = double.MaxValue;
             return this;
         }
 
-        public GodotStopwatch SetAlarm(float alarm) {
+        public GodotStopwatch SetAlarm(double alarm) {
             Alarm = alarm;
             return this;
         }
@@ -118,8 +126,7 @@ namespace Betauer.Time {
         }
 
         private SceneTreeTimer CreateTimer() {
-            var pauseModeProcess = PauseMode == Node.PauseModeEnum.Process; // false = pausing the scene pause the timer 
-            var sceneTreeTimer = _sceneTree.CreateTimer(InternalStartTime, pauseModeProcess);
+            var sceneTreeTimer = _sceneTree.CreateTimer(InternalStartTime, ProcessAlways, ProcessInPhysics, IgnoreTimeScale);
             // With this trick will create another timer if the current one finishes.
             sceneTreeTimer.AwaitTimeout().OnCompleted(() => {
                 if (!_paused) _accumulated += InternalStartTime;

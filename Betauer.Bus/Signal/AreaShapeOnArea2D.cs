@@ -1,4 +1,4 @@
-using Betauer.Signal;
+using Betauer.Core.Signal;
 using Godot;
 
 namespace Betauer.Bus.Signal {
@@ -34,63 +34,4 @@ namespace Betauer.Bus.Signal {
         }
     }
 
-    public static class AreaShapeOnArea2DEntered {
-        public class Multicast : SignalMulticast<Area2D, (RID, Node, int, int), Node> {
-            public Multicast(string name) : base(name) {
-            }
-
-            public override SignalHandler Connect(Area2D area2D) {
-                // Console.WriteLine(Name + ":ListenSignalsOf " + area2DFrom.ToStringSafe());
-                return area2D.OnAreaShapeEntered((rid, node, areaShapeIndex, localShapeIndex) => Publish(area2D, (rid, node, areaShapeIndex, localShapeIndex)));
-            }
-
-            protected override bool Matches((RID, Node, int, int) e, Node detect) {
-                return e.Item2 == detect;
-            }
-        }
-
-        public class Unicast : SignalUnicast<Area2D, (RID, Node, int, int), Node> {
-            public Unicast(string name) : base(name) {
-            }
-
-            public override SignalHandler Connect(Area2D area2D) {
-                // Console.WriteLine(Name + ":ListenSignalsOf " + area2DFrom.ToStringSafe());
-                return area2D.OnAreaShapeEntered((rid, node, areaShapeIndex, localShapeIndex) => Publish(area2D, (rid, node, areaShapeIndex, localShapeIndex)));
-            }
-
-            protected override bool Matches((RID, Node, int, int) e, Node detect) {
-                return e.Item2 == detect;
-            }
-        }
-    }
-
-    public static class AreaShapeOnArea2DExited {
-        public class Multicast : SignalMulticast<Area2D, (RID, Node, int, int), Node> {
-            public Multicast(string name) : base(name) {
-            }
-
-            public override SignalHandler Connect(Area2D area2D) {
-                // Console.WriteLine(Name + ":ListenSignalsOf " + area2DFrom.ToStringSafe());
-                return area2D.OnAreaShapeExited((rid, node, areaShapeIndex, localShapeIndex) => Publish(area2D, (rid, node, areaShapeIndex, localShapeIndex)));
-            }
-
-            protected override bool Matches((RID, Node, int, int) e, Node detect) {
-                return e.Item2 == detect;
-            }
-        }
-
-        public class Unicast : SignalUnicast<Area2D, (RID, Node, int, int), Node> {
-            public Unicast(string name) : base(name) {
-            }
-
-            public override SignalHandler Connect(Area2D area2D) {
-                // Console.WriteLine(Name + ":ListenSignalsOf " + area2DFrom.ToStringSafe());
-                return area2D.OnAreaShapeExited((rid, node, areaShapeIndex, localShapeIndex) => Publish(area2D, (rid, node, areaShapeIndex, localShapeIndex)));
-            }
-
-            protected override bool Matches((RID, Node, int, int) e, Node detect) {
-                return e.Item2 == detect;
-            }
-        }
-    }
 }

@@ -25,7 +25,7 @@ namespace Betauer.Application {{
 
 {string.Join("\n", GenerateEvents(clazz))}
 
-        public void Execute(int what) {{
+        public void Execute(long what) {{
             switch (what) {{
 {string.Join("\n", GenerateSwitchCases(clazz))}
             }}

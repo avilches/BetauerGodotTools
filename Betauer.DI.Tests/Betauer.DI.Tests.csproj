@@ -1,19 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>netstandard2.1</TargetFramework>
-        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-        <IsPackable>false</IsPackable>
-        <LangVersion>preview</LangVersion>
+        <TargetFramework>net6.0</TargetFramework>
+        <EnableDynamicLoading>true</EnableDynamicLoading>
+        <LangVersion>10.0</LangVersion>
         <RootNamespace>Betauer.DI.Tests</RootNamespace>
         <PackageId>Betauer.DI.Tests</PackageId>
         <AssemblyName>Betauer.DI.Tests</AssemblyName>
         <Nullable>enable</Nullable>
     </PropertyGroup>
-    <ItemGroup>
-        <Reference Include="GodotSharp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-            <HintPath>$(SolutionDir)/.mono/assemblies/Debug/GodotSharp.dll</HintPath>
-        </Reference>
-    </ItemGroup>
     <ItemGroup>
         <PackageReference Include="NUnit" Version="3.13.3" />
     </ItemGroup>

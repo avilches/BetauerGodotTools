@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Betauer.Nodes;
+using Betauer.Core.Nodes;
 using Betauer.Tools.Reflection;
 using Godot;
 
@@ -23,7 +23,7 @@ namespace Betauer.OnReady {
             var path = getterSetter.SetterAttribute.Path?.Trim(); 
             if (path == null) return;
             // [OnReady("path/to/node")
-            // private Sprite sprite = this.GetNode<Sprite>("path/to/node");
+            // private Sprite2D sprite = this.GetNode<Sprite2D>("path/to/node");
             var node = target.GetNode(path);
             var fieldInfo = "[OnReady(\"" + path + "\")] " + getterSetter.Type.Name + " " +
                             getterSetter.Name;
@@ -56,8 +56,8 @@ namespace Betauer.OnReady {
                 
                 IDictionary dictionary = (IDictionary)Activator.CreateInstance(getterSetter.Type);
                 var valueType = getterSetter.Type.IsGenericType ? getterSetter.Type.GenericTypeArguments[1] : null;
-                foreach (var child in node.GetChildren().OfType<Node>()) {
-                    if (valueType == null || valueType.IsInstanceOfType(child)) dictionary[child.Name] = child; 
+                foreach (var child in node.GetChildren()) {
+                    if (valueType == null || valueType.IsInstanceOfType(child)) dictionary[(string)child.Name] = child; 
                 }
                 getterSetter.SetValue(target, dictionary);
 

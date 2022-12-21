@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using Godot;
 
-namespace Betauer.Nodes.Property {
+namespace Betauer.Core.Nodes.Property {
     public class IndexedMultipleProperty<TProperty> : IndexedProperty<TProperty> {
         private readonly Type[] _types;
         private readonly NodePath[] _propertyNames;

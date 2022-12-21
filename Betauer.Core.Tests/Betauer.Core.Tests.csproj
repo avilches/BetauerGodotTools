@@ -1,24 +1,21 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>netstandard2.1</TargetFramework>
-        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-        <IsPackable>false</IsPackable>
-        <LangVersion>preview</LangVersion>
-        <RootNamespace>Betauer.Tests</RootNamespace>
+        <TargetFramework>net6.0</TargetFramework>
+        <EnableDynamicLoading>true</EnableDynamicLoading>
+        <LangVersion>10.0</LangVersion>
+        <RootNamespace>Betauer.Core.Tests</RootNamespace>
         <PackageId>Betauer.Core.Tests</PackageId>
         <AssemblyName>Betauer.Core.Tests</AssemblyName>
         <Nullable>enable</Nullable>
     </PropertyGroup>
     <ItemGroup>
-        <Reference Include="GodotSharp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-            <HintPath>$(SolutionDir)/.mono/assemblies/Debug/GodotSharp.dll</HintPath>
-        </Reference>
-    </ItemGroup>
-    <ItemGroup>
+        <PackageReference Include="GodotSharp" Version="4.0.0-beta.9" />
+        <PackageReference Include="ZString" Version="2.5.0" />
         <PackageReference Include="NUnit" Version="3.13.3" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\Betauer.TestRunner\Betauer.TestRunner.csproj" />
         <ProjectReference Include="..\Betauer.Core\Betauer.Core.csproj" />
+        <ProjectReference Include="..\Betauer.Tools.Logging\Betauer.Tools.Logging.csproj" />
     </ItemGroup>
 </Project>

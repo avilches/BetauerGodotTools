@@ -5,7 +5,7 @@ using Godot;
 using File = System.IO.File;
 
 namespace Veronenger.Build {
-    public class Release : MainLoop {
+    public partial class Release : MainLoop {
         private static readonly string[] ExcludeFilter = { "export/*", "Tests/*" };
         
         public override void _Initialize() {
@@ -138,6 +138,6 @@ namespace Veronenger.Build {
             return data;
         }
 
-        public override bool _Idle(float delta) => true;
+        public override bool _Process(double delta) => true;
     }
 }

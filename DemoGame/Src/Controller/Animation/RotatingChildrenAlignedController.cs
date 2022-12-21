@@ -1,18 +1,14 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
-using Betauer;
 using Betauer.Animation;
 using Betauer.Animation.Easing;
-using Betauer.Animation.Tween;
 using Betauer.Application.Monitor;
 using Betauer.DI;
-using Betauer.Nodes;
-using Veronenger.Managers;
+using Betauer.Core.Nodes;
 
 namespace Veronenger.Controller.Animation {
-    public class RotatingChildrenAlignedController : Node2D {
+    public partial class RotatingChildrenAlignedController : Node2D {
         public const float CLOCK_THREE = Mathf.Pi / 2;
         public const float CLOCK_NINE = -Mathf.Pi / 2;
 
@@ -22,8 +18,8 @@ namespace Veronenger.Controller.Animation {
 
         private List<PhysicsBody2D> _platforms;
         private SequenceAnimation _sequence;
-        private SceneTreeTween _tween;
-        private SceneTreeTween _sceneTreeTween;
+        private Tween _tween;
+        private Tween _sceneTreeTween;
 
         private void RotateAligned(float angle) => RotateAligned(_platforms, angle, Radius);
 
@@ -38,7 +34,7 @@ namespace Veronenger.Controller.Animation {
                 .SetInfiniteLoops();
             _sceneTreeTween = _sequence.Play();
 
-            _platforms = this.GetChildren<PhysicsBody2D>();
+            _platforms = this.GetChildren().OfType<PhysicsBody2D>().ToList();
             // var lastPlatform = _platforms.Last();
             // DebugOverlayManager.Overlay(lastPlatform).GraphSpeed().SetChartSize(200, 50);
         }

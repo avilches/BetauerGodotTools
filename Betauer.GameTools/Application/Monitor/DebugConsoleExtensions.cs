@@ -1,15 +1,16 @@
 using System;
+using System.Globalization;
 using System.Linq;
-using System.Text.RegularExpressions;
 using Betauer.Application.Screen;
+using Betauer.Core.Nodes;
+using Betauer.Input;
 using Betauer.Nodes;
-using Betauer.Signal;
 using Godot;
 
 namespace Betauer.Application.Monitor {
     public static class RichTextLabelExtensions {
         public static RichTextLabel AppendBbcodeLine(this RichTextLabel richTextLabel, string? text = null) {
-            if (text != null) richTextLabel.AppendBbcode(text);
+            if (text != null) richTextLabel.AppendText(text);
             richTextLabel.Newline();
             return richTextLabel;
         }
@@ -85,16 +86,16 @@ namespace Betauer.Application.Monitor {
     [color=#ffffff]timescale <float>[/color] : Set the time scale to <float>.",
                     "Error: argument must be a valid float number.")
                 .WithNoArguments(() => {
-                    console.WriteLine($"Current time scale: {Engine.TimeScale.ToString()}");
+                    console.WriteLine($"Current time scale: {Engine.TimeScale.ToString(CultureInfo.InvariantCulture)}");
                 })
                 .ArgumentIsFloat(input => {
                     var newTimeScale = input.Arguments[0];
-                    Engine.TimeScale = newTimeScale.ToFloat();
+                    Engine.TimeScale = double.Parse(newTimeScale, NumberStyles.Float, CultureInfo.InvariantCulture);
                     console.WriteLine($"New time scale: {newTimeScale}");
                 }).End();
         }
                                                                         
-        public static DebugConsole AddEngineTargetFpsCommand(this DebugConsole console) {
+        public static DebugConsole AddEngineMaxFpsCommand(this DebugConsole console) {
             return console.CreateCommand("fps",
                     "Show or change the target fps.",
                     @"Usage:
@@ -102,12 +103,12 @@ namespace Betauer.Application.Monitor {
     [color=#ffffff]fps <int>[/color] : Set the target fps to <int>.",
                     "Error: argument must be a valid integer.")
                 .WithNoArguments(() => {
-                    console.WriteLine($"Current target fps: {Engine.TargetFps.ToString()}");
+                    console.WriteLine($"Current target fps: {Engine.MaxFps.ToString()}");
                 })
                 .ArgumentIsInteger(input => {
-                    var newTargetFps = input.Arguments[0];
-                    Engine.TargetFps = newTargetFps.ToInt();
-                    console.WriteLine($"New target fps: {newTargetFps}");
+                    var newMaxFps = input.Arguments[0];
+                    Engine.MaxFps = newMaxFps.ToInt();
+                    console.WriteLine($"New target fps: {newMaxFps}");
                 }).End();
         }
 
@@ -131,7 +132,7 @@ namespace Betauer.Application.Monitor {
 
         public static DebugConsole AddNodeHandlerInfoCommand(this DebugConsole console, NodeHandler? nodeHandler = null) {
             const string title = nameof(NodeHandler);
-            return console.CreateCommand("show-node-handler", () => {
+            return console.CreateCommand("node-handler", () => {
                 if (console.DebugOverlayManager.HasOverlay(title)) return;
                 console.DebugOverlayManager
                     .Overlay(title)
@@ -141,22 +142,9 @@ namespace Betauer.Application.Monitor {
             }, "Open the NodeHandler info window.");
         }
 
-        public static DebugConsole AddSignalManagerCommand(this DebugConsole console, SignalManager? signalManager = null) {
-            const string title = nameof(SignalManager);
-            return console.CreateCommand("show-signals", () => {
-                if (console.DebugOverlayManager.HasOverlay(title)) return;
-                console.DebugOverlayManager
-                    .Overlay(title)
-                    .Permanent(false)
-                    .Solid()
-                    .Text((signalManager ?? DefaultSignalManager.Instance).GetStateAsString).UpdateEvery(1f)
-                    .EndMonitor();
-            }, "Open the signals info window.");
-        }
-
         public static DebugConsole AddSystemInfoCommand(this DebugConsole console) {
             const string title = "System info";
-            return console.CreateCommand("show-system-info", () => {
+            return console.CreateCommand("system-info", () => {
                 if (console.DebugOverlayManager.HasOverlay(title)) return;
                 console.DebugOverlayManager
                     .Overlay(title)
@@ -168,9 +156,9 @@ namespace Betauer.Application.Monitor {
             }, "Open the system info window.");
         }
 
-        public static DebugConsole AddScreenSettingsManagerMonitor(this DebugConsole console, ScreenSettingsManager screenSettingsManager) {
+        public static DebugConsole AddScreenSettingsCommand(this DebugConsole console, ScreenSettingsManager screenSettingsManager) {
             const string title = nameof(ScreenSettingsManager);
-            return console.CreateCommand("show-screen-settings", () => {
+            return console.CreateCommand("screen-settings", () => {
                 if (console.DebugOverlayManager.HasOverlay(title)) return;
                 console.DebugOverlayManager
                     .Overlay(title)
@@ -179,6 +167,31 @@ namespace Betauer.Application.Monitor {
                     .AddMonitorVideoInfo()
                     .AddMonitorScreenSettings(screenSettingsManager);
             }, "Open the screen settings info window.");
+        }
+
+        public static DebugConsole AddInputMapCommand(this DebugConsole console, InputActionsContainer inputActionsContainer) {
+            const string title = nameof(InputActionsContainer);
+            return console.CreateCommand("input-map", () => {
+                if (console.DebugOverlayManager.HasOverlay(title)) return;
+                console.DebugOverlayManager
+                    .Overlay(title)
+                    .Permanent(false)
+                    .Solid()
+                    .AddMonitorInputAction(inputActionsContainer);
+            }, "Open the input map window.");
+        }
+
+        public static DebugConsole AddInputEventCommand(this DebugConsole console, InputActionsContainer inputActionsContainer) {
+            const string title = "Input event logger";
+            return console.CreateCommand("input-logger", () => {
+                if (console.DebugOverlayManager.HasOverlay(title)) return;
+                console.DebugOverlayManager
+                    .Overlay(title)
+                    .Permanent(false)
+                    .Solid()
+                    .SetMinSize(300, 100)
+                    .AddMonitorInputEvent(inputActionsContainer);
+            }, "Open the input event logger window.");
         }
 
         public static DebugConsole AddClearConsoleCommand(this DebugConsole console) {

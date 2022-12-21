@@ -2,7 +2,7 @@ using System;
 using Godot;
 
 namespace Betauer.UI {
-    public class ToggleButton : Button {
+    public partial class ToggleButton : Button {
         private Func<bool> _pressedIf;
 
         public Func<bool> PressedIf {
@@ -15,7 +15,7 @@ namespace Betauer.UI {
 
         public void Refresh() {
             ToggleMode = true;
-            Pressed = PressedIf?.Invoke() ?? false;
+            ButtonPressed = PressedIf?.Invoke() ?? false;
         }
     }
 }

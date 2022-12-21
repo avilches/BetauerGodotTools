@@ -1,5 +1,5 @@
 using System;
-using Betauer.Pool;
+using Betauer.Core.Pool;
 
 namespace Betauer.Application {
     public static class DefaultObjectPool {

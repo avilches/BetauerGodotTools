@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Godot;
 
-namespace Betauer.Restorer {
+namespace Betauer.Core.Restorer {
     public class MultiRestorer : Restorer {
         public readonly List<Restorer> Restorers = new();
 

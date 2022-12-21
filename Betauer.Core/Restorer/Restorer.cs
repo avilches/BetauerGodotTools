@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Godot;
 
-namespace Betauer.Restorer {
+namespace Betauer.Core.Restorer {
     public abstract class Restorer {
         public bool HasSavedState { get; private set; } = false;
 
@@ -12,9 +12,9 @@ namespace Betauer.Restorer {
         }
 
         /// <summary>
-        /// Warning: always call to Restore() in a idle_frame, not in a tween/signal callback
+        /// Warning: always call to Restore() in a process_frame, not in a tween/signal callback
         /// <code>
-        /// await this.AwaitIdleFrame();
+        /// await this.AwaitProcessFrame();
         /// restorer.Restore();
         /// </code>
         /// </summary>
