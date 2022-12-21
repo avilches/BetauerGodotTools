@@ -27,8 +27,8 @@ namespace Betauer.StateMachine.Async {
         }
 
         private readonly RealStateMachineNodeAsync _stateMachine;
+        public override IStateMachineEvents<TStateKey> GetStateMachineEvents() => _stateMachine;
 
-        public IStateMachineAsync<TStateKey, TEventKey, IStateAsync<TStateKey, TEventKey>> StateMachine => _stateMachine;
         public StateNodeAsync<TStateKey, TEventKey> CurrentState => (StateNodeAsync<TStateKey, TEventKey>)_stateMachine.CurrentState;
         private Exception? _exception = null;
         public bool Available => _stateMachine.Available;
@@ -40,26 +40,6 @@ namespace Betauer.StateMachine.Async {
         }
         public bool IsState(TStateKey state) => _stateMachine.IsState(state);
 
-        public event Action<TransitionArgs<TStateKey>>? OnEnter {
-            add => _stateMachine.OnEnter += value;
-            remove  => _stateMachine.OnEnter -= value;
-        }
-        public event Action<TransitionArgs<TStateKey>>? OnAwake {
-            add => _stateMachine.OnAwake += value;
-            remove  => _stateMachine.OnAwake -= value;
-        }
-        public event Action<TransitionArgs<TStateKey>>? OnSuspend {
-            add => _stateMachine.OnSuspend += value;
-            remove  => _stateMachine.OnSuspend -= value;
-        }
-        public event Action<TransitionArgs<TStateKey>>? OnExit {
-            add => _stateMachine.OnExit += value;
-            remove  => _stateMachine.OnExit -= value;
-        }
-        public event Action<TransitionArgs<TStateKey>>? OnTransition {
-            add => _stateMachine.OnTransition += value;
-            remove  => _stateMachine.OnTransition -= value;
-        }
 
         public StateNodeBuilderAsync<TStateKey, TEventKey> State(TStateKey stateKey) => _stateMachine.State(stateKey);
         public EventBuilder<StateMachineNodeAsync<TStateKey, TEventKey>, TStateKey, TEventKey> On(TEventKey transitionKey) => _stateMachine.On(transitionKey);

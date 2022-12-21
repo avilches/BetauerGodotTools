@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using Betauer.StateMachine;
 using Betauer.StateMachine.Async;
 using Betauer.TestRunner;
 using Godot;
@@ -28,15 +27,15 @@ namespace Betauer.GameTools.Tests {
         [Test(Description = "Constructor")]
         public void StateMachineNodeConstructors() {
             var sm1 = new StateMachineNodeAsync<State, Trans>(State.A, "X");
-            Assert.That(sm1.StateMachine.Name, Is.EqualTo("X"));
+            Assert.That(sm1.GetStateMachineEvents().Name, Is.EqualTo("X"));
             Assert.That(sm1.ProcessInPhysics, Is.False);
 
             var sm2 = new StateMachineNodeAsync<State, Trans>(State.A, null, true);
-            Assert.That(sm2.StateMachine.Name, Is.Null);
+            Assert.That(sm2.GetStateMachineEvents().Name, Is.Null);
             Assert.That(sm2.ProcessInPhysics, Is.True);
 
             var sm3 = new StateMachineNodeAsync<State, Trans>(State.A);
-            Assert.That(sm3.StateMachine.Name, Is.Null);
+            Assert.That(sm3.GetStateMachineEvents().Name, Is.Null);
             Assert.That(sm3.ProcessInPhysics, Is.False);
         }
 

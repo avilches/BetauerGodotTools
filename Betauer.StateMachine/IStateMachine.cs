@@ -1,7 +1,16 @@
 using System;
 
 namespace Betauer.StateMachine {
-    public interface IStateMachine<TStateKey, TEventKey, TState>
+    public interface IStateMachineEvents<TStateKey> {
+        public string? Name { get; }
+        public event Action<TransitionArgs<TStateKey>>? OnEnter;
+        public event Action<TransitionArgs<TStateKey>>? OnAwake;
+        public event Action<TransitionArgs<TStateKey>>? OnSuspend;
+        public event Action<TransitionArgs<TStateKey>>? OnExit;
+        public event Action<TransitionArgs<TStateKey>>? OnTransition;
+    }
+    
+    public interface IStateMachine<TStateKey, TEventKey, TState> : IStateMachineEvents<TStateKey>
         where TStateKey : Enum where TEventKey : Enum {
         
         public void AddState(TState state);
@@ -9,12 +18,6 @@ namespace Betauer.StateMachine {
         public bool IsState(TStateKey state);
         public TState CurrentState { get; }
         public void Enqueue(TEventKey name);
-        public string? Name { get; }
-        public event Action<TransitionArgs<TStateKey>>? OnEnter;
-        public event Action<TransitionArgs<TStateKey>>? OnAwake;
-        public event Action<TransitionArgs<TStateKey>>? OnSuspend;
-        public event Action<TransitionArgs<TStateKey>>? OnExit;
-        public event Action<TransitionArgs<TStateKey>>? OnTransition;
 
     }
 }
