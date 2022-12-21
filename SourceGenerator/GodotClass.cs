@@ -87,7 +87,7 @@ namespace Generator {
                   { Variant.Type.Rid,                      typeof(Godot.RID).FullName },                         
                   { Variant.Type.Object,                   typeof(Godot.Object).FullName },                      
                   { Variant.Type.Callable,                 typeof(Godot.Callable).FullName },                    
-                  { Variant.Type.Signal,                   typeof(Godot.SignalInfo).FullName },                  
+                  { Variant.Type.Signal,                   typeof(Godot.Signal).FullName },                  
                   { Variant.Type.Dictionary,               typeof(Godot.Collections.Dictionary).FullName },      
                   { Variant.Type.Array,                    typeof(Godot.Collections.Array).FullName },           
                   { Variant.Type.PackedByteArray,          typeof(System.Byte[]).FullName },                     

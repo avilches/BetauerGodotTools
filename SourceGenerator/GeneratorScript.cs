@@ -17,8 +17,8 @@ namespace Generator {
             var classes = LoadGodotClasses();
             
             // Notification
-            GenerateNotificationHandler.Write(classes.Find(c => c.ClassName == "Node"));
-            GenerateNotificationHandler.Write(classes.Find(c => c.ClassName == "MainLoop"));
+            var GetClass = (string name) => classes.First(c => c.ClassName == name);
+            GenerateNotificationHandler.Write(GetClass("Node"));
             
             // Signal extensions
             GenerateSignalHandlerExtensions.Write(classes);
