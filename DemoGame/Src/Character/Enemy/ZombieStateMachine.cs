@@ -41,26 +41,38 @@ public class EnemyStatus {
     }
 }
 
-public class ZombieIA {
+public class ZombieIA : StateMachineSync<ZombieIA.State, ZombieIA.Event> {
     private readonly CharacterController _handler;
     private readonly ZombieNode _node;
     private readonly GodotStopwatch _stateTimer = new GodotStopwatch().Start();
-        
-    public ZombieIA(ICharacterHandler handler, ZombieNode node) {
-        _handler = handler is CharacterController h ? h : null;
-        _node = node;
+
+    public enum State { 
+        Init
+    }
+    public enum Event {
     }
 
+    public ZombieIA(CharacterController handler, ZombieNode node) : base(State.Init, "ZombieIA") {
+        _handler = handler;
+        _node = node;
+
+        State(State.Init)
+            .Enter(() => _stateTimer.Reset())
+            .Execute(() => {
+                if (_stateTimer.Elapsed > 1f) {
+                    ChangeDirection();
+                    _stateTimer.Reset();
+                } else {
+                    KeepMoving();
+                }
+            })
+            .Build();
+
+    }
 
     public void HandleIA(double delta) {
-        if (_handler == null) return;
+        if (_handler != null) Execute();
             
-        if (_stateTimer.Elapsed > 1f) {
-            _stateTimer.Reset();
-            ChangeDirection();
-        } else {
-            KeepMoving();
-        }
         // GD.Print("Pressed:"+handler.HandlerJump.IsPressed()+
         // " JustPressed:"+handler.HandlerJump.IsJustPressed()+
         // " Released:"+handler.HandlerJump.IsReleased());
