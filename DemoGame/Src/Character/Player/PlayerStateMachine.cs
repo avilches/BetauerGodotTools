@@ -79,9 +79,9 @@ public partial class PlayerStateMachine : StateMachineNodeSync<PlayerState, Play
         // playerController.FloorBlockOnWall = true;
         playerNode.FloorConstantSpeed = true;
         playerNode.FloorSnapLength = MotionConfig.SnapLength;
-            
-        AddOnExecuteStart((delta, _) => Body.SetDelta(delta));
-        AddOnTransition(args => Console.WriteLine(args.To));
+
+        OnExecuteStart += Body.SetDelta;
+        // OnTransition += args => Console.WriteLine(args.To);
         Bus.Subscribe(Enqueue);
         GroundStates();
         AirStates();

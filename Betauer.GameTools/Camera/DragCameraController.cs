@@ -20,7 +20,7 @@ namespace Betauer.Camera {
 
 
         public DragCameraController() {
-            DragAndDropController.AddOnDrag(offset => Camera2D!.Position -= offset);; 
+            DragAndDropController.OnDrag += offset => Camera2D!.Position -= offset;
         }
 
         public DragCameraController(InputAction action) : this() {

@@ -58,12 +58,6 @@ namespace Betauer.StateMachine {
 
         public string? Name { get; }
 
-        private event Action<TransitionArgs<TStateKey>>? OnEnter;
-        private event Action<TransitionArgs<TStateKey>>? OnAwake;
-        private event Action<TransitionArgs<TStateKey>>? OnSuspend;
-        private event Action<TransitionArgs<TStateKey>>? OnExit;
-        private event Action<TransitionArgs<TStateKey>>? OnTransition;
-
         protected BaseStateMachine(TStateKey initialState, string? name = null) {
             InitialState = initialState;
             Name = name;
@@ -87,18 +81,11 @@ namespace Betauer.StateMachine {
             Events[eventKey] = @event;
         }
 
-
-    public void AddOnEnter(Action<TransitionArgs<TStateKey>> e) => OnEnter += e;
-        public void AddOnAwake(Action<TransitionArgs<TStateKey>> e) => OnAwake += e;
-        public void AddOnSuspend(Action<TransitionArgs<TStateKey>> e) => OnSuspend += e;
-        public void AddOnExit(Action<TransitionArgs<TStateKey>> e) => OnExit += e;
-        public void AddOnTransition(Action<TransitionArgs<TStateKey>> e) => OnTransition += e;
-
-        public void RemoveOnEnter(Action<TransitionArgs<TStateKey>> e) => OnEnter -= e;
-        public void RemoveOnAwake(Action<TransitionArgs<TStateKey>> e) => OnAwake -= e;
-        public void RemoveOnSuspend(Action<TransitionArgs<TStateKey>> e) => OnSuspend -= e;
-        public void RemoveOnExit(Action<TransitionArgs<TStateKey>> e) => OnExit -= e;
-        public void RemoveOnTransition(Action<TransitionArgs<TStateKey>> e) => OnTransition -= e;
+        public event Action<TransitionArgs<TStateKey>>? OnEnter;
+        public event Action<TransitionArgs<TStateKey>>? OnAwake;
+        public event Action<TransitionArgs<TStateKey>>? OnSuspend;
+        public event Action<TransitionArgs<TStateKey>>? OnExit;
+        public event Action<TransitionArgs<TStateKey>>? OnTransition;
 
         public void AddState(TState state) {
             if (States.ContainsKey(state.Key)) throw new DuplicateNameException();

@@ -452,11 +452,11 @@ namespace Betauer.StateMachine.Tests {
             sm.State(State.Debug).Build();
             sm.State(State.Settings).Build();
             List<string> states = new List<string>();
-            sm.AddOnEnter((args) => states.Add(args.To + ":enter"));
-            sm.AddOnAwake((args)  => states.Add(args.To + ":awake"));
-            sm.AddOnSuspend((args)  => states.Add(args.From + ":suspend"));
-            sm.AddOnExit((args)  => states.Add(args.From + ":exit"));
-            sm.AddOnTransition((args)  => states.Add("from:" + args.From + "-to:" + args.To));
+            sm.OnEnter += (args) => states.Add(args.To + ":enter");
+            sm.OnAwake += (args)  => states.Add(args.To + ":awake");
+            sm.OnSuspend += (args)  => states.Add(args.From + ":suspend");
+            sm.OnExit += (args)  => states.Add(args.From + ":exit");
+            sm.OnTransition += (args)  => states.Add("from:" + args.From + "-to:" + args.To);
 
             
             

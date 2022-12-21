@@ -118,13 +118,13 @@ namespace Betauer.GameTools.Tests {
                 .Build();
                 
             List<string> states = new List<string>();
-            sm.AddOnEnter((args) => states.Add(args.To + ":enter"));
-            sm.AddOnAwake((args)  => states.Add(args.To + ":awake"));
-            sm.AddOnSuspend((args)  => states.Add(args.From + ":suspend"));
-            sm.AddOnExit((args)  => states.Add(args.From + ":exit"));
-            sm.AddOnTransition((args)  => states.Add("from:" + args.From + "-to:" + args.To));
-            sm.AddOnExecuteStart((double delta, State state)  => states.Add(state + ":execute.start"));
-            sm.AddOnExecuteEnd((State state)  => states.Add(state + ":execute.end"));
+            sm.OnEnter += (args) => states.Add(args.To + ":enter");
+            sm.OnAwake += (args)  => states.Add(args.To + ":awake");
+            sm.OnSuspend += (args)  => states.Add(args.From + ":suspend");
+            sm.OnExit += (args)  => states.Add(args.From + ":exit");
+            sm.OnTransition += (args)  => states.Add("from:" + args.From + "-to:" + args.To);
+            sm.OnExecuteStart += (delta)  => states.Add(":execute.start");
+            sm.OnExecuteEnd += ()  => states.Add(":execute.end");
 
             AddChild(sm);
 
@@ -136,11 +136,11 @@ namespace Betauer.GameTools.Tests {
 
             Console.WriteLine(string.Join(",", states));
             Assert.That(string.Join(",", states), Is.EqualTo(
-                "MainMenu:execute.start,MainMenu:enter,MainMenu:execute.end," +
-                "MainMenu:execute.start,MainMenu:exit,from:MainMenu-to:Debug,Debug:enter,Debug:execute.end," +
-                "Debug:execute.start,Debug:suspend,from:Debug-to:Settings,Settings:enter,Settings:execute.end," +
-                "Settings:execute.start,Settings:exit,from:Settings-to:Debug,Debug:awake,Debug:execute.end," +
-                "Debug:execute.start,Debug:exit,from:Debug-to:End,End:enter,End:execute.end"));
+                ":execute.start,MainMenu:enter,:execute.end," +
+                ":execute.start,MainMenu:exit,from:MainMenu-to:Debug,Debug:enter,:execute.end," +
+                ":execute.start,Debug:suspend,from:Debug-to:Settings,Settings:enter,:execute.end," +
+                ":execute.start,Settings:exit,from:Settings-to:Debug,Debug:awake,:execute.end," +
+                ":execute.start,Debug:exit,from:Debug-to:End,End:enter,:execute.end"));
         }
     }
 }

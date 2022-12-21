@@ -20,7 +20,7 @@ namespace Betauer.Core.Time {
         private bool _paused = true;
         private bool _running = false;
         private double _timeLeft = 0;
-        private event Action _OnTimeout;
+        public event Action OnTimeout;
 
         public double Timeout { get; private set; } = 0;
         public bool ProcessAlways = true;
@@ -33,7 +33,7 @@ namespace Betauer.Core.Time {
             bool processInPhysics = false, bool ignoreTimeScale = false) {
             _sceneTree = sceneTree;
             Timeout = _timeLeft = timeout;
-            _OnTimeout += onTimeout;
+            OnTimeout += onTimeout;
             ProcessAlways = processAlways;
             ProcessInPhysics = processInPhysics;
             IgnoreTimeScale = ignoreTimeScale;
@@ -43,13 +43,9 @@ namespace Betauer.Core.Time {
             this(Engine.GetMainLoop() as SceneTree, timeout, onTimeout, processAlways, processInPhysics, ignoreTimeScale) {
         }
 
-        public GodotTimeout AddOnTimeout(Action action) {
-            _OnTimeout += action;
-            return this;
-        }
 
         public GodotTimeout RemoveOnTimeout(Action action) {
-            _OnTimeout -= action;
+            OnTimeout -= action;
             return this;
         }
         
@@ -147,16 +143,16 @@ namespace Betauer.Core.Time {
             _sceneTreeTimer = null;
             _running = false;
             _paused = true;
-            _OnTimeout?.Invoke();
+            OnTimeout?.Invoke();
         }
 
         public Task Await() {
             TaskCompletionSource promise = new();
             void ToAdd() {
-                RemoveOnTimeout(ToAdd);
+                OnTimeout -= ToAdd;
                 promise.TrySetResult();
             }
-            AddOnTimeout(ToAdd);
+            OnTimeout += ToAdd;
             return promise.Task;
         }
 

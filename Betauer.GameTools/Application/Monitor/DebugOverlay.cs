@@ -301,11 +301,9 @@ namespace Betauer.Application.Monitor {
 
         [PostInject]
         public void Configure() {
-            _dragAndDropController = new DragAndDropController()
-                .WithAction(LMB)
-                .OnlyIf(DragPredicate)
-                .AddOnStartDrag(OnStartDrag)
-                .AddOnDrag(OnDrag);
+            _dragAndDropController = new DragAndDropController().WithAction(LMB).OnlyIf(DragPredicate);
+            _dragAndDropController.OnStartDrag += OnStartDrag;
+            _dragAndDropController.OnDrag += OnDrag;
         }
 
         public override void _Input(InputEvent input) {

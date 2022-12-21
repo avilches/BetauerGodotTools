@@ -34,36 +34,6 @@ public class DragAndDropController {
         return this;
     }
 
-    public DragAndDropController AddOnStartDrag(Action<Vector2> e) {
-        OnStartDrag += e;
-        return this;
-    }
-        
-    public DragAndDropController RemoveOnStartDrag(Action<Vector2> e) {
-        OnStartDrag -= e;
-        return this;
-    }
-        
-    public DragAndDropController AddOnDrag(Action<Vector2> e) {
-        OnDrag += e;
-        return this;
-    }
-        
-    public DragAndDropController RemoveOnDrag(Action<Vector2> e) {
-        OnDrag -= e;
-        return this;
-    }
-        
-    public DragAndDropController AddOnDrop(Action<Vector2> e) {
-        OnDrop += e;
-        return this;
-    }
-        
-    public DragAndDropController RemoveOnDrop(Action<Vector2> e) {
-        OnDrop -= e;
-        return this;
-    }
-
     public void Handle(InputEvent e) {
         if (Action != null && Action.IsEvent(e) && (Predicate == null || Predicate(e))) {
             if (e.IsJustPressed()) {

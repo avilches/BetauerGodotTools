@@ -101,7 +101,7 @@ public partial class MainStateMachine : StateMachineNodeAsync<MainState, MainEve
                 ScreenSettingsManager.Setup();
                 ConfigureDebugOverlays();
 
-                AddOnTransition((args) => BottomBarScene.UpdateState(args.To));
+                OnTransition += args => BottomBarScene.UpdateState(args.To);
             })
             .OnInput(e => {
                 if ((e.IsAnyKey() || e.IsAnyButton() || e.IsAnyClick()) && e.IsJustPressed()) {

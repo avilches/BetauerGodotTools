@@ -1,5 +1,4 @@
 using System;
-using Betauer.StateMachine.Sync;
 
 namespace Betauer.StateMachine {
     public interface IStateMachine<TStateKey, TEventKey, TState>
@@ -11,15 +10,11 @@ namespace Betauer.StateMachine {
         public TState CurrentState { get; }
         public void Enqueue(TEventKey name);
         public string? Name { get; }
-        public void AddOnEnter(Action<TransitionArgs<TStateKey>> e);
-        public void AddOnAwake(Action<TransitionArgs<TStateKey>> e);
-        public void AddOnSuspend(Action<TransitionArgs<TStateKey>> e);
-        public void AddOnExit(Action<TransitionArgs<TStateKey>> e);
-        public void AddOnTransition(Action<TransitionArgs<TStateKey>> e);
-        public void RemoveOnEnter(Action<TransitionArgs<TStateKey>> e);
-        public void RemoveOnAwake(Action<TransitionArgs<TStateKey>> e);
-        public void RemoveOnSuspend(Action<TransitionArgs<TStateKey>> e);
-        public void RemoveOnExit(Action<TransitionArgs<TStateKey>> e);
-        public void RemoveOnTransition(Action<TransitionArgs<TStateKey>> e);
+        public event Action<TransitionArgs<TStateKey>>? OnEnter;
+        public event Action<TransitionArgs<TStateKey>>? OnAwake;
+        public event Action<TransitionArgs<TStateKey>>? OnSuspend;
+        public event Action<TransitionArgs<TStateKey>>? OnExit;
+        public event Action<TransitionArgs<TStateKey>>? OnTransition;
+
     }
 }

@@ -29,16 +29,6 @@ namespace Betauer.Camera {
             stageDetector.OnAreaExited(_layer, OnExitStage);
         }
 
-        public CameraStageLimiter AddOnChangeStage(Action<Area2D?, Area2D> e) {
-            OnChangeStage += e;
-            return this;
-        }
-        
-        public CameraStageLimiter RemoveOnChangeStage(Action<Area2D?, Area2D> e) {
-            OnChangeStage -= e;
-            return this;
-        }
-        
         public void ConfigureStage(Area2D stageArea2D) {
             ValidateStageArea2D(stageArea2D);
             stageArea2D.CollisionLayer = 0;
