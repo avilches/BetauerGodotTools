@@ -53,7 +53,6 @@ namespace Veronenger.Managers {
         public override void DoOnProgress(float progress) {
             GD.Print($"{progress * 100}%");
         }
-
     }
     
     
@@ -127,7 +126,6 @@ namespace Veronenger.Managers {
 
                     AddOnTransition((args) => BottomBarScene.UpdateState(args.To));
                 })
-                /*
                 .Execute(async () => {
                     var test = new MainResourceLoader();
                     GD.Print("Loading start....");
@@ -136,13 +134,6 @@ namespace Veronenger.Managers {
                     endSplash = true;
                     splashScreen.QueueFree();
                     
-                })
-                */
-                .OnInput(e => {
-                    if ((e.IsAnyKey() || e.IsAnyButton() || e.IsAnyClick()) && e.IsJustPressed()) {
-                        splashScreen.QueueFree();
-                        endSplash = true;
-                    }
                 })
                 .If(() => endSplash).Set(MainState.MainMenu)
                 .Build();
