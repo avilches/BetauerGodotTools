@@ -2,7 +2,15 @@ using System;
 using Godot;
 
 namespace Betauer.Application {
-    public class NotificationsHandler {
+    public class DefaultNotificationsHandler {
+        public static readonly NotificationsHandler Instance = new();
+        public static void Configure(Node node) {
+            if (Instance.GetParent() != null) Instance.GetParent().RemoveChild(Instance);
+            node.AddChild(Instance);
+        }
+    }
+
+    public partial class NotificationsHandler : Node {
 
         public event Action OnWmMouseEnter;
         public event Action OnWmMouseExit;
@@ -25,7 +33,7 @@ namespace Betauer.Application {
         public event Action OnApplicationFocusOut;
         public event Action OnTextServerChanged;
 
-        public void Execute(long what) {
+        public override void _Notification(long what) {
             switch (what) {
                 case Node.NotificationWmMouseEnter: // 1002
                     OnWmMouseEnter?.Invoke();

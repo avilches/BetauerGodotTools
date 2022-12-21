@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Betauer.Application.Monitor;
 using Betauer.Application.Settings;
 using Betauer.DI;
 using Godot;
@@ -8,6 +9,7 @@ namespace Betauer.Application.Screen {
     public class ScreenSettingsManager {
         [Inject] protected Container Container { get; set; }
         [Inject] protected SceneTree SceneTree { get; set; }
+        [Inject(Nullable = true)] protected DebugOverlayManager? DebugOverlayManager { get; set; }
 
         private const bool DontSave = false;
 
@@ -31,6 +33,10 @@ namespace Betauer.Application.Screen {
 
         public ScreenSettingsManager(ScreenConfiguration initialScreenConfiguration) {
             _initialScreenConfiguration = initialScreenConfiguration;
+        }
+
+        public void AddConsoleCommands() {
+            DebugOverlayManager?.DebugConsole.AddScreenSettingsCommand(this);
         }
 
         [PostInject]

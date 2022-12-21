@@ -22,7 +22,7 @@ namespace Betauer.Application.Monitor {
         }
     }
 
-    public static class DebugConsoleExtensions {
+    public static partial class DebugConsoleExtensions {
         public static DebugConsole.ConditionalCommand CreateCommand(this DebugConsole console, string name, string shortHelp, string? longHelp = null, string? errorMessage = null) {
             var command = new DebugConsole.ConditionalCommand(console, name, shortHelp, longHelp, errorMessage);
             console.AddCommand(command);
@@ -40,6 +40,18 @@ namespace Betauer.Application.Monitor {
         public static DebugConsole CreateCommand(this DebugConsole console, string name,
             Action<DebugConsole.CommandInput> executeWithCommandInput, string shortHelp, string? longHelp = null) {
             return console.AddCommand(new DebugConsole.Command(name, executeWithCommandInput, shortHelp, longHelp));
+        }
+
+        public static DebugConsole AddAllCommands(this DebugConsole console) {
+            console.AddHelpCommand();
+            console.AddEngineTimeScaleCommand();
+            console.AddEngineMaxFpsCommand();
+            console.AddClearConsoleCommand();
+            console.AddQuitCommand();
+            console.AddNodeHandlerInfoCommand();
+            console.AddShowAllCommand();
+            console.AddSystemInfoCommand();
+            return console;
         }
 
         public static DebugConsole AddHelpCommand(this DebugConsole console) {

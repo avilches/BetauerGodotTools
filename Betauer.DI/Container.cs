@@ -31,13 +31,17 @@ namespace Betauer.DI {
                 .ForEach(provider => AddToRegistry(provider));
             providers
                 .Where(provider => provider is ISingletonProvider { Lazy: false, IsInstanceCreated: false })
-                .ForEach(provider => provider.Get(this));
+                .ForEach(provider => {
+                    Logger.Debug($"Initializing {provider.Lifetime}:{provider.ProviderType} | Name: {provider.Name}");
+                    provider.Get(this);
+                });
             return this;
         }
 
         public IProvider Add(IProvider provider) {
             AddToRegistry(provider);
             if (provider is ISingletonProvider { Lazy: false, IsInstanceCreated: false }) {
+                Logger.Debug($"Initializing {provider.Lifetime}:{provider.ProviderType} | Name: {provider.Name}");
                 provider.Get(this);
             }
             return provider;

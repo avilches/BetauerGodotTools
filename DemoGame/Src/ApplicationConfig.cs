@@ -81,8 +81,6 @@ namespace Veronenger {
 
 	[Configuration]
 	public class UiActions {
-		[Service] public InputActionsContainer InputActionsContainer => new();
-		
 		[Service]
 		private InputAction UiUp => InputAction.Create("ui_up")
 			.KeepProjectSettings()
