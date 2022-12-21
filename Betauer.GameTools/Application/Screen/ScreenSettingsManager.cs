@@ -35,8 +35,9 @@ namespace Betauer.Application.Screen {
             _initialScreenConfiguration = initialScreenConfiguration;
         }
 
-        public void AddConsoleCommands() {
+        public ScreenSettingsManager AddConsoleCommands() {
             DebugOverlayManager?.DebugConsole.AddScreenSettingsCommand(this);
+            return this;
         }
 
         [PostInject]

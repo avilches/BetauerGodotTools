@@ -10,9 +10,10 @@ namespace Betauer.Input {
         public readonly List<InputAction> ActionList = new();
         public readonly Dictionary<string, InputAction> ActionMap = new();
 
-        public void AddConsoleCommands() {
+        public InputActionsContainer AddConsoleCommands() {
             DebugOverlayManager?.DebugConsole.AddInputEventCommand(this);
             DebugOverlayManager?.DebugConsole.AddInputMapCommand(this);
+            return this;
         }
 
         public InputAction? FindAction(string name) {
