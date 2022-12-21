@@ -1,144 +1,76 @@
-using Betauer.Application.Monitor;
-using Betauer.Application.Screen;
-using Betauer.DI;
+using System;
 using Betauer.DI.ServiceProvider;
-using Betauer.Tools.Logging;
 using Betauer.Core.Nodes;
 using Betauer.Core.Signal;
+using Betauer.DI;
 using Betauer.OnReady;
-using Betauer.Input;
-using Betauer.Nodes;
 using Godot;
 using Container = Betauer.DI.Container;
+using Object = Godot.Object;
 
 namespace Betauer.Application {
     /**
      * A Container that listen for nodes added to the tree and inject services inside of them + process the OnReady tag
      */
-    public abstract partial class AutoConfiguration : Node {
-        protected readonly Container Container;
-        protected readonly NodeNotificationsHandler NodeNotificationsHandlerInstance;
-        private readonly Options _options;
+    public class AutoConfiguration {
+        private readonly Node _owner;
+        private readonly bool _addSingletonNodesToTree;
+        private readonly bool _autoInjectOnReady = true;
+        private readonly Container _container = new();
+        private Action<ContainerBuilder>? _containerConfig = null;
 
-        public class Options {
-            public bool AddSingletonNodesToTree = true;
+        public AutoConfiguration(Node owner, bool addSingletonNodesToTree = true, bool autoInjectOnReady = true) {
+            _owner = owner;
+            _addSingletonNodesToTree = addSingletonNodesToTree;
+            _autoInjectOnReady = autoInjectOnReady;
+        }
+        
+        public AutoConfiguration Start(Action<ContainerBuilder>? containerConfig = null) {
+            _containerConfig = containerConfig;
+            if (_owner.GetTree() != null) StartContainer();
+            else _owner.OnTreeEntered(StartContainer, true);
+            return this;
         }
 
-        private class Configuration {
-            private readonly AutoConfiguration _outer;
-
-            public Configuration(AutoConfiguration outer) {
-                _outer = outer;
-            }
-            
-            [Service] public SceneTree SceneTree => _outer.GetTree();
-            [Service] public NodeNotificationsHandler NodeNotificationsHandler => _outer.NodeNotificationsHandlerInstance;
-            [Service] public DebugOverlayManager DebugOverlayManager => new();
-        }
-
-        protected AutoConfiguration(Options? options = null) {
-            _options = options ?? new Options();
-            Container = new Container();
-
-            NodeNotificationsHandlerInstance = new NodeNotificationsHandler();
-            NodeNotificationsHandlerInstance.OnWmCloseRequest += () => {
-                LoggerFactory.SetAutoFlush(true);
-                GD.Print($"[WmQuitRequest] Uptime: {Project.Uptime.TotalMinutes:0} min {Project.Uptime.Seconds:00} sec");
-            };
-            
-            AddChild(DefaultNodeHandler.Instance);
-        }
-
-        public override void _EnterTree() {
-            // Container can't be built before _EnterTree because the SceneTree is exposed as a service using GetTree()
-            // It needs to be called in _EnterTree because the _Ready() is called after the the main scene _Ready(), so the main
-            // scene will not have services injected.
-            StartContainer();
-
-            ProcessMode = ProcessModeEnum.Always;
-
-            AddConsoleCommands(Container.Resolve<DebugOverlayManager>().DebugConsole);
-        }
-
-        /// <summary>
-        /// Virtual method so it can be overriden to add more commands.
-        /// Just call to base.AddConsoleCommands(debugConsole) to ensure the default commands are still added.
-        /// </summary>
-        /// <param name="debugConsole"></param>
-        public virtual void AddConsoleCommands(DebugConsole debugConsole) {
-            debugConsole.AddHelpCommand();
-            debugConsole.AddEngineTimeScaleCommand();
-            debugConsole.AddEngineMaxFpsCommand();
-            debugConsole.AddClearConsoleCommand();
-            debugConsole.AddQuitCommand();
-            debugConsole.AddNodeHandlerInfoCommand();
-            debugConsole.AddShowAllCommand();
-            debugConsole.AddSystemInfoCommand();
-            if (Container.TryResolve<ScreenSettingsManager>(out var screenSettings)) {
-                debugConsole.AddScreenSettingsCommand(screenSettings);
-            }
-            if (Container.TryResolve<InputActionsContainer>(out var inputActionsContainer)) {
-                debugConsole.AddInputMapCommand(inputActionsContainer);
-                debugConsole.AddInputEventCommand(inputActionsContainer);
-            }
-        }
+        private const string MetaInjected = "__injected";
+        private static void SetAlreadyInjected(Object node) => node.SetMeta(MetaInjected, true);
+        private static bool IsInjected(Object node) => node.HasMeta(MetaInjected);
 
         private void StartContainer() {
-            Container.OnCreated += (lifetime, o) => {
-                if (o is Node node) {
-                    MarkNodeAsAlreadyInjected(node);
+            OnReadyScanner.ConfigureAutoInject(_owner.GetTree());
+            _owner.ProcessMode = Node.ProcessModeEnum.Always;
+            _container.OnCreated += (lifetime, instance) => {
+                if (instance is Object o) SetAlreadyInjected(o);
+                if (instance is Node node) {
                     if (string.IsNullOrWhiteSpace(node.Name)) node.Name = node.GetType().Name; // This is useful to debug in Remote mode
-                    if (_options.AddSingletonNodesToTree && 
-                        lifetime == Lifetime.Singleton && 
-                        node.GetParent() == null) {
-                        GetTree().Root.AddChildDeferred(node);
+                    if (_addSingletonNodesToTree && lifetime == Lifetime.Singleton && node.GetParent() == null) {
+                        _owner.GetTree().Root.AddChildDeferred(node);
                     }
                 }
             };
-            var containerBuilder = Container.CreateBuilder();
-            OnBuildContainer(containerBuilder);
-            containerBuilder.Build().InjectServices(this);
-            GetTree().OnNodeAdded(_GodotSignalNodeAdded);
-        }
 
-        /// <summary>
-        /// Virtual method so it can be overriden to do more stuff with the container before it finishes.
-        /// Call to base.OnBuildContainer(builder) to scan the current assembly and use the current class as configuration. 
-        /// </summary>
-        /// <param name="builder"></param>
-        public virtual void OnBuildContainer(ContainerBuilder builder) {
-            builder
-                .Scan(GetType().Assembly)
-                .Scan<MouseActions>()
-                .ScanConfiguration(new Configuration(this));
-            
-        }
+            var containerBuilder = _container.CreateBuilder().Scan(_owner.GetType().Assembly);
+            _containerConfig?.Invoke(containerBuilder);
+            containerBuilder.Build();
 
-        // Method called by Godot when a Node is added to the tree
-        private void _GodotSignalNodeAdded(Node node) {
-            if (node.GetScript().AsGodotObject() is CSharpScript) {
+            _owner.GetTree().OnNodeAdded(node => {
+                if (node.GetScript().AsGodotObject() is not CSharpScript script) return;
+                
+                // Process all the [OnReady] fields
                 OnReadyScanner.ScanAndInject(node);
+                
                 // If the Node has been created by Godot (through instantiating a scene) and it's added to the tree,
                 // the services will be injected.
                 // But if the Node has been created by the application through the Container, the node will already have
                 // all the dependencies injected. To avoid inject the dependencies twice (by the container and here when
                 // it's added to the tree), 
-                
-                if (!IsNodeMarkedInjected(node)) {
+                if (!IsInjected(node)) {
                     // All nodes created by the container are marked as injected in the OnCreated event above.
                     // So, if a node is not marked as injected is because the node has been created by Godot when
                     // instantiating a scene, so let's inject the services here
-                    Container.InjectServices(node);
+                    _container.InjectServices(node);
                 }
-            }
-        }
-
-        private const string MetaInjected = "__injected";
-        private static void MarkNodeAsAlreadyInjected(Node node) => node.SetMeta(MetaInjected, true);
-        private static bool IsNodeMarkedInjected(Node node) => node.HasMeta(MetaInjected);
-
-        public override void _Notification(long what) {
-            NodeNotificationsHandlerInstance.Execute(what);
+            });
         }
     }
 }

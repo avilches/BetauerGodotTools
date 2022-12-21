@@ -1,11 +1,13 @@
 using Betauer.Animation;
 using Betauer.Application;
+using Betauer.Application.Monitor;
 using Betauer.Application.Screen;
 using Betauer.Camera;
 using Betauer.DI;
 using Betauer.DI.ServiceProvider;
 using Betauer.Tools.Logging;
 using Betauer.Core.Pool;
+using Betauer.OnReady;
 using Betauer.StateMachine;
 using Godot;
 using Veronenger.Controller.Character;
@@ -13,13 +15,21 @@ using Container = Betauer.DI.Container;
 using PropertyTweener = Betauer.Animation.PropertyTweener;
 
 namespace Veronenger.Managers.Autoload {
-    public partial class Bootstrap : AutoConfiguration /* needed to be instantiated as an Autoload from Godot */ {
+    public partial class Bootstrap : Node /* needed to be instantiated as an Autoload from Godot */ {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(Bootstrap));
 
-        public Bootstrap() : base(new Options {
-                AddSingletonNodesToTree = true,
-            }) {
+        [Inject] private NotificationsHandler NotificationsHandler { get; set; }
+        [Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
+
+        public Bootstrap() {
             AppTools.ConfigureExceptionHandlers(GetTree);
+
+            new AutoConfiguration(this)
+                .Start(options => {
+                    options
+                        .ScanConfiguration(new DefaultConfiguration(this))
+                        .Scan<MouseActions>();
+                });
 
 #if DEBUG
             DevelopmentConfig();
@@ -48,6 +58,10 @@ namespace Veronenger.Managers.Autoload {
         public override void _Ready() {
             Name = nameof(Bootstrap); // This name is shown in the remote editor
             Logger.Info($"Bootstrap time: {Project.Uptime.TotalMilliseconds} ms");
+            NotificationsHandler.OnWmCloseRequest += () => {
+                GD.Print($"[WmQuitRequest] Uptime: {Project.Uptime.TotalMinutes:0} min {Project.Uptime.Seconds:00} sec");
+            };
+            DebugOverlayManager.DebugConsole.AddAllCommands();
         }
 
         private static void ExportConfig() {
@@ -57,7 +71,6 @@ namespace Veronenger.Managers.Autoload {
             LoggerFactory.SetTraceLevel(typeof(Bootstrap), TraceLevel.All);
             LoggerFactory.SetTraceLevel(typeof(ConfigFileWrapper), TraceLevel.All);
             LoggerFactory.SetTraceLevel(typeof(BaseScreenResolutionService), TraceLevel.All);
-            LoggerFactory.SetTraceLevel("GameManager.StateMachine", TraceLevel.All);
         }
 
         private static void DevelopmentConfig() {
@@ -69,9 +82,9 @@ namespace Veronenger.Managers.Autoload {
             LoggerFactory.SetTraceLevel(typeof(ConfigFileWrapper), TraceLevel.All);
 
             // DI
-            LoggerFactory.SetTraceLevel(typeof(SingletonFactoryProvider), TraceLevel.Error);
-            LoggerFactory.SetTraceLevel(typeof(TransientFactoryProvider), TraceLevel.Error);
-            LoggerFactory.SetTraceLevel(typeof(Container), TraceLevel.Error);
+            LoggerFactory.SetTraceLevel(typeof(SingletonFactoryProvider), TraceLevel.All);
+            LoggerFactory.SetTraceLevel(typeof(TransientFactoryProvider), TraceLevel.All);
+            LoggerFactory.SetTraceLevel(typeof(Container), TraceLevel.All);
             LoggerFactory.SetTraceLevel(typeof(Injector), TraceLevel.Error);
 
             // GameTools

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Betauer.Core.Nodes;
+using Betauer.Core.Signal;
 using Betauer.Tools.Reflection;
 using Godot;
 
@@ -11,6 +12,12 @@ namespace Betauer.OnReady {
     public class OnReadyScanner {
         private const BindingFlags OnReadyFlags =
             BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+
+        public static void ConfigureAutoInject(SceneTree sceneTree) {
+            sceneTree.OnNodeAdded(node => {
+                if (node.GetScript().AsGodotObject() is CSharpScript) ScanAndInject(node);
+            });
+        }
 
         public static void ScanAndInject(Node target) {
             var type = target.GetType();

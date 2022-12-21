@@ -1,8 +1,6 @@
-using System;
 using Betauer.Application;
 using Betauer.Application.Screen;
 using Betauer.Application.Settings;
-using Betauer.Bus;
 using Betauer.DI;
 using Betauer.DI.ServiceProvider;
 using Betauer.Input;
@@ -12,7 +10,6 @@ using Godot;
 using Veronenger.Controller.Character;
 using Veronenger.Controller.Menu;
 using Veronenger.Controller.UI;
-using Veronenger.Managers;
 
 namespace Veronenger {
 	public static class ApplicationConfig {
@@ -81,8 +78,6 @@ namespace Veronenger {
 
 	[Configuration]
 	public class UiActions {
-		[Service] public InputActionsContainer InputActionsContainer => new();
-		
 		[Service]
 		private InputAction UiUp => InputAction.Create("ui_up")
 			.KeepProjectSettings()
