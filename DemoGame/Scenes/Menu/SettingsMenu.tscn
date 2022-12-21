@@ -1,6 +1,6 @@
 [gd_scene load_steps=7 format=3 uid="uid://d3oetnugexew"]
 
-[ext_resource type="Script" path="res://Src/Controller/Menu/SettingsMenu.cs" id="1"]
+[ext_resource type="Script" path="res://Src/UI/SettingsMenu.cs" id="1"]
 [ext_resource type="Theme" uid="uid://dn6b2pnskhdh0" path="res://Assets/UI/my_theme.tres" id="2"]
 [ext_resource type="PackedScene" uid="uid://etv0voa53luq" path="res://Scenes/UI/FlatButton.tscn" id="3"]
 [ext_resource type="FontFile" uid="uid://dgrdge8rewkst" path="res://Assets/Fonts/dpcomic.ttf" id="3_c42cs"]

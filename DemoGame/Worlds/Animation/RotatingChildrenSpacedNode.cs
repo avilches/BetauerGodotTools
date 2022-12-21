@@ -8,8 +8,8 @@ using Betauer.DI;
 using Betauer.Core.Nodes;
 using Veronenger.Managers;
 
-namespace Veronenger.Controller.Animation {
-    public partial class RotatingChildrenSpacedController : Node2D {
+namespace Veronenger.Worlds.Animation {
+    public partial class RotatingChildrenSpacedNode : Node2D {
         [Export] public bool IsFallingPlatform = false;
         [Export] public Vector2 Radius = new Vector2(50, 50);
         [Export] public float RotationDuration = 4.0f;

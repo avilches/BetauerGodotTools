@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://c12blmsyum1yw" path="res://icon.png" id="1"]
 [ext_resource type="Theme" uid="uid://dn6b2pnskhdh0" path="res://Assets/UI/my_theme.tres" id="2"]
 [ext_resource type="FontFile" uid="uid://cbvctfjiggye1" path="res://Assets/Fonts/UnnamedFont.ttf" id="3_d7rq8"]
-[ext_resource type="Script" path="res://Src/Controller/Menu/MainMenu.cs" id="4"]
+[ext_resource type="Script" path="res://Src/UI/MainMenu.cs" id="4"]
 
 [node name="MainMenuLayer" type="CanvasLayer"]
 script = ExtResource("4")

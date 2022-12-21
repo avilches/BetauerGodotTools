@@ -1,6 +1,6 @@
 [gd_scene load_steps=8 format=3 uid="uid://c4cm73gj1or01"]
 
-[ext_resource type="Script" path="res://Src/Controller/UI/RedefineActionButton.cs" id="1"]
+[ext_resource type="Script" path="res://Src/UI/RedefineActionButton.cs" id="1"]
 [ext_resource type="StyleBox" path="res://Assets/UI/Buttons/FakeButton_Normal.tres" id="1_jpxl8"]
 [ext_resource type="StyleBox" path="res://Assets/UI/Buttons/FakeButton_Hover.tres" id="2_0bnpk"]
 [ext_resource type="StyleBox" path="res://Assets/UI/Buttons/ButtonStyle_Pressed.tres" id="3_ms28e"]

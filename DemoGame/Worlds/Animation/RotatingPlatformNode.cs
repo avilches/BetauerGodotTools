@@ -4,8 +4,8 @@ using Betauer.DI;
 using Veronenger.Managers;
 using static Godot.Mathf;
 
-namespace Veronenger.Controller.Animation {
-    public partial class RotatingPlatformController : CharacterBody2D {
+namespace Veronenger.Worlds.Animation {
+    public partial class RotatingPlatformNode : CharacterBody2D {
 
         [Export] public Vector2 Radius = new Vector2(50, 50);
         [Export] public float RotationDuration = 4.0f;

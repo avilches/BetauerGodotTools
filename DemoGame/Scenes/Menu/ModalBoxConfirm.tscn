@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://d3ta1btrv2dym"]
 
-[ext_resource type="Script" path="res://Src/Controller/Menu/ModalBoxConfirm.cs" id="1"]
+[ext_resource type="Script" path="res://Src/UI/ModalBoxConfirm.cs" id="1"]
 [ext_resource type="Theme" uid="uid://dn6b2pnskhdh0" path="res://Assets/UI/my_theme.tres" id="4"]
 
 [node name="ModalBoxConfirm" type="CanvasLayer"]

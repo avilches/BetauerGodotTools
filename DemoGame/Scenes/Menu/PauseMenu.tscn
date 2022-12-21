@@ -1,6 +1,6 @@
 [gd_scene load_steps=4 format=3 uid="uid://bx5v1byc3d5g8"]
 
-[ext_resource type="Script" path="res://Src/Controller/Menu/PauseMenu.cs" id="1"]
+[ext_resource type="Script" path="res://Src/UI/PauseMenu.cs" id="1"]
 [ext_resource type="FontFile" uid="uid://dgrdge8rewkst" path="res://Assets/Fonts/dpcomic.ttf" id="3_w6run"]
 [ext_resource type="Theme" uid="uid://dn6b2pnskhdh0" path="res://Assets/UI/my_theme.tres" id="4"]
 

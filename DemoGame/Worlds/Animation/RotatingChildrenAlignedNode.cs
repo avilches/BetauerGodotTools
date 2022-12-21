@@ -7,8 +7,8 @@ using Betauer.Application.Monitor;
 using Betauer.DI;
 using Betauer.Core.Nodes;
 
-namespace Veronenger.Controller.Animation {
-    public partial class RotatingChildrenAlignedController : Node2D {
+namespace Veronenger.Worlds.Animation {
+    public partial class RotatingChildrenAlignedNode : Node2D {
         public const float CLOCK_THREE = Mathf.Pi / 2;
         public const float CLOCK_NINE = -Mathf.Pi / 2;
 

@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://bel6oboteo5ww"]
 
 [ext_resource type="Theme" uid="uid://dn6b2pnskhdh0" path="res://Assets/UI/my_theme.tres" id="2"]
-[ext_resource type="Script" path="res://Src/Controller/UI/ActionHint.cs" id="3"]
+[ext_resource type="Script" path="res://Src/UI/ActionHint.cs" id="3"]
 [ext_resource type="PackedScene" uid="uid://bm8nfxhxh5yr2" path="res://Assets/UI/Consoles/ConsoleButton.tscn" id="3_svs2b"]
 
 [node name="HBoxContainer" type="HBoxContainer"]

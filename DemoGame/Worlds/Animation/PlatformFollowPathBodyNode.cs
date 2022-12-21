@@ -1,9 +1,9 @@
 using System;
-using Godot;
 using Betauer.Core.Nodes;
+using Godot;
 
-namespace Veronenger.Controller.Platforms {
-	public partial class PlatformFollowPathController : StaticBody2D {
+namespace Veronenger.Worlds.Animation {
+	public partial class PlatformFollowPathBodyNode : StaticBody2D {
 
 		[Export] public float Speed = 10;
 		[Export] public PathFollow2D? PathFollow2D;

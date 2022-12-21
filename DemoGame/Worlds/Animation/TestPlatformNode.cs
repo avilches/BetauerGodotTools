@@ -4,8 +4,8 @@ using Betauer.Animation.Easing;
 using Betauer.Core.Nodes.Property;
 using Betauer.OnReady;
 
-namespace Veronenger.Controller.Animation {
-    public partial class TestPlatformController : Node2D {
+namespace Veronenger.Worlds.Animation {
+    public partial class TestPlatformNode : Node2D {
         [OnReady("Body1")] private CharacterBody2D body1;
         [OnReady("Body2")] private CharacterBody2D body2;
         [OnReady("Body3")] private CharacterBody2D body3;
