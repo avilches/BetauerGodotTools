@@ -1,13 +1,11 @@
 using System.Threading.Tasks;
-using Betauer.Core.Signal;
 using Betauer.Bus.Signal;
+using Betauer.Core.Signal;
+using Betauer.Tests.Signal;
 using Betauer.Tools.Logging;
-using Betauer.TestRunner;
-using Godot;
 using NUnit.Framework;
-using Object = Godot.Object;
 
-namespace Betauer.Tests.Signal {
+namespace Betauer.Bus.Tests.Signal {
     [TestFixture]
     public class AreaOnArea2DTests : BaseNodeTest {
         [SetUp]

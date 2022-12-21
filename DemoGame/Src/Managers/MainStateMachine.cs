@@ -35,28 +35,6 @@ namespace Veronenger.Managers {
         ExitDesktop
     }
     
-    public class MainResourceLoader : ResourceLoaderContainer {
-        [Load("res://Assets/D1.wav")] public Resource D1;
-        [Load("res://Assets/D2.wav")] public Resource D2;
-        [Load("res://Assets/D3.wav")] public Resource D3;
-        [Load("res://Assets/D4.wav")] public Resource D4;
-        [Load("res://Assets/D5.wav")] public Resource D5;
-        [Load("res://Assets/D6.wav")] public Resource D6;
-        [Load("res://Assets/D7.wav")] public Resource D7;
-        [Load("res://Assets/sample1.wav")] public Resource sample1;
-        [Load("res://Assets/sample2.wav")] public Resource sample2;
-        [Load("res://Assets/sample3.wav")] public Resource sample3;
-        [Load("res://Assets/sample4.wav")] public Resource sample4;
-        [Load("res://Assets/sample5.wav")] public Resource sample5;
-        [Load("res://Assets/sample6.wav")] public Resource sample6;
-        [Load("res://Assets/sample7.wav")] public Resource sample7;
-        public override void DoOnProgress(float progress) {
-            GD.Print($"{progress * 100}%");
-        }
-
-    }
-    
-    
     [Service]
     public partial class MainStateMachine : StateMachineNodeAsync<MainState, MainEvent> {
 
@@ -127,17 +105,6 @@ namespace Veronenger.Managers {
 
                     AddOnTransition((args) => BottomBarScene.UpdateState(args.To));
                 })
-                /*
-                .Execute(async () => {
-                    var test = new MainResourceLoader();
-                    GD.Print("Loading start....");
-                    await test.Load();
-                    GD.Print("Loading end");
-                    endSplash = true;
-                    splashScreen.QueueFree();
-                    
-                })
-                */
                 .OnInput(e => {
                     if ((e.IsAnyKey() || e.IsAnyButton() || e.IsAnyClick()) && e.IsJustPressed()) {
                         splashScreen.QueueFree();
