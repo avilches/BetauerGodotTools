@@ -23,8 +23,4 @@ public class DefaultConfiguration {
     [Service] public DebugOverlayManager DebugOverlayManager => new();
     [Service] public InputActionsContainer InputActionsContainer => new();
 
-    [PostInject]
-    private void Configure() {
-        InputActionsContainer.AddConsoleCommands();
-    }
 }

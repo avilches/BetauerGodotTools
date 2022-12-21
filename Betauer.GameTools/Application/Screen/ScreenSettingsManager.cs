@@ -35,27 +35,28 @@ namespace Betauer.Application.Screen {
             _initialScreenConfiguration = initialScreenConfiguration;
         }
 
-        public ScreenSettingsManager AddConsoleCommands() {
-            DebugOverlayManager?.DebugConsole.AddScreenSettingsCommand(this);
-            return this;
+        [PostInject]
+        private void ConfigureSettings() {
+            _pixelPerfect = Container.ResolveOr<ISetting<bool>>("Settings.Screen.PixelPerfect",
+                () => Setting<bool>.Memory(false));
+
+            _fullscreen = Container.ResolveOr<ISetting<bool>>("Settings.Screen.Fullscreen",
+                () => Setting<bool>.Memory(AppTools.GetWindowFullscreen()));
+
+            _vSync = Container.ResolveOr<ISetting<bool>>("Settings.Screen.VSync",
+                () => Setting<bool>.Memory(AppTools.GetWindowVsync()));
+
+            _borderless = Container.ResolveOr<ISetting<bool>>("Settings.Screen.Borderless",
+                () => Setting<bool>.Memory(AppTools.GetWindowBorderless()));
+
+            _windowedResolution = Container.ResolveOr<ISetting<Resolution>>("Settings.Screen.WindowedResolution",
+                () => Setting<Resolution>.Memory(_initialScreenConfiguration.BaseResolution));
+
         }
 
         [PostInject]
-        private void ConfigureSettings() {
-            _pixelPerfect = Container.ResolveOr<ISetting<bool>>("Settings.Screen.PixelPerfect", 
-                () => Setting<bool>.Memory(false));
-            
-            _fullscreen = Container.ResolveOr<ISetting<bool>>("Settings.Screen.Fullscreen", 
-                () => Setting<bool>.Memory(AppTools.GetWindowFullscreen()));
-            
-            _vSync = Container.ResolveOr<ISetting<bool>>("Settings.Screen.VSync", 
-                () => Setting<bool>.Memory(AppTools.GetWindowVsync()));
-            
-            _borderless = Container.ResolveOr<ISetting<bool>>("Settings.Screen.Borderless",
-                () => Setting<bool>.Memory(AppTools.GetWindowBorderless()));
-            
-            _windowedResolution = Container.ResolveOr<ISetting<Resolution>>("Settings.Screen.WindowedResolution", 
-                () => Setting<Resolution>.Memory(_initialScreenConfiguration.BaseResolution));
+        private void ConfigureCommands() {
+            DebugOverlayManager?.DebugConsole.AddScreenSettingsCommand(this);
         }
         
         public void Setup() {
