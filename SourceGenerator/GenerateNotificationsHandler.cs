@@ -21,19 +21,29 @@ namespace Generator {
             return $@"using System;
 using Godot;
 
-namespace Betauer.Application {{
-    public class NotificationsHandler {{
+namespace Betauer.Application; 
+
+public partial class NotificationsHandler : Node {{
 
 {string.Join("\n", GenerateEvents(clazz))}
 
-        public void Execute(long what) {{
-            switch (what) {{
-{string.Join("\n", GenerateSwitchCases(clazz))}
-            }}
-        }}  
-
+    public override void _EnterTree() {{
+        ProcessMode = ProcessModeEnum.Always;
     }}
-}}";
+
+    public void Configure(SceneTree sceneTree) {{
+        GetParent()?.RemoveChild(this);
+        sceneTree.Root.AddChild(this);
+    }}
+
+    public void Execute(long what) {{
+        switch (what) {{
+{string.Join("\n", GenerateSwitchCases(clazz))}
+        }}
+    }}  
+
+}}
+";
         }
 
         private static IEnumerable<string> GenerateEvents(GodotClass[] classes) {
@@ -44,7 +54,7 @@ namespace Betauer.Application {{
             return ClassDB.ClassGetIntegerConstantList(clazz.ClassName)
                 .Where(n => FilterNotification(clazz, n))
                 .Select(n =>              
-$"        public event Action {NotificationEventName(clazz, n)};");
+$"    public event Action {NotificationEventName(clazz, n)};");
         }
         
         private static bool FilterNotification(GodotClass clazz, string n) {
@@ -78,9 +88,9 @@ $"        public event Action {NotificationEventName(clazz, n)};");
             return ClassDB.ClassGetIntegerConstantList(clazz.ClassName)
                 .Where(n => FilterNotification(clazz, n))
                 .Select(n => 
-$@"                case {clazz.ClassName}.{NotificationConstantName(n)}: // {GetNotificationValue(clazz, n)}
-                    {NotificationEventName(clazz, n)}?.Invoke();
-                    break;");
+$@"            case {clazz.ClassName}.{NotificationConstantName(n)}: // {GetNotificationValue(clazz, n)}
+                {NotificationEventName(clazz, n)}?.Invoke();
+                break;");
         }
         
         

@@ -13,7 +13,7 @@ public class DefaultConfiguration {
     public DefaultConfiguration(Node owner) {
         _sceneTree = owner.GetTree();
         DefaultNodeHandler.Configure(owner);
-        DefaultNotificationsHandler.Configure(owner);
+        DefaultNotificationsHandler.Instance.Configure(owner.GetTree());
         DefaultNotificationsHandler.Instance.OnWmCloseRequest += () => LoggerFactory.SetAutoFlush(true);
     }
 

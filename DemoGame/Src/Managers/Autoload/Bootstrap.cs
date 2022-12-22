@@ -25,7 +25,7 @@ public partial class Bootstrap : Node /* needed to be instantiated as an Autoloa
     public Bootstrap() {
         AppTools.ConfigureExceptionHandlers(GetTree);
 
-        new AutoConfiguration(this)
+        new GodotContainer(this)
             .Start(options => {
                 options
                     .ScanConfiguration(new DefaultConfiguration(this))
