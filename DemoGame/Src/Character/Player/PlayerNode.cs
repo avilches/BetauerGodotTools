@@ -57,7 +57,7 @@ public partial class PlayerNode : CharacterBody2D {
 	private AnimationStack _animationStack;
 	private AnimationStack _tweenStack;
 	private Restorer _restorer;
-	private readonly FlipperList _flippers = new();
+	public IFlipper Flipper;
 
 	public override void _Ready() {
 			
@@ -80,7 +80,7 @@ public partial class PlayerNode : CharacterBody2D {
 		DangerTween = _tweenStack.AddLoopTween("Danger", CreateDanger()).OnEnd(_restorer.Restore);
 		SqueezeTween = _tweenStack.AddOnceTween("Squeeze", CreateSqueeze()).OnEnd(_restorer.Restore);
 
-		_flippers
+		Flipper = new FlipperList()
 			.AddSprite(_mainSprite)
 			.AddArea2D(_attackArea);
 		_attackArea.EnableAllShapes(false);

@@ -54,8 +54,7 @@ public partial class ZombieNode : CharacterBody2D, IEnemy {
 	private Tween _sceneTreeTween;
 	private List<RayCast2D> _rayCasts;
 	private AnimationStack _animationStack;
-	private readonly FlipperList _flippers = new();
-	public bool IsFacingRight => _flippers.IsFacingRight;
+	public IFlipper Flipper;
 
 	public void PlayAnimationAttacked() {
 		_sceneTreeTween?.Kill();
@@ -72,7 +71,7 @@ public partial class ZombieNode : CharacterBody2D, IEnemy {
 		// _rayCasts = new List<RayCast2D> { FloorRaycast, FacePlayerDetector, BackPlayerDetector };
 		_rayCasts = new List<RayCast2D> { FacePlayerDetector };
 
-		_flippers
+		Flipper = new FlipperList()
 			.AddSprite(_mainSprite)
 			.AddArea2D(_attackArea)
 			.AddRayCast2D(FacePlayerDetector)
