@@ -44,18 +44,24 @@ public class KinematicPlatformMotion : BaseKinematicMotion, IFlipper {
     public void Flip() => _flippers.Flip();
     public void Flip(float xInput) => _flippers.Flip(xInput);
         
-    /**
-         * node is | I'm facing  | flip?
-         * right   | right       | no
-         * right   | left        | yes
-         * left    | right       | yes
-         * left    | left        | no
-         *
-         */
     public void FaceTo(Node2D node2D) {
-        if (IsToTheRightOf(node2D) != _flippers.IsFacingRight) {
-            _flippers.Flip();
-        }
+        if (!IsFacingTo(node2D)) _flippers.Flip();
+    }
+
+    public void FaceOppositeTo(Node2D node2D) {
+        if (IsFacingTo(node2D)) _flippers.Flip();
+    }
+
+    /**
+     *  IsToTheRightOf | IsFacingRight | 
+     *  true           | true          |  node2D -  Body)
+     *  true           | false         |  node2D - (Body
+     *  false          | true          |  Body)  -  node2D
+     *  false          | false         | (Body   -  node2D
+     *
+     */
+    public bool IsFacingTo(Node2D node2D) {
+        return IsToTheRightOf(node2D) != _flippers.IsFacingRight;
     }
 
     public bool IsJustLanded() => _isJustLanded;

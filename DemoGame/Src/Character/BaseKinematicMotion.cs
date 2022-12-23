@@ -1,5 +1,5 @@
 using System;
-using Betauer;
+using Betauer.Core;
 using Godot;
 
 namespace Veronenger.Character; 
@@ -10,11 +10,13 @@ public abstract class BaseKinematicMotion {
 
     private float _anglesToRotateFloor = 0;
     private Vector2 _floorUpDirection = Vector2.Up;
+    private Vector2 _lookRightDirection = Vector2.Right;
     public Vector2 FloorUpDirection {
         get => _floorUpDirection;
         set {
             _floorUpDirection = value;
             _anglesToRotateFloor = Vector2.Up.AngleTo(FloorUpDirection);
+            _lookRightDirection = _floorUpDirection.Right();
             Body.UpDirection = FloorUpDirection;
         }
     }
@@ -131,15 +133,17 @@ public abstract class BaseKinematicMotion {
         MotionY = limited.y;
     }
 
-    public bool IsToTheLeftOf(Node2D node2D) {
-        return Math.Abs(DegreesTo(node2D) - 180f) < 0.1f;
-    }
-
+    /// <summary>
+    /// Return true if the current body is to the right of the parameter 
+    /// </summary>
+    /// <param name="node2D"></param>
+    /// <returns></returns>
     public bool IsToTheRightOf(Node2D node2D) {
-        return DegreesTo(node2D) == 0f;
+        var angle = AngleTo(node2D);
+        return Mathf.Abs(angle) > Mathf.Pi / 2;
     }
 
-    public float DegreesTo(Node2D node2D) {
-        return Mathf.RadToDeg(Body.ToLocal(node2D.GlobalPosition).AngleTo(Marker2D.Position));
+    public float AngleTo(Node2D node2D) {
+        return _lookRightDirection.AngleTo(node2D.GlobalPosition - Marker2D.GlobalPosition);
     }
 }
