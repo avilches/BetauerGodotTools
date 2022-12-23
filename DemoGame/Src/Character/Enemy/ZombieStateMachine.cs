@@ -125,11 +125,11 @@ public partial class ZombieStateMachine : StateMachineNodeSync<ZombieState, Zomb
 
     private ZombieIA _zombieIA;
 
-    public void Start(string name, ZombieNode zombie, IFlipper flippers, Marker2D marker2D) {
+    public void Start(string name, ZombieNode zombie) {
         _zombieNode = zombie;
         zombie.AddChild(this);
 
-        Body.Configure(name, zombie, flippers, marker2D, MotionConfig.FloorUpDirection);
+        Body.Configure(name, zombie, zombie.Flipper, zombie.Marker2D, MotionConfig.FloorUpDirection);
         zombie.FloorStopOnSlope = true;
         // playerController.FloorBlockOnWall = true;
         zombie.FloorConstantSpeed = true;

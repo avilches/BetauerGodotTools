@@ -76,7 +76,7 @@ public partial class ZombieNode : CharacterBody2D, IEnemy {
 			.AddArea2D(_attackArea)
 			.AddRayCast2D(FacePlayerDetector)
 			.AddRayCast2D(BackPlayerDetector);
-		StateMachine.Start("Zombie", this, _flippers, Marker2D);
+		StateMachine.Start("Zombie", this);
 
 		CharacterManager.EnemyConfigureCollisions(this);
 		CharacterManager.EnemyConfigureCollisions(FloorRaycast);

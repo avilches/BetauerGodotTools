@@ -69,12 +69,12 @@ public partial class PlayerStateMachine : StateMachineNodeSync<PlayerState, Play
     private DelayedAction _delayedJump;
     private readonly GodotStopwatch _coyoteFallingTimer = new GodotStopwatch();
         
-    public void Start(string name, PlayerNode playerNode, IFlipper flippers, List<RayCast2D> floorRaycasts) {
+    public void Start(string name, PlayerNode playerNode) {
         _player = playerNode;
         _delayedJump = ((InputAction)Jump).CreateDelayed();
         playerNode.AddChild(this);
 
-        Body.Configure(name, playerNode, flippers, _player.Marker2D, MotionConfig.FloorUpDirection, floorRaycasts);
+        Body.Configure(name, playerNode, playerNode.Flipper, _player.Marker2D, MotionConfig.FloorUpDirection, playerNode.FloorRaycasts);
         playerNode.FloorStopOnSlope = true;
         // playerController.FloorBlockOnWall = true;
         playerNode.FloorConstantSpeed = true;
@@ -86,18 +86,18 @@ public partial class PlayerStateMachine : StateMachineNodeSync<PlayerState, Play
         GroundStates();
         AirStates();
 
-        var debugOverlay = DebugOverlayManager.Overlay(_player);
+        var debugOverlay = DebugOverlayManager.Overlay(_player).Title("Player");
         _jumpHelperMonitor = debugOverlay.Text("JumpHelper");
         debugOverlay.Text("CoyoteFallingTimer", () => _coyoteFallingTimer.ToString());
         _coyoteMonitor = debugOverlay.Text("Coyote");
-
+        
         debugOverlay
             .Text("State", () => CurrentState.Key.ToString()).EndMonitor()
             .SetMaxSize(1000, 1000)
             .OpenBox()
-            .Vector("Motion", () => Body.Motion, PlayerConfig.MaxSpeed).SetChartWidth(100).EndMonitor()
-            .Graph("MotionX", () => Body.MotionX, -PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed).AddSeparator(0)
-            .AddSerie("MotionY").Load(() => Body.MotionY).EndSerie().EndMonitor()
+                .Vector("Motion", () => Body.Motion, PlayerConfig.MaxSpeed).SetChartWidth(100).EndMonitor()
+                .Graph("MotionX", () => Body.MotionX, -PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed).AddSeparator(0)
+                .AddSerie("MotionY").Load(() => Body.MotionY).EndSerie().EndMonitor()
             .CloseBox()
             .Graph("Floor", () => Body.IsOnFloor()).Keep(10).SetChartHeight(10)
             .AddSerie("Slope").Load(() => Body.IsOnSlope()).EndSerie().EndMonitor()
@@ -107,8 +107,6 @@ public partial class PlayerStateMachine : StateMachineNodeSync<PlayerState, Play
             .Text("Wall", () => Body.GetWallCollisionInfo()).EndMonitor()
             .Disable();
             
-            
-        // debugOverlay.AddChild(new Consol);
     }
 
     public void ApplyFloorGravity(float factor = 1.0F) {

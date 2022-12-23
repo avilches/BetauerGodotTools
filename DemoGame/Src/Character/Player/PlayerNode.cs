@@ -84,7 +84,7 @@ public partial class PlayerNode : CharacterBody2D {
 			.AddSprite(_mainSprite)
 			.AddArea2D(_attackArea);
 		_attackArea.EnableAllShapes(false);
-		StateMachine.Start("Player", this, _flippers, FloorRaycasts);
+		StateMachine.Start("Player", this);
 
 		CharacterManager.RegisterPlayerNode(this);
 		CharacterManager.PlayerConfigureCollisions(this);
