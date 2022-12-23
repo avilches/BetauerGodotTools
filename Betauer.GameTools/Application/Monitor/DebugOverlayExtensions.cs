@@ -121,6 +121,18 @@ namespace Betauer.Application.Monitor {
                 .SetLabel(label);
         }
 
+        public static MonitorVector2 VectorNormalized(this DebugOverlay overlay, string label, Func<Vector2> func) {
+            return overlay.CreateMonitor<MonitorVector2>()
+                .LoadNormalized(func)
+                .SetLabel(label);
+        }
+
+        public static MonitorVector2 Angle(this DebugOverlay overlay, string label, Func<float> func) {
+            return overlay.CreateMonitor<MonitorVector2>()
+                .LoadAngle(func)
+                .SetLabel(label);
+        }
+
 
         public static DebugOverlay AddMonitorVideoInfo(this DebugOverlay overlay) {
             // TODO Godot 4

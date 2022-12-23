@@ -42,6 +42,25 @@ namespace Betauer.Application.Monitor {
             return this;
         }
 
+        public MonitorVector2 LoadNormalized(Func<Vector2> action) {
+            _loadValue = () => action().Normalized();
+            MaxValue = 1f;
+            return this;
+        }
+
+        public MonitorVector2 LoadAngle(Func<float> action) {
+            _loadValue = () => {
+                var angle = action();
+                return new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
+            };
+            _formatValue = v2 => {
+                var angle = action();
+                return Mathf.RadToDeg(angle).ToString("0.0");
+            };
+            MaxValue = 1f;
+            return this;
+        }
+
         public MonitorVector2 Format(string format) {
             _formatValue = (v) => v.ToString(format);
             return this;
