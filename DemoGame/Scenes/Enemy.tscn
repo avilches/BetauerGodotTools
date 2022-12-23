@@ -4,6 +4,8 @@
 collision_layer = 1024
 collision_mask = 0
 
+[node name="Marker2D" type="Marker2D" parent="."]
+
 [node name="Label" type="Label" parent="."]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
@@ -34,5 +36,3 @@ collision_mask = 0
 [node name="DamageArea" type="Area2D" parent="."]
 collision_layer = 0
 collision_mask = 0
-
-[node name="Marker2D" type="Marker2D" parent="."]
