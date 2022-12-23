@@ -59,13 +59,13 @@ namespace Betauer.Application.Monitor {
         }
 
         public DebugOverlay Overlay(string title) {
-            return (Overlays.FirstOrDefault(d => d.TitleLabel.Text == title) ?? 
-                    CreateOverlay().Title(title)).Enable();
+            return Overlays.FirstOrDefault(d => d.TitleLabel.Text == title) ?? 
+                    CreateOverlay().Title(title).Enable();
         }
 
         public DebugOverlay Overlay(Object target) {
             return (Overlays.FirstOrDefault(d => d.Target == target) ?? 
-                    CreateOverlay().RemoveIfInvalid(target)).Enable();
+                    CreateOverlay().RemoveIfInvalid(target).Enable());
         }
 
         public DebugOverlay Follow(Node2D follow) {
@@ -158,7 +158,7 @@ namespace Betauer.Application.Monitor {
                 Disable();
             } else {
                 var debugOverlay = Find(id);
-                if (debugOverlay.IsPermanent) debugOverlay.Disable();
+                if (debugOverlay.IsHideOnClose) debugOverlay.Disable();
                 else debugOverlay.QueueFree();
             }
         }

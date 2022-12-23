@@ -55,7 +55,7 @@ namespace Betauer.Application.Monitor {
         public bool CanFollow => Target is Node2D;
         public Func<bool>? RemoveIfFunc { get; private set; }
         public Button? FollowButton { get; private set; }
-        public bool IsPermanent { get; set; } = true;
+        public bool IsHideOnClose { get; set; } = true;
         
         private DragAndDropController _dragAndDropController;
         [Inject] public InputAction LMB { get; set; }
@@ -129,8 +129,8 @@ namespace Betauer.Application.Monitor {
             return this;                               
         }
 
-        public DebugOverlay Permanent(bool isPermanent = true) {
-            IsPermanent = isPermanent;
+        public DebugOverlay HideOnClose(bool isHideOnClose = true) {
+            IsHideOnClose = isHideOnClose;
             return this;
         }
 

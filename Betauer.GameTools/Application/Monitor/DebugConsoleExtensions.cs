@@ -148,7 +148,7 @@ namespace Betauer.Application.Monitor {
                 if (console.DebugOverlayManager.HasOverlay(title)) return;
                 console.DebugOverlayManager
                     .Overlay(title)
-                    .Permanent(false)
+                    .HideOnClose(false)
                     .Solid()
                     .Text((nodeHandler ?? DefaultNodeHandler.Instance).GetStateAsString).UpdateEvery(1f).EndMonitor();
             }, "Open the NodeHandler info window.");
@@ -160,7 +160,7 @@ namespace Betauer.Application.Monitor {
                 if (console.DebugOverlayManager.HasOverlay(title)) return;
                 console.DebugOverlayManager
                     .Overlay(title)
-                    .Permanent(false)
+                    .HideOnClose(false)
                     .Solid()
                     .AddMonitorFpsTimeScaleAndUptime()
                     .AddMonitorMemory()
@@ -174,7 +174,7 @@ namespace Betauer.Application.Monitor {
                 if (console.DebugOverlayManager.HasOverlay(title)) return;
                 console.DebugOverlayManager
                     .Overlay(title)
-                    .Permanent(false)
+                    .HideOnClose(false)
                     .Solid()
                     .AddMonitorVideoInfo()
                     .AddMonitorScreenSettings(screenSettingsManager);
@@ -187,7 +187,7 @@ namespace Betauer.Application.Monitor {
                 if (console.DebugOverlayManager.HasOverlay(title)) return;
                 console.DebugOverlayManager
                     .Overlay(title)
-                    .Permanent(false)
+                    .HideOnClose(false)
                     .Solid()
                     .AddMonitorInputAction(inputActionsContainer);
             }, "Open the input map window.");
@@ -199,7 +199,7 @@ namespace Betauer.Application.Monitor {
                 if (console.DebugOverlayManager.HasOverlay(title)) return;
                 console.DebugOverlayManager
                     .Overlay(title)
-                    .Permanent(false)
+                    .HideOnClose(false)
                     .Solid()
                     .SetMinSize(300, 100)
                     .AddMonitorInputEvent(inputActionsContainer);
