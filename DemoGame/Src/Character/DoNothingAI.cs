@@ -6,7 +6,7 @@ public class DoNothingAI : ICharacterAI {
     private DoNothingAI() {
     }
 
-    public void Handle(double delta) {
+    public void Execute() {
     }
 
     public void EndFrame() {

@@ -7,7 +7,7 @@ namespace Veronenger.Character.Enemy;
 [Configuration]
 public class EnemyConfiguration {
     [Service]
-    public ICharacterHandler ZombieHandler => new InputActionCharacterHandler();
+    public ICharacterHandler ZombieHandler => new CharacterController();
 }
 
 [Service]

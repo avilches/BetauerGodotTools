@@ -1,7 +1,7 @@
 namespace Veronenger.Character;
 
 public interface ICharacterAI {
-    public void Handle(double delta);
+    public void Execute();
     public void EndFrame();
     public string GetState();
 }

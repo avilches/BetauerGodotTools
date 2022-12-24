@@ -1,12 +1,9 @@
-using System;
-using Betauer;
 using Betauer.Application.Monitor;
 using Betauer.DI;
 using Betauer.DI.ServiceProvider;
 using Betauer.Input;
 using Betauer.StateMachine.Sync;
 using Betauer.Core.Time;
-using Godot;
 using Veronenger.Character.Handler;
 using Veronenger.Character.Player;
 using Veronenger.Managers;
@@ -94,7 +91,7 @@ public partial class ZombieStateMachine : StateMachineNodeSync<ZombieState, Zomb
 
         // AI
         _zombieAi = ZombieAI.Create(Handler, new ZombieAI.Sensor(zombie, this, Body, () => CharacterManager.PlayerNode.Marker2D.GlobalPosition));
-        OnBeforeExecute += _zombieAi.Handle;
+        OnBeforeExecute += delta => _zombieAi.Execute();
         OnAfterExecute += _zombieAi.EndFrame;
 
         var overlay = DebugOverlayManager.Follow(zombie).Title("Zombie");

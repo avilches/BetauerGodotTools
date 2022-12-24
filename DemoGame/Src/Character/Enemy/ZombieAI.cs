@@ -37,12 +37,6 @@ public class ZombieAI : StateMachineSync<ZombieAI.State, ZombieAI.Event>, IChara
         return CurrentState.Key.ToString();
     }
 
-    public void Handle(double delta) {
-        // GD.Print("Pressed:"+handler.HandlerJump.IsPressed()+
-        // " JustPressed:"+handler.HandlerJump.IsJustPressed()+
-        // " Released:"+handler.HandlerJump.IsReleased());
-    }
-
     private void Config() {
         State(State.Patrol)
             .Enter(() => _stateTimer.Reset())
@@ -89,6 +83,10 @@ public class ZombieAI : StateMachineSync<ZombieAI.State, ZombieAI.Event>, IChara
     }
 
     public void EndFrame() {
+        // GD.Print("Pressed:"+_controller.Jump.IsPressed()+
+        // " JustPressed:"+_controller.Jump.IsJustPressed()+
+        // " Released:"+_controller.Jump.IsReleased());
+
         _controller.DirectionalController.XInput = 0;
         _controller.EndFrame();
     }
