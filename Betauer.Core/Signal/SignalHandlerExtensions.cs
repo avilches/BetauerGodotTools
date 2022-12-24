@@ -95,8 +95,14 @@ namespace Betauer.Core.Signal {
         public static SignalHandler OnCachesCleared(this AnimationPlayer target, Action action, bool oneShot = false, bool deferred = false) =>
             On(target, AnimationPlayer.SignalName.CachesCleared, action, oneShot, deferred);
 
+        public static SignalHandler OnAnimationFinished(this AnimationTree target, Action<Godot.StringName> action, bool oneShot = false, bool deferred = false) =>
+            On(target, AnimationTree.SignalName.AnimationFinished, action, oneShot, deferred);
+
         public static SignalHandler OnAnimationPlayerChanged(this AnimationTree target, Action action, bool oneShot = false, bool deferred = false) =>
             On(target, AnimationTree.SignalName.AnimationPlayerChanged, action, oneShot, deferred);
+
+        public static SignalHandler OnAnimationStarted(this AnimationTree target, Action<Godot.StringName> action, bool oneShot = false, bool deferred = false) =>
+            On(target, AnimationTree.SignalName.AnimationStarted, action, oneShot, deferred);
 
         public static SignalHandler OnAreaEntered(this Area2D target, Action<Area2D> action, bool oneShot = false, bool deferred = false) =>
             On(target, Area2D.SignalName.AreaEntered, action, oneShot, deferred);
@@ -449,6 +455,9 @@ namespace Betauer.Core.Signal {
         public static SignalHandler OnVisibilityChanged(this MultiplayerSynchronizer target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) =>
             On(target, MultiplayerSynchronizer.SignalName.VisibilityChanged, action, oneShot, deferred);
 
+        public static SignalHandler OnLinkReached(this NavigationAgent2D target, Action<Godot.Collections.Dictionary> action, bool oneShot = false, bool deferred = false) =>
+            On(target, NavigationAgent2D.SignalName.LinkReached, action, oneShot, deferred);
+
         public static SignalHandler OnNavigationFinished(this NavigationAgent2D target, Action action, bool oneShot = false, bool deferred = false) =>
             On(target, NavigationAgent2D.SignalName.NavigationFinished, action, oneShot, deferred);
 
@@ -461,6 +470,12 @@ namespace Betauer.Core.Signal {
         public static SignalHandler OnVelocityComputed(this NavigationAgent2D target, Action<Godot.Vector2> action, bool oneShot = false, bool deferred = false) =>
             On(target, NavigationAgent2D.SignalName.VelocityComputed, action, oneShot, deferred);
 
+        public static SignalHandler OnWaypointReached(this NavigationAgent2D target, Action<Godot.Collections.Dictionary> action, bool oneShot = false, bool deferred = false) =>
+            On(target, NavigationAgent2D.SignalName.WaypointReached, action, oneShot, deferred);
+
+        public static SignalHandler OnLinkReached(this NavigationAgent3D target, Action<Godot.Collections.Dictionary> action, bool oneShot = false, bool deferred = false) =>
+            On(target, NavigationAgent3D.SignalName.LinkReached, action, oneShot, deferred);
+
         public static SignalHandler OnNavigationFinished(this NavigationAgent3D target, Action action, bool oneShot = false, bool deferred = false) =>
             On(target, NavigationAgent3D.SignalName.NavigationFinished, action, oneShot, deferred);
 
@@ -472,6 +487,9 @@ namespace Betauer.Core.Signal {
 
         public static SignalHandler OnVelocityComputed(this NavigationAgent3D target, Action<Godot.Vector3> action, bool oneShot = false, bool deferred = false) =>
             On(target, NavigationAgent3D.SignalName.VelocityComputed, action, oneShot, deferred);
+
+        public static SignalHandler OnWaypointReached(this NavigationAgent3D target, Action<Godot.Collections.Dictionary> action, bool oneShot = false, bool deferred = false) =>
+            On(target, NavigationAgent3D.SignalName.WaypointReached, action, oneShot, deferred);
 
         public static SignalHandler OnBakeFinished(this NavigationRegion3D target, Action action, bool oneShot = false, bool deferred = false) =>
             On(target, NavigationRegion3D.SignalName.BakeFinished, action, oneShot, deferred);

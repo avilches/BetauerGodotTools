@@ -74,8 +74,14 @@ namespace Betauer.Core.Signal {
         public static SignalAwaiter AwaitCachesCleared(this AnimationPlayer target) =>
             target.ToSignal(target, "caches_cleared");
 
+        public static SignalAwaiter AwaitAnimationFinished(this AnimationTree target) =>
+            target.ToSignal(target, "animation_finished");
+
         public static SignalAwaiter AwaitAnimationPlayerChanged(this AnimationTree target) =>
             target.ToSignal(target, "animation_player_changed");
+
+        public static SignalAwaiter AwaitAnimationStarted(this AnimationTree target) =>
+            target.ToSignal(target, "animation_started");
 
         public static SignalAwaiter AwaitAreaEntered(this Area2D target) =>
             target.ToSignal(target, "area_entered");
@@ -428,6 +434,9 @@ namespace Betauer.Core.Signal {
         public static SignalAwaiter AwaitVisibilityChanged(this MultiplayerSynchronizer target) =>
             target.ToSignal(target, "visibility_changed");
 
+        public static SignalAwaiter AwaitLinkReached(this NavigationAgent2D target) =>
+            target.ToSignal(target, "link_reached");
+
         public static SignalAwaiter AwaitNavigationFinished(this NavigationAgent2D target) =>
             target.ToSignal(target, "navigation_finished");
 
@@ -440,6 +449,12 @@ namespace Betauer.Core.Signal {
         public static SignalAwaiter AwaitVelocityComputed(this NavigationAgent2D target) =>
             target.ToSignal(target, "velocity_computed");
 
+        public static SignalAwaiter AwaitWaypointReached(this NavigationAgent2D target) =>
+            target.ToSignal(target, "waypoint_reached");
+
+        public static SignalAwaiter AwaitLinkReached(this NavigationAgent3D target) =>
+            target.ToSignal(target, "link_reached");
+
         public static SignalAwaiter AwaitNavigationFinished(this NavigationAgent3D target) =>
             target.ToSignal(target, "navigation_finished");
 
@@ -451,6 +466,9 @@ namespace Betauer.Core.Signal {
 
         public static SignalAwaiter AwaitVelocityComputed(this NavigationAgent3D target) =>
             target.ToSignal(target, "velocity_computed");
+
+        public static SignalAwaiter AwaitWaypointReached(this NavigationAgent3D target) =>
+            target.ToSignal(target, "waypoint_reached");
 
         public static SignalAwaiter AwaitBakeFinished(this NavigationRegion3D target) =>
             target.ToSignal(target, "bake_finished");
