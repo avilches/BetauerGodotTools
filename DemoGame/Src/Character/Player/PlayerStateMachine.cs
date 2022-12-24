@@ -86,28 +86,52 @@ public partial class PlayerStateMachine : StateMachineNodeSync<PlayerState, Play
         GroundStates();
         AirStates();
 
-        var debugOverlay = DebugOverlayManager.Overlay(_player).Title("Player");
-        _jumpHelperMonitor = debugOverlay.Text("JumpHelper");
-        debugOverlay.Text("CoyoteFallingTimer", () => _coyoteFallingTimer.ToString());
-        _coyoteMonitor = debugOverlay.Text("Coyote");
-        
-        debugOverlay
-            .Text("State", () => CurrentState.Key.ToString()).EndMonitor()
-            .SetMaxSize(1000, 1000)
+        var overlay = DebugOverlayManager.Overlay(_player)
+            .Title("Player")
+            .SetMaxSize(1000, 1000);
+
+        AddOverlayHelpers(overlay);
+        AddOverlayStates(overlay);
+        AddOverlayMotion(overlay);
+        AddOverlayCollisions(overlay);
+            
+    }
+
+    public void AddOverlayHelpers(DebugOverlay overlay) {
+        _jumpHelperMonitor = overlay.Text("JumpHelper");
+        overlay.Text("CoyoteFallingTimer", () => _coyoteFallingTimer.ToString());
+        _coyoteMonitor = overlay.Text("Coyote");
+    }
+
+    public void AddOverlayStates(DebugOverlay overlay) {
+        overlay
+            .OpenBox()
+                .Text("State", () => CurrentState.Key.ToString()).EndMonitor()
+            .CloseBox();
+    }
+
+    public void AddOverlayMotion(DebugOverlay overlay) {
+        overlay
             .OpenBox()
                 .Vector("Motion", () => Body.Motion, PlayerConfig.MaxSpeed).SetChartWidth(100).EndMonitor()
                 .Graph("MotionX", () => Body.MotionX, -PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed).AddSeparator(0)
-                .AddSerie("MotionY").Load(() => Body.MotionY).EndSerie().EndMonitor()
+                    .AddSerie("MotionY").Load(() => Body.MotionY).EndSerie()
+                .EndMonitor()
             .CloseBox()
+            .GraphSpeed("Speed", PlayerConfig.JumpSpeed * 2).EndMonitor();
+
+    }
+    
+    public void AddOverlayCollisions(DebugOverlay overlay) {    
+        overlay
             .Graph("Floor", () => Body.IsOnFloor()).Keep(10).SetChartHeight(10)
-            .AddSerie("Slope").Load(() => Body.IsOnSlope()).EndSerie().EndMonitor()
-            .GraphSpeed("Speed", _player , PlayerConfig.JumpSpeed*2, "000").EndMonitor()
+                .AddSerie("Slope").Load(() => Body.IsOnSlope()).EndSerie()
+            .EndMonitor()
             .Text("Floor", () => Body.GetFloorCollisionInfo()).EndMonitor()
             .Text("Ceiling", () => Body.GetCeilingCollisionInfo()).EndMonitor()
-            .Text("Wall", () => Body.GetWallCollisionInfo()).EndMonitor()
-            .Disable();
-            
+            .Text("Wall", () => Body.GetWallCollisionInfo()).EndMonitor();
     }
+
 
     public void ApplyFloorGravity(float factor = 1.0F) {
         Body.ApplyGravity(PlayerConfig.FloorGravity * factor, PlayerConfig.MaxFallingSpeed);

@@ -7,7 +7,7 @@ namespace Veronenger.Character.Enemy;
 public class EnemyConfig {
     public Vector2 MiniJumpOnAttack = new(130, -230);
 
-    public float MaxSpeed = 90f; // pixels/seconds
+    public float MaxSpeed = 60f; // pixels/seconds
     public float Acceleration = -1; // pixels/frame
     public float StopIfSpeedIsLessThan = 20f; // pixels/seconds
     public float Friction = 0; // pixels/seconds 0=stop immediately

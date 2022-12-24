@@ -43,13 +43,17 @@ public class KinematicPlatformMotion : BaseKinematicMotion, IFlipper {
     public bool IsFacingRight => _flippers.IsFacingRight;
     public void Flip() => _flippers.Flip();
     public void Flip(float xInput) => _flippers.Flip(xInput);
-        
-    public void FaceTo(Node2D node2D) {
-        if (!IsFacingTo(node2D)) _flippers.Flip();
+
+    public void FaceTo(Node2D node2D) => FaceTo(node2D.GlobalPosition);
+    public void FaceOppositeTo(Node2D node2D) => FaceOppositeTo(node2D.GlobalPosition);
+    public bool IsFacingTo(Node2D node2D) => IsFacingTo(node2D.GlobalPosition);
+
+    public void FaceTo(Vector2 globalPosition) {
+        if (!IsFacingTo(globalPosition)) _flippers.Flip();
     }
 
-    public void FaceOppositeTo(Node2D node2D) {
-        if (IsFacingTo(node2D)) _flippers.Flip();
+    public void FaceOppositeTo(Vector2 globalPosition) {
+        if (IsFacingTo(globalPosition)) _flippers.Flip();
     }
 
     /**
@@ -60,9 +64,7 @@ public class KinematicPlatformMotion : BaseKinematicMotion, IFlipper {
      *  false          | false         | (Body   -  node2D
      *
      */
-    public bool IsFacingTo(Node2D node2D) {
-        return IsToTheRightOf(node2D) != _flippers.IsFacingRight;
-    }
+    public bool IsFacingTo(Vector2 globalPosition) => IsToTheRightOf(globalPosition) != _flippers.IsFacingRight;
 
     public bool IsJustLanded() => _isJustLanded;
     public bool IsJustTookOff() => _isJustTookOff;

@@ -1,3 +1,4 @@
+using System;
 using Betauer;
 using Betauer.Application.Monitor;
 using Betauer.DI;
@@ -38,52 +39,6 @@ public class EnemyStatus {
 
     public bool IsDead() {
         return Health <= 0f;
-    }
-}
-
-public class ZombieIA : StateMachineSync<ZombieIA.State, ZombieIA.Event> {
-    private readonly CharacterController _handler;
-    private readonly ZombieNode _node;
-    private readonly GodotStopwatch _stateTimer = new GodotStopwatch().Start();
-
-    public enum State { 
-        Init
-    }
-    public enum Event {
-    }
-
-    public ZombieIA(CharacterController handler, ZombieNode node) : base(State.Init, "ZombieIA") {
-        _handler = handler;
-        _node = node;
-
-        State(State.Init)
-            .Enter(() => _stateTimer.Reset())
-            .Execute(() => {
-                if (_stateTimer.Elapsed > 1f) {
-                    ChangeDirection();
-                    _stateTimer.Reset();
-                } else {
-                    KeepMoving();
-                }
-            })
-            .Build();
-
-    }
-
-    public void HandleIA(double delta) {
-        if (_handler != null) Execute();
-            
-        // GD.Print("Pressed:"+handler.HandlerJump.IsPressed()+
-        // " JustPressed:"+handler.HandlerJump.IsJustPressed()+
-        // " Released:"+handler.HandlerJump.IsReleased());
-    }
-
-    private void ChangeDirection() {
-        _handler.DirectionalController.XInput = _node.IsFacingRight ? -1 : 1;
-    }
-        
-    private void KeepMoving() {
-        _handler.DirectionalController.XInput = _node.IsFacingRight ? 1 : -1;
     }
 }
 
@@ -135,28 +90,63 @@ public partial class ZombieStateMachine : StateMachineNodeSync<ZombieState, Zomb
         zombie.FloorConstantSpeed = true;
         zombie.FloorSnapLength = MotionConfig.SnapLength;
 
-        _zombieIA = new ZombieIA(Handler, zombie);
-
         OnBeforeExecute += Body.SetDelta;
-        OnBeforeExecute += _zombieIA.HandleIA;
-        OnAfterExecute += Handler.EndFrame;
         OnTransition += args => zombie.Label.Text = args.To.ToString();
 
-        var debugOverlay = DebugOverlayManager.Follow(zombie);
+        // IA
+        _zombieIA = new ZombieIA(Handler, new ZombieIA.Sensor(zombie, this, Body, () => CharacterManager.PlayerNode.Marker2D.GlobalPosition));
+        OnBeforeExecute += _zombieIA.HandleIA;
+        OnAfterExecute += _zombieIA.EndFrame;
 
-        debugOverlay
-            .Text("State", () => CurrentState.Key.ToString()).EndMonitor()
+        var overlay = DebugOverlayManager.Follow(zombie).Title("Zombie");
+        AddOverlayStates(overlay);
+        AddOverlayMotion(overlay);
+        AddOverlayCollisions(overlay);
+        
+        ConfigureStates();
+    }
+    
+    public void AddOverlayStates(DebugOverlay overlay) {    
+        overlay
             .OpenBox()
-            .Vector("Motion", () => Body.Motion, PlayerConfig.MaxSpeed).SetChartWidth(100).EndMonitor()
-            .Graph("MotionX", () => Body.MotionX, -PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed).AddSeparator(0)
-            .AddSerie("MotionY").Load(() => Body.MotionY).EndSerie().EndMonitor()
+                .Text("State", () => CurrentState.Key.ToString()).EndMonitor()
+                .Text("IA", () => _zombieIA.CurrentState.Key.ToString()).EndMonitor()
+                .Text("Pos", () => {
+                    var playerMark = CharacterManager.PlayerNode.Marker2D;
+                    return Body.IsFacingTo(playerMark)?
+                        Body.IsToTheRightOf(playerMark)?"P <me|":"|me> P":
+                        Body.IsToTheRightOf(playerMark)?"P |me>":"<me| P";
+                }).EndMonitor()
             .CloseBox()
+            .OpenBox()
+            .Angle("Player angle", () => Body.AngleTo(CharacterManager.PlayerNode.Marker2D)).EndMonitor()
+            .Text("Player is", () => Body.IsToTheRightOf(CharacterManager.PlayerNode.Marker2D)?"Left":"Right").EndMonitor()
+            .Text("FacingPlayer", () => Body.IsFacingTo(CharacterManager.PlayerNode.Marker2D)).EndMonitor()
+            .CloseBox();
+            
+    }
+    
+    public void AddOverlayMotion(DebugOverlay overlay) {    
+        overlay
+            .OpenBox()
+                .Vector("Motion", () => Body.Motion, PlayerConfig.MaxSpeed).SetChartWidth(100).EndMonitor()
+                .Graph("MotionX", () => Body.MotionX, -PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed).AddSeparator(0)
+                .AddSerie("MotionY").Load(() => Body.MotionY).EndSerie().EndMonitor()
+            .CloseBox()
+            .GraphSpeed("Speed", PlayerConfig.JumpSpeed * 2).EndMonitor();
+    }
+    
+    public void AddOverlayCollisions(DebugOverlay overlay) {    
+        overlay
             .Graph("Floor", () => Body.IsOnFloor()).Keep(10).SetChartHeight(10)
-            .AddSerie("Slope").Load(() => Body.IsOnSlope()).EndSerie().EndMonitor()
-            .GraphSpeed("Speed", PlayerConfig.JumpSpeed * 2).EndMonitor()
+                .AddSerie("Slope").Load(() => Body.IsOnSlope()).EndSerie()
+            .EndMonitor()
             .Text("Floor", () => Body.GetFloorCollisionInfo()).EndMonitor()
             .Text("Ceiling", () => Body.GetCeilingCollisionInfo()).EndMonitor()
             .Text("Wall", () => Body.GetWallCollisionInfo()).EndMonitor();
+    }
+    
+    public void ConfigureStates() {    
 
         On(ZombieEvent.Attacked).Then(context => IsState(ZombieState.Attacked) ? context.None() : context.Push(ZombieState.Attacked));
         On(ZombieEvent.Dead).Then(context=> context.Set(ZombieState.Destroy));
@@ -196,11 +186,10 @@ public partial class ZombieStateMachine : StateMachineNodeSync<ZombieState, Zomb
 
         State(ZombieState.Attacked)
             .Enter(() => {
-                Body.FaceTo(CharacterManager.PlayerNode.PlayerDetector);
                 Body.MotionY = EnemyConfig.MiniJumpOnAttack.y;
-                Body.MotionX = EnemyConfig.MiniJumpOnAttack.x * (Body.IsToTheLeftOf(CharacterManager.PlayerNode.PlayerDetector) ? 1 : -1);
+                Body.MotionX = EnemyConfig.MiniJumpOnAttack.x * (Body.IsToTheRightOf(CharacterManager.PlayerNode.Marker2D) ? 1 : -1);
                 _zombieNode.PlayAnimationAttacked();
-                _stateTimer.Restart().SetAlarm(1f);
+                _stateTimer.Restart().SetAlarm(0.3f);
             })
             .Execute(() => {
                 ApplyAirGravity();
@@ -213,10 +202,10 @@ public partial class ZombieStateMachine : StateMachineNodeSync<ZombieState, Zomb
             .Enter(() => {
                 _zombieNode.DisableAll();
 
-                if (Body.IsToTheLeftOf(CharacterManager.PlayerNode.PlayerDetector)) {
-                    _zombieNode.AnimationDieLeft.PlayOnce(true);
-                } else {
+                if (Body.IsToTheRightOf(CharacterManager.PlayerNode.Marker2D)) {
                     _zombieNode.AnimationDieRight.PlayOnce(true);
+                } else {
+                    _zombieNode.AnimationDieLeft.PlayOnce(true);
                 }
             })
             .Execute(() => {
@@ -252,7 +241,7 @@ public partial class ZombieStateMachine : StateMachineNodeSync<ZombieState, Zomb
             .If(Body.IsOnFloor).Set(ZombieState.Landing)
             .Build();
     }
-        
+
     public void TriggerAttacked(Attack attack) {
         Status.Attack(attack);
         Enqueue(Status.IsDead() ? ZombieEvent.Dead : ZombieEvent.Attacked);

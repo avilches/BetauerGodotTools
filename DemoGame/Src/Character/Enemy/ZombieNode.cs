@@ -88,14 +88,6 @@ public partial class ZombieNode : CharacterBody2D, IEnemy {
 			// var enemy = enemyDamageArea2DPublisher.GetParent<IEnemy>();
 			AttackedByPlayer(new Attack(1f));
 		});
-
-		DebugOverlayManager.CreateOverlay()
-			.Follow(this)
-			.RemoveButtons()
-			.Offset(new Vector2(0, -100))
-			.Text("State", () => StateMachine.CurrentState.Key.ToString()).EndMonitor()
-			// .Text("Mouse", () => $"{Position.DistanceTo(GetLocalMousePosition()):F1} {Position.AngleTo(GetLocalMousePosition()):F1}").EndMonitor()
-			.Text("Speed",() => StateMachine.Body.Motion.ToString("F")).EndMonitor();
 	}
 
 	public void DisableAll() {

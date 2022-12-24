@@ -138,12 +138,20 @@ public abstract class BaseKinematicMotion {
     /// </summary>
     /// <param name="node2D"></param>
     /// <returns></returns>
-    public bool IsToTheRightOf(Node2D node2D) {
-        var angle = AngleTo(node2D);
+    public bool IsToTheRightOf(Node2D node2D) => IsToTheRightOf(node2D.GlobalPosition);
+    public float AngleTo(Node2D node2D) => AngleTo(node2D.GlobalPosition);
+
+    /// <summary>
+    /// Return true if the current body is to the right of the parameter 
+    /// </summary>
+    /// <param name="node2D"></param>
+    /// <returns></returns>
+    public bool IsToTheRightOf(Vector2 globalPosition) {
+        var angle = AngleTo(globalPosition);
         return Mathf.Abs(angle) > Mathf.Pi / 2;
     }
 
-    public float AngleTo(Node2D node2D) {
-        return _lookRightDirection.AngleTo(node2D.GlobalPosition - Marker2D.GlobalPosition);
+    public float AngleTo(Vector2 globalPosition) {
+        return _lookRightDirection.AngleTo(globalPosition - Marker2D.GlobalPosition);
     }
 }
