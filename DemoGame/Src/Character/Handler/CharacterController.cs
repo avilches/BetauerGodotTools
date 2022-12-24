@@ -5,7 +5,6 @@ using Betauer.Input.Controller;
 
 namespace Veronenger.Character.Handler;
 
-[Service(Lifetime.Transient)]
 public class CharacterController : ICharacterHandler {
     public readonly ActionController JumpController = new();
     public readonly ActionController AttackController = new();

@@ -53,8 +53,7 @@ public partial class ZombieStateMachine : StateMachineNodeSync<ZombieState, Zomb
     [Inject] private PlayerConfig PlayerConfig { get; set; }
     [Inject] private EnemyConfig EnemyConfig { get; set; }
     [Inject] public KinematicPlatformMotion Body { get; set; }
-    // [Inject] private InputActionCharacterHandler Handler { get; set; }
-    [Inject] private CharacterController Handler { get; set; }
+    [Inject] private ICharacterHandler Handler { get; set; }
 
     private ZombieNode _zombieNode;
 
@@ -78,7 +77,7 @@ public partial class ZombieStateMachine : StateMachineNodeSync<ZombieState, Zomb
         Body.ApplyGravity(PlayerConfig.AirGravity * factor, PlayerConfig.MaxFallingSpeed);
     }
 
-    private ZombieIA _zombieIA;
+    private ICharacterAI _zombieAi;
 
     public void Start(string name, ZombieNode zombie) {
         _zombieNode = zombie;
@@ -93,10 +92,10 @@ public partial class ZombieStateMachine : StateMachineNodeSync<ZombieState, Zomb
         OnBeforeExecute += Body.SetDelta;
         OnTransition += args => zombie.Label.Text = args.To.ToString();
 
-        // IA
-        _zombieIA = new ZombieIA(Handler, new ZombieIA.Sensor(zombie, this, Body, () => CharacterManager.PlayerNode.Marker2D.GlobalPosition));
-        OnBeforeExecute += _zombieIA.HandleIA;
-        OnAfterExecute += _zombieIA.EndFrame;
+        // AI
+        _zombieAi = ZombieAI.Create(Handler, new ZombieAI.Sensor(zombie, this, Body, () => CharacterManager.PlayerNode.Marker2D.GlobalPosition));
+        OnBeforeExecute += _zombieAi.Handle;
+        OnAfterExecute += _zombieAi.EndFrame;
 
         var overlay = DebugOverlayManager.Follow(zombie).Title("Zombie");
         AddOverlayStates(overlay);
@@ -110,7 +109,7 @@ public partial class ZombieStateMachine : StateMachineNodeSync<ZombieState, Zomb
         overlay
             .OpenBox()
                 .Text("State", () => CurrentState.Key.ToString()).EndMonitor()
-                .Text("IA", () => _zombieIA.CurrentState.Key.ToString()).EndMonitor()
+                .Text("IA", () => _zombieAi.GetState()).EndMonitor()
                 .Text("Pos", () => {
                     var playerMark = CharacterManager.PlayerNode.Marker2D;
                     return Body.IsFacingTo(playerMark)?

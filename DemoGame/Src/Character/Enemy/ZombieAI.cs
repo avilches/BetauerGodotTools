@@ -3,11 +3,10 @@ using Betauer.Core.Time;
 using Betauer.StateMachine.Sync;
 using Godot;
 using Veronenger.Character.Handler;
-using Veronenger.Character.Player;
 
 namespace Veronenger.Character.Enemy;
 
-public class ZombieIA : StateMachineSync<ZombieIA.State, ZombieIA.Event> {
+public class ZombieAI : StateMachineSync<ZombieAI.State, ZombieAI.Event>, ICharacterAI {
     private readonly CharacterController _controller;
     private readonly Sensor _sensor;
     private readonly GodotStopwatch _stateTimer = new GodotStopwatch().Start();
@@ -17,20 +16,28 @@ public class ZombieIA : StateMachineSync<ZombieIA.State, ZombieIA.Event> {
         PatrolStop,
         Attacked,
         Flee
-        
     }
+    
     public enum Event {
     }
 
-    public ZombieIA(CharacterController controller, Sensor sensor) : base(State.Patrol, "ZombieIA") {
+    public static ICharacterAI Create(ICharacterHandler handler, Sensor sensor) {
+        if (handler is CharacterController controller) return new ZombieAI(controller, sensor);
+        if (handler is InputActionCharacterHandler) return DoNothingAI.Instance;
+        throw new Exception($"Unknown handler: {handler.GetType()}");
+    }
+
+    public ZombieAI(CharacterController controller, Sensor sensor) : base(State.Patrol, "ZombieIA") {
         _controller = controller;
         _sensor = sensor;
         Config();
     }
 
-    public void HandleIA(double delta) {
-        if (_controller != null) Execute();
-            
+    public string GetState() {
+        return CurrentState.Key.ToString();
+    }
+
+    public void Handle(double delta) {
         // GD.Print("Pressed:"+handler.HandlerJump.IsPressed()+
         // " JustPressed:"+handler.HandlerJump.IsJustPressed()+
         // " Released:"+handler.HandlerJump.IsReleased());
@@ -81,11 +88,9 @@ public class ZombieIA : StateMachineSync<ZombieIA.State, ZombieIA.Event> {
         _controller.DirectionalController.XInput = _sensor.IsFacingRight ? 1 : -1;
     }
 
-    internal void EndFrame() {
-        if (_controller != null) {
-            _controller.DirectionalController.XInput = 0;
-            _controller.EndFrame();
-        }
+    public void EndFrame() {
+        _controller.DirectionalController.XInput = 0;
+        _controller.EndFrame();
     }
 
     public class Sensor {
