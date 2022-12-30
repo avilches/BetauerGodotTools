@@ -1,6 +1,5 @@
 using Betauer.DI;
 using Godot;
-using Veronenger.Character.Handler;
 
 namespace Veronenger.Character.Enemy; 
 

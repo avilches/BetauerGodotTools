@@ -52,7 +52,6 @@ public partial class ZombieNode : CharacterBody2D, IEnemy {
 	public IOnceStatus AnimationDieLeft { get; private set; }
 
 	private Tween _sceneTreeTween;
-	private List<RayCast2D> _rayCasts;
 	private AnimationStack _animationStack;
 	public IFlipper Flipper;
 
@@ -67,9 +66,6 @@ public partial class ZombieNode : CharacterBody2D, IEnemy {
 		AnimationStep = _animationStack.AddLoopAnimation("Step");
 		AnimationDieRight = _animationStack.AddOnceAnimation("DieRight");
 		AnimationDieLeft = _animationStack.AddOnceAnimation("DieLeft");
-
-		// _rayCasts = new List<RayCast2D> { FloorRaycast, FacePlayerDetector, BackPlayerDetector };
-		_rayCasts = new List<RayCast2D> { FacePlayerDetector };
 
 		Flipper = new FlipperList()
 			.AddSprite(_mainSprite)
@@ -103,16 +99,19 @@ public partial class ZombieNode : CharacterBody2D, IEnemy {
 		QueueRedraw();
 	}
 
-	private Color[] _colors = { Colors.Red, Colors.Blue, Colors.Yellow, Colors.Green, Colors.Fuchsia };
+	private Color[] _colors = { Colors.Blue, Colors.Yellow, Colors.Green, Colors.Fuchsia };
 	public override void _Draw() {
-		for (var i = 0; i < _rayCasts.Count; i++) {
-			var rayCast = _rayCasts[i];
-			var targetPosition = (rayCast.Position + rayCast.TargetPosition) * rayCast.Scale;
-			DrawLine(rayCast.Position, targetPosition, _colors[i], 3F);
-			if (rayCast.IsColliding()) {
-				targetPosition = rayCast.GetLocalCollisionPoint();
-				DrawLine(rayCast.Position, rayCast.Position + targetPosition, Colors.White, 1F);
-			}
+		DrawRaycast(FacePlayerDetector, Colors.Red);
+		DrawRaycast(BackPlayerDetector, Colors.Red);
+		DrawRaycast(FloorRaycast, Colors.Blue);
+	}
+
+	private void DrawRaycast(RayCast2D rayCast, Color color) {
+		var targetPosition = (rayCast.Position + rayCast.TargetPosition) * rayCast.Scale;
+		DrawLine(rayCast.Position, targetPosition, color, 3F);
+		if (rayCast.IsColliding()) {
+			targetPosition = rayCast.GetLocalCollisionPoint();
+			DrawLine(rayCast.Position, rayCast.Position + targetPosition, Colors.White, 1F);
 		}
 	}
 

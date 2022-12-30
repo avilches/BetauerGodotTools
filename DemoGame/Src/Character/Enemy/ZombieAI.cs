@@ -10,11 +10,15 @@ public class ZombieAI : StateMachineSync<ZombieAI.State, ZombieAI.Event>, IChara
     private readonly CharacterController _controller;
     private readonly Sensor _sensor;
     private readonly GodotStopwatch _stateTimer = new GodotStopwatch().Start();
+    private readonly GodotStopwatch _inStateTimer = new GodotStopwatch().Start();
 
     public enum State { 
         Patrol,
         PatrolStop,
+        Confusion,
         Attacked,
+        EndAttack,
+        ChasePlayer,
         Flee
     }
     
@@ -42,11 +46,16 @@ public class ZombieAI : StateMachineSync<ZombieAI.State, ZombieAI.Event>, IChara
             .Enter(() => _stateTimer.Reset())
             .Execute(() => Advance(0.5f))
             .If(_sensor.IsAttacked).Set(State.Attacked)
+            .If(_sensor.IsPlayerInsight).Set(State.ChasePlayer)
             .If(() => _stateTimer.Elapsed > 2f).Set(State.PatrolStop)
             .Build();
         
-        State(State.Attacked)
-            .If(() => !_sensor.IsAttacked()).Set(State.Flee)
+        State(State.Attacked).If(() => !_sensor.IsAttacked()).Set(State.EndAttack).Build();
+        State(State.EndAttack)
+            .If(_sensor.IsAttacked).Set(State.Attacked)
+            .If(() => _sensor.Status.HealthPercent < 0.25f).Set(State.Flee)
+            .If(_sensor.IsPlayerInsight).Set(State.ChasePlayer)
+            .If(() => true).Set(State.Confusion)
             .Build();
         
         State(State.Flee)
@@ -54,28 +63,51 @@ public class ZombieAI : StateMachineSync<ZombieAI.State, ZombieAI.Event>, IChara
                 _stateTimer.Reset();
             })
             .Execute(() => {
-                FaceOppositePlayer();
+                _sensor.FaceOppositePlayer();
                 Advance(2f);
             })
             .If(_sensor.IsAttacked).Set(State.Attacked)
-            .If(() => _stateTimer.Elapsed > 4f).Set(State.PatrolStop)
+            .If(() => _stateTimer.Elapsed > 6f).Set(State.PatrolStop)
+            .Build();
+        
+        State(State.ChasePlayer)
+            .Execute(() => {
+                _sensor.FaceToPlayer();
+                Advance();
+            })
+            .If(_sensor.IsAttacked).Set(State.Attacked)
+            .If(() => !_sensor.IsPlayerInsight()).Set(State.Confusion)
+            .Build();
+
+        State(State.Confusion)
+            .Enter(() => {
+                _stateTimer.Reset();
+                _inStateTimer.Reset();
+            })
+            .If(_sensor.IsAttacked).Set(State.Attacked)
+            .If(_sensor.IsPlayerInsight).Set(State.ChasePlayer)
+            .If(() => _stateTimer.Elapsed > 1.2f * 6).Then((ctx) => {
+                _sensor.Flip();
+                return ctx.Set(State.Patrol);
+            })
+            .If(() => _inStateTimer.Elapsed > 1.2f).Then((ctx) => {
+                _sensor.Flip();
+                _inStateTimer.Reset();
+                return ctx.None();
+            })
             .Build();
         
         State(State.PatrolStop)
             .Enter(() => {
                 _stateTimer.Reset();
             })
+            .If(_sensor.IsAttacked).Set(State.Attacked)
+            .If(_sensor.IsPlayerInsight).Set(State.ChasePlayer)
             .If(() => _stateTimer.Elapsed > 4f).Then((ctx) => {
                 _sensor.Flip();
                 return ctx.Set(State.Patrol);
             })
-            .If(_sensor.IsAttacked).Set(State.Attacked)
             .Build();
-
-    }
-
-    private void FaceOppositePlayer() {
-        _sensor.FaceOppositePlayer();
     }
 
     private void Advance(float factor = 1f) {
@@ -107,10 +139,11 @@ public class ZombieAI : StateMachineSync<ZombieAI.State, ZombieAI.Event>, IChara
         public bool IsFacingRight => _body.IsFacingRight;
         public void Flip() => _body.Flip();
         public bool IsAttacked() => _zombieStateMachine.IsState(ZombieState.Attacked);
+        public bool IsPlayerInsight() => _zombieNode.FacePlayerDetector.IsColliding(); // || _zombieNode.BackPlayerDetector.IsColliding();
 
-        public void FaceOppositePlayer() {
-            _body.FaceOppositeTo(GetPlayerGlobalPosition());
-        }
+        public void FaceOppositePlayer() => _body.FaceOppositeTo(GetPlayerGlobalPosition());
+        public void FaceToPlayer() => _body.FaceTo(GetPlayerGlobalPosition());
+
+        public EnemyStatus Status => _zombieStateMachine.Status;
     }
-
 }

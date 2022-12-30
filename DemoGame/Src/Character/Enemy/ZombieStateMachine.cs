@@ -29,14 +29,14 @@ public enum ZombieState {
 
 public class EnemyStatus {
     public float Health = 50;
+    public float MaxHealth = 50;
+    public float HealthPercent => Health / MaxHealth;
 
     public void Attack(Attack attack) {
         Health -= attack.Damage;
     }
 
-    public bool IsDead() {
-        return Health <= 0f;
-    }
+    public bool IsDead() => Health <= 0f;
 }
 
 [Service(Lifetime.Transient)]
@@ -87,12 +87,12 @@ public partial class ZombieStateMachine : StateMachineNodeSync<ZombieState, Zomb
         zombie.FloorSnapLength = MotionConfig.SnapLength;
 
         OnBeforeExecute += Body.SetDelta;
-        OnTransition += args => zombie.Label.Text = args.To.ToString();
 
         // AI
         _zombieAi = ZombieAI.Create(Handler, new ZombieAI.Sensor(zombie, this, Body, () => CharacterManager.PlayerNode.Marker2D.GlobalPosition));
         OnBeforeExecute += delta => _zombieAi.Execute();
         OnAfterExecute += _zombieAi.EndFrame;
+        OnAfterExecute += () => zombie.Label.Text = _zombieAi.GetState();
 
         var overlay = DebugOverlayManager.Follow(zombie).Title("Zombie");
         AddOverlayStates(overlay);

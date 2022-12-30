@@ -24,13 +24,13 @@ polygon = PackedVector2Array(-479, 6, -479, 13, -416, 13, -416, 6)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_5fj3v"]
 size = Vector2(960, 540)
 
-[node name="World3" type="Node2D"]
+[node name="World3" type="Node"]
 
 [node name="CanvasModulate" type="CanvasModulate" parent="."]
 visible = false
 
 [node name="PositionPlayer" type="Marker2D" parent="."]
-position = Vector2(-614, 17)
+position = Vector2(-332, 54)
 
 [node name="City" parent="." instance=ExtResource("1_ch4lp")]
 
@@ -42,7 +42,7 @@ layer_3/tile_data = PackedInt32Array(-131126, 458753, 7, -196662, 1, 8)
 layer_4/tile_data = PackedInt32Array(-589865, 262144, 8, -524329, 262144, 9, -458793, 262144, 10, -589864, 327680, 8, -524328, 327680, 9, -458792, 327680, 10, -589863, 393216, 8, -524327, 393216, 9, -458791, 393216, 10)
 
 [node name="EnemyBody2" parent="." instance=ExtResource("3_ailyd")]
-position = Vector2(-651, 18)
+position = Vector2(-279, 4)
 
 [node name="Hints" type="Control" parent="."]
 layout_mode = 3
@@ -189,29 +189,39 @@ occluder = SubResource("OccluderPolygon2D_65pi2")
 
 [node name="Area2D1" type="Area2D" parent="Stages"]
 position = Vector2(-960, -540)
+metadata/_edit_lock_ = true
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Stages/Area2D1"]
 shape = SubResource("RectangleShape2D_5fj3v")
+metadata/_edit_lock_ = true
 
 [node name="Area2D3" type="Area2D" parent="Stages"]
 position = Vector2(0, -540)
+metadata/_edit_lock_ = true
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Stages/Area2D3"]
 shape = SubResource("RectangleShape2D_5fj3v")
+metadata/_edit_lock_ = true
 
 [node name="Area2D4" type="Area2D" parent="Stages"]
 position = Vector2(-960, 0)
+metadata/_edit_lock_ = true
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Stages/Area2D4"]
 shape = SubResource("RectangleShape2D_5fj3v")
+metadata/_edit_lock_ = true
 
 [node name="Area2D5" type="Area2D" parent="Stages"]
+metadata/_edit_lock_ = true
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Stages/Area2D5"]
 shape = SubResource("RectangleShape2D_5fj3v")
+metadata/_edit_lock_ = true
 
 [node name="Area2D6" type="Area2D" parent="Stages"]
 position = Vector2(960, 0)
+metadata/_edit_lock_ = true
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Stages/Area2D6"]
 shape = SubResource("RectangleShape2D_5fj3v")
+metadata/_edit_lock_ = true
