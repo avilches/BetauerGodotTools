@@ -40,7 +40,7 @@ public class ZombieAI : StateMachineSync<ZombieAI.State, ZombieAI.Event>, IChara
     private void Config() {
         State(State.Patrol)
             .Enter(() => _stateTimer.Reset())
-            .Execute(Advance)
+            .Execute(() => Advance(0.5f))
             .If(_sensor.IsAttacked).Set(State.Attacked)
             .If(() => _stateTimer.Elapsed > 2f).Set(State.PatrolStop)
             .Build();
@@ -55,7 +55,7 @@ public class ZombieAI : StateMachineSync<ZombieAI.State, ZombieAI.Event>, IChara
             })
             .Execute(() => {
                 FaceOppositePlayer();
-                Advance();
+                Advance(2f);
             })
             .If(_sensor.IsAttacked).Set(State.Attacked)
             .If(() => _stateTimer.Elapsed > 4f).Set(State.PatrolStop)
@@ -78,8 +78,8 @@ public class ZombieAI : StateMachineSync<ZombieAI.State, ZombieAI.Event>, IChara
         _sensor.FaceOppositePlayer();
     }
 
-    private void Advance() {
-        _controller.DirectionalController.XInput = _sensor.IsFacingRight ? 1 : -1;
+    private void Advance(float factor = 1f) {
+        _controller.DirectionalController.XInput = (_sensor.IsFacingRight ? 1 : -1) * factor;
     }
 
     public void EndFrame() {

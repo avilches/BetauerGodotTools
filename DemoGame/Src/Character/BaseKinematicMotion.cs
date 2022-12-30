@@ -78,10 +78,11 @@ public abstract class BaseKinematicMotion {
         float delta) {
         if (amount != 0) {
             var directionChanged = speed != 0 && Math.Sign(speed) != Math.Sign(amount);
-            var frameAcceleration = amount * acceleration * delta;
+            var frameAcceleration = Math.Sign(amount) * acceleration * delta;
             if (directionChanged) {
                 speed = speed * changeDirectionFactor + frameAcceleration;
             } else {
+                maxSpeed *= Math.Abs(amount);
                 speed = Mathf.Clamp(speed + frameAcceleration, -maxSpeed, maxSpeed);;
             }
         } else {
