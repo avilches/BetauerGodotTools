@@ -225,3 +225,6 @@ disabled = true
 [node name="CollisionShape2D" type="CollisionShape2D" parent="DamageArea" index="0"]
 position = Vector2(0, -14)
 shape = SubResource("7")
+
+[node name="HitLabelPosition" parent="." index="7"]
+position = Vector2(-50, -44)

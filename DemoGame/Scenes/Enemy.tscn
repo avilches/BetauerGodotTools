@@ -1,12 +1,16 @@
-[gd_scene format=3 uid="uid://dmw5hkvxv022p"]
+[gd_scene load_steps=2 format=3 uid="uid://dmw5hkvxv022p"]
 
-[node name="EnemyBody" type="CharacterBody2D"]
+[ext_resource type="FontFile" uid="uid://dgrdge8rewkst" path="res://Assets/Fonts/dpcomic.ttf" id="1_7kwyq"]
+
+[node name="EnemyBody2" type="CharacterBody2D"]
 collision_layer = 1024
 collision_mask = 0
 
 [node name="Marker2D" type="Marker2D" parent="."]
 
 [node name="Label" type="Label" parent="."]
+offset_right = 1.0
+offset_bottom = 23.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 
@@ -36,3 +40,17 @@ collision_mask = 0
 [node name="DamageArea" type="Area2D" parent="."]
 collision_layer = 0
 collision_mask = 0
+
+[node name="HitLabelPosition" type="Node2D" parent="."]
+position = Vector2(-50, -30)
+
+[node name="HitLabel" type="Label" parent="HitLabelPosition"]
+custom_minimum_size = Vector2(100, 0)
+offset_right = 100.0
+offset_bottom = 19.0
+theme_override_colors/font_color = Color(0.992157, 0, 0, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("1_7kwyq")
+text = "200"
+horizontal_alignment = 1

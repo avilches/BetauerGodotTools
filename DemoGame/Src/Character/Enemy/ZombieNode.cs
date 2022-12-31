@@ -35,6 +35,7 @@ public partial class ZombieNode : CharacterBody2D, IEnemy {
 	[OnReady("AttackArea")] private Area2D _attackArea;
 	[OnReady("DamageArea")] private Area2D _damageArea;
 	[OnReady("Label")] public Label Label;
+	[OnReady("HitLabelPosition/HitLabel")] public Label HitLabel;
 	[OnReady("Sprite2D/AnimationPlayer")] private AnimationPlayer _animationPlayer;
 
 	[OnReady("Marker2D")] public Marker2D Marker2D;
@@ -115,7 +116,25 @@ public partial class ZombieNode : CharacterBody2D, IEnemy {
 		}
 	}
 
+	public void ResetHit() {
+		HitLabel.Visible = false;
+		HitLabel.Text = "";
+	}
+	
+	private Tween? _tweenHit;
+	public void ShowHit(int hit) {
+		HitLabel.Text = hit.ToString();
+		HitLabel.Visible = true;
+		HitLabel.Modulate = Colors.White;
+		HitLabel.Position = Vector2.Zero;
+		_tweenHit?.Kill();
+		_tweenHit = GetTree().CreateTween();
+		_tweenHit.Parallel().TweenProperty(HitLabel, "position:y", -15, 1.2f).SetDelay(0.1);
+		_tweenHit.Parallel().TweenProperty(HitLabel, "modulate:a", 0, 1.2f).SetDelay(0.1);
+	}
+
 	public void AttackedByPlayer(Attack attack) {
+		ShowHit((int)attack.Damage);
 		StateMachine.TriggerAttacked(attack);
 	}
 }
