@@ -81,8 +81,11 @@ public partial class PlayerNode : CharacterBody2D {
 		SqueezeTween = _tweenStack.AddOnceTween("Squeeze", CreateSqueeze()).OnEnd(_restorer.Restore);
 
 		Flipper = new FlipperList()
+			.AddProperty(_mainSprite, "offset:x", 10, -10)
 			.AddSprite(_mainSprite)
 			.AddArea2D(_attackArea);
+		Flipper.IsFacingRight = true;
+		
 		_attackArea.EnableAllShapes(false);
 		StateMachine.Start("Player", this);
 
