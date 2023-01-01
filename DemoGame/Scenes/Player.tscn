@@ -492,12 +492,12 @@ position = Vector2(0, -16)
 shape = SubResource("2")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-position = Vector2(0, -36)
-scale = Vector2(1.5, 1.5)
+position = Vector2(0, -24)
+scale = Vector2(1.23, 1.23)
 texture = ExtResource("2_rg222")
 offset = Vector2(10, 0)
 hframes = 6
-frame = 1
+frame = 3
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Sprite2D"]
 libraries = {
