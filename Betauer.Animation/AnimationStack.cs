@@ -233,7 +233,7 @@ namespace Betauer.Animation {
 
         public AnimationStack SetAnimationPlayer(AnimationPlayer animationPlayer) {
             AnimationPlayer = animationPlayer;
-            AnimationPlayer.OnAnimationFinished(OnceAnimationFinished);
+            AnimationPlayer.OnAnimationFinished(AnimationFinished);
             return this;
         }
 
@@ -244,7 +244,8 @@ namespace Betauer.Animation {
                 throw new Exception(
                     $"Animation {name} not found in AnimationPlayer {AnimationPlayer.Name}");
             }
-            animation.LoopMode = pingPong ? Godot.Animation.LoopModeEnum.Pingpong : Godot.Animation.LoopModeEnum.Linear;
+            // animation.LoopMode = pingPong ? Godot.Animation.LoopModeEnum.Pingpong : Godot.Animation.LoopModeEnum.Linear;
+            animation.LoopMode = Godot.Animation.LoopModeEnum.None;
             var loopAnimationStatus = new LoopAnimation(this, _logger, name, AnimationPlayer);
             _loopAnimations.Add(name, loopAnimationStatus);
             return loopAnimationStatus;
@@ -392,16 +393,20 @@ namespace Betauer.Animation {
             _currentLoopAnimation?.ExecuteOnStart();
         }
 
-        private void OnceAnimationFinished(StringName animation) {
-            if (_currentOnceAnimation == null) {
+        private void AnimationFinished(StringName animation) {
+            if (_currentLoopAnimation?.Name == animation) {
+                // TODO: this allows to create finite loops 
+                AnimationPlayer!.Play(animation);
+            } else if (_currentOnceAnimation?.Name == animation) {
+                _logger.Debug("OnceAnimationFinished: \"" + _currentOnceAnimation.Name + "\"");
+                _currentOnceAnimation.ExecuteOnEnd();
+                _currentOnceAnimation = null;
+                _currentLoopAnimation?.ExecuteOnStart();
+            } else {
                 // This could happen when a LoopAnimation is not infinite (configured as loop in the animator)
                 // This event is very unusual, but just in case, ignore it
-                return;
+                GD.Print("What??");
             }
-            _logger.Debug("OnceAnimationFinished: \"" + _currentOnceAnimation.Name + "\"");
-            _currentOnceAnimation.ExecuteOnEnd();
-            _currentOnceAnimation = null;
-            _currentLoopAnimation?.ExecuteOnStart();
         }
     }
 }
