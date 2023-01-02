@@ -151,7 +151,7 @@ public partial class PlayerStateMachine : StateMachineNodeSync<PlayerState, Play
         bool CheckGroundAttack() {
             if (!Attack.IsJustPressed()) return false;
             // Attack was pressed
-            _player.AnimationAttack.PlayOnce();
+                _player.AnimationAttack.PlayOnce();
             return true;
         }
 

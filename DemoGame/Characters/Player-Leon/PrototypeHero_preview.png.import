@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dd1kou8xejmd6"
-path="res://.godot/imported/Dash.png-edf49b66b86d0508125b74205f1a53cf.ctex"
+uid="uid://dueula01wjuug"
+path="res://.godot/imported/PrototypeHero_preview.png-84b0a8e9f0b7a2a9f79750e91ae85ae7.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Characters/Player-Philip/Dash.png"
-dest_files=["res://.godot/imported/Dash.png-edf49b66b86d0508125b74205f1a53cf.ctex"]
+source_file="res://Characters/Player-Leon/PrototypeHero_preview.png"
+dest_files=["res://.godot/imported/PrototypeHero_preview.png-84b0a8e9f0b7a2a9f79750e91ae85ae7.ctex"]
 
 [params]
 

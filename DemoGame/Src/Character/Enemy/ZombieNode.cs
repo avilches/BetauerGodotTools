@@ -81,7 +81,7 @@ public partial class ZombieNode : CharacterBody2D, IEnemy {
 		CharacterManager.EnemyConfigurePlayerDetector(BackPlayerDetector);
 		// CharacterManager.ConfigureEnemyAttackArea2D(_attack);
 		CharacterManager.EnemyConfigureDamageArea2D(_damageArea, (playerAttackArea2D) => {
-			GD.Print("Attacking");
+			GD.Print("Enemy attacked!");
 			// var enemy = enemyDamageArea2DPublisher.GetParent<IEnemy>();
 			AttackedByPlayer(new Attack(1f));
 		});
