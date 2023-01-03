@@ -1,9 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using Betauer.Tools.Logging;
 using Betauer.Core.Signal;
 using Godot;
-using Object = Godot.Object;
 
 namespace Betauer.Animation {
     public interface ILoopStatus {
@@ -218,9 +218,8 @@ namespace Betauer.Animation {
 
         public AnimationPlayer? AnimationPlayer { get; private set; }
 
-        private readonly System.Collections.Generic.Dictionary<string, LoopStatus> _loopAnimations = new();
-
-        private readonly System.Collections.Generic.Dictionary<string, OnceStatus> _onceAnimations = new();
+        private readonly Dictionary<string, LoopStatus> _loopAnimations = new();
+        private readonly Dictionary<string, OnceStatus> _onceAnimations = new();
 
         private LoopStatus _currentLoopAnimation;
         private OnceStatus _currentOnceAnimation;
@@ -241,8 +240,7 @@ namespace Betauer.Animation {
             Debug.Assert(AnimationPlayer != null, "_animationPlayer != null");
             Godot.Animation animation = AnimationPlayer.GetAnimation(name);
             if (animation == null) {
-                throw new Exception(
-                    $"Animation {name} not found in AnimationPlayer {AnimationPlayer.Name}");
+                throw new Exception($"Animation {name} not found in AnimationPlayer {AnimationPlayer.Name}");
             }
             // animation.LoopMode = pingPong ? Godot.Animation.LoopModeEnum.Pingpong : Godot.Animation.LoopModeEnum.Linear;
             animation.LoopMode = Godot.Animation.LoopModeEnum.None;
@@ -251,13 +249,11 @@ namespace Betauer.Animation {
             return loopAnimationStatus;
         }
 
-        public IOnceStatus AddOnceAnimation(string name, bool canBeInterrupted = false,
-            bool killPrevious = false) {
+        public IOnceStatus AddOnceAnimation(string name, bool canBeInterrupted = false, bool killPrevious = false) {
             Debug.Assert(AnimationPlayer != null, "_animationPlayer != null");
             Godot.Animation animation = AnimationPlayer.GetAnimation(name);
             if (animation == null) {
-                throw new Exception(
-                    $"Animation {name} not found in AnimationPlayer {AnimationPlayer.Name}");
+                throw new Exception($"Animation {name} not found in AnimationPlayer {AnimationPlayer.Name}");
             }
             animation.LoopMode = Godot.Animation.LoopModeEnum.None;
             var onceAnimationStatus =
@@ -287,14 +283,9 @@ namespace Betauer.Animation {
         public bool IsPlayingLoop() => _currentOnceAnimation == null && _currentLoopAnimation != null;
         public bool IsPlayingOnce(string name) => _currentOnceAnimation?.Name == name;
         public bool IsPlayingOnce() => _currentOnceAnimation != null;
-
-        public bool IsPlaying(string name) =>
-            _currentLoopAnimation?.Name == name || _currentLoopAnimation?.Name == name;
-
+        public bool IsPlaying(string name) => _currentLoopAnimation?.Name == name || _currentLoopAnimation?.Name == name;
         public void PlayLoop(string name) => PlayLoop(_loopAnimations[name]);
-
-        public void PlayOnce(string name, bool killPrevious = false) =>
-            PlayOnce(_onceAnimations[name], killPrevious);
+        public void PlayOnce(string name, bool killPrevious = false) => PlayOnce(_onceAnimations[name], killPrevious);
 
         /*
          * currentLoop currentOnce newLoop

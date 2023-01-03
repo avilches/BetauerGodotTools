@@ -175,7 +175,7 @@ public partial class PlayerStateMachine : StateMachineNodeSync<PlayerState, Play
                 jumpJustInTime = _delayedJump.WasPressed(PlayerConfig.JumpHelperTime);
             })
             .Execute(() => {
-                if (jumpJustInTime) {
+                if (jumpJustInTime && _player.CanJump()) {
                     _jumpHelperMonitor?.Show($"{_delayedJump.LastPressed} <= {PlayerConfig.JumpHelperTime.ToString()} Done!");
                 } else {
                     _jumpHelperMonitor?.Show($"{_delayedJump.LastPressed} > {PlayerConfig.JumpHelperTime.ToString()} TOO MUCH TIME");
@@ -201,7 +201,7 @@ public partial class PlayerStateMachine : StateMachineNodeSync<PlayerState, Play
                     FallFromPlatform();
                     return context.Set(PlayerState.FallShort);
                 })
-            .If(() => Jump.IsJustPressed()).Set(PlayerState.Jump)
+            .If(() => Jump.IsJustPressed() && _player.CanJump()).Set(PlayerState.Jump)
             .If(() => XInput != 0).Set(PlayerState.Run)
             .Build();
 
@@ -231,7 +231,7 @@ public partial class PlayerStateMachine : StateMachineNodeSync<PlayerState, Play
                     FallFromPlatform();
                     return context.Set(PlayerState.FallShort);
                 })
-            .If(() => Jump.IsJustPressed()).Set(PlayerState.Jump)
+            .If(() => Jump.IsJustPressed() && _player.CanJump()).Set(PlayerState.Jump)
             .If(() => XInput == 0 && MotionX == 0).Set(PlayerState.Idle)
             .Build();
 
@@ -270,7 +270,8 @@ public partial class PlayerStateMachine : StateMachineNodeSync<PlayerState, Play
         State(PlayerState.Jump)
             .Enter(() => {
                 Body.MotionY = -PlayerConfig.JumpSpeed;
-                _player.AnimationJump.PlayLoop();
+                _player.AnimationFall.PlayLoop();
+                _player.AnimationJump.PlayOnce();
             })
             .Execute(() => {
                 CheckAirAttack();

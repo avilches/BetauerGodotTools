@@ -33,6 +33,7 @@ public partial class PlayerNode : CharacterBody2D {
 	[OnReady("Camera2D")] private Camera2D _camera2D;
 
 	[OnReady("Marker2D")] public Marker2D Marker2D;
+	[OnReady("CanJump")] public RayCast2D RaycastCanJump;
 	[OnReady("FloorRaycasts")] public List<RayCast2D> FloorRaycasts;
 
 	[Inject] private PlatformManager PlatformManager { get; set; }
@@ -44,7 +45,7 @@ public partial class PlayerNode : CharacterBody2D {
 
 	public ILoopStatus AnimationIdle { get; private set; }
 	public ILoopStatus AnimationRun { get; private set; }
-	public ILoopStatus AnimationJump { get; private set; }
+	public IOnceStatus AnimationJump { get; private set; }
 	public ILoopStatus AnimationFall { get; private set; }
 	public IOnceStatus AnimationAttack { get; private set; }
 	public IOnceStatus AnimationJumpAttack { get; private set; }
@@ -64,7 +65,7 @@ public partial class PlayerNode : CharacterBody2D {
 		_animationStack = new AnimationStack("Player.AnimationStack").SetAnimationPlayer(_animationPlayer);
 		AnimationIdle = _animationStack.AddLoopAnimation("Idle");
 		AnimationRun = _animationStack.AddLoopAnimation("Run");
-		AnimationJump = _animationStack.AddLoopAnimation("Jump");
+		AnimationJump = _animationStack.AddOnceAnimation("Jump");
 		AnimationFall = _animationStack.AddLoopAnimation("Fall");
 		AnimationAttack = _animationStack.AddOnceAnimation("Attack").OnStart(() => _attackArea.EnableAllShapes()).OnEnd(() => _attackArea.EnableAllShapes(false));
 		AnimationJumpAttack = _animationStack.AddOnceAnimation("JumpAttack");
@@ -176,15 +177,18 @@ public partial class PlayerNode : CharacterBody2D {
 		}
 	}
 
+	public bool CanJump() => !RaycastCanJump.IsColliding(); 
+
 	public override void _Process(double delta) {
+		Label.Text = _animationStack.GetPlayingOnce() != null
+			? _animationStack.GetPlayingOnce().Name
+			: _animationStack.GetPlayingLoop().Name;
 		QueueRedraw();
 	}
 
 	public override void _Draw() {
-		foreach (var floorRaycast in FloorRaycasts) {
-			DrawLine(floorRaycast.Position, floorRaycast.Position + floorRaycast.TargetPosition, Colors.Red, 1F);
-		}
-		// DrawLine(_floorRaycast.Position, GetLocalMousePosition(), Colors.Blue, 3F);
+		foreach (var floorRaycast in FloorRaycasts) floorRaycast.DrawRaycast(this, Colors.Red);
+		RaycastCanJump.DrawRaycast(this, Colors.Red);
 	}
 
 	public bool IsAttacking => AnimationJumpAttack.Playing || AnimationAttack.Playing;

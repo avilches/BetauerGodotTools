@@ -102,18 +102,9 @@ public partial class ZombieNode : CharacterBody2D, IEnemy {
 
 	private Color[] _colors = { Colors.Blue, Colors.Yellow, Colors.Green, Colors.Fuchsia };
 	public override void _Draw() {
-		DrawRaycast(FacePlayerDetector, Colors.Red);
-		DrawRaycast(BackPlayerDetector, Colors.Red);
-		DrawRaycast(FloorRaycast, Colors.Blue);
-	}
-
-	private void DrawRaycast(RayCast2D rayCast, Color color) {
-		var targetPosition = (rayCast.Position + rayCast.TargetPosition) * rayCast.Scale;
-		DrawLine(rayCast.Position, targetPosition, color, 3F);
-		if (rayCast.IsColliding()) {
-			targetPosition = rayCast.GetLocalCollisionPoint();
-			DrawLine(rayCast.Position, rayCast.Position + targetPosition, Colors.White, 1F);
-		}
+		FacePlayerDetector.DrawRaycast(this, Colors.Red);
+		BackPlayerDetector.DrawRaycast(this, Colors.Red);
+		FloorRaycast.DrawRaycast(this, Colors.Blue);
 	}
 
 	public void ResetHit() {

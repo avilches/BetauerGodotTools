@@ -28,6 +28,8 @@ public class CharacterManager {
             
         playerNode.AddToLayer(LayerPlayerBody);
         playerNode.DetectLayer(LayerBodySolid);
+
+        playerNode.RaycastCanJump.DetectLayer(LayerBodySolid);
         playerNode.FloorRaycasts.ForEach(rayCast2D => {
             rayCast2D.DetectLayer(LayerBodySolid);
         });

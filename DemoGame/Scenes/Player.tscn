@@ -1,9 +1,7 @@
-[gd_scene load_steps=18 format=3 uid="uid://d28t2wyjt7huu"]
+[gd_scene load_steps=16 format=3 uid="uid://d28t2wyjt7huu"]
 
 [ext_resource type="Script" path="res://Src/Character/Player/PlayerNode.cs" id="1"]
 [ext_resource type="Texture2D" uid="uid://cbgmgtts1npts" path="res://Characters/Player-Philip/attack2.png" id="3_f1ad3"]
-[ext_resource type="Texture2D" uid="uid://bnhher8jxyxld" path="res://Characters/Player-Philip/Fall.png" id="4_xs2wc"]
-[ext_resource type="Texture2D" uid="uid://c7dxl1p3k4miy" path="res://Characters/Player-Philip/jump.png" id="5_5hdn6"]
 [ext_resource type="Texture2D" uid="uid://dueula01wjuug" path="res://Characters/Player-Leon/PrototypeHero_preview.png" id="6_bg1e5"]
 [ext_resource type="Texture2D" uid="uid://wx17wyrajir7" path="res://Characters/Player-heroine/jump-attack.png" id="7"]
 [ext_resource type="Texture2D" uid="uid://b7ir53ta6rglo" path="res://Assets/light.png" id="9_vfn0h"]
@@ -60,58 +58,6 @@ tracks/3/keys = {
 "values": [2.5]
 }
 
-[sub_resource type="Animation" id="4"]
-length = 0.6
-loop_mode = 1
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath(".:frame")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0, 0.3),
-"transitions": PackedFloat32Array(1, 1),
-"update": 1,
-"values": [0, 1]
-}
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath(".:texture")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
-tracks/1/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [ExtResource("4_xs2wc")]
-}
-tracks/2/type = "value"
-tracks/2/imported = false
-tracks/2/enabled = true
-tracks/2/path = NodePath(".:hframes")
-tracks/2/interp = 1
-tracks/2/loop_wrap = true
-tracks/2/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [4]
-}
-tracks/3/type = "value"
-tracks/3/imported = false
-tracks/3/enabled = true
-tracks/3/path = NodePath("AnimationPlayer:playback_speed")
-tracks/3/interp = 1
-tracks/3/loop_wrap = true
-tracks/3/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [1.0]
-}
-
 [sub_resource type="Animation" id="5"]
 length = 1.1
 loop_mode = 1
@@ -149,7 +95,7 @@ tracks/2/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [1.2]
+"values": [1.8]
 }
 tracks/3/type = "value"
 tracks/3/imported = false
@@ -174,57 +120,6 @@ tracks/4/keys = {
 "transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
 "update": 1,
 "values": [0, 0, 0, 0, 1, 2, 3, 3, 3, 3, 4]
-}
-
-[sub_resource type="Animation" id="6"]
-length = 3.0
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath(".:frame")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0, 0.2),
-"transitions": PackedFloat32Array(1, 1),
-"update": 1,
-"values": [0, 1]
-}
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath(".:texture")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
-tracks/1/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [ExtResource("5_5hdn6")]
-}
-tracks/2/type = "value"
-tracks/2/imported = false
-tracks/2/enabled = true
-tracks/2/path = NodePath(".:hframes")
-tracks/2/interp = 1
-tracks/2/loop_wrap = true
-tracks/2/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [4]
-}
-tracks/3/type = "value"
-tracks/3/imported = false
-tracks/3/enabled = true
-tracks/3/path = NodePath("AnimationPlayer:playback_speed")
-tracks/3/interp = 1
-tracks/3/loop_wrap = true
-tracks/3/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [1.0]
 }
 
 [sub_resource type="Animation" id="7"]
@@ -382,7 +277,7 @@ tracks/2/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [1.0]
+"values": [1.2]
 }
 tracks/3/type = "value"
 tracks/3/imported = false
@@ -409,12 +304,142 @@ tracks/4/keys = {
 "values": [8, 9, 10, 11, 12, 13, 14, 15]
 }
 
+[sub_resource type="Animation" id="Animation_yf68f"]
+resource_name = "Jump"
+length = 0.3
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [ExtResource("6_bg1e5")]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:hframes")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [8]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("AnimationPlayer:playback_speed")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [1.0]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath(".:vframes")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [15]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath(".:frame")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 1.8),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [19, 20, 21, 110]
+}
+
+[sub_resource type="Animation" id="Animation_k6tm2"]
+resource_name = "Fall"
+length = 0.4
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [ExtResource("6_bg1e5")]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:hframes")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [8]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("AnimationPlayer:playback_speed")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0.4]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath(".:vframes")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [15]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath(".:frame")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0, 0.2),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [109, 110]
+}
+
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_3u6sx"]
 _data = {
 "Attack": SubResource("3"),
-"Fall": SubResource("4"),
+"Fall": SubResource("Animation_k6tm2"),
 "Idle": SubResource("5"),
-"Jump": SubResource("6"),
+"Jump": SubResource("Animation_yf68f"),
 "JumpAttack": SubResource("7"),
 "RESET": SubResource("Animation_vdusg"),
 "Run": SubResource("Animation_tf8qu")
@@ -458,6 +483,12 @@ metadata/_edit_lock_ = true
 libraries = {
 "": SubResource("AnimationLibrary_3u6sx")
 }
+
+[node name="CanJump" type="RayCast2D" parent="."]
+position = Vector2(0, -40)
+target_position = Vector2(0, -20)
+collision_mask = 0
+metadata/_edit_lock_ = true
 
 [node name="FloorRaycasts" type="Node2D" parent="."]
 metadata/_edit_lock_ = true
