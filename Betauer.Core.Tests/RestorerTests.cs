@@ -23,7 +23,9 @@ public partial class RestorerTests : Node {
         Assert.That(control.Scale, Is.EqualTo(original));
         Assert.That(node2D.Scale, Is.EqualTo(original));
 
-        var status = control.CreateRestorer("scale").Add(node2D.CreateRestorer("scale"));
+        var status = new MultiRestorer()
+            .Add(control.CreateRestorer("scale"))
+            .Add(node2D.CreateRestorer("scale"));
         status.Save();
         control.Scale = Vector2.One;
         node2D.Scale = Vector2.One;;

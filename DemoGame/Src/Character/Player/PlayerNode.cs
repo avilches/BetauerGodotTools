@@ -177,10 +177,10 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	}
 
 	private void CreateAnimations(CharacterBody2D characterBody2D) {
-		var _restorer = characterBody2D
-			.CreateRestorer(Properties.Modulate, Properties.Scale2D)
+		var restorer = new MultiRestorer() 
+			.Add(characterBody2D.CreateRestorer(Properties.Modulate, Properties.Scale2D))
 			.Add(_mainSprite.CreateRestorer(Properties.Modulate, Properties.Scale2D));
-		_restorer.Save();
+		restorer.Save();
 		
 		_animationStack = new AnimationStack("Player.AnimationStack").SetAnimationPlayer(_animationPlayer);
 		_tweenStack = new AnimationStack("Player.AnimationStack");
@@ -193,9 +193,9 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			.OnEnd(() => _attackArea.EnableAllShapes(false));
 		AnimationJumpAttack = _animationStack.AddOnceAnimation("JumpAttack");
 
-		PulsateTween = _tweenStack.AddOnceTween("Pulsate", CreateMoveLeft()).OnEnd(_restorer.Restore);
-		DangerTween = _tweenStack.AddLoopTween("Danger", CreateDanger()).OnEnd(_restorer.Restore);
-		SqueezeTween = _tweenStack.AddOnceTween("Squeeze", CreateSqueeze()).OnEnd(_restorer.Restore);
+		PulsateTween = _tweenStack.AddOnceTween("Pulsate", CreateMoveLeft()).OnEnd(restorer.Restore);
+		DangerTween = _tweenStack.AddLoopTween("Danger", CreateDanger()).OnEnd(restorer.Restore);
+		SqueezeTween = _tweenStack.AddOnceTween("Squeeze", CreateSqueeze()).OnEnd(restorer.Restore);
 	}
 
 	private IAnimation CreateReset() {

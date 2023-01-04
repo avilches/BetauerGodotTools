@@ -29,13 +29,5 @@ namespace Betauer.Core.Restorer {
 
         protected abstract void DoSave();
         protected abstract void DoRestore();
-        
-        public virtual MultiRestorer Add(Restorer restorer) {
-            return new MultiRestorer().Add(this).Add(restorer);
-        }
-
-        public virtual MultiRestorer Add(IEnumerable<Restorer> toList) {
-            return new MultiRestorer().Add(this).Add(toList);
-        }
     }
 }
