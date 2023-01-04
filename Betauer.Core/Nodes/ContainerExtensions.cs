@@ -70,7 +70,7 @@ namespace Betauer.Core.Nodes {
         /// <returns></returns>
         public static MultiRestorer DisableButtons(this Container container, bool storeFocus = true) {
             var buttons = container.GetChildren().OfType<BaseButton>();
-            MultiRestorer restorer = buttons.CreateMultiRestorer("disabled", "focus_mode");
+            MultiRestorer restorer = buttons.CreateRestorer("disabled", "focus_mode");
             if (storeFocus) {
                 restorer.Add(container.CreateChildFocusedRestorer());
             }

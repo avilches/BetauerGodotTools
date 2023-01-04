@@ -240,7 +240,7 @@ namespace Betauer.UI {
 
                 if (transition.FromMenu != null) {
                     if (goodbyeAnimation != null) {
-                        var saver = transition.FromMenu.GetChildren().CreateMultiRestorer();
+                        var saver = transition.FromMenu.GetChildren().CreateRestorer();
                         saver.Save();
                         await goodbyeAnimation(transition);
                         saver.Restore();
@@ -258,7 +258,7 @@ namespace Betauer.UI {
                      * 1) show the children with their modulates to Color(0,0,0,0) so they will be invisible for
                      * human eye, but "visible" for the container and it can arrange them.
                      */
-                    var saver = transition.ToMenu.GetChildren().CreateMultiRestorer("modulate");
+                    var saver = transition.ToMenu.GetChildren().CreateRestorer("modulate");
                     saver.Save();
                     transition.ToMenu.GetChildren().ForEach(e => e.Modulate = ModulateInvisible);
                     /*

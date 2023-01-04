@@ -50,7 +50,7 @@ public partial class RestorerTests : Node {
         Assert.That(control.Scale, Is.EqualTo(original));
         Assert.That(node2D.Scale, Is.EqualTo(original));
 
-        var status = new Node[] { control, node2D }.CreateMultiRestorer(Properties.Scale2D);
+        var status = new Node[] { control, node2D }.CreateRestorer(Properties.Scale2D);
         status.Save();
         control.Scale = Vector2.One;
         node2D.Scale = Vector2.One;;

@@ -50,19 +50,19 @@ namespace Betauer.Core.Restorer {
             return new PropertyRestorer(node, property);
         }
 
-        public static MultiRestorer CreateMultiRestorer(this IEnumerable<Node> nodes, params string[] properties) {
+        public static MultiRestorer CreateRestorer(this IEnumerable<Node> nodes, params string[] properties) {
             var multiRestorer = new MultiRestorer();
             nodes.ForEach(node => multiRestorer.Add(node.CreateRestorer(properties)));
             return multiRestorer;
         }
 
-        public static MultiRestorer CreateMultiRestorer(this IEnumerable<Node> nodes, params IProperty[] properties) {
+        public static MultiRestorer CreateRestorer(this IEnumerable<Node> nodes, params IProperty[] properties) {
             var multiRestorer = new MultiRestorer();
             nodes.ForEach(node => multiRestorer.Add(node.CreateRestorer(properties)));
             return multiRestorer;
         }
 
-        public static MultiRestorer CreateMultiRestorer(this IEnumerable<Node> nodes) {
+        public static MultiRestorer CreateRestorer(this IEnumerable<Node> nodes) {
             var multiRestorer = new MultiRestorer();
             nodes.ForEach(node => multiRestorer.Add(node.CreateRestorer()));
             return multiRestorer;
