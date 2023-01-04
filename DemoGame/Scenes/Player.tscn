@@ -453,25 +453,27 @@ b = Vector2(0, 26)
 radius = 5.0
 height = 38.0
 
-[node name="PlayerBody" type="CharacterBody2D"]
-collision_layer = 0
-collision_mask = 0
+[node name="Node" type="Node"]
 script = ExtResource("1")
 
-[node name="Marker2D" type="Marker2D" parent="."]
+[node name="PlayerBody" type="CharacterBody2D" parent="."]
+collision_layer = 0
+collision_mask = 0
+
+[node name="Marker2D" type="Marker2D" parent="PlayerBody"]
 position = Vector2(0, -20)
 metadata/_edit_lock_ = true
 
-[node name="Camera2D" type="Camera2D" parent="."]
+[node name="Camera2D" type="Camera2D" parent="PlayerBody"]
 current = true
 zoom = Vector2(2, 2)
 metadata/_edit_lock_ = true
 
-[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="."]
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="PlayerBody"]
 position = Vector2(0, -1)
 polygon = PackedVector2Array(0, -44, -8, -28, -8, 1, 8, 1, 8, -28)
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
+[node name="Sprite2D" type="Sprite2D" parent="PlayerBody"]
 position = Vector2(-10, -38)
 texture = ExtResource("6_bg1e5")
 offset = Vector2(10, 0)
@@ -479,69 +481,69 @@ hframes = 8
 vframes = 15
 metadata/_edit_lock_ = true
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="Sprite2D"]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="PlayerBody/Sprite2D"]
 libraries = {
 "": SubResource("AnimationLibrary_3u6sx")
 }
 
-[node name="CanJump" type="RayCast2D" parent="."]
+[node name="CanJump" type="RayCast2D" parent="PlayerBody"]
 position = Vector2(0, -40)
 target_position = Vector2(0, -20)
 collision_mask = 0
 metadata/_edit_lock_ = true
 
-[node name="FloorRaycasts" type="Node2D" parent="."]
+[node name="FloorRaycasts" type="Node2D" parent="PlayerBody"]
 metadata/_edit_lock_ = true
 
-[node name="Floor1" type="RayCast2D" parent="FloorRaycasts"]
+[node name="Floor1" type="RayCast2D" parent="PlayerBody/FloorRaycasts"]
 position = Vector2(-7, -1)
 target_position = Vector2(0, 8)
 collision_mask = 0
 metadata/_edit_lock_ = true
 
-[node name="Floor2" type="RayCast2D" parent="FloorRaycasts"]
+[node name="Floor2" type="RayCast2D" parent="PlayerBody/FloorRaycasts"]
 position = Vector2(0, -1)
 target_position = Vector2(0, 8)
 collision_mask = 0
 metadata/_edit_lock_ = true
 
-[node name="Floor3" type="RayCast2D" parent="FloorRaycasts"]
+[node name="Floor3" type="RayCast2D" parent="PlayerBody/FloorRaycasts"]
 position = Vector2(7, -1)
 target_position = Vector2(0, 8)
 collision_mask = 0
 metadata/_edit_lock_ = true
 
-[node name="Detector" type="Area2D" parent="."]
+[node name="Detector" type="Area2D" parent="PlayerBody"]
 position = Vector2(0, -26)
 collision_layer = 0
 collision_mask = 0
 metadata/_edit_lock_ = true
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Detector"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PlayerBody/Detector"]
 shape = SubResource("SegmentShape2D_xcg3o")
 metadata/_edit_lock_ = true
 
-[node name="AttackArea" type="Area2D" parent="."]
+[node name="AttackArea" type="Area2D" parent="PlayerBody"]
 visible = false
 collision_layer = 0
 collision_mask = 0
 metadata/_edit_lock_ = true
 
-[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="AttackArea"]
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="PlayerBody/AttackArea"]
 position = Vector2(0, 0.0677719)
 polygon = PackedVector2Array(-12, -18.0678, 2, -0.0677719, 16, -22.0678, -1, -32.0678)
 metadata/_edit_lock_ = true
 
-[node name="DamageArea" type="Area2D" parent="."]
+[node name="DamageArea" type="Area2D" parent="PlayerBody"]
 visible = false
 metadata/_edit_lock_ = true
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="DamageArea"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PlayerBody/DamageArea"]
 position = Vector2(0, -21)
 shape = SubResource("10")
 metadata/_edit_lock_ = true
 
-[node name="Light" type="PointLight2D" parent="."]
+[node name="Light" type="PointLight2D" parent="PlayerBody"]
 position = Vector2(0, -20)
 color = Color(1, 0.811765, 0.717647, 1)
 blend_mode = 2
@@ -551,7 +553,7 @@ texture = ExtResource("9_vfn0h")
 texture_scale = 0.25
 metadata/_edit_lock_ = true
 
-[node name="RichTextLabel" type="RichTextLabel" parent="."]
+[node name="RichTextLabel" type="RichTextLabel" parent="PlayerBody"]
 offset_right = 200.0
 offset_bottom = 200.0
 text = "ssasdas"

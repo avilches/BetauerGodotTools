@@ -23,11 +23,11 @@ public class CharacterManager {
     }
 
     public void PlayerConfigureCollisions(PlayerNode playerNode) {
-        playerNode.CollisionLayer = 0;
-        playerNode.CollisionMask = 0;
+        playerNode.PlatformBody.CharacterBody.CollisionLayer = 0;
+        playerNode.PlatformBody.CharacterBody.CollisionMask = 0;
             
-        playerNode.AddToLayer(LayerPlayerBody);
-        playerNode.DetectLayer(LayerBodySolid);
+        playerNode.PlatformBody.CharacterBody.AddToLayer(LayerPlayerBody);
+        playerNode.PlatformBody.CharacterBody.DetectLayer(LayerBodySolid);
 
         playerNode.RaycastCanJump.DetectLayer(LayerBodySolid);
         playerNode.FloorRaycasts.ForEach(rayCast2D => {
@@ -68,7 +68,7 @@ public class CharacterManager {
     public bool IsEnemy(CharacterBody2D platform) => platform.IsInGroup(GROUP_ENEMY);
 
     public bool IsPlayer(CharacterBody2D player) {
-        return PlayerNode == player;
+        return PlayerNode.PlatformBody.CharacterBody == player;
     }
 
 }

@@ -97,6 +97,7 @@ public partial class ZombieNode : CharacterBody2D, IEnemy {
 	}
 
 	public override void _PhysicsProcess(double delta) {
+		QueueFree();
 		QueueRedraw();
 	}
 

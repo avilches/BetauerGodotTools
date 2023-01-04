@@ -5,7 +5,7 @@ using Godot;
 namespace Veronenger.Character; 
 
 public abstract class BaseKinematicMotion {
-    public CharacterBody2D Body { get; private set; }
+    public CharacterBody2D CharacterBody { get; private set; }
     public Marker2D Marker2D { get; private set; }
 
     private float _anglesToRotateFloor = 0;
@@ -17,7 +17,7 @@ public abstract class BaseKinematicMotion {
             _floorUpDirection = value;
             _anglesToRotateFloor = Vector2.Up.AngleTo(FloorUpDirection);
             _lookRightDirection = _floorUpDirection.Right();
-            Body.UpDirection = FloorUpDirection;
+            CharacterBody.UpDirection = FloorUpDirection;
         }
     }
         
@@ -35,8 +35,8 @@ public abstract class BaseKinematicMotion {
 
     public float Delta { get; private set; } = 0;
 
-    protected void Configure(string name, CharacterBody2D body, Marker2D marker2D, Vector2 floorUpDirection) {
-        Body = body;
+    protected BaseKinematicMotion(CharacterBody2D characterBody, Marker2D marker2D, Vector2 floorUpDirection) {
+        CharacterBody = characterBody;
         Marker2D = marker2D;
         FloorUpDirection = floorUpDirection;
     }

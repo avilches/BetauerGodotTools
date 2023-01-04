@@ -11,9 +11,9 @@ using Object = Godot.Object;
 
 namespace Veronenger.Character; 
 
-[Service(Lifetime.Transient)]
 public class KinematicPlatformMotion : BaseKinematicMotion, IFlipper {
-    private IFlipper _flippers;
+    private readonly IFlipper _flippers;
+    protected readonly List<RayCast2D>? FloorRaycasts;
 
     private bool _isJustLanded = false;
     private bool _isJustTookOff = false;
@@ -32,10 +32,9 @@ public class KinematicPlatformMotion : BaseKinematicMotion, IFlipper {
     // Ceiling
     private bool _isOnCeiling = false;
 
-    protected List<RayCast2D>? FloorRaycasts;
 
-    public void Configure(string name, CharacterBody2D body, IFlipper flippers, Marker2D marker2D, Vector2 floorUpDirection, List<RayCast2D>? floorRaycasts = null) {
-        base.Configure(name, body, marker2D, floorUpDirection);
+    public KinematicPlatformMotion(CharacterBody2D characterBody, IFlipper flippers, Marker2D marker2D, Vector2 floorUpDirection, List<RayCast2D>? floorRaycasts = null) :
+        base(characterBody, marker2D, floorUpDirection) {
         _flippers = flippers;
         FloorRaycasts = floorRaycasts;
     }
@@ -162,25 +161,25 @@ public class KinematicPlatformMotion : BaseKinematicMotion, IFlipper {
     }
 
     public bool Move() {
-        Body.Velocity = GetRotatedVelocity();
-        var collide = Body.MoveAndSlide();
-        Motion = RollbackRotateVelocity(Body.Velocity);
+        CharacterBody.Velocity = GetRotatedVelocity();
+        var collide = CharacterBody.MoveAndSlide();
+        Motion = RollbackRotateVelocity(CharacterBody.Velocity);
         UpdateFlags();
         return collide;
     }
 
     private void UpdateFlags() {
         var wasOnFloor = _isOnFloor;
-        _isOnFloor = Body.IsOnFloor();
+        _isOnFloor = CharacterBody.IsOnFloor();
         _isOnSlope = false;
-        _floorNormal = Body.GetFloorNormal();
+        _floorNormal = CharacterBody.GetFloorNormal();
         _floor = null;
 
-        _isOnWall = Body.IsOnWall();
-        _wallNormal = Body.GetWallNormal();
+        _isOnWall = CharacterBody.IsOnWall();
+        _wallNormal = CharacterBody.GetWallNormal();
         _wall = null;
 
-        _isOnCeiling = Body.IsOnCeiling(); 
+        _isOnCeiling = CharacterBody.IsOnCeiling(); 
 
         _isJustLanded = false;
         _isJustTookOff = false;
@@ -217,13 +216,13 @@ public class KinematicPlatformMotion : BaseKinematicMotion, IFlipper {
     public IEnumerable<Node> GetWallColliders(Func<Node, bool>? predicate = null) => GetWallColliders<Node>(predicate); 
     public IEnumerable<Node> GetCeilingColliders(Func<Node, bool>? predicate = null) => GetCeilingColliders<Node>(predicate); 
         
-    public IEnumerable<T> GetFloorColliders<T>(Func<T, bool>? predicate = null) where T : Node => Body.GetFloorColliders(FloorUpDirection, predicate); 
-    public IEnumerable<T> GetWallColliders<T>(Func<T, bool>? predicate = null) where T : Node => Body.GetWallColliders(FloorUpDirection, predicate); 
-    public IEnumerable<T> GetCeilingColliders<T>(Func<T, bool>? predicate = null) where T : Node => Body.GetCeilingColliders(FloorUpDirection, predicate);
+    public IEnumerable<T> GetFloorColliders<T>(Func<T, bool>? predicate = null) where T : Node => CharacterBody.GetFloorColliders(FloorUpDirection, predicate); 
+    public IEnumerable<T> GetWallColliders<T>(Func<T, bool>? predicate = null) where T : Node => CharacterBody.GetWallColliders(FloorUpDirection, predicate); 
+    public IEnumerable<T> GetCeilingColliders<T>(Func<T, bool>? predicate = null) where T : Node => CharacterBody.GetCeilingColliders(FloorUpDirection, predicate);
         
-    public IEnumerable<KinematicCollision2D> GetFloorCollisions(Func<KinematicCollision2D, bool>? predicate = null) => Body.GetFloorCollisions(FloorUpDirection, predicate); 
-    public IEnumerable<KinematicCollision2D> GetWallCollisions(Func<KinematicCollision2D, bool>? predicate = null) => Body.GetWallCollisions(FloorUpDirection, predicate); 
-    public IEnumerable<KinematicCollision2D> GetCeilingCollisions(Func<KinematicCollision2D, bool>? predicate = null) => Body.GetCeilingCollisions(FloorUpDirection, predicate); 
+    public IEnumerable<KinematicCollision2D> GetFloorCollisions(Func<KinematicCollision2D, bool>? predicate = null) => CharacterBody.GetFloorCollisions(FloorUpDirection, predicate); 
+    public IEnumerable<KinematicCollision2D> GetWallCollisions(Func<KinematicCollision2D, bool>? predicate = null) => CharacterBody.GetWallCollisions(FloorUpDirection, predicate); 
+    public IEnumerable<KinematicCollision2D> GetCeilingCollisions(Func<KinematicCollision2D, bool>? predicate = null) => CharacterBody.GetCeilingCollisions(FloorUpDirection, predicate); 
 
     public string GetFloorCollisionInfo() {
         if (!IsOnFloor()) return "";

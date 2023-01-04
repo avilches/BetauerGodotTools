@@ -13,6 +13,7 @@ public class Game {
 
     [Inject] private SceneTree SceneTree { get; set; }
     [Inject] private StageManager StageManager { get; set; }
+    [Inject] private CharacterManager CharacterManager { get; set; }
     [Inject] private PlatformManager PlatformManager { get; set; }
     [Inject] private Factory<Node> World3 { get; set; }
     [Inject] private Factory<PlayerNode> Player { get; set; }
@@ -57,7 +58,9 @@ public class Game {
         light.ShadowEnabled = true;
         light.ShadowFilter = Light2D.ShadowFilterEnum.None;
         light.GetNode<Area2D>("Area2D")
-            ?.OnBodyEntered(LayerConstants.LayerPlayerBody, (PlayerNode player) => CandleOn(light));
+            ?.OnBodyEntered(LayerConstants.LayerPlayerBody, (CharacterBody2D player) => {
+                if (CharacterManager.IsPlayer(player)) CandleOn(light);
+            });
     }
 
     private void CandleOn(PointLight2D light) {
@@ -86,7 +89,7 @@ public class Game {
         _playerScene = Player.Get();
         nextScene.AddChild(_playerScene);
         // TODO: this shows a warning "!is_inside_tree()" is true. Returned: get_transform()" but it still works 
-        _playerScene.GlobalPosition = position;
+        _playerScene.InitialPosition = position;
     }
 
     public void End() {

@@ -49,7 +49,6 @@ public partial class ZombieStateMachine : StateMachineNodeSync<ZombieState, Zomb
         
     [Inject] private PlayerConfig PlayerConfig { get; set; }
     [Inject] private EnemyConfig EnemyConfig { get; set; }
-    [Inject] public KinematicPlatformMotion Body { get; set; }
     [Inject] private ICharacterHandler Handler { get; set; }
 
     private ZombieNode _zombieNode;
@@ -63,6 +62,7 @@ public partial class ZombieStateMachine : StateMachineNodeSync<ZombieState, Zomb
     private float MotionX => Body.MotionX;
     private float MotionY => Body.MotionY;
 
+    public KinematicPlatformMotion Body;
     public readonly EnemyStatus Status = new();
     private readonly GodotStopwatch _stateTimer = new();
 
@@ -80,7 +80,7 @@ public partial class ZombieStateMachine : StateMachineNodeSync<ZombieState, Zomb
         _zombieNode = zombie;
         zombie.AddChild(this);
 
-        Body.Configure(name, zombie, zombie.Flipper, zombie.Marker2D, MotionConfig.FloorUpDirection);
+        Body = new KinematicPlatformMotion(zombie, zombie.Flipper, zombie.Marker2D, MotionConfig.FloorUpDirection);
         zombie.FloorStopOnSlope = true;
         // playerController.FloorBlockOnWall = true;
         zombie.FloorConstantSpeed = true;
