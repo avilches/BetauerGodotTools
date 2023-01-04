@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
@@ -127,6 +128,8 @@ namespace Betauer.Application.Screen {
         }
 
         public static IEnumerable<Resolution> Clamp(this IEnumerable<Resolution> resolutions, Vector2 min, Vector2 max) {
+            if (min.x > max.x) throw new Exception($"Impossible to clamp: min.x {min.x} > max.x {max.x}");
+            if (min.y > max.y) throw new Exception($"Impossible to clamp: min.y {min.y} > max.y {max.y}");
             return resolutions.Where(resolution => resolution.x >= min.x &&
                                                    resolution.x <= max.x &&
                                                    resolution.y >= min.y &&

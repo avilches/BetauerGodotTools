@@ -36,7 +36,7 @@ public enum PlayerState {
 	FallLong,
 	Jump,
 	Death,
-            
+			
 	Float,
 }
 
@@ -80,7 +80,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	private IAction Jump => Handler.Jump;
 	private IAction Attack => Handler.Attack;
 	private IAction Float => Handler.Float;
-        
+		
 	private float MotionX => PlatformBody.MotionX;
 	private float MotionY => PlatformBody.MotionY;
 
@@ -97,6 +97,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		
 	public ILoopStatus AnimationIdle { get; private set; }
 	public ILoopStatus AnimationRun { get; private set; }
+	public IOnceStatus AnimationRunStop { get; private set; }
 	public IOnceStatus AnimationJump { get; private set; }
 	public ILoopStatus AnimationFall { get; private set; }
 	public IOnceStatus AnimationAttack { get; private set; }
@@ -187,6 +188,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 
 		AnimationIdle = _animationStack.AddLoopAnimation("Idle");
 		AnimationRun = _animationStack.AddLoopAnimation("Run");
+		AnimationRunStop = _animationStack.AddOnceAnimation("RunStop");
 		AnimationJump = _animationStack.AddOnceAnimation("Jump");
 		AnimationFall = _animationStack.AddLoopAnimation("Fall");
 		AnimationAttack = _animationStack.AddOnceAnimation("Attack").OnStart(() => _attackArea.EnableAllShapes())
@@ -273,245 +275,251 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	public bool IsAttacking => AnimationJumpAttack.Playing || AnimationAttack.Playing;
 	public Vector2 InitialPosition { get; set; }
 
-    public void AddOverlayHelpers(DebugOverlay overlay) {
-        _jumpHelperMonitor = overlay.Text("JumpHelper");
-        overlay.Text("CoyoteFallingTimer", () => _coyoteFallingTimer.ToString());
-        _coyoteMonitor = overlay.Text("Coyote");
-    }
+	public void AddOverlayHelpers(DebugOverlay overlay) {
+		_jumpHelperMonitor = overlay.Text("JumpHelper");
+		overlay.Text("CoyoteFallingTimer", () => _coyoteFallingTimer.ToString());
+		_coyoteMonitor = overlay.Text("Coyote");
+	}
 
-    public void AddOverlayStates(DebugOverlay overlay) {
-        overlay
-            .OpenBox()
-                .Text("State", () => CurrentState.Key.ToString()).EndMonitor()
-            .CloseBox();
-    }
+	public void AddOverlayStates(DebugOverlay overlay) {
+		overlay
+			.OpenBox()
+				.Text("State", () => CurrentState.Key.ToString()).EndMonitor()
+			.CloseBox();
+	}
 
-    public void AddOverlayMotion(DebugOverlay overlay) {
-        overlay
-            .OpenBox()
-                .Vector("Motion", () => PlatformBody.Motion, PlayerConfig.MaxSpeed).SetChartWidth(100).EndMonitor()
-                .Graph("MotionX", () => PlatformBody.MotionX, -PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed).AddSeparator(0)
-                    .AddSerie("MotionY").Load(() => PlatformBody.MotionY).EndSerie()
-                .EndMonitor()
-            .CloseBox()
-            .GraphSpeed("Speed", PlayerConfig.JumpSpeed * 2).EndMonitor();
+	public void AddOverlayMotion(DebugOverlay overlay) {
+		overlay
+			.OpenBox()
+				.Vector("Motion", () => PlatformBody.Motion, PlayerConfig.MaxSpeed).SetChartWidth(100).EndMonitor()
+				.Graph("MotionX", () => PlatformBody.MotionX, -PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed).AddSeparator(0)
+					.AddSerie("MotionY").Load(() => PlatformBody.MotionY).EndSerie()
+				.EndMonitor()
+			.CloseBox()
+			.GraphSpeed("Speed", PlayerConfig.JumpSpeed * 2).EndMonitor();
 
-    }
-    
-    public void AddOverlayCollisions(DebugOverlay overlay) {    
-        overlay
-            .Graph("Floor", () => PlatformBody.IsOnFloor()).Keep(10).SetChartHeight(10)
-                .AddSerie("Slope").Load(() => PlatformBody.IsOnSlope()).EndSerie()
-            .EndMonitor()
-            .Text("Floor", () => PlatformBody.GetFloorCollisionInfo()).EndMonitor()
-            .Text("Ceiling", () => PlatformBody.GetCeilingCollisionInfo()).EndMonitor()
-            .Text("Wall", () => PlatformBody.GetWallCollisionInfo()).EndMonitor();
-    }
+	}
+	
+	public void AddOverlayCollisions(DebugOverlay overlay) {    
+		overlay
+			.Graph("Floor", () => PlatformBody.IsOnFloor()).Keep(10).SetChartHeight(10)
+				.AddSerie("Slope").Load(() => PlatformBody.IsOnSlope()).EndSerie()
+			.EndMonitor()
+			.Text("Floor", () => PlatformBody.GetFloorCollisionInfo()).EndMonitor()
+			.Text("Ceiling", () => PlatformBody.GetCeilingCollisionInfo()).EndMonitor()
+			.Text("Wall", () => PlatformBody.GetWallCollisionInfo()).EndMonitor();
+	}
 
 
-    public void ApplyFloorGravity(float factor = 1.0F) {
-        PlatformBody.ApplyGravity(PlayerConfig.FloorGravity * factor, PlayerConfig.MaxFallingSpeed);
-    }
+	public void ApplyFloorGravity(float factor = 1.0F) {
+		PlatformBody.ApplyGravity(PlayerConfig.FloorGravity * factor, PlayerConfig.MaxFallingSpeed);
+	}
 
-    public void ApplyAirGravity(float factor = 1.0F) {
-        PlatformBody.ApplyGravity(PlayerConfig.AirGravity * factor, PlayerConfig.MaxFallingSpeed);
-    }
+	public void ApplyAirGravity(float factor = 1.0F) {
+		PlatformBody.ApplyGravity(PlayerConfig.AirGravity * factor, PlayerConfig.MaxFallingSpeed);
+	}
 
-    public override void _Notification(long what) {
-        if (what == NotificationPredelete) {
-            _delayedJump?.Dispose();
-        }
-    }
+	public override void _Notification(long what) {
+		if (what == NotificationPredelete) {
+			_delayedJump?.Dispose();
+		}
+	}
 
-    public void GroundStates() {
-        bool CheckGroundAttack() {
-            if (!Attack.IsJustPressed()) return false;
-            // Attack was pressed
-                AnimationAttack.PlayOnce();
-            return true;
-        }
+	public void GroundStates() {
+		bool CheckGroundAttack() {
+			if (!Attack.IsJustPressed()) return false;
+			// Attack was pressed
+				AnimationAttack.PlayOnce();
+			return true;
+		}
 
-        PhysicsBody2D? fallingPlatform = null;
-        void FallFromPlatform() {
-            fallingPlatform = PlatformBody.GetFloorCollider<PhysicsBody2D>()!;
-            PlatformManager.RemovePlatformCollision(fallingPlatform);
-        }
+		PhysicsBody2D? fallingPlatform = null;
+		void FallFromPlatform() {
+			fallingPlatform = PlatformBody.GetFloorCollider<PhysicsBody2D>()!;
+			PlatformManager.RemovePlatformCollision(fallingPlatform);
+		}
 
-        void FinishFallFromPlatform() {
-            if (fallingPlatform != null) PlatformManager.ConfigurePlatformCollision(fallingPlatform);
-        }
+		void FinishFallFromPlatform() {
+			if (fallingPlatform != null) PlatformManager.ConfigurePlatformCollision(fallingPlatform);
+		}
 
-        On(PlayerEvent.Death).Then(ctx => ctx.Set(PlayerState.Death));
+		On(PlayerEvent.Death).Then(ctx => ctx.Set(PlayerState.Death));
 
-        var jumpJustInTime = false;
-        State(PlayerState.Landing)
-            .Enter(() => {
-                FinishFallFromPlatform();
-                _coyoteFallingTimer.Stop(); // not really needed, but less noise in the debug overlay
-                jumpJustInTime = _delayedJump.WasPressed(PlayerConfig.JumpHelperTime);
-            })
-            .Execute(() => {
-                if (jumpJustInTime && CanJump()) {
-                    _jumpHelperMonitor?.Show($"{_delayedJump.LastPressed} <= {PlayerConfig.JumpHelperTime.ToString()} Done!");
-                } else {
-                    _jumpHelperMonitor?.Show($"{_delayedJump.LastPressed} > {PlayerConfig.JumpHelperTime.ToString()} TOO MUCH TIME");
-                }
-            })
-            .If(() => jumpJustInTime).Set(PlayerState.Jump)
-            .If(() => XInput == 0).Set(PlayerState.Idle)
-            .If(() => true).Set(PlayerState.Run)
-            .Build();
+		var jumpJustInTime = false;
+		State(PlayerState.Landing)
+			.Enter(() => {
+				FinishFallFromPlatform();
+				_coyoteFallingTimer.Stop(); // not really needed, but less noise in the debug overlay
+				jumpJustInTime = _delayedJump.WasPressed(PlayerConfig.JumpHelperTime);
+			})
+			.Execute(() => {
+				if (jumpJustInTime && CanJump()) {
+					_jumpHelperMonitor?.Show($"{_delayedJump.LastPressed} <= {PlayerConfig.JumpHelperTime.ToString()} Done!");
+				} else {
+					_jumpHelperMonitor?.Show($"{_delayedJump.LastPressed} > {PlayerConfig.JumpHelperTime.ToString()} TOO MUCH TIME");
+				}
+			})
+			.If(() => jumpJustInTime).Set(PlayerState.Jump)
+			.If(() => XInput == 0).Set(PlayerState.Idle)
+			.If(() => true).Set(PlayerState.Run)
+			.Build();
 
-        State(PlayerState.Idle)
-            .Enter(() => {
-                AnimationIdle.PlayLoop();
-            })
-            .Execute(() => {
-                CheckGroundAttack();
-                ApplyFloorGravity();
-                PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
-            })
-            .If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.FallShort)
-            .If(() => Jump.IsJustPressed() && IsPressingDown && IsOnFallingPlatform()).Then(
-                context => {
-                    FallFromPlatform();
-                    return context.Set(PlayerState.FallShort);
-                })
-            .If(() => Jump.IsJustPressed() && CanJump()).Set(PlayerState.Jump)
-            .If(() => XInput != 0).Set(PlayerState.Run)
-            .Build();
+		State(PlayerState.Idle)
+			.Enter(() => {
+				AnimationIdle.PlayLoop();
+			})
+			.Execute(() => {
+				CheckGroundAttack();
+				ApplyFloorGravity();
+				PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
+			})
+			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.FallShort)
+			.If(() => Jump.IsJustPressed() && IsPressingDown && IsOnFallingPlatform()).Then(
+				context => {
+					FallFromPlatform();
+					return context.Set(PlayerState.FallShort);
+				})
+			.If(() => Jump.IsJustPressed() && CanJump()).Set(PlayerState.Jump)
+			.If(() => XInput != 0).Set(PlayerState.Run)
+			.Build();
 
-        State(PlayerState.Run)
-            .Enter(() => {
-                AnimationRun.PlayLoop();
-            })
-            .Execute(() => {
-                CheckGroundAttack();
+		State(PlayerState.Run)
+			.Execute(() => {
+				CheckGroundAttack();
 
-                ApplyFloorGravity();
-                if (IsAttacking) {
-                    PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
-                } else {
-                    PlatformBody.Flip(XInput);
-                    PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.Friction, 
-                        PlayerConfig.StopIfSpeedIsLessThan, 0);
-                }
-            })
-            .If(() => !PlatformBody.IsOnFloor()).Then( 
-                context => {
-                    _coyoteFallingTimer.Restart();
-                    return context.Set(PlayerState.FallShort);
-                })
-            .If(() => Jump.IsJustPressed() && IsPressingDown && IsOnFallingPlatform()).Then(
-                context => {
-                    FallFromPlatform();
-                    return context.Set(PlayerState.FallShort);
-                })
-            .If(() => Jump.IsJustPressed() && CanJump()).Set(PlayerState.Jump)
-            .If(() => XInput == 0 && MotionX == 0).Set(PlayerState.Idle)
-            .Build();
+				ApplyFloorGravity();
+				if (IsAttacking) {
+					PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
+				} else {
+					if (XInput == 0) {
+						if (Math.Abs(MotionX) >= PlayerConfig.MaxSpeed * 0.95f) {
+							AnimationIdle.PlayLoop();
+							AnimationRunStop.PlayOnce();
+						}
+					} else {
+						AnimationRun.PlayLoop();
+						AnimationRunStop.Stop(true);
+					}
+					PlatformBody.Flip(XInput);
+					PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.Friction, 
+						PlayerConfig.StopIfSpeedIsLessThan, 0);
+				}
+			})
+			.If(() => !PlatformBody.IsOnFloor()).Then( 
+				context => {
+					_coyoteFallingTimer.Restart();
+					return context.Set(PlayerState.FallShort);
+				})
+			.If(() => Jump.IsJustPressed() && IsPressingDown && IsOnFallingPlatform()).Then(
+				context => {
+					FallFromPlatform();
+					return context.Set(PlayerState.FallShort);
+				})
+			.If(() => Jump.IsJustPressed() && CanJump()).Set(PlayerState.Jump)
+			.If(() => XInput == 0 && MotionX == 0).Set(PlayerState.Idle)
+			.Build();
 
-        State(PlayerState.Death)
-            .Enter(() => {
-                Console.WriteLine("MUERTO");
-                Bus.Publish(MainEvent.EndGame);
-            })
-            .Build();
+		State(PlayerState.Death)
+			.Enter(() => {
+				Console.WriteLine("MUERTO");
+				Bus.Publish(MainEvent.EndGame);
+			})
+			.Build();
 
-    }
+	}
 
-    public void AirStates() {
+	public void AirStates() {
 
-        bool CheckAirAttack() {
-            if (!Attack.IsJustPressed()) return false;
-            // Attack was pressed
-            AnimationJumpAttack.PlayOnce();
-            return true;
-        }
+		bool CheckAirAttack() {
+			if (!Attack.IsJustPressed()) return false;
+			// Attack was pressed
+			AnimationJumpAttack.PlayOnce();
+			return true;
+		}
 
-        bool CheckCoyoteJump() {
-            if (!Jump.IsJustPressed()) return false;
-            // Jump was pressed
-            if (!_coyoteFallingTimer.IsRunning) return false;
-                
-            _coyoteFallingTimer.Stop();
-            if (_coyoteFallingTimer.Elapsed <= PlayerConfig.CoyoteJumpTime) {
-                _coyoteMonitor?.Show($"{_coyoteFallingTimer.Elapsed.ToString()} <= {PlayerConfig.CoyoteJumpTime.ToString()} Done!");
-                return true;
-            }
-            _coyoteMonitor?.Show($"{_coyoteFallingTimer.Elapsed.ToString()} > {PlayerConfig.CoyoteJumpTime.ToString()} TOO LATE");
-            return false;
-        }
+		bool CheckCoyoteJump() {
+			if (!Jump.IsJustPressed()) return false;
+			// Jump was pressed
+			if (!_coyoteFallingTimer.IsRunning) return false;
+				
+			_coyoteFallingTimer.Stop();
+			if (_coyoteFallingTimer.Elapsed <= PlayerConfig.CoyoteJumpTime) {
+				_coyoteMonitor?.Show($"{_coyoteFallingTimer.Elapsed.ToString()} <= {PlayerConfig.CoyoteJumpTime.ToString()} Done!");
+				return true;
+			}
+			_coyoteMonitor?.Show($"{_coyoteFallingTimer.Elapsed.ToString()} > {PlayerConfig.CoyoteJumpTime.ToString()} TOO LATE");
+			return false;
+		}
 
-        State(PlayerState.Jump)
-            .Enter(() => {
-                PlatformBody.MotionY = -PlayerConfig.JumpSpeed;
-                AnimationFall.PlayLoop();
-                AnimationJump.PlayOnce();
-            })
-            .Execute(() => {
-                CheckAirAttack();
+		State(PlayerState.Jump)
+			.Enter(() => {
+				PlatformBody.MotionY = -PlayerConfig.JumpSpeed;
+				AnimationFall.PlayLoop();
+				AnimationJump.PlayOnce();
+			})
+			.Execute(() => {
+				CheckAirAttack();
 
-                if (Jump.IsReleased() && MotionY < -PlayerConfig.JumpSpeedMin) {
-                    PlatformBody.MotionY = -PlayerConfig.JumpSpeedMin;
-                }
+				if (Jump.IsReleased() && MotionY < -PlayerConfig.JumpSpeedMin) {
+					PlatformBody.MotionY = -PlayerConfig.JumpSpeedMin;
+				}
 
-                PlatformBody.Flip(XInput);
-                ApplyAirGravity();
-                PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
-                    PlayerConfig.StopIfSpeedIsLessThan, 0);
-            })
-            .If(() => Float.IsPressed()).Set(PlayerState.Float)
-            .If(() => PlatformBody.IsOnFloor()).Set(PlayerState.Landing)
-            .If(() => MotionY >= 0).Set(PlayerState.FallShort)
-            .Build();
-                
+				PlatformBody.Flip(XInput);
+				ApplyAirGravity();
+				PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
+					PlayerConfig.StopIfSpeedIsLessThan, 0);
+			})
+			.If(() => Float.IsPressed()).Set(PlayerState.Float)
+			.If(() => PlatformBody.IsOnFloor()).Set(PlayerState.Landing)
+			.If(() => MotionY >= 0).Set(PlayerState.FallShort)
+			.Build();
+				
 
-        State(PlayerState.FallShort)
-            .Execute(() => {
-                CheckAirAttack();
+		State(PlayerState.FallShort)
+			.Execute(() => {
+				CheckAirAttack();
 
-                PlatformBody.Flip(XInput);
-                ApplyAirGravity();
-                PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
-                    PlayerConfig.StopIfSpeedIsLessThan, 0);
-            })
-            .If(() => Float.IsPressed()).Set(PlayerState.Float)
-            .If(CheckCoyoteJump).Set(PlayerState.Jump)
-            .If(() => PlatformBody.IsOnFloor()).Set(PlayerState.Landing)
-            .If(() => MotionY > PlayerConfig.StartFallingSpeed).Set(PlayerState.FallLong)
-            .Build();
-                
-        State(PlayerState.FallLong)
-            .Enter(() => {
-                AnimationFall.PlayLoop();
-            })
-            .Execute(() => {
-                CheckAirAttack();
-                PlatformBody.Flip(XInput);
-                ApplyAirGravity();
-                PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed,
-                    PlayerConfig.AirResistance, PlayerConfig.StopIfSpeedIsLessThan, 0);
-            })
-            .If(() => Float.IsPressed()).Set(PlayerState.Float)
-            .If(CheckCoyoteJump).Set(PlayerState.Jump)
-            .If(() => PlatformBody.IsOnFloor()).Set(PlayerState.Landing)
-            .Build();
+				PlatformBody.Flip(XInput);
+				ApplyAirGravity();
+				PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
+					PlayerConfig.StopIfSpeedIsLessThan, 0);
+			})
+			.If(() => Float.IsPressed()).Set(PlayerState.Float)
+			.If(CheckCoyoteJump).Set(PlayerState.Jump)
+			.If(() => PlatformBody.IsOnFloor()).Set(PlayerState.Landing)
+			.If(() => MotionY > PlayerConfig.StartFallingSpeed).Set(PlayerState.FallLong)
+			.Build();
+				
+		State(PlayerState.FallLong)
+			.Enter(() => {
+				AnimationFall.PlayLoop();
+			})
+			.Execute(() => {
+				CheckAirAttack();
+				PlatformBody.Flip(XInput);
+				ApplyAirGravity();
+				PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed,
+					PlayerConfig.AirResistance, PlayerConfig.StopIfSpeedIsLessThan, 0);
+			})
+			.If(() => Float.IsPressed()).Set(PlayerState.Float)
+			.If(CheckCoyoteJump).Set(PlayerState.Jump)
+			.If(() => PlatformBody.IsOnFloor()).Set(PlayerState.Landing)
+			.Build();
 
-        State(PlayerState.Float)
-            .Enter(() => {
-                PlatformBody.CharacterBody.MotionMode = CharacterBody2D.MotionModeEnum.Floating;
-            })
-            .Execute(() => {
-                PlatformBody.AddSpeed(XInput, YInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed,
-                    PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan, 0);
-                PlatformBody.Move();
-            })
-            .If(() => Float.IsPressed()).Set(PlayerState.FallShort)
-            .Exit(() => {
-                PlatformBody.CharacterBody.MotionMode = CharacterBody2D.MotionModeEnum.Grounded;
-            })
-            .Build();
+		State(PlayerState.Float)
+			.Enter(() => {
+				PlatformBody.CharacterBody.MotionMode = CharacterBody2D.MotionModeEnum.Floating;
+			})
+			.Execute(() => {
+				PlatformBody.AddSpeed(XInput, YInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed,
+					PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan, 0);
+				PlatformBody.Move();
+			})
+			.If(() => Float.IsPressed()).Set(PlayerState.FallShort)
+			.Exit(() => {
+				PlatformBody.CharacterBody.MotionMode = CharacterBody2D.MotionModeEnum.Grounded;
+			})
+			.Build();
 
-    }
+	}
 }

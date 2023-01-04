@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://d28t2wyjt7huu"]
+[gd_scene load_steps=17 format=3 uid="uid://d28t2wyjt7huu"]
 
 [ext_resource type="Script" path="res://Src/Character/Player/PlayerNode.cs" id="1"]
 [ext_resource type="Texture2D" uid="uid://cbgmgtts1npts" path="res://Characters/Player-Philip/attack2.png" id="3_f1ad3"]
@@ -56,6 +56,71 @@ tracks/3/keys = {
 "transitions": PackedFloat32Array(1),
 "update": 0,
 "values": [2.5]
+}
+
+[sub_resource type="Animation" id="Animation_k6tm2"]
+resource_name = "Fall"
+length = 0.4
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [ExtResource("6_bg1e5")]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:hframes")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [8]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("AnimationPlayer:playback_speed")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0.4]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath(".:vframes")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [15]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath(".:frame")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0, 0.2),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [109, 110]
 }
 
 [sub_resource type="Animation" id="5"]
@@ -120,6 +185,71 @@ tracks/4/keys = {
 "transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
 "update": 1,
 "values": [0, 0, 0, 0, 1, 2, 3, 3, 3, 3, 4]
+}
+
+[sub_resource type="Animation" id="Animation_yf68f"]
+resource_name = "Jump"
+length = 0.3
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [ExtResource("6_bg1e5")]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:hframes")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [8]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("AnimationPlayer:playback_speed")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [1.0]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath(".:vframes")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [15]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath(".:frame")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 1.8),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [19, 20, 21, 110]
 }
 
 [sub_resource type="Animation" id="7"]
@@ -304,9 +434,9 @@ tracks/4/keys = {
 "values": [8, 9, 10, 11, 12, 13, 14, 15]
 }
 
-[sub_resource type="Animation" id="Animation_yf68f"]
-resource_name = "Jump"
-length = 0.3
+[sub_resource type="Animation" id="Animation_bgvg6"]
+resource_name = "RunStop"
+length = 0.4
 loop_mode = 1
 tracks/0/type = "value"
 tracks/0/imported = false
@@ -363,75 +493,10 @@ tracks/4/path = NodePath(".:frame")
 tracks/4/interp = 1
 tracks/4/loop_wrap = true
 tracks/4/keys = {
-"times": PackedFloat32Array(0, 0.1, 0.2, 1.8),
-"transitions": PackedFloat32Array(1, 1, 1, 1),
+"times": PackedFloat32Array(0, 0.2, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1),
 "update": 1,
-"values": [19, 20, 21, 110]
-}
-
-[sub_resource type="Animation" id="Animation_k6tm2"]
-resource_name = "Fall"
-length = 0.4
-loop_mode = 1
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath(".:texture")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [ExtResource("6_bg1e5")]
-}
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath(".:hframes")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
-tracks/1/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [8]
-}
-tracks/2/type = "value"
-tracks/2/imported = false
-tracks/2/enabled = true
-tracks/2/path = NodePath("AnimationPlayer:playback_speed")
-tracks/2/interp = 1
-tracks/2/loop_wrap = true
-tracks/2/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [0.4]
-}
-tracks/3/type = "value"
-tracks/3/imported = false
-tracks/3/enabled = true
-tracks/3/path = NodePath(".:vframes")
-tracks/3/interp = 1
-tracks/3/loop_wrap = true
-tracks/3/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [15]
-}
-tracks/4/type = "value"
-tracks/4/imported = false
-tracks/4/enabled = true
-tracks/4/path = NodePath(".:frame")
-tracks/4/interp = 1
-tracks/4/loop_wrap = true
-tracks/4/keys = {
-"times": PackedFloat32Array(0, 0.2),
-"transitions": PackedFloat32Array(1, 1),
-"update": 1,
-"values": [109, 110]
+"values": [16, 17, 18]
 }
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_3u6sx"]
@@ -442,7 +507,8 @@ _data = {
 "Jump": SubResource("Animation_yf68f"),
 "JumpAttack": SubResource("7"),
 "RESET": SubResource("Animation_vdusg"),
-"Run": SubResource("Animation_tf8qu")
+"Run": SubResource("Animation_tf8qu"),
+"RunStop": SubResource("Animation_bgvg6")
 }
 
 [sub_resource type="SegmentShape2D" id="SegmentShape2D_xcg3o"]
@@ -466,7 +532,7 @@ metadata/_edit_lock_ = true
 
 [node name="Camera2D" type="Camera2D" parent="PlayerBody"]
 current = true
-zoom = Vector2(2, 2)
+zoom = Vector2(2.5, 2.5)
 metadata/_edit_lock_ = true
 
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="PlayerBody"]
