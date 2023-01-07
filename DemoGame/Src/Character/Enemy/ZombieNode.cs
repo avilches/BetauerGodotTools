@@ -69,10 +69,10 @@ public partial class ZombieNode : CharacterBody2D, IEnemy {
 		AnimationDieLeft = _animationStack.AddOnceAnimation("DieLeft");
 
 		Flipper = new FlipperList()
-			.AddSprite(_mainSprite)
-			.AddArea2D(_attackArea)
-			.AddRayCast2D(FacePlayerDetector)
-			.AddRayCast2D(BackPlayerDetector);
+			.Sprite2DFlipH(_mainSprite)
+			.ScaleX(_attackArea)
+			.ScaleX(FacePlayerDetector)
+			.ScaleX(BackPlayerDetector);
 		StateMachine.Start("Zombie", this);
 
 		CharacterManager.EnemyConfigureCollisions(this);

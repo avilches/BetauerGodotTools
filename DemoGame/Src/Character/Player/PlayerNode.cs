@@ -48,6 +48,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	public PlayerNode() : base(PlayerState.Idle, "Player.StateMachine", true) {
 	}
 	
+	[OnReady("PlayerBody/Weapon")] private Node2D _weaponNode;
 	[OnReady("PlayerBody/Sprite2D")] private Sprite2D _mainSprite;
 	[OnReady("PlayerBody/AttackArea")] private Area2D _attackArea;
 	[OnReady("PlayerBody/DamageArea")] private Area2D _damageArea;
@@ -121,8 +122,9 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		_cameraController.WithAction(MMB).Attach(_camera2D);
 
 		var flipper = new FlipperList()
-			.AddSprite(_mainSprite)
-			.AddArea2D(_attackArea);
+			.Sprite2DFlipH(_mainSprite)
+			.ScaleX(_weaponNode)
+			.ScaleX(_attackArea);
 		flipper.IsFacingRight = true;
 
 		PlatformBody = new KinematicPlatformMotion(characterBody2D, flipper, Marker2D, MotionConfig.FloorUpDirection, FloorRaycasts);

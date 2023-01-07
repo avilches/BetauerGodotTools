@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dueula01wjuug"
-path="res://.godot/imported/PrototypeHero_preview.png-84b0a8e9f0b7a2a9f79750e91ae85ae7.ctex"
+uid="uid://7jxcb7bmdu4p"
+path="res://.godot/imported/PrototypeHero_bg.png-619a7a0f924ef3f630ce82742e50429c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Characters/Player-Leon/PrototypeHero_preview.png"
-dest_files=["res://.godot/imported/PrototypeHero_preview.png-84b0a8e9f0b7a2a9f79750e91ae85ae7.ctex"]
+source_file="res://Src/Assets/PrototypeHero_bg.png"
+dest_files=["res://.godot/imported/PrototypeHero_bg.png-619a7a0f924ef3f630ce82742e50429c.ctex"]
 
 [params]
 

@@ -13,19 +13,16 @@ namespace Betauer {
     public class FlipperList : IFlipper {
         private IFlipper[] _flippers = Array.Empty<IFlipper>();
 
-        public FlipperList AddSprite(Sprite2D sprite) => 
-            AddFlipper(new Sprite2DFlipH(sprite));
-        
-        public FlipperList AddProperty<[MustBeVariant] TProperty>(Node node, string property, TProperty right, TProperty left) => 
-            AddFlipper(new PropertyFlipper<TProperty>(node, property, right, left));
-        
-        public FlipperList AddArea2D(Area2D area2D) => 
-            AddFlipper(new FlipScaleX(area2D));
-        
-        public FlipperList AddRayCast2D(RayCast2D rayCast2D) => 
-            AddFlipper(new FlipScaleX(rayCast2D));
+        public FlipperList Property<[MustBeVariant] TProperty>(Node node, string property, TProperty right, TProperty left) => 
+            Add(new PropertyFlipper<TProperty>(node, property, right, left));
 
-        public FlipperList AddFlipper(IFlipper flipper) {
+        public FlipperList Sprite2DFlipH(Sprite2D sprite) => 
+            Add(new Sprite2DFlipH(sprite));
+
+        public FlipperList ScaleX(Node2D node2D) => 
+            Add(new FlipScaleX(node2D));
+        
+        public FlipperList Add(IFlipper flipper) {
             _flippers = _flippers.Concat(new[] { flipper }).ToArray();
             return this;
         }
