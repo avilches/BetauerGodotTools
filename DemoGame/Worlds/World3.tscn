@@ -1,7 +1,7 @@
-[gd_scene load_steps=12 format=3 uid="uid://cm161vuipf1uh"]
+[gd_scene load_steps=12 format=3 uid="uid://booum8o1kq7ns"]
 
 [ext_resource type="PackedScene" uid="uid://bgoroc7wxd0fx" path="res://Worlds/Environment/City.tscn" id="1_ch4lp"]
-[ext_resource type="PackedScene" uid="uid://djnw3c8f2iq4d" path="res://Scenes/Zombie.tscn" id="3_ailyd"]
+[ext_resource type="PackedScene" uid="uid://ci632a12usc6l" path="res://Scenes/Zombie2.tscn" id="3_ailyd"]
 [ext_resource type="PackedScene" uid="uid://crxuyxcrii0rb" path="res://Worlds/Environment/Anokalisa.tscn" id="3_b8e8b"]
 [ext_resource type="Texture2D" uid="uid://hpw331rdkwps" path="res://Assets/light-spot.png" id="4_mufee"]
 [ext_resource type="Texture2D" uid="uid://b7ir53ta6rglo" path="res://Assets/light.png" id="4_vhytj"]
@@ -42,7 +42,6 @@ layer_3/tile_data = PackedInt32Array(-131126, 458753, 7, -196662, 1, 8)
 layer_4/tile_data = PackedInt32Array(-589865, 262144, 8, -524329, 262144, 9, -458793, 262144, 10, -589864, 327680, 8, -524328, 327680, 9, -458792, 327680, 10, -589863, 393216, 8, -524327, 393216, 9, -458791, 393216, 10)
 
 [node name="EnemyBody2" parent="." instance=ExtResource("3_ailyd")]
-position = Vector2(-279, 4)
 
 [node name="Hints" type="Control" parent="."]
 layout_mode = 3

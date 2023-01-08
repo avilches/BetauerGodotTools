@@ -5,6 +5,214 @@
 [ext_resource type="Texture2D" uid="uid://uhs4s0y6eyo1" path="res://Characters/Player-Leon/Leon.png" id="4_tjgm6"]
 [ext_resource type="Texture2D" uid="uid://b7ir53ta6rglo" path="res://Assets/light.png" id="9_vfn0h"]
 
+[sub_resource type="Animation" id="Animation_kopi4"]
+resource_name = "AirAttack"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [ExtResource("4_tjgm6")]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:hframes")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [120]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("../AnimationPlayer:playback_speed")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [1.0]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath(".:vframes")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [1]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath(".:frame")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [28, 24, 25, 26, 27, 28, 29, 30, 31, 32]
+}
+tracks/5/type = "value"
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/path = NodePath("../Weapon:frame")
+tracks/5/interp = 1
+tracks/5/loop_wrap = true
+tracks/5/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [23, 24, 25, 26, 27, 28, 29, 30, 31, 32]
+}
+tracks/6/type = "method"
+tracks/6/imported = false
+tracks/6/enabled = true
+tracks/6/path = NodePath("../../..")
+tracks/6/interp = 1
+tracks/6/loop_wrap = true
+tracks/6/keys = {
+"times": PackedFloat32Array(0.4, 1),
+"transitions": PackedFloat32Array(1, 1),
+"values": [{
+"args": [],
+"method": &"AnimationCallback_EndShortAttack"
+}, {
+"args": [],
+"method": &"AnimationCallback_EndLongAttack"
+}]
+}
+tracks/7/type = "value"
+tracks/7/imported = false
+tracks/7/enabled = true
+tracks/7/path = NodePath("../../AttackArea/AttackShort:disabled")
+tracks/7/interp = 1
+tracks/7/loop_wrap = true
+tracks/7/keys = {
+"times": PackedFloat32Array(0.1, 0.3, 0.6, 0.8),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [false, true, false, true]
+}
+
+[sub_resource type="Animation" id="Animation_81kt2"]
+resource_name = "Attack"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [ExtResource("4_tjgm6")]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:hframes")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [120]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("../AnimationPlayer:playback_speed")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [1.0]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath(".:vframes")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [1]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath(".:frame")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [28, 24, 25, 26, 27, 28, 29, 30, 31, 32]
+}
+tracks/5/type = "value"
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/path = NodePath("../Weapon:frame")
+tracks/5/interp = 1
+tracks/5/loop_wrap = true
+tracks/5/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [23, 24, 25, 26, 27, 28, 29, 30, 31, 32]
+}
+tracks/6/type = "method"
+tracks/6/imported = false
+tracks/6/enabled = true
+tracks/6/path = NodePath("../../..")
+tracks/6/interp = 1
+tracks/6/loop_wrap = true
+tracks/6/keys = {
+"times": PackedFloat32Array(0.4, 1),
+"transitions": PackedFloat32Array(1, 1),
+"values": [{
+"args": [],
+"method": &"AnimationCallback_EndShortAttack"
+}, {
+"args": [],
+"method": &"AnimationCallback_EndLongAttack"
+}]
+}
+tracks/7/type = "value"
+tracks/7/imported = false
+tracks/7/enabled = true
+tracks/7/path = NodePath("../../AttackArea/AttackShort:disabled")
+tracks/7/interp = 1
+tracks/7/loop_wrap = true
+tracks/7/keys = {
+"times": PackedFloat32Array(0.1, 0.3, 0.6, 0.8),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [false, true, false, true]
+}
+
 [sub_resource type="Animation" id="Animation_k6tm2"]
 resource_name = "Fall"
 length = 0.4
@@ -464,214 +672,6 @@ tracks/5/keys = {
 "values": [15, 16, 17]
 }
 
-[sub_resource type="Animation" id="Animation_81kt2"]
-resource_name = "Attack"
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath(".:texture")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [ExtResource("4_tjgm6")]
-}
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath(".:hframes")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
-tracks/1/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [120]
-}
-tracks/2/type = "value"
-tracks/2/imported = false
-tracks/2/enabled = true
-tracks/2/path = NodePath("../AnimationPlayer:playback_speed")
-tracks/2/interp = 1
-tracks/2/loop_wrap = true
-tracks/2/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [1.0]
-}
-tracks/3/type = "value"
-tracks/3/imported = false
-tracks/3/enabled = true
-tracks/3/path = NodePath(".:vframes")
-tracks/3/interp = 1
-tracks/3/loop_wrap = true
-tracks/3/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [1]
-}
-tracks/4/type = "value"
-tracks/4/imported = false
-tracks/4/enabled = true
-tracks/4/path = NodePath(".:frame")
-tracks/4/interp = 1
-tracks/4/loop_wrap = true
-tracks/4/keys = {
-"times": PackedFloat32Array(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9),
-"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
-"update": 1,
-"values": [28, 24, 25, 26, 27, 28, 29, 30, 31, 32]
-}
-tracks/5/type = "value"
-tracks/5/imported = false
-tracks/5/enabled = true
-tracks/5/path = NodePath("../Weapon:frame")
-tracks/5/interp = 1
-tracks/5/loop_wrap = true
-tracks/5/keys = {
-"times": PackedFloat32Array(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9),
-"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
-"update": 1,
-"values": [23, 24, 25, 26, 27, 28, 29, 30, 31, 32]
-}
-tracks/6/type = "method"
-tracks/6/imported = false
-tracks/6/enabled = true
-tracks/6/path = NodePath("../../..")
-tracks/6/interp = 1
-tracks/6/loop_wrap = true
-tracks/6/keys = {
-"times": PackedFloat32Array(0.4, 1),
-"transitions": PackedFloat32Array(1, 1),
-"values": [{
-"args": [],
-"method": &"AnimationCallback_EndShortAttack"
-}, {
-"args": [],
-"method": &"AnimationCallback_EndLongAttack"
-}]
-}
-tracks/7/type = "value"
-tracks/7/imported = false
-tracks/7/enabled = true
-tracks/7/path = NodePath("../../AttackArea/AttackShort:disabled")
-tracks/7/interp = 1
-tracks/7/loop_wrap = true
-tracks/7/keys = {
-"times": PackedFloat32Array(0.1, 0.3, 0.6, 0.8),
-"transitions": PackedFloat32Array(1, 1, 1, 1),
-"update": 1,
-"values": [false, true, false, true]
-}
-
-[sub_resource type="Animation" id="Animation_kopi4"]
-resource_name = "AirAttack"
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath(".:texture")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [ExtResource("4_tjgm6")]
-}
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath(".:hframes")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
-tracks/1/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [120]
-}
-tracks/2/type = "value"
-tracks/2/imported = false
-tracks/2/enabled = true
-tracks/2/path = NodePath("../AnimationPlayer:playback_speed")
-tracks/2/interp = 1
-tracks/2/loop_wrap = true
-tracks/2/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [1.0]
-}
-tracks/3/type = "value"
-tracks/3/imported = false
-tracks/3/enabled = true
-tracks/3/path = NodePath(".:vframes")
-tracks/3/interp = 1
-tracks/3/loop_wrap = true
-tracks/3/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [1]
-}
-tracks/4/type = "value"
-tracks/4/imported = false
-tracks/4/enabled = true
-tracks/4/path = NodePath(".:frame")
-tracks/4/interp = 1
-tracks/4/loop_wrap = true
-tracks/4/keys = {
-"times": PackedFloat32Array(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9),
-"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
-"update": 1,
-"values": [28, 24, 25, 26, 27, 28, 29, 30, 31, 32]
-}
-tracks/5/type = "value"
-tracks/5/imported = false
-tracks/5/enabled = true
-tracks/5/path = NodePath("../Weapon:frame")
-tracks/5/interp = 1
-tracks/5/loop_wrap = true
-tracks/5/keys = {
-"times": PackedFloat32Array(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9),
-"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
-"update": 1,
-"values": [23, 24, 25, 26, 27, 28, 29, 30, 31, 32]
-}
-tracks/6/type = "method"
-tracks/6/imported = false
-tracks/6/enabled = true
-tracks/6/path = NodePath("../../..")
-tracks/6/interp = 1
-tracks/6/loop_wrap = true
-tracks/6/keys = {
-"times": PackedFloat32Array(0.4, 1),
-"transitions": PackedFloat32Array(1, 1),
-"values": [{
-"args": [],
-"method": &"AnimationCallback_EndShortAttack"
-}, {
-"args": [],
-"method": &"AnimationCallback_EndLongAttack"
-}]
-}
-tracks/7/type = "value"
-tracks/7/imported = false
-tracks/7/enabled = true
-tracks/7/path = NodePath("../../AttackArea/AttackShort:disabled")
-tracks/7/interp = 1
-tracks/7/loop_wrap = true
-tracks/7/keys = {
-"times": PackedFloat32Array(0.1, 0.3, 0.6, 0.8),
-"transitions": PackedFloat32Array(1, 1, 1, 1),
-"update": 1,
-"values": [false, true, false, true]
-}
-
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_3u6sx"]
 _data = {
 "AirAttack": SubResource("Animation_kopi4"),
@@ -692,103 +692,103 @@ b = Vector2(0, 26)
 radius = 5.0
 height = 38.0
 
-[node name="Node" type="Node"]
+[node name="Player" type="Node"]
 script = ExtResource("1")
 
-[node name="PlayerBody" type="CharacterBody2D" parent="."]
+[node name="Character" type="CharacterBody2D" parent="."]
 collision_layer = 0
 collision_mask = 0
 
-[node name="Marker2D" type="Marker2D" parent="PlayerBody"]
+[node name="Marker2D" type="Marker2D" parent="Character"]
 position = Vector2(0, -20)
 metadata/_edit_lock_ = true
 
-[node name="Camera2D" type="Camera2D" parent="PlayerBody"]
+[node name="Camera2D" type="Camera2D" parent="Character"]
 current = true
 zoom = Vector2(2.5, 2.5)
 metadata/_edit_lock_ = true
 
-[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="PlayerBody"]
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Character"]
 position = Vector2(0, -1)
 polygon = PackedVector2Array(0, -36, -5, -27, -5, 1, 5, 1, 5, -27)
 metadata/_edit_lock_ = true
 
-[node name="Sprites" type="Node2D" parent="PlayerBody"]
+[node name="Sprites" type="Node2D" parent="Character"]
 position = Vector2(0, -37)
 
-[node name="Body" type="Sprite2D" parent="PlayerBody/Sprites"]
+[node name="Body" type="Sprite2D" parent="Character/Sprites"]
 texture = ExtResource("4_tjgm6")
 hframes = 120
 metadata/_edit_lock_ = true
 
-[node name="Weapon" type="Sprite2D" parent="PlayerBody/Sprites"]
+[node name="Weapon" type="Sprite2D" parent="Character/Sprites"]
 texture = ExtResource("3_ogqwh")
 hframes = 120
 metadata/_edit_lock_ = true
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="PlayerBody/Sprites"]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Character/Sprites"]
 root_node = NodePath("../Body")
 libraries = {
 "": SubResource("AnimationLibrary_3u6sx")
 }
 
-[node name="CanJump" type="RayCast2D" parent="PlayerBody"]
+[node name="CanJump" type="RayCast2D" parent="Character"]
 position = Vector2(0, -32)
 target_position = Vector2(0, -20)
 collision_mask = 0
 metadata/_edit_lock_ = true
 
-[node name="FloorRaycasts" type="Node2D" parent="PlayerBody"]
+[node name="FloorRaycasts" type="Node2D" parent="Character"]
 metadata/_edit_lock_ = true
 
-[node name="Floor1" type="RayCast2D" parent="PlayerBody/FloorRaycasts"]
+[node name="Floor1" type="RayCast2D" parent="Character/FloorRaycasts"]
 position = Vector2(-5, -1)
 target_position = Vector2(0, 8)
 collision_mask = 0
 metadata/_edit_lock_ = true
 
-[node name="Floor2" type="RayCast2D" parent="PlayerBody/FloorRaycasts"]
+[node name="Floor2" type="RayCast2D" parent="Character/FloorRaycasts"]
 position = Vector2(0, -1)
 target_position = Vector2(0, 8)
 collision_mask = 0
 metadata/_edit_lock_ = true
 
-[node name="Floor3" type="RayCast2D" parent="PlayerBody/FloorRaycasts"]
+[node name="Floor3" type="RayCast2D" parent="Character/FloorRaycasts"]
 position = Vector2(5, -1)
 target_position = Vector2(0, 8)
 collision_mask = 0
 metadata/_edit_lock_ = true
 
-[node name="Detector" type="Area2D" parent="PlayerBody"]
+[node name="Detector" type="Area2D" parent="Character"]
 position = Vector2(0, -26)
 collision_layer = 0
 collision_mask = 0
 metadata/_edit_lock_ = true
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PlayerBody/Detector"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Character/Detector"]
 shape = SubResource("SegmentShape2D_xcg3o")
 metadata/_edit_lock_ = true
 
-[node name="AttackArea" type="Area2D" parent="PlayerBody"]
+[node name="AttackArea" type="Area2D" parent="Character"]
 collision_layer = 0
 collision_mask = 0
 metadata/_edit_lock_ = true
 
-[node name="AttackShort" type="CollisionPolygon2D" parent="PlayerBody/AttackArea"]
+[node name="AttackShort" type="CollisionPolygon2D" parent="Character/AttackArea"]
 position = Vector2(0, 0.0677719)
 polygon = PackedVector2Array(-3, -33.0678, 29, -30.0678, 47, -25.0678, 45, -18.0678, 22, -11.0678, -12, -11.0678, -8, -24.0678)
 metadata/_edit_lock_ = true
 
-[node name="DamageArea" type="Area2D" parent="PlayerBody"]
+[node name="DamageArea" type="Area2D" parent="Character"]
 visible = false
 metadata/_edit_lock_ = true
 
-[node name="Body" type="CollisionShape2D" parent="PlayerBody/DamageArea"]
+[node name="Body" type="CollisionShape2D" parent="Character/DamageArea"]
 position = Vector2(0, -21)
 shape = SubResource("10")
 metadata/_edit_lock_ = true
 
-[node name="Light" type="PointLight2D" parent="PlayerBody"]
+[node name="Light" type="PointLight2D" parent="Character"]
 position = Vector2(0, -20)
 color = Color(1, 0.811765, 0.717647, 1)
 blend_mode = 2
@@ -798,7 +798,7 @@ texture = ExtResource("9_vfn0h")
 texture_scale = 0.25
 metadata/_edit_lock_ = true
 
-[node name="RichTextLabel" type="RichTextLabel" parent="PlayerBody"]
+[node name="RichTextLabel" type="RichTextLabel" parent="Character"]
 offset_right = 200.0
 offset_bottom = 200.0
 text = "ssasdas"

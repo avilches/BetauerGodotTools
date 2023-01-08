@@ -59,7 +59,6 @@ public class CharacterManager {
     }
 
     public void EnemyConfigureDamageArea2D(Area2D enemyDamageArea2D, Action<Area2D> onAttack) {
-        if (enemyDamageArea2D.GetParent() is not IEnemy) throw new Exception("Only enemies can use this method");
         enemyDamageArea2D.CollisionMask = 0;
         enemyDamageArea2D.CollisionLayer = 0;
         enemyDamageArea2D.OnAreaEntered(LayerEnemyArea2D, onAttack);

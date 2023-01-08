@@ -125,25 +125,23 @@ public class ZombieAI : StateMachineSync<ZombieAI.State, ZombieAI.Event>, IChara
 
     public class Sensor {
         private readonly ZombieNode _zombieNode;
-        private readonly ZombieStateMachine _zombieStateMachine;
         private readonly KinematicPlatformMotion _body;
         private readonly Func<Vector2> GetPlayerGlobalPosition;
 
-        public Sensor(ZombieNode zombieNode, ZombieStateMachine zombieStateMachine, KinematicPlatformMotion body, Func<Vector2> playerGlobalPosition) {
+        public Sensor(ZombieNode zombieNode, KinematicPlatformMotion body, Func<Vector2> playerGlobalPosition) {
             _zombieNode = zombieNode;
-            _zombieStateMachine = zombieStateMachine;
             _body = body;
             GetPlayerGlobalPosition = playerGlobalPosition;
         }
 
         public bool IsFacingRight => _body.IsFacingRight;
         public void Flip() => _body.Flip();
-        public bool IsAttacked() => _zombieStateMachine.IsState(ZombieState.Attacked);
+        public bool IsAttacked() => _zombieNode.IsState(ZombieState.Attacked);
         public bool IsPlayerInsight() => _zombieNode.FacePlayerDetector.IsColliding(); // || _zombieNode.BackPlayerDetector.IsColliding();
 
         public void FaceOppositePlayer() => _body.FaceOppositeTo(GetPlayerGlobalPosition());
         public void FaceToPlayer() => _body.FaceTo(GetPlayerGlobalPosition());
 
-        public EnemyStatus Status => _zombieStateMachine.Status;
+        public EnemyStatus Status => _zombieNode.Status;
     }
 }

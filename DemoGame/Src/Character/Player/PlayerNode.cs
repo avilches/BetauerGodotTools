@@ -51,19 +51,20 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	public PlayerNode() : base(PlayerState.Idle, "Player.StateMachine", true) {
 	}
 	
-	[OnReady("PlayerBody/Sprites/Weapon")] private Sprite2D _weaponNode;
-	[OnReady("PlayerBody/Sprites/Body")] private Sprite2D _mainSprite;
-	[OnReady("PlayerBody/Sprites/AnimationPlayer")] private AnimationPlayer _animationPlayer;
+	[OnReady("Character")] private CharacterBody2D CharacterBody2D;
+	[OnReady("Character/Sprites/Weapon")] private Sprite2D _weaponNode;
+	[OnReady("Character/Sprites/Body")] private Sprite2D _mainSprite;
+	[OnReady("Character/Sprites/AnimationPlayer")] private AnimationPlayer _animationPlayer;
 
-	[OnReady("PlayerBody/AttackArea")] private Area2D _attackArea;
-	[OnReady("PlayerBody/DamageArea")] private Area2D _damageArea;
-	[OnReady("PlayerBody/RichTextLabel")] public RichTextLabel Label;
-	[OnReady("PlayerBody/Detector")] public Area2D PlayerDetector;
-	[OnReady("PlayerBody/Camera2D")] private Camera2D _camera2D;
+	[OnReady("Character/AttackArea")] private Area2D _attackArea;
+	[OnReady("Character/DamageArea")] private Area2D _damageArea;
+	[OnReady("Character/RichTextLabel")] public RichTextLabel Label;
+	[OnReady("Character/Detector")] public Area2D PlayerDetector;
+	[OnReady("Character/Camera2D")] private Camera2D _camera2D;
 
-	[OnReady("PlayerBody/Marker2D")] public Marker2D Marker2D;
-	[OnReady("PlayerBody/CanJump")] public RayCast2D RaycastCanJump;
-	[OnReady("PlayerBody/FloorRaycasts")] public List<RayCast2D> FloorRaycasts;
+	[OnReady("Character/Marker2D")] public Marker2D Marker2D;
+	[OnReady("Character/CanJump")] public RayCast2D RaycastCanJump;
+	[OnReady("Character/FloorRaycasts")] public List<RayCast2D> FloorRaycasts;
 
 	[Inject] private PlatformManager PlatformManager { get; set; }
 	[Inject] private CharacterManager CharacterManager { get; set; }
@@ -75,6 +76,18 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	[Inject] private SceneTree SceneTree { get; set; }
 	[Inject] private Bus Bus { get; set; }
 	[Inject] private InputActionCharacterHandler Handler { get; set; }
+
+	public ILoopStatus AnimationIdle { get; private set; }
+	public ILoopStatus AnimationRun { get; private set; }
+	public IOnceStatus AnimationRunStop { get; private set; }
+	public IOnceStatus AnimationJump { get; private set; }
+	public ILoopStatus AnimationFall { get; private set; }
+	public IOnceStatus AnimationAttack { get; private set; }
+	public IOnceStatus AnimationAirAttack { get; private set; }
+
+	public IOnceStatus PulsateTween;
+	public ILoopStatus DangerTween;
+	public IOnceStatus SqueezeTween;
 
 	private float XInput => Handler.Directional.XInput;
 	private float YInput => Handler.Directional.YInput;
@@ -100,63 +113,26 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 
 	public KinematicPlatformMotion PlatformBody;
 		
-	public ILoopStatus AnimationIdle { get; private set; }
-	public ILoopStatus AnimationRun { get; private set; }
-	public IOnceStatus AnimationRunStop { get; private set; }
-	public IOnceStatus AnimationJump { get; private set; }
-	public ILoopStatus AnimationFall { get; private set; }
-	public IOnceStatus AnimationAttack { get; private set; }
-	public IOnceStatus AnimationAirAttack { get; private set; }
-
-	public IOnceStatus PulsateTween;
-	public ILoopStatus DangerTween;
-	public IOnceStatus SqueezeTween;
+	public Vector2 InitialPosition { get; set; }
 
 	private readonly DragCameraController _cameraController = new();
 	private AnimationStack _animationStack;
 	private AnimationStack _tweenStack;
 
 	public override void _Ready() {
-		var characterBody2D = GetNode<CharacterBody2D>("PlayerBody");
-		if (InitialPosition != null) characterBody2D.GlobalPosition = InitialPosition;
-			
-		CreateAnimations(characterBody2D);
-
 		_delayedJump = ((InputAction)Jump).CreateDelayed();
 		_cameraController.WithAction(MMB).Attach(_camera2D);
 
-		var flipper = new FlipperList()
-			.Sprite2DFlipH(_mainSprite)
-			.Sprite2DFlipH(_weaponNode)
-			.ScaleX(_attackArea);
-		flipper.IsFacingRight = true;
-
-		PlatformBody = new KinematicPlatformMotion(characterBody2D, flipper, Marker2D, MotionConfig.FloorUpDirection, FloorRaycasts);
-
-		_attackArea.EnableAllShapes(false);
-		CharacterManager.RegisterPlayerNode(this);
-		CharacterManager.PlayerConfigureCollisions(this);
-		CharacterManager.PlayerConfigureAttackArea2D(_attackArea);
-
-		PlayerDetector.CollisionLayer = 0;
-		PlayerDetector.CollisionMask = 0;
-		StageManager.ConfigureStageCamera(_camera2D, PlayerDetector);
-			
-		_attackArea.Monitoring = false;
-		// CharacterManager.ConfigurePlayerDamageArea2D(_damageArea);
-
-		characterBody2D.FloorStopOnSlope = true;
-		// characterBody2D.FloorBlockOnWall = true;
-		characterBody2D.FloorConstantSpeed = true;
-		characterBody2D.FloorSnapLength = MotionConfig.SnapLength;
+		CreateAnimations();
+		ConfigureCharacter();
 
 		OnBeforeExecute += PlatformBody.SetDelta;
 		// OnTransition += args => Console.WriteLine(args.To);
 		Bus.Subscribe(Enqueue);
-		GroundStates();
-		AirStates();
+		CreateGroundStates();
+		CreateAirStates();
 
-		var overlay = DebugOverlayManager.Overlay(characterBody2D)
+		var overlay = DebugOverlayManager.Overlay(CharacterBody2D)
 			.Title("Player")
 			.SetMaxSize(1000, 1000);
 
@@ -183,9 +159,37 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		//         .TypedNode);
 	}
 
-	private void CreateAnimations(CharacterBody2D characterBody2D) {
+	private void ConfigureCharacter() {
+		if (InitialPosition != null) CharacterBody2D.GlobalPosition = InitialPosition;
+		CharacterBody2D.FloorStopOnSlope = true;
+		// CharacterBody2D.FloorBlockOnWall = true;
+		CharacterBody2D.FloorConstantSpeed = true;
+		CharacterBody2D.FloorSnapLength = MotionConfig.SnapLength;
+		var flipper = new FlipperList()
+			.Sprite2DFlipH(_mainSprite)
+			.Sprite2DFlipH(_weaponNode)
+			.ScaleX(_attackArea);
+		flipper.IsFacingRight = true;
+
+		PlatformBody = new KinematicPlatformMotion(CharacterBody2D, flipper, Marker2D, MotionConfig.FloorUpDirection,
+			FloorRaycasts);
+
+		_attackArea.EnableAllShapes(false);
+		CharacterManager.RegisterPlayerNode(this);
+		CharacterManager.PlayerConfigureCollisions(this);
+		CharacterManager.PlayerConfigureAttackArea2D(_attackArea);
+
+		PlayerDetector.CollisionLayer = 0;
+		PlayerDetector.CollisionMask = 0;
+		StageManager.ConfigureStageCamera(_camera2D, PlayerDetector);
+
+		_attackArea.Monitoring = false;
+		// CharacterManager.ConfigurePlayerDamageArea2D(_damageArea);
+	}
+
+	private void CreateAnimations() {
 		var restorer = new MultiRestorer() 
-			.Add(characterBody2D.CreateRestorer(Properties.Modulate, Properties.Scale2D))
+			.Add(CharacterBody2D.CreateRestorer(Properties.Modulate, Properties.Scale2D))
 			.Add(_mainSprite.CreateRestorer(Properties.Modulate, Properties.Scale2D));
 		restorer.Save();
 		
@@ -278,8 +282,6 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		// RaycastCanJump.DrawRaycast(this, Colors.Red);
 	// }
 
-	public Vector2 InitialPosition { get; set; }
-
 	public void AddOverlayHelpers(DebugOverlay overlay) {
 		_jumpHelperMonitor = overlay.Text("JumpHelper");
 		overlay.Text("CoyoteFallingTimer", () => _coyoteFallingTimer.ToString());
@@ -354,7 +356,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		attackState = AttackState.None;
 	}
 	
-	public void GroundStates() {
+	public void CreateGroundStates() {
 		PhysicsBody2D? fallingPlatform = null;
 		void FallFromPlatform() {
 			fallingPlatform = PlatformBody.GetFloorCollider<PhysicsBody2D>()!;
@@ -503,7 +505,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			.Build();
 	}
 
-	public void AirStates() {
+	public void CreateAirStates() {
 		bool CheckCoyoteJump() {
 			if (!Jump.IsJustPressed()) return false;
 			// Jump was pressed

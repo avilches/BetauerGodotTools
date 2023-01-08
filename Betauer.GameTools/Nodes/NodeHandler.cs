@@ -5,9 +5,11 @@ using Godot;
 
 namespace Betauer.Nodes {
     public class DefaultNodeHandler {
-        public static readonly NodeHandler Instance = new();
+        public static readonly NodeHandler Instance = new() {
+            Name = "NodeHandler"
+        };
 
-        public static void Configure(Node node) {
+        public static void Configure(Viewport node) {
             if (Instance.GetParent() != null) Instance.GetParent().RemoveChild(Instance);
             node.AddChild(Instance);
         }
