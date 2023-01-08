@@ -48,13 +48,14 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	public PlayerNode() : base(PlayerState.Idle, "Player.StateMachine", true) {
 	}
 	
-	[OnReady("PlayerBody/Weapon")] private Node2D _weaponNode;
-	[OnReady("PlayerBody/Sprite2D")] private Sprite2D _mainSprite;
+	[OnReady("PlayerBody/Sprites/Weapon")] private Sprite2D _weaponNode;
+	[OnReady("PlayerBody/Sprites/Body")] private Sprite2D _mainSprite;
+	[OnReady("PlayerBody/Sprites/AnimationPlayer")] private AnimationPlayer _animationPlayer;
+
 	[OnReady("PlayerBody/AttackArea")] private Area2D _attackArea;
 	[OnReady("PlayerBody/DamageArea")] private Area2D _damageArea;
 	[OnReady("PlayerBody/RichTextLabel")] public RichTextLabel Label;
 	[OnReady("PlayerBody/Detector")] public Area2D PlayerDetector;
-	[OnReady("PlayerBody/Sprite2D/AnimationPlayer")] private AnimationPlayer _animationPlayer;
 	[OnReady("PlayerBody/Camera2D")] private Camera2D _camera2D;
 
 	[OnReady("PlayerBody/Marker2D")] public Marker2D Marker2D;
@@ -123,7 +124,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 
 		var flipper = new FlipperList()
 			.Sprite2DFlipH(_mainSprite)
-			.ScaleX(_weaponNode)
+			.Sprite2DFlipH(_weaponNode)
 			.ScaleX(_attackArea);
 		flipper.IsFacingRight = true;
 
