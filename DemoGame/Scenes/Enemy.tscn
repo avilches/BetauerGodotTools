@@ -14,7 +14,7 @@ offset_bottom = 23.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 
-[node name="Sprites" type="Node" parent="."]
+[node name="Sprites" type="Node2D" parent="."]
 
 [node name="Body" type="Sprite2D" parent="Sprites"]
 
