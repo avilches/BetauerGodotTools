@@ -32,6 +32,9 @@ public enum PlayerState {
 	Idle,
 	Landing,
 	Run,
+	Attacking,
+	JumpAttack,
+	FallingAttack,
 	FallShort,
 	FallLong,
 	Jump,
@@ -103,7 +106,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	public IOnceStatus AnimationJump { get; private set; }
 	public ILoopStatus AnimationFall { get; private set; }
 	public IOnceStatus AnimationAttack { get; private set; }
-	public IOnceStatus AnimationJumpAttack { get; private set; }
+	public IOnceStatus AnimationAirAttack { get; private set; }
 
 	public IOnceStatus PulsateTween;
 	public ILoopStatus DangerTween;
@@ -194,9 +197,8 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		AnimationRunStop = _animationStack.AddOnceAnimation("RunStop");
 		AnimationJump = _animationStack.AddOnceAnimation("Jump");
 		AnimationFall = _animationStack.AddLoopAnimation("Fall");
-		AnimationAttack = _animationStack.AddOnceAnimation("Attack").OnStart(() => _attackArea.EnableAllShapes())
-			.OnEnd(() => _attackArea.EnableAllShapes(false));
-		AnimationJumpAttack = _animationStack.AddOnceAnimation("JumpAttack");
+		AnimationAttack = _animationStack.AddOnceAnimation("Attack");
+		AnimationAirAttack = _animationStack.AddOnceAnimation("AirAttack");
 
 		PulsateTween = _tweenStack.AddOnceTween("Pulsate", CreateMoveLeft()).OnEnd(restorer.Restore);
 		DangerTween = _tweenStack.AddLoopTween("Danger", CreateDanger()).OnEnd(restorer.Restore);
@@ -267,7 +269,8 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		Label.Text = _animationStack.GetPlayingOnce() != null
 			? _animationStack.GetPlayingOnce().Name
 			: _animationStack.GetPlayingLoop().Name;
-		// QueueRedraw();
+		Label.Text += "("+attackState+")";
+			// QueueRedraw();
 	}
 
 	// public override void _Draw() {
@@ -275,7 +278,6 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		// RaycastCanJump.DrawRaycast(this, Colors.Red);
 	// }
 
-	public bool IsAttacking => AnimationJumpAttack.Playing || AnimationAttack.Playing;
 	public Vector2 InitialPosition { get; set; }
 
 	public void AddOverlayHelpers(DebugOverlay overlay) {
@@ -328,14 +330,31 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		}
 	}
 
-	public void GroundStates() {
-		bool CheckGroundAttack() {
-			if (!Attack.IsJustPressed()) return false;
-			// Attack was pressed
-				AnimationAttack.PlayOnce();
-			return true;
-		}
+	public enum AttackState {
+		None,
+		Start,
+		Short,
+		Long
+	}
 
+	public AttackState attackState = AttackState.None;
+
+	public void AnimationCallback_EndShortAttack() {
+		if (attackState == AttackState.Short) {
+			attackState = AttackState.None;
+			AnimationAttack.Stop(true);
+			Console.WriteLine("End Short -> None");
+		} else {
+			Console.WriteLine("End Short -> "+attackState);
+		}
+	}
+	
+	public void AnimationCallback_EndLongAttack() {
+		Console.WriteLine("End Long -> None");
+		attackState = AttackState.None;
+	}
+	
+	public void GroundStates() {
 		PhysicsBody2D? fallingPlatform = null;
 		void FallFromPlatform() {
 			fallingPlatform = PlatformBody.GetFloorCollider<PhysicsBody2D>()!;
@@ -363,6 +382,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				}
 			})
 			.If(() => jumpJustInTime).Set(PlayerState.Jump)
+			.If(() => Attack.IsJustPressed()).Set(PlayerState.Attacking)
 			.If(() => XInput == 0).Set(PlayerState.Idle)
 			.If(() => true).Set(PlayerState.Run)
 			.Build();
@@ -372,7 +392,6 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				AnimationIdle.PlayLoop();
 			})
 			.Execute(() => {
-				CheckGroundAttack();
 				ApplyFloorGravity();
 				PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
 			})
@@ -382,31 +401,27 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 					FallFromPlatform();
 					return context.Set(PlayerState.FallShort);
 				})
+			.If(() => Jump.IsJustPressed() && Attack.IsJustPressed()).Set(PlayerState.JumpAttack)
 			.If(() => Jump.IsJustPressed() && CanJump()).Set(PlayerState.Jump)
+			.If(() => Attack.IsJustPressed()).Set(PlayerState.Attacking)
 			.If(() => XInput != 0).Set(PlayerState.Run)
 			.Build();
 
 		State(PlayerState.Run)
 			.Execute(() => {
-				CheckGroundAttack();
-
 				ApplyFloorGravity();
-				if (IsAttacking) {
-					PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
-				} else {
-					if (XInput == 0) {
-						if (Math.Abs(MotionX) >= PlayerConfig.MaxSpeed * 0.95f) {
-							AnimationIdle.PlayLoop();
-							AnimationRunStop.PlayOnce();
-						}
-					} else {
-						AnimationRun.PlayLoop();
-						AnimationRunStop.Stop(true);
+				if (XInput == 0) {
+					if (Math.Abs(MotionX) >= PlayerConfig.MaxSpeed * 0.95f) {
+						AnimationIdle.PlayLoop();
+						AnimationRunStop.PlayOnce();
 					}
-					PlatformBody.Flip(XInput);
-					PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.Friction, 
-						PlayerConfig.StopIfSpeedIsLessThan, 0);
+				} else {
+					AnimationRun.PlayLoop();
+					AnimationRunStop.Stop(true);
 				}
+				PlatformBody.Flip(XInput);
+				PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.Friction, 
+					PlayerConfig.StopIfSpeedIsLessThan, 0);
 			})
 			.If(() => !PlatformBody.IsOnFloor()).Then( 
 				context => {
@@ -418,8 +433,66 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 					FallFromPlatform();
 					return context.Set(PlayerState.FallShort);
 				})
+			.If(() => Jump.IsJustPressed() && Attack.IsJustPressed()).Set(PlayerState.JumpAttack)
 			.If(() => Jump.IsJustPressed() && CanJump()).Set(PlayerState.Jump)
+			.If(() => Attack.IsJustPressed()).Set(PlayerState.Attacking)
 			.If(() => XInput == 0 && MotionX == 0).Set(PlayerState.Idle)
+			.Build();
+
+		State(PlayerState.Attacking)
+			.Enter(() => {
+				AnimationAttack.PlayOnce(true);
+				attackState = AttackState.Start;
+			})
+			.Execute(() => {
+				ApplyFloorGravity();
+				PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
+				if (attackState == AttackState.Start) {
+					attackState = AttackState.Short;
+				} else {
+					if (Attack.IsJustPressed()) {
+						if (attackState == AttackState.Short) {
+							attackState = AttackState.Long;
+						} else if (attackState == AttackState.Long) {
+							//
+						}
+					}
+				}
+			})
+			.If(() => attackState == AttackState.None && !PlatformBody.IsOnFloor()).Set(PlayerState.FallShort)
+			.If(() => attackState == AttackState.None && XInput == 0).Set(PlayerState.Idle)
+			.If(() => attackState == AttackState.None && XInput != 0).Set(PlayerState.Run)
+			.Build();
+		
+		State(PlayerState.JumpAttack)
+			.Enter(() => {
+				PlatformBody.MotionY = -PlayerConfig.JumpSpeed;
+				AnimationAttack.PlayOnce(true);
+				attackState = AttackState.Start;
+			})
+			.If(() => true).Set((PlayerState.FallingAttack))
+			.Build();
+		
+		State(PlayerState.Jump)
+			.Enter(() => {
+				PlatformBody.MotionY = -PlayerConfig.JumpSpeed;
+				AnimationFall.PlayLoop();
+				AnimationJump.PlayOnce();
+			})
+			.Execute(() => {
+				if (Jump.IsReleased() && MotionY < -PlayerConfig.JumpSpeedMin) {
+					PlatformBody.MotionY = -PlayerConfig.JumpSpeedMin;
+				}
+
+				PlatformBody.Flip(XInput);
+				ApplyAirGravity();
+				PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
+					PlayerConfig.StopIfSpeedIsLessThan, 0);
+			})
+			.If(() => Attack.IsJustPressed()).Set(PlayerState.FallingAttack)
+			.If(() => Float.IsPressed()).Set(PlayerState.Float)
+			.If(() => PlatformBody.IsOnFloor()).Set(PlayerState.Landing)
+			.If(() => MotionY >= 0).Set(PlayerState.FallShort)
 			.Build();
 
 		State(PlayerState.Death)
@@ -428,18 +501,9 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				Bus.Publish(MainEvent.EndGame);
 			})
 			.Build();
-
 	}
 
 	public void AirStates() {
-
-		bool CheckAirAttack() {
-			if (!Attack.IsJustPressed()) return false;
-			// Attack was pressed
-			AnimationJumpAttack.PlayOnce();
-			return true;
-		}
-
 		bool CheckCoyoteJump() {
 			if (!Jump.IsJustPressed()) return false;
 			// Jump was pressed
@@ -454,39 +518,41 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			return false;
 		}
 
-		State(PlayerState.Jump)
+		State(PlayerState.FallingAttack)
 			.Enter(() => {
-				PlatformBody.MotionY = -PlayerConfig.JumpSpeed;
-				AnimationFall.PlayLoop();
-				AnimationJump.PlayOnce();
+				AnimationAttack.PlayOnce(true);
+				attackState = AttackState.Start;
 			})
 			.Execute(() => {
-				CheckAirAttack();
-
-				if (Jump.IsReleased() && MotionY < -PlayerConfig.JumpSpeedMin) {
-					PlatformBody.MotionY = -PlayerConfig.JumpSpeedMin;
-				}
-
 				PlatformBody.Flip(XInput);
-				ApplyAirGravity();
+				ApplyFloorGravity();
 				PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
 					PlayerConfig.StopIfSpeedIsLessThan, 0);
+				if (attackState == AttackState.Start) {
+					attackState = AttackState.Short;
+				} else {
+					if (Attack.IsJustPressed() && false) {
+						if (attackState == AttackState.Short) {
+							attackState = AttackState.Long;
+						} else if (attackState == AttackState.Long) {
+							//
+						}
+					}
+				}
 			})
-			.If(() => Float.IsPressed()).Set(PlayerState.Float)
-			.If(() => PlatformBody.IsOnFloor()).Set(PlayerState.Landing)
-			.If(() => MotionY >= 0).Set(PlayerState.FallShort)
+			.If(() => attackState == AttackState.None && !PlatformBody.IsOnFloor()).Set(PlayerState.FallLong)
+			.If(() => attackState == AttackState.None && XInput == 0).Set(PlayerState.Idle)
+			.If(() => attackState == AttackState.None && XInput != 0).Set(PlayerState.Run)
 			.Build();
-				
 
 		State(PlayerState.FallShort)
 			.Execute(() => {
-				CheckAirAttack();
-
 				PlatformBody.Flip(XInput);
 				ApplyAirGravity();
 				PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
 					PlayerConfig.StopIfSpeedIsLessThan, 0);
 			})
+			.If(() => Attack.IsJustPressed()).Set(PlayerState.FallingAttack)
 			.If(() => Float.IsPressed()).Set(PlayerState.Float)
 			.If(CheckCoyoteJump).Set(PlayerState.Jump)
 			.If(() => PlatformBody.IsOnFloor()).Set(PlayerState.Landing)
@@ -494,16 +560,14 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			.Build();
 				
 		State(PlayerState.FallLong)
-			.Enter(() => {
-				AnimationFall.PlayLoop();
-			})
+			.Enter(() => AnimationFall.PlayLoop())
 			.Execute(() => {
-				CheckAirAttack();
 				PlatformBody.Flip(XInput);
 				ApplyAirGravity();
-				PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed,
-					PlayerConfig.AirResistance, PlayerConfig.StopIfSpeedIsLessThan, 0);
+				PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
+					PlayerConfig.StopIfSpeedIsLessThan, 0);
 			})
+			.If(() => Attack.IsJustPressed()).Set(PlayerState.FallingAttack)
 			.If(() => Float.IsPressed()).Set(PlayerState.Float)
 			.If(CheckCoyoteJump).Set(PlayerState.Jump)
 			.If(() => PlatformBody.IsOnFloor()).Set(PlayerState.Landing)
