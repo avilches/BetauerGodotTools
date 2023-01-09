@@ -28,6 +28,7 @@ size = Vector2(960, 540)
 
 [node name="CanvasModulate" type="CanvasModulate" parent="."]
 visible = false
+color = Color(0.203922, 0.203922, 0.203922, 1)
 
 [node name="PositionPlayer" type="Marker2D" parent="."]
 position = Vector2(-332, 54)
@@ -51,6 +52,7 @@ offset_bottom = 40.0
 
 [node name="MaxLength1" type="Label" parent="Hints"]
 modulate = Color(0.403922, 0.403922, 0.403922, 1)
+layout_mode = 0
 offset_left = -410.0
 offset_top = 3.0
 offset_right = -210.0
@@ -61,6 +63,7 @@ horizontal_alignment = 1
 
 [node name="MaxHeight" type="Label" parent="Hints"]
 modulate = Color(0.403922, 0.403922, 0.403922, 1)
+layout_mode = 0
 offset_left = -482.0
 offset_top = -45.0
 offset_right = -282.0
@@ -71,6 +74,7 @@ horizontal_alignment = 1
 
 [node name="MaxLength2" type="Label" parent="Hints"]
 modulate = Color(1, 0.34902, 0.360784, 0.576471)
+layout_mode = 0
 offset_left = -237.0
 offset_top = -2.0
 offset_right = -57.0
@@ -81,6 +85,7 @@ horizontal_alignment = 1
 
 [node name="MaxLength3" type="Label" parent="Hints"]
 modulate = Color(0.403922, 0.403922, 0.403922, 1)
+layout_mode = 0
 offset_left = -98.0
 offset_top = 7.0
 offset_right = 98.0
@@ -92,6 +97,7 @@ horizontal_alignment = 1
 
 [node name="MaxLength4" type="Label" parent="Hints"]
 modulate = Color(1, 0.34902, 0.360784, 0.576471)
+layout_mode = 0
 offset_left = 69.0
 offset_top = 9.0
 offset_right = 265.0
@@ -182,6 +188,7 @@ occluder = SubResource("OccluderPolygon2D_65pi2")
 [node name="Stages" type="Node" parent="."]
 
 [node name="Area2D1" type="Area2D" parent="Stages"]
+visible = false
 position = Vector2(-960, -540)
 metadata/_edit_lock_ = true
 
@@ -190,6 +197,7 @@ shape = SubResource("RectangleShape2D_5fj3v")
 metadata/_edit_lock_ = true
 
 [node name="Area2D3" type="Area2D" parent="Stages"]
+visible = false
 position = Vector2(0, -540)
 metadata/_edit_lock_ = true
 
@@ -198,6 +206,7 @@ shape = SubResource("RectangleShape2D_5fj3v")
 metadata/_edit_lock_ = true
 
 [node name="Area2D4" type="Area2D" parent="Stages"]
+visible = false
 position = Vector2(-960, 0)
 metadata/_edit_lock_ = true
 
@@ -206,6 +215,7 @@ shape = SubResource("RectangleShape2D_5fj3v")
 metadata/_edit_lock_ = true
 
 [node name="Area2D5" type="Area2D" parent="Stages"]
+visible = false
 metadata/_edit_lock_ = true
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Stages/Area2D5"]
@@ -213,6 +223,7 @@ shape = SubResource("RectangleShape2D_5fj3v")
 metadata/_edit_lock_ = true
 
 [node name="Area2D6" type="Area2D" parent="Stages"]
+visible = false
 position = Vector2(960, 0)
 metadata/_edit_lock_ = true
 

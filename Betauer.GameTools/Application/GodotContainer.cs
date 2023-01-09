@@ -30,7 +30,7 @@ public class GodotContainer {
 
     public GodotContainer Start(Action<ContainerBuilder>? containerConfig = null) {
         _containerConfig = containerConfig;
-        if (_owner.GetTree() != null) StartContainer();
+        if (_owner.IsInsideTree()) StartContainer();
         else _owner.OnTreeEntered(StartContainer, true);
         return this;
     }
