@@ -12,8 +12,6 @@ public class DefaultConfiguration {
 
     public DefaultConfiguration(Node owner) {
         _sceneTree = owner.GetTree();
-        DefaultNodeHandler.Configure(_sceneTree.Root);
-        DefaultNotificationsHandler.Instance.Configure(owner.GetTree());
         DefaultNotificationsHandler.Instance.OnWmCloseRequest += () => LoggerFactory.SetAutoFlush(true);
     }
 

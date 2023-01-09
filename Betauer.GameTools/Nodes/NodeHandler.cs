@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Betauer.Core.Nodes;
 using Godot;
 
 namespace Betauer.Nodes {
@@ -8,11 +9,6 @@ namespace Betauer.Nodes {
         public static readonly NodeHandler Instance = new() {
             Name = "NodeHandler"
         };
-
-        public static void Configure(Viewport node) {
-            if (Instance.GetParent() != null) Instance.GetParent().RemoveChild(Instance);
-            node.AddChild(Instance);
-        }
     }
 
     public interface INodeEvent {

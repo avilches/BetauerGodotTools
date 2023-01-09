@@ -30,11 +30,6 @@ public partial class NotificationsHandler : Node {
         ProcessMode = ProcessModeEnum.Always;
     }
 
-    public void Configure(SceneTree sceneTree) {
-        GetParent()?.RemoveChild(this);
-        sceneTree.Root.AddChild(this);
-    }
-
     public void Execute(long what) {
         switch (what) {
             case Node.NotificationWmMouseEnter: // 1002
