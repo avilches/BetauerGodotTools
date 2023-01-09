@@ -345,14 +345,10 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		if (attackState == AttackState.Short) {
 			attackState = AttackState.None;
 			AnimationAttack.Stop(true);
-			Console.WriteLine("End Short -> None");
-		} else {
-			Console.WriteLine("End Short -> "+attackState);
 		}
 	}
 	
 	public void AnimationCallback_EndLongAttack() {
-		Console.WriteLine("End Long -> None");
 		attackState = AttackState.None;
 	}
 	

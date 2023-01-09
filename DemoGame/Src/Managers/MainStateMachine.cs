@@ -131,7 +131,7 @@ public partial class MainStateMachine : StateMachineNodeAsync<MainState, MainEve
         State(MainState.StartingGame)
             .Enter(async () => {
                 await MainMenuScene.HideMainMenu();
-                Game.Start();
+                await Game.Start();
             })
             .If(() => true).Set(MainState.Gaming)
             .Build();

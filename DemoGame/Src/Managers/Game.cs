@@ -1,8 +1,10 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Betauer.Core;
 using Betauer.DI;
 using Betauer.Core.Nodes;
+using Betauer.Core.Signal;
 using Godot;
 using Veronenger.Character.Player;
 
@@ -21,9 +23,9 @@ public class Game {
     private Node _currentGameScene;
     private PlayerNode _playerScene;
 
-    public void Start() {
+    public async Task Start() {
         StageManager.ClearState();
-        StartWorld3();
+        await StartWorld3();
     }
 
     public void StartNew() {
@@ -34,8 +36,11 @@ public class Game {
         SceneTree.Root.AddChildDeferred(_currentGameScene);
     }
 
-    public void StartWorld3() {
+    public async Task StartWorld3() {
         _currentGameScene = World3.Get();
+        AddPlayerToScene(_currentGameScene);
+        SceneTree.Root.AddChild(_currentGameScene);
+        await SceneTree.AwaitProcessFrame();
 
         _currentGameScene.GetChildren().OfType<TileMap>().ForEach(PlatformManager.ConfigureTileMapCollision);
         _currentGameScene.GetChildren().OfType<CanvasModulate>().ForEach(cm => cm.Visible = true);
@@ -46,9 +51,7 @@ public class Game {
         });
         PlatformManager.ConfigurePlatformsCollisions();
         _currentGameScene.GetNode<Node>("Stages").GetChildren().OfType<Area2D>().ForEach(StageManager.ConfigureStage);
-        AddPlayerToScene(_currentGameScene);
             
-        SceneTree.Root.AddChildDeferred(_currentGameScene);
     }
 
     private void CandleOff(PointLight2D light) {
@@ -82,7 +85,7 @@ public class Game {
     private void AddPlayerToScene(Node nextScene) {
         var marker2D = nextScene.GetNode<Node2D>("PositionPlayer");
         if (marker2D == null) throw new Exception("Node PositionPlayer not found when loading scene " + nextScene.SceneFilePath);
-        AddPlayerToScene(nextScene, marker2D.GlobalPosition);
+        AddPlayerToScene(nextScene, marker2D.Position);
     }
 
     private void AddPlayerToScene(Node nextScene, Vector2 position) {
