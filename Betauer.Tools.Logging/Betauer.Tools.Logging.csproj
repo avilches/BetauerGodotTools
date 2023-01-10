@@ -9,7 +9,7 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="GodotSharp" Version="4.0.0-beta.10" />
+        <PackageReference Include="GodotSharp" Version="4.0.0-beta.11" />
         <PackageReference Include="ZString" Version="2.5.0" />
     </ItemGroup>
 </Project>
