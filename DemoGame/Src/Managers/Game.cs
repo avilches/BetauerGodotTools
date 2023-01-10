@@ -37,7 +37,9 @@ public class Game {
     }
 
     public async Task StartWorld3() {
+        GD.PushWarning("World3 creation start");
         _currentGameScene = World3.Get();
+        GD.PushWarning("World3 creation end");
         AddPlayerToScene(_currentGameScene);
         SceneTree.Root.AddChild(_currentGameScene);
         await SceneTree.AwaitProcessFrame();
