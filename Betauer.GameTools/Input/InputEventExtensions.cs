@@ -87,7 +87,7 @@ namespace Betauer.Input {
             input is InputEventKey k && k.Keycode == key;
 
         public static Key GetKey(this InputEvent input) =>
-            input is InputEventKey k ? k.Keycode : Key.Unknown;
+            input is InputEventKey k ? k.Keycode : Key.None;
 
         public static string GetKeyStringWithModifiers(this InputEvent input) =>
             input is InputEventKey k ? OS.GetKeycodeString(k.GetKeycodeWithModifiers()) : "";
@@ -127,7 +127,7 @@ namespace Betauer.Input {
          * Any click
          */
         public static MouseButton GetClick(this InputEvent input) =>
-            input is InputEventMouseButton k ? k.ButtonIndex : MouseButton.MaskXbutton2;
+            input is InputEventMouseButton k ? k.ButtonIndex : MouseButton.None;
 
         public static bool IsAnyClick(this InputEvent input) =>
             input is InputEventMouseButton;

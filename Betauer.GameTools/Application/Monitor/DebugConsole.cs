@@ -219,8 +219,8 @@ namespace Betauer.Application.Monitor {
                         .Child(ConsoleOutput)
                             .Config(text => {
                                 text.Name = nameof(ConsoleOutput);
-                                text.SizeFlagsHorizontal = (int)SizeFlags.ExpandFill;
-                                text.SizeFlagsVertical = (int)SizeFlags.ExpandFill;
+                                text.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+                                text.SizeFlagsVertical = SizeFlags.ExpandFill;
                                 text.BbcodeEnabled = true;
                                 text.SelectionEnabled = true;
                                 text.ScrollFollowing = true;
@@ -245,7 +245,7 @@ namespace Betauer.Application.Monitor {
                                     };
                                     prompt.AddThemeStyleboxOverride("normal", style);
                                     prompt.AddThemeStyleboxOverride("focus", style);
-                                    prompt.SizeFlagsHorizontal = (int)SizeFlags.ExpandFill;
+                                    prompt.SizeFlagsHorizontal = SizeFlags.ExpandFill;
                                     prompt.CaretBlink = true;
                                     prompt.CaretBlinkInterval = 0.250f;
                                     prompt.GrabFocus();
