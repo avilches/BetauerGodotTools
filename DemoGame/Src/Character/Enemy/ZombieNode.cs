@@ -31,7 +31,7 @@ public enum ZombieState {
 	Attacked,
 	Destroy,
 		
-	FallShort
+	Fall
 }
 
 public class EnemyStatus {
@@ -275,8 +275,8 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 				ApplyFloorGravity();
 				PlatformBody.Stop(EnemyConfig.Friction, EnemyConfig.StopIfSpeedIsLessThan);
 			})
-			.If(() => !PlatformBody.IsOnFloor()).Set(ZombieState.FallShort)
 			.If(() => Jump.IsJustPressed()).Set(ZombieState.Jump)
+			.If(() => !PlatformBody.IsOnFloor()).Set(ZombieState.Fall)
 			.If(() => XInput != 0).Set(ZombieState.Run)
 			.Build();
 
@@ -290,8 +290,8 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 				PlatformBody.Lateral(XInput, EnemyConfig.Acceleration, EnemyConfig.MaxSpeed, 
 					EnemyConfig.Friction, EnemyConfig.StopIfSpeedIsLessThan, 0);
 			})
-			.If(() => !PlatformBody.IsOnFloor()).Set(ZombieState.FallShort)
 			.If(() => Jump.IsJustPressed()).Set(ZombieState.Jump)
+			.If(() => !PlatformBody.IsOnFloor()).Set(ZombieState.Fall)
 			.If(() => XInput == 0 && MotionX == 0).Set(ZombieState.Idle)
 			.Build();
 
@@ -338,11 +338,11 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 				PlatformBody.Lateral(XInput, EnemyConfig.Acceleration, EnemyConfig.MaxSpeed,
 					EnemyConfig.Friction, EnemyConfig.StopIfSpeedIsLessThan, 0);
 			})
-			.If(() => MotionY >= 0).Set(ZombieState.FallShort)
 			.If(PlatformBody.IsOnFloor).Set(ZombieState.Landing)
+			.If(() => MotionY >= 0).Set(ZombieState.Fall)
 			.Build();
 
-		State(ZombieState.FallShort)
+		State(ZombieState.Fall)
 			.Execute(() => {
 				ApplyAirGravity();
 				PlatformBody.Flip(XInput);
