@@ -1,7 +1,7 @@
 using System;
 using Godot;
 
-namespace Betauer.Application; 
+namespace Betauer.Application.Notifications; 
 
 public partial class NotificationsHandler : Node {
 
@@ -30,7 +30,12 @@ public partial class NotificationsHandler : Node {
         ProcessMode = ProcessModeEnum.Always;
     }
 
-    public void Execute(long what) {
+    public void AddTo(Viewport viewport) {
+        GetParent()?.RemoveChild(this);
+        viewport.AddChild(this);
+    }
+
+    public override void _Notification(long what) {
         switch (what) {
             case Node.NotificationWmMouseEnter: // 1002
                 OnWmMouseEnter?.Invoke();
