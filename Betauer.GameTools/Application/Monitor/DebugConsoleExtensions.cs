@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using System.Linq;
+using Betauer.Application.Notifications;
 using Betauer.Application.Screen;
 using Betauer.Core.Nodes;
 using Betauer.Input;
@@ -42,7 +43,7 @@ namespace Betauer.Application.Monitor {
             return console.AddCommand(new DebugConsole.Command(name, executeWithCommandInput, shortHelp, longHelp));
         }
 
-        public static DebugConsole AddAllCommands(this DebugConsole console) {
+        public static DebugConsole AddAllCommands(this DebugConsole console, WindowNotificationStatus windowNotificationStatus) {
             console.AddHelpCommand();
             console.AddEngineTimeScaleCommand();
             console.AddEngineMaxFpsCommand();
@@ -50,7 +51,7 @@ namespace Betauer.Application.Monitor {
             console.AddQuitCommand();
             console.AddNodeHandlerInfoCommand();
             console.AddShowAllCommand();
-            console.AddSystemInfoCommand();
+            console.AddSystemInfoCommand(windowNotificationStatus);
             return console;
         }
 
@@ -154,7 +155,7 @@ namespace Betauer.Application.Monitor {
             }, "Open the NodeHandler info window.");
         }
 
-        public static DebugConsole AddSystemInfoCommand(this DebugConsole console) {
+        public static DebugConsole AddSystemInfoCommand(this DebugConsole console, WindowNotificationStatus windowNotificationStatus) {
             const string title = "System info";
             return console.CreateCommand("system-info", () => {
                 if (console.DebugOverlayManager.HasOverlay(title)) return;
@@ -162,6 +163,7 @@ namespace Betauer.Application.Monitor {
                     .Overlay(title)
                     .HideOnClose(false)
                     .Solid()
+                    .AddWindowNotificationStatus(windowNotificationStatus)
                     .AddMonitorFpsTimeScaleAndUptime()
                     .AddMonitorMemory()
                     .AddMonitorInternals();

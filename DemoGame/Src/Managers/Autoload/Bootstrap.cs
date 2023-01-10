@@ -22,6 +22,7 @@ public partial class Bootstrap : Node /* needed to be instantiated as an Autoloa
 
     [Inject] private NotificationsHandler NotificationsHandler { get; set; }
     [Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
+    [Inject] private WindowNotificationStatus WindowNotificationStatus { get; set; }
 
     public Bootstrap() {
         AppTools.ConfigureExceptionHandlers(GetTree);
@@ -63,7 +64,7 @@ public partial class Bootstrap : Node /* needed to be instantiated as an Autoloa
         NotificationsHandler.OnWmCloseRequest += () => {
             GD.Print($"[WmQuitRequest] Uptime: {Project.Uptime.TotalMinutes:0} min {Project.Uptime.Seconds:00} sec");
         };
-        DebugOverlayManager.DebugConsole.AddAllCommands();
+        DebugOverlayManager.DebugConsole.AddAllCommands(WindowNotificationStatus);
     }
 
     private static void ExportConfig() {

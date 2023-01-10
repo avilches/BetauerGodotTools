@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Betauer.Application.Notifications;
 using Betauer.Application.Screen;
 using Betauer.Core;
 using Betauer.Core.Nodes;
@@ -181,6 +182,15 @@ namespace Betauer.Application.Monitor {
                     .EndMonitor()
                 .CloseBox();
             return overlay;
+        }
+
+        public static DebugOverlay AddWindowNotificationStatus(this DebugOverlay overlay, WindowNotificationStatus windowNotificationStatus) {
+            return overlay
+                .OpenBox()
+                    .Text("Window Focus", () => windowNotificationStatus.IsWindowFocused).EndMonitor()
+                    .Text("Application Focus", () => windowNotificationStatus.IsApplicationFocused).EndMonitor()
+                    .Text("Mouse inside game", () => windowNotificationStatus.IsMouseInsideScreen).EndMonitor()
+                .CloseBox();
         }
 
         public static DebugOverlay AddMonitorFpsTimeScaleAndUptime(this DebugOverlay overlay) {
