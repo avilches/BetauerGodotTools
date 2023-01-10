@@ -1,6 +1,7 @@
 using Betauer.Animation;
 using Betauer.Application;
 using Betauer.Application.Monitor;
+using Betauer.Application.Notifications;
 using Betauer.Application.Screen;
 using Betauer.Camera;
 using Betauer.DI;
@@ -28,7 +29,7 @@ public partial class Bootstrap : Node /* needed to be instantiated as an Autoloa
         new GodotContainer(this)
             .Start(options => {
                 options
-                    .ScanConfiguration(new DefaultConfiguration(this))
+                    .ScanConfiguration(new DefaultConfiguration(GetTree()))
                     .Scan<MouseActions>();
             });
 
