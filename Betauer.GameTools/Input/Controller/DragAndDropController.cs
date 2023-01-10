@@ -34,6 +34,15 @@ public class DragAndDropController {
         return this;
     }
 
+    
+    public void ForceDrop(Vector2? dropPosition = null) {
+        if (LastDragPosition.HasValue) {
+            var mousePosition = dropPosition ?? (Engine.GetMainLoop() as SceneTree).Root.GetMousePosition();
+            OnDrop?.Invoke(mousePosition);
+            LastDragPosition = null;
+        }
+    }
+
     public void Handle(InputEvent e) {
         if (Action != null && Action.IsEvent(e) && (Predicate == null || Predicate(e))) {
             if (e.IsJustPressed()) {
@@ -43,7 +52,7 @@ public class DragAndDropController {
                 OnDrop?.Invoke(e.GetMousePosition());
                 LastDragPosition = null;
             }
-        } else if (LastDragPosition.HasValue && e.IsMouseMotion()) {
+        } else if (LastDragPosition.HasValue && e.IsMouseMotion() && Action.IsPressed()) {
             var offset = e.GetMousePosition() - LastDragPosition.Value;
             OnDrag?.Invoke(offset);
             LastDragPosition = e.GetMousePosition();;
