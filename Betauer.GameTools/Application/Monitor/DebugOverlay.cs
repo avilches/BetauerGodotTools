@@ -320,6 +320,12 @@ namespace Betauer.Application.Monitor {
             _startDragPosition = _position;
         }
 
+        public override void _Notification(long what) {
+            if (what is NotificationWmMouseExit or NotificationWmWindowFocusOut or NotificationApplicationFocusOut) {
+                _dragAndDropController.ForceDrop();
+            }
+        }
+
         private void OnDrag(Vector2 offset) {
             var newPosition = _position + offset;
             var origin = FollowPosition;
