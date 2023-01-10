@@ -113,6 +113,11 @@ namespace Betauer.Nodes {
         public readonly List<IDrawHandler> OnDrawList = new();
         
         private SceneTree _sceneTree;
+        
+        public void AddTo(Viewport viewport) {
+            GetParent()?.RemoveChild(this);
+            viewport.AddChild(this);
+        }
 
         public override void _EnterTree() {
             _sceneTree = GetTree();
