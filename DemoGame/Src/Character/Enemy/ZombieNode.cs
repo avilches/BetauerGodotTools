@@ -6,8 +6,8 @@ using Betauer.Core.Nodes.Property;
 using Betauer.Core.Time;
 using Betauer.DI;
 using Betauer.Input;
+using Betauer.Nodes;
 using Betauer.OnReady;
-using Betauer.StateMachine;
 using Betauer.StateMachine.Sync;
 using Betauer.Tools.Logging;
 using Godot;
@@ -127,6 +127,12 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		OnAfterExecute += _zombieAi.EndFrame;
 		OnAfterExecute += () => Label.Text = _zombieAi.GetState();
 
+		this.OnDraw(canvas => {
+			canvas.DrawRaycast(FacePlayerDetector, Colors.Red);
+			canvas.DrawRaycast(BackPlayerDetector, Colors.Red);
+			canvas.DrawRaycast(FloorRaycast, Colors.Blue);
+		});
+
 		var overlay = DebugOverlayManager.Follow(CharacterBody2D).Title("Zombie");
 		AddOverlayStates(overlay);
 		AddOverlayMotion(overlay);
@@ -177,13 +183,6 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		_damageArea.CollisionMask = 0;
 		// _attackArea.CollisionMask = 0;
 	}
-
-	// private Color[] _colors = { Colors.Blue, Colors.Yellow, Colors.Green, Colors.Fuchsia };
-	// public override void _Draw() {
-	// 	FacePlayerDetector.DrawRaycast(this, Colors.Red);
-	// 	BackPlayerDetector.DrawRaycast(this, Colors.Red);
-	// 	FloorRaycast.DrawRaycast(this, Colors.Blue);
-	// }
 
 	public void ResetHit() {
 		HitLabel.Visible = false;

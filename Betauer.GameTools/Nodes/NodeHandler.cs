@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Betauer.Core.Nodes;
 using Godot;
 
 namespace Betauer.Nodes {
     public class DefaultNodeHandler {
         public static readonly NodeHandler Instance = new() {
-            Name = "NodeHandler"
+            Name = "NodeHandler",
+            ZIndex = 1024
         };
     }
 
@@ -17,7 +17,7 @@ namespace Betauer.Nodes {
         public void Destroy();
     }
 
-    public partial class NodeHandler : Node {
+    public partial class NodeHandler : Node2D {
         public static bool ShouldProcess(bool pause, ProcessModeEnum processMode) {
             if (processMode == ProcessModeEnum.Inherit) return !pause;
             return processMode == ProcessModeEnum.Always ||
@@ -37,6 +37,10 @@ namespace Betauer.Nodes {
 
         public interface IProcessHandler : IEventHandler {
             public void Handle(double delta);
+        }
+
+        public interface IDrawHandler : IEventHandler {
+            public void Handle(CanvasItem canvas);
         }
 
         private abstract class NodeEvent : INodeEvent, IEventHandler {
@@ -77,6 +81,7 @@ namespace Betauer.Nodes {
                 _delegate(delta);
             }
         }
+
         private class InputEventNodeEvent : NodeEvent, IInputEventHandler {
             private readonly Action<InputEvent> _delegate;
             internal InputEventNodeEvent(Node? node, Action<InputEvent> @delegate, ProcessModeEnum pauseMode) : base(node, pauseMode) {
@@ -88,12 +93,24 @@ namespace Betauer.Nodes {
             }
         }
 
+        private class DrawNodeEvent : NodeEvent, IDrawHandler {
+            private readonly Action<CanvasItem> _delegate;
+            internal DrawNodeEvent(Node? node, Action<CanvasItem> @delegate, ProcessModeEnum pauseMode) : base(node, pauseMode) {
+                _delegate = @delegate;
+            }
+
+            public void Handle(CanvasItem canvas) {
+                _delegate(canvas);
+            }
+        }
+
         public readonly List<IProcessHandler> OnProcessList = new();
         public readonly List<IProcessHandler> OnPhysicsProcessList = new();
         public readonly List<IInputEventHandler> OnInputList = new();
         public readonly List<IInputEventHandler> OnShortcutInputList = new();
         public readonly List<IInputEventHandler> OnUnhandledInputList = new();
         public readonly List<IInputEventHandler> OnUnhandledKeyInputList = new();
+        public readonly List<IDrawHandler> OnDrawList = new();
         
         private SceneTree _sceneTree;
 
@@ -168,8 +185,22 @@ namespace Betauer.Nodes {
             SetProcessUnhandledKeyInput(true);
         }
 
+        public INodeEvent OnDraw(Node node, Action<CanvasItem> action, ProcessModeEnum pauseMode = ProcessModeEnum.Inherit) {
+            var nodeEvent = new DrawNodeEvent(node, action, pauseMode);
+            OnDraw(nodeEvent);
+            return nodeEvent;
+        }
+
+        public void OnDraw(IDrawHandler inputEvent) {
+            OnDrawList.Add(inputEvent);
+            SetProcess(true);
+        }
+
         public override void _Process(double delta) {
-            ProcessNodeEvents(OnProcessList, delta, () => SetProcess(false));
+            ProcessNodeEvents(OnProcessList, delta, () => {
+                if (OnDrawList.Count == 0) SetProcess(false);
+            });
+            if (OnDrawList.Count > 0) QueueRedraw();
         }
 
         public override void _PhysicsProcess(double delta) {
@@ -205,6 +236,18 @@ namespace Betauer.Nodes {
 
         public override void _UnhandledKeyInput(InputEvent inputEvent) {
             ProcessInputEventList(OnUnhandledKeyInputList, inputEvent, () => SetProcessUnhandledKeyInput(false));
+        }
+
+        public override void _Draw() {
+            if (OnDrawList.Count == 0) return;
+            var isTreePaused = _sceneTree.Paused;
+            OnDrawList.RemoveAll(processHandler => {
+                if (processHandler.IsDestroyed) return true;
+                if (processHandler.IsEnabled(isTreePaused)) {
+                    processHandler.Handle(this);
+                }
+                return false;
+            });
         }
 
         private void ProcessInputEventList(List<IInputEventHandler> inputEventHandlerList, InputEvent inputEvent, Action disabler) {
@@ -253,6 +296,9 @@ $@"{OnProcessList.Count} Process: {string.Join(", ", OnProcessList.Select(e => e
 
         public static INodeEvent OnUnhandledKeyInput(this Node node, Action<InputEvent> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) =>
             DefaultNodeHandler.Instance.OnUnhandledKeyInput(node, action, pauseMode);
+
+        public static INodeEvent OnDraw(this Node node, Action<CanvasItem> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) =>
+            DefaultNodeHandler.Instance.OnDraw(node, action, pauseMode);
 
     }
  

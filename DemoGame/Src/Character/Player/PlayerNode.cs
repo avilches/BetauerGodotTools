@@ -12,6 +12,7 @@ using Betauer.Core.Restorer;
 using Betauer.Core.Time;
 using Betauer.DI;
 using Betauer.Input;
+using Betauer.Nodes;
 using Betauer.OnReady;
 using Betauer.StateMachine.Sync;
 using Godot;
@@ -46,15 +47,17 @@ public enum PlayerState {
 public enum PlayerEvent {
 	Death
 }
-	
+
 public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent> {
 	public PlayerNode() : base(PlayerState.Idle, "Player.StateMachine", true) {
 	}
-	
+
 	[OnReady("Character")] private CharacterBody2D CharacterBody2D;
 	[OnReady("Character/Sprites/Weapon")] private Sprite2D _weaponNode;
 	[OnReady("Character/Sprites/Body")] private Sprite2D _mainSprite;
-	[OnReady("Character/Sprites/AnimationPlayer")] private AnimationPlayer _animationPlayer;
+
+	[OnReady("Character/Sprites/AnimationPlayer")]
+	private AnimationPlayer _animationPlayer;
 
 	[OnReady("Character/AttackArea")] private Area2D _attackArea;
 	[OnReady("Character/DamageArea")] private Area2D _damageArea;
@@ -72,7 +75,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	[Inject] private StageManager StageManager { get; set; }
 	[Inject] private InputAction MMB { get; set; }
 
-	[Inject] public PlayerConfig PlayerConfig { get; set;}
+	[Inject] public PlayerConfig PlayerConfig { get; set; }
 	[Inject] private SceneTree SceneTree { get; set; }
 	[Inject] private Bus Bus { get; set; }
 	[Inject] private InputActionCharacterHandler Handler { get; set; }
@@ -98,13 +101,16 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	private IAction Jump => Handler.Jump;
 	private IAction Attack => Handler.Attack;
 	private IAction Float => Handler.Float;
-		
+
 	private float MotionX => PlatformBody.MotionX;
 	private float MotionY => PlatformBody.MotionY;
 
 
 	// private bool IsOnPlatform() => PlatformManager.IsPlatform(Body.GetFloor());
-	private bool IsOnFallingPlatform() => PlatformBody.IsOnFloor() && PlatformManager.IsFallingPlatform(PlatformBody.GetFloorColliders<PhysicsBody2D>().FirstOrDefault());
+	private bool IsOnFallingPlatform() => PlatformBody.IsOnFloor() &&
+	                                      PlatformManager.IsFallingPlatform(PlatformBody
+		                                      .GetFloorColliders<PhysicsBody2D>().FirstOrDefault());
+
 	// private bool IsMovingPlatform() => PlatformManager.IsMovingPlatform(Body.GetFloor());
 	private MonitorText? _coyoteMonitor;
 	private MonitorText? _jumpHelperMonitor;
@@ -112,7 +118,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	private readonly GodotStopwatch _coyoteFallingTimer = new GodotStopwatch();
 
 	public KinematicPlatformMotion PlatformBody;
-		
+	
 	public Vector2 InitialPosition { get; set; }
 
 	private readonly DragCameraController _cameraController = new();
@@ -135,6 +141,12 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		var overlay = DebugOverlayManager.Overlay(CharacterBody2D)
 			.Title("Player")
 			.SetMaxSize(1000, 1000);
+
+		this.OnDraw(canvas => {
+			foreach (var floorRaycast in FloorRaycasts) canvas.DrawRaycast(floorRaycast, Colors.Red);
+			canvas.DrawRaycast(RaycastCanJump, Colors.Red);
+		});
+
 
 		AddOverlayHelpers(overlay);
 		AddOverlayStates(overlay);
@@ -276,11 +288,6 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		Label.Text += "("+attackState+")";
 			// QueueRedraw();
 	}
-
-	// public override void _Draw() {
-		// foreach (var floorRaycast in FloorRaycasts) floorRaycast.DrawRaycast(this, Colors.Red);
-		// RaycastCanJump.DrawRaycast(this, Colors.Red);
-	// }
 
 	public void AddOverlayHelpers(DebugOverlay overlay) {
 		_jumpHelperMonitor = overlay.Text("JumpHelper");
