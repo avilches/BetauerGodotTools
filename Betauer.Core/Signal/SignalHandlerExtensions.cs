@@ -62,9 +62,6 @@ namespace Betauer.Core.Signal {
         public static SignalHandler OnAnimationRenamed(this AnimationLibrary target, Action<Godot.StringName, Godot.StringName> action, bool oneShot = false, bool deferred = false) =>
             On(target, AnimationLibrary.SignalName.AnimationRenamed, action, oneShot, deferred);
 
-        public static SignalHandler OnRemovedFromGraph(this AnimationNode target, Action action, bool oneShot = false, bool deferred = false) =>
-            On(target, AnimationNode.SignalName.RemovedFromGraph, action, oneShot, deferred);
-
         public static SignalHandler OnTreeChanged(this AnimationNode target, Action action, bool oneShot = false, bool deferred = false) =>
             On(target, AnimationNode.SignalName.TreeChanged, action, oneShot, deferred);
 

@@ -41,9 +41,6 @@ namespace Betauer.Core.Signal {
         public static SignalAwaiter AwaitAnimationRenamed(this AnimationLibrary target) =>
             target.ToSignal(target, "animation_renamed");
 
-        public static SignalAwaiter AwaitRemovedFromGraph(this AnimationNode target) =>
-            target.ToSignal(target, "removed_from_graph");
-
         public static SignalAwaiter AwaitTreeChanged(this AnimationNode target) =>
             target.ToSignal(target, "tree_changed");
 

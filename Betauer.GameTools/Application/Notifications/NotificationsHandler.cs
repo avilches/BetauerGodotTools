@@ -32,7 +32,7 @@ public partial class NotificationsHandler : Node {
 
     public void AddTo(Viewport viewport) {
         GetParent()?.RemoveChild(this);
-        viewport.AddChild(this);
+            viewport.AddChild(this);
     }
 
     public override void _Notification(long what) {
