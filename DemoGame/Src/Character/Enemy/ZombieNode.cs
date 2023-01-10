@@ -76,6 +76,8 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 	[OnReady("Character/Label")] public Label Label;
 	[OnReady("Character/HitLabelPosition/HitLabel")] public Label HitLabel;
 	[OnReady("Character/Marker2D")] public Marker2D Marker2D;
+	[OnReady("Character/RayCasts/FinishFloorLeft")] public RayCast2D FinishFloorLeft;
+	[OnReady("Character/RayCasts/FinishFloorRight")] public RayCast2D FinishFloorRight;
 	[OnReady("Character/RayCasts/Floor")] public RayCast2D FloorRaycast;
 	[OnReady("Character/RayCasts/FacePlayerDetector")] public RayCast2D FacePlayerDetector;
 	[OnReady("Character/RayCasts/BackPlayerDetector")] public RayCast2D BackPlayerDetector;
@@ -103,7 +105,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 	private float MotionX => PlatformBody.MotionX;
 	private float MotionY => PlatformBody.MotionY;
 
-	public Vector2 InitialPosition { get; set; }
+	public Vector2? InitialPosition { get; set; }
 
 	public KinematicPlatformMotion PlatformBody;
 	public readonly EnemyStatus Status = new();
@@ -131,6 +133,8 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 			canvas.DrawRaycast(FacePlayerDetector, Colors.Red);
 			canvas.DrawRaycast(BackPlayerDetector, Colors.Red);
 			canvas.DrawRaycast(FloorRaycast, Colors.Blue);
+			canvas.DrawRaycast(FinishFloorRight, Colors.Blue);
+			canvas.DrawRaycast(FinishFloorLeft, Colors.Blue);
 		});
 
 		var overlay = DebugOverlayManager.Follow(CharacterBody2D).Title("Zombie");
@@ -140,7 +144,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 	}
 
 	private void ConfigureCharacter() {
-		if (InitialPosition != null) CharacterBody2D.GlobalPosition = InitialPosition;
+		if (InitialPosition.HasValue) CharacterBody2D.GlobalPosition = InitialPosition.Value;
 		CharacterBody2D.FloorStopOnSlope = true;
 		// CharacterBody2D.FloorBlockOnWall = true;
 		CharacterBody2D.FloorConstantSpeed = true;
@@ -150,13 +154,15 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 			.ScaleX(_attackArea)
 			.ScaleX(FacePlayerDetector)
 			.ScaleX(BackPlayerDetector);
-		flipper.IsFacingRight = true;
+		flipper.IsFacingRight = flipper.IsFacingRight;
 
 		PlatformBody = new KinematicPlatformMotion(CharacterBody2D, flipper, Marker2D, MotionConfig.FloorUpDirection);
 		_attackArea.EnableAllShapes(false);
 
 		CharacterManager.EnemyConfigureCollisions(CharacterBody2D);
 		CharacterManager.EnemyConfigureCollisions(FloorRaycast);
+		CharacterManager.EnemyConfigureCollisions(FinishFloorRight);
+		CharacterManager.EnemyConfigureCollisions(FinishFloorLeft);
 		CharacterManager.EnemyConfigurePlayerDetector(FacePlayerDetector);
 		CharacterManager.EnemyConfigurePlayerDetector(BackPlayerDetector);
 		// CharacterManager.ConfigureEnemyAttackArea2D(_attack);

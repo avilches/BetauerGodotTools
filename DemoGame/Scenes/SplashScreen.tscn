@@ -17,7 +17,7 @@ grow_vertical = 2
 
 [node name="ColorRect" type="ColorRect" parent="SplashScreen"]
 unique_name_in_owner = true
-anchors_preset = 15
+layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
@@ -25,7 +25,7 @@ grow_vertical = 2
 color = Color(0.0431373, 0.0352941, 0.27451, 1)
 
 [node name="CenterContainer" type="CenterContainer" parent="SplashScreen/ColorRect"]
-anchors_preset = 15
+layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
@@ -35,8 +35,5 @@ size_flags_vertical = 3
 
 [node name="TextureRect" type="TextureRect" parent="SplashScreen/ColorRect/CenterContainer"]
 unique_name_in_owner = true
-offset_left = 896.0
-offset_top = 476.0
-offset_right = 1024.0
-offset_bottom = 604.0
+layout_mode = 2
 texture = ExtResource("2")

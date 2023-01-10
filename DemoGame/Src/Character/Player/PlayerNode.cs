@@ -108,8 +108,8 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 
 	// private bool IsOnPlatform() => PlatformManager.IsPlatform(Body.GetFloor());
 	private bool IsOnFallingPlatform() => PlatformBody.IsOnFloor() &&
-	                                      PlatformManager.IsFallingPlatform(PlatformBody
-		                                      .GetFloorColliders<PhysicsBody2D>().FirstOrDefault());
+										  PlatformManager.IsFallingPlatform(PlatformBody
+											  .GetFloorColliders<PhysicsBody2D>().FirstOrDefault());
 
 	// private bool IsMovingPlatform() => PlatformManager.IsMovingPlatform(Body.GetFloor());
 	private MonitorText? _coyoteMonitor;
@@ -119,7 +119,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 
 	public KinematicPlatformMotion PlatformBody;
 	
-	public Vector2 InitialPosition { get; set; }
+	public Vector2? InitialPosition { get; set; }
 
 	private readonly DragCameraController _cameraController = new();
 	private AnimationStack _animationStack;
@@ -141,11 +141,11 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		var overlay = DebugOverlayManager.Overlay(CharacterBody2D)
 			.Title("Player")
 			.SetMaxSize(1000, 1000);
-
-		this.OnDraw(canvas => {
-			foreach (var floorRaycast in FloorRaycasts) canvas.DrawRaycast(floorRaycast, Colors.Red);
-			canvas.DrawRaycast(RaycastCanJump, Colors.Red);
-		});
+		
+		// this.OnDraw(canvas => {
+			// foreach (var floorRaycast in FloorRaycasts) canvas.DrawRaycast(floorRaycast, Colors.Red);
+			// canvas.DrawRaycast(RaycastCanJump, Colors.Red);
+		// });
 
 
 		AddOverlayHelpers(overlay);
@@ -172,7 +172,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	}
 
 	private void ConfigureCharacter() {
-		if (InitialPosition != null) CharacterBody2D.GlobalPosition = InitialPosition;
+		if (InitialPosition.HasValue) CharacterBody2D.GlobalPosition = InitialPosition.Value;
 		CharacterBody2D.FloorStopOnSlope = true;
 		// CharacterBody2D.FloorBlockOnWall = true;
 		CharacterBody2D.FloorConstantSpeed = true;

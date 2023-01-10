@@ -1,8 +1,8 @@
 [gd_scene load_steps=11 format=3 uid="uid://crxuyxcrii0rb"]
 
-[ext_resource type="Texture2D" uid="uid://dg7ctq0eb1wrt" path="res://Worlds/Environment/Anokalisa/StrangeTemple/Tiles.png" id="1_74exd"]
-[ext_resource type="Texture2D" uid="uid://ch0htx0ako82j" path="res://Worlds/Environment/Anokalisa/StrangeTemple/Props.png" id="2_si1o1"]
-[ext_resource type="Texture2D" uid="uid://bguny4p6nxcsu" path="res://Worlds/Environment/Anokalisa/StrangeTemple/Background-1.png" id="3_vs3ta"]
+[ext_resource type="Texture2D" uid="uid://dg7ctq0eb1wrt" path="res://Worlds/Environment/anokalisa/StrangeTemple/Tiles.png" id="1_74exd"]
+[ext_resource type="Texture2D" uid="uid://ch0htx0ako82j" path="res://Worlds/Environment/anokalisa/StrangeTemple/Props.png" id="2_si1o1"]
+[ext_resource type="Texture2D" uid="uid://bguny4p6nxcsu" path="res://Worlds/Environment/anokalisa/StrangeTemple/Background-1.png" id="3_vs3ta"]
 
 [sub_resource type="TileMapPattern" id="TileMapPattern_5xyhk"]
 tile_data = PackedInt32Array(0, 983040, 3, 1, 983040, 3, 2, 983040, 3, 3, 983040, 3)

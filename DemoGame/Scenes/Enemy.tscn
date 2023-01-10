@@ -27,6 +27,16 @@ position = Vector2(0, -1)
 target_position = Vector2(0, 8)
 collision_mask = 0
 
+[node name="FinishFloorLeft" type="RayCast2D" parent="RayCasts"]
+position = Vector2(-20, -1)
+target_position = Vector2(0, 16)
+collision_mask = 0
+
+[node name="FinishFloorRight" type="RayCast2D" parent="RayCasts"]
+position = Vector2(20, -1)
+target_position = Vector2(0, 16)
+collision_mask = 0
+
 [node name="FacePlayerDetector" type="RayCast2D" parent="RayCasts"]
 position = Vector2(0, -20)
 target_position = Vector2(200, 0)
@@ -44,6 +54,7 @@ collision_layer = 0
 collision_mask = 0
 
 [node name="HitLabelPosition" type="Node2D" parent="."]
+visible = false
 position = Vector2(-50, -44)
 
 [node name="HitLabel" type="Label" parent="HitLabelPosition"]

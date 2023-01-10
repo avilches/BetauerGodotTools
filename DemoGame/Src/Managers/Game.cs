@@ -32,7 +32,7 @@ public class Game {
         // _currentGameScene = MainResourceLoader.CreateWorld2Empty();
         var tileMap = _currentGameScene.GetNode<TileMap>("RealTileMap");
         new WorldGenerator().Generate(tileMap);
-        AddPlayerToScene(_currentGameScene, Vector2.Zero);
+        AddPlayerToScene(_currentGameScene);
         SceneTree.Root.AddChildDeferred(_currentGameScene);
     }
 
@@ -85,17 +85,10 @@ public class Game {
     }
 
     private void AddPlayerToScene(Node nextScene) {
-        var marker2D = nextScene.GetNode<Node2D>("PositionPlayer");
-        if (marker2D == null) throw new Exception("Node PositionPlayer not found when loading scene " + nextScene.SceneFilePath);
-        AddPlayerToScene(nextScene, marker2D.Position);
+        _playerScene = Player.Get();
+        nextScene.GetNode<Marker2D>("SpawnPlayer").AddChild(_playerScene);
     }
 
-    private void AddPlayerToScene(Node nextScene, Vector2 position) {
-        _playerScene = Player.Get();
-        nextScene.AddChild(_playerScene);
-        // TODO: this shows a warning "!is_inside_tree()" is true. Returned: get_transform()" but it still works 
-        _playerScene.InitialPosition = position;
-    }
 
     public void End() {
         Node.PrintOrphanNodes();

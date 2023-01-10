@@ -47,7 +47,9 @@ public class ZombieAI : StateMachineSync<ZombieAI.State, ZombieAI.Event>, IChara
             .Execute(() => Advance(0.5f))
             .If(_sensor.IsAttacked).Set(State.Attacked)
             .If(_sensor.IsPlayerInsight).Set(State.ChasePlayer)
-            .If(() => _stateTimer.Elapsed > 2f).Set(State.PatrolStop)
+            .If(_sensor.IsOnWall).Set(State.PatrolStop)
+            .If(_sensor.IsFloorFinishing).Set(State.PatrolStop)
+            .If(() => _stateTimer.Elapsed > 4f).Set(State.PatrolStop)
             .Build();
         
         State(State.Attacked).If(() => !_sensor.IsAttacked()).Set(State.EndAttack).Build();
@@ -137,7 +139,12 @@ public class ZombieAI : StateMachineSync<ZombieAI.State, ZombieAI.Event>, IChara
         public bool IsFacingRight => _body.IsFacingRight;
         public void Flip() => _body.Flip();
         public bool IsAttacked() => _zombieNode.IsState(ZombieState.Attacked);
+        public bool IsOnWall() => _body.IsOnWall();
         public bool IsPlayerInsight() => _zombieNode.FacePlayerDetector.IsColliding(); // || _zombieNode.BackPlayerDetector.IsColliding();
+
+        public bool IsFloorFinishing() => IsFacingRight
+            ? !_zombieNode.FinishFloorRight.IsColliding()
+            : !_zombieNode.FinishFloorLeft.IsColliding();
 
         public void FaceOppositePlayer() => _body.FaceOppositeTo(GetPlayerGlobalPosition());
         public void FaceToPlayer() => _body.FaceTo(GetPlayerGlobalPosition());

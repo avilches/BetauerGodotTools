@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://Src/Character/Enemy/ZombieNode.cs" id="1_uy3bp"]
 [ext_resource type="Texture2D" uid="uid://by868r18ku0gx" path="res://Characters/Zombie/zombie-sheet.png" id="2_5ocaw"]
-[ext_resource type="FontFile" uid="uid://dgrdge8rewkst" path="res://Assets/Fonts/dpcomic.ttf" id="3_5c2fx"]
+[ext_resource type="PackedScene" uid="uid://dmw5hkvxv022p" path="res://Scenes/Enemy.tscn" id="2_lxaq2"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_csmg1"]
 size = Vector2(12, 29)
@@ -13,7 +13,7 @@ resource_name = "Attack"
 [sub_resource type="Animation" id="Animation_uxejk"]
 resource_name = "DieLeft"
 
-[sub_resource type="Animation" id="Animation_5vg7g"]
+[sub_resource type="Animation" id="Animation_5vg7g"]           
 resource_name = "DieRight"
 
 [sub_resource type="Animation" id="Animation_53egl"]
@@ -35,79 +35,35 @@ _data = {
 radius = 6.0
 height = 19.0
 
-[node name="Node" type="Node"]
+[node name="Node" type="Node2D"]
 script = ExtResource("1_uy3bp")
 
-[node name="Character" type="CharacterBody2D" parent="."]
-collision_layer = 1024
-collision_mask = 0
+[node name="Character" parent="." instance=ExtResource("2_lxaq2")]
 
-[node name="Marker2D" type="Marker2D" parent="Character"]
+[node name="Marker2D" parent="Character" index="0"]
 position = Vector2(0, -15)
 
-[node name="Label" type="Label" parent="Character"]
-offset_right = 1.0
-offset_bottom = 23.0
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Character"]
+[node name="CollisionShape2D" parent="Character" index="2"]
 position = Vector2(0, -14)
 shape = SubResource("RectangleShape2D_csmg1")
 
-[node name="Sprites" type="Node2D" parent="Character"]
-
-[node name="Body" type="Sprite2D" parent="Character/Sprites"]
+[node name="Body" parent="Character/Sprites" index="0"]
 texture = ExtResource("2_5ocaw")
 offset = Vector2(0, -14)
 hframes = 10
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="Character/Sprites"]
+[node name="AnimationPlayer" parent="Character/Sprites" index="1"]
 libraries = {
 "": SubResource("AnimationLibrary_vug36")
 }
 
-[node name="RayCasts" type="Node2D" parent="Character"]
-
-[node name="Floor" type="RayCast2D" parent="Character/RayCasts"]
-position = Vector2(0, -1)
-target_position = Vector2(0, 8)
-collision_mask = 0
-
-[node name="FacePlayerDetector" type="RayCast2D" parent="Character/RayCasts"]
-position = Vector2(0, -20)
-target_position = Vector2(200, 0)
-
-[node name="BackPlayerDetector" type="RayCast2D" parent="Character/RayCasts"]
-position = Vector2(0, -20)
-target_position = Vector2(-50, 0)
-
-[node name="AttackArea" type="Area2D" parent="Character"]
-collision_layer = 0
-collision_mask = 0
-
-[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Character/AttackArea"]
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Character/AttackArea" index="0"]
 position = Vector2(0, 0.0677719)
 polygon = PackedVector2Array(-5, -16.0678, -5, -0.0677719, 5, -0.0677719, 5, -21.0678, 3, -28.0678, -2, -25.0678)
 disabled = true
 
-[node name="DamageArea" type="Area2D" parent="Character"]
-collision_layer = 0
-collision_mask = 0
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Character/DamageArea"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Character/DamageArea" index="0"]
 position = Vector2(0, -14)
 shape = SubResource("CapsuleShape2D_6w7lv")
 
-[node name="HitLabelPosition" type="Node2D" parent="Character"]
-visible = false
-position = Vector2(-50, -44)
-
-[node name="HitLabel" type="Label" parent="Character/HitLabelPosition"]
-custom_minimum_size = Vector2(100, 0)
-offset_right = 100.0
-offset_bottom = 19.0
-theme_override_colors/font_color = Color(0.992157, 0, 0, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 4
-theme_override_fonts/font = ExtResource("3_5c2fx")
-text = "200"
-horizontal_alignment = 1
+[editable path="Character"]
