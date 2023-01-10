@@ -9,7 +9,7 @@ using Path = System.IO.Path;
 namespace Generator {
     public class GenerateNotificationHandler {
         private static string CreateFileName() =>
-            "../Betauer.GameTools/Application/NotificationsHandler.cs";
+            "../Betauer.GameTools/Application/Notifications/NotificationsHandler.cs";
 
         public static void Write(params GodotClass[] classes) {
             var body = GenerateBodyClass(classes);
@@ -21,7 +21,7 @@ namespace Generator {
             return $@"using System;
 using Godot;
 
-namespace Betauer.Application; 
+namespace Betauer.Application.Notifications; 
 
 public partial class NotificationsHandler : Node {{
 
@@ -31,12 +31,12 @@ public partial class NotificationsHandler : Node {{
         ProcessMode = ProcessModeEnum.Always;
     }}
 
-    public void Configure(SceneTree sceneTree) {{
+    public void AddTo(Viewport viewport) {{
         GetParent()?.RemoveChild(this);
-        sceneTree.Root.AddChild(this);
+            viewport.AddChild(this);
     }}
 
-    public void Execute(long what) {{
+    public override void _Notification(long what) {{
         switch (what) {{
 {string.Join("\n", GenerateSwitchCases(clazz))}
         }}
