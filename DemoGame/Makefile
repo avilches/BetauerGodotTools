@@ -2,6 +2,7 @@
 
 TARGET_PLATFORM  := "macos"
 GODOT_APP        := "/Applications/Godot-4.0.0-beta.11.app"
+ASEPRITE_EXECUTABLE := "/Applications/Aseprite.app/Contents/MacOS/aseprite"
 
 
 
@@ -170,3 +171,9 @@ else
 	@echo "Using ${SOLUTION}.sln solution"
 	@echo ""
 endif
+
+.PHONY: ase
+ase:
+	${ASEPRITE_EXECUTABLE} -b --layer "Body" --layer "Body/effects" "${ROOT_FOLDER}/Src/Assets/Leon.ase" --sheet-type horizontal --sheet "${ROOT_FOLDER}/Characters/Player-Leon/Leon.png"
+	${ASEPRITE_EXECUTABLE} -b --layer "Metalbar" --layer "Metalbar/effects" "${ROOT_FOLDER}/Src/Assets/Leon.ase" --sheet-type horizontal --sheet "${ROOT_FOLDER}/Characters/Player-Leon/Leon-metalbar.png"
+
