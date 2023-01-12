@@ -176,4 +176,5 @@ endif
 ase:
 	${ASEPRITE_EXECUTABLE} -b --layer "Body" --layer "Body/effects" "${ROOT_FOLDER}/Src/Assets/Leon.ase" --sheet-type horizontal --sheet "${ROOT_FOLDER}/Characters/Player-Leon/Leon.png"
 	${ASEPRITE_EXECUTABLE} -b --layer "Metalbar" --layer "Metalbar/effects" "${ROOT_FOLDER}/Src/Assets/Leon.ase" --sheet-type horizontal --sheet "${ROOT_FOLDER}/Characters/Player-Leon/Leon-metalbar.png"
+	${ASEPRITE_EXECUTABLE} -b --layer "Knife" --layer "Knife/effects" "${ROOT_FOLDER}/Src/Assets/Leon.ase" --sheet-type horizontal --sheet "${ROOT_FOLDER}/Characters/Player-Leon/Leon-knife.png"
 

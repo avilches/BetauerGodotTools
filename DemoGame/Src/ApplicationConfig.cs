@@ -52,10 +52,14 @@ public class Settings {
 
 [Configuration]
 public class Resources {
+	[Service] Texture2D LeonKnife => Load<Texture2D>("res://Characters/Player-Leon/Leon-knife.png");
+	[Service] Texture2D LeonMetalbar => Load<Texture2D>("res://Characters/Player-Leon/Leon-metalbar.png");
+	
 	[Service] Texture2D Xbox360Buttons => Load<Texture2D>("res://Assets/UI/Consoles/Xbox 360 Controller Updated.png");
 	[Service] Texture2D XboxOneButtons => Load<Texture2D>("res://Assets/UI/Consoles/Xbox One Controller Updated.png");
 	[Service] Theme MyTheme => Load<Theme>("res://Assets/UI/my_theme.tres");
 	[Service] Theme DebugConsoleTheme => Load<Theme>("res://Assets/UI/DebugConsole.tres");
+	
 }
 	
 [Configuration]

@@ -12,7 +12,6 @@ using Betauer.Core.Restorer;
 using Betauer.Core.Time;
 using Betauer.DI;
 using Betauer.Input;
-using Betauer.Nodes;
 using Betauer.OnReady;
 using Betauer.StateMachine.Sync;
 using Godot;
@@ -53,7 +52,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	}
 
 	[OnReady("Character")] private CharacterBody2D CharacterBody2D;
-	[OnReady("Character/Sprites/Weapon")] private Sprite2D _weaponNode;
+	[OnReady("Character/Sprites/Weapon")] private Sprite2D _weaponSprite;
 	[OnReady("Character/Sprites/Body")] private Sprite2D _mainSprite;
 
 	[OnReady("Character/Sprites/AnimationPlayer")]
@@ -71,6 +70,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 
 	[Inject] private PlatformManager PlatformManager { get; set; }
 	[Inject] private CharacterManager CharacterManager { get; set; }
+	[Inject] private WeaponManager WeaponManager { get; set; }
 	[Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
 	[Inject] private StageManager StageManager { get; set; }
 	[Inject] private InputAction MMB { get; set; }
@@ -124,6 +124,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	private readonly DragCameraController _cameraController = new();
 	private AnimationStack _animationStack;
 	private AnimationStack _tweenStack;
+	private MeleeAttack _meleeAttack;
 
 	public override void _Ready() {
 		_delayedJump = ((InputAction)Jump).CreateDelayed();
@@ -179,14 +180,16 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		CharacterBody2D.FloorSnapLength = MotionConfig.SnapLength;
 		var flipper = new FlipperList()
 			.Sprite2DFlipH(_mainSprite)
-			.Sprite2DFlipH(_weaponNode)
+			.Sprite2DFlipH(_weaponSprite)
 			.ScaleX(_attackArea);
 		flipper.IsFacingRight = true;
 
 		PlatformBody = new KinematicPlatformMotion(CharacterBody2D, flipper, Marker2D, MotionConfig.FloorUpDirection,
 			FloorRaycasts);
 
-		_attackArea.EnableAllShapes(false);
+		_meleeAttack = new MeleeAttack(_attackArea, _weaponSprite);
+		_meleeAttack.Equip(WeaponManager.Knife);
+		
 		CharacterManager.RegisterPlayerNode(this);
 		CharacterManager.PlayerConfigureCollisions(this);
 		CharacterManager.PlayerConfigureAttackArea2D(_attackArea);
@@ -194,9 +197,6 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		PlayerDetector.CollisionLayer = 0;
 		PlayerDetector.CollisionMask = 0;
 		StageManager.ConfigureStageCamera(_camera2D, PlayerDetector);
-
-		_attackArea.Monitoring = false;
-		// CharacterManager.ConfigurePlayerDamageArea2D(_damageArea);
 	}
 
 	private void CreateAnimations() {

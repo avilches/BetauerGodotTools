@@ -46,11 +46,6 @@ public class EnemyStatus {
 	public bool IsDead() => Health <= 0f;
 }
 
-public interface IEnemy {
-	public void AttackedByPlayer(Attack attack);
-}
-	
-	
 public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent> {
 	public ZombieNode() : base(ZombieState.Idle, "Zombie.StateMachine", true) {
 	}
@@ -157,7 +152,6 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		flipper.IsFacingRight = flipper.IsFacingRight;
 
 		PlatformBody = new KinematicPlatformMotion(CharacterBody2D, flipper, Marker2D, MotionConfig.FloorUpDirection);
-		_attackArea.EnableAllShapes(false);
 
 		CharacterManager.EnemyConfigureCollisions(CharacterBody2D);
 		CharacterManager.EnemyConfigureCollisions(FloorRaycast);
