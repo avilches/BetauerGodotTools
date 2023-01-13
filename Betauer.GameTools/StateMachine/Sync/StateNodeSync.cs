@@ -6,8 +6,8 @@ namespace Betauer.StateMachine.Sync {
     public class StateNodeSync<TStateKey, TEventKey> : StateSync<TStateKey, TEventKey> 
         where TEventKey : Enum where TStateKey : Enum {
         
-        private readonly Action<InputEvent> _input;
-        private readonly Action<InputEvent> _unhandledInput;
+        private readonly Action<InputEvent>? _input;
+        private readonly Action<InputEvent>? _unhandledInput;
 
         public StateNodeSync(TStateKey key, 
             Action? enter,

@@ -7,8 +7,8 @@ namespace Betauer.StateMachine.Async {
     public class StateNodeAsync<TStateKey, TEventKey> : StateAsync<TStateKey, TEventKey> 
         where TEventKey : Enum where TStateKey : Enum {
         
-        private readonly Action<InputEvent> _input;
-        private readonly Action<InputEvent> _unhandledInput;
+        private readonly Action<InputEvent>? _input;
+        private readonly Action<InputEvent>? _unhandledInput;
         
         public StateNodeAsync(TStateKey key,
             Func<Task>? enter,
