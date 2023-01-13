@@ -112,6 +112,10 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 	}
 
 	public override void _Ready() {
+		if (!Get("visible").As<bool>()) {
+			QueueFree();
+			return;
+		}
 		CreateAnimations();
 		ConfigureCharacter();
 
