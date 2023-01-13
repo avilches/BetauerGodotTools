@@ -33,6 +33,7 @@ namespace Betauer.StateMachine.Async {
         private Exception? _exception = null;
         public bool Available => _stateMachine.Available;
         public string? Name => _stateMachine.Name; 
+        public double Delta { get; private set; }
 
         public StateMachineNodeAsync(TStateKey initialState, string? name = null, bool processInPhysics = false) {
             _stateMachine = new RealStateMachineNodeAsync(this, initialState, name);
@@ -51,19 +52,6 @@ namespace Betauer.StateMachine.Async {
             throw new Exception("Don't call directly to execute. Instead, add the node to the tree");
         }
 
-        public void Execute(double delta) {
-            if (_exception != null) {
-                var e = _exception;
-                _exception = null;
-                throw e;
-            }
-            if (!Available) return;
-            ExecuteStart(delta);
-            _stateMachine.Execute()
-                .OnException(e => _exception = e, true)
-                .ContinueWith(t => ExecuteEnd());
-        }
-
         public override void _Input(InputEvent e) {
             if (Available) CurrentState._Input(e);
         }
@@ -80,6 +68,18 @@ namespace Betauer.StateMachine.Async {
         public override void _Process(double delta) {
             if (!ProcessInPhysics) Execute(delta);
             else SetProcess(false);
+        }
+
+        public void Execute(double delta) {
+            if (IsQueuedForDeletion()) return;
+            if (_exception != null) {
+                var e = _exception;
+                _exception = null;
+                throw e;
+            }
+            if (!Available) return;
+            Delta = delta;
+            _stateMachine.Execute().OnException(e => _exception = e, true);
         }
     }
 }

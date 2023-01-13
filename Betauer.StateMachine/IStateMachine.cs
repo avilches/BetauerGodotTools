@@ -8,6 +8,8 @@ namespace Betauer.StateMachine {
         public event Action<TransitionArgs<TStateKey>>? OnSuspend;
         public event Action<TransitionArgs<TStateKey>>? OnExit;
         public event Action<TransitionArgs<TStateKey>>? OnTransition;
+        public event Action? OnBeforeExecute;
+        public event Action? OnAfterExecute;
     }
     
     public interface IStateMachine<TStateKey, TEventKey, TState> : IStateMachineEvents<TStateKey>

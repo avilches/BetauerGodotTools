@@ -10,7 +10,7 @@ using NUnit.Framework;
 
 namespace Betauer.GameTools.Tests {
     [TestFixture]
-    public partial class StateMachineNodeTests : Node {
+    public partial class StateMachineNodeSyncTests : Node {
         enum State {
             A,
             Idle,
@@ -123,24 +123,28 @@ namespace Betauer.GameTools.Tests {
             sm.OnSuspend += (args)  => states.Add(args.From + ":suspend");
             sm.OnExit += (args)  => states.Add(args.From + ":exit");
             sm.OnTransition += (args)  => states.Add("from:" + args.From + "-to:" + args.To);
-            sm.OnBeforeExecute += (delta)  => states.Add(":execute.start");
+            sm.OnBeforeExecute += ()  => states.Add(":execute.start");
             sm.OnAfterExecute += ()  => states.Add(":execute.end");
 
             AddChild(sm);
 
             Stopwatch stopwatch = Stopwatch.StartNew();
             while (sm.CurrentState?.Key != State.End && stopwatch.ElapsedMilliseconds < 1000) {
-                Console.Write(sm.CurrentState?.Key + " ");
+                Console.WriteLine(sm.CurrentState?.Key + "...");
                 await this.AwaitProcessFrame();
             }
 
             Console.WriteLine(string.Join(",", states));
             Assert.That(string.Join(",", states), Is.EqualTo(
-                ":execute.start,MainMenu:enter,:execute.end," +
-                ":execute.start,MainMenu:exit,from:MainMenu-to:Debug,Debug:enter,:execute.end," +
-                ":execute.start,Debug:suspend,from:Debug-to:Settings,Settings:enter,:execute.end," +
-                ":execute.start,Settings:exit,from:Settings-to:Debug,Debug:awake,:execute.end," +
-                ":execute.start,Debug:exit,from:Debug-to:End,End:enter,:execute.end"));
+                "MainMenu:enter,:execute.start,:execute.end,MainMenu:exit," +
+                "from:MainMenu-to:Debug," +
+                "Debug:enter,:execute.start,:execute.end,Debug:suspend," +
+                "from:Debug-to:Settings," +
+                "Settings:enter,:execute.start,:execute.end,Settings:exit," +
+                "from:Settings-to:Debug," +
+                "Debug:awake,:execute.start,:execute.end,Debug:exit," +
+                "from:Debug-to:End," +
+                "End:enter,:execute.start,:execute.end"));
         }
     }
 }

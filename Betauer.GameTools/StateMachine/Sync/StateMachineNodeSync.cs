@@ -31,6 +31,7 @@ namespace Betauer.StateMachine.Sync {
 
         
         public string? Name => _stateMachine.Name; 
+        public double Delta { get; private set; }
 
         public StateMachineNodeSync(TStateKey initialState, string? name = null, bool processInPhysics = false) {
             _stateMachine = new RealStateMachineNode(this, initialState, name);
@@ -49,12 +50,6 @@ namespace Betauer.StateMachine.Sync {
             throw new Exception("Don't call directly to execute. Instead, add the node to the tree");
         }
 
-        public void Execute(double delta) {
-            ExecuteStart(delta);
-            _stateMachine.Execute();
-            ExecuteEnd();
-        }
-
         public override void _Input(InputEvent e) {
             CurrentState._Input(e);
         }
@@ -71,6 +66,12 @@ namespace Betauer.StateMachine.Sync {
         public override void _Process(double delta) {
             if (!ProcessInPhysics) Execute(delta);
             else SetProcess(false);
+        }
+
+        public void Execute(double delta) {
+            if (IsQueuedForDeletion()) return;
+            Delta = delta;
+            _stateMachine.Execute();
         }
     }
 }

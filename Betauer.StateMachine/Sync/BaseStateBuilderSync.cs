@@ -41,7 +41,7 @@ namespace Betauer.StateMachine.Sync {
         }
         
         public EventBuilder<TBuilder, TStateKey, TEventKey> On(TEventKey eventKey) {
-            Events ??= new();
+            Events ??= new Dictionary<TEventKey, Event<TStateKey, TEventKey>>();
             return new EventBuilder<TBuilder, TStateKey, TEventKey>(this as TBuilder, eventKey, (c) => {
                 if (c.Execute != null) {
                     Events[eventKey] = new Event<TStateKey, TEventKey>(c.EventKey, c.Execute);

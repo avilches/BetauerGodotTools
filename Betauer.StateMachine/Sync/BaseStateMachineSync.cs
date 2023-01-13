@@ -82,7 +82,9 @@ namespace Betauer.StateMachine.Sync {
                     EnterEvent(CurrentState, oldState.Key);
                     CurrentState.Enter();
                 }
+                BeforeExecute();
                 CurrentState.Execute();
+                AfterExecute();
                 var conditionCommand = CurrentState.Next(ConditionContext);
                 if (conditionCommand.IsTrigger() ) {
                     ExecuteEvent(conditionCommand.EventKey, out conditionCommand);

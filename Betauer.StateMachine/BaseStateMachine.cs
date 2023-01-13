@@ -86,6 +86,8 @@ namespace Betauer.StateMachine {
         public event Action<TransitionArgs<TStateKey>>? OnSuspend;
         public event Action<TransitionArgs<TStateKey>>? OnExit;
         public event Action<TransitionArgs<TStateKey>>? OnTransition;
+        public event Action? OnBeforeExecute;
+        public event Action? OnAfterExecute;
 
         public void AddState(TState state) {
             if (States.ContainsKey(state.Key)) throw new DuplicateNameException();
@@ -157,6 +159,13 @@ namespace Betauer.StateMachine {
             OnEnter?.Invoke(new TransitionArgs<TStateKey>(from, state.Key));
         }
 
+        protected void BeforeExecute() {
+            OnBeforeExecute?.Invoke();
+        }
+
+        protected void AfterExecute() {
+            OnAfterExecute?.Invoke();
+        }
 
         public void Dispose() {
             IsDisposed = true;

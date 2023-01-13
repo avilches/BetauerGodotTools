@@ -84,7 +84,9 @@ namespace Betauer.StateMachine.Async {
                     EnterEvent(CurrentState, oldState.Key);
                     await CurrentState.Enter();
                 }
+                BeforeExecute();
                 await CurrentState.Execute();
+                AfterExecute();
                 var conditionCommand = CurrentState.Next(ConditionContext);
                 if (conditionCommand.IsTrigger() ) {
                     ExecuteEvent(conditionCommand.EventKey, out conditionCommand);
