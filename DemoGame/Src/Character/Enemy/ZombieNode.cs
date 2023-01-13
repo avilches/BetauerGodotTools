@@ -115,14 +115,13 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		CreateAnimations();
 		ConfigureCharacter();
 
-		OnBeforeExecute += PlatformBody.SetDelta;
 		CreateStates();
 
 		// AI
 		_zombieAi = ZombieAI.Create(Handler, new ZombieAI.Sensor(this, PlatformBody, () => CharacterManager.PlayerNode.Marker2D.GlobalPosition));
-		OnBeforeExecute += delta => _zombieAi.Execute();
+		OnBeforeExecute += _zombieAi.Execute;
+		OnBeforeExecute += () => Label.Text = _zombieAi.GetState();
 		OnAfterExecute += _zombieAi.EndFrame;
-		OnAfterExecute += () => Label.Text = _zombieAi.GetState();
 
 		this.OnDraw(canvas => {
 			canvas.DrawRaycast(FacePlayerDetector, Colors.Red);
@@ -152,6 +151,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		flipper.IsFacingRight = flipper.IsFacingRight;
 
 		PlatformBody = new KinematicPlatformMotion(CharacterBody2D, flipper, Marker2D, MotionConfig.FloorUpDirection);
+		OnBeforeExecute += () => PlatformBody.SetDelta(Delta);
 
 		CharacterManager.EnemyConfigureCollisions(CharacterBody2D);
 		CharacterManager.EnemyConfigureCollisions(FloorRaycast);

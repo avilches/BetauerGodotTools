@@ -133,7 +133,6 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		CreateAnimations();
 		ConfigureCharacter();
 
-		OnBeforeExecute += PlatformBody.SetDelta;
 		// OnTransition += args => Console.WriteLine(args.To);
 		Bus.Subscribe(Enqueue);
 		CreateGroundStates();
@@ -186,6 +185,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 
 		PlatformBody = new KinematicPlatformMotion(CharacterBody2D, flipper, Marker2D, MotionConfig.FloorUpDirection,
 			FloorRaycasts);
+		OnBeforeExecute += () => PlatformBody.SetDelta(Delta);
 
 		_meleeAttack = new MeleeAttack(_attackArea, _weaponSprite);
 		_meleeAttack.Equip(WeaponManager.Knife);
