@@ -122,7 +122,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		CreateStates();
 
 		// AI
-		_zombieAi = ZombieAI.Create(Handler, new ZombieAI.Sensor(this, PlatformBody, () => CharacterManager.PlayerNode.Marker2D.GlobalPosition));
+		_zombieAi = MeleeAI.Create(Handler, new MeleeAI.Sensor(this, PlatformBody, () => CharacterManager.PlayerNode.Marker2D.GlobalPosition));
 		OnBeforeExecute += _zombieAi.Execute;
 		OnBeforeExecute += () => Label.Text = _zombieAi.GetState();
 		OnAfterExecute += _zombieAi.EndFrame;

@@ -6,7 +6,7 @@ using Veronenger.Character.Handler;
 
 namespace Veronenger.Character.Enemy;
 
-public class ZombieAI : StateMachineSync<ZombieAI.State, ZombieAI.Event>, ICharacterAI {
+public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacterAI {
     private readonly CharacterController _controller;
     private readonly Sensor _sensor;
     private readonly GodotStopwatch _stateTimer = new GodotStopwatch().Start();
@@ -26,12 +26,12 @@ public class ZombieAI : StateMachineSync<ZombieAI.State, ZombieAI.Event>, IChara
     }
 
     public static ICharacterAI Create(ICharacterHandler handler, Sensor sensor) {
-        if (handler is CharacterController controller) return new ZombieAI(controller, sensor);
+        if (handler is CharacterController controller) return new MeleeAI(controller, sensor);
         if (handler is InputActionCharacterHandler) return DoNothingAI.Instance;
         throw new Exception($"Unknown handler: {handler.GetType()}");
     }
 
-    public ZombieAI(CharacterController controller, Sensor sensor) : base(State.Patrol, "ZombieIA") {
+    public MeleeAI(CharacterController controller, Sensor sensor) : base(State.Patrol, "ZombieIA") {
         _controller = controller;
         _sensor = sensor;
         Config();
@@ -139,7 +139,7 @@ public class ZombieAI : StateMachineSync<ZombieAI.State, ZombieAI.Event>, IChara
         public bool IsFacingRight => _body.IsFacingRight;
         public void Flip() => _body.Flip();
         public bool IsAttacked() => _zombieNode.IsState(ZombieState.Attacked);
-        public bool IsOnWall() => _body.IsOnWall();
+        public bool IsOnWall() => _body.IsOnWall() && _body.IsOnWallRight() == IsFacingRight;
         public bool IsPlayerInsight() => _zombieNode.FacePlayerDetector.IsColliding(); // || _zombieNode.BackPlayerDetector.IsColliding();
 
         public bool IsFloorFinishing() => IsFacingRight
