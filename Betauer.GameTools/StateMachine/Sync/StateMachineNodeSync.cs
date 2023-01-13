@@ -51,11 +51,11 @@ namespace Betauer.StateMachine.Sync {
         }
 
         public override void _Input(InputEvent e) {
-            CurrentState._Input(e);
+            CurrentState?._Input(e);
         }
 
         public override void _UnhandledInput(InputEvent e) {
-            CurrentState._UnhandledInput(e);
+            CurrentState?._UnhandledInput(e);
         }
 
         public override void _PhysicsProcess(double delta) {

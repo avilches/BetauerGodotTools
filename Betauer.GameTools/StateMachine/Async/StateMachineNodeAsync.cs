@@ -53,11 +53,11 @@ namespace Betauer.StateMachine.Async {
         }
 
         public override void _Input(InputEvent e) {
-            if (Available) CurrentState._Input(e);
+            if (Available) CurrentState?._Input(e);
         }
 
         public override void _UnhandledInput(InputEvent e) {
-            if (Available) CurrentState._UnhandledInput(e);
+            if (Available) CurrentState?._UnhandledInput(e);
         }
 
         public override void _PhysicsProcess(double delta) {
