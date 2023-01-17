@@ -1,5 +1,6 @@
 using Betauer.Core;
 using Godot;
+using Veronenger.Character.Items;
 
 namespace Veronenger.Character;
 
@@ -7,7 +8,7 @@ public class CharacterWeaponController {
     private readonly Area2D _attackArea;
     private readonly Sprite2D _weaponSprite;
 
-    public MeleeWeapon Current { get; private set; }
+    public WeaponType Current { get; private set; }
 
     public CharacterWeaponController(Area2D attackArea, Sprite2D weaponSprite) {
         _attackArea = attackArea;
@@ -18,7 +19,7 @@ public class CharacterWeaponController {
 
     public void Unequip() => Equip(null);
 		
-    public void Equip(MeleeWeapon? weapon) {
+    public void Equip(WeaponType? weapon) {
         _attackArea.Monitorable = false;
         _attackArea.Monitoring = false;
         if (weapon != null) {

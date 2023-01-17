@@ -6,6 +6,7 @@ using Betauer.DI;
 using Betauer.Core.Nodes;
 using Betauer.Core.Signal;
 using Godot;
+using Veronenger.Character.Items;
 using Veronenger.Character.Player;
 
 namespace Veronenger.Managers; 
@@ -14,6 +15,8 @@ namespace Veronenger.Managers;
 public class Game {
 
     [Inject] private SceneTree SceneTree { get; set; }
+    [Inject] private World World { get; set; }
+    [Inject] private WeaponManager WeaponManager { get; set; }
     [Inject] private StageManager StageManager { get; set; }
     [Inject] private CharacterManager CharacterManager { get; set; }
     [Inject] private PlatformManager PlatformManager { get; set; }
@@ -37,6 +40,11 @@ public class Game {
     }
 
     public async Task StartWorld3() {
+        World.Reset();
+        World.CreateWeapon(WeaponManager.Knife, "Knife", "K1");
+        World.CreateWeapon(WeaponManager.Metalbar, "Metalbar", "M1");
+
+        
         GD.PushWarning("World3 creation start");
         _currentGameScene = World3.Get();
         GD.PushWarning("World3 creation end");

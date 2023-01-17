@@ -1,9 +1,7 @@
-using System;
 using System.Linq;
 using Betauer;
 using Betauer.Animation;
 using Betauer.Application.Monitor;
-using Betauer.Bus;
 using Betauer.Core;
 using Betauer.Core.Nodes;
 using Betauer.Core.Nodes.Property;
@@ -39,18 +37,6 @@ public enum ZombieState {
 	Destroy,
 		
 	Fall
-}
-
-public class EnemyStatus {
-	public float Health = 10;
-	public float MaxHealth = 10;
-	public float HealthPercent => Health / MaxHealth;
-
-	public void Attack(float damage) {
-		Health -= damage;
-	}
-
-	public bool IsDead() => Health <= 0f;
 }
 
 public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent> {
@@ -108,11 +94,11 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 	private float MotionX => PlatformBody.MotionX;
 	private float MotionY => PlatformBody.MotionY;
 
-	public Vector2? InitialPosition { get; set; }
 	public KinematicPlatformMotion PlatformBody;
-	private ICharacterAI _zombieAi;
-	public readonly EnemyStatus Status = new();
+	public Vector2? InitialPosition { get; set; }
+	public EnemyStatus Status { get; private set; }
 
+	private ICharacterAI _zombieAi;
 	private readonly GodotStopwatch _stateTimer = new();
 	private MiniPool<ILabelEffect> _labelHits;
 	private Restorer _restorer; 
@@ -130,8 +116,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		}
 		CreateAnimations();
 		ConfigureCharacter();
-
-		CreateStates();
+		ConfigureStateMachine();
 
 		// AI
 		_zombieAi = MeleeAI.Create(Handler, new MeleeAI.Sensor(this, PlatformBody, () => CharacterManager.PlayerNode.Marker2D.GlobalPosition));
@@ -139,13 +124,14 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		OnBeforeExecute += () => Label.Text = _zombieAi.GetState();
 		OnAfterExecute += _zombieAi.EndFrame;
 
-		this.OnDraw(canvas => {
+		var drawEvent = this.OnDraw(canvas => {
 			canvas.DrawRaycast(FacePlayerDetector, Colors.Red);
 			canvas.DrawRaycast(BackPlayerDetector, Colors.Red);
 			canvas.DrawRaycast(FloorRaycast, Colors.Blue);
 			canvas.DrawRaycast(FinishFloorRight, Colors.Blue);
 			canvas.DrawRaycast(FinishFloorLeft, Colors.Blue);
 		});
+		drawEvent.Disable();
 
 		var overlay = DebugOverlayManager.Follow(CharacterBody2D).Title("Zombie");
 		AddOverlayStates(overlay);
@@ -191,10 +177,12 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 			.Add(_mainSprite.CreateRestorer(Properties.Modulate, Properties.Scale2D));
 		_restorer.Save();
 
+		Status = new EnemyStatus(32);
+
 	}
 
 	private void OnPlayerAttack(PlayerAttack playerAttack) {
-		if (playerAttack.Enemy.GetMeta("EnemyNodeHashCode").AsInt32() != GetHashCode()) return;
+		if (playerAttack.EnemyAttackArea.GetMeta("EnemyNodeHashCode").AsInt32() != GetHashCode()) return;
 		Status.Attack(playerAttack.Weapon.Damage);
 		GD.Print("Enemy: i'm attacked by player "+ GetHashCode()+": "+Status.Health);
 		_labelHits.Get().Show(((int)playerAttack.Weapon.Damage).ToString());
@@ -298,7 +286,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 			.Text("Wall", () => PlatformBody.GetWallCollisionInfo()).EndMonitor();
 	}
 	
-	public void CreateStates() {    
+	public void ConfigureStateMachine() {    
 
 		On(ZombieEvent.Hurt).Then(context => context.Set(ZombieState.Hurt));
 		On(ZombieEvent.Dead).Then(context=> context.Set(ZombieState.Destroy));

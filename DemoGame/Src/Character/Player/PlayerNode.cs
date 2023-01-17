@@ -12,10 +12,12 @@ using Betauer.Core.Restorer;
 using Betauer.Core.Time;
 using Betauer.DI;
 using Betauer.Input;
+using Betauer.Nodes;
 using Betauer.OnReady;
 using Betauer.StateMachine.Sync;
 using Godot;
 using Veronenger.Character.Handler;
+using Veronenger.Character.Items;
 using Veronenger.Managers;
 
 namespace Veronenger.Character.Player; 
@@ -63,7 +65,10 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	[Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
 	[Inject] private StageManager StageManager { get; set; }
 	[Inject] private InputAction MMB { get; set; }
+	[Inject] private InputAction NextItem { get; set; }
+	[Inject] private InputAction PrevItem { get; set; }
 
+	[Inject] public World World { get; set; }
 	[Inject] public PlayerConfig PlayerConfig { get; set; }
 	[Inject] private SceneTree SceneTree { get; set; }
 	[Inject] private EventBus EventBus { get; set; }
@@ -80,6 +85,10 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	public IOnceStatus PulsateTween;
 	public ILoopStatus DangerTween;
 	public IOnceStatus SqueezeTween;
+
+	public KinematicPlatformMotion PlatformBody;
+	public Vector2? InitialPosition { get; set; }
+	public Inventory Inventory;
 
 	private AnimationStack _animationStack;
 	private AnimationStack _tweenStack;
@@ -109,9 +118,6 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	private DelayedAction _delayedJump;
 	private readonly GodotStopwatch _coyoteFallingTimer = new GodotStopwatch();
 
-	public KinematicPlatformMotion PlatformBody;
-	public Vector2? InitialPosition { get; set; }
-
 	private readonly DragCameraController _cameraController = new();
 	private CharacterWeaponController _characterWeaponController;
 
@@ -124,23 +130,26 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 
 		// OnTransition += args => Console.WriteLine(args.To);
 		// EventBus.Subscribe(Enqueue);
-		CreateGroundStates();
-		CreateAirStates();
+		ConfigureStateMachineGround();
+		ConfigureStateMachineAir();
 
 		var overlay = DebugOverlayManager.Overlay(CharacterBody2D)
 			.Title("Player")
 			.SetMaxSize(1000, 1000);
 		
-		// this.OnDraw(canvas => {
-			// foreach (var floorRaycast in FloorRaycasts) canvas.DrawRaycast(floorRaycast, Colors.Red);
-			// canvas.DrawRaycast(RaycastCanJump, Colors.Red);
-		// });
+		var drawEvent = this.OnDraw(canvas => {
+			foreach (var floorRaycast in FloorRaycasts) canvas.DrawRaycast(floorRaycast, Colors.Red);
+			canvas.DrawRaycast(RaycastCanJump, Colors.Red);
+		});
+		drawEvent.Disable();
 
 
 		AddOverlayHelpers(overlay);
 		AddOverlayStates(overlay);
 		AddOverlayMotion(overlay);
 		AddOverlayCollisions(overlay);
+
+		LoadState();
 
 		// DebugOverlayManager.Overlay(this)
 		//     .Title("Player")
@@ -160,6 +169,12 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		//         .TypedNode);
 	}
 
+	private void LoadState() {
+		Inventory.Pick(World.Get("K1"));
+		Inventory.Pick(World.Get("M1"));
+		Inventory.Equip(1);
+	}
+
 	private void ConfigureCharacter() {
 		if (InitialPosition.HasValue) CharacterBody2D.GlobalPosition = InitialPosition.Value;
 		CharacterBody2D.FloorStopOnSlope = true;
@@ -175,16 +190,29 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		PlatformBody = new KinematicPlatformMotion(CharacterBody2D, flipper, Marker2D, MotionConfig.FloorUpDirection,
 			FloorRaycasts);
 		OnBeforeExecute += () => PlatformBody.SetDelta(Delta);
+		OnAfterExecute += () => {
+			Label.Text = _animationStack.GetPlayingOnce() != null
+				? _animationStack.GetPlayingOnce().Name
+				: _animationStack.GetPlayingLoop().Name;
+			Label.Text += "(" + attackState + ")";
+		};
 
 		_characterWeaponController = new CharacterWeaponController(_attackArea, _weaponSprite);
 		_characterWeaponController.Equip(WeaponManager.Knife);
+
+		Inventory = new Inventory();
+		Inventory.OnEquip += (item) => {
+			if (item is WeaponItem weapon) {
+				_characterWeaponController.Equip(weapon.Type);
+			}
+		};
 		
 		CharacterManager.RegisterPlayerNode(this);
 		CharacterManager.PlayerConfigureCollisions(this);
 		
 		CharacterManager.PlayerConfigureAttackArea(_attackArea, (enemyAttackedArea2D) => {
 			GD.Print("Enemy attacked!");
-			EventBus.Publish(new PlayerAttack(this, enemyAttackedArea2D, _characterWeaponController.Current));
+			EventBus.Publish(new PlayerAttack(this, enemyAttackedArea2D, Inventory.GetCurrent() as WeaponItem));
 		});
 		CharacterManager.PlayerConfigureHurtArea(_hurtArea, (enemyAttackArea2D) => {
 			GD.Print("Player attacked!");
@@ -265,6 +293,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	}
 
 	public override void _Input(InputEvent e) {
+		base._Input(e);
 		if (e.IsLeftDoubleClick()) _camera2D.Position = Vector2.Zero;
 		if (e.IsKeyPressed(Key.Q)) {
 			// _camera2D.Zoom -= new Vector2(0.05f, 0.05f);
@@ -276,14 +305,6 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	}
 
 	public bool CanJump() => !RaycastCanJump.IsColliding(); 
-
-	public override void _Process(double delta) {
-		Label.Text = _animationStack.GetPlayingOnce() != null
-			? _animationStack.GetPlayingOnce().Name
-			: _animationStack.GetPlayingLoop().Name;
-		Label.Text += "("+attackState+")";
-			// QueueRedraw();
-	}
 
 	public void AddOverlayHelpers(DebugOverlay overlay) {
 		_jumpHelperMonitor = overlay.Text("JumpHelper");
@@ -355,7 +376,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		attackState = AttackState.None;
 	}
 	
-	public void CreateGroundStates() {
+	public void ConfigureStateMachineGround() {
 		PhysicsBody2D? fallingPlatform = null;
 		void FallFromPlatform() {
 			fallingPlatform = PlatformBody.GetFloorCollider<PhysicsBody2D>()!;
@@ -389,6 +410,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			.Build();
 
 		State(PlayerState.Idle)
+			.OnInput(ManageInputActions)
 			.Enter(() => {
 				AnimationIdle.PlayLoop();
 			})
@@ -409,6 +431,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			.Build();
 
 		State(PlayerState.Run)
+			.OnInput(ManageInputActions)
 			.Execute(() => {
 				ApplyFloorGravity();
 				if (XInput == 0) {
@@ -475,6 +498,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			.Build();
 		
 		State(PlayerState.Jump)
+			.OnInput(ManageInputActions)
 			.Enter(() => {
 				PlatformBody.MotionY = -PlayerConfig.JumpSpeed;
 				AnimationFall.PlayLoop();
@@ -504,7 +528,17 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			.Build();
 	}
 
-	public void CreateAirStates() {
+	private void ManageInputActions(InputEvent e) {
+		if (NextItem.IsEventJustPressed(e)) {
+			Inventory.NextItem();
+			Inventory.Equip();
+		} else if (PrevItem.IsEventJustPressed(e)) {
+			Inventory.PrevItem();
+			Inventory.Equip();
+		}
+	}
+
+	public void ConfigureStateMachineAir() {
 		bool CheckCoyoteJump() {
 			if (!Jump.IsJustPressed()) return false;
 			// Jump was pressed
@@ -547,6 +581,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			.Build();
 
 		State(PlayerState.FallShort)
+			.OnInput(ManageInputActions)
 			.Execute(() => {
 				PlatformBody.Flip(XInput);
 				ApplyAirGravity();
@@ -561,6 +596,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			.Build();
 				
 		State(PlayerState.FallLong)
+			.OnInput(ManageInputActions)
 			.Enter(() => AnimationFall.PlayLoop())
 			.Execute(() => {
 				PlatformBody.Flip(XInput);
@@ -575,6 +611,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			.Build();
 
 		State(PlayerState.Float)
+			.OnInput(ManageInputActions)
 			.Enter(() => {
 				PlatformBody.CharacterBody.MotionMode = CharacterBody2D.MotionModeEnum.Floating;
 			})

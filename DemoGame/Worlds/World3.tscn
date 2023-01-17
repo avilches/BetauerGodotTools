@@ -52,14 +52,12 @@ position = Vector2(-872, -38)
 
 [node name="Body" parent="Enemies/Enemy2/Character/Sprites" index="0"]
 flip_h = true
-frame = 0
 
 [node name="Enemy3" parent="Enemies" instance=ExtResource("3_ailyd")]
 position = Vector2(-750, -86)
 
 [node name="Body" parent="Enemies/Enemy3/Character/Sprites" index="0"]
 flip_h = true
-frame = 0
 
 [node name="Hints" type="Control" parent="."]
 layout_mode = 3

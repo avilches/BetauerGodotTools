@@ -1,25 +1,11 @@
 using System;
 using Betauer.Bus;
 using Betauer.DI;
-using Godot;
 using Veronenger.Character;
 using Veronenger.Character.Enemy;
 using Veronenger.Character.Player;
 
-namespace Veronenger.Managers; 
-
-public class PlayerAttack {
-    public readonly PlayerNode Player;
-    public readonly Area2D Enemy;
-    public readonly MeleeWeapon Weapon;
-
-    public PlayerAttack(PlayerNode player, Area2D enemy, MeleeWeapon weapon) {
-        Player = player;
-        Enemy = enemy;
-        Weapon = weapon;
-    }
-}
-
+namespace Veronenger.Managers;
 
 [Service]
 public class EventBus {
