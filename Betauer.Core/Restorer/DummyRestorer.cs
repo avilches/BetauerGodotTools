@@ -1,14 +1,14 @@
-namespace Betauer.Core.Restorer {
-    public class DummyRestorer : Restorer {
-        public static readonly Restorer Instance = new DummyRestorer();
+namespace Betauer.Core.Restorer; 
 
-        private DummyRestorer() {
-        }
+public class DummyRestorer : Restorer {
+    public static readonly Restorer Instance = new DummyRestorer();
 
-        protected override void DoSave() {
-        }
+    private DummyRestorer() {
+    }
 
-        protected override void DoRestore() {
-        }
+    protected override void DoSave() {
+    }
+
+    protected override void DoRestore() {
     }
 }

@@ -1,16 +1,16 @@
 using System;
 
-namespace Betauer.DI {
-    [AttributeUsage(AttributeTargets.Method  | AttributeTargets.Property)]
-    public class InjectAttribute : Attribute {
-        public bool Nullable { get; set; } = false;
-        public string? Name { get; set; }
+namespace Betauer.DI; 
 
-        public InjectAttribute() {
-        }
+[AttributeUsage(AttributeTargets.Method  | AttributeTargets.Property)]
+public class InjectAttribute : Attribute {
+    public bool Nullable { get; set; } = false;
+    public string? Name { get; set; }
 
-        public InjectAttribute(string name) {
-            Name = name;
-        }
+    public InjectAttribute() {
+    }
+
+    public InjectAttribute(string name) {
+        Name = name;
     }
 }

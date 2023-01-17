@@ -1,29 +1,29 @@
 using Godot;
 
-namespace Betauer.Core.Nodes.Property {
-    public class PositionBySizeX : ComputedProperty<float> {
-        private readonly float _initialValue;
+namespace Betauer.Core.Nodes.Property; 
 
-        public PositionBySizeX(Node node) : base(node, Properties.PositionX) {
-            if (IsCompatibleWith(node)) {
-                _initialValue = Properties.PositionX.GetValue(node);
-            }
-        }
+public class PositionBySizeX : ComputedProperty<float> {
+    private readonly float _initialValue;
 
-        protected override float ComputeValue(float percent) {
-            var size = Node switch {
-                Sprite2D sprite => sprite.GetSpriteSize(),
-                Control control => control.Size,
-            };
-            return _initialValue + (size.x * percent);
+    public PositionBySizeX(Node node) : base(node, Properties.PositionX) {
+        if (IsCompatibleWith(node)) {
+            _initialValue = Properties.PositionX.GetValue(node);
         }
+    }
 
-        public sealed override bool IsCompatibleWith(Node node) {
-            return node is Sprite2D || node is Control;
-        }
+    protected override float ComputeValue(float percent) {
+        var size = Node switch {
+            Sprite2D sprite => sprite.GetSpriteSize(),
+            Control control => control.Size,
+        };
+        return _initialValue + (size.x * percent);
+    }
 
-        public override string ToString() {
-            return $"PositionBySizeX.Computed({Property})";
-        }
+    public sealed override bool IsCompatibleWith(Node node) {
+        return node is Sprite2D || node is Control;
+    }
+
+    public override string ToString() {
+        return $"PositionBySizeX.Computed({Property})";
     }
 }

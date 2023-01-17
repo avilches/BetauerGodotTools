@@ -1,21 +1,21 @@
 using Betauer.Core.Nodes;
 using Godot;
 
-namespace Betauer.Core.Restorer {
-    public class ChildFocusRestorer : Restorer {
-        private Control? _focused;
-        private readonly Container _container;
+namespace Betauer.Core.Restorer; 
 
-        public ChildFocusRestorer(Container container) {
-            _container = container;
-        }
+public class ChildFocusRestorer : Restorer {
+    private Control? _focused;
+    private readonly Container _container;
 
-        protected override void DoSave() {
-            _focused = _container.GetChildFocused<Control>();
-        }
+    public ChildFocusRestorer(Container container) {
+        _container = container;
+    }
 
-        protected override void DoRestore() {
-            _focused?.GrabFocus();
-        }
+    protected override void DoSave() {
+        _focused = _container.GetChildFocused<Control>();
+    }
+
+    protected override void DoRestore() {
+        _focused?.GrabFocus();
     }
 }

@@ -2,26 +2,26 @@ using System.Collections.Generic;
 using System.Linq;
 using Godot;
 
-namespace Betauer.Core.Restorer {
-    public class MultiRestorer : Restorer {
-        public readonly List<Restorer> Restorers = new();
+namespace Betauer.Core.Restorer; 
 
-        public MultiRestorer Add(Restorer restorer) {
-            Restorers.Add(restorer);
-            return this;
-        }
+public class MultiRestorer : Restorer {
+    public readonly List<Restorer> Restorers = new();
 
-        public MultiRestorer Add(IEnumerable<Restorer> toList) {
-            Restorers.AddRange(toList);
-            return this;
-        }
+    public MultiRestorer Add(Restorer restorer) {
+        Restorers.Add(restorer);
+        return this;
+    }
 
-        protected override void DoSave() {
-            foreach (var restorer in Restorers) restorer.Save();
-        }
+    public MultiRestorer Add(IEnumerable<Restorer> toList) {
+        Restorers.AddRange(toList);
+        return this;
+    }
 
-        protected override void DoRestore() {
-            foreach (var restorer in Restorers) restorer.Restore();
-        }
+    protected override void DoSave() {
+        foreach (var restorer in Restorers) restorer.Save();
+    }
+
+    protected override void DoRestore() {
+        foreach (var restorer in Restorers) restorer.Restore();
     }
 }
