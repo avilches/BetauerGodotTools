@@ -1,7 +1,10 @@
+using System;
 using System.Linq;
 using Betauer;
 using Betauer.Animation;
 using Betauer.Application.Monitor;
+using Betauer.Bus;
+using Betauer.Core;
 using Betauer.Core.Nodes;
 using Betauer.Core.Nodes.Property;
 using Betauer.Core.Pool;
@@ -43,8 +46,8 @@ public class EnemyStatus {
 	public float MaxHealth = 10;
 	public float HealthPercent => Health / MaxHealth;
 
-	public void Attack(Attack attack) {
-		Health -= attack.Damage;
+	public void Attack(float damage) {
+		Health -= damage;
 	}
 
 	public bool IsDead() => Health <= 0f;
@@ -64,8 +67,6 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		.KeyframeTo(1.00f, Colors.White)
 		.EndAnimate();
 
-	private readonly Logger _logger = LoggerFactory.GetLogger<ZombieNode>();
-
 	[OnReady("Character")] private CharacterBody2D CharacterBody2D;
 	[OnReady("Character/Sprites/Body")] private Sprite2D _mainSprite;
 	[OnReady("Character/Sprites/AnimationPlayer")] private AnimationPlayer _animationPlayer;
@@ -84,6 +85,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 	[Inject] private CharacterManager CharacterManager { get; set; }
 	[Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
 
+	[Inject] private EventBus EventBus { get; set; }
 	[Inject] private PlayerConfig PlayerConfig { get; set; }
 	[Inject] private EnemyConfig EnemyConfig { get; set; }
 	[Inject] private ICharacterHandler Handler { get; set; }
@@ -107,13 +109,14 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 	private float MotionY => PlatformBody.MotionY;
 
 	public Vector2? InitialPosition { get; set; }
-
 	public KinematicPlatformMotion PlatformBody;
+	private ICharacterAI _zombieAi;
 	public readonly EnemyStatus Status = new();
-	private readonly GodotStopwatch _stateTimer = new();
 
-	private Attack _lastPlayerAttack;
+	private readonly GodotStopwatch _stateTimer = new();
 	private MiniPool<ILabelEffect> _labelHits;
+	private Restorer _restorer; 
+	private bool _hitLabelUsed = false;
 
 	public void PlayAnimationHurt() {
 		_sceneTreeTween?.Kill();
@@ -150,7 +153,6 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		AddOverlayCollisions(overlay);
 	}
 
-	private readonly MultiRestorer _restorer = new MultiRestorer(); 
 	private void ConfigureCharacter() {
 		if (InitialPosition.HasValue) CharacterBody2D.GlobalPosition = InitialPosition.Value;
 		CharacterBody2D.FloorStopOnSlope = true;
@@ -177,22 +179,28 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		CharacterManager.EnemyConfigureAttackArea(_attackArea);
 		_attackArea.GetNode<CollisionShape2D>("Body").Disabled = false;
 		_attackArea.GetNode<CollisionShape2D>("Weapon").Disabled = true;
-		CharacterManager.EnemyConfigureHurtArea(_hurtArea, (playerAttackArea2D) => {
-			_lastPlayerAttack = new Attack(1f); 
-			Status.Attack(_lastPlayerAttack);
-			Enqueue(Status.IsDead() ? ZombieEvent.Dead : ZombieEvent.Hurt);
-		});
+
+		CharacterManager.EnemyConfigureHurtArea(_hurtArea);
+		_hurtArea.SetMeta("EnemyNodeHashCode", GetHashCode());
+		EventBus.Subscribe(OnPlayerAttack).RemoveIf(Predicates.IsInvalid(this));
 		
-		_restorer
+		_restorer = new MultiRestorer()
 			.Add(CharacterBody2D.CreateCollisionRestorer())
 			.Add(_hurtArea.CreateCollisionRestorer())
 			.Add(_attackArea.CreateCollisionRestorer())
-			.Add(_mainSprite.CreateRestorer(Properties.Modulate, Properties.Scale2D))
-			.Save();
+			.Add(_mainSprite.CreateRestorer(Properties.Modulate, Properties.Scale2D));
+		_restorer.Save();
 
 	}
 
-	private bool _hitLabelUsed = false;
+	private void OnPlayerAttack(PlayerAttack playerAttack) {
+		if (playerAttack.Enemy.GetMeta("EnemyNodeHashCode").AsInt32() != GetHashCode()) return;
+		Status.Attack(playerAttack.Weapon.Damage);
+		GD.Print("Enemy: i'm attacked by player "+ GetHashCode()+": "+Status.Health);
+		_labelHits.Get().Show(((int)playerAttack.Weapon.Damage).ToString());
+		Enqueue(Status.IsDead() ? ZombieEvent.Dead : ZombieEvent.Hurt);
+	}
+
 	private void CreateAnimations() {
 		_animationStack = new AnimationStack("Zombie.AnimationStack").SetAnimationPlayer(_animationPlayer);
 		AnimationIdle = _animationStack.AddLoopAnimation("Idle");
@@ -244,8 +252,6 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 	public void ApplyAirGravity(float factor = 1.0F) {
 		PlatformBody.ApplyGravity(PlayerConfig.AirGravity * factor, PlayerConfig.MaxFallingSpeed);
 	}
-
-	private ICharacterAI _zombieAi;
 
 	public void AddOverlayStates(DebugOverlay overlay) {    
 		overlay
@@ -355,7 +361,6 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 				knockbackTween?.Kill();
 				knockbackTween = CreateTween();
 				knockbackTween.TweenMethod(Callable.From<float>(v => PlatformBody.MotionX = v), PlatformBody.MotionX, 0, 0.1f).SetTrans(Tween.TransitionType.Cubic);
-				_labelHits.Get().Show(((int)_lastPlayerAttack.Damage).ToString());
 			})
 			.Execute(() => {
 				ApplyAirGravity();

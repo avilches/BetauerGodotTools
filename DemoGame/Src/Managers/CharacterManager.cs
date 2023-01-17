@@ -16,7 +16,7 @@ public class CharacterManager {
     [Inject] private Game Game { get; set; }
 
     [Inject] public PlatformManager PlatformManager { get; set;}
-    [Inject] private Bus Bus { get; set; }
+    [Inject] private EventBus EventBus { get; set; }
 
     public void RegisterPlayerNode(PlayerNode playerNode) {
         PlayerNode = playerNode;
@@ -40,10 +40,10 @@ public class CharacterManager {
         });
     }
 
-    public void PlayerConfigureAttackArea(Area2D attackArea) {
+    public void PlayerConfigureAttackArea(Area2D attackArea, Action<Area2D> onAttack) {
         attackArea.CollisionMask = 0;
         attackArea.CollisionLayer = 0;
-        attackArea.AddToLayer(LayerEnemyHurtArea);
+        attackArea.OnAreaEntered(LayerEnemyHurtArea, onAttack);
     }
 
     public void EnemyConfigureCollisions(CharacterBody2D enemy) {
@@ -79,10 +79,10 @@ public class CharacterManager {
         rayCast2D.DetectLayer(LayerPlayerDetectorArea);
     }
 
-    public void EnemyConfigureHurtArea(Area2D hurtArea, Action<Area2D> onAttack) {
+    public void EnemyConfigureHurtArea(Area2D hurtArea) {
         hurtArea.CollisionMask = 0;
         hurtArea.CollisionLayer = 0;
-        hurtArea.OnAreaEntered(LayerEnemyHurtArea, onAttack);
+        hurtArea.AddToLayer(LayerEnemyHurtArea);
     }
 
     public bool IsEnemy(CharacterBody2D platform) => platform.IsInGroup(GROUP_ENEMY);

@@ -3,15 +3,18 @@ using Godot;
 
 namespace Veronenger.Character;
 
-public class MeleeAttack {
+public class CharacterWeaponController {
     private readonly Area2D _attackArea;
     private readonly Sprite2D _weaponSprite;
 
-    public MeleeAttack(Area2D attackArea, Sprite2D weaponSprite) {
+    public MeleeWeapon Current { get; private set; }
+
+    public CharacterWeaponController(Area2D attackArea, Sprite2D weaponSprite) {
         _attackArea = attackArea;
         _weaponSprite = weaponSprite;
         Unequip();
     }
+
 
     public void Unequip() => Equip(null);
 		
@@ -29,5 +32,6 @@ public class MeleeAttack {
             if (shape is CollisionShape2D collisionShape2D) collisionShape2D.Disabled = !matches;
             if (shape is CollisionPolygon2D collisionPolygon2D) collisionPolygon2D.Disabled = !matches;
         });
+        Current = weapon;
     }
 }

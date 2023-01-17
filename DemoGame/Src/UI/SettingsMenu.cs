@@ -71,7 +71,7 @@ public partial class SettingsMenu : CanvasLayer {
 	[Inject] private InputAction Left { get; set; }
 	[Inject] private InputAction Right { get; set; }
 		
-	[Inject] private Bus Bus { get; set; }
+	[Inject] private EventBus EventBus { get; set; }
 
 	private Restorer _restorer;
 
@@ -244,7 +244,7 @@ public partial class SettingsMenu : CanvasLayer {
 			GetViewport().SetInputAsHandled();
 				
 		} else if (UiCancel.IsEventPressed(e)) {
-			Bus.Publish(MainEvent.Back);
+			EventBus.Publish(MainEvent.Back);
 			GetViewport().SetInputAsHandled();
 				
 		} else if (_resolutionButton.HasFocus()) {

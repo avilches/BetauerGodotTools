@@ -1,6 +1,8 @@
 using Betauer.Application.Monitor;
 using Godot;
 using Betauer.Application.Screen;
+using Betauer.Bus;
+using Betauer.Core;
 using Betauer.DI;
 using Betauer.Input;
 using Betauer.Core.Nodes;
@@ -54,7 +56,7 @@ public partial class MainStateMachine : StateMachineNodeAsync<MainState, MainEve
         
     [Inject] private Theme DebugConsoleTheme { get; set; }
 
-    [Inject] private Bus Bus { get; set; }
+    [Inject] private EventBus EventBus { get; set; }
 
     public override void _Ready() {
         ProcessMode = ProcessModeEnum.Always;
@@ -82,7 +84,7 @@ public partial class MainStateMachine : StateMachineNodeAsync<MainState, MainEve
         }, ProcessModeEnum.Always);
 #endif
             
-        Bus.Subscribe(Enqueue).RemoveIfInvalid(this);
+        EventBus.Subscribe(Enqueue).RemoveIf(Predicates.IsInvalid(this));
         var modalResponse = false;
         var splashScreen = SceneTree.GetMainScene<SplashScreenNode>();
         splashScreen.Layer = int.MaxValue;

@@ -20,14 +20,6 @@ using Veronenger.Managers;
 
 namespace Veronenger.Character.Player; 
 
-public readonly struct Attack {
-	public readonly float Damage;
-
-	public Attack(float damage) {
-		Damage = damage;
-	}
-}
-
 public enum PlayerState {
 	Idle,
 	Landing,
@@ -44,7 +36,7 @@ public enum PlayerState {
 }
 
 public enum PlayerEvent {
-	Death
+	Death,
 }
 
 public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent> {
@@ -54,16 +46,13 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	[OnReady("Character")] private CharacterBody2D CharacterBody2D;
 	[OnReady("Character/Sprites/Weapon")] private Sprite2D _weaponSprite;
 	[OnReady("Character/Sprites/Body")] private Sprite2D _mainSprite;
-
-	[OnReady("Character/Sprites/AnimationPlayer")]
-	private AnimationPlayer _animationPlayer;
-
+	
+	[OnReady("Character/Sprites/AnimationPlayer")] private AnimationPlayer _animationPlayer;
 	[OnReady("Character/AttackArea")] private Area2D _attackArea;
 	[OnReady("Character/HurtArea")] private Area2D _hurtArea;
 	[OnReady("Character/RichTextLabel")] public RichTextLabel Label;
 	[OnReady("Character/Detector")] public Area2D PlayerDetector;
 	[OnReady("Character/Camera2D")] private Camera2D _camera2D;
-
 	[OnReady("Character/Marker2D")] public Marker2D Marker2D;
 	[OnReady("Character/CanJump")] public RayCast2D RaycastCanJump;
 	[OnReady("Character/FloorRaycasts")] public List<RayCast2D> FloorRaycasts;
@@ -77,7 +66,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 
 	[Inject] public PlayerConfig PlayerConfig { get; set; }
 	[Inject] private SceneTree SceneTree { get; set; }
-	[Inject] private Bus Bus { get; set; }
+	[Inject] private EventBus EventBus { get; set; }
 	[Inject] private InputActionCharacterHandler Handler { get; set; }
 
 	public ILoopStatus AnimationIdle { get; private set; }
@@ -91,6 +80,9 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	public IOnceStatus PulsateTween;
 	public ILoopStatus DangerTween;
 	public IOnceStatus SqueezeTween;
+
+	private AnimationStack _animationStack;
+	private AnimationStack _tweenStack;
 
 	private float XInput => Handler.Directional.XInput;
 	private float YInput => Handler.Directional.YInput;
@@ -118,13 +110,10 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	private readonly GodotStopwatch _coyoteFallingTimer = new GodotStopwatch();
 
 	public KinematicPlatformMotion PlatformBody;
-	
 	public Vector2? InitialPosition { get; set; }
 
 	private readonly DragCameraController _cameraController = new();
-	private AnimationStack _animationStack;
-	private AnimationStack _tweenStack;
-	private MeleeAttack _meleeAttack;
+	private CharacterWeaponController _characterWeaponController;
 
 	public override void _Ready() {
 		_delayedJump = ((InputAction)Jump).CreateDelayed();
@@ -134,7 +123,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		ConfigureCharacter();
 
 		// OnTransition += args => Console.WriteLine(args.To);
-		Bus.Subscribe(Enqueue);
+		// EventBus.Subscribe(Enqueue);
 		CreateGroundStates();
 		CreateAirStates();
 
@@ -187,13 +176,16 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			FloorRaycasts);
 		OnBeforeExecute += () => PlatformBody.SetDelta(Delta);
 
-		_meleeAttack = new MeleeAttack(_attackArea, _weaponSprite);
-		_meleeAttack.Equip(WeaponManager.Knife);
+		_characterWeaponController = new CharacterWeaponController(_attackArea, _weaponSprite);
+		_characterWeaponController.Equip(WeaponManager.Knife);
 		
 		CharacterManager.RegisterPlayerNode(this);
 		CharacterManager.PlayerConfigureCollisions(this);
 		
-		CharacterManager.PlayerConfigureAttackArea(_attackArea);
+		CharacterManager.PlayerConfigureAttackArea(_attackArea, (enemyAttackedArea2D) => {
+			GD.Print("Enemy attacked!");
+			EventBus.Publish(new PlayerAttack(this, enemyAttackedArea2D, _characterWeaponController.Current));
+		});
 		CharacterManager.PlayerConfigureHurtArea(_hurtArea, (enemyAttackArea2D) => {
 			GD.Print("Player attacked!");
 			// var enemy = enemyDamageArea2DPublisher.GetParent<IEnemy>();
@@ -507,7 +499,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		State(PlayerState.Death)
 			.Enter(() => {
 				Console.WriteLine("MUERTO");
-				Bus.Publish(MainEvent.EndGame);
+				EventBus.Publish(MainEvent.EndGame);
 			})
 			.Build();
 	}

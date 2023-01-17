@@ -28,7 +28,7 @@ public partial class PauseMenu : CanvasFaderLayer {
 	[Inject] private InputAction UiAccept { get; set; }
 	[Inject] private InputAction UiCancel { get; set; }
 	[Inject] private InputAction ControllerStart { get; set; }
-	[Inject] private Bus Bus { get; set; }
+	[Inject] private EventBus EventBus { get; set; }
 
 	public override void _Ready() {
 		_menuContainer = BuildMenu();
@@ -63,23 +63,23 @@ public partial class PauseMenu : CanvasFaderLayer {
 
 		var mainMenu = new MenuContainer(_menuBase);
 		var startMenu = mainMenu.GetRootMenu();
-		startMenu.AddButton("Resume", "Resume").OnPressed(() => Bus.Publish(MainEvent.Back));
-		startMenu.AddButton("Settings", "Settings").OnPressed(() => Bus.Publish(MainEvent.Settings));
-		startMenu.AddButton("QuitGame", "Quit game").OnPressed(() => Bus.Publish(MainEvent.ModalBoxConfirmQuitGame));
+		startMenu.AddButton("Resume", "Resume").OnPressed(() => EventBus.Publish(MainEvent.Back));
+		startMenu.AddButton("Settings", "Settings").OnPressed(() => EventBus.Publish(MainEvent.Settings));
+		startMenu.AddButton("QuitGame", "Quit game").OnPressed(() => EventBus.Publish(MainEvent.ModalBoxConfirmQuitGame));
 		return mainMenu;
 	}
 
 	public void OnInput(InputEvent e) {
 		if (UiCancel.IsEventJustPressed(e)) {
 			if (_menuContainer.IsRootMenuActive()) {
-				Bus.Publish(MainEvent.Back);
+				EventBus.Publish(MainEvent.Back);
 			} else {
 				_menuContainer.Back();
 			}
 			GetViewport().SetInputAsHandled();
 
 		} else if (ControllerStart.IsJustPressed()) {
-			Bus.Publish(MainEvent.Back);
+			EventBus.Publish(MainEvent.Back);
 			GetViewport().SetInputAsHandled();
 				
 		}
