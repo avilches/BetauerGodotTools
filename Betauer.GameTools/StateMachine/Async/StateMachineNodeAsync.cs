@@ -41,6 +41,9 @@ namespace Betauer.StateMachine.Async {
         }
         public bool IsState(TStateKey state) => _stateMachine.IsState(state);
 
+        public override void _EnterTree() {
+            base.Name = Name;
+        }
 
         public StateNodeBuilderAsync<TStateKey, TEventKey> State(TStateKey stateKey) => _stateMachine.State(stateKey);
         public EventBuilder<StateMachineNodeAsync<TStateKey, TEventKey>, TStateKey, TEventKey> On(TEventKey transitionKey) => _stateMachine.On(transitionKey);

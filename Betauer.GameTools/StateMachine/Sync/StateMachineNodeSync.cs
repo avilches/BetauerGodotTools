@@ -39,6 +39,9 @@ namespace Betauer.StateMachine.Sync {
         }
         public bool IsState(TStateKey state) => _stateMachine.IsState(state);
 
+        public override void _EnterTree() {
+            base.Name = Name;
+        }
 
         public StateNodeBuilderSync<TStateKey, TEventKey> State(TStateKey stateKey) => _stateMachine.State(stateKey);
         public EventBuilder<StateMachineNodeSync<TStateKey, TEventKey>, TStateKey, TEventKey> On(TEventKey transitionKey) => _stateMachine.On(transitionKey);
