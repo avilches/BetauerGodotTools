@@ -46,6 +46,10 @@ namespace Betauer.Core.Restorer {
             return new PropertyNameRestorer(node, properties);
         }
 
+        public static Restorer CreateCollisionRestorer(this CollisionObject2D node) {
+            return new PropertyNameRestorer(node, "collision_layer", "collision_mask");
+        }
+
         public static Restorer CreateRestorer(this Node node, params IProperty[] property) {
             return new PropertyRestorer(node, property);
         }
