@@ -1,6 +1,4 @@
 using System ;
-using System.Collections.Generic;
-using Object = Godot.Object;
 
 namespace Betauer.Bus {
     public class Unicast<TArgs> : Unicast<object, TArgs> {
@@ -9,7 +7,7 @@ namespace Betauer.Bus {
     public class Unicast<TPublisher, TArgs> {
         public readonly EventConsumer Consumer = new();
 
-        public Func<TPublisher, TArgs, bool>? Condition;
+        public Func<TPublisher, TArgs, bool>? Condition { get; set; }
 
         public void Publish() {
             Publish(default, default);

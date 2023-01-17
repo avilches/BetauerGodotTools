@@ -65,7 +65,7 @@ namespace Betauer.Application.Monitor {
 
         public DebugOverlay Overlay(Object target) {
             return (Overlays.FirstOrDefault(d => d.Target == target) ?? 
-                    CreateOverlay().RemoveIfInvalid(target).Enable());
+                    CreateOverlay().RemoveIf(Predicates.IsInvalid(target)).Enable());
         }
 
         public DebugOverlay Follow(Node2D follow) {

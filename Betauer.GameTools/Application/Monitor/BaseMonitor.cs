@@ -40,17 +40,11 @@ namespace Betauer.Application.Monitor {
     public abstract partial class BaseMonitor<TBuilder> : BaseMonitor where TBuilder : class {
         private double _timeElapsed = 0;
         private double _updateEvery = 0;
-        public Object? Watch { get; set; }
         public Func<bool>? RemoveIfFunc { get; private set; }
 
         public TBuilder Enable(bool enable = true) {
             Visible = enable;
             SetPhysicsProcess(enable);
-            return this as TBuilder;
-        }
-
-        public TBuilder RemoveIfInvalid(Object target) {
-            Watch = target;
             return this as TBuilder;
         }
 
@@ -69,7 +63,7 @@ namespace Betauer.Application.Monitor {
         }
 
         public override void _PhysicsProcess(double delta) {
-            var watching = Watch ?? DebugOverlayOwner.Target;
+            var watching = DebugOverlayOwner.Target;
             if ((watching != null && !IsInstanceValid(watching)) || (RemoveIfFunc != null && RemoveIfFunc())) {
                 QueueFree();
             } else if (!Visible) {

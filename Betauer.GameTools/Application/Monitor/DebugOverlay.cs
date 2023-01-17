@@ -134,11 +134,6 @@ namespace Betauer.Application.Monitor {
             return this;
         }
 
-        public DebugOverlay RemoveIfInvalid(Object o) {
-            Target = o;
-            return this;
-        }
-
         public DebugOverlay RemoveIf(Func<bool> removeIf) {
             RemoveIfFunc = removeIf;
             return this;

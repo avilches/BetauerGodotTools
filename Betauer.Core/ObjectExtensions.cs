@@ -4,6 +4,10 @@ using Godot;
 namespace Betauer.Core {
     public static class ObjectExtensions {
 
+        public static bool IsInstanceValid(this Object o) => Object.IsInstanceValid(o);
+        
+        public static bool IsInstanceInvalid(this Object o) => !Object.IsInstanceValid(o);
+
         public static Object FreeDeferred(this Object o) {
             o.CallDeferred("free");
             return o;

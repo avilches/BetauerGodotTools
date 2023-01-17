@@ -1,3 +1,4 @@
+using Betauer.Core;
 using NUnit.Framework;
 
 namespace Betauer.Bus.Tests {
@@ -83,7 +84,7 @@ namespace Betauer.Bus.Tests {
             var calls = 0;
             var consumer = bus.Subscribe((sender, args) => {
                 calls++;
-            }).RemoveIfInvalid(o);
+            }).RemoveIf(Predicates.IsInvalid(o));
             
             bus.Publish("sender", "args");
             Assert.That(calls, Is.EqualTo(1));
