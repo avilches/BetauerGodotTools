@@ -13,16 +13,16 @@ namespace Betauer.StateMachine.Sync {
             return new StateNodeSync<TStateKey, TEventKey>(Key, EnterFunc, Conditions.ToArray(), ExecuteFunc, ExitFunc, SuspendFunc, AwakeFunc, Events, _input, _unhandledInput);
         }
 
-        private Action<InputEvent> _input;
-        private Action<InputEvent> _unhandledInput;
+        protected event Action<InputEvent>? _input;
+        protected event Action<InputEvent>? _unhandledInput;
         
         public StateNodeBuilderSync<TStateKey, TEventKey> OnInput(Action<InputEvent> input) {
-            _input = input;
+            _input += input;
             return this;
         }
 
         public StateNodeBuilderSync<TStateKey, TEventKey> OnUnhandledInput(Action<InputEvent> unhandledInput) {
-            _unhandledInput = unhandledInput;
+            _unhandledInput += unhandledInput;
             return this;
         }
     }

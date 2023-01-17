@@ -13,8 +13,8 @@ namespace Betauer.StateMachine.Async {
             return new StateNodeAsync<TStateKey, TEventKey>(Key, EnterFunc, Conditions.ToArray(), ExecuteFunc, ExitFunc, SuspendFunc, AwakeFunc, Events, _input, _unhandledInput);
         }
 
-        private Action<InputEvent> _input;
-        private Action<InputEvent> _unhandledInput;
+        private event Action<InputEvent> _input;
+        private event Action<InputEvent> _unhandledInput;
         
         /// <summary>
         /// This event will be only executed when the state machine is available (not executing enter, exit, execute,
@@ -24,12 +24,12 @@ namespace Betauer.StateMachine.Async {
         /// <param name="input"></param>
         /// <returns></returns>
         public StateNodeBuilderAsync<TStateKey, TEventKey> OnInput(Action<InputEvent> input) {
-            _input = input;
+            _input += input;
             return this;
         }
 
         public StateNodeBuilderAsync<TStateKey, TEventKey> OnUnhandledInput(Action<InputEvent> unhandledInput) {
-            _unhandledInput = unhandledInput;
+            _unhandledInput += unhandledInput;
             return this;
         }
     }
