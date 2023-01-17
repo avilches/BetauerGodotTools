@@ -25,43 +25,64 @@ public class CharacterManager {
     public void PlayerConfigureCollisions(PlayerNode playerNode) {
         playerNode.PlatformBody.CharacterBody.CollisionLayer = 0;
         playerNode.PlatformBody.CharacterBody.CollisionMask = 0;
-            
         playerNode.PlatformBody.CharacterBody.AddToLayer(LayerPlayerBody);
-        playerNode.PlatformBody.CharacterBody.DetectLayer(LayerBodySolid);
+        playerNode.PlatformBody.CharacterBody.DetectLayer(LayerSolidBody);
 
-        playerNode.RaycastCanJump.DetectLayer(LayerBodySolid);
+        playerNode.PlayerDetector.CollisionLayer = 0;
+        playerNode.PlayerDetector.CollisionMask = 0;
+        playerNode.PlayerDetector.AddToLayer(LayerPlayerDetectorArea);
+        
+        playerNode.RaycastCanJump.DetectLayer(LayerSolidBody);
         playerNode.FloorRaycasts.ForEach(rayCast2D => {
-            rayCast2D.DetectLayer(LayerBodySolid);
+            rayCast2D.CollideWithAreas = false;
+            rayCast2D.CollideWithBodies = true;
+            rayCast2D.DetectLayer(LayerSolidBody);
         });
     }
 
-    public void PlayerConfigureAttackArea2D(Area2D attackArea2D) {
-        attackArea2D.CollisionMask = 0;
-        attackArea2D.CollisionLayer = 0;
-        attackArea2D.AddToLayer(LayerEnemyArea2D);
+    public void PlayerConfigureAttackArea(Area2D attackArea) {
+        attackArea.CollisionMask = 0;
+        attackArea.CollisionLayer = 0;
+        attackArea.AddToLayer(LayerEnemyHurtArea);
     }
 
     public void EnemyConfigureCollisions(CharacterBody2D enemy) {
         enemy.AddToGroup(GROUP_ENEMY);
         enemy.CollisionMask = 0;
         enemy.CollisionLayer = 0;                                       
-        enemy.DetectLayer(LayerBodySolid);
+        enemy.DetectLayer(LayerSolidBody);
     }
 
+    public void PlayerConfigureHurtArea(Area2D damageArea, Action<Area2D> onAttack) {
+        damageArea.CollisionMask = 0;
+        damageArea.CollisionLayer = 0;
+        damageArea.OnAreaEntered(LayerPlayerHurtArea, onAttack);
+    }
+    
     public void EnemyConfigureCollisions(RayCast2D rayCast2D) {
         rayCast2D.CollisionMask = 0;
-        rayCast2D.DetectLayer(LayerBodySolid);
+        rayCast2D.CollideWithAreas = false;
+        rayCast2D.CollideWithBodies = true;
+        rayCast2D.DetectLayer(LayerSolidBody);
+    }
+
+    public void EnemyConfigureAttackArea(Area2D attackArea) {
+        attackArea.CollisionMask = 0;
+        attackArea.CollisionLayer = 0;
+        attackArea.AddToLayer(LayerPlayerHurtArea);
     }
 
     public void EnemyConfigurePlayerDetector(RayCast2D rayCast2D) {
         rayCast2D.CollisionMask = 0;
-        rayCast2D.DetectLayer(LayerPlayerBody);
+        rayCast2D.CollideWithAreas = true;
+        rayCast2D.CollideWithBodies = false;
+        rayCast2D.DetectLayer(LayerPlayerDetectorArea);
     }
 
-    public void EnemyConfigureDamageArea2D(Area2D enemyDamageArea2D, Action<Area2D> onAttack) {
-        enemyDamageArea2D.CollisionMask = 0;
-        enemyDamageArea2D.CollisionLayer = 0;
-        enemyDamageArea2D.OnAreaEntered(LayerEnemyArea2D, onAttack);
+    public void EnemyConfigureHurtArea(Area2D hurtArea, Action<Area2D> onAttack) {
+        hurtArea.CollisionMask = 0;
+        hurtArea.CollisionLayer = 0;
+        hurtArea.OnAreaEntered(LayerEnemyHurtArea, onAttack);
     }
 
     public bool IsEnemy(CharacterBody2D platform) => platform.IsInGroup(GROUP_ENEMY);

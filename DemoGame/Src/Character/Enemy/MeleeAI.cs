@@ -16,8 +16,8 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
         Patrol,
         PatrolStop,
         Confusion,
-        Attacked,
-        EndAttack,
+        Hurt,
+        EndAttacked,
         ChasePlayer,
         Flee
     }
@@ -45,19 +45,19 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
         State(State.Patrol)
             .Enter(() => _stateTimer.Reset())
             .Execute(() => Advance(0.5f))
-            .If(_sensor.IsAttacked).Set(State.Attacked)
+            .If(_sensor.IsHurt).Set(State.Hurt)
             .If(_sensor.IsPlayerInsight).Set(State.ChasePlayer)
             .If(_sensor.IsOnWall).Set(State.PatrolStop)
-            .If(_sensor.IsFloorFinishing).Set(State.PatrolStop)
+            .If(_sensor.IsFrontFloorFinishing).Set(State.PatrolStop)
             .If(() => _stateTimer.Elapsed > 4f).Set(State.PatrolStop)
             .Build();
         
-        State(State.Attacked).If(() => !_sensor.IsAttacked()).Set(State.EndAttack).Build();
-        State(State.EndAttack)
-            .If(_sensor.IsAttacked).Set(State.Attacked)
+        State(State.Hurt).If(() => !_sensor.IsHurt()).Set(State.EndAttacked).Build();
+        State(State.EndAttacked)
+            .If(_sensor.IsHurt).Set(State.Hurt)
             .If(() => _sensor.Status.HealthPercent < 0.25f).Set(State.Flee)
             .If(_sensor.IsPlayerInsight).Set(State.ChasePlayer)
-            .If(() => true).Set(State.Confusion)
+            .If(() => true).Set(State.ChasePlayer)
             .Build();
         
         State(State.Flee)
@@ -68,16 +68,31 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
                 _sensor.FaceOppositePlayer();
                 Advance(2f);
             })
-            .If(_sensor.IsAttacked).Set(State.Attacked)
+            .If(_sensor.IsHurt).Set(State.Hurt)
             .If(() => _stateTimer.Elapsed > 6f).Set(State.PatrolStop)
             .Build();
         
         State(State.ChasePlayer)
             .Execute(() => {
                 _sensor.FaceToPlayer();
-                Advance();
+                var distanceToPlayer = _sensor.DistanceToPlayer();
+                if (distanceToPlayer > 30f) {
+                    if (!_sensor.IsFrontFloorFinishing()) {
+                        // Avoid fall chasing the player
+                        Advance();
+                    }
+                } else if (distanceToPlayer < 30) {
+                    if (!_sensor.IsBackFloorFinishing()) {
+                        // Avoid fall chasing the player backwards
+                        Advance(-3f);
+                    }
+                }
+
+                if (distanceToPlayer < 40 && !_sensor.IsAttacking() && GD.Randf() < 0.02f) {
+                    _controller.AttackController.QuickPress();
+                }
             })
-            .If(_sensor.IsAttacked).Set(State.Attacked)
+            .If(_sensor.IsHurt).Set(State.Hurt)
             .If(() => !_sensor.IsPlayerInsight()).Set(State.Confusion)
             .Build();
 
@@ -86,7 +101,7 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
                 _stateTimer.Reset();
                 _inStateTimer.Reset();
             })
-            .If(_sensor.IsAttacked).Set(State.Attacked)
+            .If(_sensor.IsHurt).Set(State.Hurt)
             .If(_sensor.IsPlayerInsight).Set(State.ChasePlayer)
             .If(() => _stateTimer.Elapsed > 1.2f * 6).Then((ctx) => {
                 _sensor.Flip();
@@ -103,7 +118,7 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
             .Enter(() => {
                 _stateTimer.Reset();
             })
-            .If(_sensor.IsAttacked).Set(State.Attacked)
+            .If(_sensor.IsHurt).Set(State.Hurt)
             .If(_sensor.IsPlayerInsight).Set(State.ChasePlayer)
             .If(() => _stateTimer.Elapsed > 4f).Then((ctx) => {
                 _sensor.Flip();
@@ -138,13 +153,19 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
 
         public bool IsFacingRight => _body.IsFacingRight;
         public void Flip() => _body.Flip();
-        public bool IsAttacked() => _zombieNode.IsState(ZombieState.Attacked);
+        public bool IsHurt() => _zombieNode.IsState(ZombieState.Hurt);
+        public bool IsAttacking() => _zombieNode.IsState(ZombieState.Attacking);
         public bool IsOnWall() => _body.IsOnWall() && _body.IsOnWallRight() == IsFacingRight;
         public bool IsPlayerInsight() => _zombieNode.FacePlayerDetector.IsColliding(); // || _zombieNode.BackPlayerDetector.IsColliding();
+        public float DistanceToPlayer() => _zombieNode.DistanceToPlayer();                                                            
 
-        public bool IsFloorFinishing() => IsFacingRight
+        public bool IsFrontFloorFinishing() => IsFacingRight
             ? !_zombieNode.FinishFloorRight.IsColliding()
             : !_zombieNode.FinishFloorLeft.IsColliding();
+
+        public bool IsBackFloorFinishing() => IsFacingRight
+            ? !_zombieNode.FinishFloorLeft.IsColliding()
+            : !_zombieNode.FinishFloorRight.IsColliding();
 
         public void FaceOppositePlayer() => _body.FaceOppositeTo(GetPlayerGlobalPosition());
         public void FaceToPlayer() => _body.FaceTo(GetPlayerGlobalPosition());

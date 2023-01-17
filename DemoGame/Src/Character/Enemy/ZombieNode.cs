@@ -1,8 +1,11 @@
+using System.Linq;
 using Betauer;
 using Betauer.Animation;
 using Betauer.Application.Monitor;
 using Betauer.Core.Nodes;
 using Betauer.Core.Nodes.Property;
+using Betauer.Core.Pool;
+using Betauer.Core.Restorer;
 using Betauer.Core.Time;
 using Betauer.DI;
 using Betauer.Input;
@@ -19,7 +22,7 @@ namespace Veronenger.Character.Enemy;
 
 public enum ZombieEvent {
 	Dead,
-	Attacked
+	Hurt
 }
 
 public enum ZombieState {
@@ -27,16 +30,17 @@ public enum ZombieState {
 	Run,
 	Landing,
 	Jump,
+	Attacking,
 		
-	Attacked,
+	Hurt,
 	Destroy,
 		
 	Fall
 }
 
 public class EnemyStatus {
-	public float Health = 50;
-	public float MaxHealth = 50;
+	public float Health = 10;
+	public float MaxHealth = 10;
 	public float HealthPercent => Health / MaxHealth;
 
 	public void Attack(Attack attack) {
@@ -67,7 +71,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 	[OnReady("Character/Sprites/AnimationPlayer")] private AnimationPlayer _animationPlayer;
 	
 	[OnReady("Character/AttackArea")] private Area2D _attackArea;
-	[OnReady("Character/DamageArea")] private Area2D _damageArea;
+	[OnReady("Character/HurtArea")] private Area2D _hurtArea;
 	[OnReady("Character/Label")] public Label Label;
 	[OnReady("Character/HitLabelPosition/HitLabel")] public Label HitLabel;
 	[OnReady("Character/Marker2D")] public Marker2D Marker2D;
@@ -85,9 +89,11 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 	[Inject] private ICharacterHandler Handler { get; set; }
 
 	public ILoopStatus AnimationIdle { get; private set; }
-	public ILoopStatus AnimationStep { get; private set; }
-	public IOnceStatus AnimationDieRight { get; private set; }
-	public IOnceStatus AnimationDieLeft { get; private set; }
+	public ILoopStatus AnimationRun { get; private set; }
+	public IOnceStatus AnimationAttack { get; private set; }
+	public IOnceStatus AnimationReset { get; private set; }
+	public IOnceStatus AnimationHurt { get; private set; }
+	public IOnceStatus AnimationDead { get; private set; }
 
 	private Tween _sceneTreeTween;
 	private AnimationStack _animationStack;
@@ -106,7 +112,10 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 	public readonly EnemyStatus Status = new();
 	private readonly GodotStopwatch _stateTimer = new();
 
-	public void PlayAnimationAttacked() {
+	private Attack _lastPlayerAttack;
+	private MiniPool<ILabelEffect> _labelHits;
+
+	public void PlayAnimationHurt() {
 		_sceneTreeTween?.Kill();
 		_sceneTreeTween = RedFlash.Play(_mainSprite);
 	}
@@ -141,6 +150,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		AddOverlayCollisions(overlay);
 	}
 
+	private readonly MultiRestorer _restorer = new MultiRestorer(); 
 	private void ConfigureCharacter() {
 		if (InitialPosition.HasValue) CharacterBody2D.GlobalPosition = InitialPosition.Value;
 		CharacterBody2D.FloorStopOnSlope = true;
@@ -156,58 +166,75 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 
 		PlatformBody = new KinematicPlatformMotion(CharacterBody2D, flipper, Marker2D, MotionConfig.FloorUpDirection);
 		OnBeforeExecute += () => PlatformBody.SetDelta(Delta);
-
+		
 		CharacterManager.EnemyConfigureCollisions(CharacterBody2D);
 		CharacterManager.EnemyConfigureCollisions(FloorRaycast);
 		CharacterManager.EnemyConfigureCollisions(FinishFloorRight);
 		CharacterManager.EnemyConfigureCollisions(FinishFloorLeft);
 		CharacterManager.EnemyConfigurePlayerDetector(FacePlayerDetector);
 		CharacterManager.EnemyConfigurePlayerDetector(BackPlayerDetector);
-		// CharacterManager.ConfigureEnemyAttackArea2D(_attack);
-		CharacterManager.EnemyConfigureDamageArea2D(_damageArea, (playerAttackArea2D) => {
-			GD.Print("Enemy attacked!");
-			// var enemy = enemyDamageArea2DPublisher.GetParent<IEnemy>();
-			AttackedByPlayer(new Attack(1f));
+		
+		CharacterManager.EnemyConfigureAttackArea(_attackArea);
+		_attackArea.GetNode<CollisionShape2D>("Body").Disabled = false;
+		_attackArea.GetNode<CollisionShape2D>("Weapon").Disabled = true;
+		CharacterManager.EnemyConfigureHurtArea(_hurtArea, (playerAttackArea2D) => {
+			_lastPlayerAttack = new Attack(1f); 
+			Status.Attack(_lastPlayerAttack);
+			Enqueue(Status.IsDead() ? ZombieEvent.Dead : ZombieEvent.Hurt);
 		});
+		
+		_restorer
+			.Add(CharacterBody2D.CreateCollisionRestorer())
+			.Add(_hurtArea.CreateCollisionRestorer())
+			.Add(_attackArea.CreateCollisionRestorer())
+			.Add(_mainSprite.CreateRestorer(Properties.Modulate, Properties.Scale2D))
+			.Save();
+
 	}
 
+	private bool _hitLabelUsed = false;
 	private void CreateAnimations() {
 		_animationStack = new AnimationStack("Zombie.AnimationStack").SetAnimationPlayer(_animationPlayer);
 		AnimationIdle = _animationStack.AddLoopAnimation("Idle");
-		AnimationStep = _animationStack.AddLoopAnimation("Step");
-		AnimationDieRight = _animationStack.AddOnceAnimation("DieRight");
-		AnimationDieLeft = _animationStack.AddOnceAnimation("DieLeft");
+		AnimationRun = _animationStack.AddLoopAnimation("Run");
+		AnimationAttack = _animationStack.AddOnceAnimation("Attack");
+		AnimationHurt = _animationStack.AddOnceAnimation("Hurt");
+		AnimationDead = _animationStack.AddOnceAnimation("Dead");
+
+		AnimationReset = _animationStack.AddOnceAnimation("RESET");
+
+		HitLabel.Visible = false; // just in case...
+		_labelHits = MiniPool<ILabelEffect>.Create()
+			.Factory(() => {
+				if (_hitLabelUsed) {
+					var duplicate = (Label)HitLabel.Duplicate();
+					HitLabel.AddSibling(duplicate);
+					return new LabelHit(duplicate);
+				}
+				_hitLabelUsed = true;
+				return new LabelHit(HitLabel);
+			})
+			.BusyIf(l => l.Busy)
+			.InvalidIf(l => IsInstanceValid(l.Owner))
+			.InitialSize(1)
+			.MaxSize(10)
+			.Build();
+		
+	}
+
+	public void Recycle() {
+		// AnimationAttack.PlayOnce();
+		// _restorer.Restore();
+		QueueFree();
 	}
 
 	public void DisableAll() {
 		CharacterBody2D.CollisionLayer = 0;
 		CharacterBody2D.CollisionMask = 0;
-		_damageArea.CollisionLayer = 0;
-		// _attackArea.CollisionLayer = 0;
-		_damageArea.CollisionMask = 0;
-		// _attackArea.CollisionMask = 0;
-	}
-
-	public void ResetHit() {
-		HitLabel.Visible = false;
-		HitLabel.Text = "";
-	}
-	
-	private Tween? _tweenHit;
-	public void ShowHit(int hit) {
-		HitLabel.Text = hit.ToString();
-		HitLabel.Visible = true;
-		HitLabel.Modulate = Colors.White;
-		HitLabel.Position = Vector2.Zero;
-		_tweenHit?.Kill();
-		_tweenHit = GetTree().CreateTween();
-		_tweenHit.Parallel().TweenProperty(HitLabel, "position:y", -15, 1.2f).SetDelay(0.1);
-		_tweenHit.Parallel().TweenProperty(HitLabel, "modulate:a", 0, 1.2f).SetDelay(0.1);
-	}
-
-	public void AttackedByPlayer(Attack attack) {
-		ShowHit((int)attack.Damage);
-		TriggerAttacked(attack);
+		_hurtArea.CollisionLayer = 0;
+		_hurtArea.CollisionMask = 0;
+		_attackArea.CollisionLayer = 0;
+		_attackArea.CollisionMask = 0;
 	}
 
 	public void ApplyFloorGravity(float factor = 1.0F) {
@@ -236,10 +263,15 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 			.Angle("Player angle", () => PlatformBody.AngleTo(CharacterManager.PlayerNode.Marker2D)).EndMonitor()
 			.Text("Player is", () => PlatformBody.IsToTheRightOf(CharacterManager.PlayerNode.Marker2D)?"Left":"Right").EndMonitor()
 			.Text("FacingPlayer", () => PlatformBody.IsFacingTo(CharacterManager.PlayerNode.Marker2D)).EndMonitor()
+			.Text("Distance", () => DistanceToPlayer().ToString()).EndMonitor()
 			.CloseBox();
 			
 	}
-	
+
+	public float DistanceToPlayer() {
+		return Marker2D.GlobalPosition.DistanceTo(CharacterManager.PlayerNode.Marker2D.GlobalPosition);
+	}
+
 	public void AddOverlayMotion(DebugOverlay overlay) {    
 		overlay
 			.OpenBox()
@@ -262,10 +294,11 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 	
 	public void CreateStates() {    
 
-		On(ZombieEvent.Attacked).Then(context => IsState(ZombieState.Attacked) ? context.None() : context.Push(ZombieState.Attacked));
+		On(ZombieEvent.Hurt).Then(context => context.Set(ZombieState.Hurt));
 		On(ZombieEvent.Dead).Then(context=> context.Set(ZombieState.Destroy));
 			
 		State(ZombieState.Landing)
+			.If(() => Attack.IsJustPressed()).Set(ZombieState.Attacking)
 			.If(() => XInput == 0).Set(ZombieState.Idle)
 			.If(() => true).Set(ZombieState.Run)
 			.Build();
@@ -279,53 +312,65 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 				PlatformBody.Stop(EnemyConfig.Friction, EnemyConfig.StopIfSpeedIsLessThan);
 			})
 			.If(() => Jump.IsJustPressed()).Set(ZombieState.Jump)
+			.If(() => Attack.IsJustPressed()).Set(ZombieState.Attacking)
 			.If(() => !PlatformBody.IsOnFloor()).Set(ZombieState.Fall)
 			.If(() => XInput != 0).Set(ZombieState.Run)
 			.Build();
 
 		State(ZombieState.Run)
 			.Enter(() => {
-				AnimationStep.PlayLoop();
+				AnimationRun.PlayLoop();
 			})
 			.Execute(() => {
-				PlatformBody.Flip(XInput);
 				ApplyFloorGravity();
 				PlatformBody.Lateral(XInput, EnemyConfig.Acceleration, EnemyConfig.MaxSpeed, 
 					EnemyConfig.Friction, EnemyConfig.StopIfSpeedIsLessThan, 0);
 			})
 			.If(() => Jump.IsJustPressed()).Set(ZombieState.Jump)
+			.If(() => Attack.IsJustPressed()).Set(ZombieState.Attacking)
 			.If(() => !PlatformBody.IsOnFloor()).Set(ZombieState.Fall)
 			.If(() => XInput == 0 && MotionX == 0).Set(ZombieState.Idle)
 			.Build();
 
-		State(ZombieState.Attacked)
+		State(ZombieState.Attacking)
 			.Enter(() => {
-				PlatformBody.MotionY = EnemyConfig.MiniJumpOnAttack.y;
-				PlatformBody.MotionX = EnemyConfig.MiniJumpOnAttack.x * (PlatformBody.IsToTheRightOf(CharacterManager.PlayerNode.Marker2D) ? 1 : -1);
-				PlayAnimationAttacked();
-				_stateTimer.Restart().SetAlarm(0.3f);
+				AnimationAttack.PlayOnce(true);
+			})
+			.Execute(() => {
+				ApplyFloorGravity();
+				PlatformBody.Lateral(XInput, EnemyConfig.Acceleration, EnemyConfig.MaxSpeed, 
+					EnemyConfig.Friction, EnemyConfig.StopIfSpeedIsLessThan, 0);
+			})
+			.If(() => !AnimationAttack.Playing && !PlatformBody.IsOnFloor()).Set(ZombieState.Fall)
+			.If(() => !AnimationAttack.Playing && XInput == 0).Set(ZombieState.Idle)
+			.If(() => !AnimationAttack.Playing && XInput != 0).Set(ZombieState.Run)
+			.Build();
+
+		
+		Tween? knockbackTween = null;
+		State(ZombieState.Hurt)
+			.Enter(() => {
+				PlatformBody.MotionX = EnemyConfig.Knockback.x * (PlatformBody.IsToTheRightOf(CharacterManager.PlayerNode.Marker2D) ? 1 : -1);
+				AnimationHurt.PlayOnce(true);
+				knockbackTween?.Kill();
+				knockbackTween = CreateTween();
+				knockbackTween.TweenMethod(Callable.From<float>(v => PlatformBody.MotionX = v), PlatformBody.MotionX, 0, 0.1f).SetTrans(Tween.TransitionType.Cubic);
+				_labelHits.Get().Show(((int)_lastPlayerAttack.Damage).ToString());
 			})
 			.Execute(() => {
 				ApplyAirGravity();
 				PlatformBody.Move();
 			})
-			.If(() => _stateTimer.IsAlarm()).Pop()
+			.If(() => !AnimationHurt.Playing).Set(ZombieState.Idle)
 			.Build();
 
 		State(ZombieState.Destroy)
 			.Enter(() => {
-				DisableAll();
-
-				if (PlatformBody.IsToTheRightOf(CharacterManager.PlayerNode.Marker2D)) {
-					AnimationDieRight.PlayOnce(true);
-				} else {
-					AnimationDieLeft.PlayOnce(true);
-				}
+				// DisableAll();
+				AnimationDead.PlayOnce(true);
 			})
 			.Execute(() => {
-				if (!AnimationDieRight.Playing && !AnimationDieLeft.Playing) {
-					QueueFree();
-				}
+				if (!AnimationDead.Playing) Recycle();
 			})
 			.Build();
 
@@ -337,7 +382,6 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 			})
 			.Execute(() => {
 				ApplyAirGravity();
-				PlatformBody.Flip(XInput);
 				PlatformBody.Lateral(XInput, EnemyConfig.Acceleration, EnemyConfig.MaxSpeed,
 					EnemyConfig.Friction, EnemyConfig.StopIfSpeedIsLessThan, 0);
 			})
@@ -348,17 +392,11 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		State(ZombieState.Fall)
 			.Execute(() => {
 				ApplyAirGravity();
-				PlatformBody.Flip(XInput);
 				PlatformBody.Lateral(XInput, EnemyConfig.Acceleration, EnemyConfig.MaxSpeed,
 					EnemyConfig.Friction, EnemyConfig.StopIfSpeedIsLessThan, 0);
 			})
 			.If(PlatformBody.IsOnFloor).Set(ZombieState.Landing)
 			.Build();
-	}
-
-	public void TriggerAttacked(Attack attack) {
-		Status.Attack(attack);
-		Enqueue(Status.IsDead() ? ZombieEvent.Dead : ZombieEvent.Attacked);
 	}
 	
 }

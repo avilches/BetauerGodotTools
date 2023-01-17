@@ -12,7 +12,7 @@ public class EnemyConfiguration {
 
 [Service]
 public class EnemyConfig {
-    public Vector2 MiniJumpOnAttack = new(130, -230);
+    public Vector2 Knockback = new(70, 0);
 
     public float MaxSpeed = 60f; // pixels/seconds
     public float Acceleration = -1; // pixels/frame

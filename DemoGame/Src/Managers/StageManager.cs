@@ -7,7 +7,7 @@ namespace Veronenger.Managers;
 
 [Service]
 public class StageManager {
-    private readonly CameraStageLimiter _cameraStageLimiter = new(LayerPlayerArea2DDetector);
+    private readonly CameraStageLimiter _cameraStageLimiter = new(LayerStageArea);
 
     public void ConfigureStageCamera(Camera2D camera2D, Area2D playerDetector) {
         _cameraStageLimiter.ConfigureStageCamera(camera2D, playerDetector);

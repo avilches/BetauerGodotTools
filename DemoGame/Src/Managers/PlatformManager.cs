@@ -28,17 +28,17 @@ public class PlatformManager {
     public void ConfigurePlatformCollision(PhysicsBody2D platform) {
         platform.CollisionMask = 0;
         platform.CollisionLayer = 0;
-        platform.AddToLayer(LayerBodySolid);
+        platform.AddToLayer(LayerSolidBody);
     }
 
     public void RemovePlatformCollision(PhysicsBody2D platform) {
-        platform.RemoveFromLayer(LayerBodySolid);
+        platform.RemoveFromLayer(LayerSolidBody);
     }
 
     public void ConfigureTileMapCollision(TileMap tileMap) {
         tileMap.TileSet.SetPhysicsLayerCollisionLayer(0, 0);
         tileMap.TileSet.SetPhysicsLayerCollisionMask(0, 0);
-        tileMap.AddToLayer(0, LayerBodySolid);
+        tileMap.AddToLayer(0, LayerSolidBody);
     }
 
     // It accepts Object so it can be used from a GetSlideCollision(x).Collider

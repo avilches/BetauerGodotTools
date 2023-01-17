@@ -59,7 +59,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	private AnimationPlayer _animationPlayer;
 
 	[OnReady("Character/AttackArea")] private Area2D _attackArea;
-	[OnReady("Character/DamageArea")] private Area2D _damageArea;
+	[OnReady("Character/HurtArea")] private Area2D _hurtArea;
 	[OnReady("Character/RichTextLabel")] public RichTextLabel Label;
 	[OnReady("Character/Detector")] public Area2D PlayerDetector;
 	[OnReady("Character/Camera2D")] private Camera2D _camera2D;
@@ -192,10 +192,14 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		
 		CharacterManager.RegisterPlayerNode(this);
 		CharacterManager.PlayerConfigureCollisions(this);
-		CharacterManager.PlayerConfigureAttackArea2D(_attackArea);
+		
+		CharacterManager.PlayerConfigureAttackArea(_attackArea);
+		CharacterManager.PlayerConfigureHurtArea(_hurtArea, (enemyAttackArea2D) => {
+			GD.Print("Player attacked!");
+			// var enemy = enemyDamageArea2DPublisher.GetParent<IEnemy>();
+			// AttackedByPlayer(new Attack(1f));
+		});
 
-		PlayerDetector.CollisionLayer = 0;
-		PlayerDetector.CollisionMask = 0;
 		StageManager.ConfigureStageCamera(_camera2D, PlayerDetector);
 	}
 
@@ -400,7 +404,6 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				ApplyFloorGravity();
 				PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
 			})
-			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.FallShort)
 			.If(() => Jump.IsJustPressed() && IsPressingDown && IsOnFallingPlatform()).Then(
 				context => {
 					FallFromPlatform();
@@ -409,6 +412,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			.If(() => Jump.IsJustPressed() && Attack.IsJustPressed()).Set(PlayerState.JumpAttack)
 			.If(() => Jump.IsJustPressed() && CanJump()).Set(PlayerState.Jump)
 			.If(() => Attack.IsJustPressed()).Set(PlayerState.Attacking)
+			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.FallShort)
 			.If(() => XInput != 0).Set(PlayerState.Run)
 			.Build();
 
@@ -428,11 +432,6 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.Friction, 
 					PlayerConfig.StopIfSpeedIsLessThan, 0);
 			})
-			.If(() => !PlatformBody.IsOnFloor()).Then( 
-				context => {
-					_coyoteFallingTimer.Restart();
-					return context.Set(PlayerState.FallShort);
-				})
 			.If(() => Jump.IsJustPressed() && IsPressingDown && IsOnFallingPlatform()).Then(
 				context => {
 					FallFromPlatform();
@@ -441,6 +440,11 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			.If(() => Jump.IsJustPressed() && Attack.IsJustPressed()).Set(PlayerState.JumpAttack)
 			.If(() => Jump.IsJustPressed() && CanJump()).Set(PlayerState.Jump)
 			.If(() => Attack.IsJustPressed()).Set(PlayerState.Attacking)
+			.If(() => !PlatformBody.IsOnFloor()).Then( 
+				context => {
+					_coyoteFallingTimer.Restart();
+					return context.Set(PlayerState.FallShort);
+				})
 			.If(() => XInput == 0 && MotionX == 0).Set(PlayerState.Idle)
 			.Build();
 

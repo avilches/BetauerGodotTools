@@ -45,21 +45,21 @@ layer_4/tile_data = PackedInt32Array(-589865, 262144, 8, -524329, 262144, 9, -45
 [node name="Enemies" type="Node" parent="."]
 
 [node name="Enemy1" parent="Enemies" instance=ExtResource("3_ailyd")]
-visible = false
 position = Vector2(-716, 24)
 
 [node name="Enemy2" parent="Enemies" instance=ExtResource("3_ailyd")]
-visible = false
 position = Vector2(-872, -38)
 
 [node name="Body" parent="Enemies/Enemy2/Character/Sprites" index="0"]
 flip_h = true
+frame = 0
 
 [node name="Enemy3" parent="Enemies" instance=ExtResource("3_ailyd")]
 position = Vector2(-750, -86)
 
 [node name="Body" parent="Enemies/Enemy3/Character/Sprites" index="0"]
 flip_h = true
+frame = 0
 
 [node name="Hints" type="Control" parent="."]
 layout_mode = 3

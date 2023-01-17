@@ -49,12 +49,11 @@ target_position = Vector2(-50, 0)
 collision_layer = 0
 collision_mask = 0
 
-[node name="DamageArea" type="Area2D" parent="."]
+[node name="HurtArea" type="Area2D" parent="."]
 collision_layer = 0
 collision_mask = 0
 
 [node name="HitLabelPosition" type="Node2D" parent="."]
-visible = false
 position = Vector2(-50, -44)
 
 [node name="HitLabel" type="Label" parent="HitLabelPosition"]
