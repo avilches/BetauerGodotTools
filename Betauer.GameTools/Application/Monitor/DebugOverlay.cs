@@ -151,10 +151,17 @@ namespace Betauer.Application.Monitor {
             return this;
         }
 
-        public DebugOverlay Follow(Node2D? followNode = null) {
-            followNode ??= Target as Node2D;
-            if (followNode != null) {
-                Target = followNode;
+        public DebugOverlay Attach(Object o) {
+            Target = o;
+            if (o is not Node2D) StopFollowing();
+            UpdateFollowButtonState();
+            return this;
+        }
+
+        public DebugOverlay Follow(Node2D? followNode) => Attach(followNode).Follow();
+
+        public DebugOverlay Follow() {
+            if (Target is Node2D followNode) {
                 IsFollowing = true;
                 _position = Vector2.Zero;
             }

@@ -59,17 +59,23 @@ namespace Betauer.Application.Monitor {
         }
 
         public DebugOverlay Overlay(string title) {
-            return Overlays.FirstOrDefault(d => d.TitleLabel.Text == title) ?? 
-                    CreateOverlay().Title(title).Enable();
+            return Overlays.FirstOrDefault(d => d.TitleLabel.Text == title) ??
+                   CreateOverlay(title).Enable();
         }
 
         public DebugOverlay Overlay(Object target) {
-            return (Overlays.FirstOrDefault(d => d.Target == target) ?? 
-                    CreateOverlay().RemoveIf(Predicates.IsInvalid(target)).Enable());
+            return Overlays.FirstOrDefault(d => d.Target == target) ??
+                   CreateOverlay(target).Enable();
         }
 
         public DebugOverlay Follow(Node2D follow) {
             return Overlay(follow).Follow(follow);
+        }
+
+        public DebugOverlay CreateOverlay(Object target, string? title = null) {
+            var overlay = CreateOverlay(title);
+            overlay.Attach(target);
+            return overlay;
         }
 
         public DebugOverlay CreateOverlay(string? title = null) {
