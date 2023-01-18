@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Linq;
 using Betauer;
 using Betauer.Animation;
@@ -188,8 +189,9 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 
 	private void OnPlayerAttack(PlayerAttackEvent playerAttackEvent) {
 		if (playerAttackEvent.Enemy.Id != _enemyItem.Id) return;
+		Debug.Assert(Status.UnderAttack == false, "Status.UnderAttack == false");
+		Status.UnderAttack = true;
 		Status.Attacked(playerAttackEvent.Weapon.Damage);
-		GD.Print("Enemy: i'm attacked by player "+ GetHashCode()+": "+Status.Health);
 		_labelHits.Get().Show(((int)playerAttackEvent.Weapon.Damage).ToString());
 		Send(Status.IsDead() ? ZombieEvent.Death : ZombieEvent.Hurt);
 	}
@@ -366,6 +368,9 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 				PlatformBody.Move();
 			})
 			.If(() => !AnimationHurt.Playing).Set(ZombieState.Idle)
+			.Exit(() => {
+				Status.UnderAttack = false;
+			})
 			.Build();
 
 		State(ZombieState.Death)

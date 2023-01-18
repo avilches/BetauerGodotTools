@@ -177,7 +177,8 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		var enemiesHurt = new List<EnemyItem>();
 		CharacterManager.PlayerConfigureAttackArea(_attackArea, (enemyHurtArea) => {
 			var enemy = World.Get<EnemyItem>(enemyHurtArea.GetWorldId())!;
-			// if (enemy.ZombieNode.Status.UnderAttack) return;
+			// Ignore enemies under attack (no attack when attack)
+			if (enemy.ZombieNode.Status.UnderAttack) return;
 			// Player could hit more than one enemy at the same time. Multiple signals could be launched before the next frame
 			// So, accumulate them and process in the frame
 			enemiesHurt.Add(enemy);

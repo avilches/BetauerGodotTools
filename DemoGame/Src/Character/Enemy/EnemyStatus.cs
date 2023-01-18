@@ -7,7 +7,7 @@ public class EnemyStatus {
     public float MaxHealth;
     public float HealthPercent => Health / MaxHealth;
 
-    // public bool UnderAttack { get; set; } = false; // true when the first attack signal is emitted. false when Hurt state ends.
+    public bool UnderAttack { get; set; } = false; // true when the first attack signal is emitted. false when Hurt state ends.
 
     public EnemyStatus(float maxHealth, float health = int.MaxValue) {
         MaxHealth = maxHealth;
