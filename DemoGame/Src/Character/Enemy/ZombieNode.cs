@@ -16,14 +16,15 @@ using Betauer.StateMachine.Sync;
 using Betauer.Tools.Logging;
 using Godot;
 using Veronenger.Character.Handler;
+using Veronenger.Character.Items;
 using Veronenger.Character.Player;
 using Veronenger.Managers;
 
 namespace Veronenger.Character.Enemy; 
 
 public enum ZombieEvent {
-	Dead,
-	Hurt
+	Hurt,
+	Death,
 }
 
 public enum ZombieState {
@@ -34,7 +35,7 @@ public enum ZombieState {
 	Attacking,
 		
 	Hurt,
-	Destroy,
+	Death,
 		
 	Fall
 }
@@ -71,9 +72,10 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 	[Inject] private CharacterManager CharacterManager { get; set; }
 	[Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
 
+	[Inject] public World World { get; set; }
 	[Inject] private EventBus EventBus { get; set; }
 	[Inject] private PlayerConfig PlayerConfig { get; set; }
-	[Inject] private EnemyConfig EnemyConfig { get; set; }
+	[Inject] public EnemyConfig EnemyConfig { get; set; }
 	[Inject] private ICharacterHandler Handler { get; set; }
 
 	public ILoopStatus AnimationIdle { get; private set; }
@@ -103,6 +105,8 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 	private MiniPool<ILabelEffect> _labelHits;
 	private Restorer _restorer; 
 	private bool _hitLabelUsed = false;
+
+	private EnemyItem _enemyItem;
 
 	public void PlayAnimationHurt() {
 		_sceneTreeTween?.Kill();
@@ -162,12 +166,15 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		CharacterManager.EnemyConfigurePlayerDetector(FacePlayerDetector);
 		CharacterManager.EnemyConfigurePlayerDetector(BackPlayerDetector);
 		
+		_enemyItem = World.CreateEnemy(this);
+
 		CharacterManager.EnemyConfigureAttackArea(_attackArea);
 		_attackArea.GetNode<CollisionShape2D>("Body").Disabled = false;
 		_attackArea.GetNode<CollisionShape2D>("Weapon").Disabled = true;
+		_attackArea.SetWorldId(_enemyItem);
 
 		CharacterManager.EnemyConfigureHurtArea(_hurtArea);
-		_hurtArea.SetMeta("EnemyNodeHashCode", GetHashCode());
+		_hurtArea.SetWorldId(_enemyItem);
 		EventBus.Subscribe(OnPlayerAttack).UnsubscribeIf(Predicates.IsInvalid(this));
 		
 		_restorer = new MultiRestorer()
@@ -178,16 +185,14 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		_restorer.Save();
 
 		Status = new EnemyStatus(32);
-
 	}
 
 	private void OnPlayerAttack(PlayerAttack playerAttack) {
-		GD.Print("Enemy: i'm attacked by player "+ GetHashCode()+": "+Status.Health);
-		if (playerAttack.EnemyAttackArea.GetMeta("EnemyNodeHashCode").AsInt32() != GetHashCode()) return;
-		Status.Attack(playerAttack.Weapon.Damage);
+		if (!playerAttack.EnemyAttackArea.MatchesWorldId(_enemyItem)) return;
+		Status.Attacked(playerAttack.Weapon.Damage);
 		GD.Print("Enemy: i'm attacked by player "+ GetHashCode()+": "+Status.Health);
 		_labelHits.Get().Show(((int)playerAttack.Weapon.Damage).ToString());
-		Enqueue(Status.IsDead() ? ZombieEvent.Dead : ZombieEvent.Hurt);
+		Enqueue(Status.IsDead() ? ZombieEvent.Death : ZombieEvent.Hurt);
 	}
 
 	private void CreateAnimations() {
@@ -223,6 +228,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		// AnimationAttack.PlayOnce();
 		// _restorer.Restore();
 		QueueFree();
+		World.Remove(_enemyItem);
 	}
 
 	public void DisableAll() {
@@ -289,8 +295,8 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 	
 	public void ConfigureStateMachine() {    
 
-		On(ZombieEvent.Hurt).Then(context => context.Set(ZombieState.Hurt));
-		On(ZombieEvent.Dead).Then(context=> context.Set(ZombieState.Destroy));
+		On(ZombieEvent.Hurt).Set(ZombieState.Hurt);
+		On(ZombieEvent.Death).Set(ZombieState.Death);
 			
 		State(ZombieState.Landing)
 			.If(() => Attack.IsJustPressed()).Set(ZombieState.Attacking)
@@ -346,6 +352,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		State(ZombieState.Hurt)
 			.Enter(() => {
 				PlatformBody.MotionX = EnemyConfig.Knockback.x * (PlatformBody.IsToTheRightOf(CharacterManager.PlayerNode.Marker2D) ? 1 : -1);
+				PlatformBody.MotionY = EnemyConfig.Knockback.y;
 				AnimationHurt.PlayOnce(true);
 				knockbackTween?.Kill();
 				knockbackTween = CreateTween();
@@ -358,7 +365,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 			.If(() => !AnimationHurt.Playing).Set(ZombieState.Idle)
 			.Build();
 
-		State(ZombieState.Destroy)
+		State(ZombieState.Death)
 			.Enter(() => {
 				// DisableAll();
 				AnimationDead.PlayOnce(true);

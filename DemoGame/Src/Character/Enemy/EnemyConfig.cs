@@ -12,12 +12,14 @@ public class EnemyConfiguration {
 
 [Service]
 public class EnemyConfig {
-    public Vector2 Knockback = new(70, 0);
+    public Vector2 Knockback = new(70, -70);
 
     public float MaxSpeed = 60f; // pixels/seconds
     public float Acceleration = -1; // pixels/frame
     public float StopIfSpeedIsLessThan = 20f; // pixels/seconds
     public float Friction = 0; // pixels/seconds 0=stop immediately
+
+    public int Attack = 6;
 
     public EnemyConfig() {
         const float timeToMaxSpeed = 0.5f; // seconds to reach the max speed 0=immediate

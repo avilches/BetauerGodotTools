@@ -9,8 +9,8 @@ namespace Veronenger.Character.Enemy;
 public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacterAI {
     private readonly CharacterController _controller;
     private readonly Sensor _sensor;
-    private readonly GodotStopwatch _stateTimer = new GodotStopwatch().Start();
-    private readonly GodotStopwatch _inStateTimer = new GodotStopwatch().Start();
+    private readonly GodotStopwatch _stateTimer = new();
+    private readonly GodotStopwatch _inStateTimer = new();
 
     public enum State { 
         Patrol,
@@ -43,7 +43,7 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
 
     private void Config() {
         State(State.Patrol)
-            .Enter(() => _stateTimer.Reset())
+            .Enter(() => _stateTimer.Restart())
             .Execute(() => Advance(0.5f))
             .If(_sensor.IsHurt).Set(State.Hurt)
             .If(_sensor.IsPlayerInsight).Set(State.ChasePlayer)
@@ -62,7 +62,7 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
         
         State(State.Flee)
             .Enter(() => {
-                _stateTimer.Reset();
+                _stateTimer.Restart();
             })
             .Execute(() => {
                 _sensor.FaceOppositePlayer();
@@ -98,8 +98,8 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
 
         State(State.Confusion)
             .Enter(() => {
-                _stateTimer.Reset();
-                _inStateTimer.Reset();
+                _stateTimer.Restart();
+                _inStateTimer.Restart();
             })
             .If(_sensor.IsHurt).Set(State.Hurt)
             .If(_sensor.IsPlayerInsight).Set(State.ChasePlayer)
@@ -109,14 +109,14 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
             })
             .If(() => _inStateTimer.Elapsed > 1.2f).Then((ctx) => {
                 _sensor.Flip();
-                _inStateTimer.Reset();
+                _inStateTimer.Restart();
                 return ctx.None();
             })
             .Build();
         
         State(State.PatrolStop)
             .Enter(() => {
-                _stateTimer.Reset();
+                _stateTimer.Restart();
             })
             .If(_sensor.IsHurt).Set(State.Hurt)
             .If(_sensor.IsPlayerInsight).Set(State.ChasePlayer)
@@ -128,7 +128,7 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
     }
 
     private void Advance(float factor = 1f) {
-        _controller.DirectionalController.XInput = (_sensor.IsFacingRight ? 1 : -1) * factor;
+        _controller.DirectionalController.XInput = _sensor.FacingRight * factor;
     }
 
     public void EndFrame() {
@@ -151,6 +151,7 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
             GetPlayerGlobalPosition = playerGlobalPosition;
         }
 
+        public int FacingRight => _body.FacingRight;
         public bool IsFacingRight => _body.IsFacingRight;
         public void Flip() => _body.Flip();
         public bool IsHurt() => _zombieNode.IsState(ZombieState.Hurt);

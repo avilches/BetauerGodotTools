@@ -16,6 +16,7 @@ using Betauer.Nodes;
 using Betauer.OnReady;
 using Betauer.StateMachine.Sync;
 using Godot;
+using Veronenger.Character.Enemy;
 using Veronenger.Character.Handler;
 using Veronenger.Character.Items;
 using Veronenger.Managers;
@@ -32,12 +33,14 @@ public enum PlayerState {
 	FallShort,
 	FallLong,
 	Jump,
+	Hurt,
 	Death,
 			
 	Float,
 }
 
 public enum PlayerEvent {
+	Hurt,
 	Death,
 }
 
@@ -62,7 +65,6 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	[Inject] private PlatformManager PlatformManager { get; set; }
 	[Inject] private CharacterManager CharacterManager { get; set; }
 	[Inject] private WeaponManager WeaponManager { get; set; }
-	[Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
 	[Inject] private StageManager StageManager { get; set; }
 	[Inject] private InputAction MMB { get; set; }
 	[Inject] private InputAction NextItem { get; set; }
@@ -74,21 +76,10 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	[Inject] private EventBus EventBus { get; set; }
 	[Inject] private InputActionCharacterHandler Handler { get; set; }
 
-	public ILoopStatus AnimationIdle { get; private set; }
-	public ILoopStatus AnimationRun { get; private set; }
-	public IOnceStatus AnimationRunStop { get; private set; }
-	public IOnceStatus AnimationJump { get; private set; }
-	public ILoopStatus AnimationFall { get; private set; }
-	public IOnceStatus AnimationAttack { get; private set; }
-	public IOnceStatus AnimationAirAttack { get; private set; }
-
-	public IOnceStatus PulsateTween;
-	public ILoopStatus DangerTween;
-	public IOnceStatus SqueezeTween;
-
-	public KinematicPlatformMotion PlatformBody;
+	public KinematicPlatformMotion PlatformBody { get; private set; }
 	public Vector2? InitialPosition { get; set; }
-	public Inventory Inventory;
+	public Inventory Inventory { get; private set; }
+	public PlayerStatus Status { get; private set; }
 
 	private AnimationStack _animationStack;
 	private AnimationStack _tweenStack;
@@ -120,12 +111,17 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 
 	private readonly DragCameraController _cameraController = new();
 	private CharacterWeaponController _characterWeaponController;
+	private readonly GodotStopwatch _stateTimer = new();
+	private GodotTimeout _recoverTimeout;
+	private Restorer _restorer; 
 
 	public override void _Ready() {
 		_delayedJump = ((InputAction)Jump).CreateDelayed();
 		_cameraController.WithAction(MMB).Attach(_camera2D);
 
-		CreateAnimations();
+		ConfigureAnimations();
+		ConfigureOverlay();
+
 		ConfigureCharacter();
 
 		// OnTransition += args => Console.WriteLine(args.To);
@@ -133,10 +129,6 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		ConfigureStateMachineGround();
 		ConfigureStateMachineAir();
 
-		var overlay = DebugOverlayManager.Overlay(CharacterBody2D)
-			.Title("Player")
-			.SetMaxSize(1000, 1000);
-		
 		var drawEvent = this.OnDraw(canvas => {
 			foreach (var floorRaycast in FloorRaycasts) canvas.DrawRaycast(floorRaycast, Colors.Red);
 			canvas.DrawRaycast(RaycastCanJump, Colors.Red);
@@ -144,29 +136,8 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		drawEvent.Disable();
 
 
-		AddOverlayHelpers(overlay);
-		AddOverlayStates(overlay);
-		AddOverlayMotion(overlay);
-		AddOverlayCollisions(overlay);
 
 		LoadState();
-
-		// DebugOverlayManager.Overlay(this)
-		//     .Title("Player")
-		//     .Text("AnimationStack",() => _animationStack.GetPlayingLoop()?.Name + " " + _animationStack.GetPlayingOnce()?.Name).EndMonitor()
-		//     .Text("TweenStack", () => _tweenStack.GetPlayingLoop()?.Name + " " + _tweenStack.GetPlayingOnce()?.Name).EndMonitor()
-		//     .Add(new HBoxContainer().NodeBuilder()
-		//         .Button("DangerTween.PlayLoop", () => DangerTween.PlayLoop()).End()
-		//         .Button("DangerTween.Stop", () => DangerTween.Stop()).End()
-		//         .TypedNode)
-		//     .Add(new HBoxContainer().NodeBuilder()
-		//         .Button("PulsateTween.PlayOnce", () => PulsateTween.PlayOnce()).End()
-		//         .Button("PulsateTween.Stop", () => PulsateTween.Stop()).End()
-		//         .TypedNode)
-		//     .Add(new HBoxContainer().NodeBuilder()
-		//         .Button("SqueezeTween.PlayOnce(kill)", () => SqueezeTween.PlayOnce(true)).End()
-		//         .Button("SqueezeTween.Stop", () => SqueezeTween.Stop()).End()
-		//         .TypedNode);
 	}
 
 	private void LoadState() {
@@ -206,90 +177,33 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				_characterWeaponController.Equip(weapon.Type);
 			}
 		};
+
+		Status = new PlayerStatus(PlayerConfig.InitialMaxHealth, PlayerConfig.InitialHealth);
+
+		_recoverTimeout = new GodotTimeout(GetTree(), PlayerConfig.HurtInvincibleTime, () => Status.Invincible = false);
 		
 		CharacterManager.RegisterPlayerNode(this);
 		CharacterManager.PlayerConfigureCollisions(this);
-		
+
 		CharacterManager.PlayerConfigureAttackArea(_attackArea, (enemyAttackedArea2D) => {
 			GD.Print("Enemy attacked!");
 			EventBus.Publish(new PlayerAttack(this, enemyAttackedArea2D, Inventory.GetCurrent() as WeaponItem));
 		});
 		CharacterManager.PlayerConfigureHurtArea(_hurtArea, (enemyAttackArea2D) => {
-			GD.Print("Player attacked!");
-			// var enemy = enemyDamageArea2DPublisher.GetParent<IEnemy>();
-			// AttackedByPlayer(new Attack(1f));
+			if (Status.Invincible) return;
+			var enemyId = enemyAttackArea2D.GetWorldId();
+			var enemy = World.Get<EnemyItem>(enemyId);
+			OnEnemyAttack(enemy.ZombieNode);
 		});
 
 		StageManager.ConfigureStageCamera(_camera2D, PlayerDetector);
 	}
 
-	private void CreateAnimations() {
-		var restorer = new MultiRestorer() 
-			.Add(CharacterBody2D.CreateRestorer(Properties.Modulate, Properties.Scale2D))
-			.Add(_mainSprite.CreateRestorer(Properties.Modulate, Properties.Scale2D));
-		restorer.Save();
-		
-		_animationStack = new AnimationStack("Player.AnimationStack").SetAnimationPlayer(_animationPlayer);
-		_tweenStack = new AnimationStack("Player.AnimationStack");
-
-		AnimationIdle = _animationStack.AddLoopAnimation("Idle");
-		AnimationRun = _animationStack.AddLoopAnimation("Run");
-		AnimationRunStop = _animationStack.AddOnceAnimation("RunStop");
-		AnimationJump = _animationStack.AddOnceAnimation("Jump");
-		AnimationFall = _animationStack.AddLoopAnimation("Fall");
-		AnimationAttack = _animationStack.AddOnceAnimation("Attack");
-		AnimationAirAttack = _animationStack.AddOnceAnimation("AirAttack");
-
-		PulsateTween = _tweenStack.AddOnceTween("Pulsate", CreateMoveLeft()).OnEnd(restorer.Restore);
-		DangerTween = _tweenStack.AddLoopTween("Danger", CreateDanger()).OnEnd(restorer.Restore);
-		SqueezeTween = _tweenStack.AddOnceTween("Squeeze", CreateSqueeze()).OnEnd(restorer.Restore);
-	}
-
-	private IAnimation CreateReset() {
-		var seq = SequenceAnimation.Create(_mainSprite)
-			.AnimateSteps(Properties.Modulate)
-			.From(new Color(1, 1, 1, 0))
-			.To(new Color(1, 1, 1, 1), 1)
-			.EndAnimate();
-		// seq.AddProperty(_mainSprite, "modulate", new Color(1, 1, 1, 1), 0.1f);
-		// seq.Parallel().AddProperty(this, "scale", new Vector2(1f, 1f), 0.1f);
-		return seq;
-	}
-
-	private IAnimation CreateMoveLeft() {
-		var seq = KeyframeAnimation.Create(_mainSprite)
-			.SetDuration(2f)
-			.AnimateKeys(Properties.Modulate)
-			.KeyframeTo(0.25f, new Color(1, 1, 1, 0))
-			.KeyframeTo(0.75f, new Color(1, 1, 1, 0.5f))
-			.KeyframeTo(1f, new Color(1, 1, 1, 1))
-			.EndAnimate()
-			.AnimateKeys<Vector2>(Properties.Scale2D)
-			.KeyframeTo(0.5f, new Vector2(1.4f, 1f))
-			.KeyframeTo(1f, new Vector2(1f, 1f))
-			.EndAnimate();
-		// seq.AddProperty(_mainSprite, "modulate", new Color(1, 1, 1, 0), 1f).SetTrans(Tween.TransitionType.Cubic);
-		// seq.AddProperty(_mainSprite, "modulate", new Color(1, 1, 1, 1), 1f).SetTrans(Tween.TransitionType.Cubic);
-		return seq;
-	}
-
-	private IAnimation CreateDanger() {
-		var seq = SequenceAnimation.Create(_mainSprite)
-			.AnimateSteps<Color>(Properties.Modulate, Easings.CubicInOut)
-			.To(new Color(1, 0, 0, 1), 1)
-			.To(new Color(1, 1, 1, 1), 1)
-			.EndAnimate();
-		return seq;
-	}
-
-	private IAnimation CreateSqueeze() {
-		var seq = SequenceAnimation.Create(this)
-			.AnimateSteps(Properties.Scale2D, Easings.SineInOut)
-			.To(new Vector2(1.4f, 1f), 0.25f)
-			.To(new Vector2(1f, 1f), 0.25f)
-			.EndAnimate()
-			.SetLoops(2);
-		return seq;
+	private void OnEnemyAttack(ZombieNode zombieNode) {
+		GD.Print("Player attacked!");
+		Status.Attacked(zombieNode.EnemyConfig.Attack);
+		// _labelHits.Get().Show(((int)playerAttack.Weapon.Damage).ToString());
+		Enqueue(Status.IsDead() ? PlayerEvent.Death : PlayerEvent.Hurt);
 	}
 
 	public override void _Input(InputEvent e) {
@@ -305,41 +219,6 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	}
 
 	public bool CanJump() => !RaycastCanJump.IsColliding(); 
-
-	public void AddOverlayHelpers(DebugOverlay overlay) {
-		_jumpHelperMonitor = overlay.Text("JumpHelper");
-		overlay.Text("CoyoteFallingTimer", () => _coyoteFallingTimer.ToString());
-		_coyoteMonitor = overlay.Text("Coyote");
-	}
-
-	public void AddOverlayStates(DebugOverlay overlay) {
-		overlay
-			.OpenBox()
-				.Text("State", () => CurrentState.Key.ToString()).EndMonitor()
-			.CloseBox();
-	}
-
-	public void AddOverlayMotion(DebugOverlay overlay) {
-		overlay
-			.OpenBox()
-				.Vector("Motion", () => PlatformBody.Motion, PlayerConfig.MaxSpeed).SetChartWidth(100).EndMonitor()
-				.Graph("MotionX", () => PlatformBody.MotionX, -PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed).AddSeparator(0)
-					.AddSerie("MotionY").Load(() => PlatformBody.MotionY).EndSerie()
-				.EndMonitor()
-			.CloseBox()
-			.GraphSpeed("Speed", PlayerConfig.JumpSpeed * 2).EndMonitor();
-
-	}
-	
-	public void AddOverlayCollisions(DebugOverlay overlay) {    
-		overlay
-			.Graph("Floor", () => PlatformBody.IsOnFloor()).Keep(10).SetChartHeight(10)
-				.AddSerie("Slope").Load(() => PlatformBody.IsOnSlope()).EndSerie()
-			.EndMonitor()
-			.Text("Floor", () => PlatformBody.GetFloorCollisionInfo()).EndMonitor()
-			.Text("Ceiling", () => PlatformBody.GetCeilingCollisionInfo()).EndMonitor()
-			.Text("Wall", () => PlatformBody.GetWallCollisionInfo()).EndMonitor();
-	}
 
 
 	public void ApplyFloorGravity(float factor = 1.0F) {
@@ -387,7 +266,8 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			if (fallingPlatform != null) PlatformManager.ConfigurePlatformCollision(fallingPlatform);
 		}
 
-		On(PlayerEvent.Death).Then(ctx => ctx.Set(PlayerState.Death));
+		On(PlayerEvent.Hurt).Set(PlayerState.Hurt);
+		On(PlayerEvent.Death).Set(PlayerState.Death);
 
 		var jumpJustInTime = false;
 		State(PlayerState.Landing)
@@ -435,7 +315,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			.Execute(() => {
 				ApplyFloorGravity();
 				if (XInput == 0) {
-					if (Math.Abs(MotionX) >= PlayerConfig.MaxSpeed * 0.95f) {
+					if (Math.Abs(MotionX) >= PlayerConfig.SpeedToPlayRunStop) {
 						AnimationIdle.PlayLoop();
 						AnimationRunStop.PlayOnce();
 					}
@@ -445,7 +325,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				}
 				PlatformBody.Flip(XInput);
 				PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.Friction, 
-					PlayerConfig.StopIfSpeedIsLessThan, 0);
+					PlayerConfig.StopIfSpeedIsLessThan, PlayerConfig.ChangeDirectionFactor);
 			})
 			.If(() => Jump.IsJustPressed() && IsPressingDown && IsOnFallingPlatform()).Then(
 				context => {
@@ -512,12 +392,32 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				PlatformBody.Flip(XInput);
 				ApplyAirGravity();
 				PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
-					PlayerConfig.StopIfSpeedIsLessThan, 0);
+					PlayerConfig.StopIfSpeedIsLessThan, PlayerConfig.ChangeDirectionFactor);
 			})
 			.If(() => Attack.IsJustPressed()).Set(PlayerState.FallingAttack)
 			.If(() => Float.IsPressed()).Set(PlayerState.Float)
 			.If(() => PlatformBody.IsOnFloor()).Set(PlayerState.Landing)
 			.If(() => MotionY >= 0).Set(PlayerState.FallShort)
+			.Build();
+
+		Tween? knockbackTween = null;
+		State(PlayerState.Hurt)
+			.Enter(() => {
+				_recoverTimeout.Restart();
+				_stateTimer.Restart();
+				Status.Invincible = true;
+				PlatformBody.MotionX = PlayerConfig.HurtKnockback.x * PlatformBody.FacingRight;
+				PlatformBody.MotionY = PlayerConfig.HurtKnockback.y;
+				AnimationHurt.PlayOnce(true);
+				knockbackTween?.Kill();
+				knockbackTween = CreateTween();
+				knockbackTween.TweenMethod(Callable.From<float>(v => PlatformBody.MotionX = v), PlatformBody.MotionX, 0, PlayerConfig.HurtKnockbackTime).SetTrans(Tween.TransitionType.Cubic);
+			})
+			.Execute(() => {
+				ApplyAirGravity();
+				PlatformBody.Move();
+			})
+			.If(() => _stateTimer.Elapsed >= PlayerConfig.HurtTime).Set(PlayerState.FallLong)
 			.Build();
 
 		State(PlayerState.Death)
@@ -562,7 +462,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				PlatformBody.Flip(XInput);
 				ApplyFloorGravity();
 				PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
-					PlayerConfig.StopIfSpeedIsLessThan, 0);
+					PlayerConfig.StopIfSpeedIsLessThan, PlayerConfig.ChangeDirectionFactor);
 				if (attackState == AttackState.Start) {
 					attackState = AttackState.Short;
 				} else {
@@ -586,7 +486,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				PlatformBody.Flip(XInput);
 				ApplyAirGravity();
 				PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
-					PlayerConfig.StopIfSpeedIsLessThan, 0);
+					PlayerConfig.StopIfSpeedIsLessThan, PlayerConfig.ChangeDirectionFactor);
 			})
 			.If(() => Attack.IsJustPressed()).Set(PlayerState.FallingAttack)
 			.If(() => Float.IsPressed()).Set(PlayerState.Float)
@@ -602,7 +502,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				PlatformBody.Flip(XInput);
 				ApplyAirGravity();
 				PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
-					PlayerConfig.StopIfSpeedIsLessThan, 0);
+					PlayerConfig.StopIfSpeedIsLessThan, PlayerConfig.ChangeDirectionFactor);
 			})
 			.If(() => Attack.IsJustPressed()).Set(PlayerState.FallingAttack)
 			.If(() => Float.IsPressed()).Set(PlayerState.Float)

@@ -39,6 +39,8 @@ public class KinematicPlatformMotion : BaseKinematicMotion, IFlipper {
         FloorRaycasts = floorRaycasts;
     }
 
+    public int FacingRight => IsFacingRight ? 1 : -1; 
+
     public bool IsFacingRight {
         get => _flippers.IsFacingRight;
         set => _flippers.IsFacingRight = value;
