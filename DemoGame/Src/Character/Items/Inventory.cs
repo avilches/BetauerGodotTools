@@ -9,15 +9,18 @@ public class Inventory {
 
     public readonly List<WorldItem> Items = new();
     public int Selected = 0;
-
+    public WeaponItem? WeaponEquipped = null;
+    
     public void Pick(WorldItem worldItem) {
         Items.Add(worldItem);
     }
 
     public WorldItem GetCurrent() => Items[Selected];
-
+    
     public void Equip() {
-        OnEquip?.Invoke(GetCurrent());
+        var worldItem = GetCurrent();
+        OnEquip?.Invoke(worldItem);
+        if (worldItem is WeaponItem weaponItem) WeaponEquipped = weaponItem;
     }
 
     public void Equip(int pos) {

@@ -21,6 +21,9 @@ public partial class PlayerNode {
 	public ILoopStatus DangerTween;
 	public IOnceStatus SqueezeTween;
 
+	private AnimationStack _animationStack;
+	private AnimationStack _tweenStack;
+
 
 	private void ConfigureAnimations() {
 		_restorer = new MultiRestorer() 

@@ -2,12 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Betauer;
-using Betauer.Animation;
-using Betauer.Animation.Easing;
 using Betauer.Application.Monitor;
 using Betauer.Camera;
 using Betauer.Core.Nodes;
-using Betauer.Core.Nodes.Property;
 using Betauer.Core.Restorer;
 using Betauer.Core.Time;
 using Betauer.DI;
@@ -15,6 +12,7 @@ using Betauer.Input;
 using Betauer.Nodes;
 using Betauer.OnReady;
 using Betauer.StateMachine.Sync;
+using Betauer.Tools.Logging;
 using Godot;
 using Veronenger.Character.Enemy;
 using Veronenger.Character.Handler;
@@ -47,6 +45,8 @@ public enum PlayerEvent {
 public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent> {
 	public PlayerNode() : base(PlayerState.Idle, "Player.StateMachine", true) {
 	}
+
+	private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PlayerNode));
 
 	[OnReady("Character")] private CharacterBody2D CharacterBody2D;
 	[OnReady("Character/Sprites/Weapon")] private Sprite2D _weaponSprite;
@@ -81,9 +81,6 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	public Inventory Inventory { get; private set; }
 	public PlayerStatus Status { get; private set; }
 
-	private AnimationStack _animationStack;
-	private AnimationStack _tweenStack;
-
 	private float XInput => Handler.Directional.XInput;
 	private float YInput => Handler.Directional.YInput;
 	private bool IsPressingRight => Handler.Directional.IsPressingRight;
@@ -96,7 +93,6 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 
 	private float MotionX => PlatformBody.MotionX;
 	private float MotionY => PlatformBody.MotionY;
-
 
 	// private bool IsOnPlatform() => PlatformManager.IsPlatform(Body.GetFloor());
 	private bool IsOnFallingPlatform() => PlatformBody.IsOnFloor() &&
@@ -174,11 +170,11 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		CharacterManager.PlayerConfigureCollisions(this);
 
 		CharacterManager.PlayerConfigureAttackArea(_attackArea, (enemyAttackedArea2D) => {
-			GD.Print("Enemy attacked!");
+			Logger.Debug("Enemy attacked! #"+enemyAttackedArea2D.GetWorldId());
 			EventBus.Publish(new PlayerAttack(this, enemyAttackedArea2D, Inventory.GetCurrent() as WeaponItem));
 		});
 		CharacterManager.PlayerConfigureHurtArea(_hurtArea, (enemyAttackArea2D) => {
-			if (Status.Invincible) return;
+			if (Status.Invincible || IsState(PlayerState.Hurt)) return;
 			var enemyId = enemyAttackArea2D.GetWorldId();
 			var enemy = World.Get<EnemyItem>(enemyId);
 			OnEnemyAttack(enemy.ZombieNode);
@@ -188,7 +184,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	}
 
 	private void OnEnemyAttack(ZombieNode zombieNode) {
-		GD.Print("Player attacked!");
+		Logger.Debug("Player attacked! "+CurrentState.Key);
 		Status.Attacked(zombieNode.EnemyConfig.Attack);
 		// _labelHits.Get().Show(((int)playerAttack.Weapon.Damage).ToString());
 		Enqueue(Status.IsDead() ? PlayerEvent.Death : PlayerEvent.Hurt);
@@ -402,6 +398,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			.Build();
 
 		Tween? knockbackTween = null;
+		var weaponSpriteVisible = false;
 		State(PlayerState.Hurt)
 			.Enter(() => {
 				recoverTimeout.Restart();
@@ -409,6 +406,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				Status.Invincible = true;
 				PlatformBody.MotionX = PlayerConfig.HurtKnockback.x * PlatformBody.FacingRight;
 				PlatformBody.MotionY = PlayerConfig.HurtKnockback.y;
+				weaponSpriteVisible = _weaponSprite.Visible;
 				AnimationHurt.PlayOnce(true);
 				knockbackTween?.Kill();
 				knockbackTween = CreateTween();
@@ -419,6 +417,9 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				PlatformBody.Move();
 			})
 			.If(stateTimer.IsAlarm).Set(PlayerState.FallLong)
+			.Exit(() => {
+				_weaponSprite.Visible = weaponSpriteVisible;
+			})
 			.Build();
 
 		State(PlayerState.Death)
