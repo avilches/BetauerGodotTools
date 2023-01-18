@@ -36,6 +36,7 @@ public enum ZombieState {
 		
 	Hurt,
 	Death,
+	End,
 		
 	Fall
 }
@@ -44,15 +45,21 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 	public ZombieNode() : base(ZombieState.Idle, "Zombie.StateMachine", true) {
 	}
 
-	private static readonly KeyframeAnimation RedFlash = KeyframeAnimation.Create()
-		.SetDuration(0.3f)
-		.AnimateKeys(Properties.Modulate)
-		.KeyframeTo(0.00f, Colors.White)
-		.KeyframeTo(0.25f, Colors.Red)
-		.KeyframeTo(0.50f, Colors.White)
-		.KeyframeTo(0.75f, Colors.Red)
-		.KeyframeTo(1.00f, Colors.White)
-		.EndAnimate();
+	private static readonly SequenceAnimation RedFlash;
+
+	static ZombieNode() {
+		const float redFlashTime = 0.05f;
+		const float totalTime = 0.2f;
+		const int steps = (int)(totalTime / redFlashTime / 2);
+		var colorAnimation = SequenceAnimation.Create()
+			.AnimateSteps(Properties.Modulate)
+			.From(Colors.White);
+		for (var i = 0; i < steps; i++) {
+			colorAnimation.To(Colors.Red, redFlashTime);
+			colorAnimation.To(Colors.White, redFlashTime);
+		}
+		RedFlash = colorAnimation.EndAnimate();
+	}
 
 	[OnReady("Character")] private CharacterBody2D CharacterBody2D;
 	[OnReady("Character/Sprites/Body")] private Sprite2D _mainSprite;
@@ -85,7 +92,6 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 	public IOnceStatus AnimationHurt { get; private set; }
 	public IOnceStatus AnimationDead { get; private set; }
 
-	private Tween _sceneTreeTween;
 	private AnimationStack _animationStack;
 
 	private float XInput => Handler.Directional.XInput;
@@ -101,17 +107,10 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 	public EnemyStatus Status { get; private set; }
 
 	private ICharacterAI _zombieAi;
-	private readonly GodotStopwatch _stateTimer = new();
 	private MiniPool<ILabelEffect> _labelHits;
 	private Restorer _restorer; 
-	private bool _hitLabelUsed = false;
 
 	private EnemyItem _enemyItem;
-
-	public void PlayAnimationHurt() {
-		_sceneTreeTween?.Kill();
-		_sceneTreeTween = RedFlash.Play(_mainSprite);
-	}
 
 	public override void _Ready() {
 		if (!Get("visible").As<bool>()) {
@@ -206,14 +205,15 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		AnimationReset = _animationStack.AddOnceAnimation("RESET");
 
 		HitLabel.Visible = false; // just in case...
+		var hitLabelUsed = false;
 		_labelHits = MiniPool<ILabelEffect>.Create()
 			.Factory(() => {
-				if (_hitLabelUsed) {
+				if (hitLabelUsed) {
 					var duplicate = (Label)HitLabel.Duplicate();
 					HitLabel.AddSibling(duplicate);
 					return new LabelHit(duplicate);
 				}
-				_hitLabelUsed = true;
+				hitLabelUsed = true;
 				return new LabelHit(HitLabel);
 			})
 			.BusyIf(l => l.Busy)
@@ -225,19 +225,20 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 	}
 
 	public void Recycle() {
-		// AnimationAttack.PlayOnce();
+		// AnimationReset.PlayOnce();
 		// _restorer.Restore();
-		QueueFree();
 		World.Remove(_enemyItem);
+		QueueFree();
 	}
 
-	public void DisableAll() {
+	public void DisableCollisions() {
 		CharacterBody2D.CollisionLayer = 0;
 		CharacterBody2D.CollisionMask = 0;
-		_hurtArea.CollisionLayer = 0;
-		_hurtArea.CollisionMask = 0;
-		_attackArea.CollisionLayer = 0;
-		_attackArea.CollisionMask = 0;
+	}
+
+	public void DisableAttack() {
+		_attackArea.Monitoring = false;
+		_attackArea.Monitorable = false;
 	}
 
 	public void ApplyFloorGravity(float factor = 1.0F) {
@@ -347,16 +348,18 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 			.If(() => !AnimationAttack.Playing && XInput != 0).Set(ZombieState.Run)
 			.Build();
 
-		
+		Tween? redFlash = null;
 		Tween? knockbackTween = null;
 		State(ZombieState.Hurt)
 			.Enter(() => {
-				PlatformBody.MotionX = EnemyConfig.Knockback.x * (PlatformBody.IsToTheRightOf(CharacterManager.PlayerNode.Marker2D) ? 1 : -1);
-				PlatformBody.MotionY = EnemyConfig.Knockback.y;
+				PlatformBody.MotionX = EnemyConfig.HurtKnockback.x * (PlatformBody.IsToTheRightOf(CharacterManager.PlayerNode.Marker2D) ? 1 : -1);
+				PlatformBody.MotionY = EnemyConfig.HurtKnockback.y;
 				AnimationHurt.PlayOnce(true);
 				knockbackTween?.Kill();
 				knockbackTween = CreateTween();
-				knockbackTween.TweenMethod(Callable.From<float>(v => PlatformBody.MotionX = v), PlatformBody.MotionX, 0, 0.1f).SetTrans(Tween.TransitionType.Cubic);
+				knockbackTween.TweenMethod(Callable.From<float>(v => PlatformBody.MotionX = v), PlatformBody.MotionX, 0, EnemyConfig.HurtKnockbackTime).SetTrans(Tween.TransitionType.Cubic);
+				redFlash?.Kill();
+				redFlash = RedFlash.Play(_mainSprite, 0); 
 			})
 			.Execute(() => {
 				ApplyAirGravity();
@@ -367,13 +370,17 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 
 		State(ZombieState.Death)
 			.Enter(() => {
-				// DisableAll();
+				DisableAttack();
 				AnimationDead.PlayOnce(true);
 			})
 			.Execute(() => {
-				if (!AnimationDead.Playing) Recycle();
+				ApplyAirGravity();
+				PlatformBody.Move();
 			})
+			.If(() => !AnimationDead.Playing).Set(ZombieState.End)
 			.Build();
+
+		State(ZombieState.End).Enter(Recycle).Build();
 
 		State(ZombieState.Jump)
 			.Enter(() => {

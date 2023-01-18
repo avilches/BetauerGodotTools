@@ -111,32 +111,22 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 
 	private readonly DragCameraController _cameraController = new();
 	private CharacterWeaponController _characterWeaponController;
-	private readonly GodotStopwatch _stateTimer = new();
-	private GodotTimeout _recoverTimeout;
 	private Restorer _restorer; 
 
 	public override void _Ready() {
 		_delayedJump = ((InputAction)Jump).CreateDelayed();
 		_cameraController.WithAction(MMB).Attach(_camera2D);
-
 		ConfigureAnimations();
 		ConfigureOverlay();
-
 		ConfigureCharacter();
-
+		ConfigureStateMachine();
 		// OnTransition += args => Console.WriteLine(args.To);
 		// EventBus.Subscribe(Enqueue);
-		ConfigureStateMachineGround();
-		ConfigureStateMachineAir();
-
 		var drawEvent = this.OnDraw(canvas => {
 			foreach (var floorRaycast in FloorRaycasts) canvas.DrawRaycast(floorRaycast, Colors.Red);
 			canvas.DrawRaycast(RaycastCanJump, Colors.Red);
 		});
 		drawEvent.Disable();
-
-
-
 		LoadState();
 	}
 
@@ -180,8 +170,6 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 
 		Status = new PlayerStatus(PlayerConfig.InitialMaxHealth, PlayerConfig.InitialHealth);
 
-		_recoverTimeout = new GodotTimeout(GetTree(), PlayerConfig.HurtInvincibleTime, () => Status.Invincible = false);
-		
 		CharacterManager.RegisterPlayerNode(this);
 		CharacterManager.PlayerConfigureCollisions(this);
 
@@ -254,8 +242,21 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	public void AnimationCallback_EndLongAttack() {
 		attackState = AttackState.None;
 	}
-	
-	public void ConfigureStateMachineGround() {
+
+	private void ManageInputActions(InputEvent e) {
+		if (NextItem.IsEventJustPressed(e)) {
+			Inventory.NextItem();
+			Inventory.Equip();
+		} else if (PrevItem.IsEventJustPressed(e)) {
+			Inventory.PrevItem();
+			Inventory.Equip();
+		}
+	}
+
+	public void ConfigureStateMachine() {
+		var stateTimer = new GodotStopwatch();
+		var recoverTimeout = new GodotTimeout(GetTree(), PlayerConfig.HurtInvincibleTime, () => Status.Invincible = false);
+		
 		PhysicsBody2D? fallingPlatform = null;
 		void FallFromPlatform() {
 			fallingPlatform = PlatformBody.GetFloorCollider<PhysicsBody2D>()!;
@@ -403,8 +404,8 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		Tween? knockbackTween = null;
 		State(PlayerState.Hurt)
 			.Enter(() => {
-				_recoverTimeout.Restart();
-				_stateTimer.Restart().SetAlarm(PlayerConfig.HurtTime);
+				recoverTimeout.Restart();
+				stateTimer.Restart().SetAlarm(PlayerConfig.HurtTime);
 				Status.Invincible = true;
 				PlatformBody.MotionX = PlayerConfig.HurtKnockback.x * PlatformBody.FacingRight;
 				PlatformBody.MotionY = PlayerConfig.HurtKnockback.y;
@@ -417,7 +418,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				ApplyAirGravity();
 				PlatformBody.Move();
 			})
-			.If(_stateTimer.IsAlarm).Set(PlayerState.FallLong)
+			.If(stateTimer.IsAlarm).Set(PlayerState.FallLong)
 			.Build();
 
 		State(PlayerState.Death)
@@ -426,19 +427,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				EventBus.Publish(MainEvent.EndGame);
 			})
 			.Build();
-	}
 
-	private void ManageInputActions(InputEvent e) {
-		if (NextItem.IsEventJustPressed(e)) {
-			Inventory.NextItem();
-			Inventory.Equip();
-		} else if (PrevItem.IsEventJustPressed(e)) {
-			Inventory.PrevItem();
-			Inventory.Equip();
-		}
-	}
-
-	public void ConfigureStateMachineAir() {
 		bool CheckCoyoteJump() {
 			if (!Jump.IsJustPressed()) return false;
 			// Jump was pressed
