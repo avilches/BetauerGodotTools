@@ -84,7 +84,7 @@ public partial class MainStateMachine : StateMachineNodeAsync<MainState, MainEve
         }, ProcessModeEnum.Always);
 #endif
             
-        EventBus.Subscribe(Enqueue).UnsubscribeIf(Predicates.IsInvalid(this));
+        EventBus.Subscribe(Send).UnsubscribeIf(Predicates.IsInvalid(this));
         var modalResponse = false;
         var splashScreen = SceneTree.GetMainScene<SplashScreenNode>();
         splashScreen.Layer = int.MaxValue;
@@ -146,7 +146,7 @@ public partial class MainStateMachine : StateMachineNodeAsync<MainState, MainEve
         State(MainState.Gaming)
             .OnInput(e => {
                 if (ControllerStart.IsEventJustPressed(e)) {
-                    Enqueue(MainEvent.Pause);
+                    Send(MainEvent.Pause);
                     GetViewport().SetInputAsHandled();
                 }
             })

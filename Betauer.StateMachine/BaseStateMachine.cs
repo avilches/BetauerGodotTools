@@ -95,7 +95,7 @@ namespace Betauer.StateMachine {
             if (EqualityComparer<TStateKey>.Default.Equals(state.Key, InitialState)) CurrentState = state;
         }
 
-        public void Enqueue(TEventKey name) {
+        public void Send(TEventKey name) {
             PendingEvent = name;
             HasPendingEvent = true;
         }

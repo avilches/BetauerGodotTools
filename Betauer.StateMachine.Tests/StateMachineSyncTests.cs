@@ -80,7 +80,7 @@ namespace Betauer.StateMachine.Tests {
             sm.On(Trans.Audio).Then(context => context.Set(State.Audio));
             sm.State(State.Audio).Build();
 
-            sm.Enqueue(Trans.Audio);
+            sm.Send(Trans.Audio);
             sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Audio));
             Assert.That(sm.IsState(State.Audio), Is.True);
@@ -124,7 +124,7 @@ namespace Betauer.StateMachine.Tests {
             var sm = new StateMachineSync<State, Trans>(State.A);
             sm.State(State.A).Build();
 
-            sm.Enqueue(Trans.NotFound);
+            sm.Send(Trans.NotFound);
             Assert.Throws<KeyNotFoundException>(() => sm.Execute());
         }
 
@@ -233,7 +233,7 @@ namespace Betauer.StateMachine.Tests {
             sm.State(State.Debug).Build();
             sm.Execute();
             Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A }));
-            sm.Enqueue(Trans.Debug);
+            sm.Send(Trans.Debug);
             sm.Execute();
             Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.Debug }));
         }
@@ -251,15 +251,15 @@ namespace Betauer.StateMachine.Tests {
             sm.Execute();
             Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A }));
 
-            sm.Enqueue(Trans.Start);
+            sm.Send(Trans.Start);
             sm.Execute();
             Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A, State.Debug }));
             
-            sm.Enqueue(Trans.MainMenu);
+            sm.Send(Trans.MainMenu);
             sm.Execute();
             Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A, State.MainMenu }));
 
-            sm.Enqueue(Trans.End);
+            sm.Send(Trans.End);
             sm.Execute();
             Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A }));
         }
@@ -273,7 +273,7 @@ namespace Betauer.StateMachine.Tests {
             sm.State(State.Start)
                 .On(Trans.Global).None().Build();
             
-            sm.Enqueue(Trans.Global);
+            sm.Send(Trans.Global);
             sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Start));
         }
@@ -365,15 +365,15 @@ namespace Betauer.StateMachine.Tests {
             sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Start));
             
-            sm.Enqueue(Trans.Local);
+            sm.Send(Trans.Local);
             sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Local));
             
-            sm.Enqueue(Trans.Global);
+            sm.Send(Trans.Global);
             sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Global));
             
-            sm.Enqueue(Trans.Local);
+            sm.Send(Trans.Local);
             sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Global));
 
@@ -384,8 +384,8 @@ namespace Betauer.StateMachine.Tests {
             var sm = new StateMachineSync<State, Trans>(State.Start);
 
             sm.State(State.Start).Execute(() => {
-                sm.Enqueue(Trans.NotFound); // IGNORED!!
-                sm.Enqueue(Trans.Settings);
+                sm.Send(Trans.NotFound); // IGNORED!!
+                sm.Send(Trans.Settings);
             })
             .If(() => true).Then(context => context.Push(State.Audio)) // IGNORED!!
             .Build();
@@ -416,27 +416,27 @@ namespace Betauer.StateMachine.Tests {
             // Global event
             sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Audio));
-            sm.Enqueue(Trans.Restart);
+            sm.Send(Trans.Restart);
             sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.MainMenu));
             
             // State event
-            sm.Enqueue(Trans.Settings);
+            sm.Send(Trans.Settings);
             sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Settings));
-            sm.Enqueue(Trans.Back);
+            sm.Send(Trans.Back);
             sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.MainMenu));
 
             // State event: pop
-            sm.Enqueue(Trans.MainMenu);
+            sm.Send(Trans.MainMenu);
             sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.MainMenu));
-            sm.Enqueue(Trans.Audio);
+            sm.Send(Trans.Audio);
             sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Audio));
             Assert.That(sm.GetStack(), Is.EqualTo(new [] {State.MainMenu, State.Audio}));
-            sm.Enqueue(Trans.Back);
+            sm.Send(Trans.Back);
             sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.MainMenu));
         }
@@ -461,9 +461,9 @@ namespace Betauer.StateMachine.Tests {
             
             
             sm.Execute();
-            sm.Enqueue(Trans.Settings); 
+            sm.Send(Trans.Settings); 
             sm.Execute();
-            sm.Enqueue(Trans.Back);
+            sm.Send(Trans.Back);
             sm.Execute();
             // Test listener
             Console.WriteLine(string.Join(",", states));
@@ -551,22 +551,22 @@ namespace Betauer.StateMachine.Tests {
             
             sm.Execute();
             Console.WriteLine(string.Join(",", states));
-            sm.Enqueue(Trans.MainMenu);
+            sm.Send(Trans.MainMenu);
             sm.Execute();
             Console.WriteLine(string.Join(",", states));
-            sm.Enqueue(Trans.Settings);
+            sm.Send(Trans.Settings);
             sm.Execute();
             Console.WriteLine(string.Join(",", states));
-            sm.Enqueue(Trans.Audio);
+            sm.Send(Trans.Audio);
             sm.Execute();
             Console.WriteLine(string.Join(",", states));
-            sm.Enqueue(Trans.Video);
+            sm.Send(Trans.Video);
             sm.Execute();
             Console.WriteLine(string.Join(",", states));
-            sm.Enqueue(Trans.Back);
+            sm.Send(Trans.Back);
             sm.Execute();
             Console.WriteLine(string.Join(",", states));
-            sm.Enqueue(Trans.Back);
+            sm.Send(Trans.Back);
             sm.Execute();
             Console.WriteLine(string.Join(",", states));
             Assert.That(string.Join(",", states), Is.EqualTo(
@@ -580,13 +580,13 @@ namespace Betauer.StateMachine.Tests {
             
             // Test multiple exits when more than one state is in the stack and change is Replace instead of Pop
             states.Clear();
-            sm.Enqueue(Trans.Settings);
+            sm.Send(Trans.Settings);
             sm.Execute();
             Console.WriteLine(string.Join(",", states));
-            sm.Enqueue(Trans.Audio);
+            sm.Send(Trans.Audio);
             sm.Execute();
             Console.WriteLine(string.Join(",", states));
-            sm.Enqueue(Trans.Debug);
+            sm.Send(Trans.Debug);
             sm.Execute();
             Console.WriteLine(string.Join(",", states));
             Assert.That(string.Join(",", states), Is.EqualTo(
@@ -640,7 +640,7 @@ namespace Betauer.StateMachine.Tests {
             sm.State(State.End).Build();
             
             // 1-Error when state machine is not initialized
-            sm.Enqueue(Trans.Debug);
+            sm.Send(Trans.Debug);
             Assert.Throws<NullReferenceException>(() => sm.Execute());
             // It returns to non-initialized state (state = null)
             Assert.That(throws, Is.EqualTo(1));
@@ -652,7 +652,7 @@ namespace Betauer.StateMachine.Tests {
             Assert.That(throws, Is.EqualTo(0));
 
             // 2-Error when state machine has state. Error in Enter
-            sm.Enqueue(Trans.Debug);
+            sm.Send(Trans.Debug);
             Assert.Throws<NullReferenceException>(() => sm.Execute());
             // It returns to Start state
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Start));
@@ -660,7 +660,7 @@ namespace Betauer.StateMachine.Tests {
             throws = 0;
 
             // 3-Error when state machine has state. Error in Execute
-            sm.Enqueue(Trans.MainMenu);
+            sm.Send(Trans.MainMenu);
             Assert.Throws<NullReferenceException>(() => sm.Execute());
             // It returns to Start state
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Start));
@@ -668,9 +668,9 @@ namespace Betauer.StateMachine.Tests {
             throws = 0;
 
             // 4-Error when state machine has state. Error in Exit
-            sm.Enqueue(Trans.Global);
+            sm.Send(Trans.Global);
             sm.Execute();
-            sm.Enqueue(Trans.End);
+            sm.Send(Trans.End);
             Assert.Throws<NullReferenceException>(() => sm.Execute());
             // It returns to Start state
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Global));

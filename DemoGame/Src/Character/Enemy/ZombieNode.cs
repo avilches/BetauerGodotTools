@@ -191,7 +191,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		Status.Attacked(playerAttack.Weapon.Damage);
 		GD.Print("Enemy: i'm attacked by player "+ GetHashCode()+": "+Status.Health);
 		_labelHits.Get().Show(((int)playerAttack.Weapon.Damage).ToString());
-		Enqueue(Status.IsDead() ? ZombieEvent.Death : ZombieEvent.Hurt);
+		Send(Status.IsDead() ? ZombieEvent.Death : ZombieEvent.Hurt);
 	}
 
 	private void CreateAnimations() {

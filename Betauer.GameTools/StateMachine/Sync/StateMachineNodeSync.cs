@@ -48,7 +48,7 @@ public partial class StateMachineNodeSync<TStateKey, TEventKey> :
     public EventBuilder<StateMachineNodeSync<TStateKey, TEventKey>, TStateKey, TEventKey> On(TEventKey transitionKey) => _stateMachine.On(transitionKey);
     public void AddEvent(TEventKey transitionKey, Event<TStateKey, TEventKey> @event) => _stateMachine.AddEvent(transitionKey, @event);
     public void AddState(StateNodeSync<TStateKey, TEventKey> stateSync) => _stateMachine.AddState(stateSync);
-    public void Enqueue(TEventKey name) => _stateMachine.Enqueue(name);
+    public void Send(TEventKey name) => _stateMachine.Send(name);
 
     public void Execute() {
         throw new Exception("Don't call directly to execute. Instead, add the node to the tree");

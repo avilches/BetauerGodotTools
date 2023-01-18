@@ -187,7 +187,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		Logger.Debug("Player attacked! "+CurrentState.Key);
 		Status.Attacked(zombieNode.EnemyConfig.Attack);
 		// _labelHits.Get().Show(((int)playerAttack.Weapon.Damage).ToString());
-		Enqueue(Status.IsDead() ? PlayerEvent.Death : PlayerEvent.Hurt);
+		Send(Status.IsDead() ? PlayerEvent.Death : PlayerEvent.Hurt);
 	}
 
 	public override void _Input(InputEvent e) {
