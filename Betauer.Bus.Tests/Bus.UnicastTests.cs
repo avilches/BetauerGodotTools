@@ -54,7 +54,7 @@ namespace Betauer.Bus.Tests {
             
             bus.Publish("sender", "args");
             Assert.That(calls, Is.EqualTo(1));
-            consumer.Remove();
+            consumer.Unsubscribe();
             
             bus.Publish("sender", "args");
             Assert.That(calls, Is.EqualTo(1));
@@ -67,7 +67,7 @@ namespace Betauer.Bus.Tests {
             var calls = 0;
             bus.Subscribe((sender, args) => {
                 calls++;
-            }).RemoveIf(() => remove);
+            }).UnsubscribeIf(() => remove);
             
             bus.Publish("sender", "args");
             Assert.That(calls, Is.EqualTo(1));
@@ -84,7 +84,7 @@ namespace Betauer.Bus.Tests {
             var calls = 0;
             var consumer = bus.Subscribe((sender, args) => {
                 calls++;
-            }).RemoveIf(Predicates.IsInvalid(o));
+            }).UnsubscribeIf(Predicates.IsInvalid(o));
             
             bus.Publish("sender", "args");
             Assert.That(calls, Is.EqualTo(1));

@@ -37,13 +37,13 @@ namespace Betauer.Bus {
         }
 
         public EventConsumer Subscribe(Action<TPublisher, TArgs> action) {
-            Consumer.Remove();
+            Consumer.Unsubscribe();
             Consumer.Do(action);
             return Consumer;
         }
 
         public void Dispose() {
-            Consumer.Remove();
+            Consumer.Unsubscribe();
         }
 
         public class EventConsumer : BaseEventConsumer<EventConsumer, TPublisher, TArgs> {

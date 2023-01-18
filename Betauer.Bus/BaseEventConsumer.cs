@@ -2,16 +2,16 @@ using System;
 
 namespace Betauer.Bus {
     public abstract class BaseEventConsumer<TThis, TPublisher, TArgs> where TThis : class {
-        protected Action<TPublisher, TArgs>? Action { get; private set; }
-        public Func<bool>? RemoveIfFunc { get; private set; }
-
+        protected Action<TPublisher, TArgs>? Action { get; set; }
+        protected Func<bool>? UnsubscribeIfFunc { get; set; }
+        
         public TThis Do(Action<TPublisher, TArgs> action) {
             Action = action;
             return this as TThis;
         }
 
-        public TThis RemoveIf(Func<bool> func) {
-            RemoveIfFunc = func;
+        public TThis UnsubscribeIf(Func<bool> func) {
+            UnsubscribeIfFunc = func;
             return this as TThis;
         }
 
@@ -19,13 +19,13 @@ namespace Betauer.Bus {
             Action?.Invoke(publisher, args);
         }
 
-        public virtual void Remove() {
+        public virtual void Unsubscribe() {
             Action = null;
-            RemoveIfFunc = null;
+            UnsubscribeIfFunc = null;
         }
 
         public virtual bool IsValid() {
-            return Action != null && (RemoveIfFunc == null || !RemoveIfFunc.Invoke());
+            return Action != null && (UnsubscribeIfFunc == null || !UnsubscribeIfFunc.Invoke());
         }
     }
 }

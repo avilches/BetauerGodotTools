@@ -168,7 +168,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 
 		CharacterManager.EnemyConfigureHurtArea(_hurtArea);
 		_hurtArea.SetMeta("EnemyNodeHashCode", GetHashCode());
-		EventBus.Subscribe(OnPlayerAttack).RemoveIf(Predicates.IsInvalid(this));
+		EventBus.Subscribe(OnPlayerAttack).UnsubscribeIf(Predicates.IsInvalid(this));
 		
 		_restorer = new MultiRestorer()
 			.Add(CharacterBody2D.CreateCollisionRestorer())
@@ -182,6 +182,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 	}
 
 	private void OnPlayerAttack(PlayerAttack playerAttack) {
+		GD.Print("Enemy: i'm attacked by player "+ GetHashCode()+": "+Status.Health);
 		if (playerAttack.EnemyAttackArea.GetMeta("EnemyNodeHashCode").AsInt32() != GetHashCode()) return;
 		Status.Attack(playerAttack.Weapon.Damage);
 		GD.Print("Enemy: i'm attacked by player "+ GetHashCode()+": "+Status.Health);
