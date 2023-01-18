@@ -40,7 +40,7 @@ public class Game {
     }
 
     public async Task StartWorld3() {
-        World.Reset();
+        World.Clear();
         World.CreateWeapon(WeaponManager.Knife, "Knife", "K1");
         World.CreateWeapon(WeaponManager.Metalbar, "Metalbar", "M1");
 
