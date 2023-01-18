@@ -290,6 +290,9 @@ namespace Betauer.Tools.Logging {
 			}
 			sb.Append(traceLevelAsString);
 			sb.Append(' ');
+			sb.Append('#');
+			sb.Append(Engine.GetProcessFrames().ToString());
+			sb.Append(' ');
 			sb.Append(_name);
 			sb.Append(' ');
 			if (args == 0) sb.Append(message);
