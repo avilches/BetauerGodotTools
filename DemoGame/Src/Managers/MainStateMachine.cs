@@ -90,6 +90,11 @@ public partial class MainStateMachine : StateMachineNodeAsync<MainState, MainEve
         splashScreen.Layer = int.MaxValue;
 
         var endSplash = false;
+
+        On(MainEvent.ModalBoxConfirmExitDesktop).Push(MainState.ModalExitDesktop);
+        On(MainEvent.ExitDesktop).Set(MainState.ExitDesktop);
+        On(MainEvent.EndGame).Set(MainState.MainMenu);
+        On(MainEvent.ModalBoxConfirmQuitGame).Push(MainState.ModalQuitGame);
         State(MainState.Init)
             .Enter(() => {
                 MainMenuScene.Layer = CanvasLayerConstants.MainMenu;
@@ -116,16 +121,16 @@ public partial class MainStateMachine : StateMachineNodeAsync<MainState, MainEve
             
         State(MainState.MainMenu)
             .OnInput(e => MainMenuScene.OnInput(e))
-            .On(MainEvent.StartGame).Then(context=> context.Set(MainState.StartingGame))
-            .On(MainEvent.Settings).Then(context=> context.Push(MainState.Settings))
+            .On(MainEvent.StartGame).Set(MainState.StartingGame)
+            .On(MainEvent.Settings).Push(MainState.Settings)
             .Suspend(() => MainMenuScene.DisableMenus())
             .Awake(() => MainMenuScene.EnableMenus())
             .Enter(async () => await MainMenuScene.ShowMenu())
             .Build();
 
         State(MainState.Settings)
-            .OnInput(e => SettingsMenuScene.OnInput(e))
-            .On(MainEvent.Back).Then(context => context.Pop())
+            .OnInput(SettingsMenuScene.OnInput)
+            .On(MainEvent.Back).Pop()
             .Enter(() => SettingsMenuScene.ShowSettingsMenu())
             .Exit(() => SettingsMenuScene.HideSettingsMenu())
             .Build();
@@ -145,17 +150,15 @@ public partial class MainStateMachine : StateMachineNodeAsync<MainState, MainEve
                     GetViewport().SetInputAsHandled();
                 }
             })
-            .On(MainEvent.Back).Then(context=> context.Pop())
-            .On(MainEvent.Pause).Then(context=> context.Push(MainState.PauseMenu))
+            .On(MainEvent.Back).Pop()
+            .On(MainEvent.Pause).Push(MainState.PauseMenu)
             .Exit(() => Game.End())
             .Build();
             
-        On(MainEvent.EndGame).Then(ctx => ctx.Set(MainState.MainMenu));
-
         State(MainState.PauseMenu)
-            .OnInput(e => PauseMenuScene.OnInput(e))
-            .On(MainEvent.Back).Then(context=> context.Pop())
-            .On(MainEvent.Settings).Then(context=> context.Push(MainState.Settings))
+            .OnInput(PauseMenuScene.OnInput)
+            .On(MainEvent.Back).Pop()
+            .On(MainEvent.Settings).Push(MainState.Settings)
             .Suspend(() => PauseMenuScene.DisableMenus())
             .Awake(() => PauseMenuScene.EnableMenus())
             .Enter(async () => {
@@ -169,9 +172,8 @@ public partial class MainStateMachine : StateMachineNodeAsync<MainState, MainEve
             })
             .Build();
 
-        On(MainEvent.ModalBoxConfirmQuitGame).Then(context=> context.Push(MainState.ModalQuitGame));
         State(MainState.ModalQuitGame)
-            .On(MainEvent.Back).Then(context=> context.Pop())
+            .On(MainEvent.Back).Pop()
             .Execute(async () => {
                 var modalBoxConfirm = ShowModalBox("Quit game?", "Any progress not saved will be lost");
                 modalResponse = await modalBoxConfirm.AwaitResult();
@@ -181,9 +183,8 @@ public partial class MainStateMachine : StateMachineNodeAsync<MainState, MainEve
             .Build();
                 
 
-        On(MainEvent.ModalBoxConfirmExitDesktop).Then(context=> context.Push(MainState.ModalExitDesktop));
         State(MainState.ModalExitDesktop)
-            .On(MainEvent.Back).Then(context=> context.Pop())
+            .On(MainEvent.Back).Pop()
             .Execute(async () => {
                 var modalBoxConfirm = ShowModalBox("Exit game?");
                 modalBoxConfirm.FadeBackgroundOut(1, 0.5f);
@@ -194,7 +195,6 @@ public partial class MainStateMachine : StateMachineNodeAsync<MainState, MainEve
             .Build();
                 
                 
-        On(MainEvent.ExitDesktop).Then(context=> context.Set(MainState.ExitDesktop));
         State(MainState.ExitDesktop)
             .Enter(() => SceneTree.QuitSafely())
             .Build();
