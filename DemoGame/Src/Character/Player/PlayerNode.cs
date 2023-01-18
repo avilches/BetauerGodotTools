@@ -404,7 +404,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		State(PlayerState.Hurt)
 			.Enter(() => {
 				_recoverTimeout.Restart();
-				_stateTimer.Restart();
+				_stateTimer.Restart().SetAlarm(PlayerConfig.HurtTime);
 				Status.Invincible = true;
 				PlatformBody.MotionX = PlayerConfig.HurtKnockback.x * PlatformBody.FacingRight;
 				PlatformBody.MotionY = PlayerConfig.HurtKnockback.y;
@@ -417,7 +417,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				ApplyAirGravity();
 				PlatformBody.Move();
 			})
-			.If(() => _stateTimer.Elapsed >= PlayerConfig.HurtTime).Set(PlayerState.FallLong)
+			.If(_stateTimer.IsAlarm).Set(PlayerState.FallLong)
 			.Build();
 
 		State(PlayerState.Death)

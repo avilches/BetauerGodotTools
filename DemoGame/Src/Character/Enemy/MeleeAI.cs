@@ -42,14 +42,19 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
     }
 
     private void Config() {
+        uint PatrolStopTime() => 0 + (GD.Randi() % 2);
+        uint PatrolTime() => 2 + (GD.Randi() % 6); 
+
         State(State.Patrol)
-            .Enter(() => _stateTimer.Restart())
+            .Enter(() => {
+                _stateTimer.Restart().SetAlarm(PatrolTime());
+            })
             .Execute(() => Advance(0.5f))
             .If(_sensor.IsHurt).Set(State.Hurt)
             .If(_sensor.IsPlayerInsight).Set(State.ChasePlayer)
             .If(_sensor.IsOnWall).Set(State.PatrolStop)
             .If(_sensor.IsFrontFloorFinishing).Set(State.PatrolStop)
-            .If(() => _stateTimer.Elapsed > 4f).Set(State.PatrolStop)
+            .If(_stateTimer.IsAlarm).Set(State.PatrolStop)
             .Build();
         
         State(State.Hurt).If(() => !_sensor.IsHurt()).Set(State.EndAttacked).Build();
@@ -116,11 +121,12 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
         
         State(State.PatrolStop)
             .Enter(() => {
-                _stateTimer.Restart();
+                _stateTimer.Restart().SetAlarm(PatrolStopTime());
+                
             })
             .If(_sensor.IsHurt).Set(State.Hurt)
             .If(_sensor.IsPlayerInsight).Set(State.ChasePlayer)
-            .If(() => _stateTimer.Elapsed > 4f).Then((ctx) => {
+            .If(_stateTimer.IsAlarm).Then((ctx) => {
                 _sensor.Flip();
                 return ctx.Set(State.Patrol);
             })
