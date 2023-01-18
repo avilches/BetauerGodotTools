@@ -16,7 +16,6 @@ public class CharacterWeaponController {
         Unequip();
     }
 
-
     public void Unequip() => Equip(null);
 		
     public void Equip(WeaponType? weapon) {

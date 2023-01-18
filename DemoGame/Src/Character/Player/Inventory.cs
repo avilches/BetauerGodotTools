@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using Betauer.Core;
+using Veronenger.Character.Items;
 
-namespace Veronenger.Character.Items;
+namespace Veronenger.Character.Player;
 
 public class Inventory {
     public event Action<WorldItem>? OnEquip;

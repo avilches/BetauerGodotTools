@@ -102,7 +102,6 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	// private bool IsMovingPlatform() => PlatformManager.IsMovingPlatform(Body.GetFloor());
 	private MonitorText? _coyoteMonitor;
 	private MonitorText? _jumpHelperMonitor;
-	private DelayedAction _delayedJump;
 	private readonly GodotStopwatch _coyoteFallingTimer = new GodotStopwatch();
 
 	private readonly DragCameraController _cameraController = new();
@@ -110,7 +109,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	private Restorer _restorer; 
 
 	public override void _Ready() {
-		_delayedJump = ((InputAction)Jump).CreateDelayed();
+
 		_cameraController.WithAction(MMB).Attach(_camera2D);
 		ConfigureAnimations();
 		ConfigureOverlay();
@@ -171,10 +170,12 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 
 		CharacterManager.PlayerConfigureAttackArea(_attackArea, (enemyAttackedArea2D) => {
 			Logger.Debug("Enemy attacked! #"+enemyAttackedArea2D.GetWorldId());
-			EventBus.Publish(new PlayerAttack(this, enemyAttackedArea2D, Inventory.GetCurrent() as WeaponItem));
+			EventBus.Publish(new PlayerAttackEvent(this, enemyAttackedArea2D, Inventory.GetCurrent() as WeaponItem));
 		});
+		
 		CharacterManager.PlayerConfigureHurtArea(_hurtArea, (enemyAttackArea2D) => {
-			if (Status.Invincible || IsState(PlayerState.Hurt)) return;
+			if (Status.UnderAttack || Status.Invincible) return;
+			Status.UnderAttack = true;
 			var enemyId = enemyAttackArea2D.GetWorldId();
 			var enemy = World.Get<EnemyItem>(enemyId);
 			OnEnemyAttack(enemy.ZombieNode);
@@ -213,9 +214,10 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		PlatformBody.ApplyGravity(PlayerConfig.AirGravity * factor, PlayerConfig.MaxFallingSpeed);
 	}
 
+	public event Action? OnFree;
 	public override void _Notification(long what) {
 		if (what == NotificationPredelete) {
-			_delayedJump?.Dispose();
+			OnFree?.Invoke();
 		}
 	}
 
@@ -251,8 +253,15 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 
 	public void ConfigureStateMachine() {
 		var stateTimer = new GodotStopwatch();
-		var recoverTimeout = new GodotTimeout(GetTree(), PlayerConfig.HurtInvincibleTime, () => Status.Invincible = false);
-		
+		var recoverTimeout = new GodotTimeout(GetTree(), PlayerConfig.HurtInvincibleTime, () => {
+			Status.Invincible = false;
+		});
+		var delayedJump = ((InputAction)Jump).CreateDelayed();
+		OnFree += () => {
+			recoverTimeout.Stop();
+			delayedJump.Dispose();
+		};
+
 		PhysicsBody2D? fallingPlatform = null;
 		void FallFromPlatform() {
 			fallingPlatform = PlatformBody.GetFloorCollider<PhysicsBody2D>()!;
@@ -271,13 +280,13 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			.Enter(() => {
 				FinishFallFromPlatform();
 				_coyoteFallingTimer.Stop(); // not really needed, but less noise in the debug overlay
-				jumpJustInTime = _delayedJump.WasPressed(PlayerConfig.JumpHelperTime);
+				jumpJustInTime = delayedJump.WasPressed(PlayerConfig.JumpHelperTime);
 			})
 			.Execute(() => {
 				if (jumpJustInTime && CanJump()) {
-					_jumpHelperMonitor?.Show($"{_delayedJump.LastPressed} <= {PlayerConfig.JumpHelperTime.ToString()} Done!");
+					_jumpHelperMonitor?.Show($"{delayedJump.LastPressed} <= {PlayerConfig.JumpHelperTime.ToString()} Done!");
 				} else {
-					_jumpHelperMonitor?.Show($"{_delayedJump.LastPressed} > {PlayerConfig.JumpHelperTime.ToString()} TOO MUCH TIME");
+					_jumpHelperMonitor?.Show($"{delayedJump.LastPressed} > {PlayerConfig.JumpHelperTime.ToString()} TOO MUCH TIME");
 				}
 			})
 			.If(() => jumpJustInTime).Set(PlayerState.Jump)
@@ -418,6 +427,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			})
 			.If(stateTimer.IsAlarm).Set(PlayerState.FallLong)
 			.Exit(() => {
+				Status.UnderAttack = false;
 				_weaponSprite.Visible = weaponSpriteVisible;
 			})
 			.Build();
