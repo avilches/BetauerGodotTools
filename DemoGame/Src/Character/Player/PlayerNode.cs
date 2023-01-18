@@ -5,7 +5,6 @@ using Betauer;
 using Betauer.Application.Monitor;
 using Betauer.Camera;
 using Betauer.Core.Nodes;
-using Betauer.Core.Restorer;
 using Betauer.Core.Time;
 using Betauer.DI;
 using Betauer.Input;
@@ -106,23 +105,23 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 
 	private readonly DragCameraController _cameraController = new();
 	private CharacterWeaponController _characterWeaponController;
-	private Restorer _restorer; 
 
 	public override void _Ready() {
-
-		_cameraController.WithAction(MMB).Attach(_camera2D);
 		ConfigureAnimations();
 		ConfigureOverlay();
+		ConfigureCamera();
 		ConfigureCharacter();
+		ConfigureAttack();
+		ConfigureHurt();
 		ConfigureStateMachine();
-		// OnTransition += args => Console.WriteLine(args.To);
-		// EventBus.Subscribe(Enqueue);
+		
+		LoadState();
+
 		var drawEvent = this.OnDraw(canvas => {
 			foreach (var floorRaycast in FloorRaycasts) canvas.DrawRaycast(floorRaycast, Colors.Red);
 			canvas.DrawRaycast(RaycastCanJump, Colors.Red);
 		});
 		drawEvent.Disable();
-		LoadState();
 	}
 
 	private void LoadState() {
@@ -167,21 +166,44 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 
 		CharacterManager.RegisterPlayerNode(this);
 		CharacterManager.PlayerConfigureCollisions(this);
+	}
 
-		CharacterManager.PlayerConfigureAttackArea(_attackArea, (enemyAttackedArea2D) => {
-			Logger.Debug("Enemy attacked! #"+enemyAttackedArea2D.GetWorldId());
-			EventBus.Publish(new PlayerAttackEvent(this, enemyAttackedArea2D, Inventory.GetCurrent() as WeaponItem));
+	private void ConfigureCamera() {
+		_cameraController.WithAction(MMB).Attach(_camera2D);
+		StageManager.ConfigureStageCamera(_camera2D, PlayerDetector);
+	}
+
+	private void ConfigureAttack() {
+		var enemiesHurt = new List<EnemyItem>();
+		CharacterManager.PlayerConfigureAttackArea(_attackArea, (enemyHurtArea) => {
+			var enemy = World.Get<EnemyItem>(enemyHurtArea.GetWorldId())!;
+			// if (enemy.ZombieNode.Status.UnderAttack) return;
+			// Player could hit more than one enemy at the same time. Multiple signals could be launched before the next frame
+			// So, accumulate them and process in the frame
+			enemiesHurt.Add(enemy);
 		});
-		
+
+		OnBeforeExecute += () => {
+			EnemyItem? enemy = enemiesHurt.Count switch {
+				0 => null,
+				1 => enemiesHurt[0],
+				_ => enemiesHurt.MinBy(e => e.ZombieNode.DistanceToPlayer())
+			};
+			if (enemy == null) return;
+			enemiesHurt.Clear();
+			EventBus.Publish(new PlayerAttackEvent(this, enemy, Inventory.WeaponEquipped!));
+		};
+	}
+
+	private void ConfigureHurt() {
 		CharacterManager.PlayerConfigureHurtArea(_hurtArea, (enemyAttackArea2D) => {
+			// Avoid multiple enemies attacking at the same time
 			if (Status.UnderAttack || Status.Invincible) return;
 			Status.UnderAttack = true;
 			var enemyId = enemyAttackArea2D.GetWorldId();
 			var enemy = World.Get<EnemyItem>(enemyId);
 			OnEnemyAttack(enemy.ZombieNode);
 		});
-
-		StageManager.ConfigureStageCamera(_camera2D, PlayerDetector);
 	}
 
 	private void OnEnemyAttack(ZombieNode zombieNode) {
@@ -271,6 +293,8 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		void FinishFallFromPlatform() {
 			if (fallingPlatform != null) PlatformManager.ConfigurePlatformCollision(fallingPlatform);
 		}
+
+		// OnTransition += args => Console.WriteLine(args.To);
 
 		On(PlayerEvent.Hurt).Set(PlayerState.Hurt);
 		On(PlayerEvent.Death).Set(PlayerState.Death);

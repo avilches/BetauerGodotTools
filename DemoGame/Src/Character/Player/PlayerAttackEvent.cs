@@ -1,16 +1,15 @@
-using Godot;
 using Veronenger.Character.Items;
 
 namespace Veronenger.Character.Player;
 
 public class PlayerAttackEvent {
     public readonly PlayerNode Player;
-    public readonly Area2D EnemyAttackArea;
+    public readonly EnemyItem Enemy;
     public readonly WeaponItem Weapon;
 
-    public PlayerAttackEvent(PlayerNode player, Area2D enemyAttackArea, WeaponItem weapon) {
+    public PlayerAttackEvent(PlayerNode player, EnemyItem enemy, WeaponItem weapon) {
         Player = player;
-        EnemyAttackArea = enemyAttackArea;
+        Enemy = enemy;
         Weapon = weapon;
     }
 }

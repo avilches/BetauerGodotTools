@@ -187,7 +187,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 	}
 
 	private void OnPlayerAttack(PlayerAttackEvent playerAttackEvent) {
-		if (!playerAttackEvent.EnemyAttackArea.MatchesWorldId(_enemyItem)) return;
+		if (playerAttackEvent.Enemy.Id != _enemyItem.Id) return;
 		Status.Attacked(playerAttackEvent.Weapon.Damage);
 		GD.Print("Enemy: i'm attacked by player "+ GetHashCode()+": "+Status.Health);
 		_labelHits.Get().Show(((int)playerAttackEvent.Weapon.Damage).ToString());

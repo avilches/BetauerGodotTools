@@ -33,7 +33,6 @@ public partial class PlayerNode {
 			.Title("Player")
 			.SetMaxSize(1000, 1000);
 
-
 		AddOverlayHelpers(overlay);
 		AddOverlayStates(overlay);
 		AddOverlayMotion(overlay);
