@@ -45,15 +45,19 @@ layer_4/tile_data = PackedInt32Array(-589865, 262144, 8, -524329, 262144, 9, -45
 [node name="Enemies" type="Node" parent="."]
 
 [node name="Enemy1" parent="Enemies" instance=ExtResource("3_ailyd")]
+visible = false
 position = Vector2(-716, 24)
 
 [node name="Enemy4" parent="Enemies" instance=ExtResource("3_ailyd")]
+visible = false
 position = Vector2(-716, 24)
 
 [node name="Enemy5" parent="Enemies" instance=ExtResource("3_ailyd")]
+visible = false
 position = Vector2(-716, 24)
 
 [node name="Enemy6" parent="Enemies" instance=ExtResource("3_ailyd")]
+visible = false
 position = Vector2(-716, 24)
 
 [node name="Enemy7" parent="Enemies" instance=ExtResource("3_ailyd")]

@@ -29,12 +29,12 @@ collision_mask = 0
 
 [node name="FinishFloorLeft" type="RayCast2D" parent="RayCasts"]
 position = Vector2(-20, -1)
-target_position = Vector2(0, 16)
+target_position = Vector2(0, 22)
 collision_mask = 0
 
 [node name="FinishFloorRight" type="RayCast2D" parent="RayCasts"]
 position = Vector2(20, -1)
-target_position = Vector2(0, 16)
+target_position = Vector2(0, 22)
 collision_mask = 0
 
 [node name="FacePlayerDetector" type="RayCast2D" parent="RayCasts"]

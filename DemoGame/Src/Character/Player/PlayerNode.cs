@@ -183,8 +183,8 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		CharacterManager.PlayerConfigureAttackArea(_attackArea);
 		this.OnProcess(delta => {
 			if (!Status.AttackConsumed &&
-			    _attackArea.Monitoring &&
-			    _attackArea.HasOverlappingAreas()) {
+				_attackArea.Monitoring &&
+				_attackArea.HasOverlappingAreas()) {
 				EnemyItem? target = _attackArea.GetOverlappingAreas()
 					.Select(area2D => World.Get<EnemyItem>(area2D.GetWorldId()))
 					.Where(enemy => !enemy.ZombieNode.Status.UnderAttack)
@@ -201,8 +201,8 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		CharacterManager.PlayerConfigureHurtArea(_hurtArea);
 		this.OnProcess(delta => {
 			if (Status is { UnderAttack: false, Invincible: false } &&
-			    _hurtArea.Monitoring &&
-			    _hurtArea.HasOverlappingAreas()) {
+				_hurtArea.Monitoring &&
+				_hurtArea.HasOverlappingAreas()) {
 				var attacker = _hurtArea.GetOverlappingAreas()
 					.Select(area2D => World.Get<EnemyItem>(area2D.GetWorldId()))
 					.MinBy(enemy => enemy.ZombieNode.DistanceToPlayer());

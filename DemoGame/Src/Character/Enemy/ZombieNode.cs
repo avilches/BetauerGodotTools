@@ -137,7 +137,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 			canvas.DrawRaycast(FinishFloorRight, Colors.Blue);
 			canvas.DrawRaycast(FinishFloorLeft, Colors.Blue);
 		});
-		drawEvent.Disable();
+		// drawEvent.Disable();
 
 		var overlay = DebugOverlayManager.Follow(CharacterBody2D).Title("Zombie");
 		AddOverlayStates(overlay);
@@ -266,17 +266,18 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 				}).EndMonitor()
 			.CloseBox()
 			.OpenBox()
-			.Angle("Player angle", () => PlatformBody.AngleTo(CharacterManager.PlayerNode.Marker2D)).EndMonitor()
-			.Text("Player is", () => PlatformBody.IsToTheRightOf(CharacterManager.PlayerNode.Marker2D)?"Left":"Right").EndMonitor()
-			.Text("FacingPlayer", () => PlatformBody.IsFacingTo(CharacterManager.PlayerNode.Marker2D)).EndMonitor()
+			.Angle("Player angle", AngleToPlayer).EndMonitor()
+			.Text("Player is", () => PlayerIsOnTheRight()?"Left":"Right").EndMonitor()
+			.Text("FacingPlayer", () => IsFacingToPlayer()).EndMonitor()
 			.Text("Distance", () => DistanceToPlayer().ToString()).EndMonitor()
 			.CloseBox();
 			
 	}
 
-	public float DistanceToPlayer() {
-		return Marker2D.GlobalPosition.DistanceTo(CharacterManager.PlayerNode.Marker2D.GlobalPosition);
-	}
+	public bool IsFacingToPlayer() => PlatformBody.IsFacingTo(CharacterManager.PlayerNode.Marker2D);
+	public bool PlayerIsOnTheRight() => PlatformBody.IsToTheRightOf(CharacterManager.PlayerNode.Marker2D);
+	public float AngleToPlayer() => PlatformBody.AngleTo(CharacterManager.PlayerNode.Marker2D);
+	public float DistanceToPlayer() => Marker2D.GlobalPosition.DistanceTo(CharacterManager.PlayerNode.Marker2D.GlobalPosition);
 
 	public void AddOverlayMotion(DebugOverlay overlay) {    
 		overlay
