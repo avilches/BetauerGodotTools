@@ -21,6 +21,8 @@ public class EnemyConfig {
     public float Friction = 0; // pixels/seconds 0=stop immediately
 
     public int Attack = 6;
+    public float InitialHealth = 1000;
+    public float InitialMaxHealth = 32;
 
     public EnemyConfig() {
         const float timeToMaxSpeed = 0.5f; // seconds to reach the max speed 0=immediate

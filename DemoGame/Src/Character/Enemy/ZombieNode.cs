@@ -46,6 +46,8 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 	public ZombieNode() : base(ZombieState.Idle, "Zombie.StateMachine", true) {
 	}
 
+	private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(ZombieNode));
+
 	private static readonly SequenceAnimation RedFlash;
 
 	static ZombieNode() {
@@ -175,7 +177,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 
 		CharacterManager.EnemyConfigureHurtArea(_hurtArea);
 		_hurtArea.SetWorldId(_enemyItem);
-		EventBus.Subscribe(OnPlayerAttack).UnsubscribeIf(Predicates.IsInvalid(this));
+		EventBus.Subscribe(OnPlayerAttackEvent).UnsubscribeIf(Predicates.IsInvalid(this));
 		
 		_restorer = new MultiRestorer()
 			.Add(CharacterBody2D.CreateCollisionRestorer())
@@ -184,14 +186,14 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 			.Add(_mainSprite.CreateRestorer(Properties.Modulate, Properties.Scale2D));
 		_restorer.Save();
 
-		Status = new EnemyStatus(32);
+		Status = new EnemyStatus(EnemyConfig.InitialMaxHealth, EnemyConfig.InitialHealth);
 	}
 
-	private void OnPlayerAttack(PlayerAttackEvent playerAttackEvent) {
+	private void OnPlayerAttackEvent(PlayerAttackEvent playerAttackEvent) {
 		if (playerAttackEvent.Enemy.Id != _enemyItem.Id) return;
 		Debug.Assert(Status.UnderAttack == false, "Status.UnderAttack == false");
 		Status.UnderAttack = true;
-		Status.Attacked(playerAttackEvent.Weapon.Damage);
+		Status.Hurt(playerAttackEvent.Weapon.Damage);
 		_labelHits.Get().Show(((int)playerAttackEvent.Weapon.Damage).ToString());
 		Send(Status.IsDead() ? ZombieEvent.Death : ZombieEvent.Hurt);
 	}
