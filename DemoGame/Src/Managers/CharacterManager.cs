@@ -40,10 +40,11 @@ public class CharacterManager {
         });
     }
 
-    public void PlayerConfigureAttackArea(Area2D attackArea, Action<Area2D> onAttack) {
+    public void PlayerConfigureAttackArea(Area2D attackArea, Action<Area2D>? onAttack = null) {
         attackArea.CollisionMask = 0;
         attackArea.CollisionLayer = 0;
-        attackArea.OnAreaEntered(LayerEnemyHurtArea, onAttack);
+        if (onAttack != null) attackArea.OnAreaEntered(LayerEnemyHurtArea, onAttack);
+        else attackArea.DetectLayer(LayerEnemyHurtArea);
     }
 
     public void EnemyConfigureCollisions(CharacterBody2D enemy) {
@@ -53,10 +54,11 @@ public class CharacterManager {
         enemy.DetectLayer(LayerSolidBody);
     }
 
-    public void PlayerConfigureHurtArea(Area2D damageArea, Action<Area2D> onAttack) {
-        damageArea.CollisionMask = 0;
-        damageArea.CollisionLayer = 0;
-        damageArea.OnAreaEntered(LayerPlayerHurtArea, onAttack);
+    public void PlayerConfigureHurtArea(Area2D hurtArea, Action<Area2D>? onAttack = null) {
+        hurtArea.CollisionMask = 0;
+        hurtArea.CollisionLayer = 0;
+        if (onAttack != null) hurtArea.OnAreaEntered(LayerPlayerHurtArea, onAttack);
+        else hurtArea.DetectLayer(LayerPlayerHurtArea);
     }
     
     public void EnemyConfigureCollisions(RayCast2D rayCast2D) {
