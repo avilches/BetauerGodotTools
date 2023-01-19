@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Betauer;
 using Betauer.Application.Monitor;
@@ -43,6 +44,11 @@ public enum PlayerEvent {
 
 public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent> {
 	public PlayerNode() : base(PlayerState.Idle, "Player.StateMachine", true) {
+	}
+
+	public event Action? OnFree;
+	public override void _Notification(long what) {
+		if (what == NotificationPredelete) OnFree?.Invoke();
 	}
 
 	private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PlayerNode));
@@ -111,8 +117,8 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		ConfigureOverlay();
 		ConfigureCamera();
 		ConfigureCharacter();
-		ConfigureAttack();
-		ConfigureHurt();
+		ConfigureAttackArea();
+		ConfigureHurtArea();
 		ConfigureStateMachine();
 		
 		LoadState();
@@ -173,45 +179,38 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		StageManager.ConfigureStageCamera(_camera2D, PlayerDetector);
 	}
 
-	private void ConfigureAttack() {
-		var enemiesHurt = new List<EnemyItem>();
-		CharacterManager.PlayerConfigureAttackArea(_attackArea, (enemyHurtArea) => {
-			var enemy = World.Get<EnemyItem>(enemyHurtArea.GetWorldId())!;
-			// Ignore enemies under attack (no attack when attack)
-			if (enemy.ZombieNode.Status.UnderAttack) return;
-			// Player could hit more than one enemy at the same time. Multiple signals could be launched before the next frame
-			// So, accumulate them and process in the frame
-			enemiesHurt.Add(enemy);
-		});
-
-		OnBeforeExecute += () => {
-			EnemyItem? enemy = enemiesHurt.Count switch {
-				0 => null,
-				1 => enemiesHurt[0],
-				_ => enemiesHurt.MinBy(e => e.ZombieNode.DistanceToPlayer())
-			};
-			if (enemy == null) return;
-			enemiesHurt.Clear();
-			EventBus.Publish(new PlayerAttackEvent(this, enemy, Inventory.WeaponEquipped!));
-		};
-	}
-
-	private void ConfigureHurt() {
-		CharacterManager.PlayerConfigureHurtArea(_hurtArea, (enemyAttackArea2D) => {
-			// Avoid multiple enemies attacking at the same time
-			if (Status.UnderAttack || Status.Invincible) return;
-			Status.UnderAttack = true;
-			var enemyId = enemyAttackArea2D.GetWorldId();
-			var enemy = World.Get<EnemyItem>(enemyId);
-			OnEnemyAttack(enemy.ZombieNode);
+	private void ConfigureAttackArea() {
+		CharacterManager.PlayerConfigureAttackArea(_attackArea);
+		this.OnProcess(delta => {
+			if (!Status.AttackConsumed &&
+			    _attackArea.Monitoring &&
+			    _attackArea.HasOverlappingAreas()) {
+				EnemyItem? target = _attackArea.GetOverlappingAreas()
+					.Select(area2D => World.Get<EnemyItem>(area2D.GetWorldId()))
+					.Where(enemy => !enemy.ZombieNode.Status.UnderAttack)
+					.MinBy(enemy => enemy.ZombieNode.DistanceToPlayer());
+				if (target != null) {
+					Status.AttackConsumed = true;
+					EventBus.Publish(new PlayerAttackEvent(this, target, Inventory.WeaponEquipped!));
+				}
+			}
 		});
 	}
 
-	private void OnEnemyAttack(ZombieNode zombieNode) {
-		Logger.Debug("Player attacked! "+CurrentState.Key);
-		Status.Attacked(zombieNode.EnemyConfig.Attack);
-		// _labelHits.Get().Show(((int)playerAttack.Weapon.Damage).ToString());
-		Send(Status.IsDead() ? PlayerEvent.Death : PlayerEvent.Hurt);
+	private void ConfigureHurtArea() {
+		CharacterManager.PlayerConfigureHurtArea(_hurtArea);
+		this.OnProcess(delta => {
+			if (Status is { UnderAttack: false, Invincible: false } &&
+			    _hurtArea.Monitoring &&
+			    _hurtArea.HasOverlappingAreas()) {
+				var attacker = _hurtArea.GetOverlappingAreas()
+					.Select(area2D => World.Get<EnemyItem>(area2D.GetWorldId()))
+					.MinBy(enemy => enemy.ZombieNode.DistanceToPlayer());
+				Status.UnderAttack = true;
+				Status.Hurt(attacker.ZombieNode.EnemyConfig.Attack);
+				Send(Status.IsDead() ? PlayerEvent.Death : PlayerEvent.Hurt);
+			}
+		});
 	}
 
 	public override void _Input(InputEvent e) {
@@ -235,13 +234,6 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 
 	public void ApplyAirGravity(float factor = 1.0F) {
 		PlatformBody.ApplyGravity(PlayerConfig.AirGravity * factor, PlayerConfig.MaxFallingSpeed);
-	}
-
-	public event Action? OnFree;
-	public override void _Notification(long what) {
-		if (what == NotificationPredelete) {
-			OnFree?.Invoke();
-		}
 	}
 
 	public enum AttackState {
@@ -378,6 +370,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			.Enter(() => {
 				AnimationAttack.PlayOnce(true);
 				attackState = AttackState.Start;
+				Status.AttackConsumed = false;
 			})
 			.Execute(() => {
 				ApplyFloorGravity();
@@ -403,6 +396,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			.Enter(() => {
 				PlatformBody.MotionY = -PlayerConfig.JumpSpeed;
 				AnimationAttack.PlayOnce(true);
+				Status.AttackConsumed = false;
 				attackState = AttackState.Start;
 			})
 			.If(() => true).Set((PlayerState.FallingAttack))

@@ -110,7 +110,7 @@ public partial class Bootstrap : Node /* needed to be instantiated as an Autoloa
         LoggerFactory.SetTraceLevel(typeof(PlayerNode), TraceLevel.All);
         LoggerFactory.SetTraceLevel("Player.StateMachine", TraceLevel.Error);
         LoggerFactory.SetTraceLevel("Player.AnimationStack", TraceLevel.Error);
-        LoggerFactory.SetTraceLevel(typeof(ZombieNode), TraceLevel.Error);
+        LoggerFactory.SetTraceLevel(typeof(ZombieNode), TraceLevel.All);
         LoggerFactory.SetTraceLevel("Zombie.StateMachine", TraceLevel.Error);
         LoggerFactory.SetTraceLevel("Zombie.AnimationStack", TraceLevel.Error);
             
