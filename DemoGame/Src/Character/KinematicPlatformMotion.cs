@@ -61,13 +61,12 @@ public class KinematicPlatformMotion : BaseKinematicMotion, IFlipper {
         if (IsFacingTo(globalPosition)) _flippers.Flip();
     }
 
-    /**
+    /*
      *  IsToTheRightOf | IsFacingRight | 
-     *  true           | true          |  node2D -  Body)
-     *  true           | false         |  node2D - (Body
-     *  false          | true          |  Body)  -  node2D
-     *  false          | false         | (Body   -  node2D
-     *
+     *  true           | true          |   globalPosition  -   Body:)
+     *  true           | false         |   globalPosition  - (:Body
+     *  false          | true          |   Body:)  -  globalPosition
+     *  false          | false         | (:Body    -  globalPosition
      */
     public bool IsFacingTo(Vector2 globalPosition) => IsToTheRightOf(globalPosition) != _flippers.IsFacingRight;
 
@@ -77,7 +76,7 @@ public class KinematicPlatformMotion : BaseKinematicMotion, IFlipper {
     // Floor flags
     public bool IsOnFloor() => _isOnFloor;
     public bool IsOnSlope() => _isOnSlope;
-    public bool IsOnSlopeUpRight() => IsOnSlope() && GetFloorNormal().IsUpLeft(FloorUpDirection);
+    public bool IsOnSlopeUpRight() => IsOnSlope() && GetFloorNormal().IsSameDirection(FloorUpDirection) && GetFloorNormal().IsRight(FloorUpDirection);
     // Floor collider
     public Vector2 GetFloorNormal() => _floorNormal;
     public T? GetFloorCollider<T>() where T : Node => GetFloorColliders<T>().FirstOrDefault();

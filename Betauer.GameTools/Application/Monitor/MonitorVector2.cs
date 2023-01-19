@@ -51,7 +51,7 @@ public partial class MonitorVector2 : BaseMonitor<MonitorVector2> {
     public MonitorVector2 LoadAngle(Func<float> action) {
         _loadValue = () => {
             var angle = action();
-            return new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
+            return Vector2.FromAngle(angle);
         };
         _formatValue = v2 => {
             var angle = action();

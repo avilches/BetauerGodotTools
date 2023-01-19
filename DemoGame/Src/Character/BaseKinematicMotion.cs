@@ -5,18 +5,20 @@ using Godot;
 namespace Veronenger.Character; 
 
 public abstract class BaseKinematicMotion {
-    public CharacterBody2D CharacterBody { get; private set; }
-    public Marker2D Marker2D { get; private set; }
+    public CharacterBody2D CharacterBody { get; }
+    public Marker2D Marker2D { get; }
 
     private float _anglesToRotateFloor = 0;
     private Vector2 _floorUpDirection = Vector2.Up;
-    private Vector2 _lookRightDirection = Vector2.Right;
+    
+    public Vector2 LookRightDirection { get; private set; } = Vector2.Right;
+    
     public Vector2 FloorUpDirection {
         get => _floorUpDirection;
         set {
             _floorUpDirection = value;
             _anglesToRotateFloor = Vector2.Up.AngleTo(FloorUpDirection);
-            _lookRightDirection = _floorUpDirection.Right();
+            LookRightDirection = _floorUpDirection.Rotate90Right();
             CharacterBody.UpDirection = FloorUpDirection;
         }
     }
@@ -137,22 +139,13 @@ public abstract class BaseKinematicMotion {
     /// <summary>
     /// Return true if the current body is to the right of the parameter 
     /// </summary>
-    /// <param name="node2D"></param>
+    /// <param name="globalPosition"></param>
     /// <returns></returns>
-    public bool IsToTheRightOf(Node2D node2D) => IsToTheRightOf(node2D.GlobalPosition);
-    public float AngleTo(Node2D node2D) => AngleTo(node2D.GlobalPosition);
+    public bool IsToTheRightOf(Vector2 globalPosition) => LookRightDirection.IsOppositeDirection(DirectionTo(globalPosition));
 
-    /// <summary>
-    /// Return true if the current body is to the right of the parameter 
-    /// </summary>
-    /// <param name="node2D"></param>
-    /// <returns></returns>
-    public bool IsToTheRightOf(Vector2 globalPosition) {
-        var angle = AngleTo(globalPosition);
-        return Mathf.Abs(angle) > Mathf.Pi / 2;
-    }
+    public float DistanceTo(Vector2 globalPosition) => Marker2D.GlobalPosition.DistanceTo(globalPosition);
+    
+    public Vector2 DirectionTo(Vector2 globalPosition) => Marker2D.GlobalPosition.DirectionTo(globalPosition);
 
-    public float AngleTo(Vector2 globalPosition) {
-        return _lookRightDirection.AngleTo(globalPosition - Marker2D.GlobalPosition);
-    }
+    public float AngleTo(Vector2 globalPosition) => LookRightDirection.AngleTo(DirectionTo(globalPosition));
 }

@@ -115,6 +115,13 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 
 	private EnemyItem _enemyItem;
 
+	private Vector2 PlayerPos => CharacterManager.PlayerNode.Marker2D.GlobalPosition;
+	public bool IsFacingToPlayer() => PlatformBody.IsFacingTo(PlayerPos);
+	public bool IsToTheRightOfPlayer() => PlatformBody.IsToTheRightOf(PlayerPos);
+	public float AngleToPlayer() => PlatformBody.AngleTo(PlayerPos);
+	public float DistanceToPlayer() => PlatformBody.DistanceTo(PlayerPos);
+	public Vector2 DirectionToPlayer() => PlatformBody.DirectionTo(PlayerPos);
+
 	public override void _Ready() {
 		if (!Get("visible").As<bool>()) {
 			QueueFree();
@@ -258,26 +265,22 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 			.OpenBox()
 				.Text("State", () => CurrentState.Key.ToString()).EndMonitor()
 				.Text("IA", () => _zombieAi.GetState()).EndMonitor()
-				.Text("Pos", () => {
-					var playerMark = CharacterManager.PlayerNode.Marker2D;
-					return PlatformBody.IsFacingTo(playerMark)?
-						PlatformBody.IsToTheRightOf(playerMark)?"P <me|":"|me> P":
-						PlatformBody.IsToTheRightOf(playerMark)?"P |me>":"<me| P";
-				}).EndMonitor()
+				.Text("Pos", () => IsFacingToPlayer()?
+												IsToTheRightOfPlayer()?"P <me|":"|me> P":
+												IsToTheRightOfPlayer()?"P |me>":"<me| P").EndMonitor()
 			.CloseBox()
 			.OpenBox()
-			.Angle("Player angle", AngleToPlayer).EndMonitor()
-			.Text("Player is", () => PlayerIsOnTheRight()?"Left":"Right").EndMonitor()
-			.Text("FacingPlayer", () => IsFacingToPlayer()).EndMonitor()
-			.Text("Distance", () => DistanceToPlayer().ToString()).EndMonitor()
+				.Angle("Player angle", AngleToPlayer).EndMonitor()
+				.Text("Player is", () => IsToTheRightOfPlayer()?"Left":"Right").EndMonitor()
+				.Text("FacingPlayer", IsFacingToPlayer).EndMonitor()
+				.Text("Distance", () => DistanceToPlayer().ToString()).EndMonitor()
+			.CloseBox()
+			.OpenBox()
+				.Text("Pos", () => Marker2D.GlobalPosition.ToString()).EndMonitor()
+				.Text("Player pos", () => PlayerPos.ToString()).EndMonitor()
 			.CloseBox();
 			
 	}
-
-	public bool IsFacingToPlayer() => PlatformBody.IsFacingTo(CharacterManager.PlayerNode.Marker2D);
-	public bool PlayerIsOnTheRight() => PlatformBody.IsToTheRightOf(CharacterManager.PlayerNode.Marker2D);
-	public float AngleToPlayer() => PlatformBody.AngleTo(CharacterManager.PlayerNode.Marker2D);
-	public float DistanceToPlayer() => Marker2D.GlobalPosition.DistanceTo(CharacterManager.PlayerNode.Marker2D.GlobalPosition);
 
 	public void AddOverlayMotion(DebugOverlay overlay) {    
 		overlay
@@ -357,7 +360,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		Tween? knockbackTween = null;
 		State(ZombieState.Hurt)
 			.Enter(() => {
-				PlatformBody.MotionX = EnemyConfig.HurtKnockback.x * (PlatformBody.IsToTheRightOf(CharacterManager.PlayerNode.Marker2D) ? 1 : -1);
+				PlatformBody.MotionX = EnemyConfig.HurtKnockback.x * (IsToTheRightOfPlayer() ? 1 : -1);
 				PlatformBody.MotionY = EnemyConfig.HurtKnockback.y;
 				AnimationHurt.PlayOnce(true);
 				knockbackTween?.Kill();
