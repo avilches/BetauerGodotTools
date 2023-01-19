@@ -289,9 +289,10 @@ namespace Betauer.Tools.Logging {
 				sb.Append(' ');
 			}
 			sb.Append(traceLevelAsString);
-			sb.Append(' ');
-			sb.Append('#');
+			sb.Append(" Idle #");
 			sb.Append(Engine.GetProcessFrames().ToString());
+			sb.Append(" | Physics #");
+			sb.Append(Engine.GetPhysicsFrames().ToString());
 			sb.Append(' ');
 			sb.Append(_name);
 			sb.Append(' ');
