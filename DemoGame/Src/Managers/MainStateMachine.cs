@@ -111,7 +111,7 @@ public partial class MainStateMachine : StateMachineNodeAsync<MainState, MainEve
                 OnTransition += args => BottomBarScene.UpdateState(args.To);
             })
             .OnInput(e => {
-                if ((e.IsAnyKey() || e.IsAnyButton() || e.IsAnyClick()) && e.IsJustPressed()) {
+                if (!endSplash && (e.IsAnyKey() || e.IsAnyButton() || e.IsAnyClick()) && e.IsJustPressed()) {
                     splashScreen.QueueFree();
                     endSplash = true;
                 }
