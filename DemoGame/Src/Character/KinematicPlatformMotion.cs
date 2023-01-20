@@ -5,8 +5,6 @@ using Godot;
 using Betauer;
 using Betauer.Core;
 using Betauer.Core.Nodes;
-using Betauer.DI;
-using Betauer.DI.ServiceProvider;
 using Object = Godot.Object;
 
 namespace Veronenger.Character; 
@@ -76,7 +74,9 @@ public class KinematicPlatformMotion : BaseKinematicMotion, IFlipper {
     // Floor flags
     public bool IsOnFloor() => _isOnFloor;
     public bool IsOnSlope() => _isOnSlope;
-    public bool IsOnSlopeUpRight() => IsOnSlope() && GetFloorNormal().IsSameDirection(FloorUpDirection) && GetFloorNormal().IsRight(FloorUpDirection);
+
+    public bool IsOnSlopeUpRight() => IsOnSlope() && GetFloorNormal().IsSameDirection(FloorUpDirection.Rotated(Mathf.Pi/4));
+    
     // Floor collider
     public Vector2 GetFloorNormal() => _floorNormal;
     public T? GetFloorCollider<T>() where T : Node => GetFloorColliders<T>().FirstOrDefault();
