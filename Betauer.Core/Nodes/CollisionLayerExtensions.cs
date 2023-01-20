@@ -162,6 +162,18 @@ public static class CollisionLayerExtensions {
         o.SetCollisionMaskValue(layer, true);
     }
 
+    public static void DetectLayer(this PhysicsPointQueryParameters2D o, int layer) {
+        o.CollisionMask = BitTools.EnableBit(o.CollisionMask,(uint)layer);
+    }
+
+    public static void DetectLayer(this PhysicsRayQueryParameters2D o, int layer) {
+        o.CollisionMask = BitTools.EnableBit(o.CollisionMask,(uint)layer);
+    }
+
+    public static void DetectLayer(this PhysicsShapeQueryParameters2D o, int layer) {
+        o.CollisionMask = BitTools.EnableBit(o.CollisionMask,(uint)layer);
+    }
+
     public static void DetectLayer(this RayCast3D o, int layer) {
         o.SetCollisionMaskValue(layer, true);
     }
@@ -195,6 +207,18 @@ public static class CollisionLayerExtensions {
 
     public static void IgnoreLayer(this RayCast2D o, int layer) =>
         o.SetCollisionMaskValue(layer, false);
+
+    public static void IgnoreLayer(this PhysicsPointQueryParameters2D o, int layer) {
+        o.CollisionMask = BitTools.DisableBit(o.CollisionMask,(uint)layer);
+    }
+
+    public static void IgnoreLayer(this PhysicsRayQueryParameters2D o, int layer) {
+        o.CollisionMask = BitTools.DisableBit(o.CollisionMask,(uint)layer);
+    }
+
+    public static void IgnoreLayer(this PhysicsShapeQueryParameters2D o, int layer) {
+        o.CollisionMask = BitTools.DisableBit(o.CollisionMask,(uint)layer);
+    }
 
     public static void IgnoreLayer(this RayCast3D o, int layer) =>
         o.SetCollisionMaskValue(layer, false);
