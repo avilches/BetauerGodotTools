@@ -121,9 +121,9 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 	public float DistanceToPlayer() => PlatformBody.DistanceTo(PlayerPos);
 	public Vector2 DirectionToPlayer() => PlatformBody.DirectionTo(PlayerPos);
 	public bool CanSeeThePlayer() => IsFacingToPlayer() &&
-	                                 DistanceToPlayer() < EnemyConfig.VisionDistance && 
-	                                 Math.Abs(PlatformBody.LookRightDirection.Dot(DirectionToPlayer())) > EnemyConfig.VisionAngle &&
-	                                 Marker2D.RaycastTo(PlayerPos, ray => CharacterManager.EnemyConfigureCollisions(ray)).Count == 0;
+									 DistanceToPlayer() < EnemyConfig.VisionDistance &&
+									 Mathf.Acos(Mathf.Abs(PlatformBody.LookRightDirection.Dot(DirectionToPlayer()))) < EnemyConfig.VisionAngle &&
+									 Marker2D.RaycastTo(PlayerPos, ray => CharacterManager.EnemyConfigureCollisions(ray)).Count == 0;
 
 	
 	public override void _Ready() {
