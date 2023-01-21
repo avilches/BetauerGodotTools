@@ -1,6 +1,5 @@
+using System;
 using System.Diagnostics;
-using System.Linq;
-using Betauer;
 using Betauer.Animation;
 using Betauer.Application.Monitor;
 using Betauer.Core;
@@ -8,7 +7,6 @@ using Betauer.Core.Nodes;
 using Betauer.Core.Nodes.Property;
 using Betauer.Core.Pool;
 using Betauer.Core.Restorer;
-using Betauer.Core.Time;
 using Betauer.DI;
 using Betauer.Flipper;
 using Betauer.Input;
@@ -122,9 +120,14 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 	public float AngleToPlayer() => PlatformBody.AngleTo(PlayerPos);
 	public float DistanceToPlayer() => PlatformBody.DistanceTo(PlayerPos);
 	public Vector2 DirectionToPlayer() => PlatformBody.DirectionTo(PlayerPos);
+	public bool CanSeeThePlayer() => IsFacingToPlayer() &&
+	                                 DistanceToPlayer() < EnemyConfig.VisionDistance && 
+	                                 Math.Abs(PlatformBody.LookRightDirection.Dot(DirectionToPlayer())) > EnemyConfig.VisionAngle &&
+	                                 Marker2D.RaycastTo(PlayerPos, ray => CharacterManager.EnemyConfigureCollisions(ray)).Count == 0;
 
+	
 	public override void _Ready() {
-		if (!Get("visible").As<bool>()) {
+		if (!Get("visible").As<bool>()) {                                                                                                          
 			QueueFree();
 			return;
 		}
@@ -133,19 +136,40 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		ConfigureStateMachine();
 
 		// AI
-		_zombieAi = MeleeAI.Create(Handler, new MeleeAI.Sensor(this, PlatformBody, () => CharacterManager.PlayerNode.Marker2D.GlobalPosition));
+		_zombieAi = MeleeAI.Create(Handler, new MeleeAI.Sensor(this, PlatformBody, () => PlayerPos));
 		OnBeforeExecute += _zombieAi.Execute;
 		OnBeforeExecute += () => Label.Text = _zombieAi.GetState();
 		OnAfterExecute += _zombieAi.EndFrame;
 
-		var drawEvent = this.OnDraw(canvas => {
+		var drawRaycasts = this.OnDraw(canvas => {
 			canvas.DrawRaycast(FacePlayerDetector, Colors.Red);
 			canvas.DrawRaycast(BackPlayerDetector, Colors.Red);
 			canvas.DrawRaycast(FloorRaycast, Colors.Blue);
 			canvas.DrawRaycast(FinishFloorRight, Colors.Blue);
 			canvas.DrawRaycast(FinishFloorLeft, Colors.Blue);
 		});
-		// drawEvent.Disable();
+		drawRaycasts.Disable();
+
+		var drawPlayerInsight = this.OnDraw(canvas => {
+			var closeEnough = DistanceToPlayer() < EnemyConfig.VisionDistance;
+			if (!closeEnough || !IsFacingToPlayer()) {
+				var finalPos = Marker2D.GlobalPosition + new Vector2(PlatformBody.FacingRight * EnemyConfig.VisionDistance, 0);
+				canvas.DrawLine(Marker2D.GlobalPosition, finalPos.Rotate90Right(), Colors.Gray, 2f);
+				canvas.DrawLine(Marker2D.GlobalPosition, finalPos, Colors.Gray, 2f);
+				canvas.DrawLine(Marker2D.GlobalPosition, finalPos.Rotate90Left(), Colors.Gray, 2f);
+				return;
+			}
+
+			var result = Marker2D.RaycastTo(PlayerPos, ray => CharacterManager.EnemyConfigureCollisions(ray));
+			if (result.Count > 0) {
+				canvas.DrawLine(Marker2D.GlobalPosition, result["position"].AsVector2(), Colors.Red, 3);
+				return;
+			}
+				
+			var color = Mathf.Abs(PlatformBody.LookRightDirection.Dot( DirectionToPlayer())) > EnemyConfig.VisionAngle ? Colors.Lime : Colors.Brown;
+			canvas.DrawLine(Marker2D.GlobalPosition, PlayerPos, color, 3);
+		});
+		// drawPlayerInsight.Disable();
 
 		var overlay = DebugOverlayManager.Follow(CharacterBody2D).Title("Zombie");
 		AddOverlayStates(overlay);
@@ -277,8 +301,10 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 				.Text("Distance", () => DistanceToPlayer().ToString()).EndMonitor()
 			.CloseBox()
 			.OpenBox()
-				.Text("Pos", () => Marker2D.GlobalPosition.ToString()).EndMonitor()
-				.Text("Player pos", () => PlayerPos.ToString()).EndMonitor()
+				.Text("Right Player Dot", () => PlatformBody.LookRightDirection.Dot( DirectionToPlayer()).ToString()).EndMonitor()
+			.CloseBox()
+			.OpenBox()
+				.Text("CanSeeThePlayer", CanSeeThePlayer).EndMonitor()
 			.CloseBox();
 			
 	}
@@ -418,5 +444,4 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 			.If(PlatformBody.IsOnFloor).Set(ZombieState.Landing)
 			.Build();
 	}
-	
 }

@@ -23,7 +23,10 @@ public class EnemyConfig {
     public int Attack = 6;
     public float InitialHealth = 1000;
     public float InitialMaxHealth = 32;
-
+    
+    public float VisionAngle = 0.785398f; //º 45
+    public float VisionDistance = 200f;
+    
     public EnemyConfig() {
         const float timeToMaxSpeed = 0.5f; // seconds to reach the max speed 0=immediate
         Acceleration = MotionConfig.ConfigureSpeed(MaxSpeed, timeToMaxSpeed);

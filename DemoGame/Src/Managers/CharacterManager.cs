@@ -68,6 +68,13 @@ public class CharacterManager {
         rayCast2D.DetectLayer(LayerSolidBody);
     }
 
+    public void EnemyConfigureCollisions(PhysicsRayQueryParameters2D rayCast2D) {
+        rayCast2D.CollisionMask = 0;
+        rayCast2D.CollideWithAreas = false;
+        rayCast2D.CollideWithBodies = true;
+        rayCast2D.DetectLayer(LayerSolidBody);
+    }
+
     public void EnemyConfigureAttackArea(Area2D attackArea) {
         attackArea.CollisionMask = 0;
         attackArea.CollisionLayer = 0;
@@ -75,6 +82,13 @@ public class CharacterManager {
     }
 
     public void EnemyConfigurePlayerDetector(RayCast2D rayCast2D) {
+        rayCast2D.CollisionMask = 0;
+        rayCast2D.CollideWithAreas = true;
+        rayCast2D.CollideWithBodies = false;
+        rayCast2D.DetectLayer(LayerPlayerDetectorArea);
+    }
+
+    public void EnemyConfigurePlayerDetector(PhysicsRayQueryParameters2D rayCast2D) {
         rayCast2D.CollisionMask = 0;
         rayCast2D.CollideWithAreas = true;
         rayCast2D.CollideWithBodies = false;

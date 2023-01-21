@@ -51,20 +51,32 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
             })
             .Execute(() => Advance(0.5f))
             .If(_sensor.IsHurt).Set(State.Hurt)
-            .If(_sensor.IsPlayerInsight).Set(State.ChasePlayer)
             .If(_sensor.IsOnWall).Set(State.PatrolStop)
             .If(_sensor.IsFrontFloorFinishing).Set(State.PatrolStop)
             .If(_stateTimer.IsAlarm).Set(State.PatrolStop)
+            .If(() => _sensor.CanSeeThePlayer()).Set(State.ChasePlayer)
+            .Build();
+
+        State(State.PatrolStop)
+            .Enter(() => {
+                _stateTimer.Restart().SetAlarm(PatrolStopTime());
+                
+            })
+            .If(_sensor.IsHurt).Set(State.Hurt)
+            .If(() => _sensor.CanSeeThePlayer()).Set(State.ChasePlayer)
+            .If(_stateTimer.IsAlarm).Then((ctx) => {
+                _sensor.Flip();
+                return ctx.Set(State.Patrol);
+            })
             .Build();
         
         State(State.Hurt).If(() => !_sensor.IsHurt()).Set(State.EndAttacked).Build();
         State(State.EndAttacked)
             .If(_sensor.IsHurt).Set(State.Hurt)
             .If(() => _sensor.Status.HealthPercent < 0.25f).Set(State.Flee)
-            .If(_sensor.IsPlayerInsight).Set(State.ChasePlayer)
-            .If(() => true).Set(State.ChasePlayer)
+            .If(() => true).Set(State.Confusion)
             .Build();
-        
+
         State(State.Flee)
             .Enter(() => {
                 _stateTimer.Restart();
@@ -76,7 +88,7 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
             .If(_sensor.IsHurt).Set(State.Hurt)
             .If(() => _stateTimer.Elapsed > 6f).Set(State.PatrolStop)
             .Build();
-        
+
         State(State.ChasePlayer)
             .Execute(() => {
                 _sensor.FaceToPlayer();
@@ -98,7 +110,7 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
                 }
             })
             .If(_sensor.IsHurt).Set(State.Hurt)
-            .If(() => !_sensor.IsPlayerInsight()).Set(State.Confusion)
+            .If(() => !_sensor.CanSeeThePlayer()).Set(State.Confusion)
             .Build();
 
         State(State.Confusion)
@@ -107,7 +119,7 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
                 _inStateTimer.Restart();
             })
             .If(_sensor.IsHurt).Set(State.Hurt)
-            .If(_sensor.IsPlayerInsight).Set(State.ChasePlayer)
+            .If(() => _sensor.CanSeeThePlayer()).Set(State.ChasePlayer)
             .If(() => _stateTimer.Elapsed > 1.2f * 6).Then((ctx) => {
                 _sensor.Flip();
                 return ctx.Set(State.Patrol);
@@ -116,19 +128,6 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
                 _sensor.Flip();
                 _inStateTimer.Restart();
                 return ctx.None();
-            })
-            .Build();
-        
-        State(State.PatrolStop)
-            .Enter(() => {
-                _stateTimer.Restart().SetAlarm(PatrolStopTime());
-                
-            })
-            .If(_sensor.IsHurt).Set(State.Hurt)
-            .If(_sensor.IsPlayerInsight).Set(State.ChasePlayer)
-            .If(_stateTimer.IsAlarm).Then((ctx) => {
-                _sensor.Flip();
-                return ctx.Set(State.Patrol);
             })
             .Build();
     }
@@ -163,7 +162,10 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
         public bool IsHurt() => _zombieNode.IsState(ZombieState.Hurt);
         public bool IsAttacking() => _zombieNode.IsState(ZombieState.Attacking);
         public bool IsOnWall() => _body.IsOnWall() && _body.IsOnWallRight() == IsFacingRight;
-        public bool IsPlayerInsight() => _zombieNode.FacePlayerDetector.IsColliding(); // || _zombieNode.BackPlayerDetector.IsColliding();
+
+        public bool IsFacingToPlayer() => _zombieNode.IsFacingToPlayer();
+        public bool CanSeeThePlayer() => _zombieNode.CanSeeThePlayer();
+
         public float DistanceToPlayer() => _zombieNode.DistanceToPlayer();                                                            
 
         public bool IsFrontFloorFinishing() => IsFacingRight
