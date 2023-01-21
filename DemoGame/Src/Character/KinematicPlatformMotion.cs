@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
-using Betauer;
 using Betauer.Core;
 using Betauer.Core.Nodes;
+using Betauer.Flipper;
 using Object = Godot.Object;
 
 namespace Veronenger.Character; 
