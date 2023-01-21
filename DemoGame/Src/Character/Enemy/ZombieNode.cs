@@ -153,10 +153,11 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		var drawPlayerInsight = this.OnDraw(canvas => {
 			var closeEnough = DistanceToPlayer() < EnemyConfig.VisionDistance;
 			if (!closeEnough || !IsFacingToPlayer()) {
-				var finalPos = Marker2D.GlobalPosition + new Vector2(PlatformBody.FacingRight * EnemyConfig.VisionDistance, 0);
-				canvas.DrawLine(Marker2D.GlobalPosition, finalPos.Rotate90Right(), Colors.Gray, 2f);
-				canvas.DrawLine(Marker2D.GlobalPosition, finalPos, Colors.Gray, 2f);
-				canvas.DrawLine(Marker2D.GlobalPosition, finalPos.Rotate90Left(), Colors.Gray, 2f);
+				var distance = new Vector2(EnemyConfig.VisionDistance, 0);
+				var direction = new Vector2(PlatformBody.FacingRight, 1);
+				canvas.DrawLine(Marker2D.GlobalPosition, Marker2D.GlobalPosition + distance.Rotated(-EnemyConfig.VisionAngle) * direction, Colors.Gray, 2f);
+				canvas.DrawLine(Marker2D.GlobalPosition, Marker2D.GlobalPosition + distance.Rotated(+EnemyConfig.VisionAngle) * direction, Colors.Gray, 2f);
+				canvas.DrawLine(Marker2D.GlobalPosition, Marker2D.GlobalPosition + distance * direction, Colors.Gray, 2f);
 				return;
 			}
 
@@ -166,15 +167,16 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 				return;
 			}
 				
-			var color = Mathf.Abs(PlatformBody.LookRightDirection.Dot( DirectionToPlayer())) > EnemyConfig.VisionAngle ? Colors.Lime : Colors.Brown;
+			var color = Mathf.Acos(Mathf.Abs(PlatformBody.LookRightDirection.Dot( DirectionToPlayer()))) > EnemyConfig.VisionAngle ? Colors.Lime : Colors.Brown;
 			canvas.DrawLine(Marker2D.GlobalPosition, PlayerPos, color, 3);
 		});
-		// drawPlayerInsight.Disable();
+		drawPlayerInsight.Disable();
 
 		var overlay = DebugOverlayManager.Follow(CharacterBody2D).Title("Zombie");
 		AddOverlayStates(overlay);
-		AddOverlayMotion(overlay);
-		AddOverlayCollisions(overlay);
+		// AddOverlayCrossAndDot(overlay);
+		// AddOverlayMotion(overlay);
+		// AddOverlayCollisions(overlay);
 	}
 
 	private void ConfigureCharacter() {
@@ -293,20 +295,38 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 				.Text("Pos", () => IsFacingToPlayer()?
 												IsToTheRightOfPlayer()?"P <me|":"|me> P":
 												IsToTheRightOfPlayer()?"P |me>":"<me| P").EndMonitor()
+				.Text("See Player", CanSeeThePlayer).EndMonitor()
 			.CloseBox()
 			.OpenBox()
 				.Angle("Player angle", AngleToPlayer).EndMonitor()
 				.Text("Player is", () => IsToTheRightOfPlayer()?"Left":"Right").EndMonitor()
 				.Text("FacingPlayer", IsFacingToPlayer).EndMonitor()
 				.Text("Distance", () => DistanceToPlayer().ToString()).EndMonitor()
-			.CloseBox()
-			.OpenBox()
-				.Text("Right Player Dot", () => PlatformBody.LookRightDirection.Dot( DirectionToPlayer()).ToString()).EndMonitor()
-			.CloseBox()
-			.OpenBox()
-				.Text("CanSeeThePlayer", CanSeeThePlayer).EndMonitor()
 			.CloseBox();
-			
+	}
+
+	public void AddOverlayCrossAndDot(DebugOverlay overlay) {    
+		overlay
+			.OpenBox()
+				.Text("Dot", () => PlatformBody.LookRightDirection.Dot(DirectionToPlayer()).ToString("0.00")).EndMonitor()
+				.Text("Cross", () => PlatformBody.LookRightDirection.Cross(DirectionToPlayer()).ToString("0.00")).EndMonitor()
+				.Text("Acos(Dot)", () => Mathf.RadToDeg(Mathf.Acos(Math.Abs(PlatformBody.LookRightDirection.Dot(DirectionToPlayer())))).ToString("0.00")).EndMonitor()
+				.Text("Acos(Cross)", () => Mathf.RadToDeg(Mathf.Acos(Math.Abs(PlatformBody.LookRightDirection.Cross(DirectionToPlayer())))).ToString("0.00")).EndMonitor()
+			.CloseBox()
+			.OpenBox()
+				.Text("SameDir", () => PlatformBody.LookRightDirection.IsSameDirection(DirectionToPlayer())).EndMonitor()
+				.Text("OppDir", () => PlatformBody.LookRightDirection.IsOppositeDirection(DirectionToPlayer())).EndMonitor()
+				.Text("IsRight", () => PlatformBody.LookRightDirection.IsRight(DirectionToPlayer())).EndMonitor()
+				.Text("IsLeft", () => PlatformBody.LookRightDirection.IsLeft(DirectionToPlayer())).EndMonitor()
+			.CloseBox()
+			.OpenBox()
+				.Text("SameDirA", () => PlatformBody.LookRightDirection.IsSameDirectionAngle(DirectionToPlayer())).EndMonitor()
+				.Text("OppDirA", () => PlatformBody.LookRightDirection.IsOppositeDirectionAngle(DirectionToPlayer())).EndMonitor()
+				.Text("IsRightA", () => PlatformBody.LookRightDirection.IsRightAngle(DirectionToPlayer())).EndMonitor()
+				.Text("IsLeftA", () => PlatformBody.LookRightDirection.IsLeftAngle(DirectionToPlayer())).EndMonitor()
+			.CloseBox()
+			.OpenBox()
+			.CloseBox();
 	}
 
 	public void AddOverlayMotion(DebugOverlay overlay) {    

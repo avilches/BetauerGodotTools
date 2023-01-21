@@ -24,7 +24,7 @@ public class EnemyConfig {
     public float InitialHealth = 1000;
     public float InitialMaxHealth = 32;
     
-    public float VisionAngle = 0.785398f; //º 45
+    public float VisionAngle = Mathf.DegToRad(45); // 45 up + 45 down, a 90º cone
     public float VisionDistance = 200f;
     
     public EnemyConfig() {
