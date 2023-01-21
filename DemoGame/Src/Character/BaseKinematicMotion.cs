@@ -11,15 +11,20 @@ public abstract class BaseKinematicMotion {
     private float _anglesToRotateFloor = 0;
     private Vector2 _floorUpDirection = Vector2.Up;
     
-    public Vector2 LookRightDirection { get; private set; } = Vector2.Right;
+    public Vector2 LookRightDirection { get; private set; }
+    public Vector2 UpRightNormal { get; private set; }
     
     public Vector2 FloorUpDirection {
         get => _floorUpDirection;
         set {
             _floorUpDirection = value;
-            _anglesToRotateFloor = Vector2.Up.AngleTo(FloorUpDirection);
-            LookRightDirection = _floorUpDirection.Rotate90Right();
-            CharacterBody.UpDirection = FloorUpDirection;
+            CharacterBody.UpDirection = value;
+            LookRightDirection = value.Rotate90Right();
+            UpRightNormal = value.Rotated(Mathf.Pi / 4); // up -> 45º
+
+            // If FloorUpDirection has a different direction than Vector.UP, this field store the difference, so it
+            // can be uses to transform original Up with regular up
+            _anglesToRotateFloor = Vector2.Up.AngleTo(value);
         }
     }
         

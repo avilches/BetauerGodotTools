@@ -75,8 +75,11 @@ public class KinematicPlatformMotion : BaseKinematicMotion, IFlipper {
     public bool IsOnFloor() => _isOnFloor;
     public bool IsOnSlope() => _isOnSlope;
 
-    public bool IsOnSlopeUpRight() => IsOnSlope() && GetFloorNormal().IsSameDirection(FloorUpDirection.Rotated(Mathf.Pi/4));
-    
+    public bool IsOnSlopeUpRight() {
+        // UpRightNormal is a 45º angle. IsSameDirectionAngle uses 45º by default, it means a 90º cone
+        return IsOnSlope() && GetFloorNormal().IsSameDirectionAngle(UpRightNormal);
+    }
+
     // Floor collider
     public Vector2 GetFloorNormal() => _floorNormal;
     public T? GetFloorCollider<T>() where T : Node => GetFloorColliders<T>().FirstOrDefault();
