@@ -1,11 +1,18 @@
 using System;
 using Betauer.Core.Signal;
 using Godot;
+using Godot.Collections;
 
 namespace Betauer.Core.Nodes;
 
 public static class CollisionLayerExtensions {
-                
+
+    public static Dictionary RaycastTo(this Node2D from, Vector2 to, Action<PhysicsRayQueryParameters2D>? config = null)  {
+        var query = PhysicsRayQueryParameters2D.Create(from.GlobalPosition, to);
+        config?.Invoke(query);
+        return from.GetWorld2d().DirectSpaceState.IntersectRay(query);
+    }
+
     public static SignalHandler OnAreaEntered(this Area2D area2D, int layer, Action<Area2D> action, bool oneShot = false,
         bool deferred = false) {
         area2D.DetectLayer(layer);
