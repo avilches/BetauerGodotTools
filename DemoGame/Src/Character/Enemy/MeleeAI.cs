@@ -1,4 +1,5 @@
 using System;
+using Betauer.Core;
 using Betauer.Core.Time;
 using Betauer.StateMachine.Sync;
 using Godot;
@@ -9,7 +10,6 @@ namespace Veronenger.Character.Enemy;
 public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacterAI {
     private readonly CharacterController _controller;
     private readonly Sensor _sensor;
-    private readonly GodotStopwatch _stateTimer = new();
 
     public enum State { 
         Sleep,
@@ -42,53 +42,56 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
         return CurrentState.Key.ToString();
     }
 
-    private readonly Random _random = new(0);
-    /// <summary>
-    /// Random number, both incluse, so RndRange(2,4) -> any of these: [2,3,4]
-    /// </summary>
-    /// <param name="start"></param>
-    /// <param name="end"></param>
-    /// <returns></returns>
-    public int RndRange(int start, int end) => _random.Next(start, end + 1);
-
+    
     private void Config() {
-        int SleepTime() => RndRange(7, 9);
-        int PatrolStopTime() => RndRange(1, 3);
-        int PatrolTime() => RndRange(2, 6); 
+        Random random = new(0);
+        float SleepTime() => 8; // random.Range(7, 9);
+        float PatrolStopTime() => 1; // random.Range(1, 3);
+        float PatrolTime() => 5; // random.Range(2, 6); 
+        float FleeTimeout() => 10; // random.Range(6, 8); 
+        // float ChaseTimeout() => random.Range(8, 12);
+        float ChaseTimeout() => 5; // random.Range(4, 6);
+        int ConfusionTimes() => 3; 
+        float ConfusionTime() => 1f;
+        var attacksPerSeconds = 1f;
+
+        GodotStopwatch stateTimer = new();
 
         State(State.Sleep)
             .Enter(() => {
-                _stateTimer.Restart().SetAlarm(SleepTime());
+                stateTimer.Restart().SetAlarm(SleepTime());
             })
             .If(_sensor.IsHurt).Set(State.Hurt)
             .If(() => _sensor.DistanceToPlayer() < 100).Set(State.ConfusionLoop)
-            .If(_stateTimer.IsAlarm).Set(State.Patrol)
+            .If(stateTimer.IsAlarm).Set(State.Patrol)
             .Build();
 
         var patrols = 4;
         State(State.Patrol)
             .Enter(() => {
-                _stateTimer.Restart().SetAlarm(PatrolTime());
+                stateTimer.Restart().SetAlarm(PatrolTime());
+                patrols = 4;
+            })
+            .Awake(() => {
+                stateTimer.Restart().SetAlarm(PatrolTime());
                 patrols--;
             })
             .Execute(() => Advance(0.5f))
             .If(_sensor.IsHurt).Set(State.Hurt)
-            .If(_sensor.IsOnWall).Set(State.PatrolStop)
-            .If(_sensor.IsFrontFloorFinishing).Set(State.PatrolStop)
-            .If(_stateTimer.IsAlarm).Set(State.PatrolStop)
-            .If(() => _sensor.CanSeeThePlayer()).Set(State.ChasePlayer)
+            .If(() => _sensor.IsOnWall() || _sensor.IsFrontFloorFinishing() || stateTimer.IsAlarm()).Push(State.PatrolStop)
+            .If(() => _sensor.CanSeeThePlayer() && !_sensor.IsFrontFloorFinishing()).Set(State.ChasePlayer)
             .If(() => patrols == 0).Set(State.Sleep)
             .Build();
 
         State(State.PatrolStop)
             .Enter(() => {
-                _stateTimer.Restart().SetAlarm(PatrolStopTime());
+                stateTimer.Restart().SetAlarm(PatrolStopTime());
             })
             .If(_sensor.IsHurt).Set(State.Hurt)
-            .If(() => _sensor.CanSeeThePlayer()).Set(State.ChasePlayer)
-            .If(_stateTimer.IsAlarm).Then((ctx) => {
+            .If(() => _sensor.CanSeeThePlayer() && !_sensor.IsFrontFloorFinishing()).Set(State.ChasePlayer)
+            .If(stateTimer.IsAlarm).Then((ctx) => {
                 _sensor.Flip();
-                return ctx.Set(State.Patrol);
+                return ctx.Pop();
             })
             .Build();
         
@@ -101,65 +104,57 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
 
         State(State.Flee)
             .Enter(() => {
-                _stateTimer.Restart();
+                stateTimer.Restart().SetAlarm(FleeTimeout());
             })
             .Execute(() => {
                 _sensor.FaceOppositePlayer();
                 Advance(2f);
             })
             .If(_sensor.IsHurt).Set(State.Hurt)
-            .If(() => _stateTimer.Elapsed > 6f).Set(State.PatrolStop)
+            .If(() => stateTimer.IsAlarm()).Set(State.Sleep)
             .Build();
 
         State(State.ChasePlayer)
             .Enter(() => {
-                _stateTimer.Restart();
+                stateTimer.Restart().SetAlarm(ChaseTimeout());
             })
             .Execute(() => {
+                if (_sensor.IsAttacking()) return;
                 _sensor.FaceToPlayer();
                 var distanceToPlayer = _sensor.DistanceToPlayer();
                 if (distanceToPlayer > 30f) {
-                    if (!_sensor.IsFrontFloorFinishing()) {
-                        // Avoid fall chasing the player
-                        Advance();
-                    }
-                } else if (distanceToPlayer < 30) {
-                    if (!_sensor.IsBackFloorFinishing()) {
-                        // Avoid fall chasing the player backwards
-                        Advance(-3f);
-                    }
+                    // Avoid fall chasing the player
+                    Advance();
                 }
 
-                if (distanceToPlayer < 40 && !_sensor.IsAttacking() && GD.Randf() < 0.02f) {
+                if (distanceToPlayer < 40 && random.NextSingle() < attacksPerSeconds * _sensor.Delta) {
+                    stateTimer.Restart();
                     _controller.AttackController.QuickPress();
                 }
             })
             .If(_sensor.IsHurt).Set(State.Hurt)
-            .If(() => _stateTimer.Elapsed > 10f).Then(ctx => {
+            .If(() => !_sensor.CanSeeThePlayer()).Set(State.ConfusionLoop)
+            .If(() => stateTimer.IsAlarm()).Then(ctx => {
                 _sensor.FaceOppositePlayer();
                 return ctx.Set(State.Patrol);
             })
-            .If(() => !_sensor.CanSeeThePlayer()).Set(State.ConfusionLoop)
+            .If(() => _sensor.IsFrontFloorFinishing()).Set(State.Patrol)
             .Build();
 
         var times = 0;
         State(State.ConfusionLoop)
-            .Enter(() => times = 3)
+            .Enter(() => times = ConfusionTimes())
             .If(() => times > 0).Push(State.Confusion)
             .If(() => true).Set(State.Patrol)
             .Suspend(() => times--)
             .Build();
 
         State(State.Confusion)
-            .Enter(() => {
-                _stateTimer.Restart();
-            })
+            .Enter(() => stateTimer.Restart().SetAlarm(ConfusionTime()))
             .If(_sensor.IsHurt).Set(State.Hurt)
-            .If(() => _sensor.CanSeeThePlayer()).Set(State.ChasePlayer)
-            .If(() => _stateTimer.Elapsed > 1f).Pop()
-            .Exit(() => {
-                _sensor.Flip();
-            })
+            .If(() => _sensor.CanSeeThePlayer() && !_sensor.IsFrontFloorFinishing()).Set(State.ChasePlayer)
+            .If(() => stateTimer.IsAlarm()).Pop()
+            .Exit(() => _sensor.Flip())
             .Build();
 
         // OnTransition += (args) => GD.Print(args.From + " " + args.To);
@@ -211,6 +206,7 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
 
         public void FaceOppositePlayer() => _body.FaceOppositeTo(GetPlayerGlobalPosition());
         public void FaceToPlayer() => _body.FaceTo(GetPlayerGlobalPosition());
+        public double Delta => _zombieNode.Delta;
 
         public EnemyStatus Status => _zombieNode.Status;
     }

@@ -411,7 +411,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				AnimationAttack.PlayOnce(true);
 				StartStack();
 			})
-			.If(() => true).Set((PlayerState.FallingAttack))
+			.If(() => true).Set(PlayerState.FallingAttack)
 			.Build();
 		
 		State(PlayerState.Jump)

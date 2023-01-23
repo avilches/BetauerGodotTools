@@ -25,7 +25,7 @@ public class EnemyConfig {
     public float InitialMaxHealth = 32;
     
     public float VisionAngle = Mathf.DegToRad(48); // 47 up + 47 down, a 92º cone
-    public float VisionDistance = 200f;
+    public float VisionDistance = 120; // 200f;
     
     public EnemyConfig() {
         const float timeToMaxSpeed = 0f; // seconds to reach the max speed 0=immediate
