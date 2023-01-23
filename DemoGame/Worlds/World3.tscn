@@ -31,7 +31,7 @@ visible = false
 color = Color(0.203922, 0.203922, 0.203922, 1)
 
 [node name="SpawnPlayer" type="Marker2D" parent="."]
-position = Vector2(-786, 20)
+position = Vector2(-515, 223)
 
 [node name="City" parent="." instance=ExtResource("1_ch4lp")]
 
@@ -61,24 +61,22 @@ visible = false
 position = Vector2(-716, 24)
 
 [node name="Enemy7" parent="Enemies" instance=ExtResource("3_ailyd")]
-visible = false
-position = Vector2(-716, 24)
+position = Vector2(-593, 179)
 
 [node name="Enemy2" parent="Enemies" instance=ExtResource("3_ailyd")]
-visible = false
 position = Vector2(-872, -38)
 
 [node name="Body" parent="Enemies/Enemy2/Character/Sprites" index="0"]
 flip_h = true
 
 [node name="Enemy3" parent="Enemies" instance=ExtResource("3_ailyd")]
-visible = false
 position = Vector2(-750, -86)
 
 [node name="Body" parent="Enemies/Enemy3/Character/Sprites" index="0"]
 flip_h = true
 
 [node name="Enemy10" parent="Enemies" instance=ExtResource("3_ailyd")]
+visible = false
 position = Vector2(-443, 4)
 metadata/_edit_group_ = true
 

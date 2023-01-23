@@ -24,13 +24,13 @@ public class EnemyConfig {
     public float InitialHealth = 1000;
     public float InitialMaxHealth = 32;
     
-    public float VisionAngle = Mathf.DegToRad(45); // 45 up + 45 down, a 90º cone
+    public float VisionAngle = Mathf.DegToRad(48); // 47 up + 47 down, a 92º cone
     public float VisionDistance = 200f;
     
     public EnemyConfig() {
-        const float timeToMaxSpeed = 0.5f; // seconds to reach the max speed 0=immediate
+        const float timeToMaxSpeed = 0f; // seconds to reach the max speed 0=immediate
         Acceleration = MotionConfig.ConfigureSpeed(MaxSpeed, timeToMaxSpeed);
         StopIfSpeedIsLessThan = 5f; // pixels / seconds
-        Friction = 0.95f; // 0 = stop immediately 0.9 = 10 %/frame 0.99 = ice!!
+        Friction = 0f; // 0 = stop immediately 0.9 = 10 %/frame 0.99 = ice!!
     }
 }

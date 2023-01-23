@@ -247,9 +247,6 @@ script = ExtResource("1_uy3bp")
 
 [node name="Character" parent="." instance=ExtResource("2_lxaq2")]
 
-[node name="Marker2D" parent="Character" index="0"]
-position = Vector2(0, -15)
-
 [node name="CollisionShape2D" parent="Character" index="2"]
 visible = false
 position = Vector2(0, -20.75)
@@ -278,12 +275,6 @@ metadata/_edit_lock_ = true
 metadata/_edit_lock_ = true
 
 [node name="FinishFloorRight" parent="Character/RayCasts" index="2"]
-metadata/_edit_lock_ = true
-
-[node name="FacePlayerDetector" parent="Character/RayCasts" index="3"]
-metadata/_edit_lock_ = true
-
-[node name="BackPlayerDetector" parent="Character/RayCasts" index="4"]
 metadata/_edit_lock_ = true
 
 [node name="AttackArea" parent="Character" index="5"]

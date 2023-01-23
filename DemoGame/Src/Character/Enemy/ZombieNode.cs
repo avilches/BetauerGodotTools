@@ -75,8 +75,6 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 	[OnReady("Character/RayCasts/FinishFloorLeft")] public RayCast2D FinishFloorLeft;
 	[OnReady("Character/RayCasts/FinishFloorRight")] public RayCast2D FinishFloorRight;
 	[OnReady("Character/RayCasts/Floor")] public RayCast2D FloorRaycast;
-	[OnReady("Character/RayCasts/FacePlayerDetector")] public RayCast2D FacePlayerDetector;
-	[OnReady("Character/RayCasts/BackPlayerDetector")] public RayCast2D BackPlayerDetector;
 
 	[Inject] private CharacterManager CharacterManager { get; set; }
 	[Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
@@ -121,8 +119,8 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 	public float DistanceToPlayer() => PlatformBody.DistanceTo(PlayerPos);
 	public Vector2 DirectionToPlayer() => PlatformBody.DirectionTo(PlayerPos);
 	public bool CanSeeThePlayer() => IsFacingToPlayer() &&
-									 DistanceToPlayer() < EnemyConfig.VisionDistance &&
-									 Mathf.Acos(Mathf.Abs(PlatformBody.LookRightDirection.Dot(DirectionToPlayer()))) < EnemyConfig.VisionAngle &&
+									 DistanceToPlayer() <= EnemyConfig.VisionDistance &&
+									 Mathf.Acos(Mathf.Abs(PlatformBody.LookRightDirection.Dot(DirectionToPlayer()))) <= EnemyConfig.VisionAngle &&
 									 Marker2D.RaycastTo(PlayerPos, ray => CharacterManager.EnemyConfigureCollisions(ray)).Count == 0;
 
 	
@@ -142,35 +140,35 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		OnAfterExecute += _zombieAi.EndFrame;
 
 		var drawRaycasts = this.OnDraw(canvas => {
-			canvas.DrawRaycast(FacePlayerDetector, Colors.Red);
-			canvas.DrawRaycast(BackPlayerDetector, Colors.Red);
-			canvas.DrawRaycast(FloorRaycast, Colors.Blue);
+			// canvas.DrawRaycast(FacePlayerDetector, Colors.Red);
+			// canvas.DrawRaycast(BackPlayerDetector, Colors.Red);
+			// canvas.DrawRaycast(FloorRaycast, Colors.Blue);
 			canvas.DrawRaycast(FinishFloorRight, Colors.Blue);
 			canvas.DrawRaycast(FinishFloorLeft, Colors.Blue);
 		});
-		drawRaycasts.Disable();
+		// drawRaycasts.Disable();
 
 		var drawPlayerInsight = this.OnDraw(canvas => {
-			var closeEnough = DistanceToPlayer() < EnemyConfig.VisionDistance;
-			if (!closeEnough || !IsFacingToPlayer()) {
+			// Same conditions as CanSeeThePlayer
+			if (!IsFacingToPlayer() ||
+			    DistanceToPlayer() > EnemyConfig.VisionDistance ||
+			    Mathf.Acos(Mathf.Abs(PlatformBody.LookRightDirection.Dot(DirectionToPlayer()))) > EnemyConfig.VisionAngle) {
 				var distance = new Vector2(EnemyConfig.VisionDistance, 0);
 				var direction = new Vector2(PlatformBody.FacingRight, 1);
-				canvas.DrawLine(Marker2D.GlobalPosition, Marker2D.GlobalPosition + distance.Rotated(-EnemyConfig.VisionAngle) * direction, Colors.Gray, 2f);
-				canvas.DrawLine(Marker2D.GlobalPosition, Marker2D.GlobalPosition + distance.Rotated(+EnemyConfig.VisionAngle) * direction, Colors.Gray, 2f);
-				canvas.DrawLine(Marker2D.GlobalPosition, Marker2D.GlobalPosition + distance * direction, Colors.Gray, 2f);
+				canvas.DrawLine(Marker2D.GlobalPosition, Marker2D.GlobalPosition + distance.Rotated(-EnemyConfig.VisionAngle) * direction, Colors.Gray);
+				canvas.DrawLine(Marker2D.GlobalPosition, Marker2D.GlobalPosition + distance.Rotated(+EnemyConfig.VisionAngle) * direction, Colors.Gray);
+				canvas.DrawLine(Marker2D.GlobalPosition, Marker2D.GlobalPosition + distance * direction, Colors.Gray);
 				return;
 			}
 
 			var result = Marker2D.RaycastTo(PlayerPos, ray => CharacterManager.EnemyConfigureCollisions(ray));
 			if (result.Count > 0) {
-				canvas.DrawLine(Marker2D.GlobalPosition, result["position"].AsVector2(), Colors.Red, 3);
+				canvas.DrawLine(Marker2D.GlobalPosition, result["position"].AsVector2(), Colors.Red, 2);
 				return;
 			}
-				
-			var color = Mathf.Acos(Mathf.Abs(PlatformBody.LookRightDirection.Dot( DirectionToPlayer()))) > EnemyConfig.VisionAngle ? Colors.Lime : Colors.Brown;
-			canvas.DrawLine(Marker2D.GlobalPosition, PlayerPos, color, 3);
+			canvas.DrawLine(Marker2D.GlobalPosition, PlayerPos, Colors.Lime, 2);
 		});
-		drawPlayerInsight.Disable();
+		// drawPlayerInsight.Disable();
 
 		var overlay = DebugOverlayManager.Follow(CharacterBody2D).Title("Zombie");
 		AddOverlayStates(overlay);
@@ -187,9 +185,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		CharacterBody2D.FloorSnapLength = MotionConfig.SnapLength;
 		var flipper = new FlipperList()
 			.Sprite2DFlipH(_mainSprite)
-			.ScaleX(_attackArea)
-			.ScaleX(FacePlayerDetector)
-			.ScaleX(BackPlayerDetector);
+			.ScaleX(_attackArea);
 		flipper.IsFacingRight = flipper.IsFacingRight;
 
 		PlatformBody = new KinematicPlatformMotion(CharacterBody2D, flipper, Marker2D, MotionConfig.FloorUpDirection);
@@ -199,8 +195,6 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		CharacterManager.EnemyConfigureCollisions(FloorRaycast);
 		CharacterManager.EnemyConfigureCollisions(FinishFloorRight);
 		CharacterManager.EnemyConfigureCollisions(FinishFloorLeft);
-		CharacterManager.EnemyConfigurePlayerDetector(FacePlayerDetector);
-		CharacterManager.EnemyConfigurePlayerDetector(BackPlayerDetector);
 		
 		_enemyItem = World.CreateEnemy(this);
 
@@ -380,13 +374,16 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 			})
 			.Execute(() => {
 				ApplyFloorGravity();
+				_animationPlayer.PlaybackSpeed = Math.Abs(XInput);
 				PlatformBody.Lateral(XInput, EnemyConfig.Acceleration, EnemyConfig.MaxSpeed, 
 					EnemyConfig.Friction, EnemyConfig.StopIfSpeedIsLessThan, 0);
+				
 			})
 			.If(() => Jump.IsJustPressed()).Set(ZombieState.Jump)
 			.If(() => Attack.IsJustPressed()).Set(ZombieState.Attacking)
 			.If(() => !PlatformBody.IsOnFloor()).Set(ZombieState.Fall)
 			.If(() => XInput == 0 && MotionX == 0).Set(ZombieState.Idle)
+			.Exit(() => _animationPlayer.PlaybackSpeed = 1)
 			.Build();
 
 		State(ZombieState.Attacking)

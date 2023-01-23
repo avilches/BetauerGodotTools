@@ -10,11 +10,12 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
     private readonly CharacterController _controller;
     private readonly Sensor _sensor;
     private readonly GodotStopwatch _stateTimer = new();
-    private readonly GodotStopwatch _inStateTimer = new();
 
     public enum State { 
+        Sleep,
         Patrol,
         PatrolStop,
+        ConfusionLoop,
         Confusion,
         Hurt,
         EndAttacked,
@@ -41,13 +42,34 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
         return CurrentState.Key.ToString();
     }
 
-    private void Config() {
-        uint PatrolStopTime() => 0 + (GD.Randi() % 2);
-        uint PatrolTime() => 2 + (GD.Randi() % 6); 
+    private readonly Random _random = new(0);
+    /// <summary>
+    /// Random number, both incluse, so RndRange(2,4) -> any of these: [2,3,4]
+    /// </summary>
+    /// <param name="start"></param>
+    /// <param name="end"></param>
+    /// <returns></returns>
+    public int RndRange(int start, int end) => _random.Next(start, end + 1);
 
+    private void Config() {
+        int SleepTime() => RndRange(7, 9);
+        int PatrolStopTime() => RndRange(1, 3);
+        int PatrolTime() => RndRange(2, 6); 
+
+        State(State.Sleep)
+            .Enter(() => {
+                _stateTimer.Restart().SetAlarm(SleepTime());
+            })
+            .If(_sensor.IsHurt).Set(State.Hurt)
+            .If(() => _sensor.DistanceToPlayer() < 100).Set(State.ConfusionLoop)
+            .If(_stateTimer.IsAlarm).Set(State.Patrol)
+            .Build();
+
+        var patrols = 4;
         State(State.Patrol)
             .Enter(() => {
                 _stateTimer.Restart().SetAlarm(PatrolTime());
+                patrols--;
             })
             .Execute(() => Advance(0.5f))
             .If(_sensor.IsHurt).Set(State.Hurt)
@@ -55,12 +77,12 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
             .If(_sensor.IsFrontFloorFinishing).Set(State.PatrolStop)
             .If(_stateTimer.IsAlarm).Set(State.PatrolStop)
             .If(() => _sensor.CanSeeThePlayer()).Set(State.ChasePlayer)
+            .If(() => patrols == 0).Set(State.Sleep)
             .Build();
 
         State(State.PatrolStop)
             .Enter(() => {
                 _stateTimer.Restart().SetAlarm(PatrolStopTime());
-                
             })
             .If(_sensor.IsHurt).Set(State.Hurt)
             .If(() => _sensor.CanSeeThePlayer()).Set(State.ChasePlayer)
@@ -74,7 +96,7 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
         State(State.EndAttacked)
             .If(_sensor.IsHurt).Set(State.Hurt)
             .If(() => _sensor.Status.HealthPercent < 0.25f).Set(State.Flee)
-            .If(() => true).Set(State.Confusion)
+            .If(() => true).Set(State.ConfusionLoop)
             .Build();
 
         State(State.Flee)
@@ -90,6 +112,9 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
             .Build();
 
         State(State.ChasePlayer)
+            .Enter(() => {
+                _stateTimer.Restart();
+            })
             .Execute(() => {
                 _sensor.FaceToPlayer();
                 var distanceToPlayer = _sensor.DistanceToPlayer();
@@ -110,26 +135,34 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
                 }
             })
             .If(_sensor.IsHurt).Set(State.Hurt)
-            .If(() => !_sensor.CanSeeThePlayer()).Set(State.Confusion)
+            .If(() => _stateTimer.Elapsed > 10f).Then(ctx => {
+                _sensor.FaceOppositePlayer();
+                return ctx.Set(State.Patrol);
+            })
+            .If(() => !_sensor.CanSeeThePlayer()).Set(State.ConfusionLoop)
+            .Build();
+
+        var times = 0;
+        State(State.ConfusionLoop)
+            .Enter(() => times = 3)
+            .If(() => times > 0).Push(State.Confusion)
+            .If(() => true).Set(State.Patrol)
+            .Suspend(() => times--)
             .Build();
 
         State(State.Confusion)
             .Enter(() => {
                 _stateTimer.Restart();
-                _inStateTimer.Restart();
             })
             .If(_sensor.IsHurt).Set(State.Hurt)
             .If(() => _sensor.CanSeeThePlayer()).Set(State.ChasePlayer)
-            .If(() => _stateTimer.Elapsed > 1.2f * 6).Then((ctx) => {
+            .If(() => _stateTimer.Elapsed > 1f).Pop()
+            .Exit(() => {
                 _sensor.Flip();
-                return ctx.Set(State.Patrol);
-            })
-            .If(() => _inStateTimer.Elapsed > 1.2f).Then((ctx) => {
-                _sensor.Flip();
-                _inStateTimer.Restart();
-                return ctx.None();
             })
             .Build();
+
+        OnTransition += (args) => GD.Print(args.From + " " + args.To);
     }
 
     private void Advance(float factor = 1f) {
