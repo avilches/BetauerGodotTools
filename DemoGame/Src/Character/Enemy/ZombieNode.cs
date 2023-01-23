@@ -120,8 +120,11 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 	public Vector2 DirectionToPlayer() => PlatformBody.DirectionTo(PlayerPos);
 	public bool CanSeeThePlayer() => IsFacingToPlayer() &&
 									 DistanceToPlayer() <= EnemyConfig.VisionDistance &&
-									 Mathf.Acos(Mathf.Abs(PlatformBody.LookRightDirection.Dot(DirectionToPlayer()))) <= EnemyConfig.VisionAngle &&
+									 IsPlayerInAngle() &&
 									 Marker2D.RaycastTo(PlayerPos, ray => CharacterManager.EnemyConfigureCollisions(ray)).Count == 0;
+	
+	public bool IsPlayerInAngle() => EnemyConfig.VisionAngle > 0 && 
+	                                 Mathf.Acos(Mathf.Abs(PlatformBody.LookRightDirection.Dot(DirectionToPlayer()))) <= EnemyConfig.VisionAngle;
 
 	
 	public override void _Ready() {
@@ -152,7 +155,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 			// Same conditions as CanSeeThePlayer
 			if (!IsFacingToPlayer() ||
 			    DistanceToPlayer() > EnemyConfig.VisionDistance ||
-			    Mathf.Acos(Mathf.Abs(PlatformBody.LookRightDirection.Dot(DirectionToPlayer()))) > EnemyConfig.VisionAngle) {
+			    !IsPlayerInAngle()) {
 				var distance = new Vector2(EnemyConfig.VisionDistance, 0);
 				var direction = new Vector2(PlatformBody.FacingRight, 1);
 				canvas.DrawLine(Marker2D.GlobalPosition, Marker2D.GlobalPosition + distance.Rotated(-EnemyConfig.VisionAngle) * direction, Colors.Gray);

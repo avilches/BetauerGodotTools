@@ -162,7 +162,7 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
             })
             .Build();
 
-        OnTransition += (args) => GD.Print(args.From + " " + args.To);
+        // OnTransition += (args) => GD.Print(args.From + " " + args.To);
     }
 
     private void Advance(float factor = 1f) {

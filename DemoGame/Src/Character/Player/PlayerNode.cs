@@ -181,6 +181,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	private void ConfigureAttackArea() {
 		CharacterManager.PlayerConfigureAttackArea(_attackArea);
 		this.OnProcess(delta => {
+			GD.Print("Status.AttackConsumed: "+Status.AttackConsumed+" Monitoring: "+_attackArea.Monitoring+ " "+(_attackArea.Monitoring && _attackArea.HasOverlappingAreas()?"overlap":""));
 			if (!Status.AttackConsumed &&
 				_attackArea.Monitoring &&
 				_attackArea.HasOverlappingAreas()) {
@@ -244,13 +245,18 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 
 	public AttackState attackState = AttackState.None;
 
+	private void StartStack() {
+		attackState = AttackState.Start;
+		Status.AttackConsumed = false;
+	}
+
 	public void AnimationCallback_EndShortAttack() {
 		if (attackState == AttackState.Short) {
 			attackState = AttackState.None;
 			AnimationAttack.Stop(true);
 		}
 	}
-	
+
 	public void AnimationCallback_EndLongAttack() {
 		attackState = AttackState.None;
 	}
@@ -368,8 +374,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		State(PlayerState.Attacking)
 			.Enter(() => {
 				AnimationAttack.PlayOnce(true);
-				attackState = AttackState.Start;
-				Status.AttackConsumed = false;
+				StartStack();
 			})
 			.Execute(() => {
 				ApplyFloorGravity();
@@ -395,8 +400,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			.Enter(() => {
 				PlatformBody.MotionY = -PlayerConfig.JumpSpeed;
 				AnimationAttack.PlayOnce(true);
-				Status.AttackConsumed = false;
-				attackState = AttackState.Start;
+				StartStack();
 			})
 			.If(() => true).Set((PlayerState.FallingAttack))
 			.Build();
@@ -474,7 +478,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		State(PlayerState.FallingAttack)
 			.Enter(() => {
 				AnimationAttack.PlayOnce(true);
-				attackState = AttackState.Start;
+				StartStack();
 			})
 			.Execute(() => {
 				PlatformBody.Flip(XInput);
