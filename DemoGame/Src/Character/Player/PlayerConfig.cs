@@ -25,9 +25,6 @@ public class PlayerConfig {
     public float StartFallingSpeed = 100; // speed where the player animation changes to falling (test with fast downwards platform!)
     public float AirResistance = 0.86f; // 0=stop immediately, 1=keep lateral movement until the end of the jump
 
-    public Vector2 HurtKnockback = new(-180, -180);
-    public float HurtKnockbackTime = 0.2f; // Tween time
-    public float HurtTime = 0.4f; // Player flashing time, without movement
     public float HurtInvincibleTime = 1.6f; // Player invincible time (includes hurt animation time)
 
     public float InitialHealth = 32;

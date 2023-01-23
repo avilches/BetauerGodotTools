@@ -13,7 +13,6 @@ using Betauer.OnReady;
 using Betauer.StateMachine.Sync;
 using Betauer.Tools.Logging;
 using Godot;
-using Veronenger.Character.Enemy;
 using Veronenger.Character.Handler;
 using Veronenger.Character.Items;
 using Veronenger.Managers;
@@ -181,7 +180,6 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	private void ConfigureAttackArea() {
 		CharacterManager.PlayerConfigureAttackArea(_attackArea);
 		this.OnProcess(delta => {
-			GD.Print("Status.AttackConsumed: "+Status.AttackConsumed+" Monitoring: "+_attackArea.Monitoring+ " "+(_attackArea.Monitoring && _attackArea.HasOverlappingAreas()?"overlap":""));
 			if (!Status.AttackConsumed &&
 				_attackArea.Monitoring &&
 				_attackArea.HasOverlappingAreas()) {
@@ -272,13 +270,24 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	}
 
 	public void ConfigureStateMachine() {
-		var stateTimer = new GodotStopwatch();
-		var recoverTimeout = new GodotTimeout(GetTree(), PlayerConfig.HurtInvincibleTime, () => {
-			Status.Invincible = false;
-		});
+		Tween? invincibleTween = null;
+		void StartInvincibleEffect() {
+			const float flashTime = 0.025f;
+			invincibleTween?.Kill();
+			invincibleTween = CreateTween();
+			invincibleTween
+				.TweenCallback(Callable.From(() => _mainSprite.Visible = !_mainSprite.Visible))
+				.SetDelay(flashTime);
+			invincibleTween.SetLoops((int)(PlayerConfig.HurtInvincibleTime / flashTime));
+			invincibleTween.Finished += () => {
+				Status.Invincible = false;
+				_mainSprite.Visible = true;
+			};
+		}
+
 		var delayedJump = ((InputAction)Jump).CreateDelayed();
 		OnFree += () => {
-			recoverTimeout.Stop();
+			invincibleTween?.Kill();
 			delayedJump.Dispose();
 		};
 
@@ -428,36 +437,30 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			.If(() => MotionY >= 0).Set(PlayerState.FallShort)
 			.Build();
 
-		Tween? knockbackTween = null;
 		var weaponSpriteVisible = false;
 		State(PlayerState.Hurt)
 			.Enter(() => {
-				recoverTimeout.Restart();
-				stateTimer.Restart().SetAlarm(PlayerConfig.HurtTime);
 				Status.Invincible = true;
-				PlatformBody.MotionX = PlayerConfig.HurtKnockback.x * PlatformBody.FacingRight;
-				PlatformBody.MotionY = PlayerConfig.HurtKnockback.y;
 				weaponSpriteVisible = _weaponSprite.Visible;
 				AnimationHurt.PlayOnce(true);
-				knockbackTween?.Kill();
-				knockbackTween = CreateTween();
-				knockbackTween.TweenMethod(Callable.From<float>(v => PlatformBody.MotionX = v), PlatformBody.MotionX, 0, PlayerConfig.HurtKnockbackTime).SetTrans(Tween.TransitionType.Cubic);
 			})
 			.Execute(() => {
 				ApplyAirGravity();
-				PlatformBody.Move();
 			})
-			.If(stateTimer.IsAlarm).Set(PlayerState.FallLong)
+			.If(() => !AnimationHurt.Playing && !PlatformBody.IsOnFloor()).Set(PlayerState.FallShort)
+			.If(() => !AnimationHurt.Playing && XInput == 0).Set(PlayerState.Idle)
+			.If(() => !AnimationHurt.Playing && XInput != 0).Set(PlayerState.Run)
 			.Exit(() => {
 				Status.UnderAttack = false;
 				_weaponSprite.Visible = weaponSpriteVisible;
+				StartInvincibleEffect();
 			})
 			.Build();
 
 		State(PlayerState.Death)
 			.Enter(() => {
 				Console.WriteLine("MUERTO");
-				EventBus.Publish(MainEvent.EndGame);
+				EventBus.Publish(MainEvent.EndGame);                                                                     
 			})
 			.Build();
 
