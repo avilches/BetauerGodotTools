@@ -26,6 +26,11 @@ public class InputAction : IAction {
     public bool IsEventJustPressed(InputEvent e, bool exact = false) => e.IsActionPressed(Name, exact) && e.IsJustPressed();
     public bool IsEventReleased(InputEvent e, bool exact = false) => e.IsActionReleased(Name, exact);
 
+    public bool IsAnyEvent(IEnumerable<InputEvent> es, bool exact = false) => es.Any(e => e.IsAction(Name, exact));
+    public bool IsAnyEventPressed(IEnumerable<InputEvent> es, bool exact = false) => es.Any(e => e.IsActionPressed(Name, exact));
+    public bool IsAnyEventJustPressed(IEnumerable<InputEvent> es, bool exact = false) => es.Any(e => e.IsActionPressed(Name, exact) && e.IsJustPressed());
+    public bool IsAnyEventReleased(IEnumerable<InputEvent> es, bool exact = false) => es.Any(e => e.IsActionReleased(Name, exact));
+
     public float GetStrength(bool exact = false) => Godot.Input.GetActionStrength(Name, exact);
     public float GetRawStrength(bool exact = false) => Godot.Input.GetActionRawStrength(Name, exact);
 
