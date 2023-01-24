@@ -13,7 +13,7 @@ public class KinematicPlatformMotion : BaseKinematicMotion, IFlipper {
     private readonly IFlipper _flippers;
     protected readonly List<RayCast2D>? FloorRaycasts;
 
-    private bool _isJustLanded = false;
+    private bool _isJustOnFloor = false;
     private bool _isJustTookOff = false;
 
     // Floor
@@ -68,7 +68,7 @@ public class KinematicPlatformMotion : BaseKinematicMotion, IFlipper {
      */
     public bool IsFacingTo(Vector2 globalPosition) => IsToTheRightOf(globalPosition) != _flippers.IsFacingRight;
 
-    public bool IsJustLanded() => _isJustLanded;
+    public bool IsJustOnFloor() => _isJustOnFloor;
     public bool IsJustTookOff() => _isJustTookOff;
 
     // Floor flags
@@ -185,11 +185,11 @@ public class KinematicPlatformMotion : BaseKinematicMotion, IFlipper {
 
         _isOnCeiling = CharacterBody.IsOnCeiling(); 
 
-        _isJustLanded = false;
+        _isJustOnFloor = false;
         _isJustTookOff = false;
 
         if (_isOnFloor) {
-            _isJustLanded = !wasOnFloor;
+            _isJustOnFloor = !wasOnFloor;
             _isOnSlope = _floorNormal != FloorUpDirection;
         } else {
             _isJustTookOff = wasOnFloor;
