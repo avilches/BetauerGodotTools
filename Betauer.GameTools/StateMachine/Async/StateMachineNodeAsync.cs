@@ -50,7 +50,7 @@ public partial class StateMachineNodeAsync<TStateKey, TEventKey> :
     public EventBuilder<StateMachineNodeAsync<TStateKey, TEventKey>, TStateKey, TEventKey> On(TEventKey transitionKey) => _stateMachine.On(transitionKey);
     public void AddEvent(TEventKey transitionKey, Event<TStateKey, TEventKey> @event) => _stateMachine.AddEvent(transitionKey, @event);
     public void AddState(StateNodeAsync<TStateKey, TEventKey> state) => _stateMachine.AddState(state);
-    public void Send(TEventKey name) => _stateMachine.Send(name);
+    public void Send(TEventKey name, int weight = 0) => _stateMachine.Send(name, weight);
 
     public Task Execute() {
         throw new Exception("Don't call directly to execute. Instead, add the node to the tree");

@@ -9,7 +9,7 @@ namespace Betauer.StateMachine.Sync {
         
         protected Action? EnterFunc;
         protected Action? AwakeFunc;
-        protected List<Condition<TStateKey, TEventKey>> Conditions = new();
+        protected readonly List<Condition<TStateKey, TEventKey>> Conditions = new();
         protected Action ExecuteFunc;
         protected Action? SuspendFunc;
         protected Action? ExitFunc;

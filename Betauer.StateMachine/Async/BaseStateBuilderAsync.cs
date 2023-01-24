@@ -10,7 +10,7 @@ namespace Betauer.StateMachine.Async {
         
         protected Func<Task>? EnterFunc;
         protected Func<Task>? AwakeFunc;
-        protected List<Condition<TStateKey, TEventKey>> Conditions = new();
+        protected readonly List<Condition<TStateKey, TEventKey>> Conditions = new();
         protected Func<Task>? ExecuteFunc;
         protected Func<Task>? ExitFunc;
         protected Func<Task>? SuspendFunc;

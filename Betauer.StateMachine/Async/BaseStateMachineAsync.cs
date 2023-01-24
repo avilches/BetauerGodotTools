@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using Betauer.StateMachine.Sync;
 
 namespace Betauer.StateMachine.Async {
     public abstract class BaseStateMachineAsync<TStateKey, TEventKey, TState> : 
@@ -23,8 +22,7 @@ namespace Betauer.StateMachine.Async {
             try {
                 var change = NoChange;
                 if (HasPendingEvent) {
-                    HasPendingEvent = false;
-                    ExecuteEvent(PendingEvent, out var eventCommand);
+                    ConsumeEvent(PendingEvent, out var eventCommand);
                     change = CreateChange(ref eventCommand);
                 } else if (!IsInitialized) {
                     var state = FindState(InitialState); // Call to ensure initial state exists
@@ -88,7 +86,7 @@ namespace Betauer.StateMachine.Async {
                 await CurrentState.Execute();
                 var conditionCommand = CurrentState.Next(ConditionContext);
                 if (conditionCommand.IsTrigger() ) {
-                    ExecuteEvent(conditionCommand.EventKey, out conditionCommand);
+                    ConsumeEvent(conditionCommand.EventKey, out conditionCommand);
                 }
                 NextChange = CreateChange(ref conditionCommand);
                 AfterExecute();

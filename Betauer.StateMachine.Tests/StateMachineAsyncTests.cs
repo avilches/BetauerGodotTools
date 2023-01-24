@@ -352,6 +352,32 @@ namespace Betauer.StateMachine.Tests {
 
         }
 
+        [Test(Description = "Ignore events with lower weight")]
+        public async Task SendEventWeight() {
+            var sm = new StateMachineAsync<State, Trans>(State.Start);
+
+            sm.On(Trans.Global).Then(context => context.Set(State.Global));
+            sm.On(Trans.Local).Then(context => context.Set(State.Local));
+            sm.On(Trans.Start).Then(context => context.Set(State.Start));
+            sm.State(State.Start).Build();
+            sm.State(State.Global).Build();
+            sm.State(State.Local).Build();
+
+            await sm.Execute();
+            Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Start));
+            
+            sm.Send(Trans.Start, 10);
+            sm.Send(Trans.Local, 9);
+            sm.Send(Trans.Global);
+            await sm.Execute();
+            Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Start));
+            
+            sm.Send(Trans.Local);
+            sm.Send(Trans.Global);
+            await sm.Execute();
+            Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Global));
+        }
+
         [Test(Description = "State transitions have more priority than global transition")]
         public async Task StateTransitionTrigger() {
             var sm = new StateMachineAsync<State, Trans>(State.Start);

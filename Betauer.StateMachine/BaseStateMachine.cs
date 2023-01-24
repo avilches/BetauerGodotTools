@@ -47,6 +47,7 @@ namespace Betauer.StateMachine {
         protected bool IsDisposed = false;
         protected TEventKey PendingEvent;
         protected bool HasPendingEvent = false;
+        protected int PendingEventWeight = 0;
 
         public readonly Dictionary<TStateKey, TState> States = new();
         public TStateKey[] GetStack() => Stack.Reverse().Select(e => e.Key).ToArray();
@@ -95,9 +96,12 @@ namespace Betauer.StateMachine {
             if (EqualityComparer<TStateKey>.Default.Equals(state.Key, InitialState)) CurrentState = state;
         }
 
-        public void Send(TEventKey name) {
-            PendingEvent = name;
-            HasPendingEvent = true;
+        public void Send(TEventKey name, int weight = 0) {
+            if (weight >= PendingEventWeight) {
+                PendingEvent = name;
+                HasPendingEvent = true;
+                PendingEventWeight = weight;
+            }
         }
 
         protected TState FindState(TStateKey stateKey) {
@@ -127,7 +131,9 @@ namespace Betauer.StateMachine {
         }
 
 
-        protected void ExecuteEvent(TEventKey name, out Command<TStateKey, TEventKey> command) {
+        protected void ConsumeEvent(TEventKey name, out Command<TStateKey, TEventKey> command) {
+            HasPendingEvent = false;
+            PendingEventWeight = 0;
             if (CurrentState?.Events != null && CurrentState.Events.TryGetValue(name, out var @event)) {
                 command = @event.GetResult(EventContext);
                 return;
