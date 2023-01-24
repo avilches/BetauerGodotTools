@@ -47,7 +47,7 @@ namespace Betauer.StateMachine {
         protected bool IsDisposed = false;
         protected TEventKey PendingEvent;
         protected bool HasPendingEvent = false;
-        protected int PendingEventWeight = 0;
+        protected int PendingEventWeight = -1;
 
         public readonly Dictionary<TStateKey, TState> States = new();
         public TStateKey[] GetStack() => Stack.Reverse().Select(e => e.Key).ToArray();
@@ -133,7 +133,7 @@ namespace Betauer.StateMachine {
 
         protected void ConsumeEvent(TEventKey name, out Command<TStateKey, TEventKey> command) {
             HasPendingEvent = false;
-            PendingEventWeight = 0;
+            PendingEventWeight = -1;
             if (CurrentState?.Events != null && CurrentState.Events.TryGetValue(name, out var @event)) {
                 command = @event.GetResult(EventContext);
                 return;

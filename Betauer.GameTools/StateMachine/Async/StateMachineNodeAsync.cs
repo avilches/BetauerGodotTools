@@ -57,11 +57,11 @@ public partial class StateMachineNodeAsync<TStateKey, TEventKey> :
     }
 
     public override void _Input(InputEvent e) {
-        if (Available) CurrentState?._Input(e);
+        if (Available) CurrentState?.InputHandler._Input(e);
     }
 
     public override void _UnhandledInput(InputEvent e) {
-        if (Available) CurrentState?._UnhandledInput(e);
+        if (Available) CurrentState?.InputHandler._UnhandledInput(e);
     }
 
     public override void _PhysicsProcess(double delta) {
@@ -83,6 +83,8 @@ public partial class StateMachineNodeAsync<TStateKey, TEventKey> :
         }
         if (!Available) return;
         Delta = delta;
+        CurrentState.InputHandler._InputBatch();
+        CurrentState.InputHandler._UnhandledInputBatch();
         _stateMachine.Execute().OnException(e => _exception = e, true);
     }
 }
