@@ -306,7 +306,23 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		On(PlayerEvent.Hurt).Set(PlayerState.Hurt);
 		On(PlayerEvent.Death).Set(PlayerState.Death);
 
+		bool CheckCoyoteJump() {
+			if (!Jump.IsJustPressed()) return false;
+			// Jump was pressed
+			if (!_coyoteFallingTimer.IsRunning) return false;
+				
+			_coyoteFallingTimer.Stop();
+			if (_coyoteFallingTimer.Elapsed <= PlayerConfig.CoyoteJumpTime) {
+				_coyoteMonitor?.Show($"{_coyoteFallingTimer.Elapsed.ToString()} <= {PlayerConfig.CoyoteJumpTime.ToString()} Done!");
+				return true;
+			}
+			_coyoteMonitor?.Show($"{_coyoteFallingTimer.Elapsed.ToString()} > {PlayerConfig.CoyoteJumpTime.ToString()} TOO LATE");
+			return false;
+		}
+
 		var jumpJustInTime = false;
+		var weaponSpriteVisible = false;
+
 		State(PlayerState.Landing)
 			.Enter(() => {
 				FinishFallFromPlatform();
@@ -400,9 +416,10 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 					}
 				}
 			})
-			.If(() => attackState == AttackState.None && !PlatformBody.IsOnFloor()).Set(PlayerState.FallShort)
-			.If(() => attackState == AttackState.None && XInput == 0).Set(PlayerState.Idle)
-			.If(() => attackState == AttackState.None && XInput != 0).Set(PlayerState.Run)
+			.If(() => attackState != AttackState.None).None()
+			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.FallShort)
+			.If(() => XInput == 0).Set(PlayerState.Idle)
+			.If(() => XInput != 0).Set(PlayerState.Run)
 			.Build();
 		
 		State(PlayerState.JumpAttack)
@@ -437,47 +454,6 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			.If(() => MotionY >= 0).Set(PlayerState.FallShort)
 			.Build();
 
-		var weaponSpriteVisible = false;
-		State(PlayerState.Hurt)
-			.Enter(() => {
-				Status.Invincible = true;
-				weaponSpriteVisible = _weaponSprite.Visible;
-				AnimationHurt.PlayOnce(true);
-			})
-			.Execute(() => {
-				ApplyAirGravity();
-			})
-			.If(() => !AnimationHurt.Playing && !PlatformBody.IsOnFloor()).Set(PlayerState.FallShort)
-			.If(() => !AnimationHurt.Playing && XInput == 0).Set(PlayerState.Idle)
-			.If(() => !AnimationHurt.Playing && XInput != 0).Set(PlayerState.Run)
-			.Exit(() => {
-				Status.UnderAttack = false;
-				_weaponSprite.Visible = weaponSpriteVisible;
-				StartInvincibleEffect();
-			})
-			.Build();
-
-		State(PlayerState.Death)
-			.Enter(() => {
-				Console.WriteLine("MUERTO");
-				EventBus.Publish(MainEvent.EndGame);                                                                     
-			})
-			.Build();
-
-		bool CheckCoyoteJump() {
-			if (!Jump.IsJustPressed()) return false;
-			// Jump was pressed
-			if (!_coyoteFallingTimer.IsRunning) return false;
-				
-			_coyoteFallingTimer.Stop();
-			if (_coyoteFallingTimer.Elapsed <= PlayerConfig.CoyoteJumpTime) {
-				_coyoteMonitor?.Show($"{_coyoteFallingTimer.Elapsed.ToString()} <= {PlayerConfig.CoyoteJumpTime.ToString()} Done!");
-				return true;
-			}
-			_coyoteMonitor?.Show($"{_coyoteFallingTimer.Elapsed.ToString()} > {PlayerConfig.CoyoteJumpTime.ToString()} TOO LATE");
-			return false;
-		}
-
 		State(PlayerState.FallingAttack)
 			.Enter(() => {
 				AnimationAttack.PlayOnce(true);
@@ -500,9 +476,10 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 					}
 				}
 			})
-			.If(() => attackState == AttackState.None && !PlatformBody.IsOnFloor()).Set(PlayerState.FallLong)
-			.If(() => attackState == AttackState.None && XInput == 0).Set(PlayerState.Idle)
-			.If(() => attackState == AttackState.None && XInput != 0).Set(PlayerState.Run)
+			.If(() => attackState != AttackState.None).None()
+			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.FallLong)
+			.If(() => XInput == 0).Set(PlayerState.Idle)
+			.If(() => XInput != 0).Set(PlayerState.Run)
 			.Build();
 
 		State(PlayerState.FallShort)
@@ -550,6 +527,34 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				PlatformBody.CharacterBody.MotionMode = CharacterBody2D.MotionModeEnum.Grounded;
 			})
 			.Build();
+
+		State(PlayerState.Hurt)
+			.Enter(() => {
+				Status.Invincible = true;
+				weaponSpriteVisible = _weaponSprite.Visible;
+				AnimationHurt.PlayOnce(true);
+			})
+			.Execute(() => {
+				ApplyAirGravity();
+			})
+			.If(() => AnimationHurt.Playing).None()
+			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.FallShort)
+			.If(() => XInput == 0).Set(PlayerState.Idle)
+			.If(() => XInput != 0).Set(PlayerState.Run)
+			.Exit(() => {
+				Status.UnderAttack = false;
+				_weaponSprite.Visible = weaponSpriteVisible;
+				StartInvincibleEffect();
+			})
+			.Build();
+
+		State(PlayerState.Death)
+			.Enter(() => {
+				Console.WriteLine("MUERTO");
+				EventBus.Publish(MainEvent.EndGame);                                                                     
+			})
+			.Build();
+
 
 	}
 }
