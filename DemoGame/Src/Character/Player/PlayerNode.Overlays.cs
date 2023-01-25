@@ -1,25 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Betauer;
-using Betauer.Animation;
-using Betauer.Animation.Easing;
 using Betauer.Application.Monitor;
-using Betauer.Camera;
-using Betauer.Core.Nodes;
-using Betauer.Core.Nodes.Property;
-using Betauer.Core.Restorer;
-using Betauer.Core.Time;
 using Betauer.DI;
-using Betauer.Input;
-using Betauer.Nodes;
-using Betauer.OnReady;
-using Betauer.StateMachine.Sync;
-using Godot;
-using Veronenger.Character.Enemy;
-using Veronenger.Character.Handler;
-using Veronenger.Character.Items;
-using Veronenger.Managers;
 
 namespace Veronenger.Character.Player; 
 

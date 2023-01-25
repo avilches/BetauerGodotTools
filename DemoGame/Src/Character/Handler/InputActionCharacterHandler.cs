@@ -7,10 +7,13 @@ namespace Veronenger.Character.Handler;
 [Service]
 public class InputActionCharacterHandler : ICharacterHandler {
     public IDirectional Directional { get; private set; }
-    [Inject] public IAction Jump { get; set; }
-    [Inject] public IAction Attack { get; set; }
-    [Inject] public IAction Float { get; set; }
+    public IAction JumpAction => Jump;
+    public IAction AttackAction => Attack;
+    public IAction FloatAction => Float;
 
+    [Inject] public InputAction Jump { get; set; }
+    [Inject] public InputAction Attack { get; set; }
+    [Inject] public InputAction Float { get; set; }
     [Inject] private InputAction Left { get; set; }
     [Inject] private InputAction Up { get; set; }
 

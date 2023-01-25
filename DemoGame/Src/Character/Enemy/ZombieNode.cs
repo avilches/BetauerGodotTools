@@ -103,9 +103,9 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 
 	private float XInput => Handler.Directional.XInput;
 	private float YInput => Handler.Directional.YInput;
-	private IAction Jump => Handler.Jump;
-	private IAction Attack => Handler.Attack;
-	private IAction Float => Handler.Float;
+	private IAction Jump => Handler.JumpAction;
+	private IAction Attack => Handler.AttackAction;
+	private IAction Float => Handler.FloatAction;
 	private float MotionX => PlatformBody.MotionX;
 	private float MotionY => PlatformBody.MotionY;
 

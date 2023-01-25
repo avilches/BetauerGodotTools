@@ -90,9 +90,9 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	private bool IsPressingLeft => Handler.Directional.IsPressingLeft;
 	private bool IsPressingUp => Handler.Directional.IsPressingUp;
 	private bool IsPressingDown => Handler.Directional.IsPressingDown;
-	private IAction Jump => Handler.Jump;
-	private IAction Attack => Handler.Attack;
-	private IAction Float => Handler.Float;
+	private InputAction Jump => Handler.Jump;
+	private InputAction Attack => Handler.Attack;
+	private InputAction Float => Handler.Float;
 
 	private float MotionX => PlatformBody.MotionX;
 	private float MotionY => PlatformBody.MotionY;

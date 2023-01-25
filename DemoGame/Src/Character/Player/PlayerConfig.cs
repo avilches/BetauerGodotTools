@@ -1,5 +1,4 @@
 using Betauer.DI;
-using Godot;
 
 namespace Veronenger.Character.Player; 
 

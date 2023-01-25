@@ -4,9 +4,9 @@ using Betauer.Input;
 
 public interface ICharacterHandler {
     public IDirectional Directional { get; }
-    public IAction Jump { get; }
-    public IAction Attack { get; }
-    public IAction Float { get; }
+    public IAction JumpAction { get; }
+    public IAction AttackAction { get; }
+    public IAction FloatAction { get; }
 
     public void EndFrame();
 }
