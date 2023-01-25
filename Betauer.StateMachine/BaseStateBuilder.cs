@@ -17,7 +17,7 @@ public abstract class BaseStateBuilder<TBuilder, TStateKey, TEventKey>
 
 
     public ConditionBuilder<TBuilder, TStateKey, TEventKey> If(Func<bool> condition) {
-        return new ConditionBuilder<TBuilder, TStateKey, TEventKey>(this as TBuilder, condition, (c) => {
+        return new ConditionBuilder<TBuilder, TStateKey, TEventKey>(this as TBuilder, condition, c => {
             if (c.Execute != null) {
                 Conditions.Add(new Condition<TStateKey, TEventKey>(c.Predicate, c.Execute));
             } else {
@@ -28,7 +28,7 @@ public abstract class BaseStateBuilder<TBuilder, TStateKey, TEventKey>
 
     public EventBuilder<TBuilder, TStateKey, TEventKey> On(TEventKey eventKey) {
         Events ??= new Dictionary<TEventKey, Event<TStateKey, TEventKey>>();
-        return new EventBuilder<TBuilder, TStateKey, TEventKey>(this as TBuilder, eventKey, (c) => {
+        return new EventBuilder<TBuilder, TStateKey, TEventKey>(this as TBuilder, eventKey, c => {
             if (c.Execute != null) {
                 Events[eventKey] = new Event<TStateKey, TEventKey>(c.EventKey, c.Execute);
             } else {
