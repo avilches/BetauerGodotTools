@@ -41,6 +41,13 @@ public enum ZombieState {
 	Fall
 }
 
+[Configuration]
+public class ZombieConfiguration {
+	[Service]
+	public ICharacterHandler ZombieHandler => new CharacterController();
+}
+
+
 public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent> {
 	public ZombieNode() : base(ZombieState.Idle, "Zombie.StateMachine", true) {
 	}

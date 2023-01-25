@@ -1,14 +1,7 @@
 using Betauer.DI;
 using Godot;
-using Veronenger.Character.Handler;
 
 namespace Veronenger.Character.Enemy; 
-
-[Configuration]
-public class EnemyConfiguration {
-    [Service]
-    public ICharacterHandler ZombieHandler => new CharacterController();
-}
 
 [Service]
 public class EnemyConfig {
