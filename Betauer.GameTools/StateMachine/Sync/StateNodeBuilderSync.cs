@@ -38,19 +38,6 @@ public class StateNodeBuilderSync<TStateKey, TEventKey> :
     private event Action<IEnumerable<InputEvent>>? OnUnhandledInputBatchEvent;
     private event Action<IEnumerable<InputEvent>>? OnUnhandledInputKeyBatchEvent;
     
-    private readonly List<InputCondition<TStateKey, TEventKey>> _inputConditions = new();
-
-    public InputConditionBuilder<StateNodeBuilderSync<TStateKey, TEventKey>, TStateKey, TEventKey> IfInput(Func<InputEvent, bool> condition) {
-        return new InputConditionBuilder<StateNodeBuilderSync<TStateKey, TEventKey>, TStateKey, TEventKey>(this, condition, (c) => {
-            if (c.Execute != null) {
-                _inputConditions.Add(new InputCondition<TStateKey, TEventKey>(c.Predicate, c.Execute));
-            } else {
-                _inputConditions.Add(new InputCondition<TStateKey, TEventKey>(c.Predicate, c.Result));
-            }
-        });
-    }
-
-
     public StateNodeBuilderSync<TStateKey, TEventKey> OnInput(Action<InputEvent> input) {
         OnInputEvent += input;
         return this;

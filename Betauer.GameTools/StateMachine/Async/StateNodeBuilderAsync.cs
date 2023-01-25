@@ -38,7 +38,6 @@ public class StateNodeBuilderAsync<TStateKey, TEventKey> :
     private event Action<IEnumerable<InputEvent>>? UnhandledInputBatch;
     private event Action<IEnumerable<InputEvent>>? UnhandledInputKeyBatch;
 
-
     public StateNodeBuilderAsync<TStateKey, TEventKey> OnInput(Action<InputEvent> input) {
         Input += input;
         return this;
