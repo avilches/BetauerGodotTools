@@ -62,6 +62,14 @@ public partial class StateMachineNodeSync<TStateKey, TEventKey> :
         CurrentState?.InputHandler._UnhandledInput(e);
     }
 
+    public override void _ShortcutInput(InputEvent e) {
+        CurrentState?.InputHandler._ShortcutInput(e);
+    }
+
+    public override void _UnhandledKeyInput(InputEvent e) {
+        CurrentState?.InputHandler._UnhandledKeyInput(e);
+    }
+
     public override void _PhysicsProcess(double delta) {
         if (ProcessInPhysics) Execute(delta);
         else SetPhysicsProcess(false);
@@ -76,7 +84,9 @@ public partial class StateMachineNodeSync<TStateKey, TEventKey> :
         if (IsQueuedForDeletion()) return;
         Delta = delta;
         CurrentState.InputHandler._InputBatch();
+        CurrentState.InputHandler._ShortcutInputBatch();
         CurrentState.InputHandler._UnhandledInputBatch();
+        CurrentState.InputHandler._UnhandledKeyInputBatch();
         _stateMachine.Execute();
     }
 }

@@ -17,11 +17,24 @@ public class StateNodeAsync<TStateKey, TEventKey> : StateAsync<TStateKey, TEvent
         Func<Task>? suspend,
         Func<Task>? awake,
         Dictionary<TEventKey, Event<TStateKey, TEventKey>>? events,
-        Action<InputEvent> input,
-        Action<InputEvent> unhandledInput,
+        Action<InputEvent>? input,
+        Action<InputEvent>? shortcutInput,
+        Action<InputEvent>? unhandledInput,
+        Action<InputEvent>? unhandledKeyInput,
         Action<IEnumerable<InputEvent>>? inputBatch,
-        Action<IEnumerable<InputEvent>>? unhandledInputBatch
+        Action<IEnumerable<InputEvent>>? shortcutInputBatch,
+        Action<IEnumerable<InputEvent>>? unhandledInputBatch,
+        Action<IEnumerable<InputEvent>>? unhandledInputKeyBatch
     ) : base(key, enter, conditions, execute, exit, suspend, awake, events) {
-        InputHandler = new StateNodeInputHandler(input, unhandledInput, inputBatch, unhandledInputBatch);
+        InputHandler = new StateNodeInputHandler(
+            input, 
+            shortcutInput, 
+            unhandledInput, 
+            unhandledKeyInput, 
+            inputBatch,
+            shortcutInputBatch, 
+            unhandledInputBatch, 
+            unhandledInputKeyBatch
+        );
     }
 }
