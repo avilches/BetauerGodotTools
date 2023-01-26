@@ -22,17 +22,17 @@ namespace Veronenger.Character.Player;
 public enum PlayerState {
 	Idle,
 	Landing,
-	Run,
+	Running,
 	Attacking,
-	JumpAttack,
+	JumpingAttack,
 	FallingAttack,
-	FallShort,
-	FallLong,
-	Jump,
-	Hurt,
+	FallWithCoyote,
+	Fall,
+	Jumping,
+	Hurting,
 	Death,
 			
-	Float,
+	Floating,
 }
 
 public enum PlayerEvent {
@@ -105,7 +105,6 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	// private bool IsMovingPlatform() => PlatformManager.IsMovingPlatform(Body.GetFloor());
 	private MonitorText? _coyoteMonitor;
 	private MonitorText? _jumpHelperMonitor;
-	private readonly GodotStopwatch _coyoteFallingTimer = new GodotStopwatch();
 
 	private readonly DragCameraController _cameraController = new();
 	private CharacterWeaponController _characterWeaponController;
@@ -206,7 +205,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 					.MinBy(enemy => enemy.ZombieNode.DistanceToPlayer());
 				Status.UnderAttack = true;
 				Status.Hurt(attacker.ZombieNode.EnemyConfig.Attack);
-				Send(Status.IsDead() ? PlayerEvent.Death : PlayerEvent.Hurt);
+				Send(Status.IsDead() ? PlayerEvent.Death : PlayerEvent.Hurt, 10000);
 			}
 		});
 	}
@@ -259,16 +258,6 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		attackState = AttackState.None;
 	}
 
-	private void ManageInputActions(InputEvent e) {
-		if (NextItem.IsEventJustPressed(e)) {
-			Inventory.NextItem();
-			Inventory.Equip();
-		} else if (PrevItem.IsEventJustPressed(e)) {
-			Inventory.PrevItem();
-			Inventory.Equip();
-		}
-	}
-
 	public void ConfigureStateMachine() {
 		Tween? invincibleTween = null;
 		void StartInvincibleEffect() {
@@ -285,7 +274,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			};
 		}
 
-		var delayedJump = ((InputAction)Jump).CreateDelayed();
+		var delayedJump = Jump.CreateDelayed();
 		OnFree += () => {
 			invincibleTween?.Kill();
 			delayedJump.Dispose();
@@ -301,52 +290,46 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			if (fallingPlatform != null) PlatformManager.ConfigurePlatformCollision(fallingPlatform);
 		}
 
-		// OnTransition += args => Console.WriteLine(args.To);
+		OnTransition += args => Logger.Debug(args.From +" -> "+args.To);
 
-		On(PlayerEvent.Hurt).Set(PlayerState.Hurt);
+		On(PlayerEvent.Hurt).Set(PlayerState.Hurting);
 		On(PlayerEvent.Death).Set(PlayerState.Death);
-
-		bool CheckCoyoteJump() {
-			if (!Jump.IsJustPressed()) return false;
-			// Jump was pressed
-			if (!_coyoteFallingTimer.IsRunning) return false;
-				
-			_coyoteFallingTimer.Stop();
-			if (_coyoteFallingTimer.Elapsed <= PlayerConfig.CoyoteJumpTime) {
-				_coyoteMonitor?.Show($"{_coyoteFallingTimer.Elapsed.ToString()} <= {PlayerConfig.CoyoteJumpTime.ToString()} Done!");
-				return true;
-			}
-			_coyoteMonitor?.Show($"{_coyoteFallingTimer.Elapsed.ToString()} > {PlayerConfig.CoyoteJumpTime.ToString()} TOO LATE");
-			return false;
-		}
-
+		
 		var jumpJustInTime = false;
 		var weaponSpriteVisible = false;
 
+		void InventoryHandler(InputEvent e) {
+			if (NextItem.IsEventJustPressed(e)) {
+				Inventory.NextItem();
+				Inventory.Equip();
+			} else if (PrevItem.IsEventJustPressed(e)) {
+				Inventory.PrevItem();
+				Inventory.Equip();
+			}
+		}
+
 		State(PlayerState.Landing)
+			.OnInput(InventoryHandler)
+			// .OnInputBatch(AttackAndJumpHandler)
 			.Enter(() => {
+				_jumpHelperMonitor?.Show("");
+				_coyoteMonitor?.Show("");
 				FinishFallFromPlatform();
-				_coyoteFallingTimer.Stop(); // not really needed, but less noise in the debug overlay
-				jumpJustInTime = delayedJump.WasPressed(PlayerConfig.JumpHelperTime);
+				jumpJustInTime = delayedJump.WasPressed(PlayerConfig.JumpHelperTime) && CanJump();
 			})
-			.Execute(() => {
-				if (jumpJustInTime && CanJump()) {
-					_jumpHelperMonitor?.Show($"{delayedJump.LastPressed} <= {PlayerConfig.JumpHelperTime.ToString()} Done!");
-				} else {
-					_jumpHelperMonitor?.Show($"{delayedJump.LastPressed} > {PlayerConfig.JumpHelperTime.ToString()} TOO MUCH TIME");
-				}
-			})
-			.If(() => jumpJustInTime).Set(PlayerState.Jump)
 			.If(() => Attack.IsJustPressed()).Set(PlayerState.Attacking)
+			.If(() => jumpJustInTime).Then(ctx => {
+				_jumpHelperMonitor?.Show($"{delayedJump.LastPressed} <= {PlayerConfig.JumpHelperTime:0.00} Done!");
+				return ctx.Set(PlayerState.Jumping);
+			})
 			.If(() => XInput == 0).Set(PlayerState.Idle)
-			.If(() => true).Set(PlayerState.Run)
+			.If(() => true).Set(PlayerState.Running)
 			.Build();
 
 		State(PlayerState.Idle)
-			.OnInput(ManageInputActions)
-			.Enter(() => {
-				AnimationIdle.PlayLoop();
-			})
+			.OnInput(InventoryHandler)
+			// .OnInputBatch(AttackAndJumpHandler)
+			.Enter(() => AnimationIdle.PlayLoop())
 			.Execute(() => {
 				ApplyFloorGravity();
 				PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
@@ -354,17 +337,18 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			.If(() => Jump.IsJustPressed() && IsPressingDown && IsOnFallingPlatform()).Then(
 				context => {
 					FallFromPlatform();
-					return context.Set(PlayerState.FallShort);
+					return context.Set(PlayerState.Fall);
 				})
-			.If(() => Jump.IsJustPressed() && Attack.IsJustPressed()).Set(PlayerState.JumpAttack)
-			.If(() => Jump.IsJustPressed() && CanJump()).Set(PlayerState.Jump)
-			.If(() => Attack.IsJustPressed()).Set(PlayerState.Attacking)
-			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.FallShort)
-			.If(() => XInput != 0).Set(PlayerState.Run)
+			.If(() => Jump.IsJustPressed() && Attack.IsJustPressed()).Set(PlayerState.JumpingAttack)
+			.If(() => Jump.IsJustPressed() && CanJump()).Set(PlayerState.Jumping)
+			.If(() => Attack.IsJustPressed()).Set(PlayerState.Attacking)	
+			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.Fall)
+			.If(() => XInput != 0).Set(PlayerState.Running)
 			.Build();
 
-		State(PlayerState.Run)
-			.OnInput(ManageInputActions)
+		State(PlayerState.Running)
+			.OnInput(InventoryHandler)
+			// .OnInputBatch(AttackAndJumpHandler)
 			.Execute(() => {
 				ApplyFloorGravity();
 				if (XInput == 0) {
@@ -383,16 +367,12 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			.If(() => Jump.IsJustPressed() && IsPressingDown && IsOnFallingPlatform()).Then(
 				context => {
 					FallFromPlatform();
-					return context.Set(PlayerState.FallShort);
+					return context.Set(PlayerState.Fall);
 				})
-			.If(() => Jump.IsJustPressed() && Attack.IsJustPressed()).Set(PlayerState.JumpAttack)
-			.If(() => Jump.IsJustPressed() && CanJump()).Set(PlayerState.Jump)
+			.If(() => Jump.IsJustPressed() && Attack.IsJustPressed()).Set(PlayerState.Jumping)
 			.If(() => Attack.IsJustPressed()).Set(PlayerState.Attacking)
-			.If(() => !PlatformBody.IsOnFloor()).Then( 
-				context => {
-					_coyoteFallingTimer.Restart();
-					return context.Set(PlayerState.FallShort);
-				})
+			.If(() => Jump.IsJustPressed() && CanJump()).Set(PlayerState.Jumping)
+			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.FallWithCoyote)
 			.If(() => XInput == 0 && MotionX == 0).Set(PlayerState.Idle)
 			.Build();
 
@@ -417,12 +397,12 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				}
 			})
 			.If(() => attackState != AttackState.None).None()
-			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.FallShort)
-			.If(() => XInput == 0).Set(PlayerState.Idle)
-			.If(() => XInput != 0).Set(PlayerState.Run)
+			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.FallWithCoyote)
+			.If(() =>  XInput == 0).Set(PlayerState.Idle)
+			.If(() => XInput != 0).Set(PlayerState.Running)
 			.Build();
 		
-		State(PlayerState.JumpAttack)
+		State(PlayerState.JumpingAttack)
 			.Enter(() => {
 				PlatformBody.MotionY = -PlayerConfig.JumpSpeed;
 				AnimationAttack.PlayOnce(true);
@@ -431,8 +411,8 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			.If(() => true).Set(PlayerState.FallingAttack)
 			.Build();
 		
-		State(PlayerState.Jump)
-			.OnInput(ManageInputActions)
+		State(PlayerState.Jumping)
+			.OnInput(InventoryHandler)
 			.Enter(() => {
 				PlatformBody.MotionY = -PlayerConfig.JumpSpeed;
 				AnimationFall.PlayLoop();
@@ -449,9 +429,9 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 					PlayerConfig.StopIfSpeedIsLessThan, PlayerConfig.ChangeDirectionFactor);
 			})
 			.If(() => Attack.IsJustPressed()).Set(PlayerState.FallingAttack)
-			.If(() => Float.IsPressed()).Set(PlayerState.Float)
+			.If(() => Float.IsJustPressed()).Set(PlayerState.Floating)
 			.If(() => PlatformBody.IsOnFloor()).Set(PlayerState.Landing)
-			.If(() => MotionY >= 0).Set(PlayerState.FallShort)
+			.If(() => MotionY >= 0).Set(PlayerState.Fall)
 			.Build();
 
 		State(PlayerState.FallingAttack)
@@ -477,58 +457,64 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				}
 			})
 			.If(() => attackState != AttackState.None).None()
-			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.FallLong)
+			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.Fall)
 			.If(() => XInput == 0).Set(PlayerState.Idle)
-			.If(() => XInput != 0).Set(PlayerState.Run)
+			.If(() => XInput != 0).Set(PlayerState.Running)
 			.Build();
 
-		State(PlayerState.FallShort)
-			.OnInput(ManageInputActions)
+		var coyoteTimer = new GodotStopwatch();
+		State(PlayerState.FallWithCoyote)
+			.OnInput(InventoryHandler)
+			.Enter(() => coyoteTimer.Restart().SetAlarm(PlayerConfig.CoyoteJumpTime))
 			.Execute(() => {
+				if (MotionY > PlayerConfig.StartFallingSpeed) AnimationFall.PlayLoop();
 				PlatformBody.Flip(XInput);
 				ApplyAirGravity();
 				PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
 					PlayerConfig.StopIfSpeedIsLessThan, PlayerConfig.ChangeDirectionFactor);
 			})
 			.If(() => Attack.IsJustPressed()).Set(PlayerState.FallingAttack)
-			.If(() => Float.IsPressed()).Set(PlayerState.Float)
-			.If(CheckCoyoteJump).Set(PlayerState.Jump)
+			.If(() => Jump.IsJustPressed() && CanJump()).Set(PlayerState.Jumping)
+			.If(() => Float.IsJustPressed()).Set(PlayerState.Floating)
 			.If(() => PlatformBody.IsOnFloor()).Set(PlayerState.Landing)
-			.If(() => MotionY > PlayerConfig.StartFallingSpeed).Set(PlayerState.FallLong)
+			.If(() => coyoteTimer.IsAlarm()).Set(PlayerState.Fall)
 			.Build();
+
+		OnTransition += (args) => {
+			if (args is { From: PlayerState.FallWithCoyote, To: PlayerState.Jumping }) {
+				_coyoteMonitor?.Show($"{coyoteTimer.Elapsed:0.00} <= {PlayerConfig.CoyoteJumpTime:0.00} Done!");				
+			} else if (Jump.IsJustPressed()) {
+				_coyoteMonitor?.Show($"{coyoteTimer.Elapsed:0.00} > {PlayerConfig.CoyoteJumpTime:0.00} TOO LATE");
+			}
+		};
 				
-		State(PlayerState.FallLong)
-			.OnInput(ManageInputActions)
-			.Enter(() => AnimationFall.PlayLoop())
+		State(PlayerState.Fall)
+			.OnInput(InventoryHandler)
 			.Execute(() => {
+				if (MotionY > PlayerConfig.StartFallingSpeed) AnimationFall.PlayLoop();
 				PlatformBody.Flip(XInput);
 				ApplyAirGravity();
 				PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
 					PlayerConfig.StopIfSpeedIsLessThan, PlayerConfig.ChangeDirectionFactor);
 			})
 			.If(() => Attack.IsJustPressed()).Set(PlayerState.FallingAttack)
-			.If(() => Float.IsPressed()).Set(PlayerState.Float)
-			.If(CheckCoyoteJump).Set(PlayerState.Jump)
+			.If(() => Float.IsJustPressed()).Set(PlayerState.Floating)
 			.If(() => PlatformBody.IsOnFloor()).Set(PlayerState.Landing)
 			.Build();
 
-		State(PlayerState.Float)
-			.OnInput(ManageInputActions)
-			.Enter(() => {
-				PlatformBody.CharacterBody.MotionMode = CharacterBody2D.MotionModeEnum.Floating;
-			})
+		State(PlayerState.Floating)
+			.OnInput(InventoryHandler)
+			.Enter(() => PlatformBody.CharacterBody.MotionMode = CharacterBody2D.MotionModeEnum.Floating)
 			.Execute(() => {
 				PlatformBody.AddSpeed(XInput, YInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed,
 					PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan, 0);
 				PlatformBody.Move();
 			})
-			.If(() => Float.IsPressed()).Set(PlayerState.FallShort)
-			.Exit(() => {
-				PlatformBody.CharacterBody.MotionMode = CharacterBody2D.MotionModeEnum.Grounded;
-			})
+			.If(() => Float.IsJustPressed()).Set(PlayerState.Fall)
+			.Exit(() => PlatformBody.CharacterBody.MotionMode = CharacterBody2D.MotionModeEnum.Grounded)
 			.Build();
 
-		State(PlayerState.Hurt)
+		State(PlayerState.Hurting)
 			.Enter(() => {
 				Status.Invincible = true;
 				weaponSpriteVisible = _weaponSprite.Visible;
@@ -538,9 +524,9 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				ApplyAirGravity();
 			})
 			.If(() => AnimationHurt.Playing).None()
-			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.FallShort)
+			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.Fall)
 			.If(() => XInput == 0).Set(PlayerState.Idle)
-			.If(() => XInput != 0).Set(PlayerState.Run)
+			.If(() => XInput != 0).Set(PlayerState.Running)
 			.Exit(() => {
 				Status.UnderAttack = false;
 				_weaponSprite.Visible = weaponSpriteVisible;

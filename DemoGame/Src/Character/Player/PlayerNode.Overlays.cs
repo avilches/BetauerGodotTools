@@ -38,7 +38,6 @@ public partial class PlayerNode {
 
 	public void AddOverlayHelpers(DebugOverlay overlay) {
 		_jumpHelperMonitor = overlay.Text("JumpHelper");
-		overlay.Text("CoyoteFallingTimer", () => _coyoteFallingTimer.ToString());
 		_coyoteMonitor = overlay.Text("Coyote");
 	}
 
