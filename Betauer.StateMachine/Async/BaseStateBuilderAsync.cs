@@ -9,11 +9,13 @@ public abstract class BaseStateBuilderAsync<TBuilder, TStateKey, TEventKey> :
     where TEventKey : Enum
     where TBuilder : class {
     
+    protected Func<Task>? BeforeFunc;
     protected Func<Task>? EnterFunc;
     protected Func<Task>? AwakeFunc;
     protected Func<Task>? ExecuteFunc;
     protected Func<Task>? ExitFunc;
     protected Func<Task>? SuspendFunc;
+    protected Func<Task>? AfterFunc;
     protected readonly Action<IStateAsync<TStateKey, TEventKey>> OnBuild;
 
     protected abstract IStateAsync<TStateKey, TEventKey> CreateState();
@@ -26,6 +28,22 @@ public abstract class BaseStateBuilderAsync<TBuilder, TStateKey, TEventKey> :
         IStateAsync<TStateKey, TEventKey> state = CreateState();
         OnBuild(state);
         return state;
+    }
+
+    /*
+     * Before
+     */
+    public TBuilder Before(Func<Task> before) {
+        BeforeFunc = before;
+        return this as TBuilder;
+    }
+
+    public TBuilder Before(Action before) {
+        BeforeFunc = () => {
+            before();
+            return Task.CompletedTask;
+        };
+        return this as TBuilder;
     }
 
     /*
@@ -107,4 +125,21 @@ public abstract class BaseStateBuilderAsync<TBuilder, TStateKey, TEventKey> :
         };
         return this as TBuilder;
     }
+    
+    /*
+     * After
+     */
+    public TBuilder After(Func<Task> after) {
+        AfterFunc = after;
+        return this as TBuilder;
+    }
+
+    public TBuilder After(Action after) {
+        AfterFunc = () => {
+            after();
+            return Task.CompletedTask;
+        };
+        return this as TBuilder;
+    }
+
 }

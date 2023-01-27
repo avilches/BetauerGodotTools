@@ -8,11 +8,13 @@ public abstract class BaseStateBuilderSync<TBuilder, TStateKey, TEventKey> :
     where TEventKey : Enum
     where TBuilder : class {
         
+    protected Action? BeforeFunc;
     protected Action? EnterFunc;
     protected Action? AwakeFunc;
-    protected Action ExecuteFunc;
+    protected Action? ExecuteFunc;
     protected Action? SuspendFunc;
     protected Action? ExitFunc;
+    protected Action? AfterFunc;
     protected readonly Action<IStateSync<TStateKey, TEventKey>> OnBuild;
 
     protected abstract IStateSync<TStateKey, TEventKey> CreateState();
@@ -25,6 +27,11 @@ public abstract class BaseStateBuilderSync<TBuilder, TStateKey, TEventKey> :
         IStateSync<TStateKey, TEventKey> stateSync = CreateState();
         OnBuild(stateSync);
         return stateSync;
+    }
+
+    public TBuilder Before(Action before) {
+        BeforeFunc = before;
+        return this as TBuilder;
     }
 
     public TBuilder Enter(Action enter) {
@@ -49,6 +56,11 @@ public abstract class BaseStateBuilderSync<TBuilder, TStateKey, TEventKey> :
 
     public TBuilder Exit(Action exit) {
         ExitFunc = exit;
+        return this as TBuilder;
+    }
+
+    public TBuilder After(Action after) {
+        AfterFunc = after;
         return this as TBuilder;
     }
 }

@@ -176,11 +176,11 @@ public abstract class BaseStateMachine<TStateKey, TEventKey, TState> : StateMach
         OnEnter?.Invoke(new TransitionArgs<TStateKey>(from, state.Key));
     }
 
-    protected void BeforeExecute() {
+    protected void BeforeEvent() {
         OnBefore?.Invoke();
     }
 
-    protected void AfterExecute() {
+    protected void AfterEvent() {
         OnAfter?.Invoke();
     }
 

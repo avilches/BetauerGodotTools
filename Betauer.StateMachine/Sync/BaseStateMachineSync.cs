@@ -19,8 +19,9 @@ public abstract class BaseStateMachineSync<TStateKey, TEventKey, TState> :
             
         var currentStateBackup = CurrentState;
         try {
-            BeforeExecute();
-            var change = ExecuteNextCommand();
+            BeforeEvent();
+            CurrentState.Before();
+            var change = ExecuteNextCommand(); // If there is no change in state, the conditions will be evaluated here
             if (change.Type == CommandType.Stay) {
                 // Do nothing
             } else if (change.Type == CommandType.Set) {
@@ -78,8 +79,9 @@ public abstract class BaseStateMachineSync<TStateKey, TEventKey, TState> :
                 CurrentState.Enter();
             }
             CurrentState.Execute();
+            CurrentState.After();
             CurrentState.EvaluateConditions(CommandContext, out NextCommand);
-            AfterExecute();
+            AfterEvent();
         } catch (Exception) {
             NextCommand = CommandContext.Stay();
             CurrentState = currentStateBackup;

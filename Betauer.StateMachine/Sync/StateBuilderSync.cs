@@ -11,11 +11,14 @@ public class StateBuilderSync<TStateKey, TEventKey> :
             Key,
             EventRules,
             Conditions?.ToArray(),
+            BeforeFunc,
             EnterFunc,
+            AwakeFunc,
             ExecuteFunc,
-            ExitFunc,
             SuspendFunc,
-            AwakeFunc);
+            ExitFunc,
+            AfterFunc
+        );
     }
 
     public StateBuilderSync(TStateKey key, Action<IStateSync<TStateKey, TEventKey>> build) : base(key, build) {

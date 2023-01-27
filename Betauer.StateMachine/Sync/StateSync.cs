@@ -8,28 +8,38 @@ public class StateSync<TStateKey, TEventKey> :
     where TStateKey : Enum 
     where TEventKey : Enum {
         
+    private readonly Action? _before;
     private readonly Action? _enter;
     private readonly Action? _awake;
     private readonly Action? _execute;
     private readonly Action? _suspend;
     private readonly Action? _exit;
+    private readonly Action? _after;
 
     public StateSync(
         TStateKey key,
         Dictionary<TEventKey, EventRule<TStateKey, TEventKey>>? eventRules,
         Condition<TStateKey, TEventKey>[]? conditions,
+        Action? before,
         Action? enter,
+        Action? awake,
         Action? execute,
-        Action? exit,
         Action? suspend,
-        Action? awake) :
+        Action? exit,
+        Action? after
+        ) : 
         base(key, eventRules, conditions) {
-
+        _before = before;
         _enter = enter;
-        _execute = execute;
-        _exit = exit;
-        _suspend = suspend;
         _awake = awake;
+        _execute = execute;
+        _suspend = suspend;
+        _exit = exit;
+        _after = after;
+    }
+
+    public void Before() {
+        _before?.Invoke();
     }
 
     public void Enter() {
@@ -50,5 +60,9 @@ public class StateSync<TStateKey, TEventKey> :
 
     public void Exit() {
         _exit?.Invoke();
+    }
+
+    public void After() {
+        _after?.Invoke();
     }
 }
