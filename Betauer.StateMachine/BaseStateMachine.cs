@@ -24,11 +24,11 @@ public abstract class BaseStateMachine<TStateKey, TEventKey, TState> : StateMach
     where TState : class, IState<TStateKey, TEventKey> {
 
 
-    protected readonly struct Change {
+    protected readonly struct StateChange {
         internal readonly TState Destination;
         internal readonly CommandType Type;
 
-        internal Change(TState destination, CommandType type) {
+        internal StateChange(TState destination, CommandType type) {
             if (type == CommandType.SendEvent)
                 throw new ArgumentException($"Command Type can't be {nameof(CommandType.SendEvent)}");
             
@@ -61,11 +61,10 @@ public abstract class BaseStateMachine<TStateKey, TEventKey, TState> : StateMach
     protected EventBuilder<TBuilder, TStateKey, TEventKey> On<TBuilder>(TBuilder builder, TEventKey eventKey) 
         where TBuilder : class {
         Action<EventBuilder<TBuilder,TStateKey,TEventKey>> onBuild = c => {
-            if (c.Execute != null) {
-                AddEventRule(eventKey, new EventRule<TStateKey, TEventKey>(c.Execute));
-            } else {
-                AddEventRule(eventKey, new EventRule<TStateKey, TEventKey>(c.Result));
-            }
+            var eventRule = c.Execute != null
+                ? new EventRule<TStateKey, TEventKey>(c.Execute)
+                : new EventRule<TStateKey, TEventKey>(c.Result);
+            AddEventRule(eventKey, eventRule);
         };
         return new EventBuilder<TBuilder, TStateKey, TEventKey>(
             builder, eventKey, onBuild);
@@ -109,14 +108,15 @@ public abstract class BaseStateMachine<TStateKey, TEventKey, TState> : StateMach
     }
 
 
-    protected Change GetChangeFromNextCommand() {
+    protected StateChange ExecuteNextCommand() {
         if (CurrentState == null) {
             throw new KeyNotFoundException("Initial State not found: " + NextCommand.StateKey);
         }
-        FollowNextCommand();
+        // If next command is an event, evaluate it. Also evaluate conditions (again) if the state is not changed
+        UpdateNextCommand();
 
         if (NextCommand.IsStayOrSet(CurrentState.Key)) {
-            return new Change(CurrentState, CommandType.Stay);
+            return new StateChange(CurrentState, CommandType.Stay);
         }
         
         if (NextCommand.IsPop()) {
@@ -124,17 +124,17 @@ public abstract class BaseStateMachine<TStateKey, TEventKey, TState> : StateMach
                 throw new InvalidOperationException("Command Pop error: stack is empty");
             }
             var o = Stack.Pop();
-            var change = new Change(Stack.Peek(), CommandType.Pop);
+            var change = new StateChange(Stack.Peek(), CommandType.Pop);
             Stack.Push(o);
             return change;
         }
         
         // Init, Push, PopPush or Set to a different state than current state 
         TState newState = FindState(NextCommand.StateKey);
-        return new Change(newState, NextCommand.Type);
+        return new StateChange(newState, NextCommand.Type);
     }
 
-    private void FollowNextCommand() {
+    private void UpdateNextCommand() {
         if (NextCommand.IsSendEvent()) {
             if (CurrentState.TryGetEventRule(NextCommand.EventKey, out var eventRule)) {
                 NextCommand = eventRule.GetResult(CommandContext);

@@ -20,7 +20,7 @@ public abstract class BaseStateMachineSync<TStateKey, TEventKey, TState> :
         var currentStateBackup = CurrentState;
         try {
             BeforeExecute();
-            var change = GetChangeFromNextCommand();
+            var change = ExecuteNextCommand();
             if (change.Type == CommandType.Stay) {
                 // Do nothing
             } else if (change.Type == CommandType.Set) {

@@ -680,5 +680,86 @@ namespace Betauer.StateMachine.Tests {
             Assert.ThrowsAsync<NullReferenceException>(async () => await sm.Execute());
             Assert.That(steps, Is.EqualTo(3));
         }
+        
+        [Test(Description = "If() are executed twice (at the beginning and at the end) when the state is the same")]
+        public async Task ConditionalOrderSameState() {
+            var sm = new StateMachineAsync<State, Event>(State.Start);
+
+            var startSteps = 0;
+            var startIfs = 0;
+            sm.State(State.Start)
+                .Execute(() => {
+                    startSteps++;
+                })
+                .If(() => {
+                    startIfs++;
+                    return true;
+                })
+                .Stay()
+                .Build();
+            
+            await sm.Execute();
+            Assert.That(startSteps, Is.EqualTo(1));
+            Assert.That(startIfs, Is.EqualTo(1));
+
+            await sm.Execute();
+            Assert.That(startSteps, Is.EqualTo(2));
+            Assert.That(startIfs, Is.EqualTo(3));
+
+            await sm.Execute();
+            Assert.That(startSteps, Is.EqualTo(3));
+            Assert.That(startIfs, Is.EqualTo(5));
+
+        }
+        
+        [Test(Description = "If() are only executed once (at the end) when the state change")]
+        public async Task ConditionalOrderStateChanged() {
+            var sm = new StateMachineAsync<State, Event>(State.Start);
+
+            var startSteps = 0;
+            var startIfs = 0;
+            sm.State(State.Start)
+                .Execute(() => {
+                    startSteps++;
+                })
+                .If(() => {
+                    startIfs++;
+                    return true;
+                })
+                .Set(State.MainMenu)
+                .Build();
+            
+            var mainSteps = 0;
+            var mainIfs = 0;
+            sm.State(State.MainMenu)
+                .Execute(() => {
+                    mainSteps++;
+                })
+                .If(() => {
+                    mainIfs++;
+                    return true;
+                })
+                .Set(State.Start)
+                .Build();
+            
+            await  sm.Execute();
+            Assert.That(startSteps, Is.EqualTo(1));
+            Assert.That(startIfs, Is.EqualTo(1));
+            Assert.That(mainSteps, Is.EqualTo(0));
+            Assert.That(mainIfs, Is.EqualTo(0));
+            
+            await sm.Execute();
+            Assert.That(startSteps, Is.EqualTo(1));
+            Assert.That(startIfs, Is.EqualTo(1));
+            Assert.That(mainSteps, Is.EqualTo(1));
+            Assert.That(mainIfs, Is.EqualTo(1));
+
+            await sm.Execute();
+            Assert.That(startSteps, Is.EqualTo(2));
+            Assert.That(startIfs, Is.EqualTo(2));
+            Assert.That(mainSteps, Is.EqualTo(1));
+            Assert.That(mainIfs, Is.EqualTo(1));
+
+        }
     }
 }
