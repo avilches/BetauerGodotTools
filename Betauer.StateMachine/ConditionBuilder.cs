@@ -10,7 +10,7 @@ public class ConditionBuilder<TBuilder, TStateKey, TEventKey>
     private readonly Action<ConditionBuilder<TBuilder, TStateKey, TEventKey>> _onBuild;
 
     internal readonly Func<bool> Predicate;
-    internal Func<ConditionContext<TStateKey, TEventKey>, Command<TStateKey, TEventKey>>? Execute;
+    internal Func<CommandContext<TStateKey, TEventKey>, Command<TStateKey, TEventKey>>? Execute;
     internal Command<TStateKey, TEventKey> Result;
 
     internal ConditionBuilder(TBuilder builder, Func<bool> predicate,
@@ -20,25 +20,13 @@ public class ConditionBuilder<TBuilder, TStateKey, TEventKey>
         _onBuild = onBuild;
     }
 
-    public TBuilder Push(TStateKey state) =>
-        SetResult(new Command<TStateKey, TEventKey>(CommandType.Push, state, default));
+    public TBuilder Set(TStateKey state) => SetResult(Command<TStateKey, TEventKey>.CreateSet(state));
+    public TBuilder Push(TStateKey state) => SetResult(Command<TStateKey, TEventKey>.CreatePush(state));
+    public TBuilder PopPush(TStateKey state) => SetResult(Command<TStateKey, TEventKey>.CreatePopPush(state));
+    public TBuilder Pop() => SetResult(Command<TStateKey, TEventKey>.CreatePop());
+    public TBuilder Stay() => SetResult(Command<TStateKey, TEventKey>.CreateStay());
 
-    public TBuilder Set(TStateKey state) =>
-        SetResult(new Command<TStateKey, TEventKey>(CommandType.Set, state, default));
-
-    public TBuilder PopPush(TStateKey state) =>
-        SetResult(new Command<TStateKey, TEventKey>(CommandType.PopPush, state, default));
-
-    public TBuilder Pop() =>
-        SetResult(new Command<TStateKey, TEventKey>(CommandType.Pop, default, default));
-
-    public TBuilder None() =>
-        SetResult(new Command<TStateKey, TEventKey>(CommandType.None, default, default));
-
-    public TBuilder Trigger(TEventKey eventKey) =>
-        SetResult(new Command<TStateKey, TEventKey>(CommandType.Trigger, default, eventKey));
-
-    public TBuilder Then(Func<ConditionContext<TStateKey, TEventKey>, Command<TStateKey, TEventKey>> execute) {
+    public TBuilder Then(Func<CommandContext<TStateKey, TEventKey>, Command<TStateKey, TEventKey>> execute) {
         Execute = execute;
         _onBuild(this);
         return _builder;

@@ -16,13 +16,14 @@ public class StateSync<TStateKey, TEventKey> :
 
     public StateSync(
         TStateKey key,
+        Dictionary<TEventKey, EventRule<TStateKey, TEventKey>>? eventRules,
+        Condition<TStateKey, TEventKey>[]? conditions,
         Action? enter,
-        Condition<TStateKey, TEventKey>[] conditions,
         Action? execute,
         Action? exit,
         Action? suspend,
-        Action? awake,
-        Dictionary<TEventKey, Event<TStateKey, TEventKey>>? events) : base(key, events, conditions) {
+        Action? awake) :
+        base(key, eventRules, conditions) {
 
         _enter = enter;
         _execute = execute;

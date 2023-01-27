@@ -17,13 +17,14 @@ public class StateAsync<TStateKey, TEventKey> :
 
     public StateAsync(
         TStateKey key,
+        Dictionary<TEventKey, EventRule<TStateKey, TEventKey>>? eventRules,
+        Condition<TStateKey, TEventKey>[]? conditions,
         Func<Task>? enter,
-        Condition<TStateKey, TEventKey>[] conditions,
         Func<Task>? execute,
         Func<Task>? exit,
         Func<Task>? suspend,
-        Func<Task>? awake,
-        Dictionary<TEventKey, Event<TStateKey, TEventKey>>? events) : base(key, events, conditions) {
+        Func<Task>? awake) :
+        base(key, eventRules, conditions) {
 
         _enter = enter;
         _execute = execute;

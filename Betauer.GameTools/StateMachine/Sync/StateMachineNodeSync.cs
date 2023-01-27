@@ -31,7 +31,7 @@ public partial class StateMachineNodeSync<TStateKey, TEventKey> :
     public StateNodeSync<TStateKey, TEventKey> CurrentState => (StateNodeSync<TStateKey, TEventKey>)_stateMachine.CurrentState;
 
         
-    public string? Name => _stateMachine.Name; 
+    public new string? Name => _stateMachine.Name; 
     public double Delta { get; private set; }
 
     public StateMachineNodeSync(TStateKey initialState, string? name = null, bool processInPhysics = false) {
@@ -46,9 +46,9 @@ public partial class StateMachineNodeSync<TStateKey, TEventKey> :
 
     public StateNodeBuilderSync<TStateKey, TEventKey> State(TStateKey stateKey) => _stateMachine.State(stateKey);
     public EventBuilder<StateMachineNodeSync<TStateKey, TEventKey>, TStateKey, TEventKey> On(TEventKey transitionKey) => _stateMachine.On(transitionKey);
-    public void AddEvent(TEventKey transitionKey, Event<TStateKey, TEventKey> @event) => _stateMachine.AddEvent(transitionKey, @event);
+    public void AddEventRule(TEventKey transitionKey, EventRule<TStateKey, TEventKey> eventRule) => _stateMachine.AddEventRule(transitionKey, eventRule);
     public void AddState(StateNodeSync<TStateKey, TEventKey> stateSync) => _stateMachine.AddState(stateSync);
-    public void Send(TEventKey name, int weight = 0) => _stateMachine.Send(name, weight);
+    public void Send(TEventKey eventKey, int weight = 0) => _stateMachine.Send(eventKey, weight);
 
     public void Execute() {
         throw new Exception("Don't call directly to execute. Instead, add the node to the tree");
@@ -83,10 +83,6 @@ public partial class StateMachineNodeSync<TStateKey, TEventKey> :
     public void Execute(double delta) {
         if (IsQueuedForDeletion()) return;
         Delta = delta;
-        CurrentState.InputHandler._InputBatch();
-        CurrentState.InputHandler._ShortcutInputBatch();
-        CurrentState.InputHandler._UnhandledInputBatch();
-        CurrentState.InputHandler._UnhandledKeyInputBatch();
         _stateMachine.Execute();
     }
 }

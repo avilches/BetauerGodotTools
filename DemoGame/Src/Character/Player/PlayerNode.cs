@@ -147,8 +147,8 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 
 		PlatformBody = new KinematicPlatformMotion(CharacterBody2D, flipper, Marker2D, MotionConfig.FloorUpDirection,
 			FloorRaycasts);
-		OnBeforeExecute += () => PlatformBody.SetDelta(Delta);
-		OnAfterExecute += () => {
+		OnBefore += () => PlatformBody.SetDelta(Delta);
+		OnAfter += () => {
 			Label.Text = _animationStack.GetPlayingOnce() != null
 				? _animationStack.GetPlayingOnce().Name
 				: _animationStack.GetPlayingLoop().Name;
@@ -376,12 +376,15 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			.If(() => XInput == 0 && MotionX == 0).Set(PlayerState.Idle)
 			.Build();
 
+		var attackingTime = 0d;
 		State(PlayerState.Attacking)
 			.Enter(() => {
+				attackingTime = 0d;
 				AnimationAttack.PlayOnce(true);
 				StartStack();
 			})
 			.Execute(() => {
+				attackingTime += Delta;
 				ApplyFloorGravity();
 				PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
 				if (attackState == AttackState.Start) {
@@ -396,9 +399,10 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 					}
 				}
 			})
-			.If(() => attackState != AttackState.None).None()
+			.Exit(() => Logger.Debug("Attack time "+attackingTime))
+			.If(() => attackState != AttackState.None).Stay()
 			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.FallWithCoyote)
-			.If(() =>  XInput == 0).Set(PlayerState.Idle)
+			.If(() => XInput == 0).Set(PlayerState.Idle)
 			.If(() => XInput != 0).Set(PlayerState.Running)
 			.Build();
 		
@@ -456,7 +460,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 					}
 				}
 			})
-			.If(() => attackState != AttackState.None).None()
+			.If(() => attackState != AttackState.None).Stay()
 			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.Fall)
 			.If(() => XInput == 0).Set(PlayerState.Idle)
 			.If(() => XInput != 0).Set(PlayerState.Running)
@@ -523,7 +527,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			.Execute(() => {
 				ApplyAirGravity();
 			})
-			.If(() => AnimationHurt.Playing).None()
+			.If(() => AnimationHurt.Playing).Stay()
 			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.Fall)
 			.If(() => XInput == 0).Set(PlayerState.Idle)
 			.If(() => XInput != 0).Set(PlayerState.Running)

@@ -11,7 +11,6 @@ public interface IStateAsync<TStateKey, TEventKey> :
     public Task Enter();
     public Task Awake();
     public Task Execute();
-    public Command<TStateKey, TEventKey> Next(ConditionContext<TStateKey, TEventKey> conditionContext);
     public Task Suspend();
     public Task Exit();
 }

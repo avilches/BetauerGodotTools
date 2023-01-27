@@ -19,17 +19,11 @@ public abstract class BaseStateMachineSync<TStateKey, TEventKey, TState> :
             
         var currentStateBackup = CurrentState;
         try {
-            var change = NoChange;
-            if (HasPendingEvent) {
-                ConsumeEvent(PendingEvent, out var eventCommand);
-                change = CreateChange(ref eventCommand);
-            } else if (!IsInitialized) {
-                var state = FindState(InitialState); // Call to ensure initial state exists
-                change = new Change(state, CommandType.Set);
-            } else {
-                change = NextChange;
-            }
-            if (change.Type == CommandType.Set) {
+            BeforeExecute();
+            var change = GetChangeFromNextCommand();
+            if (change.Type == CommandType.Stay) {
+                // Do nothing
+            } else if (change.Type == CommandType.Set) {
                 if (Stack.Count == 1) {
                     var newState = Stack.Pop();
                     ExitEvent(newState, change.Destination.Key);
@@ -48,8 +42,7 @@ public abstract class BaseStateMachineSync<TStateKey, TEventKey, TState> :
                 CurrentState = change.Destination;
                 Stack.Push(CurrentState);
                 TransitionEvent(oldState, CurrentState);
-                // There is no CurrentState (oldState) the first time, so the enter event is executed with from = itself
-                EnterEvent(CurrentState, oldState != null ? oldState.Key: CurrentState.Key);
+                EnterEvent(CurrentState, oldState.Key);
                 CurrentState.Enter();
             } else if (change.Type == CommandType.Pop) {
                 var newState = Stack.Pop();
@@ -61,15 +54,13 @@ public abstract class BaseStateMachineSync<TStateKey, TEventKey, TState> :
                 AwakeEvent(CurrentState, oldState.Key);
                 CurrentState.Awake();
             } else if (change.Type == CommandType.Push) {
-                if (CurrentState != null) { // CurrentState is null the first time only
-                    SuspendEvent(CurrentState, change.Destination!.Key);
-                    CurrentState.Suspend();
-                }
+                SuspendEvent(CurrentState, change.Destination.Key);
+                CurrentState.Suspend();
                 var oldState = CurrentState;
                 CurrentState = change.Destination;
                 Stack.Push(CurrentState);
                 TransitionEvent(oldState, CurrentState);
-                EnterEvent(CurrentState, oldState != null ? oldState.Key: CurrentState.Key);
+                EnterEvent(CurrentState, oldState.Key);
                 CurrentState.Enter();
             } else if (change.Type == CommandType.PopPush) {
                 var oldState = Stack.Pop();
@@ -80,23 +71,21 @@ public abstract class BaseStateMachineSync<TStateKey, TEventKey, TState> :
                 TransitionEvent(oldState, CurrentState);
                 EnterEvent(CurrentState, oldState.Key);
                 CurrentState.Enter();
+            } else if (change.Type == CommandType.Init) {
+                CurrentState = change.Destination;
+                Stack.Push(CurrentState);
+                EnterEvent(CurrentState, CurrentState.Key);
+                CurrentState.Enter();
             }
-            BeforeExecute();
             CurrentState.Execute();
-            var conditionCommand = CurrentState.Next(ConditionContext);
-            if (conditionCommand.IsTrigger() ) {
-                ConsumeEvent(conditionCommand.EventKey, out conditionCommand);
-            }
-            NextChange = CreateChange(ref conditionCommand);
+            CurrentState.EvaluateConditions(CommandContext, out NextCommand);
             AfterExecute();
-            IsInitialized = true;
         } catch (Exception) {
-            NextChange = NoChange;
+            NextCommand = CommandContext.Stay();
             CurrentState = currentStateBackup;
             throw;
         }
-            
-            
+        
             
     }
 }

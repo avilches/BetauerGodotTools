@@ -131,7 +131,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 									 Marker2D.RaycastTo(PlayerPos, ray => CharacterManager.EnemyConfigureCollisions(ray)).Count == 0;
 	
 	public bool IsPlayerInAngle() => EnemyConfig.VisionAngle > 0 && 
-	                                 Mathf.Acos(Mathf.Abs(PlatformBody.LookRightDirection.Dot(DirectionToPlayer()))) <= EnemyConfig.VisionAngle;
+									 Mathf.Acos(Mathf.Abs(PlatformBody.LookRightDirection.Dot(DirectionToPlayer()))) <= EnemyConfig.VisionAngle;
 
 	
 	public override void _Ready() {
@@ -145,9 +145,9 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 
 		// AI
 		_zombieAi = MeleeAI.Create(Handler, new MeleeAI.Sensor(this, PlatformBody, () => PlayerPos));
-		OnBeforeExecute += _zombieAi.Execute;
-		OnBeforeExecute += () => Label.Text = _zombieAi.GetState();
-		OnAfterExecute += _zombieAi.EndFrame;
+		OnBefore += _zombieAi.Execute;
+		OnBefore += () => Label.Text = _zombieAi.GetState();
+		OnAfter += _zombieAi.EndFrame;
 
 		var drawRaycasts = this.OnDraw(canvas => {
 			// canvas.DrawRaycast(FacePlayerDetector, Colors.Red);
@@ -161,8 +161,8 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		var drawPlayerInsight = this.OnDraw(canvas => {
 			// Same conditions as CanSeeThePlayer
 			if (!IsFacingToPlayer() ||
-			    DistanceToPlayer() > EnemyConfig.VisionDistance ||
-			    !IsPlayerInAngle()) {
+				DistanceToPlayer() > EnemyConfig.VisionDistance ||
+				!IsPlayerInAngle()) {
 				var distance = new Vector2(EnemyConfig.VisionDistance, 0);
 				var direction = new Vector2(PlatformBody.FacingRight, 1);
 				canvas.DrawLine(Marker2D.GlobalPosition, Marker2D.GlobalPosition + distance.Rotated(-EnemyConfig.VisionAngle) * direction, Colors.Gray);
@@ -199,7 +199,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		flipper.IsFacingRight = flipper.IsFacingRight;
 
 		PlatformBody = new KinematicPlatformMotion(CharacterBody2D, flipper, Marker2D, MotionConfig.FloorUpDirection);
-		OnBeforeExecute += () => PlatformBody.SetDelta(Delta);
+		OnBefore += () => PlatformBody.SetDelta(Delta);
 		
 		CharacterManager.EnemyConfigureCollisions(CharacterBody2D);
 		CharacterManager.EnemyConfigureCollisions(FloorRaycast);

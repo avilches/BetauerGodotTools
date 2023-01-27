@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using Betauer.StateMachine;
 using Betauer.StateMachine.Sync;
 using Betauer.TestRunner;
 using Godot;
@@ -97,7 +96,7 @@ namespace Betauer.GameTools.Tests {
                 Is.EqualTo("Start,IdleExecute(1),IdleExecute(2),IdleExit(2),AttackExecute(3),End(4)"));
          
         }
-        
+
         [Test]
         public async Task EnterOnPushExitOnPopSuspendAwakeListener() {
             var sm = new StateMachineNodeSync<State, Trans>(State.MainMenu);
@@ -123,8 +122,8 @@ namespace Betauer.GameTools.Tests {
             sm.OnSuspend += (args)  => states.Add(args.From + ":suspend");
             sm.OnExit += (args)  => states.Add(args.From + ":exit");
             sm.OnTransition += (args)  => states.Add("from:" + args.From + "-to:" + args.To);
-            sm.OnBeforeExecute += ()  => states.Add(":execute.start");
-            sm.OnAfterExecute += ()  => states.Add(":execute.end");
+            sm.OnBefore += ()  => states.Add(":execute.start");
+            sm.OnAfter += ()  => states.Add(":execute.end");
 
             AddChild(sm);
 
@@ -136,15 +135,62 @@ namespace Betauer.GameTools.Tests {
 
             Console.WriteLine(string.Join(",", states));
             Assert.That(string.Join(",", states), Is.EqualTo(
-                "MainMenu:enter,:execute.start,:execute.end,MainMenu:exit," +
-                "from:MainMenu-to:Debug," +
-                "Debug:enter,:execute.start,:execute.end,Debug:suspend," +
-                "from:Debug-to:Settings," +
-                "Settings:enter,:execute.start,:execute.end,Settings:exit," +
-                "from:Settings-to:Debug," +
-                "Debug:awake,:execute.start,:execute.end,Debug:exit," +
-                "from:Debug-to:End," +
-                "End:enter,:execute.start,:execute.end"));
+                ":execute.start,MainMenu:enter,:execute.end," +
+                ":execute.start,MainMenu:exit,from:MainMenu-to:Debug,Debug:enter,:execute.end," +
+                ":execute.start,Debug:suspend,from:Debug-to:Settings,Settings:enter,:execute.end," +
+                ":execute.start,Settings:exit,from:Settings-to:Debug,Debug:awake,:execute.end," +
+                ":execute.start,Debug:exit,from:Debug-to:End,End:enter,:execute.end"));
         }
+        
+        [Test]
+        public async Task OnInput() {
+            var sm = new StateMachineNodeSync<State, Trans>(State.MainMenu);
+
+            var i = 0;
+            var u = 0;
+            sm.State(State.MainMenu)
+                .OnInput((e) => i++)
+                .OnInput((e) => i++)
+                .OnUnhandledInput((e) => u ++)
+                .OnUnhandledInput((e) => u ++)
+                .Build();
+            
+            AddChild(sm);
+            await this.AwaitProcessFrame();
+            GetTree().Root.PushInput(new InputEventJoypadButton {
+                ButtonIndex = JoyButton.A,
+            });
+            await this.AwaitProcessFrame();
+            await this.AwaitProcessFrame();
+            await this.AwaitProcessFrame();
+            Assert.That(i, Is.EqualTo(2));
+            Assert.That(u, Is.EqualTo(0));
+        }     
+        
+        [Test]
+        public async Task OnUnhandledInput() {
+            var sm = new StateMachineNodeSync<State, Trans>(State.MainMenu);
+
+            var i = 0;
+            var u = 0;
+            sm.State(State.MainMenu)
+                .OnInput((e) => i++)
+                .OnInput((e) => i++)
+                .OnUnhandledInput((e) => u ++)
+                .OnUnhandledInput((e) => u ++)
+                .Build();
+            
+            AddChild(sm);
+            await this.AwaitProcessFrame();
+            GetTree().Root.PushUnhandledInput(new InputEventJoypadButton {
+                ButtonIndex = JoyButton.A,
+            });
+            await this.AwaitProcessFrame();
+            await this.AwaitProcessFrame();
+            await this.AwaitProcessFrame();
+            Assert.That(i, Is.EqualTo(0));
+            Assert.That(u, Is.EqualTo(2));
+        }
+
     }
 }

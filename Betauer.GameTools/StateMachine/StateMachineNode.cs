@@ -34,13 +34,13 @@ public abstract partial class StateMachineNode<TStateKey> : Node
         remove => GetStateMachineEvents().OnTransition -= value;
     }
 
-    public event Action? OnBeforeExecute {
-        add => GetStateMachineEvents().OnBeforeExecute += value;
-        remove => GetStateMachineEvents().OnBeforeExecute -= value;
+    public event Action? OnBefore {
+        add => GetStateMachineEvents().OnBefore += value;
+        remove => GetStateMachineEvents().OnBefore -= value;
     }
 
-    public event Action? OnAfterExecute {
-        add => GetStateMachineEvents().OnAfterExecute += value;
-        remove => GetStateMachineEvents().OnAfterExecute -= value;
+    public event Action? OnAfter {
+        add => GetStateMachineEvents().OnAfter += value;
+        remove => GetStateMachineEvents().OnAfter -= value;
     }
 }

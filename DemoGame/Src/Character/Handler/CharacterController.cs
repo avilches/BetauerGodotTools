@@ -14,11 +14,6 @@ public class CharacterController : ICharacterHandler {
     public readonly ActionController FloatController = new();
     public readonly DirectionalController DirectionalController = new();
 
-    public IDirectional Directional => DirectionalController;
-    public IAction Jump => JumpController;
-    public IAction Attack => AttackController;
-    public IAction Float => FloatController;
-
     public void EndFrame() {
         JumpController.EndFrame();
         AttackController.EndFrame();

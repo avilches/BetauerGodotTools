@@ -33,7 +33,7 @@ public partial class StateMachineNodeAsync<TStateKey, TEventKey> :
     public StateNodeAsync<TStateKey, TEventKey> CurrentState => (StateNodeAsync<TStateKey, TEventKey>)_stateMachine.CurrentState;
     private Exception? _exception = null;
     public bool Available => _stateMachine.Available;
-    public string? Name => _stateMachine.Name; 
+    public new string? Name => _stateMachine.Name; 
     public double Delta { get; private set; }
 
     public StateMachineNodeAsync(TStateKey initialState, string? name = null, bool processInPhysics = false) {
@@ -48,9 +48,9 @@ public partial class StateMachineNodeAsync<TStateKey, TEventKey> :
 
     public StateNodeBuilderAsync<TStateKey, TEventKey> State(TStateKey stateKey) => _stateMachine.State(stateKey);
     public EventBuilder<StateMachineNodeAsync<TStateKey, TEventKey>, TStateKey, TEventKey> On(TEventKey transitionKey) => _stateMachine.On(transitionKey);
-    public void AddEvent(TEventKey transitionKey, Event<TStateKey, TEventKey> @event) => _stateMachine.AddEvent(transitionKey, @event);
+    public void AddEventRule(TEventKey transitionKey, EventRule<TStateKey, TEventKey> eventRule) => _stateMachine.AddEventRule(transitionKey, eventRule);
     public void AddState(StateNodeAsync<TStateKey, TEventKey> state) => _stateMachine.AddState(state);
-    public void Send(TEventKey name, int weight = 0) => _stateMachine.Send(name, weight);
+    public void Send(TEventKey eventKey, int weight = 0) => _stateMachine.Send(eventKey, weight);
 
     public Task Execute() {
         throw new Exception("Don't call directly to execute. Instead, add the node to the tree");
@@ -90,10 +90,6 @@ public partial class StateMachineNodeAsync<TStateKey, TEventKey> :
         }
         if (!Available) return;
         Delta = delta;
-        CurrentState.InputHandler._InputBatch();
-        CurrentState.InputHandler._ShortcutInputBatch();
-        CurrentState.InputHandler._UnhandledInputBatch();
-        CurrentState.InputHandler._UnhandledKeyInputBatch();
         _stateMachine.Execute().OnException(e => _exception = e, true);
     }
 }

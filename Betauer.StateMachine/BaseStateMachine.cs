@@ -25,30 +25,23 @@ public abstract class BaseStateMachine<TStateKey, TEventKey, TState> : StateMach
 
 
     protected readonly struct Change {
-        internal readonly TState? Destination;
+        internal readonly TState Destination;
         internal readonly CommandType Type;
 
-        internal Change(TState? destination, CommandType type) {
+        internal Change(TState destination, CommandType type) {
+            if (type == CommandType.SendEvent)
+                throw new ArgumentException($"Command Type can't be {nameof(CommandType.SendEvent)}");
+            
             Destination = destination;
-            if (type == CommandType.Trigger)
-                throw new ArgumentException("Change type can't be a trigger");
             Type = type;
         }
     }
 
-    protected static readonly Change NoChange = new(null, CommandType.None);
-
     protected readonly Stack<TState> Stack = new();
-    protected readonly ConditionContext<TStateKey, TEventKey> ConditionContext = new();
-    protected readonly EventContext<TStateKey, TEventKey> EventContext = new();
-    protected Dictionary<TEventKey, Event<TStateKey, TEventKey>>? Events;
-    protected Change NextChange;
-    protected readonly TStateKey InitialState;
-    protected bool IsInitialized = false;
+    protected readonly CommandContext<TStateKey, TEventKey> CommandContext = new();
+    protected Dictionary<TEventKey, EventRule<TStateKey, TEventKey>>? EventRules;
+    protected Command<TStateKey, TEventKey> NextCommand;
     protected bool IsDisposed = false;
-    protected TEventKey PendingEvent;
-    protected bool HasPendingEvent = false;
-    protected int PendingEventWeight = -1;
 
     public readonly Dictionary<TStateKey, TState> States = new();
     public TStateKey[] GetStack() => Stack.Reverse().Select(e => e.Key).ToArray();
@@ -61,26 +54,26 @@ public abstract class BaseStateMachine<TStateKey, TEventKey, TState> : StateMach
     public string? Name { get; }
 
     protected BaseStateMachine(TStateKey initialState, string? name = null) {
-        InitialState = initialState;
         Name = name;
+        NextCommand = Command<TStateKey, TEventKey>.CreateInit(initialState);
     }
 
     protected EventBuilder<TBuilder, TStateKey, TEventKey> On<TBuilder>(TBuilder builder, TEventKey eventKey) 
         where TBuilder : class {
         Action<EventBuilder<TBuilder,TStateKey,TEventKey>> onBuild = c => {
             if (c.Execute != null) {
-                AddEvent(eventKey, new Event<TStateKey, TEventKey>(c.EventKey, c.Execute));
+                AddEventRule(eventKey, new EventRule<TStateKey, TEventKey>(c.Execute));
             } else {
-                AddEvent(eventKey, new Event<TStateKey, TEventKey>(c.EventKey, c.Result));
+                AddEventRule(eventKey, new EventRule<TStateKey, TEventKey>(c.Result));
             }
         };
         return new EventBuilder<TBuilder, TStateKey, TEventKey>(
             builder, eventKey, onBuild);
     }
 
-    public void AddEvent(TEventKey eventKey, Event<TStateKey, TEventKey> @event) {
-        Events ??= new Dictionary<TEventKey, Event<TStateKey, TEventKey>>();
-        Events[eventKey] = @event;
+    public void AddEventRule(TEventKey eventKey, EventRule<TStateKey, TEventKey> eventRule) {
+        EventRules ??= new Dictionary<TEventKey, EventRule<TStateKey, TEventKey>>();
+        EventRules[eventKey] = eventRule;
     }
 
     public event Action<TransitionArgs<TStateKey>>? OnEnter;
@@ -88,20 +81,24 @@ public abstract class BaseStateMachine<TStateKey, TEventKey, TState> : StateMach
     public event Action<TransitionArgs<TStateKey>>? OnSuspend;
     public event Action<TransitionArgs<TStateKey>>? OnExit;
     public event Action<TransitionArgs<TStateKey>>? OnTransition;
-    public event Action? OnBeforeExecute;
-    public event Action? OnAfterExecute;
+    public event Action? OnBefore;
+    public event Action? OnAfter;
 
     public void AddState(TState state) {
         if (States.ContainsKey(state.Key)) throw new DuplicateNameException();
         States[state.Key] = state;
-        if (EqualityComparer<TStateKey>.Default.Equals(state.Key, InitialState)) CurrentState = state;
+        if (CurrentState == null && 
+            NextCommand.IsInit() &&
+            NextCommand.IsState(state.Key)) {
+            CurrentState = state;
+        }
     }
 
-    public void Send(TEventKey name, int weight = 0) {
-        if (weight >= PendingEventWeight) {
-            PendingEvent = name;
-            HasPendingEvent = true;
-            PendingEventWeight = weight;
+    public void Send(TEventKey eventKey, int weight = 0) {
+        if (NextCommand.IsInit())
+            throw new InvalidOperationException("StateMachine not initialized. Please, execute it at least once before start sending events");
+        if (!NextCommand.IsSendEvent() || weight >= NextCommand.Weight) {
+            NextCommand = Command<TStateKey, TEventKey>.CreateSendEvent(eventKey, weight);
         }
     }
 
@@ -111,40 +108,53 @@ public abstract class BaseStateMachine<TStateKey, TEventKey, TState> : StateMach
             : throw new KeyNotFoundException($"State {stateKey} not found. Please add it to the StateMachine");
     }
 
-    protected Change CreateChange(ref Command<TStateKey, TEventKey> candidate) {
-        if (CurrentState != null && candidate.IsSet(CurrentState.Key)) {
-            return NoChange;
+
+    protected Change GetChangeFromNextCommand() {
+        if (CurrentState == null) {
+            throw new KeyNotFoundException("Initial State not found: " + NextCommand.StateKey);
         }
-        if (candidate.IsPop()) {
+        FollowNextCommand();
+
+        if (NextCommand.IsStayOrSet(CurrentState.Key)) {
+            return new Change(CurrentState, CommandType.Stay);
+        }
+        
+        if (NextCommand.IsPop()) {
             if (Stack.Count <= 1) {
-                throw new InvalidOperationException("Can't pop state: stack empty");
+                throw new InvalidOperationException("Command Pop error: stack is empty");
             }
             var o = Stack.Pop();
             var change = new Change(Stack.Peek(), CommandType.Pop);
             Stack.Push(o);
             return change;
         }
-        if (candidate.IsNone()) {
-            return NoChange;
-        }
-        TState newState = FindState(candidate.StateKey);
-        return new Change(newState, candidate.Type);
+        
+        // Init, Push, PopPush or Set to a different state than current state 
+        TState newState = FindState(NextCommand.StateKey);
+        return new Change(newState, NextCommand.Type);
     }
 
-
-    protected void ConsumeEvent(TEventKey name, out Command<TStateKey, TEventKey> command) {
-        HasPendingEvent = false;
-        PendingEventWeight = -1;
-        if (CurrentState?.Events != null && CurrentState.Events.TryGetValue(name, out var @event)) {
-            command = @event.GetResult(EventContext);
-            return;
+    private void FollowNextCommand() {
+        if (NextCommand.IsSendEvent()) {
+            if (CurrentState.TryGetEventRule(NextCommand.EventKey, out var eventRule)) {
+                NextCommand = eventRule.GetResult(CommandContext);
+            } else if (EventRules != null &&
+                       EventRules.TryGetValue(NextCommand.EventKey, out eventRule)) {
+                NextCommand = eventRule.GetResult(CommandContext);
+            } else {
+                ThrowEventNotFound(NextCommand.EventKey);
+            }
         }
-        if (Events != null && Events.TryGetValue(name, out @event)) {
-            command = @event.GetResult(EventContext);
-            return;
+        // It could the next command from the previous execution, or the result of an event returning Stay... TODO test this case
+        if (NextCommand.IsStayOrSet(CurrentState.Key)) {
+            // Find again between all If() conditions and set a new next command (or stay if no conditions) 
+            CurrentState.EvaluateConditions(CommandContext, out NextCommand);
         }
-        throw new KeyNotFoundException($"Event {name} not found. Please add it to the StateMachine");
     }
+
+    private static void ThrowEventNotFound(TEventKey eventKey) =>
+        throw new KeyNotFoundException($"Event {eventKey} not found. Please add it to the StateMachine");
+
 
     protected void TransitionEvent(TState? from, TState to) {
         if (from != null && from != to) OnTransition?.Invoke(new TransitionArgs<TStateKey>(from.Key, to.Key));
@@ -167,11 +177,11 @@ public abstract class BaseStateMachine<TStateKey, TEventKey, TState> : StateMach
     }
 
     protected void BeforeExecute() {
-        OnBeforeExecute?.Invoke();
+        OnBefore?.Invoke();
     }
 
     protected void AfterExecute() {
-        OnAfterExecute?.Invoke();
+        OnAfter?.Invoke();
     }
 
     public void Dispose() {

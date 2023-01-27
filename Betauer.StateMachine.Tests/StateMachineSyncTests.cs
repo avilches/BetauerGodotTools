@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Betauer.StateMachine.Sync;
 using Betauer.TestRunner;
+using Godot;
 using NUnit.Framework;
 using NullReferenceException = System.NullReferenceException;
 
@@ -27,7 +28,7 @@ namespace Betauer.StateMachine.Tests {
             End,
             NotFound
         }
-        enum Trans {
+        enum Event {
             Settings,
             MainMenu,
             Audio,
@@ -43,10 +44,10 @@ namespace Betauer.StateMachine.Tests {
         }
         [Test(Description = "Constructor")]
         public void StateMachineConstructorsEnum() {
-            var sm1 = new StateMachineSync<State, Trans>(State.A, "X");
+            var sm1 = new StateMachineSync<State, Event>(State.A, "X");
             Assert.That(sm1.Name, Is.EqualTo("X"));
 
-            var sm3 = new StateMachineSync<State, Trans>(State.A);
+            var sm3 = new StateMachineSync<State, Event>(State.A);
             Assert.That(sm3.Name, Is.Null);
         }
             
@@ -55,7 +56,7 @@ namespace Betauer.StateMachine.Tests {
          */
         [Test(Description = "InitialState not found on start")]
         public void WrongStartStates() {
-            var sm = new StateMachineSync<State, Trans>(State.Global);
+            var sm = new StateMachineSync<State, Event>(State.Global);
             sm.State(State.A).Build();
 
             // Start state Global not found
@@ -66,7 +67,7 @@ namespace Betauer.StateMachine.Tests {
         
         [Test(Description = "IsState")]
         public void IsStateTests() {
-            var sm = new StateMachineSync<State, Trans>(State.Global);
+            var sm = new StateMachineSync<State, Event>(State.Global);
             sm.State(State.Global).Build();
             
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Global));
@@ -74,72 +75,61 @@ namespace Betauer.StateMachine.Tests {
             Assert.That(sm.IsState(State.Settings), Is.False);
         }
         
-        [Test(Description = "A wrong InitialState can be avoided triggering a transition")]
-        public void WrongStartWithTriggering() {
-            var sm = new StateMachineSync<State, Trans>(State.Global);
-            sm.On(Trans.Audio).Then(context => context.Set(State.Audio));
+        [Test(Description = "Event are not allowed before initialize")]
+        public void EventsAreNotAllowedBeforeInitialize() {
+            var sm = new StateMachineSync<State, Event>(State.Audio);
+            sm.On(Event.Audio).Stay();
             sm.State(State.Audio).Build();
 
-            sm.Send(Trans.Audio);
-            sm.Execute();
-            Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Audio));
-            Assert.That(sm.IsState(State.Audio), Is.True);
-            Assert.That(sm.IsState(State.Global), Is.False);
+            Assert.Throws<InvalidOperationException>(() => sm.Send(Event.Audio));
         }
         
-        [Test(Description = "Error when a state changes to a not found state: Replace")]
+        [Test(Description = "Error when a state changes to a not found state")]
+        public void WrongStatesUnknownStateThenSet() {
+            var sm = new StateMachineSync<State, Event>(State.A);
+            var thenEvaluated = false;
+            sm.State(State.A).If(() => true).Then(context => {
+                thenEvaluated = true;
+                return context.Set(State.Debug);
+            }).Build();
+
+            sm.Execute();
+            Assert.That(thenEvaluated, Is.True);
+            Assert.Throws<KeyNotFoundException>(() => sm.Execute());
+        }
+
+        [Test(Description = "Error when a state changes to a not found state")]
         public void WrongStatesUnknownStateSet() {
-            var sm = new StateMachineSync<State, Trans>(State.A);
-            sm.State(State.A).If(() => true).Then(context => context.Set(State.Debug)).Build();
+            var sm = new StateMachineSync<State, Event>(State.A);
+            sm.State(State.A).If(() => true).Set(State.Debug).Build();
 
+            sm.Execute();
             Assert.Throws<KeyNotFoundException>(() => sm.Execute());
         }
 
-        [Test(Description = "Error when a state changes to a not found state: PopPush")]
-        public void WrongStatesUnknownStatePushPop() {
-            var sm = new StateMachineSync<State, Trans>(State.A);
-            sm.State(State.A).If(() => true).Then(context => context.PopPush(State.NotFound)).Build();
-
-            Assert.Throws<KeyNotFoundException>(() => sm.Execute());
-        }
-
-        [Test(Description = "Error when a state changes to a not found state: Push")]
-        public void WrongStatesUnknownStatePushPush() {
-            var sm = new StateMachineSync<State, Trans>(State.A);
-            sm.State(State.A).If(() => true).Then(context => context.Push(State.NotFound)).Build();
-
-            Assert.Throws<KeyNotFoundException>(() => sm.Execute());
-        }
-
-        [Test(Description = "Error when a state triggers a not found transition")]
-        public void WrongStatesTriggerUnknownTransition() {
-            var sm = new StateMachineSync<State, Trans>(State.A);
-            sm.State(State.A).If(() => true).Then(context => context.Trigger(Trans.NotFound)).Build();
-
-            Assert.Throws<KeyNotFoundException>(() => sm.Execute());
-        }
-
-        [Test(Description = "Error not found transition")]
-        public void WrongUnknownTransition() {
-            var sm = new StateMachineSync<State, Trans>(State.A);
+        [Test(Description = "Error not found event")]
+        public void EventNotFound() {
+            var sm = new StateMachineSync<State, Event>(State.A);
             sm.State(State.A).Build();
 
-            sm.Send(Trans.NotFound);
+            sm.Execute();
+            sm.Send(Event.NotFound);
             Assert.Throws<KeyNotFoundException>(() => sm.Execute());
         }
 
         [Test(Description = "Error when a state pop in an empty stack")]
         public void WrongStatesPopWhenEmptyStack() {
-            var sm = new StateMachineSync<State, Trans>(State.A);
+            var sm = new StateMachineSync<State, Event>(State.A);
             sm.State(State.A).If(() => true).Then(context => context.Pop()).Build();
 
             // State ends with a wrong state
+            sm.Execute();
             Assert.Throws<InvalidOperationException>(() => sm.Execute());
         }
         
         [Test(Description = "Pop the same state in the stack is allowed")]
         public void PopSameStateInTheStackIsAllowed() {
-            var sm = new StateMachineSync<State, Trans>(State.A);
+            var sm = new StateMachineSync<State, Event>(State.A);
             sm.State(State.A).If(() => true).Then(context => context.Push(State.A)).Build();
 
             sm.Execute();
@@ -152,10 +142,9 @@ namespace Betauer.StateMachine.Tests {
             Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A, State.A , State.A }));
         }
         
-
         [Test(Description = "Multiple if are loaded in order")]
         public void Ifs() {
-            var sm = new StateMachineSync<State, Trans>(State.A);
+            var sm = new StateMachineSync<State, Event>(State.A);
             var x = 0;
             sm.State(State.A)
                 .If(() => {
@@ -187,7 +176,7 @@ namespace Betauer.StateMachine.Tests {
          */
         [Test(Description = "If with Set result")]
         public void IfSetResult() {
-            var sm = new StateMachineSync<State, Trans>(State.A);
+            var sm = new StateMachineSync<State, Event>(State.A);
             sm.State(State.A).If(() => true).Set(State.Debug).Build();
             sm.State(State.Debug).Build();
             sm.Execute();
@@ -198,7 +187,7 @@ namespace Betauer.StateMachine.Tests {
 
         [Test(Description = "If with Push, PopPush and Pop result")]
         public void IfPushPopPushResult() {
-            var sm = new StateMachineSync<State, Trans>(State.A);
+            var sm = new StateMachineSync<State, Event>(State.A);
             sm.State(State.A).If(() => true).Push(State.Debug).Build();
             sm.State(State.Debug).If(() => true).PopPush(State.MainMenu).Build();
             sm.State(State.MainMenu).If(() => true).Pop().Build();
@@ -214,8 +203,8 @@ namespace Betauer.StateMachine.Tests {
 
         [Test(Description = "If with none result")]
         public void IfNoneResult() {
-            var sm = new StateMachineSync<State, Trans>(State.A);
-            sm.State(State.A).If(() => true).None().Build();
+            var sm = new StateMachineSync<State, Event>(State.A);
+            sm.State(State.A).If(() => true).Stay().Build();
             sm.Execute();
             Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A }));
             sm.Execute();
@@ -227,23 +216,23 @@ namespace Betauer.StateMachine.Tests {
          */
         [Test(Description = "Transition with Set result")]
         public void TransitionSetResult() {
-            var sm = new StateMachineSync<State, Trans>(State.A);
-            sm.On(Trans.Debug).Set(State.Debug);
+            var sm = new StateMachineSync<State, Event>(State.A);
+            sm.On(Event.Debug).Set(State.Debug);
             sm.State(State.A).Build();
             sm.State(State.Debug).Build();
             sm.Execute();
             Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A }));
-            sm.Send(Trans.Debug);
+            sm.Send(Event.Debug);
             sm.Execute();
             Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.Debug }));
         }
 
         [Test(Description = "Transition with Push, PopPush and Pop result")]
         public void TransitionPushPopPushResult() {
-            var sm = new StateMachineSync<State, Trans>(State.A);
-            sm.On(Trans.Start).Push(State.Debug);
-            sm.On(Trans.MainMenu).PopPush(State.MainMenu);
-            sm.On(Trans.End).Pop();
+            var sm = new StateMachineSync<State, Event>(State.A);
+            sm.On(Event.Start).Push(State.Debug);
+            sm.On(Event.MainMenu).PopPush(State.MainMenu);
+            sm.On(Event.End).Pop();
             sm.State(State.A).Build();
             sm.State(State.Debug).Build();
             sm.State(State.MainMenu).Build();
@@ -251,15 +240,15 @@ namespace Betauer.StateMachine.Tests {
             sm.Execute();
             Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A }));
 
-            sm.Send(Trans.Start);
+            sm.Send(Event.Start);
             sm.Execute();
             Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A, State.Debug }));
             
-            sm.Send(Trans.MainMenu);
+            sm.Send(Event.MainMenu);
             sm.Execute();
             Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A, State.MainMenu }));
 
-            sm.Send(Trans.End);
+            sm.Send(Event.End);
             sm.Execute();
             Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A }));
         }
@@ -267,13 +256,14 @@ namespace Betauer.StateMachine.Tests {
         [Test(Description = "Transition with none result")]
         // State transitions have more priority than global transitions. So, override a global with a local None will disable it
         public void TransitionNoneResult() {
-            var sm = new StateMachineSync<State, Trans>(State.Start);
+            var sm = new StateMachineSync<State, Event>(State.Start);
 
-            sm.On(Trans.Global).Set(State.Global);
+            sm.On(Event.Global).Set(State.Global);
             sm.State(State.Start)
-                .On(Trans.Global).None().Build();
+                .On(Event.Global).Stay().Build();
             
-            sm.Send(Trans.Global);
+            sm.Execute();
+            sm.Send(Event.Global);
             sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Start));
         }
@@ -283,7 +273,7 @@ namespace Betauer.StateMachine.Tests {
          */
         [Test(Description = "Regular changes between root states inside state.Execute()")]
         public void StateMachinePlainFlow() {
-            var sm = new StateMachineSync<State, Trans>(State.Idle);
+            var sm = new StateMachineSync<State, Event>(State.Idle);
 
             var x = 0;
             List<string> states = new List<string>();
@@ -298,7 +288,7 @@ namespace Betauer.StateMachine.Tests {
                     states.Add("IdleExecute(" + x + ")");
                 })
                 .If(() => x == 2).Then(context => context.Set(State.Jump))
-                .If(() => true).Then(context => context.None())
+                .If(() => true).Then(context => context.Stay())
                 .Build();
 
             sm.State(State.Jump)
@@ -354,11 +344,11 @@ namespace Betauer.StateMachine.Tests {
 
         [Test(Description = "Ignore events with lower weight")]
         public void SendEventWeight() {
-            var sm = new StateMachineSync<State, Trans>(State.Start);
+            var sm = new StateMachineSync<State, Event>(State.Start);
 
-            sm.On(Trans.Global).Then(context => context.Set(State.Global));
-            sm.On(Trans.Local).Then(context => context.Set(State.Local));
-            sm.On(Trans.Start).Then(context => context.Set(State.Start));
+            sm.On(Event.Global).Then(context => context.Set(State.Global));
+            sm.On(Event.Local).Then(context => context.Set(State.Local));
+            sm.On(Event.Start).Then(context => context.Set(State.Start));
             sm.State(State.Start).Build();
             sm.State(State.Global).Build();
             sm.State(State.Local).Build();
@@ -366,114 +356,117 @@ namespace Betauer.StateMachine.Tests {
             sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Start));
             
-            sm.Send(Trans.Start, 10);
-            sm.Send(Trans.Local, 9);
-            sm.Send(Trans.Global);
+            sm.Send(Event.Start, 10);
+            sm.Send(Event.Local, 9);
+            sm.Send(Event.Global);
             sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Start));
             
-            sm.Send(Trans.Local);
-            sm.Send(Trans.Global);
+            sm.Send(Event.Local);
+            sm.Send(Event.Global);
             sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Global));
         }
 
-        [Test(Description = "State transitions have more priority than global transitions")]
-        public void StateTransitionTrigger() {
-            var sm = new StateMachineSync<State, Trans>(State.Start);
+        [Test(Description = "State events have more priority than global events")]
+        public void StateEventsVsGlobalEvents() {
+            var sm = new StateMachineSync<State, Event>(State.Start);
 
-            sm.State(State.Start).On(Trans.Local).Then(context => context.Push(State.Local)).Build();
-            sm.On(Trans.Global).Then(context => context.Set(State.Global));
-            sm.On(Trans.Local).Then(context => context.Set(State.Global));
+            sm.State(State.Start).On(Event.Local).Then(context => context.Push(State.Local)).Build();
+            sm.On(Event.Global).Then(context => context.Set(State.Global));
+            sm.On(Event.Local).Then(context => context.Set(State.Global));
             sm.State(State.Global).Build();
             sm.State(State.Local).Build();
 
             sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Start));
             
-            sm.Send(Trans.Local);
+            sm.Send(Event.Local);
             sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Local));
             
-            sm.Send(Trans.Global);
+            sm.Send(Event.Global);
             sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Global));
             
-            sm.Send(Trans.Local);
+            sm.Send(Event.Local);
             sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Global));
 
         }
 
-        [Test(Description = "Transition calls inside execute has higher priority than the condition result returned")]
-        public void TransitionTriggerInsideExecute() {
-            var sm = new StateMachineSync<State, Trans>(State.Start);
+        [Test(Description = "Event calls inside execute are ignored")]
+        public void SendEventInsideExecuteIsIgnored() {
+            var sm = new StateMachineSync<State, Event>(State.Start);
 
-            sm.State(State.Start).Execute(() => {
-                sm.Send(Trans.NotFound); // IGNORED!!
-                sm.Send(Trans.Settings);
+            sm.State(State.Start).On(Event.MainMenu).Set(State.MainMenu).Build();
+            sm.Execute();
+
+            sm.State(State.MainMenu).Execute(() => {
+                sm.Send(Event.Settings); // this is overwritten by the If(() => true).Then()
             })
-            .If(() => true).Then(context => context.Push(State.Audio)) // IGNORED!!
+            .If(() => true).Then(context => context.Push(State.Audio))
             .Build();
             sm.State(State.Audio).Build();
             sm.State(State.Settings).Build();
                 
-            sm.On(Trans.Settings).Then(context => context.Set(State.Settings));
-
+            sm.On(Event.Settings).Then(context => context.Set(State.Settings));
+            
+            sm.Send(Event.MainMenu);
             sm.Execute();
-            Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Start));
+            Assert.That(sm.CurrentState.Key, Is.EqualTo(State.MainMenu));
             // The second execution has scheduled the 
             sm.Execute();
-            Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Settings));
+            Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Audio));
         }
 
         [Test(Description = "Changes using stateMachine change methods")]
-        public void TransitionTrigger() {
-            var sm = new StateMachineSync<State, Trans>(State.Audio);
+        public void SendEvent() {
+            var sm = new StateMachineSync<State, Event>(State.Audio);
 
             sm.State(State.Debug).Build();
-            sm.State(State.MainMenu).On(Trans.Audio).Then(context => context.Push(State.Audio)).Build();
-            sm.State(State.Settings).On(Trans.Back).Then(context => context.Set(State.MainMenu)).Build();
-            sm.State(State.Audio).On(Trans.Back).Then(context => context.Pop()).Build();
-            sm.On(Trans.Restart).Then(context => context.Set(State.MainMenu));
-            sm.On(Trans.Settings).Then(context => context.Set(State.Settings));
-            sm.On(Trans.MainMenu).Then(context => context.Set(State.MainMenu));
+            sm.State(State.MainMenu).On(Event.Audio).Then(context => context.Push(State.Audio)).Build();
+            sm.State(State.Settings).On(Event.Back).Then(context => context.Set(State.MainMenu)).Build();
+            sm.State(State.Audio).On(Event.Back).Then(context => context.Pop()).Build();
+            sm.On(Event.Restart).Then(context => context.Set(State.MainMenu));
+            sm.On(Event.Settings).Then(context => context.Set(State.Settings));
+            sm.On(Event.MainMenu).Then(context => context.Set(State.MainMenu));
 
             // Global event
             sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Audio));
-            sm.Send(Trans.Restart);
+            sm.Send(Event.Restart);
             sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.MainMenu));
             
             // State event
-            sm.Send(Trans.Settings);
+            sm.Send(Event.Settings);
             sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Settings));
-            sm.Send(Trans.Back);
+            sm.Send(Event.Back);
             sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.MainMenu));
 
             // State event: pop
-            sm.Send(Trans.MainMenu);
+            sm.Send(Event.MainMenu);
             sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.MainMenu));
-            sm.Send(Trans.Audio);
+            sm.Send(Event.Audio);
             sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Audio));
             Assert.That(sm.GetStack(), Is.EqualTo(new [] {State.MainMenu, State.Audio}));
-            sm.Send(Trans.Back);
+            sm.Send(Event.Back);
             sm.Execute();
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.MainMenu));
         }
 
 
         [Test]
-        public async Task EnterOnPushExitOnPopSuspendAwakeListener() {
-            var sm = new StateMachineSync<State, Trans>(State.Debug);
+        public void EnterOnPushExitOnPopSuspendAwakeListener() {
+            var sm = new StateMachineSync<State, Event>(State.Debug);
 
-            sm.On(Trans.Settings).Then(context => context.Push(State.Settings));
-            sm.On(Trans.Back).Then(context => context.Pop());
+            sm.On(Event.Settings).Then(context => context.Push(State.Settings));
+            sm.On(Event.Back).Then(context => context.Pop());
             sm.State(State.MainMenu).Build();
             sm.State(State.Debug).Build();
             sm.State(State.Settings).Build();
@@ -487,9 +480,9 @@ namespace Betauer.StateMachine.Tests {
             
             
             sm.Execute();
-            sm.Send(Trans.Settings); 
+            sm.Send(Event.Settings); 
             sm.Execute();
-            sm.Send(Trans.Back);
+            sm.Send(Event.Back);
             sm.Execute();
             // Test listener
             Console.WriteLine(string.Join(",", states));
@@ -509,26 +502,26 @@ namespace Betauer.StateMachine.Tests {
 
         [Test]
         public void EnterOnPushExitOnPopSuspendAwakeEventsOrder() {
-            var sm = new StateMachineSync<State, Trans>(State.Debug);
+            var sm = new StateMachineSync<State, Event>(State.Debug);
             
             List<string> states = new List<string>();
 
-            sm.On(Trans.Debug).Then(context => context.Set(State.Debug));
+            sm.On(Event.Debug).Then(context => context.Set(State.Debug));
             sm.State(State.Debug)
                 .Awake(() => states.Add("Debug:awake"))
                 .Enter(() => states.Add("Debug:enter"))
                 .Execute(() => states.Add("Debug"))
-                .If(() => true).Then(context => context.None())
+                .If(() => true).Then(context => context.Stay())
                 .Suspend(() => states.Add("Debug:suspend"))
                 .Exit(() => states.Add("Debug:exit"))
                 .Build();
 
-            sm.On(Trans.MainMenu).Then(context => context.Set(State.MainMenu));
+            sm.On(Event.MainMenu).Then(context => context.Set(State.MainMenu));
             sm.State(State.MainMenu)
                 .Awake(() => states.Add("MainMenu:awake"))
                 .Enter(() => states.Add("MainMenu:enter"))
                 .Execute(() => states.Add("MainMenu"))
-                .If(() => true).Then(context => context.None())
+                .If(() => true).Then(context => context.Stay())
                 .Suspend(() => states.Add("MainMenu:suspend"))
                 .Exit(()=>{
                     states.Add("MainMenu:exit");
@@ -536,14 +529,14 @@ namespace Betauer.StateMachine.Tests {
                 .Build();
                 
             
-            sm.On(Trans.Settings).Then(context => context.Push(State.Settings));
+            sm.On(Event.Settings).Then(context => context.Push(State.Settings));
             sm.State(State.Settings)
-                .On(Trans.Audio).Then(context => context.Push(State.Audio))
-                .On(Trans.Back).Then(context => context.Pop())
+                .On(Event.Audio).Then(context => context.Push(State.Audio))
+                .On(Event.Back).Then(context => context.Pop())
                 .Awake(() => states.Add("Settings:awake"))
                 .Enter(() => states.Add("Settings:enter"))
                 .Execute(() => states.Add("Settings"))
-                .If(() => true).Then(context => context.None())
+                .If(() => true).Then(context => context.Stay())
                 .Suspend(() => states.Add("Settings:suspend"))
                 .Exit(() =>{
                     states.Add("Settings:exit");
@@ -552,12 +545,12 @@ namespace Betauer.StateMachine.Tests {
                 
             
             sm.State(State.Audio)
-                .On(Trans.Video).Then(context => context.PopPush(State.Video))
-                .On(Trans.Back).Then(context => context.Pop())
+                .On(Event.Video).Then(context => context.PopPush(State.Video))
+                .On(Event.Back).Then(context => context.Pop())
                 .Awake(() => states.Add("Audio:awake"))
                 .Enter(() => states.Add("Audio:enter"))
                 .Execute(() => states.Add("Audio"))
-                .If(() => true).Then(context => context.None())
+                .If(() => true).Then(context => context.Stay())
                 .Suspend(() => states.Add("Audio:suspend"))
                 .Exit(()=>{
                     states.Add("Audio:exit");
@@ -566,33 +559,33 @@ namespace Betauer.StateMachine.Tests {
                 
 
             sm.State(State.Video)
-                .On(Trans.Back).Then(context => context.Pop())
+                .On(Event.Back).Then(context => context.Pop())
                 .Awake(() => states.Add("Video:awake"))
                 .Enter(() => states.Add("Video:enter"))
                 .Execute(() => states.Add("Video"))
-                .If(() => true).Then(context => context.None())
+                .If(() => true).Then(context => context.Stay())
                 .Suspend(() => states.Add("Video:suspend"))
                 .Exit(() => states.Add("Video:exit"))
                 .Build();
             
             sm.Execute();
             Console.WriteLine(string.Join(",", states));
-            sm.Send(Trans.MainMenu);
+            sm.Send(Event.MainMenu);
             sm.Execute();
             Console.WriteLine(string.Join(",", states));
-            sm.Send(Trans.Settings);
+            sm.Send(Event.Settings);
             sm.Execute();
             Console.WriteLine(string.Join(",", states));
-            sm.Send(Trans.Audio);
+            sm.Send(Event.Audio);
             sm.Execute();
             Console.WriteLine(string.Join(",", states));
-            sm.Send(Trans.Video);
+            sm.Send(Event.Video);
             sm.Execute();
             Console.WriteLine(string.Join(",", states));
-            sm.Send(Trans.Back);
+            sm.Send(Event.Back);
             sm.Execute();
             Console.WriteLine(string.Join(",", states));
-            sm.Send(Trans.Back);
+            sm.Send(Event.Back);
             sm.Execute();
             Console.WriteLine(string.Join(",", states));
             Assert.That(string.Join(",", states), Is.EqualTo(
@@ -606,13 +599,13 @@ namespace Betauer.StateMachine.Tests {
             
             // Test multiple exits when more than one state is in the stack and change is Replace instead of Pop
             states.Clear();
-            sm.Send(Trans.Settings);
+            sm.Send(Event.Settings);
             sm.Execute();
             Console.WriteLine(string.Join(",", states));
-            sm.Send(Trans.Audio);
+            sm.Send(Event.Audio);
             sm.Execute();
             Console.WriteLine(string.Join(",", states));
-            sm.Send(Trans.Debug);
+            sm.Send(Event.Debug);
             sm.Execute();
             Console.WriteLine(string.Join(",", states));
             Assert.That(string.Join(",", states), Is.EqualTo(
@@ -626,87 +619,66 @@ namespace Betauer.StateMachine.Tests {
         }
 
         [Test]
-        public void ErrorChangingState() {
-            var sm = new StateMachineSync<State, Trans>(State.Start);
+        public void ErrorInEnter() {
+            var sm = new StateMachineSync<State, Event>(State.Start);
 
-            List<string> states = new List<string>();
-            var throws = 0;
-            sm.On(Trans.Debug).Then(context => context.Set(State.Debug));
-            sm.State(State.Debug)
+            var steps = 0;
+            sm.State(State.Start)
                 .Enter(() => {
-                    throws++;                    
+                    steps++;
                     throw new NullReferenceException();
                 })
-                .Execute(() => states.Add("Debug:Execute"))
+                .Execute(() => steps++)
                 .If(() => true).Then(ctx => ctx.Set(State.End))
                 .Build();
 
-            sm.On(Trans.MainMenu).Then(context => context.Set(State.MainMenu));
-            sm.State(State.MainMenu)
-                .Enter(() => states.Add("MainMenu:Enter"))
-                .Execute(() => {
-                    throws++;                    
-                    throw new NullReferenceException();
-                })
-                .Build();
-
-            sm.On(Trans.Global).Then(context => context.Set(State.Global));
-            sm.State(State.Global)
-                .Enter(() => states.Add("Global:Enter"))
-                .Execute(() => states.Add("Global:Execute"))
-                .If(() => true).Then(ctx => ctx.Set(State.End))
-                .Exit(() => {
-                    throws++;                    
-                    throw new NullReferenceException();
-                })
-                .Build();
-
-            sm.On(Trans.End).Then(context => context.Set(State.End));
-            sm.State(State.Start).Build();
-            sm.State(State.End).Build();
-            
-            // 1-Error when state machine is not initialized
-            sm.Send(Trans.Debug);
             Assert.Throws<NullReferenceException>(() => sm.Execute());
-            // It returns to non-initialized state (state = null)
-            Assert.That(throws, Is.EqualTo(1));
-            throws = 0;
-
-            // Run again, the SM enters in the initial state "Start"
-            sm.Execute();
-            Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Start));
-            Assert.That(throws, Is.EqualTo(0));
-
-            // 2-Error when state machine has state. Error in Enter
-            sm.Send(Trans.Debug);
-            Assert.Throws<NullReferenceException>(() => sm.Execute());
-            // It returns to Start state
-            Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Start));
-            Assert.That(throws, Is.EqualTo(1));
-            throws = 0;
-
-            // 3-Error when state machine has state. Error in Execute
-            sm.Send(Trans.MainMenu);
-            Assert.Throws<NullReferenceException>(() => sm.Execute());
-            // It returns to Start state
-            Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Start));
-            Assert.That(throws, Is.EqualTo(1));
-            throws = 0;
-
-            // 4-Error when state machine has state. Error in Exit
-            sm.Send(Trans.Global);
-            sm.Execute();
-            sm.Send(Trans.End);
-            Assert.Throws<NullReferenceException>(() => sm.Execute());
-            // It returns to Start state
-            Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Global));
-            Assert.That(throws, Is.EqualTo(1));
-            throws = 0;
-
-            Assert.That(string.Join(",", states), Is.EqualTo(
-                "MainMenu:Enter,Global:Enter,Global:Execute"));
-
+            Assert.That(steps, Is.EqualTo(1));
         }
+        
+        [Test]
+        public void ErrorInExecute() {
+            var sm = new StateMachineSync<State, Event>(State.Start);
 
+            var steps = 0;
+            sm.State(State.Start)
+                .Enter(() => {
+                    steps++;
+                })
+                .Execute(() => {
+                    steps++;
+                    throw new NullReferenceException();
+                })
+                .If(() => true).Then(ctx => ctx.Set(State.End))
+                .Build();
+
+            Assert.Throws<NullReferenceException>(() => sm.Execute());
+            Assert.That(steps, Is.EqualTo(2));
+        }
+        
+        [Test]
+        public void ErrorInExit() {
+            var sm = new StateMachineSync<State, Event>(State.Start);
+
+            var steps = 0;
+            sm.State(State.Start)
+                .Enter(() => {
+                    steps++;
+                })
+                .Execute(() => {
+                    steps++;
+                })
+                .Exit(() => {
+                    steps++;
+                    throw new NullReferenceException();
+                })
+                .If(() => true).Then(ctx => ctx.Set(State.End))
+                .Build();
+            sm.State(State.End).Build(); 
+
+            sm.Execute();
+            Assert.Throws<NullReferenceException>(() => sm.Execute());
+            Assert.That(steps, Is.EqualTo(3));
+        }
     }
 }
