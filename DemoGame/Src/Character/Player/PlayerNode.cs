@@ -342,8 +342,8 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			.If(() => Jump.IsJustPressed() && Attack.IsJustPressed()).Set(PlayerState.JumpingAttack)
 			.If(() => Jump.IsJustPressed() && CanJump()).Set(PlayerState.Jumping)
 			.If(() => Attack.IsJustPressed()).Set(PlayerState.Attacking)	
-			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.Fall)
 			.If(() => XInput != 0).Set(PlayerState.Running)
+			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.Fall)
 			.Build();
 
 		State(PlayerState.Running)
@@ -372,8 +372,8 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			.If(() => Jump.IsJustPressed() && Attack.IsJustPressed()).Set(PlayerState.Jumping)
 			.If(() => Attack.IsJustPressed()).Set(PlayerState.Attacking)
 			.If(() => Jump.IsJustPressed() && CanJump()).Set(PlayerState.Jumping)
-			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.FallWithCoyote)
 			.If(() => XInput == 0 && MotionX == 0).Set(PlayerState.Idle)
+			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.FallWithCoyote)
 			.Build();
 
 		var attackingTime = 0d;
@@ -401,9 +401,9 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			})
 			.Exit(() => Logger.Debug("Attack time "+attackingTime))
 			.If(() => attackState != AttackState.None).Stay()
-			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.FallWithCoyote)
 			.If(() => XInput == 0).Set(PlayerState.Idle)
 			.If(() => XInput != 0).Set(PlayerState.Running)
+			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.FallWithCoyote)
 			.Build();
 		
 		State(PlayerState.JumpingAttack)
@@ -434,8 +434,8 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			})
 			.If(() => Attack.IsJustPressed()).Set(PlayerState.FallingAttack)
 			.If(() => Float.IsJustPressed()).Set(PlayerState.Floating)
-			.If(() => PlatformBody.IsOnFloor()).Set(PlayerState.Landing)
 			.If(() => MotionY >= 0).Set(PlayerState.Fall)
+			.If(() => PlatformBody.IsOnFloor()).Set(PlayerState.Landing)
 			.Build();
 
 		State(PlayerState.FallingAttack)
@@ -461,9 +461,9 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				}
 			})
 			.If(() => attackState != AttackState.None).Stay()
-			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.Fall)
 			.If(() => XInput == 0).Set(PlayerState.Idle)
 			.If(() => XInput != 0).Set(PlayerState.Running)
+			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.Fall)
 			.Build();
 
 		var coyoteTimer = new GodotStopwatch();
@@ -480,8 +480,8 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			.If(() => Attack.IsJustPressed()).Set(PlayerState.FallingAttack)
 			.If(() => Jump.IsJustPressed() && CanJump()).Set(PlayerState.Jumping)
 			.If(() => Float.IsJustPressed()).Set(PlayerState.Floating)
-			.If(() => PlatformBody.IsOnFloor()).Set(PlayerState.Landing)
 			.If(() => coyoteTimer.IsAlarm()).Set(PlayerState.Fall)
+			.If(() => PlatformBody.IsOnFloor()).Set(PlayerState.Landing)
 			.Build();
 
 		OnTransition += (args) => {
@@ -528,9 +528,9 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				ApplyAirGravity();
 			})
 			.If(() => AnimationHurt.Playing).Stay()
-			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.Fall)
 			.If(() => XInput == 0).Set(PlayerState.Idle)
 			.If(() => XInput != 0).Set(PlayerState.Running)
+			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.Fall)
 			.Exit(() => {
 				Status.UnderAttack = false;
 				_weaponSprite.Visible = weaponSpriteVisible;
