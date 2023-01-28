@@ -94,8 +94,8 @@ namespace Betauer.StateMachine.Tests {
             }).Build();
 
             await sm.Execute();
-            Assert.That(thenEvaluated, Is.True);
             Assert.ThrowsAsync<KeyNotFoundException>(async () => await sm.Execute());
+            Assert.That(thenEvaluated, Is.True);
         }
 
         [Test(Description = "Error when a state changes to a not found state")]
@@ -395,7 +395,7 @@ namespace Betauer.StateMachine.Tests {
 
         }
 
-        [Test(Description = "Event calls inside execute are ignored")]
+        [Test(Description = "Event calls inside state machine")]
         public async Task SendEventInsideExecuteIsIgnored() {
             var sm = new StateMachineAsync<State, Event>(State.Start);
 
@@ -403,7 +403,7 @@ namespace Betauer.StateMachine.Tests {
             await sm.Execute();
 
             sm.State(State.MainMenu).Execute(async () => {
-                sm.Send(Event.Settings); // this is overwritten by the If(() => true).Then()
+                sm.Send(Event.Settings);
             })
             .If(() => true).Then(context => context.Push(State.Audio)) 
             .Build();
@@ -417,7 +417,7 @@ namespace Betauer.StateMachine.Tests {
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.MainMenu));
             // The second execution has scheduled the 
             await sm.Execute();
-            Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Audio));
+            Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Settings));
         }
 
         [Test(Description = "Changes using stateMachine change methods")]
@@ -681,7 +681,7 @@ namespace Betauer.StateMachine.Tests {
             Assert.That(steps, Is.EqualTo(3));
         }
         
-        [Test(Description = "If() are executed twice (at the beginning and at the end) when the state is the same")]
+        [Test(Description = "If() when the state doesn't change")]
         public async Task ConditionalOrderSameState() {
             var sm = new StateMachineAsync<State, Event>(State.Start);
 
@@ -699,20 +699,21 @@ namespace Betauer.StateMachine.Tests {
                 .Build();
             
             await sm.Execute();
+            // Init state is always executed without evaluating any condition
             Assert.That(startSteps, Is.EqualTo(1));
-            Assert.That(startIfs, Is.EqualTo(1));
+            Assert.That(startIfs, Is.EqualTo(0));
 
             await sm.Execute();
             Assert.That(startSteps, Is.EqualTo(2));
-            Assert.That(startIfs, Is.EqualTo(3));
+            Assert.That(startIfs, Is.EqualTo(1));
 
             await sm.Execute();
             Assert.That(startSteps, Is.EqualTo(3));
-            Assert.That(startIfs, Is.EqualTo(5));
+            Assert.That(startIfs, Is.EqualTo(2));
 
         }
         
-        [Test(Description = "If() are only executed once (at the end) when the state change")]
+        [Test(Description = "If() when the state changes every time")]
         public async Task ConditionalOrderStateChanged() {
             var sm = new StateMachineAsync<State, Event>(State.Start);
 
@@ -743,8 +744,9 @@ namespace Betauer.StateMachine.Tests {
                 .Build();
             
             await  sm.Execute();
+            // Init state is always executed without evaluating any condition
             Assert.That(startSteps, Is.EqualTo(1));
-            Assert.That(startIfs, Is.EqualTo(1));
+            Assert.That(startIfs, Is.EqualTo(0));
             Assert.That(mainSteps, Is.EqualTo(0));
             Assert.That(mainIfs, Is.EqualTo(0));
             
@@ -752,11 +754,11 @@ namespace Betauer.StateMachine.Tests {
             Assert.That(startSteps, Is.EqualTo(1));
             Assert.That(startIfs, Is.EqualTo(1));
             Assert.That(mainSteps, Is.EqualTo(1));
-            Assert.That(mainIfs, Is.EqualTo(1));
+            Assert.That(mainIfs, Is.EqualTo(0));
 
             await sm.Execute();
             Assert.That(startSteps, Is.EqualTo(2));
-            Assert.That(startIfs, Is.EqualTo(2));
+            Assert.That(startIfs, Is.EqualTo(1));
             Assert.That(mainSteps, Is.EqualTo(1));
             Assert.That(mainIfs, Is.EqualTo(1));
 

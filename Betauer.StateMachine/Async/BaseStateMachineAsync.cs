@@ -21,7 +21,7 @@ public abstract class BaseStateMachineAsync<TStateKey, TEventKey, TState> :
         var currentStateBackup = CurrentState;
         try {
             BeforeEvent();
-            var change = ExecuteNextCommand(); // If there is no change in state, the conditions will be evaluated here
+            var change = GetNextStateChange(); // If there is no change in state, the conditions will be evaluated here
             if (change.Type == CommandType.Stay) {
                 // Do nothing
             } else if (change.Type == CommandType.Set) {
@@ -55,13 +55,13 @@ public abstract class BaseStateMachineAsync<TStateKey, TEventKey, TState> :
                 AwakeEvent(CurrentState, oldState.Key);
                 await CurrentState.Awake();
             } else if (change.Type == CommandType.Push) {
-                SuspendEvent(CurrentState, change.Destination!.Key);
+                SuspendEvent(CurrentState, change.Destination.Key);
                 await CurrentState.Suspend();
                 var oldState = CurrentState;
                 CurrentState = change.Destination;
                 Stack.Push(CurrentState);
                 TransitionEvent(oldState, CurrentState);
-                EnterEvent(CurrentState, oldState != null ? oldState.Key: CurrentState.Key);
+                EnterEvent(CurrentState, oldState.Key);
                 await CurrentState.Enter();
             } else if (change.Type == CommandType.PopPush) {
                 var oldState = Stack.Pop();
@@ -79,10 +79,8 @@ public abstract class BaseStateMachineAsync<TStateKey, TEventKey, TState> :
                 await CurrentState.Enter();
             }
             await CurrentState.Execute();
-            CurrentState.EvaluateConditions(CommandContext, out NextCommand);
             AfterEvent();
         } catch (Exception) {
-            NextCommand = CommandContext.Stay();
             CurrentState = currentStateBackup;
             throw;
         } finally {

@@ -94,8 +94,8 @@ namespace Betauer.StateMachine.Tests {
             }).Build();
 
             sm.Execute();
-            Assert.That(thenEvaluated, Is.True);
             Assert.Throws<KeyNotFoundException>(() => sm.Execute());
+            Assert.That(thenEvaluated, Is.True);
         }
 
         [Test(Description = "Error when a state changes to a not found state")]
@@ -395,7 +395,7 @@ namespace Betauer.StateMachine.Tests {
 
         }
 
-        [Test(Description = "Event calls inside execute are ignored")]
+        [Test(Description = "Event calls inside state machine")]
         public void SendEventInsideExecuteIsIgnored() {
             var sm = new StateMachineSync<State, Event>(State.Start);
 
@@ -403,7 +403,7 @@ namespace Betauer.StateMachine.Tests {
             sm.Execute();
 
             sm.State(State.MainMenu).Execute(() => {
-                sm.Send(Event.Settings); // this is overwritten by the If(() => true).Then()
+                sm.Send(Event.Settings);
             })
             .If(() => true).Then(context => context.Push(State.Audio))
             .Build();
@@ -417,7 +417,7 @@ namespace Betauer.StateMachine.Tests {
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.MainMenu));
             // The second execution has scheduled the 
             sm.Execute();
-            Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Audio));
+            Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Settings));
         }
 
         [Test(Description = "Changes using stateMachine change methods")]
@@ -700,15 +700,15 @@ namespace Betauer.StateMachine.Tests {
             
             sm.Execute();
             Assert.That(startSteps, Is.EqualTo(1));
-            Assert.That(startIfs, Is.EqualTo(1));
+            Assert.That(startIfs, Is.EqualTo(0));
 
             sm.Execute();
             Assert.That(startSteps, Is.EqualTo(2));
-            Assert.That(startIfs, Is.EqualTo(3));
+            Assert.That(startIfs, Is.EqualTo(1));
 
             sm.Execute();
             Assert.That(startSteps, Is.EqualTo(3));
-            Assert.That(startIfs, Is.EqualTo(5));
+            Assert.That(startIfs, Is.EqualTo(2));
 
         }
         
@@ -744,7 +744,7 @@ namespace Betauer.StateMachine.Tests {
             
             sm.Execute();
             Assert.That(startSteps, Is.EqualTo(1));
-            Assert.That(startIfs, Is.EqualTo(1));
+            Assert.That(startIfs, Is.EqualTo(0));
             Assert.That(mainSteps, Is.EqualTo(0));
             Assert.That(mainIfs, Is.EqualTo(0));
             
@@ -752,11 +752,11 @@ namespace Betauer.StateMachine.Tests {
             Assert.That(startSteps, Is.EqualTo(1));
             Assert.That(startIfs, Is.EqualTo(1));
             Assert.That(mainSteps, Is.EqualTo(1));
-            Assert.That(mainIfs, Is.EqualTo(1));
+            Assert.That(mainIfs, Is.EqualTo(0));
 
             sm.Execute();
             Assert.That(startSteps, Is.EqualTo(2));
-            Assert.That(startIfs, Is.EqualTo(2));
+            Assert.That(startIfs, Is.EqualTo(1));
             Assert.That(mainSteps, Is.EqualTo(1));
             Assert.That(mainIfs, Is.EqualTo(1));
 
