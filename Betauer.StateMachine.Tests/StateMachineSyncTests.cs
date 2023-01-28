@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Betauer.StateMachine.Sync;
 using Betauer.TestRunner;
@@ -681,84 +682,186 @@ namespace Betauer.StateMachine.Tests {
             Assert.That(steps, Is.EqualTo(3));
         }
 
-        [Test(Description = "If() are executed twice (at the beginning and at the end) when the state is the same")]
-        public void ConditionalOrderSameState() {
+        [Test(Description = "State never changes")]
+        public void ConditionalOrderStateNeverChanges() {
             var sm = new StateMachineSync<State, Event>(State.Start);
 
-            var startSteps = 0;
-            var startIfs = 0;
+            const bool NeverChanges = false;
+            var steps = new List<string>();
             sm.State(State.Start)
                 .Execute(() => {
-                    startSteps++;
+                    steps.Add("Start.Execute");
                 })
                 .If(() => {
-                    startIfs++;
-                    return true;
+                    steps.Add("Start.If.Asap");
+                    return NeverChanges;
+                }, Condition.Type.Asap)
+                .Set(State.MainMenu)
+                .If(() => {
+                    steps.Add("Start.If.Lazy");
+                    return NeverChanges;
+                }, Condition.Type.Lazy)
+                .Set(State.MainMenu)
+                .If(() => {
+                    steps.Add("Start.If.Always");
+                    return NeverChanges;
                 })
-                .Stay()
+                .Set(State.MainMenu)
                 .Build();
-            
-            sm.Execute();
-            Assert.That(startSteps, Is.EqualTo(1));
-            Assert.That(startIfs, Is.EqualTo(1));
 
+            steps.Clear();
             sm.Execute();
-            Assert.That(startSteps, Is.EqualTo(2));
-            Assert.That(startIfs, Is.EqualTo(3));
+            // Start is a new state, so no conditions will be evaluated before execution, and all conditions are evaluated after execution
+            Assert.That(string.Join(",", steps), Is.EqualTo("Start.Execute," +
+                                                            "Start.If.Asap,Start.If.Lazy,Start.If.Always"));
 
+            steps.Clear();
             sm.Execute();
-            Assert.That(startSteps, Is.EqualTo(3));
-            Assert.That(startIfs, Is.EqualTo(5));
+            // State didn't change, so only asap and always conditions will be evaluated before execution.
+            // State didn't change neither, so execute the state
+            // And all conditions are evaluated after execution
+            Assert.That(string.Join(",", steps), Is.EqualTo("Start.If.Asap,Start.If.Always," +
+                                                            "Start.Execute," +
+                                                            "Start.If.Lazy,Start.If.Always"));
+
+            steps.Clear();
+            sm.Execute();
+            // State didn't change, same as step before
+            Assert.That(string.Join(",", steps), Is.EqualTo("Start.If.Asap,Start.If.Always," +
+                                                            "Start.Execute," +
+                                                            "Start.If.Lazy,Start.If.Always"));
+
 
         }
         
-        [Test(Description = "If() are only executed once (at the end) when the state change")]
-        public void ConditionalOrderStateChanged() {
+        [Test(Description = "State change at the end of the state")]
+        public void ConditionalOrderStateChangesAtTheBeginning() {
             var sm = new StateMachineSync<State, Event>(State.Start);
 
-            var startSteps = 0;
-            var startIfs = 0;
+            var steps = new List<string>();
             sm.State(State.Start)
                 .Execute(() => {
-                    startSteps++;
+                    steps.Add("Start.Execute");
                 })
                 .If(() => {
-                    startIfs++;
+                    steps.Add("Start.If.Asap");
+                    return false;
+                }, Condition.Type.Asap)
+                .Set(State.MainMenu)
+                .If(() => {
+                    steps.Add("Start.If.Lazy");
+                    return false;
+                }, Condition.Type.Lazy)
+                .Set(State.MainMenu)
+                .If(() => {
+                    steps.Add("Start.If.Always");
                     return true;
                 })
                 .Set(State.MainMenu)
                 .Build();
             
-            var mainSteps = 0;
-            var mainIfs = 0;
             sm.State(State.MainMenu)
                 .Execute(() => {
-                    mainSteps++;
+                    steps.Add("Main.Execute");
                 })
                 .If(() => {
-                    mainIfs++;
+                    steps.Add("Main.If.Asap");
+                    return false;
+                }, Condition.Type.Asap)
+                .Set(State.Start)
+                .If(() => {
+                    steps.Add("Main.If.Lazy");
+                    return false;
+                }, Condition.Type.Lazy)
+                .Set(State.Start)
+                .If(() => {
+                    steps.Add("Main.If.Always");
                     return true;
                 })
                 .Set(State.Start)
                 .Build();
             
+            steps.Clear();
             sm.Execute();
-            Assert.That(startSteps, Is.EqualTo(1));
-            Assert.That(startIfs, Is.EqualTo(1));
-            Assert.That(mainSteps, Is.EqualTo(0));
-            Assert.That(mainIfs, Is.EqualTo(0));
+            // Start is a new state, so no conditions will be evaluated before execution, and all conditions are evaluated after execution
+            Assert.That(string.Join(",", steps), Is.EqualTo("Start.Execute," +
+                                                            "Start.If.Asap,Start.If.Lazy,Start.If.Always"));
             
+            steps.Clear();
             sm.Execute();
-            Assert.That(startSteps, Is.EqualTo(1));
-            Assert.That(startIfs, Is.EqualTo(1));
-            Assert.That(mainSteps, Is.EqualTo(1));
-            Assert.That(mainIfs, Is.EqualTo(1));
+            // Main is a new state, so no conditions will be evaluated before execution, and all conditions are evaluated after execution
+            Assert.That(string.Join(",", steps), Is.EqualTo("Main.Execute," +
+                                                            "Main.If.Asap,Main.If.Lazy,Main.If.Always"));
 
+            steps.Clear();
             sm.Execute();
-            Assert.That(startSteps, Is.EqualTo(2));
-            Assert.That(startIfs, Is.EqualTo(2));
-            Assert.That(mainSteps, Is.EqualTo(1));
-            Assert.That(mainIfs, Is.EqualTo(1));
+            // Repeat
+            Assert.That(string.Join(",", steps), Is.EqualTo("Start.Execute," +
+                                                            "Start.If.Asap,Start.If.Lazy,Start.If.Always"));
+        }
+        
+        [Test(Description = "All Ifs() of any type are executed once (at the end) when the state change at the end of the state")]
+        public void ConditionalOrderStateChangesAtTheEnd() {
+            var sm = new StateMachineSync<State, Event>(State.Start);
+
+            var externalChange = false;
+            var steps = new List<string>();
+            sm.State(State.Start)
+                .Execute(() => {
+                    steps.Add("Start.Execute");
+                })
+                .If(() => {
+                    steps.Add("Start.If.Asap");
+                    return false;
+                }, Condition.Type.Asap)
+                .Set(State.MainMenu)
+                .If(() => {
+                    steps.Add("Start.If.Lazy");
+                    return false;
+                }, Condition.Type.Lazy)
+                .Set(State.MainMenu)
+                .If(() => {
+                    steps.Add("Start.If.Always");
+                    return externalChange;
+                })
+                .Set(State.MainMenu)
+                .Build();
+            
+            sm.State(State.MainMenu)
+                .Execute(() => {
+                    steps.Add("Main.Execute");
+                })
+                .If(() => {
+                    steps.Add("Main.If.Asap");
+                    return false;
+                }, Condition.Type.Asap)
+                .Set(State.Start)
+                .If(() => {
+                    steps.Add("Main.If.Lazy");
+                    return false;
+                }, Condition.Type.Lazy)
+                .Set(State.Start)
+                .If(() => {
+                    steps.Add("Main.If.Always");
+                    return false;
+                })
+                .Set(State.Start)
+                .Build();
+            
+            steps.Clear();
+            sm.Execute();
+            // Start is a new state, so no conditions will be evaluated before execution, and all conditions are evaluated after execution
+            Assert.That(string.Join(",", steps), Is.EqualTo("Start.Execute," +
+                                                            "Start.If.Asap,Start.If.Lazy,Start.If.Always"));
+
+            externalChange = true;
+            steps.Clear();
+            sm.Execute();
+            // The state is the same as previous execution, so, only the Asap and Always conditions are evaluated before execution.
+            // In this condition, the state changed, so, execute the new state and evaluate all conditions after
+            Assert.That(string.Join(",", steps), Is.EqualTo("Start.If.Asap,Start.If.Always," +
+                                                            "Main.Execute," +
+                                                            "Main.If.Asap,Main.If.Lazy,Main.If.Always"));
 
         }
     }

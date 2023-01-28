@@ -145,10 +145,9 @@ public abstract class BaseStateMachine<TStateKey, TEventKey, TState> : StateMach
                 ThrowEventNotFound(NextCommand.EventKey);
             }
         }
-        // It could the next command from the previous execution, or the result of an event returning Stay... TODO test this case
         if (NextCommand.IsStayOrSet(CurrentState.Key)) {
-            // Find again between all If() conditions and set a new next command (or stay if no conditions) 
-            CurrentState.EvaluateConditions(CommandContext, out NextCommand);
+            // Find again between all If() conditions and set a new next command 
+            CurrentState.EvaluateConditions(CommandContext, out NextCommand, ConditionStage.SameStateBeforeExecution);
         }
     }
 
