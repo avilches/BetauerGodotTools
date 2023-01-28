@@ -405,9 +405,10 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 				PlatformBody.Lateral(XInput, EnemyConfig.Acceleration, EnemyConfig.MaxSpeed, 
 					EnemyConfig.Friction, EnemyConfig.StopIfSpeedIsLessThan, 0);
 			})
-			.If(() => !AnimationAttack.Playing && !PlatformBody.IsOnFloor()).Set(ZombieState.Fall)
-			.If(() => !AnimationAttack.Playing && XInput == 0).Set(ZombieState.Idle)
-			.If(() => !AnimationAttack.Playing && XInput != 0).Set(ZombieState.Run)
+			.If(() => AnimationAttack.Playing).Stay()
+			.If(() => !PlatformBody.IsOnFloor()).Set(ZombieState.Fall)
+			.If(() => XInput == 0).Set(ZombieState.Idle)
+			.If(() => XInput != 0).Set(ZombieState.Run)
 			.Build();
 
 		Tween? redFlash = null;
@@ -458,8 +459,8 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 				PlatformBody.Lateral(XInput, EnemyConfig.Acceleration, EnemyConfig.MaxSpeed,
 					EnemyConfig.Friction, EnemyConfig.StopIfSpeedIsLessThan, 0);
 			})
-			.If(PlatformBody.IsOnFloor).Set(ZombieState.Landing)
 			.If(() => MotionY >= 0).Set(ZombieState.Fall)
+			.If(PlatformBody.IsOnFloor).Set(ZombieState.Landing)
 			.Build();
 
 		State(ZombieState.Fall)
