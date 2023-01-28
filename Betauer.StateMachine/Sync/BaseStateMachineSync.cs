@@ -20,7 +20,6 @@ public abstract class BaseStateMachineSync<TStateKey, TEventKey, TState> :
         var currentStateBackup = CurrentState;
         try {
             BeforeEvent();
-            CurrentState.Before();
             var change = ExecuteNextCommand(); // If there is no change in state, the conditions will be evaluated here
             if (change.Type == CommandType.Stay) {
                 // Do nothing
@@ -79,7 +78,6 @@ public abstract class BaseStateMachineSync<TStateKey, TEventKey, TState> :
                 CurrentState.Enter();
             }
             CurrentState.Execute();
-            CurrentState.After();
             CurrentState.EvaluateConditions(CommandContext, out NextCommand);
             AfterEvent();
         } catch (Exception) {

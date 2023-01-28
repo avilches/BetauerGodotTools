@@ -11,13 +11,11 @@ public class StateNodeSync<TStateKey, TEventKey> : StateSync<TStateKey, TEventKe
     public StateNodeSync(TStateKey key,
         Dictionary<TEventKey, EventRule<TStateKey, TEventKey>>? eventRules,
         Condition<TStateKey, TEventKey>[]? conditions,
-        Action? before,
         Action? enter,
         Action? awake,
         Action? execute,
         Action? suspend,
         Action? exit,
-        Action? after,
         Action<InputEvent>? input,
         Action<InputEvent>? shortcutInput,
         Action<InputEvent>? unhandledInput,
@@ -25,13 +23,11 @@ public class StateNodeSync<TStateKey, TEventKey> : StateSync<TStateKey, TEventKe
     ) : base(key,
         eventRules,
         conditions,
-        before,
         enter,
         awake,
         execute,
         suspend,
-        exit,
-        after) {
+        exit) {
         InputHandler = new StateNodeInputHandler(
             input,
             shortcutInput,

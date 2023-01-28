@@ -12,13 +12,11 @@ public class StateNodeAsync<TStateKey, TEventKey> : StateAsync<TStateKey, TEvent
     public StateNodeAsync(TStateKey key,
         Dictionary<TEventKey, EventRule<TStateKey, TEventKey>>? eventRules,
         Condition<TStateKey, TEventKey>[]? conditions,
-        Func<Task>? before,
         Func<Task>? enter,
         Func<Task>? awake,
         Func<Task>? execute,
         Func<Task>? suspend,
         Func<Task>? exit,
-        Func<Task>? after,
         Action<InputEvent>? input,
         Action<InputEvent>? shortcutInput,
         Action<InputEvent>? unhandledInput,
@@ -27,13 +25,11 @@ public class StateNodeAsync<TStateKey, TEventKey> : StateAsync<TStateKey, TEvent
         key,
         eventRules,
         conditions,
-        before,
         enter,
         awake,
         execute,
         suspend,
-        exit,
-        after) {
+        exit) {
         InputHandler = new StateNodeInputHandler(
             input,
             shortcutInput,

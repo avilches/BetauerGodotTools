@@ -11,13 +11,11 @@ public class StateBuilderAsync<TStateKey, TEventKey> :
             Key,
             EventRules,
             Conditions?.ToArray(),
-            BeforeFunc,
             EnterFunc,
             AwakeFunc,
             ExecuteFunc,
             SuspendFunc,
-            ExitFunc,
-            AfterFunc
+            ExitFunc
             );
     }
 
