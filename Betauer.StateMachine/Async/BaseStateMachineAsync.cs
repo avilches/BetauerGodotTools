@@ -21,7 +21,6 @@ public abstract class BaseStateMachineAsync<TStateKey, TEventKey, TState> :
         var currentStateBackup = CurrentState;
         try {
             BeforeEvent();
-            await CurrentState.Before();
             var change = ExecuteNextCommand(); // If there is no change in state, the conditions will be evaluated here
             if (change.Type == CommandType.Stay) {
                 // Do nothing
@@ -80,7 +79,6 @@ public abstract class BaseStateMachineAsync<TStateKey, TEventKey, TState> :
                 await CurrentState.Enter();
             }
             await CurrentState.Execute();
-            await CurrentState.After();
             CurrentState.EvaluateConditions(CommandContext, out NextCommand);
             AfterEvent();
         } catch (Exception) {
