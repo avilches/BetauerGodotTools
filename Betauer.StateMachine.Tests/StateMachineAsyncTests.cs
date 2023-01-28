@@ -60,7 +60,7 @@ namespace Betauer.StateMachine.Tests {
             sm.State(State.A).Build();
 
             // Start state Global not found
-            Assert.ThrowsAsync<KeyNotFoundException>(async () => {
+            Assert.ThrowsAsync<StateNotFoundException>(async () => {
                 await sm.Execute();
             });
         }
@@ -75,13 +75,20 @@ namespace Betauer.StateMachine.Tests {
             Assert.That(sm.IsState(State.Settings), Is.False);
         }
         
+        [Test(Description = "Duplicate state")]
+        public async Task DuplicateStateError() {
+            var sm = new StateMachineAsync<State, Event>(State.Audio);
+            sm.State(State.Audio).Build();
+            Assert.Throws<DuplicateStateException>(() => sm.State(State.Audio).Build());
+        }
+        
         [Test(Description = "Event are not allowed before initialize")]
         public async Task WrongStateWithAValidEvent() {
             var sm = new StateMachineAsync<State, Event>(State.Audio);
             sm.On(Event.Audio).Stay();
             sm.State(State.Audio).Build();
 
-            Assert.Throws<InvalidOperationException>(() => sm.Send(Event.Audio));
+            Assert.Throws<InvalidStateException>(() => sm.Send(Event.Audio));
         }
         
         [Test(Description = "Error when a state changes to a not found state")]
@@ -94,7 +101,7 @@ namespace Betauer.StateMachine.Tests {
             }).Build();
 
             await sm.Execute();
-            Assert.ThrowsAsync<KeyNotFoundException>(async () => await sm.Execute());
+            Assert.ThrowsAsync<StateNotFoundException>(async () => await sm.Execute());
             Assert.That(thenEvaluated, Is.True);
         }
 
@@ -104,7 +111,7 @@ namespace Betauer.StateMachine.Tests {
             sm.State(State.A).If(() => true).Set(State.Debug).Build();
 
             await sm.Execute();
-            Assert.ThrowsAsync<KeyNotFoundException>(async () => await sm.Execute());
+            Assert.ThrowsAsync<StateNotFoundException>(async () => await sm.Execute());
         }
 
         [Test(Description = "Error not found event")]
@@ -114,7 +121,7 @@ namespace Betauer.StateMachine.Tests {
 
             await sm.Execute();
             sm.Send(Event.NotFound);
-            Assert.ThrowsAsync<KeyNotFoundException>(async () => await sm.Execute());
+            Assert.ThrowsAsync<EventNotFoundException>(async () => await sm.Execute());
         }
 
         [Test(Description = "Error when a state pop in an empty stack")]
@@ -124,7 +131,7 @@ namespace Betauer.StateMachine.Tests {
 
             // State ends with a wrong state
             await sm.Execute();
-            Assert.ThrowsAsync<InvalidOperationException>(async () => await sm.Execute());
+            Assert.ThrowsAsync<InvalidStateException>(async () => await sm.Execute());
         }
         
         [Test(Description = "Pop the same state in the stack is allowed")]

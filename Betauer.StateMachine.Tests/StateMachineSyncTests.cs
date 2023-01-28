@@ -60,7 +60,7 @@ namespace Betauer.StateMachine.Tests {
             sm.State(State.A).Build();
 
             // Start state Global not found
-            Assert.Throws<KeyNotFoundException>( () => {
+            Assert.Throws<StateNotFoundException>( () => {
                 sm.Execute();
             });
         }
@@ -75,13 +75,20 @@ namespace Betauer.StateMachine.Tests {
             Assert.That(sm.IsState(State.Settings), Is.False);
         }
         
+        [Test(Description = "Duplicate state")]
+        public void DuplicateStateError() {
+            var sm = new StateMachineSync<State, Event>(State.Audio);
+            sm.State(State.Audio).Build();
+            Assert.Throws<DuplicateStateException>(() => sm.State(State.Audio).Build());
+        }
+        
         [Test(Description = "Event are not allowed before initialize")]
         public void EventsAreNotAllowedBeforeInitialize() {
             var sm = new StateMachineSync<State, Event>(State.Audio);
             sm.On(Event.Audio).Stay();
             sm.State(State.Audio).Build();
 
-            Assert.Throws<InvalidOperationException>(() => sm.Send(Event.Audio));
+            Assert.Throws<InvalidStateException>(() => sm.Send(Event.Audio));
         }
         
         [Test(Description = "Error when a state changes to a not found state")]
@@ -94,7 +101,7 @@ namespace Betauer.StateMachine.Tests {
             }).Build();
 
             sm.Execute();
-            Assert.Throws<KeyNotFoundException>(() => sm.Execute());
+            Assert.Throws<StateNotFoundException>(() => sm.Execute());
             Assert.That(thenEvaluated, Is.True);
         }
 
@@ -104,7 +111,7 @@ namespace Betauer.StateMachine.Tests {
             sm.State(State.A).If(() => true).Set(State.Debug).Build();
 
             sm.Execute();
-            Assert.Throws<KeyNotFoundException>(() => sm.Execute());
+            Assert.Throws<StateNotFoundException>(() => sm.Execute());
         }
 
         [Test(Description = "Error not found event")]
@@ -114,7 +121,7 @@ namespace Betauer.StateMachine.Tests {
 
             sm.Execute();
             sm.Send(Event.NotFound);
-            Assert.Throws<KeyNotFoundException>(() => sm.Execute());
+            Assert.Throws<EventNotFoundException>(() => sm.Execute());
         }
 
         [Test(Description = "Error when a state pop in an empty stack")]
@@ -124,7 +131,7 @@ namespace Betauer.StateMachine.Tests {
 
             // State ends with a wrong state
             sm.Execute();
-            Assert.Throws<InvalidOperationException>(() => sm.Execute());
+            Assert.Throws<InvalidStateException>(() => sm.Execute());
         }
         
         [Test(Description = "Pop the same state in the stack is allowed")]
