@@ -78,10 +78,7 @@ public abstract class BaseStateMachineSync<TStateKey, TEventKey, TState> :
                 CurrentState.Enter();
             }
             CurrentState.Execute();
-            var conditionStage = change.Type == CommandType.Stay
-                ? ConditionStage.SameStateAfterExecution
-                : ConditionStage.StageChanged;
-            CurrentState.EvaluateConditions(CommandContext, out NextCommand, conditionStage);
+            CurrentState.EvaluateConditions(CommandContext, out NextCommand);
             AfterEvent();
         } catch (Exception) {
             NextCommand = CommandContext.Stay();

@@ -21,6 +21,7 @@ public abstract class BaseStateMachineAsync<TStateKey, TEventKey, TState> :
         var currentStateBackup = CurrentState;
         try {
             BeforeEvent();
+            await CurrentState.Before();
             var change = ExecuteNextCommand(); // If there is no change in state, the conditions will be evaluated here
             if (change.Type == CommandType.Stay) {
                 // Do nothing
@@ -55,13 +56,13 @@ public abstract class BaseStateMachineAsync<TStateKey, TEventKey, TState> :
                 AwakeEvent(CurrentState, oldState.Key);
                 await CurrentState.Awake();
             } else if (change.Type == CommandType.Push) {
-                SuspendEvent(CurrentState, change.Destination.Key);
+                SuspendEvent(CurrentState, change.Destination!.Key);
                 await CurrentState.Suspend();
                 var oldState = CurrentState;
                 CurrentState = change.Destination;
                 Stack.Push(CurrentState);
                 TransitionEvent(oldState, CurrentState);
-                EnterEvent(CurrentState, oldState.Key);
+                EnterEvent(CurrentState, oldState != null ? oldState.Key: CurrentState.Key);
                 await CurrentState.Enter();
             } else if (change.Type == CommandType.PopPush) {
                 var oldState = Stack.Pop();
@@ -79,10 +80,8 @@ public abstract class BaseStateMachineAsync<TStateKey, TEventKey, TState> :
                 await CurrentState.Enter();
             }
             await CurrentState.Execute();
-            var conditionStage = change.Type == CommandType.Stay
-                ? ConditionStage.SameStateAfterExecution
-                : ConditionStage.StageChanged;
-            CurrentState.EvaluateConditions(CommandContext, out NextCommand, conditionStage);
+            await CurrentState.After();
+            CurrentState.EvaluateConditions(CommandContext, out NextCommand);
             AfterEvent();
         } catch (Exception) {
             NextCommand = CommandContext.Stay();
