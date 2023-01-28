@@ -9,14 +9,15 @@ public class ConditionBuilder<TBuilder, TStateKey, TEventKey>
     private readonly TBuilder _builder;
     private readonly Action<ConditionBuilder<TBuilder, TStateKey, TEventKey>> _onBuild;
 
+    internal readonly Condition.Type Type;
     internal readonly Func<bool> Predicate;
     internal Func<CommandContext<TStateKey, TEventKey>, Command<TStateKey, TEventKey>>? Execute;
     internal Command<TStateKey, TEventKey> Result;
-
-    internal ConditionBuilder(TBuilder builder, Func<bool> predicate,
-        Action<ConditionBuilder<TBuilder, TStateKey, TEventKey>> onBuild) {
-        _builder = builder;
+    
+    internal ConditionBuilder(Condition.Type type, TBuilder builder, Func<bool> predicate, Action<ConditionBuilder<TBuilder, TStateKey, TEventKey>> onBuild) {
+        Type = type;
         Predicate = predicate;
+        _builder = builder;
         _onBuild = onBuild;
     }
 

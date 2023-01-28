@@ -79,7 +79,10 @@ public abstract class BaseStateMachineAsync<TStateKey, TEventKey, TState> :
                 await CurrentState.Enter();
             }
             await CurrentState.Execute();
-            CurrentState.EvaluateConditions(CommandContext, out NextCommand);
+            var conditionStage = change.Type == CommandType.Stay
+                ? ConditionStage.SameStateAfterExecution
+                : ConditionStage.StageChanged;
+            CurrentState.EvaluateConditions(CommandContext, out NextCommand, conditionStage);
             AfterEvent();
         } catch (Exception) {
             NextCommand = CommandContext.Stay();

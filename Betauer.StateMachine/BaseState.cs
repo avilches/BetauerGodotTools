@@ -27,7 +27,8 @@ public abstract class BaseState<TStateKey, TEventKey> :
         return false;
     }
 
-    public void EvaluateConditions(CommandContext<TStateKey, TEventKey> ctx, out Command<TStateKey, TEventKey> command) {
+    public void EvaluateConditions(CommandContext<TStateKey, TEventKey> ctx, out Command<TStateKey, TEventKey> command,
+        ConditionStage stage) {
         if (_conditions == null || _conditions.Length == 0) {
             command = ctx.Stay();
             return;
@@ -35,7 +36,18 @@ public abstract class BaseState<TStateKey, TEventKey> :
         var span = _conditions.AsSpan();
         for (var i = 0; i < span.Length; i++) {
             var condition = span[i];
-            if (condition.IsPredicateTrue()) {
+            var result = stage switch {
+                ConditionStage.StageChanged => 
+                    // Evaluate all the conditions because the state is a new state. This happens after the execution of the state
+                    condition.IsPredicateTrue(),
+                ConditionStage.SameStateBeforeExecution => 
+                    condition.IsPredicateTrue(Condition.Type.Asap, Condition.Type.Always),
+                ConditionStage.SameStateAfterExecution => 
+                    condition.IsPredicateTrue(Condition.Type.Lazy, Condition.Type.Always),
+                _ => false
+            };
+
+            if (result) {
                 command = condition.GetResult(ctx);
                 return;
             }

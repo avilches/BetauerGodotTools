@@ -14,12 +14,19 @@ public abstract class BaseStateBuilder<TBuilder, TStateKey, TEventKey>
     protected BaseStateBuilder(TStateKey key) {
         Key = key;
     }
-    public ConditionBuilder<TBuilder, TStateKey, TEventKey> If(Func<bool> condition) {
+
+    public ConditionBuilder<TBuilder, TStateKey, TEventKey> AsapIf(Func<bool> condition) =>
+        If(condition, Condition.Type.Asap);
+
+    public ConditionBuilder<TBuilder, TStateKey, TEventKey> LazyIf(Func<bool> condition) =>
+        If(condition, Condition.Type.Lazy);
+
+    public ConditionBuilder<TBuilder, TStateKey, TEventKey> If(Func<bool> condition, Condition.Type type = Condition.Type.Always) {
         Conditions ??= new List<Condition<TStateKey, TEventKey>>();
-        return new ConditionBuilder<TBuilder, TStateKey, TEventKey>((this as TBuilder)!, condition, c => {
+        return new ConditionBuilder<TBuilder, TStateKey, TEventKey>(type, (this as TBuilder)!, condition, c => {
             var condition = c.Execute != null
-                ? new Condition<TStateKey, TEventKey>(c.Predicate, c.Execute)
-                : new Condition<TStateKey, TEventKey>(c.Predicate, c.Result);
+                ? new Condition<TStateKey, TEventKey>(c.Type, c.Predicate, c.Execute)
+                : new Condition<TStateKey, TEventKey>(c.Type, c.Predicate, c.Result);
             Conditions.Add(condition);
         });
     }
