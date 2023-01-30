@@ -19,10 +19,9 @@ public abstract class BaseStateMachineSync<TStateKey, TEventKey, TState> :
             
         var currentStateBackup = CurrentState;
         try {
-            var change = GetNextStateChange(); // Evaluate conditions to get the new state
-            InvokeBeforeEvent(CurrentState.Key, change.Destination.Key, change.Type);
+            InvokeBeforeEvent(); // Execute OnBefore, so it can change the values used in the conditions...
+            var change = GetNextStateChange(); // then evaluate conditions to get the new state.
             if (change.Type == CommandType.Stay) {
-                InvokeTransitionEvent(CurrentState.Key, CurrentState.Key, change.Type);
             } else if (change.Type == CommandType.Set) {
                 while (Stack.Count > 0) {
                     var exitingState = Stack.Pop();
@@ -63,12 +62,11 @@ public abstract class BaseStateMachineSync<TStateKey, TEventKey, TState> :
             } else if (change.Type == CommandType.Init) {
                 var oldState = ChangeState(change.Destination);
                 Stack.Push(CurrentState);
-                InvokeTransitionEvent(oldState.Key, change.Destination.Key, change.Type);
                 InvokeEnterEvent(oldState.Key, change.Destination.Key, change.Type);
                 CurrentState.Enter();
             }
             CurrentState.Execute();
-            InvokeAfterEvent(currentStateBackup.Key, change.Destination.Key, change.Type);
+            InvokeAfterEvent();
         } catch (Exception) {
             ChangeState(currentStateBackup);
             throw;

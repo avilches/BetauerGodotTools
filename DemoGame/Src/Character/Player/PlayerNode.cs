@@ -147,8 +147,8 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 
 		PlatformBody = new KinematicPlatformMotion(CharacterBody2D, flipper, Marker2D, MotionConfig.FloorUpDirection,
 			FloorRaycasts);
-		OnBefore += (args) => PlatformBody.SetDelta(Delta);
-		OnAfter += (args) => {
+		OnBefore += () => PlatformBody.SetDelta(Delta);
+		OnAfter += () => {
 			Label.Text = _animationStack.GetPlayingOnce() != null
 				? _animationStack.GetPlayingOnce().Name
 				: _animationStack.GetPlayingLoop().Name;

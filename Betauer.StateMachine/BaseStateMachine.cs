@@ -82,8 +82,8 @@ public abstract class BaseStateMachine<TStateKey, TEventKey, TState> : StateMach
     public event Action<TransitionArgs<TStateKey>>? OnSuspend;
     public event Action<TransitionArgs<TStateKey>>? OnExit;
     public event Action<TransitionArgs<TStateKey>>? OnTransition;
-    public event Action<TransitionArgs<TStateKey>>? OnBefore;
-    public event Action<TransitionArgs<TStateKey>>? OnAfter;
+    public event Action? OnBefore;
+    public event Action? OnAfter;
 
     public void AddState(TState state) {
         if (States.ContainsKey(state.Key)) throw new DuplicateStateException(state.Key.ToString());
@@ -178,12 +178,12 @@ public abstract class BaseStateMachine<TStateKey, TEventKey, TState> : StateMach
         OnEnter?.Invoke(new TransitionArgs<TStateKey>(from, to, type));
     }
 
-    protected void InvokeBeforeEvent(TStateKey from, TStateKey to, CommandType type) {
-        OnBefore?.Invoke(new TransitionArgs<TStateKey>(from, to, type));
+    protected void InvokeBeforeEvent() {
+        OnBefore?.Invoke();
     }
 
-    protected void InvokeAfterEvent(TStateKey from, TStateKey to, CommandType type) {
-        OnAfter?.Invoke(new TransitionArgs<TStateKey>(from, to, type));
+    protected void InvokeAfterEvent() {
+        OnAfter?.Invoke();
     }
 
     public void Dispose() {

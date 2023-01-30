@@ -145,9 +145,9 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 
 		// AI
 		_zombieAi = MeleeAI.Create(Handler, new MeleeAI.Sensor(this, PlatformBody, () => PlayerPos));
-		OnBefore += (args) =>_zombieAi.Execute();
-		OnBefore += (args) => Label.Text = _zombieAi.GetState();
-		OnAfter += (args) => _zombieAi.EndFrame();
+		OnBefore += () =>_zombieAi.Execute();
+		OnBefore += () => Label.Text = _zombieAi.GetState();
+		OnAfter += () => _zombieAi.EndFrame();
 
 		var drawRaycasts = this.OnDraw(canvas => {
 			// canvas.DrawRaycast(FacePlayerDetector, Colors.Red);
