@@ -20,68 +20,58 @@ public abstract class BaseStateMachineAsync<TStateKey, TEventKey, TState> :
         Available = false;
         var currentStateBackup = CurrentState;
         try {
-            BeforeEvent();
-            var change = GetNextStateChange(); // If there is no change in state, the conditions will be evaluated here
+            var change = GetNextStateChange(); // Evaluate conditions to get the new state
+            InvokeBeforeEvent(CurrentState.Key, change.Destination.Key, change.Type);
             if (change.Type == CommandType.Stay) {
-                // Do nothing
+                InvokeTransitionEvent(CurrentState.Key, CurrentState.Key, change.Type);
             } else if (change.Type == CommandType.Set) {
-                if (Stack.Count == 1) {
-                    var newState = Stack.Pop();
-                    ExitEvent(newState, change.Destination.Key);
-                    await newState.Exit();
-                } else {
-                    // Special case: 
-                    // Exit from all the states from the stack, in order
-                    while (Stack.Count > 0) {
-                        var exitingState = Stack.Pop();
-                        var to = Stack.Count > 0 ? Stack.Peek().Key : change.Destination.Key;
-                        ExitEvent(exitingState, to);
-                        await exitingState.Exit();
-                    }
+                while (Stack.Count > 0) {
+                    var exitingState = Stack.Pop();
+                    var to = Stack.Count > 0 ? Stack.Peek().Key : change.Destination.Key;
+                    InvokeExitEvent(exitingState.Key, to, change.Type);
+                    await exitingState.Exit();
                 }
-                var oldState = CurrentState;
-                CurrentState = change.Destination;
+                var oldState = ChangeState(change.Destination);
                 Stack.Push(CurrentState);
-                TransitionEvent(oldState, CurrentState);
-                EnterEvent(CurrentState, oldState.Key);
+                InvokeTransitionEvent(oldState.Key, change.Destination.Key, change.Type);
+                InvokeEnterEvent(oldState.Key, change.Destination.Key, change.Type);
                 await CurrentState.Enter();
             } else if (change.Type == CommandType.Pop) {
-                var newState = Stack.Pop();
-                ExitEvent(newState, change.Destination.Key);
-                await newState.Exit();
-                var oldState = CurrentState;
-                CurrentState = change.Destination;
-                TransitionEvent(oldState, CurrentState);
-                AwakeEvent(CurrentState, oldState.Key);
+                Stack.Pop();
+                InvokeExitEvent(CurrentState.Key, change.Destination.Key, change.Type);
+                await CurrentState.Exit();
+                var oldState = ChangeState(change.Destination);
+                InvokeTransitionEvent(oldState.Key, change.Destination.Key, change.Type);
+                InvokeAwakeEvent(oldState.Key, change.Destination.Key, change.Type);
                 await CurrentState.Awake();
             } else if (change.Type == CommandType.Push) {
-                SuspendEvent(CurrentState, change.Destination.Key);
+                InvokeSuspendEvent(CurrentState.Key, change.Destination.Key, change.Type);
                 await CurrentState.Suspend();
-                var oldState = CurrentState;
-                CurrentState = change.Destination;
+                var oldState = ChangeState(change.Destination);
                 Stack.Push(CurrentState);
-                TransitionEvent(oldState, CurrentState);
-                EnterEvent(CurrentState, oldState.Key);
+                InvokeTransitionEvent(oldState.Key, change.Destination.Key, change.Type);
+                InvokeEnterEvent(oldState.Key, change.Destination.Key, change.Type);
                 await CurrentState.Enter();
             } else if (change.Type == CommandType.PopPush) {
-                var oldState = Stack.Pop();
-                ExitEvent(oldState, change.Destination.Key);
-                await oldState.Exit();
-                CurrentState = change.Destination;
+                Stack.Pop();
+                InvokeExitEvent(CurrentState.Key, change.Destination.Key, change.Type);
+                await CurrentState.Exit();
+                var oldState = ChangeState(change.Destination);
                 Stack.Push(CurrentState);
-                TransitionEvent(oldState, CurrentState);
-                EnterEvent(CurrentState, oldState.Key);
+                InvokeTransitionEvent(oldState.Key, change.Destination.Key, change.Type);
+                InvokeEnterEvent(oldState.Key, change.Destination.Key, change.Type);
                 await CurrentState.Enter();
             } else if (change.Type == CommandType.Init) {
-                CurrentState = change.Destination;
+                var oldState = ChangeState(change.Destination);
                 Stack.Push(CurrentState);
-                EnterEvent(CurrentState, CurrentState.Key);
+                InvokeTransitionEvent(oldState.Key, change.Destination.Key, change.Type);
+                InvokeEnterEvent(oldState.Key, change.Destination.Key, change.Type);
                 await CurrentState.Enter();
             }
             await CurrentState.Execute();
-            AfterEvent();
+            InvokeAfterEvent(currentStateBackup.Key, change.Destination.Key, change.Type);
         } catch (Exception) {
-            CurrentState = currentStateBackup;
+            ChangeState(currentStateBackup);
             throw;
         } finally {
             Available = true;

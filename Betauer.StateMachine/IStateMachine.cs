@@ -9,8 +9,8 @@ public interface IStateMachineEvents<TStateKey> {
     public event Action<TransitionArgs<TStateKey>>? OnSuspend;
     public event Action<TransitionArgs<TStateKey>>? OnExit;
     public event Action<TransitionArgs<TStateKey>>? OnTransition;
-    public event Action? OnBefore;
-    public event Action? OnAfter;
+    public event Action<TransitionArgs<TStateKey>>? OnBefore;
+    public event Action<TransitionArgs<TStateKey>>? OnAfter;
 }
     
 public interface IStateMachine<TStateKey, TEventKey, TState> : IStateMachineEvents<TStateKey>

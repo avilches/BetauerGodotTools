@@ -467,7 +467,6 @@ namespace Betauer.StateMachine.Tests {
             Assert.That(sm.CurrentState.Key, Is.EqualTo(State.MainMenu));
         }
 
-
         [Test]
         public async Task EnterOnPushExitOnPopSuspendAwakeListener() {
             var sm = new StateMachineAsync<State, Event>(State.Debug);
@@ -483,8 +482,6 @@ namespace Betauer.StateMachine.Tests {
             sm.OnSuspend += (args)  => states.Add(args.From + ":suspend");
             sm.OnExit += (args)  => states.Add(args.From + ":exit");
             sm.OnTransition += (args)  => states.Add("from:" + args.From + "-to:" + args.To);
-
-            
             
             await sm.Execute();
             sm.Send(Event.Settings);
@@ -494,17 +491,16 @@ namespace Betauer.StateMachine.Tests {
             // Test listener
             Console.WriteLine(string.Join(",", states));
             Assert.That(string.Join(",", states), Is.EqualTo(
+                "from:Debug-to:Debug," +
                 "Debug:enter," +
                 
-                    "Debug:suspend," +
-                    "from:Debug-to:Settings," +
-                    "Settings:enter," +
-                
-                    "Settings:exit," +
-                    "from:Settings-to:Debug," +
-                    "Debug:awake"));
+                "Debug:suspend," +
+                "from:Debug-to:Settings," +
+                "Settings:enter," +
             
-
+                "Settings:exit," +
+                "from:Settings-to:Debug," +
+                "Debug:awake"));
         }
 
         [Test]

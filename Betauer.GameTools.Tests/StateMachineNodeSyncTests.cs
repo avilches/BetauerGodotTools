@@ -22,9 +22,6 @@ namespace Betauer.GameTools.Tests {
             MainMenu
         }
         enum Trans {
-            NotFound,
-            Settings,
-            Back
         }
         [Test(Description = "Constructor")]
         public void StateMachineNodeConstructors() {
@@ -122,8 +119,8 @@ namespace Betauer.GameTools.Tests {
             sm.OnSuspend += (args)  => states.Add(args.From + ":suspend");
             sm.OnExit += (args)  => states.Add(args.From + ":exit");
             sm.OnTransition += (args)  => states.Add("from:" + args.From + "-to:" + args.To);
-            sm.OnBefore += ()  => states.Add(":execute.start");
-            sm.OnAfter += ()  => states.Add(":execute.end");
+            sm.OnBefore += (args)  => states.Add(":execute.start");
+            sm.OnAfter += (args)  => states.Add(":execute.end");
 
             AddChild(sm);
 
@@ -135,7 +132,7 @@ namespace Betauer.GameTools.Tests {
 
             Console.WriteLine(string.Join(",", states));
             Assert.That(string.Join(",", states), Is.EqualTo(
-                ":execute.start,MainMenu:enter,:execute.end," +
+                ":execute.start,from:MainMenu-to:MainMenu,MainMenu:enter,:execute.end," +
                 ":execute.start,MainMenu:exit,from:MainMenu-to:Debug,Debug:enter,:execute.end," +
                 ":execute.start,Debug:suspend,from:Debug-to:Settings,Settings:enter,:execute.end," +
                 ":execute.start,Settings:exit,from:Settings-to:Debug,Debug:awake,:execute.end," +
@@ -191,6 +188,5 @@ namespace Betauer.GameTools.Tests {
             Assert.That(i, Is.EqualTo(0));
             Assert.That(u, Is.EqualTo(2));
         }
-
     }
 }

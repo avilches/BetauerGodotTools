@@ -8,10 +8,12 @@ namespace Betauer.StateMachine;
 public readonly struct TransitionArgs<TStateKey> {
     public readonly TStateKey From;
     public readonly TStateKey To;
+    public readonly CommandType Type;
 
-    public TransitionArgs(TStateKey from, TStateKey to) {
+    internal TransitionArgs(TStateKey from, TStateKey to, CommandType type) {
         From = from;
         To = to;
+        Type = type;
     }
 }
 
@@ -45,7 +47,7 @@ public abstract class BaseStateMachine<TStateKey, TEventKey, TState> : StateMach
 
     public readonly Dictionary<TStateKey, TState> States = new();
     public TStateKey[] GetStack() => Stack.Reverse().Select(e => e.Key).ToArray();
-    public TState CurrentState { get; protected set; }
+    public TState CurrentState { get; private set; }
 
     public bool IsState(TStateKey state) {
         return EqualityComparer<TStateKey>.Default.Equals(CurrentState.Key, state);
@@ -80,8 +82,8 @@ public abstract class BaseStateMachine<TStateKey, TEventKey, TState> : StateMach
     public event Action<TransitionArgs<TStateKey>>? OnSuspend;
     public event Action<TransitionArgs<TStateKey>>? OnExit;
     public event Action<TransitionArgs<TStateKey>>? OnTransition;
-    public event Action? OnBefore;
-    public event Action? OnAfter;
+    public event Action<TransitionArgs<TStateKey>>? OnBefore;
+    public event Action<TransitionArgs<TStateKey>>? OnAfter;
 
     public void AddState(TState state) {
         if (States.ContainsKey(state.Key)) throw new DuplicateStateException(state.Key.ToString());
@@ -149,33 +151,39 @@ public abstract class BaseStateMachine<TStateKey, TEventKey, TState> : StateMach
         TState newState = FindState(_nextCommand.StateKey);
         return new StateChange(newState, _nextCommand.Type);
     }
-
-    protected void TransitionEvent(TState? from, TState to) {
-        if (from != null && from != to) OnTransition?.Invoke(new TransitionArgs<TStateKey>(from.Key, to.Key));
+    
+    protected TState ChangeState(TState destination) {
+        var oldState = CurrentState;
+        CurrentState = destination;
+        return oldState;
     }
 
-    protected void ExitEvent(TState state, TStateKey to) {
-        OnExit?.Invoke(new TransitionArgs<TStateKey>(state.Key, to));
+    protected void InvokeTransitionEvent(TStateKey from, TStateKey to, CommandType type) {
+        OnTransition?.Invoke(new TransitionArgs<TStateKey>(from, to, type));
     }
 
-    protected void SuspendEvent(TState state, TStateKey to) {
-        OnSuspend?.Invoke(new TransitionArgs<TStateKey>(state.Key, to));
+    protected void InvokeExitEvent(TStateKey from, TStateKey to, CommandType type) {
+        OnExit?.Invoke(new TransitionArgs<TStateKey>(from, to, type));
     }
 
-    protected void AwakeEvent(TState state, TStateKey from) {
-        OnAwake?.Invoke(new TransitionArgs<TStateKey>(from, state.Key));
+    protected void InvokeSuspendEvent(TStateKey from, TStateKey to, CommandType type) {
+        OnSuspend?.Invoke(new TransitionArgs<TStateKey>(from, to, type));
     }
 
-    protected void EnterEvent(TState state, TStateKey from) {
-        OnEnter?.Invoke(new TransitionArgs<TStateKey>(from, state.Key));
+    protected void InvokeAwakeEvent(TStateKey from, TStateKey to, CommandType type) {
+        OnAwake?.Invoke(new TransitionArgs<TStateKey>(from, to, type));
     }
 
-    protected void BeforeEvent() {
-        OnBefore?.Invoke();
+    protected void InvokeEnterEvent(TStateKey from, TStateKey to, CommandType type) {
+        OnEnter?.Invoke(new TransitionArgs<TStateKey>(from, to, type));
     }
 
-    protected void AfterEvent() {
-        OnAfter?.Invoke();
+    protected void InvokeBeforeEvent(TStateKey from, TStateKey to, CommandType type) {
+        OnBefore?.Invoke(new TransitionArgs<TStateKey>(from, to, type));
+    }
+
+    protected void InvokeAfterEvent(TStateKey from, TStateKey to, CommandType type) {
+        OnAfter?.Invoke(new TransitionArgs<TStateKey>(from, to, type));
     }
 
     public void Dispose() {
