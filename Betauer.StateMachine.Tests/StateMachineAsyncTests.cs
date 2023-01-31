@@ -491,7 +491,7 @@ namespace Betauer.StateMachine.Tests {
             // Test listener
             Console.WriteLine(string.Join(",", states));
             Assert.That(string.Join(",", states), Is.EqualTo(
-                "Debug:enter," +
+                "from:Debug-to:Debug,Debug:enter," +
                 
                 "Debug:suspend," +
                 "from:Debug-to:Settings," +

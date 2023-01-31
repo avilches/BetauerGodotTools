@@ -62,6 +62,7 @@ public abstract class BaseStateMachineSync<TStateKey, TEventKey, TState> :
             } else if (change.Type == CommandType.Init) {
                 var oldState = ChangeState(change.Destination);
                 Stack.Push(CurrentState);
+                InvokeTransitionEvent(oldState.Key, change.Destination.Key, change.Type);
                 InvokeEnterEvent(oldState.Key, change.Destination.Key, change.Type);
                 CurrentState.Enter();
             }

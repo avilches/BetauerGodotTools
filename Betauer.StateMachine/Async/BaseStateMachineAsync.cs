@@ -63,6 +63,7 @@ public abstract class BaseStateMachineAsync<TStateKey, TEventKey, TState> :
             } else if (change.Type == CommandType.Init) {
                 var oldState = ChangeState(change.Destination);
                 Stack.Push(CurrentState);
+                InvokeTransitionEvent(oldState.Key, change.Destination.Key, change.Type);
                 InvokeEnterEvent(oldState.Key, change.Destination.Key, change.Type);
                 await CurrentState.Enter();
             }
