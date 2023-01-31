@@ -17,6 +17,7 @@ public abstract class WorldItem {
 public class WeaponItem : WorldItem {
     public readonly WeaponType Type;
     public float DamageFactor = 1f;
+    public int EnemiesPerHit = 2;
 
     public float Damage => Type.Damage * DamageFactor;
 

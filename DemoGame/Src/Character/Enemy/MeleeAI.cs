@@ -55,7 +55,7 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
         float ConfusionTime() => 1f;
         var attacksPerSeconds = 1f;
 
-        GodotStopwatch stateTimer = new();
+        GodotStopwatch stateTimer = new(false, true);
 
         State(State.Sleep)
             .Enter(() => {

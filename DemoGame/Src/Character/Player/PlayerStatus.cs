@@ -8,8 +8,8 @@ public class PlayerStatus {
     public float HealthPercent => Health / MaxHealth;
     public bool Invincible { get; set; } = false; // true when the Hurt state starts. A timeout sets it to false later
     public bool UnderAttack { get; set; } = false; // true when the first attack signal is emitted. false when Hurt state ends.
-    
-    public bool AttackConsumed { get; set; } = false; // true
+
+    public int AvailableHits { get; set; } = 0;
 
     public PlayerStatus(float maxHealth, float health = int.MaxValue) {
         MaxHealth = maxHealth;

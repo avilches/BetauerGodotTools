@@ -199,7 +199,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		flipper.IsFacingRight = flipper.IsFacingRight;
 
 		PlatformBody = new KinematicPlatformMotion(CharacterBody2D, flipper, Marker2D, MotionConfig.FloorUpDirection);
-		OnBefore += (args) => PlatformBody.SetDelta(Delta);
+		OnBefore += () => PlatformBody.SetDelta(Delta);
 		
 		CharacterManager.EnemyConfigureCollisions(CharacterBody2D);
 		CharacterManager.EnemyConfigureCollisions(FloorRaycast);

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Betauer.Application.Monitor;
 using Betauer.Camera;
+using Betauer.Core;
 using Betauer.Core.Nodes;
 using Betauer.Core.Time;
 using Betauer.DI;
@@ -108,6 +109,8 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 
 	private readonly DragCameraController _cameraController = new();
 	private CharacterWeaponController _characterWeaponController;
+	private AttackState _attackState = AttackState.None;
+	private readonly GodotStopwatch _stateTimer = new(false, true);
 
 	public override void _Ready() {
 		ConfigureAnimations();
@@ -152,7 +155,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			Label.Text = _animationStack.GetPlayingOnce() != null
 				? _animationStack.GetPlayingOnce().Name
 				: _animationStack.GetPlayingLoop().Name;
-			Label.Text += "(" + attackState + ")";
+			Label.Text += "(" + _attackState + ")";
 		};
 
 		_characterWeaponController = new CharacterWeaponController(_attackArea, _weaponSprite);
@@ -179,17 +182,19 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	private void ConfigureAttackArea() {
 		CharacterManager.PlayerConfigureAttackArea(_attackArea);
 		this.OnProcess(delta => {
-			if (!Status.AttackConsumed &&
+			if (Status.AvailableHits > 0 &&
 				_attackArea.Monitoring &&
 				_attackArea.HasOverlappingAreas()) {
-				EnemyItem? target = _attackArea.GetOverlappingAreas()
+
+				_attackArea.GetOverlappingAreas()
 					.Select(area2D => World.Get<EnemyItem>(area2D.GetWorldId()))
 					.Where(enemy => !enemy.ZombieNode.Status.UnderAttack)
-					.MinBy(enemy => enemy.ZombieNode.DistanceToPlayer());
-				if (target != null) {
-					Status.AttackConsumed = true;
-					EventBus.Publish(new PlayerAttackEvent(this, target, Inventory.WeaponEquipped!));
-				}
+					.OrderBy(enemy => enemy.ZombieNode.DistanceToPlayer()) // Ascending, so first element is the closest to the player
+					.Take(Status.AvailableHits)
+					.ForEach(enemy => {
+						Status.AvailableHits--;
+						EventBus.Publish(new PlayerAttackEvent(this, enemy, Inventory.WeaponEquipped!));
+					});
 			}
 		});
 	}
@@ -240,22 +245,32 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		Long
 	}
 
-	public AttackState attackState = AttackState.None;
-
 	private void StartStack() {
-		attackState = AttackState.Start;
-		Status.AttackConsumed = false;
+		_stateTimer.Restart();
+		// Logger.Debug(CurrentState.Key+ ": Attack started");
+		_attackState = AttackState.Start;
+		Status.AvailableHits = Inventory.WeaponEquipped.EnemiesPerHit;
+	}
+
+	private void StopAttack() {
+		// Logger.Debug(CurrentState.Key+ ": Attack ended: GodotStopwatch physics: " + _stateTimer.Elapsed);
+		_attackState = AttackState.None;
+		AnimationAttack.Stop(true);
+		Status.AvailableHits = 0;
 	}
 
 	public void AnimationCallback_EndShortAttack() {
-		if (attackState == AttackState.Short) {
-			attackState = AttackState.None;
-			AnimationAttack.Stop(true);
+		if (_attackState == AttackState.Short) {
+			// Short means the player didn't attack again, so the attack ends here
+			StopAttack();
+		} else if (_attackState == AttackState.Long) {
+			// The player pressed attack twice, so the short attack is now a long attack, and this signal call is ignored
+			Status.AvailableHits = 2;
 		}
 	}
 
 	public void AnimationCallback_EndLongAttack() {
-		attackState = AttackState.None;
+		StopAttack();
 	}
 
 	public void ConfigureStateMachine() {
@@ -290,7 +305,8 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			if (fallingPlatform != null) PlatformManager.ConfigurePlatformCollision(fallingPlatform);
 		}
 
-		OnTransition += args => Logger.Debug(args.From +" -> "+args.To);
+		OnTransition += (args) => _stateTimer.Restart();
+		// OnTransition += (args) => Logger.Debug(args.From +" -> "+args.To);
 
 		On(PlayerEvent.Hurt).Set(PlayerState.Hurting);
 		On(PlayerEvent.Death).Set(PlayerState.Death);
@@ -376,31 +392,25 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.FallWithCoyote)
 			.Build();
 
-		var attackingTime = 0d;
 		State(PlayerState.Attacking)
 			.Enter(() => {
-				attackingTime = 0d;
 				AnimationAttack.PlayOnce(true);
 				StartStack();
 			})
 			.Execute(() => {
-				attackingTime += Delta;
 				ApplyFloorGravity();
 				PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
-				if (attackState == AttackState.Start) {
-					attackState = AttackState.Short;
-				} else {
-					if (Attack.IsJustPressed()) {
-						if (attackState == AttackState.Short) {
-							attackState = AttackState.Long;
-						} else if (attackState == AttackState.Long) {
-							//
-						}
+				if (Attack.IsJustPressed()) {
+					if (_attackState == AttackState.Short) {
+						// Promoted short attack to long attack 
+						_attackState = AttackState.Long;
+					} else if (_attackState == AttackState.Long) {
+						//
 					}
 				}
+				if (_attackState == AttackState.Start) _attackState = AttackState.Short;
 			})
-			.Exit(() => Logger.Debug("Attack time "+attackingTime))
-			.If(() => attackState != AttackState.None).Stay()
+			.If(() => _attackState != AttackState.None).Stay()
 			.If(() => XInput == 0).Set(PlayerState.Idle)
 			.If(() => XInput != 0).Set(PlayerState.Running)
 			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.FallWithCoyote)
@@ -448,19 +458,8 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				ApplyFloorGravity();
 				PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
 					PlayerConfig.StopIfSpeedIsLessThan, PlayerConfig.ChangeDirectionFactor);
-				if (attackState == AttackState.Start) {
-					attackState = AttackState.Short;
-				} else {
-					if (Attack.IsJustPressed() && false) {
-						if (attackState == AttackState.Short) {
-							attackState = AttackState.Long;
-						} else if (attackState == AttackState.Long) {
-							//
-						}
-					}
-				}
 			})
-			.If(() => attackState != AttackState.None).Stay()
+			.If(() => _attackState != AttackState.None).Stay()
 			.If(() => XInput == 0).Set(PlayerState.Idle)
 			.If(() => XInput != 0).Set(PlayerState.Running)
 			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.Fall)
