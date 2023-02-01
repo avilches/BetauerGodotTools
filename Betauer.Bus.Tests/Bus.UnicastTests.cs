@@ -117,7 +117,17 @@ namespace Betauer.Bus.Tests {
         public void AllowSubTypesArgs() {
             var bus = new Unicast<ISender, IEvent>();
             var calls = 0;
-            var consumer = bus.Subscribe(ev => {
+            var consumer = bus.Subscribe(() => {
+                calls++;
+            });
+            bus.Publish(new Event1());
+            bus.Publish(new Event2());
+            bus.Publish(null);
+            Assert.That(calls, Is.EqualTo(3));
+
+            consumer.Unsubscribe();
+            calls = 0;
+            consumer = bus.Subscribe(ev => {
                 calls++;
             });
             bus.Publish(new Event1());
@@ -162,7 +172,7 @@ namespace Betauer.Bus.Tests {
             bus.Publish(null);
             Assert.That(calls, Is.EqualTo(3));
 
-            // consumer.Unsubscribe();
+            consumer.Unsubscribe();
             calls = 0;
             consumer = bus.Subscribe((Sender1 s, Event1 ev) => {
                 calls++;
@@ -181,7 +191,7 @@ namespace Betauer.Bus.Tests {
             bus.Publish(null, null);
             Assert.That(calls, Is.EqualTo(4));
             
-            // consumer.Unsubscribe();
+            consumer.Unsubscribe();
             calls = 0;
             consumer = bus.Subscribe((Sender2 s, Event2 ev) => {
                 calls++;

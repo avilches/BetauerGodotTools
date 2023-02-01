@@ -1,63 +1,54 @@
 using System ;
+using Betauer.Core;
 
 namespace Betauer.Bus {
-    public class Unicast<TArgs> : Unicast<object, TArgs> {
+    public class Unicast<TEvent> : Unicast<object, TEvent> {
     }
 
-    public class Unicast<TPublisher, TArgs> {
+    public class Unicast<TPublisher, TEvent> {
         public readonly EventConsumer Consumer = new();
 
-        public Func<TPublisher, TArgs, bool>? Condition { get; set; }
+        public Func<TPublisher, TEvent, bool>? Condition { get; set; }
 
         public void Publish() {
             Publish(default, default);
         }
 
-        public void Publish(TArgs args) {
+        public void Publish(TEvent args) {
             Publish(default, args);
         }
 
-        public void Publish(TPublisher publisher, TArgs args) {
+        public void Publish(TPublisher publisher, TEvent args) {
             if (Consumer.IsValid() &&
                 (Condition == null || Condition(publisher, args))) {
                 Execute(Consumer, publisher, args);
             }
         }
 
-        protected virtual void Execute(EventConsumer consumer, TPublisher publisher, TArgs args) {
+        protected virtual void Execute(EventConsumer consumer, TPublisher publisher, TEvent args) {
             consumer.Execute(publisher, args);
         }
         
         public EventConsumer Subscribe(Action action) {
-            return Subscribe<TPublisher, TArgs>((_, _) => action());
+            return Subscribe<TPublisher, TEvent>((_, _) => action());
         }
 
-        public EventConsumer Subscribe(Action<TArgs> action) {
+        public EventConsumer Subscribe(Action<TEvent> action) {
             return Subscribe((_, args) => action(args));
         }
 
-        public EventConsumer Subscribe(Action<TPublisher, TArgs> action) {
-            return Subscribe<TPublisher, TArgs>(action);
+        public EventConsumer Subscribe(Action<TPublisher, TEvent> action) {
+            return Subscribe<TPublisher, TEvent>(action);
         }
 
 
-        public EventConsumer Subscribe<T>(Action<T> action) where T : TArgs {
+        public EventConsumer Subscribe<T>(Action<T> action) where T : TEvent {
             return Subscribe<TPublisher, T>((_, args) => action(args));
         }
 
-        public EventConsumer Subscribe<TP, T>(Action<TP, T> action) where T : TArgs where TP : TPublisher {
+        public EventConsumer Subscribe<TP, T>(Action<TP, T> action) where T : TEvent where TP : TPublisher {
             Consumer.Unsubscribe();
-            if (typeof(T) == typeof(TArgs) && typeof(TP) == typeof(TPublisher)) {
-                Consumer.Do(action as Action<TPublisher, TArgs>);
-            } else {
-                // This allow to subscribe with subtypes of T
-                Consumer.Do((publisher, args) => {
-                    if (publisher is null or TP &&
-                        args is null or T) {
-                        action((TP)publisher, (T)args);                        
-                    }
-                });
-            }
+            Consumer.Do(ActionTools.Convert<TPublisher, TEvent, TP, T>(action));
             return Consumer;
         }
 
@@ -65,7 +56,7 @@ namespace Betauer.Bus {
             Consumer.Unsubscribe();
         }
 
-        public class EventConsumer : BaseEventConsumer<EventConsumer, TPublisher, TArgs> {
+        public class EventConsumer : BaseEventConsumer<EventConsumer, TPublisher, TEvent> {
         }
     }
 }
