@@ -23,10 +23,10 @@ public class CharacterManager {
     }
 
     public void PlayerConfigureCollisions(PlayerNode playerNode) {
-        playerNode.PlatformBody.CharacterBody.CollisionLayer = 0;
-        playerNode.PlatformBody.CharacterBody.CollisionMask = 0;
-        playerNode.PlatformBody.CharacterBody.AddToLayer(LayerPlayerBody);
-        playerNode.PlatformBody.CharacterBody.DetectLayer(LayerSolidBody);
+        playerNode.CharacterBody2D.CollisionLayer = 0;
+        playerNode.CharacterBody2D.CollisionMask = 0;
+        playerNode.CharacterBody2D.AddToLayer(LayerPlayerBody);
+        playerNode.CharacterBody2D.DetectLayer(LayerSolidBody);
 
         playerNode.PlayerDetector.CollisionLayer = 0;
         playerNode.PlayerDetector.CollisionMask = 0;
@@ -104,7 +104,7 @@ public class CharacterManager {
     public bool IsEnemy(CharacterBody2D platform) => platform.IsInGroup(GROUP_ENEMY);
 
     public bool IsPlayer(CharacterBody2D player) {
-        return PlayerNode.PlatformBody.CharacterBody == player;
+        return PlayerNode.CharacterBody2D == player;
     }
 
 }

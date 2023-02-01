@@ -53,7 +53,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 
 	private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PlayerNode));
 
-	[OnReady("Character")] private CharacterBody2D CharacterBody2D;
+	[OnReady("Character")] public CharacterBody2D CharacterBody2D;
 	[OnReady("Character/Sprites/Weapon")] private Sprite2D _weaponSprite;
 	[OnReady("Character/Sprites/Body")] private Sprite2D _mainSprite;
 	
@@ -514,14 +514,14 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 
 		State(PlayerState.Floating)
 			.OnInput(InventoryHandler)
-			.Enter(() => PlatformBody.CharacterBody.MotionMode = CharacterBody2D.MotionModeEnum.Floating)
+			.Enter(() => CharacterBody2D.MotionMode = CharacterBody2D.MotionModeEnum.Floating)
 			.Execute(() => {
 				PlatformBody.AddSpeed(XInput, YInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed,
 					PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan, 0);
 				PlatformBody.Move();
 			})
 			.If(() => Float.IsJustPressed()).Set(PlayerState.Fall)
-			.Exit(() => PlatformBody.CharacterBody.MotionMode = CharacterBody2D.MotionModeEnum.Grounded)
+			.Exit(() => CharacterBody2D.MotionMode = CharacterBody2D.MotionModeEnum.Grounded)
 			.Build();
 
 		State(PlayerState.Hurting)

@@ -427,17 +427,13 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 			.Build();
 
 		Tween? redFlash = null;
-		Tween? knockbackTween = null;
 		var min = 40f;
 		State(ZombieState.Hurt)
 			.Enter(() => {
-				PlatformBody.MotionX = Random.Range(EnemyConfig.HurtKnockback.x, EnemyConfig.HurtKnockback.x * 3);
-				PlatformBody.MotionY = Random.Range(EnemyConfig.HurtKnockback.y, EnemyConfig.HurtKnockback.y * 3);
+				PlatformBody.MotionX = Random.Range(EnemyConfig.HurtKnockback.x, EnemyConfig.HurtKnockback.x * 2);
+				PlatformBody.MotionY = Random.Range(EnemyConfig.HurtKnockback.y, EnemyConfig.HurtKnockback.y * 2);
 				PlatformBody.MotionX *= RightOfPlayer();
 				AnimationHurt.PlayOnce(true);
-				knockbackTween?.Kill();
-				knockbackTween = CreateTween();
-				knockbackTween.TweenMethod(Callable.From<float>(v => PlatformBody.MotionX = v), PlatformBody.MotionX, min * RightOfPlayer(), EnemyConfig.HurtKnockbackTime).SetTrans(Tween.TransitionType.Linear);
 				redFlash?.Kill();
 				redFlash = RedFlash.Play(_mainSprite, 0); 
 			})

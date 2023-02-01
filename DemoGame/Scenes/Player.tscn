@@ -756,11 +756,6 @@ current = true
 zoom = Vector2(2.5, 2.5)
 metadata/_edit_lock_ = true
 
-[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Character"]
-position = Vector2(0, -1)
-polygon = PackedVector2Array(0, -36, -5, -27, -5, 1, 5, 1, 5, -27)
-metadata/_edit_lock_ = true
-
 [node name="Sprites" type="Node2D" parent="Character"]
 position = Vector2(0, -37)
 
@@ -780,6 +775,12 @@ root_node = NodePath("../Body")
 libraries = {
 "": SubResource("AnimationLibrary_3u6sx")
 }
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Character"]
+visible = false
+position = Vector2(0, -1)
+polygon = PackedVector2Array(0, -36, -5, -27, -5, 1, 5, 1, 5, -27)
+metadata/_edit_lock_ = true
 
 [node name="CanJump" type="RayCast2D" parent="Character"]
 position = Vector2(0, -32)
@@ -836,6 +837,7 @@ shape = SubResource("RectangleShape2D_xn60t")
 metadata/_edit_lock_ = true
 
 [node name="HurtArea" type="Area2D" parent="Character"]
+visible = false
 metadata/_edit_lock_ = true
 
 [node name="Body" type="CollisionShape2D" parent="Character/HurtArea"]
