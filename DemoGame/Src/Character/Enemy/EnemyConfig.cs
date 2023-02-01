@@ -16,6 +16,7 @@ public class EnemyConfig {
     public int Attack = 6;
     public float InitialHealth = 1000;
     public float InitialMaxHealth = 32;
+    public bool HealthBarVisible = false;
     
     public float VisionAngle = Mathf.DegToRad(48); // 47 up + 47 down, a 92º cone
     public float VisionDistance = 120; // 200f;

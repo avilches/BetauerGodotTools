@@ -9,14 +9,19 @@
 script = ExtResource("1_4b32y")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
-offset_right = 600.0
-offset_bottom = 600.0
+offset_right = 200.0
+offset_bottom = 20.0
 
 [node name="HealthBar" type="TextureProgressBar" parent="HBoxContainer"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 0)
 layout_mode = 2
-max_value = 200.0
 value = 40.0
+allow_lesser = true
+stretch_margin_left = 1
+stretch_margin_top = 1
+stretch_margin_right = 1
+stretch_margin_bottom = 1
 texture_under = ExtResource("1_y6xfw")
 texture_over = ExtResource("1_gtut2")
 texture_progress = ExtResource("2_1ks8x")

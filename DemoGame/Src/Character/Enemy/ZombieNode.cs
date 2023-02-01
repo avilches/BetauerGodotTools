@@ -82,6 +82,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 	[OnReady("Character/RayCasts/FinishFloorLeft")] public RayCast2D FinishFloorLeft;
 	[OnReady("Character/RayCasts/FinishFloorRight")] public RayCast2D FinishFloorRight;
 	[OnReady("Character/RayCasts/Floor")] public RayCast2D FloorRaycast;
+	[OnReady("Character/HealthBarPosition/HealthBar")] public TextureProgressBar HealthBar;
 
 	[Inject] private CharacterManager CharacterManager { get; set; }
 	[Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
@@ -156,7 +157,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 			canvas.DrawRaycast(FinishFloorRight, Colors.Blue);
 			canvas.DrawRaycast(FinishFloorLeft, Colors.Blue);
 		});
-		// drawRaycasts.Disable();
+		drawRaycasts.Disable();
 
 		var drawPlayerInsight = this.OnDraw(canvas => {
 			// Same conditions as CanSeeThePlayer
@@ -178,7 +179,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 			}
 			canvas.DrawLine(Marker2D.GlobalPosition, PlayerPos, Colors.Lime, 2);
 		});
-		// drawPlayerInsight.Disable();
+		drawPlayerInsight.Disable();
 
 		var overlay = DebugOverlayManager.Follow(CharacterBody2D).Title("Zombie");
 		AddOverlayStates(overlay);
@@ -225,13 +226,24 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		_restorer.Save();
 
 		Status = new EnemyStatus(EnemyConfig.InitialMaxHealth, EnemyConfig.InitialHealth);
+		UpdateHealthBar();
+	}
+
+	private void UpdateHealthBar() {
+		if (EnemyConfig.HealthBarVisible) {
+			HealthBar.MinValue = 0;
+			HealthBar.MaxValue = Status.MaxHealth;
+			HealthBar.Value = Status.Health;
+		}
+		HealthBar.Visible = EnemyConfig.HealthBarVisible;
 	}
 
 	private void OnPlayerAttackEvent(PlayerAttackEvent playerAttackEvent) {
 		if (playerAttackEvent.Enemy.Id != _enemyItem.Id) return;
 		Debug.Assert(Status.UnderAttack == false, "Status.UnderAttack == false");
 		Status.UnderAttack = true;
-		Status.Hurt(playerAttackEvent.Weapon.Damage);
+		Status.UpdateHealth(-playerAttackEvent.Weapon.Damage);
+		UpdateHealthBar();
 		_labelHits.Get().Show(((int)playerAttackEvent.Weapon.Damage).ToString());
 		Send(Status.IsDead() ? ZombieEvent.Death : ZombieEvent.Hurt);
 	}
@@ -437,6 +449,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		State(ZombieState.Death)
 			.Enter(() => {
 				DisableAttack();
+				HealthBar.Visible = false;
 				AnimationDead.PlayOnce(true);
 			})
 			.Execute(() => {

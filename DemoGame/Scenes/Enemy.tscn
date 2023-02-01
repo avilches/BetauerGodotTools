@@ -1,6 +1,9 @@
-[gd_scene load_steps=2 format=3 uid="uid://dmw5hkvxv022p"]
+[gd_scene load_steps=5 format=3 uid="uid://dmw5hkvxv022p"]
 
+[ext_resource type="Texture2D" uid="uid://cxmo73r7h3lgq" path="res://Src/Assets/HUD/player-health-bar-under.png" id="1_05trw"]
 [ext_resource type="FontFile" uid="uid://dgrdge8rewkst" path="res://Assets/Fonts/dpcomic.ttf" id="1_7kwyq"]
+[ext_resource type="Texture2D" uid="uid://b1mxxkrpf3xej" path="res://Src/Assets/HUD/player-health-bar-over.png" id="2_8dbxl"]
+[ext_resource type="Texture2D" uid="uid://3pvhwb1xss78" path="res://Src/Assets/HUD/player-health-bar-damage.png" id="3_okw7p"]
 
 [node name="Character" type="CharacterBody2D"]
 collision_layer = 1024
@@ -45,6 +48,18 @@ collision_mask = 0
 [node name="HurtArea" type="Area2D" parent="."]
 collision_layer = 0
 collision_mask = 0
+
+[node name="HealthBarPosition" type="Node2D" parent="."]
+
+[node name="HealthBar" type="TextureProgressBar" parent="HealthBarPosition"]
+offset_left = -16.0
+offset_top = -36.0
+offset_right = 48.0
+offset_bottom = 4.0
+scale = Vector2(0.5, 0.5)
+texture_under = ExtResource("1_05trw")
+texture_over = ExtResource("2_8dbxl")
+texture_progress = ExtResource("3_okw7p")
 
 [node name="HitLabelPosition" type="Node2D" parent="."]
 position = Vector2(-50, -44)

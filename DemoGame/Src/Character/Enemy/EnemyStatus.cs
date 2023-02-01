@@ -14,8 +14,8 @@ public class EnemyStatus {
         Health = Math.Min(health, maxHealth);
     }
 
-    public void Hurt(float damage) {
-        Health -= damage;
+    public void UpdateHealth(float update) {
+        Health += update;
     }
 
     public bool IsDead() => Health <= 0f;

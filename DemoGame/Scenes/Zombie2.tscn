@@ -297,7 +297,14 @@ metadata/_edit_lock_ = true
 position = Vector2(-1, -21)
 shape = SubResource("RectangleShape2D_mcf6k")
 
-[node name="HitLabelPosition" parent="Character" index="7"]
+[node name="HealthBar" parent="Character/HealthBarPosition" index="0"]
+offset_left = -11.0
+offset_top = -47.0
+offset_right = 53.0
+offset_bottom = -7.0
+scale = Vector2(0.34, 0.34)
+
+[node name="HitLabelPosition" parent="Character" index="8"]
 position = Vector2(-50, -30)
 
 [node name="HitLabel" parent="Character/HitLabelPosition" index="0"]
