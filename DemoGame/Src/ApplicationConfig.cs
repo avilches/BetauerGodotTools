@@ -74,6 +74,7 @@ public class Scenes {
 	[Service(Lifetime.Transient)] PlayerNode Player => _playerScene.Instantiate<PlayerNode>();
 	[Service(Lifetime.Transient)] ModalBoxConfirm ModalBoxConfirm => _modalBoxConfirmScene.Instantiate<ModalBoxConfirm>();
 
+	[Service] HUD HudScene => Instantiate<HUD>("res://Scenes/UI/HUD.tscn");
 	[Service] MainMenu MainMenuScene => Instantiate<MainMenu>("res://Scenes/Menu/MainMenu.tscn");
 	[Service] BottomBar BottomBarScene => Instantiate<BottomBar>("res://Scenes/Menu/BottomBar.tscn");
 	[Service] PauseMenu PauseMenuScene => Instantiate<PauseMenu>("res://Scenes/Menu/PauseMenu.tscn");

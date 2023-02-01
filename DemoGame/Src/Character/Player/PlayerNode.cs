@@ -74,16 +74,16 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	[Inject] private InputAction NextItem { get; set; }
 	[Inject] private InputAction PrevItem { get; set; }
 
-	[Inject] public World World { get; set; }
-	[Inject] public PlayerConfig PlayerConfig { get; set; }
+	[Inject] private World World { get; set; }
+	[Inject] private PlayerConfig PlayerConfig { get; set; }
 	[Inject] private SceneTree SceneTree { get; set; }
 	[Inject] private EventBus EventBus { get; set; }
 	[Inject] private InputActionCharacterHandler Handler { get; set; }
+	[Inject] private PlayerStatus Status { get; set; }
 
 	public KinematicPlatformMotion PlatformBody { get; private set; }
 	public Vector2? InitialPosition { get; set; }
 	public Inventory Inventory { get; private set; }
-	public PlayerStatus Status { get; private set; }
 
 	private float XInput => Handler.Directional.XInput;
 	private float YInput => Handler.Directional.YInput;
@@ -168,7 +168,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			}
 		};
 
-		Status = new PlayerStatus(PlayerConfig.InitialMaxHealth, PlayerConfig.InitialHealth);
+		Status.Configure(this, PlayerConfig.InitialMaxHealth, PlayerConfig.InitialHealth);
 
 		CharacterManager.RegisterPlayerNode(this);
 		CharacterManager.PlayerConfigureCollisions(this);
@@ -209,8 +209,12 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 					.Select(area2D => World.Get<EnemyItem>(area2D.GetWorldId()))
 					.MinBy(enemy => enemy.ZombieNode.DistanceToPlayer());
 				Status.UnderAttack = true;
-				Status.Hurt(attacker.ZombieNode.EnemyConfig.Attack);
-				Send(Status.IsDead() ? PlayerEvent.Death : PlayerEvent.Hurt, 10000);
+				Status.UpdateHealth(-attacker.ZombieNode.EnemyConfig.Attack);
+				if (Status.IsDead()) {
+					Send(PlayerEvent.Death, 10000);
+				} else {
+					Send(PlayerEvent.Hurt, 10000);
+				}
 			}
 		});
 	}

@@ -1,0 +1,22 @@
+[gd_scene load_steps=5 format=3 uid="uid://55b4356716qq"]
+
+[ext_resource type="Script" path="res://Src/UI/HUD.cs" id="1_4b32y"]
+[ext_resource type="Texture2D" uid="uid://b1mxxkrpf3xej" path="res://Src/Assets/HUD/player-health-bar-over.png" id="1_gtut2"]
+[ext_resource type="Texture2D" uid="uid://cxmo73r7h3lgq" path="res://Src/Assets/HUD/player-health-bar-under.png" id="1_y6xfw"]
+[ext_resource type="Texture2D" uid="uid://3pvhwb1xss78" path="res://Src/Assets/HUD/player-health-bar-damage.png" id="2_1ks8x"]
+
+[node name="HUD" type="CanvasLayer"]
+script = ExtResource("1_4b32y")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+offset_right = 600.0
+offset_bottom = 600.0
+
+[node name="HealthBar" type="TextureProgressBar" parent="HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+max_value = 200.0
+value = 40.0
+texture_under = ExtResource("1_y6xfw")
+texture_over = ExtResource("1_gtut2")
+texture_progress = ExtResource("2_1ks8x")

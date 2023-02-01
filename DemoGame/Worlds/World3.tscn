@@ -53,15 +53,13 @@ visible = false
 position = Vector2(-716, 24)
 
 [node name="Enemy5" parent="Enemies" instance=ExtResource("3_ailyd")]
-visible = false
 position = Vector2(-716, 24)
 
 [node name="Enemy6" parent="Enemies" instance=ExtResource("3_ailyd")]
-visible = false
 position = Vector2(-716, 24)
 
 [node name="Enemy7" parent="Enemies" instance=ExtResource("3_ailyd")]
-position = Vector2(-669, 19)
+position = Vector2(-670, 25)
 
 [node name="Enemy2" parent="Enemies" instance=ExtResource("3_ailyd")]
 position = Vector2(-872, -38)
@@ -76,8 +74,7 @@ position = Vector2(-750, -86)
 flip_h = true
 
 [node name="Enemy10" parent="Enemies" instance=ExtResource("3_ailyd")]
-visible = false
-position = Vector2(-443, 4)
+position = Vector2(-698, 29)
 metadata/_edit_group_ = true
 
 [node name="Body" parent="Enemies/Enemy10/Character/Sprites" index="0"]

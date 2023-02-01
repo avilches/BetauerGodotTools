@@ -8,6 +8,7 @@ using Betauer.Core.Signal;
 using Godot;
 using Veronenger.Character.Items;
 using Veronenger.Character.Player;
+using Veronenger.UI;
 
 namespace Veronenger.Managers; 
 
@@ -16,6 +17,7 @@ public class Game {
 
     [Inject] private SceneTree SceneTree { get; set; }
     [Inject] private World World { get; set; }
+    [Inject] private HUD HudScene { get; set; }
     [Inject] private WeaponManager WeaponManager { get; set; }
     [Inject] private StageManager StageManager { get; set; }
     [Inject] private CharacterManager CharacterManager { get; set; }
@@ -61,7 +63,8 @@ public class Game {
         });
         PlatformManager.ConfigurePlatformsCollisions();
         _currentGameScene.GetNode<Node>("Stages").GetChildren().OfType<Area2D>().ForEach(StageManager.ConfigureStage);
-            
+
+        HudScene.StartGame();
     }
 
     private void CandleOff(PointLight2D light) {
@@ -100,6 +103,7 @@ public class Game {
 
     public void End() {
         Node.PrintOrphanNodes();
+        HudScene.EndGame();
         _currentGameScene.QueueFree();
         _currentGameScene = null;
     }

@@ -16,5 +16,6 @@ public static class CanvasLayerConstants {
     public const int PauseMenu = 1;
     public const int SettingsMenu = 2;
     public const int BottomBar = 3;
-    public const int ModalBox = 4;
+    public const int HudScene = 4;
+    public const int ModalBox = 5;
 }

@@ -18,8 +18,10 @@ public enum MainState {
     Settings,
     StartingGame,
     Gaming,
+    GameOver,
     PauseMenu,
     ModalQuitGame,
+    QuitGame,
     ModalExitDesktop,
     ExitDesktop,
 }
@@ -42,6 +44,7 @@ public partial class MainStateMachine : StateMachineNodeAsync<MainState, MainEve
     [Inject] public BottomBar BottomBarScene { get; set; }
     [Inject] private PauseMenu PauseMenuScene { get; set; }
     [Inject] private SettingsMenu SettingsMenuScene { get; set; }
+    [Inject] private HUD HudScene { get; set; }
     [Inject] private Factory<ModalBoxConfirm> ModalBoxConfirm { get; set; }
     [Inject] private Theme MyTheme { get; set; }
     [Inject] private Game Game { get; set; }
@@ -93,22 +96,13 @@ public partial class MainStateMachine : StateMachineNodeAsync<MainState, MainEve
 
         On(MainEvent.ModalBoxConfirmExitDesktop).Push(MainState.ModalExitDesktop);
         On(MainEvent.ExitDesktop).Set(MainState.ExitDesktop);
-        On(MainEvent.EndGame).Set(MainState.MainMenu);
         On(MainEvent.ModalBoxConfirmQuitGame).Push(MainState.ModalQuitGame);
+        OnTransition += args => BottomBarScene.UpdateState(args.To);
         State(MainState.Init)
             .Enter(() => {
-                MainMenuScene.Layer = CanvasLayerConstants.MainMenu;
-                PauseMenuScene.Layer = CanvasLayerConstants.PauseMenu;
-                SettingsMenuScene.Layer = CanvasLayerConstants.SettingsMenu;
-                BottomBarScene.Layer = CanvasLayerConstants.BottomBar;
-                // Never pause the pause, settings and the state machine, because they will not work!
-                SettingsMenuScene.ProcessMode = ProcessModeEnum.Always;
-                PauseMenuScene.ProcessMode = ProcessModeEnum.WhenPaused;
-
-                ScreenSettingsManager.Setup();
+                ConfigureCanvasLayers();
                 ConfigureDebugOverlays();
-
-                OnTransition += args => BottomBarScene.UpdateState(args.To);
+                ScreenSettingsManager.Setup();
             })
             .OnInput(e => {
                 if (!endSplash && (e.IsAnyKey() || e.IsAnyButton() || e.IsAnyClick()) && e.IsJustPressed()) {
@@ -144,6 +138,7 @@ public partial class MainStateMachine : StateMachineNodeAsync<MainState, MainEve
             .Build();
 
         State(MainState.Gaming)
+            .On(MainEvent.EndGame).Set(MainState.GameOver)
             .OnInput(e => {
                 if (ControllerStart.IsEventJustPressed(e)) {
                     Send(MainEvent.Pause);
@@ -152,7 +147,11 @@ public partial class MainStateMachine : StateMachineNodeAsync<MainState, MainEve
             })
             .On(MainEvent.Back).Pop()
             .On(MainEvent.Pause).Push(MainState.PauseMenu)
-            .Exit(() => Game.End())
+            .Build();
+
+        State(MainState.GameOver)
+            .Enter(() => Game.End())
+            .If(() => true).Set(MainState.MainMenu)
             .Build();
             
         State(MainState.PauseMenu)
@@ -178,8 +177,13 @@ public partial class MainStateMachine : StateMachineNodeAsync<MainState, MainEve
                 var modalBoxConfirm = ShowModalBox("Quit game?", "Any progress not saved will be lost");
                 modalResponse = await modalBoxConfirm.AwaitResult();
             })
-            .If(() => modalResponse).Set(MainState.MainMenu)
+            .If(() => modalResponse).Set(MainState.QuitGame)
             .If(() => !modalResponse).Pop()
+            .Build();
+                
+        State(MainState.QuitGame)
+            .Enter(() => Game.End())
+            .If(() => true).Set(MainState.MainMenu)
             .Build();
                 
 
@@ -199,6 +203,21 @@ public partial class MainStateMachine : StateMachineNodeAsync<MainState, MainEve
             .Enter(() => SceneTree.QuitSafely())
             .Build();
     }
+
+    private void ConfigureCanvasLayers() {
+        MainMenuScene.Layer = CanvasLayerConstants.MainMenu;
+        PauseMenuScene.Layer = CanvasLayerConstants.PauseMenu;
+        SettingsMenuScene.Layer = CanvasLayerConstants.SettingsMenu;
+        BottomBarScene.Layer = CanvasLayerConstants.BottomBar;
+        HudScene.Layer = CanvasLayerConstants.HudScene;
+        HudScene.Visible = false;
+
+        OnlyInPause(PauseMenuScene);
+        NeverPause(SettingsMenuScene, BottomBarScene);
+    }
+
+    private void NeverPause(params Node[] nodes) => nodes.ForEach(n=> n.ProcessMode = ProcessModeEnum.Always);
+    private void OnlyInPause(params Node[] nodes) => nodes.ForEach(n=> n.ProcessMode = ProcessModeEnum.WhenPaused);
 
     private void ConfigureDebugOverlays() {
         DebugOverlayManager.OverlayContainer.Theme = MyTheme;
