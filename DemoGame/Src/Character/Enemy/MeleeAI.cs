@@ -8,6 +8,8 @@ using Veronenger.Character.Handler;
 namespace Veronenger.Character.Enemy;
 
 public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacterAI {
+    private static readonly Random Random = new(0);
+
     private readonly CharacterController _controller;
     private readonly Sensor _sensor;
 
@@ -44,7 +46,6 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
 
     
     private void Config() {
-        Random random = new(0);
         float SleepTime() => 8; // random.Range(7, 9);
         float PatrolStopTime() => 1; // random.Range(1, 3);
         float PatrolTime() => 5; // random.Range(2, 6); 
@@ -127,7 +128,7 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
                     Advance();
                 }
 
-                if (distanceToPlayer < 40 && random.NextSingle() < attacksPerSeconds * _sensor.Delta) {
+                if (distanceToPlayer < 40 && Random.NextSingle() < attacksPerSeconds * _sensor.Delta) {
                     stateTimer.Restart();
                     _controller.AttackController.QuickPress();
                 }

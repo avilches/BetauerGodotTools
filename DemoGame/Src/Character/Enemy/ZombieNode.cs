@@ -52,6 +52,8 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 	public ZombieNode() : base(ZombieState.Idle, "Zombie.StateMachine", true) {
 	}
 
+	private static readonly Random Random = new(0);
+
 	private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(ZombieNode));
 
 	private static readonly SequenceAnimation RedFlash;
@@ -123,6 +125,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 	private Vector2 PlayerPos => CharacterManager.PlayerNode.Marker2D.GlobalPosition;
 	public bool IsFacingToPlayer() => PlatformBody.IsFacingTo(PlayerPos);
 	public bool IsToTheRightOfPlayer() => PlatformBody.IsToTheRightOf(PlayerPos);
+	public int RightOfPlayer() => IsToTheRightOfPlayer() ? 1 : -1;
 	public float AngleToPlayer() => PlatformBody.AngleTo(PlayerPos);
 	public float DistanceToPlayer() => PlatformBody.DistanceTo(PlayerPos);
 	public Vector2 DirectionToPlayer() => PlatformBody.DirectionTo(PlayerPos);
@@ -425,14 +428,16 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 
 		Tween? redFlash = null;
 		Tween? knockbackTween = null;
+		var min = 40f;
 		State(ZombieState.Hurt)
 			.Enter(() => {
-				PlatformBody.MotionX = EnemyConfig.HurtKnockback.x * (IsToTheRightOfPlayer() ? 1 : -1);
-				PlatformBody.MotionY = EnemyConfig.HurtKnockback.y;
+				PlatformBody.MotionX = Random.Range(EnemyConfig.HurtKnockback.x, EnemyConfig.HurtKnockback.x * 3);
+				PlatformBody.MotionY = Random.Range(EnemyConfig.HurtKnockback.y, EnemyConfig.HurtKnockback.y * 3);
+				PlatformBody.MotionX *= RightOfPlayer();
 				AnimationHurt.PlayOnce(true);
 				knockbackTween?.Kill();
 				knockbackTween = CreateTween();
-				knockbackTween.TweenMethod(Callable.From<float>(v => PlatformBody.MotionX = v), PlatformBody.MotionX, 0, EnemyConfig.HurtKnockbackTime).SetTrans(Tween.TransitionType.Cubic);
+				knockbackTween.TweenMethod(Callable.From<float>(v => PlatformBody.MotionX = v), PlatformBody.MotionX, min * RightOfPlayer(), EnemyConfig.HurtKnockbackTime).SetTrans(Tween.TransitionType.Linear);
 				redFlash?.Kill();
 				redFlash = RedFlash.Play(_mainSprite, 0); 
 			})
@@ -440,7 +445,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 				ApplyAirGravity();
 				PlatformBody.Move();
 			})
-			.If(() => !AnimationHurt.Playing).Set(ZombieState.Idle)
+			.If(() => !AnimationHurt.Playing && PlatformBody.IsOnFloor()).Set(ZombieState.Idle)
 			.Exit(() => {
 				Status.UnderAttack = false;
 			})

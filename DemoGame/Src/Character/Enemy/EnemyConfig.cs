@@ -5,8 +5,8 @@ namespace Veronenger.Character.Enemy;
 
 [Service]
 public class EnemyConfig {
-    public Vector2 HurtKnockback = new(70, -70);
-    public float HurtKnockbackTime = 0.2f; // Tween time without moving (just knockback inertia) flashing red
+    public Vector2 HurtKnockback = new(120, -120);
+    public float HurtKnockbackTime = 0.4f; // Tween time without moving (just knockback inertia) flashing red
 
     public float MaxSpeed = 60f; // pixels/seconds
     public float Acceleration = -1; // pixels/frame
