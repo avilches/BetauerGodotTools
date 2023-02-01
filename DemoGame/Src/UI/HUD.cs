@@ -4,26 +4,24 @@ using Godot;
 using Veronenger.Character.Player;
 using Veronenger.Managers;
 
-namespace Veronenger.UI; 
+namespace Veronenger.UI;
 
 public partial class HUD : CanvasLayer {
-	[OnReady("%HealthBar")] private TextureProgressBar _healthBar;
-	[Inject] private EventBus EventBus { get; set; }
+    [OnReady("%HealthBar")] private TextureProgressBar _healthBar;
+    [Inject] private EventBus EventBus { get; set; }
 
-	
-	public override void _Ready() {
-		EventBus.Subscribe((PlayerUpdateHealthEvent he) => {
-			_healthBar.MinValue = 0;
-			_healthBar.MaxValue = he.Max;
-			_healthBar.Value = he.ToHealth;
-		});
-	}
 
-	public void StartGame() {
-		Visible = true;
-	}
+    public void UpdateHealth(PlayerUpdateHealthEvent he) {
+        _healthBar.MinValue = 0;
+        _healthBar.MaxValue = he.Max;
+        _healthBar.Value = he.ToHealth;
+    }
 
-	public void EndGame() {
-		Visible = false;
-	}
+    public void StartGame() {
+        Visible = true;
+    }
+
+    public void EndGame() {
+        Visible = false;
+    }
 }
