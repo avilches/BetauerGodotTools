@@ -15,8 +15,4 @@ public class EventBus {
     private readonly Multicast<PlayerAttackEvent> _attackBus = new();
     public void Publish(PlayerAttackEvent e) => _attackBus.Publish(e);
     public Multicast<PlayerAttackEvent>.EventConsumer Subscribe(Action<PlayerAttackEvent> action) => _attackBus.Subscribe(action);
-
-    private readonly Multicast<IHudEvent> _hudBus = new();
-    public void Publish(IHudEvent e) => _hudBus.Publish(e);
-    public Multicast<IHudEvent>.EventConsumer Subscribe(Action<PlayerUpdateHealthEvent> action) => _hudBus.Subscribe(action);
 }

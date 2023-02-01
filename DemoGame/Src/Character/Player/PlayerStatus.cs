@@ -17,14 +17,16 @@ public class PlayerStatus {
     public bool UnderAttack { get; set; } = false; // true when the first attack signal is emitted. false when Hurt state ends.
     public int AvailableHits { get; set; } = 0;
 
-    public void Configure(PlayerNode playerNode, float maxHealth, float health = int.MaxValue) {
+    public event Action<PlayerUpdateHealthEvent> OnHealthUpdate;
+
+    public void Configure(PlayerNode playerNode, float maxHealth, float health) {
         PlayerNode = playerNode;
         MaxHealth = maxHealth;
-        Health = Math.Min(health, maxHealth);
+        Health = Math.Clamp(health, 0, maxHealth);
         Invincible = false;
         UnderAttack = false;
         AvailableHits = 0;
-        EventBus.Publish(new PlayerUpdateHealthEvent(PlayerNode, Health, Health, MaxHealth));
+        OnHealthUpdate?.Invoke(new PlayerUpdateHealthEvent(PlayerNode, Health, Health, MaxHealth));
     }
 
     public void UpdateHealth(float update) => SetHealth(Health + update);
@@ -32,11 +34,10 @@ public class PlayerStatus {
     public void UpdateMaxHealth(float update) => SetMaxHealth(MaxHealth + update);
 
     public void SetHealth(float health) {
-        EventBus.Publish(new PlayerUpdateHealthEvent(PlayerNode, Health, Health, MaxHealth));
         var fromHealth = Health;
         Health = Math.Clamp(health, 0, MaxHealth);
         var toHealth = Health;
-        EventBus.Publish(new PlayerUpdateHealthEvent(PlayerNode, fromHealth, toHealth, MaxHealth));
+        OnHealthUpdate?.Invoke(new PlayerUpdateHealthEvent(PlayerNode, fromHealth, toHealth, MaxHealth));
     }
 
     public void SetMaxHealth(float newMaxHealth) {
@@ -44,7 +45,7 @@ public class PlayerStatus {
         MaxHealth = newMaxHealth;
         Health = Math.Clamp(Health, 0, MaxHealth);
         var toHealth = Health;
-        EventBus.Publish(new PlayerUpdateHealthEvent(PlayerNode, fromHealth, toHealth, MaxHealth));
+        OnHealthUpdate?.Invoke(new PlayerUpdateHealthEvent(PlayerNode, fromHealth, toHealth, MaxHealth));
     }
 
     public bool IsDead() => Health <= 0f;

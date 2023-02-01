@@ -17,6 +17,7 @@ using Godot;
 using Veronenger.Character.Handler;
 using Veronenger.Character.Items;
 using Veronenger.Managers;
+using Veronenger.UI;
 
 namespace Veronenger.Character.Player; 
 
@@ -79,6 +80,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	[Inject] private SceneTree SceneTree { get; set; }
 	[Inject] private EventBus EventBus { get; set; }
 	[Inject] private InputActionCharacterHandler Handler { get; set; }
+	[Inject] private HUD HudScene { get; set; }
 	[Inject] private PlayerStatus Status { get; set; }
 
 	public KinematicPlatformMotion PlatformBody { get; private set; }
@@ -168,6 +170,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			}
 		};
 
+		Status.OnHealthUpdate += HudScene.UpdateHealth; 
 		Status.Configure(this, PlayerConfig.InitialMaxHealth, PlayerConfig.InitialHealth);
 
 		CharacterManager.RegisterPlayerNode(this);

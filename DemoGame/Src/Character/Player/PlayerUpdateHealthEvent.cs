@@ -1,9 +1,6 @@
 namespace Veronenger.Character.Player;
 
-public interface IHudEvent {
-}
-
-public class PlayerUpdateHealthEvent : IHudEvent {
+public class PlayerUpdateHealthEvent {
     public PlayerNode Player { get; }
 
     public float FromHealth { get; }
