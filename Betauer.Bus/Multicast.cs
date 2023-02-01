@@ -31,7 +31,7 @@ namespace Betauer.Bus {
         }
 
         public EventConsumer Subscribe(Action action) {
-            return Subscribe((_, _) => action());
+            return Subscribe<TPublisher, TArgs>((_, _) => action());
         }
 
         public EventConsumer Subscribe(Action<TArgs> action) {
@@ -39,7 +39,27 @@ namespace Betauer.Bus {
         }
 
         public EventConsumer Subscribe(Action<TPublisher, TArgs> action) {
-            var consumer = new EventConsumer().Do(action);
+            return Subscribe<TPublisher, TArgs>(action);
+        }
+
+
+        public EventConsumer Subscribe<T>(Action<T> action) where T : TArgs {
+            return Subscribe<TPublisher, T>((_, args) => action(args));
+        }
+
+        public EventConsumer Subscribe<TP, T>(Action<TP, T> action) where T : TArgs where TP : TPublisher {
+            var consumer = new EventConsumer();
+            if (typeof(T) == typeof(TArgs) && typeof(TP) == typeof(TPublisher)) {
+                consumer.Do(action as Action<TPublisher, TArgs>);
+            } else {
+                // This allow to subscribe with subtypes of T
+                consumer.Do((publisher, args) => {
+                    if (publisher is null or TP &&
+                        args is null or T) {
+                        action((TP)publisher, (T)args);                        
+                    }
+                });
+            }
             Consumers.Add(consumer);
             return consumer;
         }

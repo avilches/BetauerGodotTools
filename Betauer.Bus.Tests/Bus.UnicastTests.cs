@@ -1,4 +1,5 @@
 using Betauer.Core;
+using Betauer.TestRunner;
 using NUnit.Framework;
 
 namespace Betauer.Bus.Tests {
@@ -93,6 +94,110 @@ namespace Betauer.Bus.Tests {
             bus.Publish("sender", "args");
             Assert.That(calls, Is.EqualTo(1));
 
+        }
+        public interface ISender {
+        }
+
+        public class Sender1 : ISender {
+        }
+
+        public class Sender2 : ISender {
+        }
+
+        public interface IEvent {
+        }
+
+        public class Event1 : IEvent {
+        }
+
+        public class Event2 : IEvent {
+        }
+
+        [Test]
+        public void AllowSubTypesArgs() {
+            var bus = new Unicast<ISender, IEvent>();
+            var calls = 0;
+            var consumer = bus.Subscribe(ev => {
+                calls++;
+            });
+            bus.Publish(new Event1());
+            bus.Publish(new Event2());
+            bus.Publish(null);
+            Assert.That(calls, Is.EqualTo(3));
+
+            consumer.Unsubscribe();
+            calls = 0;
+            consumer = bus.Subscribe((Event1 ev) => {
+                calls++;
+            });
+            bus.Publish(new Event1());
+            Assert.That(calls, Is.EqualTo(1));
+            bus.Publish(new Event2());
+            Assert.That(calls, Is.EqualTo(1));
+            bus.Publish(null);
+            Assert.That(calls, Is.EqualTo(2));
+
+            consumer.Unsubscribe();
+            calls = 0;
+            consumer = bus.Subscribe((Event2 ev) => {
+                calls++;
+            });
+            bus.Publish(new Event1());
+            Assert.That(calls, Is.EqualTo(0));
+            bus.Publish(new Event2());
+            Assert.That(calls, Is.EqualTo(1));
+            bus.Publish(null);
+            Assert.That(calls, Is.EqualTo(2));
+        }
+
+        [Test]
+        public void AllowSubTypesSenderAndArgs() {
+            var bus = new Unicast<ISender, IEvent>();
+            var calls = 0;
+            var consumer = bus.Subscribe((s, ev) => {
+                calls++;
+            });
+            bus.Publish(new Event1());
+            bus.Publish(new Event2());
+            bus.Publish(null);
+            Assert.That(calls, Is.EqualTo(3));
+
+            // consumer.Unsubscribe();
+            calls = 0;
+            consumer = bus.Subscribe((Sender1 s, Event1 ev) => {
+                calls++;
+            });
+            bus.Publish(new Sender1(), new Event2());
+            bus.Publish(new Sender2(), new Event1());
+            bus.Publish(new Sender2(), new Event2());
+            bus.Publish(new Sender2(), null);
+            bus.Publish(null, new Event2());
+            Assert.That(calls, Is.EqualTo(0));
+
+            
+            bus.Publish(new Sender1(), new Event1());
+            bus.Publish(new Sender1(), null);
+            bus.Publish(null, new Event1());
+            bus.Publish(null, null);
+            Assert.That(calls, Is.EqualTo(4));
+            
+            // consumer.Unsubscribe();
+            calls = 0;
+            consumer = bus.Subscribe((Sender2 s, Event2 ev) => {
+                calls++;
+            });
+            bus.Publish(new Sender1(), new Event1());
+            bus.Publish(new Sender1(), new Event2());
+            bus.Publish(new Sender1(), null);
+            bus.Publish(new Sender2(), new Event1());
+            bus.Publish(null, new Event1());
+            Assert.That(calls, Is.EqualTo(0));
+
+            bus.Publish(new Sender2(), new Event2());
+            bus.Publish(new Sender2(), null);
+            bus.Publish(null, new Event2());
+            bus.Publish(null, null);
+            Assert.That(calls, Is.EqualTo(4));
         }
         
     }

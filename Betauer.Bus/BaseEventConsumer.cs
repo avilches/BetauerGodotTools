@@ -5,7 +5,7 @@ namespace Betauer.Bus {
         protected Action<TPublisher, TArgs>? Action { get; set; }
         protected Func<bool>? UnsubscribeIfFunc { get; set; }
         
-        public TThis Do(Action<TPublisher, TArgs> action) {
+        public TThis Do(Action<TPublisher, TArgs>? action) {
             Action = action;
             return this as TThis;
         }
