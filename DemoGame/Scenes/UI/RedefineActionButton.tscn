@@ -10,7 +10,6 @@
 
 [node name="RedefineActionButton" type="Button"]
 custom_minimum_size = Vector2(0, 16)
-anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
@@ -24,26 +23,21 @@ theme_override_styles/focus = ExtResource("5_0u8na")
 script = ExtResource("1")
 
 [node name="HBox" type="HBoxContainer" parent="."]
+layout_mode = 0
 size_flags_horizontal = 3
 
 [node name="ActionName" type="Label" parent="HBox"]
-offset_right = 33.0
-offset_bottom = 17.0
+layout_mode = 2
 size_flags_horizontal = 3
 theme = ExtResource("9")
 text = " Jump"
 
 [node name="Control" type="Control" parent="HBox"]
-layout_mode = 3
-anchors_preset = 0
-offset_left = 37.0
-offset_right = 37.0
+layout_mode = 2
 size_flags_horizontal = 0
 size_flags_vertical = 0
 
 [node name="Key" type="Label" parent="HBox"]
-offset_left = 41.0
-offset_right = 48.0
-offset_bottom = 17.0
+layout_mode = 2
 theme = ExtResource("9")
 text = "E"

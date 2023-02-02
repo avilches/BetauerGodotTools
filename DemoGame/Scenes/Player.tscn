@@ -807,7 +807,7 @@ metadata/_edit_lock_ = true
 
 [node name="Camera2D" type="Camera2D" parent="Character"]
 current = true
-zoom = Vector2(2.5, 2.5)
+zoom = Vector2(2, 2)
 metadata/_edit_lock_ = true
 
 [node name="Sprites" type="Node2D" parent="Character"]

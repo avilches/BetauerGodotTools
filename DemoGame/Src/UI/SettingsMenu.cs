@@ -192,7 +192,7 @@ public partial class SettingsMenu : CanvasLayer {
 
 	private bool ProcessChangeResolution(InputEvent e) {
 		if (!UiLeft.IsEventJustPressed(e) && !UiRight.IsEventJustPressed(e) &&
-		    !UiAccept.IsEventJustPressed(e)) return false;
+			!UiAccept.IsEventJustPressed(e)) return false;
 		var (_, resolutions, pos) = FindClosestResolutionToSelected();
 		if (UiLeft.IsEventJustPressed(e)) {
 			if (pos > 0) {

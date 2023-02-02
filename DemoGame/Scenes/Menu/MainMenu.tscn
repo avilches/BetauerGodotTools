@@ -1,8 +1,7 @@
-[gd_scene load_steps=5 format=3 uid="uid://bjx7gbqxh6m7q"]
+[gd_scene load_steps=4 format=3 uid="uid://bjx7gbqxh6m7q"]
 
 [ext_resource type="Texture2D" uid="uid://c12blmsyum1yw" path="res://icon.png" id="1"]
 [ext_resource type="Theme" uid="uid://dn6b2pnskhdh0" path="res://Assets/UI/my_theme.tres" id="2"]
-[ext_resource type="FontFile" uid="uid://cbvctfjiggye1" path="res://Assets/Fonts/UnnamedFont.ttf" id="3_d7rq8"]
 [ext_resource type="Script" path="res://Src/UI/MainMenu.cs" id="4"]
 
 [node name="MainMenuLayer" type="CanvasLayer"]
@@ -10,7 +9,6 @@ script = ExtResource("4")
 
 [node name="MainMenu" type="HBoxContainer" parent="."]
 unique_name_in_owner = true
-anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -24,108 +22,73 @@ grow_vertical = 2
 size_flags_horizontal = 3
 
 [node name="MarginContainer" type="MarginContainer" parent="MainMenu"]
-offset_right = 105.0
-offset_bottom = 231.0
+layout_mode = 2
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MainMenu/MarginContainer"]
-offset_right = 105.0
-offset_bottom = 231.0
-grow_horizontal = 0
-grow_vertical = 0
+layout_mode = 2
 alignment = 2
 
 [node name="Menu" type="VBoxContainer" parent="MainMenu/MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
-offset_right = 105.0
-offset_bottom = 206.0
+layout_mode = 2
 size_flags_vertical = 3
 theme = ExtResource("2")
 alignment = 2
 
 [node name="New game" type="Button" parent="MainMenu/MarginContainer/VBoxContainer/Menu"]
-offset_top = 134.0
-offset_right = 105.0
-offset_bottom = 149.0
+layout_mode = 2
 text = "New game"
 
 [node name="Continue" type="Button" parent="MainMenu/MarginContainer/VBoxContainer/Menu"]
-offset_top = 153.0
-offset_right = 105.0
-offset_bottom = 168.0
+layout_mode = 2
 text = "Continue"
 
 [node name="Settings" type="Button" parent="MainMenu/MarginContainer/VBoxContainer/Menu"]
-offset_top = 172.0
-offset_right = 105.0
-offset_bottom = 187.0
+layout_mode = 2
 text = "Settings"
 
 [node name="Quit" type="Button" parent="MainMenu/MarginContainer/VBoxContainer/Menu"]
-offset_top = 191.0
-offset_right = 105.0
-offset_bottom = 206.0
+layout_mode = 2
 text = "Exit"
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MainMenu/MarginContainer/VBoxContainer"]
-offset_top = 210.0
-offset_right = 105.0
-offset_bottom = 231.0
+layout_mode = 2
 
 [node name="Sep" type="Control" parent="MainMenu/MarginContainer/VBoxContainer/VBoxContainer"]
-layout_mode = 3
-anchors_preset = 0
-offset_right = 105.0
+layout_mode = 2
 
 [node name="Author" type="Label" parent="MainMenu/MarginContainer/VBoxContainer/VBoxContainer"]
 unique_name_in_owner = true
 visible = false
-offset_top = 4.0
-offset_right = 148.0
-offset_bottom = 30.0
+layout_mode = 2
 text = "Betauer Studios"
 
 [node name="Version" type="Label" parent="MainMenu/MarginContainer/VBoxContainer/VBoxContainer"]
 unique_name_in_owner = true
-offset_top = 4.0
-offset_right = 105.0
-offset_bottom = 21.0
-theme_override_fonts/font = ExtResource("3_d7rq8")
+layout_mode = 2
+theme = ExtResource("2")
 text = "v0.1 - Betauer 2022"
 
 [node name="VBoxContainer2" type="VBoxContainer" parent="MainMenu"]
-offset_left = 109.0
-offset_right = 473.0
-offset_bottom = 231.0
+layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="Sep" type="Control" parent="MainMenu/VBoxContainer2"]
-layout_mode = 3
-anchors_preset = 0
-offset_right = 364.0
+layout_mode = 2
 
 [node name="Title" type="Label" parent="MainMenu/VBoxContainer2"]
 unique_name_in_owner = true
-offset_top = 4.0
-offset_right = 364.0
-offset_bottom = 95.0
+layout_mode = 2
 theme_override_font_sizes/font_size = 64
 text = "Veronenger"
 
 [node name="Sep2" type="Control" parent="MainMenu/VBoxContainer2"]
-layout_mode = 3
-anchors_preset = 0
-offset_top = 99.0
-offset_right = 364.0
-offset_bottom = 99.0
+layout_mode = 2
 
 [node name="CenterContainer" type="CenterContainer" parent="MainMenu/VBoxContainer2"]
-offset_top = 103.0
-offset_right = 364.0
-offset_bottom = 231.0
+layout_mode = 2
 
 [node name="TextureRect" type="TextureRect" parent="MainMenu/VBoxContainer2/CenterContainer"]
-offset_left = 118.0
-offset_right = 246.0
-offset_bottom = 128.0
+layout_mode = 2
 texture = ExtResource("1")
