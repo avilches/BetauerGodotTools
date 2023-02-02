@@ -7,21 +7,21 @@ using Veronenger.Managers;
 namespace Veronenger.UI;
 
 public partial class HUD : CanvasLayer {
-    [OnReady("%HealthBar")] private TextureProgressBar _healthBar;
-    [Inject] private EventBus EventBus { get; set; }
+	[OnReady("%HealthBar")] private TextureProgressBar _healthBar;
+	[Inject] private EventBus EventBus { get; set; }
 
 
-    public void UpdateHealth(PlayerUpdateHealthEvent he) {
-        _healthBar.MinValue = 0;
-        _healthBar.MaxValue = he.Max;
-        _healthBar.Value = he.ToHealth;
-    }
+	public void UpdateHealth(PlayerUpdateHealthEvent he) {
+		_healthBar.MinValue = 0;
+		_healthBar.MaxValue = he.Max;
+		_healthBar.Value = he.ToHealth;
+	}
 
-    public void StartGame() {
-        Visible = true;
-    }
+	public void StartGame() {
+		Visible = true;
+	}
 
-    public void EndGame() {
-        Visible = false;
-    }
+	public void EndGame() {
+		Visible = false;
+	}
 }

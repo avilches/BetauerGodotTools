@@ -153,12 +153,12 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		PlatformBody = new KinematicPlatformMotion(CharacterBody2D, flipper, Marker2D, MotionConfig.FloorUpDirection,
 			FloorRaycasts);
 		OnBefore += () => PlatformBody.SetDelta(Delta);
-		OnAfter += () => {
-			Label.Text = _animationStack.GetPlayingOnce() != null
-				? _animationStack.GetPlayingOnce().Name
-				: _animationStack.GetPlayingLoop().Name;
-			Label.Text += "(" + _attackState + ")";
-		};
+		// OnAfter += () => {
+		// 	Label.Text = _animationStack.GetPlayingOnce() != null
+		// 		? _animationStack.GetPlayingOnce().Name
+		// 		: _animationStack.GetPlayingLoop().Name;
+		// 	Label.Text += "(" + _attackState + ")";
+		// };
 
 		_characterWeaponController = new CharacterWeaponController(_attackArea, _weaponSprite);
 		_characterWeaponController.Equip(WeaponManager.Knife);

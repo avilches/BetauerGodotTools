@@ -184,8 +184,8 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		});
 		drawPlayerInsight.Disable();
 
-		var overlay = DebugOverlayManager.Follow(CharacterBody2D).Title("Zombie");
-		AddOverlayStates(overlay);
+		// var overlay = DebugOverlayManager.Follow(CharacterBody2D).Title("Zombie");
+		// AddOverlayStates(overlay);
 		// AddOverlayCrossAndDot(overlay);
 		// AddOverlayMotion(overlay);
 		// AddOverlayCollisions(overlay);
@@ -427,12 +427,13 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 			.Build();
 
 		Tween? redFlash = null;
-		var min = 40f;
 		State(ZombieState.Hurt)
 			.Enter(() => {
-				PlatformBody.MotionX = Random.Range(EnemyConfig.HurtKnockback.x, EnemyConfig.HurtKnockback.x * 2);
-				PlatformBody.MotionY = Random.Range(EnemyConfig.HurtKnockback.y, EnemyConfig.HurtKnockback.y * 2);
-				PlatformBody.MotionX *= RightOfPlayer();
+				var angle = Random.Range(35, 80);
+				var energy = Random.Range(90, 300);
+				var dir = Vector2.Right.Rotated(Mathf.DegToRad(angle)) * energy;
+				PlatformBody.MotionX = IsToTheRightOfPlayer() ? dir.x : -dir.x;
+				PlatformBody.MotionY = -dir.y;
 				AnimationHurt.PlayOnce(true);
 				redFlash?.Kill();
 				redFlash = RedFlash.Play(_mainSprite, 0); 
@@ -455,7 +456,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 			})
 			.Execute(() => {
 				ApplyAirGravity();
-				PlatformBody.Move();
+				PlatformBody.Stop(EnemyConfig.Friction, EnemyConfig.StopIfSpeedIsLessThan);
 			})
 			.If(() => !AnimationDead.Playing).Set(ZombieState.End)
 			.Build();
