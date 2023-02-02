@@ -73,8 +73,6 @@ public partial class SettingsMenu : CanvasLayer {
 		
 	[Inject] private EventBus EventBus { get; set; }
 
-	private Restorer _restorer;
-
 	public override void _Ready() {
 		ConfigureScreenSettingsButtons();
 		ConfigureControls();
@@ -89,8 +87,6 @@ public partial class SettingsMenu : CanvasLayer {
 		UpdateResolutionButton();
 
 		Hide();
-		_restorer = _panel.CreateRestorer();
-		_restorer.Save(); 
 	}
 
 	public async Task ShowSettingsMenu() {
@@ -105,7 +101,6 @@ public partial class SettingsMenu : CanvasLayer {
 	public async Task HideSettingsMenu() {
 		await Templates.BounceOut.Play(_panel, 0f, 0.2f).AwaitFinished();
 		Hide();
-		_restorer.Restore();
 	}
 
 	private void ConfigureScreenSettingsButtons() {
