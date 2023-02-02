@@ -5,7 +5,6 @@ using System.Text;
 using Betauer.Application.Notifications;
 using Betauer.Application.Screen;
 using Betauer.Core;
-using Betauer.Core.Nodes;
 using Betauer.Input;
 using Betauer.Nodes;
 using Betauer.UI;
@@ -134,6 +133,12 @@ public static partial class DebugOverlayExtensions {
             .SetLabel(label);
     }
 
+    public static MonitorEditValue Edit(this DebugOverlay overlay, string label, string initialValue, Action<string> update) {
+        return overlay.CreateMonitor<MonitorEditValue>()
+            .SetLabel(label)
+            .SetValue(initialValue)
+            .OnUpdate(update);
+    }
 
     public static DebugOverlay AddMonitorVideoInfo(this DebugOverlay overlay) {
         // TODO Godot 4

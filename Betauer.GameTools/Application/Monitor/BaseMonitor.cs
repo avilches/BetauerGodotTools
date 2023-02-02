@@ -10,6 +10,7 @@ public abstract partial class BaseMonitor : VBoxContainer {
     public static readonly Color DefaultSeparatorColor = new(1,1,1,0.05f);
     public static readonly Color DefaultBorderColor = new(1,1,1,0.1f);
     public static readonly Color DefaultLabelColor = new(0.584314f, 0.584314f, 0.584314f, 1);
+    public static readonly Color DefaultErrorColor = Colors.Red;
         
     public bool IsEnabled => Visible;
     public DebugOverlay DebugOverlayOwner { get; set; }
