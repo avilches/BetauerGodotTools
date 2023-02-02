@@ -2,13 +2,13 @@
 
 importer="font_data_dynamic"
 type="FontFile"
-uid="uid://bah577vy7bskh"
-path="res://.godot/imported/dpcomic.ttf-5c9fbf652c5be772a44e243b4f8ca8d9.fontdata"
+uid="uid://demcrithnsq31"
+path="res://.godot/imported/HelvetiPixel.ttf-9fc640fc7140c024222212d9d0e0dd52.fontdata"
 
 [deps]
 
-source_file="res://Assets/Fonts/dpcomic.ttf"
-dest_files=["res://.godot/imported/dpcomic.ttf-5c9fbf652c5be772a44e243b4f8ca8d9.fontdata"]
+source_file="res://Assets/Fonts/HelvetiPixel.ttf"
+dest_files=["res://.godot/imported/HelvetiPixel.ttf-9fc640fc7140c024222212d9d0e0dd52.fontdata"]
 
 [params]
 
@@ -20,7 +20,7 @@ msdf_pixel_range=8
 msdf_size=48
 allow_system_fallback=true
 force_autohinter=false
-hinting=1
+hinting=0
 subpixel_positioning=0
 oversampling=0.0
 Fallbacks=null
@@ -31,8 +31,7 @@ preload=[{
 "chars": [],
 "glyphs": [],
 "name": "New Configuration",
-"size": Vector2i(16, 0),
-"variation_embolden": 0.0
+"size": Vector2i(16, 0)
 }]
 language_support={}
 script_support={}
