@@ -54,7 +54,16 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
         float ChaseTimeout() => 5; // random.Range(4, 6);
         int ConfusionTimes() => 3; 
         float ConfusionTime() => 1f;
-        var attacksPerSeconds = 1f;
+
+        var fleeSpeed = 2f;
+        var chasingSpeed = Random.Range(0.9f, 1.1f);
+        var patrolSpeed = Random.Range(0.4f, 0.6f);
+
+        var fleeIsHealthPercentIsLessThan = 0.25f;
+
+        var minDistanceToApproach = 30f + Random.Range(-10, 10);
+        var attacksPerSecondsProbability = Random.Range(0.7f, 1.3f);
+        var minDistanceToAttack = 40f + Random.Range(-15, 15);
 
         GodotStopwatch stateTimer = new(false, true);
 
@@ -77,7 +86,7 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
                 stateTimer.Restart().SetAlarm(PatrolTime());
                 patrols--;
             })
-            .Execute(() => Advance(0.5f))
+            .Execute(() => Advance(patrolSpeed))
             .If(_sensor.IsHurt).Set(State.Hurt)
             .If(() => _sensor.IsOnWall() || _sensor.IsFrontFloorFinishing() || stateTimer.IsAlarm()).Push(State.PatrolStop)
             .If(() => _sensor.CanSeeThePlayer() && !_sensor.IsFrontFloorFinishing()).Set(State.ChasePlayer)
@@ -99,7 +108,7 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
         State(State.Hurt).If(() => !_sensor.IsHurt()).Set(State.EndAttacked).Build();
         State(State.EndAttacked)
             .If(_sensor.IsHurt).Set(State.Hurt)
-            .If(() => _sensor.Status.HealthPercent < 0.25f).Set(State.Flee)
+            .If(() => _sensor.Status.HealthPercent < fleeIsHealthPercentIsLessThan).Set(State.Flee)
             .If(() => true).Set(State.ConfusionLoop)
             .Build();
 
@@ -109,7 +118,7 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
             })
             .Execute(() => {
                 _sensor.FaceOppositePlayer();
-                Advance(2f);
+                Advance(fleeSpeed);
             })
             .If(_sensor.IsHurt).Set(State.Hurt)
             .If(() => stateTimer.IsAlarm()).Set(State.Sleep)
@@ -123,12 +132,11 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
                 if (_sensor.IsAttacking()) return;
                 _sensor.FaceToPlayer();
                 var distanceToPlayer = _sensor.DistanceToPlayer();
-                if (distanceToPlayer > 30f) {
-                    // Avoid fall chasing the player
-                    Advance();
+                if (distanceToPlayer > minDistanceToApproach) {
+                    Advance(chasingSpeed);
                 }
 
-                if (distanceToPlayer < 40 && Random.NextSingle() < attacksPerSeconds * _sensor.Delta) {
+                if (distanceToPlayer < minDistanceToAttack && Random.NextSingle() < attacksPerSecondsProbability * _sensor.Delta) {
                     stateTimer.Restart();
                     _controller.AttackController.QuickPress();
                 }
@@ -161,7 +169,7 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
         // OnTransition += (args) => GD.Print(args.From + " " + args.To);
     }
 
-    private void Advance(float factor = 1f) {
+    private void Advance(float factor) {
         _controller.DirectionalController.XInput = _sensor.FacingRight * factor;
     }
 
