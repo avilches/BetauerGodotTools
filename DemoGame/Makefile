@@ -35,6 +35,7 @@ help:
 	@echo "    build/Debug           dotnet build with Configuration='Debug'"
 	@echo "    build/ExportDebug     dotnet build with Configuration='ExportDebug'"
 	@echo "    build/ExportRelease   dotnet build with Configuration='ExportRelease'"
+	@echo "    ase            generate sprites from .ase files"
 	@echo "    release        run Release.cs, it uses the [application.properties] file to bump version and fixes the project"
 	@echo "    export/osx     create binary for osx"
 	@echo "    export/win     create binary for Windows"

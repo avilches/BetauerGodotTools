@@ -58,7 +58,8 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	[OnReady("Character/Sprites/Body")] private Sprite2D _mainSprite;
 	
 	[OnReady("Character/Sprites/AnimationPlayer")] private AnimationPlayer _animationPlayer;
-	[OnReady("Character/AttackArea")] private Area2D _attackArea;
+	[OnReady("Character/AttackArea1")] private Area2D _attackArea1;
+	[OnReady("Character/AttackArea2")] private Area2D _attackArea2;
 	[OnReady("Character/HurtArea")] private Area2D _hurtArea;
 	[OnReady("Character/RichTextLabel")] public RichTextLabel Label;
 	[OnReady("Character/Detector")] public Area2D PlayerDetector;
@@ -147,7 +148,8 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		var flipper = new FlipperList()
 			.Sprite2DFlipH(_mainSprite)
 			.Sprite2DFlipH(_weaponSprite)
-			.ScaleX(_attackArea);
+			.ScaleX(_attackArea1)
+			.ScaleX(_attackArea2);
 		flipper.IsFacingRight = true;
 
 		PlatformBody = new KinematicPlatformMotion(CharacterBody2D, flipper, Marker2D, MotionConfig.FloorUpDirection,
@@ -160,7 +162,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		// 	Label.Text += "(" + _attackState + ")";
 		// };
 
-		_characterWeaponController = new CharacterWeaponController(_attackArea, _weaponSprite);
+		_characterWeaponController = new CharacterWeaponController(new[] { _attackArea1, _attackArea2 }, _weaponSprite);
 		_characterWeaponController.Equip(WeaponManager.Knife);
 
 		Inventory = new Inventory();
@@ -183,21 +185,26 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	}
 
 	private void ConfigureAttackArea() {
-		CharacterManager.PlayerConfigureAttackArea(_attackArea);
+		CharacterManager.PlayerConfigureAttackArea(_attackArea1);
+		CharacterManager.PlayerConfigureAttackArea(_attackArea2);
 		this.OnProcess(delta => {
-			if (Status.AvailableHits > 0 &&
-				_attackArea.Monitoring &&
-				_attackArea.HasOverlappingAreas()) {
+			if (Status.AvailableHits > 0) {
+				CheckAttackArea(_attackArea1);
+				CheckAttackArea(_attackArea2);
+			}
 
-				_attackArea.GetOverlappingAreas()
-					.Select(area2D => World.Get<EnemyItem>(area2D.GetWorldId()))
-					.Where(enemy => !enemy.ZombieNode.Status.UnderAttack)
-					.OrderBy(enemy => enemy.ZombieNode.DistanceToPlayer()) // Ascending, so first element is the closest to the player
-					.Take(Status.AvailableHits)
-					.ForEach(enemy => {
-						Status.AvailableHits--;
-						EventBus.Publish(new PlayerAttackEvent(this, enemy, Inventory.WeaponEquipped!));
-					});
+			void CheckAttackArea(Area2D attackArea) {
+				if (attackArea.Monitoring && attackArea.HasOverlappingAreas()) {
+					attackArea.GetOverlappingAreas()
+						.Select(area2D => World.Get<EnemyItem>(area2D.GetWorldId()))
+						.Where(enemy => !enemy.ZombieNode.Status.UnderAttack)
+						.OrderBy(enemy => enemy.ZombieNode.DistanceToPlayer()) // Ascending, so first element is the closest to the player
+						.Take(Status.AvailableHits)
+						.ForEach(enemy => {
+							Status.AvailableHits--;
+							EventBus.Publish(new PlayerAttackEvent(this, enemy, Inventory.WeaponEquipped!));
+						});
+				}
 			}
 		});
 	}
@@ -248,8 +255,8 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	public enum AttackState {
 		None,
 		Start,
-		Short,
-		Long
+		Step1,
+		Step2
 	}
 
 	private void StartStack() {
@@ -266,17 +273,17 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		Status.AvailableHits = 0;
 	}
 
-	public void AnimationCallback_EndShortAttack() {
-		if (_attackState == AttackState.Short) {
+	public void AnimationCallback_EndAttack1() {
+		if (_attackState == AttackState.Step1) {
 			// Short means the player didn't attack again, so the attack ends here
 			StopAttack();
-		} else if (_attackState == AttackState.Long) {
+		} else if (_attackState == AttackState.Step2) {
 			// The player pressed attack twice, so the short attack is now a long attack, and this signal call is ignored
-			Status.AvailableHits = 2;
+			Status.AvailableHits = Inventory.WeaponEquipped.EnemiesPerHit * 2;
 		}
 	}
 
-	public void AnimationCallback_EndLongAttack() {
+	public void AnimationCallback_EndAttack2() {
 		StopAttack();
 	}
 
@@ -408,14 +415,14 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				ApplyFloorGravity();
 				PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
 				if (Attack.IsJustPressed()) {
-					if (_attackState == AttackState.Short) {
+					if (_attackState == AttackState.Step1) {
 						// Promoted short attack to long attack 
-						_attackState = AttackState.Long;
-					} else if (_attackState == AttackState.Long) {
+						_attackState = AttackState.Step2;
+					} else if (_attackState == AttackState.Step2) {
 						//
 					}
 				}
-				if (_attackState == AttackState.Start) _attackState = AttackState.Short;
+				if (_attackState == AttackState.Start) _attackState = AttackState.Step1;
 			})
 			.If(() => _attackState != AttackState.None).Stay()
 			.If(() => XInput == 0).Set(PlayerState.Idle)

@@ -5,13 +5,13 @@ using Veronenger.Character.Items;
 namespace Veronenger.Character;
 
 public class CharacterWeaponController {
-    private readonly Area2D _attackArea;
+    private readonly Area2D[] _attackAreas;
     private readonly Sprite2D _weaponSprite;
 
-    public WeaponType Current { get; private set; }
+    public WeaponType? Current { get; private set; }
 
-    public CharacterWeaponController(Area2D attackArea, Sprite2D weaponSprite) {
-        _attackArea = attackArea;
+    public CharacterWeaponController(Area2D[] attackAreas, Sprite2D weaponSprite) {
+        _attackAreas = attackAreas;
         _weaponSprite = weaponSprite;
         Unequip();
     }
@@ -19,19 +19,22 @@ public class CharacterWeaponController {
     public void Unequip() => Equip(null);
 		
     public void Equip(WeaponType? weapon) {
-        _attackArea.Monitorable = false;
-        _attackArea.Monitoring = false;
         if (weapon != null) {
             _weaponSprite.Visible = true;
             _weaponSprite.Texture = weapon.Resource;
         } else {
             _weaponSprite.Visible = false;
         }
-        _attackArea.GetChildren().ForEach((shape) => {
-            var matches = weapon != null && weapon.ShapeName == shape.Name;
-            if (shape is CollisionShape2D collisionShape2D) collisionShape2D.Disabled = !matches;
-            if (shape is CollisionPolygon2D collisionPolygon2D) collisionPolygon2D.Disabled = !matches;
-        });
+        for (var i = 0; i < _attackAreas.Length; i++) {
+            var attackArea = _attackAreas[i];
+            attackArea.Monitorable = false;
+            attackArea.Monitoring = false;
+            attackArea.GetChildren().ForEach((shape) => {
+                var matches = weapon != null && weapon.ShapeName == shape.Name;
+                if (shape is CollisionShape2D collisionShape2D) collisionShape2D.Disabled = !matches;
+                if (shape is CollisionPolygon2D collisionPolygon2D) collisionPolygon2D.Disabled = !matches;
+            });
+        }
         Current = weapon;
     }
 }
