@@ -37,7 +37,7 @@ public partial class StateMachineNodeAsync<TStateKey, TEventKey> :
     public double Delta { get; private set; }
 
     public StateMachineNodeAsync(TStateKey initialState, string? name = null, bool processInPhysics = false) {
-        _stateMachine = new RealStateMachineNodeAsync(this, initialState, name);
+        _stateMachine = new RealStateMachineNodeAsync(this, initialState, name ?? GetType().Name);
         ProcessInPhysics = processInPhysics;
     }
     public bool IsState(TStateKey state) => _stateMachine.IsState(state);

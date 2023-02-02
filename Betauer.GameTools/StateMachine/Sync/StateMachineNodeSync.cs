@@ -8,10 +8,10 @@ public partial class StateMachineNodeSync<TStateKey, TEventKey> :
     where TStateKey : Enum 
     where TEventKey : Enum {
         
-    private class RealStateMachineNode : BaseStateMachineSync<TStateKey, TEventKey, IStateSync<TStateKey, TEventKey>> { 
+    private class RealStateMachineNodeSync : BaseStateMachineSync<TStateKey, TEventKey, IStateSync<TStateKey, TEventKey>> { 
         private readonly StateMachineNodeSync<TStateKey, TEventKey> _owner;
 
-        internal RealStateMachineNode(StateMachineNodeSync<TStateKey, TEventKey> owner, TStateKey initialState, string? name = null) : base(initialState, name) {
+        internal RealStateMachineNodeSync(StateMachineNodeSync<TStateKey, TEventKey> owner, TStateKey initialState, string? name = null) : base(initialState, name) {
             _owner = owner;
         }
 
@@ -25,7 +25,7 @@ public partial class StateMachineNodeSync<TStateKey, TEventKey> :
         }
     }
 
-    private readonly RealStateMachineNode _stateMachine;
+    private readonly RealStateMachineNodeSync _stateMachine;
     public override IStateMachineEvents<TStateKey> GetStateMachineEvents() => _stateMachine;
 
     public StateNodeSync<TStateKey, TEventKey> CurrentState => (StateNodeSync<TStateKey, TEventKey>)_stateMachine.CurrentState;
@@ -35,7 +35,7 @@ public partial class StateMachineNodeSync<TStateKey, TEventKey> :
     public double Delta { get; private set; }
 
     public StateMachineNodeSync(TStateKey initialState, string? name = null, bool processInPhysics = false) {
-        _stateMachine = new RealStateMachineNode(this, initialState, name);
+        _stateMachine = new RealStateMachineNodeSync(this, initialState, name ?? GetType().Name);
         ProcessInPhysics = processInPhysics;
     }
     public bool IsState(TStateKey state) => _stateMachine.IsState(state);
