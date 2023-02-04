@@ -5,19 +5,6 @@ using Godot;
 
 namespace Betauer.Nodes;
 
-public class DefaultNodeHandler {
-    public static readonly NodeHandler Instance = new() {
-        Name = "NodeHandler",
-        ZIndex = 1024
-    };
-}
-
-public interface INodeEvent {
-    public void Disable();
-    public void Enable();
-    public void Destroy();
-}
-
 public partial class NodeHandler : Node2D {
     public static bool ShouldProcess(bool pause, ProcessModeEnum processMode) {
         if (processMode == ProcessModeEnum.Inherit) return !pause;
@@ -26,92 +13,13 @@ public partial class NodeHandler : Node2D {
                (!pause && processMode == ProcessModeEnum.Pausable);
     }
 
-    public interface IEventHandler {
-        string? Name { get; }
-        bool IsDestroyed { get; }
-        public bool IsEnabled(bool isTreePaused);
-    }
-
-    public interface IInputEventHandler : IEventHandler {
-        public void Handle(InputEvent inputEvent);
-    }
-
-    public interface IProcessHandler : IEventHandler {
-        public void Handle(double delta);
-    }
-
-    public interface IDrawHandler : IEventHandler {
-        public void Handle(CanvasItem canvas);
-    }
-
-    private abstract class NodeEvent : INodeEvent, IEventHandler {
-        private readonly Node? Node;
-        private ProcessModeEnum ProcessMode;
-        // public T Delegate { get; }
-        public bool IsEnabled(bool isTreePaused) {
-            return _isEnabled &&
-                   ShouldProcess(isTreePaused, ProcessMode) &&
-                   (Node == null || Node.IsInsideTree());
-        }
-
-        // Node can be null, so the Event will last forever
-        public bool IsDestroyed => _isDestroyed || (Node != null && !IsInstanceValid(Node));
-        
-        private bool _isEnabled = true;
-        private bool _isDestroyed = false;
-        
-        internal NodeEvent(Node? node, ProcessModeEnum pauseMode) {
-            Node = node;
-            ProcessMode = pauseMode;
-        }
-
-        public string? Name => Node == null ? "forever" : IsInstanceValid(Node) ? Node.Name : "disposed";
-
-        public void Disable() => _isEnabled = false;
-        public void Enable() => _isEnabled = true;
-        public void Destroy() => _isDestroyed = true;
-    }
-
-    private class ProcessNodeEvent : NodeEvent, IProcessHandler {
-        private readonly Action<double> _delegate;
-        internal ProcessNodeEvent(Node? node, Action<double> @delegate, ProcessModeEnum pauseMode) : base(node, pauseMode) {
-            _delegate = @delegate;
-        }
-
-        public void Handle(double delta) {
-            _delegate(delta);
-        }
-    }
-
-    private class InputEventNodeEvent : NodeEvent, IInputEventHandler {
-        private readonly Action<InputEvent> _delegate;
-        internal InputEventNodeEvent(Node? node, Action<InputEvent> @delegate, ProcessModeEnum pauseMode) : base(node, pauseMode) {
-            _delegate = @delegate;
-        }
-
-        public void Handle(InputEvent delta) {
-            _delegate(delta);
-        }
-    }
-
-    private class DrawNodeEvent : NodeEvent, IDrawHandler {
-        private readonly Action<CanvasItem> _delegate;
-        internal DrawNodeEvent(Node? node, Action<CanvasItem> @delegate, ProcessModeEnum pauseMode) : base(node, pauseMode) {
-            _delegate = @delegate;
-        }
-
-        public void Handle(CanvasItem canvas) {
-            _delegate(canvas);
-        }
-    }
-
-    public readonly List<IProcessHandler> OnProcessList = new();
-    public readonly List<IProcessHandler> OnPhysicsProcessList = new();
-    public readonly List<IInputEventHandler> OnInputList = new();
-    public readonly List<IInputEventHandler> OnShortcutInputList = new();
-    public readonly List<IInputEventHandler> OnUnhandledInputList = new();
-    public readonly List<IInputEventHandler> OnUnhandledKeyInputList = new();
-    public readonly List<IDrawHandler> OnDrawList = new();
+    public readonly List<IProcessHandler> ProcessList = new();
+    public readonly List<IProcessHandler> PhysicsProcessList = new();
+    public readonly List<IInputEventHandler> InputList = new();
+    public readonly List<IInputEventHandler> ShortcutInputList = new();
+    public readonly List<IInputEventHandler> UnhandledInputList = new();
+    public readonly List<IInputEventHandler> UnhandledKeyInputList = new();
+    public readonly List<IDrawHandler> DrawList = new();
     
     private SceneTree _sceneTree;
     
@@ -125,92 +33,50 @@ public partial class NodeHandler : Node2D {
         ProcessMode = ProcessModeEnum.Always;
     }
 
-    public INodeEvent OnProcess(Node node, Action<double> action, ProcessModeEnum pauseMode = ProcessModeEnum.Inherit) {
-        var nodeEvent = new ProcessNodeEvent(node, action, pauseMode);
-        OnProcess(nodeEvent);
-        return nodeEvent;
-    }
-
-    public INodeEvent OnPhysicsProcess(Node node, Action<double> action, ProcessModeEnum pauseMode = ProcessModeEnum.Inherit) {
-        var nodeEvent = new ProcessNodeEvent(node, action, pauseMode);
-        OnPhysicsProcess(nodeEvent);
-        return nodeEvent;
-    }
-
     public void OnProcess(IProcessHandler inputEvent) {
-        OnProcessList.Add(inputEvent);
+        ProcessList.Add(inputEvent);
         SetProcess(true);
     }
 
     public void OnPhysicsProcess(IProcessHandler inputEvent) {
-        OnPhysicsProcessList.Add(inputEvent);
+        PhysicsProcessList.Add(inputEvent);
         SetPhysicsProcess(true);
     }
 
-    public INodeEvent OnInput(Node node, Action<InputEvent> action, ProcessModeEnum pauseMode = ProcessModeEnum.Inherit) {
-        var nodeEvent = new InputEventNodeEvent(node, action, pauseMode);
-        OnInput(nodeEvent);
-        return nodeEvent;
-    }
-
-    public INodeEvent OnUnhandledInput(Node node, Action<InputEvent> action, ProcessModeEnum pauseMode = ProcessModeEnum.Inherit) {
-        var nodeEvent = new InputEventNodeEvent(node, action, pauseMode);
-        OnUnhandledInput(nodeEvent);
-        return nodeEvent;
-    }
-
-    public INodeEvent OnShortcutInput(Node node, Action<InputEvent> action, ProcessModeEnum pauseMode = ProcessModeEnum.Inherit) {
-        var nodeEvent = new InputEventNodeEvent(node, action, pauseMode);
-        OnShortcutInput(nodeEvent);
-        return nodeEvent;
-    }
-
-    public INodeEvent OnUnhandledKeyInput(Node node, Action<InputEvent> action, ProcessModeEnum pauseMode = ProcessModeEnum.Inherit) {
-        var nodeEvent = new InputEventNodeEvent(node, action, pauseMode);
-        OnUnhandledKeyInput(nodeEvent);
-        return nodeEvent;
-    }
-
     public void OnInput(IInputEventHandler inputEvent) {
-        OnInputList.Add(inputEvent);
+        InputList.Add(inputEvent);
         SetProcessInput(true);
     }
 
     public void OnUnhandledInput(IInputEventHandler inputEvent) {
-        OnUnhandledInputList.Add(inputEvent);
+        UnhandledInputList.Add(inputEvent);
         SetProcessUnhandledInput(true);
     }
 
     public void OnShortcutInput(IInputEventHandler inputEvent) {
-        OnShortcutInputList.Add(inputEvent);
+        ShortcutInputList.Add(inputEvent);
         SetProcessShortcutInput(true);
     }
 
     public void OnUnhandledKeyInput(IInputEventHandler inputEvent) {
-        OnUnhandledKeyInputList.Add(inputEvent);
+        UnhandledKeyInputList.Add(inputEvent);
         SetProcessUnhandledKeyInput(true);
     }
 
-    public INodeEvent OnDraw(Node node, Action<CanvasItem> action, ProcessModeEnum pauseMode = ProcessModeEnum.Inherit) {
-        var nodeEvent = new DrawNodeEvent(node, action, pauseMode);
-        OnDraw(nodeEvent);
-        return nodeEvent;
-    }
-
     public void OnDraw(IDrawHandler inputEvent) {
-        OnDrawList.Add(inputEvent);
+        DrawList.Add(inputEvent);
         SetProcess(true);
     }
 
     public override void _Process(double delta) {
-        ProcessNodeEvents(OnProcessList, delta, () => {
-            if (OnDrawList.Count == 0) SetProcess(false);
+        ProcessNodeEvents(ProcessList, delta, () => {
+            if (DrawList.Count == 0) SetProcess(false);
         });
-        if (OnDrawList.Count > 0) QueueRedraw();
+        if (DrawList.Count > 0) QueueRedraw();
     }
 
     public override void _PhysicsProcess(double delta) {
-        ProcessNodeEvents(OnPhysicsProcessList, delta, () => SetPhysicsProcess(false));
+        ProcessNodeEvents(PhysicsProcessList, delta, () => SetPhysicsProcess(false));
     }
 
     private void ProcessNodeEvents(List<IProcessHandler> processHandlerList, double delta, Action disabler) {
@@ -229,25 +95,25 @@ public partial class NodeHandler : Node2D {
     }
 
     public override void _Input(InputEvent inputEvent) {
-        ProcessInputEventList(OnInputList, inputEvent, () => SetProcessInput(false));
+        ProcessInputEventList(InputList, inputEvent, () => SetProcessInput(false));
     }
 
     public override void _UnhandledInput(InputEvent inputEvent) {
-        ProcessInputEventList(OnUnhandledInputList, inputEvent, () => SetProcessUnhandledInput(false));
+        ProcessInputEventList(UnhandledInputList, inputEvent, () => SetProcessUnhandledInput(false));
     }
 
     public override void _ShortcutInput(InputEvent inputEvent) {
-        ProcessInputEventList(OnShortcutInputList, inputEvent, () => SetProcessShortcutInput(false));
+        ProcessInputEventList(ShortcutInputList, inputEvent, () => SetProcessShortcutInput(false));
     }
 
     public override void _UnhandledKeyInput(InputEvent inputEvent) {
-        ProcessInputEventList(OnUnhandledKeyInputList, inputEvent, () => SetProcessUnhandledKeyInput(false));
+        ProcessInputEventList(UnhandledKeyInputList, inputEvent, () => SetProcessUnhandledKeyInput(false));
     }
 
     public override void _Draw() {
-        if (OnDrawList.Count == 0) return;
+        if (DrawList.Count == 0) return;
         var isTreePaused = _sceneTree.Paused;
-        OnDrawList.RemoveAll(processHandler => {
+        DrawList.RemoveAll(processHandler => {
             if (processHandler.IsDestroyed) return true;
             if (processHandler.IsEnabled(isTreePaused)) {
                 processHandler.Handle(this);
@@ -275,35 +141,11 @@ public partial class NodeHandler : Node2D {
 
     public string GetStateAsString() {
         return 
-$@"{OnProcessList.Count} Process: {string.Join(", ", OnProcessList.Select(e => e.Name))}
-{OnPhysicsProcessList.Count} PhysicsProcess: {string.Join(", ", OnPhysicsProcessList.Select(e => e.Name))}
-{OnInputList.Count} Input: {string.Join(", ", OnInputList.Select(e => e.Name))}
-{OnUnhandledInputList.Count} UnhandledInput: {string.Join(", ", OnUnhandledInputList.Select(e => e.Name))}
-{OnShortcutInputList.Count} ShortcutInput: {string.Join(", ", OnShortcutInputList.Select(e => e.Name))}
-{OnUnhandledKeyInputList.Count} UnhandledKeyInput: {string.Join(", ", OnUnhandledKeyInputList.Select(e => e.Name))}";
+$@"{ProcessList.Count} Process: {string.Join(", ", ProcessList.Select(e => e.Name))}
+{PhysicsProcessList.Count} PhysicsProcess: {string.Join(", ", PhysicsProcessList.Select(e => e.Name))}
+{InputList.Count} Input: {string.Join(", ", InputList.Select(e => e.Name))}
+{UnhandledInputList.Count} UnhandledInput: {string.Join(", ", UnhandledInputList.Select(e => e.Name))}
+{ShortcutInputList.Count} ShortcutInput: {string.Join(", ", ShortcutInputList.Select(e => e.Name))}
+{UnhandledKeyInputList.Count} UnhandledKeyInput: {string.Join(", ", UnhandledKeyInputList.Select(e => e.Name))}";
     }
-}
-
-public static class NodeHandlerExtensions {
-    public static INodeEvent OnProcess(this Node node, Action<double> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) =>
-        DefaultNodeHandler.Instance.OnProcess(node, action, pauseMode);
-
-    public static INodeEvent OnPhysicsProcess(this Node node, Action<double> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) =>
-        DefaultNodeHandler.Instance.OnPhysicsProcess(node, action, pauseMode);
-
-    public static INodeEvent OnInput(this Node node, Action<InputEvent> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) =>
-        DefaultNodeHandler.Instance.OnInput(node, action, pauseMode);
-
-    public static INodeEvent OnUnhandledInput(this Node node, Action<InputEvent> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) =>
-        DefaultNodeHandler.Instance.OnUnhandledInput(node, action, pauseMode);
-
-    public static INodeEvent OnShortcutInput(this Node node, Action<InputEvent> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) =>
-        DefaultNodeHandler.Instance.OnShortcutInput(node, action, pauseMode);
-
-    public static INodeEvent OnUnhandledKeyInput(this Node node, Action<InputEvent> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) =>
-        DefaultNodeHandler.Instance.OnUnhandledKeyInput(node, action, pauseMode);
-
-    public static INodeEvent OnDraw(this Node node, Action<CanvasItem> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) =>
-        DefaultNodeHandler.Instance.OnDraw(node, action, pauseMode);
-
 }

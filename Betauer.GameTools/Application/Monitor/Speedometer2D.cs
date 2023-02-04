@@ -11,7 +11,7 @@ public class Speedometer2D {
     public float MaxSpeed { get; private set; } = 0f;
     private Vector2 _prevPosition = Vector2.Zero;
     public Func<Vector2> Provider;
-    private INodeEvent? _nodeEvent;
+    private IEventHandler? _nodeEvent;
 
     public static Speedometer2D From(Func<Vector2> provider) {
         return new Speedometer2D(provider);

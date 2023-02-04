@@ -16,7 +16,7 @@ public class DragCameraController {
     // private float _camera2DSmoothingSpeed;
     // private bool _cameraLimitSmoothed;
 
-    private INodeEvent? _nodeEvent;
+    private IEventHandler? _nodeEvent;
     public readonly DragAndDropController DragAndDropController = new();
 
 

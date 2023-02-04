@@ -21,13 +21,12 @@ public class DelayedAction : IDisposable {
         DefaultNodeHandler.Instance.OnInput(_eventHandler);
     }
 
-    private class DelayedActionInputEventHandler : NodeHandler.IInputEventHandler {
+    private class DelayedActionInputEventHandler : BaseEventHandler, IInputEventHandler {
         internal readonly GodotStopwatch GodotStopwatch;
         private readonly InputAction _inputAction;
         private readonly bool _processAlways;
 
-        public DelayedActionInputEventHandler(GodotStopwatch godotStopwatch, InputAction inputAction, bool processAlways) {
-            Name = $"Delayed{inputAction.Name}";
+        public DelayedActionInputEventHandler(GodotStopwatch godotStopwatch, InputAction inputAction, bool processAlways) : base($"Delayed{inputAction.Name}", Node.ProcessModeEnum.Inherit) {
             GodotStopwatch = godotStopwatch;
             _inputAction = inputAction;
             _processAlways = processAlways;
