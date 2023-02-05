@@ -50,17 +50,21 @@ namespace Betauer.GameTools.Tests {
             Assert.That(jump.Axis, Is.EqualTo(JoyAxis.Invalid));
 
             // Configure and save
-            jump.AddKeys(Key.A, Key.Acircumflex);
-            jump.AddButtons(JoyButton.Paddle1, JoyButton.X);
-            jump.SetAxis(JoyAxis.RightX);
+            jump.Update(u => {
+                u.AddKeys(Key.A, Key.Acircumflex);
+                u.AddButtons(JoyButton.Paddle1, JoyButton.X);
+                u.SetAxis(JoyAxis.RightX, 1);
+            });
             Assert.That(jump.Buttons, Is.EqualTo(new [] {JoyButton.Paddle1, JoyButton.X}.ToList()));
             Assert.That(jump.Keys, Is.EqualTo(new [] {Key.A, Key.Acircumflex}.ToList()));
             Assert.That(jump.Axis, Is.EqualTo(JoyAxis.RightX));
             jump.Save();
 
             // Delete
-            jump.ClearKeys().ClearButtons();
-            jump.SetAxis(JoyAxis.Invalid);
+            jump.Update(u => {
+                u.ClearKeys().ClearButtons();
+                u.SetAxis(JoyAxis.Invalid, -1);
+            });
             Assert.That(jump.Buttons, Is.Empty);
             Assert.That(jump.Keys, Is.Empty);
             Assert.That(jump.Axis, Is.EqualTo(JoyAxis.Invalid));
@@ -91,14 +95,6 @@ namespace Betauer.GameTools.Tests {
             Assert.That(jump.Buttons, Is.EqualTo(new [] {JoyButton.A, JoyButton.B}.ToList()));
             Assert.That(jump.Keys, Is.EqualTo(new [] {Key.H, Key.F}.ToList()));
             
-            Assert.That(InputMap.HasAction("ManualJump"), Is.False);
-            jump.Setup();
-            Assert.That(InputMap.HasAction("ManualJump"), Is.True);
-
-            Assert.That(InputMap.HasAction("ManualAttack"), Is.False);
-            attack.Setup();
-            Assert.That(InputMap.HasAction("ManualAttack"), Is.True);
-            
             var c = new InputActionsContainer();
             c.Add(jump);
             Assert.That(jump.InputActionsContainer, Is.EqualTo(c));
@@ -108,32 +104,6 @@ namespace Betauer.GameTools.Tests {
             Assert.That(c.ActionList.Count, Is.EqualTo(2));
             Assert.That(c.FindAction("ManualJump"), Is.EqualTo(jump));
             Assert.That(c.FindAction("ManualAttack"), Is.EqualTo(attack));
-        }
-
-        [Test]
-        public void ManualConfigurationMultipleInputContainerTest() {
-            var acc = new InputActionsContainer();
-            var jump = InputAction.Create("Jump").Build();
-            acc.Add(jump);
-            Assert.That(jump.InputActionsContainer, Is.EqualTo(acc));
-            
-            var acc2 = new InputActionsContainer();
-            var jumpOther = InputAction.Configurable("VALUE IGNORED", "JumpOther").Build();
-            acc2.Add(jumpOther);
-            Assert.That(jumpOther.InputActionsContainer, Is.EqualTo(acc2));
-
-            acc.RemoveSetup();
-            acc2.RemoveSetup();
-            acc.Setup();
-            Assert.That(InputMap.HasAction("Jump"));
-            Assert.That(!InputMap.HasAction("JumpOther"));
-            acc.RemoveSetup();
-            
-            acc.RemoveSetup();
-            acc2.RemoveSetup();
-            acc2.Setup();
-            Assert.That(!InputMap.HasAction("Jump"));
-            Assert.That(InputMap.HasAction("JumpOther"));
         }
 
         [Configuration]
@@ -278,18 +248,18 @@ namespace Betauer.GameTools.Tests {
             Assert.That(s.Jump.InputActionsContainer, Is.EqualTo(s.InputActionsContainer));
             Assert.That(s.JumpOther.InputActionsContainer, Is.EqualTo(s.InputActionsContainer2));
 
-            s.InputActionsContainer.RemoveSetup();
-            s.InputActionsContainer2.RemoveSetup();
-            s.InputActionsContainer.Setup();
-            Assert.That(InputMap.HasAction("Jump"));
-            Assert.That(!InputMap.HasAction("JumpOther"));
-            s.InputActionsContainer.RemoveSetup();
-            
-            s.InputActionsContainer.RemoveSetup();
-            s.InputActionsContainer2.RemoveSetup();
-            s.InputActionsContainer2.Setup();
-            Assert.That(!InputMap.HasAction("Jump"));
-            Assert.That(InputMap.HasAction("JumpOther"));
+            // s.InputActionsContainer.RemoveSetup();
+            // s.InputActionsContainer2.RemoveSetup();
+            // s.InputActionsContainer.Setup();
+            // Assert.That(InputMap.HasAction("Jump"));
+            // Assert.That(!InputMap.HasAction("JumpOther"));
+            // s.InputActionsContainer.RemoveSetup();
+            //
+            // s.InputActionsContainer.RemoveSetup();
+            // s.InputActionsContainer2.RemoveSetup();
+            // s.InputActionsContainer2.Setup();
+            // Assert.That(!InputMap.HasAction("Jump"));
+            // Assert.That(InputMap.HasAction("JumpOther"));
 
         }
     }

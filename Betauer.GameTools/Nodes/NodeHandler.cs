@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Godot;
 
 namespace Betauer.Nodes;
@@ -66,6 +67,35 @@ public partial class NodeHandler : Node2D {
     public void OnDraw(IDrawHandler inputEvent) {
         DrawList.Add(inputEvent);
         SetProcess(true);
+    }
+    
+    public Task AwaitInput(Func<InputEvent, bool> func, bool setInputAsHandled = true) {
+        TaskCompletionSource promise = new();
+        InputEventEventHandler eventHandler = null; 
+        eventHandler = new InputEventEventHandler("AwaitInput", e => {
+            if (func(e)) {
+                if (setInputAsHandled) _sceneTree.Root.SetInputAsHandled();
+                eventHandler.Destroy();
+                promise.TrySetResult();
+            }
+        }, ProcessModeEnum.Always);
+        OnInput(eventHandler);
+        return promise.Task;
+        
+    }
+    
+    public Task AwaitUnhandledInput(Func<InputEvent, bool> func, bool setInputAsHandled = true) {
+        TaskCompletionSource promise = new();
+        InputEventEventHandler eventHandler = null; 
+        eventHandler = new InputEventEventHandler("AwaitUnhandledInput", e => {
+            if (func(e)) {
+                if (setInputAsHandled) _sceneTree.Root.SetInputAsHandled();
+                eventHandler.Destroy();
+                promise.TrySetResult();
+            }
+        }, ProcessModeEnum.Always);
+        OnUnhandledInput(eventHandler);
+        return promise.Task;
     }
 
     public override void _Process(double delta) {

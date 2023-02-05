@@ -13,6 +13,27 @@ public partial class PlayerNode {
 			.Title("Player")
 			.SetMaxSize(1000, 1000);
 
+		overlay.OpenBox()
+			.Text("P", () => Jump.IsPressed()).EndMonitor()
+			.Text("JP", () => Jump.IsJustPressed()).EndMonitor()
+			.Text("Pressed", () => Jump.PressedTime().ToString("0.00")).EndMonitor()
+			.Text("R", () => Jump.IsJustReleased()).EndMonitor()
+			.Text("Released", () => Jump.ReleasedTime().ToString("0.00")).EndMonitor()
+			.CloseBox();
+
+		overlay.OpenBox()
+			.Text("P", () => Attack.IsPressed()).EndMonitor()
+			.Text("JP", () => Attack.IsJustPressed()).EndMonitor()
+			.Text("Pressed", () => Attack.PressedTime().ToString("0.00")).EndMonitor()
+			.Text("R", () => Attack.IsJustReleased()).EndMonitor()
+			.Text("Released", () => Attack.ReleasedTime().ToString("0.00")).EndMonitor()
+			.CloseBox();
+
+		overlay.OpenBox()
+			.Text("LR", () => Handler.Lateral.Strength.ToString("0.00") ).EndMonitor()
+			.Text("UD", () => Handler.Vertical.Strength.ToString("0.00") ).EndMonitor()
+			.CloseBox();
+
 		AddOverlayHelpers(overlay);
 		AddOverlayStates(overlay);
 		AddOverlayMotion(overlay);

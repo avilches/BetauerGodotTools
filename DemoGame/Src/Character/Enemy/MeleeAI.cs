@@ -3,7 +3,7 @@ using Betauer.Core;
 using Betauer.Core.Time;
 using Betauer.StateMachine.Sync;
 using Godot;
-using Veronenger.Character.Handler;
+using Veronenger.Character.InputActions;
 
 namespace Veronenger.Character.Enemy;
 
@@ -30,7 +30,7 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
 
     public static ICharacterAI Create(ICharacterHandler handler, Sensor sensor) {
         if (handler is CharacterController controller) return new MeleeAI(controller, sensor);
-        if (handler is InputActionCharacterHandler) return DoNothingAI.Instance;
+        if (handler is PlayerInputActions) return DoNothingAI.Instance;
         throw new Exception($"Unknown handler: {handler.GetType()}");
     }
 
@@ -138,7 +138,7 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
 
                 if (distanceToPlayer < minDistanceToAttack && Random.NextSingle() < attacksPerSecondsProbability * _sensor.Delta) {
                     stateTimer.Restart();
-                    _controller.AttackController.QuickPress();
+                    _controller.Attack.SimulatePress();
                 }
             })
             .If(_sensor.IsHurt).Set(State.Hurt)
@@ -170,7 +170,7 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
     }
 
     private void Advance(float factor) {
-        _controller.DirectionalController.XInput = _sensor.FacingRight * factor;
+        _controller.Lateral.SimulatePress(_sensor.FacingRight * factor);
     }
 
     public void EndFrame() {
@@ -178,8 +178,8 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
         // " JustPressed:"+_controller.Jump.IsJustPressed()+
         // " Released:"+_controller.Jump.IsReleased());
 
-        _controller.DirectionalController.XInput = 0;
-        _controller.EndFrame();
+        _controller.Lateral.SimulateRelease();
+        _controller.Attack.SimulateRelease();
     }
 
     public class Sensor {

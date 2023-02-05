@@ -3,58 +3,93 @@ using System.Collections.Generic;
 using System.Linq;
 using Betauer.Application.Settings;
 using Betauer.DI;
+using Betauer.Nodes;
 using Godot;
 using Container = Betauer.DI.Container;
 
 namespace Betauer.Input;
-public class InputAction : IAction {
+
+public enum InputActionBehaviour {
+    /// <summary>
+    /// It works only through Simulate*() methods
+    /// - WasPressed() and WasReleased() don't work
+    /// - Can't be saved
+    /// - ProcessMode is ignored
+    /// </summary>
+    Fake,
+
+    /// <summary>
+    /// WasPressed() and WasReleased() works
+    /// 
+    /// If the action matches with a GUI input, both will be processed.
+    /// Example: a click to attack will be triggered too if the click has been used to click a button.
+    /// Example: an attack with the keyboard letter C will be processed if the C is typed inside a TextEdit
+    /// Behind the scenes, the action is processed in _Input() 
+    /// </summary>
+    ProcessWithGui,
+    
+    /// <summary>
+    /// WasPressed() and WasReleased() works
+    /// If the action matches with a GUI input, the GUI input is processed and the action will be ignored.
+    /// Example: a click to attack will not be triggered if the click has been used to click a button.
+    /// Example: an attack with the keyboard letter C will be ignored if the C is typed inside a TextEdit 
+    /// Behind the scenes, the action is processed in _UnhandledInput() 
+    /// </summary>
+    AllowGuiStop
+}
+
+public partial class InputAction {
     public static NormalBuilder Create(string name) => new(name);
     public static NormalBuilder Create(string inputActionsContainerName, string name) => new(inputActionsContainerName, name);
 
     public static ConfigurableBuilder Configurable(string name) => new(name);
     public static ConfigurableBuilder Configurable(string inputActionsContainerName, string name) => new(inputActionsContainerName, name);
 
+    private readonly InputActionStateHandler _handler;
+    
     public string Name { get; }
     public InputActionsContainer InputActionsContainer { get; private set; }
+
+    public bool IsPressed() => _handler.Pressed;
+    public bool IsJustPressed() => _handler.JustPressed;
+    public bool IsJustReleased() => _handler.JustReleased;
+    public bool IsMetaOrCtrlPressed() => _handler.CommandOrCtrlPressed;
+    public bool IsCtrlPressed() => _handler.CtrlPressed;
+    public bool IsShiftPressed() => _handler.ShiftPressed;
+    public bool IsAltPressed() => _handler.AltPressed;
+    public bool IsMetaPressed() => _handler.MetaPressed;
+    public float PressedTime() => _behaviour == InputActionBehaviour.Fake ? InputActionStateHandler.MaxPressedTime : _handler.PressedTime;
+    public float ReleasedTime() => _behaviour == InputActionBehaviour.Fake ? InputActionStateHandler.MaxPressedTime : _handler.ReleasedTime;
+    public bool WasPressed(float elapsed) => PressedTime() <= elapsed;
+    public bool WasReleased(float elapsed) => ReleasedTime() <= elapsed;
+
+    public float GetStrength() => _handler.Strength;
+
+    public void SimulatePress(float strength = 1f) => _handler.SimulatePress(strength);
+    public void SimulateRelease() => _handler.SimulatePress(0f);
+    public void SimulateCtrl(bool pressed) => _handler.SimulateCtrl(pressed);
+    public void SimulateShift(bool pressed) => _handler.SimulateShift(pressed);
+    public void SimulateAlt(bool pressed) => _handler.SimulateAlt(pressed);
+    public void SimulateMeta(bool pressed) => _handler.SimulateMeta(pressed);
+    public void SimulateCommandOrCtrl(bool pressed) => _handler.SimulateCommandOrCtrl(pressed);
     
-    public bool IsPressed(bool exact = false) => Godot.Input.IsActionPressed(Name, exact);
-    public bool IsJustPressed(bool exact = false) => Godot.Input.IsActionJustPressed(Name, exact);
-    public bool IsReleased(bool exact = false) => Godot.Input.IsActionJustReleased(Name, exact);
+    public bool IsEvent(InputEvent e, bool exact = false) => Matches(e);
+    public bool IsEventPressed(InputEvent e, bool exact = false) => Matches(e) && e.IsPressed();
+    public bool IsEventJustPressed(InputEvent e, bool exact = false) => Matches(e) && e.IsJustPressed();
+    public bool IsEventReleased(InputEvent e, bool exact = false) => Matches(e) && e.IsReleased();
 
-    public bool IsEvent(InputEvent e, bool exact = false) => e.IsAction(Name, exact);
-    public bool IsEventPressed(InputEvent e, bool exact = false) => e.IsActionPressed(Name, exact);
-    public bool IsEventJustPressed(InputEvent e, bool exact = false) => e.IsActionPressed(Name, exact) && e.IsJustPressed();
-    public bool IsEventReleased(InputEvent e, bool exact = false) => e.IsActionReleased(Name, exact);
-
-    public bool IsAnyEvent(IEnumerable<InputEvent> es, bool exact = false) => es.Any(e => e.IsAction(Name, exact));
-    public bool IsAnyEventPressed(IEnumerable<InputEvent> es, bool exact = false) => es.Any(e => e.IsActionPressed(Name, exact));
-    public bool IsAnyEventJustPressed(IEnumerable<InputEvent> es, bool exact = false) => es.Any(e => e.IsActionPressed(Name, exact) && e.IsJustPressed());
-    public bool IsAnyEventReleased(IEnumerable<InputEvent> es, bool exact = false) => es.Any(e => e.IsActionReleased(Name, exact));
-
-    public float GetStrength(bool exact = false) => Godot.Input.GetActionStrength(Name, exact);
-    public float GetRawStrength(bool exact = false) => Godot.Input.GetActionRawStrength(Name, exact);
-
-    public AxisAction? AxisAction {
-        get {
-            if (_axisAction == null && _oppositeActionName != null) {
-                _axisAction = AxisValue > 0 ?
-                    // AxisValue > 0 means current action is positive, so _oppositeActionName is negative
-                    new AxisAction(_oppositeActionName, Name) : 
-                    new AxisAction(Name, _oppositeActionName);
-            }
-            return _axisAction;
-        }
-    }
-    
-    public void SimulatePress(float strength = 1f) => Godot.Input.ActionPress(Name, strength);
-    public void SimulateRelease() => Godot.Input.ActionRelease(Name);
-    
     public List<JoyButton> Buttons => _buttons.ToList();
     public List<Key> Keys => _keys.ToList();
     public JoyAxis Axis { get; private set; } = JoyAxis.Invalid;
-    public float AxisValue { get; private set; } = 1;
+    public int AxisSign { get; private set; } = 1;
     public float DeadZone { get; private set; } = 0.5f;
-    public MouseButton MouseButton = MouseButton.None;
+    public MouseButton MouseButton { get; private set; } = MouseButton.None;
+    public bool CommandOrCtrl { get; private set; }
+    public bool Ctrl { get; private set; }
+    public bool Shift { get; private set; }
+    public bool Alt { get; private set; }
+    public bool Meta { get; private set; }
+    public Node.ProcessModeEnum ProcessMode => _handler.ProcessMode;
 
     public SaveSetting<string>? SaveSetting { get; private set; }
     
@@ -65,47 +100,57 @@ public class InputAction : IAction {
     private readonly string? _inputActionsContainerName;
     private readonly string? _settingsContainerName;
     private readonly string? _settingsSection;
-    private readonly string? _oppositeActionName;
-    private AxisAction? _axisAction;
-    private readonly bool _isConfigurable;
+    private readonly bool _isConfigurable = false ;
+    private readonly Updater _updater;
+    private readonly InputActionBehaviour _behaviour;
+    private readonly bool _configureGodotInputMap = false;
 
-    private InputAction(string inputActionsContainerName, string name, string? oppositeActionName, bool keepProjectSettings,
-        bool isConfigurable, string? settingsContainerName, string? settingsSection) {
-        _inputActionsContainerName = inputActionsContainerName;
+    public static InputAction Fake() => new InputAction(null,
+        null,
+        false,
+        false,
+        null,
+        null,
+        Node.ProcessModeEnum.Always, // Ignored in fake inputs because handler exists, but it's not added to NodeHandler
+        InputActionBehaviour.Fake,
+        false);
+
+    private InputAction(string inputActionsContainerName, 
+        string name, 
+        bool keepProjectSettings,
+        bool isConfigurable, 
+        string? settingsContainerName, 
+        string? settingsSection,
+        Node.ProcessModeEnum processMode,
+        InputActionBehaviour behaviour, 
+        bool configureGodotInputMap) {
         Name = name;
-        _oppositeActionName = oppositeActionName;
-        _isConfigurable = isConfigurable;
-        _settingsContainerName = settingsContainerName;
-        _settingsSection = settingsSection;
-        if (keepProjectSettings) LoadFromProjectSettings();
-    }
+        _handler = new InputActionStateHandler(this, processMode);
+        _updater = new Updater(this); 
+        _behaviour = behaviour;
+        if (_behaviour != InputActionBehaviour.Fake) {
+            _configureGodotInputMap = configureGodotInputMap;
+            _inputActionsContainerName = inputActionsContainerName;
+            _isConfigurable = isConfigurable;
+            _settingsContainerName = settingsContainerName;
+            _settingsSection = settingsSection;
 
-    public DelayedAction CreateDelayed(bool processAlways = false, bool processInPhysics = false, bool ignoreTimeScale = false) {
-        return new DelayedAction(SceneTree, this, processAlways, processInPhysics, ignoreTimeScale);
-    }
+            if (keepProjectSettings) LoadFromGodotProjectSettings();
 
-    public void LoadFromProjectSettings() {
-        if (!InputMap.HasAction(Name)) {
-            GD.PushWarning($"LoadFromProjectSettings: Action {Name} not found in project");
-            return;
-        }
-        foreach (var inputEvent in InputMap.ActionGetEvents(Name)) {
-            if (inputEvent is InputEventKey key) {
-                AddKey(key.Keycode);
-            } else if (inputEvent is InputEventJoypadButton button) {
-                AddButton(button.ButtonIndex);
-            } else if (inputEvent is InputEventJoypadMotion motion) {
-                // TODO: feature missing, not tested!!!
-                SetAxis(motion.Axis);
-                SetAxisValue(motion.AxisValue);
-            } else if (inputEvent is InputEventMouseButton mouseButton) {
-                SetClick(mouseButton.ButtonIndex);
+            if (_behaviour == InputActionBehaviour.ProcessWithGui) {
+                DefaultNodeHandler.Instance.OnInput(_handler);
+                DefaultNodeHandler.Instance.OnProcess(_handler);
+            } else if (_behaviour == InputActionBehaviour.AllowGuiStop) {
+                DefaultNodeHandler.Instance.OnUnhandledInput(_handler);
+                DefaultNodeHandler.Instance.OnProcess(_handler);
             }
         }
     }
 
     [PostInject]
     private void Configure() {
+        if (_behaviour == InputActionBehaviour.Fake) return;
+        
         // Configure and load settings
         if (_isConfigurable) {
             var section = _settingsSection ?? "Controls";
@@ -124,42 +169,57 @@ public class InputAction : IAction {
             : Container.Resolve<InputActionsContainer>();
         inputActionsContainer.Add(this);
         
-        // Configure the Godot InputMap
-        Setup();
+        SetupGodotInputMap();
     }
-    
-    public void Setup() {
-        RemoveSetup();
+
+    public void Enable(bool enabled = true) {
+        if (enabled) {
+            _handler.Enable();
+            SetupGodotInputMap();
+        } else {
+            Disable();
+        }
+    }
+
+    public void Disable() {
+        _handler.ClearState();
+        _handler.Disable();
+        if (_configureGodotInputMap && InputMap.HasAction(Name)) InputMap.EraseAction(Name);
+    }
+
+    public void SetupGodotInputMap() {
+        if (_behaviour == InputActionBehaviour.Fake || !_configureGodotInputMap) return;
+        
+        if (InputMap.HasAction(Name)) InputMap.EraseAction(Name);
         if (DeadZone > 0) InputMap.AddAction(Name, DeadZone);
         else InputMap.AddAction(Name);
-        CreateInputEvents()
-            .ForEach(e => InputMap.ActionAddEvent(Name, e));
+
+        CreateInputEvents().ForEach(e => InputMap.ActionAddEvent(Name, e));
     }
 
-    public void OnAddToInputContainer(InputActionsContainer inputActionsContainer) {
-        InputActionsContainer = inputActionsContainer;
-    }
-
-    public void RemoveSetup() {
-        if (InputMap.HasAction(Name)) InputMap.EraseAction(Name);            
-    }
-
-    public InputAction SetSaveSettings(SaveSetting<string> saveSetting) {
-        SaveSetting = saveSetting;
-        return this;
-    }
-    
     private List<InputEvent> CreateInputEvents() {
-        List<InputEvent> events =
-            new List<InputEvent>(_keys.Count + _buttons.Count + 1);
+        void AddModifiers(InputEventWithModifiers e) {
+            e.ShiftPressed = Shift;
+            e.AltPressed = Alt;
+            if (CommandOrCtrl) {
+                e.CommandOrControlAutoremap = true;
+            } else {
+                e.CtrlPressed = Ctrl;
+                e.MetaPressed = Meta;
+            }
+        }
+        
+        List<InputEvent> events = new List<InputEvent>(_keys.Count + _buttons.Count + 1);
         foreach (var key in _keys) {
             var e = new InputEventKey();
             e.Keycode = key;
+            AddModifiers(e);
             events.Add(e);
         }
         if (MouseButton != MouseButton.None) {
             var e = new InputEventMouseButton();
             e.ButtonIndex = MouseButton;
+            AddModifiers(e);
             events.Add(e);
         }
         foreach (var button in _buttons) {
@@ -169,53 +229,57 @@ public class InputAction : IAction {
             events.Add(e);
         }
 
-        if (Axis != JoyAxis.Invalid && AxisValue != 0) {
-            var axisEvent = new InputEventJoypadMotion();
-            axisEvent.Device = -1; // TODO: you can add a device id here
-            axisEvent.Axis = Axis;
-            axisEvent.AxisValue = AxisValue > 0 ? 1 : -1;
-            events.Add(axisEvent);
+        if (Axis != JoyAxis.Invalid && AxisSign != 0) {
+            var e = new InputEventJoypadMotion();
+            e.Device = -1; // TODO: you can add a device id here
+            e.Axis = Axis;
+            e.AxisValue = AxisSign;
+            events.Add(e);
         }
         return events;
     }
 
-    public InputAction SetClick(MouseButton mouseButton) {
-        MouseButton = mouseButton;
+    public void LoadFromGodotProjectSettings() {
+        if (!InputMap.HasAction(Name)) {
+            GD.PushWarning($"{nameof(LoadFromGodotProjectSettings)}: Action {Name} not found in project");
+            return;
+        }
+        
+        foreach (var inputEvent in InputMap.ActionGetEvents(Name)) {
+            if (inputEvent is InputEventKey key) {
+                _keys.Add(key.Keycode);
+            } else if (inputEvent is InputEventJoypadButton button) {
+                _buttons.Add(button.ButtonIndex);
+            } else if (inputEvent is InputEventJoypadMotion motion) {
+                // TODO: feature missing, not tested!!!
+                Axis = motion.Axis;
+                AxisSign = (int)motion.AxisValue;
+            } else if (inputEvent is InputEventMouseButton mouseButton) {
+                MouseButton = mouseButton.ButtonIndex;
+            }
+        }
+    }
+
+    public void OnAddToInputContainer(InputActionsContainer inputActionsContainer) {
+        InputActionsContainer = inputActionsContainer;
+    }
+
+    public InputAction SetSaveSettings(SaveSetting<string> saveSetting) {
+        SaveSetting = saveSetting;
         return this;
     }
 
-    public InputAction ClearMouse() {
-        MouseButton = MouseButton.None;
-        return this;
-    }
+    public bool Matches(InputEvent e) =>
+        e switch {
+            InputEventKey key => _keys.Contains(key.Keycode),
+            InputEventMouseButton mouse => MouseButton == mouse.ButtonIndex,
+            InputEventJoypadButton button => _buttons.Contains(button.ButtonIndex),
+            InputEventJoypadMotion motion => motion.Axis == Axis,
+            _ => false
+        };
 
-    public InputAction SetDeadZone(float deadZone) {
-        DeadZone = deadZone;
-        return this;
-    }
-
-    public InputAction SetAxis(JoyAxis axis) {
-        Axis = axis;
-        return this;
-    }
-
-    public InputAction SetAxisValue(float axisValue) {
-        AxisValue = axisValue;
-        return this;
-    }
-
-    public InputAction ClearButtons() {
-        _buttons.Clear();
-        return this;
-    }
-
-    public InputAction ClearKeys() {
-        _keys.Clear();
-        return this;
-    }
-
-    public InputAction ClearAxis() {
-        SetAxis(JoyAxis.Invalid);
+    public InputAction SetProcessMode(Node.ProcessModeEnum processMode) {
+        _handler.ProcessMode = processMode;
         return this;
     }
 
@@ -235,51 +299,40 @@ public class InputAction : IAction {
         return _buttons.Contains(button);
     }
 
-    public InputAction RemoveKey(Key key) {
-        _keys.Remove(key);
-        return this;
-    }
-
-    public InputAction RemoveButton(JoyButton button) {
-        _buttons.Remove(button);
-        return this;
-    }
-
-    public InputAction AddKey(Key key) {
-        _keys.Add(key);
-        return this;
-    }
-
-    public InputAction AddButton(JoyButton button) {
-        _buttons.Add(button);
-        return this;
-    }
-
-    public InputAction AddKeys(params Key[] keys) {
-        Array.ForEach(keys, key => AddKey(key));
-        return this;
-    }
-
-    public InputAction AddButtons(params JoyButton[] buttons) {
-        Array.ForEach(buttons, button => AddButton(button));
-        return this;
-    }
-
     public InputAction ResetToDefaults() {
-        if (SaveSetting == null) throw new Exception("InputAction does not have a Setting");
+        if (_behaviour == InputActionBehaviour.Fake) return this;
+        if (SaveSetting == null) throw new Exception("InputAction does not have a SaveSetting");
         Import(SaveSetting.DefaultValue);
         return this;
     }
     
     public InputAction Load() {
-        if (SaveSetting == null) throw new Exception("InputAction does not have a Setting");
+        if (_behaviour == InputActionBehaviour.Fake) return this;
+        if (SaveSetting == null) throw new Exception("InputAction does not have a SaveSetting");
         Import(SaveSetting.Value);
         return this;
     }
     
     public InputAction Save() {
-        if (SaveSetting == null) throw new Exception("InputAction does not have a Setting");
+        if (_behaviour == InputActionBehaviour.Fake) return this;
+        if (SaveSetting == null) throw new Exception("InputAction does not have a SaveSetting");
         SaveSetting.Value = Export();
+        return this;
+    }
+
+    public InputAction Update(Action<Updater> updater, bool setupGodotInputMap = true, bool save = true) {
+        var backupButtons = _buttons.ToArray();
+        var backupKeys = _keys.ToArray();
+        var (axis, axisSign) = (Axis, AxisSign);
+        try {
+            updater.Invoke(_updater);
+            if (setupGodotInputMap) SetupGodotInputMap();
+            if (save && SaveSetting != null) Save();
+        } catch (Exception e) {
+            _updater.ClearButtons().AddButtons(backupButtons);
+            _updater.ClearKeys().AddKeys(backupKeys);
+            _updater.ClearAxis().SetAxis(axis, axisSign);
+        }
         return this;
     }
 
@@ -289,14 +342,20 @@ public class InputAction : IAction {
         export.AddRange(_buttons.Select(button => $"Button:{button}"));
         if (Axis != JoyAxis.Invalid) {
             export.Add($"Axis:{(int)Axis}");
+            // TODO: Sign missing
+            throw new NotImplementedException("Missing AxisSign");
         }
         return string.Join(",", export);
     }
 
     public InputAction Import(string export) {
         if (string.IsNullOrWhiteSpace(export)) return this;
-        ClearButtons().ClearKeys().ClearAxis();
-        export.Split(",").ToList().ForEach(ImportItem);
+        Update(updater => {
+            updater.ClearButtons();
+            updater.ClearKeys();
+            updater.ClearAxis();
+            export.Split(",").ToList().ForEach(ImportItem);
+        });
         return this;
     }
 
@@ -311,13 +370,15 @@ public class InputAction : IAction {
             ImportButton(value);
         } else if (key == "axis") {
             ImportAxis(value);
+            // TODO: Sign missing
+            throw new NotImplementedException("Missing AxisSign");
         }
     }
 
     private bool ImportKey(string value) {
         try {
             var key = int.TryParse(value, out _) ? (Key)value.ToInt() : Parse<Key>(value); 
-            AddKey(key);
+            _keys.Add(key);
             return true;
         } catch (Exception) {
             return false;
@@ -327,7 +388,7 @@ public class InputAction : IAction {
     private bool ImportButton(string value) {
         try {
             var joyButton = int.TryParse(value, out _) ? (JoyButton)value.ToInt() : Parse<JoyButton>(value); 
-            AddButton(joyButton);
+            _buttons.Add(joyButton);
             return true;
         } catch (Exception) {
             return false;
@@ -337,7 +398,7 @@ public class InputAction : IAction {
     private bool ImportAxis(string value) {
         try {
             var axis = int.TryParse(value, out _) ? (JoyAxis)value.ToInt() : Parse<JoyAxis>(value); 
-            SetAxis(axis);
+            Axis = axis;
             return true;
         } catch (Exception) {
             return false;
@@ -345,127 +406,4 @@ public class InputAction : IAction {
     }
 
     private static T Parse<T>(string key) => (T)Enum.Parse(typeof(T), key);
-
-    public abstract class Builder<TBuilder> where TBuilder : class {
-        protected readonly string _name;
-        protected readonly string _inputActionsContainerName;
-        protected readonly ISet<JoyButton> _buttons = new HashSet<JoyButton>();
-        protected readonly ISet<Key> _keys = new HashSet<Key>();
-        protected JoyAxis _axis = JoyAxis.Invalid;
-        protected float _axisValue = 0;
-        protected string? _oppositeActionName;
-        protected float _deadZone = -1f;
-        protected bool _keepProjectSettings = false;
-        protected MouseButton _mouseButton = MouseButton.None;
-
-        internal Builder(string name) {
-            _name = name;
-        }
-
-        internal Builder(string inputActionsContainerName, string name) {
-            _inputActionsContainerName = inputActionsContainerName;
-            _name = name;
-        }
-
-        public TBuilder DeadZone(float deadZone) {
-            _deadZone = deadZone;
-            return this as TBuilder;
-        }
-
-        public TBuilder NegativeAxis(JoyAxis axis, string positiveActionName) {
-            _axis = axis;
-            _axisValue = -1;
-            _oppositeActionName = positiveActionName;
-            return this as TBuilder;
-        }
-
-        public TBuilder PositiveAxis(JoyAxis axis, string negativeActionName) {
-            _axis = axis;
-            _axisValue = 1;
-            _oppositeActionName = negativeActionName;
-            return this as TBuilder;
-        }
-
-        public TBuilder KeepProjectSettings(bool keepProjectSettings = true) {
-            _keepProjectSettings = keepProjectSettings;
-            return this as TBuilder;
-        } 
-
-        public TBuilder Keys(params Key[] keys) {
-            Array.ForEach(keys, key => _keys.Add(key));
-            return this as TBuilder;
-        }
-
-        public TBuilder Buttons(params JoyButton[] buttons) {
-            Array.ForEach(buttons, button => _buttons.Add(button));
-            return this as TBuilder;
-        }
-
-        public TBuilder Click(MouseButton mouseButton) {
-            _mouseButton = mouseButton;
-            return this as TBuilder;
-        }
-        
-        protected InputAction Build(InputAction inputAction) {
-            if (_axis != JoyAxis.Invalid) {
-                inputAction.SetAxis(_axis);
-                inputAction.SetAxisValue(_axisValue);
-            }
-            if (_deadZone >= 0f) {
-                inputAction.SetDeadZone(_deadZone);
-            }
-            if (_mouseButton != MouseButton.None) {
-                inputAction.SetClick(_mouseButton);
-            }
-            if (_keys.Count > 0) {
-                inputAction.AddKeys(_keys.ToArray());
-            }
-            if (_buttons.Count > 0) {
-                inputAction.AddButtons(_buttons.ToArray());
-            }
-            return inputAction;
-        }
-    }
-
-    public class NormalBuilder : Builder<NormalBuilder> {
-
-        internal NormalBuilder(string name): base(name) {
-        }
-
-        internal NormalBuilder(string inputActionsContainerName, string name) : 
-            base(inputActionsContainerName, name) {
-        }
-
-        public InputAction Build() {
-            return Build(new InputAction(_inputActionsContainerName, _name, _oppositeActionName,
-                _keepProjectSettings, false, null, null));
-        }
-    }
-    
-    public class ConfigurableBuilder : Builder<ConfigurableBuilder> {
-
-        private string? _settingsContainerName;
-        private string? _settingsSection;
-
-        public ConfigurableBuilder(string name) : base(name) {
-        }
-
-        public ConfigurableBuilder(string inputActionsContainerName, string name) : base(inputActionsContainerName, name) {
-        }
-
-        public ConfigurableBuilder SettingsContainer(string settingsFile) {
-            _settingsContainerName = settingsFile;
-            return this;
-        }
-
-        public ConfigurableBuilder SettingsSection(string settingsSection) {
-            _settingsSection = settingsSection;
-            return this;
-        }
-
-        public InputAction Build() {
-            return Build(new InputAction(_inputActionsContainerName, _name, _oppositeActionName,
-                _keepProjectSettings, true, _settingsContainerName, _settingsSection));
-        }
-    }
 }

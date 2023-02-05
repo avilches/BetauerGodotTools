@@ -264,13 +264,12 @@ public static partial class DebugOverlayExtensions {
                     keys.AddRange(inputAction.Buttons.Select(button => $"Button:{button}"));
                     s.Append($"{inputAction.Name}: {string.Join(" | ", keys)}");
                     if (inputAction.HasAxis()) {
-                        s.Append($" AxisValue:{inputAction.AxisValue} DeadZone:{inputAction.DeadZone}");
+                        s.Append($" AxisValue:{inputAction.AxisSign} DeadZone:{inputAction.DeadZone}");
                     }
                     if (inputAction.HasMouseButton()) {
                         s.Append($" Mouse:{inputAction.MouseButton}");
                     }
-                    if (inputAction.IsPressed(true)) s.Append(" [Exact pressed]");
-                    else if (inputAction.IsPressed()) s.Append(" [Pressed]");
+                    if (inputAction.IsPressed()) s.Append(" [Pressed]");
                     s.Append('\n');
                 }
                 return s.ToString();

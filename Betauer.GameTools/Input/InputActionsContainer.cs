@@ -39,11 +39,11 @@ public class InputActionsContainer {
         inputAction.OnAddToInputContainer(this);
     }
 
-    public void Setup() {
-        ActionList.ForEach(action => action.Setup());
+    public void Disable() {
+        ActionList.ForEach(action => action.Disable());
     }
 
-    public void RemoveSetup() {
-        ActionList.ForEach(action => action.RemoveSetup());
+    public void Enable(bool enabled = true) {
+        ActionList.ForEach(action => action.Enable(enabled));
     }
 }

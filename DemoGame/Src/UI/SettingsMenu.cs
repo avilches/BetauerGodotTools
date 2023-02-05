@@ -8,8 +8,8 @@ using Betauer.DI;
 using Betauer.Input;
 using Betauer.Core.Nodes;
 using Betauer.OnReady;
-using Betauer.Core.Restorer;
 using Betauer.Core.Signal;
+using Betauer.Nodes;
 using Godot;
 using Veronenger.Managers;
 
@@ -234,10 +234,9 @@ public partial class SettingsMenu : CanvasLayer {
 		// } else if (e.IsAnyButton()) {
 		// Console.WriteLine("ButtonString:" + e.GetButtonString() + " / Enum:" + e.GetButton());
 		// }
-		if (IsWaitingFromRedefineInputEvent()) {
-			RedefineControlFromInputEvent(e);
-			GetViewport().SetInputAsHandled();
-				
+		if (_redefineBox.Visible) {
+			// Do nothing!
+			
 		} else if (UiCancel.IsEventPressed(e)) {
 			EventBus.Publish(MainEvent.Back);
 			GetViewport().SetInputAsHandled();
@@ -249,50 +248,57 @@ public partial class SettingsMenu : CanvasLayer {
 		}
 	}
 
-	private RedefineActionButton? _redefineButtonSelected;
-
-	public bool IsWaitingFromRedefineInputEvent() {
-		return _redefineButtonSelected != null;
-	}
-
-	public void ShowRedefineActionPanel(RedefineActionButton button) {
-		_redefineButtonSelected = button;
+	public async void ShowRedefineActionPanel(RedefineActionButton redefineButton) {
 		_redefineBox.Show();
 		_settingsBox.Hide();
-		_redefineActionName.Text = button.ActionName;
+		_redefineActionName.Text = redefineButton.ActionName;
 		// TODO: i18n
-		_redefineActionMessage.Text = button.IsKey ? "Press key for..." : "Press button for...";
+		_redefineActionMessage.Text = redefineButton.IsKey ? "Press key for..." : "Press button for...";
 		MainStateMachine.BottomBarScene.HideAll();
-	}
 
-	private void RedefineControlFromInputEvent(InputEvent e) {
-		if (!e.IsKey(Key.Escape)) {
-			if (_redefineButtonSelected!.IsKey && e.IsAnyKey() && !e.IsKey(Key.Escape)) {
-				var otherRedefine = _keyboardControls.FirstNodeOrNull<RedefineActionButton>(r => r.InputAction.HasKey(e.GetKey()));
-				if (otherRedefine != null && otherRedefine != _redefineButtonSelected) {
-					// Swap: set to the other the current key
-					otherRedefine.InputAction.ClearKeys().AddKey(_redefineButtonSelected!.InputAction.Keys[0]).Save().Setup();
-					otherRedefine.Refresh();
-				}
-				_redefineButtonSelected!.InputAction.ClearKeys().AddKey(e.GetKey()).Save().Setup();
-				_redefineButtonSelected.Refresh();
-			} else if (_redefineButtonSelected!.IsButton && e.IsAnyButton()) {
-				var otherRedefine = _gamepadControls.FirstNodeOrNull<RedefineActionButton>(r => r.InputAction.HasButton(e.GetButton()));
-				if (otherRedefine != null && otherRedefine != _redefineButtonSelected) {
-					// Swap: set to the other the current key
-					otherRedefine.InputAction.ClearButtons().AddButton(_redefineButtonSelected!.InputAction.Buttons[0]).Save().Setup();
-					otherRedefine.Refresh();
-				}
-				_redefineButtonSelected!.InputAction.ClearButtons().AddButton(e.GetButton()).Save().Setup();
-				_redefineButtonSelected.Refresh();
-			} else {
-				// Ignore the event
-				return;
+		await DefaultNodeHandler.Instance.AwaitInput(e => {
+			if (e.IsKey(Key.Escape)) {
+				// Cancel the redefine button window
+				return true;
+			} else if (redefineButton.IsKey && e.IsAnyKey()) {
+				RedefineKey(redefineButton, e.GetKey());
+				return true;
+			} else if (redefineButton.IsButton && e.IsAnyButton()) {
+				RedefineButton(redefineButton, e.GetButton());
+				return true;
 			}
-		}
+			return false;
+		});
 		_redefineBox.Hide();
 		_settingsBox.Show();
-		_redefineButtonSelected!.GrabFocus();
-		_redefineButtonSelected = null;
+		redefineButton.GrabFocus();
+	}
+
+	private void RedefineButton(RedefineActionButton redefineButton, JoyButton newButton) {
+		if (redefineButton.InputAction.HasButton(newButton)) return;
+
+		var otherRedefine = _gamepadControls.FirstNodeOrNull<RedefineActionButton>(r => r.InputAction.HasButton(newButton));
+		if (otherRedefine != null && otherRedefine != redefineButton) {
+			// Swap: set to the other the current key
+			var currentButton = redefineButton.InputAction.Buttons[0];
+			otherRedefine.InputAction.Update(u => u.SetButton(currentButton));
+			otherRedefine.Refresh();
+		}
+		redefineButton.InputAction.Update(u => u.SetButton(newButton));
+		redefineButton.Refresh();
+	}
+
+	private void RedefineKey(RedefineActionButton redefineButton, Key newKey) {
+		if (redefineButton.InputAction.HasKey(newKey)) return;
+		
+		var otherRedefine = _keyboardControls.FirstNodeOrNull<RedefineActionButton>(r => r.InputAction.HasKey(newKey));
+		if (otherRedefine != null && otherRedefine != redefineButton) {
+			// Swap: set to the other the current key
+			var currentKey = redefineButton.InputAction.Keys[0];
+			otherRedefine.InputAction.Update(u => u.SetKey(currentKey));
+			otherRedefine.Refresh();
+		}
+		redefineButton.InputAction.Update(u => u.SetKey(newKey));
+		redefineButton.Refresh();
 	}
 }

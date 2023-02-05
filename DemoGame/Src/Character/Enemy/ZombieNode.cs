@@ -8,6 +8,7 @@ using Betauer.Core.Nodes.Property;
 using Betauer.Core.Pool;
 using Betauer.Core.Restorer;
 using Betauer.DI;
+using Betauer.DI.ServiceProvider;
 using Betauer.Flipper;
 using Betauer.Input;
 using Betauer.Nodes;
@@ -15,7 +16,7 @@ using Betauer.OnReady;
 using Betauer.StateMachine.Sync;
 using Betauer.Tools.Logging;
 using Godot;
-using Veronenger.Character.Handler;
+using Veronenger.Character.InputActions;
 using Veronenger.Character.Items;
 using Veronenger.Character.Player;
 using Veronenger.Managers;
@@ -39,12 +40,6 @@ public enum ZombieState {
 	End,
 		
 	Fall
-}
-
-[Configuration]
-public class ZombieConfiguration {
-	[Service]
-	public ICharacterHandler ZombieHandler => new CharacterController();
 }
 
 
@@ -93,7 +88,10 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 	[Inject] private EventBus EventBus { get; set; }
 	[Inject] private PlayerConfig PlayerConfig { get; set; }
 	[Inject] public EnemyConfig EnemyConfig { get; set; }
-	[Inject] private ICharacterHandler Handler { get; set; }
+	
+	//
+	// [Inject] private InputActionCharacterHandler Handler { get; set; }
+	private CharacterController Handler { get; set; } = new CharacterController();
 
 	public ILoopStatus AnimationIdle { get; private set; }
 	public ILoopStatus AnimationRun { get; private set; }
@@ -104,11 +102,11 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 
 	private AnimationStack _animationStack;
 
-	private float XInput => Handler.Directional.XInput;
-	private float YInput => Handler.Directional.YInput;
-	private IAction Jump => Handler.JumpAction;
-	private IAction Attack => Handler.AttackAction;
-	private IAction Float => Handler.FloatAction;
+	private float XInput => Handler.Lateral.Strength;
+	private float YInput => Handler.Vertical.Strength;
+	private InputAction Jump => Handler.Jump;
+	private InputAction Attack => Handler.Attack;
+	private InputAction Float => Handler.Float;
 	private float MotionX => PlatformBody.MotionX;
 	private float MotionY => PlatformBody.MotionY;
 

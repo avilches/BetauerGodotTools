@@ -14,7 +14,7 @@ using Betauer.OnReady;
 using Betauer.StateMachine.Sync;
 using Betauer.Tools.Logging;
 using Godot;
-using Veronenger.Character.Handler;
+using Veronenger.Character.InputActions;
 using Veronenger.Character.Items;
 using Veronenger.Managers;
 using Veronenger.UI;
@@ -80,7 +80,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	[Inject] private PlayerConfig PlayerConfig { get; set; }
 	[Inject] private SceneTree SceneTree { get; set; }
 	[Inject] private EventBus EventBus { get; set; }
-	[Inject] private InputActionCharacterHandler Handler { get; set; }
+	[Inject] private PlayerInputActions Handler { get; set; }
 	[Inject] private HUD HudScene { get; set; }
 	[Inject] private PlayerStatus Status { get; set; }
 
@@ -88,12 +88,12 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	public Vector2? InitialPosition { get; set; }
 	public Inventory Inventory { get; private set; }
 
-	private float XInput => Handler.Directional.XInput;
-	private float YInput => Handler.Directional.YInput;
-	private bool IsPressingRight => Handler.Directional.IsPressingRight;
-	private bool IsPressingLeft => Handler.Directional.IsPressingLeft;
-	private bool IsPressingUp => Handler.Directional.IsPressingUp;
-	private bool IsPressingDown => Handler.Directional.IsPressingDown;
+	private float XInput => Handler.Lateral.Strength;
+	private float YInput => Handler.Vertical.Strength;
+	private bool IsPressingRight => Handler.Lateral.Positive.IsPressed();
+	private bool IsPressingLeft => Handler.Lateral.Negative.IsPressed();
+	private bool IsPressingUp => Handler.Vertical.Negative.IsPressed();
+	private bool IsPressingDown => Handler.Vertical.Positive.IsPressed();
 	private InputAction Jump => Handler.Jump;
 	private InputAction Attack => Handler.Attack;
 	private InputAction Float => Handler.Float;
@@ -303,10 +303,8 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			};
 		}
 
-		var delayedJump = Jump.CreateDelayed();
 		OnFree += () => {
 			invincibleTween?.Kill();
-			delayedJump.Dispose();
 		};
 
 		PhysicsBody2D? fallingPlatform = null;
@@ -345,14 +343,17 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				_jumpHelperMonitor?.Show("");
 				_coyoteMonitor?.Show("");
 				FinishFallFromPlatform();
-				jumpJustInTime = delayedJump.WasPressed(PlayerConfig.JumpHelperTime) && CanJump();
+				jumpJustInTime = Jump.WasPressed(PlayerConfig.JumpHelperTime) && CanJump();
 			})
 			.If(() => Attack.IsJustPressed()).Set(PlayerState.Attacking)
 			.If(() => jumpJustInTime).Then(ctx => {
-				_jumpHelperMonitor?.Show($"{delayedJump.LastPressed} <= {PlayerConfig.JumpHelperTime:0.00} Done!");
+				_jumpHelperMonitor?.Show($"{Jump.PressedTime():0.00} <= {PlayerConfig.JumpHelperTime:0.00} Done!");
 				return ctx.Set(PlayerState.Jumping);
 			})
-			.If(() => XInput == 0).Set(PlayerState.Idle)
+			.If(() => XInput == 0).Then((ctx) => {
+				_jumpHelperMonitor?.Show($"{Jump.PressedTime():0.00} > {PlayerConfig.JumpHelperTime:0.00} NOPE");
+				return ctx.Set(PlayerState.Idle);
+			})
 			.If(() => true).Set(PlayerState.Running)
 			.Build();
 
@@ -447,7 +448,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				AnimationJump.PlayOnce();
 			})
 			.Execute(() => {
-				if (Jump.IsReleased() && MotionY < -PlayerConfig.JumpSpeedMin) {
+				if (Jump.IsJustReleased() && MotionY < -PlayerConfig.JumpSpeedMin) {
 					PlatformBody.MotionY = -PlayerConfig.JumpSpeedMin;
 				}
 
