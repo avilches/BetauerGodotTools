@@ -45,7 +45,7 @@ public class GodotContainer {
 
     private void CreateContainer() {
         _container.OnCreated += OnServiceCreated;
-        var containerBuilder = _container.CreateBuilder().Scan(_owner.GetType().Assembly);
+        var containerBuilder = _container.CreateBuilder();
         _containerConfig?.Invoke(containerBuilder);
         containerBuilder.Build();
     }

@@ -31,7 +31,8 @@ public partial class Bootstrap : Node /* needed to be instantiated as an Autoloa
             .Start(options => {
                 options
                     .ScanConfiguration(new DefaultConfiguration(GetTree()))
-                    .Scan<MouseActions>();
+                    .Scan<MouseActions>()
+                    .Scan(GetType().Assembly);
             });
 
 #if DEBUG
