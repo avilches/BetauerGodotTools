@@ -90,7 +90,6 @@ internal class InputActionStateHandler : BaseEventHandler, IProcessHandler, IInp
                 if (Mathf.Sign(axis.AxisValue) == _inputAction.AxisSign) {
                     if (Pressed) {
                         SetPressed(value);
-                        GD.Print(_inputAction.Name + ": " + value);
                     } else {
                         SetJustPressed(value);
                     }

@@ -53,7 +53,7 @@ namespace Betauer.GameTools.Tests {
             jump.Update(u => {
                 u.AddKeys(Key.A, Key.Acircumflex);
                 u.AddButtons(JoyButton.Paddle1, JoyButton.X);
-                u.SetAxis(JoyAxis.RightX, 1);
+                u.SetAxis(JoyAxis.RightX);
             });
             Assert.That(jump.Buttons, Is.EqualTo(new [] {JoyButton.Paddle1, JoyButton.X}.ToList()));
             Assert.That(jump.Keys, Is.EqualTo(new [] {Key.A, Key.Acircumflex}.ToList()));
@@ -63,7 +63,7 @@ namespace Betauer.GameTools.Tests {
             // Delete
             jump.Update(u => {
                 u.ClearKeys().ClearButtons();
-                u.SetAxis(JoyAxis.Invalid, -1);
+                u.SetAxis(JoyAxis.Invalid);
             });
             Assert.That(jump.Buttons, Is.Empty);
             Assert.That(jump.Keys, Is.Empty);

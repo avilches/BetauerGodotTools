@@ -173,6 +173,7 @@ public partial class InputAction {
     }
 
     public void Enable(bool enabled = true) {
+        if (_behaviour == InputActionBehaviour.Fake) return;
         if (enabled) {
             _handler.Enable();
             SetupGodotInputMap();
@@ -182,6 +183,7 @@ public partial class InputAction {
     }
 
     public void Disable() {
+        if (_behaviour == InputActionBehaviour.Fake) return;
         _handler.ClearState();
         _handler.Disable();
         if (_configureGodotInputMap && InputMap.HasAction(Name)) InputMap.EraseAction(Name);
@@ -240,6 +242,8 @@ public partial class InputAction {
     }
 
     public void LoadFromGodotProjectSettings() {
+        if (_behaviour == InputActionBehaviour.Fake) return;
+
         if (!InputMap.HasAction(Name)) {
             GD.PushWarning($"{nameof(LoadFromGodotProjectSettings)}: Action {Name} not found in project");
             return;
@@ -321,17 +325,25 @@ public partial class InputAction {
     }
 
     public InputAction Update(Action<Updater> updater, bool setupGodotInputMap = true, bool save = true) {
-        var backupButtons = _buttons.ToArray();
-        var backupKeys = _keys.ToArray();
-        var (axis, axisSign) = (Axis, AxisSign);
+        var (backupButtons, backupKeys, backupMouse) = (_buttons.ToArray(), _keys.ToArray(), MouseButton);
+        var (axis, axisSign, backupDeadZone) = (Axis, AxisSign, DeadZone);
+        var (commandOrCtrl, ctrl, shift, alt, meta) = (CommandOrCtrl, Ctrl, Shift, Alt, Meta);
         try {
             updater.Invoke(_updater);
             if (setupGodotInputMap) SetupGodotInputMap();
             if (save && SaveSetting != null) Save();
         } catch (Exception e) {
-            _updater.ClearButtons().AddButtons(backupButtons);
-            _updater.ClearKeys().AddKeys(backupKeys);
-            _updater.ClearAxis().SetAxis(axis, axisSign);
+            _updater.SetButtons(backupButtons)
+                .SetKeys(backupKeys)
+                .SetMouse(backupMouse)
+                .SetAxis(axis)
+                .SetAxisSign(axisSign)
+                .SetDeadZone(backupDeadZone)
+                .WithCommandOrCtrl(commandOrCtrl)
+                .WithCtrl(ctrl)
+                .WithShift(shift)
+                .WithAlt(alt)
+                .WithMeta(meta);
         }
         return this;
     }
@@ -341,9 +353,7 @@ public partial class InputAction {
         export.AddRange(_keys.Select(key => $"Key:{key}"));
         export.AddRange(_buttons.Select(button => $"Button:{button}"));
         if (Axis != JoyAxis.Invalid) {
-            export.Add($"Axis:{(int)Axis}");
-            // TODO: Sign missing
-            throw new NotImplementedException("Missing AxisSign");
+            export.Add($"Axis:{Axis}");
         }
         return string.Join(",", export);
     }
@@ -370,8 +380,6 @@ public partial class InputAction {
             ImportButton(value);
         } else if (key == "axis") {
             ImportAxis(value);
-            // TODO: Sign missing
-            throw new NotImplementedException("Missing AxisSign");
         }
     }
 

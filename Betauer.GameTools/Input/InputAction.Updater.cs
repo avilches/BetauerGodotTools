@@ -31,10 +31,14 @@ public partial class InputAction {
             return this;
         }
 
-        public Updater SetAxis(JoyAxis axis, int axisSign) {
-            if (Math.Abs(axisSign) != 1) throw new Exception("Invalid axis sign. Value  must be 1 or -1, but is "+axisSign);
+        public Updater SetAxis(JoyAxis axis) {
             _inputAction.Axis = axis;
-            _inputAction.AxisSign = axisSign;
+            return this;
+        }
+
+        public Updater SetAxisSign(int defaultAxisSign) {
+            if (Math.Abs(defaultAxisSign) != 1) throw new Exception("Invalid axis sign. Value  must be 1 or -1, but is "+defaultAxisSign);
+            _inputAction.AxisSign = defaultAxisSign;
             return this;
         }
 
