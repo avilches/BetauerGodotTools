@@ -6,16 +6,17 @@ using Container = Betauer.DI.Container;
 namespace Betauer.Input;
 
 public class AxisAction {
-    public float Strength => Positive.GetStrength() - Negative.GetStrength();
+    public float Strength => (Positive.GetStrength() - Negative.GetStrength()) * (Reverse ? -1 : 1);
 
     [Inject] private Container Container { get; set; }
 
     public InputAction Negative { get; private set; }
     public InputAction Positive { get; private set; }
 
-    private readonly string? _inputActionsContainerName; 
-    private readonly string? _negativeActionName; 
-    private readonly string? _positiveActionName; 
+    private readonly string? _negativeServiceName; 
+    private readonly string? _positiveServiceName;
+
+    public bool Reverse { get; set; } = false;
 
     public AxisAction(InputAction negative, InputAction positive) {
         Fit(negative, positive);
@@ -41,24 +42,19 @@ public class AxisAction {
         }
     }
 
-    private AxisAction(string? inputActionsContainerName, string negativeActionName, string positiveActionName) {
-        _inputActionsContainerName = inputActionsContainerName;
-        _negativeActionName = negativeActionName ?? throw new ArgumentNullException(nameof(negativeActionName));
-        _positiveActionName = positiveActionName ?? throw new ArgumentNullException(nameof(positiveActionName));
+    private AxisAction(string negativeServiceName, string positiveServiceName) {
+        _negativeServiceName = negativeServiceName ?? throw new ArgumentNullException(nameof(negativeServiceName));
+        _positiveServiceName = positiveServiceName ?? throw new ArgumentNullException(nameof(positiveServiceName));
     }
 
     [PostInject]
     private void Configure() {
-        if (_negativeActionName != null && _positiveActionName != null) {
-            var inputActionsContainer = _inputActionsContainerName != null
-                ? Container.Resolve<InputActionsContainer>(_inputActionsContainerName)
-                : Container.Resolve<InputActionsContainer>();
-            
-            var negative = inputActionsContainer.FindAction(_negativeActionName);
-            if (negative == null) throw new InvalidAxisConfiguration($"Error creating AxisAction: {_negativeActionName} InputAction not found");
+        if (_negativeServiceName != null && _positiveServiceName != null) {
+            var negative = Container.Resolve<InputAction>(_negativeServiceName);
+            if (negative == null) throw new InvalidAxisConfiguration($"Error creating AxisAction: {_negativeServiceName} InputAction not found");
 
-            var positive = inputActionsContainer.FindAction(_positiveActionName);
-            if (positive == null) throw new InvalidAxisConfiguration($"Error creating AxisAction: {_positiveActionName} InputAction not found");
+            var positive =  Container.Resolve<InputAction>(_positiveServiceName);
+            if (positive == null) throw new InvalidAxisConfiguration($"Error creating AxisAction: {_positiveServiceName} InputAction not found");
             
             Fit(negative, positive);
         }
@@ -82,16 +78,13 @@ public class AxisAction {
     public void SimulateRelease() => SimulatePress(0f);
 
     public static AxisAction Fake() {
-        var positive = InputAction.Fake().Update(u => u.SetAxis(JoyAxis.LeftX, 1));
-        var negative = InputAction.Fake().Update(u => u.SetAxis(JoyAxis.LeftX, -1));
+        var positive = InputAction.Fake().Update(u => u.SetAxis(JoyAxis.LeftX).SetAxisSign(1));
+        var negative = InputAction.Fake().Update(u => u.SetAxis(JoyAxis.LeftX).SetAxisSign(-1));
         return new AxisAction(negative, positive);
     }
 
-    public static AxisAction Create(string inputActionsContainerName, string negative, string positive) {
-        return new AxisAction(inputActionsContainerName, negative, positive);
-    }
     public static AxisAction Create(string negative, string positive) {
-        return new AxisAction(null, negative, positive);
+        return new AxisAction(negative, positive);
     }
 }
 
