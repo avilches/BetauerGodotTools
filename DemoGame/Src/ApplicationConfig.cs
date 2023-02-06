@@ -100,7 +100,7 @@ public class UiActions {
 		.Build();
 
 	[Service]
-	private AxisAction UiVertical => AxisAction.Create("ui_up", "ui_down");
+	private AxisAction UiVertical => AxisAction.Create("UiUp", "UiDown");
 
 	[Service]
 	private InputAction UiLeft => InputAction.Create("ui_left")
@@ -119,7 +119,7 @@ public class UiActions {
 		.Build();
 
 	[Service]
-	private AxisAction UiLateral => AxisAction.Create("ui_left", "ui_right");
+	private AxisAction UiLateral => AxisAction.Create("UiLeft", "UiRight");
 
 	[Service]
 	private InputAction UiAccept => InputAction.Create("ui_accept")
@@ -157,7 +157,7 @@ public class UiActions {
 [Configuration]
 public class Actions {
 	[Service]
-	private InputAction Up => InputAction.Configurable("up")
+	private InputAction Up => InputAction.Configurable("Up")
 		.Keys(Key.Up)
 		.Buttons(JoyButton.DpadUp)
 		.NegativeAxis(JoyAxis.LeftY)
@@ -165,15 +165,15 @@ public class Actions {
 		.Build();
 
 	[Service]
-	private InputAction Down => InputAction.Configurable("down")
-			.Keys(Key.Down)
-			.Buttons(JoyButton.DpadDown)
+	private InputAction Down => InputAction.Configurable("Down")
+		.Keys(Key.Down)
+		.Buttons(JoyButton.DpadDown)
 		.PositiveAxis(JoyAxis.LeftY)
-			.DeadZone(0.5f)
+		.DeadZone(0.5f)
 		.Build();
 
 	[Service]
-	private InputAction Left => InputAction.Configurable("left")
+	private InputAction Left => InputAction.Configurable("Left")
 		.Keys(Key.Left)
 		.Buttons(JoyButton.DpadLeft)
 		.NegativeAxis(JoyAxis.LeftX)
@@ -181,7 +181,7 @@ public class Actions {
 		.Build();
 
 	[Service]
-	private InputAction Right => InputAction.Configurable("right")
+	private InputAction Right => InputAction.Configurable("Right")
 		.Keys(Key.Right)
 		.Buttons(JoyButton.DpadRight)
 		.PositiveAxis(JoyAxis.LeftX)
@@ -189,10 +189,10 @@ public class Actions {
 		.Build();
 
 	[Service]
-	private AxisAction Lateral => AxisAction.Create("right", "left");
+	private AxisAction Lateral => AxisAction.Create("Right", "Left");
 
 	[Service]
-	private AxisAction Vertical => AxisAction.Create("down", "up");
+	private AxisAction Vertical => AxisAction.Create("Down", "Up");
 	
 	[Service]
 	private InputAction Jump => InputAction.Configurable("Jump")
