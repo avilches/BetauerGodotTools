@@ -229,11 +229,6 @@ public partial class SettingsMenu : CanvasLayer {
 	}
 
 	public void OnInput(InputEvent e) {
-		// if (e.IsAnyKey()) {
-		// Console.WriteLine("GetKeyString:" + e.GetKeyString() + " / Enum:" + e.GetKey()+" / Unicode: "+e.GetKeyUnicode());
-		// } else if (e.IsAnyButton()) {
-		// Console.WriteLine("ButtonString:" + e.GetButtonString() + " / Enum:" + e.GetButton());
-		// }
 		if (_redefineBox.Visible) {
 			// Do nothing!
 			

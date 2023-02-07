@@ -28,53 +28,57 @@ public partial class ActionHint : HBoxContainer {
 	private string? _key;
 		
 	// If using gamepad
-	private JoyButton _button;
-	private bool _isAxis;
-	private bool _animateButton;
+	private JoyButton _joyButton;
+	private JoyAxis _joyAxis;
+	private bool _animate;
 		
 	private bool _isUsingKeyboard;
 
-	public ActionHint InputAction(InputAction action, bool isAxis, bool animate) {
-		if (isAxis) {
-			_button = (JoyButton)action.Axis;
-			_isAxis = true;
-			var keyList = new List<string>(2);
-			var keys = action.Keys;
-			if (keys.Count > 0) keyList.Add(keys[0].ToString());
+	public ActionHint AxisAction(AxisAction axisAction, bool animate) {
+		_joyAxis = axisAction.Positive.Axis;
+		_joyButton = JoyButton.Invalid;
+		_animate = animate;
 
-			var axisAction = action.AxisAction;
-			var otherActionName = action.Name == axisAction.PositiveName ? axisAction.NegativeName : axisAction.PositiveName;
-			var otherAction = _inputActionsContainer.FindAction(otherActionName);
-			var otherKeys = otherAction.Keys;
-			if (otherKeys.Count > 0) keyList.Add(otherKeys[0].ToString());
-			_key = $"[{string.Join(" ", keyList)}]";
+		var keyList = new List<string>(2);
+		var keys = axisAction.Negative.Keys;
+		if (keys.Count > 0) keyList.Add(keys[0].ToString());
+		var otherKeys = axisAction.Positive.Keys;
+		if (otherKeys.Count > 0) keyList.Add(otherKeys[0].ToString());
+		_key = $"[{string.Join(" ", keyList)}]";
 
-		} else {
-			var buttons = action.Buttons;
-			_button = buttons.Count > 0 ? buttons[0] : JoyButton.Invalid;
-			_isAxis = false;
+		Refresh();
+		return this;
+	}
+	
+	public ActionHint InputAction(InputAction action, bool animate) {
+		var buttons = action.Buttons;
+		_joyAxis = JoyAxis.Invalid;
+		_joyButton = buttons.Count > 0 ? buttons[0] : JoyButton.Invalid;
+		_animate = animate;
 
-			var keys = action.Keys;
-			_key = keys.Count > 0 ? $"[{keys[0]}]" : "";
-		}
-		_animateButton = animate;
+		var keys = action.Keys;
+		_key = keys.Count > 0 ? $"[{keys[0]}]" : "";
 			
 		Refresh();
 		return this;
 	}
 
 	public ActionHint Refresh() {
-			
 		if (_key == null) return this;
+		
 		if (_isUsingKeyboard) {
 			_keyButton.Visible = true;
 			_controlConsoleButton.Visible = false;
 			_keyButton.Text = _key;
+			
 		} else {
 			_keyButton.Visible = false;
-			if (_button != JoyButton.Invalid) {
-				_controlConsoleButton.Visible = true;
-				_consoleButton.SetButton(_isAxis, _button, _animateButton ? ConsoleButton.State.Animated : ConsoleButton.State.Normal);
+			_controlConsoleButton.Visible = true;
+
+			if (_joyButton != JoyButton.Invalid) {
+				_consoleButton.SetButton(_joyButton, _animate ? ConsoleButtonState.Animated : ConsoleButtonState.Normal);
+			} else if (_joyAxis != JoyAxis.Invalid) {
+				_consoleButton.SetAxis(_joyAxis, _animate ? ConsoleButtonState.Animated : ConsoleButtonState.Normal);
 			} else {
 				_controlConsoleButton.Visible = false;
 			}
