@@ -16,6 +16,7 @@ public class AxisAction {
     private readonly string? _negativeServiceName; 
     private readonly string? _positiveServiceName;
 
+    // TODO: load a setting container and allow to export it. Optional: define a axis deadzone 
     public bool Reverse { get; set; } = false;
 
     public AxisAction(InputAction negative, InputAction positive) {
@@ -23,15 +24,15 @@ public class AxisAction {
     }
 
     private void Fit(InputAction negative, InputAction positive) {
-        if (negative.AxisSign == 0) {
-            throw new InvalidAxisConfiguration($"InputAction {negative.Name} should define an axis.");
-        }
-        if (positive.AxisSign == 0) {
-            throw new InvalidAxisConfiguration($"InputAction {positive.Name} should define an axis.");
-        }
+        if (negative.Axis == JoyAxis.Invalid) throw new InvalidAxisConfiguration($"InputAction {negative.Name} should define a valid Axis.");
+        if (positive.Axis == JoyAxis.Invalid) throw new InvalidAxisConfiguration($"InputAction {positive.Name} should define a valid Axis.");
+        
+        if (negative.AxisSign == 0) throw new InvalidAxisConfiguration($"InputAction {negative.Name} should define AxisSign.");
+        if (positive.AxisSign == 0) throw new InvalidAxisConfiguration($"InputAction {positive.Name} should define AxisSign.");
+
         if (positive.AxisSign == negative.AxisSign) {
-            throw new InvalidAxisConfiguration(
-                $"InputAction {negative.Name} and {positive.Name} can't be both {(positive.AxisSign > 0 ? "positive" : "negative")}, they must be different.");
+            var axisSign = $"{(positive.AxisSign > 0 ? "positive " : "negative")} ({positive.AxisSign})";
+            throw new InvalidAxisConfiguration($"InputAction {negative.Name} and {positive.Name} can't be both {axisSign}, they must be different.");
         }
         if (positive.AxisSign > 0) {
             Negative = negative;

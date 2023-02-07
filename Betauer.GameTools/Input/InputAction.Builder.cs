@@ -177,7 +177,6 @@ public partial class InputAction {
             if (_axis != JoyAxis.Invalid) {
                 inputAction.Axis = _axis;
                 inputAction.AxisSign = _axisSign;
-                GD.Print(inputAction.Name + " "+inputAction.AxisSign);
             }
             if (_deadZone >= 0f) {
                 inputAction.DeadZone = _deadZone;
