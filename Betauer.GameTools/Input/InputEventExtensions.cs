@@ -29,8 +29,18 @@ public static partial class InputEventExtensions {
     public static bool HasMeta(this InputEvent input) =>
         input is InputEventWithModifiers { MetaPressed: true };
 
+    // Joypad
+    public static bool IsJoypad(this InputEvent input) =>
+        input is InputEventJoypadButton or InputEventJoypadMotion;
+
+    public static string? GetJoypadName(this InputEvent input) =>
+        input is InputEventJoypadButton or InputEventJoypadMotion ? Godot.Input.GetJoyName(input.Device) : null;
+
+    public static string? GetJoypadGuid(this InputEvent input) =>
+        input is InputEventJoypadButton or InputEventJoypadMotion ? Godot.Input.GetJoyGuid(input.Device) : null;
+
     
-    // Joystick axis
+    // Joypad: Motion and Axis
     public static bool IsAnyAxis(this InputEvent input, int deviceId = -1) =>
         input is InputEventJoypadMotion motion
         && (deviceId == -1 || motion.Device == deviceId);
@@ -47,7 +57,7 @@ public static partial class InputEventExtensions {
         input is InputEventJoypadMotion k ? k.AxisValue : 0f;
 
     
-    // Joystick buttons
+    // Joypad: buttons
     public static bool IsAnyButton(this InputEvent input, int deviceId = -1) =>
         input is InputEventJoypadButton
         && (deviceId == -1 || input.Device == deviceId);
