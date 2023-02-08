@@ -92,7 +92,7 @@ public partial class DebugOverlayManager : CanvasLayer {
         Overlays.FirstOrDefault(overlay => overlay.Target == target) != null;
 
     public override void _Input(InputEvent input) {
-        if (DebugOverlayAction != null && DebugOverlayAction.IsEventPressed(input)) {
+        if (DebugOverlayAction != null && DebugOverlayAction.IsEventJustPressed(input)) {
             if (input.HasShift()) {
                 if (Visible) {
                     DebugConsole.Enable(!DebugConsole.Visible);
