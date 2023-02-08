@@ -180,7 +180,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	}
 
 	private void ConfigureCamera() {
-		_cameraController.WithAction(MMB).Attach(_camera2D);
+		_cameraController.WithMouseButton(MouseButton.Middle).Attach(_camera2D);
 		StageManager.ConfigureStageCamera(_camera2D, PlayerDetector);
 	}
 

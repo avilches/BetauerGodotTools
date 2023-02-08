@@ -1,4 +1,3 @@
-using Betauer.Input;
 using Betauer.Input.Controller;
 using Betauer.Nodes;
 using Godot;
@@ -24,12 +23,8 @@ public class DragCameraController {
         DragAndDropController.OnDrag += offset => Camera2D!.Position -= offset;
     }
 
-    public DragCameraController(InputAction action) : this() {
-        DragAndDropController.Action = action;
-    }
-
-    public DragCameraController WithAction(InputAction action) {
-        DragAndDropController.Action = action;
+    public DragCameraController WithMouseButton(MouseButton mouseButton) {
+        DragAndDropController.MouseButton = mouseButton;
         return this;
     }
 

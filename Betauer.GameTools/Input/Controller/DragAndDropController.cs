@@ -7,7 +7,7 @@ public class DragAndDropController {
     public Vector2? LastDragPosition { get; private set; }
 
     public bool IsDragging => LastDragPosition.HasValue;
-    public InputAction? Action { get; set; }
+    public MouseButton MouseButton { get; set; } = MouseButton.Left;
 
     public Func<InputEvent, bool>? Predicate;
         
@@ -24,8 +24,8 @@ public class DragAndDropController {
     /// </summary>
     public event Action<Vector2>? OnDrop;
 
-    public DragAndDropController WithAction(InputAction action) {
-        Action = action;
+    public DragAndDropController WithMouseButton(MouseButton mouseButton) {
+        MouseButton = mouseButton;
         return this;
     }
 
@@ -44,15 +44,15 @@ public class DragAndDropController {
     }
 
     public void Handle(InputEvent e) {
-        if (Action != null && Action.IsEvent(e) && (Predicate == null || Predicate(e))) {
-            if (e.IsJustPressed()) {
+        if (e.IsClick(MouseButton) && (Predicate == null || Predicate(e))) {
+            if (e.IsPressed()) {
                 LastDragPosition = e.GetMousePosition();
                 OnStartDrag?.Invoke(LastDragPosition.Value);
             } else if (e.IsReleased()) {
                 OnDrop?.Invoke(e.GetMousePosition());
                 LastDragPosition = null;
             }
-        } else if (LastDragPosition.HasValue && e.IsMouseMotion() && Action.IsPressed) {
+        } else if (LastDragPosition.HasValue && e.IsMouseMotion() && Godot.Input.IsMouseButtonPressed(MouseButton)) {
             var offset = e.GetMousePosition() - LastDragPosition.Value;
             OnDrag?.Invoke(offset);
             LastDragPosition = e.GetMousePosition();;
