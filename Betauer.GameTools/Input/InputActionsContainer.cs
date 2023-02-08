@@ -1,20 +1,49 @@
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using Betauer.Application.Monitor;
 using Betauer.DI;
+using Betauer.Nodes;
 using Godot;
 
 namespace Betauer.Input; 
 
-public class InputActionsContainer {
+public partial class InputActionsContainer : Node {
     [Inject(Nullable = true)] protected DebugOverlayManager? DebugOverlayManager { get; set; }
 
     public readonly List<IAction> InputActionList = new();
     public readonly Dictionary<string, IAction> ActionMap = new();
+    private readonly List<InputAction> _extendedInputStateHandlers = new(); 
+    private readonly List<InputAction> _extendedUnhandledInputActions = new();
+    private bool _running = false;
+
+    private NodeHandler _nodeHandler;
+
+    public InputActionsContainer() {
+        _nodeHandler = DefaultNodeHandler.Instance;
+        _nodeHandler.AddChild(this);
+    }
+
+    public InputActionsContainer(NodeHandler nodeHandler) {
+        _nodeHandler = nodeHandler;
+        _nodeHandler.AddChild(this);
+    }
+
+    public void SetNodeHandler(NodeHandler nodeHandler) {
+        _nodeHandler.RemoveChild(this);
+        _nodeHandler = nodeHandler;
+        _nodeHandler.AddChild(this);
+    }
 
     [PostInject]
     public void ConfigureCommands() {
+        // TODO: What if there are more than one InputActionsContainer? Only the last one will have the command linked
         DebugOverlayManager?.DebugConsole.AddInputEventCommand(this);
         DebugOverlayManager?.DebugConsole.AddInputMapCommand(this);
+    }
+
+    internal void Start() {
+        if (_running) return;
+        _running = true;
     }
 
     public IAction? FindAction(string name) {
@@ -69,14 +98,21 @@ public class InputActionsContainer {
         return list;
     }
 
-    public void Add(InputAction inputAction) {
-        InputActionList.Add(inputAction);
-        ActionMap.Add(inputAction.Name, inputAction);
-    }
-
     public void Add(AxisAction axisAction) {
         InputActionList.Add(axisAction);
         ActionMap.Add(axisAction.Name, axisAction);
+    }
+
+    public void Add(InputAction inputAction) {
+        InputActionList.Add(inputAction);
+        ActionMap.Add(inputAction.Name, inputAction);
+        Enable(inputAction);
+    }
+
+    public void Remove(InputAction inputAction) {
+        InputActionList.Remove(inputAction);
+        ActionMap.Remove(inputAction.Name);
+        Disable(inputAction);
     }
 
     public void Disable() {
@@ -85,5 +121,53 @@ public class InputActionsContainer {
 
     public void Enable(bool enabled = true) {
         InputActionList.ForEach(action => action.Enable(enabled));
+    }
+
+    internal void Enable(InputAction inputAction) {
+        if (inputAction.Behaviour == InputActionBehaviour.Extended) {
+            if (inputAction.IsUnhandledInput) _extendedUnhandledInputActions.Add(inputAction);
+            else _extendedInputStateHandlers.Add(inputAction);
+        }
+    }
+
+    internal void Disable(InputAction inputAction) {
+        if (inputAction.Behaviour == InputActionBehaviour.Extended) {
+            if (inputAction.IsUnhandledInput) _extendedUnhandledInputActions.Add(inputAction);
+            else _extendedInputStateHandlers.Add(inputAction);
+        }
+    }
+
+    public override void _Input(InputEvent e) {
+        var span = CollectionsMarshal.AsSpan(_extendedInputStateHandlers);
+        var viewport = _nodeHandler.GetViewport();
+        for (var i = 0; i < span.Length; i++) {
+            if (viewport.IsInputHandled()) return;
+            var inputAction = span[i];
+            if (inputAction.IsEvent(e)) ((ExtendedInputActionStateHandler)inputAction.Handler).Update(e);
+        }
+    }
+
+    public override void _UnhandledInput(InputEvent e) {
+        var span = CollectionsMarshal.AsSpan(_extendedUnhandledInputActions);
+        var viewport = _nodeHandler.GetViewport();
+        for (var i = 0; i < span.Length; i++) {
+            if (viewport.IsInputHandled()) return;
+            var inputAction = span[i];
+            if (inputAction.IsEvent(e)) ((ExtendedInputActionStateHandler)inputAction.Handler).Update(e);
+        }
+    }
+
+    public override void _Process(double d) {
+        var delta = (float)d;
+        var handledSpan = CollectionsMarshal.AsSpan(_extendedInputStateHandlers);
+        for (var i = 0; i < handledSpan.Length; i++) {
+            var inputAction = handledSpan[i];
+            ((ExtendedInputActionStateHandler)inputAction.Handler).AddTime(delta);
+        }
+        var unhandledSpan = CollectionsMarshal.AsSpan(_extendedUnhandledInputActions);
+        for (var i = 0; i < unhandledSpan.Length; i++) {
+            var inputAction = unhandledSpan[i];
+            ((ExtendedInputActionStateHandler)inputAction.Handler).AddTime(delta);
+        }
     }
 }

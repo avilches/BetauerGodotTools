@@ -5,71 +5,10 @@ using Godot;
 namespace Betauer.Input;
 
 public partial class InputAction {
-    public class ConfigurableBuilder : Builder<ConfigurableBuilder> {
-
-        private string? _settingsContainerName;
-        private string? _settingsSection;
-
-        public ConfigurableBuilder(string name) : base(name) {
-        }
-
-        public ConfigurableBuilder(string inputActionsContainerName, string name) : base(inputActionsContainerName, name) {
-        }
-
-        public ConfigurableBuilder SettingsContainer(string settingsFile) {
-            _settingsContainerName = settingsFile;
-            return this;
-        }
-
-        public ConfigurableBuilder SettingsSection(string settingsSection) {
-            _settingsSection = settingsSection;
-            return this;
-        }
-
-        public InputAction Build() {
-            var inputAction = new InputAction(
-                InputActionsContainerName,
-                Name,
-                IsKeepProjectSettings,
-                true,
-                _settingsContainerName,
-                _settingsSection,
-                ProcessModeValue,
-                InputActionBehaviour,
-                IsConfigureGodotInputMap);
-            return Build(inputAction);
-        }
-    }
-
-    public class NormalBuilder : Builder<NormalBuilder> {
-        internal NormalBuilder(string name) : base(name) {
-        }
-
-        internal NormalBuilder(string inputActionsContainerName, string name) :
-            base(inputActionsContainerName, name) {
-        }
-
-        public InputAction Build() {
-            var inputAction = new InputAction(
-                InputActionsContainerName,
-                Name,
-                IsKeepProjectSettings,
-                false,
-                null,
-                null,
-                ProcessModeValue,
-                InputActionBehaviour,
-                IsConfigureGodotInputMap);
-            return Build(inputAction);
-        }
-    }
-
     public abstract class Builder<TBuilder> where TBuilder : class {
         protected readonly string Name;
         protected readonly string InputActionsContainerName;
         protected bool IsKeepProjectSettings = false;
-        protected bool IsConfigureGodotInputMap = false;
-        protected Node.ProcessModeEnum ProcessModeValue = Node.ProcessModeEnum.Always;
 
         private readonly ISet<JoyButton> _buttons = new HashSet<JoyButton>();
         private readonly ISet<Key> _keys = new HashSet<Key>();
@@ -83,9 +22,6 @@ public partial class InputAction {
         private bool _metaPressed;
         private bool _commandOrCtrlPressed;
 
-        // By default, process first GUI, then process InputActions.
-        protected InputActionBehaviour InputActionBehaviour = InputActionBehaviour.AllowGuiStop;
-
         internal Builder(string name) {
             Name = name;
         }
@@ -93,11 +29,6 @@ public partial class InputAction {
         internal Builder(string inputActionsContainerName, string name) {
             InputActionsContainerName = inputActionsContainerName;
             Name = name;
-        }
-
-        public TBuilder ConfigureGodotInputMap(bool configureGodotInputMap = true) {
-            IsConfigureGodotInputMap = configureGodotInputMap;
-            return this as TBuilder;
         }
 
         public TBuilder DeadZone(float deadZone) {
@@ -162,18 +93,7 @@ public partial class InputAction {
             return this as TBuilder;
         }
 
-        public TBuilder ProcessMode(Node.ProcessModeEnum processMode) {
-            ProcessModeValue = processMode;
-            return this as TBuilder;
-        }
-
-
-        public TBuilder Behaviour(InputActionBehaviour processOrder) {
-            InputActionBehaviour = processOrder;
-            return this as TBuilder;
-        }
-
-        protected InputAction Build(InputAction inputAction) {
+        private void ApplyConfig(InputAction inputAction) {
             if (_axis != JoyAxis.Invalid) {
                 inputAction.Axis = _axis;
                 inputAction.AxisSign = _axisSign;
@@ -195,7 +115,89 @@ public partial class InputAction {
             inputAction.Alt = _altPressed;
             inputAction.Meta = _metaPressed;
             inputAction.CommandOrCtrl = _commandOrCtrlPressed;
-            return inputAction;
+        }
+        
+        public InputAction AsSimulator() {
+            var input = CreateInputAction(InputActionBehaviour.Simulate, false, false);
+            ApplyConfig(input);
+            return input;
+        }
+
+        public InputAction AsGodotInput() {
+            var input = CreateInputAction(InputActionBehaviour.GodotInput, true, false);
+            ApplyConfig(input);
+            return input;
+        }
+
+        public InputAction Extended(bool godotInputMapToo = false) {
+            var input = CreateInputAction(InputActionBehaviour.Extended, godotInputMapToo, false);
+            ApplyConfig(input);
+            return input;
+        }
+
+        public InputAction ExtendedUnhandled(bool godotInputMapToo = false) {
+            var input = CreateInputAction(InputActionBehaviour.Extended, godotInputMapToo, true);
+            ApplyConfig(input);
+            return input;
+        }
+
+        protected abstract InputAction CreateInputAction(InputActionBehaviour behaviour, bool configureGodotInputMap, bool unhandled);
+    }
+
+    public class ConfigurableBuilder : Builder<ConfigurableBuilder> {
+
+        private string? _settingsContainerName;
+        private string? _settingsSection;
+
+        public ConfigurableBuilder(string name) : base(name) {
+        }
+
+        public ConfigurableBuilder(string inputActionsContainerName, string name) : base(inputActionsContainerName, name) {
+        }
+
+        public ConfigurableBuilder SettingsContainer(string settingsFile) {
+            _settingsContainerName = settingsFile;
+            return this;
+        }
+
+        public ConfigurableBuilder SettingsSection(string settingsSection) {
+            _settingsSection = settingsSection;
+            return this;
+        }
+
+        protected override InputAction CreateInputAction(InputActionBehaviour behaviour, bool configureGodotInputMap, bool unhandled) {
+            return new InputAction(
+                InputActionsContainerName,
+                Name,
+                IsKeepProjectSettings,
+                true,
+                _settingsContainerName,
+                _settingsSection,
+                behaviour,
+                configureGodotInputMap,
+                unhandled);
+        }
+    }
+
+    public class NormalBuilder : Builder<NormalBuilder> {
+        internal NormalBuilder(string name) : base(name) {
+        }
+
+        internal NormalBuilder(string inputActionsContainerName, string name) :
+            base(inputActionsContainerName, name) {
+        }
+
+        protected override InputAction CreateInputAction(InputActionBehaviour behaviour, bool configureGodotInputMap, bool unhandled) {
+            return new InputAction(
+                InputActionsContainerName,
+                Name,
+                IsKeepProjectSettings,
+                false,
+                null,
+                null,
+                behaviour,
+                configureGodotInputMap,
+                unhandled);
         }
     }
 }

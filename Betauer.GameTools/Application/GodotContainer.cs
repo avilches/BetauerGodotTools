@@ -57,9 +57,11 @@ public class GodotContainer {
     private void OnServiceCreated(Lifetime lifetime, object instance) {
         if (instance is Object o)
             SetAlreadyInjected(o); // This avoid nodes are injected twice if they are added to the tree later
-        if (_addSingletonNodesToTree && lifetime == Lifetime.Singleton && instance is Node node &&
+        if (_addSingletonNodesToTree && 
+            lifetime == Lifetime.Singleton && 
+            instance is Node node && 
             node.GetParent() == null) {
-            _owner.GetTree().Root.AddChildDeferred(node);
+            _owner.GetViewport().AddChildDeferred(node);
         }
     }
     

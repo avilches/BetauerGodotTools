@@ -21,7 +21,7 @@ namespace Betauer.GameTools.Tests {
 
         [Test]
         public void BuilderTests() {
-            var empty = InputAction.Create("N").Build();
+            var empty = InputAction.Create("N").AsSimulator();
             Assert.That(empty.Name, Is.EqualTo("N"));
             Assert.That(empty.Keys, Is.Empty);
             Assert.That(empty.Buttons, Is.Empty);
@@ -31,7 +31,7 @@ namespace Betauer.GameTools.Tests {
                 .Keys(Key.K, Key.Alt)
                 .Buttons(JoyButton.A)
                 .Buttons(JoyButton.B, JoyButton.Back)
-                .Build();
+                .AsSimulator();
             Assert.That(reg.Name, Is.EqualTo("N"));
             Assert.That(reg.Keys, Is.EqualTo(new [] {Key.A, Key.K, Key.Alt}.ToList()));
             Assert.That(reg.Buttons, Is.EqualTo(new [] {JoyButton.A, JoyButton.B, JoyButton.Back}.ToList()));
@@ -43,7 +43,7 @@ namespace Betauer.GameTools.Tests {
             var sc = new SettingsContainer(SettingsFile);
             sc.Add(b);
             
-            var jump = InputAction.Configurable("ImportExportAction").Build();
+            var jump = InputAction.Configurable("ImportExportAction").AsSimulator();
             jump.SetSaveSettings(b).Load();
             Assert.That(jump.Buttons, Is.Empty);
             Assert.That(jump.Keys, Is.Empty);
@@ -79,10 +79,10 @@ namespace Betauer.GameTools.Tests {
 
         [Test]
         public void ManualConfigurationWithSettingTest() {
-            var attack = InputAction.Create("ManualAttack").Build();
+            var attack = InputAction.Create("ManualAttack").AsSimulator();
             Assert.That(attack.SaveSetting, Is.Null);
 
-            var jump = InputAction.Configurable("ManualJump").Build();
+            var jump = InputAction.Configurable("ManualJump").AsSimulator();
             Assert.That(jump.SaveSetting, Is.Null);
 
             SaveSetting<string> b = Setting<string>.Save(null, "attack","button:0,button:1,key:H,key:F");
@@ -109,7 +109,7 @@ namespace Betauer.GameTools.Tests {
         [Configuration]
         internal class InputWithoutInputActionsContainer {
             [Service]
-            private InputAction Jump => InputAction.Create("Jump").Build();
+            private InputAction Jump => InputAction.Create("Jump").AsSimulator();
         }
 
         [Test(Description = "Error if there is no InputActionsContainer")]
@@ -122,7 +122,7 @@ namespace Betauer.GameTools.Tests {
         [Configuration]
         internal class ConfigurableInputWithContainerButWithoutSettingContainer {
             [Service] public InputActionsContainer InputActionsContainer => new InputActionsContainer();
-            [Service] private InputAction JumpConfigurable => InputAction.Configurable("Jump").Build();
+            [Service] private InputAction JumpConfigurable => InputAction.Configurable("Jump").AsSimulator();
         }
 
         [Test(Description = "Error if there is not a SettingContainer when a Configurable() action is used")]
@@ -134,13 +134,13 @@ namespace Betauer.GameTools.Tests {
             Assert.That(e.Message, Contains.Substring(nameof(SettingsContainer)));
         }
 
-        internal class MyInputActionsContainer : InputActionsContainer {
+        internal partial class MyInputActionsContainer : InputActionsContainer {
         }
 
         [Configuration]
         internal class InputWithContainer {
             [Service] public InputActionsContainer InputActionsContainer => new MyInputActionsContainer();
-            [Service] private InputAction Jump => InputAction.Create("Jump").Build();
+            [Service] private InputAction Jump => InputAction.Create("Jump").AsSimulator();
         }
 
         [Test(Description = "Use a custom InputActionsContainer")]
@@ -165,14 +165,14 @@ namespace Betauer.GameTools.Tests {
             [Service] public SettingsContainer SettingsContainer => new SettingsContainer("settings1.ini");
             [Service(Name="Other")] public SettingsContainer SettingsContainerOther => new SettingsContainer("settings2.ini");
             
-            [Service] private InputAction JumpConfigurable => InputAction.Configurable("Jump").Build();
+            [Service] private InputAction JumpConfigurable => InputAction.Configurable("Jump").AsSimulator();
 
             [Service] private InputAction JumpConfigurableWithSetting => InputAction.Configurable("Jump2")
                 .SettingsContainer("Other")
                 .SettingsSection("Controls2")
-                .Build();
+                .AsSimulator();
             
-            [Service] private InputAction NoConfigurable => InputAction.Create("Jump3").Build();
+            [Service] private InputAction NoConfigurable => InputAction.Create("Jump3").AsSimulator();
         }
 
         [Service]
@@ -220,10 +220,10 @@ namespace Betauer.GameTools.Tests {
             public InputActionsContainer InputActionsContainer2 => new InputActionsContainer();
 
             [Service] private InputAction Jump => InputAction.Create("Jump")
-                .Build();
+                .AsSimulator();
 
             [Service] private InputAction JumpOther => InputAction.Create("Other", "JumpOther")
-                .Build();
+                .AsSimulator();
         }
 
         [Service]

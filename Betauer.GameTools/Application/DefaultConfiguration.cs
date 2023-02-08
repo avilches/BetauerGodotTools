@@ -22,7 +22,5 @@ public class DefaultConfiguration {
     [Service] public SceneTree SceneTree => _sceneTree;
     [Service] public NotificationsHandler NotificationsHandler => DefaultNotificationsHandler.Instance;
     [Service] public NodeHandler NodeHandler => DefaultNodeHandler.Instance;
-    [Service] public DebugOverlayManager DebugOverlayManager => new();
-    [Service] public InputActionsContainer InputActionsContainer => new();
 
 }

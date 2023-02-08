@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Betauer.Application.Settings;
 using Betauer.DI;
-using Betauer.Nodes;
 using Godot;
 using Container = Betauer.DI.Container;
 
@@ -12,32 +11,23 @@ namespace Betauer.Input;
 public enum InputActionBehaviour {
     /// <summary>
     /// It works only through Simulate*() methods
-    /// - WasPressed() and WasReleased() don't work
-    /// - Can't be saved
-    /// - ProcessMode is ignored
     /// </summary>
-    Fake,
-
-    /// <summary>
-    /// WasPressed() and WasReleased() works
-    /// 
-    /// If the action matches with a GUI input, both will be processed.
-    /// Example: a click to attack will be triggered too if the click has been used to click a button.
-    /// Example: an attack with the keyboard letter C will be processed if the C is typed inside a TextEdit
-    /// Behind the scenes, the action is processed in _Input() 
-    /// </summary>
-    ProcessWithGui,
+    Simulate,
     
     /// <summary>
-    /// WasPressed() and WasReleased() works
-    /// If the action matches with a GUI input, the GUI input is processed and the action will be ignored.
-    /// Example: a click to attack will not be triggered if the click has been used to click a button.
-    /// Example: an attack with the keyboard letter C will be ignored if the C is typed inside a TextEdit 
-    /// Behind the scenes, the action is processed in _UnhandledInput() 
+    /// It uses the Godot Input singleton to handle the action.
     /// </summary>
-    AllowGuiStop
+    GodotInput,
+    
+    /// <summary>
+    /// Add new features to the action, like WasPressed() and WasReleased() methods.
+    /// It can be processed in _Input or _UnhandledInput, so using unhandled, if a event is consumed by the GUI or any
+    /// other part of the game, the action won't be affected.
+    /// Optionally, the action can be added to the Godot Input Singleton too, so you can access to the action
+    /// using Godot.Input.IsActionPressed too.
+    /// </summary>
+    Extended,
 }
-
 public partial class InputAction : IAction {
     public static NormalBuilder Create(string name) => new(name);
     public static NormalBuilder Create(string inputActionsContainerName, string name) => new(inputActionsContainerName, name);
@@ -45,38 +35,24 @@ public partial class InputAction : IAction {
     public static ConfigurableBuilder Configurable(string name) => new(name);
     public static ConfigurableBuilder Configurable(string inputActionsContainerName, string name) => new(inputActionsContainerName, name);
 
-    private readonly InputActionStateHandler _handler;
-    
     public string Name { get; }
+    public bool IsPressed => Handler.Pressed;
+    public bool IsJustPressed => Handler.JustPressed;
+    public bool IsJustReleased => Handler.JustReleased;
+    public float PressedTime => Handler.PressedTime;
+    public float ReleasedTime => Handler.ReleasedTime;
+    public float Strength => Handler.Strength;
+    public float RawStrength => Handler.RawStrength;
+    public void SimulatePress(float strength = 1f) => Handler.SimulatePress(strength);
+    public void SimulateRelease() => Handler.SimulatePress(0f);
 
-    public bool IsPressed => _handler.Pressed;
-    public bool IsJustPressed => _handler.JustPressed;
-    public bool IsJustReleased => _handler.JustReleased;
-    public bool IsMetaOrCtrlPressed => _handler.CommandOrCtrlPressed;
-    public bool IsCtrlPressed => _handler.CtrlPressed;
-    public bool IsShiftPressed => _handler.ShiftPressed;
-    public bool IsAltPressed => _handler.AltPressed;
-    public bool IsMetaPressed => _handler.MetaPressed;
-    public float PressedTime => _behaviour == InputActionBehaviour.Fake ? InputActionStateHandler.MaxPressedTime : _handler.PressedTime;
-    public float ReleasedTime => _behaviour == InputActionBehaviour.Fake ? InputActionStateHandler.MaxPressedTime : _handler.ReleasedTime;
     public bool WasPressed(float elapsed) => PressedTime <= elapsed;
     public bool WasReleased(float elapsed) => ReleasedTime <= elapsed;
 
-    public float Strength => _handler.Strength;
-    public float RawStrength => _handler.RawStrength;
-
-    public void SimulatePress(float strength = 1f) => _handler.SimulatePress(strength);
-    public void SimulateRelease() => _handler.SimulatePress(0f);
-    public void SimulateCtrl(bool pressed) => _handler.SimulateCtrl(pressed);
-    public void SimulateShift(bool pressed) => _handler.SimulateShift(pressed);
-    public void SimulateAlt(bool pressed) => _handler.SimulateAlt(pressed);
-    public void SimulateMeta(bool pressed) => _handler.SimulateMeta(pressed);
-    public void SimulateCommandOrCtrl(bool pressed) => _handler.SimulateCommandOrCtrl(pressed);
-    
     public bool IsEvent(InputEvent e) => Matches(e);
-    public bool IsEventPressed(InputEvent e) => Matches(e) && e.IsPressed();
-    public bool IsEventJustPressed(InputEvent e) => Matches(e) && e.IsJustPressed();
-    public bool IsEventReleased(InputEvent e) => Matches(e) && e.IsReleased();
+    public bool IsEventPressed(InputEvent e) => IsEvent(e) && e.IsPressed();
+    public bool IsEventJustPressed(InputEvent e) => IsEvent(e) && e.IsJustPressed();
+    public bool IsEventReleased(InputEvent e) => IsEvent(e) && e.IsReleased();
 
     public List<JoyButton> Buttons { get; } = new();
     public List<Key> Keys { get; } = new();
@@ -89,18 +65,20 @@ public partial class InputAction : IAction {
     public bool Shift { get; private set; }
     public bool Alt { get; private set; }
     public bool Meta { get; private set; }
-    public Node.ProcessModeEnum ProcessMode => _handler.ProcessMode;
-
+    public InputActionsContainer? InputActionsContainer { get; private set; }
+    public InputActionBehaviour Behaviour { get; }
+    public bool Enabled { get; private set; } = true;
     public SaveSetting<string>? SaveSetting { get; private set; }
     
+    internal readonly IHandler Handler;
+    internal readonly bool IsUnhandledInput = false;
     [Inject] private Container Container { get; set; }
-    [Inject] private SceneTree SceneTree { get; set; }
+    
     private readonly string? _inputActionsContainerName;
     private readonly string? _settingsContainerName;
     private readonly string? _settingsSection;
-    private readonly bool _isConfigurable = false ;
+    private readonly bool _configureSaveSetting = false;
     private readonly Updater _updater;
-    private readonly InputActionBehaviour _behaviour;
     private readonly bool _configureGodotInputMap = false;
 
     public static InputAction Fake() => new InputAction(null,
@@ -109,50 +87,60 @@ public partial class InputAction : IAction {
         false,
         null,
         null,
-        Node.ProcessModeEnum.Always, // Ignored in fake inputs because handler exists, but it's not added to NodeHandler
-        InputActionBehaviour.Fake,
+        InputActionBehaviour.Simulate,
+        false,
         false);
 
     private InputAction(string inputActionsContainerName, 
         string name, 
         bool keepProjectSettings,
-        bool isConfigurable, 
+        bool configureSaveSetting, 
         string? settingsContainerName, 
         string? settingsSection,
-        Node.ProcessModeEnum processMode,
         InputActionBehaviour behaviour, 
-        bool configureGodotInputMap) {
+        bool configureGodotInputMap,
+        bool isUnhandledInput) {
         Name = name;
-        _handler = new InputActionStateHandler(this, processMode);
-        _updater = new Updater(this); 
-        _behaviour = behaviour;
-        if (_behaviour != InputActionBehaviour.Fake) {
-            _configureGodotInputMap = configureGodotInputMap;
+        Behaviour = behaviour;
+        _updater = new Updater(this);
+        Enabled = true;
+        if (behaviour == InputActionBehaviour.Simulate) {
+            Handler = new ActionStateHandler(this);
+            _configureGodotInputMap = false;
+            _inputActionsContainerName = null;
+            _configureSaveSetting = false;
+            _settingsContainerName = null;
+            _settingsSection = null;
+            IsUnhandledInput = false;
+        } else {
+            if (behaviour == InputActionBehaviour.GodotInput) {
+                Handler = new GodotInputHandler(name);
+                _configureGodotInputMap = true;
+                IsUnhandledInput = false;
+            } else if (behaviour == InputActionBehaviour.Extended) {
+                Handler = new ExtendedInputActionStateHandler(this);
+                _configureGodotInputMap = configureGodotInputMap;
+                IsUnhandledInput = isUnhandledInput;
+            }
             _inputActionsContainerName = inputActionsContainerName;
-            _isConfigurable = isConfigurable;
+            _configureSaveSetting = configureSaveSetting;
             _settingsContainerName = settingsContainerName;
             _settingsSection = settingsSection;
-
-            if (keepProjectSettings) LoadFromGodotProjectSettings();
-
-            if (_behaviour == InputActionBehaviour.ProcessWithGui) {
-                DefaultNodeHandler.Instance.OnInput(_handler);
-                DefaultNodeHandler.Instance.OnProcess(_handler);
-            } else if (_behaviour == InputActionBehaviour.AllowGuiStop) {
-                DefaultNodeHandler.Instance.OnUnhandledInput(_handler);
-                DefaultNodeHandler.Instance.OnProcess(_handler);
+            if (keepProjectSettings) {
+                LoadFromGodotProjectSettings();
             }
+            // Don't call SetupGodotInputMap here. It's better to wait until Configure() load the saved setting
         }
     }
 
     [PostInject]
     private void Configure() {
-        if (_behaviour == InputActionBehaviour.Fake) return;
+        if (Behaviour == InputActionBehaviour.Simulate) return;
         
         // Configure and load settings
-        if (_isConfigurable) {
+        if (_configureSaveSetting) {
             var section = _settingsSection ?? "Controls";
-            var setting = Setting<string>.Save(_settingsContainerName, section, Name, Export());
+            var setting = Setting<string>.Save(_settingsContainerName, section, Name, AsString());
             Container.InjectServices(setting);
             setting.ConfigureAndAddToSettingContainer();
             SetSaveSettings(setting);
@@ -161,34 +149,46 @@ public partial class InputAction : IAction {
             Load();
         }
         
-        // Add to InputContainer
+        // Find the InputContainer from constructor
         var inputActionsContainer = _inputActionsContainerName != null
             ? Container.Resolve<InputActionsContainer>(_inputActionsContainerName)
             : Container.Resolve<InputActionsContainer>();
-        inputActionsContainer.Add(this);
-        
+        inputActionsContainer.Start();
+        SetInputActionsContainer(inputActionsContainer);
+
         SetupGodotInputMap();
     }
 
+    private void SetInputActionsContainer(InputActionsContainer inputActionsContainer) {
+        if (Behaviour == InputActionBehaviour.Simulate) return;
+        InputActionsContainer?.Remove(this);
+        InputActionsContainer = inputActionsContainer;
+        InputActionsContainer.Add(this);
+    }
+
     public void Enable(bool enabled = true) {
-        if (_behaviour == InputActionBehaviour.Fake) return;
+        if (Behaviour == InputActionBehaviour.Simulate) return;
         if (enabled) {
-            _handler.Enable();
-            SetupGodotInputMap();
+            if (!Enabled) {
+                Enabled = true;
+                InputActionsContainer?.Enable(this);
+                SetupGodotInputMap();
+            }
         } else {
             Disable();
         }
     }
 
     public void Disable() {
-        if (_behaviour == InputActionBehaviour.Fake) return;
-        _handler.ClearState();
-        _handler.Disable();
+        if (Behaviour == InputActionBehaviour.Simulate) return;
+        Enabled = false;
+        InputActionsContainer?.Disable(this);
+        if (Handler is ActionStateHandler stateHandler) stateHandler.ClearState();
         if (_configureGodotInputMap && InputMap.HasAction(Name)) InputMap.EraseAction(Name);
     }
 
     public void SetupGodotInputMap() {
-        if (_behaviour == InputActionBehaviour.Fake || !_configureGodotInputMap) return;
+        if (Behaviour == InputActionBehaviour.Simulate || !_configureGodotInputMap) return;
         
         if (InputMap.HasAction(Name)) InputMap.EraseAction(Name);
         InputMap.AddAction(Name, DeadZone);
@@ -239,7 +239,7 @@ public partial class InputAction : IAction {
     }
 
     public void LoadFromGodotProjectSettings() {
-        if (_behaviour == InputActionBehaviour.Fake) return;
+        if (Behaviour == InputActionBehaviour.Simulate) return;
 
         if (!InputMap.HasAction(Name)) {
             GD.PushWarning($"{nameof(LoadFromGodotProjectSettings)}: Action {Name} not found in project");
@@ -266,19 +266,14 @@ public partial class InputAction : IAction {
         return this;
     }
 
-    public bool Matches(InputEvent e) =>
+    private bool Matches(InputEvent e) =>
         e switch {
-            InputEventKey key => Keys.Contains(key.Keycode),
+            InputEventKey key => HasKey(key.Keycode),
             InputEventMouseButton mouse => MouseButton == mouse.ButtonIndex,
-            InputEventJoypadButton button => Buttons.Contains(button.ButtonIndex),
+            InputEventJoypadButton button => HasButton(button.ButtonIndex),
             InputEventJoypadMotion motion => motion.Axis == Axis,
             _ => false
         };
-
-    public InputAction SetProcessMode(Node.ProcessModeEnum processMode) {
-        _handler.ProcessMode = processMode;
-        return this;
-    }
 
     public bool HasMouseButton() {
         return MouseButton != MouseButton.None;
@@ -303,23 +298,23 @@ public partial class InputAction : IAction {
     }
 
     public InputAction ResetToDefaults() {
-        if (_behaviour == InputActionBehaviour.Fake) return this;
+        if (Behaviour == InputActionBehaviour.Simulate) return this;
         if (SaveSetting == null) throw new Exception("InputAction does not have a SaveSetting");
-        Import(SaveSetting.DefaultValue);
+        Parse(SaveSetting.DefaultValue, true);
         return this;
     }
     
     public InputAction Load() {
-        if (_behaviour == InputActionBehaviour.Fake) return this;
+        if (Behaviour == InputActionBehaviour.Simulate) return this;
         if (SaveSetting == null) throw new Exception("InputAction does not have a SaveSetting");
-        Import(SaveSetting.Value);
+        Parse(SaveSetting.Value, true);
         return this;
     }
     
     public InputAction Save() {
-        if (_behaviour == InputActionBehaviour.Fake) return this;
+        if (Behaviour == InputActionBehaviour.Simulate) return this;
         if (SaveSetting == null) throw new Exception("InputAction does not have a SaveSetting");
-        SaveSetting.Value = Export();
+        SaveSetting.Value = AsString();
         return this;
     }
 
@@ -347,7 +342,7 @@ public partial class InputAction : IAction {
         return this;
     }
 
-    public string Export() {
+    public string AsString() {
         var export = new List<string>(Keys.Count + Buttons.Count + 1);
         export.AddRange(Keys.Select(key => $"Key:{key}"));
         export.AddRange(Buttons.Select(button => $"Button:{button}"));
@@ -357,12 +352,14 @@ public partial class InputAction : IAction {
         return string.Join(",", export);
     }
 
-    public InputAction Import(string export) {
+    public InputAction Parse(string export, bool reset) {
         if (string.IsNullOrWhiteSpace(export)) return this;
         Update(updater => {
-            updater.ClearButtons();
-            updater.ClearKeys();
-            updater.ClearAxis();
+            if (reset) {
+                updater.ClearButtons();
+                updater.ClearKeys();
+                updater.ClearAxis();
+            }
             export.Split(",").ToList().ForEach(ImportItem);
         });
         return this;
