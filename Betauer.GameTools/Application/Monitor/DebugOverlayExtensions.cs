@@ -228,14 +228,14 @@ public static partial class DebugOverlayExtensions {
     public static DebugOverlay AddMonitorInputEvent(this DebugOverlay overlay, InputActionsContainer inputActionsContainer, int history = 10) {
         var inputs = new LinkedList<string>();
         overlay.OnInput(e => {
-            var pressed = e.IsJustPressed()?"just pressed":e.IsPressed()?"pressed":e.IsReleased()?"released": "unknown";
+            var pressed = e.IsJustPressed()?"Just Pressed":e.IsPressed()?"Pressed":e.IsReleased()?"Released": "Unknown";
             var modifiers = new List<string>(5);
             if (e.HasShift()) modifiers.Add("Shift");
             if (e.HasAlt()) modifiers.Add("Alt");
             if (e.HasControl()) modifiers.Add("Ctrl");
             if (e.HasMeta()) modifiers.Add("Meta");
-            var action = inputActionsContainer.FindAction(e);
-            var actionName = action != null ? $" | Action [{action.Name}]" : "";
+            var actions = inputActionsContainer.FindActions(e).Select(a=>a.Name).ToList();
+            var actionName = actions.Count > 0 ? $" | Action [{string.Join(",", actions)}]" : "";
             if (e.IsAnyKey()) {
                 modifiers.Add(e.GetKeyString());
                 inputs.AddLast($"Key {(int)e.GetKey()} [{string.Join('+', modifiers)}] {pressed} {actionName}");
@@ -246,7 +246,7 @@ public static partial class DebugOverlayExtensions {
                 modifiers.Add(e.GetButton().ToString());
                 inputs.AddLast($"Button {(int)e.GetButton()} [{string.Join('+', modifiers)}] {pressed} | {e.GetButtonPressure()} {actionName}");
             } else if (e.IsAnyAxis())
-                inputs.AddLast($"Axis {(int)e.GetAxis()} [{e.GetAxis()}] {pressed} | {e.GetAxisValue()} {actionName}");
+                inputs.AddLast($"Axis {(int)e.GetAxis()} [{e.GetAxis()}] {e.GetAxisValue():0.00} {actionName}");
             // else if (e.IsMouseMotion())
                 // inputs.AddLast($"Mouse motion {e.GetMouseGlobalPosition()} {actionName}");
             if (inputs.Count > history) inputs.RemoveFirst();
@@ -259,18 +259,23 @@ public static partial class DebugOverlayExtensions {
         overlay
             .Text(() => {
                 var s = new StringBuilder();
-                foreach (var inputAction in inputActionsContainer.ActionList) {
-                    var keys = inputAction.Keys.Select(key => $"Key:{key}").ToList();
-                    keys.AddRange(inputAction.Buttons.Select(button => $"Button:{button}"));
-                    s.Append($"{inputAction.Name}: {string.Join(" | ", keys)}");
-                    if (inputAction.HasAxis()) {
-                        s.Append($" AxisValue:{inputAction.AxisSign} DeadZone:{inputAction.DeadZone}");
+                foreach (var a in inputActionsContainer.InputActionList) {
+                    if (a is InputAction inputAction) {
+                        var keys = inputAction.Keys.Select(key => $"Key:{key}").ToList();
+                        keys.AddRange(inputAction.Buttons.Select(button => $"Button:{button}"));
+                        s.Append($"{inputAction.Name}: {string.Join(" | ", keys)}");
+                        if (inputAction.HasAxis()) {
+                            s.Append($" {(inputAction.AxisSign > 0 ? "Positive":"Negative")} DeadZone:{inputAction.DeadZone}");
+                        }
+                        if (inputAction.HasMouseButton()) {
+                            s.Append($" Mouse:{inputAction.MouseButton}");
+                        }
+                        if (inputAction.IsPressed) s.Append(" [Pressed]");
+                        s.Append('\n');
+                    } else if (a is AxisAction axis) {
+                        s.Append($"{axis.Name}: {axis.Strength:0.00} ({axis.RawStrength:0.00})");
+                        s.Append('\n');
                     }
-                    if (inputAction.HasMouseButton()) {
-                        s.Append($" Mouse:{inputAction.MouseButton}");
-                    }
-                    if (inputAction.IsPressed()) s.Append(" [Pressed]");
-                    s.Append('\n');
                 }
                 return s.ToString();
             }).EndMonitor();

@@ -38,7 +38,7 @@ public enum InputActionBehaviour {
     AllowGuiStop
 }
 
-public partial class InputAction {
+public partial class InputAction : IAction {
     public static NormalBuilder Create(string name) => new(name);
     public static NormalBuilder Create(string inputActionsContainerName, string name) => new(inputActionsContainerName, name);
 
@@ -48,22 +48,22 @@ public partial class InputAction {
     private readonly InputActionStateHandler _handler;
     
     public string Name { get; }
-    public InputActionsContainer InputActionsContainer { get; private set; }
 
-    public bool IsPressed() => _handler.Pressed;
-    public bool IsJustPressed() => _handler.JustPressed;
-    public bool IsJustReleased() => _handler.JustReleased;
-    public bool IsMetaOrCtrlPressed() => _handler.CommandOrCtrlPressed;
-    public bool IsCtrlPressed() => _handler.CtrlPressed;
-    public bool IsShiftPressed() => _handler.ShiftPressed;
-    public bool IsAltPressed() => _handler.AltPressed;
-    public bool IsMetaPressed() => _handler.MetaPressed;
-    public float PressedTime() => _behaviour == InputActionBehaviour.Fake ? InputActionStateHandler.MaxPressedTime : _handler.PressedTime;
-    public float ReleasedTime() => _behaviour == InputActionBehaviour.Fake ? InputActionStateHandler.MaxPressedTime : _handler.ReleasedTime;
-    public bool WasPressed(float elapsed) => PressedTime() <= elapsed;
-    public bool WasReleased(float elapsed) => ReleasedTime() <= elapsed;
+    public bool IsPressed => _handler.Pressed;
+    public bool IsJustPressed => _handler.JustPressed;
+    public bool IsJustReleased => _handler.JustReleased;
+    public bool IsMetaOrCtrlPressed => _handler.CommandOrCtrlPressed;
+    public bool IsCtrlPressed => _handler.CtrlPressed;
+    public bool IsShiftPressed => _handler.ShiftPressed;
+    public bool IsAltPressed => _handler.AltPressed;
+    public bool IsMetaPressed => _handler.MetaPressed;
+    public float PressedTime => _behaviour == InputActionBehaviour.Fake ? InputActionStateHandler.MaxPressedTime : _handler.PressedTime;
+    public float ReleasedTime => _behaviour == InputActionBehaviour.Fake ? InputActionStateHandler.MaxPressedTime : _handler.ReleasedTime;
+    public bool WasPressed(float elapsed) => PressedTime <= elapsed;
+    public bool WasReleased(float elapsed) => ReleasedTime <= elapsed;
 
-    public float GetStrength() => _handler.Strength;
+    public float Strength => _handler.Strength;
+    public float RawStrength => _handler.RawStrength;
 
     public void SimulatePress(float strength = 1f) => _handler.SimulatePress(strength);
     public void SimulateRelease() => _handler.SimulatePress(0f);
@@ -73,13 +73,13 @@ public partial class InputAction {
     public void SimulateMeta(bool pressed) => _handler.SimulateMeta(pressed);
     public void SimulateCommandOrCtrl(bool pressed) => _handler.SimulateCommandOrCtrl(pressed);
     
-    public bool IsEvent(InputEvent e, bool exact = false) => Matches(e);
-    public bool IsEventPressed(InputEvent e, bool exact = false) => Matches(e) && e.IsPressed();
-    public bool IsEventJustPressed(InputEvent e, bool exact = false) => Matches(e) && e.IsJustPressed();
-    public bool IsEventReleased(InputEvent e, bool exact = false) => Matches(e) && e.IsReleased();
+    public bool IsEvent(InputEvent e) => Matches(e);
+    public bool IsEventPressed(InputEvent e) => Matches(e) && e.IsPressed();
+    public bool IsEventJustPressed(InputEvent e) => Matches(e) && e.IsJustPressed();
+    public bool IsEventReleased(InputEvent e) => Matches(e) && e.IsReleased();
 
-    public List<JoyButton> Buttons => _buttons.ToList();
-    public List<Key> Keys => _keys.ToList();
+    public List<JoyButton> Buttons { get; } = new();
+    public List<Key> Keys { get; } = new();
     public JoyAxis Axis { get; private set; } = JoyAxis.Invalid;
     public int AxisSign { get; private set; } = 1;
     public float DeadZone { get; private set; } = 0.5f;
@@ -95,8 +95,6 @@ public partial class InputAction {
     
     [Inject] private Container Container { get; set; }
     [Inject] private SceneTree SceneTree { get; set; }
-    private readonly HashSet<JoyButton> _buttons = new();
-    private readonly HashSet<Key> _keys = new();
     private readonly string? _inputActionsContainerName;
     private readonly string? _settingsContainerName;
     private readonly string? _settingsSection;
@@ -193,8 +191,7 @@ public partial class InputAction {
         if (_behaviour == InputActionBehaviour.Fake || !_configureGodotInputMap) return;
         
         if (InputMap.HasAction(Name)) InputMap.EraseAction(Name);
-        if (DeadZone > 0) InputMap.AddAction(Name, DeadZone);
-        else InputMap.AddAction(Name);
+        InputMap.AddAction(Name, DeadZone);
 
         CreateInputEvents().ForEach(e => InputMap.ActionAddEvent(Name, e));
     }
@@ -211,8 +208,8 @@ public partial class InputAction {
             }
         }
         
-        List<InputEvent> events = new List<InputEvent>(_keys.Count + _buttons.Count + 1);
-        foreach (var key in _keys) {
+        List<InputEvent> events = new List<InputEvent>(Keys.Count + Buttons.Count + 1);
+        foreach (var key in Keys) {
             var e = new InputEventKey();
             e.Keycode = key;
             AddModifiers(e);
@@ -224,7 +221,7 @@ public partial class InputAction {
             AddModifiers(e);
             events.Add(e);
         }
-        foreach (var button in _buttons) {
+        foreach (var button in Buttons) {
             var e = new InputEventJoypadButton();
             // e.Device = -1; // TODO: you can add a device id here
             e.ButtonIndex = button;
@@ -251,9 +248,9 @@ public partial class InputAction {
         
         foreach (var inputEvent in InputMap.ActionGetEvents(Name)) {
             if (inputEvent is InputEventKey key) {
-                _keys.Add(key.Keycode);
+                Keys.Add(key.Keycode);
             } else if (inputEvent is InputEventJoypadButton button) {
-                _buttons.Add(button.ButtonIndex);
+                Buttons.Add(button.ButtonIndex);
             } else if (inputEvent is InputEventJoypadMotion motion) {
                 // TODO: feature missing, not tested!!!
                 Axis = motion.Axis;
@@ -264,10 +261,6 @@ public partial class InputAction {
         }
     }
 
-    public void OnAddToInputContainer(InputActionsContainer inputActionsContainer) {
-        InputActionsContainer = inputActionsContainer;
-    }
-
     public InputAction SetSaveSettings(SaveSetting<string> saveSetting) {
         SaveSetting = saveSetting;
         return this;
@@ -275,9 +268,9 @@ public partial class InputAction {
 
     public bool Matches(InputEvent e) =>
         e switch {
-            InputEventKey key => _keys.Contains(key.Keycode),
+            InputEventKey key => Keys.Contains(key.Keycode),
             InputEventMouseButton mouse => MouseButton == mouse.ButtonIndex,
-            InputEventJoypadButton button => _buttons.Contains(button.ButtonIndex),
+            InputEventJoypadButton button => Buttons.Contains(button.ButtonIndex),
             InputEventJoypadMotion motion => motion.Axis == Axis,
             _ => false
         };
@@ -296,11 +289,17 @@ public partial class InputAction {
     }
 
     public bool HasKey(Key key) {
-        return _keys.Contains(key);
+        if (Keys.Count == 0) return false;
+        if (Keys.Count == 1) return Keys[0] == key;
+        for (var i = 2; i < Keys.Count; i++) if (Keys[i] == key) return true;
+        return false;
     }
 
     public bool HasButton(JoyButton button) {
-        return _buttons.Contains(button);
+        if (Buttons.Count == 0) return false;
+        if (Buttons.Count == 1) return Buttons[0] == button;
+        for (var i = 2; i < Buttons.Count; i++) if (Buttons[i] == button) return true;
+        return false;
     }
 
     public InputAction ResetToDefaults() {
@@ -325,7 +324,7 @@ public partial class InputAction {
     }
 
     public InputAction Update(Action<Updater> updater, bool setupGodotInputMap = true, bool save = true) {
-        var (backupButtons, backupKeys, backupMouse) = (_buttons.ToArray(), _keys.ToArray(), MouseButton);
+        var (backupButtons, backupKeys, backupMouse) = (Buttons.ToArray(), Keys.ToArray(), MouseButton);
         var (axis, axisSign, backupDeadZone) = (Axis, AxisSign, DeadZone);
         var (commandOrCtrl, ctrl, shift, alt, meta) = (CommandOrCtrl, Ctrl, Shift, Alt, Meta);
         try {
@@ -349,9 +348,9 @@ public partial class InputAction {
     }
 
     public string Export() {
-        var export = new List<string>(_keys.Count + _buttons.Count + 1);
-        export.AddRange(_keys.Select(key => $"Key:{key}"));
-        export.AddRange(_buttons.Select(button => $"Button:{button}"));
+        var export = new List<string>(Keys.Count + Buttons.Count + 1);
+        export.AddRange(Keys.Select(key => $"Key:{key}"));
+        export.AddRange(Buttons.Select(button => $"Button:{button}"));
         if (Axis != JoyAxis.Invalid) {
             export.Add($"Axis:{Axis}");
         }
@@ -386,7 +385,7 @@ public partial class InputAction {
     private bool ImportKey(string value) {
         try {
             var key = int.TryParse(value, out _) ? (Key)value.ToInt() : Parse<Key>(value); 
-            _keys.Add(key);
+            Keys.Add(key);
             return true;
         } catch (Exception) {
             return false;
@@ -396,7 +395,7 @@ public partial class InputAction {
     private bool ImportButton(string value) {
         try {
             var joyButton = int.TryParse(value, out _) ? (JoyButton)value.ToInt() : Parse<JoyButton>(value); 
-            _buttons.Add(joyButton);
+            Buttons.Add(joyButton);
             return true;
         } catch (Exception) {
             return false;

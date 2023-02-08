@@ -86,6 +86,7 @@ public class UiActions {
 	[Service]
 	private InputAction UiUp => InputAction.Create("ui_up")
 		.KeepProjectSettings()
+		.Behaviour(InputActionBehaviour.ProcessWithGui)
 		.ConfigureGodotInputMap()
 		.NegativeAxis(JoyAxis.LeftY)
 		.DeadZone(0.5f)
@@ -94,17 +95,19 @@ public class UiActions {
 	[Service]
 	private InputAction UiDown => InputAction.Create("ui_down")
 		.KeepProjectSettings()
+		.Behaviour(InputActionBehaviour.ProcessWithGui)
 		.ConfigureGodotInputMap()
 		.PositiveAxis(JoyAxis.LeftY)
 		.DeadZone(0.5f)
 		.Build();
 
 	[Service]
-	private AxisAction UiVertical => AxisAction.Create("UiUp", "UiDown");
+	private AxisAction UiVertical => AxisAction.Create(nameof(UiVertical), nameof(UiUp), nameof(UiDown));
 
 	[Service]
 	private InputAction UiLeft => InputAction.Create("ui_left")
 		.KeepProjectSettings()
+		.Behaviour(InputActionBehaviour.ProcessWithGui)
 		.ConfigureGodotInputMap()
 		.NegativeAxis(JoyAxis.LeftX)
 		.DeadZone(0.5f)
@@ -113,17 +116,19 @@ public class UiActions {
 	[Service]
 	private InputAction UiRight => InputAction.Create("ui_right")
 		.KeepProjectSettings()
+		.Behaviour(InputActionBehaviour.ProcessWithGui)
 		.ConfigureGodotInputMap()
 		.PositiveAxis(JoyAxis.LeftX)
 		.DeadZone(0.5f)
 		.Build();
 
 	[Service]
-	private AxisAction UiLateral => AxisAction.Create("UiLeft", "UiRight");
+	private AxisAction UiLateral => AxisAction.Create(nameof(UiLateral), nameof(UiLeft), nameof(UiRight));
 
 	[Service]
 	private InputAction UiAccept => InputAction.Create("ui_accept")
 		.KeepProjectSettings()
+		.Behaviour(InputActionBehaviour.ProcessWithGui)
 		.ConfigureGodotInputMap()
 		.Buttons(JoyButton.A)
 		.Build();
@@ -131,12 +136,14 @@ public class UiActions {
 	[Service]
 	private InputAction UiSelect => InputAction.Create("ui_select")
 		.KeepProjectSettings()
+		.Behaviour(InputActionBehaviour.ProcessWithGui)
 		.ConfigureGodotInputMap()
 		.Build();
 
 	[Service]
 	private InputAction UiCancel => InputAction.Create("ui_cancel")
 		.KeepProjectSettings()
+		.Behaviour(InputActionBehaviour.ProcessWithGui)
 		.ConfigureGodotInputMap()
 		.Buttons(JoyButton.B)
 		.Build();
@@ -144,12 +151,14 @@ public class UiActions {
 	[Service]
 	private InputAction ControllerSelect => InputAction.Create("select")
 		.Keys(Key.Tab)
+		.Behaviour(InputActionBehaviour.ProcessWithGui)
 		.Buttons(JoyButton.Back)
 		.Build();
 
 	[Service]
 	private InputAction ControllerStart => InputAction.Create("start")
 		.Keys(Key.Escape)
+		.Behaviour(InputActionBehaviour.ProcessWithGui)
 		.Buttons(JoyButton.Start)
 		.Build();
 }
@@ -157,7 +166,7 @@ public class UiActions {
 [Configuration]
 public class Actions {
 	[Service]
-	private InputAction Up => InputAction.Configurable("Up")
+	private InputAction Up => InputAction.Configurable(nameof(Up))
 		.Keys(Key.Up)
 		.Buttons(JoyButton.DpadUp)
 		.NegativeAxis(JoyAxis.LeftY)
@@ -165,7 +174,7 @@ public class Actions {
 		.Build();
 
 	[Service]
-	private InputAction Down => InputAction.Configurable("Down")
+	private InputAction Down => InputAction.Configurable(nameof(Down))
 		.Keys(Key.Down)
 		.Buttons(JoyButton.DpadDown)
 		.PositiveAxis(JoyAxis.LeftY)
@@ -173,54 +182,56 @@ public class Actions {
 		.Build();
 
 	[Service]
-	private InputAction Left => InputAction.Configurable("Left")
+	private InputAction Left => InputAction.Configurable(nameof(Left))
 		.Keys(Key.Left)
+		.ConfigureGodotInputMap()
 		.Buttons(JoyButton.DpadLeft)
 		.NegativeAxis(JoyAxis.LeftX)
 		.DeadZone(0.5f)
 		.Build();
 
 	[Service]
-	private InputAction Right => InputAction.Configurable("Right")
+	private InputAction Right => InputAction.Configurable(nameof(Right))
 		.Keys(Key.Right)
+		.ConfigureGodotInputMap()
 		.Buttons(JoyButton.DpadRight)
 		.PositiveAxis(JoyAxis.LeftX)
 		.DeadZone(0.5f)
 		.Build();
 
 	[Service]
-	private AxisAction Lateral => AxisAction.Create("Right", "Left");
+	private AxisAction Lateral => AxisAction.Create(nameof(Lateral), nameof(Right), nameof(Left));
 
 	[Service]
-	private AxisAction Vertical => AxisAction.Create("Down", "Up");
+	private AxisAction Vertical => AxisAction.Create(nameof(Vertical), nameof(Down), nameof(Up));
 	
 	[Service]
-	private InputAction Jump => InputAction.Configurable("Jump")
+	private InputAction Jump => InputAction.Configurable(nameof(Jump))
 		.Keys(Key.Space)
 		.Buttons(JoyButton.A)
 		.Build();
 
 	[Service]
-	private InputAction Attack => InputAction.Configurable("Attack")
+	private InputAction Attack => InputAction.Configurable(nameof(Attack))
 		.Keys(Key.C)
 		.Click(MouseButton.Left)
 		.Buttons(JoyButton.B)
 		.Build();
 
 	[Service]
-	private InputAction NextItem => InputAction.Configurable("NextItem")
+	private InputAction NextItem => InputAction.Configurable(nameof(NextItem))
 		.Keys(Key.E)
 		.Buttons(JoyButton.RightShoulder)
 		.Build();
 
 	[Service]
-	private InputAction PrevItem => InputAction.Configurable("PrevItem")
+	private InputAction PrevItem => InputAction.Configurable(nameof(PrevItem))
 		.Keys(Key.Q)
 		.Buttons(JoyButton.LeftShoulder)
 		.Build();
 
 	[Service]
-	private InputAction Float => InputAction.Configurable("Float")
+	private InputAction Float => InputAction.Configurable(nameof(Float))
 		.Keys(Key.F)
 		.Buttons(JoyButton.Y)
 		.Build();

@@ -35,7 +35,7 @@ public partial class InputAction {
                 _settingsContainerName,
                 _settingsSection,
                 ProcessModeValue,
-                _processOrder,
+                InputActionBehaviour,
                 IsConfigureGodotInputMap);
             return Build(inputAction);
         }
@@ -58,7 +58,7 @@ public partial class InputAction {
                 null,
                 null,
                 ProcessModeValue,
-                _processOrder,
+                InputActionBehaviour,
                 IsConfigureGodotInputMap);
             return Build(inputAction);
         }
@@ -84,7 +84,7 @@ public partial class InputAction {
         private bool _commandOrCtrlPressed;
 
         // By default, process first GUI, then process InputActions.
-        protected InputActionBehaviour _processOrder = InputActionBehaviour.AllowGuiStop;
+        protected InputActionBehaviour InputActionBehaviour = InputActionBehaviour.AllowGuiStop;
 
         internal Builder(string name) {
             Name = name;
@@ -168,8 +168,8 @@ public partial class InputAction {
         }
 
 
-        public TBuilder ProcessOrder(InputActionBehaviour processOrder) {
-            _processOrder = processOrder;
+        public TBuilder Behaviour(InputActionBehaviour processOrder) {
+            InputActionBehaviour = processOrder;
             return this as TBuilder;
         }
 
@@ -185,10 +185,10 @@ public partial class InputAction {
                 inputAction.MouseButton = _mouseButton;
             }
             if (_keys.Count > 0) {
-                _keys.ForEach(k => inputAction._keys.Add(k));
+                _keys.ForEach(k => inputAction.Keys.Add(k));
             }
             if (_buttons.Count > 0) {
-                _buttons.ForEach(b => inputAction._buttons.Add(b));
+                _buttons.ForEach(b => inputAction.Buttons.Add(b));
             }
             inputAction.Ctrl = _ctrlPressed;
             inputAction.Shift = _shiftPressed;

@@ -372,7 +372,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		On(ZombieEvent.Death).Set(ZombieState.Death);
 			
 		State(ZombieState.Landing)
-			.If(() => Attack.IsJustPressed()).Set(ZombieState.Attacking)
+			.If(() => Attack.IsJustPressed).Set(ZombieState.Attacking)
 			.If(() => XInput == 0).Set(ZombieState.Idle)
 			.If(() => true).Set(ZombieState.Run)
 			.Build();
@@ -385,8 +385,8 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 				ApplyFloorGravity();
 				PlatformBody.Stop(EnemyConfig.Friction, EnemyConfig.StopIfSpeedIsLessThan);
 			})
-			.If(() => Jump.IsJustPressed()).Set(ZombieState.Jump)
-			.If(() => Attack.IsJustPressed()).Set(ZombieState.Attacking)
+			.If(() => Jump.IsJustPressed).Set(ZombieState.Jump)
+			.If(() => Attack.IsJustPressed).Set(ZombieState.Attacking)
 			.If(() => !PlatformBody.IsOnFloor()).Set(ZombieState.Fall)
 			.If(() => XInput != 0).Set(ZombieState.Run)
 			.Build();
@@ -402,8 +402,8 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 					EnemyConfig.Friction, EnemyConfig.StopIfSpeedIsLessThan, 0);
 				
 			})
-			.If(() => Jump.IsJustPressed()).Set(ZombieState.Jump)
-			.If(() => Attack.IsJustPressed()).Set(ZombieState.Attacking)
+			.If(() => Jump.IsJustPressed).Set(ZombieState.Jump)
+			.If(() => Attack.IsJustPressed).Set(ZombieState.Attacking)
 			.If(() => !PlatformBody.IsOnFloor()).Set(ZombieState.Fall)
 			.If(() => XInput == 0 && MotionX == 0).Set(ZombieState.Idle)
 			.Exit(() => _animationPlayer.PlaybackSpeed = 1)

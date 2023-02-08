@@ -10,4 +10,10 @@ public class PlayerInputActions : ICharacterHandler {
     [Inject] public InputAction Float { get; set; }
     [Inject] public AxisAction Lateral { get; set; }
     [Inject] public AxisAction Vertical { get; set; }
+    
+    [Inject] public InputAction Left { get; set; }
+    [Inject] public InputAction Right { get; set; }
+    [Inject] public InputAction Up { get; set; }
+    [Inject] public InputAction Down { get; set; }
+
 }

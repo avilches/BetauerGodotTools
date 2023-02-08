@@ -13,8 +13,20 @@ public static partial class InputEventExtensions {
         return 0;
     }
 
+    /// <summary>
+    /// For key events, this method ignores echoes. Joypads don't send echoes, so it works like IsPressed()
+    /// For axis actions, this will return tru only if strength is 1, which is different from listening in InputAction
+    /// or Godot.Input, where the action.IsJustPressed returns null the first event > deadzone 
+    /// </summary>
+    /// <param name="input"></param>
+    /// <returns></returns>
     public static bool IsJustPressed(this InputEvent input) => input.IsPressed() && !input.IsEcho();
     
+    /// <summary>
+    /// For key events, this method ignores echoes. Joypads don't send echoes, so it works like !IsPressed() 
+    /// </summary>
+    /// <param name="input"></param>
+    /// <returns></returns>
     public static bool IsReleased(this InputEvent input) => !input.IsPressed() && !input.IsEcho();
 
     public static bool HasShift(this InputEvent input) =>
@@ -79,15 +91,10 @@ public static partial class InputEventExtensions {
         && (deviceId == -1 || input.Device == deviceId)
         && k.ButtonIndex == button && k.Pressed;
 
-    public static bool IsButtonJustPressed(this InputEvent input, JoyButton button, int deviceId = -1) =>
-        input is InputEventJoypadButton k
-        && (deviceId == -1 || input.Device == deviceId)
-        && k.ButtonIndex == button && input.IsJustPressed();
-
     public static bool IsButtonReleased(this InputEvent input, JoyButton button, int deviceId = -1) =>
         input is InputEventJoypadButton k
         && (deviceId == -1 || input.Device == deviceId)
-        && k.ButtonIndex == button && input.IsReleased();
+        && k.ButtonIndex == button && !k.Pressed;
 
     // Keys
     public static bool IsAnyKey(this InputEvent input) =>
@@ -146,15 +153,11 @@ public static partial class InputEventExtensions {
         input is InputEventMouseButton k &&
         k.ButtonIndex == button;
 
-    // This include echoes
     public static bool IsClickPressed(this InputEvent input, MouseButton button) =>
         input is InputEventMouseButton k && k.ButtonIndex == button && k.Pressed;
 
-    public static bool IsClickJustPressed(this InputEvent input, MouseButton button) =>
-        input is InputEventMouseButton k && k.ButtonIndex == button && input.IsJustPressed();
-
     public static bool IsClickReleased(this InputEvent input, MouseButton button) =>
-        input is InputEventMouseButton k && k.ButtonIndex == button && input.IsReleased();
+        input is InputEventMouseButton k && k.ButtonIndex == button && !k.Pressed;
 
     public static bool IsDoubleClick(this InputEvent input) =>
         input is InputEventMouseButton { DoubleClick: true };
@@ -171,12 +174,8 @@ public static partial class InputEventExtensions {
     public static bool IsLeftClick(this InputEvent input) => 
         input.IsClick(MouseButton.Left);
 
-    // This include echoes
     public static bool IsLeftClickPressed(this InputEvent input) =>
         input.IsClickPressed(MouseButton.Left);
-
-    public static bool IsLeftClickJustPressed(this InputEvent input) =>
-        input.IsClickJustPressed(MouseButton.Left);
 
     public static bool IsLeftClickReleased(this InputEvent input) =>
         input.IsClickReleased(MouseButton.Left);
@@ -190,12 +189,8 @@ public static partial class InputEventExtensions {
     public static bool IsMiddleClick(this InputEvent input) => 
         input.IsClick(MouseButton.Middle);
 
-    // This include echoes
     public static bool IsMiddleClickPressed(this InputEvent input) =>
         input.IsClickPressed(MouseButton.Middle);
-
-    public static bool IsMiddleClickJustPressed(this InputEvent input) =>
-        input.IsClickJustPressed(MouseButton.Middle);
 
     public static bool IsMiddleClickReleased(this InputEvent input) =>
         input.IsClickReleased(MouseButton.Middle);
@@ -209,12 +204,8 @@ public static partial class InputEventExtensions {
     public static bool IsRightClick(this InputEvent input) => 
         input.IsClick(MouseButton.Right);
 
-    // This include echoes
     public static bool IsRightClickPressed(this InputEvent input) =>
         input.IsClickPressed(MouseButton.Right);
-
-    public static bool IsRightClickJustPressed(this InputEvent input) =>
-        input.IsClickJustPressed(MouseButton.Right);
 
     public static bool IsRightClickReleased(this InputEvent input) =>
         input.IsClickReleased(MouseButton.Right);

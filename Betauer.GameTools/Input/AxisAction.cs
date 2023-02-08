@@ -5,21 +5,34 @@ using Container = Betauer.DI.Container;
 
 namespace Betauer.Input;
 
-public class AxisAction {
-    public float Strength => (Positive.GetStrength() - Negative.GetStrength()) * (Reverse ? -1 : 1);
+public class AxisAction : IAction {
+    public float Strength => (Positive.Strength - Negative.Strength) * (Reverse ? -1 : 1);
+    public float RawStrength => (Positive.RawStrength - Negative.RawStrength) * (Reverse ? -1 : 1);
+    public JoyAxis Axis => Positive.Axis;
+    public bool Reverse { get; set; } = false; // TODO: load a setting container and allow to export it. Optional: define a axis deadzone
+    public string Name { get; }
+    public bool IsEvent(InputEvent inputEvent) => inputEvent is InputEventJoypadMotion motion && motion.Axis == Axis;
+    public void Enable(bool enabled) {
+        Negative.Enable(enabled);
+        Positive.Enable(enabled);
+    }
 
     [Inject] private Container Container { get; set; }
 
     public InputAction Negative { get; private set; }
     public InputAction Positive { get; private set; }
+    private readonly string? _inputActionsContainerName;
 
     private readonly string? _negativeServiceName; 
     private readonly string? _positiveServiceName;
 
-    // TODO: load a setting container and allow to export it. Optional: define a axis deadzone 
-    public bool Reverse { get; set; } = false;
 
     public AxisAction(InputAction negative, InputAction positive) {
+        Fit(negative, positive);
+    }
+
+    public AxisAction(string name, InputAction negative, InputAction positive) {
+        Name = name;
         Fit(negative, positive);
     }
 
@@ -43,7 +56,9 @@ public class AxisAction {
         }
     }
 
-    private AxisAction(string negativeServiceName, string positiveServiceName) {
+    private AxisAction(string? inputActionsContainerName, string name, string negativeServiceName, string positiveServiceName) {
+        _inputActionsContainerName = inputActionsContainerName;
+        Name = name;
         _negativeServiceName = negativeServiceName ?? throw new ArgumentNullException(nameof(negativeServiceName));
         _positiveServiceName = positiveServiceName ?? throw new ArgumentNullException(nameof(positiveServiceName));
     }
@@ -58,6 +73,12 @@ public class AxisAction {
             if (positive == null) throw new InvalidAxisConfiguration($"Error creating AxisAction: {_positiveServiceName} InputAction not found");
             
             Fit(negative, positive);
+            
+            var inputActionsContainer = _inputActionsContainerName != null
+                ? Container.Resolve<InputActionsContainer>(_inputActionsContainerName)
+                : Container.Resolve<InputActionsContainer>();
+            inputActionsContainer.Add(this);
+
         }
     }
 
@@ -81,11 +102,15 @@ public class AxisAction {
     public static AxisAction Fake() {
         var positive = InputAction.Fake().Update(u => u.SetAxis(JoyAxis.LeftX).SetAxisSign(1));
         var negative = InputAction.Fake().Update(u => u.SetAxis(JoyAxis.LeftX).SetAxisSign(-1));
-        return new AxisAction(negative, positive);
+        return new AxisAction(null, negative, positive);
     }
 
-    public static AxisAction Create(string negative, string positive) {
-        return new AxisAction(negative, positive);
+    public static AxisAction Create(string name, string negative, string positive) {
+        return new AxisAction(null, name, negative, positive);
+    }
+    
+    public static AxisAction Create(string inputActionsContainerName, string name, string negative, string positive) {
+        return new AxisAction(inputActionsContainerName, name, negative, positive);
     }
 }
 

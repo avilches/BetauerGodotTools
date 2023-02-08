@@ -2,7 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Betauer.Input;
+using Betauer.Tools.Logging;
 using Godot;
+using static System.String;
 
 namespace Betauer.Nodes;
 
@@ -32,6 +35,15 @@ public partial class NodeHandler : Node2D {
     public override void _EnterTree() {
         _sceneTree = GetTree();
         ProcessMode = ProcessModeEnum.Always;
+        GetParent().ChildEnteredTree += EnsureLastChild;
+    }
+
+    public override void _ExitTree() {
+        GetParent().ChildEnteredTree -= EnsureLastChild;
+    }
+
+    private void EnsureLastChild(Node _) {
+        GetParent()?.MoveChild(this, -1);
     }
 
     public void OnProcess(IProcessHandler inputEvent) {
@@ -171,11 +183,11 @@ public partial class NodeHandler : Node2D {
 
     public string GetStateAsString() {
         return 
-$@"{ProcessList.Count} Process: {string.Join(", ", ProcessList.Select(e => e.Name))}
-{PhysicsProcessList.Count} PhysicsProcess: {string.Join(", ", PhysicsProcessList.Select(e => e.Name))}
-{InputList.Count} Input: {string.Join(", ", InputList.Select(e => e.Name))}
-{UnhandledInputList.Count} UnhandledInput: {string.Join(", ", UnhandledInputList.Select(e => e.Name))}
-{ShortcutInputList.Count} ShortcutInput: {string.Join(", ", ShortcutInputList.Select(e => e.Name))}
-{UnhandledKeyInputList.Count} UnhandledKeyInput: {string.Join(", ", UnhandledKeyInputList.Select(e => e.Name))}";
+$@"{ProcessList.Count} Process: {Join(", ", ProcessList.Select(e => e.Name))}
+{PhysicsProcessList.Count} PhysicsProcess: {Join(", ", PhysicsProcessList.Select(e => e.Name))}
+{InputList.Count} Input: {Join(", ", InputList.Select(e => e.Name))}
+{UnhandledInputList.Count} UnhandledInput: {Join(", ", UnhandledInputList.Select(e => e.Name))}
+{ShortcutInputList.Count} ShortcutInput: {Join(", ", ShortcutInputList.Select(e => e.Name))}
+{UnhandledKeyInputList.Count} UnhandledKeyInput: {Join(", ", UnhandledKeyInputList.Select(e => e.Name))}";
     }
 }

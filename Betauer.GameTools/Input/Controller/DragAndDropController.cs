@@ -52,7 +52,7 @@ public class DragAndDropController {
                 OnDrop?.Invoke(e.GetMousePosition());
                 LastDragPosition = null;
             }
-        } else if (LastDragPosition.HasValue && e.IsMouseMotion() && Action.IsPressed()) {
+        } else if (LastDragPosition.HasValue && e.IsMouseMotion() && Action.IsPressed) {
             var offset = e.GetMousePosition() - LastDragPosition.Value;
             OnDrag?.Invoke(offset);
             LastDragPosition = e.GetMousePosition();;

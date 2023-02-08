@@ -8,8 +8,8 @@ namespace Betauer.Input;
 public class InputActionsContainer {
     [Inject(Nullable = true)] protected DebugOverlayManager? DebugOverlayManager { get; set; }
 
-    public readonly List<InputAction> ActionList = new();
-    public readonly Dictionary<string, InputAction> ActionMap = new();
+    public readonly List<IAction> InputActionList = new();
+    public readonly Dictionary<string, IAction> ActionMap = new();
 
     [PostInject]
     public void ConfigureCommands() {
@@ -17,33 +17,73 @@ public class InputActionsContainer {
         DebugOverlayManager?.DebugConsole.AddInputMapCommand(this);
     }
 
-    public InputAction? FindAction(string name) {
+    public IAction? FindAction(string name) {
         return ActionMap.TryGetValue(name, out var action) ? action : null;
     }
 
-    public InputAction? FindAction(InputEvent inputEvent, bool echo = false) {
-        return ActionList.Find(action => action.IsEvent(inputEvent, echo));
+    public T? FindAction<T>(string name) where T : class, IAction {
+        return ActionMap.TryGetValue(name, out var action) ? action as T: null;
+    }
+
+    public IAction? FindAction(InputEvent inputEvent) {
+        return InputActionList.Find(action => action.IsEvent(inputEvent));
+    }
+
+    public List<IAction> FindActions(InputEvent inputEvent) {
+        var list = new List<IAction>();
+        for (var i = 0; i < InputActionList.Count; i++) {
+            if (InputActionList[i].IsEvent(inputEvent)) list.Add(InputActionList[i]);
+        }
+        return list;
+    }
+
+    public AxisAction? FindAction(JoyAxis axis) {
+        return InputActionList.Find(action => action is AxisAction && action.Axis == axis) as AxisAction;
+    }
+
+    public List<IAction> FindActions(JoyAxis axis) {
+        return InputActionList.FindAll(action => action.Axis == axis);
     }
 
     public InputAction? FindAction(JoyButton button) {
-        return ActionList.Find(action => action.HasButton(button));
+        return InputActionList.Find(action => action is InputAction a && a.HasButton(button)) as InputAction;
+    }
+
+    public List<InputAction> FindActions(JoyButton button) {
+        var list = new List<InputAction>();
+        for (var i = 0; i < InputActionList.Count; i++) {
+            if (InputActionList[i] is InputAction a && a.HasButton(button)) list.Add(a);
+        }
+        return list;
     }
 
     public InputAction? FindAction(Key key) {
-        return ActionList.Find(action => action.HasKey(key));
+        return InputActionList.Find(action => action is InputAction a && a.HasKey(key)) as InputAction;
+    }
+
+    public List<InputAction> FindActions(Key key) {
+        var list = new List<InputAction>();
+        for (var i = 0; i < InputActionList.Count; i++) {
+            if (InputActionList[i] is InputAction a && a.HasKey(key)) list.Add(a);
+        }
+        return list;
     }
 
     public void Add(InputAction inputAction) {
-        ActionList.Add(inputAction);
+        InputActionList.Add(inputAction);
         ActionMap.Add(inputAction.Name, inputAction);
-        inputAction.OnAddToInputContainer(this);
+    }
+
+    public void Add(AxisAction axisAction) {
+        InputActionList.Add(axisAction);
+        ActionMap.Add(axisAction.Name, axisAction);
     }
 
     public void Disable() {
-        ActionList.ForEach(action => action.Disable());
+        InputActionList.ForEach(action => action.Enable(false));
     }
 
     public void Enable(bool enabled = true) {
-        ActionList.ForEach(action => action.Enable(enabled));
+        InputActionList.ForEach(action => action.Enable(enabled));
     }
 }

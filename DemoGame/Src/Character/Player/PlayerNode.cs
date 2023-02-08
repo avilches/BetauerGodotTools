@@ -90,10 +90,10 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 
 	private float XInput => Handler.Lateral.Strength;
 	private float YInput => Handler.Vertical.Strength;
-	private bool IsPressingRight => Handler.Lateral.Positive.IsPressed();
-	private bool IsPressingLeft => Handler.Lateral.Negative.IsPressed();
-	private bool IsPressingUp => Handler.Vertical.Negative.IsPressed();
-	private bool IsPressingDown => Handler.Vertical.Positive.IsPressed();
+	private bool IsPressingRight => Handler.Right.IsPressed;
+	private bool IsPressingLeft => Handler.Left.IsPressed;
+	private bool IsPressingUp => Handler.Up.IsPressed;
+	private bool IsPressingDown => Handler.Down.IsPressed;
 	private InputAction Jump => Handler.Jump;
 	private InputAction Attack => Handler.Attack;
 	private InputAction Float => Handler.Float;
@@ -345,13 +345,13 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				FinishFallFromPlatform();
 				jumpJustInTime = Jump.WasPressed(PlayerConfig.JumpHelperTime) && CanJump();
 			})
-			.If(() => Attack.IsJustPressed()).Set(PlayerState.Attacking)
+			.If(() => Attack.IsJustPressed).Set(PlayerState.Attacking)
 			.If(() => jumpJustInTime).Then(ctx => {
-				_jumpHelperMonitor?.Show($"{Jump.PressedTime():0.00} <= {PlayerConfig.JumpHelperTime:0.00} Done!");
+				_jumpHelperMonitor?.Show($"{Jump.PressedTime:0.00} <= {PlayerConfig.JumpHelperTime:0.00} Done!");
 				return ctx.Set(PlayerState.Jumping);
 			})
 			.If(() => XInput == 0).Then((ctx) => {
-				_jumpHelperMonitor?.Show($"{Jump.PressedTime():0.00} > {PlayerConfig.JumpHelperTime:0.00} NOPE");
+				_jumpHelperMonitor?.Show($"{Jump.PressedTime:0.00} > {PlayerConfig.JumpHelperTime:0.00} NOPE");
 				return ctx.Set(PlayerState.Idle);
 			})
 			.If(() => true).Set(PlayerState.Running)
@@ -365,14 +365,14 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				ApplyFloorGravity();
 				PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
 			})
-			.If(() => Jump.IsJustPressed() && IsPressingDown && IsOnFallingPlatform()).Then(
+			.If(() => Jump.IsJustPressed && IsPressingDown && IsOnFallingPlatform()).Then(
 				context => {
 					FallFromPlatform();
 					return context.Set(PlayerState.Fall);
 				})
-			.If(() => Jump.IsJustPressed() && Attack.IsJustPressed()).Set(PlayerState.JumpingAttack)
-			.If(() => Jump.IsJustPressed() && CanJump()).Set(PlayerState.Jumping)
-			.If(() => Attack.IsJustPressed()).Set(PlayerState.Attacking)	
+			.If(() => Jump.IsJustPressed && Attack.IsJustPressed).Set(PlayerState.JumpingAttack)
+			.If(() => Jump.IsJustPressed && CanJump()).Set(PlayerState.Jumping)
+			.If(() => Attack.IsJustPressed).Set(PlayerState.Attacking)	
 			.If(() => XInput != 0).Set(PlayerState.Running)
 			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.Fall)
 			.Build();
@@ -395,14 +395,14 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.Friction, 
 					PlayerConfig.StopIfSpeedIsLessThan, PlayerConfig.ChangeDirectionFactor);
 			})
-			.If(() => Jump.IsJustPressed() && IsPressingDown && IsOnFallingPlatform()).Then(
+			.If(() => Jump.IsJustPressed && IsPressingDown && IsOnFallingPlatform()).Then(
 				context => {
 					FallFromPlatform();
 					return context.Set(PlayerState.Fall);
 				})
-			.If(() => Jump.IsJustPressed() && Attack.IsJustPressed()).Set(PlayerState.Jumping)
-			.If(() => Attack.IsJustPressed()).Set(PlayerState.Attacking)
-			.If(() => Jump.IsJustPressed() && CanJump()).Set(PlayerState.Jumping)
+			.If(() => Jump.IsJustPressed && Attack.IsJustPressed).Set(PlayerState.Jumping)
+			.If(() => Attack.IsJustPressed).Set(PlayerState.Attacking)
+			.If(() => Jump.IsJustPressed && CanJump()).Set(PlayerState.Jumping)
 			.If(() => XInput == 0 && MotionX == 0).Set(PlayerState.Idle)
 			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.FallWithCoyote)
 			.Build();
@@ -415,7 +415,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			.Execute(() => {
 				ApplyFloorGravity();
 				PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
-				if (Attack.IsJustPressed()) {
+				if (Attack.IsJustPressed) {
 					if (_attackState == AttackState.Step1) {
 						// Promoted short attack to long attack 
 						_attackState = AttackState.Step2;
@@ -448,7 +448,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				AnimationJump.PlayOnce();
 			})
 			.Execute(() => {
-				if (Jump.IsJustReleased() && MotionY < -PlayerConfig.JumpSpeedMin) {
+				if (Jump.IsJustReleased && MotionY < -PlayerConfig.JumpSpeedMin) {
 					PlatformBody.MotionY = -PlayerConfig.JumpSpeedMin;
 				}
 
@@ -457,8 +457,8 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
 					PlayerConfig.StopIfSpeedIsLessThan, PlayerConfig.ChangeDirectionFactor);
 			})
-			.If(() => Attack.IsJustPressed()).Set(PlayerState.FallingAttack)
-			.If(() => Float.IsJustPressed()).Set(PlayerState.Floating)
+			.If(() => Attack.IsJustPressed).Set(PlayerState.FallingAttack)
+			.If(() => Float.IsJustPressed).Set(PlayerState.Floating)
 			.If(() => MotionY >= 0).Set(PlayerState.Fall)
 			.If(() => PlatformBody.IsOnFloor()).Set(PlayerState.Landing)
 			.Build();
@@ -491,9 +491,9 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
 					PlayerConfig.StopIfSpeedIsLessThan, PlayerConfig.ChangeDirectionFactor);
 			})
-			.If(() => Attack.IsJustPressed()).Set(PlayerState.FallingAttack)
-			.If(() => Jump.IsJustPressed() && CanJump()).Set(PlayerState.Jumping)
-			.If(() => Float.IsJustPressed()).Set(PlayerState.Floating)
+			.If(() => Attack.IsJustPressed).Set(PlayerState.FallingAttack)
+			.If(() => Jump.IsJustPressed && CanJump()).Set(PlayerState.Jumping)
+			.If(() => Float.IsJustPressed).Set(PlayerState.Floating)
 			.If(() => coyoteTimer.IsAlarm()).Set(PlayerState.Fall)
 			.If(() => PlatformBody.IsOnFloor()).Set(PlayerState.Landing)
 			.Build();
@@ -501,7 +501,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		OnTransition += (args) => {
 			if (args is { From: PlayerState.FallWithCoyote, To: PlayerState.Jumping }) {
 				_coyoteMonitor?.Show($"{coyoteTimer.Elapsed:0.00} <= {PlayerConfig.CoyoteJumpTime:0.00} Done!");				
-			} else if (Jump.IsJustPressed()) {
+			} else if (Jump.IsJustPressed) {
 				_coyoteMonitor?.Show($"{coyoteTimer.Elapsed:0.00} > {PlayerConfig.CoyoteJumpTime:0.00} TOO LATE");
 			}
 		};
@@ -515,8 +515,8 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
 					PlayerConfig.StopIfSpeedIsLessThan, PlayerConfig.ChangeDirectionFactor);
 			})
-			.If(() => Attack.IsJustPressed()).Set(PlayerState.FallingAttack)
-			.If(() => Float.IsJustPressed()).Set(PlayerState.Floating)
+			.If(() => Attack.IsJustPressed).Set(PlayerState.FallingAttack)
+			.If(() => Float.IsJustPressed).Set(PlayerState.Floating)
 			.If(() => PlatformBody.IsOnFloor()).Set(PlayerState.Landing)
 			.Build();
 
@@ -528,7 +528,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 					PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan, 0);
 				PlatformBody.Move();
 			})
-			.If(() => Float.IsJustPressed()).Set(PlayerState.Fall)
+			.If(() => Float.IsJustPressed).Set(PlayerState.Fall)
 			.Exit(() => CharacterBody2D.MotionMode = CharacterBody2D.MotionModeEnum.Grounded)
 			.Build();
 

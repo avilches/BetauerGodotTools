@@ -175,7 +175,7 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
 
     public void EndFrame() {
         // GD.Print("Pressed:"+_controller.Jump.IsPressed()+
-        // " JustPressed:"+_controller.Jump.IsJustPressed()+
+        // " JustPressed:"+_controller.Jump.IsJustPressed+
         // " Released:"+_controller.Jump.IsReleased());
 
         _controller.Lateral.SimulateRelease();

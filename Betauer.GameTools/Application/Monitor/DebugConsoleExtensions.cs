@@ -204,7 +204,7 @@ public static partial class DebugConsoleExtensions {
                 .Overlay(title)
                 .HideOnClose(false)
                 .Solid()
-                .SetMinSize(300, 100)
+                .SetMinSize(400, 200)
                 .AddMonitorInputEvent(inputActionsContainer);
         }, "Open the input event logger window.");
     }

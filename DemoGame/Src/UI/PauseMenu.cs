@@ -78,7 +78,7 @@ public partial class PauseMenu : CanvasFaderLayer {
 			}
 			GetViewport().SetInputAsHandled();
 
-		} else if (ControllerStart.IsJustPressed()) {
+		} else if (ControllerStart.IsJustPressed) {
 			EventBus.Publish(MainEvent.Back);
 			GetViewport().SetInputAsHandled();
 				

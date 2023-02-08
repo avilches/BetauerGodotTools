@@ -77,7 +77,7 @@ public partial class InputAction {
         // Key
 
         public Updater ClearKeys() {
-            _inputAction._keys.Clear();
+            _inputAction.Keys.Clear();
             return this;
         }
 
@@ -92,7 +92,7 @@ public partial class InputAction {
         }
 
         public Updater AddKey(Key key) {
-            _inputAction._keys.Add(key);
+            _inputAction.Keys.Add(key);
             return this;
         }
 
@@ -102,14 +102,14 @@ public partial class InputAction {
         }
 
         public Updater RemoveKey(Key key) {
-            _inputAction._keys.Remove(key);
+            _inputAction.Keys.Remove(key);
             return this;
         }
         
         // Buttons
 
         public Updater ClearButtons() {
-            _inputAction._buttons.Clear();
+            _inputAction.Buttons.Clear();
             return this;
         }
 
@@ -124,7 +124,7 @@ public partial class InputAction {
         }
 
         public Updater AddButton(JoyButton button) {
-            _inputAction._buttons.Add(button);
+            _inputAction.Buttons.Add(button);
             return this;
         }
 
@@ -134,7 +134,7 @@ public partial class InputAction {
         }
 
         public Updater RemoveButton(JoyButton button) {
-            _inputAction._buttons.Remove(button);
+            _inputAction.Buttons.Remove(button);
             return this;
         }
     }

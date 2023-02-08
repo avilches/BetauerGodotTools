@@ -97,11 +97,11 @@ namespace Betauer.GameTools.Tests {
             
             var c = new InputActionsContainer();
             c.Add(jump);
-            Assert.That(jump.InputActionsContainer, Is.EqualTo(c));
+            // Assert.That(jump.InputActionsContainer, Is.EqualTo(c));
             c.Add(attack);
-            Assert.That(attack.InputActionsContainer, Is.EqualTo(c));
+            // Assert.That(attack.InputActionsContainer, Is.EqualTo(c));
 
-            Assert.That(c.ActionList.Count, Is.EqualTo(2));
+            Assert.That(c.InputActionList.Count, Is.EqualTo(2));
             Assert.That(c.FindAction("ManualJump"), Is.EqualTo(jump));
             Assert.That(c.FindAction("ManualAttack"), Is.EqualTo(attack));
         }
@@ -152,9 +152,9 @@ namespace Betauer.GameTools.Tests {
             var s = c.Resolve<InputActionsContainer>();
             var jump = c.Resolve<InputAction>("Jump");
             Assert.That(s, Is.TypeOf<MyInputActionsContainer>());
-            Assert.That(s, Is.EqualTo(jump.InputActionsContainer));
+            // Assert.That(s, Is.EqualTo(jump.InputActionsContainer));
 
-            Assert.That(s.ActionList.Count, Is.EqualTo(1));
+            Assert.That(s.InputActionList.Count, Is.EqualTo(1));
             Assert.That(s.FindAction("Jump"), Is.EqualTo(jump));
         }
 
@@ -203,7 +203,7 @@ namespace Betauer.GameTools.Tests {
             Assert.That(s.InputActionsContainer.FindAction("Jump"), Is.EqualTo(s.JumpConfigurable));
             Assert.That(s.InputActionsContainer.FindAction("Jump2"), Is.EqualTo(s.JumpConfigurableWithSetting));
             Assert.That(s.InputActionsContainer.FindAction("Jump3"), Is.EqualTo(s.NoConfigurable));
-            Assert.That(s.InputActionsContainer.ActionList.Count, Is.EqualTo(3));
+            Assert.That(s.InputActionsContainer.InputActionList.Count, Is.EqualTo(3));
             
             Assert.That(s.JumpConfigurable.SaveSetting.SettingsContainer, Is.EqualTo(s.SettingsContainer));
             Assert.That(s.JumpConfigurableWithSetting.SaveSetting.Section, Is.EqualTo("Controls2"));
@@ -245,8 +245,8 @@ namespace Betauer.GameTools.Tests {
             var c = di.Build();
             var s = c.Resolve<Service5>();
             
-            Assert.That(s.Jump.InputActionsContainer, Is.EqualTo(s.InputActionsContainer));
-            Assert.That(s.JumpOther.InputActionsContainer, Is.EqualTo(s.InputActionsContainer2));
+            // Assert.That(s.Jump.InputActionsContainer, Is.EqualTo(s.InputActionsContainer));
+            // Assert.That(s.JumpOther.InputActionsContainer, Is.EqualTo(s.InputActionsContainer2));
 
             // s.InputActionsContainer.RemoveSetup();
             // s.InputActionsContainer2.RemoveSetup();

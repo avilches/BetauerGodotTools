@@ -6,6 +6,7 @@
 [sub_resource type="Animation" id="7"]
 resource_name = "A"
 length = 2.0
+loop_mode = 1
 step = 0.05
 tracks/0/type = "value"
 tracks/0/imported = false
@@ -23,6 +24,7 @@ tracks/0/keys = {
 [sub_resource type="Animation" id="6"]
 resource_name = "B"
 length = 2.0
+loop_mode = 1
 step = 0.05
 tracks/0/type = "value"
 tracks/0/imported = false
@@ -55,6 +57,7 @@ tracks/0/keys = {
 [sub_resource type="Animation" id="8"]
 resource_name = "X"
 length = 2.0
+loop_mode = 1
 step = 0.05
 tracks/0/type = "value"
 tracks/0/imported = false
@@ -72,6 +75,7 @@ tracks/0/keys = {
 [sub_resource type="Animation" id="9"]
 resource_name = "Y"
 length = 2.0
+loop_mode = 1
 step = 0.05
 tracks/0/type = "value"
 tracks/0/imported = false
@@ -89,6 +93,7 @@ tracks/0/keys = {
 [sub_resource type="Animation" id="4"]
 resource_name = "circular left"
 length = 2.0
+loop_mode = 1
 step = 0.05
 tracks/0/type = "value"
 tracks/0/imported = false
@@ -106,6 +111,7 @@ tracks/0/keys = {
 [sub_resource type="Animation" id="5"]
 resource_name = "left click"
 length = 2.0
+loop_mode = 1
 step = 0.05
 tracks/0/type = "value"
 tracks/0/imported = false
@@ -123,6 +129,7 @@ tracks/0/keys = {
 [sub_resource type="Animation" id="2"]
 resource_name = "lateral left"
 length = 2.0
+loop_mode = 1
 step = 0.05
 tracks/0/type = "value"
 tracks/0/imported = false
@@ -140,6 +147,7 @@ tracks/0/keys = {
 [sub_resource type="Animation" id="3"]
 resource_name = "vertical left"
 length = 2.0
+loop_mode = 1
 step = 0.05
 tracks/0/type = "value"
 tracks/0/imported = false

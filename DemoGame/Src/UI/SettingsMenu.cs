@@ -10,6 +10,7 @@ using Betauer.Core.Nodes;
 using Betauer.OnReady;
 using Betauer.Core.Signal;
 using Betauer.Nodes;
+using Betauer.Tools.Logging;
 using Godot;
 using Veronenger.Managers;
 
@@ -190,21 +191,21 @@ public partial class SettingsMenu : CanvasLayer {
 		}
 	}
 
+	private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(SettingsMenu));
 	private bool ProcessChangeResolution(InputEvent e) {
-		if (!UiLeft.IsEventJustPressed(e) && !UiRight.IsEventJustPressed(e) &&
-			!UiAccept.IsEventJustPressed(e)) return false;
+		if (!UiLeft.IsJustPressed && !UiRight.IsJustPressed && !UiAccept.IsJustPressed) return false;
 		var (_, resolutions, pos) = FindClosestResolutionToSelected();
-		if (UiLeft.IsEventJustPressed(e)) {
+		if (UiLeft.IsJustPressed) {
 			if (pos > 0) {
 				_screenSettingsManager.SetWindowed(resolutions[pos - 1]);
 				UpdateResolutionButton();
 			}
-		} else if (UiRight.IsEventJustPressed(e)) {
+		} else if (UiRight.IsJustPressed) {
 			if (pos < resolutions.Count - 1) {
 				_screenSettingsManager.SetWindowed(resolutions[pos + 1]);
 				UpdateResolutionButton();
 			}
-		} else if (UiAccept.IsEventJustPressed(e)) {
+		} else if (UiAccept.IsJustPressed) {
 			_screenSettingsManager.SetWindowed(pos == resolutions.Count - 1
 				? resolutions[0]
 				: resolutions[pos + 1]);

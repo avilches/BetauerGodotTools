@@ -9,6 +9,7 @@ internal class InputActionStateHandler : BaseEventHandler, IProcessHandler, IInp
 
     internal bool Pressed = false;
     internal float Strength { get; private set; }
+    internal float RawStrength { get; private set; }
     internal float PressedTime { get; private set; }
     internal float ReleasedTime { get; private set; }
     internal ulong ProcessFramePressed { get; private set; }
@@ -32,6 +33,7 @@ internal class InputActionStateHandler : BaseEventHandler, IProcessHandler, IInp
     internal void ClearState() {
         Pressed = false;
         Strength = 0;
+        RawStrength = 0;
         PressedTime  = MaxPressedTime; // Pressed one year ago ;)
         ReleasedTime = MaxPressedTime; // Released one year ago ;)
         ProcessFramePressed = 0;        
@@ -76,26 +78,23 @@ internal class InputActionStateHandler : BaseEventHandler, IProcessHandler, IInp
 
             var strength = inputEvent.GetStrength();
             if (inputEvent.IsJustPressed()) {
-                SetJustPressed(strength);
-            } else if (inputEvent.IsPressed()) {
                 SetPressed(strength);
             } else if (inputEvent.IsReleased()) {
                 SetReleased();
             } else {
-                // echo
+                // Ignore keyboard echoes
             }
-        } else if (inputEvent is InputEventJoypadMotion axis) {
-            var value = Mathf.Abs(axis.AxisValue);
-            if (value > _inputAction.DeadZone) {
-                if (Mathf.Sign(axis.AxisValue) == _inputAction.AxisSign) {
-                    if (Pressed) {
-                        SetPressed(value);
-                    } else {
-                        SetJustPressed(value);
-                    }
-                }
+            RawStrength = strength;
+        } else if (inputEvent is InputEventJoypadMotion motion) {
+            var sameSign = _inputAction.AxisSign == 1 ? motion.AxisValue >= 0f : motion.AxisValue <= 0f;
+            var value = Mathf.Abs(motion.AxisValue);
+            if (sameSign) {
+                if (value >= _inputAction.DeadZone) SetPressed(value);
+                else if (Pressed) SetReleased();
+                RawStrength = value;
             } else {
-                SetReleased();
+                if (Pressed) SetReleased();
+                RawStrength = 0;
             }
         }
     }
@@ -106,17 +105,13 @@ internal class InputActionStateHandler : BaseEventHandler, IProcessHandler, IInp
     }
 
     private void SetPressed(float strength) {
+        if (!Pressed) {
+            PressedTime = 0;
+            ProcessFramePressed = Engine.GetProcessFrames();
+            PhysicsFramePressed = Engine.GetPhysicsFrames();
+        }
         Pressed = true;
         Strength = strength;
-    }
-
-    private void SetJustPressed(float strength) {
-        Pressed = true;
-        Strength = strength;
-
-        PressedTime = 0;
-        ProcessFramePressed = Engine.GetProcessFrames();
-        PhysicsFramePressed = Engine.GetPhysicsFrames();
     }
 
     private void SetReleased() {
@@ -143,8 +138,9 @@ internal class InputActionStateHandler : BaseEventHandler, IProcessHandler, IInp
             if (strength == 0f) SetReleased();
             else SetPressed(strength);
         } else {
-            if (strength != 0f) SetJustPressed(strength);
+            if (strength != 0f) SetPressed(strength);
             // If !Pressed && strength == 0, ignore 
         }
+        RawStrength = strength;
     }
 }

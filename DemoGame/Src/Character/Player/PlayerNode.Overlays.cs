@@ -1,5 +1,8 @@
 using Betauer.Application.Monitor;
 using Betauer.DI;
+using Betauer.Input;
+using Betauer.Nodes;
+using Godot;
 
 namespace Veronenger.Character.Player; 
 
@@ -13,27 +16,14 @@ public partial class PlayerNode {
 			.Title("Player")
 			.SetMaxSize(1000, 1000);
 
-		overlay.OpenBox()
-			.Text("P", () => Jump.IsPressed()).EndMonitor()
-			.Text("JP", () => Jump.IsJustPressed()).EndMonitor()
-			.Text("Pressed", () => Jump.PressedTime().ToString("0.00")).EndMonitor()
-			.Text("R", () => Jump.IsJustReleased()).EndMonitor()
-			.Text("Released", () => Jump.ReleasedTime().ToString("0.00")).EndMonitor()
-			.CloseBox();
 
-		overlay.OpenBox()
-			.Text("P", () => Attack.IsPressed()).EndMonitor()
-			.Text("JP", () => Attack.IsJustPressed()).EndMonitor()
-			.Text("Pressed", () => Attack.PressedTime().ToString("0.00")).EndMonitor()
-			.Text("R", () => Attack.IsJustReleased()).EndMonitor()
-			.Text("Released", () => Attack.ReleasedTime().ToString("0.00")).EndMonitor()
-			.CloseBox();
 
 		overlay.OpenBox()
 			.Text("LR", () => Handler.Lateral.Strength.ToString("0.00") ).EndMonitor()
 			.Text("UD", () => Handler.Vertical.Strength.ToString("0.00") ).EndMonitor()
 			.CloseBox();
 
+		AddDebuggingInputAction(overlay);
 		AddOverlayHelpers(overlay);
 		AddOverlayStates(overlay);
 		AddOverlayMotion(overlay);
@@ -55,6 +45,52 @@ public partial class PlayerNode {
 		//         .Button("SqueezeTween.PlayOnce(kill)", () => SqueezeTween.PlayOnce(true)).End()
 		//         .Button("SqueezeTween.Stop", () => SqueezeTween.Stop()).End()
 		//         .TypedNode);
+	}
+
+	private void AddDebuggingInputAction(DebugOverlay overlay) {
+		overlay.OpenBox()
+			.Text("P", () => Jump.IsPressed).EndMonitor()
+			.Text("JP", () => Jump.IsJustPressed).EndMonitor()
+			.Text("Pressed", () => Jump.PressedTime.ToString("0.00")).EndMonitor()
+			.Text("R", () => Jump.IsJustReleased).EndMonitor()
+			.Text("Released", () => Jump.ReleasedTime.ToString("0.00")).EndMonitor()
+			.CloseBox();
+
+		overlay.OpenBox()
+			.Text("P", () => Attack.IsPressed).EndMonitor()
+			.Text("JP", () => Attack.IsJustPressed).EndMonitor()
+			.Text("Pressed", () => Attack.PressedTime.ToString("0.00")).EndMonitor()
+			.Text("R", () => Attack.IsJustReleased).EndMonitor()
+			.Text("Released", () => Attack.ReleasedTime.ToString("0.00")).EndMonitor()
+			.CloseBox();
+		
+		
+		var prevResult = "";
+		var axisLogger = this.OnProcess(d => {
+			var v = string (InputAction a) => {
+				var x = a.IsJustPressed? "JP" : a.IsPressed ? "P" : a.IsJustReleased?"R":null;
+				return x == null ? "" : a.Name + "[" + x + "]";
+			};
+
+			var result = "";
+			if (Handler.Lateral.Strength == 0f) {
+				result = $"-{Handler.Left.Strength:0.00}+{Handler.Right.Strength:0.00}={Handler.Lateral.Strength:0.00} {v(Handler.Left)}{v(Handler.Right)} ";
+			} else {
+				var left = Handler.Left.Strength > 0 ? "-"+Handler.Left.Strength.ToString("0.00") : "     ";
+				var right = Handler.Right.Strength > 0 ? "+"+Handler.Right.Strength.ToString("0.00") : "     ";
+				result =
+					$"{left}{right}={Handler.Lateral.Strength:0.00} {v(Handler.Left)}{v(Handler.Right)} ";
+			}
+			if (result != prevResult) {
+				GD.Print(result);
+				prevResult = result;
+			}
+			var godotAxis = Input.GetAxis("Left", "Right").ToString("0.00");
+			if (godotAxis != Handler.Lateral.Strength.ToString("0.00")) {
+				GD.Print("wooo");
+			}
+		});
+		axisLogger.Disable();
 	}
 
 	public void AddOverlayHelpers(DebugOverlay overlay) {
