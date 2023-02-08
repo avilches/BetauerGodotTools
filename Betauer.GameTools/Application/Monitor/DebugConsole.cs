@@ -313,7 +313,6 @@ public partial class DebugConsole : Panel {
             OnConsoleInputKeyEvent(eventKey);
         } else if (input.IsLeftClickPressed() && input.IsMouseInside(ConsoleOutput)) {
             Prompt.GrabFocus();
-            GetViewport().SetInputAsHandled();
         } 
     }
     
