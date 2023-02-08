@@ -1,4 +1,5 @@
 using System;
+using Betauer.Application.Notifications;
 using Betauer.Input;
 using Betauer.Core.Nodes;
 using Betauer.Core.Signal;
@@ -11,6 +12,7 @@ using Container = Godot.Container;
 using Object = Godot.Object;
 
 namespace Betauer.Application.Monitor;
+
 public partial class DebugOverlay : Panel {
     private static readonly int VisibilityStateEnumSize = Enum.GetNames(typeof(VisibilityStateEnum)).Length;
     public enum VisibilityStateEnum {
@@ -21,7 +23,6 @@ public partial class DebugOverlay : Panel {
     public static Color ColorSolid = new(1, 1, 1);
     public static Color ColorInvisible = new(1, 1, 1, 0);
     
-    private Vector2? _startDragPosition = null;
     private Vector2 FollowPosition => IsFollowing && Target is Node2D node ? node.GetGlobalTransformWithCanvas().origin : Vector2.Zero;
     private Vector2 _position;
     private Container? _nestedContainer;
@@ -58,7 +59,6 @@ public partial class DebugOverlay : Panel {
     public bool IsHideOnClose { get; set; } = true;
     
     private DragAndDropController _dragAndDropController;
-    [Inject] public InputAction LMB { get; set; }
 
     public VisibilityStateEnum VisibilityState {
         get => _visibilityState;
@@ -303,9 +303,12 @@ public partial class DebugOverlay : Panel {
 
     [PostInject]
     public void Configure() {
-        _dragAndDropController = new DragAndDropController().WithAction(LMB).OnlyIf(DragPredicate);
+        _dragAndDropController = new DragAndDropController().WithMouseButton(MouseButton.Left).OnlyIf(DragPredicate);
         _dragAndDropController.OnStartDrag += OnStartDrag;
         _dragAndDropController.OnDrag += OnDrag;
+        DefaultNotificationsHandler.Instance.OnWmMouseExit += () => _dragAndDropController.ForceDrop();
+        DefaultNotificationsHandler.Instance.OnWmWindowFocusOut += () => _dragAndDropController.ForceDrop(); 
+        DefaultNotificationsHandler.Instance.OnApplicationFocusOut += () => _dragAndDropController.ForceDrop();
     }
 
     public override void _Input(InputEvent input) {
@@ -319,13 +322,6 @@ public partial class DebugOverlay : Panel {
         StopFollowing();
         GetParent().MoveChild(this, -1);
         AcceptEvent();
-        _startDragPosition = _position;
-    }
-
-    public override void _Notification(long what) {
-        if (what is NotificationWmMouseExit or NotificationWmWindowFocusOut or NotificationApplicationFocusOut) {
-            _dragAndDropController.ForceDrop();
-        }
     }
 
     private void OnDrag(Vector2 offset) {
