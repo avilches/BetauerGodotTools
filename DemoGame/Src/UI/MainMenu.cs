@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Betauer.Application;
 using Betauer.Core.Restorer;
@@ -39,18 +40,18 @@ public partial class MainMenu : CanvasFaderLayer {
 	}
 
 	public async Task ShowMenu() {
-		GetTree().Root.GuiDisableInput = true;
+		GetViewport().GuiDisableInput = true;
 		Visible = true;
 		await _menuContainer.Start();
-		GetTree().Root.GuiDisableInput = false;
+		GetViewport().GuiDisableInput = false;
 	}
 
 	public async Task HideMainMenu() {
-		GetTree().Root.GuiDisableInput = true;
+		GetViewport().GuiDisableInput = true;
 		await FadeToBlack(/*FadeMainMenuEffectTime*/0.1f);
 		ResetFade();
 		Visible = false;
-		GetTree().Root.GuiDisableInput = false;
+		GetViewport().GuiDisableInput = false;
 	}
 
 	private Restorer _menuRestorer;

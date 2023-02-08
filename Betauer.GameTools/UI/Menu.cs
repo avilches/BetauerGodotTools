@@ -28,7 +28,7 @@ public class MenuContainer {
 
     public MenuContainer(Container originalContainer) {
         Parent = originalContainer.GetParent();
-        _viewport = originalContainer.GetTree().Root;
+        _viewport = originalContainer.GetViewport();
         OriginalContainer = originalContainer;
         OriginalContainer.DisableAllNotifications();
         OriginalContainer.Visible = false;

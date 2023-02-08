@@ -86,7 +86,7 @@ public partial class NodeHandler : Node2D {
         InputEventEventHandler eventHandler = null; 
         eventHandler = new InputEventEventHandler("AwaitInput", e => {
             if (func(e)) {
-                if (setInputAsHandled) _sceneTree.Root.SetInputAsHandled();
+                if (setInputAsHandled) GetViewport().SetInputAsHandled();
                 eventHandler.Destroy();
                 promise.TrySetResult();
             }
@@ -101,7 +101,7 @@ public partial class NodeHandler : Node2D {
         InputEventEventHandler eventHandler = null; 
         eventHandler = new InputEventEventHandler("AwaitUnhandledInput", e => {
             if (func(e)) {
-                if (setInputAsHandled) _sceneTree.Root.SetInputAsHandled();
+                if (setInputAsHandled) GetViewport().SetInputAsHandled();
                 eventHandler.Destroy();
                 promise.TrySetResult();
             }
@@ -169,13 +169,13 @@ public partial class NodeHandler : Node2D {
             disabler();
             return;
         }
-        var isInputHandled = _sceneTree.Root.IsInputHandled();
+        var isInputHandled = GetViewport().IsInputHandled();
         var isTreePaused = _sceneTree.Paused;
         inputEventHandlerList.RemoveAll(inputEventHandler => {
             if (inputEventHandler.IsDestroyed) return true;
             if (!isInputHandled && inputEventHandler.IsEnabled(isTreePaused)) {
                 inputEventHandler.Handle(inputEvent);
-                isInputHandled = _sceneTree.Root.IsInputHandled();
+                isInputHandled = GetViewport().IsInputHandled();
             }
             return false;
         });
