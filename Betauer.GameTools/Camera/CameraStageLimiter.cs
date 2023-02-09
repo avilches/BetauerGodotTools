@@ -74,10 +74,10 @@ public class CameraStageLimiter {
         _currentStage = newStage;
         var rect2 = CreateAbsoluteRect2(_currentStage);
         Logger.Debug($"Camera {rect2.Position} {rect2.End}");
-        _camera2D.LimitLeft = (int)rect2.Position.x;
-        _camera2D.LimitTop = (int)rect2.Position.y;
-        _camera2D.LimitRight = (int)rect2.End.x;
-        _camera2D.LimitBottom = (int)rect2.End.y;
+        _camera2D.LimitLeft = (int)rect2.Position.X;
+        _camera2D.LimitTop = (int)rect2.Position.Y;
+        _camera2D.LimitRight = (int)rect2.End.X;
+        _camera2D.LimitBottom = (int)rect2.End.Y;
         OnChangeStage?.Invoke(oldStage, newStage);
     }
 

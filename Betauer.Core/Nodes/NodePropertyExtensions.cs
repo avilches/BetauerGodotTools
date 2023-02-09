@@ -16,17 +16,17 @@ public static class NodePropertyExtensions {
     public static Vector2 GetSpriteSize(this Sprite2D sprite) => sprite.Texture.GetSize() * sprite.Scale;
 
     public static float GetOutOfScreenRight(this Node node) {
-        return node is CanvasItem canvas ? canvas.GetViewportRect().Size.x : node.GetTree().Root.Size.x;
+        return node is CanvasItem canvas ? canvas.GetViewportRect().Size.X : node.GetTree().Root.Size.X;
     }
 
     public static float GetOutOfScreenBottom(this Node node) {
-        return node is CanvasItem canvas ? canvas.GetViewportRect().Size.y : node.GetTree().Root.Size.y;
+        return node is CanvasItem canvas ? canvas.GetViewportRect().Size.Y : node.GetTree().Root.Size.Y;
     }
 
     public static float GetOutOfScreenLeft(this Node node) {
         var offset = node switch {
-            Control control => control.Size.x,      
-            Sprite2D sprite => sprite.GetSpriteSize().x,
+            Control control => control.Size.X,      
+            Sprite2D sprite => sprite.GetSpriteSize().X,
             _ => 0
         };
         return -(node.GetOutOfScreenRight() + offset);
@@ -34,8 +34,8 @@ public static class NodePropertyExtensions {
 
     public static float GetOutOfScreenTop(this Node node) {
         var offset = node switch {
-            Control control => control.Size.y,
-            Sprite2D sprite => sprite.GetSpriteSize().y,
+            Control control => control.Size.Y,
+            Sprite2D sprite => sprite.GetSpriteSize().Y,
             _ => 0
         };
         return -(node.GetOutOfScreenBottom() + offset);
@@ -61,10 +61,10 @@ public static class NodePropertyExtensions {
     // TODO: Create a Visual UI to check the behavior (rotate with different origin)
     public static Restorer.Restorer SetRotateOriginToTopCenter(this Node node) {
         return node switch {
-            // node.set_pivot_offset(Vector2(size.x / 2, 0))
-            Control control => control.SetControlPivot(new Vector2(control.Size.x / 2, 0)),
-            // node.offset = Vector2(0, size.y / 2)
-            Sprite2D sprite => sprite.SetSpritePivot(new Vector2(0, GetSpriteSize(sprite).y / 2)),
+            // node.set_pivot_offset(Vector2(size.X / 2, 0))
+            Control control => control.SetControlPivot(new Vector2(control.Size.X / 2, 0)),
+            // node.offset = Vector2(0, size.Y / 2)
+            Sprite2D sprite => sprite.SetSpritePivot(new Vector2(0, GetSpriteSize(sprite).Y / 2)),
             _ => DummyRestorer.Instance
         };
     }
@@ -73,8 +73,8 @@ public static class NodePropertyExtensions {
         return node switch {
             // node.set_pivot_offset(Vector2(0, 0))
             Control control => SetControlPivot(control, Vector2.Zero),
-            // node.offset = Vector2(size.x / 2, 0)
-            Sprite2D sprite => sprite.SetSpritePivot(new Vector2(GetSpriteSize(sprite).x / 2, 0)),
+            // node.offset = Vector2(size.X / 2, 0)
+            Sprite2D sprite => sprite.SetSpritePivot(new Vector2(GetSpriteSize(sprite).X / 2, 0)),
             _ => DummyRestorer.Instance
         };
     }
@@ -89,14 +89,14 @@ public static class NodePropertyExtensions {
 
     public static Restorer.Restorer SetRotateOriginToBottomCenter(this Node node) {
         switch (node) {
-            // node.set_pivot_offset(Vector2(size.x / 2, size.y / 2))
+            // node.set_pivot_offset(Vector2(size.X / 2, size.Y / 2))
             case Control control: {
                 var size = control.Size;
-                return SetControlPivot(control, new Vector2(size.x / 2, size.y / 2));
+                return SetControlPivot(control, new Vector2(size.X / 2, size.Y / 2));
             }
-            // node.offset = Vector2(0, -size.y / 2)
+            // node.offset = Vector2(0, -size.Y / 2)
             case Sprite2D sprite:
-                return sprite.SetSpritePivot(new Vector2(0, -GetSpriteSize(sprite).y / 2));
+                return sprite.SetSpritePivot(new Vector2(0, -GetSpriteSize(sprite).Y / 2));
             default:
                 return DummyRestorer.Instance;
         }
@@ -104,13 +104,13 @@ public static class NodePropertyExtensions {
 
     public static Restorer.Restorer SetRotateOriginToBottomLeft(this Node node) {
         switch (node) {
-            // node.set_pivot_offset(Vector2(0, size.y))
+            // node.set_pivot_offset(Vector2(0, size.Y))
             case Control control:
-                return SetControlPivot(control, new Vector2(0, control.Size.y));
-            // node.offset = Vector2(size.x / 2, size.y)
+                return SetControlPivot(control, new Vector2(0, control.Size.Y));
+            // node.offset = Vector2(size.X / 2, size.Y)
             case Sprite2D sprite: {
                 var size = GetSpriteSize(sprite);
-                return sprite.SetSpritePivot(new Vector2(size.x / 2, size.y));
+                return sprite.SetSpritePivot(new Vector2(size.X / 2, size.Y));
             }
             default:
                 return DummyRestorer.Instance;
@@ -119,15 +119,15 @@ public static class NodePropertyExtensions {
 
     public static Restorer.Restorer SetRotateOriginToBottomRight(this Node node) {
         switch (node) {
-            // node.set_pivot_offset(Vector2(size.x, size.y / 2))
+            // node.set_pivot_offset(Vector2(size.X, size.Y / 2))
             case Control control: {
                 var size = control.Size;
-                return SetControlPivot(control, new Vector2(size.x, size.y / 2));
+                return SetControlPivot(control, new Vector2(size.X, size.Y / 2));
             }
-            // node.offset = Vector2(-size.x / 2, size.y / 2)
+            // node.offset = Vector2(-size.X / 2, size.Y / 2)
             case Sprite2D sprite: {
                 var size = GetSpriteSize(sprite);
-                return sprite.SetSpritePivot(new Vector2(-size.x / 2, size.y / 2));
+                return sprite.SetSpritePivot(new Vector2(-size.X / 2, size.Y / 2));
             }
             default:
                 return DummyRestorer.Instance;

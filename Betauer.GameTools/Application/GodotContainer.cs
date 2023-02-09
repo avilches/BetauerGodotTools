@@ -6,7 +6,6 @@ using Betauer.DI;
 using Betauer.OnReady;
 using Godot;
 using Container = Betauer.DI.Container;
-using Object = Godot.Object;
 
 namespace Betauer.Application;
 
@@ -55,7 +54,7 @@ public class GodotContainer {
     }
 
     private void OnServiceCreated(Lifetime lifetime, object instance) {
-        if (instance is Object o)
+        if (instance is GodotObject o)
             SetAlreadyInjected(o); // This avoid nodes are injected twice if they are added to the tree later
         if (_addSingletonNodesToTree && 
             lifetime == Lifetime.Singleton && 
@@ -65,7 +64,7 @@ public class GodotContainer {
         }
     }
     
-    private static void SetAlreadyInjected(Object node) => node.SetMeta(MetaInjected, true);
-    private static bool IsInjected(Object node) => node.HasMeta(MetaInjected);
+    private static void SetAlreadyInjected(GodotObject node) => node.SetMeta(MetaInjected, true);
+    private static bool IsInjected(GodotObject node) => node.HasMeta(MetaInjected);
 
 }

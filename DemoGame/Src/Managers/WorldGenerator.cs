@@ -16,7 +16,7 @@ public class WorldGenerator {
         for (var x = 0; x < 200; x += 5) {
             if (x % 30 == 0) Console.WriteLine("Setting " + x);
             for (var y = 0; y < 20; y += 5) {
-                tileMap.SetCell(0, new Vector2i(x, y), _tile.Platform(x));
+                tileMap.SetCell(0, new Vector2I(x, y), _tile.Platform(x));
             }
         }
         Console.WriteLine("Done");

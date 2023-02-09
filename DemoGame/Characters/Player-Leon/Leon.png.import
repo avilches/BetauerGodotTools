@@ -16,9 +16,9 @@ dest_files=["res://.godot/imported/Leon.png-bd03aebd5b59ad28d0f2177c405d2c8a.cte
 [params]
 
 compress/mode=0
+compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1
-compress/bptc_ldr=0
 compress/normal_map=0
 compress/channel_pack=0
 mipmaps/generate=false

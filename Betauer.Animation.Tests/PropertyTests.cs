@@ -30,7 +30,7 @@ namespace Betauer.Animation.Tests {
         [Test]
         public async Task InternalTest_CreateSpriteWithTextureSize() {
             var sprite = await CreateSprite(300);
-            Assert.That(sprite.GetSpriteSize().x, Is.EqualTo(300));
+            Assert.That(sprite.GetSpriteSize().X, Is.EqualTo(300));
         }
 
         /*
@@ -259,7 +259,7 @@ namespace Betauer.Animation.Tests {
                 .EndAnimate()
                 .Play(spriteX)
                 .AwaitFinished();
-            Assert.That(spriteX.Position.x, Is.EqualTo(initialPosition + width * percentTo * 2));
+            Assert.That(spriteX.Position.X, Is.EqualTo(initialPosition + width * percentTo * 2));
 
             var spriteY = await CreateSprite(width);
             spriteY.Position = new Vector2(0, initialPosition);
@@ -271,7 +271,7 @@ namespace Betauer.Animation.Tests {
                 .EndAnimate()
                 .Play(spriteY)
                 .AwaitFinished();
-            Assert.That(spriteY.Position.y, Is.EqualTo(initialPosition + width * percentTo * 2));
+            Assert.That(spriteY.Position.Y, Is.EqualTo(initialPosition + width * percentTo * 2));
 
             var sprite2D = await CreateSprite(width);
             sprite2D.Position = new Vector2(initialPosition, initialPosition);
@@ -297,7 +297,7 @@ namespace Betauer.Animation.Tests {
                 .EndAnimate()
                 .Play(controlX)
                 .AwaitFinished();
-            Assert.That(controlX.Position.x, Is.EqualTo(initialPosition + width * percentTo * 2));
+            Assert.That(controlX.Position.X, Is.EqualTo(initialPosition + width * percentTo * 2));
 
             var controlY = await CreateLabel(width);
             controlY.Position = new Vector2(0, initialPosition);
@@ -309,7 +309,7 @@ namespace Betauer.Animation.Tests {
                 .EndAnimate()
                 .Play(controlY)
                 .AwaitFinished();
-            Assert.That(controlY.Position.y, Is.EqualTo(initialPosition + width * percentTo * 2));
+            Assert.That(controlY.Position.Y, Is.EqualTo(initialPosition + width * percentTo * 2));
 
             var control2D = await CreateLabel(width);
             control2D.Position = new Vector2(initialPosition, initialPosition);
@@ -524,7 +524,7 @@ namespace Betauer.Animation.Tests {
             await CreateTweenPropertyVariants(sprite, callbackProperty, 0, -90);
 
             Assert.That(callbackProperty.Calls, Is.GreaterThan(0));
-            Assert.That(sprite.Position.x, Is.EqualTo(-90));
+            Assert.That(sprite.Position.X, Is.EqualTo(-90));
         }
 
         private class CallbackProperty : IProperty<float> {

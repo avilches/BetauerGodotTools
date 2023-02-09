@@ -30,7 +30,7 @@ public partial class MonitorEditValue : BaseMonitor<MonitorEditValue> {
     }
 
     public MonitorEditValue SetMinWidth(int minWidth) {
-        Edit.CustomMinimumSize = new Vector2(minWidth, Edit.CustomMinimumSize.y);
+        Edit.CustomMinimumSize = new Vector2(minWidth, Edit.CustomMinimumSize.Y);
         return this;
     }
 

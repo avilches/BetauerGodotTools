@@ -142,7 +142,7 @@ namespace Betauer.GameTools.Tests {
         }
 
         internal class ResourcesNotFound : ResourceLoaderContainer {
-            [Load("res://test-resources/notfound.x")]
+            [Load("res://test-resources/notfound.X")]
             public Node node;
         }
         

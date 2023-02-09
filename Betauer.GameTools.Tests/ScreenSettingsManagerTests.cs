@@ -92,7 +92,7 @@ namespace Betauer.GameTools.Tests {
             Assert.That(cf.GetValue<bool>("Video", "Fullscreen", true), Is.False);
             Assert.That(cf.GetValue<bool>("Video", "PixelPerfect"), Is.True);
             Assert.That(cf.GetValue<bool>("Video", "VSync"), Is.True);
-            Assert.That(cf.GetValue<Vector2i>("Video", "WindowedResolution"), Is.EqualTo(Resolutions.WXGA.Size));
+            Assert.That(cf.GetValue<Vector2I>("Video", "WindowedResolution"), Is.EqualTo(Resolutions.WXGA.Size));
             
             s.SetFullscreen(true, false);
             s.SetPixelPerfect(false, false);
@@ -107,7 +107,7 @@ namespace Betauer.GameTools.Tests {
             Assert.That(cf.GetValue<bool>("Video", "Fullscreen", true), Is.False);
             Assert.That(cf.GetValue<bool>("Video", "PixelPerfect"), Is.True);
             Assert.That(cf.GetValue<bool>("Video", "VSync"), Is.True);
-            Assert.That(cf.GetValue<Vector2i>("Video", "WindowedResolution"), Is.EqualTo(Resolutions.WXGA.Size));
+            Assert.That(cf.GetValue<Vector2I>("Video", "WindowedResolution"), Is.EqualTo(Resolutions.WXGA.Size));
         }
         
         [Test]

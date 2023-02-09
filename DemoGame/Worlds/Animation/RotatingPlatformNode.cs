@@ -31,8 +31,8 @@ namespace Veronenger.Worlds.Animation {
         }
 
         private void UpdatePosition() {
-            var x = Sin(_angle) * Radius.x;
-            var y = Cos(_angle) * Radius.y;
+            var x = Sin(_angle) * Radius.X;
+            var y = Cos(_angle) * Radius.Y;
             Position = new Vector2(x, y);
         }
 

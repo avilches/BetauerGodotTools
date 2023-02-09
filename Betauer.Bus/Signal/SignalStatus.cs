@@ -2,8 +2,8 @@ using Godot;
 
 namespace Betauer.Bus.Signal {
     public abstract class SignalStatus<TPublisher, TArgs, TObject>
-        where TPublisher : Object
-        where TObject : Object {
+        where TPublisher : GodotObject
+        where TObject : GodotObject {
 
         public readonly string? Name;
 

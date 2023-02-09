@@ -14,5 +14,5 @@ public abstract class BaseNodeEventHandler : BaseEventHandler {
     }
 
     // Node can be null, so the Event will last forever
-    public override bool IsDestroyed => base.IsDestroyed || (Node != null && !Godot.Object.IsInstanceValid(Node));
+    public override bool IsDestroyed => base.IsDestroyed || (Node != null && !Godot.GodotObject.IsInstanceValid(Node));
 }

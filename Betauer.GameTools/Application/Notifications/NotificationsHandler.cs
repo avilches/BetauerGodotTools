@@ -5,19 +5,19 @@ namespace Betauer.Application.Notifications;
 
 public partial class NotificationsHandler : Node {
 
-    public event Action OnWmMouseEnter;
-    public event Action OnWmMouseExit;
-    public event Action OnWmWindowFocusIn;
-    public event Action OnWmWindowFocusOut;
-    public event Action OnWmCloseRequest;
-    public event Action OnWmGoBackRequest;
-    public event Action OnWmSizeChanged;
-    public event Action OnWmDpiChange;
+    public event Action OnWMMouseEnter;
+    public event Action OnWMMouseExit;
+    public event Action OnWMWindowFocusIn;
+    public event Action OnWMWindowFocusOut;
+    public event Action OnWMCloseRequest;
+    public event Action OnWMGoBackRequest;
+    public event Action OnWMSizeChanged;
+    public event Action OnWMDpiChange;
     public event Action OnVpMouseEnter;
     public event Action OnVpMouseExit;
     public event Action OnOsMemoryWarning;
     public event Action OnTranslationChanged;
-    public event Action OnWmAbout;
+    public event Action OnWMAbout;
     public event Action OnCrash;
     public event Action OnOsImeUpdate;
     public event Action OnApplicationResumed;
@@ -35,31 +35,31 @@ public partial class NotificationsHandler : Node {
             viewport.AddChild(this);
     }
 
-    public override void _Notification(long what) {
-        switch (what) {
-            case Node.NotificationWmMouseEnter: // 1002
-                OnWmMouseEnter?.Invoke();
+    public override void _Notification(int what) {
+        switch ((long)what) {
+            case Node.NotificationWMMouseEnter: // 1002
+                OnWMMouseEnter?.Invoke();
                 break;
-            case Node.NotificationWmMouseExit: // 1003
-                OnWmMouseExit?.Invoke();
+            case Node.NotificationWMMouseExit: // 1003
+                OnWMMouseExit?.Invoke();
                 break;
-            case Node.NotificationWmWindowFocusIn: // 1004
-                OnWmWindowFocusIn?.Invoke();
+            case Node.NotificationWMWindowFocusIn: // 1004
+                OnWMWindowFocusIn?.Invoke();
                 break;
-            case Node.NotificationWmWindowFocusOut: // 1005
-                OnWmWindowFocusOut?.Invoke();
+            case Node.NotificationWMWindowFocusOut: // 1005
+                OnWMWindowFocusOut?.Invoke();
                 break;
-            case Node.NotificationWmCloseRequest: // 1006
-                OnWmCloseRequest?.Invoke();
+            case Node.NotificationWMCloseRequest: // 1006
+                OnWMCloseRequest?.Invoke();
                 break;
-            case Node.NotificationWmGoBackRequest: // 1007
-                OnWmGoBackRequest?.Invoke();
+            case Node.NotificationWMGoBackRequest: // 1007
+                OnWMGoBackRequest?.Invoke();
                 break;
-            case Node.NotificationWmSizeChanged: // 1008
-                OnWmSizeChanged?.Invoke();
+            case Node.NotificationWMSizeChanged: // 1008
+                OnWMSizeChanged?.Invoke();
                 break;
-            case Node.NotificationWmDpiChange: // 1009
-                OnWmDpiChange?.Invoke();
+            case Node.NotificationWMDpiChange: // 1009
+                OnWMDpiChange?.Invoke();
                 break;
             case Node.NotificationVpMouseEnter: // 1010
                 OnVpMouseEnter?.Invoke();
@@ -73,8 +73,8 @@ public partial class NotificationsHandler : Node {
             case Node.NotificationTranslationChanged: // 2010
                 OnTranslationChanged?.Invoke();
                 break;
-            case Node.NotificationWmAbout: // 2011
-                OnWmAbout?.Invoke();
+            case Node.NotificationWMAbout: // 2011
+                OnWMAbout?.Invoke();
                 break;
             case Node.NotificationCrash: // 2012
                 OnCrash?.Invoke();

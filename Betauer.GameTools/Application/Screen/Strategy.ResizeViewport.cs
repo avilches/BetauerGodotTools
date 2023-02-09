@@ -28,8 +28,8 @@ public class ResizeViewportStrategy : BaseScreenResolutionService, IScreenStrate
 
     public Resolution KeepRatio(Resolution resolution) {
         return ScaleAspect switch {
-            Window.ContentScaleAspectEnum.KeepHeight => new Resolution(resolution.x, (int)(resolution.x / BaseResolution.AspectRatio.Ratio)),
-            Window.ContentScaleAspectEnum.KeepWidth => new Resolution((int)(resolution.y * BaseResolution.AspectRatio.Ratio), resolution.y),
+            Window.ContentScaleAspectEnum.KeepHeight => new Resolution(resolution.X, (int)(resolution.X / BaseResolution.AspectRatio.Ratio)),
+            Window.ContentScaleAspectEnum.KeepWidth => new Resolution((int)(resolution.Y * BaseResolution.AspectRatio.Ratio), resolution.Y),
             _ => resolution
         };
     }

@@ -92,8 +92,8 @@ namespace Betauer.GameTools.Tests {
         }
         [Test]
         public void ScaledResolutionEqualityTests() {
-            var base1 = new Vector2i(2, 3);
-            var size1 = new Vector2i(4, 5);
+            var base1 = new Vector2I(2, 3);
+            var size1 = new Vector2I(4, 5);
             var res = new ScaledResolution(base1, size1);
             Console.WriteLine("== true");
             Assert.That((ScaledResolution)null == null);
@@ -112,10 +112,10 @@ namespace Betauer.GameTools.Tests {
             Assert.That(res.Equals((ScaledResolution)null), Is.False);
             Assert.That(res.Equals((object)null), Is.False);
             Assert.That(res.Equals(null), Is.False);
-            Assert.That(res.Equals(new ScaledResolution(base1, size1 + Vector2i.One)), Is.False);
-            Assert.That(res.Equals(new ScaledResolution(base1 + Vector2i.One, size1)), Is.False);
-            Assert.That(res == new ScaledResolution(base1, size1 + Vector2i.One), Is.False);
-            Assert.That(res == new ScaledResolution(base1 + Vector2i.One, size1), Is.False);
+            Assert.That(res.Equals(new ScaledResolution(base1, size1 + Vector2I.One)), Is.False);
+            Assert.That(res.Equals(new ScaledResolution(base1 + Vector2I.One, size1)), Is.False);
+            Assert.That(res == new ScaledResolution(base1, size1 + Vector2I.One), Is.False);
+            Assert.That(res == new ScaledResolution(base1 + Vector2I.One, size1), Is.False);
             
             Console.WriteLine("!= false");
             Assert.That((ScaledResolution)null != null, Is.False);
@@ -129,8 +129,8 @@ namespace Betauer.GameTools.Tests {
             Assert.That(res != (ScaledResolution)null);
             Assert.That(null != res);
             Assert.That((ScaledResolution)null != res);
-            Assert.That(res != new ScaledResolution(base1, size1 + Vector2i.One));
-            Assert.That(res != new ScaledResolution(base1 + Vector2i.One, size1));
+            Assert.That(res != new ScaledResolution(base1, size1 + Vector2I.One));
+            Assert.That(res != new ScaledResolution(base1 + Vector2I.One, size1));
 
         }
 

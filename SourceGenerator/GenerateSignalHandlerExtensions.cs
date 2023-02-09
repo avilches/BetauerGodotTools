@@ -30,7 +30,7 @@ public class GenerateSignalHandlerExtensions {
     private static string GenerateBodyClass(IEnumerable<string> methods) {
         return $@"using System;
 using Godot;
-using Object = Godot.Object;
+using GodotObject = Godot.GodotObject;
 using Animation = Godot.Animation;
 using Environment = Godot.Environment;
 using Range = Godot.Range;
@@ -39,25 +39,25 @@ namespace Betauer.Core.Signal;
 
 public static partial class SignalExtensions {{
 
-    public static SignalHandler On(this Object target, string signal, Action action, bool oneShot = false, bool deferred = false) =>
+    public static SignalHandler On(this GodotObject target, string signal, Action action, bool oneShot = false, bool deferred = false) =>
         SignalFactory.Create(target, signal, action, oneShot, deferred);
 
-    public static SignalHandler On<T>(this Object target, string signal, Action<T> action, bool oneShot = false, bool deferred = false) =>
+    public static SignalHandler On<T>(this GodotObject target, string signal, Action<T> action, bool oneShot = false, bool deferred = false) =>
         SignalFactory.Create(target, signal, action, oneShot, deferred);
 
-    public static SignalHandler On<T1, T2>(this Object target, string signal, Action<T1, T2> action, bool oneShot = false, bool deferred = false) =>
+    public static SignalHandler On<T1, T2>(this GodotObject target, string signal, Action<T1, T2> action, bool oneShot = false, bool deferred = false) =>
         SignalFactory.Create(target, signal, action, oneShot, deferred);
 
-    public static SignalHandler On<T1, T2, T3>(this Object target, string signal, Action<T1, T2, T3> action, bool oneShot = false, bool deferred = false) =>
+    public static SignalHandler On<T1, T2, T3>(this GodotObject target, string signal, Action<T1, T2, T3> action, bool oneShot = false, bool deferred = false) =>
         SignalFactory.Create(target, signal, action, oneShot, deferred);
 
-    public static SignalHandler On<T1, T2, T3, T4>(this Object target, string signal, Action<T1, T2, T3, T4> action, bool oneShot = false, bool deferred = false) =>
+    public static SignalHandler On<T1, T2, T3, T4>(this GodotObject target, string signal, Action<T1, T2, T3, T4> action, bool oneShot = false, bool deferred = false) =>
         SignalFactory.Create(target, signal, action, oneShot, deferred);
 
-    public static SignalHandler On<T1, T2, T3, T4, T5>(this Object target, string signal, Action<T1, T2, T3, T4, T5> action, bool oneShot = false, bool deferred = false) =>
+    public static SignalHandler On<T1, T2, T3, T4, T5>(this GodotObject target, string signal, Action<T1, T2, T3, T4, T5> action, bool oneShot = false, bool deferred = false) =>
         SignalFactory.Create(target, signal, action, oneShot, deferred);
 
-    public static SignalHandler On<T1, T2, T3, T4, T5, T6>(this Object target, string signal, Action<T1, T2, T3, T4, T5, T6> action, bool oneShot = false, bool deferred = false) =>
+    public static SignalHandler On<T1, T2, T3, T4, T5, T6>(this GodotObject target, string signal, Action<T1, T2, T3, T4, T5, T6> action, bool oneShot = false, bool deferred = false) =>
         SignalFactory.Create(target, signal, action, oneShot, deferred);
   {string.Join("\n", methods)}
 }}";

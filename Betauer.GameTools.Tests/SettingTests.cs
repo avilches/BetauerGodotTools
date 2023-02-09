@@ -199,7 +199,7 @@ namespace Betauer.GameTools.Tests {
             cf.Load(SettingsFile);
             Assert.That(cf.GetValue<bool>(b.BoolSetting.Section, b.BoolSetting.Name), Is.True);
             Assert.That(cf.GetValue<string>(b.StringSetting.Section, b.StringSetting.Name, "XXX"), Is.EqualTo("Default"));
-            Assert.That(cf.GetValue<Vector2i>(b.Resolution.Section, b.Resolution.Name), Is.EqualTo(Resolutions.WXGA.Size));
+            Assert.That(cf.GetValue<Vector2I>(b.Resolution.Section, b.Resolution.Name), Is.EqualTo(Resolutions.WXGA.Size));
             Assert.That(cf.GetValue<string>(b.NoAutoSave.Section, b.NoAutoSave.Name, "XXX"), Is.EqualTo("DEFAULT"));
             Assert.That(cf.GetValue<string>(b.NoEnabled.Section, b.NoEnabled.Name, "XXX"), Is.EqualTo("XXX")); // not written to file
 
@@ -223,7 +223,7 @@ namespace Betauer.GameTools.Tests {
             b.Resolution.Value = Resolutions.FULLHD;
             Assert.That(b.SettingsContainerByType.Dirty, Is.False);
             cf.Load(SettingsFile);
-            Assert.That(cf.GetValue<Vector2i>(b.Resolution.Section, b.Resolution.Name), Is.EqualTo(Resolutions.FULLHD.Size));
+            Assert.That(cf.GetValue<Vector2I>(b.Resolution.Section, b.Resolution.Name), Is.EqualTo(Resolutions.FULLHD.Size));
 
             // No autosave, dirty and the value is still the old value
             b.NoAutoSave.Value = "CHANGED";

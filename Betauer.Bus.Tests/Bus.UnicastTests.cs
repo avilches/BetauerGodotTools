@@ -81,7 +81,7 @@ namespace Betauer.Bus.Tests {
         [Test]
         public void BasicRemoveIfInvalidTest() {
             var bus = new Unicast<string, string>();
-            var o = new Godot.Object();
+            var o = new Godot.GodotObject();
             var calls = 0;
             var consumer = bus.Subscribe((sender, args) => {
                 calls++;

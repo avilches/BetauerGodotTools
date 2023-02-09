@@ -9,7 +9,6 @@ using Betauer.UI;
 using Godot;
 using Color = Godot.Color;
 using Container = Godot.Container;
-using Object = Godot.Object;
 
 namespace Betauer.Application.Monitor;
 
@@ -23,7 +22,7 @@ public partial class DebugOverlay : Panel {
     public static Color ColorSolid = new(1, 1, 1);
     public static Color ColorInvisible = new(1, 1, 1, 0);
     
-    private Vector2 FollowPosition => IsFollowing && Target is Node2D node ? node.GetGlobalTransformWithCanvas().origin : Vector2.Zero;
+    private Vector2 FollowPosition => IsFollowing && Target is Node2D node ? node.GetGlobalTransformWithCanvas().Origin : Vector2.Zero;
     private Vector2 _position;
     private Container? _nestedContainer;
     private VisibilityStateEnum _visibilityState = VisibilityStateEnum.Float;
@@ -51,7 +50,7 @@ public partial class DebugOverlay : Panel {
     public DebugOverlayManager DebugOverlayManager { get; }
     public Vector2 MaxSize { get; private set; } = new(400, 400);
     public Vector2 MinSize { get; private set; } = new(50, 50);
-    public Object? Target { get; private set; }
+    public GodotObject? Target { get; private set; }
     public bool IsFollowing { get; private set; } = false;
     public bool CanFollow => Target is Node2D;
     public Func<bool>? RemoveIfFunc { get; private set; }
@@ -151,7 +150,7 @@ public partial class DebugOverlay : Panel {
         return this;
     }
 
-    public DebugOverlay Attach(Object o) {
+    public DebugOverlay Attach(GodotObject o) {
         Target = o;
         if (o is not Node2D) StopFollowing();
         UpdateFollowButtonState();
@@ -216,14 +215,14 @@ public partial class DebugOverlay : Panel {
     
     private void FitContent() {
         var hasTitle = !string.IsNullOrWhiteSpace(TitleLabel.Text);
-        var realTitleHeight = hasTitle ? TitleLabel.Size.y: 0;
+        var realTitleHeight = hasTitle ? TitleLabel.Size.Y: 0;
         var contentSize = OverlayContent.Size.Clamp(MinSize, MaxSize) + new Vector2(MarginScrollBar, MarginScrollBar);
         
         // Panel size
-        CustomMinimumSize = new Vector2(contentSize.x, contentSize.y + realTitleHeight);
+        CustomMinimumSize = new Vector2(contentSize.X, contentSize.Y + realTitleHeight);
         ScrollContainer.CustomMinimumSize = contentSize;
         
-        TitleBar.CustomMinimumSize = new Vector2(contentSize.x, realTitleHeight);
+        TitleBar.CustomMinimumSize = new Vector2(contentSize.X, realTitleHeight);
         TitleBar.Visible = hasTitle;
         ButtonBar.SetAnchorsAndOffsetsPreset(LayoutPreset.TopRight);
     }
@@ -306,8 +305,8 @@ public partial class DebugOverlay : Panel {
         _dragAndDropController = new DragAndDropController().WithMouseButton(MouseButton.Left).OnlyIf(DragPredicate);
         _dragAndDropController.OnStartDrag += OnStartDrag;
         _dragAndDropController.OnDrag += OnDrag;
-        DefaultNotificationsHandler.Instance.OnWmMouseExit += () => _dragAndDropController.ForceDrop();
-        DefaultNotificationsHandler.Instance.OnWmWindowFocusOut += () => _dragAndDropController.ForceDrop(); 
+        DefaultNotificationsHandler.Instance.OnWMMouseExit += () => _dragAndDropController.ForceDrop();
+        DefaultNotificationsHandler.Instance.OnWMWindowFocusOut += () => _dragAndDropController.ForceDrop(); 
         DefaultNotificationsHandler.Instance.OnApplicationFocusOut += () => _dragAndDropController.ForceDrop();
     }
 
@@ -329,12 +328,12 @@ public partial class DebugOverlay : Panel {
         var origin = FollowPosition;
         // TODO: GetTree().Root.Size doesn't work well with scaled viewport
         var screenSize = GetTree().Root.Size;
-        var limitX = Size.x >= screenSize.x ? 20 : Size.x;
-        var limitY = Size.y >= screenSize.y ? 20 : Size.y;
+        var limitX = Size.X >= screenSize.X ? 20 : Size.X;
+        var limitY = Size.Y >= screenSize.Y ? 20 : Size.Y;
         // Ensure the user can't drag and drop the overlay outside of the screen
         newPosition = new Vector2(
-            Mathf.Clamp(newPosition.x, -origin.x, -origin.x + screenSize.x - limitX),
-            Mathf.Clamp(newPosition.y, -origin.y, -origin.y + screenSize.y - limitY));
+            Mathf.Clamp(newPosition.X, -origin.X, -origin.X + screenSize.X - limitX),
+            Mathf.Clamp(newPosition.Y, -origin.Y, -origin.Y + screenSize.Y - limitY));
         _position = newPosition;
     }
 
@@ -351,11 +350,11 @@ public partial class DebugOverlay : Panel {
                 var newPosition = FollowPosition + _position;
                 // Ensure the overlay doesn't go out of the screen when following the node
                 var screenSize = GetTree().Root.Size;
-                var limitX = Size.x >= screenSize.x ? 20 : Size.x; 
-                var limitY = Size.y >= screenSize.y ? 20 : Size.y; 
+                var limitX = Size.X >= screenSize.X ? 20 : Size.X; 
+                var limitY = Size.Y >= screenSize.Y ? 20 : Size.Y; 
                 newPosition = new Vector2(
-                    Mathf.Clamp(newPosition.x, 0, screenSize.x - limitX),
-                    Mathf.Clamp(newPosition.y, 0, screenSize.y - limitY));
+                    Mathf.Clamp(newPosition.X, 0, screenSize.X - limitX),
+                    Mathf.Clamp(newPosition.Y, 0, screenSize.Y - limitY));
                 SetPosition(newPosition);
             } else {
                 SetPosition(_position);

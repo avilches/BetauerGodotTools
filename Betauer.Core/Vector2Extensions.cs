@@ -9,7 +9,7 @@ public static class Vector2Extensions {
     /// <param name="vec"></param>
     /// <returns></returns>
     public static Vector2 Rotate180(this Vector2 vec) {
-        return new Vector2(-vec.x, -vec.y);
+        return new Vector2(-vec.X, -vec.Y);
     }
 
     /// <summary>
@@ -18,7 +18,7 @@ public static class Vector2Extensions {
     /// <param name="vec"></param>
     /// <returns></returns>
     public static Vector2 Rotate90Left(this Vector2 vec) {
-        return new Vector2(vec.y, -vec.x); // same as vector2.Orthogonal();
+        return new Vector2(vec.Y, -vec.X); // same as vector2.Orthogonal();
     }
 
     /// <summary>
@@ -28,7 +28,7 @@ public static class Vector2Extensions {
     /// <param name="vec"></param>
     /// <returns></returns>
     public static Vector2 Rotate90Right(this Vector2 vec) {
-        return new Vector2(-vec.y, vec.x);
+        return new Vector2(-vec.Y, vec.X);
     }
 
     public const float HalfQuarter = Mathf.Pi / 4; // 0.78539818 -> 45

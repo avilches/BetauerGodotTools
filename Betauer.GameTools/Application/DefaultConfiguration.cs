@@ -14,7 +14,7 @@ public class DefaultConfiguration {
 
     public DefaultConfiguration(SceneTree sceneTree) {
         _sceneTree = sceneTree;
-        DefaultNotificationsHandler.Instance.OnWmCloseRequest += () => LoggerFactory.SetAutoFlush(true);
+        DefaultNotificationsHandler.Instance.OnWMCloseRequest += () => LoggerFactory.SetAutoFlush(true);
         _windowNotificationStatus = new WindowNotificationStatus(DefaultNotificationsHandler.Instance);
     }
 

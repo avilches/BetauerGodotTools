@@ -63,7 +63,7 @@ public partial class DebugOverlayManager : CanvasLayer {
                CreateOverlay(title).Enable();
     }
 
-    public DebugOverlay Overlay(Object target) {
+    public DebugOverlay Overlay(GodotObject target) {
         return Overlays.FirstOrDefault(d => d.Target == target) ??
                CreateOverlay(target).Enable();
     }
@@ -72,7 +72,7 @@ public partial class DebugOverlayManager : CanvasLayer {
         return Overlay(follow).Follow(follow);
     }
 
-    public DebugOverlay CreateOverlay(Object target, string? title = null) {
+    public DebugOverlay CreateOverlay(GodotObject target, string? title = null) {
         var overlay = CreateOverlay(title);
         overlay.Attach(target);
         return overlay;
@@ -88,7 +88,7 @@ public partial class DebugOverlayManager : CanvasLayer {
     public bool HasOverlay(string title) =>
         Overlays.FirstOrDefault(overlay => overlay.TitleLabel.Text == title) != null;
     
-    public bool HasOverlay(Object target) => 
+    public bool HasOverlay(GodotObject target) => 
         Overlays.FirstOrDefault(overlay => overlay.Target == target) != null;
 
     public override void _Input(InputEvent input) {

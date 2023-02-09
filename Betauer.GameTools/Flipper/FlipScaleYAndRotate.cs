@@ -12,7 +12,7 @@ public class FlipScaleYAndRotate : Flipper {
     }
 
     public override bool LoadIsFacingRight() {
-        return (int)_node2D.Scale.y == 1 && (_node2D.Transform.Rotation == 0);
+        return (int)_node2D.Scale.Y == 1 && (_node2D.Transform.Rotation == 0);
     }
 
     public override void SetFacingRight(bool right) {

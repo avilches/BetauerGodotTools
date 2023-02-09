@@ -39,7 +39,7 @@ public static partial class Project {
         $"User data dir   : {OS.GetUserDataDir()}",
         $"Config dir      : {OS.GetConfigDir()}",
         $"Cache dir       : {OS.GetCacheDir()}",
-        $"--verbose       : {OS.IsStdoutVerbose()}",
+        $"--verbose       : {OS.IsStdOutVerbose()}",
         $"Debug/editor    : {OS.IsDebugBuild()}",
         $"Standalone      : {FeatureFlags.IsExported()}",
     };

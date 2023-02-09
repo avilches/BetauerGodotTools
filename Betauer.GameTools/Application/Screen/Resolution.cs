@@ -8,8 +8,8 @@ internal class ResolutionByHeightComparer : IComparer<Resolution> {
     /// Compare first the height. If equals, compare the width. 
     /// </summary>
     public int Compare(Resolution left, Resolution right) {
-        var height = left.y.CompareTo(right.y);
-        return height != 0 ? height : left.x.CompareTo(right.x);
+        var height = left.Y.CompareTo(right.Y);
+        return height != 0 ? height : left.X.CompareTo(right.X);
     }
 }
 
@@ -17,7 +17,7 @@ internal class ResolutionByAreaComparer : IComparer<Resolution> {
     /// <summary>
     /// Multiply the height x width to get the area
     /// </summary>
-    public int Compare(Resolution left, Resolution right) => (left.x * left.y).CompareTo(right.x * right.y);
+    public int Compare(Resolution left, Resolution right) => (left.X * left.Y).CompareTo(right.X * right.Y);
 }
 
 public class Resolution {
@@ -33,30 +33,30 @@ public class Resolution {
      */
     public static int CalculateMaxScale(Vector2 size, Vector2 maxSize) {
         return (int)Mathf.Max(
-            Mathf.Floor(Mathf.Min(maxSize.x / size.x, maxSize.y / size.y)), 1);
+            Mathf.Floor(Mathf.Min(maxSize.X / size.X, maxSize.Y / size.Y)), 1);
     }
 
-    public readonly Vector2i Size;
+    public readonly Vector2I Size;
     public readonly AspectRatio AspectRatio;
 
-    public Resolution(Vector2i size) {
+    public Resolution(Vector2I size) {
         Size = size;
         AspectRatio = AspectRatios.Get(this);
     }
 
-    public Resolution(int x, int y) : this(new Vector2i(x, y)) {
+    public Resolution(int x, int y) : this(new Vector2I(x, y)) {
     }
 
-    public int x => Size.x;
-    public int y => Size.y;
+    public int X => Size.X;
+    public int Y => Size.Y;
 
     public override string ToString() {
-        return $"{AspectRatio.Name} {x}x{y}";
+        return $"{AspectRatio.Name} {X}x{Y}";
     }
 
     /**
      * Two Resolutions are equal if their fields Size are equal
-     * Aspect ratio (inherited from parent Resolution class) is a computed value (size.x/size.y, width/height)
+     * Aspect ratio (inherited from parent Resolution class) is a computed value (size.X/size.Y, width/height)
      */
     public static bool operator ==(Resolution? left, Resolution? right) {
         if (ReferenceEquals(left, right)) return true; // equals or both null

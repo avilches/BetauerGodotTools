@@ -8,9 +8,9 @@ public class ScaleYProperty : Property<float> {
 
     public override float GetValue(Node node) {
         return node switch {
-            Control control => control.Scale.y,
-            Node2D node2D => node2D.Scale.y,
-            Node3D node3D => node3D.Scale.y,
+            Control control => control.Scale.Y,
+            Node2D node2D => node2D.Scale.Y,
+            Node3D node3D => node3D.Scale.Y,
             _ => throw new NodeNotCompatibleWithPropertyException($"No ScaleY property for node type {node.GetType()}")
         };
     }

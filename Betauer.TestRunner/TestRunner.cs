@@ -126,7 +126,7 @@ namespace Betauer.TestRunner {
                         // ignore tearDown error in failed tests
                     }
                 }
-                if (Godot.Object.IsInstanceValid(node)) {
+                if (Godot.GodotObject.IsInstanceValid(node)) {
                     node.QueueFree();
                     await TestExtensions.AwaitProcessFrame();
                 }

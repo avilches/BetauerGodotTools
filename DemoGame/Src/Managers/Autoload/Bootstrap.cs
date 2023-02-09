@@ -61,7 +61,7 @@ public partial class Bootstrap : Node /* needed to be instantiated as an Autoloa
     public override void _Ready() {
         Name = nameof(Bootstrap); // This name is shown in the remote editor
         Logger.Info($"Bootstrap time: {Project.Uptime.TotalMilliseconds} ms");
-        NotificationsHandler.OnWmCloseRequest += () => {
+        NotificationsHandler.OnWMCloseRequest += () => {
             GD.Print($"[WmQuitRequest] Uptime: {Project.Uptime.TotalMinutes:0} min {Project.Uptime.Seconds:00} sec");
         };
         DebugOverlayManager.DebugConsole.AddAllCommands(WindowNotificationStatus);

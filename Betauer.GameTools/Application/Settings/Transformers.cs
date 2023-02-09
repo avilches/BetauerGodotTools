@@ -12,7 +12,7 @@ public interface ITransformer {
 
 public class ResolutionTransformer : ITransformer {
     public object ToVariant(object d) => ((Resolution)d).Size;
-    public object FromVariant(object d) => new Resolution((Vector2i)d);
+    public object FromVariant(object d) => new Resolution((Vector2I)d);
 }
 
 public static class Transformers {

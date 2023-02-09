@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Tests" type="RunExe" factoryName=".NET Executable">
-    <option name="EXE_PATH" value="/Applications/Godot-4.0.0-beta.11.app/Contents/MacOS/Godot" />
+    <option name="EXE_PATH" value="/Applications/Godot-4.0.0-rc.1.app/Contents/MacOS/Godot" />
     <option name="PROGRAM_PARAMETERS" value="--path &quot;$PROJECT_DIR$&quot; -s RunTests.cs --headless" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
     <option name="PASS_PARENT_ENVS" value="1" />

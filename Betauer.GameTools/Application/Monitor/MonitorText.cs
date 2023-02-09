@@ -30,7 +30,7 @@ public partial class MonitorText : BaseMonitor<MonitorText> {
     }
 
     public MonitorText SetMinWidth(int minWidth) {
-        Content.CustomMinimumSize = new Vector2(minWidth, Content.CustomMinimumSize.y);
+        Content.CustomMinimumSize = new Vector2(minWidth, Content.CustomMinimumSize.Y);
         return this;
     }
 

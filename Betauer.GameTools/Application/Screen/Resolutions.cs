@@ -98,9 +98,9 @@ public static class Resolutions {
                         // to 21:9 => 2,3333
                         // x=1080*2,333=2520
                         // 2520x1080 = 2,3333 21:9
-                        var newWidth = scaledResolution.y * aspectRatio.Ratio;
-                        if (newWidth <= maxSize.x) {
-                            var newResolution = new Vector2i((int)newWidth, scaledResolution.y);
+                        var newWidth = scaledResolution.Y * aspectRatio.Ratio;
+                        if (newWidth <= maxSize.X) {
+                            var newResolution = new Vector2I((int)newWidth, scaledResolution.Y);
                             var scaledResolutionUpdated = new ScaledResolution(baseResolution.Size, newResolution);
                             resolutions.Add(scaledResolutionUpdated);
                         }
@@ -110,9 +110,9 @@ public static class Resolutions {
                         // to 4:3 => 1,333
                         // y=1920/1,333=823
                         // 1920x1440 = 1,3333 3:4
-                        var newHeight = scaledResolution.x / aspectRatio.Ratio;
-                        if (newHeight <= maxSize.y) {
-                            var newResolution = new Vector2i(scaledResolution.x, (int)newHeight);
+                        var newHeight = scaledResolution.X / aspectRatio.Ratio;
+                        if (newHeight <= maxSize.Y) {
+                            var newResolution = new Vector2I(scaledResolution.X, (int)newHeight);
                             var scaledResolutionUpdated = new ScaledResolution(baseResolution.Size, newResolution);
                             resolutions.Add(scaledResolutionUpdated);
                         }
@@ -128,12 +128,12 @@ public static class Resolutions {
     }
 
     public static IEnumerable<Resolution> Clamp(this IEnumerable<Resolution> resolutions, Vector2 min, Vector2 max) {
-        if (min.x > max.x) throw new Exception($"Impossible to clamp: min.x {min.x} > max.x {max.x}");
-        if (min.y > max.y) throw new Exception($"Impossible to clamp: min.y {min.y} > max.y {max.y}");
-        return resolutions.Where(resolution => resolution.x >= min.x &&
-                                               resolution.x <= max.x &&
-                                               resolution.y >= min.y &&
-                                               resolution.y <= max.y);
+        if (min.X > max.X) throw new Exception($"Impossible to clamp: min.X {min.X} > max.X {max.X}");
+        if (min.Y > max.Y) throw new Exception($"Impossible to clamp: min.Y {min.Y} > max.Y {max.Y}");
+        return resolutions.Where(resolution => resolution.X >= min.X &&
+                                               resolution.X <= max.X &&
+                                               resolution.Y >= min.Y &&
+                                               resolution.Y <= max.Y);
 
     }
 

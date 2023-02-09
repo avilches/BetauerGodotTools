@@ -94,7 +94,7 @@ public abstract partial class CanvasFaderLayer : CanvasLayer {
         _busy = false;
     }
     
-    public override void _Notification(long what) {
+    public override void _Notification(int what) {
         if (what == NotificationPredelete) {
             if (IsInstanceValid(ColorRectBackground) && ColorRectBackground.GetParent() == null) ColorRectBackground.Free();
             if (IsInstanceValid(ColorRectForeground) && ColorRectForeground.GetParent() == null) ColorRectForeground.Free();

@@ -59,7 +59,7 @@ public partial class NotificationsHandler : Node {{
     }
         
     private static bool FilterNotification(GodotClass clazz, string n) {
-        // 0-1 Object lifecycle (ctor and predelete)
+        // 0-1 GodotObject lifecycle (ctor and predelete)
         // 0-100 Node notifications (like enter tree camera becomes active)
         // 1### notifications = SO
         // 2### notifications = MainLoop (Node already include them)

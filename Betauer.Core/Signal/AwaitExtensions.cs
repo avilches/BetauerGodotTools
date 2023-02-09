@@ -1,6 +1,5 @@
 using System;
 using Godot;
-using Object = Godot.Object;
 using Animation = Godot.Animation;
 using Environment = Godot.Environment;
 using Range = Godot.Range;
@@ -357,8 +356,8 @@ public static partial class AwaitExtensions {
     public static SignalAwaiter AwaitCellSizeChanged(this GridMap target) =>
         target.ToSignal(target, "cell_size_changed");
 
-    public static SignalAwaiter AwaitRequestCompleted(this HTTPRequest target) =>
-        target.ToSignal(target, "request_completed");
+    // public static SignalAwaiter AwaitRequestCompleted(this HTTPRequest target) =>
+        // target.ToSignal(target, "request_completed");
 
     public static SignalAwaiter AwaitInputJoyConnectionChanged() =>
         Input.Singleton.ToSignal(Input.Singleton, "joy_connection_changed");
@@ -402,19 +401,19 @@ public static partial class AwaitExtensions {
     public static SignalAwaiter AwaitTextureChanged(this MultiMeshInstance2D target) =>
         target.ToSignal(target, "texture_changed");
 
-    public static SignalAwaiter AwaitConnectedToServer(this MultiplayerAPI target) =>
+    public static SignalAwaiter AwaitConnectedToServer(this MultiplayerApi target) =>
         target.ToSignal(target, "connected_to_server");
 
-    public static SignalAwaiter AwaitConnectionFailed(this MultiplayerAPI target) =>
+    public static SignalAwaiter AwaitConnectionFailed(this MultiplayerApi target) =>
         target.ToSignal(target, "connection_failed");
 
-    public static SignalAwaiter AwaitPeerConnected(this MultiplayerAPI target) =>
+    public static SignalAwaiter AwaitPeerConnected(this MultiplayerApi target) =>
         target.ToSignal(target, "peer_connected");
 
-    public static SignalAwaiter AwaitPeerDisconnected(this MultiplayerAPI target) =>
+    public static SignalAwaiter AwaitPeerDisconnected(this MultiplayerApi target) =>
         target.ToSignal(target, "peer_disconnected");
 
-    public static SignalAwaiter AwaitServerDisconnected(this MultiplayerAPI target) =>
+    public static SignalAwaiter AwaitServerDisconnected(this MultiplayerApi target) =>
         target.ToSignal(target, "server_disconnected");
 
     public static SignalAwaiter AwaitPeerConnected(this MultiplayerPeer target) =>
@@ -510,10 +509,10 @@ public static partial class AwaitExtensions {
     public static SignalAwaiter AwaitVisibilityChanged(this Node3D target) =>
         target.ToSignal(target, "visibility_changed");
 
-    public static SignalAwaiter AwaitPropertyListChanged(this Object target) =>
+    public static SignalAwaiter AwaitPropertyListChanged(this GodotObject target) =>
         target.ToSignal(target, "property_list_changed");
 
-    public static SignalAwaiter AwaitScriptChanged(this Object target) =>
+    public static SignalAwaiter AwaitScriptChanged(this GodotObject target) =>
         target.ToSignal(target, "script_changed");
 
     public static SignalAwaiter AwaitItemFocused(this OptionButton target) =>
@@ -855,13 +854,13 @@ public static partial class AwaitExtensions {
     public static SignalAwaiter AwaitInputTypeChanged(this VisualShaderNodeInput target) =>
         target.ToSignal(target, "input_type_changed");
 
-    public static SignalAwaiter AwaitDataChannelReceived(this WebRTCPeerConnection target) =>
+    public static SignalAwaiter AwaitDataChannelReceived(this WebRtcPeerConnection target) =>
         target.ToSignal(target, "data_channel_received");
 
-    public static SignalAwaiter AwaitIceCandidateCreated(this WebRTCPeerConnection target) =>
+    public static SignalAwaiter AwaitIceCandidateCreated(this WebRtcPeerConnection target) =>
         target.ToSignal(target, "ice_candidate_created");
 
-    public static SignalAwaiter AwaitSessionDescriptionCreated(this WebRTCPeerConnection target) =>
+    public static SignalAwaiter AwaitSessionDescriptionCreated(this WebRtcPeerConnection target) =>
         target.ToSignal(target, "session_description_created");
 
     public static SignalAwaiter AwaitReferenceSpaceReset(this WebXRInterface target) =>

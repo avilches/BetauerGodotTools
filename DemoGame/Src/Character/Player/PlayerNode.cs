@@ -47,7 +47,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	}
 
 	public event Action? OnFree;
-	public override void _Notification(long what) {
+	public override void _Notification(int what) {
 		if (what == NotificationPredelete) OnFree?.Invoke();
 	}
 

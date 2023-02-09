@@ -45,8 +45,8 @@ namespace Veronenger.Worlds.Animation {
             var count = nodes.Count;
             var spacing = Mathf.Tau / count;
             for (var i = 0; i < count; i++) {
-                var newX = Mathf.Sin(spacing * i + angle) * radius.x;
-                var newY = Mathf.Cos(spacing * i + angle) * radius.y;
+                var newX = Mathf.Sin(spacing * i + angle) * radius.X;
+                var newY = Mathf.Cos(spacing * i + angle) * radius.Y;
                 var newPos = new Vector2(newX, newY);
                 nodes[i].Position = newPos;
             }

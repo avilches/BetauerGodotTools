@@ -28,7 +28,7 @@ namespace Betauer.Animation.Easing {
     //     var r1 = q1.LinearInterpolate(q2, t);
     //
     //     var s = r0.LinearInterpolate(r1, t);
-    //     return s.y;
+    //     return s.Y;
     // }
 
 
@@ -44,11 +44,11 @@ namespace Betauer.Animation.Easing {
         public readonly float Ay;
 
         public static BezierCurve Create(Vector2 p1, Vector2 p2) {
-            return Create(0, 0, p1.x, p1.y, p2.x, p2.y, 1, 1);
+            return Create(0, 0, p1.X, p1.Y, p2.X, p2.Y, 1, 1);
         }
 
         public static BezierCurve Create(Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3) {
-            return Create(p0.x, p0.y, p1.x, p1.y, p2.x, p2.y, p3.x, p3.y);
+            return Create(p0.X, p0.Y, p1.X, p1.Y, p2.X, p2.Y, p3.X, p3.Y);
         }
 
         public static BezierCurve Create(float p1X, float p1Y, float p2X, float p2Y) {

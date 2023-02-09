@@ -5,7 +5,7 @@ using Godot;
 using Betauer.Core;
 using Betauer.Core.Nodes;
 using Betauer.Flipper;
-using Object = Godot.Object;
+using GodotObject = Godot.GodotObject;
 
 namespace Veronenger.Character; 
 
@@ -20,12 +20,12 @@ public class KinematicPlatformMotion : BaseKinematicMotion, IFlipper {
     private bool _isOnFloor = false;
     private bool _isOnSlope = false;
     private Vector2 _floorNormal = Vector2.Zero;
-    private Object? _floor = null;
+    private GodotObject? _floor = null;
 
     // Wall
     private bool _isOnWall = false;
     private Vector2 _wallNormal = Vector2.Zero;
-    private Object? _wall = null;
+    private GodotObject? _wall = null;
 
     // Ceiling
     private bool _isOnCeiling = false;
@@ -84,7 +84,7 @@ public class KinematicPlatformMotion : BaseKinematicMotion, IFlipper {
     public Vector2 GetFloorNormal() => _floorNormal;
     public T? GetFloorCollider<T>() where T : Node => GetFloorColliders<T>().FirstOrDefault();
     // public Vector2 GetFloorVelocity() => Body.GetFloorVelocity();
-    // public bool HasFloorLateralMovement() => GetFloorVelocity().x != 0;
+    // public bool HasFloorLateralMovement() => GetFloorVelocity().X != 0;
 
     // Wall flags
     public bool IsOnWall() => _isOnWall;
@@ -126,8 +126,8 @@ public class KinematicPlatformMotion : BaseKinematicMotion, IFlipper {
             var input = new Vector2(xInput, yInput);
             if (input.Length() > 1) {
                 input = input.Normalized();
-                xInput = input.x;
-                yInput = input.y;
+                xInput = input.X;
+                yInput = input.Y;
             }
         }
         Accelerate(ref MotionX, xInput, acceleration, maxSpeedX,

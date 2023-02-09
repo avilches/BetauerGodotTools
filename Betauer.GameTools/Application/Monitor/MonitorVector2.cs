@@ -126,8 +126,8 @@ public partial class MonitorVector2 : BaseMonitor<MonitorVector2> {
         }
         var center = ChartSize / 2f;
         var value = _loadValue.Invoke();
-        var valuePercentX = center * (value.x / MaxValue);
-        var valuePercentY = center * (value.y / MaxValue);
+        var valuePercentX = center * (value.X / MaxValue);
+        var valuePercentY = center * (value.Y / MaxValue);
         LineX.SetPointPosition(1, new Vector2(center + valuePercentX, center));
         LineY.SetPointPosition(1, new Vector2(center, center + valuePercentY));
         LineLength.SetPointPosition(1, new Vector2(center + valuePercentX, center + valuePercentY));

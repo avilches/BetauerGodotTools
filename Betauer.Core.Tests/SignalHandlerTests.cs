@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Betauer.Core.Signal;
@@ -6,7 +5,6 @@ using Betauer.TestRunner;
 using Betauer.Tools.Logging;
 using Godot;
 using NUnit.Framework;
-using Object = Godot.Object;
 
 namespace Betauer.Core.Tests; 
 

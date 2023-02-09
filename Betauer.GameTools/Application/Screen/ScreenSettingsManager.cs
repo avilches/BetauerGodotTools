@@ -141,7 +141,7 @@ public class ScreenSettingsManager {
         if (!OS.WindowFullscreen) {
             // Make the application window the smallest so it can fit the screen
             var windowSize = OS.WindowSize;
-            if (windowSize.x >= screenSize.x || windowSize.y >= screenSize.y) {
+            if (windowSize.X >= screenSize.X || windowSize.Y >= screenSize.Y) {
                 var scaledResolution = GetResolutions()[0];
                 // GD.Print("OPPPPPS BIGGER WINDOW THAN SCREEN. Changing to " + scaledResolution);
                 SetWindowed(scaledResolution);

@@ -87,19 +87,19 @@ public class VariantHelperTests {
         AssertVariant(double.MinValue);
 
         AssertVariant(new Vector2(2, 3));
-        AssertVariant(new Vector2i(2, 3));
+        AssertVariant(new Vector2I(2, 3));
         AssertVariant(new Rect2(1, 2, 3, 4));
-        AssertVariant(new Rect2i(1, 2, 3, 4));
+        AssertVariant(new Rect2I(1, 2, 3, 4));
         AssertVariant(new Transform2D(1, 2, 3, 4, 5, 6));
         AssertVariant(new Vector3(1, 2, 3));
-        AssertVariant(new Vector3i(1, 2, 3));
+        AssertVariant(new Vector3I(1, 2, 3));
         AssertVariant(new Vector4(1, 2, 3, 4));
-        AssertVariant(new Vector4i(1, 2, 3, 4));
+        AssertVariant(new Vector4I(1, 2, 3, 4));
         AssertVariant(new Basis(new Vector3(1, 2, 3), 2));
         AssertVariant(new Quaternion(1, 2, 3, 4));
         AssertVariant(new Transform3D(new Basis(new Vector3(1, 2, 3), 2), new Vector3(1, 2, 3)));
         // AssertVariant(new Projection(new Transform3D(new Basis(new Vector3(1, 2, 3), 2), new Vector3(1, 2, 3))));
-        AssertVariant(new AABB(1, 2, 3, 4, 5, 6));
+        AssertVariant(new Aabb(1, 2, 3, 4, 5, 6));
         AssertVariant(new Color(1, 2, 3, 4));
         AssertVariant(new Plane(1, 2, 3, 4));
         

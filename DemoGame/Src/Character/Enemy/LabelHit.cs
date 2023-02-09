@@ -25,5 +25,5 @@ public class LabelHit : ILabelEffect {
 
     public bool Busy => _tweenHit?.IsRunning() ?? false;
 
-    public Object Owner => Label;
+    public GodotObject Owner => Label;
 }

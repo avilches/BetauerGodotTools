@@ -18,12 +18,12 @@ public class AspectRatio {
         Ratio = width / (float)height;
     }
 
-    private AspectRatio(Vector2 resolution) : this((int)resolution.x, (int)resolution.y) {
+    private AspectRatio(Vector2 resolution) : this((int)resolution.X, (int)resolution.Y) {
     }
 
     public bool Matches(AspectRatio aspectRatio) => Matches(aspectRatio.Ratio);
     public bool Matches(Resolution resolution) => Matches(resolution.Size);
-    public bool Matches(Vector2 resolution) => Matches(resolution.x / resolution.y);
+    public bool Matches(Vector2 resolution) => Matches(resolution.X / resolution.Y);
     public bool Matches(int x, int y) => Matches(x / (float)y);
     public bool Matches(float ratio) => Math.Abs(ratio - Ratio) < Tolerance;
 

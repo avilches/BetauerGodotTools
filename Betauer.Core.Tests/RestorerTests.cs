@@ -204,7 +204,7 @@ public partial class RestorerTests : Node {
         sprite.Position = new Vector2(100, 100);
         // var gradientTexture = new GradientTexture();
         var imageTexture = new ImageTexture();
-        imageTexture.SetSizeOverride(new Vector2i(width, width));
+        imageTexture.SetSizeOverride(new Vector2I(width, width));
         sprite.Texture = imageTexture;
         AddChild(sprite);
         await this.AwaitProcessFrame();

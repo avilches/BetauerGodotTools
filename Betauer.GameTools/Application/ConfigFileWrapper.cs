@@ -35,7 +35,7 @@ public class ConfigFileWrapper {
     }
 
     public ConfigFileWrapper SetPassword(string password) {
-        EncryptionKey = password.ToUTF8Buffer();
+        EncryptionKey = password.ToUtf8Buffer();
         return this;
     }
 

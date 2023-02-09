@@ -5,7 +5,7 @@ using Betauer.Core;
 using Betauer.Core.Nodes;
 using Betauer.DI;
 using static Veronenger.LayerConstants;
-using Object = Godot.Object;
+using GodotObject = Godot.GodotObject;
 
 namespace Veronenger.Managers; 
 
@@ -41,9 +41,9 @@ public class PlatformManager {
         tileMap.AddToLayer(0, LayerSolidBody);
     }
 
-    // It accepts Object so it can be used from a GetSlideCollision(x).Collider
-    public bool IsPlatform(Object? platform) => platform is PhysicsBody2D psb && psb.IsInGroup(GROUP_PLATFORMS);
-    public bool IsMovingPlatform(Object? platform) => platform is PhysicsBody2D psb && psb.IsInGroup(GROUP_MOVING_PLATFORMS);
-    public bool IsFallingPlatform(Object? platform) => platform is PhysicsBody2D psb && psb.IsInGroup(GROUP_FALLING_PLATFORMS);
+    // It accepts GodotObject so it can be used from a GetSlideCollision(x).Collider
+    public bool IsPlatform(GodotObject? platform) => platform is PhysicsBody2D psb && psb.IsInGroup(GROUP_PLATFORMS);
+    public bool IsMovingPlatform(GodotObject? platform) => platform is PhysicsBody2D psb && psb.IsInGroup(GROUP_MOVING_PLATFORMS);
+    public bool IsFallingPlatform(GodotObject? platform) => platform is PhysicsBody2D psb && psb.IsInGroup(GROUP_FALLING_PLATFORMS);
 
 }

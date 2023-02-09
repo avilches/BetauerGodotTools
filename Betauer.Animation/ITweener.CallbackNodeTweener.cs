@@ -1,7 +1,6 @@
 using System;
 using Betauer.Tools.Logging;
 using Godot;
-using Object = Godot.Object;
 
 namespace Betauer.Animation {
     public class CallbackNodeTweener : ITweener {
@@ -19,7 +18,7 @@ namespace Betauer.Animation {
         }
 
         public float Start(Tween sceneTreeTween, float initialDelay, Node target) {
-            if (!Object.IsInstanceValid(sceneTreeTween)) {
+            if (!GodotObject.IsInstanceValid(sceneTreeTween)) {
                 Logger.Debug("Can't start a " + nameof(CallbackTweener) + " from a freed tween instance");
                 return 0;
             }

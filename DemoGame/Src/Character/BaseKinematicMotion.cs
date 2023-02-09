@@ -35,8 +35,8 @@ public abstract class BaseKinematicMotion {
     public Vector2 Motion {
         get => new(MotionX, MotionY);
         set {
-            MotionX = value.x;
-            MotionY = value.y;
+            MotionX = value.X;
+            MotionY = value.Y;
         }
     }
 
@@ -115,8 +115,8 @@ public abstract class BaseKinematicMotion {
     }
 
     public void LimitMotion(Vector2 maxSpeed) {
-        LimitMotionX(maxSpeed.x);
-        LimitMotionY(maxSpeed.y);
+        LimitMotionX(maxSpeed.X);
+        LimitMotionY(maxSpeed.Y);
     }
 
     public void LimitMotionX(float maxSpeed) {
@@ -137,8 +137,8 @@ public abstract class BaseKinematicMotion {
 
     public void LimitMotionNormalized(float maxSpeed) {
         var limited = Motion.LimitLength(maxSpeed);
-        MotionX = limited.x;
-        MotionY = limited.y;
+        MotionX = limited.X;
+        MotionY = limited.Y;
     }
 
     /// <summary>

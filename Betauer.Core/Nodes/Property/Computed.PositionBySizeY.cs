@@ -16,7 +16,7 @@ public class PositionBySizeY : ComputedProperty<float> {
             Sprite2D sprite => sprite.GetSpriteSize(),
             Control control => control.Size,
         };
-        return _initialValue + (size.y * percent);
+        return _initialValue + (size.Y * percent);
     }
 
     public sealed override bool IsCompatibleWith(Node node) {

@@ -3,14 +3,14 @@ using Godot;
 
 namespace Betauer.Bus.Signal {
     public static class BodyShapeOnArea2D {
-        public class Collection : SignalCollection<Area2D, (RID, Node, int, int), Node> {
+        public class Collection : SignalCollection<Area2D, (Rid, Node, int, int), Node> {
             
             public Collection(string? name = null) : base(name) {
             }
 
             public bool IsOverlapping => Size() > 0;
 
-            protected override Node Extract((RID, Node, int, int) signalArgs) {
+            protected override Node Extract((Rid, Node, int, int) signalArgs) {
                 return signalArgs.Item2;
             }
 
@@ -21,8 +21,8 @@ namespace Betauer.Bus.Signal {
             }
         }
 
-        public class Status : SignalStatus<Area2D, (RID, Node, int, int), Node> {
-            protected override Node Extract((RID, Node, int, int) signalArgs) {
+        public class Status : SignalStatus<Area2D, (Rid, Node, int, int), Node> {
+            protected override Node Extract((Rid, Node, int, int) signalArgs) {
                 return signalArgs.Item2;
             }
             

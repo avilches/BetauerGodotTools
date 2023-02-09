@@ -41,7 +41,7 @@ public static class AspectRatios {
         return ratio;
     }
     public static AspectRatio Get(Resolution resolution) => Get(resolution.Size);
-    public static AspectRatio Get(Vector2 resolution) => Get((int)resolution.x, (int)resolution.y);
+    public static AspectRatio Get(Vector2 resolution) => Get((int)resolution.X, (int)resolution.Y);
     public static AspectRatio Get(int width, int height) {
         var ratio = width / (float)height;
         var aspectRatio = Cache.Find(aspect => aspect.Matches(ratio));

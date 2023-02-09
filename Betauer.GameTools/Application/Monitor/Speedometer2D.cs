@@ -1,8 +1,6 @@
 using System;
-using Betauer.Core.Nodes;
 using Betauer.Nodes;
 using Godot;
-using Object = Godot.Object;
 
 namespace Betauer.Application.Monitor;
 public class Speedometer2D {

@@ -15,10 +15,10 @@ run/main_scene="res://Scenes/SplashScreen.tscn"
 config/use_custom_user_dir=true
 config/project_settings_override="user://override.cfg"
 config/features=PackedStringArray("4.0", "C#")
+boot_splash/bg_color=Color(0.141176, 0.141176, 0.141176, 1)
 boot_splash/show_image=false
 boot_splash/fullsize=false
 boot_splash/use_filter=false
-boot_splash/bg_color=Color(0.141176, 0.141176, 0.141176, 1)
 config/icon="res://icon.png"
 config/version="1.0.0"
 

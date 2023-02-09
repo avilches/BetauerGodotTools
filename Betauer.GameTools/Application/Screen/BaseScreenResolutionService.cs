@@ -23,7 +23,7 @@ public abstract class BaseScreenResolutionService : IScreenResizeHandler {
         var windowSize = DisplayServer.WindowGetSize();
         var viewport = SceneTree.Root;
         var viewportResolution = viewport.Size;
-        Logger.Debug($"{GetType().Name}: {viewport.ContentScaleMode}/{viewport.ContentScaleAspect} | Zoom {viewport.ContentScaleFactor} | WindowSize {windowSize.x}x{windowSize.y} | ContentScaleSize {viewport.ContentScaleSize.x}x{viewport.ContentScaleSize.y} | Viewport {viewportResolution.x}x{viewportResolution.y}");
+        Logger.Debug($"{GetType().Name}: {viewport.ContentScaleMode}/{viewport.ContentScaleAspect} | Zoom {viewport.ContentScaleFactor} | WindowSize {windowSize.X}x{windowSize.Y} | ContentScaleSize {viewport.ContentScaleSize.X}x{viewport.ContentScaleSize.Y} | Viewport {viewportResolution.X}x{viewportResolution.Y}");
     }
 
     protected abstract void DoApply();
@@ -55,12 +55,12 @@ public abstract class BaseScreenResolutionService : IScreenResizeHandler {
 
     public virtual void SetWindowed(Resolution resolution) {
         var screenSize = DisplayServer.ScreenGetSize();
-        if (resolution.x > screenSize.x || resolution.y > screenSize.y) {
+        if (resolution.X > screenSize.X || resolution.Y > screenSize.Y) {
             // SetFullscreen();
             return;
         }
-        if (resolution.x < DownScaledMinimumResolution.x || 
-            resolution.y < DownScaledMinimumResolution.y) {
+        if (resolution.X < DownScaledMinimumResolution.X || 
+            resolution.Y < DownScaledMinimumResolution.Y) {
             resolution = DownScaledMinimumResolution;
         }
         DisplayServer.WindowSetMode(DisplayServer.WindowMode.Windowed);

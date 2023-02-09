@@ -54,8 +54,8 @@ public class World {
 
 public static class WorldExtension {
     private const string WorldId = "__WorldId";
-    public static void SetWorldId(this Object o, WorldItem item) => o.SetMeta(WorldId, item.Id);
-    public static bool MatchesWorldId(this Object o, WorldItem item) => o.GetMeta(WorldId).AsInt32() == item.Id;
-    public static int GetWorldId(this Object o) => o.GetMeta(WorldId).AsInt32();
+    public static void SetWorldId(this GodotObject o, WorldItem item) => o.SetMeta(WorldId, item.Id);
+    public static bool MatchesWorldId(this GodotObject o, WorldItem item) => o.GetMeta(WorldId).AsInt32() == item.Id;
+    public static int GetWorldId(this GodotObject o) => o.GetMeta(WorldId).AsInt32();
 
 }

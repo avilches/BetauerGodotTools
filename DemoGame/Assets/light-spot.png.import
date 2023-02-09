@@ -16,9 +16,9 @@ dest_files=["res://.godot/imported/light-spot.png-59a50b8c92f2bbe800b120fb92fbf0
 [params]
 
 compress/mode=0
+compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1
-compress/bptc_ldr=0
 compress/normal_map=0
 compress/channel_pack=0
 mipmaps/generate=false

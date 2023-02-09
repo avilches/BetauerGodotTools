@@ -12,7 +12,7 @@ public class FlipScaleX : Flipper {
     }
 
     public override bool LoadIsFacingRight() {
-        return (int)_node2D.Scale.x == 1;
+        return (int)_node2D.Scale.X == 1;
     }
 
     public override void SetFacingRight(bool right) {

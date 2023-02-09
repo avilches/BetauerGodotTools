@@ -5,7 +5,6 @@ using Betauer.Core;
 using Betauer.Core.Nodes;
 using Betauer.UI;
 using Godot;
-using Object = Godot.Object;
 
 namespace Betauer.Application.Monitor;
 public partial class MonitorGraph : BaseMonitor<MonitorGraph> {

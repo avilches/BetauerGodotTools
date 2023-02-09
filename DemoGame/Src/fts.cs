@@ -301,12 +301,12 @@ public class fts {
         //   (11) O = atan(p)
 
         Vector3 diff = target - proj_pos;
-        Vector3 diffXZ = new Vector3(diff.x, 0f, diff.z);
+        Vector3 diffXZ = new Vector3(diff.X, 0f, diff.Z);
         float groundDist = diffXZ.Length();
 
         float speed2 = proj_speed * proj_speed;
         float speed4 = proj_speed * proj_speed * proj_speed * proj_speed;
-        float y = diff.y;
+        float y = diff.Y;
         float x = groundDist;
         float gx = gravity * x;
 
@@ -355,17 +355,17 @@ public class fts {
         //  For full derivation see: blog.forrestthewoods.com
         //  Here is an abbreviated version.
         //
-        //  Four equations, four unknowns (solution.x, solution.y, solution.z, time):
+        //  Four equations, four unknowns (solution.X, solution.Y, solution.Z, time):
         //
-        //  (1) proj_pos.x + solution.x*time = target_pos.x + target_vel.x*time
-        //  (2) proj_pos.y + solution.y*time + .5*G*t = target_pos.y + target_vel.y*time
-        //  (3) proj_pos.z + solution.z*time = target_pos.z + target_vel.z*time
-        //  (4) proj_speed^2 = solution.x^2 + solution.y^2 + solution.z^2
+        //  (1) proj_pos.X + solution.X*time = target_pos.X + target_vel.X*time
+        //  (2) proj_pos.Y + solution.Y*time + .5*G*t = target_pos.Y + target_vel.Y*time
+        //  (3) proj_pos.Z + solution.Z*time = target_pos.Z + target_vel.Z*time
+        //  (4) proj_speed^2 = solution.X^2 + solution.Y^2 + solution.Z^2
         //
-        //  (5) Solve for solution.x and solution.z in equations (1) and (3)
-        //  (6) Square solution.x and solution.z from (5)
-        //  (7) Solve solution.y^2 by plugging (6) into (4)
-        //  (8) Solve solution.y by rearranging (2)
+        //  (5) Solve for solution.X and solution.Z in equations (1) and (3)
+        //  (6) Square solution.X and solution.Z from (5)
+        //  (7) Solve solution.Y^2 by plugging (6) into (4)
+        //  (8) Solve solution.Y by rearranging (2)
         //  (9) Square (8)
         //  (10) Set (8) = (7). All solution.xyz terms should be gone. Only time remains.
         //  (11) Rearrange 10. It will be of the form a*^4 + b*t^3 + c*t^2 + d*t * e. This is a quartic.
@@ -377,15 +377,15 @@ public class fts {
 
         double G = gravity;
 
-        double A = proj_pos.x;
-        double B = proj_pos.y;
-        double C = proj_pos.z;
-        double M = target_pos.x;
-        double N = target_pos.y;
-        double O = target_pos.z;
-        double P = target_velocity.x;
-        double Q = target_velocity.y;
-        double R = target_velocity.z;
+        double A = proj_pos.X;
+        double B = proj_pos.Y;
+        double C = proj_pos.Z;
+        double M = target_pos.X;
+        double N = target_pos.Y;
+        double O = target_pos.Z;
+        double P = target_velocity.X;
+        double Q = target_velocity.Y;
+        double R = target_velocity.Z;
         double S = proj_speed;
 
         double H = M - A;
@@ -417,9 +417,9 @@ public class fts {
             if (t <= 0 || double.IsNaN(t))
                 continue;
 
-            solutions[numSolutions].x = (float)((H + P * t) / t);
-            solutions[numSolutions].y = (float)((K + Q * t - L * t * t) / t);
-            solutions[numSolutions].z = (float)((J + R * t) / t);
+            solutions[numSolutions].X = (float)((H + P * t) / t);
+            solutions[numSolutions].Y = (float)((K + Q * t - L * t * t) / t);
+            solutions[numSolutions].Z = (float)((J + R * t) / t);
             ++numSolutions;
         }
 
@@ -446,14 +446,14 @@ public class fts {
     public static bool solve_ballistic_arc_lateral(Vector3 proj_pos, float lateral_speed, Vector3 target_pos,
         float max_height, out Vector3 fire_velocity, out float gravity) {
         // Handling these cases is up to your project's coding standards
-        Debug.Assert(proj_pos != target_pos && lateral_speed > 0 && max_height > proj_pos.y,
+        Debug.Assert(proj_pos != target_pos && lateral_speed > 0 && max_height > proj_pos.Y,
             "fts.solve_ballistic_arc called with invalid data");
 
         fire_velocity = Vector3.Zero;
         gravity = float.NaN;
 
         Vector3 diff = target_pos - proj_pos;
-        Vector3 diffXZ = new Vector3(diff.x, 0f, diff.z);
+        Vector3 diffXZ = new Vector3(diff.X, 0f, diff.Z);
         float lateralDist = diffXZ.Length();
 
         if (lateralDist == 0)
@@ -468,12 +468,12 @@ public class fts {
         // peak = y0 + vertical_speed*halfTime + .5*gravity*halfTime^2
         // end = y0 + vertical_speed*time + .5*gravity*time^s
         // Wolfram Alpha: solve b = a + .5*v*t + .5*g*(.5*t)^2, c = a + vt + .5*g*t^2 for g, v
-        float a = proj_pos.y; // initial
+        float a = proj_pos.Y; // initial
         float b = max_height; // peak
-        float c = target_pos.y; // final
+        float c = target_pos.Y; // final
 
         gravity = -4 * (a - 2 * b + c) / (time * time);
-        fire_velocity.y = -(3 * a - 4 * b + c) / time;
+        fire_velocity.Y = -(3 * a - 4 * b + c) / time;
 
         return true;
     }
@@ -504,9 +504,9 @@ public class fts {
         impact_point = Vector3.Zero;
 
         // Ground plane terms
-        Vector3 targetVelXZ = new Vector3(target_velocity.x, 0f, target_velocity.z);
+        Vector3 targetVelXZ = new Vector3(target_velocity.X, 0f, target_velocity.Z);
         Vector3 diffXZ = target - proj_pos;
-        diffXZ.y = 0;
+        diffXZ.Y = 0;
 
         // Derivation
         //   (1) Base formula: |P + V*t| = S*t
@@ -536,19 +536,19 @@ public class fts {
 
         // Calculate fire velocity along XZ plane
         Vector3 dir = impact_point - proj_pos;
-        fire_velocity = new Vector3(dir.x, 0f, dir.z).Normalized() * lateral_speed;
+        fire_velocity = new Vector3(dir.X, 0f, dir.Z).Normalized() * lateral_speed;
 
         // Solve system of equations. Hit max_height at t=.5*time. Hit target at t=time.
         //
         // peak = y0 + vertical_speed*halfTime + .5*gravity*halfTime^2
         // end = y0 + vertical_speed*time + .5*gravity*time^s
         // Wolfram Alpha: solve b = a + .5*v*t + .5*g*(.5*t)^2, c = a + vt + .5*g*t^2 for g, v
-        float a = proj_pos.y; // initial
-        float b = Mathf.Max(proj_pos.y, impact_point.y) + max_height_offset; // peak
-        float c = impact_point.y; // final
+        float a = proj_pos.Y; // initial
+        float b = Mathf.Max(proj_pos.Y, impact_point.Y) + max_height_offset; // peak
+        float c = impact_point.Y; // final
 
         gravity = -4 * (a - 2 * b + c) / (t * t);
-        fire_velocity.y = -(3 * a - 4 * b + c) / t;
+        fire_velocity.Y = -(3 * a - 4 * b + c) / t;
 
         return true;
     }

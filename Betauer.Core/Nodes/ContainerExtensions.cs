@@ -83,11 +83,11 @@ public static partial class ContainerExtensions {
     public static List<T> GetVisibleControl<T>(this Container container) where T : Control{
         if (container is ScrollContainer scrollContainer) {
             var topVisible = scrollContainer.ScrollVertical;
-            var bottomVisible = scrollContainer.Size.y + scrollContainer.ScrollVertical;
+            var bottomVisible = scrollContainer.Size.Y + scrollContainer.ScrollVertical;
             return scrollContainer.GetChild(0).GetChildren().OfType<T>()
                 .Where(control =>
-                    control.Position.y >= topVisible &&
-                    control.Position.y + control.Size.y <= bottomVisible)
+                    control.Position.Y >= topVisible &&
+                    control.Position.Y + control.Size.Y <= bottomVisible)
                 .ToList();
         }
         return container.GetChildren().OfType<T>().ToList();

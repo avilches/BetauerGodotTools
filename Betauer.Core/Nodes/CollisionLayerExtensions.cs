@@ -10,7 +10,7 @@ public static class CollisionLayerExtensions {
     public static Dictionary RaycastTo(this Node2D from, Vector2 to, Action<PhysicsRayQueryParameters2D>? config = null)  {
         var query = PhysicsRayQueryParameters2D.Create(from.GlobalPosition, to);
         config?.Invoke(query);
-        return from.GetWorld2d().DirectSpaceState.IntersectRay(query);
+        return from.GetWorld2D().DirectSpaceState.IntersectRay(query);
     }
 
     public static SignalHandler OnAreaEntered(this Area2D area2D, int layer, Action<Area2D> action, bool oneShot = false,
@@ -25,13 +25,13 @@ public static class CollisionLayerExtensions {
         return area2D.OnAreaExited(action, oneShot, deferred);
     }
 
-    public static SignalHandler OnAreaShapeEntered(this Area2D area2D, int layer, Action<RID, Area2D, int, int> action, bool oneShot = false,
+    public static SignalHandler OnAreaShapeEntered(this Area2D area2D, int layer, Action<Rid, Area2D, int, int> action, bool oneShot = false,
         bool deferred = false) {
         area2D.DetectLayer(layer);
         return area2D.OnAreaShapeEntered(action, oneShot, deferred);
     }
 
-    public static SignalHandler OnAreaShapeExited(this Area2D area2D, int layer, Action<RID, Area2D, int, int> action, bool oneShot = false,
+    public static SignalHandler OnAreaShapeExited(this Area2D area2D, int layer, Action<Rid, Area2D, int, int> action, bool oneShot = false,
         bool deferred = false) {
         area2D.DetectLayer(layer);
         return area2D.OnAreaShapeExited(action, oneShot, deferred);
@@ -49,13 +49,13 @@ public static class CollisionLayerExtensions {
         return area2D.OnBodyExited(action, oneShot, deferred);
     }
 
-    public static SignalHandler OnNode2DShapeEntered(this Area2D area2D, int layer, Action<RID, Node2D, int, int> action, bool oneShot = false,
+    public static SignalHandler OnNode2DShapeEntered(this Area2D area2D, int layer, Action<Rid, Node2D, int, int> action, bool oneShot = false,
         bool deferred = false) {
         area2D.DetectLayer(layer);
         return area2D.OnBodyShapeEntered(action, oneShot, deferred);
     }
 
-    public static SignalHandler OnNode2DShapeExited(this Area2D area2D, int layer, Action<RID, Node2D, int, int> action, bool oneShot = false,
+    public static SignalHandler OnNode2DShapeExited(this Area2D area2D, int layer, Action<Rid, Node2D, int, int> action, bool oneShot = false,
         bool deferred = false) {
         area2D.DetectLayer(layer);
         return area2D.OnBodyShapeExited(action, oneShot, deferred);
@@ -77,7 +77,7 @@ public static class CollisionLayerExtensions {
         }, oneShot, deferred);
     }
 
-    public static SignalHandler OnBodyShapeEntered<T>(this Area2D area2D, int layer, Action<RID, T, int, int> action, bool oneShot = false,
+    public static SignalHandler OnBodyShapeEntered<T>(this Area2D area2D, int layer, Action<Rid, T, int, int> action, bool oneShot = false,
         bool deferred = false) where T : PhysicsBody2D {
         area2D.DetectLayer(layer);
         return area2D.OnBodyShapeEntered((rid, node, bodyShapeIndex, localShapeIndex) => {
@@ -85,7 +85,7 @@ public static class CollisionLayerExtensions {
         }, oneShot, deferred);
     }
 
-    public static SignalHandler OnBodyShapeExited<T>(this Area2D area2D, int layer, Action<RID, T, int, int> action, bool oneShot = false,
+    public static SignalHandler OnBodyShapeExited<T>(this Area2D area2D, int layer, Action<Rid, T, int, int> action, bool oneShot = false,
         bool deferred = false) where T : PhysicsBody2D {
         area2D.DetectLayer(layer);
         return area2D.OnBodyShapeExited((rid, node, bodyShapeIndex, localShapeIndex) => {
@@ -110,7 +110,7 @@ public static class CollisionLayerExtensions {
         }, oneShot, deferred);
     }
 
-    public static SignalHandler OnTileMapShapeEntered<T>(this Area2D area2D, int layer, Action<RID, T, int, int> action, bool oneShot = false,
+    public static SignalHandler OnTileMapShapeEntered<T>(this Area2D area2D, int layer, Action<Rid, T, int, int> action, bool oneShot = false,
         bool deferred = false) where T : TileMap {
         area2D.DetectLayer(layer);
         return area2D.OnBodyShapeEntered((rid, node, bodyShapeIndex, localShapeIndex) => {
@@ -118,7 +118,7 @@ public static class CollisionLayerExtensions {
         }, oneShot, deferred);
     }
 
-    public static SignalHandler OnTileMapShapeExited<T>(this Area2D area2D, int layer, Action<RID, T, int, int> action, bool oneShot = false,
+    public static SignalHandler OnTileMapShapeExited<T>(this Area2D area2D, int layer, Action<Rid, T, int, int> action, bool oneShot = false,
         bool deferred = false) where T : TileMap {
         area2D.DetectLayer(layer);
         return area2D.OnBodyShapeExited((rid, node, bodyShapeIndex, localShapeIndex) => {

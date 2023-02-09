@@ -324,7 +324,7 @@ namespace Betauer.DI.Tests {
             Assert.That(!c.Contains("member3P1")); 
             Assert.That(!c.Contains("member3P2")); 
 
-            // [Service(Type=typeof(Object)] member is exposed by specified type only, not the member type
+            // [Service(Type=typeof(GodotObject)] member is exposed by specified type only, not the member type
             Assert.That(!c.Contains<ExposeServiceMember4>()); 
             Assert.That(c.Resolve<I1>(), Is.TypeOf<ExposeServiceMember4>());
             Assert.That(c.Resolve<I2>(), Is.TypeOf<ExposeServiceMember4>());

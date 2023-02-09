@@ -8,7 +8,7 @@ public class ScaleZProperty : Property<float> {
 
     public override float GetValue(Node node) {
         return node switch {
-            Node3D node3D => node3D.Scale.z,
+            Node3D node3D => node3D.Scale.Z,
             _ => throw new NodeNotCompatibleWithPropertyException($"No ScaleY property for node type {node.GetType()}")
         };
     }

@@ -52,12 +52,12 @@ namespace Betauer.GameTools.Tests {
 
             // Configure and save
             jump.Update(u => {
-                u.AddKeys(Key.A, Key.Acircumflex);
+                u.AddKeys(Key.A, Key.Exclam);
                 u.AddButtons(JoyButton.Paddle1, JoyButton.X);
                 u.SetAxis(JoyAxis.RightX);
             });
             Assert.That(jump.Buttons, Is.EqualTo(new [] {JoyButton.Paddle1, JoyButton.X}.ToList()));
-            Assert.That(jump.Keys, Is.EqualTo(new [] {Key.A, Key.Acircumflex}.ToList()));
+            Assert.That(jump.Keys, Is.EqualTo(new [] {Key.A, Key.Exclam}.ToList()));
             Assert.That(jump.Axis, Is.EqualTo(JoyAxis.RightX));
             jump.Save();
 
@@ -75,7 +75,7 @@ namespace Betauer.GameTools.Tests {
             // But it load again, data is recovered
             jump.Load();
             Assert.That(jump.Buttons, Is.EqualTo(new [] {JoyButton.Paddle1, JoyButton.X}.ToList()));
-            Assert.That(jump.Keys, Is.EqualTo(new [] {Key.A, Key.Acircumflex}.ToList()));
+            Assert.That(jump.Keys, Is.EqualTo(new [] {Key.A, Key.Exclam}.ToList()));
             Assert.That(jump.Axis, Is.EqualTo(JoyAxis.RightX));
 
         }
@@ -94,12 +94,12 @@ namespace Betauer.GameTools.Tests {
 
             // Configure and save
             jump.Update(u => {
-                u.AddKeys(Key.A, Key.Acircumflex);
+                u.AddKeys(Key.A, Key.Exclam);
                 u.AddButtons(JoyButton.Paddle1, JoyButton.X);
                 u.SetAxis(JoyAxis.RightX);
             });
             Assert.That(jump.Buttons, Is.EqualTo(new [] {JoyButton.Paddle1, JoyButton.X}.ToList()));
-            Assert.That(jump.Keys, Is.EqualTo(new [] {Key.A, Key.Acircumflex}.ToList()));
+            Assert.That(jump.Keys, Is.EqualTo(new [] {Key.A, Key.Exclam}.ToList()));
             Assert.That(jump.Axis, Is.EqualTo(JoyAxis.RightX));
             jump.Save();
 
@@ -112,7 +112,7 @@ namespace Betauer.GameTools.Tests {
 
             // Data is recovered
             Assert.That(jump.Buttons, Is.EqualTo(new [] {JoyButton.Paddle1, JoyButton.X}.ToList()));
-            Assert.That(jump.Keys, Is.EqualTo(new [] {Key.A, Key.Acircumflex}.ToList()));
+            Assert.That(jump.Keys, Is.EqualTo(new [] {Key.A, Key.Exclam}.ToList()));
             Assert.That(jump.Axis, Is.EqualTo(JoyAxis.RightX));
 
         }

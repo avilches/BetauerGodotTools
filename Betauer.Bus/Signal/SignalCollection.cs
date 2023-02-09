@@ -3,8 +3,8 @@ using Godot;
 
 namespace Betauer.Bus.Signal {
     public abstract class SignalCollection<TPublisher, TArgs, TObject>
-        where TPublisher : Object
-        where TObject : Object {
+        where TPublisher : GodotObject
+        where TObject : GodotObject {
 
         public readonly string? Name;
 
@@ -30,14 +30,14 @@ namespace Betauer.Bus.Signal {
 
         protected void OnEnter(TPublisher publisher, TArgs signalArgs) {
             lock (Set) {
-                Set.RemoveWhere((e) => !Object.IsInstanceValid(e));
+                Set.RemoveWhere((e) => !GodotObject.IsInstanceValid(e));
                 Set.Add(Extract(signalArgs));
             }
         }
 
         protected void OnExit(TPublisher publisher, TArgs signalArgs) {
             var toRemove = Extract(signalArgs);
-            lock (Set) Set.RemoveWhere((e) => e == toRemove || !Object.IsInstanceValid(e));
+            lock (Set) Set.RemoveWhere((e) => e == toRemove || !GodotObject.IsInstanceValid(e));
         }
     }
 }

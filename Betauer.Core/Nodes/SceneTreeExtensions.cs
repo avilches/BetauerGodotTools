@@ -19,7 +19,7 @@ public static partial class SceneTreeExtensions {
         _quitRequested = true;
         sceneTree.AutoAcceptQuit = false;
         LoggerFactory.SetAutoFlush(true);
-        sceneTree.Notification((int)Node.NotificationWmCloseRequest);
+        sceneTree.Notification((int)Node.NotificationWMCloseRequest);
         sceneTree.Quit(exitCode);
     }
 }

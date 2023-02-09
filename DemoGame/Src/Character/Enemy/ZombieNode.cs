@@ -397,7 +397,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 			})
 			.Execute(() => {
 				ApplyFloorGravity();
-				_animationPlayer.PlaybackSpeed = Math.Abs(XInput);
+				_animationPlayer.SpeedScale = Math.Abs(XInput);
 				PlatformBody.Lateral(XInput, EnemyConfig.Acceleration, EnemyConfig.MaxSpeed, 
 					EnemyConfig.Friction, EnemyConfig.StopIfSpeedIsLessThan, 0);
 				
@@ -406,7 +406,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 			.If(() => Attack.IsJustPressed).Set(ZombieState.Attacking)
 			.If(() => !PlatformBody.IsOnFloor()).Set(ZombieState.Fall)
 			.If(() => XInput == 0 && MotionX == 0).Set(ZombieState.Idle)
-			.Exit(() => _animationPlayer.PlaybackSpeed = 1)
+			.Exit(() => _animationPlayer.SpeedScale = 1)
 			.Build();
 
 		State(ZombieState.Attacking)
@@ -430,8 +430,8 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 				var angle = Random.Range(35, 80);
 				var energy = Random.Range(90, 300);
 				var dir = Vector2.Right.Rotated(Mathf.DegToRad(angle)) * energy;
-				PlatformBody.MotionX = IsToTheRightOfPlayer() ? dir.x : -dir.x;
-				PlatformBody.MotionY = -dir.y;
+				PlatformBody.MotionX = IsToTheRightOfPlayer() ? dir.X : -dir.X;
+				PlatformBody.MotionY = -dir.Y;
 				AnimationHurt.PlayOnce(true);
 				redFlash?.Kill();
 				redFlash = RedFlash.Play(_mainSprite, 0); 

@@ -5,7 +5,6 @@ using Betauer.Core;
 using Betauer.Core.Nodes.Property;
 using Betauer.Tools.Logging;
 using Godot;
-using Object = Godot.Object;
 
 namespace Betauer.Animation {
     
@@ -32,7 +31,7 @@ namespace Betauer.Animation {
                 throw new NodeNotCompatibleWithPropertyException($"Property {property} is not compatible with target type {target.GetType().Name}");
             
             if (target == null) throw new InvalidAnimationException("No target defined for the animation");
-            if (!Object.IsInstanceValid(target)) {
+            if (!GodotObject.IsInstanceValid(target)) {
                 Logger.Warning($"Can't start {GetType()} using a freed target instance");
                 return false;
             }

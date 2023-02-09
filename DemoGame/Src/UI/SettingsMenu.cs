@@ -176,7 +176,7 @@ public partial class SettingsMenu : CanvasLayer {
 		var pos = resolutions.FindIndex(scaledResolution => scaledResolution.Size == currentResolution.Size);
 		if (pos == -1) {
 			// Find the closest resolution with the same or smaller height
-			pos = resolutions.Count(scaledResolution => scaledResolution.Size.y <= currentResolution.Size.y) - 1;
+			pos = resolutions.Count(scaledResolution => scaledResolution.Size.Y <= currentResolution.Size.Y) - 1;
 			if (pos == -1) pos = 0;
 		}
 		return new Tuple<ScaledResolution, List<ScaledResolution>, int>(resolutions[pos], resolutions, pos);
@@ -223,7 +223,7 @@ public partial class SettingsMenu : CanvasLayer {
 			res += " (Original)";
 		} else if (scaledResolution.Base == _screenSettingsManager.ScreenConfiguration.BaseResolution.Size) {
 			if (scaledResolution.IsScaleYInteger()) {
-				res += " (x" + scaledResolution.Scale.y + ")";
+				res += " (x" + scaledResolution.Scale.Y + ")";
 			}
 		}
 		_resolutionButton.Text = prefix + res + suffix;

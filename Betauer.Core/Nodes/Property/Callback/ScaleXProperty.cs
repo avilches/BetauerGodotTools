@@ -8,9 +8,9 @@ public class ScaleXProperty : Property<float> {
 
     public override float GetValue(Node node) {
         return node switch {
-            Node2D node2D => node2D.Scale.x,
-            Control control => control.Scale.x,
-            Node3D node3D => node3D.Scale.x,
+            Node2D node2D => node2D.Scale.X,
+            Control control => control.Scale.X,
+            Node3D node3D => node3D.Scale.X,
             _ => throw new NodeNotCompatibleWithPropertyException($"Not ScaleX property for node type {node.GetType()}")
         };
     }

@@ -37,11 +37,11 @@ public class ResizeIntegerScaledStrategy : BaseScreenResolutionService, IScreenS
 
         switch (StretchAspect) {
             case Window.ContentScaleAspectEnum.KeepWidth: {
-                screenSize.y += overScan.y;
+                screenSize.Y += overScan.Y;
                 break;
             }
             case Window.ContentScaleAspectEnum.KeepHeight: {
-                screenSize.x += overScan.x;
+                screenSize.X += overScan.X;
                 break;
             }
             case Window.ContentScaleAspectEnum.Expand:
@@ -74,12 +74,12 @@ public class ResizeIntegerScaledStrategy : BaseScreenResolutionService, IScreenS
             rootViewport.SetSizeOverride(true, (screenSize / Zoom).Floor());
         }
         VisualServer.BlackBarsSetMargins(
-            Mathf.Max(0, (int)margin.x),
-            Mathf.Max(0, (int)margin.y),
-            Mathf.Max(0, (int)margin2.x),
-            Mathf.Max(0, (int)margin2.y));
+            Mathf.Max(0, (int)margin.X),
+            Mathf.Max(0, (int)margin.Y),
+            Mathf.Max(0, (int)margin2.X),
+            Mathf.Max(0, (int)margin2.Y));
 
-        _state = $"ResizeIntegerScaled {StretchMode}/{StretchAspect} | Zoom {Zoom} | WindowSize {windowSize.x}x{windowSize.y} | Viewport {screenSize.x}x{screenSize.y}";
+        _state = $"ResizeIntegerScaled {StretchMode}/{StretchAspect} | Zoom {Zoom} | WindowSize {windowSize.X}x{windowSize.Y} | Viewport {screenSize.X}x{screenSize.Y}";
         */
     }
 }
