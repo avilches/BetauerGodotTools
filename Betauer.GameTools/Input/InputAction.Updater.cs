@@ -15,7 +15,6 @@ public partial class InputAction {
             ClearMouse();
             ClearAxis();
             SetDeadZone(DefaultDeadZone);
-            SetAxisSign(1);
             ClearModifiers();
             ClearButtons();
             ClearKeys();

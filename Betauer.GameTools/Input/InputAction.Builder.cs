@@ -21,6 +21,7 @@ public partial class InputAction {
         private bool _altPressed;
         private bool _metaPressed;
         private bool _commandOrCtrlPressed;
+        private bool _pausable = false;
 
         internal Builder(string name) {
             Name = name;
@@ -93,6 +94,11 @@ public partial class InputAction {
             return this as TBuilder;
         }
 
+        public TBuilder Pausable(bool pausable = true) {
+            _pausable = pausable;
+            return this as TBuilder;
+        }
+
         private void ApplyConfig(InputAction inputAction) {
             if (_axis != JoyAxis.Invalid) {
                 inputAction.Axis = _axis;
@@ -115,6 +121,7 @@ public partial class InputAction {
             inputAction.Alt = _altPressed;
             inputAction.Meta = _metaPressed;
             inputAction.CommandOrCtrl = _commandOrCtrlPressed;
+            inputAction.Pausable = _pausable;
         }
         
         public InputAction AsSimulator(bool godotInputMapToo = false) {

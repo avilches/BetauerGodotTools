@@ -57,6 +57,7 @@ public partial class InputAction : IAction {
     public bool IsEventReleased(InputEvent e) => IsEvent(e) && e.IsReleased();
 
     // Configuration
+    public bool Pausable { get; private set; } = false;
     public List<JoyButton> Buttons { get; } = new();
     public List<Key> Keys { get; } = new();
     public JoyAxis Axis { get; private set; } = JoyAxis.Invalid;

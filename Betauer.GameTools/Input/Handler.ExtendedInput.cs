@@ -6,7 +6,8 @@ internal class ExtendedInputActionStateHandler : ActionStateHandler {
     internal ExtendedInputActionStateHandler(InputAction inputAction) : base(inputAction) {
     }
 
-    public void Update(InputEvent inputEvent) {
+    public void Update(bool paused, InputEvent inputEvent) {
+        if (paused && InputAction.Pausable) return;
         if (inputEvent is InputEventJoypadButton or InputEventKey or InputEventMouseButton) {
             if (inputEvent is InputEventWithModifiers modifiers) {
                 if (InputAction.Shift && !modifiers.ShiftPressed) return;
@@ -42,7 +43,8 @@ internal class ExtendedInputActionStateHandler : ActionStateHandler {
         }
     }
 
-    public void AddTime(float delta) {
+    public void AddTime(bool paused, float delta) {
+        if (paused && InputAction.Pausable) return;
         PressedTime += delta;
         ReleasedTime += delta;
     }

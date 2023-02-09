@@ -159,10 +159,11 @@ public partial class InputActionsContainer : Node {
             SetProcessInput(false);
             return;
         }
+        var paused = GetTree().Paused;
         var span = CollectionsMarshal.AsSpan(_onInputActions);
         for (var i = 0; i < span.Length; i++) {
             var inputAction = span[i];
-            if (inputAction.IsEvent(e)) ((ExtendedInputActionStateHandler)inputAction.Handler).Update(e);
+            if (inputAction.IsEvent(e)) ((ExtendedInputActionStateHandler)inputAction.Handler).Update(paused, e);
         }
     }
 
@@ -171,10 +172,11 @@ public partial class InputActionsContainer : Node {
             SetProcessUnhandledInput(false);
             return;
         }
+        var paused = GetTree().Paused;
         var span = CollectionsMarshal.AsSpan(_onUnhandledInputActions);
         for (var i = 0; i < span.Length; i++) {
             var inputAction = span[i];
-            if (inputAction.IsEvent(e)) ((ExtendedInputActionStateHandler)inputAction.Handler).Update(e);
+            if (inputAction.IsEvent(e)) ((ExtendedInputActionStateHandler)inputAction.Handler).Update(paused, e);
         }
     }
 
@@ -185,15 +187,16 @@ public partial class InputActionsContainer : Node {
             return;
         }
         var delta = (float)d;
+        var paused = GetTree().Paused;
         var handledSpan = CollectionsMarshal.AsSpan(_onInputActions);
         for (var i = 0; i < handledSpan.Length; i++) {
             var inputAction = handledSpan[i];
-            ((ExtendedInputActionStateHandler)inputAction.Handler).AddTime(delta);
+            ((ExtendedInputActionStateHandler)inputAction.Handler).AddTime(paused, delta);
         }
         var unhandledSpan = CollectionsMarshal.AsSpan(_onUnhandledInputActions);
         for (var i = 0; i < unhandledSpan.Length; i++) {
             var inputAction = unhandledSpan[i];
-            ((ExtendedInputActionStateHandler)inputAction.Handler).AddTime(delta);
+            ((ExtendedInputActionStateHandler)inputAction.Handler).AddTime(paused, delta);
         }
     }
 }

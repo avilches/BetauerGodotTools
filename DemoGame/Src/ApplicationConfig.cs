@@ -188,7 +188,7 @@ public class Actions {
 		.AsGodotInput();
 
 	[Service]
-	private AxisAction Lateral => AxisAction.Create(nameof(Lateral), nameof(Right), nameof(Left));
+	private AxisAction Lateral => AxisAction.Create(nameof(Lateral), nameof(Left), nameof(Right));
 
 	[Service]
 	private AxisAction Vertical => AxisAction.Create(nameof(Vertical), nameof(Down), nameof(Up));
@@ -197,6 +197,7 @@ public class Actions {
 	private InputAction Jump => InputAction.Configurable(nameof(Jump))
 		.Keys(Key.Space)
 		.Buttons(JoyButton.A)
+		.Pausable()
 		.ExtendedUnhandled();
 
 	[Service]
@@ -204,24 +205,28 @@ public class Actions {
 		.Keys(Key.C)
 		.Click(MouseButton.Left)
 		.Buttons(JoyButton.B)
+		.Pausable()
 		.ExtendedUnhandled();
 
 	[Service]
 	private InputAction NextItem => InputAction.Configurable(nameof(NextItem))
 		.Keys(Key.E)
 		.Buttons(JoyButton.RightShoulder)
+		.Pausable()
 		.ExtendedUnhandled();
 
 	[Service]
 	private InputAction PrevItem => InputAction.Configurable(nameof(PrevItem))
 		.Keys(Key.Q)
 		.Buttons(JoyButton.LeftShoulder)
+		.Pausable()
 		.ExtendedUnhandled();
 
 	[Service]
 	private InputAction Float => InputAction.Configurable(nameof(Float))
 		.Keys(Key.F)
 		.Buttons(JoyButton.Y)
+		.Pausable()
 		.ExtendedUnhandled();
 
 	[Service]
