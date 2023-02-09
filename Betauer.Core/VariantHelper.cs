@@ -64,7 +64,7 @@ public static class VariantHelper {
         };
     }
 
-    public static T ConvertTo<T>(Variant value) {
+    public static T ConvertTo<[MustBeVariant] T>(Variant value) {
         return typeof(T) == typeof(object) ? (T)ConvertTo(value) : value.As<T>();
     }
 
@@ -112,52 +112,52 @@ public static class VariantHelper {
         };
     }
 
-    public static T Add<T>(T op1, T op2) {
+    public static Variant Add<[MustBeVariant] T>(T op1, T op2) {
         return op1 switch {
-            char fromChar when op2 is char toChar => (T)(object)(fromChar + toChar),
-            sbyte fromSbyte when op2 is sbyte toSbyte => (T)(object)(fromSbyte + toSbyte),
-            short fromShort when op2 is short toShort => (T)(object)(fromShort + toShort),
-            int fromInt when op2 is int toInt => (T)(object)(fromInt + toInt),
-            long fromLong when op2 is long toLong => (T)(object)(fromLong + toLong),
-            byte fromByte when op2 is byte toByte => (T)(object)(fromByte + toByte),
-            ushort fromUshort when op2 is ushort toUshort => (T)(object)(fromUshort + toUshort),
-            uint fromUint when op2 is uint toUint => (T)(object)(fromUint + toUint),
-            ulong fromUlong when op2 is ulong toUlong => (T)(object)(fromUlong + toUlong),
-            float fromFloat when op2 is float toFloat => (T)(object)(fromFloat + toFloat),
-            double fromDouble when op2 is double toDouble => (T)(object)(fromDouble + toDouble),
-            Vector2 fromVector2 when op2 is Vector2 toVector2 => (T)(object)(fromVector2 + toVector2),
-            Vector2i fromVector2i when op2 is Vector2i toVector2i => (T)(object)(fromVector2i + toVector2i),
-            Vector3 fromVector3 when op2 is Vector3 toVector3 => (T)(object)(fromVector3 + toVector3),
-            Vector3i fromVector3i when op2 is Vector3i toVector3i => (T)(object)(fromVector3i + toVector3i),
-            Vector4 fromVector4 when op2 is Vector4 toVector4 => (T)(object)(fromVector4 + toVector4),
-            Vector4i fromVector4i when op2 is Vector4i toVector4i => (T)(object)(fromVector4i + toVector4i),
-            Quaternion fromQuaternion when op2 is Quaternion toQuaternion => (T)(object)(fromQuaternion + toQuaternion),
-            Color fromColor when op2 is Color toColor => (T)(object)(fromColor + toColor),
+            char fromChar when op2 is char toChar => (fromChar + toChar),
+            sbyte fromSbyte when op2 is sbyte toSbyte => (fromSbyte + toSbyte),
+            short fromShort when op2 is short toShort => (fromShort + toShort),
+            int fromInt when op2 is int toInt => (fromInt + toInt),
+            long fromLong when op2 is long toLong => (fromLong + toLong),
+            byte fromByte when op2 is byte toByte => (fromByte + toByte),
+            ushort fromUshort when op2 is ushort toUshort => (fromUshort + toUshort),
+            uint fromUint when op2 is uint toUint => (fromUint + toUint),
+            ulong fromUlong when op2 is ulong toUlong => (fromUlong + toUlong),
+            float fromFloat when op2 is float toFloat => (fromFloat + toFloat),
+            double fromDouble when op2 is double toDouble => (fromDouble + toDouble),
+            Vector2 fromVector2 when op2 is Vector2 toVector2 => (fromVector2 + toVector2),
+            Vector2i fromVector2i when op2 is Vector2i toVector2i => (fromVector2i + toVector2i),
+            Vector3 fromVector3 when op2 is Vector3 toVector3 => (fromVector3 + toVector3),
+            Vector3i fromVector3i when op2 is Vector3i toVector3i => (fromVector3i + toVector3i),
+            Vector4 fromVector4 when op2 is Vector4 toVector4 => (fromVector4 + toVector4),
+            Vector4i fromVector4i when op2 is Vector4i toVector4i => (fromVector4i + toVector4i),
+            Quaternion fromQuaternion when op2 is Quaternion toQuaternion => (fromQuaternion + toQuaternion),
+            Color fromColor when op2 is Color toColor => (fromColor + toColor),
             _ => throw new Exception($"Sum Variant: {op1?.GetType().Name} not implemented")
         };
     }
 
-    public static T Subtract<T>(T op1, T op2) {
+    public static Variant Subtract<[MustBeVariant] T>(T op1, T op2) {
         return op1 switch {
-            char fromChar when op2 is char toChar => (T)(object)(fromChar - toChar),
-            sbyte fromSbyte when op2 is sbyte toSbyte => (T)(object)(fromSbyte - toSbyte),
-            short fromShort when op2 is short toShort => (T)(object)(fromShort - toShort),
-            int fromInt when op2 is int toInt => (T)(object)(fromInt - toInt),
-            long fromLong when op2 is long toLong => (T)(object)(fromLong - toLong),
-            byte fromByte when op2 is byte toByte => (T)(object)(fromByte - toByte),
-            ushort fromUshort when op2 is ushort toUshort => (T)(object)(fromUshort - toUshort),
-            uint fromUint when op2 is uint toUint => (T)(object)(fromUint - toUint),
-            ulong fromUlong when op2 is ulong toUlong => (T)(object)(fromUlong - toUlong),
-            float fromFloat when op2 is float toFloat => (T)(object)(fromFloat - toFloat),
-            double fromDouble when op2 is double toDouble => (T)(object)(fromDouble - toDouble),
-            Vector2 fromVector2 when op2 is Vector2 toVector2 => (T)(object)(fromVector2 - toVector2),
-            Vector2i fromVector2i when op2 is Vector2i toVector2i => (T)(object)(fromVector2i - toVector2i),
-            Vector3 fromVector3 when op2 is Vector3 toVector3 => (T)(object)(fromVector3 - toVector3),
-            Vector3i fromVector3i when op2 is Vector3i toVector3i => (T)(object)(fromVector3i - toVector3i),
-            Vector4 fromVector4 when op2 is Vector4 toVector4 => (T)(object)(fromVector4 - toVector4),
-            Vector4i fromVector4i when op2 is Vector4i toVector4i => (T)(object)(fromVector4i - toVector4i),
-            Quaternion fromQuaternion when op2 is Quaternion toQuaternion => (T)(object)(fromQuaternion - toQuaternion),
-            Color fromColor when op2 is Color toColor => (T)(object)(fromColor - toColor),
+            char fromChar when op2 is char toChar => (fromChar - toChar),
+            sbyte fromSbyte when op2 is sbyte toSbyte => (fromSbyte - toSbyte),
+            short fromShort when op2 is short toShort => (fromShort - toShort),
+            int fromInt when op2 is int toInt => (fromInt - toInt),
+            long fromLong when op2 is long toLong => (fromLong - toLong),
+            byte fromByte when op2 is byte toByte => (fromByte - toByte),
+            ushort fromUshort when op2 is ushort toUshort => (fromUshort - toUshort),
+            uint fromUint when op2 is uint toUint => (fromUint - toUint),
+            ulong fromUlong when op2 is ulong toUlong => (fromUlong - toUlong),
+            float fromFloat when op2 is float toFloat => (fromFloat - toFloat),
+            double fromDouble when op2 is double toDouble => (fromDouble - toDouble),
+            Vector2 fromVector2 when op2 is Vector2 toVector2 => (fromVector2 - toVector2),
+            Vector2i fromVector2i when op2 is Vector2i toVector2i => (fromVector2i - toVector2i),
+            Vector3 fromVector3 when op2 is Vector3 toVector3 => (fromVector3 - toVector3),
+            Vector3i fromVector3i when op2 is Vector3i toVector3i => (fromVector3i - toVector3i),
+            Vector4 fromVector4 when op2 is Vector4 toVector4 => (fromVector4 - toVector4),
+            Vector4i fromVector4i when op2 is Vector4i toVector4i => (fromVector4i - toVector4i),
+            Quaternion fromQuaternion when op2 is Quaternion toQuaternion => (fromQuaternion - toQuaternion),
+            Color fromColor when op2 is Color toColor => (fromColor - toColor),
             _ => throw new Exception($"Subtract Variant: {op1?.GetType().Name} not implemented")
         };
     }
@@ -261,35 +261,35 @@ public static class VariantHelper {
         throw new Exception($"LerpVariant: {op1.VariantType} type not implemented");
     }
 
-    public static T LerpVariant<T>(T op1, T op2, float t) {
+    public static Variant LerpVariant<[MustBeVariant] T>(T op1, T op2, float t) {
         return op1 switch {
-            bool fromBool when op2 is bool toBool => (T)(object)Lerp(fromBool, toBool, t),
-            char fromChar when op2 is char toChar => (T)(object)Mathf.Lerp(fromChar, toChar, t),
-            sbyte fromSbyte when op2 is sbyte toSbyte => (T)(object)Mathf.Lerp(fromSbyte, toSbyte, t),
-            short fromShort when op2 is short toShort => (T)(object)Mathf.Lerp(fromShort, toShort, t),
-            int fromInt when op2 is int toInt => (T)(object)Mathf.Lerp(fromInt, toInt, t),
-            long fromLong when op2 is long toLong => (T)(object)Mathf.Lerp(fromLong, toLong, t),
-            byte fromByte when op2 is byte toByte => (T)(object)Mathf.Lerp(fromByte, toByte, t),
-            ushort fromUshort when op2 is ushort toUshort => (T)(object)Mathf.Lerp(fromUshort, toUshort, t),
-            uint fromUint when op2 is uint toUint => (T)(object)Mathf.Lerp(fromUint, toUint, t),
-            ulong fromUlong when op2 is ulong toUlong => (T)(object)Mathf.Lerp(fromUlong, toUlong, t),
-            float fromFloat when op2 is float toFloat => (T)(object)Mathf.Lerp(fromFloat, toFloat, t),
-            double fromDouble when op2 is double toDouble => (T)(object)Lerp(fromDouble, toDouble, t),
-            Vector2 fromVector2 when op2 is Vector2 toVector2 => (T)(object)fromVector2.Lerp(toVector2, t),
-            Vector2i fromVector2i when op2 is Vector2i toVector2i => (T)(object)fromVector2i.Lerp(toVector2i, t),
-            Rect2 fromRect2 when op2 is Rect2 toRect2 => (T)(object)fromRect2.Lerp(toRect2, t),
-            Rect2i fromRect2i when op2 is Rect2i toRect2i => (T)(object)fromRect2i.Lerp(toRect2i, t),
-            Transform2D fromTransform2D when op2 is Transform2D toTransform2D => (T)(object)fromTransform2D.InterpolateWith(toTransform2D, t),
-            Vector3 fromVector3 when op2 is Vector3 toVector3 => (T)(object)fromVector3.Lerp(toVector3, t),
-            Vector3i fromVector3i when op2 is Vector3i toVector3i => (T)(object)fromVector3i.Lerp(toVector3i, t),
-            Basis fromBasis when op2 is Basis toBasis => (T)(object)fromBasis.Lerp(toBasis, t),
-            Quaternion fromQuaternion when op2 is Quaternion toQuaternion => (T)(object)fromQuaternion.Slerp(toQuaternion, t),
-            Transform3D fromTransform3D when op2 is Transform3D toTransform3D => (T)(object)fromTransform3D.InterpolateWith(toTransform3D, t),
-            Vector4 fromVector4 when op2 is Vector4 toVector4 => (T)(object)fromVector4.Lerp(toVector4, t),
-            Vector4i fromVector4i when op2 is Vector4i toVector4i => (T)(object)fromVector4i.Lerp(toVector4i, t),
-            AABB fromAABB when op2 is AABB toAABB => (T)(object)fromAABB.Lerp(toAABB, t),
-            Color fromColor when op2 is Color toColor => (T)(object)fromColor.Lerp(toColor, t),
-            Plane fromPlane when op2 is Plane toPlane => (T)(object)fromPlane.Lerp(toPlane, t),
+            bool fromBool when op2 is bool toBool => Lerp(fromBool, toBool, t),
+            char fromChar when op2 is char toChar => Mathf.Lerp(fromChar, toChar, t),
+            sbyte fromSbyte when op2 is sbyte toSbyte => Mathf.Lerp(fromSbyte, toSbyte, t),
+            short fromShort when op2 is short toShort => Mathf.Lerp(fromShort, toShort, t),
+            int fromInt when op2 is int toInt => Mathf.Lerp(fromInt, toInt, t),
+            long fromLong when op2 is long toLong => Mathf.Lerp(fromLong, toLong, t),
+            byte fromByte when op2 is byte toByte => Mathf.Lerp(fromByte, toByte, t),
+            ushort fromUshort when op2 is ushort toUshort => Mathf.Lerp(fromUshort, toUshort, t),
+            uint fromUint when op2 is uint toUint => Mathf.Lerp(fromUint, toUint, t),
+            ulong fromUlong when op2 is ulong toUlong => Mathf.Lerp(fromUlong, toUlong, t),
+            float fromFloat when op2 is float toFloat => Mathf.Lerp(fromFloat, toFloat, t),
+            double fromDouble when op2 is double toDouble => Lerp(fromDouble, toDouble, t),
+            Vector2 fromVector2 when op2 is Vector2 toVector2 => fromVector2.Lerp(toVector2, t),
+            Vector2i fromVector2i when op2 is Vector2i toVector2i => fromVector2i.Lerp(toVector2i, t),
+            Rect2 fromRect2 when op2 is Rect2 toRect2 => fromRect2.Lerp(toRect2, t),
+            Rect2i fromRect2i when op2 is Rect2i toRect2i => fromRect2i.Lerp(toRect2i, t),
+            Transform2D fromTransform2D when op2 is Transform2D toTransform2D => fromTransform2D.InterpolateWith(toTransform2D, t),
+            Vector3 fromVector3 when op2 is Vector3 toVector3 => fromVector3.Lerp(toVector3, t),
+            Vector3i fromVector3i when op2 is Vector3i toVector3i => fromVector3i.Lerp(toVector3i, t),
+            Basis fromBasis when op2 is Basis toBasis => fromBasis.Lerp(toBasis, t),
+            Quaternion fromQuaternion when op2 is Quaternion toQuaternion => fromQuaternion.Slerp(toQuaternion, t),
+            Transform3D fromTransform3D when op2 is Transform3D toTransform3D => fromTransform3D.InterpolateWith(toTransform3D, t),
+            Vector4 fromVector4 when op2 is Vector4 toVector4 => fromVector4.Lerp(toVector4, t),
+            Vector4i fromVector4i when op2 is Vector4i toVector4i => fromVector4i.Lerp(toVector4i, t),
+            AABB fromAABB when op2 is AABB toAABB => fromAABB.Lerp(toAABB, t),
+            Color fromColor when op2 is Color toColor => fromColor.Lerp(toColor, t),
+            Plane fromPlane when op2 is Plane toPlane => fromPlane.Lerp(toPlane, t),
             _ => throw new Exception($"LerpVariant<T>: {op1?.GetType().Name} type not implemented")
         };
     }

@@ -292,7 +292,7 @@ namespace Betauer.Animation.Tests {
 
         }
 
-        private static void AssertStepTime<T>(DebugStep<T> step, float start, float duration) {
+        private static void AssertStepTime<[MustBeVariant] T>(DebugStep<T> step, float start, float duration) {
             Assert.That(step.Start, Is.EqualTo(start));
             Assert.That(step.Duration, Is.EqualTo(duration).Within(0.0000001f));
         }

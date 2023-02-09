@@ -5,7 +5,7 @@ using Betauer.Core.Nodes.Property;
 using Godot;
 
 namespace Betauer.Animation {
-    public class PropertyStepTweenerOffset<TProperty> : PropertyStepTweener<TProperty> {
+    public class PropertyStepTweenerOffset<[MustBeVariant] TProperty> : PropertyStepTweener<TProperty> {
         private readonly SequenceAnimation _animation;
 
         internal PropertyStepTweenerOffset(SequenceAnimation animation,

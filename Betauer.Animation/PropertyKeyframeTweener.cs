@@ -10,7 +10,7 @@ namespace Betauer.Animation {
         public float Start(Tween sceneTreeTween, float initialDelay, Node target, float duration);
     }
 
-    public abstract class PropertyKeyframeTweener<TProperty> : PropertyTweener<TProperty>, IPropertyKeyframeTweener {
+    public abstract class PropertyKeyframeTweener<[MustBeVariant] TProperty> : PropertyTweener<TProperty>, IPropertyKeyframeTweener {
         public readonly List<AnimationKeyframe<TProperty>> Keyframes = new List<AnimationKeyframe<TProperty>>();
 
         protected PropertyKeyframeTweener(Func<Node, IProperty<TProperty>> propertyFactory, IEasing? defaultEasing) :

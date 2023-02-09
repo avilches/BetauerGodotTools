@@ -5,7 +5,7 @@ using Betauer.Core.Nodes.Property;
 using Godot;
 
 namespace Betauer.Animation {
-    public class PropertyKeyframeTweenerAbsolute<TProperty> : PropertyKeyframeTweener<TProperty> {
+    public class PropertyKeyframeTweenerAbsolute<[MustBeVariant] TProperty> : PropertyKeyframeTweener<TProperty> {
         private readonly KeyframeAnimation _animation;
 
         internal PropertyKeyframeTweenerAbsolute(KeyframeAnimation animation,

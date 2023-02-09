@@ -548,7 +548,7 @@ namespace Betauer.Animation.Tests {
             }
         }
 
-        private async Task CreateTweenPropertyVariants<T>(Node node, IProperty<T> property, T from, T to) {
+        private async Task CreateTweenPropertyVariants<[MustBeVariant] T>(Node node, IProperty<T> property, T from, T to) {
             property.SetValue(node, from);
             Assert.That(property.GetValue(node), Is.EqualTo(from));
             List<DebugStep<T>> steps = new List<DebugStep<T>>();
@@ -568,7 +568,7 @@ namespace Betauer.Animation.Tests {
             Assert.That(property.GetValue(node), Is.EqualTo(to));
         }
 
-        private async Task CreateKeyframePropertyVariants<T>(Node node, IProperty<T> property, T from, T to) {
+        private async Task CreateKeyframePropertyVariants<[MustBeVariant] T>(Node node, IProperty<T> property, T from, T to) {
             property.SetValue(node, from);
             Assert.That(property.GetValue(node), Is.EqualTo(from));
             List<DebugStep<T>> steps = new List<DebugStep<T>>();
@@ -653,7 +653,7 @@ namespace Betauer.Animation.Tests {
             Assert.That(sprite.GlobalPosition, Is.EqualTo(original));
         }
 
-        private static void AssertStep<T>(DebugStep<T> step, T from, T to, float start, float duration, IEasing easing) {
+        private static void AssertStep<[MustBeVariant] T>(DebugStep<T> step, T from, T to, float start, float duration, IEasing easing) {
             Assert.That(step.From, Is.EqualTo(from).Within(0.0000001f));
             Assert.That(step.To, Is.EqualTo(to).Within(0.0000001f));
             Assert.That(step.Start, Is.EqualTo(start));

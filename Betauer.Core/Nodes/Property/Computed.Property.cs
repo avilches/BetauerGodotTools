@@ -1,9 +1,8 @@
-using System;
 using Godot;
 
 namespace Betauer.Core.Nodes.Property; 
 
-public abstract class ComputedProperty<TProperty> : IProperty, IProperty<TProperty> {
+public abstract class ComputedProperty<[MustBeVariant] TProperty> : IProperty, IProperty<TProperty> {
     protected readonly IProperty<TProperty> Property;
     protected readonly Node Node;
 
@@ -16,11 +15,11 @@ public abstract class ComputedProperty<TProperty> : IProperty, IProperty<TProper
         if (!IsCompatibleWith(node))
             throw new NodeNotCompatibleWithPropertyException($"ComputedProperty {this} is not compatible with target type {node.GetType().Name}");
         if (Property is IProperty property) return property.GetValue(node);
-        return (Variant)(object)Property.GetValue(node);
+        return Variant.From(Property.GetValue(node));
     }
 
     public void SetValue(Node node, Variant value) {
-        SetValue(node, (TProperty)(object)value);
+        SetValue(node, value.As<TProperty>());
     }
 
     public TProperty GetValue(Node node) {

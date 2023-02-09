@@ -3,7 +3,7 @@ using Betauer.Core.Nodes.Property;
 using Godot;
 
 namespace Betauer.Animation {
-    public class NodeCallbackProperty<TProperty> : IProperty<TProperty> {
+    public class NodeCallbackProperty<[MustBeVariant] TProperty> : IProperty<TProperty> {
         private readonly Action<Node, TProperty> _action;
 
         public NodeCallbackProperty(Action<Node, TProperty> action) {

@@ -13,7 +13,7 @@ namespace Betauer.Animation {
         protected static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PropertyTweener));
     }
 
-    public abstract class PropertyTweener<TProperty> : PropertyTweener {
+    public abstract class PropertyTweener<[MustBeVariant] TProperty> : PropertyTweener {
         protected readonly Func<Node, IProperty<TProperty>> PropertyFactory;
         protected readonly IEasing? DefaultEasing;
         protected Func<Node, TProperty>? FromFunction;
@@ -73,7 +73,7 @@ namespace Betauer.Animation {
                         // Logger.Debug(
                         // $"\"{context.Target.Name}\" {context.Target.GetType().Name}.{property}:  Bezier({linearT})={curveY} value:{value}");
                         // Console.WriteLine($"Play  From/To: {from}/{to} | Delta:+{(float)x.ElapsedMilliseconds/1000:0.0000} From/To: 0.00/{duration:0.00} (duration: {duration:0.00} Time:{((float)x2.ElapsedMilliseconds)/1000:0.0000} | t:{linearY:0.0000} y:{curveY:0000} Value: {value}");
-                        property.SetValue(target, value);
+                        property.SetValue(target, value.As<TProperty>());
                     }),0f, 1f, duration)
                 .SetTrans(Tween.TransitionType.Linear)
                 .SetEase(Tween.EaseType.InOut)

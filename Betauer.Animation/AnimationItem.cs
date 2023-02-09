@@ -3,7 +3,7 @@ using Betauer.Animation.Easing;
 using Godot;
 
 namespace Betauer.Animation {
-    public abstract class AnimationItem<TProperty> {
+    public abstract class AnimationItem<[MustBeVariant] TProperty> {
         public readonly IEasing? Easing;
         public readonly Action<Node>? CallbackNode;
 

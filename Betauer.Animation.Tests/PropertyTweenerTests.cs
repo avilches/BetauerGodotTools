@@ -665,7 +665,7 @@ namespace Betauer.Animation.Tests {
             Assert.That(sprite.Position.x, Is.EqualTo(-90));
         }
 
-        private static void AssertStep<T>(DebugStep<T> step, T from, T to, float start, float duration, IEasing easing) {
+        private static void AssertStep<[MustBeVariant] T>(DebugStep<T> step, T from, T to, float start, float duration, IEasing easing) {
             Assert.That(step.From, Is.EqualTo(from).Within(0.0000001f));
             Assert.That(step.To, Is.EqualTo(to).Within(0.0000001f));
             Assert.That(step.Start, Is.EqualTo(start));

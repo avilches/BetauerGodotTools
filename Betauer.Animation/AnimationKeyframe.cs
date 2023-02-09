@@ -7,7 +7,7 @@ namespace Betauer.Animation {
     /**
      * Percent: to + percent keyframe
      */
-    public abstract class AnimationKeyframe<TProperty> : AnimationItem<TProperty> {
+    public abstract class AnimationKeyframe<[MustBeVariant] TProperty> : AnimationItem<TProperty> {
         public readonly float Percent;
 
         internal AnimationKeyframe(float percent, IEasing? easing, Action<Node>? callbackNode) : base(easing, callbackNode) {
@@ -15,7 +15,7 @@ namespace Betauer.Animation {
         }
     }
 
-    public class AnimationKeyframeAbsolute<TProperty> : AnimationKeyframe<TProperty> {
+    public class AnimationKeyframeAbsolute<[MustBeVariant] TProperty> : AnimationKeyframe<TProperty> {
         public readonly Func<Node, TProperty> To;
 
         internal AnimationKeyframeAbsolute(float percent, Func<Node, TProperty> to, IEasing? easing, Action<Node>? callbackNode) : base(percent, easing, callbackNode) {
@@ -27,7 +27,7 @@ namespace Betauer.Animation {
         }
     }
 
-    public class AnimationKeyframeOffset<TProperty> : AnimationKeyframe<TProperty> {
+    public class AnimationKeyframeOffset<[MustBeVariant] TProperty> : AnimationKeyframe<TProperty> {
         public readonly Func<Node, TProperty> Offset;
 
         internal AnimationKeyframeOffset(float percent, Func<Node, TProperty> offset, IEasing? easing, Action<Node>? callbackNode) : base(percent, easing, callbackNode) {
@@ -35,7 +35,7 @@ namespace Betauer.Animation {
         }
 
         public override TProperty GetTo(Node target, TProperty from) {
-            return VariantHelper.Add(from, Offset(target));
+            return VariantHelper.Add(from, Offset(target)).As<TProperty>();
         }
     }
 }

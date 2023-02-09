@@ -4,7 +4,7 @@ using Godot;
 
 namespace Betauer.Core.Nodes.Property; 
 
-public class IndexedMultipleProperty<TProperty> : IndexedProperty<TProperty> {
+public class IndexedMultipleProperty<[MustBeVariant] TProperty> : IndexedProperty<TProperty> {
     private readonly Type[] _types;
     private readonly NodePath[] _propertyNames;
 

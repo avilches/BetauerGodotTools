@@ -7,7 +7,7 @@ namespace Betauer.Animation {
     /**
      * Step: to + duration
      */
-    public abstract class AnimationStep<TProperty> : AnimationItem<TProperty> {
+    public abstract class AnimationStep<[MustBeVariant] TProperty> : AnimationItem<TProperty> {
         public readonly float Duration;
 
         protected AnimationStep(float duration, IEasing? easing, Action<Node>? callbackNode) : base(easing, callbackNode) {
@@ -15,7 +15,7 @@ namespace Betauer.Animation {
         }
     }
 
-    public class AnimationStepAbsolute<TProperty> : AnimationStep<TProperty> {
+    public class AnimationStepAbsolute<[MustBeVariant] TProperty> : AnimationStep<TProperty> {
         public readonly Func<Node, TProperty> To;
 
         internal AnimationStepAbsolute(Func<Node, TProperty> to, float duration, IEasing? easing, Action<Node>? callbackNode) : base(duration, easing, callbackNode) {
@@ -27,7 +27,7 @@ namespace Betauer.Animation {
         }
     }
 
-    public class AnimationStepOffset<TProperty> : AnimationStep<TProperty> {
+    public class AnimationStepOffset<[MustBeVariant] TProperty> : AnimationStep<TProperty> {
         public readonly Func<Node, TProperty> Offset;
 
         internal AnimationStepOffset(Func<Node, TProperty> offset, float duration, IEasing? easing, Action<Node>? callbackNode) : base(duration, easing, callbackNode) {
@@ -35,7 +35,7 @@ namespace Betauer.Animation {
         }
 
         public override TProperty GetTo(Node target, TProperty from) {
-            return VariantHelper.Add(from, Offset(target));
+            return VariantHelper.Add(from, Offset(target)).As<TProperty>();
         }
     }
 }

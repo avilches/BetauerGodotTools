@@ -7,7 +7,7 @@ namespace Betauer.Core.Nodes.Property;
 public static class IndexedSingleProperty {
     public static readonly Dictionary<(string, Type), IProperty> Cache = new();
 
-    public static IndexedSingleProperty<TProperty> Create<TProperty>(string propertyName, Type? type) {
+    public static IndexedSingleProperty<TProperty> Create<[MustBeVariant] TProperty>(string propertyName, Type? type) {
         type ??= typeof(Node);
         if (!type.IsAssignableTo(typeof(Node)))
             throw new ArgumentException($"{type.Name} should be Node or inherit from Node");
@@ -22,7 +22,7 @@ public static class IndexedSingleProperty {
     }
 }
 
-public class IndexedSingleProperty<TProperty> : IndexedProperty<TProperty> {
+public class IndexedSingleProperty<[MustBeVariant] TProperty> : IndexedProperty<TProperty> {
     private readonly NodePath _propertyName;
     private readonly Type _type;
         

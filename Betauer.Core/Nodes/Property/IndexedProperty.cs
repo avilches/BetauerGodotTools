@@ -1,5 +1,4 @@
 using Godot;
-using Godot.NativeInterop;
 
 namespace Betauer.Core.Nodes.Property; 
 
@@ -7,7 +6,7 @@ public interface IIndexedProperty {
     public NodePath GetIndexedPropertyName(Node node);
 }
 
-public abstract class IndexedProperty<TProperty> : IProperty, IProperty<TProperty>, IIndexedProperty {
+public abstract class IndexedProperty<[MustBeVariant] TProperty> : IProperty, IProperty<TProperty>, IIndexedProperty {
     Variant IProperty.GetValue(Node node) {
         return node.GetIndexed(GetIndexedPropertyName(node));
     }
@@ -17,12 +16,11 @@ public abstract class IndexedProperty<TProperty> : IProperty, IProperty<TPropert
     }
 
     public virtual TProperty GetValue(Node node) {
-        Variant indexed = node.GetIndexed(GetIndexedPropertyName(node));
-        return indexed.As<TProperty>();
+        return node.GetIndexed(GetIndexedPropertyName(node)).As<TProperty>();
     }
 
     public virtual void SetValue(Node node, TProperty value) {
-        node.SetIndexed(GetIndexedPropertyName(node), Variant.From(value));
+        SetValue(node, Variant.From(value));
     }
 
     public abstract bool IsCompatibleWith(Node node);

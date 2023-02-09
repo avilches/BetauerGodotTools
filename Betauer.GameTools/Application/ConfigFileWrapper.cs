@@ -7,7 +7,7 @@ using File = System.IO.File;
 namespace Betauer.Application; 
 
 public static class ConfigFileExtensions {
-    public static void SetTypedValue<T>(this ConfigFile configFile, string section, string key, T value) {
+    public static void SetTypedValue<[MustBeVariant] T>(this ConfigFile configFile, string section, string key, T value) {
         var variantValue = VariantHelper.CreateFrom(value);
         configFile.SetValue(section, key, variantValue);
     }

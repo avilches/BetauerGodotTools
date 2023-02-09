@@ -5,7 +5,7 @@ using Betauer.Core.Nodes.Property;
 using Godot;
 
 namespace Betauer.Animation {
-    public class PropertyStepTweenerAbsolute<TProperty> : PropertyStepTweener<TProperty> {
+    public class PropertyStepTweenerAbsolute<[MustBeVariant] TProperty> : PropertyStepTweener<TProperty> {
         private readonly SequenceAnimation _animation;
 
         internal PropertyStepTweenerAbsolute(SequenceAnimation animation, Func<Node, IProperty<TProperty>> propertyFactory, IEasing? defaultEasing) :

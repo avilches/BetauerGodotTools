@@ -2,7 +2,7 @@ using Betauer.Animation.Easing;
 using Godot;
 
 namespace Betauer.Animation {
-    public class DebugStep<TProperty> {
+    public class DebugStep<[MustBeVariant] TProperty> {
         public readonly Node Target;
         public readonly TProperty From;
         public readonly TProperty To;

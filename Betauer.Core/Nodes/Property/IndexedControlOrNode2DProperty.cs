@@ -3,7 +3,7 @@ using Godot;
 
 namespace Betauer.Core.Nodes.Property; 
 
-public class IndexedControlOrNode2DProperty<TProperty> : IndexedProperty<TProperty> {
+public class IndexedControlOrNode2DProperty<[MustBeVariant] TProperty> : IndexedProperty<TProperty> {
     private readonly NodePath? _node2DProperty;
     private readonly NodePath? _controlProperty;
 
