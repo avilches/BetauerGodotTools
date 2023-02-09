@@ -16,13 +16,14 @@ public class AxisAction : IAction {
         Negative.Enable(enabled);
         Positive.Enable(enabled);
     }
-
-    [Inject] private Container Container { get; set; }
-
+    
+    public InputActionsContainer? InputActionsContainer { get; private set; }
     public InputAction Negative { get; private set; }
     public InputAction Positive { get; private set; }
+    
+    // Constructor flags used by the [PostInject] to create to locate the InputActionsContainer
+    [Inject] private Container Container { get; set; }
     private readonly string? _inputActionsContainerName;
-
     private readonly string? _negativeServiceName; 
     private readonly string? _positiveServiceName;
 
@@ -78,9 +79,26 @@ public class AxisAction : IAction {
                 ? Container.Resolve<InputActionsContainer>(_inputActionsContainerName)
                 : Container.Resolve<InputActionsContainer>();
             inputActionsContainer.Add(this);
-
         }
     }
+
+    internal void OnAddToInputActionsContainer(InputActionsContainer inputActionsContainer) {
+        if (InputActionsContainer != null && InputActionsContainer != inputActionsContainer) {
+            InputActionsContainer.Remove(this);
+        }
+        InputActionsContainer = inputActionsContainer;
+        InputActionsContainer.Add(Positive);
+        InputActionsContainer.Add(Negative);
+    }
+
+    internal void OnRemoveFromInputActionsContainer() {
+        if (InputActionsContainer != null) {
+            InputActionsContainer.Remove(Positive);
+            InputActionsContainer.Remove(Negative);
+        }
+        InputActionsContainer = null;
+    }
+
 
     public void SimulatePress(float strength) {
         if (strength == 0f) {

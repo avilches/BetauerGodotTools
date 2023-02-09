@@ -39,7 +39,7 @@ namespace Betauer.GameTools.Tests {
 
         [Test]
         public void ImportExport() {
-            SaveSetting<string> b = Setting<string>.Save(null, "attack", "");
+            SaveSetting<string> b = Setting<string>.Persistent(null, "attack", "");
             var sc = new SettingsContainer(SettingsFile);
             sc.Add(b);
             
@@ -85,7 +85,7 @@ namespace Betauer.GameTools.Tests {
             var jump = InputAction.Configurable("ManualJump").AsSimulator();
             Assert.That(jump.SaveSetting, Is.Null);
 
-            SaveSetting<string> b = Setting<string>.Save(null, "attack","button:0,button:1,key:H,key:F");
+            SaveSetting<string> b = Setting<string>.Persistent(null, "attack","button:0,button:1,key:H,key:F");
             Assert.That(b.Section, Is.EqualTo("Settings")); // default value when section is null
             var sc = new SettingsContainer(SettingsFile);
             sc.Add(b);

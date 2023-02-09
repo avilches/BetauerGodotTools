@@ -35,6 +35,7 @@ public partial class InputAction : IAction {
     public static ConfigurableBuilder Configurable(string name) => new(name);
     public static ConfigurableBuilder Configurable(string inputActionsContainerName, string name) => new(inputActionsContainerName, name);
 
+    // Usage
     public string Name { get; }
     public bool IsPressed => Handler.Pressed;
     public bool IsJustPressed => Handler.JustPressed;
@@ -54,6 +55,7 @@ public partial class InputAction : IAction {
     public bool IsEventJustPressed(InputEvent e) => IsEvent(e) && e.IsJustPressed();
     public bool IsEventReleased(InputEvent e) => IsEvent(e) && e.IsReleased();
 
+    // Configuration
     public List<JoyButton> Buttons { get; } = new();
     public List<Key> Keys { get; } = new();
     public JoyAxis Axis { get; private set; } = JoyAxis.Invalid;
@@ -65,19 +67,20 @@ public partial class InputAction : IAction {
     public bool Shift { get; private set; }
     public bool Alt { get; private set; }
     public bool Meta { get; private set; }
-    public InputActionsContainer? InputActionsContainer { get; private set; }
-    public InputActionBehaviour Behaviour { get; }
-    public bool Enabled { get; private set; } = true;
-    public SaveSetting<string>? SaveSetting { get; private set; }
     
-    internal readonly IHandler Handler;
-    internal readonly bool IsUnhandledInput = false;
+    // Constructor flags used by the [PostInject] to create the SaveSetting and locate the InputActionsContainer
     [Inject] private Container Container { get; set; }
-    
     private readonly string? _inputActionsContainerName;
+    private readonly bool _configureSaveSetting = false;
     private readonly string? _settingsContainerName;
     private readonly string? _settingsSection;
-    private readonly bool _configureSaveSetting = false;
+    
+    public InputActionsContainer? InputActionsContainer { get; private set; }
+    public InputActionBehaviour Behaviour { get; }
+    public bool IsUnhandledInput { get; } = false;
+    public bool Enabled { get; private set; } = true;
+    public SaveSetting<string>? SaveSetting { get; private set; }
+    internal readonly IHandler Handler;
     private readonly Updater _updater;
     private readonly bool _configureGodotInputMap = false;
 
@@ -140,7 +143,7 @@ public partial class InputAction : IAction {
         // Configure and load settings
         if (_configureSaveSetting) {
             var section = _settingsSection ?? "Controls";
-            var setting = Setting<string>.Save(_settingsContainerName, section, Name, AsString());
+            var setting = Setting<string>.Persistent(_settingsContainerName, section, Name, AsString());
             Container.InjectServices(setting);
             setting.ConfigureAndAddToSettingContainer();
             SetSaveSettings(setting);
@@ -153,17 +156,23 @@ public partial class InputAction : IAction {
         var inputActionsContainer = _inputActionsContainerName != null
             ? Container.Resolve<InputActionsContainer>(_inputActionsContainerName)
             : Container.Resolve<InputActionsContainer>();
+        inputActionsContainer.Add(this);
         inputActionsContainer.Start();
-        SetInputActionsContainer(inputActionsContainer);
 
         SetupGodotInputMap();
     }
 
-    private void SetInputActionsContainer(InputActionsContainer inputActionsContainer) {
+    internal void OnAddToInputActionsContainer(InputActionsContainer inputActionsContainer) {
         if (Behaviour == InputActionBehaviour.Simulate) return;
-        InputActionsContainer?.Remove(this);
+        if (InputActionsContainer != null && InputActionsContainer != inputActionsContainer) {
+            InputActionsContainer.Remove(this);
+        }
         InputActionsContainer = inputActionsContainer;
-        InputActionsContainer.Add(this);
+    }
+
+    internal void OnRemoveFromInputActionsContainer(InputActionsContainer inputActionsContainer) {
+        if (Behaviour == InputActionBehaviour.Simulate) return;
+        InputActionsContainer = null;
     }
 
     public void Enable(bool enabled = true) {

@@ -3,11 +3,11 @@ using Betauer.DI;
 
 namespace Betauer.Application.Settings;
 public static class Setting<T> {
-    public static SaveSetting<T> Save(string? settingsContainerName, string section, string name, T defaultValue,
+    public static SaveSetting<T> Persistent(string? settingsContainerName, string section, string name, T defaultValue,
         bool autoSave = true, bool enabled = true) =>
         new(settingsContainerName, section, name, defaultValue, autoSave, enabled);
 
-    public static SaveSetting<T> Save(string section, string name, T defaultValue, bool autoSave = true,
+    public static SaveSetting<T> Persistent(string section, string name, T defaultValue, bool autoSave = true,
         bool enabled = true) => new(null, section, name, defaultValue, autoSave, enabled);
 
     public static MemorySetting<T> Memory(T value) => new(value);
@@ -15,16 +15,12 @@ public static class Setting<T> {
 
 public interface ISetting<T> {
     public T Value { get; set; }
-    public SettingsContainer SettingsContainer { get; }
-    public void OnAddToSettingsContainer(SettingsContainer settingsContainer);
+    public SettingsContainer? SettingsContainer { get; }
 }
 
 public abstract class BaseSetting {
-    public SettingsContainer SettingsContainer { get; protected set; }
+    public SettingsContainer? SettingsContainer { get; protected set; }
 
-    public void OnAddToSettingsContainer(SettingsContainer settingsContainer) {
-        SettingsContainer = settingsContainer;
-    }
 }
 
 public abstract class SaveSetting : BaseSetting {
@@ -40,14 +36,6 @@ public abstract class SaveSetting : BaseSetting {
     internal object InternalValue;
     internal bool Initialized;
 
-    [PostInject]
-    internal void ConfigureAndAddToSettingContainer() {
-        SettingsContainer = _settingsContainerName != null
-            ? Container.Resolve<SettingsContainer>(_settingsContainerName)
-            : Container.Resolve<SettingsContainer>();
-        SettingsContainer.Add(this);
-    }
-
     protected SaveSetting(string? settingsContainerName, string? section, string name, Type valueType,
         object defaultValue, bool autoSave, bool enabled) {
         _settingsContainerName = settingsContainerName;
@@ -58,6 +46,26 @@ public abstract class SaveSetting : BaseSetting {
         InternalDefaultValue = defaultValue;
         AutoSave = autoSave;
         Enabled = enabled;
+    }
+
+    [PostInject]
+    internal void ConfigureAndAddToSettingContainer() {
+        var settingsContainer = _settingsContainerName != null
+            ? Container.Resolve<SettingsContainer>(_settingsContainerName)
+            : Container.Resolve<SettingsContainer>();
+        settingsContainer.Add(this);
+    }
+
+    // There is no way to change the SettingContainer directly. Adding to a SettingContainer do the job
+    internal void OnAddToSettingsContainer(SettingsContainer settingsContainer) {
+        if (SettingsContainer != null && SettingsContainer != settingsContainer) {
+            SettingsContainer.Remove(this);
+        }
+        SettingsContainer = settingsContainer;
+    }
+
+    internal void OnRemoveFromSettingsContainer() {
+        SettingsContainer = null;
     }
 }
 
@@ -109,7 +117,7 @@ public class SaveSetting<T> : SaveSetting, ISetting<T> {
         set {
             InternalDefaultValue = value;
             // TODO: test it
-            SettingsContainer.LoadSetting(this); // Refresh the value, so it can use the new DefaultValue if it's empty
+            SettingsContainer?.LoadSetting(this); // Refresh the value, so it can use the new DefaultValue if it's empty
         }
     }
 }

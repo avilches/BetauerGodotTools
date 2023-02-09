@@ -38,7 +38,7 @@ namespace Betauer.GameTools.Tests {
         [Test]
         public void RegularAutoSaveTest() {
             var sc = new SettingsContainer(SettingsFile);
-            var saved = Setting<string>.Save("IGNORED", "Section", "AutoSave", "Default");
+            var saved = Setting<string>.Persistent("IGNORED", "Section", "AutoSave", "Default");
             
             // Read without container
             Assert.Throws<NullReferenceException>(() => { var x = saved.Value; });
@@ -62,7 +62,7 @@ namespace Betauer.GameTools.Tests {
         [Test]
         public void RegularNoAutoSaveTest() {
             var sc = new SettingsContainer(SettingsFile);
-            var saved = Setting<string>.Save("IGNORED", "Section", "NoAutoSave", "Default", false);
+            var saved = Setting<string>.Persistent("IGNORED", "Section", "NoAutoSave", "Default", false);
             
             // Read without container
             Assert.Throws<NullReferenceException>(() => { var x = saved.Value; });
@@ -90,7 +90,7 @@ namespace Betauer.GameTools.Tests {
         [Test]
         public void DisabledTest() {
             var sc = new SettingsContainer(SettingsFile);
-            var savedDisabled = Setting<string>.Save("IGNORED", "Section", "SavedDisabled", "Default", true, false);
+            var savedDisabled = Setting<string>.Persistent("IGNORED", "Section", "SavedDisabled", "Default", true, false);
             
             // Read without container
             Assert.That(savedDisabled.Value, Is.EqualTo("Default"));
@@ -114,7 +114,7 @@ namespace Betauer.GameTools.Tests {
         [Configuration]
         internal class ErrorConfigWithNoContainer {
             [Service] 
-            public ISetting<string> P1() => Setting<string>.Save("Section", "Name", "Default");
+            public ISetting<string> P1() => Setting<string>.Persistent("Section", "Name", "Default");
         }
 
         [Test(Description = "Error if container not found by type")]
@@ -127,7 +127,7 @@ namespace Betauer.GameTools.Tests {
         [Configuration]
         internal class ErrorConfigWithContainerNotFoundByName {
             [Service] 
-            public ISetting<string> P1 => Setting<string>.Save("NOT FOUND", "Section", "Name", "Default");
+            public ISetting<string> P1 => Setting<string>.Persistent("NOT FOUND", "Section", "Name", "Default");
         }
 
         [Test(Description = "Error if container not found by name")]
@@ -143,19 +143,19 @@ namespace Betauer.GameTools.Tests {
             public SettingsContainer SettingsContainer => new SettingsContainer(SettingsFile);
             
             [Service] 
-            public ISetting<bool> BoolSetting => Setting<bool>.Save("Section", "PixelPerfect", true);
+            public ISetting<bool> BoolSetting => Setting<bool>.Persistent("Section", "PixelPerfect", true);
 
             [Service] 
-            public ISetting<string> StringSetting => Setting<string>.Save("Section", "Name", "Default");
+            public ISetting<string> StringSetting => Setting<string>.Persistent("Section", "Name", "Default");
             
             [Service] 
-            public ISetting<Resolution> Resolution => Setting<Resolution>.Save("Video", "Screen", Resolutions.WXGA);
+            public ISetting<Resolution> Resolution => Setting<Resolution>.Persistent("Video", "Screen", Resolutions.WXGA);
 
             [Service] 
-            public ISetting<string> NoAutoSave => Setting<string>.Save("Video", "NoAutoSave", "DEFAULT", false);
+            public ISetting<string> NoAutoSave => Setting<string>.Persistent("Video", "NoAutoSave", "DEFAULT", false);
 
             [Service] 
-            public ISetting<string> NoEnabled => Setting<string>.Save("Disabled", "PropertyDisabled", "DEFAULT", true, false);
+            public ISetting<string> NoEnabled => Setting<string>.Persistent("Disabled", "PropertyDisabled", "DEFAULT", true, false);
         }
 
         [Service]
@@ -278,10 +278,10 @@ namespace Betauer.GameTools.Tests {
             public SettingsContainer SettingsContainer2 => new SettingsContainer(SettingsFile2);
             
             [Service("P1")] 
-            public ISetting<bool> PixelPerfect => Setting<bool>.Save(SettingsFile1, "Section", "PixelPerfect", true);
+            public ISetting<bool> PixelPerfect => Setting<bool>.Persistent(SettingsFile1, "Section", "PixelPerfect", true);
 
             [Service] 
-            public ISetting<string> P2 => Setting<string>.Save(SettingsFile2, "Section", "Name", "Default");
+            public ISetting<string> P2 => Setting<string>.Persistent(SettingsFile2, "Section", "Name", "Default");
         }
 
         [Service]

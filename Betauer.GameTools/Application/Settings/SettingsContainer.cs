@@ -17,15 +17,15 @@ public class SettingsContainer {
         _configFileWrapper.Load();
     }
 
-    // Used from [PostInject] Setting
-    internal void Add(SaveSetting saveSetting) {
+    public void Add(SaveSetting saveSetting) {
+        if (Settings.Contains(saveSetting)) return; // avoid duplicates
         Settings.Add(saveSetting);
         saveSetting.OnAddToSettingsContainer(this);
     }
 
-    // Used from public
-    public void Add<T>(SaveSetting<T> saveSetting) {
-        Add(saveSetting as SaveSetting);
+    public void Remove(SaveSetting saveSetting) {
+        Settings.Remove(saveSetting);
+        saveSetting.OnRemoveFromSettingsContainer();
     }
 
     /// <summary>
