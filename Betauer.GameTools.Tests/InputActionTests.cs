@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Betauer.Application.Settings;
@@ -65,12 +66,51 @@ namespace Betauer.GameTools.Tests {
                 u.ClearKeys().ClearButtons();
                 u.SetAxis(JoyAxis.Invalid);
             });
+            
+            // Its changed
             Assert.That(jump.Buttons, Is.Empty);
             Assert.That(jump.Keys, Is.Empty);
             Assert.That(jump.Axis, Is.EqualTo(JoyAxis.Invalid));
 
-            // Load
+            // But it load again, data is recovered
             jump.Load();
+            Assert.That(jump.Buttons, Is.EqualTo(new [] {JoyButton.Paddle1, JoyButton.X}.ToList()));
+            Assert.That(jump.Keys, Is.EqualTo(new [] {Key.A, Key.Acircumflex}.ToList()));
+            Assert.That(jump.Axis, Is.EqualTo(JoyAxis.RightX));
+
+        }
+
+        [Test]
+        public void UpdateRollback() {
+            SaveSetting<string> b = Setting<string>.Persistent(null, "attack", "");
+            var sc = new SettingsContainer(SettingsFile);
+            sc.Add(b);
+            
+            var jump = InputAction.Configurable("UpdateRollback").AsSimulator();
+            jump.SetSaveSettings(b).Load();
+            Assert.That(jump.Buttons, Is.Empty);
+            Assert.That(jump.Keys, Is.Empty);
+            Assert.That(jump.Axis, Is.EqualTo(JoyAxis.Invalid));
+
+            // Configure and save
+            jump.Update(u => {
+                u.AddKeys(Key.A, Key.Acircumflex);
+                u.AddButtons(JoyButton.Paddle1, JoyButton.X);
+                u.SetAxis(JoyAxis.RightX);
+            });
+            Assert.That(jump.Buttons, Is.EqualTo(new [] {JoyButton.Paddle1, JoyButton.X}.ToList()));
+            Assert.That(jump.Keys, Is.EqualTo(new [] {Key.A, Key.Acircumflex}.ToList()));
+            Assert.That(jump.Axis, Is.EqualTo(JoyAxis.RightX));
+            jump.Save();
+
+            // Delete but fail
+            jump.Update(u => {
+                u.ClearKeys().ClearButtons();
+                u.SetAxis(JoyAxis.Invalid);
+                throw new Exception();
+            });
+
+            // Data is recovered
             Assert.That(jump.Buttons, Is.EqualTo(new [] {JoyButton.Paddle1, JoyButton.X}.ToList()));
             Assert.That(jump.Keys, Is.EqualTo(new [] {Key.A, Key.Acircumflex}.ToList()));
             Assert.That(jump.Axis, Is.EqualTo(JoyAxis.RightX));
@@ -85,7 +125,7 @@ namespace Betauer.GameTools.Tests {
             var jump = InputAction.Configurable("ManualJump").AsSimulator();
             Assert.That(jump.SaveSetting, Is.Null);
 
-            SaveSetting<string> b = Setting<string>.Persistent(null, "attack","button:0,button:1,key:H,key:F");
+            SaveSetting<string> b = Setting<string>.Persistent(null, "attack","button:A,button:B,key:H,key:F");
             Assert.That(b.Section, Is.EqualTo("Settings")); // default value when section is null
             var sc = new SettingsContainer(SettingsFile);
             sc.Add(b);
@@ -116,7 +156,7 @@ namespace Betauer.GameTools.Tests {
         public void InputWithoutInputActionsContainerTest() {
             var di = new ContainerBuilder();
             di.Scan<InputWithoutInputActionsContainer>();
-            Assert.Throws<InjectMemberException>(() => di.Build());
+            Assert.Throws<KeyNotFoundException>(() => di.Build());
         }
         
         [Configuration]
@@ -160,15 +200,17 @@ namespace Betauer.GameTools.Tests {
 
         [Configuration]
         internal class ConfigurableInputWithContainerAndSettings {
-            [Service] public InputActionsContainer InputActionsContainer => new InputActionsContainer();
+            [Service] public InputActionsContainer InputActionsContainer => new();
 
-            [Service] public SettingsContainer SettingsContainer => new SettingsContainer("settings1.ini");
-            [Service(Name="Other")] public SettingsContainer SettingsContainerOther => new SettingsContainer("settings2.ini");
+            [Service] 
+            public SettingsContainer SettingsContainer => new("settings1.ini");
+            [Service(Name="Other")] 
+            public SettingsContainer Other => new("settings2.ini");
             
             [Service] private InputAction JumpConfigurable => InputAction.Configurable("Jump").AsSimulator();
 
             [Service] private InputAction JumpConfigurableWithSetting => InputAction.Configurable("Jump2")
-                .SettingsContainer("Other")
+                .SettingsContainer(nameof(Other))
                 .SettingsSection("Controls2")
                 .AsSimulator();
             

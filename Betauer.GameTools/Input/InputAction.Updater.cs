@@ -11,6 +11,17 @@ public partial class InputAction {
             _inputAction = inputAction;
         }
 
+        public Updater ClearAll() {
+            ClearMouse();
+            ClearAxis();
+            SetDeadZone(DefaultDeadZone);
+            SetAxisSign(1);
+            ClearModifiers();
+            ClearButtons();
+            ClearKeys();
+            return this;
+        }
+
         public Updater SetMouse(MouseButton mouseButton) {
             _inputAction.MouseButton = mouseButton;
             return this;
@@ -49,6 +60,15 @@ public partial class InputAction {
                 _inputAction.Meta = false;
                 _inputAction.Ctrl = false;
             }
+            return this;
+        }
+
+        public Updater ClearModifiers() {
+            WithCommandOrCtrl(false);
+            WithCtrl(false);
+            WithShift(false);
+            WithAlt(false);
+            WithMeta(false);
             return this;
         }
 

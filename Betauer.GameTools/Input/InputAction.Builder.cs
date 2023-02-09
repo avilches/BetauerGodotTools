@@ -117,8 +117,8 @@ public partial class InputAction {
             inputAction.CommandOrCtrl = _commandOrCtrlPressed;
         }
         
-        public InputAction AsSimulator() {
-            var input = CreateInputAction(InputActionBehaviour.Simulate, false, false);
+        public InputAction AsSimulator(bool godotInputMapToo = false) {
+            var input = CreateInputAction(InputActionBehaviour.Simulate, godotInputMapToo, false);
             ApplyConfig(input);
             return input;
         }

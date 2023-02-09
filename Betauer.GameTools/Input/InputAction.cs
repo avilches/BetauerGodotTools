@@ -29,6 +29,7 @@ public enum InputActionBehaviour {
     Extended,
 }
 public partial class InputAction : IAction {
+    public const float DefaultDeadZone = 0.5f;
     public static NormalBuilder Create(string name) => new(name);
     public static NormalBuilder Create(string inputActionsContainerName, string name) => new(inputActionsContainerName, name);
 
@@ -60,7 +61,7 @@ public partial class InputAction : IAction {
     public List<Key> Keys { get; } = new();
     public JoyAxis Axis { get; private set; } = JoyAxis.Invalid;
     public int AxisSign { get; private set; } = 1;
-    public float DeadZone { get; private set; } = 0.5f;
+    public float DeadZone { get; private set; } = DefaultDeadZone;
     public MouseButton MouseButton { get; private set; } = MouseButton.None;
     public bool CommandOrCtrl { get; private set; }
     public bool Ctrl { get; private set; }
@@ -107,39 +108,27 @@ public partial class InputAction : IAction {
         Behaviour = behaviour;
         _updater = new Updater(this);
         Enabled = true;
-        if (behaviour == InputActionBehaviour.Simulate) {
-            Handler = new ActionStateHandler(this);
-            _configureGodotInputMap = false;
-            _inputActionsContainerName = null;
-            _configureSaveSetting = false;
-            _settingsContainerName = null;
-            _settingsSection = null;
-            IsUnhandledInput = false;
-        } else {
-            if (behaviour == InputActionBehaviour.GodotInput) {
-                Handler = new GodotInputHandler(name);
-                _configureGodotInputMap = true;
-                IsUnhandledInput = false;
-            } else if (behaviour == InputActionBehaviour.Extended) {
-                Handler = new ExtendedInputActionStateHandler(this);
-                _configureGodotInputMap = configureGodotInputMap;
-                IsUnhandledInput = isUnhandledInput;
-            }
-            _inputActionsContainerName = inputActionsContainerName;
-            _configureSaveSetting = configureSaveSetting;
-            _settingsContainerName = settingsContainerName;
-            _settingsSection = settingsSection;
-            if (keepProjectSettings) {
-                LoadFromGodotProjectSettings();
-            }
-            // Don't call SetupGodotInputMap here. It's better to wait until Configure() load the saved setting
+        _inputActionsContainerName = inputActionsContainerName;
+        _configureSaveSetting = configureSaveSetting;
+        _settingsContainerName = settingsContainerName;
+        _settingsSection = settingsSection;
+        _configureGodotInputMap = behaviour == InputActionBehaviour.GodotInput || configureGodotInputMap;
+        IsUnhandledInput = isUnhandledInput;
+
+        Handler = behaviour switch {
+            InputActionBehaviour.Simulate => new ActionStateHandler(this),
+            InputActionBehaviour.GodotInput => new GodotInputHandler(name),
+            InputActionBehaviour.Extended => new ExtendedInputActionStateHandler(this),
+        };
+        _configureGodotInputMap = true;
+        if (keepProjectSettings) {
+            LoadFromGodotProjectSettings();
         }
+        // Don't call SetupGodotInputMap here. It's better to wait until Configure() load the saved setting
     }
 
     [PostInject]
     private void Configure() {
-        if (Behaviour == InputActionBehaviour.Simulate) return;
-        
         // Configure and load settings
         if (_configureSaveSetting) {
             var section = _settingsSection ?? "Controls";
@@ -163,7 +152,6 @@ public partial class InputAction : IAction {
     }
 
     internal void OnAddToInputActionsContainer(InputActionsContainer inputActionsContainer) {
-        if (Behaviour == InputActionBehaviour.Simulate) return;
         if (InputActionsContainer != null && InputActionsContainer != inputActionsContainer) {
             InputActionsContainer.Remove(this);
         }
@@ -171,12 +159,10 @@ public partial class InputAction : IAction {
     }
 
     internal void OnRemoveFromInputActionsContainer(InputActionsContainer inputActionsContainer) {
-        if (Behaviour == InputActionBehaviour.Simulate) return;
         InputActionsContainer = null;
     }
 
     public void Enable(bool enabled = true) {
-        if (Behaviour == InputActionBehaviour.Simulate) return;
         if (enabled) {
             if (!Enabled) {
                 Enabled = true;
@@ -189,7 +175,6 @@ public partial class InputAction : IAction {
     }
 
     public void Disable() {
-        if (Behaviour == InputActionBehaviour.Simulate) return;
         Enabled = false;
         InputActionsContainer?.Disable(this);
         if (Handler is ActionStateHandler stateHandler) stateHandler.ClearState();
@@ -197,7 +182,7 @@ public partial class InputAction : IAction {
     }
 
     public void SetupGodotInputMap() {
-        if (Behaviour == InputActionBehaviour.Simulate || !_configureGodotInputMap) return;
+        if (!_configureGodotInputMap) return;
         
         if (InputMap.HasAction(Name)) InputMap.EraseAction(Name);
         InputMap.AddAction(Name, DeadZone);
@@ -248,8 +233,6 @@ public partial class InputAction : IAction {
     }
 
     public void LoadFromGodotProjectSettings() {
-        if (Behaviour == InputActionBehaviour.Simulate) return;
-
         if (!InputMap.HasAction(Name)) {
             GD.PushWarning($"{nameof(LoadFromGodotProjectSettings)}: Action {Name} not found in project");
             return;
@@ -307,34 +290,30 @@ public partial class InputAction : IAction {
     }
 
     public InputAction ResetToDefaults() {
-        if (Behaviour == InputActionBehaviour.Simulate) return this;
         if (SaveSetting == null) throw new Exception("InputAction does not have a SaveSetting");
         Parse(SaveSetting.DefaultValue, true);
         return this;
     }
     
     public InputAction Load() {
-        if (Behaviour == InputActionBehaviour.Simulate) return this;
         if (SaveSetting == null) throw new Exception("InputAction does not have a SaveSetting");
         Parse(SaveSetting.Value, true);
         return this;
     }
     
     public InputAction Save() {
-        if (Behaviour == InputActionBehaviour.Simulate) return this;
         if (SaveSetting == null) throw new Exception("InputAction does not have a SaveSetting");
         SaveSetting.Value = AsString();
         return this;
     }
 
-    public InputAction Update(Action<Updater> updater, bool setupGodotInputMap = true, bool save = true) {
+    public InputAction Update(Action<Updater> updater) {
         var (backupButtons, backupKeys, backupMouse) = (Buttons.ToArray(), Keys.ToArray(), MouseButton);
         var (axis, axisSign, backupDeadZone) = (Axis, AxisSign, DeadZone);
         var (commandOrCtrl, ctrl, shift, alt, meta) = (CommandOrCtrl, Ctrl, Shift, Alt, Meta);
         try {
             updater.Invoke(_updater);
-            if (setupGodotInputMap) SetupGodotInputMap();
-            if (save && SaveSetting != null) Save();
+            SetupGodotInputMap();
         } catch (Exception e) {
             _updater.SetButtons(backupButtons)
                 .SetKeys(backupKeys)
@@ -361,15 +340,11 @@ public partial class InputAction : IAction {
         return string.Join(",", export);
     }
 
-    public InputAction Parse(string export, bool reset) {
-        if (string.IsNullOrWhiteSpace(export)) return this;
+    public InputAction Parse(string input, bool reset) {
+        if (string.IsNullOrWhiteSpace(input)) return this;
         Update(updater => {
-            if (reset) {
-                updater.ClearButtons();
-                updater.ClearKeys();
-                updater.ClearAxis();
-            }
-            export.Split(",").ToList().ForEach(ImportItem);
+            if (reset) updater.ClearAll();
+            input.Split(",").ToList().ForEach(ImportItem);
         });
         return this;
     }
