@@ -30,11 +30,11 @@ namespace Betauer.GameTools.Tests {
             Assert.That(sm1.ProcessInPhysics, Is.False);
 
             var sm2 = new StateMachineNodeAsync<State, Trans>(State.A, null, true);
-            Assert.That(sm2.GetStateMachineEvents().Name, Is.Null);
+            Assert.That(sm2.GetStateMachineEvents().Name, Is.EqualTo(sm2.GetType().Name));
             Assert.That(sm2.ProcessInPhysics, Is.True);
 
             var sm3 = new StateMachineNodeAsync<State, Trans>(State.A);
-            Assert.That(sm3.GetStateMachineEvents().Name, Is.Null);
+            Assert.That(sm3.GetStateMachineEvents().Name, Is.EqualTo(sm3.GetType().Name));
             Assert.That(sm3.ProcessInPhysics, Is.False);
         }
 
