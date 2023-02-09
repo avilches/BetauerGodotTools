@@ -29,8 +29,8 @@ public static partial class SignalExtensions {
     public static SignalHandler On<T1, T2, T3, T4, T5, T6>(this GodotObject target, string signal, Action<T1, T2, T3, T4, T5, T6> action, bool oneShot = false, bool deferred = false) =>
         SignalFactory.Create(target, signal, action, oneShot, deferred);
   
-    // public static SignalHandler OnCancelled(this AcceptDialog target, Action action, bool oneShot = false, bool deferred = false) =>
-        // On(target, AcceptDialog.SignalName.Cancelled, action, oneShot, deferred);
+    public static SignalHandler OnCanceled(this AcceptDialog target, Action action, bool oneShot = false, bool deferred = false) =>
+        On(target, AcceptDialog.SignalName.Canceled, action, oneShot, deferred);
 
     public static SignalHandler OnConfirmed(this AcceptDialog target, Action action, bool oneShot = false, bool deferred = false) =>
         On(target, AcceptDialog.SignalName.Confirmed, action, oneShot, deferred);
@@ -38,17 +38,35 @@ public static partial class SignalExtensions {
     public static SignalHandler OnCustomAction(this AcceptDialog target, Action<Godot.StringName> action, bool oneShot = false, bool deferred = false) =>
         On(target, AcceptDialog.SignalName.CustomAction, action, oneShot, deferred);
 
+    public static SignalHandler OnAnimationChanged(this AnimatedSprite2D target, Action action, bool oneShot = false, bool deferred = false) =>
+        On(target, AnimatedSprite2D.SignalName.AnimationChanged, action, oneShot, deferred);
+
     public static SignalHandler OnAnimationFinished(this AnimatedSprite2D target, Action action, bool oneShot = false, bool deferred = false) =>
         On(target, AnimatedSprite2D.SignalName.AnimationFinished, action, oneShot, deferred);
+
+    public static SignalHandler OnAnimationLooped(this AnimatedSprite2D target, Action action, bool oneShot = false, bool deferred = false) =>
+        On(target, AnimatedSprite2D.SignalName.AnimationLooped, action, oneShot, deferred);
 
     public static SignalHandler OnFrameChanged(this AnimatedSprite2D target, Action action, bool oneShot = false, bool deferred = false) =>
         On(target, AnimatedSprite2D.SignalName.FrameChanged, action, oneShot, deferred);
 
+    public static SignalHandler OnSpriteFramesChanged(this AnimatedSprite2D target, Action action, bool oneShot = false, bool deferred = false) =>
+        On(target, AnimatedSprite2D.SignalName.SpriteFramesChanged, action, oneShot, deferred);
+
+    public static SignalHandler OnAnimationChanged(this AnimatedSprite3D target, Action action, bool oneShot = false, bool deferred = false) =>
+        On(target, AnimatedSprite3D.SignalName.AnimationChanged, action, oneShot, deferred);
+
     public static SignalHandler OnAnimationFinished(this AnimatedSprite3D target, Action action, bool oneShot = false, bool deferred = false) =>
         On(target, AnimatedSprite3D.SignalName.AnimationFinished, action, oneShot, deferred);
 
+    public static SignalHandler OnAnimationLooped(this AnimatedSprite3D target, Action action, bool oneShot = false, bool deferred = false) =>
+        On(target, AnimatedSprite3D.SignalName.AnimationLooped, action, oneShot, deferred);
+
     public static SignalHandler OnFrameChanged(this AnimatedSprite3D target, Action action, bool oneShot = false, bool deferred = false) =>
         On(target, AnimatedSprite3D.SignalName.FrameChanged, action, oneShot, deferred);
+
+    public static SignalHandler OnSpriteFramesChanged(this AnimatedSprite3D target, Action action, bool oneShot = false, bool deferred = false) =>
+        On(target, AnimatedSprite3D.SignalName.SpriteFramesChanged, action, oneShot, deferred);
 
     public static SignalHandler OnAnimationAdded(this AnimationLibrary target, Action<Godot.StringName> action, bool oneShot = false, bool deferred = false) =>
         On(target, AnimationLibrary.SignalName.AnimationAdded, action, oneShot, deferred);
@@ -61,6 +79,12 @@ public static partial class SignalExtensions {
 
     public static SignalHandler OnAnimationRenamed(this AnimationLibrary target, Action<Godot.StringName, Godot.StringName> action, bool oneShot = false, bool deferred = false) =>
         On(target, AnimationLibrary.SignalName.AnimationRenamed, action, oneShot, deferred);
+
+    public static SignalHandler OnAnimationNodeRemoved(this AnimationNode target, Action<System.Int32, System.String> action, bool oneShot = false, bool deferred = false) =>
+        On(target, AnimationNode.SignalName.AnimationNodeRemoved, action, oneShot, deferred);
+
+    public static SignalHandler OnAnimationNodeRenamed(this AnimationNode target, Action<System.Int32, System.String, System.String> action, bool oneShot = false, bool deferred = false) =>
+        On(target, AnimationNode.SignalName.AnimationNodeRenamed, action, oneShot, deferred);
 
     public static SignalHandler OnTreeChanged(this AnimationNode target, Action action, bool oneShot = false, bool deferred = false) =>
         On(target, AnimationNode.SignalName.TreeChanged, action, oneShot, deferred);
@@ -353,11 +377,14 @@ public static partial class SignalExtensions {
     public static SignalHandler OnCloseRequest(this GraphNode target, Action action, bool oneShot = false, bool deferred = false) =>
         On(target, GraphNode.SignalName.CloseRequest, action, oneShot, deferred);
 
-    // public static SignalHandler OnDeselected(this GraphNode target, Action action, bool oneShot = false, bool deferred = false) =>
-        // On(target, GraphNode.SignalName.Deselected, action, oneShot, deferred);
-
     public static SignalHandler OnDragged(this GraphNode target, Action<Godot.Vector2, Godot.Vector2> action, bool oneShot = false, bool deferred = false) =>
         On(target, GraphNode.SignalName.Dragged, action, oneShot, deferred);
+
+    public static SignalHandler OnNodeDeselected(this GraphNode target, Action action, bool oneShot = false, bool deferred = false) =>
+        On(target, GraphNode.SignalName.NodeDeselected, action, oneShot, deferred);
+
+    public static SignalHandler OnNodeSelected(this GraphNode target, Action action, bool oneShot = false, bool deferred = false) =>
+        On(target, GraphNode.SignalName.NodeSelected, action, oneShot, deferred);
 
     public static SignalHandler OnPositionOffsetChanged(this GraphNode target, Action action, bool oneShot = false, bool deferred = false) =>
         On(target, GraphNode.SignalName.PositionOffsetChanged, action, oneShot, deferred);
@@ -368,17 +395,11 @@ public static partial class SignalExtensions {
     public static SignalHandler OnResizeRequest(this GraphNode target, Action<Godot.Vector2> action, bool oneShot = false, bool deferred = false) =>
         On(target, GraphNode.SignalName.ResizeRequest, action, oneShot, deferred);
 
-    // public static SignalHandler OnSelectedSignal(this GraphNode target, Action action, bool oneShot = false, bool deferred = false) =>
-        // On(target, GraphNode.SignalName.SelectedSignal, action, oneShot, deferred);
-
     public static SignalHandler OnSlotUpdated(this GraphNode target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) =>
         On(target, GraphNode.SignalName.SlotUpdated, action, oneShot, deferred);
 
     public static SignalHandler OnCellSizeChanged(this GridMap target, Action<Godot.Vector3> action, bool oneShot = false, bool deferred = false) =>
         On(target, GridMap.SignalName.CellSizeChanged, action, oneShot, deferred);
-
-    // public static SignalHandler OnRequestCompleted(this HTTPRequest target, Action<System.Int32, System.Int32, System.String[], System.Byte[]> action, bool oneShot = false, bool deferred = false) =>
-        // On(target, HTTPRequest.SignalName.RequestCompleted, action, oneShot, deferred);
 
     public static SignalHandler OnInputJoyConnectionChanged(Action<System.Int32, System.Boolean> action, bool oneShot = false, bool deferred = false) =>
         On(Input.Singleton, Input.SignalName.JoyConnectionChanged, action, oneShot, deferred);
@@ -421,21 +442,6 @@ public static partial class SignalExtensions {
 
     public static SignalHandler OnTextureChanged(this MultiMeshInstance2D target, Action action, bool oneShot = false, bool deferred = false) =>
         On(target, MultiMeshInstance2D.SignalName.TextureChanged, action, oneShot, deferred);
-
-    public static SignalHandler OnConnectedToServer(this MultiplayerApi target, Action action, bool oneShot = false, bool deferred = false) =>
-        On(target, MultiplayerApi.SignalName.ConnectedToServer, action, oneShot, deferred);
-
-    public static SignalHandler OnConnectionFailed(this MultiplayerApi target, Action action, bool oneShot = false, bool deferred = false) =>
-        On(target, MultiplayerApi.SignalName.ConnectionFailed, action, oneShot, deferred);
-
-    public static SignalHandler OnPeerConnected(this MultiplayerApi target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) =>
-        On(target, MultiplayerApi.SignalName.PeerConnected, action, oneShot, deferred);
-
-    public static SignalHandler OnPeerDisconnected(this MultiplayerApi target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) =>
-        On(target, MultiplayerApi.SignalName.PeerDisconnected, action, oneShot, deferred);
-
-    public static SignalHandler OnServerDisconnected(this MultiplayerApi target, Action action, bool oneShot = false, bool deferred = false) =>
-        On(target, MultiplayerApi.SignalName.ServerDisconnected, action, oneShot, deferred);
 
     public static SignalHandler OnPeerConnected(this MultiplayerPeer target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) =>
         On(target, MultiplayerPeer.SignalName.PeerConnected, action, oneShot, deferred);
@@ -497,6 +503,9 @@ public static partial class SignalExtensions {
     public static SignalHandler OnNavigationServer2DMapChanged(Action<Godot.Rid> action, bool oneShot = false, bool deferred = false) =>
         On(NavigationServer2D.Singleton, NavigationServer2D.SignalName.MapChanged, action, oneShot, deferred);
 
+    public static SignalHandler OnNavigationServer2DNavigationDebugChanged(Action action, bool oneShot = false, bool deferred = false) =>
+        On(NavigationServer2D.Singleton, NavigationServer2D.SignalName.NavigationDebugChanged, action, oneShot, deferred);
+
     public static SignalHandler OnNavigationServer3DMapChanged(Action<Godot.Rid> action, bool oneShot = false, bool deferred = false) =>
         On(NavigationServer3D.Singleton, NavigationServer3D.SignalName.MapChanged, action, oneShot, deferred);
 
@@ -529,12 +538,6 @@ public static partial class SignalExtensions {
 
     public static SignalHandler OnVisibilityChanged(this Node3D target, Action action, bool oneShot = false, bool deferred = false) =>
         On(target, Node3D.SignalName.VisibilityChanged, action, oneShot, deferred);
-
-    public static SignalHandler OnPropertyListChanged(this GodotObject target, Action action, bool oneShot = false, bool deferred = false) =>
-        On(target, GodotObject.SignalName.PropertyListChanged, action, oneShot, deferred);
-
-    public static SignalHandler OnScriptChanged(this GodotObject target, Action action, bool oneShot = false, bool deferred = false) =>
-        On(target, GodotObject.SignalName.ScriptChanged, action, oneShot, deferred);
 
     public static SignalHandler OnItemFocused(this OptionButton target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) =>
         On(target, OptionButton.SignalName.ItemFocused, action, oneShot, deferred);
@@ -812,14 +815,11 @@ public static partial class SignalExtensions {
     public static SignalHandler OnItemCollapsed(this Tree target, Action<TreeItem> action, bool oneShot = false, bool deferred = false) =>
         On(target, Tree.SignalName.ItemCollapsed, action, oneShot, deferred);
 
-    // public static SignalHandler OnItemCustomButtonPressed(this Tree target, Action action, bool oneShot = false, bool deferred = false) =>
-        // On(target, Tree.SignalName.ItemCustomButtonPressed, action, oneShot, deferred);
-
-    // public static SignalHandler OnItemDoubleClicked(this Tree target, Action action, bool oneShot = false, bool deferred = false) =>
-        // On(target, Tree.SignalName.ItemDoubleClicked, action, oneShot, deferred);
-
     public static SignalHandler OnItemEdited(this Tree target, Action action, bool oneShot = false, bool deferred = false) =>
         On(target, Tree.SignalName.ItemEdited, action, oneShot, deferred);
+
+    public static SignalHandler OnItemIconDoubleClicked(this Tree target, Action action, bool oneShot = false, bool deferred = false) =>
+        On(target, Tree.SignalName.ItemIconDoubleClicked, action, oneShot, deferred);
 
     public static SignalHandler OnItemMouseSelected(this Tree target, Action<Godot.Vector2, System.Int32> action, bool oneShot = false, bool deferred = false) =>
         On(target, Tree.SignalName.ItemMouseSelected, action, oneShot, deferred);
@@ -872,15 +872,6 @@ public static partial class SignalExtensions {
     public static SignalHandler OnInputTypeChanged(this VisualShaderNodeInput target, Action action, bool oneShot = false, bool deferred = false) =>
         On(target, VisualShaderNodeInput.SignalName.InputTypeChanged, action, oneShot, deferred);
 
-    public static SignalHandler OnDataChannelReceived(this WebRtcPeerConnection target, Action<WebRtcDataChannel> action, bool oneShot = false, bool deferred = false) =>
-        On(target, WebRtcPeerConnection.SignalName.DataChannelReceived, action, oneShot, deferred);
-
-    public static SignalHandler OnIceCandidateCreated(this WebRtcPeerConnection target, Action<System.String, System.Int32, System.String> action, bool oneShot = false, bool deferred = false) =>
-        On(target, WebRtcPeerConnection.SignalName.IceCandidateCreated, action, oneShot, deferred);
-
-    public static SignalHandler OnSessionDescriptionCreated(this WebRtcPeerConnection target, Action<System.String, System.String> action, bool oneShot = false, bool deferred = false) =>
-        On(target, WebRtcPeerConnection.SignalName.SessionDescriptionCreated, action, oneShot, deferred);
-
     public static SignalHandler OnReferenceSpaceReset(this WebXRInterface target, Action action, bool oneShot = false, bool deferred = false) =>
         On(target, WebXRInterface.SignalName.ReferenceSpaceReset, action, oneShot, deferred);
 
@@ -923,6 +914,9 @@ public static partial class SignalExtensions {
     public static SignalHandler OnCloseRequested(this Window target, Action action, bool oneShot = false, bool deferred = false) =>
         On(target, Window.SignalName.CloseRequested, action, oneShot, deferred);
 
+    public static SignalHandler OnDpiChanged(this Window target, Action action, bool oneShot = false, bool deferred = false) =>
+        On(target, Window.SignalName.DpiChanged, action, oneShot, deferred);
+
     public static SignalHandler OnFilesDropped(this Window target, Action<System.String[]> action, bool oneShot = false, bool deferred = false) =>
         On(target, Window.SignalName.FilesDropped, action, oneShot, deferred);
 
@@ -959,11 +953,11 @@ public static partial class SignalExtensions {
     public static SignalHandler OnButtonReleased(this XRController3D target, Action<System.String> action, bool oneShot = false, bool deferred = false) =>
         On(target, XRController3D.SignalName.ButtonReleased, action, oneShot, deferred);
 
-    // public static SignalHandler OnInputAxisChanged(this XRController3D target, Action<System.String, Godot.Vector2> action, bool oneShot = false, bool deferred = false) =>
-        // On(target, XRController3D.SignalName.InputAxisChanged, action, oneShot, deferred);
+    public static SignalHandler OnInputFloatChanged(this XRController3D target, Action<System.String, System.Single> action, bool oneShot = false, bool deferred = false) =>
+        On(target, XRController3D.SignalName.InputFloatChanged, action, oneShot, deferred);
 
-    // public static SignalHandler OnInputValueChanged(this XRController3D target, Action<System.String, System.Single> action, bool oneShot = false, bool deferred = false) =>
-        // On(target, XRController3D.SignalName.InputValueChanged, action, oneShot, deferred);
+    public static SignalHandler OnInputVector2Changed(this XRController3D target, Action<System.String, Godot.Vector2> action, bool oneShot = false, bool deferred = false) =>
+        On(target, XRController3D.SignalName.InputVector2Changed, action, oneShot, deferred);
 
     public static SignalHandler OnPlayAreaChanged(this XRInterface target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) =>
         On(target, XRInterface.SignalName.PlayAreaChanged, action, oneShot, deferred);
@@ -974,11 +968,11 @@ public static partial class SignalExtensions {
     public static SignalHandler OnButtonReleased(this XRPositionalTracker target, Action<System.String> action, bool oneShot = false, bool deferred = false) =>
         On(target, XRPositionalTracker.SignalName.ButtonReleased, action, oneShot, deferred);
 
-    // public static SignalHandler OnInputAxisChanged(this XRPositionalTracker target, Action<System.String, Godot.Vector2> action, bool oneShot = false, bool deferred = false) =>
-        // On(target, XRPositionalTracker.SignalName.InputAxisChanged, action, oneShot, deferred);
+    public static SignalHandler OnInputFloatChanged(this XRPositionalTracker target, Action<System.String, System.Single> action, bool oneShot = false, bool deferred = false) =>
+        On(target, XRPositionalTracker.SignalName.InputFloatChanged, action, oneShot, deferred);
 
-    // public static SignalHandler OnInputValueChanged(this XRPositionalTracker target, Action<System.String, System.Single> action, bool oneShot = false, bool deferred = false) =>
-        // On(target, XRPositionalTracker.SignalName.InputValueChanged, action, oneShot, deferred);
+    public static SignalHandler OnInputVector2Changed(this XRPositionalTracker target, Action<System.String, Godot.Vector2> action, bool oneShot = false, bool deferred = false) =>
+        On(target, XRPositionalTracker.SignalName.InputVector2Changed, action, oneShot, deferred);
 
     public static SignalHandler OnPoseChanged(this XRPositionalTracker target, Action<XRPose> action, bool oneShot = false, bool deferred = false) =>
         On(target, XRPositionalTracker.SignalName.PoseChanged, action, oneShot, deferred);

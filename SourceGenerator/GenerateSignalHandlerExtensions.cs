@@ -30,7 +30,6 @@ public class GenerateSignalHandlerExtensions {
     private static string GenerateBodyClass(IEnumerable<string> methods) {
         return $@"using System;
 using Godot;
-using GodotObject = Godot.GodotObject;
 using Animation = Godot.Animation;
 using Environment = Godot.Environment;
 using Range = Godot.Range;

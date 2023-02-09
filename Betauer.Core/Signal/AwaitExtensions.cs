@@ -8,8 +8,8 @@ namespace Betauer.Core.Signal;
 
 public static partial class AwaitExtensions {
   
-    public static SignalAwaiter AwaitCancelled(this AcceptDialog target) =>
-        target.ToSignal(target, "cancelled");
+    public static SignalAwaiter AwaitCanceled(this AcceptDialog target) =>
+        target.ToSignal(target, "canceled");
 
     public static SignalAwaiter AwaitConfirmed(this AcceptDialog target) =>
         target.ToSignal(target, "confirmed");
@@ -17,17 +17,35 @@ public static partial class AwaitExtensions {
     public static SignalAwaiter AwaitCustomAction(this AcceptDialog target) =>
         target.ToSignal(target, "custom_action");
 
+    public static SignalAwaiter AwaitAnimationChanged(this AnimatedSprite2D target) =>
+        target.ToSignal(target, "animation_changed");
+
     public static SignalAwaiter AwaitAnimationFinished(this AnimatedSprite2D target) =>
         target.ToSignal(target, "animation_finished");
+
+    public static SignalAwaiter AwaitAnimationLooped(this AnimatedSprite2D target) =>
+        target.ToSignal(target, "animation_looped");
 
     public static SignalAwaiter AwaitFrameChanged(this AnimatedSprite2D target) =>
         target.ToSignal(target, "frame_changed");
 
+    public static SignalAwaiter AwaitSpriteFramesChanged(this AnimatedSprite2D target) =>
+        target.ToSignal(target, "sprite_frames_changed");
+
+    public static SignalAwaiter AwaitAnimationChanged(this AnimatedSprite3D target) =>
+        target.ToSignal(target, "animation_changed");
+
     public static SignalAwaiter AwaitAnimationFinished(this AnimatedSprite3D target) =>
         target.ToSignal(target, "animation_finished");
 
+    public static SignalAwaiter AwaitAnimationLooped(this AnimatedSprite3D target) =>
+        target.ToSignal(target, "animation_looped");
+
     public static SignalAwaiter AwaitFrameChanged(this AnimatedSprite3D target) =>
         target.ToSignal(target, "frame_changed");
+
+    public static SignalAwaiter AwaitSpriteFramesChanged(this AnimatedSprite3D target) =>
+        target.ToSignal(target, "sprite_frames_changed");
 
     public static SignalAwaiter AwaitAnimationAdded(this AnimationLibrary target) =>
         target.ToSignal(target, "animation_added");
@@ -40,6 +58,12 @@ public static partial class AwaitExtensions {
 
     public static SignalAwaiter AwaitAnimationRenamed(this AnimationLibrary target) =>
         target.ToSignal(target, "animation_renamed");
+
+    public static SignalAwaiter AwaitAnimationNodeRemoved(this AnimationNode target) =>
+        target.ToSignal(target, "animation_node_removed");
+
+    public static SignalAwaiter AwaitAnimationNodeRenamed(this AnimationNode target) =>
+        target.ToSignal(target, "animation_node_renamed");
 
     public static SignalAwaiter AwaitTreeChanged(this AnimationNode target) =>
         target.ToSignal(target, "tree_changed");
@@ -332,11 +356,14 @@ public static partial class AwaitExtensions {
     public static SignalAwaiter AwaitCloseRequest(this GraphNode target) =>
         target.ToSignal(target, "close_request");
 
-    public static SignalAwaiter AwaitDeselected(this GraphNode target) =>
-        target.ToSignal(target, "deselected");
-
     public static SignalAwaiter AwaitDragged(this GraphNode target) =>
         target.ToSignal(target, "dragged");
+
+    public static SignalAwaiter AwaitNodeDeselected(this GraphNode target) =>
+        target.ToSignal(target, "node_deselected");
+
+    public static SignalAwaiter AwaitNodeSelected(this GraphNode target) =>
+        target.ToSignal(target, "node_selected");
 
     public static SignalAwaiter AwaitPositionOffsetChanged(this GraphNode target) =>
         target.ToSignal(target, "position_offset_changed");
@@ -347,17 +374,11 @@ public static partial class AwaitExtensions {
     public static SignalAwaiter AwaitResizeRequest(this GraphNode target) =>
         target.ToSignal(target, "resize_request");
 
-    public static SignalAwaiter AwaitSelectedSignal(this GraphNode target) =>
-        target.ToSignal(target, "selected");
-
     public static SignalAwaiter AwaitSlotUpdated(this GraphNode target) =>
         target.ToSignal(target, "slot_updated");
 
     public static SignalAwaiter AwaitCellSizeChanged(this GridMap target) =>
         target.ToSignal(target, "cell_size_changed");
-
-    // public static SignalAwaiter AwaitRequestCompleted(this HTTPRequest target) =>
-        // target.ToSignal(target, "request_completed");
 
     public static SignalAwaiter AwaitInputJoyConnectionChanged() =>
         Input.Singleton.ToSignal(Input.Singleton, "joy_connection_changed");
@@ -400,21 +421,6 @@ public static partial class AwaitExtensions {
 
     public static SignalAwaiter AwaitTextureChanged(this MultiMeshInstance2D target) =>
         target.ToSignal(target, "texture_changed");
-
-    public static SignalAwaiter AwaitConnectedToServer(this MultiplayerApi target) =>
-        target.ToSignal(target, "connected_to_server");
-
-    public static SignalAwaiter AwaitConnectionFailed(this MultiplayerApi target) =>
-        target.ToSignal(target, "connection_failed");
-
-    public static SignalAwaiter AwaitPeerConnected(this MultiplayerApi target) =>
-        target.ToSignal(target, "peer_connected");
-
-    public static SignalAwaiter AwaitPeerDisconnected(this MultiplayerApi target) =>
-        target.ToSignal(target, "peer_disconnected");
-
-    public static SignalAwaiter AwaitServerDisconnected(this MultiplayerApi target) =>
-        target.ToSignal(target, "server_disconnected");
 
     public static SignalAwaiter AwaitPeerConnected(this MultiplayerPeer target) =>
         target.ToSignal(target, "peer_connected");
@@ -476,6 +482,9 @@ public static partial class AwaitExtensions {
     public static SignalAwaiter AwaitNavigationServer2DMapChanged() =>
         NavigationServer2D.Singleton.ToSignal(NavigationServer2D.Singleton, "map_changed");
 
+    public static SignalAwaiter AwaitNavigationServer2DNavigationDebugChanged() =>
+        NavigationServer2D.Singleton.ToSignal(NavigationServer2D.Singleton, "navigation_debug_changed");
+
     public static SignalAwaiter AwaitNavigationServer3DMapChanged() =>
         NavigationServer3D.Singleton.ToSignal(NavigationServer3D.Singleton, "map_changed");
 
@@ -508,12 +517,6 @@ public static partial class AwaitExtensions {
 
     public static SignalAwaiter AwaitVisibilityChanged(this Node3D target) =>
         target.ToSignal(target, "visibility_changed");
-
-    public static SignalAwaiter AwaitPropertyListChanged(this GodotObject target) =>
-        target.ToSignal(target, "property_list_changed");
-
-    public static SignalAwaiter AwaitScriptChanged(this GodotObject target) =>
-        target.ToSignal(target, "script_changed");
 
     public static SignalAwaiter AwaitItemFocused(this OptionButton target) =>
         target.ToSignal(target, "item_focused");
@@ -791,14 +794,11 @@ public static partial class AwaitExtensions {
     public static SignalAwaiter AwaitItemCollapsed(this Tree target) =>
         target.ToSignal(target, "item_collapsed");
 
-    public static SignalAwaiter AwaitItemCustomButtonPressed(this Tree target) =>
-        target.ToSignal(target, "item_custom_button_pressed");
-
-    public static SignalAwaiter AwaitItemDoubleClicked(this Tree target) =>
-        target.ToSignal(target, "item_double_clicked");
-
     public static SignalAwaiter AwaitItemEdited(this Tree target) =>
         target.ToSignal(target, "item_edited");
+
+    public static SignalAwaiter AwaitItemIconDoubleClicked(this Tree target) =>
+        target.ToSignal(target, "item_icon_double_clicked");
 
     public static SignalAwaiter AwaitItemMouseSelected(this Tree target) =>
         target.ToSignal(target, "item_mouse_selected");
@@ -848,20 +848,8 @@ public static partial class AwaitExtensions {
     public static SignalAwaiter AwaitScreenExited(this VisibleOnScreenNotifier3D target) =>
         target.ToSignal(target, "screen_exited");
 
-    public static SignalAwaiter AwaitEditorRefreshRequest(this VisualShaderNode target) =>
-        target.ToSignal(target, "editor_refresh_request");
-
     public static SignalAwaiter AwaitInputTypeChanged(this VisualShaderNodeInput target) =>
         target.ToSignal(target, "input_type_changed");
-
-    public static SignalAwaiter AwaitDataChannelReceived(this WebRtcPeerConnection target) =>
-        target.ToSignal(target, "data_channel_received");
-
-    public static SignalAwaiter AwaitIceCandidateCreated(this WebRtcPeerConnection target) =>
-        target.ToSignal(target, "ice_candidate_created");
-
-    public static SignalAwaiter AwaitSessionDescriptionCreated(this WebRtcPeerConnection target) =>
-        target.ToSignal(target, "session_description_created");
 
     public static SignalAwaiter AwaitReferenceSpaceReset(this WebXRInterface target) =>
         target.ToSignal(target, "reference_space_reset");
@@ -905,6 +893,9 @@ public static partial class AwaitExtensions {
     public static SignalAwaiter AwaitCloseRequested(this Window target) =>
         target.ToSignal(target, "close_requested");
 
+    public static SignalAwaiter AwaitDpiChanged(this Window target) =>
+        target.ToSignal(target, "dpi_changed");
+
     public static SignalAwaiter AwaitFilesDropped(this Window target) =>
         target.ToSignal(target, "files_dropped");
 
@@ -941,11 +932,11 @@ public static partial class AwaitExtensions {
     public static SignalAwaiter AwaitButtonReleased(this XRController3D target) =>
         target.ToSignal(target, "button_released");
 
-    public static SignalAwaiter AwaitInputAxisChanged(this XRController3D target) =>
-        target.ToSignal(target, "input_axis_changed");
+    public static SignalAwaiter AwaitInputFloatChanged(this XRController3D target) =>
+        target.ToSignal(target, "input_float_changed");
 
-    public static SignalAwaiter AwaitInputValueChanged(this XRController3D target) =>
-        target.ToSignal(target, "input_value_changed");
+    public static SignalAwaiter AwaitInputVector2Changed(this XRController3D target) =>
+        target.ToSignal(target, "input_vector2_changed");
 
     public static SignalAwaiter AwaitPlayAreaChanged(this XRInterface target) =>
         target.ToSignal(target, "play_area_changed");
@@ -956,11 +947,11 @@ public static partial class AwaitExtensions {
     public static SignalAwaiter AwaitButtonReleased(this XRPositionalTracker target) =>
         target.ToSignal(target, "button_released");
 
-    public static SignalAwaiter AwaitInputAxisChanged(this XRPositionalTracker target) =>
-        target.ToSignal(target, "input_axis_changed");
+    public static SignalAwaiter AwaitInputFloatChanged(this XRPositionalTracker target) =>
+        target.ToSignal(target, "input_float_changed");
 
-    public static SignalAwaiter AwaitInputValueChanged(this XRPositionalTracker target) =>
-        target.ToSignal(target, "input_value_changed");
+    public static SignalAwaiter AwaitInputVector2Changed(this XRPositionalTracker target) =>
+        target.ToSignal(target, "input_vector2_changed");
 
     public static SignalAwaiter AwaitPoseChanged(this XRPositionalTracker target) =>
         target.ToSignal(target, "pose_changed");

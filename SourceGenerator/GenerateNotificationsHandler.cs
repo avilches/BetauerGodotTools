@@ -37,8 +37,8 @@ public partial class NotificationsHandler : Node {{
             viewport.AddChild(this);
     }}
 
-    public override void _Notification(long what) {{
-        switch (what) {{
+    public override void _Notification(int what) {{
+        switch ((long)what) {{
 {string.Join("\n", GenerateSwitchCases(clazz))}
         }}
     }}  
@@ -68,11 +68,11 @@ public partial class NotificationsHandler : Node {{
     }
 
     private static string NotificationEventName(GodotClass clazz, string s) {
-        return $"On{s.ToLower().CamelCase().Remove(0, "Notification".Length)}";
+        return $"On{s.ToLower().CamelCase().Replace("Wm", "WM").Remove(0, "Notification".Length)}";
     }
 
     private static string NotificationConstantName(string s) {
-        return s.ToLower().CamelCase();
+        return s.ToLower().CamelCase().Replace("Wm", "WM");
     }
     private static long GetNotificationValue(GodotClass clazz, string s) {
         var name = NotificationConstantName(s);
