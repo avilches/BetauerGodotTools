@@ -12,8 +12,8 @@ public partial class InputActionsContainer : Node {
 
     public readonly List<IAction> InputActionList = new();
     public readonly Dictionary<string, IAction> ActionMap = new();
-    private readonly List<InputAction> _extendedInputStateHandlers = new(); 
-    private readonly List<InputAction> _extendedUnhandledInputActions = new();
+    private readonly List<InputAction> _onInputActions = new(); 
+    private readonly List<InputAction> _onUnhandledInputActions = new();
     private bool _running = false;
 
     private NodeHandler _nodeHandler;
@@ -99,19 +99,30 @@ public partial class InputActionsContainer : Node {
     }
 
     public void Add(AxisAction axisAction) {
+        if (InputActionList.Contains(axisAction)) return; // Avoid duplicates
         InputActionList.Add(axisAction);
         ActionMap.Add(axisAction.Name, axisAction);
+        axisAction.OnAddToInputActionsContainer(this);
     }
 
     public void Add(InputAction inputAction) {
+        if (InputActionList.Contains(inputAction)) return; // Avoid duplicates
         InputActionList.Add(inputAction);
         ActionMap.Add(inputAction.Name, inputAction);
+        inputAction.OnAddToInputActionsContainer(this);
         Enable(inputAction);
+    }
+
+    public void Remove(AxisAction inputAction) {
+        InputActionList.Remove(inputAction);
+        ActionMap.Remove(inputAction.Name);
+        inputAction.OnRemoveFromInputActionsContainer();
     }
 
     public void Remove(InputAction inputAction) {
         InputActionList.Remove(inputAction);
         ActionMap.Remove(inputAction.Name);
+        inputAction.OnRemoveFromInputActionsContainer(this);
         Disable(inputAction);
     }
 
@@ -125,46 +136,61 @@ public partial class InputActionsContainer : Node {
 
     internal void Enable(InputAction inputAction) {
         if (inputAction.Behaviour == InputActionBehaviour.Extended) {
-            if (inputAction.IsUnhandledInput) _extendedUnhandledInputActions.Add(inputAction);
-            else _extendedInputStateHandlers.Add(inputAction);
+            SetProcess(true);
+            if (inputAction.IsUnhandledInput) {
+                SetProcessUnhandledInput(true);
+                _onUnhandledInputActions.Add(inputAction);
+            } else {
+                SetProcessInput(true);
+                _onInputActions.Add(inputAction);
+            }
         }
     }
 
     internal void Disable(InputAction inputAction) {
         if (inputAction.Behaviour == InputActionBehaviour.Extended) {
-            if (inputAction.IsUnhandledInput) _extendedUnhandledInputActions.Add(inputAction);
-            else _extendedInputStateHandlers.Add(inputAction);
+            if (inputAction.IsUnhandledInput) _onUnhandledInputActions.Remove(inputAction);
+            else _onInputActions.Remove(inputAction);
         }
     }
 
     public override void _Input(InputEvent e) {
-        var span = CollectionsMarshal.AsSpan(_extendedInputStateHandlers);
-        var viewport = _nodeHandler.GetViewport();
+        if (_onInputActions.Count == 0) {
+            SetProcessInput(false);
+            return;
+        }
+        var span = CollectionsMarshal.AsSpan(_onInputActions);
         for (var i = 0; i < span.Length; i++) {
-            if (viewport.IsInputHandled()) return;
             var inputAction = span[i];
             if (inputAction.IsEvent(e)) ((ExtendedInputActionStateHandler)inputAction.Handler).Update(e);
         }
     }
 
     public override void _UnhandledInput(InputEvent e) {
-        var span = CollectionsMarshal.AsSpan(_extendedUnhandledInputActions);
-        var viewport = _nodeHandler.GetViewport();
+        if (_onUnhandledInputActions.Count == 0) {
+            SetProcessUnhandledInput(false);
+            return;
+        }
+        var span = CollectionsMarshal.AsSpan(_onUnhandledInputActions);
         for (var i = 0; i < span.Length; i++) {
-            if (viewport.IsInputHandled()) return;
             var inputAction = span[i];
             if (inputAction.IsEvent(e)) ((ExtendedInputActionStateHandler)inputAction.Handler).Update(e);
         }
     }
 
     public override void _Process(double d) {
+        if (_onInputActions.Count == 0 && 
+            _onUnhandledInputActions.Count == 0) {
+            SetProcess(false);
+            return;
+        }
         var delta = (float)d;
-        var handledSpan = CollectionsMarshal.AsSpan(_extendedInputStateHandlers);
+        var handledSpan = CollectionsMarshal.AsSpan(_onInputActions);
         for (var i = 0; i < handledSpan.Length; i++) {
             var inputAction = handledSpan[i];
             ((ExtendedInputActionStateHandler)inputAction.Handler).AddTime(delta);
         }
-        var unhandledSpan = CollectionsMarshal.AsSpan(_extendedUnhandledInputActions);
+        var unhandledSpan = CollectionsMarshal.AsSpan(_onUnhandledInputActions);
         for (var i = 0; i < unhandledSpan.Length; i++) {
             var inputAction = unhandledSpan[i];
             ((ExtendedInputActionStateHandler)inputAction.Handler).AddTime(delta);
