@@ -53,7 +53,7 @@ public class NodeBuilder<T> : INode where T : Node {
     public NodeBuilder<NodeBuilder<T>, TButton> Button<TButton>(string label, Action<TButton> action) where TButton : Button {
         var b = Activator.CreateInstance<TButton>();
         b.Text = label;
-        b.OnPressed(() => action(b));
+        b.Pressed += () => action(b);
         return Child(b);
     }
 
@@ -72,10 +72,10 @@ public class NodeBuilder<T> : INode where T : Node {
         b.Text = label;
         b.PressedIf = pressedId;
         // TODO use Button group instead
-        b.OnPressed(() => {
+        b.Pressed += () => {
             action(b);
             b.Refresh();
-        });
+        };
         return Child(b);
     }
 }
@@ -112,14 +112,14 @@ public class NodeBuilder<TNodeBuilder, T> : INode where T : Node where TNodeBuil
     public NodeBuilder<NodeBuilder<TNodeBuilder, T>, Button> Button(string label, Action action) {
         var b = new Button();
         b.Text = label;
-        b.OnPressed(action);
+        b.Pressed += action;
         return Child(b);
     }
     
     public NodeBuilder<NodeBuilder<TNodeBuilder, T>, TButton> Button<TButton>(string label, Action action) where TButton : Button {
         var b = Activator.CreateInstance<TButton>();
         b.Text = label;
-        b.OnPressed(action);
+        b.Pressed += action;
         return Child(b);
     }
     

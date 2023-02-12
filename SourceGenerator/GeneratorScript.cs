@@ -22,7 +22,6 @@ public partial class GeneratorScript : SceneTree {
         GenerateNotificationHandler.Write(GetClass("Node"));
             
         // Signal extensions
-        GenerateSignalHandlerExtensions.Write(classes);
         GenerateAwaitExtensions.Write(classes);
         Console.WriteLine("End. "+stopwatch.ElapsedMilliseconds + "ms");
         Quit(0);

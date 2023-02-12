@@ -74,8 +74,8 @@ public class Game {
         light.ShadowEnabled = true;
         light.ShadowFilter = Light2D.ShadowFilterEnum.None;
         light.GetNode<Area2D>("Area2D")
-            ?.OnBodyEntered(LayerConstants.LayerPlayerBody, (CharacterBody2D player) => {
-                if (CharacterManager.IsPlayer(player)) CandleOn(light);
+            ?.OnBodyEntered(LayerConstants.LayerPlayerBody, (player) => {
+                if (player is CharacterBody2D character && CharacterManager.IsPlayer(character)) CandleOn(light);
             });
     }
 

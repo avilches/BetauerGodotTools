@@ -1,4 +1,3 @@
-using Betauer.Core.Signal;
 using Godot;
 
 namespace Betauer.Bus.Signal {
@@ -15,8 +14,8 @@ namespace Betauer.Bus.Signal {
             }
 
             public Collection Connect(Area2D area2D) {
-                area2D.OnBodyEntered(body => OnEnter(area2D, body));
-                area2D.OnBodyExited(body => OnExit(area2D, body));
+                area2D.BodyEntered += body => OnEnter(area2D, body);
+                area2D.BodyExited += body => OnExit(area2D, body);
                 return this;
             }
         }
@@ -27,8 +26,8 @@ namespace Betauer.Bus.Signal {
             }
             
             public Status Connect(Area2D area2D) {
-                area2D.OnBodyEntered(target => OnEnter(area2D, target));
-                area2D.OnBodyExited(target => OnExit(area2D, target));
+                area2D.BodyEntered += target => OnEnter(area2D, target);
+                area2D.BodyExited += target => OnExit(area2D, target);
                 return this;
             }
         }

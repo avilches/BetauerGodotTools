@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using Betauer.Bus.Signal;
 using Betauer.Core.Signal;
-using Betauer.Tests.Signal;
+using Betauer.TestRunner;
 using Betauer.Tools.Logging;
 using NUnit.Framework;
 
@@ -9,6 +9,7 @@ namespace Betauer.Bus.Tests.Signal;
 
 [TestFixture]
 public class BodyOnArea2DTests : BaseNodeTest {
+    [Only]
     [SetUp]
     public void Setup() {
         LoggerFactory.OverrideTraceLevel(TraceLevel.All);

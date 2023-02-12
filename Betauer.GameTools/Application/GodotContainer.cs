@@ -30,7 +30,7 @@ public class GodotContainer {
     public GodotContainer Start(Action<ContainerBuilder>? containerConfig = null) {
         _containerConfig = containerConfig;
         if (_owner.IsInsideTree()) StartContainer();
-        else _owner.OnTreeEntered(StartContainer, true);
+        else _owner.Connect(Node.SignalName.TreeEntered, Callable.From(StartContainer), SignalTools.SignalFlags(true));
         return this;
     }
 
@@ -39,7 +39,7 @@ public class GodotContainer {
             OnReadyScanner.ConfigureAutoInject(_owner.GetTree());
         }
         CreateContainer();
-        _owner.GetTree().OnNodeAdded(InjectIfNotInjected);
+        _owner.GetTree().NodeAdded += InjectIfNotInjected;
     }
 
     private void CreateContainer() {

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Betauer.Core.Signal;
 using Godot;
 
 namespace Betauer.Application.Screen; 
@@ -14,7 +13,7 @@ public class ScreenService {
 
     public ScreenService(SceneTree sceneTree, ScreenConfiguration screenConfiguration, IScreenStrategy screenStrategy) {
         SceneTree = sceneTree;
-        SceneTree.Root.OnSizeChanged(OnScreenResized);
+        SceneTree.Root.SizeChanged += OnScreenResized;
         SetScreenConfiguration(screenConfiguration);
     }
 

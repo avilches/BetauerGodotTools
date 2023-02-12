@@ -1,129 +1,87 @@
 using System;
-using Betauer.Core.Signal;
 using Godot;
 using Godot.Collections;
 
 namespace Betauer.Core.Nodes;
 
 public static class CollisionLayerExtensions {
-
-    public static Dictionary RaycastTo(this Node2D from, Vector2 to, Action<PhysicsRayQueryParameters2D>? config = null)  {
+    public static Dictionary RaycastTo(this Node2D from, Vector2 to,
+        Action<PhysicsRayQueryParameters2D>? config = null) {
         var query = PhysicsRayQueryParameters2D.Create(from.GlobalPosition, to);
         config?.Invoke(query);
         return from.GetWorld2D().DirectSpaceState.IntersectRay(query);
     }
 
-    public static SignalHandler OnAreaEntered(this Area2D area2D, int layer, Action<Area2D> action, bool oneShot = false,
-        bool deferred = false) {
+    public static void OnAreaEntered(this Area2D area2D, int layer, Area2D.AreaEnteredEventHandler action
+    ) {
         area2D.DetectLayer(layer);
-        return area2D.OnAreaEntered(action, oneShot, deferred);
+        area2D.AreaEntered += action;
     }
 
-    public static SignalHandler OnAreaExited(this Area2D area2D, int layer, Action<Area2D> action, bool oneShot = false,
-        bool deferred = false) {
+    public static void OnAreaExited(this Area2D area2D, int layer, Area2D.AreaExitedEventHandler action
+    ) {
         area2D.DetectLayer(layer);
-        return area2D.OnAreaExited(action, oneShot, deferred);
+        area2D.AreaExited += action;
     }
 
-    public static SignalHandler OnAreaShapeEntered(this Area2D area2D, int layer, Action<Rid, Area2D, int, int> action, bool oneShot = false,
-        bool deferred = false) {
+    public static void OnAreaShapeEntered(this Area2D area2D, int layer, Area2D.AreaShapeEnteredEventHandler action
+    ) {
         area2D.DetectLayer(layer);
-        return area2D.OnAreaShapeEntered(action, oneShot, deferred);
+        area2D.AreaShapeEntered += action;
     }
 
-    public static SignalHandler OnAreaShapeExited(this Area2D area2D, int layer, Action<Rid, Area2D, int, int> action, bool oneShot = false,
-        bool deferred = false) {
+    public static void OnAreaShapeExited(this Area2D area2D, int layer, Area2D.AreaShapeExitedEventHandler action
+    ) {
         area2D.DetectLayer(layer);
-        return area2D.OnAreaShapeExited(action, oneShot, deferred);
+        area2D.AreaShapeExited += action;
     }
 
-    public static SignalHandler OnNode2DEntered(this Area2D area2D, int layer, Action<Node2D> action, bool oneShot = false,
-        bool deferred = false) {
+    public static void OnBodyEntered(this Area2D area2D, int layer, Area2D.BodyEnteredEventHandler action
+    ) {
         area2D.DetectLayer(layer);
-        return area2D.OnBodyEntered(action, oneShot, deferred);
+        area2D.BodyEntered += action;
     }
 
-    public static SignalHandler OnNode2DExited(this Area2D area2D, int layer, Action<Node2D> action, bool oneShot = false,
-        bool deferred = false) {
+    public static void OnBodyExited(this Area2D area2D, int layer, Area2D.BodyExitedEventHandler action
+    ) {
         area2D.DetectLayer(layer);
-        return area2D.OnBodyExited(action, oneShot, deferred);
+        area2D.BodyExited += action;
     }
 
-    public static SignalHandler OnNode2DShapeEntered(this Area2D area2D, int layer, Action<Rid, Node2D, int, int> action, bool oneShot = false,
-        bool deferred = false) {
+    public static void OnBodyShapeEntered(this Area2D area2D, int layer, Area2D.BodyShapeEnteredEventHandler action
+    ) {
         area2D.DetectLayer(layer);
-        return area2D.OnBodyShapeEntered(action, oneShot, deferred);
+        area2D.BodyShapeEntered += action;
     }
 
-    public static SignalHandler OnNode2DShapeExited(this Area2D area2D, int layer, Action<Rid, Node2D, int, int> action, bool oneShot = false,
-        bool deferred = false) {
+    public static void OnBodyShapeExited(this Area2D area2D, int layer, Area2D.BodyShapeExitedEventHandler action
+    ) {
         area2D.DetectLayer(layer);
-        return area2D.OnBodyShapeExited(action, oneShot, deferred);
+        area2D.BodyShapeExited += action;
     }
 
-    public static SignalHandler OnBodyEntered<T>(this Area2D area2D, int layer, Action<T> action, bool oneShot = false, bool deferred = false)
-        where T : PhysicsBody2D {
-        area2D.DetectLayer(layer);
-        return area2D.OnBodyEntered(node => {
-            if (node is T t) action(t);
-        }, oneShot, deferred);
+    public static void OnBodyEntered(this RigidBody2D rigidBody2D, int layer, RigidBody2D.BodyEnteredEventHandler action
+    ) {
+        rigidBody2D.DetectLayer(layer);
+        rigidBody2D.BodyEntered += action;
     }
 
-    public static SignalHandler OnBodyExited<T>(this Area2D area2D, int layer, Action<T> action, bool oneShot = false, bool deferred = false)
-        where T : PhysicsBody2D {
-        area2D.DetectLayer(layer);
-        return area2D.OnBodyExited(node => {
-            if (node is T t) action(t);
-        }, oneShot, deferred);
+    public static void OnBodyExited(this RigidBody2D rigidBody2D, int layer, RigidBody2D.BodyExitedEventHandler action
+    ) {
+        rigidBody2D.DetectLayer(layer);
+        rigidBody2D.BodyExited += action;
     }
 
-    public static SignalHandler OnBodyShapeEntered<T>(this Area2D area2D, int layer, Action<Rid, T, int, int> action, bool oneShot = false,
-        bool deferred = false) where T : PhysicsBody2D {
-        area2D.DetectLayer(layer);
-        return area2D.OnBodyShapeEntered((rid, node, bodyShapeIndex, localShapeIndex) => {
-            if (node is T t) action(rid, t, bodyShapeIndex, localShapeIndex);
-        }, oneShot, deferred);
+    public static void OnBodyShapeEntered(this RigidBody2D rigidBody2D, int layer, RigidBody2D.BodyShapeEnteredEventHandler action
+    ) {
+        rigidBody2D.DetectLayer(layer);
+        rigidBody2D.BodyShapeEntered += action;
     }
 
-    public static SignalHandler OnBodyShapeExited<T>(this Area2D area2D, int layer, Action<Rid, T, int, int> action, bool oneShot = false,
-        bool deferred = false) where T : PhysicsBody2D {
-        area2D.DetectLayer(layer);
-        return area2D.OnBodyShapeExited((rid, node, bodyShapeIndex, localShapeIndex) => {
-            if (node is T t) action(rid, t, bodyShapeIndex, localShapeIndex);
-        }, oneShot, deferred);
-    }
-
-
-    public static SignalHandler OnTileMapEntered<T>(this Area2D area2D, int layer, Action<T> action, bool oneShot = false,
-        bool deferred = false) where T : TileMap {
-        area2D.DetectLayer(layer);
-        return area2D.OnBodyEntered(node => {
-            if (node is T t) action(t);
-        }, oneShot, deferred);
-    }
-
-    public static SignalHandler OnTileMapExited<T>(this Area2D area2D, int layer, Action<T> action, bool oneShot = false,
-        bool deferred = false) where T : TileMap {
-        area2D.DetectLayer(layer);
-        return area2D.OnBodyExited(node => {
-            if (node is T t) action(t);
-        }, oneShot, deferred);
-    }
-
-    public static SignalHandler OnTileMapShapeEntered<T>(this Area2D area2D, int layer, Action<Rid, T, int, int> action, bool oneShot = false,
-        bool deferred = false) where T : TileMap {
-        area2D.DetectLayer(layer);
-        return area2D.OnBodyShapeEntered((rid, node, bodyShapeIndex, localShapeIndex) => {
-            if (node is T t) action(rid, t, bodyShapeIndex, localShapeIndex);
-        }, oneShot, deferred);
-    }
-
-    public static SignalHandler OnTileMapShapeExited<T>(this Area2D area2D, int layer, Action<Rid, T, int, int> action, bool oneShot = false,
-        bool deferred = false) where T : TileMap {
-        area2D.DetectLayer(layer);
-        return area2D.OnBodyShapeExited((rid, node, bodyShapeIndex, localShapeIndex) => {
-            if (node is T t) action(rid, t, bodyShapeIndex, localShapeIndex);
-        }, oneShot, deferred);
+    public static void OnBodyShapeExited(this RigidBody2D rigidBody2D, int layer, RigidBody2D.BodyShapeExitedEventHandler action
+    ) {
+        rigidBody2D.DetectLayer(layer);
+        rigidBody2D.BodyShapeExited += action;
     }
 
     public static void AddToLayer(this CollisionObject2D o, int layer) {
@@ -170,15 +128,15 @@ public static class CollisionLayerExtensions {
     }
 
     public static void DetectLayer(this PhysicsPointQueryParameters2D o, int layer) {
-        o.CollisionMask = BitTools.EnableBit(o.CollisionMask,(uint)layer);
+        o.CollisionMask = BitTools.EnableBit(o.CollisionMask, (uint)layer);
     }
 
     public static void DetectLayer(this PhysicsRayQueryParameters2D o, int layer) {
-        o.CollisionMask = BitTools.EnableBit(o.CollisionMask,(uint)layer);
+        o.CollisionMask = BitTools.EnableBit(o.CollisionMask, (uint)layer);
     }
 
     public static void DetectLayer(this PhysicsShapeQueryParameters2D o, int layer) {
-        o.CollisionMask = BitTools.EnableBit(o.CollisionMask,(uint)layer);
+        o.CollisionMask = BitTools.EnableBit(o.CollisionMask, (uint)layer);
     }
 
     public static void DetectLayer(this RayCast3D o, int layer) {
@@ -216,15 +174,15 @@ public static class CollisionLayerExtensions {
         o.SetCollisionMaskValue(layer, false);
 
     public static void IgnoreLayer(this PhysicsPointQueryParameters2D o, int layer) {
-        o.CollisionMask = BitTools.DisableBit(o.CollisionMask,(uint)layer);
+        o.CollisionMask = BitTools.DisableBit(o.CollisionMask, (uint)layer);
     }
 
     public static void IgnoreLayer(this PhysicsRayQueryParameters2D o, int layer) {
-        o.CollisionMask = BitTools.DisableBit(o.CollisionMask,(uint)layer);
+        o.CollisionMask = BitTools.DisableBit(o.CollisionMask, (uint)layer);
     }
 
     public static void IgnoreLayer(this PhysicsShapeQueryParameters2D o, int layer) {
-        o.CollisionMask = BitTools.DisableBit(o.CollisionMask,(uint)layer);
+        o.CollisionMask = BitTools.DisableBit(o.CollisionMask, (uint)layer);
     }
 
     public static void IgnoreLayer(this RayCast3D o, int layer) =>
@@ -246,5 +204,4 @@ public static class CollisionLayerExtensions {
         var mask = BitTools.DisableBit(tileMap.TileSet.GetPhysicsLayerCollisionMask(tileSetPhysicsLayer), (uint)layer);
         tileMap.TileSet.SetPhysicsLayerCollisionMask(tileSetPhysicsLayer, mask);
     }
-    
 }

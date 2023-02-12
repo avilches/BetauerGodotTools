@@ -250,7 +250,7 @@ public partial class DebugConsole : Panel {
                                 prompt.CaretBlink = true;
                                 prompt.CaretBlinkInterval = 0.250f;
                                 prompt.GrabFocus();
-                                prompt.OnTextChanged((_) => _caretAutoCompleting = 0);         
+                                prompt.TextChanged += (_) => _caretAutoCompleting = 0;         
                             })
                         .End()
                         .Child<HSlider>()
@@ -260,10 +260,10 @@ public partial class DebugConsole : Panel {
                                 slider.TooltipText = "Opacity";
                                 slider.CustomMinimumSize = new Vector2(50, 5);
                                 slider.Value = InitialTransparentBackground * 25f;
-                                slider.OnValueChanged((value) => {
-                                    SelfModulate = new Color(1, 1, 1, value / 25f);
+                                slider.ValueChanged += (value) => {
+                                    SelfModulate = new Color(1, 1, 1, (float)(value / 25f));
                                     Prompt.GrabFocus();
-                                });
+                                };
                                 slider.MaxValue = 25f;
                                 slider.MinValue = 0f;
                             })

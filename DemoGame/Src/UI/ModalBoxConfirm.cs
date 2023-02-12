@@ -67,8 +67,8 @@ public partial class ModalBoxConfirm : CanvasFaderLayer {
 		}
 		_acceptButton.Text = $"  {_acceptText}  ";
 		_cancelButton.Text = $"  {_cancelText}  ";
-		_acceptButton.OnPressed(() => SetResult(true));
-		_cancelButton.OnPressed(() => SetResult(false));
+		_acceptButton.Pressed += () => SetResult(true);
+		_cancelButton.Pressed += () => SetResult(false);
 		if (_acceptIsDefault) {
 			_acceptButton.GrabFocus();
 		} else {

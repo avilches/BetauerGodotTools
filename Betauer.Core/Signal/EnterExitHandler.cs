@@ -1,95 +1,111 @@
 using Godot;
 
-namespace Betauer.Core.Signal; 
+namespace Betauer.Core.Signal;
 
-public abstract class EnterExitHandler<T> where T : class {
-    public SignalHandler EnteredSignalHandler { get; protected set; }
-    public SignalHandler ExitedSignalHandler { get; protected set; }
+// TODO: this class is not tested
 
+public abstract class EnterExitHandler {
     public bool Inside { get; protected set; } = false;
+    public bool Connected { get; private set; }
 
-    public T Connect() {
-        EnteredSignalHandler.Connect();
-        ExitedSignalHandler.Connect();
-        return this as T;
+    public void Connect() {
+        if (!Connected) {
+            DoConnect();
+            Connected = true;
+        }
     }
 
-    public T Disconnect() {
-        EnteredSignalHandler.Disconnect();
-        ExitedSignalHandler.Disconnect();
-        return this as T;
+    public void Disconnect() {
+        if (Connected) {
+            DoDisconnect();
+            Connected = false;
+        }
     }
+
+    protected void Entered() => Inside = true;
+
+    protected void Exited() => Inside = true;
+
+    protected abstract void DoConnect();
+
+    protected abstract void DoDisconnect();
 }
 
 public static class IsVisibleOnScreenNotifier2D {
-        
-    // TODO: this class is not tested
-    public class InsideScreen : EnterExitHandler<InsideScreen> {
+    public sealed class InsideScreen : EnterExitHandler {
         public readonly VisibleOnScreenNotifier2D Origin;
 
         public InsideScreen(VisibleOnScreenNotifier2D origin) {
             Origin = origin;
-            EnteredSignalHandler = Origin.OnScreenEntered(() => Inside = true);
-            ExitedSignalHandler = Origin.OnScreenExited(() => Inside = false);
+            Connect();
         }
-    }
-}
 
-public static class IsVisibleOnScreenNotifier3D {
-        
-    // TODO: this class is not tested
-    public class InsideScreen : EnterExitHandler<InsideScreen> {
-        public readonly VisibleOnScreenNotifier3D Origin;
+        protected override void DoConnect() {
+            Origin.ScreenEntered += Entered;
+            Origin.ScreenExited += Exited;
+        }
 
-        public InsideScreen(VisibleOnScreenNotifier3D origin) {
-            Origin = origin;
-            EnteredSignalHandler = Origin.OnScreenEntered(() => Inside = true);
-            ExitedSignalHandler = Origin.OnScreenExited(() => Inside = false);
+        protected override void DoDisconnect() {
+            Origin.ScreenEntered -= Entered;
+            Origin.ScreenExited -= Exited;
         }
     }
 }
 
 public static class Mouse {
-    public class InsideControl : EnterExitHandler<InsideControl> {
+    public sealed class InsideControl : EnterExitHandler {
         public readonly Control Origin;
 
         public InsideControl(Control origin) {
             Origin = origin;
-            EnteredSignalHandler = Origin.OnMouseEntered(() => Inside = true);
-            ExitedSignalHandler = Origin.OnMouseExited(() => Inside = false);
+            Connect();
         }
-    }
-        
-    // TODO: this class is not tested
-    public class InsideCollisionObject3D : EnterExitHandler<InsideControl> {
-        public readonly CollisionObject3D Origin;
 
-        public InsideCollisionObject3D(CollisionObject3D origin) {
-            Origin = origin;
-            EnteredSignalHandler = Origin.OnMouseEntered(() => Inside = true);
-            ExitedSignalHandler = Origin.OnMouseExited(() => Inside = false);
+        protected override void DoConnect() {
+            Origin.MouseEntered += Entered;
+            Origin.MouseExited += Exited;
+        }
+
+        protected override void DoDisconnect() {
+            Origin.MouseEntered -= Entered;
+            Origin.MouseExited -= Exited;
         }
     }
-        
-    // TODO: this class is not tested
-    public class InsideWindow : EnterExitHandler<InsideControl> {
+
+    public class InsideWindow : EnterExitHandler {
         public readonly Window Origin;
 
         public InsideWindow(Window origin) {
             Origin = origin;
-            EnteredSignalHandler = Origin.OnMouseEntered(() => Inside = true);
-            ExitedSignalHandler = Origin.OnMouseExited(() => Inside = false);
+            Connect();
+        }
+
+        protected override void DoConnect() {
+            Origin.MouseEntered += Entered;
+            Origin.MouseExited += Exited;
+        }
+
+        protected override void DoDisconnect() {
+            Origin.MouseEntered -= Entered;
+            Origin.MouseExited -= Exited;
         }
     }
-        
-    // TODO: this class is not tested
-    public class InsideCollisionObject2D : EnterExitHandler<InsideControl> {
+
+    public class InsideCollisionObject2D : EnterExitHandler {
         public readonly CollisionObject2D Origin;
 
         public InsideCollisionObject2D(CollisionObject2D origin) {
             Origin = origin;
-            EnteredSignalHandler = Origin.OnMouseEntered(() => Inside = true);
-            ExitedSignalHandler = Origin.OnMouseExited(() => Inside = false);
+        }
+
+        protected override void DoConnect() {
+            Origin.MouseEntered += Entered;
+            Origin.MouseExited += Exited;
+        }
+
+        protected override void DoDisconnect() {
+            Origin.MouseEntered -= Entered;
+            Origin.MouseExited -= Exited;
         }
     }
 }

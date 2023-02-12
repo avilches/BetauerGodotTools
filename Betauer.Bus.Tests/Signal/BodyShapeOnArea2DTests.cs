@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using Betauer.Bus.Signal;
 using Betauer.Core.Signal;
-using Betauer.Tests.Signal;
+using Betauer.TestRunner;
 using Betauer.Tools.Logging;
 using NUnit.Framework;
 

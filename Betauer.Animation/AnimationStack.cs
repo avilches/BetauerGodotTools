@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Betauer.Tools.Logging;
-using Betauer.Core.Signal;
 using Godot;
 
 namespace Betauer.Animation {
@@ -161,7 +160,7 @@ namespace Betauer.Animation {
             internal override void ExecuteOnStart() {
                 base.ExecuteOnStart();
                 _sceneTreeTween = _animation.Play().SetLoops(1);
-                _sceneTreeTween.OnFinished(AnimationStack.OnTweenPlayerFinishAll);
+                _sceneTreeTween.Finished += AnimationStack.OnTweenPlayerFinishAll;
             }
 
             public void Kill() {
@@ -232,7 +231,7 @@ namespace Betauer.Animation {
 
         public AnimationStack SetAnimationPlayer(AnimationPlayer animationPlayer) {
             AnimationPlayer = animationPlayer;
-            AnimationPlayer.OnAnimationFinished(AnimationFinished);
+            AnimationPlayer.AnimationFinished += AnimationFinished;
             return this;
         }
 

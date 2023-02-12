@@ -63,9 +63,9 @@ public partial class PauseMenu : CanvasFaderLayer {
 
 		var mainMenu = new MenuContainer(_menuBase);
 		var startMenu = mainMenu.GetRootMenu();
-		startMenu.AddButton("Resume", "Resume").OnPressed(() => EventBus.Publish(MainEvent.Back));
-		startMenu.AddButton("Settings", "Settings").OnPressed(() => EventBus.Publish(MainEvent.Settings));
-		startMenu.AddButton("QuitGame", "Quit game").OnPressed(() => EventBus.Publish(MainEvent.ModalBoxConfirmQuitGame));
+		startMenu.AddButton("Resume", "Resume").Pressed += () => EventBus.Publish(MainEvent.Back);
+		startMenu.AddButton("Settings", "Settings").Pressed += () => EventBus.Publish(MainEvent.Settings);
+		startMenu.AddButton("QuitGame", "Quit game").Pressed += () => EventBus.Publish(MainEvent.ModalBoxConfirmQuitGame);
 		return mainMenu;
 	}
 

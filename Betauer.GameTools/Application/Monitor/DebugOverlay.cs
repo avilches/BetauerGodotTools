@@ -296,7 +296,7 @@ public partial class DebugOverlay : Panel {
                 .End()
             .End();
         MouseFilter = MouseFilterEnum.Pass;
-        OverlayContent.OnResized(FitContent);
+        OverlayContent.Resized += FitContent;
         FitContent();
     }
 
