@@ -41,14 +41,10 @@ public static partial class AppTools {
         TaskScheduler.UnobservedTaskException += (o, args) => {
             // This event logs errors in non-awaited Task, which is a weird case
             var e = args.Exception;
-            LoggerFactory.GetLogger(o?.GetType() ?? typeof(AppTools))
-                .Error("TaskScheduler.UnobservedTaskException {0}", e);
-            if (Project.FeatureFlags.IsTerminateOnExceptionEnabled()) {
+            var loggerType = o?.GetType() ?? typeof(AppTools);
+            LoggerFactory.GetLogger(loggerType).Error("TaskScheduler.UnobservedTaskException {0}", e);
                 sceneTree().QuitSafely(1);
-            }
         };
-            
-            
 
         // TODO Godot 4
         AppDomain.CurrentDomain.UnhandledException += (o, args) => {
@@ -57,17 +53,9 @@ public static partial class AppTools {
             // so the quit is not really needed
             // If unhandled_exception_policy is "1" (LogError), the error is not logged neither this event is called
             var e = args.ExceptionObject;
-            LoggerFactory.GetLogger(o?.GetType() ?? typeof(AppTools))
-                .Error("AppDomain.CurrentDomain.UnhandledException {0}", e);
+            var loggerType = o?.GetType() ?? typeof(AppTools);
+            LoggerFactory.GetLogger(loggerType).Error("AppDomain.CurrentDomain.UnhandledException {0}", e);
         };
-            
-        /*
-        GD.UnhandledException += (o, args) => {
-          var e = args.Exception;
-          LoggerFactory.GetLogger(o?.GetType() ?? typeof(AppTools))
-              .Error("GD.UnhandledException {0}", e);
-      };
-      */
     }
 
 }

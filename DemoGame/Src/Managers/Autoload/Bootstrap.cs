@@ -42,18 +42,16 @@ public partial class Bootstrap : Node /* needed to be instantiated as an Autoloa
             
         GD.Print(string.Join("\n", Project.GetOSInfo()));
         GD.Print(string.Join("\n", Project.GetSettings(
-            "logging/file_logging/enable_file_logging",
-            "logging/file_logging/enable_file_logging.pc",
-            "logging/file_logging/log_path",
-            "logging/file_logging/log_path.standalone",
+            "debug/file_logging/enable_file_logging",
+            "debug/file_logging/enable_file_logging.pc",
+            "debug/file_logging/log_path",
+            "debug/file_logging/log_path.standalone",
             "application/run/disable_stdout",
             "application/run/disable_stderr",
             "application/run/flush_stdout_on_print",
             "application/run/flush_stdout_on_print.debug",
             "application/config/use_custom_user_dir",
             "application/config/project_settings_override",
-            "mono/runtime/unhandled_exception_policy",
-            "mono/runtime/unhandled_exception_policy.standalone",
             "application/config/version"
         )));
     }
@@ -87,8 +85,8 @@ public partial class Bootstrap : Node /* needed to be instantiated as an Autoloa
         // DI
         LoggerFactory.SetTraceLevel(typeof(SingletonFactoryProvider), TraceLevel.Error);
         LoggerFactory.SetTraceLevel(typeof(TransientFactoryProvider), TraceLevel.Error);
-        // LoggerFactory.SetTraceLevel(typeof(Container), TraceLevel.Error);
-        // LoggerFactory.SetTraceLevel(typeof(Injector), TraceLevel.Error);
+        LoggerFactory.SetTraceLevel(typeof(Container), TraceLevel.Error);
+        LoggerFactory.SetTraceLevel(typeof(Injector), TraceLevel.Error);
 
         // GameTools
         LoggerFactory.SetTraceLevel(typeof(BaseScreenResolutionService), TraceLevel.All);

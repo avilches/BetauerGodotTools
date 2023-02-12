@@ -14,7 +14,7 @@ config/name="DemoGame4"
 run/main_scene="res://Scenes/SplashScreen.tscn"
 config/use_custom_user_dir=true
 config/project_settings_override="user://override.cfg"
-config/features=PackedStringArray("4.0", "C#", "Forward Plus")
+config/features=PackedStringArray("4.0", "C#")
 boot_splash/bg_color=Color(0.141176, 0.141176, 0.141176, 1)
 boot_splash/show_image=false
 boot_splash/fullsize=false
@@ -26,6 +26,13 @@ config/version="1.0.0"
 
 Bootstrap="*res://Src/Managers/Autoload/Bootstrap.cs"
 Global="*res://Src/Managers/Autoload/Global.cs"
+
+[debug]
+
+file_logging/enable_file_logging=true
+file_logging/enable_file_logging.pc=false
+file_logging/log_path="user://logs/dev.log"
+file_logging/log_path.release="user://logs/game.log"
 
 [display]
 
@@ -40,10 +47,6 @@ window/size/test_height=1080
 [dotnet]
 
 project/assembly_name="DemoGame4"
-
-[editor]
-
-scene/scene_naming=1
 
 [importer_defaults]
 
@@ -67,11 +70,6 @@ texture={
 "stream": false,
 "svg/scale": 1.0
 }
-
-[logging]
-
-file_logging/log_path="user://logs/dev.log"
-file_logging/log_path.standalone="user://logs/game.log"
 
 [rendering]
 
