@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using Betauer.Animation;
+using Betauer.Animation.AnimationPlayer;
 using Betauer.Application.Monitor;
 using Betauer.Core;
 using Betauer.Core.Nodes;
@@ -93,14 +94,12 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 	// [Inject] private InputActionCharacterHandler Handler { get; set; }
 	private CharacterController Handler { get; set; } = new CharacterController();
 
-	public ILoopStatus AnimationIdle { get; private set; }
-	public ILoopStatus AnimationRun { get; private set; }
-	public IOnceStatus AnimationAttack { get; private set; }
-	public IOnceStatus AnimationReset { get; private set; }
-	public IOnceStatus AnimationHurt { get; private set; }
-	public IOnceStatus AnimationDead { get; private set; }
-
-	private AnimationStack _animationStack;
+	public Anim AnimationIdle { get; private set; }
+	public Anim AnimationRun { get; private set; }
+	public Anim AnimationAttack { get; private set; }
+	public Anim AnimationReset { get; private set; }
+	public Anim AnimationHurt { get; private set; }
+	public Anim AnimationDead { get; private set; }
 
 	private float XInput => Handler.Lateral.Strength;
 	private float YInput => Handler.Vertical.Strength;
@@ -250,14 +249,13 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 	}
 
 	private void CreateAnimations() {
-		_animationStack = new AnimationStack("Zombie.AnimationStack").SetAnimationPlayer(_animationPlayer);
-		AnimationIdle = _animationStack.AddLoopAnimation("Idle");
-		AnimationRun = _animationStack.AddLoopAnimation("Run");
-		AnimationAttack = _animationStack.AddOnceAnimation("Attack");
-		AnimationHurt = _animationStack.AddOnceAnimation("Hurt");
-		AnimationDead = _animationStack.AddOnceAnimation("Dead");
+		AnimationIdle = _animationPlayer.CreateAnimationPlayer("Idle");
+		AnimationRun = _animationPlayer.CreateAnimationPlayer("Run");
+		AnimationAttack = _animationPlayer.CreateAnimationPlayer("Attack");
+		AnimationHurt = _animationPlayer.CreateAnimationPlayer("Hurt");
+		AnimationDead = _animationPlayer.CreateAnimationPlayer("Dead");
 
-		AnimationReset = _animationStack.AddOnceAnimation("RESET");
+		AnimationReset = _animationPlayer.CreateAnimationPlayer("RESET");
 
 		HitLabel.Visible = false; // just in case...
 		var hitLabelUsed = false;
@@ -379,7 +377,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 
 		State(ZombieState.Idle)
 			.Enter(() => {
-				AnimationIdle.PlayLoop();
+				AnimationIdle.Play();
 			})
 			.Execute(() => {
 				ApplyFloorGravity();
@@ -393,7 +391,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 
 		State(ZombieState.Run)
 			.Enter(() => {
-				AnimationRun.PlayLoop();
+				AnimationRun.Play();
 			})
 			.Execute(() => {
 				ApplyFloorGravity();
@@ -411,14 +409,14 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 
 		State(ZombieState.Attacking)
 			.Enter(() => {
-				AnimationAttack.PlayOnce(true);
+				AnimationAttack.Play();
 			})
 			.Execute(() => {
 				ApplyFloorGravity();
 				PlatformBody.Lateral(XInput, EnemyConfig.Acceleration, EnemyConfig.MaxSpeed, 
 					EnemyConfig.Friction, EnemyConfig.StopIfSpeedIsLessThan, 0);
 			})
-			.If(() => AnimationAttack.Playing).Stay()
+			.If(() => AnimationAttack.IsPlaying()).Stay()
 			.If(() => !PlatformBody.IsOnFloor()).Set(ZombieState.Fall)
 			.If(() => XInput == 0).Set(ZombieState.Idle)
 			.If(() => XInput != 0).Set(ZombieState.Run)
@@ -432,7 +430,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 				var dir = Vector2.Right.Rotated(Mathf.DegToRad(angle)) * energy;
 				PlatformBody.MotionX = IsToTheRightOfPlayer() ? dir.X : -dir.X;
 				PlatformBody.MotionY = -dir.Y;
-				AnimationHurt.PlayOnce(true);
+				AnimationHurt.Play();
 				redFlash?.Kill();
 				redFlash = RedFlash.Play(_mainSprite, 0); 
 			})
@@ -440,7 +438,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 				ApplyAirGravity();
 				PlatformBody.Move();
 			})
-			.If(() => !AnimationHurt.Playing && PlatformBody.IsOnFloor()).Set(ZombieState.Idle)
+			.If(() => !AnimationHurt.IsPlaying() && PlatformBody.IsOnFloor()).Set(ZombieState.Idle)
 			.Exit(() => {
 				Status.UnderAttack = false;
 			})
@@ -450,13 +448,13 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 			.Enter(() => {
 				DisableAttack();
 				HealthBar.Visible = false;
-				AnimationDead.PlayOnce(true);
+				AnimationDead.Play();
 			})
 			.Execute(() => {
 				ApplyAirGravity();
 				PlatformBody.Stop(EnemyConfig.Friction, EnemyConfig.StopIfSpeedIsLessThan);
 			})
-			.If(() => !AnimationDead.Playing).Set(ZombieState.End)
+			.If(() => !AnimationDead.IsPlaying()).Set(ZombieState.End)
 			.Build();
 
 		State(ZombieState.End).Enter(Recycle).Build();

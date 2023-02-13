@@ -269,7 +269,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	private void StopAttack() {
 		// Logger.Debug(CurrentState.Key+ ": Attack ended: GodotStopwatch physics: " + _stateTimer.Elapsed);
 		_attackState = AttackState.None;
-		AnimationAttack.Stop(true);
+		// AnimationAttack.Stop();
 		Status.AvailableHits = 0;
 	}
 
@@ -360,7 +360,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		State(PlayerState.Idle)
 			.OnInput(InventoryHandler)
 			// .OnInputBatch(AttackAndJumpHandler)
-			.Enter(() => AnimationIdle.PlayLoop())
+			.Enter(() => AnimationIdle.Play())
 			.Execute(() => {
 				ApplyFloorGravity();
 				PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
@@ -384,12 +384,12 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				ApplyFloorGravity();
 				if (XInput == 0) {
 					if (Math.Abs(MotionX) >= PlayerConfig.SpeedToPlayRunStop) {
-						AnimationIdle.PlayLoop();
-						AnimationRunStop.PlayOnce();
+						AnimationRunStop.Play();
 					}
 				} else {
-					AnimationRun.PlayLoop();
-					AnimationRunStop.Stop(true);
+					if (Math.Abs(MotionX) >= PlayerConfig.StopIfSpeedIsLessThan) {
+						AnimationRun.Play();
+					}
 				}
 				PlatformBody.Flip(XInput);
 				PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.Friction, 
@@ -403,13 +403,13 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			.If(() => Jump.IsJustPressed && Attack.IsJustPressed).Set(PlayerState.Jumping)
 			.If(() => Attack.IsJustPressed).Set(PlayerState.Attacking)
 			.If(() => Jump.IsJustPressed && CanJump()).Set(PlayerState.Jumping)
-			.If(() => XInput == 0 && MotionX == 0).Set(PlayerState.Idle)
+			.If(() => XInput == 0 && MotionX == 0 && !AnimationRunStop.IsPlaying()).Set(PlayerState.Idle)
 			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.FallWithCoyote)
 			.Build();
 
 		State(PlayerState.Attacking)
 			.Enter(() => {
-				AnimationAttack.PlayOnce(true);
+				AnimationAttack.Play();
 				StartStack();
 			})
 			.Execute(() => {
@@ -426,15 +426,15 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				if (_attackState == AttackState.Start) _attackState = AttackState.Step1;
 			})
 			.If(() => _attackState != AttackState.None).Stay()
+			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.Fall)
 			.If(() => XInput == 0).Set(PlayerState.Idle)
 			.If(() => XInput != 0).Set(PlayerState.Running)
-			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.FallWithCoyote)
 			.Build();
 		
 		State(PlayerState.JumpingAttack)
 			.Enter(() => {
 				PlatformBody.MotionY = -PlayerConfig.JumpSpeed;
-				AnimationAttack.PlayOnce(true);
+				AnimationAttack.Play();
 				StartStack();
 			})
 			.If(() => true).Set(PlayerState.FallingAttack)
@@ -444,8 +444,8 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			.OnInput(InventoryHandler)
 			.Enter(() => {
 				PlatformBody.MotionY = -PlayerConfig.JumpSpeed;
-				AnimationFall.PlayLoop();
-				AnimationJump.PlayOnce();
+				AnimationJump.Play();
+				AnimationFall.Queue();
 			})
 			.Execute(() => {
 				if (Jump.IsJustReleased && MotionY < -PlayerConfig.JumpSpeedMin) {
@@ -465,19 +465,25 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 
 		State(PlayerState.FallingAttack)
 			.Enter(() => {
-				AnimationAttack.PlayOnce(true);
+				AnimationAttack.Play();
 				StartStack();
 			})
 			.Execute(() => {
 				PlatformBody.Flip(XInput);
 				ApplyFloorGravity();
-				PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
-					PlayerConfig.StopIfSpeedIsLessThan, PlayerConfig.ChangeDirectionFactor);
+				if (!PlatformBody.IsOnFloor()) {
+					PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed,
+						PlayerConfig.AirResistance,
+						PlayerConfig.StopIfSpeedIsLessThan, PlayerConfig.ChangeDirectionFactor);
+				} else {
+					PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
+				}
+				// if (_attackState == AttackState.Start) _attackState = AttackState.Step1;
 			})
 			.If(() => _attackState != AttackState.None).Stay()
+			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.Fall)
 			.If(() => XInput == 0).Set(PlayerState.Idle)
 			.If(() => XInput != 0).Set(PlayerState.Running)
-			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.Fall)
 			.Build();
 
 		var coyoteTimer = new GodotStopwatch();
@@ -485,7 +491,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			.OnInput(InventoryHandler)
 			.Enter(() => coyoteTimer.Restart().SetAlarm(PlayerConfig.CoyoteJumpTime))
 			.Execute(() => {
-				if (MotionY > PlayerConfig.StartFallingSpeed) AnimationFall.PlayLoop();
+				if (MotionY > PlayerConfig.StartFallingSpeed) AnimationFall.Play();
 				PlatformBody.Flip(XInput);
 				ApplyAirGravity();
 				PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
@@ -509,7 +515,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		State(PlayerState.Fall)
 			.OnInput(InventoryHandler)
 			.Execute(() => {
-				if (MotionY > PlayerConfig.StartFallingSpeed) AnimationFall.PlayLoop();
+				if (MotionY > PlayerConfig.StartFallingSpeed) AnimationFall.Play();
 				PlatformBody.Flip(XInput);
 				ApplyAirGravity();
 				PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
@@ -536,12 +542,12 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			.Enter(() => {
 				Status.Invincible = true;
 				weaponSpriteVisible = _weaponSprite.Visible;
-				AnimationHurt.PlayOnce(true);
+				AnimationHurt.Play();
 			})
 			.Execute(() => {
 				ApplyAirGravity();
 			})
-			.If(() => AnimationHurt.Playing).Stay()
+			.If(() => AnimationHurt.IsPlaying()).Stay()
 			.If(() => XInput == 0).Set(PlayerState.Idle)
 			.If(() => XInput != 0).Set(PlayerState.Running)
 			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.Fall)
