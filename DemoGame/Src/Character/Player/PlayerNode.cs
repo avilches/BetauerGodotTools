@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Betauer.Animation.AnimationPlayer;
 using Betauer.Application.Monitor;
 using Betauer.Camera;
 using Betauer.Core;
@@ -88,6 +89,15 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	public Vector2? InitialPosition { get; set; }
 	public Inventory Inventory { get; private set; }
 
+	public Anim AnimationIdle { get; private set; }
+	public Anim AnimationRun { get; private set; }
+	public Anim AnimationRunStop { get; private set; }
+	public Anim AnimationJump { get; private set; }
+	public Anim AnimationFall { get; private set; }
+	public Anim AnimationAttack { get; private set; }
+	public Anim AnimationAirAttack { get; private set; }
+	public Anim AnimationHurt { get; private set; }
+
 	private float XInput => Handler.Lateral.Strength;
 	private float YInput => Handler.Vertical.Strength;
 	private bool IsPressingRight => Handler.Right.IsPressed;
@@ -137,6 +147,22 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		Inventory.Pick(World.Get("K1"));
 		Inventory.Pick(World.Get("M1"));
 		Inventory.Equip(1);
+	}
+
+	private void ConfigureAnimations() {
+		AnimationIdle = _animationPlayer.Anim("Idle");
+		AnimationRun = _animationPlayer.Anim("Run");
+		AnimationRunStop = _animationPlayer.Anim("RunStop");
+		AnimationJump = _animationPlayer.Anim("Jump");
+		AnimationFall = _animationPlayer.Anim("Fall");
+		AnimationAttack = _animationPlayer.Anim("Attack");
+		AnimationAirAttack = _animationPlayer.Anim("AirAttack");
+		AnimationHurt = _animationPlayer.Anim("Hurt");
+
+		// Restorer restorer = new MultiRestorer() 
+		// 	.Add(CharacterBody2D.CreateRestorer(Properties.Modulate, Properties.Scale2D))
+		// 	.Add(_mainSprite.CreateRestorer(Properties.Modulate, Properties.Scale2D));
+		// restorer.Save();
 	}
 
 	private void ConfigureCharacter() {

@@ -249,13 +249,13 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 	}
 
 	private void CreateAnimations() {
-		AnimationIdle = _animationPlayer.CreateAnimationPlayer("Idle");
-		AnimationRun = _animationPlayer.CreateAnimationPlayer("Run");
-		AnimationAttack = _animationPlayer.CreateAnimationPlayer("Attack");
-		AnimationHurt = _animationPlayer.CreateAnimationPlayer("Hurt");
-		AnimationDead = _animationPlayer.CreateAnimationPlayer("Dead");
+		AnimationIdle = _animationPlayer.Anim("Idle");
+		AnimationRun = _animationPlayer.Anim("Run");
+		AnimationAttack = _animationPlayer.Anim("Attack");
+		AnimationHurt = _animationPlayer.Anim("Hurt");
+		AnimationDead = _animationPlayer.Anim("Dead");
 
-		AnimationReset = _animationPlayer.CreateAnimationPlayer("RESET");
+		AnimationReset = _animationPlayer.Anim("RESET");
 
 		HitLabel.Visible = false; // just in case...
 		var hitLabelUsed = false;
