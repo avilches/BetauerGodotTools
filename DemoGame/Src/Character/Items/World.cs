@@ -18,8 +18,8 @@ public class World {
         _itemAlias.Clear();
     }
 
-    public WeaponItem CreateWeapon(WeaponType type, string name, string alias = null) =>
-        Add(new WeaponItem(NextId(), name, alias, type));
+    public WeaponItem CreateWeapon(WeaponModel model, string name, string alias = null) =>
+        Add(new WeaponItem(NextId(), name, alias, model));
 
     public EnemyItem CreateEnemy(ZombieNode zombieNode) =>
         Add(new EnemyItem(NextId(), zombieNode.Name, null, zombieNode));

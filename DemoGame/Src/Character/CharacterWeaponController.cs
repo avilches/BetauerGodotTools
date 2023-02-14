@@ -8,7 +8,7 @@ public class CharacterWeaponController {
     private readonly Area2D[] _attackAreas;
     private readonly Sprite2D _weaponSprite;
 
-    public WeaponType? Current { get; private set; }
+    public WeaponModel? Current { get; private set; }
 
     public CharacterWeaponController(Area2D[] attackAreas, Sprite2D weaponSprite) {
         _attackAreas = attackAreas;
@@ -18,7 +18,7 @@ public class CharacterWeaponController {
 
     public void Unequip() => Equip(null);
 		
-    public void Equip(WeaponType? weapon) {
+    public void Equip(WeaponModel? weapon) {
         if (weapon != null) {
             _weaponSprite.Visible = true;
             _weaponSprite.Texture = weapon.Resource;

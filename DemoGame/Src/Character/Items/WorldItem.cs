@@ -15,14 +15,14 @@ public abstract class WorldItem {
 }
 
 public class WeaponItem : WorldItem {
-    public readonly WeaponType Type;
+    public readonly WeaponModel Model;
     public float DamageFactor = 1f;
     public int EnemiesPerHit = 2;
 
-    public float Damage => Type.Damage * DamageFactor;
+    public float Damage => Model.Damage * DamageFactor;
 
-    internal WeaponItem(int id, string name, string alias, WeaponType type) : base(id, name, alias) {
-        Type = type;
+    internal WeaponItem(int id, string name, string alias, WeaponModel model) : base(id, name, alias) {
+        Model = model;
     }
 }
 

@@ -194,7 +194,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		Inventory = new Inventory();
 		Inventory.OnEquip += (item) => {
 			if (item is WeaponItem weapon) {
-				_characterWeaponController.Equip(weapon.Type);
+				_characterWeaponController.Equip(weapon.Model);
 			}
 		};
 
