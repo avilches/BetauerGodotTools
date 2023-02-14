@@ -18,7 +18,7 @@ public class Game {
     [Inject] private SceneTree SceneTree { get; set; }
     [Inject] private World World { get; set; }
     [Inject] private HUD HudScene { get; set; }
-    [Inject] private WeaponManager WeaponManager { get; set; }
+    [Inject] private WeaponModelManager WeaponModelManager { get; set; }
     [Inject] private StageManager StageManager { get; set; }
     [Inject] private CharacterManager CharacterManager { get; set; }
     [Inject] private PlatformManager PlatformManager { get; set; }
@@ -43,8 +43,8 @@ public class Game {
 
     public async Task StartWorld3() {
         World.Clear();
-        World.CreateWeapon(WeaponManager.Knife, "Knife", "K1");
-        World.CreateWeapon(WeaponManager.Metalbar, "Metalbar", "M1");
+        World.CreateMeleeWeapon(WeaponModelManager.Knife, "Knife", "K1");
+        World.CreateMeleeWeapon(WeaponModelManager.Metalbar, "Metalbar", "M1");
 
         
         GD.PushWarning("World3 creation start");

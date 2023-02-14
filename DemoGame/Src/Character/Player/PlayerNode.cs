@@ -71,7 +71,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 
 	[Inject] private PlatformManager PlatformManager { get; set; }
 	[Inject] private CharacterManager CharacterManager { get; set; }
-	[Inject] private WeaponManager WeaponManager { get; set; }
+	[Inject] private WeaponModelManager WeaponModelManager { get; set; }
 	[Inject] private StageManager StageManager { get; set; }
 	[Inject] private InputAction MMB { get; set; }
 	[Inject] private InputAction NextItem { get; set; }
@@ -144,8 +144,8 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	}
 
 	private void LoadState() {
-		Inventory.Pick(World.Get("K1"));
-		Inventory.Pick(World.Get("M1"));
+		Inventory.Pick(World.Get<WeaponMeleeItem>("K1"));
+		Inventory.Pick(World.Get<WeaponMeleeItem>("M1"));
 		Inventory.Equip(1);
 	}
 
@@ -189,12 +189,12 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		// };
 
 		_characterWeaponController = new CharacterWeaponController(new[] { _attackArea1, _attackArea2 }, _weaponSprite);
-		_characterWeaponController.Equip(WeaponManager.Knife);
+		_characterWeaponController.Unequip();
 
 		Inventory = new Inventory();
-		Inventory.OnEquip += (item) => {
-			if (item is WeaponItem weapon) {
-				_characterWeaponController.Equip(weapon.Model);
+		Inventory.OnEquip += item => {
+			if (item is BaseWeaponItem weapon) {
+				_characterWeaponController.Equip(weapon);
 			}
 		};
 

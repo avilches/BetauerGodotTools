@@ -8,7 +8,7 @@ public class CharacterWeaponController {
     private readonly Area2D[] _attackAreas;
     private readonly Sprite2D _weaponSprite;
 
-    public WeaponModel? Current { get; private set; }
+    public BaseWeaponItem? Current { get; private set; }
 
     public CharacterWeaponController(Area2D[] attackAreas, Sprite2D weaponSprite) {
         _attackAreas = attackAreas;
@@ -18,23 +18,26 @@ public class CharacterWeaponController {
 
     public void Unequip() => Equip(null);
 		
-    public void Equip(WeaponModel? weapon) {
-        if (weapon != null) {
-            _weaponSprite.Visible = true;
-            _weaponSprite.Texture = weapon.Resource;
-        } else {
+    public void Equip(BaseWeaponItem? weapon) {
+        if (weapon == null) {
             _weaponSprite.Visible = false;
+            Current = null;
+            
+        } else if (weapon is WeaponMeleeItem melee) {
+            _weaponSprite.Visible = true;
+            var weaponMeleeModel = melee.Model;
+            _weaponSprite.Texture = weaponMeleeModel.WeaponAnimation;
+            for (var i = 0; i < _attackAreas.Length; i++) {
+                var attackArea = _attackAreas[i];
+                attackArea.Monitorable = false;
+                attackArea.Monitoring = false;
+                attackArea.GetChildren().ForEach(shape => {
+                    var matches = weaponMeleeModel.ShapeName == shape.Name;
+                    if (shape is CollisionShape2D collisionShape2D) collisionShape2D.Disabled = !matches;
+                    if (shape is CollisionPolygon2D collisionPolygon2D) collisionPolygon2D.Disabled = !matches;
+                });
+            }
+            Current = weapon;
         }
-        for (var i = 0; i < _attackAreas.Length; i++) {
-            var attackArea = _attackAreas[i];
-            attackArea.Monitorable = false;
-            attackArea.Monitoring = false;
-            attackArea.GetChildren().ForEach((shape) => {
-                var matches = weapon != null && weapon.ShapeName == shape.Name;
-                if (shape is CollisionShape2D collisionShape2D) collisionShape2D.Disabled = !matches;
-                if (shape is CollisionPolygon2D collisionPolygon2D) collisionPolygon2D.Disabled = !matches;
-            });
-        }
-        Current = weapon;
     }
 }

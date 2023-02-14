@@ -6,22 +6,22 @@ using Veronenger.Character.Items;
 namespace Veronenger.Character.Player;
 
 public class Inventory {
-    public event Action<WorldItem>? OnEquip;
+    public event Action<Item>? OnEquip;
 
-    public readonly List<WorldItem> Items = new();
+    public readonly List<Item> Items = new();
     public int Selected = 0;
-    public WeaponItem? WeaponEquipped = null;
+    public WeaponMeleeItem? WeaponEquipped = null;
     
-    public void Pick(WorldItem worldItem) {
-        Items.Add(worldItem);
+    public void Pick(Item item) {
+        Items.Add(item);
     }
 
-    public WorldItem GetCurrent() => Items[Selected];
+    public Item GetCurrent() => Items[Selected];
     
     public void Equip() {
         var worldItem = GetCurrent();
         OnEquip?.Invoke(worldItem);
-        if (worldItem is WeaponItem weaponItem) WeaponEquipped = weaponItem;
+        if (worldItem is WeaponMeleeItem weaponItem) WeaponEquipped = weaponItem;
     }
 
     public void Equip(int pos) {
@@ -29,8 +29,8 @@ public class Inventory {
         Equip();
     }
 
-    public void RemoveElement(WorldItem worldItem) {
-        Items.Remove(worldItem);
+    public void RemoveElement(Item item) {
+        Items.Remove(item);
     }
 
     public void NextItem() => Selected = (Selected + 1).Mod(Items.Count);
