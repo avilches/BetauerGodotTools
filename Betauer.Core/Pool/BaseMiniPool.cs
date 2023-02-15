@@ -46,5 +46,4 @@ public abstract class BaseMiniPool<T> where T : class {
     protected abstract bool IsBusy(T element);
     protected abstract bool IsInvalid(T element);
     protected abstract bool MustBePurged(IReadOnlyList<T> pool);
-    protected abstract bool Destroy(T element);
 }
