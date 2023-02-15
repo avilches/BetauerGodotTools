@@ -1,3 +1,4 @@
+using Betauer.Core;
 using Godot;
 
 namespace Veronenger.Character.Enemy;
@@ -23,7 +24,7 @@ public class LabelHit : ILabelEffect {
         _tweenHit.Parallel().TweenProperty(Label, "modulate:a", 0, 0.8f).SetDelay(0.1);
     }
 
-    public bool Busy => _tweenHit?.IsRunning() ?? false;
+    public bool IsBusy() => _tweenHit?.IsRunning() ?? false;
 
-    public GodotObject Owner => Label;
+    public bool IsInvalid() => !Label.IsInstanceValid();
 }

@@ -114,7 +114,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 	public EnemyStatus Status { get; private set; }
 
 	private ICharacterAI _zombieAi;
-	private MiniPool<ILabelEffect> _labelHits;
+	private MiniPoolBusyInvalid<ILabelEffect> _labelHits;
 	private Restorer _restorer; 
 
 	private EnemyItem _enemyItem;
@@ -259,8 +259,8 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 
 		HitLabel.Visible = false; // just in case...
 		var hitLabelUsed = false;
-		_labelHits = MiniPool<ILabelEffect>.Create()
-			.Factory(() => {
+		_labelHits = new MiniPoolBusyInvalid<ILabelEffect>(
+			() => {
 				if (hitLabelUsed) {
 					var duplicate = (Label)HitLabel.Duplicate();
 					HitLabel.AddSibling(duplicate);
@@ -268,13 +268,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 				}
 				hitLabelUsed = true;
 				return new LabelHit(HitLabel);
-			})
-			.BusyIf(l => l.Busy)
-			.InvalidIf(l => IsInstanceValid(l.Owner))
-			.InitialSize(1)
-			.MaxSize(10)
-			.Build();
-		
+			}, 10, 2);
 	}
 
 	public void Recycle() {

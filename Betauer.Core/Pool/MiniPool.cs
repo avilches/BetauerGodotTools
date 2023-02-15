@@ -1,90 +1,71 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
-using Godot;
 
 namespace Betauer.Core.Pool;
 
-public class MiniPool<T> where T : class {
-    private readonly List<T> _pool;
-    private readonly Func<T> _factory;
+public class MiniPool<T> : BaseMiniPool<T> where T : class {
     private readonly Predicate<T> _busy;
     private readonly Predicate<T>? _invalid;
-    private readonly int _max;
+    private readonly Predicate<IReadOnlyList<T>>? _purgeIf;
+    public static Builder Create() => new();
 
-    public static MiniPoolBuilder<T> Create() => new();
-
-    public MiniPool(Func<T> factory, Predicate<T> busy, Predicate<T>? invalid, int size, int max, bool fill) {
-        _factory = factory ?? throw new ArgumentNullException(nameof(factory));
-        _busy = busy ?? throw new ArgumentNullException(nameof(busy));
+    public MiniPool(Func<T> factory, Predicate<T> busy, int size, bool lazy,
+        Predicate<IReadOnlyList<T>>? purgeIf = null, Predicate<T>? invalid = null) : base(factory, size, lazy) {
+        _busy = busy;
         _invalid = invalid;
-        
-        _pool = new List<T>(size);
-        _max = Math.Max(max, size);
-        if (fill) {
-            for (var i = 0; i < size; i++) {
-                _pool.Add(_factory());
-            }
-        }
+        _purgeIf = purgeIf;
     }
 
-    public T Get() {
-        var span = CollectionsMarshal.AsSpan(_pool);
-
-        for (var i = 0; i < span.Length; i++) {
-            var element = span[i];
-            if (IsValid(element) && !_busy(element)) {
-                GD.Print("LabelHit[" + i + "]");
-                return element;
-            }
-        }
-        if (_pool.Count >= _max && _invalid != null) _pool.RemoveAll(_invalid);
-        if (_pool.Count >= _max)
-            throw new Exception($"MiniPool {typeof(T)} can't accept more than {_max} elements");
-        var more = _factory();
-        _pool.Add(more);
-        return more;
+    protected override bool IsBusy(T element) {
+        return _busy(element);
     }
 
-    private bool IsValid(T ele) => _invalid == null || !_invalid(ele); 
+    protected override bool IsInvalid(T element) {
+        return _invalid != null && _invalid.Invoke(element);
+    }
 
-    public class MiniPoolBuilder<T> where T : class {
+    protected override bool MustBePurged(IReadOnlyList<T> pool) {
+        return _invalid != null && _purgeIf != null && _purgeIf(pool);
+    }
+    
+    public class Builder {
         private Func<T> _factory;
         private Predicate<T> _busy;
         private Predicate<T>? _invalid;
-        private int _max = 200;
+        private Predicate<IReadOnlyList<T>>? _purgeIf;
         private int _size = 4;
-        private bool _fill = false;
+        private bool _lazy = true;
 
-        public MiniPoolBuilder<T> Factory(Func<T> factory) {
+        public Builder Factory(Func<T> factory) {
             _factory = factory;
             return this;
         }
 
-        public MiniPoolBuilder<T> BusyIf(Predicate<T> busy) {
+        public Builder BusyIf(Predicate<T> busy) {
             _busy = busy;
             return this;
         }
 
-        public MiniPoolBuilder<T> InvalidIf(Predicate<T>? invalid) {
+        public Builder InvalidIf(Predicate<T>? invalid) {
             _invalid = invalid;
             return this;
         }
 
-        public MiniPoolBuilder<T> InitialSize(int size, bool fill = false) {
+        public Builder InitialSize(int size, bool lazy = true) {
             _size = size;
-            _fill = fill;
+            _lazy = lazy;
             return this;
         }
 
-        public MiniPoolBuilder<T> MaxSize(int max) {
-            _max = max;
+        public Builder PurgeIf(Predicate<IReadOnlyList<T>>? purgeIf) {
+            _purgeIf = purgeIf;
             return this;
         }
+
+        public Builder PurgeIfPoolIsBiggerThan(int max) => PurgeIf(list => list.Count > max);
 
         public MiniPool<T> Build() {
-            return new MiniPool<T>(_factory, _busy, _invalid, _size, _max, _fill);
+            return new MiniPool<T>(_factory, _busy, _size, _lazy, _purgeIf, _invalid);
         }
     }
 }
