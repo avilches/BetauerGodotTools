@@ -1,7 +1,7 @@
 using Betauer.DI;
 using Godot;
 
-namespace Veronenger.Character.Items; 
+namespace Veronenger.Items; 
 
 [Service]
 public class WeaponModelManager {
@@ -12,10 +12,13 @@ public class WeaponModelManager {
     public WeaponModel.Melee Metalbar { get; private set; }
     public WeaponModel.Melee None { get; private set; }
 
+    public WeaponModel.Range Gun { get; private set; }
+
     [PostInject]
     private void CreateWeapons() {
         Knife = new WeaponModel.Melee(LeonKnifeAnimationSprite, "Short", 6);
         Metalbar = new WeaponModel.Melee(LeonMetalbarAnimationSprite, "Long", 10);
+        Gun = new WeaponModel.Range(LeonMetalbarAnimationSprite, 30);
         None = new WeaponModel.Melee(null, null, 0);
     } 
 }

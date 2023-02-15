@@ -1,6 +1,6 @@
 using Godot;
 
-namespace Veronenger.Character.Items;
+namespace Veronenger.Items;
 
 public abstract class WeaponModel {
     public float Damage { get; protected set; }
@@ -20,4 +20,13 @@ public abstract class WeaponModel {
         }         
     }         
     
+    public class Range : WeaponModel {
+        public readonly Texture2D WeaponAnimation;
+        public float Speed = 800;
+        public float MaxDistance = 600;
+
+        public Range(Texture2D weaponAnimation, float damage) : base(damage) {
+            WeaponAnimation = weaponAnimation;
+        }         
+    }         
 }

@@ -3,7 +3,7 @@ using Betauer.DI;
 using Godot;
 using Veronenger.Character.Enemy;
 
-namespace Veronenger.Character.Items;
+namespace Veronenger.Items;
 
 [Service]
 public class World {
@@ -20,6 +20,9 @@ public class World {
 
     public WeaponMeleeItem CreateMeleeWeapon(WeaponModel.Melee model, string name, string alias = null) =>
         Add(new WeaponMeleeItem(NextId(), name, alias, model));
+    
+    public WeaponRangeItem CreateRangeWeapon(WeaponModel.Range model, string name, string alias = null) =>
+        Add(new WeaponRangeItem(NextId(), name, alias, model));
 
     public EnemyItem CreateEnemy(ZombieNode zombieNode) =>
         Add(new EnemyItem(NextId(), zombieNode.Name, null, zombieNode));

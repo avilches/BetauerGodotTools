@@ -18,8 +18,8 @@ using Betauer.StateMachine.Sync;
 using Betauer.Tools.Logging;
 using Godot;
 using Veronenger.Character.InputActions;
-using Veronenger.Character.Items;
 using Veronenger.Character.Player;
+using Veronenger.Items;
 using Veronenger.Managers;
 
 namespace Veronenger.Character.Enemy; 
@@ -267,7 +267,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 				var duplicate = (Label)HitLabel.Duplicate();
 				HitLabel.AddSibling(duplicate);
 				return new LabelHit(duplicate);
-			}, 1);
+			}, 1, false);
 	}
 
 	public void Recycle() {

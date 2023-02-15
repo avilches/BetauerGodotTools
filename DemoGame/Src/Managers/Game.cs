@@ -1,16 +1,16 @@
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Betauer.Core;
 using Betauer.DI;
 using Betauer.Core.Nodes;
+using Betauer.Core.Pool;
 using Betauer.Core.Signal;
 using Godot;
-using Veronenger.Character.Items;
 using Veronenger.Character.Player;
+using Veronenger.Items;
 using Veronenger.UI;
 
-namespace Veronenger.Managers; 
+namespace Veronenger.Managers;
 
 [Service]
 public class Game {
@@ -24,9 +24,11 @@ public class Game {
     [Inject] private PlatformManager PlatformManager { get; set; }
     [Inject] private Factory<Node> World3 { get; set; }
     [Inject] private Factory<PlayerNode> Player { get; set; }
-        
+    [Inject] Texture2D Icon { get; set; }
+    
     private Node _currentGameScene;
     private PlayerNode _playerScene;
+    public MiniPoolBusy<Items.Bullet> _bulletPool;
 
     public async Task Start() {
         StageManager.ClearState();
@@ -45,7 +47,7 @@ public class Game {
         World.Clear();
         World.CreateMeleeWeapon(WeaponModelManager.Knife, "Knife", "K1");
         World.CreateMeleeWeapon(WeaponModelManager.Metalbar, "Metalbar", "M1");
-
+        World.CreateRangeWeapon(WeaponModelManager.Gun, "Gun", "G1");
         
         GD.PushWarning("World3 creation start");
         _currentGameScene = World3.Get();
@@ -64,8 +66,11 @@ public class Game {
         PlatformManager.ConfigurePlatformsCollisions();
         _currentGameScene.GetNode<Node>("Stages").GetChildren().OfType<Area2D>().ForEach(StageManager.ConfigureStage);
 
+        _bulletPool = new MiniPoolBusy<Items.Bullet>(() => new Items.Bullet(_currentGameScene, Icon), 1);
         HudScene.StartGame();
     }
+
+    public Bullet GetBullet() => _bulletPool.Get();
 
     private void CandleOff(PointLight2D light) {
         light.Enabled = true;

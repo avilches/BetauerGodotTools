@@ -16,7 +16,7 @@ using Betauer.StateMachine.Sync;
 using Betauer.Tools.Logging;
 using Godot;
 using Veronenger.Character.InputActions;
-using Veronenger.Character.Items;
+using Veronenger.Items;
 using Veronenger.Managers;
 using Veronenger.UI;
 
@@ -26,9 +26,10 @@ public enum PlayerState {
 	Idle,
 	Landing,
 	Running,
-	Attacking,
-	JumpingAttack,
-	FallingAttack,
+	MeleeAttack,
+	MeleeAttackAir,
+	RangeAttack,
+	RangeAttackAir,
 	FallWithCoyote,
 	Fall,
 	Jumping,
@@ -39,6 +40,7 @@ public enum PlayerState {
 }
 
 public enum PlayerEvent {
+	Attack,
 	Hurt,
 	Death,
 }
@@ -69,6 +71,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	[OnReady("Character/CanJump")] public RayCast2D RaycastCanJump;
 	[OnReady("Character/FloorRaycasts")] public List<RayCast2D> FloorRaycasts;
 
+	[Inject] private Game Game { get; set; }
 	[Inject] private PlatformManager PlatformManager { get; set; }
 	[Inject] private CharacterManager CharacterManager { get; set; }
 	[Inject] private WeaponModelManager WeaponModelManager { get; set; }
@@ -146,6 +149,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	private void LoadState() {
 		Inventory.Pick(World.Get<WeaponMeleeItem>("K1"));
 		Inventory.Pick(World.Get<WeaponMeleeItem>("M1"));
+		Inventory.Pick(World.Get<WeaponRangeItem>("G1"));
 		Inventory.Equip(1);
 	}
 
@@ -193,7 +197,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 
 		Inventory = new Inventory();
 		Inventory.OnEquip += item => {
-			if (item is BaseWeaponItem weapon) {
+			if (item is WeaponItem weapon) {
 				_characterWeaponController.Equip(weapon);
 			}
 		};
@@ -228,7 +232,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 						.Take(Status.AvailableHits)
 						.ForEach(enemy => {
 							Status.AvailableHits--;
-							EventBus.Publish(new PlayerAttackEvent(this, enemy, Inventory.WeaponEquipped!));
+							EventBus.Publish(new PlayerAttackEvent(this, enemy, Inventory.WeaponMeleeEquipped!));
 						});
 				}
 			}
@@ -289,7 +293,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		_stateTimer.Restart();
 		// Logger.Debug(CurrentState.Key+ ": Attack started");
 		_attackState = AttackState.Start;
-		Status.AvailableHits = Inventory.WeaponEquipped.EnemiesPerHit;
+		Status.AvailableHits = Inventory.WeaponMeleeEquipped.EnemiesPerHit;
 	}
 
 	private void StopAttack() {
@@ -305,7 +309,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			StopAttack();
 		} else if (_attackState == AttackState.Step2) {
 			// The player pressed attack twice, so the short attack is now a long attack, and this signal call is ignored
-			Status.AvailableHits = Inventory.WeaponEquipped.EnemiesPerHit * 2;
+			Status.AvailableHits = Inventory.WeaponMeleeEquipped.EnemiesPerHit * 2;
 		}
 	}
 
@@ -348,6 +352,13 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 
 		On(PlayerEvent.Hurt).Set(PlayerState.Hurting);
 		On(PlayerEvent.Death).Set(PlayerState.Death);
+		On(PlayerEvent.Attack).Then(ctx => {
+			if (Inventory.GetCurrent() is WeaponMeleeItem) {
+				return ctx.Set(PlatformBody.IsOnFloor() ? PlayerState.MeleeAttack : PlayerState.MeleeAttackAir);
+			} else if (Inventory.GetCurrent() is WeaponRangeItem) {
+				return ctx.Set(PlatformBody.IsOnFloor() ? PlayerState.RangeAttack : PlayerState.RangeAttackAir);
+			} else return ctx.Stay();
+		});
 		
 		var jumpJustInTime = false;
 		var weaponSpriteVisible = false;
@@ -371,7 +382,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				FinishFallFromPlatform();
 				jumpJustInTime = Jump.WasPressed(PlayerConfig.JumpHelperTime) && CanJump();
 			})
-			.If(() => Attack.IsJustPressed).Set(PlayerState.Attacking)
+			.If(() => Attack.IsJustPressed).Send(PlayerEvent.Attack)
 			.If(() => jumpJustInTime).Then(ctx => {
 				_jumpHelperMonitor?.Show($"{Jump.PressedTime:0.00} <= {PlayerConfig.JumpHelperTime:0.00} Done!");
 				return ctx.Set(PlayerState.Jumping);
@@ -396,9 +407,8 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 					FallFromPlatform();
 					return context.Set(PlayerState.Fall);
 				})
-			.If(() => Jump.IsJustPressed && Attack.IsJustPressed).Set(PlayerState.JumpingAttack)
+			.If(() => Attack.IsJustPressed).Then(ctx => ctx.Send(PlayerEvent.Attack))	
 			.If(() => Jump.IsJustPressed && CanJump()).Set(PlayerState.Jumping)
-			.If(() => Attack.IsJustPressed).Set(PlayerState.Attacking)	
 			.If(() => XInput != 0).Set(PlayerState.Running)
 			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.Fall)
 			.Build();
@@ -427,13 +437,13 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 					return context.Set(PlayerState.Fall);
 				})
 			.If(() => Jump.IsJustPressed && Attack.IsJustPressed).Set(PlayerState.Jumping)
-			.If(() => Attack.IsJustPressed).Set(PlayerState.Attacking)
+			.If(() => Attack.IsJustPressed).Then(ctx => ctx.Send(PlayerEvent.Attack))
 			.If(() => Jump.IsJustPressed && CanJump()).Set(PlayerState.Jumping)
 			.If(() => XInput == 0 && MotionX == 0 && !AnimationRunStop.IsPlaying()).Set(PlayerState.Idle)
 			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.FallWithCoyote)
 			.Build();
 
-		State(PlayerState.Attacking)
+		State(PlayerState.MeleeAttack)
 			.Enter(() => {
 				AnimationAttack.Play();
 				StartStack();
@@ -457,13 +467,36 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			.If(() => XInput != 0).Set(PlayerState.Running)
 			.Build();
 		
-		State(PlayerState.JumpingAttack)
+		State(PlayerState.RangeAttack)
 			.Enter(() => {
-				PlatformBody.MotionY = -PlayerConfig.JumpSpeed;
 				AnimationAttack.Play();
-				StartStack();
+				var bullet = Game.GetBullet();
+				bullet.ShootFrom(CharacterBody2D.GlobalPosition, Inventory.WeaponRangeEquipped, new Vector2(PlatformBody.FacingRight, 0));
 			})
-			.If(() => true).Set(PlayerState.FallingAttack)
+			.Execute(() => {
+				ApplyFloorGravity();
+				PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
+			})
+			.If(() => AnimationAttack.IsPlaying()).Stay()
+			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.Fall)
+			.If(() => XInput == 0).Set(PlayerState.Idle)
+			.If(() => XInput != 0).Set(PlayerState.Running)
+			.Build();
+		
+		State(PlayerState.RangeAttackAir)
+			.Enter(() => {
+				AnimationAttack.Play();
+				var bullet = Game.GetBullet();
+				bullet.ShootFrom(CharacterBody2D.GlobalPosition, Inventory.WeaponRangeEquipped, new Vector2(PlatformBody.FacingRight, 0));
+			})
+			.Execute(() => {
+				ApplyFloorGravity();
+				PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
+			})
+			.If(() => AnimationAttack.IsPlaying()).Stay()
+			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.Fall)
+			.If(() => XInput == 0).Set(PlayerState.Idle)
+			.If(() => XInput != 0).Set(PlayerState.Running)
 			.Build();
 		
 		State(PlayerState.Jumping)
@@ -483,19 +516,18 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
 					PlayerConfig.StopIfSpeedIsLessThan, PlayerConfig.ChangeDirectionFactor);
 			})
-			.If(() => Attack.IsJustPressed).Set(PlayerState.FallingAttack)
+			.If(() => Attack.IsJustPressed).Send(PlayerEvent.Attack)
 			.If(() => Float.IsJustPressed).Set(PlayerState.Floating)
 			.If(() => MotionY >= 0).Set(PlayerState.Fall)
 			.If(() => PlatformBody.IsOnFloor()).Set(PlayerState.Landing)
 			.Build();
 
-		State(PlayerState.FallingAttack)
+		State(PlayerState.MeleeAttackAir)
 			.Enter(() => {
 				AnimationAttack.Play();
 				StartStack();
 			})
 			.Execute(() => {
-				PlatformBody.Flip(XInput);
 				ApplyFloorGravity();
 				if (!PlatformBody.IsOnFloor()) {
 					PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed,
@@ -504,7 +536,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				} else {
 					PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
 				}
-				// if (_attackState == AttackState.Start) _attackState = AttackState.Step1;
+				if (_attackState == AttackState.Start) _attackState = AttackState.Step1;
 			})
 			.If(() => _attackState != AttackState.None).Stay()
 			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.Fall)
@@ -523,7 +555,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
 					PlayerConfig.StopIfSpeedIsLessThan, PlayerConfig.ChangeDirectionFactor);
 			})
-			.If(() => Attack.IsJustPressed).Set(PlayerState.FallingAttack)
+			.If(() => Attack.IsJustPressed).Send(PlayerEvent.Attack)
 			.If(() => Jump.IsJustPressed && CanJump()).Set(PlayerState.Jumping)
 			.If(() => Float.IsJustPressed).Set(PlayerState.Floating)
 			.If(() => coyoteTimer.IsAlarm()).Set(PlayerState.Fall)
@@ -547,7 +579,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
 					PlayerConfig.StopIfSpeedIsLessThan, PlayerConfig.ChangeDirectionFactor);
 			})
-			.If(() => Attack.IsJustPressed).Set(PlayerState.FallingAttack)
+			.If(() => Attack.IsJustPressed).Send(PlayerEvent.Attack)
 			.If(() => Float.IsJustPressed).Set(PlayerState.Floating)
 			.If(() => PlatformBody.IsOnFloor()).Set(PlayerState.Landing)
 			.Build();

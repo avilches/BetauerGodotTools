@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Betauer.Core;
-using Veronenger.Character.Items;
+using Veronenger.Items;
 
 namespace Veronenger.Character.Player;
 
@@ -10,7 +10,8 @@ public class Inventory {
 
     public readonly List<Item> Items = new();
     public int Selected = 0;
-    public WeaponMeleeItem? WeaponEquipped = null;
+    public WeaponMeleeItem WeaponMeleeEquipped = null;
+    public WeaponRangeItem WeaponRangeEquipped = null;
     
     public void Pick(Item item) {
         Items.Add(item);
@@ -21,7 +22,8 @@ public class Inventory {
     public void Equip() {
         var worldItem = GetCurrent();
         OnEquip?.Invoke(worldItem);
-        if (worldItem is WeaponMeleeItem weaponItem) WeaponEquipped = weaponItem;
+        if (worldItem is WeaponMeleeItem melee) WeaponMeleeEquipped = melee;
+        if (worldItem is WeaponRangeItem range) WeaponRangeEquipped = range;
     }
 
     public void Equip(int pos) {

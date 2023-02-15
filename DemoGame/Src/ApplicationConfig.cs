@@ -58,6 +58,7 @@ public class Settings {
 
 [Configuration]
 public class Resources {
+	[Service] Texture2D Icon => Load<Texture2D>("res://icon.png");
 	[Service] Texture2D LeonKnifeAnimationSprite => Load<Texture2D>("res://Characters/Player-Leon/Leon-knife.png");
 	[Service] Texture2D LeonMetalbarAnimationSprite => Load<Texture2D>("res://Characters/Player-Leon/Leon-metalbar.png");
 	
