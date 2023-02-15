@@ -7,5 +7,5 @@ public interface IState<TStateKey, TEventKey>
         
     public TStateKey Key { get; }
     public bool TryGetEventRule(TEventKey eventKey, out EventRule<TStateKey, TEventKey> result);
-    public void EvaluateConditions(CommandContext<TStateKey, TEventKey> ctx, out Command<TStateKey, TEventKey> command);
+    public Command<TStateKey, TEventKey> EvaluateConditions(CommandContext<TStateKey, TEventKey> ctx);
 }

@@ -178,10 +178,7 @@ namespace Betauer.StateMachine.Tests {
             Assert.That(x, Is.EqualTo(3));
         }
 
-        /**
-         * If with methods, instead lambda Then
-         */
-        [Test(Description = "If with Set result")]
+        [Test(Description = "If().Set()")]
         public async Task IfSetResult() {
             var sm = new StateMachineAsync<State, Event>(State.A);
             sm.State(State.A).If(() => true).Set(State.Debug).Build();
@@ -192,7 +189,7 @@ namespace Betauer.StateMachine.Tests {
             Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.Debug }));
         }
 
-        [Test(Description = "If with Push, PopPush and Pop result")]
+        [Test(Description = "If() with Push(), PopPush() and Pop() result")]
         public async Task IfPushPopPushResult() {
             var sm = new StateMachineAsync<State, Event>(State.A);
             sm.State(State.A).If(() => true).Push(State.Debug).Build();
@@ -208,8 +205,8 @@ namespace Betauer.StateMachine.Tests {
             Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A }));
         }
 
-        [Test(Description = "If with none result")]
-        public async Task IfNoneResult() {
+        [Test(Description = "If().Stay()")]
+        public async Task IfStayResult() {
             var sm = new StateMachineAsync<State, Event>(State.A);
             sm.State(State.A).If(() => true).Stay().Build();
             await sm.Execute();
@@ -218,11 +215,34 @@ namespace Betauer.StateMachine.Tests {
             Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A }));
         }
 
-        /**
-         * Transition with methods, instead of lambda Then
-         */
-        [Test(Description = "Transition with Set result")]
-        public async Task TransitionSetResult() {
+        [Test(Description = "If().Send()")]
+        public async Task IfSendResult() {
+            var sm = new StateMachineAsync<State, Event>(State.A);
+            sm.State(State.Debug).Build();
+            sm.On(Event.Debug).Set(State.Debug);
+            sm.State(State.A).If(() => true).Send(Event.Debug).Build();
+            await sm.Execute();
+            Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A }));
+            await sm.Execute();
+            Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.Debug }));
+        }
+
+        [Test(Description = "If() multiple Send() chain")]
+        public async Task IfChainSend() {
+            var sm = new StateMachineAsync<State, Event>(State.A);
+            sm.State(State.Debug).Build();
+            sm.On(Event.Debug).Then(ctx => ctx.Send(Event.End));
+            sm.On(Event.End).Send(Event.Back);
+            sm.On(Event.Back).Set(State.Debug);
+            sm.State(State.A).If(() => true).Send(Event.Debug).Build();
+            await sm.Execute();
+            Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A }));
+            await sm.Execute();
+            Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.Debug }));
+        }
+
+        [Test(Description = "Send() -> On().Set()")]
+        public async Task SendOnSet() {
             var sm = new StateMachineAsync<State, Event>(State.A);
             sm.On(Event.Debug).Set(State.Debug);
             sm.State(State.A).Build();
@@ -234,8 +254,8 @@ namespace Betauer.StateMachine.Tests {
             Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.Debug }));
         }
 
-        [Test(Description = "Transition with Push, PopPush and Pop result")]
-        public async Task TransitionPushPopPushResult() {
+        [Test(Description = "Send On() -> Push, PopPush and Pop result")]
+        public async Task SendPushPopPushResult() {
             var sm = new StateMachineAsync<State, Event>(State.A);
             sm.On(Event.Start).Push(State.Debug);
             sm.On(Event.MainMenu).PopPush(State.MainMenu);
@@ -260,9 +280,8 @@ namespace Betauer.StateMachine.Tests {
             Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A }));
         }
 
-        [Test(Description = "Transition with none result")]
-        // State transitions have more priority than global transitions. So, override a global with a local None will disable it
-        public async Task TransitionNoneResult() {
+        [Test(Description = "State event have more priority than global transitions. So, override a global with a local Stay will disable it")]
+        public async Task StateEventsPriority() {
             var sm = new StateMachineAsync<State, Event>(State.Start);
 
             sm.On(Event.Global).Set(State.Global);

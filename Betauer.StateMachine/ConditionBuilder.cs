@@ -20,6 +20,8 @@ public class ConditionBuilder<TBuilder, TStateKey, TEventKey>
         _onBuild = onBuild;
     }
 
+    public TBuilder Send(TEventKey e, int weight = 0) => SetResult(Command<TStateKey, TEventKey>.CreateSendEvent(e, weight));
+    
     public TBuilder Set(TStateKey state) => SetResult(Command<TStateKey, TEventKey>.CreateSet(state));
     public TBuilder Push(TStateKey state) => SetResult(Command<TStateKey, TEventKey>.CreatePush(state));
     public TBuilder PopPush(TStateKey state) => SetResult(Command<TStateKey, TEventKey>.CreatePopPush(state));

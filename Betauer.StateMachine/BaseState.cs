@@ -27,19 +27,17 @@ public abstract class BaseState<TStateKey, TEventKey> :
         return false;
     }
 
-    public void EvaluateConditions(CommandContext<TStateKey, TEventKey> ctx, out Command<TStateKey, TEventKey> command) {
+    public Command<TStateKey, TEventKey> EvaluateConditions(CommandContext<TStateKey, TEventKey> ctx) {
         if (_conditions == null || _conditions.Length == 0) {
-            command = ctx.Stay();
-            return;
+            return ctx.Stay();
         }
         var span = _conditions.AsSpan();
         for (var i = 0; i < span.Length; i++) {
             var condition = span[i];
             if (condition.IsPredicateTrue()) {
-                command = condition.GetResult(ctx);
-                return;
+                return condition.GetResult(ctx);
             }
         }
-        command = ctx.Stay();
+        return ctx.Stay();
     }
 }
