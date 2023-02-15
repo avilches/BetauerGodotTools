@@ -201,7 +201,6 @@ tracks/4/keys = {
 [sub_resource type="Animation" id="Animation_uuc7g"]
 resource_name = "Hurt"
 length = 0.4
-loop_mode = 2
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
