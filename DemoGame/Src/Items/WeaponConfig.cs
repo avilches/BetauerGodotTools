@@ -1,16 +1,17 @@
+using System;
 using Godot;
 
 namespace Veronenger.Items;
 
-public abstract class WeaponModel {
+public abstract class WeaponConfig {
     public float Damage { get; protected set; }
 
-    private WeaponModel(float damage) {
+    private WeaponConfig(float damage) {
         Damage = damage;
     }
 
 
-    public class Melee : WeaponModel {
+    public class Melee : WeaponConfig {
         public readonly Texture2D WeaponAnimation;
         public readonly string ShapeName;
 
@@ -20,11 +21,12 @@ public abstract class WeaponModel {
         }         
     }         
     
-    public class Range : WeaponModel {
+    public class Range : WeaponConfig {
         public readonly Texture2D WeaponAnimation;
         public float Speed = 800;
-        public float MaxDistance = 600;
-
+        public float MaxDistance = 400;
+        public float ShootTime = 0.2f;
+        
         public Range(Texture2D weaponAnimation, float damage) : base(damage) {
             WeaponAnimation = weaponAnimation;
         }         

@@ -74,7 +74,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	[Inject] private Game Game { get; set; }
 	[Inject] private PlatformManager PlatformManager { get; set; }
 	[Inject] private CharacterManager CharacterManager { get; set; }
-	[Inject] private WeaponModelManager WeaponModelManager { get; set; }
+	[Inject] private WeaponConfigManager WeaponConfigManager { get; set; }
 	[Inject] private StageManager StageManager { get; set; }
 	[Inject] private InputAction MMB { get; set; }
 	[Inject] private InputAction NextItem { get; set; }
@@ -469,31 +469,33 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		
 		State(PlayerState.RangeAttack)
 			.Enter(() => {
-				AnimationAttack.Play();
-				var bullet = Game.GetBullet();
-				bullet.ShootFrom(CharacterBody2D.GlobalPosition, Inventory.WeaponRangeEquipped, new Vector2(PlatformBody.FacingRight, 0));
+				Game.NewBullet().ShootFrom(CharacterBody2D.GlobalPosition, Inventory.WeaponRangeEquipped, new Vector2(PlatformBody.FacingRight, 0));
 			})
 			.Execute(() => {
 				ApplyFloorGravity();
 				PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
 			})
-			.If(() => AnimationAttack.IsPlaying()).Stay()
+			.If(() => _stateTimer.Elapsed < Inventory.WeaponRangeEquipped.Config.ShootTime).Stay()
 			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.Fall)
 			.If(() => XInput == 0).Set(PlayerState.Idle)
 			.If(() => XInput != 0).Set(PlayerState.Running)
 			.Build();
-		
+
 		State(PlayerState.RangeAttackAir)
 			.Enter(() => {
-				AnimationAttack.Play();
-				var bullet = Game.GetBullet();
-				bullet.ShootFrom(CharacterBody2D.GlobalPosition, Inventory.WeaponRangeEquipped, new Vector2(PlatformBody.FacingRight, 0));
+				Game.NewBullet().ShootFrom(CharacterBody2D.GlobalPosition, Inventory.WeaponRangeEquipped, new Vector2(PlatformBody.FacingRight, 0));
 			})
 			.Execute(() => {
 				ApplyFloorGravity();
-				PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
+				if (!PlatformBody.IsOnFloor()) {
+					PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed,
+						PlayerConfig.AirResistance,
+						PlayerConfig.StopIfSpeedIsLessThan, PlayerConfig.ChangeDirectionFactor);
+				} else {
+					PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
+				}
 			})
-			.If(() => AnimationAttack.IsPlaying()).Stay()
+			.If(() => _stateTimer.Elapsed < Inventory.WeaponRangeEquipped.Config.ShootTime).Stay()
 			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.Fall)
 			.If(() => XInput == 0).Set(PlayerState.Idle)
 			.If(() => XInput != 0).Set(PlayerState.Running)

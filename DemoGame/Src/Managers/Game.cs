@@ -18,7 +18,7 @@ public class Game {
     [Inject] private SceneTree SceneTree { get; set; }
     [Inject] private World World { get; set; }
     [Inject] private HUD HudScene { get; set; }
-    [Inject] private WeaponModelManager WeaponModelManager { get; set; }
+    [Inject] private WeaponConfigManager WeaponConfigManager { get; set; }
     [Inject] private StageManager StageManager { get; set; }
     [Inject] private CharacterManager CharacterManager { get; set; }
     [Inject] private PlatformManager PlatformManager { get; set; }
@@ -28,7 +28,7 @@ public class Game {
     
     private Node _currentGameScene;
     private PlayerNode _playerScene;
-    public MiniPoolBusy<Items.Bullet> _bulletPool;
+    public MiniPoolBusy<Bullet> _bulletPool;
 
     public async Task Start() {
         StageManager.ClearState();
@@ -45,9 +45,9 @@ public class Game {
 
     public async Task StartWorld3() {
         World.Clear();
-        World.CreateMeleeWeapon(WeaponModelManager.Knife, "Knife", "K1");
-        World.CreateMeleeWeapon(WeaponModelManager.Metalbar, "Metalbar", "M1");
-        World.CreateRangeWeapon(WeaponModelManager.Gun, "Gun", "G1");
+        World.CreateMeleeWeapon(WeaponConfigManager.Knife, "Knife", "K1");
+        World.CreateMeleeWeapon(WeaponConfigManager.Metalbar, "Metalbar", "M1");
+        World.CreateRangeWeapon(WeaponConfigManager.Gun, "Gun", "G1");
         
         GD.PushWarning("World3 creation start");
         _currentGameScene = World3.Get();
@@ -66,11 +66,14 @@ public class Game {
         PlatformManager.ConfigurePlatformsCollisions();
         _currentGameScene.GetNode<Node>("Stages").GetChildren().OfType<Area2D>().ForEach(StageManager.ConfigureStage);
 
-        _bulletPool = new MiniPoolBusy<Items.Bullet>(() => new Items.Bullet(_currentGameScene, Icon), 1);
+        var bullets = new Node();
+        bullets.Name = "Bullets";
+        _currentGameScene.AddChild(bullets);
+        _bulletPool = new MiniPoolBusy<Bullet>(() => new Bullet(_currentGameScene, Icon), 1);
         HudScene.StartGame();
     }
 
-    public Bullet GetBullet() => _bulletPool.Get();
+    public Bullet NewBullet() => _bulletPool.Get();
 
     private void CandleOff(PointLight2D light) {
         light.Enabled = true;
