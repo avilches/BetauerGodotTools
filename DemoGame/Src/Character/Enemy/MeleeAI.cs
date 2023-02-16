@@ -1,4 +1,5 @@
 using System;
+using Betauer;
 using Betauer.Core;
 using Betauer.Core.Time;
 using Betauer.StateMachine.Sync;
@@ -8,7 +9,7 @@ using Veronenger.Character.InputActions;
 namespace Veronenger.Character.Enemy;
 
 public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacterAI {
-    private static readonly Random Random = new(0);
+    private static readonly PcgRandom Random = new();
 
     private readonly CharacterController _controller;
     private readonly Sensor _sensor;
@@ -62,7 +63,7 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
         var fleeIsHealthPercentIsLessThan = 0.25f;
 
         var minDistanceToApproach = 30f + Random.Range(-10, 10);
-        var attacksPerSecondsProbability = Random.Range(0.7f, 1.3f);
+        var attacksPerSecondsProbability = Random.Range(1f, 1.3f);
         var minDistanceToAttack = 40f + Random.Range(-15, 15);
 
         GodotStopwatch stateTimer = new(false, true);
@@ -136,7 +137,7 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
                     Advance(chasingSpeed);
                 }
 
-                if (distanceToPlayer < minDistanceToAttack && Random.NextSingle() < attacksPerSecondsProbability * _sensor.Delta) {
+                if (distanceToPlayer < minDistanceToAttack && Random.NextFloat() < attacksPerSecondsProbability * _sensor.Delta) {
                     stateTimer.Restart();
                     _controller.Attack.SimulatePress();
                 }

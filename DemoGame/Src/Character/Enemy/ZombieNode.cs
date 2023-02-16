@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using Betauer;
 using Betauer.Animation;
 using Betauer.Animation.AnimationPlayer;
 using Betauer.Application.Monitor;
@@ -48,7 +49,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 	public ZombieNode() : base(ZombieState.Idle, "Zombie.StateMachine", true) {
 	}
 
-	private static readonly Random Random = new(0);
+	private static readonly PcgRandom Random = new();
 
 	private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(ZombieNode));
 
