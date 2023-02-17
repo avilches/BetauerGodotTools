@@ -1,8 +1,13 @@
 using System;
+using System.Collections.Generic;
 
 namespace Betauer.Core; 
 
 public static class StringTools {
+    public static string Concatenated<T>(this IEnumerable<T> items, string e = "") =>
+        string.Join(e, items);
+
+    
     public static string HumanReadableBytes(this long numBytes) {
         return numBytes < 0
             ? $"-{_PositiveHumanReadableBytes(Math.Abs(numBytes))}"
