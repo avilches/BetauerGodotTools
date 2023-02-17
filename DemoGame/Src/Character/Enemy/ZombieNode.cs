@@ -18,6 +18,7 @@ using Betauer.OnReady;
 using Betauer.StateMachine.Sync;
 using Betauer.Tools.Logging;
 using Godot;
+using Pcg;
 using Veronenger.Character.InputActions;
 using Veronenger.Character.Player;
 using Veronenger.Items;

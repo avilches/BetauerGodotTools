@@ -4,6 +4,7 @@ using Betauer.Core;
 using Betauer.Core.Time;
 using Betauer.StateMachine.Sync;
 using Godot;
+using Pcg;
 using Veronenger.Character.InputActions;
 
 namespace Veronenger.Character.Enemy;
