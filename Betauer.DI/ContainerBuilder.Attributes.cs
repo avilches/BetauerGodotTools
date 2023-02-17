@@ -9,11 +9,10 @@ public class ConfigurationAttribute : Attribute {
 
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
 public class ScanAttribute : Attribute {
-    public Type[] Types { get; set; }
+}
 
-    public ScanAttribute(params Type[] types) {
-        Types = types;
-    }
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+public class ScanAttribute<T> : ScanAttribute {
 }
 
 [AttributeUsage(AttributeTargets.Method)]

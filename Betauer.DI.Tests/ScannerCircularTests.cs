@@ -184,17 +184,17 @@ namespace Betauer.DI.Tests {
             Assert.That(TransientC.Created, Is.EqualTo(1));
         }
 
-        [Scan(typeof(ImportedService))]
+        [Scan<ImportedService>()]
         [Configuration]
         internal class AddToScanByImport {
             [Service] private B B => new B();
         }
 
-        [Scan(typeof(ImportSelf))]
+        [Scan<ImportSelf>()]
         internal class ImportSelf {
         }
 
-        [Scan(typeof(AddToScanByImport))]
+        [Scan<AddToScanByImport>()]
         [Configuration]
         internal class ImportedService {
             [Service] private A A => new A();

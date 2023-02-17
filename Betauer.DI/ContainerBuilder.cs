@@ -153,7 +153,7 @@ public class ContainerBuilder {
         foreach (var importAttribute in type.GetAttributes<ScanAttribute>()) {
             stack ??= new HashSet<Type>();
             stack.Add(type);
-            importAttribute.Types
+            importAttribute.GetType().GetGenericArguments()
                 .Where(typeToImport => !stack.Contains(typeToImport))
                 .ForEach(typeToImport => _Scan(typeToImport, stack));
         }

@@ -320,7 +320,7 @@ public interface IWeight {
     public float Weight { get; } 
 }
 
-internal class RandomTest {
+file class RandomTest {
     internal enum Pepe {
         A,B,C
     }

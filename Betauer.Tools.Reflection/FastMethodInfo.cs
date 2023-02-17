@@ -45,7 +45,7 @@ public class FastMethodInfo {
     private delegate void VoidDelegate(object instance, object[] arguments);
 }
 
-internal class FastMethodInfoTest {
+file class FastMethodInfoTest {
     private string v;
 
     public string Get() {

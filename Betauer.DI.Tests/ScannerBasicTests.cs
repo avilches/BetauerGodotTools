@@ -196,8 +196,9 @@ namespace Betauer.DI.Tests {
         }
 
         [Configuration]
-        [Scan(typeof(PrimaryClass), typeof(PrimaryTagClass))]
-        [Scan(typeof(NonPrimaryClass))]
+        [Scan<PrimaryClass>]
+        [Scan<PrimaryTagClass>]
+        [Scan<NonPrimaryClass>]
         public class PrimaryConfiguration {
             [Service] private DummyClass noPrimary => new DummyClass();
             [Service] [Primary] private DummyClass primaryTag => new DummyClass();
@@ -240,8 +241,9 @@ namespace Betauer.DI.Tests {
         }
         
         [Configuration]
-        [Scan(typeof(LazyClass), typeof(LazyTagClass))]
-        [Scan(typeof(NoLazyClass))]
+        [Scan<LazyClass>]
+        [Scan<LazyTagClass>()]
+        [Scan<NoLazyClass>()]
         public class LazyConfiguration {
             [Service] private DummyClass noLazy => new DummyClass();
             [Service] [Lazy] private DummyClass lazyTag => new DummyClass();
@@ -809,8 +811,8 @@ namespace Betauer.DI.Tests {
             Assert.That(s11, Is.EqualTo(s12));
         }
 
-        [Scan(typeof(ServiceMemberExposing1))]
-        [Scan(typeof(ImportedService))]
+        [Scan<ServiceMemberExposing1>()]
+        [Scan<ImportedService>()]
         internal class AddToScanByImport {
         }
 
