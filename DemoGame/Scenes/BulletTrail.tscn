@@ -1,0 +1,17 @@
+[gd_scene load_steps=4 format=3 uid="uid://x4tqnbotqf1g"]
+
+[ext_resource type="Script" path="res://Src/Items/BulletTrail.cs" id="1_1mrvm"]
+
+[sub_resource type="Curve" id="Curve_iapfc"]
+_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="Gradient" id="Gradient_bm0w2"]
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[node name="BulletTrail" type="Line2D"]
+points = PackedVector2Array(0, 0, 100, 100)
+width = 1.0
+width_curve = SubResource("Curve_iapfc")
+gradient = SubResource("Gradient_bm0w2")
+script = ExtResource("1_1mrvm")

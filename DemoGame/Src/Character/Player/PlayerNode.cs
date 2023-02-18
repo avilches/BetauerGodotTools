@@ -475,7 +475,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				ApplyFloorGravity();
 				PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
 			})
-			.If(() => _stateTimer.Elapsed < Inventory.WeaponRangeEquipped.Config.ShootTime).Stay()
+			.If(() => _stateTimer.Elapsed < Inventory.WeaponRangeEquipped.Config.DelayBetweenShots).Stay()
 			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.Fall)
 			.If(() => XInput == 0).Set(PlayerState.Idle)
 			.If(() => XInput != 0).Set(PlayerState.Running)
@@ -495,7 +495,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 					PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
 				}
 			})
-			.If(() => _stateTimer.Elapsed < Inventory.WeaponRangeEquipped.Config.ShootTime).Stay()
+			.If(() => _stateTimer.Elapsed < Inventory.WeaponRangeEquipped.Config.DelayBetweenShots).Stay()
 			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.Fall)
 			.If(() => XInput == 0).Set(PlayerState.Idle)
 			.If(() => XInput != 0).Set(PlayerState.Running)
