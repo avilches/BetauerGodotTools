@@ -46,4 +46,12 @@ public static class DefaultNodeHandlerExtensions {
         DefaultNodeHandler.Instance.OnDraw(nodeEvent);
         return nodeEvent;
     }
+
+    public static void QueueDraw(this Node node, Action<CanvasItem> action) {
+        IEventHandler nodeEvent = null;
+        nodeEvent = node.OnDraw(canvas => {
+            action(canvas);
+            nodeEvent.Disable();
+        }, Node.ProcessModeEnum.Always);
+    }
 }
