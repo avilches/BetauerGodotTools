@@ -356,7 +356,11 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			Game.NewBullet().ShootFrom(Inventory.WeaponRangeEquipped, CharacterBody2D.ToGlobal(bulletPosition), bulletDirection);
 		}
 
-		OnTransition += (args) => _stateTimer.Restart();
+		var xInputEnterState = 0f;
+		OnTransition += (args) => {
+			_stateTimer.Restart();
+			xInputEnterState = XInput;
+		};
 		// OnTransition += (args) => Logger.Debug(args.From +" -> "+args.To);
 
 		On(PlayerEvent.Hurt).Set(PlayerState.Hurting);
@@ -476,6 +480,28 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			.If(() => XInput != 0).Set(PlayerState.Running)
 			.Build();
 
+		State(PlayerState.MeleeAttackAir)
+			.Enter(() => {
+				AnimationAttack.Play();
+				StartStack();
+			})
+			.Execute(() => {
+				ApplyFloorGravity();
+				if (!PlatformBody.IsOnFloor()) {
+					PlatformBody.Lateral(xInputEnterState, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed,
+						PlayerConfig.AirResistance,
+						PlayerConfig.StopIfSpeedIsLessThan, PlayerConfig.ChangeDirectionFactor);
+				} else {
+					PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
+				}
+				if (_attackState == AttackState.Start) _attackState = AttackState.Step1;
+			})
+			.If(() => _attackState != AttackState.None).Stay()
+			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.Fall)
+			.If(() => XInput == 0).Set(PlayerState.Idle)
+			.If(() => XInput != 0).Set(PlayerState.Running)
+			.Build();
+
 		State(PlayerState.RangeAttack)
 			.Execute(() => {
 				ApplyFloorGravity();
@@ -494,7 +520,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			.Execute(() => {
 				ApplyFloorGravity();
 				if (!PlatformBody.IsOnFloor()) {
-					PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
+					PlatformBody.Lateral(xInputEnterState, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
 						PlayerConfig.StopIfSpeedIsLessThan, PlayerConfig.ChangeDirectionFactor);
 				} else {
 					PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
@@ -530,28 +556,6 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			.If(() => Float.IsJustPressed).Set(PlayerState.Floating)
 			.If(() => MotionY >= 0).Set(PlayerState.Fall)
 			.If(() => PlatformBody.IsOnFloor()).Set(PlayerState.Landing)
-			.Build();
-
-		State(PlayerState.MeleeAttackAir)
-			.Enter(() => {
-				AnimationAttack.Play();
-				StartStack();
-			})
-			.Execute(() => {
-				ApplyFloorGravity();
-				if (!PlatformBody.IsOnFloor()) {
-					PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed,
-						PlayerConfig.AirResistance,
-						PlayerConfig.StopIfSpeedIsLessThan, PlayerConfig.ChangeDirectionFactor);
-				} else {
-					PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
-				}
-				if (_attackState == AttackState.Start) _attackState = AttackState.Step1;
-			})
-			.If(() => _attackState != AttackState.None).Stay()
-			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.Fall)
-			.If(() => XInput == 0).Set(PlayerState.Idle)
-			.If(() => XInput != 0).Set(PlayerState.Running)
 			.Build();
 
 		var coyoteTimer = new GodotStopwatch();
