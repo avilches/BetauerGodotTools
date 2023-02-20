@@ -5,81 +5,62 @@ using Godot.Collections;
 namespace Betauer.Core.Nodes;
 
 public static class CollisionLayerExtensions {
-    public static Dictionary RaycastTo(this Node2D from, Vector2 to,
-        Action<PhysicsRayQueryParameters2D>? config = null) {
-        var query = PhysicsRayQueryParameters2D.Create(from.GlobalPosition, to);
-        config?.Invoke(query);
-        return from.GetWorld2D().DirectSpaceState.IntersectRay(query);
-    }
-
-    public static void OnAreaEntered(this Area2D area2D, int layer, Area2D.AreaEnteredEventHandler action
-    ) {
+    public static void OnAreaEntered(this Area2D area2D, int layer, Area2D.AreaEnteredEventHandler action) {
         area2D.DetectLayer(layer);
         area2D.AreaEntered += action;
     }
 
-    public static void OnAreaExited(this Area2D area2D, int layer, Area2D.AreaExitedEventHandler action
-    ) {
+    public static void OnAreaExited(this Area2D area2D, int layer, Area2D.AreaExitedEventHandler action) {
         area2D.DetectLayer(layer);
         area2D.AreaExited += action;
     }
 
-    public static void OnAreaShapeEntered(this Area2D area2D, int layer, Area2D.AreaShapeEnteredEventHandler action
-    ) {
+    public static void OnAreaShapeEntered(this Area2D area2D, int layer, Area2D.AreaShapeEnteredEventHandler action) {
         area2D.DetectLayer(layer);
         area2D.AreaShapeEntered += action;
     }
 
-    public static void OnAreaShapeExited(this Area2D area2D, int layer, Area2D.AreaShapeExitedEventHandler action
-    ) {
+    public static void OnAreaShapeExited(this Area2D area2D, int layer, Area2D.AreaShapeExitedEventHandler action) {
         area2D.DetectLayer(layer);
         area2D.AreaShapeExited += action;
     }
 
-    public static void OnBodyEntered(this Area2D area2D, int layer, Area2D.BodyEnteredEventHandler action
-    ) {
+    public static void OnBodyEntered(this Area2D area2D, int layer, Area2D.BodyEnteredEventHandler action) {
         area2D.DetectLayer(layer);
         area2D.BodyEntered += action;
     }
 
-    public static void OnBodyExited(this Area2D area2D, int layer, Area2D.BodyExitedEventHandler action
-    ) {
+    public static void OnBodyExited(this Area2D area2D, int layer, Area2D.BodyExitedEventHandler action) {
         area2D.DetectLayer(layer);
         area2D.BodyExited += action;
     }
 
-    public static void OnBodyShapeEntered(this Area2D area2D, int layer, Area2D.BodyShapeEnteredEventHandler action
-    ) {
+    public static void OnBodyShapeEntered(this Area2D area2D, int layer, Area2D.BodyShapeEnteredEventHandler action) {
         area2D.DetectLayer(layer);
         area2D.BodyShapeEntered += action;
     }
 
-    public static void OnBodyShapeExited(this Area2D area2D, int layer, Area2D.BodyShapeExitedEventHandler action
-    ) {
+    public static void OnBodyShapeExited(this Area2D area2D, int layer, Area2D.BodyShapeExitedEventHandler action) {
         area2D.DetectLayer(layer);
         area2D.BodyShapeExited += action;
     }
 
-    public static void OnBodyEntered(this RigidBody2D rigidBody2D, int layer, RigidBody2D.BodyEnteredEventHandler action
-    ) {
+    public static void OnBodyEntered(this RigidBody2D rigidBody2D, int layer, RigidBody2D.BodyEnteredEventHandler action) {
         rigidBody2D.DetectLayer(layer);
         rigidBody2D.BodyEntered += action;
     }
 
-    public static void OnBodyExited(this RigidBody2D rigidBody2D, int layer, RigidBody2D.BodyExitedEventHandler action
-    ) {
+    public static void OnBodyExited(this RigidBody2D rigidBody2D, int layer, RigidBody2D.BodyExitedEventHandler action) {
         rigidBody2D.DetectLayer(layer);
         rigidBody2D.BodyExited += action;
     }
 
-    public static void OnBodyShapeEntered(this RigidBody2D rigidBody2D, int layer, RigidBody2D.BodyShapeEnteredEventHandler action
-    ) {
+    public static void OnBodyShapeEntered(this RigidBody2D rigidBody2D, int layer, RigidBody2D.BodyShapeEnteredEventHandler action) {
         rigidBody2D.DetectLayer(layer);
         rigidBody2D.BodyShapeEntered += action;
     }
 
-    public static void OnBodyShapeExited(this RigidBody2D rigidBody2D, int layer, RigidBody2D.BodyShapeExitedEventHandler action
-    ) {
+    public static void OnBodyShapeExited(this RigidBody2D rigidBody2D, int layer, RigidBody2D.BodyShapeExitedEventHandler action) {
         rigidBody2D.DetectLayer(layer);
         rigidBody2D.BodyShapeExited += action;
     }
