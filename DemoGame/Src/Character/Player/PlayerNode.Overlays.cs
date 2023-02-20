@@ -16,18 +16,17 @@ public partial class PlayerNode {
 			.Title("Player")
 			.SetMaxSize(1000, 1000);
 
-
-
 		overlay.OpenBox()
-			.Text("LR", () => Handler.Lateral.Strength.ToString("0.00") ).EndMonitor()
+			.Edit("Bullet speed", WeaponConfigManager.Gun.Speed.ToString("0"), v => WeaponConfigManager.Gun.Speed = long.Parse(v)).EndMonitor()
+			.Edit("Bullet Trail", WeaponConfigManager.Gun.TrailLong.ToString("0"), v => WeaponConfigManager.Gun.TrailLong = long.Parse(v)).EndMonitor()
 			.Text("UD", () => Handler.Vertical.Strength.ToString("0.00") ).EndMonitor()
 			.CloseBox();
 
-		AddDebuggingInputAction(overlay);
-		AddOverlayHelpers(overlay);
-		AddOverlayStates(overlay);
-		AddOverlayMotion(overlay);
-		AddOverlayCollisions(overlay);
+		// AddDebuggingInputAction(overlay);
+		// AddOverlayHelpers(overlay);
+		// AddOverlayStates(overlay);
+		// AddOverlayMotion(overlay);
+		// AddOverlayCollisions(overlay);
 
 		// DebugOverlayManager.Overlay(this)
 		//     .Title("Player")
@@ -49,6 +48,11 @@ public partial class PlayerNode {
 
 	private void AddDebuggingInputAction(DebugOverlay overlay) {
 		overlay.OpenBox()
+			.Text("LR", () => Handler.Lateral.Strength.ToString("0.00") ).EndMonitor()
+			.Text("UD", () => Handler.Vertical.Strength.ToString("0.00") ).EndMonitor()
+			.CloseBox();
+
+		overlay.OpenBox()
 			.Text("P", () => Jump.IsPressed).EndMonitor()
 			.Text("JP", () => Jump.IsJustPressed).EndMonitor()
 			.Text("Pressed", () => Jump.PressedTime.ToString("0.00")).EndMonitor()
@@ -63,7 +67,6 @@ public partial class PlayerNode {
 			.Text("R", () => Attack.IsJustReleased).EndMonitor()
 			.Text("Released", () => Attack.ReleasedTime.ToString("0.00")).EndMonitor()
 			.CloseBox();
-		
 		
 		var prevResult = "";
 		var axisLogger = this.OnProcess(d => {

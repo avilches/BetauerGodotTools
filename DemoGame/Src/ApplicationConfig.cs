@@ -9,6 +9,7 @@ using static Betauer.Loader.Loader;
 using static Godot.ResourceLoader;
 using Godot;
 using Veronenger.Character.Player;
+using Veronenger.Items;
 using Veronenger.UI;
 
 namespace Veronenger; 
@@ -75,11 +76,13 @@ public class Scenes {
 	private readonly PackedScene _world3Scene = PackedScene("res://Worlds/World3.tscn");
 	private readonly PackedScene _playerScene = PackedScene("res://Scenes/Player.tscn");
 	private readonly PackedScene _modalBoxConfirmScene = PackedScene("res://Scenes/Menu/ModalBoxConfirm.tscn");
+	private readonly PackedScene _bulletTrail = PackedScene("res://Scenes/BulletTrail.tscn");
 		
 	[Service(Lifetime.Transient)] RedefineActionButton RedefineActionButton => _redefineActionButtonScene.Instantiate<RedefineActionButton>();
 	[Service(Lifetime.Transient)] Node World3 => _world3Scene.Instantiate<Node>();
 	[Service(Lifetime.Transient)] PlayerNode Player => _playerScene.Instantiate<PlayerNode>();
 	[Service(Lifetime.Transient)] ModalBoxConfirm ModalBoxConfirm => _modalBoxConfirmScene.Instantiate<ModalBoxConfirm>();
+	[Service(Lifetime.Transient)] BulletTrail BulletTrail => _bulletTrail.Instantiate<BulletTrail>();
 
 	[Service] HUD HudScene => Instantiate<HUD>("res://Scenes/UI/HUD.tscn");
 	[Service] MainMenu MainMenuScene => Instantiate<MainMenu>("res://Scenes/Menu/MainMenu.tscn");

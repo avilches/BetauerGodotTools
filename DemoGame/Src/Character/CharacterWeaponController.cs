@@ -21,23 +21,28 @@ public class CharacterWeaponController {
     public void Equip(WeaponItem? weapon) {
         if (weapon == null) {
             _weaponSprite.Visible = false;
-            Current = null;
-            
+        } else if (weapon is WeaponRangeItem range) {
+            _weaponSprite.Visible = true;
+            _weaponSprite.Texture = range.Config.WeaponAnimation;
+            for (var i = 0; i < _attackAreas.Length; i++) {
+                var attackArea = _attackAreas[i];
+                attackArea.Monitorable = false;
+                attackArea.Monitoring = false;
+            }
         } else if (weapon is WeaponMeleeItem melee) {
             _weaponSprite.Visible = true;
-            var weaponMeleeModel = melee.Model;
-            _weaponSprite.Texture = weaponMeleeModel.WeaponAnimation;
+            _weaponSprite.Texture = melee.Config.WeaponAnimation;
             for (var i = 0; i < _attackAreas.Length; i++) {
                 var attackArea = _attackAreas[i];
                 attackArea.Monitorable = false;
                 attackArea.Monitoring = false;
                 attackArea.GetChildren().ForEach(shape => {
-                    var matches = weaponMeleeModel.ShapeName == shape.Name;
+                    var matches = melee.Config.ShapeName == shape.Name;
                     if (shape is CollisionShape2D collisionShape2D) collisionShape2D.Disabled = !matches;
                     if (shape is CollisionPolygon2D collisionPolygon2D) collisionPolygon2D.Disabled = !matches;
                 });
             }
-            Current = weapon;
         }
+        Current = weapon;
     }
 }

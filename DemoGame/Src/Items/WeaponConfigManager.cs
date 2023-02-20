@@ -18,7 +18,7 @@ public class WeaponConfigManager {
     private void CreateWeapons() {
         Knife = new WeaponConfig.Melee(LeonKnifeAnimationSprite, "Short", 6);
         Metalbar = new WeaponConfig.Melee(LeonMetalbarAnimationSprite, "Long", 10);
-        Gun = new WeaponConfig.Range(LeonMetalbarAnimationSprite, 30);
+        Gun = new WeaponConfig.Range(null, null, 30);
         None = new WeaponConfig.Melee(null, null, 0);
     } 
 }

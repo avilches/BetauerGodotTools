@@ -23,12 +23,12 @@ public class Game {
     [Inject] private CharacterManager CharacterManager { get; set; }
     [Inject] private PlatformManager PlatformManager { get; set; }
     [Inject] private Factory<Node> World3 { get; set; }
-    [Inject] private Factory<PlayerNode> Player { get; set; }
-    [Inject] Texture2D Icon { get; set; }
+    [Inject] private Factory<PlayerNode> PlayerFactory { get; set; }
+    [Inject] private Factory<BulletTrail> BulletTrailFactory { get; set; }
     
     private Node _currentGameScene;
     private PlayerNode _playerScene;
-    public MiniPoolBusy<Bullet> _bulletPool;
+    public MiniPoolBusy<BulletTrail> _bulletPool;
 
     public async Task Start() {
         StageManager.ClearState();
@@ -69,11 +69,11 @@ public class Game {
         var bullets = new Node();
         bullets.Name = "Bullets";
         _currentGameScene.AddChild(bullets);
-        _bulletPool = new MiniPoolBusy<Bullet>(() => new Bullet(_currentGameScene, Icon), 1);
+        _bulletPool = new MiniPoolBusy<BulletTrail>(() => BulletTrailFactory.Get().Configure(_currentGameScene), 4);
         HudScene.StartGame();
     }
 
-    public Bullet NewBullet() => _bulletPool.Get();
+    public BulletTrail NewBullet() => _bulletPool.Get();
 
     private void CandleOff(PointLight2D light) {
         light.Enabled = true;
@@ -104,7 +104,7 @@ public class Game {
     }
 
     private void AddPlayerToScene(Node nextScene) {
-        _playerScene = Player.Get();
+        _playerScene = PlayerFactory.Get();
         nextScene.GetNode<Marker2D>("SpawnPlayer").AddChild(_playerScene);
     }
 

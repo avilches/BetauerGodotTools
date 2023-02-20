@@ -98,6 +98,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	public Anim AnimationJump { get; private set; }
 	public Anim AnimationFall { get; private set; }
 	public Anim AnimationAttack { get; private set; }
+	public Anim AnimationShoot { get; private set; }
 	public Anim AnimationAirAttack { get; private set; }
 	public Anim AnimationHurt { get; private set; }
 
@@ -159,6 +160,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		AnimationRunStop = _animationPlayer.Anim("RunStop");
 		AnimationJump = _animationPlayer.Anim("Jump");
 		AnimationFall = _animationPlayer.Anim("Fall");
+		AnimationShoot = _animationPlayer.Anim("Shoot");
 		AnimationAttack = _animationPlayer.Anim("Attack");
 		AnimationAirAttack = _animationPlayer.Anim("AirAttack");
 		AnimationHurt = _animationPlayer.Anim("Hurt");
@@ -347,6 +349,13 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			if (fallingPlatform != null) PlatformManager.ConfigurePlatformCollision(fallingPlatform);
 		}
 
+		void Shoot() {
+			AnimationShoot.PlayFrom(0);
+			var bulletPosition = new Vector2(Inventory.WeaponRangeEquipped.BulletStartPosition.X * PlatformBody.FacingRight, Inventory.WeaponRangeEquipped.BulletStartPosition.Y);
+			var bulletDirection = new Vector2(PlatformBody.FacingRight, 0);
+			Game.NewBullet().ShootFrom(Inventory.WeaponRangeEquipped, CharacterBody2D.ToGlobal(bulletPosition), bulletDirection);
+		}
+
 		OnTransition += (args) => _stateTimer.Restart();
 		// OnTransition += (args) => Logger.Debug(args.From +" -> "+args.To);
 
@@ -466,34 +475,33 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			.If(() => XInput == 0).Set(PlayerState.Idle)
 			.If(() => XInput != 0).Set(PlayerState.Running)
 			.Build();
-		
+
 		State(PlayerState.RangeAttack)
-			.Enter(() => {
-				Game.NewBullet().ShootFrom(CharacterBody2D.GlobalPosition, Inventory.WeaponRangeEquipped, new Vector2(PlatformBody.FacingRight, 0));
-			})
 			.Execute(() => {
 				ApplyFloorGravity();
 				PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
+				if (Attack.IsJustPressed && _stateTimer.Elapsed >= Inventory.WeaponRangeEquipped.Config.DelayBetweenShots) {
+					Shoot();
+				}				
 			})
-			.If(() => _stateTimer.Elapsed < Inventory.WeaponRangeEquipped.Config.DelayBetweenShots).Stay()
+			.If(() => AnimationShoot.IsPlaying()).Stay()
 			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.Fall)
 			.If(() => XInput == 0).Set(PlayerState.Idle)
 			.If(() => XInput != 0).Set(PlayerState.Running)
 			.Build();
 
 		State(PlayerState.RangeAttackAir)
-			.Enter(() => {
-				Game.NewBullet().ShootFrom(CharacterBody2D.GlobalPosition, Inventory.WeaponRangeEquipped, new Vector2(PlatformBody.FacingRight, 0));
-			})
 			.Execute(() => {
 				ApplyFloorGravity();
 				if (!PlatformBody.IsOnFloor()) {
-					PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed,
-						PlayerConfig.AirResistance,
+					PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
 						PlayerConfig.StopIfSpeedIsLessThan, PlayerConfig.ChangeDirectionFactor);
 				} else {
 					PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
 				}
+				if (Attack.IsJustPressed && _stateTimer.Elapsed >= Inventory.WeaponRangeEquipped.Config.DelayBetweenShots) {
+					Shoot();
+				}				
 			})
 			.If(() => _stateTimer.Elapsed < Inventory.WeaponRangeEquipped.Config.DelayBetweenShots).Stay()
 			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.Fall)
