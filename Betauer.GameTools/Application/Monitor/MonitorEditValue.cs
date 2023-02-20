@@ -35,11 +35,10 @@ public partial class MonitorEditValue : BaseMonitor<MonitorEditValue> {
     }
 
     public override void _Ready() {
-        Edit.TextSubmitted += text => {
+        Edit.TextChanged += text => {
             try {
                 _updateValue?.Invoke(text);
                 Edit.RemoveFontColor();
-                Edit.ReleaseFocus();
             } catch (Exception e) {
                 GD.PrintErr(e.Message);
                 Edit.SetFontColor(DefaultErrorColor);
