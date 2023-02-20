@@ -16,6 +16,10 @@ public class FlipScaleX : Flipper {
     }
 
     public override void SetFacingRight(bool right) {
-        _node2D.Scale = right ? Vector2.One : FlipX;
+        SetFacingRight(_node2D, right);
+    }
+
+    public static void SetFacingRight(Node2D node2D, bool right) {
+        node2D.Scale = right ? Vector2.One : FlipX;
     }
 }
