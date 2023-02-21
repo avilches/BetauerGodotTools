@@ -428,7 +428,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 					FallFromPlatform();
 					return context.Set(PlayerState.Fall);
 				})
-			.If(() => Attack.IsJustPressed).Then(ctx => ctx.Send(PlayerEvent.Attack))	
+			.If(() => Attack.IsJustPressed).Send(PlayerEvent.Attack)	
 			.If(() => Jump.IsJustPressed && CanJump()).Set(PlayerState.Jumping)
 			.If(() => XInput != 0).Set(PlayerState.Running)
 			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.Fall)
@@ -518,7 +518,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 					Shoot();
 				}				
 			})
-			.If(() => AnimationShoot.IsPlaying()).Stay()
+			.If(() => Attack.IsJustPressed || AnimationShoot.IsPlaying()).Stay()
 			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.Fall)
 			.If(() => XInput == 0).Set(PlayerState.Idle)
 			.If(() => XInput != 0).Set(PlayerState.Running)
