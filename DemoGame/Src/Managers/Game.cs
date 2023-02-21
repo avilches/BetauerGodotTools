@@ -6,6 +6,7 @@ using Betauer.Core.Nodes;
 using Betauer.Core.Pool;
 using Betauer.Core.Signal;
 using Godot;
+using Veronenger.Character.Enemy;
 using Veronenger.Character.Player;
 using Veronenger.Items;
 using Veronenger.UI;
@@ -24,11 +25,13 @@ public class Game {
     [Inject] private PlatformManager PlatformManager { get; set; }
     [Inject] private Factory<Node> World3 { get; set; }
     [Inject] private Factory<PlayerNode> PlayerFactory { get; set; }
-    [Inject] private Factory<BulletTrail> BulletTrailFactory { get; set; }
+    [Inject] private Factory<ZombieNode> ZombieFactory { get; set; }
+    [Inject] private Factory<ProjectileTrail> ProjectileFactory { get; set; }
     
     private Node _currentGameScene;
+    private Vector2 _zombieRespawn;
     private PlayerNode _playerScene;
-    public MiniPoolBusy<BulletTrail> _bulletPool;
+    public MiniPoolBusy<ProjectileTrail> _bulletPool;
 
     public async Task Start() {
         StageManager.ClearState();
@@ -55,6 +58,7 @@ public class Game {
         AddPlayerToScene(_currentGameScene);
         SceneTree.Root.AddChild(_currentGameScene);
         await SceneTree.AwaitProcessFrame();
+        _zombieRespawn = _currentGameScene.GetNode<Marker2D>("ZombieRespawn").GlobalPosition;
 
         _currentGameScene.GetChildren().OfType<TileMap>().ForEach(PlatformManager.ConfigureTileMapCollision);
         _currentGameScene.GetChildren().OfType<CanvasModulate>().ForEach(cm => cm.Visible = true);
@@ -69,11 +73,11 @@ public class Game {
         var bullets = new Node();
         bullets.Name = "Bullets";
         _currentGameScene.AddChild(bullets);
-        _bulletPool = new MiniPoolBusy<BulletTrail>(() => BulletTrailFactory.Get().Configure(_currentGameScene), 4);
+        _bulletPool = new MiniPoolBusy<ProjectileTrail>(() => ProjectileFactory.Get().Configure(_currentGameScene), 4);
         HudScene.StartGame();
     }
 
-    public BulletTrail NewBullet() => _bulletPool.Get();
+    public ProjectileTrail NewBullet() => _bulletPool.Get();
 
     private void CandleOff(PointLight2D light) {
         light.Enabled = true;
@@ -114,5 +118,11 @@ public class Game {
         HudScene.EndGame();
         _currentGameScene.QueueFree();
         _currentGameScene = null;
+    }
+
+    public void InstantiateZombie() {
+        var zombie = ZombieFactory.Get();
+        zombie.InitialPosition = _zombieRespawn;
+        _currentGameScene.AddChild(zombie);
     }
 }

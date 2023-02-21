@@ -1,12 +1,12 @@
 [gd_scene load_steps=3 format=3 uid="uid://x4tqnbotqf1g"]
 
-[ext_resource type="Script" path="res://Src/Items/BulletTrail.cs" id="1_1mrvm"]
+[ext_resource type="Script" path="res://Src/Items/ProjectileTrail.cs" id="1_1mrvm"]
 
 [sub_resource type="Gradient" id="Gradient_bm0w2"]
 offsets = PackedFloat32Array(0.0881459, 0.756839, 1)
 colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0)
 
-[node name="BulletTrail" type="Line2D"]
+[node name="Trail" type="Line2D"]
 points = PackedVector2Array(0, 0, 55, 54, 111, 111)
 gradient = SubResource("Gradient_bm0w2")
 script = ExtResource("1_1mrvm")

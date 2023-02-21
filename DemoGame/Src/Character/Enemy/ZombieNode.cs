@@ -118,8 +118,8 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 	private ICharacterAI _zombieAi;
 	private MiniPoolBusy<ILabelEffect> _labelHits;
 	private Restorer _restorer; 
-
 	private EnemyItem _enemyItem;
+	private LazyRaycast2D _lazyRaycastToPlayer;
 
 	private Vector2 PlayerPos => CharacterManager.PlayerNode.Marker2D.GlobalPosition;
 	public bool IsFacingToPlayer() => PlatformBody.IsFacingTo(PlayerPos);
@@ -131,7 +131,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 	public bool CanSeeThePlayer() => IsFacingToPlayer() &&
 									 DistanceToPlayer() <= EnemyConfig.VisionDistance &&
 									 IsPlayerInAngle() &&
-									 Marker2D.RaycastTo(PlayerPos, ray => CharacterManager.EnemyConfigureCollisions(ray)).Count == 0;
+									 !_lazyRaycastToPlayer.From(Marker2D).To(PlayerPos).Cast().Collision.IsColliding;
 	
 	public bool IsPlayerInAngle() => EnemyConfig.VisionAngle > 0 && 
 									 Mathf.Acos(Mathf.Abs(PlatformBody.LookRightDirection.Dot(DirectionToPlayer()))) <= EnemyConfig.VisionAngle;
@@ -174,9 +174,9 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 				return;
 			}
 
-			var result = Marker2D.RaycastTo(PlayerPos, ray => CharacterManager.EnemyConfigureCollisions(ray));
-			if (result.Count > 0) {
-				canvas.DrawLine(Marker2D.GlobalPosition, result["position"].AsVector2(), Colors.Red, 2);
+			var result = _lazyRaycastToPlayer.From(Marker2D).To(PlayerPos).Cast().Collision;
+			if (result.IsColliding) {
+				canvas.DrawLine(Marker2D.GlobalPosition, result.Position, Colors.Red, 2);
 				return;
 			}
 			canvas.DrawLine(Marker2D.GlobalPosition, PlayerPos, Colors.Lime, 2);
@@ -210,6 +210,8 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		CharacterManager.EnemyConfigureCollisions(FinishFloorLeft);
 		
 		_enemyItem = World.CreateEnemy(this);
+		_lazyRaycastToPlayer = new LazyRaycast2D(_mainSprite)
+			.Config(ray => CharacterManager.EnemyConfigureCollisions(ray));
 
 		CharacterManager.EnemyConfigureAttackArea(_attackArea);
 		_attackArea.GetNode<CollisionShape2D>("Body").Disabled = false;

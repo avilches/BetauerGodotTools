@@ -353,7 +353,15 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			AnimationShoot.PlayFrom(0);
 			var bulletPosition = new Vector2(Inventory.WeaponRangeEquipped.BulletStartPosition.X * PlatformBody.FacingRight, Inventory.WeaponRangeEquipped.BulletStartPosition.Y);
 			var bulletDirection = new Vector2(PlatformBody.FacingRight, 0);
-			Game.NewBullet().ShootFrom(Inventory.WeaponRangeEquipped, CharacterBody2D.ToGlobal(bulletPosition), bulletDirection);
+			Game.NewBullet().ShootFrom(Inventory.WeaponRangeEquipped, CharacterBody2D.ToGlobal(bulletPosition), bulletDirection, 
+				(ray) => CharacterManager.PlayerConfigureBullet(ray),
+				(collision) => {
+					var enemyItem = World.GetOrNull<EnemyItem>(collision.Collider.GetWorldId());
+					if (enemyItem != null) enemyItem.ZombieNode.QueueFree();
+					else Game.InstantiateZombie();
+					return false;
+				}
+			);
 		}
 
 		var xInputEnterState = 0f;

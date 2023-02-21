@@ -268,6 +268,9 @@ metadata/_edit_lock_ = true
 shape = SubResource("RectangleShape2D_5fj3v")
 metadata/_edit_lock_ = true
 
+[node name="ZombieRespawn" type="Marker2D" parent="."]
+position = Vector2(-858, 18)
+
 [editable path="Enemies/Enemy2"]
 [editable path="Enemies/Enemy2/Character"]
 [editable path="Enemies/Enemy3"]
