@@ -102,24 +102,37 @@ public class AxisAction : IAction {
 
     public void SimulatePress(float strength) {
         if (strength == 0f) {
-            Negative.SimulatePress(0f);
-            Positive.SimulatePress(0f);
+            if (Strength != 0) SimulateRelease();
         } else {
             if (strength > 0) {
-                Negative.SimulatePress(0f);
+                Negative.SimulateRelease();
                 Positive.SimulatePress(strength);
             } else {
                 Negative.SimulatePress(Mathf.Abs(strength));
-                Positive.SimulatePress(0f);
+                Positive.SimulateRelease();
             }
         }
     }
 
-    public void SimulateRelease() => SimulatePress(0f);
+    public void SimulateRelease() {
+        if (Strength >= 0) Positive.SimulateRelease();
+        if (Strength <= 0) Negative.SimulateRelease();
+    }
+
+    public void ClearJustStates() {
+        Negative.ClearJustStates();        
+        Positive.ClearJustStates();        
+    }
 
     public static AxisAction Fake() {
         var positive = InputAction.Fake().Update(u => u.SetAxis(JoyAxis.LeftX).SetAxisSign(1));
         var negative = InputAction.Fake().Update(u => u.SetAxis(JoyAxis.LeftX).SetAxisSign(-1));
+        return new AxisAction(null, negative, positive);
+    }
+
+    public static AxisAction Simulate() {
+        var positive = InputAction.Simulate().Update(u => u.SetAxis(JoyAxis.LeftX).SetAxisSign(1));
+        var negative = InputAction.Simulate().Update(u => u.SetAxis(JoyAxis.LeftX).SetAxisSign(-1));
         return new AxisAction(null, negative, positive);
     }
 

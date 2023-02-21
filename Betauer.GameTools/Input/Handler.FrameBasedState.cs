@@ -2,7 +2,7 @@ using Godot;
 
 namespace Betauer.Input;
 
-internal class ActionStateHandler : IHandler {
+internal class FrameBasedStateHandler : IHandler {
     internal readonly InputAction InputAction;
 
     public bool Pressed { get; protected set; } = false;
@@ -16,17 +16,14 @@ internal class ActionStateHandler : IHandler {
     public ulong PhysicsFrameReleased { get; protected set; }
 
     public bool JustPressed => Pressed && Engine.IsInPhysicsFrame()
-        ? Engine.GetPhysicsFrames() == PhysicsFramePressed
-        : Engine.GetProcessFrames() == ProcessFramePressed;
+                ? Engine.GetPhysicsFrames() == PhysicsFramePressed
+                : Engine.GetProcessFrames() == ProcessFramePressed;
 
     public bool JustReleased => !Pressed && Engine.IsInPhysicsFrame()
         ? Engine.GetPhysicsFrames() == PhysicsFrameReleased
         : Engine.GetProcessFrames() == ProcessFrameReleased;
 
-    internal void ClearState() {
-        Pressed = false;
-        Strength = 0;
-        RawStrength = 0;
+    public void ClearJustStates() {
         PressedTime = GodotInputHandler.MaxPressedTime; // Pressed one year ago ;)
         ReleasedTime = GodotInputHandler.MaxPressedTime; // Released one year ago ;)
         ProcessFramePressed = 0;
@@ -35,18 +32,25 @@ internal class ActionStateHandler : IHandler {
         PhysicsFrameReleased = 0;
     }
 
-    internal ActionStateHandler(InputAction inputAction) {
+    internal void ClearState() {
+        Pressed = false;
+        Strength = 0;
+        RawStrength = 0;
+        ClearJustStates();
+    }
+
+    internal FrameBasedStateHandler(InputAction inputAction) {
         InputAction = inputAction;
         ClearState();
     }
 
     protected void SetPressed(float strength) {
         if (!Pressed) {
+            Pressed = true;
             PressedTime = 0;
             ProcessFramePressed = Engine.GetProcessFrames();
             PhysicsFramePressed = Engine.GetPhysicsFrames();
         }
-        Pressed = true;
         Strength = strength;
     }
 
@@ -59,9 +63,13 @@ internal class ActionStateHandler : IHandler {
         PhysicsFrameReleased = Engine.GetPhysicsFrames();
     }
 
+    public void SimulateRelease() {
+        SetReleased();
+    }
+
     public void SimulatePress(float strength) {
         if (Pressed) {
-            if (strength == 0f) SetReleased();
+            if (strength == 0f) SimulateRelease();
             else SetPressed(strength);
         } else {
             if (strength != 0f) SetPressed(strength);

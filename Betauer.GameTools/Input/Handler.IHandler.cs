@@ -9,4 +9,6 @@ internal interface IHandler {
     internal bool JustPressed { get; }
     internal bool JustReleased { get; }
     internal void SimulatePress(float strength);
+    internal void SimulateRelease();
+    internal void ClearJustStates();
 }

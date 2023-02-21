@@ -2,8 +2,8 @@ using Godot;
 
 namespace Betauer.Input;
 
-internal class ExtendedInputActionStateHandler : ActionStateHandler {
-    internal ExtendedInputActionStateHandler(InputAction inputAction) : base(inputAction) {
+internal class ExtendedInputFrameBasedStateHandler : FrameBasedStateHandler {
+    internal ExtendedInputFrameBasedStateHandler(InputAction inputAction) : base(inputAction) {
     }
 
     public void Update(bool paused, InputEvent inputEvent) {

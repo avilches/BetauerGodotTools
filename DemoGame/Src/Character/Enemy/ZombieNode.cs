@@ -94,7 +94,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 	
 	//
 	// [Inject] private InputActionCharacterHandler Handler { get; set; }
-	private CharacterController Handler { get; set; } = new CharacterController();
+	private NpcController Handler { get; set; } = new NpcController();
 
 	public Anim AnimationIdle { get; private set; }
 	public Anim AnimationRun { get; private set; }

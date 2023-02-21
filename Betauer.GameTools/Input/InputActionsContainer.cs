@@ -163,7 +163,7 @@ public partial class InputActionsContainer : Node {
         var span = CollectionsMarshal.AsSpan(_onInputActions);
         for (var i = 0; i < span.Length; i++) {
             var inputAction = span[i];
-            if (inputAction.IsEvent(e)) ((ExtendedInputActionStateHandler)inputAction.Handler).Update(paused, e);
+            if (inputAction.IsEvent(e)) ((ExtendedInputFrameBasedStateHandler)inputAction.Handler).Update(paused, e);
         }
     }
 
@@ -176,7 +176,7 @@ public partial class InputActionsContainer : Node {
         var span = CollectionsMarshal.AsSpan(_onUnhandledInputActions);
         for (var i = 0; i < span.Length; i++) {
             var inputAction = span[i];
-            if (inputAction.IsEvent(e)) ((ExtendedInputActionStateHandler)inputAction.Handler).Update(paused, e);
+            if (inputAction.IsEvent(e)) ((ExtendedInputFrameBasedStateHandler)inputAction.Handler).Update(paused, e);
         }
     }
 
@@ -191,12 +191,12 @@ public partial class InputActionsContainer : Node {
         var handledSpan = CollectionsMarshal.AsSpan(_onInputActions);
         for (var i = 0; i < handledSpan.Length; i++) {
             var inputAction = handledSpan[i];
-            ((ExtendedInputActionStateHandler)inputAction.Handler).AddTime(paused, delta);
+            ((ExtendedInputFrameBasedStateHandler)inputAction.Handler).AddTime(paused, delta);
         }
         var unhandledSpan = CollectionsMarshal.AsSpan(_onUnhandledInputActions);
         for (var i = 0; i < unhandledSpan.Length; i++) {
             var inputAction = unhandledSpan[i];
-            ((ExtendedInputActionStateHandler)inputAction.Handler).AddTime(paused, delta);
+            ((ExtendedInputFrameBasedStateHandler)inputAction.Handler).AddTime(paused, delta);
         }
     }
 }

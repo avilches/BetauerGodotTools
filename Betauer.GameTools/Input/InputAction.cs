@@ -10,12 +10,51 @@ namespace Betauer.Input;
 
 public enum InputActionBehaviour {
     /// <summary>
-    /// It works only through Simulate*() methods
+    /// It works only through Simulate*() methods but:
+    /// - WasPressed() and WasReleased() always return false
+    /// - JustPressed is true only the first call to SimulatePress() when the action is not pressed.
+    /// - JustReleased is true only the first call to SimulateRelease() when the action was pressed.
+    /// - ClearJustStates() sets JustPressed and JustReleased to false
+    /// 
+    /// * How to simulate JustPressed and JustReleased for more than one frame:
+    /// Call to ClearJustStates() after every frame to simulate a button pressed in multiple frames. Then you can use
+    /// SimulateRelease() in a later frame to simulate a JustRelease.
+    /// - Frame 1: SimulatePress()
+    ///            [your code here] JustPressed and Pressed are true
+    ///            ClearJustStates()
+    /// - Frame 2: [your code here] JustPressed is false. Pressed is true
+    ///            ClearJustStates()
+    /// - Frame 3: SimulateRelease()
+    ///            [your code here] JustRelease is true. Pressed is false
+    ///            ClearJustStates()
+    /// - Frame 3: [your code here] JustRelease and Pressed are false.
+    ///            ClearJustStates()
+    /// 
+    /// * If you don't care about button pressed in multiple frames, just call SimulateRelease after every frame.
+    /// - Frame 1: SimulatePress()
+    ///            [your code here] JustPressed and Pressed are true
+    ///            SimulateRelease()
+    /// - Frame 2: [your code here] JustRelease is true. Pressed is false
+    ///            SimulateRelease()
+    /// - Frame 3: [your code here] JustRelease and Pressed are false.
+    ///            SimulateRelease()
+    /// 
+    /// * To force a JustPressed (no matter if the action is pressed or it isn't) call to ClearJustStates() and SimulatePress().
+    /// </summary>
+    Fake,
+    
+    /// <summary>
+    /// It works only through Simulate*() methods.
+    /// - JustPressed and JustRelease uses the current process/physics frame to check if the button is just pressed or
+    /// just released in the same frame.
+    /// - ClearJustStates() makes the JustPressed, JustReleased, WasPressed() and WasReleased() returns false setting the frame to 0 and the PressedTime/ReleaseTime one year ago
+    /// - WasPressed() and WasReleased() works
     /// </summary>
     Simulate,
     
     /// <summary>
     /// It uses the Godot Input singleton to handle the action.
+    /// - WasPressed() and WasReleased() always return false
     /// </summary>
     GodotInput,
     
@@ -46,7 +85,8 @@ public partial class InputAction : IAction {
     public float Strength => Handler.Strength;
     public float RawStrength => Handler.RawStrength;
     public void SimulatePress(float strength = 1f) => Handler.SimulatePress(strength);
-    public void SimulateRelease() => Handler.SimulatePress(0f);
+    public void SimulateRelease() => Handler.SimulateRelease();
+    public void ClearJustStates() => Handler.ClearJustStates();
 
     public bool WasPressed(float elapsed) => PressedTime <= elapsed;
     public bool WasReleased(float elapsed) => ReleasedTime <= elapsed;
@@ -92,6 +132,16 @@ public partial class InputAction : IAction {
         false,
         null,
         null,
+        InputActionBehaviour.Fake,
+        false,
+        false);
+
+    public static InputAction Simulate() => new InputAction(null,
+        null,
+        false,
+        false,
+        null,
+        null,
         InputActionBehaviour.Simulate,
         false,
         false);
@@ -117,9 +167,10 @@ public partial class InputAction : IAction {
         IsUnhandledInput = isUnhandledInput;
 
         Handler = behaviour switch {
-            InputActionBehaviour.Simulate => new ActionStateHandler(this),
+            InputActionBehaviour.Fake => new FakeStateHandler(this),
+            InputActionBehaviour.Simulate => new FrameBasedStateHandler(this),
             InputActionBehaviour.GodotInput => new GodotInputHandler(name),
-            InputActionBehaviour.Extended => new ExtendedInputActionStateHandler(this),
+            InputActionBehaviour.Extended => new ExtendedInputFrameBasedStateHandler(this),
         };
         _configureGodotInputMap = true;
         if (keepProjectSettings) {
@@ -178,7 +229,7 @@ public partial class InputAction : IAction {
     public void Disable() {
         Enabled = false;
         InputActionsContainer?.Disable(this);
-        if (Handler is ActionStateHandler stateHandler) stateHandler.ClearState();
+        if (Handler is FrameBasedStateHandler stateHandler) stateHandler.ClearState();
         if (_configureGodotInputMap && InputMap.HasAction(Name)) InputMap.EraseAction(Name);
     }
 

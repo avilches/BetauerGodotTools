@@ -12,7 +12,7 @@ namespace Veronenger.Character.Enemy;
 public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacterAI {
     private static readonly PcgRandom Random = new();
 
-    private readonly CharacterController _controller;
+    private readonly NpcController _controller;
     private readonly Sensor _sensor;
 
     public enum State { 
@@ -31,12 +31,12 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
     }
 
     public static ICharacterAI Create(ICharacterHandler handler, Sensor sensor) {
-        if (handler is CharacterController controller) return new MeleeAI(controller, sensor);
+        if (handler is NpcController controller) return new MeleeAI(controller, sensor);
         if (handler is PlayerInputActions) return DoNothingAI.Instance;
         throw new Exception($"Unknown handler: {handler.GetType()}");
     }
 
-    public MeleeAI(CharacterController controller, Sensor sensor) : base(State.Patrol, "ZombieIA") {
+    public MeleeAI(NpcController controller, Sensor sensor) : base(State.Patrol, "ZombieIA") {
         _controller = controller;
         _sensor = sensor;
         Config();
@@ -180,8 +180,7 @@ public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacte
         // " JustPressed:"+_controller.Jump.IsJustPressed+
         // " Released:"+_controller.Jump.IsReleased());
 
-        _controller.Lateral.SimulateRelease();
-        _controller.Attack.SimulateRelease();
+        _controller.ClearState();
     }
 
     public class Sensor {
