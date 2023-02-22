@@ -81,35 +81,6 @@ public partial class NodeHandler : Node2D {
         SetProcess(true);
     }
     
-    public Task AwaitInput(Func<InputEvent, bool> func, bool setInputAsHandled = true) {
-        TaskCompletionSource promise = new();
-        InputEventEventHandler eventHandler = null; 
-        eventHandler = new InputEventEventHandler("AwaitInput", e => {
-            if (func(e)) {
-                if (setInputAsHandled) GetViewport().SetInputAsHandled();
-                eventHandler.Destroy();
-                promise.TrySetResult();
-            }
-        }, ProcessModeEnum.Always);
-        OnInput(eventHandler);
-        return promise.Task;
-        
-    }
-    
-    public Task AwaitUnhandledInput(Func<InputEvent, bool> func, bool setInputAsHandled = true) {
-        TaskCompletionSource promise = new();
-        InputEventEventHandler eventHandler = null; 
-        eventHandler = new InputEventEventHandler("AwaitUnhandledInput", e => {
-            if (func(e)) {
-                if (setInputAsHandled) GetViewport().SetInputAsHandled();
-                eventHandler.Destroy();
-                promise.TrySetResult();
-            }
-        }, ProcessModeEnum.Always);
-        OnUnhandledInput(eventHandler);
-        return promise.Task;
-    }
-
     public override void _Process(double delta) {
         ProcessNodeEvents(ProcessList, delta, () => {
             if (DrawList.Count == 0) SetProcess(false);
