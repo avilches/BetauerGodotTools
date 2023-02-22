@@ -67,17 +67,20 @@ namespace Betauer.GameTools.Tests {
 
         [Test]
         public void ProcessModeTest() {
-            Assert.That(NodeHandler.ShouldProcess(true, ProcessModeEnum.Always), Is.True);
-            Assert.That(NodeHandler.ShouldProcess(true, ProcessModeEnum.Disabled), Is.False);
-            Assert.That(NodeHandler.ShouldProcess(true, ProcessModeEnum.Inherit), Is.False);
-            Assert.That(NodeHandler.ShouldProcess(true, ProcessModeEnum.Pausable), Is.False);
-            Assert.That(NodeHandler.ShouldProcess(true, ProcessModeEnum.WhenPaused), Is.True);
+            Assert.That(BaseHandler.ShouldProcess(true, ProcessModeEnum.Always), Is.True);
+            Assert.That(BaseHandler.ShouldProcess(false, ProcessModeEnum.Always), Is.True);
 
-            Assert.That(NodeHandler.ShouldProcess(false, ProcessModeEnum.Always), Is.True);
-            Assert.That(NodeHandler.ShouldProcess(false, ProcessModeEnum.Disabled), Is.False);
-            Assert.That(NodeHandler.ShouldProcess(false, ProcessModeEnum.Inherit), Is.True);
-            Assert.That(NodeHandler.ShouldProcess(false, ProcessModeEnum.Pausable), Is.True);
-            Assert.That(NodeHandler.ShouldProcess(false, ProcessModeEnum.WhenPaused), Is.False);
+            Assert.That(BaseHandler.ShouldProcess(true, ProcessModeEnum.Disabled), Is.False);
+            Assert.That(BaseHandler.ShouldProcess(false, ProcessModeEnum.Disabled), Is.False);
+
+            Assert.That(BaseHandler.ShouldProcess(true, ProcessModeEnum.Inherit), Is.False);
+            Assert.That(BaseHandler.ShouldProcess(false, ProcessModeEnum.Inherit), Is.True);
+
+            Assert.That(BaseHandler.ShouldProcess(true, ProcessModeEnum.Pausable), Is.False);
+            Assert.That(BaseHandler.ShouldProcess(false, ProcessModeEnum.Pausable), Is.True);
+
+            Assert.That(BaseHandler.ShouldProcess(true, ProcessModeEnum.WhenPaused), Is.True);
+            Assert.That(BaseHandler.ShouldProcess(false, ProcessModeEnum.WhenPaused), Is.False);
 
         }
     }
