@@ -1,22 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using Betauer.Input;
-using Betauer.Tools.Logging;
 using Godot;
 using static System.String;
 
 namespace Betauer.Nodes;
 
 public partial class NodeHandler : Node2D {
-    public static bool ShouldProcess(bool pause, ProcessModeEnum processMode) {
-        if (processMode == ProcessModeEnum.Inherit) return !pause;
-        return processMode == ProcessModeEnum.Always ||
-               (pause && processMode == ProcessModeEnum.WhenPaused) ||
-               (!pause && processMode == ProcessModeEnum.Pausable);
-    }
-
     public readonly List<IProcessHandler> ProcessList = new();
     public readonly List<IProcessHandler> PhysicsProcessList = new();
     public readonly List<IInputEventHandler> InputList = new();

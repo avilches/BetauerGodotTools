@@ -3,9 +3,11 @@ using Godot;
 
 namespace Betauer.Nodes;
 
-public class ProcessEventHandler : BaseEventHandler, IProcessHandler {
+public class ProcessHandler : BaseHandler, IProcessHandler {
     private readonly Action<double> _delegate;
-    public ProcessEventHandler(string? name, Action<double>? @delegate, Node.ProcessModeEnum processMode) : base(name, processMode) {
+
+    public ProcessHandler(Action<double>? @delegate, Node.ProcessModeEnum processMode, string? name = null) : base(
+        processMode, name) {
         _delegate = @delegate;
     }
 

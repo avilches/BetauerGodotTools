@@ -2,18 +2,18 @@ using Godot;
 
 namespace Betauer.Nodes;
 
-public class DrawNodeEventHandler : IDrawHandler {
+public class InputEventNodeWrapper : IInputEventHandler {
     public Node Node { get; }
     public string Name { get; }
-    private readonly IDrawHandler _delegate;
+    private readonly IInputEventHandler _delegate;
     
-    public DrawNodeEventHandler(Node node, IDrawHandler @delegate, string? name = null) {
+    public InputEventNodeWrapper(Node node, IInputEventHandler @delegate, string? name = null) {
         Node = node;
         Name = name ?? @delegate.Name ?? node.Name;
         _delegate = @delegate;
     }
 
-    public void Handle(CanvasItem canvas) => _delegate.Handle(canvas);
+    public void Handle(InputEvent e) => _delegate.Handle(e);
 
     public void Disable() => _delegate.Disable();
     public void Enable() => _delegate.Enable();

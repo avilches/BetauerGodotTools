@@ -5,56 +5,54 @@ using Godot;
 namespace Betauer.Nodes;
 
 public static class DefaultNodeHandlerExtensions {
-    public static IEventHandler OnProcess(this Node node, Action<double> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
-        var nodeEvent = new ProcessNodeEventHandler(node, new ProcessEventHandler(node.Name, action, pauseMode));
+    public static ProcessNodeWrapper OnProcess(this Node node, Action<double> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
+        var nodeEvent = new ProcessNodeWrapper(node, new ProcessHandler(action, pauseMode, node.Name));
         DefaultNodeHandler.Instance.OnProcess(nodeEvent);
         return nodeEvent;
     }
 
-    public static IEventHandler OnEveryProcess(this Node node, float every, Action action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
-        var nodeEvent = new ProcessNodeEventHandler(node, new ProcessEventHandler(node.Name, _ => action(), pauseMode));
-        DefaultNodeHandler.Instance.OnEveryProcess(every, nodeEvent);
-        return nodeEvent;
-    }
-
-    public static IEventHandler OnEveryPhysicsProcess(this Node node, float every, Action action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
-        var nodeEvent = new ProcessNodeEventHandler(node, new ProcessEventHandler(node.Name, _ => action(), pauseMode));
-        DefaultNodeHandler.Instance.OnEveryPhysicsProcess(every, nodeEvent);
-        return nodeEvent;
-    }
-
-    public static IEventHandler OnPhysicsProcess(this Node node, Action<double> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
-        var nodeEvent = new ProcessNodeEventHandler(node, new ProcessEventHandler(node.Name, action, pauseMode));
+    public static ProcessNodeWrapper OnPhysicsProcess(this Node node, Action<double> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
+        var nodeEvent = new ProcessNodeWrapper(node, new ProcessHandler(action, pauseMode, node.Name));
         DefaultNodeHandler.Instance.OnPhysicsProcess(nodeEvent);
         return nodeEvent;
     }
 
-    public static IEventHandler OnInput(this Node node, Action<InputEvent> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
-        var nodeEvent = new InputEventNodeEventHandler(node, new InputEventEventHandler(node.Name, action, pauseMode));
+    public static ProcessEveryWrapper OnEveryProcess(this Node node, float every, Action action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
+        var nodeEvent = new ProcessNodeWrapper(node, new ProcessHandler(_ => action(), pauseMode, node.Name));
+        return DefaultNodeHandler.Instance.OnEveryProcess(every, nodeEvent);
+    }
+
+    public static ProcessEveryWrapper OnEveryPhysicsProcess(this Node node, float every, Action action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
+        var nodeEvent = new ProcessNodeWrapper(node, new ProcessHandler(_ => action(), pauseMode, node.Name));
+        return DefaultNodeHandler.Instance.OnEveryPhysicsProcess(every, nodeEvent);
+    }
+
+    public static InputEventNodeWrapper OnInput(this Node node, Action<InputEvent> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
+        var nodeEvent = new InputEventNodeWrapper(node, new InputEventHandler(action, pauseMode, node.Name));
         DefaultNodeHandler.Instance.OnInput(nodeEvent);
         return nodeEvent;
     }
 
-    public static IEventHandler OnUnhandledInput(this Node node, Action<InputEvent> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
-        var nodeEvent = new InputEventNodeEventHandler(node, new InputEventEventHandler(node.Name, action, pauseMode));
+    public static InputEventNodeWrapper OnUnhandledInput(this Node node, Action<InputEvent> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
+        var nodeEvent = new InputEventNodeWrapper(node, new InputEventHandler(action, pauseMode, node.Name));
         DefaultNodeHandler.Instance.OnUnhandledInput(nodeEvent);
         return nodeEvent;
     }
 
-    public static IEventHandler OnShortcutInput(this Node node, Action<InputEvent> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
-        var nodeEvent = new InputEventNodeEventHandler(node, new InputEventEventHandler(node.Name, action, pauseMode));
+    public static InputEventNodeWrapper OnShortcutInput(this Node node, Action<InputEvent> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
+        var nodeEvent = new InputEventNodeWrapper(node, new InputEventHandler(action, pauseMode, node.Name));
         DefaultNodeHandler.Instance.OnShortcutInput(nodeEvent);
         return nodeEvent;
     }
 
-    public static IEventHandler OnUnhandledKeyInput(this Node node, Action<InputEvent> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
-        var nodeEvent = new InputEventNodeEventHandler(node, new InputEventEventHandler(node.Name, action, pauseMode));
+    public static InputEventNodeWrapper OnUnhandledKeyInput(this Node node, Action<InputEvent> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
+        var nodeEvent = new InputEventNodeWrapper(node, new InputEventHandler(action, pauseMode, node.Name));
         DefaultNodeHandler.Instance.OnUnhandledKeyInput(nodeEvent);
         return nodeEvent;
     }
 
-    public static IEventHandler OnDraw(this Node node, Action<CanvasItem> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
-        var nodeEvent = new DrawNodeEventHandler(node, new DrawEventHandler(node.Name, action, pauseMode));
+    public static DrawNodeWrapper OnDraw(this Node node, Action<CanvasItem> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
+        var nodeEvent = new DrawNodeWrapper(node, new DrawHandler(action, pauseMode, node.Name));
         DefaultNodeHandler.Instance.OnDraw(nodeEvent);
         return nodeEvent;
     }
@@ -66,44 +64,44 @@ public static class DefaultNodeHandlerExtensions {
     
 public static class NodeHandlerExtensions {
 
-    public static IEventHandler OnProcess(this NodeHandler nodeHandler, Action<double> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
-        var nodeEvent = new ProcessEventHandler(null, action, pauseMode);
+    public static ProcessHandler OnProcess(this NodeHandler nodeHandler, Action<double> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
+        var nodeEvent = new ProcessHandler(action, pauseMode);
         nodeHandler.OnProcess(nodeEvent);
         return nodeEvent;
     }
 
-    public static IEventHandler OnPhysicsProcess(this NodeHandler nodeHandler, Action<double> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
-        var nodeEvent = new ProcessEventHandler(null, action, pauseMode);
+    public static ProcessHandler OnPhysicsProcess(this NodeHandler nodeHandler, Action<double> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
+        var nodeEvent = new ProcessHandler(action, pauseMode);
         nodeHandler.OnPhysicsProcess(nodeEvent);
         return nodeEvent;
     }
 
-    public static IEventHandler OnInput(this NodeHandler nodeHandler, Action<InputEvent> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
-        var nodeEvent = new InputEventEventHandler(null, action, pauseMode);
+    public static InputEventHandler OnInput(this NodeHandler nodeHandler, Action<InputEvent> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
+        var nodeEvent = new InputEventHandler(action, pauseMode);
         nodeHandler.OnInput(nodeEvent);
         return nodeEvent;
     }
 
-    public static IEventHandler OnUnhandledInput(this NodeHandler nodeHandler, Action<InputEvent> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
-        var nodeEvent = new InputEventEventHandler(null, action, pauseMode);
+    public static InputEventHandler OnUnhandledInput(this NodeHandler nodeHandler, Action<InputEvent> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
+        var nodeEvent = new InputEventHandler(action, pauseMode);
         nodeHandler.OnUnhandledInput(nodeEvent);
         return nodeEvent;
     }
 
-    public static IEventHandler OnShortcutInput(this NodeHandler nodeHandler, Action<InputEvent> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
-        var nodeEvent = new InputEventEventHandler(null, action, pauseMode);
+    public static InputEventHandler OnShortcutInput(this NodeHandler nodeHandler, Action<InputEvent> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
+        var nodeEvent = new InputEventHandler(action, pauseMode);
         nodeHandler.OnShortcutInput(nodeEvent);
         return nodeEvent;
     }
 
-    public static IEventHandler OnUnhandledKeyInput(this NodeHandler nodeHandler, Action<InputEvent> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
-        var nodeEvent = new InputEventEventHandler(null, action, pauseMode);
+    public static InputEventHandler OnUnhandledKeyInput(this NodeHandler nodeHandler, Action<InputEvent> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
+        var nodeEvent = new InputEventHandler(action, pauseMode);
         nodeHandler.OnUnhandledKeyInput(nodeEvent);
         return nodeEvent;
     }
 
-    public static IEventHandler OnDraw(this NodeHandler nodeHandler, Action<CanvasItem> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
-        var nodeEvent = new DrawEventHandler(null, action, pauseMode);
+    public static DrawHandler OnDraw(this NodeHandler nodeHandler, Action<CanvasItem> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
+        var nodeEvent = new DrawHandler(action, pauseMode);
         nodeHandler.OnDraw(nodeEvent);
         return nodeEvent;
     }
@@ -116,42 +114,42 @@ public static class NodeHandlerExtensions {
         }, Node.ProcessModeEnum.Always);
     }
 
-    public static IEventHandler OnEveryProcess(this NodeHandler nodeHandler, float every, IProcessHandler processHandler, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
-        var nodeEvent = new ProcessEveryEventHandler(every, processHandler);
+    public static ProcessEveryWrapper OnEveryProcess(this NodeHandler nodeHandler, float every, IProcessHandler processHandler, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
+        var nodeEvent = new ProcessEveryWrapper(every, processHandler);
         nodeHandler.OnProcess(nodeEvent);
         return nodeEvent;
     }
 
-    public static IEventHandler OnEveryPhysicsProcess(this NodeHandler nodeHandler, float every, IProcessHandler processHandler, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
-        var nodeEvent = new ProcessEveryEventHandler(every, processHandler);
+    public static ProcessEveryWrapper OnEveryPhysicsProcess(this NodeHandler nodeHandler, float every, IProcessHandler processHandler, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
+        var nodeEvent = new ProcessEveryWrapper(every, processHandler);
         nodeHandler.OnPhysicsProcess(nodeEvent);
         return nodeEvent;
     }
 
     public static Task AwaitInput(this NodeHandler nodeHandler, Func<InputEvent, bool> func, bool setInputAsHandled = true) {
         TaskCompletionSource promise = new();
-        InputEventEventHandler eventHandler = null; 
-        eventHandler = new InputEventEventHandler("AwaitInput", e => {
+        InputEventHandler eventHandler = null; 
+        eventHandler = new InputEventHandler(e => {
             if (func(e)) {
                 if (setInputAsHandled) nodeHandler.GetViewport().SetInputAsHandled();
                 eventHandler.Destroy();
                 promise.TrySetResult();
             }
-        }, Node.ProcessModeEnum.Always);
+        }, Node.ProcessModeEnum.Always, "AwaitInput");
         nodeHandler.OnInput(eventHandler);
         return promise.Task;
     }
     
     public static Task AwaitUnhandledInput(this NodeHandler nodeHandler, Func<InputEvent, bool> func, bool setInputAsHandled = true) {
         TaskCompletionSource promise = new();
-        InputEventEventHandler eventHandler = null; 
-        eventHandler = new InputEventEventHandler("AwaitUnhandledInput", e => {
+        InputEventHandler eventHandler = null; 
+        eventHandler = new InputEventHandler(e => {
             if (func(e)) {
                 if (setInputAsHandled) nodeHandler.GetViewport().SetInputAsHandled();
                 eventHandler.Destroy();
                 promise.TrySetResult();
             }
-        }, Node.ProcessModeEnum.Always);
+        }, Node.ProcessModeEnum.Always, "AwaitUnhandledInput");
         nodeHandler.OnUnhandledInput(eventHandler);
         return promise.Task;
     }

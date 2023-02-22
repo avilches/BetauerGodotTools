@@ -1,11 +1,11 @@
 namespace Betauer.Nodes;
 
-public class ProcessEveryEventHandler : IProcessHandler {
+public class ProcessEveryWrapper : IProcessHandler {
     private readonly IProcessHandler _delegate;
     public string? Name { get; }
     private float Every { get; set; }
     private double Accumulated { get; set; } = 0;
-    public ProcessEveryEventHandler(float every, IProcessHandler @delegate, string? name = null) {
+    public ProcessEveryWrapper(float every, IProcessHandler @delegate, string? name = null) {
         Every = every;
         Name = name ?? @delegate.Name;
         _delegate = @delegate;

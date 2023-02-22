@@ -3,10 +3,10 @@ using Godot;
 
 namespace Betauer.Nodes;
 
-public class DrawEventHandler : BaseEventHandler, IDrawHandler {
+public class DrawHandler : BaseHandler, IDrawHandler {
     private readonly Action<CanvasItem> _delegate;
 
-    public DrawEventHandler(string? name, Action<CanvasItem> @delegate, Node.ProcessModeEnum processMode) : base(name, processMode) {
+    public DrawHandler(Action<CanvasItem> @delegate, Node.ProcessModeEnum processMode, string? name = null) : base(processMode, name) {
         _delegate = @delegate;
     }
 

@@ -2,18 +2,18 @@ using Godot;
 
 namespace Betauer.Nodes;
 
-public class ProcessNodeEventHandler : IProcessHandler {
+public class DrawNodeWrapper : IDrawHandler {
     public Node Node { get; }
     public string Name { get; }
-    private readonly IProcessHandler _delegate;
+    private readonly IDrawHandler _delegate;
     
-    public ProcessNodeEventHandler(Node node, IProcessHandler @delegate, string? name = null) {
+    public DrawNodeWrapper(Node node, IDrawHandler @delegate, string? name = null) {
         Node = node;
         Name = name ?? @delegate.Name ?? node.Name;
         _delegate = @delegate;
     }
 
-    public void Handle(double delta) => _delegate.Handle(delta);
+    public void Handle(CanvasItem canvas) => _delegate.Handle(canvas);
 
     public void Disable() => _delegate.Disable();
     public void Enable() => _delegate.Enable();

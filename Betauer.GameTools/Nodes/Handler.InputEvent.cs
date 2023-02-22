@@ -3,9 +3,10 @@ using Godot;
 
 namespace Betauer.Nodes;
 
-public class InputEventEventHandler : BaseEventHandler, IInputEventHandler {
+public class InputEventHandler : BaseHandler, IInputEventHandler {
     private readonly Action<InputEvent> _delegate;
-    public InputEventEventHandler(string? name, Action<InputEvent> @delegate, Node.ProcessModeEnum processMode) : base(name, processMode) {
+
+    public InputEventHandler(Action<InputEvent> @delegate, Node.ProcessModeEnum processMode, string? name = null) : base(processMode, name) {
         _delegate = @delegate;
     }
 
