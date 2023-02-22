@@ -23,15 +23,15 @@ public abstract class WeaponConfig {
     
     public class Range : WeaponConfig {
         public readonly Texture2D WeaponAnimation;
-        public readonly Texture2D? Bullet;
+        public readonly Texture2D? Projectile;
         public float Speed = 2000;
         public float MaxDistance = 800;
         public float TrailLong = 200;
         public float DelayBetweenShots = 0f;
         
-        public Range(Texture2D weaponAnimation, Texture2D? bullet, float damage) : base(damage) {
+        public Range(Texture2D weaponAnimation, Texture2D? projectile, float damage) : base(damage) {
             WeaponAnimation = weaponAnimation;
-            Bullet = bullet;
+            Projectile = projectile;
         }         
     }         
 }

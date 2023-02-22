@@ -2,10 +2,8 @@ using System;
 using System.Collections.Generic;
 using Betauer.Core.Nodes;
 using Betauer.Core.Pool;
-using Betauer.DI;
 using Betauer.Nodes;
 using Godot;
-using Veronenger.Managers;
 
 namespace Veronenger.Items;
 
@@ -22,9 +20,10 @@ public partial class ProjectileTrail : Line2D, IBusyElement {
 	public Sprite2D Sprite2D;
 
 	private LazyRaycast2D _lazyRaycast2D;
+	private Vector2 _collisionPosition = Vector2.Zero;
+	private bool _queueEnd = false;
 
 	public bool IsBusy() => _busy;
-	private readonly List<RaycastCollision> _lastCollision = new();
 
 	public ProjectileTrail Configure(Node parent) {
 		Visible = false;
@@ -42,7 +41,6 @@ public partial class ProjectileTrail : Line2D, IBusyElement {
 		return this;
 	}
 
-
 	public void ShootFrom(WeaponRangeItem item, Vector2 from, Vector2 direction, Action<PhysicsRayQueryParameters2D> raycastConfig, Func<RaycastCollision, bool> onCollide) {
 		SetPhysicsProcess(true);
 		_busy = true;
@@ -52,60 +50,80 @@ public partial class ProjectileTrail : Line2D, IBusyElement {
 		_maxDistanceSquared = Mathf.Pow(item.Config.MaxDistance, 2);
 		_trailLongSquared = Mathf.Pow(item.Config.TrailLong, 2);
 		_onCollide = onCollide;
+		_queueEnd = false;
 		
 		Sprite2D.Position = from;
-		Sprite2D.Texture = item.Config.Bullet;
-		Sprite2D.Visible = item.Config.Bullet != null;
+		Sprite2D.Texture = item.Config.Projectile;
+		Sprite2D.Visible = item.Config.Projectile != null;
 		
 		SetPointPosition(0, from);
 		SetPointPosition(1, from);
 		SetPointPosition(2, from);
 		Visible = true;
-		_lastCollision.Clear();
 		this.OnDraw(canvas => {
-			_lastCollision.ForEach(l => {
-				canvas.DrawCircle(l.Position, 3, Colors.Red);
-			});
-		});
+			canvas.DrawCircle(_collisionPosition, 3, Colors.Red);
+		});                   
 		_lazyRaycast2D.Config(raycastConfig);
 	}
 
 	public override void _PhysicsProcess(double delta) {
-		var currentBulletPosition = Sprite2D.Position;
-		var newBulletPosition = currentBulletPosition + _velocity * (float)delta;
-		
-		if (newBulletPosition.DistanceSquaredTo(_from) >= _maxDistanceSquared) {
-			GD.Print("Too far, last position: "+currentBulletPosition.DistanceTo(_from)+$" Collisions: "+_lastCollision.Count);
-			_lastCollision.Clear();
+		if (_queueEnd) {
 			EndShoot();
-			return;
-		}
-		
-		var rayOrigin = newBulletPosition - _direction * RayLength;
-		var collision = _lazyRaycast2D.From(rayOrigin).To(newBulletPosition).Cast().Collision;
-		if (collision.IsColliding) {
-			_lastCollision.Add(collision);
-			if (_onCollide(collision)) {
+		} else {
+			var currentPosition = Sprite2D.Position;
+			if (IsTooFar(currentPosition)) {
 				EndShoot();
 				return;
 			}
+			var newPosition = currentPosition + _velocity * (float)delta;
+			if (TryGetCollision(newPosition, out var collisionPosition)) {
+				MoveProjectile(collisionPosition, delta);
+				_collisionPosition = collisionPosition; 
+				// We need one frame more to update the bullet in the collision position
+				_queueEnd = true;
+			} else {
+				MoveProjectile(newPosition, delta);
+			}
 		}
-		
+	}
+
+	private void MoveProjectile(Vector2 newPosition, double delta) {
+
 		var endTrailPos = GetPointPosition(2);
-		if (newBulletPosition.DistanceSquaredTo(endTrailPos) > _trailLongSquared) {
+		if (newPosition.DistanceSquaredTo(_from) > _trailLongSquared) {
 			endTrailPos += _velocity * (float)delta;
 		}
-		Sprite2D.Position = newBulletPosition;
-		SetPointPosition(0, newBulletPosition);
-		SetPointPosition(1, newBulletPosition.Lerp(endTrailPos, 0.5f));
+		var middlePosition = newPosition.Lerp(endTrailPos, 0.5f);
+
+		Sprite2D.Position = newPosition;
+		SetPointPosition(0, newPosition);
+		SetPointPosition(1, middlePosition);
 		SetPointPosition(2, endTrailPos);
 
-		this.QueueDraw(canvas => {
-			canvas.DrawLine(newBulletPosition, newBulletPosition.Lerp(endTrailPos, 0.5f), Colors.Green, 2f);
-			canvas.DrawLine(newBulletPosition.Lerp(endTrailPos, 0.5f), endTrailPos, Colors.Blue, 2f);
-			canvas.DrawLine(rayOrigin, newBulletPosition, Colors.Red, 1f);
-		});
+		// this.QueueDraw(canvas => {
+			// canvas.DrawLine(newPosition, middlePosition, Colors.Green, 2f);
+			// canvas.DrawLine(middlePosition, endTrailPos, Colors.Blue, 2f);
+		// });
+	}
 
+	private bool IsTooFar(Vector2 currentPosition) {
+		if (currentPosition.DistanceSquaredTo(_from) >= _maxDistanceSquared) {
+			GD.Print("Too far, last position: " + currentPosition.DistanceTo(_from));
+			return true;
+		}
+		return false;
+	}
+
+
+	private bool TryGetCollision(Vector2 currentPosition, out Vector2 collisionPosition) {
+		var rayOrigin = currentPosition - _direction * RayLength;
+		var collision = _lazyRaycast2D.From(rayOrigin).To(currentPosition).Cast().Collision;
+		if (collision.IsColliding && _onCollide(collision)) {
+			collisionPosition = collision.Position;
+			return true;
+		}
+		collisionPosition = Vector2.Zero;
+		return false;
 	}
 
 	public void EndShoot() {
