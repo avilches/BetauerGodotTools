@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace Betauer.Core;
 
@@ -106,45 +107,54 @@ public static class RandomExtensions {
     /// Returns a uniformly random integer representing one of the values 
     /// in the enum.
     /// </summary>
-    public static int NextEnum<T>(this Random random) where T : Enum {
+    public static int PickEnum<T>(this Random random) where T : Enum {
         var values = (int[])Enum.GetValues(typeof(T));
         var randomIndex = random.Next(0, values.Length);
         return values[randomIndex];
     }
 
     /// <summary>
-    /// Returns a uniformly random element from the list
-    /// in the enum.
-    /// </summary>
-    public static T NextElement<T>(this Random random, IList<T> values) {
-        var randomIndex = random.Next(0, values.Count);
-        return values[randomIndex];
-    }
-
-    /// <summary>
-    /// Returns a uniformly random element from the list
-    /// in the enum.
-    /// </summary>
-    public static T NextElement<T>(this Random random, HashSet<T> values) {
-        var randomIndex = random.Next(0, values.Count);
-        return values.ElementAt(randomIndex);
-    }
-
-    /// <summary>
     /// Returns a uniformly random element from the array 
     /// in the enum.
     /// </summary>
-    public static T NextElement<T>(this Random random, T[] values) {
+    public static T PickElement<T>(this Random random, T[] values) {
         var randomIndex = random.Next(0, values.Length);
         return values[randomIndex];
     }
 
     /// <summary>
-    /// Returns a random position of the array, taking into account the value is the weight
-    /// so int[] { 1, 1, 2 } has 0=25%, 1=25% and 2=50%
+    /// Returns a uniformly random element from the list
     /// in the enum.
     /// </summary>
-    public static int NextWeight(this Random random, int[] values) {
+    public static T PickElement<T>(this Random random, IList<T> values) {
+        var randomIndex = random.Next(0, values.Count);
+        return values[randomIndex];
+    }
+
+    /// <summary>
+    /// Returns a random element of the array, taking into account each value implements float IWeight.Weight property
+    /// in the enum.
+    /// </summary>
+    public static T PickWeightElement<T>(this Random random, IWeight[] values) where T : IWeight {
+        var randomIndex = PickPosition(random, values);
+        return (T)values[randomIndex];
+    }
+
+    /// <summary>
+    /// Returns a random element of the List, taking into account each value implements float IWeight.Weight property
+    /// in the enum.
+    /// </summary>
+    public static T PickWeightElement<T>(this Random random, List<IWeight> values) where T : IWeight {
+        var randomIndex = PickPosition(random, values);
+        return (T)values[randomIndex];
+    }
+
+    /// <summary>
+    /// Returns a random position of the array, taking into account each value is a weight
+    /// so int[] { 1, 1, 2 } the chance of every position is 0=25%, 1=25% and 2=50%
+    /// in the enum.
+    /// </summary>
+    public static int PickPosition(this Random random, int[] values) {
         var total = 0D;
         var span = values.AsSpan();
         for (var j = 0; j < span.Length; j++) total += span[j];
@@ -160,11 +170,11 @@ public static class RandomExtensions {
     }
 
     /// <summary>
-    /// Returns a random position of the array, taking into account the value is the weight
-    /// so long[] { 1, 1, 2 } has 0=25%, 1=25% and 2=50%
+    /// Returns a random position of the array, taking into account each value is a weight
+    /// so long[] { 1, 1, 2 } the chance of every position is 0=25%, 1=25% and 2=50%
     /// in the enum.
     /// </summary>
-    public static int NextWeight(this Random random, long[] values) {
+    public static int PickPosition(this Random random, long[] values) {
         var total = 0D;
         var sum = 0D;
         var position = 0;
@@ -180,11 +190,11 @@ public static class RandomExtensions {
     }
 
     /// <summary>
-    /// Returns a random position of the array, taking into account the value is the weight
-    /// so double[] { 0.25, 0.25, 0.5 } has 0=25%, 1=25% and 2=50%
+    /// Returns a random position of the array, taking into account each value is a weight
+    /// so double[] { 0.25, 0.25, 0.5 } the chance of every position is 0=25%, 1=25% and 2=50%
     /// in the enum.
     /// </summary>
-    public static int NextWeight(this Random random, float[] values) {
+    public static int PickPosition(this Random random, float[] values) {
         var total = 0D;
         var sum = 0D;
         var position = 0;
@@ -200,11 +210,11 @@ public static class RandomExtensions {
     }
 
     /// <summary>
-    /// Returns a random position of the array, taking into account the value is the weight
-    /// so double[] { 0.25, 0.25, 0.5 } has 0=25%, 1=25% and 2=50%
+    /// Returns a random position of the array, taking into account each value is a weight
+    /// so double[] { 0.25, 0.25, 0.5 } the chance of every position is 0=25%, 1=25% and 2=50%
     /// in the enum.
     /// </summary>
-    public static int NextWeight(this Random random, double[] values) {
+    public static int PickPosition(this Random random, double[] values) {
         var total = 0D;
         var sum = 0D;
         var position = 0;
@@ -220,15 +230,39 @@ public static class RandomExtensions {
     }
 
     /// <summary>
-    /// Returns a random element of the array, taking into account the value is the weight
-    /// so double[] { 0.25, 0.25, 0.5 } has 0=25%, 1=25% and 2=50%
+    /// Returns a random element of the array, taking into account each value is a weight
+    /// <code>
+    /// public class X : IWeight {
+    ///     public float Weight { get; }
+    /// 
+    ///     public X(float weight) {
+    ///         Weight = weight;
+    ///     }
+    /// }
+    /// </code>
+    /// so X[] { new X(0.25), new X(0.25), new X(0.5)} the chance of every position is 0=25%, 1=25% and 2=50%
     /// in the enum.
     /// </summary>
-    public static int NextWeight(this Random random, IWeight[] values) {
+    public static int PickPosition(this Random random, IWeight[] values) {
         var total = 0D;
         var sum = 0D;
         var position = 0;
         var span = values.AsSpan();
+        for (var j = 0; j < span.Length; j++) total += span[j].Weight;
+        var x = random.NextDouble() * total;
+        while (position < span.Length) {
+            sum += span[position].Weight;
+            if (sum > x) break;
+            position++;
+        }
+        return position;
+    }
+
+    public static int PickPosition(this Random random, List<IWeight> values) {
+        var total = 0D;
+        var sum = 0D;
+        var position = 0;
+        var span = CollectionsMarshal.AsSpan(values);
         for (var j = 0; j < span.Length; j++) total += span[j].Weight;
         var x = random.NextDouble() * total;
         while (position < span.Length) {
@@ -326,6 +360,7 @@ file class RandomTest {
     }
     public static void Main() {
         var x = new Random();
+        x.PickElement(new IWeight[] { });
         Console.WriteLine(Distribution.Histogram(-5d, 6d, () => x.Range(-5L, 5L)));
         // Console.WriteLine(Distribution.Histogram(-2.5d, 2.5d, () => Normal.Sample(0.0, 0.5), 30));
         // Console.WriteLine(Distribution.DiscreteHistogram(() => Poisson.Sample(20)));
@@ -333,7 +368,7 @@ file class RandomTest {
         // Console.WriteLine(Distribution.DiscreteHistogram(() => x.NextWeight(new[] { 1, 1, 2, 10 })));
         // Console.WriteLine(Distribution.DiscreteHistogram(() => x.NextWeight(new[] { 1L, 1L, 2L, 10L })));
         // Console.WriteLine(Distribution.DiscreteHistogram(() => x.NextWeight(new[] { 0.1, 0.1, 0.2, 1 })));
-        Console.WriteLine(Distribution.DiscreteHistogram(() => x.NextWeight(new[] { 0.1f, 0.1f, 0.2f, 1f })));
-        Console.WriteLine(Distribution.DiscreteHistogram(() => x.NextEnum<Pepe>()));
+        Console.WriteLine(Distribution.DiscreteHistogram(() => x.PickPosition(new[] { 0.1f, 0.1f, 0.2f, 1f })));
+        Console.WriteLine(Distribution.DiscreteHistogram(() => x.PickEnum<Pepe>()));
     }
 }
