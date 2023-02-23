@@ -5,7 +5,7 @@ public class WeaponMeleeItem : WeaponItem {
     public float DamageFactor = 1f;
     public int EnemiesPerHit = 2;
 
-    public override float Damage => Config.Damage * DamageFactor;
+    public override float Damage => Config.DamageBase * DamageFactor;
 
     internal WeaponMeleeItem(int id, string name, string alias, WeaponConfig.Melee config) : base(id, name, alias) {
         Config = config;

@@ -58,6 +58,7 @@ public class CharacterManager {
         rayCast2D.CollisionMask = 0;
         rayCast2D.CollideWithAreas = true;
         rayCast2D.CollideWithBodies = true;
+        rayCast2D.HitFromInside = true;
         rayCast2D.DetectLayer(LayerEnemyHurtArea);
         rayCast2D.DetectLayer(LayerSolidBody);
     }

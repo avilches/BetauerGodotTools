@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Betauer.Core;
 using Betauer.Core.Nodes;
 using Betauer.Core.Pool;
 using Betauer.Nodes;
@@ -8,6 +9,7 @@ using Godot;
 namespace Veronenger.Items;
 
 public partial class ProjectileTrail : Line2D, IBusyElement {
+	private static readonly Random Random = new Pcg.PcgRandom();
 	private static float RayLength = 40;
 
 	private Vector2 _from;
@@ -43,12 +45,13 @@ public partial class ProjectileTrail : Line2D, IBusyElement {
 
 	public void ShootFrom(WeaponRangeItem item, Vector2 from, Vector2 direction, Action<PhysicsRayQueryParameters2D> raycastConfig, Func<RaycastCollision, bool> onCollide) {
 		SetPhysicsProcess(true);
+		direction = direction.Rotated(item.NewRandomDispersion());
 		_busy = true;
 		_from = from;
 		_velocity = direction * item.Config.Speed;
 		_direction = direction;
 		_maxDistanceSquared = Mathf.Pow(item.Config.MaxDistance, 2);
-		_trailLongSquared = Mathf.Pow(item.Config.TrailLong, 2);
+		_trailLongSquared = Mathf.Pow(item.Config.TrailLong * Random.Range(0.6f, 1.4f), 2);
 		_onCollide = onCollide;
 		_queueEnd = false;
 		
@@ -95,7 +98,7 @@ public partial class ProjectileTrail : Line2D, IBusyElement {
 		}
 		var middlePosition = newPosition.Lerp(endTrailPos, 0.5f);
 
-		Sprite2D.Position = newPosition;
+		Sprite2D.Position = newPosition;    
 		SetPointPosition(0, newPosition);
 		SetPointPosition(1, middlePosition);
 		SetPointPosition(2, endTrailPos);
@@ -116,8 +119,8 @@ public partial class ProjectileTrail : Line2D, IBusyElement {
 
 
 	private bool TryGetCollision(Vector2 currentPosition, out Vector2 collisionPosition) {
-		var rayOrigin = currentPosition - _direction * RayLength;
-		var collision = _lazyRaycast2D.From(rayOrigin).To(currentPosition).Cast().Collision;
+		// var rayOrigin = currentPosition - _direction * RayLength;
+		var collision = _lazyRaycast2D.From(_from).To(currentPosition).Cast().Collision;
 		if (collision.IsColliding && _onCollide(collision)) {
 			collisionPosition = collision.Position;
 			return true;

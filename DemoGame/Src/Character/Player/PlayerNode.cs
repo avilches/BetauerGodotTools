@@ -351,15 +351,22 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 
 		void Shoot() {
 			AnimationShoot.PlayFrom(0);
-			var bulletPosition = new Vector2(Inventory.WeaponRangeEquipped.BulletStartPosition.X * PlatformBody.FacingRight, Inventory.WeaponRangeEquipped.BulletStartPosition.Y);
+			var bulletPosition = Inventory.WeaponRangeEquipped.Config.ProjectileStartPosition * new Vector2(PlatformBody.FacingRight, 1);
 			var bulletDirection = new Vector2(PlatformBody.FacingRight, 0);
+			var hits = 0;
 			Game.NewBullet().ShootFrom(Inventory.WeaponRangeEquipped, CharacterBody2D.ToGlobal(bulletPosition), bulletDirection, 
-				(ray) => CharacterManager.PlayerConfigureBullet(ray),
-				(collision) => {
+				ray => CharacterManager.PlayerConfigureBullet(ray),
+				collision => {
+					if (!collision.Collider.HasWorldId()) {
+						// Something solid was hit, stop the bullet
+						return true;
+					}
 					var enemyItem = World.GetOrNull<EnemyItem>(collision.Collider.GetWorldId());
-					if (enemyItem != null) enemyItem.ZombieNode.QueueFree();
-					else Game.InstantiateZombie();
-					return false;
+					if (enemyItem != null) {
+						hits++;
+						enemyItem.ZombieNode.QueueFree();
+					}
+					return hits >= Inventory.WeaponRangeEquipped.EnemiesPerHit; // true means stop the bullet, false means "keep killing with the same bullet"
 				}
 			);
 		}

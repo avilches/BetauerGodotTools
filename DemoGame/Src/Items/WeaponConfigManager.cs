@@ -10,7 +10,6 @@ public class WeaponConfigManager {
 
     public WeaponConfig.Melee Knife { get; private set; }
     public WeaponConfig.Melee Metalbar { get; private set; }
-    public WeaponConfig.Melee None { get; private set; }
 
     public WeaponConfig.Range Gun { get; private set; }
 
@@ -18,8 +17,13 @@ public class WeaponConfigManager {
     private void CreateWeapons() {
         Knife = new WeaponConfig.Melee(LeonKnifeAnimationSprite, "Short", 6);
         Metalbar = new WeaponConfig.Melee(LeonMetalbarAnimationSprite, "Long", 10);
-        Gun = new WeaponConfig.Range(null, null, 30);
-        None = new WeaponConfig.Melee(null, null, 0);
+
+        Gun = new WeaponConfig.Range(null, null, new Vector2(20f, -33.5f), 30) {
+            Speed = 2000,
+            MaxDistance = 800,
+            TrailLong = 200,
+            DelayBetweenShots = 0f,
+        };
     } 
 }
 
