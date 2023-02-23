@@ -19,5 +19,5 @@ public class InputEventNodeWrapper : IInputEventHandler {
     public void Enable() => _delegate.Enable();
     public void Destroy() => _delegate.Destroy();
     public bool IsEnabled(bool isTreePaused) => _delegate.IsEnabled(isTreePaused) && Node.IsInsideTree();
-    public bool IsDestroyed => _delegate.IsDestroyed && !GodotObject.IsInstanceValid(Node);
+    public bool IsDestroyed => _delegate.IsDestroyed || !GodotObject.IsInstanceValid(Node);
 }
