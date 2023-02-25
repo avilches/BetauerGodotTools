@@ -250,6 +250,9 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		if (playerAttackEvent.Enemy.Id != _enemyItem.Id) return;
 		if (playerAttackEvent.Weapon is WeaponMeleeItem) {
 			Status.UnderMeleeAttack = true;
+			Kickback(30, 80, playerAttackEvent.Weapon.Damage * 15);
+		} else if (playerAttackEvent.Weapon is WeaponRangeItem) {
+			Kickback(0, 25, playerAttackEvent.Weapon.Damage * 10);
 		}
 		Status.UpdateHealth(-playerAttackEvent.Weapon.Damage);
 		UpdateHealthBar();
@@ -376,9 +379,9 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 			.Text("Wall", () => PlatformBody.GetWallCollisionInfo()).EndMonitor();
 	}
 
-	private void Kickback() {
-		var angle = Random.Range(35, 80);
-		var energy = Random.Range(90, 300);
+	private void Kickback(int startAngle, int endAngle, float energy) {
+		var angle = Random.Range(startAngle, endAngle);
+		energy = Random.Range(Math.Max(0, energy-10), energy+10);
 		var dir = Vector2.Right.Rotated(Mathf.DegToRad(angle)) * energy;
 		PlatformBody.MotionX = IsToTheRightOfPlayer() ? dir.X : -dir.X;
 		PlatformBody.MotionY = -dir.Y;
@@ -445,7 +448,6 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		Tween? redFlash = null;
 		State(ZombieState.Hurt)
 			.Enter(() => {
-				//Kickback();
 				AnimationHurt.Play();
 				redFlash?.Kill();
 				redFlash = RedFlash.Play(_mainSprite, 0); 
