@@ -30,11 +30,13 @@ internal class FakeStateHandler : IHandler {
 
     protected void SetPressed(float strength) {
         JustPressed = !Pressed;
+        JustReleased = false;
         Pressed = true;
         Strength = strength;
     }
 
     protected void SetReleased() {
+        JustPressed = false;
         JustReleased = Pressed;
         Pressed = false;
         Strength = 0;
