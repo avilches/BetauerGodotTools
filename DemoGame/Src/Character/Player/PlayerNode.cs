@@ -150,7 +150,10 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	private void LoadState() {
 		Inventory.Pick(World.Get<WeaponMeleeItem>("K1"));
 		Inventory.Pick(World.Get<WeaponMeleeItem>("M1"));
-		Inventory.Pick(World.Get<WeaponRangeItem>("G1"));
+		Inventory.Pick(World.Get<WeaponRangeItem>("SG"));
+		Inventory.Pick(World.Get<WeaponRangeItem>("G"));
+		Inventory.Pick(World.Get<WeaponRangeItem>("SG-"));
+		Inventory.Pick(World.Get<WeaponRangeItem>("MG"));
 		Inventory.Equip(1);
 	}
 
@@ -279,7 +282,8 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				var enemy = World.GetOrNull<EnemyItem>(collision.Collider.GetWorldId());
 				if (enemy != null && enemy.ZombieNode.CanBeAttacked(weapon)) {
 					hits++;
-					EventBus.Publish(new PlayerAttackEvent(this, enemy, weapon));
+					enemy.ZombieNode.QueueFree();
+					// EventBus.Publish(new PlayerAttackEvent(this, enemy, weapon));
 				}
 				return hits < weapon.EnemiesPerHit ? ProjectileTrail.Behaviour.Continue : ProjectileTrail.Behaviour.Stop;
 			}
@@ -289,17 +293,16 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	public override void _Input(InputEvent e) {
 		base._Input(e);
 		if (e.IsLeftDoubleClick()) _camera2D.Position = Vector2.Zero;
-		if (e.IsKeyPressed(Key.Q)) {
+		// if (e.IsKeyPressed(Key.Q)) {
 			// _camera2D.Zoom -= new Vector2(0.05f, 0.05f);
-		} else if (e.IsKeyPressed(Key.W)) {
+		// } else if (e.IsKeyPressed(Key.W)) {
 			// _camera2D.Zoom = new Vector2(1, 1);
-		} else if (e.IsKeyPressed(Key.E)) {
+		// } else if (e.IsKeyPressed(Key.E)) {
 			// _camera2D.Zoom += new Vector2(0.05f, 0.05f);
-		}
+		// }
 	}
 
 	public bool CanJump() => !RaycastCanJump.IsColliding(); 
-
 
 	public void ApplyFloorGravity(float factor = 1.0F) {
 		PlatformBody.ApplyGravity(PlayerConfig.FloorGravity * factor, PlayerConfig.MaxFallingSpeed);
@@ -433,7 +436,11 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				if (e.IsKeyPressed(Key.V)) Game.InstantiateZombie();
 			})
 			// .OnInputBatch(AttackAndJumpHandler)
-			.Enter(() => AnimationIdle.Play())
+			.Enter(() => {
+				if (AnimationShoot.IsPlaying()) AnimationIdle.Queue();
+				else AnimationIdle.Play();
+				}
+			})
 			.Execute(() => {
 				ApplyFloorGravity();
 				PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
@@ -525,21 +532,28 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			.If(() => XInput != 0).Set(PlayerState.Running)
 			.Build();
 
+		var firstShot = false;
 		State(PlayerState.RangeAttack)
+			.Enter(() => firstShot = true)
 			.Execute(() => {
 				ApplyFloorGravity();
 				PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
-				if (Attack.IsJustPressed && _stateTimer.Elapsed >= Inventory.WeaponRangeEquipped.Config.DelayBetweenShots) {
+				if (Attack.IsPressed && 
+				    (firstShot ||_stateTimer.Elapsed >= Inventory.WeaponRangeEquipped.DelayBetweenShots) && 
+				    (Inventory.WeaponRangeEquipped.Auto || Attack.IsJustPressed)) {
 					Shoot();
+					_stateTimer.Restart();
+					firstShot = false;
 				}				
 			})
-			.If(() => Attack.IsJustPressed || AnimationShoot.IsPlaying()).Stay()
+			.If(() => Attack.IsJustPressed || (Inventory.WeaponRangeEquipped.Auto && Attack.IsPressed)).Stay()
 			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.Fall)
 			.If(() => XInput == 0).Set(PlayerState.Idle)
 			.If(() => XInput != 0).Set(PlayerState.Running)
 			.Build();
 
 		State(PlayerState.RangeAttackAir)
+			.Enter(() => firstShot = true)
 			.Execute(() => {
 				ApplyFloorGravity();
 				if (!PlatformBody.IsOnFloor()) {
@@ -548,11 +562,15 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				} else {
 					PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
 				}
-				if (Attack.IsJustPressed && _stateTimer.Elapsed >= Inventory.WeaponRangeEquipped.Config.DelayBetweenShots) {
+				if (Attack.IsPressed && 
+				    (firstShot ||_stateTimer.Elapsed >= Inventory.WeaponRangeEquipped.DelayBetweenShots) && 
+				    (Inventory.WeaponRangeEquipped.Auto || Attack.IsJustPressed)) {
+					_stateTimer.Restart();
 					Shoot();
+					firstShot = false;
 				}				
 			})
-			.If(() => _stateTimer.Elapsed < Inventory.WeaponRangeEquipped.Config.DelayBetweenShots).Stay()
+			.If(() => Attack.IsJustPressed || (Inventory.WeaponRangeEquipped.Auto && Attack.IsPressed)).Stay()
 			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.Fall)
 			.If(() => XInput == 0).Set(PlayerState.Idle)
 			.If(() => XInput != 0).Set(PlayerState.Running)

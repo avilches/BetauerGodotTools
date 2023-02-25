@@ -9,7 +9,9 @@ public class WeaponRangeItem : WeaponItem {
 
     public readonly WeaponConfig.Range Config;
     public float DamageFactor = 1f;
-    public int EnemiesPerHit = 2;
+    public int EnemiesPerHit = 1;
+    public float DelayBetweenShots = 0f;
+    public bool Auto = false;
 
     public override float Damage => Config.DamageBase * DamageFactor;
     public float Dispersion = (float)Mathf.DegToRad(0.5);

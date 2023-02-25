@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Betauer.Core;
 using Betauer.Core.Nodes;
 using Betauer.Core.Pool;
+using Betauer.Nodes;
 using Godot;
 using Godot.Collections;
 
@@ -19,6 +20,7 @@ public partial class ProjectileTrail : Line2D, IBusyElement {
 	private Vector2 _direction;
 	private float _maxDistanceSquared;
 	private float _trailLongSquared;
+	private int _raycastLength;
 	private volatile bool _busy = false;
 	private Func<RaycastCollision, Behaviour> _onCollide;
 	public Sprite2D Sprite2D;
@@ -54,9 +56,10 @@ public partial class ProjectileTrail : Line2D, IBusyElement {
 		_velocity = direction * item.Config.Speed;
 		_direction = direction;
 		_maxDistanceSquared = Mathf.Pow(item.Config.MaxDistance, 2);
-		_trailLongSquared = Mathf.Pow(item.Config.TrailLong * Random.Range(0.6f, 1.4f), 2);
+		_trailLongSquared = Mathf.Pow(item.Config.TrailLength * Random.Range(0.6f, 1.4f), 2);
 		_onCollide = onCollide;
 		_queueEnd = false;
+		_raycastLength = item.Config.RaycastLength;
 
 		_exclude.Clear();
 		_lazyRaycast2D.Query.Exclude = new Array<Rid>();
@@ -126,8 +129,13 @@ public partial class ProjectileTrail : Line2D, IBusyElement {
 
 
 	private bool TryGetCollision(Vector2 currentPosition, out Vector2 collisionPosition) {
-		// var rayOrigin = currentPosition - _direction * RayLength;
-		var collision = _lazyRaycast2D.From(_from).To(currentPosition).Cast().Collision;
+		var rayStartPosition = _raycastLength > 0 ? currentPosition - _direction * _raycastLength : _from;
+		var collision = _lazyRaycast2D.From(rayStartPosition).To(currentPosition).Cast().Collision;
+
+		// this.QueueDraw(canvas => {
+			// canvas.DrawLine(rayStartPosition, currentPosition, Colors.Red, 2f);
+		// });
+
 		if (collision.IsColliding) {
 			if (_onCollide(collision) == Behaviour.Stop) {
 				collisionPosition = collision.Position;

@@ -50,7 +50,26 @@ public class Game {
         World.Clear();
         World.CreateMeleeWeapon(WeaponConfigManager.Knife, "Knife", "K1");
         World.CreateMeleeWeapon(WeaponConfigManager.Metalbar, "Metalbar", "M1");
-        World.CreateRangeWeapon(WeaponConfigManager.Gun, "Gun", "G1");
+        
+        var slowGun = World.CreateRangeWeapon(WeaponConfigManager.SlowGun, "Gun", "SG");
+        slowGun.DelayBetweenShots = 0.5f;
+        
+        
+        var gun = World.CreateRangeWeapon(WeaponConfigManager.Gun, "Gun", "G");
+        gun.DelayBetweenShots = 0.2f;
+        gun.EnemiesPerHit = 2;
+        gun.Auto = true;
+        
+        
+        var shotgun = World.CreateRangeWeapon(WeaponConfigManager.Shotgun, "Gun", "SG-");
+        shotgun.DelayBetweenShots = 0.2f;
+        
+        
+        var machinegun = World.CreateRangeWeapon(WeaponConfigManager.MachineGun, "Gun", "MG");
+        machinegun.DelayBetweenShots = 0.1f;
+        machinegun.DelayBetweenShots = 0.1f;
+        machinegun.EnemiesPerHit = 3;
+        machinegun.Auto = true;
         
         GD.PushWarning("World3 creation start");
         _currentGameScene = World3.Get();

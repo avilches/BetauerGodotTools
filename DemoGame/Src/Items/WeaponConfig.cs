@@ -26,10 +26,10 @@ public abstract class WeaponConfig {
         public readonly Texture2D? Projectile;
         public Vector2 ProjectileStartPosition;
 
-        public float Speed = 2000;
-        public float MaxDistance = 800;
-        public float TrailLong = 200;
-        public float DelayBetweenShots = 0f;
+        public int MaxDistance = 800;
+        public int Speed = 2000;
+        public int TrailLength = 200;
+        public int RaycastLength = -1;
         
         public Range(Texture2D weaponAnimation, Texture2D? projectile, Vector2 projectileStartPosition, float damageBase) : base(damageBase) {
             WeaponAnimation = weaponAnimation;
