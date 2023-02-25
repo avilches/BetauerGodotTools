@@ -247,7 +247,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				CheckAttackArea(_attackArea1);
 				CheckAttackArea(_attackArea2);
 			}
-
+			
 			void CheckAttackArea(Area2D attackArea) {
 				if (attackArea.Monitoring && attackArea.HasOverlappingAreas()) {
 					attackArea.GetOverlappingAreas()
@@ -264,32 +264,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		});
 	}
 
-	private void Shoot() {
-		AnimationShoot.PlayFrom(0);
-		var weapon = Inventory.WeaponRangeEquipped;
-		var bulletPosition = weapon.Config.ProjectileStartPosition * new Vector2(PlatformBody.FacingRight, 1);
-		var bulletDirection = new Vector2(PlatformBody.FacingRight, 0);
-		var hits = 0;
-		var bullet = Game.NewBullet();
-		bullet.ShootFrom(weapon, CharacterBody2D.ToGlobal(bulletPosition), bulletDirection, 
-			ray => {
-				CharacterManager.PlayerConfigureBullet(ray);
-			},
-			collision => {
-				if (!collision.Collider.HasWorldId()) {
-					return ProjectileTrail.Behaviour.Stop; // Something solid was hit
-				}
-				var enemy = World.GetOrNull<EnemyItem>(collision.Collider.GetWorldId());
-				if (enemy != null && enemy.ZombieNode.CanBeAttacked(weapon)) {
-					hits++;
-					enemy.ZombieNode.QueueFree();
-					// EventBus.Publish(new PlayerAttackEvent(this, enemy, weapon));
-				}
-				return hits < weapon.EnemiesPerHit ? ProjectileTrail.Behaviour.Continue : ProjectileTrail.Behaviour.Stop;
-			}
-		);
-	}
-
+	
 	public override void _Input(InputEvent e) {
 		base._Input(e);
 		if (e.IsLeftDoubleClick()) _camera2D.Position = Vector2.Zero;
@@ -439,7 +414,6 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			.Enter(() => {
 				if (AnimationShoot.IsPlaying()) AnimationIdle.Queue();
 				else AnimationIdle.Play();
-				}
 			})
 			.Execute(() => {
 				ApplyFloorGravity();
@@ -532,28 +506,50 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			.If(() => XInput != 0).Set(PlayerState.Running)
 			.Build();
 
-		var firstShot = false;
+		var shootTimer = new GodotStopwatch().Start();
+		void Shoot() {
+			shootTimer.Restart();
+			AnimationShoot.PlayFrom(0);
+			var weapon = Inventory.WeaponRangeEquipped;
+			var bulletPosition = weapon.Config.ProjectileStartPosition * new Vector2(PlatformBody.FacingRight, 1);
+			var bulletDirection = new Vector2(PlatformBody.FacingRight, 0);
+			var hits = 0;
+			var bullet = Game.NewBullet();
+			bullet.ShootFrom(weapon, CharacterBody2D.ToGlobal(bulletPosition), bulletDirection, 
+				ray => {
+					CharacterManager.PlayerConfigureBullet(ray);
+				},
+				collision => {
+					if (!collision.Collider.HasWorldId()) {
+						return ProjectileTrail.Behaviour.Stop; // Something solid was hit
+					}
+					var enemy = World.GetOrNull<EnemyItem>(collision.Collider.GetWorldId());
+					if (enemy != null && enemy.ZombieNode.CanBeAttacked(weapon)) {
+						hits++;
+						// enemy.ZombieNode.QueueFree();
+						EventBus.Publish(new PlayerAttackEvent(this, enemy, weapon));
+					}
+					return hits < weapon.EnemiesPerHit ? ProjectileTrail.Behaviour.Continue : ProjectileTrail.Behaviour.Stop;
+				}
+			);
+		}
+
+		bool PlayerCanShoot() => shootTimer.Elapsed >= Inventory.WeaponRangeEquipped.DelayBetweenShots;
+		bool IsPlayerShooting() => Inventory.WeaponRangeEquipped.Auto ? Attack.IsPressed : Attack.IsJustPressed;
+
 		State(PlayerState.RangeAttack)
-			.Enter(() => firstShot = true)
 			.Execute(() => {
 				ApplyFloorGravity();
 				PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
-				if (Attack.IsPressed && 
-				    (firstShot ||_stateTimer.Elapsed >= Inventory.WeaponRangeEquipped.DelayBetweenShots) && 
-				    (Inventory.WeaponRangeEquipped.Auto || Attack.IsJustPressed)) {
-					Shoot();
-					_stateTimer.Restart();
-					firstShot = false;
-				}				
+				if (IsPlayerShooting() && PlayerCanShoot()) Shoot();
 			})
-			.If(() => Attack.IsJustPressed || (Inventory.WeaponRangeEquipped.Auto && Attack.IsPressed)).Stay()
+			.If(IsPlayerShooting).Stay()
 			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.Fall)
 			.If(() => XInput == 0).Set(PlayerState.Idle)
 			.If(() => XInput != 0).Set(PlayerState.Running)
 			.Build();
 
 		State(PlayerState.RangeAttackAir)
-			.Enter(() => firstShot = true)
 			.Execute(() => {
 				ApplyFloorGravity();
 				if (!PlatformBody.IsOnFloor()) {
@@ -562,15 +558,9 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				} else {
 					PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
 				}
-				if (Attack.IsPressed && 
-				    (firstShot ||_stateTimer.Elapsed >= Inventory.WeaponRangeEquipped.DelayBetweenShots) && 
-				    (Inventory.WeaponRangeEquipped.Auto || Attack.IsJustPressed)) {
-					_stateTimer.Restart();
-					Shoot();
-					firstShot = false;
-				}				
+				if (IsPlayerShooting() && PlayerCanShoot()) Shoot();
 			})
-			.If(() => Attack.IsJustPressed || (Inventory.WeaponRangeEquipped.Auto && Attack.IsPressed)).Stay()
+			.If(IsPlayerShooting).Stay()
 			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.Fall)
 			.If(() => XInput == 0).Set(PlayerState.Idle)
 			.If(() => XInput != 0).Set(PlayerState.Running)

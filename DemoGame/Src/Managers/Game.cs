@@ -48,26 +48,21 @@ public class Game {
 
     public async Task StartWorld3() {
         World.Clear();
-        World.CreateMeleeWeapon(WeaponConfigManager.Knife, "Knife", "K1");
-        World.CreateMeleeWeapon(WeaponConfigManager.Metalbar, "Metalbar", "M1");
+        World.CreateMeleeWeapon(WeaponConfigManager.Knife, "Knife", 6f,"K1");
+        World.CreateMeleeWeapon(WeaponConfigManager.Metalbar, "Metalbar", 9f, "M1");
         
-        var slowGun = World.CreateRangeWeapon(WeaponConfigManager.SlowGun, "Gun", "SG");
-        slowGun.DelayBetweenShots = 0.5f;
+        var slowGun = World.CreateRangeWeapon(WeaponConfigManager.SlowGun, "Gun", 6f, "SG");
+        slowGun.DelayBetweenShots = 0.2f;
         
+        var gun = World.CreateRangeWeapon(WeaponConfigManager.Gun, "Gun", 9f, "G");
+        gun.DelayBetweenShots = 0.4f;
         
-        var gun = World.CreateRangeWeapon(WeaponConfigManager.Gun, "Gun", "G");
-        gun.DelayBetweenShots = 0.2f;
-        gun.EnemiesPerHit = 2;
-        gun.Auto = true;
+        var shotgun = World.CreateRangeWeapon(WeaponConfigManager.Shotgun, "Shotgun", 22f,"SG-");
+        shotgun.DelayBetweenShots = 1f;
+        shotgun.EnemiesPerHit = 2;
         
-        
-        var shotgun = World.CreateRangeWeapon(WeaponConfigManager.Shotgun, "Gun", "SG-");
-        shotgun.DelayBetweenShots = 0.2f;
-        
-        
-        var machinegun = World.CreateRangeWeapon(WeaponConfigManager.MachineGun, "Gun", "MG");
-        machinegun.DelayBetweenShots = 0.1f;
-        machinegun.DelayBetweenShots = 0.1f;
+        var machinegun = World.CreateRangeWeapon(WeaponConfigManager.MachineGun, "Maching gun", 4, "MG");
+        machinegun.DelayBetweenShots = 0.05f;
         machinegun.EnemiesPerHit = 3;
         machinegun.Auto = true;
         

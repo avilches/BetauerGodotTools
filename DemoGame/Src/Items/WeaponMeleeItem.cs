@@ -2,12 +2,9 @@ namespace Veronenger.Items;
 
 public class WeaponMeleeItem : WeaponItem {
     public readonly WeaponConfig.Melee Config;
-    public float DamageFactor = 1f;
     public int EnemiesPerHit = 2;
 
-    public override float Damage => Config.DamageBase * DamageFactor;
-
-    internal WeaponMeleeItem(int id, string name, string alias, WeaponConfig.Melee config) : base(id, name, alias) {
+    internal WeaponMeleeItem(int id, string name, string alias, WeaponConfig.Melee config, float damageBase) : base(id, name, alias, damageBase) {
         Config = config;
     }
 }

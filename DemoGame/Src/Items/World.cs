@@ -18,11 +18,11 @@ public class World {
         _itemAlias.Clear();
     }
 
-    public WeaponMeleeItem CreateMeleeWeapon(WeaponConfig.Melee config, string name, string alias = null) =>
-        Add(new WeaponMeleeItem(NextId(), name, alias, config));
+    public WeaponMeleeItem CreateMeleeWeapon(WeaponConfig.Melee config, string name, float damageBase, string alias = null) =>
+        Add(new WeaponMeleeItem(NextId(), name, alias, config, damageBase));
     
-    public WeaponRangeItem CreateRangeWeapon(WeaponConfig.Range model, string name, string alias = null) =>
-        Add(new WeaponRangeItem(NextId(), name, alias, model));
+    public WeaponRangeItem CreateRangeWeapon(WeaponConfig.Range model, string name, float damageBase, string alias = null) =>
+        Add(new WeaponRangeItem(NextId(), name, alias, model, damageBase));
 
     public EnemyItem CreateEnemy(ZombieNode zombieNode) =>
         Add(new EnemyItem(NextId(), zombieNode.Name, null, zombieNode));

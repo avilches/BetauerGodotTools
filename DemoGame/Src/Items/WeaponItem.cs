@@ -1,8 +1,11 @@
 namespace Veronenger.Items;
 
 public abstract class WeaponItem : Item {
-    public abstract float Damage { get; }
+    public readonly float DamageBase;
+    public float DamageFactor = 1f;
+    public float Damage => DamageBase * DamageFactor;
 
-    protected WeaponItem(int id, string name, string alias) : base(id, name, alias) {
+    protected WeaponItem(int id, string name, string alias, float damageBase) : base(id, name, alias) {
+        DamageBase = damageBase;
     }
 }

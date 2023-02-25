@@ -4,18 +4,11 @@ using Godot;
 namespace Veronenger.Items;
 
 public abstract class WeaponConfig {
-    public float DamageBase { get; protected set; }
-
-    private WeaponConfig(float damageBase) {
-        DamageBase = damageBase;
-    }
-
-
     public class Melee : WeaponConfig {
         public readonly Texture2D WeaponAnimation;
         public readonly string ShapeName;
 
-        public Melee(Texture2D weaponAnimation, string shapeName, float damageBase) : base(damageBase) {
+        public Melee(Texture2D weaponAnimation, string shapeName) {
             WeaponAnimation = weaponAnimation;
             ShapeName = shapeName;
         }         
@@ -31,7 +24,7 @@ public abstract class WeaponConfig {
         public int TrailLength = 200;
         public int RaycastLength = -1;
         
-        public Range(Texture2D weaponAnimation, Texture2D? projectile, Vector2 projectileStartPosition, float damageBase) : base(damageBase) {
+        public Range(Texture2D weaponAnimation, Texture2D? projectile, Vector2 projectileStartPosition) {
             WeaponAnimation = weaponAnimation;
             Projectile = projectile;
             ProjectileStartPosition = projectileStartPosition;

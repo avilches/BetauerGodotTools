@@ -40,14 +40,14 @@ public class CharacterManager {
         });
     }
 
-    public void PlayerConfigureAttackArea(Area2D attackArea, Area2D.AreaEnteredEventHandler onAttack = null) {
+    public void PlayerConfigureAttackArea(Area2D attackArea, Area2D.AreaEnteredEventHandler? onAttack = null) {
         attackArea.CollisionMask = 0;
         attackArea.CollisionLayer = 0;
         if (onAttack != null) attackArea.OnAreaEntered(LayerEnemyHurtArea, onAttack);
         else attackArea.DetectLayer(LayerEnemyHurtArea);
     }
 
-    public void PlayerConfigureHurtArea(Area2D hurtArea, Area2D.AreaEnteredEventHandler onAttack = null) {
+    public void PlayerConfigureHurtArea(Area2D hurtArea, Area2D.AreaEnteredEventHandler? onAttack = null) {
         hurtArea.CollisionMask = 0;
         hurtArea.CollisionLayer = 0;
         if (onAttack != null) hurtArea.OnAreaEntered(LayerPlayerHurtArea, onAttack);
