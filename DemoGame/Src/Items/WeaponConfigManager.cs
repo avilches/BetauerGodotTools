@@ -18,7 +18,7 @@ public class WeaponConfigManager {
         Knife = new WeaponConfig.Melee(LeonKnifeAnimationSprite, "Short", 6);
         Metalbar = new WeaponConfig.Melee(LeonMetalbarAnimationSprite, "Long", 10);
 
-        Gun = new WeaponConfig.Range(null, null, new Vector2(20f, -33.5f), 30) {
+        Gun = new WeaponConfig.Range(null, null, new Vector2(20f, -33.5f), 6) {
             Speed = 2000,
             MaxDistance = 800,
             TrailLong = 200,

@@ -10,8 +10,8 @@ public class Inventory {
 
     public readonly List<Item> Items = new();
     public int Selected = 0;
-    public WeaponMeleeItem WeaponMeleeEquipped = null;
-    public WeaponRangeItem WeaponRangeEquipped = null;
+    public WeaponMeleeItem WeaponMeleeEquipped { get; private set; }
+    public WeaponRangeItem WeaponRangeEquipped { get; private set; }
     
     public void Pick(Item item) {
         Items.Add(item);

@@ -1,6 +1,4 @@
 using System;
-using System.Diagnostics;
-using Betauer;
 using Betauer.Animation;
 using Betauer.Animation.AnimationPlayer;
 using Betauer.Application.Monitor;
@@ -10,7 +8,6 @@ using Betauer.Core.Nodes.Property;
 using Betauer.Core.Pool;
 using Betauer.Core.Restorer;
 using Betauer.DI;
-using Betauer.DI.ServiceProvider;
 using Betauer.Flipper;
 using Betauer.Input;
 using Betauer.Nodes;
@@ -184,6 +181,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		drawPlayerInsight.Disable();
 
 		// var overlay = DebugOverlayManager.Follow(CharacterBody2D).Title("Zombie");
+		// AddHurtStates(overlay);
 		// AddOverlayStates(overlay);
 		// AddOverlayCrossAndDot(overlay);
 		// AddOverlayMotion(overlay);
@@ -242,10 +240,17 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		HealthBar.Visible = EnemyConfig.HealthBarVisible;
 	}
 
+	public bool CanBeAttacked(WeaponItem weapon) {
+		if (weapon is WeaponMeleeItem) return !Status.UnderMeleeAttack;
+		if (weapon is WeaponRangeItem) return true;
+		return true;
+	}
+
 	private void OnPlayerAttackEvent(PlayerAttackEvent playerAttackEvent) {
 		if (playerAttackEvent.Enemy.Id != _enemyItem.Id) return;
-		Debug.Assert(Status.UnderAttack == false, "Status.UnderAttack == false");
-		Status.UnderAttack = true;
+		if (playerAttackEvent.Weapon is WeaponMeleeItem) {
+			Status.UnderMeleeAttack = true;
+		}
 		Status.UpdateHealth(-playerAttackEvent.Weapon.Damage);
 		UpdateHealthBar();
 		_labelHits.Get().Show(((int)playerAttackEvent.Weapon.Damage).ToString());
@@ -278,6 +283,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		// AnimationReset.PlayOnce();
 		// _restorer.Restore();
 		World.Remove(_enemyItem);
+		EnableAttackAndHurtAreas();
 		QueueFree();
 	}
 
@@ -286,9 +292,10 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		CharacterBody2D.CollisionMask = 0;
 	}
 
-	public void DisableAttack() {
-		_attackArea.Monitoring = false;
-		_attackArea.Monitorable = false;
+	public void EnableAttackAndHurtAreas(bool enabled = true) {
+		_attackArea.Monitoring = enabled;
+		_attackArea.Monitorable = enabled;
+		_hurtArea.EnableAllShapes(enabled);
 	}
 
 	public void ApplyFloorGravity(float factor = 1.0F) {
@@ -297,6 +304,14 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 
 	public void ApplyAirGravity(float factor = 1.0F) {
 		PlatformBody.ApplyGravity(PlayerConfig.AirGravity * factor, PlayerConfig.MaxFallingSpeed);
+	}
+
+	public void AddHurtStates(DebugOverlay overlay) {
+		overlay
+		.OpenBox()
+			.Text("Hurting", () => _hurtArea.Monitoring).EndMonitor()
+			.Text("Hurtable", () => _hurtArea.Monitorable).EndMonitor()
+			.CloseBox();
 	}
 
 	public void AddOverlayStates(DebugOverlay overlay) {    
@@ -360,7 +375,15 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 			.Text("Ceiling", () => PlatformBody.GetCeilingCollisionInfo()).EndMonitor()
 			.Text("Wall", () => PlatformBody.GetWallCollisionInfo()).EndMonitor();
 	}
-	
+
+	private void Kickback() {
+		var angle = Random.Range(35, 80);
+		var energy = Random.Range(90, 300);
+		var dir = Vector2.Right.Rotated(Mathf.DegToRad(angle)) * energy;
+		PlatformBody.MotionX = IsToTheRightOfPlayer() ? dir.X : -dir.X;
+		PlatformBody.MotionY = -dir.Y;
+	}
+
 	public void ConfigureStateMachine() {    
 
 		On(ZombieEvent.Hurt).Set(ZombieState.Hurt);
@@ -422,11 +445,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		Tween? redFlash = null;
 		State(ZombieState.Hurt)
 			.Enter(() => {
-				var angle = Random.Range(35, 80);
-				var energy = Random.Range(90, 300);
-				var dir = Vector2.Right.Rotated(Mathf.DegToRad(angle)) * energy;
-				PlatformBody.MotionX = IsToTheRightOfPlayer() ? dir.X : -dir.X;
-				PlatformBody.MotionY = -dir.Y;
+				//Kickback();
 				AnimationHurt.Play();
 				redFlash?.Kill();
 				redFlash = RedFlash.Play(_mainSprite, 0); 
@@ -437,13 +456,13 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 			})
 			.If(() => !AnimationHurt.IsPlaying() && PlatformBody.IsOnFloor()).Set(ZombieState.Idle)
 			.Exit(() => {
-				Status.UnderAttack = false;
+				Status.UnderMeleeAttack = false;
 			})
 			.Build();
 
 		State(ZombieState.Death)
 			.Enter(() => {
-				DisableAttack();
+				EnableAttackAndHurtAreas(false);
 				HealthBar.Visible = false;
 				AnimationDead.Play();
 			})

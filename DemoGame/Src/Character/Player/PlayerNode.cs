@@ -135,7 +135,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		ConfigureCamera();
 		ConfigureCharacter();
 		ConfigureAttackArea();
-		ConfigureHurtArea();
+		ConfigurePlayerHurtArea();
 		ConfigureStateMachine();
 		
 		LoadState();
@@ -216,32 +216,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		StageManager.ConfigureStageCamera(_camera2D, PlayerDetector);
 	}
 
-	private void ConfigureAttackArea() {
-		CharacterManager.PlayerConfigureAttackArea(_attackArea1);
-		CharacterManager.PlayerConfigureAttackArea(_attackArea2);
-		this.OnProcess(delta => {
-			if (Status.AvailableHits > 0) {
-				CheckAttackArea(_attackArea1);
-				CheckAttackArea(_attackArea2);
-			}
-
-			void CheckAttackArea(Area2D attackArea) {
-				if (attackArea.Monitoring && attackArea.HasOverlappingAreas()) {
-					attackArea.GetOverlappingAreas()
-						.Select(area2D => World.Get<EnemyItem>(area2D.GetWorldId()))
-						.Where(enemy => !enemy.ZombieNode.Status.UnderAttack)
-						.OrderBy(enemy => enemy.ZombieNode.DistanceToPlayer()) // Ascending, so first element is the closest to the player
-						.Take(Status.AvailableHits)
-						.ForEach(enemy => {
-							Status.AvailableHits--;
-							EventBus.Publish(new PlayerAttackEvent(this, enemy, Inventory.WeaponMeleeEquipped!));
-						});
-				}
-			}
-		});
-	}
-
-	private void ConfigureHurtArea() {
+	private void ConfigurePlayerHurtArea() {
 		CharacterManager.PlayerConfigureHurtArea(_hurtArea);
 		this.OnProcess(delta => {
 			if (Status is { UnderAttack: false, Invincible: false } &&
@@ -259,6 +234,56 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				}
 			}
 		});
+	}
+
+	private void ConfigureAttackArea() {
+		CharacterManager.PlayerConfigureAttackArea(_attackArea1);
+		CharacterManager.PlayerConfigureAttackArea(_attackArea2);
+		this.OnProcess(delta => {
+			if (Status.AvailableHits > 0) {
+				CheckAttackArea(_attackArea1);
+				CheckAttackArea(_attackArea2);
+			}
+
+			void CheckAttackArea(Area2D attackArea) {
+				if (attackArea.Monitoring && attackArea.HasOverlappingAreas()) {
+					attackArea.GetOverlappingAreas()
+						.Select(area2D => World.Get<EnemyItem>(area2D.GetWorldId()))
+						.Where(enemy => enemy.ZombieNode.CanBeAttacked(Inventory.WeaponMeleeEquipped))
+						.OrderBy(enemy => enemy.ZombieNode.DistanceToPlayer()) // Ascending, so first element is the closest to the player
+						.Take(Status.AvailableHits)
+						.ForEach(enemy => {
+							Status.AvailableHits--;
+							EventBus.Publish(new PlayerAttackEvent(this, enemy, Inventory.WeaponMeleeEquipped));
+						});
+				}
+			}
+		});
+	}
+
+	private void Shoot() {
+		AnimationShoot.PlayFrom(0);
+		var weapon = Inventory.WeaponRangeEquipped;
+		var bulletPosition = weapon.Config.ProjectileStartPosition * new Vector2(PlatformBody.FacingRight, 1);
+		var bulletDirection = new Vector2(PlatformBody.FacingRight, 0);
+		var hits = 0;
+		var bullet = Game.NewBullet();
+		bullet.ShootFrom(weapon, CharacterBody2D.ToGlobal(bulletPosition), bulletDirection, 
+			ray => {
+				CharacterManager.PlayerConfigureBullet(ray);
+			},
+			collision => {
+				if (!collision.Collider.HasWorldId()) {
+					return ProjectileTrail.Behaviour.Stop; // Something solid was hit
+				}
+				var enemy = World.GetOrNull<EnemyItem>(collision.Collider.GetWorldId());
+				if (enemy != null && enemy.ZombieNode.CanBeAttacked(weapon)) {
+					hits++;
+					EventBus.Publish(new PlayerAttackEvent(this, enemy, weapon));
+				}
+				return hits < weapon.EnemiesPerHit ? ProjectileTrail.Behaviour.Continue : ProjectileTrail.Behaviour.Stop;
+			}
+		);
 	}
 
 	public override void _Input(InputEvent e) {
@@ -349,27 +374,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			if (fallingPlatform != null) PlatformManager.ConfigurePlatformCollision(fallingPlatform);
 		}
 
-		void Shoot() {
-			AnimationShoot.PlayFrom(0);
-			var bulletPosition = Inventory.WeaponRangeEquipped.Config.ProjectileStartPosition * new Vector2(PlatformBody.FacingRight, 1);
-			var bulletDirection = new Vector2(PlatformBody.FacingRight, 0);
-			var hits = 0;
-			Game.NewBullet().ShootFrom(Inventory.WeaponRangeEquipped, CharacterBody2D.ToGlobal(bulletPosition), bulletDirection, 
-				ray => CharacterManager.PlayerConfigureBullet(ray),
-				collision => {
-					if (!collision.Collider.HasWorldId()) {
-						// Something solid was hit, stop the bullet
-						return true;
-					}
-					var enemyItem = World.GetOrNull<EnemyItem>(collision.Collider.GetWorldId());
-					if (enemyItem != null) {
-						hits++;
-						enemyItem.ZombieNode.QueueFree();
-					}
-					return hits >= Inventory.WeaponRangeEquipped.EnemiesPerHit; // true means stop the bullet, false means "keep killing with the same bullet"
-				}
-			);
-		}
+		// this.OnEveryProcess(0.5f, Game.InstantiateZombie);
 
 		var xInputEnterState = 0f;
 		OnTransition += (args) => {
@@ -424,6 +429,9 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 
 		State(PlayerState.Idle)
 			.OnInput(InventoryHandler)
+			.OnInput(e => {
+				if (e.IsKeyPressed(Key.V)) Game.InstantiateZombie();
+			})
 			// .OnInputBatch(AttackAndJumpHandler)
 			.Enter(() => AnimationIdle.Play())
 			.Execute(() => {

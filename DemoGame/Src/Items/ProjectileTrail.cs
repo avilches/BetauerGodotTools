@@ -3,25 +3,27 @@ using System.Collections.Generic;
 using Betauer.Core;
 using Betauer.Core.Nodes;
 using Betauer.Core.Pool;
-using Betauer.Nodes;
 using Godot;
+using Godot.Collections;
 
 namespace Veronenger.Items;
 
 public partial class ProjectileTrail : Line2D, IBusyElement {
+	public enum Behaviour { Continue, Stop }
 	private static readonly Random Random = new Pcg.PcgRandom();
 	private static float RayLength = 40;
 
+	private readonly HashSet<Rid> _exclude = new();
 	private Vector2 _from;
 	private Vector2 _velocity;
 	private Vector2 _direction;
 	private float _maxDistanceSquared;
 	private float _trailLongSquared;
 	private volatile bool _busy = false;
-	private Func<RaycastCollision, bool> _onCollide;
+	private Func<RaycastCollision, Behaviour> _onCollide;
 	public Sprite2D Sprite2D;
 
-	private LazyRaycast2D _lazyRaycast2D;
+	public LazyRaycast2D _lazyRaycast2D;
 	private Vector2 _collisionPosition = Vector2.Zero;
 	private bool _queueEnd = false;
 
@@ -43,7 +45,8 @@ public partial class ProjectileTrail : Line2D, IBusyElement {
 		return this;
 	}
 
-	public void ShootFrom(WeaponRangeItem item, Vector2 from, Vector2 direction, Action<PhysicsRayQueryParameters2D> raycastConfig, Func<RaycastCollision, bool> onCollide) {
+
+	public void ShootFrom(WeaponRangeItem item, Vector2 from, Vector2 direction, Action<PhysicsRayQueryParameters2D> raycastConfig, Func<RaycastCollision, Behaviour> onCollide) {
 		SetPhysicsProcess(true);
 		direction = direction.Rotated(item.NewRandomDispersion());
 		_busy = true;
@@ -54,6 +57,9 @@ public partial class ProjectileTrail : Line2D, IBusyElement {
 		_trailLongSquared = Mathf.Pow(item.Config.TrailLong * Random.Range(0.6f, 1.4f), 2);
 		_onCollide = onCollide;
 		_queueEnd = false;
+
+		_exclude.Clear();
+		_lazyRaycast2D.Query.Exclude = new Array<Rid>();
 		
 		Sprite2D.Position = from;
 		Sprite2D.Texture = item.Config.Projectile;
@@ -63,10 +69,11 @@ public partial class ProjectileTrail : Line2D, IBusyElement {
 		SetPointPosition(1, from);
 		SetPointPosition(2, from);
 		Visible = true;
-		this.OnDraw(canvas => {
-			canvas.DrawCircle(_collisionPosition, 3, Colors.Red);
-		});                   
+		// this.OnDraw(canvas => {
+			// canvas.DrawCircle(_collisionPosition, 3, Colors.Red);
+		// });                   
 		_lazyRaycast2D.Config(raycastConfig);
+		
 	}
 
 	public override void _PhysicsProcess(double delta) {
@@ -121,9 +128,16 @@ public partial class ProjectileTrail : Line2D, IBusyElement {
 	private bool TryGetCollision(Vector2 currentPosition, out Vector2 collisionPosition) {
 		// var rayOrigin = currentPosition - _direction * RayLength;
 		var collision = _lazyRaycast2D.From(_from).To(currentPosition).Cast().Collision;
-		if (collision.IsColliding && _onCollide(collision)) {
-			collisionPosition = collision.Position;
-			return true;
+		if (collision.IsColliding) {
+			if (_onCollide(collision) == Behaviour.Stop) {
+				collisionPosition = collision.Position;
+				return true;
+			}
+			if (collision.Collider is CollisionObject2D co) {
+				// Ignore the collision
+				_exclude.Add(co.GetRid());
+				_lazyRaycast2D.Query.Exclude = new Array<Rid>(_exclude);
+			}
 		}
 		collisionPosition = Vector2.Zero;
 		return false;
