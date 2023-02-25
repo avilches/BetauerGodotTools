@@ -9,8 +9,8 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="GodotSharp" Version="4.0.0-rc.1" />
-        <PackageReference Include="Godot.SourceGenerators" Version="4.0.0-rc.1" />
+        <PackageReference Include="GodotSharp" Version="4.0.0-rc.5" />
+        <PackageReference Include="Godot.SourceGenerators" Version="4.0.0-rc.5" />
         <PackageReference Include="NUnit" Version="3.13.3" />
     </ItemGroup>
     <ItemGroup>
