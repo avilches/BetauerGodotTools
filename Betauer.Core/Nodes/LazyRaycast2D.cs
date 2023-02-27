@@ -6,17 +6,23 @@ using Godot.Collections;
 namespace Betauer.Core.Nodes;
 
 public class LazyRaycast2D {
+    private PhysicsDirectSpaceState2D? _directSpaceState;
+
     public RaycastCollision Collision = new(null);
     public PhysicsRayQueryParameters2D Query = new();
-    public PhysicsDirectSpaceState2D DirectSpaceState;
+    public CanvasItem? DirectSpaceStateAccessor;
 
-    public LazyRaycast2D(PhysicsDirectSpaceState2D directSpaceState) {
-        DirectSpaceState = directSpaceState;
+    public LazyRaycast2D UseDirectSpace(PhysicsDirectSpaceState2D directSpaceState) {
+        _directSpaceState = directSpaceState;
+        return this;
+    }
+
+    public LazyRaycast2D GetDirectSpaceFrom(CanvasItem canvasItem) {
+        DirectSpaceStateAccessor = canvasItem;
+        return this;
     }
     
-    public LazyRaycast2D(CanvasItem canvasItem) {
-        DirectSpaceState = canvasItem.GetWorld2D().DirectSpaceState;
-    }
+    public PhysicsDirectSpaceState2D DirectSpaceState => _directSpaceState ??= DirectSpaceStateAccessor!.GetWorld2D().DirectSpaceState; 
 
     public LazyRaycast2D From(Vector2 from) {
         Query.From = from;
