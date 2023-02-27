@@ -18,15 +18,15 @@ public class World {
         _itemAlias.Clear();
     }
 
-    public WeaponMeleeItem CreateMeleeWeapon(WeaponConfig.Melee config, string name, float damageBase, string alias = null) =>
+    public WeaponMeleeItem AddMeleeWeapon(WeaponConfig.Melee config, string name, float damageBase, string alias = null) =>
         Add(new WeaponMeleeItem(NextId(), name, alias, config, damageBase));
     
-    public WeaponRangeItem CreateRangeWeapon(WeaponConfig.Range config, string name, float damageBase, string alias = null) =>
+    public WeaponRangeItem AddRangeWeapon(WeaponConfig.Range config, string name, float damageBase, string alias = null) =>
         Add(new WeaponRangeItem(NextId(), name, alias, config, damageBase));
 
-    public NpcItem CreateEnemy(NpcConfig config, string name, INpcNode npcNode, string alias = null) {
-        var item = new NpcItem(NextId(), name, null, npcNode, config);
-        npcNode.OnAddToWorld(item);
+    public NpcItem AddEnemy(NpcConfig config, string name, INpcItemNode npcItemNode, string alias = null) {
+        var item = new NpcItem(NextId(), name, null, npcItemNode, config);
+        npcItemNode.OnAddToWorld(this, item);
         return Add(item);
     }
 
@@ -37,6 +37,8 @@ public class World {
 
     public Item? GetOrNull(int id) => _itemRegistry.TryGetValue(id, out var r) ? r : null; 
 
+    public T GetFromMeta<T>(GodotObject godotObject) where T : Item => (T)_itemRegistry[godotObject.GetItemIdFromMeta()];
+    
     public T Get<T>(int id) where T : Item => (T)_itemRegistry[id];
 
     public T? GetOrNull<T>(int id) where T : Item => _itemRegistry.TryGetValue(id, out var r) ? r as T : null; 
@@ -68,15 +70,12 @@ public class World {
 public static class WorldExtension {
     private static readonly StringName WorldId = "__WorldId";
     
-    public static int GetWorldId(this GodotObject o) => 
+    public static int GetItemIdFromMeta(this GodotObject o) => 
         o.GetMeta(WorldId).AsInt32();
 
-    public static void SetWorldId(this GodotObject o, Item item) => 
+    public static void LinkMetaToItemId(this GodotObject o, Item item) => 
         o.SetMeta(WorldId, item.Id);
 
-    public static bool HasWorldId(this GodotObject o) => 
+    public static bool HasMetaItemId(this GodotObject o) => 
         o.HasMeta(WorldId);
-
-    public static bool MatchesWorldId(this GodotObject o, Item item) => 
-        GetWorldId(o) == item.Id;
 }

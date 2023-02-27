@@ -91,6 +91,15 @@ public partial class DebugOverlayManager : CanvasLayer {
     public bool HasOverlay(GodotObject target) => 
         Overlays.FirstOrDefault(overlay => overlay.Target == target) != null;
 
+    public void DisableIfExist(GodotObject target) {
+        var overlay = Overlays.FirstOrDefault(overlay => overlay.Target == target);
+        if (overlay != null) CloseOrHideOverlay(overlay.Id);
+    }
+
+    public void ShowIfExist(GodotObject target) {
+        Overlays.FirstOrDefault(overlay => overlay.Target == target)?.Enable();
+    }
+
     public override void _Input(InputEvent input) {
         if (DebugOverlayAction != null && DebugOverlayAction.IsEventJustPressed(input)) {
             if (input.HasShift()) {

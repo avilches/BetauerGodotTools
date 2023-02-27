@@ -68,7 +68,7 @@ public abstract class BaseStateMachineSync<TStateKey, TEventKey, TState> :
             }
             CurrentState.Execute();
             InvokeAfterEvent();
-        } catch (Exception) {
+        } catch (Exception e) {
             ChangeState(currentStateBackup);
             throw;
         }

@@ -52,20 +52,20 @@ public class Game {
 
     public async Task StartWorld3() {
         World.Clear();
-        World.CreateMeleeWeapon(WeaponConfigManager.Knife, "Knife", 6f,"K1");
-        World.CreateMeleeWeapon(WeaponConfigManager.Metalbar, "Metalbar", 9f, "M1");
+        World.AddMeleeWeapon(WeaponConfigManager.Knife, "Knife", 6f,"K1");
+        World.AddMeleeWeapon(WeaponConfigManager.Metalbar, "Metalbar", 9f, "M1");
         
-        var slowGun = World.CreateRangeWeapon(WeaponConfigManager.SlowGun, "Gun", 6f, "SG");
+        var slowGun = World.AddRangeWeapon(WeaponConfigManager.SlowGun, "Gun", 6f, "SG");
         slowGun.DelayBetweenShots = 0.2f;
         
-        var gun = World.CreateRangeWeapon(WeaponConfigManager.Gun, "Gun", 9f, "G");
+        var gun = World.AddRangeWeapon(WeaponConfigManager.Gun, "Gun", 9f, "G");
         gun.DelayBetweenShots = 0.4f;
         
-        var shotgun = World.CreateRangeWeapon(WeaponConfigManager.Shotgun, "Shotgun", 22f,"SG-");
+        var shotgun = World.AddRangeWeapon(WeaponConfigManager.Shotgun, "Shotgun", 22f,"SG-");
         shotgun.DelayBetweenShots = 1f;
         shotgun.EnemiesPerHit = 2;
         
-        var machinegun = World.CreateRangeWeapon(WeaponConfigManager.MachineGun, "Maching gun", 4, "MG");
+        var machinegun = World.AddRangeWeapon(WeaponConfigManager.MachineGun, "Maching gun", 4, "MG");
         machinegun.DelayBetweenShots = 0.05f;
         machinegun.EnemiesPerHit = 3;
         machinegun.Auto = true;
@@ -100,7 +100,7 @@ public class Game {
 
     private void ZombieSpawn(Vector2 position) {
         var zombieNode = _zombiePool.Get();
-        World.CreateEnemy(WeaponConfigManager.ZombieConfig, "Zombie", zombieNode);
+        World.AddEnemy(WeaponConfigManager.ZombieConfig, "Zombie", zombieNode);
         zombieNode.AddToScene(_currentGameScene, position);
     }
 

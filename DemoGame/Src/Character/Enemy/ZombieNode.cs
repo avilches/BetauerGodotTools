@@ -12,7 +12,6 @@ using Betauer.Flipper;
 using Betauer.Input;
 using Betauer.Nodes;
 using Betauer.NodePath;
-using Betauer.StateMachine.Sync;
 using Betauer.Tools.Logging;
 using Godot;
 using Pcg;
@@ -42,13 +41,7 @@ public enum ZombieState {
 	Fall
 }
 
-public interface INpcNode {
-	void OnAddToWorld(NpcItem item);
-	float DistanceToPlayer();
-	bool CanBeAttacked(WeaponItem weapon);
-}
-
-public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>, IBusyElement, INpcNode {
+public partial class ZombieNode : NpcItemStateMachineNodeSync<ZombieState, ZombieEvent> {
 	public ZombieNode() : base(ZombieState.Idle, "Zombie.StateMachine", true) {
 	}
 
@@ -89,11 +82,9 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 	[Inject] private CharacterManager CharacterManager { get; set; }
 	[Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
 
-	[Inject] public World World { get; set; }
 	[Inject] private EventBus EventBus { get; set; }
 	[Inject] private PlayerConfig PlayerConfig { get; set; }
 	
-	//
 	// [Inject] private InputActionCharacterHandler Handler { get; set; }
 	private NpcController Handler { get; set; } = new NpcController();
 
@@ -113,22 +104,19 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 	private float MotionY => PlatformBody.MotionY;
 
 	public KinematicPlatformMotion PlatformBody;
-	private Vector2? _initialPosition;
-	public NpcStatus Status => _npcItem.Status;
-	public NpcConfig NpcConfig => _npcItem.Config;
 
 	private ICharacterAI _zombieAi;
 	private MiniPoolBusy<ILabelEffect> _labelHits;
 	private Restorer _restorer; 
-	private NpcItem _npcItem;
 	private LazyRaycast2D _lazyRaycastToPlayer;
+	private DebugOverlay? _overlay;
 
 	private Vector2 PlayerPos => CharacterManager.PlayerNode.Marker2D.GlobalPosition;
 	public bool IsFacingToPlayer() => PlatformBody.IsFacingTo(PlayerPos);
 	public bool IsToTheRightOfPlayer() => PlatformBody.IsToTheRightOf(PlayerPos);
 	public int RightOfPlayer() => IsToTheRightOfPlayer() ? 1 : -1;
 	public float AngleToPlayer() => PlatformBody.AngleTo(PlayerPos);
-	public float DistanceToPlayer() => PlatformBody.DistanceTo(PlayerPos);
+	public override float DistanceToPlayer() => PlatformBody.DistanceTo(PlayerPos);
 	public Vector2 DirectionToPlayer() => PlatformBody.DirectionTo(PlayerPos);
 	public bool CanSeeThePlayer() => IsFacingToPlayer() &&
 									 DistanceToPlayer() <= NpcConfig.VisionDistance &&
@@ -138,65 +126,28 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 	public bool IsPlayerInAngle() => NpcConfig.VisionAngle > 0 && 
 									 Mathf.Acos(Mathf.Abs(PlatformBody.LookRightDirection.Dot(DirectionToPlayer()))) <= NpcConfig.VisionAngle;
 
-	private bool _busy = true;
-	private bool _configured = false;
-	public bool IsBusy() => _busy;
-
-	protected event Action OnRemoveFromScene;
-	protected event Action OnReady;
-	
-	public void AddToScene(Node node, Vector2 initialPosition) {
-		_busy = true;
-		_initialPosition = initialPosition;
-		RequestReady();
-		node.AddChild(this);
-	}
-
-	public void OnAddToWorld(NpcItem item) {
-		_npcItem = item;
-		_attackArea.SetWorldId(_npcItem);
-		_hurtArea.SetWorldId(_npcItem);
-	}
-
-	public void RemoveFromScene() {
-		if (!_busy) return;
-		GetParent().RemoveChild(this);
-		Reset();
-		OnRemoveFromScene?.Invoke();
-		_busy = false;
-	}
-
-	public void RemoveFromWorld() {
-		World.Remove(_npcItem);
-		RemoveFromScene();
-	}
-
-	public override void _Ready() {
-		Recycle();
-		OnReady?.Invoke();
-	}
-
-	private void Recycle() {
+	public override void OnStart(Vector2 initialPosition) {
+		CharacterBody2D.GlobalPosition = initialPosition;
+		_lazyRaycastToPlayer.GetDirectSpaceFrom(_mainSprite);
+		_attackArea.LinkMetaToItemId(NpcItem);
+		_hurtArea.LinkMetaToItemId(NpcItem);
 		UpdateHealthBar();
+		EnableAttackAndHurtAreas();
+		_overlay?.Enable();
+	}
+
+	public override void OnRemoveFromScene() {
+		AnimationReset.PlayFrom(0);
+		_restorer.Restore();
+		_zombieAi.Reset();
+		_overlay?.Disable();
 	}
 
 	public ZombieNode Configure() {
-		OnReadyScanner.ScanAndInject(this);
-		CreateAnimations();
+		NodePathScanner.ScanAndInject(this);
+		ConfigureAnimations();
 		ConfigureCharacter();
 		ConfigureStateMachine();
-
-		OnReady += () => {
-			if (_initialPosition.HasValue) CharacterBody2D.GlobalPosition = _initialPosition.Value;
-			_lazyRaycastToPlayer.GetDirectSpaceFrom(_mainSprite);
-		};
-		
-		OnRemoveFromScene += () => {
-			AnimationReset.Play();
-			_restorer.Restore();
-			EnableAttackAndHurtAreas();
-			_zombieAi.Reset();
-		};
 
 		// AI
 		_zombieAi = MeleeAI.Create(Handler, new MeleeAI.Sensor(this, PlatformBody, () => PlayerPos));
@@ -235,13 +186,36 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		});
 		drawPlayerInsight.Disable();
 
-		// var overlay = DebugOverlayManager.Follow(CharacterBody2D).Title("Zombie");
-		// AddHurtStates(overlay);
-		// AddOverlayStates(overlay);
-		// AddOverlayCrossAndDot(overlay);
-		// AddOverlayMotion(overlay);
-		// AddOverlayCollisions(overlay);
+		// _overlay = DebugOverlayManager.Follow(CharacterBody2D).Title("Zombie");
+		// AddHurtStates(_overlay);
+		// AddOverlayStates(_overlay);
+		// AddOverlayPlayerInfo(_overlay);
+		// AddOverlayCrossAndDot(_overlay);
+		// AddOverlayMotion(_overlay);
+		// AddOverlayCollisions(_overlay);
 		return this;
+	}
+
+	private void ConfigureAnimations() {
+		AnimationIdle = _animationPlayer.Anim("Idle");
+		AnimationRun = _animationPlayer.Anim("Run");
+		AnimationAttack = _animationPlayer.Anim("Attack");
+		AnimationHurt = _animationPlayer.Anim("Hurt");
+		AnimationDead = _animationPlayer.Anim("Dead");
+
+		AnimationReset = _animationPlayer.Anim("RESET");
+
+		var firstCall = true;
+		_labelHits = new MiniPoolBusy<ILabelEffect>(
+			() => {
+				if (firstCall) {
+					firstCall = false;
+					return new LabelHit(HitLabel);
+				}
+				var duplicate = (Label)HitLabel.Duplicate();
+				HitLabel.AddSibling(duplicate);
+				return new LabelHit(duplicate);
+			}, 1, false);
 	}
 
 	private void ConfigureCharacter() {
@@ -264,6 +238,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		
 		_lazyRaycastToPlayer = new LazyRaycast2D().Config(ray => CharacterManager.NpcConfigureCollisions(ray));
 
+		EnableAttackAndHurtAreas();
 		CharacterManager.EnemyConfigureAttackArea(_attackArea);
 		_attackArea.GetNode<CollisionShape2D>("Body").Disabled = false;
 		_attackArea.GetNode<CollisionShape2D>("Weapon").Disabled = true;
@@ -289,14 +264,14 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		HealthBar.Visible = NpcConfig.HealthBarVisible;
 	}
 
-	public bool CanBeAttacked(WeaponItem weapon) {
+	public override bool CanBeAttacked(WeaponItem weapon) {
 		if (weapon is WeaponMeleeItem) return !Status.UnderMeleeAttack;
 		if (weapon is WeaponRangeItem) return true;
 		return true;
 	}
 
 	private void OnPlayerAttackEvent(PlayerAttackEvent playerAttackEvent) {
-		if (playerAttackEvent.Npc.Id != _npcItem.Id) return;
+		if (playerAttackEvent.Npc.Id != NpcItem.Id) return;
 		if (playerAttackEvent.Weapon is WeaponMeleeItem) {
 			Status.UnderMeleeAttack = true;
 			Kickback(30, 80, playerAttackEvent.Weapon.Damage * 15);
@@ -307,28 +282,6 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		UpdateHealthBar();
 		_labelHits.Get().Show(((int)playerAttackEvent.Weapon.Damage).ToString());
 		Send(Status.IsDead() ? ZombieEvent.Death : ZombieEvent.Hurt);
-	}
-
-	private void CreateAnimations() {
-		AnimationIdle = _animationPlayer.Anim("Idle");
-		AnimationRun = _animationPlayer.Anim("Run");
-		AnimationAttack = _animationPlayer.Anim("Attack");
-		AnimationHurt = _animationPlayer.Anim("Hurt");
-		AnimationDead = _animationPlayer.Anim("Dead");
-
-		AnimationReset = _animationPlayer.Anim("RESET");
-
-		var firstCall = true;
-		_labelHits = new MiniPoolBusy<ILabelEffect>(
-			() => {
-				if (firstCall) {
-					firstCall = false;
-					return new LabelHit(HitLabel);
-				}
-				var duplicate = (Label)HitLabel.Duplicate();
-				HitLabel.AddSibling(duplicate);
-				return new LabelHit(duplicate);
-			}, 1, false);
 	}
 
 	public void EnableAttackAndHurtAreas(bool enabled = true) {
@@ -350,25 +303,34 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		.OpenBox()
 			.Text("Hurting", () => _hurtArea.Monitoring).EndMonitor()
 			.Text("Hurtable", () => _hurtArea.Monitorable).EndMonitor()
-			.CloseBox();
+		.CloseBox();
 	}
 
-	public void AddOverlayStates(DebugOverlay overlay) {    
+	public void AddOverlayStates(DebugOverlay overlay) {
+		overlay
+		.OpenBox()
+			.Text("State", () => CurrentState.Key.ToString()).EndMonitor()
+			.Text("IA", () => _zombieAi.GetState()).EndMonitor()
+			.Text("Animation", () => _animationPlayer.CurrentAnimation).EndMonitor()
+			.Text("ItemId", () => NpcItem.Id.ToString()).EndMonitor()
+			.Text("ObjectId", () => GetInstanceId().ToString()).EndMonitor()
+		.CloseBox();
+	}
+
+	public void AddOverlayPlayerInfo(DebugOverlay overlay) {    
 		overlay
 			.OpenBox()
-				.Text("State", () => CurrentState.Key.ToString()).EndMonitor()
-				.Text("IA", () => _zombieAi.GetState()).EndMonitor()
-				.Text("Pos", () => IsFacingToPlayer()?
-												IsToTheRightOfPlayer()?"P <me|":"|me> P":
-												IsToTheRightOfPlayer()?"P |me>":"<me| P").EndMonitor()
-				.Text("See Player", CanSeeThePlayer).EndMonitor()
-			.CloseBox()
-			.OpenBox()
-				.Angle("Player angle", AngleToPlayer).EndMonitor()
-				.Text("Player is", () => IsToTheRightOfPlayer()?"Left":"Right").EndMonitor()
-				.Text("FacingPlayer", IsFacingToPlayer).EndMonitor()
-				.Text("Distance", () => DistanceToPlayer().ToString()).EndMonitor()
-			.CloseBox();
+			.Text("Pos", () => IsFacingToPlayer()?
+											IsToTheRightOfPlayer()?"P <me|":"|me> P":
+											IsToTheRightOfPlayer()?"P |me>":"<me| P").EndMonitor()
+			.Text("See Player", CanSeeThePlayer).EndMonitor()
+		.CloseBox()
+		.OpenBox()
+			.Angle("Player angle", AngleToPlayer).EndMonitor()
+			.Text("Player is", () => IsToTheRightOfPlayer()?"Left":"Right").EndMonitor()
+			.Text("FacingPlayer", IsFacingToPlayer).EndMonitor()
+			.Text("Distance", () => DistanceToPlayer().ToString()).EndMonitor()
+		.CloseBox();
 	}
 
 	public void AddOverlayCrossAndDot(DebugOverlay overlay) {    
@@ -512,7 +474,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 			.Build();
 
 		State(ZombieState.End)
-			.Enter(RemoveFromScene)
+			.Enter(RemoveFromWorld)
 			.If(() => true).Set(ZombieState.Idle)
 			.Build();
 
