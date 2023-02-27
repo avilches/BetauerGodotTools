@@ -43,7 +43,7 @@ public partial class ProjectileTrail : Line2D, IBusyElement {
 			Visible = false
 		};
 		AddChild(Sprite2D);
-		_lazyRaycast2D = new(this);
+		_lazyRaycast2D = new LazyRaycast2D().GetDirectSpaceFrom(this);
 		return this;
 	}
 
