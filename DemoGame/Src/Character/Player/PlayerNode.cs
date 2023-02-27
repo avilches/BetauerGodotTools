@@ -407,7 +407,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		State(PlayerState.Idle)
 			.OnInput(InventoryHandler)
 			.OnInput(e => {
-				if (e.IsKeyPressed(Key.V)) Game.InstantiateZombie();
+				if (e.IsKeyPressed(Key.V)) Game.InstantiateNewZombie();
 			})
 			// .OnInputBatch(AttackAndJumpHandler)
 			.Enter(() => {
