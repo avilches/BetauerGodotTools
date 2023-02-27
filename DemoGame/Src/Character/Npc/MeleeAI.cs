@@ -1,13 +1,13 @@
 using System;
-using Betauer;
 using Betauer.Core;
 using Betauer.Core.Time;
 using Betauer.StateMachine.Sync;
 using Godot;
 using Pcg;
 using Veronenger.Character.InputActions;
+using Veronenger.Persistent;
 
-namespace Veronenger.Character.Enemy;
+namespace Veronenger.Character.Npc;
 
 public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacterAI {
     private static readonly PcgRandom Random = new();

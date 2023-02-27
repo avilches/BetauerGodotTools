@@ -1,6 +1,7 @@
-[gd_scene load_steps=11 format=3 uid="uid://booum8o1kq7ns"]
+[gd_scene load_steps=12 format=3 uid="uid://booum8o1kq7ns"]
 
 [ext_resource type="PackedScene" uid="uid://bgoroc7wxd0fx" path="res://Worlds/Environment/City.tscn" id="1_ch4lp"]
+[ext_resource type="Script" path="res://Src/Worlds/World3.cs" id="1_q8t1r"]
 [ext_resource type="PackedScene" uid="uid://crxuyxcrii0rb" path="res://Worlds/Environment/Anokalisa.tscn" id="3_b8e8b"]
 [ext_resource type="Texture2D" uid="uid://hpw331rdkwps" path="res://Assets/light-spot.png" id="4_mufee"]
 [ext_resource type="Texture2D" uid="uid://b7ir53ta6rglo" path="res://Assets/light.png" id="4_vhytj"]
@@ -24,6 +25,7 @@ polygon = PackedVector2Array(-479, 6, -479, 13, -416, 13, -416, 6)
 size = Vector2(960, 540)
 
 [node name="World3" type="Node"]
+script = ExtResource("1_q8t1r")
 
 [node name="CanvasModulate" type="CanvasModulate" parent="."]
 visible = false

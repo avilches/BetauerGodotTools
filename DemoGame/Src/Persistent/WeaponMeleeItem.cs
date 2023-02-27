@@ -1,4 +1,6 @@
-namespace Veronenger.Items;
+using Veronenger.Config;
+
+namespace Veronenger.Persistent;
 
 public class WeaponMeleeItem : WeaponItem {
     public readonly WeaponConfig.Melee Config;

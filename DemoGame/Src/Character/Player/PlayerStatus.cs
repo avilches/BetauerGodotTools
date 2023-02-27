@@ -1,15 +1,12 @@
 using System;
 using Betauer.DI;
 using Betauer.DI.ServiceProvider;
-using Veronenger.Managers;
+using Veronenger.Config;
 
 namespace Veronenger.Character.Player;
 
 [Service(Lifetime.Transient)]
 public class PlayerStatus {
-    [Inject] private EventBus EventBus { get; set; }
-
-    public PlayerNode PlayerNode { get; private set; }
     public float Health { get; private set; }
     public float MaxHealth { get; private set; }
     public float HealthPercent => Health / MaxHealth;
@@ -19,14 +16,13 @@ public class PlayerStatus {
 
     public event Action<PlayerUpdateHealthEvent> OnHealthUpdate;
 
-    public void Configure(PlayerNode playerNode, float maxHealth, float health) {
-        PlayerNode = playerNode;
-        MaxHealth = maxHealth;
-        Health = Math.Clamp(health, 0, maxHealth);
+    public void Configure(PlayerConfig playerConfig) {
+        MaxHealth = playerConfig.InitialMaxHealth;
+        Health = Math.Clamp(playerConfig.InitialHealth, 0, playerConfig.InitialMaxHealth);
         Invincible = false;
         UnderAttack = false;
         AvailableHits = 0;
-        OnHealthUpdate?.Invoke(new PlayerUpdateHealthEvent(PlayerNode, Health, Health, MaxHealth));
+        OnHealthUpdate?.Invoke(new PlayerUpdateHealthEvent(Health, Health, MaxHealth));
     }
 
     public void UpdateHealth(float update) => SetHealth(Health + update);
@@ -37,7 +33,7 @@ public class PlayerStatus {
         var fromHealth = Health;
         Health = Math.Clamp(health, 0, MaxHealth);
         var toHealth = Health;
-        OnHealthUpdate?.Invoke(new PlayerUpdateHealthEvent(PlayerNode, fromHealth, toHealth, MaxHealth));
+        OnHealthUpdate?.Invoke(new PlayerUpdateHealthEvent(fromHealth, toHealth, MaxHealth));
     }
 
     public void SetMaxHealth(float newMaxHealth) {
@@ -45,8 +41,9 @@ public class PlayerStatus {
         MaxHealth = newMaxHealth;
         Health = Math.Clamp(Health, 0, MaxHealth);
         var toHealth = Health;
-        OnHealthUpdate?.Invoke(new PlayerUpdateHealthEvent(PlayerNode, fromHealth, toHealth, MaxHealth));
+        OnHealthUpdate?.Invoke(new PlayerUpdateHealthEvent(fromHealth, toHealth, MaxHealth));
     }
 
     public bool IsDead() => Health <= 0f;
+
 }

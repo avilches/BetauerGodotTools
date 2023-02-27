@@ -1,7 +1,7 @@
 using System;
-using Veronenger.Items;
+using Veronenger.Config;
 
-namespace Veronenger.Character.Enemy;
+namespace Veronenger.Persistent;
 
 public abstract partial class NpcItemStateMachineNodeSync<TStateKey, TEventKey> :
     ItemStateMachineNodeSync<TStateKey, TEventKey>, INpcItemNode

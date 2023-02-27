@@ -1,4 +1,4 @@
-namespace Veronenger.Items;
+namespace Veronenger.Persistent;
 
 public abstract class WeaponItem : Item {
     public readonly float DamageBase;

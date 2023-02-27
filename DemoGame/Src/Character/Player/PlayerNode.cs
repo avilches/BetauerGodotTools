@@ -16,9 +16,11 @@ using Betauer.StateMachine.Sync;
 using Betauer.Tools.Logging;
 using Godot;
 using Veronenger.Character.InputActions;
-using Veronenger.Items;
+using Veronenger.Config;
 using Veronenger.Managers;
+using Veronenger.Persistent;
 using Veronenger.UI;
+using ProjectileTrail = Veronenger.Transient.ProjectileTrail;
 
 namespace Veronenger.Character.Player; 
 
@@ -73,8 +75,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 
 	[Inject] private Game Game { get; set; }
 	[Inject] private PlatformManager PlatformManager { get; set; }
-	[Inject] private CharacterManager CharacterManager { get; set; }
-	[Inject] private WeaponConfigManager WeaponConfigManager { get; set; }
+	[Inject] private ItemConfigManager ItemConfigManager { get; set; }
 	[Inject] private StageManager StageManager { get; set; }
 	[Inject] private InputAction MMB { get; set; }
 	[Inject] private InputAction NextItem { get; set; }
@@ -86,7 +87,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	[Inject] private EventBus EventBus { get; set; }
 	[Inject] private PlayerInputActions Handler { get; set; }
 	[Inject] private HUD HudScene { get; set; }
-	[Inject] private PlayerStatus Status { get; set; }
+	private PlayerStatus Status => World.PlayerStatus;
 
 	public KinematicPlatformMotion PlatformBody { get; private set; }
 	public Vector2? InitialPosition { get; set; }
@@ -208,10 +209,8 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		};
 
 		Status.OnHealthUpdate += HudScene.UpdateHealth; 
-		Status.Configure(this, PlayerConfig.InitialMaxHealth, PlayerConfig.InitialHealth);
 
-		CharacterManager.RegisterPlayerNode(this);
-		CharacterManager.PlayerConfigureCollisions(this);
+		CollisionLayerManager.PlayerConfigureCollisions(this);
 	}
 
 	private void ConfigureCamera() {
@@ -220,7 +219,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	}
 
 	private void ConfigurePlayerHurtArea() {
-		CharacterManager.PlayerConfigureHurtArea(_hurtArea);
+		CollisionLayerManager.PlayerConfigureHurtArea(_hurtArea);
 		this.OnProcess(delta => {
 			if (Status is { UnderAttack: false, Invincible: false } &&
 				_hurtArea.Monitoring &&
@@ -240,8 +239,8 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	}
 
 	private void ConfigureAttackArea() {
-		CharacterManager.PlayerConfigureAttackArea(_attackArea1);
-		CharacterManager.PlayerConfigureAttackArea(_attackArea2);
+		CollisionLayerManager.PlayerConfigureAttackArea(_attackArea1);
+		CollisionLayerManager.PlayerConfigureAttackArea(_attackArea2);
 		this.OnProcess(delta => {
 			if (Status.AvailableHits > 0) {
 				CheckAttackArea(_attackArea1);
@@ -517,7 +516,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			var bullet = Game.NewBullet();
 			bullet.ShootFrom(weapon, CharacterBody2D.ToGlobal(bulletPosition), bulletDirection, 
 				ray => {
-					CharacterManager.PlayerConfigureBullet(ray);
+					CollisionLayerManager.PlayerConfigureBullet(ray);
 				},
 				collision => {
 					if (!collision.Collider.HasMetaItemId()) {

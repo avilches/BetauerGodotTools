@@ -10,17 +10,18 @@ using Betauer.Core.Restorer;
 using Betauer.DI;
 using Betauer.Flipper;
 using Betauer.Input;
-using Betauer.Nodes;
 using Betauer.NodePath;
+using Betauer.Nodes;
 using Betauer.Tools.Logging;
 using Godot;
 using Pcg;
 using Veronenger.Character.InputActions;
 using Veronenger.Character.Player;
-using Veronenger.Items;
+using Veronenger.Config;
 using Veronenger.Managers;
+using Veronenger.Persistent;
 
-namespace Veronenger.Character.Enemy; 
+namespace Veronenger.Character.Npc; 
 
 public enum ZombieEvent {
 	Hurt,
@@ -41,7 +42,7 @@ public enum ZombieState {
 	Fall
 }
 
-public partial class ZombieNode : NpcItemStateMachineNodeSync<ZombieState, ZombieEvent> {
+public partial class ZombieNode : Persistent.NpcItemStateMachineNodeSync<ZombieState, ZombieEvent> {
 	public ZombieNode() : base(ZombieState.Idle, "Zombie.StateMachine", true) {
 	}
 
@@ -79,7 +80,6 @@ public partial class ZombieNode : NpcItemStateMachineNodeSync<ZombieState, Zombi
 	[NodePath("Character/RayCasts/Floor")] public RayCast2D FloorRaycast;
 	[NodePath("Character/HealthBarPosition/HealthBar")] public TextureProgressBar HealthBar;
 
-	[Inject] private CharacterManager CharacterManager { get; set; }
 	[Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
 
 	[Inject] private EventBus EventBus { get; set; }
@@ -111,7 +111,7 @@ public partial class ZombieNode : NpcItemStateMachineNodeSync<ZombieState, Zombi
 	private LazyRaycast2D _lazyRaycastToPlayer;
 	private DebugOverlay? _overlay;
 
-	private Vector2 PlayerPos => CharacterManager.PlayerNode.Marker2D.GlobalPosition;
+	private Vector2 PlayerPos => World.PlayerNode.Marker2D.GlobalPosition;
 	public bool IsFacingToPlayer() => PlatformBody.IsFacingTo(PlayerPos);
 	public bool IsToTheRightOfPlayer() => PlatformBody.IsToTheRightOf(PlayerPos);
 	public int RightOfPlayer() => IsToTheRightOfPlayer() ? 1 : -1;
@@ -230,20 +230,20 @@ public partial class ZombieNode : NpcItemStateMachineNodeSync<ZombieState, Zombi
 
 		PlatformBody = new KinematicPlatformMotion(CharacterBody2D, flipper, Marker2D, MotionConfig.FloorUpDirection);
 		OnBefore += () => PlatformBody.SetDelta(Delta);
+
+		CollisionLayerManager.NpcConfigureCollisions(CharacterBody2D);
+		CollisionLayerManager.NpcConfigureCollisions(FloorRaycast);
+		CollisionLayerManager.NpcConfigureCollisions(FinishFloorRight);
+		CollisionLayerManager.NpcConfigureCollisions(FinishFloorLeft);
 		
-		CharacterManager.NpcConfigureCollisions(CharacterBody2D);
-		CharacterManager.NpcConfigureCollisions(FloorRaycast);
-		CharacterManager.NpcConfigureCollisions(FinishFloorRight);
-		CharacterManager.NpcConfigureCollisions(FinishFloorLeft);
-		
-		_lazyRaycastToPlayer = new LazyRaycast2D().Config(ray => CharacterManager.NpcConfigureCollisions(ray));
+		_lazyRaycastToPlayer = new LazyRaycast2D().Config(ray => CollisionLayerManager.NpcConfigureCollisions(ray));
 
 		EnableAttackAndHurtAreas();
-		CharacterManager.EnemyConfigureAttackArea(_attackArea);
+		CollisionLayerManager.EnemyConfigureAttackArea(_attackArea);
 		_attackArea.GetNode<CollisionShape2D>("Body").Disabled = false;
 		_attackArea.GetNode<CollisionShape2D>("Weapon").Disabled = true;
 
-		CharacterManager.EnemyConfigureHurtArea(_hurtArea);
+		CollisionLayerManager.EnemyConfigureHurtArea(_hurtArea);
 		EventBus.Subscribe(OnPlayerAttackEvent).UnsubscribeIf(Predicates.IsInvalid(this));
 		
 		_restorer = new MultiRestorer()

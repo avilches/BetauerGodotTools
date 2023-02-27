@@ -2,9 +2,8 @@ using System;
 using Betauer.Core.Pool;
 using Betauer.StateMachine.Sync;
 using Godot;
-using Veronenger.Items;
 
-namespace Veronenger.Character.Enemy;
+namespace Veronenger.Persistent;
 
 public abstract partial class ItemStateMachineNodeSync<TStateKey, TEventKey> : 
     StateMachineNodeSync<TStateKey, TEventKey>, IBusyElement 

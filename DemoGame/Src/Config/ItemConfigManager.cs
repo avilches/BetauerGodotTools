@@ -1,11 +1,10 @@
 using Betauer.DI;
 using Godot;
-using Veronenger.Character.Enemy;
 
-namespace Veronenger.Items; 
+namespace Veronenger.Config; 
 
 [Service]
-public class WeaponConfigManager {
+public class ItemConfigManager {
     [Inject] private Texture2D LeonKnifeAnimationSprite { get; set; }
     [Inject] private Texture2D LeonMetalbarAnimationSprite { get; set; }
 

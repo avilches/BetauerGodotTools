@@ -1,6 +1,6 @@
-using Veronenger.Character.Enemy;
+using Veronenger.Config;
 
-namespace Veronenger.Items;
+namespace Veronenger.Persistent;
 
 public class NpcItem : Item  {
     public NpcStatus Status { get; private set; }

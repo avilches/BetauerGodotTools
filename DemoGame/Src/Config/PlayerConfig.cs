@@ -1,6 +1,7 @@
 using Betauer.DI;
+using Veronenger.Character;
 
-namespace Veronenger.Character.Player; 
+namespace Veronenger.Config; 
 
 [Service]
 public class PlayerConfig {

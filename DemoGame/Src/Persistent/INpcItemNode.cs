@@ -1,6 +1,4 @@
-using Veronenger.Items;
-
-namespace Veronenger.Character.Enemy;
+namespace Veronenger.Persistent;
 
 public interface INpcItemNode : IItemNode {
     float DistanceToPlayer();

@@ -1,7 +1,6 @@
-using System;
 using Godot;
 
-namespace Veronenger.Items;
+namespace Veronenger.Config;
 
 public abstract class WeaponConfig {
     public class Melee : WeaponConfig {

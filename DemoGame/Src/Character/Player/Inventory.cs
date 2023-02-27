@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Betauer.Core;
-using Veronenger.Items;
+using Veronenger.Persistent;
 
 namespace Veronenger.Character.Player;
 

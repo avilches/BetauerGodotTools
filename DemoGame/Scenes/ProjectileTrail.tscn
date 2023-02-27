@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://x4tqnbotqf1g"]
 
-[ext_resource type="Script" path="res://Src/Items/ProjectileTrail.cs" id="1_1mrvm"]
+[ext_resource type="Script" path="res://Src/Transient/ProjectileTrail.cs" id="1_1mrvm"]
 
 [sub_resource type="Gradient" id="Gradient_bm0w2"]
 offsets = PackedFloat32Array(0.0881459, 0.268349, 1)

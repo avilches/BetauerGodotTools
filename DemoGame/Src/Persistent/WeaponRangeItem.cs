@@ -1,8 +1,9 @@
 using System;
 using Betauer.Core;
 using Godot;
+using Veronenger.Config;
 
-namespace Veronenger.Items;
+namespace Veronenger.Persistent;
 
 public class WeaponRangeItem : WeaponItem {
     private static readonly Random Random = new Pcg.PcgRandom();

@@ -1,9 +1,10 @@
 using System.Collections.Generic;
 using Betauer.DI;
 using Godot;
-using Veronenger.Character.Enemy;
+using Veronenger.Character.Player;
+using Veronenger.Config;
 
-namespace Veronenger.Items;
+namespace Veronenger.Persistent;
 
 [Service]
 public class World {
@@ -11,11 +12,29 @@ public class World {
     private int NextId() => ++_lastId;
     private readonly Dictionary<int, Item> _itemRegistry = new();
     private readonly Dictionary<string, Item> _itemAlias = new();
+    
+    [Inject] public PlayerConfig PlayerConfig { get; set; }
+    [Inject] private Factory<PlayerStatus> _playerStatusFactory { get; set; }
+    
+    public PlayerStatus PlayerStatus { get; private set; }
+    public PlayerNode PlayerNode { get; private set; }
 
     public void Clear() {
         _lastId = 0;
         _itemRegistry.Clear();
         _itemAlias.Clear();
+        PlayerStatus = null;
+        PlayerNode = null;
+    }
+    
+    public bool IsPlayer(CharacterBody2D player) {
+        return PlayerNode.CharacterBody2D == player;
+    }
+    
+    public void SetPlayer(PlayerNode playerNode) {
+        PlayerNode = playerNode;
+        PlayerStatus = _playerStatusFactory.Get();
+        PlayerStatus.Configure(PlayerConfig);
     }
 
     public WeaponMeleeItem AddMeleeWeapon(WeaponConfig.Melee config, string name, float damageBase, string alias = null) =>

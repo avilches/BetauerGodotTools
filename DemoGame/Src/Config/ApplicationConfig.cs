@@ -5,15 +5,15 @@ using Betauer.Application.Settings;
 using Betauer.DI;
 using Betauer.DI.ServiceProvider;
 using Betauer.Input;
+using Godot;
+using Veronenger.Character.Player;
+using Veronenger.UI;
 using static Betauer.Loader.Loader;
 using static Godot.ResourceLoader;
-using Godot;
-using Veronenger.Character.Enemy;
-using Veronenger.Character.Player;
-using Veronenger.Items;
-using Veronenger.UI;
+using ProjectileTrail = Veronenger.Transient.ProjectileTrail;
+using ZombieNode = Veronenger.Character.Npc.ZombieNode;
 
-namespace Veronenger; 
+namespace Veronenger.Config; 
 
 [Configuration]
 public class ApplicationConfig {

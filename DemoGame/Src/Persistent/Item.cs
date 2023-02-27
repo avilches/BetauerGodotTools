@@ -1,4 +1,4 @@
-namespace Veronenger.Items;
+namespace Veronenger.Persistent;
 
 public abstract class Item {
     public readonly int Id;

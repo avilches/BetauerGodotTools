@@ -1,7 +1,7 @@
-using Betauer.DI;
 using Godot;
+using Veronenger.Character;
 
-namespace Veronenger.Character.Enemy; 
+namespace Veronenger.Config; 
 
 public class NpcConfig {
     public Vector2 HurtKnockback = new(60, -100);

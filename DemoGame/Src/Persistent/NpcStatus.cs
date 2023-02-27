@@ -1,6 +1,6 @@
 using System;
 
-namespace Veronenger.Character.Enemy;
+namespace Veronenger.Persistent;
 
 public class NpcStatus {
     public float Health;

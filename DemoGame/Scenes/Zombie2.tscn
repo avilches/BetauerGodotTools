@@ -1,6 +1,6 @@
 [gd_scene load_steps=20 format=3 uid="uid://ci632a12usc6l"]
 
-[ext_resource type="Script" path="res://Src/Character/Enemy/ZombieNode.cs" id="1_uy3bp"]
+[ext_resource type="Script" path="res://Src/Character/Npc/ZombieNode.cs" id="1_uy3bp"]
 [ext_resource type="PackedScene" uid="uid://dmw5hkvxv022p" path="res://Scenes/Enemy.tscn" id="2_lxaq2"]
 [ext_resource type="Texture2D" uid="uid://duwsk0qdrwrpt" path="res://Characters/Zombie/Zombie_Green.png" id="3_3o1rs"]
 

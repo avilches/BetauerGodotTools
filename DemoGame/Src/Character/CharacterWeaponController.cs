@@ -1,6 +1,6 @@
 using Betauer.Core;
 using Godot;
-using Veronenger.Items;
+using Veronenger.Persistent;
 
 namespace Veronenger.Character;
 

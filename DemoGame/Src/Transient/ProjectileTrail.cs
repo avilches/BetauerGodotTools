@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using Betauer.Core;
 using Betauer.Core.Nodes;
 using Betauer.Core.Pool;
-using Betauer.Nodes;
 using Godot;
 using Godot.Collections;
+using Veronenger.Persistent;
 
-namespace Veronenger.Items;
+namespace Veronenger.Transient;
 
 public partial class ProjectileTrail : Line2D, IBusyElement {
 	public enum Behaviour { Continue, Stop }
