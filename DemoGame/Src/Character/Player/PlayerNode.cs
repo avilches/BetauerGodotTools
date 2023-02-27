@@ -81,13 +81,13 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	[Inject] private InputAction NextItem { get; set; }
 	[Inject] private InputAction PrevItem { get; set; }
 
-	[Inject] private World World { get; set; }
+	[Inject] private ItemRepository ItemRepository { get; set; }
 	[Inject] private PlayerConfig PlayerConfig { get; set; }
 	[Inject] private SceneTree SceneTree { get; set; }
 	[Inject] private EventBus EventBus { get; set; }
 	[Inject] private PlayerInputActions Handler { get; set; }
 	[Inject] private HUD HudScene { get; set; }
-	private PlayerStatus Status => World.PlayerStatus;
+	private PlayerStatus Status => ItemRepository.PlayerStatus;
 
 	public KinematicPlatformMotion PlatformBody { get; private set; }
 	public Vector2? InitialPosition { get; set; }
@@ -149,12 +149,12 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 	}
 
 	private void LoadState() {
-		Inventory.Pick(World.Get<WeaponMeleeItem>("K1"));
-		Inventory.Pick(World.Get<WeaponMeleeItem>("M1"));
-		Inventory.Pick(World.Get<WeaponRangeItem>("SG"));
-		Inventory.Pick(World.Get<WeaponRangeItem>("G"));
-		Inventory.Pick(World.Get<WeaponRangeItem>("SG-"));
-		Inventory.Pick(World.Get<WeaponRangeItem>("MG"));
+		Inventory.Pick(ItemRepository.Get<WeaponMeleeItem>("K1"));
+		Inventory.Pick(ItemRepository.Get<WeaponMeleeItem>("M1"));
+		Inventory.Pick(ItemRepository.Get<WeaponRangeItem>("SG"));
+		Inventory.Pick(ItemRepository.Get<WeaponRangeItem>("G"));
+		Inventory.Pick(ItemRepository.Get<WeaponRangeItem>("SG-"));
+		Inventory.Pick(ItemRepository.Get<WeaponRangeItem>("MG"));
 		Inventory.Equip(1);
 	}
 
@@ -225,7 +225,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				_hurtArea.Monitoring &&
 				_hurtArea.HasOverlappingAreas()) {
 				var attacker = _hurtArea.GetOverlappingAreas()
-					.Select(area2D => World.GetFromMeta<NpcItem>(area2D))
+					.Select(area2D => ItemRepository.GetFromMeta<NpcItem>(area2D))
 					.MinBy(enemy => enemy.ItemNode.DistanceToPlayer());
 				Status.UnderAttack = true;
 				Status.UpdateHealth(-attacker.Config.Attack);
@@ -250,7 +250,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			void CheckAttackArea(Area2D attackArea) {
 				if (attackArea.Monitoring && attackArea.HasOverlappingAreas()) {
 					attackArea.GetOverlappingAreas()
-						.Select(area2D => World.GetFromMeta<NpcItem>(area2D))
+						.Select(area2D => ItemRepository.GetFromMeta<NpcItem>(area2D))
 						.Where(enemy => enemy.ItemNode.CanBeAttacked(Inventory.WeaponMeleeEquipped))
 						.OrderBy(enemy => enemy.ItemNode.DistanceToPlayer()) // Ascending, so first element is the closest to the player
 						.Take(Status.AvailableHits)
@@ -522,7 +522,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 					if (!collision.Collider.HasMetaItemId()) {
 						return ProjectileTrail.Behaviour.Stop; // Something solid was hit
 					}
-					var npc = World.GetFromMeta<NpcItem>(collision.Collider);
+					var npc = ItemRepository.GetFromMeta<NpcItem>(collision.Collider);
 					if (npc.ItemNode.CanBeAttacked(weapon)) {
 						hits++;
 						// npc.Node.QueueFree();

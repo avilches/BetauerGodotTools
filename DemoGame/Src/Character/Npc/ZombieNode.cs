@@ -111,7 +111,7 @@ public partial class ZombieNode : Persistent.NpcItemStateMachineNodeSync<ZombieS
 	private LazyRaycast2D _lazyRaycastToPlayer;
 	private DebugOverlay? _overlay;
 
-	private Vector2 PlayerPos => World.PlayerNode.Marker2D.GlobalPosition;
+	private Vector2 PlayerPos => ItemRepository.PlayerNode.Marker2D.GlobalPosition;
 	public bool IsFacingToPlayer() => PlatformBody.IsFacingTo(PlayerPos);
 	public bool IsToTheRightOfPlayer() => PlatformBody.IsToTheRightOf(PlayerPos);
 	public int RightOfPlayer() => IsToTheRightOfPlayer() ? 1 : -1;

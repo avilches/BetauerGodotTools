@@ -10,7 +10,7 @@ namespace Veronenger.Worlds;
 
 public partial class World3 : Node {
     [Inject] private Game Game { get; set; }
-    [Inject] private World World { get; set; }
+    [Inject] private ItemRepository ItemRepository { get; set; }
     [Inject] private PlatformManager PlatformManager { get; set; }
     [Inject] private StageManager StageManager { get; set; }
 
@@ -38,7 +38,7 @@ public partial class World3 : Node {
         light.ShadowFilter = Light2D.ShadowFilterEnum.None;
         light.GetNode<Area2D>("Area2D")
             ?.OnBodyEntered(LayerConstants.LayerPlayerBody, (player) => {
-                if (player is CharacterBody2D character && World.IsPlayer(character)) CandleOn(light);
+                if (player is CharacterBody2D character && ItemRepository.IsPlayer(character)) CandleOn(light);
             });
     }
 

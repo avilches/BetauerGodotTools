@@ -18,7 +18,7 @@ namespace Veronenger.Managers;
 [Service]
 public class Game {
     [Inject] private SceneTree SceneTree { get; set; }
-    [Inject] private World World { get; set; }
+    [Inject] private ItemRepository ItemRepository { get; set; }
     [Inject] private HUD HudScene { get; set; }
     [Inject] private ItemConfigManager ItemConfigManager { get; set; }
     [Inject] private StageManager StageManager { get; set; }
@@ -49,21 +49,21 @@ public class Game {
     }
 
     public async Task StartWorld3() {
-        World.Clear();
-        World.AddMeleeWeapon(ItemConfigManager.Knife, "Knife", 6f,"K1");
-        World.AddMeleeWeapon(ItemConfigManager.Metalbar, "Metalbar", 9f, "M1");
+        ItemRepository.Clear();
+        ItemRepository.AddMeleeWeapon(ItemConfigManager.Knife, "Knife", 6f,"K1");
+        ItemRepository.AddMeleeWeapon(ItemConfigManager.Metalbar, "Metalbar", 9f, "M1");
         
-        var slowGun = World.AddRangeWeapon(ItemConfigManager.SlowGun, "Gun", 6f, "SG");
+        var slowGun = ItemRepository.AddRangeWeapon(ItemConfigManager.SlowGun, "Gun", 6f, "SG");
         slowGun.DelayBetweenShots = 0.2f;
         
-        var gun = World.AddRangeWeapon(ItemConfigManager.Gun, "Gun", 9f, "G");
+        var gun = ItemRepository.AddRangeWeapon(ItemConfigManager.Gun, "Gun", 9f, "G");
         gun.DelayBetweenShots = 0.4f;
         
-        var shotgun = World.AddRangeWeapon(ItemConfigManager.Shotgun, "Shotgun", 22f,"SG-");
+        var shotgun = ItemRepository.AddRangeWeapon(ItemConfigManager.Shotgun, "Shotgun", 22f,"SG-");
         shotgun.DelayBetweenShots = 1f;
         shotgun.EnemiesPerHit = 2;
         
-        var machinegun = World.AddRangeWeapon(ItemConfigManager.MachineGun, "Maching gun", 4, "MG");
+        var machinegun = ItemRepository.AddRangeWeapon(ItemConfigManager.MachineGun, "Maching gun", 4, "MG");
         machinegun.DelayBetweenShots = 0.05f;
         machinegun.EnemiesPerHit = 3;
         machinegun.Auto = true;
@@ -84,7 +84,7 @@ public class Game {
 
     public void ZombieSpawn(Node scene, Vector2 position) {
         var zombieNode = _zombiePool.Get();
-        World.AddEnemy(ItemConfigManager.ZombieConfig, "Zombie", zombieNode);
+        ItemRepository.AddEnemy(ItemConfigManager.ZombieConfig, "Zombie", zombieNode);
         zombieNode.AddToScene(scene, position);
     }
 
@@ -102,7 +102,7 @@ public class Game {
     private void AddPlayerToScene(Node nextScene) {
         var playerNode = PlayerFactory.Get();
         nextScene.GetNode<Marker2D>("SpawnPlayer").AddChild(playerNode);
-        World.SetPlayer(playerNode);
+        ItemRepository.SetPlayer(playerNode);
     }
 
 

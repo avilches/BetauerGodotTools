@@ -1,5 +1,5 @@
 namespace Veronenger.Persistent;
 
 public interface IItemNode {
-    void OnAddToWorld(World world, Item item);
+    void OnAddToWorld(ItemRepository itemRepository, Item item);
 }

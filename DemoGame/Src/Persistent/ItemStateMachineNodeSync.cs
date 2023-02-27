@@ -12,15 +12,15 @@ public abstract partial class ItemStateMachineNodeSync<TStateKey, TEventKey> :
     protected ItemStateMachineNodeSync(TStateKey initialState, string? name = null, bool processInPhysics = false) : base(initialState, name, processInPhysics) {
     }
 
-    protected World World;
+    protected ItemRepository ItemRepository;
     protected Item Item;
     private Vector2 _initialPosition;
     private bool _busy = true;
 
     public bool IsBusy() => _busy;
 
-    public void OnAddToWorld(World world, Item item) {
-        World = world;
+    public void OnAddToWorld(ItemRepository itemRepository, Item item) {
+        ItemRepository = itemRepository;
         Item = item;
     }
 
@@ -44,7 +44,7 @@ public abstract partial class ItemStateMachineNodeSync<TStateKey, TEventKey> :
     }
 
     public void RemoveFromWorld() {
-        World.Remove(Item);
+        ItemRepository.Remove(Item);
         RemoveFromScene();
     }
 

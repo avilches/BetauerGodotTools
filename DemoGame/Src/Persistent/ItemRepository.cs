@@ -7,7 +7,7 @@ using Veronenger.Config;
 namespace Veronenger.Persistent;
 
 [Service]
-public class World {
+public class ItemRepository {
     private int _lastId = 0;
     private int NextId() => ++_lastId;
     private readonly Dictionary<int, Item> _itemRegistry = new();
