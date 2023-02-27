@@ -11,7 +11,7 @@ using Betauer.DI;
 using Betauer.Flipper;
 using Betauer.Input;
 using Betauer.Nodes;
-using Betauer.OnReady;
+using Betauer.NodePath;
 using Betauer.StateMachine.Sync;
 using Betauer.Tools.Logging;
 using Godot;

@@ -1,43 +1,43 @@
 using System;
 using System.Collections.Generic;
 using Betauer.Tools.Logging;
-using Betauer.OnReady;
+using Betauer.NodePath;
 using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
 
 namespace Betauer.GameTools.Tests {
     [TestFixture]
-    public partial class ScannerOnReadyTests : Node {
+    public partial class NodePathScannerTests : Node {
         [SetUp]
         public void Setup() {
             LoggerFactory.OverrideTraceLevel(TraceLevel.All);
         }
 
         internal partial class MyArea2D : Area2D {
-            [OnReady("myControl/mySprite")] internal Node2D prop { set; get; }
+            [NodePath("myControl/mySprite")] internal Node2D prop { set; get; }
 
-            [OnReady("myControl/mySprite")] internal Node2D node2d;
+            [NodePath("myControl/mySprite")] internal Node2D node2d;
 
-            [OnReady("myControl/mySprite")] internal Sprite2D sprite;
+            [NodePath("myControl/mySprite")] internal Sprite2D sprite;
 
-            [OnReady("myControl/mySprite", Nullable = true)]
+            [NodePath("myControl/mySprite", Nullable = true)]
             internal IDisposable disposable;
 
-            [OnReady("xxxxxxxxxxxxxx", Nullable = true)]
+            [NodePath("xxxxxxxxxxxxxx", Nullable = true)]
             internal Sprite2D allowNulls;
         }
 
         [Test(Description = "Fail if not found")]
         public void FailNotFound() {
             var myArea2D = new MyArea2D();
-            OnReadyFieldException? e =
-                Assert.Throws<OnReadyFieldException>(() => OnReadyScanner.ScanAndInject(myArea2D));
+            NodePathFieldException? e =
+                Assert.Throws<NodePathFieldException>(() => NodePathScanner.ScanAndInject(myArea2D));
             Assert.That(e!.Message.Contains("null value"));
         }
 
-        [Test(Description = "OnReady working")]
-        public void Working() {
+        [Test(Description = "NodePath working")]
+        public void NodePathWorking() {
             var myArea2D = new MyArea2D();
             AddChild(myArea2D);
             
@@ -49,7 +49,7 @@ namespace Betauer.GameTools.Tests {
             sprite.Name = "mySprite";
             control.AddChild(sprite);
 
-            OnReadyScanner.ScanAndInject(myArea2D);
+            NodePathScanner.ScanAndInject(myArea2D);
 
             Assert.That(myArea2D.prop, Is.EqualTo(sprite));
             Assert.That(myArea2D.node2d, Is.EqualTo(sprite));
@@ -58,8 +58,8 @@ namespace Betauer.GameTools.Tests {
             Assert.That(myArea2D.allowNulls, Is.Null);
         }
 
-        [Test(Description = "OnReady fail on wrong type")]
-        public void OnReadyFailWrongType() {
+        [Test(Description = "NodePath fail on wrong type")]
+        public void NodePathFailWrongType() {
             var myArea2D = new MyArea2D();
             AddChild(myArea2D);
 
@@ -71,7 +71,7 @@ namespace Betauer.GameTools.Tests {
             sprite.Name = "mySprite";
             control.AddChild(sprite);
 
-            OnReadyFieldException? e = Assert.Throws<OnReadyFieldException>(() => OnReadyScanner.ScanAndInject(myArea2D));
+            NodePathFieldException? e = Assert.Throws<NodePathFieldException>(() => NodePathScanner.ScanAndInject(myArea2D));
             Assert.That(myArea2D.node2d, Is.EqualTo(sprite));
             Assert.That(myArea2D.sprite, Is.Null);
             Assert.That(myArea2D.disposable, Is.Null);  // Is null because the error happened before to 
@@ -79,23 +79,23 @@ namespace Betauer.GameTools.Tests {
         }
 
         internal partial class NodeWithChildren : Node {
-            [OnReady("Children")] internal List<Sprite2D> listSprites;
-            [OnReady("Children")] internal List<Node> listNodes;
+            [NodePath("Children")] internal List<Sprite2D> listSprites;
+            [NodePath("Children")] internal List<Node> listNodes;
 
-            [OnReady("Children")] internal Sprite2D[] arraySprites;
-            [OnReady("Children")] internal Node[] arrayNodes;
+            [NodePath("Children")] internal Sprite2D[] arraySprites;
+            [NodePath("Children")] internal Node[] arrayNodes;
 
-            [OnReady("Children")] internal Dictionary<string, Sprite2D> dictSprites;
-            [OnReady("Children")] internal Dictionary<string, Node> dictNodes;
+            [NodePath("Children")] internal Dictionary<string, Sprite2D> dictSprites;
+            [NodePath("Children")] internal Dictionary<string, Node> dictNodes;
         }
 
-        [Test(Description = "OnReady children")]
+        [Test(Description = "NodePath children")]
         public void ChildrenTests() {
             var nodeWithChildren = new NodeWithChildren();
             AddChild(nodeWithChildren);
             
             nodeWithChildren.AddChild(CreateNodeWithChildren("Children"));
-            OnReadyScanner.ScanAndInject(nodeWithChildren);
+            NodePathScanner.ScanAndInject(nodeWithChildren);
 
             Assert.That(nodeWithChildren.listSprites.Count, Is.EqualTo(2));
             Assert.That(nodeWithChildren.listSprites[0].Name.ToString(), Is.EqualTo("Sprite1"));
