@@ -1,5 +1,6 @@
 using Betauer.DI;
 using Godot;
+using Veronenger.Character.Enemy;
 
 namespace Veronenger.Items; 
 
@@ -15,6 +16,8 @@ public class WeaponConfigManager {
     public WeaponConfig.Range Gun { get; private set; }
     public WeaponConfig.Range Shotgun { get; private set; }
     public WeaponConfig.Range MachineGun { get; private set; }
+
+    public NpcConfig ZombieConfig = new NpcConfig();
 
     [PostInject]
     private void CreateWeapons() {

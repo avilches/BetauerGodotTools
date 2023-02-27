@@ -1,7 +1,6 @@
-[gd_scene load_steps=12 format=3 uid="uid://booum8o1kq7ns"]
+[gd_scene load_steps=11 format=3 uid="uid://booum8o1kq7ns"]
 
 [ext_resource type="PackedScene" uid="uid://bgoroc7wxd0fx" path="res://Worlds/Environment/City.tscn" id="1_ch4lp"]
-[ext_resource type="PackedScene" uid="uid://ci632a12usc6l" path="res://Scenes/Zombie2.tscn" id="3_ailyd"]
 [ext_resource type="PackedScene" uid="uid://crxuyxcrii0rb" path="res://Worlds/Environment/Anokalisa.tscn" id="3_b8e8b"]
 [ext_resource type="Texture2D" uid="uid://hpw331rdkwps" path="res://Assets/light-spot.png" id="4_mufee"]
 [ext_resource type="Texture2D" uid="uid://b7ir53ta6rglo" path="res://Assets/light.png" id="4_vhytj"]
@@ -41,44 +40,6 @@ layer_1/tile_data = PackedInt32Array(-39, 589824, 3, 65497, 589824, 1, 131033, 5
 layer_2/tile_data = PackedInt32Array(-262197, 1179650, 6, -393270, 1114114, 4, -327734, 1114114, 5, -262198, 1114114, 6, -393269, 1179650, 4, -327733, 1179650, 5, -131127, 131072, 0, -131126, 196608, 0, -131125, 262144, 0, -131124, 262144, 0)
 layer_3/tile_data = PackedInt32Array(-131126, 458753, 7, -196662, 1, 8)
 layer_4/tile_data = PackedInt32Array(-589865, 262144, 8, -524329, 262144, 9, -458793, 262144, 10, -589864, 327680, 8, -524328, 327680, 9, -458792, 327680, 10, -589863, 393216, 8, -524327, 393216, 9, -458791, 393216, 10)
-
-[node name="Enemies" type="Node" parent="."]
-
-[node name="Enemy1" parent="Enemies" instance=ExtResource("3_ailyd")]
-visible = false
-position = Vector2(-716, 24)
-
-[node name="Enemy4" parent="Enemies" instance=ExtResource("3_ailyd")]
-visible = false
-position = Vector2(-716, 24)
-
-[node name="Enemy5" parent="Enemies" instance=ExtResource("3_ailyd")]
-position = Vector2(-716, 24)
-
-[node name="Enemy6" parent="Enemies" instance=ExtResource("3_ailyd")]
-position = Vector2(-716, 24)
-
-[node name="Enemy7" parent="Enemies" instance=ExtResource("3_ailyd")]
-position = Vector2(-670, 25)
-
-[node name="Enemy2" parent="Enemies" instance=ExtResource("3_ailyd")]
-position = Vector2(-872, -38)
-
-[node name="Body" parent="Enemies/Enemy2/Character/Sprites" index="0"]
-flip_h = true
-
-[node name="Enemy3" parent="Enemies" instance=ExtResource("3_ailyd")]
-position = Vector2(-750, -86)
-
-[node name="Body" parent="Enemies/Enemy3/Character/Sprites" index="0"]
-flip_h = true
-
-[node name="Enemy10" parent="Enemies" instance=ExtResource("3_ailyd")]
-position = Vector2(-698, 29)
-metadata/_edit_group_ = true
-
-[node name="Body" parent="Enemies/Enemy10/Character/Sprites" index="0"]
-flip_h = true
 
 [node name="Hints" type="Control" parent="."]
 layout_mode = 3
@@ -268,12 +229,19 @@ metadata/_edit_lock_ = true
 shape = SubResource("RectangleShape2D_5fj3v")
 metadata/_edit_lock_ = true
 
-[node name="ZombieRespawn" type="Marker2D" parent="."]
+[node name="EnemySpawn" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="ZombieRespawn1" type="Marker2D" parent="EnemySpawn"]
+visible = false
 position = Vector2(-858, 18)
 
-[editable path="Enemies/Enemy2"]
-[editable path="Enemies/Enemy2/Character"]
-[editable path="Enemies/Enemy3"]
-[editable path="Enemies/Enemy3/Character"]
-[editable path="Enemies/Enemy10"]
-[editable path="Enemies/Enemy10/Character"]
+[node name="ZombieRespawn2" type="Marker2D" parent="EnemySpawn"]
+position = Vector2(-838, -45)
+
+[node name="ZombieRespawn3" type="Marker2D" parent="EnemySpawn"]
+visible = false
+position = Vector2(-720, -91)

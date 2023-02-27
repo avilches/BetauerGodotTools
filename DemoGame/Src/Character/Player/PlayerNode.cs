@@ -226,10 +226,10 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				_hurtArea.Monitoring &&
 				_hurtArea.HasOverlappingAreas()) {
 				var attacker = _hurtArea.GetOverlappingAreas()
-					.Select(area2D => World.Get<EnemyItem>(area2D.GetWorldId()))
-					.MinBy(enemy => enemy.ZombieNode.DistanceToPlayer());
+					.Select(area2D => World.Get<NpcItem>(area2D.GetWorldId()))
+					.MinBy(enemy => enemy.Node.DistanceToPlayer());
 				Status.UnderAttack = true;
-				Status.UpdateHealth(-attacker.ZombieNode.EnemyConfig.Attack);
+				Status.UpdateHealth(-attacker.Config.Attack);
 				if (Status.IsDead()) {
 					Send(PlayerEvent.Death, 10000);
 				} else {
@@ -251,9 +251,9 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			void CheckAttackArea(Area2D attackArea) {
 				if (attackArea.Monitoring && attackArea.HasOverlappingAreas()) {
 					attackArea.GetOverlappingAreas()
-						.Select(area2D => World.Get<EnemyItem>(area2D.GetWorldId()))
-						.Where(enemy => enemy.ZombieNode.CanBeAttacked(Inventory.WeaponMeleeEquipped))
-						.OrderBy(enemy => enemy.ZombieNode.DistanceToPlayer()) // Ascending, so first element is the closest to the player
+						.Select(area2D => World.Get<NpcItem>(area2D.GetWorldId()))
+						.Where(enemy => enemy.Node.CanBeAttacked(Inventory.WeaponMeleeEquipped))
+						.OrderBy(enemy => enemy.Node.DistanceToPlayer()) // Ascending, so first element is the closest to the player
 						.Take(Status.AvailableHits)
 						.ForEach(enemy => {
 							Status.AvailableHits--;
@@ -523,11 +523,11 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 					if (!collision.Collider.HasWorldId()) {
 						return ProjectileTrail.Behaviour.Stop; // Something solid was hit
 					}
-					var enemy = World.GetOrNull<EnemyItem>(collision.Collider.GetWorldId());
-					if (enemy != null && enemy.ZombieNode.CanBeAttacked(weapon)) {
+					var npc = World.GetOrNull<NpcItem>(collision.Collider.GetWorldId());
+					if (npc != null && npc.Node.CanBeAttacked(weapon)) {
 						hits++;
-						// enemy.ZombieNode.QueueFree();
-						EventBus.Publish(new PlayerAttackEvent(this, enemy, weapon));
+						// npc.ZombieNode.QueueFree();
+						EventBus.Publish(new PlayerAttackEvent(this, npc, weapon));
 					}
 					return hits < weapon.EnemiesPerHit ? ProjectileTrail.Behaviour.Continue : ProjectileTrail.Behaviour.Stop;
 				}

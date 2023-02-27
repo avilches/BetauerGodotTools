@@ -21,11 +21,14 @@ public class World {
     public WeaponMeleeItem CreateMeleeWeapon(WeaponConfig.Melee config, string name, float damageBase, string alias = null) =>
         Add(new WeaponMeleeItem(NextId(), name, alias, config, damageBase));
     
-    public WeaponRangeItem CreateRangeWeapon(WeaponConfig.Range model, string name, float damageBase, string alias = null) =>
-        Add(new WeaponRangeItem(NextId(), name, alias, model, damageBase));
+    public WeaponRangeItem CreateRangeWeapon(WeaponConfig.Range config, string name, float damageBase, string alias = null) =>
+        Add(new WeaponRangeItem(NextId(), name, alias, config, damageBase));
 
-    public EnemyItem CreateEnemy(ZombieNode zombieNode) =>
-        Add(new EnemyItem(NextId(), zombieNode.Name, null, zombieNode));
+    public NpcItem CreateEnemy(NpcConfig config, string name, INpcNode npcNode, string alias = null) {
+        var item = new NpcItem(NextId(), name, null, npcNode, config);
+        npcNode.OnAddToWorld(item);
+        return Add(item);
+    }
 
     /*
      * Items
@@ -63,7 +66,7 @@ public class World {
 }
 
 public static class WorldExtension {
-    private static readonly StringName WorldId = (StringName)"__WorldId";
+    private static readonly StringName WorldId = "__WorldId";
     
     public static int GetWorldId(this GodotObject o) => 
         o.GetMeta(WorldId).AsInt32();

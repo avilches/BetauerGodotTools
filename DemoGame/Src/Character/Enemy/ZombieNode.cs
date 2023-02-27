@@ -42,8 +42,13 @@ public enum ZombieState {
 	Fall
 }
 
+public interface INpcNode {
+	void OnAddToWorld(NpcItem item);
+	float DistanceToPlayer();
+	bool CanBeAttacked(WeaponItem weapon);
+}
 
-public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent> {
+public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>, IBusyElement, INpcNode {
 	public ZombieNode() : base(ZombieState.Idle, "Zombie.StateMachine", true) {
 	}
 
@@ -87,7 +92,6 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 	[Inject] public World World { get; set; }
 	[Inject] private EventBus EventBus { get; set; }
 	[Inject] private PlayerConfig PlayerConfig { get; set; }
-	[Inject] public EnemyConfig EnemyConfig { get; set; }
 	
 	//
 	// [Inject] private InputActionCharacterHandler Handler { get; set; }
@@ -109,13 +113,14 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 	private float MotionY => PlatformBody.MotionY;
 
 	public KinematicPlatformMotion PlatformBody;
-	public Vector2? InitialPosition { get; set; }
-	public EnemyStatus Status { get; private set; }
+	private Vector2? _initialPosition;
+	public NpcStatus Status => _npcItem.Status;
+	public NpcConfig NpcConfig => _npcItem.Config;
 
 	private ICharacterAI _zombieAi;
 	private MiniPoolBusy<ILabelEffect> _labelHits;
 	private Restorer _restorer; 
-	private EnemyItem _enemyItem;
+	private NpcItem _npcItem;
 	private LazyRaycast2D _lazyRaycastToPlayer;
 
 	private Vector2 PlayerPos => CharacterManager.PlayerNode.Marker2D.GlobalPosition;
@@ -126,22 +131,72 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 	public float DistanceToPlayer() => PlatformBody.DistanceTo(PlayerPos);
 	public Vector2 DirectionToPlayer() => PlatformBody.DirectionTo(PlayerPos);
 	public bool CanSeeThePlayer() => IsFacingToPlayer() &&
-									 DistanceToPlayer() <= EnemyConfig.VisionDistance &&
+									 DistanceToPlayer() <= NpcConfig.VisionDistance &&
 									 IsPlayerInAngle() &&
 									 !_lazyRaycastToPlayer.From(Marker2D).To(PlayerPos).Cast().Collision.IsColliding;
 	
-	public bool IsPlayerInAngle() => EnemyConfig.VisionAngle > 0 && 
-									 Mathf.Acos(Mathf.Abs(PlatformBody.LookRightDirection.Dot(DirectionToPlayer()))) <= EnemyConfig.VisionAngle;
+	public bool IsPlayerInAngle() => NpcConfig.VisionAngle > 0 && 
+									 Mathf.Acos(Mathf.Abs(PlatformBody.LookRightDirection.Dot(DirectionToPlayer()))) <= NpcConfig.VisionAngle;
 
+	private bool _busy = true;
+	private bool _configured = false;
+	public bool IsBusy() => _busy;
+
+	protected event Action OnRemoveFromScene;
+	protected event Action OnReady;
 	
+	public void AddToScene(Node node, Vector2 initialPosition) {
+		_busy = true;
+		_initialPosition = initialPosition;
+		RequestReady();
+		node.AddChild(this);
+	}
+
+	public void OnAddToWorld(NpcItem item) {
+		_npcItem = item;
+		_attackArea.SetWorldId(_npcItem);
+		_hurtArea.SetWorldId(_npcItem);
+	}
+
+	public void RemoveFromScene() {
+		if (!_busy) return;
+		GetParent().RemoveChild(this);
+		Reset();
+		OnRemoveFromScene?.Invoke();
+		_busy = false;
+	}
+
+	public void RemoveFromWorld() {
+		World.Remove(_npcItem);
+		RemoveFromScene();
+	}
+
 	public override void _Ready() {
-		if (!Get("visible").As<bool>()) {                                                                                                          
-			QueueFree();
-			return;
-		}
+		Recycle();
+		OnReady?.Invoke();
+	}
+
+	private void Recycle() {
+		UpdateHealthBar();
+	}
+
+	public ZombieNode Configure() {
+		OnReadyScanner.ScanAndInject(this);
 		CreateAnimations();
 		ConfigureCharacter();
 		ConfigureStateMachine();
+
+		OnReady += () => {
+			if (_initialPosition.HasValue) CharacterBody2D.GlobalPosition = _initialPosition.Value;
+			_lazyRaycastToPlayer.GetDirectSpaceFrom(_mainSprite);
+		};
+		
+		OnRemoveFromScene += () => {
+			AnimationReset.Play();
+			_restorer.Restore();
+			EnableAttackAndHurtAreas();
+			_zombieAi.Reset();
+		};
 
 		// AI
 		_zombieAi = MeleeAI.Create(Handler, new MeleeAI.Sensor(this, PlatformBody, () => PlayerPos));
@@ -161,12 +216,12 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		var drawPlayerInsight = this.OnDraw(canvas => {
 			// Same conditions as CanSeeThePlayer
 			if (!IsFacingToPlayer() ||
-				DistanceToPlayer() > EnemyConfig.VisionDistance ||
+				DistanceToPlayer() > NpcConfig.VisionDistance ||
 				!IsPlayerInAngle()) {
-				var distance = new Vector2(EnemyConfig.VisionDistance, 0);
+				var distance = new Vector2(NpcConfig.VisionDistance, 0);
 				var direction = new Vector2(PlatformBody.FacingRight, 1);
-				canvas.DrawLine(Marker2D.GlobalPosition, Marker2D.GlobalPosition + distance.Rotated(-EnemyConfig.VisionAngle) * direction, Colors.Gray);
-				canvas.DrawLine(Marker2D.GlobalPosition, Marker2D.GlobalPosition + distance.Rotated(+EnemyConfig.VisionAngle) * direction, Colors.Gray);
+				canvas.DrawLine(Marker2D.GlobalPosition, Marker2D.GlobalPosition + distance.Rotated(-NpcConfig.VisionAngle) * direction, Colors.Gray);
+				canvas.DrawLine(Marker2D.GlobalPosition, Marker2D.GlobalPosition + distance.Rotated(+NpcConfig.VisionAngle) * direction, Colors.Gray);
 				canvas.DrawLine(Marker2D.GlobalPosition, Marker2D.GlobalPosition + distance * direction, Colors.Gray);
 				return;
 			}
@@ -186,10 +241,10 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		// AddOverlayCrossAndDot(overlay);
 		// AddOverlayMotion(overlay);
 		// AddOverlayCollisions(overlay);
+		return this;
 	}
 
 	private void ConfigureCharacter() {
-		if (InitialPosition.HasValue) CharacterBody2D.GlobalPosition = InitialPosition.Value;
 		CharacterBody2D.FloorStopOnSlope = true;
 		// CharacterBody2D.FloorBlockOnWall = true;
 		CharacterBody2D.FloorConstantSpeed = true;
@@ -202,22 +257,18 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		PlatformBody = new KinematicPlatformMotion(CharacterBody2D, flipper, Marker2D, MotionConfig.FloorUpDirection);
 		OnBefore += () => PlatformBody.SetDelta(Delta);
 		
-		CharacterManager.EnemyConfigureCollisions(CharacterBody2D);
-		CharacterManager.EnemyConfigureCollisions(FloorRaycast);
-		CharacterManager.EnemyConfigureCollisions(FinishFloorRight);
-		CharacterManager.EnemyConfigureCollisions(FinishFloorLeft);
+		CharacterManager.NpcConfigureCollisions(CharacterBody2D);
+		CharacterManager.NpcConfigureCollisions(FloorRaycast);
+		CharacterManager.NpcConfigureCollisions(FinishFloorRight);
+		CharacterManager.NpcConfigureCollisions(FinishFloorLeft);
 		
-		_enemyItem = World.CreateEnemy(this);
-		_lazyRaycastToPlayer = new LazyRaycast2D(_mainSprite)
-			.Config(ray => CharacterManager.EnemyConfigureCollisions(ray));
+		_lazyRaycastToPlayer = new LazyRaycast2D().Config(ray => CharacterManager.NpcConfigureCollisions(ray));
 
 		CharacterManager.EnemyConfigureAttackArea(_attackArea);
 		_attackArea.GetNode<CollisionShape2D>("Body").Disabled = false;
 		_attackArea.GetNode<CollisionShape2D>("Weapon").Disabled = true;
-		_attackArea.SetWorldId(_enemyItem);
 
 		CharacterManager.EnemyConfigureHurtArea(_hurtArea);
-		_hurtArea.SetWorldId(_enemyItem);
 		EventBus.Subscribe(OnPlayerAttackEvent).UnsubscribeIf(Predicates.IsInvalid(this));
 		
 		_restorer = new MultiRestorer()
@@ -227,17 +278,15 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 			.Add(_mainSprite.CreateRestorer(Properties.Modulate, Properties.Scale2D));
 		_restorer.Save();
 
-		Status = new EnemyStatus(EnemyConfig.InitialMaxHealth, EnemyConfig.InitialHealth);
-		UpdateHealthBar();
 	}
 
 	private void UpdateHealthBar() {
-		if (EnemyConfig.HealthBarVisible) {
+		if (NpcConfig.HealthBarVisible) {
 			HealthBar.MinValue = 0;
 			HealthBar.MaxValue = Status.MaxHealth;
 			HealthBar.Value = Status.Health;
 		}
-		HealthBar.Visible = EnemyConfig.HealthBarVisible;
+		HealthBar.Visible = NpcConfig.HealthBarVisible;
 	}
 
 	public bool CanBeAttacked(WeaponItem weapon) {
@@ -247,7 +296,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 	}
 
 	private void OnPlayerAttackEvent(PlayerAttackEvent playerAttackEvent) {
-		if (playerAttackEvent.Enemy.Id != _enemyItem.Id) return;
+		if (playerAttackEvent.Npc.Id != _npcItem.Id) return;
 		if (playerAttackEvent.Weapon is WeaponMeleeItem) {
 			Status.UnderMeleeAttack = true;
 			Kickback(30, 80, playerAttackEvent.Weapon.Damage * 15);
@@ -280,19 +329,6 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 				HitLabel.AddSibling(duplicate);
 				return new LabelHit(duplicate);
 			}, 1, false);
-	}
-
-	public void Recycle() {
-		// AnimationReset.PlayOnce();
-		// _restorer.Restore();
-		World.Remove(_enemyItem);
-		EnableAttackAndHurtAreas();
-		QueueFree();
-	}
-
-	public void DisableCollisions() {
-		CharacterBody2D.CollisionLayer = 0;
-		CharacterBody2D.CollisionMask = 0;
 	}
 
 	public void EnableAttackAndHurtAreas(bool enabled = true) {
@@ -404,7 +440,7 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 			})
 			.Execute(() => {
 				ApplyFloorGravity();
-				PlatformBody.Stop(EnemyConfig.Friction, EnemyConfig.StopIfSpeedIsLessThan);
+				PlatformBody.Stop(NpcConfig.Friction, NpcConfig.StopIfSpeedIsLessThan);
 			})
 			.If(() => Jump.IsJustPressed).Set(ZombieState.Jump)
 			.If(() => Attack.IsJustPressed).Set(ZombieState.Attacking)
@@ -419,8 +455,8 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 			.Execute(() => {
 				ApplyFloorGravity();
 				_animationPlayer.SpeedScale = Math.Abs(XInput);
-				PlatformBody.Lateral(XInput, EnemyConfig.Acceleration, EnemyConfig.MaxSpeed, 
-					EnemyConfig.Friction, EnemyConfig.StopIfSpeedIsLessThan, 0);
+				PlatformBody.Lateral(XInput, NpcConfig.Acceleration, NpcConfig.MaxSpeed, 
+					NpcConfig.Friction, NpcConfig.StopIfSpeedIsLessThan, 0);
 				
 			})
 			.If(() => Jump.IsJustPressed).Set(ZombieState.Jump)
@@ -436,8 +472,8 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 			})
 			.Execute(() => {
 				ApplyFloorGravity();
-				PlatformBody.Lateral(XInput, EnemyConfig.Acceleration, EnemyConfig.MaxSpeed, 
-					EnemyConfig.Friction, EnemyConfig.StopIfSpeedIsLessThan, 0);
+				PlatformBody.Lateral(XInput, NpcConfig.Acceleration, NpcConfig.MaxSpeed, 
+					NpcConfig.Friction, NpcConfig.StopIfSpeedIsLessThan, 0);
 			})
 			.If(() => AnimationAttack.IsPlaying()).Stay()
 			.If(() => !PlatformBody.IsOnFloor()).Set(ZombieState.Fall)
@@ -470,12 +506,15 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 			})
 			.Execute(() => {
 				ApplyAirGravity();
-				PlatformBody.Stop(EnemyConfig.Friction, EnemyConfig.StopIfSpeedIsLessThan);
+				PlatformBody.Stop(NpcConfig.Friction, NpcConfig.StopIfSpeedIsLessThan);
 			})
 			.If(() => !AnimationDead.IsPlaying()).Set(ZombieState.End)
 			.Build();
 
-		State(ZombieState.End).Enter(Recycle).Build();
+		State(ZombieState.End)
+			.Enter(RemoveFromScene)
+			.If(() => true).Set(ZombieState.Idle)
+			.Build();
 
 		State(ZombieState.Jump)
 			.Enter(() => {
@@ -485,8 +524,8 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 			})
 			.Execute(() => {
 				ApplyAirGravity();
-				PlatformBody.Lateral(XInput, EnemyConfig.Acceleration, EnemyConfig.MaxSpeed,
-					EnemyConfig.Friction, EnemyConfig.StopIfSpeedIsLessThan, 0);
+				PlatformBody.Lateral(XInput, NpcConfig.Acceleration, NpcConfig.MaxSpeed,
+					NpcConfig.Friction, NpcConfig.StopIfSpeedIsLessThan, 0);
 			})
 			.If(() => MotionY >= 0).Set(ZombieState.Fall)
 			.If(PlatformBody.IsOnFloor).Set(ZombieState.Landing)
@@ -495,8 +534,8 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		State(ZombieState.Fall)
 			.Execute(() => {
 				ApplyAirGravity();
-				PlatformBody.Lateral(XInput, EnemyConfig.Acceleration, EnemyConfig.MaxSpeed,
-					EnemyConfig.Friction, EnemyConfig.StopIfSpeedIsLessThan, 0);
+				PlatformBody.Lateral(XInput, NpcConfig.Acceleration, NpcConfig.MaxSpeed,
+					NpcConfig.Friction, NpcConfig.StopIfSpeedIsLessThan, 0);
 			})
 			.If(PlatformBody.IsOnFloor).Set(ZombieState.Landing)
 			.Build();

@@ -29,9 +29,13 @@ public class Game {
     [Inject] private Factory<ProjectileTrail> ProjectileFactory { get; set; }
     
     private Node _currentGameScene;
-    private Vector2 _zombieRespawn;
     private PlayerNode _playerScene;
     public MiniPoolBusy<ProjectileTrail> _bulletPool;
+    private readonly MiniPoolBusy<ZombieNode> _zombiePool;
+
+    public Game() {
+        _zombiePool = new MiniPoolBusy<ZombieNode>(() => ZombieFactory.Get().Configure());
+    }
 
     public async Task Start() {
         StageManager.ClearState();
@@ -72,7 +76,10 @@ public class Game {
         AddPlayerToScene(_currentGameScene);
         SceneTree.Root.AddChild(_currentGameScene);
         await SceneTree.AwaitProcessFrame();
-        _zombieRespawn = _currentGameScene.GetNode<Marker2D>("ZombieRespawn").GlobalPosition;
+        
+        _currentGameScene.GetNode("EnemySpawn").GetChildren().OfType<Marker2D>().ForEach(m => {
+            if (m.Visible) ZombieSpawn(m.GlobalPosition);
+        });
 
         _currentGameScene.GetChildren().OfType<TileMap>().ForEach(PlatformManager.ConfigureTileMapCollision);
         _currentGameScene.GetChildren().OfType<CanvasModulate>().ForEach(cm => cm.Visible = true);
@@ -89,6 +96,12 @@ public class Game {
         _currentGameScene.AddChild(bullets);
         _bulletPool = new MiniPoolBusy<ProjectileTrail>(() => ProjectileFactory.Get().Configure(_currentGameScene), 4);
         HudScene.StartGame();
+    }
+
+    private void ZombieSpawn(Vector2 position) {
+        var zombieNode = _zombiePool.Get();
+        World.CreateEnemy(WeaponConfigManager.ZombieConfig, "Zombie", zombieNode);
+        zombieNode.AddToScene(_currentGameScene, position);
     }
 
     public ProjectileTrail NewBullet() => _bulletPool.Get();
@@ -128,6 +141,7 @@ public class Game {
 
 
     public void End() {
+        _zombiePool.Elements.ForEach(z => z.RemoveFromScene());
         Node.PrintOrphanNodes();
         HudScene.EndGame();
         _currentGameScene.QueueFree();
@@ -135,8 +149,7 @@ public class Game {
     }
 
     public void InstantiateZombie() {
-        var zombie = ZombieFactory.Get();
-        zombie.InitialPosition = _zombieRespawn;
-        _currentGameScene.AddChild(zombie);
+        var position = _currentGameScene.GetNode("EnemySpawn").GetChildren().OfType<Marker2D>().First().GlobalPosition;
+        ZombieSpawn(position);
     }
 }

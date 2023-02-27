@@ -63,21 +63,21 @@ public class CharacterManager {
         rayCast2D.DetectLayer(LayerSolidBody);
     }
 
-    public void EnemyConfigureCollisions(CharacterBody2D enemy) {
+    public void NpcConfigureCollisions(CharacterBody2D enemy) {
         enemy.AddToGroup(GROUP_ENEMY);
         enemy.CollisionMask = 0;
         enemy.CollisionLayer = 0;                                       
         enemy.DetectLayer(LayerSolidBody);
     }
 
-    public void EnemyConfigureCollisions(RayCast2D rayCast2D) {
+    public void NpcConfigureCollisions(RayCast2D rayCast2D) {
         rayCast2D.CollisionMask = 0;
         rayCast2D.CollideWithAreas = false;
         rayCast2D.CollideWithBodies = true;
         rayCast2D.DetectLayer(LayerSolidBody);
     }
 
-    public void EnemyConfigureCollisions(PhysicsRayQueryParameters2D rayCast2D) {
+    public void NpcConfigureCollisions(PhysicsRayQueryParameters2D rayCast2D) {
         rayCast2D.CollisionMask = 0;
         rayCast2D.CollideWithAreas = false;
         rayCast2D.CollideWithBodies = true;

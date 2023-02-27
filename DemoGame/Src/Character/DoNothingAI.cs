@@ -12,5 +12,8 @@ public class DoNothingAI : ICharacterAI {
     public void EndFrame() {
     }
 
+    public void Reset() {
+    }
+
     public string GetState() => "DoNothing";
 }
