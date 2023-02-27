@@ -3,7 +3,7 @@ using Betauer.Application.Screen;
 using Betauer.Application.Settings;
 using Betauer.Core.Nodes.Property;
 using Betauer.DI;
-using Betauer.OnReady;
+using Betauer.NodePath;
 using Godot;
 using Veronenger.Managers;
 
@@ -14,8 +14,8 @@ public partial class SplashScreenNode : CanvasLayer {
 	[Inject] private ScreenSettingsManager _screenSettingsManager { get; set; }
 	[Inject] private SettingsContainer _settingsContainer { get; set; }
 
-	[OnReady("%SplashScreen")] private Control _base;
-	[OnReady("%TextureRect")] private TextureRect _sprite;
+	[NodePath("%SplashScreen")] private Control _base;
+	[NodePath("%TextureRect")] private TextureRect _sprite;
 
 	private Tween? _tween;
 		

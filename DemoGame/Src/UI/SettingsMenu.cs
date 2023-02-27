@@ -7,7 +7,7 @@ using Betauer.Application.Screen;
 using Betauer.DI;
 using Betauer.Input;
 using Betauer.Core.Nodes;
-using Betauer.OnReady;
+using Betauer.NodePath;
 using Betauer.Core.Signal;
 using Betauer.Nodes;
 using Betauer.Tools.Logging;
@@ -17,43 +17,43 @@ using Veronenger.Managers;
 namespace Veronenger.UI; 
 
 public partial class SettingsMenu : CanvasLayer {
-	[OnReady("Panel")] 
+	[NodePath("Panel")] 
 	private Panel _panel;
 
-	[OnReady("Panel/SettingsBox")] 
+	[NodePath("Panel/SettingsBox")] 
 	private VBoxContainer _settingsBox;
 
-	[OnReady("Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/Fullscreen")]
+	[NodePath("Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/Fullscreen")]
 	private CheckButton _fullscreenButtonWrapper;
 
-	[OnReady("Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/Resolution")]
+	[NodePath("Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/Resolution")]
 	private Button _resolutionButton;
 
-	[OnReady("Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/PixelPerfect")]
+	[NodePath("Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/PixelPerfect")]
 	private CheckButton _pixelPerfectButtonWrapper;
 
-	[OnReady("Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/Borderless")]
+	[NodePath("Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/Borderless")]
 	private CheckButton _borderlessButtonWrapper;
 
-	[OnReady("Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/VSync")]
+	[NodePath("Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/VSync")]
 	private CheckButton _vsyncButtonWrapper;
 
-	[OnReady("Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/GamepadControls")]
+	[NodePath("Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/GamepadControls")]
 	private VBoxContainer _gamepadControls;
 
-	[OnReady("Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/KeyboardControls")]
+	[NodePath("Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/KeyboardControls")]
 	private VBoxContainer _keyboardControls;
 
-	[OnReady("Panel/SettingsBox/ScrollContainer")]
+	[NodePath("Panel/SettingsBox/ScrollContainer")]
 	private ScrollContainer _scrollContainer;
 
-	[OnReady("Panel/RedefineBox")] 
+	[NodePath("Panel/RedefineBox")] 
 	private VBoxContainer _redefineBox;
 
-	[OnReady("Panel/RedefineBox/Message")] 
+	[NodePath("Panel/RedefineBox/Message")] 
 	private Label _redefineActionMessage;
 
-	[OnReady("Panel/RedefineBox/ActionName")] 
+	[NodePath("Panel/RedefineBox/ActionName")] 
 	private Label _redefineActionName;
 
 	[Inject] private MainStateMachine MainStateMachine { get; set; }

@@ -1,5 +1,5 @@
 using Betauer.DI;
-using Betauer.OnReady;
+using Betauer.NodePath;
 using Godot;
 using Veronenger.Character.Player;
 using Veronenger.Managers;
@@ -7,7 +7,7 @@ using Veronenger.Managers;
 namespace Veronenger.UI;
 
 public partial class HUD : CanvasLayer {
-	[OnReady("%HealthBar")] private TextureProgressBar _healthBar;
+	[NodePath("%HealthBar")] private TextureProgressBar _healthBar;
 	[Inject] private EventBus EventBus { get; set; }
 
 

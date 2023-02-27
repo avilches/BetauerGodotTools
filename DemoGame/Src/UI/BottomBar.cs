@@ -1,17 +1,17 @@
 using System.Collections.Generic;
 using Betauer.DI;
 using Betauer.Input;
-using Betauer.OnReady;
+using Betauer.NodePath;
 using Godot;
 using Veronenger.Managers;
 
 namespace Veronenger.UI;
 
 public partial class BottomBar : CanvasLayer {
-    [OnReady("%ActionHint1")] private ActionHint _actionHint1;
-    [OnReady("%ActionHint2")] private ActionHint _actionHint2;
-    [OnReady("%ActionHint3")] private ActionHint _actionHint3;
-    [OnReady("%ActionHint4")] private ActionHint _actionHint4;
+    [NodePath("%ActionHint1")] private ActionHint _actionHint1;
+    [NodePath("%ActionHint2")] private ActionHint _actionHint2;
+    [NodePath("%ActionHint3")] private ActionHint _actionHint3;
+    [NodePath("%ActionHint4")] private ActionHint _actionHint4;
     private readonly List<ActionHint> _actionHintList = new();
     [Inject] private InputAction UiAccept { get; set; }
     [Inject] private InputAction UiCancel { get; set; }

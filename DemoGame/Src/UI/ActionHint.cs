@@ -1,18 +1,18 @@
 using System.Collections.Generic;
 using Betauer.DI;
 using Betauer.Input;
-using Betauer.OnReady;
+using Betauer.NodePath;
 using Godot;
 using Veronenger.UI.Consoles;
 
 namespace Veronenger.UI; 
 
 public partial class ActionHint : HBoxContainer {
-	[OnReady("%Label1")] private Label _label1;
-	[OnReady("%ControlConsoleButton")] private Control _controlConsoleButton;
-	[OnReady("%ConsoleButton")] private ConsoleButton _consoleButton;
-	[OnReady("%KeyButton")] private Label _keyButton;
-	[OnReady("%Label2")] private Label _label2;
+	[NodePath("%Label1")] private Label _label1;
+	[NodePath("%ControlConsoleButton")] private Control _controlConsoleButton;
+	[NodePath("%ConsoleButton")] private ConsoleButton _consoleButton;
+	[NodePath("%KeyButton")] private Label _keyButton;
+	[NodePath("%Label2")] private Label _label2;
 	[Inject] private InputActionsContainer _inputActionsContainer { get; set; }
 
 

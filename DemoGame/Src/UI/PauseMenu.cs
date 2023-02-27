@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using Betauer.DI;
 using Betauer.Input;
-using Betauer.OnReady;
+using Betauer.NodePath;
 using Betauer.Core.Restorer;
 using Betauer.Core.Signal;
 using Betauer.UI;
@@ -12,13 +12,13 @@ using Container = Godot.Container;
 namespace Veronenger.UI; 
 
 public partial class PauseMenu : CanvasFaderLayer {
-	[OnReady("CenterContainer")]
+	[NodePath("CenterContainer")]
 	private Container _centerContainer;
 
-	[OnReady("CenterContainer/VBoxContainer/Menu")]
+	[NodePath("CenterContainer/VBoxContainer/Menu")]
 	private Container _menuBase;
 
-	[OnReady("CenterContainer/VBoxContainer/Title")]
+	[NodePath("CenterContainer/VBoxContainer/Title")]
 	private Label _title;
 
 	private MenuContainer _menuContainer;

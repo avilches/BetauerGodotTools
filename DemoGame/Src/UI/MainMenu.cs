@@ -5,7 +5,7 @@ using Betauer.Core.Restorer;
 using Betauer.Core.Signal;
 using Betauer.DI;
 using Betauer.Input;
-using Betauer.OnReady;
+using Betauer.NodePath;
 using Betauer.UI;
 using Godot;
 using Veronenger.Managers;
@@ -15,16 +15,16 @@ namespace Veronenger.UI;
 public partial class MainMenu : CanvasFaderLayer {
 	private const float FadeMainMenuEffectTime = 0.75f;
 
-	[OnReady("%Menu")]
+	[NodePath("%Menu")]
 	private Godot.Container _menuBase;
 
-	[OnReady("%Version")]
+	[NodePath("%Version")]
 	private Label _version;
 
-	[OnReady("%Author")]
+	[NodePath("%Author")]
 	private Label _author;
 
-	[OnReady("%Title")]
+	[NodePath("%Title")]
 	private Label _title;
 
 	private MenuContainer _menuContainer;

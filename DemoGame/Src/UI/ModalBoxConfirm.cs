@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 using Betauer.Animation;
 using Betauer.DI;
 using Betauer.Input;
-using Betauer.OnReady;
+using Betauer.NodePath;
 using Betauer.Core.Signal;
 using Betauer.UI;
 using Godot;
@@ -11,20 +11,20 @@ namespace Veronenger.UI;
 
 public partial class ModalBoxConfirm : CanvasFaderLayer {
 
-	[OnReady("%ContainerDouble")]
+	[NodePath("%ContainerDouble")]
 	private Godot.Container _containerDouble;
-	[OnReady("%DTitle")]
+	[NodePath("%DTitle")]
 	private Label _titleDouble;
-	[OnReady("%DSubtitle")]
+	[NodePath("%DSubtitle")]
 	private Label _subtitleDouble;
 
-	[OnReady("%ContainerSingle")]
+	[NodePath("%ContainerSingle")]
 	private Godot.Container _containerSingle;
-	[OnReady("%STitle")]
+	[NodePath("%STitle")]
 	private Label _titleSingle;
 
-	[OnReady("%Accept")] private Button _acceptButton;
-	[OnReady("%Cancel")] private Button _cancelButton;
+	[NodePath("%Accept")] private Button _acceptButton;
+	[NodePath("%Cancel")] private Button _cancelButton;
 
 	[Inject] private InputAction UiCancel { get; set; }
 

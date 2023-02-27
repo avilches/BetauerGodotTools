@@ -1,14 +1,14 @@
 using System.Linq;
 using Betauer.Input;
-using Betauer.OnReady;
+using Betauer.NodePath;
 using Godot;
 
 namespace Veronenger.UI; 
 
 public partial class RedefineActionButton : Button {
-	[OnReady("HBox/ActionName")] private Label _actionNameLabel;
-	// [OnReady("HBox/Control/ConsoleButton")] private ConsoleButton _consoleButton;
-	[OnReady("HBox/Key")] private Label _keyLabel;
+	[NodePath("HBox/ActionName")] private Label _actionNameLabel;
+	// [NodePath("HBox/Control/ConsoleButton")] private ConsoleButton _consoleButton;
+	[NodePath("HBox/Key")] private Label _keyLabel;
 		
 	public InputAction InputAction;
 	public string ActionName;
