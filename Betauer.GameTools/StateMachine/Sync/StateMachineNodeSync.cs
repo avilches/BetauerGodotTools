@@ -54,6 +54,8 @@ public partial class StateMachineNodeSync<TStateKey, TEventKey> :
         throw new Exception("Don't call directly to execute. Instead, add the node to the tree");
     }
 
+    public void Reset() => _stateMachine.Reset();
+
     public override void _Input(InputEvent e) {
         CurrentState?.InputHandler._Input(e);
     }

@@ -21,5 +21,6 @@ public interface IStateMachine<TStateKey, TEventKey, TState> : IStateMachineEven
     public bool IsState(TStateKey state);
     public TState CurrentState { get; }
     public void Send(TEventKey eventKey, int weight);
+    public void Reset();
 
 }
