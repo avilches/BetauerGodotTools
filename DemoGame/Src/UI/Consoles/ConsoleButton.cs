@@ -1,6 +1,6 @@
 using Betauer.DI;
 using Betauer.Input;
-using Betauer.OnReady;
+using Betauer.NodePath;
 using Godot;
 
 namespace Veronenger.UI.Consoles;
@@ -10,7 +10,7 @@ public partial class ConsoleButton : Sprite2D {
 	[Inject] protected Xbox360ControllerSpriteConfig Xbox360Controller { get; set; }
 	[Inject] protected XboxOneControllerSpriteConfig XboxOneController { get; set; }
 	
-	[OnReady("AnimationPlayer")] private AnimationPlayer _animation;
+	[NodePath("AnimationPlayer")] private AnimationPlayer _animation;
 
 	private IControllerSpriteConfig _config;
 	

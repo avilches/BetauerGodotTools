@@ -3,28 +3,26 @@ using Betauer.DI.ServiceProvider;
 using Betauer.Core.Nodes;
 using Betauer.Core.Signal;
 using Betauer.DI;
-using Betauer.OnReady;
+using Betauer.NodePath;
 using Godot;
 using Container = Betauer.DI.Container;
 
 namespace Betauer.Application;
 
 /**
- * A Container that listen for nodes added to the tree and inject services inside of them + process the OnReady tag
+ * A Container that listen for nodes added to the tree and inject services inside of them + process the NodePath tag
  */
 public class GodotContainer {
-    private const string MetaInjected = "__injected";
-
     private readonly Node _owner;
     private readonly bool _addSingletonNodesToTree;
-    private readonly bool _injectPropertiesOnReady = true;
+    private readonly bool _injectPropertiesOnNodeAddedToTree = true;
     private readonly Container _container = new();
     private Action<ContainerBuilder>? _containerConfig = null;
 
-    public GodotContainer(Node owner, bool addSingletonNodesToTree = true, bool injectPropertiesOnReady = true) {
+    public GodotContainer(Node owner, bool addSingletonNodesToTree = true, bool injectPropertiesOnNodeAddedToTree = true) {
         _owner = owner;
         _addSingletonNodesToTree = addSingletonNodesToTree;
-        _injectPropertiesOnReady = injectPropertiesOnReady;
+        _injectPropertiesOnNodeAddedToTree = injectPropertiesOnNodeAddedToTree;
     }
 
     public GodotContainer Start(Action<ContainerBuilder>? containerConfig = null) {
@@ -35,8 +33,8 @@ public class GodotContainer {
     }
 
     private void StartContainer() {
-        if (_injectPropertiesOnReady) {
-            OnReadyScanner.ConfigureAutoInject(_owner.GetTree());
+        if (_injectPropertiesOnNodeAddedToTree) {
+            NodePathScanner.ConfigureAutoInject(_owner.GetTree());
         }
         CreateContainer();
         _owner.GetTree().NodeAdded += InjectIfNotInjected;
@@ -64,7 +62,8 @@ public class GodotContainer {
         }
     }
     
-    private static void SetAlreadyInjected(GodotObject node) => node.SetMeta(MetaInjected, true);
-    private static bool IsInjected(GodotObject node) => node.HasMeta(MetaInjected);
+    private static readonly StringName MetaDiInjected = "__di_injected";
+    private static void SetAlreadyInjected(GodotObject node) => node.SetMeta(MetaDiInjected, true);
+    private static bool IsInjected(GodotObject node) => node.HasMeta(MetaDiInjected);
 
 }

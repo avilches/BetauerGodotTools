@@ -1,13 +1,13 @@
 using System;
 
-namespace Betauer.OnReady; 
+namespace Betauer.NodePath; 
 
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-public class OnReadyAttribute : Attribute {
+public class NodePathAttribute : Attribute {
     public bool Nullable { get; set; } = false;
     public readonly string? Path;
 
-    public OnReadyAttribute(string path) {
+    public NodePathAttribute(string path) {
         Path = path;
     }
 }

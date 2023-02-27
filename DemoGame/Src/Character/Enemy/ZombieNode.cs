@@ -72,19 +72,19 @@ public partial class ZombieNode : StateMachineNodeSync<ZombieState, ZombieEvent>
 		RedFlash = colorAnimation.EndAnimate();
 	}
 
-	[OnReady("Character")] private CharacterBody2D CharacterBody2D;
-	[OnReady("Character/Sprites/Body")] private Sprite2D _mainSprite;
-	[OnReady("Character/Sprites/AnimationPlayer")] private AnimationPlayer _animationPlayer;
+	[NodePath("Character")] private CharacterBody2D CharacterBody2D;
+	[NodePath("Character/Sprites/Body")] private Sprite2D _mainSprite;
+	[NodePath("Character/Sprites/AnimationPlayer")] private AnimationPlayer _animationPlayer;
 	
-	[OnReady("Character/AttackArea")] private Area2D _attackArea;
-	[OnReady("Character/HurtArea")] private Area2D _hurtArea;
-	[OnReady("Character/Label")] public Label Label;
-	[OnReady("Character/HitLabelPosition/HitLabel")] public Label HitLabel;
-	[OnReady("Character/Marker2D")] public Marker2D Marker2D;
-	[OnReady("Character/RayCasts/FinishFloorLeft")] public RayCast2D FinishFloorLeft;
-	[OnReady("Character/RayCasts/FinishFloorRight")] public RayCast2D FinishFloorRight;
-	[OnReady("Character/RayCasts/Floor")] public RayCast2D FloorRaycast;
-	[OnReady("Character/HealthBarPosition/HealthBar")] public TextureProgressBar HealthBar;
+	[NodePath("Character/AttackArea")] private Area2D _attackArea;
+	[NodePath("Character/HurtArea")] private Area2D _hurtArea;
+	[NodePath("Character/Label")] public Label Label;
+	[NodePath("Character/HitLabelPosition/HitLabel")] public Label HitLabel;
+	[NodePath("Character/Marker2D")] public Marker2D Marker2D;
+	[NodePath("Character/RayCasts/FinishFloorLeft")] public RayCast2D FinishFloorLeft;
+	[NodePath("Character/RayCasts/FinishFloorRight")] public RayCast2D FinishFloorRight;
+	[NodePath("Character/RayCasts/Floor")] public RayCast2D FloorRaycast;
+	[NodePath("Character/HealthBarPosition/HealthBar")] public TextureProgressBar HealthBar;
 
 	[Inject] private CharacterManager CharacterManager { get; set; }
 	[Inject] private DebugOverlayManager DebugOverlayManager { get; set; }

@@ -2,13 +2,12 @@ using Godot;
 using Betauer.Animation;
 using Betauer.Animation.Easing;
 using Betauer.Core.Nodes.Property;
-using Betauer.OnReady;
 
 namespace Veronenger.Worlds.Animation {
     public partial class TestPlatformNode : Node2D {
-        [OnReady("Body1")] private CharacterBody2D body1;
-        [OnReady("Body2")] private CharacterBody2D body2;
-        [OnReady("Body3")] private CharacterBody2D body3;
+        [NodePath("Body1")] private CharacterBody2D body1;
+        [NodePath("Body2")] private CharacterBody2D body2;
+        [NodePath("Body3")] private CharacterBody2D body3;
 
         public override void _Ready() {
             KeyframeAnimation.Create(body1)

@@ -56,20 +56,20 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 
 	private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PlayerNode));
 
-	[OnReady("Character")] public CharacterBody2D CharacterBody2D;
-	[OnReady("Character/Sprites/Weapon")] private Sprite2D _weaponSprite;
-	[OnReady("Character/Sprites/Body")] private Sprite2D _mainSprite;
+	[NodePath("Character")] public CharacterBody2D CharacterBody2D;
+	[NodePath("Character/Sprites/Weapon")] private Sprite2D _weaponSprite;
+	[NodePath("Character/Sprites/Body")] private Sprite2D _mainSprite;
 	
-	[OnReady("Character/Sprites/AnimationPlayer")] private AnimationPlayer _animationPlayer;
-	[OnReady("Character/AttackArea1")] private Area2D _attackArea1;
-	[OnReady("Character/AttackArea2")] private Area2D _attackArea2;
-	[OnReady("Character/HurtArea")] private Area2D _hurtArea;
-	[OnReady("Character/RichTextLabel")] public RichTextLabel Label;
-	[OnReady("Character/Detector")] public Area2D PlayerDetector;
-	[OnReady("Character/Camera2D")] private Camera2D _camera2D;
-	[OnReady("Character/Marker2D")] public Marker2D Marker2D;
-	[OnReady("Character/CanJump")] public RayCast2D RaycastCanJump;
-	[OnReady("Character/FloorRaycasts")] public List<RayCast2D> FloorRaycasts;
+	[NodePath("Character/Sprites/AnimationPlayer")] private AnimationPlayer _animationPlayer;
+	[NodePath("Character/AttackArea1")] private Area2D _attackArea1;
+	[NodePath("Character/AttackArea2")] private Area2D _attackArea2;
+	[NodePath("Character/HurtArea")] private Area2D _hurtArea;
+	[NodePath("Character/RichTextLabel")] public RichTextLabel Label;
+	[NodePath("Character/Detector")] public Area2D PlayerDetector;
+	[NodePath("Character/Camera2D")] private Camera2D _camera2D;
+	[NodePath("Character/Marker2D")] public Marker2D Marker2D;
+	[NodePath("Character/CanJump")] public RayCast2D RaycastCanJump;
+	[NodePath("Character/FloorRaycasts")] public List<RayCast2D> FloorRaycasts;
 
 	[Inject] private Game Game { get; set; }
 	[Inject] private PlatformManager PlatformManager { get; set; }
