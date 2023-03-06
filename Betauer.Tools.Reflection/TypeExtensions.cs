@@ -2,19 +2,24 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Serialization;
 
 namespace Betauer.Tools.Reflection; 
 
 public static class TypeExtensions {
     private static readonly Dictionary<(Type, Type, MemberTypes, BindingFlags), object> Cache = new();
 
-    public static bool ImplementsInterface(this Type type, Type @interface) {
+
+    public static bool ImplementsInterface(this Type type, Type interfaceType) {
         if (type == null) throw new ArgumentNullException(nameof(type));
-        if (@interface == null) throw new ArgumentNullException(nameof(@interface));
-        var interfaces = type.GetInterfaces();
-        return @interface.IsGenericTypeDefinition
-            ? interfaces.Any(item => item.IsConstructedGenericType && item.GetGenericTypeDefinition() == @interface)
-            : interfaces.Any(item => item == @interface);
+        if (interfaceType == null) throw new ArgumentNullException(nameof(interfaceType));
+        
+        if (type.IsAssignableTo(interfaceType)) return true;
+        // If type or interface has empty generic, like IList<> or IDictionary<,>, check the interfaces one by one
+        
+        return type.GetInterfaces().Any(implementedInterface =>
+            implementedInterface == interfaceType ||
+            implementedInterface.IsGenericType && implementedInterface.GetGenericTypeDefinition() == interfaceType);
     }
 
     public static List<ISetter<T>> GetSettersCached<T>(this Type type, MemberTypes memberFlags,
@@ -92,5 +97,23 @@ public static class TypeExtensions {
         MemberTypes memberFlags, BindingFlags bindingAttr) {
         if (memberFlags.HasFlag(MemberTypes.Field)) e = e.Concat(type.GetFields(bindingAttr));
         return e;
+    }
+
+    public static void Main() {
+        // False
+        Console.WriteLine(typeof(List<>).ImplementsInterface(typeof(IList<string>)));
+        Console.WriteLine(typeof(Dictionary<,>).ImplementsInterface(typeof(IDictionary<string,int>)));
+        
+        // True
+        Console.WriteLine(typeof(List<string>).ImplementsInterface(typeof(IList<string>)));
+        Console.WriteLine(typeof(List<string>).ImplementsInterface(typeof(IList<>)));
+        Console.WriteLine(typeof(List<>).ImplementsInterface(typeof(IList<>)));
+
+        Console.WriteLine(typeof(Dictionary<string, int>).ImplementsInterface(typeof(ISerializable)));
+        Console.WriteLine(typeof(Dictionary<string, int>).ImplementsInterface(typeof(IDictionary<,>)));
+        Console.WriteLine(typeof(Dictionary<string, int>).ImplementsInterface(typeof(IDictionary<string,int>)));
+        Console.WriteLine(typeof(Dictionary<string, int>).ImplementsInterface(typeof(IReadOnlyDictionary<string,int>)));
+        Console.WriteLine(typeof(Dictionary<string, int>).ImplementsInterface(typeof(IReadOnlyCollection<KeyValuePair<string,int>>)));
+        Console.WriteLine(typeof(Dictionary<,>).ImplementsInterface(typeof(ISerializable)));
     }
 }
