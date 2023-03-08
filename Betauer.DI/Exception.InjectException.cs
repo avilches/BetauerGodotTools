@@ -9,11 +9,3 @@ public abstract class InjectException : Exception {
         Instance = instance;
     }
 }
-
-public class InjectMemberException : InjectException {
-    public readonly string Name;
-
-    public InjectMemberException(string name, object instance, string message) : base(message, instance) {
-        Name = name;
-    }
-}

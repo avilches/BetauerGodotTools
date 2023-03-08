@@ -25,7 +25,7 @@ public class ScannerBasicTests : Node {
 
     [Test(Description = "Types not found")]
     public void NotFound() {
-        var di = new ContainerBuilder();
+        var di = new Container.Builder();
         di.Scan<INotTagged>();
         di.Scan<MyServiceWithNotScanned>();
         Assert.Throws<InjectMemberException>(() => di.Build());
@@ -33,13 +33,24 @@ public class ScannerBasicTests : Node {
 
     [Service]
     [Configuration]
-    public class WrongCombination {
+    public class WrongCombination1 {
     }
 
-    [Test(Description = "Can't use [Configuration] and [Service] in the same class")]
+    [Factory]
+    [Configuration]
+    public class WrongCombination2 {
+    }
+
+    [Factory]
+    [Service]
+    public class WrongCombination3 {
+    }
+
+    [Test(Description = "Can't use [Configuration] [Fatory] and [Service] in the same class")]
     public void WrongCombinationTest() {
-        var e = Assert.Throws<Exception>(() => new ContainerBuilder().Scan<WrongCombination>());
-        Assert.That(e.Message, Contains.Substring("Can't use [Service] and [Configuration] in the same class"));
+        Assert.Throws<InvalidAttributeException>(() => new Container.Builder().Scan<WrongCombination1>());
+        Assert.Throws<InvalidAttributeException>(() => new Container.Builder().Scan<WrongCombination2>());
+        Assert.Throws<InvalidAttributeException>(() => new Container.Builder().Scan<WrongCombination3>());
     }
 
     [Service]
@@ -49,7 +60,7 @@ public class ScannerBasicTests : Node {
 
     [Test(Description = "Nullable")]
     public void Nullable() {
-        var di = new ContainerBuilder();
+        var di = new Container.Builder();
         di.Scan<MyServiceWithWithNullable>();
         var c = di.Build();
         Assert.That(!c.Contains<INotTagged>());
@@ -112,12 +123,12 @@ public class ScannerBasicTests : Node {
         InjectClass.n3 = new Node();
         InjectClass.n4 = new Node();
         InjectClass.n5 = new Node();
-        var di = new ContainerBuilder();
-        di.Static(InjectClass.n1, "node1");
-        di.Static(InjectClass.n2, "node2");
-        di.Static(InjectClass.n3, "node3");
-        di.Static(InjectClass.n4, "node4");
-        di.Static(InjectClass.n5, "node5");
+        var di = new Container.Builder();
+        di.Register(Provider.Static(InjectClass.n1, "node1"));
+        di.Register(Provider.Static(InjectClass.n2, "node2"));
+        di.Register(Provider.Static(InjectClass.n3, "node3"));
+        di.Register(Provider.Static(InjectClass.n4, "node4"));
+        di.Register(Provider.Static(InjectClass.n5, "node5"));
             
         di.Scan<InjectClass>();
         var c = di.Build();
@@ -133,12 +144,12 @@ public class ScannerBasicTests : Node {
         InjectClass.n3 = new Node();
         InjectClass.n4 = new Node();
         InjectClass.n5 = new Node();
-        var di = new ContainerBuilder();
-        di.Static(InjectClass.n1, "node1");
-        di.Static(InjectClass.n2, "node2");
-        di.Static(InjectClass.n3, "node3");
-        di.Static(InjectClass.n4, "node4");
-        di.Static(InjectClass.n5, "node5");
+        var di = new Container.Builder();
+        di.Register(Provider.Static(InjectClass.n1, "node1"));
+        di.Register(Provider.Static(InjectClass.n2, "node2"));
+        di.Register(Provider.Static(InjectClass.n3, "node3"));
+        di.Register(Provider.Static(InjectClass.n4, "node4"));
+        di.Register(Provider.Static(InjectClass.n5, "node5"));
         var c = di.Build();
             
         var i = new InjectClass();
@@ -161,7 +172,7 @@ public class ScannerBasicTests : Node {
 
     [Test(Description = "Name or type")]
     public void NameOrTypeClass() {
-        var di = new ContainerBuilder();
+        var di = new Container.Builder();
         di.Scan<ExposeServiceClass1>();
         di.Scan<ExposeServiceClass2>();
         di.Scan<ExposeServiceClass3>();
@@ -187,7 +198,7 @@ public class ScannerBasicTests : Node {
         
     [Test(Description = "Primary is false if there is no name specefied")]
     public void CheckPrimaryAttributeClasses() {
-        var di = new ContainerBuilder();
+        var di = new Container.Builder();
         di.Scan<PrimaryTagClass>();
         var c = di.Build();
         Assert.That(c.GetProvider<PrimaryTagClass>().Primary, Is.False);
@@ -205,7 +216,7 @@ public class ScannerBasicTests : Node {
 
     [Test(Description = "Check Primary attribute in configuration")]
     public void CheckPrimaryAttributeConfiguration() {
-        var di = new ContainerBuilder();
+        var di = new Container.Builder();
         di.Scan<PrimaryServiceConfiguration>();
         var c = di.Build();
         Assert.That(c.GetProvider("noPrimary").Primary, Is.False);
@@ -241,7 +252,7 @@ public class ScannerBasicTests : Node {
 
     [Test(Description = "Name or type members in configuration instance")]
     public void NameOrTypeMembersInConfigurationInstance() {
-        var di = new ContainerBuilder();
+        var di = new Container.Builder();
         di.ScanConfiguration(new ConfigurationScanned());
         var c = di.Build();
         AssertNameOrTypeMembers(c);
@@ -249,7 +260,7 @@ public class ScannerBasicTests : Node {
 
     [Test(Description = "Name or type members in configuration class")]
     public void NameOrTypeMembersInConfigurationClass() {
-        var di = new ContainerBuilder();
+        var di = new Container.Builder();
         di.Scan<ConfigurationScanned>();
         var c = di.Build();
         AssertNameOrTypeMembers(c);
@@ -309,7 +320,7 @@ public class ScannerBasicTests : Node {
 
     [Test(Description = "Check Primary works")]
     public void PrimaryTest() {
-        var di = new ContainerBuilder();
+        var di = new Container.Builder();
         di.Scan<ServiceByNameFallbackA>();
         di.Scan<ServiceByNameFallbackB>();
         var c = di.Build();
@@ -360,7 +371,7 @@ public class ScannerBasicTests : Node {
 
     [Test(Description = "Inject singletons in singleton + get/set properties")]
     public void IgnoreAlreadyInjectedFields() {
-        var di = new ContainerBuilder();
+        var di = new Container.Builder();
         EmptyTransient.Created = 0;
 
         di.Scan<EmptyTransient>();
@@ -383,7 +394,7 @@ public class ScannerBasicTests : Node {
 
     [Test(Description = "Inject singletons in singleton + get/set properties")]
     public void SingletonInSingleton() {
-        var di = new ContainerBuilder();
+        var di = new Container.Builder();
         EmptyTransient.Created = 0;
         SingletonWith2Transients.Created = 0;
         MySingleton.Created = 0;
@@ -430,7 +441,7 @@ public class ScannerBasicTests : Node {
 
     [Test(Description = "Inject transients in transient")]
     public void TransientInTransient() {
-        var di = new ContainerBuilder();
+        var di = new Container.Builder();
         EmptyTransient.Created = 0;
         SingletonWith2Transients.Created = 0;
         TransientService.Created = 0;
@@ -499,7 +510,7 @@ public class ScannerBasicTests : Node {
     }
     [Test(Description = "When an interface has multiple implementations, register by name")]
     public void InterfaceWithMultipleImplementations() {
-        var di = new ContainerBuilder();
+        var di = new Container.Builder();
         MultipleImpl3ByName.Created = 0;
         di.Scan<MultipleImpl1ByName>();
         di.Scan<MultipleImpl2ByName>();
@@ -542,7 +553,7 @@ public class ScannerBasicTests : Node {
 
     [Test(Description = "When an interface has multiple implementations, register by one type")]
     public void InterfaceWithMultipleImplementationsByType() {
-        var di = new ContainerBuilder();
+        var di = new Container.Builder();
         di.Scan<MultipleImpl1ByType>();
         di.Scan<ServiceWithMultipleImplByType>();
         var c = di.Build();
@@ -563,7 +574,7 @@ public class ScannerBasicTests : Node {
 
     [Test(Description = "Create if not found")]
     public void CreateIfNotFound() {
-        var di = new ContainerBuilder();
+        var di = new Container.Builder();
         var c = di.Build();
         c.CreateIfNotFound = true;
         var s1 = c.Resolve<AutoTransient2>();
@@ -625,13 +636,13 @@ public class ScannerBasicTests : Node {
         
     [Test(Description = "Inject singletons by name exported in a singleton")]
     public void ExportSingletonFrom() {
-        var di = new ContainerBuilder();
+        var di = new Container.Builder();
         di.Scan<SingletonInjected>();
         di.Scan<SingletonHolder>();
         var c = di.Build();
 
         LoggerFactory.SetTraceLevel(typeof(Container), TraceLevel.Info);
-        LoggerFactory.SetTraceLevel(typeof(ContainerBuilder), TraceLevel.Info);
+        LoggerFactory.SetTraceLevel(typeof(Container.Builder), TraceLevel.Info);
         SingletonInjected s1 = c.Resolve<SingletonInjected>();
         SingletonInjected s2 = c.Resolve<SingletonInjected>();
         Assert.That(s1, Is.EqualTo(s2));
@@ -695,13 +706,13 @@ public class ScannerBasicTests : Node {
         
     [Test(Description = "Inject Transients by name exported in a Transient")]
     public void ExportTransientFrom() {
-        var di = new ContainerBuilder();
+        var di = new Container.Builder();
         di.Scan<TransientInjected>();
         di.Scan<TransientHolder>();
         var c = di.Build();
 
         LoggerFactory.SetTraceLevel(typeof(Container), TraceLevel.Info);
-        LoggerFactory.SetTraceLevel(typeof(ContainerBuilder), TraceLevel.Info);
+        LoggerFactory.SetTraceLevel(typeof(Container.Builder), TraceLevel.Info);
         TransientInjected s1 = c.Resolve<TransientInjected>();
         TransientInjected s2 = c.Resolve<TransientInjected>();
         Assert.That(s1, Is.Not.EqualTo(s2));
@@ -740,7 +751,7 @@ public class ScannerBasicTests : Node {
 
     [Test(Description = "Use configuration to export members")]
     public void ExportFromConfiguration() {
-        var di = new ContainerBuilder();
+        var di = new Container.Builder();
         di.Scan<ConfigurationService>();
         var c = di.Build();
 
@@ -781,7 +792,7 @@ public class ScannerBasicTests : Node {
 
     [Test]
     public void AddToScanByImportTest() {
-        var di = new ContainerBuilder();
+        var di = new Container.Builder();
         di.Scan<AddToScanByImport>();
         var c = di.Build();
         Assert.That(c.Resolve<ImportedService>(), Is.TypeOf<ImportedService>());
@@ -790,7 +801,7 @@ public class ScannerBasicTests : Node {
 
     [Test]
     public void AddToScanByImportConfigurationInstanceTest() {
-        var di = new ContainerBuilder();
+        var di = new Container.Builder();
         di.ScanConfiguration(new AddToScanByImport());
         var c = di.Build();
         Assert.That(c.Resolve<ImportedService>(), Is.TypeOf<ImportedService>());

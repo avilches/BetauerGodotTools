@@ -35,7 +35,7 @@ public class ScannerLazyTests {
 
     [Test(Description = "Check Lazy attribute")]
     public void CheckLazyAttribute() {
-        var di = new ContainerBuilder();
+        var di = new Container.Builder();
         di.Scan<LazyConfiguration>();
         var c = di.Build();
         Assert.That((c.GetProvider<NoLazyClass>() as ISingletonProvider)!.Lazy, Is.False);

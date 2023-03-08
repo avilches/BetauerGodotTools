@@ -11,7 +11,7 @@ using Betauer.Tools.Reflection;
 
 namespace Betauer.DI;
 
-public class Container {
+public partial class Container {
     private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(Container));
     private readonly Dictionary<Type, IProvider> _fallbackByType = new();
     private readonly Dictionary<string, IProvider> _registry = new();
@@ -38,7 +38,7 @@ public class Container {
         Add(new SingletonInstanceProvider(typeof(Container),typeof(Container),this));
     }
 
-    public ContainerBuilder CreateBuilder() => new ContainerBuilder(this);
+    public Builder CreateBuilder() => new Builder(this);
 
     public Container Build(ICollection<IProvider> providers) {
         providers
@@ -101,17 +101,17 @@ public class Container {
         return false;
     }
 
-    public IProvider GetProvider(string name) => _registry[name];
+    public IProvider GetProvider(string name) => _registry.TryGetValue(name, out var found) ? found : throw new ServiceNotFoundException(name);
     public IProvider GetProvider<T>() => GetProvider(typeof(T));
     public IProvider GetProvider<T>(string name) => GetProvider(typeof(T), name);
     public IProvider GetProvider(Type type) => 
-        _registry.TryGetValue(type.FullName, out var found) ? found : _fallbackByType[type];
+        _registry.TryGetValue(type.FullName, out var found) ? found : _fallbackByType.TryGetValue(type, out var fallback) ? fallback : throw new ServiceNotFoundException(type);
 
     public IProvider GetProvider(Type type, string name) {
         if (_registry.TryGetValue(name, out var provider)) {
             return type.IsAssignableFrom(provider.ProviderType) ? provider : throw new InvalidCastException();
         }
-        throw new KeyNotFoundException(name);
+        throw new ServiceNotFoundException(name);
     }
 
     public bool TryGetProvider(string name, out IProvider? provider) => _registry.TryGetValue(name, out provider);
@@ -136,7 +136,7 @@ public class Container {
         if (TryResolve(type, out var instance)) {
             return instance;
         }
-        throw new KeyNotFoundException($"Service not found. Type: {type.Name}");
+        throw new ServiceNotFoundException(type);
     }
 
     public T Resolve<T>(string name) => (T)Resolve(name);
@@ -144,7 +144,7 @@ public class Container {
         if (TryResolve(name, out var instance)) {
             return instance;
         }
-        throw new KeyNotFoundException($"Service not found. name: {name}");
+        throw new ServiceNotFoundException(name);
     }
 
     public bool TryResolve<T>(out T instance) {
@@ -204,6 +204,7 @@ public class Container {
     }
 
     internal static void ExecutePostInjectMethods<T>(T instance) {
+        // TODO: use cached FastMethodInfo
         var methods = instance.GetType().GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
         foreach (var method in methods) {
             if (method.HasAttribute<PostInjectAttribute>()) {
@@ -214,7 +215,7 @@ public class Container {
                         ExceptionDispatchInfo.Capture(e.InnerException).Throw();
                     }
                 } else {
-                    throw new Exception($"Method [PostInject] {method.Name}(...) must have only 0 parameters");
+                    throw new InvalidAttributeException($"Method [PostInject] {method.Name}(...) must have only 0 parameters");
                 }
             }
         }
@@ -225,18 +226,18 @@ public class Container {
             return provider.Get(context);
         }
         if (CreateIfNotFound) {
-            CreateBuilder().Register(type, type, () => Activator.CreateInstance(type), Lifetime.Transient).Build();
+            AddToRegistry(Provider.Create(type, type, () => Activator.CreateInstance(type), Lifetime.Transient));
             // ReSharper disable once TailRecursiveCall
             return Resolve(type, context);
         }
-        throw new KeyNotFoundException($"Service not found. Type: {type.Name}");
+        throw new ServiceNotFoundException(type);
     }
 
     internal object Resolve(string name, ResolveContext context) {
         if (TryGetProvider(name, out IProvider? provider)) {
             return provider.Get(context);
         }
-        throw new KeyNotFoundException($"Service not found. name: {name}");
+        throw new ServiceNotFoundException(name);
     }
 
 

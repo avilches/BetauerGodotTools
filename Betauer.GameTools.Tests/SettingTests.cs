@@ -9,6 +9,7 @@ using Betauer.Input;
 using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
+using Container = Betauer.DI.Container;
 
 namespace Betauer.GameTools.Tests {
     [TestFixture]
@@ -119,9 +120,9 @@ namespace Betauer.GameTools.Tests {
 
         [Test(Description = "Error if container not found by type")]
         public void ErrorConfigWithNoContainerTest() {
-            var di = new ContainerBuilder();
+            var di = new Container.Builder();
             di.Scan<ErrorConfigWithNoContainer>();
-            Assert.Throws<KeyNotFoundException>(() => di.Build());
+            Assert.Throws<ServiceNotFoundException>(() => di.Build());
         }
 
         [Configuration]
@@ -132,9 +133,9 @@ namespace Betauer.GameTools.Tests {
 
         [Test(Description = "Error if container not found by name")]
         public void ErrorConfigWithContainerNotFoundByNameTest() {
-            var di = new ContainerBuilder();
+            var di = new Container.Builder();
             di.Scan<ErrorConfigWithContainerNotFoundByName>();
-            Assert.Throws<KeyNotFoundException>(() => di.Build());
+            Assert.Throws<ServiceNotFoundException>(() => di.Build());
         }
 
         [Configuration]
@@ -170,7 +171,7 @@ namespace Betauer.GameTools.Tests {
 
         [Test]
         public void ConfigWithSettingContainerTest() {
-            var di = new ContainerBuilder();
+            var di = new Container.Builder();
             di.Scan<ConfigWithSettingContainer>();
             di.Scan<Service1>();
             var c = di.Build();
@@ -256,7 +257,7 @@ namespace Betauer.GameTools.Tests {
             cf.Clear();
             cf.Dispose();
             
-            var di = new ContainerBuilder();
+            var di = new Container.Builder();
             di.Scan<ConfigWithSettingContainer>();
             di.Scan<Service1>();
             var c = di.Build();
@@ -294,7 +295,7 @@ namespace Betauer.GameTools.Tests {
 
         [Test]
         public void ConfigWithMultipleContainerTest() {
-            var di = new ContainerBuilder();
+            var di = new Container.Builder();
             di.Scan<ConfigWithMultipleContainer>();
             di.Scan<Basic2>();
             var c = di.Build();

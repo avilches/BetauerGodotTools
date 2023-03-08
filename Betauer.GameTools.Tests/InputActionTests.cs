@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using Betauer.Application.Settings;
 using Betauer.DI;
+using Betauer.DI.ServiceProvider;
 using Betauer.Input;
 using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
+using Container = Betauer.DI.Container;
 
 namespace Betauer.GameTools.Tests {
     [TestFixture]
@@ -154,9 +156,9 @@ namespace Betauer.GameTools.Tests {
 
         [Test(Description = "Error if there is no InputActionsContainer")]
         public void InputWithoutInputActionsContainerTest() {
-            var di = new ContainerBuilder();
+            var di = new Container.Builder();
             di.Scan<InputWithoutInputActionsContainer>();
-            Assert.Throws<KeyNotFoundException>(() => di.Build());
+            Assert.Throws<ServiceNotFoundException>(() => di.Build());
         }
         
         [Configuration]
@@ -167,10 +169,10 @@ namespace Betauer.GameTools.Tests {
 
         [Test(Description = "Error if there is not a SettingContainer when a Configurable() action is used")]
         public void ConfigurableInputWithContainerButWithoutSettingContainerTest() {
-            var di = new ContainerBuilder();
-            di.Singleton<SceneTree>(GetTree);
+            var di = new Container.Builder();
+            di.Register(Provider.Singleton<SceneTree>(GetTree));
             di.Scan<ConfigurableInputWithContainerButWithoutSettingContainer>();
-            var e = Assert.Throws<KeyNotFoundException>(() => di.Build());
+            var e = Assert.Throws<ServiceNotFoundException>(() => di.Build());
             Assert.That(e.Message, Contains.Substring(nameof(SettingsContainer)));
         }
 
@@ -185,8 +187,8 @@ namespace Betauer.GameTools.Tests {
 
         [Test(Description = "Use a custom InputActionsContainer")]
         public void InputActionContainerTests() {
-            var di = new ContainerBuilder();
-            di.Singleton<SceneTree>(GetTree);
+            var di = new Container.Builder();
+            di.Register(Provider.Singleton<SceneTree>(GetTree));
             di.Scan<InputWithContainer>();
             var c = di.Build();
             var s = c.Resolve<InputActionsContainer>();
@@ -230,10 +232,10 @@ namespace Betauer.GameTools.Tests {
 
         [Test(Description = "Configurable with different setting container")]
         public void ConfigurableInputWithContainerAndSettingsTests() {
-            var di = new ContainerBuilder();
+            var di = new Container.Builder();
             di.Scan<ConfigurableInputWithContainerAndSettings>();
             di.Scan<Service4>();
-            di.Singleton<SceneTree>(GetTree);
+            di.Register(Provider.Singleton<SceneTree>(GetTree));
             var c = di.Build();
             var s = c.Resolve<Service4>();
 
@@ -280,10 +282,10 @@ namespace Betauer.GameTools.Tests {
 
         [Test(Description = "Configurable with different input action container")]
         public void MultipleInputActionContainerTest() {
-            var di = new ContainerBuilder();
+            var di = new Container.Builder();
             di.Scan<MultipleInputActionContainer>();
             di.Scan<Service5>();
-            di.Singleton<SceneTree>(GetTree);
+            di.Register(Provider.Singleton<SceneTree>(GetTree));
             var c = di.Build();
             var s = c.Resolve<Service5>();
             

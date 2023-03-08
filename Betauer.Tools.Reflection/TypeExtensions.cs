@@ -17,7 +17,7 @@ public static class TypeExtensions {
         if (type.IsAssignableTo(interfaceType)) return true;
         
         // interfaceType is a GenericTypeDefinition (that means is something like List<> instead of List<string>)
-        return interfaceType == type.GetGenericTypeDefinition() ||
+        return (interfaceType.IsGenericTypeDefinition && interfaceType == type.GetGenericTypeDefinition()) ||
                type.GetInterfaces().Any(implementedInterface =>
                    implementedInterface == interfaceType ||
                    implementedInterface.IsGenericType &&

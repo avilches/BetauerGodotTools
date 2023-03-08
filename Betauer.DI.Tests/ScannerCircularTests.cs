@@ -17,7 +17,7 @@ public class ScannerCircularTests : Node {
 
     [Test(Description = "Singleton includes itself: OK")]
     public void SingletonItSelf() {
-        var di = new ContainerBuilder();
+        var di = new Container.Builder();
         Singleton.Created = 0;
         di.Scan<Singleton>();
         var s = di.Build().Resolve<Singleton>();
@@ -35,7 +35,7 @@ public class ScannerCircularTests : Node {
 
     [Test(Description = "Transient includes itself: ERROR")]
     public void TransientItSelf() {
-        var di = new ContainerBuilder();
+        var di = new Container.Builder();
         Transient.Created = 0;
         di.Scan<Transient>();
         var container = di.Build();
@@ -60,10 +60,10 @@ public class ScannerCircularTests : Node {
 
     [Test(Description = "Singleton includes itself using interface as type: OK")]
     public void CircularSingletonTypes() {
-        var di = new ContainerBuilder();
+        var di = new Container.Builder();
         SingletonX.Created = 0;
 
-        di.Singleton<ISingletonX, SingletonX>();
+        di.Register(Provider.Singleton<ISingletonX, SingletonX>());
         var tx = di.Build().Resolve<ISingletonX>();
 
         Assert.That(SingletonX.Created, Is.EqualTo(1));
@@ -86,10 +86,10 @@ public class ScannerCircularTests : Node {
 
     [Test(Description = "Transient includes itself using interface as type: ERROR")]
     public void CircularTransientTypes() {
-        var di = new ContainerBuilder();
+        var di = new Container.Builder();
         TransientX.Created = 0;
 
-        di.Transient<ITransientX, TransientX>();
+        di.Register(Provider.Transient<ITransientX, TransientX>());
         var c = di.Build();
         Assert.Throws<CircularDependencyException>(() => c.Resolve<ITransientX>());
         Assert.That(TransientX.Created, Is.EqualTo(1));
@@ -120,7 +120,7 @@ public class ScannerCircularTests : Node {
 
     [Test(Description = "Circular dependency between singleton: OK")]
     public void CircularSingleton() {
-        var di = new ContainerBuilder();
+        var di = new Container.Builder();
         SingletonA.Created = 0;
         SingletonB.Created = 0;
         SingletonC.Created = 0;
@@ -170,7 +170,7 @@ public class ScannerCircularTests : Node {
 
     [Test(Description = "Circular dependency between transients: ERROR")]
     public void CircularTransient() {
-        var di = new ContainerBuilder();
+        var di = new Container.Builder();
         TransientA.Created = 0;
         TransientB.Created = 0;
         TransientC.Created = 0;
@@ -206,7 +206,7 @@ public class ScannerCircularTests : Node {
 
     [Test]
     public void MemberExposing() {
-        var di = new ContainerBuilder();
+        var di = new Container.Builder();
         di.Scan<ImportSelf>();
         di.Scan<AddToScanByImport>();
         var c = di.Build();

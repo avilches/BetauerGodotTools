@@ -30,8 +30,6 @@ public class Injector {
         // Ignore the already defined values
         if (getterSetter is IGetter getter && getter.GetValue(target) is not null) return;
         
-        if (InjectorFunction.InjectField(_container, target, getterSetter)) return;
-
         var nullable = getterSetter.SetterAttribute.Nullable;
         var name = getterSetter.SetterAttribute.Name;
         // Explicit name

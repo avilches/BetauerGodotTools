@@ -17,7 +17,7 @@ public class GodotContainer {
     private readonly bool _addSingletonNodesToTree;
     private readonly bool _injectPropertiesOnNodeAddedToTree = true;
     private readonly Container _container = new();
-    private Action<ContainerBuilder>? _containerConfig = null;
+    private Action<Container.Builder>? _containerConfig = null;
 
     public GodotContainer(Node owner, bool addSingletonNodesToTree = true, bool injectPropertiesOnNodeAddedToTree = true) {
         _owner = owner;
@@ -25,7 +25,7 @@ public class GodotContainer {
         _injectPropertiesOnNodeAddedToTree = injectPropertiesOnNodeAddedToTree;
     }
 
-    public GodotContainer Start(Action<ContainerBuilder>? containerConfig = null) {
+    public GodotContainer Start(Action<Container.Builder>? containerConfig = null) {
         _containerConfig = containerConfig;
         if (_owner.IsInsideTree()) StartContainer();
         else _owner.Connect(Node.SignalName.TreeEntered, Callable.From(StartContainer), SignalTools.SignalFlags(true));

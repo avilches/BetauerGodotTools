@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 
 namespace Betauer.Core.Pool;
 
+// TODO: Create a simple mini pool where the objects must be returned to use them again
 public abstract class BaseMiniPool<T> where T : class {
     private readonly List<T> _pool;
     private readonly Func<T> _factory;

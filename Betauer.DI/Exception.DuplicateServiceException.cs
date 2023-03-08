@@ -1,6 +1,6 @@
 using System;
 
-namespace Betauer.DI; 
+namespace Betauer.DI;
 
 public class DuplicateServiceException : Exception {
     public DuplicateServiceException(Type type) : base($"Service already registered. Type: {type.Name}") {

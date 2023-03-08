@@ -7,10 +7,12 @@ using Betauer.Application.Screen;
 using Betauer.Application.Settings;
 using Betauer.Core;
 using Betauer.DI;
+using Betauer.DI.ServiceProvider;
 using Betauer.Input;
 using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
+using Container = Betauer.DI.Container;
 
 namespace Betauer.GameTools.Tests {
     [TestFixture]
@@ -65,8 +67,8 @@ namespace Betauer.GameTools.Tests {
 
         [Test]
         public void SaveSettingTest() {
-            var di = new ContainerBuilder();
-            di.Static(GetTree());
+            var di = new Container.Builder();
+            di.Register(Provider.Static(GetTree()));
             di.Scan<ScreenSettingsManagerConfig>();
             di.Scan<ScreenSettingsSavedConfig>();
             var c = di.Build();
@@ -112,8 +114,8 @@ namespace Betauer.GameTools.Tests {
         
         [Test]
         public void MemorySettingTest() {
-            var di = new ContainerBuilder();
-            di.Static(GetTree());
+            var di = new Container.Builder();
+            di.Register(Provider.Static(GetTree()));
             di.Scan<ScreenSettingsManagerConfig>();
             var c = di.Build();
             var s = c.Resolve<ScreenSettingsManager>();
