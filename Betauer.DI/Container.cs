@@ -15,7 +15,7 @@ public partial class Container {
     private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(Container));
     private readonly Dictionary<Type, IProvider> _fallbackByType = new();
     private readonly Dictionary<string, IProvider> _registry = new();
-    public readonly Injector Injector;
+    private readonly Injector _injector;
     public bool CreateIfNotFound { get; set; }
     public event Action<Lifetime, object> OnCreated;
 
@@ -33,7 +33,8 @@ public partial class Container {
 
     
     public Container() {
-        Injector = new Injector(this);
+        _injector = new Injector(this);
+        
         // Adding the Container in the Container allows to use [Inject] Container...
         Add(new SingletonInstanceProvider(typeof(Container),typeof(Container),this));
     }
@@ -249,6 +250,6 @@ public partial class Container {
     }
 
     internal void InjectServices(object o, ResolveContext context) {
-        Injector.InjectServices(o, context);
+        _injector.InjectServices(o, context);
     }
 }
