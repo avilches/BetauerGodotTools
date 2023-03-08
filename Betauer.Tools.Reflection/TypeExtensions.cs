@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -16,6 +17,10 @@ public static class TypeExtensions {
         
         if (type.IsAssignableTo(interfaceType)) return true;
         // If type or interface has empty generic, like IList<> or IDictionary<,>, check the interfaces one by one
+
+        if (interfaceType.IsGenericTypeDefinition && interfaceType.GetGenericTypeDefinition() == type.GetGenericTypeDefinition()) {
+            return true;
+        }
         
         return type.GetInterfaces().Any(implementedInterface =>
             implementedInterface == interfaceType ||
@@ -105,15 +110,27 @@ public static class TypeExtensions {
         Console.WriteLine(typeof(Dictionary<,>).ImplementsInterface(typeof(IDictionary<string,int>)));
         
         // True
+        Console.WriteLine(typeof(List<string>).ImplementsInterface(typeof(IEnumerable)));
+        Console.WriteLine(typeof(List<string>).ImplementsInterface(typeof(IEnumerable<>)));
         Console.WriteLine(typeof(List<string>).ImplementsInterface(typeof(IList<string>)));
         Console.WriteLine(typeof(List<string>).ImplementsInterface(typeof(IList<>)));
         Console.WriteLine(typeof(List<>).ImplementsInterface(typeof(IList<>)));
+        
+        Console.WriteLine(typeof(IList<string>).ImplementsInterface(typeof(IList<string>)));
+        Console.WriteLine(typeof(IList<string>).ImplementsInterface(typeof(IList<>)));
+        Console.WriteLine(typeof(IList<>).ImplementsInterface(typeof(IList<>)));
 
-        Console.WriteLine(typeof(Dictionary<string, int>).ImplementsInterface(typeof(ISerializable)));
+        Console.WriteLine(typeof(Dictionary<string, int>).ImplementsInterface(typeof(IEnumerable)));
+        Console.WriteLine(typeof(Dictionary<string, int>).ImplementsInterface(typeof(IEnumerable<>)));
         Console.WriteLine(typeof(Dictionary<string, int>).ImplementsInterface(typeof(IDictionary<,>)));
         Console.WriteLine(typeof(Dictionary<string, int>).ImplementsInterface(typeof(IDictionary<string,int>)));
         Console.WriteLine(typeof(Dictionary<string, int>).ImplementsInterface(typeof(IReadOnlyDictionary<string,int>)));
         Console.WriteLine(typeof(Dictionary<string, int>).ImplementsInterface(typeof(IReadOnlyCollection<KeyValuePair<string,int>>)));
-        Console.WriteLine(typeof(Dictionary<,>).ImplementsInterface(typeof(ISerializable)));
+        Console.WriteLine(typeof(Dictionary<string, int>).ImplementsInterface(typeof(ICollection<KeyValuePair<string,int>>)));
+        Console.WriteLine(typeof(Dictionary<,>).ImplementsInterface(typeof(IEnumerable)));
+
+        Console.WriteLine(typeof(IDictionary<string, int>).ImplementsInterface(typeof(IEnumerable)));
+        Console.WriteLine(typeof(IDictionary<string, int>).ImplementsInterface(typeof(IEnumerable<>)));
+        Console.WriteLine(typeof(IDictionary<string, int>).ImplementsInterface(typeof(ICollection<KeyValuePair<string,int>>)));
     }
 }

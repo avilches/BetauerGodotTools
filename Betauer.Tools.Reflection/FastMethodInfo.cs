@@ -7,45 +7,52 @@ using System.Reflection;
 namespace Betauer.Tools.Reflection; 
 
 public class FastMethodInfo {
+    private delegate object? ReturnValueDelegate(object instance, object[] arguments);
+    private delegate void VoidDelegate(object instance, object[] arguments);
+    
+    private readonly ReturnValueDelegate _delegate;
+
     public FastMethodInfo(MethodInfo methodInfo) {
-        var instanceExpression = Expression.Parameter(typeof(object), "instance");
-        var argumentsExpression = Expression.Parameter(typeof(object[]), "arguments");
-        var argumentExpressions = new List<Expression>();
-        var parameterInfos = methodInfo.GetParameters();
-        for (var i = 0; i < parameterInfos.Length; ++i) {
-            var parameterInfo = parameterInfos[i];
-            argumentExpressions.Add(Expression.Convert(
-                Expression.ArrayIndex(argumentsExpression, Expression.Constant(i)), parameterInfo.ParameterType));
-        }
-        var callExpression =
-            Expression.Call(
-                !methodInfo.IsStatic ? Expression.Convert(instanceExpression, methodInfo.ReflectedType) : null,
-                methodInfo, argumentExpressions);
+        var instanceParameter = Expression.Parameter(typeof(object), "instance");
+        var argumentsParameter = Expression.Parameter(typeof(object[]), "arguments");
+
+        var instance = methodInfo.IsStatic ? null : Expression.Convert(instanceParameter, methodInfo.ReflectedType!);
+        var argumentExpressionList = CreateArgumentExpressionList(methodInfo.GetParameters(), argumentsParameter);
+        var callExpression = Expression.Call(instance, methodInfo, argumentExpressionList);
         if (callExpression.Type == typeof(void)) {
-            var voidDelegate = Expression
-                .Lambda<VoidDelegate>(callExpression, instanceExpression, argumentsExpression).Compile();
-            Delegate = (instance, arguments) => {
+            var voidDelegate = Expression.Lambda<VoidDelegate>(callExpression, instanceParameter, argumentsParameter).Compile();
+            _delegate = (instance, arguments) => {
                 voidDelegate(instance, arguments);
                 return null;
             };
         } else {
-            Delegate = Expression.Lambda<ReturnValueDelegate>(Expression.Convert(callExpression, typeof(object)),
-                instanceExpression, argumentsExpression).Compile();
+            _delegate = Expression.Lambda<ReturnValueDelegate>(Expression.Convert(callExpression, typeof(object)),
+                instanceParameter, argumentsParameter).Compile();
         }
     }
 
-    private ReturnValueDelegate Delegate { get; }
-
-    public object? Invoke(object instance, params object[] arguments) {
-        return Delegate(instance, arguments);
+    private static Expression[]? CreateArgumentExpressionList(ParameterInfo[] parameterInfos, ParameterExpression argumentsExpression) {
+        if (parameterInfos.Length == 0) return null;
+        var argumentExpressions = new Expression[parameterInfos.Length];
+        for (var i = 0; i < parameterInfos.Length; ++i) {
+            var parameterInfo = parameterInfos[i];
+            argumentExpressions[i] = Expression.Convert(
+                Expression.ArrayIndex(argumentsExpression, Expression.Constant(i)), parameterInfo.ParameterType);
+        }
+        return argumentExpressions;
     }
 
-    private delegate object? ReturnValueDelegate(object instance, object[] arguments);
+    public object? Invoke(object instance) {
+        return _delegate(instance, Array.Empty<object>());
+    }
 
-    private delegate void VoidDelegate(object instance, object[] arguments);
+    public object? Invoke(object instance, params object[] arguments) {
+        return _delegate(instance, arguments);
+    }
+
 }
 
-file class FastMethodInfoTest {
+class FastMethodInfoTest {
     private string v;
 
     public string Get() {
@@ -58,7 +65,7 @@ file class FastMethodInfoTest {
 
     public static void Main() {
         var ins = new FastMethodInfoTest();
-        var TIMES = 1000000;
+        var TIMES = 10000000;
 
         var get = typeof(FastMethodInfoTest).GetMethod("Get");
         var x = Stopwatch.StartNew();

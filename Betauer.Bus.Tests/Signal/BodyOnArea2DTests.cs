@@ -9,7 +9,6 @@ namespace Betauer.Bus.Tests.Signal;
 
 [TestFixture]
 public class BodyOnArea2DTests : BaseNodeTest {
-    [Only]
     [SetUp]
     public void Setup() {
         LoggerFactory.OverrideTraceLevel(TraceLevel.All);
