@@ -108,54 +108,5 @@ public partial class Container {
             object Factory() => getter.GetValue(configuration)!;
             _builder.RegisterCustomFactory(genericType, Factory, name, primary, lazy);
         }
-    
-        internal class FastGetFromProvider {
-            private readonly Type _type;
-            private readonly IProvider _provider;
-            private FastMethodInfo? _providerGetMethod;
-    
-            public FastGetFromProvider(Type type, IProvider provider) {
-                _type = type;
-                _provider = provider;
-            }
-    
-            public object Get() {
-                var factoryInstance = _provider.Get();
-                _providerGetMethod ??= FindGetMethod(factoryInstance);
-                return _providerGetMethod.Invoke(factoryInstance)!;
-            }
-    
-            private FastMethodInfo FindGetMethod(object factoryInstance) {
-                return new FastMethodInfo(
-                    factoryInstance.GetType()
-                        .GetMethods(BindingFlags.Public | BindingFlags.Instance)
-                        .First(m =>
-                            m.Name == nameof(IFactory<object>.Get) &&
-                            m.GetParameters().Length == 0 &&
-                            m.ReturnType == _type));
-            }
-        }
-    
-        internal abstract class CustomFactoryProvider {
-            public abstract object Get();
-            internal static CustomFactoryProvider Create(Type type, IProvider provider) {
-                var factoryType = typeof(CustomFactoryProvider<>).MakeGenericType(type);
-                CustomFactoryProvider instance = (CustomFactoryProvider)Activator.CreateInstance(factoryType, provider)!;
-                return instance;
-            }
-        }
-    
-        internal class CustomFactoryProvider<T> : CustomFactoryProvider {
-            private readonly IProvider _customFactory;
-    
-            public CustomFactoryProvider(IProvider customFactory) {
-                _customFactory = customFactory;
-            }
-    
-            public override object Get() {
-                IFactory<T> factory = (IFactory<T>)_customFactory.Get();
-                return factory.Get();
-            }
-        }
     }
 }

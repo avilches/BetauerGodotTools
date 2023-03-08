@@ -41,7 +41,7 @@ public partial class Container {
             Register(provider);
     
             Type factoryType = typeof(IFactory<>).MakeGenericType(type);
-            object CustomFactory() => FactoryProvider.Create(type, provider);
+            object CustomFactory() => ProviderFactory.Create(type, provider);
             Register(Provider.Create(factoryType, factoryType, CustomFactory, Lifetime.Singleton, $"IFactory<{type}>:{name}", false, true));
             return this;
         }
@@ -60,7 +60,7 @@ public partial class Container {
             // Then, with the real factory instance (which we don't know what type is it, but we know it implements IFactory<type>)
             // we call to the "Get()" method using reflection (through FastMethodInfo, which is very fast because it compiles a lambda to call to the method)
             // The instance is scanned for inject and [PostCreate] as usual.
-            var getFromProviderFactory = new Scanner.FastGetFromProvider(type, providerCustomFactory);
+            var getFromProviderFactory = ProviderCustomFactory.Create(type, providerCustomFactory);
             var providerFactory = Provider.Create(type, type, getFromProviderFactory.Get, Lifetime.Transient, null, false, true);
             Register(providerFactory);
     
@@ -69,7 +69,7 @@ public partial class Container {
             // invokes the original factory through the providerFactory, which returns an instance and scan for [Inject] and [PostCreate]
             Register(Provider.Create(factoryType, factoryType, () => {
                 object ProviderFactory() => providerFactory.Get();
-                return Factory.Create(type, ProviderFactory);
+                return FuncFactory.Create(type, ProviderFactory);
             }, Lifetime.Singleton, factoryName, primary, true));
             return this;
         }
@@ -104,5 +104,71 @@ public partial class Container {
             return this;
         }
 
+        public abstract class FuncFactory {
+            protected readonly Func<object> FactoryFunc;
+
+            protected FuncFactory(Func<object> factoryFunc) {
+                FactoryFunc = factoryFunc;
+            }
+
+            public static FuncFactory Create(Type genericType, Func<object> factory) {
+                var type = typeof(FuncFactoryTyped<>).MakeGenericType(genericType);
+                FuncFactory instance = (FuncFactory)Activator.CreateInstance(type, factory)!;
+                return instance;
+            }
+            
+            public class FuncFactoryTyped<T> : FuncFactory, IFactory<T> {
+                public FuncFactoryTyped(Func<object> factoryFunc) : base(factoryFunc) {
+                }
+
+                public T Get() {
+                    return (T)FactoryFunc.Invoke();
+                }
+            }
+        }
+
+        public abstract class ProviderFactory {
+            protected readonly IProvider Provider;
+
+            protected ProviderFactory(IProvider provider) {
+                Provider = provider;
+            }
+
+            public static ProviderFactory Create(Type type, IProvider provider) {
+                var factoryType = typeof(ProviderFactoryTyped<>).MakeGenericType(type);
+                ProviderFactory instance = (ProviderFactory)Activator.CreateInstance(factoryType, provider)!;
+                return instance;
+            }     
+            
+            public class ProviderFactoryTyped<T> : ProviderFactory, IFactory<T> {
+                public ProviderFactoryTyped(IProvider provider) : base(provider) {
+                }
+
+                public T Get() => (T)Provider.Get();
+            }
+        }
+
+        public abstract class ProviderCustomFactory {
+            public abstract object Get();
+            
+            public static ProviderCustomFactory Create(Type type, IProvider provider) {
+                var factoryType = typeof(ProviderCustomFactoryTyped<>).MakeGenericType(type);
+                ProviderCustomFactory instance = (ProviderCustomFactory)Activator.CreateInstance(factoryType, provider)!;
+                return instance;
+            }
+
+            public class ProviderCustomFactoryTyped<T> : ProviderCustomFactory {
+                private readonly IProvider _customFactory;
+        
+                public ProviderCustomFactoryTyped(IProvider customFactory) {
+                    _customFactory = customFactory;
+                }
+        
+                public override object Get() {
+                    IFactory<T> factory = (IFactory<T>)_customFactory.Get();
+                    return factory.Get();
+                }
+            }
+        }
     }
 }

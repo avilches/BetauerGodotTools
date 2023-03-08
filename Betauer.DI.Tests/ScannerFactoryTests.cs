@@ -6,7 +6,6 @@ using NUnit.Framework;
 namespace Betauer.DI.Tests; 
 
 [TestFixture]
-[Only]
 public class ScannerFactoryTests : Node {
     [SetUp]
     public void Setup() {
