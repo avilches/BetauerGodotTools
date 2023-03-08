@@ -15,15 +15,13 @@ public static class TypeExtensions {
         if (interfaceType == null) throw new ArgumentNullException(nameof(interfaceType));
         
         if (type.IsAssignableTo(interfaceType)) return true;
-        // If type or interface has empty generic, like IList<> or IDictionary<,>, check the interfaces one by one
-
-        if (interfaceType.IsGenericTypeDefinition && interfaceType.GetGenericTypeDefinition() == type.GetGenericTypeDefinition()) {
-            return true;
-        }
         
-        return type.GetInterfaces().Any(implementedInterface =>
-            implementedInterface == interfaceType ||
-            implementedInterface.IsGenericType && implementedInterface.GetGenericTypeDefinition() == interfaceType);
+        // interfaceType is a GenericTypeDefinition (that means is something like List<> instead of List<string>)
+        return interfaceType == type.GetGenericTypeDefinition() ||
+               type.GetInterfaces().Any(implementedInterface =>
+                   implementedInterface == interfaceType ||
+                   implementedInterface.IsGenericType &&
+                   implementedInterface.GetGenericTypeDefinition() == interfaceType);
     }
 
     public static List<ISetter<T>> GetSettersCached<T>(this Type type, MemberTypes memberFlags,

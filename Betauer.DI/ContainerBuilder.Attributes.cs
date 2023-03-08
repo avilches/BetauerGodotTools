@@ -43,6 +43,20 @@ public class ServiceAttribute : Attribute {
 }
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method | AttributeTargets.Property)]
+public class FactoryAttribute : Attribute {
+    public string? Name { get; set; }
+    public bool Primary { get; set; } = false;
+    public bool Lazy { get; set; } = false;
+
+    public FactoryAttribute() {
+    }
+
+    public FactoryAttribute(string name) {
+        Name = name;
+    }
+}
+
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method | AttributeTargets.Property)]
 public class PrimaryAttribute : Attribute {
 }
 
