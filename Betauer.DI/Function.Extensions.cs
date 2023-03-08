@@ -47,7 +47,7 @@ public static class ContainerFunctionExtensions {
         var funcType = typeof(Func<,>).MakeGenericType(functionGenericTypes);
 
         container.TryGetProvider(funcType, out IProvider? provider);
-        if (provider != null) return (Delegate)provider.Get(container);
+        if (provider != null) return (Delegate)provider.Get();
         throw new KeyNotFoundException($"Function <{inputType},{returnType}> not found");
     }
 
@@ -67,7 +67,7 @@ public static class ContainerFunctionExtensions {
         do {
             var funcType = typeof(Func<,>).MakeGenericType(functionGenericTypes);
             container.TryGetProvider(funcType, out IProvider? provider);
-            if (provider != null) function = (Delegate)provider.Get(container);
+            if (provider != null) function = (Delegate)provider.Get();
             if (function == null) functionGenericTypes[0] = functionGenericTypes[0]?.BaseType;
         } while (function == null && functionGenericTypes[0] != null);
         if (function == null) {

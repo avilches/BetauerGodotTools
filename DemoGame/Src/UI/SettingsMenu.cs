@@ -159,7 +159,7 @@ public partial class SettingsMenu : CanvasLayer {
 		};
 	}
 
-	[Inject] private Factory<RedefineActionButton> RedefineActionButton { get; set; }
+	[Inject] private IFactory<RedefineActionButton> RedefineActionButton { get; set; }
 
 	private void AddConfigureControl(string name, InputAction action, bool isKey) {
 		var button = RedefineActionButton.Get();

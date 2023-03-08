@@ -1,7 +1,7 @@
 using System;
 
 namespace Betauer.DI.ServiceProvider {
-    public class SingletonInstanceProvider : BaseProvider, ISingletonProvider {
+    public class SingletonInstanceProvider : Provider, ISingletonProvider {
         public override Lifetime Lifetime => Lifetime.Singleton;
         public bool IsInstanceCreated => true;
         public object Instance { get; }
@@ -11,6 +11,6 @@ namespace Betauer.DI.ServiceProvider {
             Instance = instance ?? throw new ArgumentNullException(nameof(instance));
         }
         public override object Get(ResolveContext context) => Instance;
-        public override object Get(Container container) => Instance;
+        public override object Get() => Instance;
     }
 }

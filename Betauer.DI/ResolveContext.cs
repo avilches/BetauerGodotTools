@@ -10,8 +10,11 @@ public class ResolveContext {
     internal readonly Stack<string> TransientNameStack = new();
     internal readonly Container Container;
 
-    public ResolveContext(Container container) {
+    private Action? _onEnd;
+
+    public ResolveContext(Container container, Action? onEnd = null) {
         Container = container;
+        _onEnd = onEnd;
     }
 
     internal bool TryGetSingletonFromCache(Type type, string? name, out object? instanceFound) {
@@ -25,7 +28,7 @@ public class ResolveContext {
     }
 
     // This stack avoid circular dependencies between transients
-    internal void StartTransient(Type type, string? name) {
+    internal void TryStartTransient(Type type, string? name) {
         var key = name ?? type.FullName;
         if (TransientNameStack.Contains(key)) {
             throw new CircularDependencyException(string.Join("\n", TransientNameStack));
@@ -50,5 +53,12 @@ public class ResolveContext {
             Container.ExecutePostInjectMethods(instance);
             Container.ExecuteOnCreated(Lifetime.Transient, instance);
         }
+        _onEnd?.Invoke();
+    }
+
+    public void Clear() {
+        SingletonCache.Clear();
+        Transients.Clear();
+        TransientNameStack.Clear();
     }
 }

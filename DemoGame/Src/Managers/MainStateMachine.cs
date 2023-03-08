@@ -45,7 +45,7 @@ public partial class MainStateMachine : StateMachineNodeAsync<MainState, MainEve
     [Inject] private PauseMenu PauseMenuScene { get; set; }
     [Inject] private SettingsMenu SettingsMenuScene { get; set; }
     [Inject] private HUD HudScene { get; set; }
-    [Inject] private Factory<ModalBoxConfirm> ModalBoxConfirm { get; set; }
+    [Inject] private IFactory<ModalBoxConfirm> ModalBoxConfirm { get; set; }
     [Inject] private Theme MyTheme { get; set; }
     [Inject] private Game Game { get; set; }
 

@@ -2,7 +2,7 @@ using System;
 using Betauer.Tools.Logging;
 
 namespace Betauer.DI.ServiceProvider {
-    public class TransientFactoryProvider : BaseProvider {
+    public class TransientFactoryProvider : Provider {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(SingletonFactoryProvider));
         private readonly Func<object> _factory;
         public override Lifetime Lifetime => Lifetime.Transient;
@@ -11,16 +11,9 @@ namespace Betauer.DI.ServiceProvider {
             _factory = factory;
         }
 
-        public override object Get(Container container) {
-            var context = new ResolveContext(container);
-            var instance = Get(context);
-            context.End();
-            return instance;
-        }
-
         public override object Get(ResolveContext context) {
             if (context == null) throw new ArgumentNullException(nameof(context));
-            context.StartTransient(RegisterType, Name); // This call could throw a CircularDependencyException
+            context.TryStartTransient(RegisterType, Name); // This call could throw a CircularDependencyException
             var instance = _factory.Invoke();
             if (instance == null) throw new NullReferenceException($"Transient factory returned null for {RegisterType.Name} {Name}");
             Logger.Debug($"Creating {Lifetime.Transient} {instance.GetType().Name} exposed as {RegisterType.Name}: {instance.GetHashCode():X}");

@@ -19,6 +19,19 @@ public class Container {
     public bool CreateIfNotFound { get; set; }
     public event Action<Lifetime, object> OnCreated;
 
+    private readonly Stack<ResolveContext> _resolveContextPool = new();
+
+    public ResolveContext NewResolveContext() {
+        if (_resolveContextPool.Count > 0) return _resolveContextPool.Pop();
+        ResolveContext context = null;
+        context = new ResolveContext(this, () => {
+            context.Clear();
+            _resolveContextPool.Push(context);
+        });
+        return context;
+    } 
+
+    
     public Container() {
         Injector = new Injector(this);
         // Adding the Container in the Container allows to use [Inject] Container...
@@ -34,7 +47,7 @@ public class Container {
             .Where(provider => provider is ISingletonProvider { Lazy: false, IsInstanceCreated: false })
             .ForEach(provider => {
                 Logger.Debug($"Initializing {provider.Lifetime}:{provider.ProviderType} | Name: {provider.Name}");
-                provider.Get(this);
+                provider.Get();
             });
         return this;
     }
@@ -43,7 +56,7 @@ public class Container {
         AddToRegistry(provider);
         if (provider is ISingletonProvider { Lazy: false, IsInstanceCreated: false }) {
             Logger.Debug($"Initializing {provider.Lifetime}:{provider.ProviderType} | Name: {provider.Name}");
-            provider.Get(this);
+            provider.Get();
         }
         return provider;
     }
@@ -72,6 +85,7 @@ public class Container {
             _registry[provider.RegisterType.FullName] = provider;
             Logger.Debug($"Registered {provider.Lifetime}:{provider.ProviderType}. Name: {provider.RegisterType.FullName}");
         }
+        provider.Container = this;
         return provider;
     }
 
@@ -141,14 +155,14 @@ public class Container {
 
     public bool TryResolve(Type type, out object instance) {
         if (TryGetProvider(type, out IProvider? provider)) {
-            var context = new ResolveContext(this);
+            var context = NewResolveContext();
             instance = provider.Get(context);
             context.End();
             return true;
         }
         if (CreateIfNotFound) {
-            CreateBuilder().Register(type, type, () => Activator.CreateInstance(type), Lifetime.Transient).Build();
-            // ReSharper disable once TailRecursiveCall
+            Func<object> factory = () => Activator.CreateInstance(type)!;
+            AddToRegistry(new TransientFactoryProvider(type, type, factory)); 
             return TryResolve(type, out instance);
         }
         instance = null;
@@ -163,7 +177,7 @@ public class Container {
 
     public bool TryResolve(string name, out object instance) {
         if (TryGetProvider(name, out IProvider? provider)) {
-            var context = new ResolveContext(this);
+            var context = NewResolveContext();
             instance = provider.Get(context);
             context.End();
             return true;
@@ -179,7 +193,7 @@ public class Container {
         var instances = _registry.Values
             .OfType<ISingletonProvider>()
             .Where(provider => typeof(T).IsAssignableFrom(provider.ProviderType))
-            .Select(provider => provider.Get(this))
+            .Select(provider => provider.Get())
             .OfType<T>()
             .ToList();
         return instances;
@@ -195,7 +209,7 @@ public class Container {
             if (method.HasAttribute<PostInjectAttribute>()) {
                 if (method.GetParameters().Length == 0) {
                     try {
-                        method.Invoke(instance, new object[] { });
+                        method.Invoke(instance, Array.Empty<object>());
                     } catch (TargetInvocationException e) {
                         ExceptionDispatchInfo.Capture(e.InnerException).Throw();
                     }
@@ -227,7 +241,7 @@ public class Container {
 
 
     public void InjectServices(object o) {
-        var context = new ResolveContext(this);
+        var context = NewResolveContext();
         InjectServices(o, context);
         context.End();
         ExecutePostInjectMethods(o);

@@ -22,10 +22,10 @@ public class Game {
     [Inject] private HUD HudScene { get; set; }
     [Inject] private ItemConfigManager ItemConfigManager { get; set; }
     [Inject] private StageManager StageManager { get; set; }
-    [Inject] private Factory<Node> World3 { get; set; }
-    [Inject] private Factory<PlayerNode> PlayerFactory { get; set; }
-    [Inject] private Factory<ZombieNode> ZombieFactory { get; set; }
-    [Inject] private Factory<ProjectileTrail> ProjectileFactory { get; set; }
+    [Inject] private IFactory<Node> World3 { get; set; }
+    [Inject] private IFactory<PlayerNode> PlayerFactory { get; set; }
+    [Inject] private IFactory<ZombieNode> ZombieFactory { get; set; }
+    [Inject] private IFactory<ProjectileTrail> ProjectileFactory { get; set; }
     
     private Node _currentGameScene;
     public MiniPoolBusy<ProjectileTrail> _bulletPool;

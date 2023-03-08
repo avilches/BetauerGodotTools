@@ -14,7 +14,7 @@ public class ItemRepository {
     private readonly Dictionary<string, Item> _itemAlias = new();
     
     [Inject] public PlayerConfig PlayerConfig { get; set; }
-    [Inject] private Factory<PlayerStatus> _playerStatusFactory { get; set; }
+    [Inject] private IFactory<PlayerStatus> _playerStatusFactory { get; set; }
     
     public PlayerStatus PlayerStatus { get; private set; }
     public PlayerNode PlayerNode { get; private set; }

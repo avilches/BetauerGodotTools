@@ -69,7 +69,7 @@ class FastMethodInfoTest {
 
         var get = typeof(FastMethodInfoTest).GetMethod("Get");
         var x = Stopwatch.StartNew();
-        for (var i = 0; i < TIMES; i++) get.Invoke(ins, new object[] { });
+        for (var i = 0; i < TIMES; i++) get.Invoke(ins, Array.Empty<object>());
         Console.WriteLine("get.Invoke:" + x.ElapsedMilliseconds);
 
         var getf = new FastMethodInfo(get);

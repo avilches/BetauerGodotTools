@@ -2,7 +2,7 @@ using System;
 using Betauer.Tools.Logging;
 
 namespace Betauer.DI.ServiceProvider {
-    public class SingletonFactoryProvider : BaseProvider, ISingletonProvider {
+    public class SingletonFactoryProvider : Provider, ISingletonProvider {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(SingletonFactoryProvider));
         private readonly Func<object> _factory;
         public override Lifetime Lifetime => Lifetime.Singleton;
@@ -13,14 +13,6 @@ namespace Betauer.DI.ServiceProvider {
         public SingletonFactoryProvider(Type registerType, Type providerType, Func<object> factory, string? name = null, bool primary = false, bool lazy = false) : base(registerType, providerType, name, primary) {
             _factory = factory;
             Lazy = lazy;
-        }
-
-        public override object Get(Container container) {
-            if (IsInstanceCreated) return Instance!;
-            var context = new ResolveContext(container);
-            var instance = Get(context);
-            context.End();
-            return instance;
         }
 
         public override object Get(ResolveContext context) {

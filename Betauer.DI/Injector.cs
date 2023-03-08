@@ -34,71 +34,67 @@ public class Injector {
 
         var nullable = getterSetter.SetterAttribute.Nullable;
         var name = getterSetter.SetterAttribute.Name;
+        // Explicit name
+        // [Inject(Name = ...)]
         if (name != null) {
-            name = name.Trim();
-            if (_container.Contains(name)) {
-                Logger.Debug($"{target.GetType().FullName} ({target.GetHashCode():x8}) | {getterSetter} | Name in [Inject(\"{name}\")");
-                InjectFieldByName(target, context, getterSetter, name);
+            if (TryInjectFieldByName(target, context, getterSetter, name)) {
+                Logger.Debug($"{target.GetType().FullName} ({target.GetHashCode():x8}) | {getterSetter} | Name taken from [Inject(\"{name}\")");
                 return;
             }
             if (!nullable) {
-                throw new InjectMemberException(getterSetter.Name, target,
-                    "Service \"" + name + "\" not found when trying to inject " + getterSetter);
+                throw new InjectMemberException(getterSetter.Name, target, "Service Name=\"" + name + "\" not found when trying to inject " + getterSetter);
             }
-            return;
-        } 
-        
-        if (_container.Contains(getterSetter.Name)) {
-            Logger.Debug($"{target.GetType().FullName} ({target.GetHashCode():x8}) | {getterSetter} | Member name: {getterSetter.Name}");
-            InjectFieldByName(target, context, getterSetter, getterSetter.Name);
-            return;
         }
 
-        var realType = getterSetter.Type.IsGenericType && getterSetter.Type.GetGenericTypeDefinition() == typeof(Factory<>)
-            ? getterSetter.Type.GetGenericArguments()[0]
-            : getterSetter.Type;
-        if (_container.CreateIfNotFound || _container.Contains(realType)) {
-            Logger.Debug($"{target.GetType().FullName} ({target.GetHashCode():x8}) | {getterSetter} | Member type: {realType}");
-            InjectFieldByType(target, context, getterSetter);
-            return;
+        var injectFactory = getterSetter.Type.IsGenericType && getterSetter.Type.ImplementsInterface(typeof(IFactory<>));
+        // Implicit name (from variable). Only try if the type is not a IFactory<>
+        if (!injectFactory) {
+            if (TryInjectFieldByName(target, context, getterSetter, getterSetter.Name)) {
+                Logger.Debug($"{target.GetType().FullName} ({target.GetHashCode():x8}) | {getterSetter} | Name taken from member: {getterSetter.Name}");
+                return;
+            }
         }
 
+        if (TryInjectFieldByType(target, context, getterSetter)) {
+            Logger.Debug($"{target.GetType().FullName} ({target.GetHashCode():x8}) | {getterSetter} | Type: {getterSetter.Type}");
+            return;
+        }
+        if (_container.CreateIfNotFound) {
+            getterSetter.SetValue(target, _container.Resolve(getterSetter.Type));
+            Logger.Debug($"{target.GetType().FullName} ({target.GetHashCode():x8}) | {getterSetter} | Auto created. Type: {getterSetter.Type}");
+            return;
+        }
         if (!nullable) {
             throw new InjectMemberException(getterSetter.Name, target, "Not service found when trying to inject [" + getterSetter +
-                                                                 "] in " + target.GetType().FullName);
+                                                                       "] in " + target.GetType().FullName);
         }
     }
 
-    private void InjectFieldByName(object target, ResolveContext context, ISetter setter, string name) {
-        if (setter.Type.IsGenericType && setter.Type.GetGenericTypeDefinition() == typeof(Factory<>)) {
-            var type = setter.Type.GetGenericArguments()[0];
-            var provider = _container.GetProvider(name);
-            var lazy = CreateLazyWithGeneric(_container, provider, type);
-            setter.SetValue(target, lazy);
-        } else {
-            var service = _container.Resolve(name, context);
+    // [Service] Node Node1 => new Node();
+    //
+    // [Inject] Node Node1
+    // [Inject(Name="Node1")] Node _pepe
+
+    // [Service] IFactory<Node> NodeFactory => new MyNodeFactory();
+    //
+    // [Inject] IFactory<Node> NodeFactory
+    // [Inject(Name="NodeFactory")] IFactory<Node> _nodeFactory
+    private bool TryInjectFieldByName(object target, ResolveContext context, ISetter setter, string name) {
+        if (_container.TryGetProvider(name, out var provider)) {
+            var service = provider.Get(context);
             setter.SetValue(target, service);
+            return true;
         }
+        return false;
     }
 
-    private void InjectFieldByType(object target, ResolveContext context, ISetter setter) {
-        if (setter.Type.IsGenericType && setter.Type.GetGenericTypeDefinition() == typeof(Factory<>)) {
-            var type = setter.Type.GetGenericArguments()[0];
-            var provider = _container.GetProvider(type);
-            var lazy = CreateLazyWithGeneric(_container, provider, type);
-            setter.SetValue(target, lazy);
-        } else {
-            var service = _container.Resolve(setter.Type, context);
+    private bool TryInjectFieldByType(object target, ResolveContext context, ISetter setter) {
+        if (_container.TryGetProvider(setter.Type, out var provider)) {
+            var service = provider.Get(context);
             setter.SetValue(target, service);
+            return true;
         }
-    }
+        return false;
 
-    private static object CreateLazyWithGeneric(Container container, IProvider provider, Type genericType) {
-        var type = typeof(Factory<>).MakeGenericType(genericType);
-        var ctor = type.GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance)
-            .First(info => info.GetParameters().Length == 2 &&
-                           info.GetParameters()[0].ParameterType == typeof(Container) &&
-                           info.GetParameters()[1].ParameterType == typeof(IProvider));
-        return ctor.Invoke(new object[] { container, provider });
     }
 }
