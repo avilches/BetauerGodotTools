@@ -55,7 +55,7 @@ public class NodePathScanner {
             getterSetter.SetValue(target, elementArray);
                 
         } else if (getterSetter.Type.ImplementsInterface(typeof(IList))) {
-            IList list = (IList)Activator.CreateInstance(getterSetter.Type);
+            IList list = (IList)Activator.CreateInstance(getterSetter.Type)!;
             var valueType = getterSetter.Type.IsGenericType ? getterSetter.Type.GenericTypeArguments[0] : null;
             foreach (var child in node.GetChildren()) {
                 if (valueType == null || valueType.IsInstanceOfType(child)) list.Add(child);
@@ -68,7 +68,7 @@ public class NodePathScanner {
                 throw new NodePathFieldException(getterSetter.Name, target,
                     $"IDictionary compatible type {node.GetType().Name} for field {fieldInfo}, class {target.GetType().Name} only accepts string as key: {getterSetter.Type.GenericTypeArguments[0]}");
                 
-            IDictionary dictionary = (IDictionary)Activator.CreateInstance(getterSetter.Type);
+            IDictionary dictionary = (IDictionary)Activator.CreateInstance(getterSetter.Type)!;
             var valueType = getterSetter.Type.IsGenericType ? getterSetter.Type.GenericTypeArguments[1] : null;
             foreach (var child in node.GetChildren()) {
                 if (valueType == null || valueType.IsInstanceOfType(child)) dictionary[(string)child.Name] = child; 

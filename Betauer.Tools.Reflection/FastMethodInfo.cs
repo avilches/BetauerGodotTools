@@ -52,7 +52,7 @@ public class FastMethodInfo {
 
 }
 
-class FastMethodInfoTest {
+file class FastMethodInfoTest {
     private string v;
 
     public string Get() {

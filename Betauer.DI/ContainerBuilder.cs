@@ -54,7 +54,7 @@ public class ContainerBuilder {
     }
 
     public ContainerBuilder Transient<T>(string? name = null, bool primary = false) where T : class {
-        return Register<T, T>(Activator.CreateInstance<T>, Lifetime.Transient, name, primary, false);
+        return Register<T, T>(LambdaCtor<T>.CreateInstance, Lifetime.Transient, name, primary, false);
     }
 
     public ContainerBuilder Transient<T>(Func<T> factory, string? name = null, bool primary = false) where T : class {
@@ -66,11 +66,12 @@ public class ContainerBuilder {
     }
 
     public ContainerBuilder Transient<TI, T>(string? name = null, bool primary = false) where T : class {
-        return Register<TI, T>(Activator.CreateInstance<T>, Lifetime.Transient, name, primary, false);
+        return Register<TI, T>(LambdaCtor<T>.CreateInstance, Lifetime.Transient, name, primary, false);
     }
 
     public ContainerBuilder Service<T>(Lifetime lifetime = Lifetime.Singleton, string? name = null, bool primary = false, bool lazy = false) where T : class {
-        return Register<T, T>(Activator.CreateInstance<T>, lifetime, name, primary, lazy);
+        Func<T> factory = lifetime == Lifetime.Singleton ? Activator.CreateInstance<T> : LambdaCtor<T>.CreateInstance;
+        return Register<T, T>(factory, lifetime, name, primary, lazy);
     }
 
     public ContainerBuilder Service<T>(Func<T> factory, Lifetime lifetime = Lifetime.Singleton, string? name = null, bool primary = false, bool lazy = false) where T : class {
@@ -82,7 +83,8 @@ public class ContainerBuilder {
     }
 
     public ContainerBuilder Service<TI, T>(Lifetime lifetime = Lifetime.Singleton, string? name = null, bool primary = false, bool lazy = false) where T : class {
-        return Register<TI, T>(Activator.CreateInstance<T>, lifetime, name, primary, lazy);
+        Func<T> factory = lifetime == Lifetime.Singleton ? Activator.CreateInstance<T> : LambdaCtor<T>.CreateInstance;
+        return Register<TI, T>(factory, lifetime, name, primary, lazy);
     }
 
     public ContainerBuilder Register<TI, T>(Func<T> factory, Lifetime lifetime, string? name, bool primary, bool lazy = false) where T : class {
