@@ -1,18 +1,18 @@
 using System;
-using System.Collections.Generic;
 
 namespace Betauer.Core.Pool;
 
-public class MiniPoolBusyInvalid<T> : BaseMiniPool<T> where T : class, IInvalidElement {
-    public int PurgeIfSizeIsBiggerThan { get; set; }
+public class MiniPoolBusyInvalid<T> : BaseMiniPool<T> where T : class, IBusyInvalidElement {
+    private readonly Func<T> _factory;
 
-    public MiniPoolBusyInvalid(Func<T> factory, int purgeIfSizeIsBiggerThan, int size = 4, bool lazy = true) : base(factory, size, lazy) {
-        PurgeIfSizeIsBiggerThan = purgeIfSizeIsBiggerThan;
+    public MiniPoolBusyInvalid(Func<T> factory, int desiredSize = 4, bool lazy = true) : base(desiredSize) {
+        _factory = factory;
+        if (!lazy) Fill();
     }
+
+    protected override T Create() => _factory.Invoke();
 
     protected override bool IsBusy(T element) => element.IsBusy();
 
     protected override bool IsInvalid(T element) => element.IsInvalid();
-
-    protected override bool MustBePurged(IReadOnlyList<T> pool) => pool.Count > PurgeIfSizeIsBiggerThan;
 }

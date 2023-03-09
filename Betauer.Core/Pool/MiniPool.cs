@@ -1,23 +1,40 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Betauer.Core.Pool;
 
 public class MiniPool<T> : BaseMiniPool<T> where T : class {
+    private readonly Func<T> _factory;
     private readonly Predicate<T> _busy;
     private readonly Predicate<T>? _invalid;
-    private readonly Predicate<IReadOnlyList<T>>? _purgeIf;
-    public static Builder Create() => new();
 
-    public MiniPool(Func<T> factory, Predicate<T> busy, int size, bool lazy,
-        Predicate<IReadOnlyList<T>>? purgeIf = null, Predicate<T>? invalid = null) : base(factory, size, lazy) {
+    private readonly Predicate<IReadOnlyList<T>>? _purgeIf;
+
+    public MiniPool(
+        Func<T> factory,
+        int desiredSize,
+        bool lazy,
+        Predicate<T> busy,
+        Predicate<IReadOnlyList<T>>? purgeIf = null,
+        Predicate<T>? invalid = null
+    ) : base(desiredSize) {
+        Debug.Assert(factory != null, nameof(factory) + " != null");
+        Debug.Assert(busy != null, nameof(busy) + " != null");
+
+        _factory = factory;
         _busy = busy;
-        _invalid = invalid;
         _purgeIf = purgeIf;
+        _invalid = invalid;
+        if (!lazy) Fill();
+    }
+
+    protected override T Create() {
+        return _factory.Invoke();
     }
 
     protected override bool IsBusy(T element) {
-        return _busy(element);
+        return _busy.Invoke(element);
     }
 
     protected override bool IsInvalid(T element) {
@@ -25,9 +42,9 @@ public class MiniPool<T> : BaseMiniPool<T> where T : class {
     }
 
     protected override bool MustBePurged(IReadOnlyList<T> pool) {
-        return _invalid != null && _purgeIf != null && _purgeIf(pool);
+        return _invalid != null && _purgeIf != null && _purgeIf.Invoke(pool);
     }
-    
+
     public class Builder {
         private Func<T> _factory;
         private Predicate<T> _busy;
@@ -65,7 +82,7 @@ public class MiniPool<T> : BaseMiniPool<T> where T : class {
         public Builder PurgeIfPoolIsBiggerThan(int max) => PurgeIf(list => list.Count > max);
 
         public MiniPool<T> Build() {
-            return new MiniPool<T>(_factory, _busy, _size, _lazy, _purgeIf, _invalid);
+            return new MiniPool<T>(_factory, _size, _lazy, _busy, _purgeIf, _invalid);
         }
     }
 }

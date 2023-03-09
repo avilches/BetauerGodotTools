@@ -38,7 +38,7 @@ public enum MainEvent {
 }
     
 [Service]
-public partial class MainStateMachine : StateMachineNodeAsync<MainState, MainEvent> {
+public partial class MainStateMachine : StateMachineNodeAsync<MainState, MainEvent>, IInjectable {
 
     [Inject] private MainMenu MainMenuScene { get; set; }
     [Inject] public BottomBar BottomBarScene { get; set; }
@@ -68,8 +68,7 @@ public partial class MainStateMachine : StateMachineNodeAsync<MainState, MainEve
     public MainStateMachine() : base(MainState.Init) {
     }
 
-    [PostInject]
-    private void Configure() {
+    public void PostInject() {
 #if DEBUG
         this.OnInput((e) => {
             if (e.IsKeyPressed(Key.Q)) {

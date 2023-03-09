@@ -1,27 +1,23 @@
-using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 namespace Betauer.Core.Pool;
 
-// TODO: Create a simple mini pool where the objects must be returned to use them again
 public abstract class BaseMiniPool<T> where T : class {
-    private readonly List<T> _pool;
-    private readonly Func<T> _factory;
+    public readonly List<T> Pool;
+    public int DesiredDesiredSize;
 
-    public BaseMiniPool(Func<T> factory, int size = 4, bool lazy = true) {
-        _factory = factory ?? throw new ArgumentNullException(nameof(factory));
+    protected BaseMiniPool(int desiredSize = 4) {
+        Pool = new List<T>(desiredSize);
+        DesiredDesiredSize = desiredSize;
+    }
 
-        _pool = new List<T>(size);
-        if (!lazy) {
-            for (var i = 0; i < size; i++) {
-                _pool.Add(_factory());
-            }
-        }
+    public void Fill() {
+        while (Pool.Count < DesiredDesiredSize) Pool.Add(Create());
     }
 
     public T Get() {
-        var span = CollectionsMarshal.AsSpan(_pool);
+        var span = CollectionsMarshal.AsSpan(Pool);
 
         for (var i = 0; i < span.Length; i++) {
             var element = span[i];
@@ -30,21 +26,23 @@ public abstract class BaseMiniPool<T> where T : class {
                 return element;
             }
         }
-        if (MustBePurged(_pool)) {
+        if (MustBePurged(Pool)) {
             // GD.Print("Purging " + typeof(T) + " pool (size is " + _pool.Count);
-            _pool.RemoveAll(IsInvalid);
+            Pool.RemoveAll(IsInvalid);
         }
-        var more = _factory();
-        _pool.Add(more);
+        var more = Create();
+        Pool.Add(more);
         return more;
     }
 
     /// <summary>
     /// Returns a copy of the pool elements. It can be used to dispose them
     /// </summary>
-    public List<T> Elements => new(_pool);
+    public List<T> Elements => new(Pool);
 
+    protected abstract T Create();
     protected abstract bool IsBusy(T element);
     protected abstract bool IsInvalid(T element);
-    protected abstract bool MustBePurged(IReadOnlyList<T> pool);
+    
+    protected virtual bool MustBePurged(IReadOnlyList<T> pool) => Pool.Count > DesiredDesiredSize;
 }

@@ -4,7 +4,7 @@ using Godot;
 namespace Veronenger.Config; 
 
 [Service]
-public class ItemConfigManager {
+public class ItemConfigManager : IInjectable {
     [Inject] private Texture2D LeonKnifeAnimationSprite { get; set; }
     [Inject] private Texture2D LeonMetalbarAnimationSprite { get; set; }
 
@@ -18,8 +18,7 @@ public class ItemConfigManager {
 
     public NpcConfig ZombieConfig = new NpcConfig();
 
-    [PostInject]
-    private void CreateWeapons() {
+    public void PostInject() {
         Knife = new WeaponConfig.Melee(LeonKnifeAnimationSprite, "Short");
         Metalbar = new WeaponConfig.Melee(LeonMetalbarAnimationSprite, "Long");
 
