@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reflection;
 using Betauer.Core;
 using Betauer.DI.ServiceProvider;
-using Betauer.Tools.Reflection;
 
 namespace Betauer.DI;
 
@@ -49,24 +48,20 @@ public partial class Container {
         public Builder RegisterCustomFactory(Type type, Func<object> customFactory, string? factoryName = null, bool primary = false, bool lazy = false) {
             Type factoryType = typeof(IFactory<>).MakeGenericType(type);
             // Register the Custom Factory
-            // The providerCustomFactory is used later to get the factory and inject fields inside it
+            // The providerCustomFactory is used later to get the factory, build the instances and inject fields inside them
             var innerType = typeof(IFactory<>).MakeGenericType(factoryType);
-            var providerCustomFactory = Provider.Create(innerType, innerType, customFactory.Memoize(), Lifetime.Singleton, null, false, lazy);
+            var providerCustomFactory = Provider.Create(innerType, innerType, customFactory, Lifetime.Singleton, null, false, lazy);
             Register(providerCustomFactory);
     
-            // Register instance factory class
-            // It maps the service type "type" with the instance factory method in GetFromProviderFactory
-            // The GetFromProviderFactory resolve the real factory using the custom factory, which is executed only once.
-            // Then, with the real factory instance (which we don't know what type is it, but we know it implements IFactory<type>)
-            // we call to the "Get()" method using reflection (through FastMethodInfo, which is very fast because it compiles a lambda to call to the method)
-            // The instance is scanned for inject and [PostCreate] as usual.
+            // Register the regular instance factory class
+            // Using the getFromProviderFactory.Get as factory means the original factory will be used
             var getFromProviderFactory = ProviderCustomFactory.Create(type, providerCustomFactory);
             var providerFactory = Provider.Create(type, type, getFromProviderFactory.Get, Lifetime.Transient, null, false, true);
             Register(providerFactory);
     
             // Finally, we register a IFactory<> so the user can use the real factory.
             // Instead of expose the original custom factory, it creates a new Factory<type> where every call to Get()
-            // invokes the original factory through the providerFactory, which returns an instance and scan for [Inject] and [PostCreate]
+            // invokes the original factory through the providerFactory, which returns an instance and scan for [Inject] and PostInject and OnCreated
             Register(Provider.Create(factoryType, factoryType, () => {
                 object ProviderFactory() => providerFactory.Get();
                 return FuncFactory.Create(type, ProviderFactory);

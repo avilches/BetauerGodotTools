@@ -19,7 +19,7 @@ public partial class Container {
             _container = container;
         }
 
-        public void InjectServices(object target, ResolveContext context) {
+        public void InjectServices(Lifetime lifetime, object target, ResolveContext context) {
             if (target is Delegate) return;
             Logger.Debug($"Injecting fields in {target.GetType()}: {target.GetHashCode():x8}");
             var members = target.GetType()
@@ -27,17 +27,17 @@ public partial class Container {
             foreach (var setter in members) {
                 if (setter is not IGetter getter || // no getter, like methods 
                     getter.GetValue(target) is null) { // getter (properties and fields) returned null
-                    InjectMember(target, context, setter);
+                    InjectMember(lifetime, target, context, setter);
                 }
             }
         }
 
-        private void InjectMember(object target, ResolveContext context, ISetter<InjectAttribute> setter) {
+        private void InjectMember(Lifetime lifetime, object target, ResolveContext context, ISetter<InjectAttribute> setter) {
             var nullable = setter.SetterAttribute.Nullable;
             var name = setter.SetterAttribute.Name;
             if (name != null) {
                 // Explicit name with [Inject(Name = "")]
-                if (TryInjectFieldByName(target, context, setter, name)) {
+                if (TryInjectFieldByName(lifetime, target, context, setter, name)) {
                     Logger.Debug($"{target.GetType().FullName} ({target.GetHashCode():x8}) | {setter} | Name taken from [Inject(\"{name}\")");
                     return;
                 }
@@ -46,17 +46,16 @@ public partial class Container {
                 }
             } else {
                 // Implicit name (from variable, [Inject] Node pepe, so "pepe" is the name).
-                if (TryInjectFieldByName(target, context, setter, setter.Name)) {
+                if (TryInjectFieldByName(lifetime, target, context, setter, setter.Name)) {
                     Logger.Debug($"{target.GetType().FullName} ({target.GetHashCode():x8}) | {setter} | Name taken from member: {setter.Name}");
                     return;
                 }
             }
-            if (TryInjectFieldByType(target, context, setter)) {
+            if (TryInjectFieldByType(lifetime, target, context, setter)) {
                 Logger.Debug($"{target.GetType().FullName} ({target.GetHashCode():x8}) | {setter} | Type: {setter.Type}");
                 return;
             }
-            if (_container.CreateIfNotFound) {
-                setter.SetValue(target, _container.Resolve(setter.Type));
+            if (TryCreateAndInject(lifetime, target, setter)) {
                 Logger.Debug($"{target.GetType().FullName} ({target.GetHashCode():x8}) | {setter} | Auto created. Type: {setter.Type}");
                 return;
             }
@@ -74,9 +73,10 @@ public partial class Container {
         //
         // [Inject] IFactory<Node> NodeFactory
         // [Inject(Name="NodeFactory")] IFactory<Node> _nodeFactory
-        private bool TryInjectFieldByName(object target, ResolveContext context, ISetter setter, string name) {
+        private bool TryInjectFieldByName(Lifetime lifetime, object target, ResolveContext context, ISetter setter, string name) {
             if (_container.TryGetProvider(name, out var provider)) {
-                if (setter.CanAssign(provider.ProviderType)) {
+                if (setter.CanAssign(provider!.ProviderType)) {
+                    CheckLifetimeMismatch(lifetime, target, setter, setter.Type, provider.Lifetime);
                     var service = provider.Get(context);
                     setter.SetValue(target, service);
                     return true;
@@ -85,14 +85,28 @@ public partial class Container {
             return false;
         }
 
-        private bool TryInjectFieldByType(object target, ResolveContext context, ISetter setter) {
+        private bool TryInjectFieldByType(Lifetime lifetime, object target, ResolveContext context, ISetter setter) {
             if (_container.TryGetProvider(setter.Type, out var provider)) {
+                CheckLifetimeMismatch(lifetime, target, setter, setter.Type, provider!.Lifetime);
                 var service = provider.Get(context);
                 setter.SetValue(target, service);
                 return true;
             }
             return false;
 
+        }
+
+        private bool TryCreateAndInject(Lifetime lifetime, object target, ISetter setter) {
+            if (!_container.CreateIfNotFound) return false;
+            CheckLifetimeMismatch(lifetime, target, setter, setter.Type, Lifetime.Transient);
+            setter.SetValue(target, _container.Resolve(setter.Type));
+            return true;
+        }
+
+        private static void CheckLifetimeMismatch(Lifetime actual, object target, IMember setter, Type injectType, Lifetime inject) {
+            if (actual == Lifetime.Transient) return; // Transient allows to inject any lifetime
+            if (inject == Lifetime.Singleton) return; // Singleton allows to inject only other singleton
+            throw new InjectMemberException(setter.Name, target, $"Lifetime mismatch: can not inject a Transient {injectType.FullName} dependency into a Singleton {target.GetType().FullName} instance: {setter}");
         }
     }
 }

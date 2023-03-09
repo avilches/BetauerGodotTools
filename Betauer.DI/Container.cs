@@ -228,12 +228,12 @@ public partial class Container {
 
     public void InjectServices(object o) {
         var context = NewResolveContext();
-        InjectServices(o, context);
+        InjectServices(Lifetime.Transient, o, context);
         context.End();
         ExecutePostInjectMethods(o);
     }
 
-    internal void InjectServices(object o, ResolveContext context) {
-        _injector.InjectServices(o, context);
+    internal void InjectServices(Lifetime lifetime, object o, ResolveContext context) {
+        _injector.InjectServices(lifetime, o, context);
     }
 }

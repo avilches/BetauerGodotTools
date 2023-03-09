@@ -30,7 +30,7 @@ namespace Betauer.DI.ServiceProvider {
                 Logger.Debug($"Creating {Lifetime.Singleton} {Instance.GetType().Name} exposed as {RegisterType.Name}: {Instance.GetHashCode():X}");
                 context.AddSingleton(RegisterType, Instance, Name);
                 IsInstanceCreated = true;
-                context.Container.InjectServices(Instance, context);
+                context.Container.InjectServices(Lifetime, Instance, context);
             }
             return Instance;
         }

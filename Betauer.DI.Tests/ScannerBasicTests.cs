@@ -347,85 +347,15 @@ public class ScannerBasicTests : Node {
 
     [Service]
     public class SingletonWith2Transients {
-        public static int Created = 0;
-
-        public SingletonWith2Transients() {
-            Created++;
-        }
-
-        [Inject] internal EmptyTransient et1 { get; set; }
-        [Inject] internal EmptyTransient et2 { get; set; }
+        [Inject] internal EmptyTransient NotAllowed { get; set; }
     }
 
-    [Service]
-    public class MySingleton {
-        public static int Created = 0;
-
-        public MySingleton() {
-            Created++;
-        }
-
-        [Inject] internal SingletonWith2Transients singleton1 { get; set; }
-        [Inject] internal SingletonWith2Transients singleton2 { get; set; }
-        [Inject] internal EmptyTransient et { get; set; }
-    }
-
-    [Test(Description = "Inject singletons in singleton + get/set properties")]
-    public void IgnoreAlreadyInjectedFields() {
+    [Test(Description = "Inject Transient in Singleton is not allowed")]
+    public void TransientOnSingletonIsNotAllowed() {
         var di = new Container.Builder();
-        EmptyTransient.Created = 0;
-
         di.Scan<EmptyTransient>();
         di.Scan<SingletonWith2Transients>();
-        var c = di.Build();
-
-        var s = c.Resolve<SingletonWith2Transients>();
-        Assert.That(EmptyTransient.Created, Is.EqualTo(2));
-            
-        // Already assigned are ignored
-        c.InjectServices(s);
-        Assert.That(EmptyTransient.Created, Is.EqualTo(2));
-
-        // If a service field is not found, assign again
-        s.et1 = null;
-        c.InjectServices(s);
-        Assert.That(EmptyTransient.Created, Is.EqualTo(3));
-
-    }
-
-    [Test(Description = "Inject singletons in singleton + get/set properties")]
-    public void SingletonInSingleton() {
-        var di = new Container.Builder();
-        EmptyTransient.Created = 0;
-        SingletonWith2Transients.Created = 0;
-        MySingleton.Created = 0;
-
-        di.Scan<EmptyTransient>();
-        di.Scan<SingletonWith2Transients>();
-        di.Scan<MySingleton>();
-        var c = di.Build();
-
-        Assert.That(EmptyTransient.Created, Is.EqualTo(3));
-        Assert.That(SingletonWith2Transients.Created, Is.EqualTo(1));
-        Assert.That(MySingleton.Created, Is.EqualTo(1));
-
-        var s1 = c.Resolve<SingletonWith2Transients>();
-        var s2 = c.Resolve<SingletonWith2Transients>();
-        var ms1 = c.Resolve<MySingleton>();
-        var ms2 = c.Resolve<MySingleton>();
-
-        // Singleton are all the same instance
-        Assert.That(s1, Is.EqualTo(s2));
-        Assert.That(ms1.singleton1, Is.EqualTo(s1));
-        Assert.That(ms1.singleton2, Is.EqualTo(s1));
-
-        Assert.That(ms2.singleton1, Is.EqualTo(s1));
-        Assert.That(ms2.singleton2, Is.EqualTo(s1));
-
-        // Transient are always different
-        Assert.That(s1.et1, Is.Not.EqualTo(s1.et2));
-        Assert.That(s1.et1, Is.Not.EqualTo(ms1.et));
-        Assert.That(s1.et2, Is.Not.EqualTo(ms1.et));
+        Assert.Throws<InjectMemberException>(() => di.Build());
     }
 
     [Service(Lifetime.Transient)]
@@ -436,55 +366,34 @@ public class ScannerBasicTests : Node {
             Created++;
         }
 
-        [Inject] internal EmptyTransient et { get; set; }
-        [Inject] internal SingletonWith2Transients SingletonWith2Transients { get; set; }
+        [Inject] internal EmptyTransient et1 { get; set; }
+        [Inject] internal EmptyTransient et2 { get; set; }
     }
 
     [Test(Description = "Inject transients in transient")]
     public void TransientInTransient() {
         var di = new Container.Builder();
         EmptyTransient.Created = 0;
-        SingletonWith2Transients.Created = 0;
         TransientService.Created = 0;
         EmptyTransient.Created = 0;
 
         di.Scan<EmptyTransient>();
         di.Scan<TransientService>();
-        di.Scan<SingletonWith2Transients>();
         var c = di.Build();
-        var s1 = c.Resolve<SingletonWith2Transients>();
-
-        Assert.That(EmptyTransient.Created, Is.EqualTo(2)); // SingletonWith2Transients has 2 instances of it
-        Assert.That(s1.et1, Is.Not.EqualTo(s1.et2));
-
-        var ts1 = c.Resolve<TransientService>();
-        Assert.That(TransientService.Created, Is.EqualTo(1));
-        Assert.That(EmptyTransient.Created, Is.EqualTo(3));
-        Assert.That(s1.et1, Is.Not.EqualTo(ts1.et));
-
+        
         var ts2 = c.Resolve<TransientService>();
-        Assert.That(TransientService.Created, Is.EqualTo(2));
-        Assert.That(EmptyTransient.Created, Is.EqualTo(4));
-        Assert.That(ts1.et, Is.Not.EqualTo(ts2.et));
-
-        Assert.That(SingletonWith2Transients.Created, Is.EqualTo(1));
-        Assert.That(ts1, Is.Not.EqualTo(ts2));
-        Assert.That(ts1.SingletonWith2Transients, Is.EqualTo(s1));
-        Assert.That(ts2.SingletonWith2Transients, Is.EqualTo(s1));
+        Assert.That(TransientService.Created, Is.EqualTo(1));
+        Assert.That(EmptyTransient.Created, Is.EqualTo(2));
+        Assert.That(ts2.et1, Is.TypeOf<EmptyTransient>());
+        Assert.That(ts2.et2, Is.TypeOf<EmptyTransient>());
+        Assert.That(ts2.et1, Is.Not.EqualTo(ts2.et2));
     }
         
     public interface IMultipleImpByName {}
 
     [Service(Name = "M1")] public class MultipleImpl1ByName : IMultipleImpByName {}
     [Service(Name = "M2")] public class MultipleImpl2ByName : IMultipleImpByName {}
-    [Service(Lifetime.Transient, Name = "M3")]
-    public class MultipleImpl3ByName : IMultipleImpByName {
-        public static int Created = 0;
-
-        public MultipleImpl3ByName() {
-            Created++;
-        }
-    }
+    [Service(Name = "M3")] public class MultipleImpl3ByName : IMultipleImpByName {}
 
     [Service]
     public class ServiceWithMultipleImpl1 {
@@ -512,7 +421,6 @@ public class ScannerBasicTests : Node {
     [Test(Description = "When an interface has multiple implementations, register by name")]
     public void InterfaceWithMultipleImplementations() {
         var di = new Container.Builder();
-        MultipleImpl3ByName.Created = 0;
         di.Scan<MultipleImpl1ByName>();
         di.Scan<MultipleImpl2ByName>();
         di.Scan<MultipleImpl3ByName>();
@@ -521,10 +429,8 @@ public class ScannerBasicTests : Node {
         var c = di.Build();
         var i1 = c.Resolve<IMultipleImpByName>("M1");
         var i2 = c.Resolve<IMultipleImpByName>("M2");
-        Assert.That(MultipleImpl3ByName.Created, Is.EqualTo(4)); // M3 is injected 2 times in 2 services: ServiceWithMultipleImpl1 and ServiceWithMultipleImpl2             
         var s1 = c.Resolve<ServiceWithMultipleImpl1>();
         var s2 = c.Resolve<ServiceWithMultipleImpl2>();
-        Assert.That(MultipleImpl3ByName.Created, Is.EqualTo(4));            
 
         Assert.That(s1.mul11, Is.EqualTo(i1));
         Assert.That(s1.mul12, Is.EqualTo(i1));
@@ -535,12 +441,6 @@ public class ScannerBasicTests : Node {
         Assert.That(s2.mul12, Is.EqualTo(i1));
         Assert.That(s2.mul21, Is.EqualTo(i2));
         Assert.That(s2.mul22, Is.EqualTo(i2));
-            
-        Assert.That(s1.mul31t, Is.Not.EqualTo(s1.mul32t));
-        Assert.That(s2.mul31t, Is.Not.EqualTo(s2.mul32t));
-            
-        Assert.That(s1.mul31t, Is.Not.EqualTo(s2.mul31t));
-        Assert.That(s1.mul32t, Is.Not.EqualTo(s2.mul32t));
     }
 
     public interface IMultipleImpByType {}
@@ -567,6 +467,7 @@ public class ScannerBasicTests : Node {
 
 
     class AutoTransient1 {
+        [Inject] internal ExposeServiceClass1 Singleton { get; set; }
     }
 
     class AutoTransient2 {
@@ -576,13 +477,23 @@ public class ScannerBasicTests : Node {
     [Test(Description = "Create if not found")]
     public void CreateIfNotFound() {
         var di = new Container.Builder();
+        di.Scan<ExposeServiceClass1>();
         var c = di.Build();
         c.CreateIfNotFound = true;
+
+        var a1 = c.Resolve<AutoTransient1>();
+        var a2 = c.Resolve<AutoTransient1>();
+
+        Assert.That(a1, Is.TypeOf<AutoTransient1>());
+        Assert.That(a1, Is.Not.EqualTo(a2));
+        Assert.That(a1.Singleton, Is.EqualTo(c.Resolve<ExposeServiceClass1>()));
+
         var s1 = c.Resolve<AutoTransient2>();
         var s2 = c.Resolve<AutoTransient2>();
 
         Assert.That(s1, Is.Not.EqualTo(s2));
         Assert.That(s1.auto, Is.Not.EqualTo(s2.auto));
+        Assert.That(s1.auto.Singleton, Is.EqualTo(c.Resolve<ExposeServiceClass1>()));
     }
 
 
@@ -809,10 +720,6 @@ public class ScannerBasicTests : Node {
         Assert.That(c.Resolve<ServiceMemberExposing2>(), Is.TypeOf<ServiceMemberExposing2>());
     }
 
-    [Service]
-    class SingletonWithTransient {
-        [Inject] public PostInjectTransient Transient { get; set; }
-    }
         
     [Service(Lifetime.Transient)]
     public class PostInjectTransient : IInjectable {
@@ -827,44 +734,14 @@ public class ScannerBasicTests : Node {
         }
     }
 
-    [Test(Description = "Inject transient on singletons, test OnCreate when a singleton creates a transient")]
-    public void OnCreateTests() {
-        PostInjectTransient.Created = 0;
-        var singletons = new List<object>();
-        var transients = new List<object>();
-        var c = new Container();
-        c.OnCreated += (lifetime, instance) => {
-            if (lifetime == Lifetime.Singleton) {
-                singletons.Add(instance);
-            } else {
-                transients.Add(instance);
-            }
-        };
-
-        var di = c.CreateBuilder();
-        di.Scan<SingletonWithTransient>();
-        di.Scan<PostInjectTransient>();
-        di.Build();
-
-        Assert.That(PostInjectTransient.Created, Is.EqualTo(1));
-        Assert.That(singletons.Count, Is.EqualTo(1));
-        Assert.That(transients.Count, Is.EqualTo(1));
-
-        var s = c.Resolve<SingletonWithTransient>();
-        Assert.That(s.Transient.Called, Is.EqualTo(1));
-        Assert.That(s, Is.EqualTo(singletons[0]));
-        Assert.That(s.Transient, Is.EqualTo(transients[0]));
-
-    }
-
     [Service(Lifetime.Transient)]
     class TransientWithTransient {
         [Inject] public PostInjectTransient Transient { get; set; }
     }
         
         
-    [Test(Description = "Inject transient on transient, test OnCreate when a singleton creates a transient")]
-    public void OnCreateTests2() {
+    [Test(Description = "Inject transient on transient, test OnCreated")]
+    public void OnCreateTestsTransientOnTransientTes() {
         PostInjectTransient.Created = 0;
         var singletons = new List<object>();
         var transients = new List<object>();
