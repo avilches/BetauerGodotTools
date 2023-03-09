@@ -36,6 +36,10 @@ public class FastGetterSetter : IGetterSetter {
         return _iGetter.GetValue(instance);
     }
 
+    public bool CanAssign(Type type) {
+        return Type.IsAssignableFrom(type);
+    }
+
     public override string ToString() {
         return _iGetter.ToString();
     }
@@ -56,4 +60,5 @@ public class FastGetterSetter<T> : FastGetterSetter, IGetterSetter<T> where T : 
     public T Attribute { get; }
     public T GetterAttribute { get; }
     public T SetterAttribute { get; }
+
 }

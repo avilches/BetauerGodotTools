@@ -24,8 +24,7 @@ public static class TypeExtensions {
                    implementedInterface.GetGenericTypeDefinition() == interfaceType);
     }
 
-    public static List<ISetter<T>> GetSettersCached<T>(this Type type, MemberTypes memberFlags,
-        BindingFlags bindingAttr) where T : Attribute {
+    public static List<ISetter<T>> GetSettersCached<T>(this Type type, MemberTypes memberFlags, BindingFlags bindingAttr) where T : Attribute {
         var key = (typeof(ISetter<T>), type, memberFlags, bindingAttr);
         if (Cache.TryGetValue(key, out var result)) return (List<ISetter<T>>)result;
         return (List<ISetter<T>>)(Cache[key] = type.GetSetters<T>(memberFlags, bindingAttr));
