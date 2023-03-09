@@ -91,7 +91,7 @@ namespace Betauer.DI.ServiceProvider {
         }
 
         public virtual object Get() {
-            var context = Container.NewResolveContext();
+            var context = Container.GetResolveContext();
             var instance = Get(context);
             context.End();
             return instance;

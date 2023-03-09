@@ -22,23 +22,24 @@ public partial class Container {
 
     private readonly StackPool<ResolveContext> _resolveContextPool;
 
-    public ResolveContext NewResolveContext() => _resolveContextPool.Get();
-
+    public ResolveContext GetResolveContext() => _resolveContextPool.Get();
     
     public Container() {
         _injector = new Injector(this);
-        _resolveContextPool = new(() => {
-            ResolveContext context = null;
-            context = new ResolveContext(this, () => {
-                context.Clear();
-                _resolveContextPool.Return(context);
-            });
-            return context;
-        });        
+        _resolveContextPool = new(CreateResolveContext);        
         
         // Adding the Container in the Container allows to use [Inject] Container...
         Add(new SingletonInstanceProvider(typeof(Container),typeof(Container),this));
     }
+
+    private ResolveContext CreateResolveContext() {
+        ResolveContext? context = null;
+        context = new ResolveContext(this, () => {
+            context!.Clear();
+            _resolveContextPool!.Return(context);
+        });
+        return context;
+    } 
 
     public Builder CreateBuilder() => new Builder(this);
 
@@ -152,7 +153,7 @@ public partial class Container {
 
     public bool TryResolve(Type type, out object instance) {
         if (TryGetProvider(type, out IProvider? provider)) {
-            var context = NewResolveContext();
+            var context = GetResolveContext();
             instance = provider.Get(context);
             context.End();
             return true;
@@ -174,7 +175,7 @@ public partial class Container {
 
     public bool TryResolve(string name, out object instance) {
         if (TryGetProvider(name, out IProvider? provider)) {
-            var context = NewResolveContext();
+            var context = GetResolveContext();
             instance = provider.Get(context);
             context.End();
             return true;
@@ -228,7 +229,7 @@ public partial class Container {
 
 
     public void InjectServices(object o) {
-        var context = NewResolveContext();
+        var context = GetResolveContext();
         InjectServices(Lifetime.Transient, o, context);
         context.End();
         ExecutePostInjectMethods(o);
