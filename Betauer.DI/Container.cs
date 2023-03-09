@@ -4,6 +4,7 @@ using System.Data;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Betauer.Core;
+using Betauer.Core.Pool.Basic;
 using Betauer.DI.ServiceProvider;
 using Betauer.Tools.Logging;
 using Betauer.Tools.Reflection;
@@ -19,21 +20,21 @@ public partial class Container {
     public bool CreateIfNotFound { get; set; }
     public event Action<Lifetime, object> OnCreated;
 
-    private readonly Stack<ResolveContext> _resolveContextPool = new();
+    private readonly StackPool<ResolveContext> _resolveContextPool;
 
-    public ResolveContext NewResolveContext() {
-        if (_resolveContextPool.Count > 0) return _resolveContextPool.Pop();
-        ResolveContext context = null;
-        context = new ResolveContext(this, () => {
-            context.Clear();
-            _resolveContextPool.Push(context);
-        });
-        return context;
-    } 
+    public ResolveContext NewResolveContext() => _resolveContextPool.Get();
 
     
     public Container() {
         _injector = new Injector(this);
+        _resolveContextPool = new(() => {
+            ResolveContext context = null;
+            context = new ResolveContext(this, () => {
+                context.Clear();
+                _resolveContextPool.Return(context);
+            });
+            return context;
+        });        
         
         // Adding the Container in the Container allows to use [Inject] Container...
         Add(new SingletonInstanceProvider(typeof(Container),typeof(Container),this));
@@ -105,7 +106,7 @@ public partial class Container {
     public IProvider GetProvider(Type type) => TryGetProvider(type, out var found) ? found! : throw new ServiceNotFoundException(type);
 
     public IProvider GetProvider(Type type, string name) {
-º        return _registryByName.TryGetValue(name, out var provider)
+        return _registryByName.TryGetValue(name, out var provider)
             ? (type.IsAssignableFrom(provider.ProviderType) ? provider : throw new InvalidCastException())
             : throw new ServiceNotFoundException(name);
     }
