@@ -8,7 +8,7 @@ using Betauer.Tools.Reflection;
 namespace Betauer.DI;
 
 public partial class Container {
-    private class Injector {
+    public class Injector {
         private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(Injector));
         private readonly Container _container;
 
@@ -24,56 +24,44 @@ public partial class Container {
             Logger.Debug($"Injecting fields in {target.GetType()}: {target.GetHashCode():x8}");
             var members = target.GetType()
                 .GetSettersCached<InjectAttribute>(MemberTypes.Method | MemberTypes.Property, InjectFlags);
-            foreach (var setter in members)
-                InjectMember(target, context, setter);
+            foreach (var setter in members) {
+                if (setter is not IGetter getter || // no getter, like methods 
+                    getter.GetValue(target) is null) { // getter (properties and fields) returned null
+                    InjectMember(target, context, setter);
+                }
+            }
         }
 
-        private void InjectMember(object target, ResolveContext context, ISetter<InjectAttribute> getterSetter) {
-            // Ignore the already defined values
-            if (getterSetter is IGetter getter && getter.GetValue(target) is not null) return;
-
-            var nullable = getterSetter.SetterAttribute.Nullable;
-            var name = getterSetter.SetterAttribute.Name;
-            // Explicit name
-            // [Inject(Name = ...)]
+        private void InjectMember(object target, ResolveContext context, ISetter<InjectAttribute> setter) {
+            var nullable = setter.SetterAttribute.Nullable;
+            var name = setter.SetterAttribute.Name;
             if (name != null) {
-                if (TryInjectFieldByName(target, context, getterSetter, name)) {
-                    Logger.Debug(
-                        $"{target.GetType().FullName} ({target.GetHashCode():x8}) | {getterSetter} | Name taken from [Inject(\"{name}\")");
+                // Explicit name with [Inject(Name = "")]
+                if (TryInjectFieldByName(target, context, setter, name)) {
+                    Logger.Debug($"{target.GetType().FullName} ({target.GetHashCode():x8}) | {setter} | Name taken from [Inject(\"{name}\")");
                     return;
                 }
                 if (!nullable) {
-                    throw new InjectMemberException(getterSetter.Name, target,
-                        "Service Name=\"" + name + "\" not found when trying to inject " + getterSetter);
+                    throw new InjectMemberException(setter.Name, target, $"Service Name=\"{name}\" not found when trying to inject {setter}");
                 }
-            }
-
-            var injectFactory = getterSetter.Type.IsGenericType &&
-                                getterSetter.Type.ImplementsInterface(typeof(IFactory<>));
-            // Implicit name (from variable). Only try if the type is not a IFactory<>
-            if (!injectFactory) {
-                if (TryInjectFieldByName(target, context, getterSetter, getterSetter.Name)) {
-                    Logger.Debug(
-                        $"{target.GetType().FullName} ({target.GetHashCode():x8}) | {getterSetter} | Name taken from member: {getterSetter.Name}");
+            } else {
+                // Implicit name (from variable, [Inject] Node pepe, so "pepe" is the name).
+                if (TryInjectFieldByName(target, context, setter, setter.Name)) {
+                    Logger.Debug($"{target.GetType().FullName} ({target.GetHashCode():x8}) | {setter} | Name taken from member: {setter.Name}");
                     return;
                 }
             }
-
-            if (TryInjectFieldByType(target, context, getterSetter)) {
-                Logger.Debug(
-                    $"{target.GetType().FullName} ({target.GetHashCode():x8}) | {getterSetter} | Type: {getterSetter.Type}");
+            if (TryInjectFieldByType(target, context, setter)) {
+                Logger.Debug($"{target.GetType().FullName} ({target.GetHashCode():x8}) | {setter} | Type: {setter.Type}");
                 return;
             }
             if (_container.CreateIfNotFound) {
-                getterSetter.SetValue(target, _container.Resolve(getterSetter.Type));
-                Logger.Debug(
-                    $"{target.GetType().FullName} ({target.GetHashCode():x8}) | {getterSetter} | Auto created. Type: {getterSetter.Type}");
+                setter.SetValue(target, _container.Resolve(setter.Type));
+                Logger.Debug($"{target.GetType().FullName} ({target.GetHashCode():x8}) | {setter} | Auto created. Type: {setter.Type}");
                 return;
             }
             if (!nullable) {
-                throw new InjectMemberException(getterSetter.Name, target,
-                    "Not service found when trying to inject [" + getterSetter +
-                    "] in " + target.GetType().FullName);
+                throw new InjectMemberException(setter.Name, target, $"Service type {target.GetType().FullName} not found when trying to inject {setter}");
             }
         }
 
@@ -88,9 +76,11 @@ public partial class Container {
         // [Inject(Name="NodeFactory")] IFactory<Node> _nodeFactory
         private bool TryInjectFieldByName(object target, ResolveContext context, ISetter setter, string name) {
             if (_container.TryGetProvider(name, out var provider)) {
-                var service = provider.Get(context);
-                setter.SetValue(target, service);
-                return true;
+                if (setter.CanAssign(provider.ProviderType)) {
+                    var service = provider.Get(context);
+                    setter.SetValue(target, service);
+                    return true;
+                }
             }
             return false;
         }
