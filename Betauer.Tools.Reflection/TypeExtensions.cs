@@ -13,11 +13,11 @@ public static class TypeExtensions {
     public static bool ImplementsInterface(this Type type, Type interfaceType) {
         if (type == null) throw new ArgumentNullException(nameof(type));
         if (interfaceType == null) throw new ArgumentNullException(nameof(interfaceType));
-        
+    
         if (type.IsAssignableTo(interfaceType)) return true;
-        
+    
         // interfaceType is a GenericTypeDefinition (that means is something like List<> instead of List<string>)
-        return (interfaceType.IsGenericTypeDefinition && interfaceType == type.GetGenericTypeDefinition()) ||
+        return (type.IsGenericType && interfaceType.IsGenericTypeDefinition && interfaceType == type.GetGenericTypeDefinition()) ||
                type.GetInterfaces().Any(implementedInterface =>
                    implementedInterface == interfaceType ||
                    implementedInterface.IsGenericType &&
@@ -104,8 +104,11 @@ public static class TypeExtensions {
         // False
         Console.WriteLine(typeof(List<>).ImplementsInterface(typeof(IList<string>)));
         Console.WriteLine(typeof(Dictionary<,>).ImplementsInterface(typeof(IDictionary<string,int>)));
+        Console.WriteLine(typeof(IEnumerable).ImplementsInterface(typeof(IList)));
+        Console.WriteLine(typeof(IEnumerable).ImplementsInterface(typeof(IList<string>)));
         
         // True
+        Console.WriteLine(typeof(IList).ImplementsInterface(typeof(IEnumerable)));
         Console.WriteLine(typeof(List<string>).ImplementsInterface(typeof(IEnumerable)));
         Console.WriteLine(typeof(List<string>).ImplementsInterface(typeof(IEnumerable<>)));
         Console.WriteLine(typeof(List<string>).ImplementsInterface(typeof(IList<string>)));
