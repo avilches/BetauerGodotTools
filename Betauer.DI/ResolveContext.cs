@@ -5,12 +5,12 @@ using Betauer.DI.ServiceProvider;
 namespace Betauer.DI; 
 
 public class ResolveContext {
-    internal readonly Dictionary<string, object> SingletonCache = new();
-    internal readonly List<object> Transients = new();
+    internal readonly Dictionary<string, object> NewSingletonsCreated = new();
+    internal readonly List<object> NewTransientsCreated = new();
     internal readonly Stack<string> TransientNameStack = new();
     internal readonly Container Container;
 
-    private Action? _onEnd;
+    private readonly Action? _onEnd;
 
     public ResolveContext(Container container, Action? onEnd = null) {
         Container = container;
@@ -19,12 +19,12 @@ public class ResolveContext {
 
     internal bool TryGetSingletonFromCache(Type type, string? name, out object? instanceFound) {
         var key = name ?? type.FullName;
-        return SingletonCache.TryGetValue(key, out instanceFound);
+        return NewSingletonsCreated.TryGetValue(key, out instanceFound);
     }
 
     internal void AddSingleton(Type type, object instance, string? name) {
         var key = name ?? type.FullName;
-        SingletonCache[key] = instance;
+        NewSingletonsCreated[key] = instance;
     }
 
     // This stack avoid circular dependencies between transients
@@ -37,7 +37,7 @@ public class ResolveContext {
     }
 
     internal void AddTransient(object instance) {
-        Transients.Add(instance);
+        NewTransientsCreated.Add(instance);
     }
 
     internal void EndTransient() {
@@ -45,11 +45,11 @@ public class ResolveContext {
     }
 
     internal void End() {
-        foreach (var instance in SingletonCache.Values) {
+        foreach (var instance in NewSingletonsCreated.Values) {
             Container.ExecutePostInjectMethods(instance);
             Container.ExecuteOnCreated(Lifetime.Singleton, instance);
         }
-        foreach (var instance in Transients) {
+        foreach (var instance in NewTransientsCreated) {
             Container.ExecutePostInjectMethods(instance);
             Container.ExecuteOnCreated(Lifetime.Transient, instance);
         }
@@ -57,8 +57,8 @@ public class ResolveContext {
     }
 
     public void Clear() {
-        SingletonCache.Clear();
-        Transients.Clear();
+        NewSingletonsCreated.Clear();
+        NewTransientsCreated.Clear();
         TransientNameStack.Clear();
     }
 }

@@ -82,7 +82,6 @@ public class ScannerBasicTests : Node {
             Assert.That(node3, Is.EqualTo(n3));
             Assert.That(_node4, Is.EqualTo(n4));
             Assert.That(_node5, Is.EqualTo(n5));
-            Assert.That(p1, Is.EqualTo(1));
         }
             
         [Inject] public Node node3 { get; set; }
@@ -127,6 +126,11 @@ public class ScannerBasicTests : Node {
 
         var i = c.Resolve<InjectClass>();
         i.AssertInjectClass();
+        Assert.That(i.p1, Is.EqualTo(1));
+
+        c.InjectServices(i);
+        i.AssertInjectClass();
+        Assert.That(i.p1, Is.EqualTo(2));
     }
 
     [Test(Description = "Inject instance not created by Container")]
@@ -148,6 +152,11 @@ public class ScannerBasicTests : Node {
         c.InjectServices(i);
             
         i.AssertInjectClass();
+        Assert.That(i.p1, Is.EqualTo(1));
+
+        c.InjectServices(i);
+        i.AssertInjectClass();
+        Assert.That(i.p1, Is.EqualTo(2));
     }
 
     [Service]

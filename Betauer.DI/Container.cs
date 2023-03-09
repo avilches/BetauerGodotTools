@@ -212,10 +212,10 @@ public partial class Container {
     
     internal object Resolve(Type type, ResolveContext context) {
         if (TryGetProvider(type, out IProvider? provider)) {
-            return provider.Get(context);
+            return provider!.Get(context);
         }
         if (CreateIfNotFound) {
-            AddToRegistry(Provider.Create(type, type, () => Activator.CreateInstance(type), Lifetime.Transient));
+            AddToRegistry(Provider.Create(type, type, () => Activator.CreateInstance(type)!, Lifetime.Transient));
             // ReSharper disable once TailRecursiveCall
             return Resolve(type, context);
         }
