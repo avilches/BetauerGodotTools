@@ -6,7 +6,7 @@ using Godot;
 using Container = Betauer.DI.Container;
 
 namespace Betauer.Application.Screen;
-public class ScreenSettingsManager {
+public class ScreenSettingsManager : IInjectable {
     [Inject] protected Container Container { get; set; }
     [Inject] protected SceneTree SceneTree { get; set; }
     [Inject(Nullable = true)] protected DebugOverlayManager? DebugOverlayManager { get; set; }
@@ -35,8 +35,7 @@ public class ScreenSettingsManager {
         _initialScreenConfiguration = initialScreenConfiguration;
     }
 
-    [PostInject]
-    private void ConfigureSettings() {
+    public void PostInject() {
         _pixelPerfect = Container.ResolveOr<ISetting<bool>>("Settings.Screen.PixelPerfect",
             () => Setting<bool>.Memory(false));
 
@@ -51,11 +50,7 @@ public class ScreenSettingsManager {
 
         _windowedResolution = Container.ResolveOr<ISetting<Resolution>>("Settings.Screen.WindowedResolution",
             () => Setting<Resolution>.Memory(_initialScreenConfiguration.BaseResolution));
-
-    }
-
-    [PostInject]
-    private void ConfigureCommands() {
+        
         DebugOverlayManager?.DebugConsole.AddScreenSettingsCommand(this);
     }
     

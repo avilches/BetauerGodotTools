@@ -67,7 +67,7 @@ public enum InputActionBehaviour {
     /// </summary>
     Extended,
 }
-public partial class InputAction : IAction {
+public partial class InputAction : IAction, IInjectable {
     public const float DefaultDeadZone = 0.5f;
     public static NormalBuilder Create(string name) => new(name);
     public static NormalBuilder Create(string inputActionsContainerName, string name) => new(inputActionsContainerName, name);
@@ -110,7 +110,7 @@ public partial class InputAction : IAction {
     public bool Alt { get; private set; }
     public bool Meta { get; private set; }
     
-    // Constructor flags used by the [PostInject] to create the SaveSetting and locate the InputActionsContainer
+    // Constructor flags used by the PostInject() to create the SaveSetting and locate the InputActionsContainer
     [Inject] private Container Container { get; set; }
     private readonly string? _inputActionsContainerName;
     private readonly bool _configureSaveSetting = false;
@@ -179,14 +179,12 @@ public partial class InputAction : IAction {
         // Don't call SetupGodotInputMap here. It's better to wait until Configure() load the saved setting
     }
 
-    [PostInject]
-    private void Configure() {
+    public void PostInject() {
         // Configure and load settings
         if (_configureSaveSetting) {
             var section = _settingsSection ?? "Controls";
             var setting = Setting<string>.Persistent(_settingsContainerName, section, Name, AsString());
             Container.InjectServices(setting);
-            setting.ConfigureAndAddToSettingContainer();
             SetSaveSettings(setting);
             
             // Load settings from file

@@ -1,3 +1,4 @@
+using Betauer.DI.ServiceProvider;
 using Betauer.Tools.Logging;
 using Betauer.TestRunner;
 using Godot;
@@ -11,7 +12,80 @@ public class ScannerFactoryTests : Node {
     public void Setup() {
         LoggerFactory.OverrideTraceLevel(TraceLevel.All);
     }
-        
+
+    public class LazySingleton {
+        public static int Calls = 0;
+
+        public LazySingleton() {
+            Calls++;
+        }
+    }
+
+    [Configuration]
+    public class LazySingletonConfiguration {
+        [Service] [Lazy] public LazySingleton LazySingleton => new();
+    }
+
+    [Service]
+    public class AnotherSingleton {
+        [Inject] public IFactory<LazySingleton> LazySingleton { get; set; }
+    }
+
+    [Test(Description = "Test defining a Lazy service by name with a Factory")]
+    public void LazySingletonFromConfiguration() {
+        var c = new Container();
+        var di = c.CreateBuilder();
+        di.Scan<LazySingletonConfiguration>();
+        di.Scan<AnotherSingleton>();
+        di.Build();
+
+        AnotherSingleton another = c.Resolve<AnotherSingleton>();
+
+        Assert.That(LazySingleton.Calls, Is.EqualTo(0));
+        Assert.That(c.GetProvider<LazySingleton>() is ISingletonProvider { IsInstanceCreated: false });
+
+        another.LazySingleton.Get();
+        Assert.That(LazySingleton.Calls, Is.EqualTo(1));
+        Assert.That(c.GetProvider<LazySingleton>() is ISingletonProvider { IsInstanceCreated: true });
+    }
+
+    [Configuration]
+    public class TransientFactoryConfiguration {
+        [Service(Lifetime.Transient)] public TransientD TransientD => new();
+    }
+
+    public class TransientD {
+        public static int Instances = 0;
+
+        public TransientD() {
+            Instances++;
+        }
+    }
+
+    [Service]
+    public class Client {
+        [Inject] public IFactory<TransientD> TransientD { get; set; }
+    }
+
+    [Test(Description = "Test defining a Transient service by name with a Factory")]
+    public void FactoryTransientFromConfiguration() {
+        TransientD.Instances = 0;
+        var c = new Container();
+        var di = c.CreateBuilder();
+        di.Scan<TransientFactoryConfiguration>();
+        di.Scan<Client>();
+        di.Build();
+
+        Client client = c.Resolve<Client>();
+
+        Assert.That(TransientD.Instances, Is.EqualTo(0));
+        Assert.That(client.TransientD.Get(), Is.TypeOf<TransientD>());
+        Assert.That(client.TransientD.Get(), Is.Not.EqualTo(client.TransientD.Get()));
+        Assert.That(TransientD.Instances, Is.EqualTo(3));
+    }
+
+
+    
     [Configuration]
     public class ServiceFactoryConfiguration {
         [Factory] public IFactory<MyService> MyServiceFactory => new MyServiceFactory();

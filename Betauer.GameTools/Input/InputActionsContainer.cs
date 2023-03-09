@@ -7,7 +7,7 @@ using Godot;
 
 namespace Betauer.Input; 
 
-public partial class InputActionsContainer : Node {
+public partial class InputActionsContainer : Node, IInjectable {
     [Inject(Nullable = true)] protected DebugOverlayManager? DebugOverlayManager { get; set; }
 
     public readonly List<IAction> InputActionList = new();
@@ -34,8 +34,7 @@ public partial class InputActionsContainer : Node {
         _nodeHandler.AddChild(this);
     }
 
-    [PostInject]
-    public void ConfigureCommands() {
+    public void PostInject() {
         // TODO: What if there are more than one InputActionsContainer? Only the last one will have the command linked
         DebugOverlayManager?.DebugConsole.AddInputEventCommand(this);
         DebugOverlayManager?.DebugConsole.AddInputMapCommand(this);

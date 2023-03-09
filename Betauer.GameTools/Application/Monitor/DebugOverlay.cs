@@ -12,7 +12,7 @@ using Container = Godot.Container;
 
 namespace Betauer.Application.Monitor;
 
-public partial class DebugOverlay : Panel {
+public partial class DebugOverlay : Panel, IInjectable {
     private static readonly int VisibilityStateEnumSize = Enum.GetNames(typeof(VisibilityStateEnum)).Length;
     public enum VisibilityStateEnum {
         Solid, Float, SolidTransparent, FloatTransparent
@@ -300,8 +300,7 @@ public partial class DebugOverlay : Panel {
         FitContent();
     }
 
-    [PostInject]
-    public void Configure() {
+    public void PostInject() {
         _dragAndDropController = new DragAndDropController().WithMouseButton(MouseButton.Left).OnlyIf(DragPredicate);
         _dragAndDropController.OnStartDrag += OnStartDrag;
         _dragAndDropController.OnDrag += OnDrag;

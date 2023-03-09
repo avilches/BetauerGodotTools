@@ -1,5 +1,6 @@
 using System;
 using Betauer.DI.ServiceProvider;
+using Betauer.TestRunner;
 using NUnit.Framework;
 
 namespace Betauer.DI.Tests;
@@ -50,38 +51,27 @@ public class ScannerLazyTests {
 
     [Service]
     [Lazy]
-    class LazyPostInjectdA1 {
+    class LazyPostInjectdA1 : IInjectable {
         [Inject] internal PostInjectdA2 A2 { get; set; }
         [Inject] internal Container container { get; set; }
 
         internal int Called = 0;
 
-        [PostInject]
-        void PostInjectMethod() {
+        public void PostInject() {
             Assert.That(A2, Is.Not.Null);
             Called++;
         }
     }
 
     [Service]
-    class PostInjectdA2 {
+    class PostInjectdA2 : IInjectable{
         [Inject] internal Container container { get; set; }
 
         internal int Called = 0;
 
-        [PostInject]
-        void PostInjectMethod() {
+        public void PostInject() {
             Called++;
         }
-
-        internal bool more1 = false;
-        internal bool more2 = false;
-
-        [PostInject]
-        void More1() => more1 = true;
-
-        [PostInject]
-        void More2() => more2 = true;
     }
 
     [Test(Description = "Test if the [PostInject] methods are invoked + Lazy using a non lazy")]
@@ -102,19 +92,16 @@ public class ScannerLazyTests {
         var A2 = c.Resolve<PostInjectdA2>();
         Assert.That(A1.A2, Is.EqualTo(A2));
         Assert.That(A2.Called, Is.EqualTo(1));
-        Assert.That(A2.more1, Is.True);
-        Assert.That(A2.more2, Is.True);
     }
 
     [Service]
-    class PostInjectdB1 {
+    class PostInjectdB1 : IInjectable {
         [Inject] internal LazyPostInjectdB2 B2 { get; set; }
         [Inject] internal Container container { get; set; }
 
         internal int Called = 0;
 
-        [PostInject]
-        void PostInjectMethod() {
+        public void PostInject() {
             Assert.That(B2, Is.Not.Null);
             Assert.That(B2.B1, Is.Not.Null);
             Called++;
@@ -123,27 +110,17 @@ public class ScannerLazyTests {
 
     [Service]
     [Lazy]
-    class LazyPostInjectdB2 {
+    class LazyPostInjectdB2 : IInjectable {
         [Inject] internal PostInjectdB1 B1 { get; set; }
         [Inject] internal Container container { get; set; }
 
         internal int Called = 0;
 
-        [PostInject]
-        void PostInjectMethod() {
+        public void PostInject() {
             Assert.That(B1, Is.Not.Null);
             Assert.That(B1.B2, Is.Not.Null);
             Called++;
         }
-
-        internal bool more1 = false;
-        internal bool more2 = false;
-
-        [PostInject]
-        void More1() => more1 = true;
-
-        [PostInject]
-        void More2() => more2 = true;
     }
 
     [Test(Description = "Test if the [PostInject] methods are invoked + Non Lazy using Lazy")]
@@ -164,21 +141,17 @@ public class ScannerLazyTests {
         Assert.That(B1.Called, Is.EqualTo(1));
         Assert.That(B2.B1, Is.EqualTo(B1));
         Assert.That(B2.Called, Is.EqualTo(1));
-
-        Assert.That(B2.more1, Is.True);
-        Assert.That(B2.more2, Is.True);
     }
 
     [Service]
     [Lazy]
-    class LazyPostInjectdC1 {
+    class LazyPostInjectdC1 : IInjectable {
         [Inject] internal LazyPostInjectdC2 C2 { get; set; }
         [Inject] internal Container container { get; set; }
 
         internal int Called = 0;
 
-        [PostInject]
-        void PostInjectMethod() {
+        public void PostInject() {
             Assert.That(C2, Is.Not.Null);
             Assert.That(C2.C1, Is.Not.Null);
             Called++;
@@ -187,27 +160,17 @@ public class ScannerLazyTests {
 
     [Service]
     [Lazy]
-    class LazyPostInjectdC2 {
+    class LazyPostInjectdC2 : IInjectable {
         [Inject] internal LazyPostInjectdC1 C1 { get; set; }
         [Inject] internal Container container { get; set; }
 
         internal int Called = 0;
 
-        [PostInject]
-        void PostInjectMethod() {
+        public void PostInject() {
             Assert.That(C1, Is.Not.Null);
             Assert.That(C1.C2, Is.Not.Null);
             Called++;
         }
-
-        internal bool more1 = false;
-        internal bool more2 = false;
-
-        [PostInject]
-        void More1() => more1 = true;
-
-        [PostInject]
-        void More2() => more2 = true;
     }
 
     [Test(Description = "Test if the [PostInject] methods are invoked + Lazy using Lazy")]
@@ -230,46 +193,6 @@ public class ScannerLazyTests {
         Assert.That(C1.Called, Is.EqualTo(1));
         Assert.That(C2.C1, Is.EqualTo(C1));
         Assert.That(C2.Called, Is.EqualTo(1));
-
-        Assert.That(C2.more1, Is.True);
-        Assert.That(C2.more2, Is.True);
-    }
-
-    public class LazySingleton {
-        public static int Calls = 0;
-
-        public LazySingleton() {
-            Calls++;
-        }
-    }
-
-    [Configuration]
-    public class LazySingletonConfiguration {
-        [Service] [Lazy] public LazySingleton LazySingleton => new();
-    }
-
-    [Service]
-    public class AnotherSingleton {
-        [Inject] public IFactory<LazySingleton> LazySingleton { get; set; }
-    }
-
-
-    [Test(Description = "Test defining a Lazy service by name with a Factory")]
-    public void LazySingletonFromConfiguration() {
-        var c = new Container();
-        var di = c.CreateBuilder();
-        di.Scan<LazySingletonConfiguration>();
-        di.Scan<AnotherSingleton>();
-        di.Build();
-
-        AnotherSingleton another = c.Resolve<AnotherSingleton>();
-
-        Assert.That(LazySingleton.Calls, Is.EqualTo(0));
-        Assert.That(c.GetProvider<LazySingleton>() is ISingletonProvider { IsInstanceCreated: false });
-
-        another.LazySingleton.Get();
-        Assert.That(LazySingleton.Calls, Is.EqualTo(1));
-        Assert.That(c.GetProvider<LazySingleton>() is ISingletonProvider { IsInstanceCreated: true });
     }
 
     [Service]

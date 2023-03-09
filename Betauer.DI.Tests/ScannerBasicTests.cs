@@ -69,7 +69,7 @@ public class ScannerBasicTests : Node {
     }
 
     [Service]
-    public class InjectClass {
+    public class InjectClass : IInjectable {
         public static Node n1;
         public static Node n2;
         public static Node n3;
@@ -83,7 +83,6 @@ public class ScannerBasicTests : Node {
             Assert.That(_node4, Is.EqualTo(n4));
             Assert.That(_node5, Is.EqualTo(n5));
             Assert.That(p1, Is.EqualTo(1));
-            Assert.That(p2, Is.EqualTo(1));
         }
             
         [Inject] public Node node3 { get; set; }
@@ -104,15 +103,8 @@ public class ScannerBasicTests : Node {
         }
 
         internal int p1 = 0;
-        [PostInject]
-        public void Post1() {
+        public void PostInject() {
             p1++;
-        }
-
-        internal int p2 = 0;
-        [PostInject]
-        public void Post2() {
-            p2++;
         }
     }
 
@@ -814,15 +806,14 @@ public class ScannerBasicTests : Node {
     }
         
     [Service(Lifetime.Transient)]
-    public class PostInjectTransient {
+    public class PostInjectTransient : IInjectable {
         public static int Created = 0;
 
         public PostInjectTransient() {
             Created++;
         }
         public int Called = 0;
-        [PostInject]
-        void PostInjectMethod() {
+        public void PostInject() {
             Called++;
         }
     }

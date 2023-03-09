@@ -15,10 +15,6 @@ public class ScanAttribute : Attribute {
 public class ScanAttribute<T> : ScanAttribute {
 }
 
-[AttributeUsage(AttributeTargets.Method)]
-public class PostInjectAttribute : Attribute {
-}
-
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method | AttributeTargets.Property)]
 public class ServiceAttribute : Attribute {
     public Type? Type { get; set; }

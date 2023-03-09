@@ -5,7 +5,7 @@ using Container = Betauer.DI.Container;
 
 namespace Betauer.Input;
 
-public class AxisAction : IAction {
+public class AxisAction : IAction, IInjectable {
     public float Strength => (Positive.Strength - Negative.Strength) * (Reverse ? -1 : 1);
     public float RawStrength => (Positive.RawStrength - Negative.RawStrength) * (Reverse ? -1 : 1);
     public JoyAxis Axis => Positive.Axis;
@@ -64,8 +64,7 @@ public class AxisAction : IAction {
         _positiveServiceName = positiveServiceName ?? throw new ArgumentNullException(nameof(positiveServiceName));
     }
 
-    [PostInject]
-    private void Configure() {
+    public void PostInject() {
         if (_negativeServiceName != null && _positiveServiceName != null) {
             var negative = Container.Resolve<InputAction>(_negativeServiceName);
             if (negative == null) throw new InvalidAxisConfiguration($"Error creating AxisAction: {_negativeServiceName} InputAction not found");

@@ -205,20 +205,8 @@ public partial class Container {
     }
 
     internal static void ExecutePostInjectMethods<T>(T instance) {
-        // TODO: use cached FastMethodInfo
-        var methods = instance.GetType().GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-        foreach (var method in methods) {
-            if (method.HasAttribute<PostInjectAttribute>()) {
-                if (method.GetParameters().Length == 0) {
-                    try {
-                        method.Invoke(instance, Array.Empty<object>());
-                    } catch (TargetInvocationException e) {
-                        ExceptionDispatchInfo.Capture(e.InnerException).Throw();
-                    }
-                } else {
-                    throw new InvalidAttributeException($"Method [PostInject] {method.Name}(...) must have only 0 parameters");
-                }
-            }
+        if (instance.GetType().ImplementsInterface(typeof(IInjectable))) {
+            ((IInjectable)instance).PostInject();
         }
     }
     

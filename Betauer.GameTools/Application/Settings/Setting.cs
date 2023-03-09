@@ -23,7 +23,7 @@ public abstract class BaseSetting {
 
 }
 
-public abstract class SaveSetting : BaseSetting {
+public abstract class SaveSetting : BaseSetting, IInjectable {
     [Inject] protected Container Container { get; set; }
 
     private readonly string? _settingsContainerName;
@@ -48,8 +48,7 @@ public abstract class SaveSetting : BaseSetting {
         Enabled = enabled;
     }
 
-    [PostInject]
-    internal void ConfigureAndAddToSettingContainer() {
+    public void PostInject() {
         var settingsContainer = _settingsContainerName != null
             ? Container.Resolve<SettingsContainer>(_settingsContainerName)
             : Container.Resolve<SettingsContainer>();
