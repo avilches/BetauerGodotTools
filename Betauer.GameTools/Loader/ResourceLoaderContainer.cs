@@ -88,7 +88,7 @@ public class ResourceLoaderContainer {
         });
         Unload();
         var resources =
-            await Loader.LoadThreaded(resourcesPaths, awaiter, progress => OnProgress?.Invoke(progress));
+            await LoadTools.LoadThreaded(resourcesPaths, awaiter, progress => OnProgress?.Invoke(progress));
             
         // Add resources to registry by Path                
         Registry = resources.ToDictionary(r => r.ResourcePath);

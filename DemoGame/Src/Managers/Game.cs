@@ -1,19 +1,31 @@
 using System.Linq;
 using System.Threading.Tasks;
-using Betauer.Core;
 using Betauer.DI;
 using Betauer.Core.Nodes;
 using Betauer.Core.Pool;
 using Betauer.Core.Signal;
+using Betauer.DI.Factory;
+using Veronenger.Character.Npc;
 using Godot;
 using Veronenger.Character.Player;
 using Veronenger.Config;
 using Veronenger.Persistent;
+using Veronenger.Transient;
 using Veronenger.UI;
-using ProjectileTrail = Veronenger.Transient.ProjectileTrail;
-using ZombieNode = Veronenger.Character.Npc.ZombieNode;
 
 namespace Veronenger.Managers;
+
+[Service]
+public class ZombiePool : BaseMiniPoolBusy<ZombieNode>, IFactory<ZombieNode> {
+    [Inject] private IFactory<ZombieNode> ZombieFactory { get; set; }
+    
+    public ZombiePool() : base(4) {
+    }
+
+    protected override ZombieNode Create() {
+        return ZombieFactory.Get().Configure();
+    }
+}
 
 [Service]
 public class Game {
@@ -24,16 +36,11 @@ public class Game {
     [Inject] private StageManager StageManager { get; set; }
     [Inject] private IFactory<Node> World3 { get; set; }
     [Inject] private IFactory<PlayerNode> PlayerFactory { get; set; }
-    [Inject] private IFactory<ZombieNode> ZombieFactory { get; set; }
+    [Inject] private ZombiePool ZombiePool { get; set; }
     [Inject] private IFactory<ProjectileTrail> ProjectileFactory { get; set; }
-    
+
     private Node _currentGameScene;
     public MiniPoolBusy<ProjectileTrail> _bulletPool;
-    private readonly MiniPoolBusy<ZombieNode> _zombiePool;
-
-    public Game() {
-        _zombiePool = new MiniPoolBusy<ZombieNode>(() => ZombieFactory.Get().Configure());
-    }
 
     public async Task Start() {
         StageManager.ClearState();
@@ -83,7 +90,7 @@ public class Game {
     }
 
     public void ZombieSpawn(Node scene, Vector2 position) {
-        var zombieNode = _zombiePool.Get();
+        var zombieNode = ZombiePool.Get();
         ItemRepository.AddEnemy(ItemConfigManager.ZombieConfig, "Zombie", zombieNode);
         zombieNode.AddToScene(scene, position);
     }
@@ -107,7 +114,7 @@ public class Game {
 
 
     public void End() {
-        _zombiePool.Elements.ForEach(z => z.RemoveFromScene());
+        ZombiePool.Elements.ForEach(z => z.RemoveFromScene());
         Node.PrintOrphanNodes();
         HudScene.EndGame();
         _currentGameScene.QueueFree();

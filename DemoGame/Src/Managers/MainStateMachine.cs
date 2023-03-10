@@ -1,11 +1,11 @@
 using Betauer.Application.Monitor;
 using Godot;
 using Betauer.Application.Screen;
-using Betauer.Bus;
 using Betauer.Core;
 using Betauer.DI;
 using Betauer.Input;
 using Betauer.Core.Nodes;
+using Betauer.DI.Factory;
 using Betauer.Nodes;
 using Betauer.StateMachine.Async;
 using Veronenger.UI;

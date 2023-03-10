@@ -3,15 +3,15 @@ using Betauer.Application.Monitor;
 using Betauer.Application.Screen;
 using Betauer.Application.Settings;
 using Betauer.DI;
-using Betauer.DI.ServiceProvider;
+using Betauer.DI.Factory;
 using Betauer.Input;
 using Godot;
+using Veronenger.Character.Npc;
 using Veronenger.Character.Player;
+using Veronenger.Transient;
 using Veronenger.UI;
-using static Betauer.Loader.Loader;
+using static Betauer.Loader.LoadTools;
 using static Godot.ResourceLoader;
-using ProjectileTrail = Veronenger.Transient.ProjectileTrail;
-using ZombieNode = Veronenger.Character.Npc.ZombieNode;
 
 namespace Veronenger.Config; 
 
@@ -68,24 +68,16 @@ public class Resources {
 	[Service] Texture2D XboxOneButtons => Load<Texture2D>("res://Assets/UI/Consoles/Xbox One Controller Updated.png");
 	[Service] Theme MyTheme => Load<Theme>("res://Assets/UI/my_theme.tres");
 	[Service] Theme DebugConsoleTheme => Load<Theme>("res://Assets/UI/DebugConsole.tres");
-	
 }
-	
+
 [Configuration]
 public class Scenes {
-	private readonly PackedScene _redefineActionButtonScene = PackedScene("res://Scenes/UI/RedefineActionButton.tscn");
-	private readonly PackedScene _world3Scene = PackedScene("res://Worlds/World3.tscn");
-	private readonly PackedScene _playerScene = PackedScene("res://Scenes/Player.tscn");
-	private readonly PackedScene _zombieScene = PackedScene("res://Scenes/Zombie2.tscn");
-	private readonly PackedScene _modalBoxConfirmScene = PackedScene("res://Scenes/Menu/ModalBoxConfirm.tscn");
-	private readonly PackedScene _projectileTrail = PackedScene("res://Scenes/ProjectileTrail.tscn");
-		
-	[Service(Lifetime.Transient)] RedefineActionButton RedefineActionButton => _redefineActionButtonScene.Instantiate<RedefineActionButton>();
-	[Service(Lifetime.Transient)] Node World3 => _world3Scene.Instantiate<Node>();
-	[Service(Lifetime.Transient)] PlayerNode Player => _playerScene.Instantiate<PlayerNode>();
-	[Service(Lifetime.Transient)] ZombieNode ZombieNode => _zombieScene.Instantiate<ZombieNode>();
-	[Service(Lifetime.Transient)] ModalBoxConfirm ModalBoxConfirm => _modalBoxConfirmScene.Instantiate<ModalBoxConfirm>();
-	[Service(Lifetime.Transient)] ProjectileTrail ProjectileTrail => _projectileTrail.Instantiate<ProjectileTrail>();
+	[Factory] private IFactory<ZombieNode> ZombieNode => new SceneFactory<ZombieNode>("res://Scenes/Zombie2.tscn");
+	[Factory] private IFactory<RedefineActionButton> RedefineActionButton => new SceneFactory<RedefineActionButton>("res://Scenes/UI/RedefineActionButton.tscn");
+	[Factory] private IFactory<Node> World3 => new SceneFactory<Node>("res://Worlds/World3.tscn");
+	[Factory] private IFactory<PlayerNode> Player => new SceneFactory<PlayerNode>("res://Scenes/Player.tscn");
+	[Factory] private IFactory<ModalBoxConfirm> ModalBoxConfirm => new SceneFactory<ModalBoxConfirm>("res://Scenes/Menu/ModalBoxConfirm.tscn");
+	[Factory] private IFactory<ProjectileTrail> ProjectileTrail => new SceneFactory<ProjectileTrail>("res://Scenes/ProjectileTrail.tscn");
 
 	[Service] HUD HudScene => Instantiate<HUD>("res://Scenes/UI/HUD.tscn");
 	[Service] MainMenu MainMenuScene => Instantiate<MainMenu>("res://Scenes/Menu/MainMenu.tscn");

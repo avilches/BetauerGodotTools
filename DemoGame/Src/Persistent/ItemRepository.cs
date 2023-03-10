@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Betauer.DI;
+using Betauer.DI.Factory;
 using Godot;
 using Veronenger.Character.Player;
 using Veronenger.Config;

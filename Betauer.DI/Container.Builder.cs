@@ -55,9 +55,9 @@ public partial class Container {
             Register(providerCustomFactory);
     
             // Register the regular instance factory class
-            // Using the getFromProviderFactory.Get as factory means the original factory will be used
+            // Using the getFromProviderFactory.GetCustomFactory makes the factory of this provider the Get method in the custom factory 
             var getFromProviderFactory = ProviderCustomFactory.Create(type, providerCustomFactory);
-            var providerFactory = Provider.Create(type, type, Lifetime.Transient, getFromProviderFactory.Get, null, false, true);
+            var providerFactory = Provider.Create(type, type, Lifetime.Transient, getFromProviderFactory.GetCustomFactory, null, false, true);
             Register(providerFactory);
     
             // Finally, we register a IFactory<> so the user can use the real factory.

@@ -10,7 +10,7 @@ public abstract class ProviderCustomFactory {
         return instance;
     }
 
-    public abstract object Get();
+    public abstract object GetCustomFactory();
 
     public class ProviderCustomFactoryImpl<T> : ProviderCustomFactory {
         private readonly IProvider _customFactory;
@@ -19,7 +19,7 @@ public abstract class ProviderCustomFactory {
             _customFactory = customFactory;
         }
         
-        public override object Get() {
+        public override object GetCustomFactory() {
             IFactory<T> factory = (IFactory<T>)_customFactory.Get();
             return factory.Get();
         }

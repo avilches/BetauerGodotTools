@@ -6,7 +6,7 @@ using Godot;
 
 namespace Betauer.Loader;
 
-public static class Loader {
+public static class LoadTools {
     private class ResourceProgress {
         internal readonly string Path;
         internal Resource? Resource;
