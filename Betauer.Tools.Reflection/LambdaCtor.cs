@@ -6,17 +6,25 @@ using System.Reflection;
 
 namespace Betauer.Tools.Reflection;
 
+public class LambdaCtor {
+    public static Func<T> CreateCtor<T>() => 
+        LambdaCtor<T>.CreateInstance;
+
+    public static Func<object> CreateCtor(Type type) =>
+        Expression.Lambda<Func<object>>(Expression.New(type)).Compile();
+}
+
 public class LambdaCtor<T> {
     private static Func<T>? _ctor;
+    public static Func<T> Ctor => _ctor ??= Expression.Lambda<Func<T>>(Expression.New(typeof(T))).Compile();
 
     public static T CreateInstance() {
-        _ctor ??= Expression.Lambda<Func<T>>(Expression.New(typeof(T))).Compile();
-        return _ctor.Invoke();
+        return Ctor.Invoke();
     }
 }
 
 
-file class Ctor<T> {
+ class Ctor<T> {
     private static ConstructorInfo? _ctor;
 
     public static T CreateInstance() {
@@ -25,7 +33,7 @@ file class Ctor<T> {
     }
 }
 
-file class FastCtorTest {
+ class FastCtorTest {
     public static void Main() {
         var TIMES = 10000000;
         Stopwatch x = null;
@@ -44,18 +52,18 @@ file class FastCtorTest {
 
         x = Stopwatch.StartNew();
         for (var i = 0; i < TIMES; i++) Ctor<List<string>>.CreateInstance();
-        Console.WriteLine("* Ctor<List<string>>.CreateInstance():" + x.ElapsedMilliseconds);
+        Console.WriteLine("Ctor<List<string>>.CreateInstance():" + x.ElapsedMilliseconds);
         GC.GetTotalMemory(true);
 
         x = Stopwatch.StartNew();
-        var lambda = Expression.Lambda<Func<object>>(Expression.New(typeof(List<string>))).Compile();
-        for (var i = 0; i < TIMES; i++) lambda.Invoke();
-        Console.WriteLine("* lambda.Invoke():" + x.ElapsedMilliseconds);
-        GC.GetTotalMemory(true);
-        
-        x = Stopwatch.StartNew();
         for (var i = 0; i < TIMES; i++) LambdaCtor<List<string>>.CreateInstance();
-        Console.WriteLine("* LambdaCtor<List<string>>.CreateInstance():" + x.ElapsedMilliseconds);
+        Console.WriteLine("LambdaCtor<List<string>>.CreateInstance():" + x.ElapsedMilliseconds);
+        GC.GetTotalMemory(true);
+
+        x = Stopwatch.StartNew();
+        var func = LambdaCtor.CreateCtor(typeof(List<string>));
+        for (var i = 0; i < TIMES; i++) func.Invoke();
+        Console.WriteLine("* LambdaCtor.CreateCtor(typeof(List<string>)):" + x.ElapsedMilliseconds);
         GC.GetTotalMemory(true);
 
         x = Stopwatch.StartNew();
@@ -67,7 +75,6 @@ file class FastCtorTest {
         for (var i = 0; i < TIMES; i++) Activator.CreateInstance<List<string>>();
         Console.WriteLine("Activator.CreateInstance<List<string>>():" + x.ElapsedMilliseconds);
         GC.GetTotalMemory(true);
-
 
 
     }

@@ -4,7 +4,8 @@ namespace Betauer.Tools.Reflection;
 
 public interface ISetter : IMember {
     public void SetValue(object instance, object? value);
-    bool CanAssign(Type type);
+    bool CanSetValue(Type type) => Type.IsAssignableFrom(type);
+    bool CanSetValue(object instance) => Type.IsInstanceOfType(instance);
 }
 
 public interface ISetter<out T> : ISetter where T : Attribute {

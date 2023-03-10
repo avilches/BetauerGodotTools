@@ -159,8 +159,8 @@ public partial class Container {
             return true;
         }
         if (CreateIfNotFound) {
-            Func<object> factory = () => Activator.CreateInstance(type)!;
-            AddToRegistry(new TransientFactoryProvider(type, type, factory)); 
+            AddToRegistry(Provider.Create(type, type, Lifetime.Transient, null));
+            // ReSharper disable once TailRecursiveCall
             return TryResolve(type, out instance);
         }
         instance = null;
@@ -213,7 +213,7 @@ public partial class Container {
             return provider!.Get(context);
         }
         if (CreateIfNotFound) {
-            AddToRegistry(Provider.Create(type, type, () => Activator.CreateInstance(type)!, Lifetime.Transient));
+            AddToRegistry(Provider.Create(type, type, Lifetime.Transient, null));
             // ReSharper disable once TailRecursiveCall
             return Resolve(type, context);
         }

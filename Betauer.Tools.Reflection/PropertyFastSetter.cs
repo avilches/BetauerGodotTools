@@ -32,10 +32,6 @@ public class PropertyFastSetter : ISetter {
         _setValue(instance, value);
     }
 
-    public bool CanAssign(Type type) {
-        return Type.IsAssignableFrom(type);
-    }
-
     public override string ToString() {
         return _toString ?? base.ToString();
     }

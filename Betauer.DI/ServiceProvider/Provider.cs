@@ -1,4 +1,5 @@
 using System;
+using System.Linq.Expressions;
 using Betauer.Tools.Reflection;
 
 namespace Betauer.DI.ServiceProvider {
@@ -12,65 +13,84 @@ namespace Betauer.DI.ServiceProvider {
         }
 
         public static IProvider Singleton<T>(string? name = null, bool primary = false, bool lazy = false) where T : class {
-            return Create<T, T>(Activator.CreateInstance<T>, Lifetime.Singleton, name, primary, lazy);
+            var factory = CreateDefaultFactory<T>(Lifetime.Singleton);
+            return Create<T, T>(Lifetime.Singleton, factory, name, primary, lazy);
         }
 
         public static IProvider Singleton<T>(Func<T> factory, string? name = null, bool primary = false, bool lazy = false) where T : class {
-            return Create<T, T>(factory, Lifetime.Singleton, name, primary, lazy);
+            return Create<T, T>(Lifetime.Singleton, factory, name, primary, lazy);
         }
 
         public static IProvider Singleton<TI, T>(Func<T> factory, string? name = null, bool primary = false, bool lazy = false) where T : class {
-            return Create<TI, T>(factory, Lifetime.Singleton, name, primary, lazy);
+            return Create<TI, T>(Lifetime.Singleton, factory, name, primary, lazy);
         }
 
         public static IProvider Singleton<TI, T>(string? name = null, bool primary = false, bool lazy = false) where T : class {
-            return Create<TI, T>(Activator.CreateInstance<T>, Lifetime.Singleton, name, primary, lazy);
+            var factory = CreateDefaultFactory<T>(Lifetime.Singleton);
+            return Create<TI, T>(Lifetime.Singleton, factory, name, primary, lazy);
         }
 
         public static IProvider Transient<T>(string? name = null, bool primary = false) where T : class {
-            return Create<T, T>(LambdaCtor<T>.CreateInstance, Lifetime.Transient, name, primary, false);
+            var factory = CreateDefaultFactory<T>(Lifetime.Transient);
+            return Create<T, T>(Lifetime.Transient, factory, name, primary, false);
         }
 
         public static IProvider Transient<T>(Func<T> factory, string? name = null, bool primary = false) where T : class {
-            return Create<T, T>(factory, Lifetime.Transient, name, primary, false);
+            return Create<T, T>(Lifetime.Transient, factory, name, primary, false);
         }
 
         public static IProvider Transient<TI, T>(Func<T> factory, string? name = null, bool primary = false) where T : class {
-            return Create<TI, T>(factory, Lifetime.Transient, name, primary, false);
+            return Create<TI, T>(Lifetime.Transient, factory, name, primary, false);
         }
 
         public static IProvider Transient<TI, T>(string? name = null, bool primary = false) where T : class {
-            return Create<TI, T>(LambdaCtor<T>.CreateInstance, Lifetime.Transient, name, primary, false);
+            var factory = CreateDefaultFactory<T>(Lifetime.Transient);
+            return Create<TI, T>(Lifetime.Transient, factory, name, primary, false);
         }
 
-        public static IProvider Service<T>(Lifetime lifetime = Lifetime.Singleton, string? name = null, bool primary = false, bool lazy = false) where T : class {
-            Func<T> factory = lifetime == Lifetime.Singleton ? Activator.CreateInstance<T> : LambdaCtor<T>.CreateInstance;
-            return Create<T, T>(factory, lifetime, name, primary, lazy);
+        public static IProvider Service<T>(Lifetime lifetime, string? name = null, bool primary = false, bool lazy = false) where T : class {
+            Func<T> factory = CreateDefaultFactory<T>(lifetime);
+            return Create<T, T>(lifetime, factory, name, primary, lazy);
         }
 
-        public static IProvider Service<T>(Func<T> factory, Lifetime lifetime = Lifetime.Singleton, string? name = null, bool primary = false, bool lazy = false) where T : class {
-            return Create<T, T>(factory, lifetime, name, primary, lazy);
+        public static IProvider Service<T>(Func<T> factory, Lifetime lifetime, string? name = null, bool primary = false, bool lazy = false) where T : class {
+            return Create<T, T>(lifetime, factory, name, primary, lazy);
         }
 
-        public static IProvider Service<TI, T>(Func<T> factory, Lifetime lifetime = Lifetime.Singleton, string? name = null, bool primary = false, bool lazy = false) where T : class {
-            return Create<TI, T>(factory, lifetime, name, primary, lazy);
+        public static IProvider Service<TI, T>(Func<T> factory, Lifetime lifetime, string? name = null, bool primary = false, bool lazy = false) where T : class {
+            return Create<TI, T>(lifetime, factory, name, primary, lazy);
         }
 
-        public static IProvider Service<TI, T>(Lifetime lifetime = Lifetime.Singleton, string? name = null, bool primary = false, bool lazy = false) where T : class {
-            Func<T> factory = lifetime == Lifetime.Singleton ? Activator.CreateInstance<T> : LambdaCtor<T>.CreateInstance;
-            return Create<TI, T>(factory, lifetime, name, primary, lazy);
+        public static IProvider Service<TI, T>(Lifetime lifetime, string? name = null, bool primary = false, bool lazy = false) where T : class {
+            Func<T> factory = CreateDefaultFactory<T>(lifetime);
+            return Create<TI, T>(lifetime, factory, name, primary, lazy);
         }
 
-        public static IProvider Create<TI, T>(Func<T> factory, Lifetime lifetime, string? name, bool primary, bool lazy = false) where T : class {
-            return Create(typeof(TI), typeof(T), factory, lifetime, name, primary, lazy);
+        public static IProvider Create<TI, T>(Lifetime lifetime, Func<T>? factory = null, string? name = null, bool primary = false, bool lazy = false) where T : class {
+            factory ??= CreateDefaultFactory<T>(lifetime);
+            return Create(typeof(TI), typeof(T), lifetime, factory, name, primary, lazy);
         }
 
-        public static IProvider Create(Type registeredType, Type type, Func<object> factory, Lifetime lifetime = Lifetime.Singleton, string? name = null, bool primary = false, bool lazy = false) {
+        public static IProvider Create(Type registeredType, Type type, Lifetime lifetime, Func<object>? factory = null, string? name = null, bool primary = false, bool lazy = false) {
+            factory ??= CreateDefaultFactory(type, lifetime);
             return lifetime == Lifetime.Singleton
                 ? new SingletonFactoryProvider(registeredType, type, factory, name, primary, lazy)
                 : new TransientFactoryProvider(registeredType, type, factory, name, primary);
         }
 
+        public static Func<object> CreateDefaultFactory(Type type, Lifetime lifetime) {
+            if (type.IsAbstract || type.IsInterface)
+                throw new MissingMethodException(
+                    $"Can't create default factory for and abstract or interface type: {type.Name}");
+            return lifetime == Lifetime.Singleton ? () => Activator.CreateInstance(type)! : LambdaCtor.CreateCtor(type);
+        }
+
+        public static Func<T> CreateDefaultFactory<T>(Lifetime lifetime) {
+            if (typeof(T).IsAbstract || typeof(T).IsInterface)
+                throw new MissingMethodException(
+                    $"Can't create default factory for and abstract or interface type: {typeof(T).Name}");
+            return lifetime == Lifetime.Singleton ? Activator.CreateInstance<T> : LambdaCtor<T>.CreateInstance;
+        }
 
         public Container Container { get; set; }
         public Type RegisterType { get; }

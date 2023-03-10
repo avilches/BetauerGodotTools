@@ -8,8 +8,8 @@ public class TransientFactoryProvider : Provider {
     private readonly Func<object> _factory;
     public override Lifetime Lifetime => Lifetime.Transient;
 
-    public TransientFactoryProvider(Type registerType, Type providerType, Func<object> factory, string? name = null, bool primary = false) : base(registerType, providerType, name, primary) {
-        _factory = factory;
+    public TransientFactoryProvider(Type registerType, Type providerType, Func<object>? factory = null, string? name = null, bool primary = false) : base(registerType, providerType, name, primary) {
+        _factory = factory ?? CreateDefaultFactory(providerType, Lifetime);
     }
 
     public override object Get(ResolveContext context) {

@@ -57,24 +57,6 @@ namespace Betauer.DI.Tests {
             Assert.Throws<InvalidCastException>(() => di.TryResolve<Node>("P", out var r));
         }
 
-        [Test(Description = "InvalidCastException when register type is not compatible with the provider type")]
-        public void WrongCreatingTests() {
-            TestDelegate[] x = {
-                () => new Container.Builder().Register(Provider.Static(typeof(Node), new ClassWith1Interface())).Build(),
-                () => new Container.Builder().Register(Provider.Static(typeof(Node), new ClassWith1Interface(), "P")).Build(),
-                () => new Container.Builder().Register(Provider.Singleton<ClassWith1Interface, IInterface1>()).Build(),
-                () => new Container.Builder().Register(Provider.Singleton<ClassWith1Interface, IInterface1>("P")).Build(),
-                () => new Container.Builder().Register(Provider.Transient<ClassWith1Interface, IInterface1>()).Build(),
-                () => new Container.Builder().Register(Provider.Transient<ClassWith1Interface, IInterface1>("P")).Build(),
-                () => new Container.Builder().Register(Provider.Service<ClassWith1Interface, IInterface1>(Lifetime.Singleton)).Build(),
-                () => new Container.Builder().Register(Provider.Service<ClassWith1Interface, IInterface1>(Lifetime.Transient, "P")).Build(),
-            };
-            foreach (var func in x) {
-                Console.WriteLine($"Test #{x}");
-                Assert.Throws<InvalidCastException>(func);
-            }
-        }
-
         [Test(Description = "CreateIfNotFound: if type is not found, create a new instance automatically (like transient)")]
         public void CreateTransientIfNotFoundTest() {
             var di = new Container() {
@@ -90,6 +72,27 @@ namespace Betauer.DI.Tests {
             Assert.Throws<MissingMethodException>(() => di.Resolve<IInterface1>());
             // Not allowed abstract classes
             Assert.Throws<MissingMethodException>(() => di.Resolve(typeof(AbstractClass)));
+
+        }
+
+        [Test(Description = "Error creating factories")]
+        public void CantCreateFactoryFromInterfaceTest() {
+            var di = new Container();
+            Assert.Throws<InvalidCastException>(() => di.CreateBuilder().Register(Provider.Static(typeof(Node), new ClassWith1Interface())).Build());
+            Assert.Throws<InvalidCastException>(() => di.CreateBuilder().Register(Provider.Static(typeof(Node), new ClassWith1Interface(), "P")).Build());
+            Assert.Throws<MissingMethodException>(() => di.CreateBuilder().Register(Provider.Singleton<ClassWith1Interface, IInterface1>()).Build());
+            Assert.Throws<MissingMethodException>(() => di.CreateBuilder().Register(Provider.Singleton<ClassWith1Interface, IInterface1>("P")).Build());
+            Assert.Throws<MissingMethodException>(() => di.CreateBuilder().Register(Provider.Transient<ClassWith1Interface, IInterface1>()).Build());
+            Assert.Throws<MissingMethodException>(() => di.CreateBuilder().Register(Provider.Transient<ClassWith1Interface, IInterface1>("P")).Build());
+            Assert.Throws<MissingMethodException>(() => di.CreateBuilder().Register(Provider.Service<ClassWith1Interface, IInterface1>(Lifetime.Singleton)).Build());
+            Assert.Throws<MissingMethodException>(() => di.CreateBuilder().Register(Provider.Service<ClassWith1Interface, IInterface1>(Lifetime.Singleton, "P")).Build());
+            Assert.Throws<MissingMethodException>(() => di.CreateBuilder().Register(Provider.Service<ClassWith1Interface, IInterface1>(Lifetime.Transient)).Build());
+            Assert.Throws<MissingMethodException>(() => di.CreateBuilder().Register(Provider.Service<ClassWith1Interface, IInterface1>(Lifetime.Transient, "P")).Build());
+            Assert.Throws<MissingMethodException>(() => di.CreateBuilder().Register(Provider.Create<IInterface1, IInterface1>(Lifetime.Singleton)).Build());
+            Assert.Throws<MissingMethodException>(() => di.CreateBuilder().Register(Provider.Create<IInterface1, IInterface1>(Lifetime.Singleton, null, "P")).Build());
+            Assert.Throws<MissingMethodException>(() => di.CreateBuilder().Register(Provider.Create<IInterface1, IInterface1>(Lifetime.Transient)).Build());
+            Assert.Throws<MissingMethodException>(() => di.CreateBuilder().Register(Provider.Create<IInterface1, IInterface1>(Lifetime.Transient, null, "P")).Build());
+            
         }
 
         [Test(Description = "Resolve, TryResolve, Contains, TryGetProvider and GetProvider: type")]
@@ -101,10 +104,8 @@ namespace Betauer.DI.Tests {
                 () => new Container.Builder().Register(Provider.Singleton(() => new ClassWith1Interface())).Build(),
                 () => new Container.Builder().Register(Provider.Transient<ClassWith1Interface>()).Build(),
                 () => new Container.Builder().Register(Provider.Transient(() => new ClassWith1Interface())).Build(),
-                () => new Container.Builder().Register(Provider.Service<ClassWith1Interface>()).Build(),
                 () => new Container.Builder().Register(Provider.Service<ClassWith1Interface>(Lifetime.Singleton)).Build(),
                 () => new Container.Builder().Register(Provider.Service<ClassWith1Interface>(Lifetime.Transient)).Build(),
-                () => new Container.Builder().Register(Provider.Service(() => new ClassWith1Interface())).Build(),
                 () => new Container.Builder().Register(Provider.Service(() => new ClassWith1Interface(), Lifetime.Singleton)).Build(),
                 () => new Container.Builder().Register(Provider.Service(() => new ClassWith1Interface(), Lifetime.Transient)).Build(),
             };
@@ -141,7 +142,6 @@ namespace Betauer.DI.Tests {
                 () => new Container.Builder().Register(Provider.Singleton<IInterface1, ClassWith1Interface>(() => new ClassWith1Interface())).Build(),
                 () => new Container.Builder().Register(Provider.Transient<IInterface1, ClassWith1Interface>()).Build(),
                 () => new Container.Builder().Register(Provider.Transient<IInterface1, ClassWith1Interface>(() => new ClassWith1Interface())).Build(),
-                () => new Container.Builder().Register(Provider.Service<IInterface1, ClassWith1Interface>()).Build(),
                 () => new Container.Builder().Register(Provider.Service<IInterface1, ClassWith1Interface>(Lifetime.Singleton)).Build(),
                 () => new Container.Builder().Register(Provider.Service<IInterface1, ClassWith1Interface>(Lifetime.Transient)).Build(),
                 () => new Container.Builder().Register(Provider.Service<IInterface1, ClassWith1Interface>(() => new ClassWith1Interface(), Lifetime.Singleton)).Build(),
