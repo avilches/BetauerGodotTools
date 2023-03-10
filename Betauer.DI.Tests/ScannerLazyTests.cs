@@ -1,4 +1,5 @@
 using System;
+using Betauer.DI.Factory;
 using Betauer.DI.ServiceProvider;
 using Betauer.TestRunner;
 using NUnit.Framework;

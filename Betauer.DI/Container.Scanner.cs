@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Betauer.Core;
+using Betauer.DI.Exceptions;
+using Betauer.DI.Factory;
 using Betauer.DI.ServiceProvider;
 using Betauer.Tools.Reflection;
 

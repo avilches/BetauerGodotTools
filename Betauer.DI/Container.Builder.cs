@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Betauer.Core;
+using Betauer.DI.Factory;
 using Betauer.DI.ServiceProvider;
 
 namespace Betauer.DI;
@@ -97,73 +98,6 @@ public partial class Container {
                 _scanner.ScanConfiguration(configuration);
             }
             return this;
-        }
-
-        public abstract class FuncFactory {
-            protected readonly Func<object> FactoryFunc;
-
-            protected FuncFactory(Func<object> factoryFunc) {
-                FactoryFunc = factoryFunc;
-            }
-
-            public static FuncFactory Create(Type genericType, Func<object> factory) {
-                var type = typeof(FuncFactoryTyped<>).MakeGenericType(genericType);
-                FuncFactory instance = (FuncFactory)Activator.CreateInstance(type, factory)!;
-                return instance;
-            }
-            
-            public class FuncFactoryTyped<T> : FuncFactory, IFactory<T> {
-                public FuncFactoryTyped(Func<object> factoryFunc) : base(factoryFunc) {
-                }
-
-                public T Get() {
-                    return (T)FactoryFunc.Invoke();
-                }
-            }
-        }
-
-        public abstract class ProviderFactory {
-            protected readonly IProvider Provider;
-
-            protected ProviderFactory(IProvider provider) {
-                Provider = provider;
-            }
-
-            public static ProviderFactory Create(Type type, IProvider provider) {
-                var factoryType = typeof(ProviderFactoryTyped<>).MakeGenericType(type);
-                ProviderFactory instance = (ProviderFactory)Activator.CreateInstance(factoryType, provider)!;
-                return instance;
-            }     
-            
-            public class ProviderFactoryTyped<T> : ProviderFactory, IFactory<T> {
-                public ProviderFactoryTyped(IProvider provider) : base(provider) {
-                }
-
-                public T Get() => (T)Provider.Get();
-            }
-        }
-
-        public abstract class ProviderCustomFactory {
-            public abstract object Get();
-            
-            public static ProviderCustomFactory Create(Type type, IProvider provider) {
-                var factoryType = typeof(ProviderCustomFactoryTyped<>).MakeGenericType(type);
-                ProviderCustomFactory instance = (ProviderCustomFactory)Activator.CreateInstance(factoryType, provider)!;
-                return instance;
-            }
-
-            public class ProviderCustomFactoryTyped<T> : ProviderCustomFactory {
-                private readonly IProvider _customFactory;
-        
-                public ProviderCustomFactoryTyped(IProvider customFactory) {
-                    _customFactory = customFactory;
-                }
-        
-                public override object Get() {
-                    IFactory<T> factory = (IFactory<T>)_customFactory.Get();
-                    return factory.Get();
-                }
-            }
         }
     }
 }

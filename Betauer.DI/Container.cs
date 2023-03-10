@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Betauer.Core;
 using Betauer.Core.Pool.Basic;
+using Betauer.DI.Exceptions;
 using Betauer.DI.ServiceProvider;
 using Betauer.Tools.Logging;
 using Betauer.Tools.Reflection;

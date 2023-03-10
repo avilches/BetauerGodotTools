@@ -1,4 +1,6 @@
 using System;
+using Betauer.DI.Exceptions;
+using Betauer.DI.Factory;
 using Betauer.DI.ServiceProvider;
 using Betauer.Tools.Logging;
 using Betauer.TestRunner;

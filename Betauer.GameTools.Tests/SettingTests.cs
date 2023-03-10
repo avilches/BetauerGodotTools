@@ -5,6 +5,7 @@ using Betauer.Application.Screen;
 using Betauer.Application.Settings;
 using Betauer.Core;
 using Betauer.DI;
+using Betauer.DI.Exceptions;
 using Betauer.Input;
 using Betauer.TestRunner;
 using Godot;

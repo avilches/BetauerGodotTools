@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using Betauer.DI.Exceptions;
 using Betauer.DI.ServiceProvider;
 using Betauer.Tools.Logging;
 using Betauer.Tools.Reflection;

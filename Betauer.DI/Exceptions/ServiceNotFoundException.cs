@@ -1,6 +1,6 @@
 using System;
 
-namespace Betauer.DI;
+namespace Betauer.DI.Exceptions;
 
 public class ServiceNotFoundException : Exception {
     public ServiceNotFoundException(Type type) : base($"Service not found. Type: {type.Name}") {
