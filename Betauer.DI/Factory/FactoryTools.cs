@@ -28,16 +28,15 @@ public static class FactoryTools {
     }
 
     /// <summary>
-    /// Returns a IFactory<type> where every call to Get() creates a new instance, taking into account the provider returns
-    /// the real IFactory<type>, so it first invokes to provider.Get() to obtain the real IFactory<type>, then it calls
-    /// again Get() to this factory to create the new instance.
+    /// Returns () => ((IFactory<T>)provider.Get()).Get()
+    /// A class is needed to store the T and do a cast in compile time.
     /// </summary>
     /// <param name="type"></param>
-    /// <param name="customFactoryProvider"></param>
+    /// <param name="provider"></param>
     /// <returns></returns>
-    public static ProviderCustomFactory CreateIFactoryFromCustomFactoryProvider(Type type, IProvider customFactoryProvider) {
+    public static Func<object> ProviderGetFactoryGet(Type type, IProvider provider) {
         var factoryType = typeof(ProviderCustomFactory<>).MakeGenericType(type);
-        ProviderCustomFactory instance = (ProviderCustomFactory)Activator.CreateInstance(factoryType, customFactoryProvider)!;
-        return instance;
+        ProviderCustomFactory instance = (ProviderCustomFactory)Activator.CreateInstance(factoryType, provider)!;
+        return instance.GetCustomFactory;
     }
 }

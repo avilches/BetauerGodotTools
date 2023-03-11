@@ -28,7 +28,7 @@ namespace Betauer.DI.ServiceProvider {
                 Instance = _factory.Invoke();
                 if (Instance == null) throw new NullReferenceException($"Singleton factory returned null for {RegisterType.Name} {Name}");
                 Logger.Debug($"Creating {Lifetime.Singleton} {Instance.GetType().Name} exposed as {RegisterType.Name}: {Instance.GetHashCode():X}");
-                context.AddSingleton(RegisterType, Instance, Name);
+                context.AddSingleton(RegisterType, Name, Instance);
                 IsInstanceCreated = true;
                 context.Container.InjectServices(Lifetime, Instance, context);
             }

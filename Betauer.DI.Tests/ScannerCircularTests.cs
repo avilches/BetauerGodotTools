@@ -1,4 +1,4 @@
-using Betauer.DI;
+using Betauer.DI.Exceptions;
 using Betauer.DI.ServiceProvider;
 using Betauer.TestRunner;
 using Godot;

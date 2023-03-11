@@ -1,13 +1,14 @@
 using System;
 using System.Collections.Generic;
+using Betauer.DI.Exceptions;
 using Betauer.DI.ServiceProvider;
 
 namespace Betauer.DI; 
 
 public class ResolveContext {
-    internal readonly Dictionary<string, object> NewSingletonsCreated = new();
+    internal readonly Dictionary<(Type, string?), object> NewSingletonsCreated = new();
     internal readonly List<object> NewTransientsCreated = new();
-    internal readonly Stack<string> TransientNameStack = new();
+    internal readonly Stack<Type> TransientNameStack = new();
     internal readonly Container Container;
 
     private readonly Action? _onEnd;
@@ -19,28 +20,26 @@ public class ResolveContext {
 
     internal bool TryGetSingletonFromCache(Type type, string? name, out object? instanceFound) {
         var key = name ?? type.FullName;
-        return NewSingletonsCreated.TryGetValue(key, out instanceFound);
+        return NewSingletonsCreated.TryGetValue((type, name), out instanceFound);
     }
 
-    internal void AddSingleton(Type type, object instance, string? name) {
-        var key = name ?? type.FullName;
-        NewSingletonsCreated[key] = instance;
+    internal void AddSingleton(Type type, string? name, object instance) {
+        NewSingletonsCreated[(type, name)] = instance;
     }
 
     // This stack avoid circular dependencies between transients
     internal void TryStartTransient(Type type, string? name) {
-        var key = name ?? type.FullName;
-        if (TransientNameStack.Contains(key)) {
+        if (TransientNameStack.Contains(type)) {
             throw new CircularDependencyException(string.Join("\n", TransientNameStack));
         }
-        TransientNameStack.Push(key);
+        TransientNameStack.Push(type);
     }
 
-    internal void AddTransient(object instance) {
+    internal void PushTransient(object instance) {
         NewTransientsCreated.Add(instance);
     }
 
-    internal void EndTransient() {
+    internal void PopTransient() {
         TransientNameStack.Pop();
     }
 

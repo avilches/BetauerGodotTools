@@ -18,9 +18,9 @@ public class TransientFactoryProvider : Provider {
         var instance = _factory.Invoke();
         if (instance == null) throw new NullReferenceException($"Transient factory returned null for {RegisterType.Name} {Name}");
         Logger.Debug($"Creating {Lifetime.Transient} {instance.GetType().Name} exposed as {RegisterType.Name}: {instance.GetHashCode():X}");
-        context.AddTransient(instance);
+        context.PushTransient(instance);
         context.Container.InjectServices(Lifetime, instance, context);
-        context.EndTransient();
+        context.PopTransient();
         return instance;
     }
 }

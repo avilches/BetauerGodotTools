@@ -46,7 +46,7 @@ public partial class Container {
             Type factoryType = typeof(IFactory<>).MakeGenericType(type);
             var factoryName = name == null ? null : $"Factory:{name}";
             object CustomFactory() => FactoryTools.CreateIFactoryFromProvider(type, providerFactory);
-            Register(Provider.Create(factoryType, factoryType, Lifetime.Singleton, CustomFactory, factoryName, false, true));
+            Register(Provider.Create(factoryType, factoryType, Lifetime.Singleton, CustomFactory, factoryName, primary, true));
             return this;
         }
 
@@ -58,25 +58,28 @@ public partial class Container {
             var type = FactoryTools.GetIFactoryGenericType(factoryType);
             if (type == null) throw new InvalidCastException();
 
-            // Register the real factory it can be accessed with
-            // - Resolve<factoryType>()
-            // - Resolve<IFactory<type>>("InnerFactory:"+name)
+            // Register the real factory, it can be accessed with
+            // - Resolve<the factory type>()
+            // - Resolve<IFactory<T>>("InnerFactory:"+name)
             // This factory returns the instances without inject dependencies in them 
             var customFactoryName = name == null ? null : $"InnerFactory:{name}";
-            var customProvider = Provider.Create(factoryType, factoryType, Lifetime.Singleton, customFactory, customFactoryName, false, lazy);
+            var customProvider = Provider.Create(factoryType, factoryType, Lifetime.Singleton, customFactory, customFactoryName, primary, lazy);
             Register(customProvider);
     
-            // Register the regular instance factory so using Resolve<T>() or Resolve<T>(name) will create new instances, injecting dependencies.
-            var getFromProviderFactory = FactoryTools.CreateIFactoryFromCustomFactoryProvider(type, customProvider);
-            var provider = Provider.Create(type, type, Lifetime.Transient, getFromProviderFactory.GetCustomFactory, name, false, true);
+            // Register the regular instance factory
+            // - Resolve<T>() or Resolve<T>(name) will create new instances, injecting dependencies.
+            Func<object> getFromProviderFactory = FactoryTools.ProviderGetFactoryGet(type, customProvider); // This is just () => customProvider.Get().Get()
+            var provider = Provider.Create(type, type, Lifetime.Transient, getFromProviderFactory, name, primary, true);
             Register(provider);
 
-            // Register the factory as ProviderFactory<> so the user can get the real factory using Resolve<IFactory<T>>() or
-            // Resolve<IFactory<T>>("Factory:"+name) and then call to Get() which returns new instances, injecting dependencies.
+            // Register a factory as IFactory<T> so the user can get it with
+            // - Resolve<IFactory<T>>()
+            // - Resolve<IFactory<T>>("Factory:"+name)
+            // This factory is a wrapper which return instances injecting dependencies.
             var factoryName = name == null ? null : $"Factory:{name}";
             object CustomFactory() => FactoryTools.CreateIFactoryFromProvider(type, provider);
-            var iProviderFactory = typeof(IFactory<>).MakeGenericType(type);
-            Register(Provider.Create(iProviderFactory, iProviderFactory, Lifetime.Singleton, CustomFactory, factoryName, primary, true));
+            var iFactoryType = typeof(IFactory<>).MakeGenericType(type);
+            Register(Provider.Create(iFactoryType, iFactoryType, Lifetime.Singleton, CustomFactory, factoryName, primary, true));
             return this;
         }
 
