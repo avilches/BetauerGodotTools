@@ -66,7 +66,7 @@ public partial class Container {
                 return;
             }
             if (!nullable) {
-                throw new InjectMemberException(setter.Name, target, $"Service type {target.GetType().FullName} not found when trying to inject {setter}");
+                throw new InjectMemberException(setter.Name, target, $"Service type {setter.Type.Name} not found when trying to inject {setter}");
             }
         }
 
@@ -108,7 +108,7 @@ public partial class Container {
         private static void CheckLifetimeMismatch(Lifetime actual, object target, ISetter setter, Type injectType, Lifetime inject) {
             if (actual == Lifetime.Transient) return; // Transient allows to inject any lifetime
             if (inject == Lifetime.Singleton) return; // Singleton allows to inject only other singleton
-            throw new InjectMemberException(setter.Name, target, $"Lifetime mismatch: can not inject a Transient {injectType.FullName} dependency into a Singleton {target.GetType().FullName} instance: {setter}");
+            throw new InjectMemberException(setter.Name, target, $"Lifetime mismatch: can not inject a Transient {injectType.Name} dependency into a Singleton {target.GetType().Name} instance: {setter}");
         }
     }
 }
