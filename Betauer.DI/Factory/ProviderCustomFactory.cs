@@ -1,27 +1,20 @@
-using System;
 using Betauer.DI.ServiceProvider;
 
 namespace Betauer.DI.Factory;
 
 public abstract class ProviderCustomFactory {
-    public static ProviderCustomFactory Create(Type type, IProvider provider) {
-        var factoryType = typeof(ProviderCustomFactoryImpl<>).MakeGenericType(type);
-        ProviderCustomFactory instance = (ProviderCustomFactory)Activator.CreateInstance(factoryType, provider)!;
-        return instance;
+    public abstract object GetCustomFactory();
+}
+
+public class ProviderCustomFactory<T> : ProviderCustomFactory where T : class {
+    private readonly IProvider _customFactoryProvider;
+
+    public ProviderCustomFactory(IProvider customFactoryProvider) {
+        _customFactoryProvider = customFactoryProvider;
     }
 
-    public abstract object GetCustomFactory();
-
-    public class ProviderCustomFactoryImpl<T> : ProviderCustomFactory {
-        private readonly IProvider _customFactory;
-        
-        public ProviderCustomFactoryImpl(IProvider customFactory) {
-            _customFactory = customFactory;
-        }
-        
-        public override object GetCustomFactory() {
-            IFactory<T> factory = (IFactory<T>)_customFactory.Get();
-            return factory.Get();
-        }
+    public override object GetCustomFactory() {
+        IFactory<T> factory = (IFactory<T>)_customFactoryProvider.Get();
+        return factory.Get()!;
     }
 }

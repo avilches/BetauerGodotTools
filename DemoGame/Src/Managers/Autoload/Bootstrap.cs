@@ -83,8 +83,7 @@ public partial class Bootstrap : Node /* needed to be instantiated as an Autoloa
         LoggerFactory.SetTraceLevel(typeof(ConfigFileWrapper), TraceLevel.All);
 
         // DI
-        LoggerFactory.SetTraceLevel(typeof(SingletonFactoryProvider), TraceLevel.Error);
-        LoggerFactory.SetTraceLevel(typeof(TransientFactoryProvider), TraceLevel.Error);
+        LoggerFactory.SetTraceLevel(typeof(Provider), TraceLevel.Error);
         LoggerFactory.SetTraceLevel(typeof(Betauer.DI.Container), TraceLevel.Error);
         LoggerFactory.SetTraceLevel(typeof(Betauer.DI.Container.Injector), TraceLevel.Error);
 

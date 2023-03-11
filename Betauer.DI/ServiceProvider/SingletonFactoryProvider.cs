@@ -3,7 +3,7 @@ using Betauer.Tools.Logging;
 
 namespace Betauer.DI.ServiceProvider {
     public class SingletonFactoryProvider : Provider, ISingletonProvider {
-        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(SingletonFactoryProvider));
+        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(Provider));
         private readonly Func<object> _factory;
         public override Lifetime Lifetime => Lifetime.Singleton;
         public bool IsInstanceCreated { get; private set; }
