@@ -91,11 +91,11 @@ public partial class Container {
             if (iFactoryInterface == null) {
                 throw new InvalidAttributeException($"Class {type.FullName} with [Factory] attribute must implement IFactory<T>");
             }
-            var genericType = iFactoryInterface.GetGenericArguments()[0];
+            // var genericType = iFactoryInterface.GetGenericArguments()[0];
             var primary = factoryAttribute.Primary || type.HasAttribute<PrimaryAttribute>();
             var lazy = factoryAttribute.Lazy || type.HasAttribute<LazyAttribute>();
             object Factory() => Activator.CreateInstance(type)!;
-            _builder.RegisterCustomFactory(genericType, Factory, factoryAttribute.Name, primary, lazy);
+            _builder.RegisterCustomFactory(type, Factory, factoryAttribute.Name, primary, lazy);
         }
     
         private void RegisterCustomFactoryFromGetter(object configuration, IGetter<FactoryAttribute> getter) {
@@ -103,12 +103,11 @@ public partial class Container {
                 throw new InvalidAttributeException("Member " + getter + " with [Factory] attribute must implement IFactory<T>");
             }
             var factoryAttribute = getter.GetterAttribute;
-            var genericType = getter.Type.GetGenericArguments()[0];
             var primary = factoryAttribute.Primary || getter.MemberInfo.HasAttribute<PrimaryAttribute>();
             var name = factoryAttribute.Name ?? getter.Name;
             var lazy = factoryAttribute.Lazy || getter.MemberInfo.HasAttribute<LazyAttribute>();
             object Factory() => getter.GetValue(configuration)!;
-            _builder.RegisterCustomFactory(genericType, Factory, name, primary, lazy);
+            _builder.RegisterCustomFactory(getter.Type, Factory, name, primary, lazy);
         }
     }
 }

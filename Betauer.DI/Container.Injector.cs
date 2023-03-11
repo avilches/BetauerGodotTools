@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 using Betauer.DI.Exceptions;
+using Betauer.DI.Factory;
 using Betauer.DI.ServiceProvider;
 using Betauer.Tools.Logging;
 using Betauer.Tools.Reflection;
@@ -47,8 +48,12 @@ public partial class Container {
                 }
             } else {
                 // Implicit name (from variable, [Inject] Node pepe, so "pepe" is the name).
-                if (TryInjectFieldByName(lifetime, target, context, setter, setter.Name)) {
-                    Logger.Debug($"{target.GetType().FullName} ({target.GetHashCode():x8}) | {setter} | Name taken from member: {setter.Name}");
+                name = setter.Name;
+                if (setter.Type is { IsInterface: true, IsGenericType: true } && setter.Type.GetGenericTypeDefinition() == typeof(IFactory<>)) {
+                    name = $"Factory:{name}";
+                }
+                if (TryInjectFieldByName(lifetime, target, context, setter, name)) {
+                    Logger.Debug($"{target.GetType().FullName} ({target.GetHashCode():x8}) | {setter} | Name taken from member: {setter.Name} ({name})");
                     return;
                 }
             }
