@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 namespace Betauer.Core.Pool;
 
 public abstract class BaseMiniPool<T> where T : class {
-    public readonly List<T> Pool;
+    public List<T> Pool { get; }
     public int DesiredDesiredSize;
 
     protected BaseMiniPool(int desiredSize = 4) {
@@ -23,6 +23,7 @@ public abstract class BaseMiniPool<T> where T : class {
             var element = span[i];
             if (!IsInvalid(element) && !IsBusy(element)) {
                 // GD.Print("Get " + typeof(T) + "[" + i + "] of "+span.Length);
+                OnGet(element);
                 return element;
             }
         }
@@ -34,15 +35,13 @@ public abstract class BaseMiniPool<T> where T : class {
         Pool.Add(more);
         return more;
     }
-
-    /// <summary>
-    /// Returns a copy of the pool elements. It can be used to dispose them
-    /// </summary>
-    public List<T> Elements => new(Pool);
-
+    
     protected abstract T Create();
     protected abstract bool IsBusy(T element);
     protected abstract bool IsInvalid(T element);
-    
+
+    public virtual void OnGet(T element) {
+    }
+
     protected virtual bool MustBePurged(IReadOnlyList<T> pool) => Pool.Count > DesiredDesiredSize;
 }

@@ -21,7 +21,7 @@ public partial class Container {
     public bool CreateIfNotFound { get; set; }
     public event Action<Lifetime, object> OnCreated;
 
-    private readonly StackPool<ResolveContext> _resolveContextPool;
+    private readonly BasicPool<ResolveContext> _resolveContextPool;
 
     public ResolveContext GetResolveContext() => _resolveContextPool.Get();
     
@@ -50,8 +50,8 @@ public partial class Container {
         providers
             .Where(provider => provider is ISingletonProvider { Lazy: false, IsInstanceCreated: false })
             .ForEach(provider => {
-                Logger.Debug($"Initializing {provider.Lifetime}:{provider.ProviderType} | Name: {provider.Name}");
-                provider.Get();
+                    Logger.Debug($"Initializing {provider.Lifetime}:{provider.ProviderType} | Name: {provider.Name}");
+                    provider.Get();
             });
         return this;
     }
