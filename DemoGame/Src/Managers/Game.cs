@@ -1,8 +1,8 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Betauer.DI;
 using Betauer.Core.Nodes;
-using Betauer.Core.Pool;
 using Betauer.Core.Signal;
 using Betauer.DI.Factory;
 using Veronenger.Character.Npc;
@@ -16,18 +16,6 @@ using Veronenger.UI;
 namespace Veronenger.Managers;
 
 [Service]
-public class ZombiePool : BaseMiniPoolBusy<ZombieNode>, IFactory<ZombieNode> {
-    [Inject] private IFactory<ZombieNode> ZombieFactory { get; set; }
-    
-    public ZombiePool() : base(4) {
-    }
-
-    protected override ZombieNode Create() {
-        return ZombieFactory.Get().Configure();
-    }
-}
-
-[Service]
 public class Game {
     [Inject] private SceneTree SceneTree { get; set; }
     [Inject] private ItemRepository ItemRepository { get; set; }
@@ -36,11 +24,12 @@ public class Game {
     [Inject] private StageManager StageManager { get; set; }
     [Inject] private IFactory<Node> World3 { get; set; }
     [Inject] private IFactory<PlayerNode> PlayerFactory { get; set; }
-    [Inject] private ZombiePool ZombiePool { get; set; }
-    [Inject] private IFactory<ProjectileTrail> ProjectileFactory { get; set; }
+
+    [Inject] private PoolManager PoolManager { get; set; }
+    [Inject] private PoolFactory<ProjectileTrail> ProjectilePool { get; set; }
+    [Inject] private PoolFactory<ZombieNode> ZombiePool { get; set; }
 
     private Node _currentGameScene;
-    public MiniPoolBusy<ProjectileTrail> _bulletPool;
 
     public async Task Start() {
         StageManager.ClearState();
@@ -85,7 +74,6 @@ public class Game {
         var bullets = new Node();
         bullets.Name = "Bullets";
         _currentGameScene.AddChild(bullets);
-        _bulletPool = new MiniPoolBusy<ProjectileTrail>(() => ProjectileFactory.Get().Configure(_currentGameScene), 4);
         HudScene.StartGame();
     }
 
@@ -95,7 +83,11 @@ public class Game {
         zombieNode.AddToScene(scene, position);
     }
 
-    public ProjectileTrail NewBullet() => _bulletPool.Get();
+    public ProjectileTrail NewBullet() {
+        var projectileTrail = ProjectilePool.Get();
+        _currentGameScene.AddChild(projectileTrail);
+        return projectileTrail;
+    }
 
     private void QueueChangeSceneWithPlayer(string sceneName) {
         StageManager.ClearState();
@@ -114,7 +106,8 @@ public class Game {
 
 
     public void End() {
-        ZombiePool.Elements.ForEach(z => z.RemoveFromScene());
+        // Removing nodes from scene avoid get freed along with the scene and make them available in the Pool again
+        PoolManager.RemoveFromScene();
         Node.PrintOrphanNodes();
         HudScene.EndGame();
         _currentGameScene.QueueFree();

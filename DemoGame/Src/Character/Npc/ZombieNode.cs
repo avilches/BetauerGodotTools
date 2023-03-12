@@ -42,7 +42,7 @@ public enum ZombieState {
 	Fall
 }
 
-public partial class ZombieNode : Persistent.NpcItemStateMachineNodeSync<ZombieState, ZombieEvent> {
+public partial class ZombieNode : NpcItemStateMachineNodeSync<ZombieState, ZombieEvent> {
 	public ZombieNode() : base(ZombieState.Idle, "Zombie.StateMachine", true) {
 	}
 
@@ -106,7 +106,7 @@ public partial class ZombieNode : Persistent.NpcItemStateMachineNodeSync<ZombieS
 	public KinematicPlatformMotion PlatformBody;
 
 	private ICharacterAI _zombieAi;
-	private MiniPoolBusy<ILabelEffect> _labelHits;
+	private MiniPoolBusyInvalid<ILabelEffect> _labelHits;
 	private Restorer _restorer; 
 	private LazyRaycast2D _lazyRaycastToPlayer;
 	private DebugOverlay? _overlay;
@@ -126,7 +126,10 @@ public partial class ZombieNode : Persistent.NpcItemStateMachineNodeSync<ZombieS
 	public bool IsPlayerInAngle() => NpcConfig.VisionAngle > 0 && 
 									 Mathf.Acos(Mathf.Abs(PlatformBody.LookRightDirection.Dot(DirectionToPlayer()))) <= NpcConfig.VisionAngle;
 
-	public override void OnStart(Vector2 initialPosition) {
+	public override void OnGet() {
+	}
+
+	protected override void OnStart(Vector2 initialPosition) {
 		CharacterBody2D.GlobalPosition = initialPosition;
 		_lazyRaycastToPlayer.GetDirectSpaceFrom(_mainSprite);
 		_attackArea.LinkMetaToItemId(NpcItem);
@@ -143,7 +146,7 @@ public partial class ZombieNode : Persistent.NpcItemStateMachineNodeSync<ZombieS
 		_overlay?.Disable();
 	}
 
-	public ZombieNode Configure() {
+	public override void Initialize() {
 		NodePathScanner.ScanAndInject(this);
 		ConfigureAnimations();
 		ConfigureCharacter();
@@ -193,7 +196,6 @@ public partial class ZombieNode : Persistent.NpcItemStateMachineNodeSync<ZombieS
 		// AddOverlayCrossAndDot(_overlay);
 		// AddOverlayMotion(_overlay);
 		// AddOverlayCollisions(_overlay);
-		return this;
 	}
 
 	private void ConfigureAnimations() {
@@ -206,7 +208,7 @@ public partial class ZombieNode : Persistent.NpcItemStateMachineNodeSync<ZombieS
 		AnimationReset = _animationPlayer.Anim("RESET");
 
 		var firstCall = true;
-		_labelHits = new MiniPoolBusy<ILabelEffect>(
+		_labelHits = new MiniPoolBusyInvalid<ILabelEffect>(
 			() => {
 				if (firstCall) {
 					firstCall = false;
@@ -236,7 +238,7 @@ public partial class ZombieNode : Persistent.NpcItemStateMachineNodeSync<ZombieS
 		CollisionLayerManager.NpcConfigureCollisions(FinishFloorRight);
 		CollisionLayerManager.NpcConfigureCollisions(FinishFloorLeft);
 		
-		_lazyRaycastToPlayer = new LazyRaycast2D().Config(ray => CollisionLayerManager.NpcConfigureCollisions(ray));
+		_lazyRaycastToPlayer = new LazyRaycast2D().Config(CollisionLayerManager.NpcConfigureCollisions);
 
 		EnableAttackAndHurtAreas();
 		CollisionLayerManager.EnemyConfigureAttackArea(_attackArea);

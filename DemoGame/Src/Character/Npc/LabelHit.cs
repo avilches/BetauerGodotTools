@@ -13,6 +13,9 @@ public class LabelHit : ILabelEffect {
         Label.Text = "";
     }
 
+    public void OnGet() {
+    }
+
     public void Show(string text) {
         Label.Text = text;
         Label.Visible = true;

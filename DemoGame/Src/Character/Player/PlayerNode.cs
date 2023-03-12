@@ -515,9 +515,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 			var hits = 0;
 			var bullet = Game.NewBullet();
 			bullet.ShootFrom(weapon, CharacterBody2D.ToGlobal(bulletPosition), bulletDirection, 
-				ray => {
-					CollisionLayerManager.PlayerConfigureBullet(ray);
-				},
+				CollisionLayerManager.PlayerConfigureBullet,
 				collision => {
 					if (!collision.Collider.HasMetaItemId()) {
 						return ProjectileTrail.Behaviour.Stop; // Something solid was hit

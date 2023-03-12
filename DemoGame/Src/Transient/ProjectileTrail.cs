@@ -2,14 +2,13 @@ using System;
 using System.Collections.Generic;
 using Betauer.Core;
 using Betauer.Core.Nodes;
-using Betauer.Core.Pool;
 using Godot;
 using Godot.Collections;
 using Veronenger.Persistent;
 
 namespace Veronenger.Transient;
 
-public partial class ProjectileTrail : Line2D, IBusyElement {
+public partial class ProjectileTrail : Line2D, IObjectLifecycle {
 	public enum Behaviour { Continue, Stop }
 	private static readonly Random Random = new Pcg.PcgRandom();
 	private static float RayLength = 40;
@@ -30,21 +29,23 @@ public partial class ProjectileTrail : Line2D, IBusyElement {
 	private bool _queueEnd = false;
 
 	public bool IsBusy() => _busy;
+	public bool IsInvalid() => !IsInstanceValid(this);
 
-	public ProjectileTrail Configure(Node parent) {
+	public void OnGet() {
+	}
+
+	public void Initialize() {
 		Visible = false;
 		Width = 1f;
 		ClearPoints();
 		AddPoint(Vector2.Zero);
 		AddPoint(Vector2.Zero);
 		AddPoint(Vector2.Zero);
-		parent.AddChild(this);
 		Sprite2D = new Sprite2D {
 			Visible = false
 		};
 		AddChild(Sprite2D);
 		_lazyRaycast2D = new LazyRaycast2D().GetDirectSpaceFrom(this);
-		return this;
 	}
 
 
@@ -81,11 +82,11 @@ public partial class ProjectileTrail : Line2D, IBusyElement {
 
 	public override void _PhysicsProcess(double delta) {
 		if (_queueEnd) {
-			EndShoot();
+			RemoveFromScene();
 		} else {
 			var currentPosition = Sprite2D.Position;
 			if (IsTooFar(currentPosition)) {
-				EndShoot();
+				RemoveFromScene();
 				return;
 			}
 			var newPosition = currentPosition + _velocity * (float)delta;
@@ -150,10 +151,12 @@ public partial class ProjectileTrail : Line2D, IBusyElement {
 		collisionPosition = Vector2.Zero;
 		return false;
 	}
-
-	public void EndShoot() {
+	
+	public void RemoveFromScene() {
+		if (!_busy) return;
 		SetPhysicsProcess(false);
 		Sprite2D.Visible = Visible = false;
+		GetParent().RemoveChild(this);
 		_busy = false;
 	}
 

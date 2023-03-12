@@ -1,12 +1,11 @@
 using System;
-using Betauer.Core.Pool;
 using Betauer.StateMachine.Sync;
 using Godot;
 
 namespace Veronenger.Persistent;
 
 public abstract partial class ItemStateMachineNodeSync<TStateKey, TEventKey> : 
-    StateMachineNodeSync<TStateKey, TEventKey>, IBusyElement 
+    StateMachineNodeSync<TStateKey, TEventKey>, IObjectLifecycle 
     where TStateKey : Enum 
     where TEventKey : Enum {
     protected ItemStateMachineNodeSync(TStateKey initialState, string? name = null, bool processInPhysics = false) : base(initialState, name, processInPhysics) {
@@ -19,21 +18,32 @@ public abstract partial class ItemStateMachineNodeSync<TStateKey, TEventKey> :
 
     public bool IsBusy() => _busy;
 
+    // From MiniPool
+    public abstract void Initialize();
+    public abstract void OnGet();
+
     public void OnAddToWorld(ItemRepository itemRepository, Item item) {
         ItemRepository = itemRepository;
         Item = item;
     }
 
-    public void AddToScene(Node node, Vector2 initialPosition) {
+    public void AddToScene(Node parent, Vector2 initialPosition) {
         _busy = true;
         _initialPosition = initialPosition;
-        Reset(); // the StateMachine
+        base.Reset(); // the StateMachine
         RequestReady();
-        node.AddChild(this);
+        parent.AddChild(this);
     }
 
     public override void _Ready() {
         OnStart(_initialPosition);
+    }
+
+    protected abstract void OnStart(Vector2 initialPosition);
+
+    public void RemoveFromWorld() {
+        ItemRepository.Remove(Item);
+        RemoveFromScene();
     }
 
     public void RemoveFromScene() {
@@ -43,11 +53,8 @@ public abstract partial class ItemStateMachineNodeSync<TStateKey, TEventKey> :
         _busy = false;
     }
 
-    public void RemoveFromWorld() {
-        ItemRepository.Remove(Item);
-        RemoveFromScene();
-    }
-
-    public abstract void OnStart(Vector2 initialPosition);
     public abstract void OnRemoveFromScene();
+
+    public bool IsInvalid() => !IsInstanceValid(this);
+    
 }

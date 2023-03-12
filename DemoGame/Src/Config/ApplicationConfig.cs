@@ -3,7 +3,6 @@ using Betauer.Application.Monitor;
 using Betauer.Application.Screen;
 using Betauer.Application.Settings;
 using Betauer.DI;
-using Betauer.DI.Factory;
 using Betauer.Input;
 using Godot;
 using Veronenger.Character.Npc;
@@ -72,12 +71,16 @@ public class Resources {
 
 [Configuration]
 public class Scenes {
-	[Factory] private IFactory<ZombieNode> ZombieNode => new SceneFactory<ZombieNode>("res://Scenes/Zombie2.tscn");
-	[Factory] private IFactory<RedefineActionButton> RedefineActionButton => new SceneFactory<RedefineActionButton>("res://Scenes/UI/RedefineActionButton.tscn");
-	[Factory] private IFactory<Node> World3 => new SceneFactory<Node>("res://Worlds/World3.tscn");
-	[Factory] private IFactory<PlayerNode> Player => new SceneFactory<PlayerNode>("res://Scenes/Player.tscn");
-	[Factory] private IFactory<ModalBoxConfirm> ModalBoxConfirm => new SceneFactory<ModalBoxConfirm>("res://Scenes/Menu/ModalBoxConfirm.tscn");
-	[Factory] private IFactory<ProjectileTrail> ProjectileTrail => new SceneFactory<ProjectileTrail>("res://Scenes/ProjectileTrail.tscn");
+	[Factory] private SceneFactory<ZombieNode> ZombieNode => new("res://Scenes/Zombie2.tscn");
+	[Factory] private SceneFactory<RedefineActionButton> RedefineActionButton => new("res://Scenes/UI/RedefineActionButton.tscn");
+	[Factory] private SceneFactory<Node> World3 => new("res://Worlds/World3.tscn");
+	[Factory] private SceneFactory<PlayerNode> Player => new("res://Scenes/Player.tscn");
+	[Factory] private SceneFactory<ModalBoxConfirm> ModalBoxConfirm => new("res://Scenes/Menu/ModalBoxConfirm.tscn");
+	[Factory] private SceneFactory<ProjectileTrail> ProjectileTrail => new("res://Scenes/ProjectileTrail.tscn");
+
+	[Service] private PoolFactory<ZombieNode> ZombiePool => new();
+	[Service] private PoolFactory<ProjectileTrail> ProjectilePool => new();
+
 
 	[Service] HUD HudScene => Instantiate<HUD>("res://Scenes/UI/HUD.tscn");
 	[Service] MainMenu MainMenuScene => Instantiate<MainMenu>("res://Scenes/Menu/MainMenu.tscn");

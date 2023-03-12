@@ -1,5 +1,6 @@
 using System;
 using Veronenger.Config;
+using Veronenger.Managers;
 
 namespace Veronenger.Persistent;
 
@@ -10,7 +11,7 @@ public abstract partial class NpcItemStateMachineNodeSync<TStateKey, TEventKey> 
     protected NpcItemStateMachineNodeSync(TStateKey initialState, string? name = null, bool processInPhysics = false) :
         base(initialState, name, processInPhysics) {
     }
-    
+
     public NpcStatus Status => NpcItem.Status;
     public NpcConfig NpcConfig => NpcItem.Config;
 
