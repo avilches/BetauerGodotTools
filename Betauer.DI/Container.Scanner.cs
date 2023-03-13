@@ -24,22 +24,24 @@ public partial class Container {
         }
 
         internal void Scan(Type type, HashSet<Type>? stack) {
-            // Look up for [Scan(typeof(...)]
-            ScanForScanAttributes(type, stack);
     
             if (type.GetAttribute<FactoryAttribute>() is FactoryAttribute factoryAttribute) {
                 if (type.HasAttribute<ConfigurationAttribute>()) throw new InvalidAttributeException("Can't use [Factory] and [Configuration] in the same class");
                 if (type.HasAttribute<ServiceAttribute>()) throw new InvalidAttributeException("Can't use [Factory] and [Service] in the same class");
+                if (type.HasAttribute<ScanAttribute>()) throw new InvalidAttributeException("Can't use [Factory] and [Scan] in the same class");
                 RegisterCustomFactoryFromClass(type, factoryAttribute);
                 
             } else if (type.GetAttribute<ServiceAttribute>() is ServiceAttribute serviceAttr) {
                 if (type.HasAttribute<ConfigurationAttribute>()) throw new InvalidAttributeException("Can't use [Service] and [Configuration] in the same class");
+                if (type.HasAttribute<ScanAttribute>()) throw new InvalidAttributeException("Can't use [Service] and [Scan] in the same class");
                 RegisterServiceFromClass(type, serviceAttr);
                 
             } else if (type.GetAttribute<ConfigurationAttribute>() is ConfigurationAttribute configurationAttribute) {
                 var configuration = Activator.CreateInstance(type);
                 ScanServicesFromConfigurationInstance(configuration!);
-            }
+                // Look up for [Scan(typeof(...)]
+                ScanForScanAttributes(type, stack);
+            } else if (type.HasAttribute<ScanAttribute>()) throw new InvalidAttributeException("[Scan] attributes are only valid with [Configuration]");
         }
     
         private const BindingFlags ScanMemberFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;

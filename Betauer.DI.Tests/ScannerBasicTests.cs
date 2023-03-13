@@ -37,21 +37,38 @@ public class ScannerBasicTests : Node {
     public class WrongCombination1 {
     }
 
-    [Factory]
-    [Configuration]
+    [Service]
+    [Scan]
     public class WrongCombination2 {
     }
 
     [Factory]
-    [Service]
+    [Configuration]
     public class WrongCombination3 {
     }
 
-    [Test(Description = "Can't use [Configuration] [Fatory] and [Service] in the same class")]
+    [Factory]
+    [Service]
+    public class WrongCombination4 {
+    }
+
+    [Factory]
+    [Scan]
+    public class WrongCombination5 {
+    }
+
+    [Scan]
+    public class WrongCombination6 {
+    }
+
+    [Test(Description = "Can't use [Configuration] [Factory] [Scan] and [Service] in the same class")]
     public void WrongCombinationTest() {
         Assert.Throws<InvalidAttributeException>(() => new Container.Builder().Scan<WrongCombination1>());
         Assert.Throws<InvalidAttributeException>(() => new Container.Builder().Scan<WrongCombination2>());
         Assert.Throws<InvalidAttributeException>(() => new Container.Builder().Scan<WrongCombination3>());
+        Assert.Throws<InvalidAttributeException>(() => new Container.Builder().Scan<WrongCombination4>());
+        Assert.Throws<InvalidAttributeException>(() => new Container.Builder().Scan<WrongCombination5>());
+        Assert.Throws<InvalidAttributeException>(() => new Container.Builder().Scan<WrongCombination6>());
     }
 
     [Service]
@@ -198,7 +215,7 @@ public class ScannerBasicTests : Node {
     public class PrimaryTagClass {
     }
         
-    [Test(Description = "Primary is false if there is no name specefied")]
+    [Test(Description = "Primary is false if there is no name specified")]
     public void CheckPrimaryAttributeClasses() {
         var di = new Container.Builder();
         di.Scan<PrimaryTagClass>();
@@ -688,6 +705,12 @@ public class ScannerBasicTests : Node {
 
     [Scan<ServiceMemberExposing1>()]
     [Scan<ImportedService>()]
+    internal class AddToScanByImportNoConfiguration {
+    }
+
+    [Scan<ServiceMemberExposing1>()]
+    [Scan<ImportedService>()]
+    [Configuration]
     internal class AddToScanByImport {
     }
 
@@ -704,7 +727,7 @@ public class ScannerBasicTests : Node {
     }
 
     [Test]
-    public void AddToScanByImportTest() {
+    public void AddToScanByImportOnlyWorksInConfigurationTest() {
         var di = new Container.Builder();
         di.Scan<AddToScanByImport>();
         var c = di.Build();

@@ -192,6 +192,7 @@ public class ScannerCircularTests : Node {
     }
 
     [Scan<ImportSelf>()]
+    [Configuration]
     internal class ImportSelf {
     }
 
