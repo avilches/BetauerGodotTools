@@ -43,6 +43,7 @@ public class FactoryAttribute : Attribute {
     public string? Name { get; set; }
     public bool Primary { get; set; } = false;
     public bool Lazy { get; set; } = false;
+    public Lifetime Lifetime { get; set; } = Lifetime.Singleton;
 
     public FactoryAttribute() {
     }

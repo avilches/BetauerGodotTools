@@ -96,8 +96,9 @@ public partial class Container {
             // var genericType = iFactoryInterface.GetGenericArguments()[0];
             var primary = factoryAttribute.Primary || type.HasAttribute<PrimaryAttribute>();
             var lazy = factoryAttribute.Lazy || type.HasAttribute<LazyAttribute>();
+            var lifetime = factoryAttribute.Lifetime;
             object Factory() => Activator.CreateInstance(type)!;
-            _builder.RegisterCustomFactory(type, Factory, factoryAttribute.Name, primary, lazy);
+            _builder.RegisterCustomFactory(type, Factory, factoryAttribute.Name, lifetime, primary, lazy);
         }
     
         private void RegisterCustomFactoryFromGetter(object configuration, IGetter<FactoryAttribute> getter) {
@@ -108,8 +109,9 @@ public partial class Container {
             var primary = factoryAttribute.Primary || getter.MemberInfo.HasAttribute<PrimaryAttribute>();
             var name = factoryAttribute.Name ?? getter.Name;
             var lazy = factoryAttribute.Lazy || getter.MemberInfo.HasAttribute<LazyAttribute>();
+            var lifetime = factoryAttribute.Lifetime;
             object Factory() => getter.GetValue(configuration)!;
-            _builder.RegisterCustomFactory(getter.Type, Factory, name, primary, lazy);
+            _builder.RegisterCustomFactory(getter.Type, Factory, name, lifetime, primary, lazy);
         }
     }
 }

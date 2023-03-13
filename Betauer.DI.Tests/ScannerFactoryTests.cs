@@ -142,6 +142,7 @@ public class ScannerFactoryTests : Node {
     [Configuration]
     public class ServiceFactoryConfiguration {
         [Factory] public MyServiceFactory MyService => new MyServiceFactory();
+        [Factory(Lifetime = Lifetime.Transient)] public MyTransientFactory MyTransient => new MyTransientFactory();
     }
 
     public class MyServiceFactory : IFactory<MyService> {
@@ -162,8 +163,36 @@ public class ScannerFactoryTests : Node {
             Gets = 0;
         }
     }
+    
+    public class MyTransientFactory : IFactory<MyTransient> {
+        public static int Instances = 0;
+        public static int Gets = 0;
+
+        public MyTransientFactory() {
+            Instances++;
+        }
+
+        public MyTransient Get() {
+            Gets++;
+            return new MyTransient();
+        }
+
+        public static void Reset() {
+            Instances = 0;
+            Gets = 0;
+        }
+    }
+
+
 
     public class MyService : IInjectable {
+        public bool WasInjected = false;
+        public void PostInject() {
+            WasInjected = true;
+        }
+    }
+    
+    public class MyTransient : IInjectable {
         public bool WasInjected = false;
         public void PostInject() {
             WasInjected = true;
@@ -174,18 +203,24 @@ public class ScannerFactoryTests : Node {
     public class DemoSingleton {
         [Inject] public IFactory<MyService> MyService { get; set;  }
         [Inject] public IFactory<MyService> ServiceFactory { get; set;  }
+        [Inject] public IFactory<MyTransient> MyTransient { get; set;  }
+        [Inject] public IFactory<MyTransient> TransientFactory { get; set;  }
         [Inject("InnerFactory:MyService")] 
         public IFactory<MyService> InnerMyService { get; set;  }
+        [Inject("InnerFactory:MyTransient")] 
+        public IFactory<MyTransient> InnerMyTransient { get; set;  }
     }
 
     [Service(Lifetime.Transient)]
     public class DemoTransient {
         [Inject] public MyService MyService { get; set;  }
+        [Inject] public MyTransient MyTransient { get; set;  }
     }
 
     [Test(Description = "Custom service IFactory (in configuration), inject by name and type")]
     public void ServiceFactoryTests() {
         MyServiceFactory.Reset();
+        MyTransientFactory.Reset();
         var c = new Container();
         var di = c.CreateBuilder();
         di.Scan<ServiceFactoryConfiguration>();
@@ -194,25 +229,41 @@ public class ScannerFactoryTests : Node {
         di.Build();
 
         Assert.That(MyServiceFactory.Instances, Is.EqualTo(1));
+        Assert.That(MyServiceFactory.Gets, Is.EqualTo(1));
+
+        Assert.That(MyTransientFactory.Instances, Is.EqualTo(1));
+        Assert.That(MyTransientFactory.Gets, Is.EqualTo(0));
 
         var demoSingleton = c.Resolve<DemoSingleton>();
         Assert.That(demoSingleton.MyService, Is.EqualTo(c.Resolve<IFactory<MyService>>()));
         Assert.That(demoSingleton.ServiceFactory, Is.EqualTo(c.Resolve<IFactory<MyService>>()));
         Assert.That(demoSingleton.InnerMyService, Is.EqualTo(c.Resolve<MyServiceFactory>()));
+        Assert.That(demoSingleton.InnerMyTransient, Is.EqualTo(c.Resolve<MyTransientFactory>()));
 
-        Assert.That(MyServiceFactory.Gets, Is.EqualTo(0));
+        var d = c.Resolve<DemoTransient>();
+
         var x1 = demoSingleton.MyService.Get();
         var x2 = demoSingleton.ServiceFactory.Get();
         var x3 = c.Resolve<MyService>();
-        var d = c.Resolve<DemoTransient>();
-            
+
         Assert.That(x1.WasInjected, Is.True);
         Assert.That(x2.WasInjected, Is.True);
         Assert.That(x3.WasInjected, Is.True);
         Assert.That(d.MyService.WasInjected, Is.True);
         
-        Assert.That(MyServiceFactory.Gets, Is.EqualTo(4));
+        var t1 = demoSingleton.MyTransient.Get();
+        var t2 = demoSingleton.TransientFactory.Get();
+        var t3 = c.Resolve<MyTransient>();
+
+        Assert.That(t1.WasInjected, Is.True);
+        Assert.That(t2.WasInjected, Is.True);
+        Assert.That(t3.WasInjected, Is.True);
+        Assert.That(d.MyTransient.WasInjected, Is.True);
+        
         Assert.That(MyServiceFactory.Instances, Is.EqualTo(1));
+        Assert.That(MyServiceFactory.Gets, Is.EqualTo(1));
+        Assert.That(MyTransientFactory.Instances, Is.EqualTo(1));
+        Assert.That(MyTransientFactory.Gets, Is.EqualTo(4));
     }
 
     [Configuration]
@@ -250,6 +301,7 @@ public class ScannerFactoryTests : Node {
         Assert.That(MyServiceFactory.Gets, Is.EqualTo(1));
 
     }
+
     [Factory(Name="MyService")]
     public class MyServiceFactoryClass : IFactory<MyService> {
         public static int Instances = 0;
@@ -270,49 +322,92 @@ public class ScannerFactoryTests : Node {
         }
     }
 
+    [Factory(Name="MyTransient", Lifetime = Lifetime.Transient)]
+    public class MyTransientFactoryClass : IFactory<MyTransient> {
+        public static int Instances = 0;
+        public static int Gets = 0;
+
+        public MyTransientFactoryClass() {
+            Instances++;
+        }
+
+        public MyTransient Get() {
+            Gets++;
+            return new MyTransient();
+        }
+
+        public static void Reset() {
+            Instances = 0;
+            Gets = 0;
+        }
+    }
+
     [Service]
     public class DemoSingleton3 {
         [Inject] public IFactory<MyService> MyService { get; set;  }
         [Inject] public IFactory<MyService> ServiceFactory { get; set;  }
+        [Inject] public IFactory<MyTransient> MyTransient { get; set;  }
+        [Inject] public IFactory<MyTransient> TransientFactory { get; set;  }
         [Inject("InnerFactory:MyService")] 
         public IFactory<MyService> InnerMyService { get; set;  }
+        [Inject("InnerFactory:MyTransient")] 
+        public IFactory<MyTransient> InnerMyTransient { get; set;  }
     }
 
     [Service(Lifetime.Transient)]
     public class DemoTransient2 {
         [Inject] public MyService MyService { get; set;  }
+        [Inject] public MyTransient MyTransient { get; set;  }
     }
 
     [Test(Description = "Custom service IFactory (in class), inject by name and type")]
     public void ServiceFactoryClassTests() {
         MyServiceFactoryClass.Reset();
+        MyTransientFactoryClass.Reset();
         var c = new Container();
         var di = c.CreateBuilder();
         di.Scan<MyServiceFactoryClass>();
+        di.Scan<MyTransientFactoryClass>();
         di.Scan<DemoSingleton3>();
         di.Scan<DemoTransient2>();
         di.Build();
 
         Assert.That(MyServiceFactoryClass.Instances, Is.EqualTo(1));
+        Assert.That(MyServiceFactoryClass.Gets, Is.EqualTo(1));
+
+        Assert.That(MyTransientFactoryClass.Instances, Is.EqualTo(1));
+        Assert.That(MyTransientFactoryClass.Gets, Is.EqualTo(0));
 
         var demoSingleton = c.Resolve<DemoSingleton3>();
         Assert.That(demoSingleton.MyService, Is.EqualTo(c.Resolve<IFactory<MyService>>()));
         Assert.That(demoSingleton.ServiceFactory, Is.EqualTo(c.Resolve<IFactory<MyService>>()));
         Assert.That(demoSingleton.InnerMyService, Is.EqualTo(c.Resolve<MyServiceFactoryClass>()));
+        Assert.That(demoSingleton.InnerMyTransient, Is.EqualTo(c.Resolve<MyTransientFactoryClass>()));
 
-        Assert.That(MyServiceFactoryClass.Gets, Is.EqualTo(0));
+        var d = c.Resolve<DemoTransient2>();
+
         var x1 = demoSingleton.MyService.Get();
         var x2 = demoSingleton.ServiceFactory.Get();
         var x3 = c.Resolve<MyService>();
-        var d = c.Resolve<DemoTransient2>();
 
         Assert.That(x1.WasInjected, Is.True);
         Assert.That(x2.WasInjected, Is.True);
         Assert.That(x3.WasInjected, Is.True);
         Assert.That(d.MyService.WasInjected, Is.True);
         
-        Assert.That(MyServiceFactoryClass.Gets, Is.EqualTo(4));
+        var t1 = demoSingleton.MyTransient.Get();
+        var t2 = demoSingleton.TransientFactory.Get();
+        var t3 = c.Resolve<MyTransient>();
+
+        Assert.That(t1.WasInjected, Is.True);
+        Assert.That(t2.WasInjected, Is.True);
+        Assert.That(t3.WasInjected, Is.True);
+        Assert.That(d.MyTransient.WasInjected, Is.True);
+        
         Assert.That(MyServiceFactoryClass.Instances, Is.EqualTo(1));
+        Assert.That(MyServiceFactoryClass.Gets, Is.EqualTo(1));
+        Assert.That(MyTransientFactoryClass.Instances, Is.EqualTo(1));
+        Assert.That(MyTransientFactoryClass.Gets, Is.EqualTo(4));
     }
 
     
@@ -543,8 +638,8 @@ public class ScannerFactoryTests : Node {
         Element2Factory.Instances = 0;
         var c = new Container();
         var di = c.CreateBuilder();
-        di.RegisterCustomFactory(() => new Element1Factory(), "E1");
-        di.RegisterCustomFactory(() => new Element2Factory(), "E2", true);
+        di.RegisterCustomFactory(() => new Element1Factory(), "E1", Lifetime.Transient);
+        di.RegisterCustomFactory(() => new Element2Factory(), "E2", Lifetime.Transient, true);
         di.Build();
         
         // no name = type 2 (because primary)

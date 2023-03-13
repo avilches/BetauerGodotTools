@@ -50,11 +50,11 @@ public partial class Container {
             return this;
         }
 
-        public Builder RegisterCustomFactory<T>(Func<T> customFactory, string? name = null, bool primary = false, bool lazy = false) {
-            return RegisterCustomFactory(typeof(T), () => customFactory(), name, primary, lazy);
+        public Builder RegisterCustomFactory<T>(Func<T> customFactory, string? name = null, Lifetime lifetime = Lifetime.Singleton, bool primary = false, bool lazy = false) {
+            return RegisterCustomFactory(typeof(T), () => customFactory(), name, lifetime, primary, lazy);
         }
 
-        public Builder RegisterCustomFactory(Type factoryType, Func<object> customFactory, string? name = null, bool primary = false, bool lazy = false) {
+        public Builder RegisterCustomFactory(Type factoryType, Func<object> customFactory, string? name = null, Lifetime lifetime = Lifetime.Singleton, bool primary = false, bool lazy = false) {
             var type = FactoryTools.GetIFactoryGenericType(factoryType);
             if (type == null) throw new InvalidCastException();
 
@@ -63,13 +63,13 @@ public partial class Container {
             // - Resolve<IFactory<T>>("InnerFactory:"+name)
             // This factory returns the instances without inject dependencies in them 
             var customFactoryName = name == null ? null : $"InnerFactory:{name}";
-            var customProvider = Provider.Create(factoryType, factoryType, Lifetime.Singleton, customFactory, customFactoryName, primary, lazy);
+            var customProvider = Provider.Create(factoryType, factoryType, Lifetime.Singleton, customFactory, customFactoryName, primary, true);
             Register(customProvider);
     
             // Register the regular instance factory
             // - Resolve<T>() or Resolve<T>(name) will create new instances, injecting dependencies.
             Func<object> getFromProviderFactory = FactoryTools.ProviderGetFactoryGet(type, customProvider); // This is just () => customProvider.Get().Get()
-            var provider = Provider.Create(type, type, Lifetime.Transient, getFromProviderFactory, name, primary, true);
+            var provider = Provider.Create(type, type, lifetime, getFromProviderFactory, name, primary, lazy);
             Register(provider);
 
             // Register a factory as IFactory<T> so the user can get it with
