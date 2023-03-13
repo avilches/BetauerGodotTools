@@ -20,6 +20,7 @@ public partial class Container {
     private readonly Injector _injector;
     public bool CreateIfNotFound { get; set; }
     public event Action<Lifetime, object> OnCreated;
+    public event Action<object> OnPostInject;
 
     private readonly BasicPool<ResolveContext> _resolveContextPool;
 
@@ -203,10 +204,11 @@ public partial class Container {
         OnCreated?.Invoke(lifetime, instance);
     }
 
-    internal static void ExecutePostInjectMethods<T>(T instance) {
+    internal void ExecutePostInjectMethods<T>(T instance) {
         if (instance.GetType().ImplementsInterface(typeof(IInjectable))) {
             ((IInjectable)instance).PostInject();
         }
+        OnPostInject?.Invoke(instance);
     }
     
     internal object Resolve(Type type, ResolveContext context) {

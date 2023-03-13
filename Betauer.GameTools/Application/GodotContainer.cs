@@ -37,27 +37,28 @@ public class GodotContainer {
             NodePathScanner.ConfigureAutoInject(_owner.GetTree());
         }
         CreateContainer();
-        _owner.GetTree().NodeAdded += InjectIfNotInjected;
     }
 
     private void CreateContainer() {
-        _container.OnCreated += OnServiceCreated;
+        if (_addSingletonNodesToTree) _container.OnCreated += AddNodeSingletonsToTree;
+        _container.OnPostInject += MarkObjectAsInjected; // Avoid double injection 
+        _owner.GetTree().NodeAdded += InjectIfNotInjected; // Auto Inject nodes when they are added to the tree
         var containerBuilder = _container.CreateBuilder();
         _containerConfig?.Invoke(containerBuilder);
         containerBuilder.Build();
+    }
+
+    private static void MarkObjectAsInjected(object instance) {
+        // This avoid nodes are injected twice if they are added to the tree later
+        if (instance is GodotObject o) SetAlreadyInjected(o); 
     }
 
     private void InjectIfNotInjected(Node node) {
         if (node.GetScript().AsGodotObject() is CSharpScript && !IsInjected(node)) _container.InjectServices(node);
     }
 
-    private void OnServiceCreated(Lifetime lifetime, object instance) {
-        if (instance is GodotObject o)
-            SetAlreadyInjected(o); // This avoid nodes are injected twice if they are added to the tree later
-        if (_addSingletonNodesToTree && 
-            lifetime == Lifetime.Singleton && 
-            instance is Node node && 
-            node.GetParent() == null) {
+    private void AddNodeSingletonsToTree(Lifetime lifetime, object instance) {
+        if (lifetime == Lifetime.Singleton && instance is Node node && node.GetParent() == null) {
             _owner.GetViewport().AddChildDeferred(node);
         }
     }
