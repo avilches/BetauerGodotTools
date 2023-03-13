@@ -5,38 +5,37 @@ namespace Betauer.Core.Pool.Basic;
 /// <summary>
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public abstract class BaseBasicPool<T> {
+public abstract class BaseBasicPool<T> : IPool<T> {
+    public PoolCollection<T> Pool { get; }
 
-    public IPoolCollection<T> Pool { get; }
-
-    protected BaseBasicPool(IPoolCollection<T>? pool = null) {
-        Pool = pool ?? new StackPoolCollection<T>();
+    protected BaseBasicPool(PoolCollection<T>? pool = null) {
+        Pool = pool ?? new PoolCollection.Stack<T>();
     }
 
     public T Get() {
         var element = Pool.Count == 0 ? Create() : Pool.Get();
-        OnGet(element);
-        return element;
+        return OnGet(element);
     }
 
-    public IEnumerable<T> GetAll() {
+    public IEnumerable<T> GetElements() {
         while (Pool.Count > 0) {
-            yield return Get();
+            yield return OnGet(Pool.Get());
         }
     }
 
     public void Fill(int desiredSize) {
-        while (Pool.Count < desiredSize) Pool.Add(Create());
+        while (Pool.Count < desiredSize) {
+            Pool.Add(Create());
+        }
     }
 
     public void Return(T element) {
-        OnReturn(element);
-        Pool.Add(element);
+        Pool.Add(OnReturn(element));
     }
 
     public abstract T Create();
 
-    public virtual void OnGet(T element) { }
+    public virtual T OnGet(T element) => element;
 
-    public virtual void OnReturn(T element) { }
+    public virtual T OnReturn(T element) => element;
 }

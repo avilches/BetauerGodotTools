@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Betauer.Application.Lifecycle;
 using Betauer.Core;
 using Betauer.Core.Nodes;
 using Godot;
@@ -8,7 +9,7 @@ using Veronenger.Persistent;
 
 namespace Veronenger.Transient;
 
-public partial class ProjectileTrail : BaseNodeLifecycle, IObjectLifecycle {
+public partial class ProjectileTrail : BaseNodeLifecycle, INodeLifecycle {
 	public enum Behaviour { Continue, Stop }
 	private static readonly Random Random = new Pcg.PcgRandom();
 	private static float RayLength = 40;

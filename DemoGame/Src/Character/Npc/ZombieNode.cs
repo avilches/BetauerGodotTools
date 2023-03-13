@@ -6,6 +6,7 @@ using Betauer.Core;
 using Betauer.Core.Nodes;
 using Betauer.Core.Nodes.Property;
 using Betauer.Core.Pool;
+using Betauer.Core.Pool.Lifecycle;
 using Betauer.Core.Restorer;
 using Betauer.DI;
 using Betauer.Flipper;
@@ -105,9 +106,8 @@ public partial class ZombieNode : NpcItemStateMachineNodeSync<ZombieState, Zombi
 
 	public KinematicPlatformMotion PlatformBody;
 
-	// TODO Minipool de ilabels??
 	private ICharacterAI _zombieAi;
-	private MiniPoolBusyInvalid<ILabelEffect> _labelHits;
+	private IPool<ILabelEffect> _labelHits;
 	private Restorer _restorer; 
 	private LazyRaycast2D _lazyRaycastToPlayer;
 	private DebugOverlay? _overlay;
@@ -209,7 +209,7 @@ public partial class ZombieNode : NpcItemStateMachineNodeSync<ZombieState, Zombi
 		AnimationReset = _animationPlayer.Anim("RESET");
 
 		var firstCall = true;
-		_labelHits = new MiniPoolBusyInvalid<ILabelEffect>(
+		_labelHits = PoolTemplates.Lifecycle<ILabelEffect>(
 			() => {
 				if (firstCall) {
 					firstCall = false;
@@ -218,7 +218,8 @@ public partial class ZombieNode : NpcItemStateMachineNodeSync<ZombieState, Zombi
 				var duplicate = (Label)HitLabel.Duplicate();
 				HitLabel.AddSibling(duplicate);
 				return new LabelHit(duplicate);
-			}, 1, false);
+			});
+		_labelHits.Fill(1);
 	}
 
 	private void ConfigureCharacter() {

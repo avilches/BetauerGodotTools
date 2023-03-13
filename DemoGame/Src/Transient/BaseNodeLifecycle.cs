@@ -1,8 +1,9 @@
+using Betauer.Application.Lifecycle;
 using Godot;
 
 namespace Veronenger.Transient;
 
-public abstract partial class BaseNodeLifecycle : Node, IObjectLifecycle {
+public abstract partial class BaseNodeLifecycle : Node, INodeLifecycle {
 
     private Vector2 _initialPosition;
     private volatile bool _busy = false;

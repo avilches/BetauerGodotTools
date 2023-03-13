@@ -1,7 +1,7 @@
-using Betauer.Core.Pool;
+using Betauer.Core.Pool.Lifecycle;
 
 namespace Veronenger.Character.Npc;
 
-public interface ILabelEffect : IPoolElement {
+public interface ILabelEffect : IPoolLifecycle {
     public void Show(string text);
 }

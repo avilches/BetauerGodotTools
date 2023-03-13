@@ -4,22 +4,22 @@ namespace Betauer.Core.Pool.Basic;
 
 public class BasicPool<T> : BaseBasicPool<T> {
     private readonly Func<T> _factory;
-    public event Action<T>? OnGetEvent;
-    public event Action<T>? OnReturnEvent;
+    public Func<T, T>? GetEvent;
+    public Func<T, T>? ReturnEvent;
     
-    public BasicPool(Func<T> factory, IPoolCollection<T>? pool = null) : base(pool) {
-        _factory += factory;
+    public BasicPool(Func<T> factory, PoolCollection<T>? pool = null) : base(pool) {
+        _factory = factory;
     }
 
     public override T Create() {
         return _factory.Invoke();
     }
 
-    public override void OnGet(T element) {
-        OnGetEvent?.Invoke(element);
+    public override T OnGet(T element) {
+        return GetEvent != null ? GetEvent.Invoke(element) : element;
     }
 
-    public override void OnReturn(T element) {
-        OnReturnEvent?.Invoke(element);
+    public override T OnReturn(T element) {
+        return ReturnEvent != null ? ReturnEvent.Invoke(element) : element;
     }
 }
