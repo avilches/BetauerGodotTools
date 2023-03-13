@@ -79,13 +79,15 @@ public class Game {
 
     public void ZombieSpawn(Node scene, Vector2 position) {
         var zombieNode = ZombiePool.Get();
+        Console.WriteLine("ZombieSpawn "+zombieNode.GetInstanceId());
         ItemRepository.AddEnemy(ItemConfigManager.ZombieConfig, "Zombie", zombieNode);
         zombieNode.AddToScene(scene, position);
     }
 
     public ProjectileTrail NewBullet() {
         var projectileTrail = ProjectilePool.Get();
-        _currentGameScene.AddChild(projectileTrail);
+        Console.WriteLine("NewBullet "+projectileTrail.GetInstanceId());
+        projectileTrail.AddToScene(_currentGameScene, Vector2.Zero);
         return projectileTrail;
     }
 

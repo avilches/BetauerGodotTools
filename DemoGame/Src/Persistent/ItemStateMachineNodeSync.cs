@@ -14,9 +14,9 @@ public abstract partial class ItemStateMachineNodeSync<TStateKey, TEventKey> :
     protected ItemRepository ItemRepository;
     protected Item Item;
     private Vector2 _initialPosition;
-    private bool _busy = true;
-
+    private volatile bool _busy = true;
     public bool IsBusy() => _busy;
+    public bool IsInvalid() => !IsInstanceValid(this);
 
     // From MiniPool
     public abstract void Initialize();
@@ -55,6 +55,5 @@ public abstract partial class ItemStateMachineNodeSync<TStateKey, TEventKey> :
 
     public abstract void OnRemoveFromScene();
 
-    public bool IsInvalid() => !IsInstanceValid(this);
     
 }

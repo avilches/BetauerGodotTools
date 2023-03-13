@@ -12,6 +12,7 @@ public class PoolFactory<T> : BaseMiniPoolBusyInvalid<T>, IFactory<T>, IInjectab
 
     protected override T Create() {
         var instance = Factory.Get();
+        Console.WriteLine("PoolFactory "+instance);
         instance.Initialize();
         return instance;
     }

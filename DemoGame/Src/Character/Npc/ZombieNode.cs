@@ -105,6 +105,7 @@ public partial class ZombieNode : NpcItemStateMachineNodeSync<ZombieState, Zombi
 
 	public KinematicPlatformMotion PlatformBody;
 
+	// TODO Minipool de ilabels??
 	private ICharacterAI _zombieAi;
 	private MiniPoolBusyInvalid<ILabelEffect> _labelHits;
 	private Restorer _restorer; 

@@ -8,7 +8,7 @@ using Veronenger.Persistent;
 
 namespace Veronenger.Transient;
 
-public partial class ProjectileTrail : Line2D, IObjectLifecycle {
+public partial class ProjectileTrail : BaseNodeLifecycle, IObjectLifecycle {
 	public enum Behaviour { Continue, Stop }
 	private static readonly Random Random = new Pcg.PcgRandom();
 	private static float RayLength = 40;
@@ -20,7 +20,7 @@ public partial class ProjectileTrail : Line2D, IObjectLifecycle {
 	private float _maxDistanceSquared;
 	private float _trailLongSquared;
 	private int _raycastLength;
-	private volatile bool _busy = false;
+	private Line2D Trail;
 	private Func<RaycastCollision, Behaviour> _onCollide;
 	public Sprite2D Sprite2D;
 
@@ -28,31 +28,30 @@ public partial class ProjectileTrail : Line2D, IObjectLifecycle {
 	private Vector2 _collisionPosition = Vector2.Zero;
 	private bool _queueEnd = false;
 
-	public bool IsBusy() => _busy;
-	public bool IsInvalid() => !IsInstanceValid(this);
-
-	public void OnGet() {
+	public override void OnGet() {
 	}
 
-	public void Initialize() {
-		Visible = false;
-		Width = 1f;
-		ClearPoints();
-		AddPoint(Vector2.Zero);
-		AddPoint(Vector2.Zero);
-		AddPoint(Vector2.Zero);
+	public override void Initialize() {
+		Trail = GetNode<Line2D>("Line2D");
+		Trail.Visible = false;
+		Trail.Width = 1f;
+		Trail.ClearPoints();
+		Trail.AddPoint(Vector2.Zero);
+		Trail.AddPoint(Vector2.Zero);
+		Trail.AddPoint(Vector2.Zero);
 		Sprite2D = new Sprite2D {
 			Visible = false
 		};
 		AddChild(Sprite2D);
-		_lazyRaycast2D = new LazyRaycast2D().GetDirectSpaceFrom(this);
+		_lazyRaycast2D = new LazyRaycast2D().GetDirectSpaceFrom(Trail);
 	}
 
+	protected override void OnStart(Vector2 initialPosition) {
+	}
 
 	public void ShootFrom(WeaponRangeItem item, Vector2 from, Vector2 direction, Action<PhysicsRayQueryParameters2D> raycastConfig, Func<RaycastCollision, Behaviour> onCollide) {
 		SetPhysicsProcess(true);
 		direction = direction.Rotated(item.NewRandomDispersion());
-		_busy = true;
 		_from = from;
 		_velocity = direction * item.Config.Speed;
 		_direction = direction;
@@ -69,10 +68,10 @@ public partial class ProjectileTrail : Line2D, IObjectLifecycle {
 		Sprite2D.Texture = item.Config.Projectile;
 		Sprite2D.Visible = item.Config.Projectile != null;
 		
-		SetPointPosition(0, from);
-		SetPointPosition(1, from);
-		SetPointPosition(2, from);
-		Visible = true;
+		Trail.SetPointPosition(0, from);
+		Trail.SetPointPosition(1, from);
+		Trail.SetPointPosition(2, from);
+		Trail.Visible = true;
 		// this.OnDraw(canvas => {
 			// canvas.DrawCircle(_collisionPosition, 3, Colors.Red);
 		// });                   
@@ -103,16 +102,16 @@ public partial class ProjectileTrail : Line2D, IObjectLifecycle {
 
 	private void MoveProjectile(Vector2 newPosition, double delta) {
 
-		var endTrailPos = GetPointPosition(2);
+		var endTrailPos = Trail.GetPointPosition(2);
 		if (newPosition.DistanceSquaredTo(_from) > _trailLongSquared) {
 			endTrailPos += _velocity * (float)delta;
 		}
 		var middlePosition = newPosition.Lerp(endTrailPos, 0.5f);
 
 		Sprite2D.Position = newPosition;    
-		SetPointPosition(0, newPosition);
-		SetPointPosition(1, middlePosition);
-		SetPointPosition(2, endTrailPos);
+		Trail.SetPointPosition(0, newPosition);
+		Trail.SetPointPosition(1, middlePosition);
+		Trail.SetPointPosition(2, endTrailPos);
 
 		// this.QueueDraw(canvas => {
 			// canvas.DrawLine(newPosition, middlePosition, Colors.Green, 2f);
@@ -152,12 +151,9 @@ public partial class ProjectileTrail : Line2D, IObjectLifecycle {
 		return false;
 	}
 	
-	public void RemoveFromScene() {
-		if (!_busy) return;
+	public override void OnRemoveFromScene() {
 		SetPhysicsProcess(false);
-		Sprite2D.Visible = Visible = false;
-		GetParent().RemoveChild(this);
-		_busy = false;
+		Sprite2D.Visible = Trail.Visible = false;
 	}
 
 }

@@ -19,8 +19,8 @@ using Veronenger.Character.InputActions;
 using Veronenger.Config;
 using Veronenger.Managers;
 using Veronenger.Persistent;
+using Veronenger.Transient;
 using Veronenger.UI;
-using ProjectileTrail = Veronenger.Transient.ProjectileTrail;
 
 namespace Veronenger.Character.Player; 
 
