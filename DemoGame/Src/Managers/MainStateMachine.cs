@@ -1,3 +1,5 @@
+using System;
+using Betauer.Application.Lifecycle;
 using Betauer.Application.Monitor;
 using Godot;
 using Betauer.Application.Screen;
@@ -13,6 +15,9 @@ using Veronenger.UI;
 namespace Veronenger.Managers; 
 
 public enum MainState {
+    SplashScreenLoading,
+    
+    
     Init,
     MainMenu,
     Settings,
@@ -40,11 +45,20 @@ public enum MainEvent {
 [Service]
 public partial class MainStateMachine : StateMachineNodeAsync<MainState, MainEvent>, IInjectable {
 
-    [Inject] private MainMenu MainMenuScene { get; set; }
-    [Inject] public BottomBar BottomBarScene { get; set; }
-    [Inject] private PauseMenu PauseMenuScene { get; set; }
-    [Inject] private SettingsMenu SettingsMenuScene { get; set; }
-    [Inject] private HUD HudScene { get; set; }
+    [Inject] private IFactory<MainMenu> MainMenuSceneFactory { get; set; }
+    [Inject] public IFactory<BottomBar> BottomBarSceneFactory { get; set; }
+    [Inject] private IFactory<PauseMenu> PauseMenuSceneFactory { get; set; }
+    [Inject] private IFactory<SettingsMenu> SettingsMenuSceneFactory { get; set; }
+    [Inject] private IFactory<HUD> HudSceneFactory { get; set; }
+
+    [Inject] private ResourceLoaderContainer ResourceLoaderContainer { get; set; }
+
+    private MainMenu MainMenuScene => MainMenuSceneFactory.Get();
+    public BottomBar BottomBarScene => BottomBarSceneFactory.Get();
+    private PauseMenu PauseMenuScene => PauseMenuSceneFactory.Get();
+    private SettingsMenu SettingsMenuScene => SettingsMenuSceneFactory.Get();
+    private HUD HudScene => HudSceneFactory.Get();
+    
     [Inject] private IFactory<ModalBoxConfirm> ModalBoxConfirm { get; set; }
     [Inject] private Theme MyTheme { get; set; }
     [Inject] private Game Game { get; set; }
@@ -65,10 +79,26 @@ public partial class MainStateMachine : StateMachineNodeAsync<MainState, MainEve
         ProcessMode = ProcessModeEnum.Always;
     }
 
-    public MainStateMachine() : base(MainState.Init) {
+    public MainStateMachine() : base(MainState.SplashScreenLoading) {
     }
 
     public void PostInject() {
+        EventBus.Subscribe(evt => Send(evt)).UnsubscribeIf(Predicates.IsInvalid(this));
+        
+        var splashScreen = SceneTree.GetMainScene<SplashScreenNode>();
+        splashScreen.Layer = int.MaxValue;
+        
+        State(MainState.SplashScreenLoading)
+            .Enter(async () => {
+                Console.WriteLine("MainStateMachine.SplashScreenLoading.Enter()");
+                await ResourceLoaderContainer.LoadResources("main");
+                Configure();
+            })
+            .If(() => true).Set(MainState.Init)
+            .Build();
+    }
+
+    public void Configure() {
 #if DEBUG
         this.OnInput((e) => {
             if (e.IsKeyPressed(Key.Q)) {
@@ -86,25 +116,22 @@ public partial class MainStateMachine : StateMachineNodeAsync<MainState, MainEve
         }, ProcessModeEnum.Always);
 #endif
             
-        EventBus.Subscribe(evt => Send(evt)).UnsubscribeIf(Predicates.IsInvalid(this));
         var modalResponse = false;
-        var splashScreen = SceneTree.GetMainScene<SplashScreenNode>();
-        splashScreen.Layer = int.MaxValue;
-
         var endSplash = false;
 
         On(MainEvent.ModalBoxConfirmExitDesktop).Push(MainState.ModalExitDesktop);
         On(MainEvent.ExitDesktop).Set(MainState.ExitDesktop);
         On(MainEvent.ModalBoxConfirmQuitGame).Push(MainState.ModalQuitGame);
-        OnTransition += args => BottomBarScene.UpdateState(args.To);
         State(MainState.Init)
             .Enter(() => {
                 ConfigureCanvasLayers();
                 ConfigureDebugOverlays();
                 ScreenSettingsManager.Setup();
+                OnTransition += args => BottomBarScene.UpdateState(args.To);
             })
             .OnInput(e => {
                 if (!endSplash && (e.IsAnyKey() || e.IsAnyButton() || e.IsAnyClick()) && e.IsJustPressed()) {
+                    var splashScreen = SceneTree.GetMainScene<SplashScreenNode>();
                     splashScreen.QueueFree();
                     endSplash = true;
                 }
@@ -122,7 +149,7 @@ public partial class MainStateMachine : StateMachineNodeAsync<MainState, MainEve
             .Build();
 
         State(MainState.Settings)
-            .OnInput(SettingsMenuScene.OnInput)
+            .OnInput(e => SettingsMenuScene.OnInput(e))
             .On(MainEvent.Back).Pop()
             .Enter(() => SettingsMenuScene.ShowSettingsMenu())
             .Exit(() => SettingsMenuScene.HideSettingsMenu())
@@ -149,12 +176,12 @@ public partial class MainStateMachine : StateMachineNodeAsync<MainState, MainEve
             .Build();
 
         State(MainState.GameOver)
-            .Enter(() => Game.End())
+            .Enter(async () => await Game.End())
             .If(() => true).Set(MainState.MainMenu)
             .Build();
             
         State(MainState.PauseMenu)
-            .OnInput(PauseMenuScene.OnInput)
+            .OnInput((e) => PauseMenuScene.OnInput(e))
             .On(MainEvent.Back).Pop()
             .On(MainEvent.Settings).Push(MainState.Settings)
             .Suspend(() => PauseMenuScene.DisableMenus())

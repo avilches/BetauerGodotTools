@@ -7,11 +7,9 @@ using Betauer.Camera;
 using Betauer.DI;
 using Betauer.DI.ServiceProvider;
 using Betauer.Tools.Logging;
-using Betauer.Core.Pool;
 using Betauer.StateMachine;
 using Godot;
 using Veronenger.Character.Player;
-using Container = System.ComponentModel.Container;
 using PropertyTweener = Betauer.Animation.PropertyTweener;
 using ZombieNode = Veronenger.Character.Npc.ZombieNode;
 

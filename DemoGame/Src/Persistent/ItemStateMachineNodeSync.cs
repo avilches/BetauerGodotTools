@@ -1,11 +1,12 @@
 using System;
+using Betauer.Application.Lifecycle;
 using Betauer.StateMachine.Sync;
 using Godot;
 
 namespace Veronenger.Persistent;
 
 public abstract partial class ItemStateMachineNodeSync<TStateKey, TEventKey> : 
-    StateMachineNodeSync<TStateKey, TEventKey>, IObjectLifecycle 
+    StateMachineNodeSync<TStateKey, TEventKey>, INodeLifecycle 
     where TStateKey : Enum 
     where TEventKey : Enum {
     protected ItemStateMachineNodeSync(TStateKey initialState, string? name = null, bool processInPhysics = false) : base(initialState, name, processInPhysics) {

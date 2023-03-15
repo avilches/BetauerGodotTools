@@ -1,15 +1,16 @@
 using Betauer.Application;
+using Betauer.Application.Lifecycle;
 using Betauer.Application.Monitor;
 using Betauer.Application.Screen;
 using Betauer.Application.Settings;
 using Betauer.DI;
+using Betauer.DI.ServiceProvider;
 using Betauer.Input;
 using Godot;
 using Veronenger.Character.Npc;
 using Veronenger.Character.Player;
 using Veronenger.Transient;
 using Veronenger.UI;
-using static Betauer.Loader.LoadTools;
 using static Godot.ResourceLoader;
 
 namespace Veronenger.Config; 
@@ -28,6 +29,10 @@ public class ApplicationConfig {
 
 	[Service] public DebugOverlayManager DebugOverlayManager => new();
 	[Service] public InputActionsContainer InputActionsContainer => new();
+
+	// All 
+	[Service] public PoolManager<INodeLifecycle> PoolManager => new();
+	[Service] public ResourceLoaderContainer ResourceLoaderContainer => new();
 
 }
 
@@ -71,22 +76,21 @@ public class Resources {
 
 [Configuration]
 public class Scenes {
-	[Factory] private SceneFactory<ZombieNode> ZombieNode => new("res://Scenes/Zombie2.tscn");
-	[Factory] private SceneFactory<RedefineActionButton> RedefineActionButton => new("res://Scenes/UI/RedefineActionButton.tscn");
-	[Factory] private SceneFactory<Node> World3 => new("res://Worlds/World3.tscn");
-	[Factory] private SceneFactory<PlayerNode> Player => new("res://Scenes/Player.tscn");
-	[Factory] private SceneFactory<ModalBoxConfirm> ModalBoxConfirm => new("res://Scenes/Menu/ModalBoxConfirm.tscn");
-	[Factory] private SceneFactory<ProjectileTrail> ProjectileTrail => new("res://Scenes/ProjectileTrail.tscn");
+	[Factory(Lifetime = Lifetime.Transient)] SceneFactory<RedefineActionButton> RedefineActionButton => new("main", "res://Scenes/UI/RedefineActionButton.tscn");
+	[Factory(Lifetime = Lifetime.Transient)] SceneFactory<ModalBoxConfirm> ModalBoxConfirm => new("main", "res://Scenes/Menu/ModalBoxConfirm.tscn");
+	[Factory] [Lazy] SceneFactory<HUD> HudResource => new("main", "res://Scenes/UI/HUD.tscn");
+	[Factory] [Lazy] SceneFactory<MainMenu> MainMenuResource => new("main", "res://Scenes/Menu/MainMenu.tscn");
+	[Factory] [Lazy] SceneFactory<BottomBar> BottomBarResource => new("main", "res://Scenes/Menu/BottomBar.tscn");
+	[Factory] [Lazy] SceneFactory<PauseMenu> PauseMenuResource => new("main", "res://Scenes/Menu/PauseMenu.tscn");
+	[Factory] [Lazy] SceneFactory<SettingsMenu> SettingsMenuResource => new("main", "res://Scenes/Menu/SettingsMenu.tscn");
 
-	[Service] private PoolFactory<ZombieNode> ZombiePool => new();
-	[Service] private PoolFactory<ProjectileTrail> ProjectilePool => new();
+	[Factory(Lifetime = Lifetime.Transient)] SceneFactory<Node> World3 => new("game", "res://Worlds/World3.tscn");
+	[Factory(Lifetime = Lifetime.Transient)] SceneFactory<PlayerNode> Player => new("game", "res://Scenes/Player.tscn");
+	[Factory(Lifetime = Lifetime.Transient)] SceneFactory<ZombieNode> ZombieNode => new("game", "res://Scenes/Zombie2.tscn");
+	[Factory(Lifetime = Lifetime.Transient)] SceneFactory<ProjectileTrail> ProjectileTrail => new("game", "res://Scenes/ProjectileTrail.tscn");
 
-
-	[Service] HUD HudScene => Instantiate<HUD>("res://Scenes/UI/HUD.tscn");
-	[Service] MainMenu MainMenuScene => Instantiate<MainMenu>("res://Scenes/Menu/MainMenu.tscn");
-	[Service] BottomBar BottomBarScene => Instantiate<BottomBar>("res://Scenes/Menu/BottomBar.tscn");
-	[Service] PauseMenu PauseMenuScene => Instantiate<PauseMenu>("res://Scenes/Menu/PauseMenu.tscn");
-	[Service] SettingsMenu SettingsMenuScene => Instantiate<SettingsMenu>("res://Scenes/Menu/SettingsMenu.tscn");
+	[Service] PoolFromNodeFactory<ZombieNode> ZombiePool => new();
+	[Service] PoolFromNodeFactory<ProjectileTrail> ProjectilePool => new();
 }
 
 [Configuration]

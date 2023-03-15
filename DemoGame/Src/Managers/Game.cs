@@ -1,6 +1,8 @@
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Betauer.Application.Lifecycle;
 using Betauer.DI;
 using Betauer.Core.Nodes;
 using Betauer.Core.Signal;
@@ -19,15 +21,16 @@ namespace Veronenger.Managers;
 public class Game {
     [Inject] private SceneTree SceneTree { get; set; }
     [Inject] private ItemRepository ItemRepository { get; set; }
-    [Inject] private HUD HudScene { get; set; }
+    [Inject] private IFactory<HUD> HudScene { get; set; }
     [Inject] private ItemConfigManager ItemConfigManager { get; set; }
     [Inject] private StageManager StageManager { get; set; }
     [Inject] private IFactory<Node> World3 { get; set; }
     [Inject] private IFactory<PlayerNode> PlayerFactory { get; set; }
 
-    [Inject] private PoolManager PoolManager { get; set; }
-    [Inject] private PoolFactory<ProjectileTrail> ProjectilePool { get; set; }
-    [Inject] private PoolFactory<ZombieNode> ZombiePool { get; set; }
+    [Inject] private ResourceLoaderContainer ResourceLoaderContainer { get; set; }
+    [Inject] private PoolManager<INodeLifecycle> PoolManager { get; set; }
+    [Inject] private PoolFromNodeFactory<ProjectileTrail> ProjectilePool { get; set; }
+    [Inject] private PoolFromNodeFactory<ZombieNode> ZombiePool { get; set; }
 
     private Node _currentGameScene;
 
@@ -45,6 +48,12 @@ public class Game {
     }
 
     public async Task StartWorld3() {
+        var x = Stopwatch.StartNew();
+        await ResourceLoaderContainer.LoadResources("game", (rp => {
+            Console.WriteLine((rp.TotalPercent * 100f) + "% " +
+                              (rp.Resource != null ? rp.Resource + ": " + (rp.ResourcePercent * 100f) + "%" : ""));
+        }));
+        Console.WriteLine("ResourceLoaderContainer.LoadResources: "+x.ElapsedMilliseconds+"ms");
         ItemRepository.Clear();
         ItemRepository.AddMeleeWeapon(ItemConfigManager.Knife, "Knife", 6f,"K1");
         ItemRepository.AddMeleeWeapon(ItemConfigManager.Metalbar, "Metalbar", 9f, "M1");
@@ -74,7 +83,7 @@ public class Game {
         var bullets = new Node();
         bullets.Name = "Bullets";
         _currentGameScene.AddChild(bullets);
-        HudScene.StartGame();
+        HudScene.Get().StartGame();
     }
 
     public void ZombieSpawn(Node scene, Vector2 position) {
@@ -107,13 +116,29 @@ public class Game {
     }
 
 
-    public void End() {
-        // Removing nodes from scene avoid get freed along with the scene and make them available in the Pool again
-        PoolManager.RemoveFromScene();
-        Node.PrintOrphanNodes();
-        HudScene.EndGame();
-        _currentGameScene.QueueFree();
-        _currentGameScene = null;
+    public async Task End() {
+        HudScene.Get().EndGame();
+        // FreeSceneAndKeepPoolData();
+        FreeSceneAndUnloadResources();
+        await SceneTree.AwaitProcessFrame();
+        GC.GetTotalMemory(true);
+    }
+
+    private void FreeSceneAndUnloadResources() {
+        // To ensure the pool nodes are freed along with the scene:
+        
+        // 1. All busy elements are still attached to the tree and will be destroyed with the scene, so we don't need to
+        // do anything with them.
+        // But the non busy and valid element are outside of the scene tree in the pool, so, loop them and free them:
+        PoolManager.ForEachElementInAllPools(e => e.Free());
+        // 2. Remove the data from the pool to avoid having references to busy elements which are going to die with the scene
+        PoolManager.Clear();
+        ResourceLoaderContainer.UnloadResources("game");
+    }
+
+    private void FreeSceneAndKeepPoolData() {
+        // This line keeps the godot nodes in the pool removing them from scene, because the scene is going to be freed
+        PoolManager.ForEachElementInAllPools(e => e.RemoveFromScene());
     }
 
     public void InstantiateNewZombie() {
