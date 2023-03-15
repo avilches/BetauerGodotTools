@@ -3,7 +3,7 @@ using Veronenger.Character;
 
 namespace Veronenger.Config; 
 
-[Service]
+[Singleton]
 public class PlayerConfig {
     public const float CoyoteJumpTime = 0.16f; // seconds. How much time the player can jump when falling
     public const float JumpHelperTime = 0.16f; // seconds. If the user press jump just before land

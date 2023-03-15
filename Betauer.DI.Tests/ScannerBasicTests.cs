@@ -19,7 +19,7 @@ public class ScannerBasicTests : Node {
     public interface INotTagged {
     }
 
-    [Service]
+    [Singleton]
     public class MyServiceWithNotScanned {
         [Inject] internal INotTagged notFound { get; set; }
     }
@@ -32,27 +32,27 @@ public class ScannerBasicTests : Node {
         Assert.Throws<InjectMemberException>(() => di.Build());
     }
 
-    [Service]
+    [Singleton]
     [Configuration]
     public class WrongCombination1 {
     }
 
-    [Service]
+    [Singleton]
     [Scan]
     public class WrongCombination2 {
     }
 
-    [Factory]
+    [SingletonFactory]
     [Configuration]
     public class WrongCombination3 {
     }
 
-    [Factory]
-    [Service]
+    [SingletonFactory]
+    [Singleton]
     public class WrongCombination4 {
     }
 
-    [Factory]
+    [SingletonFactory]
     [Scan]
     public class WrongCombination5 {
     }
@@ -61,7 +61,7 @@ public class ScannerBasicTests : Node {
     public class WrongCombination6 {
     }
 
-    [Test(Description = "Can't use [Configuration] [Factory] [Scan] and [Service] in the same class")]
+    [Test(Description = "Can't use [Configuration] [SingletonFactory] [Scan] and [Singleton] in the same class")]
     public void WrongCombinationTest() {
         Assert.Throws<InvalidAttributeException>(() => new Container.Builder().Scan<WrongCombination1>());
         Assert.Throws<InvalidAttributeException>(() => new Container.Builder().Scan<WrongCombination2>());
@@ -71,7 +71,7 @@ public class ScannerBasicTests : Node {
         Assert.Throws<InvalidAttributeException>(() => new Container.Builder().Scan<WrongCombination6>());
     }
 
-    [Service]
+    [Singleton]
     public class MyServiceWithWithNullable {
         [Inject(Nullable = true)] internal INotTagged nullable { get; set; }
     }
@@ -86,7 +86,7 @@ public class ScannerBasicTests : Node {
         Assert.That(x.nullable, Is.Null);
     }
 
-    [Service]
+    [Singleton]
     public class InjectClass : IInjectable {
         public static Node n1;
         public static Node n2;
@@ -177,15 +177,15 @@ public class ScannerBasicTests : Node {
         Assert.That(i.p1, Is.EqualTo(2));
     }
 
-    [Service]
+    [Singleton]
     public class ExposeServiceClass1 {
     }
 
-    [Service(Name = "C")]
+    [Singleton(Name = "C")]
     public class ExposeServiceClass2 {
     }
 
-    [Service(Type = typeof(INotTagged))]
+    [Singleton<INotTagged>]
     public class ExposeServiceClass3 : INotTagged {
     }
 
@@ -197,11 +197,11 @@ public class ScannerBasicTests : Node {
         di.Scan<ExposeServiceClass3>();
         var c = di.Build();
             
-        // [Service] in class is registered by the class
+        // [Singleton] in class is registered by the class
         Assert.That(c.Contains<ExposeServiceClass1>());
         Assert.That(c.Resolve<ExposeServiceClass1>(), Is.TypeOf<ExposeServiceClass1>());
             
-        // [Service(Name = "C"] in class is registered by the name and type
+        // [Singleton(Name = "C"] in class is registered by the name and type
         Assert.That(c.Resolve("C"), Is.TypeOf<ExposeServiceClass2>());
         Assert.That(c.Resolve<ExposeServiceClass2>(), Is.TypeOf<ExposeServiceClass2>());
 
@@ -210,7 +210,7 @@ public class ScannerBasicTests : Node {
         Assert.That(c.Resolve<INotTagged>(), Is.TypeOf<ExposeServiceClass3>());
     }
 
-    [Service]
+    [Singleton]
     [Primary]
     public class PrimaryTagClass {
     }
@@ -228,9 +228,9 @@ public class ScannerBasicTests : Node {
 
     [Configuration]
     public class PrimaryServiceConfiguration {
-        [Service] private DummyClass noPrimary => new DummyClass();
-        [Service] [Primary] private DummyClass primaryTag => new DummyClass();
-        [Service(Primary = true)] private DummyClass primary => new DummyClass();
+        [Singleton] private DummyClass noPrimary => new DummyClass();
+        [Singleton] [Primary] private DummyClass primaryTag => new DummyClass();
+        [Singleton(Primary = true)] private DummyClass primary => new DummyClass();
     }
 
     [Test(Description = "Check Primary attribute in configuration")]
@@ -256,17 +256,17 @@ public class ScannerBasicTests : Node {
 
     [Configuration]
     public class ConfigurationScanned {
-        [Service] internal ExposeServiceMember1 member11 => new ExposeServiceMember1();
-        [Service] internal ExposeServiceMember1 member12() => new ExposeServiceMember1();
-        [Service(Name = "M21", Primary = true)] internal ExposeServiceMember2 member21 => new ExposeServiceMember2();
-        [Service(Name = "M22")] internal ExposeServiceMember2 member22() => new ExposeServiceMember2();
+        [Singleton] internal ExposeServiceMember1 member11 => new ExposeServiceMember1();
+        [Singleton] internal ExposeServiceMember1 member12() => new ExposeServiceMember1();
+        [Singleton(Name = "M21", Primary = true)] internal ExposeServiceMember2 member21 => new ExposeServiceMember2();
+        [Singleton(Name = "M22")] internal ExposeServiceMember2 member22() => new ExposeServiceMember2();
             
-        [Service(Name = "M3")] internal ExposeServiceMember3 member3 => new ExposeServiceMember3();
-        [Service(Name = "M3P1", Primary = true)] internal ExposeServiceMember3 member3P1() => new ExposeServiceMember3();
-        [Service(Name = "M3P2", Primary = true)] internal ExposeServiceMember3 member3P2() => new ExposeServiceMember3();
+        [Singleton(Name = "M3")] internal ExposeServiceMember3 member3 => new ExposeServiceMember3();
+        [Singleton(Name = "M3P1", Primary = true)] internal ExposeServiceMember3 member3P1() => new ExposeServiceMember3();
+        [Singleton(Name = "M3P2", Primary = true)] internal ExposeServiceMember3 member3P2() => new ExposeServiceMember3();
             
-        [Service(Type = typeof(I1))] internal I1 member41 => new ExposeServiceMember4();
-        [Service(Type = typeof(I2))] internal I2 member42() => new ExposeServiceMember4();
+        [Singleton<I1>] internal ExposeServiceMember4 member41 => new ExposeServiceMember4();
+        [Singleton<I2>] internal ExposeServiceMember4 member42() => new ExposeServiceMember4();
     }
 
     [Test(Description = "Name or type members in configuration instance")]
@@ -286,19 +286,19 @@ public class ScannerBasicTests : Node {
     }
 
     private void AssertNameOrTypeMembers(Container c) {
-        // [Service] member is exposed by variable or method name
+        // [Singleton] member is exposed by variable or method name
         // Assert.That(c.Resolve<ExposeServiceMember1>(), Is.TypeOf<ExposeServiceMember1>()); 
         // Assert.That(c.Resolve("member11"), Is.TypeOf<ExposeServiceMember1>());
         // Assert.That(c.Resolve("member12"), Is.TypeOf<ExposeServiceMember1>());
 
-        // [Service(Name="M")] member is exposed by name M and by type too (using the first one)
+        // [Singleton(Name="M")] member is exposed by name M and by type too (using the first one)
         Assert.That(c.Resolve("M21"), Is.TypeOf<ExposeServiceMember2>());
         Assert.That(c.Resolve("M22"), Is.TypeOf<ExposeServiceMember2>());
         Assert.That(c.Resolve<ExposeServiceMember2>(), Is.EqualTo(c.Resolve("M21"))); 
         Assert.That(!c.Contains("member21")); 
         Assert.That(!c.Contains("member22")); 
 
-        // [Service(Name="M")] member is exposed by name M and by type too (using the first one)
+        // [Singleton(Name="M")] member is exposed by name M and by type too (using the first one)
         Assert.That(c.Resolve("M3"), Is.TypeOf<ExposeServiceMember3>());
         Assert.That(c.Resolve("M3P1"), Is.TypeOf<ExposeServiceMember3>());
         Assert.That(c.Resolve("M3P2"), Is.TypeOf<ExposeServiceMember3>());
@@ -317,23 +317,23 @@ public class ScannerBasicTests : Node {
         Assert.That(c.Contains("member42")); 
     }
 
-    [Service(typeof(IInterface1), Name = "A")]
+    [Singleton<IInterface1>(Name = "A")]
     public class ServiceByNameFallbackA : IInterface1 {
     }
 
-    [Service(typeof(IInterface1), Name = "B")]
+    [Singleton<IInterface1>(Name = "B")]
     public class ServiceByNameFallbackB : IInterface1 {
     }
 
-    [Service(typeof(IInterface1), Name = "P1", Primary = true)]
+    [Singleton<IInterface1>(Name = "P1", Primary = true)]
     public class ServiceByNameFallbackP1 : IInterface1 {
     }
 
-    [Service(typeof(IInterface1), Name = "P2", Primary = true)]
+    [Singleton<IInterface1>(Name = "P2", Primary = true)]
     public class ServiceByNameFallbackP2 : IInterface1 {
     }
 
-    [Service(typeof(IInterface1), Name = "C")]
+    [Singleton<IInterface1>(Name = "C")]
     public class ServiceByNameFallbackC : IInterface1 {
     }
 
@@ -354,7 +354,7 @@ public class ScannerBasicTests : Node {
     }
 
 
-    [Service(Lifetime.Transient)]
+    [Transient]
     public class EmptyTransient {
         public static int Created = 0;
 
@@ -363,7 +363,7 @@ public class ScannerBasicTests : Node {
         }
     }
 
-    [Service]
+    [Singleton]
     public class SingletonWith2Transients {
         [Inject] internal EmptyTransient NotAllowed { get; set; }
     }
@@ -376,7 +376,7 @@ public class ScannerBasicTests : Node {
         Assert.Throws<InjectMemberException>(() => di.Build());
     }
 
-    [Service(Lifetime.Transient)]
+    [Transient]
     public class TransientService {
         public static int Created = 0;
 
@@ -409,11 +409,11 @@ public class ScannerBasicTests : Node {
         
     public interface IMultipleImpByName {}
 
-    [Service(Name = "M1")] public class MultipleImpl1ByName : IMultipleImpByName {}
-    [Service(Name = "M2")] public class MultipleImpl2ByName : IMultipleImpByName {}
-    [Service(Name = "M3")] public class MultipleImpl3ByName : IMultipleImpByName {}
+    [Singleton(Name = "M1")] public class MultipleImpl1ByName : IMultipleImpByName {}
+    [Singleton(Name = "M2")] public class MultipleImpl2ByName : IMultipleImpByName {}
+    [Singleton(Name = "M3")] public class MultipleImpl3ByName : IMultipleImpByName {}
 
-    [Service]
+    [Singleton]
     public class ServiceWithMultipleImpl1 {
         [Inject(Name = "M1")] internal IMultipleImpByName mul11 { get; set; }
         [Inject(Name = "M1")] internal IMultipleImpByName mul12 { get; set; }
@@ -425,7 +425,7 @@ public class ScannerBasicTests : Node {
         [Inject(Name = "M3")] internal IMultipleImpByName mul32t { get; set; }
     }
 
-    [Service]
+    [Singleton]
     public class ServiceWithMultipleImpl2 {
         [Inject(Name = "M1")] internal IMultipleImpByName mul11 { get; set; }
         [Inject(Name = "M1")] internal IMultipleImpByName mul12 { get; set; }
@@ -463,9 +463,9 @@ public class ScannerBasicTests : Node {
 
     public interface IMultipleImpByType {}
         
-    [Service(typeof(IMultipleImpByType))] public class MultipleImpl1ByType : IMultipleImpByType {}
+    [Singleton<IMultipleImpByType>] public class MultipleImpl1ByType : IMultipleImpByType {}
 
-    [Service]
+    [Singleton]
     public class ServiceWithMultipleImplByType {
         [Inject] internal IMultipleImpByType service { get; set; }
     }
@@ -515,7 +515,7 @@ public class ScannerBasicTests : Node {
     }
 
 
-    [Service]
+    [Singleton]
     public class Hold {
         public string Name;
 
@@ -528,28 +528,28 @@ public class ScannerBasicTests : Node {
     public class SingletonHolder {
 
         // Property
-        [Service]
+        [Singleton]
         private Hold SingletonHold1 => new Hold("1");
             
         // Property with Name
-        [Service(Name = "SingletonHold2")]
+        [Singleton(Name = "SingletonHold2")]
         private Hold _hold2 => new Hold("2");
 
         // Method
-        [Service]
+        [Singleton]
         public Hold SingletonHold3() {
             return new Hold("3");
         }
 
         // Method with name
-        [Service(Name = "SingletonHold4")]
+        [Singleton(Name = "SingletonHold4")]
         public Hold Hold4() {
             return new Hold("4");
         }
 
     }
 
-    [Service]
+    [Singleton]
     public class SingletonInjected {
         [Inject] internal Hold SingletonHold1 { get; set; }
         [Inject(Name = "SingletonHold1")] internal Hold h1 { get; set; }
@@ -598,28 +598,28 @@ public class ScannerBasicTests : Node {
     public class TransientHolder {
 
         // Property
-        [Service(Lifetime.Transient)]
+        [Transient]
         private Hold Hold1 => new Hold("1");
             
         // Property with Name
-        [Service(Lifetime.Transient, Name = "Hold2")]
+        [Transient(Name = "Hold2")]
         private Hold _hold2 => new Hold("2");
 
         // Method
-        [Service(Lifetime.Transient)]
+        [Transient]
         public Hold Hold3() {
             return new Hold("3");
         }
 
         // Method with name
-        [Service(Lifetime.Transient, Name = "Hold4")]
+        [Transient(Name = "Hold4")]
         public Hold Hold4() {
             return new Hold("4");
         }
 
     }
 
-    [Service(Lifetime.Transient)]
+    [Transient]
     public class TransientInjected {
         [Inject] internal Hold Hold1 { get; set; }
         [Inject(Name = "Hold1")] internal Hold h1 { get; set; }
@@ -675,8 +675,8 @@ public class ScannerBasicTests : Node {
             Created++;
         }
 
-        [Service(Lifetime.Transient)] private Hold TransientHold1 => new Hold("1");
-        [Service] private Hold SingletonHold1() => new Hold("2");
+        [Transient] private Hold TransientHold1 => new Hold("1");
+        [Singleton] private Hold SingletonHold1() => new Hold("2");
     }
 
     [Test(Description = "Use configuration to export members")]
@@ -716,13 +716,13 @@ public class ScannerBasicTests : Node {
 
     [Configuration]
     internal class ServiceMemberExposing1 {
-        [Service] private ServiceMemberExposing2 member => new ServiceMemberExposing2();
+        [Singleton] private ServiceMemberExposing2 member => new ServiceMemberExposing2();
     }
         
     internal class ServiceMemberExposing2 {
     }
 
-    [Service]
+    [Singleton]
     internal class ImportedService {
     }
 
@@ -745,7 +745,7 @@ public class ScannerBasicTests : Node {
     }
 
         
-    [Service(Lifetime.Transient)]
+    [Transient]
     public class PostInjectTransient : IInjectable {
         public static int Created = 0;
 
@@ -758,7 +758,7 @@ public class ScannerBasicTests : Node {
         }
     }
 
-    [Service(Lifetime.Transient)]
+    [Transient]
     class TransientWithTransient {
         [Inject] public PostInjectTransient Transient { get; set; }
     }

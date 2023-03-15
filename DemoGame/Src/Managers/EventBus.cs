@@ -5,7 +5,7 @@ using Veronenger.Character.Player;
 
 namespace Veronenger.Managers;
 
-[Service]
+[Singleton]
 public class EventBus {
 
     private readonly Unicast<MainEvent> _mainBus = new();

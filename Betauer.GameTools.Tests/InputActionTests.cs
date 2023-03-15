@@ -151,7 +151,7 @@ namespace Betauer.GameTools.Tests {
 
         [Configuration]
         internal class InputWithoutInputActionsContainer {
-            [Service]
+            [Singleton]
             private InputAction Jump => InputAction.Create("Jump").AsSimulator();
         }
 
@@ -164,8 +164,8 @@ namespace Betauer.GameTools.Tests {
         
         [Configuration]
         internal class ConfigurableInputWithContainerButWithoutSettingContainer {
-            [Service] public InputActionsContainer InputActionsContainer => new InputActionsContainer();
-            [Service] private InputAction JumpConfigurable => InputAction.Configurable("Jump").AsSimulator();
+            [Singleton] public InputActionsContainer InputActionsContainer => new InputActionsContainer();
+            [Singleton] private InputAction JumpConfigurable => InputAction.Configurable("Jump").AsSimulator();
         }
 
         [Test(Description = "Error if there is not a SettingContainer when a Configurable() action is used")]
@@ -182,8 +182,8 @@ namespace Betauer.GameTools.Tests {
 
         [Configuration]
         internal class InputWithContainer {
-            [Service] public InputActionsContainer InputActionsContainer => new MyInputActionsContainer();
-            [Service] private InputAction Jump => InputAction.Create("Jump").AsSimulator();
+            [Singleton] public InputActionsContainer InputActionsContainer => new MyInputActionsContainer();
+            [Singleton] private InputAction Jump => InputAction.Create("Jump").AsSimulator();
         }
 
         [Test(Description = "Use a custom InputActionsContainer")]
@@ -203,24 +203,24 @@ namespace Betauer.GameTools.Tests {
 
         [Configuration]
         internal class ConfigurableInputWithContainerAndSettings {
-            [Service] public InputActionsContainer InputActionsContainer => new();
+            [Singleton] public InputActionsContainer InputActionsContainer => new();
 
-            [Service] 
+            [Singleton] 
             public SettingsContainer SettingsContainer => new("settings1.ini");
-            [Service(Name="Other")] 
+            [Singleton(Name="Other")] 
             public SettingsContainer Other => new("settings2.ini");
             
-            [Service] private InputAction JumpConfigurable => InputAction.Configurable("Jump").AsSimulator();
+            [Singleton] private InputAction JumpConfigurable => InputAction.Configurable("Jump").AsSimulator();
 
-            [Service] private InputAction JumpConfigurableWithSetting => InputAction.Configurable("Jump2")
+            [Singleton] private InputAction JumpConfigurableWithSetting => InputAction.Configurable("Jump2")
                 .SettingsContainer(nameof(Other))
                 .SettingsSection("Controls2")
                 .AsSimulator();
             
-            [Service] private InputAction NoConfigurable => InputAction.Create("Jump3").AsSimulator();
+            [Singleton] private InputAction NoConfigurable => InputAction.Create("Jump3").AsSimulator();
         }
 
-        [Service]
+        [Singleton]
         internal class Service4 {
             [Inject] public InputActionsContainer InputActionsContainer { get; set; }
             [Inject] public SettingsContainer SettingsContainer { get; set; }
@@ -257,21 +257,21 @@ namespace Betauer.GameTools.Tests {
         
         [Configuration]
         internal class MultipleInputActionContainer {
-            [Service] public SettingsContainer SettingsContainer => new SettingsContainer("settings1.ini");
+            [Singleton] public SettingsContainer SettingsContainer => new SettingsContainer("settings1.ini");
             
-            [Service] 
+            [Singleton] 
             public InputActionsContainer InputActionsContainer => new InputActionsContainer();
-            [Service(Name="Other")] 
+            [Singleton(Name="Other")] 
             public InputActionsContainer InputActionsContainer2 => new InputActionsContainer();
 
-            [Service] private InputAction Jump => InputAction.Create("Jump")
+            [Singleton] private InputAction Jump => InputAction.Create("Jump")
                 .AsSimulator();
 
-            [Service] private InputAction JumpOther => InputAction.Create("Other", "JumpOther")
+            [Singleton] private InputAction JumpOther => InputAction.Create("Other", "JumpOther")
                 .AsSimulator();
         }
 
-        [Service]
+        [Singleton]
         internal class Service5 {
             [Inject] public InputActionsContainer InputActionsContainer { get; set; }
             [Inject(Name="Other")] public InputActionsContainer InputActionsContainer2 { get; set; }

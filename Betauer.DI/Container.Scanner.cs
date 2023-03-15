@@ -26,14 +26,14 @@ public partial class Container {
         internal void Scan(Type type, HashSet<Type>? stack) {
     
             if (type.GetAttribute<FactoryAttribute>() is FactoryAttribute factoryAttribute) {
-                if (type.HasAttribute<ConfigurationAttribute>()) throw new InvalidAttributeException("Can't use [Factory] and [Configuration] in the same class");
-                if (type.HasAttribute<ServiceAttribute>()) throw new InvalidAttributeException("Can't use [Factory] and [Service] in the same class");
-                if (type.HasAttribute<ScanAttribute>()) throw new InvalidAttributeException("Can't use [Factory] and [Scan] in the same class");
+                if (type.HasAttribute<ConfigurationAttribute>()) throw new InvalidAttributeException("Can't use [SingletonFactory] and [Configuration] in the same class");
+                if (type.HasAttribute<ServiceAttribute>()) throw new InvalidAttributeException("Can't use [SingletonFactory] and [Singleton] in the same class");
+                if (type.HasAttribute<ScanAttribute>()) throw new InvalidAttributeException("Can't use [SingletonFactory] and [Scan] in the same class");
                 RegisterCustomFactoryFromClass(type, factoryAttribute);
                 
             } else if (type.GetAttribute<ServiceAttribute>() is ServiceAttribute serviceAttr) {
-                if (type.HasAttribute<ConfigurationAttribute>()) throw new InvalidAttributeException("Can't use [Service] and [Configuration] in the same class");
-                if (type.HasAttribute<ScanAttribute>()) throw new InvalidAttributeException("Can't use [Service] and [Scan] in the same class");
+                if (type.HasAttribute<ConfigurationAttribute>()) throw new InvalidAttributeException("Can't use [Singleton] and [Configuration] in the same class");
+                if (type.HasAttribute<ScanAttribute>()) throw new InvalidAttributeException("Can't use [Singleton] and [Scan] in the same class");
                 RegisterServiceFromClass(type, serviceAttr);
                 
             } else if (type.GetAttribute<ConfigurationAttribute>() is ConfigurationAttribute configurationAttribute) {
@@ -66,10 +66,10 @@ public partial class Container {
         }
     
         private void RegisterServiceFromClass(Type type, ServiceAttribute serviceAttr) {
-            var registeredType = serviceAttr.Type ?? type;
+            var registeredType = serviceAttr.GetType().GetGenericArguments().FirstOrDefault() ?? type;
             var name = serviceAttr.Name;
             var primary = serviceAttr.Primary || type.HasAttribute<PrimaryAttribute>();
-            var lazy = serviceAttr.Lazy || type.HasAttribute<LazyAttribute>();
+            var lazy = serviceAttr is SingletonAttribute singleton && (singleton.Lazy || type.HasAttribute<LazyAttribute>());
             var lifetime = serviceAttr.Lifetime;
             object Factory() => Activator.CreateInstance(type)!;
             _builder.RegisterServiceAndAddFactory(registeredType, type, Factory, lifetime, name, primary, lazy);
@@ -78,10 +78,10 @@ public partial class Container {
         private void RegisterServiceFromGetter(object configuration, IGetter<ServiceAttribute> getter) {
             var serviceAttr = getter.GetterAttribute;
             var type = getter.Type;
-            var registeredType = serviceAttr.Type ?? type;
+            var registeredType = serviceAttr.GetType().GetGenericArguments().FirstOrDefault() ?? type;
             var name = serviceAttr.Name ?? getter.Name;
             var primary = serviceAttr.Primary || getter.MemberInfo.HasAttribute<PrimaryAttribute>();
-            var lazy = serviceAttr.Lazy || getter.MemberInfo.HasAttribute<LazyAttribute>();
+            var lazy = serviceAttr is SingletonAttribute singleton && (singleton.Lazy || getter.MemberInfo.HasAttribute<LazyAttribute>());
             var lifetime = serviceAttr.Lifetime;
             object Factory() => getter.GetValue(configuration)!;
             _builder.RegisterServiceAndAddFactory(registeredType, type, Factory, lifetime, name, primary, lazy);
@@ -91,27 +91,25 @@ public partial class Container {
             var iFactoryInterface = type.GetInterfaces()
                 .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IFactory<>));
             if (iFactoryInterface == null) {
-                throw new InvalidAttributeException($"Class {type.FullName} with [Factory] attribute must implement IFactory<T>");
+                throw new InvalidAttributeException($"Class {type.FullName} with [SingletonFactory] attribute must implement IFactory<T>");
             }
             // var genericType = iFactoryInterface.GetGenericArguments()[0];
             var primary = factoryAttribute.Primary || type.HasAttribute<PrimaryAttribute>();
-            var lazy = factoryAttribute.Lazy || type.HasAttribute<LazyAttribute>();
             var lifetime = factoryAttribute.Lifetime;
             object Factory() => Activator.CreateInstance(type)!;
-            _builder.RegisterCustomFactory(type, Factory, factoryAttribute.Name, lifetime, primary, lazy);
+            _builder.RegisterCustomFactory(type, Factory, factoryAttribute.Name, lifetime, primary, true);
         }
     
         private void RegisterCustomFactoryFromGetter(object configuration, IGetter<FactoryAttribute> getter) {
             if (!getter.Type.ImplementsInterface(typeof(IFactory<>))) {
-                throw new InvalidAttributeException("Member " + getter + " with [Factory] attribute must implement IFactory<T>");
+                throw new InvalidAttributeException("Member " + getter + " with [SingletonFactory] attribute must implement IFactory<T>");
             }
             var factoryAttribute = getter.GetterAttribute;
             var primary = factoryAttribute.Primary || getter.MemberInfo.HasAttribute<PrimaryAttribute>();
             var name = factoryAttribute.Name ?? getter.Name;
-            var lazy = factoryAttribute.Lazy || getter.MemberInfo.HasAttribute<LazyAttribute>();
             var lifetime = factoryAttribute.Lifetime;
             object Factory() => getter.GetValue(configuration)!;
-            _builder.RegisterCustomFactory(getter.Type, Factory, name, lifetime, primary, lazy);
+            _builder.RegisterCustomFactory(getter.Type, Factory, name, lifetime, primary, true);
         }
     }
 }

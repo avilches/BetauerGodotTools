@@ -18,9 +18,9 @@ public class DefaultConfiguration {
         _windowNotificationStatus = new WindowNotificationStatus(DefaultNotificationsHandler.Instance);
     }
 
-    [Service] public WindowNotificationStatus WindowNotificationStatus => _windowNotificationStatus;
-    [Service] public SceneTree SceneTree => _sceneTree;
-    [Service] public NotificationsHandler NotificationsHandler => DefaultNotificationsHandler.Instance;
-    [Service] public NodeHandler NodeHandler => DefaultNodeHandler.Instance;
+    [Singleton] public WindowNotificationStatus WindowNotificationStatus => _windowNotificationStatus;
+    [Singleton] public SceneTree SceneTree => _sceneTree;
+    [Singleton] public NotificationsHandler NotificationsHandler => DefaultNotificationsHandler.Instance;
+    [Singleton] public NodeHandler NodeHandler => DefaultNodeHandler.Instance;
 
 }

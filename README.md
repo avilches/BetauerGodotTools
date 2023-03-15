@@ -21,16 +21,16 @@ The state machine code is well tested, you can check the tests in the [Betauer.S
      ````C#
     [Configuration]
     public class Actions {
-        [Service] public InputActionsContainer InputActionsContainer => new();
+        [Singleton] public InputActionsContainer InputActionsContainer => new();
         
-        [Service]
+        [Singleton]
         private InputAction UiUp => InputAction.Create("ui_up")
             .KeepProjectSettings()
             .NegativeAxis(1, "ui_down")
             .DeadZone(0.5f)
             .Build();
 
-            [Service]
+            [Singleton]
         private InputAction Attack => InputAction.Configurable("Attack")
             .Keys(KeyList.C)
             .Mouse(ButtonList.Left)
@@ -42,7 +42,7 @@ The state machine code is well tested, you can check the tests in the [Betauer.S
     ````C#
     [Configuration]
     public class Settings {
-        [Service] public SettingsContainer SettingsContainer => new(AppTools.GetUserFile("settings.ini"));
+        [Singleton] public SettingsContainer SettingsContainer => new(AppTools.GetUserFile("settings.ini"));
 
         [Service("Settings.Screen.PixelPerfect")]
         public ISetting<bool> PixelPerfect => Setting<bool>.Save("Video", "PixelPerfect", false);
@@ -75,16 +75,16 @@ This is a very simple implementation integrated with Godot, so you can do this k
 ```C#
 // The lifecycle of these classes will be controlled by the container 
 // If a class inhertis from Node, it will be added to the SceneTree.Root like an autoload
-[Service] public class ScoreManager : Node {}
-[Service(Name = "Easy"] public class EasySceneManager : ISceneManager {}
-[Service(Name = "Hard"] public class HardSceneManager : ISceneManager {
+[Singleton] public class ScoreManager : Node {}
+[Singleton(Name = "Easy"] public class EasySceneManager : ISceneManager {}
+[Singleton(Name = "Hard"] public class HardSceneManager : ISceneManager {
     [Inject] ScoreManager ScoreManager { get; set; }
 }
 
 [Configuration] public class ExposeStuff {
-    [Service] public SaveGameManager SaveGameManager => new SaveGameManager();
+    [Singleton] public SaveGameManager SaveGameManager => new SaveGameManager();
     // Injecting a lifetime service will create a new instance every time is injected
-    [Service(Lifetime.Transient)] public EnemyController Enemy => new EnemyController();
+    [Transient] public EnemyController Enemy => new EnemyController();
 }
 ```
       

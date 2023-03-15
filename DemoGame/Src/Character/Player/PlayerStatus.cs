@@ -5,7 +5,7 @@ using Veronenger.Config;
 
 namespace Veronenger.Character.Player;
 
-[Service(Lifetime.Transient)]
+[Transient]
 public class PlayerStatus {
     public float Health { get; private set; }
     public float MaxHealth { get; private set; }

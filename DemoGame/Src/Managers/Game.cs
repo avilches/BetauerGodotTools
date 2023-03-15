@@ -17,7 +17,7 @@ using Veronenger.UI;
 
 namespace Veronenger.Managers;
 
-[Service]
+[Singleton]
 public class Game {
     [Inject] private SceneTree SceneTree { get; set; }
     [Inject] private ItemRepository ItemRepository { get; set; }
@@ -114,7 +114,6 @@ public class Game {
         nextScene.GetNode<Marker2D>("SpawnPlayer").AddChild(playerNode);
         ItemRepository.SetPlayer(playerNode);
     }
-
 
     public async Task End() {
         HudScene.Get().EndGame();

@@ -35,32 +35,32 @@ namespace Betauer.GameTools.Tests {
 
         [Configuration]
         internal class ScreenSettingsManagerConfig {
-            [Service] private ScreenSettingsManager ScreenSettingsManager => new(InitialScreenConfiguration);
+            [Singleton] private ScreenSettingsManager ScreenSettingsManager => new(InitialScreenConfiguration);
         }
 
         [Configuration]
         internal class ScreenSettingsSavedConfig {
-            [Service]
+            [Singleton]
             public SettingsContainer SettingsContainer => new SettingsContainer(SettingsFile);
 
             // [Setting(Section = "Video", Name = "PixelPerfect", Default = false)]
-            [Service("Settings.Screen.PixelPerfect")]
+            [Singleton("Settings.Screen.PixelPerfect")]
             public ISetting<bool> PixelPerfect => Setting<bool>.Persistent("Video", "PixelPerfect", false);
 
             // [Setting(Section = "Video", Name = "Fullscreen", Default = true)]
-            [Service("Settings.Screen.Fullscreen")]
+            [Singleton("Settings.Screen.Fullscreen")]
             public ISetting<bool> Fullscreen => Setting<bool>.Persistent("Video", "Fullscreen", true);
 
             // [Setting(Section = "Video", Name = "VSync", Default = false)]
-            [Service("Settings.Screen.VSync")]
+            [Singleton("Settings.Screen.VSync")]
             public ISetting<bool> VSync => Setting<bool>.Persistent("Video", "VSync", false);
 
             // [Setting(Section = "Video", Name = "Borderless", Default = false)]
-            [Service("Settings.Screen.Borderless")]
+            [Singleton("Settings.Screen.Borderless")]
             public ISetting<bool> Borderless => Setting<bool>.Persistent("Video", "Borderless", false);
 
             // [Setting(Section = "Video", Name = "WindowedResolution")]
-            [Service("Settings.Screen.WindowedResolution")]
+            [Singleton("Settings.Screen.WindowedResolution")]
             public ISetting<Resolution> WindowedResolution =>
                 Setting<Resolution>.Persistent("Video", "WindowedResolution", Resolutions.FULLHD_DIV3);
         }

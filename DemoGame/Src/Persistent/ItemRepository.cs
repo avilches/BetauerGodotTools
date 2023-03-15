@@ -7,7 +7,7 @@ using Veronenger.Config;
 
 namespace Veronenger.Persistent;
 
-[Service]
+[Singleton]
 public class ItemRepository {
     private int _lastId = 0;
     private int NextId() => ++_lastId;

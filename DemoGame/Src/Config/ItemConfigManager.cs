@@ -3,7 +3,7 @@ using Godot;
 
 namespace Veronenger.Config; 
 
-[Service]
+[Singleton]
 public class ItemConfigManager : IInjectable {
     [Inject] private Texture2D LeonKnifeAnimationSprite { get; set; }
     [Inject] private Texture2D LeonMetalbarAnimationSprite { get; set; }

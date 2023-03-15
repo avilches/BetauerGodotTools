@@ -62,12 +62,12 @@ public partial class Container {
             // - Resolve<the factory type>()
             // - Resolve<IFactory<T>>("InnerFactory:"+name)
             // This factory returns the instances without inject dependencies in them
-            // The factory are always instantiated. The lazy parameter only affects to the instance created by the factory, but the factory 
+            // The factory are always instantiated. The lazy parameter only affects to the instance created by the factory, never to the factory itself.
             var customFactoryName = name == null ? null : $"InnerFactory:{name}";
             var customProvider = Provider.Create(factoryType, factoryType, Lifetime.Singleton, customFactory, customFactoryName, primary, false);
             Register(customProvider);
     
-            // Register the regular instance factory
+            // Register the regular instance factory. It could be lazy.
             // - Resolve<T>() or Resolve<T>(name) will create new instances, injecting dependencies.
             Func<object> getFromProviderFactory = FactoryTools.ProviderGetFactoryGet(type, customProvider); // This is just () => customProvider.Get().Get()
             var provider = Provider.Create(type, type, lifetime, getFromProviderFactory, name, primary, lazy);
@@ -77,6 +77,7 @@ public partial class Container {
             // - Resolve<IFactory<T>>()
             // - Resolve<IFactory<T>>("Factory:"+name)
             // This factory is a wrapper which return instances injecting dependencies.
+            // It's always lazy because it's just a wrapper for the user
             var factoryName = name == null ? null : $"Factory:{name}";
             object CustomFactory() => FactoryTools.CreateIFactoryFromProvider(type, provider);
             var iFactoryType = typeof(IFactory<>).MakeGenericType(type);

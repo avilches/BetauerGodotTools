@@ -70,12 +70,12 @@ public partial class Container {
             }
         }
 
-        // [Service] Node Node1 => new Node();
+        // [Singleton] Node Node1 => new Node();
         //
         // [Inject] Node Node1
         // [Inject(Name="Node1")] Node _pepe
 
-        // [Service] IFactory<Node> NodeFactory => new MyNodeFactory();
+        // [Singleton] IFactory<Node> NodeFactory => new MyNodeFactory();
         //
         // [Inject] IFactory<Node> NodeFactory
         // [Inject(Name="NodeFactory")] IFactory<Node> _nodeFactory

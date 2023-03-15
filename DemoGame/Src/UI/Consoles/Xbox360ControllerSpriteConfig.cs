@@ -3,7 +3,7 @@ using Godot;
 
 namespace Veronenger.UI.Consoles;
 
-[Service]
+[Singleton]
 public class Xbox360ControllerSpriteConfig : HyohnooSpriteConfig {
     [Inject]
     public Texture2D Xbox360Buttons { get; set; }

@@ -9,7 +9,7 @@ using GodotObject = Godot.GodotObject;
 
 namespace Veronenger.Managers; 
 
-[Service]
+[Singleton]
 public class PlatformManager {
     [Inject] private SceneTree SceneTree { get; set; }
 

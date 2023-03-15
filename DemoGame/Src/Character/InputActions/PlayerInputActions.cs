@@ -3,7 +3,7 @@ using Betauer.Input;
 
 namespace Veronenger.Character.InputActions;
 
-[Service]
+[Singleton]
 public class PlayerInputActions : ICharacterHandler {
     [Inject] public InputAction Jump { get; set; }
     [Inject] public InputAction Attack { get; set; }

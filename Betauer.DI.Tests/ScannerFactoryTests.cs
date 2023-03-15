@@ -16,21 +16,21 @@ public class ScannerFactoryTests : Node {
         LoggerFactory.OverrideTraceLevel(TraceLevel.All);
     }
 
-    [Factory] public class WrongFactory { }
+    [SingletonFactory] public class WrongFactory { }
 
     [Configuration]
     public class WrongConfig {
-        [Factory] public List WrongType => new List();
+        [SingletonFactory] public Node WrongType => new Node();
 
     }
-    [Test(Description = "[Factory] should implement IFactory<> (class)")]
+    [Test(Description = "[SingletonFactory] should implement IFactory<> (class)")]
     public void FactoryWrongType1() {
         var c = new Container();
         var di = c.CreateBuilder();
         Assert.Throws<InvalidAttributeException>(() => di.Scan<WrongFactory>());
     }
 
-    [Test(Description = "[Factory] should implement IFactory<> (configuration)")]
+    [Test(Description = "[SingletonFactory] should implement IFactory<> (configuration)")]
     public void FactoryWrongType2() {
         var c = new Container();
         var di = c.CreateBuilder();
@@ -54,10 +54,10 @@ public class ScannerFactoryTests : Node {
 
     [Configuration]
     public class LazySingletonConfiguration {
-        [Service] [Lazy] public LazySingleton LazySingleton => new();
+        [Singleton] [Lazy] public LazySingleton LazySingleton => new();
     }
 
-    [Service]
+    [Singleton]
     public class AnotherSingleton {
         [Inject] public IFactory<LazySingleton> LazySingleton { get; set; }
     }
@@ -82,7 +82,7 @@ public class ScannerFactoryTests : Node {
 
     [Configuration]
     public class TransientFactoryConfiguration {
-        [Service(Lifetime.Transient)] public TransientD TransientD => new();
+        [Transient] public TransientD TransientD => new();
     }
 
     public class TransientD {
@@ -93,7 +93,7 @@ public class ScannerFactoryTests : Node {
         }
     }
 
-    [Service]
+    [Singleton]
     public class Client {
         [Inject] public IFactory<TransientD> TransientD { get; set; }
     }
@@ -141,8 +141,8 @@ public class ScannerFactoryTests : Node {
 
     [Configuration]
     public class ServiceFactoryConfiguration {
-        [Factory] public MyServiceFactory MyService => new MyServiceFactory();
-        [Factory(Lifetime = Lifetime.Transient)] public MyTransientFactory MyTransient => new MyTransientFactory();
+        [SingletonFactory] public MyServiceFactory MyService => new MyServiceFactory();
+        [TransientFactory] public MyTransientFactory MyTransient => new MyTransientFactory();
     }
 
     public class MyServiceFactory : IFactory<MyService> {
@@ -199,7 +199,7 @@ public class ScannerFactoryTests : Node {
         }
     }
     
-    [Service]
+    [Singleton]
     public class DemoSingleton {
         [Inject] public IFactory<MyService> MyService { get; set;  }
         [Inject] public IFactory<MyService> ServiceFactory { get; set;  }
@@ -211,7 +211,7 @@ public class ScannerFactoryTests : Node {
         public IFactory<MyTransient> InnerMyTransient { get; set;  }
     }
 
-    [Service(Lifetime.Transient)]
+    [Transient]
     public class DemoTransient {
         [Inject] public MyService MyService { get; set;  }
         [Inject] public MyTransient MyTransient { get; set;  }
@@ -229,7 +229,7 @@ public class ScannerFactoryTests : Node {
         di.Build();
 
         Assert.That(MyServiceFactory.Instances, Is.EqualTo(1));
-        Assert.That(MyServiceFactory.Gets, Is.EqualTo(1));
+        Assert.That(MyServiceFactory.Gets, Is.EqualTo(0));
 
         Assert.That(MyTransientFactory.Instances, Is.EqualTo(1));
         Assert.That(MyTransientFactory.Gets, Is.EqualTo(0));
@@ -266,43 +266,7 @@ public class ScannerFactoryTests : Node {
         Assert.That(MyTransientFactory.Gets, Is.EqualTo(4));
     }
 
-    [Configuration]
-    public class ServiceFactoryLazyConfiguration {
-        [Factory]
-        [Lazy]
-        public MyServiceFactory MyService => new MyServiceFactory();
-    }
-
-    [Service]
-    public class DemoSingleton2 {
-        [Inject] public IFactory<MyService> MyService { get; set;  }
-        [Inject] public IFactory<MyService> ServiceFactory { get; set;  }
-    }
-
-    [Test(Description = "Custom service IFactory + Lazy (in configuration) is only created when it's used (not when it's injected)")]
-    public void ServiceLazyFactoryTests() {
-        MyServiceFactory.Reset();
-        var c = new Container();
-        var di = c.CreateBuilder();
-        di.Scan<ServiceFactoryLazyConfiguration>();
-        di.Scan<DemoSingleton2>();
-        di.Build();
-
-        var demoSingleton = c.Resolve<DemoSingleton2>();
-        Assert.That(demoSingleton.MyService, Is.EqualTo(c.Resolve<IFactory<MyService>>()));
-        Assert.That(demoSingleton.ServiceFactory, Is.EqualTo(c.Resolve<IFactory<MyService>>()));
-        Assert.That(c.Resolve("Factory:MyService"), Is.EqualTo(c.Resolve<IFactory<MyService>>()));
-
-        // It's not created yet because the injected IFactory<MyService> are just wrappers
-        Assert.That(MyServiceFactory.Instances, Is.EqualTo(1));
-        Assert.That(MyServiceFactory.Gets, Is.EqualTo(0));
-        Assert.That(demoSingleton.MyService.Get(), Is.TypeOf<MyService>());
-        Assert.That(MyServiceFactory.Instances, Is.EqualTo(1));
-        Assert.That(MyServiceFactory.Gets, Is.EqualTo(1));
-
-    }
-
-    [Factory(Name="MyService")]
+    [SingletonFactory(Name="MyService")]
     public class MyServiceFactoryClass : IFactory<MyService> {
         public static int Instances = 0;
         public static int Gets = 0;
@@ -322,7 +286,7 @@ public class ScannerFactoryTests : Node {
         }
     }
 
-    [Factory(Name="MyTransient", Lifetime = Lifetime.Transient)]
+    [TransientFactory(Name="MyTransient")]
     public class MyTransientFactoryClass : IFactory<MyTransient> {
         public static int Instances = 0;
         public static int Gets = 0;
@@ -342,7 +306,7 @@ public class ScannerFactoryTests : Node {
         }
     }
 
-    [Service]
+    [Singleton]
     public class DemoSingleton3 {
         [Inject] public IFactory<MyService> MyService { get; set;  }
         [Inject] public IFactory<MyService> ServiceFactory { get; set;  }
@@ -354,7 +318,7 @@ public class ScannerFactoryTests : Node {
         public IFactory<MyTransient> InnerMyTransient { get; set;  }
     }
 
-    [Service(Lifetime.Transient)]
+    [Transient]
     public class DemoTransient2 {
         [Inject] public MyService MyService { get; set;  }
         [Inject] public MyTransient MyTransient { get; set;  }
@@ -373,7 +337,7 @@ public class ScannerFactoryTests : Node {
         di.Build();
 
         Assert.That(MyServiceFactoryClass.Instances, Is.EqualTo(1));
-        Assert.That(MyServiceFactoryClass.Gets, Is.EqualTo(1));
+        Assert.That(MyServiceFactoryClass.Gets, Is.EqualTo(0));
 
         Assert.That(MyTransientFactoryClass.Instances, Is.EqualTo(1));
         Assert.That(MyTransientFactoryClass.Gets, Is.EqualTo(0));
@@ -410,62 +374,7 @@ public class ScannerFactoryTests : Node {
         Assert.That(MyTransientFactoryClass.Gets, Is.EqualTo(4));
     }
 
-    
-    [Factory(Name="MyService")]
-    [Lazy]
-    public class MyServiceFactoryLazyClass : IFactory<MyService>, IInjectable {
-        public bool WasInjected = false;
-        public static int Instances = 0;
-        public static int Gets = 0;
-
-        public MyServiceFactoryLazyClass() {
-            Instances++;
-        }
-
-        public MyService Get() {
-            Assert.That(WasInjected, Is.True);
-            Gets++;
-            return new MyService();
-        }
-
-        public static void Reset() {
-            Instances = 0;
-            Gets = 0;
-        }
-        public void PostInject() {
-            WasInjected = true;
-        }
-    }
-
-    [Service]
-    public class DemoSingleton4 {
-        [Inject] public IFactory<MyService> MyService { get; set;  }
-        [Inject] public IFactory<MyService> Service { get; set;  }
-    }
-
-
-    [Test(Description = "Custom service IFactory + Lazy (in class) is only created when it's used (not when it's injected)")]
-    public void ServiceLazyFactoryClassTests() {
-        MyServiceFactoryLazyClass.Reset();
-        var c = new Container();
-        var di = c.CreateBuilder();
-        di.Scan<MyServiceFactoryLazyClass>();
-        di.Scan<DemoSingleton4>();
-        di.Build();
-
-        var demoSingleton = c.Resolve<DemoSingleton4>();
-        Assert.That(demoSingleton.MyService, Is.EqualTo(c.Resolve<IFactory<MyService>>()));
-        Assert.That(demoSingleton.Service, Is.EqualTo(c.Resolve<IFactory<MyService>>()));
-        Assert.That(c.Resolve("Factory:MyService"), Is.EqualTo(c.Resolve<IFactory<MyService>>()));
-        
-        // It's not created yet because the injected IFactory<MyService> are just wrappers
-        Assert.That(MyServiceFactoryLazyClass.Instances, Is.EqualTo(1));
-        Assert.That(MyServiceFactoryLazyClass.Gets, Is.EqualTo(0));
-        Assert.That(demoSingleton.MyService.Get(), Is.TypeOf<MyService>());
-        Assert.That(MyServiceFactoryLazyClass.Instances, Is.EqualTo(1));
-        Assert.That(MyServiceFactoryLazyClass.Gets, Is.EqualTo(1));
-    }
-    
+   
     /*
      * The same IFactory<T> with different names
      */

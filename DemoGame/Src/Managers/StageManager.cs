@@ -5,7 +5,7 @@ using static Veronenger.LayerConstants;
 
 namespace Veronenger.Managers; 
 
-[Service]
+[Singleton]
 public class StageManager {
     private readonly CameraStageLimiter _cameraStageLimiter = new(LayerStageArea);
 

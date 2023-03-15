@@ -116,7 +116,7 @@ public partial class SettingTests : Node {
 
     [Configuration]
     internal class ErrorConfigWithNoContainer {
-        [Service] 
+        [Singleton] 
         public ISetting<string> P1() => Setting<string>.Persistent("Section", "Name", "Default");
     }
 
@@ -129,7 +129,7 @@ public partial class SettingTests : Node {
 
     [Configuration]
     internal class ErrorConfigWithContainerNotFoundByName {
-        [Service] 
+        [Singleton] 
         public ISetting<string> P1 => Setting<string>.Persistent("NOT FOUND", "Section", "Name", "Default");
     }
 
@@ -142,26 +142,26 @@ public partial class SettingTests : Node {
 
     [Configuration]
     internal class ConfigWithSettingContainer {
-        [Service]
+        [Singleton]
         public SettingsContainer SettingsContainer => new SettingsContainer(SettingsFile);
             
-        [Service] 
+        [Singleton] 
         public SaveSetting<bool> BoolSetting => Setting<bool>.Persistent("Section", "PixelPerfect", true);
 
-        [Service] 
+        [Singleton] 
         public SaveSetting<string> StringSetting => Setting<string>.Persistent("Section", "Name", "Default");
             
-        [Service] 
+        [Singleton] 
         public SaveSetting<Resolution> Resolution => Setting<Resolution>.Persistent("Video", "Screen", Resolutions.WXGA);
 
-        [Service] 
+        [Singleton] 
         public SaveSetting<string> NoAutoSave => Setting<string>.Persistent("Video", "NoAutoSave", "DEFAULT", false);
 
-        [Service] 
+        [Singleton] 
         public SaveSetting<string> NoEnabled => Setting<string>.Persistent("Disabled", "PropertyDisabled", "DEFAULT", true, false);
     }
 
-    [Service]
+    [Singleton]
     internal class Service1 {
         [Inject] public SettingsContainer SettingsContainerByType { get; set; }
         [Inject] public SaveSetting<bool> BoolSetting { get; set; }
@@ -274,20 +274,20 @@ public partial class SettingTests : Node {
         
     [Configuration]
     internal class ConfigWithMultipleContainer {
-        [Service(SettingsFile1)]
+        [Singleton(SettingsFile1)]
         public SettingsContainer SettingsContainer1 => new SettingsContainer(SettingsFile1);
 
-        [Service(SettingsFile2)]
+        [Singleton(SettingsFile2)]
         public SettingsContainer SettingsContainer2 => new SettingsContainer(SettingsFile2);
             
-        [Service("P1")] 
+        [Singleton("P1")] 
         public ISetting<bool> PixelPerfect => Setting<bool>.Persistent(SettingsFile1, "Section", "PixelPerfect", true);
 
-        [Service] 
+        [Singleton] 
         public ISetting<string> P2 => Setting<string>.Persistent(SettingsFile2, "Section", "Name", "Default");
     }
 
-    [Service]
+    [Singleton]
     internal class Basic2 {
         [Inject] public ISetting<bool> P1 { get; set; }
         [Inject] public ISetting<string> P2 { get; set; }

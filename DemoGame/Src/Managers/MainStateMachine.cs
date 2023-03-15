@@ -42,7 +42,7 @@ public enum MainEvent {
     ExitDesktop
 }
     
-[Service]
+[Singleton]
 public partial class MainStateMachine : StateMachineNodeAsync<MainState, MainEvent>, IInjectable {
 
     [Inject] private IFactory<MainMenu> MainMenuSceneFactory { get; set; }
@@ -107,7 +107,6 @@ public partial class MainStateMachine : StateMachineNodeAsync<MainState, MainEve
         
         State(MainState.SplashScreenLoading)
             .Enter(async () => {
-                Console.WriteLine("MainStateMachine.SplashScreenLoading.Enter()");
                 await ResourceLoaderContainer.LoadResources("main");
             })
             .If(() => true).Set(MainState.Init)

@@ -8,7 +8,7 @@ namespace Betauer.DI.Tests;
 
 [TestFixture]
 public class ScannerCircularTests : Node {
-    [Service]
+    [Singleton]
     public class Singleton {
         public static int Created = 0;
         public Singleton() => Created++;
@@ -26,7 +26,7 @@ public class ScannerCircularTests : Node {
         Assert.That(s, Is.EqualTo(s.s));
     }
 
-    [Service(Lifetime.Transient)]
+    [Transient]
     public class Transient {
         public static int Created = 0;
         public Transient() => Created++;
@@ -95,7 +95,7 @@ public class ScannerCircularTests : Node {
         Assert.That(TransientX.Created, Is.EqualTo(1));
     }
 
-    [Service]
+    [Singleton]
     public class SingletonA {
         public static int Created = 0;
         public SingletonA() => Created++;
@@ -103,14 +103,14 @@ public class ScannerCircularTests : Node {
         [Inject] internal SingletonA sa { get; set; }
     }
 
-    [Service]
+    [Singleton]
     public class SingletonB {
         public static int Created = 0;
         public SingletonB() => Created++;
         [Inject] internal SingletonC sc { get; set; }
     }
 
-    [Service]
+    [Singleton]
     public class SingletonC {
         public static int Created = 0;
         public SingletonC() => Created++;
@@ -146,21 +146,21 @@ public class ScannerCircularTests : Node {
         Assert.That(sa.sb.sc.sa, Is.EqualTo(sa));
     }
 
-    [Service(Lifetime.Transient)]
+    [Transient]
     public class TransientA {
         public static int Created = 0;
         public TransientA() => Created++;
         [Inject] internal TransientB sb { get; set; }
     }
 
-    [Service(Lifetime.Transient)]
+    [Transient]
     public class TransientB {
         public static int Created = 0;
         public TransientB() => Created++;
         [Inject] internal TransientC sc { get; set; }
     }
 
-    [Service(Lifetime.Transient)]
+    [Transient]
     public class TransientC {
         public static int Created = 0;
         public TransientC() => Created++;
@@ -188,7 +188,7 @@ public class ScannerCircularTests : Node {
     [Scan<ImportedService>()]
     [Configuration]
     internal class AddToScanByImport {
-        [Service] private B B => new B();
+        [Singleton] private B B => new B();
     }
 
     [Scan<ImportSelf>()]
@@ -199,7 +199,7 @@ public class ScannerCircularTests : Node {
     [Scan<AddToScanByImport>()]
     [Configuration]
     internal class ImportedService {
-        [Service] private A A => new A();
+        [Singleton] private A A => new A();
     }
 
     internal class A { }
