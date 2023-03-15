@@ -294,7 +294,7 @@ public class ScannerFactoryTests : Node {
         Assert.That(c.Resolve("Factory:MyService"), Is.EqualTo(c.Resolve<IFactory<MyService>>()));
 
         // It's not created yet because the injected IFactory<MyService> are just wrappers
-        Assert.That(MyServiceFactory.Instances, Is.EqualTo(0));
+        Assert.That(MyServiceFactory.Instances, Is.EqualTo(1));
         Assert.That(MyServiceFactory.Gets, Is.EqualTo(0));
         Assert.That(demoSingleton.MyService.Get(), Is.TypeOf<MyService>());
         Assert.That(MyServiceFactory.Instances, Is.EqualTo(1));
@@ -459,7 +459,7 @@ public class ScannerFactoryTests : Node {
         Assert.That(c.Resolve("Factory:MyService"), Is.EqualTo(c.Resolve<IFactory<MyService>>()));
         
         // It's not created yet because the injected IFactory<MyService> are just wrappers
-        Assert.That(MyServiceFactoryLazyClass.Instances, Is.EqualTo(0));
+        Assert.That(MyServiceFactoryLazyClass.Instances, Is.EqualTo(1));
         Assert.That(MyServiceFactoryLazyClass.Gets, Is.EqualTo(0));
         Assert.That(demoSingleton.MyService.Get(), Is.TypeOf<MyService>());
         Assert.That(MyServiceFactoryLazyClass.Instances, Is.EqualTo(1));

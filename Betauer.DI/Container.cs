@@ -216,7 +216,7 @@ public partial class Container {
             return provider!.Get(context);
         }
         if (CreateIfNotFound) {
-            AddToRegistry(Provider.Create(type, type, Lifetime.Transient, null));
+            AddToRegistry(Provider.Create(type, type, Lifetime.Transient));
             // ReSharper disable once TailRecursiveCall
             return Resolve(type, context);
         }

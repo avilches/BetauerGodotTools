@@ -61,9 +61,10 @@ public partial class Container {
             // Register the real factory, it can be accessed with
             // - Resolve<the factory type>()
             // - Resolve<IFactory<T>>("InnerFactory:"+name)
-            // This factory returns the instances without inject dependencies in them 
+            // This factory returns the instances without inject dependencies in them
+            // The factory are always instantiated. The lazy parameter only affects to the instance created by the factory, but the factory 
             var customFactoryName = name == null ? null : $"InnerFactory:{name}";
-            var customProvider = Provider.Create(factoryType, factoryType, Lifetime.Singleton, customFactory, customFactoryName, primary, true);
+            var customProvider = Provider.Create(factoryType, factoryType, Lifetime.Singleton, customFactory, customFactoryName, primary, false);
             Register(customProvider);
     
             // Register the regular instance factory
