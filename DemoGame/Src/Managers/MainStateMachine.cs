@@ -83,22 +83,6 @@ public partial class MainStateMachine : StateMachineNodeAsync<MainState, MainEve
     }
 
     public void PostInject() {
-        EventBus.Subscribe(evt => Send(evt)).UnsubscribeIf(Predicates.IsInvalid(this));
-        
-        var splashScreen = SceneTree.GetMainScene<SplashScreenNode>();
-        splashScreen.Layer = int.MaxValue;
-        
-        State(MainState.SplashScreenLoading)
-            .Enter(async () => {
-                Console.WriteLine("MainStateMachine.SplashScreenLoading.Enter()");
-                await ResourceLoaderContainer.LoadResources("main");
-                Configure();
-            })
-            .If(() => true).Set(MainState.Init)
-            .Build();
-    }
-
-    public void Configure() {
 #if DEBUG
         this.OnInput((e) => {
             if (e.IsKeyPressed(Key.Q)) {
@@ -115,6 +99,19 @@ public partial class MainStateMachine : StateMachineNodeAsync<MainState, MainEve
             }
         }, ProcessModeEnum.Always);
 #endif
+
+        EventBus.Subscribe(evt => Send(evt)).UnsubscribeIf(Predicates.IsInvalid(this));
+        
+        var splashScreen = SceneTree.GetMainScene<SplashScreenNode>();
+        splashScreen.Layer = int.MaxValue;
+        
+        State(MainState.SplashScreenLoading)
+            .Enter(async () => {
+                Console.WriteLine("MainStateMachine.SplashScreenLoading.Enter()");
+                await ResourceLoaderContainer.LoadResources("main");
+            })
+            .If(() => true).Set(MainState.Init)
+            .Build();
             
         var modalResponse = false;
         var endSplash = false;

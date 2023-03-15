@@ -120,8 +120,12 @@ public class Game {
         HudScene.Get().EndGame();
         // FreeSceneAndKeepPoolData();
         FreeSceneAndUnloadResources();
+        _currentGameScene.QueueFree();
+        _currentGameScene = null;
         await SceneTree.AwaitProcessFrame();
         GC.GetTotalMemory(true);
+
+        Node.PrintOrphanNodes();
     }
 
     private void FreeSceneAndUnloadResources() {
