@@ -13,6 +13,7 @@ public abstract class PoolCollection {
         public override T Get() => Pool.Dequeue();
         public override void Add(T ele) => Pool.Enqueue(ele);
         public override int Count => Pool.Count;
+        public override void Clear() => Pool.Clear();
     }
 
     public class Stack<T> : PoolCollection<T> {
@@ -25,10 +26,12 @@ public abstract class PoolCollection {
         public override T Get() => Pool.Pop();
         public override void Add(T ele) => Pool.Push(ele);
         public override int Count => Pool.Count;
+        public override void Clear() => Pool.Clear();
     }
 }
 
 public abstract class PoolCollection<T> : PoolCollection {
     public abstract T Get();
     public abstract void Add(T ele);
+    public abstract void Clear();
 }

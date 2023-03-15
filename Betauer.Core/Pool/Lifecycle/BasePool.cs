@@ -42,8 +42,11 @@ public abstract class BasePool<T> : IPool<T>
     /// Return all valid elements (not busy and not invalid), invoking OnGet before return them 
     /// </summary>
     /// <returns></returns>
-    public IEnumerable<T> GetElements() {
+    public IEnumerable<T> GetAll() {
         return Pool.Where(element => !IsBusy(element) && !IsInvalid(element)).Select(OnGet);
     }
 
+    public void Clear() {
+        Pool.Clear();
+    } 
 }

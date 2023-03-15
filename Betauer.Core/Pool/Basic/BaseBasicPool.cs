@@ -17,7 +17,7 @@ public abstract class BaseBasicPool<T> : IPool<T> {
         return OnGet(element);
     }
 
-    public IEnumerable<T> GetElements() {
+    public IEnumerable<T> GetAll() {
         while (Pool.Count > 0) {
             yield return OnGet(Pool.Get());
         }
@@ -31,6 +31,10 @@ public abstract class BaseBasicPool<T> : IPool<T> {
 
     public void Return(T element) {
         Pool.Add(OnReturn(element));
+    }
+
+    public void Clear() {
+        Pool.Clear();
     }
 
     public abstract T Create();

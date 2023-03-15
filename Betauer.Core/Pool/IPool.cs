@@ -5,5 +5,6 @@ namespace Betauer.Core.Pool;
 public interface IPool<out T> {
     T Get();
     public void Fill(int desiredSize);
-    public IEnumerable<T> GetElements();
+    public IEnumerable<T> GetAll();
+    public void Clear();
 }
