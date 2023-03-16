@@ -34,41 +34,94 @@ public class ScannerBasicTests : Node {
 
     [Singleton]
     [Configuration]
-    public class WrongCombination1 {
+    public class WrongCombination11 {
+    }
+
+    [Transient]
+    [Configuration]
+    public class WrongCombination12 {
     }
 
     [Singleton]
     [Scan]
-    public class WrongCombination2 {
+    public class WrongCombination21 {
+    }
+
+    [Transient]
+    [Scan]
+    public class WrongCombination22 {
     }
 
     [SingletonFactory]
     [Configuration]
-    public class WrongCombination3 {
+    public class WrongCombination31 {
     }
 
     [SingletonFactory]
     [Singleton]
-    public class WrongCombination4 {
+    public class WrongCombination411 {
+    }
+
+    [SingletonFactory]
+    [Transient]
+    public class WrongCombination412 {
     }
 
     [SingletonFactory]
     [Scan]
+    public class WrongCombination51 {
+    }
+
+    [TransientFactory]
+    [Configuration]
+    public class WrongCombination32 {
+    }
+
+    [TransientFactory]
+    [Singleton]
+    public class WrongCombination421 {
+    }
+
+    [TransientFactory]
+    [Transient]
+    public class WrongCombination422 {
+    }
+
+    [TransientFactory]
+    [Scan]
     public class WrongCombination5 {
+    }
+
+    [Transient]
+    [Singleton]
+    public class WrongCombination71 {
+    }
+
+    [TransientFactory]
+    [SingletonFactory]
+    public class WrongCombination72 {
     }
 
     [Scan]
     public class WrongCombination6 {
     }
 
-    [Test(Description = "Can't use [Configuration] [SingletonFactory] [Scan] and [Singleton] in the same class")]
+    [Test(Description = "Wrong combination of attributes")]
     public void WrongCombinationTest() {
-        Assert.Throws<InvalidAttributeException>(() => new Container.Builder().Scan<WrongCombination1>());
-        Assert.Throws<InvalidAttributeException>(() => new Container.Builder().Scan<WrongCombination2>());
-        Assert.Throws<InvalidAttributeException>(() => new Container.Builder().Scan<WrongCombination3>());
-        Assert.Throws<InvalidAttributeException>(() => new Container.Builder().Scan<WrongCombination4>());
+        Assert.Throws<InvalidAttributeException>(() => new Container.Builder().Scan<WrongCombination11>());
+        Assert.Throws<InvalidAttributeException>(() => new Container.Builder().Scan<WrongCombination12>());
+        Assert.Throws<InvalidAttributeException>(() => new Container.Builder().Scan<WrongCombination21>());
+        Assert.Throws<InvalidAttributeException>(() => new Container.Builder().Scan<WrongCombination22>());
+        Assert.Throws<InvalidAttributeException>(() => new Container.Builder().Scan<WrongCombination31>());
+        Assert.Throws<InvalidAttributeException>(() => new Container.Builder().Scan<WrongCombination32>());
+        Assert.Throws<InvalidAttributeException>(() => new Container.Builder().Scan<WrongCombination411>());
+        Assert.Throws<InvalidAttributeException>(() => new Container.Builder().Scan<WrongCombination412>());
+        Assert.Throws<InvalidAttributeException>(() => new Container.Builder().Scan<WrongCombination421>());
+        Assert.Throws<InvalidAttributeException>(() => new Container.Builder().Scan<WrongCombination422>());
         Assert.Throws<InvalidAttributeException>(() => new Container.Builder().Scan<WrongCombination5>());
         Assert.Throws<InvalidAttributeException>(() => new Container.Builder().Scan<WrongCombination6>());
+        Assert.Throws<InvalidAttributeException>(() => new Container.Builder().Scan<WrongCombination71>());
+        Assert.Throws<InvalidAttributeException>(() => new Container.Builder().Scan<WrongCombination72>());
     }
 
     [Singleton]

@@ -230,4 +230,43 @@ public class ScannerLazyTests {
         Assert.That(D2, Is.EqualTo(c.Resolve<LazyPostInjectdD2>()));
         Assert.That(D2.D1.Get(), Is.EqualTo(D1));
     }
+    
+    public class LazySingleton {
+        public static int Instances = 0;
+
+        public LazySingleton() {
+            Instances++;
+        }
+    }
+
+    [Configuration]
+    public class LazySingletonConfiguration {
+        [SingletonFactory] public Factory<LazySingleton> LazySingleton =>  FactoryTools.Create(() => new LazySingleton());
+    }
+
+    [Singleton]
+    public class AnotherSingleton {
+        [Inject] public IFactory<LazySingleton> LazySingleton { get; set; }
+    }
+
+    [Test(Description = "Simulate a lazy behaviour with with a Factory")]
+    public void LazySingletonFromConfiguration() {
+        var c = new Container();
+        var di = c.CreateBuilder();
+        di.Scan<LazySingletonConfiguration>();
+        di.Scan<AnotherSingleton>();
+        di.Build();
+
+        AnotherSingleton another = c.Resolve<AnotherSingleton>();
+
+        Assert.That(LazySingleton.Instances, Is.EqualTo(0));
+        Assert.That(c.GetProvider<LazySingleton>() is ISingletonProvider { IsInstanceCreated: false });
+
+        another.LazySingleton.Get();
+        Assert.That(LazySingleton.Instances, Is.EqualTo(1));
+        Assert.That(c.GetProvider<LazySingleton>() is ISingletonProvider { IsInstanceCreated: true });
+    }
+
+
+    
 }

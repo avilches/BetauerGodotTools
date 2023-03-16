@@ -15,7 +15,10 @@ public class ScanAttribute<T> : ScanAttribute {
 }
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method | AttributeTargets.Property)]
-public abstract class ServiceAttribute : Attribute {
+public abstract class BaseServiceAttribute : Attribute {
+}
+
+public abstract class ServiceAttribute : BaseServiceAttribute {
     public string? Name { get; set; }
     public bool Primary { get; set; } = false;
     public Lifetime Lifetime { get; }
@@ -37,8 +40,6 @@ public class SingletonAttribute : ServiceAttribute {
 
 public class SingletonAttribute<T> : SingletonAttribute { }
 
-
-[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method | AttributeTargets.Property)]
 public class TransientAttribute : ServiceAttribute {
     public TransientAttribute() : base(Lifetime.Transient) {
     }
@@ -51,8 +52,7 @@ public class TransientAttribute : ServiceAttribute {
 public class TransientAttribute<T> : TransientAttribute { }
 
 
-[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method | AttributeTargets.Property)]
-public abstract class FactoryAttribute : Attribute {
+public abstract class FactoryAttribute : BaseServiceAttribute {
     public string? Name { get; set; }
     public bool Primary { get; set; } = false;
     public Lifetime Lifetime { get; }

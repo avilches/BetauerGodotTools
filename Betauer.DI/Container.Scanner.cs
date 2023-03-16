@@ -24,22 +24,46 @@ public partial class Container {
         }
 
         internal void Scan(Type type, HashSet<Type>? stack) {
+            if (!type.IsClass || type.IsAbstract) return;
+            
+            string FormatAttribute(Attribute att) {
+                var name = att.GetType().Name;
+                return name.Remove(name.LastIndexOf("Attribute", StringComparison.Ordinal));
+            }
+
+            var attributes = Attribute.GetCustomAttributes(type);
+            BaseServiceAttribute baseServiceAttribute = null; 
+            ConfigurationAttribute configurationAttribute = null;
+            for (int i = 0; i < attributes.Length; i++) {
+                switch (attributes[i]) {
+                    case BaseServiceAttribute serviceAttributeFound when baseServiceAttribute != null:
+                        throw new InvalidAttributeException($"Can't use [{FormatAttribute(serviceAttributeFound)}] and [{FormatAttribute(baseServiceAttribute)}] in the same class: {type.Name}");
+                    case BaseServiceAttribute serviceAttributeFound when configurationAttribute != null:
+                        throw new InvalidAttributeException($"Can't use [{FormatAttribute(serviceAttributeFound)}] and [{FormatAttribute(configurationAttribute)}] in the same class: {type.Name}");
+                    case BaseServiceAttribute serviceAttributeFound:
+                        baseServiceAttribute = serviceAttributeFound;
+                        break;
+                    case ConfigurationAttribute when configurationAttribute != null:
+                        throw new InvalidAttributeException($"Duplicate [Configuration] attribute found in class {type.FullName}");
+                    case ConfigurationAttribute configurationAttributeFound when baseServiceAttribute != null:
+                        throw new InvalidAttributeException($"Can't use [{FormatAttribute(configurationAttributeFound)}] and [{FormatAttribute(baseServiceAttribute)}] in the same class: {type.Name}");
+                    case ConfigurationAttribute configurationAttributeFound:
+                        configurationAttribute = configurationAttributeFound;
+                        break;
+                    case ScanAttribute scanAttributeFound when baseServiceAttribute != null:
+                        throw new InvalidAttributeException($"Can't use [{FormatAttribute(scanAttributeFound)}] and [{FormatAttribute(baseServiceAttribute)}] in the same class: {type.Name}");
+                }
+            }
     
-            if (type.GetAttribute<FactoryAttribute>() is FactoryAttribute factoryAttribute) {
-                if (type.HasAttribute<ConfigurationAttribute>()) throw new InvalidAttributeException("Can't use [SingletonFactory] and [Configuration] in the same class");
-                if (type.HasAttribute<ServiceAttribute>()) throw new InvalidAttributeException("Can't use [SingletonFactory] and [Singleton] in the same class");
-                if (type.HasAttribute<ScanAttribute>()) throw new InvalidAttributeException("Can't use [SingletonFactory] and [Scan] in the same class");
+            if (baseServiceAttribute is FactoryAttribute factoryAttribute) {
                 RegisterCustomFactoryFromClass(type, factoryAttribute);
                 
-            } else if (type.GetAttribute<ServiceAttribute>() is ServiceAttribute serviceAttr) {
-                if (type.HasAttribute<ConfigurationAttribute>()) throw new InvalidAttributeException("Can't use [Singleton] and [Configuration] in the same class");
-                if (type.HasAttribute<ScanAttribute>()) throw new InvalidAttributeException("Can't use [Singleton] and [Scan] in the same class");
+            } else if (baseServiceAttribute is ServiceAttribute serviceAttr) {
                 RegisterServiceFromClass(type, serviceAttr);
                 
-            } else if (type.GetAttribute<ConfigurationAttribute>() is ConfigurationAttribute configurationAttribute) {
+            } else if (configurationAttribute != null) {
                 var configuration = Activator.CreateInstance(type);
                 ScanServicesFromConfigurationInstance(configuration!);
-                // Look up for [Scan(typeof(...)]
                 ScanForScanAttributes(type, stack);
             } else if (type.HasAttribute<ScanAttribute>()) throw new InvalidAttributeException("[Scan] attributes are only valid with [Configuration]");
         }
@@ -47,10 +71,10 @@ public partial class Container {
         private const BindingFlags ScanMemberFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
     
         private void ScanForScanAttributes(Type type, HashSet<Type>? stack) {
-            foreach (var importAttribute in type.GetAttributes<ScanAttribute>()) {
+            foreach (var scanAttribute in type.GetAttributes<ScanAttribute>()) {
                 stack ??= new HashSet<Type>();
                 stack.Add(type);
-                importAttribute.GetType().GetGenericArguments()
+                scanAttribute.GetType().GetGenericArguments()
                     .Where(typeToImport => !stack.Contains(typeToImport))
                     .ForEach(typeToImport => Scan(typeToImport, stack));
             }

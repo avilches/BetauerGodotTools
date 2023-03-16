@@ -44,42 +44,6 @@ public class ScannerFactoryTests : Node {
         Assert.Throws<InvalidCastException>(() => di.RegisterCustomFactory(typeof(MyService), () => new object()));
     }
 
-    public class LazySingleton {
-        public static int Calls = 0;
-
-        public LazySingleton() {
-            Calls++;
-        }
-    }
-
-    [Configuration]
-    public class LazySingletonConfiguration {
-        [Singleton] [Lazy] public LazySingleton LazySingleton => new();
-    }
-
-    [Singleton]
-    public class AnotherSingleton {
-        [Inject] public IFactory<LazySingleton> LazySingleton { get; set; }
-    }
-
-    [Test(Description = "Test defining a Lazy service by name with a Factory")]
-    public void LazySingletonFromConfiguration() {
-        var c = new Container();
-        var di = c.CreateBuilder();
-        di.Scan<LazySingletonConfiguration>();
-        di.Scan<AnotherSingleton>();
-        di.Build();
-
-        AnotherSingleton another = c.Resolve<AnotherSingleton>();
-
-        Assert.That(LazySingleton.Calls, Is.EqualTo(0));
-        Assert.That(c.GetProvider<LazySingleton>() is ISingletonProvider { IsInstanceCreated: false });
-
-        another.LazySingleton.Get();
-        Assert.That(LazySingleton.Calls, Is.EqualTo(1));
-        Assert.That(c.GetProvider<LazySingleton>() is ISingletonProvider { IsInstanceCreated: true });
-    }
-
     [Configuration]
     public class TransientFactoryConfiguration {
         [Transient] public TransientD TransientD => new();
@@ -128,7 +92,7 @@ public class ScannerFactoryTests : Node {
     }
 
     [Test(Description = "Register a Transient Factory")]
-    public void RegisterTransientAndAddFactoryTst() {
+    public void RegisterTransientAndAddFactoryTest() {
         var c = new Container();
         var di = c.CreateBuilder();
         di.RegisterServiceAndAddFactory(typeof(Node), typeof(Node), () => new Node { Name = "L" }, Lifetime.Transient, "X");

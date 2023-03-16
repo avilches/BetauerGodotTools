@@ -6,6 +6,9 @@ namespace Betauer.DI.Factory;
 
 public static class FactoryTools {
 
+    public static Factory<T> Create<T>(Func<T> factory) where T : class => new(factory);
+    public static Factory<T> Create<T>(IFactory<T> factory) where T : class => new(factory.Get);
+
     public static Type? GetIFactoryGenericType(Type factoryType) {
         var isIFactoryInterface = factoryType.IsInterface && factoryType.GetGenericTypeDefinition() == typeof(IFactory<>);
         if (isIFactoryInterface) return factoryType.GetGenericArguments()[0];
