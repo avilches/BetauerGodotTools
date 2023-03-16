@@ -57,9 +57,11 @@ public partial class SettingsMenu : CanvasLayer {
 	[NodePath("Panel/RedefineBox/ActionName")] 
 	private Label _redefineActionName;
 
-	[Inject] private MainStateMachine MainStateMachine { get; set; }
+	[Inject] private IFactory<BottomBar> BottomBarSceneFactory { get; set; }
 	[Inject] private ScreenSettingsManager _screenSettingsManager { get; set; }
 
+	private BottomBar BottomBarScene => BottomBarSceneFactory.Get();
+	
 	[Inject] private InputAction UiAccept { get; set; }
 	[Inject] private InputAction UiCancel { get; set; }
 	[Inject] private InputAction UiLeft { get; set; }
@@ -109,7 +111,7 @@ public partial class SettingsMenu : CanvasLayer {
 		_fullscreenButtonWrapper
 			.FocusEntered += () => {
 				_scrollContainer.ScrollVertical = 0;
-				MainStateMachine.BottomBarScene.ConfigureSettingsChangeBack();
+				BottomBarScene.ConfigureSettingsChangeBack();
 			};
 		_fullscreenButtonWrapper.Toggled += isChecked => {
 			_resolutionButton.SetFocusDisabled(isChecked);
@@ -122,19 +124,19 @@ public partial class SettingsMenu : CanvasLayer {
 		};
 		_resolutionButton.FocusEntered += () => {
 			UpdateResolutionButton();
-			MainStateMachine.BottomBarScene.ConfigureSettingsResolution();
+			BottomBarScene.ConfigureSettingsResolution();
 		};
 		_resolutionButton.FocusExited += UpdateResolutionButton;
-		_pixelPerfectButtonWrapper.FocusEntered += MainStateMachine.BottomBarScene.ConfigureSettingsChangeBack;
+		_pixelPerfectButtonWrapper.FocusEntered += BottomBarScene.ConfigureSettingsChangeBack;
 		_pixelPerfectButtonWrapper.Pressed += () => {
 			_screenSettingsManager.SetPixelPerfect(_pixelPerfectButtonWrapper.ButtonPressed);
 			CheckIfResolutionStillMatches();
 		};
 
-		_borderlessButtonWrapper.FocusEntered += MainStateMachine.BottomBarScene.ConfigureSettingsChangeBack;
+		_borderlessButtonWrapper.FocusEntered += BottomBarScene.ConfigureSettingsChangeBack;
 		_borderlessButtonWrapper.Toggled += isChecked => _screenSettingsManager.SetBorderless(isChecked);
 
-		_vsyncButtonWrapper.FocusEntered += MainStateMachine.BottomBarScene.ConfigureSettingsChangeBack;
+		_vsyncButtonWrapper.FocusEntered += BottomBarScene.ConfigureSettingsChangeBack;
 		_vsyncButtonWrapper.Toggled += isChecked => _screenSettingsManager.SetVSync(isChecked);
 	}
 
@@ -155,7 +157,7 @@ public partial class SettingsMenu : CanvasLayer {
 		AddConfigureControl("Attack", Attack, true);
 			
 		_keyboardControls.GetChild<Button>(_gamepadControls.GetChildCount() - 1).FocusEntered += () => {
-			MainStateMachine.BottomBarScene.ConfigureSettingsChangeBack();
+			BottomBarScene.ConfigureSettingsChangeBack();
 			_scrollContainer.ScrollVertical = int.MaxValue;
 		};
 	}
@@ -165,7 +167,7 @@ public partial class SettingsMenu : CanvasLayer {
 	private void AddConfigureControl(string name, InputAction action, bool isKey) {
 		var button = RedefineActionButton.Get();
 		button.Pressed += () => ShowRedefineActionPanel(button);
-		button.FocusEntered += MainStateMachine.BottomBarScene.ConfigureSettingsChangeBack;
+		button.FocusEntered += BottomBarScene.ConfigureSettingsChangeBack;
 		button.SetInputAction(name, action, isKey);
 		if (isKey) _keyboardControls.AddChild(button);
 		else _gamepadControls.AddChild(button);
@@ -251,7 +253,7 @@ public partial class SettingsMenu : CanvasLayer {
 		_redefineActionName.Text = redefineButton.ActionName;
 		// TODO: i18n
 		_redefineActionMessage.Text = redefineButton.IsKey ? "Press key for..." : "Press button for...";
-		MainStateMachine.BottomBarScene.HideAll();
+		BottomBarScene.HideAll();
 
 		await DefaultNodeHandler.Instance.AwaitInput(e => {
 			if (e.IsKey(Key.Escape)) {

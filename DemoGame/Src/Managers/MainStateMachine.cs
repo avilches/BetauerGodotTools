@@ -46,7 +46,7 @@ public enum MainEvent {
 public partial class MainStateMachine : StateMachineNodeAsync<MainState, MainEvent>, IInjectable {
 
     [Inject] private IFactory<MainMenu> MainMenuSceneFactory { get; set; }
-    [Inject] public IFactory<BottomBar> BottomBarSceneFactory { get; set; }
+    [Inject] private IFactory<BottomBar> BottomBarSceneFactory { get; set; }
     [Inject] private IFactory<PauseMenu> PauseMenuSceneFactory { get; set; }
     [Inject] private IFactory<SettingsMenu> SettingsMenuSceneFactory { get; set; }
     [Inject] private IFactory<HUD> HudSceneFactory { get; set; }
@@ -54,7 +54,7 @@ public partial class MainStateMachine : StateMachineNodeAsync<MainState, MainEve
     [Inject] private ResourceLoaderContainer ResourceLoaderContainer { get; set; }
 
     private MainMenu MainMenuScene => MainMenuSceneFactory.Get();
-    public BottomBar BottomBarScene => BottomBarSceneFactory.Get();
+    private BottomBar BottomBarScene => BottomBarSceneFactory.Get();
     private PauseMenu PauseMenuScene => PauseMenuSceneFactory.Get();
     private SettingsMenu SettingsMenuScene => SettingsMenuSceneFactory.Get();
     private HUD HudScene => HudSceneFactory.Get();
