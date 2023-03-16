@@ -1,7 +1,7 @@
 #!/usr/bin/env make
 
 TARGET_PLATFORM  := "macos"
-GODOT_APP        := "/Applications/Godot-4.0.0-rc.5.app"
+GODOT_APP        := "/Applications/Godot-4.0.1-rc.1.app"
 MODULES          := Betauer.Animation Betauer.Core Betauer.Bus Betauer.DI Betauer.GameTools Betauer.Tools.Logging Betauer.StateMachine Betauer.TestRunner Betauer.Tools.Reflection
 DELAY_IMPORT     := 10
 
@@ -15,7 +15,7 @@ EXPORT_FOLDER    := ${ROOT_FOLDER}/export/releases/${VERSION}
 
 
 GODOT_EXECUTABLE := ${GODOT_APP}/Contents/MacOS/Godot
-GODOT_LOGGER_DLL := -l:GodotTools.BuildLogger.GodotBuildLogger,/Applications/Godot-4.0.0-rc.5.app/Contents/Resources/GodotSharp/Tools/GodotTools.BuildLogger.dll;${ROOT_FOLDER}/.godot/mono/build_logs
+GODOT_LOGGER_DLL := -l:GodotTools.BuildLogger.GodotBuildLogger,/Applications/Godot-4.0.1-rc.1.app/Contents/Resources/GodotSharp/Tools/GodotTools.BuildLogger.dll;${ROOT_FOLDER}/.godot/mono/build_logs
 
 
 .PHONY: help
