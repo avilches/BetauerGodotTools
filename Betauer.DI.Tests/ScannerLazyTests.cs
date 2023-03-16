@@ -42,8 +42,8 @@ public class ScannerLazyTests {
 
 
     [Singleton(Lazy = true)]
-    class LazyPostInjectdA1 : IInjectable {
-        [Inject] internal PostInjectdA2 A2 { get; set; }
+    class LazyPostInjectedA1 : IInjectable {
+        [Inject] internal PostInjectedA2 A2 { get; set; }
         [Inject] internal Container container { get; set; }
 
         internal int Called = 0;
@@ -55,7 +55,7 @@ public class ScannerLazyTests {
     }
 
     [Singleton]
-    class PostInjectdA2 : IInjectable{
+    class PostInjectedA2 : IInjectable{
         [Inject] internal Container container { get; set; }
 
         internal int Called = 0;
@@ -69,25 +69,25 @@ public class ScannerLazyTests {
     public void PostInjectMethodLazyWithNoLazyTest() {
         var c = new Container();
         var di = c.CreateBuilder();
-        di.Scan<LazyPostInjectdA1>();
-        di.Scan<PostInjectdA2>();
+        di.Scan<LazyPostInjectedA1>();
+        di.Scan<PostInjectedA2>();
         di.Build();
 
-        Assert.That(c.GetProvider<LazyPostInjectdA1>() is ISingletonProvider { IsInstanceCreated: false });
-        Assert.That(c.GetProvider<PostInjectdA2>() is ISingletonProvider { IsInstanceCreated: true });
-        var A1 = c.Resolve<LazyPostInjectdA1>();
+        Assert.That(c.GetProvider<LazyPostInjectedA1>() is ISingletonProvider { IsInstanceCreated: false });
+        Assert.That(c.GetProvider<PostInjectedA2>() is ISingletonProvider { IsInstanceCreated: true });
+        var A1 = c.Resolve<LazyPostInjectedA1>();
         Assert.That(A1.Called, Is.EqualTo(1));
 
-        Assert.That(c.GetProvider<LazyPostInjectdA1>() is ISingletonProvider { IsInstanceCreated: true });
+        Assert.That(c.GetProvider<LazyPostInjectedA1>() is ISingletonProvider { IsInstanceCreated: true });
 
-        var A2 = c.Resolve<PostInjectdA2>();
+        var A2 = c.Resolve<PostInjectedA2>();
         Assert.That(A1.A2, Is.EqualTo(A2));
         Assert.That(A2.Called, Is.EqualTo(1));
     }
 
     [Singleton]
-    class PostInjectdB1 : IInjectable {
-        [Inject] internal LazyPostInjectdB2 B2 { get; set; }
+    class PostInjectedB1 : IInjectable {
+        [Inject] internal LazyPostInjectedB2 B2 { get; set; }
         [Inject] internal Container container { get; set; }
 
         internal int Called = 0;
@@ -100,8 +100,8 @@ public class ScannerLazyTests {
     }
 
     [Singleton(Lazy = true)]
-    class LazyPostInjectdB2 : IInjectable {
-        [Inject] internal PostInjectdB1 B1 { get; set; }
+    class LazyPostInjectedB2 : IInjectable {
+        [Inject] internal PostInjectedB1 B1 { get; set; }
         [Inject] internal Container container { get; set; }
 
         internal int Called = 0;
@@ -117,15 +117,15 @@ public class ScannerLazyTests {
     public void PostInjectMethodTest() {
         var c = new Container();
         var di = c.CreateBuilder();
-        di.Scan<PostInjectdB1>();
-        di.Scan<LazyPostInjectdB2>();
+        di.Scan<PostInjectedB1>();
+        di.Scan<LazyPostInjectedB2>();
         di.Build();
 
-        Assert.That(c.GetProvider<PostInjectdB1>() is ISingletonProvider { IsInstanceCreated: true });
-        Assert.That(c.GetProvider<LazyPostInjectdB2>() is ISingletonProvider { IsInstanceCreated: true });
+        Assert.That(c.GetProvider<PostInjectedB1>() is ISingletonProvider { IsInstanceCreated: true });
+        Assert.That(c.GetProvider<LazyPostInjectedB2>() is ISingletonProvider { IsInstanceCreated: true });
 
-        var B1 = c.Resolve<PostInjectdB1>();
-        var B2 = c.Resolve<LazyPostInjectdB2>();
+        var B1 = c.Resolve<PostInjectedB1>();
+        var B2 = c.Resolve<LazyPostInjectedB2>();
 
         Assert.That(B1.B2, Is.EqualTo(B2));
         Assert.That(B1.Called, Is.EqualTo(1));
@@ -134,8 +134,8 @@ public class ScannerLazyTests {
     }
 
     [Singleton(Lazy = true)]
-    class LazyPostInjectdC1 : IInjectable {
-        [Inject] internal LazyPostInjectdC2 C2 { get; set; }
+    class LazyPostInjectedC1 : IInjectable {
+        [Inject] internal LazyPostInjectedC2 C2 { get; set; }
         [Inject] internal Container container { get; set; }
 
         internal int Called = 0;
@@ -148,8 +148,8 @@ public class ScannerLazyTests {
     }
 
     [Singleton(Lazy = true)]
-    class LazyPostInjectdC2 : IInjectable {
-        [Inject] internal LazyPostInjectdC1 C1 { get; set; }
+    class LazyPostInjectedC2 : IInjectable {
+        [Inject] internal LazyPostInjectedC1 C1 { get; set; }
         [Inject] internal Container container { get; set; }
 
         internal int Called = 0;
@@ -165,18 +165,18 @@ public class ScannerLazyTests {
     public void PostInjectMethodLazyWithLazyTest() {
         var c = new Container();
         var di = c.CreateBuilder();
-        di.Scan<LazyPostInjectdC1>();
-        di.Scan<LazyPostInjectdC2>();
+        di.Scan<LazyPostInjectedC1>();
+        di.Scan<LazyPostInjectedC2>();
         di.Build();
 
-        Assert.That(c.GetProvider<LazyPostInjectdC1>() is ISingletonProvider { IsInstanceCreated: false });
-        Assert.That(c.GetProvider<LazyPostInjectdC2>() is ISingletonProvider { IsInstanceCreated: false });
+        Assert.That(c.GetProvider<LazyPostInjectedC1>() is ISingletonProvider { IsInstanceCreated: false });
+        Assert.That(c.GetProvider<LazyPostInjectedC2>() is ISingletonProvider { IsInstanceCreated: false });
 
-        var C1 = c.Resolve<LazyPostInjectdC1>();
-        Assert.That(c.GetProvider<LazyPostInjectdC1>() is ISingletonProvider { IsInstanceCreated: true });
-        Assert.That(c.GetProvider<LazyPostInjectdC2>() is ISingletonProvider { IsInstanceCreated: true });
+        var C1 = c.Resolve<LazyPostInjectedC1>();
+        Assert.That(c.GetProvider<LazyPostInjectedC1>() is ISingletonProvider { IsInstanceCreated: true });
+        Assert.That(c.GetProvider<LazyPostInjectedC2>() is ISingletonProvider { IsInstanceCreated: true });
 
-        var C2 = c.Resolve<LazyPostInjectdC2>();
+        var C2 = c.Resolve<LazyPostInjectedC2>();
         Assert.That(C1.C2, Is.EqualTo(C2));
         Assert.That(C1.Called, Is.EqualTo(1));
         Assert.That(C2.C1, Is.EqualTo(C1));
@@ -184,35 +184,35 @@ public class ScannerLazyTests {
     }
 
     [Singleton(Lazy = true)]
-    class LazyPostInjectdD1 {
-        [Inject] internal IFactory<LazyPostInjectdD2> D2 { get; set; }
+    class LazyPostInjectedD1 {
+        [Inject] internal IFactory<LazyPostInjectedD2> D2 { get; set; }
     }
 
     [Singleton(Lazy = true)]
-    class LazyPostInjectdD2 {
-        [Inject] internal IFactory<LazyPostInjectdD1> D1 { get; set; }
+    class LazyPostInjectedD2 {
+        [Inject] internal IFactory<LazyPostInjectedD1> D1 { get; set; }
     }
 
     [Test(Description = "Test if the [PostInject] methods are invoked + Lazy using Lazy and Factory<T>")]
     public void PostInjectMethodLazyWithLazyTypedAsLazyTest() {
         var c = new Container();
         var di = c.CreateBuilder();
-        di.Scan<LazyPostInjectdD1>();
-        di.Scan<LazyPostInjectdD2>();
+        di.Scan<LazyPostInjectedD1>();
+        di.Scan<LazyPostInjectedD2>();
         di.Build();
 
-        Assert.That(c.GetProvider<LazyPostInjectdD1>() is ISingletonProvider { IsInstanceCreated: false });
-        Assert.That(c.GetProvider<LazyPostInjectdD2>() is ISingletonProvider { IsInstanceCreated: false });
+        Assert.That(c.GetProvider<LazyPostInjectedD1>() is ISingletonProvider { IsInstanceCreated: false });
+        Assert.That(c.GetProvider<LazyPostInjectedD2>() is ISingletonProvider { IsInstanceCreated: false });
 
-        var D1 = c.Resolve<LazyPostInjectdD1>();
-        Assert.That(c.GetProvider<LazyPostInjectdD1>() is ISingletonProvider { IsInstanceCreated: true });
-        Assert.That(c.GetProvider<LazyPostInjectdD2>() is ISingletonProvider { IsInstanceCreated: false });
+        var D1 = c.Resolve<LazyPostInjectedD1>();
+        Assert.That(c.GetProvider<LazyPostInjectedD1>() is ISingletonProvider { IsInstanceCreated: true });
+        Assert.That(c.GetProvider<LazyPostInjectedD2>() is ISingletonProvider { IsInstanceCreated: false });
 
         var D2 = D1.D2.Get();
-        Assert.That(c.GetProvider<LazyPostInjectdD1>() is ISingletonProvider { IsInstanceCreated: true });
-        Assert.That(c.GetProvider<LazyPostInjectdD2>() is ISingletonProvider { IsInstanceCreated: true });
+        Assert.That(c.GetProvider<LazyPostInjectedD1>() is ISingletonProvider { IsInstanceCreated: true });
+        Assert.That(c.GetProvider<LazyPostInjectedD2>() is ISingletonProvider { IsInstanceCreated: true });
 
-        Assert.That(D2, Is.EqualTo(c.Resolve<LazyPostInjectdD2>()));
+        Assert.That(D2, Is.EqualTo(c.Resolve<LazyPostInjectedD2>()));
         Assert.That(D2.D1.Get(), Is.EqualTo(D1));
     }
     
