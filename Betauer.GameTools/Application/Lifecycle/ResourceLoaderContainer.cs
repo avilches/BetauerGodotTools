@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Betauer.Core;
@@ -13,6 +14,7 @@ public class ResourceLoaderContainer {
     public readonly List<ResourceFactory> ResourceFactories = new();
 
     public Func<Task>? Awaiter { get; private set; }
+    public event Action<ResourceProgress>? OnLoadResourceProgress;
 
     [Inject] public SceneTree SceneTree { get; set; }
 
@@ -20,18 +22,16 @@ public class ResourceLoaderContainer {
         ResourceFactories.Add(resourceFactory);
     }
                   
-    public Task LoadResources(Action<ResourceProgress>? progressAction = null) {
+    public Task<TimeSpan> LoadResources(Action<ResourceProgress>? progressAction = null) {
         return LoadResources(new [] { ResourceFactory.DefaultTag }, progressAction);
     }
 
-    public Task LoadResources(string tag, Action<ResourceProgress>? progressAction = null) {
+    public Task<TimeSpan> LoadResources(string tag, Action<ResourceProgress>? progressAction = null) {
         return LoadResources(new [] { tag }, progressAction);
     }
 
-    public virtual void OnLoadResourceProgress(ResourceProgress resourceProgress) {
-    }
-    
-    public async Task LoadResources(string[] tags, Action<ResourceProgress>? progressAction = null) { 
+    public async Task<TimeSpan> LoadResources(string[] tags, Action<ResourceProgress>? progressAction = null) {
+        var x = Stopwatch.StartNew();
         Func<Task> awaiter = Awaiter ?? (async () => {
             if (SceneTree != null) await SceneTree.AwaitProcessFrame();
             else await Task.Delay(10);
@@ -42,9 +42,10 @@ public class ResourceLoaderContainer {
             .Select(sf => new ResourceLoad(sf.ResourcePath, sf.Load))
             .ToList();
         await LoadTools.LoadThreaded(resources, awaiter, (rp) => {
-            OnLoadResourceProgress(rp);
+            OnLoadResourceProgress?.Invoke(rp);
             progressAction?.Invoke(rp);
         });
+        return x.Elapsed;
     }
 
     public void UnloadResources() {

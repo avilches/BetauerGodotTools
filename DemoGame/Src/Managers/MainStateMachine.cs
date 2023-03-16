@@ -1,5 +1,4 @@
 using System;
-using Betauer.Application.Lifecycle;
 using Betauer.Application.Monitor;
 using Godot;
 using Betauer.Application.Screen;
@@ -10,6 +9,7 @@ using Betauer.Core.Nodes;
 using Betauer.DI.Factory;
 using Betauer.Nodes;
 using Betauer.StateMachine.Async;
+using Veronenger.Config;
 using Veronenger.UI;
 
 namespace Veronenger.Managers; 
@@ -41,7 +41,7 @@ public enum MainEvent {
     ModalBoxConfirmQuitGame,
     ExitDesktop
 }
-    
+
 [Singleton]
 public partial class MainStateMachine : StateMachineNodeAsync<MainState, MainEvent>, IInjectable {
 
@@ -50,8 +50,7 @@ public partial class MainStateMachine : StateMachineNodeAsync<MainState, MainEve
     [Inject] private IFactory<PauseMenu> PauseMenuSceneFactory { get; set; }
     [Inject] private IFactory<SettingsMenu> SettingsMenuSceneFactory { get; set; }
     [Inject] private IFactory<HUD> HudSceneFactory { get; set; }
-
-    [Inject] private ResourceLoaderContainer ResourceLoaderContainer { get; set; }
+    [Inject] private GameLoaderContainer GameLoaderContainer { get; set; }
 
     private MainMenu MainMenuScene => MainMenuSceneFactory.Get();
     private BottomBar BottomBarScene => BottomBarSceneFactory.Get();
@@ -107,7 +106,9 @@ public partial class MainStateMachine : StateMachineNodeAsync<MainState, MainEve
         
         State(MainState.SplashScreenLoading)
             .Enter(async () => {
-                await ResourceLoaderContainer.LoadResources("main");
+                // GameLoaderContainer.OnLoadResourceProgress += (rp) => Console.WriteLine($"{rp.ResourcePercent:P} {rp.Resource}"); 
+                Console.WriteLine($"Main load:{(await GameLoaderContainer.LoadMainResources()).TotalMilliseconds}ms");
+                splashScreen.Stop();
             })
             .If(() => true).Set(MainState.Init)
             .Build();
@@ -124,6 +125,7 @@ public partial class MainStateMachine : StateMachineNodeAsync<MainState, MainEve
                 ConfigureDebugOverlays();
                 ScreenSettingsManager.Setup();
                 OnTransition += args => BottomBarScene.UpdateState(args.To);
+                GameLoaderContainer.OnLoadResourceProgress += BottomBarScene.OnLoadResourceProgress;
             })
             .OnInput(e => {
                 if (!endSplash && (e.IsAnyKey() || e.IsAnyButton() || e.IsAnyClick()) && e.IsJustPressed()) {

@@ -27,7 +27,7 @@ public class Game {
     [Inject] private IFactory<Node> World3 { get; set; }
     [Inject] private IFactory<PlayerNode> PlayerFactory { get; set; }
 
-    [Inject] private ResourceLoaderContainer ResourceLoaderContainer { get; set; }
+    [Inject] private GameLoaderContainer GameLoaderContainer { get; set; }
     [Inject] private PoolManager<INodeLifecycle> PoolManager { get; set; }
     [Inject] private PoolFromNodeFactory<ProjectileTrail> ProjectilePool { get; set; }
     [Inject] private PoolFromNodeFactory<ZombieNode> ZombiePool { get; set; }
@@ -48,12 +48,7 @@ public class Game {
     }
 
     public async Task StartWorld3() {
-        var x = Stopwatch.StartNew();
-        await ResourceLoaderContainer.LoadResources("game", (rp => {
-            Console.WriteLine((rp.TotalPercent * 100f) + "% " +
-                              (rp.Resource != null ? rp.Resource + ": " + (rp.ResourcePercent * 100f) + "%" : ""));
-        }));
-        Console.WriteLine("ResourceLoaderContainer.LoadResources: "+x.ElapsedMilliseconds+"ms");
+        Console.WriteLine($"Game load:{(await GameLoaderContainer.LoadGameResources()).TotalMilliseconds}ms");
         ItemRepository.Clear();
         ItemRepository.AddMeleeWeapon(ItemConfigManager.Knife, "Knife", 6f,"K1");
         ItemRepository.AddMeleeWeapon(ItemConfigManager.Metalbar, "Metalbar", 9f, "M1");
@@ -136,7 +131,7 @@ public class Game {
         PoolManager.ForEachElementInAllPools(e => e.Free());
         // 2. Remove the data from the pool to avoid having references to busy elements which are going to die with the scene
         PoolManager.Clear();
-        ResourceLoaderContainer.UnloadResources("game");
+        GameLoaderContainer.UnloadGameResources();
     }
 
     private void FreeSceneAndKeepPoolData() {

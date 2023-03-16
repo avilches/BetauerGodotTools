@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Betauer.Application.Lifecycle;
 using Betauer.DI;
 using Betauer.Input;
 using Betauer.NodePath;
@@ -86,5 +87,12 @@ public partial class BottomBar : CanvasLayer {
                 HideAll();
                 break;
         }
+    }
+
+    public void OnLoadResourceProgress(ResourceProgress resourceProgress) {
+        HideAll();
+        ActionHint hint = _actionHintList.Find(actionHint => !actionHint.Visible)!;
+        hint.Message($"{resourceProgress.TotalPercent * 100f:0}%");
+        hint.Visible = true;
     }
 }

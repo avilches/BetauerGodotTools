@@ -16,6 +16,14 @@ public partial class ActionHint : HBoxContainer {
 	[Inject] private InputActionsContainer _inputActionsContainer { get; set; }
 
 
+	public ActionHint Message(string label1) {
+		_label1.Text = label1;
+		_label1.Visible = true;
+		_key = null;
+		_controlConsoleButton.Visible = _consoleButton.Visible = _keyButton.Visible = _label2.Visible = false;
+		return this;
+	}
+
 	public ActionHint Labels(string? label1, string? label2) {
 		_label1.Text = label1;
 		_label2.Text = label2;

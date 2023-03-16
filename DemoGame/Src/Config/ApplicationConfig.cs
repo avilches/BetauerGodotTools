@@ -1,10 +1,11 @@
+using System;
+using System.Threading.Tasks;
 using Betauer.Application;
 using Betauer.Application.Lifecycle;
 using Betauer.Application.Monitor;
 using Betauer.Application.Screen;
 using Betauer.Application.Settings;
 using Betauer.DI;
-using Betauer.DI.ServiceProvider;
 using Betauer.Input;
 using Godot;
 using Veronenger.Character.Npc;
@@ -32,7 +33,7 @@ public class ApplicationConfig {
 
 	// All 
 	[Singleton] public PoolManager<INodeLifecycle> PoolManager => new();
-	[Singleton] public ResourceLoaderContainer ResourceLoaderContainer => new();
+	[Singleton] public GameLoaderContainer ResourceLoaderContainer => new();
 
 }
 
@@ -62,6 +63,12 @@ public class Settings {
 	public ISetting<Resolution> WindowedResolution => Setting<Resolution>.Persistent("Video", "WindowedResolution", ApplicationConfig.Configuration.BaseResolution);
 }
 
+public class GameLoaderContainer : ResourceLoaderContainer {
+	public Task<TimeSpan> LoadMainResources() => LoadResources("main");
+	public Task<TimeSpan> LoadGameResources() => LoadResources("game");
+	public void UnloadGameResources() => UnloadResources("game");
+} 
+
 [Configuration]
 public class Resources {
 	[Singleton] Texture2D Icon => Load<Texture2D>("res://icon.png");
@@ -78,6 +85,7 @@ public class Resources {
 public class Scenes {
 	[TransientFactory] SceneFactory<RedefineActionButton> RedefineActionButton => new("main", "res://Scenes/UI/RedefineActionButton.tscn");
 	[TransientFactory] SceneFactory<ModalBoxConfirm> ModalBoxConfirm => new("main", "res://Scenes/Menu/ModalBoxConfirm.tscn");
+
 	[SingletonFactory] SceneFactory<HUD> HudResource => new("main", "res://Scenes/UI/HUD.tscn");
 	[SingletonFactory] SceneFactory<MainMenu> MainMenuResource => new("main", "res://Scenes/Menu/MainMenu.tscn");
 	[SingletonFactory] SceneFactory<BottomBar> BottomBarResource => new("main", "res://Scenes/Menu/BottomBar.tscn");
