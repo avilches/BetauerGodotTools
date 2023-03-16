@@ -5,7 +5,6 @@ using System.Reflection;
 using Betauer.Core;
 using Betauer.DI.Exceptions;
 using Betauer.DI.Factory;
-using Betauer.DI.ServiceProvider;
 using Betauer.Tools.Reflection;
 
 namespace Betauer.DI;
@@ -13,9 +12,11 @@ namespace Betauer.DI;
 public partial class Container {
     private class Scanner {
         private readonly Builder _builder;
+        private readonly Container _container;
 
-        internal Scanner(Builder builder) {
+        internal Scanner(Builder builder, Container container) {
             _builder = builder;
+            _container = container;
         }
 
         internal void ScanConfiguration(object configuration) {

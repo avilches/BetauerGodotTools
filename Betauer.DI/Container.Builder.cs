@@ -16,12 +16,12 @@ public partial class Container {
     
         public Builder(Container container) {
             _container = container;
-            _scanner = new Scanner(this);
+            _scanner = new Scanner(this, _container);
         }
     
         public Builder() {
             _container = new Container();
-            _scanner = new Scanner(this);
+            _scanner = new Scanner(this, _container);
         }
     
         public Container Build() {

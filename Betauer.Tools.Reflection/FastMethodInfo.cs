@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -12,7 +11,22 @@ public class FastMethodInfo {
     
     private readonly ReturnValueDelegate _delegate;
 
+    public readonly MethodInfo MethodInfo;
+
     public FastMethodInfo(MethodInfo methodInfo) {
+        MethodInfo = methodInfo;
+        _delegate = CreateLambda(methodInfo);
+    }
+
+    public object? Invoke(object instance) {
+        return _delegate(instance, Array.Empty<object>());
+    }
+
+    public object? Invoke(object instance, params object[] arguments) {
+        return _delegate(instance, arguments);
+    }
+
+    private static ReturnValueDelegate CreateLambda(MethodInfo methodInfo) {
         var instanceParameter = Expression.Parameter(typeof(object), "instance");
         var argumentsParameter = Expression.Parameter(typeof(object[]), "arguments");
 
@@ -21,14 +35,13 @@ public class FastMethodInfo {
         var callExpression = Expression.Call(instance, methodInfo, argumentExpressionList);
         if (callExpression.Type == typeof(void)) {
             var voidDelegate = Expression.Lambda<VoidDelegate>(callExpression, instanceParameter, argumentsParameter).Compile();
-            _delegate = (instance, arguments) => {
+            return (instance, arguments) => {
                 voidDelegate(instance, arguments);
                 return null;
             };
-        } else {
-            _delegate = Expression.Lambda<ReturnValueDelegate>(Expression.Convert(callExpression, typeof(object)),
-                instanceParameter, argumentsParameter).Compile();
         }
+        return Expression.Lambda<ReturnValueDelegate>(Expression.Convert(callExpression, typeof(object)),
+            instanceParameter, argumentsParameter).Compile();
     }
 
     private static Expression[]? CreateArgumentExpressionList(ParameterInfo[] parameterInfos, ParameterExpression argumentsExpression) {
@@ -41,15 +54,6 @@ public class FastMethodInfo {
         }
         return argumentExpressions;
     }
-
-    public object? Invoke(object instance) {
-        return _delegate(instance, Array.Empty<object>());
-    }
-
-    public object? Invoke(object instance, params object[] arguments) {
-        return _delegate(instance, arguments);
-    }
-
 }
 
 file class FastMethodInfoTest {

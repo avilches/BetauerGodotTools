@@ -9,6 +9,11 @@ namespace Betauer.Tools.Reflection;
 public static class TypeExtensions {
     private static readonly Dictionary<(Type, Type, MemberTypes, BindingFlags), object> Cache = new();
 
+    public static IEnumerable<FastMethodInfo> GetMethods<T>(this Type type, BindingFlags bindingAttr, Predicate<MethodInfo> filter) where T : Attribute {
+        return type.GetMethods(bindingAttr)
+            .Where(info => filter(info) && info.HasAttribute<T>())
+            .Select(info => new FastMethodInfo(info));
+    }
 
     public static bool ImplementsInterface(this Type type, Type interfaceType) {
         if (type == null) throw new ArgumentNullException(nameof(type));
