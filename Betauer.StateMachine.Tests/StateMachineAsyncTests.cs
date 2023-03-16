@@ -149,6 +149,15 @@ namespace Betauer.StateMachine.Tests {
             Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A, State.A , State.A }));
         }
 
+        [Test(Description = "Set another initial state")]
+        public async Task SetAnotherInitialState() {
+            var sm = new StateMachineAsync<State, Event>(State.A);
+            sm.State(State.Debug).Build();
+            sm.SetInitialState(State.Debug);
+            await sm.Execute();
+            Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Debug));
+        }
+        
         [Test(Description = "Multiple if are loaded in order")]
         public async Task Ifs() {
             var sm = new StateMachineAsync<State, Event>(State.A);

@@ -55,12 +55,20 @@ public abstract class BaseStateMachine<TStateKey, TEventKey, TState> : StateMach
 
     public string? Name { get; }
 
-    private readonly TStateKey _initialState;
+    private TStateKey _initialState;
+    public bool IsInitialized() => !_initOrPendingEvent.IsInit();
 
     protected BaseStateMachine(TStateKey initialState, string? name = null) {
         Name = name;
         _initialState = initialState;
         Reset();
+    }
+
+    public void SetInitialState(TStateKey initialState) {
+        if (!IsInitialized()) {
+            _initialState = initialState;
+            Reset();
+        }
     }
 
     protected EventBuilder<TBuilder, TStateKey, TEventKey> On<TBuilder>(TBuilder builder, TEventKey eventKey) 
@@ -99,7 +107,7 @@ public abstract class BaseStateMachine<TStateKey, TEventKey, TState> : StateMach
     }
 
     public void Send(TEventKey eventKey, int weight = 0) {
-        if (_initOrPendingEvent.IsInit())
+        if (!IsInitialized())
             throw new InvalidStateException("StateMachine not initialized. Please, execute it at least once before start sending events");
         if (!_initOrPendingEvent.IsSendEvent() || weight >= _initOrPendingEvent.Weight) {
             _initOrPendingEvent = Command<TStateKey, TEventKey>.CreateSendEvent(eventKey, weight);

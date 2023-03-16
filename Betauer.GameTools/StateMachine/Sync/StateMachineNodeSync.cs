@@ -56,6 +56,8 @@ public partial class StateMachineNodeSync<TStateKey, TEventKey> :
 
     public void Reset() => _stateMachine.Reset();
 
+    public bool IsInitialized() => _stateMachine.IsInitialized();
+
     public override void _Input(InputEvent e) {
         CurrentState?.InputHandler._Input(e);
     }
