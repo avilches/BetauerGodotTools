@@ -20,18 +20,11 @@ public class ScannerLazyTests {
     public class LazyClass {
     }
 
-    [Singleton]
-    [Lazy]
-    public class LazyTagClass {
-    }
-
     [Configuration]
     [Scan<LazyClass>]
-    [Scan<LazyTagClass>]
     [Scan<NoLazyClass>()]
     public class LazyConfiguration {
         [Singleton] private DummyClass noLazy => new DummyClass();
-        [Singleton] [Lazy] private DummyClass lazyTag => new DummyClass();
         [Singleton(Lazy = true)] private DummyClass lazy => new DummyClass();
     }
 
@@ -42,16 +35,13 @@ public class ScannerLazyTests {
         var c = di.Build();
         Assert.That((c.GetProvider<NoLazyClass>() as ISingletonProvider)!.Lazy, Is.False);
         Assert.That((c.GetProvider<LazyClass>() as ISingletonProvider)!.Lazy, Is.True);
-        Assert.That((c.GetProvider<LazyTagClass>() as ISingletonProvider)!.Lazy, Is.True);
 
         Assert.That((c.GetProvider("noLazy") as ISingletonProvider)!.Lazy, Is.False);
-        Assert.That((c.GetProvider("lazyTag") as ISingletonProvider)!.Lazy, Is.True);
         Assert.That((c.GetProvider("lazy") as ISingletonProvider)!.Lazy, Is.True);
     }
 
 
-    [Singleton]
-    [Lazy]
+    [Singleton(Lazy = true)]
     class LazyPostInjectdA1 : IInjectable {
         [Inject] internal PostInjectdA2 A2 { get; set; }
         [Inject] internal Container container { get; set; }
@@ -109,8 +99,7 @@ public class ScannerLazyTests {
         }
     }
 
-    [Singleton]
-    [Lazy]
+    [Singleton(Lazy = true)]
     class LazyPostInjectdB2 : IInjectable {
         [Inject] internal PostInjectdB1 B1 { get; set; }
         [Inject] internal Container container { get; set; }
@@ -144,8 +133,7 @@ public class ScannerLazyTests {
         Assert.That(B2.Called, Is.EqualTo(1));
     }
 
-    [Singleton]
-    [Lazy]
+    [Singleton(Lazy = true)]
     class LazyPostInjectdC1 : IInjectable {
         [Inject] internal LazyPostInjectdC2 C2 { get; set; }
         [Inject] internal Container container { get; set; }
@@ -159,8 +147,7 @@ public class ScannerLazyTests {
         }
     }
 
-    [Singleton]
-    [Lazy]
+    [Singleton(Lazy = true)]
     class LazyPostInjectdC2 : IInjectable {
         [Inject] internal LazyPostInjectdC1 C1 { get; set; }
         [Inject] internal Container container { get; set; }
@@ -196,14 +183,12 @@ public class ScannerLazyTests {
         Assert.That(C2.Called, Is.EqualTo(1));
     }
 
-    [Singleton]
-    [Lazy]
+    [Singleton(Lazy = true)]
     class LazyPostInjectdD1 {
         [Inject] internal IFactory<LazyPostInjectdD2> D2 { get; set; }
     }
 
-    [Singleton]
-    [Lazy]
+    [Singleton(Lazy = true)]
     class LazyPostInjectdD2 {
         [Inject] internal IFactory<LazyPostInjectdD1> D1 { get; set; }
     }

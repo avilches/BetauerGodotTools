@@ -263,8 +263,7 @@ public class ScannerBasicTests : Node {
         Assert.That(c.Resolve<INotTagged>(), Is.TypeOf<ExposeServiceClass3>());
     }
 
-    [Singleton]
-    [Primary]
+    [Singleton(Primary = true)]
     public class PrimaryTagClass {
     }
         
@@ -282,7 +281,6 @@ public class ScannerBasicTests : Node {
     [Configuration]
     public class PrimaryServiceConfiguration {
         [Singleton] private DummyClass noPrimary => new DummyClass();
-        [Singleton] [Primary] private DummyClass primaryTag => new DummyClass();
         [Singleton(Primary = true)] private DummyClass primary => new DummyClass();
     }
 
@@ -292,7 +290,6 @@ public class ScannerBasicTests : Node {
         di.Scan<PrimaryServiceConfiguration>();
         var c = di.Build();
         Assert.That(c.GetProvider("noPrimary").Primary, Is.False);
-        Assert.That(c.GetProvider("primaryTag").Primary, Is.True);
         Assert.That(c.GetProvider("primary").Primary, Is.True);
 
         Assert.That(c.Resolve<DummyClass>(), Is.EqualTo(c.Resolve("primary")));

@@ -92,8 +92,8 @@ public partial class Container {
         private void RegisterServiceFromClass(Type type, ServiceAttribute serviceAttr) {
             var registeredType = serviceAttr.GetType().GetGenericArguments().FirstOrDefault() ?? type;
             var name = serviceAttr.Name;
-            var primary = serviceAttr.Primary || type.HasAttribute<PrimaryAttribute>();
-            var lazy = serviceAttr is SingletonAttribute singleton && (singleton.Lazy || type.HasAttribute<LazyAttribute>());
+            var primary = serviceAttr.Primary;
+            var lazy = serviceAttr is SingletonAttribute { Lazy: true };
             var lifetime = serviceAttr.Lifetime;
             object Factory() => Activator.CreateInstance(type)!;
             _builder.RegisterServiceAndAddFactory(registeredType, type, Factory, lifetime, name, primary, lazy);
@@ -104,8 +104,8 @@ public partial class Container {
             var type = getter.Type;
             var registeredType = serviceAttr.GetType().GetGenericArguments().FirstOrDefault() ?? type;
             var name = serviceAttr.Name ?? getter.Name;
-            var primary = serviceAttr.Primary || getter.MemberInfo.HasAttribute<PrimaryAttribute>();
-            var lazy = serviceAttr is SingletonAttribute singleton && (singleton.Lazy || getter.MemberInfo.HasAttribute<LazyAttribute>());
+            var primary = serviceAttr.Primary;
+            var lazy = serviceAttr is SingletonAttribute { Lazy: true };
             var lifetime = serviceAttr.Lifetime;
             object Factory() => getter.GetValue(configuration)!;
             _builder.RegisterServiceAndAddFactory(registeredType, type, Factory, lifetime, name, primary, lazy);
@@ -118,7 +118,7 @@ public partial class Container {
                 throw new InvalidAttributeException($"Class {type.FullName} with [SingletonFactory] attribute must implement IFactory<T>");
             }
             // var genericType = iFactoryInterface.GetGenericArguments()[0];
-            var primary = factoryAttribute.Primary || type.HasAttribute<PrimaryAttribute>();
+            var primary = factoryAttribute.Primary;
             var lifetime = factoryAttribute.Lifetime;
             object Factory() => Activator.CreateInstance(type)!;
             _builder.RegisterCustomFactory(type, Factory, factoryAttribute.Name, lifetime, primary, true);
@@ -129,7 +129,7 @@ public partial class Container {
                 throw new InvalidAttributeException("Member " + getter + " with [SingletonFactory] attribute must implement IFactory<T>");
             }
             var factoryAttribute = getter.GetterAttribute;
-            var primary = factoryAttribute.Primary || getter.MemberInfo.HasAttribute<PrimaryAttribute>();
+            var primary = factoryAttribute.Primary;
             var name = factoryAttribute.Name ?? getter.Name;
             var lifetime = factoryAttribute.Lifetime;
             object Factory() => getter.GetValue(configuration)!;

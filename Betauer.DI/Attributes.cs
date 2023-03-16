@@ -80,14 +80,6 @@ public class TransientFactoryAttribute : FactoryAttribute {
     }
 }
 
-[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method | AttributeTargets.Property)]
-public class PrimaryAttribute : Attribute {
-}
-
-[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method | AttributeTargets.Property)]
-public class LazyAttribute : Attribute {
-}
-
 [AttributeUsage(AttributeTargets.Method  | AttributeTargets.Property)]
 public class InjectAttribute : Attribute {
     public bool Nullable { get; set; } = false;
