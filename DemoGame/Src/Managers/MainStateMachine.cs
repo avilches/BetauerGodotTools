@@ -129,7 +129,6 @@ public partial class MainStateMachine : StateMachineNodeAsync<MainState, MainEve
             })
             .OnInput(e => {
                 if (!endSplash && (e.IsAnyKey() || e.IsAnyButton() || e.IsAnyClick()) && e.IsJustPressed()) {
-                    var splashScreen = SceneTree.GetMainScene<SplashScreenNode>();
                     splashScreen.QueueFree();
                     endSplash = true;
                 }
