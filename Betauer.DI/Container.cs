@@ -46,14 +46,16 @@ public partial class Container {
     public Builder CreateBuilder() => new Builder(this);
 
     public Container Build(ICollection<IProvider> providers) {
+        var context = GetResolveContext();
         providers
             .ForEach(provider => AddToRegistry(provider));
         providers
             .Where(provider => provider is ISingletonProvider { Lazy: false, IsInstanceCreated: false })
             .ForEach(provider => {
-                    Logger.Debug($"Initializing {provider.Lifetime}:{provider.ProviderType} | Name: {provider.Name}");
-                    provider.Get();
+                Logger.Debug($"Initializing {provider.Lifetime}:{provider.ProviderType} | Name: {provider.Name}");
+                provider.Get(context);
             });
+        context.End();
         return this;
     }
 
