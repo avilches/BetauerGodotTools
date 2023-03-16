@@ -35,7 +35,7 @@ public static class TypeExtensions {
         var e = Enumerable.Empty<MemberInfo>();
         e = ConcatFields(e, type, memberFlags, bindingAttr);
         e = ConcatProperties(e, type, memberFlags, bindingAttr);
-        e = ConcatMethods(e, type, memberFlags, bindingAttr, 1);
+        e = ConcatMethods(e, type, memberFlags, bindingAttr, FastGetter.IsValid);
 
         var setters = new List<ISetter<T>>();
         foreach (var memberInfo in e)
@@ -52,19 +52,18 @@ public static class TypeExtensions {
         return setters;
     }
 
-    public static List<ISetter<T>> GetGettersCached<T>(this Type type, MemberTypes memberFlags,
-        BindingFlags bindingAttr) where T : Attribute {
-        var key = (typeof(ISetter<T>), type, memberFlags, bindingAttr);
-        if (Cache.TryGetValue(key, out var result)) return (List<ISetter<T>>)result;
-        return (List<ISetter<T>>)(Cache[key] = type.GetGetters<T>(memberFlags, bindingAttr));
-    }
+    // public static List<ISetter<T>> GetGettersCached<T>(this Type type, MemberTypes memberFlags, BindingFlags bindingAttr) where T : Attribute {
+    //     var key = (typeof(ISetter<T>), type, memberFlags, bindingAttr);
+    //     if (Cache.TryGetValue(key, out var result)) return (List<ISetter<T>>)result;
+    //     return (List<ISetter<T>>)(Cache[key] = type.GetGetters<T>(memberFlags, bindingAttr));
+    // }
 
     public static List<IGetter<T>> GetGetters<T>(this Type type, MemberTypes memberFlags, BindingFlags bindingAttr)
         where T : Attribute {
         var e = Enumerable.Empty<MemberInfo>();
         e = ConcatFields(e, type, memberFlags, bindingAttr);
         e = ConcatProperties(e, type, memberFlags, bindingAttr);
-        e = ConcatMethods(e, type, memberFlags, bindingAttr, 0);
+        e = ConcatMethods(e, type, memberFlags, bindingAttr, FastSetter.IsValid);
         var getters = new List<IGetter<T>>();
         foreach (var memberInfo in e)
             if (memberInfo.GetAttribute<T>() is T attribute) {
@@ -74,17 +73,17 @@ public static class TypeExtensions {
                     // fields and properties
                     getters.Add(new FastGetterSetter<T>(memberInfo, attribute));
                 else if (validGetter)
-                    // methods with 1 parameter and void return type
+                    // methods with 0 parameters
                     getters.Add(new FastGetter<T>(memberInfo, attribute));
             }
         return getters;
     }
 
     private static IEnumerable<MemberInfo> ConcatMethods(IEnumerable<MemberInfo> e, Type type,
-        MemberTypes memberFlags, BindingFlags bindingAttr, int parameters = -1) {
+        MemberTypes memberFlags, BindingFlags bindingAttr, Predicate<MethodInfo> filter) {
         if (memberFlags.HasFlag(MemberTypes.Method))
             e = e.Concat(type.GetMethods(bindingAttr)
-                .Where(info => parameters == -1 || info.GetParameters().Length == parameters));
+                .Where(methodInfo => filter(methodInfo)));
         return e;
     }
 
