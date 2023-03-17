@@ -1,3 +1,4 @@
+using Betauer.Core;
 using Betauer.DI;
 using Betauer.DI.Factory;
 using Godot;
@@ -20,12 +21,15 @@ public abstract class ResourceFactory : IInjectable {
     
     public void PostInject() {
         ResourceLoaderContainer.Add(this);
-        // Resource = LoadTools.PackedScene(ResourcePath);
     }
 
     public void Load(Resource resource) {
+        if (Resource != null && Resource == resource) return;
+        Unload();
         Resource = resource;
     }
+
+    public bool IsLoaded() => Resource != null && Resource.IsInstanceValid();
 
     public void Unload() {
         Resource?.Dispose();

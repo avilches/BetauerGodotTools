@@ -24,6 +24,6 @@ public class ResourceProgress {
         return TotalPercent == 0f && Resource == null;
     }
     public bool IsEnds() {
-        return TotalPercent == 1f && Resource == null;
+        return TotalPercent >= 0.999f && Resource == null;
     }
 }

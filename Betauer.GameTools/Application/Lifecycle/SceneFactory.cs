@@ -11,7 +11,9 @@ public class SceneFactory<T> : ResourceFactory, IFactory<T> where T : Node {
     public SceneFactory(string resourcePath) : base(null, resourcePath) {
     }
 
+    public PackedScene Scene => (PackedScene)Resource!;
+
     public T Get() {
-        return ((PackedScene)Resource!).Instantiate<T>();
+        return Scene.Instantiate<T>();
     }
 }
