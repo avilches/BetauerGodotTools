@@ -1,52 +1,83 @@
 name: Integration tests
 
-on: push
-
-
-
-
-
-env:
-  GODOT_VERSION: 3.5.1
-  GODOT_VERSION_MODIFIER: "stable.mono"
-  EXPORT_NAME: veronenger
-  GAME_SUBDIRECTORY: project.godot
-  CUSTOM_ICON: "false"
-  GITHUB_WORKSPACE: "/workspace"
+on: 
+  push:
 
 jobs:
   build:
-
-    runs-on: ubuntu-latest
-    container:
-      image: barichello/godot-ci:mono-3.5.1
-
+    name: 🧪 Evaluate Tests on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # Don't cancel other OS runners if one fails.
+      fail-fast: false
+      matrix:
+        # Put the operating systems you want to run on here.
+        os: ubuntu-latest
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+      DOTNET_NOLOGO: true
+    defaults:
+      run:
+        # Use bash shells on all platforms.
+        shell: bash
     steps:
+      - name: 🧾 Checkout
+        uses: actions/checkout@v3
 
-      - uses: actions/checkout@v3
-        with:
-          lfs: true
-
-      - name: Setup .NET 6
-        uses: actions/setup-dotnet@v2
-        with:
-          dotnet-version: 6.0.x
-
-      # ======================================================
-      # pull deps and build
-      # ======================================================
-      # copy the godot DLLs where they are expected
-      - name: Setup Godot dlls
+      - name: 📎 Infer Godot Version
+        id: infer_godot_version
         run: |
-          mkdir -p .mono/assemblies/Debug
-          cp /usr/local/bin/GodotSharp/Api/Debug/* .mono/assemblies/Debug
+          replace_last_period() {
+            local version="$1"
+            local prerelease="${version##*-}"
+            if [ "$prerelease" != "$version" ]; then
+              prerelease="${prerelease//./}"
+              version="${version%-*}-$prerelease"
+            fi
+            echo "$version"
+          }
+          # Load the Godot version from the global.json file in the repository
+          # and convert it to the format required by setup-godot.
+          GODOT_VERSION=$(cat global.json | grep -o '"Godot.NET.Sdk": "[^"]*' \
+            | grep -o '[^"]*$')
+          GODOT_VERSION=$(replace_last_period "$GODOT_VERSION")
+          echo "🤖 Inferred setup-godot version: $GODOT_VERSION"
+          echo "godot_version=$GODOT_VERSION" >> $GITHUB_OUTPUT
 
-      # build the solution
+      - name: 💽 Setup .NET SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          # Use the .NET SDK from global.json in the root of the repository.
+          global-json-file: global.json
+
+      - name: 📦 Restore Dependencies
+        run: dotnet restore
+
+      - name: 🤖 Setup Godot
+        uses: chickensoft-games/setup-godot@v1
+        with:
+          # Version must include major, minor, and patch, and be >= 4.0.0
+          # Pre-release label is optional.
+          #
+          # In this case, we are using the version from global.json.
+          #
+          # This allows checks on renovatebot PR's to succeed whenever
+          # renovatebot updates the Godot SDK version.
+          version: ${{ steps.infer_godot_version.outputs.godot_version }}
+
+      - name: 🔬 Verify Setup
+        run: |
+          dotnet --version
+          godot --version
+
+      - name: 🧑‍🔬 Generate .NET Bindings
+#        working-directory: Chickensoft.GodotPackage.Tests
+        run: godot --headless --build-solutions --quit || exit 0
+
       - name: Build
         run: dotnet build --configuration Debug
       
-      
       # run dotnet unit tests
       - name: Test
-        run: godot -s TestRunner.cs --no-window
+        run: godot -s TestRunner.cs --headless
 
