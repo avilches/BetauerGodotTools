@@ -40,7 +40,7 @@ public static class TypeExtensions {
         var e = Enumerable.Empty<MemberInfo>();
         e = ConcatFields(e, type, memberFlags, bindingAttr);
         e = ConcatProperties(e, type, memberFlags, bindingAttr);
-        e = ConcatMethods(e, type, memberFlags, bindingAttr, FastGetter.IsValid);
+        e = ConcatMethods(e, type, memberFlags, bindingAttr, FastSetter.IsValid);
 
         var setters = new List<ISetter<T>>();
         foreach (var memberInfo in e)
@@ -68,7 +68,7 @@ public static class TypeExtensions {
         var e = Enumerable.Empty<MemberInfo>();
         e = ConcatFields(e, type, memberFlags, bindingAttr);
         e = ConcatProperties(e, type, memberFlags, bindingAttr);
-        e = ConcatMethods(e, type, memberFlags, bindingAttr, FastSetter.IsValid);
+        e = ConcatMethods(e, type, memberFlags, bindingAttr, FastGetter.IsValid);
         var getters = new List<IGetter<T>>();
         foreach (var memberInfo in e)
             if (memberInfo.GetAttribute<T>() is T attribute) {

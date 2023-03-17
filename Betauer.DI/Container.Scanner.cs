@@ -122,7 +122,7 @@ public partial class Container {
             var primary = factoryAttribute.Primary;
             var lifetime = factoryAttribute.Lifetime;
             object Factory() => Activator.CreateInstance(type)!;
-            _builder.RegisterCustomFactory(type, Factory, factoryAttribute.Name, lifetime, primary, true);
+            _builder.RegisterCustomFactory(type, Factory, factoryAttribute.Name, lifetime, primary);
         }
     
         private void RegisterCustomFactoryFromGetter(object configuration, IGetter<FactoryAttribute> getter) {
@@ -134,7 +134,7 @@ public partial class Container {
             var name = factoryAttribute.Name ?? getter.Name;
             var lifetime = factoryAttribute.Lifetime;
             object Factory() => getter.GetValue(configuration)!;
-            _builder.RegisterCustomFactory(getter.Type, Factory, name, lifetime, primary, true);
+            _builder.RegisterCustomFactory(getter.Type, Factory, name, lifetime, primary);
         }
     }
 }

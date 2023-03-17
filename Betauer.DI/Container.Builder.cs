@@ -50,11 +50,11 @@ public partial class Container {
             return this;
         }
 
-        public Builder RegisterCustomFactory<T>(Func<T> customFactory, string? name = null, Lifetime lifetime = Lifetime.Singleton, bool primary = false, bool lazy = false) {
-            return RegisterCustomFactory(typeof(T), () => customFactory(), name, lifetime, primary, lazy);
+        public Builder RegisterCustomFactory<T>(Func<T> customFactory, string? name = null, Lifetime lifetime = Lifetime.Singleton, bool primary = false) {
+            return RegisterCustomFactory(typeof(T), () => customFactory(), name, lifetime, primary);
         }
 
-        public Builder RegisterCustomFactory(Type factoryType, Func<object> customFactory, string? name = null, Lifetime lifetime = Lifetime.Singleton, bool primary = false, bool lazy = false) {
+        public Builder RegisterCustomFactory(Type factoryType, Func<object> customFactory, string? name = null, Lifetime lifetime = Lifetime.Singleton, bool primary = false) {
             var type = FactoryTools.GetIFactoryGenericType(factoryType);
             if (type == null) throw new InvalidCastException();
 
@@ -67,10 +67,10 @@ public partial class Container {
             var customProvider = Provider.Create(factoryType, factoryType, Lifetime.Singleton, customFactory, customFactoryName, primary, false);
             Register(customProvider);
     
-            // Register the regular instance factory. It could be lazy.
+            // Register the regular instance factory. It's always lazy, this guarantees the factory is fully injected before the first Get()
             // - Resolve<T>() or Resolve<T>(name) will create new instances, injecting dependencies.
             Func<object> getFromProviderFactory = FactoryTools.ProviderGetFactoryGet(type, customProvider); // This is just () => customProvider.Get().Get()
-            var provider = Provider.Create(type, type, lifetime, getFromProviderFactory, name, primary, lazy);
+            var provider = Provider.Create(type, type, lifetime, getFromProviderFactory, name, primary, true);
             Register(provider);
 
             // Register a factory as IFactory<T> so the user can get it with
