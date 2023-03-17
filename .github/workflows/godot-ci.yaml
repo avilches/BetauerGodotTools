@@ -79,5 +79,5 @@ jobs:
       
       # run dotnet unit tests
       - name: Test
-        run: godot -s TestRunner.cs --headless
+        run: godot -s RunTests.cs --headless
 
