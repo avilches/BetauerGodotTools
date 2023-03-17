@@ -30,12 +30,10 @@ public class PoolFromNodeFactory<T> : BasePoolLifecycle<T>, IPoolFromFactory, IF
     }
 
     T IFactory<T>.Get() {
-        Console.WriteLine($"{typeof(T)} IFactory<{typeof(T)}>.Get");
         return Get();
     }
 
     INodeLifecycle IPool<INodeLifecycle>.Get() {
-        Console.WriteLine($"{typeof(INodeLifecycle)} IFactory<{typeof(INodeLifecycle)}>.Get");
         return Get();
     }
 
