@@ -4,6 +4,7 @@ using Betauer.DI.Factory;
 using Godot;
 using Veronenger.Character.Player;
 using Veronenger.Config;
+using Veronenger.Persistent.Node;
 
 namespace Veronenger.Persistent;
 

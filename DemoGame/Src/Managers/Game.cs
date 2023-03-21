@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Betauer.Application.Lifecycle;
 using Betauer.DI;
 using Betauer.Core.Nodes;
+using Betauer.Core.Pool;
 using Betauer.Core.Signal;
 using Betauer.DI.Factory;
 using Veronenger.Character.Npc;
@@ -29,8 +30,8 @@ public class Game {
 
     [Inject] private GameLoaderContainer GameLoaderContainer { get; set; }
     [Inject] private PoolManager<INodeLifecycle> PoolManager { get; set; }
-    [Inject] private PoolFromNodeFactory<ProjectileTrail> ProjectilePool { get; set; }
-    [Inject] private PoolFromNodeFactory<ZombieNode> ZombiePool { get; set; }
+    [Inject] private IPool<ProjectileTrail> ProjectilePool { get; set; }
+    [Inject] private IPool<ZombieNode> ZombiePool { get; set; }
 
     private Node _currentGameScene;
 

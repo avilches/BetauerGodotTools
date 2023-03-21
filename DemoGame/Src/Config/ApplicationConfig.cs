@@ -5,6 +5,7 @@ using Betauer.Application.Lifecycle;
 using Betauer.Application.Monitor;
 using Betauer.Application.Screen;
 using Betauer.Application.Settings;
+using Betauer.Core.Pool;
 using Betauer.DI;
 using Betauer.Input;
 using Godot;
@@ -12,6 +13,7 @@ using Veronenger.Character.Npc;
 using Veronenger.Character.Player;
 using Veronenger.Transient;
 using Veronenger.UI;
+using Veronenger.Worlds;
 using static Godot.ResourceLoader;
 
 namespace Veronenger.Config; 
@@ -96,9 +98,11 @@ public class Scenes {
 	[TransientFactory] SceneFactory<PlayerNode> Player => new("game", "res://Scenes/Player.tscn");
 	[TransientFactory] SceneFactory<ZombieNode> ZombieNode => new("game", "res://Scenes/Zombie2.tscn");
 	[TransientFactory] SceneFactory<ProjectileTrail> ProjectileTrail => new("game", "res://Scenes/ProjectileTrail.tscn");
+	[TransientFactory] SceneFactory<PickableItemNode> PickableItem => new("game", "res://Scenes/PickableItem.tscn");
 
-	[Singleton] PoolFromNodeFactory<ZombieNode> ZombiePool => new();
-	[Singleton] PoolFromNodeFactory<ProjectileTrail> ProjectilePool => new();
+	[Singleton] IPool<ZombieNode> ZombiePool => new PoolFromNodeFactory<ZombieNode>();
+	[Singleton] IPool<ProjectileTrail> ProjectilePool => new PoolFromNodeFactory<ProjectileTrail>();
+	[Singleton] IPool<PickableItemNode> PickableItemPool => new PoolFromNodeFactory<PickableItemNode>();
 }
 
 [Configuration]

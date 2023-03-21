@@ -247,3 +247,6 @@ position = Vector2(-838, -45)
 [node name="ZombieRespawn3" type="Marker2D" parent="EnemySpawn"]
 visible = false
 position = Vector2(-720, -91)
+
+[node name="MetalbarSpawn" type="Marker2D" parent="."]
+position = Vector2(-771.501, 14.6231)
