@@ -21,6 +21,7 @@ using Veronenger.Managers;
 using Veronenger.Persistent;
 using Veronenger.Transient;
 using Veronenger.UI;
+using Veronenger.Worlds;
 
 namespace Veronenger.Character.Player; 
 
@@ -211,6 +212,15 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		Status.OnHealthUpdate += HudScene.UpdateHealth; 
 
 		CollisionLayerManager.PlayerConfigureCollisions(this);
+		CollisionLayerManager.PlayerPickableArea(this, area => {
+			try {
+				var pickable = area.GetParent<PickableItemNode>();
+				pickable.BringTo(() => Marker2D.GlobalPosition);
+			} catch (Exception e) {
+				Console.WriteLine(e);
+				throw;
+			}
+		});
 	}
 
 	private void ConfigureCamera() {

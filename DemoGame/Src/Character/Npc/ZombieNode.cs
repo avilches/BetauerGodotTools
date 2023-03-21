@@ -21,6 +21,7 @@ using Veronenger.Character.Player;
 using Veronenger.Config;
 using Veronenger.Managers;
 using Veronenger.Persistent;
+using Veronenger.Persistent.Node;
 
 namespace Veronenger.Character.Npc; 
 
@@ -148,7 +149,6 @@ public partial class ZombieNode : NpcItemStateMachineNodeSync<ZombieState, Zombi
 	}
 
 	public override void Initialize() {
-		NodePathScanner.ScanAndInject(this);
 		ConfigureAnimations();
 		ConfigureCharacter();
 		ConfigureStateMachine();

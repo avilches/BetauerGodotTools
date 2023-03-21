@@ -1,16 +1,9 @@
-using System;
 using Betauer.Application.Lifecycle;
-using Betauer.StateMachine.Sync;
 using Godot;
 
-namespace Veronenger.Persistent;
+namespace Veronenger.Persistent.Node;
 
-public abstract partial class ItemStateMachineNodeSync<TStateKey, TEventKey> : 
-    StateMachineNodeSync<TStateKey, TEventKey>, INodeLifecycle 
-    where TStateKey : Enum 
-    where TEventKey : Enum {
-    protected ItemStateMachineNodeSync(TStateKey initialState, string? name = null, bool processInPhysics = false) : base(initialState, name, processInPhysics) {
-    }
+public abstract partial class ItemNode : Godot.Node, INodeLifecycle, IItemNode {
 
     protected ItemRepository ItemRepository;
     protected Item Item;
@@ -23,15 +16,15 @@ public abstract partial class ItemStateMachineNodeSync<TStateKey, TEventKey> :
     public abstract void Initialize();
     public abstract void OnGet();
 
+    // IItemNode
     public void OnAddToWorld(ItemRepository itemRepository, Item item) {
         ItemRepository = itemRepository;
         Item = item;
     }
 
-    public void AddToScene(Node parent, Vector2 initialPosition) {
+    public void AddToScene(Godot.Node parent, Vector2 initialPosition) {
         _busy = true;
         _initialPosition = initialPosition;
-        base.Reset(); // the StateMachine
         RequestReady();
         parent.AddChild(this);
     }

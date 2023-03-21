@@ -5,7 +5,7 @@ public abstract class Item {
     public readonly string Name;
     public readonly string? Alias;
 
-    public Item(int id, string name, string alias) {
+    protected Item(int id, string name, string alias) {
         Id = id;
         Name = name;
         Alias = alias;

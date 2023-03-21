@@ -1,4 +1,4 @@
-namespace Veronenger.Persistent;
+namespace Veronenger.Persistent.Node;
 
 public interface INpcItemNode : IItemNode {
     float DistanceToPlayer();
