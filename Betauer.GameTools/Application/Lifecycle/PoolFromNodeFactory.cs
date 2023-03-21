@@ -1,14 +1,15 @@
-using System;
 using System.Collections.Generic;
 using Betauer.Core.Pool;
 using Betauer.Core.Pool.Lifecycle;
 using Betauer.DI;
 using Betauer.DI.Factory;
+using Betauer.NodePath;
+using Godot;
 
 namespace Betauer.Application.Lifecycle;
 
 public class PoolFromNodeFactory<T> : BasePoolLifecycle<T>, IPoolFromFactory, IFactory<T>, IInjectable 
-    where T : class, INodeLifecycle {
+    where T : Node, INodeLifecycle {
     [Inject] private IFactory<T> Factory { get; set; }
     [Inject] private PoolManager<INodeLifecycle> PoolManager { get; set; }
 
@@ -21,6 +22,8 @@ public class PoolFromNodeFactory<T> : BasePoolLifecycle<T>, IPoolFromFactory, IF
 
     protected override T Create() {
         var instance = Factory.Get();
+        // The instance has all their [Inject] dependencies injected
+        NodePathScanner.ScanAndInject(instance);
         instance.Initialize();
         return instance;
     }

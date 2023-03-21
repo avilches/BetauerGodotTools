@@ -2,7 +2,6 @@ using System;
 using Betauer.DI.ServiceProvider;
 using Betauer.Core.Nodes;
 using Betauer.Core.Signal;
-using Betauer.DI;
 using Betauer.NodePath;
 using Godot;
 using Container = Betauer.DI.Container;
@@ -54,7 +53,9 @@ public class GodotContainer {
     }
 
     private void InjectIfNotInjected(Node node) {
-        if (node.GetScript().AsGodotObject() is CSharpScript && !IsInjected(node)) _container.InjectServices(node);
+        if (node.GetScript().AsGodotObject() is CSharpScript && !IsInjected(node)) {
+            _container.InjectServices(node);
+        }
     }
 
     private void AddNodeSingletonsToTree(Lifetime lifetime, object instance) {
