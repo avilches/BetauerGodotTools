@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Betauer.Core.Pool;
 using Betauer.Core.Pool.Lifecycle;
 using Betauer.DI;
 using Betauer.DI.Factory;
@@ -8,7 +7,7 @@ using Godot;
 
 namespace Betauer.Application.Lifecycle;
 
-public class PoolFromNodeFactory<T> : BasePoolLifecycle<T>, IPoolFromFactory, IFactory<T>, IInjectable 
+public class PoolFromNodeFactory<T> : BasePoolLifecycle<T>, IInjectable 
     where T : Node, INodeLifecycle {
     [Inject] private IFactory<T> Factory { get; set; }
     [Inject] private PoolManager<INodeLifecycle> PoolManager { get; set; }
@@ -30,17 +29,5 @@ public class PoolFromNodeFactory<T> : BasePoolLifecycle<T>, IPoolFromFactory, IF
 
     public void PostInject() {
         PoolManager.Add(this);
-    }
-
-    T IFactory<T>.Get() {
-        return Get();
-    }
-
-    INodeLifecycle IPool<INodeLifecycle>.Get() {
-        return Get();
-    }
-
-    IEnumerable<INodeLifecycle> IPool<INodeLifecycle>.GetAll() {
-        return GetAll();
     }
 }
