@@ -5,6 +5,6 @@ using NUnit.Framework;
 namespace Betauer.Core.Tests; 
 
 
-[TestFixture]
+[TestRunner.Test]
 public class PropertyTests {
 }

@@ -6,233 +6,285 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Godot;
-using NUnit.Framework;
 
-namespace Betauer.TestRunner {
-    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class | AttributeTargets.Assembly, AllowMultiple = false,
-        Inherited = false)]
-    public class OnlyAttribute : Attribute {
+namespace Betauer.TestRunner; 
+
+[AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
+public class OnlyAttribute : Attribute {
+}
+
+[AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
+public class TestAttribute : Attribute {
+    /// <summary>
+    /// Descriptive text for this test
+    /// </summary>
+    public string? Description { get; set; }
+
+    public bool Only { get; set; } = false;
+    public bool Ignore { get; set; } = false;
+}
+
+[AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
+public class IgnoreAttribute : Attribute {
+    /// <summary>
+    /// Descriptive text for this test
+    /// </summary>
+    public string Reason { get; set; }
+
+    public IgnoreAttribute(string reason) {
+        Reason = reason;
+    }
+}
+
+[AttributeUsage(AttributeTargets.Method)]
+public class SetUpClassAttribute : Attribute {
+}
+
+[AttributeUsage(AttributeTargets.Method)]
+public class SetUpAttribute : Attribute {
+}
+
+[AttributeUsage(AttributeTargets.Method)]
+public class TearDownClassAttribute : Attribute {
+}
+
+[AttributeUsage(AttributeTargets.Method)]
+public class TearDownAttribute : Attribute {
+}
+
+public static class TestExtensions {
+    internal static SceneTree SceneTree = null!;
+
+    public static SignalAwaiter AwaitPhysicsFrame(this object _) =>
+        AwaitPhysicsFrame();
+        
+    public static SignalAwaiter AwaitPhysicsFrame() =>
+        SceneTree.ToSignal(SceneTree, "physics_frame");
+
+    public static SignalAwaiter AwaitProcessFrame(this object _) =>
+        AwaitProcessFrame();
+        
+    public static SignalAwaiter AwaitProcessFrame() =>
+        SceneTree.ToSignal(SceneTree, "process_frame");
+        
+}
+
+public class TestReport {
+    public int TestsTotal { get; internal set; } = 0;
+    public int TestsExecuted { get; internal set; } = 0;
+    public int TestsFailed { get; internal set; } = 0;
+    public int TestsPassed { get; internal set; } = 0;
+    public List<TestRunner.TestMethod> TestsFailedResults { get;  } = new();
+}
+
+public class TestRunner {
+    private List<TestClass> _testClasses;
+    private List<TestMethod> _testMethos;
+    public SceneTree SceneTree;
+
+    public void Load(Assembly[]?assemblies) {
+        _testClasses = ScanTestClassesFromAssemblies(assemblies);
     }
 
-    public static class TestExtensions {
-        public static SceneTree SceneTree;
-
-        public static SignalAwaiter AwaitPhysicsFrame(this object _) =>
-            AwaitPhysicsFrame();
-        
-        public static SignalAwaiter AwaitPhysicsFrame() =>
-            SceneTree.ToSignal(SceneTree, "physics_frame");
-
-        public static SignalAwaiter AwaitProcessFrame(this object _) =>
-            AwaitProcessFrame();
-        
-        public static SignalAwaiter AwaitProcessFrame() =>
-            SceneTree.ToSignal(SceneTree, "process_frame");
-        
+    public enum Result {
+        Passed,
+        Failed
     }
 
-    public class TestRunner {
-        private readonly List<TestMethod> _testMethods = new List<TestMethod>();
-        public readonly List<TestMethod> TestsFailedResults = new List<TestMethod>();
-        public int TestsTotal;
-        public int TestsExecuted;
-        public int TestsFailed;
-        public int TestsPassed;
+    public event Action<TestReport, TestMethod>? OnStart = null;
+    public event Action<TestReport, TestMethod>? OnResult = null;
 
-        public TestRunner(Assembly[]? assemblies = null) {
-            ScanFixturesFromAssemblies(assemblies)
-                .ForEach(fixture => fixture.Methods.ForEach(testMethod => _testMethods.Add(testMethod)));
-            GD.Print("Loaded " + _testMethods.Count + " tests");
+    public async Task<TestReport> Run(SceneTree sceneTree) {
+        TestExtensions.SceneTree = sceneTree;
+        SceneTree = sceneTree;
+        TestReport testReport = new () {
+            TestsTotal = _testClasses.SelectMany(testClass => testClass.Methods).Count()
+        };
+        GD.Print($"Running {testReport.TestsTotal} tests");
+        foreach (var testClass in _testClasses) {
+            await testClass.Execute(this, testReport);
         }
+        return testReport;
+    }
 
-        public enum Result {
-            Passed,
-            Failed
+    public class TestClass {
+        public Type Type { get; }
+        public bool Only { get; internal set; }
+        public List<TestMethod> Methods { get; internal set; }
+        public List<MethodInfo>? SetupClass { get; internal set; }
+        public List<MethodInfo>? TearDownClass { get; internal set; }
+
+        public TestClass(Type type) {
+            Type = type;
         }
-
-        public class TestFixture {
-            public readonly Type Type;
-            public readonly bool Only;
-            public readonly List<TestMethod> Methods;
-
-            public TestFixture(Type type, bool only, List<TestMethod> methods) {
-                Type = type;
-                Only = only;
-                Methods = methods;
+        
+        public async Task Execute(TestRunner testRunner, TestReport testReport) {
+            var testClassInstance = Activator.CreateInstance(Type);
+            Node? node = testClassInstance as Node;
+            if (node != null) {
+                testRunner.SceneTree.Root.AddChild(node);
+                await TestExtensions.AwaitProcessFrame();
             }
-        }
+            if (SetupClass != null) foreach (var methodInfo in SetupClass) methodInfo.Invoke(testClassInstance, Array.Empty<object>());
 
-        public class TestMethod {
-            private static readonly object[] EmptyParameters = { };
-
-            public readonly Stopwatch Stopwatch = new();
-
-            public readonly MethodInfo Method;
-
-            public Type FixtureType { get; }
-            public string Name { get; }
-            public string? Description { get; }
-            public Exception Exception { get; private set; }
-            public Result Result { get; private set; }
-            public bool Only { get; set; }
-
-            public IEnumerable<MethodInfo>? Setup { get; set; }
-            public IEnumerable<MethodInfo>? TearDown { get; set; }
-            public string Id { get; set; }
-
-            public TestMethod(MethodInfo method, Type type, string? description, bool only) {
-                FixtureType = type;
-                Method = method;
-                Name = method.Name;
-                Description = description;
-                Only = only;
-            }
-
-            public async Task Execute(SceneTree sceneTree) {
-                object? fixtureInstance = null;
-                Node? node = fixtureInstance as Node;
-                try {
-                    Stopwatch.Start();
-                    fixtureInstance = Activator.CreateInstance(FixtureType);
-                    node = fixtureInstance as Node;
-                    if (node != null) {
-                        sceneTree.Root.AddChild(node);
-                        await TestExtensions.AwaitProcessFrame();
-                    }
-                    if (Setup != null) foreach (var methodInfo in Setup) methodInfo.Invoke(fixtureInstance, EmptyParameters);
-                    var obj = Method.Invoke(fixtureInstance, EmptyParameters);
-                    if (obj is Task task) {
-                        await task;
-                    } else if (obj is IEnumerator coroutine) {
-                        while (coroutine.MoveNext()) {
-                            var next = coroutine.Current;
-                            if (next is Task coTask) {
-                                await coTask;
-                            } else {
-                                await TestExtensions.AwaitProcessFrame();
-                            }
-                        }
-                    }
-                    Result = Result.Passed;
-                    if (TearDown != null) foreach (var methodInfo in TearDown) methodInfo.Invoke(fixtureInstance, EmptyParameters);
-                } catch (Exception e) {
-                    Exception = e.InnerException ?? e;
-                    Result = Result.Failed;
-                    try {
-                        if (TearDown != null && fixtureInstance != null) {
-                            foreach (var methodInfo in TearDown) methodInfo.Invoke(fixtureInstance, EmptyParameters);
-                        }
-                    } catch (Exception) {
-                        // ignore tearDown error in failed tests
-                    }
-                }
-                if (Godot.GodotObject.IsInstanceValid(node)) {
-                    node.QueueFree();
-                    await TestExtensions.AwaitProcessFrame();
-                }
-                Stopwatch.Stop();
-            }
-        }
-
-
-        public async Task Run(SceneTree sceneTree, Action<TestMethod>? startCallback = null,
-            Action<TestMethod>? resultCallback = null) {
-            TestExtensions.SceneTree = sceneTree;
-            TestsFailedResults.Clear();
-            TestsFailed = 0;
-            TestsPassed = 0;
-            TestsExecuted = 0;
-            TestsTotal = _testMethods.Count;
-            foreach (var testMethod in _testMethods) {
-                TestsExecuted++;
-                testMethod.Id = TestsExecuted.ToString();
-                startCallback?.Invoke(testMethod);
-                await testMethod.Execute(sceneTree);
+            foreach (var testMethod in Methods) {
+                testReport.TestsExecuted++;
+                testMethod.Id = testReport.TestsExecuted.ToString();
+                testRunner.OnStart?.Invoke(testReport, testMethod);
+                await testMethod.Execute(testReport, testClassInstance);
                 if (testMethod.Result == Result.Passed) {
-                    TestsPassed++;
+                    testReport.TestsPassed++;
                 } else {
-                    TestsFailed++;
-                    TestsFailedResults.Add(testMethod);
+                    testReport.TestsFailed++;
+                    testReport.TestsFailedResults.Add(testMethod);
                 }
-                resultCallback?.Invoke(testMethod);
+                testRunner.OnResult?.Invoke(testReport, testMethod);
+            }
+
+            if (TearDownClass != null) foreach (var methodInfo in TearDownClass) methodInfo.Invoke(testClassInstance, Array.Empty<object>());
+
+            if (GodotObject.IsInstanceValid(node)) {
+                node!.QueueFree();
+                await TestExtensions.AwaitProcessFrame();
             }
         }
+    }
 
-        private List<TestFixture> ScanFixturesFromAssemblies(Assembly[]? assemblies = null) {
-            Stopwatch st = new Stopwatch();
-            st.Start();
-            assemblies ??= AppDomain.CurrentDomain.GetAssemblies();
-            var cleanNotOnly = false;
-            var fixtures = new List<TestFixture>();
-            foreach (var assembly in assemblies) {
-                GD.Print($"Scanning assembly {assembly}...");
-                foreach (Type type in assembly.GetTypes()) {
-                    if (IsTestFixture(type)) {
-                        GD.Print($"+ Fixture {type}");
-                        var testFixture = CreateFixture(type);
-                        fixtures.Add(testFixture);
-                        cleanNotOnly = cleanNotOnly || testFixture.Only;
+    public class TestMethod {
+        public readonly Stopwatch Stopwatch = new();
+        public readonly MethodInfo Method;
+
+        public TestClass TestClass { get; }
+        public string Name { get; }
+        public string? Description { get; }
+        public Exception Exception { get; private set; }
+        public Result Result { get; private set; }
+        public bool Only { get; set; }
+
+        public IEnumerable<MethodInfo>? Setup { get; set; }
+        public IEnumerable<MethodInfo>? TearDown { get; set; }
+        public string Id { get; set; }
+
+        public TestMethod(MethodInfo method, TestClass type, string? description, bool only) {
+            TestClass = type;
+            Method = method;
+            Name = method.Name;
+            Description = description;
+            Only = only;
+        }
+
+        public async Task Execute(TestReport testReport, object? testClassInstance) {
+            try {
+                Stopwatch.Start();
+                if (Setup != null) foreach (var methodInfo in Setup) methodInfo.Invoke(testClassInstance, Array.Empty<object>());
+                var obj = Method.Invoke(testClassInstance, Array.Empty<object>());
+                if (obj is Task task) {
+                    await task;
+                } else if (obj is IEnumerator coroutine) {
+                    while (coroutine.MoveNext()) {
+                        var next = coroutine.Current;
+                        if (next is Task coTask) {
+                            await coTask;
+                        } else {
+                            await TestExtensions.AwaitProcessFrame();
+                        }
                     }
                 }
+                Result = Result.Passed;
+                if (TearDown != null) foreach (var methodInfo in TearDown) methodInfo.Invoke(testClassInstance, Array.Empty<object>());
+            } catch (Exception e) {
+                Exception = e.InnerException ?? e;
+                Result = Result.Failed;
             }
-            if (cleanNotOnly) {
-                fixtures.RemoveAll(t => !t.Only);
-                fixtures.ForEach(fixture => fixture.Methods.RemoveAll(m => !m.Only));
-            }
-            st.Stop();
-            GD.Print($"Added {fixtures.Sum((fixture => fixture.Methods.Count))} tests in {st.ElapsedMilliseconds}ms");
-            return fixtures;
+            Stopwatch.Stop();
         }
+    }
 
-        private bool IsTestFixture(Type type) {
-            if (Attribute.GetCustomAttribute(type, typeof(TestFixtureAttribute), false) is TestFixtureAttribute) {
-                return !(Attribute.GetCustomAttribute(type, typeof(IgnoreAttribute), false) is IgnoreAttribute);
-            }
-            return false;
-        }
-
-        private static TestFixture CreateFixture(Type type) {
-            var onlyThisType = Attribute.GetCustomAttribute(type, typeof(OnlyAttribute), false) is OnlyAttribute;
-            var testMethods = new List<TestMethod>();
-            var setup = new List<MethodInfo>();
-            var tearDown = new List<MethodInfo>();
-            var isAnyMethodWithOnly = false;
-            foreach (var method in type.GetMethods()) {
-                if (Attribute.GetCustomAttribute(method, typeof(TestAttribute), false) is TestAttribute testAttribute) {
-                    try {
-                        if (Attribute.GetCustomAttribute(method, typeof(IgnoreAttribute), false) is IgnoreAttribute) {
-                            continue;
-                        }
-
-                        var onlyThisMethod = false;
-                        if (Attribute.GetCustomAttribute(method, typeof(OnlyAttribute),
-                                false) is OnlyAttribute) {
-                            onlyThisMethod = true;
-                            isAnyMethodWithOnly = true;
-                        }
-                        testMethods.Add(new TestMethod(method, type, testAttribute.Description, onlyThisMethod));
-                    } catch {
-                        // Fail the test here?
-                    }
-                } else {
-                    if (Attribute.GetCustomAttribute(method, typeof(SetUpAttribute),false) is SetUpAttribute)
-                        setup.Add(method);
-                    if (Attribute.GetCustomAttribute(method, typeof(TearDownAttribute), false) is TearDownAttribute)
-                        tearDown.Add(method);
+    private List<TestClass> ScanTestClassesFromAssemblies(Assembly[]? assemblies = null) {
+        Stopwatch st = new Stopwatch();
+        st.Start();
+        assemblies ??= AppDomain.CurrentDomain.GetAssemblies();
+        var cleanNotOnly = false;
+        var testClasses = new List<TestClass>();
+        foreach (var assembly in assemblies) {
+            GD.Print($"Scanning assembly {assembly}...");
+            foreach (Type type in assembly.GetTypes()) {
+                if (GetAttribute<TestAttribute>(type) is { Ignore: false } && !HasAttribute<IgnoreAttribute>(type)) {
+                    GD.Print($"+ Test class {type}");
+                    var testClass = CreateTestClass(type);
+                    testClasses.Add(testClass);
+                    cleanNotOnly = cleanNotOnly || testClass.Only;
                 }
             }
-            testMethods.ForEach(testMethod => {
-                if (setup.Count > 0) testMethod.Setup = setup;
-                if (tearDown.Count > 0) testMethod.TearDown = tearDown;
-            });
-            if (!isAnyMethodWithOnly && onlyThisType) {
-                // If none of the methods has Only, but the Fixture has Only, then mark all methods as Only too
-                testMethods.ForEach(method => method.Only = true);
-            } else if (isAnyMethodWithOnly && !onlyThisType) {
-                // If at least one of the methods has Only, but the Fixture has not Only, mark the Fixture as Only too
-                onlyThisType = true;
-            }
-            return new TestFixture(type, onlyThisType, testMethods);
         }
+        if (cleanNotOnly) {
+            testClasses.RemoveAll(testClass => !testClass.Only);
+            testClasses.ForEach(testClass => testClass.Methods.RemoveAll(m => !m.Only));
+        }
+        st.Stop();
+        GD.Print($"Added {testClasses.Sum((testClass => testClass.Methods.Count))} tests in {st.ElapsedMilliseconds}ms");
+        return testClasses;
+    }
+
+    private static TestClass CreateTestClass(Type type) {
+        List<TestMethod> testMethods = new();
+        List<MethodInfo>? setupClass = null;
+        List<MethodInfo>? setup = null;
+        List<MethodInfo>? tearDownClass = null;
+        List<MethodInfo>? tearDown = null;
+        var isAnyMethodWithOnly = false;
+        var onlyThisType = HasAttribute<OnlyAttribute>(type) || GetAttribute<TestAttribute>(type)!.Only;
+        var testClass = new TestClass(type);
+        foreach (var method in type.GetMethods()) {
+            var testAttribute = GetAttribute<TestAttribute>(method);
+            if (testAttribute != null) {
+                if (HasAttribute<IgnoreAttribute>(method) || testAttribute.Ignore) continue;
+                var onlyThisMethod = HasAttribute<OnlyAttribute>(method);
+                isAnyMethodWithOnly = isAnyMethodWithOnly || onlyThisMethod;
+                var testMethod = new TestMethod(method, testClass, testAttribute.Description, onlyThisMethod);
+                testMethods.Add(testMethod);
+            } else {
+                if (HasAttribute<SetUpClassAttribute>(method)) {
+                    setupClass ??= new List<MethodInfo>();
+                    setupClass.Add(method);
+                }
+                if (HasAttribute<TearDownClassAttribute>(method)) {
+                    tearDownClass ??= new List<MethodInfo>();
+                    tearDownClass.Add(method);
+                }
+                if (HasAttribute<SetUpAttribute>(method)) {
+                    setup ??= new List<MethodInfo>();
+                    setup.Add(method);
+                }
+                if (HasAttribute<TearDownAttribute>(method)) {
+                    tearDown ??= new List<MethodInfo>();
+                    tearDown.Add(method);
+                }
+            }
+        }
+        testMethods.ForEach(testMethod => {
+            testMethod.Setup = setup;
+            testMethod.TearDown = tearDown;
+        });
+        if (!isAnyMethodWithOnly && onlyThisType) {
+            // If none of the methods has Only, but the TestClass has Only, then mark all methods as Only too
+            testMethods.ForEach(method => method.Only = true);
+        } else if (isAnyMethodWithOnly && !onlyThisType) {
+            // If at least one of the methods has Only, but the TestClass has not Only, mark the TestClass as Only too
+            onlyThisType = true;
+        }
+        testClass.Only = onlyThisType;
+        testClass.Methods = testMethods;
+        testClass.SetupClass = setupClass;
+        testClass.TearDownClass = tearDownClass;
+        return testClass;
+    }
+    
+    public static T? GetAttribute<T>(MemberInfo member, bool inherit = false) where T : Attribute {
+        return Attribute.GetCustomAttribute(member, typeof(T), inherit) as T;
+    }
+
+    public static bool HasAttribute<T>(MemberInfo member, bool inherit = false) where T : Attribute {
+        return Attribute.GetCustomAttribute(member, typeof(T), inherit) is T;
     }
 }

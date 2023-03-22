@@ -7,14 +7,14 @@ using NUnit.Framework;
 
 namespace Betauer.Bus.Tests.Signal; 
 
-[TestFixture]
+[TestRunner.Test]
 public class BodyShapeOnArea2DTests : BaseNodeTest {
-    [SetUp]
+    [SetUpClass]
     public void Setup() {
         LoggerFactory.OverrideTraceLevel(TraceLevel.All);
     }
 
-    [Test]
+    [TestRunner.Test]
     public async Task BodyShapeOnArea2DCollisionTests() {
         var body = CreateKinematicBody2D("player body", 0, 0);
         var area2D = CreateArea2D("area", 2000, 2000);

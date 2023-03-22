@@ -1,52 +1,53 @@
+using Betauer.TestRunner;
 using NUnit.Framework;
 
-namespace Betauer.Tools.Logging.Tests {
-    [TestFixture]
-    public class LoggerTests {
-        [SetUp]
-        public void Setup() {
-            LoggerFactory.Reset();
-        }
+namespace Betauer.Tools.Logging.Tests; 
 
-        [Test]
-        public void TraceLevelDefault() {
-            Logger log = LoggerFactory.GetLogger("Pepe");
-            Assert.That(log.MaxTraceLevel, Is.EqualTo(TraceLevel.Error));
-        }
+[TestRunner.Test]
+public class LoggerTests {
+    [TestRunner.SetUp]
+    public void Setup() {
+        LoggerFactory.Reset();
+    }
 
-        [Test]
-        public void LoggersAreCachedCaseInsensitive() {
-            Assert.That(LoggerFactory.Loggers.Count, Is.EqualTo(0));
-            Logger log = LoggerFactory.GetLogger("Pepe");
-            Assert.That(log.MaxTraceLevel, Is.EqualTo(TraceLevel.Error));
+    [TestRunner.Test]
+    public void TraceLevelDefault() {
+        Logger log = LoggerFactory.GetLogger("Pepe");
+        Assert.That(log.MaxTraceLevel, Is.EqualTo(TraceLevel.Error));
+    }
 
-            Assert.That(LoggerFactory.Loggers.Count, Is.EqualTo(1));
-            Logger log2 = LoggerFactory.GetLogger("PEPE");
+    [TestRunner.Test]
+    public void LoggersAreCachedCaseInsensitive() {
+        Assert.That(LoggerFactory.Loggers.Count, Is.EqualTo(0));
+        Logger log = LoggerFactory.GetLogger("Pepe");
+        Assert.That(log.MaxTraceLevel, Is.EqualTo(TraceLevel.Error));
 
-            Assert.That(log.GetHashCode(), Is.EqualTo(log2.GetHashCode()));
-            Assert.That(LoggerFactory.Loggers.Count, Is.EqualTo(1));
-        }
+        Assert.That(LoggerFactory.Loggers.Count, Is.EqualTo(1));
+        Logger log2 = LoggerFactory.GetLogger("PEPE");
 
-        [Test]
-        public void TraceLevelTests() {
-            Assert.That(LoggerFactory.GetLogger("P").MaxTraceLevel, Is.EqualTo(TraceLevel.Error));
-            Assert.That(LoggerFactory.GetLogger("PLAYER").MaxTraceLevel, Is.EqualTo(TraceLevel.Error));
+        Assert.That(log.GetHashCode(), Is.EqualTo(log2.GetHashCode()));
+        Assert.That(LoggerFactory.Loggers.Count, Is.EqualTo(1));
+    }
 
-            LoggerFactory.SetTraceLevel("PLAYER", TraceLevel.Debug);
-            Assert.That(LoggerFactory.GetLogger("P").MaxTraceLevel, Is.EqualTo(TraceLevel.Error));
-            Assert.That(LoggerFactory.GetLogger("PLAYER").MaxTraceLevel, Is.EqualTo(TraceLevel.Debug));
+    [TestRunner.Test]
+    public void TraceLevelTests() {
+        Assert.That(LoggerFactory.GetLogger("P").MaxTraceLevel, Is.EqualTo(TraceLevel.Error));
+        Assert.That(LoggerFactory.GetLogger("PLAYER").MaxTraceLevel, Is.EqualTo(TraceLevel.Error));
 
-            LoggerFactory.SetDefaultTraceLevel(TraceLevel.Fatal);
-            Assert.That(LoggerFactory.GetLogger("P").MaxTraceLevel, Is.EqualTo(TraceLevel.Fatal));
-            Assert.That(LoggerFactory.GetLogger("PLAYER").MaxTraceLevel, Is.EqualTo(TraceLevel.Debug));
+        LoggerFactory.SetTraceLevel("PLAYER", TraceLevel.Debug);
+        Assert.That(LoggerFactory.GetLogger("P").MaxTraceLevel, Is.EqualTo(TraceLevel.Error));
+        Assert.That(LoggerFactory.GetLogger("PLAYER").MaxTraceLevel, Is.EqualTo(TraceLevel.Debug));
 
-            LoggerFactory.OverrideTraceLevel(TraceLevel.Info);
-            Assert.That(LoggerFactory.GetLogger("P").MaxTraceLevel, Is.EqualTo(TraceLevel.Info));
-            Assert.That(LoggerFactory.GetLogger("PLAYER").MaxTraceLevel, Is.EqualTo(TraceLevel.Info));
+        LoggerFactory.SetDefaultTraceLevel(TraceLevel.Fatal);
+        Assert.That(LoggerFactory.GetLogger("P").MaxTraceLevel, Is.EqualTo(TraceLevel.Fatal));
+        Assert.That(LoggerFactory.GetLogger("PLAYER").MaxTraceLevel, Is.EqualTo(TraceLevel.Debug));
 
-            LoggerFactory.SetDefaultTraceLevel(TraceLevel.Fatal);
-            Assert.That(LoggerFactory.GetLogger("P").MaxTraceLevel, Is.EqualTo(TraceLevel.Fatal));
-            Assert.That(LoggerFactory.GetLogger("PLAYER").MaxTraceLevel, Is.EqualTo(TraceLevel.Info));
-        }
+        LoggerFactory.OverrideTraceLevel(TraceLevel.Info);
+        Assert.That(LoggerFactory.GetLogger("P").MaxTraceLevel, Is.EqualTo(TraceLevel.Info));
+        Assert.That(LoggerFactory.GetLogger("PLAYER").MaxTraceLevel, Is.EqualTo(TraceLevel.Info));
+
+        LoggerFactory.SetDefaultTraceLevel(TraceLevel.Fatal);
+        Assert.That(LoggerFactory.GetLogger("P").MaxTraceLevel, Is.EqualTo(TraceLevel.Fatal));
+        Assert.That(LoggerFactory.GetLogger("PLAYER").MaxTraceLevel, Is.EqualTo(TraceLevel.Info));
     }
 }

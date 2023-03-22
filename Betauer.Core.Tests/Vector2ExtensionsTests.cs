@@ -3,9 +3,9 @@ using NUnit.Framework;
 
 namespace Betauer.Core.Tests; 
 
-[TestFixture]
+[TestRunner.Test]
 public class Vector2ExtensionsTest {
-    [Test]
+    [TestRunner.Test]
     public void UpDownTests() {
 
         Assert.That(Vector2.Up.Rotate180(), Is.EqualTo(Vector2.Down));
@@ -52,7 +52,7 @@ public class Vector2ExtensionsTest {
 
     }
 
-    [Test]
+    [TestRunner.Test]
     public void NonRegularFacingUpTests() {
 
         Assert.That(45F.AngleToVector().IsRight(Vector2.Up), Is.True);
@@ -76,7 +76,7 @@ public class Vector2ExtensionsTest {
         Assert.That(315F.AngleToVector().IsOppositeDirection(Vector2.Up), Is.True);
     }
 
-    [Test]
+    [TestRunner.Test]
     public void NonRegularFacingRightTests() {
         // So, if floor is facing right, a 45º angle is facing to the up-left quarter
         Assert.That(45F.AngleToVector().IsRight(Vector2.Right), Is.False);
@@ -85,7 +85,7 @@ public class Vector2ExtensionsTest {
         Assert.That(45F.AngleToVector().IsOppositeDirection(Vector2.Right), Is.False);
     }
 
-    [Test]
+    [TestRunner.Test]
     public void SlopeFacingUpTests() {
         // The angles are normal collision, so 90º means a flat floor
         Assert.That(90F.AngleToVector().IsFloor(Vector2.Up), Is.True);
@@ -110,7 +110,7 @@ public class Vector2ExtensionsTest {
         Assert.That(90F.AngleToVector().IsCeiling(Vector2.Up), Is.False);
     }
 
-    [Test]
+    [TestRunner.Test]
     public void SlopeFacingRightTests() {
         // The angles are normal collision, so 90º means a flat floor. But, facing to the right, 0º means flat floor
         Assert.That(45F.AngleToVector().IsFloor(Vector2.Right), Is.True);

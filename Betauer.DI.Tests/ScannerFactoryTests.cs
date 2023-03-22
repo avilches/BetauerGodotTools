@@ -9,9 +9,9 @@ using NUnit.Framework;
 
 namespace Betauer.DI.Tests; 
 
-[TestFixture]
+[TestRunner.Test]
 public class ScannerFactoryTests : Node {
-    [SetUp]
+    [SetUpClass]
     public void Setup() {
         LoggerFactory.OverrideTraceLevel(TraceLevel.All);
     }
@@ -23,21 +23,21 @@ public class ScannerFactoryTests : Node {
         [SingletonFactory] public Node WrongType => new Node();
 
     }
-    [Test(Description = "[SingletonFactory] should implement IFactory<> (class)")]
+    [TestRunner.Test(Description = "[SingletonFactory] should implement IFactory<> (class)")]
     public void FactoryWrongType1() {
         var c = new Container();
         var di = c.CreateBuilder();
         Assert.Throws<InvalidAttributeException>(() => di.Scan<WrongFactory>());
     }
 
-    [Test(Description = "[SingletonFactory] should implement IFactory<> (configuration)")]
+    [TestRunner.Test(Description = "[SingletonFactory] should implement IFactory<> (configuration)")]
     public void FactoryWrongType2() {
         var c = new Container();
         var di = c.CreateBuilder();
         Assert.Throws<InvalidAttributeException>(() => di.Scan<WrongConfig>());
     }
 
-    [Test(Description = "Not implement IFactory<> fails at runtime")]
+    [TestRunner.Test(Description = "Not implement IFactory<> fails at runtime")]
     public void FactoryWrongType3() {
         var c = new Container();
         var di = c.CreateBuilder();
@@ -62,7 +62,7 @@ public class ScannerFactoryTests : Node {
         [Inject] public IFactory<TransientD> TransientD { get; set; }
     }
 
-    [Test(Description = "Test defining a Transient service by name with a Factory")]
+    [TestRunner.Test(Description = "Test defining a Transient service by name with a Factory")]
     public void FactoryTransientFromConfiguration() {
         TransientD.Instances = 0;
         var c = new Container();
@@ -79,7 +79,7 @@ public class ScannerFactoryTests : Node {
         Assert.That(TransientD.Instances, Is.EqualTo(3));
     }
 
-    [Test(Description = "Register a Singleton Factory")]
+    [TestRunner.Test(Description = "Register a Singleton Factory")]
     public void RegisterSingletonAndAddFactoryTst() {
         var c = new Container();
         var di = c.CreateBuilder();
@@ -91,7 +91,7 @@ public class ScannerFactoryTests : Node {
         Assert.That(factory.Get(), Is.EqualTo(c.Resolve<Node>()));
     }
 
-    [Test(Description = "Register a Transient Factory")]
+    [TestRunner.Test(Description = "Register a Transient Factory")]
     public void RegisterTransientAndAddFactoryTest() {
         var c = new Container();
         var di = c.CreateBuilder();
@@ -181,7 +181,7 @@ public class ScannerFactoryTests : Node {
         [Inject] public MyTransient MyTransient { get; set;  }
     }
 
-    [Test(Description = "Custom service IFactory (in configuration), inject by name and type")]
+    [TestRunner.Test(Description = "Custom service IFactory (in configuration), inject by name and type")]
     public void ServiceFactoryTests() {
         MyServiceFactory.Reset();
         MyTransientFactory.Reset();
@@ -288,7 +288,7 @@ public class ScannerFactoryTests : Node {
         [Inject] public MyTransient MyTransient { get; set;  }
     }
 
-    [Test(Description = "Custom service IFactory (in class), inject by name and type")]
+    [TestRunner.Test(Description = "Custom service IFactory (in class), inject by name and type")]
     public void ServiceFactoryClassTests() {
         MyServiceFactoryClass.Reset();
         MyTransientFactoryClass.Reset();
@@ -389,7 +389,7 @@ public class ScannerFactoryTests : Node {
         }
     }
 
-    [Test(Description = "RegisterServiceAndAddFactory tests, by type and by name")]
+    [TestRunner.Test(Description = "RegisterServiceAndAddFactory tests, by type and by name")]
     public void RegisterFactoryTests() {
         Element1Factory.Instances = 0;
         Element2Factory.Instances = 0;
@@ -409,7 +409,7 @@ public class ScannerFactoryTests : Node {
         Assert.That(c.Resolve<IFactory<Element>>("Factory:E").Get().WasInjected, Is.True);
     }
 
-    [Test(Description = "RegisterCustomFactory tests, by type and by name")]
+    [TestRunner.Test(Description = "RegisterCustomFactory tests, by type and by name")]
     public void RegisterCustomFactoryTests() {
         Element1Factory.Instances = 0;
         Element2Factory.Instances = 0;
@@ -453,7 +453,7 @@ public class ScannerFactoryTests : Node {
         Assert.That(Element2Factory.Instances, Is.EqualTo(1));
     }    
     
-    [Test(Description = "RegisterCustomFactory tests, by type and by name. When the factory is exposed as IFactory<>")]
+    [TestRunner.Test(Description = "RegisterCustomFactory tests, by type and by name. When the factory is exposed as IFactory<>")]
     public void RegisterCustomFactoryAsIFactoryTests() {
         Element1Factory.Instances = 0;
         Element2Factory.Instances = 0;
@@ -505,7 +505,7 @@ public class ScannerFactoryTests : Node {
         Assert.That(Element2Factory.Instances, Is.EqualTo(1));
     }
 
-    [Test(Description = "RegisterCustomFactory tests, by type and by name. When the factory is exposed as IFactory<>")]
+    [TestRunner.Test(Description = "RegisterCustomFactory tests, by type and by name. When the factory is exposed as IFactory<>")]
     public void RegisterCustomFactoryPrimaryTests() {
         Element1Factory.Instances = 0;
         Element2Factory.Instances = 0;

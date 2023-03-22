@@ -14,22 +14,22 @@ using Container = Betauer.DI.Container;
 
 namespace Betauer.GameTools.Tests; 
 
-[TestFixture]
+[TestRunner.Test]
 public partial class SettingTests : Node {
 
     const string SettingsFile = "./test-settings.ini";
     const string SettingsFile1 = "./test-settings-1.ini";
     const string SettingsFile2 = "./test-settings-2.ini";
         
-    [SetUp]
-    [TearDown]
+    [SetUpClass]
+    [TestRunner.TearDownClass]
     public void Clear() {
         System.IO.File.Delete(SettingsFile);
         System.IO.File.Delete(SettingsFile1);
         System.IO.File.Delete(SettingsFile2);
     }
 
-    [Test]
+    [TestRunner.Test]
     public void MemoryTest() {
         var imm = Setting<string>.Memory("I");
             
@@ -38,7 +38,7 @@ public partial class SettingTests : Node {
         Assert.That(imm.Value, Is.EqualTo("X"));
     }
 
-    [Test]
+    [TestRunner.Test]
     public void RegularAutoSaveTest() {
         var sc = new SettingsContainer(SettingsFile);
         var saved = Setting<string>.Persistent("IGNORED", "Section", "AutoSave", "Default");
@@ -62,7 +62,7 @@ public partial class SettingTests : Node {
         Assert.That(cf.GetValue<string>(saved.Section, saved.Name, "WRONG"), Is.EqualTo(changed));
     } 
 
-    [Test]
+    [TestRunner.Test]
     public void RegularNoAutoSaveTest() {
         var sc = new SettingsContainer(SettingsFile);
         var saved = Setting<string>.Persistent("IGNORED", "Section", "NoAutoSave", "Default", false);
@@ -90,7 +90,7 @@ public partial class SettingTests : Node {
         Assert.That(cf.GetValue<string>(saved.Section, saved.Name, "WRONG"), Is.EqualTo(changed));
     } 
 
-    [Test]
+    [TestRunner.Test]
     public void DisabledTest() {
         var sc = new SettingsContainer(SettingsFile);
         var savedDisabled = Setting<string>.Persistent("IGNORED", "Section", "SavedDisabled", "Default", true, false);
@@ -120,7 +120,7 @@ public partial class SettingTests : Node {
         public ISetting<string> P1() => Setting<string>.Persistent("Section", "Name", "Default");
     }
 
-    [Test(Description = "Error if container not found by type")]
+    [TestRunner.Test(Description = "Error if container not found by type")]
     public void ErrorConfigWithNoContainerTest() {
         var di = new Container.Builder();
         di.Scan<ErrorConfigWithNoContainer>();
@@ -133,7 +133,7 @@ public partial class SettingTests : Node {
         public ISetting<string> P1 => Setting<string>.Persistent("NOT FOUND", "Section", "Name", "Default");
     }
 
-    [Test(Description = "Error if container not found by name")]
+    [TestRunner.Test(Description = "Error if container not found by name")]
     public void ErrorConfigWithContainerNotFoundByNameTest() {
         var di = new Container.Builder();
         di.Scan<ErrorConfigWithContainerNotFoundByName>();
@@ -171,7 +171,7 @@ public partial class SettingTests : Node {
         [Inject] public SaveSetting<string> NoEnabled { get; set; }
     }
 
-    [Test]
+    [TestRunner.Test]
     public void ConfigWithSettingContainerTest() {
         var di = new Container.Builder();
         di.Scan<ConfigWithSettingContainer>();
@@ -249,7 +249,7 @@ public partial class SettingTests : Node {
         Assert.That(b.NoEnabled.Value, Is.EqualTo("NEW VALUE")); // still the same, no matter the load
     }
         
-    [Test]
+    [TestRunner.Test]
     public void ConfigWithSettingContainerLoadTest() {
         var cf = new ConfigFile();
         cf.SetTypedValue("Section", "PixelPerfect", false);
@@ -295,7 +295,7 @@ public partial class SettingTests : Node {
         [Inject(SettingsFile2)] public SettingsContainer SettingsContainer2 { get; set; }
     }
 
-    [Test]
+    [TestRunner.Test]
     public void ConfigWithMultipleContainerTest() {
         var di = new Container.Builder();
         di.Scan<ConfigWithMultipleContainer>();

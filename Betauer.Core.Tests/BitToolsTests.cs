@@ -2,10 +2,10 @@ using NUnit.Framework;
 
 namespace Betauer.Core.Tests; 
 
-[TestFixture]
+[TestRunner.Test]
 public class BitToolsTests {
 
-    [Test]
+    [TestRunner.Test]
     public void EnableDisableHasTest() {
         for (var i = 1; i < 20; i++) {
             int bit = 0b00000000000000000000;

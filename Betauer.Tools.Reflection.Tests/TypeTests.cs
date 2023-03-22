@@ -6,9 +6,9 @@ using NUnit.Framework;
 
 namespace Betauer.Tools.Reflection.Tests; 
 
-[TestFixture]
+[TestRunner.Test]
 public class TypeTests {
-    [Test]
+    [TestRunner.Test]
     public void TraceLevelDefault() {
         // False
         Assert.That(typeof(List<>).ImplementsInterface(typeof(IList<string>)), Is.False);

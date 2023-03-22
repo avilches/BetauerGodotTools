@@ -34,6 +34,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.StateMachine.Tests"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Tools.Logging.Tests", "..\Betauer.Tools.Logging.Tests\Betauer.Tools.Logging.Tests.csproj", "{512BA530-14C7-46CB-81EA-36BA4305B6CA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Tools.Reflection.Tests", "..\Betauer.Tools.Reflection.Tests\Betauer.Tools.Reflection.Tests.csproj", "{2446EA29-E9F3-4E66-87CC-968F8FC70315}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 	Debug|Any CPU = Debug|Any CPU
@@ -143,5 +145,11 @@ Global
 		{512BA530-14C7-46CB-81EA-36BA4305B6CA}.ExportDebug|Any CPU.Build.0 = Debug|Any CPU
 		{512BA530-14C7-46CB-81EA-36BA4305B6CA}.ExportRelease|Any CPU.ActiveCfg = Debug|Any CPU
 		{512BA530-14C7-46CB-81EA-36BA4305B6CA}.ExportRelease|Any CPU.Build.0 = Debug|Any CPU
+		{2446EA29-E9F3-4E66-87CC-968F8FC70315}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2446EA29-E9F3-4E66-87CC-968F8FC70315}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2446EA29-E9F3-4E66-87CC-968F8FC70315}.ExportDebug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2446EA29-E9F3-4E66-87CC-968F8FC70315}.ExportDebug|Any CPU.Build.0 = Debug|Any CPU
+		{2446EA29-E9F3-4E66-87CC-968F8FC70315}.ExportRelease|Any CPU.ActiveCfg = Debug|Any CPU
+		{2446EA29-E9F3-4E66-87CC-968F8FC70315}.ExportRelease|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 EndGlobal
