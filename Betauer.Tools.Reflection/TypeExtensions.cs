@@ -103,37 +103,4 @@ public static class TypeExtensions {
         if (memberFlags.HasFlag(MemberTypes.Field)) e = e.Concat(type.GetFields(bindingAttr));
         return e;
     }
-
-    public static void Main() {
-        // False
-        Console.WriteLine(typeof(List<>).ImplementsInterface(typeof(IList<string>)));
-        Console.WriteLine(typeof(Dictionary<,>).ImplementsInterface(typeof(IDictionary<string,int>)));
-        Console.WriteLine(typeof(IEnumerable).ImplementsInterface(typeof(IList)));
-        Console.WriteLine(typeof(IEnumerable).ImplementsInterface(typeof(IList<string>)));
-        
-        // True
-        Console.WriteLine(typeof(IList).ImplementsInterface(typeof(IEnumerable)));
-        Console.WriteLine(typeof(List<string>).ImplementsInterface(typeof(IEnumerable)));
-        Console.WriteLine(typeof(List<string>).ImplementsInterface(typeof(IEnumerable<>)));
-        Console.WriteLine(typeof(List<string>).ImplementsInterface(typeof(IList<string>)));
-        Console.WriteLine(typeof(List<string>).ImplementsInterface(typeof(IList<>)));
-        Console.WriteLine(typeof(List<>).ImplementsInterface(typeof(IList<>)));
-        
-        Console.WriteLine(typeof(IList<string>).ImplementsInterface(typeof(IList<string>)));
-        Console.WriteLine(typeof(IList<string>).ImplementsInterface(typeof(IList<>)));
-        Console.WriteLine(typeof(IList<>).ImplementsInterface(typeof(IList<>)));
-
-        Console.WriteLine(typeof(Dictionary<string, int>).ImplementsInterface(typeof(IEnumerable)));
-        Console.WriteLine(typeof(Dictionary<string, int>).ImplementsInterface(typeof(IEnumerable<>)));
-        Console.WriteLine(typeof(Dictionary<string, int>).ImplementsInterface(typeof(IDictionary<,>)));
-        Console.WriteLine(typeof(Dictionary<string, int>).ImplementsInterface(typeof(IDictionary<string,int>)));
-        Console.WriteLine(typeof(Dictionary<string, int>).ImplementsInterface(typeof(IReadOnlyDictionary<string,int>)));
-        Console.WriteLine(typeof(Dictionary<string, int>).ImplementsInterface(typeof(IReadOnlyCollection<KeyValuePair<string,int>>)));
-        Console.WriteLine(typeof(Dictionary<string, int>).ImplementsInterface(typeof(ICollection<KeyValuePair<string,int>>)));
-        Console.WriteLine(typeof(Dictionary<,>).ImplementsInterface(typeof(IEnumerable)));
-
-        Console.WriteLine(typeof(IDictionary<string, int>).ImplementsInterface(typeof(IEnumerable)));
-        Console.WriteLine(typeof(IDictionary<string, int>).ImplementsInterface(typeof(IEnumerable<>)));
-        Console.WriteLine(typeof(IDictionary<string, int>).ImplementsInterface(typeof(ICollection<KeyValuePair<string,int>>)));
-    }
 }

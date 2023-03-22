@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <EnableDynamicLoading>true</EnableDynamicLoading>
+        <LangVersion>11.0</LangVersion>
+        <RootNamespace>Betauer.Tools.Reflection.Tests</RootNamespace>
+        <PackageId>Betauer.Tools.Reflection.Tests</PackageId>
+        <AssemblyName>Betauer.Tools.Reflection.Tests</AssemblyName>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="GodotSharp" Version="4.0.1-rc.1" />
+        <PackageReference Include="ZString" Version="2.5.0" />
+        <PackageReference Include="NUnit" Version="3.13.3" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Betauer.TestRunner\Betauer.TestRunner.csproj" />
+        <ProjectReference Include="..\Betauer.Tools.Logging\Betauer.Tools.Logging.csproj" />
+        <ProjectReference Include="..\Betauer.Tools.Reflection\Betauer.Tools.Reflection.csproj" />
+    </ItemGroup>
+</Project>

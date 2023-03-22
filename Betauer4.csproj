@@ -25,6 +25,7 @@
     <ProjectReference Include="Betauer.Animation.Tests/Betauer.Animation.Tests.csproj" />
     <ProjectReference Include="Betauer.Core.Tests/Betauer.Core.Tests.csproj" />
     <ProjectReference Include="Betauer.Tools.Logging.Tests/Betauer.Tools.Logging.Tests.csproj" />
+    <ProjectReference Include="Betauer.Tools.Reflection.Tests/Betauer.Tools.Reflection.Tests.csproj" />
     <ProjectReference Include="Betauer.Bus.Tests/Betauer.Bus.Tests.csproj" />
     <ProjectReference Include="Betauer.DI.Tests/Betauer.DI.Tests.csproj" />
     <ProjectReference Include="Betauer.GameTools.Tests/Betauer.GameTools.Tests.csproj" />

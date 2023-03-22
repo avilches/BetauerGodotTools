@@ -34,6 +34,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Tools.Logging", "Be
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Tools.Logging.Tests", "Betauer.Tools.Logging.Tests\Betauer.Tools.Logging.Tests.csproj", "{23750989-C5EC-446C-ABE2-86CEB17751A3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Tools.Reflection.Tests", "Betauer.Tools.Reflection.Tests\Betauer.Tools.Reflection.Tests.csproj", "{8D0D007E-694F-45D4-8964-75C05A5B32D9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 	Debug|Any CPU = Debug|Any CPU
@@ -155,6 +157,12 @@ Global
 		{23750989-C5EC-446C-ABE2-86CEB17751A3}.ExportDebug|Any CPU.Build.0 = Debug|Any CPU
 		{23750989-C5EC-446C-ABE2-86CEB17751A3}.ExportRelease|Any CPU.ActiveCfg = Debug|Any CPU
 		{23750989-C5EC-446C-ABE2-86CEB17751A3}.ExportRelease|Any CPU.Build.0 = Debug|Any CPU
+		{8D0D007E-694F-45D4-8964-75C05A5B32D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8D0D007E-694F-45D4-8964-75C05A5B32D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8D0D007E-694F-45D4-8964-75C05A5B32D9}.ExportDebug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8D0D007E-694F-45D4-8964-75C05A5B32D9}.ExportDebug|Any CPU.Build.0 = Debug|Any CPU
+		{8D0D007E-694F-45D4-8964-75C05A5B32D9}.ExportRelease|Any CPU.ActiveCfg = Debug|Any CPU
+		{8D0D007E-694F-45D4-8964-75C05A5B32D9}.ExportRelease|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(RiderSharedRunConfigurations) = postSolution
 		File = DemoGame\.run\Editor.run.xml
