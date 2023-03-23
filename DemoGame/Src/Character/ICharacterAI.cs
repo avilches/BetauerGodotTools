@@ -4,5 +4,5 @@ public interface ICharacterAI {
     public void Execute();
     public void EndFrame();
     public string GetState();
-    public void Reset(); // Shared with IStateMachine
+    public void Reset(); // Shared with IFSM
 }

@@ -8,7 +8,7 @@ using Betauer.Input;
 using Betauer.Core.Nodes;
 using Betauer.DI.Factory;
 using Betauer.Nodes;
-using Betauer.StateMachine.Async;
+using Betauer.FSM.Async;
 using Veronenger.Config;
 using Veronenger.UI;
 
@@ -43,7 +43,7 @@ public enum MainEvent {
 }
 
 [Singleton]
-public partial class MainStateMachine : StateMachineNodeAsync<MainState, MainEvent>, IInjectable {
+public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInjectable {
 
     [Inject] private IFactory<MainMenu> MainMenuSceneFactory { get; set; }
     [Inject] private IFactory<BottomBar> BottomBarSceneFactory { get; set; }

@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <EnableDynamicLoading>true</EnableDynamicLoading>
+        <LangVersion>11.0</LangVersion>
+        <RootNamespace>Betauer.FSM.Tests</RootNamespace>
+        <PackageId>Betauer.FSM.Tests</PackageId>
+        <AssemblyName>Betauer.FSM.Tests</AssemblyName>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="NUnit" Version="3.13.3" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Betauer.TestRunner\Betauer.TestRunner.csproj" />
+        <ProjectReference Include="..\Betauer.FSM\Betauer.FSM.csproj" />
+    </ItemGroup>
+</Project>

@@ -9,14 +9,14 @@ using Betauer.DI;
 using Betauer.Input;
 using Betauer.Loader;
 using Betauer.Core.Signal;
-using Betauer.StateMachine;
-using Betauer.StateMachine.Async;
+using Betauer.FSM;
+using Betauer.FSM.Async;
 using DemoAnimation.Controller.Menu;
 using Godot;
 
 namespace DemoAnimation.Managers {
     [Service]
-    public class MainStateMachine : StateMachineNodeAsync<MainStateMachine.State, MainStateMachine.Transition> {
+    public class MainFSM : FSMNodeAsync<MainFSM.State, MainFSM.Transition> {
         public enum Transition {
             FinishLoading,
             Back,
@@ -44,7 +44,7 @@ namespace DemoAnimation.Managers {
         [Inject] private InputAction UiAccept { get; set; }
         [Inject] private InputAction UiCancel { get; set; }
 
-        public MainStateMachine() : base(State.Init) {
+        public MainFSM() : base(State.Init) {
             On(Transition.FinishLoading).PopPush(State.MainMenu);
             State(State.Init)
                 .Enter(async () => {

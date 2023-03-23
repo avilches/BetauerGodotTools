@@ -12,7 +12,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Core", "..\Betauer.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.GameTools", "..\Betauer.GameTools\Betauer.GameTools.csproj", "{003326B0-6B7D-447D-A503-5A2542EF3CEC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.StateMachine", "..\Betauer.StateMachine\Betauer.StateMachine.csproj", "{D4F947ED-7342-4937-8455-DD2F756923CD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.FSM", "..\Betauer.FSM\Betauer.FSM.csproj", "{D4F947ED-7342-4937-8455-DD2F756923CD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Bus", "..\Betauer.Bus\Betauer.Bus.csproj", "{A0347EEC-5BA0-4526-824C-F237A0A3CCCF}"
 EndProject
@@ -30,7 +30,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.DI.Tests", "..\Beta
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.GameTools.Tests", "..\Betauer.GameTools.Tests\Betauer.GameTools.Tests.csproj", "{0F242418-FBE0-4A4A-9558-58B717AC0F7C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.StateMachine.Tests", "..\Betauer.StateMachine.Tests\Betauer.StateMachine.Tests.csproj", "{B6024CAE-0239-4440-BAA7-DA308173872F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.FSM.Tests", "..\Betauer.FSM.Tests\Betauer.FSM.Tests.csproj", "{B6024CAE-0239-4440-BAA7-DA308173872F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Tools.Logging.Tests", "..\Betauer.Tools.Logging.Tests\Betauer.Tools.Logging.Tests.csproj", "{512BA530-14C7-46CB-81EA-36BA4305B6CA}"
 EndProject

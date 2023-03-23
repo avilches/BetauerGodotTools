@@ -10,7 +10,7 @@ Project("{FAE04EC0-801F-11D8-BF4B-00C04F79EFBC}") = "Betauer.Core", "..\Betauer.
 EndProject
 Project("{FAE04EC0-801F-11D8-BF4B-00C04F79EFBC}") = "Betauer.GameTools", "..\Betauer.GameTools\Betauer.GameTools.csproj", "{008826B0-6B7D-447D-A508-5A2542EF8CEC}"
 EndProject
-Project("{FAE04EC0-801F-11D8-BF4B-00C04F79EFBC}") = "Betauer.StateMachine", "..\Betauer.StateMachine\Betauer.StateMachine.csproj", "{D4F947ED-7842-4987-3455-DD2F756928CD}"
+Project("{FAE04EC0-801F-11D8-BF4B-00C04F79EFBC}") = "Betauer.FSM", "..\Betauer.FSM\Betauer.FSM.csproj", "{D4F947ED-7842-4987-3455-DD2F756928CD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

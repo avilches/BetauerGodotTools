@@ -17,7 +17,7 @@
     <ProjectReference Include="Betauer.Bus/Betauer.Bus.csproj" />
     <ProjectReference Include="Betauer.DI/Betauer.DI.csproj" />
     <ProjectReference Include="Betauer.GameTools/Betauer.GameTools.csproj" />
-    <ProjectReference Include="Betauer.StateMachine/Betauer.StateMachine.csproj" />
+    <ProjectReference Include="Betauer.FSM/Betauer.FSM.csproj" />
     <ProjectReference Include="Betauer.TestRunner/Betauer.TestRunner.csproj" />
   </ItemGroup>
   <ItemGroup>
@@ -29,7 +29,7 @@
     <ProjectReference Include="Betauer.Bus.Tests/Betauer.Bus.Tests.csproj" />
     <ProjectReference Include="Betauer.DI.Tests/Betauer.DI.Tests.csproj" />
     <ProjectReference Include="Betauer.GameTools.Tests/Betauer.GameTools.Tests.csproj" />
-    <ProjectReference Include="Betauer.StateMachine.Tests/Betauer.StateMachine.Tests.csproj" />
+    <ProjectReference Include="Betauer.FSM.Tests/Betauer.FSM.Tests.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="*" Exclude="mono_crash*;.mono/**" />

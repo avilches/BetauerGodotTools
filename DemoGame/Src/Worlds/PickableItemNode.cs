@@ -63,6 +63,7 @@ public partial class PickableItemNode : ItemNode, IPickableItemNode {
 
 	public void _PhysicsProcessPickingUp(double delta) {
 		var destination = _followPosition!();
+		// TODO: accelerate movement
 		CharacterBody2D.GlobalPosition = CharacterBody2D.GlobalPosition.MoveToward(destination, (float)delta * PlayerConfig.MaxSpeed);
 		if (CharacterBody2D.GlobalPosition.DistanceTo(destination) < 10) {
 			_state = State.Finish;

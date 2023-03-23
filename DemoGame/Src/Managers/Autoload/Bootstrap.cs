@@ -7,7 +7,7 @@ using Betauer.Camera;
 using Betauer.DI;
 using Betauer.DI.ServiceProvider;
 using Betauer.Tools.Logging;
-using Betauer.StateMachine;
+using Betauer.FSM;
 using Godot;
 using Veronenger.Character.Player;
 using PropertyTweener = Betauer.Animation.PropertyTweener;
@@ -87,7 +87,7 @@ public partial class Bootstrap : Node /* needed to be instantiated as an Autoloa
 
         // GameTools
         LoggerFactory.SetTraceLevel(typeof(BaseScreenResolutionService), TraceLevel.All);
-        LoggerFactory.SetTraceLevel(typeof(StateMachine), TraceLevel.Error);
+        LoggerFactory.SetTraceLevel(typeof(Fsm), TraceLevel.Error);
 
         // Animation
         LoggerFactory.SetTraceLevel(typeof(CallbackNodeTweener), TraceLevel.Error);
@@ -96,17 +96,12 @@ public partial class Bootstrap : Node /* needed to be instantiated as an Autoloa
         LoggerFactory.SetTraceLevel(typeof(PropertyTweener), TraceLevel.Error);
 
         // Game
-        LoggerFactory.SetTraceLevel("GameManager.StateMachine", TraceLevel.Error);
         LoggerFactory.SetTraceLevel(typeof(MainStateMachine), TraceLevel.Error);
         LoggerFactory.SetTraceLevel(typeof(CameraStageLimiter), TraceLevel.All);
 
         // Player and enemies
         LoggerFactory.SetTraceLevel(typeof(PlayerNode), TraceLevel.All);
-        LoggerFactory.SetTraceLevel("Player.StateMachine", TraceLevel.Error);
-        LoggerFactory.SetTraceLevel("Player.AnimationStack", TraceLevel.Error);
         LoggerFactory.SetTraceLevel(typeof(ZombieNode), TraceLevel.All);
-        LoggerFactory.SetTraceLevel("Zombie.StateMachine", TraceLevel.Error);
-        LoggerFactory.SetTraceLevel("Zombie.AnimationStack", TraceLevel.Error);
             
         // LoggerFactory.OverrideTraceLevel(TraceLevel.All);
     }

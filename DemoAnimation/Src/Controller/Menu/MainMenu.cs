@@ -56,7 +56,7 @@ namespace DemoAnimation.Controller.Menu {
         private MenuContainer _menuContainer;
         private MenuContainer _demoMenu;
 
-        [Inject] private MainStateMachine MainStateMachine { get; set; }
+        [Inject] private MainFSM MainFSM { get; set; }
 
         [Inject] private InputAction UiAccept { get; set; }
         [Inject] private InputAction UiCancel { get; set; }
@@ -144,7 +144,7 @@ namespace DemoAnimation.Controller.Menu {
                 _animatorContainer.Visible = false;
             });
 
-            root.AddButton("Start", "Anima comparision").OnPressed(() => { MainStateMachine.LoadAnimaDemo(); });
+            root.AddButton("Start", "Anima comparision").OnPressed(() => { MainFSM.LoadAnimaDemo(); });
             root.AddButton("Effects", "Show all animations").OnPressed(async () => {
                 _demoMenuContainer.Visible = false;
                 _animatorContainer.Visible = true;
@@ -158,7 +158,7 @@ namespace DemoAnimation.Controller.Menu {
                 await mainMenu.Go("Menu");
                 await _demoMenu.Start();
             });
-            root.AddButton("Exit", "Exit").OnPressed(() => { MainStateMachine.TriggerModalBoxConfirmExitDesktop(); });
+            root.AddButton("Exit", "Exit").OnPressed(() => { MainFSM.TriggerModalBoxConfirmExitDesktop(); });
 
             var effectsMenu = mainMenu.AddMenu("Effects");
             CreateEffectsMenu(effectsMenu);

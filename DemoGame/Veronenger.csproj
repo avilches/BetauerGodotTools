@@ -48,8 +48,8 @@
         <Reference Include="Betauer.GameTools">
             <HintPath>../../export/releases/0.1.0/ExportRelease/Betauer.GameTools.dll</HintPath>
         </Reference>
-        <Reference Include="Betauer.StateMachine">
-            <HintPath>../../export/releases/0.1.0/ExportRelease/Betauer.StateMachine.dll</HintPath>
+        <Reference Include="Betauer.FSM">
+            <HintPath>../../export/releases/0.1.0/ExportRelease/Betauer.FSM.dll</HintPath>
         </Reference>
     </ItemGroup>
 </Project>

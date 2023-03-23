@@ -13,7 +13,7 @@ namespace Betauer {
 					typeof(Bus.Tests.Assembly),
 					typeof(DI.Tests.Assembly),
 					typeof(GameTools.Tests.Assembly),
-					typeof(StateMachine.Tests.Assembly),
+					typeof(FSM.Tests.Assembly),
 					// These two are time sensitive, it's better to run them at the end. Godot has some issues with the time
 					// in the first seconds since start.
 					typeof(Core.Tests.Assembly),

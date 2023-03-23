@@ -12,8 +12,8 @@ The Betauer Godot Tools is a framework to develop Godot games using C#. It's div
 - [Betauer.Core](Betauer.Core): common Godot extensions and other small tools needed by all of the Betauer projects. The most important one is the Logger: a fast and configurable logger for Godot. It also have some reflection tools
 needed by dependency injection.
 - [Betauer.TestRunner](Betauer.TestRunner): a tool to run [NUnit](https://nunit.org/) tests inside Godot, so you can test your nodes and your code easily inside Godot.
-- [Betauer.StateMachine](Betauer.StateMachine): yet another StateMachine implementation for C#. With a stack, compatible with `async`/`await` and compatible with Godot. Ready to be used in a game menu (like this [example](DemoGame/Game/Managers/MainStateMachine.cs)) or your player (like this other [example](DemoGame/Game/Character/Player/PlayerStateMachine.cs)).
-The state machine code is well tested, you can check the tests in the [Betauer.StateMachine.Tests](Betauer.StateMachine.Tests) project.
+- [Betauer.FSM](Betauer.FSM): yet another FSM implementation for C#. With a stack, compatible with `async`/`await` and compatible with Godot. Ready to be used in a game menu (like this [example](DemoGame/Game/Managers/MainFSM.cs)) or your player (like this other [example](DemoGame/Game/Character/Player/PlayerFSM.cs)).
+The state machine code is well tested, you can check the tests in the [Betauer.FSM.Tests](Betauer.FSM.Tests) project.
 - [Betauer.GameTools](Betauer.GameTools): this a set of small tools to create Godot games:
   - Bus: it's hard to handle collisions with signals. With the Bus, enemies, player and other objects can use a shared bus to subscribe and receive events with only the collision that affect to them. No more check and filter if the body shape of the collision is you or another object.
   - InputManager: handle with the Godot `InputMap` or the events is hard. This set of tools help you to create one class per action that can be injected in your

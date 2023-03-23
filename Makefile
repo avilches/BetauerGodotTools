@@ -2,7 +2,7 @@
 
 TARGET_PLATFORM  := "macos"
 GODOT_APP        := "/Applications/Godot-4.0.1-rc.1.app"
-MODULES          := Betauer.Animation Betauer.Core Betauer.Bus Betauer.DI Betauer.GameTools Betauer.Tools.Logging Betauer.StateMachine Betauer.TestRunner Betauer.Tools.Reflection
+MODULES          := Betauer.Animation Betauer.Core Betauer.Bus Betauer.DI Betauer.GameTools Betauer.Tools.Logging Betauer.FSM Betauer.TestRunner Betauer.Tools.Reflection
 DELAY_IMPORT     := 10
 
 .DEFAULT_SHELL   ?= /bin/bash

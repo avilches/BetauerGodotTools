@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using Betauer.StateMachine.Async;
+using Betauer.FSM.Async;
 using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
@@ -10,7 +10,7 @@ using NUnit.Framework;
 namespace Betauer.GameTools.Tests; 
 
 [TestRunner.Test]
-public partial class StateMachineNodeAsyncTests : Node {
+public partial class FSMNodeAsyncTests : Node {
     enum State {
         A,
         Idle,
@@ -25,23 +25,23 @@ public partial class StateMachineNodeAsyncTests : Node {
     enum Trans {
     }
     [TestRunner.Test(Description = "Constructor")]
-    public void StateMachineNodeConstructors() {
-        var sm1 = new StateMachineNodeAsync<State, Trans>(State.A, "X");
-        Assert.That(sm1.GetStateMachineEvents().Name, Is.EqualTo("X"));
+    public void FSMNodeConstructors() {
+        var sm1 = new FsmNodeAsync<State, Trans>(State.A, "X");
+        Assert.That(sm1.GetFsmEvents().Name, Is.EqualTo("X"));
         Assert.That(sm1.ProcessInPhysics, Is.False);
 
-        var sm2 = new StateMachineNodeAsync<State, Trans>(State.A, null, true);
-        Assert.That(sm2.GetStateMachineEvents().Name, Is.EqualTo(sm2.GetType().Name));
+        var sm2 = new FsmNodeAsync<State, Trans>(State.A, null, true);
+        Assert.That(sm2.GetFsmEvents().Name, Is.EqualTo(sm2.GetType().Name));
         Assert.That(sm2.ProcessInPhysics, Is.True);
 
-        var sm3 = new StateMachineNodeAsync<State, Trans>(State.A);
-        Assert.That(sm3.GetStateMachineEvents().Name, Is.EqualTo(sm3.GetType().Name));
+        var sm3 = new FsmNodeAsync<State, Trans>(State.A);
+        Assert.That(sm3.GetFsmEvents().Name, Is.EqualTo(sm3.GetType().Name));
         Assert.That(sm3.ProcessInPhysics, Is.False);
     }
 
-    [TestRunner.Test(Description = "StateMachineNode, BeforeExecute and AfterExecute events with idle frames in the execute")]
-    public async Task AsyncStateMachineNodeWithIdleFrame() {
-        var sm = new StateMachineNodeAsync<State, Trans>(State.Start);
+    [TestRunner.Test(Description = "FSMNode, BeforeExecute and AfterExecute events with idle frames in the execute")]
+    public async Task AsyncFSMNodeWithIdleFrame() {
+        var sm = new FsmNodeAsync<State, Trans>(State.Start);
 
         var x = 0;
         List<string> states = new List<string>();
@@ -97,7 +97,7 @@ public partial class StateMachineNodeAsyncTests : Node {
         
     [TestRunner.Test]
     public async Task EnterOnPushExitOnPopSuspendAwakeListener() {
-        var sm = new StateMachineNodeAsync<State, Trans>(State.MainMenu);
+        var sm = new FsmNodeAsync<State, Trans>(State.MainMenu);
 
         sm.State(State.MainMenu)
             .If(() => true).Set(State.Debug)
@@ -142,7 +142,7 @@ public partial class StateMachineNodeAsyncTests : Node {
         
     [TestRunner.Test]
     public async Task OnInput() {
-        var sm = new StateMachineNodeAsync<State, Trans>(State.MainMenu);
+        var sm = new FsmNodeAsync<State, Trans>(State.MainMenu);
 
         var i = 0;
         var u = 0;
@@ -167,7 +167,7 @@ public partial class StateMachineNodeAsyncTests : Node {
         
     [TestRunner.Test]
     public async Task OnUnhandledInput() {
-        var sm = new StateMachineNodeAsync<State, Trans>(State.MainMenu);
+        var sm = new FsmNodeAsync<State, Trans>(State.MainMenu);
 
         var i = 0;
         var u = 0;

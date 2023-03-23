@@ -26,6 +26,6 @@
         <ProjectReference Include="../../Betauer.Core/Betauer.Core.csproj" />
         <ProjectReference Include="../../Betauer.DI/Betauer.DI.csproj" />
         <ProjectReference Include="../../Betauer.GameTools/Betauer.GameTools.csproj" />
-        <ProjectReference Include="../../Betauer.StateMachine/Betauer.StateMachine.csproj" />
+        <ProjectReference Include="../../Betauer.FSM/Betauer.FSM.csproj" />
     </ItemGroup>
 </Project>

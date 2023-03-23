@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <EnableDynamicLoading>true</EnableDynamicLoading>
+        <LangVersion>11.0</LangVersion>
+        <RootNamespace>Betauer.FSM</RootNamespace>
+        <PackageId>Betauer.FSM</PackageId>
+        <AssemblyName>Betauer.FSM</AssemblyName>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+</Project>

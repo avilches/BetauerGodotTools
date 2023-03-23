@@ -37,6 +37,25 @@ public partial class World3 : Node {
 	}
 
 	private void PlaceMetalbar() {
+		
+		// TODO: add these weapons
+		// ItemRepository.Create<WeaponMeleeItem>("Knife", "K1").Configure();
+        
+		// var slowGun = ItemRepository.AddRangeWeapon(ItemConfigManager.SlowGun, "Gun", 6f, "SG");
+		// slowGun.DelayBetweenShots = 0.2f;
+		//
+		// var gun = ItemRepository.AddRangeWeapon(ItemConfigManager.Gun, "Gun", 9f, "G");
+		// gun.DelayBetweenShots = 0.4f;
+		//
+		// var shotgun = ItemRepository.AddRangeWeapon(ItemConfigManager.Shotgun, "Shotgun", 22f,"SG-");
+		// shotgun.DelayBetweenShots = 1f;
+		// shotgun.EnemiesPerHit = 2;
+		//
+		// var machinegun = ItemRepository.AddRangeWeapon(ItemConfigManager.MachineGun, "Maching gun", 4, "MG");
+		// machinegun.DelayBetweenShots = 0.05f;
+		// machinegun.EnemiesPerHit = 3;
+		// machinegun.Auto = true;
+
 		var metalbarPosition = GetPositionFromMarker("MetalbarSpawn");
 
 		var pickableItemNode = PickableItemNodeFactory.Get();

@@ -13,7 +13,7 @@ public abstract partial class ItemNode : Godot.Node, IItemNode {
     
     
     
-    [Inject] protected ItemRepository ItemRepository { get; set; }
+    [Inject] public ItemRepository ItemRepository { get; set; }
     
     protected Item Item;
     private volatile bool _busy = false;

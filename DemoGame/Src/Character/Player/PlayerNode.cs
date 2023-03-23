@@ -12,7 +12,7 @@ using Betauer.Flipper;
 using Betauer.Input;
 using Betauer.Nodes;
 using Betauer.NodePath;
-using Betauer.StateMachine.Sync;
+using Betauer.FSM.Sync;
 using Betauer.Tools.Logging;
 using Godot;
 using Veronenger.Character.InputActions;
@@ -48,8 +48,8 @@ public enum PlayerEvent {
 	Death,
 }
 
-public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent> {
-	public PlayerNode() : base(PlayerState.Idle, "Player.StateMachine", true) {
+public partial class PlayerNode : FsmNodeSync<PlayerState, PlayerEvent> {
+	public PlayerNode() : base(PlayerState.Idle, "Player.FSM", true) {
 	}
 
 	public event Action? OnFree;
@@ -143,7 +143,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		ConfigureCharacter();
 		ConfigureAttackArea();
 		ConfigurePlayerHurtArea();
-		ConfigureStateMachine();
+		ConfigureFsm();
 		
 		var drawEvent = this.OnDraw(canvas => {
 			foreach (var floorRaycast in FloorRaycasts) canvas.DrawRaycast(floorRaycast, Colors.Red);
@@ -324,7 +324,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		StopAttack();
 	}
 
-	public void ConfigureStateMachine() {
+	public void ConfigureFsm() {
 		Tween? invincibleTween = null;
 		void StartInvincibleEffect() {
 			const float flashTime = 0.025f;

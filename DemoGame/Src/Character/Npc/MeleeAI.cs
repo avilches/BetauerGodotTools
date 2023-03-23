@@ -1,7 +1,7 @@
 using System;
 using Betauer.Core;
 using Betauer.Core.Time;
-using Betauer.StateMachine.Sync;
+using Betauer.FSM.Sync;
 using Godot;
 using Pcg;
 using Veronenger.Character.InputActions;
@@ -9,7 +9,7 @@ using Veronenger.Persistent;
 
 namespace Veronenger.Character.Npc;
 
-public class MeleeAI : StateMachineSync<MeleeAI.State, MeleeAI.Event>, ICharacterAI {
+public class MeleeAI : FsmSync<MeleeAI.State, MeleeAI.Event>, ICharacterAI {
     private static readonly PcgRandom Random = new();
 
     private readonly NpcController _controller;

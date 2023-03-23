@@ -44,8 +44,8 @@ public enum ZombieState {
 	Fall
 }
 
-public partial class ZombieNode : NpcItemStateMachineNodeSync<ZombieState, ZombieEvent> {
-	public ZombieNode() : base(ZombieState.Idle, "Zombie.StateMachine", true) {
+public partial class ZombieNode : NpcItemNodeFsm<ZombieState, ZombieEvent> {
+	public ZombieNode() : base(ZombieState.Idle, "Zombie.FSM", true) {
 	}
 
 	private static readonly PcgRandom Random = new();
@@ -155,7 +155,7 @@ public partial class ZombieNode : NpcItemStateMachineNodeSync<ZombieState, Zombi
 	public override void Initialize() {
 		ConfigureAnimations();
 		ConfigureCharacter();
-		ConfigureStateMachine();
+		ConfigureFsm();
 
 		// AI
 		_zombieAi = MeleeAI.Create(Handler, new MeleeAI.Sensor(this, PlatformBody, () => PlayerPos));
@@ -393,7 +393,7 @@ public partial class ZombieNode : NpcItemStateMachineNodeSync<ZombieState, Zombi
 		PlatformBody.MotionY = -dir.Y;
 	}
 
-	public void ConfigureStateMachine() {    
+	public void ConfigureFsm() {    
 
 		On(ZombieEvent.Hurt).Set(ZombieState.Hurt);
 		On(ZombieEvent.Death).Set(ZombieState.Death);
