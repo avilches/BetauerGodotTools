@@ -82,7 +82,7 @@ public class TestRunner {
     private List<TestMethod> _testMethos;
     public SceneTree SceneTree;
 
-    public void Load(Assembly[]?assemblies) {
+    public void Load(params Assembly[] assemblies) {
         _testClasses = ScanTestClassesFromAssemblies(assemblies);
     }
 

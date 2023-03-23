@@ -8,7 +8,7 @@ using Godot;
 namespace Betauer.TestRunner; 
 
 public class ConsoleTestRunner {
-    public static async Task RunTests(SceneTree tree, Assembly[]? assemblies = null) {
+    public static async Task RunTests(SceneTree tree, params Assembly[]? assemblies) {
         var stopwatch = Stopwatch.StartNew();
 
         TestRunner testRunner = new TestRunner();
@@ -17,13 +17,14 @@ public class ConsoleTestRunner {
         testRunner.Load(assemblies);
         var testReport = await testRunner.Run(tree);
             
-        PrintConsoleFinish(testReport);
+        stopwatch.Stop();
+        PrintConsoleFinish(testReport, stopwatch);
 
         if (testReport.TestsFailed == 0) {
-            Green($"exit(0) - {stopwatch.Elapsed.Seconds}s");
+            Green($"exit(0)");
             tree.Quit(0);
         } else {
-            Red($"exit(1) - {stopwatch.Elapsed.Seconds}s");
+            Red($"exit(1)");
             tree.Quit(1);
         }
     }
@@ -40,24 +41,25 @@ public class ConsoleTestRunner {
         } else {
             Red($"┌─────────────────────────────────────────────────────────────────────────────────");
             Red($"│ {GetTestMethodLine(testReport, testMethod)}: Failed ({testMethod.Stopwatch.ElapsedMilliseconds}ms)");
-            Red(testMethod.Exception.GetType().ToString());
-            Red(testMethod.Exception.Message);
+            Red($"| {testMethod.Exception.GetType()}");
+            RedIndent(testMethod.Exception.Message.Split("\n"));
             var line = testMethod.Exception.StackTrace.Split("\n").ToList().Find(it => it.Contains(testMethod.TestClass.Type.Name));
             if (line != null) {
-                Red("Error");
-                Normal(line);
-                Red("Stacktrace");
+                Red("| Error:");
+                Red($"| {line}");
+                Red("| Stacktrace:");
             }
-            Normal(testMethod.Exception.StackTrace);
+            NormalIndent(testMethod.Exception.StackTrace.Split("\n"));
             Red($"└──────────────────────────────────────────────────────────────────────────────────");
         }
     }
 
-    private static void PrintConsoleFinish(TestReport testReport) {
+    private static void PrintConsoleFinish(TestReport testReport, Stopwatch stopwatch) {
         if (testReport.TestsFailed > 0) {
             Red($"┌─────────────────────────────────────────────────────────────────────────────────");
-            Green($"| Passed: {testReport.TestsPassed}/{testReport.TestsTotal}");
-            Red($"| Failed: {testReport.TestsFailed}/{testReport.TestsTotal}");
+            Red($"│ {testReport.TestsTotal} tests executed in {stopwatch.Elapsed.Seconds}s");
+            Red($"│ - Total passed: {testReport.TestsPassed}/{testReport.TestsTotal}");
+            Red($"│ - Total failed: {testReport.TestsFailed}/{testReport.TestsTotal}");
             Red($"└─────────────────────────────────────────────────────────────────────────────────");
             Red($"┌─────────────────────────────────────────────────────────────────────────────────");
 
@@ -65,26 +67,35 @@ public class ConsoleTestRunner {
             testReport.TestsFailedResults.ForEach(testMethod => {
                 Red($"│ [Error: #{x}/{testReport.TestsFailed}]");
                 Normal($"│  {GetTestMethodLine(testReport, testMethod)}: Failed");
-                Red(testMethod.Exception.GetType().ToString());
-                Red(testMethod.Exception.Message);
+                Red($"| {testMethod.Exception.GetType()}");
+                RedIndent(testMethod.Exception.Message.Split("\n"));
                 var line = testMethod.Exception.StackTrace.Split("\n").ToList().Find(it => it.Contains(testMethod.TestClass.Type.Name));
                 if (line != null) {
-                    Red("Error");
-                    Normal(line);
+                    Red("| Error:");
+                    Normal($"| {line}");
                 } else {
-                    Red("Stacktrace");
-                    Normal(testMethod.Exception.StackTrace);
+                    Red("| Stacktrace:");
+                    NormalIndent(testMethod.Exception.StackTrace.Split("\n"));
                 }
                 Red("├─────────────────────────────────────────────────────────────────────────────────");
                 x++;
             });
 
-            Red($"│ Total failed: {testReport.TestsFailed}/{testReport.TestsTotal}");
-            Green($"│ Total passed: {testReport.TestsPassed}/{testReport.TestsTotal}");
+            Red($"│ {testReport.TestsTotal} tests executed in {stopwatch.Elapsed.Seconds}s");
+            Red($"│ - Total passed: {testReport.TestsPassed}/{testReport.TestsTotal}");
+            Red($"│ - Total failed: {testReport.TestsFailed}/{testReport.TestsTotal}");
             Red($"└─────────────────────────────────────────────────────────────────────────────────");
         } else {
             GreenBanner($"All tests passed: {testReport.TestsPassed}/{testReport.TestsTotal} :-)");
         }
+    }
+
+    private static void RedIndent(string[] split) {
+        foreach (var line in split) Red($"| {line}");
+    }
+
+    private static void NormalIndent(string[] split) {
+        foreach (var line in split) Normal($"| {line}");
     }
 
     private static string GetTestMethodLine(TestReport testReport, TestRunner.TestMethod testMethod) {
@@ -102,9 +113,9 @@ public class ConsoleTestRunner {
             Console.ForegroundColor = color;
         }
         var fill = new string('─', line.Length);
-        GD.Print($"┌─{fill}─┐");
-        GD.Print($"│ {line} │");
-        GD.Print($"└─{fill}─┘");
+        Console.WriteLine($"┌─{fill}─┐");
+        Console.WriteLine($"│ {line} │");
+        Console.WriteLine($"└─{fill}─┘");
     }
 
     private static void GreenBanner(string print) {
@@ -113,18 +124,18 @@ public class ConsoleTestRunner {
 
     private static void Normal(string print) {
         Console.ResetColor();
-        GD.Print(print);
+        Console.WriteLine(print);
     }
 
     private static void Green(string print) {
         Console.ForegroundColor = ConsoleColor.Green;
-        GD.Print(print);
+        Console.WriteLine(print);
         Console.ResetColor();
     }
 
     private static void Red(string print) {
         Console.ForegroundColor = ConsoleColor.Red;
-        GD.Print(print);
+        Console.WriteLine(print);
         Console.ResetColor();
     }
 
