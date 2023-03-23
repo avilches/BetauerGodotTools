@@ -3,10 +3,10 @@ using NUnit.Framework;
 
 namespace Veronenger.Tests.NodeTests; 
 
-[TestRunner.Test]
+[Betauer.TestRunner.Test]
 // [Ignore("")]
 public partial class NodeTests : Node {
-    [TestRunner.Test]
+    [Betauer.TestRunner.Test]
     public void SpawnAndFreeManyObjectsInLessThanFiveSeconds() {
         const int seconds = 5;
         var startTime = Time.GetTicksMsec();
