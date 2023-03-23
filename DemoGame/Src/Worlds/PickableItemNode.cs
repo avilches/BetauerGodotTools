@@ -35,12 +35,16 @@ public partial class PickableItemNode : ItemNode, IPickableItemNode {
 
 	public override void OnGet() {}
 
-	protected override void OnStart(Vector2 initialPosition) {
+	public override void _Ready() {
 		PickZone.LinkMetaToItemId(Item);
-		CharacterBody2D.GlobalPosition = initialPosition;
 		_state = State.Available;
 		_followPosition = null;
 		_onPickup = null;
+	}
+
+	public override Vector2 GlobalPosition {
+		get => CharacterBody2D.GlobalPosition;
+		set => CharacterBody2D.GlobalPosition = value;
 	}
 
 	public override void OnRemoveFromScene() {

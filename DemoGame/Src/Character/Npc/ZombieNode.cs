@@ -68,6 +68,11 @@ public partial class ZombieNode : NpcItemStateMachineNodeSync<ZombieState, Zombi
 		RedFlash = colorAnimation.EndAnimate();
 	}
 
+	public override Vector2 GlobalPosition {
+		get => CharacterBody2D.GlobalPosition;
+		set => CharacterBody2D.GlobalPosition = value;
+	}
+
 	[NodePath("Character")] private CharacterBody2D CharacterBody2D;
 	[NodePath("Character/Sprites/Body")] private Sprite2D _mainSprite;
 	[NodePath("Character/Sprites/AnimationPlayer")] private AnimationPlayer _animationPlayer;
@@ -131,8 +136,7 @@ public partial class ZombieNode : NpcItemStateMachineNodeSync<ZombieState, Zombi
 	public override void OnGet() {
 	}
 
-	protected override void OnStart(Vector2 initialPosition) {
-		CharacterBody2D.GlobalPosition = initialPosition;
+	public override void _Ready() {
 		_lazyRaycastToPlayer.GetDirectSpaceFrom(_mainSprite);
 		_attackArea.LinkMetaToItemId(NpcItem);
 		_hurtArea.LinkMetaToItemId(NpcItem);

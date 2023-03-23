@@ -43,7 +43,7 @@ public partial class World3 : Node {
 		var metalbar = ItemRepository.Create<WeaponMeleeItem>("Metalbar", "M1")
 			.Configure(ItemConfigManager.Metalbar, 9f);
 		metalbar.LinkNode(pickableItemNode);
-		pickableItemNode.AddToScene(this, metalbarPosition);
+		pickableItemNode.AddToScene(this, () => pickableItemNode.CharacterBody2D.GlobalPosition = metalbarPosition);
 	}
 
 	public Vector2 GetPositionFromMarker(string path, bool freeMarker = true) {

@@ -1,3 +1,4 @@
+using System;
 using Betauer.DI;
 using Godot;
 
@@ -5,15 +6,24 @@ namespace Veronenger.Persistent.Node;
 
 public abstract partial class ItemNode : Godot.Node, IItemNode {
 
+    
+    
+    
+    
+    
+    
+    
     [Inject] protected ItemRepository ItemRepository { get; set; }
+    
     protected Item Item;
-    private Vector2 _initialPosition;
-    private volatile bool _busy = true;
+    private volatile bool _busy = false;
     public bool IsBusy() => _busy;
     public bool IsInvalid() => !IsInstanceValid(this);
 
-    // From MiniPool
+    // From INodeLifecycle, called by PoolFromNodeFactory
     public abstract void Initialize();
+    
+    // From IPoolLifecycle
     public abstract void OnGet();
 
     // IItemNode
@@ -21,22 +31,21 @@ public abstract partial class ItemNode : Godot.Node, IItemNode {
         Item = item;
     }
 
-    public void AddToScene(Godot.Node parent, Vector2 initialPosition) {
+    public void AddToScene(Godot.Node parent, Action? onReady) {
         _busy = true;
-        _initialPosition = initialPosition;
-        RequestReady();
+        if (onReady != null) {
+            RequestReady();
+            Connect(Godot.Node.SignalName.Ready, Callable.From(onReady), (uint)ConnectFlags.OneShot);
+        }
         parent.AddChild(this);
     }
 
-    public override void _Ready() {
-        OnStart(_initialPosition);
-    }
-
-    protected abstract void OnStart(Vector2 initialPosition);
-
+    
     public void RemoveFromWorld() {
         ItemRepository.Remove(Item);
     }
+
+    public abstract Vector2 GlobalPosition { get; set; }
 
     public void RemoveFromScene() {
         if (!_busy) return;

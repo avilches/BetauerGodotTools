@@ -47,7 +47,9 @@ public partial class ProjectileTrail : BaseNodeLifecycle, INodeLifecycle {
 		_lazyRaycast2D = new LazyRaycast2D().GetDirectSpaceFrom(Trail);
 	}
 
-	protected override void OnStart(Vector2 initialPosition) {
+	public override Vector2 GlobalPosition {
+		get => throw new Exception($"Position is controlled by {nameof(ShootFrom)} method");
+		set => throw new Exception($"Position is controlled by {nameof(ShootFrom)} method");
 	}
 
 	public void ShootFrom(WeaponRangeItem item, Vector2 from, Vector2 direction, Action<PhysicsRayQueryParameters2D> raycastConfig, Func<RaycastCollision, Behaviour> onCollide) {

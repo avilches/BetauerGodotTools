@@ -73,20 +73,20 @@ public class Game {
 		Console.WriteLine("ZombieSpawn "+zombieNode.GetInstanceId());
 		var zombieItem = ItemRepository.Create<NpcItem>("Zombie").Configure(ItemConfigManager.ZombieConfig);
 		zombieItem.LinkNode(zombieNode);
-		zombieNode.AddToScene(scene, position);
+		zombieNode.AddToScene(scene, () => zombieNode.GlobalPosition = position);
 	}
 
 	public ProjectileTrail NewBullet() {
 		var projectileTrail = ProjectilePool.Get();
 		Console.WriteLine("NewBullet "+projectileTrail.GetInstanceId());
-		projectileTrail.AddToScene(_currentGameScene, Vector2.Zero);
+		projectileTrail.AddToScene(_currentGameScene, null);
 		return projectileTrail;
 	}
 
 	private void AddPlayerToScene() {
 		var playerNode = PlayerFactory.Get();
 		_currentGameScene.AddChild(playerNode);
-		playerNode.Ready += () => playerNode.CharacterBody2D.GlobalPosition = _currentGameScene.GetPositionFromMarker("SpawnPlayer");
+		playerNode.Ready += () => playerNode.GlobalPosition = _currentGameScene.GetPositionFromMarker("SpawnPlayer");
 		ItemRepository.SetPlayer(playerNode);
 	}
 

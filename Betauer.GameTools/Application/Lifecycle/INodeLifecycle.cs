@@ -1,3 +1,4 @@
+using System;
 using Betauer.Core.Pool.Lifecycle;
 using Godot;
 
@@ -10,7 +11,7 @@ public interface INodeLifecycle : IPoolLifecycle {
     // and be sure the children are filled.
     void Initialize();
     
-    public void AddToScene(Node parent, Vector2 initialPosition);
+    public void AddToScene(Node parent, Action onReady);
     public void RemoveFromScene();
     public void Free();
     public void QueueFree();

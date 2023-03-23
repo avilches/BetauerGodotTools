@@ -59,6 +59,11 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 
 	private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PlayerNode));
 
+	public Vector2 GlobalPosition {
+		get => CharacterBody2D.GlobalPosition;
+		set => CharacterBody2D.GlobalPosition = value;
+	}
+
 	[NodePath("Character")] public CharacterBody2D CharacterBody2D;
 	[NodePath("Character/Sprites/Weapon")] private Sprite2D _weaponSprite;
 	[NodePath("Character/Sprites/Body")] private Sprite2D _mainSprite;
