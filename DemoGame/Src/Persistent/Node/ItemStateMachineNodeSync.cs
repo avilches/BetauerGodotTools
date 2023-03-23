@@ -1,25 +1,26 @@
 using System;
-using Betauer.Application.Lifecycle;
+using Betauer.DI;
 using Betauer.StateMachine.Sync;
 using Godot;
 
 namespace Veronenger.Persistent.Node;
 
 public abstract partial class ItemStateMachineNodeSync<TStateKey, TEventKey> : 
-    StateMachineNodeSync<TStateKey, TEventKey>, INodeLifecycle, IItemNode 
+    StateMachineNodeSync<TStateKey, TEventKey>, IItemNode 
     where TStateKey : Enum 
     where TEventKey : Enum {
-    protected ItemStateMachineNodeSync(TStateKey initialState, string? name = null, bool processInPhysics = false) : base(initialState, name, processInPhysics) {
+    protected ItemStateMachineNodeSync(TStateKey initialState, string? name = null, bool processInPhysics = false) :
+        base(initialState, name, processInPhysics) {
     }
 
-    protected ItemRepository ItemRepository;
+    [Inject] public ItemRepository ItemRepository { get; set; }
+
     protected Item Item;
     private Vector2 _initialPosition;
     private volatile bool _busy = true;
     public bool IsBusy() => _busy;
     public bool IsInvalid() => !IsInstanceValid(this);
 
-    
     // From INodeLifecycle, called by PoolFromNodeFactory
     public abstract void Initialize();
 
@@ -27,8 +28,7 @@ public abstract partial class ItemStateMachineNodeSync<TStateKey, TEventKey> :
     public abstract void OnGet();
 
     // IItemNode
-    public void OnAddToWorld(ItemRepository itemRepository, Item item) {
-        ItemRepository = itemRepository;
+    public void SetItem(Item item) {
         Item = item;
     }
 
@@ -48,7 +48,6 @@ public abstract partial class ItemStateMachineNodeSync<TStateKey, TEventKey> :
 
     public void RemoveFromWorld() {
         ItemRepository.Remove(Item);
-        RemoveFromScene();
     }
 
     public void RemoveFromScene() {
@@ -59,6 +58,4 @@ public abstract partial class ItemStateMachineNodeSync<TStateKey, TEventKey> :
     }
 
     public abstract void OnRemoveFromScene();
-
-    
 }

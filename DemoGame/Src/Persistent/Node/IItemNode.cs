@@ -1,5 +1,7 @@
+using Betauer.Application.Lifecycle;
+
 namespace Veronenger.Persistent.Node;
 
-public interface IItemNode {
-    void OnAddToWorld(ItemRepository itemRepository, Item item);
+public interface IItemNode : INodeLifecycle {
+    void SetItem(Item item);
 }

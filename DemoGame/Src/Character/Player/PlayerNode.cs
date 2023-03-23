@@ -140,23 +140,11 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		ConfigurePlayerHurtArea();
 		ConfigureStateMachine();
 		
-		LoadState();
-
 		var drawEvent = this.OnDraw(canvas => {
 			foreach (var floorRaycast in FloorRaycasts) canvas.DrawRaycast(floorRaycast, Colors.Red);
 			canvas.DrawRaycast(RaycastCanJump, Colors.Red);
 		});
 		drawEvent.Disable();
-	}
-
-	private void LoadState() {
-		Inventory.Pick(ItemRepository.Get<WeaponMeleeItem>("K1"));
-		Inventory.Pick(ItemRepository.Get<WeaponMeleeItem>("M1"));
-		Inventory.Pick(ItemRepository.Get<WeaponRangeItem>("SG"));
-		Inventory.Pick(ItemRepository.Get<WeaponRangeItem>("G"));
-		Inventory.Pick(ItemRepository.Get<WeaponRangeItem>("SG-"));
-		Inventory.Pick(ItemRepository.Get<WeaponRangeItem>("MG"));
-		Inventory.Equip(1);
 	}
 
 	private void ConfigureAnimations() {
@@ -212,15 +200,15 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		Status.OnHealthUpdate += HudScene.UpdateHealth; 
 
 		CollisionLayerManager.PlayerConfigureCollisions(this);
-		CollisionLayerManager.PlayerPickableArea(this, area => {
-			try {
-				var pickable = area.GetParent<PickableItemNode>();
-				pickable.BringTo(() => Marker2D.GlobalPosition);
-			} catch (Exception e) {
-				Console.WriteLine(e);
-				throw;
-			}
+		CollisionLayerManager.PlayerPickableArea(this, area2D => {
+			var pickable = ItemRepository.GetFromMeta<PickableItem>(area2D);
+			pickable.ItemNode!.BringTo(() => Marker2D.GlobalPosition, () => PickUp(pickable));
 		});
+	}
+
+	private void PickUp(PickableItem pickable) {
+		pickable.UnlinkNode();
+		Inventory.PickAndEquip(pickable);
 	}
 
 	private void ConfigureCamera() {
@@ -373,6 +361,7 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 		On(PlayerEvent.Hurt).Set(PlayerState.Hurting);
 		On(PlayerEvent.Death).Set(PlayerState.Death);
 		On(PlayerEvent.Attack).Then(ctx => {
+			if (Inventory.Items.Count == 0) return ctx.Stay();
 			if (Inventory.GetCurrent() is WeaponMeleeItem) {
 				return ctx.Set(PlatformBody.IsOnFloor() ? PlayerState.MeleeAttack : PlayerState.MeleeAttackAir);
 			} else if (Inventory.GetCurrent() is WeaponRangeItem) {
@@ -674,7 +663,5 @@ public partial class PlayerNode : StateMachineNodeSync<PlayerState, PlayerEvent>
 				EventBus.Publish(MainEvent.EndGame);                                                                     
 			})
 			.Build();
-
-
 	}
 }

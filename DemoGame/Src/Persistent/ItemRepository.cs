@@ -1,10 +1,10 @@
+using System;
 using System.Collections.Generic;
 using Betauer.DI;
 using Betauer.DI.Factory;
 using Godot;
 using Veronenger.Character.Player;
 using Veronenger.Config;
-using Veronenger.Persistent.Node;
 
 namespace Veronenger.Persistent;
 
@@ -39,15 +39,11 @@ public class ItemRepository {
         PlayerStatus.Configure(PlayerConfig);
     }
 
-    public WeaponMeleeItem AddMeleeWeapon(WeaponConfig.Melee config, string name, float damageBase, string alias = null) =>
-        Add(new WeaponMeleeItem(NextId(), name, alias, config, damageBase));
-    
-    public WeaponRangeItem AddRangeWeapon(WeaponConfig.Range config, string name, float damageBase, string alias = null) =>
-        Add(new WeaponRangeItem(NextId(), name, alias, config, damageBase));
-
-    public NpcItem AddEnemy(NpcConfig config, string name, INpcItemNode npcItemNode, string alias = null) {
-        var item = new NpcItem(NextId(), name, null, npcItemNode, config);
-        npcItemNode.OnAddToWorld(this, item);
+    public T Create<T>(string name, string? alias = null) where T : Item {
+        T item = Activator.CreateInstance<T>();
+        item.Name = name;
+        item.Alias = alias;
+        item.Id = NextId();
         return Add(item);
     }
 
@@ -72,20 +68,21 @@ public class ItemRepository {
 
     public T? GetOrNull<T>(string alias) where T : Item => _itemAlias.TryGetValue(alias, out var r) ? r as T : null; 
 
-    public void Remove(Item item) => Remove(item.Id);
+    public void Remove(Item item) {
+        item.UnlinkNode();
+        if (item.Alias != null) _itemAlias.Remove(item.Alias);
+        _itemRegistry.Remove(item.Id);
+    }
 
     public void Remove(int id) {
-        var item = _itemRegistry[id];
-        if (item.Alias != null) _itemAlias.Remove(item.Alias);
-        _itemRegistry.Remove(id);
+        Remove(_itemRegistry[id]);
     }
 
-    private T Add<T>(T worldItem) where T : Item {
-        _itemRegistry.Add(worldItem.Id, worldItem);
-        if (worldItem.Alias != null) _itemAlias.Add(worldItem.Alias, worldItem);
-        return worldItem;
+    private T Add<T>(T item) where T : Item {
+        _itemRegistry.Add(item.Id, item);
+        if (item.Alias != null) _itemAlias.Add(item.Alias, item);
+        return item;
     }
-
 }
 
 public static class WorldExtension {

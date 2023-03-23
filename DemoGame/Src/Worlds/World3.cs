@@ -1,11 +1,10 @@
 using System.Linq;
-using Betauer.Application.Lifecycle;
 using Betauer.Core;
 using Betauer.Core.Nodes;
 using Betauer.Core.Pool;
 using Betauer.DI;
-using Betauer.DI.Factory;
 using Godot;
+using Veronenger.Config;
 using Veronenger.Managers;
 using Veronenger.Persistent;
 
@@ -13,6 +12,7 @@ namespace Veronenger.Worlds;
 
 public partial class World3 : Node {
 	[Inject] private Game Game { get; set; }
+	[Inject] private ItemConfigManager ItemConfigManager { get; set; }
 	[Inject] private ItemRepository ItemRepository { get; set; }
 	[Inject] private PlatformManager PlatformManager { get; set; }
 	[Inject] private StageManager StageManager { get; set; }
@@ -33,14 +33,26 @@ public partial class World3 : Node {
 		PlatformManager.ConfigurePlatformsCollisions();
 		GetNode<Node>("Stages").GetChildren().OfType<Area2D>().ForEach(StageManager.ConfigureStage);
 
-		var metalbarMarker = GetNode<Marker2D>("MetalbarSpawn");
-		var metalbarPosition = metalbarMarker.GlobalPosition;
-		RemoveChild(metalbarMarker);
+		PlaceMetalbar();
+	}
+
+	private void PlaceMetalbar() {
+		var metalbarPosition = GetPositionFromMarker("MetalbarSpawn");
+
 		var pickableItemNode = PickableItemNodeFactory.Get();
-		ItemRepository.AddRangeWeapon()
+		var metalbar = ItemRepository.Create<WeaponMeleeItem>("Metalbar", "M1")
+			.Configure(ItemConfigManager.Metalbar, 9f);
+		metalbar.LinkNode(pickableItemNode);
 		pickableItemNode.AddToScene(this, metalbarPosition);
 	}
-	
+
+	public Vector2 GetPositionFromMarker(string path, bool freeMarker = true) {
+		var marker = GetNode<Marker2D>(path);
+		var globalPosition = marker.GlobalPosition;
+		if (freeMarker) marker.QueueFree();
+		return globalPosition;
+	}
+
 	private void CandleOff(PointLight2D light) {
 		light.Enabled = true;
 		light.Color = new Color("ffd1c8");

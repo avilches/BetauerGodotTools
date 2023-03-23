@@ -94,7 +94,7 @@ public class Scenes {
 	[SingletonFactory] SceneFactory<PauseMenu> PauseMenuResource => new("main", "res://Scenes/Menu/PauseMenu.tscn");
 	[SingletonFactory] SceneFactory<SettingsMenu> SettingsMenuResource => new("main", "res://Scenes/Menu/SettingsMenu.tscn");
 
-	[TransientFactory] SceneFactory<Node> World3 => new("game", "res://Worlds/World3.tscn");
+	[TransientFactory] SceneFactory<World3> World3 => new("game", "res://Worlds/World3.tscn");
 	[TransientFactory] SceneFactory<PlayerNode> Player => new("game", "res://Scenes/Player.tscn");
 	[TransientFactory] SceneFactory<ZombieNode> ZombieNode => new("game", "res://Scenes/Zombie2.tscn");
 	[TransientFactory] SceneFactory<ProjectileTrail> ProjectileTrail => new("game", "res://Scenes/ProjectileTrail.tscn");

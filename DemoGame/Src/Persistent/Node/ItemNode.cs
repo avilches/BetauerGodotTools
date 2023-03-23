@@ -1,11 +1,11 @@
-using Betauer.Application.Lifecycle;
+using Betauer.DI;
 using Godot;
 
 namespace Veronenger.Persistent.Node;
 
-public abstract partial class ItemNode : Godot.Node, INodeLifecycle, IItemNode {
+public abstract partial class ItemNode : Godot.Node, IItemNode {
 
-    protected ItemRepository ItemRepository;
+    [Inject] protected ItemRepository ItemRepository { get; set; }
     protected Item Item;
     private Vector2 _initialPosition;
     private volatile bool _busy = true;
@@ -17,8 +17,7 @@ public abstract partial class ItemNode : Godot.Node, INodeLifecycle, IItemNode {
     public abstract void OnGet();
 
     // IItemNode
-    public void OnAddToWorld(ItemRepository itemRepository, Item item) {
-        ItemRepository = itemRepository;
+    public void SetItem(Item item) {
         Item = item;
     }
 
@@ -37,7 +36,6 @@ public abstract partial class ItemNode : Godot.Node, INodeLifecycle, IItemNode {
 
     public void RemoveFromWorld() {
         ItemRepository.Remove(Item);
-        RemoveFromScene();
     }
 
     public void RemoveFromScene() {
@@ -48,6 +46,4 @@ public abstract partial class ItemNode : Godot.Node, INodeLifecycle, IItemNode {
     }
 
     public abstract void OnRemoveFromScene();
-
-    
 }

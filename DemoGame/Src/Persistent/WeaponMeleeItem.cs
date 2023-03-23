@@ -3,10 +3,12 @@ using Veronenger.Config;
 namespace Veronenger.Persistent;
 
 public class WeaponMeleeItem : WeaponItem {
-    public readonly WeaponConfig.Melee Config;
+    public WeaponConfig.Melee Config { get; private set; }
     public int EnemiesPerHit = 2;
 
-    internal WeaponMeleeItem(int id, string name, string alias, WeaponConfig.Melee config, float damageBase) : base(id, name, alias, damageBase) {
+    public WeaponMeleeItem Configure(WeaponConfig.Melee config, float damageBase) {
         Config = config;
+        DamageBase = damageBase;
+        return this;
     }
 }

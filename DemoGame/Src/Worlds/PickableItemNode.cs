@@ -6,13 +6,14 @@ using Betauer.NodePath;
 using Veronenger.Character;
 using Veronenger.Config;
 using Veronenger.Managers;
+using Veronenger.Persistent;
 using Veronenger.Persistent.Node;
 
 namespace Veronenger.Worlds;
 
-public partial class PickableItemNode : ItemNode {
+public partial class PickableItemNode : ItemNode, IPickableItemNode {
 	public enum State {
-		Available, PickingUp
+		Available, PickingUp, Finish
 	}
 
 	[Inject] private PlayerConfig PlayerConfig { get; set; }
@@ -23,6 +24,7 @@ public partial class PickableItemNode : ItemNode {
 	private KinematicPlatformMotion _platformBody;
 	private State _state = State.Available;
 	private Func<Vector2>? _followPosition;
+	private Action? _onPickup;
 
 	public override void Initialize() {
 		CollisionLayerManager.PickableItem(this);
@@ -34,16 +36,19 @@ public partial class PickableItemNode : ItemNode {
 	public override void OnGet() {}
 
 	protected override void OnStart(Vector2 initialPosition) {
+		PickZone.LinkMetaToItemId(Item);
 		CharacterBody2D.GlobalPosition = initialPosition;
 		_state = State.Available;
 		_followPosition = null;
+		_onPickup = null;
 	}
 
 	public override void OnRemoveFromScene() {
 	}
 
-	public void BringTo(Func<Vector2> target) {
+	public void BringTo(Func<Vector2> target, Action onPickup) {
 		_followPosition = target;
+		_onPickup = onPickup;
 		_state = State.PickingUp;
 	}
 
@@ -55,6 +60,10 @@ public partial class PickableItemNode : ItemNode {
 	public void _PhysicsProcessPickingUp(double delta) {
 		var destination = _followPosition!();
 		CharacterBody2D.GlobalPosition = CharacterBody2D.GlobalPosition.MoveToward(destination, (float)delta * PlayerConfig.MaxSpeed);
+		if (CharacterBody2D.GlobalPosition.DistanceTo(destination) < 10) {
+			_state = State.Finish;
+			_onPickup?.Invoke();
+		}
 	}
 
 	public void _PhysicsProcessAvailable(double delta) {

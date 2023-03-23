@@ -17,6 +17,11 @@ public class Inventory {
         Items.Add(item);
     }
 
+    public void PickAndEquip(Item item) {
+        Items.Add(item);
+        Equip(Items.Count - 1);
+    }
+
     public Item GetCurrent() => Items[Selected];
     
     public void Equip() {

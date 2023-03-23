@@ -4,18 +4,17 @@ using Veronenger.Persistent.Node;
 
 namespace Veronenger.Persistent;
 
-public class NpcItem : Item  {
+public class NpcItem : Item<INpcItemNode>  {
     public NpcStatus Status { get; private set; }
     
-    public readonly NpcConfig Config;
-    public INpcItemNode ItemNode { get; private set; }
+    public NpcConfig Config { get; private set; }
 
-    public NpcItem(int id, string name, string alias, INpcItemNode npcItemNode, NpcConfig config) : base(id, name, alias) {
+    public NpcItem Configure(NpcConfig config) {
         Config = config;
-        ItemNode = npcItemNode;
         Status = new NpcStatus(config.InitialMaxHealth, config.InitialHealth);
+        return this;
     }
-    
+
     public class NpcStatus {
         public float Health;
         public float MaxHealth;
