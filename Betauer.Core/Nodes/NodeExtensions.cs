@@ -5,6 +5,19 @@ using Godot;
 
 namespace Betauer.Core.Nodes {
     public static partial class NodeExtensions {
+
+        public static void RemoveFromParent(this Node node) {
+            node.GetParent()?.RemoveChild(node);
+        }
+
+        public static void AddTo(this Node node, Node parent, Action? onReady = null) {
+            if (onReady != null) {
+                node.RequestReady();
+                node.Connect(Node.SignalName.Ready, Callable.From(onReady), (uint)GodotObject.ConnectFlags.OneShot);
+            }
+            parent.AddChild(node);
+        }
+
         public static void DisableAllShapes(this Node parent) {
             parent.EnableAllShapes(false);
         }
@@ -30,7 +43,11 @@ namespace Betauer.Core.Nodes {
                 parent.GetChildren().OfType<T>().FirstOrDefault();
         }
 
-        public static Node AddChildDeferred(this Node parent, Node child) {
+        public static Node AddChildDeferred(this Node parent, Node child, Action? onReady = null) {
+            if (onReady != null) {
+                child.RequestReady();
+                child.Connect(Node.SignalName.Ready, Callable.From(onReady), (uint)GodotObject.ConnectFlags.OneShot);
+            }
             parent.CallDeferred("add_child", child);
             return parent;
         }
