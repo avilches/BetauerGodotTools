@@ -74,6 +74,8 @@ public class GameLoaderContainer : ResourceLoaderContainer {
 [Configuration]
 public class Resources {
 	[Singleton] Texture2D Icon => Load<Texture2D>("res://icon.png");
+	[Singleton] Texture2D MetalbarSprite => Load<Texture2D>("res://Assets/Weapons/metalbar.png");
+	
 	[Singleton] Texture2D LeonKnifeAnimationSprite => Load<Texture2D>("res://Characters/Player-Leon/Leon-knife.png");
 	[Singleton] Texture2D LeonMetalbarAnimationSprite => Load<Texture2D>("res://Characters/Player-Leon/Leon-metalbar.png");
 	
@@ -94,7 +96,7 @@ public class Scenes {
 	[SingletonFactory] SceneFactory<PauseMenu> PauseMenuResource => new("main", "res://Scenes/Menu/PauseMenu.tscn");
 	[SingletonFactory] SceneFactory<SettingsMenu> SettingsMenuResource => new("main", "res://Scenes/Menu/SettingsMenu.tscn");
 
-	[TransientFactory] SceneFactory<World3> World3 => new("game", "res://Worlds/World3.tscn");
+	[TransientFactory] SceneFactory<WorldScene> World3 => new("game", "res://Worlds/World3.tscn");
 	[TransientFactory] SceneFactory<PlayerNode> Player => new("game", "res://Scenes/Player.tscn");
 	[TransientFactory] SceneFactory<ZombieNode> ZombieNode => new("game", "res://Scenes/Zombie2.tscn");
 	[TransientFactory] SceneFactory<ProjectileTrail> ProjectileTrail => new("game", "res://Scenes/ProjectileTrail.tscn");

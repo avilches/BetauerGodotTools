@@ -1,7 +1,7 @@
 [gd_scene load_steps=12 format=3 uid="uid://booum8o1kq7ns"]
 
 [ext_resource type="PackedScene" uid="uid://bgoroc7wxd0fx" path="res://Worlds/Environment/City.tscn" id="1_ch4lp"]
-[ext_resource type="Script" path="res://Src/Worlds/World3.cs" id="1_q8t1r"]
+[ext_resource type="Script" path="res://Src/Worlds/WorldScene.cs" id="1_q8t1r"]
 [ext_resource type="PackedScene" uid="uid://crxuyxcrii0rb" path="res://Worlds/Environment/Anokalisa.tscn" id="3_b8e8b"]
 [ext_resource type="Texture2D" uid="uid://hpw331rdkwps" path="res://Assets/light-spot.png" id="4_mufee"]
 [ext_resource type="Texture2D" uid="uid://b7ir53ta6rglo" path="res://Assets/light.png" id="4_vhytj"]
@@ -248,5 +248,15 @@ position = Vector2(-838, -45)
 visible = false
 position = Vector2(-720, -91)
 
-[node name="MetalbarSpawn" type="Marker2D" parent="."]
+[node name="ItemSpawn" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Metalbar" type="Marker2D" parent="ItemSpawn"]
 position = Vector2(-771.501, 14.6231)
+
+[node name="Gun" type="Marker2D" parent="ItemSpawn"]
+position = Vector2(-771.501, 14.6231)
+metadata/item_name = ""

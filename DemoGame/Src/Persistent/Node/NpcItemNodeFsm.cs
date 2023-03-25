@@ -11,10 +11,10 @@ public abstract partial class NpcItemNodeFsm<TStateKey, TEventKey> :
 		base(initialState, name, processInPhysics) {
 	}
 
-	public NpcItem.NpcStatus Status => NpcItem.Status;
-	public NpcConfig NpcConfig => NpcItem.Config;
+	public NpcItem.NpcStatus Status => Item.Status;
+	public NpcConfig NpcConfig => Item.Config;
 
-	protected NpcItem NpcItem => (NpcItem)Item;
+	protected override NpcItem Item => (NpcItem)base.Item;
 
 	public abstract float DistanceToPlayer();
 	public abstract bool CanBeAttacked(WeaponItem weapon);

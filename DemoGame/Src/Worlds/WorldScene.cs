@@ -1,26 +1,33 @@
+using System;
 using System.Linq;
 using Betauer.Core;
 using Betauer.Core.Nodes;
 using Betauer.Core.Pool;
 using Betauer.DI;
+using Betauer.DI.Factory;
 using Godot;
+using Veronenger.Character.Npc;
+using Veronenger.Character.Player;
 using Veronenger.Config;
 using Veronenger.Managers;
 using Veronenger.Persistent;
+using Veronenger.Transient;
 
 namespace Veronenger.Worlds;
 
-public partial class World3 : Node {
-	[Inject] private Game Game { get; set; }
+public partial class WorldScene : Node {
 	[Inject] private ItemConfigManager ItemConfigManager { get; set; }
 	[Inject] private ItemRepository ItemRepository { get; set; }
 	[Inject] private PlatformManager PlatformManager { get; set; }
 	[Inject] private StageManager StageManager { get; set; }
 	[Inject] private IPool<PickableItemNode> PickableItemNodeFactory { get; set; }
+	[Inject] private IFactory<PlayerNode> PlayerFactory { get; set; }
+	[Inject] private IPool<ProjectileTrail> ProjectilePool { get; set; }
+	[Inject] private IPool<ZombieNode> ZombiePool { get; set; }
 
 	public override void _Ready() {
 		GetNode("EnemySpawn").GetChildren().OfType<Marker2D>().ForEach(m => {
-			if (m.Visible) Game.ZombieSpawn(this, m.GlobalPosition);
+			if (m.Visible) ZombieSpawn(this, m.GlobalPosition);
 		});
 
 		GetChildren().OfType<TileMap>().ForEach(PlatformManager.ConfigureTileMapCollision);
@@ -37,13 +44,18 @@ public partial class World3 : Node {
 	}
 
 	private void PlaceMetalbar() {
+		var pickableItemNode = PickableItemNodeFactory.Get();
+		var metalbar = ItemRepository.Create<WeaponMeleeItem>("Metalbar", "M1")
+			.Configure(ItemConfigManager.Metalbar, 9f);
+		metalbar.LinkNode(pickableItemNode);
+		pickableItemNode.AddTo(this, () => pickableItemNode.CharacterBody2D.GlobalPosition = GetPositionFromMarker("ItemSpawn/Metalbar"));
+	}
+	
+	private void PlaceGun() {
 		
 		// TODO: add these weapons
 		// ItemRepository.Create<WeaponMeleeItem>("Knife", "K1").Configure();
-        
-		// var slowGun = ItemRepository.AddRangeWeapon(ItemConfigManager.SlowGun, "Gun", 6f, "SG");
-		// slowGun.DelayBetweenShots = 0.2f;
-		//
+		
 		// var gun = ItemRepository.AddRangeWeapon(ItemConfigManager.Gun, "Gun", 9f, "G");
 		// gun.DelayBetweenShots = 0.4f;
 		//
@@ -56,13 +68,39 @@ public partial class World3 : Node {
 		// machinegun.EnemiesPerHit = 3;
 		// machinegun.Auto = true;
 
-		var metalbarPosition = GetPositionFromMarker("MetalbarSpawn");
-
 		var pickableItemNode = PickableItemNodeFactory.Get();
-		var metalbar = ItemRepository.Create<WeaponMeleeItem>("Metalbar", "M1")
-			.Configure(ItemConfigManager.Metalbar, 9f);
-		metalbar.LinkNode(pickableItemNode);
-		pickableItemNode.AddToScene(this, () => pickableItemNode.CharacterBody2D.GlobalPosition = metalbarPosition);
+		var slowGun = ItemRepository.Create<WeaponRangeItem>("Slow Gun", "SG")
+			.Configure(ItemConfigManager.SlowGun, 6f);
+		slowGun.DelayBetweenShots = 0.2f;
+		slowGun.LinkNode(pickableItemNode);
+		pickableItemNode.AddTo(this, () => pickableItemNode.CharacterBody2D.GlobalPosition = GetPositionFromMarker("ItemSpawn/Gun"));
+	}
+
+	public void ZombieSpawn(Node scene, Vector2 position) {
+		var zombieNode = ZombiePool.Get();
+		Console.WriteLine("ZombieSpawn "+zombieNode.GetInstanceId());
+		var zombieItem = ItemRepository.Create<NpcItem>("Zombie").Configure(ItemConfigManager.ZombieConfig);
+		zombieItem.LinkNode(zombieNode);
+		zombieNode.AddTo(scene, () => zombieNode.GlobalPosition = position);
+	}
+
+	public ProjectileTrail NewBullet() {
+		var projectileTrail = ProjectilePool.Get();
+		Console.WriteLine("NewBullet "+projectileTrail.GetInstanceId());
+		projectileTrail.AddToScene(this, null);
+		return projectileTrail;
+	}
+
+	public void AddPlayerToScene() {
+		var playerNode = PlayerFactory.Get();
+		AddChild(playerNode);
+		playerNode.Ready += () => playerNode.GlobalPosition = GetPositionFromMarker("SpawnPlayer");
+		ItemRepository.SetPlayer(playerNode);
+	}
+
+	public void InstantiateNewZombie() {
+		var position = GetNode("EnemySpawn").GetChildren().OfType<Marker2D>().First().GlobalPosition;
+		ZombieSpawn(this, position);
 	}
 
 	public Vector2 GetPositionFromMarker(string path, bool freeMarker = true) {

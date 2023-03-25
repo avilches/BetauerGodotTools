@@ -26,7 +26,7 @@ metadata/_edit_group_ = true
 shape = SubResource("RectangleShape2D_ceda3")
 debug_color = Color(0, 0.6, 0.701961, 0.419608)
 
-[node name="Sprite2D" type="Sprite2D" parent="Character"]
+[node name="Sprite" type="Sprite2D" parent="Character"]
 texture = ExtResource("2_yk2m4")
 hframes = 3
 frame = 1

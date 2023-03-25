@@ -8,7 +8,7 @@ namespace Veronenger.Persistent;
 public class WeaponRangeItem : WeaponItem {
     private static readonly Random Random = new Pcg.PcgRandom();
 
-    public WeaponConfig.Range Config { get; private set; }
+    public override WeaponConfig.Range Config => (WeaponConfig.Range)base.Config;
     public int EnemiesPerHit = 1;
     public float DelayBetweenShots = 0f;
     public bool Auto = false;

@@ -11,11 +11,16 @@ public abstract partial class ItemNodeFsm<TStateKey, TEventKey> :
     where TEventKey : Enum {
     protected ItemNodeFsm(TStateKey initialState, string? name = null, bool processInPhysics = false) :
         base(initialState, name, processInPhysics) {
+        TreeEntered += () => {
+            _busy = true;
+            Reset();
+        };
+        TreeExited += () => _busy = false;
     }
 
     [Inject] public ItemRepository ItemRepository { get; set; }
 
-    protected Item Item;
+    protected virtual Item Item { get; set; }
     private volatile bool _busy = false;
     public bool IsBusy() => _busy;
     public bool IsInvalid() => !IsInstanceValid(this);
@@ -31,28 +36,9 @@ public abstract partial class ItemNodeFsm<TStateKey, TEventKey> :
         Item = item;
     }
 
-    public void AddToScene(Godot.Node parent, Action? onReady) {
-        _busy = true;
-        if (onReady != null) {
-            RequestReady();
-            Connect(Godot.Node.SignalName.Ready, Callable.From(onReady), (uint)ConnectFlags.OneShot);
-        }
-        parent.AddChild(this);
-        base.Reset(); // the FSM
-    }
-
     public void RemoveFromWorld() {
         ItemRepository.Remove(Item);
     }
 
     public abstract Vector2 GlobalPosition { get; set; }
-
-    public void RemoveFromScene() {
-        if (!_busy) return;
-        GetParent().RemoveChild(this);
-        OnRemoveFromScene();
-        _busy = false;
-    }
-
-    public abstract void OnRemoveFromScene();
 }

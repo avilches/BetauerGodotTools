@@ -138,14 +138,14 @@ public partial class ZombieNode : NpcItemNodeFsm<ZombieState, ZombieEvent> {
 
 	public override void _Ready() {
 		_lazyRaycastToPlayer.GetDirectSpaceFrom(_mainSprite);
-		_attackArea.LinkMetaToItemId(NpcItem);
-		_hurtArea.LinkMetaToItemId(NpcItem);
+		_attackArea.LinkMetaToItemId(Item);
+		_hurtArea.LinkMetaToItemId(Item);
 		UpdateHealthBar();
 		EnableAttackAndHurtAreas();
 		_overlay?.Enable();
 	}
 
-	public override void OnRemoveFromScene() {
+	public override void _ExitTree() {
 		AnimationReset.PlayFrom(0);
 		_restorer.Restore();
 		_zombieAi.Reset();
@@ -279,7 +279,7 @@ public partial class ZombieNode : NpcItemNodeFsm<ZombieState, ZombieEvent> {
 	}
 
 	private void OnPlayerAttackEvent(PlayerAttackEvent playerAttackEvent) {
-		if (playerAttackEvent.Npc.Id != NpcItem.Id) return;
+		if (playerAttackEvent.Npc.Id != Item.Id) return;
 		if (playerAttackEvent.Weapon is WeaponMeleeItem) {
 			Status.UnderMeleeAttack = true;
 			Kickback(30, 80, playerAttackEvent.Weapon.Damage * 15);
@@ -320,7 +320,7 @@ public partial class ZombieNode : NpcItemNodeFsm<ZombieState, ZombieEvent> {
 			.Text("State", () => CurrentState.Key.ToString()).EndMonitor()
 			.Text("IA", () => _zombieAi.GetState()).EndMonitor()
 			.Text("Animation", () => _animationPlayer.CurrentAnimation).EndMonitor()
-			.Text("ItemId", () => NpcItem.Id.ToString()).EndMonitor()
+			.Text("ItemId", () => Item.Id.ToString()).EndMonitor()
 			.Text("ObjectId", () => GetInstanceId().ToString()).EndMonitor()
 		.CloseBox();
 	}

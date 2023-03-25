@@ -2,22 +2,23 @@ using Godot;
 
 namespace Veronenger.Config;
 
-public abstract class WeaponConfig {
-    public class Melee : WeaponConfig {
-        public readonly Texture2D WeaponAnimation;
-        public readonly string ShapeName;
+public abstract class WeaponConfig : PickableConfig {
+    public Texture2D WeaponAnimation { get; protected set; }
 
-        public Melee(Texture2D weaponAnimation, string shapeName) {
+    public class Melee : WeaponConfig {
+        public string ShapeName { get; protected set; }
+
+        public Melee(Texture2D pickableSprite, Texture2D weaponAnimation, string shapeName) {
+            PickableSprite = pickableSprite;
             WeaponAnimation = weaponAnimation;
             ShapeName = shapeName;
         }         
     }         
     
     public class Range : WeaponConfig {
-        public readonly Texture2D WeaponAnimation;
-        public readonly Texture2D? Projectile;
-        public Vector2 ProjectileStartPosition;
-
+        public Texture2D? Projectile  { get; protected set; }
+        public Vector2 ProjectileStartPosition  { get; protected set; }
+        
         public int MaxDistance = 800;
         public int Speed = 2000;
         public int TrailLength = 200;

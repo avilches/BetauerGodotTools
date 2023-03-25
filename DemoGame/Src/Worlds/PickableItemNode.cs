@@ -15,10 +15,16 @@ public partial class PickableItemNode : ItemNode, IPickableItemNode {
 	public enum State {
 		Available, PickingUp, Finish
 	}
+	
+	public const float Speed = 300f; // 300px per second
+	public const float Acceleration = 2f; // 2x per second
 
 	[Inject] private PlayerConfig PlayerConfig { get; set; }
-	
-	[NodePath("Character")] public CharacterBody2D CharacterBody2D;
+
+	protected PickableItem PickableItem => (PickableItem)Item;
+
+	[NodePath("Character")] public CharacterBody2D CharacterBody2D { get; private set; }
+	[NodePath("Character/Sprite")] public Sprite2D Sprite { get; private set; }
 	[NodePath("Character/PickZone")] public Area2D PickZone { get; private set; }
 
 	private KinematicPlatformMotion _platformBody;
@@ -40,6 +46,7 @@ public partial class PickableItemNode : ItemNode, IPickableItemNode {
 		_state = State.Available;
 		_followPosition = null;
 		_onPickup = null;
+		Sprite.Texture = PickableItem.Config.PickableSprite;
 	}
 
 	public override Vector2 GlobalPosition {
@@ -47,24 +54,24 @@ public partial class PickableItemNode : ItemNode, IPickableItemNode {
 		set => CharacterBody2D.GlobalPosition = value;
 	}
 
-	public override void OnRemoveFromScene() {
-	}
-
 	public void BringTo(Func<Vector2> target, Action onPickup) {
 		_followPosition = target;
 		_onPickup = onPickup;
 		_state = State.PickingUp;
+		_currentSpeed = Speed;
 	}
 
 	public override void _PhysicsProcess(double delta) {
 		if (_state == State.Available) _PhysicsProcessAvailable(delta);
 		else if (_state == State.PickingUp) _PhysicsProcessPickingUp(delta);
 	}
-
-	public void _PhysicsProcessPickingUp(double delta) {
+	
+	private float _currentSpeed = 0f;
+	public void _PhysicsProcessPickingUp(double dDelta) {
+		var delta = (float)dDelta;
 		var destination = _followPosition!();
-		// TODO: accelerate movement
-		CharacterBody2D.GlobalPosition = CharacterBody2D.GlobalPosition.MoveToward(destination, (float)delta * PlayerConfig.MaxSpeed);
+		_currentSpeed *= 1 + Acceleration * delta;
+		CharacterBody2D.GlobalPosition = CharacterBody2D.GlobalPosition.MoveToward(destination, delta * _currentSpeed);
 		if (CharacterBody2D.GlobalPosition.DistanceTo(destination) < 10) {
 			_state = State.Finish;
 			_onPickup?.Invoke();

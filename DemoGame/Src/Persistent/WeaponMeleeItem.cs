@@ -3,7 +3,7 @@ using Veronenger.Config;
 namespace Veronenger.Persistent;
 
 public class WeaponMeleeItem : WeaponItem {
-    public WeaponConfig.Melee Config { get; private set; }
+    public override WeaponConfig.Melee Config => (WeaponConfig.Melee)base.Config;
     public int EnemiesPerHit = 2;
 
     public WeaponMeleeItem Configure(WeaponConfig.Melee config, float damageBase) {

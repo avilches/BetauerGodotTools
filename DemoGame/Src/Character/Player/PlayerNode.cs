@@ -267,9 +267,9 @@ public partial class PlayerNode : FsmNodeSync<PlayerState, PlayerEvent> {
 	}
 
 	
-	public override void _Input(InputEvent e) {
-		base._Input(e);
-		if (e.IsLeftDoubleClick()) _camera2D.Position = Vector2.Zero;
+	// public new void _Input(InputEvent e) {
+		// base._Input(e);
+		// if (e.IsLeftDoubleClick()) _camera2D.Position = Vector2.Zero;
 		// if (e.IsKeyPressed(Key.Q)) {
 			// _camera2D.Zoom -= new Vector2(0.05f, 0.05f);
 		// } else if (e.IsKeyPressed(Key.W)) {
@@ -277,7 +277,7 @@ public partial class PlayerNode : FsmNodeSync<PlayerState, PlayerEvent> {
 		// } else if (e.IsKeyPressed(Key.E)) {
 			// _camera2D.Zoom += new Vector2(0.05f, 0.05f);
 		// }
-	}
+	// }
 
 	public bool CanJump() => !RaycastCanJump.IsColliding(); 
 
@@ -411,7 +411,7 @@ public partial class PlayerNode : FsmNodeSync<PlayerState, PlayerEvent> {
 		State(PlayerState.Idle)
 			.OnInput(InventoryHandler)
 			.OnInput(e => {
-				if (e.IsKeyPressed(Key.V)) Game.InstantiateNewZombie();
+				if (e.IsKeyPressed(Key.V)) Game.WorldScene.InstantiateNewZombie();
 			})
 			// .OnInputBatch(AttackAndJumpHandler)
 			.Enter(() => {
@@ -517,7 +517,7 @@ public partial class PlayerNode : FsmNodeSync<PlayerState, PlayerEvent> {
 			var bulletPosition = weapon.Config.ProjectileStartPosition * new Vector2(PlatformBody.FacingRight, 1);
 			var bulletDirection = new Vector2(PlatformBody.FacingRight, 0);
 			var hits = 0;
-			var bullet = Game.NewBullet();
+			var bullet = Game.WorldScene.NewBullet();
 			bullet.ShootFrom(weapon, CharacterBody2D.ToGlobal(bulletPosition), bulletDirection, 
 				CollisionLayerManager.PlayerConfigureBullet,
 				collision => {
