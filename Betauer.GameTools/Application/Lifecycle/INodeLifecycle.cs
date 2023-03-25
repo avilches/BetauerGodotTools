@@ -1,6 +1,4 @@
-using System;
 using Betauer.Core.Pool.Lifecycle;
-using Godot;
 
 namespace Betauer.Application.Lifecycle;
 
@@ -10,9 +8,4 @@ public interface INodeLifecycle : IPoolLifecycle {
     // the time needed to instantiate the children and add them to the node. So the user can put the code in this method
     // and be sure the children are filled.
     void Initialize();
-    
-    public void AddToScene(Node parent, Action onReady);
-    public void RemoveFromScene();
-    public void Free();
-    public void QueueFree();
 }

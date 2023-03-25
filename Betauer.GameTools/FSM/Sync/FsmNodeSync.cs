@@ -58,33 +58,33 @@ public partial class FsmNodeSync<TStateKey, TEventKey> :
 
     public bool IsInitialized() => _stateMachine.IsInitialized();
 
-    public override void _Input(InputEvent e) {
+    public sealed override void _Input(InputEvent e) {
         CurrentState?.InputHandler._Input(e);
     }
 
-    public override void _UnhandledInput(InputEvent e) {
+    public sealed override void _UnhandledInput(InputEvent e) {
         CurrentState?.InputHandler._UnhandledInput(e);
     }
 
-    public override void _ShortcutInput(InputEvent e) {
+    public sealed override void _ShortcutInput(InputEvent e) {
         CurrentState?.InputHandler._ShortcutInput(e);
     }
 
-    public override void _UnhandledKeyInput(InputEvent e) {
+    public sealed override void _UnhandledKeyInput(InputEvent e) {
         CurrentState?.InputHandler._UnhandledKeyInput(e);
     }
 
-    public override void _PhysicsProcess(double delta) {
+    public sealed override void _PhysicsProcess(double delta) {
         if (ProcessInPhysics) Execute(delta);
         else SetPhysicsProcess(false);
     }
 
-    public override void _Process(double delta) {
+    public sealed override void _Process(double delta) {
         if (!ProcessInPhysics) Execute(delta);
         else SetProcess(false);
     }
 
-    public void Execute(double delta) {
+    private void Execute(double delta) {
         if (IsQueuedForDeletion()) return;
         Delta = delta;
         _stateMachine.Execute();
