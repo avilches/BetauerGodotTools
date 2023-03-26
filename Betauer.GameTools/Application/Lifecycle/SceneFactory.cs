@@ -1,4 +1,5 @@
 using Betauer.DI.Factory;
+using Betauer.NodePath;
 using Godot;
 
 namespace Betauer.Application.Lifecycle;
@@ -14,6 +15,8 @@ public class SceneFactory<T> : ResourceFactory, IFactory<T> where T : Node {
     public PackedScene Scene => (PackedScene)Resource!;
 
     public T Get() {
-        return Scene.Instantiate<T>();
+        var instantiate = Scene.Instantiate<T>();
+        NodePathScanner.ScanAndInject(instantiate);
+        return instantiate;
     }
 }

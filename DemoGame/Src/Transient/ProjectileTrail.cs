@@ -3,13 +3,15 @@ using System.Collections.Generic;
 using Betauer.Application.Lifecycle;
 using Betauer.Core;
 using Betauer.Core.Nodes;
+using Betauer.Core.Pool.Lifecycle;
+using Betauer.DI;
 using Godot;
 using Godot.Collections;
 using Veronenger.Persistent;
 
 namespace Veronenger.Transient;
 
-public partial class ProjectileTrail : BaseNodeLifecycle, INodePoolLifecycle {
+public partial class ProjectileTrail : BaseNodeLifecycle, IPoolLifecycle {
 	public enum Behaviour { Continue, Stop }
 	private static readonly Random Random = new Pcg.PcgRandom();
 	private static float RayLength = 40;
@@ -32,7 +34,7 @@ public partial class ProjectileTrail : BaseNodeLifecycle, INodePoolLifecycle {
 	public override void OnGet() {
 	}
 
-	public override void Initialize() {
+	public override void PostInject() {
 		Trail = GetNode<Line2D>("Line2D");
 		Trail.Visible = false;
 		Trail.Width = 1f;
@@ -84,11 +86,11 @@ public partial class ProjectileTrail : BaseNodeLifecycle, INodePoolLifecycle {
 
 	public override void _PhysicsProcess(double delta) {
 		if (_queueEnd) {
-			RemoveFromScene();
+			this.RemoveFromParent();
 		} else {
 			var currentPosition = Sprite2D.Position;
 			if (IsTooFar(currentPosition)) {
-				RemoveFromScene();
+				this.RemoveFromParent();
 				return;
 			}
 			var newPosition = currentPosition + _velocity * (float)delta;
@@ -153,10 +155,4 @@ public partial class ProjectileTrail : BaseNodeLifecycle, INodePoolLifecycle {
 		collisionPosition = Vector2.Zero;
 		return false;
 	}
-	
-	public override void OnRemoveFromScene() {
-		SetPhysicsProcess(false);
-		Sprite2D.Visible = Trail.Visible = false;
-	}
-
 }

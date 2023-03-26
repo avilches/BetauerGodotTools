@@ -1,19 +1,14 @@
 using System;
-using System.Diagnostics;
-using System.Linq;
 using System.Threading.Tasks;
 using Betauer.Application.Lifecycle;
 using Betauer.DI;
 using Betauer.Core.Nodes;
-using Betauer.Core.Pool;
+using Betauer.Core.Pool.Lifecycle;
 using Betauer.Core.Signal;
 using Betauer.DI.Factory;
-using Veronenger.Character.Npc;
 using Godot;
-using Veronenger.Character.Player;
 using Veronenger.Config;
 using Veronenger.Persistent;
-using Veronenger.Transient;
 using Veronenger.UI;
 using Veronenger.Worlds;
 
@@ -29,7 +24,7 @@ public class Game {
 	[Inject] private IFactory<WorldScene> World3 { get; set; }
 
 	[Inject] private GameLoaderContainer GameLoaderContainer { get; set; }
-	[Inject] private PoolContainer<INodePoolLifecycle> PoolContainer { get; set; }
+	[Inject] private PoolContainer<IPoolLifecycle> PoolContainer { get; set; }
 
 	public WorldScene WorldScene { get; private set; }
 

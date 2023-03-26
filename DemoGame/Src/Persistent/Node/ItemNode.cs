@@ -1,12 +1,11 @@
-using System;
-using Betauer.Application.Lifecycle;
+using Betauer.Core.Pool.Lifecycle;
 using Betauer.DI;
 using Godot;
 
 
 namespace Veronenger.Persistent.Node;
 
-public abstract partial class ItemNode : Godot.Node, ILinkableItem, INodePoolLifecycle {
+public abstract partial class ItemNode : Godot.Node, ILinkableItem, IPoolLifecycle, IInjectable {
     protected ItemNode() {
         TreeEntered += () => _busy = true;
         TreeExited += () => _busy = false;
@@ -26,8 +25,7 @@ public abstract partial class ItemNode : Godot.Node, ILinkableItem, INodePoolLif
     public bool IsBusy() => _busy;
     public bool IsInvalid() => !IsInstanceValid(this);
 
-    // From INodeLifecycle, called by PoolFromNodeFactory
-    public abstract void Initialize();
+    public abstract void PostInject();
     
     // From IPoolLifecycle
     public abstract void OnGet();

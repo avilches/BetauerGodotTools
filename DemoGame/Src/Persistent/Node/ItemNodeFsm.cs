@@ -6,7 +6,7 @@ using Godot;
 namespace Veronenger.Persistent.Node;
 
 public abstract partial class ItemNodeFsm<TStateKey, TEventKey> : 
-    FsmNodeSync<TStateKey, TEventKey>, ILinkableItem 
+    FsmNodeSync<TStateKey, TEventKey>, ILinkableItem, IInjectable 
     where TStateKey : Enum 
     where TEventKey : Enum {
     protected ItemNodeFsm(TStateKey initialState, string? name = null, bool processInPhysics = false) :
@@ -25,8 +25,7 @@ public abstract partial class ItemNodeFsm<TStateKey, TEventKey> :
     public bool IsBusy() => _busy;
     public bool IsInvalid() => !IsInstanceValid(this);
 
-    // From INodeLifecycle, called by PoolFromNodeFactory
-    public abstract void Initialize();
+    public abstract void PostInject();
 
     // From IPoolLifecycle
     public abstract void OnGet();

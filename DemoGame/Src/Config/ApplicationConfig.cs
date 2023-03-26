@@ -6,6 +6,7 @@ using Betauer.Application.Monitor;
 using Betauer.Application.Screen;
 using Betauer.Application.Settings;
 using Betauer.Core.Pool;
+using Betauer.Core.Pool.Lifecycle;
 using Betauer.DI;
 using Betauer.Input;
 using Godot;
@@ -34,7 +35,7 @@ public class ApplicationConfig {
 	[Singleton] public InputActionsContainer InputActionsContainer => new();
 
 	// All 
-	[Singleton] public PoolContainer<INodePoolLifecycle> PoolContainer => new();
+	[Singleton] public PoolContainer<IPoolLifecycle> PoolContainer => new();
 	[Singleton] public GameLoaderContainer ResourceLoaderContainer => new();
 
 }

@@ -87,7 +87,7 @@ public partial class WorldScene : Node {
 	public ProjectileTrail NewBullet() {
 		var projectileTrail = ProjectilePool.Get();
 		Console.WriteLine("NewBullet "+projectileTrail.GetInstanceId());
-		projectileTrail.AddToScene(this, null);
+		projectileTrail.AddTo(this);
 		return projectileTrail;
 	}
 

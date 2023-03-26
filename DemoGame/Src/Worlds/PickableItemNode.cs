@@ -1,4 +1,5 @@
 using System;
+using Betauer.Core.Pool.Lifecycle;
 using Godot;
 using Betauer.DI;
 using Betauer.Flipper;
@@ -11,7 +12,7 @@ using Veronenger.Persistent.Node;
 
 namespace Veronenger.Worlds;
 
-public partial class PickableItemNode : ItemNode, IPickableItemNode {
+public partial class PickableItemNode : ItemNode, IPickableItemNode, IPoolLifecycle {
 	public enum State {
 		Available, PickingUp, Finish
 	}
@@ -32,7 +33,7 @@ public partial class PickableItemNode : ItemNode, IPickableItemNode {
 	private Func<Vector2>? _followPosition;
 	private Action? _onPickup;
 
-	public override void Initialize() {
+	public override void PostInject() {
 		CollisionLayerManager.PickableItem(this);
 		var marker2d = new Marker2D();
 		AddChild(marker2d);

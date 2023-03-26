@@ -1,16 +1,21 @@
 using System;
-using Betauer.Application.Lifecycle;
+using Betauer.Core.Pool.Lifecycle;
+using Betauer.DI;
 using Godot;
 
 namespace Veronenger.Transient;
 
-public abstract partial class BaseNodeLifecycle : Node, INodePoolLifecycle {
+public abstract partial class BaseNodeLifecycle : Node, IPoolLifecycle, IInjectable {
+    protected BaseNodeLifecycle() {
+        TreeEntered += () => _busy = true;
+        TreeExited += () => _busy = false;
+    }
+    
+    
+    
+    
+    
 
-    
-    
-    
-    
-    
     
     
     
@@ -20,8 +25,7 @@ public abstract partial class BaseNodeLifecycle : Node, INodePoolLifecycle {
     public bool IsBusy() => _busy;
     public bool IsInvalid() => !IsInstanceValid(this);
 
-    // From INodeLifecycle, called by PoolFromNodeFactory
-    public abstract void Initialize();
+    public abstract void PostInject();
 
     // From IPoolLifecycle
     public abstract void OnGet();
@@ -31,29 +35,10 @@ public abstract partial class BaseNodeLifecycle : Node, INodePoolLifecycle {
     
     
     
-    public void AddToScene(Node parent, Action? onReady) {
-        _busy = true;
-        if (onReady != null) {
-            RequestReady();
-            Connect(Godot.Node.SignalName.Ready, Callable.From(onReady), (uint)ConnectFlags.OneShot);
-        }
-        parent.AddChild(this);
-    }
-    
-    
-    
+ 
     
     
     
     public abstract Vector2 GlobalPosition { get; set; }
-
-    public void RemoveFromScene() {
-        if (!_busy) return;
-        GetParent().RemoveChild(this);
-        OnRemoveFromScene();
-        _busy = false;
-    }
-
-    public abstract void OnRemoveFromScene();
 
 }

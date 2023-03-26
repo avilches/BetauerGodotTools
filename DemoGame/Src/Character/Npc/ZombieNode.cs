@@ -152,7 +152,7 @@ public partial class ZombieNode : NpcItemNodeFsm<ZombieState, ZombieEvent> {
 		_overlay?.Disable();
 	}
 
-	public override void Initialize() {
+	public override void PostInject() {
 		ConfigureAnimations();
 		ConfigureCharacter();
 		ConfigureFsm();

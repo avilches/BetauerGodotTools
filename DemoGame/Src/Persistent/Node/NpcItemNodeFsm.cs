@@ -1,11 +1,12 @@
 using System;
-using Betauer.Application.Lifecycle;
+using Betauer.Core.Pool.Lifecycle;
 using Veronenger.Config;
 
 namespace Veronenger.Persistent.Node;
 
+
 public abstract partial class NpcItemNodeFsm<TStateKey, TEventKey> : 
-	ItemNodeFsm<TStateKey, TEventKey>, INpcItemNode, INodePoolLifecycle
+	ItemNodeFsm<TStateKey, TEventKey>, INpcItemNode, IPoolLifecycle
 	where TStateKey : Enum
 	where TEventKey : Enum {
 	protected NpcItemNodeFsm(TStateKey initialState, string? name = null, bool processInPhysics = false) :
