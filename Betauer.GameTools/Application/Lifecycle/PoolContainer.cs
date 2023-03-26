@@ -5,7 +5,7 @@ using Betauer.Core.Pool;
 
 namespace Betauer.Application.Lifecycle;
 
-public class PoolManager<T> {
+public class PoolContainer<T> {
     public List<IPool<T>> PoolFromFactories = new();
 
     public void Add(IPool<T> poolFromFactory) {

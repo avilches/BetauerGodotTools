@@ -8,9 +8,9 @@ using Godot;
 namespace Betauer.Application.Lifecycle;
 
 public class PoolFromNodeFactory<T> : BasePoolLifecycle<T>, IInjectable 
-    where T : Node, INodeLifecycle {
+    where T : Node, INodePoolLifecycle {
     [Inject] private IFactory<T> Factory { get; set; }
-    [Inject] private PoolManager<INodeLifecycle> PoolManager { get; set; }
+    [Inject] private PoolContainer<INodePoolLifecycle> PoolContainer { get; set; }
 
     private readonly int _purgeIfBiggerThan = 0;
     protected override bool MustBePurged(IReadOnlyList<T> pool) => pool.Count > _purgeIfBiggerThan;
@@ -28,6 +28,6 @@ public class PoolFromNodeFactory<T> : BasePoolLifecycle<T>, IInjectable
     }
 
     public void PostInject() {
-        PoolManager.Add(this);
+        PoolContainer.Add(this);
     }
 }

@@ -1,11 +1,12 @@
 using System;
+using Betauer.Application.Lifecycle;
 using Betauer.DI;
 using Godot;
 
 
 namespace Veronenger.Persistent.Node;
 
-public abstract partial class ItemNode : Godot.Node, IItemNode {
+public abstract partial class ItemNode : Godot.Node, ILinkableItem, INodePoolLifecycle {
     protected ItemNode() {
         TreeEntered += () => _busy = true;
         TreeExited += () => _busy = false;
@@ -32,7 +33,7 @@ public abstract partial class ItemNode : Godot.Node, IItemNode {
     public abstract void OnGet();
 
     // IItemNode
-    public void SetItem(Item item) {
+    public void LinkItem(Item item) {
         Item = item;
     }
 

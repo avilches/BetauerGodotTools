@@ -9,7 +9,7 @@ using Veronenger.Persistent;
 
 namespace Veronenger.Transient;
 
-public partial class ProjectileTrail : BaseNodeLifecycle, INodeLifecycle {
+public partial class ProjectileTrail : BaseNodeLifecycle, INodePoolLifecycle {
 	public enum Behaviour { Continue, Stop }
 	private static readonly Random Random = new Pcg.PcgRandom();
 	private static float RayLength = 40;

@@ -4,7 +4,7 @@ using Godot;
 
 namespace Veronenger.Transient;
 
-public abstract partial class BaseNodeLifecycle : Node, INodeLifecycle {
+public abstract partial class BaseNodeLifecycle : Node, INodePoolLifecycle {
 
     
     

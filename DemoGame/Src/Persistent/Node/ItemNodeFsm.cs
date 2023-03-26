@@ -6,7 +6,7 @@ using Godot;
 namespace Veronenger.Persistent.Node;
 
 public abstract partial class ItemNodeFsm<TStateKey, TEventKey> : 
-    FsmNodeSync<TStateKey, TEventKey>, IItemNode 
+    FsmNodeSync<TStateKey, TEventKey>, ILinkableItem 
     where TStateKey : Enum 
     where TEventKey : Enum {
     protected ItemNodeFsm(TStateKey initialState, string? name = null, bool processInPhysics = false) :
@@ -32,7 +32,7 @@ public abstract partial class ItemNodeFsm<TStateKey, TEventKey> :
     public abstract void OnGet();
 
     // IItemNode
-    public void SetItem(Item item) {
+    public void LinkItem(Item item) {
         Item = item;
     }
 

@@ -29,7 +29,7 @@ public class Game {
 	[Inject] private IFactory<WorldScene> World3 { get; set; }
 
 	[Inject] private GameLoaderContainer GameLoaderContainer { get; set; }
-	[Inject] private PoolManager<INodeLifecycle> PoolManager { get; set; }
+	[Inject] private PoolContainer<INodePoolLifecycle> PoolContainer { get; set; }
 
 	public WorldScene WorldScene { get; private set; }
 
@@ -83,17 +83,14 @@ public class Game {
 		// 1. All busy elements are still attached to the tree and will be destroyed with the scene, so we don't need to
 		// do anything with them.
 		// But the non busy and valid element are outside of the scene tree in the pool, so, loop them and free them:
-		PoolManager.ForEachElementInAllPools(e => ((Node)e).Free());
+		PoolContainer.ForEachElementInAllPools(e => ((Node)e).Free());
 		// 2. Remove the data from the pool to avoid having references to busy elements which are going to die with the scene
-		PoolManager.Clear();
+		PoolContainer.Clear();
 		GameLoaderContainer.UnloadGameResources();
 	}
 
 	private void FreeSceneAndKeepPoolData() {
 		// This line keeps the godot nodes in the pool removing them from scene, because the scene is going to be freed
-		PoolManager.ForEachElementInAllPools(e => {
-			Node node = (Node)e;
-			node.RemoveFromParent();
-		});
+		PoolContainer.ForEachElementInAllPools(e => ((Node)e).RemoveFromParent());
 	}
 }

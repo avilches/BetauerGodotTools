@@ -34,7 +34,7 @@ public class ApplicationConfig {
 	[Singleton] public InputActionsContainer InputActionsContainer => new();
 
 	// All 
-	[Singleton] public PoolManager<INodeLifecycle> PoolManager => new();
+	[Singleton] public PoolContainer<INodePoolLifecycle> PoolContainer => new();
 	[Singleton] public GameLoaderContainer ResourceLoaderContainer => new();
 
 }
