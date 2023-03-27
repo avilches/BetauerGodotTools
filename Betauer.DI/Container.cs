@@ -98,39 +98,19 @@ public partial class Container {
 
     public bool Contains(string name) => _registryByName.ContainsKey(name);
     public bool Contains<T>() => Contains(typeof(T));
-    public bool Contains<T>(string name) => Contains(typeof(T), name);
     public bool Contains(Type type) => _registry.ContainsKey(type) || _fallbackByType.ContainsKey(type);
-
-    public bool Contains(Type type, string name) {
-        return _registryByName.TryGetValue(name, out var o) && type.IsAssignableFrom(o.ProviderType); // Just check if it can be casted
-    }
 
     public IProvider GetProvider(string name) => TryGetProvider(name, out var found) ? found! : throw new ServiceNotFoundException(name);
     public IProvider GetProvider<T>() => GetProvider(typeof(T));
-    public IProvider GetProvider<T>(string name) => GetProvider(typeof(T), name);
     public IProvider GetProvider(Type type) => TryGetProvider(type, out var found) ? found! : throw new ServiceNotFoundException(type);
-
-    public IProvider GetProvider(Type type, string name) {
-        return _registryByName.TryGetValue(name, out var provider)
-            ? (type.IsAssignableFrom(provider.ProviderType) ? provider : throw new InvalidCastException())
-            : throw new ServiceNotFoundException(name);
-    }
 
     public bool TryGetProvider(string name, [MaybeNullWhen(false)] out IProvider provider) => _registryByName.TryGetValue(name, out provider);
     public bool TryGetProvider<T>(out IProvider? provider) => TryGetProvider(typeof(T), out provider);
-    public bool TryGetProvider<T>(string name, out IProvider? provider) => TryGetProvider(typeof(T), name, out provider);
     public bool TryGetProvider(Type type, out IProvider? provider) {
         var found = _registry.TryGetValue(type, out provider);
         if (!found) found = _fallbackByType.TryGetValue(type, out provider);
         if (!found) provider = null;
         return found;
-    }
-
-    public bool TryGetProvider(Type type, string name, out IProvider? provider) {
-        var found = _registryByName.TryGetValue(name, out provider);
-        if (found) return type.IsAssignableFrom(provider!.ProviderType); // Just check if it can be casted
-        provider = null;
-        return false;
     }
 
     public T Resolve<T>() => (T)Resolve(typeof(T));

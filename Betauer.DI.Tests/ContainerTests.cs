@@ -192,25 +192,15 @@ public class ContainerTests : Node {
             Console.WriteLine($"Test #{x}");
             var c = func();
             // By name, any compatible type is ok
-            Assert.That(c.Contains<ClassWith1Interface>("P"));
-            Assert.That(c.Contains<IInterface1>("P"));
-            Assert.That(c.Contains<object>("P"));
             Assert.That(c.Contains("P"));
             Assert.That(c.Contains<ClassWith1Interface>());
             Assert.That(!c.Contains<IInterface1>());
 
-            Assert.That(c.GetProvider<ClassWith1Interface>("P").ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
-            Assert.That(c.GetProvider<IInterface1>("P").ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
-            Assert.That(c.GetProvider<object>("P").ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
             Assert.That(c.GetProvider("P").ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
             Assert.That(c.GetProvider<ClassWith1Interface>().ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
             Assert.Throws<ServiceNotFoundException>(() => c.GetProvider<IInterface1>());
                 
-            Assert.That(c.TryGetProvider<ClassWith1Interface>("P", out var provider), Is.True);
-            Assert.That(provider.ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
-            Assert.That(c.TryGetProvider<IInterface1>("P", out provider), Is.True);
-            Assert.That(provider.ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
-            Assert.That(c.TryGetProvider<object>("P", out provider), Is.True);
+            Assert.That(c.TryGetProvider("P", out var provider), Is.True);
             Assert.That(provider.ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
             Assert.That(c.TryGetProvider("P", out provider), Is.True);
             Assert.That(provider.ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
@@ -258,29 +248,15 @@ public class ContainerTests : Node {
         foreach (var func in x) {
             Console.WriteLine($"Test #{x}");
             var c = func();
-            Assert.That(c.Contains<ClassWith1Interface>("P"));   
-            Assert.That(c.Contains<IInterface1>("P"));
-            Assert.That(c.Contains<object>("P"));
             Assert.That(c.Contains("P"));
             Assert.That(!c.Contains<ClassWith1Interface>());
             Assert.That(c.Contains<IInterface1>());
 
-            Assert.That(c.GetProvider<ClassWith1Interface>("P").ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
-            Assert.That(c.GetProvider<IInterface1>("P").ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
-            Assert.That(c.GetProvider<object>("P").ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
             Assert.That(c.GetProvider("P").ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
             Assert.Throws<ServiceNotFoundException>(() => c.GetProvider<ClassWith1Interface>());
             Assert.That(c.GetProvider<IInterface1>().ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
 
-            Assert.That(c.TryGetProvider<ClassWith1Interface>("P", out var provider), Is.True);
-            Assert.That(provider.ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
-            Assert.That(c.TryGetProvider<IInterface1>("P", out provider), Is.True);
-            Assert.That(provider.ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
-            Assert.That(c.TryGetProvider<object>("P", out provider), Is.True);
-            Assert.That(provider.ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
-            Assert.That(c.TryGetProvider("P", out provider), Is.True);
-            Assert.That(provider.ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
-            Assert.That(c.TryGetProvider<ClassWith1Interface>(out provider), Is.False);
+            Assert.That(c.TryGetProvider<ClassWith1Interface>(out var provider), Is.False);
             Assert.That(provider, Is.Null);
             Assert.That(c.TryGetProvider<IInterface1>(out provider), Is.True);
             Assert.That(provider.ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
@@ -445,7 +421,6 @@ public class ContainerTests : Node {
         b.Register(Provider.Static(n1, "1"));
         var c = b.Build();
         Assert.That(c.GetProvider<ClassWith1Interface>(), Is.EqualTo(c.GetProvider("1")));
-        Assert.That(c.GetProvider<ClassWith1Interface>(), Is.EqualTo(c.GetProvider<ClassWith1Interface>("1")));
         var foundByName = c.TryGetProvider<ClassWith1Interface>(out var pName);
         var foundFallback = c.TryGetProvider("1", out var fName);
         Assert.That(foundByName);
