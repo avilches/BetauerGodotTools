@@ -143,7 +143,8 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 
 
 	public override void _Ready() {
-		Status.OnHealthUpdate += HudScene.UpdateHealth; 
+		Status.OnHealthUpdate += HudScene.UpdateHealth;
+		Status.SetHealth(Status.MaxHealth);
 	}
 
 	public void PostInject() {
