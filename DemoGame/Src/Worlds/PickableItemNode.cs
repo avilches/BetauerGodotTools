@@ -47,7 +47,7 @@ public partial class PickableItemNode : ItemNode, IPickableItemNode, IPoolLifecy
 		_state = State.Available;
 		_followPosition = null;
 		_onPickup = null;
-		Sprite.Texture = PickableItem.Config.PickableSprite;
+		PickableItem?.Config?.Initialize(this);
 	}
 
 	public override Vector2 GlobalPosition {

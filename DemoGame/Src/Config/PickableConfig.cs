@@ -1,7 +1,8 @@
-using Godot;
+using System;
+using Veronenger.Worlds;
 
 namespace Veronenger.Config;
 
 public abstract class PickableConfig {
-    public Texture2D PickableSprite { get; protected set; }
+    public Action<PickableItemNode>? Initialize;
 }

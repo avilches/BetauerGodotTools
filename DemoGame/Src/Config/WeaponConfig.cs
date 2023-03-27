@@ -8,8 +8,7 @@ public abstract class WeaponConfig : PickableConfig {
     public class Melee : WeaponConfig {
         public string ShapeName { get; protected set; }
 
-        public Melee(Texture2D pickableSprite, Texture2D weaponAnimation, string shapeName) {
-            PickableSprite = pickableSprite;
+        public Melee(Texture2D weaponAnimation, string shapeName) {
             WeaponAnimation = weaponAnimation;
             ShapeName = shapeName;
         }         

@@ -1,15 +1,14 @@
-[gd_scene load_steps=5 format=3 uid="uid://b1vih65k47s7q"]
+[gd_scene load_steps=4 format=3 uid="uid://b1vih65k47s7q"]
 
 [ext_resource type="Script" path="res://Src/Worlds/PickableItemNode.cs" id="1_vsh8s"]
-[ext_resource type="Texture2D" uid="uid://deitpok70hmuv" path="res://Assets/Weapons/metalbar.png" id="2_yk2m4"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ceda3"]
-size = Vector2(20, 5)
+size = Vector2(8, 8)
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_tnr71"]
 radius = 50.0
 
-[node name="Control" type="Control"]
+[node name="Pickable" type="Control"]
 layout_mode = 3
 anchors_preset = 0
 offset_right = 40.0
@@ -27,9 +26,6 @@ shape = SubResource("RectangleShape2D_ceda3")
 debug_color = Color(0, 0.6, 0.701961, 0.419608)
 
 [node name="Sprite" type="Sprite2D" parent="Character"]
-texture = ExtResource("2_yk2m4")
-hframes = 3
-frame = 1
 
 [node name="PickZone" type="Area2D" parent="Character"]
 collision_layer = 0

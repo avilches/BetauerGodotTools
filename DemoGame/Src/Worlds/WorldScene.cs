@@ -41,18 +41,7 @@ public partial class WorldScene : Node {
 		GetNode<Node>("Stages").GetChildren().OfType<Area2D>().ForEach(StageManager.ConfigureStage);
 
 		PlaceMetalbar();
-	}
-
-	private void PlaceMetalbar() {
-		var pickableItemNode = PickableItemNodeFactory.Get();
-		var metalbar = ItemRepository.Create<WeaponMeleeItem>("Metalbar", "M1")
-			.Configure(ItemConfigManager.Metalbar, 9f);
-		metalbar.LinkNode(pickableItemNode);
-		pickableItemNode.AddTo(this, () => pickableItemNode.CharacterBody2D.GlobalPosition = GetPositionFromMarker("ItemSpawn/Metalbar"));
-	}
-	
-	private void PlaceGun() {
-		
+		PlaceGun();
 		// TODO: add these weapons
 		// ItemRepository.Create<WeaponMeleeItem>("Knife", "K1").Configure();
 		
@@ -67,13 +56,22 @@ public partial class WorldScene : Node {
 		// machinegun.DelayBetweenShots = 0.05f;
 		// machinegun.EnemiesPerHit = 3;
 		// machinegun.Auto = true;
+	}
 
-		var pickableItemNode = PickableItemNodeFactory.Get();
-		var slowGun = ItemRepository.Create<WeaponRangeItem>("Slow Gun", "SG")
-			.Configure(ItemConfigManager.SlowGun, 6f);
+	private void PlaceMetalbar() {
+		var metalbar = ItemRepository.Create<WeaponMeleeItem>("Metalbar", "M1").Configure(ItemConfigManager.Metalbar, 9f);
+		PlacePickable(PickableItemNodeFactory.Get(), metalbar, GetPositionFromMarker("ItemSpawn/Metalbar"));
+	}
+	
+	private void PlaceGun() {
+		var slowGun = ItemRepository.Create<WeaponRangeItem>("Slow Gun", "SG").Configure(ItemConfigManager.SlowGun, 6f);
 		slowGun.DelayBetweenShots = 0.2f;
-		slowGun.LinkNode(pickableItemNode);
-		pickableItemNode.AddTo(this, () => pickableItemNode.CharacterBody2D.GlobalPosition = GetPositionFromMarker("ItemSpawn/Gun"));
+		PlacePickable(PickableItemNodeFactory.Get(), slowGun, GetPositionFromMarker("ItemSpawn/Gun"));
+	}
+
+	private void PlacePickable(PickableItemNode pickableItemNode, PickableItem item, Vector2 position) {
+		item.LinkNode(pickableItemNode);
+		pickableItemNode.AddTo(this, () => pickableItemNode.CharacterBody2D.GlobalPosition = position);
 	}
 
 	public void ZombieSpawn(Node scene, Vector2 position) {

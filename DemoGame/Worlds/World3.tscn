@@ -258,5 +258,5 @@ offset_bottom = 40.0
 position = Vector2(-771.501, 14.6231)
 
 [node name="Gun" type="Marker2D" parent="ItemSpawn"]
-position = Vector2(-771.501, 14.6231)
+position = Vector2(-734, 15)
 metadata/item_name = ""

@@ -76,6 +76,7 @@ public class GameLoaderContainer : ResourceLoaderContainer {
 public class Resources {
 	[Singleton] Texture2D Icon => Load<Texture2D>("res://icon.png");
 	[Singleton] Texture2D MetalbarSprite => Load<Texture2D>("res://Assets/Weapons/metalbar.png");
+	[Singleton] Texture2D SlowGunSprite => Load<Texture2D>("res://Assets/Weapons/slowgun.png");
 	
 	[Singleton] Texture2D LeonKnifeAnimationSprite => Load<Texture2D>("res://Characters/Player-Leon/Leon-knife.png");
 	[Singleton] Texture2D LeonMetalbarAnimationSprite => Load<Texture2D>("res://Characters/Player-Leon/Leon-metalbar.png");
