@@ -4,4 +4,9 @@ public abstract class BasePoolLifecycle<T> : BasePool<T> where T : class, IPoolL
     protected override bool IsBusy(T element) => element.IsBusy();
 
     protected override bool IsInvalid(T element) => element.IsInvalid();
+    
+    protected override T OnGet(T element) {
+        element.OnGet();
+        return element;
+    }
 }

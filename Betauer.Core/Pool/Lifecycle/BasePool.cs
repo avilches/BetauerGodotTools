@@ -10,7 +10,7 @@ public abstract class BasePool<T> : IPool<T>
     public List<T> Pool { get; } = new();
 
     protected abstract T Create();
-    public virtual T OnGet(T element) => element;
+    protected virtual T OnGet(T element) => element;
     protected abstract bool IsBusy(T element);
     protected abstract bool IsInvalid(T element);
     protected abstract bool MustBePurged(IReadOnlyList<T> pool);
@@ -29,7 +29,7 @@ public abstract class BasePool<T> : IPool<T>
         }
         var more = Create();
         Pool.Add(more);
-        return more;
+        return OnGet(more);
     }
 
     public void Fill(int desiredSize) {
