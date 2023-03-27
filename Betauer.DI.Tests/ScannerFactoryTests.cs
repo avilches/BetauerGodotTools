@@ -473,22 +473,17 @@ public class ScannerFactoryTests : Node {
         // no name = type 1 (the first)
         Assert.That(c.Resolve<Element>().Type, Is.EqualTo(1));
         Assert.That(c.Resolve<Element>().WasInjected, Is.True);
-        
+
         // Factory creates instances well injected
         Assert.That(c.Resolve<IFactory<Element>>("Factory:E1").Get().Type, Is.EqualTo(1));
         Assert.That(c.Resolve<IFactory<Element>>("Factory:E1").Get().WasInjected, Is.True);
         Assert.That(c.Resolve<IFactory<Element>>("Factory:E2").Get().Type, Is.EqualTo(2));
         Assert.That(c.Resolve<IFactory<Element>>("Factory:E2").Get().WasInjected, Is.True);
-        
-        // *******************************
-        // This is the difference: the IFactory<Element> is bound to the inner factory, so it's not injected
         Assert.That(c.Resolve<IFactory<Element>>().Get().Type, Is.EqualTo(1)); // no name = type 1 (the first)
-        Assert.That(c.Resolve<IFactory<Element>>().Get().WasInjected, Is.False);// no name = type 1 (the first)
+        Assert.That(c.Resolve<IFactory<Element>>().Get().WasInjected, Is.True);// no name = type 1 (the first)
         // *******************************
         
-        // InnerFactory doesn't inject
-        // *******************************
-        // This is the difference: the Element1Factory and Element2Factory are not available
+        // This is the difference: the Element1Factory and Element2Factory are not available by type
         Assert.Throws<ServiceNotFoundException>(() => c.Resolve<Element1Factory>());
         Assert.Throws<ServiceNotFoundException>(() => c.Resolve<Element2Factory>());
         // *******************************

@@ -54,17 +54,22 @@ public partial class Container {
             return RegisterCustomFactory(typeof(T), () => customFactory(), name, lifetime, primary);
         }
 
+        private interface IHidden<T> : IFactory<T> where T : class { }
+
         public Builder RegisterCustomFactory(Type factoryType, Func<object> customFactory, string? name = null, Lifetime lifetime = Lifetime.Singleton, bool primary = false) {
             var type = FactoryTools.GetIFactoryGenericType(factoryType);
             if (type == null) throw new InvalidCastException();
 
             // Register the real factory, it can be accessed with
-            // - Resolve<the factory type>()
+            // - Resolve<the factory type>() (only if the factory type is not IFactory<T>)
             // - Resolve<IFactory<T>>("InnerFactory:"+name)
             // This factory returns the instances without inject dependencies in them
             // The factory are always instantiated. The lazy parameter only affects to the instance created by the factory, never to the factory itself.
             var customFactoryName = name == null ? null : $"InnerFactory:{name}";
-            var customProvider = Provider.Create(factoryType, factoryType, Lifetime.Singleton, customFactory, customFactoryName, primary, false);
+            // If the factory type is IFactory<T> then register using a hidden factory type to avoid conflicts with the real factory
+            // Why? Because the IFactory<T> will be used later to registered the factory ready to used by the user
+            var innerFactoryType = factoryType == typeof(IFactory<>).MakeGenericType(type) ? typeof(IHidden<>).MakeGenericType(type) : factoryType;
+            var customProvider = Provider.Create(innerFactoryType, innerFactoryType, Lifetime.Singleton, customFactory, customFactoryName, primary, false);
             Register(customProvider);
     
             // Register the regular instance factory. It's always lazy, this guarantees the factory is fully injected before the first Get()
