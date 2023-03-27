@@ -91,20 +91,19 @@ public class Resources {
 
 [Configuration]
 public class Scenes {
-	[TransientFactory] SceneFactory<RedefineActionButton> RedefineActionButton => new("main", "res://Scenes/UI/RedefineActionButton.tscn");
-	[TransientFactory] SceneFactory<ModalBoxConfirm> ModalBoxConfirm => new("main", "res://Scenes/Menu/ModalBoxConfirm.tscn");
+	[Factory.Transient] SceneFactory<RedefineActionButton> RedefineActionButton => new("main", "res://Scenes/UI/RedefineActionButton.tscn");
+	[Factory.Transient] SceneFactory<ModalBoxConfirm> ModalBoxConfirm => new("main", "res://Scenes/Menu/ModalBoxConfirm.tscn");
 
-	[SingletonFactory] SceneFactory<HUD> HudResource => new("main", "res://Scenes/UI/HUD.tscn");
-	[SingletonFactory] SceneFactory<MainMenu> MainMenuResource => new("main", "res://Scenes/Menu/MainMenu.tscn");
-	[SingletonFactory] SceneFactory<BottomBar> BottomBarResource => new("main", "res://Scenes/Menu/BottomBar.tscn");
-	[SingletonFactory] SceneFactory<PauseMenu> PauseMenuResource => new("main", "res://Scenes/Menu/PauseMenu.tscn");
-	[SingletonFactory] SceneFactory<SettingsMenu> SettingsMenuResource => new("main", "res://Scenes/Menu/SettingsMenu.tscn");
-
-	[TransientFactory] SceneFactory<WorldScene> World3 => new("game", "res://Worlds/World3.tscn");
-	[TransientFactory] SceneFactory<PlayerNode> Player => new("game", "res://Scenes/Player.tscn");
-	[TransientFactory] SceneFactory<ZombieNode> ZombieNode => new("game", "res://Scenes/Zombie2.tscn");
-	[TransientFactory] SceneFactory<ProjectileTrail> ProjectileTrail => new("game", "res://Scenes/ProjectileTrail.tscn");
-	[TransientFactory] SceneFactory<PickableItemNode> PickableItem => new("game", "res://Scenes/PickableItem.tscn");
+	[Scene.Singleton<HUD>("main", "res://Scenes/UI/HUD.tscn")] IFactory<HUD> HudResource;
+	[Scene.Singleton<MainMenu>("main", "res://Scenes/Menu/MainMenu.tscn")] IFactory<MainMenu> MainMenuResource;
+	[Scene.Singleton<BottomBar>("main", "res://Scenes/Menu/BottomBar.tscn")] IFactory<BottomBar> BottomBarResource;
+	[Scene.Singleton<PauseMenu>("main", "res://Scenes/Menu/PauseMenu.tscn")] IFactory<PauseMenu> PauseMenuResource;
+	[Scene.Singleton<SettingsMenu>("main", "res://Scenes/Menu/SettingsMenu.tscn")] IFactory<SettingsMenu> SettingsMenuResource;
+	[Scene.Transient<WorldScene>("game", "res://Worlds/World3.tscn")] IFactory<WorldScene> World3;
+	[Scene.Transient<PlayerNode>("game", "res://Scenes/Player.tscn")] IFactory<PlayerNode> Player;
+	[Scene.Transient<ZombieNode>("game", "res://Scenes/Zombie2.tscn")] IFactory<ZombieNode> ZombieNode;
+	[Scene.Transient<ProjectileTrail>("game", "res://Scenes/ProjectileTrail.tscn")] IFactory<ProjectileTrail> ProjectileTrail;
+	[Scene.Transient<PickableItemNode>("game", "res://Scenes/PickableItem.tscn")] IFactory<PickableItemNode> PickableItem;
 
 	[Singleton] IPool<ZombieNode> ZombiePool => new PoolFromNodeFactory<ZombieNode>();
 	[Singleton] IPool<ProjectileTrail> ProjectilePool => new PoolFromNodeFactory<ProjectileTrail>();

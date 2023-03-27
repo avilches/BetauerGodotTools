@@ -87,10 +87,10 @@ public partial class Container {
             var serviceGetters = configuration.GetType().GetGetters<ServiceAttribute>(MemberTypes.Method | MemberTypes.Property, ScanMemberFlags);
             foreach (var getter in serviceGetters) RegisterServiceFromGetter(configuration, getter);
             
-            var factoryGetters = configuration.GetType().GetGetters<FactoryAttribute>(MemberTypes.Method | MemberTypes.Property, ScanMemberFlags);
-            foreach (var getter in factoryGetters) RegisterCustomFactoryFromGetter(configuration, getter);
+            var factoryGetters = configuration.GetType().GetGetters<BaseFactoryAttribute>(MemberTypes.Method | MemberTypes.Property | MemberTypes.Field, ScanMemberFlags);
+            foreach (var getter in factoryGetters) RegisterFactoryFromGetter(configuration, getter);
         }
-    
+
         private void RegisterServiceFromClass(Type type, ServiceAttribute serviceAttr) {
             var registeredType = serviceAttr.GetType().GetGenericArguments().FirstOrDefault() ?? type;
             var name = serviceAttr.Name;
@@ -116,8 +116,8 @@ public partial class Container {
         private void RegisterCustomFactoryFromClass(Type type, FactoryAttribute factoryAttribute) {
             var iFactoryInterface = type.GetInterfaces()
                 .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IFactory<>));
-            if (iFactoryInterface == null) {
-                throw new InvalidAttributeException($"Class {type.FullName} with [SingletonFactory] attribute must implement IFactory<T>");
+            if (!type.IsClass || iFactoryInterface == null) {
+                throw new InvalidAttributeException($"Class {type.FullName} with factory attribute must be a class and implement IFactory<T>");
             }
             // var genericType = iFactoryInterface.GetGenericArguments()[0];
             var primary = factoryAttribute.Primary;
@@ -125,12 +125,30 @@ public partial class Container {
             object Factory() => Activator.CreateInstance(type)!;
             _builder.RegisterCustomFactory(type, Factory, factoryAttribute.Name, lifetime, primary);
         }
-    
-        private void RegisterCustomFactoryFromGetter(object configuration, IGetter<FactoryAttribute> getter) {
+
+        private void RegisterFactoryFromGetter(object configuration, IGetter<BaseFactoryAttribute> getter) {
             if (!getter.Type.ImplementsInterface(typeof(IFactory<>))) {
-                throw new InvalidAttributeException("Member " + getter + " with [SingletonFactory] attribute must implement IFactory<T>");
+                throw new InvalidAttributeException($"Member {getter} with factory attribute must implement IFactory<T>");
             }
-            var factoryAttribute = getter.GetterAttribute;
+            var attributeType = getter.GetterAttribute.GetType();
+            if (attributeType.ImplementsInterface(typeof(FactoryAttribute))) {
+                RegisterCustomFactoryFromGetter(configuration, getter);
+            } else if (attributeType.ImplementsInterface(typeof(FactoryTemplateAttribute))) {
+                RegisterTemplateFactoryFromGetter(getter);
+            }
+        }
+
+        private void RegisterTemplateFactoryFromGetter(IGetter<BaseFactoryAttribute> getter) {
+            var factoryAttribute = ((FactoryTemplateAttribute)getter.GetterAttribute).GetFactoryAttribute();
+            var primary = factoryAttribute.Primary;
+            var name = factoryAttribute.Name ?? getter.Name;
+            var lifetime = factoryAttribute.Lifetime;
+            var factory = ((FactoryTemplateAttribute)getter.GetterAttribute).GetCustomFactory();
+            _builder.RegisterCustomFactory(getter.Type, factory, name, lifetime, primary);
+        }
+
+        private void RegisterCustomFactoryFromGetter(object configuration, IGetter<BaseFactoryAttribute> getter) {
+            var factoryAttribute = (FactoryAttribute)getter.GetterAttribute;
             var primary = factoryAttribute.Primary;
             var name = factoryAttribute.Name ?? getter.Name;
             var lifetime = factoryAttribute.Lifetime;
