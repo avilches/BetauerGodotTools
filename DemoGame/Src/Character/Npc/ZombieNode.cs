@@ -10,6 +10,7 @@ using Betauer.Core.Pool.Lifecycle;
 using Betauer.Core.Restorer;
 using Betauer.DI;
 using Betauer.Flipper;
+using Betauer.FSM.Sync;
 using Betauer.Input;
 using Betauer.NodePath;
 using Betauer.Nodes;
@@ -44,10 +45,8 @@ public enum ZombieState {
 	Fall
 }
 
-public partial class ZombieNode : NpcItemNodeFsm<ZombieState, ZombieEvent> {
-	public ZombieNode() : base(ZombieState.Idle, "Zombie.FSM", true) {
-	}
-
+public partial class ZombieNode : NpcItemNode {
+	
 	private static readonly PcgRandom Random = new();
 
 	private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(ZombieNode));
@@ -112,7 +111,8 @@ public partial class ZombieNode : NpcItemNodeFsm<ZombieState, ZombieEvent> {
 
 	public KinematicPlatformMotion PlatformBody;
 
-	private ICharacterAI _zombieAi;
+	private readonly FsmNodeSync<ZombieState, ZombieEvent> _fsm = new(ZombieState.Idle, "Zombie.FSM", true);
+	private ICharacterAi _zombieAi;
 	private IPool<ILabelEffect> _labelHits;
 	private Restorer _restorer; 
 	private LazyRaycast2D _lazyRaycastToPlayer;
@@ -148,20 +148,22 @@ public partial class ZombieNode : NpcItemNodeFsm<ZombieState, ZombieEvent> {
 	public override void _ExitTree() {
 		AnimationReset.PlayFrom(0);
 		_restorer.Restore();
+		_fsm.Reset();
 		_zombieAi.Reset();
 		_overlay?.Disable();
 	}
 
 	public override void PostInject() {
+		AddChild(_fsm);
 		ConfigureAnimations();
 		ConfigureCharacter();
 		ConfigureFsm();
 
 		// AI
-		_zombieAi = MeleeAI.Create(Handler, new MeleeAI.Sensor(this, PlatformBody, () => PlayerPos));
-		OnBefore += () =>_zombieAi.Execute();
-		OnBefore += () => Label.Text = _zombieAi.GetState();
-		OnAfter += () => _zombieAi.EndFrame();
+		_zombieAi = MeleeAI.Create(Handler, new MeleeAI.Sensor(this, PlatformBody, () => PlayerPos, () => (float)_fsm.Delta));
+		_fsm.OnBefore += () =>_zombieAi.Execute();
+		_fsm.OnBefore += () => Label.Text = _zombieAi.GetState();
+		_fsm.OnAfter += () => _zombieAi.EndFrame();
 
 		var drawRaycasts = this.OnDraw(canvas => {
 			// canvas.DrawRaycast(FacePlayerDetector, Colors.Red);
@@ -237,7 +239,7 @@ public partial class ZombieNode : NpcItemNodeFsm<ZombieState, ZombieEvent> {
 		flipper.IsFacingRight = flipper.IsFacingRight;
 
 		PlatformBody = new KinematicPlatformMotion(CharacterBody2D, flipper, Marker2D, MotionConfig.FloorUpDirection);
-		OnBefore += () => PlatformBody.SetDelta(Delta);
+		_fsm.OnBefore += () => PlatformBody.SetDelta(_fsm.Delta);
 
 		CollisionLayerManager.NpcConfigureCollisions(CharacterBody2D);
 		CollisionLayerManager.NpcConfigureCollisions(FloorRaycast);
@@ -289,7 +291,7 @@ public partial class ZombieNode : NpcItemNodeFsm<ZombieState, ZombieEvent> {
 		Status.UpdateHealth(-playerAttackEvent.Weapon.Damage);
 		UpdateHealthBar();
 		_labelHits.Get().Show(((int)playerAttackEvent.Weapon.Damage).ToString());
-		Send(Status.IsDead() ? ZombieEvent.Death : ZombieEvent.Hurt);
+		_fsm.Send(Status.IsDead() ? ZombieEvent.Death : ZombieEvent.Hurt);
 	}
 
 	public void EnableAttackAndHurtAreas(bool enabled = true) {
@@ -317,7 +319,7 @@ public partial class ZombieNode : NpcItemNodeFsm<ZombieState, ZombieEvent> {
 	public void AddOverlayStates(DebugOverlay overlay) {
 		overlay
 		.OpenBox()
-			.Text("State", () => CurrentState.Key.ToString()).EndMonitor()
+			.Text("State", () => _fsm.CurrentState.Key.ToString()).EndMonitor()
 			.Text("IA", () => _zombieAi.GetState()).EndMonitor()
 			.Text("Animation", () => _animationPlayer.CurrentAnimation).EndMonitor()
 			.Text("ItemId", () => Item.Id.ToString()).EndMonitor()
@@ -395,16 +397,16 @@ public partial class ZombieNode : NpcItemNodeFsm<ZombieState, ZombieEvent> {
 
 	public void ConfigureFsm() {    
 
-		On(ZombieEvent.Hurt).Set(ZombieState.Hurt);
-		On(ZombieEvent.Death).Set(ZombieState.Death);
+		_fsm.On(ZombieEvent.Hurt).Set(ZombieState.Hurt);
+		_fsm.On(ZombieEvent.Death).Set(ZombieState.Death);
 			
-		State(ZombieState.Landing)
+		_fsm.State(ZombieState.Landing)
 			.If(() => Attack.IsJustPressed).Set(ZombieState.Attacking)
 			.If(() => XInput == 0).Set(ZombieState.Idle)
 			.If(() => true).Set(ZombieState.Run)
 			.Build();
 
-		State(ZombieState.Idle)
+		_fsm.State(ZombieState.Idle)
 			.Enter(() => {
 				AnimationIdle.Play();
 			})
@@ -418,7 +420,7 @@ public partial class ZombieNode : NpcItemNodeFsm<ZombieState, ZombieEvent> {
 			.If(() => XInput != 0).Set(ZombieState.Run)
 			.Build();
 
-		State(ZombieState.Run)
+		_fsm.State(ZombieState.Run)
 			.Enter(() => {
 				AnimationRun.Play();
 			})
@@ -436,7 +438,7 @@ public partial class ZombieNode : NpcItemNodeFsm<ZombieState, ZombieEvent> {
 			.Exit(() => _animationPlayer.SpeedScale = 1)
 			.Build();
 
-		State(ZombieState.Attacking)
+		_fsm.State(ZombieState.Attacking)
 			.Enter(() => {
 				AnimationAttack.Play();
 			})
@@ -452,7 +454,7 @@ public partial class ZombieNode : NpcItemNodeFsm<ZombieState, ZombieEvent> {
 			.Build();
 
 		Tween? redFlash = null;
-		State(ZombieState.Hurt)
+		_fsm.State(ZombieState.Hurt)
 			.Enter(() => {
 				AnimationHurt.Play();
 				redFlash?.Kill();
@@ -468,7 +470,7 @@ public partial class ZombieNode : NpcItemNodeFsm<ZombieState, ZombieEvent> {
 			})
 			.Build();
 
-		State(ZombieState.Death)
+		_fsm.State(ZombieState.Death)
 			.Enter(() => {
 				EnableAttackAndHurtAreas(false);
 				HealthBar.Visible = false;
@@ -481,12 +483,12 @@ public partial class ZombieNode : NpcItemNodeFsm<ZombieState, ZombieEvent> {
 			.If(() => !AnimationDead.IsPlaying()).Set(ZombieState.End)
 			.Build();
 
-		State(ZombieState.End)
+		_fsm.State(ZombieState.End)
 			.Enter(RemoveFromWorld)
 			.If(() => true).Set(ZombieState.Idle)
 			.Build();
 
-		State(ZombieState.Jump)
+		_fsm.State(ZombieState.Jump)
 			.Enter(() => {
 				PlatformBody.MotionY = -PlayerConfig.JumpSpeed;
 				// DebugJump($"Jump start: decelerating to {(-PlayerConfig.JumpSpeed).ToString()}");
@@ -501,7 +503,7 @@ public partial class ZombieNode : NpcItemNodeFsm<ZombieState, ZombieEvent> {
 			.If(PlatformBody.IsOnFloor).Set(ZombieState.Landing)
 			.Build();
 
-		State(ZombieState.Fall)
+		_fsm.State(ZombieState.Fall)
 			.Execute(() => {
 				ApplyAirGravity();
 				PlatformBody.Lateral(XInput, NpcConfig.Acceleration, NpcConfig.MaxSpeed,
@@ -510,4 +512,6 @@ public partial class ZombieNode : NpcItemNodeFsm<ZombieState, ZombieEvent> {
 			.If(PlatformBody.IsOnFloor).Set(ZombieState.Landing)
 			.Build();
 	}
+
+	public bool IsState(ZombieState state) => _fsm.IsState(state);
 }

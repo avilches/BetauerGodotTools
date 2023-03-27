@@ -1,6 +1,6 @@
 namespace Veronenger.Character;
 
-public interface ICharacterAI {
+public interface ICharacterAi {
     public void Execute();
     public void EndFrame();
     public string GetState();

@@ -1,6 +1,6 @@
 namespace Veronenger.Character;
 
-public class DoNothingAI : ICharacterAI {
+public class DoNothingAI : ICharacterAi {
     public static readonly DoNothingAI Instance = new();
 
     private DoNothingAI() {

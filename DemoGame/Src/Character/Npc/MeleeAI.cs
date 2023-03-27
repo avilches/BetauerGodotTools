@@ -9,7 +9,7 @@ using Veronenger.Persistent;
 
 namespace Veronenger.Character.Npc;
 
-public class MeleeAI : FsmSync<MeleeAI.State, MeleeAI.Event>, ICharacterAI {
+public class MeleeAI : FsmSync<MeleeAI.State, MeleeAI.Event>, ICharacterAi {
     private static readonly PcgRandom Random = new();
 
     private readonly NpcController _controller;
@@ -30,7 +30,7 @@ public class MeleeAI : FsmSync<MeleeAI.State, MeleeAI.Event>, ICharacterAI {
     public enum Event {
     }
 
-    public static ICharacterAI Create(ICharacterHandler handler, Sensor sensor) {
+    public static ICharacterAi Create(ICharacterHandler handler, Sensor sensor) {
         if (handler is NpcController controller) return new MeleeAI(controller, sensor);
         if (handler is PlayerInputActions) return DoNothingAI.Instance;
         throw new Exception($"Unknown handler: {handler.GetType()}");
@@ -187,11 +187,13 @@ public class MeleeAI : FsmSync<MeleeAI.State, MeleeAI.Event>, ICharacterAI {
         private readonly ZombieNode _zombieNode;
         private readonly KinematicPlatformMotion _body;
         private readonly Func<Vector2> GetPlayerGlobalPosition;
+        private readonly Func<float> _delta;
 
-        public Sensor(ZombieNode zombieNode, KinematicPlatformMotion body, Func<Vector2> playerGlobalPosition) {
+        public Sensor(ZombieNode zombieNode, KinematicPlatformMotion body, Func<Vector2> playerGlobalPosition, Func<float> delta) {
             _zombieNode = zombieNode;
             _body = body;
             GetPlayerGlobalPosition = playerGlobalPosition;
+            _delta = delta;
         }
 
         public int FacingRight => _body.FacingRight;
@@ -216,7 +218,7 @@ public class MeleeAI : FsmSync<MeleeAI.State, MeleeAI.Event>, ICharacterAI {
 
         public void FaceOppositePlayer() => _body.FaceOppositeTo(GetPlayerGlobalPosition());
         public void FaceToPlayer() => _body.FaceTo(GetPlayerGlobalPosition());
-        public double Delta => _zombieNode.Delta;
+        public double Delta => _delta();
 
         public NpcItem.NpcStatus Status => _zombieNode.Status;
     }

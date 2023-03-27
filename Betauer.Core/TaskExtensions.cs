@@ -10,6 +10,7 @@ public static class TaskExtensions {
         task.ContinueWith(t => {
             var ex = task.Exception?.InnerException;
             if (ex != null) {
+                GD.PrintErr(ex);
                 action(ex);
                 if (rethrow) throw ex;
             }

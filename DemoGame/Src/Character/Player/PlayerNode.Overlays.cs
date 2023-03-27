@@ -104,7 +104,7 @@ public partial class PlayerNode {
 	public void AddOverlayStates(DebugOverlay overlay) {
 		overlay
 			.OpenBox()
-				.Text("State", () => CurrentState.Key.ToString()).EndMonitor()
+				.Text("State", () => _fsm.CurrentState.Key.ToString()).EndMonitor()
 			.CloseBox();
 	}
 

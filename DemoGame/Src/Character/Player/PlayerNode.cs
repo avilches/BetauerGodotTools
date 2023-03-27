@@ -48,9 +48,7 @@ public enum PlayerEvent {
 	Death,
 }
 
-public partial class PlayerNode : FsmNodeSync<PlayerState, PlayerEvent> {
-	public PlayerNode() : base(PlayerState.Idle, "Player.FSM", true) {
-	}
+public partial class PlayerNode : Node, IInjectable {
 
 	public event Action? OnFree;
 	public override void _Notification(int what) {
@@ -95,6 +93,8 @@ public partial class PlayerNode : FsmNodeSync<PlayerState, PlayerEvent> {
 	[Inject] private HUD HudScene { get; set; }
 	private PlayerStatus Status => ItemRepository.PlayerStatus;
 
+	private readonly FsmNodeSync<PlayerState, PlayerEvent> _fsm = new(PlayerState.Idle, "Player.FSM", true);
+	
 	public KinematicPlatformMotion PlatformBody { get; private set; }
 	public Vector2? InitialPosition { get; set; }
 	public Inventory Inventory { get; private set; }
@@ -137,6 +137,11 @@ public partial class PlayerNode : FsmNodeSync<PlayerState, PlayerEvent> {
 	private readonly GodotStopwatch _stateTimer = new(false, true);
 
 	public override void _Ready() {
+		Status.OnHealthUpdate += HudScene.UpdateHealth; 
+	}
+
+	public void PostInject() {
+		AddChild(_fsm);
 		ConfigureAnimations();
 		ConfigureOverlay();
 		ConfigureCamera();
@@ -184,7 +189,7 @@ public partial class PlayerNode : FsmNodeSync<PlayerState, PlayerEvent> {
 
 		PlatformBody = new KinematicPlatformMotion(CharacterBody2D, flipper, Marker2D, MotionConfig.FloorUpDirection,
 			FloorRaycasts);
-		OnBefore += () => PlatformBody.SetDelta(Delta);
+		_fsm.OnBefore += () => PlatformBody.SetDelta(_fsm.Delta);
 		// OnAfter += () => {
 		// 	Label.Text = _animationStack.GetPlayingOnce() != null
 		// 		? _animationStack.GetPlayingOnce().Name
@@ -201,8 +206,6 @@ public partial class PlayerNode : FsmNodeSync<PlayerState, PlayerEvent> {
 				_characterWeaponController.Equip(weapon);
 			}
 		};
-
-		Status.OnHealthUpdate += HudScene.UpdateHealth; 
 
 		CollisionLayerManager.PlayerConfigureCollisions(this);
 		CollisionLayerManager.PlayerPickableArea(this, area2D => {
@@ -233,9 +236,9 @@ public partial class PlayerNode : FsmNodeSync<PlayerState, PlayerEvent> {
 				Status.UnderAttack = true;
 				Status.UpdateHealth(-attacker.Config.Attack);
 				if (Status.IsDead()) {
-					Send(PlayerEvent.Death, 10000);
+					_fsm.Send(PlayerEvent.Death, 10000);
 				} else {
-					Send(PlayerEvent.Hurt, 10000);
+					_fsm.Send(PlayerEvent.Hurt, 10000);
 				}
 			}
 		});
@@ -357,15 +360,15 @@ public partial class PlayerNode : FsmNodeSync<PlayerState, PlayerEvent> {
 		// this.OnEveryProcess(0.5f, Game.InstantiateZombie);
 
 		var xInputEnterState = 0f;
-		OnTransition += (args) => {
+		_fsm.OnTransition += (args) => {
 			_stateTimer.Restart();
 			xInputEnterState = XInput;
 		};
 		// OnTransition += (args) => Logger.Debug(args.From +" -> "+args.To);
 
-		On(PlayerEvent.Hurt).Set(PlayerState.Hurting);
-		On(PlayerEvent.Death).Set(PlayerState.Death);
-		On(PlayerEvent.Attack).Then(ctx => {
+		_fsm.On(PlayerEvent.Hurt).Set(PlayerState.Hurting);
+		_fsm.On(PlayerEvent.Death).Set(PlayerState.Death);
+		_fsm.On(PlayerEvent.Attack).Then(ctx => {
 			if (Inventory.Items.Count == 0) return ctx.Stay();
 			if (Inventory.GetCurrent() is WeaponMeleeItem) {
 				return ctx.Set(PlatformBody.IsOnFloor() ? PlayerState.MeleeAttack : PlayerState.MeleeAttackAir);
@@ -387,7 +390,7 @@ public partial class PlayerNode : FsmNodeSync<PlayerState, PlayerEvent> {
 			}
 		}
 
-		State(PlayerState.Landing)
+		_fsm.State(PlayerState.Landing)
 			.OnInput(InventoryHandler)
 			// .OnInputBatch(AttackAndJumpHandler)
 			.Enter(() => {
@@ -408,7 +411,7 @@ public partial class PlayerNode : FsmNodeSync<PlayerState, PlayerEvent> {
 			.If(() => true).Set(PlayerState.Running)
 			.Build();
 
-		State(PlayerState.Idle)
+		_fsm.State(PlayerState.Idle)
 			.OnInput(InventoryHandler)
 			.OnInput(e => {
 				if (e.IsKeyPressed(Key.V)) Game.WorldScene.InstantiateNewZombie();
@@ -433,7 +436,7 @@ public partial class PlayerNode : FsmNodeSync<PlayerState, PlayerEvent> {
 			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.Fall)
 			.Build();
 
-		State(PlayerState.Running)
+		_fsm.State(PlayerState.Running)
 			.OnInput(InventoryHandler)
 			// .OnInputBatch(AttackAndJumpHandler)
 			.Execute(() => {
@@ -463,7 +466,7 @@ public partial class PlayerNode : FsmNodeSync<PlayerState, PlayerEvent> {
 			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.FallWithCoyote)
 			.Build();
 
-		State(PlayerState.MeleeAttack)
+		_fsm.State(PlayerState.MeleeAttack)
 			.Enter(() => {
 				AnimationAttack.Play();
 				StartStack();
@@ -487,7 +490,7 @@ public partial class PlayerNode : FsmNodeSync<PlayerState, PlayerEvent> {
 			.If(() => XInput != 0).Set(PlayerState.Running)
 			.Build();
 
-		State(PlayerState.MeleeAttackAir)
+		_fsm.State(PlayerState.MeleeAttackAir)
 			.Enter(() => {
 				AnimationAttack.Play();
 				StartStack();
@@ -538,7 +541,7 @@ public partial class PlayerNode : FsmNodeSync<PlayerState, PlayerEvent> {
 		bool PlayerCanShoot() => shootTimer.Elapsed >= Inventory.WeaponRangeEquipped.DelayBetweenShots;
 		bool IsPlayerShooting() => Inventory.WeaponRangeEquipped.Auto ? Attack.IsPressed : Attack.IsJustPressed;
 
-		State(PlayerState.RangeAttack)
+		_fsm.State(PlayerState.RangeAttack)
 			.Execute(() => {
 				ApplyFloorGravity();
 				PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
@@ -550,7 +553,7 @@ public partial class PlayerNode : FsmNodeSync<PlayerState, PlayerEvent> {
 			.If(() => XInput != 0).Set(PlayerState.Running)
 			.Build();
 
-		State(PlayerState.RangeAttackAir)
+		_fsm.State(PlayerState.RangeAttackAir)
 			.Execute(() => {
 				ApplyFloorGravity();
 				if (!PlatformBody.IsOnFloor()) {
@@ -567,7 +570,7 @@ public partial class PlayerNode : FsmNodeSync<PlayerState, PlayerEvent> {
 			.If(() => XInput != 0).Set(PlayerState.Running)
 			.Build();
 		
-		State(PlayerState.Jumping)
+		_fsm.State(PlayerState.Jumping)
 			.OnInput(InventoryHandler)
 			.Enter(() => {
 				PlatformBody.MotionY = -PlayerConfig.JumpSpeed;
@@ -591,7 +594,7 @@ public partial class PlayerNode : FsmNodeSync<PlayerState, PlayerEvent> {
 			.Build();
 
 		var coyoteTimer = new GodotStopwatch();
-		State(PlayerState.FallWithCoyote)
+		_fsm.State(PlayerState.FallWithCoyote)
 			.OnInput(InventoryHandler)
 			.Enter(() => coyoteTimer.Restart().SetAlarm(PlayerConfig.CoyoteJumpTime))
 			.Execute(() => {
@@ -608,7 +611,7 @@ public partial class PlayerNode : FsmNodeSync<PlayerState, PlayerEvent> {
 			.If(() => PlatformBody.IsOnFloor()).Set(PlayerState.Landing)
 			.Build();
 
-		OnTransition += (args) => {
+		_fsm.OnTransition += (args) => {
 			if (args is { From: PlayerState.FallWithCoyote, To: PlayerState.Jumping }) {
 				_coyoteMonitor?.Show($"{coyoteTimer.Elapsed:0.00} <= {PlayerConfig.CoyoteJumpTime:0.00} Done!");				
 			} else if (Jump.IsJustPressed) {
@@ -616,7 +619,7 @@ public partial class PlayerNode : FsmNodeSync<PlayerState, PlayerEvent> {
 			}
 		};
 				
-		State(PlayerState.Fall)
+		_fsm.State(PlayerState.Fall)
 			.OnInput(InventoryHandler)
 			.Execute(() => {
 				if (MotionY > PlayerConfig.StartFallingSpeed) AnimationFall.Play();
@@ -630,7 +633,7 @@ public partial class PlayerNode : FsmNodeSync<PlayerState, PlayerEvent> {
 			.If(() => PlatformBody.IsOnFloor()).Set(PlayerState.Landing)
 			.Build();
 
-		State(PlayerState.Floating)
+		_fsm.State(PlayerState.Floating)
 			.OnInput(InventoryHandler)
 			.Enter(() => CharacterBody2D.MotionMode = CharacterBody2D.MotionModeEnum.Floating)
 			.Execute(() => {
@@ -642,7 +645,7 @@ public partial class PlayerNode : FsmNodeSync<PlayerState, PlayerEvent> {
 			.Exit(() => CharacterBody2D.MotionMode = CharacterBody2D.MotionModeEnum.Grounded)
 			.Build();
 
-		State(PlayerState.Hurting)
+		_fsm.State(PlayerState.Hurting)
 			.Enter(() => {
 				Status.Invincible = true;
 				weaponSpriteVisible = _weaponSprite.Visible;
@@ -662,7 +665,7 @@ public partial class PlayerNode : FsmNodeSync<PlayerState, PlayerEvent> {
 			})
 			.Build();
 
-		State(PlayerState.Death)
+		_fsm.State(PlayerState.Death)
 			.Enter(() => {
 				Console.WriteLine("MUERTO");
 				EventBus.Publish(MainEvent.EndGame);                                                                     
