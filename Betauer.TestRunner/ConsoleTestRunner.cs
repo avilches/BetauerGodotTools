@@ -56,12 +56,7 @@ public class ConsoleTestRunner {
 
     private static void PrintConsoleFinish(TestReport testReport, Stopwatch stopwatch) {
         if (testReport.TestsFailed > 0) {
-            Red($"┌─────────────────────────────────────────────────────────────────────────────────");
-            Red($"│ {testReport.TestsTotal} tests executed in {stopwatch.Elapsed.Seconds}s");
-            Red($"│ - Total passed: {testReport.TestsPassed}/{testReport.TestsTotal}");
-            Red($"│ - Total failed: {testReport.TestsFailed}/{testReport.TestsTotal}");
-            Red($"└─────────────────────────────────────────────────────────────────────────────────");
-            Red($"┌─────────────────────────────────────────────────────────────────────────────────");
+            RedBanner($"Failed: {testReport.TestsFailed} / Passed: {testReport.TestsTotal} / Total: {testReport.TestsTotal}", $"Elapsed: {stopwatch.Elapsed.Seconds}s");
 
             var x = 1;
             testReport.TestsFailedResults.ForEach(testMethod => {
@@ -81,12 +76,9 @@ public class ConsoleTestRunner {
                 x++;
             });
 
-            Red($"│ {testReport.TestsTotal} tests executed in {stopwatch.Elapsed.Seconds}s");
-            Red($"│ - Total passed: {testReport.TestsPassed}/{testReport.TestsTotal}");
-            Red($"│ - Total failed: {testReport.TestsFailed}/{testReport.TestsTotal}");
-            Red($"└─────────────────────────────────────────────────────────────────────────────────");
+            RedBanner($"Failed: {testReport.TestsFailed} / Passed: {testReport.TestsTotal} / Total: {testReport.TestsTotal}", $"Elapsed: {stopwatch.Elapsed.Seconds}s");
         } else {
-            GreenBanner($"All tests passed: {testReport.TestsPassed}/{testReport.TestsTotal} :-)");
+            GreenBanner($"Passed: {testReport.TestsPassed} :-)", $"Elapsed: {stopwatch.Elapsed.Seconds}s");
         }
     }
 
@@ -106,20 +98,29 @@ public class ConsoleTestRunner {
         return line;
     }
 
-    private static void Banner(string line, ConsoleColor color = ConsoleColor.Gray) {
+    private static void Banner(params string[] lines) {
+        Banner(lines, ConsoleColor.Gray);
+    }
+
+    private static void Banner(string[] lines, ConsoleColor color) {
         if (color == ConsoleColor.Gray) {
             Console.ResetColor();
         } else {
             Console.ForegroundColor = color;
         }
-        var fill = new string('─', line.Length);
+        var max = lines.Max(i => i.Length);
+        var fill = new string('─', max);
         Console.WriteLine($"┌─{fill}─┐");
-        Console.WriteLine($"│ {line} │");
+        foreach (var line in lines) Console.WriteLine($"│ {line.PadRight(max)} │");
         Console.WriteLine($"└─{fill}─┘");
     }
 
-    private static void GreenBanner(string print) {
+    private static void GreenBanner(params string[] print) {
         Banner(print, ConsoleColor.Green);
+    }
+
+    private static void RedBanner(params string[] print) {
+        Banner(print, ConsoleColor.Red);
     }
 
     private static void Normal(string print) {
