@@ -9,6 +9,7 @@ using Betauer.Input;
 using Betauer.Core.Nodes;
 using Betauer.NodePath;
 using Betauer.Core.Signal;
+using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
 using Betauer.Nodes;
 using Betauer.Tools.Logging;

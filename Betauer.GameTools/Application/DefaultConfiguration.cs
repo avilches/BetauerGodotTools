@@ -1,7 +1,5 @@
-using Betauer.Application.Monitor;
 using Betauer.Application.Notifications;
-using Betauer.DI;
-using Betauer.Input;
+using Betauer.DI.Attributes;
 using Betauer.Nodes;
 using Betauer.Tools.Logging;
 using Godot;

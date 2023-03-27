@@ -1,5 +1,6 @@
 using Betauer.Core.Pool.Lifecycle;
 using Betauer.DI;
+using Betauer.DI.Attributes;
 using Godot;
 
 namespace Veronenger.Persistent.Node;

@@ -1,4 +1,5 @@
 using System;
+using Betauer.DI.Attributes;
 using Betauer.DI.Exceptions;
 using Betauer.DI.Factory;
 using Betauer.DI.ServiceProvider;
@@ -16,11 +17,11 @@ public class ScannerFactoryTests : Node {
         LoggerFactory.OverrideTraceLevel(TraceLevel.All);
     }
 
-    [SingletonFactory] public class WrongFactory { }
+    [Attributes.Factory.Singleton] public class WrongFactory { }
 
     [Configuration]
     public class WrongConfig {
-        [SingletonFactory] public Node WrongType => new Node();
+        [Attributes.Factory.Singleton] public Node WrongType => new Node();
 
     }
     [TestRunner.Test(Description = "[SingletonFactory] should implement IFactory<> (class)")]
@@ -105,8 +106,8 @@ public class ScannerFactoryTests : Node {
 
     [Configuration]
     public class ServiceFactoryConfiguration {
-        [SingletonFactory] public MyServiceFactory MyService => new MyServiceFactory();
-        [TransientFactory] public MyTransientFactory MyTransient => new MyTransientFactory();
+        [Attributes.Factory.Singleton] public MyServiceFactory MyService => new MyServiceFactory();
+        [Attributes.Factory.Transient] public MyTransientFactory MyTransient => new MyTransientFactory();
     }
 
     public class MyServiceFactory : IFactory<MyService> {
@@ -230,7 +231,7 @@ public class ScannerFactoryTests : Node {
         Assert.That(MyTransientFactory.Gets, Is.EqualTo(4));
     }
 
-    [SingletonFactory(Name="MyService")]
+    [Attributes.Factory.Singleton(Name="MyService")]
     public class MyServiceFactoryClass : IFactory<MyService> {
         public static int Instances = 0;
         public static int Gets = 0;
@@ -250,7 +251,7 @@ public class ScannerFactoryTests : Node {
         }
     }
 
-    [TransientFactory(Name="MyTransient")]
+    [Attributes.Factory.Transient(Name="MyTransient")]
     public class MyTransientFactoryClass : IFactory<MyTransient> {
         public static int Instances = 0;
         public static int Gets = 0;

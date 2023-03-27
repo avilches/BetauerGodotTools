@@ -4,6 +4,7 @@ using Godot;
 using Betauer.Core;
 using Betauer.Core.Nodes;
 using Betauer.DI;
+using Betauer.DI.Attributes;
 using static Veronenger.LayerConstants;
 using GodotObject = Godot.GodotObject;
 

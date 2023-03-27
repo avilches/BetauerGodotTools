@@ -8,6 +8,7 @@ using Betauer.Core;
 using Betauer.Core.Nodes;
 using Betauer.Core.Time;
 using Betauer.DI;
+using Betauer.DI.Attributes;
 using Betauer.Flipper;
 using Betauer.Input;
 using Betauer.Nodes;

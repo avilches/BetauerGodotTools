@@ -1,4 +1,5 @@
 using Betauer.DI;
+using Betauer.DI.Attributes;
 using Betauer.NodePath;
 using Godot;
 using Veronenger.Character.Player;

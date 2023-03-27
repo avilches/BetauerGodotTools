@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using Betauer.Core.Pool.Lifecycle;
 using Betauer.DI;
+using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
-using Betauer.NodePath;
 using Godot;
 
 namespace Betauer.Application.Lifecycle;

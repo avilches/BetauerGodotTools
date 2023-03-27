@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Betauer.Application.Monitor;
 using Betauer.DI;
+using Betauer.DI.Attributes;
 using Betauer.Nodes;
 using Godot;
 

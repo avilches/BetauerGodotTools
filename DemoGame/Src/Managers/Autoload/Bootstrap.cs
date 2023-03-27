@@ -5,6 +5,7 @@ using Betauer.Application.Notifications;
 using Betauer.Application.Screen;
 using Betauer.Camera;
 using Betauer.DI;
+using Betauer.DI.Attributes;
 using Betauer.DI.ServiceProvider;
 using Betauer.Tools.Logging;
 using Betauer.FSM;

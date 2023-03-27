@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Betauer.DI.Attributes;
 using Betauer.DI.Exceptions;
 using Betauer.DI.ServiceProvider;
 using Betauer.Tools.Logging;
@@ -52,42 +53,42 @@ public class ScannerBasicTests : Node {
     public class WrongCombination22 {
     }
 
-    [SingletonFactory]
+    [Attributes.Factory.Singleton]
     [Configuration]
     public class WrongCombination31 {
     }
 
-    [SingletonFactory]
+    [Attributes.Factory.Singleton]
     [Singleton]
     public class WrongCombination411 {
     }
 
-    [SingletonFactory]
+    [Attributes.Factory.Singleton]
     [Transient]
     public class WrongCombination412 {
     }
 
-    [SingletonFactory]
+    [Attributes.Factory.Singleton]
     [Scan]
     public class WrongCombination51 {
     }
 
-    [TransientFactory]
+    [Attributes.Factory.Transient]
     [Configuration]
     public class WrongCombination32 {
     }
 
-    [TransientFactory]
+    [Attributes.Factory.Transient]
     [Singleton]
     public class WrongCombination421 {
     }
 
-    [TransientFactory]
+    [Attributes.Factory.Transient]
     [Transient]
     public class WrongCombination422 {
     }
 
-    [TransientFactory]
+    [Attributes.Factory.Transient]
     [Scan]
     public class WrongCombination5 {
     }
@@ -97,8 +98,8 @@ public class ScannerBasicTests : Node {
     public class WrongCombination71 {
     }
 
-    [TransientFactory]
-    [SingletonFactory]
+    [Attributes.Factory.Transient]
+    [Attributes.Factory.Singleton]
     public class WrongCombination72 {
     }
 

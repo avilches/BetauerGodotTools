@@ -1,5 +1,6 @@
 using Godot;
 using Betauer.DI;
+using Betauer.DI.Attributes;
 using Veronenger.Persistent;
 
 namespace Veronenger.Managers.Autoload; 

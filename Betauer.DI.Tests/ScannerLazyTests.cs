@@ -1,4 +1,5 @@
 using System;
+using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
 using Betauer.DI.ServiceProvider;
 using Betauer.TestRunner;
@@ -226,7 +227,7 @@ public class ScannerLazyTests {
 
     [Configuration]
     public class LazySingletonConfiguration {
-        [SingletonFactory] public Factory<LazySingleton> LazySingleton =>  FactoryTools.Create(() => new LazySingleton());
+        [Attributes.Factory.Singleton] public Factory<LazySingleton> LazySingleton =>  FactoryTools.Create(() => new LazySingleton());
     }
 
     [Singleton]

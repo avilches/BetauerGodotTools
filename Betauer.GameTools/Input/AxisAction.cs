@@ -1,5 +1,6 @@
 using System;
 using Betauer.DI;
+using Betauer.DI.Attributes;
 using Godot;
 using Container = Betauer.DI.Container;
 

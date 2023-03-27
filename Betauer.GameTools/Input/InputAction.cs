@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Betauer.Application.Settings;
 using Betauer.DI;
+using Betauer.DI.Attributes;
 using Godot;
 using Container = Betauer.DI.Container;
 

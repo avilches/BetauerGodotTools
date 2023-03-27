@@ -1,3 +1,4 @@
+using Betauer.DI.Attributes;
 using Betauer.DI.Exceptions;
 using Betauer.DI.ServiceProvider;
 using Betauer.TestRunner;

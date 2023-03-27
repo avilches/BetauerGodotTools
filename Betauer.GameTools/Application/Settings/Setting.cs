@@ -1,5 +1,6 @@
 using System;
 using Betauer.DI;
+using Betauer.DI.Attributes;
 
 namespace Betauer.Application.Settings;
 public static class Setting<T> {

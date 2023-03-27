@@ -1,5 +1,6 @@
 using Betauer.Application.Monitor;
 using Betauer.DI;
+using Betauer.DI.Attributes;
 using Betauer.Input;
 using Betauer.Nodes;
 using Godot;

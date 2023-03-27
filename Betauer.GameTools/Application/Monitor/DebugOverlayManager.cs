@@ -1,8 +1,7 @@
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using Betauer.Core;
-using Betauer.DI;
+using Betauer.DI.Attributes;
 using Betauer.Input;
 using Betauer.UI;
 using Godot;

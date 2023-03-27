@@ -4,6 +4,7 @@ using Betauer.Input;
 using Betauer.NodePath;
 using Betauer.Core.Restorer;
 using Betauer.Core.Signal;
+using Betauer.DI.Attributes;
 using Betauer.UI;
 using Godot;
 using Veronenger.Managers;

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Betauer.Core;
 using Betauer.Core.Signal;
-using Betauer.DI;
+using Betauer.DI.Attributes;
 using Godot;
 
 namespace Betauer.Application.Lifecycle;

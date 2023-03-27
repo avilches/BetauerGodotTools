@@ -10,6 +10,7 @@ using Betauer.Core.Pool;
 using Betauer.Core.Pool.Lifecycle;
 using Betauer.Core.Restorer;
 using Betauer.DI;
+using Betauer.DI.Attributes;
 using Betauer.Flipper;
 using Betauer.FSM.Sync;
 using Betauer.Input;

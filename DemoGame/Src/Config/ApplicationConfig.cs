@@ -8,6 +8,8 @@ using Betauer.Application.Settings;
 using Betauer.Core.Pool;
 using Betauer.Core.Pool.Lifecycle;
 using Betauer.DI;
+using Betauer.DI.Attributes;
+using Betauer.DI.Factory;
 using Betauer.Input;
 using Godot;
 using Veronenger.Character.Npc;

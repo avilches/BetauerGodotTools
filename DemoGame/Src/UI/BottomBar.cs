@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Betauer.Application.Lifecycle;
 using Betauer.DI;
+using Betauer.DI.Attributes;
 using Betauer.Input;
 using Betauer.NodePath;
 using Godot;

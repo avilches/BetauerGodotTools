@@ -1,6 +1,7 @@
 using Betauer.Camera;
 using Godot;
 using Betauer.DI;
+using Betauer.DI.Attributes;
 using static Veronenger.LayerConstants;
 
 namespace Veronenger.Managers; 

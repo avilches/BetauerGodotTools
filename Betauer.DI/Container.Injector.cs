@@ -1,6 +1,6 @@
 using System;
-using System.Linq;
 using System.Reflection;
+using Betauer.DI.Attributes;
 using Betauer.DI.Exceptions;
 using Betauer.DI.Factory;
 using Betauer.DI.ServiceProvider;
@@ -70,15 +70,6 @@ public partial class Container {
             }
         }
 
-        // [Singleton] Node Node1 => new Node();
-        //
-        // [Inject] Node Node1
-        // [Inject(Name="Node1")] Node _pepe
-
-        // [Singleton] IFactory<Node> NodeFactory => new MyNodeFactory();
-        //
-        // [Inject] IFactory<Node> NodeFactory
-        // [Inject(Name="NodeFactory")] IFactory<Node> _nodeFactory
         private bool TryInjectFieldByName(Lifetime lifetime, object target, ResolveContext context, ISetter setter, string name) {
             if (!_container.TryGetProvider(name, out var provider)) return false;
             if (!setter.CanSetValue(provider!.ProviderType)) return false;

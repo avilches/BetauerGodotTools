@@ -5,6 +5,7 @@ using Betauer.DI;
 using Betauer.Core.Nodes;
 using Betauer.Core.Pool.Lifecycle;
 using Betauer.Core.Signal;
+using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
 using Godot;
 using Veronenger.Config;

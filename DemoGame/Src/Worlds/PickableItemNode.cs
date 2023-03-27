@@ -2,6 +2,7 @@ using System;
 using Betauer.Core.Pool.Lifecycle;
 using Godot;
 using Betauer.DI;
+using Betauer.DI.Attributes;
 using Betauer.Flipper;
 using Betauer.NodePath;
 using Veronenger.Character;
