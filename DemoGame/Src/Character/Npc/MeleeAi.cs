@@ -9,7 +9,7 @@ using Veronenger.Persistent;
 
 namespace Veronenger.Character.Npc;
 
-public class MeleeAI : FsmSync<MeleeAI.State, MeleeAI.Event>, ICharacterAi {
+public class MeleeAi : FsmSync<MeleeAi.State, MeleeAi.Event>, ICharacterAi {
     private static readonly PcgRandom Random = new();
 
     private readonly NpcController _controller;
@@ -31,12 +31,12 @@ public class MeleeAI : FsmSync<MeleeAI.State, MeleeAI.Event>, ICharacterAi {
     }
 
     public static ICharacterAi Create(ICharacterHandler handler, Sensor sensor) {
-        if (handler is NpcController controller) return new MeleeAI(controller, sensor);
+        if (handler is NpcController controller) return new MeleeAi(controller, sensor);
         if (handler is PlayerInputActions) return DoNothingAI.Instance;
         throw new Exception($"Unknown handler: {handler.GetType()}");
     }
 
-    public MeleeAI(NpcController controller, Sensor sensor) : base(State.Patrol, "ZombieIA") {
+    public MeleeAi(NpcController controller, Sensor sensor) : base(State.Patrol, "ZombieIA") {
         _controller = controller;
         _sensor = sensor;
         Config();

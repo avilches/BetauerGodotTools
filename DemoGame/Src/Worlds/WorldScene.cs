@@ -95,7 +95,7 @@ public partial class WorldScene : Node {
 		var playerNode = PlayerFactory.Get();
 		AddChild(playerNode);
 		playerNode.Ready += () => playerNode.GlobalPosition = GetPositionFromMarker("SpawnPlayer");
-		ItemRepository.SetPlayer(playerNode);
+		ItemRepository.CreatePlayer(playerNode, ItemConfigManager.PlayerConfig);
 	}
 
 	public void InstantiateNewZombie() {

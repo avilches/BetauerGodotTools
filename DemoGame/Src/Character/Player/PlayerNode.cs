@@ -19,9 +19,9 @@ using Veronenger.Character.InputActions;
 using Veronenger.Config;
 using Veronenger.Managers;
 using Veronenger.Persistent;
+using Veronenger.Persistent.Node;
 using Veronenger.Transient;
 using Veronenger.UI;
-using Veronenger.Worlds;
 
 namespace Veronenger.Character.Player; 
 
@@ -48,7 +48,7 @@ public enum PlayerEvent {
 	Death,
 }
 
-public partial class PlayerNode : Node, IInjectable {
+public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 
 	public event Action? OnFree;
 	public override void _Notification(int what) {
@@ -85,18 +85,14 @@ public partial class PlayerNode : Node, IInjectable {
 	[Inject] private InputAction NextItem { get; set; }
 	[Inject] private InputAction PrevItem { get; set; }
 
-	[Inject] private ItemRepository ItemRepository { get; set; }
-	[Inject] private PlayerConfig PlayerConfig { get; set; }
 	[Inject] private SceneTree SceneTree { get; set; }
 	[Inject] private EventBus EventBus { get; set; }
 	[Inject] private PlayerInputActions Handler { get; set; }
 	[Inject] private HUD HudScene { get; set; }
-	private PlayerStatus Status => ItemRepository.PlayerStatus;
 
 	private readonly FsmNodeSync<PlayerState, PlayerEvent> _fsm = new(PlayerState.Idle, "Player.FSM", true);
 	
 	public KinematicPlatformMotion PlatformBody { get; private set; }
-	public Vector2? InitialPosition { get; set; }
 	public Inventory Inventory { get; private set; }
 
 	public Anim AnimationIdle { get; private set; }
@@ -136,6 +132,16 @@ public partial class PlayerNode : Node, IInjectable {
 	private AttackState _attackState = AttackState.None;
 	private readonly GodotStopwatch _stateTimer = new(false, true);
 
+	[Inject] private ItemRepository ItemRepository { get; set; }
+	private PlayerStatus Status => Item.Status;
+	private PlayerConfig PlayerConfig => Item.Config;
+	private PlayerItem Item { get; set; }
+
+	public void LinkItem(Item item) {
+		Item = (PlayerItem)item;
+	}
+
+
 	public override void _Ready() {
 		Status.OnHealthUpdate += HudScene.UpdateHealth; 
 	}
@@ -144,8 +150,8 @@ public partial class PlayerNode : Node, IInjectable {
 		AddChild(_fsm);
 		ConfigureAnimations();
 		ConfigureOverlay();
+		ConfigureCharacter(); // collisions are reset to 0 here
 		ConfigureCamera();
-		ConfigureCharacter();
 		ConfigureAttackArea();
 		ConfigurePlayerHurtArea();
 		ConfigureFsm();
@@ -175,7 +181,6 @@ public partial class PlayerNode : Node, IInjectable {
 	}
 
 	private void ConfigureCharacter() {
-		if (InitialPosition.HasValue) CharacterBody2D.GlobalPosition = InitialPosition.Value;
 		CharacterBody2D.FloorStopOnSlope = true;
 		// CharacterBody2D.FloorBlockOnWall = true;
 		CharacterBody2D.FloorConstantSpeed = true;

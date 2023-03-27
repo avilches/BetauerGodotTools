@@ -18,6 +18,8 @@ public class ItemConfigManager : IInjectable {
     public WeaponConfig.Range MachineGun { get; private set; }
 
     public NpcConfig ZombieConfig = new NpcConfig();
+    // TODO: it shouldn't be a singleton. If its used by other classes different than the Player, it's a bad design!
+    [Inject] public PlayerConfig PlayerConfig { get; private set; }
 
     public void PostInject() {
         Knife = new WeaponConfig.Melee(MetalbarSprite, LeonKnifeAnimationSprite, "Short");

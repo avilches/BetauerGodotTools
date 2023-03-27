@@ -2,6 +2,7 @@ using System;
 using Betauer.Animation;
 using Betauer.Animation.AnimationPlayer;
 using Betauer.Application.Monitor;
+using Betauer.Bus;
 using Betauer.Core;
 using Betauer.Core.Nodes;
 using Betauer.Core.Nodes.Property;
@@ -136,31 +137,38 @@ public partial class ZombieNode : NpcItemNode {
 	public override void OnGet() {
 	}
 
+	private Multicast<object, PlayerAttackEvent>.EventConsumer consumer;
+	
 	public override void _Ready() {
+		_fsm.Reset();
+		_zombieAi.Reset();
 		_lazyRaycastToPlayer.GetDirectSpaceFrom(_mainSprite);
 		_attackArea.LinkMetaToItemId(Item);
 		_hurtArea.LinkMetaToItemId(Item);
 		UpdateHealthBar();
 		EnableAttackAndHurtAreas();
 		_overlay?.Enable();
+		consumer = EventBus.Subscribe(OnPlayerAttackEvent).UnsubscribeIf(Predicates.IsInvalid(this));
 	}
-
-	public override void _ExitTree() {
+	
+	public void _ExitingTree() {
 		AnimationReset.PlayFrom(0);
 		_restorer.Restore();
-		_fsm.Reset();
-		_zombieAi.Reset();
+		// _fsm.Reset();
+		// _zombieAi.Reset();
 		_overlay?.Disable();
+		consumer.Unsubscribe();
 	}
 
 	public override void PostInject() {
 		AddChild(_fsm);
+		TreeExiting += _ExitingTree;
 		ConfigureAnimations();
 		ConfigureCharacter();
 		ConfigureFsm();
 
 		// AI
-		_zombieAi = MeleeAI.Create(Handler, new MeleeAI.Sensor(this, PlatformBody, () => PlayerPos, () => (float)_fsm.Delta));
+		_zombieAi = MeleeAi.Create(Handler, new MeleeAi.Sensor(this, PlatformBody, () => PlayerPos, () => (float)_fsm.Delta));
 		_fsm.OnBefore += () =>_zombieAi.Execute();
 		_fsm.OnBefore += () => Label.Text = _zombieAi.GetState();
 		_fsm.OnAfter += () => _zombieAi.EndFrame();
@@ -254,7 +262,6 @@ public partial class ZombieNode : NpcItemNode {
 		_attackArea.GetNode<CollisionShape2D>("Weapon").Disabled = true;
 
 		CollisionLayerManager.EnemyConfigureHurtArea(_hurtArea);
-		EventBus.Subscribe(OnPlayerAttackEvent).UnsubscribeIf(Predicates.IsInvalid(this));
 		
 		_restorer = new MultiRestorer()
 			.Add(CharacterBody2D.CreateCollisionRestorer())

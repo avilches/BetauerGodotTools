@@ -1,11 +1,8 @@
 using System;
-using Betauer.DI;
-using Betauer.DI.ServiceProvider;
 using Veronenger.Config;
 
 namespace Veronenger.Character.Player;
 
-[Transient]
 public class PlayerStatus {
     public float Health { get; private set; }
     public float MaxHealth { get; private set; }
@@ -16,7 +13,7 @@ public class PlayerStatus {
 
     public event Action<PlayerUpdateHealthEvent> OnHealthUpdate;
 
-    public void Configure(PlayerConfig playerConfig) {
+    public PlayerStatus(PlayerConfig playerConfig) {
         MaxHealth = playerConfig.InitialMaxHealth;
         Health = Math.Clamp(playerConfig.InitialHealth, 0, playerConfig.InitialMaxHealth);
         Invincible = false;

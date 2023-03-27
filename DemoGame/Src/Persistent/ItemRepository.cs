@@ -16,16 +16,13 @@ public class ItemRepository {
     private readonly Dictionary<string, Item> _itemAlias = new();
     
     [Inject] public PlayerConfig PlayerConfig { get; set; }
-    [Inject] private IFactory<PlayerStatus> _playerStatusFactory { get; set; }
     
-    public PlayerStatus PlayerStatus { get; private set; }
     public PlayerNode PlayerNode { get; private set; }
 
     public void Clear() {
         _lastId = 0;
         _itemRegistry.Clear();
         _itemAlias.Clear();
-        PlayerStatus = null;
         PlayerNode = null;
     }
     
@@ -33,10 +30,11 @@ public class ItemRepository {
         return PlayerNode.CharacterBody2D == player;
     }
     
-    public void SetPlayer(PlayerNode playerNode) {
+    public PlayerItem CreatePlayer(PlayerNode playerNode, PlayerConfig playerConfig) {
         PlayerNode = playerNode;
-        PlayerStatus = _playerStatusFactory.Get();
-        PlayerStatus.Configure(PlayerConfig);
+        var playerItem = Create<PlayerItem>("Player1", "player1").Configure(playerConfig);
+        playerItem.LinkNode(playerNode);
+        return playerItem;
     }
 
     public TItem Create<TItem>(string name, string? alias = null) where TItem : Item {
