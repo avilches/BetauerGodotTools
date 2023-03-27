@@ -77,16 +77,16 @@ public class GameLoaderContainer : ResourceLoaderContainer {
 [Configuration]
 public class Resources {
 	[Singleton] Texture2D Icon => Load<Texture2D>("res://icon.png");
-	[Singleton] Texture2D MetalbarSprite => Load<Texture2D>("res://Assets/Weapons/metalbar.png");
-	[Singleton] Texture2D SlowGunSprite => Load<Texture2D>("res://Assets/Weapons/slowgun.png");
 	
-	[Singleton] Texture2D LeonKnifeAnimationSprite => Load<Texture2D>("res://Characters/Player-Leon/Leon-knife.png");
-	[Singleton] Texture2D LeonMetalbarAnimationSprite => Load<Texture2D>("res://Characters/Player-Leon/Leon-metalbar.png");
+	[Resource<Texture2D>("game", "res://Assets/Weapons/metalbar.png")] IFactory<Texture2D> MetalbarSprite;
+	[Resource<Texture2D>("game", "res://Assets/Weapons/slowgun.png")] IFactory<Texture2D> SlowGunSprite;
+	[Resource<Texture2D>("game", "res://Characters/Player-Leon/Leon-knife.png")] IFactory<Texture2D> LeonKnifeAnimationSprite;
+	[Resource<Texture2D>("game", "res://Characters/Player-Leon/Leon-metalbar.png")] IFactory<Texture2D> LeonMetalbarAnimationSprite;
 	
-	[Singleton] Texture2D Xbox360Buttons => Load<Texture2D>("res://Assets/UI/Consoles/Xbox 360 Controller Updated.png");
-	[Singleton] Texture2D XboxOneButtons => Load<Texture2D>("res://Assets/UI/Consoles/Xbox One Controller Updated.png");
-	[Singleton] Theme MyTheme => Load<Theme>("res://Assets/UI/my_theme.tres");
-	[Singleton] Theme DebugConsoleTheme => Load<Theme>("res://Assets/UI/DebugConsole.tres");
+	[Resource<Texture2D>("main", "res://Assets/UI/Consoles/Xbox 360 Controller Updated.png")] IFactory<Texture2D> Xbox360Buttons;
+	[Resource<Texture2D>("main", "res://Assets/UI/Consoles/Xbox One Controller Updated.png")] IFactory<Texture2D> XboxOneButtons;
+	[Resource<Theme>("main", "res://Assets/UI/my_theme.tres")] IFactory<Theme> MyTheme;
+	[Resource<Theme>("main", "res://Assets/UI/DebugConsole.tres")] IFactory<Theme> DebugConsoleTheme;
 }
 
 [Configuration]

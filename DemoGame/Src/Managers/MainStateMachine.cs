@@ -60,7 +60,7 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
     private HUD HudScene => HudSceneFactory.Get();
     
     [Inject] private IFactory<ModalBoxConfirm> ModalBoxConfirm { get; set; }
-    [Inject] private Theme MyTheme { get; set; }
+    [Inject] private IFactory<Theme> MyTheme { get; set; }
     [Inject] private Game Game { get; set; }
 
     [Inject] private ScreenSettingsManager ScreenSettingsManager { get; set; }
@@ -71,7 +71,7 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
     [Inject] private InputAction UiCancel { get; set; }
     [Inject] private InputAction ControllerStart { get; set; }
         
-    [Inject] private Theme DebugConsoleTheme { get; set; }
+    [Inject] private IFactory<Theme> DebugConsoleTheme { get; set; }
 
     [Inject] private EventBus EventBus { get; set; }
 
@@ -244,8 +244,8 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
     private void OnlyInPause(params Node[] nodes) => nodes.ForEach(n=> n.ProcessMode = ProcessModeEnum.WhenPaused);
 
     private void ConfigureDebugOverlays() {
-        DebugOverlayManager.OverlayContainer.Theme = MyTheme;
-        DebugOverlayManager.DebugConsole.Theme =  DebugConsoleTheme;;
+        DebugOverlayManager.OverlayContainer.Theme = MyTheme.Get();
+        DebugOverlayManager.DebugConsole.Theme = DebugConsoleTheme.Get();
     }
 
     private ModalBoxConfirm ShowModalBox(string title, string subtitle = null) {

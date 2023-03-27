@@ -1,14 +1,15 @@
+using Betauer.DI.Factory;
 using Godot;
 
 namespace Veronenger.Config;
 
 public abstract class WeaponConfig : PickableConfig {
-    public Texture2D WeaponAnimation { get; protected set; }
+    public IFactory<Texture2D> WeaponAnimation { get; protected set; }
 
     public class Melee : WeaponConfig {
         public string ShapeName { get; protected set; }
 
-        public Melee(Texture2D weaponAnimation, string shapeName) {
+        public Melee(IFactory<Texture2D> weaponAnimation, string shapeName) {
             WeaponAnimation = weaponAnimation;
             ShapeName = shapeName;
         }         
@@ -23,7 +24,7 @@ public abstract class WeaponConfig : PickableConfig {
         public int TrailLength = 200;
         public int RaycastLength = -1;
         
-        public Range(Texture2D weaponAnimation, Texture2D? projectile, Vector2 projectileStartPosition) {
+        public Range(IFactory<Texture2D> weaponAnimation, Texture2D? projectile, Vector2 projectileStartPosition) {
             WeaponAnimation = weaponAnimation;
             Projectile = projectile;
             ProjectileStartPosition = projectileStartPosition;

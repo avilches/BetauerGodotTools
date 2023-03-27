@@ -87,6 +87,7 @@ public partial class Container {
             var serviceGetters = configuration.GetType().GetGetters<ServiceAttribute>(MemberTypes.Method | MemberTypes.Property, ScanMemberFlags);
             foreach (var getter in serviceGetters) RegisterServiceFromGetter(configuration, getter);
             
+            // The scan include Fields, but only the FactoryTemplateAttribute is valid on fields
             var factoryGetters = configuration.GetType().GetGetters<BaseFactoryAttribute>(MemberTypes.Method | MemberTypes.Property | MemberTypes.Field, ScanMemberFlags);
             foreach (var getter in factoryGetters) RegisterFactoryFromGetter(configuration, getter);
         }
@@ -132,28 +133,21 @@ public partial class Container {
             }
             var attributeType = getter.GetterAttribute.GetType();
             if (attributeType.ImplementsInterface(typeof(FactoryAttribute))) {
-                RegisterCustomFactoryFromGetter(configuration, getter);
+                FactoryAttribute factoryAttribute = (FactoryAttribute)getter.GetterAttribute;
+                var name = factoryAttribute.Name ?? getter.Name;
+                object Factory() => getter.GetValue(configuration)!;
+                _builder.RegisterCustomFactory(getter.Type, Factory, name, factoryAttribute.Lifetime, factoryAttribute.Primary);
+                
             } else if (attributeType.ImplementsInterface(typeof(FactoryTemplateAttribute))) {
-                RegisterTemplateFactoryFromGetter(getter);
+                if (getter.GetValue(configuration) != null)
+                    throw new InvalidAttributeException(
+                        $"Member {getter} with factory attribute is a field and must be null (or not specified)");
+                FactoryTemplateAttribute templateAttribute = (FactoryTemplateAttribute)getter.GetterAttribute;
+                FactoryAttribute factoryAttribute = templateAttribute.GetFactoryAttribute();
+                var name = factoryAttribute.Name ?? getter.Name;
+                var factory = templateAttribute.GetCustomFactory();
+                _builder.RegisterCustomFactory(getter.Type, factory, name, factoryAttribute.Lifetime, factoryAttribute.Primary);
             }
-        }
-
-        private void RegisterTemplateFactoryFromGetter(IGetter<BaseFactoryAttribute> getter) {
-            var factoryAttribute = ((FactoryTemplateAttribute)getter.GetterAttribute).GetFactoryAttribute();
-            var primary = factoryAttribute.Primary;
-            var name = factoryAttribute.Name ?? getter.Name;
-            var lifetime = factoryAttribute.Lifetime;
-            var factory = ((FactoryTemplateAttribute)getter.GetterAttribute).GetCustomFactory();
-            _builder.RegisterCustomFactory(getter.Type, factory, name, lifetime, primary);
-        }
-
-        private void RegisterCustomFactoryFromGetter(object configuration, IGetter<BaseFactoryAttribute> getter) {
-            var factoryAttribute = (FactoryAttribute)getter.GetterAttribute;
-            var primary = factoryAttribute.Primary;
-            var name = factoryAttribute.Name ?? getter.Name;
-            var lifetime = factoryAttribute.Lifetime;
-            object Factory() => getter.GetValue(configuration)!;
-            _builder.RegisterCustomFactory(getter.Type, Factory, name, lifetime, primary);
         }
     }
 }

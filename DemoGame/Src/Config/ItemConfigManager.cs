@@ -1,15 +1,17 @@
 using Betauer.DI;
 using Betauer.DI.Attributes;
+using Betauer.DI.Factory;
 using Godot;
 
 namespace Veronenger.Config; 
 
 [Singleton]
 public class ItemConfigManager : IInjectable {
-    [Inject] private Texture2D LeonKnifeAnimationSprite { get; set; }
-    [Inject] private Texture2D LeonMetalbarAnimationSprite { get; set; }
-    [Inject] private Texture2D MetalbarSprite { get; set; }
-    [Inject] private Texture2D SlowGunSprite { get; set; }
+    [Inject] private IFactory<Texture2D> LeonKnifeAnimationSprite { get; set; }
+    [Inject] private IFactory<Texture2D> LeonMetalbarAnimationSprite { get; set; }
+    
+    [Inject] private IFactory<Texture2D> MetalbarSprite { get; set; }
+    [Inject] private IFactory<Texture2D> SlowGunSprite { get; set; }
 
     public WeaponConfig.Melee Knife { get; private set; }
     public WeaponConfig.Melee Metalbar { get; private set; }
@@ -26,16 +28,16 @@ public class ItemConfigManager : IInjectable {
     public void PostInject() {
         Knife = new WeaponConfig.Melee(LeonKnifeAnimationSprite, "Short") {
             Initialize = node => {
-                node.Sprite.Texture = MetalbarSprite;
-                node.Sprite.Frame = 1;
+                node.Sprite.Texture = MetalbarSprite.Get();
                 node.Sprite.Hframes = 3;
+                node.Sprite.Frame = 1;
             },
         };
         Metalbar = new WeaponConfig.Melee(LeonMetalbarAnimationSprite, "Long")  {
             Initialize = node => {
-                node.Sprite.Texture = MetalbarSprite;
-                node.Sprite.Frame = 1;
+                node.Sprite.Texture = MetalbarSprite.Get();
                 node.Sprite.Hframes = 3;
+                node.Sprite.Frame = 1;
             },
         };
         MachineGun = new WeaponConfig.Range(null, null, new Vector2(20f, -33.5f)) {
@@ -50,9 +52,9 @@ public class ItemConfigManager : IInjectable {
         SlowGun = new WeaponConfig.Range(null, null, new Vector2(20f, -33.5f)) {
             MaxDistance = 800, Speed = 500, TrailLength = 20, RaycastLength = 30,
             Initialize = node => {
-                node.Sprite.Texture = SlowGunSprite;
-                node.Sprite.Frame = 0;
+                node.Sprite.Texture = SlowGunSprite.Get();
                 node.Sprite.Hframes = 1;
+                node.Sprite.Frame = 0;
             },
         };
     } 
