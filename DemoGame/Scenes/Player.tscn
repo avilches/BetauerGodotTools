@@ -1,7 +1,7 @@
 [gd_scene load_steps=22 format=3 uid="uid://d28t2wyjt7huu"]
 
 [ext_resource type="Script" path="res://Src/Character/Player/PlayerNode.cs" id="1"]
-[ext_resource type="Texture2D" uid="uid://bkdcmo0hx63sp" path="res://Characters/Player-Leon/Leon-knife.png" id="3_q2ohh"]
+[ext_resource type="Texture2D" uid="uid://dyxkhaoiyfoj1" path="res://Characters/Player-Leon/Leon-gun1.png" id="3_n16w5"]
 [ext_resource type="Texture2D" uid="uid://uhs4s0y6eyo1" path="res://Characters/Player-Leon/Leon.png" id="4_tjgm6"]
 [ext_resource type="Texture2D" uid="uid://b7ir53ta6rglo" path="res://Assets/light.png" id="9_vfn0h"]
 
@@ -602,10 +602,10 @@ tracks/2/path = NodePath("../Weapon:frame")
 tracks/2/interp = 1
 tracks/2/loop_wrap = true
 tracks/2/keys = {
-"times": PackedFloat32Array(0, 0.1, 0.2),
-"transitions": PackedFloat32Array(1, 1, 1),
+"times": PackedFloat32Array(0, 0.05, 0.1, 0.25),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
 "update": 1,
-"values": [15, 16, 17]
+"values": [122, 121, 122, 123]
 }
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_3u6sx"]
@@ -667,7 +667,7 @@ metadata/_edit_lock_ = true
 
 [node name="Weapon" type="Sprite2D" parent="Character/Sprites"]
 visible = false
-texture = ExtResource("3_q2ohh")
+texture = ExtResource("3_n16w5")
 hframes = 124
 metadata/_edit_lock_ = true
 
