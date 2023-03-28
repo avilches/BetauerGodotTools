@@ -83,6 +83,7 @@ public class Resources {
 	[Resource<Texture2D>("game", "res://Assets/Weapons/slowgun.png")] IFactory<Texture2D> SlowGunSprite;
 	[Resource<Texture2D>("game", "res://Characters/Player-Leon/Leon-knife.png")] IFactory<Texture2D> LeonKnifeAnimationSprite;
 	[Resource<Texture2D>("game", "res://Characters/Player-Leon/Leon-metalbar.png")] IFactory<Texture2D> LeonMetalbarAnimationSprite;
+	[Resource<Texture2D>("game", "res://Characters/Player-Leon/Leon-gun1.png")] IFactory<Texture2D> LeonGun1AnimationSprite;
 	
 	[Resource<Texture2D>("main", "res://Assets/UI/Consoles/Xbox 360 Controller Updated.png")] IFactory<Texture2D> Xbox360Buttons;
 	[Resource<Texture2D>("main", "res://Assets/UI/Consoles/Xbox One Controller Updated.png")] IFactory<Texture2D> XboxOneButtons;
