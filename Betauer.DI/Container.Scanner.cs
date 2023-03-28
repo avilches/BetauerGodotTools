@@ -141,12 +141,10 @@ public partial class Container {
             } else if (attributeType.ImplementsInterface(typeof(FactoryTemplateAttribute))) {
                 if (getter.GetValue(configuration) != null)
                     throw new InvalidAttributeException(
-                        $"Member {getter} with factory attribute is a field and must be null (or not specified)");
+                        $"Member {getter} with factory attribute is a field and must be null or not specified");
                 FactoryTemplateAttribute templateAttribute = (FactoryTemplateAttribute)getter.GetterAttribute;
-                FactoryAttribute factoryAttribute = templateAttribute.GetFactoryAttribute();
-                var name = factoryAttribute.Name ?? getter.Name;
-                var factory = templateAttribute.GetCustomFactory();
-                _builder.RegisterCustomFactory(getter.Type, factory, name, factoryAttribute.Lifetime, factoryAttribute.Primary);
+                FactoryTemplate template = templateAttribute.CreateFactoryTemplate((FieldInfo)getter.MemberInfo);
+                _builder.RegisterCustomFactory(getter.Type, template.Factory, template.Name, template.Lifetime, template.Primary);
             }
         }
     }

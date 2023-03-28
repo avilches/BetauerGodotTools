@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using Betauer.DI.ServiceProvider;
 
 namespace Betauer.DI.Attributes;
@@ -40,6 +41,14 @@ public static class Factory {
 
 [AttributeUsage(AttributeTargets.Field)]
 public abstract class FactoryTemplateAttribute : BaseFactoryAttribute {
-    public abstract Func<object> GetCustomFactory();
-    public abstract FactoryAttribute GetFactoryAttribute();
+    public abstract FactoryTemplate CreateFactoryTemplate(FieldInfo fieldInfo);
+}
+
+public class FactoryTemplate {
+    public string? Name { get; init; }
+    public bool Primary { get; init; }
+    public Type RegisterType { get; init; }
+    public Type ProviderType { get; init; }
+    public Lifetime Lifetime { get; init; }
+    public Func<object> Factory { get; init; }
 }

@@ -1,5 +1,7 @@
 using System;
+using System.Reflection;
 using Betauer.DI.Attributes;
+using Betauer.DI.ServiceProvider;
 using Godot;
 
 namespace Betauer.Application.Lifecycle;
@@ -19,14 +21,14 @@ public static class Scene {
             Resource = resource;
         }
 
-        public override Func<object> GetCustomFactory() {
-            return () => new SceneFactory<T>(Tag, Resource);
-        }
-
-        public override FactoryAttribute GetFactoryAttribute() {
-            return new Factory.SingletonAttribute {
-                Name = null,
+        public override FactoryTemplate CreateFactoryTemplate(FieldInfo fieldInfo) {
+            return new FactoryTemplate {
+                Name = fieldInfo.Name,
                 Primary = false,
+                RegisterType = fieldInfo.FieldType,
+                ProviderType = typeof(SceneFactory<T>),
+                Lifetime = Lifetime.Singleton,
+                Factory = () => new SceneFactory<T>(Tag, Resource),
             };
         }
     }
@@ -45,14 +47,14 @@ public static class Scene {
             Resource = resource;
         }
 
-        public override Func<object> GetCustomFactory() {
-            return () => new SceneFactory<T>(Tag, Resource);
-        }
-
-        public override FactoryAttribute GetFactoryAttribute() {
-            return new Factory.TransientAttribute {
-                Name = null,
+        public override FactoryTemplate CreateFactoryTemplate(FieldInfo fieldInfo) {
+            return new FactoryTemplate {
+                Name = fieldInfo.Name,
                 Primary = false,
+                RegisterType = fieldInfo.FieldType,
+                ProviderType = typeof(SceneFactory<T>),
+                Lifetime = Lifetime.Transient,
+                Factory = () => new SceneFactory<T>(Tag, Resource),
             };
         }
     }
