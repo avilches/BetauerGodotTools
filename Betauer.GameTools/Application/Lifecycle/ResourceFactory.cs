@@ -40,7 +40,7 @@ public abstract class ResourceFactory : IInjectable {
 
 public class ResourceFactory<T> : ResourceFactory, IFactory<T> where T : Resource {
 
-    public ResourceFactory(string tag, string resourcePath) : base(tag, resourcePath) {
+    public ResourceFactory(string? tag, string resourcePath) : base(tag, resourcePath) {
     }
 
     public ResourceFactory(string resourcePath) : base(null, resourcePath) {

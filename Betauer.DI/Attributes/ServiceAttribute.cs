@@ -7,6 +7,7 @@ namespace Betauer.DI.Attributes;
 public abstract class BaseServiceAttribute : BaseProviderAttribute {
 }
 
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method | AttributeTargets.Property)]
 public abstract class ServiceAttribute : BaseServiceAttribute {
     public string? Name { get; set; }
     public bool Primary { get; set; } = false;
@@ -19,6 +20,7 @@ public abstract class ServiceAttribute : BaseServiceAttribute {
 
 public class SingletonAttribute : ServiceAttribute {
     public bool Lazy { get; set; } = false;
+
     public SingletonAttribute() : base(Lifetime.Singleton) {
     }
 
@@ -27,7 +29,8 @@ public class SingletonAttribute : ServiceAttribute {
     }
 }
 
-public class SingletonAttribute<T> : SingletonAttribute { }
+public class SingletonAttribute<T> : SingletonAttribute {
+}
 
 public class TransientAttribute : ServiceAttribute {
     public TransientAttribute() : base(Lifetime.Transient) {
@@ -38,9 +41,10 @@ public class TransientAttribute : ServiceAttribute {
     }
 }
 
-public class TransientAttribute<T> : TransientAttribute { }
+public class TransientAttribute<T> : TransientAttribute {
+}
 
-[AttributeUsage(AttributeTargets.Field)]
+[AttributeUsage(AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field)]
 public abstract class ServiceTemplateAttribute : BaseServiceAttribute {
-    public abstract ProviderTemplate CreateProviderTemplate(FieldInfo fieldInfo);
+    public abstract ProviderTemplate CreateProviderTemplate(MemberInfo memberInfo);
 }

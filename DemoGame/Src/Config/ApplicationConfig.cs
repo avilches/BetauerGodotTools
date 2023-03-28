@@ -77,7 +77,7 @@ public class GameLoaderContainer : ResourceLoaderContainer {
 
 [Configuration]
 public class Resources {
-	[Singleton] Texture2D Icon => Load<Texture2D>("res://icon.png");
+	[Preload<Texture2D>("res://icon.png")] private Texture2D Icon;
 	
 	[Resource<Texture2D>("game", "res://Assets/Weapons/metalbar.png")] IFactory<Texture2D> MetalbarSprite;
 	[Resource<Texture2D>("game", "res://Assets/Weapons/slowgun.png")] IFactory<Texture2D> SlowGunSprite;

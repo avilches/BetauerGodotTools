@@ -8,6 +8,7 @@ namespace Betauer.DI.Attributes;
 public abstract class BaseFactoryAttribute : BaseProviderAttribute {
 }
 
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method | AttributeTargets.Property)]
 public abstract class FactoryAttribute : BaseFactoryAttribute {
     public string? Name { get; set; }
     public bool Primary { get; set; } = false;
@@ -39,7 +40,7 @@ public static class Factory {
     }
 }
 
-[AttributeUsage(AttributeTargets.Field)]
+[AttributeUsage(AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field)]
 public abstract class FactoryTemplateAttribute : BaseFactoryAttribute {
-    public abstract FactoryTemplate CreateFactoryTemplate(FieldInfo fieldInfo);
+    public abstract FactoryTemplate CreateFactoryTemplate(MemberInfo memberInfo);
 }
