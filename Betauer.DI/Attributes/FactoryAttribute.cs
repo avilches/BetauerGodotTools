@@ -4,12 +4,8 @@ using Betauer.DI.ServiceProvider;
 
 namespace Betauer.DI.Attributes;
 
-
-public abstract class BaseFactoryAttribute : BaseProviderAttribute {
-}
-
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method | AttributeTargets.Property)]
-public abstract class FactoryAttribute : BaseFactoryAttribute {
+public abstract class FactoryAttribute : BaseProviderAttribute {
     public string? Name { get; set; }
     public bool Primary { get; set; } = false;
     public Lifetime Lifetime { get; }
@@ -30,7 +26,6 @@ public static class Factory {
     }
 
     public class TransientAttribute : FactoryAttribute {
-
         public TransientAttribute() : base(Lifetime.Transient) {
         }
 
@@ -38,9 +33,4 @@ public static class Factory {
             Name = name;
         }
     }
-}
-
-[AttributeUsage(AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field)]
-public abstract class FactoryTemplateAttribute : BaseFactoryAttribute {
-    public abstract FactoryTemplate CreateFactoryTemplate(MemberInfo memberInfo);
 }

@@ -39,7 +39,7 @@ public class ResourceLoaderContainer {
         var set = new HashSet<string>(tags);
         var resources = ResourceFactories
             .Where(sf => !sf.IsLoaded() && set.Contains(sf.Tag))
-            .Select(sf => new ResourceLoad(sf.ResourcePath, sf.Load))
+            .Select(sf => new ResourceLoad(sf.Path, sf.Load))
             .ToList();
         await LoadTools.LoadThreaded(resources, awaiter, (rp) => {
             OnLoadResourceProgress?.Invoke(rp);

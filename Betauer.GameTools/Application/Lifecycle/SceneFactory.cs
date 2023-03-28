@@ -6,10 +6,10 @@ namespace Betauer.Application.Lifecycle;
 
 public class SceneFactory<T> : ResourceFactory, IFactory<T> where T : Node {
 
-    public SceneFactory(string tag, string resourcePath) : base(tag, resourcePath) {
+    public SceneFactory(string tag, string path) : base(tag, path) {
     }
 
-    public SceneFactory(string resourcePath) : base(null, resourcePath) {
+    public SceneFactory(string path) : base(null, path) {
     }
 
     public PackedScene Scene => (PackedScene)Resource!;

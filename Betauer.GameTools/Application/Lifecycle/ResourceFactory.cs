@@ -11,13 +11,13 @@ public abstract class ResourceFactory : IInjectable {
 
     public const string DefaultTag = "(default)";
 
-    public string ResourcePath { get; }
+    public string Path { get; }
     public string Tag { get; }
     public Resource? Resource { get; protected set; }
 
-    protected ResourceFactory(string? tag, string resourcePath) {
+    protected ResourceFactory(string? tag, string path) {
         Tag = tag ?? DefaultTag;
-        ResourcePath = resourcePath;
+        Path = path;
     }
     
     public void PostInject() {
@@ -40,10 +40,10 @@ public abstract class ResourceFactory : IInjectable {
 
 public class ResourceFactory<T> : ResourceFactory, IFactory<T> where T : Resource {
 
-    public ResourceFactory(string? tag, string resourcePath) : base(tag, resourcePath) {
+    public ResourceFactory(string? tag, string path) : base(tag, path) {
     }
 
-    public ResourceFactory(string resourcePath) : base(null, resourcePath) {
+    public ResourceFactory(string path) : base(null, path) {
     }
 
     public T Get() {

@@ -64,7 +64,13 @@ public partial class Container {
                 var configuration = Activator.CreateInstance(type);
                 ScanServicesFromConfigurationInstance(configuration!);
                 ScanForScanAttributes(type, stack);
+                ScanForTemplates(type);
             } else if (type.HasAttribute<ScanAttribute>()) throw new InvalidAttributeException("[Scan] attributes are only valid with [Configuration]");
+        }
+
+        private void ScanForTemplates(Type type) {
+            type.GetAttributes<ServiceTemplateAttribute>().ForEach(serviceTemplateAttribute => RegisterServiceTemplate(serviceTemplateAttribute, type));
+            type.GetAttributes<FactoryTemplateAttribute>().ForEach(factoryTemplateAttribute => RegisterFactoryTemplate(factoryTemplateAttribute, type));
         }
 
         private void RegisterCustomFactoryFromClass(Type type, FactoryAttribute factoryAttribute) {
@@ -103,50 +109,43 @@ public partial class Container {
             const MemberTypes memberFlags = MemberTypes.Method | MemberTypes.Property | MemberTypes.Field;
 
             // No need cache getters, this reflection scan is only done once
-            var serviceGetters = configuration.GetType().GetGetters<BaseServiceAttribute>(memberFlags, bindingFlags);
+            var serviceGetters = configuration.GetType().GetGetters<ServiceAttribute>(memberFlags, bindingFlags);
             foreach (var getter in serviceGetters) RegisterServiceFromGetter(configuration, getter);
 
-            var factoryGetters = configuration.GetType().GetGetters<BaseFactoryAttribute>(memberFlags, bindingFlags);
+            var factoryGetters = configuration.GetType().GetGetters<FactoryAttribute>(memberFlags, bindingFlags);
             foreach (var getter in factoryGetters) RegisterFactoryFromGetter(configuration, getter);
         }
 
-        private void RegisterServiceFromGetter(object configuration, IGetter<BaseServiceAttribute> getter) {
-            var attributeType = getter.GetterAttribute.GetType();
-            if (attributeType.IsAssignableTo(typeof(ServiceAttribute))) {
-                ServiceAttribute serviceAttribute = (ServiceAttribute)getter.GetterAttribute;
-                var type = getter.Type;
-                var registeredType = serviceAttribute.GetType().GetGenericArguments().FirstOrDefault() ?? type;
-                var name = serviceAttribute.Name ?? getter.Name;
-                var lazy = serviceAttribute is SingletonAttribute { Lazy: true };
-                object Factory() => getter.GetValue(configuration)!;
-                _builder.RegisterServiceAndAddFactory(registeredType, type, serviceAttribute.Lifetime, Factory, name, serviceAttribute.Primary, lazy);
-            } else if (attributeType.IsAssignableTo(typeof(ServiceTemplateAttribute))) {
-                ServiceTemplateAttribute templateAttribute = (ServiceTemplateAttribute)getter.GetterAttribute;
-                ProviderTemplate template = templateAttribute.CreateProviderTemplate(getter.MemberInfo);
-                _builder.RegisterServiceAndAddFactory(template.RegisterType, template.ProviderType, template.Lifetime,
-                    template.Factory, template.Name, template.Primary, template.Lazy);
-            } else {
-                throw new InvalidAttributeException($"Member {getter} with unknown attribute {FormatAttribute(attributeType)}");
-            }
+        private void RegisterServiceFromGetter(object configuration, IGetter<ServiceAttribute> getter) {
+            var serviceAttribute = getter.GetterAttribute;
+            var type = getter.Type;
+            var registeredType = serviceAttribute.GetType().GetGenericArguments().FirstOrDefault() ?? type;
+            var name = serviceAttribute.Name ?? getter.Name;
+            var lazy = serviceAttribute is SingletonAttribute { Lazy: true };
+            object Factory() => getter.GetValue(configuration)!;
+            _builder.RegisterServiceAndAddFactory(registeredType, type, serviceAttribute.Lifetime, Factory, name, serviceAttribute.Primary, lazy);
         }
 
-        private void RegisterFactoryFromGetter(object configuration, IGetter<BaseFactoryAttribute> getter) {
+        private void RegisterFactoryFromGetter(object configuration, IGetter<FactoryAttribute> getter) {
             var attributeType = getter.GetterAttribute.GetType();
             if (!getter.Type.ImplementsInterface(typeof(IFactory<>)))
                 throw new InvalidAttributeException($"Member {getter} with factory attribute {FormatAttribute(attributeType)} must implement IFactory<T>");
 
-            if (attributeType.IsAssignableTo(typeof(FactoryAttribute))) {
-                FactoryAttribute factoryAttribute = (FactoryAttribute)getter.GetterAttribute;
-                var name = factoryAttribute.Name ?? getter.Name;
-                object Factory() => getter.GetValue(configuration)!;
-                _builder.RegisterCustomFactory(getter.Type, factoryAttribute.Lifetime, Factory, name, factoryAttribute.Primary);
-            } else if (attributeType.IsAssignableTo(typeof(FactoryTemplateAttribute))) {
-                FactoryTemplateAttribute templateAttribute = (FactoryTemplateAttribute)getter.GetterAttribute;
-                FactoryTemplate template = templateAttribute.CreateFactoryTemplate(getter.MemberInfo);
-                _builder.RegisterCustomFactory(template.FactoryType, template.Lifetime, template.Factory, template.Name, template.Primary);
-            } else {
-                throw new InvalidAttributeException($"Member {getter} with unknown attribute {FormatAttribute(attributeType)}");
-            }
+            var factoryAttribute = getter.GetterAttribute;
+            var name = factoryAttribute.Name ?? getter.Name;
+            object Factory() => getter.GetValue(configuration)!;
+            _builder.RegisterCustomFactory(getter.Type, factoryAttribute.Lifetime, Factory, name, factoryAttribute.Primary);
+        }
+
+        private void RegisterServiceTemplate(ServiceTemplateAttribute templateAttribute, MemberInfo memberInfo) {
+            ProviderTemplate template = templateAttribute.CreateProviderTemplate(memberInfo);
+            _builder.RegisterServiceAndAddFactory(template.RegisterType, template.ProviderType, template.Lifetime,
+                template.Factory, template.Name, template.Primary, template.Lazy);
+        }
+
+        private void RegisterFactoryTemplate(FactoryTemplateAttribute templateAttribute, MemberInfo memberInfo) {
+            FactoryTemplate template = templateAttribute.CreateFactoryTemplate(memberInfo);
+            _builder.RegisterCustomFactory(template.FactoryType, template.Lifetime, template.Factory, template.Name, template.Primary);
         }
 
         private static string FormatAttribute(Attribute att) {
