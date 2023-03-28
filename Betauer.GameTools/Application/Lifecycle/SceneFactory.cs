@@ -6,7 +6,7 @@ namespace Betauer.Application.Lifecycle;
 
 public class SceneFactory<T> : ResourceFactory, IFactory<T> where T : Node {
 
-    public SceneFactory(string tag, string path) : base(tag, path) {
+    public SceneFactory(string? tag, string path) : base(tag, path) {
     }
 
     public SceneFactory(string path) : base(null, path) {

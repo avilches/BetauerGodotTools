@@ -75,34 +75,34 @@ public class GameLoaderContainer : ResourceLoaderContainer {
 	public void UnloadGameResources() => UnloadResources("game");
 } 
 
-[Configuration]
+[LoaderConfiguration(Tag = "main")]
 [Preload<Texture2D>(Name="Icon", Path="res://icon.png")]
-[Resource<Texture2D>(Name = "Xbox360Buttons", Tag = "main", Path = "res://Assets/UI/Consoles/Xbox 360 Controller Updated.png")]
-[Resource<Texture2D>(Name = "XboxOneButtons", Tag = "main", Path = "res://Assets/UI/Consoles/Xbox One Controller Updated.png")]
-[Resource<Theme>(Name = "MyTheme", Tag = "main", Path = "res://Assets/UI/my_theme.tres")]
-[Resource<Theme>(Name = "DebugConsoleTheme", Tag = "main", Path = "res://Assets/UI/DebugConsole.tres")]
-[Scene.Transient<RedefineActionButton>(Name = "RedefineActionButton", Tag = "main", Path = "res://Scenes/UI/RedefineActionButton.tscn")]
-[Scene.Transient<ModalBoxConfirm>(Name = "ModalBoxConfirm", Tag = "main", Path = "res://Scenes/Menu/ModalBoxConfirm.tscn")]
-[Scene.Singleton<HUD>(Name = "HudResource", Tag = "main", Path = "res://Scenes/UI/HUD.tscn")]
-[Scene.Singleton<MainMenu>(Name = "MainMenuResource", Tag = "main", Path = "res://Scenes/Menu/MainMenu.tscn")]
-[Scene.Singleton<BottomBar>(Name = "BottomBarResource", Tag = "main", Path = "res://Scenes/Menu/BottomBar.tscn")]
-[Scene.Singleton<PauseMenu>(Name = "PauseMenuResource", Tag = "main", Path = "res://Scenes/Menu/PauseMenu.tscn")]
-[Scene.Singleton<SettingsMenu>(Name = "SettingsMenuResource", Tag = "main", Path = "res://Scenes/Menu/SettingsMenu.tscn")]
+[Resource<Texture2D>(Name = "Xbox360Buttons", Path = "res://Assets/UI/Consoles/Xbox 360 Controller Updated.png")]
+[Resource<Texture2D>(Name = "XboxOneButtons", Path = "res://Assets/UI/Consoles/Xbox One Controller Updated.png")]
+[Resource<Theme>(Name = "MyTheme", Path = "res://Assets/UI/my_theme.tres")]
+[Resource<Theme>(Name = "DebugConsoleTheme", Path = "res://Assets/UI/DebugConsole.tres")]
+[Scene.Transient<RedefineActionButton>(Name = "RedefineActionButton", Path = "res://Scenes/UI/RedefineActionButton.tscn")]
+[Scene.Transient<ModalBoxConfirm>(Name = "ModalBoxConfirm", Path = "res://Scenes/Menu/ModalBoxConfirm.tscn")]
+[Scene.Singleton<HUD>(Name = "HudResource", Path = "res://Scenes/UI/HUD.tscn")]
+[Scene.Singleton<MainMenu>(Name = "MainMenuResource", Path = "res://Scenes/Menu/MainMenu.tscn")]
+[Scene.Singleton<BottomBar>(Name = "BottomBarResource", Path = "res://Scenes/Menu/BottomBar.tscn")]
+[Scene.Singleton<PauseMenu>(Name = "PauseMenuResource", Path = "res://Scenes/Menu/PauseMenu.tscn")]
+[Scene.Singleton<SettingsMenu>(Name = "SettingsMenuResource", Path = "res://Scenes/Menu/SettingsMenu.tscn")]
 public class MainResources {
 }
 
-[Configuration]
-[Resource<Texture2D>(Name = "MetalbarSprite", Tag = "game", Path = "res://Assets/Weapons/metalbar.png")]
-[Resource<Texture2D>(Name = "SlowGunSprite", Tag = "game", Path = "res://Assets/Weapons/slowgun.png")]
-[Resource<Texture2D>(Name = "LeonKnifeAnimationSprite", Tag = "game", Path = "res://Characters/Player-Leon/Leon-knife.png")]
-[Resource<Texture2D>(Name = "LeonMetalbarAnimationSprite", Tag = "game", Path = "res://Characters/Player-Leon/Leon-metalbar.png")]
-[Resource<Texture2D>(Name = "LeonGun1AnimationSprite", Tag = "game", Path = "res://Characters/Player-Leon/Leon-gun1.png")]
-[Scene.Transient<WorldScene>(Name = "World3", Tag = "game", Path= "res://Worlds/World3.tscn")]
-[Scene.Transient<PlayerNode>(Name = "Player", Tag = "game", Path= "res://Scenes/Player.tscn")]
-[Scene.Transient<ZombieNode>(Name = "ZombieNode", Tag = "game", Path= "res://Scenes/Zombie2.tscn")]
-[Scene.Transient<ProjectileTrail>(Name = "ProjectileTrail", Tag = "game", Path= "res://Scenes/ProjectileTrail.tscn")]
-[Scene.Transient<PickableItemNode>(Name = "PickableItem", Tag = "game", Path= "res://Scenes/PickableItem.tscn")]
-public class GameScenes {
+[LoaderConfiguration(Tag = "game")]
+[Resource<Texture2D>(Name = "MetalbarSprite", Path = "res://Assets/Weapons/metalbar.png")]
+[Resource<Texture2D>(Name = "SlowGunSprite", Path = "res://Assets/Weapons/slowgun.png")]
+[Resource<Texture2D>(Name = "LeonKnifeAnimationSprite", Path = "res://Characters/Player-Leon/Leon-knife.png")]
+[Resource<Texture2D>(Name = "LeonMetalbarAnimationSprite", Path = "res://Characters/Player-Leon/Leon-metalbar.png")]
+[Resource<Texture2D>(Name = "LeonGun1AnimationSprite", Path = "res://Characters/Player-Leon/Leon-gun1.png")]
+[Scene.Transient<WorldScene>(Name = "World3", Path= "res://Worlds/World3.tscn")]
+[Scene.Transient<PlayerNode>(Name = "Player", Path= "res://Scenes/Player.tscn")]
+[Scene.Transient<ZombieNode>(Name = "ZombieNode", Path= "res://Scenes/Zombie2.tscn")]
+[Scene.Transient<ProjectileTrail>(Name = "ProjectileTrail", Path= "res://Scenes/ProjectileTrail.tscn")]
+[Scene.Transient<PickableItemNode>(Name = "PickableItem", Path= "res://Scenes/PickableItem.tscn")]
+public class GameResources {
 	[Singleton] IPool<ZombieNode> ZombiePool => new PoolFromNodeFactory<ZombieNode>();
 	[Singleton] IPool<ProjectileTrail> ProjectilePool => new PoolFromNodeFactory<ProjectileTrail>();
 	[Singleton] IPool<PickableItemNode> PickableItemPool => new PoolFromNodeFactory<PickableItemNode>();
