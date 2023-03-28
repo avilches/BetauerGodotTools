@@ -7,14 +7,6 @@ using System.Reflection;
 namespace Betauer.Tools.Reflection; 
 
 public static class TypeExtensions {
-    private static readonly Dictionary<(Type, Type, MemberTypes, BindingFlags), object> Cache = new();
-
-    public static IEnumerable<FastMethodInfo> GetMethods<T>(this Type type, BindingFlags bindingAttr, Predicate<MethodInfo> filter) where T : Attribute {
-        return type.GetMethods(bindingAttr)
-            .Where(info => filter(info) && info.HasAttribute<T>())
-            .Select(info => new FastMethodInfo(info));
-    }
-
     public static bool ImplementsInterface(this Type type, Type interfaceType) {
         if (type == null) throw new ArgumentNullException(nameof(type));
         if (interfaceType == null) throw new ArgumentNullException(nameof(interfaceType));
@@ -29,10 +21,24 @@ public static class TypeExtensions {
                    implementedInterface.GetGenericTypeDefinition() == interfaceType);
     }
 
+    private static readonly Dictionary<(Type, Type, MemberTypes, BindingFlags), object> Cache = new();
+
+    public static IEnumerable<FastMethodInfo> GetMethods<T>(this Type type, BindingFlags bindingAttr, Predicate<MethodInfo> filter) where T : Attribute {
+        return type.GetMethods(bindingAttr)
+            .Where(info => filter(info) && info.HasAttribute<T>())
+            .Select(info => new FastMethodInfo(info));
+    }
+
     public static List<ISetter<T>> GetSettersCached<T>(this Type type, MemberTypes memberFlags, BindingFlags bindingAttr) where T : Attribute {
         var key = (typeof(ISetter<T>), type, memberFlags, bindingAttr);
         if (Cache.TryGetValue(key, out var result)) return (List<ISetter<T>>)result;
         return (List<ISetter<T>>)(Cache[key] = type.GetSetters<T>(memberFlags, bindingAttr));
+    }
+
+    public static List<ISetter<T>> GetGettersCached<T>(this Type type, MemberTypes memberFlags, BindingFlags bindingAttr) where T : Attribute {
+        var key = (typeof(ISetter<T>), type, memberFlags, bindingAttr);
+        if (Cache.TryGetValue(key, out var result)) return (List<ISetter<T>>)result;
+        return (List<ISetter<T>>)(Cache[key] = type.GetGetters<T>(memberFlags, bindingAttr));
     }
 
     public static List<ISetter<T>> GetSetters<T>(this Type type, MemberTypes memberFlags, BindingFlags bindingAttr)
@@ -45,23 +51,10 @@ public static class TypeExtensions {
         var setters = new List<ISetter<T>>();
         foreach (var memberInfo in e)
             if (memberInfo.GetAttribute<T>() is T attribute) {
-                var validSetter = FastSetter.IsValid(memberInfo);
-                var validGetter = FastGetter.IsValid(memberInfo);
-                if (validGetter && validSetter)
-                    // fields and properties
-                    setters.Add(new FastGetterSetter<T>(memberInfo, attribute));
-                else if (validSetter)
-                    // methods with 1 parameter and void return type
-                    setters.Add(new FastSetter<T>(memberInfo, attribute));
+                if (FastSetter.IsValid(memberInfo)) setters.Add(new FastSetter<T>(memberInfo, attribute));
             }
         return setters;
     }
-
-    // public static List<ISetter<T>> GetGettersCached<T>(this Type type, MemberTypes memberFlags, BindingFlags bindingAttr) where T : Attribute {
-    //     var key = (typeof(ISetter<T>), type, memberFlags, bindingAttr);
-    //     if (Cache.TryGetValue(key, out var result)) return (List<ISetter<T>>)result;
-    //     return (List<ISetter<T>>)(Cache[key] = type.GetGetters<T>(memberFlags, bindingAttr));
-    // }
 
     public static List<IGetter<T>> GetGetters<T>(this Type type, MemberTypes memberFlags, BindingFlags bindingAttr)
         where T : Attribute {
@@ -72,34 +65,22 @@ public static class TypeExtensions {
         var getters = new List<IGetter<T>>();
         foreach (var memberInfo in e)
             if (memberInfo.GetAttribute<T>() is T attribute) {
-                var validSetter = FastSetter.IsValid(memberInfo);
-                var validGetter = FastGetter.IsValid(memberInfo);
-                if (validGetter && validSetter)
-                    // fields and properties
-                    getters.Add(new FastGetterSetter<T>(memberInfo, attribute));
-                else if (validGetter)
-                    // methods with 0 parameters
-                    getters.Add(new FastGetter<T>(memberInfo, attribute));
+                if (FastGetter.IsValid(memberInfo)) getters.Add(new FastGetter<T>(memberInfo, attribute));
             }
         return getters;
     }
 
-    private static IEnumerable<MemberInfo> ConcatMethods(IEnumerable<MemberInfo> e, Type type,
-        MemberTypes memberFlags, BindingFlags bindingAttr, Predicate<MethodInfo> filter) {
-        if (memberFlags.HasFlag(MemberTypes.Method))
-            e = e.Concat(type.GetMethods(bindingAttr)
-                .Where(methodInfo => filter(methodInfo)));
+    private static IEnumerable<MemberInfo> ConcatMethods(IEnumerable<MemberInfo> e, Type type, MemberTypes memberFlags, BindingFlags bindingAttr, Predicate<MethodInfo> filter) {
+        if (memberFlags.HasFlag(MemberTypes.Method)) e = e.Concat(type.GetMethods(bindingAttr).Where(methodInfo => filter(methodInfo)));
         return e;
     }
 
-    private static IEnumerable<MemberInfo> ConcatProperties(IEnumerable<MemberInfo> e, Type type,
-        MemberTypes memberFlags, BindingFlags bindingAttr) {
+    private static IEnumerable<MemberInfo> ConcatProperties(IEnumerable<MemberInfo> e, Type type, MemberTypes memberFlags, BindingFlags bindingAttr) {
         if (memberFlags.HasFlag(MemberTypes.Property)) e = e.Concat(type.GetProperties(bindingAttr));
         return e;
     }
 
-    private static IEnumerable<MemberInfo> ConcatFields(IEnumerable<MemberInfo> e, Type type,
-        MemberTypes memberFlags, BindingFlags bindingAttr) {
+    private static IEnumerable<MemberInfo> ConcatFields(IEnumerable<MemberInfo> e, Type type, MemberTypes memberFlags, BindingFlags bindingAttr) {
         if (memberFlags.HasFlag(MemberTypes.Field)) e = e.Concat(type.GetFields(bindingAttr));
         return e;
     }

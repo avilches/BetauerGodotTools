@@ -11,6 +11,7 @@ public class MethodFastGetter : IGetter {
     public MethodFastGetter(MethodInfo methodInfo) {
         if (!IsValid(methodInfo))
             throw new ArgumentException("Getter method must have 0 parameters and return non void type");
+        MethodInfo = methodInfo;
         MemberInfo = methodInfo;
         Type = methodInfo.ReturnType;
         Name = methodInfo.Name;
@@ -24,6 +25,7 @@ public class MethodFastGetter : IGetter {
     public Type Type { get; }
     public string Name { get; }
     public MemberInfo MemberInfo { get; }
+    public MethodInfo MethodInfo { get; }
 
     public object? GetValue(object instance) {
         return _getValue(instance);

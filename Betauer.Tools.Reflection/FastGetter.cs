@@ -4,30 +4,28 @@ using System.Reflection;
 namespace Betauer.Tools.Reflection; 
 
 public class FastGetter : IGetter {
-    private readonly IGetter _iGetter;
+    public IGetter Getter { get; }
 
     public FastGetter(MemberInfo memberInfo) {
         if (!IsValid(memberInfo))
-            throw new ArgumentException(
-                "MemberInfo must be PropertyInfo, FieldInfo or MethodInfo (non void return type with 0 parameters)",
-                nameof(memberInfo));
-        _iGetter = memberInfo switch {
+            throw new ArgumentException("MemberInfo must be PropertyInfo, FieldInfo or MethodInfo (non void return and 0 parameters)", nameof(memberInfo));
+        Getter = memberInfo switch {
             PropertyInfo propertyInfo => new PropertyFastGetter(propertyInfo),
             FieldInfo fieldInfo => new FieldFastGetter(fieldInfo),
             MethodInfo methodInfo => new MethodFastGetter(methodInfo)
         };
     }
 
-    public Type Type => _iGetter.Type;
-    public string Name => _iGetter.Name;
-    public MemberInfo MemberInfo => _iGetter.MemberInfo;
+    public Type Type => Getter.Type;
+    public string Name => Getter.Name;
+    public MemberInfo MemberInfo => Getter.MemberInfo;
 
     public object? GetValue(object instance) {
-        return _iGetter.GetValue(instance);
+        return Getter.GetValue(instance);
     }
 
     public override string ToString() {
-        return _iGetter.ToString();
+        return Getter.ToString();
     }
 
     public static bool IsValid(MemberInfo memberInfo) {

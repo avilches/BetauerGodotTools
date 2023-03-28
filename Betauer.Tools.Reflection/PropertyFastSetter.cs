@@ -11,6 +11,7 @@ public class PropertyFastSetter : ISetter {
     public PropertyFastSetter(PropertyInfo propertyInfo) {
         if (!IsValid(propertyInfo))
             throw new ArgumentException($"PropertyInfo {propertyInfo.Name} doesn't have set", nameof(propertyInfo));
+        PropertyInfo = propertyInfo;
         MemberInfo = propertyInfo;
         Type = propertyInfo.PropertyType;
         Name = propertyInfo.Name;
@@ -27,6 +28,7 @@ public class PropertyFastSetter : ISetter {
     public Type Type { get; }
     public string Name { get; }
     public MemberInfo MemberInfo { get; }
+    public PropertyInfo PropertyInfo { get; }
 
     public void SetValue(object instance, object? value) {
         _setValue(instance, value);

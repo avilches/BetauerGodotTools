@@ -3,6 +3,8 @@ using System;
 namespace Betauer.Tools.Reflection; 
 
 public interface IGetterSetter : IMember {
+    public IGetter Getter { get; }
+    public ISetter Setter { get; }
     public void SetValue(object instance, object? value);
     public object? GetValue(object instance);
     bool CanSetValue(Type type) => Type.IsAssignableFrom(type);

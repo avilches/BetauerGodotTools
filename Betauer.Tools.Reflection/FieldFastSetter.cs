@@ -11,6 +11,7 @@ public class FieldFastSetter : ISetter {
     public FieldFastSetter(FieldInfo fieldInfo) {
         if (!IsValid(fieldInfo))
             throw new ArgumentException($"FieldInfo {fieldInfo.Name} can't be readonly", nameof(fieldInfo));
+        FieldInfo = fieldInfo;
         MemberInfo = fieldInfo;
         Type = fieldInfo.FieldType;
         Name = fieldInfo.Name;
@@ -23,6 +24,7 @@ public class FieldFastSetter : ISetter {
     public Type Type { get; }
     public string Name { get; }
     public MemberInfo MemberInfo { get; }
+    public FieldInfo FieldInfo { get; }
 
     public void SetValue(object instance, object? value) {
         _setValue(instance, value);

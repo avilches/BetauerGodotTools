@@ -4,40 +4,37 @@ using System.Reflection;
 namespace Betauer.Tools.Reflection; 
 
 public class FastGetterSetter : IGetterSetter {
-    private readonly IGetter _iGetter;
-    private readonly ISetter _iSetter;
+    public IGetter Getter { get; }
+    public ISetter Setter { get; }
 
     public FastGetterSetter(MemberInfo memberInfo) {
         if (!IsValid(memberInfo))
-            throw new ArgumentException(
-                "MemberInfo must be PropertyInfo or FieldInfo",
-                nameof(memberInfo));
+            throw new ArgumentException("MemberInfo must be PropertyInfo or FieldInfo", nameof(memberInfo));
         if (memberInfo is PropertyInfo propertyInfo) {
-            _iGetter = new PropertyFastGetter(propertyInfo);
-            _iSetter = new PropertyFastSetter(propertyInfo);
+            Getter = new PropertyFastGetter(propertyInfo);
+            Setter = new PropertyFastSetter(propertyInfo);
         } else if (memberInfo is FieldInfo fieldInfo) {
-            _iGetter = new FieldFastGetter(fieldInfo);
-            _iSetter = new FieldFastSetter(fieldInfo);
+            Getter = new FieldFastGetter(fieldInfo);
+            Setter = new FieldFastSetter(fieldInfo);
         } else {
-            throw new Exception(
-                $"Cant' create {typeof(FastGetterSetter)} with MemberInfo type {memberInfo.GetType()}");
+            throw new Exception($"Cant' create {typeof(FastGetterSetter)} with MemberInfo type {memberInfo.GetType()}");
         }
     }
 
-    public Type Type => _iGetter.Type;
-    public string Name => _iGetter.Name;
-    public MemberInfo MemberInfo => _iGetter.Type;
+    public Type Type => Getter.Type;
+    public string Name => Getter.Name;
+    public MemberInfo MemberInfo => Getter.Type;
 
     public void SetValue(object instance, object? value) {
-        _iSetter.SetValue(instance, value);
+        Setter.SetValue(instance, value);
     }
 
     public object? GetValue(object instance) {
-        return _iGetter.GetValue(instance);
+        return Getter.GetValue(instance);
     }
 
     public override string ToString() {
-        return _iGetter.ToString();
+        return Getter.ToString();
     }
 
     public static bool IsValid(MemberInfo memberInfo) {

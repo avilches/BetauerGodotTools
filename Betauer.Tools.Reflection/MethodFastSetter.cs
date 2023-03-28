@@ -11,20 +11,21 @@ public class MethodFastSetter : ISetter {
     public MethodFastSetter(MethodInfo methodInfo) {
         if (!IsValid(methodInfo))
             throw new ArgumentException("Setter method must have 1 parameter only and return void");
+        MethodInfo = methodInfo;
         MemberInfo = methodInfo;
         Type = methodInfo.GetParameters()[0].ParameterType;
         Name = methodInfo.Name;
         _fastMethodInfo = new FastMethodInfo(methodInfo);
         _setValue = (instance, value) => _fastMethodInfo.Invoke(instance, value);
 #if DEBUG
-        _toString =
-            $"Method: {(methodInfo.IsPrivate ? "private" : "public")} void {Name}({Type.Name} {methodInfo.GetParameters()[0].Name})";
+        _toString = $"Method: {(methodInfo.IsPrivate ? "private" : "public")} void {Name}({Type.Name} {methodInfo.GetParameters()[0].Name})";
 #endif
     }
 
     public Type Type { get; }
     public string Name { get; }
     public MemberInfo MemberInfo { get; }
+    public MethodInfo MethodInfo { get; }
 
     public void SetValue(object instance, object? value) {
         _setValue(instance, value);

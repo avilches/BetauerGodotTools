@@ -9,6 +9,7 @@ public class FieldFastGetter : IGetter {
     private readonly string? _toString;
 
     public FieldFastGetter(FieldInfo fieldInfo) {
+        FieldInfo = fieldInfo;
         MemberInfo = fieldInfo;
         Type = fieldInfo.FieldType;
         Name = fieldInfo.Name;
@@ -21,6 +22,7 @@ public class FieldFastGetter : IGetter {
     public Type Type { get; }
     public string Name { get; }
     public MemberInfo MemberInfo { get; }
+    public FieldInfo FieldInfo { get; }
 
     public object? GetValue(object instance) {
         return _getValue(instance);

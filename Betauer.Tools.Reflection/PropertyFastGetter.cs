@@ -11,6 +11,7 @@ public class PropertyFastGetter : IGetter {
     public PropertyFastGetter(PropertyInfo propertyInfo) {
         if (!IsValid(propertyInfo))
             throw new ArgumentException($"PropertyInfo {propertyInfo.Name} doesn't have get", nameof(propertyInfo));
+        PropertyInfo = propertyInfo;
         MemberInfo = propertyInfo;
         Type = propertyInfo.PropertyType;
         Name = propertyInfo.Name;
@@ -27,6 +28,7 @@ public class PropertyFastGetter : IGetter {
     public Type Type { get; }
     public string Name { get; }
     public MemberInfo MemberInfo { get; }
+    public PropertyInfo PropertyInfo { get; }
 
     public object? GetValue(object instance) {
         return _getValue(instance);
