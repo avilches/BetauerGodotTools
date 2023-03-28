@@ -34,10 +34,10 @@ public class ContainerTests : Node {
         Assert.That(di.Resolve<Container>(), Is.EqualTo(di));
         Assert.That(di.Contains<Container>());
 
-        Assert.That(di.GetProvider<Container>().Get(new ResolveContext(di)), Is.EqualTo(di));
+        Assert.That(di.GetProvider<Container>().Resolve(new ResolveContext(di)), Is.EqualTo(di));
         Assert.That(di.TryGetProvider<Container>(out var provider));
         Assert.That(!di.TryGetProvider<Node>(out var notFound));
-        Assert.That(provider!.Get(new ResolveContext(di)), Is.EqualTo(di));
+        Assert.That(provider!.Resolve(new ResolveContext(di)), Is.EqualTo(di));
     }
 
     [TestRunner.Test(Description = "Resolve by types & alias not found")]
@@ -80,8 +80,6 @@ public class ContainerTests : Node {
     [TestRunner.Test(Description = "Error creating factories")]
     public void CantCreateFactoryFromInterfaceTest() {
         var di = new Container();
-        Assert.Throws<InvalidCastException>(() => di.CreateBuilder().Register(Provider.Static(typeof(Node), new ClassWith1Interface())).Build());
-        Assert.Throws<InvalidCastException>(() => di.CreateBuilder().Register(Provider.Static(typeof(Node), new ClassWith1Interface(), "P")).Build());
         Assert.Throws<MissingMethodException>(() => di.CreateBuilder().Register(Provider.Singleton<ClassWith1Interface, IInterface1>()).Build());
         Assert.Throws<MissingMethodException>(() => di.CreateBuilder().Register(Provider.Singleton<ClassWith1Interface, IInterface1>("P")).Build());
         Assert.Throws<MissingMethodException>(() => di.CreateBuilder().Register(Provider.Transient<ClassWith1Interface, IInterface1>()).Build());
@@ -100,7 +98,6 @@ public class ContainerTests : Node {
     [TestRunner.Test(Description = "Resolve, TryResolve, Contains, TryGetProvider and GetProvider: type")]
     public void TypeTest() {
         Func<Container>[] x = {
-            () => new Container.Builder().Register(Provider.Static(typeof(ClassWith1Interface),new ClassWith1Interface())).Build(),
             () => new Container.Builder().Register(Provider.Static(new ClassWith1Interface())).Build(),
             () => new Container.Builder().Register(Provider.Singleton<ClassWith1Interface>()).Build(),
             () => new Container.Builder().Register(Provider.Singleton(() => new ClassWith1Interface())).Build(),
@@ -138,8 +135,7 @@ public class ContainerTests : Node {
     [TestRunner.Test(Description = "Resolve, TryResolve, Contains, TryGetProvider and GetProvider: othertype")]
     public void OtherTypeTest() {
         Func<Container>[] x = {
-            () => new Container.Builder().Register(Provider.Static(typeof(IInterface1),new ClassWith1Interface())).Build(),
-            () => new Container.Builder().Register(Provider.Static<IInterface1>(new ClassWith1Interface())).Build(),
+            () => new Container.Builder().Register(Provider.Static<IInterface1, ClassWith1Interface>(new ClassWith1Interface())).Build(),
             () => new Container.Builder().Register(Provider.Singleton<IInterface1, ClassWith1Interface>()).Build(),
             () => new Container.Builder().Register(Provider.Singleton<IInterface1, ClassWith1Interface>(() => new ClassWith1Interface())).Build(),
             () => new Container.Builder().Register(Provider.Transient<IInterface1, ClassWith1Interface>()).Build(),
@@ -177,7 +173,6 @@ public class ContainerTests : Node {
     [TestRunner.Test(Description = "Resolve, TryResolve, Contains, TryGetProvider and GetProvider: name")]
     public void NameTest() {
         Func<Container>[] x = {
-            () => new Container.Builder().Register(Provider.Static(typeof(ClassWith1Interface),new ClassWith1Interface(), "P")).Build(),
             () => new Container.Builder().Register(Provider.Static(new ClassWith1Interface(), "P")).Build(),
             () => new Container.Builder().Register(Provider.Singleton<ClassWith1Interface>("P")).Build(),
             () => new Container.Builder().Register(Provider.Singleton(() => new ClassWith1Interface(), "P")).Build(),
@@ -234,8 +229,7 @@ public class ContainerTests : Node {
     [TestRunner.Test(Description = "Resolve, TryResolve, Contains, TryGetProvider and GetProvider: name other type")]
     public void NameOtherTypeTest() {
         Func<Container>[] x = {
-            () => new Container.Builder().Register(Provider.Static(typeof(IInterface1),new ClassWith1Interface(), "P")).Build(),
-            () => new Container.Builder().Register(Provider.Static<IInterface1>(new ClassWith1Interface(), "P")).Build(),
+            () => new Container.Builder().Register(Provider.Static<IInterface1, ClassWith1Interface>(new ClassWith1Interface(), "P")).Build(),
             () => new Container.Builder().Register(Provider.Singleton<IInterface1, ClassWith1Interface>("P")).Build(),
             () => new Container.Builder().Register(Provider.Singleton<IInterface1, ClassWith1Interface>(() => new ClassWith1Interface(),"P")).Build(),
             () => new Container.Builder().Register(Provider.Transient<IInterface1, ClassWith1Interface>("P")).Build(),
@@ -309,7 +303,7 @@ public class ContainerTests : Node {
         b.Register(Provider.Singleton<Node>("n1"));
         b.Register(Provider.Singleton<Node2D>("n2"));
         b.Register(Provider.Singleton<ClassWith1Interface>("A"));
-        b.Register(Provider.Static<IInterface1>(new ClassWith1Interface(), "B"));
+        b.Register(Provider.Static<IInterface1, ClassWith1Interface>(new ClassWith1Interface(), "B"));
         b.Register(Provider.Singleton<ClassWith1Interface>());
         var c = b.Build();
         Assert.That(c.GetAllInstances<ClassWith1Interface>().Count, Is.EqualTo(3));
@@ -562,8 +556,8 @@ public class ContainerTests : Node {
         b.Register(Provider.Transient<Node>());
         b.Build();
         c.Resolve<Node2D>();
-        Assert.That(singletons.Count, Is.EqualTo(1));
-        Assert.That(singletons[0], Is.TypeOf<ClassWith1Interface>());
+        Assert.That(singletons.Count, Is.EqualTo(2)); // +1 because of Container
+        Assert.That(singletons[1], Is.TypeOf<ClassWith1Interface>());
         c.Resolve<Node>();
         Assert.That(transients.Count, Is.EqualTo(1));
         Assert.That(transients[0], Is.TypeOf<Node>());

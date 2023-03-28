@@ -15,7 +15,7 @@ namespace Betauer.DI.ServiceProvider {
             Lazy = lazy;
         }
 
-        public override object Get(ResolveContext context) {
+        public override object Resolve(ResolveContext context) {
             if (IsInstanceCreated) return Instance!;
             if (context == null) throw new ArgumentNullException(nameof(context));
             if (context.TryGetSingletonFromCache(RegisterType, Name, out var singleton)) {

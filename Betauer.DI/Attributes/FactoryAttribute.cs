@@ -5,7 +5,7 @@ using Betauer.DI.ServiceProvider;
 namespace Betauer.DI.Attributes;
 
 
-public abstract class BaseFactoryAttribute : BaseServiceAttribute {
+public abstract class BaseFactoryAttribute : BaseProviderAttribute {
 }
 
 public abstract class FactoryAttribute : BaseFactoryAttribute {
@@ -42,13 +42,4 @@ public static class Factory {
 [AttributeUsage(AttributeTargets.Field)]
 public abstract class FactoryTemplateAttribute : BaseFactoryAttribute {
     public abstract FactoryTemplate CreateFactoryTemplate(FieldInfo fieldInfo);
-}
-
-public class FactoryTemplate {
-    public string? Name { get; init; }
-    public bool Primary { get; init; }
-    public Type RegisterType { get; init; }
-    public Type ProviderType { get; init; }
-    public Lifetime Lifetime { get; init; }
-    public Func<object> Factory { get; init; }
 }

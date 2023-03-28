@@ -4,11 +4,11 @@ using Betauer.Tools.Reflection;
 namespace Betauer.DI.ServiceProvider {
     public abstract class Provider : IProvider {
         public static IProvider Static<T>(T instance, string? name = null, bool primary = false) where T : class {
-            return new SingletonInstanceProvider(typeof(T), instance.GetType(), instance, name, primary);
+            return Singleton(() => instance, name, primary);
         }
 
-        public static IProvider Static(Type type, object instance, string? name = null, bool primary = false) {
-            return new SingletonInstanceProvider(type, instance.GetType(), instance, name, primary);
+        public static IProvider Static<TI, T>(T instance, string? name = null, bool primary = false) where T : class {
+            return Singleton<TI, T>(() => instance, name, primary);
         }
 
         public static IProvider Singleton<T>(string? name = null, bool primary = false, bool lazy = false) where T : class {
@@ -109,13 +109,10 @@ namespace Betauer.DI.ServiceProvider {
             Primary = name != null && primary; // primary is needed only when the provider has name
         }
 
-        public virtual object Get() {
-            var context = Container.GetResolveContext();
-            var instance = Get(context);
-            context.End();
-            return instance;
+        public object Get() {
+            return Container.Resolve(this);
         }
 
-        public abstract object Get(ResolveContext context);
+        public abstract object Resolve(ResolveContext context);
     }
 }

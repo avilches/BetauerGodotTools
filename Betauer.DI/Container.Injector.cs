@@ -74,7 +74,7 @@ public partial class Container {
             if (!_container.TryGetProvider(name, out var provider)) return false;
             if (!setter.CanSetValue(provider!.ProviderType)) return false;
             CheckLifetimeMismatch(lifetime, target, setter, setter.Type, provider.Lifetime);
-            var service = provider.Get(context);
+            var service = provider.Resolve(context);
             setter.SetValue(target, service);
             return true;
         }
@@ -82,7 +82,7 @@ public partial class Container {
         private bool TryInjectFieldByType(Lifetime lifetime, object target, ResolveContext context, ISetter setter) {
             if (!_container.TryGetProvider(setter.Type, out var provider)) return false;
             CheckLifetimeMismatch(lifetime, target, setter, setter.Type, provider!.Lifetime);
-            var service = provider.Get(context);
+            var service = provider.Resolve(context);
             setter.SetValue(target, service);
             return true;
 

@@ -9,6 +9,6 @@ namespace Betauer.DI.ServiceProvider {
         public Type ProviderType { get; }
         public Lifetime Lifetime { get; }
         public object Get();
-        public object Get(ResolveContext context);
+        public object Resolve(ResolveContext context);
     }
 }

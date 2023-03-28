@@ -36,27 +36,27 @@ public partial class Container {
             return this;
         }
     
-        public Builder RegisterServiceAndAddFactory(Type registeredType, Type type, Func<object> factory, Lifetime lifetime = Lifetime.Singleton, string? name = null, bool primary = false, bool lazy = false) {
+        public Builder RegisterServiceAndAddFactory(Type registeredType, Type providerType, Lifetime lifetime, Func<object> factory, string? name = null, bool primary = false, bool lazy = false) {
             // Register the regular instance factory so using Resolve<T>() or Resolve<T>(name) will create new instances, injecting dependencies.
-            var providerFactory = Provider.Create(registeredType, type, lifetime, factory, name, primary, lazy);
+            var providerFactory = Provider.Create(registeredType, providerType, lifetime, factory, name, primary, lazy);
             Register(providerFactory);
     
             // Register the factory as IFactory<> so the user can get the real factory using Resolve<IFactory<T>>() or
             // Resolve<IFactory<T>>("Factory:"+name) and then call to Get() which returns new instances, injecting dependencies.
-            Type factoryType = typeof(IFactory<>).MakeGenericType(type);
+            Type factoryType = typeof(IFactory<>).MakeGenericType(providerType);
             var factoryName = name == null ? null : $"Factory:{name}";
-            object CustomFactory() => FactoryTools.CreateIFactoryFromProvider(type, providerFactory);
+            object CustomFactory() => FactoryTools.CreateIFactoryFromProvider(providerType, providerFactory);
             Register(Provider.Create(factoryType, factoryType, Lifetime.Singleton, CustomFactory, factoryName, primary, true));
             return this;
         }
 
+        private interface IHiddenFactory<T> : IFactory<T> where T : class { }
+
         public Builder RegisterCustomFactory<T>(Func<T> customFactory, string? name = null, Lifetime lifetime = Lifetime.Singleton, bool primary = false) {
-            return RegisterCustomFactory(typeof(T), () => customFactory(), name, lifetime, primary);
+            return RegisterCustomFactory(typeof(T), lifetime, () => customFactory(), name, primary);
         }
 
-        private interface IHidden<T> : IFactory<T> where T : class { }
-
-        public Builder RegisterCustomFactory(Type factoryType, Func<object> customFactory, string? name = null, Lifetime lifetime = Lifetime.Singleton, bool primary = false) {
+        public Builder RegisterCustomFactory(Type factoryType, Lifetime lifetime, Func<object> customFactory, string? name = null, bool primary = false) {
             var type = FactoryTools.GetIFactoryGenericType(factoryType);
             if (type == null) throw new InvalidCastException();
 
@@ -66,9 +66,7 @@ public partial class Container {
             // This factory returns the instances without inject dependencies in them
             // The factory are always instantiated. The lazy parameter only affects to the instance created by the factory, never to the factory itself.
             var customFactoryName = name == null ? null : $"InnerFactory:{name}";
-            // If the factory type is IFactory<T> then register using a hidden factory type to avoid conflicts with the real factory
-            // Why? Because the IFactory<T> will be used later to registered the factory ready to used by the user
-            var innerFactoryType = factoryType == typeof(IFactory<>).MakeGenericType(type) ? typeof(IHidden<>).MakeGenericType(type) : factoryType;
+            var innerFactoryType = typeof(IHiddenFactory<>).MakeGenericType(type);
             var customProvider = Provider.Create(innerFactoryType, innerFactoryType, Lifetime.Singleton, customFactory, customFactoryName, primary, false);
             Register(customProvider);
     

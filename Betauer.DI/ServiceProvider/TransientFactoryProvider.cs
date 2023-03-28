@@ -12,7 +12,7 @@ public class TransientFactoryProvider : Provider {
         _factory = factory ?? CreateDefaultFactory(providerType, Lifetime);
     }
 
-    public override object Get(ResolveContext context) {
+    public override object Resolve(ResolveContext context) {
         if (context == null) throw new ArgumentNullException(nameof(context));
         context.TryStartTransient(RegisterType, Name); // This call could throw a CircularDependencyException
         var instance = _factory.Invoke();

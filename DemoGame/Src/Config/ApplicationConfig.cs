@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Betauer.Application;
 using Betauer.Application.Lifecycle;
+using Betauer.Application.Lifecycle.Attributes;
 using Betauer.Application.Monitor;
 using Betauer.Application.Screen;
 using Betauer.Application.Settings;

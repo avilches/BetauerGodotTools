@@ -1,6 +1,11 @@
+using System;
+using System.Reflection;
 using Betauer.DI.ServiceProvider;
 
 namespace Betauer.DI.Attributes;
+
+public abstract class BaseServiceAttribute : BaseProviderAttribute {
+}
 
 public abstract class ServiceAttribute : BaseServiceAttribute {
     public string? Name { get; set; }
@@ -35,3 +40,7 @@ public class TransientAttribute : ServiceAttribute {
 
 public class TransientAttribute<T> : TransientAttribute { }
 
+[AttributeUsage(AttributeTargets.Field)]
+public abstract class ServiceTemplateAttribute : BaseServiceAttribute {
+    public abstract ProviderTemplate CreateProviderTemplate(FieldInfo fieldInfo);
+}

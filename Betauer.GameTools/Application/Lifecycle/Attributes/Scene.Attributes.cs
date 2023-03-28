@@ -1,10 +1,10 @@
-using System;
 using System.Reflection;
 using Betauer.DI.Attributes;
+using Betauer.DI.Factory;
 using Betauer.DI.ServiceProvider;
 using Godot;
 
-namespace Betauer.Application.Lifecycle;
+namespace Betauer.Application.Lifecycle.Attributes;
 
 public static class Scene {
     public class SingletonAttribute<T> : FactoryTemplateAttribute where T : Node {
@@ -23,12 +23,11 @@ public static class Scene {
 
         public override FactoryTemplate CreateFactoryTemplate(FieldInfo fieldInfo) {
             return new FactoryTemplate {
+                Lifetime = Lifetime.Singleton,
+                FactoryType = typeof(SceneFactory<T>),
+                Factory = () => new SceneFactory<T>(Tag, Resource),
                 Name = fieldInfo.Name,
                 Primary = false,
-                RegisterType = fieldInfo.FieldType,
-                ProviderType = typeof(SceneFactory<T>),
-                Lifetime = Lifetime.Singleton,
-                Factory = () => new SceneFactory<T>(Tag, Resource),
             };
         }
     }
@@ -49,12 +48,11 @@ public static class Scene {
 
         public override FactoryTemplate CreateFactoryTemplate(FieldInfo fieldInfo) {
             return new FactoryTemplate {
+                Lifetime = Lifetime.Transient,
+                FactoryType = typeof(SceneFactory<T>),
+                Factory = () => new SceneFactory<T>(Tag, Resource),
                 Name = fieldInfo.Name,
                 Primary = false,
-                RegisterType = fieldInfo.FieldType,
-                ProviderType = typeof(SceneFactory<T>),
-                Lifetime = Lifetime.Transient,
-                Factory = () => new SceneFactory<T>(Tag, Resource),
             };
         }
     }

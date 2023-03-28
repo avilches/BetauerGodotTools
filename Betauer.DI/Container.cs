@@ -23,15 +23,14 @@ public partial class Container {
     public event Action<object> OnPostInject;
 
     private readonly BasicPool<ResolveContext> _resolveContextPool;
-
-    public ResolveContext GetResolveContext() => _resolveContextPool.Get();
+    private ResolveContext GetResolveContext() => _resolveContextPool.Get();
     
     public Container() {
         _injector = new Injector(this);
         _resolveContextPool = new(CreateResolveContext);        
         
         // Adding the Container in the Container allows to use [Inject] Container...
-        Add(new SingletonInstanceProvider(typeof(Container),typeof(Container),this));
+        Add(Provider.Static(this));
     }
 
     private ResolveContext CreateResolveContext() {
@@ -53,7 +52,7 @@ public partial class Container {
             .Where(provider => provider is ISingletonProvider { Lazy: false, IsInstanceCreated: false })
             .ForEach(provider => {
                 Logger.Debug($"Initializing {provider.Lifetime}:{provider.ProviderType} | Name: {provider.Name}");
-                provider.Get(context);
+                provider.Resolve(context);
             });
         context.End();
         return this;
@@ -137,9 +136,7 @@ public partial class Container {
 
     public bool TryResolve(Type type, out object instance) {
         if (TryGetProvider(type, out IProvider? provider)) {
-            var context = GetResolveContext();
-            instance = provider.Get(context);
-            context.End();
+            instance = provider!.Get();
             return true;
         }
         if (CreateIfNotFound) {
@@ -159,9 +156,7 @@ public partial class Container {
 
     public bool TryResolve(string name, out object instance) {
         if (TryGetProvider(name, out IProvider? provider)) {
-            var context = GetResolveContext();
-            instance = provider.Get(context);
-            context.End();
+            instance = provider!.Get();
             return true;
         }
         instance = null;
@@ -192,10 +187,18 @@ public partial class Container {
         }
         OnPostInject?.Invoke(instance);
     }
-    
+
+    internal object Resolve(Provider provider) {
+        var context = GetResolveContext();
+        var instance = provider.Resolve(context);
+        context.End();
+        return instance;
+
+    }
+
     internal object Resolve(Type type, ResolveContext context) {
         if (TryGetProvider(type, out IProvider? provider)) {
-            return provider!.Get(context);
+            return provider!.Resolve(context);
         }
         if (CreateIfNotFound) {
             AddToRegistry(Provider.Create(type, type, Lifetime.Transient));
@@ -207,11 +210,10 @@ public partial class Container {
 
     internal object Resolve(string name, ResolveContext context) {
         if (TryGetProvider(name, out IProvider? provider)) {
-            return provider.Get(context);
+            return provider.Resolve(context);
         }
         throw new ServiceNotFoundException(name);
     }
-
 
     public void InjectServices(object o) {
         var context = GetResolveContext();
