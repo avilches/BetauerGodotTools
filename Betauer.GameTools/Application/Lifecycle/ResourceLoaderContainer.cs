@@ -11,7 +11,7 @@ using Godot;
 namespace Betauer.Application.Lifecycle;
 
 public class ResourceLoaderContainer {
-    public readonly List<ResourceFactory> ResourceFactories = new();
+    public List<ResourceFactory> ResourceFactories { get; } = new();
 
     public Func<Task>? Awaiter { get; private set; }
     public event Action<ResourceProgress>? OnLoadResourceProgress;
@@ -36,11 +36,11 @@ public class ResourceLoaderContainer {
             if (SceneTree != null) await SceneTree.AwaitProcessFrame();
             else await Task.Delay(10);
         });
-        var set = new HashSet<string>(tags);
-        var resources = ResourceFactories
-            .Where(sf => !sf.IsLoaded() && set.Contains(sf.Tag))
+        var resources = GetResourceFactories(tags)
+            .Where(sf => !sf.IsLoaded())
             .Select(sf => new ResourceLoad(sf.Path, sf.Load))
             .ToList();
+        
         await LoadTools.LoadThreaded(resources, awaiter, (rp) => {
             OnLoadResourceProgress?.Invoke(rp);
             progressAction?.Invoke(rp);
@@ -49,17 +49,23 @@ public class ResourceLoaderContainer {
     }
 
     public void UnloadResources() {
-        UnloadResources(new [] { ResourceFactory.DefaultTag });
+        GetResourceFactories(ResourceFactory.DefaultTag).ForEach(sf => sf.Unload());
     }
 
     public void UnloadResources(string tag) {
-        UnloadResources(new [] { tag });
+        GetResourceFactories(tag).ForEach(sf => sf.Unload());
     }
 
     public void UnloadResources(string[] tags) {
+        GetResourceFactories(tags).ForEach(sf => sf.Unload());
+    }
+
+    public IEnumerable<ResourceFactory> GetResourceFactories(string tag) {
+        return ResourceFactories.Where(sf => sf.Tag == tag);
+    }
+
+    public IEnumerable<ResourceFactory> GetResourceFactories(string[] tags) {
         var set = new HashSet<string>(tags);
-        ResourceFactories
-            .Where(sf => sf.Resource != null && set.Contains(sf.Tag))
-            .ForEach(sf => sf.Unload());
+        return ResourceFactories.Where(sf => set.Contains(sf.Tag));
     }
 }

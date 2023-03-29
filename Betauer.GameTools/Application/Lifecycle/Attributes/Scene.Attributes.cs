@@ -10,19 +10,21 @@ namespace Betauer.Application.Lifecycle.Attributes;
 public static class Scene {
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     public class SingletonAttribute<T> : FactoryTemplateAttribute where T : Node {
-        public string? Name { get; set; }
-        public string? Tag { get; set; }
+        public string Name { get; set; }
         public string Path { get; set; }
+        public string? Tag { get; set; }
 
-        public SingletonAttribute() {
+        public SingletonAttribute(string name, string path) {
+            Name = name;
+            Path = path;
         }
 
         public override FactoryTemplate CreateFactoryTemplate(MemberInfo memberInfo) {
-            var tag = Tag ?? memberInfo.GetAttribute<LoaderConfiguration>()?.Tag;
+            var loaderConfiguration = memberInfo.GetAttribute<LoaderConfiguration>();
             return new FactoryTemplate {
                 Lifetime = Lifetime.Singleton,
                 FactoryType = typeof(SceneFactory<T>),
-                Factory = () => new SceneFactory<T>(tag, Path),
+                Factory = () => new SceneFactory<T>(loaderConfiguration!.Name, Path, Tag ?? loaderConfiguration.Tag),
                 Name = Name ?? memberInfo.Name,
                 Primary = false,
             };
@@ -31,19 +33,21 @@ public static class Scene {
 
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     public class TransientAttribute<T> : FactoryTemplateAttribute where T : Node {
-        public string? Name { get; set; }
-        public string? Tag { get; set; }
+        public string Name { get; set; }
         public string Path { get; set; }
+        public string? Tag { get; set; }
 
-        public TransientAttribute() {
+        public TransientAttribute(string name, string path) {
+            Name = name;
+            Path = path;
         }
 
         public override FactoryTemplate CreateFactoryTemplate(MemberInfo memberInfo) {
-            var tag = Tag ?? memberInfo.GetAttribute<LoaderConfiguration>()?.Tag;
+            var loaderConfiguration = memberInfo.GetAttribute<LoaderConfiguration>();
             return new FactoryTemplate {
                 Lifetime = Lifetime.Transient,
                 FactoryType = typeof(SceneFactory<T>),
-                Factory = () => new SceneFactory<T>(tag, Path),
+                Factory = () => new SceneFactory<T>(loaderConfiguration!.Name, Path, Tag ?? loaderConfiguration.Tag),
                 Name = Name ?? memberInfo.Name,
                 Primary = false,
             };

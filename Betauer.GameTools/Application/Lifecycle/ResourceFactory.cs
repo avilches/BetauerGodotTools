@@ -7,20 +7,24 @@ using Godot;
 namespace Betauer.Application.Lifecycle;
 
 public abstract class ResourceFactory : IInjectable {
-    [Inject] public ResourceLoaderContainer ResourceLoaderContainer { get; set; }
+    [Inject] public DI.Container Container { get; set; }
+    public ResourceLoaderContainer ResourceLoaderContainer { get; private set; }
 
     public const string DefaultTag = "(default)";
 
+    private readonly string _resourceLoaderContainerName;
     public string Path { get; }
     public string Tag { get; }
     public Resource? Resource { get; protected set; }
 
-    protected ResourceFactory(string? tag, string path) {
-        Tag = tag ?? DefaultTag;
+    protected ResourceFactory(string resourceLoaderContainerName, string path, string? tag = null) {
+        _resourceLoaderContainerName = resourceLoaderContainerName;
         Path = path;
+        Tag = tag ?? DefaultTag;
     }
     
     public void PostInject() {
+        ResourceLoaderContainer = Container.Resolve<ResourceLoaderContainer>(_resourceLoaderContainerName);
         ResourceLoaderContainer.Add(this);
     }
 
@@ -39,11 +43,8 @@ public abstract class ResourceFactory : IInjectable {
 }
 
 public class ResourceFactory<T> : ResourceFactory, IFactory<T> where T : Resource {
-
-    public ResourceFactory(string? tag, string path) : base(tag, path) {
-    }
-
-    public ResourceFactory(string path) : base(null, path) {
+    
+    public ResourceFactory(string resourceLoaderContainerName, string path, string? tag = null) : base(resourceLoaderContainerName, path, tag) {
     }
 
     public T Get() {

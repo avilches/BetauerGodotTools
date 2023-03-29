@@ -12,7 +12,10 @@ public class PreloadAttribute<T> : ServiceTemplateAttribute where T : Resource {
     public string Path { get; set; }
     public bool Lazy { get; set; }
 
-    public PreloadAttribute() {
+    public PreloadAttribute(string name, string path, bool lazy = false) {
+        Name = name;
+        Path = path;
+        Lazy = lazy;
     }
 
     public override ProviderTemplate CreateProviderTemplate(MemberInfo memberInfo) {

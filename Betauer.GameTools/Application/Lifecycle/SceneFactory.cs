@@ -5,11 +5,8 @@ using Godot;
 namespace Betauer.Application.Lifecycle;
 
 public class SceneFactory<T> : ResourceFactory, IFactory<T> where T : Node {
-
-    public SceneFactory(string? tag, string path) : base(tag, path) {
-    }
-
-    public SceneFactory(string path) : base(null, path) {
+    
+    public SceneFactory(string resourceLoaderContainerName, string path, string? tag = null) : base(resourceLoaderContainerName, path, tag) {
     }
 
     public PackedScene Scene => (PackedScene)Resource!;
