@@ -18,8 +18,15 @@ public class ResourceLoaderContainer {
 
     [Inject] public SceneTree SceneTree { get; set; }
 
-    public void Add(ResourceFactory resourceFactory) {
+    // Use ResourceFactory.SetResourceLoaderContainer() instead
+    internal void Add(ResourceFactory resourceFactory) {
+        if (ResourceFactories.Contains(resourceFactory)) return; // avoid duplicates
         ResourceFactories.Add(resourceFactory);
+    }
+
+    // Use ResourceFactory.SetResourceLoaderContainer() instead
+    internal void Remove(ResourceFactory resourceFactory) {
+        ResourceFactories.Remove(resourceFactory);
     }
                   
     public Task<TimeSpan> LoadResources(Action<ResourceProgress>? progressAction = null) {

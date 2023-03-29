@@ -24,7 +24,15 @@ public abstract class ResourceFactory : IInjectable {
     }
     
     public void PostInject() {
-        ResourceLoaderContainer = Container.Resolve<ResourceLoaderContainer>(_resourceLoaderContainerName);
+        var resourceLoaderContainer = Container.Resolve<ResourceLoaderContainer>(_resourceLoaderContainerName);
+        SetResourceLoaderContainer(resourceLoaderContainer);
+    }
+
+    public void SetResourceLoaderContainer(ResourceLoaderContainer resourceLoaderContainer) {
+        if (ResourceLoaderContainer != null && ResourceLoaderContainer != resourceLoaderContainer) {
+            ResourceLoaderContainer.Remove(this);
+        }
+        ResourceLoaderContainer = resourceLoaderContainer;
         ResourceLoaderContainer.Add(this);
     }
 

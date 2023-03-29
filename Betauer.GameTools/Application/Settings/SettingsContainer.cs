@@ -3,29 +3,36 @@ using System.Collections.Generic;
 namespace Betauer.Application.Settings; 
 
 public class SettingsContainer {
-    private readonly ConfigFileWrapper _configFileWrapper;
+    private ConfigFileWrapper _configFileWrapper;
     public readonly List<SaveSetting> Settings = new();
     public bool Dirty => _configFileWrapper?.Dirty ?? false;
     public string FilePath => _configFileWrapper.FilePath;
 
-    public SettingsContainer(string resourceName) : this(
-        new ConfigFileWrapper().SetFilePath(resourceName)) {
+    public SettingsContainer() {
+    }
+
+    public SettingsContainer(string resourceName) {
+        SetConfigFileWrapper(new ConfigFileWrapper().SetFilePath(resourceName));
     }
 
     public SettingsContainer(ConfigFileWrapper configFileWrapper) {
+        SetConfigFileWrapper(configFileWrapper);
+    }
+
+    public void SetConfigFileWrapper(ConfigFileWrapper configFileWrapper) {
         _configFileWrapper = configFileWrapper;
         _configFileWrapper.Load();
     }
 
-    public void Add(SaveSetting saveSetting) {
+    // Use SaveSetting.SetSettingsContainer() instead
+    internal void Add(SaveSetting saveSetting) {
         if (Settings.Contains(saveSetting)) return; // avoid duplicates
         Settings.Add(saveSetting);
-        saveSetting.OnAddToSettingsContainer(this);
     }
 
-    public void Remove(SaveSetting saveSetting) {
+    // Use SaveSetting.SetSettingsContainer() instead
+    internal void Remove(SaveSetting saveSetting) {
         Settings.Remove(saveSetting);
-        saveSetting.OnRemoveFromSettingsContainer();
     }
 
     /// <summary>

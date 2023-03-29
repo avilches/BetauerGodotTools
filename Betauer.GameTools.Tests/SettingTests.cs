@@ -50,7 +50,7 @@ public partial class SettingTests : Node {
         // Write without container
         Assert.Throws<NullReferenceException>(() => saved.Value = "FAIL");
 
-        sc.Add(saved);
+        saved.SetSettingsContainer(sc);
         Assert.That(saved.Value, Is.EqualTo("Default"));
         Assert.That(saved.SettingsContainer, Is.EqualTo(sc));
 
@@ -74,7 +74,7 @@ public partial class SettingTests : Node {
         // Write without container
         Assert.Throws<NullReferenceException>(() => saved.Value = "FAIL");
 
-        sc.Add(saved);
+        saved.SetSettingsContainer(sc);
         Assert.That(saved.Value, Is.EqualTo("Default"));
         Assert.That(saved.SettingsContainer, Is.EqualTo(sc));
 
@@ -103,7 +103,7 @@ public partial class SettingTests : Node {
         savedDisabled.Value = "New1";
         Assert.That(savedDisabled.Value, Is.EqualTo("New1"));
 
-        sc.Add(savedDisabled);
+        savedDisabled.SetSettingsContainer(sc);
         Assert.That(savedDisabled.Value, Is.EqualTo("New1"));
         Assert.That(savedDisabled.SettingsContainer, Is.EqualTo(sc));
 

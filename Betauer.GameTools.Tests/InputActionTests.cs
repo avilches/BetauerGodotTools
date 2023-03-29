@@ -47,7 +47,7 @@ public partial class InputActionTests : Node {
     public void ImportExport() {
         SaveSetting<string> b = Setting<string>.Persistent(null, "attack", "");
         var sc = new SettingsContainer(SettingsFile);
-        sc.Add(b);
+        b.SetSettingsContainer(sc);
             
         var jump = InputAction.Configurable("ImportExportAction").AsSimulator();
         jump.SetSaveSettings(b).Load();
@@ -89,7 +89,7 @@ public partial class InputActionTests : Node {
     public void UpdateRollback() {
         SaveSetting<string> b = Setting<string>.Persistent(null, "attack", "");
         var sc = new SettingsContainer(SettingsFile);
-        sc.Add(b);
+        b.SetSettingsContainer(sc);
             
         var jump = InputAction.Configurable("UpdateRollback").AsSimulator();
         jump.SetSaveSettings(b).Load();
@@ -133,7 +133,7 @@ public partial class InputActionTests : Node {
         SaveSetting<string> b = Setting<string>.Persistent(null, "attack","button:A,button:B,key:H,key:F");
         Assert.That(b.Section, Is.EqualTo("Settings")); // default value when section is null
         var sc = new SettingsContainer(SettingsFile);
-        sc.Add(b);
+        b.SetSettingsContainer(sc);
         jump.SetSaveSettings(b).Load();
         Assert.That(jump.SaveSetting, Is.EqualTo(b));
             

@@ -4,12 +4,10 @@ using Betauer.DI.Attributes;
 
 namespace Betauer.Application.Settings;
 public static class Setting<T> {
-    public static SaveSetting<T> Persistent(string? settingsContainerName, string section, string name, T defaultValue,
-        bool autoSave = true, bool enabled = true) =>
+    public static SaveSetting<T> Persistent(string? settingsContainerName, string section, string name, T defaultValue, bool autoSave = true, bool enabled = true) =>
         new(settingsContainerName, section, name, defaultValue, autoSave, enabled);
 
-    public static SaveSetting<T> Persistent(string section, string name, T defaultValue, bool autoSave = true,
-        bool enabled = true) => new(null, section, name, defaultValue, autoSave, enabled);
+    public static SaveSetting<T> Persistent(string section, string name, T defaultValue, bool autoSave = true, bool enabled = true) => new(null, section, name, defaultValue, autoSave, enabled);
 
     public static MemorySetting<T> Memory(T value) => new(value);
 }
@@ -37,8 +35,7 @@ public abstract class SaveSetting : BaseSetting, IInjectable {
     internal object InternalValue;
     internal bool Initialized;
 
-    protected SaveSetting(string? settingsContainerName, string? section, string name, Type valueType,
-        object defaultValue, bool autoSave, bool enabled) {
+    protected SaveSetting(string settingsContainerName, string? section, string name, Type valueType, object defaultValue, bool autoSave, bool enabled) {
         _settingsContainerName = settingsContainerName;
         Section = section ?? "Settings";
         Name = name;
@@ -50,22 +47,16 @@ public abstract class SaveSetting : BaseSetting, IInjectable {
     }
 
     public void PostInject() {
-        var settingsContainer = _settingsContainerName != null
-            ? Container.Resolve<SettingsContainer>(_settingsContainerName)
-            : Container.Resolve<SettingsContainer>();
+        var settingsContainer = Container.Resolve<SettingsContainer>(_settingsContainerName);
         settingsContainer.Add(this);
     }
-
-    // There is no way to change the SettingContainer directly. Adding to a SettingContainer do the job
-    internal void OnAddToSettingsContainer(SettingsContainer settingsContainer) {
+    
+    public void SetSettingsContainer(SettingsContainer settingsContainer) {
         if (SettingsContainer != null && SettingsContainer != settingsContainer) {
             SettingsContainer.Remove(this);
         }
         SettingsContainer = settingsContainer;
-    }
-
-    internal void OnRemoveFromSettingsContainer() {
-        SettingsContainer = null;
+        SettingsContainer.Add(this);
     }
 }
 
