@@ -1,5 +1,6 @@
 using System;
 using Betauer.Tools.Logging;
+using Betauer.Tools.Reflection;
 
 namespace Betauer.DI.ServiceProvider {
     public class SingletonFactoryProvider : Provider, ISingletonProvider {
@@ -19,15 +20,15 @@ namespace Betauer.DI.ServiceProvider {
             if (IsInstanceCreated) return Instance!;
             if (context == null) throw new ArgumentNullException(nameof(context));
             if (context.TryGetSingletonFromCache(RegisterType, Name, out var singleton)) {
-                Logger.Debug($"Get from context {Lifetime} {singleton.GetType().Name} exposed as {RegisterType.Name}: {singleton.GetHashCode():X}");
+                Logger.Debug($"Get from context {Lifetime} {singleton.GetType().GetTypeName()} exposed as {RegisterType.GetTypeName()}: {singleton.GetHashCode():X}");
                 return singleton;
             }
             lock (this) {
                 // Just in case another thread was waiting for the lock
                 if (IsInstanceCreated) return Instance!;
                 Instance = _factory.Invoke();
-                if (Instance == null) throw new NullReferenceException($"Singleton factory returned null for {RegisterType.Name} {Name}");
-                Logger.Debug($"Creating {Lifetime.Singleton} {Instance.GetType().Name} exposed as {RegisterType.Name}: {Instance.GetHashCode():X}");
+                if (Instance == null) throw new NullReferenceException($"Singleton factory returned null for {RegisterType.GetTypeName()} {Name}");
+                Logger.Debug($"Creating {Lifetime.Singleton}:{Instance.GetType().GetTypeName()}. Name: {Name}. HashCode: {Instance.GetHashCode():X}");
                 context.AddSingleton(RegisterType, Name, Instance);
                 IsInstanceCreated = true;
                 context.Container.InjectServices(Lifetime, Instance, context);

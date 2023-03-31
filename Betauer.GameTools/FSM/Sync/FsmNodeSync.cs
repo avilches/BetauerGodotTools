@@ -1,4 +1,5 @@
 using System;
+using Betauer.Tools.Reflection;
 using Godot;
 
 namespace Betauer.FSM.Sync; 
@@ -35,7 +36,7 @@ public partial class FsmNodeSync<TStateKey, TEventKey> :
     public double Delta { get; private set; }
 
     public FsmNodeSync(TStateKey initialState, string? name = null, bool processInPhysics = false) {
-        _stateMachine = new RealFSMNodeSync(this, initialState, name ?? GetType().Name);
+        _stateMachine = new RealFSMNodeSync(this, initialState, name ?? GetType().GetTypeName());
         ProcessInPhysics = processInPhysics;
     }
     public bool IsState(TStateKey state) => _stateMachine.IsState(state);

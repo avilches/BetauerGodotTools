@@ -80,14 +80,14 @@ namespace Betauer.DI.ServiceProvider {
         public static Func<object> CreateDefaultFactory(Type type, Lifetime lifetime) {
             if (type.IsAbstract || type.IsInterface)
                 throw new MissingMethodException(
-                    $"Can't create default factory for and abstract or interface type: {type.Name}");
+                    $"Can't create default factory for and abstract or interface type: {type.GetTypeName()}");
             return lifetime == Lifetime.Singleton ? () => Activator.CreateInstance(type)! : LambdaCtor.CreateCtor(type);
         }
 
         public static Func<T> CreateDefaultFactory<T>(Lifetime lifetime) {
             if (typeof(T).IsAbstract || typeof(T).IsInterface)
                 throw new MissingMethodException(
-                    $"Can't create default factory for and abstract or interface type: {typeof(T).Name}");
+                    $"Can't create default factory for and abstract or interface type: {typeof(T).GetTypeName()}");
             return lifetime == Lifetime.Singleton ? Activator.CreateInstance<T> : LambdaCtor<T>.CreateInstance;
         }
 
@@ -101,7 +101,7 @@ namespace Betauer.DI.ServiceProvider {
         protected Provider(Type registerType, Type providerType, string? name, bool primary) {
             if (!registerType.IsAssignableFrom(providerType)) {
                 throw new InvalidCastException(
-                    $"Can't create a provider of {providerType.Name} and register with {registerType}");
+                    $"Can't create a provider of {providerType.GetTypeName()} and register with {registerType.GetTypeName()}");
             }
             RegisterType = registerType;
             ProviderType = providerType;

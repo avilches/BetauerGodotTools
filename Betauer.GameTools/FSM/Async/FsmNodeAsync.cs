@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Betauer.Core;
+using Betauer.Tools.Reflection;
 using Godot;
 
 namespace Betauer.FSM.Async; 
@@ -37,7 +38,7 @@ public partial class FsmNodeAsync<TStateKey, TEventKey> :
     public double Delta { get; private set; }
 
     public FsmNodeAsync(TStateKey initialState, string? name = null, bool processInPhysics = false) {
-        _stateMachine = new RealFSMNodeAsync(this, initialState, name ?? GetType().Name);
+        _stateMachine = new RealFSMNodeAsync(this, initialState, name ?? GetType().GetTypeName());
         ProcessInPhysics = processInPhysics;
     }
     public bool IsState(TStateKey state) => _stateMachine.IsState(state);

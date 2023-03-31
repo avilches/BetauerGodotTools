@@ -1,8 +1,8 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 
 namespace Betauer.Tools.Reflection; 
 
@@ -84,4 +84,31 @@ public static class TypeExtensions {
         if (memberFlags.HasFlag(MemberTypes.Field)) e = e.Concat(type.GetFields(bindingAttr));
         return e;
     }
+
+    public static string GetTypeName(this Type type) {
+        if (!type.IsGenericType) {
+            return type.Name;
+        }
+        var typeName = new StringBuilder(string.Concat(type.Name.AsSpan(0, type.Name.IndexOf('`')), "<"));
+        var genericArguments = type.GetGenericArguments();
+        for (var i = 0; i < genericArguments.Length; i++) {
+            typeName.Append(GetTypeName(genericArguments[i]));
+            if (i < genericArguments.Length - 1) {
+                typeName.Append(',');
+            }
+        }
+        typeName.Append('>');
+        return typeName.ToString();
+    }    
+    
+    public static string FormatAttribute(this Attribute att) {
+        return FormatAttribute(att.GetType());
+    }
+
+    public static string FormatAttribute(this Type type) {
+        var name = type.GetTypeName();
+        return $"[{name.Remove(name.LastIndexOf("Attribute", StringComparison.Ordinal))}]";
+    }
+
+    
 }

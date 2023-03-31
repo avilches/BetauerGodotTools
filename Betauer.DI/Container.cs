@@ -51,20 +51,19 @@ public partial class Container {
         providers
             .Where(provider => provider is ISingletonProvider { Lazy: false, IsInstanceCreated: false })
             .ForEach(provider => {
-                Logger.Debug($"Initializing {provider.Lifetime}:{provider.ProviderType} | Name: {provider.Name}");
+                Logger.Debug($"Initializing {provider.Lifetime}:{provider.ProviderType.GetTypeName()} | Name: {provider.Name}");
                 provider.Resolve(context);
             });
         context.End();
         return this;
     }
 
-    public IProvider Add(IProvider provider) {
+    public void Add(IProvider provider) {
         AddToRegistry(provider);
         if (provider is ISingletonProvider { Lazy: false, IsInstanceCreated: false }) {
-            Logger.Debug($"Initializing {provider.Lifetime}:{provider.ProviderType} | Name: {provider.Name}");
+            Logger.Debug($"Initializing {provider.Lifetime}:{provider.ProviderType.GetTypeName()} | Name: {provider.Name}");
             provider.Get();
         }
-        return provider;
     }
     /// <summary>
     /// Register by type only always overwrite. That means register the same type twice will not fail: the second
@@ -75,24 +74,23 @@ public partial class Container {
     /// <returns></returns>
     /// <exception cref="Exception"></exception>
     /// <exception cref="DuplicateNameException"></exception>
-    private IProvider AddToRegistry(IProvider provider) {
+    private void AddToRegistry(IProvider provider) {
         var name = provider.Name;
         if (name != null) {
             if (_registryByName.ContainsKey(name)) throw new DuplicateServiceException(name);
                 _registryByName[name] = provider;
                 if (provider.Primary || !_fallbackByType.ContainsKey(provider.RegisterType)) {
                     _fallbackByType[provider.RegisterType] = provider;
-                    Logger.Debug($"Registered {provider.Lifetime}:{provider.ProviderType} | Name: {name} | Added fallback: {provider.RegisterType.Name}");
+                    Logger.Debug($"Registered {provider.Lifetime}:{provider.ProviderType.GetTypeName()} | Name: {name} | Added fallback: {provider.RegisterType.GetTypeName()}");
                 } else {
-                    Logger.Debug($"Registered {provider.Lifetime}:{provider.ProviderType} | Name: {name}");
+                    Logger.Debug($"Registered {provider.Lifetime}:{provider.ProviderType.GetTypeName()} | Name: {name}");
                 }
         } else {
             if (_registry.ContainsKey(provider.RegisterType)) throw new DuplicateServiceException(provider.RegisterType);
             _registry[provider.RegisterType] = provider;
-            Logger.Debug($"Registered {provider.Lifetime}:{provider.ProviderType}. Name: {provider.RegisterType.Name}");
+            Logger.Debug($"Registered {provider.Lifetime}:{provider.ProviderType.GetTypeName()}. Name: {provider.RegisterType.GetTypeName()}");
         }
         provider.Container = this;
-        return provider;
     }
 
     public bool Contains(string name) => _registryByName.ContainsKey(name);
@@ -183,6 +181,7 @@ public partial class Container {
 
     internal void ExecutePostInjectMethods<T>(T instance) {
         if (instance.GetType().ImplementsInterface(typeof(IInjectable))) {
+            Logger.Debug($"Executing {nameof(IInjectable.PostInject)} in {instance.GetType().GetTypeName()}. HashCode: {instance.GetHashCode():X}");
             ((IInjectable)instance).PostInject();
         }
         OnPostInject?.Invoke(instance);

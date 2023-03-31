@@ -1,5 +1,6 @@
 using System;
 using Betauer.Tools.Logging;
+using Betauer.Tools.Reflection;
 
 namespace Betauer.DI.ServiceProvider; 
 
@@ -16,8 +17,8 @@ public class TransientFactoryProvider : Provider {
         if (context == null) throw new ArgumentNullException(nameof(context));
         context.TryStartTransient(RegisterType, Name); // This call could throw a CircularDependencyException
         var instance = _factory.Invoke();
-        if (instance == null) throw new NullReferenceException($"Transient factory returned null for {RegisterType.Name} {Name}");
-        Logger.Debug($"Creating {Lifetime.Transient} {instance.GetType().Name} exposed as {RegisterType.Name}: {instance.GetHashCode():X}");
+        if (instance == null) throw new NullReferenceException($"Transient factory returned null for {RegisterType.GetTypeName()} {Name}");
+        Logger.Debug($"Creating {Lifetime.Transient}:{instance.GetType().GetTypeName()}. Name: {Name}. HashCode: {instance.GetHashCode():X}");
         context.PushTransient(instance);
         context.Container.InjectServices(Lifetime, instance, context);
         context.PopTransient();

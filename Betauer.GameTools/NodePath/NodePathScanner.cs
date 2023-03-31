@@ -39,7 +39,7 @@ public class NodePathScanner {
         // [NodePath("path/to/node")
         // private Sprite2D sprite = this.GetNode<Sprite2D>("path/to/node");
         var node = target.GetNode(path);
-        string FieldInfo() => $"[NodePath(\"{path}\")] {getterSetter.Type.Name} {getterSetter.Name}";
+        string FieldInfo() => $"[NodePath(\"{path}\")] {getterSetter.Type.GetTypeName()} {getterSetter.Name}";
 
         if (node == null) {
             if (nullable) return;
