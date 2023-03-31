@@ -38,19 +38,19 @@ public class ScreenSettingsManager : IInjectable {
 
     public void PostInject() {
         _pixelPerfect = Container.ResolveOr<ISetting<bool>>("Settings.Screen.PixelPerfect",
-            () => Setting<bool>.Memory(false));
+            () => Setting.Memory(false));
 
         _fullscreen = Container.ResolveOr<ISetting<bool>>("Settings.Screen.Fullscreen",
-            () => Setting<bool>.Memory(AppTools.GetWindowFullscreen()));
+            () => Setting.Memory(AppTools.GetWindowFullscreen()));
 
         _vSync = Container.ResolveOr<ISetting<bool>>("Settings.Screen.VSync",
-            () => Setting<bool>.Memory(AppTools.GetWindowVsync()));
+            () => Setting.Memory(AppTools.GetWindowVsync()));
 
         _borderless = Container.ResolveOr<ISetting<bool>>("Settings.Screen.Borderless",
-            () => Setting<bool>.Memory(AppTools.GetWindowBorderless()));
+            () => Setting.Memory(AppTools.GetWindowBorderless()));
 
         _windowedResolution = Container.ResolveOr<ISetting<Resolution>>("Settings.Screen.WindowedResolution",
-            () => Setting<Resolution>.Memory(_initialScreenConfiguration.BaseResolution));
+            () => Setting.Memory(_initialScreenConfiguration.BaseResolution));
         
         DebugOverlayManager?.DebugConsole.AddScreenSettingsCommand(this);
     }

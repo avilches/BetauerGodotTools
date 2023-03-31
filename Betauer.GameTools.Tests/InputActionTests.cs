@@ -7,7 +7,7 @@ using Godot;
 using NUnit.Framework;
 namespace Betauer.GameTools.Tests; 
 
-[TestRunner.Test(Only = true)]
+[TestRunner.Test]
 public partial class InputActionTests : Node {
 
     const string SettingsFile = "./action-test-settings.ini";

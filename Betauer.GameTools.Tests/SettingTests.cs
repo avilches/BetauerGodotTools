@@ -15,7 +15,7 @@ using Container = Betauer.DI.Container;
 
 namespace Betauer.GameTools.Tests; 
   
-[TestRunner.Test(Only = true)]
+[TestRunner.Test]
 public partial class SettingTests : Node {
 
     const string SettingsFile = "./test-settings.ini";
