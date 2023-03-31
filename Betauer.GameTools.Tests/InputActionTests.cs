@@ -1,20 +1,13 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Betauer.Application.Settings;
-using Betauer.DI;
-using Betauer.DI.Attributes;
-using Betauer.DI.Exceptions;
-using Betauer.DI.ServiceProvider;
 using Betauer.Input;
 using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
-using Container = Betauer.DI.Container;
-
 namespace Betauer.GameTools.Tests; 
 
-[TestRunner.Test]
+[TestRunner.Test(Only = true)]
 public partial class InputActionTests : Node {
 
     const string SettingsFile = "./action-test-settings.ini";
@@ -45,11 +38,11 @@ public partial class InputActionTests : Node {
 
     [TestRunner.Test]
     public void ImportExport() {
-        SaveSetting<string> b = Setting<string>.Persistent(null, "attack", "");
+        SaveSetting<string> b = Setting.Create( "attack", "");
         var sc = new SettingsContainer(SettingsFile);
         b.SetSettingsContainer(sc);
             
-        var jump = InputAction.Configurable("ImportExportAction").AsSimulator();
+        var jump = InputAction.Create().AsSimulator();
         jump.SetSaveSettings(b).Load();
         Assert.That(jump.Buttons, Is.Empty);
         Assert.That(jump.Keys, Is.Empty);
@@ -84,14 +77,13 @@ public partial class InputActionTests : Node {
         Assert.That(jump.Axis, Is.EqualTo(JoyAxis.RightX));
 
     }
-
     [TestRunner.Test]
     public void UpdateRollback() {
-        SaveSetting<string> b = Setting<string>.Persistent(null, "attack", "");
+        SaveSetting<string> b = Setting.Create( "attack", "");
         var sc = new SettingsContainer(SettingsFile);
         b.SetSettingsContainer(sc);
             
-        var jump = InputAction.Configurable("UpdateRollback").AsSimulator();
+        var jump = InputAction.Create().AsSimulator();
         jump.SetSaveSettings(b).Load();
         Assert.That(jump.Buttons, Is.Empty);
         Assert.That(jump.Keys, Is.Empty);
@@ -123,15 +115,53 @@ public partial class InputActionTests : Node {
     }
 
     [TestRunner.Test]
+    public void InputActionFindByName() {
+        var attack = InputAction.Create("ManualAttack").AsSimulator();
+        var jump = InputAction.Create("ManualJump").AsSimulator();
+        var left = InputAction.Create("Left").NegativeAxis(JoyAxis.LeftX).AsSimulator();
+        var right = InputAction.Create("Right").PositiveAxis(JoyAxis.LeftX).AsSimulator();
+        var lateral = AxisAction.Create("Lateral", left, right);
+        
+        var c = new InputActionsContainer();
+        attack.SetInputActionsContainer(c);
+        jump.SetInputActionsContainer(c);
+        lateral.SetInputActionsContainer(c);
+        
+        Assert.That(jump.InputActionsContainer, Is.EqualTo(c));
+        Assert.That(attack.InputActionsContainer, Is.EqualTo(c));
+        Assert.That(lateral.InputActionsContainer, Is.EqualTo(c));
+        Assert.That(left.InputActionsContainer, Is.EqualTo(c));
+        Assert.That(right.InputActionsContainer, Is.EqualTo(c));
+        
+
+        Assert.That(right.AxisActionName, Is.EqualTo("Lateral"));
+        Assert.That(left.AxisActionName, Is.EqualTo("Lateral"));
+        Assert.That(lateral.Name, Is.EqualTo("Lateral"));
+
+        Assert.That(right.AxisAction, Is.EqualTo(lateral));
+        Assert.That(left.AxisAction, Is.EqualTo(lateral));        
+        Assert.That(lateral.Negative, Is.EqualTo(left));
+        Assert.That(lateral.Positive, Is.EqualTo(right));
+
+        
+        Assert.That(c.InputActionList.Count, Is.EqualTo(5));
+        Assert.That(c.FindAction<InputAction>("ManualJump"), Is.EqualTo(jump));
+        Assert.That(c.FindAction<InputAction>("ManualAttack"), Is.EqualTo(attack));
+        Assert.That(c.FindAction<AxisAction>("Lateral"), Is.EqualTo(lateral));
+        Assert.That(c.FindAction<InputAction>("Right"), Is.EqualTo(right));
+        Assert.That(c.FindAction<InputAction>("Left"), Is.EqualTo(left));
+    }
+    
+    [TestRunner.Test]
     public void ManualConfigurationWithSettingTest() {
         var attack = InputAction.Create("ManualAttack").AsSimulator();
         Assert.That(attack.SaveSetting, Is.Null);
 
-        var jump = InputAction.Configurable("ManualJump").AsSimulator();
+        var jump = InputAction.Create("ManualJump").AsSimulator();
         Assert.That(jump.SaveSetting, Is.Null);
 
-        SaveSetting<string> b = Setting<string>.Persistent(null, "attack","button:A,button:B,key:H,key:F");
-        Assert.That(b.Section, Is.EqualTo("Settings")); // default value when section is null
+        SaveSetting<string> b = Setting.Create("attack","button:A,button:B,key:H,key:F");
+
         var sc = new SettingsContainer(SettingsFile);
         b.SetSettingsContainer(sc);
         jump.SetSaveSettings(b).Load();
@@ -139,174 +169,5 @@ public partial class InputActionTests : Node {
             
         Assert.That(jump.Buttons, Is.EqualTo(new [] {JoyButton.A, JoyButton.B}.ToList()));
         Assert.That(jump.Keys, Is.EqualTo(new [] {Key.H, Key.F}.ToList()));
-            
-        var c = new InputActionsContainer();
-        c.Add(jump);
-        // Assert.That(jump.InputActionsContainer, Is.EqualTo(c));
-        c.Add(attack);
-        // Assert.That(attack.InputActionsContainer, Is.EqualTo(c));
-
-        Assert.That(c.InputActionList.Count, Is.EqualTo(2));
-        Assert.That(c.FindAction("ManualJump"), Is.EqualTo(jump));
-        Assert.That(c.FindAction("ManualAttack"), Is.EqualTo(attack));
-    }
-
-    [Configuration]
-    internal class InputWithoutInputActionsContainer {
-        [Singleton]
-        private InputAction Jump => InputAction.Create("Jump").AsSimulator();
-    }
-
-    [TestRunner.Test(Description = "Error if there is no InputActionsContainer")]
-    public void InputWithoutInputActionsContainerTest() {
-        var di = new Container.Builder();
-        di.Scan<InputWithoutInputActionsContainer>();
-        Assert.Throws<ServiceNotFoundException>(() => di.Build());
-    }
-        
-    [Configuration]
-    internal class ConfigurableInputWithContainerButWithoutSettingContainer {
-        [Singleton] public InputActionsContainer InputActionsContainer => new InputActionsContainer();
-        [Singleton] private InputAction JumpConfigurable => InputAction.Configurable("Jump").AsSimulator();
-    }
-
-    [TestRunner.Test(Description = "Error if there is not a SettingContainer when a Configurable() action is used")]
-    public void ConfigurableInputWithContainerButWithoutSettingContainerTest() {
-        var di = new Container.Builder();
-        di.Register(Provider.Singleton<SceneTree>(GetTree));
-        di.Scan<ConfigurableInputWithContainerButWithoutSettingContainer>();
-        var e = Assert.Throws<ServiceNotFoundException>(() => di.Build());
-        Assert.That(e.Message, Contains.Substring(nameof(SettingsContainer)));
-    }
-
-    internal partial class MyInputActionsContainer : InputActionsContainer {
-    }
-
-    [Configuration]
-    internal class InputWithContainer {
-        [Singleton] public InputActionsContainer InputActionsContainer => new MyInputActionsContainer();
-        [Singleton] private InputAction Jump => InputAction.Create("Jump").AsSimulator();
-    }
-
-    [TestRunner.Test(Description = "Use a custom InputActionsContainer")]
-    public void InputActionContainerTests() {
-        var di = new Container.Builder();
-        di.Register(Provider.Singleton<SceneTree>(GetTree));
-        di.Scan<InputWithContainer>();
-        var c = di.Build();
-        var s = c.Resolve<InputActionsContainer>();
-        var jump = c.Resolve<InputAction>("Jump");
-        Assert.That(s, Is.TypeOf<MyInputActionsContainer>());
-        // Assert.That(s, Is.EqualTo(jump.InputActionsContainer));
-
-        Assert.That(s.InputActionList.Count, Is.EqualTo(1));
-        Assert.That(s.FindAction("Jump"), Is.EqualTo(jump));
-    }
-
-    [Configuration]
-    internal class ConfigurableInputWithContainerAndSettings {
-        [Singleton] public InputActionsContainer InputActionsContainer => new();
-
-        [Singleton] 
-        public SettingsContainer SettingsContainer => new("settings1.ini");
-        [Singleton(Name="Other")] 
-        public SettingsContainer Other => new("settings2.ini");
-            
-        [Singleton] private InputAction JumpConfigurable => InputAction.Configurable("Jump").AsSimulator();
-
-        [Singleton] private InputAction JumpConfigurableWithSetting => InputAction.Configurable("Jump2")
-            .SettingsContainer(nameof(Other))
-            .SettingsSection("Controls2")
-            .AsSimulator();
-            
-        [Singleton] private InputAction NoConfigurable => InputAction.Create("Jump3").AsSimulator();
-    }
-
-    [Singleton]
-    internal class Service4 {
-        [Inject] public InputActionsContainer InputActionsContainer { get; set; }
-        [Inject] public SettingsContainer SettingsContainer { get; set; }
-        [Inject(Name="Other")] public SettingsContainer SettingsContainerOther { get; set; }
-            
-        [Inject] public InputAction JumpConfigurable { get; set; }
-        [Inject] public InputAction JumpConfigurableWithSetting { get; set; }
-        [Inject] public InputAction NoConfigurable { get; set; }
-    }
-
-    [TestRunner.Test(Description = "Configurable with different setting container")]
-    public void ConfigurableInputWithContainerAndSettingsTests() {
-        var di = new Container.Builder();
-        di.Scan<ConfigurableInputWithContainerAndSettings>();
-        di.Scan<Service4>();
-        di.Register(Provider.Singleton<SceneTree>(GetTree));
-        var c = di.Build();
-        var s = c.Resolve<Service4>();
-
-        Assert.That(s.JumpConfigurable.SaveSetting.Section, Is.EqualTo("Controls"));
-        Assert.That(s.JumpConfigurable.SaveSetting.Name, Is.EqualTo("Jump"));
-
-        Assert.That(s.NoConfigurable.SaveSetting, Is.Null);
-
-        Assert.That(s.InputActionsContainer.FindAction("Jump"), Is.EqualTo(s.JumpConfigurable));
-        Assert.That(s.InputActionsContainer.FindAction("Jump2"), Is.EqualTo(s.JumpConfigurableWithSetting));
-        Assert.That(s.InputActionsContainer.FindAction("Jump3"), Is.EqualTo(s.NoConfigurable));
-        Assert.That(s.InputActionsContainer.InputActionList.Count, Is.EqualTo(3));
-            
-        Assert.That(s.JumpConfigurable.SaveSetting.SettingsContainer, Is.EqualTo(s.SettingsContainer));
-        Assert.That(s.JumpConfigurableWithSetting.SaveSetting.Section, Is.EqualTo("Controls2"));
-        Assert.That(s.JumpConfigurableWithSetting.SaveSetting.SettingsContainer, Is.EqualTo(s.SettingsContainerOther));
-    }
-        
-    [Configuration]
-    internal class MultipleInputActionContainer {
-        [Singleton] public SettingsContainer SettingsContainer => new SettingsContainer("settings1.ini");
-            
-        [Singleton] 
-        public InputActionsContainer InputActionsContainer => new InputActionsContainer();
-        [Singleton(Name="Other")] 
-        public InputActionsContainer InputActionsContainer2 => new InputActionsContainer();
-
-        [Singleton] private InputAction Jump => InputAction.Create("Jump")
-            .AsSimulator();
-
-        [Singleton] private InputAction JumpOther => InputAction.Create("Other", "JumpOther")
-            .AsSimulator();
-    }
-
-    [Singleton]
-    internal class Service5 {
-        [Inject] public InputActionsContainer InputActionsContainer { get; set; }
-        [Inject(Name="Other")] public InputActionsContainer InputActionsContainer2 { get; set; }
-        [Inject] public SettingsContainer SettingsContainer { get; set; }
-            
-        [Inject] public InputAction Jump { get; set; }
-        [Inject] public InputAction JumpOther { get; set; }
-    }
-
-    [TestRunner.Test(Description = "Configurable with different input action container")]
-    public void MultipleInputActionContainerTest() {
-        var di = new Container.Builder();
-        di.Scan<MultipleInputActionContainer>();
-        di.Scan<Service5>();
-        di.Register(Provider.Singleton<SceneTree>(GetTree));
-        var c = di.Build();
-        var s = c.Resolve<Service5>();
-            
-        // Assert.That(s.Jump.InputActionsContainer, Is.EqualTo(s.InputActionsContainer));
-        // Assert.That(s.JumpOther.InputActionsContainer, Is.EqualTo(s.InputActionsContainer2));
-
-        // s.InputActionsContainer.RemoveSetup();
-        // s.InputActionsContainer2.RemoveSetup();
-        // s.InputActionsContainer.Setup();
-        // Assert.That(InputMap.HasAction("Jump"));
-        // Assert.That(!InputMap.HasAction("JumpOther"));
-        // s.InputActionsContainer.RemoveSetup();
-        //
-        // s.InputActionsContainer.RemoveSetup();
-        // s.InputActionsContainer2.RemoveSetup();
-        // s.InputActionsContainer2.Setup();
-        // Assert.That(!InputMap.HasAction("Jump"));
-        // Assert.That(InputMap.HasAction("JumpOther"));
-
     }
 }

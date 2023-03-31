@@ -11,7 +11,7 @@ public class AxisAction : IAction, IInjectable {
     public float RawStrength => (Positive.RawStrength - Negative.RawStrength) * (Reverse ? -1 : 1);
     public JoyAxis Axis => Positive.Axis;
     public bool Reverse { get; set; } = false; // TODO: load a setting container and allow to export it. Optional: define a axis deadzone
-    public string Name { get; }
+    public string Name { get; private set; }
     public bool IsEvent(InputEvent inputEvent) => inputEvent is InputEventJoypadMotion motion && motion.Axis == Axis;
     public void Enable(bool enabled) {
         Negative.Enable(enabled);
@@ -21,84 +21,69 @@ public class AxisAction : IAction, IInjectable {
     public InputActionsContainer? InputActionsContainer { get; private set; }
     public InputAction Negative { get; private set; }
     public InputAction Positive { get; private set; }
+
+    private AxisAction(string name) {
+        Name = name;
+    }
     
-    // Constructor flags used by the [PostInject] to create to locate the InputActionsContainer
-    [Inject] private Container Container { get; set; }
-    private readonly string? _inputActionsContainerName;
-    private readonly string? _negativeServiceName; 
-    private readonly string? _positiveServiceName;
-
-
-    public AxisAction(InputAction negative, InputAction positive) {
-        Fit(negative, positive);
-    }
-
-    public AxisAction(string name, InputAction negative, InputAction positive) {
-        Name = name;
-        Fit(negative, positive);
-    }
-
-    private void Fit(InputAction negative, InputAction positive) {
-        if (negative.Axis == JoyAxis.Invalid) throw new InvalidAxisConfiguration($"InputAction {negative.Name} should define a valid Axis.");
-        if (positive.Axis == JoyAxis.Invalid) throw new InvalidAxisConfiguration($"InputAction {positive.Name} should define a valid Axis.");
+    public void SetNegativeAndPositive(InputAction negative, InputAction positive) {
+        if (negative.Axis == JoyAxis.Invalid) throw new InvalidAxisConfigurationException($"InputAction {negative.Name} should define a valid Axis.");
+        if (positive.Axis == JoyAxis.Invalid) throw new InvalidAxisConfigurationException($"InputAction {positive.Name} should define a valid Axis.");
         
-        if (negative.AxisSign == 0) throw new InvalidAxisConfiguration($"InputAction {negative.Name} should define AxisSign.");
-        if (positive.AxisSign == 0) throw new InvalidAxisConfiguration($"InputAction {positive.Name} should define AxisSign.");
-
+        // Ensure sign is 1 or -1
+        if (Math.Abs(negative.AxisSign) != 1) throw new InvalidAxisConfigurationException($"InputAction {negative.Name} AxisSign should be 1 or -1. Wrong value: {negative.AxisSign}");
+        if (Math.Abs(positive.AxisSign) != 1) throw new InvalidAxisConfigurationException($"InputAction {positive.Name} AxisSign should be 1 or -1. Wrong value: {positive.AxisSign}");
         if (positive.AxisSign == negative.AxisSign) {
-            var axisSign = $"{(positive.AxisSign > 0 ? "positive " : "negative")} ({positive.AxisSign})";
-            throw new InvalidAxisConfiguration($"InputAction {negative.Name} and {positive.Name} can't be both {axisSign}, they must be different.");
+            throw new InvalidAxisConfigurationException($"InputAction {negative.Name} and {positive.Name} can't have the same AxisSign {positive.AxisSign}. One must be -1 and other 1");
         }
-        if (positive.AxisSign > 0) {
-            Negative = negative;
-            Positive = positive;
-        } else {
-            Negative = positive;
-            Positive = negative;
+
+        // Swap if needed
+        if (positive.AxisSign < 0) (negative, positive) = (positive, negative);
+        
+        Positive?.UnsetInputActionsContainer();
+        Negative?.UnsetInputActionsContainer();
+        if (Positive != null) Positive.AxisAction = null;
+        if (Negative != null) Negative.AxisAction = null;
+        
+        Negative = negative;
+        Positive = positive;
+        Positive.AxisAction = this;
+        Negative.AxisAction = this;
+        Positive.AxisActionName = Name;
+        Negative.AxisActionName = Name;
+        if (InputActionsContainer != null) {
+            Positive.SetInputActionsContainer(InputActionsContainer);
+            Negative.SetInputActionsContainer(InputActionsContainer);
         }
     }
 
-    private AxisAction(string? inputActionsContainerName, string name, string negativeServiceName, string positiveServiceName) {
+    [Inject] private Container Container { get; set; }  
+    private string? _inputActionsContainerName;
+    public void PreInject(string name, string inputActionsContainerName) {
+        if (Name == null) Name = name;
         _inputActionsContainerName = inputActionsContainerName;
-        Name = name;
-        _negativeServiceName = negativeServiceName ?? throw new ArgumentNullException(nameof(negativeServiceName));
-        _positiveServiceName = positiveServiceName ?? throw new ArgumentNullException(nameof(positiveServiceName));
     }
 
     public void PostInject() {
-        if (_negativeServiceName != null && _positiveServiceName != null) {
-            var negative = Container.Resolve<InputAction>(_negativeServiceName);
-            if (negative == null) throw new InvalidAxisConfiguration($"Error creating AxisAction: {_negativeServiceName} InputAction not found");
-
-            var positive =  Container.Resolve<InputAction>(_positiveServiceName);
-            if (positive == null) throw new InvalidAxisConfiguration($"Error creating AxisAction: {_positiveServiceName} InputAction not found");
-            
-            Fit(negative, positive);
-            
-            var inputActionsContainer = _inputActionsContainerName != null
-                ? Container.Resolve<InputActionsContainer>(_inputActionsContainerName)
-                : Container.Resolve<InputActionsContainer>();
-            inputActionsContainer.Add(this);
-        }
+        SetInputActionsContainer(Container.Resolve<InputActionsContainer>(_inputActionsContainerName!));
     }
 
-    internal void OnAddToInputActionsContainer(InputActionsContainer inputActionsContainer) {
+    public void UnsetInputActionsContainer() {
+        InputActionsContainer?.Remove(this);
+        InputActionsContainer = null;
+        Positive?.UnsetInputActionsContainer();
+        Negative?.UnsetInputActionsContainer();
+    }
+
+    public void SetInputActionsContainer(InputActionsContainer inputActionsContainer) {
         if (InputActionsContainer != null && InputActionsContainer != inputActionsContainer) {
-            InputActionsContainer.Remove(this);
+            UnsetInputActionsContainer();
         }
         InputActionsContainer = inputActionsContainer;
-        InputActionsContainer.Add(Positive);
-        InputActionsContainer.Add(Negative);
+        InputActionsContainer.Add(this); 
+        Positive?.SetInputActionsContainer(inputActionsContainer);
+        Negative?.SetInputActionsContainer(inputActionsContainer);
     }
-
-    internal void OnRemoveFromInputActionsContainer() {
-        if (InputActionsContainer != null) {
-            InputActionsContainer.Remove(Positive);
-            InputActionsContainer.Remove(Negative);
-        }
-        InputActionsContainer = null;
-    }
-
 
     public void SimulatePress(float strength) {
         if (strength == 0f) {
@@ -124,28 +109,30 @@ public class AxisAction : IAction, IInjectable {
         Positive.ClearJustStates();        
     }
 
-    public static AxisAction Fake() {
-        var positive = InputAction.Fake().Update(u => u.SetAxis(JoyAxis.LeftX).SetAxisSign(1));
-        var negative = InputAction.Fake().Update(u => u.SetAxis(JoyAxis.LeftX).SetAxisSign(-1));
-        return new AxisAction(null, negative, positive);
+    public static AxisAction Fake(JoyAxis joyAxis = JoyAxis.LeftX) {
+        var positive = InputAction.Create().PositiveAxis(joyAxis).AsFake();
+        var negative = InputAction.Create().NegativeAxis(joyAxis).AsFake();
+        var axisAction = new AxisAction(null);
+        axisAction.SetNegativeAndPositive(negative, positive);
+        return axisAction;
     }
 
-    public static AxisAction Simulate() {
-        var positive = InputAction.Simulate().Update(u => u.SetAxis(JoyAxis.LeftX).SetAxisSign(1));
-        var negative = InputAction.Simulate().Update(u => u.SetAxis(JoyAxis.LeftX).SetAxisSign(-1));
-        return new AxisAction(null, negative, positive);
+    public static AxisAction Simulate(JoyAxis joyAxis = JoyAxis.LeftX) {
+        var positive = InputAction.Create().PositiveAxis(joyAxis).AsSimulator();
+        var negative = InputAction.Create().NegativeAxis(joyAxis).AsSimulator();
+        var axisAction = new AxisAction(null);
+        axisAction.SetNegativeAndPositive(negative, positive);
+        return axisAction;
     }
 
-    public static AxisAction Create(string name, string negative, string positive) {
-        return new AxisAction(null, name, negative, positive);
+    public static AxisAction Create(string name = null) {
+        var axisAction = new AxisAction(name);
+        return axisAction;
     }
     
-    public static AxisAction Create(string inputActionsContainerName, string name, string negative, string positive) {
-        return new AxisAction(inputActionsContainerName, name, negative, positive);
-    }
-}
-
-public class InvalidAxisConfiguration : Exception {
-    public InvalidAxisConfiguration(string? message) : base(message) {
+    public static AxisAction Create(string name, InputAction negative, InputAction positive) {
+        var axisAction = new AxisAction(name);
+        axisAction.SetNegativeAndPositive(negative, positive);
+        return axisAction;
     }
 }

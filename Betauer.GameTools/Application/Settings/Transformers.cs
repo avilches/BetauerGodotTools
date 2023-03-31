@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Betauer.Application.Screen;
+using Betauer.Tools.Reflection;
 using Godot;
 
 namespace Betauer.Application.Settings; 
@@ -8,11 +9,19 @@ namespace Betauer.Application.Settings;
 public interface ITransformer {
     object ToVariant(object d);
     object FromVariant(object d);
+    object FromString(string d);
 }
 
 public class ResolutionTransformer : ITransformer {
     public object ToVariant(object d) => ((Resolution)d).Size;
     public object FromVariant(object d) => new Resolution((Vector2I)d);
+    public object FromString(string d) {
+        var parts = d.Split("x");
+        return new Resolution(new Vector2I {
+            X = int.Parse(parts[0]),
+            Y = int.Parse(parts[1])
+        });
+    }
 }
 
 public static class Transformers {
@@ -32,5 +41,9 @@ public static class Transformers {
 
     public static object FromVariant(Type type, object value) {
         return Registry.TryGetValue(type, out var t) ? t.FromVariant(value) : value;
+    }
+
+    public static object FromString(Type type, string value) {
+        return Registry.TryGetValue(type, out var t) ? t.FromString(value) : throw new Exception($"Missing Transformer for type: {type.GetTypeName()}");
     }
 }

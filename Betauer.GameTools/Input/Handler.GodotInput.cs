@@ -5,31 +5,34 @@ namespace Betauer.Input;
 internal class GodotInputHandler : IHandler {
     public const float MaxPressedTime = 31536000f; // 1 year! 
 
-    private readonly string _name;
-    private readonly StringName _stringName;
+    internal readonly InputAction InputAction;
+    private StringName? _stringName;
+    
+    // Don't cache the string name in the constructor.
+    // Delay the StringName creation until it's actually needed. Reason: the InputAction.Name could be empty and changed later through [InputAction] attribute.
+    private StringName StringName => _stringName ??= new StringName(InputAction.Name);
 
-    public GodotInputHandler(string name) {
-        _name = name;
-        _stringName = (StringName)name;
+    public GodotInputHandler(InputAction inputAction) {
+        InputAction = inputAction;
     }
 
-    public bool Pressed => Godot.Input.IsActionPressed(_name);
-    public float Strength => Godot.Input.GetActionStrength(_name);
-    public float RawStrength => Godot.Input.GetActionRawStrength(_name);
+    public bool Pressed => Godot.Input.IsActionPressed(StringName);
+    public float Strength => Godot.Input.GetActionStrength(StringName);
+    public float RawStrength => Godot.Input.GetActionRawStrength(StringName);
     public float PressedTime => MaxPressedTime;
     public float ReleasedTime => MaxPressedTime;
-    public bool JustPressed => Godot.Input.IsActionJustPressed(_name);
-    public bool JustReleased => Godot.Input.IsActionJustReleased(_name);
+    public bool JustPressed => Godot.Input.IsActionJustPressed(StringName);
+    public bool JustReleased => Godot.Input.IsActionJustReleased(StringName);
 
     public void SimulatePress(float strength) {
         if (strength >= 0.001f)
-            Godot.Input.ActionPress(_stringName, strength);
+            Godot.Input.ActionPress(StringName, strength);
         else
-            Godot.Input.ActionRelease(_stringName);
+            Godot.Input.ActionRelease(StringName);
     }
 
     public void SimulateRelease() {
-        Godot.Input.ActionRelease(_stringName);
+        Godot.Input.ActionRelease(StringName);
     }
 
     public void ClearJustStates() {

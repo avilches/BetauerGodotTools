@@ -5,9 +5,8 @@ using Godot;
 namespace Betauer.Input;
 
 public partial class InputAction {
-    public abstract class Builder<TBuilder> where TBuilder : class {
+    public class Builder {
         protected readonly string Name;
-        protected readonly string InputActionsContainerName;
         protected bool IsKeepProjectSettings = false;
 
         private readonly ISet<JoyButton> _buttons = new HashSet<JoyButton>();
@@ -27,76 +26,71 @@ public partial class InputAction {
             Name = name;
         }
 
-        internal Builder(string inputActionsContainerName, string name) {
-            InputActionsContainerName = inputActionsContainerName;
-            Name = name;
-        }
-
-        public TBuilder DeadZone(float deadZone) {
+        public Builder DeadZone(float deadZone) {
             _deadZone = deadZone;
-            return this as TBuilder;
+            return this;
         }
 
-        public TBuilder NegativeAxis(JoyAxis axis) {
+        public Builder NegativeAxis(JoyAxis axis) {
             _axis = axis;
             _axisSign = -1;
-            return this as TBuilder;
+            return this;
         }
 
-        public TBuilder PositiveAxis(JoyAxis axis) {
+        public Builder PositiveAxis(JoyAxis axis) {
             _axis = axis;
             _axisSign = 1;
-            return this as TBuilder;
+            return this;
         }
 
-        public TBuilder KeepProjectSettings(bool keepProjectSettings = true) {
+        public Builder KeepProjectSettings(bool keepProjectSettings = true) {
             IsKeepProjectSettings = keepProjectSettings;
-            return this as TBuilder;
+            return this;
         }
 
-        public TBuilder Keys(params Key[] keys) {
+        public Builder Keys(params Key[] keys) {
             keys.ForEach(key => _keys.Add(key));
-            return this as TBuilder;
+            return this;
         }
 
-        public TBuilder Buttons(params JoyButton[] buttons) {
+        public Builder Buttons(params JoyButton[] buttons) {
             buttons.ForEach(button => _buttons.Add(button));
-            return this as TBuilder;
+            return this;
         }
 
-        public TBuilder Click(MouseButton mouseButton) {
+        public Builder Click(MouseButton mouseButton) {
             _mouseButton = mouseButton;
-            return this as TBuilder;
+            return this;
         }
 
-        public TBuilder Ctrl() {
+        public Builder Ctrl() {
             _ctrlPressed = true;
-            return this as TBuilder;
+            return this;
         }
 
-        public TBuilder Shift() {
+        public Builder Shift() {
             _shiftPressed = true;
-            return this as TBuilder;
+            return this;
         }
 
-        public TBuilder Alt() {
+        public Builder Alt() {
             _altPressed = true;
-            return this as TBuilder;
+            return this;
         }
 
-        public TBuilder Meta() {
+        public Builder Meta() {
             _metaPressed = true;
-            return this as TBuilder;
+            return this;
         }
 
-        public TBuilder CommandOrCtrl() {
+        public Builder CommandOrCtrl() {
             _commandOrCtrlPressed = true;
-            return this as TBuilder;
+            return this;
         }
 
-        public TBuilder Pausable(bool pausable = true) {
+        public Builder Pausable(bool pausable = true) {
             _pausable = pausable;
-            return this as TBuilder;
+            return this;
         }
 
         private void ApplyConfig(InputAction inputAction) {
@@ -124,6 +118,12 @@ public partial class InputAction {
             inputAction.Pausable = _pausable;
         }
         
+        public InputAction AsFake() {
+            var input = CreateInputAction(InputActionBehaviour.Fake, false, false);
+            ApplyConfig(input);
+            return input;
+        }
+
         public InputAction AsSimulator(bool godotInputMapToo = false) {
             var input = CreateInputAction(InputActionBehaviour.Simulate, godotInputMapToo, false);
             ApplyConfig(input);
@@ -148,60 +148,10 @@ public partial class InputAction {
             return input;
         }
 
-        protected abstract InputAction CreateInputAction(InputActionBehaviour behaviour, bool configureGodotInputMap, bool unhandled);
-    }
-
-    public class ConfigurableBuilder : Builder<ConfigurableBuilder> {
-
-        private string? _settingsContainerName;
-        private string? _settingsSection;
-
-        public ConfigurableBuilder(string name) : base(name) {
-        }
-
-        public ConfigurableBuilder(string inputActionsContainerName, string name) : base(inputActionsContainerName, name) {
-        }
-
-        public ConfigurableBuilder SettingsContainer(string settingsFile) {
-            _settingsContainerName = settingsFile;
-            return this;
-        }
-
-        public ConfigurableBuilder SettingsSection(string settingsSection) {
-            _settingsSection = settingsSection;
-            return this;
-        }
-
-        protected override InputAction CreateInputAction(InputActionBehaviour behaviour, bool configureGodotInputMap, bool unhandled) {
+        protected InputAction CreateInputAction(InputActionBehaviour behaviour, bool configureGodotInputMap, bool unhandled) {
             return new InputAction(
-                InputActionsContainerName,
                 Name,
                 IsKeepProjectSettings,
-                true,
-                _settingsContainerName,
-                _settingsSection,
-                behaviour,
-                configureGodotInputMap,
-                unhandled);
-        }
-    }
-
-    public class NormalBuilder : Builder<NormalBuilder> {
-        internal NormalBuilder(string name) : base(name) {
-        }
-
-        internal NormalBuilder(string inputActionsContainerName, string name) :
-            base(inputActionsContainerName, name) {
-        }
-
-        protected override InputAction CreateInputAction(InputActionBehaviour behaviour, bool configureGodotInputMap, bool unhandled) {
-            return new InputAction(
-                InputActionsContainerName,
-                Name,
-                IsKeepProjectSettings,
-                false,
-                null,
-                null,
                 behaviour,
                 configureGodotInputMap,
                 unhandled);

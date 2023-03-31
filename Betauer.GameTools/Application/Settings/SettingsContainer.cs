@@ -1,22 +1,30 @@
+using System;
 using System.Collections.Generic;
 
 namespace Betauer.Application.Settings; 
 
 public class SettingsContainer {
     private ConfigFileWrapper _configFileWrapper;
-    public readonly List<SaveSetting> Settings = new();
-    public bool Dirty => _configFileWrapper?.Dirty ?? false;
-    public string FilePath => _configFileWrapper.FilePath;
+
+    public readonly List<ISaveSetting> Settings = new();
+    public ConfigFileWrapper ConfigFileWrapper => _configFileWrapper ?? throw new Exception(
+        $"SettingContainer not initialized. User {nameof(SetConfigFileWrapper)}() method.");
+    public bool Dirty => ConfigFileWrapper.Dirty;
+    public string FilePath => ConfigFileWrapper.FilePath;
 
     public SettingsContainer() {
     }
 
     public SettingsContainer(string resourceName) {
-        SetConfigFileWrapper(new ConfigFileWrapper().SetFilePath(resourceName));
+        SetConfigFileWrapper(resourceName);
     }
 
     public SettingsContainer(ConfigFileWrapper configFileWrapper) {
         SetConfigFileWrapper(configFileWrapper);
+    }
+
+    public void SetConfigFileWrapper(string resourceName) {
+        SetConfigFileWrapper(new ConfigFileWrapper().SetFilePath(resourceName));
     }
 
     public void SetConfigFileWrapper(ConfigFileWrapper configFileWrapper) {
@@ -25,13 +33,13 @@ public class SettingsContainer {
     }
 
     // Use SaveSetting.SetSettingsContainer() instead
-    internal void Add(SaveSetting saveSetting) {
+    internal void Add(ISaveSetting saveSetting) {
         if (Settings.Contains(saveSetting)) return; // avoid duplicates
         Settings.Add(saveSetting);
     }
 
     // Use SaveSetting.SetSettingsContainer() instead
-    internal void Remove(SaveSetting saveSetting) {
+    internal void Remove(ISaveSetting saveSetting) {
         Settings.Remove(saveSetting);
     }
 
@@ -41,8 +49,8 @@ public class SettingsContainer {
     /// </summary>
     /// <returns></returns>
     public SettingsContainer Load() {
-        _configFileWrapper.Load();
-        foreach (var setting in Settings) LoadSetting(setting);
+        ConfigFileWrapper.Load();
+        foreach (var setting in Settings) setting.Refresh();
         return this;
     }
 
@@ -51,25 +59,16 @@ public class SettingsContainer {
     /// </summary>
     /// <returns></returns>
     public SettingsContainer Save() {
-        foreach (var setting in Settings) SaveSetting(setting);
-        _configFileWrapper.Save();
+        foreach (var setting in Settings) setting.Flush();
+        ConfigFileWrapper.Save();
         return this;
     }
 
-    internal void LoadSetting(SaveSetting setting) {
-        if (!setting.Enabled) return;
-        var sectionName = setting.Section;
-        var settingName = setting.Name;
-        var @default = Transformers.ToVariant(setting.InternalDefaultValue);
-        var value = _configFileWrapper.GetValue(sectionName, settingName, @default);
-        setting.InternalValue = Transformers.FromVariant(setting.ValueType, value);
+    internal object GetValue(string sectionAndKey, object @default) {
+        return ConfigFileWrapper.GetValue(sectionAndKey, @default);
     }
 
-    internal void SaveSetting(SaveSetting setting) {
-        if (!setting.Enabled || !setting.Initialized) return;
-        var sectionName = setting.Section;
-        var settingName = setting.Name;
-        var value = Transformers.ToVariant(setting.InternalValue);
-        _configFileWrapper.SetValue(sectionName, settingName, value);
+    internal void SetValue(string sectionAndKey, object value) {
+        ConfigFileWrapper.SetValue(sectionAndKey, value);
     }
 }

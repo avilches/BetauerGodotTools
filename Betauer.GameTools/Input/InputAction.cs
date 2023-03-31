@@ -4,6 +4,7 @@ using System.Linq;
 using Betauer.Application.Settings;
 using Betauer.DI;
 using Betauer.DI.Attributes;
+using Betauer.DI.ServiceProvider;
 using Godot;
 using Container = Betauer.DI.Container;
 
@@ -70,14 +71,11 @@ public enum InputActionBehaviour {
 }
 public partial class InputAction : IAction, IInjectable {
     public const float DefaultDeadZone = 0.5f;
-    public static NormalBuilder Create(string name) => new(name);
-    public static NormalBuilder Create(string inputActionsContainerName, string name) => new(inputActionsContainerName, name);
-
-    public static ConfigurableBuilder Configurable(string name) => new(name);
-    public static ConfigurableBuilder Configurable(string inputActionsContainerName, string name) => new(inputActionsContainerName, name);
+    public static Builder Create() => new(null);
+    public static Builder Create(string name) => new(name);
 
     // Usage
-    public string Name { get; }
+    public string Name { get; private set; }
     public bool IsPressed => Handler.Pressed;
     public bool IsJustPressed => Handler.JustPressed;
     public bool IsJustReleased => Handler.JustReleased;
@@ -111,13 +109,10 @@ public partial class InputAction : IAction, IInjectable {
     public bool Alt { get; private set; }
     public bool Meta { get; private set; }
     
-    // Constructor flags used by the PostInject() to create the SaveSetting and locate the InputActionsContainer
-    [Inject] private Container Container { get; set; }
-    private readonly string? _inputActionsContainerName;
-    private readonly bool _configureSaveSetting = false;
-    private readonly string? _settingsContainerName;
-    private readonly string? _settingsSection;
     
+    public string? AxisActionName { get; internal set; }
+    public AxisAction? AxisAction { get; internal set; }
+
     public InputActionsContainer? InputActionsContainer { get; private set; }
     public InputActionBehaviour Behaviour { get; }
     public bool IsUnhandledInput { get; } = false;
@@ -128,31 +123,20 @@ public partial class InputAction : IAction, IInjectable {
     private readonly bool _configureGodotInputMap = false;
 
     public static InputAction Fake() => new InputAction(null,
-        null,
         false,
-        false,
-        null,
-        null,
         InputActionBehaviour.Fake,
         false,
         false);
 
     public static InputAction Simulate() => new InputAction(null,
-        null,
         false,
-        false,
-        null,
-        null,
         InputActionBehaviour.Simulate,
         false,
         false);
 
-    private InputAction(string inputActionsContainerName, 
+    private InputAction( 
         string name, 
         bool keepProjectSettings,
-        bool configureSaveSetting, 
-        string? settingsContainerName, 
-        string? settingsSection,
         InputActionBehaviour behaviour, 
         bool configureGodotInputMap,
         bool isUnhandledInput) {
@@ -160,57 +144,66 @@ public partial class InputAction : IAction, IInjectable {
         Behaviour = behaviour;
         _updater = new Updater(this);
         Enabled = true;
-        _inputActionsContainerName = inputActionsContainerName;
-        _configureSaveSetting = configureSaveSetting;
-        _settingsContainerName = settingsContainerName;
-        _settingsSection = settingsSection;
         _configureGodotInputMap = behaviour == InputActionBehaviour.GodotInput || configureGodotInputMap;
         IsUnhandledInput = isUnhandledInput;
 
         Handler = behaviour switch {
             InputActionBehaviour.Fake => new FakeStateHandler(this),
             InputActionBehaviour.Simulate => new FrameBasedStateHandler(this),
-            InputActionBehaviour.GodotInput => new GodotInputHandler(name),
+            InputActionBehaviour.GodotInput => new GodotInputHandler(this),
             InputActionBehaviour.Extended => new ExtendedInputFrameBasedStateHandler(this),
         };
         _configureGodotInputMap = true;
         if (keepProjectSettings) {
             LoadFromGodotProjectSettings();
         }
-        // Don't call SetupGodotInputMap here. It's better to wait until Configure() load the saved setting
+        // Don't call SetupGodotInputMap here. It's better to wait until PostInject() load the saved setting
+    }
+
+    [Inject] private Container Container { get; set; }
+    private string _inputActionsContainerName;
+    private string? _settingsContainerName;
+    private string? _settingSaveAs;
+    private bool _settingAutoSave;
+
+    public void PreInject(string? name, string? axisName, string inputActionsContainerName, string? settingsContainerName, string? saveAs, bool autoSave) {
+        if (Name == null) Name = name;
+        AxisActionName = axisName;
+        _inputActionsContainerName = inputActionsContainerName;
+        _settingsContainerName = settingsContainerName;
+        _settingSaveAs = saveAs;
+        _settingAutoSave = autoSave;
     }
 
     public void PostInject() {
-        // Configure and load settings
-        if (_configureSaveSetting) {
-            var section = _settingsSection ?? "Controls";
-            var setting = Setting<string>.Persistent(_settingsContainerName, section, Name, AsString());
-            Container.InjectServices(setting);
-            SetSaveSettings(setting);
-            
+        if (_settingsContainerName != null && _settingSaveAs != null) {
+            CreateSaveSettings(_settingsContainerName, _settingSaveAs, _settingAutoSave, true);
             // Load settings from file
             Load();
         }
-        
-        // Find the InputContainer from constructor
-        var inputActionsContainer = _inputActionsContainerName != null
-            ? Container.Resolve<InputActionsContainer>(_inputActionsContainerName)
-            : Container.Resolve<InputActionsContainer>();
-        inputActionsContainer.Add(this);
-        inputActionsContainer.Start();
 
+        SetInputActionsContainer(Container.Resolve<InputActionsContainer>(_inputActionsContainerName));
         SetupGodotInputMap();
     }
 
-    internal void OnAddToInputActionsContainer(InputActionsContainer inputActionsContainer) {
-        if (InputActionsContainer != null && InputActionsContainer != inputActionsContainer) {
-            InputActionsContainer.Remove(this);
-        }
-        InputActionsContainer = inputActionsContainer;
+    private void CreateSaveSettings(string settingsContainerName, string propertyName, bool autoSave = false, bool enabled = true) {
+        var setting = Setting.Create(propertyName, AsString(), autoSave, enabled);
+        setting.PreInject(settingsContainerName);
+        Container.InjectServices(setting);
+        SetSaveSettings(setting);
     }
 
-    internal void OnRemoveFromInputActionsContainer(InputActionsContainer inputActionsContainer) {
+    public void UnsetInputActionsContainer() {
+        InputActionsContainer?.Remove(this);
         InputActionsContainer = null;
+    }
+
+    public void SetInputActionsContainer(InputActionsContainer inputActionsContainer) {
+        if (InputActionsContainer != null && InputActionsContainer != inputActionsContainer) {
+            UnsetInputActionsContainer();
+        }
+        InputActionsContainer = inputActionsContainer;
+        InputActionsContainer.Add(this);
     }
 
     public void Enable(bool enabled = true) {
