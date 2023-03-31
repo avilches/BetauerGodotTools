@@ -1,5 +1,4 @@
 using System;
-using System.Reflection;
 using Betauer.DI.Attributes;
 using Betauer.DI.ServiceProvider;
 using Godot;
@@ -7,7 +6,7 @@ using Godot;
 namespace Betauer.Application.Lifecycle.Attributes;
 
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-public class PreloadAttribute<T> : ServiceTemplateAttribute where T : Resource {
+public class PreloadAttribute<T> : ServiceTemplateClassAttribute where T : Resource {
     public string? Name { get; set; }
     public string Path { get; set; }
     public bool Lazy { get; set; }
@@ -18,13 +17,13 @@ public class PreloadAttribute<T> : ServiceTemplateAttribute where T : Resource {
         Lazy = lazy;
     }
 
-    public override ProviderTemplate CreateProviderTemplate(MemberInfo memberInfo) {
-        return new ProviderTemplate {
+    public override ServiceTemplate CreateServiceTemplate(object configuration) {
+        return new ServiceTemplate {
             Lifetime = Lifetime.Singleton,
             ProviderType = typeof(T),
             RegisterType = typeof(T),
             Factory = () => ResourceLoader.Load<T>(Path),
-            Name = memberInfo.Name,
+            Name = Name,
             Primary = false,
             Lazy = false,
         };

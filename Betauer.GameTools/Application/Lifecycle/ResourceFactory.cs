@@ -7,25 +7,26 @@ using Godot;
 namespace Betauer.Application.Lifecycle;
 
 public abstract class ResourceFactory : IInjectable {
-    [Inject] public DI.Container Container { get; set; }
-    public ResourceLoaderContainer ResourceLoaderContainer { get; private set; }
-
     public const string DefaultTag = "(default)";
 
-    private readonly string _resourceLoaderContainerName;
+    public ResourceLoaderContainer? ResourceLoaderContainer { get; private set; }
     public string Path { get; }
     public string Tag { get; }
     public Resource? Resource { get; protected set; }
 
-    protected ResourceFactory(string resourceLoaderContainerName, string path, string? tag = null) {
-        _resourceLoaderContainerName = resourceLoaderContainerName;
+    protected ResourceFactory(string path, string? tag = null) {
         Path = path;
         Tag = tag ?? DefaultTag;
     }
-    
+
+    [Inject] public DI.Container Container { get; set; }
+    private string? _resourceLoaderContainerName;
+    public void PreInject(string resourceLoaderContainerName) {
+        _resourceLoaderContainerName = resourceLoaderContainerName;
+    }
+
     public void PostInject() {
-        var resourceLoaderContainer = Container.Resolve<ResourceLoaderContainer>(_resourceLoaderContainerName);
-        SetResourceLoaderContainer(resourceLoaderContainer);
+        SetResourceLoaderContainer(Container.Resolve<ResourceLoaderContainer>(_resourceLoaderContainerName!));
     }
 
     public void SetResourceLoaderContainer(ResourceLoaderContainer resourceLoaderContainer) {
@@ -52,7 +53,7 @@ public abstract class ResourceFactory : IInjectable {
 
 public class ResourceFactory<T> : ResourceFactory, IFactory<T> where T : Resource {
     
-    public ResourceFactory(string resourceLoaderContainerName, string path, string? tag = null) : base(resourceLoaderContainerName, path, tag) {
+    public ResourceFactory(string path, string? tag = null) : base(path, tag) {
     }
 
     public T Get() {
