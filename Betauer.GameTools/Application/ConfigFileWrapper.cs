@@ -1,23 +1,9 @@
 using System;
-using Betauer.Core;
 using Betauer.Tools.Logging;
 using Godot;
-using File = System.IO.File;
 
-namespace Betauer.Application; 
+namespace Betauer.Application;
 
-public static class ConfigFileExtensions {
-    public static void SetTypedValue<[MustBeVariant] T>(this ConfigFile configFile, string section, string key, T value) {
-        var variantValue = VariantHelper.CreateFrom(value);
-        configFile.SetValue(section, key, variantValue);
-    }
-    public static T GetValue<[MustBeVariant] T>(this ConfigFile configFile, string section, string key, T @default = default) {
-        var variantDefault = VariantHelper.CreateFrom(@default);
-        var variantValue = configFile.GetValue(section, key, variantDefault);
-        return VariantHelper.ConvertTo<T>(variantValue);
-    }
-}
-    
 public class ConfigFileWrapper {
     private readonly ConfigFile _configFile = new();
     public string? FilePath { get; private set; }
@@ -25,7 +11,7 @@ public class ConfigFileWrapper {
     public Error LastError { get; private set; }
     public bool Dirty { get; private set; } = false;
 
-    public ConfigFileWrapper SetUserFolderFilePath(string fileName) {
+    public ConfigFileWrapper SetFilePathInUserFolder(string fileName) {
         return SetFilePath(AppTools.GetUserFile(fileName));
     }
 
@@ -49,13 +35,22 @@ public class ConfigFileWrapper {
         return this;
     }
 
-    public void SetValue<T>(string section, string property, T val) {
-        _configFile.SetTypedValue<T>(section, property, val);
+    public void SetValue<T>(string propertyWithSection, T val) {
+        _configFile.SetTypedValue(propertyWithSection, val);
         Dirty = true;
     }
 
-    public T GetValue<T>(string section, string property, T @default = default) {
-        return _configFile.GetValue(section, property, @default);
+    public void SetValue<T>(string section, string key, T val) {
+        _configFile.SetTypedValue(section, key, val);
+        Dirty = true;
+    }
+
+    public T GetValue<T>(string propertyWithSection, T @default) {
+        return _configFile.GetTypedValue(propertyWithSection, @default);
+    }
+
+    public T GetValue<T>(string section, string key, T @default) {
+        return _configFile.GetTypedValue(section, key, @default);
     }
 
     public string[] GetSections() => _configFile.GetSections();
@@ -111,6 +106,6 @@ public class ConfigFileWrapper {
     private void CheckFilePath() {
         if (FilePath == null)
             throw new ArgumentNullException(nameof(FilePath),
-                $"Consider call to {nameof(SetFilePath)} or {nameof(SetUserFolderFilePath)} methods first");
+                $"Consider call to {nameof(SetFilePath)} or {nameof(SetFilePathInUserFolder)} methods first");
     }
 }
