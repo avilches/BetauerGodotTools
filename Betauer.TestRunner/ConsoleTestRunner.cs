@@ -41,6 +41,7 @@ public class ConsoleTestRunner {
         } else {
             Red($"┌─────────────────────────────────────────────────────────────────────────────────");
             Red($"│ {GetTestMethodLine(testReport, testMethod)}: Failed ({testMethod.Stopwatch.ElapsedMilliseconds}ms)");
+            Red($"│ [Error: #{testReport.TestsFailed}/?]");
             Red($"| {testMethod.Exception.GetType()}");
             RedIndent(testMethod.Exception.Message.Split("\n"));
             var line = testMethod.Exception.StackTrace.Split("\n").ToList().Find(it => it.Contains(testMethod.TestClass.Type.Name));
@@ -60,8 +61,8 @@ public class ConsoleTestRunner {
 
             var x = 1;
             testReport.TestsFailedResults.ForEach(testMethod => {
+                Red($"│ {GetTestMethodLine(testReport, testMethod)}: Failed");
                 Red($"│ [Error: #{x}/{testReport.TestsFailed}]");
-                Normal($"│  {GetTestMethodLine(testReport, testMethod)}: Failed");
                 Red($"| {testMethod.Exception.GetType()}");
                 RedIndent(testMethod.Exception.Message.Split("\n"));
                 var line = testMethod.Exception.StackTrace.Split("\n").ToList().Find(it => it.Contains(testMethod.TestClass.Type.Name));
@@ -76,9 +77,9 @@ public class ConsoleTestRunner {
                 x++;
             });
 
-            RedBanner($"Failed: {testReport.TestsFailed} / Passed: {testReport.TestsTotal} / Total: {testReport.TestsTotal}", $"Elapsed: {stopwatch.Elapsed.Seconds}s");
+            RedBanner($"{testReport.TestsFailed} failed, {testReport.TestsPassed} passed (of {testReport.TestsTotal} tests)", $"Elapsed: {stopwatch.Elapsed.Seconds}s");
         } else {
-            GreenBanner($"Passed: {testReport.TestsPassed} :-)", $"Elapsed: {stopwatch.Elapsed.Seconds}s");
+            GreenBanner($"{testReport.TestsPassed} tests passed :-)", $"Time: {stopwatch.Elapsed.Seconds}s");
         }
     }
 
@@ -91,7 +92,7 @@ public class ConsoleTestRunner {
     }
 
     private static string GetTestMethodLine(TestReport testReport, TestRunner.TestMethod testMethod) {
-        var line = $"[Test: #{testMethod.Id}/{testReport.TestsTotal}] {testMethod.TestClass.Type.Name}.{testMethod.Name}";
+        var line = $"[Test : #{testMethod.Id}/{testReport.TestsTotal}] {testMethod.TestClass.Type.Name}.{testMethod.Name}";
         if (testMethod.Description != null) {
             line += " \"" + testMethod.Description + "\"";
         }
