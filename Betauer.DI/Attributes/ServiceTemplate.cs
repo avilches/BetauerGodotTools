@@ -3,7 +3,7 @@ using Betauer.DI.ServiceProvider;
 
 namespace Betauer.DI.Attributes;
 
-public class ProviderTemplate {
+public class ServiceTemplate {
     public Lifetime Lifetime { get; init; }
     public Type RegisterType { get; init; }
     public Type ProviderType { get; init; }

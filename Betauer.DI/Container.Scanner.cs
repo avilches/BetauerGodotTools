@@ -22,7 +22,7 @@ public partial class Container {
 
         internal void ScanConfiguration(object configuration) {
             ScanForScanAttributes(configuration.GetType(), null);
-            ScanServicesFromConfigurationInstance(configuration);
+            ScanForServices(configuration);
         }
 
         internal void Scan(Type type, HashSet<Type>? stack) {
@@ -35,10 +35,10 @@ public partial class Container {
                 switch (attributes[i]) {
                     case BaseProviderAttribute providerAttributeFound when baseProviderAttribute != null:
                         throw new InvalidAttributeException(
-                            $"Can't use {FormatAttribute(providerAttributeFound)} and {FormatAttribute(baseProviderAttribute)} in the same class: {type.Name}");
+                            $"Can't use {providerAttributeFound.FormatAttribute()} and {baseProviderAttribute.FormatAttribute()} in the same class: {type.GetTypeName()}");
                     case BaseProviderAttribute providerAttributeFound when configurationAttribute != null:
                         throw new InvalidAttributeException(
-                            $"Can't use {FormatAttribute(providerAttributeFound)} and {FormatAttribute(configurationAttribute)} in the same class: {type.Name}");
+                            $"Can't use {providerAttributeFound.FormatAttribute()} and {configurationAttribute.FormatAttribute()} in the same class: {type.GetTypeName()}");
                     case BaseProviderAttribute providerAttributeFound:
                         baseProviderAttribute = providerAttributeFound;
                         break;
@@ -46,13 +46,13 @@ public partial class Container {
                         throw new InvalidAttributeException($"Duplicate [Configuration] attribute found in class {type.FullName}");
                     case ConfigurationAttribute configurationAttributeFound when baseProviderAttribute != null:
                         throw new InvalidAttributeException(
-                            $"Can't use {FormatAttribute(configurationAttributeFound)} and {FormatAttribute(baseProviderAttribute)} in the same class: {type.Name}");
+                            $"Can't use {configurationAttributeFound.FormatAttribute()} and {baseProviderAttribute.FormatAttribute()} in the same class: {type.GetTypeName()}");
                     case ConfigurationAttribute configurationAttributeFound:
                         configurationAttribute = configurationAttributeFound;
                         break;
                     case ScanAttribute scanAttributeFound when baseProviderAttribute != null:
                         throw new InvalidAttributeException(
-                            $"Can't use {FormatAttribute(scanAttributeFound)} and {FormatAttribute(baseProviderAttribute)} in the same class: {type.Name}");
+                            $"Can't use {scanAttributeFound.FormatAttribute()} and {baseProviderAttribute.FormatAttribute()} in the same class: {type.GetTypeName()}");
                 }
             }
 
@@ -61,36 +61,11 @@ public partial class Container {
             } else if (baseProviderAttribute is ServiceAttribute serviceAttribute) {
                 RegisterServiceFromClass(type, serviceAttribute);
             } else if (configurationAttribute != null) {
-                var configuration = Activator.CreateInstance(type);
-                ScanServicesFromConfigurationInstance(configuration!);
+                var configuration = Activator.CreateInstance(type)!;
                 ScanForScanAttributes(type, stack);
-                ScanForTemplates(type);
+                ScanForServices(configuration);
+                ScanForTemplateClass(configuration);
             } else if (type.HasAttribute<ScanAttribute>()) throw new InvalidAttributeException("[Scan] attributes are only valid with [Configuration]");
-        }
-
-        private void ScanForTemplates(Type type) {
-            type.GetAttributes<ServiceTemplateAttribute>().ForEach(serviceTemplateAttribute => RegisterServiceTemplate(serviceTemplateAttribute, type));
-            type.GetAttributes<FactoryTemplateAttribute>().ForEach(factoryTemplateAttribute => RegisterFactoryTemplate(factoryTemplateAttribute, type));
-        }
-
-        private void RegisterCustomFactoryFromClass(Type type, FactoryAttribute factoryAttribute) {
-            var iFactoryInterface = type.GetInterfaces()
-                .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IFactory<>));
-            if (!type.IsClass || iFactoryInterface == null) {
-                throw new InvalidAttributeException(
-                    $"Class {type.FullName} with factory attribute {FormatAttribute(factoryAttribute)} must be a class and implements IFactory<T>");
-            }
-
-            object Factory() => Activator.CreateInstance(type)!;
-            _builder.RegisterCustomFactory(type, factoryAttribute.Lifetime, Factory, factoryAttribute.Name, factoryAttribute.Primary);
-        }
-
-        private void RegisterServiceFromClass(Type type, ServiceAttribute serviceAttribute) {
-            var registeredType = serviceAttribute.GetType().GetGenericArguments().FirstOrDefault() ?? type;
-            var lazy = serviceAttribute is SingletonAttribute { Lazy: true };
-            object Factory() => Activator.CreateInstance(type)!;
-            _builder.RegisterServiceAndAddFactory(registeredType, type, serviceAttribute.Lifetime, Factory, serviceAttribute.Name, serviceAttribute.Primary,
-                lazy);
         }
 
         private void ScanForScanAttributes(Type type, HashSet<Type>? stack) {
@@ -103,17 +78,59 @@ public partial class Container {
             }
         }
 
-        private void ScanServicesFromConfigurationInstance(object configuration) {
+        private void ScanForServices(object configuration) {
             const BindingFlags bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
             // The scan include Fields, but only the FactoryTemplateAttribute and ServiceTemplateAttribute are allowed on fields
             const MemberTypes memberFlags = MemberTypes.Method | MemberTypes.Property | MemberTypes.Field;
 
             // No need cache getters, this reflection scan is only done once
             var serviceGetters = configuration.GetType().GetGetters<ServiceAttribute>(memberFlags, bindingFlags);
-            foreach (var getter in serviceGetters) RegisterServiceFromGetter(configuration, getter);
+            foreach (var getter in serviceGetters) {
+                if (getter.MemberInfo.HasAttribute<FactoryAttribute>() || getter.MemberInfo.HasAttribute<MemberTemplateAttribute>()) throw new InvalidAttributeException("WRONG");
+                RegisterServiceFromGetter(configuration, getter);
+            }
 
             var factoryGetters = configuration.GetType().GetGetters<FactoryAttribute>(memberFlags, bindingFlags);
-            foreach (var getter in factoryGetters) RegisterFactoryFromGetter(configuration, getter);
+            foreach (var getter in factoryGetters) {
+                if (getter.MemberInfo.HasAttribute<ServiceAttribute>() || getter.MemberInfo.HasAttribute<MemberTemplateAttribute>()) throw new InvalidAttributeException("WRONG");
+                RegisterFactoryFromGetter(configuration, getter);
+            }
+
+            var templateGetters = configuration.GetType().GetGetters<MemberTemplateAttribute>(memberFlags, bindingFlags);
+            foreach (var getter in templateGetters) {
+                if (getter.MemberInfo.HasAttribute<FactoryAttribute>() || getter.MemberInfo.HasAttribute<ServiceAttribute>()) throw new InvalidAttributeException("WRONG");
+                if (getter.GetterAttribute is ServiceTemplateAttribute) {
+                    RegisterServiceTemplate(getter, configuration);
+                } else if (getter.GetterAttribute is FactoryTemplateAttribute) {
+                    RegisterFactoryTemplate(getter, configuration);
+                }
+            }
+        }
+
+        private void ScanForTemplateClass(object configuration) {
+            var type = configuration.GetType();
+            type.GetAttributes<ServiceTemplateClassAttribute>().ForEach(serviceTemplateAttribute => RegisterServiceTemplateClass(serviceTemplateAttribute, configuration));
+            type.GetAttributes<FactoryTemplateClassAttribute>().ForEach(factoryTemplateAttribute => RegisterFactoryTemplateClass(factoryTemplateAttribute, configuration));
+        }
+
+        private void RegisterCustomFactoryFromClass(Type type, FactoryAttribute factoryAttribute) {
+            var iFactoryInterface = type.GetInterfaces()
+                .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IFactory<>));
+            if (!type.IsClass || iFactoryInterface == null) {
+                throw new InvalidAttributeException(
+                    $"Class {type.FullName} with factory attribute {factoryAttribute.FormatAttribute()} must be a class and implements IFactory<T>");
+            }
+
+            object Factory() => Activator.CreateInstance(type)!;
+            _builder.RegisterCustomFactory(type, factoryAttribute.Lifetime, Factory, factoryAttribute.Name, factoryAttribute.Primary);
+        }
+
+        private void RegisterServiceFromClass(Type type, ServiceAttribute serviceAttribute) {
+            var registeredType = serviceAttribute.GetType().GetGenericArguments().FirstOrDefault() ?? type;
+            var lazy = serviceAttribute is SingletonAttribute { Lazy: true };
+            object Factory() => Activator.CreateInstance(type)!;
+            _builder.RegisterServiceAndAddFactory(registeredType, type, serviceAttribute.Lifetime, Factory, serviceAttribute.Name, serviceAttribute.Primary,
+                lazy);
         }
 
         private void RegisterServiceFromGetter(object configuration, IGetter<ServiceAttribute> getter) {
@@ -129,7 +146,7 @@ public partial class Container {
         private void RegisterFactoryFromGetter(object configuration, IGetter<FactoryAttribute> getter) {
             var attributeType = getter.GetterAttribute.GetType();
             if (!getter.Type.ImplementsInterface(typeof(IFactory<>)))
-                throw new InvalidAttributeException($"Member {getter} with factory attribute {FormatAttribute(attributeType)} must implement IFactory<T>");
+                throw new InvalidAttributeException($"Member {getter} with factory attribute {attributeType.FormatAttribute()} must implement IFactory<T>");
 
             var factoryAttribute = getter.GetterAttribute;
             var name = factoryAttribute.Name ?? getter.Name;
@@ -137,24 +154,28 @@ public partial class Container {
             _builder.RegisterCustomFactory(getter.Type, factoryAttribute.Lifetime, Factory, name, factoryAttribute.Primary);
         }
 
-        private void RegisterServiceTemplate(ServiceTemplateAttribute templateAttribute, MemberInfo memberInfo) {
-            ProviderTemplate template = templateAttribute.CreateProviderTemplate(memberInfo);
+        private void RegisterServiceTemplateClass(ServiceTemplateClassAttribute templateClassAttribute, object configuration) {
+            ServiceTemplate template = templateClassAttribute.CreateServiceTemplate(configuration);
             _builder.RegisterServiceAndAddFactory(template.RegisterType, template.ProviderType, template.Lifetime,
                 template.Factory, template.Name, template.Primary, template.Lazy);
         }
 
-        private void RegisterFactoryTemplate(FactoryTemplateAttribute templateAttribute, MemberInfo memberInfo) {
-            FactoryTemplate template = templateAttribute.CreateFactoryTemplate(memberInfo);
+        private void RegisterFactoryTemplateClass(FactoryTemplateClassAttribute templateClassAttribute, object configuration) {
+            FactoryTemplate template = templateClassAttribute.CreateFactoryTemplate(configuration);
             _builder.RegisterCustomFactory(template.FactoryType, template.Lifetime, template.Factory, template.Name, template.Primary);
         }
 
-        private static string FormatAttribute(Attribute att) {
-            return FormatAttribute(att.GetType());
+        private void RegisterServiceTemplate(IGetter<MemberTemplateAttribute> getter, object configuration) {
+            var templateAttribute = (ServiceTemplateAttribute)getter.GetterAttribute;
+            ServiceTemplate template = templateAttribute.CreateServiceTemplate(configuration, getter);
+            _builder.RegisterServiceAndAddFactory(template.RegisterType, template.ProviderType, template.Lifetime,
+                template.Factory, template.Name, template.Primary, template.Lazy);
         }
 
-        private static string FormatAttribute(Type type) {
-            var name = type.Name;
-            return $"[{name.Remove(name.LastIndexOf("Attribute", StringComparison.Ordinal))}]";
+        private void RegisterFactoryTemplate(IGetter<MemberTemplateAttribute> getter, object configuration) {
+            var templateAttribute = (FactoryTemplateAttribute)getter.GetterAttribute;
+            FactoryTemplate template = templateAttribute.CreateFactoryTemplate(configuration, getter);
+            _builder.RegisterCustomFactory(template.FactoryType, template.Lifetime, template.Factory, template.Name, template.Primary);
         }
     }
 }
