@@ -2,7 +2,7 @@ using System;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace Betauer.Tools.Reflection; 
+namespace Betauer.Tools.Reflection.FastImpl; 
 
 public class FieldFastGetter : IGetter {
     private readonly Func<object?, object> _getValue;
@@ -13,6 +13,7 @@ public class FieldFastGetter : IGetter {
         MemberInfo = fieldInfo;
         Type = fieldInfo.FieldType;
         Name = fieldInfo.Name;
+        DeclaringType = fieldInfo.DeclaringType;
         _getValue = CreateLambdaGetter(fieldInfo);
 #if DEBUG
         _toString = $"Field: {(fieldInfo.IsPrivate ? "private " : "public ")}{Type.GetTypeName()} {Name};";
@@ -23,6 +24,7 @@ public class FieldFastGetter : IGetter {
     public string Name { get; }
     public MemberInfo MemberInfo { get; }
     public FieldInfo FieldInfo { get; }
+    public Type DeclaringType { get; }
 
     public object? GetValue(object instance) {
         return _getValue(instance);

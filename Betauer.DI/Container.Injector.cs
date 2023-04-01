@@ -66,7 +66,7 @@ public partial class Container {
                 return;
             }
             if (!nullable) {
-                throw new InjectMemberException(setter.Name, target, $"Service type {setter.Type.GetTypeName()} not found when trying to inject {setter} in {target.GetType().GetTypeName()} ({target.GetHashCode():x8})");
+                throw new InjectMemberException(setter.Name, target, $"Service type {setter.Type.GetTypeName()} {(name != null?"Name:"+name:"")}) not found when trying to inject {setter} in {target.GetType().GetTypeName()} ({target.GetHashCode():x8})");
             }
         }
 

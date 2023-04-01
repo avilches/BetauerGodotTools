@@ -2,7 +2,7 @@ using System;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace Betauer.Tools.Reflection; 
+namespace Betauer.Tools.Reflection.FastImpl; 
 
 public class PropertyFastGetter : IGetter {
     private readonly Func<object, object> _getValue;
@@ -15,6 +15,7 @@ public class PropertyFastGetter : IGetter {
         MemberInfo = propertyInfo;
         Type = propertyInfo.PropertyType;
         Name = propertyInfo.Name;
+        DeclaringType = propertyInfo.DeclaringType;
         _getValue = CreateLambdaGetter(propertyInfo);
 #if DEBUG
         _toString = "Property: " + Type.GetTypeName() + " " + Name +
@@ -29,6 +30,7 @@ public class PropertyFastGetter : IGetter {
     public string Name { get; }
     public MemberInfo MemberInfo { get; }
     public PropertyInfo PropertyInfo { get; }
+    public Type DeclaringType { get; }
 
     public object? GetValue(object instance) {
         return _getValue(instance);

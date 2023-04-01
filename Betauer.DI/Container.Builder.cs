@@ -5,6 +5,7 @@ using System.Reflection;
 using Betauer.Core;
 using Betauer.DI.Factory;
 using Betauer.DI.ServiceProvider;
+using Betauer.Tools.Reflection;
 
 namespace Betauer.DI;
 
@@ -35,30 +36,33 @@ public partial class Container {
             _pendingToBuild.Add(provider);
             return this;
         }
-    
+
         public Builder RegisterServiceAndAddFactory(Type registeredType, Type providerType, Lifetime lifetime, Func<object> factory, string? name = null, bool primary = false, bool lazy = false) {
             // Register the regular instance factory so using Resolve<T>() or Resolve<T>(name) will create new instances, injecting dependencies.
             var providerFactory = Provider.Create(registeredType, providerType, lifetime, factory, name, primary, lazy);
             Register(providerFactory);
-    
+            return RegisterFactoryFromProvider(providerFactory);
+        }
+        
+        public Builder RegisterFactoryFromProvider(IProvider providerFactory) {
             // Register the factory as IFactory<> so the user can get the real factory using Resolve<IFactory<T>>() or
             // Resolve<IFactory<T>>("Factory:"+name) and then call to Get() which returns new instances, injecting dependencies.
-            Type factoryType = typeof(IFactory<>).MakeGenericType(providerType);
-            var factoryName = name == null ? null : $"Factory:{name}";
-            object CustomFactory() => FactoryTools.CreateIFactoryFromProvider(providerType, providerFactory);
-            Register(Provider.Create(factoryType, factoryType, Lifetime.Singleton, CustomFactory, factoryName, primary, true));
+            Type factoryType = typeof(IFactory<>).MakeGenericType(providerFactory.ProviderType);
+            var factoryName = providerFactory.Name == null ? null : $"Factory:{providerFactory.Name}";
+            object CustomFactory() => FactoryTools.CreateIFactoryFromProvider(providerFactory.ProviderType, providerFactory);
+            Register(Provider.Create(factoryType, factoryType, Lifetime.Singleton, CustomFactory, factoryName, providerFactory.Primary, true));
             return this;
         }
 
         private interface IHiddenFactory<T> : IFactory<T> where T : class { }
 
-        public Builder RegisterCustomFactory<T>(Func<T> customFactory, string? name = null, Lifetime lifetime = Lifetime.Singleton, bool primary = false) {
-            return RegisterCustomFactory(typeof(T), lifetime, () => customFactory(), name, primary);
+        public Builder RegisterFactory<T>(Func<T> customFactory, string? name = null, Lifetime lifetime = Lifetime.Singleton, bool primary = false) {
+            return RegisterFactory(typeof(T), lifetime, () => customFactory(), name, primary);
         }
 
-        public Builder RegisterCustomFactory(Type factoryType, Lifetime lifetime, Func<object> customFactory, string? name = null, bool primary = false) {
+        public Builder RegisterFactory(Type factoryType, Lifetime lifetime, Func<object> customFactory, string? name = null, bool primary = false) {
             var type = FactoryTools.GetIFactoryGenericType(factoryType);
-            if (type == null) throw new InvalidCastException();
+            if (type == null) throw new InvalidCastException($"Factory {factoryType.GetTypeName()} must implement IFactory<T>");
 
             // Register the real factory, it can be accessed with
             // - Resolve<the factory type>() (only if the factory type is not IFactory<T>)

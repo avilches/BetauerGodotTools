@@ -1,4 +1,5 @@
 using System;
+using Betauer.DI;
 using Betauer.DI.Attributes;
 using Betauer.DI.Exceptions;
 using Betauer.DI.ServiceProvider;
@@ -7,7 +8,7 @@ using Betauer.Tools.Reflection;
 namespace Betauer.Application.Settings.Attributes;
 
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-public class SettingAttribute<T> : ServiceTemplateClassAttribute {
+public class SettingAttribute<T> : Attribute, IConfigurationClassAttribute {
     public string Name { get; set; }
     public string? SaveAs { get; set; }
     public T Default { get; set; }
@@ -24,27 +25,20 @@ public class SettingAttribute<T> : ServiceTemplateClassAttribute {
         SaveAs = saveAs;
     }
 
-    public override ServiceTemplate CreateServiceTemplate(object configuration) {
+    public void CreateProvider(object configuration, Container.Builder builder) {
         var settingConfiguration = configuration.GetType().GetAttribute<SettingsContainerAttribute>();
         if (settingConfiguration == null) {
             throw new InvalidAttributeException(
                 $"Attribute {typeof(SettingAttribute<T>).FormatAttribute()} needs to be used in a class with attribute {typeof(SettingsContainerAttribute).FormatAttribute()}");
         }
-        return new ServiceTemplate {
-            Lifetime = Lifetime.Singleton,
-            ProviderType = typeof(SaveSetting<T>),
-            RegisterType = typeof(SaveSetting<T>),
-            Factory = () => {
-                if (DefaultAsString != null) {
-                    Default = (T)Transformers.FromString(typeof(T), DefaultAsString);
-                }
-                SaveSetting<T> setting = Setting.Create(SaveAs ?? Name, Default, AutoSave, Enabled);
-                setting.PreInject(settingConfiguration.Name);
-                return setting;
-            },
-            Name = Name,
-            Primary = false,
-            Lazy = false,
+        Func<SaveSetting<T>> factory = () => {
+            if (DefaultAsString != null) {
+                Default = (T)Transformers.FromString(typeof(T), DefaultAsString);
+            }
+            SaveSetting<T> setting = Setting.Create(SaveAs ?? Name, Default, AutoSave, Enabled);
+            setting.PreInject(settingConfiguration.Name);
+            return setting;
         };
+        builder.RegisterServiceAndAddFactory(typeof(SaveSetting<T>), typeof(SaveSetting<T>), Lifetime.Singleton, factory, Name, false, false);
     }
 }

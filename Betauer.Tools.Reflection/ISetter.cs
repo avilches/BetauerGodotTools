@@ -8,6 +8,6 @@ public interface ISetter : IMember {
     bool CanSetValue(object instance) => Type.IsInstanceOfType(instance);
 }
 
-public interface ISetter<out T> : ISetter where T : Attribute {
+public interface ISetter<out T> : ISetter {
     public T SetterAttribute { get; }
 }

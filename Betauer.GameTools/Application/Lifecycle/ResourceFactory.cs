@@ -6,6 +6,9 @@ using Godot;
 
 namespace Betauer.Application.Lifecycle;
 
+
+// TODO: TESTS!!
+
 public abstract class ResourceFactory : IInjectable {
     public const string DefaultTag = "(default)";
 

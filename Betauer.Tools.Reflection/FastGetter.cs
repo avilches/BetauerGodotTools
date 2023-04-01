@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using Betauer.Tools.Reflection.FastImpl;
 
 namespace Betauer.Tools.Reflection; 
 
@@ -19,6 +20,7 @@ public class FastGetter : IGetter {
     public Type Type => Getter.Type;
     public string Name => Getter.Name;
     public MemberInfo MemberInfo => Getter.MemberInfo;
+    public Type DeclaringType => Getter.DeclaringType;
 
     public object? GetValue(object instance) {
         return Getter.GetValue(instance);
@@ -35,7 +37,7 @@ public class FastGetter : IGetter {
     }
 }
 
-public class FastGetter<T> : FastGetter, IGetter<T> where T : Attribute {
+public class FastGetter<T> : FastGetter, IGetter<T> {
     public FastGetter(MemberInfo memberInfo, T attribute) : base(memberInfo) {
         GetterAttribute = attribute;
     }

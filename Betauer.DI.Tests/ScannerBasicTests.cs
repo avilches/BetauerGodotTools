@@ -10,7 +10,7 @@ using NUnit.Framework;
 
 namespace Betauer.DI.Tests; 
 
-[TestRunner.Test]
+[TestRunner.Test(Only = true)]
 public class ScannerBasicTests : Node {
     [SetUpClass]
     public void Setup() {
@@ -44,12 +44,12 @@ public class ScannerBasicTests : Node {
     }
 
     [Singleton]
-    [Scan]
+    [Scan<WrongCombination21>()]
     public class WrongCombination21 {
     }
 
     [Transient]
-    [Scan]
+    [Scan<WrongCombination21>()]
     public class WrongCombination22 {
     }
 
@@ -69,7 +69,7 @@ public class ScannerBasicTests : Node {
     }
 
     [Attributes.Factory.Singleton]
-    [Scan]
+    [Scan<WrongCombination21>()]
     public class WrongCombination51 {
     }
 
@@ -89,7 +89,7 @@ public class ScannerBasicTests : Node {
     }
 
     [Attributes.Factory.Transient]
-    [Scan]
+    [Scan<WrongCombination21>()]
     public class WrongCombination5 {
     }
 
@@ -103,8 +103,17 @@ public class ScannerBasicTests : Node {
     public class WrongCombination72 {
     }
 
-    [Scan]
+    [Scan<WrongCombination21>()]
     public class WrongCombination6 {
+    }
+
+    [ConfigClassWithoutConfiguration()]
+    public class WrongCombination8 {
+    }
+
+    public class ConfigClassWithoutConfiguration : Attribute, IConfigurationClassAttribute {
+        public void CreateProvider(object configuration, Container.Builder builder) {
+        }
     }
 
     [TestRunner.Test(Description = "Wrong combination of attributes")]
@@ -123,6 +132,7 @@ public class ScannerBasicTests : Node {
         Assert.Throws<InvalidAttributeException>(() => new Container.Builder().Scan<WrongCombination6>());
         Assert.Throws<InvalidAttributeException>(() => new Container.Builder().Scan<WrongCombination71>());
         Assert.Throws<InvalidAttributeException>(() => new Container.Builder().Scan<WrongCombination72>());
+        Assert.Throws<InvalidAttributeException>(() => new Container.Builder().Scan<WrongCombination8>());
     }
 
     [Singleton]
@@ -243,7 +253,7 @@ public class ScannerBasicTests : Node {
     public class ExposeServiceClass3 : INotTagged {
     }
 
-    [TestRunner.Test(Description = "Name or type")]
+    [TestRunner.Test(Description = "Name or type")]    
     public void NameOrTypeClass() {
         var di = new Container.Builder();
         di.Scan<ExposeServiceClass1>();
@@ -577,7 +587,6 @@ public class ScannerBasicTests : Node {
 
     [Configuration]
     public class SingletonHolder {
-
         // Property
         [Singleton]
         private Hold SingletonHold1 => new Hold("1");

@@ -1,7 +1,7 @@
 using System;
 using System.Reflection;
 
-namespace Betauer.Tools.Reflection; 
+namespace Betauer.Tools.Reflection.FastImpl; 
 
 public class MethodFastSetter : ISetter {
     private readonly FastMethodInfo _fastMethodInfo;
@@ -15,6 +15,7 @@ public class MethodFastSetter : ISetter {
         MemberInfo = methodInfo;
         Type = methodInfo.GetParameters()[0].ParameterType;
         Name = methodInfo.Name;
+        DeclaringType = methodInfo.DeclaringType;
         _fastMethodInfo = new FastMethodInfo(methodInfo);
         _setValue = (instance, value) => _fastMethodInfo.Invoke(instance, value);
 #if DEBUG
@@ -26,6 +27,7 @@ public class MethodFastSetter : ISetter {
     public string Name { get; }
     public MemberInfo MemberInfo { get; }
     public MethodInfo MethodInfo { get; }
+    public Type DeclaringType { get; }
 
     public void SetValue(object instance, object? value) {
         _setValue(instance, value);

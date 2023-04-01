@@ -2,7 +2,7 @@ using System;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace Betauer.Tools.Reflection; 
+namespace Betauer.Tools.Reflection.FastImpl; 
 
 public class FieldFastSetter : ISetter {
     private readonly Action<object, object?> _setValue;
@@ -15,6 +15,7 @@ public class FieldFastSetter : ISetter {
         MemberInfo = fieldInfo;
         Type = fieldInfo.FieldType;
         Name = fieldInfo.Name;
+        DeclaringType = fieldInfo.DeclaringType;
         _setValue = CreateLambdaSetter(fieldInfo);
 #if DEBUG
         _toString = $"Field: {(fieldInfo.IsPrivate ? "private " : "public ")}{Type.GetTypeName()} {Name};";
@@ -25,6 +26,7 @@ public class FieldFastSetter : ISetter {
     public string Name { get; }
     public MemberInfo MemberInfo { get; }
     public FieldInfo FieldInfo { get; }
+    public Type DeclaringType { get; }
 
     public void SetValue(object instance, object? value) {
         _setValue(instance, value);

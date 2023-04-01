@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Betauer.Tools.Reflection.FastImpl;
 
 namespace Betauer.Tools.Reflection; 
 
@@ -23,26 +24,25 @@ public static class TypeExtensions {
 
     private static readonly Dictionary<(Type, Type, MemberTypes, BindingFlags), object> Cache = new();
 
-    public static IEnumerable<FastMethodInfo> GetMethods<T>(this Type type, BindingFlags bindingAttr, Predicate<MethodInfo> filter) where T : Attribute {
+    public static IEnumerable<FastMethodInfo> GetMethods<T>(this Type type, BindingFlags bindingAttr, Predicate<MethodInfo> filter) {
         return type.GetMethods(bindingAttr)
             .Where(info => filter(info) && info.HasAttribute<T>())
             .Select(info => new FastMethodInfo(info));
     }
 
-    public static List<ISetter<T>> GetSettersCached<T>(this Type type, MemberTypes memberFlags, BindingFlags bindingAttr) where T : Attribute {
+    public static List<ISetter<T>> GetSettersCached<T>(this Type type, MemberTypes memberFlags, BindingFlags bindingAttr) where T : class {
         var key = (typeof(ISetter<T>), type, memberFlags, bindingAttr);
         if (Cache.TryGetValue(key, out var result)) return (List<ISetter<T>>)result;
         return (List<ISetter<T>>)(Cache[key] = type.GetSetters<T>(memberFlags, bindingAttr));
     }
 
-    public static List<ISetter<T>> GetGettersCached<T>(this Type type, MemberTypes memberFlags, BindingFlags bindingAttr) where T : Attribute {
+    public static List<ISetter<T>> GetGettersCached<T>(this Type type, MemberTypes memberFlags, BindingFlags bindingAttr) where T : class {
         var key = (typeof(ISetter<T>), type, memberFlags, bindingAttr);
         if (Cache.TryGetValue(key, out var result)) return (List<ISetter<T>>)result;
         return (List<ISetter<T>>)(Cache[key] = type.GetGetters<T>(memberFlags, bindingAttr));
     }
 
-    public static List<ISetter<T>> GetSetters<T>(this Type type, MemberTypes memberFlags, BindingFlags bindingAttr)
-        where T : Attribute {
+    public static List<ISetter<T>> GetSetters<T>(this Type type, MemberTypes memberFlags, BindingFlags bindingAttr) where T : class {
         var e = Enumerable.Empty<MemberInfo>();
         e = ConcatFields(e, type, memberFlags, bindingAttr);
         e = ConcatProperties(e, type, memberFlags, bindingAttr);
@@ -56,8 +56,7 @@ public static class TypeExtensions {
         return setters;
     }
 
-    public static List<IGetter<T>> GetGetters<T>(this Type type, MemberTypes memberFlags, BindingFlags bindingAttr)
-        where T : Attribute {
+    public static List<IGetter<T>> GetGetters<T>(this Type type, MemberTypes memberFlags, BindingFlags bindingAttr) where T : class {
         var e = Enumerable.Empty<MemberInfo>();
         e = ConcatFields(e, type, memberFlags, bindingAttr);
         e = ConcatProperties(e, type, memberFlags, bindingAttr);
@@ -107,7 +106,9 @@ public static class TypeExtensions {
 
     public static string FormatAttribute(this Type type) {
         var name = type.GetTypeName();
-        return $"[{name.Remove(name.LastIndexOf("Attribute", StringComparison.Ordinal))}]";
+        var lastIndexOf = name.LastIndexOf("Attribute", StringComparison.Ordinal);
+        if (lastIndexOf > 0) name = name.Remove(lastIndexOf);
+        return $"[{name}]";
     }
 
     

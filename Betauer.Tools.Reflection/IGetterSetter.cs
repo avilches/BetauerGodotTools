@@ -11,6 +11,6 @@ public interface IGetterSetter : IMember {
     bool CanSetValue(object instance) => Type.IsInstanceOfType(instance);
 }
 
-public interface IGetterSetter<out T> : IGetter<T>, ISetter<T> where T : Attribute {
+public interface IGetterSetter<out T> : IGetter<T>, ISetter<T> {
     public T Attribute { get; }
 }

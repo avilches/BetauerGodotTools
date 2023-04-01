@@ -2,11 +2,12 @@ using System;
 using Betauer.DI.Attributes;
 using Betauer.DI.ServiceProvider;
 using Godot;
+using Container = Betauer.DI.Container;
 
 namespace Betauer.Application.Lifecycle.Attributes;
 
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-public class PreloadAttribute<T> : ServiceTemplateClassAttribute where T : Resource {
+public class PreloadAttribute<T> : Attribute, IConfigurationClassAttribute where T : Resource {
     public string? Name { get; set; }
     public string Path { get; set; }
     public bool Lazy { get; set; }
@@ -17,15 +18,11 @@ public class PreloadAttribute<T> : ServiceTemplateClassAttribute where T : Resou
         Lazy = lazy;
     }
 
-    public override ServiceTemplate CreateServiceTemplate(object configuration) {
-        return new ServiceTemplate {
-            Lifetime = Lifetime.Singleton,
-            ProviderType = typeof(T),
-            RegisterType = typeof(T),
-            Factory = () => ResourceLoader.Load<T>(Path),
-            Name = Name,
-            Primary = false,
-            Lazy = false,
-        };
+    public void CreateProvider(object configuration, Container.Builder builder) {
+        Func<T> factory = () => ResourceLoader.Load<T>(Path);
+        builder.RegisterServiceAndAddFactory(typeof(T), typeof(T),
+            Lifetime.Singleton,
+            factory,
+            Name, false, false);
     }
 }

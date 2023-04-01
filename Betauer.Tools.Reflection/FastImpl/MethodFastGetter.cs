@@ -1,7 +1,7 @@
 using System;
 using System.Reflection;
 
-namespace Betauer.Tools.Reflection; 
+namespace Betauer.Tools.Reflection.FastImpl; 
 
 public class MethodFastGetter : IGetter {
     private readonly FastMethodInfo _fastMethodInfo;
@@ -15,6 +15,7 @@ public class MethodFastGetter : IGetter {
         MemberInfo = methodInfo;
         Type = methodInfo.ReturnType;
         Name = methodInfo.Name;
+        DeclaringType = methodInfo.DeclaringType;
         _fastMethodInfo = new FastMethodInfo(methodInfo);
         _getValue = instance => _fastMethodInfo.Invoke(instance);
 #if DEBUG
@@ -26,6 +27,7 @@ public class MethodFastGetter : IGetter {
     public string Name { get; }
     public MemberInfo MemberInfo { get; }
     public MethodInfo MethodInfo { get; }
+    public Type DeclaringType { get; }
 
     public object? GetValue(object instance) {
         return _getValue(instance);

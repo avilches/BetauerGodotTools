@@ -2,9 +2,9 @@ using System;
 
 namespace Betauer.DI.Attributes;
 
-[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-public class ScanAttribute : Attribute {
+public abstract class ScanAttribute : Attribute {
 }
 
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
 public class ScanAttribute<T> : ScanAttribute {
 }

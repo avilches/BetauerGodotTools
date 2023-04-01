@@ -42,7 +42,7 @@ public class ScannerFactoryTests : Node {
     public void FactoryWrongType3() {
         var c = new Container();
         var di = c.CreateBuilder();
-        Assert.Throws<InvalidCastException>(() => di.RegisterCustomFactory(typeof(MyService), Lifetime.Singleton, () => new object()));
+        Assert.Throws<InvalidCastException>(() => di.RegisterFactory(typeof(MyService), Lifetime.Singleton, () => new object()));
     }
 
     [Configuration]
@@ -416,8 +416,8 @@ public class ScannerFactoryTests : Node {
         Element2Factory.Instances = 0;
         var c = new Container();
         var di = c.CreateBuilder();
-        di.RegisterCustomFactory(() => new Element1Factory(), "E1");
-        di.RegisterCustomFactory(() => new Element2Factory(), "E2");
+        di.RegisterFactory(() => new Element1Factory(), "E1");
+        di.RegisterFactory(() => new Element2Factory(), "E2");
         di.Build();
 
         Assert.That(c.Resolve<Element>("E1").Type, Is.EqualTo(1));
@@ -460,8 +460,8 @@ public class ScannerFactoryTests : Node {
         var di = c.CreateBuilder();
         // *******************************
         // This is the difference: the real factory type is hidden 
-        di.RegisterCustomFactory(typeof(IFactory<Element>), Lifetime.Singleton, () => new Element1Factory(), "E1");
-        di.RegisterCustomFactory(typeof(IFactory<Element>), Lifetime.Singleton, () => new Element2Factory(), "E2");
+        di.RegisterFactory(typeof(IFactory<Element>), Lifetime.Singleton, () => new Element1Factory(), "E1");
+        di.RegisterFactory(typeof(IFactory<Element>), Lifetime.Singleton, () => new Element2Factory(), "E2");
         // *******************************
         di.Build();
 
@@ -503,8 +503,8 @@ public class ScannerFactoryTests : Node {
         Element2Factory.Instances = 0;
         var c = new Container();
         var di = c.CreateBuilder();
-        di.RegisterCustomFactory(() => new Element1Factory(), "E1", Lifetime.Transient);
-        di.RegisterCustomFactory(() => new Element2Factory(), "E2", Lifetime.Transient, true);
+        di.RegisterFactory(() => new Element1Factory(), "E1", Lifetime.Transient);
+        di.RegisterFactory(() => new Element2Factory(), "E2", Lifetime.Transient, true);
         di.Build();
         
         // no name = type 2 (because primary)

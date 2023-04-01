@@ -2,7 +2,7 @@ using System;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace Betauer.Tools.Reflection; 
+namespace Betauer.Tools.Reflection.FastImpl; 
 
 public class PropertyFastSetter : ISetter {
     private readonly Action<object, object> _setValue;
@@ -15,6 +15,7 @@ public class PropertyFastSetter : ISetter {
         MemberInfo = propertyInfo;
         Type = propertyInfo.PropertyType;
         Name = propertyInfo.Name;
+        DeclaringType = propertyInfo.DeclaringType;
         _setValue = CreateLambdaSetter(propertyInfo);
 #if DEBUG
         _toString = "Property: " + Type.GetTypeName() + " " + Name +
@@ -29,6 +30,7 @@ public class PropertyFastSetter : ISetter {
     public string Name { get; }
     public MemberInfo MemberInfo { get; }
     public PropertyInfo PropertyInfo { get; }
+    public Type DeclaringType { get; }
 
     public void SetValue(object instance, object? value) {
         _setValue(instance, value);
