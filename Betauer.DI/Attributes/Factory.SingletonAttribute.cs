@@ -18,7 +18,6 @@ public static partial class Factory {
         }
 
         public void CreateProvider(Type type, Container.Builder builder) {
-            AttributeTools.ValidateDuplicates<ScanAttribute, TransientAttribute, Betauer.DI.Attributes.TransientAttribute, Betauer.DI.Attributes.SingletonAttribute>(type, this);
             builder.RegisterFactory(type, Lifetime.Singleton, () => Activator.CreateInstance(type), Name, Primary);
         }
 

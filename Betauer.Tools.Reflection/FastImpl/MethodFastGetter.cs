@@ -19,7 +19,7 @@ public class MethodFastGetter : IGetter {
         _fastMethodInfo = new FastMethodInfo(methodInfo);
         _getValue = instance => _fastMethodInfo.Invoke(instance);
 #if DEBUG
-        _toString = $"Method: {(methodInfo.IsPrivate ? "private" : "public")} {methodInfo.ReturnType.GetTypeName()} {Name}()";
+        _toString = $"{(methodInfo.IsPrivate ? "private" : "public")} {methodInfo.ReturnType.GetTypeName()} {Name}()";
 #endif
     }
 

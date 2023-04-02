@@ -24,6 +24,8 @@ public partial class Container {
 
     private readonly BasicPool<ResolveContext> _resolveContextPool;
     private ResolveContext GetResolveContext() => _resolveContextPool.Get();
+
+    private bool _busy = false;
     
     public Container() {
         _injector = new Injector(this);
@@ -45,25 +47,31 @@ public partial class Container {
     public Builder CreateBuilder() => new Builder(this);
 
     public Container Build(ICollection<IProvider> providers) {
+        if (_busy) throw new InvalidOperationException("Container is busy");
+        _busy = true;
         var context = GetResolveContext();
         providers
-            .ForEach(provider => AddToRegistry(provider));
+            .ForEach(AddToRegistry);
         providers
             .Where(provider => provider is ISingletonProvider { Lazy: false, IsInstanceCreated: false })
             .ForEach(provider => {
-                Logger.Debug($"Initializing {provider.Lifetime}:{provider.ProviderType.GetTypeName()} | Name: {provider.Name}");
+                Logger.Debug($"Initializing non lazy {Lifetime.Singleton}:{provider.ProviderType.GetTypeName()} | Name: \"{provider.Name}\"");
                 provider.Resolve(context);
             });
         context.End();
+        _busy = false;
         return this;
     }
 
     public void Add(IProvider provider) {
+        if (_busy) throw new InvalidOperationException("Container is busy");
+        _busy = true;
         AddToRegistry(provider);
         if (provider is ISingletonProvider { Lazy: false, IsInstanceCreated: false }) {
-            Logger.Debug($"Initializing {provider.Lifetime}:{provider.ProviderType.GetTypeName()} | Name: {provider.Name}");
+            Logger.Debug($"Initializing non lazy {Lifetime.Singleton}:{provider.ProviderType.GetTypeName()} | Name: \"{provider.Name}\"");
             provider.Get();
         }
+        _busy = false;
     }
     /// <summary>
     /// Register by type only always overwrite. That means register the same type twice will not fail: the second
@@ -81,14 +89,14 @@ public partial class Container {
                 _registryByName[name] = provider;
                 if (provider.Primary || !_fallbackByType.ContainsKey(provider.RegisterType)) {
                     _fallbackByType[provider.RegisterType] = provider;
-                    Logger.Debug($"Registered {provider.Lifetime}:{provider.ProviderType.GetTypeName()} | Name: {name} | Added fallback: {provider.RegisterType.GetTypeName()}");
+                    Logger.Debug($"Registered {provider.Lifetime}:{provider.ProviderType.GetTypeName()} | Name: \"{name}\" | Fallback type: {provider.RegisterType.GetTypeName()}");
                 } else {
-                    Logger.Debug($"Registered {provider.Lifetime}:{provider.ProviderType.GetTypeName()} | Name: {name}");
+                    Logger.Debug($"Registered {provider.Lifetime}:{provider.ProviderType.GetTypeName()} | Name: \"{name}\"");
                 }
         } else {
             if (_registry.ContainsKey(provider.RegisterType)) throw new DuplicateServiceException(provider.RegisterType);
             _registry[provider.RegisterType] = provider;
-            Logger.Debug($"Registered {provider.Lifetime}:{provider.ProviderType.GetTypeName()}. Name: {provider.RegisterType.GetTypeName()}");
+            Logger.Debug($"Registered {provider.Lifetime}:{provider.ProviderType.GetTypeName()} | Type: {provider.RegisterType.GetTypeName()}");
         }
         provider.Container = this;
     }

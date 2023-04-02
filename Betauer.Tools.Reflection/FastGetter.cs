@@ -43,4 +43,8 @@ public class FastGetter<T> : FastGetter, IGetter<T> {
     }
 
     public T GetterAttribute { get; }
+    
+    public override string ToString() {
+        return $"{GetterAttribute.GetType().FormatAttribute()} {Getter.ToString()}";
+    }
 }

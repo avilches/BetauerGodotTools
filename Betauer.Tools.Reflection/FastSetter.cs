@@ -43,4 +43,8 @@ public class FastSetter<T> : FastSetter, ISetter<T> {
     }
 
     public T SetterAttribute { get; }
+    
+    public override string ToString() {
+        return $"{SetterAttribute.GetType().FormatAttribute()} {Setter.ToString()}";
+    }
 }

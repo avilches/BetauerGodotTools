@@ -56,4 +56,8 @@ public class FastGetterSetter<T> : FastGetterSetter, IGetterSetter<T> {
     public T GetterAttribute { get; }
     public T SetterAttribute { get; }
 
+    public override string ToString() {
+        return $"{GetterAttribute.GetType().FormatAttribute()} {Getter.ToString()}";
+    }
+
 }

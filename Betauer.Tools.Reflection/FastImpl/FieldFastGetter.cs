@@ -16,7 +16,7 @@ public class FieldFastGetter : IGetter {
         DeclaringType = fieldInfo.DeclaringType;
         _getValue = CreateLambdaGetter(fieldInfo);
 #if DEBUG
-        _toString = $"Field: {(fieldInfo.IsPrivate ? "private " : "public ")}{Type.GetTypeName()} {Name};";
+        _toString = $"{(fieldInfo.IsPrivate ? "private " : "public ")}{Type.GetTypeName()} {Name};";
 #endif
     }
 

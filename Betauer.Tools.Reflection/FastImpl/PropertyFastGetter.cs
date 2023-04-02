@@ -18,7 +18,7 @@ public class PropertyFastGetter : IGetter {
         DeclaringType = propertyInfo.DeclaringType;
         _getValue = CreateLambdaGetter(propertyInfo);
 #if DEBUG
-        _toString = "Property: " + Type.GetTypeName() + " " + Name +
+        _toString = Type.GetTypeName() + " " + Name +
                     (propertyInfo.GetMethod.IsPrivate ? " { private" : " { public") + " get; " +
                     (propertyInfo.SetMethod != null
                         ? propertyInfo.SetMethod.IsPrivate ? "private set; }" : "public set; }"

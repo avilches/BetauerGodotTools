@@ -18,7 +18,7 @@ public class TransientFactoryProvider : Provider {
         context.TryStartTransient(RegisterType, Name); // This call could throw a CircularDependencyException
         var instance = _factory.Invoke();
         if (instance == null) throw new NullReferenceException($"Transient factory returned null for {RegisterType.GetTypeName()} {Name}");
-        Logger.Debug($"Creating {Lifetime.Transient}:{instance.GetType().GetTypeName()}. Name: {Name}. HashCode: {instance.GetHashCode():X}");
+        Logger.Debug($"Creating {Lifetime.Transient}:{instance.GetType().GetTypeName()}. Name: \"{Name}\". HashCode: {instance.GetHashCode():X}");
         context.PushTransient(instance);
         context.Container.InjectServices(Lifetime, instance, context);
         context.PopTransient();

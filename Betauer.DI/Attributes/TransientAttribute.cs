@@ -18,7 +18,6 @@ public class TransientAttribute : Attribute, IClassAttribute, IConfigurationMemb
     }
 
     public void CreateProvider(Type type, Container.Builder builder) {
-        AttributeTools.ValidateDuplicates<ScanAttribute, SingletonAttribute, Betauer.DI.Attributes.Factory.TransientAttribute, Betauer.DI.Attributes.Factory.SingletonAttribute>(type, this);
         builder.RegisterServiceAndAddFactory(
             GetType().IsGenericType ? GetType().GetGenericArguments()[0] : type, // Trick to get the <T> from TransientAttribute<T>
             type,

@@ -19,7 +19,6 @@ public class AxisActionAttribute : Attribute, IConfigurationMemberAttribute {
     }
 
     public void CreateProvider(object configuration, IGetter getter, Container.Builder builder) {
-        AttributeTools.ValidateDuplicates<IConfigurationMemberAttribute>(getter, this);
         var inputActionContainer = configuration.GetType().GetAttribute<InputActionsContainerAttribute>()!;
         if (inputActionContainer == null) {
             throw new InvalidAttributeException(

@@ -19,7 +19,7 @@ public class MethodFastSetter : ISetter {
         _fastMethodInfo = new FastMethodInfo(methodInfo);
         _setValue = (instance, value) => _fastMethodInfo.Invoke(instance, value);
 #if DEBUG
-        _toString = $"Method: {(methodInfo.IsPrivate ? "private" : "public")} void {Name}({Type.GetTypeName()} {methodInfo.GetParameters()[0].Name})";
+        _toString = $"{(methodInfo.IsPrivate ? "private" : "public")} void {Name}({Type.GetTypeName()} {methodInfo.GetParameters()[0].Name})";
 #endif
     }
 

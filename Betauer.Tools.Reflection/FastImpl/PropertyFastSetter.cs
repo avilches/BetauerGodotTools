@@ -18,7 +18,7 @@ public class PropertyFastSetter : ISetter {
         DeclaringType = propertyInfo.DeclaringType;
         _setValue = CreateLambdaSetter(propertyInfo);
 #if DEBUG
-        _toString = "Property: " + Type.GetTypeName() + " " + Name +
+        _toString = Type.GetTypeName() + " " + Name +
                     (propertyInfo.GetMethod != null
                         ? propertyInfo.GetMethod.IsPrivate ? " { private get; " : " { public get; "
                         : " { ") +

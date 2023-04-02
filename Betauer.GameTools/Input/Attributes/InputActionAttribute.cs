@@ -23,7 +23,6 @@ public class InputActionAttribute : Attribute, IConfigurationMemberAttribute {
     }
 
     public void CreateProvider(object configuration, IGetter getter, Container.Builder builder) {
-        AttributeTools.ValidateDuplicates<IConfigurationMemberAttribute>(getter, this);
         string? settingsContainerName = null;
         if (SaveAs != null) {
             var settingContainer = configuration.GetType().GetAttribute<SettingsContainerAttribute>();

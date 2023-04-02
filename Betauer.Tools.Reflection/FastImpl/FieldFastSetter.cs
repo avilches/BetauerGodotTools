@@ -18,7 +18,7 @@ public class FieldFastSetter : ISetter {
         DeclaringType = fieldInfo.DeclaringType;
         _setValue = CreateLambdaSetter(fieldInfo);
 #if DEBUG
-        _toString = $"Field: {(fieldInfo.IsPrivate ? "private " : "public ")}{Type.GetTypeName()} {Name};";
+        _toString = $"{(fieldInfo.IsPrivate ? "private " : "public ")}{Type.GetTypeName()} {Name};";
 #endif
     }
 
