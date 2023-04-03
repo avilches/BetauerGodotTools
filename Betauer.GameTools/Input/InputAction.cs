@@ -43,7 +43,7 @@ public enum InputActionBehaviour {
     /// 
     /// * To force a JustPressed (no matter if the action is pressed or it isn't) call to ClearJustStates() and SimulatePress().
     /// </summary>
-    Fake,
+    Mock,
     
     /// <summary>
     /// It works only through Simulate*() methods.
@@ -117,14 +117,14 @@ public partial class InputAction : IAction, IInjectable {
     public InputActionBehaviour Behaviour { get; }
     public bool IsUnhandledInput { get; } = false;
     public bool Enabled { get; private set; } = true;
-    public SaveSetting<string>? SaveSetting { get; private set; }
+    public SaveSetting<string>? SaveSetting { get; set; }
     internal readonly IHandler Handler;
     private readonly Updater _updater;
     private readonly bool _configureGodotInputMap = false;
 
-    public static InputAction Fake() => new InputAction(null,
+    public static InputAction Mock() => new InputAction(null,
         false,
-        InputActionBehaviour.Fake,
+        InputActionBehaviour.Mock,
         false,
         false);
 
@@ -148,7 +148,7 @@ public partial class InputAction : IAction, IInjectable {
         IsUnhandledInput = isUnhandledInput;
 
         Handler = behaviour switch {
-            InputActionBehaviour.Fake => new FakeStateHandler(this),
+            InputActionBehaviour.Mock => new MockStateHandler(this),
             InputActionBehaviour.Simulate => new FrameBasedStateHandler(this),
             InputActionBehaviour.GodotInput => new GodotInputHandler(this),
             InputActionBehaviour.Extended => new ExtendedInputFrameBasedStateHandler(this),
@@ -190,7 +190,7 @@ public partial class InputAction : IAction, IInjectable {
         var setting = Setting.Create(propertyName, AsString(), autoSave, enabled);
         setting.PreInject(settingsContainerName);
         Container.InjectServices(setting);
-        SetSaveSettings(setting);
+        SaveSetting = setting;
     }
 
     public void UnsetInputActionsContainer() {
@@ -297,11 +297,6 @@ public partial class InputAction : IAction, IInjectable {
         }
     }
 
-    public InputAction SetSaveSettings(SaveSetting<string> saveSetting) {
-        SaveSetting = saveSetting;
-        return this;
-    }
-
     private bool Matches(InputEvent e) =>
         e switch {
             InputEventKey key => HasKey(key.Keycode),
@@ -333,22 +328,19 @@ public partial class InputAction : IAction, IInjectable {
         return false;
     }
 
-    public InputAction ResetToDefaults() {
+    public void ResetToDefaults() {
         if (SaveSetting == null) throw new Exception("InputAction does not have a SaveSetting");
         Parse(SaveSetting.DefaultValue, true);
-        return this;
     }
     
-    public InputAction Load() {
+    public void Load() {
         if (SaveSetting == null) throw new Exception("InputAction does not have a SaveSetting");
         Parse(SaveSetting.Value, true);
-        return this;
     }
     
-    public InputAction Save() {
+    public void Save() {
         if (SaveSetting == null) throw new Exception("InputAction does not have a SaveSetting");
         SaveSetting.Value = AsString();
-        return this;
     }
 
     public InputAction Update(Action<Updater> updater) {
@@ -384,13 +376,12 @@ public partial class InputAction : IAction, IInjectable {
         return string.Join(",", export);
     }
 
-    public InputAction Parse(string input, bool reset) {
-        if (string.IsNullOrWhiteSpace(input)) return this;
+    public void Parse(string input, bool reset) {
+        if (string.IsNullOrWhiteSpace(input)) return;
         Update(updater => {
             if (reset) updater.ClearAll();
             input.Split(",").ToList().ForEach(ImportItem);
         });
-        return this;
     }
 
     private void ImportItem(string item) {

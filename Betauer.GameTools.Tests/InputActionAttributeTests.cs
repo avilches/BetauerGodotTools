@@ -120,7 +120,7 @@ public partial class InputActionAttributeTests : Node {
     internal class AxisActionServiceNameConfig {
         [Singleton] public InputActionsContainer MyInputActionsContainer => new InputActionsContainer();
         
-        [AxisAction] private AxisAction Lateral => AxisAction.Create();
+        [AxisAction] private AxisAction Lateral => AxisAction.Create().Build();
         
         [InputAction(AxisName = "Lateral")]
         private InputAction Right => InputAction.Create().PositiveAxis(JoyAxis.LeftX).AsSimulator();
@@ -154,12 +154,15 @@ public partial class InputActionAttributeTests : Node {
     }
     
     
+    
+    
+    
     [InputActionsContainer("MyInputActionsContainer")]
     [Configuration]
     internal class AxisActionServiceNameWithNameConfig {
         [Singleton] public InputActionsContainer MyInputActionsContainer => new InputActionsContainer();
         
-        [AxisAction] private AxisAction Lateral => AxisAction.Create("lat");
+        [AxisAction] private AxisAction Lateral => AxisAction.Create("lat").Build();
         
         [InputAction(AxisName = "lat")]
         private InputAction Right => InputAction.Create("r").PositiveAxis(JoyAxis.LeftX).AsSimulator();
@@ -216,7 +219,8 @@ public partial class InputActionAttributeTests : Node {
         [InputAction(AxisName = "Lateral")]
         private InputAction Left => InputAction.Create("l").NegativeAxis(JoyAxis.LeftX).AsSimulator();
         
-        [AxisAction] private AxisAction Lateral => AxisAction.Create();
+        [AxisAction(SaveAs = "Controls/Lateral")]
+        private AxisAction Lateral => AxisAction.Create().ReverseAxis(false).Build();
 
     }
 
@@ -228,15 +232,20 @@ public partial class InputActionAttributeTests : Node {
         var jump1 = c.Resolve<InputAction>("Jump1");
         Assert.That(jump1.SaveSetting.SaveAs, Is.EqualTo("Controls/Jump"));
         Assert.That(jump1.SaveSetting.AutoSave, Is.True);
+        Assert.That(jump1.SaveSetting.SettingsContainer, Is.EqualTo(c.Resolve<SettingsContainer>("MySettingContainer")));
 
         var jump2 = c.Resolve<InputAction>("Jump2");
         Assert.That(jump2.SaveSetting.SaveAs, Is.EqualTo("Settings/Jump2"));
         Assert.That(jump2.SaveSetting.AutoSave, Is.False);
+        Assert.That(jump2.SaveSetting.SettingsContainer, Is.EqualTo(c.Resolve<SettingsContainer>("MySettingContainer")));
 
         var right = c.Resolve<InputAction>("Right");
         var left = c.Resolve<InputAction>("Left");
 
-        var axisAction = c.Resolve<AxisAction>("Lateral");
+        var axisAction = c.Resolve<AxisAction>("Controls/Lateral");
+        Assert.That(axisAction.SaveSetting.SettingsContainer, Is.EqualTo(c.Resolve<SettingsContainer>("MySettingContainer")));
+        Assert.That(axisAction.SaveSetting.SaveAs, Is.EqualTo("Settings/Jump2"));
+        Assert.That(axisAction.SaveSetting.AutoSave, Is.False);
         Assert.That(axisAction.Negative, Is.EqualTo(left));
         Assert.That(axisAction.Positive, Is.EqualTo(right));
     }

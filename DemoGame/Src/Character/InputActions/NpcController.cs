@@ -3,11 +3,11 @@ using Betauer.Input;
 namespace Veronenger.Character.InputActions;
 
 public class NpcController : ICharacterHandler {
-    public InputAction Jump { get; set; } = InputAction.Fake();
-    public InputAction Attack { get; set; } = InputAction.Fake();
-    public InputAction Float { get; set; } = InputAction.Fake();
-    public AxisAction Lateral { get; set; } = AxisAction.Fake();
-    public AxisAction Vertical { get; set; } = AxisAction.Fake();
+    public InputAction Jump { get; set; } = InputAction.Mock();
+    public InputAction Attack { get; set; } = InputAction.Mock();
+    public InputAction Float { get; set; } = InputAction.Mock();
+    public AxisAction Lateral { get; set; } = AxisAction.Mock();
+    public AxisAction Vertical { get; set; } = AxisAction.Mock();
 
     public void ClearState() {
         Jump.SimulateRelease();

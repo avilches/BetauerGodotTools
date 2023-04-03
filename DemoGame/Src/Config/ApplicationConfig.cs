@@ -100,11 +100,11 @@ public class GameResources {
 [InputActionsContainer("InputActionsContainer")]
 public class Actions {
 
-	[AxisAction] 
-	private AxisAction Lateral => AxisAction.Create();
+	[AxisAction(SaveAs = "Controls/Lateral")] 
+	private AxisAction Lateral => AxisAction.Create().Build();
 
 	[AxisAction] 
-	private AxisAction Vertical => AxisAction.Create();
+	private AxisAction Vertical => AxisAction.Create().Build();
 
 	[InputAction(AxisName = "Vertical", SaveAs = "Controls/Up")]
 	private InputAction Up => InputAction.Create()
@@ -180,10 +180,10 @@ public class Actions {
 [InputActionsContainer("InputActionsContainer")]
 public class UiActions {
 	[AxisAction] 
-	private AxisAction UiVertical => AxisAction.Create();
+	private AxisAction UiVertical => AxisAction.Create().Build();
 
 	[AxisAction] 
-	private AxisAction UiLateral => AxisAction.Create();
+	private AxisAction UiLateral => AxisAction.Create().Build();
 
 	[InputAction(AxisName = "UiVertical")]
 	private InputAction UiUp => InputAction.Create("ui_up")

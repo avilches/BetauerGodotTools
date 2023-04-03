@@ -1,6 +1,6 @@
 namespace Betauer.Input;
 
-internal class FakeStateHandler : IHandler {
+internal class MockStateHandler : IHandler {
     internal readonly InputAction InputAction;
 
     public bool Pressed { get; protected set; } = false;
@@ -23,7 +23,7 @@ internal class FakeStateHandler : IHandler {
         ClearJustStates();
     }
 
-    internal FakeStateHandler(InputAction inputAction) {
+    internal MockStateHandler(InputAction inputAction) {
         InputAction = inputAction;
         ClearState();
     }

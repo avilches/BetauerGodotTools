@@ -48,50 +48,6 @@ public partial class InputActionsContainer : Node, IInjectable {
         return ActionMap.TryGetValue(name, out var action) ? action as T: null;
     }
 
-    public IAction? FindAction(InputEvent inputEvent) {
-        return InputActionList.Find(action => action.IsEvent(inputEvent));
-    }
-
-    public List<IAction> FindActions(InputEvent inputEvent) {
-        var list = new List<IAction>();
-        for (var i = 0; i < InputActionList.Count; i++) {
-            if (InputActionList[i].IsEvent(inputEvent)) list.Add(InputActionList[i]);
-        }
-        return list;
-    }
-
-    public AxisAction? FindAction(JoyAxis axis) {
-        return InputActionList.Find(action => action is AxisAction && action.Axis == axis) as AxisAction;
-    }
-
-    public List<IAction> FindActions(JoyAxis axis) {
-        return InputActionList.FindAll(action => action.Axis == axis);
-    }
-
-    public InputAction? FindAction(JoyButton button) {
-        return InputActionList.Find(action => action is InputAction a && a.HasButton(button)) as InputAction;
-    }
-
-    public List<InputAction> FindActions(JoyButton button) {
-        var list = new List<InputAction>();
-        for (var i = 0; i < InputActionList.Count; i++) {
-            if (InputActionList[i] is InputAction a && a.HasButton(button)) list.Add(a);
-        }
-        return list;
-    }
-
-    public InputAction? FindAction(Key key) {
-        return InputActionList.Find(action => action is InputAction a && a.HasKey(key)) as InputAction;
-    }
-
-    public List<InputAction> FindActions(Key key) {
-        var list = new List<InputAction>();
-        for (var i = 0; i < InputActionList.Count; i++) {
-            if (InputActionList[i] is InputAction a && a.HasKey(key)) list.Add(a);
-        }
-        return list;
-    }
-
     // Use InputAction.SetInputActionContainer() instead
     internal void Add(AxisAction axisAction) {
         if (InputActionList.Contains(axisAction)) return; // Avoid duplicates

@@ -118,8 +118,8 @@ public partial class InputAction {
             inputAction.Pausable = _pausable;
         }
         
-        public InputAction AsFake() {
-            var input = CreateInputAction(InputActionBehaviour.Fake, false, false);
+        public InputAction AsMock() {
+            var input = CreateInputAction(InputActionBehaviour.Mock, false, false);
             ApplyConfig(input);
             return input;
         }

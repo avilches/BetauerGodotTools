@@ -1,4 +1,5 @@
 using System;
+using Betauer.Application.Settings.Attributes;
 using Betauer.DI;
 using Betauer.DI.Attributes;
 using Betauer.DI.Exceptions;
@@ -10,6 +11,8 @@ namespace Betauer.Input.Attributes;
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Method, AllowMultiple = false)]
 public class AxisActionAttribute : Attribute, IConfigurationMemberAttribute {
     public string? Name { get; set; }
+    public string? SaveAs { get; set; }
+    public bool AutoSave { get; set; } = false;
 
     public AxisActionAttribute() {
     }
@@ -19,6 +22,16 @@ public class AxisActionAttribute : Attribute, IConfigurationMemberAttribute {
     }
 
     public void CreateProvider(object configuration, IGetter getter, Container.Builder builder) {
+        string? settingsContainerName = null;
+        if (SaveAs != null) {
+            var settingContainer = configuration.GetType().GetAttribute<SettingsContainerAttribute>();
+            if (settingContainer == null) {
+                throw new InvalidAttributeException(
+                    $"Attribute {typeof(InputActionAttribute).FormatAttribute()} with SaveAs = \"{SaveAs}\" needs to be used in a class with attribute {typeof(SettingsContainerAttribute).FormatAttribute()}");
+            }
+            settingsContainerName = settingContainer.Name;
+        }
+
         var inputActionContainer = configuration.GetType().GetAttribute<InputActionsContainerAttribute>()!;
         if (inputActionContainer == null) {
             throw new InvalidAttributeException(
@@ -27,7 +40,7 @@ public class AxisActionAttribute : Attribute, IConfigurationMemberAttribute {
         var name = Name ?? getter.Name;
         Func<AxisAction> factory = () => {
             AxisAction axisAction = (AxisAction)getter.GetValue(configuration)!;
-            axisAction.PreInject(name, inputActionContainer.Name);
+            axisAction.PreInject(name, inputActionContainer.Name, settingsContainerName, SaveAs, AutoSave);
             return axisAction;
         };
         builder.RegisterServiceAndAddFactory(typeof(AxisAction), typeof(AxisAction), Lifetime.Singleton, factory, name, false, false);

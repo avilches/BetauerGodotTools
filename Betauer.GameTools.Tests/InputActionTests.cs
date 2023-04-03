@@ -37,13 +37,14 @@ public partial class InputActionTests : Node {
     }
 
     [TestRunner.Test]
-    public void ImportExport() {
+    public void InputActionImportExportTests() {
         SaveSetting<string> b = Setting.Create( "attack", "");
         var sc = new SettingsContainer(SettingsFile);
         b.SetSettingsContainer(sc);
             
         var jump = InputAction.Create().AsSimulator();
-        jump.SetSaveSettings(b).Load();
+        jump.SaveSetting = b;
+        jump.Load();
         Assert.That(jump.Buttons, Is.Empty);
         Assert.That(jump.Keys, Is.Empty);
         Assert.That(jump.Axis, Is.EqualTo(JoyAxis.Invalid));
@@ -75,8 +76,8 @@ public partial class InputActionTests : Node {
         Assert.That(jump.Buttons, Is.EqualTo(new [] {JoyButton.Paddle1, JoyButton.X}.ToList()));
         Assert.That(jump.Keys, Is.EqualTo(new [] {Key.A, Key.Exclam}.ToList()));
         Assert.That(jump.Axis, Is.EqualTo(JoyAxis.RightX));
-
     }
+    
     [TestRunner.Test]
     public void UpdateRollback() {
         SaveSetting<string> b = Setting.Create( "attack", "");
@@ -84,7 +85,8 @@ public partial class InputActionTests : Node {
         b.SetSettingsContainer(sc);
             
         var jump = InputAction.Create().AsSimulator();
-        jump.SetSaveSettings(b).Load();
+        jump.SaveSetting = b;
+        jump.Load();
         Assert.That(jump.Buttons, Is.Empty);
         Assert.That(jump.Keys, Is.Empty);
         Assert.That(jump.Axis, Is.EqualTo(JoyAxis.Invalid));
@@ -111,7 +113,30 @@ public partial class InputActionTests : Node {
         Assert.That(jump.Buttons, Is.EqualTo(new [] {JoyButton.Paddle1, JoyButton.X}.ToList()));
         Assert.That(jump.Keys, Is.EqualTo(new [] {Key.A, Key.Exclam}.ToList()));
         Assert.That(jump.Axis, Is.EqualTo(JoyAxis.RightX));
+    }
 
+    [TestRunner.Test]
+    public void AxisActionImportExportTests() {
+        SaveSetting<string> b = Setting.Create( "Lateral", "Reverse:true");
+        var sc = new SettingsContainer(SettingsFile);
+        b.SetSettingsContainer(sc);
+        var lateral = AxisAction.Mock();
+        Assert.That(lateral.Reverse, Is.False);
+        
+        // Load -> true
+        lateral.SaveSetting = b;
+        lateral.Load();
+        Assert.That(lateral.Reverse, Is.True);
+
+        // false -> Save -> Load -> false again
+        lateral.Reverse = false;
+        lateral.Save();
+        Assert.That(lateral.Reverse, Is.False);
+        lateral.Load();
+        Assert.That(lateral.Reverse, Is.False);
+
+        lateral.ResetToDefaults();
+        Assert.That(lateral.Reverse, Is.True);
     }
 
     [TestRunner.Test]
@@ -120,7 +145,7 @@ public partial class InputActionTests : Node {
         var jump = InputAction.Create("ManualJump").AsSimulator();
         var left = InputAction.Create("Left").NegativeAxis(JoyAxis.LeftX).AsSimulator();
         var right = InputAction.Create("Right").PositiveAxis(JoyAxis.LeftX).AsSimulator();
-        var lateral = AxisAction.Create("Lateral", left, right);
+        var lateral = new AxisAction("Lateral", left, right);
         
         var c = new InputActionsContainer();
         attack.SetInputActionsContainer(c);
@@ -164,7 +189,8 @@ public partial class InputActionTests : Node {
 
         var sc = new SettingsContainer(SettingsFile);
         b.SetSettingsContainer(sc);
-        jump.SetSaveSettings(b).Load();
+        jump.SaveSetting = b;
+        jump.Load();
         Assert.That(jump.SaveSetting, Is.EqualTo(b));
             
         Assert.That(jump.Buttons, Is.EqualTo(new [] {JoyButton.A, JoyButton.B}.ToList()));

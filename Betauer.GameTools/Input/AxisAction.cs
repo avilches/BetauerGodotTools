@@ -1,4 +1,6 @@
 using System;
+using Betauer.Application.Settings;
+using Betauer.Core;
 using Betauer.DI;
 using Betauer.DI.Attributes;
 using Godot;
@@ -10,8 +12,9 @@ public class AxisAction : IAction, IInjectable {
     public float Strength => (Positive.Strength - Negative.Strength) * (Reverse ? -1 : 1);
     public float RawStrength => (Positive.RawStrength - Negative.RawStrength) * (Reverse ? -1 : 1);
     public JoyAxis Axis => Positive.Axis;
-    public bool Reverse { get; set; } = false; // TODO: load a setting container and allow to export it. Optional: define a axis deadzone
+    public bool Reverse { get; set; } = false;
     public string Name { get; private set; }
+    public SaveSetting<string>? SaveSetting { get; set; }
     public bool IsEvent(InputEvent inputEvent) => inputEvent is InputEventJoypadMotion motion && motion.Axis == Axis;
     public void Enable(bool enabled) {
         Negative.Enable(enabled);
@@ -22,10 +25,15 @@ public class AxisAction : IAction, IInjectable {
     public InputAction Negative { get; private set; }
     public InputAction Positive { get; private set; }
 
-    private AxisAction(string name) {
+    public AxisAction(string name) {
         Name = name;
     }
     
+    public AxisAction(string name, InputAction left, InputAction right) {
+        Name = name;
+        SetNegativeAndPositive(left, right);
+    }
+
     public void SetNegativeAndPositive(InputAction negative, InputAction positive) {
         if (negative.Axis == JoyAxis.Invalid) throw new InvalidAxisConfigurationException($"InputAction {negative.Name} should define a valid Axis.");
         if (positive.Axis == JoyAxis.Invalid) throw new InvalidAxisConfigurationException($"InputAction {positive.Name} should define a valid Axis.");
@@ -57,15 +65,35 @@ public class AxisAction : IAction, IInjectable {
         }
     }
 
-    [Inject] private Container Container { get; set; }  
-    private string? _inputActionsContainerName;
-    public void PreInject(string name, string inputActionsContainerName) {
+    [Inject] private Container Container { get; set; }
+    private string _inputActionsContainerName;
+    private string? _settingsContainerName;
+    private string? _settingSaveAs;
+    private bool _settingAutoSave;
+
+    public void PreInject(string? name, string inputActionsContainerName, string? settingsContainerName, string? saveAs, bool autoSave) {
         if (Name == null) Name = name;
         _inputActionsContainerName = inputActionsContainerName;
+        _settingsContainerName = settingsContainerName;
+        _settingSaveAs = saveAs;
+        _settingAutoSave = autoSave;
     }
 
     public void PostInject() {
-        SetInputActionsContainer(Container.Resolve<InputActionsContainer>(_inputActionsContainerName!));
+        if (_settingsContainerName != null && _settingSaveAs != null) {
+            CreateSaveSettings(_settingsContainerName, _settingSaveAs, _settingAutoSave, true);
+            // Load settings from file
+            Load();
+        }
+
+        SetInputActionsContainer(Container.Resolve<InputActionsContainer>(_inputActionsContainerName));
+    }
+
+    private void CreateSaveSettings(string settingsContainerName, string propertyName, bool autoSave = false, bool enabled = true) {
+        var setting = Setting.Create(propertyName, AsString(), autoSave, enabled);
+        setting.PreInject(settingsContainerName);
+        Container.InjectServices(setting);
+        SaveSetting = setting;
     }
 
     public void UnsetInputActionsContainer() {
@@ -85,6 +113,41 @@ public class AxisAction : IAction, IInjectable {
         Negative?.SetInputActionsContainer(inputActionsContainer);
     }
 
+    public string AsString() {
+        return $"Reverse:{Reverse}";
+    }
+
+    public void Parse(string values, bool reset) {
+        if (reset) Reverse = false;
+        values.Split(',').ForEach(value => {
+            if (value.Contains(':')) {
+                var parts = value.Split(':');
+                var key = parts[0];
+                var val = parts[1];
+                switch (key) {
+                    case "Reverse":
+                        Reverse = bool.Parse(val);
+                        break;
+                }
+            }
+        });
+    }
+
+    public void ResetToDefaults() {
+        if (SaveSetting == null) throw new Exception("AxisAction does not have a SaveSetting");
+        Parse(SaveSetting.DefaultValue, true);
+    }
+    
+    public void Load() {
+        if (SaveSetting == null) throw new Exception("AxisAction does not have a SaveSetting");
+        Parse(SaveSetting.Value, true);
+    }
+    
+    public void Save() {
+        if (SaveSetting == null) throw new Exception("AxisAction does not have a SaveSetting");
+        SaveSetting.Value = AsString();
+    }
+    
     public void SimulatePress(float strength) {
         if (strength == 0f) {
             if (Strength != 0) SimulateRelease();
@@ -109,9 +172,9 @@ public class AxisAction : IAction, IInjectable {
         Positive.ClearJustStates();        
     }
 
-    public static AxisAction Fake(JoyAxis joyAxis = JoyAxis.LeftX) {
-        var positive = InputAction.Create().PositiveAxis(joyAxis).AsFake();
-        var negative = InputAction.Create().NegativeAxis(joyAxis).AsFake();
+    public static AxisAction Mock(JoyAxis joyAxis = JoyAxis.LeftX) {
+        var positive = InputAction.Create().PositiveAxis(joyAxis).AsMock();
+        var negative = InputAction.Create().NegativeAxis(joyAxis).AsMock();
         var axisAction = new AxisAction(null);
         axisAction.SetNegativeAndPositive(negative, positive);
         return axisAction;
@@ -125,14 +188,40 @@ public class AxisAction : IAction, IInjectable {
         return axisAction;
     }
 
-    public static AxisAction Create(string name = null) {
-        var axisAction = new AxisAction(name);
-        return axisAction;
+    public static Builder Create(string name = null) {
+        return new Builder(name);
     }
-    
-    public static AxisAction Create(string name, InputAction negative, InputAction positive) {
-        var axisAction = new AxisAction(name);
-        axisAction.SetNegativeAndPositive(negative, positive);
-        return axisAction;
+
+    public class Builder {
+        private readonly string _name;
+        private InputAction _positive;
+        private InputAction _negative;
+        private bool _reverse;
+
+        public Builder(string name) {
+            _name = name;
+        }
+        
+        public Builder Positive(InputAction positive) {
+            _positive = positive;
+            return this;
+        }
+        
+        public Builder Negative(InputAction negative) {
+            _negative = negative;
+            return this;
+        }
+
+        public Builder ReverseAxis(bool reverse = true) {
+            _reverse = reverse;
+            return this;
+        }
+        
+        public AxisAction Build() {
+            var axisAction = new AxisAction(_name);
+            axisAction.SetNegativeAndPositive(_negative, _positive);
+            axisAction.Reverse = _reverse;
+            return axisAction;
+        }
     }
 }
