@@ -1,7 +1,7 @@
 #!/usr/bin/env make
 
 TARGET_PLATFORM  := "macos"
-GODOT_APP        := "/Applications/Godot-4.0.1-rc.1.app"
+GODOT_APP        := "/Applications/Godot-4.0.2.app"
 ASEPRITE_EXECUTABLE := "/Applications/Aseprite.app/Contents/MacOS/aseprite"
 
 
@@ -17,7 +17,7 @@ EXPORT_LINUX     := ${ROOT_FOLDER}/export/releases/${VERSION}/${TIMESTAMP}/linux
 DELAY_IMPORT     := 15
 
 GODOT_EXECUTABLE := ${GODOT_APP}/Contents/MacOS/Godot
-GODOT_LOGGER_DLL := -l:GodotTools.BuildLogger.GodotBuildLogger,/Applications/Godot-4.0.1-rc.1.app/Contents/Resources/GodotSharp/Tools/GodotTools.BuildLogger.dll;${ROOT_FOLDER}/.godot/mono/build_logs
+GODOT_LOGGER_DLL := -l:GodotTools.BuildLogger.GodotBuildLogger,/Applications/Godot-4.0.2.app/Contents/Resources/GodotSharp/Tools/GodotTools.BuildLogger.dll;${ROOT_FOLDER}/.godot/mono/build_logs
 
 CURRENT_VERSION:= $(shell cat ${ROOT_FOLDER}/project.godot | grep "config/version" | cut -d'=' -f2| tr -d '"')
 SOLUTION:= $(shell cat ${ROOT_FOLDER}/project.godot | grep "config/name" | cut -d'=' -f2| tr -d '"')

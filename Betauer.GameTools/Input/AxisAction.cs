@@ -35,6 +35,7 @@ public class AxisAction : IAction, IInjectable {
     }
 
     public void SetNegativeAndPositive(InputAction negative, InputAction positive) {
+        if (positive == null || negative == null) throw new Exception("AxisAction must have both positive and negative actions");
         if (negative.Axis == JoyAxis.Invalid) throw new InvalidAxisConfigurationException($"InputAction {negative.Name} should define a valid Axis.");
         if (positive.Axis == JoyAxis.Invalid) throw new InvalidAxisConfigurationException($"InputAction {positive.Name} should define a valid Axis.");
         
@@ -194,9 +195,9 @@ public class AxisAction : IAction, IInjectable {
 
     public class Builder {
         private readonly string _name;
-        private InputAction _positive;
-        private InputAction _negative;
-        private bool _reverse;
+        private InputAction? _positive;
+        private InputAction? _negative;
+        private bool _reverse = false;
 
         public Builder(string name) {
             _name = name;
@@ -219,7 +220,12 @@ public class AxisAction : IAction, IInjectable {
         
         public AxisAction Build() {
             var axisAction = new AxisAction(_name);
-            axisAction.SetNegativeAndPositive(_negative, _positive);
+            if (_positive != null) {
+                if (_negative == null) {
+                    throw new Exception("AxisAction must have both positive and negative actions");
+                }
+                axisAction.SetNegativeAndPositive(_negative, _positive);
+            }
             axisAction.Reverse = _reverse;
             return axisAction;
         }

@@ -117,7 +117,7 @@ public partial class InputActionTests : Node {
 
     [TestRunner.Test]
     public void AxisActionImportExportTests() {
-        SaveSetting<string> b = Setting.Create( "Lateral", "Reverse:true");
+        SaveSetting<string> b = Setting.Create( "Lateral", "Reverse:True");
         var sc = new SettingsContainer(SettingsFile);
         b.SetSettingsContainer(sc);
         var lateral = AxisAction.Mock();

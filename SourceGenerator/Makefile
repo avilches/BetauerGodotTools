@@ -8,7 +8,7 @@ ROOT_FOLDER    := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 
 
 TARGET_PLATFORM    ?= osx
-GODOT_EXECUTABLE   ?= "/Applications/Godot-4.0.1-rc.1.app/Contents/MacOS/Godot"
+GODOT_EXECUTABLE   ?= "/Applications/Godot-4.0.2.app/Contents/MacOS/Godot"
 
 
 .PHONY: help

@@ -10,7 +10,7 @@ using NUnit.Framework;
 
 namespace Betauer.DI.Tests; 
 
-[TestRunner.Test(Only = true)]
+[TestRunner.Test]
 public class ScannerBasicTests : Node {
     [SetUpClass]
     public void Setup() {

@@ -28,14 +28,14 @@ public class ScannerFactoryTests : Node {
     public void FactoryWrongType1() {
         var c = new Container();
         var di = c.CreateBuilder();
-        Assert.Throws<InvalidAttributeException>(() => di.Scan<WrongFactory>());
+        Assert.Throws<InvalidCastException>(() => di.Scan<WrongFactory>());
     }
 
     [TestRunner.Test(Description = "[SingletonFactory] should implement IFactory<> (configuration)")]
     public void FactoryWrongType2() {
         var c = new Container();
         var di = c.CreateBuilder();
-        Assert.Throws<InvalidAttributeException>(() => di.Scan<WrongConfig>());
+        Assert.Throws<InvalidCastException>(() => di.Scan<WrongConfig>());
     }
 
     [TestRunner.Test(Description = "Not implement IFactory<> fails at runtime")]

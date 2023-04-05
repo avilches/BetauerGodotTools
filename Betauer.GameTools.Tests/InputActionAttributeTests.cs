@@ -191,6 +191,7 @@ public partial class InputActionAttributeTests : Node {
 
         Assert.That(right.AxisAction, Is.EqualTo(axisAction));
         Assert.That(left.AxisAction, Is.EqualTo(axisAction));        
+        Assert.That(axisAction.AsString(), Is.EqualTo("Reverse:False"));
         Assert.That(axisAction.Negative, Is.EqualTo(left));
         Assert.That(axisAction.Positive, Is.EqualTo(right));
     }
@@ -220,11 +221,11 @@ public partial class InputActionAttributeTests : Node {
         private InputAction Left => InputAction.Create("l").NegativeAxis(JoyAxis.LeftX).AsSimulator();
         
         [AxisAction(SaveAs = "Controls/Lateral")]
-        private AxisAction Lateral => AxisAction.Create().ReverseAxis(false).Build();
+        private AxisAction Lateral => AxisAction.Create().ReverseAxis(true).Build();
 
     }
 
-    [TestRunner.Test(Description = "Error if there is not a SettingContainer when a Configurable() action is used")]
+    [TestRunner.Test(Description = "Input and AxisAction with configurable settings")]
     public void ConfigurableInputsTests() {
         var di = new Container.Builder();
         di.Scan<ConfigurableInputs>();
@@ -242,9 +243,10 @@ public partial class InputActionAttributeTests : Node {
         var right = c.Resolve<InputAction>("Right");
         var left = c.Resolve<InputAction>("Left");
 
-        var axisAction = c.Resolve<AxisAction>("Controls/Lateral");
+        var axisAction = c.Resolve<AxisAction>("Lateral");
         Assert.That(axisAction.SaveSetting.SettingsContainer, Is.EqualTo(c.Resolve<SettingsContainer>("MySettingContainer")));
-        Assert.That(axisAction.SaveSetting.SaveAs, Is.EqualTo("Settings/Jump2"));
+        Assert.That(axisAction.SaveSetting.SaveAs, Is.EqualTo("Controls/Lateral"));
+        Assert.That(axisAction.AsString(), Is.EqualTo("Reverse:True"));
         Assert.That(axisAction.SaveSetting.AutoSave, Is.False);
         Assert.That(axisAction.Negative, Is.EqualTo(left));
         Assert.That(axisAction.Positive, Is.EqualTo(right));

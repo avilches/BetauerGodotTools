@@ -434,6 +434,9 @@ public static partial class AwaitExtensions {
     public static SignalAwaiter AwaitSpawned(this MultiplayerSpawner target) =>
         target.ToSignal(target, "spawned");
 
+    public static SignalAwaiter AwaitSynchronized(this MultiplayerSynchronizer target) =>
+        target.ToSignal(target, "synchronized");
+
     public static SignalAwaiter AwaitVisibilityChanged(this MultiplayerSynchronizer target) =>
         target.ToSignal(target, "visibility_changed");
 
