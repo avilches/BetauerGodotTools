@@ -6,11 +6,14 @@ using System.Threading.Tasks;
 using Betauer.Core;
 using Betauer.Core.Signal;
 using Betauer.DI.Attributes;
+using Betauer.Tools.Logging;
 using Godot;
 
 namespace Betauer.Application.Lifecycle;
 
 public class ResourceLoaderContainer {
+    private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(ResourceLoaderContainer));
+
     public List<ResourceFactory> ResourceFactories { get; } = new();
 
     public Func<Task>? Awaiter { get; private set; }
@@ -48,10 +51,14 @@ public class ResourceLoaderContainer {
             .Select(sf => new ResourceLoad(sf.Path, sf.Load))
             .ToList();
         
-        await LoadTools.LoadThreaded(resources, awaiter, (rp) => {
+        Logger.Debug($"Loading {tags.Join(", ")}");
+        await LoadTools.Load(resources, awaiter, (rp) => {
+            Logger.Debug($"{(rp.TotalPercent*100):0.00}% | {rp.Resource} ({(rp.ResourcePercent*100):0.00}%)");
             OnLoadResourceProgress?.Invoke(rp);
             progressAction?.Invoke(rp);
         });
+        var timeSpan = x.Elapsed;
+        Logger.Debug($"Total load time: {timeSpan.Seconds}s {timeSpan.Milliseconds:D3}ms");
         return x.Elapsed;
     }
 

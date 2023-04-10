@@ -7,18 +7,15 @@ using Godot;
 namespace Betauer.Application.Lifecycle;
 
 public static class LoadTools {
-    public static async Task<IEnumerable<Resource>> Load(IEnumerable<string> resourcePathsToLoadEnum, Func<Task> awaiter,
-        Action<float>? progressAction = null) {
-        progressAction?.Invoke(0f);
-        var resourcePaths = resourcePathsToLoadEnum.ToArray();
-        var count = 0f;
-        return resourcePaths.Select(path => {
-            count++;
-            var resource = ResourceLoader.Load(path);
-            if (resource == null) throw new ResourceLoaderException($"Resource {path} not found");
-            progressAction?.Invoke(count / resourcePaths.Length);
-            return resource;
-        });
+    public static async Task Load(List<ResourceLoad> resources, Func<Task> awaiter, Action<ResourceProgress>? progressAction = null) {
+        var resourceProgress = new ResourceProgress(progressAction);
+        resourceProgress.Update(0f, 0f, null);
+        for (var i = 0; i < resources.Count; i++) {
+            var resourceLoad = resources[i];
+            resourceLoad.Load(ResourceLoader.Load(resourceLoad.Path));
+            resourceProgress.Update((float)i / resources.Count, 1f, resourceLoad.Path);
+            if (i < resources.Count) await awaiter();
+        }
     }
 
     public static async Task<Dictionary<string, Resource>> LoadThreaded(List<string> resourcesPaths,
@@ -46,8 +43,7 @@ public static class LoadTools {
                     var (status, progress) = ThreadLoadStatus(resource);
                     if (status == ResourceLoader.ThreadLoadStatus.Loaded) {
                         resource.Progress = 1f;
-                        resource.Resource = ResourceLoader.LoadThreadedGet(resource.Path);
-                        resource.OnLoad(resource.Resource);
+                        resource.Load(ResourceLoader.LoadThreadedGet(resource.Path));
                         resourceProgress.Update(TotalProgress(), 1f, resource.Path);
                     } else if (status == ResourceLoader.ThreadLoadStatus.InProgress) {
                         resource.Progress = progress;
@@ -59,7 +55,8 @@ public static class LoadTools {
             }
             pending = resources.Any(r => r.Resource == null);
             if (pending) {
-                resourceProgress.Update(TotalProgress(), 0, null);
+                var totalProgress = TotalProgress();
+                resourceProgress.Update(totalProgress, 0, null);
                 await awaiter();
             }
         }
@@ -74,7 +71,7 @@ public static class LoadTools {
 }
 
 public class ResourceLoad {
-    internal Resource? Resource;
+    internal Resource? Resource { get; private set; }
     internal readonly string Path;
     internal float Progress = 0;
     private readonly Action<Resource>? _onLoad;
@@ -88,7 +85,8 @@ public class ResourceLoad {
         _onLoad = onLoad;
     }
 
-    public void OnLoad(Resource resource) {
+    public void Load(Resource resource) {
+        Resource = resource ?? throw new ResourceLoaderException("Resource can't be null");
         _onLoad?.Invoke(resource);
     }
 }
