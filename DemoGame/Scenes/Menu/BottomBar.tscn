@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://bk34i3tnlrj38"]
 
 [ext_resource type="Script" path="res://Src/UI/BottomBar.cs" id="1"]
-[ext_resource type="Theme" uid="uid://dn6b2pnskhdh0" path="res://Assets/UI/my_theme.tres" id="2"]
+[ext_resource type="Theme" uid="uid://bei1s45ic3xtp" path="res://Assets/UI/my_theme2.tres" id="2_vu6vh"]
 [ext_resource type="PackedScene" uid="uid://bel6oboteo5ww" path="res://Scenes/UI/ActionHint.tscn" id="3"]
 
 [node name="BottomBar" type="CanvasLayer"]
@@ -18,30 +18,22 @@ grow_horizontal = 0
 grow_vertical = 0
 
 [node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer"]
-offset_right = 452.0
-offset_bottom = 17.0
-theme = ExtResource("2")
+layout_mode = 2
+theme = ExtResource("2_vu6vh")
 alignment = 2
 
 [node name="ActionHint1" parent="MarginContainer/HBoxContainer" instance=ExtResource("3")]
 unique_name_in_owner = true
-offset_right = 110.0
-offset_bottom = 17.0
+layout_mode = 2
 
 [node name="ActionHint2" parent="MarginContainer/HBoxContainer" instance=ExtResource("3")]
 unique_name_in_owner = true
-offset_left = 114.0
-offset_right = 224.0
-offset_bottom = 17.0
+layout_mode = 2
 
 [node name="ActionHint3" parent="MarginContainer/HBoxContainer" instance=ExtResource("3")]
 unique_name_in_owner = true
-offset_left = 228.0
-offset_right = 338.0
-offset_bottom = 17.0
+layout_mode = 2
 
 [node name="ActionHint4" parent="MarginContainer/HBoxContainer" instance=ExtResource("3")]
 unique_name_in_owner = true
-offset_left = 342.0
-offset_right = 452.0
-offset_bottom = 17.0
+layout_mode = 2

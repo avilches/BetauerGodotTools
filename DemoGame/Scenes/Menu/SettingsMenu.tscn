@@ -1,7 +1,7 @@
 [gd_scene load_steps=7 format=3 uid="uid://d3oetnugexew"]
 
 [ext_resource type="Script" path="res://Src/UI/SettingsMenu.cs" id="1"]
-[ext_resource type="Theme" uid="uid://dn6b2pnskhdh0" path="res://Assets/UI/my_theme.tres" id="2"]
+[ext_resource type="Theme" uid="uid://bei1s45ic3xtp" path="res://Assets/UI/my_theme2.tres" id="2_kq4e7"]
 [ext_resource type="PackedScene" uid="uid://etv0voa53luq" path="res://Scenes/UI/FlatButton.tscn" id="3"]
 [ext_resource type="FontFile" uid="uid://bah577vy7bskh" path="res://Assets/Fonts/dpcomic.ttf" id="3_c42cs"]
 [ext_resource type="PackedScene" uid="uid://bcmwxxdfmwf7a" path="res://Scenes/UI/CheckButton.tscn" id="4"]
@@ -13,13 +13,14 @@ script = ExtResource("1")
 
 [node name="Panel" type="Panel" parent="."]
 custom_minimum_size = Vector2(320, 400)
+anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 grow_horizontal = 2
 grow_vertical = 2
-theme = ExtResource("2")
+theme = ExtResource("2_kq4e7")
 metadata/_edit_use_anchors_ = true
 
 [node name="SettingsBox" type="VBoxContainer" parent="Panel"]

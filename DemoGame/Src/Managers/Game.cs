@@ -44,8 +44,7 @@ public class Game {
 
 	public async Task StartWorld3() {
 		ItemRepository.Clear();
-		var loadTime = await GameLoaderContainer.LoadGameResources();
-		Console.WriteLine($"Game load:{loadTime.TotalMilliseconds}ms");
+		await GameLoaderContainer.LoadGameResources();
 		
 		GD.PushWarning("World3 creation start");
 		WorldScene = World3.Get();

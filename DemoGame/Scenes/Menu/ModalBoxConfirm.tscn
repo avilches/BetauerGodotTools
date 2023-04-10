@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://d3ta1btrv2dym"]
 
 [ext_resource type="Script" path="res://Src/UI/ModalBoxConfirm.cs" id="1"]
-[ext_resource type="Theme" uid="uid://dn6b2pnskhdh0" path="res://Assets/UI/my_theme.tres" id="4"]
+[ext_resource type="Theme" uid="uid://bei1s45ic3xtp" path="res://Assets/UI/my_theme2.tres" id="2_mtexy"]
 
 [node name="ModalBoxConfirm" type="CanvasLayer"]
 layer = 101
@@ -17,7 +17,7 @@ anchor_bottom = 0.5
 grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 3
-theme = ExtResource("4")
+theme = ExtResource("2_mtexy")
 
 [node name="ContainerSingle" type="MarginContainer" parent="Panel"]
 unique_name_in_owner = true
@@ -32,9 +32,6 @@ theme_override_constants/margin_top = 18
 [node name="STitle" type="Label" parent="Panel/ContainerSingle"]
 unique_name_in_owner = true
 layout_mode = 2
-offset_top = 18.0
-offset_right = 300.0
-offset_bottom = 35.0
 size_flags_horizontal = 3
 text = "Are you sure?"
 horizontal_alignment = 1
@@ -53,18 +50,11 @@ theme_override_constants/margin_bottom = 20
 
 [node name="VBoxContainer" type="VBoxContainer" parent="Panel/ContainerDouble"]
 layout_mode = 2
-offset_left = 12.0
-offset_top = 12.0
-offset_right = 288.0
-offset_bottom = 50.0
-grow_vertical = 2
 size_flags_vertical = 0
 
 [node name="DTitle" type="Label" parent="Panel/ContainerDouble/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
-offset_right = 276.0
-offset_bottom = 17.0
 size_flags_horizontal = 3
 text = "Are you sure?"
 horizontal_alignment = 1
@@ -72,9 +62,6 @@ horizontal_alignment = 1
 [node name="DSubtitle" type="Label" parent="Panel/ContainerDouble/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
-offset_top = 21.0
-offset_right = 276.0
-offset_bottom = 38.0
 size_flags_horizontal = 3
 text = "Any progress not saved will be lost."
 horizontal_alignment = 1
@@ -93,10 +80,6 @@ theme_override_constants/margin_bottom = 9
 [node name="Menu" type="HBoxContainer" parent="Panel/MarginContainerButtons"]
 custom_minimum_size = Vector2(0, 24)
 layout_mode = 2
-offset_right = 300.0
-offset_bottom = 32.0
-grow_horizontal = 2
-grow_vertical = 0
 size_flags_horizontal = 3
 alignment = 1
 
@@ -104,9 +87,6 @@ alignment = 1
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 32)
 layout_mode = 2
-offset_left = 65.0
-offset_right = 126.0
-offset_bottom = 32.0
 focus_neighbor_left = NodePath("../Cancel")
 focus_neighbor_right = NodePath("../Cancel")
 focus_next = NodePath("../Cancel")
@@ -116,18 +96,11 @@ text = "  Accept  "
 [node name="Spacer" type="Control" parent="Panel/MarginContainerButtons/Menu"]
 custom_minimum_size = Vector2(40, 0)
 layout_mode = 2
-anchors_preset = 0
-offset_left = 130.0
-offset_right = 170.0
-offset_bottom = 32.0
 
 [node name="Cancel" type="Button" parent="Panel/MarginContainerButtons/Menu"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
-offset_left = 174.0
-offset_right = 234.0
-offset_bottom = 32.0
 focus_neighbor_left = NodePath("../Accept")
 focus_neighbor_right = NodePath("../Accept")
 focus_next = NodePath("../Accept")

@@ -108,7 +108,7 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
         State(MainState.SplashScreenLoading)
             .Enter(async () => {
                 // GameLoaderContainer.OnLoadResourceProgress += (rp) => Console.WriteLine($"{rp.ResourcePercent:P} {rp.Resource}"); 
-                Console.WriteLine($"Main load:{(await GameLoaderContainer.LoadMainResources()).TotalMilliseconds}ms");
+                await GameLoaderContainer.LoadMainResources();
                 splashScreen.Stop();
             })
             .If(() => true).Set(MainState.Init)

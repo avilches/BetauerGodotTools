@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://bjx7gbqxh6m7q"]
 
 [ext_resource type="Texture2D" uid="uid://c12blmsyum1yw" path="res://icon.png" id="1"]
-[ext_resource type="Theme" uid="uid://dn6b2pnskhdh0" path="res://Assets/UI/my_theme.tres" id="2"]
+[ext_resource type="Theme" uid="uid://bei1s45ic3xtp" path="res://Assets/UI/my_theme2.tres" id="2_uwqbt"]
 [ext_resource type="Script" path="res://Src/UI/MainMenu.cs" id="4"]
 
 [node name="MainMenuLayer" type="CanvasLayer"]
@@ -9,6 +9,7 @@ script = ExtResource("4")
 
 [node name="MainMenu" type="HBoxContainer" parent="."]
 unique_name_in_owner = true
+anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -20,6 +21,7 @@ offset_bottom = 83.0
 grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 3
+theme = ExtResource("2_uwqbt")
 
 [node name="MarginContainer" type="MarginContainer" parent="MainMenu"]
 layout_mode = 2
@@ -32,7 +34,6 @@ alignment = 2
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
-theme = ExtResource("2")
 alignment = 2
 
 [node name="New game" type="Button" parent="MainMenu/MarginContainer/VBoxContainer/Menu"]
@@ -66,7 +67,6 @@ text = "Betauer Studios"
 [node name="Version" type="Label" parent="MainMenu/MarginContainer/VBoxContainer/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
-theme = ExtResource("2")
 text = "v0.1 - Betauer 2022"
 
 [node name="VBoxContainer2" type="VBoxContainer" parent="MainMenu"]

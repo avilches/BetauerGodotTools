@@ -1,10 +1,10 @@
 using Betauer.Animation;
 using Betauer.Application;
+using Betauer.Application.Lifecycle;
 using Betauer.Application.Monitor;
 using Betauer.Application.Notifications;
 using Betauer.Application.Screen;
 using Betauer.Camera;
-using Betauer.DI;
 using Betauer.DI.Attributes;
 using Betauer.DI.ServiceProvider;
 using Betauer.Tools.Logging;
@@ -69,6 +69,7 @@ public partial class Bootstrap : Node /* needed to be instantiated as an Autoloa
 
 		// Bootstrap logs, always log everything :)
 		LoggerFactory.SetTraceLevel(typeof(Bootstrap), TraceLevel.All);
+		LoggerFactory.SetTraceLevel(typeof(ResourceLoaderContainer), TraceLevel.All);
 		LoggerFactory.SetTraceLevel(typeof(ConfigFileWrapper), TraceLevel.All);
 		LoggerFactory.SetTraceLevel(typeof(BaseScreenResolutionService), TraceLevel.All);
 	}
@@ -82,10 +83,10 @@ public partial class Bootstrap : Node /* needed to be instantiated as an Autoloa
 		LoggerFactory.SetTraceLevel(typeof(ConfigFileWrapper), TraceLevel.All);
 
 		// DI
-		LoggerFactory.SetTraceLevel(typeof(Provider), TraceLevel.All);
-		LoggerFactory.SetTraceLevel(typeof(Betauer.DI.Container), TraceLevel.All);
-		LoggerFactory.SetTraceLevel(typeof(Betauer.DI.Container.Injector), TraceLevel.All);
-		LoggerFactory.SetTraceLevel(typeof(Betauer.DI.Container.Scanner), TraceLevel.All);
+		LoggerFactory.SetTraceLevel(typeof(Provider), TraceLevel.Error);
+		LoggerFactory.SetTraceLevel(typeof(Betauer.DI.Container), TraceLevel.Error);
+		LoggerFactory.SetTraceLevel(typeof(Betauer.DI.Container.Injector), TraceLevel.Error);
+		LoggerFactory.SetTraceLevel(typeof(Betauer.DI.Container.Scanner), TraceLevel.Error);
 
 		// GameTools
 		LoggerFactory.SetTraceLevel(typeof(BaseScreenResolutionService), TraceLevel.All);
@@ -99,7 +100,7 @@ public partial class Bootstrap : Node /* needed to be instantiated as an Autoloa
 
 		// Game
 		LoggerFactory.SetTraceLevel(typeof(MainStateMachine), TraceLevel.Error);
-		LoggerFactory.SetTraceLevel(typeof(CameraStageLimiter), TraceLevel.All);
+		LoggerFactory.SetTraceLevel(typeof(CameraStageLimiter), TraceLevel.Error);
 
 		// Player and enemies
 		LoggerFactory.SetTraceLevel(typeof(PlayerNode), TraceLevel.All);
