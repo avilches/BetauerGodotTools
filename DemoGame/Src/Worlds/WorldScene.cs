@@ -58,28 +58,28 @@ public partial class WorldScene : Node {
 	private void PlaceSlowGun() {
 		var range = ItemRepository
 			.Create<WeaponRangeItem>("Slow Gun", "SG")
-			.Configure(ItemConfigManager.SlowGun, damageBase: 6f, delayBetweenShots: 0.2f);
+			.Configure(ItemConfigManager.SlowGun, AmmoType.Bullet, damageBase: 6f, delayBetweenShots: 0.2f, magazineSize: 22);
 		PlacePickable(PickableItemNodeFactory.Get(), range, GetPositionFromMarker("ItemSpawn/Gun"));
 	}
 	
 	private void PlaceGun() {
 		var range = ItemRepository
 			.Create<WeaponRangeItem>("Gun", "G")
-			.Configure(ItemConfigManager.Gun, damageBase: 9f, delayBetweenShots: 0.4f);
+			.Configure(ItemConfigManager.Gun, AmmoType.Bullet, damageBase: 9f, delayBetweenShots: 0.4f, magazineSize: 12);
 		PlacePickable(PickableItemNodeFactory.Get(), range, GetPositionFromMarker("ItemSpawn/Gun"));
 	}
 
 	private void PlaceShotgun() {
 		var range = ItemRepository
 			.Create<WeaponRangeItem>("Shotgun", "ShG")
-			.Configure(ItemConfigManager.Shotgun, damageBase: 22f, delayBetweenShots: 1f, enemiesPerHit: 2);
+			.Configure(ItemConfigManager.Shotgun, AmmoType.Cartridge, damageBase: 22f, delayBetweenShots: 1f, enemiesPerHit: 2, magazineSize: 8);
 		PlacePickable(PickableItemNodeFactory.Get(), range, GetPositionFromMarker("ItemSpawn/Gun"));
 	}
 
 	private void PlaceMachineGun() {
 		var range = ItemRepository
 			.Create<WeaponRangeItem>("MachineGun", "MG")
-			.Configure(ItemConfigManager.MachineGun, damageBase: 4f, delayBetweenShots: 0.05f, enemiesPerHit: 1, auto: true);
+			.Configure(ItemConfigManager.MachineGun, AmmoType.Bullet, damageBase: 4f, delayBetweenShots: 0.05f, enemiesPerHit: 1, magazineSize: 30, auto: true);
 		PlacePickable(PickableItemNodeFactory.Get(), range, GetPositionFromMarker("ItemSpawn/Gun"));
 	}
 

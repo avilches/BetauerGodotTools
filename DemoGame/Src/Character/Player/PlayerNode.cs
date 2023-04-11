@@ -373,13 +373,19 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 		};
 		// OnTransition += (args) => Logger.Debug(args.From +" -> "+args.To);
 
+		
+		var shootTimer = new GodotStopwatch().Start();
+
+		bool PlayerCanShoot() => Inventory.GetCurrent() is WeaponRangeItem &&
+		                         shootTimer.Elapsed >= Inventory.WeaponRangeEquipped.DelayBetweenShots; 
+
 		_fsm.On(PlayerEvent.Hurt).Set(PlayerState.Hurting);
 		_fsm.On(PlayerEvent.Death).Set(PlayerState.Death);
 		_fsm.On(PlayerEvent.Attack).Then(ctx => {
 			if (Inventory.Items.Count == 0) return ctx.Stay();
 			if (Inventory.GetCurrent() is WeaponMeleeItem) {
 				return ctx.Set(PlatformBody.IsOnFloor() ? PlayerState.MeleeAttack : PlayerState.MeleeAttackAir);
-			} else if (Inventory.GetCurrent() is WeaponRangeItem) {
+			} else if (PlayerCanShoot()) {
 				return ctx.Set(PlatformBody.IsOnFloor() ? PlayerState.RangeAttack : PlayerState.RangeAttackAir);
 			} else return ctx.Stay();
 		});
@@ -519,7 +525,6 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 			.If(() => XInput != 0).Set(PlayerState.Running)
 			.Build();
 
-		var shootTimer = new GodotStopwatch().Start();
 		void Shoot() {
 			shootTimer.Restart();
 			AnimationShoot.PlayFrom(0);
@@ -528,31 +533,35 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 			var bulletDirection = new Vector2(PlatformBody.FacingRight, 0);
 			var hits = 0;
 			var bullet = Game.WorldScene.NewBullet();
-			bullet.ShootFrom(weapon, CharacterBody2D.ToGlobal(bulletPosition), bulletDirection, 
-				CollisionLayerManager.PlayerConfigureBullet,
-				collision => {
-					if (!collision.Collider.HasMetaItemId()) {
-						return ProjectileTrail.Behaviour.Stop; // Something solid was hit
+			if (weapon.Ammo > 0) {
+				weapon.Ammo -= 1;
+				bullet.ShootFrom(weapon, CharacterBody2D.ToGlobal(bulletPosition), bulletDirection,
+					CollisionLayerManager.PlayerConfigureBullet,
+					collision => {
+						if (!collision.Collider.HasMetaItemId()) {
+							return ProjectileTrail.Behaviour.Stop; // Something solid was hit
+						}
+						var npc = ItemRepository.GetFromMeta<NpcItem>(collision.Collider);
+						if (npc.ItemNode.CanBeAttacked(weapon)) {
+							hits++;
+							// npc.Node.QueueFree();
+							EventBus.Publish(new PlayerAttackEvent(this, npc, weapon));
+						}
+						return hits < weapon.EnemiesPerHit ? ProjectileTrail.Behaviour.Continue : ProjectileTrail.Behaviour.Stop;
 					}
-					var npc = ItemRepository.GetFromMeta<NpcItem>(collision.Collider);
-					if (npc.ItemNode.CanBeAttacked(weapon)) {
-						hits++;
-						// npc.Node.QueueFree();
-						EventBus.Publish(new PlayerAttackEvent(this, npc, weapon));
-					}
-					return hits < weapon.EnemiesPerHit ? ProjectileTrail.Behaviour.Continue : ProjectileTrail.Behaviour.Stop;
-				}
-			);
+				);
+			} else {
+				// no ammo, reload?
+			}
 		}
 
-		bool PlayerCanShoot() => shootTimer.Elapsed >= Inventory.WeaponRangeEquipped.DelayBetweenShots;
-		bool IsPlayerShooting() => Inventory.WeaponRangeEquipped.Auto ? Attack.IsPressed : Attack.IsJustPressed;
+		bool IsPlayerShooting() => Inventory.WeaponRangeEquipped!.Auto ? Attack.IsPressed : Attack.IsJustPressed;
 
 		_fsm.State(PlayerState.RangeAttack)
 			.Execute(() => {
 				ApplyFloorGravity();
 				PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
-				if (IsPlayerShooting() && PlayerCanShoot()) Shoot();
+				if (IsPlayerShooting()) Shoot();
 			})
 			.If(IsPlayerShooting).Stay()
 			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.Fall)
@@ -569,7 +578,7 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 				} else {
 					PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
 				}
-				if (IsPlayerShooting() && PlayerCanShoot()) Shoot();
+				if (IsPlayerShooting()) Shoot();
 			})
 			.If(IsPlayerShooting).Stay()
 			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.Fall)
