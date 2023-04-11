@@ -43,12 +43,27 @@ public class ItemConfigManager : IInjectable {
         };
         MachineGun = new WeaponConfig.Range(LeonGun1AnimationSprite, null, new Vector2(20f, -33.5f)) {
             MaxDistance = 800, Speed = 3000, TrailLength = 500, RaycastLength = -1,
+            Initialize = pickableNode => {
+                pickableNode.Sprite.Texture = SlowGunSprite.Get();
+                pickableNode.Sprite.Hframes = 1;
+                pickableNode.Sprite.Frame = 0;
+            },
         };
         Shotgun = new WeaponConfig.Range(LeonGun1AnimationSprite, null, new Vector2(20f, -33.5f)) {
             MaxDistance = 800, Speed = 2000, TrailLength = 200, RaycastLength = -1,
+            Initialize = pickableNode => {
+                pickableNode.Sprite.Texture = SlowGunSprite.Get();
+                pickableNode.Sprite.Hframes = 1;
+                pickableNode.Sprite.Frame = 0;
+            },
         };
         Gun = new WeaponConfig.Range(LeonGun1AnimationSprite, null, new Vector2(20f, -33.5f)) {
             MaxDistance = 800, Speed = 800, TrailLength = 30, RaycastLength = 30,
+            Initialize = pickableNode => {
+                pickableNode.Sprite.Texture = SlowGunSprite.Get();
+                pickableNode.Sprite.Hframes = 1;
+                pickableNode.Sprite.Frame = 0;
+            },
         };
         SlowGun = new WeaponConfig.Range(LeonGun1AnimationSprite, null, new Vector2(20f, -33.5f)) {
             MaxDistance = 800, Speed = 500, TrailLength = 20, RaycastLength = 30,

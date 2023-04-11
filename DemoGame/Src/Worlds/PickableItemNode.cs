@@ -48,7 +48,7 @@ public partial class PickableItemNode : ItemNode, IPickableItemNode, IPoolLifecy
 		_state = State.Available;
 		_followPosition = null;
 		_onPickup = null;
-		PickableItem?.Config?.Initialize(this);
+		PickableItem?.Config?.Initialize?.Invoke(this);
 	}
 
 	public override Vector2 GlobalPosition {
