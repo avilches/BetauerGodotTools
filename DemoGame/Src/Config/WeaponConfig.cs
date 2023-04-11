@@ -24,7 +24,7 @@ public abstract class WeaponConfig : PickableConfig {
         public int TrailLength = 200;
         public int RaycastLength = -1;
         
-        public Range(IFactory<Texture2D> weaponAnimation, Texture2D? projectile, Vector2 projectileStartPosition) {
+        public Range(IFactory<Texture2D> weaponAnimation, Vector2 projectileStartPosition, Texture2D? projectile = null) {
             WeaponAnimation = weaponAnimation;
             Projectile = projectile;
             ProjectileStartPosition = projectileStartPosition;

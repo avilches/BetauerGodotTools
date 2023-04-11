@@ -79,8 +79,8 @@ public class MainResources {
 
 [Configuration]
 [Loader("MyGameLoader", Tag = "game")]
-[Resource<Texture2D>("MetalbarSprite", "res://Assets/Weapons/metalbar.png")]
-[Resource<Texture2D>("SlowGunSprite", "res://Assets/Weapons/slowgun.png")]
+[Resource<Texture2D>("Pickups", "res://Assets/pickups.png")]
+[Resource<Texture2D>("Pickups2", "res://Assets/pickups2.png")]
 [Resource<Texture2D>("LeonKnifeAnimationSprite", "res://Characters/Player-Leon/Leon-knife.png")]
 [Resource<Texture2D>("LeonMetalbarAnimationSprite", "res://Characters/Player-Leon/Leon-metalbar.png")]
 [Resource<Texture2D>("LeonGun1AnimationSprite", "res://Characters/Player-Leon/Leon-gun1.png")]

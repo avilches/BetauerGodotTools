@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c6wbw3ajkpaqc"
-path="res://.godot/imported/slowgun.png-f78f0c821812ce6d1bd52c7af90a2649.ctex"
+uid="uid://cxgekqcj7xuxo"
+path="res://.godot/imported/pickups.png-7cfd6c29c5b8e85e5f9aaf1e45df6110.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/Weapons/slowgun.png"
-dest_files=["res://.godot/imported/slowgun.png-f78f0c821812ce6d1bd52c7af90a2649.ctex"]
+source_file="res://Assets/pickups.png"
+dest_files=["res://.godot/imported/pickups.png-7cfd6c29c5b8e85e5f9aaf1e45df6110.ctex"]
 
 [params]
 
