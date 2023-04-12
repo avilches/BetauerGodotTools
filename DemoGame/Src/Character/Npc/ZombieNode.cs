@@ -288,19 +288,39 @@ public partial class ZombieNode : NpcItemNode {
 		return true;
 	}
 
+	public static int KickbackEnergyThreshold = 10; // 10 means from -10 to 10 
+
+	// Melee attack kickback
+	public static (int start, int end) KickbackMeleeAngle = (30, 80); 
+	public static int KickbackMeleeEnergyMultiplier = 15; 
+
+	// Range attack kickback
+	public static (int start, int end) KickbackRangeAngle = (0, 25); 
+	public static int KickbackRangeEnergyMultiplier = 10; 
+
 	private void OnPlayerAttackEvent(PlayerAttackEvent playerAttackEvent) {
 		if (playerAttackEvent.Npc.Id != Item.Id) return;
 		if (playerAttackEvent.Weapon is WeaponMeleeItem) {
 			Status.UnderMeleeAttack = true;
-			Kickback(30, 80, playerAttackEvent.Weapon.Damage * 15);
+			Kickback(KickbackMeleeAngle.start, KickbackMeleeAngle.end, playerAttackEvent.Weapon.Damage * KickbackMeleeEnergyMultiplier);
 		} else if (playerAttackEvent.Weapon is WeaponRangeItem) {
-			Kickback(0, 25, playerAttackEvent.Weapon.Damage * 10);
+			Kickback(KickbackRangeAngle.start, KickbackRangeAngle.end, playerAttackEvent.Weapon.Damage * KickbackRangeEnergyMultiplier);
 		}
 		Status.UpdateHealth(-playerAttackEvent.Weapon.Damage);
 		UpdateHealthBar();
 		_labelHits.Get().Show(((int)playerAttackEvent.Weapon.Damage).ToString());
 		_fsm.Send(Status.IsDead() ? ZombieEvent.Death : ZombieEvent.Hurt);
 	}
+
+	// TODO: this could be moved to the weapon config?
+	private void Kickback(int startAngle, int endAngle, float energy) {
+		var angle = Random.Range(startAngle, endAngle);
+		energy = Random.Range(Math.Max(0, energy - KickbackEnergyThreshold), energy + KickbackEnergyThreshold);
+		var dir = Vector2.Right.Rotated(Mathf.DegToRad(angle)) * energy;
+		PlatformBody.MotionX = IsToTheRightOfPlayer() ? dir.X : -dir.X;
+		PlatformBody.MotionY = -dir.Y;
+	}
+
 
 	public void EnableAttackAndHurtAreas(bool enabled = true) {
 		_attackArea.Monitoring = enabled;
@@ -393,14 +413,6 @@ public partial class ZombieNode : NpcItemNode {
 			.Text("Floor", () => PlatformBody.GetFloorCollisionInfo()).EndMonitor()
 			.Text("Ceiling", () => PlatformBody.GetCeilingCollisionInfo()).EndMonitor()
 			.Text("Wall", () => PlatformBody.GetWallCollisionInfo()).EndMonitor();
-	}
-
-	private void Kickback(int startAngle, int endAngle, float energy) {
-		var angle = Random.Range(startAngle, endAngle);
-		energy = Random.Range(Math.Max(0, energy-10), energy+10);
-		var dir = Vector2.Right.Rotated(Mathf.DegToRad(angle)) * energy;
-		PlatformBody.MotionX = IsToTheRightOfPlayer() ? dir.X : -dir.X;
-		PlatformBody.MotionY = -dir.Y;
 	}
 
 	public void ConfigureFsm() {    
