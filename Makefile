@@ -102,7 +102,7 @@ generate:
 
 .PHONY: test
 test:
-	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" -s "RunTests.cs" --headless --verbose 
+	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" -s RunTests.cs --headless
 
 .PHONY: editor
 editor:

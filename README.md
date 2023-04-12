@@ -1,157 +1,84 @@
 # Betauer Godot Tools
 
 > **Warning**
-> This readme is very out of date. If you find this library useful and you are considering use it, just text me and I'll try to update this and create some kind of documentation/tutorial.
+> This README may be outdated. If you find this library useful and plan to use it, please contact me, and I'll update the content and create proper documentation/tutorials.
 
-The Betauer Godot Tools is a framework to develop Godot games using C#. It's divided in different and independent projects that can be imported in your games easily.
-  
-                     
-![Integration tests](https://github.com/avilches/BetauerGodotTools/actions/workflows/godot-ci.yaml/badge.svg)
+Betauer Godot Tools is a C# framework designed to facilitate the development of games using the Godot engine. It consists of various independent projects that can be easily imported into your games.
 
 ## Projects
-- [Betauer.Core](Betauer.Core): common Godot extensions and other small tools needed by all of the Betauer projects. The most important one is the Logger: a fast and configurable logger for Godot. It also have some reflection tools
-needed by dependency injection.
-- [Betauer.TestRunner](Betauer.TestRunner): a tool to run [NUnit](https://nunit.org/) tests inside Godot, so you can test your nodes and your code easily inside Godot.
-- [Betauer.FSM](Betauer.FSM): yet another FSM implementation for C#. With a stack, compatible with `async`/`await` and compatible with Godot. Ready to be used in a game menu (like this [example](DemoGame/Game/Managers/MainFSM.cs)) or your player (like this other [example](DemoGame/Game/Character/Player/PlayerFSM.cs)).
-The state machine code is well tested, you can check the tests in the [Betauer.FSM.Tests](Betauer.FSM.Tests) project.
-- [Betauer.GameTools](Betauer.GameTools): this a set of small tools to create Godot games:
-  - Bus: it's hard to handle collisions with signals. With the Bus, enemies, player and other objects can use a shared bus to subscribe and receive events with only the collision that affect to them. No more check and filter if the body shape of the collision is you or another object.
-  - InputManager: handle with the Godot `InputMap` or the events is hard. This set of tools help you to create one class per action that can be injected in your
-  nodes using dependency injection.
-     ````C#
-    [Configuration]
-    public class Actions {
-        [Singleton] public InputActionsContainer InputActionsContainer => new();
-        
-        [Singleton]
-        private InputAction UiUp => InputAction.Create("ui_up")
-            .KeepProjectSettings()
-            .NegativeAxis(1, "ui_down")
-            .DeadZone(0.5f)
-            .Build();
 
-            [Singleton]
-        private InputAction Attack => InputAction.Configurable("Attack")
-            .Keys(KeyList.C)
-            .Mouse(ButtonList.Left)
-            .Buttons(JoystickList.XboxB)
-            .Build();
-    }
-    ```` 
-  - SettingsManager: a helper to load and save settings where every setting is defined as a service, and it can be injected anywhere in your code.
-    ````C#
-    [Configuration]
-    public class Settings {
-        [Singleton] public SettingsContainer SettingsContainer => new(AppTools.GetUserFile("settings.ini"));
+### 1. Betauer.Tools.Logging
 
-        [Service("Settings.Screen.PixelPerfect")]
-        public ISetting<bool> PixelPerfect => Setting<bool>.Save("Video", "PixelPerfect", false);
+A logger to print messages to the Godot console, including the current process and physics frame information.
+Configurable on a per-class basis with various trace levels, this tool offers optimal performance by utilizing the [ZString](https://github.com/Cysharp/ZString) library to prevent memory allocation during string concatenation and date string creation.
 
-        [Service("Settings.Difficult")]
-        public ISetting<int> Difficult =>  Setting<bool>.Save("Game", "Difficult", 1);
+This library is used by all other Betauer Godot Tools projects.
 
-        [Service("Settings.Screen.WindowedResolution")]
-        public ISetting<Resolution> WindowedResolution =>
-            Setting<Resolution>.Save("Video", "WindowedResolution", ApplicationConfig.Configuration.BaseResolution);
-    }    
-    ````
-  - ScreenService: a helper to change resolution with pixel perfect scale.
-  - More stuff like a flipper, a loader or a timer.
-  - Handle signals and _process or _input methods with lambdas. Godot doesn't allow (yet) to subscribe easily to signals using C# lambdas. And it also forces to extend Godot classes and override `_Process`, `_PhysicsProcess`, `_Input`, `_UnhandledInput` and `_UnhandledKeyInput` methods, which can be cumbersome to create a new class just to implement one method.
-  
-    ```C#
-    var button = new ButtonAction();
-    // Lambdas instead of signals
-    button.OnReady(() => button.Visible = true);
-    button.OnFocusEntered(() => GD.Print("focus_entered signal"));
-    button.OnFocusExited(() => GD.Print("focus_exited signal"));
-    // Lambdas instead of method overriding
-    button.OnProcess((float delta) => GD.Print("_Process(delta)"));  
-    button.OnPhysicsProcess((float delta) => GD.Print("_PhysicsProcess(delta)"));  
-    button.OnInput((InputEvent inputEvent) => GD.Print("_Input(inputEvent)"));  
-    ```
-- [Betauer.DI](Betauer.DI): yet, another Dependency Injection Container for C#.
-This is a very simple implementation integrated with Godot, so you can do this kind of stuff;
-```C#
-// The lifecycle of these classes will be controlled by the container 
-// If a class inhertis from Node, it will be added to the SceneTree.Root like an autoload
-[Singleton] public class ScoreManager : Node {}
-[Singleton(Name = "Easy"] public class EasySceneManager : ISceneManager {}
-[Singleton(Name = "Hard"] public class HardSceneManager : ISceneManager {
-    [Inject] ScoreManager ScoreManager { get; set; }
-}
+### 2. Betauer.Tools.Reflection
 
-[Configuration] public class ExposeStuff {
-    [Singleton] public SaveGameManager SaveGameManager => new SaveGameManager();
-    // Injecting a lifetime service will create a new instance every time is injected
-    [Transient] public EnemyController Enemy => new EnemyController();
-}
-```
-      
-And use the singletons later in your scene objects like this:
-```C#
-// You can attach this class to your nodes or scenes, [OnReady] and [Inject] will be resolved at runtime
-public class Player: KinematicBody2D {
-    [OnReady("Body/AttackArea") Area2D _attackArea;
-    [Inject] ScoreManager _scoreManager { get; set; }
-    [Inject(Name="Easy"] ISceneManager _sceneManager { get; set; }
-}
-```
-As an extra feature, you will have a `GetTree()` method available in any class just injecting `Func<SceneTree>` as an attribute:
-```C#
-[Singleton]
-public class YourClass {
-    [Inject] private Func<SceneTree> GetTree;
-    public void YourMethod() {
-        // This works
-        GetTree().Root.GuiDisableInput = true;
-    }
-}
-```
-With just adding the container as Autoload. Dependency injection is well tested, you can check the tests in the [Betauer.DI.Tests](Betauer.DI.Tests) project.
-- [Betauer.Animation](Betauer.Animation): a port to C# of the well known [Anima library](https://github.com/ceceppa/anima). It include up to 77 different animations from https://animate.style. This is a lot better way to use Tween to create complex and reusable animations for your scene elements. It can be used to create effects or to move and schedule rotations or translation in your platforms or characters.
-```C#
-// This one of the 77 animations called `RollOutLeft`
-return Sequence.Create()
-    .SetDuration(0.5f)
-    .AnimateRelativeKeys(Property.PositionBySizeX)
-       .KeyframeOffset(0.00f, 0.0f, null, node => node.SetRotateOriginToCenter())
-       .KeyframeOffset(1.00f, -1.0f)
-    .EndAnimate()
-    .Parallel()
-    .AnimateKeys(Property.Rotate2D)
-       .KeyframeTo(0.00f, 0)
-       .KeyframeTo(1.00f, 120)
-    .EndAnimate()
-    .Parallel()
-    .AnimateKeys(Property.Opacity)
-       .KeyframeTo(0.00f, 1.0f)
-       .KeyframeTo(1.00f, 0.0f)
-    .EndAnimate()
-    .BuildTemplate();
-```
-You can check out or start to use any of the [animations](Betauer.Animation/Template.cs), or create your own ones. 
+Reflection is slow in C#. This library creates and compile lambdas to ensure a fast access to properties, methods and fields. This library is used by other Betauer Godot Tools projects, like the Dependency Injection Container (Betauer.DI)
 
-- [SourceGenerator](SourceGenerator): a standalone Godot project with a single script to write all the classes and signal extensions from the [Betauer.GodotAction](Betauer.GodotAction) project.
+### 3. Betauer.TestRunner
 
-It also includes examples with different (and working) ways to include the Betauer Godot Tools using relative paths to the source code (slower to build, but it can be debugged) or reference to dlls (faster to build, can't be debugged). It also resolved a very common problem: how to exclude unit tests from the game build. Finally, it include a set of Makefiles and scripts to build the games from command line. 
+Betauer.TestRunner is a tool designed for executing tests within the Godot environment, streamlining the process of testing nodes and code inside Godot.
+That means you can access to SceneTree and any GodotSharp classes in your tests. Additionally, it provides its own set of C# attributes to identify and mark your classes as test cases.
+
+Note: it requires importing an additional library for asserting test results like NUnit or or XUnit though.
+
+### 4. Betauer.Core
+
+A set of common classes used by all other Betauer Godot Tools projects:
+
+- Two different types of object pools. Both super simple to use and super fast. No thread-safe.
+- A node property restorer. A helper to restore the state of a node's properties after a scene change.
+- Signal tools: the AwaitExtensions class. A set of extension methods to allow await for any signal.
+- Reusable timer tools helper. They internally use SceneTreeTimer with SceneTree.CreateTimer(), so they are affected by the `Engine.Timescale` and the `SceneTree.Pause` state (these things C# System.Diagnostics.Stopwatch can not do)
+    - GodotStopwatch: to measure elapsed time since start. It has Start/Stop and Reset.
+    - GodotTimeout: to execute an action after the timeout in seconds. It has Start/Stop and Reset.
+    - GodotScheduler: to execute an action periodically (every x seconds). It has Start/Stop and Reset. 
+
+And a lot of more extensions for Godot classes. They are used by the other projects, but they can be used in your own projects too.
+
+### 5. Betauer.DI
+
+Betauer.DI is a simple dependency injection container for C#, integrated with Godot. It allows you to manage the lifecycle of classes, inject services into scene objects, and access the GetTree() method in any class by injecting Func<SceneTree> as an attribute.
+
+### 6. Betauer.Bus
+
+An extension class and some tools to simplify collision handling, layers, masks and signals. Objects like enemies and players can subscribe and receive events relevant to their collisions in a easier way than use pure Godot.
+
+### 7. Betauer.FSM
+
+Betauer.FSM is another Finite State Machine (FSM) implementation for C#. It is compatible with async/await, stack-based, and Godot, making it suitable for use in game menus or player character logic. The state machine code is well-tested, as demonstrated in the Betauer.FSM.Tests project.
+
+### 8. Betauer.GameTools
+
+Betauer.GameTools is a collection of small tools for creating Godot games, including:
+
+- **InputManager**: Simplifies working with the Godot InputMap and events, allowing you to create one class per action that can be injected into nodes using dependency injection.
+- **SettingsManager**: A helper for loading and saving settings where each setting is defined as a service and can be injected anywhere in your code.
+- **ScreenService**: A helper for changing resolutions with pixel-perfect scaling.
+- **Additional tools**: Features like a flipper, a loader, and a timer are also included.
+
+### 9. Betauer.Animation
+
+Betauer.Animation is a C# port of the well-known [Anima](https://github.com/ceceppa/anima) library. It includes up to 77 different animations from [Animate.style](https://animate.style). This provides a better way to use Tween for creating complex and reusable animations for scene elements. It can be used for effects or moving and scheduling rotations or translations in platforms or characters.
+
+### 10. SourceGenerator
+
+SourceGenerator is a standalone Godot project with a single script that writes the Betauer.Core/Signal/AwaitExtensions.cs and Betauer.GameTools/Application/Notifications/NotificationsHandler.cs.
+
+### 11. DemoGame
+
+A demo game that uses all the Betauer Godot Tools projects. It is a simple platformer with a few enemies and a few levels. It is a good example of how to use the Betauer Godot Tools projects.
+It offers examples of different ways to include Betauer Godot Tools using relative paths to the source code (slower to build but debuggable) or reference to DLLs (faster to build but not debuggable). It also resolves a common problem: excluding unit tests from the game build. Lastly, it includes a set of Makefiles and scripts for building games from the command line.
 
 ## Build
 
 There is a Makefile script to clean, build (from scratch), run tests and generate classes
 ```bash
-make clean 
+make clean                  
 make generate 
+make build/Debug
 make test
-make build/debug
-make build/release
 ```
-Or you can do everything with just `make export/dll`. All dlls will be copied into the `./export/releases/<version>/Debug` and `.../ExporRelease` folders.
-
-Warning: it expects to have a Osx Godot located in the folder `/Applications/Godot_mono.app`. Maybe you need to update the Makefile to change that.
-
-There is also a GitHub action to run the tests in every commit. Check it out here: [.github/workflows/godot-ci.yaml](.github/workflows/godot-ci.yaml) 
-
-## Demo game
-
-To be documented
