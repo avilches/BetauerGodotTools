@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using Betauer.FSM.Async;
 using Betauer.TestRunner;
+using Betauer.Tools.Reflection;
 using Godot;
 using NUnit.Framework;
 
@@ -31,11 +32,11 @@ public partial class FSMNodeAsyncTests : Node {
         Assert.That(sm1.ProcessInPhysics, Is.False);
 
         var sm2 = new FsmNodeAsync<State, Trans>(State.A, null, true);
-        Assert.That(sm2.GetFsmEvents().Name, Is.EqualTo(sm2.GetType().Name));
+        Assert.That(sm2.GetFsmEvents().Name, Is.EqualTo(sm2.GetType().GetTypeName()));
         Assert.That(sm2.ProcessInPhysics, Is.True);
 
         var sm3 = new FsmNodeAsync<State, Trans>(State.A);
-        Assert.That(sm3.GetFsmEvents().Name, Is.EqualTo(sm3.GetType().Name));
+        Assert.That(sm3.GetFsmEvents().Name, Is.EqualTo(sm3.GetType().GetTypeName()));
         Assert.That(sm3.ProcessInPhysics, Is.False);
     }
 
