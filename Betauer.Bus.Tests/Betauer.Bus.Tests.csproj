@@ -14,5 +14,6 @@
     <ItemGroup>
         <ProjectReference Include="..\Betauer.TestRunner\Betauer.TestRunner.csproj" />
         <ProjectReference Include="..\Betauer.Bus\Betauer.Bus.csproj" />
+        <ProjectReference Include="..\Betauer.Tools.Logging\Betauer.Tools.Logging.csproj" />
     </ItemGroup>
 </Project>

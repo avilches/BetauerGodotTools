@@ -203,7 +203,7 @@ public class TestRunner {
     private List<TestClass> ScanTestClassesFromAssemblies(Assembly[]? assemblies = null) {
         Stopwatch st = new Stopwatch();
         st.Start();
-        assemblies ??= AppDomain.CurrentDomain.GetAssemblies();
+        assemblies = assemblies == null || assemblies.Length == 0 ? AppDomain.CurrentDomain.GetAssemblies() : assemblies;
         var cleanNotOnly = false;
         var testClasses = new List<TestClass>();
         foreach (var assembly in assemblies) {
