@@ -3,6 +3,9 @@
 > **Warning**
 > This README may be outdated. If you find this library useful and plan to use it, please contact me, and I'll update the content and create proper documentation/tutorials.
 
+> **Wow!**
+> It (only) works with Godot 4! :-)
+
 Betauer Godot Tools is a C# framework designed to facilitate the development of games using the Godot engine. It consists of various independent projects that can be easily imported into your games.
 
 ## Projects
@@ -14,18 +17,85 @@ Configurable on a per-class basis with various trace levels, this tool offers op
 
 This library is used by all other Betauer Godot Tools projects.
 
-### 2. Betauer.Tools.FastReflection
+```C#
+using Betauer.Tools.Logging;
+// Configure the logger, TraceLevels are: Off (no logs), Fatal, Error, Warning, Info, Debug, All (equivalent to Debug)
+LoggerFactory.SetTraceLevel<MyClass>(TraceLevel.Error); // Recommended for production 
+LoggerFactory.SetTraceLevel<MyClass>(TraceLevel.Debug); // Development 
 
-Reflection is slow in C#. This library creates and compile lambdas to ensure a fast access to properties, methods and fields. This library is used by other Betauer Godot Tools projects, like the Dependency Injection Container (Betauer.DI)
+// Use the logger
+private static readonly Logger _logger = LoggerFactory.GetLogger<MyClass>();
+_logger.Debug("This is a debug message"); // it will not appear if the trace level bigger than debug, like Error 
+_logger.Error("This is a {0} message", "error"); // The string interpolation won't have memory allocation at all! :)
+```
+        
+By default, Error and Fatal use `GD.PushError`, Warning uses `GD.PushWarning` and the rest of the levels use `GD.Print`. 
+You can change this behavior using the `LoggerFactory.AddTextWriter(ITextWriter writer)` method with your own `ITextWriter`. 
+There are some implementations already provided by the library, like `GDPrintWriter` (default), `ColoredConsoleWriter`/`ConsoleWriter` (both use Console.WriteLine(), with or without colors) and `TextWriterWrapper`.
 
-### 3. Betauer.TestRunner
+### 2. Betauer.TestRunner
 
 Betauer.TestRunner is a tool designed for executing tests within the Godot environment, streamlining the process of testing nodes and code inside Godot.
 That means you can access to SceneTree and any GodotSharp classes in your tests. Additionally, it provides its own set of C# attributes to identify and mark your classes as test cases.
 
+```C#
+using Betauer.TestRunner;
+
+[Test]
+public class YouTest {
+    // Executed only once before and after all tests in this class
+    [SetUpClass] public void SetUpClass() {}
+    [TearDownClass] public void TearDownClass() {}
+
+    // Executed before and after each test in this class
+    [SetUp] public void Setup() {}
+    [TearDown] public void TearDown() {}
+
+    [Test]
+    public void YourTest() {
+        // you have access to any Godot class!
+        Engine.TimeScale = 0.5f;
+        // do your test here, using NUnit or XUnit or any other assertion library
+    }
+```
+
+If your test class inherits from Node, it will be instantiated and added to the SceneTree **in every test**. Tests can use `this.AwaitProcessFrame()` or `this.AwaitPhysicsFrame()` to wait for the next frame to be processed.
+```C#
+using Betauer.TestRunner;
+
+[Test]
+public class YouTest : Node {
+    [SetUpClass]
+    public void Setup() {
+        // This method is called once before all tests in this class
+    }
+
+    [Test]
+    public void YourTest() {
+        GetTree().AddChild(new Sprite2D());
+        this.AwaitProcessFrame();
+        // one frame later, the sprite added is added properly to tree 
+    }
+```
+
+In order to run these tests in your game, you have to create a script like this ans specify the assemblies to scan for test cases:
+
+```C#
+public partial class RunTests : SceneTree {
+    public override async void _Initialize() {
+        await ConsoleTestRunner.RunTests(this, typeof(YourClass).Assembly);
+    }
+}
+```
+      
+And execute them with Godot, using this command line to run the script RunTests located in the root of your project:
+```shell
+godot4 -s RunTests.cs --headless
+```
+
 Note: it requires importing an additional library for asserting test results like NUnit or or XUnit though.
 
-### 4. Betauer.Core
+### 3. Betauer.Core
 
 A set of common classes used by all other Betauer Godot Tools projects:
 
@@ -39,9 +109,13 @@ A set of common classes used by all other Betauer Godot Tools projects:
 
 And a lot of more extensions for Godot classes. They are used by the other projects, but they can be used in your own projects too.
 
-### 5. Betauer.DI
+### 4. Betauer.DI
 
 Betauer.DI is a simple dependency injection container for C#, integrated with Godot. It allows you to manage the lifecycle of classes, inject services into scene objects, and access the GetTree() method in any class by injecting Func<SceneTree> as an attribute.
+
+### 5. Betauer.Tools.FastReflection
+
+Reflection is slow in C#. This library creates and compile lambdas to ensure a fast access to properties, methods and fields. This library is used by other Betauer Godot Tools projects, like the Dependency Injection Container (Betauer.DI)
 
 ### 6. Betauer.Bus
 
