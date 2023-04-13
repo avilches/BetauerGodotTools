@@ -7,7 +7,11 @@
         <PackageId>Betauer.DI</PackageId>
         <AssemblyName>Betauer.DI</AssemblyName>
         <Nullable>enable</Nullable>
+        <EnableDefaultCompileItems>False</EnableDefaultCompileItems>
     </PropertyGroup>
+    <ItemGroup>
+        <Compile Include="src/**/*.cs" />
+    </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\Betauer.Core\Betauer.Core.csproj" />
         <ProjectReference Include="..\Betauer.Tools.FastReflection\Betauer.Tools.FastReflection.csproj" />

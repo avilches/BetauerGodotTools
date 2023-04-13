@@ -6,7 +6,11 @@
         <RootNamespace>Betauer.Tools.FastReflection</RootNamespace>
         <PackageId>Betauer.Tools.FastReflection</PackageId>
         <Nullable>enable</Nullable>
+        <EnableDefaultCompileItems>False</EnableDefaultCompileItems>
     </PropertyGroup>
+    <ItemGroup>
+        <Compile Include="src/**/*.cs" />
+    </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\Betauer.Core\Betauer.Core.csproj" />
     </ItemGroup>

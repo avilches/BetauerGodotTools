@@ -7,7 +7,11 @@
         <PackageId>Betauer.FSM.Tests</PackageId>
         <AssemblyName>Betauer.FSM.Tests</AssemblyName>
         <Nullable>enable</Nullable>
+        <EnableDefaultCompileItems>False</EnableDefaultCompileItems>
     </PropertyGroup>
+    <ItemGroup>
+        <Compile Include="test/**/*.cs" />
+    </ItemGroup>
     <ItemGroup>
         <PackageReference Include="NUnit" Version="3.13.3" />
     </ItemGroup>

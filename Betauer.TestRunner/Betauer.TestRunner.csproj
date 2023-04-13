@@ -7,7 +7,11 @@
         <PackageId>Betauer.TestRunner</PackageId>
         <AssemblyName>Betauer.TestRunner</AssemblyName>
         <Nullable>enable</Nullable>
+        <EnableDefaultCompileItems>False</EnableDefaultCompileItems>
     </PropertyGroup>
+    <ItemGroup>
+        <Compile Include="src/**/*.cs" />
+    </ItemGroup>
     <ItemGroup>
         <PackageReference Include="GodotSharp" Version="4.0.2" />
     </ItemGroup>

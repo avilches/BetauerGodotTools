@@ -7,7 +7,11 @@
         <PackageId>Betauer.Bus</PackageId>
         <AssemblyName>Betauer.Bus</AssemblyName>
         <Nullable>enable</Nullable>
+        <EnableDefaultCompileItems>False</EnableDefaultCompileItems>
     </PropertyGroup>
+    <ItemGroup>
+        <Compile Include="src/**/*.cs" />
+    </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\Betauer.Core\Betauer.Core.csproj" />
     </ItemGroup>

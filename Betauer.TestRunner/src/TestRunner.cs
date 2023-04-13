@@ -7,75 +7,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Godot;
 
-namespace Betauer.TestRunner; 
-
-[AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
-public class OnlyAttribute : Attribute {
-}
-
-[AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
-public class TestAttribute : Attribute {
-    /// <summary>
-    /// Descriptive text for this test
-    /// </summary>
-    public string? Description { get; set; }
-
-    public bool Only { get; set; } = false;
-    public bool Ignore { get; set; } = false;
-}
-
-[AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
-public class IgnoreAttribute : Attribute {
-    /// <summary>
-    /// Descriptive text for this test
-    /// </summary>
-    public string Reason { get; set; }
-
-    public IgnoreAttribute(string reason) {
-        Reason = reason;
-    }
-}
-
-[AttributeUsage(AttributeTargets.Method)]
-public class SetUpClassAttribute : Attribute {
-}
-
-[AttributeUsage(AttributeTargets.Method)]
-public class SetUpAttribute : Attribute {
-}
-
-[AttributeUsage(AttributeTargets.Method)]
-public class TearDownClassAttribute : Attribute {
-}
-
-[AttributeUsage(AttributeTargets.Method)]
-public class TearDownAttribute : Attribute {
-}
-
-public static class TestExtensions {
-    internal static SceneTree SceneTree = null!;
-
-    public static SignalAwaiter AwaitPhysicsFrame(this object _) =>
-        AwaitPhysicsFrame();
-        
-    public static SignalAwaiter AwaitPhysicsFrame() =>
-        SceneTree.ToSignal(SceneTree, "physics_frame");
-
-    public static SignalAwaiter AwaitProcessFrame(this object _) =>
-        AwaitProcessFrame();
-        
-    public static SignalAwaiter AwaitProcessFrame() =>
-        SceneTree.ToSignal(SceneTree, "process_frame");
-        
-}
-
-public class TestReport {
-    public int TestsTotal { get; internal set; } = 0;
-    public int TestsExecuted { get; internal set; } = 0;
-    public int TestsFailed { get; internal set; } = 0;
-    public int TestsPassed { get; internal set; } = 0;
-    public List<TestRunner.TestMethod> TestsFailedResults { get;  } = new();
-}
+namespace Betauer.TestRunner;
 
 public class TestRunner {
     private List<TestClass> _testClasses;

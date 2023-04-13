@@ -7,7 +7,11 @@
         <PackageId>Betauer.Core</PackageId>
         <AssemblyName>Betauer.Core</AssemblyName>
         <Nullable>enable</Nullable>
+        <EnableDefaultCompileItems>False</EnableDefaultCompileItems>
     </PropertyGroup>
+    <ItemGroup>
+        <Compile Include="src/**/*.cs" />
+    </ItemGroup>
     <ItemGroup>
         <PackageReference Include="GodotSharp" Version="4.0.2" />
         <PackageReference Include="ZString" Version="2.5.0" />

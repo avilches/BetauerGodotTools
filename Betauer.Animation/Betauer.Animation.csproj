@@ -7,7 +7,11 @@
         <PackageId>Betauer.Animation</PackageId>
         <AssemblyName>Betauer.Animation</AssemblyName>
         <Nullable>enable</Nullable>
+        <EnableDefaultCompileItems>False</EnableDefaultCompileItems>
     </PropertyGroup>
+    <ItemGroup>
+        <Compile Include="src/**/*.cs" />
+    </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\Betauer.Core\Betauer.Core.csproj" />
         <ProjectReference Include="..\Betauer.Tools.Logging\Betauer.Tools.Logging.csproj" />

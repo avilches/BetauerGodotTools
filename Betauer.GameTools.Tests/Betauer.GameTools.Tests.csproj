@@ -7,7 +7,11 @@
         <PackageId>Betauer.GameTools.Tests</PackageId>
         <AssemblyName>Betauer.GameTools.Tests</AssemblyName>
         <Nullable>enable</Nullable>
+        <EnableDefaultCompileItems>False</EnableDefaultCompileItems>
     </PropertyGroup>
+    <ItemGroup>
+        <Compile Include="test/**/*.cs" />
+    </ItemGroup>
     <ItemGroup>
         <PackageReference Include="GodotSharp" Version="4.0.2" />
         <PackageReference Include="Godot.SourceGenerators" Version="4.0.2" />

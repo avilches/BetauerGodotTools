@@ -5,7 +5,7 @@ using NUnit.Framework;
 
 namespace Betauer.Tools.FastReflection.Tests; 
 
-[TestRunner.Test(Only = true)]
+[TestRunner.Test]
 public class FastReflectionTests {
 
     [AttributeUsage(AttributeTargets.All | AttributeTargets.Field | AttributeTargets.Property | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
