@@ -1,9 +1,10 @@
 using System;
+using Betauer.Core;
 using Betauer.DI;
 using Betauer.DI.Attributes;
 using Betauer.DI.Exceptions;
 using Betauer.DI.ServiceProvider;
-using Betauer.Tools.Reflection;
+using Betauer.Tools.FastReflection;
 
 namespace Betauer.Application.Settings.Attributes;
 

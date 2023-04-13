@@ -28,13 +28,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.GameTools.Tests", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.FSM.Tests", "Betauer.FSM.Tests\Betauer.FSM.Tests.csproj", "{F9BA1081-D0DB-44D1-BBB3-3E287A555A7A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Tools.Reflection", "Betauer.Tools.Reflection\Betauer.Tools.Reflection.csproj", "{99035984-0652-438B-992A-A9CAA49EE5AA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Tools.FastReflection", "Betauer.Tools.FastReflection\Betauer.Tools.FastReflection.csproj", "{99035984-0652-438B-992A-A9CAA49EE5AA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Tools.Logging", "Betauer.Tools.Logging\Betauer.Tools.Logging.csproj", "{F2B58A5D-591A-46F0-86F4-7432E2B232C7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Tools.Logging.Tests", "Betauer.Tools.Logging.Tests\Betauer.Tools.Logging.Tests.csproj", "{23750989-C5EC-446C-ABE2-86CEB17751A3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Tools.Reflection.Tests", "Betauer.Tools.Reflection.Tests\Betauer.Tools.Reflection.Tests.csproj", "{8D0D007E-694F-45D4-8964-75C05A5B32D9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Tools.FastReflection.Tests", "Betauer.Tools.FastReflection.Tests\Betauer.Tools.FastReflection.Tests.csproj", "{8D0D007E-694F-45D4-8964-75C05A5B32D9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

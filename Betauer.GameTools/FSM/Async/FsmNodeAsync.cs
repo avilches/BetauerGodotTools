@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Betauer.Core;
-using Betauer.Tools.Reflection;
+using Betauer.Tools.FastReflection;
 using Godot;
 
 namespace Betauer.FSM.Async; 

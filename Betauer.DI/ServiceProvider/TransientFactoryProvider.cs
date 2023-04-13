@@ -1,6 +1,7 @@
 using System;
+using Betauer.Core;
 using Betauer.Tools.Logging;
-using Betauer.Tools.Reflection;
+using Betauer.Tools.FastReflection;
 
 namespace Betauer.DI.ServiceProvider; 
 

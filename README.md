@@ -14,7 +14,7 @@ Configurable on a per-class basis with various trace levels, this tool offers op
 
 This library is used by all other Betauer Godot Tools projects.
 
-### 2. Betauer.Tools.Reflection
+### 2. Betauer.Tools.FastReflection
 
 Reflection is slow in C#. This library creates and compile lambdas to ensure a fast access to properties, methods and fields. This library is used by other Betauer Godot Tools projects, like the Dependency Injection Container (Betauer.DI)
 

@@ -1,10 +1,8 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
-using Betauer.Tools.Logging;
 using NUnit.Framework;
 
-namespace Betauer.Tools.Reflection.Tests; 
+namespace Betauer.Core.Tests; 
 
 [TestRunner.Test]
 public class TypeTests {

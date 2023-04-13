@@ -18,7 +18,7 @@ namespace Betauer {
 					// in the first seconds since start.
 					typeof(Core.Tests.Assembly),
 					typeof(Tools.Logging.Tests.Assembly),
-					typeof(Tools.Reflection.Tests.Assembly),
+					typeof(Tools.FastReflection.Tests.Assembly),
 					typeof(Animation.Tests.Assembly),
 				}.Select(type => type.Assembly).ToArray();
 				// await ConsoleTestRunner.RunTests(this, assemblies);

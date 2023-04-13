@@ -5,7 +5,7 @@ using System.Reflection;
 using Betauer.Core;
 using Betauer.DI.Factory;
 using Betauer.DI.ServiceProvider;
-using Betauer.Tools.Reflection;
+using Betauer.Tools.FastReflection;
 
 namespace Betauer.DI;
 

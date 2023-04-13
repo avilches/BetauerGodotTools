@@ -1,6 +1,6 @@
 using System;
 using Betauer.DI.ServiceProvider;
-using Betauer.Tools.Reflection;
+using Betauer.Tools.FastReflection;
 
 namespace Betauer.DI.Attributes;
 

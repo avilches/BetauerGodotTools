@@ -8,7 +8,7 @@ using Betauer.Core.Pool.Basic;
 using Betauer.DI.Exceptions;
 using Betauer.DI.ServiceProvider;
 using Betauer.Tools.Logging;
-using Betauer.Tools.Reflection;
+using Betauer.Tools.FastReflection;
 
 namespace Betauer.DI;
 

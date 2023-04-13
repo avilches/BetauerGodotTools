@@ -1,11 +1,12 @@
 using System;
 using System.Reflection;
+using Betauer.Core;
 using Betauer.DI.Attributes;
 using Betauer.DI.Exceptions;
 using Betauer.DI.Factory;
 using Betauer.DI.ServiceProvider;
 using Betauer.Tools.Logging;
-using Betauer.Tools.Reflection;
+using Betauer.Tools.FastReflection;
 
 namespace Betauer.DI;
 

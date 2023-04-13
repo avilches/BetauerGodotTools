@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Betauer.Core;
 using Cysharp.Text;
 using Godot;
 using File = System.IO.File;
@@ -131,7 +132,7 @@ namespace Betauer.Tools.Logging {
 		}
 
 		public static Logger GetLogger(Type type) {
-			return GetLogger(GetNameWithoutGenerics(type));
+			return GetLogger(type.GetTypeName());
 		}
 
 		public static Logger GetLogger(string type) {
@@ -143,8 +144,12 @@ namespace Betauer.Tools.Logging {
 			return logger;
 		}
 
+		public static void SetTraceLevel<T>(TraceLevel traceLevel) {
+			GetLogger(typeof(T)).SetTraceLevel(traceLevel);
+		}
+		
 		public static void SetTraceLevel(Type type, TraceLevel traceLevel) {
-			SetTraceLevel(GetNameWithoutGenerics(type), traceLevel);
+			GetLogger(type).SetTraceLevel(traceLevel);
 		}
 
 		public static void SetTraceLevel(string type, TraceLevel traceLevel) {
@@ -156,12 +161,6 @@ namespace Betauer.Tools.Logging {
 			Writers.CopyTo(writers, 0);
 			writers[Writers.Length] = textWriter;
 			Writers = writers;
-		}
-
-		private static string GetNameWithoutGenerics(Type type) {
-			var name = type.Name;
-			var index = name.IndexOf('`');
-			return index == -1 ? name : name[..index];
 		}
 
 		public static void Write(TraceLevel level, string logLine) {

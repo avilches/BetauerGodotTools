@@ -17,7 +17,7 @@ using ZombieNode = Veronenger.Character.Npc.ZombieNode;
 namespace Veronenger.Managers.Autoload; 
 
 public partial class Bootstrap : Node /* needed to be instantiated as an Autoload from Godot */ {
-	private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(Bootstrap));
+	private static readonly Logger Logger = LoggerFactory.GetLogger<Bootstrap));
 
 	[Inject] private NotificationsHandler NotificationsHandler { get; set; }
 	[Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
@@ -68,10 +68,10 @@ public partial class Bootstrap : Node /* needed to be instantiated as an Autoloa
 		LoggerFactory.SetDefaultTraceLevel(TraceLevel.Warning);
 
 		// Bootstrap logs, always log everything :)
-		LoggerFactory.SetTraceLevel(typeof(Bootstrap), TraceLevel.All);
-		LoggerFactory.SetTraceLevel(typeof(ResourceLoaderContainer), TraceLevel.All);
-		LoggerFactory.SetTraceLevel(typeof(ConfigFileWrapper), TraceLevel.All);
-		LoggerFactory.SetTraceLevel(typeof(BaseScreenResolutionService), TraceLevel.All);
+		LoggerFactory.SetTraceLevel<Bootstrap>(TraceLevel.All);
+		LoggerFactory.SetTraceLevel<ResourceLoaderContainer>(TraceLevel.All);
+		LoggerFactory.SetTraceLevel<ConfigFileWrapper>(TraceLevel.All);
+		LoggerFactory.SetTraceLevel<BaseScreenResolutionService>(TraceLevel.All);
 	}
 
 	private static void DevelopmentConfig() {
@@ -79,32 +79,32 @@ public partial class Bootstrap : Node /* needed to be instantiated as an Autoloa
 		LoggerFactory.SetDefaultTraceLevel(TraceLevel.All);
 
 		// Bootstrap logs, always log everything :)
-		LoggerFactory.SetTraceLevel(typeof(Bootstrap), TraceLevel.All);
-		LoggerFactory.SetTraceLevel(typeof(ConfigFileWrapper), TraceLevel.All);
+		LoggerFactory.SetTraceLevel<Bootstrap>(TraceLevel.All);
+		LoggerFactory.SetTraceLevel<ConfigFileWrapper>(TraceLevel.All);
 
 		// DI
-		LoggerFactory.SetTraceLevel(typeof(Provider), TraceLevel.Error);
-		LoggerFactory.SetTraceLevel(typeof(Betauer.DI.Container), TraceLevel.Error);
-		LoggerFactory.SetTraceLevel(typeof(Betauer.DI.Container.Injector), TraceLevel.Error);
-		LoggerFactory.SetTraceLevel(typeof(Betauer.DI.Container.Scanner), TraceLevel.Error);
+		LoggerFactory.SetTraceLevel<Provider>(TraceLevel.Error);
+		LoggerFactory.SetTraceLevel<Betauer.DI.Container>(TraceLevel.Error);
+		LoggerFactory.SetTraceLevel<Betauer.DI.Container.Injector>(TraceLevel.Error);
+		LoggerFactory.SetTraceLevel<Betauer.DI.Container.Scanner>(TraceLevel.Error);
 
 		// GameTools
-		LoggerFactory.SetTraceLevel(typeof(BaseScreenResolutionService), TraceLevel.All);
-		LoggerFactory.SetTraceLevel(typeof(Fsm), TraceLevel.Error);
+		LoggerFactory.SetTraceLevel<BaseScreenResolutionService>(TraceLevel.All);
+		LoggerFactory.SetTraceLevel<Fsm>(TraceLevel.Error);
 
 		// Animation
-		LoggerFactory.SetTraceLevel(typeof(CallbackNodeTweener), TraceLevel.Error);
-		LoggerFactory.SetTraceLevel(typeof(CallbackTweener), TraceLevel.Error);
-		LoggerFactory.SetTraceLevel(typeof(PauseTweener), TraceLevel.Error);
-		LoggerFactory.SetTraceLevel(typeof(PropertyTweener), TraceLevel.Error);
+		LoggerFactory.SetTraceLevel<CallbackNodeTweener>(TraceLevel.Error);
+		LoggerFactory.SetTraceLevel<CallbackTweener>(TraceLevel.Error);
+		LoggerFactory.SetTraceLevel<PauseTweener>(TraceLevel.Error);
+		LoggerFactory.SetTraceLevel<PropertyTweener>(TraceLevel.Error);
 
 		// Game
-		LoggerFactory.SetTraceLevel(typeof(MainStateMachine), TraceLevel.Error);
-		LoggerFactory.SetTraceLevel(typeof(CameraStageLimiter), TraceLevel.Error);
+		LoggerFactory.SetTraceLevel<MainStateMachine>(TraceLevel.Error);
+		LoggerFactory.SetTraceLevel<CameraStageLimiter>(TraceLevel.Error);
 
 		// Player and enemies
-		LoggerFactory.SetTraceLevel(typeof(PlayerNode), TraceLevel.All);
-		LoggerFactory.SetTraceLevel(typeof(ZombieNode), TraceLevel.All);
+		LoggerFactory.SetTraceLevel<PlayerNode>(TraceLevel.All);
+		LoggerFactory.SetTraceLevel<ZombieNode>(TraceLevel.All);
 			
 		// LoggerFactory.OverrideTraceLevel(TraceLevel.All);
 	}

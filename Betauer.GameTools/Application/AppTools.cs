@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Betauer.Core.Nodes;
+using Betauer.Nodes;
 using Betauer.Tools.Logging;
 using Godot;
 

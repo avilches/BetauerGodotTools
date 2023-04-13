@@ -16,7 +16,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.FSM", "..\Betauer.F
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Bus", "..\Betauer.Bus\Betauer.Bus.csproj", "{A0347EEC-5BA0-4526-824C-F237A0A3CCCF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Tools.Reflection", "..\Betauer.Tools.Reflection\Betauer.Tools.Reflection.csproj", "{502D37AD-EDF2-4549-82FA-56BAF6DF30B6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Tools.FastReflection", "..\Betauer.Tools.FastReflection\Betauer.Tools.FastReflection.csproj", "{502D37AD-EDF2-4549-82FA-56BAF6DF30B6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Tools.Logging", "..\Betauer.Tools.Logging\Betauer.Tools.Logging.csproj", "{10FE32A2-0C95-41D2-AED3-C4EDB04555DF}"
 EndProject
@@ -34,7 +34,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.FSM.Tests", "..\Bet
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Tools.Logging.Tests", "..\Betauer.Tools.Logging.Tests\Betauer.Tools.Logging.Tests.csproj", "{512BA530-14C7-46CB-81EA-36BA4305B6CA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Tools.Reflection.Tests", "..\Betauer.Tools.Reflection.Tests\Betauer.Tools.Reflection.Tests.csproj", "{2446EA29-E9F3-4E66-87CC-968F8FC70315}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Betauer.Tools.FastReflection.Tests", "..\Betauer.Tools.FastReflection.Tests\Betauer.Tools.FastReflection.Tests.csproj", "{2446EA29-E9F3-4E66-87CC-968F8FC70315}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

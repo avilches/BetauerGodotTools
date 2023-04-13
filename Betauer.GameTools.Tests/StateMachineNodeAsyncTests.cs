@@ -2,9 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Betauer.Core;
 using Betauer.FSM.Async;
 using Betauer.TestRunner;
-using Betauer.Tools.Reflection;
+using Betauer.Tools.FastReflection;
 using Godot;
 using NUnit.Framework;
 

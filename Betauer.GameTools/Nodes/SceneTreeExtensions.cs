@@ -2,7 +2,7 @@ using System.Linq;
 using Betauer.Tools.Logging;
 using Godot;
 
-namespace Betauer.Core.Nodes; 
+namespace Betauer.Nodes; 
 
 public static partial class SceneTreeExtensions {
 

@@ -1,5 +1,6 @@
 using System;
-using Betauer.Tools.Reflection;
+using Betauer.Core;
+using Betauer.Tools.FastReflection;
 
 namespace Betauer.DI.Exceptions;
 

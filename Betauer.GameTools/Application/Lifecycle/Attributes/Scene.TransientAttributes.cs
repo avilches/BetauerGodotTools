@@ -1,8 +1,9 @@
 using System;
+using Betauer.Core;
 using Betauer.DI.Attributes;
 using Betauer.DI.Exceptions;
 using Betauer.DI.ServiceProvider;
-using Betauer.Tools.Reflection;
+using Betauer.Tools.FastReflection;
 using Godot;
 using Container = Betauer.DI.Container;
 

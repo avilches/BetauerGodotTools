@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Collections;
 using System.Linq;
 using System.Reflection;
-using Betauer.Tools.Reflection;
+using Betauer.Core;
+using Betauer.Tools.FastReflection;
 using Godot;
 
 namespace Betauer.NodePath; 

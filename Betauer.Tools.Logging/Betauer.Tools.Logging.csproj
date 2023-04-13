@@ -12,4 +12,7 @@
         <PackageReference Include="GodotSharp" Version="4.0.2" />
         <PackageReference Include="ZString" Version="2.5.0" />
     </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Betauer.Core\Betauer.Core.csproj" />
+    </ItemGroup>
 </Project>
