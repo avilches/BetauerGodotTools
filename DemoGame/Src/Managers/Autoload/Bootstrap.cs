@@ -17,7 +17,7 @@ using ZombieNode = Veronenger.Character.Npc.ZombieNode;
 namespace Veronenger.Managers.Autoload; 
 
 public partial class Bootstrap : Node /* needed to be instantiated as an Autoload from Godot */ {
-	private static readonly Logger Logger = LoggerFactory.GetLogger<Bootstrap));
+	private static readonly Logger Logger = LoggerFactory.GetLogger<Bootstrap>();
 
 	[Inject] private NotificationsHandler NotificationsHandler { get; set; }
 	[Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
