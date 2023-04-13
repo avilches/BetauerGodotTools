@@ -22,7 +22,7 @@ public class TransientAttribute : Attribute, IClassAttribute, IConfigurationMemb
             GetType().IsGenericType ? GetType().GetGenericArguments()[0] : type, // Trick to get the <T> from TransientAttribute<T>
             type,
             Lifetime.Transient,
-            () => Activator.CreateInstance(type),
+            () => Activator.CreateInstance(type)!,
             Name,
             Primary,
             true); // lazy flag is ignored in transient services
@@ -33,7 +33,7 @@ public class TransientAttribute : Attribute, IClassAttribute, IConfigurationMemb
             GetType().IsGenericType ? GetType().GetGenericArguments()[0] : getter.Type, // Trick to get the <T> from TransientAttribute<T>
             getter.Type,
             Lifetime.Transient,
-            () => getter.GetValue(configuration),
+            () => getter.GetValue(configuration)!,
             Name ?? getter.Name,
             Primary,
             true); // lazy flag is ignored in transient services

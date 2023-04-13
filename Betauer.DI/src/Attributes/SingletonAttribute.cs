@@ -22,7 +22,7 @@ public class SingletonAttribute : Attribute, IClassAttribute, IConfigurationMemb
             GetType().IsGenericType ? GetType().GetGenericArguments()[0] : type, // Trick to get the <T> from SingletonAttribute<T>
             type,
             Lifetime.Singleton,
-            () => Activator.CreateInstance(type),
+            () => Activator.CreateInstance(type)!,
             Name,
             Primary,
             Lazy);
@@ -33,7 +33,7 @@ public class SingletonAttribute : Attribute, IClassAttribute, IConfigurationMemb
             GetType().IsGenericType ? GetType().GetGenericArguments()[0] : getter.Type, // Trick to get the <T> from SingletonAttribute<T>
             getter.Type,
             Lifetime.Singleton,
-            () => getter.GetValue(configuration),
+            () => getter.GetValue(configuration)!,
             Name ?? getter.Name,
             Primary,
             Lazy);
