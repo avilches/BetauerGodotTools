@@ -34,7 +34,7 @@ build:
 
 .PHONY: run
 run:
-	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" -s "GeneratorScript.cs" --headless --verbose
+	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" -s "src/GeneratorScript.cs" --headless --verbose
 
 
 

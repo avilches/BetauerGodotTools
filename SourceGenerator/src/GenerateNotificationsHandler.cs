@@ -10,7 +10,7 @@ namespace Generator;
 
 public class GenerateNotificationHandler {
     private static string CreateFileName() =>
-        "../Betauer.GameTools/Application/Notifications/NotificationsHandler.cs";
+        "../Betauer.GameTools/src/Application/Notifications/NotificationsHandler.cs";
 
     public static void Write(params GodotClass[] classes) {
         var body = GenerateBodyClass(classes);

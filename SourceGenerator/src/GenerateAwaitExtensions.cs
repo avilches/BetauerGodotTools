@@ -6,7 +6,7 @@ using System.Linq;
 namespace Generator; 
 
 public class GenerateAwaitExtensions {
-    private const string FileName = "../Betauer.Core/Signal/AwaitExtensions.cs";
+    private const string FileName = "../Betauer.Core/src/Signal/AwaitExtensions.cs";
 
     public static void Write(List<GodotClass> classes) {
         List<string> allMethods = classes

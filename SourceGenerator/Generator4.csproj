@@ -7,5 +7,9 @@
         <PackageId>Generator</PackageId>
         <AssemblyName>Generator</AssemblyName>
         <Nullable>enable</Nullable>
+        <EnableDefaultCompileItems>False</EnableDefaultCompileItems>
     </PropertyGroup>
+    <ItemGroup>
+        <Compile Include="src/**/*.cs" />
+    </ItemGroup>
 </Project>
