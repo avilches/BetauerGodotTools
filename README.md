@@ -42,7 +42,7 @@ That means you can access to SceneTree and any GodotSharp classes in your tests.
 using Betauer.TestRunner;
 
 [Test]
-public class YouTest {
+public class YourTest {
     // Executed only once before and after all tests in this class
     [SetUpClass] public void SetUpClass() {}
     [TearDownClass] public void TearDownClass() {}
@@ -78,7 +78,7 @@ public class YouTest : Node {
     }
 ```
 
-In order to run these tests in your game, you have to create a script like this ans specify the assemblies to scan for test cases:
+In order to run these tests in your game, you have to create a script like this and specify the assemblies to scan for test cases:
 
 ```C#
 public partial class RunTests : SceneTree {
