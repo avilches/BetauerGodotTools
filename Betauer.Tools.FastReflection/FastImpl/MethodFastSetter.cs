@@ -1,7 +1,8 @@
 using System;
 using System.Reflection;
+using Betauer.Core;
 
-namespace Betauer.Tools.Reflection.FastImpl; 
+namespace Betauer.Tools.FastReflection.FastImpl; 
 
 public class MethodFastSetter : ISetter {
     private readonly FastMethodInfo _fastMethodInfo;

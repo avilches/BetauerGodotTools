@@ -1,8 +1,9 @@
 using System;
 using System.Linq.Expressions;
 using System.Reflection;
+using Betauer.Core;
 
-namespace Betauer.Tools.Reflection.FastImpl; 
+namespace Betauer.Tools.FastReflection.FastImpl; 
 
 public class FieldFastSetter : ISetter {
     private readonly Action<object, object?> _setValue;
@@ -41,14 +42,11 @@ public class FieldFastSetter : ISetter {
     }
 
     public static Action<object, object> CreateLambdaSetter(FieldInfo fieldInfo) {
-        var sourceParam = Expression.Parameter(typeof(object));
+        var instanceParam = Expression.Parameter(typeof(object));
         var valueParam = Expression.Parameter(typeof(object));
-        var convertedValueExpr = Expression.Convert(valueParam, fieldInfo.FieldType);
-        Expression returnExpression = Expression.Assign(Expression.Field
-            (Expression.Convert(sourceParam, fieldInfo.DeclaringType), fieldInfo), convertedValueExpr);
-        if (!fieldInfo.FieldType.IsClass) returnExpression = Expression.Convert(returnExpression, typeof(object));
-        var lambda = Expression.Lambda(typeof(Action<object, object>),
-            returnExpression, sourceParam, valueParam);
-        return (Action<object, object>)lambda.Compile();
+        var value = Expression.Convert(valueParam, fieldInfo.FieldType);
+        var instance = Expression.Convert(instanceParam, fieldInfo.DeclaringType!);
+        var setFieldValue = Expression.Assign(Expression.Field(instance, fieldInfo), value);
+        return Expression.Lambda<Action<object, object>>(setFieldValue, instanceParam, valueParam).Compile();
     }
 }

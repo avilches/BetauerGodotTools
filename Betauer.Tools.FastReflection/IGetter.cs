@@ -1,6 +1,6 @@
 using System;
 
-namespace Betauer.Tools.Reflection; 
+namespace Betauer.Tools.FastReflection; 
 
 public interface IGetter : IMember {
     public object? GetValue(object instance);

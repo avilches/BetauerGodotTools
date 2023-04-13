@@ -3,9 +3,8 @@
         <TargetFramework>net7.0</TargetFramework>
         <EnableDynamicLoading>true</EnableDynamicLoading>
         <LangVersion>11.0</LangVersion>
-        <RootNamespace>Betauer.Tools.Reflection.Tests</RootNamespace>
-        <PackageId>Betauer.Tools.Reflection.Tests</PackageId>
-        <AssemblyName>Betauer.Tools.Reflection.Tests</AssemblyName>
+        <RootNamespace>Betauer.Tools.FastReflection.Tests</RootNamespace>
+        <PackageId>Betauer.Tools.FastReflection.Tests</PackageId>
         <Nullable>enable</Nullable>
     </PropertyGroup>
     <ItemGroup>
@@ -16,6 +15,6 @@
     <ItemGroup>
         <ProjectReference Include="..\Betauer.TestRunner\Betauer.TestRunner.csproj" />
         <ProjectReference Include="..\Betauer.Tools.Logging\Betauer.Tools.Logging.csproj" />
-        <ProjectReference Include="..\Betauer.Tools.Reflection\Betauer.Tools.Reflection.csproj" />
+        <ProjectReference Include="..\Betauer.Tools.FastReflection\Betauer.Tools.FastReflection.csproj" />
     </ItemGroup>
 </Project>

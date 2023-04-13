@@ -1,6 +1,6 @@
 using System;
 
-namespace Betauer.Tools.Reflection; 
+namespace Betauer.Tools.FastReflection; 
 
 public interface ISetter : IMember {
     public void SetValue(object instance, object? value);

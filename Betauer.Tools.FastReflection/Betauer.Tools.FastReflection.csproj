@@ -3,9 +3,11 @@
         <TargetFramework>net7.0</TargetFramework>
         <EnableDynamicLoading>true</EnableDynamicLoading>
         <LangVersion>11.0</LangVersion>
-        <RootNamespace>Betauer.Tools.Reflection</RootNamespace>
-        <PackageId>Betauer.Tools.Reflection</PackageId>
-        <AssemblyName>Betauer.Tools.Reflection</AssemblyName>
+        <RootNamespace>Betauer.Tools.FastReflection</RootNamespace>
+        <PackageId>Betauer.Tools.FastReflection</PackageId>
         <Nullable>enable</Nullable>
     </PropertyGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\Betauer.Core\Betauer.Core.csproj" />
+    </ItemGroup>
 </Project>

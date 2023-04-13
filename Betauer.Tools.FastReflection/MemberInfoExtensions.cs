@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 
-namespace Betauer.Tools.Reflection; 
+namespace Betauer.Tools.FastReflection; 
 
 public static class MemberInfoExtensions {
     public static T? GetAttribute<T>(this MemberInfo member, bool inherit = false) where T : class {

@@ -1,7 +1,7 @@
 using System;
 using System.Reflection;
 
-namespace Betauer.Tools.Reflection; 
+namespace Betauer.Tools.FastReflection; 
 
 public interface IMember {
     public Type Type { get; }

@@ -1,8 +1,9 @@
 using System;
 using System.Linq.Expressions;
 using System.Reflection;
+using Betauer.Core;
 
-namespace Betauer.Tools.Reflection.FastImpl; 
+namespace Betauer.Tools.FastReflection.FastImpl; 
 
 public class PropertyFastSetter : ISetter {
     private readonly Action<object, object> _setValue;
@@ -47,10 +48,9 @@ public class PropertyFastSetter : ISetter {
     public static Action<object, object> CreateLambdaSetter(PropertyInfo propertyInfo) {
         var instanceParam = Expression.Parameter(typeof(object));
         var valueParam = Expression.Parameter(typeof(object));
-        var body = Expression.Call
-        (Expression.Convert(instanceParam, propertyInfo.DeclaringType),
-            propertyInfo.SetMethod,
-            Expression.Convert(valueParam, propertyInfo.PropertyType));
-        return (Action<object, object>)Expression.Lambda(body, instanceParam, valueParam).Compile();
+        var instance = Expression.Convert(instanceParam, propertyInfo.DeclaringType!);
+        var value = Expression.Convert(valueParam, propertyInfo.PropertyType);
+        var setPropertyValue = Expression.Call(instance, propertyInfo.SetMethod!, value);
+        return Expression.Lambda<Action<object, object>>(setPropertyValue, instanceParam, valueParam).Compile();
     }
 }

@@ -1,8 +1,9 @@
 using System;
 using System.Linq.Expressions;
 using System.Reflection;
+using Betauer.Core;
 
-namespace Betauer.Tools.Reflection.FastImpl; 
+namespace Betauer.Tools.FastReflection.FastImpl; 
 
 public class FieldFastGetter : IGetter {
     private readonly Func<object?, object> _getValue;
@@ -40,9 +41,14 @@ public class FieldFastGetter : IGetter {
 
     public static Func<object, object> CreateLambdaGetter(FieldInfo fieldInfo) {
         var instanceParam = Expression.Parameter(typeof(object));
-        Expression body = Expression.Field
-            (Expression.Convert(instanceParam, fieldInfo.DeclaringType), fieldInfo);
-        if (!fieldInfo.FieldType.IsClass) body = Expression.Convert(body, typeof(object));
-        return (Func<object, object>)Expression.Lambda(body, instanceParam).Compile();
+        var instance = Expression.Convert(instanceParam, fieldInfo.DeclaringType!);
+        var fieldAccessResult = Expression.Field(instance, fieldInfo);
+        if (fieldInfo.FieldType.IsClass) {
+            return (Func<object, object>)Expression.Lambda(fieldAccessResult, instanceParam).Compile();
+        }
+        // Pay attention to the fact that we are converting to object, so the result of the conversion is boxed
+        var castToObject = Expression.Convert(fieldAccessResult, typeof(object));
+        return (Func<object, object>)Expression.Lambda(castToObject, instanceParam).Compile();
+            
     }
 }

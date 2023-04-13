@@ -1,8 +1,9 @@
 using System;
 using System.Reflection;
-using Betauer.Tools.Reflection.FastImpl;
+using Betauer.Core;
+using Betauer.Tools.FastReflection.FastImpl;
 
-namespace Betauer.Tools.Reflection; 
+namespace Betauer.Tools.FastReflection; 
 
 public class FastGetterSetter : IGetterSetter {
     public IGetter Getter { get; }

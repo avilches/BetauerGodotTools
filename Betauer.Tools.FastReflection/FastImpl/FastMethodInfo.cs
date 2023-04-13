@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace Betauer.Tools.Reflection.FastImpl; 
+namespace Betauer.Tools.FastReflection.FastImpl; 
 
 public class FastMethodInfo {
     private delegate object? ReturnValueDelegate(object instance, object[] arguments);

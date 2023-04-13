@@ -1,8 +1,9 @@
 using System;
 using System.Linq.Expressions;
 using System.Reflection;
+using Betauer.Core;
 
-namespace Betauer.Tools.Reflection.FastImpl; 
+namespace Betauer.Tools.FastReflection.FastImpl; 
 
 public class PropertyFastGetter : IGetter {
     private readonly Func<object, object> _getValue;
@@ -46,9 +47,13 @@ public class PropertyFastGetter : IGetter {
 
     public static Func<object, object> CreateLambdaGetter(PropertyInfo propertyInfo) {
         var instanceParam = Expression.Parameter(typeof(object));
-        var body = Expression.Call(
-            Expression.Convert(instanceParam, propertyInfo.DeclaringType),
-            propertyInfo.GetMethod);
-        return (Func<object, object>)Expression.Lambda(body, instanceParam).Compile();
+        var instance = Expression.Convert(instanceParam, propertyInfo.DeclaringType!);
+        var propertyAccessResult = Expression.Call(instance, propertyInfo.GetMethod!);
+        if (propertyInfo.PropertyType.IsClass) {
+            return Expression.Lambda<Func<object, object>>(propertyAccessResult, instanceParam).Compile();
+        }
+        // Pay attention to the fact that we are converting to object, so the result of the conversion is boxed
+        var castToObject = Expression.Convert(propertyAccessResult, typeof(object));
+        return Expression.Lambda<Func<object, object>>(castToObject, instanceParam).Compile();
     }
 }
