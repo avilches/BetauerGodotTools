@@ -20,9 +20,9 @@ public partial class GeneratorScript : SceneTree {
         // Notification
         var GetClass = (string name) => classes.First(c => c.ClassName == name);
         GenerateNotificationHandler.Write(GetClass("Node"));
-            
         // Signal extensions
         GenerateAwaitExtensions.Write(classes);
+        GenerateSignalExtensions.Write(classes);
         Console.WriteLine("End. "+stopwatch.ElapsedMilliseconds + "ms");
         Quit(0);
     }

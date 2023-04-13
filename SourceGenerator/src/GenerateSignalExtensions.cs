@@ -5,39 +5,40 @@ using System.Linq;
 
 namespace Generator; 
 
-public class GenerateAwaitExtensions {
-    private const string FileName = "../Betauer.Core/src/Signal/AwaitExtensions.cs";
+public class GenerateSignalExtensions {
+    private const string FileName = "../Betauer.Core/src/Signal/SignalExtensions.cs";
 
     public static void Write(List<GodotClass> classes) {
         List<string> allMethods = classes
             .Where(godotClass => godotClass.Signals.Count > 0)
             .SelectMany(godotClass => godotClass.Signals)
-            .Select(GenerateMethod)
+            .Select(GenerateBodyMethod)
             .ToList();
         var bodySignalExtensionsClass = GenerateBodyClass(allMethods);
         Console.WriteLine($"Generated {System.IO.Path.GetFullPath(FileName)}");
         File.WriteAllText(FileName, bodySignalExtensionsClass);
     }
-
-    private static string GenerateMethod(Signal signal) {
-        var targetParam = signal.GodotClass.IsStatic ? "" : $"this {signal.GodotClass.ClassName} target";
+    
+    private static string GenerateBodyMethod(Signal signal) {
+        var targetParam = signal.GodotClass.IsStatic ? "" : $"this {signal.GodotClass.ClassName} target, ";
         var target = signal.GodotClass.IsStatic ? $"{signal.GodotClass.ClassName}.Singleton" : "target";
-        var signalName = $"{signal.GodotClass.ClassName}.SignalName.{signal.SignalName}";
         return $@"
-    public static SignalAwaiter Await{signal.MethodName}({targetParam}) =>
-        {target}.ToSignal({target}, {signalName});";
+    public static Action On{signal.MethodName}({targetParam}Action{signal.Generics()} action, bool oneShot = false, bool deferred = false) {{
+        var callable = Callable.From(action);
+        {target}.Connect({signal.GodotClass.ClassName}.SignalName.{signal.SignalName}, callable, SignalFlags(oneShot, deferred));
+        return () => {target}.Disconnect({signal.GodotClass.ClassName}.SignalName.{signal.SignalName}, callable);
+    }}";
     }
 
     private static string GenerateBodyClass(IEnumerable<string> methods) {
         return $@"using System;
 using Godot;
-using Animation = Godot.Animation;
-using Environment = Godot.Environment;
 using Range = Godot.Range;
+using static Betauer.Core.Signal.SignalTools; 
 
 namespace Betauer.Core.Signal;
 
-public static partial class AwaitExtensions {{
+public static partial class SignalExtensions {{
   {string.Join("\n", methods)}
 }}";
     }
