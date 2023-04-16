@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Betauer.Core.Nodes;
 using Betauer.Nodes;
@@ -36,27 +37,29 @@ public static partial class AppTools {
     public static bool GetWindowBorderless() => GetProjectSetting("display/window/size/borderless", false);
     public static bool GetWindowVsync() => GetProjectSetting("display/window/vsync/use_vsync", true);
 
-        
-    public static void ConfigureExceptionHandlers(Func<SceneTree> sceneTree) {
-            
-        TaskScheduler.UnobservedTaskException += (o, args) => {
-            // This event logs errors in non-awaited Task, which is a weird case
-            var e = args.Exception;
-            var loggerType = o?.GetType() ?? typeof(AppTools);
-            LoggerFactory.GetLogger(loggerType).Error("TaskScheduler.UnobservedTaskException {0}", e);
-                sceneTree().QuitSafely(1);
-        };
 
-        // TODO Godot 4
-        AppDomain.CurrentDomain.UnhandledException += (o, args) => {
-            // This event logs errors in _Input/_Ready or any other method called from Godot (async or non-async)
-            // but it only works if runtime/unhandled_exception_policy is "0" (terminate),
-            // so the quit is not really needed
-            // If unhandled_exception_policy is "1" (LogError), the error is not logged neither this event is called
-            var e = args.ExceptionObject;
-            var loggerType = o?.GetType() ?? typeof(AppTools);
-            LoggerFactory.GetLogger(loggerType).Error("AppDomain.CurrentDomain.UnhandledException {0}", e);
-        };
+    public static void AddQuitGameOnException(int exitCode = 1) {
+        AddExceptionHandler((o, exception) => ((SceneTree)Engine.GetMainLoop()).QuitSafely(exitCode));
     }
 
+    public static void AddLogOnException() {
+        Logging.UserExceptionReporter += e => LogException(null, "Godot.Logging.UserExceptionReporter", e.ToString());
+        TaskScheduler.UnobservedTaskException += (o, args) => LogException(o, "TaskScheduler.UnobservedTaskException", args.Exception.ToString());
+        AppDomain.CurrentDomain.UnhandledException += (o, args) => LogException(o, "UnhandledException", ((Exception)args.ExceptionObject).ToString());
+    }
+
+    public static void AddExceptionHandler(Action<object?, Exception>? exceptionHandler = null) {
+        Logging.UserExceptionReporter += e => exceptionHandler?.Invoke(null, e);
+        TaskScheduler.UnobservedTaskException += (o, args) => exceptionHandler?.Invoke(o, args.Exception);
+        AppDomain.CurrentDomain.UnhandledException += (o, args) => exceptionHandler?.Invoke(o, (Exception)args.ExceptionObject);
+    }
+
+    private static void LogException(object? caller, string from, string message) {
+        try {
+            var loggerType = caller?.GetType() ?? typeof(AppTools);
+            LoggerFactory.GetLogger(loggerType).Error("{0} | {1}", from, message);
+        } catch (Exception e) {
+            Console.WriteLine(e);
+        }
+    }
 }

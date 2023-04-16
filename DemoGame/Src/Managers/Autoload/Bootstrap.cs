@@ -24,7 +24,14 @@ public partial class Bootstrap : Node /* needed to be instantiated as an Autoloa
 	[Inject] private WindowNotificationStatus WindowNotificationStatus { get; set; }
 
 	public Bootstrap() {
-		AppTools.ConfigureExceptionHandlers(GetTree);
+		Logging.SendToScriptDebugger = false;
+		AppTools.AddLogOnException();
+		AppTools.AddQuitGameOnException();
+
+		// new Task(() => throw new Exception()).Start();
+		// new Thread(() => throw new Exception()).Start();
+		// throw new Exception("Xxxxx");
+
 
 		new GodotContainer(this)
 			.Start(options => {
