@@ -7,8 +7,6 @@ using Betauer.Application.Monitor;
 using Betauer.Application.Screen;
 using Betauer.Application.Settings;
 using Betauer.Application.Settings.Attributes;
-using Betauer.Core.Pool;
-using Betauer.Core.Pool.Lifecycle;
 using Betauer.DI.Attributes;
 using Betauer.Input;
 using Betauer.Input.Attributes;
@@ -35,10 +33,6 @@ public class ApplicationConfig {
 
 	[Singleton] public DebugOverlayManager DebugOverlayManager => new();
 	[Singleton] public InputActionsContainer InputActionsContainer => new();
-
-	// All 
-	[Singleton] public PoolContainer<IPoolLifecycle> PoolContainer => new();
-
 }
 
 [Configuration]
@@ -90,9 +84,14 @@ public class MainResources {
 [Scene.Transient<ProjectileTrail>("ProjectileTrail", "res://Scenes/ProjectileTrail.tscn")]
 [Scene.Transient<PickableItemNode>("PickableItem", "res://Scenes/PickableItem.tscn")]
 public class GameResources {
-	[Singleton] IPool<ZombieNode> ZombiePool => new PoolFromNodeFactory<ZombieNode>();
-	[Singleton] IPool<ProjectileTrail> ProjectilePool => new PoolFromNodeFactory<ProjectileTrail>();
-	[Singleton] IPool<PickableItemNode> PickableItemPool => new PoolFromNodeFactory<PickableItemNode>();
+}
+
+[Configuration]
+[PoolContainer("PoolContainer")]
+public class PoolConfig {
+	[NodePool<ZombieNode>] NodePool<ZombieNode> ZombiePool => new();
+	[NodePool<ProjectileTrail>] NodePool<ProjectileTrail> ProjectilePool => new();
+	[NodePool<PickableItemNode>] NodePool<PickableItemNode> PickableItemPool => new();
 }
 
 [Configuration]
