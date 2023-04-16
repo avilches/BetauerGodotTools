@@ -6,7 +6,7 @@ using Godot;
 namespace Betauer.Camera; 
 
 public class CameraStageLimiter {
-    private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(CameraStageLimiter));
+    private static readonly Logger Logger = LoggerFactory.GetLogger<CameraStageLimiter>();
     private Area2D? _enteredStage;
     private bool _exitedStage;
     private Area2D? _currentStage;

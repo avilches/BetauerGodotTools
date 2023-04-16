@@ -12,7 +12,7 @@ namespace Betauer.DI;
 
 public partial class Container {
     public class Scanner {
-        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(Scanner));
+        private static readonly Logger Logger = LoggerFactory.GetLogger<Scanner>();
         private readonly Builder _builder;
         private readonly Container _container;
 

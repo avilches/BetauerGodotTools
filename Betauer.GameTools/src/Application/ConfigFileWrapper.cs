@@ -85,7 +85,7 @@ public class ConfigFileWrapper {
             : _configFile.LoadEncrypted(FilePath, EncryptionKey);
         Dirty = false;
         if (LastError != Error.Ok) {
-            LoggerFactory.GetLogger(typeof(ConfigFileWrapper)).Error($"Load \"{FilePath}\" error: {LastError}");
+            LoggerFactory.GetLogger<ConfigFileWrapper>().Error($"Load \"{FilePath}\" error: {LastError}");
         }
         return this;
     }
@@ -98,7 +98,7 @@ public class ConfigFileWrapper {
             : _configFile.SaveEncrypted(FilePath, EncryptionKey);
         Dirty = false;
         if (LastError != Error.Ok) {
-            LoggerFactory.GetLogger(typeof(ConfigFileWrapper)).Error($"Save \"{FilePath}\" error: {LastError}");
+            LoggerFactory.GetLogger<ConfigFileWrapper>().Error($"Save \"{FilePath}\" error: {LastError}");
         }
         return this;
     }

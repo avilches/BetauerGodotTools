@@ -3,7 +3,7 @@ using Godot;
 
 namespace Betauer.Animation {
     public class PauseTweener : ITweener {
-        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PauseTweener));
+        private static readonly Logger Logger = LoggerFactory.GetLogger<PauseTweener>();
         private readonly float _delay;
 
         internal PauseTweener(float delay) {

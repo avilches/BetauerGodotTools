@@ -13,7 +13,7 @@ using Betauer.Tools.FastReflection;
 namespace Betauer.DI;
 
 public partial class Container {
-    private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(Container));
+    private static readonly Logger Logger = LoggerFactory.GetLogger<Container>();
     private readonly Dictionary<Type, IProvider> _registry = new();
     private readonly Dictionary<string, IProvider> _registryByName = new();
     private readonly Dictionary<Type, IProvider> _fallbackByType = new();

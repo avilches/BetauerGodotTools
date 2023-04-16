@@ -12,7 +12,7 @@ using Godot;
 namespace Betauer.Application.Lifecycle;
 
 public class ResourceLoaderContainer {
-    private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(ResourceLoaderContainer));
+    private static readonly Logger Logger = LoggerFactory.GetLogger<ResourceLoaderContainer>();
 
     public List<ResourceFactory> ResourceFactories { get; } = new();
 

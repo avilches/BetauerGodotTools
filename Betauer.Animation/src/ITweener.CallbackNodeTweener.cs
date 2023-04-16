@@ -4,7 +4,7 @@ using Godot;
 
 namespace Betauer.Animation {
     public class CallbackNodeTweener : ITweener {
-        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(CallbackNodeTweener));
+        private static readonly Logger Logger = LoggerFactory.GetLogger<CallbackNodeTweener>();
         private readonly Action<Node> _callback;
         private readonly float _delay;
 

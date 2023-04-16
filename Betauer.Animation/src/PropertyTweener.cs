@@ -9,7 +9,7 @@ using Godot;
 namespace Betauer.Animation {
     
     public abstract class PropertyTweener {
-        protected static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PropertyTweener));
+        protected static readonly Logger Logger = LoggerFactory.GetLogger<PropertyTweener>();
     }
 
     public abstract class PropertyTweener<[MustBeVariant] TProperty> : PropertyTweener {

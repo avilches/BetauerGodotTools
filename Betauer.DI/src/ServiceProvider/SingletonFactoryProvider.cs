@@ -5,7 +5,7 @@ using Betauer.Tools.FastReflection;
 
 namespace Betauer.DI.ServiceProvider {
     public class SingletonFactoryProvider : Provider, ISingletonProvider {
-        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(Provider));
+        private static readonly Logger Logger = LoggerFactory.GetLogger<Provider>();
         private readonly Func<object> _factory;
         public override Lifetime Lifetime => Lifetime.Singleton;
         public bool IsInstanceCreated { get; private set; }

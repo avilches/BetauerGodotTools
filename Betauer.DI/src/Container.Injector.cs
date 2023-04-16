@@ -12,7 +12,7 @@ namespace Betauer.DI;
 
 public partial class Container {
     public class Injector {
-        private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(Injector));
+        private static readonly Logger Logger = LoggerFactory.GetLogger<Injector>();
         private readonly Container _container;
 
         private const BindingFlags InjectFlags =
