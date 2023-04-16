@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
+using Betauer.Core;
 using Veronenger.Config;
+using Veronenger.Persistent;
 
 namespace Veronenger.Character.Player;
 
@@ -10,6 +13,8 @@ public class PlayerStatus {
     public bool Invincible { get; set; } = false; // true when the Hurt state starts. A timeout sets it to false later
     public bool UnderAttack { get; set; } = false; // true when the first attack signal is emitted. false when Hurt state ends.
     public int AvailableHits { get; set; } = 0;
+    
+    public Dictionary<AmmoType, int> Ammo { get; } = new();
 
     public event Action<PlayerUpdateHealthEvent> OnHealthUpdate;
 
@@ -20,11 +25,25 @@ public class PlayerStatus {
         UnderAttack = false;
         AvailableHits = 0;
         OnHealthUpdate?.Invoke(new PlayerUpdateHealthEvent(Health, Health, MaxHealth));
+        
+        Enum.GetValues<AmmoType>().ForEach(ammoType => Ammo[ammoType] = 10);
     }
 
+    public int GetAmmo(AmmoType ammoType) => Ammo[ammoType];
+    public bool HasAmmo(AmmoType ammoType) => Ammo[ammoType] > 0;
+    public void UpdateAmmo(AmmoType ammoType, int amount) => Ammo[ammoType] += amount;
+
     public void UpdateHealth(float update) => SetHealth(Health + update);
-    
     public void UpdateMaxHealth(float update) => SetMaxHealth(MaxHealth + update);
+
+    public void Reload(WeaponRangeItem weapon) {
+        var needed = weapon.MagazineSize - weapon.Ammo;
+        var available = GetAmmo(weapon.AmmoType);
+        var toReload = Math.Min(needed, available);
+        UpdateAmmo(weapon.AmmoType, -toReload);
+        weapon.Ammo += toReload;
+        Console.WriteLine($"{weapon.AmmoType} reloaded {toReload} ammo. Now have {GetAmmo(weapon.AmmoType)} ammo.");
+    }
 
     public void SetHealth(float health) {
         var fromHealth = Health;

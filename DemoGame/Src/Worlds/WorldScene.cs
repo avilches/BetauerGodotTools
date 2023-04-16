@@ -1,9 +1,8 @@
 using System;
 using System.Linq;
+using Betauer.Application.Lifecycle;
 using Betauer.Core;
 using Betauer.Core.Nodes;
-using Betauer.Core.Pool;
-using Betauer.DI;
 using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
 using Godot;
@@ -21,10 +20,10 @@ public partial class WorldScene : Node {
 	[Inject] private ItemRepository ItemRepository { get; set; }
 	[Inject] private PlatformManager PlatformManager { get; set; }
 	[Inject] private StageManager StageManager { get; set; }
-	[Inject] private IPool<PickableItemNode> PickableItemNodeFactory { get; set; }
 	[Inject] private IFactory<PlayerNode> PlayerFactory { get; set; }
-	[Inject] private IPool<ProjectileTrail> ProjectilePool { get; set; }
-	[Inject] private IPool<ZombieNode> ZombiePool { get; set; }
+	[Inject] private NodePool<PickableItemNode> PickableItemNodeFactory { get; set; }
+	[Inject] private NodePool<ProjectileTrail> ProjectilePool { get; set; }
+	[Inject] private NodePool<ZombieNode> ZombiePool { get; set; }
 
 	public override void _Ready() {
 		GetNode("EnemySpawn").GetChildren().OfType<Marker2D>().ForEach(m => {
@@ -50,35 +49,35 @@ public partial class WorldScene : Node {
 
 	private void PlaceMetalbar() {
 		var metalbar = ItemRepository
-			.Create<WeaponMeleeItem>("Metalbar", "M1")
+			.Create<WeaponMeleeItem>("Metalbar")
 			.Configure(ItemConfigManager.Metalbar, damageBase: 9f, enemiesPerHit: 2);
 		PlacePickable(PickableItemNodeFactory.Get(), metalbar, GetPositionFromMarker("ItemSpawn/Metalbar"));
 	}
 	
 	private void PlaceSlowGun() {
 		var range = ItemRepository
-			.Create<WeaponRangeItem>("Slow Gun", "SG")
+			.Create<WeaponRangeItem>("Slow Gun")
 			.Configure(ItemConfigManager.SlowGun, AmmoType.Bullet, damageBase: 6f, delayBetweenShots: 0.2f, magazineSize: 22);
 		PlacePickable(PickableItemNodeFactory.Get(), range, GetPositionFromMarker("ItemSpawn/Gun"));
 	}
 	
 	private void PlaceGun() {
 		var range = ItemRepository
-			.Create<WeaponRangeItem>("Gun", "G")
-			.Configure(ItemConfigManager.Gun, AmmoType.Bullet, damageBase: 9f, delayBetweenShots: 0.4f, magazineSize: 12);
+			.Create<WeaponRangeItem>("Gun")
+			.Configure(ItemConfigManager.Gun, AmmoType.Bullet, damageBase: 9f, delayBetweenShots: 0.3f, magazineSize: 12);
 		PlacePickable(PickableItemNodeFactory.Get(), range, GetPositionFromMarker("ItemSpawn/Gun"));
 	}
 
 	private void PlaceShotgun() {
 		var range = ItemRepository
-			.Create<WeaponRangeItem>("Shotgun", "ShG")
-			.Configure(ItemConfigManager.Shotgun, AmmoType.Cartridge, damageBase: 22f, delayBetweenShots: 1f, enemiesPerHit: 2, magazineSize: 8);
+			.Create<WeaponRangeItem>("Shotgun")
+			.Configure(ItemConfigManager.Shotgun, AmmoType.Cartridge, damageBase: 22f, delayBetweenShots: 0.5f, enemiesPerHit: 2, magazineSize: 8);
 		PlacePickable(PickableItemNodeFactory.Get(), range, GetPositionFromMarker("ItemSpawn/Gun"));
 	}
 
 	private void PlaceMachineGun() {
 		var range = ItemRepository
-			.Create<WeaponRangeItem>("MachineGun", "MG")
+			.Create<WeaponRangeItem>("MachineGun")
 			.Configure(ItemConfigManager.MachineGun, AmmoType.Bullet, damageBase: 4f, delayBetweenShots: 0.05f, enemiesPerHit: 1, magazineSize: 30, auto: true);
 		PlacePickable(PickableItemNodeFactory.Get(), range, GetPositionFromMarker("ItemSpawn/Gun"));
 	}

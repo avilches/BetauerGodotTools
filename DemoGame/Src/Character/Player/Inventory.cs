@@ -57,7 +57,10 @@ public class Inventory {
         for (var i = 0; i < Items.Count; i++) {
             var item = Items[i];
             var itemName = i == Selected ? $"[{item.Name}]" : $" {item.Name}";
-            Console.WriteLine(itemName+(item == WeaponMeleeEquipped || item == WeaponRangeEquipped ? " E" : ""));
+            if (item is WeaponRangeItem rangeItem) {
+                itemName += $" ({rangeItem.Ammo})";
+            }
+            Console.WriteLine(itemName + (item == WeaponMeleeEquipped || item == WeaponRangeEquipped ? " E" : ""));
         }
     }
 

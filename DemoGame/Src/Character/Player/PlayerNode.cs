@@ -375,7 +375,7 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 		var shootTimer = new GodotStopwatch().Start();
 
 		bool PlayerCanShoot() => Inventory.GetCurrent() is WeaponRangeItem &&
-		                         shootTimer.Elapsed >= Inventory.WeaponRangeEquipped.DelayBetweenShots; 
+								 shootTimer.Elapsed >= Inventory.WeaponRangeEquipped.DelayBetweenShots; 
 
 		_fsm.On(PlayerEvent.Hurt).Set(PlayerState.Hurting);
 		_fsm.On(PlayerEvent.Death).Set(PlayerState.Death);
@@ -524,15 +524,16 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 			.Build();
 
 		void Shoot() {
-			shootTimer.Restart();
-			AnimationShoot.PlayFrom(0);
 			var weapon = Inventory.WeaponRangeEquipped;
-			var bulletPosition = weapon.Config.ProjectileStartPosition * new Vector2(PlatformBody.FacingRight, 1);
-			var bulletDirection = new Vector2(PlatformBody.FacingRight, 0);
-			var hits = 0;
-			var bullet = Game.WorldScene.NewBullet();
-			if (weapon.Ammo > 0) {
+			AnimationShoot.PlayFrom(0);
+			if (weapon!.Ammo > 0) {
+				shootTimer.Restart();
+				var bulletPosition = weapon.Config.ProjectileStartPosition * new Vector2(PlatformBody.FacingRight, 1);
+				var bulletDirection = new Vector2(PlatformBody.FacingRight, 0);
+				var hits = 0;
+				var bullet = Game.WorldScene.NewBullet();
 				weapon.Ammo -= 1;
+				Console.WriteLine("Ammo: " + weapon.Ammo);
 				bullet.ShootFrom(weapon, CharacterBody2D.ToGlobal(bulletPosition), bulletDirection,
 					CollisionLayerManager.PlayerConfigureBullet,
 					collision => {
@@ -542,7 +543,6 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 						var npc = ItemRepository.GetFromMeta<NpcItem>(collision.Collider);
 						if (npc.ItemNode.CanBeAttacked(weapon)) {
 							hits++;
-							// npc.Node.QueueFree();
 							EventBus.Publish(new PlayerAttackEvent(this, npc, weapon));
 						}
 						return hits < weapon.EnemiesPerHit ? ProjectileTrail.Behaviour.Continue : ProjectileTrail.Behaviour.Stop;
@@ -550,10 +550,11 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 				);
 			} else {
 				// no ammo, reload?
+				Status.Reload(weapon);
 			}
 		}
 
-		bool IsPlayerShooting() => Inventory.WeaponRangeEquipped!.Auto ? Attack.IsPressed : Attack.IsJustPressed;
+		bool IsPlayerShooting() => Inventory.WeaponRangeEquipped is { Auto: true } ? Attack.IsPressed : Attack.IsJustPressed;
 
 		_fsm.State(PlayerState.RangeAttack)
 			.Execute(() => {
