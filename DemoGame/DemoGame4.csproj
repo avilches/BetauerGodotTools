@@ -1,39 +1,39 @@
-<Project Sdk="Godot.NET.Sdk/4.0.2">
-    <PropertyGroup>
-        <TargetFramework>net7.0</TargetFramework>
-        <EnableDynamicLoading>true</EnableDynamicLoading>
-        <LangVersion>11.0</LangVersion>
-        <RootNamespace>Veronenger</RootNamespace>
-        <Nullable>enable</Nullable>
-        <EnableDefaultCompileItems>False</EnableDefaultCompileItems>
-    </PropertyGroup>
-    <ItemGroup Condition="'$(Configuration)' == 'Debug'">
-        <Compile Include="Src/**/*.cs" />
-        <PackageReference Include="NUnit" Version="3.13.3" />
-        <PackageReference Include="PcgRandom" Version="1.1.0" />
+<Project Sdk="Godot.NET.Sdk/4.1.0-dev">
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <LangVersion>11.0</LangVersion>
+    <RootNamespace>Veronenger</RootNamespace>
+    <Nullable>enable</Nullable>
+    <EnableDefaultCompileItems>False</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+    <Compile Include="Src/**/*.cs" />
+    <PackageReference Include="NUnit" Version="3.13.3" />
+    <PackageReference Include="PcgRandom" Version="1.1.0" />
 
-        <ProjectReference Include="../Betauer.TestRunner/Betauer.TestRunner.csproj" />
+    <ProjectReference Include="../Betauer.TestRunner/Betauer.TestRunner.csproj" />
 
-    </ItemGroup>
-    <ItemGroup Condition="'$(Configuration)' == 'ExportRelease'">
-        <Compile Include="Src/**/*.cs" Exclude="Src/Build/**;Src/Tests/**" />
-    </ItemGroup>
-    <ItemGroup>
-        <Content Include="*" Exclude="mono_crash*" />
-        <Content Include="Assets/**" />
-        <Content Include="Characters/**" />
-        <Content Include="Docs/*" />
-        <Content Include="export/*" />
-        <Content Include="Scenes/**" />
-        <Content Include="Worlds/**" />
-    </ItemGroup>
-    <ItemGroup>
-        <ProjectReference Include="../Betauer.GameTools/Betauer.GameTools.csproj" />
-        <ProjectReference Include="../Betauer.Animation/Betauer.Animation.csproj" />
-        <ProjectReference Include="../Betauer.Core/Betauer.Core.csproj" />
-        <ProjectReference Include="../Betauer.Bus/Betauer.Bus.csproj" />
-        <ProjectReference Include="../Betauer.DI/Betauer.DI.csproj" />
-        <ProjectReference Include="../Betauer.Tools.Logging/Betauer.Tools.Logging.csproj" />
-        <ProjectReference Include="../Betauer.FSM/Betauer.FSM.csproj" />
-    </ItemGroup>
+  </ItemGroup>
+  <ItemGroup Condition="'$(Configuration)' == 'ExportRelease'">
+    <Compile Include="Src/**/*.cs" Exclude="Src/Build/**;Src/Tests/**" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="*" Exclude="mono_crash*" />
+    <Content Include="Assets/**" />
+    <Content Include="Characters/**" />
+    <Content Include="Docs/*" />
+    <Content Include="export/*" />
+    <Content Include="Scenes/**" />
+    <Content Include="Worlds/**" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Betauer.GameTools/Betauer.GameTools.csproj" />
+    <ProjectReference Include="../Betauer.Animation/Betauer.Animation.csproj" />
+    <ProjectReference Include="../Betauer.Core/Betauer.Core.csproj" />
+    <ProjectReference Include="../Betauer.Bus/Betauer.Bus.csproj" />
+    <ProjectReference Include="../Betauer.DI/Betauer.DI.csproj" />
+    <ProjectReference Include="../Betauer.Tools.Logging/Betauer.Tools.Logging.csproj" />
+    <ProjectReference Include="../Betauer.FSM/Betauer.FSM.csproj" />
+  </ItemGroup>
 </Project>

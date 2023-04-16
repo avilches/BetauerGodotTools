@@ -13,6 +13,6 @@
         <Compile Include="src/**/*.cs" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="GodotSharp" Version="4.0.2" />
+        <PackageReference Include="GodotSharp" Version="4.1.0-dev" />
     </ItemGroup>
 </Project>
