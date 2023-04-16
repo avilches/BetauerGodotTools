@@ -195,7 +195,6 @@ public partial class SettingsMenu : CanvasLayer {
 		}
 	}
 
-	private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(SettingsMenu));
 	private bool ProcessChangeResolution(InputEvent e) {
 		if (!UiLeft.IsJustPressed && !UiRight.IsJustPressed && !UiAccept.IsJustPressed) return false;
 		var (_, resolutions, pos) = FindClosestResolutionToSelected();

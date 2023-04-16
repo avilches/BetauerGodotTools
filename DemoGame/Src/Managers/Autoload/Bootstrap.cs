@@ -110,8 +110,8 @@ public partial class Bootstrap : Node /* needed to be instantiated as an Autoloa
 		LoggerFactory.SetTraceLevel<CameraStageLimiter>(TraceLevel.Error);
 
 		// Player and enemies
-		LoggerFactory.SetTraceLevel<PlayerNode>(TraceLevel.All);
-		LoggerFactory.SetTraceLevel<ZombieNode>(TraceLevel.All);
+		// LoggerFactory.SetTraceLevel<PlayerNode>(TraceLevel.All);
+		// LoggerFactory.SetTraceLevel<ZombieNode>(TraceLevel.All);
 			
 		// LoggerFactory.OverrideTraceLevel(TraceLevel.All);
 	}

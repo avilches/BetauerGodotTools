@@ -56,8 +56,6 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 		if (what == NotificationPredelete) OnFree?.Invoke();
 	}
 
-	private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(PlayerNode));
-
 	public Vector2 GlobalPosition {
 		get => CharacterBody2D.GlobalPosition;
 		set => CharacterBody2D.GlobalPosition = value;

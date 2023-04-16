@@ -51,8 +51,6 @@ public partial class ZombieNode : NpcItemNode {
 	
 	private static readonly PcgRandom Random = new();
 
-	private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(ZombieNode));
-
 	private static readonly SequenceAnimation RedFlash;
 
 	static ZombieNode() {
