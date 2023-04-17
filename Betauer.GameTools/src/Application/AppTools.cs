@@ -1,7 +1,5 @@
 using System;
-using System.Threading;
 using System.Threading.Tasks;
-using Betauer.Core.Nodes;
 using Betauer.Nodes;
 using Betauer.Tools.Logging;
 using Godot;
@@ -9,6 +7,9 @@ using Godot;
 namespace Betauer.Application; 
 
 public static partial class AppTools {
+    
+    private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(AppTools));
+    
     public static string GetUserFolder() => Project.FeatureFlags.IsExported()
         ? OS.GetUserDataDir()
         : System.IO.Directory.GetCurrentDirectory();
@@ -56,8 +57,8 @@ public static partial class AppTools {
 
     private static void LogException(object? caller, string from, string message) {
         try {
-            var loggerType = caller?.GetType() ?? typeof(AppTools);
-            LoggerFactory.GetLogger(loggerType).Error("{0} | {1}", from, message);
+            var logger = caller?.GetType() != null ? LoggerFactory.GetLogger(caller.GetType()) : Logger;
+            logger.Error("{0} | {1}", from, message);
         } catch (Exception e) {
             Console.WriteLine(e);
         }

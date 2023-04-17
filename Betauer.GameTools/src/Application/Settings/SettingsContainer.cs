@@ -55,7 +55,7 @@ public class SettingsContainer {
     }
 
     /// <summary>
-    /// Use Save() when a setting is changed an the AutoSave flag is false. 
+    /// Use Save() when a setting is changed and the AutoSave flag is false. 
     /// </summary>
     /// <returns></returns>
     public SettingsContainer Save() {

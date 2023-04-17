@@ -1,5 +1,8 @@
 namespace Betauer.Application.Settings;
 
-public interface ISetting<T> {
+public interface ISetting {
+}
+
+public interface ISetting<T> : ISetting {
     public T Value { get; set; }
 }

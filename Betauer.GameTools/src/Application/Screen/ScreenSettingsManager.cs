@@ -83,19 +83,28 @@ public class ScreenSettingsManager : IInjectable {
             // ? ScreenService.ScreenStrategyKey.WindowSize // IntegerScale
             // : ScreenService.ScreenStrategyKey.ViewportSize;
         // ScreenService.SetStrategy(strategy);
-        if (save) _pixelPerfect.Value = pixelPerfect;
+        if (save) {
+            _pixelPerfect.Value = pixelPerfect;
+            ForceSave(_pixelPerfect);
+        }
     }
 
     public void SetBorderless(bool borderless, bool save = true) {
         // TODO Godot 4
         // ScreenService.SetBorderless(borderless);
-        if (save) _borderless.Value = borderless;
+        if (save) {
+            _borderless.Value = borderless;
+            ForceSave(_borderless);
+        }
     }
 
     public void SetVSync(bool vsync, bool save = true) {
         // TODO Godot 4: allow more VSync modes
-        // DisplayServer.WindowSetVsyncMode(vsync ? DisplayServer.VSyncMode.Enabled : DisplayServer.VSyncMode.Disabled);
-        if (save) _vSync.Value = vsync;
+        DisplayServer.WindowSetVsyncMode(vsync ? DisplayServer.VSyncMode.Enabled : DisplayServer.VSyncMode.Disabled);
+        if (save) {
+            _vSync.Value = vsync;
+            ForceSave(_vSync);
+        }
     }
 
     public void SetFullscreen(bool fs, bool save = true) {
@@ -105,12 +114,23 @@ public class ScreenSettingsManager : IInjectable {
             SetWindowed(WindowedResolution, false); // Never save resolution because it has not changed
             CenterWindow();
         }
-        if (save) _fullscreen.Value = fs;
+        if (save) {
+            _fullscreen.Value = fs;
+            ForceSave(_fullscreen);
+        }
+    }
+
+    private static void ForceSave(ISetting setting) {
+        // Only force save if the setting is not auto-saved
+        if (setting is ISaveSetting { AutoSave: false } saveSetting) saveSetting.SettingsContainer!.Save();
     }
 
     public void SetWindowed(Resolution resolution, bool save = true) {
         ScreenService.SetWindowed(resolution);
-        if (save) _windowedResolution.Value = resolution;
+        if (save) {
+            _windowedResolution.Value = resolution;
+            ForceSave(_windowedResolution);
+        }
     }
 
     public void CenterWindow() {

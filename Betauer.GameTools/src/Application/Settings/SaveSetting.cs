@@ -12,6 +12,11 @@ public static class Setting {
 }
 
 public interface ISaveSetting {
+    public SettingsContainer? SettingsContainer { get; }
+    public string SaveAs { get; }
+    public bool AutoSave { get; set; }
+    public bool Enabled { get; set; }
+
     void Refresh();
     void Flush();
 }
