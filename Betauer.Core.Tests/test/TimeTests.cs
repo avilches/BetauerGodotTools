@@ -7,32 +7,31 @@ using NUnit.Framework;
 
 namespace Betauer.Core.Tests;
 
-[TestRunner.Test]
+[TestRunner.Test()]
 public partial class TimeTests : Node {
     [SetUpClass]
     public void SetUp() {
         Engine.TimeScale = 1;
     }
 
-    [TestRunner.Test]
+    [TestRunner.Test(Only = true)]
     public async Task GodotSchedulerTests() {
         var steps = 0;
-        var godotScheduler = new GodotScheduler(GetTree(), 0.001f, () => steps++);
-
+        var godotScheduler = new GodotScheduler(GetTree(), 0.4f, 0.1f, () => steps++);
         Assert.That(godotScheduler.IsRunning(), Is.False);
 
-        // Start every 0.1s, the second start reset the previous one
-        godotScheduler.Start(12f);
-        godotScheduler.Start(0.1f);
+        godotScheduler.Start();
         Assert.That(godotScheduler.IsRunning(), Is.True);
-        await Delay(0.55f);
-        Assert.That(steps, Is.GreaterThanOrEqualTo(4));
-        Assert.That(steps, Is.LessThan(7));
+        await Delay(0.39f);
+        Assert.That(steps, Is.EqualTo(0));
+        await Delay(0.6f);
+        Assert.That(steps, Is.GreaterThanOrEqualTo(5));
+        Assert.That(steps, Is.LessThan(8));
 
         // Pause
         godotScheduler.Stop();
         Assert.That(godotScheduler.IsRunning(), Is.False);
-        steps = 0;
+        steps = 0; await Task.Delay(1000);
         await Delay(0.4f);
         Assert.That(steps, Is.EqualTo(0));
 
@@ -42,12 +41,6 @@ public partial class TimeTests : Node {
         await Delay(0.2f);
         Assert.That(steps, Is.GreaterThanOrEqualTo(1));
 
-        // Start again every 0.1s, same behaviour
-        godotScheduler.Start(0.05f);
-        Assert.That(godotScheduler.IsRunning(), Is.True);
-        await Delay(0.4f);
-        Assert.That(steps, Is.EqualTo(8).Within(2));
-        godotScheduler.Stop();
     }
 
     [TestRunner.Test]
