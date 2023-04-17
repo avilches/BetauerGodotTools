@@ -38,6 +38,7 @@ public class Resolution {
 
     public readonly Vector2I Size;
     public readonly AspectRatio AspectRatio;
+    public readonly string? Name;
 
     public Resolution(Vector2I size) {
         Size = size;
@@ -45,6 +46,10 @@ public class Resolution {
     }
 
     public Resolution(int x, int y) : this(new Vector2I(x, y)) {
+    }
+
+    public Resolution(string name, int x, int y) : this(x, y) {
+        Name = name;
     }
 
     public int X => Size.X;

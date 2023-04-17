@@ -8,34 +8,38 @@ public static class Resolutions {
     private static readonly List<Resolution> _all = new();
 
     // 4:3 (1.33) https://www.videoproc.com/video-process/4-3-resolutions.htm 
-    public static Resolution QVGA = AddToAll(new Resolution(320, 240));
-    public static Resolution VGA = AddToAll(new Resolution(640, 480));
-    public static Resolution SVGA = AddToAll(new Resolution(800, 600));
-    public static Resolution XGA = AddToAll(new Resolution(1024, 768));
-    public static Resolution UXGA = AddToAll(new Resolution(1600, 1200));
+    public static Resolution QVGA = AddToAll(new Resolution("QVGA", 320, 240));
+    public static Resolution VGA = AddToAll(new Resolution("VGA", 640, 480));
+    public static Resolution SVGA = AddToAll(new Resolution("SVGA", 800, 600));
+    public static Resolution XGA = AddToAll(new Resolution("XGA", 1024, 768));
+    public static Resolution UXGA = AddToAll(new Resolution("UXGA", 1600, 1200));
     
-    // 16:9 (1.77) https://en.wikipedia.org/wiki/16:9_aspect_ratio
-    public static Resolution FULLHD_DIV6 = AddToAll(new Resolution(320, 180)); // 1920x1080 / 6
-    public static Resolution FULLHD_DIV4 = AddToAll(new Resolution(480, 270)); // 1920x1080 / 4
-    public static Resolution FULLHD_DIV2 = AddToAll(new Resolution(960, 540)); // 1920x1080 / 2
-    public static Resolution FULLHD = AddToAll(new Resolution(1920, 1080));
-    public static Resolution FULLHD_2K = AddToAll(new Resolution(2560, 1440)); // 1920x1080 * 1.33 aka "2K"
-    public static Resolution FULLHD_4K = AddToAll(new Resolution(3840, 2160)); // 1920x1080 * 2 // aka 4K
 
-    public static Resolution FULLHD_DIV1_875 = AddToAll(new Resolution(1024, 576)); // 1920x1080 / 1.875
-    public static Resolution FULLHD_DIV1_5 = AddToAll(new Resolution(1280, 720)); // 1920x1080 / 1.5
-    public static Resolution FULLHD_DIV1_2 = AddToAll(new Resolution(1600, 900)); // 1920x1080 / 1.2
-    public static Resolution FULLHD_DIV3 = AddToAll(new Resolution(640, 360)); // 1920x1080 / 3
+    public static Resolution FULLHD_DIV6 = AddToAll(new Resolution(320, 180));                  // 1920x1080 / 6
+    public static Resolution FULLHD_DIV4 = AddToAll(new Resolution(480, 270));                  // 1920x1080 / 4
+    public static Resolution FULLHD_DIV3 = AddToAll(new Resolution(640, 360));                  // 1920x1080 / 3
+    public static Resolution FULLHD_DIV2 = AddToAll(new Resolution(960, 540));                  // 1920x1080 / 2
+    public static Resolution HDplus      = AddToAll(new Resolution("HD+",     1600, 900)); // 1920x1080 / 1.2
+    public static Resolution FULLHD      = AddToAll(new Resolution("Full HD", 1920, 1080));
+         
+
+    // 16:9 (1.77) https://en.wikipedia.org/wiki/16:9_aspect_ratio
+    public static Resolution WSVGA       = AddToAll(new Resolution("WSVGA",   1024, 576)); // 1920x1080 / 1.875
+    public static Resolution HD_DIV2     = AddToAll(new Resolution(640, 360));                  // 1280x720 / 2
+    public static Resolution HD          = AddToAll(new Resolution("HD",      1280, 720)); // 1920x1080 / 1.5
+    public static Resolution FWXGA       = AddToAll(new Resolution("FWXGA",   1366, 768));
+    public static Resolution QHD         = AddToAll(new Resolution("QHD",     2560, 1440));// 1920x1080 * 1.33 aka "2K"
+    public static Resolution UHD4K       = AddToAll(new Resolution("4K UHD",  3840, 2160));// 1920x1080 * 2 // aka 4K
 
     // 16:10 (1.6) https://en.wikipedia.org/wiki/16:10_aspect_ratio
     public static Resolution R1610SMALL1 = AddToAll(new Resolution(640, 400));
     public static Resolution R1610SMALL2 = AddToAll(new Resolution(960, 600));
-    public static Resolution WXGA = AddToAll(new Resolution(1280, 800));
-    public static Resolution WXGAplus = AddToAll(new Resolution(1440, 900));
-    public static Resolution WSXGAplus = AddToAll(new Resolution(1680, 1050));
-    public static Resolution WUXGA = AddToAll(new Resolution(1920, 1200));
-    public static Resolution WQXGA = AddToAll(new Resolution(2560, 1600));
-    public static Resolution WQUXGA = AddToAll(new Resolution(3840, 2400));
+    public static Resolution WXGA        = AddToAll(new Resolution("WXGA", 1280, 800));
+    public static Resolution WXGAplus    = AddToAll(new Resolution("WXGA+", 1440, 900));
+    public static Resolution WSXGAplus   = AddToAll(new Resolution("WSXGA+", 1680, 1050));
+    public static Resolution WUXGA       = AddToAll(new Resolution("WUXGA", 1920, 1200));
+    public static Resolution WQXGA       = AddToAll(new Resolution("WQXGA", 2560, 1600));
+    public static Resolution WQUXGA      = AddToAll(new Resolution("WQUXGA", 3840, 2400));
 
     // 21:9 (2.333) https://en.wikipedia.org/wiki/21:9_aspect_ratio
     // 64:27 (2.370)
