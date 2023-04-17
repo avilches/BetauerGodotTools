@@ -6,15 +6,21 @@ using Godot;
 namespace Betauer.Core; 
 
 public static class TaskExtensions {
+    public static Task OnCompleted(this Task task, Action action) => OnCompleted(task, _ => action());
+    public static Task OnCancel(this Task task, Action action) => OnCancel(task, _ => action());
     public static Task OnException(this Task task, Action<Exception> action, bool rethrow = false) =>
-        task.ContinueWith(t => {
+        task.OnException(t => {
             var ex = task.Exception?.InnerException;
             if (ex != null) {
-                GD.PrintErr(ex);
                 action(ex);
                 if (rethrow) throw ex;
             }
-        }, TaskContinuationOptions.OnlyOnFaulted);        
+        });        
+        
+    public static Task OnCompleted(this Task task, Action<Task> action) => task.ContinueWith(action, TaskContinuationOptions.OnlyOnRanToCompletion);        
+    public static Task OnCancel(this Task task, Action<Task> action) => task.ContinueWith(action, TaskContinuationOptions.OnlyOnCanceled);
+    public static Task OnException(this Task task, Action<Task> action) => task.ContinueWith(action, TaskContinuationOptions.OnlyOnFaulted);
+
         
     // TODO: tests
     public static async Task<Variant[]> RealTimeout(this SignalAwaiter awaiter, float seconds) {
