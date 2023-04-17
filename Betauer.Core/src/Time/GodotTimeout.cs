@@ -148,7 +148,7 @@ public class GodotTimeout {
         var sceneTreeTimer = _sceneTree.CreateTimer(timeout, ProcessAlways, ProcessInPhysics, IgnoreTimeScale);
         var sceneTreeTimerId = sceneTreeTimer.GetHashCode();
         sceneTreeTimer.AwaitTimeout().OnCompleted(() => {
-            if (_sceneTreeTimer != null && _sceneTreeTimer.GetHashCode() == sceneTreeTimerId) {
+            if (_sceneTreeTimer != null && _sceneTreeTimer.GetHashCode() == sceneTreeTimerId && _running && !_paused) {
                 End();
             }
         });

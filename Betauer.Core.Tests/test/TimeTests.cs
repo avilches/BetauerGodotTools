@@ -7,21 +7,21 @@ using NUnit.Framework;
 
 namespace Betauer.Core.Tests;
 
-[TestRunner.Test()]
+[TestRunner.Test]
 public partial class TimeTests : Node {
     [SetUpClass]
     public void SetUp() {
         Engine.TimeScale = 1;
     }
 
-    [TestRunner.Test(Only = true)]
+    [TestRunner.Test]
     public async Task GodotSchedulerTests() {
         var steps = 0;
         var godotScheduler = new GodotScheduler(GetTree(), 0.4f, 0.1f, () => steps++);
-        Assert.That(godotScheduler.IsRunning(), Is.False);
+        Assert.That(godotScheduler.IsRunning, Is.False);
 
         godotScheduler.Start();
-        Assert.That(godotScheduler.IsRunning(), Is.True);
+        Assert.That(godotScheduler.IsRunning, Is.True);
         await Delay(0.39f);
         Assert.That(steps, Is.EqualTo(0));
         await Delay(0.6f);
@@ -30,14 +30,14 @@ public partial class TimeTests : Node {
 
         // Pause
         godotScheduler.Stop();
-        Assert.That(godotScheduler.IsRunning(), Is.False);
-        steps = 0; await Task.Delay(1000);
+        Assert.That(godotScheduler.IsRunning, Is.False);
+        steps = 0;
         await Delay(0.4f);
         Assert.That(steps, Is.EqualTo(0));
 
         // Resume
         godotScheduler.Start();
-        Assert.That(godotScheduler.IsRunning(), Is.True);
+        Assert.That(godotScheduler.IsRunning, Is.True);
         await Delay(0.2f);
         Assert.That(steps, Is.GreaterThanOrEqualTo(1));
 
