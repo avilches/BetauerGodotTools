@@ -171,7 +171,7 @@ public class TestRunner {
             var testAttribute = GetAttribute<TestAttribute>(method);
             if (testAttribute != null) {
                 if (HasAttribute<IgnoreAttribute>(method) || testAttribute.Ignore) continue;
-                var onlyThisMethod = HasAttribute<OnlyAttribute>(method);
+                var onlyThisMethod = HasAttribute<OnlyAttribute>(method) || testAttribute.Only;
                 isAnyMethodWithOnly = isAnyMethodWithOnly || onlyThisMethod;
                 var testMethod = new TestMethod(method, testClass, testAttribute.Description, onlyThisMethod);
                 testMethods.Add(testMethod);
