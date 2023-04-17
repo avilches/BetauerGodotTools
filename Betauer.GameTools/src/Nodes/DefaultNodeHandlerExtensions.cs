@@ -1,5 +1,7 @@
 using System;
 using System.Threading.Tasks;
+using Betauer.Core.Signal;
+using Betauer.Core.Time;
 using Godot;
 
 namespace Betauer.Nodes;
@@ -127,30 +129,42 @@ public static class NodeHandlerExtensions {
         return handler;
     }
 
-    public static Task AwaitInput(this NodeHandler nodeHandler, Func<InputEvent, bool> func, bool setInputAsHandled = true) {
-        TaskCompletionSource promise = new();
-        InputEventHandler handler = null; 
+    public static Task<InputEvent> AwaitInput(this NodeHandler nodeHandler, Func<InputEvent, bool> predicate, bool setInputAsHandled = true, float timeout = 0) {
+        TaskCompletionSource<InputEvent> promise = new();
+        InputEventHandler handler = null;
         handler = new InputEventHandler(e => {
-            if (func(e)) {
-                if (setInputAsHandled) nodeHandler.GetViewport().SetInputAsHandled();
-                handler.Destroy();
-                promise.TrySetResult();
-            }
+            if (handler.IsDestroyed || promise.Task.IsCompleted || !predicate(e)) return;
+            if (setInputAsHandled) nodeHandler.GetViewport().SetInputAsHandled();
+            promise.TrySetResult(e);
+            handler.Destroy();
         }, Node.ProcessModeEnum.Always, "AwaitInput");
+        if (timeout > 0) {
+            nodeHandler.GetTree().CreateTimer(timeout).OnTimeout(() => {
+                if (handler.IsDestroyed || promise.Task.IsCompleted) return;
+                handler.Destroy();
+                promise.TrySetResult(null);
+            });
+        }
         nodeHandler.OnInput(handler);
         return promise.Task;
     }
     
-    public static Task AwaitUnhandledInput(this NodeHandler nodeHandler, Func<InputEvent, bool> func, bool setInputAsHandled = true) {
-        TaskCompletionSource promise = new();
+    public static Task<InputEvent> AwaitUnhandledInput(this NodeHandler nodeHandler, Func<InputEvent, bool> predicate, bool setInputAsHandled = true, float timeout = 0) {
+        TaskCompletionSource<InputEvent> promise = new();
         InputEventHandler handler = null; 
         handler = new InputEventHandler(e => {
-            if (func(e)) {
-                if (setInputAsHandled) nodeHandler.GetViewport().SetInputAsHandled();
-                handler.Destroy();
-                promise.TrySetResult();
-            }
+            if (handler.IsDestroyed || promise.Task.IsCompleted || !predicate(e)) return;
+            if (setInputAsHandled) nodeHandler.GetViewport().SetInputAsHandled();
+            promise.TrySetResult(e);
+            handler.Destroy();
         }, Node.ProcessModeEnum.Always, "AwaitUnhandledInput");
+        if (timeout > 0) {
+            nodeHandler.GetTree().CreateTimer(timeout).OnTimeout(() => {
+                if (handler.IsDestroyed || promise.Task.IsCompleted) return;
+                handler.Destroy();
+                promise.TrySetResult(null);
+            });
+        }
         nodeHandler.OnUnhandledInput(handler);
         return promise.Task;
     }
