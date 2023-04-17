@@ -66,13 +66,6 @@ public partial class BottomBar : CanvasLayer {
 			.AddButton(null, UiCancel, "Back");
 	}
 
-	public void ConfigureSettingsResolution() {
-		HideAll()
-			.AddAxis(null, UiLateral, "Change")
-			.AddButton(null, UiCancel, "Back");
-	}
-
-
 	public void UpdateState(MainState to) {
 		switch (to) {
 			case MainState.ModalExitDesktop:

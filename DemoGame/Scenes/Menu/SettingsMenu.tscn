@@ -24,6 +24,7 @@ theme = ExtResource("2_kq4e7")
 metadata/_edit_use_anchors_ = true
 
 [node name="SettingsBox" type="VBoxContainer" parent="Panel"]
+visible = false
 layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -73,22 +74,36 @@ theme_override_fonts/font = ExtResource("3_c42cs")
 text = "Video"
 
 [node name="Fullscreen" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu" instance=ExtResource("4")]
+unique_name_in_owner = true
 layout_mode = 2
 text = " Fullscreen"
 
 [node name="Resolution" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu" instance=ExtResource("3")]
+unique_name_in_owner = true
 layout_mode = 2
 text = " Resolution"
+alignment = 0
+
+[node name="Resolutions" type="ItemList" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu"]
+unique_name_in_owner = true
+layout_mode = 2
+auto_height = true
+item_count = 2
+item_0/text = "asdads"
+item_1/text = "2234234"
 
 [node name="PixelPerfect" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu" instance=ExtResource("4")]
+unique_name_in_owner = true
 layout_mode = 2
 text = " Pixel perfect"
 
 [node name="Borderless" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu" instance=ExtResource("4")]
+unique_name_in_owner = true
 layout_mode = 2
 text = " Borderless window"
 
 [node name="VSync" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu" instance=ExtResource("4")]
+unique_name_in_owner = true
 layout_mode = 2
 text = " Vertical sync"
 
@@ -99,6 +114,7 @@ theme_override_fonts/font = ExtResource("3_c42cs")
 text = "Gamepad"
 
 [node name="GamepadControls" type="VBoxContainer" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu"]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -122,6 +138,7 @@ theme_override_fonts/font = ExtResource("3_c42cs")
 text = "Keyboard"
 
 [node name="KeyboardControls" type="VBoxContainer" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu"]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -139,7 +156,6 @@ layout_mode = 2
 layout_mode = 2
 
 [node name="RedefineBox" type="VBoxContainer" parent="Panel"]
-visible = false
 layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -157,6 +173,7 @@ layout_mode = 2
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Press key or button for"
+horizontal_alignment = 1
 
 [node name="Spacer2" type="Control" parent="Panel/RedefineBox"]
 layout_mode = 2
@@ -164,12 +181,16 @@ layout_mode = 2
 [node name="ActionName" type="Label" parent="Panel/RedefineBox"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 32
 text = "Jump"
+horizontal_alignment = 1
 
 [node name="Spacer3" type="Control" parent="Panel/RedefineBox"]
+custom_minimum_size = Vector2(0, 80)
 layout_mode = 2
 
-[node name="Message2" type="Label" parent="Panel/RedefineBox"]
+[node name="RedefineCounter" type="Label" parent="Panel/RedefineBox"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "(Escape to cancel)"
+horizontal_alignment = 1
