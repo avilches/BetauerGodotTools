@@ -6,15 +6,14 @@ using System.Threading.Tasks;
 using Betauer.Animation;
 using Betauer.Application.Screen;
 using Betauer.Core;
-using Betauer.DI;
 using Betauer.Input;
 using Betauer.Core.Nodes;
 using Betauer.NodePath;
 using Betauer.Core.Signal;
+using Betauer.Core.Time;
 using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
 using Betauer.Nodes;
-using Betauer.Tools.Logging;
 using Godot;
 using Veronenger.Managers;
 
@@ -60,8 +59,11 @@ public partial class SettingsMenu : CanvasLayer {
 	[NodePath("Panel/RedefineBox/Message")] 
 	private Label _redefineActionMessage;
 
-	[NodePath("Panel/RedefineBox/ActionName")] 
+	[NodePath("%RedefineActionName")] 
 	private Label _redefineActionName;
+
+	[NodePath("%RedefineCounter")] 
+	private Label _redefineCounterLabel;
 
 	[Inject] private IFactory<BottomBar> BottomBarSceneFactory { get; set; }
 	[Inject] private ScreenSettingsManager _screenSettingsManager { get; set; }
@@ -258,19 +260,27 @@ public partial class SettingsMenu : CanvasLayer {
 		}
 	}
 
+	private const int RedefineSecondsTimeout = 3;
+
 	public async void ShowRedefineActionPanel(RedefineActionButton redefineButton) {
 		_redefineBox.Show();
 		_settingsBox.Hide();
 		_redefineActionName.Text = redefineButton.ActionName;
 		// TODO: i18n
 		_redefineActionMessage.Text = redefineButton.IsKey ? "Press key for..." : "Press button for...";
+
 		BottomBarScene.HideAll();
 
-		await DefaultNodeHandler.Instance.AwaitInput(e => {
-			if (e.IsKey(Key.Escape)) {
-				// Cancel the redefine button window
-				return true;
-			} else if (redefineButton.IsKey && e.IsAnyKey()) {
+		var redefineSeconds = RedefineSecondsTimeout;
+		void UpdateCounter() =>_redefineCounterLabel.Text = $"Esc to cancel {redefineSeconds--}...";
+		UpdateCounter();
+		var scheduler = new GodotScheduler(GetTree(), 1, UpdateCounter, true).Start();
+		
+		var e = await DefaultNodeHandler.Instance.AwaitInput(e => {
+			if (!e.IsPressed()) return false;
+			if (e.IsKey(Key.Escape)) return true; // Close the redefine button window
+			if (redefineButton.IsKey && e.IsAnyKey()) {
+				_redefineActionName.Text = redefineButton.ActionName + ": "+e.GetKeyString();
 				RedefineKey(redefineButton, e.GetKey());
 				return true;
 			} else if (redefineButton.IsButton && e.IsAnyButton()) {
@@ -278,7 +288,13 @@ public partial class SettingsMenu : CanvasLayer {
 				return true;
 			}
 			return false;
-		});
+		}, true, RedefineSecondsTimeout);
+		_redefineActionMessage.Text = "";
+		_redefineCounterLabel.Text = "";
+		scheduler.Stop();
+
+		if (e != null) await DefaultNodeHandler.Instance.AwaitInput(e => e.IsPressed() && (e.IsAnyKey() || e.IsAnyButton()), true, 1);
+		
 		_redefineBox.Hide();
 		_settingsBox.Show();
 		redefineButton.GrabFocus();
