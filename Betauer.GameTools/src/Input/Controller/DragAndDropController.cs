@@ -37,7 +37,7 @@ public class DragAndDropController {
     
     public void ForceDrop(Vector2? dropPosition = null) {
         if (LastDragPosition.HasValue) {
-            var mousePosition = dropPosition ?? (Engine.GetMainLoop() as SceneTree).Root.GetMousePosition();
+            var mousePosition = dropPosition ?? ((SceneTree)Engine.GetMainLoop()).Root.GetMousePosition();
             OnDrop?.Invoke(mousePosition);
             LastDragPosition = null;
         }

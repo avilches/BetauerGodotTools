@@ -36,10 +36,10 @@ public class GodotTimeout {
     }
     public double Elapsed => _timeout - TimeLeft;
     public TimeSpan ElapsedTimeSpan => new TimeSpan((long) (Elapsed * TimeSpan.TicksPerSecond));
-    public bool ProcessAlways = true;
-    public bool ProcessInPhysics = false;
-    public bool IgnoreTimeScale = false;
-    public bool IsRunning => _running && !_paused;
+    public bool ProcessAlways { get; init; } = true;
+    public bool ProcessInPhysics { get; init; } = false;
+    public bool IgnoreTimeScale { get; init; } = false;
+    public bool IsRunning() => _running && !_paused;
 
     public GodotTimeout(SceneTree sceneTree, double timeout, Action onTimeout, bool processAlways = false,
         bool processInPhysics = false, bool ignoreTimeScale = false) {
@@ -136,7 +136,7 @@ public class GodotTimeout {
     }
 
     public override string ToString() {
-        return $"{(IsRunning ? "Running: " : "Stopped: ")}{_timeout}/{TimeLeft:0.0} (internal TimeLeft: {_sceneTreeTimer?.TimeLeft:0.0})";
+        return $"{(IsRunning() ? "Running: " : "Stopped: ")}{_timeout}/{TimeLeft:0.0} (internal TimeLeft: {_sceneTreeTimer?.TimeLeft:0.0})";
     }
 
     private double GetTimeLeft() { 

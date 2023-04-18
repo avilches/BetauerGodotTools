@@ -11,6 +11,7 @@ namespace Betauer.Core.Time;
 /// - It creates internally as many SceneTreeTimer instances needed with SceneTree.CreateTimer() to
 /// handle the scheduler, so it's affected by the Engine.Timescale and the current SceneTree.Pause state.
 /// - When created, it doesn't start automatically, so you need to call to Start().
+/// - The EverySeconds property can be changed at runtime, but it will only take effect after the next execution.
 ///
 /// Usage:
 /// <code>
@@ -18,12 +19,13 @@ namespace Betauer.Core.Time;
 /// </code> 
 /// </summary>
 public class GodotScheduler {
-    private Action _action;
     private readonly GodotTimeout _godotTimeout;
     private TaskCompletionSource _promise;
+    private Action _action;
+    private bool _isRunning = false;
 
     public double EverySeconds { get; set; }
-    public bool IsRunning { get; private set; } = false;
+    public bool IsRunning() => _isRunning;
 
     public GodotScheduler(SceneTree sceneTree, double initialDelay, double everySeconds, Action action, bool processAlways = false, bool processInPhysics = false, bool ignoreTimeScale = false) {
         _action = action;
@@ -42,7 +44,7 @@ public class GodotScheduler {
 
     public GodotScheduler Start() {
         _godotTimeout.Start();
-        if (!IsRunning) {
+        if (!_isRunning) {
             Loop();
         }
         return this;
@@ -50,7 +52,7 @@ public class GodotScheduler {
 
     public GodotScheduler Stop() {
         _godotTimeout.Stop();
-        IsRunning = false;
+        _isRunning = false;
         _promise?.TrySetResult();
         return this;
     }
@@ -61,12 +63,12 @@ public class GodotScheduler {
     }
 
     private async void Loop() {
-        IsRunning = true;
-        while (IsRunning) {
+        _isRunning = true;
+        while (_isRunning) {
             _promise = new TaskCompletionSource();
             await _promise.Task;
             _godotTimeout.SetTimeout(EverySeconds);
-            if (IsRunning) {
+            if (_isRunning) {
                 _godotTimeout.Restart();
             }
         }

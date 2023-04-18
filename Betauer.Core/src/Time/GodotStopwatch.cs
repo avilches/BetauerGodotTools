@@ -18,7 +18,7 @@ namespace Betauer.Core.Time;
 /// <code>
 /// var godotStopwatch = new GodotStopwatch().Start();
 /// godotStopwatch.Alarm = 5;     // Set the Alarm to 5 seconds
-/// if (godoStopwatch.IsAlarm)
+/// if (godoStopwatch.IsAlarm())
 /// {
 ///     // Will be true if Elapsed > 5
 /// }
@@ -27,7 +27,6 @@ namespace Betauer.Core.Time;
 public class GodotStopwatch {
     // 3600 is one hour. With bigger numbers, the Timer doesn't work. If the 
     private const float InternalStartTime = 3600f; 
-
     private readonly SceneTree _sceneTree;
     private SceneTreeTimer _sceneTreeTimer;
     private double _elapsed = 0;
@@ -35,17 +34,17 @@ public class GodotStopwatch {
     private double _timeLeftOnPause = 0;
     private bool _paused = true;
     private bool _running = false;
-
-    public double Alarm { get; private set; } = double.MaxValue;
-    public bool IsAlarm => Elapsed >= Alarm;
+    public bool ProcessAlways { get; init; } = true;
+    public bool ProcessInPhysics { get; init; } = false;
+    public bool IgnoreTimeScale { get; init; } = false;
+    
     public double Elapsed => GetElapsed();
     public TimeSpan ElapsedTimeSpan => new TimeSpan((long) (Elapsed * TimeSpan.TicksPerSecond));
+    public double Alarm { get; private set; } = double.MaxValue;
+    public bool IsAlarm() => Elapsed >= Alarm;
+    public bool IsRunning() => _running && !_paused;
 
-    public bool ProcessAlways = true;
-    public bool ProcessInPhysics = false;
-    public bool IgnoreTimeScale = false;
 
-    public bool IsRunning => _running && !_paused;
 
     /// <summary>
     /// Creates a new Stopwatch not running, so it needs to be started with Start() or Restart() 
@@ -137,7 +136,7 @@ public class GodotStopwatch {
 
     public override string ToString() {
         return
-            $"{(IsRunning ? "Running: " : "Stopped: ")}{Elapsed:0.000} (internal TimeLeft: {_sceneTreeTimer.TimeLeft})";
+            $"{(IsRunning() ? "Running: " : "Stopped: ")}{Elapsed:0.000} (internal TimeLeft: {_sceneTreeTimer.TimeLeft})";
     }
 
     private double GetElapsed() { 
