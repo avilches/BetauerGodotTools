@@ -1,13 +1,28 @@
+using System;
 using Betauer.Core.Signal;
 using Godot;
 
 namespace Betauer.Core.Time; 
 
 /// <summary>
-/// A Stopwatch to measure elapsed time since start. It has Start/Stop and Reset.
+/// Stopwatch is a tool to measure elapsed time. Features:
 /// 
-/// It uses internal SceneTreeTimer with SceneTree.CreateTimer(), so it's affected by the Engine.Timescale and the
-/// SceneTree.Pause state (these things C# System.Diagnostics.Stopwatch can not do)
+/// - Start(), Stop(), Restart() and Reset() methods.
+/// - It creates internally as many SceneTreeTimer instances needed with SceneTree.CreateTimer() to
+/// handle the measurement, so it's affected by the Engine.Timescale and the current SceneTree.Pause state, things that C# System.Diagnostics.Stopwatch can not do.
+/// - When created, it doesn't start automatically, so you need to call to Start().
+/// - There is no timeout signal, so consider using SceneTreeTimer and add a Timeout event if you need to execute an action after some time. To pause/resume and
+/// reuse timeout, consider using GodotTimer. 
+///
+/// At any time, the Stopwatch can set an Alarm, which is a time in seconds. The IsAlarm property will be true when the Alarm is reached.
+/// <code>
+/// var godotStopwatch = new GodotStopwatch().Start();
+/// godotStopwatch.Alarm = 5;     // Set the Alarm to 5 seconds
+/// if (godoStopwatch.IsAlarm)
+/// {
+///     // Will be true if Elapsed > 5
+/// }
+/// </code> 
 /// </summary>
 public class GodotStopwatch {
     // 3600 is one hour. With bigger numbers, the Timer doesn't work. If the 
@@ -22,7 +37,10 @@ public class GodotStopwatch {
     private bool _running = false;
 
     public double Alarm { get; private set; } = double.MaxValue;
+    public bool IsAlarm => Elapsed >= Alarm;
     public double Elapsed => GetElapsed();
+    public TimeSpan ElapsedTimeSpan => new TimeSpan((long) (Elapsed * TimeSpan.TicksPerSecond));
+
     public bool ProcessAlways = true;
     public bool ProcessInPhysics = false;
     public bool IgnoreTimeScale = false;
@@ -49,11 +67,11 @@ public class GodotStopwatch {
     }
 
     public GodotStopwatch(bool processAlways = false, bool processInPhysics = false, bool ignoreTimeScale = false) : 
-        this(Engine.GetMainLoop() as SceneTree, processAlways, processInPhysics, ignoreTimeScale) {
+        this((SceneTree)Engine.GetMainLoop(), processAlways, processInPhysics, ignoreTimeScale) {
     }
 
     /// <summary>
-    /// Starts, or resumes, the timer. Elapsed field will start to increase in every frame.
+    /// Starts, or resumes, the timer. Elapsed field will start to increase.
     /// </summary>
     /// <returns></returns>
     public GodotStopwatch Start() {
@@ -70,7 +88,7 @@ public class GodotStopwatch {
     }
 
     /// <summary>
-    /// Set the Elapsed time to 0, keeping the state.
+    /// Set the Elapsed time to 0, keeping the current state. So, if it was running, it will continue running.
     /// </summary>
     /// <returns></returns>
     public GodotStopwatch Reset() {
@@ -82,7 +100,7 @@ public class GodotStopwatch {
     }
 
     /// <summary>
-    /// Start time from 0, no matter the current state.
+    /// Set the Elapsed time to 0, no matter the current state. Convenience method for replacing {sw.Reset(); sw.Start();} with a single sw.Restart() 
     /// </summary>
     /// <returns></returns>
     public GodotStopwatch Restart() {
@@ -104,10 +122,8 @@ public class GodotStopwatch {
         return this;
     }
 
-    public bool IsAlarm() => Elapsed >= Alarm;
-
     /// <summary>
-    /// Stops the timer. It can be resumed with Start(). The Elapsed field will stop to increase.
+    /// Stops the timer. It can be resumed with Start(). The Elapsed field stops increasing
     /// </summary>
     /// <returns></returns>
     public GodotStopwatch Stop() {

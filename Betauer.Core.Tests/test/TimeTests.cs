@@ -50,21 +50,21 @@ public partial class TimeTests : Node {
         await this.AwaitProcessFrame();
         await this.AwaitProcessFrame();
         Assert.That(x.Elapsed, Is.GreaterThan(0));
-        Assert.That(x.IsAlarm(), Is.False);
+        Assert.That(x.IsAlarm, Is.False);
 
         // SetAlarm() in the future
         x.SetAlarm(x.Elapsed + 0.2f);
-        Assert.That(x.IsAlarm(), Is.False);
+        Assert.That(x.IsAlarm, Is.False);
         await Task.Delay(300);
-        Assert.That(x.IsAlarm(), Is.True);
+        Assert.That(x.IsAlarm, Is.True);
 
         // SetAlarm in the past
         x.SetAlarm(x.Elapsed - 0.2f);
-        Assert.That(x.IsAlarm(), Is.True);
+        Assert.That(x.IsAlarm, Is.True);
 
         // Remove alarm
         x.RemoveAlarm();
-        Assert.That(x.IsAlarm(), Is.False);
+        Assert.That(x.IsAlarm, Is.False);
     }
 
     [TestRunner.Test(Description = "Ensure that a GodotStopwatch starts stopped")]

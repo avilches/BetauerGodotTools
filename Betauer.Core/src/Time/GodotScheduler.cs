@@ -5,13 +5,16 @@ using Godot;
 namespace Betauer.Core.Time; 
 
 /// <summary>
-/// Execute a lambda periodically. It uses internally the "timeout" signal from a SceneTree timer,
-/// so it's affected by the Engine.Timescale and the SceneTree.Pause state.
+/// GodotScheduler executes an action periodically with an initial delay. Features:
+/// 
+/// - Start(), Stop(), Restart() and Reset() methods.
+/// - It creates internally as many SceneTreeTimer instances needed with SceneTree.CreateTimer() to
+/// handle the scheduler, so it's affected by the Engine.Timescale and the current SceneTree.Pause state.
+/// - When created, it doesn't start automatically, so you need to call to Start().
 ///
 /// Usage:
 /// <code>
 /// var gs = new GodotScheduler(1f, 0.1f, () => {}).Start();
-/// 
 /// </code> 
 /// </summary>
 public class GodotScheduler {
@@ -29,7 +32,7 @@ public class GodotScheduler {
     }
 
     public GodotScheduler(double initialDelay, double seconds, Action action, bool processAlways = false, bool processInPhysics = false, bool ignoreTimeScale = false) :
-        this(Engine.GetMainLoop() as SceneTree, initialDelay, seconds, action, processAlways, processInPhysics, ignoreTimeScale) {
+        this((SceneTree)Engine.GetMainLoop(), initialDelay, seconds, action, processAlways, processInPhysics, ignoreTimeScale) {
     }
 
     public GodotScheduler OnExecute(Action action) {

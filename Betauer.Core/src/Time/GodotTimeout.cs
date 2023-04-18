@@ -6,14 +6,19 @@ using Godot;
 namespace Betauer.Core.Time; 
 
 /// <summary>
-/// Executes an action after the timeout in seconds.
-///  
-/// Wrapper object for a SceneTreeTimeout created with SceneTree.CreateTimer() with these differences:
+/// GodotTimeout executes an action after some time, like SceneTreeTimer in combination with the Timeout. It offers more features like:
 /// 
-/// - It has Start/Stop and Reset.
-/// - When created, it doesn't start automatically (so you need to call to Start())
-/// - It can be used more than once, changing the timeout and the action to execute.
+/// - It has Start(), Stop(), Restart() and Reset() methods, so the same instance can be reused multiple times, which is something the Godot
+/// SceneTreeTimer can not do.
+/// - It creates internally as many SceneTreeTimer instances needed with SceneTree.CreateTimer() to
+/// handle the timeout, so it's affected by the Engine.Timescale and the current SceneTree.Pause state.
+/// - When created, it doesn't start automatically, so you need to call to Start().
 /// 
+/// Usage:
+/// <code>
+/// var timeout = new GodotTimeout(5, () => GD.Print("5 seconds elapsed")).Start();
+/// timeout.Timeout = 4; // Change the timeout to 4 seconds, like TimeLeft = 4 in vanilla SceneTreeTimer
+/// </code> 
 /// </summary>
 public class GodotTimeout {
     private readonly SceneTree _sceneTree;
@@ -30,6 +35,7 @@ public class GodotTimeout {
         set => SetTimeout(value);
     }
     public double Elapsed => _timeout - TimeLeft;
+    public TimeSpan ElapsedTimeSpan => new TimeSpan((long) (Elapsed * TimeSpan.TicksPerSecond));
     public bool ProcessAlways = true;
     public bool ProcessInPhysics = false;
     public bool IgnoreTimeScale = false;
@@ -46,15 +52,9 @@ public class GodotTimeout {
     }
 
     public GodotTimeout(double timeout, Action onTimeout, bool processAlways = false, bool processInPhysics = false, bool ignoreTimeScale = false) : 
-        this(Engine.GetMainLoop() as SceneTree, timeout, onTimeout, processAlways, processInPhysics, ignoreTimeScale) {
+        this((SceneTree)Engine.GetMainLoop(), timeout, onTimeout, processAlways, processInPhysics, ignoreTimeScale) {
     }
 
-
-    public GodotTimeout RemoveOnTimeout(Action action) {
-        OnTimeout -= action;
-        return this;
-    }
-        
     public GodotTimeout SetTimeout(double timeout) {
         if (timeout < Elapsed) {
             End();
