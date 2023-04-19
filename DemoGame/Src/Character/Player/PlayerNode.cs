@@ -148,6 +148,7 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 		Status.SetHealth(Status.MaxHealth);
 
 		Inventory.OnUpdateInventory += (e) => HudScene.UpdateInventory(e);
+		Inventory.OnSlotAmountUpdate += (e) => HudScene.UpdateAmount(e);
 		Inventory.TriggerRefresh();
 	}
 
@@ -540,32 +541,31 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 		void Shoot() {
 			var weapon = Inventory.WeaponRangeEquipped;
 			AnimationShoot.PlayFrom(0);
-			if (weapon!.Ammo > 0) {
-				shootTimer.Restart();
-				var bulletPosition = weapon.Config.ProjectileStartPosition * new Vector2(PlatformBody.FacingRight, 1);
-				var bulletDirection = new Vector2(PlatformBody.FacingRight, 0);
-				var hits = 0;
-				var bullet = Game.WorldScene.NewBullet();
-				weapon.Ammo -= 1;
-				Console.WriteLine("Ammo: " + weapon.Ammo);
-				bullet.ShootFrom(weapon, CharacterBody2D.ToGlobal(bulletPosition), bulletDirection,
-					CollisionLayerManager.PlayerConfigureBullet,
-					collision => {
-						if (!collision.Collider.HasMetaItemId()) {
-							return ProjectileTrail.Behaviour.Stop; // Something solid was hit
-						}
-						var npc = ItemRepository.GetFromMeta<NpcItem>(collision.Collider);
-						if (npc.ItemNode.CanBeAttacked(weapon)) {
-							hits++;
-							EventBus.Publish(new PlayerAttackEvent(this, npc, weapon));
-						}
-						return hits < weapon.EnemiesPerHit ? ProjectileTrail.Behaviour.Continue : ProjectileTrail.Behaviour.Stop;
-					}
-				);
-			} else {
+			if (weapon!.Ammo <= 0) {
 				// no ammo, reload?
 				Status.Reload(weapon);
-			}
+				return;
+			} 
+			shootTimer.Restart();
+			var bulletPosition = weapon.Config.ProjectileStartPosition * new Vector2(PlatformBody.FacingRight, 1);
+			var bulletDirection = new Vector2(PlatformBody.FacingRight, 0);
+			var hits = 0;
+			var bullet = Game.WorldScene.NewBullet();
+			Inventory.UpdateWeaponRangeAmmo(weapon, -1);
+			bullet.ShootFrom(weapon, CharacterBody2D.ToGlobal(bulletPosition), bulletDirection,
+				CollisionLayerManager.PlayerConfigureBullet,
+				collision => {
+					if (!collision.Collider.HasMetaItemId()) {
+						return ProjectileTrail.Behaviour.Stop; // Something solid was hit
+					}
+					var npc = ItemRepository.GetFromMeta<NpcItem>(collision.Collider);
+					if (npc.ItemNode.CanBeAttacked(weapon)) {
+						hits++;
+						EventBus.Publish(new PlayerAttackEvent(this, npc, weapon));
+					}
+					return hits < weapon.EnemiesPerHit ? ProjectileTrail.Behaviour.Continue : ProjectileTrail.Behaviour.Stop;
+				}
+			);
 		}
 
 		bool IsPlayerShooting() => Inventory.WeaponRangeEquipped is { Auto: true } ? Attack.IsPressed : Attack.IsJustPressed;

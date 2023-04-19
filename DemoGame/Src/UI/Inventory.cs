@@ -17,6 +17,17 @@ public partial class Inventory : GridContainer {
 		RemoveAllChildrenIfNeeded();
 	}
 
+	public void UpdateAmount(PickableItem item) {
+		var childCount = GetChildCount();
+		for (var i = 0; i < childCount; i++) {
+			var inventorySlot = GetChild<InventorySlot>(i);
+			if (inventorySlot.PickableItem == item) {
+				inventorySlot.UpdateAmount();
+				break;
+			}
+		}
+	}
+
 	public void UpdateInventory(PlayerInventoryEvent playerInventorySlotEvent) {
 		RemoveAllChildrenIfNeeded();
 		var inventory = playerInventorySlotEvent.Inventory;
@@ -28,7 +39,6 @@ public partial class Inventory : GridContainer {
 			var equipped = 
 				worldItem is WeaponMeleeItem melee && inventory.WeaponMeleeEquipped == melee || 
 				worldItem is WeaponRangeItem range && inventory.WeaponRangeEquipped == range;
-			inventorySlot.Visible = true;
 			inventorySlot.UpdateInventorySlot(worldItem, equipped, selected);
 		});
 	}
@@ -37,7 +47,7 @@ public partial class Inventory : GridContainer {
 		var childCount = GetChildCount();
 		if (childCount > size) {
 			// Hide the slots without items
-			for (var i = size; i < childCount; i ++) GetChild<InventorySlot>(i).Visible = false;
+			for (var i = size; i < childCount; i ++) GetChild<InventorySlot>(i).RemoveSlot();
 		} else if (childCount < size) {
 			while (childCount < size) {
 				var inventorySlot = InventorySlotResource.Get();

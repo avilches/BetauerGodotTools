@@ -8,6 +8,7 @@ namespace Veronenger.Character.Player;
 public class Inventory {
     public event Action<PickableItem>? OnEquip;
     public event Action<PickableItem>? OnUnequip;
+    public event Action<PickableItem>? OnSlotAmountUpdate;
     public event Action<PlayerInventoryEvent>? OnUpdateInventory;
     public event Action<PlayerInventorySlotEvent>? OnUpdateInventorySlot;
 
@@ -27,6 +28,11 @@ public class Inventory {
 
     public PickableItem? GetCurrent() {
         return Items.Count == 0 ? null : Items[Selected];
+    }
+
+    public void UpdateWeaponRangeAmmo(WeaponRangeItem item, int amountChange) {
+        item.Ammo += amountChange;
+        OnSlotAmountUpdate?.Invoke(item);
     }
 
     public void Pick(PickableItem item) {

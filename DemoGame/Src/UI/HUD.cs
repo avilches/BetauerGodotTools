@@ -3,6 +3,7 @@ using Betauer.NodePath;
 using Godot;
 using Veronenger.Character.Player;
 using Veronenger.Managers;
+using Veronenger.Persistent;
 
 namespace Veronenger.UI;
 
@@ -24,6 +25,10 @@ public partial class HUD : CanvasLayer {
 
 	public void EndGame() {
 		Visible = false;
+	}
+
+	public void UpdateAmount(PickableItem item) {
+		_inventory.UpdateAmount(item);
 	}
 
 	public void UpdateInventory(PlayerInventoryEvent playerInventoryEvent) {

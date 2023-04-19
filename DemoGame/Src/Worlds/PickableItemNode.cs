@@ -84,10 +84,10 @@ public partial class PickableItemNode : ItemNode, IPickableItemNode, IPoolLifecy
 		_platformBody.SetDelta(delta);
 		_platformBody.ApplyGravity(PlayerConfig.FloorGravity, PlayerConfig.MaxFallingSpeed);
 
-		if (Input.IsActionJustPressed("ui_accept") && _platformBody.IsOnFloor()) {
-			_platformBody.MotionY = -PlayerConfig.JumpSpeed;
-			_platformBody.MotionX = 100;
-		}
+		// if (Input.IsActionJustPressed("ui_accept") && _platformBody.IsOnFloor()) {
+			// _platformBody.MotionY = -PlayerConfig.JumpSpeed;
+			// _platformBody.MotionX = 100;
+		// }
 
 		if (_platformBody.IsOnFloor()) {
 			_platformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
