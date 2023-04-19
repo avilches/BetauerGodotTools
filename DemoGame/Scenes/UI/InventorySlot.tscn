@@ -1,0 +1,29 @@
+[gd_scene load_steps=4 format=3 uid="uid://blphp8u56oyr5"]
+
+[ext_resource type="Script" path="res://Src/UI/InventorySlot.cs" id="1_c6sko"]
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_t4y30"]
+resource_local_to_scene = true
+load_path = "res://.godot/imported/pickups.png-7cfd6c29c5b8e85e5f9aaf1e45df6110.ctex"
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ehtd3"]
+resource_local_to_scene = true
+atlas = SubResource("CompressedTexture2D_t4y30")
+region = Rect2(16, 64, 16, 16)
+
+[node name="ColorRect" type="ColorRect"]
+custom_minimum_size = Vector2(16, 16)
+size_flags_horizontal = 3
+size_flags_vertical = 3
+color = Color(1, 1, 1, 0.121569)
+script = ExtResource("1_c6sko")
+
+[node name="TextureRect" type="TextureRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = SubResource("AtlasTexture_ehtd3")

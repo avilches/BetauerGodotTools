@@ -380,7 +380,7 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 		bool PlayerCanMeleeAttack() => Inventory.WeaponEquipped is WeaponMeleeItem;
 
 		bool PlayerCanShoot() => Inventory.WeaponEquipped is WeaponRangeItem weaponRangeItem && 
-		                         shootTimer.Elapsed >= weaponRangeItem.DelayBetweenShots;
+								 shootTimer.Elapsed >= weaponRangeItem.DelayBetweenShots;
 
 		_fsm.On(PlayerEvent.Hurt).Set(PlayerState.Hurting);
 		_fsm.On(PlayerEvent.Death).Set(PlayerState.Death);
