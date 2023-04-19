@@ -14,7 +14,6 @@ using Betauer.Input;
 using Betauer.Nodes;
 using Betauer.NodePath;
 using Betauer.FSM.Sync;
-using Betauer.Tools.Logging;
 using Godot;
 using Veronenger.Character.InputActions;
 using Veronenger.Config;
@@ -83,6 +82,8 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 	[Inject] private InputAction MMB { get; set; }
 	[Inject] private InputAction NextItem { get; set; }
 	[Inject] private InputAction PrevItem { get; set; }
+	[Inject] private InputAction Equip { get; set; }
+	[Inject] private InputAction Drop { get; set; }
 
 	[Inject] private SceneTree SceneTree { get; set; }
 	[Inject] private EventBus EventBus { get; set; }
@@ -144,6 +145,7 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 	public override void _Ready() {
 		Status.OnHealthUpdate += HudScene.UpdateHealth;
 		Status.SetHealth(Status.MaxHealth);
+		HudScene.UpdateInventory(Inventory);	
 	}
 
 	public void PostInject() {
@@ -211,6 +213,7 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 				_characterWeaponController.Equip(weapon);
 			}
 		};
+		Inventory.OnUpdateInventory += () => HudScene.UpdateInventory(Inventory);
 
 		CollisionLayerManager.PlayerConfigureCollisions(this);
 		CollisionLayerManager.PlayerPickableArea(this, area2D => {
@@ -221,7 +224,7 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 
 	private void PickUp(PickableItem pickable) {
 		pickable.UnlinkNode();
-		Inventory.PickAndEquip(pickable);
+		Inventory.Pick(pickable);
 	}
 
 	private void ConfigureCamera() {
@@ -304,11 +307,11 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 		Step2
 	}
 
-	private void StartStack() {
+	private void StartMeleeAttack() {
 		_stateTimer.Restart();
 		// Logger.Debug(CurrentState.Key+ ": Attack started");
 		_attackState = AttackState.Start;
-		Status.AvailableHits = Inventory.WeaponMeleeEquipped.EnemiesPerHit;
+		Status.AvailableHits = Inventory.WeaponMeleeEquipped!.EnemiesPerHit;
 	}
 
 	private void StopAttack() {
@@ -324,7 +327,7 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 			StopAttack();
 		} else if (_attackState == AttackState.Step2) {
 			// The player pressed attack twice, so the short attack is now a long attack, and this signal call is ignored
-			Status.AvailableHits = Inventory.WeaponMeleeEquipped.EnemiesPerHit * 2;
+			Status.AvailableHits = Inventory.WeaponMeleeEquipped!.EnemiesPerHit * 2;
 		}
 	}
 
@@ -374,18 +377,21 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 		
 		var shootTimer = new GodotStopwatch().Start();
 
-		bool PlayerCanShoot() => Inventory.GetCurrent() is WeaponRangeItem &&
-								 shootTimer.Elapsed >= Inventory.WeaponRangeEquipped.DelayBetweenShots; 
+		bool PlayerCanMeleeAttack() => Inventory.WeaponEquipped is WeaponMeleeItem;
+
+		bool PlayerCanShoot() => Inventory.WeaponEquipped is WeaponRangeItem weaponRangeItem && 
+		                         shootTimer.Elapsed >= weaponRangeItem.DelayBetweenShots;
 
 		_fsm.On(PlayerEvent.Hurt).Set(PlayerState.Hurting);
 		_fsm.On(PlayerEvent.Death).Set(PlayerState.Death);
 		_fsm.On(PlayerEvent.Attack).Then(ctx => {
-			if (Inventory.Items.Count == 0) return ctx.Stay();
-			if (Inventory.GetCurrent() is WeaponMeleeItem) {
+			if (PlayerCanMeleeAttack()) {
 				return ctx.Set(PlatformBody.IsOnFloor() ? PlayerState.MeleeAttack : PlayerState.MeleeAttackAir);
-			} else if (PlayerCanShoot()) {
+			}
+			if (PlayerCanShoot()) {
 				return ctx.Set(PlatformBody.IsOnFloor() ? PlayerState.RangeAttack : PlayerState.RangeAttackAir);
-			} else return ctx.Stay();
+			}
+			return ctx.Stay();
 		});
 		
 		var jumpJustInTime = false;
@@ -394,10 +400,16 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 		void InventoryHandler(InputEvent e) {
 			if (NextItem.IsEventJustPressed(e)) {
 				Inventory.NextItem();
-				Inventory.Equip();
+				GetViewport().SetInputAsHandled();
 			} else if (PrevItem.IsEventJustPressed(e)) {
 				Inventory.PrevItem();
-				Inventory.Equip();
+				GetViewport().SetInputAsHandled();
+			} else if (Equip.IsEventJustPressed(e)) {
+				Inventory.EquipSelected();
+				GetViewport().SetInputAsHandled();
+			} else if (Drop.IsEventJustPressed(e)) {
+				Inventory.DropSelected();
+				GetViewport().SetInputAsHandled();
 			}
 		}
 
@@ -480,7 +492,7 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 		_fsm.State(PlayerState.MeleeAttack)
 			.Enter(() => {
 				AnimationAttack.Play();
-				StartStack();
+				StartMeleeAttack();
 			})
 			.Execute(() => {
 				ApplyFloorGravity();
@@ -504,7 +516,7 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 		_fsm.State(PlayerState.MeleeAttackAir)
 			.Enter(() => {
 				AnimationAttack.Play();
-				StartStack();
+				StartMeleeAttack();
 			})
 			.Execute(() => {
 				ApplyFloorGravity();

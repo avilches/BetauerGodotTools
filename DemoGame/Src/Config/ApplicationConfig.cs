@@ -153,6 +153,18 @@ public class Actions {
 		.Pausable()
 		.ExtendedUnhandled();
 
+	[InputAction()]
+	private InputAction Equip => InputAction.Create()
+		.Keys(Key.F)
+		.Pausable()
+		.ExtendedUnhandled();
+
+	[InputAction()]
+	private InputAction Drop => InputAction.Create()
+		.Keys(Key.G)
+		.Pausable()
+		.ExtendedUnhandled();
+
 	[InputAction(SaveAs = "Controls/NextItem")]
 	private InputAction NextItem => InputAction.Create()
 		.Keys(Key.E)

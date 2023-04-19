@@ -75,7 +75,7 @@ public class MeleeAi : FsmSync<MeleeAi.State, MeleeAi.Event>, ICharacterAi {
             })
             .If(_sensor.IsHurt).Set(State.Hurt)
             .If(() => _sensor.DistanceToPlayer() < 100).Set(State.ConfusionLoop)
-            .If(stateTimer.IsAlarm()).Set(State.Patrol)
+            .If(stateTimer.IsAlarm).Set(State.Patrol)
             .Build();
 
         var patrols = 4;
@@ -101,7 +101,7 @@ public class MeleeAi : FsmSync<MeleeAi.State, MeleeAi.Event>, ICharacterAi {
             })
             .If(_sensor.IsHurt).Set(State.Hurt)
             .If(() => _sensor.CanSeeThePlayer() && !_sensor.IsFrontFloorFinishing()).Set(State.ChasePlayer)
-            .If(stateTimer.IsAlarm()).Then((ctx) => {
+            .If(stateTimer.IsAlarm).Then((ctx) => {
                 _sensor.Flip();
                 return ctx.Pop();
             })
@@ -123,7 +123,7 @@ public class MeleeAi : FsmSync<MeleeAi.State, MeleeAi.Event>, ICharacterAi {
                 Advance(fleeSpeed);
             })
             .If(_sensor.IsHurt).Set(State.Hurt)
-            .If(() => stateTimer.IsAlarm()).Set(State.Sleep)
+            .If(stateTimer.IsAlarm).Set(State.Sleep)
             .Build();
 
         State(State.ChasePlayer)

@@ -1,8 +1,9 @@
 using System;
-using Veronenger.Worlds;
+using Godot;
 
 namespace Veronenger.Config;
 
 public class PickableConfig {
-    public Action<PickableItemNode>? Initialize;
+    public Action<Sprite2D>? ConfigurePickableSprite2D;
+    public Action<AtlasTexture>? ConfigureInventoryTextureRect;
 }
