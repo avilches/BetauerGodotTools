@@ -260,7 +260,7 @@ public partial class SettingsMenu : CanvasLayer {
 		}
 	}
 
-	private const int RedefineSecondsTimeout = 3;
+	private const int RedefineSecondsTimeout = 5;
 
 	public async void ShowRedefineActionPanel(RedefineActionButton redefineButton) {
 		_redefineBox.Show();
@@ -271,29 +271,30 @@ public partial class SettingsMenu : CanvasLayer {
 
 		BottomBarScene.HideAll();
 
+		var redefineOk = false;
 		var redefineSeconds = RedefineSecondsTimeout;
 		void UpdateCounter() =>_redefineCounterLabel.Text = $"Esc to cancel {redefineSeconds--}...";
-		UpdateCounter();
-		var scheduler = new GodotScheduler(GetTree(), 1, UpdateCounter, true).Start();
-		
-		var e = await DefaultNodeHandler.Instance.AwaitInput(e => {
+		var scheduler = new GodotScheduler(GetTree(), 0, 1, UpdateCounter, true).Start();
+		await DefaultNodeHandler.Instance.AwaitInput(e => {
 			if (!e.IsPressed()) return false;
 			if (e.IsKey(Key.Escape)) return true; // Close the redefine button window
 			if (redefineButton.IsKey && e.IsAnyKey()) {
-				_redefineActionName.Text = redefineButton.ActionName + ": "+e.GetKeyString();
+				_redefineActionName.Text = redefineButton.ActionName + ": " + e.GetKeyString();
 				RedefineKey(redefineButton, e.GetKey());
+				redefineOk = true;
 				return true;
 			} else if (redefineButton.IsButton && e.IsAnyButton()) {
 				RedefineButton(redefineButton, e.GetButton());
+				redefineOk = true;
 				return true;
 			}
 			return false;
-		}, true, RedefineSecondsTimeout);
+		}, true, RedefineSecondsTimeout + 0.3f /* so enough time to show the counter showing "0" */);
 		_redefineActionMessage.Text = "";
 		_redefineCounterLabel.Text = "";
 		scheduler.Stop();
 
-		if (e != null) await DefaultNodeHandler.Instance.AwaitInput(e => e.IsPressed() && (e.IsAnyKey() || e.IsAnyButton()), true, 1);
+		if (redefineOk) await DefaultNodeHandler.Instance.AwaitInput(e => e.IsPressed() && (e.IsAnyKey() || e.IsAnyButton()), true, 0.9f);
 		
 		_redefineBox.Hide();
 		_settingsBox.Show();
