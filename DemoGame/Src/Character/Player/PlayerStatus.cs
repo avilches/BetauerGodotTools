@@ -16,7 +16,7 @@ public class PlayerStatus {
     
     public Dictionary<AmmoType, int> Ammo { get; } = new();
 
-    public event Action<PlayerUpdateHealthEvent> OnHealthUpdate;
+    public event Action<PlayerHealthEvent> OnHealthUpdate;
 
     public PlayerStatus(PlayerConfig playerConfig) {
         MaxHealth = playerConfig.InitialMaxHealth;
@@ -24,7 +24,7 @@ public class PlayerStatus {
         Invincible = false;
         UnderAttack = false;
         AvailableHits = 0;
-        OnHealthUpdate?.Invoke(new PlayerUpdateHealthEvent(Health, Health, MaxHealth));
+        OnHealthUpdate?.Invoke(new PlayerHealthEvent(Health, Health, MaxHealth));
         
         Enum.GetValues<AmmoType>().ForEach(ammoType => Ammo[ammoType] = 10);
     }
@@ -49,7 +49,7 @@ public class PlayerStatus {
         var fromHealth = Health;
         Health = Math.Clamp(health, 0, MaxHealth);
         var toHealth = Health;
-        OnHealthUpdate?.Invoke(new PlayerUpdateHealthEvent(fromHealth, toHealth, MaxHealth));
+        OnHealthUpdate?.Invoke(new PlayerHealthEvent(fromHealth, toHealth, MaxHealth));
     }
 
     public void SetMaxHealth(float newMaxHealth) {
@@ -57,7 +57,7 @@ public class PlayerStatus {
         MaxHealth = newMaxHealth;
         Health = Math.Clamp(Health, 0, MaxHealth);
         var toHealth = Health;
-        OnHealthUpdate?.Invoke(new PlayerUpdateHealthEvent(fromHealth, toHealth, MaxHealth));
+        OnHealthUpdate?.Invoke(new PlayerHealthEvent(fromHealth, toHealth, MaxHealth));
     }
 
     public bool IsDead() => Health <= 0f;

@@ -1,4 +1,3 @@
-using System;
 using Betauer.NodePath;
 using Godot;
 using Veronenger.Persistent;

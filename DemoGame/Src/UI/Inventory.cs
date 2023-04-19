@@ -3,6 +3,7 @@ using Betauer.Core.Nodes;
 using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
 using Godot;
+using Veronenger.Character.Player;
 using Veronenger.Persistent;
 
 namespace Veronenger.UI;
@@ -16,8 +17,9 @@ public partial class Inventory : GridContainer {
 		RemoveAllChildrenIfNeeded();
 	}
 
-	public void UpdateInventory(Veronenger.Character.Player.Inventory inventory) {
+	public void UpdateInventory(PlayerInventoryEvent playerInventorySlotEvent) {
 		RemoveAllChildrenIfNeeded();
+		var inventory = playerInventorySlotEvent.Inventory;
 		FixSlotSize(inventory.Items.Count);
 		
 		inventory.Items.ForEach((worldItem, i) => {

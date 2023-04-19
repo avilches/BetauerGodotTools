@@ -155,12 +155,6 @@ public class Actions {
 		.ExtendedUnhandled();
 
 	[InputAction()]
-	private InputAction Equip => InputAction.Create()
-		.Keys(Key.F)
-		.Pausable()
-		.ExtendedUnhandled();
-
-	[InputAction()]
 	private InputAction Drop => InputAction.Create()
 		.Keys(Key.G)
 		.Pausable()

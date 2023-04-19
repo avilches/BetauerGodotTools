@@ -12,7 +12,7 @@ public partial class HUD : CanvasLayer {
 	
 	[Inject] private EventBus EventBus { get; set; }
 
-	public void UpdateHealth(PlayerUpdateHealthEvent he) {
+	public void UpdateHealth(PlayerHealthEvent he) {
 		_healthBar.MinValue = 0;
 		_healthBar.MaxValue = he.Max;
 		_healthBar.Value = he.ToHealth;
@@ -26,7 +26,7 @@ public partial class HUD : CanvasLayer {
 		Visible = false;
 	}
 
-	public void UpdateInventory(Veronenger.Character.Player.Inventory inventory) {
-		_inventory.UpdateInventory(inventory);
+	public void UpdateInventory(PlayerInventoryEvent playerInventoryEvent) {
+		_inventory.UpdateInventory(playerInventoryEvent);
 	}
 }

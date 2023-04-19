@@ -82,7 +82,6 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 	[Inject] private InputAction MMB { get; set; }
 	[Inject] private InputAction NextItem { get; set; }
 	[Inject] private InputAction PrevItem { get; set; }
-	[Inject] private InputAction Equip { get; set; }
 	[Inject] private InputAction Drop { get; set; }
 
 	[Inject] private SceneTree SceneTree { get; set; }
@@ -143,9 +142,13 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 
 
 	public override void _Ready() {
+		// Some events could be triggered when a property is changed during the PostInject configuration phase,
+		// so it's better to add the events when everything is loaded
 		Status.OnHealthUpdate += HudScene.UpdateHealth;
 		Status.SetHealth(Status.MaxHealth);
-		HudScene.UpdateInventory(Inventory);	
+
+		Inventory.OnUpdateInventory += (e) => HudScene.UpdateInventory(e);
+		Inventory.TriggerRefresh();
 	}
 
 	public void PostInject() {
@@ -213,7 +216,9 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 				_characterWeaponController.Equip(weapon);
 			}
 		};
-		Inventory.OnUpdateInventory += () => HudScene.UpdateInventory(Inventory);
+		Inventory.OnUnequip += item => {
+			_characterWeaponController.Unequip();
+		};
 
 		CollisionLayerManager.PlayerConfigureCollisions(this);
 		CollisionLayerManager.PlayerPickableArea(this, area2D => {
@@ -399,16 +404,13 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 
 		void InventoryHandler(InputEvent e) {
 			if (NextItem.IsEventJustPressed(e)) {
-				Inventory.NextItem();
+				Inventory.EquipNextItem();
 				GetViewport().SetInputAsHandled();
 			} else if (PrevItem.IsEventJustPressed(e)) {
-				Inventory.PrevItem();
-				GetViewport().SetInputAsHandled();
-			} else if (Equip.IsEventJustPressed(e)) {
-				Inventory.EquipSelected();
+				Inventory.EquipPrevItem();
 				GetViewport().SetInputAsHandled();
 			} else if (Drop.IsEventJustPressed(e)) {
-				Inventory.DropSelected();
+				Inventory.Drop();
 				GetViewport().SetInputAsHandled();
 			}
 		}
