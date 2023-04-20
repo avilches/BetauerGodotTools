@@ -52,9 +52,7 @@ public partial class FsmNodeSync<TStateKey, TEventKey> :
     public void AddState(StateNodeSync<TStateKey, TEventKey> stateSync) => _stateMachine.AddState(stateSync);
     public void Send(TEventKey eventKey, int weight = 0) => _stateMachine.Send(eventKey, weight);
 
-    public void Execute() {
-        throw new Exception("Don't call directly to execute. Instead, add the node to the tree");
-    }
+    public void Execute() => _stateMachine.Execute();
 
     public void Reset() => _stateMachine.Reset();
 

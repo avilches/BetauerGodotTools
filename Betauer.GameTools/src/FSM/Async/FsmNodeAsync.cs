@@ -53,9 +53,7 @@ public partial class FsmNodeAsync<TStateKey, TEventKey> :
     public void AddState(StateNodeAsync<TStateKey, TEventKey> state) => _stateMachine.AddState(state);
     public void Send(TEventKey eventKey, int weight = 0) => _stateMachine.Send(eventKey, weight);
 
-    public Task Execute() {
-        throw new Exception("Don't call directly to execute. Instead, add the node to the tree");
-    }
+    public Task Execute() => _stateMachine.Execute();
 
     public void Reset() => _stateMachine.Reset();
     
