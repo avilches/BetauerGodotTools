@@ -85,7 +85,7 @@ public partial class WorldScene : Node {
 	public void PlacePickable(PickableItem item, Vector2 position, Vector2? velocity = null) {
 		PickableItemNode pickableItemNode = PickableItemNodeFactory.Get();
 		item.LinkNode(pickableItemNode);
-		pickableItemNode.AddTo(this, () => pickableItemNode.Placing(position, velocity));
+		pickableItemNode.AddTo(this, () => pickableItemNode.Spawn(position, velocity));
 	}
 
 	public void PlayerDrop(PickableItem item, Vector2 position, Vector2? velocity = null) {
@@ -96,7 +96,6 @@ public partial class WorldScene : Node {
 
 	public void ZombieSpawn(Node scene, Vector2 position) {
 		var zombieNode = ZombiePool.Get();
-		Console.WriteLine("ZombieSpawn "+zombieNode.GetInstanceId());
 		var zombieItem = ItemRepository.Create<NpcItem>("Zombie").Configure(ItemConfigManager.ZombieConfig);
 		zombieItem.LinkNode(zombieNode);
 		zombieNode.AddTo(scene, () => zombieNode.GlobalPosition = position);
@@ -104,7 +103,6 @@ public partial class WorldScene : Node {
 
 	public ProjectileTrail NewBullet() {
 		var projectileTrail = ProjectilePool.Get();
-		Console.WriteLine("NewBullet "+projectileTrail.GetInstanceId());
 		projectileTrail.AddTo(this);
 		return projectileTrail;
 	}

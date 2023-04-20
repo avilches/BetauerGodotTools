@@ -6,7 +6,7 @@ namespace Veronenger.Character;
 
 public abstract class BaseKinematicMotion {
     public CharacterBody2D CharacterBody { get; }
-    public Node2D Marker2D { get; }
+    public Func<Vector2> GlobalPosition { get; }
 
     private float _anglesToRotateFloor = 0;
     private Vector2 _floorUpDirection = Vector2.Up;
@@ -42,10 +42,10 @@ public abstract class BaseKinematicMotion {
 
     public float Delta { get; private set; } = 0;
 
-    protected BaseKinematicMotion(CharacterBody2D characterBody, Node2D marker2D, Vector2 floorUpDirection) {
+    protected BaseKinematicMotion(CharacterBody2D characterBody, Func<Vector2>? globalPosition, Vector2? floorUpDirection) {
         CharacterBody = characterBody;
-        Marker2D = marker2D;
-        FloorUpDirection = floorUpDirection;
+        GlobalPosition = globalPosition ?? (() => CharacterBody.GlobalPosition);
+        FloorUpDirection = floorUpDirection ?? Vector2.Up;
     }
 
     public void SetDelta(double delta) {
@@ -148,9 +148,9 @@ public abstract class BaseKinematicMotion {
     /// <returns></returns>
     public bool IsToTheRightOf(Vector2 globalPosition) => LookRightDirection.IsOppositeDirection(DirectionTo(globalPosition));
 
-    public float DistanceTo(Vector2 globalPosition) => Marker2D.GlobalPosition.DistanceTo(globalPosition);
+    public float DistanceTo(Vector2 globalPosition) => GlobalPosition().DistanceTo(globalPosition);
     
-    public Vector2 DirectionTo(Vector2 globalPosition) => Marker2D.GlobalPosition.DirectionTo(globalPosition);
+    public Vector2 DirectionTo(Vector2 globalPosition) => GlobalPosition().DirectionTo(globalPosition);
 
     public float AngleTo(Vector2 globalPosition) => LookRightDirection.AngleTo(DirectionTo(globalPosition));
 }

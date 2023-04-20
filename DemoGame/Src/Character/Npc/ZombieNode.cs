@@ -245,7 +245,7 @@ public partial class ZombieNode : NpcItemNode {
 			.ScaleX(_attackArea);
 		flipper.IsFacingRight = flipper.IsFacingRight;
 
-		PlatformBody = new KinematicPlatformMotion(CharacterBody2D, flipper, Marker2D, MotionConfig.FloorUpDirection);
+		PlatformBody = new KinematicPlatformMotion(CharacterBody2D, flipper, () => Marker2D.GlobalPosition, MotionConfig.FloorUpDirection);
 		_fsm.OnBefore += () => PlatformBody.SetDelta(_fsm.Delta);
 
 		CollisionLayerManager.NpcConfigureCollisions(CharacterBody2D);

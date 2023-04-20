@@ -33,8 +33,8 @@ public class KinematicPlatformMotion : BaseKinematicMotion, IFlipper {
     // Ceiling
     private bool _isOnCeiling = false;
 
-    public KinematicPlatformMotion(CharacterBody2D characterBody, IFlipper flippers, Node2D marker2D, Vector2 floorUpDirection, List<RayCast2D>? floorRaycasts = null) :
-        base(characterBody, marker2D, floorUpDirection) {
+    public KinematicPlatformMotion(CharacterBody2D characterBody, IFlipper flippers, Func<Vector2>? globalPosition, Vector2? floorUpDirection, List<RayCast2D>? floorRaycasts = null) :
+        base(characterBody, globalPosition, floorUpDirection) {
         _flippers = flippers;
         FloorRaycasts = floorRaycasts;
     }

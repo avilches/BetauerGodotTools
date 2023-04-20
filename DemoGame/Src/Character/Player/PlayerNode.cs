@@ -198,7 +198,7 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 			.ScaleX(_attackArea2);
 		flipper.IsFacingRight = true;
 
-		PlatformBody = new KinematicPlatformMotion(CharacterBody2D, flipper, Marker2D, MotionConfig.FloorUpDirection,
+		PlatformBody = new KinematicPlatformMotion(CharacterBody2D, flipper, () => Marker2D.GlobalPosition, MotionConfig.FloorUpDirection,
 			FloorRaycasts);
 		_fsm.OnBefore += () => PlatformBody.SetDelta(_fsm.Delta);
 		// OnAfter += () => {
