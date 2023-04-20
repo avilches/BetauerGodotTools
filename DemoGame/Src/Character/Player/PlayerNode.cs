@@ -121,6 +121,7 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 	private bool IsOnFallingPlatform() => PlatformBody.IsOnFloor() &&
 										  PlatformManager.IsFallingPlatform(PlatformBody
 											  .GetFloorColliders<PhysicsBody2D>().FirstOrDefault());
+	// private readonly LazyRaycast2D _lazyRaycast2DDrop = new();
 
 	// private bool IsMovingPlatform() => PlatformManager.IsMovingPlatform(Body.GetFloor());
 	private MonitorText? _coyoteMonitor;
@@ -139,7 +140,6 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 	public void LinkItem(Item item) {
 		Item = (PlayerItem)item;
 	}
-
 
 	public override void _Ready() {
 		// Some events could be triggered when a property is changed during the PostInject configuration phase,
@@ -224,8 +224,11 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 		CollisionLayerManager.PlayerConfigureCollisions(this);
 		CollisionLayerManager.PlayerPickableArea(this, area2D => {
 			var pickable = ItemRepository.GetFromMeta<PickableItem>(area2D);
-			pickable.ItemNode!.BringTo(() => Marker2D.GlobalPosition, () => PickUp(pickable));
+			pickable.ItemNode!.FlyingPickup(() => Marker2D.GlobalPosition, () => PickUp(pickable));
 		});
+
+		// _lazyRaycast2DDrop.GetDirectSpaceFrom(Marker2D);
+		// _lazyRaycast2DDrop.Config(CollisionLayerManager.PlayerConfigureRaycastDrop);
 	}
 
 	private void PickUp(PickableItem pickable) {
@@ -341,6 +344,18 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 		StopAttack();
 	}
 
+	private void DropItem() {
+		var item = Inventory.GetCurrent();
+		if (item == null) return;
+		// var minDistanceToDrop = new Vector2(PlatformBody.FacingRight * 50, 0);
+		// var collision = _lazyRaycast2DDrop.From(Marker2D).To(Marker2D.GlobalPosition + minDistanceToDrop).Cast().Collision;
+		// if (collision.IsColliding) return;
+		// var dropVelocity = new Vector2(MotionX + (PlatformBody.FacingRight * PlayerConfig.DropLateralSpeed), MotionY);
+		var dropVelocity = new Vector2(PlatformBody.FacingRight * Math.Max(Math.Abs(MotionX), PlayerConfig.DropLateralSpeed), MotionY);
+		Game.WorldScene.PlayerDrop(item, Marker2D.GlobalPosition, dropVelocity);
+		Inventory.Drop();
+	}
+
 	public void ConfigureFsm() {
 		Tween? invincibleTween = null;
 		void StartInvincibleEffect() {
@@ -411,8 +426,8 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 				Inventory.EquipPrevItem();
 				GetViewport().SetInputAsHandled();
 			} else if (Drop.IsEventJustPressed(e)) {
-				Inventory.Drop();
 				GetViewport().SetInputAsHandled();
+				DropItem();
 			}
 		}
 

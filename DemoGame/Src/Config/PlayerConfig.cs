@@ -31,6 +31,9 @@ public class PlayerConfig {
     public float InitialHealth = 32;
     public float InitialMaxHealth = 32;
 
+    public float DroppingTime = 0.550f;
+    public float DropLateralSpeed = 100;
+
     public PlayerConfig() {
         SpeedToPlayRunStop = MaxSpeed * 0.95f;
         const float timeToMaxSpeed = 0.2f; // seconds to reach the max speed 0=immediate

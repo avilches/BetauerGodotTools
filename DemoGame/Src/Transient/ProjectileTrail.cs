@@ -4,7 +4,6 @@ using Betauer.Application.Lifecycle;
 using Betauer.Core;
 using Betauer.Core.Nodes;
 using Betauer.Core.Pool.Lifecycle;
-using Betauer.DI;
 using Godot;
 using Godot.Collections;
 using Veronenger.Persistent;
@@ -27,7 +26,7 @@ public partial class ProjectileTrail : BaseNodeLifecycle, IPoolLifecycle {
 	private Func<RaycastCollision, Behaviour> _onCollide;
 	public Sprite2D Sprite2D;
 
-	public LazyRaycast2D _lazyRaycast2D;
+	private readonly LazyRaycast2D _lazyRaycast2D = new();
 	private Vector2 _collisionPosition = Vector2.Zero;
 	private bool _queueEnd = false;
 
@@ -46,7 +45,7 @@ public partial class ProjectileTrail : BaseNodeLifecycle, IPoolLifecycle {
 			Visible = false
 		};
 		AddChild(Sprite2D);
-		_lazyRaycast2D = new LazyRaycast2D().GetDirectSpaceFrom(Trail);
+		_lazyRaycast2D.GetDirectSpaceFrom(Trail);
 	}
 
 	public override Vector2 GlobalPosition {

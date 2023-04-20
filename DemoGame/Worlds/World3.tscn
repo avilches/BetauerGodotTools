@@ -255,7 +255,7 @@ offset_right = 40.0
 offset_bottom = 40.0
 
 [node name="Metalbar" type="Marker2D" parent="ItemSpawn"]
-position = Vector2(-771.501, 14.6231)
+position = Vector2(-618, -13)
 
 [node name="Gun" type="Marker2D" parent="ItemSpawn"]
 position = Vector2(-734, 15)

@@ -29,7 +29,7 @@ public class CollisionLayerManager {
     }
 
     public static void PlayerPickableArea(PlayerNode playerNode, Area2D.AreaEnteredEventHandler onEnterPickableArea) {
-        playerNode.PlayerDetector.OnAreaEntered(LayerPickableItemArea, onEnterPickableArea);
+        playerNode.PlayerDetector.OnAreaEntered(LayerPickableItemArea, onEnterPickableArea, false, true);
     }
 
     public static void PickableItem(PickableItemNode pickableItemNode) {
@@ -40,6 +40,14 @@ public class CollisionLayerManager {
         pickableItemNode.PickZone.CollisionLayer = 0;
         pickableItemNode.PickZone.CollisionMask = 0;
         pickableItemNode.PickZone.AddToLayer(LayerPickableItemArea);
+    }
+
+    public static void PlayerConfigureRaycastDrop(PhysicsRayQueryParameters2D rayCast2D) {
+        rayCast2D.CollisionMask = 0;
+        rayCast2D.CollideWithAreas = false;
+        rayCast2D.CollideWithBodies = true;
+        rayCast2D.HitFromInside = true;
+        rayCast2D.DetectLayer(LayerSolidBody);
     }
 
     public static void PlayerConfigureAttackArea(Area2D attackArea, Area2D.AreaEnteredEventHandler? onAttack = null) {

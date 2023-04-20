@@ -51,40 +51,47 @@ public partial class WorldScene : Node {
 		var metalbar = ItemRepository
 			.Create<WeaponMeleeItem>("Metalbar")
 			.Configure(ItemConfigManager.Metalbar, damageBase: 9f, enemiesPerHit: 2);
-		PlacePickable(PickableItemNodeFactory.Get(), metalbar, GetPositionFromMarker("ItemSpawn/Metalbar"));
+		PlacePickable(metalbar, GetPositionFromMarker("ItemSpawn/Metalbar"));
 	}
 	
 	private void PlaceSlowGun() {
 		var range = ItemRepository
 			.Create<WeaponRangeItem>("Slow Gun")
 			.Configure(ItemConfigManager.SlowGun, AmmoType.Bullet, damageBase: 6f, delayBetweenShots: 0.2f, magazineSize: 22);
-		PlacePickable(PickableItemNodeFactory.Get(), range, GetPositionFromMarker("ItemSpawn/Gun"));
+		PlacePickable(range, GetPositionFromMarker("ItemSpawn/Gun"));
 	}
 	
 	private void PlaceGun() {
 		var range = ItemRepository
 			.Create<WeaponRangeItem>("Gun")
 			.Configure(ItemConfigManager.Gun, AmmoType.Bullet, damageBase: 9f, delayBetweenShots: 0.3f, magazineSize: 12);
-		PlacePickable(PickableItemNodeFactory.Get(), range, GetPositionFromMarker("ItemSpawn/Gun"));
+		PlacePickable(range, GetPositionFromMarker("ItemSpawn/Gun"));
 	}
 
 	private void PlaceShotgun() {
 		var range = ItemRepository
 			.Create<WeaponRangeItem>("Shotgun")
 			.Configure(ItemConfigManager.Shotgun, AmmoType.Cartridge, damageBase: 22f, delayBetweenShots: 0.5f, enemiesPerHit: 2, magazineSize: 8);
-		PlacePickable(PickableItemNodeFactory.Get(), range, GetPositionFromMarker("ItemSpawn/Gun"));
+		PlacePickable(range, GetPositionFromMarker("ItemSpawn/Gun"));
 	}
 
 	private void PlaceMachineGun() {
 		var range = ItemRepository
 			.Create<WeaponRangeItem>("MachineGun")
 			.Configure(ItemConfigManager.MachineGun, AmmoType.Bullet, damageBase: 4f, delayBetweenShots: 0.05f, enemiesPerHit: 1, magazineSize: 30, auto: true);
-		PlacePickable(PickableItemNodeFactory.Get(), range, GetPositionFromMarker("ItemSpawn/Gun"));
+		PlacePickable(range, GetPositionFromMarker("ItemSpawn/Gun"));
 	}
 
-	private void PlacePickable(PickableItemNode pickableItemNode, PickableItem item, Vector2 position) {
+	public void PlacePickable(PickableItem item, Vector2 position, Vector2? velocity = null) {
+		PickableItemNode pickableItemNode = PickableItemNodeFactory.Get();
 		item.LinkNode(pickableItemNode);
-		pickableItemNode.AddTo(this, () => pickableItemNode.CharacterBody2D.GlobalPosition = position);
+		pickableItemNode.AddTo(this, () => pickableItemNode.Placing(position, velocity));
+	}
+
+	public void PlayerDrop(PickableItem item, Vector2 position, Vector2? velocity = null) {
+		PickableItemNode pickableItemNode = PickableItemNodeFactory.Get();
+		item.LinkNode(pickableItemNode);
+		pickableItemNode.AddTo(this, () => pickableItemNode.PlayerDrop(position, velocity));
 	}
 
 	public void ZombieSpawn(Node scene, Vector2 position) {
