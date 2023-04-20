@@ -1,4 +1,3 @@
-using Betauer.DI;
 using Betauer.DI.Attributes;
 using Veronenger.Character;
 
@@ -31,6 +30,10 @@ public class PlayerConfig {
     public float InitialHealth = 32;
     public float InitialMaxHealth = 32;
 
+    public float PickingUpSpeed = 300f; // 300px per second
+    public float PickingUpAcceleration = 1.1f; // 2x per second
+    public float PickupDoneDistance = 10; // 10px and the item is picked up
+    public float DropLateralFriction = 0.95f;
     public float DroppingTime = 0.550f;
     public float DropLateralSpeed = 100;
 

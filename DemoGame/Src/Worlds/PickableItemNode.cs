@@ -4,6 +4,7 @@ using Betauer.Core.Pool.Lifecycle;
 using Godot;
 using Betauer.DI.Attributes;
 using Betauer.Flipper;
+using Betauer.FSM.Sync;
 using Betauer.NodePath;
 using Veronenger.Character;
 using Veronenger.Config;
@@ -16,12 +17,12 @@ namespace Veronenger.Worlds;
 
 public partial class PickableItemNode : ItemNode, IPickableItemNode, IPoolLifecycle {
 	public enum State {
-		Dropping, Available, PickingUp, Finish
+		None, Dropping, Available, PickingUp, Finish
 	}
-	
-	public const float PickingUpSpeed = 300f; // 300px per second
-	public const float PickingUpAcceleration = 1.1f; // 2x per second
-	public static float DropLateralFriction = 0.95f;
+
+	public enum Event {
+		Spawn, PlayerDrops, PlayerPicksUp
+	}
 
 	[Inject] private PlayerConfig PlayerConfig { get; set; }
 	[Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
@@ -34,16 +35,16 @@ public partial class PickableItemNode : ItemNode, IPickableItemNode, IPoolLifecy
 
 	public KinematicPlatformMotion PlatformBody;
 	private State _state = State.Available;
-	private Func<Vector2>? _followPosition;
+	private Func<Vector2> _playerPosition;
 	private Action? _onPickup;
 	private float _pickingUpSpeed;
-	private double _placingTime;
+	private readonly FsmNodeSync<State, Event> _fsm = new(State.None, "PickableItem.FSM", true);
 
 	public override void PostInject() {
+		PlatformBody = new KinematicPlatformMotion(CharacterBody2D, new FlipperList(), CharacterBody2D, Vector2.Up);
 		CollisionLayerManager.PickableItem(this);
-		var marker2d = new Marker2D();
-		AddChild(marker2d);
-		PlatformBody = new KinematicPlatformMotion(CharacterBody2D, new FlipperList(), marker2d, Vector2.Up);
+		AddChild(_fsm);
+		ConfigureFsm();
 	}
 
 	public override void OnGet() {}
@@ -51,7 +52,7 @@ public partial class PickableItemNode : ItemNode, IPickableItemNode, IPoolLifecy
 	public override void _Ready() {
 		PickZone.LinkMetaToItemId(Item);
 		_state = State.Available;
-		_followPosition = null;
+		_playerPosition = null;
 		_onPickup = null;
 		PickableItem.Config.ConfigurePickableSprite2D?.Invoke(Sprite);
 		
@@ -85,67 +86,85 @@ public partial class PickableItemNode : ItemNode, IPickableItemNode, IPoolLifecy
 		get => CharacterBody2D.GlobalPosition;
 		set => CharacterBody2D.GlobalPosition = value;
 	}
-	
-	public void Placing(Vector2 position, Vector2? velocity = null) {
-		_state = State.Available;
-		_placingTime = 0;
+
+	public void Spawn(Vector2 position, Vector2? velocity = null) {
 		CharacterBody2D.GlobalPosition = position;
 		PlatformBody.Motion = velocity ?? Vector2.Zero;
-		PickZone.Monitorable = true;
+		_fsm.Send(Event.Spawn);
 	}
 
 	public void PlayerDrop(Vector2 position, Vector2? velocity = null) {
-		_state = State.Dropping;
-		_placingTime = PlayerConfig.DroppingTime;
 		CharacterBody2D.GlobalPosition = position;
 		PlatformBody.Motion = velocity ?? Vector2.Zero;
-		PickZone.Monitorable = false;
+		_fsm.Send(Event.PlayerDrops);
 	}
 
-	public void FlyingPickup(Func<Vector2> target, Action onPickup) {
-		_followPosition = target;
+	public void PlayerPicksUp(Func<Vector2> playerPosition, Action onPickup) {
+		_playerPosition = playerPosition;
 		_onPickup = onPickup;
-		_state = State.PickingUp;
-		_pickingUpSpeed = PickingUpSpeed;
+		_fsm.Send(Event.PlayerPicksUp);
 	}
 
-	public override void _PhysicsProcess(double delta) {
-		if (_state == State.Dropping) _PlayerDropping(delta);
-		if (_state == State.Available) _Available(delta);
-		else if (_state == State.PickingUp) _PickingUp(delta);
+	private void ConfigureFsm() {
+		var placingTime = 0d;
+
+		_fsm.On(Event.Spawn).Set(State.Available);
+		_fsm.On(Event.PlayerDrops).Set(State.Dropping);
+		_fsm.On(Event.PlayerPicksUp).Set(State.PickingUp);
+
+		_fsm.State(State.None).Build();
+		_fsm.State(State.Dropping)
+			.Enter(() => {
+				placingTime = PlayerConfig.DroppingTime;
+				PickZone.Monitorable = false;
+			})
+			.Execute(() => {
+				FallAndBounce(_fsm.Delta);
+				placingTime -= _fsm.Delta;
+			})
+			.If(() => placingTime <= 0f).Set(State.Available)
+			.Build();
+		
+
+		_fsm.State(State.Available)
+			.Enter(() => PickZone.Monitorable = true)
+			.Execute(() => FallAndBounce(_fsm.Delta))
+			.Build();
+
+		_fsm.State(State.PickingUp)
+			.Enter(() => _pickingUpSpeed = PlayerConfig.PickingUpSpeed)
+			.Execute(() => {
+				var delta = (float)_fsm.Delta;
+				var destination = _playerPosition();
+				_pickingUpSpeed *= 1 + (PlayerConfig.PickingUpAcceleration * delta);
+				CharacterBody2D.GlobalPosition = CharacterBody2D.GlobalPosition.MoveToward(destination, delta * _pickingUpSpeed);
+			})
+			.If(() => CharacterBody2D.GlobalPosition.DistanceTo(_playerPosition()) < PlayerConfig.PickupDoneDistance).Set(State.Finish)
+			.Build();
+
+		_fsm.State(State.Finish)
+			.Enter(() => {
+				PickZone.Monitorable = false;
+				_onPickup?.Invoke();
+			})
+			.If(() => true).Set(State.None)
+			.Build();
+
+		// This ensure the FSM is initialized and can receive events in the _Ready stage
+		_fsm.Execute();
 	}
 
-	private void _PlayerDropping(double delta) {
-		_Available(delta);
-		_placingTime -= delta;
-		if (_placingTime <= 0f) {
-			PickZone.Monitorable = true;
-			_state = State.Available;
-		}
-	}
-
-	private void _Available(double delta) {
+	private void FallAndBounce(double delta) {
 		PlatformBody.SetDelta(delta);
 		PlatformBody.ApplyGravity(PlayerConfig.FloorGravity, PlayerConfig.MaxFallingSpeed);
 		if (PlatformBody.IsOnFloor()) {
-			PlatformBody.ApplyLateralFriction(DropLateralFriction, 10f);
+			PlatformBody.ApplyLateralFriction(PlayerConfig.DropLateralFriction, PlayerConfig.StopIfSpeedIsLessThan);
 		}
-		var backup = PlatformBody.MotionX;
+		var motionX = PlatformBody.MotionX;
 		PlatformBody.Move();
 		if (PlatformBody.IsJustOnWall()) {
-			PlatformBody.MotionX = -backup;
+			PlatformBody.MotionX = -motionX;
 		}
 	}
 
-	private void _PickingUp(double dDelta) {
-		var delta = (float)dDelta;
-		var destination = _followPosition!();
-		_pickingUpSpeed *= 1 + (PickingUpAcceleration * delta);
-		CharacterBody2D.GlobalPosition = CharacterBody2D.GlobalPosition.MoveToward(destination, delta * _pickingUpSpeed);
-		if (CharacterBody2D.GlobalPosition.DistanceTo(destination) < 10) {
-			_state = State.Finish;
-			PickZone.Monitorable = false;
-			_onPickup?.Invoke();
-		}
-	}
 }

@@ -224,7 +224,7 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 		CollisionLayerManager.PlayerConfigureCollisions(this);
 		CollisionLayerManager.PlayerPickableArea(this, area2D => {
 			var pickable = ItemRepository.GetFromMeta<PickableItem>(area2D);
-			pickable.ItemNode!.FlyingPickup(() => Marker2D.GlobalPosition, () => PickUp(pickable));
+			pickable.ItemNode!.PlayerPicksUp(() => Marker2D.GlobalPosition, () => PickUp(pickable));
 		});
 
 		// _lazyRaycast2DDrop.GetDirectSpaceFrom(Marker2D);
