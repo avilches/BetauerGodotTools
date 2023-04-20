@@ -5,7 +5,7 @@ using Godot;
 namespace Veronenger.Character; 
 
 public abstract class BaseKinematicMotion {
-    protected CharacterBody2D CharacterBody { get; }
+    public CharacterBody2D CharacterBody { get; }
     public Marker2D Marker2D { get; }
 
     private float _anglesToRotateFloor = 0;

@@ -7,6 +7,16 @@ public class NpcConfig {
     public Vector2 HurtKnockback = new(60, -100);
     public float HurtKnockbackTime = 0.4f; // Tween time without moving (just knockback inertia) flashing red
 
+    public int KickbackEnergyThreshold = 10; // 10 means from -10 to 10 
+
+    // Melee attack kickback
+    public (int start, int end) KickbackMeleeAngle = (30, 80); 
+    public int KickbackMeleeEnergyMultiplier = 15; 
+
+    // Range attack kickback
+    public (int start, int end) KickbackRangeAngle = (0, 25); 
+    public int KickbackRangeEnergyMultiplier = 10; 
+
     public float MaxSpeed = 60f; // pixels/seconds
     public float Acceleration = -1; // pixels/frame
     public float StopIfSpeedIsLessThan = 20f; // pixels/seconds

@@ -257,8 +257,7 @@ public partial class ZombieNode : NpcItemNode {
 
 		EnableAttackAndHurtAreas();
 		CollisionLayerManager.EnemyConfigureAttackArea(_attackArea);
-		_attackArea.GetNode<CollisionShape2D>("Body").Disabled = false;
-		_attackArea.GetNode<CollisionShape2D>("Weapon").Disabled = true;
+		_attackArea.DisableAllShapes();
 
 		CollisionLayerManager.EnemyConfigureHurtArea(_hurtArea);
 		
@@ -286,23 +285,14 @@ public partial class ZombieNode : NpcItemNode {
 		return true;
 	}
 
-	public static int KickbackEnergyThreshold = 10; // 10 means from -10 to 10 
-
-	// Melee attack kickback
-	public static (int start, int end) KickbackMeleeAngle = (30, 80); 
-	public static int KickbackMeleeEnergyMultiplier = 15; 
-
-	// Range attack kickback
-	public static (int start, int end) KickbackRangeAngle = (0, 25); 
-	public static int KickbackRangeEnergyMultiplier = 10; 
 
 	private void OnPlayerAttackEvent(PlayerAttackEvent playerAttackEvent) {
 		if (playerAttackEvent.Npc.Id != Item.Id) return;
 		if (playerAttackEvent.Weapon is WeaponMeleeItem) {
 			Status.UnderMeleeAttack = true;
-			Kickback(KickbackMeleeAngle.start, KickbackMeleeAngle.end, playerAttackEvent.Weapon.Damage * KickbackMeleeEnergyMultiplier);
+			Kickback(NpcConfig.KickbackMeleeAngle.start, NpcConfig.KickbackMeleeAngle.end, playerAttackEvent.Weapon.Damage * NpcConfig.KickbackMeleeEnergyMultiplier);
 		} else if (playerAttackEvent.Weapon is WeaponRangeItem) {
-			Kickback(KickbackRangeAngle.start, KickbackRangeAngle.end, playerAttackEvent.Weapon.Damage * KickbackRangeEnergyMultiplier);
+			Kickback(NpcConfig.KickbackRangeAngle.start, NpcConfig.KickbackRangeAngle.end, playerAttackEvent.Weapon.Damage * NpcConfig.KickbackRangeEnergyMultiplier);
 		}
 		Status.UpdateHealth(-playerAttackEvent.Weapon.Damage);
 		UpdateHealthBar();
@@ -313,12 +303,11 @@ public partial class ZombieNode : NpcItemNode {
 	// TODO: this could be moved to the weapon config?
 	private void Kickback(int startAngle, int endAngle, float energy) {
 		var angle = Random.Range(startAngle, endAngle);
-		energy = Random.Range(Math.Max(0, energy - KickbackEnergyThreshold), energy + KickbackEnergyThreshold);
-		var dir = Vector2.Right.Rotated(Mathf.DegToRad(angle)) * energy;
+		energy = Random.Range(Math.Max(0, energy - NpcConfig.KickbackEnergyThreshold), energy + NpcConfig.KickbackEnergyThreshold);
+		var dir = Vector2.Right.Rotated(Mathf.DegToRad(angle)) * energy;                                                                           
 		PlatformBody.MotionX = IsToTheRightOfPlayer() ? dir.X : -dir.X;
 		PlatformBody.MotionY = -dir.Y;
 	}
-
 
 	public void EnableAttackAndHurtAreas(bool enabled = true) {
 		_attackArea.Monitoring = enabled;
