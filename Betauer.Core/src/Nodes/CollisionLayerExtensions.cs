@@ -1,203 +1,209 @@
 using System;
 using Godot;
+using Betauer.Core.Signal;
 
 namespace Betauer.Core.Nodes;
 
 public static class CollisionLayerExtensions {
-    public static void OnAreaEntered(this Area2D area2D, int layer, Area2D.AreaEnteredEventHandler action) {
+    /*
+     * Areas y bodies can collide with multiple layers, so, signals don't distinguish between them.
+     * This extension methods allow to detect collisions in a specific layer. So, the trick is check if the layer of collision objects matches the mask.
+     */
+     
+    public static Action OnAreaEntered(this Area2D area2D, int layer, Area2D.AreaEnteredEventHandler action, bool oneShot = false, bool deferred = false) {
         area2D.DetectLayer(layer);
-        area2D.AreaEntered += enteredArea2D => {
+        return area2D.OnAreaEntered((enteredArea2D) => {
             if (enteredArea2D.CanBeDetectedBy(layer)) action(enteredArea2D);
-        };
+        }, oneShot, deferred);
     }
 
-    public static void OnAreaExited(this Area2D area2D, int layer, Area2D.AreaExitedEventHandler action) {
+    public static Action OnAreaExited(this Area2D area2D, int layer, Area2D.AreaExitedEventHandler action, bool oneShot = false, bool deferred = false) {
         area2D.DetectLayer(layer);
-        area2D.AreaExited += exitedArea2D => {
+        return area2D.OnAreaExited(exitedArea2D => {
             if (exitedArea2D.CanBeDetectedBy(layer)) action(exitedArea2D);
-        };
+        }, oneShot, deferred);
     }
 
-    public static void OnAreaShapeEntered(this Area2D area2D, int layer, Area2D.AreaShapeEnteredEventHandler action) {
+    public static Action OnAreaShapeEntered(this Area2D area2D, int layer, Area2D.AreaShapeEnteredEventHandler action, bool oneShot = false, bool deferred = false) {
         area2D.DetectLayer(layer);
-        area2D.AreaShapeEntered += (rid, enteredArea2D, areaShapeIndex, localShapeIndex) => {
+        return area2D.OnAreaShapeEntered((rid, enteredArea2D, areaShapeIndex, localShapeIndex) => {
             if (enteredArea2D.CanBeDetectedBy(layer)) action(rid, enteredArea2D, areaShapeIndex, localShapeIndex);
-        };
+        }, oneShot, deferred);
     }
 
-    public static void OnAreaShapeExited(this Area2D area2D, int layer, Area2D.AreaShapeExitedEventHandler action) {
+    public static Action OnAreaShapeExited(this Area2D area2D, int layer, Area2D.AreaShapeExitedEventHandler action, bool oneShot = false, bool deferred = false) {
         area2D.DetectLayer(layer);
-        area2D.AreaShapeExited += (rid, exitedArea2D, areaShapeIndex, localShapeIndex) => {
+        return area2D.OnAreaShapeExited((rid, exitedArea2D, areaShapeIndex, localShapeIndex) => {
             if (exitedArea2D.CanBeDetectedBy(layer)) action(rid, exitedArea2D, areaShapeIndex, localShapeIndex);
-        };
+        }, oneShot, deferred);
     }
 
-    public static void OnBodyEntered(this Area2D area2D, int layer, Action<Node2D> action) {
+    public static Action OnBodyEntered(this Area2D area2D, int layer, Action<Node2D> action, bool oneShot = false, bool deferred = false) {
         area2D.DetectLayer(layer);
-        area2D.BodyEntered += (node2D) => {
+        return area2D.OnBodyEntered((node2D) => {
             if (CanBeDetectedBy(node2D, layer)) action(node2D);
-        };
+        }, oneShot, deferred);
     }
 
-    public static void OnBodyEntered(this Area2D area2D, int layer, Action<TileMap> action) {
+    public static Action OnBodyEntered(this Area2D area2D, int layer, Action<TileMap> action, bool oneShot = false, bool deferred = false) {
         area2D.DetectLayer(layer);
-        area2D.BodyEntered += (node2D) => {
+        return area2D.OnBodyEntered((node2D) => {
             if (node2D is TileMap tileMap && tileMap.CanBeDetectedBy(layer)) action(tileMap);
-        };
+        }, oneShot, deferred);
     }
 
-    public static void OnBodyEntered(this Area2D area2D, int layer, Action<PhysicsBody2D> action) {
+    public static Action OnBodyEntered(this Area2D area2D, int layer, Action<PhysicsBody2D> action, bool oneShot = false, bool deferred = false) {
         area2D.DetectLayer(layer);
-        area2D.BodyEntered += (node2D) => {
+        return area2D.OnBodyEntered((node2D) => {
             if (node2D is PhysicsBody2D physicsBody2D && physicsBody2D.CanBeDetectedBy(layer)) action(physicsBody2D);
-        };
+        }, oneShot, deferred);
     }
 
-    public static void OnBodyExited(this Area2D area2D, int layer, Area2D.BodyExitedEventHandler action) {
+    public static Action OnBodyExited(this Area2D area2D, int layer, Area2D.BodyExitedEventHandler action, bool oneShot = false, bool deferred = false) {
         area2D.DetectLayer(layer);
-        area2D.BodyExited += (node2D) => {
+        return area2D.OnBodyExited((node2D) => {
             if (CanBeDetectedBy(node2D, layer)) action(node2D);
-        };;
+        }, oneShot, deferred);;
     }
 
-    public static void OnBodyExited(this Area2D area2D, int layer, Action<TileMap> action) {
+    public static Action OnBodyExited(this Area2D area2D, int layer, Action<TileMap> action, bool oneShot = false, bool deferred = false) {
         area2D.DetectLayer(layer);
-        area2D.BodyExited += (node2D) => {
+        return area2D.OnBodyExited((node2D) => {
             if (node2D is TileMap tileMap && tileMap.CanBeDetectedBy(layer)) action(tileMap);
-        };
+        }, oneShot, deferred);
     }
 
-    public static void OnBodyExited(this Area2D area2D, int layer, Action<PhysicsBody2D> action) {
+    public static Action OnBodyExited(this Area2D area2D, int layer, Action<PhysicsBody2D> action, bool oneShot = false, bool deferred = false) {
         area2D.DetectLayer(layer);
-        area2D.BodyExited += (node2D) => {
+        return area2D.OnBodyExited((node2D) => {
             if (node2D is PhysicsBody2D physicsBody2D && physicsBody2D.CanBeDetectedBy(layer)) action(physicsBody2D);
-        };
+        }, oneShot, deferred);
     }
 
-    public static void OnBodyShapeEntered(this Area2D area2D, int layer, Action<Rid, Node2D, long, long> action) {
+    public static Action OnBodyShapeEntered(this Area2D area2D, int layer, Action<Rid, Node2D, long, long> action, bool oneShot = false, bool deferred = false) {
         area2D.DetectLayer(layer);
-        area2D.BodyShapeEntered += (rid, node2D, bodyShapeIndex, localShapeIndex) => {
+        return area2D.OnBodyShapeEntered((rid, node2D, bodyShapeIndex, localShapeIndex) => {
             if (CanBeDetectedBy(node2D, layer)) action(rid, node2D, bodyShapeIndex, localShapeIndex);
-        };
+        }, oneShot, deferred);
     }
 
-    public static void OnBodyShapeEntered(this Area2D area2D, int layer, Action<Rid, PhysicsBody2D, long, long> action) {
+    public static Action OnBodyShapeEntered(this Area2D area2D, int layer, Action<Rid, PhysicsBody2D, long, long> action, bool oneShot = false, bool deferred = false) {
         area2D.DetectLayer(layer);
-        area2D.BodyShapeEntered += (rid, node2D, bodyShapeIndex, localShapeIndex) => {
+        return area2D.OnBodyShapeEntered((rid, node2D, bodyShapeIndex, localShapeIndex) => {
             if (node2D is PhysicsBody2D physicsBody2D && physicsBody2D.CanBeDetectedBy(layer)) action(rid, physicsBody2D, bodyShapeIndex, localShapeIndex);
-        };
+        }, oneShot, deferred);
     }
 
-    public static void OnBodyShapeEntered(this Area2D area2D, int layer, Action<Rid, TileMap, long, long> action) {
+    public static Action OnBodyShapeEntered(this Area2D area2D, int layer, Action<Rid, TileMap, long, long> action, bool oneShot = false, bool deferred = false) {
         area2D.DetectLayer(layer);
-        area2D.BodyShapeEntered += (rid, node2D, bodyShapeIndex, localShapeIndex) => {
+        return area2D.OnBodyShapeEntered((rid, node2D, bodyShapeIndex, localShapeIndex) => {
             if (node2D is TileMap tileMap && tileMap.CanBeDetectedBy(layer)) action(rid, tileMap, bodyShapeIndex, localShapeIndex);
-        };
+        }, oneShot, deferred);
     }
 
-    public static void OnBodyShapeExited(this Area2D area2D, int layer, Area2D.BodyShapeExitedEventHandler action) {
+    public static Action OnBodyShapeExited(this Area2D area2D, int layer, Area2D.BodyShapeExitedEventHandler action, bool oneShot = false, bool deferred = false) {
         area2D.DetectLayer(layer);
-        area2D.BodyShapeExited += (rid, node2D, bodyShapeIndex, localShapeIndex) => {
+        return area2D.OnBodyShapeExited((rid, node2D, bodyShapeIndex, localShapeIndex) => {
             if (CanBeDetectedBy(node2D, layer)) action(rid, node2D, bodyShapeIndex, localShapeIndex);
-        };;
+        }, oneShot, deferred);;
     }
 
-    public static void OnBodyShapeExited(this Area2D area2D, int layer, Action<Rid, PhysicsBody2D, long, long> action) {
+    public static Action OnBodyShapeExited(this Area2D area2D, int layer, Action<Rid, PhysicsBody2D, long, long> action, bool oneShot = false, bool deferred = false) {
         area2D.DetectLayer(layer);
-        area2D.BodyShapeExited += (rid, node2D, bodyShapeIndex, localShapeIndex) => {
+        return area2D.OnBodyShapeExited((rid, node2D, bodyShapeIndex, localShapeIndex) => {
             if (node2D is PhysicsBody2D physicsBody2D && physicsBody2D.CanBeDetectedBy(layer)) action(rid, physicsBody2D, bodyShapeIndex, localShapeIndex);
-        };
+        }, oneShot, deferred);
     }
 
-    public static void OnBodyShapeExited(this Area2D area2D, int layer, Action<Rid, TileMap, long, long> action) {
+    public static Action OnBodyShapeExited(this Area2D area2D, int layer, Action<Rid, TileMap, long, long> action, bool oneShot = false, bool deferred = false) {
         area2D.DetectLayer(layer);
-        area2D.BodyShapeExited += (rid, node2D, bodyShapeIndex, localShapeIndex) => {
+        return area2D.OnBodyShapeExited((rid, node2D, bodyShapeIndex, localShapeIndex) => {
             if (node2D is TileMap tileMap && tileMap.CanBeDetectedBy(layer)) action(rid, tileMap, bodyShapeIndex, localShapeIndex);
-        };
+        }, oneShot, deferred);
     }
     
-    public static void OnBodyEntered(this RigidBody2D rigidBody2D, int layer, Action<Node> action) {
+    public static Action OnBodyEntered(this RigidBody2D rigidBody2D, int layer, Action<Node> action, bool oneShot = false, bool deferred = false) {
         rigidBody2D.DetectLayer(layer);
-        rigidBody2D.BodyEntered += (node) => {
+        return rigidBody2D.OnBodyEntered((node) => {
             if (CanBeDetectedBy(node, layer)) action(node);
-        };
+        }, oneShot, deferred);
     }
 
-    public static void OnBodyEntered(this RigidBody2D rigidBody2D, int layer, Action<PhysicsBody2D> action) {
+    public static Action OnBodyEntered(this RigidBody2D rigidBody2D, int layer, Action<PhysicsBody2D> action, bool oneShot = false, bool deferred = false) {
         rigidBody2D.DetectLayer(layer);
-        rigidBody2D.BodyEntered += (node) => {
+        return rigidBody2D.OnBodyEntered((node) => {
             if (node is PhysicsBody2D physicsBody2D && physicsBody2D.CanBeDetectedBy(layer)) action(physicsBody2D);
-        };
+        }, oneShot, deferred);
     }
 
-    public static void OnBodyEntered(this RigidBody2D rigidBody2D, int layer, Action<TileMap> action) {
+    public static Action OnBodyEntered(this RigidBody2D rigidBody2D, int layer, Action<TileMap> action, bool oneShot = false, bool deferred = false) {
         rigidBody2D.DetectLayer(layer);
-        rigidBody2D.BodyEntered += (node) => {
+        return rigidBody2D.OnBodyEntered((node) => {
             if (node is TileMap tileMap && tileMap.CanBeDetectedBy(layer)) action(tileMap);
-        };
+        }, oneShot, deferred);
     }
 
-    public static void OnBodyExited(this RigidBody2D rigidBody2D, int layer, RigidBody2D.BodyExitedEventHandler action) {
+    public static Action OnBodyExited(this RigidBody2D rigidBody2D, int layer, RigidBody2D.BodyExitedEventHandler action, bool oneShot = false, bool deferred = false) {
         rigidBody2D.DetectLayer(layer);
-        rigidBody2D.BodyExited += (node) => {
+        return rigidBody2D.OnBodyExited((node) => {
             if (CanBeDetectedBy(node, layer)) action(node);
-        };
+        }, oneShot, deferred);
     }
 
-    public static void OnBodyExited(this RigidBody2D rigidBody2D, int layer, Action<PhysicsBody2D> action) {
+    public static Action OnBodyExited(this RigidBody2D rigidBody2D, int layer, Action<PhysicsBody2D> action, bool oneShot = false, bool deferred = false) {
         rigidBody2D.DetectLayer(layer);
-        rigidBody2D.BodyExited += (node) => {
+        return rigidBody2D.OnBodyExited((node) => {
             if (node is PhysicsBody2D physicsBody2D && physicsBody2D.CanBeDetectedBy(layer)) action(physicsBody2D);
-        };
+        }, oneShot, deferred);
     }
 
-    public static void OnBodyExited(this RigidBody2D rigidBody2D, int layer, Action<TileMap> action) {
+    public static Action OnBodyExited(this RigidBody2D rigidBody2D, int layer, Action<TileMap> action, bool oneShot = false, bool deferred = false) {
         rigidBody2D.DetectLayer(layer);
-        rigidBody2D.BodyExited += (node) => {
+        return rigidBody2D.OnBodyExited((node) => {
             if (node is TileMap tileMap && tileMap.CanBeDetectedBy(layer)) action(tileMap);
-        };
+        }, oneShot, deferred);
     }
 
-    public static void OnBodyShapeEntered(this RigidBody2D rigidBody2D, int layer, Action<Rid, Node, long, long> action) {
+    public static Action OnBodyShapeEntered(this RigidBody2D rigidBody2D, int layer, Action<Rid, Node, long, long> action, bool oneShot = false, bool deferred = false) {
         rigidBody2D.DetectLayer(layer);
-        rigidBody2D.BodyShapeEntered += (rid, node, bodyShapeIndex, localShapeIndex) => {
+        return rigidBody2D.OnBodyShapeEntered((rid, node, bodyShapeIndex, localShapeIndex) => {
             if (CanBeDetectedBy(node, layer)) action(rid, node, bodyShapeIndex, localShapeIndex);
-        };
+        }, oneShot, deferred);
     }
 
-    public static void OnBodyShapeEntered(this RigidBody2D rigidBody2D, int layer, Action<Rid, TileMap, long, long> action) {
+    public static Action OnBodyShapeEntered(this RigidBody2D rigidBody2D, int layer, Action<Rid, TileMap, long, long> action, bool oneShot = false, bool deferred = false) {
         rigidBody2D.DetectLayer(layer);
-        rigidBody2D.BodyShapeEntered += (rid, node, bodyShapeIndex, localShapeIndex) => {
+        return rigidBody2D.OnBodyShapeEntered((rid, node, bodyShapeIndex, localShapeIndex) => {
             if (node is TileMap tileMap && tileMap.CanBeDetectedBy(layer)) action(rid, tileMap, bodyShapeIndex, localShapeIndex);
-        };
+        }, oneShot, deferred);
     }
 
-    public static void OnBodyShapeEntered(this RigidBody2D rigidBody2D, int layer, Action<Rid, PhysicsBody2D, long, long> action) {
+    public static Action OnBodyShapeEntered(this RigidBody2D rigidBody2D, int layer, Action<Rid, PhysicsBody2D, long, long> action, bool oneShot = false, bool deferred = false) {
         rigidBody2D.DetectLayer(layer);
-        rigidBody2D.BodyShapeEntered += (rid, node, bodyShapeIndex, localShapeIndex) => {
+        return rigidBody2D.OnBodyShapeEntered((rid, node, bodyShapeIndex, localShapeIndex) => {
             if (node is PhysicsBody2D physicsBody2D && physicsBody2D.CanBeDetectedBy(layer)) action(rid, physicsBody2D, bodyShapeIndex, localShapeIndex);
-        };
+        }, oneShot, deferred);
     }
 
-    public static void OnBodyShapeExited(this RigidBody2D rigidBody2D, int layer, Action<Rid, Node, long, long> action) {
+    public static Action OnBodyShapeExited(this RigidBody2D rigidBody2D, int layer, Action<Rid, Node, long, long> action, bool oneShot = false, bool deferred = false) {
         rigidBody2D.DetectLayer(layer);
-        rigidBody2D.BodyShapeExited += (rid, node, bodyShapeIndex, localShapeIndex) => {
+        return rigidBody2D.OnBodyShapeExited((rid, node, bodyShapeIndex, localShapeIndex) => {
             if (CanBeDetectedBy(node, layer)) action(rid, node, bodyShapeIndex, localShapeIndex);
-        };
+        }, oneShot, deferred);
     }
 
-    public static void OnBodyShapeExited(this RigidBody2D rigidBody2D, int layer, Action<Rid, TileMap, long, long> action) {
+    public static Action OnBodyShapeExited(this RigidBody2D rigidBody2D, int layer, Action<Rid, TileMap, long, long> action, bool oneShot = false, bool deferred = false) {
         rigidBody2D.DetectLayer(layer);
-        rigidBody2D.BodyShapeExited += (rid, node, bodyShapeIndex, localShapeIndex) => {
+        return rigidBody2D.OnBodyShapeExited((rid, node, bodyShapeIndex, localShapeIndex) => {
             if (node is TileMap tileMap && tileMap.CanBeDetectedBy(layer)) action(rid, tileMap, bodyShapeIndex, localShapeIndex);
-        };
+        }, oneShot, deferred);
     }
 
-    public static void OnBodyShapeExited(this RigidBody2D rigidBody2D, int layer, Action<Rid, PhysicsBody2D, long, long> action) {
+    public static Action OnBodyShapeExited(this RigidBody2D rigidBody2D, int layer, Action<Rid, PhysicsBody2D, long, long> action, bool oneShot = false, bool deferred = false) {
         rigidBody2D.DetectLayer(layer);
-        rigidBody2D.BodyShapeExited += (rid, node, bodyShapeIndex, localShapeIndex) => {
+        return rigidBody2D.OnBodyShapeExited((rid, node, bodyShapeIndex, localShapeIndex) => {
             if (node is PhysicsBody2D physicsBody2D && physicsBody2D.CanBeDetectedBy(layer)) action(rid, physicsBody2D, bodyShapeIndex, localShapeIndex);
-        };
+        }, oneShot, deferred);
     }
 
     public static void AddToLayer(this CollisionObject2D o, int layer) {

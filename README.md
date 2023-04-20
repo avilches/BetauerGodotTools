@@ -111,7 +111,7 @@ And a lot of more extensions for Godot classes. They are used by the other proje
 
 ### 4. Betauer.DI
 
-Betauer.DI is a simple dependency injection container for C#, integrated with Godot. It allows you to manage the lifecycle of classes, inject services into scene objects, and access the GetTree() method in any class by injecting Func<SceneTree> as an attribute.
+Betauer.DI is a simple dependency injection container for C#, integrated with Godot. It allows you to manage the lifecycle of classes, inject services into your scene objects.
 
 ### 5. Betauer.Tools.FastReflection
 
