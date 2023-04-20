@@ -51,7 +51,7 @@ public partial class Inventory : GridContainer {
 		} else if (childCount < size) {
 			while (childCount < size) {
 				var inventorySlot = InventorySlotResource.Get();
-				inventorySlot.AddTo(this);
+				AddChild(inventorySlot);
 				childCount++;
 			}
 		}

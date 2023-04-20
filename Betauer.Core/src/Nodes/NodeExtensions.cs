@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Betauer.Core.Signal;
 using Godot;
 
 namespace Betauer.Core.Nodes {
@@ -7,14 +8,6 @@ namespace Betauer.Core.Nodes {
 
         public static void RemoveFromParent(this Node node) {
             node.GetParent()?.RemoveChild(node);
-        }
-
-        public static void AddTo(this Node node, Node parent, Action? onReady = null) {
-            if (onReady != null) {
-                node.RequestReady();
-                node.Connect(Node.SignalName.Ready, Callable.From(onReady), (uint)GodotObject.ConnectFlags.OneShot);
-            }
-            parent.AddChild(node);
         }
 
         public static void DisableAllShapes(this Node parent) {
@@ -42,10 +35,17 @@ namespace Betauer.Core.Nodes {
                 parent.GetChildren().OfType<T>().FirstOrDefault();
         }
 
+        public static Node AddChild(this Node parent, Node child, Action onReady) {
+            child.RequestReady();
+            child.OnReady(onReady, true);
+            parent.AddChild(child);
+            return parent;
+        }
+
         public static Node AddChildDeferred(this Node parent, Node child, Action? onReady = null) {
             if (onReady != null) {
                 child.RequestReady();
-                child.Connect(Node.SignalName.Ready, Callable.From(onReady), (uint)GodotObject.ConnectFlags.OneShot);
+                child.OnReady(onReady, true);
             }
             parent.CallDeferred("add_child", child);
             return parent;
