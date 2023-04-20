@@ -1,5 +1,7 @@
 using System;
 using Godot;
+using Godot.Collections;
+using Array = Godot.Collections.Array;
 using Range = Godot.Range;
 using static Betauer.Core.Signal.SignalTools; 
 
@@ -19,7 +21,7 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(AcceptDialog.SignalName.Confirmed, callable);
     }
 
-    public static Action OnCustomAction(this AcceptDialog target, Action<Godot.StringName> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnCustomAction(this AcceptDialog target, Action<StringName> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(AcceptDialog.SignalName.CustomAction, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(AcceptDialog.SignalName.CustomAction, callable);
@@ -85,37 +87,37 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(AnimatedSprite3D.SignalName.SpriteFramesChanged, callable);
     }
 
-    public static Action OnAnimationAdded(this AnimationLibrary target, Action<Godot.StringName> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnAnimationAdded(this AnimationLibrary target, Action<StringName> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(AnimationLibrary.SignalName.AnimationAdded, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(AnimationLibrary.SignalName.AnimationAdded, callable);
     }
 
-    public static Action OnAnimationChanged(this AnimationLibrary target, Action<Godot.StringName> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnAnimationChanged(this AnimationLibrary target, Action<StringName> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(AnimationLibrary.SignalName.AnimationChanged, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(AnimationLibrary.SignalName.AnimationChanged, callable);
     }
 
-    public static Action OnAnimationRemoved(this AnimationLibrary target, Action<Godot.StringName> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnAnimationRemoved(this AnimationLibrary target, Action<StringName> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(AnimationLibrary.SignalName.AnimationRemoved, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(AnimationLibrary.SignalName.AnimationRemoved, callable);
     }
 
-    public static Action OnAnimationRenamed(this AnimationLibrary target, Action<Godot.StringName, Godot.StringName> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnAnimationRenamed(this AnimationLibrary target, Action<StringName, StringName> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(AnimationLibrary.SignalName.AnimationRenamed, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(AnimationLibrary.SignalName.AnimationRenamed, callable);
     }
 
-    public static Action OnAnimationNodeRemoved(this AnimationNode target, Action<System.Int32, System.String> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnAnimationNodeRemoved(this AnimationNode target, Action<long, string> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(AnimationNode.SignalName.AnimationNodeRemoved, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(AnimationNode.SignalName.AnimationNodeRemoved, callable);
     }
 
-    public static Action OnAnimationNodeRenamed(this AnimationNode target, Action<System.Int32, System.String, System.String> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnAnimationNodeRenamed(this AnimationNode target, Action<long, string, string> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(AnimationNode.SignalName.AnimationNodeRenamed, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(AnimationNode.SignalName.AnimationNodeRenamed, callable);
@@ -133,7 +135,7 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(AnimationNodeBlendSpace2D.SignalName.TrianglesUpdated, callable);
     }
 
-    public static Action OnNodeChanged(this AnimationNodeBlendTree target, Action<Godot.StringName> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnNodeChanged(this AnimationNodeBlendTree target, Action<StringName> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(AnimationNodeBlendTree.SignalName.NodeChanged, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(AnimationNodeBlendTree.SignalName.NodeChanged, callable);
@@ -145,13 +147,13 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(AnimationNodeStateMachineTransition.SignalName.AdvanceConditionChanged, callable);
     }
 
-    public static Action OnAnimationChanged(this AnimationPlayer target, Action<Godot.StringName, Godot.StringName> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnAnimationChanged(this AnimationPlayer target, Action<StringName, StringName> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(AnimationPlayer.SignalName.AnimationChanged, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(AnimationPlayer.SignalName.AnimationChanged, callable);
     }
 
-    public static Action OnAnimationFinished(this AnimationPlayer target, Action<Godot.StringName> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnAnimationFinished(this AnimationPlayer target, Action<StringName> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(AnimationPlayer.SignalName.AnimationFinished, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(AnimationPlayer.SignalName.AnimationFinished, callable);
@@ -169,7 +171,7 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(AnimationPlayer.SignalName.AnimationListChanged, callable);
     }
 
-    public static Action OnAnimationStarted(this AnimationPlayer target, Action<Godot.StringName> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnAnimationStarted(this AnimationPlayer target, Action<StringName> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(AnimationPlayer.SignalName.AnimationStarted, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(AnimationPlayer.SignalName.AnimationStarted, callable);
@@ -181,7 +183,7 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(AnimationPlayer.SignalName.CachesCleared, callable);
     }
 
-    public static Action OnAnimationFinished(this AnimationTree target, Action<Godot.StringName> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnAnimationFinished(this AnimationTree target, Action<StringName> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(AnimationTree.SignalName.AnimationFinished, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(AnimationTree.SignalName.AnimationFinished, callable);
@@ -193,7 +195,7 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(AnimationTree.SignalName.AnimationPlayerChanged, callable);
     }
 
-    public static Action OnAnimationStarted(this AnimationTree target, Action<Godot.StringName> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnAnimationStarted(this AnimationTree target, Action<StringName> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(AnimationTree.SignalName.AnimationStarted, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(AnimationTree.SignalName.AnimationStarted, callable);
@@ -211,13 +213,13 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(Area2D.SignalName.AreaExited, callable);
     }
 
-    public static Action OnAreaShapeEntered(this Area2D target, Action<Godot.Rid, Area2D, System.Int32, System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnAreaShapeEntered(this Area2D target, Action<Rid, Area2D, long, long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(Area2D.SignalName.AreaShapeEntered, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(Area2D.SignalName.AreaShapeEntered, callable);
     }
 
-    public static Action OnAreaShapeExited(this Area2D target, Action<Godot.Rid, Area2D, System.Int32, System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnAreaShapeExited(this Area2D target, Action<Rid, Area2D, long, long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(Area2D.SignalName.AreaShapeExited, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(Area2D.SignalName.AreaShapeExited, callable);
@@ -235,13 +237,13 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(Area2D.SignalName.BodyExited, callable);
     }
 
-    public static Action OnBodyShapeEntered(this Area2D target, Action<Godot.Rid, Node2D, System.Int32, System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnBodyShapeEntered(this Area2D target, Action<Rid, Node2D, long, long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(Area2D.SignalName.BodyShapeEntered, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(Area2D.SignalName.BodyShapeEntered, callable);
     }
 
-    public static Action OnBodyShapeExited(this Area2D target, Action<Godot.Rid, Node2D, System.Int32, System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnBodyShapeExited(this Area2D target, Action<Rid, Node2D, long, long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(Area2D.SignalName.BodyShapeExited, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(Area2D.SignalName.BodyShapeExited, callable);
@@ -259,13 +261,13 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(Area3D.SignalName.AreaExited, callable);
     }
 
-    public static Action OnAreaShapeEntered(this Area3D target, Action<Godot.Rid, Area3D, System.Int32, System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnAreaShapeEntered(this Area3D target, Action<Rid, Area3D, long, long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(Area3D.SignalName.AreaShapeEntered, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(Area3D.SignalName.AreaShapeEntered, callable);
     }
 
-    public static Action OnAreaShapeExited(this Area3D target, Action<Godot.Rid, Area3D, System.Int32, System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnAreaShapeExited(this Area3D target, Action<Rid, Area3D, long, long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(Area3D.SignalName.AreaShapeExited, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(Area3D.SignalName.AreaShapeExited, callable);
@@ -283,13 +285,13 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(Area3D.SignalName.BodyExited, callable);
     }
 
-    public static Action OnBodyShapeEntered(this Area3D target, Action<Godot.Rid, Node3D, System.Int32, System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnBodyShapeEntered(this Area3D target, Action<Rid, Node3D, long, long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(Area3D.SignalName.BodyShapeEntered, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(Area3D.SignalName.BodyShapeEntered, callable);
     }
 
-    public static Action OnBodyShapeExited(this Area3D target, Action<Godot.Rid, Node3D, System.Int32, System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnBodyShapeExited(this Area3D target, Action<Rid, Node3D, long, long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(Area3D.SignalName.BodyShapeExited, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(Area3D.SignalName.BodyShapeExited, callable);
@@ -337,7 +339,7 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(BaseButton.SignalName.Pressed, callable);
     }
 
-    public static Action OnToggled(this BaseButton target, Action<System.Boolean> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnToggled(this BaseButton target, Action<bool> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(BaseButton.SignalName.Toggled, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(BaseButton.SignalName.Toggled, callable);
@@ -361,13 +363,13 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(ButtonGroup.SignalName.Pressed, callable);
     }
 
-    public static Action OnCameraServerCameraFeedAdded(Action<System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnCameraServerCameraFeedAdded(Action<long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         CameraServer.Singleton.Connect(CameraServer.SignalName.CameraFeedAdded, callable, SignalFlags(oneShot, deferred));
         return () => CameraServer.Singleton.Disconnect(CameraServer.SignalName.CameraFeedAdded, callable);
     }
 
-    public static Action OnCameraServerCameraFeedRemoved(Action<System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnCameraServerCameraFeedRemoved(Action<long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         CameraServer.Singleton.Connect(CameraServer.SignalName.CameraFeedRemoved, callable, SignalFlags(oneShot, deferred));
         return () => CameraServer.Singleton.Disconnect(CameraServer.SignalName.CameraFeedRemoved, callable);
@@ -403,7 +405,7 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(CanvasLayer.SignalName.VisibilityChanged, callable);
     }
 
-    public static Action OnBreakpointToggled(this CodeEdit target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnBreakpointToggled(this CodeEdit target, Action<long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(CodeEdit.SignalName.BreakpointToggled, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(CodeEdit.SignalName.BreakpointToggled, callable);
@@ -415,19 +417,19 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(CodeEdit.SignalName.CodeCompletionRequested, callable);
     }
 
-    public static Action OnSymbolLookup(this CodeEdit target, Action<System.String, System.Int32, System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnSymbolLookup(this CodeEdit target, Action<string, long, long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(CodeEdit.SignalName.SymbolLookup, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(CodeEdit.SignalName.SymbolLookup, callable);
     }
 
-    public static Action OnSymbolValidate(this CodeEdit target, Action<System.String> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnSymbolValidate(this CodeEdit target, Action<string> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(CodeEdit.SignalName.SymbolValidate, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(CodeEdit.SignalName.SymbolValidate, callable);
     }
 
-    public static Action OnInputEvent(this CollisionObject2D target, Action<Node, InputEvent, System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnInputEvent(this CollisionObject2D target, Action<Node, InputEvent, long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(CollisionObject2D.SignalName.InputEvent, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(CollisionObject2D.SignalName.InputEvent, callable);
@@ -445,19 +447,19 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(CollisionObject2D.SignalName.MouseExited, callable);
     }
 
-    public static Action OnMouseShapeEntered(this CollisionObject2D target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnMouseShapeEntered(this CollisionObject2D target, Action<long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(CollisionObject2D.SignalName.MouseShapeEntered, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(CollisionObject2D.SignalName.MouseShapeEntered, callable);
     }
 
-    public static Action OnMouseShapeExited(this CollisionObject2D target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnMouseShapeExited(this CollisionObject2D target, Action<long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(CollisionObject2D.SignalName.MouseShapeExited, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(CollisionObject2D.SignalName.MouseShapeExited, callable);
     }
 
-    public static Action OnInputEvent(this CollisionObject3D target, Action<Node, InputEvent, Godot.Vector3, Godot.Vector3, System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnInputEvent(this CollisionObject3D target, Action<Node, InputEvent, Vector3, Vector3, long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(CollisionObject3D.SignalName.InputEvent, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(CollisionObject3D.SignalName.InputEvent, callable);
@@ -475,25 +477,25 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(CollisionObject3D.SignalName.MouseExited, callable);
     }
 
-    public static Action OnColorChanged(this ColorPicker target, Action<Godot.Color> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnColorChanged(this ColorPicker target, Action<Color> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(ColorPicker.SignalName.ColorChanged, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(ColorPicker.SignalName.ColorChanged, callable);
     }
 
-    public static Action OnPresetAdded(this ColorPicker target, Action<Godot.Color> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnPresetAdded(this ColorPicker target, Action<Color> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(ColorPicker.SignalName.PresetAdded, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(ColorPicker.SignalName.PresetAdded, callable);
     }
 
-    public static Action OnPresetRemoved(this ColorPicker target, Action<Godot.Color> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnPresetRemoved(this ColorPicker target, Action<Color> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(ColorPicker.SignalName.PresetRemoved, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(ColorPicker.SignalName.PresetRemoved, callable);
     }
 
-    public static Action OnColorChanged(this ColorPickerButton target, Action<Godot.Color> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnColorChanged(this ColorPickerButton target, Action<Color> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(ColorPickerButton.SignalName.ColorChanged, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(ColorPickerButton.SignalName.ColorChanged, callable);
@@ -583,19 +585,19 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(Curve.SignalName.RangeChanged, callable);
     }
 
-    public static Action OnDirSelected(this FileDialog target, Action<System.String> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnDirSelected(this FileDialog target, Action<string> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(FileDialog.SignalName.DirSelected, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(FileDialog.SignalName.DirSelected, callable);
     }
 
-    public static Action OnFileSelected(this FileDialog target, Action<System.String> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnFileSelected(this FileDialog target, Action<string> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(FileDialog.SignalName.FileSelected, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(FileDialog.SignalName.FileSelected, callable);
     }
 
-    public static Action OnFilesSelected(this FileDialog target, Action<System.String[]> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnFilesSelected(this FileDialog target, Action<string[]> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(FileDialog.SignalName.FilesSelected, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(FileDialog.SignalName.FilesSelected, callable);
@@ -613,25 +615,25 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(GraphEdit.SignalName.ConnectionDragEnded, callable);
     }
 
-    public static Action OnConnectionDragStarted(this GraphEdit target, Action<Godot.StringName, System.Int32, System.Boolean> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnConnectionDragStarted(this GraphEdit target, Action<StringName, long, bool> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(GraphEdit.SignalName.ConnectionDragStarted, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(GraphEdit.SignalName.ConnectionDragStarted, callable);
     }
 
-    public static Action OnConnectionFromEmpty(this GraphEdit target, Action<Godot.StringName, System.Int32, Godot.Vector2> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnConnectionFromEmpty(this GraphEdit target, Action<StringName, long, Vector2> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(GraphEdit.SignalName.ConnectionFromEmpty, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(GraphEdit.SignalName.ConnectionFromEmpty, callable);
     }
 
-    public static Action OnConnectionRequest(this GraphEdit target, Action<Godot.StringName, System.Int32, Godot.StringName, System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnConnectionRequest(this GraphEdit target, Action<StringName, long, StringName, long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(GraphEdit.SignalName.ConnectionRequest, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(GraphEdit.SignalName.ConnectionRequest, callable);
     }
 
-    public static Action OnConnectionToEmpty(this GraphEdit target, Action<Godot.StringName, System.Int32, Godot.Vector2> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnConnectionToEmpty(this GraphEdit target, Action<StringName, long, Vector2> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(GraphEdit.SignalName.ConnectionToEmpty, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(GraphEdit.SignalName.ConnectionToEmpty, callable);
@@ -643,13 +645,13 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(GraphEdit.SignalName.CopyNodesRequest, callable);
     }
 
-    public static Action OnDeleteNodesRequest(this GraphEdit target, Action<Godot.Collections.Array> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnDeleteNodesRequest(this GraphEdit target, Action<Array> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(GraphEdit.SignalName.DeleteNodesRequest, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(GraphEdit.SignalName.DeleteNodesRequest, callable);
     }
 
-    public static Action OnDisconnectionRequest(this GraphEdit target, Action<Godot.StringName, System.Int32, Godot.StringName, System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnDisconnectionRequest(this GraphEdit target, Action<StringName, long, StringName, long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(GraphEdit.SignalName.DisconnectionRequest, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(GraphEdit.SignalName.DisconnectionRequest, callable);
@@ -685,13 +687,13 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(GraphEdit.SignalName.PasteNodesRequest, callable);
     }
 
-    public static Action OnPopupRequest(this GraphEdit target, Action<Godot.Vector2> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnPopupRequest(this GraphEdit target, Action<Vector2> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(GraphEdit.SignalName.PopupRequest, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(GraphEdit.SignalName.PopupRequest, callable);
     }
 
-    public static Action OnScrollOffsetChanged(this GraphEdit target, Action<Godot.Vector2> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnScrollOffsetChanged(this GraphEdit target, Action<Vector2> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(GraphEdit.SignalName.ScrollOffsetChanged, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(GraphEdit.SignalName.ScrollOffsetChanged, callable);
@@ -703,7 +705,7 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(GraphNode.SignalName.CloseRequest, callable);
     }
 
-    public static Action OnDragged(this GraphNode target, Action<Godot.Vector2, Godot.Vector2> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnDragged(this GraphNode target, Action<Vector2, Vector2> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(GraphNode.SignalName.Dragged, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(GraphNode.SignalName.Dragged, callable);
@@ -733,55 +735,55 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(GraphNode.SignalName.RaiseRequest, callable);
     }
 
-    public static Action OnResizeRequest(this GraphNode target, Action<Godot.Vector2> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnResizeRequest(this GraphNode target, Action<Vector2> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(GraphNode.SignalName.ResizeRequest, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(GraphNode.SignalName.ResizeRequest, callable);
     }
 
-    public static Action OnSlotUpdated(this GraphNode target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnSlotUpdated(this GraphNode target, Action<long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(GraphNode.SignalName.SlotUpdated, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(GraphNode.SignalName.SlotUpdated, callable);
     }
 
-    public static Action OnCellSizeChanged(this GridMap target, Action<Godot.Vector3> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnCellSizeChanged(this GridMap target, Action<Vector3> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(GridMap.SignalName.CellSizeChanged, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(GridMap.SignalName.CellSizeChanged, callable);
     }
 
-    public static Action OnInputJoyConnectionChanged(Action<System.Int32, System.Boolean> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnInputJoyConnectionChanged(Action<long, bool> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         Input.Singleton.Connect(Input.SignalName.JoyConnectionChanged, callable, SignalFlags(oneShot, deferred));
         return () => Input.Singleton.Disconnect(Input.SignalName.JoyConnectionChanged, callable);
     }
 
-    public static Action OnEmptyClicked(this ItemList target, Action<Godot.Vector2, System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnEmptyClicked(this ItemList target, Action<Vector2, long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(ItemList.SignalName.EmptyClicked, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(ItemList.SignalName.EmptyClicked, callable);
     }
 
-    public static Action OnItemActivated(this ItemList target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnItemActivated(this ItemList target, Action<long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(ItemList.SignalName.ItemActivated, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(ItemList.SignalName.ItemActivated, callable);
     }
 
-    public static Action OnItemClicked(this ItemList target, Action<System.Int32, Godot.Vector2, System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnItemClicked(this ItemList target, Action<long, Vector2, long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(ItemList.SignalName.ItemClicked, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(ItemList.SignalName.ItemClicked, callable);
     }
 
-    public static Action OnItemSelected(this ItemList target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnItemSelected(this ItemList target, Action<long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(ItemList.SignalName.ItemSelected, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(ItemList.SignalName.ItemSelected, callable);
     }
 
-    public static Action OnMultiSelected(this ItemList target, Action<System.Int32, System.Boolean> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnMultiSelected(this ItemList target, Action<long, bool> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(ItemList.SignalName.MultiSelected, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(ItemList.SignalName.MultiSelected, callable);
@@ -793,25 +795,25 @@ public static partial class SignalExtensions {
         return () => JavaScriptBridge.Singleton.Disconnect(JavaScriptBridge.SignalName.PwaUpdateAvailable, callable);
     }
 
-    public static Action OnTextChanged(this LineEdit target, Action<System.String> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnTextChanged(this LineEdit target, Action<string> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(LineEdit.SignalName.TextChanged, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(LineEdit.SignalName.TextChanged, callable);
     }
 
-    public static Action OnTextChangeRejected(this LineEdit target, Action<System.String> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnTextChangeRejected(this LineEdit target, Action<string> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(LineEdit.SignalName.TextChangeRejected, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(LineEdit.SignalName.TextChangeRejected, callable);
     }
 
-    public static Action OnTextSubmitted(this LineEdit target, Action<System.String> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnTextSubmitted(this LineEdit target, Action<string> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(LineEdit.SignalName.TextSubmitted, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(LineEdit.SignalName.TextSubmitted, callable);
     }
 
-    public static Action OnOnRequestPermissionsResult(this MainLoop target, Action<System.String, System.Boolean> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnOnRequestPermissionsResult(this MainLoop target, Action<string, bool> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(MainLoop.SignalName.OnRequestPermissionsResult, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(MainLoop.SignalName.OnRequestPermissionsResult, callable);
@@ -835,13 +837,13 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(MultiMeshInstance2D.SignalName.TextureChanged, callable);
     }
 
-    public static Action OnPeerConnected(this MultiplayerPeer target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnPeerConnected(this MultiplayerPeer target, Action<long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(MultiplayerPeer.SignalName.PeerConnected, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(MultiplayerPeer.SignalName.PeerConnected, callable);
     }
 
-    public static Action OnPeerDisconnected(this MultiplayerPeer target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnPeerDisconnected(this MultiplayerPeer target, Action<long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(MultiplayerPeer.SignalName.PeerDisconnected, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(MultiplayerPeer.SignalName.PeerDisconnected, callable);
@@ -865,13 +867,13 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(MultiplayerSynchronizer.SignalName.Synchronized, callable);
     }
 
-    public static Action OnVisibilityChanged(this MultiplayerSynchronizer target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnVisibilityChanged(this MultiplayerSynchronizer target, Action<long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(MultiplayerSynchronizer.SignalName.VisibilityChanged, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(MultiplayerSynchronizer.SignalName.VisibilityChanged, callable);
     }
 
-    public static Action OnLinkReached(this NavigationAgent2D target, Action<Godot.Collections.Dictionary> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnLinkReached(this NavigationAgent2D target, Action<Dictionary> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(NavigationAgent2D.SignalName.LinkReached, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(NavigationAgent2D.SignalName.LinkReached, callable);
@@ -895,19 +897,19 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(NavigationAgent2D.SignalName.TargetReached, callable);
     }
 
-    public static Action OnVelocityComputed(this NavigationAgent2D target, Action<Godot.Vector2> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnVelocityComputed(this NavigationAgent2D target, Action<Vector2> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(NavigationAgent2D.SignalName.VelocityComputed, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(NavigationAgent2D.SignalName.VelocityComputed, callable);
     }
 
-    public static Action OnWaypointReached(this NavigationAgent2D target, Action<Godot.Collections.Dictionary> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnWaypointReached(this NavigationAgent2D target, Action<Dictionary> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(NavigationAgent2D.SignalName.WaypointReached, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(NavigationAgent2D.SignalName.WaypointReached, callable);
     }
 
-    public static Action OnLinkReached(this NavigationAgent3D target, Action<Godot.Collections.Dictionary> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnLinkReached(this NavigationAgent3D target, Action<Dictionary> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(NavigationAgent3D.SignalName.LinkReached, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(NavigationAgent3D.SignalName.LinkReached, callable);
@@ -931,13 +933,13 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(NavigationAgent3D.SignalName.TargetReached, callable);
     }
 
-    public static Action OnVelocityComputed(this NavigationAgent3D target, Action<Godot.Vector3> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnVelocityComputed(this NavigationAgent3D target, Action<Vector3> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(NavigationAgent3D.SignalName.VelocityComputed, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(NavigationAgent3D.SignalName.VelocityComputed, callable);
     }
 
-    public static Action OnWaypointReached(this NavigationAgent3D target, Action<Godot.Collections.Dictionary> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnWaypointReached(this NavigationAgent3D target, Action<Dictionary> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(NavigationAgent3D.SignalName.WaypointReached, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(NavigationAgent3D.SignalName.WaypointReached, callable);
@@ -955,7 +957,7 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(NavigationRegion3D.SignalName.NavigationMeshChanged, callable);
     }
 
-    public static Action OnNavigationServer2DMapChanged(Action<Godot.Rid> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnNavigationServer2DMapChanged(Action<Rid> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         NavigationServer2D.Singleton.Connect(NavigationServer2D.SignalName.MapChanged, callable, SignalFlags(oneShot, deferred));
         return () => NavigationServer2D.Singleton.Disconnect(NavigationServer2D.SignalName.MapChanged, callable);
@@ -967,7 +969,7 @@ public static partial class SignalExtensions {
         return () => NavigationServer2D.Singleton.Disconnect(NavigationServer2D.SignalName.NavigationDebugChanged, callable);
     }
 
-    public static Action OnNavigationServer3DMapChanged(Action<Godot.Rid> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnNavigationServer3DMapChanged(Action<Rid> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         NavigationServer3D.Singleton.Connect(NavigationServer3D.SignalName.MapChanged, callable, SignalFlags(oneShot, deferred));
         return () => NavigationServer3D.Singleton.Disconnect(NavigationServer3D.SignalName.MapChanged, callable);
@@ -995,6 +997,12 @@ public static partial class SignalExtensions {
         var callable = Callable.From(action);
         target.Connect(Node.SignalName.ChildExitingTree, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(Node.SignalName.ChildExitingTree, callable);
+    }
+
+    public static Action OnChildOrderChanged(this Node target, Action action, bool oneShot = false, bool deferred = false) {
+        var callable = Callable.From(action);
+        target.Connect(Node.SignalName.ChildOrderChanged, callable, SignalFlags(oneShot, deferred));
+        return () => target.Disconnect(Node.SignalName.ChildOrderChanged, callable);
     }
 
     public static Action OnReady(this Node target, Action action, bool oneShot = false, bool deferred = false) {
@@ -1033,13 +1041,13 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(Node3D.SignalName.VisibilityChanged, callable);
     }
 
-    public static Action OnItemFocused(this OptionButton target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnItemFocused(this OptionButton target, Action<long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(OptionButton.SignalName.ItemFocused, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(OptionButton.SignalName.ItemFocused, callable);
     }
 
-    public static Action OnItemSelected(this OptionButton target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnItemSelected(this OptionButton target, Action<long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(OptionButton.SignalName.ItemSelected, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(OptionButton.SignalName.ItemSelected, callable);
@@ -1057,19 +1065,19 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(Popup.SignalName.PopupHide, callable);
     }
 
-    public static Action OnIdFocused(this PopupMenu target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnIdFocused(this PopupMenu target, Action<long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(PopupMenu.SignalName.IdFocused, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(PopupMenu.SignalName.IdFocused, callable);
     }
 
-    public static Action OnIdPressed(this PopupMenu target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnIdPressed(this PopupMenu target, Action<long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(PopupMenu.SignalName.IdPressed, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(PopupMenu.SignalName.IdPressed, callable);
     }
 
-    public static Action OnIndexPressed(this PopupMenu target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnIndexPressed(this PopupMenu target, Action<long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(PopupMenu.SignalName.IndexPressed, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(PopupMenu.SignalName.IndexPressed, callable);
@@ -1087,7 +1095,7 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(Range.SignalName.Changed, callable);
     }
 
-    public static Action OnValueChanged(this Range target, Action<System.Single> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnValueChanged(this Range target, Action<double> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(Range.SignalName.ValueChanged, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(Range.SignalName.ValueChanged, callable);
@@ -1123,19 +1131,19 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(RichTextLabel.SignalName.Finished, callable);
     }
 
-    public static Action OnMetaClicked(this RichTextLabel target, Action<Godot.Variant> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnMetaClicked(this RichTextLabel target, Action<Variant> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(RichTextLabel.SignalName.MetaClicked, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(RichTextLabel.SignalName.MetaClicked, callable);
     }
 
-    public static Action OnMetaHoverEnded(this RichTextLabel target, Action<Godot.Variant> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnMetaHoverEnded(this RichTextLabel target, Action<Variant> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(RichTextLabel.SignalName.MetaHoverEnded, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(RichTextLabel.SignalName.MetaHoverEnded, callable);
     }
 
-    public static Action OnMetaHoverStarted(this RichTextLabel target, Action<Godot.Variant> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnMetaHoverStarted(this RichTextLabel target, Action<Variant> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(RichTextLabel.SignalName.MetaHoverStarted, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(RichTextLabel.SignalName.MetaHoverStarted, callable);
@@ -1153,13 +1161,13 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(RigidBody2D.SignalName.BodyExited, callable);
     }
 
-    public static Action OnBodyShapeEntered(this RigidBody2D target, Action<Godot.Rid, Node, System.Int32, System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnBodyShapeEntered(this RigidBody2D target, Action<Rid, Node, long, long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(RigidBody2D.SignalName.BodyShapeEntered, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(RigidBody2D.SignalName.BodyShapeEntered, callable);
     }
 
-    public static Action OnBodyShapeExited(this RigidBody2D target, Action<Godot.Rid, Node, System.Int32, System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnBodyShapeExited(this RigidBody2D target, Action<Rid, Node, long, long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(RigidBody2D.SignalName.BodyShapeExited, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(RigidBody2D.SignalName.BodyShapeExited, callable);
@@ -1183,13 +1191,13 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(RigidBody3D.SignalName.BodyExited, callable);
     }
 
-    public static Action OnBodyShapeEntered(this RigidBody3D target, Action<Godot.Rid, Node, System.Int32, System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnBodyShapeEntered(this RigidBody3D target, Action<Rid, Node, long, long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(RigidBody3D.SignalName.BodyShapeEntered, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(RigidBody3D.SignalName.BodyShapeEntered, callable);
     }
 
-    public static Action OnBodyShapeExited(this RigidBody3D target, Action<Godot.Rid, Node, System.Int32, System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnBodyShapeExited(this RigidBody3D target, Action<Rid, Node, long, long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(RigidBody3D.SignalName.BodyShapeExited, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(RigidBody3D.SignalName.BodyShapeExited, callable);
@@ -1201,19 +1209,19 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(RigidBody3D.SignalName.SleepingStateChanged, callable);
     }
 
-    public static Action OnPeerAuthenticating(this SceneMultiplayer target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnPeerAuthenticating(this SceneMultiplayer target, Action<long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(SceneMultiplayer.SignalName.PeerAuthenticating, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(SceneMultiplayer.SignalName.PeerAuthenticating, callable);
     }
 
-    public static Action OnPeerAuthenticationFailed(this SceneMultiplayer target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnPeerAuthenticationFailed(this SceneMultiplayer target, Action<long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(SceneMultiplayer.SignalName.PeerAuthenticationFailed, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(SceneMultiplayer.SignalName.PeerAuthenticationFailed, callable);
     }
 
-    public static Action OnPeerPacket(this SceneMultiplayer target, Action<System.Int32, System.Byte[]> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnPeerPacket(this SceneMultiplayer target, Action<long, byte[]> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(SceneMultiplayer.SignalName.PeerPacket, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(SceneMultiplayer.SignalName.PeerPacket, callable);
@@ -1297,13 +1305,13 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(Skeleton2D.SignalName.BoneSetupChanged, callable);
     }
 
-    public static Action OnBoneEnabledChanged(this Skeleton3D target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnBoneEnabledChanged(this Skeleton3D target, Action<long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(Skeleton3D.SignalName.BoneEnabledChanged, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(Skeleton3D.SignalName.BoneEnabledChanged, callable);
     }
 
-    public static Action OnBonePoseChanged(this Skeleton3D target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnBonePoseChanged(this Skeleton3D target, Action<long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(Skeleton3D.SignalName.BonePoseChanged, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(Skeleton3D.SignalName.BonePoseChanged, callable);
@@ -1327,7 +1335,7 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(SkeletonProfile.SignalName.ProfileUpdated, callable);
     }
 
-    public static Action OnDragEnded(this Slider target, Action<System.Boolean> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnDragEnded(this Slider target, Action<bool> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(Slider.SignalName.DragEnded, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(Slider.SignalName.DragEnded, callable);
@@ -1339,7 +1347,7 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(Slider.SignalName.DragStarted, callable);
     }
 
-    public static Action OnDragged(this SplitContainer target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnDragged(this SplitContainer target, Action<long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(SplitContainer.SignalName.Dragged, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(SplitContainer.SignalName.Dragged, callable);
@@ -1369,49 +1377,49 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(Sprite3D.SignalName.TextureChanged, callable);
     }
 
-    public static Action OnActiveTabRearranged(this TabBar target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnActiveTabRearranged(this TabBar target, Action<long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(TabBar.SignalName.ActiveTabRearranged, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(TabBar.SignalName.ActiveTabRearranged, callable);
     }
 
-    public static Action OnTabButtonPressed(this TabBar target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnTabButtonPressed(this TabBar target, Action<long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(TabBar.SignalName.TabButtonPressed, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(TabBar.SignalName.TabButtonPressed, callable);
     }
 
-    public static Action OnTabChanged(this TabBar target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnTabChanged(this TabBar target, Action<long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(TabBar.SignalName.TabChanged, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(TabBar.SignalName.TabChanged, callable);
     }
 
-    public static Action OnTabClicked(this TabBar target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnTabClicked(this TabBar target, Action<long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(TabBar.SignalName.TabClicked, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(TabBar.SignalName.TabClicked, callable);
     }
 
-    public static Action OnTabClosePressed(this TabBar target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnTabClosePressed(this TabBar target, Action<long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(TabBar.SignalName.TabClosePressed, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(TabBar.SignalName.TabClosePressed, callable);
     }
 
-    public static Action OnTabHovered(this TabBar target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnTabHovered(this TabBar target, Action<long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(TabBar.SignalName.TabHovered, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(TabBar.SignalName.TabHovered, callable);
     }
 
-    public static Action OnTabRmbClicked(this TabBar target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnTabRmbClicked(this TabBar target, Action<long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(TabBar.SignalName.TabRmbClicked, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(TabBar.SignalName.TabRmbClicked, callable);
     }
 
-    public static Action OnTabSelected(this TabBar target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnTabSelected(this TabBar target, Action<long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(TabBar.SignalName.TabSelected, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(TabBar.SignalName.TabSelected, callable);
@@ -1423,19 +1431,19 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(TabContainer.SignalName.PrePopupPressed, callable);
     }
 
-    public static Action OnTabButtonPressed(this TabContainer target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnTabButtonPressed(this TabContainer target, Action<long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(TabContainer.SignalName.TabButtonPressed, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(TabContainer.SignalName.TabButtonPressed, callable);
     }
 
-    public static Action OnTabChanged(this TabContainer target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnTabChanged(this TabContainer target, Action<long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(TabContainer.SignalName.TabChanged, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(TabContainer.SignalName.TabChanged, callable);
     }
 
-    public static Action OnTabSelected(this TabContainer target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnTabSelected(this TabContainer target, Action<long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(TabContainer.SignalName.TabSelected, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(TabContainer.SignalName.TabSelected, callable);
@@ -1453,7 +1461,7 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(TextEdit.SignalName.GutterAdded, callable);
     }
 
-    public static Action OnGutterClicked(this TextEdit target, Action<System.Int32, System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnGutterClicked(this TextEdit target, Action<long, long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(TextEdit.SignalName.GutterClicked, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(TextEdit.SignalName.GutterClicked, callable);
@@ -1465,7 +1473,7 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(TextEdit.SignalName.GutterRemoved, callable);
     }
 
-    public static Action OnLinesEditedFrom(this TextEdit target, Action<System.Int32, System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnLinesEditedFrom(this TextEdit target, Action<long, long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(TextEdit.SignalName.LinesEditedFrom, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(TextEdit.SignalName.LinesEditedFrom, callable);
@@ -1483,13 +1491,13 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(TextEdit.SignalName.TextSet, callable);
     }
 
-    public static Action OnTextServerManagerInterfaceAdded(Action<Godot.StringName> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnTextServerManagerInterfaceAdded(Action<StringName> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         TextServerManager.Singleton.Connect(TextServerManager.SignalName.InterfaceAdded, callable, SignalFlags(oneShot, deferred));
         return () => TextServerManager.Singleton.Disconnect(TextServerManager.SignalName.InterfaceAdded, callable);
     }
 
-    public static Action OnTextServerManagerInterfaceRemoved(Action<Godot.StringName> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnTextServerManagerInterfaceRemoved(Action<StringName> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         TextServerManager.Singleton.Connect(TextServerManager.SignalName.InterfaceRemoved, callable, SignalFlags(oneShot, deferred));
         return () => TextServerManager.Singleton.Disconnect(TextServerManager.SignalName.InterfaceRemoved, callable);
@@ -1531,7 +1539,7 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(TouchScreenButton.SignalName.Released, callable);
     }
 
-    public static Action OnButtonClicked(this Tree target, Action<TreeItem, System.Int32, System.Int32, System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnButtonClicked(this Tree target, Action<TreeItem, long, long, long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(Tree.SignalName.ButtonClicked, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(Tree.SignalName.ButtonClicked, callable);
@@ -1543,31 +1551,31 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(Tree.SignalName.CellSelected, callable);
     }
 
-    public static Action OnCheckPropagatedToItem(this Tree target, Action<TreeItem, System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnCheckPropagatedToItem(this Tree target, Action<TreeItem, long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(Tree.SignalName.CheckPropagatedToItem, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(Tree.SignalName.CheckPropagatedToItem, callable);
     }
 
-    public static Action OnColumnTitleClicked(this Tree target, Action<System.Int32, System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnColumnTitleClicked(this Tree target, Action<long, long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(Tree.SignalName.ColumnTitleClicked, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(Tree.SignalName.ColumnTitleClicked, callable);
     }
 
-    public static Action OnCustomItemClicked(this Tree target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnCustomItemClicked(this Tree target, Action<long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(Tree.SignalName.CustomItemClicked, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(Tree.SignalName.CustomItemClicked, callable);
     }
 
-    public static Action OnCustomPopupEdited(this Tree target, Action<System.Boolean> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnCustomPopupEdited(this Tree target, Action<bool> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(Tree.SignalName.CustomPopupEdited, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(Tree.SignalName.CustomPopupEdited, callable);
     }
 
-    public static Action OnEmptyClicked(this Tree target, Action<Godot.Vector2, System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnEmptyClicked(this Tree target, Action<Vector2, long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(Tree.SignalName.EmptyClicked, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(Tree.SignalName.EmptyClicked, callable);
@@ -1597,7 +1605,7 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(Tree.SignalName.ItemIconDoubleClicked, callable);
     }
 
-    public static Action OnItemMouseSelected(this Tree target, Action<Godot.Vector2, System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnItemMouseSelected(this Tree target, Action<Vector2, long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(Tree.SignalName.ItemMouseSelected, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(Tree.SignalName.ItemMouseSelected, callable);
@@ -1609,7 +1617,7 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(Tree.SignalName.ItemSelected, callable);
     }
 
-    public static Action OnMultiSelected(this Tree target, Action<TreeItem, System.Int32, System.Boolean> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnMultiSelected(this Tree target, Action<TreeItem, long, bool> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(Tree.SignalName.MultiSelected, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(Tree.SignalName.MultiSelected, callable);
@@ -1627,13 +1635,13 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(Tween.SignalName.Finished, callable);
     }
 
-    public static Action OnLoopFinished(this Tween target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnLoopFinished(this Tween target, Action<long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(Tween.SignalName.LoopFinished, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(Tween.SignalName.LoopFinished, callable);
     }
 
-    public static Action OnStepFinished(this Tween target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnStepFinished(this Tween target, Action<long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(Tween.SignalName.StepFinished, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(Tween.SignalName.StepFinished, callable);
@@ -1699,25 +1707,31 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(VisualShaderNodeInput.SignalName.InputTypeChanged, callable);
     }
 
+    public static Action OnDisplayRefreshRateChanged(this WebXRInterface target, Action action, bool oneShot = false, bool deferred = false) {
+        var callable = Callable.From(action);
+        target.Connect(WebXRInterface.SignalName.DisplayRefreshRateChanged, callable, SignalFlags(oneShot, deferred));
+        return () => target.Disconnect(WebXRInterface.SignalName.DisplayRefreshRateChanged, callable);
+    }
+
     public static Action OnReferenceSpaceReset(this WebXRInterface target, Action action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(WebXRInterface.SignalName.ReferenceSpaceReset, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(WebXRInterface.SignalName.ReferenceSpaceReset, callable);
     }
 
-    public static Action OnSelect(this WebXRInterface target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnSelect(this WebXRInterface target, Action<long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(WebXRInterface.SignalName.Select, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(WebXRInterface.SignalName.Select, callable);
     }
 
-    public static Action OnSelectend(this WebXRInterface target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnSelectend(this WebXRInterface target, Action<long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(WebXRInterface.SignalName.Selectend, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(WebXRInterface.SignalName.Selectend, callable);
     }
 
-    public static Action OnSelectstart(this WebXRInterface target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnSelectstart(this WebXRInterface target, Action<long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(WebXRInterface.SignalName.Selectstart, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(WebXRInterface.SignalName.Selectstart, callable);
@@ -1729,7 +1743,7 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(WebXRInterface.SignalName.SessionEnded, callable);
     }
 
-    public static Action OnSessionFailed(this WebXRInterface target, Action<System.String> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnSessionFailed(this WebXRInterface target, Action<string> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(WebXRInterface.SignalName.SessionFailed, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(WebXRInterface.SignalName.SessionFailed, callable);
@@ -1741,25 +1755,25 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(WebXRInterface.SignalName.SessionStarted, callable);
     }
 
-    public static Action OnSessionSupported(this WebXRInterface target, Action<System.String, System.Boolean> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnSessionSupported(this WebXRInterface target, Action<string, bool> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(WebXRInterface.SignalName.SessionSupported, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(WebXRInterface.SignalName.SessionSupported, callable);
     }
 
-    public static Action OnSqueeze(this WebXRInterface target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnSqueeze(this WebXRInterface target, Action<long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(WebXRInterface.SignalName.Squeeze, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(WebXRInterface.SignalName.Squeeze, callable);
     }
 
-    public static Action OnSqueezeend(this WebXRInterface target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnSqueezeend(this WebXRInterface target, Action<long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(WebXRInterface.SignalName.Squeezeend, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(WebXRInterface.SignalName.Squeezeend, callable);
     }
 
-    public static Action OnSqueezestart(this WebXRInterface target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnSqueezestart(this WebXRInterface target, Action<long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(WebXRInterface.SignalName.Squeezestart, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(WebXRInterface.SignalName.Squeezestart, callable);
@@ -1789,7 +1803,7 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(Window.SignalName.DpiChanged, callable);
     }
 
-    public static Action OnFilesDropped(this Window target, Action<System.String[]> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnFilesDropped(this Window target, Action<string[]> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(Window.SignalName.FilesDropped, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(Window.SignalName.FilesDropped, callable);
@@ -1849,55 +1863,55 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(Window.SignalName.WindowInput, callable);
     }
 
-    public static Action OnButtonPressed(this XRController3D target, Action<System.String> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnButtonPressed(this XRController3D target, Action<string> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(XRController3D.SignalName.ButtonPressed, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(XRController3D.SignalName.ButtonPressed, callable);
     }
 
-    public static Action OnButtonReleased(this XRController3D target, Action<System.String> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnButtonReleased(this XRController3D target, Action<string> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(XRController3D.SignalName.ButtonReleased, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(XRController3D.SignalName.ButtonReleased, callable);
     }
 
-    public static Action OnInputFloatChanged(this XRController3D target, Action<System.String, System.Single> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnInputFloatChanged(this XRController3D target, Action<string, double> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(XRController3D.SignalName.InputFloatChanged, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(XRController3D.SignalName.InputFloatChanged, callable);
     }
 
-    public static Action OnInputVector2Changed(this XRController3D target, Action<System.String, Godot.Vector2> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnInputVector2Changed(this XRController3D target, Action<string, Vector2> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(XRController3D.SignalName.InputVector2Changed, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(XRController3D.SignalName.InputVector2Changed, callable);
     }
 
-    public static Action OnPlayAreaChanged(this XRInterface target, Action<System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnPlayAreaChanged(this XRInterface target, Action<long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(XRInterface.SignalName.PlayAreaChanged, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(XRInterface.SignalName.PlayAreaChanged, callable);
     }
 
-    public static Action OnButtonPressed(this XRPositionalTracker target, Action<System.String> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnButtonPressed(this XRPositionalTracker target, Action<string> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(XRPositionalTracker.SignalName.ButtonPressed, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(XRPositionalTracker.SignalName.ButtonPressed, callable);
     }
 
-    public static Action OnButtonReleased(this XRPositionalTracker target, Action<System.String> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnButtonReleased(this XRPositionalTracker target, Action<string> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(XRPositionalTracker.SignalName.ButtonReleased, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(XRPositionalTracker.SignalName.ButtonReleased, callable);
     }
 
-    public static Action OnInputFloatChanged(this XRPositionalTracker target, Action<System.String, System.Single> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnInputFloatChanged(this XRPositionalTracker target, Action<string, double> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(XRPositionalTracker.SignalName.InputFloatChanged, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(XRPositionalTracker.SignalName.InputFloatChanged, callable);
     }
 
-    public static Action OnInputVector2Changed(this XRPositionalTracker target, Action<System.String, Godot.Vector2> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnInputVector2Changed(this XRPositionalTracker target, Action<string, Vector2> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(XRPositionalTracker.SignalName.InputVector2Changed, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(XRPositionalTracker.SignalName.InputVector2Changed, callable);
@@ -1909,37 +1923,37 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(XRPositionalTracker.SignalName.PoseChanged, callable);
     }
 
-    public static Action OnProfileChanged(this XRPositionalTracker target, Action<System.String> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnProfileChanged(this XRPositionalTracker target, Action<string> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         target.Connect(XRPositionalTracker.SignalName.ProfileChanged, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(XRPositionalTracker.SignalName.ProfileChanged, callable);
     }
 
-    public static Action OnXRServerInterfaceAdded(Action<Godot.StringName> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnXRServerInterfaceAdded(Action<StringName> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         XRServer.Singleton.Connect(XRServer.SignalName.InterfaceAdded, callable, SignalFlags(oneShot, deferred));
         return () => XRServer.Singleton.Disconnect(XRServer.SignalName.InterfaceAdded, callable);
     }
 
-    public static Action OnXRServerInterfaceRemoved(Action<Godot.StringName> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnXRServerInterfaceRemoved(Action<StringName> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         XRServer.Singleton.Connect(XRServer.SignalName.InterfaceRemoved, callable, SignalFlags(oneShot, deferred));
         return () => XRServer.Singleton.Disconnect(XRServer.SignalName.InterfaceRemoved, callable);
     }
 
-    public static Action OnXRServerTrackerAdded(Action<Godot.StringName, System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnXRServerTrackerAdded(Action<StringName, long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         XRServer.Singleton.Connect(XRServer.SignalName.TrackerAdded, callable, SignalFlags(oneShot, deferred));
         return () => XRServer.Singleton.Disconnect(XRServer.SignalName.TrackerAdded, callable);
     }
 
-    public static Action OnXRServerTrackerRemoved(Action<Godot.StringName, System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnXRServerTrackerRemoved(Action<StringName, long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         XRServer.Singleton.Connect(XRServer.SignalName.TrackerRemoved, callable, SignalFlags(oneShot, deferred));
         return () => XRServer.Singleton.Disconnect(XRServer.SignalName.TrackerRemoved, callable);
     }
 
-    public static Action OnXRServerTrackerUpdated(Action<Godot.StringName, System.Int32> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnXRServerTrackerUpdated(Action<StringName, long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
         XRServer.Singleton.Connect(XRServer.SignalName.TrackerUpdated, callable, SignalFlags(oneShot, deferred));
         return () => XRServer.Singleton.Disconnect(XRServer.SignalName.TrackerUpdated, callable);

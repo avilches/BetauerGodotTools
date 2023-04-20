@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 
 namespace Generator; 
 
@@ -20,19 +21,29 @@ public class GenerateAwaitExtensions {
     }
 
     private static string GenerateMethod(Signal signal) {
-        var targetParam = signal.GodotClass.IsStatic ? "" : $"this {signal.GodotClass.ClassName} target";
+        var targetParam = signal.GodotClass.IsStatic ? "" : $"this {signal.GodotClass.ClassName} target, ";
         var target = signal.GodotClass.IsStatic ? $"{signal.GodotClass.ClassName}.Singleton" : "target";
         var signalName = $"{signal.GodotClass.ClassName}.SignalName.{signal.SignalName}";
-        return $@"
-    public static SignalAwaiter Await{signal.MethodName}({targetParam}) =>
-        {target}.ToSignal({target}, {signalName});";
-    }
 
+        var i = 0;
+        var invoke = signal.Args.Count == 0
+            ? "onComplete"
+            : $"() => onComplete({string.Join(", ", signal.Args.Select(s => $"awaiter.GetResult()[{i++}].As<{s.Type}>()"))})";
+        
+        return $@"
+    public static SignalAwaiter Await{signal.MethodName}({targetParam}Action{signal.Generics()}? onComplete = null) {{
+        var awaiter = {target}.ToSignal({target}, {signalName});
+        if (onComplete != null) {{
+            awaiter.OnCompleted({invoke});
+        }}
+        return awaiter;
+    }}";
+    }
     private static string GenerateBodyClass(IEnumerable<string> methods) {
         return $@"using System;
 using Godot;
-using Animation = Godot.Animation;
-using Environment = Godot.Environment;
+using Godot.Collections;
+using Array = Godot.Collections.Array;
 using Range = Godot.Range;
 
 namespace Betauer.Core.Signal;

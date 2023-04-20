@@ -33,6 +33,8 @@ public class GenerateSignalExtensions {
     private static string GenerateBodyClass(IEnumerable<string> methods) {
         return $@"using System;
 using Godot;
+using Godot.Collections;
+using Array = Godot.Collections.Array;
 using Range = Godot.Range;
 using static Betauer.Core.Signal.SignalTools; 
 
