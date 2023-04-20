@@ -13,6 +13,7 @@ public class KinematicPlatformMotion : BaseKinematicMotion, IFlipper {
     private readonly IFlipper _flippers;
     protected readonly List<RayCast2D>? FloorRaycasts;
 
+    private bool _wasOnFloor = false;
     private bool _isJustOnFloor = false;
     private bool _isJustTookOff = false;
 
@@ -23,6 +24,8 @@ public class KinematicPlatformMotion : BaseKinematicMotion, IFlipper {
     private GodotObject? _floor = null;
 
     // Wall
+    private bool _wasOnWall = false;
+    private bool _isJustOnWall = false;
     private bool _isOnWall = false;
     private Vector2 _wallNormal = Vector2.Zero;
     private GodotObject? _wall = null;
@@ -68,6 +71,7 @@ public class KinematicPlatformMotion : BaseKinematicMotion, IFlipper {
      */
     public bool IsFacingTo(Vector2 globalPosition) => IsToTheRightOf(globalPosition) != _flippers.IsFacingRight;
 
+    public bool WasOnFloor() => _wasOnFloor;
     public bool IsJustOnFloor() => _isJustOnFloor;
     public bool IsJustTookOff() => _isJustTookOff;
 
@@ -87,6 +91,8 @@ public class KinematicPlatformMotion : BaseKinematicMotion, IFlipper {
     // public bool HasFloorLateralMovement() => GetFloorVelocity().X != 0;
 
     // Wall flags
+    public bool WasOnWall() => _wasOnWall;
+    public bool IsJustOnWall() => _isJustOnWall;
     public bool IsOnWall() => _isOnWall;
     public bool IsOnWallRight() => IsOnWall() && GetWallNormal().IsLeft(FloorUpDirection);
     // Wall collider
@@ -173,7 +179,8 @@ public class KinematicPlatformMotion : BaseKinematicMotion, IFlipper {
     }
 
     private void UpdateFlags() {
-        var wasOnFloor = _isOnFloor;
+        _wasOnFloor = _isOnFloor;
+        _wasOnWall = _isOnWall;
         _isOnFloor = CharacterBody.IsOnFloor();
         _isOnSlope = false;
         _floorNormal = CharacterBody.GetFloorNormal();
@@ -188,11 +195,12 @@ public class KinematicPlatformMotion : BaseKinematicMotion, IFlipper {
         _isJustOnFloor = false;
         _isJustTookOff = false;
 
+        _isJustOnWall = _isOnWall && !_wasOnWall;
         if (_isOnFloor) {
-            _isJustOnFloor = !wasOnFloor;
+            _isJustOnFloor = !_wasOnFloor;
             _isOnSlope = _floorNormal != FloorUpDirection;
         } else {
-            _isJustTookOff = wasOnFloor;
+            _isJustTookOff = _wasOnFloor;
         }
     }
 
