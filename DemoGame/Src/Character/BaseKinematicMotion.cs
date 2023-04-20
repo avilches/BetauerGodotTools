@@ -6,7 +6,7 @@ namespace Veronenger.Character;
 
 public abstract class BaseKinematicMotion {
     public CharacterBody2D CharacterBody { get; }
-    public Marker2D Marker2D { get; }
+    public Node2D Marker2D { get; }
 
     private float _anglesToRotateFloor = 0;
     private Vector2 _floorUpDirection = Vector2.Up;
@@ -42,7 +42,7 @@ public abstract class BaseKinematicMotion {
 
     public float Delta { get; private set; } = 0;
 
-    protected BaseKinematicMotion(CharacterBody2D characterBody, Marker2D marker2D, Vector2 floorUpDirection) {
+    protected BaseKinematicMotion(CharacterBody2D characterBody, Node2D marker2D, Vector2 floorUpDirection) {
         CharacterBody = characterBody;
         Marker2D = marker2D;
         FloorUpDirection = floorUpDirection;

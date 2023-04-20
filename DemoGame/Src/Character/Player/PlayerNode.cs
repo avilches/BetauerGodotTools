@@ -465,6 +465,7 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 			.Execute(() => {
 				ApplyFloorGravity();
 				PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
+				PlatformBody.Move();
 			})
 			.If(() => Jump.IsJustPressed && IsPressingDown && IsOnFallingPlatform()).Then(
 				context => {
@@ -494,6 +495,7 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 				PlatformBody.Flip(XInput);
 				PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.Friction, 
 					PlayerConfig.StopIfSpeedIsLessThan, PlayerConfig.ChangeDirectionFactor);
+				PlatformBody.Move();
 			})
 			.If(() => Jump.IsJustPressed && IsPressingDown && IsOnFallingPlatform()).Then(
 				context => {
@@ -515,6 +517,7 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 			.Execute(() => {
 				ApplyFloorGravity();
 				PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
+				PlatformBody.Move();
 				if (Attack.IsJustPressed) {
 					if (_attackState == AttackState.Step1) {
 						// Promoted short attack to long attack 
@@ -545,6 +548,7 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 				} else {
 					PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
 				}
+				PlatformBody.Move();
 				if (_attackState == AttackState.Start) _attackState = AttackState.Step1;
 			})
 			.If(() => _attackState != AttackState.None).Stay()
@@ -589,6 +593,7 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 			.Execute(() => {
 				ApplyFloorGravity();
 				PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
+				PlatformBody.Move();
 				if (IsPlayerShooting()) Shoot();
 			})
 			.If(IsPlayerShooting).Stay()
@@ -606,6 +611,7 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 				} else {
 					PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
 				}
+				PlatformBody.Move();
 				if (IsPlayerShooting()) Shoot();
 			})
 			.If(IsPlayerShooting).Stay()
@@ -630,6 +636,7 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 				ApplyAirGravity();
 				PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
 					PlayerConfig.StopIfSpeedIsLessThan, PlayerConfig.ChangeDirectionFactor);
+				PlatformBody.Move();
 			})
 			.If(() => Attack.IsJustPressed).Send(PlayerEvent.Attack)
 			.If(() => Float.IsJustPressed).Set(PlayerState.Floating)
@@ -647,6 +654,7 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 				ApplyAirGravity();
 				PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
 					PlayerConfig.StopIfSpeedIsLessThan, PlayerConfig.ChangeDirectionFactor);
+				PlatformBody.Move();
 			})
 			.If(() => Attack.IsJustPressed).Send(PlayerEvent.Attack)
 			.If(() => Jump.IsJustPressed && CanJump()).Set(PlayerState.Jumping)
@@ -671,6 +679,7 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 				ApplyAirGravity();
 				PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
 					PlayerConfig.StopIfSpeedIsLessThan, PlayerConfig.ChangeDirectionFactor);
+				PlatformBody.Move();
 			})
 			.If(() => Attack.IsJustPressed).Send(PlayerEvent.Attack)
 			.If(() => Float.IsJustPressed).Set(PlayerState.Floating)

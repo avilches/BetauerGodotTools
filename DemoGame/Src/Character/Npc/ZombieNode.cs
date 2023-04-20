@@ -420,6 +420,7 @@ public partial class ZombieNode : NpcItemNode {
 			.Execute(() => {
 				ApplyFloorGravity();
 				PlatformBody.Stop(NpcConfig.Friction, NpcConfig.StopIfSpeedIsLessThan);
+				PlatformBody.Move();
 			})
 			.If(() => Jump.IsJustPressed).Set(ZombieState.Jump)
 			.If(() => Attack.IsJustPressed).Set(ZombieState.Attacking)
@@ -436,6 +437,7 @@ public partial class ZombieNode : NpcItemNode {
 				_animationPlayer.SpeedScale = Math.Abs(XInput);
 				PlatformBody.Lateral(XInput, NpcConfig.Acceleration, NpcConfig.MaxSpeed, 
 					NpcConfig.Friction, NpcConfig.StopIfSpeedIsLessThan, 0);
+				PlatformBody.Move();
 				
 			})
 			.If(() => Jump.IsJustPressed).Set(ZombieState.Jump)
@@ -453,6 +455,7 @@ public partial class ZombieNode : NpcItemNode {
 				ApplyFloorGravity();
 				PlatformBody.Lateral(XInput, NpcConfig.Acceleration, NpcConfig.MaxSpeed, 
 					NpcConfig.Friction, NpcConfig.StopIfSpeedIsLessThan, 0);
+				PlatformBody.Move();
 			})
 			.If(() => AnimationAttack.IsPlaying()).Stay()
 			.If(() => !PlatformBody.IsOnFloor()).Set(ZombieState.Fall)
@@ -486,6 +489,7 @@ public partial class ZombieNode : NpcItemNode {
 			.Execute(() => {
 				ApplyAirGravity();
 				PlatformBody.Stop(NpcConfig.Friction, NpcConfig.StopIfSpeedIsLessThan);
+				PlatformBody.Move();
 			})
 			.If(() => !AnimationDead.IsPlaying()).Set(ZombieState.End)
 			.Build();
@@ -505,6 +509,7 @@ public partial class ZombieNode : NpcItemNode {
 				ApplyAirGravity();
 				PlatformBody.Lateral(XInput, NpcConfig.Acceleration, NpcConfig.MaxSpeed,
 					NpcConfig.Friction, NpcConfig.StopIfSpeedIsLessThan, 0);
+				PlatformBody.Move();
 			})
 			.If(() => MotionY >= 0).Set(ZombieState.Fall)
 			.If(PlatformBody.IsOnFloor).Set(ZombieState.Landing)
@@ -515,6 +520,7 @@ public partial class ZombieNode : NpcItemNode {
 				ApplyAirGravity();
 				PlatformBody.Lateral(XInput, NpcConfig.Acceleration, NpcConfig.MaxSpeed,
 					NpcConfig.Friction, NpcConfig.StopIfSpeedIsLessThan, 0);
+				PlatformBody.Move();
 			})
 			.If(PlatformBody.IsOnFloor).Set(ZombieState.Landing)
 			.Build();

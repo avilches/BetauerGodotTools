@@ -33,8 +33,7 @@ public class KinematicPlatformMotion : BaseKinematicMotion, IFlipper {
     // Ceiling
     private bool _isOnCeiling = false;
 
-
-    public KinematicPlatformMotion(CharacterBody2D characterBody, IFlipper flippers, Marker2D marker2D, Vector2 floorUpDirection, List<RayCast2D>? floorRaycasts = null) :
+    public KinematicPlatformMotion(CharacterBody2D characterBody, IFlipper flippers, Node2D marker2D, Vector2 floorUpDirection, List<RayCast2D>? floorRaycasts = null) :
         base(characterBody, marker2D, floorUpDirection) {
         _flippers = flippers;
         FloorRaycasts = floorRaycasts;
@@ -109,17 +108,6 @@ public class KinematicPlatformMotion : BaseKinematicMotion, IFlipper {
         MotionY = Mathf.Min(MotionY + gravity * Delta, maxSpeed);
     }
 
-    public void AddLateralSpeed(float xInput,
-        float acceleration,
-        float maxSpeed,
-        float friction,
-        float stopIfSpeedIsLessThan,
-        float changeDirectionFactor) {
-            
-        Accelerate(ref MotionX, xInput, acceleration, maxSpeed, 
-            friction, stopIfSpeedIsLessThan, changeDirectionFactor, Delta);
-    }
-        
     public void AddSpeed(float xInput, float yInput, 
         float acceleration,
         float maxSpeedX,
@@ -156,7 +144,6 @@ public class KinematicPlatformMotion : BaseKinematicMotion, IFlipper {
         } else {
             ApplyLateralFriction(friction, stopIfSpeedIsLessThan);
         }
-        Move();
     }
 
     public void Lateral(float xInput,
@@ -166,8 +153,8 @@ public class KinematicPlatformMotion : BaseKinematicMotion, IFlipper {
         float stopIfSpeedIsLessThan,
         float changeDirectionFactor) {
             
-        AddLateralSpeed(xInput, acceleration, maxSpeed, friction, stopIfSpeedIsLessThan, changeDirectionFactor);
-        Move();
+        Accelerate(ref MotionX, xInput, acceleration, maxSpeed, 
+            friction, stopIfSpeedIsLessThan, changeDirectionFactor, Delta);
     }
 
     public bool Move() {
