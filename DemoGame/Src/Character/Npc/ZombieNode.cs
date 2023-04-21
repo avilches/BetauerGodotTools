@@ -111,7 +111,8 @@ public partial class ZombieNode : NpcItemNode {
 
 	public KinematicPlatformMotion PlatformBody;
 
-	private readonly FsmNodeSync<ZombieState, ZombieEvent> _fsm = new(ZombieState.Idle, "Zombie.FSM", true);
+	private readonly FsmSync<ZombieState, ZombieEvent> _fsm = new(ZombieState.Idle, "Zombie.FSM");
+	private float _delta;
 	private ICharacterAi _zombieAi;
 	private IPool<ILabelEffect> _labelHits;
 	private Restorer _restorer; 
@@ -160,14 +161,13 @@ public partial class ZombieNode : NpcItemNode {
 	}
 
 	public override void PostInject() {
-		AddChild(_fsm);
 		TreeExiting += _ExitingTree;
 		ConfigureAnimations();
 		ConfigureCharacter();
 		ConfigureFsm();
 
 		// AI
-		_zombieAi = MeleeAi.Create(Handler, new MeleeAi.Sensor(this, PlatformBody, () => PlayerPos, () => (float)_fsm.Delta));
+		_zombieAi = MeleeAi.Create(Handler, new MeleeAi.Sensor(this, PlatformBody, () => PlayerPos, () => _delta));
 		_fsm.OnBefore += () =>_zombieAi.Execute();
 		_fsm.OnBefore += () => Label.Text = _zombieAi.GetState();
 		_fsm.OnAfter += () => _zombieAi.EndFrame();
@@ -246,7 +246,6 @@ public partial class ZombieNode : NpcItemNode {
 		flipper.IsFacingRight = flipper.IsFacingRight;
 
 		PlatformBody = new KinematicPlatformMotion(CharacterBody2D, flipper, () => Marker2D.GlobalPosition, MotionConfig.FloorUpDirection);
-		_fsm.OnBefore += () => PlatformBody.SetDelta(_fsm.Delta);
 
 		CollisionLayerManager.NpcConfigureCollisions(CharacterBody2D);
 		CollisionLayerManager.NpcConfigureCollisions(FloorRaycast);
@@ -316,11 +315,11 @@ public partial class ZombieNode : NpcItemNode {
 	}
 
 	public void ApplyFloorGravity(float factor = 1.0F) {
-		PlatformBody.ApplyGravity(PlayerConfig.FloorGravity * factor, PlayerConfig.MaxFallingSpeed);
+		PlatformBody.ApplyGravity(PlayerConfig.FloorGravity * factor, PlayerConfig.MaxFallingSpeed, _delta);
 	}
 
 	public void ApplyAirGravity(float factor = 1.0F) {
-		PlatformBody.ApplyGravity(PlayerConfig.AirGravity * factor, PlayerConfig.MaxFallingSpeed);
+		PlatformBody.ApplyGravity(PlayerConfig.AirGravity * factor, PlayerConfig.MaxFallingSpeed, _delta);
 	}
 
 	public void AddHurtStates(DebugOverlay overlay) {
@@ -402,6 +401,11 @@ public partial class ZombieNode : NpcItemNode {
 			.Text("Wall", () => PlatformBody.GetWallCollisionInfo()).EndMonitor();
 	}
 
+	public override void _PhysicsProcess(double delta) {
+		_delta = (float)delta;
+		_fsm.Execute();
+	}
+
 	public void ConfigureFsm() {    
 
 		_fsm.On(ZombieEvent.Hurt).Set(ZombieState.Hurt);
@@ -419,7 +423,8 @@ public partial class ZombieNode : NpcItemNode {
 			})
 			.Execute(() => {
 				ApplyFloorGravity();
-				PlatformBody.Stop(NpcConfig.Friction, NpcConfig.StopIfSpeedIsLessThan);
+				PlatformBody.ApplyLateralFriction(NpcConfig.Friction, NpcConfig.StopIfSpeedIsLessThan);
+				if (PlatformBody.IsOnWall()) PlatformBody.MotionX = 0;
 				PlatformBody.Move();
 			})
 			.If(() => Jump.IsJustPressed).Set(ZombieState.Jump)
@@ -435,8 +440,8 @@ public partial class ZombieNode : NpcItemNode {
 			.Execute(() => {
 				ApplyFloorGravity();
 				_animationPlayer.SpeedScale = Math.Abs(XInput);
-				PlatformBody.Lateral(XInput, NpcConfig.Acceleration, NpcConfig.MaxSpeed, 
-					NpcConfig.Friction, NpcConfig.StopIfSpeedIsLessThan, 0);
+				PlatformBody.ApplyLateralConstantAcceleration(XInput, NpcConfig.Acceleration, NpcConfig.MaxSpeed, 
+					NpcConfig.Friction, NpcConfig.StopIfSpeedIsLessThan, 0, _delta);
 				PlatformBody.Move();
 				
 			})
@@ -453,8 +458,8 @@ public partial class ZombieNode : NpcItemNode {
 			})
 			.Execute(() => {
 				ApplyFloorGravity();
-				PlatformBody.Lateral(XInput, NpcConfig.Acceleration, NpcConfig.MaxSpeed, 
-					NpcConfig.Friction, NpcConfig.StopIfSpeedIsLessThan, 0);
+				PlatformBody.ApplyLateralConstantAcceleration(XInput, NpcConfig.Acceleration, NpcConfig.MaxSpeed, 
+					NpcConfig.Friction, NpcConfig.StopIfSpeedIsLessThan, 0, _delta);
 				PlatformBody.Move();
 			})
 			.If(() => AnimationAttack.IsPlaying()).Stay()
@@ -488,7 +493,8 @@ public partial class ZombieNode : NpcItemNode {
 			})
 			.Execute(() => {
 				ApplyAirGravity();
-				PlatformBody.Stop(NpcConfig.Friction, NpcConfig.StopIfSpeedIsLessThan);
+				PlatformBody.ApplyLateralFriction(NpcConfig.Friction, NpcConfig.StopIfSpeedIsLessThan);
+				if (PlatformBody.IsOnWall()) PlatformBody.MotionX = 0;
 				PlatformBody.Move();
 			})
 			.If(() => !AnimationDead.IsPlaying()).Set(ZombieState.End)
@@ -507,8 +513,8 @@ public partial class ZombieNode : NpcItemNode {
 			})
 			.Execute(() => {
 				ApplyAirGravity();
-				PlatformBody.Lateral(XInput, NpcConfig.Acceleration, NpcConfig.MaxSpeed,
-					NpcConfig.Friction, NpcConfig.StopIfSpeedIsLessThan, 0);
+				PlatformBody.ApplyLateralConstantAcceleration(XInput, NpcConfig.Acceleration, NpcConfig.MaxSpeed,
+					NpcConfig.Friction, NpcConfig.StopIfSpeedIsLessThan, 0, _delta);
 				PlatformBody.Move();
 			})
 			.If(() => MotionY >= 0).Set(ZombieState.Fall)
@@ -518,8 +524,8 @@ public partial class ZombieNode : NpcItemNode {
 		_fsm.State(ZombieState.Fall)
 			.Execute(() => {
 				ApplyAirGravity();
-				PlatformBody.Lateral(XInput, NpcConfig.Acceleration, NpcConfig.MaxSpeed,
-					NpcConfig.Friction, NpcConfig.StopIfSpeedIsLessThan, 0);
+				PlatformBody.ApplyLateralConstantAcceleration(XInput, NpcConfig.Acceleration, NpcConfig.MaxSpeed,
+					NpcConfig.Friction, NpcConfig.StopIfSpeedIsLessThan, 0, _delta);
 				PlatformBody.Move();
 			})
 			.If(PlatformBody.IsOnFloor).Set(ZombieState.Landing)

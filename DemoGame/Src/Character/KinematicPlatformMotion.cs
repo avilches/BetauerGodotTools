@@ -6,6 +6,7 @@ using Betauer.Core;
 using Betauer.Core.Nodes;
 using Betauer.Flipper;
 using GodotObject = Godot.GodotObject;
+using static Veronenger.Character.KinematicFormulas;
 
 namespace Veronenger.Character; 
 
@@ -104,17 +105,18 @@ public class KinematicPlatformMotion : BaseKinematicMotion, IFlipper {
     public Vector2 GetCeilingNormal() => GetCeilingCollisions().FirstOrDefault()?.GetNormal() ?? Vector2.Zero;
     public T? GetCeilingCollider<T>() where T : Node => GetCeilingColliders<T>().FirstOrDefault();
 
-    public void ApplyGravity(float gravity, float maxSpeed) {
-        MotionY = Mathf.Min(MotionY + gravity * Delta, maxSpeed);
+    public void ApplyGravity(float gravity, float maxSpeed, float delta) {
+        MotionY = Mathf.Min(MotionY + gravity * delta, maxSpeed);
     }
 
-    public void AddSpeed(float xInput, float yInput, 
+    public void ApplyConstantAcceleration(float xInput, float yInput, 
         float acceleration,
         float maxSpeedX,
         float maxSpeedY,
         float friction, 
         float stopIfSpeedIsLessThan, 
-        float changeDirectionFactor) {
+        float changeDirectionFactor, 
+        float delta) {
             
         if (xInput != 0 && yInput != 0) {
             var input = new Vector2(xInput, yInput);
@@ -125,9 +127,9 @@ public class KinematicPlatformMotion : BaseKinematicMotion, IFlipper {
             }
         }
         Accelerate(ref MotionX, xInput, acceleration, maxSpeedX,
-            friction, stopIfSpeedIsLessThan, changeDirectionFactor, Delta);
+            friction, stopIfSpeedIsLessThan, changeDirectionFactor, delta);
         Accelerate(ref MotionY, yInput, acceleration, maxSpeedY,
-            friction, stopIfSpeedIsLessThan, changeDirectionFactor, Delta);
+            friction, stopIfSpeedIsLessThan, changeDirectionFactor, delta);
     }
 
     public void ApplyLateralFriction(float friction, float stopIfSpeedIsLessThan) {
@@ -138,23 +140,16 @@ public class KinematicPlatformMotion : BaseKinematicMotion, IFlipper {
         SlowDownSpeed(ref MotionY, friction, stopIfSpeedIsLessThan);
     }
 
-    public void Stop(float friction, float stopIfSpeedIsLessThan) {
-        if (IsOnWall()) {
-            MotionX = 0;
-        } else {
-            ApplyLateralFriction(friction, stopIfSpeedIsLessThan);
-        }
-    }
-
-    public void Lateral(float xInput,
+    public void ApplyLateralConstantAcceleration(float xInput,
         float acceleration,
         float maxSpeed,
         float friction,
         float stopIfSpeedIsLessThan,
-        float changeDirectionFactor) {
+        float changeDirectionFactor,
+        float delta) {
             
         Accelerate(ref MotionX, xInput, acceleration, maxSpeed, 
-            friction, stopIfSpeedIsLessThan, changeDirectionFactor, Delta);
+            friction, stopIfSpeedIsLessThan, changeDirectionFactor, delta);
     }
 
     public bool Move() {

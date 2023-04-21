@@ -38,12 +38,12 @@ public partial class PickableItemNode : ItemNode, IPickableItemNode, IPoolLifecy
 	private Func<Vector2> _playerPosition;
 	private Action? _onPickup;
 	private float _pickingUpSpeed;
-	private readonly FsmNodeSync<State, Event> _fsm = new(State.None, "PickableItem.FSM", true);
+	private float _delta;
+	private readonly FsmSync<State, Event> _fsm = new(State.None, "PickableItem.FSM");
 
 	public override void PostInject() {
 		PlatformBody = new KinematicPlatformMotion(CharacterBody2D, new FlipperList(), () => CharacterBody2D.GlobalPosition, MotionConfig.FloorUpDirection);
 		CollisionLayerManager.PickableItem(this);
-		AddChild(_fsm);
 		ConfigureFsm();
 	}
 
@@ -105,6 +105,11 @@ public partial class PickableItemNode : ItemNode, IPickableItemNode, IPoolLifecy
 		_fsm.Send(Event.PlayerPicksUp);
 	}
 
+	public override void _PhysicsProcess(double delta) {
+		_delta = (float)delta;
+		_fsm.Execute();
+	}
+
 	private void ConfigureFsm() {
 		var placingTime = 0d;
 
@@ -119,8 +124,8 @@ public partial class PickableItemNode : ItemNode, IPickableItemNode, IPoolLifecy
 				PickZone.Monitorable = false;
 			})
 			.Execute(() => {
-				FallAndBounce(_fsm.Delta);
-				placingTime -= _fsm.Delta;
+				FallAndBounce(_delta);
+				placingTime -= _delta;
 			})
 			.If(() => placingTime <= 0f).Set(State.Available)
 			.Build();
@@ -128,13 +133,13 @@ public partial class PickableItemNode : ItemNode, IPickableItemNode, IPoolLifecy
 
 		_fsm.State(State.Available)
 			.Enter(() => PickZone.Monitorable = true)
-			.Execute(() => FallAndBounce(_fsm.Delta))
+			.Execute(() => FallAndBounce(_delta))
 			.Build();
 
 		_fsm.State(State.PickingUp)
 			.Enter(() => _pickingUpSpeed = PlayerConfig.PickingUpSpeed)
 			.Execute(() => {
-				var delta = (float)_fsm.Delta;
+				var delta = _delta;
 				var destination = _playerPosition();
 				_pickingUpSpeed *= 1 + (PlayerConfig.PickingUpAcceleration * delta);
 				CharacterBody2D.GlobalPosition = CharacterBody2D.GlobalPosition.MoveToward(destination, delta * _pickingUpSpeed);
@@ -155,8 +160,7 @@ public partial class PickableItemNode : ItemNode, IPickableItemNode, IPoolLifecy
 	}
 
 	private void FallAndBounce(double delta) {
-		PlatformBody.SetDelta(delta);
-		PlatformBody.ApplyGravity(PlayerConfig.FloorGravity, PlayerConfig.MaxFallingSpeed);
+		PlatformBody.ApplyGravity(PlayerConfig.FloorGravity, PlayerConfig.MaxFallingSpeed, _delta);
 		if (PlatformBody.IsOnFloor()) {
 			PlatformBody.ApplyLateralFriction(PlayerConfig.DropLateralFriction, PlayerConfig.StopIfSpeedIsLessThan);
 		}

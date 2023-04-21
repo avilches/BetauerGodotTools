@@ -200,7 +200,6 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 
 		PlatformBody = new KinematicPlatformMotion(CharacterBody2D, flipper, () => Marker2D.GlobalPosition, MotionConfig.FloorUpDirection,
 			FloorRaycasts);
-		_fsm.OnBefore += () => PlatformBody.SetDelta(_fsm.Delta);
 		// OnAfter += () => {
 		// 	Label.Text = _animationStack.GetPlayingOnce() != null
 		// 		? _animationStack.GetPlayingOnce().Name
@@ -302,11 +301,11 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 	public bool CanJump() => !RaycastCanJump.IsColliding(); 
 
 	public void ApplyFloorGravity(float factor = 1.0F) {
-		PlatformBody.ApplyGravity(PlayerConfig.FloorGravity * factor, PlayerConfig.MaxFallingSpeed);
+		PlatformBody.ApplyGravity(PlayerConfig.FloorGravity * factor, PlayerConfig.MaxFallingSpeed, (float)_fsm.Delta);
 	}
 
 	public void ApplyAirGravity(float factor = 1.0F) {
-		PlatformBody.ApplyGravity(PlayerConfig.AirGravity * factor, PlayerConfig.MaxFallingSpeed);
+		PlatformBody.ApplyGravity(PlayerConfig.AirGravity * factor, PlayerConfig.MaxFallingSpeed, (float)_fsm.Delta);
 	}
 
 	public enum AttackState {
@@ -433,7 +432,6 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 
 		_fsm.State(PlayerState.Landing)
 			.OnInput(InventoryHandler)
-			// .OnInputBatch(AttackAndJumpHandler)
 			.Enter(() => {
 				_jumpHelperMonitor?.Show("");
 				_coyoteMonitor?.Show("");
@@ -457,14 +455,14 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 			.OnInput(e => {
 				if (e.IsKeyPressed(Key.V)) Game.WorldScene.InstantiateNewZombie();
 			})
-			// .OnInputBatch(AttackAndJumpHandler)
 			.Enter(() => {
 				if (AnimationShoot.IsPlaying()) AnimationIdle.Queue();
 				else AnimationIdle.Play();
 			})
 			.Execute(() => {
 				ApplyFloorGravity();
-				PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
+				PlatformBody.ApplyLateralFriction(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
+				if (PlatformBody.IsOnWall()) PlatformBody.MotionX = 0;
 				PlatformBody.Move();
 			})
 			.If(() => Jump.IsJustPressed && IsPressingDown && IsOnFallingPlatform()).Then(
@@ -480,7 +478,6 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 
 		_fsm.State(PlayerState.Running)
 			.OnInput(InventoryHandler)
-			// .OnInputBatch(AttackAndJumpHandler)
 			.Execute(() => {
 				ApplyFloorGravity();
 				if (XInput == 0) {
@@ -493,8 +490,8 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 					}
 				}
 				PlatformBody.Flip(XInput);
-				PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.Friction, 
-					PlayerConfig.StopIfSpeedIsLessThan, PlayerConfig.ChangeDirectionFactor);
+				PlatformBody.ApplyLateralConstantAcceleration(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.Friction, 
+					PlayerConfig.StopIfSpeedIsLessThan, PlayerConfig.ChangeDirectionFactor, (float)_fsm.Delta);
 				PlatformBody.Move();
 			})
 			.If(() => Jump.IsJustPressed && IsPressingDown && IsOnFallingPlatform()).Then(
@@ -516,7 +513,8 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 			})
 			.Execute(() => {
 				ApplyFloorGravity();
-				PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
+				PlatformBody.ApplyLateralFriction(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
+				if (PlatformBody.IsOnWall()) PlatformBody.MotionX = 0;
 				PlatformBody.Move();
 				if (Attack.IsJustPressed) {
 					if (_attackState == AttackState.Step1) {
@@ -542,11 +540,11 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 			.Execute(() => {
 				ApplyFloorGravity();
 				if (!PlatformBody.IsOnFloor()) {
-					PlatformBody.Lateral(xInputEnterState, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed,
+					PlatformBody.ApplyLateralConstantAcceleration(xInputEnterState, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed,
 						PlayerConfig.AirResistance,
-						PlayerConfig.StopIfSpeedIsLessThan, PlayerConfig.ChangeDirectionFactor);
+						PlayerConfig.StopIfSpeedIsLessThan, PlayerConfig.ChangeDirectionFactor, (float)_fsm.Delta);
 				} else {
-					PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
+					PlatformBody.ApplyLateralFriction(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
 				}
 				PlatformBody.Move();
 				if (_attackState == AttackState.Start) _attackState = AttackState.Step1;
@@ -592,7 +590,7 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 		_fsm.State(PlayerState.RangeAttack)
 			.Execute(() => {
 				ApplyFloorGravity();
-				PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
+				PlatformBody.ApplyLateralFriction(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
 				PlatformBody.Move();
 				if (IsPlayerShooting()) Shoot();
 			})
@@ -606,10 +604,10 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 			.Execute(() => {
 				ApplyFloorGravity();
 				if (!PlatformBody.IsOnFloor()) {
-					PlatformBody.Lateral(xInputEnterState, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
-						PlayerConfig.StopIfSpeedIsLessThan, PlayerConfig.ChangeDirectionFactor);
+					PlatformBody.ApplyLateralConstantAcceleration(xInputEnterState, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
+						PlayerConfig.StopIfSpeedIsLessThan, PlayerConfig.ChangeDirectionFactor, (float)_fsm.Delta);
 				} else {
-					PlatformBody.Stop(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
+					PlatformBody.ApplyLateralFriction(PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan);
 				}
 				PlatformBody.Move();
 				if (IsPlayerShooting()) Shoot();
@@ -634,8 +632,8 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 
 				PlatformBody.Flip(XInput);
 				ApplyAirGravity();
-				PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
-					PlayerConfig.StopIfSpeedIsLessThan, PlayerConfig.ChangeDirectionFactor);
+				PlatformBody.ApplyLateralConstantAcceleration(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
+					PlayerConfig.StopIfSpeedIsLessThan, PlayerConfig.ChangeDirectionFactor, (float)_fsm.Delta);
 				PlatformBody.Move();
 			})
 			.If(() => Attack.IsJustPressed).Send(PlayerEvent.Attack)
@@ -652,8 +650,8 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 				if (MotionY > PlayerConfig.StartFallingSpeed) AnimationFall.Play();
 				PlatformBody.Flip(XInput);
 				ApplyAirGravity();
-				PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
-					PlayerConfig.StopIfSpeedIsLessThan, PlayerConfig.ChangeDirectionFactor);
+				PlatformBody.ApplyLateralConstantAcceleration(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
+					PlayerConfig.StopIfSpeedIsLessThan, PlayerConfig.ChangeDirectionFactor, (float)_fsm.Delta);
 				PlatformBody.Move();
 			})
 			.If(() => Attack.IsJustPressed).Send(PlayerEvent.Attack)
@@ -677,8 +675,8 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 				if (MotionY > PlayerConfig.StartFallingSpeed) AnimationFall.Play();
 				PlatformBody.Flip(XInput);
 				ApplyAirGravity();
-				PlatformBody.Lateral(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
-					PlayerConfig.StopIfSpeedIsLessThan, PlayerConfig.ChangeDirectionFactor);
+				PlatformBody.ApplyLateralConstantAcceleration(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
+					PlayerConfig.StopIfSpeedIsLessThan, PlayerConfig.ChangeDirectionFactor, (float)_fsm.Delta);
 				PlatformBody.Move();
 			})
 			.If(() => Attack.IsJustPressed).Send(PlayerEvent.Attack)
@@ -690,8 +688,8 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 			.OnInput(InventoryHandler)
 			.Enter(() => CharacterBody2D.MotionMode = CharacterBody2D.MotionModeEnum.Floating)
 			.Execute(() => {
-				PlatformBody.AddSpeed(XInput, YInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed,
-					PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan, 0);
+				PlatformBody.ApplyConstantAcceleration(XInput, YInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed,
+					PlayerConfig.Friction, PlayerConfig.StopIfSpeedIsLessThan, 0, (float)_fsm.Delta);
 				PlatformBody.Move();
 			})
 			.If(() => Float.IsJustPressed).Set(PlayerState.Fall)
