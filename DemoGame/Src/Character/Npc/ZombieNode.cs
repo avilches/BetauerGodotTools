@@ -110,6 +110,7 @@ public partial class ZombieNode : NpcItemNode {
 	private float MotionY => PlatformBody.MotionY;
 
 	public KinematicPlatformMotion PlatformBody;
+	public LateralState LateralState;
 
 	private readonly FsmSync<ZombieState, ZombieEvent> _fsm = new(ZombieState.Idle, "Zombie.FSM");
 	private float _delta;
@@ -120,19 +121,21 @@ public partial class ZombieNode : NpcItemNode {
 	private DebugOverlay? _overlay;
 
 	private Vector2 PlayerPos => ItemRepository.PlayerNode.Marker2D.GlobalPosition;
-	public bool IsFacingToPlayer() => PlatformBody.IsFacingTo(PlayerPos);
-	public bool IsToTheRightOfPlayer() => PlatformBody.IsToTheRightOf(PlayerPos);
+	public bool IsFacingToPlayer() => LateralState.IsFacingTo(PlayerPos);
+	public bool IsToTheRightOfPlayer() => LateralState.IsToTheRightOf(PlayerPos);
 	public int RightOfPlayer() => IsToTheRightOfPlayer() ? 1 : -1;
-	public float AngleToPlayer() => PlatformBody.AngleTo(PlayerPos);
-	public override float DistanceToPlayer() => PlatformBody.DistanceTo(PlayerPos);
-	public Vector2 DirectionToPlayer() => PlatformBody.DirectionTo(PlayerPos);
+	public float AngleToPlayer() => Marker2D.GlobalPosition.AngleTo(DirectionToPlayer());
+	public override float DistanceToPlayer() => Marker2D.GlobalPosition.DistanceTo(PlayerPos);
+	public Vector2 DirectionToPlayer() => Marker2D.GlobalPosition.DirectionTo(PlayerPos);
 	public bool CanSeeThePlayer() => IsFacingToPlayer() &&
 									 DistanceToPlayer() <= NpcConfig.VisionDistance &&
 									 IsPlayerInAngle() &&
 									 !_lazyRaycastToPlayer.From(Marker2D).To(PlayerPos).Cast().Collision.IsColliding;
 	
 	public bool IsPlayerInAngle() => NpcConfig.VisionAngle > 0 && 
-									 Mathf.Acos(Mathf.Abs(PlatformBody.LookRightDirection.Dot(DirectionToPlayer()))) <= NpcConfig.VisionAngle;
+									 Mathf.Acos(Mathf.Abs(RightVector.Dot(DirectionToPlayer()))) <= NpcConfig.VisionAngle;
+
+	private Vector2 RightVector => PlatformBody.UpRightNormal.Rotate90Right();
 
 	public override void OnGet() {
 	}
@@ -167,7 +170,7 @@ public partial class ZombieNode : NpcItemNode {
 		ConfigureFsm();
 
 		// AI
-		_zombieAi = MeleeAi.Create(Handler, new MeleeAi.Sensor(this, PlatformBody, () => PlayerPos, () => _delta));
+		_zombieAi = MeleeAi.Create(Handler, new MeleeAi.Sensor(this, PlatformBody, LateralState, () => PlayerPos, () => _delta));
 		_fsm.OnBefore += () =>_zombieAi.Execute();
 		_fsm.OnBefore += () => Label.Text = _zombieAi.GetState();
 		_fsm.OnAfter += () => _zombieAi.EndFrame();
@@ -187,7 +190,7 @@ public partial class ZombieNode : NpcItemNode {
 				DistanceToPlayer() > NpcConfig.VisionDistance ||
 				!IsPlayerInAngle()) {
 				var distance = new Vector2(NpcConfig.VisionDistance, 0);
-				var direction = new Vector2(PlatformBody.FacingRight, 1);
+				var direction = new Vector2(LateralState.FacingRight, 1);
 				canvas.DrawLine(Marker2D.GlobalPosition, Marker2D.GlobalPosition + distance.Rotated(-NpcConfig.VisionAngle) * direction, Colors.Gray);
 				canvas.DrawLine(Marker2D.GlobalPosition, Marker2D.GlobalPosition + distance.Rotated(+NpcConfig.VisionAngle) * direction, Colors.Gray);
 				canvas.DrawLine(Marker2D.GlobalPosition, Marker2D.GlobalPosition + distance * direction, Colors.Gray);
@@ -243,9 +246,9 @@ public partial class ZombieNode : NpcItemNode {
 		var flipper = new FlipperList()
 			.Sprite2DFlipH(_mainSprite)
 			.ScaleX(_attackArea);
-		flipper.IsFacingRight = flipper.IsFacingRight;
-
-		PlatformBody = new KinematicPlatformMotion(CharacterBody2D, flipper, () => Marker2D.GlobalPosition, MotionConfig.FloorUpDirection);
+		
+		LateralState = new LateralState(flipper, () => CharacterBody2D.UpDirection.Rotate90Right(), () => Marker2D.GlobalPosition);
+		PlatformBody = new KinematicPlatformMotion(CharacterBody2D, MotionConfig.FloorUpDirection);
 
 		CollisionLayerManager.NpcConfigureCollisions(CharacterBody2D);
 		CollisionLayerManager.NpcConfigureCollisions(FloorRaycast);
@@ -360,22 +363,22 @@ public partial class ZombieNode : NpcItemNode {
 	public void AddOverlayCrossAndDot(DebugOverlay overlay) {    
 		overlay
 			.OpenBox()
-				.Text("Dot", () => PlatformBody.LookRightDirection.Dot(DirectionToPlayer()).ToString("0.00")).EndMonitor()
-				.Text("Cross", () => PlatformBody.LookRightDirection.Cross(DirectionToPlayer()).ToString("0.00")).EndMonitor()
-				.Text("Acos(Dot)", () => Mathf.RadToDeg(Mathf.Acos(Math.Abs(PlatformBody.LookRightDirection.Dot(DirectionToPlayer())))).ToString("0.00")).EndMonitor()
-				.Text("Acos(Cross)", () => Mathf.RadToDeg(Mathf.Acos(Math.Abs(PlatformBody.LookRightDirection.Cross(DirectionToPlayer())))).ToString("0.00")).EndMonitor()
+				.Text("Dot", () => RightVector.Dot(DirectionToPlayer()).ToString("0.00")).EndMonitor()
+				.Text("Cross", () => RightVector.Cross(DirectionToPlayer()).ToString("0.00")).EndMonitor()
+				.Text("Acos(Dot)", () => Mathf.RadToDeg(Mathf.Acos(Math.Abs(RightVector.Dot(DirectionToPlayer())))).ToString("0.00")).EndMonitor()
+				.Text("Acos(Cross)", () => Mathf.RadToDeg(Mathf.Acos(Math.Abs(RightVector.Cross(DirectionToPlayer())))).ToString("0.00")).EndMonitor()
 			.CloseBox()
 			.OpenBox()
-				.Text("SameDir", () => PlatformBody.LookRightDirection.IsSameDirection(DirectionToPlayer())).EndMonitor()
-				.Text("OppDir", () => PlatformBody.LookRightDirection.IsOppositeDirection(DirectionToPlayer())).EndMonitor()
-				.Text("IsRight", () => PlatformBody.LookRightDirection.IsRight(DirectionToPlayer())).EndMonitor()
-				.Text("IsLeft", () => PlatformBody.LookRightDirection.IsLeft(DirectionToPlayer())).EndMonitor()
+				.Text("SameDir", () => RightVector.IsSameDirection(DirectionToPlayer())).EndMonitor()
+				.Text("OppDir", () => RightVector.IsOppositeDirection(DirectionToPlayer())).EndMonitor()
+				.Text("IsRight", () => RightVector.IsRight(DirectionToPlayer())).EndMonitor()
+				.Text("IsLeft", () => RightVector.IsLeft(DirectionToPlayer())).EndMonitor()
 			.CloseBox()
 			.OpenBox()
-				.Text("SameDirA", () => PlatformBody.LookRightDirection.IsSameDirectionAngle(DirectionToPlayer())).EndMonitor()
-				.Text("OppDirA", () => PlatformBody.LookRightDirection.IsOppositeDirectionAngle(DirectionToPlayer())).EndMonitor()
-				.Text("IsRightA", () => PlatformBody.LookRightDirection.IsRightAngle(DirectionToPlayer())).EndMonitor()
-				.Text("IsLeftA", () => PlatformBody.LookRightDirection.IsLeftAngle(DirectionToPlayer())).EndMonitor()
+				.Text("SameDirA", () => RightVector.IsSameDirectionAngle(DirectionToPlayer())).EndMonitor()
+				.Text("OppDirA", () => RightVector.IsOppositeDirectionAngle(DirectionToPlayer())).EndMonitor()
+				.Text("IsRightA", () => RightVector.IsRightAngle(DirectionToPlayer())).EndMonitor()
+				.Text("IsLeftA", () => RightVector.IsLeftAngle(DirectionToPlayer())).EndMonitor()
 			.CloseBox()
 			.OpenBox()
 			.CloseBox();

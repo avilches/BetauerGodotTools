@@ -1,6 +1,7 @@
 using System;
 using Betauer.Core;
 using Betauer.Core.Time;
+using Betauer.Flipper;
 using Betauer.FSM.Sync;
 using Godot;
 using Pcg;
@@ -186,19 +187,21 @@ public class MeleeAi : FsmSync<MeleeAi.State, MeleeAi.Event>, ICharacterAi {
     public class Sensor {
         private readonly ZombieNode _zombieNode;
         private readonly KinematicPlatformMotion _body;
+        private readonly LateralState _lateralState;
         private readonly Func<Vector2> GetPlayerGlobalPosition;
         private readonly Func<float> _delta;
 
-        public Sensor(ZombieNode zombieNode, KinematicPlatformMotion body, Func<Vector2> playerGlobalPosition, Func<float> delta) {
+        public Sensor(ZombieNode zombieNode, KinematicPlatformMotion body, LateralState lateralState, Func<Vector2> playerGlobalPosition, Func<float> delta) {
             _zombieNode = zombieNode;
             _body = body;
+            _lateralState = lateralState;
             GetPlayerGlobalPosition = playerGlobalPosition;
             _delta = delta;
         }
 
-        public int FacingRight => _body.FacingRight;
-        public bool IsFacingRight => _body.IsFacingRight;
-        public void Flip() => _body.Flip();
+        public int FacingRight => _lateralState.FacingRight;
+        public bool IsFacingRight => _lateralState.IsFacingRight;
+        public void Flip() => _lateralState.Flip();
         public bool IsHurt() => _zombieNode.IsState(ZombieState.Hurt);
         public bool IsAttacking() => _zombieNode.IsState(ZombieState.Attacking);
         public bool IsOnWall() => _body.IsOnWall() && _body.IsOnWallRight() == IsFacingRight;
@@ -216,8 +219,8 @@ public class MeleeAi : FsmSync<MeleeAi.State, MeleeAi.Event>, ICharacterAi {
             ? !_zombieNode.FinishFloorLeft.IsColliding()
             : !_zombieNode.FinishFloorRight.IsColliding();
 
-        public void FaceOppositePlayer() => _body.FaceOppositeTo(GetPlayerGlobalPosition());
-        public void FaceToPlayer() => _body.FaceTo(GetPlayerGlobalPosition());
+        public void FaceOppositePlayer() => _lateralState.FaceOppositeTo(GetPlayerGlobalPosition());
+        public void FaceToPlayer() => _lateralState.FaceTo(GetPlayerGlobalPosition());
         public double Delta => _delta();
 
         public NpcItem.NpcStatus Status => _zombieNode.Status;

@@ -42,7 +42,7 @@ public partial class PickableItemNode : ItemNode, IPickableItemNode, IPoolLifecy
 	private readonly FsmSync<State, Event> _fsm = new(State.None, "PickableItem.FSM");
 
 	public override void PostInject() {
-		PlatformBody = new KinematicPlatformMotion(CharacterBody2D, new FlipperList(), () => CharacterBody2D.GlobalPosition, MotionConfig.FloorUpDirection);
+		PlatformBody = new KinematicPlatformMotion(CharacterBody2D, MotionConfig.FloorUpDirection);
 		CollisionLayerManager.PickableItem(this);
 		ConfigureFsm();
 	}

@@ -4,78 +4,109 @@ using System.Linq;
 using Godot;
 using Betauer.Core;
 using Betauer.Core.Nodes;
-using Betauer.Flipper;
 using GodotObject = Godot.GodotObject;
 using static Veronenger.Character.KinematicFormulas;
 
 namespace Veronenger.Character; 
 
-public class KinematicPlatformMotion : BaseKinematicMotion, IFlipper {
-    private readonly IFlipper _flippers;
-    protected readonly List<RayCast2D>? FloorRaycasts;
+public class KinematicPlatformMotion {
+    public CharacterBody2D CharacterBody { get; }
+    public readonly List<RayCast2D>? FloorRaycasts;
 
-    private bool _wasOnFloor = false;
-    private bool _isJustOnFloor = false;
-    private bool _isJustTookOff = false;
+    private Vector2 _floorUpDirection = Vector2.Up;
+    public Vector2 FloorUpDirection {
+        get => _floorUpDirection;
+        set {
+            _floorUpDirection = value;
+            CharacterBody.UpDirection = value;
+            UpRightNormal = value.Rotated(Mathf.Pi / 4); // up -> 45º
+
+            // If FloorUpDirection has a different direction than Vector.UP, this field store the difference, so it
+            // can be uses to transform original Up with regular up
+            _anglesToRotateFloor = Vector2.Up.AngleTo(value);
+        }
+    }
+
+    private float _anglesToRotateFloor = 0;
+    
+    public Vector2 UpRightNormal { get; private set; }
+
+    // Motion is the desired speed to achieve. The final speed should match, but it could be different because
+    // the friction or collision
+    public float MotionX;
+    public float MotionY;
+    public Vector2 Motion {
+        get => new(MotionX, MotionY);
+        set {
+            MotionX = value.X;
+            MotionY = value.Y;
+        }
+    }
 
     // Floor
     private bool _isOnFloor = false;
     private bool _isOnSlope = false;
     private Vector2 _floorNormal = Vector2.Zero;
     private GodotObject? _floor = null;
+    private bool _wasOnFloor = false;
+    private bool _isJustOnFloor = false;
+    private bool _isJustTookOff = false;
 
     // Wall
-    private bool _wasOnWall = false;
-    private bool _isJustOnWall = false;
     private bool _isOnWall = false;
     private Vector2 _wallNormal = Vector2.Zero;
     private GodotObject? _wall = null;
+    private bool _wasOnWall = false;
+    private bool _isJustOnWall = false;
 
     // Ceiling
     private bool _isOnCeiling = false;
 
-    public KinematicPlatformMotion(CharacterBody2D characterBody, IFlipper flippers, Func<Vector2>? globalPosition, Vector2? floorUpDirection, List<RayCast2D>? floorRaycasts = null) :
-        base(characterBody, globalPosition, floorUpDirection) {
-        _flippers = flippers;
+    public KinematicPlatformMotion(CharacterBody2D characterBody, Vector2? floorUpDirection, List<RayCast2D>? floorRaycasts = null) {
+        CharacterBody = characterBody;
+        FloorUpDirection = floorUpDirection ?? Vector2.Up;
         FloorRaycasts = floorRaycasts;
     }
 
-    public int FacingRight => IsFacingRight ? 1 : -1; 
-
-    public bool IsFacingRight {
-        get => _flippers.IsFacingRight;
-        set => _flippers.IsFacingRight = value;
+    protected Vector2 GetRotatedVelocity() {
+        return _anglesToRotateFloor > 0f ? Motion.Rotated(_anglesToRotateFloor) : Motion;
     }
 
-    public void Flip() => _flippers.Flip();
-    public void Flip(float xInput) => _flippers.Flip(xInput);
-
-    public void FaceTo(Node2D node2D) => FaceTo(node2D.GlobalPosition);
-    public void FaceOppositeTo(Node2D node2D) => FaceOppositeTo(node2D.GlobalPosition);
-    public bool IsFacingTo(Node2D node2D) => IsFacingTo(node2D.GlobalPosition);
-
-    public void FaceTo(Vector2 globalPosition) {
-        if (!IsFacingTo(globalPosition)) _flippers.Flip();
+    protected Vector2 RollbackRotateVelocity(Vector2 pendingInertia) {
+        return _anglesToRotateFloor > 0f ? pendingInertia.Rotated(-_anglesToRotateFloor) : pendingInertia;
     }
 
-    public void FaceOppositeTo(Vector2 globalPosition) {
-        if (IsFacingTo(globalPosition)) _flippers.Flip();
+    public void LimitMotion(Vector2 maxSpeed) {
+        LimitMotionX(maxSpeed.X);
+        LimitMotionY(maxSpeed.Y);
     }
 
-    /*
-     *  IsToTheRightOf | IsFacingRight | 
-     *  true           | true          |   globalPosition  -   Body:)
-     *  true           | false         |   globalPosition  - (:Body
-     *  false          | true          |   Body:)  -  globalPosition
-     *  false          | false         | (:Body    -  globalPosition
-     */
-    public bool IsFacingTo(Vector2 globalPosition) => IsToTheRightOf(globalPosition) != _flippers.IsFacingRight;
+    public void LimitMotionX(float maxSpeed) {
+        LimitMotionX(-maxSpeed, maxSpeed);
+    }
 
+    public void LimitMotionY(float maxSpeed) {
+        LimitMotionY(-maxSpeed, maxSpeed);
+    }
+
+    public void LimitMotionX(float start, float end) {
+        MotionX = Mathf.Clamp(MotionX, start, end);
+    }
+
+    public void LimitMotionY(float start, float end) {
+        MotionY = Mathf.Clamp(MotionY, start, end);
+    }
+
+    public void LimitMotionNormalized(float maxSpeed) {
+        var limited = Motion.LimitLength(maxSpeed);
+        MotionX = limited.X;
+        MotionY = limited.Y;
+    }
+
+    // Floor flags
     public bool WasOnFloor() => _wasOnFloor;
     public bool IsJustOnFloor() => _isJustOnFloor;
     public bool IsJustTookOff() => _isJustTookOff;
-
-    // Floor flags
     public bool IsOnFloor() => _isOnFloor;
     public bool IsOnSlope() => _isOnSlope;
 

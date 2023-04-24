@@ -92,6 +92,7 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 	private readonly FsmNodeSync<PlayerState, PlayerEvent> _fsm = new(PlayerState.Idle, "Player.FSM", true);
 	
 	public KinematicPlatformMotion PlatformBody { get; private set; }
+	public LateralState LateralState { get; private set; }
 	public Inventory Inventory { get; private set; }
 
 	public Anim AnimationIdle { get; private set; }
@@ -198,8 +199,8 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 			.ScaleX(_attackArea2);
 		flipper.IsFacingRight = true;
 
-		PlatformBody = new KinematicPlatformMotion(CharacterBody2D, flipper, () => Marker2D.GlobalPosition, MotionConfig.FloorUpDirection,
-			FloorRaycasts);
+		PlatformBody = new KinematicPlatformMotion(CharacterBody2D, MotionConfig.FloorUpDirection, FloorRaycasts);
+		LateralState = new LateralState(flipper, () => MotionConfig.FloorUpDirection.Rotate90Right(), () => GlobalPosition);
 		// OnAfter += () => {
 		// 	Label.Text = _animationStack.GetPlayingOnce() != null
 		// 		? _animationStack.GetPlayingOnce().Name
@@ -350,7 +351,7 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 		// var collision = _lazyRaycast2DDrop.From(Marker2D).To(Marker2D.GlobalPosition + minDistanceToDrop).Cast().Collision;
 		// if (collision.IsColliding) return;
 		// var dropVelocity = new Vector2(MotionX + (PlatformBody.FacingRight * PlayerConfig.DropLateralSpeed), MotionY);
-		var dropVelocity = new Vector2(PlatformBody.FacingRight * Math.Max(Math.Abs(MotionX), PlayerConfig.DropLateralSpeed), MotionY);
+		var dropVelocity = new Vector2(LateralState.FacingRight * Math.Max(Math.Abs(MotionX), PlayerConfig.DropLateralSpeed), MotionY);
 		Game.WorldScene.PlayerDrop(item, Marker2D.GlobalPosition, dropVelocity);
 		Inventory.Drop();
 	}
@@ -489,7 +490,7 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 						AnimationRun.Play();
 					}
 				}
-				PlatformBody.Flip(XInput);
+				LateralState.Flip(XInput);
 				PlatformBody.ApplyLateralConstantAcceleration(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.Friction, 
 					PlayerConfig.StopIfSpeedIsLessThan, PlayerConfig.ChangeDirectionFactor, (float)_fsm.Delta);
 				PlatformBody.Move();
@@ -564,8 +565,8 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 				return;
 			} 
 			shootTimer.Restart();
-			var bulletPosition = weapon.Config.ProjectileStartPosition * new Vector2(PlatformBody.FacingRight, 1);
-			var bulletDirection = new Vector2(PlatformBody.FacingRight, 0);
+			var bulletPosition = weapon.Config.ProjectileStartPosition * new Vector2(LateralState.FacingRight, 1);
+			var bulletDirection = new Vector2(LateralState.FacingRight, 0);
 			var hits = 0;
 			var bullet = Game.WorldScene.NewBullet();
 			Inventory.UpdateWeaponRangeAmmo(weapon, -1);
@@ -630,7 +631,7 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 					PlatformBody.MotionY = -PlayerConfig.JumpSpeedMin;
 				}
 
-				PlatformBody.Flip(XInput);
+				LateralState.Flip(XInput);
 				ApplyAirGravity();
 				PlatformBody.ApplyLateralConstantAcceleration(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
 					PlayerConfig.StopIfSpeedIsLessThan, PlayerConfig.ChangeDirectionFactor, (float)_fsm.Delta);
@@ -648,7 +649,7 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 			.Enter(() => coyoteTimer.Restart().SetAlarm(PlayerConfig.CoyoteJumpTime))
 			.Execute(() => {
 				if (MotionY > PlayerConfig.StartFallingSpeed) AnimationFall.Play();
-				PlatformBody.Flip(XInput);
+				LateralState.Flip(XInput);
 				ApplyAirGravity();
 				PlatformBody.ApplyLateralConstantAcceleration(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
 					PlayerConfig.StopIfSpeedIsLessThan, PlayerConfig.ChangeDirectionFactor, (float)_fsm.Delta);
@@ -673,7 +674,7 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 			.OnInput(InventoryHandler)
 			.Execute(() => {
 				if (MotionY > PlayerConfig.StartFallingSpeed) AnimationFall.Play();
-				PlatformBody.Flip(XInput);
+				LateralState.Flip(XInput);
 				ApplyAirGravity();
 				PlatformBody.ApplyLateralConstantAcceleration(XInput, PlayerConfig.Acceleration, PlayerConfig.MaxSpeed, PlayerConfig.AirResistance,
 					PlayerConfig.StopIfSpeedIsLessThan, PlayerConfig.ChangeDirectionFactor, (float)_fsm.Delta);
