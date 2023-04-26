@@ -30,10 +30,10 @@ public partial class ProjectileTrail : BaseNodeLifecycle, IPoolLifecycle {
 	private Vector2 _collisionPosition = Vector2.Zero;
 	private bool _queueEnd = false;
 
-	public override void OnGet() {
+	public void OnGet() {
 	}
 
-	public override void PostInject() {
+	public void PostInject() {
 		Trail = GetNode<Line2D>("Line2D");
 		Trail.Visible = false;
 		Trail.Width = 1f;
@@ -46,11 +46,6 @@ public partial class ProjectileTrail : BaseNodeLifecycle, IPoolLifecycle {
 		};
 		AddChild(Sprite2D);
 		_lazyRaycast2D.GetDirectSpaceFrom(Trail);
-	}
-
-	public override Vector2 GlobalPosition {
-		get => throw new Exception($"Position is controlled by {nameof(ShootFrom)} method");
-		set => throw new Exception($"Position is controlled by {nameof(ShootFrom)} method");
 	}
 
 	public void ShootFrom(WeaponRangeItem item, Vector2 from, Vector2 direction, Action<PhysicsRayQueryParameters2D> raycastConfig, Func<RaycastCollision, Behaviour> onCollide) {
