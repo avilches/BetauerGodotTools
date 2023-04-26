@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Betauer.Application.Lifecycle;
 using Betauer.Core;
 using Betauer.Core.Nodes;
 using Betauer.Core.Pool.Lifecycle;
@@ -10,7 +9,7 @@ using Veronenger.Persistent;
 
 namespace Veronenger.Transient;
 
-public partial class ProjectileTrail : BaseNodeLifecycle, IPoolLifecycle {
+public partial class ProjectileTrail : Node, IPoolLifecycle {
 	public enum Behaviour { Continue, Stop }
 	private static readonly Random Random = new Pcg.PcgRandom();
 	private static float RayLength = 40;
@@ -32,6 +31,9 @@ public partial class ProjectileTrail : BaseNodeLifecycle, IPoolLifecycle {
 
 	public void OnGet() {
 	}
+
+	public bool IsBusy() => IsInsideTree();
+	public bool IsInvalid() => !IsInstanceValid(this);
 
 	public void PostInject() {
 		Trail = GetNode<Line2D>("Line2D");

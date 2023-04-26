@@ -9,14 +9,12 @@ using Betauer.Core.Nodes.Property;
 using Betauer.Core.Pool;
 using Betauer.Core.Pool.Lifecycle;
 using Betauer.Core.Restorer;
-using Betauer.DI;
 using Betauer.DI.Attributes;
 using Betauer.Flipper;
 using Betauer.FSM.Sync;
 using Betauer.Input;
 using Betauer.NodePath;
 using Betauer.Nodes;
-using Betauer.Tools.Logging;
 using Godot;
 using Pcg;
 using Veronenger.Character.InputActions;
@@ -67,7 +65,7 @@ public partial class ZombieNode : NpcItemNode {
 		RedFlash = colorAnimation.EndAnimate();
 	}
 
-	public override Vector2 GlobalPosition {
+	public Vector2 GlobalPosition {
 		get => CharacterBody2D.GlobalPosition;
 		set => CharacterBody2D.GlobalPosition = value;
 	}
@@ -137,7 +135,7 @@ public partial class ZombieNode : NpcItemNode {
 
 	private Vector2 RightVector => PlatformBody.UpRightNormal.Rotate90Right();
 
-	public override void OnGet() {
+	public void OnGet() {
 	}
 
 	private Multicast<object, PlayerAttackEvent>.EventConsumer consumer;
@@ -163,7 +161,7 @@ public partial class ZombieNode : NpcItemNode {
 		consumer.Unsubscribe();
 	}
 
-	public override void PostInject() {
+	public void PostInject() {
 		TreeExiting += _ExitingTree;
 		ConfigureAnimations();
 		ConfigureCharacter();

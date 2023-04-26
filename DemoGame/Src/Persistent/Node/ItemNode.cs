@@ -5,22 +5,9 @@ using Godot;
 
 namespace Veronenger.Persistent.Node;
 
-public abstract partial class ItemNode : Godot.Node, ILinkableItem, IPoolLifecycle, IInjectable {
-    protected ItemNode() {
-        TreeEntered += () => _busy = true;
-        TreeExited += () => _busy = false;
-    }
-    
-    private volatile bool _busy = false;
-    public bool IsBusy() => _busy;
+public abstract partial class ItemNode : Godot.Node, ILinkableItem, IPoolLifecycle {
+    public bool IsBusy() => IsInsideTree();
     public bool IsInvalid() => !IsInstanceValid(this);
-
-    public abstract void PostInject();
-    
-    // From IPoolLifecycle
-    public abstract void OnGet();
-
-    public abstract Vector2 GlobalPosition { get; set; }
 
     [Inject] public ItemRepository ItemRepository { get; set; }
     protected virtual Item Item { get; set; }

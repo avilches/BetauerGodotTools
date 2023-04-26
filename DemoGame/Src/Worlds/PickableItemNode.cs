@@ -41,13 +41,13 @@ public partial class PickableItemNode : ItemNode, IPickableItemNode, IPoolLifecy
 	private float _delta;
 	private readonly FsmSync<State, Event> _fsm = new(State.None, "PickableItem.FSM");
 
-	public override void PostInject() {
+	public void PostInject() {
 		PlatformBody = new KinematicPlatformMotion(CharacterBody2D, MotionConfig.FloorUpDirection);
 		CollisionLayerManager.PickableItem(this);
 		ConfigureFsm();
 	}
 
-	public override void OnGet() {}
+	public void OnGet() {}
 
 	public override void _Ready() {
 		PickZone.LinkMetaToItemId(Item);
@@ -80,11 +80,6 @@ public partial class PickableItemNode : ItemNode, IPickableItemNode, IPoolLifecy
 			.AddSerie("MotionY").Load(() => PlatformBody.MotionY).EndSerie().EndMonitor()
 			.CloseBox()
 			.GraphSpeed("Speed", PlayerConfig.JumpSpeed * 2).EndMonitor();
-	}
-
-	public override Vector2 GlobalPosition {
-		get => CharacterBody2D.GlobalPosition;
-		set => CharacterBody2D.GlobalPosition = value;
 	}
 
 	public void Spawn(Vector2 position, Vector2? velocity = null) {
