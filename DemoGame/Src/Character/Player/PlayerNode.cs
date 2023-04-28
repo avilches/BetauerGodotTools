@@ -19,7 +19,6 @@ using Veronenger.Character.InputActions;
 using Veronenger.Config;
 using Veronenger.Managers;
 using Veronenger.Persistent;
-using Veronenger.Persistent.Node;
 using Veronenger.Transient;
 using Veronenger.UI;
 
@@ -48,7 +47,7 @@ public enum PlayerEvent {
 	Death,
 }
 
-public partial class PlayerNode : Node, ILinkableItem, IInjectable {
+public partial class PlayerNode : Node, IInjectable, INodeWithItem {
 
 	public event Action? OnFree;
 	public override void _Notification(int what) {
@@ -134,13 +133,12 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 	private readonly GodotStopwatch _stateTimer = new(false, true);
 
 	[Inject] private ItemRepository ItemRepository { get; set; }
-	private PlayerStatus Status => Item.Status;
-	private PlayerConfig PlayerConfig => Item.Config;
-	private PlayerItem Item { get; set; }
+	private PlayerStatus Status => PlayerItem.Status;
+	private PlayerConfig PlayerConfig => PlayerItem.Config;
 
-	public void LinkItem(Item item) {
-		Item = (PlayerItem)item;
-	}
+	public Item Item { get; set; }
+
+	private PlayerItem PlayerItem => (PlayerItem)Item; 
 
 	public override void _Ready() {
 		// Some events could be triggered when a property is changed during the PostInject configuration phase,
@@ -224,7 +222,7 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 		CollisionLayerManager.PlayerConfigureCollisions(this);
 		CollisionLayerManager.PlayerPickableArea(this, area2D => {
 			var pickable = ItemRepository.GetFromMeta<PickableItem>(area2D);
-			pickable.ItemNode!.PlayerPicksUp(() => Marker2D.GlobalPosition, () => PickUp(pickable));
+			pickable.Node!.PlayerPicksUp(() => Marker2D.GlobalPosition, () => PickUp(pickable));
 		});
 
 		// _lazyRaycast2DDrop.GetDirectSpaceFrom(Marker2D);
@@ -249,7 +247,7 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 				_hurtArea.HasOverlappingAreas()) {
 				var attacker = _hurtArea.GetOverlappingAreas()
 					.Select(area2D => ItemRepository.GetFromMeta<NpcItem>(area2D))
-					.MinBy(enemy => enemy.ItemNode.DistanceToPlayer());
+					.MinBy(enemy => enemy.Node.DistanceToPlayer());
 				Status.UnderAttack = true;
 				Status.UpdateHealth(-attacker.Config.Attack);
 				if (Status.IsDead()) {
@@ -274,8 +272,8 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 				if (attackArea.Monitoring && attackArea.HasOverlappingAreas()) {
 					attackArea.GetOverlappingAreas()
 						.Select(area2D => ItemRepository.GetFromMeta<NpcItem>(area2D))
-						.Where(enemy => enemy.ItemNode.CanBeAttacked(Inventory.WeaponMeleeEquipped))
-						.OrderBy(enemy => enemy.ItemNode.DistanceToPlayer()) // Ascending, so first element is the closest to the player
+						.Where(enemy => enemy.Node.CanBeAttacked(Inventory.WeaponMeleeEquipped))
+						.OrderBy(enemy => enemy.Node.DistanceToPlayer()) // Ascending, so first element is the closest to the player
 						.Take(Status.AvailableHits)
 						.ForEach(enemy => {
 							Status.AvailableHits--;
@@ -577,7 +575,7 @@ public partial class PlayerNode : Node, ILinkableItem, IInjectable {
 						return ProjectileTrail.Behaviour.Stop; // Something solid was hit
 					}
 					var npc = ItemRepository.GetFromMeta<NpcItem>(collision.Collider);
-					if (npc.ItemNode.CanBeAttacked(weapon)) {
+					if (npc.Node.CanBeAttacked(weapon)) {
 						hits++;
 						EventBus.Publish(new PlayerAttackEvent(this, npc, weapon));
 					}

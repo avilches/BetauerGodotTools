@@ -1,8 +1,8 @@
 using Veronenger.Config;
-using Veronenger.Persistent.Node;
+using Veronenger.Worlds;
 
 namespace Veronenger.Persistent;
 
-public abstract class PickableItem : Item<IPickableItemNode> {
+public abstract class PickableItem : Item<PickableItemNode> {
     public virtual PickableConfig Config { get; protected set; }
 }

@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using Betauer.Core;
 using Betauer.Core.Nodes;
 using Betauer.Core.Pool.Lifecycle;
+using Betauer.DI;
 using Godot;
 using Godot.Collections;
 using Veronenger.Persistent;
 
 namespace Veronenger.Transient;
 
-public partial class ProjectileTrail : Node, IPoolLifecycle {
+public partial class ProjectileTrail : Node, IPoolLifecycle, IInjectable {
 	public enum Behaviour { Continue, Stop }
 	private static readonly Random Random = new Pcg.PcgRandom();
 	private static float RayLength = 40;

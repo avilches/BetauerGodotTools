@@ -68,9 +68,9 @@ public class ItemRepository {
     public TItem? GetOrNull<TItem>(string alias) where TItem : Item => _itemAlias.TryGetValue(alias, out var r) ? r as TItem : null; 
 
     public void Remove(Item item) {
-        item.UnlinkNode();
         if (item.Alias != null) _itemAlias.Remove(item.Alias);
         _itemRegistry.Remove(item.Id);
+        item.OnRemove();
     }
 
     public void Remove(int id) {

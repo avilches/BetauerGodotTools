@@ -1,10 +1,11 @@
 using System;
 using Veronenger.Config;
 using Veronenger.Persistent.Node;
+using NpcItemNode = Veronenger.Character.Npc.NpcItemNode;
 
 namespace Veronenger.Persistent;
 
-public class NpcItem : Item<INpcItemNode>  {
+public class NpcItem : Item<NpcItemNode>  {
     public NpcStatus Status { get; private set; }
     
     public NpcConfig Config { get; private set; }

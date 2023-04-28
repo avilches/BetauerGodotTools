@@ -1,21 +1,20 @@
 using System;
 using Betauer.Application.Monitor;
 using Betauer.Core.Pool.Lifecycle;
+using Betauer.DI;
 using Godot;
 using Betauer.DI.Attributes;
-using Betauer.Flipper;
 using Betauer.FSM.Sync;
 using Betauer.NodePath;
 using Veronenger.Character;
 using Veronenger.Config;
 using Veronenger.Managers;
 using Veronenger.Persistent;
-using Veronenger.Persistent.Node;
 using Vector2 = Godot.Vector2;
 
 namespace Veronenger.Worlds;
 
-public partial class PickableItemNode : ItemNode, IPickableItemNode, IPoolLifecycle {
+public partial class PickableItemNode : Node, IPoolLifecycle, IInjectable, INodeWithItem {
 	public enum State {
 		None, Dropping, Available, PickingUp, Finish
 	}
@@ -27,12 +26,16 @@ public partial class PickableItemNode : ItemNode, IPickableItemNode, IPoolLifecy
 	[Inject] private PlayerConfig PlayerConfig { get; set; }
 	[Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
 
+	public Item Item { get; set; }
 	protected PickableItem PickableItem => (PickableItem)Item;
 
 	[NodePath("Character")] public CharacterBody2D CharacterBody2D;
 	[NodePath("Character/Sprite")] public Sprite2D Sprite;
 	[NodePath("Character/PickZone")] public Area2D PickZone;
 
+	public bool IsBusy() => IsInsideTree();
+	public bool IsInvalid() => !IsInstanceValid(this);
+	
 	public KinematicPlatformMotion PlatformBody;
 	private State _state = State.Available;
 	private Func<Vector2> _playerPosition;
@@ -50,7 +53,7 @@ public partial class PickableItemNode : ItemNode, IPickableItemNode, IPoolLifecy
 	public void OnGet() {}
 
 	public override void _Ready() {
-		PickZone.LinkMetaToItemId(Item);
+		PickZone.LinkMetaToItemId(PickableItem);
 		_state = State.Available;
 		_playerPosition = null;
 		_onPickup = null;

@@ -9,6 +9,7 @@ using Betauer.Core.Nodes.Property;
 using Betauer.Core.Pool;
 using Betauer.Core.Pool.Lifecycle;
 using Betauer.Core.Restorer;
+using Betauer.DI;
 using Betauer.DI.Attributes;
 using Betauer.Flipper;
 using Betauer.FSM.Sync;
@@ -45,7 +46,7 @@ public enum ZombieState {
 	Fall
 }
 
-public partial class ZombieNode : NpcItemNode {
+public partial class ZombieNode : NpcItemNode, IInjectable {
 	
 	private static readonly PcgRandom Random = new();
 
@@ -91,6 +92,8 @@ public partial class ZombieNode : NpcItemNode {
 	
 	// [Inject] private InputActionCharacterHandler Handler { get; set; }
 	private NpcController Handler { get; set; } = new NpcController();
+
+	[Inject] private ItemRepository ItemRepository { get; set; }
 
 	public Anim AnimationIdle { get; private set; }
 	public Anim AnimationRun { get; private set; }
@@ -144,8 +147,8 @@ public partial class ZombieNode : NpcItemNode {
 		_fsm.Reset();
 		_zombieAi.Reset();
 		_lazyRaycastToPlayer.GetDirectSpaceFrom(_mainSprite);
-		_attackArea.LinkMetaToItemId(Item);
-		_hurtArea.LinkMetaToItemId(Item);
+		_attackArea.LinkMetaToItemId(NpcItem);
+		_hurtArea.LinkMetaToItemId(NpcItem);
 		UpdateHealthBar();
 		EnableAttackAndHurtAreas();
 		_overlay?.Enable();
@@ -287,7 +290,7 @@ public partial class ZombieNode : NpcItemNode {
 
 
 	private void OnPlayerAttackEvent(PlayerAttackEvent playerAttackEvent) {
-		if (playerAttackEvent.Npc.Id != Item.Id) return;
+		if (playerAttackEvent.Npc.Id != NpcItem.Id) return;
 		if (playerAttackEvent.Weapon is WeaponMeleeItem) {
 			Status.UnderMeleeAttack = true;
 			Kickback(NpcConfig.KickbackMeleeAngle.start, NpcConfig.KickbackMeleeAngle.end, playerAttackEvent.Weapon.Damage * NpcConfig.KickbackMeleeEnergyMultiplier);
@@ -337,7 +340,7 @@ public partial class ZombieNode : NpcItemNode {
 			.Text("State", () => _fsm.CurrentState.Key.ToString()).EndMonitor()
 			.Text("IA", () => _zombieAi.GetState()).EndMonitor()
 			.Text("Animation", () => _animationPlayer.CurrentAnimation).EndMonitor()
-			.Text("ItemId", () => Item.Id.ToString()).EndMonitor()
+			.Text("ItemId", () => NpcItem.Id.ToString()).EndMonitor()
 			.Text("ObjectId", () => GetInstanceId().ToString()).EndMonitor()
 		.CloseBox();
 	}
@@ -502,7 +505,7 @@ public partial class ZombieNode : NpcItemNode {
 			.Build();
 
 		_fsm.State(ZombieState.End)
-			.Enter(RemoveFromWorld)
+			.Enter(() => ItemRepository.Remove(NpcItem))
 			.If(() => true).Set(ZombieState.Idle)
 			.Build();
 
