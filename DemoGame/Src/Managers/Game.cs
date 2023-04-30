@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Betauer.Application.Lifecycle;
+using Betauer.Application.Persistent;
 using Betauer.Core.Nodes;
 using Betauer.Core.Pool.Lifecycle;
 using Betauer.Core.Signal;
@@ -8,7 +9,6 @@ using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
 using Godot;
 using Veronenger.Config;
-using Veronenger.Persistent;
 using Veronenger.UI;
 using Veronenger.Worlds;
 

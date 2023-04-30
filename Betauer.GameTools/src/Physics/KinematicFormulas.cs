@@ -1,7 +1,7 @@
 using System;
 using Godot;
 
-namespace Veronenger.Character; 
+namespace Betauer.Physics; 
 
 public static class KinematicFormulas {
     /// Update the speed with a constant acceleration, taking into account the friction and the max speed

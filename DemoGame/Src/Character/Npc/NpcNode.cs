@@ -1,3 +1,4 @@
+using Betauer.Application.Persistent;
 using Betauer.Core.Pool.Lifecycle;
 using Veronenger.Config;
 using Veronenger.Persistent;

@@ -1,11 +1,13 @@
 using System;
 using Betauer.Application.Monitor;
+using Betauer.Application.Persistent;
 using Betauer.Core.Pool.Lifecycle;
 using Betauer.DI;
 using Godot;
 using Betauer.DI.Attributes;
 using Betauer.FSM.Sync;
 using Betauer.NodePath;
+using Betauer.Physics;
 using Veronenger.Character;
 using Veronenger.Config;
 using Veronenger.Managers;

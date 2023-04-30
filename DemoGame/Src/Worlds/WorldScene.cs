@@ -1,4 +1,5 @@
 using System.Linq;
+using Betauer.Application.Persistent;
 using Betauer.Core;
 using Betauer.Core.Nodes;
 using Betauer.Core.Pool;

@@ -5,10 +5,6 @@ using Veronenger.Config;
 
 namespace Veronenger.Persistent;
 
-public enum AmmoType {
-    Bullet,
-    Cartridge
-}
 public class WeaponRangeGameObject : WeaponGameObject {
     private static readonly Random Random = new Pcg.PcgRandom();
 

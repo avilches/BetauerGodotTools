@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Godot;
 using Betauer.Core;
 using Betauer.Core.Nodes;
+using Godot;
 using GodotObject = Godot.GodotObject;
-using static Veronenger.Character.KinematicFormulas;
+using static Betauer.Physics.KinematicFormulas;
 
-namespace Veronenger.Character; 
+namespace Betauer.Physics; 
 
 public class KinematicPlatformMotion {
     public CharacterBody2D CharacterBody { get; }

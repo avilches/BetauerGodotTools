@@ -1,4 +1,5 @@
 using System;
+using Betauer.Application.Persistent;
 using Veronenger.Character.Npc;
 using Veronenger.Config;
 

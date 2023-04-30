@@ -1,3 +1,4 @@
+using Betauer.Application.Persistent;
 using Veronenger.Character.Player;
 using Veronenger.Config;
 

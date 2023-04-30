@@ -2,10 +2,8 @@ using System;
 using System.Collections.Generic;
 using Betauer.DI.Attributes;
 using Godot;
-using Veronenger.Character.Player;
-using Veronenger.Config;
 
-namespace Veronenger.Persistent;
+namespace Betauer.Application.Persistent;
 
 [Singleton]
 public class GameObjectRepository {

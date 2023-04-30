@@ -1,6 +1,6 @@
 using Betauer.Core.Nodes;
 
-namespace Veronenger.Persistent;
+namespace Betauer.Application.Persistent;
 
 public abstract class GameObject {
     public int Id { get; internal set; }
@@ -8,10 +8,6 @@ public abstract class GameObject {
     public string? Alias { get; internal set; }
 
     public abstract void OnRemove();
-}
-
-public interface INodeWithGameObject {
-    public GameObject GameObject { get; set; }
 }
 
 public abstract class GameObject<T> : GameObject
