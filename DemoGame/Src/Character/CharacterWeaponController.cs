@@ -8,7 +8,7 @@ public class CharacterWeaponController {
 	private readonly Area2D[] _attackAreas;
 	private readonly Sprite2D _weaponSprite;
 
-	public WeaponItem? Current { get; private set; }
+	public WeaponGameObject? Current { get; private set; }
 
 	public CharacterWeaponController(Area2D[] attackAreas, Sprite2D weaponSprite) {
 		_attackAreas = attackAreas;
@@ -18,10 +18,10 @@ public class CharacterWeaponController {
 
 	public void Unequip() => Equip(null);
 		
-	public void Equip(WeaponItem? weapon) {
+	public void Equip(WeaponGameObject? weapon) {
 		if (weapon == null) {
 			_weaponSprite.Visible = false;
-		} else if (weapon is WeaponRangeItem range) {
+		} else if (weapon is WeaponRangeGameObject range) {
 			_weaponSprite.Visible = true;
 			_weaponSprite.Texture = range.Config.WeaponAnimation?.Get();
 			for (var i = 0; i < _attackAreas.Length; i++) {
@@ -29,7 +29,7 @@ public class CharacterWeaponController {
 				attackArea.Monitorable = false;
 				attackArea.Monitoring = false;
 			}
-		} else if (weapon is WeaponMeleeItem melee) {
+		} else if (weapon is WeaponMeleeGameObject melee) {
 			_weaponSprite.Visible = true;
 			_weaponSprite.Texture = melee.Config.WeaponAnimation?.Get();
 			for (var i = 0; i < _attackAreas.Length; i++) {

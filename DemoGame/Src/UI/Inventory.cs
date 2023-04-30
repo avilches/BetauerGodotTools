@@ -17,11 +17,11 @@ public partial class Inventory : GridContainer {
 		RemoveAllChildrenIfNeeded();
 	}
 
-	public void UpdateAmount(PickableItem item) {
+	public void UpdateAmount(PickableGameObject gameObject) {
 		var childCount = GetChildCount();
 		for (var i = 0; i < childCount; i++) {
 			var inventorySlot = GetChild<InventorySlot>(i);
-			if (inventorySlot.PickableItem == item) {
+			if (inventorySlot.PickableGameObject == gameObject) {
 				inventorySlot.UpdateAmount();
 				break;
 			}
@@ -33,13 +33,13 @@ public partial class Inventory : GridContainer {
 		var inventory = playerInventorySlotEvent.Inventory;
 		FixSlotSize(inventory.Items.Count);
 		
-		inventory.Items.ForEach((worldItem, i) => {
+		inventory.Items.ForEach((pickableGameObject, i) => {
 			var inventorySlot = GetChild<InventorySlot>(i);
 			var selected = inventory.Selected == i;
 			var equipped = 
-				worldItem is WeaponMeleeItem melee && inventory.WeaponMeleeEquipped == melee || 
-				worldItem is WeaponRangeItem range && inventory.WeaponRangeEquipped == range;
-			inventorySlot.UpdateInventorySlot(worldItem, equipped, selected);
+				pickableGameObject is WeaponMeleeGameObject melee && inventory.WeaponMeleeEquipped == melee || 
+				pickableGameObject is WeaponRangeGameObject range && inventory.WeaponRangeEquipped == range;
+			inventorySlot.UpdateInventorySlot(pickableGameObject, equipped, selected);
 		});
 	}
 

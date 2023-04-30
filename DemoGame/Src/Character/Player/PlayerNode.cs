@@ -16,11 +16,13 @@ using Betauer.NodePath;
 using Betauer.FSM.Sync;
 using Godot;
 using Veronenger.Character.InputActions;
+using Veronenger.Character.Npc;
 using Veronenger.Config;
 using Veronenger.Managers;
 using Veronenger.Persistent;
 using Veronenger.Transient;
 using Veronenger.UI;
+using Veronenger.Worlds;
 
 namespace Veronenger.Character.Player; 
 
@@ -47,7 +49,7 @@ public enum PlayerEvent {
 	Death,
 }
 
-public partial class PlayerNode : Node, IInjectable, INodeWithItem {
+public partial class PlayerNode : Node, IInjectable, INodeWithGameObject {
 
 	public event Action? OnFree;
 	public override void _Notification(int what) {
@@ -76,7 +78,7 @@ public partial class PlayerNode : Node, IInjectable, INodeWithItem {
 
 	[Inject] private Game Game { get; set; }
 	[Inject] private PlatformManager PlatformManager { get; set; }
-	[Inject] private ItemConfigManager ItemConfigManager { get; set; }
+	[Inject] private ConfigManager ConfigManager { get; set; }
 	[Inject] private StageManager StageManager { get; set; }
 	[Inject] private InputAction MMB { get; set; }
 	[Inject] private InputAction NextItem { get; set; }
@@ -132,13 +134,12 @@ public partial class PlayerNode : Node, IInjectable, INodeWithItem {
 	private AttackState _attackState = AttackState.None;
 	private readonly GodotStopwatch _stateTimer = new(false, true);
 
-	[Inject] private ItemRepository ItemRepository { get; set; }
-	private PlayerStatus Status => PlayerItem.Status;
-	private PlayerConfig PlayerConfig => PlayerItem.Config;
+	private PlayerStatus Status => PlayerGameObject.Status;
+	private PlayerConfig PlayerConfig => PlayerGameObject.Config;
 
-	public Item Item { get; set; }
+	public GameObject GameObject { get; set; }
 
-	private PlayerItem PlayerItem => (PlayerItem)Item; 
+	private PlayerGameObject PlayerGameObject => (PlayerGameObject)GameObject; 
 
 	public override void _Ready() {
 		// Some events could be triggered when a property is changed during the PostInject configuration phase,
@@ -211,7 +212,7 @@ public partial class PlayerNode : Node, IInjectable, INodeWithItem {
 
 		Inventory = new Inventory();
 		Inventory.OnEquip += item => {
-			if (item is WeaponItem weapon) {
+			if (item is WeaponGameObject weapon) {
 				_characterWeaponController.Equip(weapon);
 			}
 		};
@@ -221,15 +222,15 @@ public partial class PlayerNode : Node, IInjectable, INodeWithItem {
 
 		CollisionLayerManager.PlayerConfigureCollisions(this);
 		CollisionLayerManager.PlayerPickableArea(this, area2D => {
-			var pickable = ItemRepository.GetFromMeta<PickableItem>(area2D);
-			pickable.Node!.PlayerPicksUp(() => Marker2D.GlobalPosition, () => PickUp(pickable));
+			var pickable = area2D.GetNodeFromMeta<PickableItemNode>();
+			pickable.PlayerPicksUp(() => Marker2D.GlobalPosition, () => PickUp(pickable.PickableGameObject));
 		});
 
 		// _lazyRaycast2DDrop.GetDirectSpaceFrom(Marker2D);
 		// _lazyRaycast2DDrop.Config(CollisionLayerManager.PlayerConfigureRaycastDrop);
 	}
 
-	private void PickUp(PickableItem pickable) {
+	private void PickUp(PickableGameObject pickable) {
 		pickable.UnlinkNode();
 		Inventory.Pick(pickable);
 	}
@@ -246,10 +247,10 @@ public partial class PlayerNode : Node, IInjectable, INodeWithItem {
 				_hurtArea.Monitoring &&
 				_hurtArea.HasOverlappingAreas()) {
 				var attacker = _hurtArea.GetOverlappingAreas()
-					.Select(area2D => ItemRepository.GetFromMeta<NpcItem>(area2D))
-					.MinBy(enemy => enemy.Node.DistanceToPlayer());
+					.Select(area2D => area2D.GetNodeFromMeta<NpcNode>())
+					.MinBy(enemy => enemy.DistanceToPlayer());
 				Status.UnderAttack = true;
-				Status.UpdateHealth(-attacker.Config.Attack);
+				Status.UpdateHealth(-attacker.NpcConfig.Attack);
 				if (Status.IsDead()) {
 					_fsm.Send(PlayerEvent.Death, 10000);
 				} else {
@@ -271,9 +272,9 @@ public partial class PlayerNode : Node, IInjectable, INodeWithItem {
 			void CheckAttackArea(Area2D attackArea) {
 				if (attackArea.Monitoring && attackArea.HasOverlappingAreas()) {
 					attackArea.GetOverlappingAreas()
-						.Select(area2D => ItemRepository.GetFromMeta<NpcItem>(area2D))
-						.Where(enemy => enemy.Node.CanBeAttacked(Inventory.WeaponMeleeEquipped))
-						.OrderBy(enemy => enemy.Node.DistanceToPlayer()) // Ascending, so first element is the closest to the player
+						.Select(area2D => area2D.GetNodeFromMeta<NpcNode>())
+						.Where(enemy => enemy.CanBeAttacked(Inventory.WeaponMeleeEquipped))
+						.OrderBy(enemy => enemy.DistanceToPlayer()) // Ascending, so first element is the closest to the player
 						.Take(Status.AvailableHits)
 						.ForEach(enemy => {
 							Status.AvailableHits--;
@@ -396,9 +397,9 @@ public partial class PlayerNode : Node, IInjectable, INodeWithItem {
 		
 		var shootTimer = new GodotStopwatch().Start();
 
-		bool PlayerCanMeleeAttack() => Inventory.WeaponEquipped is WeaponMeleeItem;
+		bool PlayerCanMeleeAttack() => Inventory.WeaponEquipped is WeaponMeleeGameObject;
 
-		bool PlayerCanShoot() => Inventory.WeaponEquipped is WeaponRangeItem weaponRangeItem && 
+		bool PlayerCanShoot() => Inventory.WeaponEquipped is WeaponRangeGameObject weaponRangeItem && 
 								 shootTimer.Elapsed >= weaponRangeItem.DelayBetweenShots;
 
 		_fsm.On(PlayerEvent.Hurt).Set(PlayerState.Hurting);
@@ -571,11 +572,11 @@ public partial class PlayerNode : Node, IInjectable, INodeWithItem {
 			bullet.ShootFrom(weapon, CharacterBody2D.ToGlobal(bulletPosition), bulletDirection,
 				CollisionLayerManager.PlayerConfigureBullet,
 				collision => {
-					if (!collision.Collider.HasMetaItemId()) {
+					if (!collision.Collider.HasMetaNodeId()) {
 						return ProjectileTrail.Behaviour.Stop; // Something solid was hit
 					}
-					var npc = ItemRepository.GetFromMeta<NpcItem>(collision.Collider);
-					if (npc.Node.CanBeAttacked(weapon)) {
+					var npc = collision.Collider.GetNodeFromMeta<NpcNode>();
+					if (npc.CanBeAttacked(weapon)) {
 						hits++;
 						EventBus.Publish(new PlayerAttackEvent(this, npc, weapon));
 					}

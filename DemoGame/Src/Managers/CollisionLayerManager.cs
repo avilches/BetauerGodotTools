@@ -1,7 +1,5 @@
-using System;
 using Betauer.Core.Nodes;
 using Godot;
-using Betauer.DI;
 using Veronenger.Character.Player;
 using Veronenger.Worlds;
 using static Veronenger.LayerConstants;
@@ -29,7 +27,7 @@ public class CollisionLayerManager {
     }
 
     public static void PlayerPickableArea(PlayerNode playerNode, Area2D.AreaEnteredEventHandler onEnterPickableArea) {
-        playerNode.PlayerDetector.OnAreaEntered(LayerPickableItemArea, onEnterPickableArea, false, true);
+        playerNode.PlayerDetector.OnAreaEntered(LayerPickableArea, onEnterPickableArea, false, true);
     }
 
     public static void PickableItem(PickableItemNode pickableItemNode) {
@@ -39,7 +37,7 @@ public class CollisionLayerManager {
 
         pickableItemNode.PickZone.CollisionLayer = 0;
         pickableItemNode.PickZone.CollisionMask = 0;
-        pickableItemNode.PickZone.AddToLayer(LayerPickableItemArea);
+        pickableItemNode.PickZone.AddToLayer(LayerPickableArea);
     }
 
     public static void PlayerConfigureRaycastDrop(PhysicsRayQueryParameters2D rayCast2D) {

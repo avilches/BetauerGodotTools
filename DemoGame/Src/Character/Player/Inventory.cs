@@ -6,13 +6,13 @@ using Veronenger.Persistent;
 namespace Veronenger.Character.Player;
 
 public class Inventory {
-    public event Action<PickableItem>? OnEquip;
-    public event Action<PickableItem>? OnUnequip;
-    public event Action<PickableItem>? OnSlotAmountUpdate;
+    public event Action<PickableGameObject>? OnEquip;
+    public event Action<PickableGameObject>? OnUnequip;
+    public event Action<PickableGameObject>? OnSlotAmountUpdate;
     public event Action<PlayerInventoryEvent>? OnUpdateInventory;
     public event Action<PlayerInventorySlotEvent>? OnUpdateInventorySlot;
 
-    public readonly List<PickableItem> Items = new();
+    public readonly List<PickableGameObject> Items = new();
 
     private readonly PlayerInventoryEvent _playerInventoryEventCached;
 
@@ -22,22 +22,22 @@ public class Inventory {
 
     public int Selected = -1;
 
-    public WeaponItem? WeaponEquipped { get; private set; }
-    public WeaponRangeItem? WeaponRangeEquipped => WeaponEquipped as WeaponRangeItem;
-    public WeaponMeleeItem? WeaponMeleeEquipped => WeaponEquipped as WeaponMeleeItem;
+    public WeaponGameObject? WeaponEquipped { get; private set; }
+    public WeaponRangeGameObject? WeaponRangeEquipped => WeaponEquipped as WeaponRangeGameObject;
+    public WeaponMeleeGameObject? WeaponMeleeEquipped => WeaponEquipped as WeaponMeleeGameObject;
 
-    public PickableItem? GetCurrent() {
+    public PickableGameObject? GetCurrent() {
         return Items.Count == 0 ? null : Items[Selected];
     }
 
-    public void UpdateWeaponRangeAmmo(WeaponRangeItem item, int amountChange) {
-        item.Ammo += amountChange;
-        OnSlotAmountUpdate?.Invoke(item);
+    public void UpdateWeaponRangeAmmo(WeaponRangeGameObject gameObject, int amountChange) {
+        gameObject.Ammo += amountChange;
+        OnSlotAmountUpdate?.Invoke(gameObject);
     }
 
-    public void Pick(PickableItem item) {
-        Items.Add(item);
-        TriggerPickUp(item);
+    public void Pick(PickableGameObject gameObject) {
+        Items.Add(gameObject);
+        TriggerPickUp(gameObject);
         if (Items.Count == 1) {
             Selected = 0;
             _Equip();
@@ -73,28 +73,28 @@ public class Inventory {
         TriggerRefresh();
     }
 
-    private void _Unequip(PickableItem item) {
+    private void _Unequip(PickableGameObject gameObject) {
         WeaponEquipped = null;
-        OnUnequip?.Invoke(item);
+        OnUnequip?.Invoke(gameObject);
     }
 
     private void _Equip() {
         var item = GetCurrent();
-        if (item is WeaponItem weapon) {
+        if (item is WeaponGameObject weapon) {
             WeaponEquipped = weapon;
             TriggerEquipItem(item);
         }
     }
 
-    private void TriggerPickUp(PickableItem item) =>
-        OnUpdateInventorySlot?.Invoke(new PlayerInventorySlotEvent(this, PlayerInventoryEventType.PickUp, item));
+    private void TriggerPickUp(PickableGameObject gameObject) =>
+        OnUpdateInventorySlot?.Invoke(new PlayerInventorySlotEvent(this, PlayerInventoryEventType.PickUp, gameObject));
 
-    private void TriggerDropItem(PickableItem drop) =>
+    private void TriggerDropItem(PickableGameObject drop) =>
         OnUpdateInventorySlot?.Invoke(new PlayerInventorySlotEvent(this, PlayerInventoryEventType.Drop, drop));
 
-    private void TriggerEquipItem(PickableItem item) {
-        OnEquip?.Invoke(item);
-        OnUpdateInventorySlot?.Invoke(new PlayerInventorySlotEvent(this, PlayerInventoryEventType.Equip, item));
+    private void TriggerEquipItem(PickableGameObject gameObject) {
+        OnEquip?.Invoke(gameObject);
+        OnUpdateInventorySlot?.Invoke(new PlayerInventorySlotEvent(this, PlayerInventoryEventType.Equip, gameObject));
     }
 
     public void TriggerRefresh() =>

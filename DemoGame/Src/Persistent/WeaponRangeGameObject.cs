@@ -9,7 +9,7 @@ public enum AmmoType {
     Bullet,
     Cartridge
 }
-public class WeaponRangeItem : WeaponItem {
+public class WeaponRangeGameObject : WeaponGameObject {
     private static readonly Random Random = new Pcg.PcgRandom();
 
     public override WeaponConfig.Range Config => (WeaponConfig.Range)base.Config;
@@ -24,7 +24,7 @@ public class WeaponRangeItem : WeaponItem {
 
     public float NewRandomDispersion() => Dispersion != 0 ? Random.Range(-Dispersion, Dispersion) : 0;
 
-    public WeaponRangeItem Configure(WeaponConfig.Range config, 
+    public WeaponRangeGameObject Configure(WeaponConfig.Range config, 
         AmmoType ammoType,
         float damageBase, 
         int enemiesPerHit = 1,

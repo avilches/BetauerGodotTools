@@ -23,7 +23,6 @@ using Veronenger.Character.Player;
 using Veronenger.Config;
 using Veronenger.Managers;
 using Veronenger.Persistent;
-using Veronenger.Persistent.Node;
 
 namespace Veronenger.Character.Npc; 
 
@@ -46,7 +45,7 @@ public enum ZombieState {
 	Fall
 }
 
-public partial class ZombieNode : NpcItemNode, IInjectable {
+public partial class ZombieNode : NpcNode, IInjectable {
 	
 	private static readonly PcgRandom Random = new();
 
@@ -93,7 +92,7 @@ public partial class ZombieNode : NpcItemNode, IInjectable {
 	// [Inject] private InputActionCharacterHandler Handler { get; set; }
 	private NpcController Handler { get; set; } = new NpcController();
 
-	[Inject] private ItemRepository ItemRepository { get; set; }
+	[Inject] private GameObjectRepository GameObjectRepository { get; set; }
 
 	public Anim AnimationIdle { get; private set; }
 	public Anim AnimationRun { get; private set; }
@@ -121,7 +120,7 @@ public partial class ZombieNode : NpcItemNode, IInjectable {
 	private LazyRaycast2D _lazyRaycastToPlayer;
 	private DebugOverlay? _overlay;
 
-	private Vector2 PlayerPos => ItemRepository.PlayerNode.Marker2D.GlobalPosition;
+	private Vector2 PlayerPos => GameObjectRepository.PlayerNode.Marker2D.GlobalPosition;
 	public bool IsFacingToPlayer() => LateralState.IsFacingTo(PlayerPos);
 	public bool IsToTheRightOfPlayer() => LateralState.IsToTheRightOf(PlayerPos);
 	public int RightOfPlayer() => IsToTheRightOfPlayer() ? 1 : -1;
@@ -147,8 +146,8 @@ public partial class ZombieNode : NpcItemNode, IInjectable {
 		_fsm.Reset();
 		_zombieAi.Reset();
 		_lazyRaycastToPlayer.GetDirectSpaceFrom(_mainSprite);
-		_attackArea.LinkMetaToItemId(NpcItem);
-		_hurtArea.LinkMetaToItemId(NpcItem);
+		_attackArea.SetNodeIdToMeta(this);
+		_hurtArea.SetNodeIdToMeta(this);
 		UpdateHealthBar();
 		EnableAttackAndHurtAreas();
 		_overlay?.Enable();
@@ -282,19 +281,19 @@ public partial class ZombieNode : NpcItemNode, IInjectable {
 		HealthBar.Visible = NpcConfig.HealthBarVisible;
 	}
 
-	public override bool CanBeAttacked(WeaponItem weapon) {
-		if (weapon is WeaponMeleeItem) return !Status.UnderMeleeAttack;
-		if (weapon is WeaponRangeItem) return true;
+	public override bool CanBeAttacked(WeaponGameObject weapon) {
+		if (weapon is WeaponMeleeGameObject) return !Status.UnderMeleeAttack;
+		if (weapon is WeaponRangeGameObject) return true;
 		return true;
 	}
 
 
 	private void OnPlayerAttackEvent(PlayerAttackEvent playerAttackEvent) {
-		if (playerAttackEvent.Npc.Id != NpcItem.Id) return;
-		if (playerAttackEvent.Weapon is WeaponMeleeItem) {
+		if (playerAttackEvent.NpcNode != this) return;
+		if (playerAttackEvent.Weapon is WeaponMeleeGameObject) {
 			Status.UnderMeleeAttack = true;
 			Kickback(NpcConfig.KickbackMeleeAngle.start, NpcConfig.KickbackMeleeAngle.end, playerAttackEvent.Weapon.Damage * NpcConfig.KickbackMeleeEnergyMultiplier);
-		} else if (playerAttackEvent.Weapon is WeaponRangeItem) {
+		} else if (playerAttackEvent.Weapon is WeaponRangeGameObject) {
 			Kickback(NpcConfig.KickbackRangeAngle.start, NpcConfig.KickbackRangeAngle.end, playerAttackEvent.Weapon.Damage * NpcConfig.KickbackRangeEnergyMultiplier);
 		}
 		Status.UpdateHealth(-playerAttackEvent.Weapon.Damage);
@@ -340,7 +339,7 @@ public partial class ZombieNode : NpcItemNode, IInjectable {
 			.Text("State", () => _fsm.CurrentState.Key.ToString()).EndMonitor()
 			.Text("IA", () => _zombieAi.GetState()).EndMonitor()
 			.Text("Animation", () => _animationPlayer.CurrentAnimation).EndMonitor()
-			.Text("ItemId", () => NpcItem.Id.ToString()).EndMonitor()
+			.Text("GameObjectId", () => NpcGameObject.Id.ToString()).EndMonitor()
 			.Text("ObjectId", () => GetInstanceId().ToString()).EndMonitor()
 		.CloseBox();
 	}
@@ -505,7 +504,7 @@ public partial class ZombieNode : NpcItemNode, IInjectable {
 			.Build();
 
 		_fsm.State(ZombieState.End)
-			.Enter(() => ItemRepository.Remove(NpcItem))
+			.Enter(() => GameObjectRepository.Remove(NpcGameObject))
 			.If(() => true).Set(ZombieState.Idle)
 			.Build();
 

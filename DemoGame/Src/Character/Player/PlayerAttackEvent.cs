@@ -1,15 +1,16 @@
+using Veronenger.Character.Npc;
 using Veronenger.Persistent;
 
 namespace Veronenger.Character.Player;
 
 public class PlayerAttackEvent {
     // public PlayerNode Player { get; }
-    public NpcItem Npc { get; }
-    public WeaponItem Weapon { get; }
+    public NpcNode NpcNode { get; }
+    public WeaponGameObject Weapon { get; }
 
-    public PlayerAttackEvent(PlayerNode player, NpcItem npc, WeaponItem weapon) {
+    public PlayerAttackEvent(PlayerNode player, NpcNode npcNode, WeaponGameObject weapon) {
         // Player = player;
-        Npc = npc;
+        NpcNode = npcNode;
         Weapon = weapon;
     }
 }

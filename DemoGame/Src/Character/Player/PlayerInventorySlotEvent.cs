@@ -9,12 +9,12 @@ public enum PlayerInventoryEventType {
 public class PlayerInventorySlotEvent {
     public Inventory Inventory { get; init; }
     public PlayerInventoryEventType PlayerInventoryEventType { get; init; }
-    public PickableItem PickableItem { get; init; }
+    public PickableGameObject PickableGameObject { get; init; }
 
-    public PlayerInventorySlotEvent(Inventory inventory, PlayerInventoryEventType playerInventoryEventType, PickableItem pickableItem) {
+    public PlayerInventorySlotEvent(Inventory inventory, PlayerInventoryEventType playerInventoryEventType, PickableGameObject pickableGameObject) {
         Inventory = inventory;
         PlayerInventoryEventType = playerInventoryEventType;
-        PickableItem = pickableItem;
+        PickableGameObject = pickableGameObject;
     }
 }
 

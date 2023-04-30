@@ -14,7 +14,7 @@ using Vector2 = Godot.Vector2;
 
 namespace Veronenger.Worlds;
 
-public partial class PickableItemNode : Node, IPoolLifecycle, IInjectable, INodeWithItem {
+public partial class PickableItemNode : Node, IPoolLifecycle, IInjectable, INodeWithGameObject {
 	public enum State {
 		None, Dropping, Available, PickingUp, Finish
 	}
@@ -26,8 +26,8 @@ public partial class PickableItemNode : Node, IPoolLifecycle, IInjectable, INode
 	[Inject] private PlayerConfig PlayerConfig { get; set; }
 	[Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
 
-	public Item Item { get; set; }
-	protected PickableItem PickableItem => (PickableItem)Item;
+	public GameObject GameObject { get; set; }
+	public PickableGameObject PickableGameObject => (PickableGameObject)GameObject;
 
 	[NodePath("Character")] public CharacterBody2D CharacterBody2D;
 	[NodePath("Character/Sprite")] public Sprite2D Sprite;
@@ -53,11 +53,11 @@ public partial class PickableItemNode : Node, IPoolLifecycle, IInjectable, INode
 	public void OnGet() {}
 
 	public override void _Ready() {
-		PickZone.LinkMetaToItemId(PickableItem);
+		PickZone.SetNodeIdToMeta(this);
 		_state = State.Available;
 		_playerPosition = null;
 		_onPickup = null;
-		PickableItem.Config.ConfigurePickableSprite2D?.Invoke(Sprite);
+		PickableGameObject.Config.ConfigurePickableSprite2D?.Invoke(Sprite);
 		
 		// var overlay = DebugOverlayManager.Overlay(CharacterBody2D).Title(Item.Name);
 		// AddOverlayMotion(overlay);

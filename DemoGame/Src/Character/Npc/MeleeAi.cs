@@ -223,6 +223,6 @@ public class MeleeAi : FsmSync<MeleeAi.State, MeleeAi.Event>, ICharacterAi {
         public void FaceToPlayer() => _lateralState.FaceTo(GetPlayerGlobalPosition());
         public double Delta => _delta();
 
-        public NpcItem.NpcStatus Status => _zombieNode.Status;
+        public NpcGameObject.NpcStatus Status => _zombieNode.Status;
     }
 }

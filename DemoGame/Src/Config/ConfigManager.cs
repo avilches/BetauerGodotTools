@@ -2,12 +2,11 @@ using Betauer.DI;
 using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
 using Godot;
-using Veronenger.Worlds;
 
 namespace Veronenger.Config; 
 
 [Singleton]
-public class ItemConfigManager : IInjectable {
+public class ConfigManager : IInjectable {
     [Inject] private IFactory<Texture2D> LeonKnifeAnimationSprite { get; set; }
     [Inject] private IFactory<Texture2D> LeonMetalbarAnimationSprite { get; set; }
     [Inject] private IFactory<Texture2D> LeonGun1AnimationSprite { get; set; }

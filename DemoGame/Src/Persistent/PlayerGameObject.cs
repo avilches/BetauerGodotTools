@@ -3,11 +3,11 @@ using Veronenger.Config;
 
 namespace Veronenger.Persistent; 
 
-public class PlayerItem : Item<PlayerNode> {
+public class PlayerGameObject : GameObject<PlayerNode> {
     public PlayerStatus Status;
     public PlayerConfig Config;
 
-    public PlayerItem Configure(PlayerConfig config) {
+    public PlayerGameObject Configure(PlayerConfig config) {
         Config = config;
         Status = new PlayerStatus(config);
         return this;

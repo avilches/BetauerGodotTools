@@ -2,7 +2,7 @@ using Betauer.Core.Nodes;
 
 namespace Veronenger.Persistent;
 
-public abstract class Item {
+public abstract class GameObject {
     public int Id { get; internal set; }
     public string Name { get; internal set; }
     public string? Alias { get; internal set; }
@@ -10,18 +10,18 @@ public abstract class Item {
     public abstract void OnRemove();
 }
 
-public interface INodeWithItem {
-    public Item Item { get; set; }
+public interface INodeWithGameObject {
+    public GameObject GameObject { get; set; }
 }
 
-public abstract class Item<T> : Item
+public abstract class GameObject<T> : GameObject
     where T : Godot.Node {
     public T? Node { get; internal set; }
 
     public void LinkNode<TN>(TN node) where TN : Godot.Node, T {
         Node = node;
-        if (node is INodeWithItem nodeItem) {
-            nodeItem.Item = this;
+        if (node is INodeWithGameObject nodeItem) {
+            nodeItem.GameObject = this;
         } 
     }
 
@@ -30,8 +30,8 @@ public abstract class Item<T> : Item
     }
 
     public void UnlinkNode() {
-        if (Node is INodeWithItem nodeItem) {
-            nodeItem.Item = null;
+        if (Node is INodeWithGameObject nodeItem) {
+            nodeItem.GameObject = null;
         } 
         Node!.RemoveFromParent();
         Node = null;

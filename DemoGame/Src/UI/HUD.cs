@@ -27,8 +27,8 @@ public partial class HUD : CanvasLayer {
 		Visible = false;
 	}
 
-	public void UpdateAmount(PickableItem item) {
-		_inventory.UpdateAmount(item);
+	public void UpdateAmount(PickableGameObject gameObject) {
+		_inventory.UpdateAmount(gameObject);
 	}
 
 	public void UpdateInventory(PlayerInventoryEvent playerInventoryEvent) {

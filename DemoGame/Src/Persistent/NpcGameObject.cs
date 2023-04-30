@@ -1,16 +1,15 @@
 using System;
+using Veronenger.Character.Npc;
 using Veronenger.Config;
-using Veronenger.Persistent.Node;
-using NpcItemNode = Veronenger.Character.Npc.NpcItemNode;
 
 namespace Veronenger.Persistent;
 
-public class NpcItem : Item<NpcItemNode>  {
+public class NpcGameObject : GameObject<NpcNode>  {
     public NpcStatus Status { get; private set; }
     
     public NpcConfig Config { get; private set; }
 
-    public NpcItem Configure(NpcConfig config) {
+    public NpcGameObject Configure(NpcConfig config) {
         Config = config;
         Status = new NpcStatus(config.InitialMaxHealth, config.InitialHealth);
         return this;

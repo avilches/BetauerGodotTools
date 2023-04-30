@@ -3,6 +3,6 @@ using Veronenger.Worlds;
 
 namespace Veronenger.Persistent;
 
-public abstract class PickableItem : Item<PickableItemNode> {
+public abstract class PickableGameObject : GameObject<PickableItemNode> {
     public virtual PickableConfig Config { get; protected set; }
 }

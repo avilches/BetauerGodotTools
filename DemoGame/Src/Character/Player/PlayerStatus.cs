@@ -36,7 +36,7 @@ public class PlayerStatus {
     public void UpdateHealth(float update) => SetHealth(Health + update);
     public void UpdateMaxHealth(float update) => SetMaxHealth(MaxHealth + update);
 
-    public void Reload(WeaponRangeItem weapon) {
+    public void Reload(WeaponRangeGameObject weapon) {
         var needed = weapon.MagazineSize - weapon.Ammo;
         var available = GetAmmo(weapon.AmmoType);
         var toReload = Math.Min(needed, available);

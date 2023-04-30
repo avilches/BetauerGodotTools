@@ -1,7 +1,6 @@
 using System;
 using System.Threading.Tasks;
 using Betauer.Application.Lifecycle;
-using Betauer.DI;
 using Betauer.Core.Nodes;
 using Betauer.Core.Pool.Lifecycle;
 using Betauer.Core.Signal;
@@ -18,9 +17,9 @@ namespace Veronenger.Managers;
 [Singleton]
 public class Game {
 	[Inject] private SceneTree SceneTree { get; set; }
-	[Inject] private ItemRepository ItemRepository { get; set; }
+	[Inject] private GameObjectRepository GameObjectRepository { get; set; }
 	[Inject] private IFactory<HUD> HudScene { get; set; }
-	[Inject] private ItemConfigManager ItemConfigManager { get; set; }
+	[Inject] private ConfigManager ConfigManager { get; set; }
 	[Inject] private StageManager StageManager { get; set; }
 	[Inject] private IFactory<WorldScene> World3 { get; set; }
 
@@ -43,7 +42,7 @@ public class Game {
 	}
 
 	public async Task StartWorld3() {
-		ItemRepository.Clear();
+		GameObjectRepository.Clear();
 		await GameLoaderContainer.LoadGameResources();
 		
 		GD.PushWarning("World3 creation start");

@@ -51,24 +51,24 @@ public partial class ProjectileTrail : Node, IPoolLifecycle, IInjectable {
 		_lazyRaycast2D.GetDirectSpaceFrom(Trail);
 	}
 
-	public void ShootFrom(WeaponRangeItem item, Vector2 from, Vector2 direction, Action<PhysicsRayQueryParameters2D> raycastConfig, Func<RaycastCollision, Behaviour> onCollide) {
+	public void ShootFrom(WeaponRangeGameObject gameObject, Vector2 from, Vector2 direction, Action<PhysicsRayQueryParameters2D> raycastConfig, Func<RaycastCollision, Behaviour> onCollide) {
 		SetPhysicsProcess(true);
-		direction = direction.Rotated(item.NewRandomDispersion());
+		direction = direction.Rotated(gameObject.NewRandomDispersion());
 		_from = from;
-		_velocity = direction * item.Config.Speed;
+		_velocity = direction * gameObject.Config.Speed;
 		_direction = direction;
-		_maxDistanceSquared = Mathf.Pow(item.Config.MaxDistance, 2);
-		_trailLongSquared = Mathf.Pow(item.Config.TrailLength * Random.Range(0.6f, 1.4f), 2);
+		_maxDistanceSquared = Mathf.Pow(gameObject.Config.MaxDistance, 2);
+		_trailLongSquared = Mathf.Pow(gameObject.Config.TrailLength * Random.Range(0.6f, 1.4f), 2);
 		_onCollide = onCollide;
 		_queueEnd = false;
-		_raycastLength = item.Config.RaycastLength;
+		_raycastLength = gameObject.Config.RaycastLength;
 
 		_exclude.Clear();
 		_lazyRaycast2D.Query.Exclude = new Array<Rid>();
 		
 		Sprite2D.Position = from;
-		Sprite2D.Texture = item.Config.Projectile;
-		Sprite2D.Visible = item.Config.Projectile != null;
+		Sprite2D.Texture = gameObject.Config.Projectile;
+		Sprite2D.Visible = gameObject.Config.Projectile != null;
 		
 		Trail.SetPointPosition(0, from);
 		Trail.SetPointPosition(1, from);

@@ -18,9 +18,9 @@ public partial class PlayerNode {
 			.SetMaxSize(1000, 1000);
 
 		overlay.OpenBox()
-			.Edit("Bullet speed", ItemConfigManager.SlowGun.Speed.ToString("0"), v => ItemConfigManager.SlowGun.Speed = int.Parse(v)).EndMonitor()
-			.Edit("Bullet Trail", ItemConfigManager.SlowGun.TrailLength.ToString("0"), v => ItemConfigManager.SlowGun.TrailLength = int.Parse(v)).EndMonitor()
-			.Edit("Raycast", ItemConfigManager.SlowGun.RaycastLength.ToString("0"), v => ItemConfigManager.SlowGun.RaycastLength = int.Parse(v)).EndMonitor()
+			.Edit("Bullet speed", ConfigManager.SlowGun.Speed.ToString("0"), v => ConfigManager.SlowGun.Speed = int.Parse(v)).EndMonitor()
+			.Edit("Bullet Trail", ConfigManager.SlowGun.TrailLength.ToString("0"), v => ConfigManager.SlowGun.TrailLength = int.Parse(v)).EndMonitor()
+			.Edit("Raycast", ConfigManager.SlowGun.RaycastLength.ToString("0"), v => ConfigManager.SlowGun.RaycastLength = int.Parse(v)).EndMonitor()
 			.CloseBox();
 
 		// AddDebuggingInputAction(overlay);

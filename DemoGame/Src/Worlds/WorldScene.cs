@@ -1,8 +1,7 @@
-using System;
 using System.Linq;
-using Betauer.Application.Lifecycle;
 using Betauer.Core;
 using Betauer.Core.Nodes;
+using Betauer.Core.Pool;
 using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
 using Godot;
@@ -16,14 +15,14 @@ using Veronenger.Transient;
 namespace Veronenger.Worlds;
 
 public partial class WorldScene : Node {
-	[Inject] private ItemConfigManager ItemConfigManager { get; set; }
-	[Inject] private ItemRepository ItemRepository { get; set; }
+	[Inject] private ConfigManager ConfigManager { get; set; }
+	[Inject] private GameObjectRepository GameObjectRepository { get; set; }
 	[Inject] private PlatformManager PlatformManager { get; set; }
 	[Inject] private StageManager StageManager { get; set; }
 	[Inject] private IFactory<PlayerNode> PlayerFactory { get; set; }
-	[Inject] private NodePool<PickableItemNode> PickableItemNodeFactory { get; set; }
-	[Inject] private NodePool<ProjectileTrail> ProjectilePool { get; set; }
-	[Inject] private NodePool<ZombieNode> ZombiePool { get; set; }
+	[Inject] private IPool<PickableItemNode> PickableItemPool { get; set; }
+	[Inject] private IPool<ProjectileTrail> ProjectilePool { get; set; }
+	[Inject] private IPool<ZombieNode> ZombiePool { get; set; }
 
 	public override void _Ready() {
 		GetNode("EnemySpawn").GetChildren().OfType<Marker2D>().ForEach(m => {
@@ -48,55 +47,55 @@ public partial class WorldScene : Node {
 	}
 
 	private void PlaceMetalbar() {
-		var metalbar = ItemRepository
-			.Create<WeaponMeleeItem>("Metalbar")
-			.Configure(ItemConfigManager.Metalbar, damageBase: 9f, enemiesPerHit: 2);
+		var metalbar = GameObjectRepository
+			.Create<WeaponMeleeGameObject>("Metalbar")
+			.Configure(ConfigManager.Metalbar, damageBase: 9f, enemiesPerHit: 2);
 		PlacePickable(metalbar, GetPositionFromMarker("ItemSpawn/Metalbar"));
 	}
 	
 	private void PlaceSlowGun() {
-		var range = ItemRepository
-			.Create<WeaponRangeItem>("Slow Gun")
-			.Configure(ItemConfigManager.SlowGun, AmmoType.Bullet, damageBase: 6f, delayBetweenShots: 0.2f, magazineSize: 22);
+		var range = GameObjectRepository
+			.Create<WeaponRangeGameObject>("Slow Gun")
+			.Configure(ConfigManager.SlowGun, AmmoType.Bullet, damageBase: 6f, delayBetweenShots: 0.2f, magazineSize: 22);
 		PlacePickable(range, GetPositionFromMarker("ItemSpawn/Gun"));
 	}
 	
 	private void PlaceGun() {
-		var range = ItemRepository
-			.Create<WeaponRangeItem>("Gun")
-			.Configure(ItemConfigManager.Gun, AmmoType.Bullet, damageBase: 9f, delayBetweenShots: 0.3f, magazineSize: 12);
+		var range = GameObjectRepository
+			.Create<WeaponRangeGameObject>("Gun")
+			.Configure(ConfigManager.Gun, AmmoType.Bullet, damageBase: 9f, delayBetweenShots: 0.3f, magazineSize: 12);
 		PlacePickable(range, GetPositionFromMarker("ItemSpawn/Gun"));
 	}
 
 	private void PlaceShotgun() {
-		var range = ItemRepository
-			.Create<WeaponRangeItem>("Shotgun")
-			.Configure(ItemConfigManager.Shotgun, AmmoType.Cartridge, damageBase: 22f, delayBetweenShots: 0.5f, enemiesPerHit: 2, magazineSize: 8);
+		var range = GameObjectRepository
+			.Create<WeaponRangeGameObject>("Shotgun")
+			.Configure(ConfigManager.Shotgun, AmmoType.Cartridge, damageBase: 22f, delayBetweenShots: 0.5f, enemiesPerHit: 2, magazineSize: 8);
 		PlacePickable(range, GetPositionFromMarker("ItemSpawn/Gun"));
 	}
 
 	private void PlaceMachineGun() {
-		var range = ItemRepository
-			.Create<WeaponRangeItem>("MachineGun")
-			.Configure(ItemConfigManager.MachineGun, AmmoType.Bullet, damageBase: 4f, delayBetweenShots: 0.05f, enemiesPerHit: 1, magazineSize: 30, auto: true);
+		var range = GameObjectRepository
+			.Create<WeaponRangeGameObject>("MachineGun")
+			.Configure(ConfigManager.MachineGun, AmmoType.Bullet, damageBase: 4f, delayBetweenShots: 0.05f, enemiesPerHit: 1, magazineSize: 30, auto: true);
 		PlacePickable(range, GetPositionFromMarker("ItemSpawn/Gun"));
 	}
 
-	public void PlacePickable(PickableItem item, Vector2 position, Vector2? velocity = null) {
-		PickableItemNode pickableItemNode = PickableItemNodeFactory.Get();
-		item.LinkNode(pickableItemNode);
+	public void PlacePickable(PickableGameObject gameObject, Vector2 position, Vector2? velocity = null) {
+		PickableItemNode pickableItemNode = PickableItemPool.Get();
+		gameObject.LinkNode(pickableItemNode);
 		this.AddChild(pickableItemNode, () => pickableItemNode.Spawn(position, velocity));
 	}
 
-	public void PlayerDrop(PickableItem item, Vector2 position, Vector2? velocity = null) {
-		PickableItemNode pickableItemNode = PickableItemNodeFactory.Get();
-		item.LinkNode(pickableItemNode);
+	public void PlayerDrop(PickableGameObject gameObject, Vector2 position, Vector2? velocity = null) {
+		PickableItemNode pickableItemNode = PickableItemPool.Get();
+		gameObject.LinkNode(pickableItemNode);
 		this.AddChild(pickableItemNode, () => pickableItemNode.PlayerDrop(position, velocity));
 	}
 
 	public void ZombieSpawn(Node scene, Vector2 position) {
 		var zombieNode = ZombiePool.Get();
-		var zombieItem = ItemRepository.Create<NpcItem>("Zombie").Configure(ItemConfigManager.ZombieConfig);
+		var zombieItem = GameObjectRepository.Create<NpcGameObject>("Zombie").Configure(ConfigManager.ZombieConfig);
 		zombieItem.LinkNode(zombieNode);
 		scene.AddChild(zombieNode, () => zombieNode.GlobalPosition = position);
 	}
@@ -111,7 +110,7 @@ public partial class WorldScene : Node {
 		var playerNode = PlayerFactory.Get();
 		AddChild(playerNode);
 		playerNode.Ready += () => playerNode.GlobalPosition = GetPositionFromMarker("SpawnPlayer");
-		ItemRepository.CreatePlayer(playerNode, ItemConfigManager.PlayerConfig);
+		GameObjectRepository.CreatePlayer(playerNode, ConfigManager.PlayerConfig);
 	}
 
 	public void InstantiateNewZombie() {
@@ -134,7 +133,7 @@ public partial class WorldScene : Node {
 		light.ShadowFilter = Light2D.ShadowFilterEnum.None;
 		light.GetNode<Area2D>("Area2D")
 			?.OnBodyEntered(LayerConstants.LayerPlayerBody, (player) => {
-				if (player is CharacterBody2D character && ItemRepository.IsPlayer(character)) CandleOn(light);
+				if (player is CharacterBody2D character && GameObjectRepository.IsPlayer(character)) CandleOn(light);
 			});
 	}
 

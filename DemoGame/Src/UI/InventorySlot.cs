@@ -9,17 +9,17 @@ public partial class InventorySlot : ColorRect {
 	[NodePath("%TextureRect")] public TextureRect TextureRect;
 	[NodePath("%Amount")] public Label Amount;
 
-	public PickableItem PickableItem;
+	public PickableGameObject PickableGameObject;
 
 	public void RemoveSlot() {
 		Visible = false;
-		PickableItem = null;
+		PickableGameObject = null;
 	}
 
-	public void UpdateInventorySlot(PickableItem pickableItem, bool equipped, bool selected) {
-		PickableItem = pickableItem;
+	public void UpdateInventorySlot(PickableGameObject pickableGameObject, bool equipped, bool selected) {
+		PickableGameObject = pickableGameObject;
 		Visible = true;
-		pickableItem.Config.ConfigureInventoryTextureRect?.Invoke((AtlasTexture)TextureRect.Texture);
+		pickableGameObject.Config.ConfigureInventoryTextureRect?.Invoke((AtlasTexture)TextureRect.Texture);
 		TextureRect.Visible = true;
 		UpdateAmount();
 		if (selected && equipped) {
@@ -34,7 +34,7 @@ public partial class InventorySlot : ColorRect {
 	}
 
 	public void UpdateAmount() {
-		if (PickableItem is WeaponRangeItem range) {
+		if (PickableGameObject is WeaponRangeGameObject range) {
 			Amount.Text = range.Ammo.ToString();
 		} else {
 			Amount.Text = "";
