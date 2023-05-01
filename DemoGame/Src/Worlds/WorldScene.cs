@@ -25,7 +25,7 @@ public partial class WorldScene : Node {
 	[Inject] private IPool<ProjectileTrail> ProjectilePool { get; set; }
 	[Inject] private IPool<ZombieNode> ZombiePool { get; set; }
 	[Inject] private PlayerConfig PlayerConfig { get; set; }
-    
+	
 	public PlayerNode PlayerNode { get; private set; }
 
 	public override void _Ready() {

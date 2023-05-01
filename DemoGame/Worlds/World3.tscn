@@ -3,8 +3,8 @@
 [ext_resource type="PackedScene" uid="uid://bgoroc7wxd0fx" path="res://Worlds/Environment/City.tscn" id="1_ch4lp"]
 [ext_resource type="Script" path="res://Src/Worlds/WorldScene.cs" id="1_q8t1r"]
 [ext_resource type="PackedScene" uid="uid://crxuyxcrii0rb" path="res://Worlds/Environment/Anokalisa.tscn" id="3_b8e8b"]
-[ext_resource type="Texture2D" uid="uid://hpw331rdkwps" path="res://Platform/light-spot.png" id="4_mufee"]
-[ext_resource type="Texture2D" uid="uid://b7ir53ta6rglo" path="res://Platform/light.png" id="4_vhytj"]
+[ext_resource type="Texture2D" uid="uid://hpw331rdkwps" path="res://Platform/Assets/light-spot.png" id="4_mufee"]
+[ext_resource type="Texture2D" uid="uid://b7ir53ta6rglo" path="res://Platform/Assets/light.png" id="4_vhytj"]
 
 [sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_wmw67"]
 polygon = PackedVector2Array(-489, 2, -489, 4, -402, 4, -403, -25, -265, -24, -265, -27, -405, -28, -404, 3)

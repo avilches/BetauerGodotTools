@@ -1,0 +1,35 @@
+[gd_scene load_steps=4 format=3 uid="uid://bel6oboteo5ww"]
+
+[ext_resource type="Theme" uid="uid://bei1s45ic3xtp" path="res://Platform/Assets/UI/my_theme2.tres" id="1_7g3hr"]
+[ext_resource type="Script" path="res://Src/UI/ActionHint.cs" id="3"]
+[ext_resource type="PackedScene" uid="uid://bm8nfxhxh5yr2" path="res://Platform/Assets/UI/Consoles/ConsoleButton.tscn" id="3_svs2b"]
+
+[node name="HBoxContainer" type="HBoxContainer"]
+theme = ExtResource("1_7g3hr")
+script = ExtResource("3")
+
+[node name="Label1" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Press"
+
+[node name="ControlConsoleButton" type="Control" parent="."]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(14, 16)
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 0
+
+[node name="ConsoleButton" parent="ControlConsoleButton" instance=ExtResource("3_svs2b")]
+unique_name_in_owner = true
+position = Vector2(7, 8)
+
+[node name="KeyButton" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+text = "[E]"
+
+[node name="Label2" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+text = "to jump"
