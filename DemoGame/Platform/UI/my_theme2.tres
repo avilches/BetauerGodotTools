@@ -1,0 +1,51 @@
+[gd_resource type="Theme" load_steps=10 format=3 uid="uid://bei1s45ic3xtp"]
+
+[ext_resource type="FontFile" uid="uid://demcrithnsq31" path="res://Platform/Fonts/HelvetiPixel.ttf" id="1_uh1kx"]
+[ext_resource type="StyleBox" path="res://Platform/UI/Buttons/ButtonStyle_Disabled.tres" id="2_tmgm3"]
+[ext_resource type="StyleBox" path="res://Platform/UI/Buttons/ButtonStyle_Focussed.tres" id="3_dwgm8"]
+[ext_resource type="StyleBox" path="res://Platform/UI/Buttons/ButtonStyle_Hover.tres" id="4_34u6u"]
+[ext_resource type="StyleBox" path="res://Platform/UI/Buttons/ButtonStyle_Normal.tres" id="5_ah6qk"]
+[ext_resource type="StyleBox" path="res://Platform/UI/Buttons/ButtonStyle_Pressed.tres" id="6_yxsyo"]
+[ext_resource type="Texture2D" uid="uid://b26vfepu7fwb3" path="res://Platform/UI/Images/ToggleOn.png" id="7_u16sj"]
+[ext_resource type="Texture2D" uid="uid://crkrymnrg68h5" path="res://Platform/UI/Images/ToggleOff.png" id="8_5j6do"]
+[ext_resource type="StyleBox" uid="uid://b5viotspd66s8" path="res://Platform/UI/PanelStyle.tres" id="9_0meck"]
+
+[resource]
+default_font_size = 16
+Button/colors/font_color = Color(0.88, 0.88, 0.88, 1)
+Button/colors/font_color_disabled = Color(0.9, 0.9, 0.9, 0.2)
+Button/colors/font_color_focus = Color(0.94, 0.94, 0.94, 1)
+Button/colors/font_color_hover = Color(0.94902, 0.937255, 0.937255, 1)
+Button/colors/font_color_pressed = Color(1, 1, 1, 1)
+Button/font_sizes/font_size = 16
+Button/fonts/font = ExtResource("1_uh1kx")
+Button/styles/disabled = ExtResource("2_tmgm3")
+Button/styles/focus = ExtResource("3_dwgm8")
+Button/styles/hover = ExtResource("4_34u6u")
+Button/styles/normal = ExtResource("5_ah6qk")
+Button/styles/pressed = ExtResource("6_yxsyo")
+CheckButton/font_sizes/font_size = 16
+CheckButton/fonts/font = ExtResource("1_uh1kx")
+CheckButton/icons/checked = ExtResource("7_u16sj")
+CheckButton/icons/checked_disabled = ExtResource("7_u16sj")
+CheckButton/icons/unchecked = ExtResource("8_5j6do")
+CheckButton/icons/unchecked_disabled = ExtResource("8_5j6do")
+CheckButton/styles/disabled = ExtResource("2_tmgm3")
+CheckButton/styles/focus = ExtResource("3_dwgm8")
+CheckButton/styles/hover = ExtResource("4_34u6u")
+CheckButton/styles/hover_pressed = ExtResource("6_yxsyo")
+CheckButton/styles/normal = ExtResource("5_ah6qk")
+CheckButton/styles/pressed = ExtResource("5_ah6qk")
+ItemList/font_sizes/font_size = 16
+ItemList/fonts/font = ExtResource("1_uh1kx")
+Label/colors/font_color = Color(1, 1, 1, 1)
+Label/colors/font_color_shadow = Color(0, 0, 0, 0)
+Label/colors/font_outline_modulate = Color(1, 1, 1, 1)
+Label/constants/line_spacing = 3
+Label/constants/shadow_as_outline = 0
+Label/constants/shadow_offset_x = 1
+Label/constants/shadow_offset_y = 1
+Label/font_sizes/font_size = 16
+Label/fonts/font = ExtResource("1_uh1kx")
+Label/styles/normal = null
+Panel/styles/panel = ExtResource("9_0meck")

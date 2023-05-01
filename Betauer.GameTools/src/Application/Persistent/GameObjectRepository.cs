@@ -5,33 +5,16 @@ using Godot;
 
 namespace Betauer.Application.Persistent;
 
-[Singleton]
 public class GameObjectRepository {
     private int _lastId = 0;
     private int NextId() => ++_lastId;
     private readonly Dictionary<int, GameObject> _registry = new();
     private readonly Dictionary<string, GameObject> _alias = new();
-    
-    [Inject] public PlayerConfig PlayerConfig { get; set; }
-    
-    public PlayerNode PlayerNode { get; private set; }
 
     public void Clear() {
         _lastId = 0;
         _registry.Clear();
         _alias.Clear();
-        PlayerNode = null;
-    }
-    
-    public bool IsPlayer(CharacterBody2D player) {
-        return PlayerNode.CharacterBody2D == player;
-    }
-    
-    public PlayerGameObject CreatePlayer(PlayerNode playerNode, PlayerConfig playerConfig) {
-        PlayerNode = playerNode;
-        var playerItem = Create<PlayerGameObject>("Player1", "player1").Configure(playerConfig);
-        playerItem.LinkNode(playerNode);
-        return playerItem;
     }
 
     public TItem Create<TItem>(string name, string? alias = null) where TItem : GameObject {
@@ -42,9 +25,6 @@ public class GameObjectRepository {
         return Add(item);
     }
 
-    /*
-     * Items
-     */
     public GameObject Get(int id) => _registry[id];
 
     public GameObject? GetOrNull(int id) => _registry.TryGetValue(id, out var r) ? r : null; 
@@ -78,7 +58,7 @@ public class GameObjectRepository {
     }
 }
 
-public static class WorldExtension {
+public static class GameObjectExtensions {
     private static readonly StringName GameObjectId = "__GameObjectId";
     private static readonly StringName NodeId = "__NodeId";
     

@@ -1,9 +1,9 @@
 [gd_scene load_steps=7 format=3 uid="uid://d3oetnugexew"]
 
 [ext_resource type="Script" path="res://Src/UI/SettingsMenu.cs" id="1"]
-[ext_resource type="Theme" uid="uid://bei1s45ic3xtp" path="res://Assets/UI/my_theme2.tres" id="2_kq4e7"]
+[ext_resource type="Theme" uid="uid://bei1s45ic3xtp" path="res://Platform/UI/my_theme2.tres" id="2_kq4e7"]
 [ext_resource type="PackedScene" uid="uid://etv0voa53luq" path="res://Scenes/UI/FlatButton.tscn" id="3"]
-[ext_resource type="FontFile" uid="uid://bah577vy7bskh" path="res://Assets/Fonts/dpcomic.ttf" id="3_c42cs"]
+[ext_resource type="FontFile" uid="uid://bah577vy7bskh" path="res://Platform/Fonts/dpcomic.ttf" id="3_c42cs"]
 [ext_resource type="PackedScene" uid="uid://bcmwxxdfmwf7a" path="res://Scenes/UI/CheckButton.tscn" id="4"]
 [ext_resource type="PackedScene" uid="uid://c4cm73gj1or01" path="res://Scenes/UI/RedefineActionButton.tscn" id="5"]
 

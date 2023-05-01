@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://bjx7gbqxh6m7q"]
 
 [ext_resource type="Texture2D" uid="uid://c12blmsyum1yw" path="res://icon.png" id="1"]
-[ext_resource type="Theme" uid="uid://bei1s45ic3xtp" path="res://Assets/UI/my_theme2.tres" id="2_uwqbt"]
+[ext_resource type="Theme" uid="uid://bei1s45ic3xtp" path="res://Platform/UI/my_theme2.tres" id="2_uwqbt"]
 [ext_resource type="Script" path="res://Src/UI/MainMenu.cs" id="4"]
 
 [node name="MainMenuLayer" type="CanvasLayer"]

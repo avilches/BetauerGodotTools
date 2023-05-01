@@ -24,6 +24,9 @@ public partial class WorldScene : Node {
 	[Inject] private IPool<PickableItemNode> PickableItemPool { get; set; }
 	[Inject] private IPool<ProjectileTrail> ProjectilePool { get; set; }
 	[Inject] private IPool<ZombieNode> ZombiePool { get; set; }
+	[Inject] private PlayerConfig PlayerConfig { get; set; }
+    
+	public PlayerNode PlayerNode { get; private set; }
 
 	public override void _Ready() {
 		GetNode("EnemySpawn").GetChildren().OfType<Marker2D>().ForEach(m => {
@@ -111,9 +114,20 @@ public partial class WorldScene : Node {
 		var playerNode = PlayerFactory.Get();
 		AddChild(playerNode);
 		playerNode.Ready += () => playerNode.GlobalPosition = GetPositionFromMarker("SpawnPlayer");
-		GameObjectRepository.CreatePlayer(playerNode, ConfigManager.PlayerConfig);
+		CreatePlayer(playerNode, ConfigManager.PlayerConfig);
 	}
 
+	public bool IsPlayer(CharacterBody2D player) {
+		return PlayerNode.CharacterBody2D == player;
+	}
+
+	public PlayerGameObject CreatePlayer(PlayerNode playerNode, PlayerConfig playerConfig) {
+		PlayerNode = playerNode;
+		var playerItem = GameObjectRepository.Create<PlayerGameObject>("Player1", "player1").Configure(playerConfig);
+		playerItem.LinkNode(playerNode);
+		return playerItem;
+	}
+	
 	public void InstantiateNewZombie() {
 		var position = GetNode("EnemySpawn").GetChildren().OfType<Marker2D>().First().GlobalPosition;
 		ZombieSpawn(this, position);
@@ -134,7 +148,7 @@ public partial class WorldScene : Node {
 		light.ShadowFilter = Light2D.ShadowFilterEnum.None;
 		light.GetNode<Area2D>("Area2D")
 			?.OnBodyEntered(LayerConstants.LayerPlayerBody, (player) => {
-				if (player is CharacterBody2D character && GameObjectRepository.IsPlayer(character)) CandleOn(light);
+				if (player is CharacterBody2D character && IsPlayer(character)) CandleOn(light);
 			});
 	}
 
@@ -145,5 +159,4 @@ public partial class WorldScene : Node {
 		// light.ShadowEnabled = false;
 	}
 
-	
 }

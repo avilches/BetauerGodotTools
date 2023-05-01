@@ -20,8 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="*" Exclude="mono_crash*" />
-    <Content Include="Assets/**" />
-    <Content Include="Characters/**" />
+    <Content Include="Platform/**"/>
     <Content Include="Docs/*" />
     <Content Include="export/*" />
     <Content Include="Scenes/**" />
@@ -35,5 +34,8 @@
     <ProjectReference Include="../Betauer.DI/Betauer.DI.csproj" />
     <ProjectReference Include="../Betauer.Tools.Logging/Betauer.Tools.Logging.csproj" />
     <ProjectReference Include="../Betauer.FSM/Betauer.FSM.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Platform\" />
   </ItemGroup>
 </Project>

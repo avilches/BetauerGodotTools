@@ -1,7 +1,7 @@
 [gd_scene load_steps=5 format=3 uid="uid://dmw5hkvxv022p"]
 
 [ext_resource type="Texture2D" uid="uid://cxmo73r7h3lgq" path="res://Src/Assets/HUD/player-health-bar-under.png" id="1_05trw"]
-[ext_resource type="FontFile" uid="uid://bah577vy7bskh" path="res://Assets/Fonts/dpcomic.ttf" id="1_7kwyq"]
+[ext_resource type="FontFile" uid="uid://bah577vy7bskh" path="res://Platform/Fonts/dpcomic.ttf" id="1_7kwyq"]
 [ext_resource type="Texture2D" uid="uid://b1mxxkrpf3xej" path="res://Src/Assets/HUD/player-health-bar-over.png" id="2_8dbxl"]
 [ext_resource type="Texture2D" uid="uid://3pvhwb1xss78" path="res://Src/Assets/HUD/player-health-bar-damage.png" id="3_okw7p"]
 

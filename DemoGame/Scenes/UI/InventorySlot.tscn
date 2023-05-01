@@ -1,7 +1,7 @@
 [gd_scene load_steps=5 format=3 uid="uid://blphp8u56oyr5"]
 
 [ext_resource type="Script" path="res://Src/UI/InventorySlot.cs" id="1_c6sko"]
-[ext_resource type="Theme" uid="uid://bei1s45ic3xtp" path="res://Assets/UI/my_theme2.tres" id="2_ixu10"]
+[ext_resource type="Theme" uid="uid://bei1s45ic3xtp" path="res://Platform/UI/my_theme2.tres" id="2_ixu10"]
 
 [sub_resource type="CompressedTexture2D" id="CompressedTexture2D_t4y30"]
 resource_local_to_scene = true

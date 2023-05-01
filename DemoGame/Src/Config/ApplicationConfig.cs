@@ -4,6 +4,7 @@ using Betauer.Application;
 using Betauer.Application.Lifecycle;
 using Betauer.Application.Lifecycle.Attributes;
 using Betauer.Application.Monitor;
+using Betauer.Application.Persistent;
 using Betauer.Application.Screen;
 using Betauer.Application.Settings;
 using Betauer.Application.Settings.Attributes;
@@ -33,6 +34,7 @@ public class ApplicationConfig {
 
 	[Singleton] public DebugOverlayManager DebugOverlayManager => new();
 	[Singleton] public InputActionsContainer InputActionsContainer => new();
+	[Singleton] public GameObjectRepository GameObjectRepository => new();
 }
 
 [Configuration]
@@ -57,10 +59,10 @@ public class GameLoaderContainer : ResourceLoaderContainer {
 [Configuration]
 [Loader("MyGameLoader", Tag = "main")]
 [Preload<Texture2D>("Icon", "res://icon.png", Lazy = true)]
-[Resource<Theme>("MyTheme", "res://Assets/UI/my_theme2.tres")]
-[Resource<Texture2D>("Xbox360Buttons", "res://Assets/UI/Consoles/Xbox 360 Controller Updated.png")]
-[Resource<Texture2D>("XboxOneButtons", "res://Assets/UI/Consoles/Xbox One Controller Updated.png")]
-[Resource<Theme>("DebugConsoleTheme", "res://Assets/UI/DebugConsole.tres")]
+[Resource<Theme>("MyTheme", "res://Platform/UI/my_theme2.tres")]
+[Resource<Texture2D>("Xbox360Buttons", "res://Platform/UI/Consoles/Xbox 360 Controller Updated.png")]
+[Resource<Texture2D>("XboxOneButtons", "res://Platform/UI/Consoles/Xbox One Controller Updated.png")]
+[Resource<Theme>("DebugConsoleTheme", "res://Platform/UI/DebugConsole.tres")]
 [Scene.Transient<RedefineActionButton>("RedefineActionButton", "res://Scenes/UI/RedefineActionButton.tscn")]
 [Scene.Transient<ModalBoxConfirm>("ModalBoxConfirm", "res://Scenes/Menu/ModalBoxConfirm.tscn")]
 [Scene.Singleton<HUD>("HudResource", "res://Scenes/UI/HUD.tscn")]
@@ -74,11 +76,11 @@ public class MainResources {
 
 [Configuration]
 [Loader("MyGameLoader", Tag = "game")]
-[Resource<Texture2D>("Pickups", "res://Assets/pickups.png")]
-[Resource<Texture2D>("Pickups2", "res://Assets/pickups2.png")]
-[Resource<Texture2D>("LeonKnifeAnimationSprite", "res://Characters/Player-Leon/Leon-knife.png")]
-[Resource<Texture2D>("LeonMetalbarAnimationSprite", "res://Characters/Player-Leon/Leon-metalbar.png")]
-[Resource<Texture2D>("LeonGun1AnimationSprite", "res://Characters/Player-Leon/Leon-gun1.png")]
+[Resource<Texture2D>("Pickups", "res://Platform/pickups.png")]
+[Resource<Texture2D>("Pickups2", "res://Platform/pickups2.png")]
+[Resource<Texture2D>("LeonKnifeAnimationSprite", "res://Platform/Characters/Player-Leon/Leon-knife.png")]
+[Resource<Texture2D>("LeonMetalbarAnimationSprite", "res://Platform/Characters/Player-Leon/Leon-metalbar.png")]
+[Resource<Texture2D>("LeonGun1AnimationSprite", "res://Platform/Characters/Player-Leon/Leon-gun1.png")]
 [Scene.Transient<WorldScene>("World3", "res://Worlds/World3.tscn")]
 [Scene.Transient<PlayerNode>("Player", "res://Scenes/Player.tscn")]
 [Scene.Transient<ZombieNode>("ZombieNode", "res://Scenes/Zombie2.tscn")]

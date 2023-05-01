@@ -25,6 +25,7 @@ using Veronenger.Character.Player;
 using Veronenger.Config;
 using Veronenger.Managers;
 using Veronenger.Persistent;
+using Veronenger.Worlds;
 
 namespace Veronenger.Character.Npc; 
 
@@ -87,7 +88,7 @@ public partial class ZombieNode : NpcNode, IInjectable {
 	[NodePath("Character/HealthBarPosition/HealthBar")] public TextureProgressBar HealthBar;
 
 	[Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
-
+	[Inject] private Game Game { get; set; }
 	[Inject] private EventBus EventBus { get; set; }
 	[Inject] private PlayerConfig PlayerConfig { get; set; }
 	
@@ -122,7 +123,7 @@ public partial class ZombieNode : NpcNode, IInjectable {
 	private LazyRaycast2D _lazyRaycastToPlayer;
 	private DebugOverlay? _overlay;
 
-	private Vector2 PlayerPos => GameObjectRepository.PlayerNode.Marker2D.GlobalPosition;
+	private Vector2 PlayerPos => Game.WorldScene.PlayerNode.Marker2D.GlobalPosition;
 	public bool IsFacingToPlayer() => LateralState.IsFacingTo(PlayerPos);
 	public bool IsToTheRightOfPlayer() => LateralState.IsToTheRightOf(PlayerPos);
 	public int RightOfPlayer() => IsToTheRightOfPlayer() ? 1 : -1;
