@@ -144,7 +144,7 @@ public partial class InputAction : IAction, IInjectable {
     internal readonly IHandler Handler;
     private readonly Updater _updater;
 
-    public int JoypadDeviceId { get; private set; }
+    public int JoypadDeviceId { get; private set; } = 0;
 
     public InputAction Clone(int joypadDeviceId) {
         var name = $"{Name}/{joypadDeviceId}";

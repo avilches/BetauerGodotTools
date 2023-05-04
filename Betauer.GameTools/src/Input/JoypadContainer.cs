@@ -12,6 +12,8 @@ public abstract class JoypadContainer {
 
     private List<ISetter>? _fastSetters;
 
+    public int JoypadDeviceId { get; private set; } = -1;
+
     protected List<ISetter> FastSetters => _fastSetters ??=
         GetType().GetProperties()
             .Where(p => TypeExtensions.ImplementsInterface(p.PropertyType, typeof(IAction)))
@@ -28,12 +30,14 @@ public abstract class JoypadContainer {
             setter.SetValue(this, action);
         });
         JoypadActionsContainer.Enable();
+        JoypadDeviceId = joypadId;
     }
 
     public virtual void Disconnect() {
         JoypadActionsContainer?.Disable();
         JoypadActionsContainer?.QueueFree();
         JoypadActionsContainer = null;
+        JoypadDeviceId = -1;
     }
     
     protected abstract InputActionsContainer Source { get; } 
