@@ -7,6 +7,7 @@ using Betauer.Core.Pool.Lifecycle;
 using Betauer.Core.Signal;
 using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
+using Betauer.Input;
 using Godot;
 using Veronenger.Config;
 using Veronenger.UI;
@@ -25,10 +26,12 @@ public class Game {
 
 	[Inject] private GameLoaderContainer GameLoaderContainer { get; set; }
 	[Inject] private PoolContainer<IPoolLifecycle> PoolContainer { get; set; }
+	[Inject] public InputActionsContainer PlayerActionsContainer { get; set; }
 
 	public WorldScene WorldScene { get; private set; }
 
 	public async Task Start() {
+		PlayerActionsContainer.Disable();
 		StageManager.ClearState();
 		await StartWorld3();
 	}

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Betauer.DI;
 using Betauer.DI.Attributes;
 using Betauer.Input;
 using Betauer.NodePath;

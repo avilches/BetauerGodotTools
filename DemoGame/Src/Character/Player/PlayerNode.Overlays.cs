@@ -49,8 +49,8 @@ public partial class PlayerNode {
 
 	private void AddDebuggingInputAction(DebugOverlay overlay) {
 		overlay.OpenBox()
-			.Text("LR", () => Handler.Lateral.Strength.ToString("0.00") ).EndMonitor()
-			.Text("UD", () => Handler.Vertical.Strength.ToString("0.00") ).EndMonitor()
+			.Text("LR", () => ActionsContainer.Lateral.Strength.ToString("0.00") ).EndMonitor()
+			.Text("UD", () => ActionsContainer.Vertical.Strength.ToString("0.00") ).EndMonitor()
 			.CloseBox();
 
 		overlay.OpenBox()
@@ -77,20 +77,20 @@ public partial class PlayerNode {
 			};
 
 			var result = "";
-			if (Handler.Lateral.Strength == 0f) {
-				result = $"-{Handler.Left.Strength:0.00}+{Handler.Right.Strength:0.00}={Handler.Lateral.Strength:0.00} {v(Handler.Left)}{v(Handler.Right)} ";
+			if (ActionsContainer.Lateral.Strength == 0f) {
+				result = $"-{ActionsContainer.Left.Strength:0.00}+{ActionsContainer.Right.Strength:0.00}={ActionsContainer.Lateral.Strength:0.00} {v(ActionsContainer.Left)}{v(ActionsContainer.Right)} ";
 			} else {
-				var left = Handler.Left.Strength > 0 ? "-"+Handler.Left.Strength.ToString("0.00") : "     ";
-				var right = Handler.Right.Strength > 0 ? "+"+Handler.Right.Strength.ToString("0.00") : "     ";
+				var left = ActionsContainer.Left.Strength > 0 ? "-"+ActionsContainer.Left.Strength.ToString("0.00") : "     ";
+				var right = ActionsContainer.Right.Strength > 0 ? "+"+ActionsContainer.Right.Strength.ToString("0.00") : "     ";
 				result =
-					$"{left}{right}={Handler.Lateral.Strength:0.00} {v(Handler.Left)}{v(Handler.Right)} ";
+					$"{left}{right}={ActionsContainer.Lateral.Strength:0.00} {v(ActionsContainer.Left)}{v(ActionsContainer.Right)} ";
 			}
 			if (result != prevResult) {
 				GD.Print(result);
 				prevResult = result;
 			}
 			var godotAxis = Input.GetAxis("Left", "Right").ToString("0.00");
-			if (godotAxis != Handler.Lateral.Strength.ToString("0.00")) {
+			if (godotAxis != ActionsContainer.Lateral.Strength.ToString("0.00")) {
 				GD.Print("wooo");
 			}
 		});

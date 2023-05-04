@@ -124,7 +124,7 @@ public partial class PickableItemNode : Node, IPoolLifecycle, IInjectable, INode
 				PickZone.Monitorable = false;
 			})
 			.Execute(() => {
-				FallAndBounce(_delta);
+				FallAndBounce();
 				placingTime -= _delta;
 			})
 			.If(() => placingTime <= 0f).Set(State.Available)
@@ -133,7 +133,7 @@ public partial class PickableItemNode : Node, IPoolLifecycle, IInjectable, INode
 
 		_fsm.State(State.Available)
 			.Enter(() => PickZone.Monitorable = true)
-			.Execute(() => FallAndBounce(_delta))
+			.Execute(FallAndBounce)
 			.Build();
 
 		_fsm.State(State.PickingUp)
@@ -159,7 +159,7 @@ public partial class PickableItemNode : Node, IPoolLifecycle, IInjectable, INode
 		_fsm.Execute();
 	}
 
-	private void FallAndBounce(double delta) {
+	private void FallAndBounce() {
 		PlatformBody.ApplyGravity(PlayerConfig.FloorGravity, PlayerConfig.MaxFallingSpeed, _delta);
 		if (PlatformBody.IsOnFloor()) {
 			PlatformBody.ApplyLateralFriction(PlayerConfig.DropLateralFriction, PlayerConfig.StopIfSpeedIsLessThan);

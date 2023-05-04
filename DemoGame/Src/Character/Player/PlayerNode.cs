@@ -25,6 +25,7 @@ using Veronenger.Persistent;
 using Veronenger.Transient;
 using Veronenger.UI;
 using Veronenger.Worlds;
+using Container = Betauer.DI.Container;
 
 namespace Veronenger.Character.Player; 
 
@@ -82,14 +83,11 @@ public partial class PlayerNode : Node, IInjectable, INodeWithGameObject {
 	[Inject] private PlatformManager PlatformManager { get; set; }
 	[Inject] private ConfigManager ConfigManager { get; set; }
 	[Inject] private StageManager StageManager { get; set; }
-	[Inject] private InputAction MMB { get; set; }
-	[Inject] private InputAction NextItem { get; set; }
-	[Inject] private InputAction PrevItem { get; set; }
-	[Inject] private InputAction Drop { get; set; }
+	[Inject] private Container Container { get; set; }
 
 	[Inject] private SceneTree SceneTree { get; set; }
 	[Inject] private EventBus EventBus { get; set; }
-	[Inject] private PlayerInputActions Handler { get; set; }
+	[Inject] private MultiplePlayerActionsContainer ActionsContainer { get; set; }
 	[Inject] private HUD HudScene { get; set; }
 
 	private readonly FsmNodeSync<PlayerState, PlayerEvent> _fsm = new(PlayerState.Idle, "Player.FSM", true);
@@ -108,15 +106,18 @@ public partial class PlayerNode : Node, IInjectable, INodeWithGameObject {
 	public Anim AnimationAirAttack { get; private set; }
 	public Anim AnimationHurt { get; private set; }
 
-	private float XInput => Handler.Lateral.Strength;
-	private float YInput => Handler.Vertical.Strength;
-	private bool IsPressingRight => Handler.Right.IsPressed;
-	private bool IsPressingLeft => Handler.Left.IsPressed;
-	private bool IsPressingUp => Handler.Up.IsPressed;
-	private bool IsPressingDown => Handler.Down.IsPressed;
-	private InputAction Jump => Handler.Jump;
-	private InputAction Attack => Handler.Attack;
-	private InputAction Float => Handler.Float;
+	private float XInput => ActionsContainer.Lateral.Strength;
+	private float YInput => ActionsContainer.Vertical.Strength;
+	private bool IsPressingRight => ActionsContainer.Right.IsPressed;
+	private bool IsPressingLeft => ActionsContainer.Left.IsPressed;
+	private bool IsPressingUp => ActionsContainer.Up.IsPressed;
+	private bool IsPressingDown => ActionsContainer.Down.IsPressed;
+	private InputAction Jump => ActionsContainer.Jump;
+	private InputAction Attack => ActionsContainer.Attack;
+	private InputAction Float => ActionsContainer.Float;
+	private InputAction NextItem => ActionsContainer.NextItem;
+	private InputAction PrevItem => ActionsContainer.PrevItem;
+	private InputAction Drop => ActionsContainer.Drop;
 
 	private float MotionX => PlatformBody.MotionX;
 	private float MotionY => PlatformBody.MotionY;
@@ -141,8 +142,12 @@ public partial class PlayerNode : Node, IInjectable, INodeWithGameObject {
 
 	public GameObject GameObject { get; set; }
 
-	private PlayerGameObject PlayerGameObject => (PlayerGameObject)GameObject; 
+	private PlayerGameObject PlayerGameObject => (PlayerGameObject)GameObject;
 
+	public void Connect(int joypadId) {
+		ActionsContainer.Connect(joypadId);
+	}
+	
 	public override void _Ready() {
 		// Some events could be triggered when a property is changed during the PostInject configuration phase,
 		// so it's better to add the events when everything is loaded
@@ -169,8 +174,10 @@ public partial class PlayerNode : Node, IInjectable, INodeWithGameObject {
 			canvas.DrawRaycast(RaycastCanJump, Colors.Red);
 		});
 		drawEvent.Disable();
-	}
 
+		OnFree += ActionsContainer.Disconnect;
+	}
+	
 	private void ConfigureAnimations() {
 		AnimationIdle = _animationPlayer.Anim("Idle");
 		AnimationRun = _animationPlayer.Anim("Run");
@@ -194,7 +201,7 @@ public partial class PlayerNode : Node, IInjectable, INodeWithGameObject {
 		CharacterBody2D.FloorConstantSpeed = true;
 		CharacterBody2D.FloorSnapLength = MotionConfig.SnapLength;
 		var flipper = new FlipperList()
-			.Sprite2DFlipH(_mainSprite)
+			.Sprite2DFlipH(_mainSprite)                               
 			.Sprite2DFlipH(_weaponSprite)
 			.ScaleX(_attackArea1)
 			.ScaleX(_attackArea2);

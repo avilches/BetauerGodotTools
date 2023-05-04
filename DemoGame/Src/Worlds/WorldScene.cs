@@ -5,6 +5,7 @@ using Betauer.Core.Nodes;
 using Betauer.Core.Pool;
 using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
+using Betauer.Input;
 using Godot;
 using Veronenger.Character.Npc;
 using Veronenger.Character.Player;
@@ -25,7 +26,7 @@ public partial class WorldScene : Node {
 	[Inject] private IPool<ProjectileTrail> ProjectilePool { get; set; }
 	[Inject] private IPool<ZombieNode> ZombiePool { get; set; }
 	[Inject] private PlayerConfig PlayerConfig { get; set; }
-	
+
 	public PlayerNode PlayerNode { get; private set; }
 
 	public override void _Ready() {
@@ -113,6 +114,7 @@ public partial class WorldScene : Node {
 	public void AddPlayerToScene() {
 		var playerNode = PlayerFactory.Get();
 		AddChild(playerNode);
+		playerNode.Connect(0);
 		playerNode.Ready += () => playerNode.GlobalPosition = GetPositionFromMarker("SpawnPlayer");
 		CreatePlayer(playerNode, ConfigManager.PlayerConfig);
 	}

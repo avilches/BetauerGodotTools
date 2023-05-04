@@ -33,8 +33,9 @@ public class ApplicationConfig {
 		1f);
 
 	[Singleton] public DebugOverlayManager DebugOverlayManager => new();
-	[Singleton] public InputActionsContainer InputActionsContainer => new();
 	[Singleton] public GameObjectRepository GameObjectRepository => new();
+	[Singleton] public InputActionsContainer UiActionsContainer => new();
+	[Singleton] public InputActionsContainer PlayerActionsContainer => new();
 }
 
 [Configuration]
@@ -99,7 +100,7 @@ public class PoolConfig {
 
 [Configuration]
 [SettingsContainer("SettingsContainer")]
-[InputActionsContainer("InputActionsContainer")]
+[InputActionsContainer("PlayerActionsContainer")]
 public class Actions {
 
 	[AxisAction(SaveAs = "Controls/Lateral")] 
@@ -185,7 +186,7 @@ public class Actions {
 }
 
 [Configuration]
-[InputActionsContainer("InputActionsContainer")]
+[InputActionsContainer("UiActionsContainer")]
 public class UiActions {
 	[AxisAction] 
 	private AxisAction UiVertical => AxisAction.Create().Build();
@@ -253,7 +254,7 @@ public class UiActions {
 
 [Configuration]
 [SettingsContainer("SettingsContainer")]
-[InputActionsContainer("InputActionsContainer")]
+[InputActionsContainer("UiActionsContainer")]
 public class OtherActions {
 	[InputAction]
 	private InputAction DebugOverlayAction => InputAction.Create("DebugOverlay")

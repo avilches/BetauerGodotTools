@@ -34,7 +34,7 @@ public class MeleeAi : FsmSync<MeleeAi.State, MeleeAi.Event>, ICharacterAi {
 
     public static ICharacterAi Create(ICharacterHandler handler, Sensor sensor) {
         if (handler is NpcController controller) return new MeleeAi(controller, sensor);
-        if (handler is PlayerInputActions) return DoNothingAI.Instance;
+        if (handler is PlayerHandler) return DoNothingAI.Instance;
         throw new Exception($"Unknown handler: {handler.GetType()}");
     }
 
