@@ -147,7 +147,7 @@ public class Actions {
 		.Keys(Key.Space)
 		.Buttons(JoyButton.A)
 		.Pausable()
-		.ExtendedUnhandled();
+		.AsExtendedUnhandled();
 
 	[InputAction(SaveAs = "Controls/Attack")]
 	private InputAction Attack => InputAction.Create()
@@ -155,34 +155,34 @@ public class Actions {
 		.Click(MouseButton.Left)
 		.Buttons(JoyButton.B)
 		.Pausable()
-		.ExtendedUnhandled();
+		.AsExtendedUnhandled();
 
 	[InputAction()]
 	private InputAction Drop => InputAction.Create()
 		.Keys(Key.G)
 		.Pausable()
-		.ExtendedUnhandled();
+		.AsExtendedUnhandled();
 
 	[InputAction(SaveAs = "Controls/NextItem")]
 	private InputAction NextItem => InputAction.Create()
 		.Keys(Key.E)
 		.Buttons(JoyButton.RightShoulder)
 		.Pausable()
-		.ExtendedUnhandled();
+		.AsExtendedUnhandled();
 
 	[InputAction(SaveAs = "Controls/PrevItem")]
 	private InputAction PrevItem => InputAction.Create()
 		.Keys(Key.Q)
 		.Buttons(JoyButton.LeftShoulder)
 		.Pausable()
-		.ExtendedUnhandled();
+		.AsExtendedUnhandled();
 
 	[InputAction(SaveAs = "Controls/Float")]
 	private InputAction Float => InputAction.Create()
 		.Keys(Key.F)
 		.Buttons(JoyButton.Y)
 		.Pausable()
-		.ExtendedUnhandled();
+		.AsExtendedUnhandled();
 }
 
 [Configuration]

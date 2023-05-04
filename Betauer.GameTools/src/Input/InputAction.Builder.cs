@@ -6,13 +6,14 @@ namespace Betauer.Input;
 
 public partial class InputAction {
     public class Builder {
-        protected readonly string Name;
-        protected bool IsKeepProjectSettings = false;
+        private readonly string _name;
+        private bool _isKeepProjectSettings = false;
 
         private readonly ISet<JoyButton> _buttons = new HashSet<JoyButton>();
         private readonly ISet<Key> _keys = new HashSet<Key>();
         private JoyAxis _axis = JoyAxis.Invalid;
         private int _axisSign = 0;
+        private int _joypadDeviceId = 0;
         private float _deadZone = -1f;
         private MouseButton _mouseButton = MouseButton.None;
         private bool _ctrlPressed;
@@ -21,9 +22,10 @@ public partial class InputAction {
         private bool _metaPressed;
         private bool _commandOrCtrlAutoremap;
         private bool _pausable = false;
-
+        private bool _enabled = true;
+                      
         internal Builder(string name) {
-            Name = name;
+            _name = name;
         }
 
         public Builder DeadZone(float deadZone) {
@@ -44,7 +46,7 @@ public partial class InputAction {
         }
 
         public Builder KeepProjectSettings(bool keepProjectSettings = true) {
-            IsKeepProjectSettings = keepProjectSettings;
+            _isKeepProjectSettings = keepProjectSettings;
             return this;
         }
 
@@ -55,6 +57,11 @@ public partial class InputAction {
 
         public Builder Buttons(params JoyButton[] buttons) {
             buttons.ForEach(button => _buttons.Add(button));
+            return this;
+        }
+
+        public Builder JoypadDevice(int joypadDeviceId) {
+            _joypadDeviceId = joypadDeviceId;
             return this;
         }
 
@@ -93,6 +100,16 @@ public partial class InputAction {
             return this;
         }
 
+        public Builder Enabled(bool enabled = true) {
+            _enabled = enabled;
+            return this;
+        }
+
+        public Builder Disabled() {
+            _enabled = false;
+            return this;
+        }
+
         private void ApplyConfig(InputAction inputAction) {
             if (_axis != JoyAxis.Invalid) {
                 inputAction.Axis = _axis;
@@ -110,12 +127,14 @@ public partial class InputAction {
             if (_buttons.Count > 0) {
                 _buttons.ForEach(b => inputAction.Buttons.Add(b));
             }
+            inputAction.JoypadDeviceId = _joypadDeviceId;
             inputAction.Ctrl = _ctrlPressed;
             inputAction.Shift = _shiftPressed;
             inputAction.Alt = _altPressed;
             inputAction.Meta = _metaPressed;
             inputAction.CommandOrCtrlAutoremap = _commandOrCtrlAutoremap;
             inputAction.Pausable = _pausable;
+            inputAction.Enabled = _enabled;
         }
         
         public InputAction AsMock() {
@@ -136,25 +155,29 @@ public partial class InputAction {
             return input;
         }
 
-        public InputAction Extended(bool godotInputMapToo = false) {
+        public InputAction AsExtended(bool godotInputMapToo = false) {
             var input = CreateInputAction(InputActionBehaviour.Extended, godotInputMapToo, false);
             ApplyConfig(input);
             return input;
         }
 
-        public InputAction ExtendedUnhandled(bool godotInputMapToo = false) {
+        public InputAction AsExtendedUnhandled(bool godotInputMapToo = false) {
             var input = CreateInputAction(InputActionBehaviour.Extended, godotInputMapToo, true);
             ApplyConfig(input);
             return input;
         }
 
         protected InputAction CreateInputAction(InputActionBehaviour behaviour, bool configureGodotInputMap, bool unhandled) {
-            return new InputAction(
-                Name,
-                IsKeepProjectSettings,
+            var inputAction = new InputAction(
+                _name,
+                null,
                 behaviour,
                 configureGodotInputMap,
                 unhandled);
+            if (_isKeepProjectSettings) {
+                inputAction.LoadFromGodotProjectSettings();
+            }
+            return inputAction;
         }
     }
 }

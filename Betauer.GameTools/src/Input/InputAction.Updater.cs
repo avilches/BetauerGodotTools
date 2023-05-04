@@ -14,10 +14,12 @@ public partial class InputAction {
         public Updater ClearAll() {
             // Mouse
             ClearMouse();
+            
             // Joypad
             SetDeadZone(DefaultDeadZone);
             ClearAxis();
             ClearButtons();
+            
             // Keys
             ClearModifiers();
             ClearKeys();
@@ -27,11 +29,13 @@ public partial class InputAction {
         public Updater CopyFrom(InputAction inputAction) {
             // Mouse
             SetMouse(inputAction.MouseButton);
+            
             // Joypad
             SetDeadZone(inputAction.DeadZone);
             SetAxis(inputAction.Axis);
             SetAxisSign(inputAction.AxisSign);
             SetButtons(inputAction.Buttons.ToArray());
+            SetJoypadDevice(inputAction.JoypadDeviceId);
 
             // Keys
             WithCommandOrCtrlAutoremap(inputAction.CommandOrCtrlAutoremap);
@@ -42,7 +46,8 @@ public partial class InputAction {
             SetKeys(inputAction.Keys.ToArray());
             return this;
         }
-
+        
+        // Mouse
         public Updater SetMouse(MouseButton mouseButton) {
             _inputAction.MouseButton = mouseButton;
             return this;
@@ -52,7 +57,8 @@ public partial class InputAction {
             _inputAction.MouseButton = MouseButton.None;
             return this;
         }
-
+        
+        // Joypad
         public Updater SetDeadZone(float deadZone) {
             _inputAction.DeadZone = deadZone;
             return this;
@@ -68,12 +74,23 @@ public partial class InputAction {
             return this;
         }
 
+        public Updater SetJoypadDevice(int joypadDeviceId) {
+            _inputAction.JoypadDeviceId = joypadDeviceId;
+            return this;
+        }
+
+        public Updater ClearJoypadDevice() {
+            _inputAction.JoypadDeviceId = -1;
+            return this;
+        }
+
         public Updater SetAxisSign(int defaultAxisSign) {
             if (Math.Abs(defaultAxisSign) != 1) throw new Exception("Invalid axis sign. Value  must be 1 or -1, but is "+defaultAxisSign);
             _inputAction.AxisSign = defaultAxisSign;
             return this;
         }
 
+        // Keys
         public Updater WithCommandOrCtrlAutoremap(bool enable = true) {
             _inputAction.CommandOrCtrlAutoremap = enable;
             if (enable) {

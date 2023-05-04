@@ -74,9 +74,26 @@ public partial class InputAction : IAction, IInjectable {
     public const float DefaultDeadZone = 0.5f;
     public static Builder Create() => new(null);
     public static Builder Create(string name) => new(name);
+    public static InputAction Mock(string? name = null) => new(
+        name, 
+        null,
+        InputActionBehaviour.Mock,
+        false,
+        false,
+        false,
+        true);
+
+    public static InputAction Simulate(string? name = null) => new(
+        name,
+        null,
+        InputActionBehaviour.Simulate,
+        false,
+        false, 
+        false, 
+        true);
+
 
     // Usage
-    public string Name { get; private set; }
     public bool IsPressed => Handler.Pressed;
     public bool IsJustPressed => Handler.JustPressed;
     public bool IsJustReleased => Handler.JustReleased;
@@ -97,6 +114,7 @@ public partial class InputAction : IAction, IInjectable {
     public bool IsEventReleased(InputEvent e) => IsEvent(e) && e.IsReleased();
 
     // Configuration
+    public string Name { get; private set; }
     public bool Pausable { get; private set; } = false;
     public List<JoyButton> Buttons { get; } = new();
     public List<Key> Keys { get; } = new();
@@ -109,28 +127,24 @@ public partial class InputAction : IAction, IInjectable {
     public bool Shift { get; private set; }
     public bool Alt { get; private set; }
     public bool Meta { get; private set; }
-
-
     public string? AxisActionName { get; internal set; }
-    public AxisAction? AxisAction { get; internal set; }
-
-    public InputActionsContainer? InputActionsContainer { get; private set; }
     public InputActionBehaviour Behaviour { get; }
     public bool IsUnhandledInput { get; } = false;
     public bool Enabled { get; private set; } = true;
+    private bool _godotInputMapEnabled = false;
+    public bool GodotInputMapEnabled {
+        get => _godotInputMapEnabled || Behaviour == InputActionBehaviour.GodotInput;
+        set => _godotInputMapEnabled = value || Behaviour == InputActionBehaviour.GodotInput;
+    }
+
+    public AxisAction? AxisAction { get; internal set; }
+
+    public InputActionsContainer? InputActionsContainer { get; private set; }
     public SaveSetting<string>? SaveSetting { get; set; }
     internal readonly IHandler Handler;
     private readonly Updater _updater;
-    private readonly bool _configureGodotInputMap = false;
-    private int _joypadDeviceId;
 
-    public int JoypadDeviceId {
-        get => _joypadDeviceId;
-        set {
-            _joypadDeviceId = value;
-            SetupGodotInputMap();
-        }
-    }
+    public int JoypadDeviceId { get; private set; }
 
     public InputAction Clone(int joypadDeviceId) {
         var name = $"{Name}/{joypadDeviceId}";
@@ -140,42 +154,32 @@ public partial class InputAction : IAction, IInjectable {
         return newInputAction;
     }
 
-    public InputAction Clone(string name, string? axisName = null) {
-        var inputAction = new InputAction(name, false, Behaviour, _configureGodotInputMap, IsUnhandledInput) {
-            Container = Container,
-            Pausable = Pausable,
-            Enabled = Enabled,
-            AxisActionName = axisName,
-            _joypadDeviceId = JoypadDeviceId
-        };
-        inputAction.Update(updater => updater.CopyFrom(this));
-        return inputAction;
-    }
-
-    public static InputAction Mock() => new InputAction(null,
-        false,
-        InputActionBehaviour.Mock,
-        false,
-        false);
-
-    public static InputAction Simulate() => new InputAction(null,
-        false,
-        InputActionBehaviour.Simulate,
-        false,
-        false);
-
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="name"></param>
+    /// <param name="axisActionName"></param>
+    /// <param name="behaviour"></param>
+    /// <param name="configureGodotInputMap">Forced to true if Behaviour is GodotInput</param>
+    /// <param name="isUnhandledInput">Only when Behaviour is Extended</param>
+    /// <param name="pausable">Only when Behaviour is Extended</param>
+    /// <param name="enabled"></param>
     private InputAction(
         string name,
-        bool keepProjectSettings,
+        string? axisActionName,
         InputActionBehaviour behaviour,
-        bool configureGodotInputMap,
-        bool isUnhandledInput) {
+        bool configureGodotInputMap = false,
+        bool isUnhandledInput = false, 
+        bool pausable = false,
+        bool enabled = true) {
+
         Name = name;
+        AxisActionName = axisActionName;
         Behaviour = behaviour;
-        _updater = new Updater(this);
-        Enabled = true;
-        _configureGodotInputMap = behaviour == InputActionBehaviour.GodotInput || configureGodotInputMap;
+        GodotInputMapEnabled = configureGodotInputMap;
         IsUnhandledInput = isUnhandledInput;
+        Pausable = pausable;
+        Enabled = enabled;
 
         Handler = behaviour switch {
             InputActionBehaviour.Mock => new MockStateHandler(this),
@@ -183,10 +187,15 @@ public partial class InputAction : IAction, IInjectable {
             InputActionBehaviour.GodotInput => new GodotInputHandler(this),
             InputActionBehaviour.Extended => new ExtendedInputHandler(this),
         };
-        if (keepProjectSettings) {
-            LoadFromGodotProjectSettings();
-        }
-        // Don't call SetupGodotInputMap here. It's better to wait until PostInject() load the saved setting
+        _updater = new Updater(this);
+    }
+
+    public InputAction Clone(string name, string? axisActionName = null) {
+        var inputAction = new InputAction(name, axisActionName, Behaviour, GodotInputMapEnabled, IsUnhandledInput, Pausable, Enabled) {
+            Container = Container,
+        };
+        inputAction.Update(updater => updater.CopyFrom(this));
+        return inputAction;
     }
 
     [Inject] private Container Container { get; set; }
@@ -195,9 +204,9 @@ public partial class InputAction : IAction, IInjectable {
     private string? _settingSaveAs;
     private bool _settingAutoSave;
 
-    public void PreInject(string? name, string? axisName, string inputActionsContainerName, string? settingsContainerName, string? saveAs, bool autoSave) {
+    public void PreInject(string? name, string? axisActionName, string inputActionsContainerName, string? settingsContainerName, string? saveAs, bool autoSave) {
         if (Name == null) Name = name;
-        AxisActionName = axisName;
+        if (AxisActionName == null) AxisActionName = axisActionName;
         _inputActionsContainerName = inputActionsContainerName;
         _settingsContainerName = settingsContainerName;
         _settingSaveAs = saveAs;
@@ -212,7 +221,7 @@ public partial class InputAction : IAction, IInjectable {
         }
 
         SetInputActionsContainer(Container.Resolve<InputActionsContainer>(_inputActionsContainerName));
-        SetupGodotInputMap();
+        RefreshGodotInputMap();
     }
 
     private void CreateSaveSettings(string settingsContainerName, string propertyName, bool autoSave = false, bool enabled = true) {
@@ -237,30 +246,31 @@ public partial class InputAction : IAction, IInjectable {
 
     public void Enable(bool enabled = true) {
         if (enabled) {
-            if (!Enabled) {
-                Enabled = true;
-                InputActionsContainer?.Enable(this);
-                SetupGodotInputMap();
-            }
+            if (Enabled) return;
+            Enabled = true;
+            InputActionsContainer?.Enable(this);
+            RefreshGodotInputMap();
         } else {
-            Disable();
+            if (!Enabled) return;
+            Enabled = false;
+            InputActionsContainer?.Disable(this);
+            if (Handler is FrameStateHandler stateHandler) stateHandler.ClearState();
+            if (GodotInputMapEnabled) {
+                var stringName = (StringName)Name;
+                if (InputMap.HasAction(stringName)) InputMap.EraseAction(stringName);
+            }
         }
     }
 
-    public void Disable() {
-        Enabled = false;
-        InputActionsContainer?.Disable(this);
-        if (Handler is FrameStateHandler stateHandler) stateHandler.ClearState();
-        if (_configureGodotInputMap && InputMap.HasAction(Name)) InputMap.EraseAction(Name);
-    }
+    public void Disable() => Enable(false);
 
-    public void SetupGodotInputMap() {
-        if (!_configureGodotInputMap || !Enabled) return;
-        
-        if (InputMap.HasAction(Name)) InputMap.EraseAction(Name);
-        InputMap.AddAction(Name, DeadZone);
+    public void RefreshGodotInputMap() {
+        if (!GodotInputMapEnabled || !Enabled) return;
 
-        CreateInputEvents().ForEach(e => InputMap.ActionAddEvent(Name, e));
+        var stringName = (StringName)Name;
+        if (InputMap.HasAction(stringName)) InputMap.EraseAction(stringName);
+        InputMap.AddAction(stringName, DeadZone);
+        CreateInputEvents().ForEach(e => InputMap.ActionAddEvent(stringName, e));
     }
 
     private List<InputEvent> CreateInputEvents() {
@@ -278,14 +288,14 @@ public partial class InputAction : IAction, IInjectable {
         List<InputEvent> events = new List<InputEvent>(Keys.Count + Buttons.Count + 1);
         foreach (var key in Keys) {
             var e = new InputEventKey();
-            if (JoypadDeviceId >= 0) e.Device = JoypadDeviceId;
+            // TODO: if (KeyboardDeviceId >= 0) e.Device = KeyboardDeviceId;
             e.Keycode = key;
             AddModifiers(e);
             events.Add(e);
         }
         if (MouseButton != MouseButton.None) {
             var e = new InputEventMouseButton();
-            if (JoypadDeviceId >= 0) e.Device = JoypadDeviceId;
+            // TODO: if (MouseDeviceId >= 0) e.Device = MouseDeviceId;
             e.ButtonIndex = MouseButton;
             AddModifiers(e);
             events.Add(e);
@@ -308,12 +318,13 @@ public partial class InputAction : IAction, IInjectable {
     }
 
     public void LoadFromGodotProjectSettings() {
-        if (!InputMap.HasAction(Name)) {
+        var stringName = (StringName)Name;
+        if (!InputMap.HasAction(stringName)) {
             GD.PushWarning($"{nameof(LoadFromGodotProjectSettings)}: Action {Name} not found in project");
             return;
         }
         
-        foreach (var inputEvent in InputMap.ActionGetEvents(Name)) {
+        foreach (var inputEvent in InputMap.ActionGetEvents(stringName)) {
             if (inputEvent is InputEventKey key) {
                 Keys.Add(key.Keycode);
             } else if (inputEvent is InputEventJoypadButton button) {
@@ -380,7 +391,7 @@ public partial class InputAction : IAction, IInjectable {
         var (commandOrCtrlAutoremap, ctrl, shift, alt, meta) = (CommandOrCtrl: CommandOrCtrlAutoremap, Ctrl, Shift, Alt, Meta);
         try {
             updater.Invoke(_updater);
-            SetupGodotInputMap();
+            RefreshGodotInputMap();
         } catch (Exception e) {
             _updater.SetButtons(backupButtons)
                 .SetKeys(backupKeys)
