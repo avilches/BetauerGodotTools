@@ -89,10 +89,10 @@ public partial class FsmNodeAsync<TStateKey, TEventKey> :
         if (_exception != null) {
             var e = _exception;
             _exception = null;
-            throw e;
+            throw new Exception("Async error:", e);
         }
         if (!Available) return;
         Delta = delta;
-        _stateMachine.Execute().OnException(e => _exception = e, true);
+        _stateMachine.Execute().OnException(e => _exception = e);
     }
 }

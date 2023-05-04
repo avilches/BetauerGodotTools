@@ -7,19 +7,15 @@ namespace Betauer.Core;
 
 public static class TaskExtensions {
     public static Task OnCompleted(this Task task, Action action) => OnCompleted(task, _ => action());
-    public static Task OnCancel(this Task task, Action action) => OnCancel(task, _ => action());
-    public static Task OnException(this Task task, Action<Exception> action, bool rethrow = false) =>
-        task.OnException(t => {
-            var ex = task.Exception?.InnerException;
-            if (ex != null) {
-                action(ex);
-                if (rethrow) throw ex;
-            }
+    public static Task OnCompleted(this Task task, Action<Task> action) => task.ContinueWith(action, TaskContinuationOptions.OnlyOnRanToCompletion);
+    public static Task OnCanceled(this Task task, Action action) => OnCanceled(task, _ => action());
+    public static Task OnCanceled(this Task task, Action<Task> action) => task.ContinueWith(action, TaskContinuationOptions.OnlyOnCanceled);
+    public static Task OnFaulted(this Task task, Action<Task> action) => task.ContinueWith(action, TaskContinuationOptions.OnlyOnFaulted);
+    public static Task OnException(this Task task, Action<Exception> action) =>
+        task.OnFaulted(t => {
+            var ex = t.Exception?.InnerException;
+            if (ex != null) action(ex);
         });        
-        
-    public static Task OnCompleted(this Task task, Action<Task> action) => task.ContinueWith(action, TaskContinuationOptions.OnlyOnRanToCompletion);        
-    public static Task OnCancel(this Task task, Action<Task> action) => task.ContinueWith(action, TaskContinuationOptions.OnlyOnCanceled);
-    public static Task OnException(this Task task, Action<Task> action) => task.ContinueWith(action, TaskContinuationOptions.OnlyOnFaulted);
 
         
     // TODO: tests
