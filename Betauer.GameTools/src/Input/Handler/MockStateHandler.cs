@@ -1,4 +1,4 @@
-namespace Betauer.Input;
+namespace Betauer.Input.Handler;
 
 internal class MockStateHandler : IHandler {
     internal readonly InputAction InputAction;

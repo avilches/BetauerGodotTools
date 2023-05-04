@@ -12,12 +12,34 @@ public partial class InputAction {
         }
 
         public Updater ClearAll() {
+            // Mouse
             ClearMouse();
-            ClearAxis();
+            // Joypad
             SetDeadZone(DefaultDeadZone);
-            ClearModifiers();
+            ClearAxis();
             ClearButtons();
+            // Keys
+            ClearModifiers();
             ClearKeys();
+            return this;
+        }
+
+        public Updater CopyFrom(InputAction inputAction) {
+            // Mouse
+            SetMouse(inputAction.MouseButton);
+            // Joypad
+            SetDeadZone(inputAction.DeadZone);
+            SetAxis(inputAction.Axis);
+            SetAxisSign(inputAction.AxisSign);
+            SetButtons(inputAction.Buttons.ToArray());
+
+            // Keys
+            WithCommandOrCtrlAutoremap(inputAction.CommandOrCtrlAutoremap);
+            WithCtrl(inputAction.Ctrl);
+            WithShift(inputAction.Shift);
+            WithAlt(inputAction.Alt);
+            WithMeta(inputAction.Meta);
+            SetKeys(inputAction.Keys.ToArray());
             return this;
         }
 
@@ -52,8 +74,8 @@ public partial class InputAction {
             return this;
         }
 
-        public Updater WithCommandOrCtrl(bool enable = true) {
-            _inputAction.CommandOrCtrl = enable;
+        public Updater WithCommandOrCtrlAutoremap(bool enable = true) {
+            _inputAction.CommandOrCtrlAutoremap = enable;
             if (enable) {
                 // Disable meta and control
                 _inputAction.Meta = false;
@@ -63,7 +85,7 @@ public partial class InputAction {
         }
 
         public Updater ClearModifiers() {
-            WithCommandOrCtrl(false);
+            WithCommandOrCtrlAutoremap(false);
             WithCtrl(false);
             WithShift(false);
             WithAlt(false);
@@ -72,7 +94,7 @@ public partial class InputAction {
         }
 
         public Updater WithCtrl(bool enable = true) {
-            if (_inputAction.CommandOrCtrl) return this; // Ignore if CommandOrCtrl is enabled
+            if (_inputAction.CommandOrCtrlAutoremap) return this; // Ignore if CommandOrCtrl is enabled
             _inputAction.Ctrl = enable;
             return this;
         }
@@ -88,7 +110,7 @@ public partial class InputAction {
         }
 
         public Updater WithMeta(bool enable = true) {
-            if (_inputAction.CommandOrCtrl) return this; // Ignore if CommandOrCtrl is enabled
+            if (_inputAction.CommandOrCtrlAutoremap) return this; // Ignore if CommandOrCtrl is enabled
             _inputAction.Meta = enable;
             return this;
         }

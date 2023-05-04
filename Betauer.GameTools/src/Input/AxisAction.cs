@@ -14,6 +14,7 @@ public class AxisAction : IAction, IInjectable {
     public JoyAxis Axis => Positive.Axis;
     public bool Reverse { get; set; } = false;
     public string Name { get; private set; }
+    public bool Enabled => Negative is { Enabled: true } && Positive is { Enabled: true }; 
     public SaveSetting<string>? SaveSetting { get; set; }
     public bool IsEvent(InputEvent inputEvent) => inputEvent is InputEventJoypadMotion motion && motion.Axis == Axis;
     public void Enable(bool enabled) {
@@ -24,6 +25,17 @@ public class AxisAction : IAction, IInjectable {
     public InputActionsContainer? InputActionsContainer { get; private set; }
     public InputAction Negative { get; private set; }
     public InputAction Positive { get; private set; }
+
+    public AxisAction Clone(string name) {
+        var axisAction = new AxisAction(name) {
+            Reverse = Reverse,
+        };
+        return axisAction;
+    }
+
+    public AxisAction Clone(int joypadDeviceId) {
+        return Clone($"{Name}/{joypadDeviceId}");
+    }
 
     public AxisAction(string name) {
         Name = name;

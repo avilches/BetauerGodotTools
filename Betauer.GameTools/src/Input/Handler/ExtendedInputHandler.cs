@@ -1,18 +1,21 @@
 using Godot;
 
-namespace Betauer.Input;
+namespace Betauer.Input.Handler;
 
-internal class ExtendedInputFrameBasedStateHandler : FrameBasedStateHandler {
-    internal ExtendedInputFrameBasedStateHandler(InputAction inputAction) : base(inputAction) {
+internal class ExtendedInputHandler : FrameStateHandler {
+    internal ExtendedInputHandler(InputAction inputAction) : base(inputAction) {
     }
 
     public void Update(bool paused, InputEvent inputEvent) {
         if (paused && InputAction.Pausable) return;
+        if (inputEvent is InputEventJoypadButton or InputEventJoypadMotion && 
+            InputAction.JoypadDeviceId >= 0 && 
+            InputAction.JoypadDeviceId != inputEvent.Device) return;
         if (inputEvent is InputEventJoypadButton or InputEventKey or InputEventMouseButton) {
             if (inputEvent is InputEventWithModifiers modifiers) {
                 if (InputAction.Shift && !modifiers.ShiftPressed) return;
                 if (InputAction.Alt && !modifiers.AltPressed) return;
-                if (InputAction.CommandOrCtrl) {
+                if (InputAction.CommandOrCtrlAutoremap) {
                     modifiers.CommandOrControlAutoremap = true;
                     if (!modifiers.IsCommandOrControlPressed()) return;
                 } else {

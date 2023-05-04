@@ -1,6 +1,6 @@
 using Godot;
 
-namespace Betauer.Input;
+namespace Betauer.Input.Handler;
 
 internal class GodotInputHandler : IHandler {
     public const float MaxPressedTime = 31536000f; // 1 year! 

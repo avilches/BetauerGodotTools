@@ -5,6 +5,7 @@ namespace Betauer.Input;
 
 public interface IAction {
     public string Name { get; }
+    public bool Enabled { get; }
     public float Strength { get; }
     public float RawStrength { get; }
     JoyAxis Axis { get; }

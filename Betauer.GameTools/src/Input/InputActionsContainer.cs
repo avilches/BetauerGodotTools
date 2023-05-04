@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using Betauer.Application.Monitor;
 using Betauer.DI;
 using Betauer.DI.Attributes;
+using Betauer.Input.Handler;
 using Betauer.Nodes;
 using Godot;
 
@@ -16,22 +17,31 @@ public partial class InputActionsContainer : Node, IInjectable {
     private readonly List<InputAction> _onInputActions = new(); 
     private readonly List<InputAction> _onUnhandledInputActions = new();
 
-    private NodeHandler _nodeHandler;
+    /// <summary>
+    /// The inputs inside don't have SaveSetting
+    /// </summary>
+    /// <param name="joypadDeviceId"></param>
+    /// <returns></returns>
+    public InputActionsContainer Clone(int joypadDeviceId) {
+        var newIac = new InputActionsContainer();
+
+        InputActionList.ForEach(i => {
+            IAction newInputAction = i switch {
+                InputAction inputAction => inputAction.Clone(joypadDeviceId),
+                AxisAction axisAction => axisAction.Clone(joypadDeviceId),
+                _ => null
+            };
+            newInputAction?.SetInputActionsContainer(newIac);
+        });
+        return newIac;
+    }
+
+    public InputActionsContainer(bool enabled) {
+        if (enabled) DefaultNodeHandler.Instance.AddChild(this);
+    }
 
     public InputActionsContainer() {
-        _nodeHandler = DefaultNodeHandler.Instance;
-        _nodeHandler.AddChild(this);
-    }
-
-    public InputActionsContainer(NodeHandler nodeHandler) {
-        _nodeHandler = nodeHandler;
-        _nodeHandler.AddChild(this);
-    }
-
-    public void SetNodeHandler(NodeHandler nodeHandler) {
-        _nodeHandler.RemoveChild(this);
-        _nodeHandler = nodeHandler;
-        _nodeHandler.AddChild(this);
+        DefaultNodeHandler.Instance.AddChild(this);
     }
 
     public void PostInject() {
@@ -41,7 +51,7 @@ public partial class InputActionsContainer : Node, IInjectable {
     }
 
     public IAction? FindAction(string name) {
-        return ActionMap.TryGetValue(name, out var action) ? action : null;
+        return FindAction<IAction>(name);
     }
 
     public T? FindAction<T>(string name) where T : class, IAction {
@@ -102,7 +112,7 @@ public partial class InputActionsContainer : Node, IInjectable {
     }
 
     internal void Enable(InputAction inputAction) {
-        if (inputAction.Behaviour == InputActionBehaviour.Extended) {
+        if (inputAction is { Behaviour: InputActionBehaviour.Extended, Enabled: true }) {
             SetProcess(true);
             if (inputAction.IsUnhandledInput) {
                 SetProcessUnhandledInput(true);
@@ -130,7 +140,7 @@ public partial class InputActionsContainer : Node, IInjectable {
         var span = CollectionsMarshal.AsSpan(_onInputActions);
         for (var i = 0; i < span.Length; i++) {
             var inputAction = span[i];
-            if (inputAction.IsEvent(e)) ((ExtendedInputFrameBasedStateHandler)inputAction.Handler).Update(paused, e);
+            if (inputAction.IsEvent(e)) ((ExtendedInputHandler)inputAction.Handler).Update(paused, e);
         }
     }
 
@@ -143,7 +153,7 @@ public partial class InputActionsContainer : Node, IInjectable {
         var span = CollectionsMarshal.AsSpan(_onUnhandledInputActions);
         for (var i = 0; i < span.Length; i++) {
             var inputAction = span[i];
-            if (inputAction.IsEvent(e)) ((ExtendedInputFrameBasedStateHandler)inputAction.Handler).Update(paused, e);
+            if (inputAction.IsEvent(e)) ((ExtendedInputHandler)inputAction.Handler).Update(paused, e);
         }
     }
 
@@ -158,12 +168,12 @@ public partial class InputActionsContainer : Node, IInjectable {
         var handledSpan = CollectionsMarshal.AsSpan(_onInputActions);
         for (var i = 0; i < handledSpan.Length; i++) {
             var inputAction = handledSpan[i];
-            ((ExtendedInputFrameBasedStateHandler)inputAction.Handler).AddTime(paused, delta);
+            ((ExtendedInputHandler)inputAction.Handler).AddTime(paused, delta);
         }
         var unhandledSpan = CollectionsMarshal.AsSpan(_onUnhandledInputActions);
         for (var i = 0; i < unhandledSpan.Length; i++) {
             var inputAction = unhandledSpan[i];
-            ((ExtendedInputFrameBasedStateHandler)inputAction.Handler).AddTime(paused, delta);
+            ((ExtendedInputHandler)inputAction.Handler).AddTime(paused, delta);
         }
     }
 }

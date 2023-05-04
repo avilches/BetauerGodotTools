@@ -1,4 +1,4 @@
-namespace Betauer.Input;
+namespace Betauer.Input.Handler;
 
 internal interface IHandler {
     internal bool Pressed { get; }

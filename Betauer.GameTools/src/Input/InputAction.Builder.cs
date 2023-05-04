@@ -19,7 +19,7 @@ public partial class InputAction {
         private bool _shiftPressed;
         private bool _altPressed;
         private bool _metaPressed;
-        private bool _commandOrCtrlPressed;
+        private bool _commandOrCtrlAutoremap;
         private bool _pausable = false;
 
         internal Builder(string name) {
@@ -83,8 +83,8 @@ public partial class InputAction {
             return this;
         }
 
-        public Builder CommandOrCtrl() {
-            _commandOrCtrlPressed = true;
+        public Builder CommandOrCtrlAutoremap() {
+            _commandOrCtrlAutoremap = true;
             return this;
         }
 
@@ -114,7 +114,7 @@ public partial class InputAction {
             inputAction.Shift = _shiftPressed;
             inputAction.Alt = _altPressed;
             inputAction.Meta = _metaPressed;
-            inputAction.CommandOrCtrl = _commandOrCtrlPressed;
+            inputAction.CommandOrCtrlAutoremap = _commandOrCtrlAutoremap;
             inputAction.Pausable = _pausable;
         }
         

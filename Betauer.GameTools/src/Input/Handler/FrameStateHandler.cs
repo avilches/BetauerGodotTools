@@ -1,8 +1,8 @@
 using Godot;
 
-namespace Betauer.Input;
+namespace Betauer.Input.Handler;
 
-internal class FrameBasedStateHandler : IHandler {
+internal class FrameStateHandler : IHandler {
     internal readonly InputAction InputAction;
 
     public bool Pressed { get; protected set; } = false;
@@ -39,7 +39,7 @@ internal class FrameBasedStateHandler : IHandler {
         ClearJustStates();
     }
 
-    internal FrameBasedStateHandler(InputAction inputAction) {
+    internal FrameStateHandler(InputAction inputAction) {
         InputAction = inputAction;
         ClearState();
     }
