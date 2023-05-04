@@ -1,6 +1,5 @@
 using System;
 using Betauer.Bus;
-using Betauer.DI;
 using Betauer.DI.Attributes;
 using Veronenger.Character.Player;
 
@@ -16,4 +15,8 @@ public class EventBus {
     private readonly Multicast<PlayerAttackEvent> _attackBus = new();
     public void Publish(PlayerAttackEvent e) => _attackBus.Publish(e);
     public Multicast<PlayerAttackEvent>.EventConsumer Subscribe(Action<PlayerAttackEvent> action) => _attackBus.Subscribe(action);
+
+    private readonly Multicast<InputActionChangeEvent> _inputActionChangeBus = new();
+    public void Publish(InputActionChangeEvent e) => _inputActionChangeBus.Publish(e);
+    public Multicast<InputActionChangeEvent>.EventConsumer Subscribe(Action<InputActionChangeEvent> action) => _inputActionChangeBus.Subscribe(action);
 }

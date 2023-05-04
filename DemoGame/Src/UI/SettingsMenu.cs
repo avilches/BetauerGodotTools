@@ -309,9 +309,11 @@ public partial class SettingsMenu : CanvasLayer {
 			// Swap: set to the other the current key
 			var currentButton = redefineButton.InputAction.Buttons[0];
 			otherRedefine.InputAction.Update(u => u.SetButton(currentButton)).Save();
+			EventBus.Publish(new InputActionChangeEvent(otherRedefine.InputAction));
 			otherRedefine.Refresh();
 		}
 		redefineButton.InputAction.Update(u => u.SetButton(newButton)).Save();
+		EventBus.Publish(new InputActionChangeEvent(redefineButton.InputAction));
 		redefineButton.Refresh();
 	}
 
@@ -323,9 +325,11 @@ public partial class SettingsMenu : CanvasLayer {
 			// Swap: set to the other the current key
 			var currentKey = redefineButton.InputAction.Keys[0];
 			otherRedefine.InputAction.Update(u => u.SetKey(currentKey)).Save();
+			EventBus.Publish(new InputActionChangeEvent(otherRedefine.InputAction));
 			otherRedefine.Refresh();
 		}
 		redefineButton.InputAction.Update(u => u.SetKey(newKey)).Save();
+		EventBus.Publish(new InputActionChangeEvent(redefineButton.InputAction));
 		redefineButton.Refresh();
 	}
 }

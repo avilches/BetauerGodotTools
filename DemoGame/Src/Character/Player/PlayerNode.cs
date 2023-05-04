@@ -54,11 +54,6 @@ public enum PlayerEvent {
 
 public partial class PlayerNode : Node, IInjectable, INodeWithGameObject {
 
-	public event Action? OnFree;
-	public override void _Notification(int what) {
-		if (what == NotificationPredelete) OnFree?.Invoke();
-	}
-
 	public Vector2 GlobalPosition {
 		get => CharacterBody2D.GlobalPosition;
 		set => CharacterBody2D.GlobalPosition = value;
@@ -147,27 +142,19 @@ public partial class PlayerNode : Node, IInjectable, INodeWithGameObject {
 	public void Connect(int joypadId) {
 		ActionsContainer.Connect(joypadId);
 	}
-	
-	public override void _Ready() {
-		// Some events could be triggered when a property is changed during the PostInject configuration phase,
-		// so it's better to add the events when everything is loaded
-		Status.OnHealthUpdate += HudScene.UpdateHealth;
-		Status.SetHealth(Status.MaxHealth);
-
-		Inventory.OnUpdateInventory += (e) => HudScene.UpdateInventory(e);
-		Inventory.OnSlotAmountUpdate += (e) => HudScene.UpdateAmount(e);
-		Inventory.TriggerRefresh();
-	}
 
 	public void PostInject() {
 		AddChild(_fsm);
 		ConfigureAnimations();
 		ConfigureOverlay();
 		ConfigureCharacter(); // collisions are reset to 0 here
+		ConfigureInventory();
+		ConfigureStatus();
 		ConfigureCamera();
 		ConfigureAttackArea();
 		ConfigurePlayerHurtArea();
 		ConfigureFsm();
+		ConfigureInputActions();
 		
 		var drawEvent = this.OnDraw(canvas => {
 			foreach (var floorRaycast in FloorRaycasts) canvas.DrawRaycast(floorRaycast, Colors.Red);
@@ -175,9 +162,8 @@ public partial class PlayerNode : Node, IInjectable, INodeWithGameObject {
 		});
 		drawEvent.Disable();
 
-		OnFree += ActionsContainer.Disconnect;
 	}
-	
+
 	private void ConfigureAnimations() {
 		AnimationIdle = _animationPlayer.Anim("Idle");
 		AnimationRun = _animationPlayer.Anim("Run");
@@ -219,16 +205,6 @@ public partial class PlayerNode : Node, IInjectable, INodeWithGameObject {
 		_characterWeaponController = new CharacterWeaponController(new[] { _attackArea1, _attackArea2 }, _weaponSprite);
 		_characterWeaponController.Unequip();
 
-		Inventory = new Inventory();
-		Inventory.OnEquip += item => {
-			if (item is WeaponGameObject weapon) {
-				_characterWeaponController.Equip(weapon);
-			}
-		};
-		Inventory.OnUnequip += item => {
-			_characterWeaponController.Unequip();
-		};
-
 		CollisionLayerManager.PlayerConfigureCollisions(this);
 		CollisionLayerManager.PlayerPickableArea(this, area2D => {
 			var pickable = area2D.GetNodeFromMeta<PickableItemNode>();
@@ -237,6 +213,30 @@ public partial class PlayerNode : Node, IInjectable, INodeWithGameObject {
 
 		// _lazyRaycast2DDrop.GetDirectSpaceFrom(Marker2D);
 		// _lazyRaycast2DDrop.Config(CollisionLayerManager.PlayerConfigureRaycastDrop);
+	}
+
+	private void ConfigureInventory() {
+		Inventory = new Inventory();
+		Inventory.OnEquip += item => {
+			if (item is WeaponGameObject weapon) {
+				_characterWeaponController.Equip(weapon);
+			}
+		};
+		Inventory.OnUnequip += item => { _characterWeaponController.Unequip(); };
+		Ready += () => {
+			// Needs to be delayed until HudScene is loaded and ready
+			Inventory.OnUpdateInventory += (e) => HudScene.UpdateInventory(e);
+			Inventory.OnSlotAmountUpdate += (e) => HudScene.UpdateAmount(e);
+			Inventory.TriggerRefresh();
+		};
+	}
+
+	public void ConfigureStatus() {
+		Ready += () => {
+			// Needs to be delayed until HudScene is loaded and ready
+			Status.OnHealthUpdate += HudScene.UpdateHealth;
+			Status.SetHealth(Status.MaxHealth);
+		};
 	}
 
 	private void PickUp(PickableGameObject pickable) {
@@ -294,7 +294,26 @@ public partial class PlayerNode : Node, IInjectable, INodeWithGameObject {
 		});
 	}
 
-	
+	private void ConfigureInputActions() {
+		var consumer = EventBus.Subscribe(iace => {
+			var updated = iace.InputAction;
+			var name = $"{updated.Name}/{ActionsContainer.JoypadDeviceId}";
+			var found = ActionsContainer.JoypadActionsContainer.InputActionList.Find(i => i.Name == name);
+			if (found is InputAction inputAction) {
+				inputAction.Update(updater => {
+					updater.CopyFrom(updated);
+					updater.SetJoypadDevice(ActionsContainer.JoypadDeviceId);
+				});
+			} else {
+				throw new Exception($"Action not found: {updated.Name}");
+			}
+		}).UnsubscribeIf(Predicates.IsInvalid(this));
+		TreeExiting += () => {
+			ActionsContainer.Disconnect();
+			consumer.Unsubscribe();
+		};
+	}
+
 	// public new void _Input(InputEvent e) {
 		// base._Input(e);
 		// if (e.IsLeftDoubleClick()) _camera2D.Position = Vector2.Zero;
@@ -380,7 +399,7 @@ public partial class PlayerNode : Node, IInjectable, INodeWithGameObject {
 			};
 		}
 
-		OnFree += () => {
+		TreeExiting += () => {
 			invincibleTween?.Kill();
 		};
 
