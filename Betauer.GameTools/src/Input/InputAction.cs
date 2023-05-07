@@ -118,6 +118,7 @@ public partial class InputAction : IAction, IInjectable {
     public bool Pausable { get; private set; } = false;
     public List<JoyButton> Buttons { get; } = new();
     public List<Key> Keys { get; } = new();
+    public int JoypadDeviceId { get; private set; } = 0;
     public JoyAxis Axis { get; private set; } = JoyAxis.Invalid;
     public int AxisSign { get; private set; } = 1;
     public float DeadZone { get; private set; } = DefaultDeadZone;
@@ -143,8 +144,6 @@ public partial class InputAction : IAction, IInjectable {
     public SaveSetting<string>? SaveSetting { get; set; }
     internal readonly IHandler Handler;
     private readonly Updater _updater;
-
-    public int JoypadDeviceId { get; private set; } = 0;
 
     public InputAction Clone(int joypadDeviceId) {
         var name = $"{Name}/{joypadDeviceId}";
@@ -257,22 +256,23 @@ public partial class InputAction : IAction, IInjectable {
             Enabled = false;
             InputActionsContainer?.DisableAction(this);
             if (Handler is FrameStateHandler stateHandler) stateHandler.ClearState();
-            if (GodotInputMapEnabled) {
-                var stringName = (StringName)Name;
-                if (InputMap.HasAction(stringName)) InputMap.EraseAction(stringName);
-            }
+            RefreshGodotInputMap();
         }
     }
 
     public void Disable() => Enable(false);
 
     public void RefreshGodotInputMap() {
-        if (!GodotInputMapEnabled || !Enabled) return;
+        if (!GodotInputMapEnabled) return;
 
         var stringName = (StringName)Name;
-        if (InputMap.HasAction(stringName)) InputMap.EraseAction(stringName);
-        InputMap.AddAction(stringName, DeadZone);
-        CreateInputEvents().ForEach(e => InputMap.ActionAddEvent(stringName, e));
+        if (InputMap.HasAction(stringName)) {
+            InputMap.EraseAction(stringName);
+        }
+        if (Enabled) {
+            InputMap.AddAction(stringName, DeadZone);
+            CreateInputEvents().ForEach(e => InputMap.ActionAddEvent(stringName, e));
+        }
     }
 
     private List<InputEvent> CreateInputEvents() {
@@ -405,7 +405,7 @@ public partial class InputAction : IAction, IInjectable {
 
     public InputAction Update(Action<Updater> updater) {
         var (backupButtons, backupKeys, backupMouse) = (Buttons.ToArray(), Keys.ToArray(), MouseButton);
-        var (axis, axisSign, backupDeadZone) = (Axis, AxisSign, DeadZone);
+        var (axis, axisSign, backupDeadZone, joypadDeviceId) = (Axis, AxisSign, DeadZone, JoypadDeviceId);
         var (commandOrCtrlAutoremap, ctrl, shift, alt, meta) = (CommandOrCtrl: CommandOrCtrlAutoremap, Ctrl, Shift, Alt, Meta);
         try {
             updater.Invoke(_updater);
@@ -417,6 +417,7 @@ public partial class InputAction : IAction, IInjectable {
                 .SetAxis(axis)
                 .SetAxisSign(axisSign)
                 .SetDeadZone(backupDeadZone)
+                .SetJoypadDevice(joypadDeviceId)
                 .WithCommandOrCtrlAutoremap(commandOrCtrlAutoremap)
                 .WithCtrl(ctrl)
                 .WithShift(shift)
