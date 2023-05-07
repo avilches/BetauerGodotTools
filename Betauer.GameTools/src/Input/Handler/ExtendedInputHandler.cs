@@ -8,21 +8,9 @@ internal class ExtendedInputHandler : FrameStateHandler {
 
     public void Update(bool paused, InputEvent inputEvent) {
         if (paused && InputAction.Pausable) return;
-        if (inputEvent is InputEventJoypadButton or InputEventJoypadMotion && 
-            InputAction.JoypadDeviceId >= 0 && 
-            InputAction.JoypadDeviceId != inputEvent.Device) return;
+        if (!InputAction.IsEvent(inputEvent)) return;
+        
         if (inputEvent is InputEventJoypadButton or InputEventKey or InputEventMouseButton) {
-            if (inputEvent is InputEventWithModifiers modifiers) {
-                if (InputAction.Shift && !modifiers.ShiftPressed) return;
-                if (InputAction.Alt && !modifiers.AltPressed) return;
-                if (InputAction.CommandOrCtrlAutoremap) {
-                    modifiers.CommandOrControlAutoremap = true;
-                    if (!modifiers.IsCommandOrControlPressed()) return;
-                } else {
-                    if (InputAction.Ctrl && !modifiers.CtrlPressed) return;
-                    if (InputAction.Meta && !modifiers.MetaPressed) return;
-                }
-            }
             var strength = inputEvent.GetStrength();
             if (inputEvent.IsJustPressed()) {
                 SetPressed(strength);

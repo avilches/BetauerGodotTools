@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using Betauer.Application.Monitor;
+using Betauer.Core;
 using Betauer.DI;
 using Betauer.DI.Attributes;
 using Betauer.Input.Handler;
@@ -14,8 +16,10 @@ public partial class InputActionsContainer : Node, IInjectable {
 
     public readonly List<IAction> InputActionList = new();
     public readonly Dictionary<string, IAction> ActionMap = new();
-    private readonly List<InputAction> _onInputActions = new(); 
-    private readonly List<InputAction> _onUnhandledInputActions = new();
+    private readonly List<ExtendedInputHandler> _onInputActions = new(); 
+    private readonly List<ExtendedInputHandler> _onUnhandledInputActions = new();
+
+    public bool Enabled { get; private set; } = true;
 
     /// <summary>
     /// The inputs inside don't have SaveSetting
@@ -34,6 +38,14 @@ public partial class InputActionsContainer : Node, IInjectable {
             newInputAction?.SetInputActionsContainer(newIac);
         });
         return newIac;
+    }
+
+    public void SetJoypadDeviceId(int joypadDeviceId) {
+        InputActionList.OfType<InputAction>().ForEach(inputAction => {
+            inputAction.Update(updater => {
+                updater.SetJoypadDevice(joypadDeviceId);
+            });
+        });
     }
 
     public InputActionsContainer(bool enabled) {
@@ -74,7 +86,7 @@ public partial class InputActionsContainer : Node, IInjectable {
         if (inputAction.AxisActionName != null) {
             LinkAxisAction(inputAction.AxisActionName);
         }
-        Enable(inputAction);
+        EnableAction(inputAction);
     }
 
     private void LinkAxisAction(string axisActionName) {
@@ -100,34 +112,36 @@ public partial class InputActionsContainer : Node, IInjectable {
     internal void Remove(InputAction inputAction) {
         InputActionList.Remove(inputAction);
         ActionMap.Remove(inputAction.Name);
-        Disable(inputAction);
+        DisableAction(inputAction);
     }
 
     public void Disable() {
+        Enabled = false;
         InputActionList.ForEach(action => action.Enable(false));
     }
 
     public void Enable(bool enabled = true) {
+        Enabled = true;
         InputActionList.ForEach(action => action.Enable(enabled));
     }
 
-    internal void Enable(InputAction inputAction) {
-        if (inputAction is { Behaviour: InputActionBehaviour.Extended, Enabled: true }) {
+    internal void EnableAction(InputAction inputAction) {
+        if (Enabled && inputAction is { Enabled: true, Handler: ExtendedInputHandler handler }) {
             SetProcess(true);
             if (inputAction.IsUnhandledInput) {
                 SetProcessUnhandledInput(true);
-                _onUnhandledInputActions.Add(inputAction);
+                _onUnhandledInputActions.Add(handler);
             } else {
                 SetProcessInput(true);
-                _onInputActions.Add(inputAction);
+                _onInputActions.Add(handler);
             }
         }
     }
 
-    internal void Disable(InputAction inputAction) {
-        if (inputAction.Behaviour == InputActionBehaviour.Extended) {
-            if (inputAction.IsUnhandledInput) _onUnhandledInputActions.Remove(inputAction);
-            else _onInputActions.Remove(inputAction);
+    internal void DisableAction(InputAction inputAction) {
+        if (inputAction.Handler is ExtendedInputHandler handler) {
+            if (inputAction.IsUnhandledInput) _onUnhandledInputActions.Remove(handler);
+            else _onInputActions.Remove(handler);
         }
     }
 
@@ -139,8 +153,8 @@ public partial class InputActionsContainer : Node, IInjectable {
         var paused = GetTree().Paused;
         var span = CollectionsMarshal.AsSpan(_onInputActions);
         for (var i = 0; i < span.Length; i++) {
-            var inputAction = span[i];
-            if (inputAction.IsEvent(e)) ((ExtendedInputHandler)inputAction.Handler).Update(paused, e);
+            var handler = span[i];
+            handler.Update(paused, e);
         }
     }
 
@@ -152,8 +166,8 @@ public partial class InputActionsContainer : Node, IInjectable {
         var paused = GetTree().Paused;
         var span = CollectionsMarshal.AsSpan(_onUnhandledInputActions);
         for (var i = 0; i < span.Length; i++) {
-            var inputAction = span[i];
-            if (inputAction.IsEvent(e)) ((ExtendedInputHandler)inputAction.Handler).Update(paused, e);
+            var handler = span[i];
+            handler.Update(paused, e);
         }
     }
 
@@ -167,13 +181,13 @@ public partial class InputActionsContainer : Node, IInjectable {
         var paused = GetTree().Paused;
         var handledSpan = CollectionsMarshal.AsSpan(_onInputActions);
         for (var i = 0; i < handledSpan.Length; i++) {
-            var inputAction = handledSpan[i];
-            ((ExtendedInputHandler)inputAction.Handler).AddTime(paused, delta);
+            var handler = handledSpan[i];
+            handler.AddTime(paused, delta);
         }
         var unhandledSpan = CollectionsMarshal.AsSpan(_onUnhandledInputActions);
         for (var i = 0; i < unhandledSpan.Length; i++) {
-            var inputAction = unhandledSpan[i];
-            ((ExtendedInputHandler)inputAction.Handler).AddTime(paused, delta);
+            var handler = unhandledSpan[i];
+            handler.AddTime(paused, delta);
         }
     }
 }

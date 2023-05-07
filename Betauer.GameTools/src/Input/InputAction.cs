@@ -149,8 +149,7 @@ public partial class InputAction : IAction, IInjectable {
     public InputAction Clone(int joypadDeviceId) {
         var name = $"{Name}/{joypadDeviceId}";
         var axisName = AxisActionName != null ? $"{AxisActionName}/{joypadDeviceId}" : null;
-        var newInputAction = Clone(name, axisName);
-        newInputAction.JoypadDeviceId = joypadDeviceId;
+        var newInputAction = Clone(name, axisName, joypadDeviceId);
         return newInputAction;
     }
 
@@ -190,11 +189,14 @@ public partial class InputAction : IAction, IInjectable {
         _updater = new Updater(this);
     }
 
-    public InputAction Clone(string name, string? axisActionName = null) {
+    public InputAction Clone(string name, string? axisActionName = null, int joypadDeviceId = -1) {
         var inputAction = new InputAction(name, axisActionName, Behaviour, GodotInputMapEnabled, IsUnhandledInput, Pausable, Enabled) {
             Container = Container,
         };
-        inputAction.Update(updater => updater.CopyFrom(this));
+        inputAction.Update(updater => {
+            updater.CopyFrom(this);
+            if (joypadDeviceId >= 0) updater.SetJoypadDevice(joypadDeviceId);
+        });
         return inputAction;
     }
 
@@ -248,12 +250,12 @@ public partial class InputAction : IAction, IInjectable {
         if (enabled) {
             if (Enabled) return;
             Enabled = true;
-            InputActionsContainer?.Enable(this);
+            InputActionsContainer?.EnableAction(this);
             RefreshGodotInputMap();
         } else {
             if (!Enabled) return;
             Enabled = false;
-            InputActionsContainer?.Disable(this);
+            InputActionsContainer?.DisableAction(this);
             if (Handler is FrameStateHandler stateHandler) stateHandler.ClearState();
             if (GodotInputMapEnabled) {
                 var stringName = (StringName)Name;
@@ -339,14 +341,30 @@ public partial class InputAction : IAction, IInjectable {
         }
     }
 
-    private bool Matches(InputEvent e) =>
-        e switch {
-            InputEventKey key => HasKey(key.Keycode),
-            InputEventMouseButton mouse => MouseButton == mouse.ButtonIndex,
-            InputEventJoypadButton button => HasButton(button.ButtonIndex),
-            InputEventJoypadMotion motion => motion.Axis == Axis,
+    public bool MatchesModifiers(InputEventWithModifiers modifiers) {
+        if (Shift && !modifiers.ShiftPressed) return false;
+        if (Alt && !modifiers.AltPressed) return false;
+        if (CommandOrCtrlAutoremap) {
+            modifiers.CommandOrControlAutoremap = true;
+            if (!modifiers.IsCommandOrControlPressed()) return false;
+        } else {
+            if (Ctrl && !modifiers.CtrlPressed) return false;
+            if (Meta && !modifiers.MetaPressed) return false;
+        }
+        return true;
+    }
+
+    private bool Matches(InputEvent e) {
+        return e switch {
+            InputEventKey key => MatchesModifiers(key) && HasKey(key.Keycode),
+            InputEventMouseButton mouse => MatchesModifiers(mouse) && MouseButton == mouse.ButtonIndex,
+            InputEventJoypadButton button => IsJoypadDevice(e.Device) && HasButton(button.ButtonIndex),
+            InputEventJoypadMotion motion => IsJoypadDevice(e.Device) && motion.Axis == Axis,
             _ => false
         };
+    }
+
+    public bool IsJoypadDevice(int device) => (JoypadDeviceId < 0 || JoypadDeviceId == device);
 
     public bool HasMouseButton() {
         return MouseButton != MouseButton.None;
