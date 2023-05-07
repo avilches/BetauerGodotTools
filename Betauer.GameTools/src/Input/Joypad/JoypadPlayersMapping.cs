@@ -9,12 +9,12 @@ public class JoypadPlayersMapping {
     public int Players => Mapping.Count;
     public readonly List<PlayerMapping> Mapping = new();
     
-    private Action _joyConnectionChangedSignal;
+    private Action? _disconnectGodotSignal;
 
     public event Action<PlayerMapping> OnPlayerMappingConnectionChanged;
 
     public JoypadPlayersMapping() {
-        _joyConnectionChangedSignal = SignalExtensions.OnInputJoyConnectionChanged((deviceId, connected) => {
+        _disconnectGodotSignal = SignalExtensions.OnInputJoyConnectionChanged((deviceId, connected) => {
             for (var i = 0; i < Players; i++) {
                 var playerMapping = Mapping[i];
                 if (playerMapping.JoypadId == deviceId) {
@@ -26,8 +26,8 @@ public class JoypadPlayersMapping {
     }
 
     public void Destroy() {
-        _joyConnectionChangedSignal?.Invoke();
-        _joyConnectionChangedSignal = null;
+        _disconnectGodotSignal?.Invoke();
+        _disconnectGodotSignal = null;
     }
 
     public PlayerMapping AddPlayer() {

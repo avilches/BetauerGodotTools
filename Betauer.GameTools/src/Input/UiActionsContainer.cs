@@ -11,7 +11,7 @@ public partial class UiActionsContainer : InputActionsContainer {
     public int CurrentJoyPad { get; private set; } = 0;
     public event Action<int> OnNewUiJoypad; 
 
-    private Action? _joyConnectionChangedSignal;
+    private Action? _disconnectGodotSignal;
 
     private void _Change(int joypadDeviceId) {
         InputActionList.OfType<InputAction>().ForEach(inputAction => {
@@ -40,7 +40,7 @@ public partial class UiActionsContainer : InputActionsContainer {
         }
         SetJoypad(joypad);
         
-        _joyConnectionChangedSignal ??= SignalExtensions.OnInputJoyConnectionChanged((device, connected) => {
+        _disconnectGodotSignal ??= SignalExtensions.OnInputJoyConnectionChanged((device, connected) => {
             if (connected) { // Connect
                 if (device == BackupJoypad) {
                     SetJoypad(BackupJoypad);
@@ -57,7 +57,7 @@ public partial class UiActionsContainer : InputActionsContainer {
     }
 
     public void Destroy() {
-        _joyConnectionChangedSignal?.Invoke();
-        _joyConnectionChangedSignal = null;
+        _disconnectGodotSignal?.Invoke();
+        _disconnectGodotSignal = null;
     }
 }
