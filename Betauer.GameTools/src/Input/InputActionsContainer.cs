@@ -40,14 +40,6 @@ public partial class InputActionsContainer : Node, IInjectable {
         return newIac;
     }
 
-    public void SetJoypadDeviceId(int joypadDeviceId) {
-        InputActionList.OfType<InputAction>().ForEach(inputAction => {
-            inputAction.Update(updater => {
-                updater.SetJoypadDevice(joypadDeviceId);
-            });
-        });
-    }
-
     public InputActionsContainer(bool enabled) {
         if (enabled) DefaultNodeHandler.Instance.AddChild(this);
     }
