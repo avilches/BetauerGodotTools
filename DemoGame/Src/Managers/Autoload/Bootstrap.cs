@@ -1,3 +1,4 @@
+using System;
 using Betauer.Animation;
 using Betauer.Application;
 using Betauer.Application.Lifecycle;
@@ -10,9 +11,7 @@ using Betauer.DI.ServiceProvider;
 using Betauer.Tools.Logging;
 using Betauer.FSM;
 using Godot;
-using Veronenger.Character.Player;
 using PropertyTweener = Betauer.Animation.PropertyTweener;
-using ZombieNode = Veronenger.Character.Npc.ZombieNode;
 
 namespace Veronenger.Managers.Autoload; 
 
@@ -24,7 +23,7 @@ public partial class Bootstrap : Node /* needed to be instantiated as an Autoloa
 	[Inject] private WindowNotificationStatus WindowNotificationStatus { get; set; }
 
 	public Bootstrap() {
-		Logging.SendToScriptDebugger = false;
+		//Logging.SendToScriptDebugger = false;
 		AppTools.AddLogOnException();
 		AppTools.AddQuitGameOnException();
 

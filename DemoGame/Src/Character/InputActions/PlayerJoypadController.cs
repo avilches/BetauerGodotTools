@@ -1,13 +1,9 @@
-using Betauer.DI.Attributes;
 using Betauer.Input;
+using Betauer.Input.Joypad;
 
 namespace Veronenger.Character.InputActions;
 
-[Transient]
-public class MultiplePlayerActionsContainer : JoypadContainer, ICharacterHandler {
-    
-    [Inject] public InputActionsContainer PlayerActionsContainer { get; set; }
-    
+public class PlayerJoypadController : JoypadController, ICharacterHandler {
     public AxisAction Lateral { get; private set; }
     public AxisAction Vertical { get; private set; }
     public InputAction Jump { get; private set; }
@@ -20,6 +16,4 @@ public class MultiplePlayerActionsContainer : JoypadContainer, ICharacterHandler
     public InputAction Right { get; private set; }
     public InputAction Up { get; private set; }
     public InputAction Down { get; private set; }
-
-    protected override InputActionsContainer Source => PlayerActionsContainer;
 }

@@ -5,7 +5,7 @@ using Betauer.Core.Nodes;
 using Betauer.Core.Pool;
 using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
-using Betauer.Input;
+using Betauer.Input.Joypad;
 using Godot;
 using Veronenger.Character.Npc;
 using Veronenger.Character.Player;
@@ -111,12 +111,12 @@ public partial class WorldScene : Node {
 		return projectileTrail;
 	}
 
-	public void AddPlayerToScene() {
+	public void AddPlayerToScene(PlayerMapping playerMapping) {
 		var playerNode = PlayerFactory.Get();
-		AddChild(playerNode);
-		playerNode.Connect(0);
+		playerNode.SetPlayerMapping(playerMapping);
 		playerNode.Ready += () => playerNode.GlobalPosition = GetPositionFromMarker("SpawnPlayer");
 		CreatePlayer(playerNode, ConfigManager.PlayerConfig);
+		AddChild(playerNode);
 	}
 
 	public bool IsPlayer(CharacterBody2D player) {
@@ -125,7 +125,7 @@ public partial class WorldScene : Node {
 
 	public PlayerGameObject CreatePlayer(PlayerNode playerNode, PlayerConfig playerConfig) {
 		PlayerNode = playerNode;
-		var playerItem = GameObjectRepository.Create<PlayerGameObject>("Player1", "player1").Configure(playerConfig);
+		var playerItem = GameObjectRepository.Create<PlayerGameObject>("Player1").Configure(playerConfig);
 		playerItem.LinkNode(playerNode);
 		return playerItem;
 	}
@@ -135,7 +135,7 @@ public partial class WorldScene : Node {
 		ZombieSpawn(this, position);
 	}
 
-	public Vector2 GetPositionFromMarker(string path, bool freeMarker = true) {
+	public Vector2 GetPositionFromMarker(string path, bool freeMarker = false) {
 		var marker = GetNode<Marker2D>(path);
 		var globalPosition = marker.GlobalPosition;
 		if (freeMarker) marker.QueueFree();

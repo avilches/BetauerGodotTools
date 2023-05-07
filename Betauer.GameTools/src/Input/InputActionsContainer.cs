@@ -1,8 +1,6 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
 using Betauer.Application.Monitor;
-using Betauer.Core;
 using Betauer.DI;
 using Betauer.DI.Attributes;
 using Betauer.Input.Handler;
@@ -26,13 +24,13 @@ public partial class InputActionsContainer : Node, IInjectable {
     /// </summary>
     /// <param name="joypadDeviceId"></param>
     /// <returns></returns>
-    public InputActionsContainer Clone(int joypadDeviceId) {
+    public InputActionsContainer Clone(int joypadDeviceId, string suffix) {
         var newIac = new InputActionsContainer();
 
         InputActionList.ForEach(i => {
-            IAction newInputAction = i switch {
-                InputAction inputAction => inputAction.Clone(joypadDeviceId),
-                AxisAction axisAction => axisAction.Clone(joypadDeviceId),
+            IAction? newInputAction = i switch {
+                InputAction inputAction => inputAction.Clone(joypadDeviceId, suffix),
+                AxisAction axisAction => axisAction.Clone(suffix),
                 _ => null
             };
             newInputAction?.SetInputActionsContainer(newIac);

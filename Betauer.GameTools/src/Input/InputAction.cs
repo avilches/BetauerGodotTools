@@ -145,10 +145,9 @@ public partial class InputAction : IAction, IInjectable {
     internal readonly IHandler Handler;
     private readonly Updater _updater;
 
-    public InputAction Clone(int joypadDeviceId) {
-        var name = $"{Name}/{joypadDeviceId}";
-        var axisName = AxisActionName != null ? $"{AxisActionName}/{joypadDeviceId}" : null;
-        var newInputAction = Clone(name, axisName, joypadDeviceId);
+    public InputAction Clone(int joypadDeviceId, string suffix) {
+        var axisName = AxisActionName != null ? $"{AxisActionName}/{suffix}" : null;
+        var newInputAction = Clone($"{Name}/{suffix}", axisName, joypadDeviceId);
         return newInputAction;
     }
 

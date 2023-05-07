@@ -26,15 +26,11 @@ public class AxisAction : IAction, IInjectable {
     public InputAction Negative { get; private set; }
     public InputAction Positive { get; private set; }
 
-    public AxisAction Clone(string name) {
-        var axisAction = new AxisAction(name) {
+    public AxisAction Clone(string suffix) {
+        var axisAction = new AxisAction($"{Name}/{suffix}") {
             Reverse = Reverse,
         };
         return axisAction;
-    }
-
-    public AxisAction Clone(int joypadDeviceId) {
-        return Clone($"{Name}/{joypadDeviceId}");
     }
 
     public AxisAction(string name) {

@@ -11,6 +11,7 @@ using Betauer.Application.Settings.Attributes;
 using Betauer.DI.Attributes;
 using Betauer.Input;
 using Betauer.Input.Attributes;
+using Betauer.Input.Joypad;
 using Godot;
 using Veronenger.Character.Npc;
 using Veronenger.Character.Player;
@@ -34,8 +35,9 @@ public class ApplicationConfig {
 
 	[Singleton] public DebugOverlayManager DebugOverlayManager => new();
 	[Singleton] public GameObjectRepository GameObjectRepository => new();
-	[Singleton] public InputActionsContainer UiActionsContainer => new();
+	[Singleton] public UiActionsContainer UiActionsContainer => new();
 	[Singleton] public InputActionsContainer PlayerActionsContainer => new();
+	[Singleton] public JoypadPlayersMapping JoypadPlayersMapping => new();
 }
 
 [Configuration]

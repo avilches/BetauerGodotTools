@@ -10,6 +10,7 @@ using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
 using Betauer.Nodes;
 using Betauer.FSM.Async;
+using Betauer.Input.Joypad;
 using Veronenger.Config;
 using Veronenger.UI;
 
@@ -70,6 +71,8 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
     [Inject] private InputAction UiAccept { get; set; }
     [Inject] private InputAction UiCancel { get; set; }
     [Inject] private InputAction ControllerStart { get; set; }
+    [Inject] private UiActionsContainer UiActionsContainer { get; set; }
+    [Inject] private JoypadPlayersMapping JoypadPlayersMapping { get; set; }
         
     [Inject] private IFactory<Theme> DebugConsoleTheme { get; set; }
 
@@ -116,20 +119,34 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
             
         var modalResponse = false;
         var endSplash = false;
+        var loading = true;
 
         On(MainEvent.ModalBoxConfirmExitDesktop).Push(MainState.ModalExitDesktop);
         On(MainEvent.ExitDesktop).Set(MainState.ExitDesktop);
         On(MainEvent.ModalBoxConfirmQuitGame).Push(MainState.ModalQuitGame);
         State(MainState.Init)
             .Enter(() => {
+                UiActionsContainer.OnNewUiJoypad += (deviceId) => {
+                    // Console.WriteLine("New joypad for the ui " + deviceId);
+                };
+                JoypadPlayersMapping.OnPlayerMappingConnectionChanged += (playerMapping) => {
+                    // TODO: Launch the settings window
+                    // Console.WriteLine("OnPlayerMappingConnectionChanged: " + playerMapping);
+                };
+                UiActionsContainer.Start();
                 ConfigureCanvasLayers();
                 ConfigureDebugOverlays();
                 ScreenSettingsManager.Setup();
                 OnTransition += args => BottomBarScene.UpdateState(args.To);
                 GameLoaderContainer.OnLoadResourceProgress += BottomBarScene.OnLoadResourceProgress;
+                loading = false;
             })
             .OnInput(e => {
+                if (loading) return;
                 if (!endSplash && (e.IsAnyKey() || e.IsAnyButton() || e.IsAnyClick()) && e.IsJustPressed()) {
+                    if (e is InputEventJoypadButton button) {
+                        UiActionsContainer.SetJoypad(button.Device);
+                    }
                     splashScreen.QueueFree();
                     endSplash = true;
                 }

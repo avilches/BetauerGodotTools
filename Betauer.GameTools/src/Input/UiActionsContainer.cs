@@ -7,39 +7,49 @@ namespace Betauer.Input;
 
 public partial class UiActionsContainer : InputActionsContainer {
 
-    public int FirstJoyPad { get; private set; } = 0;
+    public int BackupJoypad { get; private set; } = 0;
     public int CurrentJoyPad { get; private set; } = 0;
     public event Action<int> OnNewUiJoypad; 
 
-    private Action _joyConnectionChangedSignal;
+    private Action? _joyConnectionChangedSignal;
 
-    public void SetJoypadDeviceId(int joypadDeviceId) {
+    private void _Change(int joypadDeviceId) {
         InputActionList.OfType<InputAction>().ForEach(inputAction => {
             inputAction.Update(updater => {
                 updater.SetJoypadDevice(joypadDeviceId);
             });
         });
-        OnNewUiJoypad?.Invoke(CurrentJoyPad);
+        OnNewUiJoypad?.Invoke(joypadDeviceId);
     }
 
-    public void Start() {
-        var pads = Godot.Input.GetConnectedJoypads();
-        FirstJoyPad = pads.Count > 0 ? pads[0] : 0; 
-        CurrentJoyPad = FirstJoyPad;
-        SetJoypadDeviceId(FirstJoyPad);
+    public void SetTemporalJoypad(int joypadDeviceId) {
+        CurrentJoyPad = joypadDeviceId;
+        _Change(joypadDeviceId);
+    }
+
+    public void SetJoypad(int joypadDeviceId) {
+        CurrentJoyPad = joypadDeviceId;
+        BackupJoypad = joypadDeviceId;
+        _Change(joypadDeviceId);
+    }
+
+    public void Start(int joypad = -1) {
+        if (joypad < 0) {
+            var pads = Godot.Input.GetConnectedJoypads();
+            joypad = pads.Count > 0 ? pads[0] : 0;
+        }
+        SetJoypad(joypad);
         
-        _joyConnectionChangedSignal = SignalExtensions.OnInputJoyConnectionChanged((device, connected) => {
+        _joyConnectionChangedSignal ??= SignalExtensions.OnInputJoyConnectionChanged((device, connected) => {
             if (connected) { // Connect
-                if (device == FirstJoyPad && device != CurrentJoyPad) {
-                    CurrentJoyPad = FirstJoyPad;
-                    SetJoypadDeviceId(CurrentJoyPad);
+                if (device == BackupJoypad) {
+                    SetJoypad(BackupJoypad);
                 }
             } else { // Disconnect
                 if (device == CurrentJoyPad) {
                     var pads = Godot.Input.GetConnectedJoypads();
                     if (pads.Count > 0) {
-                        CurrentJoyPad = pads[0];
-                        SetJoypadDeviceId(CurrentJoyPad);
+                        SetTemporalJoypad(pads[0]);
                     }
                 }
             }
