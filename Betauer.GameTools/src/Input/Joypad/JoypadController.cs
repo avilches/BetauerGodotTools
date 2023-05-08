@@ -30,7 +30,7 @@ public class JoypadController {
     
     private void Reconnect() {
         Disconnect();
-        var suffix = $"{_playerMapping.Player}/{_playerMapping.JoypadId}";
+        var suffix = _playerMapping.Player.ToString();
         InputActionsContainer = _source.Clone(_playerMapping.JoypadId, suffix, _updater);
         InputActionsContainer.Enable();
         
