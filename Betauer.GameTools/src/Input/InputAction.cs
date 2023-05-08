@@ -118,7 +118,7 @@ public partial class InputAction : IAction, IInjectable {
     public bool Pausable { get; private set; } = false;
     public List<JoyButton> Buttons { get; } = new();
     public List<Key> Keys { get; } = new();
-    public int JoypadDeviceId { get; private set; } = 0;
+    public int JoypadId { get; private set; } = 0;
     public JoyAxis Axis { get; private set; } = JoyAxis.Invalid;
     public int AxisSign { get; private set; } = 1;
     public float DeadZone { get; private set; } = DefaultDeadZone;
@@ -144,12 +144,6 @@ public partial class InputAction : IAction, IInjectable {
     public SaveSetting<string>? SaveSetting { get; set; }
     internal readonly IHandler Handler;
     private readonly Updater _updater;
-
-    public InputAction Clone(int joypadDeviceId, string suffix) {
-        var axisName = AxisActionName != null ? $"{AxisActionName}/{suffix}" : null;
-        var newInputAction = Clone($"{Name}/{suffix}", axisName, joypadDeviceId);
-        return newInputAction;
-    }
 
     /// <summary>
     /// 
@@ -187,14 +181,17 @@ public partial class InputAction : IAction, IInjectable {
         _updater = new Updater(this);
     }
 
-    public InputAction Clone(string name, string? axisActionName = null, int joypadDeviceId = -1) {
-        var inputAction = new InputAction(name, axisActionName, Behaviour, GodotInputMapEnabled, IsUnhandledInput, Pausable, Enabled) {
+    /// <summary>
+    /// Cloned need to be updated later with Update(u => u.CopyAll(input)). Cloned doesn't have save setting
+    /// </summary>
+    /// <param name="suffix"></param>
+    /// <returns></returns>
+    public InputAction Clone(string suffix) {
+        var name = $"{Name}/{suffix}";
+        var axisName = AxisActionName != null ? $"{AxisActionName}/{suffix}" : null;
+        var inputAction = new InputAction(name, axisName, Behaviour, GodotInputMapEnabled, IsUnhandledInput, Pausable, Enabled) {
             Container = Container,
         };
-        inputAction.Update(updater => {
-            updater.CopyFrom(this);
-            if (joypadDeviceId >= 0) updater.SetJoypadDevice(joypadDeviceId);
-        });
         return inputAction;
     }
 
@@ -303,14 +300,14 @@ public partial class InputAction : IAction, IInjectable {
         }
         foreach (var button in Buttons) {
             var e = new InputEventJoypadButton();
-            if (JoypadDeviceId >= 0) e.Device = JoypadDeviceId;
+            if (JoypadId >= 0) e.Device = JoypadId;
             e.ButtonIndex = button;
             events.Add(e);
         }
 
         if (Axis != JoyAxis.Invalid && AxisSign != 0) {
             var e = new InputEventJoypadMotion();
-            if (JoypadDeviceId >= 0) e.Device = JoypadDeviceId;
+            if (JoypadId >= 0) e.Device = JoypadId;
             e.Axis = Axis;
             e.AxisValue = AxisSign;
             events.Add(e);
@@ -357,13 +354,13 @@ public partial class InputAction : IAction, IInjectable {
         return e switch {
             InputEventKey key => MatchesModifiers(key) && HasKey(key.Keycode),
             InputEventMouseButton mouse => MatchesModifiers(mouse) && MouseButton == mouse.ButtonIndex,
-            InputEventJoypadButton button => IsJoypadDevice(e.Device) && HasButton(button.ButtonIndex),
-            InputEventJoypadMotion motion => IsJoypadDevice(e.Device) && motion.Axis == Axis,
+            InputEventJoypadButton button => IsJoypadId(e.Device) && HasButton(button.ButtonIndex),
+            InputEventJoypadMotion motion => IsJoypadId(e.Device) && motion.Axis == Axis,
             _ => false
         };
     }
 
-    public bool IsJoypadDevice(int device) => (JoypadDeviceId < 0 || JoypadDeviceId == device);
+    public bool IsJoypadId(int device) => (JoypadId < 0 || JoypadId == device);
 
     public bool HasMouseButton() {
         return MouseButton != MouseButton.None;
@@ -404,7 +401,7 @@ public partial class InputAction : IAction, IInjectable {
 
     public InputAction Update(Action<Updater> updater) {
         var (backupButtons, backupKeys, backupMouse) = (Buttons.ToArray(), Keys.ToArray(), MouseButton);
-        var (axis, axisSign, backupDeadZone, joypadDeviceId) = (Axis, AxisSign, DeadZone, JoypadDeviceId);
+        var (axis, axisSign, backupDeadZone, joypadId) = (Axis, AxisSign, DeadZone, JoypadId);
         var (commandOrCtrlAutoremap, ctrl, shift, alt, meta) = (CommandOrCtrl: CommandOrCtrlAutoremap, Ctrl, Shift, Alt, Meta);
         try {
             updater.Invoke(_updater);
@@ -416,7 +413,7 @@ public partial class InputAction : IAction, IInjectable {
                 .SetAxis(axis)
                 .SetAxisSign(axisSign)
                 .SetDeadZone(backupDeadZone)
-                .SetJoypadDevice(joypadDeviceId)
+                .SetJoypadId(joypadId)
                 .WithCommandOrCtrlAutoremap(commandOrCtrlAutoremap)
                 .WithCtrl(ctrl)
                 .WithShift(shift)

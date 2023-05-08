@@ -13,24 +13,24 @@ public partial class UiActionsContainer : InputActionsContainer {
 
     private Action? _disconnectGodotSignal;
 
-    private void _Change(int joypadDeviceId) {
+    private void _Change(int joypadId) {
         InputActionList.OfType<InputAction>().ForEach(inputAction => {
             inputAction.Update(updater => {
-                updater.SetJoypadDevice(joypadDeviceId);
+                updater.SetJoypadId(joypadId);
             });
         });
-        OnNewUiJoypad?.Invoke(joypadDeviceId);
+        OnNewUiJoypad?.Invoke(joypadId);
     }
 
-    public void SetTemporalJoypad(int joypadDeviceId) {
-        CurrentJoyPad = joypadDeviceId;
-        _Change(joypadDeviceId);
+    public void SetTemporalJoypad(int joypadId) {
+        CurrentJoyPad = joypadId;
+        _Change(joypadId);
     }
 
-    public void SetJoypad(int joypadDeviceId) {
-        CurrentJoyPad = joypadDeviceId;
-        BackupJoypad = joypadDeviceId;
-        _Change(joypadDeviceId);
+    public void SetJoypad(int joypadId) {
+        CurrentJoyPad = joypadId;
+        BackupJoypad = joypadId;
+        _Change(joypadId);
     }
 
     public void Start(int joypad = -1) {

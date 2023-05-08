@@ -145,7 +145,12 @@ public partial class PlayerNode : Node, IInjectable, INodeWithGameObject {
 
 	public void SetPlayerMapping(PlayerMapping playerMapping) {
 		PlayerMapping = playerMapping;
-		_joypadController.Configure(PlayerActionsContainer, PlayerMapping);
+		_joypadController.Configure(PlayerMapping, PlayerActionsContainer, (inputAction, updater) => {
+			// Player 1 uses all the mapping (keys included), player 2 and so on uses only the joypad
+			if (PlayerMapping.Player == 0) updater.CopyAll(inputAction);
+			else updater.CopyJoypad(inputAction);
+			updater.SetJoypadId(PlayerMapping.JoypadId);
+		});
 		PlayerMapping.OnJoypadChanged += () => {
 			//Console.WriteLine("OnJoypadChanged:"+PlayerMapping);
 		};
@@ -325,8 +330,8 @@ public partial class PlayerNode : Node, IInjectable, INodeWithGameObject {
 		var found = _joypadController.InputActionsContainer!.InputActionList.Find(i => i.Name == name);
 		if (found is InputAction inputAction) {
 			inputAction.Update(updater => {
-				updater.CopyFrom(updated);
-				updater.SetJoypadDevice(PlayerMapping.JoypadId);
+				updater.CopyJoypad(updated);
+				updater.SetJoypadId(PlayerMapping.JoypadId);
 			});
 		} else {
 			throw new Exception($"Action not found: {updated.Name}");

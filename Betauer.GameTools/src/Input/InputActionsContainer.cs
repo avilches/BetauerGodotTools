@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Betauer.Application.Monitor;
@@ -22,14 +23,16 @@ public partial class InputActionsContainer : Node, IInjectable {
     /// <summary>
     /// The inputs inside don't have SaveSetting
     /// </summary>
-    /// <param name="joypadDeviceId"></param>
+    /// <param name="joypadId"></param>
+    /// <param name="suffix"></param>
+    /// <param name="updater"></param>
     /// <returns></returns>
-    public InputActionsContainer Clone(int joypadDeviceId, string suffix) {
+    public InputActionsContainer Clone(int joypadId, string suffix, Action<InputAction, InputAction.Updater> updater) {
         var newIac = new InputActionsContainer();
 
         InputActionList.ForEach(i => {
             IAction? newInputAction = i switch {
-                InputAction inputAction => inputAction.Clone(joypadDeviceId, suffix),
+                InputAction inputAction => inputAction.Clone(suffix).Update(u => updater(inputAction, u)),
                 AxisAction axisAction => axisAction.Clone(suffix),
                 _ => null
             };

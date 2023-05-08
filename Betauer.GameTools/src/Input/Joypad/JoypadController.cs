@@ -10,6 +10,7 @@ public class JoypadController {
     public InputActionsContainer InputActionsContainer { get; private set; }
     private InputActionsContainer _source;
     private PlayerMapping _playerMapping;
+    private Action<InputAction, InputAction.Updater> _updater;
 
     private List<ISetter>? _fastSetters;
 
@@ -19,9 +20,10 @@ public class JoypadController {
             .Select(p => new FastSetter(p) as ISetter)
             .ToList();
     
-    public void Configure(InputActionsContainer source, PlayerMapping playerMapping) {
+    public void Configure(PlayerMapping playerMapping, InputActionsContainer source, Action<InputAction, InputAction.Updater> updater) {
         _playerMapping = playerMapping;
         _source = source;
+        _updater = updater; 
         Reconnect();
         playerMapping.OnJoypadChanged += Reconnect;
     }
@@ -29,7 +31,7 @@ public class JoypadController {
     private void Reconnect() {
         Disconnect();
         var suffix = $"{_playerMapping.Player}/{_playerMapping.JoypadId}";
-        InputActionsContainer = _source.Clone(_playerMapping.JoypadId, suffix);
+        InputActionsContainer = _source.Clone(_playerMapping.JoypadId, suffix, _updater);
         InputActionsContainer.Enable();
         
         FastSetters.ForEach(setter => {

@@ -26,23 +26,38 @@ public partial class InputAction {
             return this;
         }
 
-        public Updater CopyFrom(InputAction inputAction) {
-            // Mouse
-            SetMouse(inputAction.MouseButton);
-            
-            // Joypad
-            SetDeadZone(inputAction.DeadZone);
-            SetAxis(inputAction.Axis);
-            SetAxisSign(inputAction.AxisSign);
-            SetButtons(inputAction.Buttons.ToArray());
-            SetJoypadDevice(inputAction.JoypadDeviceId);
+        public Updater CopyAll(InputAction inputAction) {
+            CopyModifiers(inputAction);
+            CopyMouse(inputAction);
+            CopyJoypad(inputAction);
+            CopyKeys(inputAction);
+            return this;
+        }
 
-            // Keys
+        public Updater CopyModifiers(InputAction inputAction) {
             WithCommandOrCtrlAutoremap(inputAction.CommandOrCtrlAutoremap);
             WithCtrl(inputAction.Ctrl);
             WithShift(inputAction.Shift);
             WithAlt(inputAction.Alt);
             WithMeta(inputAction.Meta);
+            return this;
+        }
+
+        public Updater CopyMouse(InputAction inputAction) {
+            SetMouse(inputAction.MouseButton);
+            return this;
+        }
+        
+        public Updater CopyJoypad(InputAction inputAction) {
+            SetDeadZone(inputAction.DeadZone);
+            SetAxis(inputAction.Axis);
+            SetAxisSign(inputAction.AxisSign);
+            SetButtons(inputAction.Buttons.ToArray());
+            SetJoypadId(inputAction.JoypadId);
+            return this;
+        }
+        
+        public Updater CopyKeys(InputAction inputAction) {
             SetKeys(inputAction.Keys.ToArray());
             return this;
         }
@@ -74,13 +89,13 @@ public partial class InputAction {
             return this;
         }
 
-        public Updater SetJoypadDevice(int joypadDeviceId) {
-            _inputAction.JoypadDeviceId = joypadDeviceId;
+        public Updater SetJoypadId(int joypadId) {
+            _inputAction.JoypadId = joypadId;
             return this;
         }
 
-        public Updater ClearJoypadDevice() {
-            _inputAction.JoypadDeviceId = -1;
+        public Updater ClearJoypadId() {
+            _inputAction.JoypadId = -1;
             return this;
         }
 

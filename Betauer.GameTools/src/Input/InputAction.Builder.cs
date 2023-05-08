@@ -13,7 +13,7 @@ public partial class InputAction {
         private readonly ISet<Key> _keys = new HashSet<Key>();
         private JoyAxis _axis = JoyAxis.Invalid;
         private int _axisSign = 0;
-        private int _joypadDeviceId = 0;
+        private int _joypadId = 0;
         private float _deadZone = -1f;
         private MouseButton _mouseButton = MouseButton.None;
         private bool _ctrlPressed;
@@ -60,8 +60,8 @@ public partial class InputAction {
             return this;
         }
 
-        public Builder JoypadDevice(int joypadDeviceId) {
-            _joypadDeviceId = joypadDeviceId;
+        public Builder JoypadId(int joypadId) {
+            _joypadId = joypadId;
             return this;
         }
 
@@ -127,7 +127,7 @@ public partial class InputAction {
             if (_buttons.Count > 0) {
                 _buttons.ForEach(b => inputAction.Buttons.Add(b));
             }
-            inputAction.JoypadDeviceId = _joypadDeviceId;
+            inputAction.JoypadId = _joypadId;
             inputAction.Ctrl = _ctrlPressed;
             inputAction.Shift = _shiftPressed;
             inputAction.Alt = _altPressed;
