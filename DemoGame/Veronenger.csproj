@@ -23,6 +23,7 @@
         <Content Include="Docs/*"/>
         <Content Include="export/*"/>
         <Content Include="Scenes/**"/>
+        <Content Include="Src/**/*.tscn" />
         <Content Include="Worlds/**"/>
     </ItemGroup>
     <ItemGroup>
