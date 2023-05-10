@@ -6,13 +6,19 @@ public class PlayerMapping {
     public int Player { get; }
     public int JoypadId { get; private set; } = -1;
     public bool Connected { get; internal set; } = false;
+    public JoypadPlayersMapping JoypadPlayersMapping { get; }
 
     public event Action OnJoypadDisconnect;
     public event Action OnJoypadConnect;
     public event Action OnJoypadChanged;
 
-    internal PlayerMapping(int player) {
+    internal PlayerMapping(JoypadPlayersMapping joypadPlayersMapping, int player) {
+        JoypadPlayersMapping = joypadPlayersMapping;
         Player = player;
+    }
+
+    public PlayerMapping SetNextJoypadIdAvailable(int joypadId) {
+        return SetJoypadId(JoypadPlayersMapping.GetNextJoypadIdAvailable());
     }
 
     public PlayerMapping SetJoypadId(int joypadId) {

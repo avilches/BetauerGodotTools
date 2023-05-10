@@ -31,7 +31,7 @@ public class JoypadPlayersMapping {
     }
 
     public PlayerMapping AddPlayer() {
-        var mapping = new PlayerMapping(Players);
+        var mapping = new PlayerMapping(this, Players);
         Mapping.Add(mapping);
         return mapping;
     }
@@ -48,17 +48,22 @@ public class JoypadPlayersMapping {
         return Mapping.Find(mapping => mapping.JoypadId == joypadId) != null;
     }
 
-    public int[] GetAllJoypads() {
+    public int[] GetJoypadIdsConnected() {
         return Godot.Input.GetConnectedJoypads().ToArray();
     }
 
     public int[] GetJoypadIdsAvailable() {
-        if (Players == 0) return GetAllJoypads();
+        if (Players == 0) return GetJoypadIdsConnected();
         var available = Godot.Input.GetConnectedJoypads().ToList();
         for (var i = 0; i < Players; i++) {
             available.Remove(Mapping[i].JoypadId);
         }
         return available.ToArray();
+    }
+
+    public int GetNextJoypadIdAvailable() {
+        var available = GetJoypadIdsAvailable();
+        return available.Length > 0 ? available[0] : -1;
     }
 
     public int[] GetJoypadIdsInUse() {
