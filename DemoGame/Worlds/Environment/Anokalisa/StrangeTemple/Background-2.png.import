@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c8tn1u6ntovwi"
-path="res://.godot/imported/Background-2.png-c0c3f2be7f9cb41a8fc58af5cb67a143.ctex"
+path="res://.godot/imported/Background-2.png-ac25a989cecb6ec15272437f3d2c8a53.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Worlds/Environment/Anokalisa/StrangeTemple/Background-2.png"
-dest_files=["res://.godot/imported/Background-2.png-c0c3f2be7f9cb41a8fc58af5cb67a143.ctex"]
+source_file="res://Worlds/Environment/anokalisa/StrangeTemple/Background-2.png"
+dest_files=["res://.godot/imported/Background-2.png-ac25a989cecb6ec15272437f3d2c8a53.ctex"]
 
 [params]
 

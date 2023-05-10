@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dg7ctq0eb1wrt"
-path="res://.godot/imported/Tiles.png-9cf2d8a21a37152e1566ae009e87da42.ctex"
+path="res://.godot/imported/Tiles.png-bf500ade36d8bc6ca569915938550851.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Worlds/Environment/Anokalisa/StrangeTemple/Tiles.png"
-dest_files=["res://.godot/imported/Tiles.png-9cf2d8a21a37152e1566ae009e87da42.ctex"]
+source_file="res://Worlds/Environment/anokalisa/StrangeTemple/Tiles.png"
+dest_files=["res://.godot/imported/Tiles.png-bf500ade36d8bc6ca569915938550851.ctex"]
 
 [params]
 
