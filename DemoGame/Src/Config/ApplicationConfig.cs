@@ -15,6 +15,7 @@ using Betauer.Input.Joypad;
 using Godot;
 using Veronenger.Character.Npc;
 using Veronenger.Character.Player;
+using Veronenger.Managers;
 using Veronenger.Transient;
 using Veronenger.UI;
 using Veronenger.Worlds;
@@ -68,8 +69,8 @@ public class GameLoaderContainer : ResourceLoaderContainer {
 [Resource<Theme>("DebugConsoleTheme", "res://Platform/Assets/UI/DebugConsole.tres")]
 [Scene.Transient<RedefineActionButton>("RedefineActionButton", "res://Platform/Scenes/UI/RedefineActionButton.tscn")]
 [Scene.Transient<ModalBoxConfirm>("ModalBoxConfirm", "res://Platform/Scenes/Menu/ModalBoxConfirm.tscn")]
-[Scene.Singleton<HUD>("HudResource", "res://Platform/Scenes/UI/HUD.tscn")]
-[Scene.Transient<InventorySlot>("InventorySlotResource", "res://Platform/Scenes/UI/InventorySlot.tscn")]
+[Scene.Transient<PlayerHud>("PlayerHud", "res://Platform/Scenes/UI/PlayerHud.tscn")]
+[Scene.Singleton<Game>("Game", "res://Src/Managers/Game.tscn")]
 [Scene.Singleton<MainMenu>("MainMenuResource", "res://Platform/Scenes/Menu/MainMenu.tscn")]
 [Scene.Singleton<BottomBar>("BottomBarResource", "res://Platform/Scenes/Menu/BottomBar.tscn")]
 [Scene.Singleton<PauseMenu>("PauseMenuResource", "res://Platform/Scenes/Menu/PauseMenu.tscn")]
@@ -84,6 +85,7 @@ public class MainResources {
 [Resource<Texture2D>("LeonKnifeAnimationSprite", "res://Platform/Assets/Characters/Player-Leon/Leon-knife.png")]
 [Resource<Texture2D>("LeonMetalbarAnimationSprite", "res://Platform/Assets/Characters/Player-Leon/Leon-metalbar.png")]
 [Resource<Texture2D>("LeonGun1AnimationSprite", "res://Platform/Assets/Characters/Player-Leon/Leon-gun1.png")]
+[Scene.Transient<InventorySlot>("InventorySlotResource", "res://Platform/Scenes/UI/InventorySlot.tscn")]
 [Scene.Transient<WorldScene>("World3", "res://Worlds/World3.tscn")]
 [Scene.Transient<PlayerNode>("Player", "res://Platform/Scenes/Player.tscn")]
 [Scene.Transient<ZombieNode>("ZombieNode", "res://Platform/Scenes/Zombie2.tscn")]

@@ -86,6 +86,7 @@ public partial class Bootstrap : Node /* needed to be instantiated as an Autoloa
 
 		// Bootstrap logs, always log everything :)
 		LoggerFactory.SetTraceLevel<Bootstrap>(TraceLevel.All);
+		LoggerFactory.SetTraceLevel<ResourceLoaderContainer>(TraceLevel.All);
 		LoggerFactory.SetTraceLevel<ConfigFileWrapper>(TraceLevel.All);
 
 		// DI

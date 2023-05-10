@@ -12,6 +12,7 @@ using Betauer.Core.Pool.Lifecycle;
 using Betauer.Core.Restorer;
 using Betauer.DI;
 using Betauer.DI.Attributes;
+using Betauer.DI.Factory;
 using Betauer.Flipper;
 using Betauer.FSM.Sync;
 using Betauer.Input;
@@ -88,7 +89,7 @@ public partial class ZombieNode : NpcNode, IInjectable {
 	[NodePath("Character/HealthBarPosition/HealthBar")] public TextureProgressBar HealthBar;
 
 	[Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
-	[Inject] private Game Game { get; set; }
+	[Inject] private IFactory<Game> Game { get; set; }
 	[Inject] private EventBus EventBus { get; set; }
 	[Inject] private PlayerConfig PlayerConfig { get; set; }
 	
@@ -123,7 +124,7 @@ public partial class ZombieNode : NpcNode, IInjectable {
 	private LazyRaycast2D _lazyRaycastToPlayer;
 	private DebugOverlay? _overlay;
 
-	private Vector2 PlayerPos => Game.WorldScene.PlayerNode.Marker2D.GlobalPosition;
+	private Vector2 PlayerPos => Game.Get().WorldScene.ClosestPlayer(Marker2D.GlobalPosition).Marker2D.GlobalPosition;
 	public bool IsFacingToPlayer() => LateralState.IsFacingTo(PlayerPos);
 	public bool IsToTheRightOfPlayer() => LateralState.IsToTheRightOf(PlayerPos);
 	public int RightOfPlayer() => IsToTheRightOfPlayer() ? 1 : -1;

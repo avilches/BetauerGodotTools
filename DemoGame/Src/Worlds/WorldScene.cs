@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using Betauer.Application.Persistent;
 using Betauer.Core;
@@ -27,7 +28,7 @@ public partial class WorldScene : Node {
 	[Inject] private IPool<ZombieNode> ZombiePool { get; set; }
 	[Inject] private PlayerConfig PlayerConfig { get; set; }
 
-	public PlayerNode PlayerNode { get; private set; }
+	public List<PlayerNode> Players { get; } = new();
 
 	public override void _Ready() {
 		GetNode("EnemySpawn").GetChildren().OfType<Marker2D>().ForEach(m => {
@@ -111,25 +112,41 @@ public partial class WorldScene : Node {
 		return projectileTrail;
 	}
 
-	public void AddPlayerToScene(PlayerMapping playerMapping) {
+	public PlayerNode AddPlayerToScene(PlayerMapping playerMapping, SubViewport subViewport) {
 		var playerNode = PlayerFactory.Get();
+		playerNode.Name = $"Player{playerMapping.Player}";
 		playerNode.SetPlayerMapping(playerMapping);
-		playerNode.Ready += () => playerNode.GlobalPosition = GetPositionFromMarker("SpawnPlayer");
+		playerNode.Ready += () => {
+			playerNode.SetViewport(subViewport);
+			playerNode.GlobalPosition = GetPositionFromMarker("SpawnPlayer") + new Vector2(playerMapping.Player * 100, 0);
+			playerNode.Camera2D.MakeCurrent();
+		};
 		CreatePlayer(playerNode, ConfigManager.PlayerConfig);
 		AddChild(playerNode);
+		
+		return playerNode;
 	}
 
 	public bool IsPlayer(CharacterBody2D player) {
-		return PlayerNode.CharacterBody2D == player;
+		return Players.Find(p => p.CharacterBody2D == player) != null;
+	}
+
+	public void RemoveAllPlayers() {
+		Players.Clear();
 	}
 
 	public PlayerGameObject CreatePlayer(PlayerNode playerNode, PlayerConfig playerConfig) {
-		PlayerNode = playerNode;
+		Players.Add(playerNode);
 		var playerItem = GameObjectRepository.Create<PlayerGameObject>("Player1").Configure(playerConfig);
 		playerItem.LinkNode(playerNode);
 		return playerItem;
 	}
-	
+
+	 
+	public PlayerNode ClosestPlayer(Vector2 globalPosition) {
+		return Players.OrderBy(p => p.GlobalPosition.DistanceSquaredTo(globalPosition)).First();
+	}
+
 	public void InstantiateNewZombie() {
 		var position = GetNode("EnemySpawn").GetChildren().OfType<Marker2D>().First().GlobalPosition;
 		ZombieSpawn(this, position);
@@ -160,5 +177,4 @@ public partial class WorldScene : Node {
 		light.TextureScale = 0.8f;
 		// light.ShadowEnabled = false;
 	}
-
 }

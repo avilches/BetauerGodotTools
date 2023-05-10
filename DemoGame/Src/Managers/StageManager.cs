@@ -1,6 +1,5 @@
 using Betauer.Camera;
 using Godot;
-using Betauer.DI;
 using Betauer.DI.Attributes;
 using static Veronenger.LayerConstants;
 
@@ -10,15 +9,13 @@ namespace Veronenger.Managers;
 public class StageManager {
     private readonly CameraStageLimiter _cameraStageLimiter = new(LayerStageArea);
 
-    public void ConfigureStageCamera(Camera2D camera2D, Area2D playerDetector) {
-        _cameraStageLimiter.ConfigureStageCamera(camera2D, playerDetector);
+    public CameraStageLimiter ConfigureStageCamera(Camera2D camera2D, Area2D playerDetector) {
+        var cameraStageLimiter = new CameraStageLimiter(LayerStageArea);
+        cameraStageLimiter.ConfigureStageCamera(camera2D, playerDetector);
+        return cameraStageLimiter;
     }
 
     public void ConfigureStage(Area2D stage) {
         _cameraStageLimiter.ConfigureStage(stage);
-    }
-
-    public void ClearState() {
-        _cameraStageLimiter.ClearState();
     }
 }

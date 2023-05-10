@@ -13,7 +13,7 @@ atlas = SubResource("CompressedTexture2D_t4y30")
 region = Rect2(16, 64, 16, 16)
 
 [node name="ColorRect" type="ColorRect"]
-custom_minimum_size = Vector2(16, 16)
+custom_minimum_size = Vector2(32, 32)
 offset_right = 16.0
 offset_bottom = 16.0
 size_flags_horizontal = 3
@@ -23,27 +23,24 @@ script = ExtResource("1_c6sko")
 
 [node name="TextureRect" type="TextureRect" parent="."]
 unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 0
+offset_right = 32.0
+offset_bottom = 32.0
 texture = SubResource("AtlasTexture_ehtd3")
 
 [node name="Amount" type="Label" parent="TextureRect"]
 unique_name_in_owner = true
 layout_mode = 1
-anchors_preset = 15
+anchors_preset = -1
+anchor_left = 1.0
+anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 8.0
-offset_top = 14.0
-offset_right = 8.0
-offset_bottom = 15.0
-grow_horizontal = 2
-grow_vertical = 2
-scale = Vector2(0.5, 0.5)
+offset_left = -6.0
+offset_bottom = 20.0
+grow_horizontal = 0
+grow_vertical = 0
 theme = ExtResource("2_ixu10")
 text = "0"
 horizontal_alignment = 2

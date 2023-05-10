@@ -10,15 +10,14 @@ using Betauer.Core.Nodes;
 using Betauer.Core.Time;
 using Betauer.DI;
 using Betauer.DI.Attributes;
+using Betauer.DI.Factory;
 using Betauer.Flipper;
 using Betauer.Input;
 using Betauer.Nodes;
 using Betauer.NodePath;
 using Betauer.FSM.Sync;
-using Betauer.Input.Joypad;
 using Betauer.Physics;
 using Godot;
-using Veronenger.Character.InputActions;
 using Veronenger.Character.Npc;
 using Veronenger.Config;
 using Veronenger.Managers;
@@ -26,7 +25,6 @@ using Veronenger.Persistent;
 using Veronenger.Transient;
 using Veronenger.UI;
 using Veronenger.Worlds;
-using Container = Betauer.DI.Container;
 
 namespace Veronenger.Character.Player; 
 
@@ -70,16 +68,16 @@ public partial class PlayerNode : Node, IInjectable, INodeWithGameObject {
 	[NodePath("Character/HurtArea")] private Area2D _hurtArea;
 	[NodePath("Character/RichTextLabel")] public RichTextLabel Label;
 	[NodePath("Character/Detector")] public Area2D PlayerDetector;
-	[NodePath("Character/Camera2D")] private Camera2D _camera2D;
+	[NodePath("Character/Camera2D")] public Camera2D Camera2D;
 	[NodePath("Character/Marker2D")] public Marker2D Marker2D;
 	[NodePath("Character/CanJump")] public RayCast2D RaycastCanJump;
 	[NodePath("Character/FloorRaycasts")] public List<RayCast2D> FloorRaycasts;
 
-	[Inject] private Game Game { get; set; }
+	[Inject] private IFactory<Game> Game { get; set; }
 	[Inject] private PlatformManager PlatformManager { get; set; }
-	[Inject] private ConfigManager ConfigManager { get; set; }
+	
 	[Inject] private StageManager StageManager { get; set; }
-	[Inject] private Container Container { get; set; }
+	private CameraStageLimiter _cameraStageLimiter;
 
 	[Inject] private SceneTree SceneTree { get; set; }
 	[Inject] private EventBus EventBus { get; set; }
@@ -112,7 +110,7 @@ public partial class PlayerNode : Node, IInjectable, INodeWithGameObject {
 	private MonitorText? _coyoteMonitor;
 	private MonitorText? _jumpHelperMonitor;
 
-	private readonly DragCameraController _cameraController = new();
+	// private readonly DragCameraController _cameraController = new();
 	private CharacterWeaponController _characterWeaponController;
 	private AttackState _attackState = AttackState.None;
 	private readonly GodotStopwatch _stateTimer = new(false, true);
@@ -206,8 +204,8 @@ public partial class PlayerNode : Node, IInjectable, INodeWithGameObject {
 		Inventory.OnUnequip += item => { _characterWeaponController.Unequip(); };
 		Ready += () => {
 			// Needs to be delayed until HudScene is loaded and ready
-			Inventory.OnUpdateInventory += (e) => HudScene.UpdateInventory(e);
-			Inventory.OnSlotAmountUpdate += (e) => HudScene.UpdateAmount(e);
+			Inventory.OnUpdateInventory += (e) => HudScene.UpdateInventory(this, e);
+			Inventory.OnSlotAmountUpdate += (e) => HudScene.UpdateAmount(this, e);
 			Inventory.TriggerRefresh();
 		};
 	}
@@ -215,7 +213,7 @@ public partial class PlayerNode : Node, IInjectable, INodeWithGameObject {
 	public void ConfigureStatus() {
 		Ready += () => {
 			// Needs to be delayed until HudScene is loaded and ready
-			Status.OnHealthUpdate += HudScene.UpdateHealth;
+			Status.OnHealthUpdate += (phe) => HudScene.UpdateHealth(this, phe);
 			Status.SetHealth(Status.MaxHealth);
 		};
 	}
@@ -225,9 +223,15 @@ public partial class PlayerNode : Node, IInjectable, INodeWithGameObject {
 		Inventory.Pick(pickable);
 	}
 
+	public void SetViewport(SubViewport subViewport) {
+		Camera2D.CustomViewport = subViewport;
+		Camera2D.MakeCurrent();
+	}
+
 	private void ConfigureCamera() {
-		_cameraController.WithMouseButton(MouseButton.Middle).Attach(_camera2D);
-		StageManager.ConfigureStageCamera(_camera2D, PlayerDetector);
+		// _cameraController.WithMouseButton(MouseButton.Middle).Attach(_camera2D);
+		_cameraStageLimiter = StageManager.ConfigureStageCamera(Camera2D, PlayerDetector);
+		TreeExiting += () => _cameraStageLimiter?.ClearState();
 	}
 
 	private void ConfigurePlayerHurtArea() {
@@ -340,7 +344,7 @@ public partial class PlayerNode : Node, IInjectable, INodeWithGameObject {
 		// if (collision.IsColliding) return;
 		// var dropVelocity = new Vector2(MotionX + (PlatformBody.FacingRight * PlayerConfig.DropLateralSpeed), MotionY);
 		var dropVelocity = new Vector2(LateralState.FacingRight * Math.Max(Math.Abs(MotionX), PlayerConfig.DropLateralSpeed), MotionY);
-		Game.WorldScene.PlayerDrop(item, Marker2D.GlobalPosition, dropVelocity);
+		Game.Get().WorldScene.PlayerDrop(item, Marker2D.GlobalPosition, dropVelocity);
 		Inventory.Drop();
 	}
 
@@ -442,7 +446,7 @@ public partial class PlayerNode : Node, IInjectable, INodeWithGameObject {
 		_fsm.State(PlayerState.Idle)
 			.OnInput(InventoryHandler)
 			.OnInput(e => {
-				if (e.IsKeyPressed(Key.V)) Game.WorldScene.InstantiateNewZombie();
+				if (e.IsKeyPressed(Key.V)) Game.Get().WorldScene.InstantiateNewZombie();
 			})
 			.Enter(() => {
 				if (AnimationShoot.IsPlaying()) AnimationIdle.Queue();
@@ -556,7 +560,7 @@ public partial class PlayerNode : Node, IInjectable, INodeWithGameObject {
 			var bulletPosition = weapon.Config.ProjectileStartPosition * new Vector2(LateralState.FacingRight, 1);
 			var bulletDirection = new Vector2(LateralState.FacingRight, 0);
 			var hits = 0;
-			var bullet = Game.WorldScene.NewBullet();
+			var bullet = Game.Get().WorldScene.NewBullet();
 			Inventory.UpdateWeaponRangeAmmo(weapon, -1);
 			bullet.ShootFrom(weapon, CharacterBody2D.ToGlobal(bulletPosition), bulletDirection,
 				CollisionLayerManager.PlayerConfigureBullet,

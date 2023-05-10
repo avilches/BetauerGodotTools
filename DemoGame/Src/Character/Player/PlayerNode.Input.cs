@@ -1,33 +1,8 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using Betauer.Animation.AnimationPlayer;
-using Betauer.Application.Monitor;
-using Betauer.Application.Persistent;
-using Betauer.Camera;
 using Betauer.Core;
-using Betauer.Core.Nodes;
-using Betauer.Core.Time;
-using Betauer.DI;
-using Betauer.DI.Attributes;
-using Betauer.Flipper;
 using Betauer.Input;
-using Betauer.Nodes;
-using Betauer.NodePath;
-using Betauer.FSM.Sync;
 using Betauer.Input.Joypad;
-using Betauer.Physics;
-using Godot;
 using Veronenger.Character.InputActions;
-using Veronenger.Character.Npc;
-using Veronenger.Config;
-using Veronenger.Managers;
-using Veronenger.Persistent;
-using Veronenger.Transient;
-using Veronenger.UI;
-using Veronenger.Worlds;
-using Container = Betauer.DI.Container;
-
 namespace Veronenger.Character.Player; 
 
 public partial class PlayerNode {

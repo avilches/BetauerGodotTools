@@ -10,7 +10,7 @@ using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
 using Betauer.Input;
 using Betauer.Input.Joypad;
-using Betauer.Nodes;
+using Betauer.NodePath;
 using Godot;
 using Veronenger.Config;
 using Veronenger.UI;
@@ -18,11 +18,11 @@ using Veronenger.Worlds;
 
 namespace Veronenger.Managers;
 
-[Singleton]
-public class Game : IInjectable {
-	[Inject] private SceneTree SceneTree { get; set; }
+public partial class Game : Control, IInjectable {
+	private World2D _noWorld = new();
+
 	[Inject] private GameObjectRepository GameObjectRepository { get; set; }
-	[Inject] private IFactory<HUD> HudScene { get; set; }
+	[Inject] private HUD HudScene { get; set; }
 	[Inject] private ConfigManager ConfigManager { get; set; }
 	[Inject] private StageManager StageManager { get; set; }
 	[Inject] private IFactory<WorldScene> World3 { get; set; }
@@ -33,42 +33,53 @@ public class Game : IInjectable {
 	[Inject] private UiActionsContainer UiActionsContainer { get; set; }
 	[Inject] private JoypadPlayersMapping JoypadPlayersMapping { get; set; }
 
+	[NodePath("%SubViewport1")] private SubViewport _subViewport1;
+	[NodePath("%SubViewport2")] private SubViewport _subViewport2;
+
 	public const int MaxPlayer = 2;
 	
 	public WorldScene WorldScene { get; private set; }
-	private InputEventHandler newPlayerHandler { get; }
-
-	public Game() {
-		newPlayerHandler = new InputEventHandler(NewPlayerDetector, Node.ProcessModeEnum.Pausable, "NewPlayerDetector");
-		newPlayerHandler.Disable();
-	}
 
 	public void PostInject() {
-		DefaultNodeHandler.Instance.OnInput(newPlayerHandler);
 		PlayerActionsContainer.Disable(); // The real actions are cloned per player in player.Connect()		
+		NoAddingP2();				
 	}
 
 	public async Task Start() {
 		JoypadPlayersMapping.RemoveAllPlayers();
-		StageManager.ClearState();
 		await StartWorld3();
 	}
 
-	public void StartNew() {
+	public void StartNewProceduralWorld() {
 		// _currentGameScene = MainResourceLoader.CreateWorld2Empty();
 		var tileMap = WorldScene.GetNode<TileMap>("RealTileMap");
 		new WorldGenerator().Generate(tileMap);
 		// AddPlayerToScene();
-		SceneTree.Root.AddChildDeferred(WorldScene);
+		_subViewport1.AddChildDeferred(WorldScene);
 	}
 
-	private void NewPlayerDetector(InputEvent e) {
+	private void AllowAddingP2() {
+		SetProcessUnhandledInput(true);
+	}
+
+	private void NoAddingP2() {
+		SetProcessUnhandledInput(false);
+	}
+
+	public override void _UnhandledInput(InputEvent e) {
 		if (e is InputEventJoypadButton button && !JoypadPlayersMapping.IsJoypadUsed(button.Device)) {
-			AddPlayerToScene(button.Device);
-			DefaultNodeHandler.Instance.GetViewport().GetViewport().SetInputAsHandled();
-			if (JoypadPlayersMapping.Players == MaxPlayer) {
-				newPlayerHandler.Disable();				
-			}
+			CreatePlayer2(button.Device);
+			GetViewport().SetInputAsHandled();
+			if (JoypadPlayersMapping.Players == MaxPlayer) NoAddingP2();				
+		} else if (e.IsKeyReleased(Key.U)) {
+			CreatePlayer2(1);
+			GetViewport().SetInputAsHandled();
+		} else if (e.IsKeyReleased(Key.I)) {
+			DisablePlayer2();
+			GetViewport().SetInputAsHandled();
+		} else if (e.IsKeyReleased(Key.O)) {
+			EnablePlayer2();
+			GetViewport().SetInputAsHandled();
 		}
 	}
 
@@ -80,36 +91,64 @@ public class Game : IInjectable {
 		WorldScene = World3.Get();
 		GD.PushWarning("World3 creation end");
 
-		AddPlayerToScene(UiActionsContainer.CurrentJoyPad);
+		CreatePlayer1();
 		// This ensures the player who starts the game is the player who control the UI forever
 		UiActionsContainer.SetJoypad(UiActionsContainer.CurrentJoyPad);
-		SceneTree.Root.AddChild(WorldScene);
-		await SceneTree.AwaitProcessFrame();
+		_subViewport1.AddChild(WorldScene);
+		await GetTree().AwaitProcessFrame();
 
 		var bullets = new Node();
 		bullets.Name = "Bullets";
 		WorldScene.AddChild(bullets);
-		HudScene.Get().StartGame();
-		newPlayerHandler.Enable();
+		HudScene.StartGame();
+		
+		// Delay until needed
+		AllowAddingP2();				
+		//CreatePlayer2(1);
 	}
 
-	public void AddPlayerToScene(int joypad) {
-		var playerMapping = JoypadPlayersMapping.AddPlayer();
-		playerMapping.SetJoypadId(joypad);
-		WorldScene.AddPlayerToScene(playerMapping);
+	public void CreatePlayer1() {
+		WorldScene.RemoveAllPlayers();
+		var playerMapping = JoypadPlayersMapping.AddPlayer().SetJoypadId(UiActionsContainer.CurrentJoyPad);
+		var player = WorldScene.AddPlayerToScene(playerMapping, _subViewport1);
+		DisablePlayer2();
+	}
+
+	public void CreatePlayer2(int joypad) {
+		if (JoypadPlayersMapping.Players >= MaxPlayer) throw new Exception("No more players allowed");
+		EnablePlayer2();
+		var playerMapping = JoypadPlayersMapping.AddPlayer().SetJoypadId(joypad);
+		var player = WorldScene.AddPlayerToScene(playerMapping, _subViewport2);
+	}
+
+	private void EnablePlayer2() {
+		var halfScreen = new Vector2I((int)Size.X / 2, (int)Size.Y);
+		_subViewport1.Size = halfScreen;
+		_subViewport2.Size = halfScreen;
+		
+		_subViewport2.GetParent<SubViewportContainer>().Visible = true;
+		_subViewport2.World2D = _subViewport1.World2D;
+		HudScene.EnablePlayer2();
+	}
+
+	public void DisablePlayer2() {
+		_subViewport2.World2D = _noWorld;
+		_subViewport2.GetParent<SubViewportContainer>().Visible = false;
+		_subViewport1.Size = new Vector2I((int)Size.X, (int)Size.Y);
+		HudScene.DisablePlayer2();
 	}
 
 	public async Task End() {
-		newPlayerHandler.Disable();
-		HudScene.Get().EndGame();
+		NoAddingP2();				
+		HudScene.EndGame();
 		// FreeSceneAndKeepPoolData();
 		FreeSceneAndUnloadResources();
 		WorldScene.QueueFree();
 		WorldScene = null;
-		await SceneTree.AwaitProcessFrame();
+		await GetTree().AwaitProcessFrame();
 		GC.GetTotalMemory(true);
 
-		Node.PrintOrphanNodes();
+		PrintOrphanNodes();
 	}
 
 	private void FreeSceneAndUnloadResources() {

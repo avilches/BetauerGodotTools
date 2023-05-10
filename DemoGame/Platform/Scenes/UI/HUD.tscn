@@ -1,24 +1,36 @@
-[gd_scene load_steps=6 format=3 uid="uid://55b4356716qq"]
+[gd_scene load_steps=6 format=3 uid="uid://x5wppq31sx5e"]
 
-[ext_resource type="Script" path="res://Src/UI/HUD.cs" id="1_4b32y"]
-[ext_resource type="Texture2D" uid="uid://b1mxxkrpf3xej" path="res://Src/Assets/HUD/player-health-bar-over.png" id="1_gtut2"]
-[ext_resource type="Texture2D" uid="uid://cxmo73r7h3lgq" path="res://Src/Assets/HUD/player-health-bar-under.png" id="1_y6xfw"]
-[ext_resource type="Texture2D" uid="uid://3pvhwb1xss78" path="res://Src/Assets/HUD/player-health-bar-damage.png" id="2_1ks8x"]
-[ext_resource type="PackedScene" uid="uid://cit0h4t4vue11" path="res://Platform/Scenes/UI/Inventory.tscn" id="5_2lw04"]
+[ext_resource type="Script" path="res://Src/UI/PlayerHud.cs" id="1_jdtcx"]
+[ext_resource type="Texture2D" uid="uid://cxmo73r7h3lgq" path="res://Src/Assets/HUD/player-health-bar-under.png" id="2_vfuak"]
+[ext_resource type="Texture2D" uid="uid://b1mxxkrpf3xej" path="res://Src/Assets/HUD/player-health-bar-over.png" id="3_thagi"]
+[ext_resource type="Texture2D" uid="uid://3pvhwb1xss78" path="res://Src/Assets/HUD/player-health-bar-damage.png" id="4_htpic"]
+[ext_resource type="PackedScene" uid="uid://cit0h4t4vue11" path="res://Platform/Scenes/UI/Inventory.tscn" id="5_0s0j0"]
 
 [node name="HUD" type="CanvasLayer"]
-script = ExtResource("1_4b32y")
 
-[node name="TL" type="MarginContainer" parent="."]
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PlayerHUD" type="Control" parent="HBoxContainer"]
+custom_minimum_size = Vector2(960, 2.08165e-12)
+layout_mode = 2
+script = ExtResource("1_jdtcx")
+
+[node name="TL" type="MarginContainer" parent="HBoxContainer/PlayerHUD"]
+layout_mode = 0
 offset_right = 40.0
 offset_bottom = 40.0
 theme_override_constants/margin_left = 20
 theme_override_constants/margin_top = 20
 
-[node name="HBoxContainer" type="HBoxContainer" parent="TL"]
+[node name="HBoxContainer" type="HBoxContainer" parent="HBoxContainer/PlayerHUD/TL"]
 layout_mode = 2
 
-[node name="HealthBar" type="TextureProgressBar" parent="TL/HBoxContainer"]
+[node name="HealthBar" type="TextureProgressBar" parent="HBoxContainer/PlayerHUD/TL/HBoxContainer"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(64, 0)
 layout_mode = 2
@@ -28,22 +40,72 @@ stretch_margin_left = 1
 stretch_margin_top = 1
 stretch_margin_right = 1
 stretch_margin_bottom = 1
-texture_under = ExtResource("1_y6xfw")
-texture_over = ExtResource("1_gtut2")
-texture_progress = ExtResource("2_1ks8x")
+texture_under = ExtResource("2_vfuak")
+texture_over = ExtResource("3_thagi")
+texture_progress = ExtResource("4_htpic")
 
-[node name="BL" type="MarginContainer" parent="."]
-anchors_preset = 2
+[node name="BR" type="MarginContainer" parent="HBoxContainer/PlayerHUD"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
 anchor_top = 1.0
+anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = -96.0
 offset_top = -36.0
-offset_right = 96.0
+grow_horizontal = 0
 grow_vertical = 0
 scale = Vector2(2, 2)
 pivot_offset = Vector2(0, 36)
 theme_override_constants/margin_left = 20
 theme_override_constants/margin_bottom = 20
 
-[node name="Inventory" parent="BL" instance=ExtResource("5_2lw04")]
+[node name="Inventory" parent="HBoxContainer/PlayerHUD/BR" instance=ExtResource("5_0s0j0")]
 unique_name_in_owner = true
+layout_mode = 2
+
+[node name="PlayerHUD2" type="Control" parent="HBoxContainer"]
+layout_mode = 2
+script = ExtResource("1_jdtcx")
+
+[node name="TL" type="MarginContainer" parent="HBoxContainer/PlayerHUD2"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+
+[node name="HBoxContainer" type="HBoxContainer" parent="HBoxContainer/PlayerHUD2/TL"]
+layout_mode = 2
+
+[node name="HealthBar" type="TextureProgressBar" parent="HBoxContainer/PlayerHUD2/TL/HBoxContainer"]
+custom_minimum_size = Vector2(64, 0)
+layout_mode = 2
+value = 40.0
+allow_lesser = true
+stretch_margin_left = 1
+stretch_margin_top = 1
+stretch_margin_right = 1
+stretch_margin_bottom = 1
+texture_under = ExtResource("2_vfuak")
+texture_over = ExtResource("3_thagi")
+texture_progress = ExtResource("4_htpic")
+
+[node name="BR" type="MarginContainer" parent="HBoxContainer/PlayerHUD2"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -96.0
+offset_top = -36.0
+grow_horizontal = 0
+grow_vertical = 0
+scale = Vector2(2, 2)
+pivot_offset = Vector2(0, 36)
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="Inventory" parent="HBoxContainer/PlayerHUD2/BR" instance=ExtResource("5_0s0j0")]
 layout_mode = 2
