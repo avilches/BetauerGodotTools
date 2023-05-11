@@ -76,8 +76,7 @@ public partial class PlayerNode : Node, IInjectable, INodeWithGameObject {
 	[Inject] private IFactory<Game> Game { get; set; }
 	[Inject] private PlatformManager PlatformManager { get; set; }
 	
-	[Inject] private StageManager StageManager { get; set; }
-	private CameraStageLimiter _cameraStageLimiter;
+	[Inject] public StageController StageController { get; set; }
 
 	[Inject] private SceneTree SceneTree { get; set; }
 	[Inject] private EventBus EventBus { get; set; }
@@ -230,8 +229,12 @@ public partial class PlayerNode : Node, IInjectable, INodeWithGameObject {
 
 	private void ConfigureCamera() {
 		// _cameraController.WithMouseButton(MouseButton.Middle).Attach(_camera2D);
-		_cameraStageLimiter = StageManager.ConfigureStageCamera(Camera2D, PlayerDetector);
-		TreeExiting += () => _cameraStageLimiter?.ClearState();
+		StageController.AddTarget(PlayerDetector);
+		var rollback2 = StageController.OnChangeUpdateCameraLimits(Camera2D);
+		TreeExiting += () => {
+			StageController.ClearState();
+			rollback2();
+		};
 	}
 
 	private void ConfigurePlayerHurtArea() {

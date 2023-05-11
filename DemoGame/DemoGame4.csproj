@@ -8,31 +8,31 @@
         <EnableDefaultCompileItems>False</EnableDefaultCompileItems>
     </PropertyGroup>
     <ItemGroup Condition="'$(Configuration)' == 'Debug'">
-        <Compile Include="Src/**/*.cs"/>
-        <PackageReference Include="NUnit" Version="3.13.3"/>
-        <PackageReference Include="PcgRandom" Version="1.1.0"/>
+        <Compile Include="Src/**/*.cs" />
+        <PackageReference Include="NUnit" Version="3.13.3" />
+        <PackageReference Include="PcgRandom" Version="1.1.0" />
 
-        <ProjectReference Include="../Betauer.TestRunner/Betauer.TestRunner.csproj"/>
+        <ProjectReference Include="../Betauer.TestRunner/Betauer.TestRunner.csproj" />
     </ItemGroup>
     <ItemGroup Condition="'$(Configuration)' == 'ExportRelease'">
-        <Compile Include="Src/**/*.cs" Exclude="Src/Build/**;Src/Tests/**"/>
+        <Compile Include="Src/**/*.cs" Exclude="Src/Build/**;Src/Tests/**" />
     </ItemGroup>
     <ItemGroup>
-        <Content Include="*" Exclude="mono_crash*"/>
-        <Content Include="Platform/**"/>
-        <Content Include="Docs/*"/>
-        <Content Include="export/*"/>
-        <Content Include="Scenes/**"/>
-        <Content Include="Src/**/*.tscn"/>
-        <Content Include="Worlds/**"/>
+        <Content Include="*" Exclude="mono_crash*" />
+        <Content Include="Platform/**" />
+        <Content Include="Docs/*" />
+        <Content Include="export/*" />
+        <Content Include="Scenes/**" />
+        <Content Include="Src/**/*.tscn" />
+        <Content Include="Worlds/**" />
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="../Betauer.GameTools/Betauer.GameTools.csproj"/>
-        <ProjectReference Include="../Betauer.Animation/Betauer.Animation.csproj"/>
-        <ProjectReference Include="../Betauer.Core/Betauer.Core.csproj"/>
-        <ProjectReference Include="../Betauer.Bus/Betauer.Bus.csproj"/>
-        <ProjectReference Include="../Betauer.DI/Betauer.DI.csproj"/>
-        <ProjectReference Include="../Betauer.Tools.Logging/Betauer.Tools.Logging.csproj"/>
-        <ProjectReference Include="../Betauer.FSM/Betauer.FSM.csproj"/>
+        <ProjectReference Include="../Betauer.GameTools/Betauer.GameTools.csproj" />
+        <ProjectReference Include="../Betauer.Animation/Betauer.Animation.csproj" />
+        <ProjectReference Include="../Betauer.Core/Betauer.Core.csproj" />
+        <ProjectReference Include="../Betauer.Bus/Betauer.Bus.csproj" />
+        <ProjectReference Include="../Betauer.DI/Betauer.DI.csproj" />
+        <ProjectReference Include="../Betauer.Tools.Logging/Betauer.Tools.Logging.csproj" />
+        <ProjectReference Include="../Betauer.FSM/Betauer.FSM.csproj" />
     </ItemGroup>
 </Project>

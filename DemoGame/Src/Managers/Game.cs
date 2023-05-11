@@ -23,8 +23,6 @@ public partial class Game : Control, IInjectable {
 
 	[Inject] private GameObjectRepository GameObjectRepository { get; set; }
 	[Inject] private HUD HudScene { get; set; }
-	[Inject] private ConfigManager ConfigManager { get; set; }
-	[Inject] private StageManager StageManager { get; set; }
 	[Inject] private IFactory<WorldScene> World3 { get; set; }
 
 	[Inject] private GameLoaderContainer GameLoaderContainer { get; set; }

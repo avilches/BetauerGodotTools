@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Betauer.Application.Persistent;
+using Betauer.Camera;
 using Betauer.Core;
 using Betauer.Core.Nodes;
 using Betauer.Core.Pool;
@@ -21,7 +22,8 @@ public partial class WorldScene : Node {
 	[Inject] private ConfigManager ConfigManager { get; set; }
 	[Inject] private GameObjectRepository GameObjectRepository { get; set; }
 	[Inject] private PlatformManager PlatformManager { get; set; }
-	[Inject] private StageManager StageManager { get; set; }
+	
+	[Inject] private StageController StageController { get; set; }
 	[Inject] private IFactory<PlayerNode> PlayerFactory { get; set; }
 	[Inject] private IPool<PickableItemNode> PickableItemPool { get; set; }
 	[Inject] private IPool<ProjectileTrail> ProjectilePool { get; set; }
@@ -43,7 +45,7 @@ public partial class WorldScene : Node {
 			}
 		});
 		PlatformManager.ConfigurePlatformsCollisions();
-		GetNode<Node>("Stages").GetChildren().OfType<Area2D>().ForEach(StageManager.ConfigureStage);
+		GetNode<Node>("Stages").GetChildren().OfType<Area2D>().ForEach(StageController.ConfigureStage);
 
 		PlaceMetalbar();
 		PlaceSlowGun();
