@@ -23,11 +23,8 @@ public class GenerateSignalExtensions {
         var targetParam = signal.GodotClass.IsStatic ? "" : $"this {signal.GodotClass.ClassName} target, ";
         var target = signal.GodotClass.IsStatic ? $"{signal.GodotClass.ClassName}.Singleton" : "target";
         return $@"
-    public static Action On{signal.MethodName}({targetParam}Action{signal.Generics()} action, bool oneShot = false, bool deferred = false) {{
-        var callable = Callable.From(action);
-        {target}.Connect({signal.GodotClass.ClassName}.SignalName.{signal.SignalName}, callable, SignalFlags(oneShot, deferred));
-        return () => {target}.Disconnect({signal.GodotClass.ClassName}.SignalName.{signal.SignalName}, callable);
-    }}";
+    public static void On{signal.MethodName}({targetParam}Action{signal.Generics()} action, bool oneShot = false, bool deferred = false) =>
+        {target}.Connect({signal.GodotClass.ClassName}.SignalName.{signal.SignalName}, Callable.From(action), SignalFlags(oneShot, deferred));";
     }
 
     private static string GenerateBodyClass(IEnumerable<string> methods) {

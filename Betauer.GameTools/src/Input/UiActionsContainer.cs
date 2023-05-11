@@ -11,8 +11,6 @@ public partial class UiActionsContainer : InputActionsContainer {
     public int CurrentJoyPad { get; private set; } = 0;
     public event Action<int> OnNewUiJoypad; 
 
-    private Action? _disconnectGodotSignal;
-
     private void _Change(int joypadId) {
         InputActionList.OfType<InputAction>().ForEach(inputAction => {
             inputAction.Update(updater => {
@@ -40,7 +38,8 @@ public partial class UiActionsContainer : InputActionsContainer {
         }
         SetJoypad(joypad);
         
-        _disconnectGodotSignal ??= SignalExtensions.OnInputJoyConnectionChanged((device, connected) => {
+        // TODO: Godot 4 lacks a way to disconnect callable lambdas
+        SignalExtensions.OnInputJoyConnectionChanged((device, connected) => {
             if (connected) { // Connect
                 if (device == BackupJoypad) {
                     SetJoypad(BackupJoypad);
@@ -54,10 +53,5 @@ public partial class UiActionsContainer : InputActionsContainer {
                 }
             }
         });
-    }
-
-    public void Destroy() {
-        _disconnectGodotSignal?.Invoke();
-        _disconnectGodotSignal = null;
     }
 }
