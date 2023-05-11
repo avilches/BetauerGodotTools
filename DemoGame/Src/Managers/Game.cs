@@ -73,10 +73,10 @@ public partial class Game : Control, IInjectable {
 			CreatePlayer2(1);
 			GetViewport().SetInputAsHandled();
 		} else if (e.IsKeyReleased(Key.I)) {
-			DisablePlayer2();
+			DisablePlayer2(false);
 			GetViewport().SetInputAsHandled();
 		} else if (e.IsKeyReleased(Key.O)) {
-			EnablePlayer2();
+			EnablePlayer2(false);
 			GetViewport().SetInputAsHandled();
 		}
 	}
@@ -109,31 +109,97 @@ public partial class Game : Control, IInjectable {
 		WorldScene.RemoveAllPlayers();
 		var playerMapping = JoypadPlayersMapping.AddPlayer().SetJoypadId(UiActionsContainer.CurrentJoyPad);
 		var player = WorldScene.AddPlayerToScene(playerMapping, _subViewport1);
-		DisablePlayer2();
+		DisablePlayer2(true);
 	}
 
 	public void CreatePlayer2(int joypad) {
 		if (JoypadPlayersMapping.Players >= MaxPlayer) throw new Exception("No more players allowed");
-		EnablePlayer2();
 		var playerMapping = JoypadPlayersMapping.AddPlayer().SetJoypadId(joypad);
 		var player = WorldScene.AddPlayerToScene(playerMapping, _subViewport2);
 	}
 
-	private void EnablePlayer2() {
-		var halfScreen = new Vector2I((int)Size.X / 2, (int)Size.Y);
-		_subViewport1.Size = halfScreen;
-		_subViewport2.Size = halfScreen;
-		
-		_subViewport2.GetParent<SubViewportContainer>().Visible = true;
-		_subViewport2.World2D = _subViewport1.World2D;
-		HudScene.EnablePlayer2();
+	private float _effectDuration = 0.2f;
+	private bool _busyPlayerTransition = false;
+	private int _visiblePlayers = 0;
+
+	public float DistanceTo(Vector2 from, Vector2 to) {
+		double fromX = (from.X - to.X) * (from.X - to.X) + (from.Y - to.Y) * (from.Y - to.Y);
+		return Mathf.Sqrt((float)fromX);
 	}
 
-	public void DisablePlayer2() {
-		_subViewport2.World2D = _noWorld;
-		_subViewport2.GetParent<SubViewportContainer>().Visible = false;
-		_subViewport1.Size = new Vector2I((int)Size.X, (int)Size.Y);
-		HudScene.DisablePlayer2();
+	public override void _PhysicsProcess(double delta) {
+		if (!_busyPlayerTransition && WorldScene is { Players.Count: 2 }) {
+			var p1Stage = WorldScene.Players[0].StageController?.CurrentStage;
+			var p2Stage = WorldScene.Players[1].StageController?.CurrentStage;
+			if (p1Stage == null || p2Stage == null) return;
+			var sameStage = p1Stage == p2Stage;
+			if (!sameStage) {
+				if (_visiblePlayers == 1) EnablePlayer2(false);
+			} else {
+				var p1Pos = WorldScene.Players[0].Marker2D.GlobalPosition;
+				var p2Pos = WorldScene.Players[1].Marker2D.GlobalPosition;
+				var distanceTo = DistanceTo(p1Pos, p2Pos);
+
+				if (_visiblePlayers == 2) {
+					if (distanceTo < (Size.X * 0.5 * 0.2f)) {
+						DisablePlayer2(false);
+					}
+				} else if (_visiblePlayers == 1) {
+					if (distanceTo > (Size.X * 0.5 * 0.3f)) {
+						EnablePlayer2(false);
+					}
+				}
+			}
+		}
+	}
+
+
+	private void EnablePlayer2(bool immediate) {
+		_visiblePlayers = 2;
+		var half = new Vector2I((int)Size.X / 2, (int)Size.Y);
+		if (immediate || true) {
+			_subViewport1.Size = half;
+			_subViewport2.Size = half;
+			_subViewport2.GetParent<SubViewportContainer>().Visible = true;
+			_subViewport2.World2D = _subViewport1.World2D;
+			HudScene.EnablePlayer2();
+			_busyPlayerTransition = false;
+		} else {
+			_busyPlayerTransition = true;
+			_subViewport2.World2D = _subViewport1.World2D;
+			_subViewport2.Size = new Vector2I(0, (int)Size.Y);
+			_subViewport2.GetParent<SubViewportContainer>().Visible = true;
+			CreateTween().SetProcessMode(Tween.TweenProcessMode.Physics).TweenProperty(_subViewport1, "size", half, _effectDuration).SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.InOut);
+			CreateTween().SetProcessMode(Tween.TweenProcessMode.Physics).TweenProperty(_subViewport2, "size", half, _effectDuration).SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.InOut);
+			CreateTween().TweenCallback(Callable.From(() => {
+				_busyPlayerTransition = false;
+				HudScene.EnablePlayer2();
+			})).SetDelay(_effectDuration);
+		}
+	}
+
+	public void DisablePlayer2(bool immediate) {
+		_visiblePlayers = 1;
+		var full = new Vector2I((int)Size.X, (int)Size.Y);
+		var zero = new Vector2I(0, (int)Size.Y);
+		if (immediate || true) {
+			_subViewport2.World2D = _noWorld;
+			_subViewport2.GetParent<SubViewportContainer>().Visible = false;
+			_subViewport1.Size = full;
+			HudScene.DisablePlayer2();
+			_busyPlayerTransition = false;
+		} else {
+			_busyPlayerTransition = true;
+			CreateTween().SetProcessMode(Tween.TweenProcessMode.Physics).TweenProperty(_subViewport1, "size", full, _effectDuration).SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.InOut);
+			CreateTween().SetProcessMode(Tween.TweenProcessMode.Physics).TweenProperty(_subViewport2, "size", zero, _effectDuration).SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.InOut);
+			CreateTween().TweenCallback(Callable.From(() => {
+				_subViewport2.World2D = _noWorld;
+				_subViewport2.GetParent<SubViewportContainer>().Visible = false;
+				_subViewport1.Size = full;
+				HudScene.DisablePlayer2();
+				_busyPlayerTransition = false;
+			})).SetDelay(_effectDuration);
+		}
 	}
 
 	public async Task End() {
