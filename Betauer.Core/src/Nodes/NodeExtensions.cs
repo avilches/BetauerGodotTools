@@ -35,9 +35,11 @@ namespace Betauer.Core.Nodes {
                 parent.GetChildren().OfType<T>().FirstOrDefault();
         }
 
-        public static Node AddChild(this Node parent, Node child, Action onReady) {
-            child.RequestReady();
-            child.OnReady(onReady, true);
+        public static Node AddChild(this Node parent, Node child, Action? onReady) {
+            if (onReady != null) {
+                child.RequestReady();
+                child.OnReady(onReady, true);
+            }
             parent.AddChild(child);
             return parent;
         }
