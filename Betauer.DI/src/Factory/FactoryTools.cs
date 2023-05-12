@@ -6,9 +6,6 @@ namespace Betauer.DI.Factory;
 
 public static class FactoryTools {
 
-    public static ISingleton<T> SingletonFactory<T>(Func<T> factory) where T : class => new Singleton<T>(factory);
-    public static ITransientFactory<T> TransientFactory<T>(Func<T> factory) where T : class => new TransientFactory<T>(factory);
-
     public static Type? GetIFactoryGenericType(Type factoryType) {
         var isIFactoryInterface = factoryType.IsInterface && factoryType.GetGenericTypeDefinition() == typeof(IFactory<>);
         if (isIFactoryInterface) return factoryType.GetGenericArguments()[0];
