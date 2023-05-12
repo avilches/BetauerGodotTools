@@ -6,8 +6,8 @@ namespace Betauer.DI.Factory;
 
 public static class FactoryTools {
 
-    public static Factory<T> Create<T>(Func<T> factory) where T : class => new(factory);
-    public static Factory<T> Create<T>(IFactory<T> factory) where T : class => new(factory.Get);
+    public static ISingleton<T> SingletonFactory<T>(Func<T> factory) where T : class => new Singleton<T>(factory);
+    public static ITransientFactory<T> TransientFactory<T>(Func<T> factory) where T : class => new TransientFactory<T>(factory);
 
     public static Type? GetIFactoryGenericType(Type factoryType) {
         var isIFactoryInterface = factoryType.IsInterface && factoryType.GetGenericTypeDefinition() == typeof(IFactory<>);
@@ -25,9 +25,15 @@ public static class FactoryTools {
     /// <param name="provider"></param>
     /// <returns></returns>
     public static ProviderFactory CreateIFactoryFromProvider(Type type, IProvider provider) {
-        var factoryType = typeof(ProviderFactory<>).MakeGenericType(type);
-        ProviderFactory instance = (ProviderFactory)Activator.CreateInstance(factoryType, provider)!;
-        return instance;
+        if (provider.Lifetime == Lifetime.Singleton) {
+            var factoryType = typeof(ProviderSingletonFactory<>).MakeGenericType(type);
+            ProviderFactory instance = (ProviderFactory)Activator.CreateInstance(factoryType, provider)!;
+            return instance;
+        } else {
+            var factoryType = typeof(ProviderTransientFactory<>).MakeGenericType(type);
+            ProviderFactory instance = (ProviderFactory)Activator.CreateInstance(factoryType, provider)!;
+            return instance;
+        }
     }
 
     /// <summary>

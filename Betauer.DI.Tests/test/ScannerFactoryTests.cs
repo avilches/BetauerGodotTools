@@ -59,8 +59,13 @@ public class ScannerFactoryTests : Node {
     }
 
     [Singleton]
-    public class Client {
+    public class Client1 {
         [Inject] public IFactory<TransientD> TransientD { get; set; }
+    }
+    
+    [Singleton]
+    public class Client2 {
+        [Inject] public ITransientFactory<TransientD> TransientD { get; set; }
     }
 
     [TestRunner.Test(Description = "Test defining a Transient service by name with a Factory")]
@@ -69,15 +74,23 @@ public class ScannerFactoryTests : Node {
         var c = new Container();
         var di = c.CreateBuilder();
         di.Scan<TransientFactoryConfiguration>();
-        di.Scan<Client>();
+        di.Scan<Client1>();
+        di.Scan<Client2>();
         di.Build();
 
-        Client client = c.Resolve<Client>();
+        Client1 client1 = c.Resolve<Client1>();
 
         Assert.That(TransientD.Instances, Is.EqualTo(0));
-        Assert.That(client.TransientD.Get(), Is.TypeOf<TransientD>());
-        Assert.That(client.TransientD.Get(), Is.Not.EqualTo(client.TransientD.Get()));
+        Assert.That(client1.TransientD.Get(), Is.TypeOf<TransientD>());
+        Assert.That(client1.TransientD.Get(), Is.Not.EqualTo(client1.TransientD.Get()));
         Assert.That(TransientD.Instances, Is.EqualTo(3));
+
+        Client2 client2 = c.Resolve<Client2>();
+
+        Assert.That(TransientD.Instances, Is.EqualTo(3));
+        Assert.That(client2.TransientD.Get(), Is.TypeOf<TransientD>());
+        Assert.That(client2.TransientD.Get(), Is.Not.EqualTo(client2.TransientD.Get()));
+        Assert.That(TransientD.Instances, Is.EqualTo(6));
     }
 
     [TestRunner.Test(Description = "Register a Singleton Factory")]
@@ -88,7 +101,7 @@ public class ScannerFactoryTests : Node {
         di.Build();
         Assert.That(c.Resolve<Node>(), Is.EqualTo(c.Resolve<Node>()));
         Assert.That(c.Resolve<Node>().Name.ToString(), Is.EqualTo("L"));
-        var factory = c.Resolve<IFactory<Node>>();
+        var factory = c.Resolve<ISingleton<Node>>();
         Assert.That(factory.Get(), Is.EqualTo(c.Resolve<Node>()));
     }
 
@@ -100,7 +113,7 @@ public class ScannerFactoryTests : Node {
         di.Build();
         Assert.That(c.Resolve<Node>(), Is.Not.EqualTo(c.Resolve<Node>()));
         Assert.That(c.Resolve<Node>().Name.ToString(), Is.EqualTo("L"));
-        var factory = c.Resolve<IFactory<Node>>();
+        var factory = c.Resolve<ITransientFactory<Node>>();
         Assert.That(factory.Get(), Is.Not.EqualTo(factory.Get()));
     }
 
@@ -166,10 +179,10 @@ public class ScannerFactoryTests : Node {
     
     [Singleton]
     public class DemoSingleton {
-        [Inject] public IFactory<MyService> MyService { get; set;  }
-        [Inject] public IFactory<MyService> ServiceFactory { get; set;  }
-        [Inject] public IFactory<MyTransient> MyTransient { get; set;  }
-        [Inject] public IFactory<MyTransient> TransientFactory { get; set;  }
+        [Inject] public ISingleton<MyService> MyService { get; set;  }
+        [Inject] public ISingleton<MyService> ServiceFactory { get; set;  }
+        [Inject] public ITransientFactory<MyTransient> MyTransient { get; set;  }
+        [Inject] public ITransientFactory<MyTransient> TransientFactory { get; set;  }
         [Inject("InnerFactory:MyService")] 
         public IFactory<MyService> InnerMyService { get; set;  }
         [Inject("InnerFactory:MyTransient")] 
@@ -200,8 +213,8 @@ public class ScannerFactoryTests : Node {
         Assert.That(MyTransientFactory.Gets, Is.EqualTo(0));
 
         var demoSingleton = c.Resolve<DemoSingleton>();
-        Assert.That(demoSingleton.MyService, Is.EqualTo(c.Resolve<IFactory<MyService>>()));
-        Assert.That(demoSingleton.ServiceFactory, Is.EqualTo(c.Resolve<IFactory<MyService>>()));
+        Assert.That(demoSingleton.MyService, Is.EqualTo(c.Resolve<ISingleton<MyService>>()));
+        Assert.That(demoSingleton.ServiceFactory, Is.EqualTo(c.Resolve<ISingleton<MyService>>()));
         Assert.That(demoSingleton.InnerMyService, Is.EqualTo(c.Resolve<MyServiceFactory>("InnerFactory:MyService")));
         Assert.That(demoSingleton.InnerMyTransient, Is.EqualTo(c.Resolve<MyTransientFactory>("InnerFactory:MyTransient")));
 
@@ -273,10 +286,10 @@ public class ScannerFactoryTests : Node {
 
     [Singleton]
     public class DemoSingleton3 {
-        [Inject] public IFactory<MyService> MyService { get; set;  }
-        [Inject] public IFactory<MyService> ServiceFactory { get; set;  }
-        [Inject] public IFactory<MyTransient> MyTransient { get; set;  }
-        [Inject] public IFactory<MyTransient> TransientFactory { get; set;  }
+        [Inject] public ISingleton<MyService> MyService { get; set;  }
+        [Inject] public ISingleton<MyService> ServiceFactory { get; set;  }
+        [Inject] public ITransientFactory<MyTransient> MyTransient { get; set;  }
+        [Inject] public ITransientFactory<MyTransient> TransientFactory { get; set;  }
         [Inject("InnerFactory:MyService")] 
         public IFactory<MyService> InnerMyService { get; set;  }
         [Inject("InnerFactory:MyTransient")] 
@@ -308,8 +321,8 @@ public class ScannerFactoryTests : Node {
         Assert.That(MyTransientFactoryClass.Gets, Is.EqualTo(0));
 
         var demoSingleton = c.Resolve<DemoSingleton3>();
-        Assert.That(demoSingleton.MyService, Is.EqualTo(c.Resolve<IFactory<MyService>>()));
-        Assert.That(demoSingleton.ServiceFactory, Is.EqualTo(c.Resolve<IFactory<MyService>>()));
+        Assert.That(demoSingleton.MyService, Is.EqualTo(c.Resolve<ISingleton<MyService>>()));
+        Assert.That(demoSingleton.ServiceFactory, Is.EqualTo(c.Resolve<ISingleton<MyService>>()));
         Assert.That(demoSingleton.InnerMyService, Is.EqualTo(c.Resolve<MyServiceFactoryClass>("InnerFactory:MyService")));
         Assert.That(demoSingleton.InnerMyTransient, Is.EqualTo(c.Resolve<MyTransientFactoryClass>("InnerFactory:MyTransient")));
 
@@ -401,8 +414,8 @@ public class ScannerFactoryTests : Node {
     
         Assert.That(c.Resolve<Element>().Type, Is.EqualTo(0));
         Assert.That(c.Resolve<Element>().WasInjected, Is.True);
-        Assert.That(c.Resolve<IFactory<Element>>().Get().Type, Is.EqualTo(0));
-        Assert.That(c.Resolve<IFactory<Element>>().Get().WasInjected, Is.True);
+        Assert.That(c.Resolve<ITransientFactory<Element>>().Get().Type, Is.EqualTo(0));
+        Assert.That(c.Resolve<ITransientFactory<Element>>().Get().WasInjected, Is.True);
 
         Assert.That(c.Resolve<Element>("E").Type, Is.EqualTo(0));
         Assert.That(c.Resolve<Element>("E").WasInjected, Is.True);
@@ -433,8 +446,9 @@ public class ScannerFactoryTests : Node {
         Assert.That(c.Resolve<IFactory<Element>>("Factory:E1").Get().WasInjected, Is.True);
         Assert.That(c.Resolve<IFactory<Element>>("Factory:E2").Get().Type, Is.EqualTo(2));
         Assert.That(c.Resolve<IFactory<Element>>("Factory:E2").Get().WasInjected, Is.True);
-        Assert.That(c.Resolve<IFactory<Element>>().Get().Type, Is.EqualTo(1)); // no name = type 1 (the first)
-        Assert.That(c.Resolve<IFactory<Element>>().Get().WasInjected, Is.True);// no name = type 1 (the first)
+        Assert.That(c.Resolve<ISingleton<Element>>().Get().Type, Is.EqualTo(1)); // no name = type 1 (the first)
+        Assert.That(c.Resolve<ISingleton<Element>>().Get().WasInjected, Is.True);// no name = type 1 (the first)
+        Assert.That(c.Resolve<ISingleton<Element>>(), Is.TypeOf<ProviderSingletonFactory<Element>>());
         
         // InnerFactory only by name. It doesn't inject
         Assert.Throws<ServiceNotFoundException>(() => c.Resolve<Element1Factory>());
@@ -478,9 +492,10 @@ public class ScannerFactoryTests : Node {
         Assert.That(c.Resolve<IFactory<Element>>("Factory:E1").Get().WasInjected, Is.True);
         Assert.That(c.Resolve<IFactory<Element>>("Factory:E2").Get().Type, Is.EqualTo(2));
         Assert.That(c.Resolve<IFactory<Element>>("Factory:E2").Get().WasInjected, Is.True);
-        Assert.That(c.Resolve<IFactory<Element>>().Get().Type, Is.EqualTo(1)); // no name = type 1 (the first)
-        Assert.That(c.Resolve<IFactory<Element>>().Get().WasInjected, Is.True);// no name = type 1 (the first)
-        
+        Assert.That(c.Resolve<ISingleton<Element>>().Get().Type, Is.EqualTo(1)); // no name = type 1 (the first)
+        Assert.That(c.Resolve<ISingleton<Element>>().Get().WasInjected, Is.True);// no name = type 1 (the first)
+        Assert.That(c.Resolve<ISingleton<Element>>(), Is.TypeOf<ProviderSingletonFactory<Element>>());
+            
         // InnerFactory only by name. It doesn't inject
         Assert.Throws<ServiceNotFoundException>(() => c.Resolve<Element1Factory>());
         Assert.Throws<ServiceNotFoundException>(() => c.Resolve<Element2Factory>());
@@ -512,7 +527,8 @@ public class ScannerFactoryTests : Node {
         Assert.That(c.Resolve<Element>().WasInjected, Is.True);
         
         // Factory creates instances well injected
-        Assert.That(c.Resolve<IFactory<Element>>().Get().Type, Is.EqualTo(2)); // no name = type 2 (because primary)
-        Assert.That(c.Resolve<IFactory<Element>>().Get().WasInjected, Is.True);// no name = type 2 (because primary)
+        Assert.That(c.Resolve<ITransientFactory<Element>>().Get().Type, Is.EqualTo(2)); // no name = type 2 (because primary)
+        Assert.That(c.Resolve<ITransientFactory<Element>>().Get().WasInjected, Is.True);// no name = type 2 (because primary)
+        Assert.That(c.Resolve<ITransientFactory<Element>>(), Is.TypeOf<ProviderTransientFactory<Element>>());
     }
 }

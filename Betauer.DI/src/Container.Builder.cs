@@ -47,10 +47,10 @@ public partial class Container {
         public Builder RegisterFactoryFromProvider(IProvider providerFactory) {
             // Register the factory as IFactory<> so the user can get the real factory using Resolve<IFactory<T>>() or
             // Resolve<IFactory<T>>("Factory:"+name) and then call to Get() which returns new instances, injecting dependencies.
-            Type factoryType = typeof(IFactory<>).MakeGenericType(providerFactory.ProviderType);
+            Type iFactoryType = (providerFactory.Lifetime == Lifetime.Singleton ? typeof(ISingleton<>) : typeof(ITransientFactory<>)).MakeGenericType(providerFactory.ProviderType);
             var factoryName = providerFactory.Name == null ? null : $"Factory:{providerFactory.Name}";
             object CustomFactory() => FactoryTools.CreateIFactoryFromProvider(providerFactory.ProviderType, providerFactory);
-            Register(Provider.Create(factoryType, factoryType, Lifetime.Singleton, CustomFactory, factoryName, providerFactory.Primary, true));
+            Register(Provider.Create(iFactoryType, iFactoryType, Lifetime.Singleton, CustomFactory, factoryName, providerFactory.Primary, true));
             return this;
         }
 
@@ -87,7 +87,7 @@ public partial class Container {
             // It's always lazy because it's just a wrapper for the user
             var factoryName = name == null ? null : $"Factory:{name}";
             object CustomFactory() => FactoryTools.CreateIFactoryFromProvider(type, provider);
-            var iFactoryType = typeof(IFactory<>).MakeGenericType(type);
+            Type iFactoryType = (provider.Lifetime == Lifetime.Singleton ? typeof(ISingleton<>) : typeof(ITransientFactory<>)).MakeGenericType(type);
             Register(Provider.Create(iFactoryType, iFactoryType, Lifetime.Singleton, CustomFactory, factoryName, primary, true));
             return this;
         }
