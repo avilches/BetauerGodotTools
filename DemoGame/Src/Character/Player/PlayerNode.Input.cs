@@ -27,6 +27,8 @@ public partial class PlayerNode {
 	public PlayerMapping PlayerMapping { get; set; }
 
 	public void SetPlayerMapping(PlayerMapping playerMapping) {
+		Name = $"Player{playerMapping.Player}";
+		Label.Text = $"P{playerMapping.Player}";
 		PlayerMapping = playerMapping;
 		_joypadController.Configure(PlayerMapping, PlayerActionsContainer, (inputAction, updater) => {
 			// Player 1 uses all the mapping (keys included), player 2 and so on uses only the joypad

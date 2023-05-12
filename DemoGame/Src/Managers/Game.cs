@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Betauer.Application.Lifecycle;
 using Betauer.Application.Persistent;
@@ -12,6 +13,7 @@ using Betauer.Input;
 using Betauer.Input.Joypad;
 using Betauer.NodePath;
 using Godot;
+using Veronenger.Character.Player;
 using Veronenger.Config;
 using Veronenger.UI;
 using Veronenger.Worlds;
@@ -41,11 +43,6 @@ public partial class Game : Control, IInjectable {
 	public void PostInject() {
 		PlayerActionsContainer.Disable(); // The real actions are cloned per player in player.Connect()		
 		NoAddingP2();				
-	}
-
-	public async Task Start() {
-		JoypadPlayersMapping.RemoveAllPlayers();
-		await StartWorld3();
 	}
 
 	public void StartNewProceduralWorld() {
@@ -78,50 +75,88 @@ public partial class Game : Control, IInjectable {
 		} else if (e.IsKeyReleased(Key.O)) {
 			EnablePlayer2(false);
 			GetViewport().SetInputAsHandled();
+		} else if (e.IsKeyReleased(Key.F5)) {
+			GameObjectRepository.Save();
+		} else if (e.IsKeyReleased(Key.F6)) {
+			LoadInGame();
 		}
 	}
 
-	public async Task StartWorld3() {
-		GameObjectRepository.Clear();
+	public async Task NewGame() {
 		await GameLoaderContainer.LoadGameResources();
-		
-		GD.PushWarning("World3 creation start");
-		WorldScene = World3.Get();
-		GD.PushWarning("World3 creation end");
-
-		CreatePlayer1();
-		// This ensures the player who starts the game is the player who control the UI forever
-		UiActionsContainer.SetJoypad(UiActionsContainer.CurrentJoyPad);
-		_subViewport1.AddChild(WorldScene);
-		await GetTree().AwaitProcessFrame();
-
-		var bullets = new Node();
-		bullets.Name = "Bullets";
-		WorldScene.AddChild(bullets);
-		HudScene.StartGame();
-		
-		// Delay until needed
+		InitializeWorld();
+		UiActionsContainer.SetJoypad(UiActionsContainer.CurrentJoyPad);	// Player who starts the game is the player who control the UI forever
+		CreatePlayer1(UiActionsContainer.CurrentJoyPad);
 		AllowAddingP2();				
-		//CreatePlayer2(1);
+		WorldScene.StartNewGame();
 	}
 
-	public void CreatePlayer1() {
-		WorldScene.RemoveAllPlayers();
-		var playerMapping = JoypadPlayersMapping.AddPlayer().SetJoypadId(UiActionsContainer.CurrentJoyPad);
-		var player = WorldScene.AddPlayerToScene(playerMapping, _subViewport1);
+	public async void LoadFromMenu() {
+		var (success, objects) = await LoadData();
+		if (!success) return;
+
+		await GameLoaderContainer.LoadGameResources();
+		InitializeWorld();
+		LoadGame(objects!);
+	}
+
+	public async void LoadInGame() {
+		var (success, objects) = await LoadData();
+		if (!success) return;
+
+		await FreeSceneAndKeepPoolData();
+		InitializeWorld();
+		LoadGame(objects!);
+	}
+	
+	private void LoadGame(Dictionary<int, SaveObject> saveObjects) {
+		UiActionsContainer.SetJoypad(UiActionsContainer.CurrentJoyPad); // Player who starts the game is the player who control the UI forever
+		CreatePlayer1(UiActionsContainer.CurrentJoyPad);
+		AllowAddingP2();				
+		WorldScene.LoadGame(saveObjects);
+		// TODO: hide loading screen
+	}
+
+	public async Task<(bool, Dictionary<int, SaveObject>?)> LoadData() {
+		// TODO: Show loading screen
+		try {
+			var objects = await GameObjectRepository.Load();
+			return (true, objects);
+		} catch (Exception) {
+			// TODO: Hide loading screen and show error
+			return (false, null);
+		}
+	}
+
+	public void InitializeWorld() {
+		JoypadPlayersMapping.RemoveAllPlayers();
+		GameObjectRepository.Clear();
+		WorldScene = World3.Get();
+		_subViewport1.AddChild(WorldScene);
+		HudScene.Enable();
+	}
+
+	public PlayerNode CreatePlayer1(int joypad) {
+		var playerMapping = JoypadPlayersMapping.AddPlayer().SetJoypadId(joypad);
+		var player = WorldScene.AddPlayerToScene();
+		player.SetViewport(_subViewport1);
 		DisablePlayer2(true);
+		return player;
 	}
 
-	public void CreatePlayer2(int joypad) {
+	public PlayerNode CreatePlayer2(int joypad) {
 		if (JoypadPlayersMapping.Players >= MaxPlayer) throw new Exception("No more players allowed");
 		var playerMapping = JoypadPlayersMapping.AddPlayer().SetJoypadId(joypad);
-		var player = WorldScene.AddPlayerToScene(playerMapping, _subViewport2);
+		var player = WorldScene.AddPlayerToScene();
+		player.SetViewport(_subViewport2);
+		return player;
 	}
 
 	private float _effectDuration = 0.2f;
 	private bool _busyPlayerTransition = false;
 	private int _visiblePlayers = 0;
 
+	// TODO: this has been done because Vector2.DistanceTo didn't work (returned Infinity)
 	public float DistanceTo(Vector2 from, Vector2 to) {
 		double fromX = (from.X - to.X) * (from.X - to.X) + (from.Y - to.Y) * (from.Y - to.Y);
 		return Mathf.Sqrt((float)fromX);
@@ -152,7 +187,6 @@ public partial class Game : Control, IInjectable {
 			}
 		}
 	}
-
 
 	private void EnablePlayer2(bool immediate) {
 		_visiblePlayers = 2;
@@ -204,18 +238,12 @@ public partial class Game : Control, IInjectable {
 
 	public async Task End() {
 		NoAddingP2();				
-		HudScene.EndGame();
+		HudScene.Disable();
 		// FreeSceneAndKeepPoolData();
-		FreeSceneAndUnloadResources();
-		WorldScene.QueueFree();
-		WorldScene = null;
-		await GetTree().AwaitProcessFrame();
-		GC.GetTotalMemory(true);
-
-		PrintOrphanNodes();
+		await FreeSceneAndUnloadResources();
 	}
 
-	private void FreeSceneAndUnloadResources() {
+	private async Task FreeSceneAndUnloadResources() {
 		// To ensure the pool nodes are freed along with the scene:
 		
 		// 1. All busy elements are still attached to the tree and will be destroyed with the scene, so we don't need to
@@ -225,10 +253,20 @@ public partial class Game : Control, IInjectable {
 		// 2. Remove the data from the pool to avoid having references to busy elements which are going to die with the scene
 		PoolContainer.Clear();
 		GameLoaderContainer.UnloadGameResources();
+		WorldScene.QueueFree();
+		WorldScene = null;
+		GC.GetTotalMemory(true);
+		PrintOrphanNodes();
+		await GetTree().AwaitProcessFrame();
 	}
 
-	private void FreeSceneAndKeepPoolData() {
+	private async Task FreeSceneAndKeepPoolData() {
 		// This line keeps the godot nodes in the pool removing them from scene, because the scene is going to be freed
 		PoolContainer.ForEachElementInAllPools(e => ((Node)e).RemoveFromParent());
+		WorldScene.QueueFree();
+		WorldScene = null;
+		GC.GetTotalMemory(true);
+		PrintOrphanNodes();
+		await GetTree().AwaitProcessFrame();
 	}
 }

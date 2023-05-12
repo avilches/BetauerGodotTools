@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Betauer.Application.Persistent;
@@ -22,31 +23,39 @@ public partial class WorldScene : Node {
 	[Inject] private ConfigManager ConfigManager { get; set; }
 	[Inject] private GameObjectRepository GameObjectRepository { get; set; }
 	[Inject] private PlatformManager PlatformManager { get; set; }
+	[Inject] private JoypadPlayersMapping JoypadPlayersMapping { get; set; }
 	
 	[Inject] private IFactory<StageController> StageControllerFactory { get; set; }
 	[Inject] private IFactory<PlayerNode> PlayerFactory { get; set; }
 	[Inject] private IPool<PickableItemNode> PickableItemPool { get; set; }
 	[Inject] private IPool<ProjectileTrail> ProjectilePool { get; set; }
 	[Inject] private IPool<ZombieNode> ZombiePool { get; set; }
-	[Inject] private PlayerConfig PlayerConfig { get; set; }
 
 	public List<PlayerNode> Players { get; } = new();
 
+	public WorldScene() {
+		var bullets = new Node();
+		bullets.Name = "Bullets";
+		AddChild(bullets);
+	}
+
 	public override void _Ready() {
+		GetChildren().OfType<CanvasModulate>().ForEach(cm => cm.Visible = true);
+		PlatformManager.ConfigurePlatformsCollisions();
+		var stageController = StageControllerFactory.Get();
+		GetNode<Node>("Stages").GetChildren().OfType<Area2D>().ForEach(stageController.ConfigureStage);
+		GetChildren().OfType<TileMap>().ForEach(PlatformManager.ConfigureTileMapCollision);
+	}
+	
+	public void StartNewGame() {
 		GetNode("EnemySpawn").GetChildren().OfType<Marker2D>().ForEach(m => {
 			if (m.Visible) ZombieSpawn(this, m.GlobalPosition);
 		});
-
-		GetChildren().OfType<TileMap>().ForEach(PlatformManager.ConfigureTileMapCollision);
-		GetChildren().OfType<CanvasModulate>().ForEach(cm => cm.Visible = true);
 		GetNode<Node>("Lights").GetChildren().OfType<PointLight2D>().ForEach(light => {
 			if (light.Name.ToString().StartsWith("Candle")) {
 				CandleOff(light);
 			}
 		});
-		PlatformManager.ConfigurePlatformsCollisions();
-		GetNode<Node>("Stages").GetChildren().OfType<Area2D>().ForEach(StageController.ConfigureStage);
-
 		PlaceMetalbar();
 		PlaceSlowGun();
 		PlaceGun();
@@ -114,18 +123,20 @@ public partial class WorldScene : Node {
 		return projectileTrail;
 	}
 
-	public PlayerNode AddPlayerToScene(PlayerMapping playerMapping, SubViewport subViewport) {
+	public void LoadGame(Dictionary<int, SaveObject> objects) {
+		
+	}
+
+	public PlayerNode AddPlayerToScene(PlayerMapping? playerMapping = null, Action? onReady = null) {
+		playerMapping ??= JoypadPlayersMapping.Mapping.Last();
+		if (playerMapping == null) throw new ArgumentNullException(nameof(playerMapping));
 		var playerNode = PlayerFactory.Get();
-		playerNode.Name = $"Player{playerMapping.Player}";
 		playerNode.SetPlayerMapping(playerMapping);
 		playerNode.Ready += () => {
-			playerNode.SetViewport(subViewport);
-			playerNode.GlobalPosition = GetPositionFromMarker("SpawnPlayer") + new Vector2(playerMapping.Player * 100, 0);
-			playerNode.Camera2D.MakeCurrent();
+			playerNode.GlobalPosition = GetPositionFromMarker("SpawnPlayer"); // + new Vector2(playerMapping.Player * 100, 0);
 		};
 		CreatePlayer(playerNode, ConfigManager.PlayerConfig);
 		AddChild(playerNode);
-		
 		return playerNode;
 	}
 
@@ -133,18 +144,14 @@ public partial class WorldScene : Node {
 		return Players.Find(p => p.CharacterBody2D == player) != null;
 	}
 
-	public void RemoveAllPlayers() {
-		Players.Clear();
-	}
-
 	public PlayerGameObject CreatePlayer(PlayerNode playerNode, PlayerConfig playerConfig) {
 		Players.Add(playerNode);
-		var playerItem = GameObjectRepository.Create<PlayerGameObject>("Player1").Configure(playerConfig);
+		var playerItem = GameObjectRepository.Create<PlayerGameObject>($"Player{playerNode.PlayerMapping.Player}").Configure(playerConfig);
 		playerItem.LinkNode(playerNode);
 		return playerItem;
 	}
 
-	 
+
 	public PlayerNode ClosestPlayer(Vector2 globalPosition) {
 		return Players.OrderBy(p => p.GlobalPosition.DistanceSquaredTo(globalPosition)).First();
 	}

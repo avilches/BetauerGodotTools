@@ -1,4 +1,5 @@
 using System;
+using System.Text.Json.Serialization.Metadata;
 using System.Threading.Tasks;
 using Betauer.Application;
 using Betauer.Application.Lifecycle;
@@ -17,6 +18,7 @@ using Godot;
 using Veronenger.Character.Npc;
 using Veronenger.Character.Player;
 using Veronenger.Managers;
+using Veronenger.Persistent;
 using Veronenger.Transient;
 using Veronenger.UI;
 using Veronenger.Worlds;
@@ -36,7 +38,21 @@ public class ApplicationConfig {
 		1f);
 
 	[Singleton] public DebugOverlayManager DebugOverlayManager => new();
-	[Singleton] public GameObjectRepository GameObjectRepository => new();
+	[Singleton] public GameObjectRepository GameObjectRepository() {
+		var gameObjectRepository = new GameObjectRepository {
+			JsonPolymorphismOptions = new JsonPolymorphismOptions {
+				DerivedTypes = {
+					new JsonDerivedType(typeof(PlayerSaveObject), "Player"),
+					new JsonDerivedType(typeof(NpcSaveObject), "Npc"),
+					new JsonDerivedType(typeof(WeaponRangeSaveObject), "WeaponRange"),
+					new JsonDerivedType(typeof(WeaponMeleeSaveObject), "WeaponMelee"),
+					new JsonDerivedType(typeof(AmmoSaveObject), "Ammo"), 
+				}
+			}
+		};
+		return gameObjectRepository;
+	}
+
 	[Singleton] public UiActionsContainer UiActionsContainer => new();
 	[Singleton] public InputActionsContainer PlayerActionsContainer => new();
 	[Singleton] public JoypadPlayersMapping JoypadPlayersMapping => new();

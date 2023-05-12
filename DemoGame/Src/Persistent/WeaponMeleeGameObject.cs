@@ -1,3 +1,4 @@
+using Betauer.Application.Persistent;
 using Veronenger.Config;
 
 namespace Veronenger.Persistent;
@@ -11,5 +12,19 @@ public class WeaponMeleeGameObject : WeaponGameObject {
         DamageBase = damageBase;
         EnemiesPerHit = enemiesPerHit;
         return this;
+    }
+
+    public override SaveObject CreateSaveObject() {
+        return new WeaponMeleeSaveObject(this);
+    }
+}
+
+public class WeaponMeleeSaveObject : SaveObject<WeaponMeleeGameObject> {
+    public float DamageBase { get; }
+    public int EnemiesPerHit { get; }
+    
+    public WeaponMeleeSaveObject(WeaponMeleeGameObject weapon) : base(weapon) {
+        DamageBase = weapon.DamageBase;
+        EnemiesPerHit = weapon.EnemiesPerHit;
     }
 }

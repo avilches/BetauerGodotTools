@@ -1,4 +1,3 @@
-using System;
 using Betauer.Animation;
 using Betauer.Application;
 using Betauer.Application.Lifecycle;

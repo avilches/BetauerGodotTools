@@ -8,6 +8,7 @@ public abstract class GameObject {
     public string? Alias { get; internal set; }
 
     public abstract void OnRemove();
+    public abstract SaveObject CreateSaveObject();
 }
 
 public abstract class GameObject<T> : GameObject

@@ -1,4 +1,5 @@
 using System;
+using Betauer.Application.Persistent;
 using Betauer.Core;
 using Godot;
 using Veronenger.Config;
@@ -43,7 +44,32 @@ public class WeaponRangeGameObject : WeaponGameObject {
         } else {
             Ammo = magazineSize;
         }
-
         return this;
+    }
+
+    public override SaveObject CreateSaveObject() {
+        return new WeaponRangeSaveObject(this);
+    }
+}
+
+public class WeaponRangeSaveObject : SaveObject<WeaponRangeGameObject> {
+    public float DamageBase { get; }
+    public float DamageFactor { get; }
+    public int EnemiesPerHit { get; }
+    public float DelayBetweenShots { get; }
+    public bool Auto { get; }
+    public int MagazineSize { get; }
+    public float Dispersion { get; }
+    public int Ammo { get; }
+
+    public WeaponRangeSaveObject(WeaponRangeGameObject weapon) : base(weapon) {
+        DamageBase = weapon.DamageBase;
+        DamageFactor = weapon.DamageFactor;
+        EnemiesPerHit = weapon.EnemiesPerHit;
+        DelayBetweenShots = weapon.DelayBetweenShots;
+        Auto = weapon.Auto;
+        MagazineSize = weapon.MagazineSize;
+        Dispersion = weapon.Dispersion;
+        Ammo = weapon.Ammo;
     }
 }

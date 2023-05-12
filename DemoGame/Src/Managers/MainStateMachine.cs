@@ -171,7 +171,7 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
         State(MainState.StartingGame)
             .Enter(async () => {
                 await MainMenuScene.HideMainMenu();
-                await Game.Get().Start();
+                await Game.Get().NewGame();
             })
             .If(() => true).Set(MainState.Gaming)
             .Build();

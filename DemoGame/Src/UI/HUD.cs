@@ -39,11 +39,11 @@ public partial class HUD : CanvasLayer {
 		return playerNode.PlayerMapping.Player == 0 ? PlayerHud1 : PlayerHud2;
 	}
 
-	public void StartGame() {
+	public void Enable() {
 		Visible = true;
 	}
 
-	public void EndGame() {
+	public void Disable() {
 		Visible = false;
 	}
 

@@ -34,4 +34,18 @@ public class NpcGameObject : GameObject<NpcNode>  {
 
         public bool IsDead() => Health <= 0f;
     }
+
+    public override SaveObject CreateSaveObject() {
+        return new NpcSaveObject(this);
+    }
+}
+
+public class NpcSaveObject : SaveObject<NpcGameObject> {
+    public float Health { get; }
+    public float MaxHealth { get; }
+
+    public NpcSaveObject(NpcGameObject npc) : base(npc) {
+        Health = npc.Status.Health;
+        MaxHealth = npc.Status.MaxHealth;
+    }
 }

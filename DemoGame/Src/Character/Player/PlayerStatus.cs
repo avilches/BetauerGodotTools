@@ -18,15 +18,24 @@ public class PlayerStatus {
 
     public event Action<PlayerHealthEvent> OnHealthUpdate;
 
-    public PlayerStatus(PlayerConfig playerConfig) {
-        MaxHealth = playerConfig.InitialMaxHealth;
-        Health = Math.Clamp(playerConfig.InitialHealth, 0, playerConfig.InitialMaxHealth);
+    public PlayerStatus() {
         Invincible = false;
         UnderAttack = false;
         AvailableHits = 0;
-        OnHealthUpdate?.Invoke(new PlayerHealthEvent(Health, Health, MaxHealth));
-        
         Enum.GetValues<AmmoType>().ForEach(ammoType => Ammo[ammoType] = 10);
+    }
+
+    public PlayerStatus(PlayerConfig playerConfig) : this() {
+        MaxHealth = playerConfig.InitialMaxHealth;
+        Health = Math.Clamp(playerConfig.InitialHealth, 0, playerConfig.InitialMaxHealth);
+        OnHealthUpdate?.Invoke(new PlayerHealthEvent(Health, Health, MaxHealth));
+    }
+
+    public PlayerStatus(PlayerSaveObject saveObject) : this() {
+        MaxHealth = saveObject.MaxHealth;
+        Health = saveObject.Health;
+        OnHealthUpdate?.Invoke(new PlayerHealthEvent(Health, Health, MaxHealth));
+        Ammo.ForEach(ammo => saveObject.Ammo[ammo.Key] = ammo.Value);
     }
 
     public int GetAmmo(AmmoType ammoType) => Ammo[ammoType];
