@@ -39,6 +39,7 @@ public class ApplicationConfig {
 	[Singleton] public UiActionsContainer UiActionsContainer => new();
 	[Singleton] public InputActionsContainer PlayerActionsContainer => new();
 	[Singleton] public JoypadPlayersMapping JoypadPlayersMapping => new();
+	[Transient] public StageController StageController => new(LayerConstants.LayerStageArea);
 }
 
 [Configuration]

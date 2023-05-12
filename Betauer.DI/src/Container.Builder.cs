@@ -64,9 +64,9 @@ public partial class Container {
             var type = FactoryTools.GetIFactoryGenericType(factoryType);
             if (type == null) throw new InvalidCastException($"Factory {factoryType.GetTypeName()} must implement IFactory<T>");
 
-            // Register the real factory, it can be accessed with
-            // - Resolve<the factory type>() (only if the factory type is not IFactory<T>)
+            // Register the real factory, it only can be accessed with
             // - Resolve<IFactory<T>>("InnerFactory:"+name)
+            // (If you use Resolve<IFactory<T>>(), you will get the regular factory, not the inner)
             // This factory returns the instances without inject dependencies in them
             // The factory are always instantiated. The lazy parameter only affects to the instance created by the factory, never to the factory itself.
             var customFactoryName = name == null ? null : $"InnerFactory:{name}";
