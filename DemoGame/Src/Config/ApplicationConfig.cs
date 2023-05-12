@@ -8,7 +8,6 @@ using Betauer.Application.Persistent;
 using Betauer.Application.Screen;
 using Betauer.Application.Settings;
 using Betauer.Application.Settings.Attributes;
-using Betauer.Camera;
 using Betauer.DI.Attributes;
 using Betauer.Input;
 using Betauer.Input.Attributes;
@@ -40,8 +39,6 @@ public class ApplicationConfig {
 	[Singleton] public UiActionsContainer UiActionsContainer => new();
 	[Singleton] public InputActionsContainer PlayerActionsContainer => new();
 	[Singleton] public JoypadPlayersMapping JoypadPlayersMapping => new();
-	[Singleton] public StageController StageController => new(LayerConstants.LayerStageArea);
-
 }
 
 [Configuration]

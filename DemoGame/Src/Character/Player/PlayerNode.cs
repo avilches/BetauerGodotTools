@@ -75,8 +75,7 @@ public partial class PlayerNode : Node, IInjectable, INodeWithGameObject {
 
 	[Inject] private IFactory<Game> Game { get; set; }
 	[Inject] private PlatformManager PlatformManager { get; set; }
-	
-	[Inject] public StageController StageController { get; set; }
+	[Inject] private StageManager StageManager { get; set; }
 
 	[Inject] private SceneTree SceneTree { get; set; }
 	[Inject] private EventBus EventBus { get; set; }
@@ -84,7 +83,8 @@ public partial class PlayerNode : Node, IInjectable, INodeWithGameObject {
 	[Inject] private HUD HudScene { get; set; }
 
 	private readonly FsmNodeSync<PlayerState, PlayerEvent> _fsm = new(PlayerState.Idle, "Player.FSM", true);
-	
+
+	public StageController StageController { get; private set; }
 	public KinematicPlatformMotion PlatformBody { get; private set; }
 	public LateralState LateralState { get; private set; }
 	public Inventory Inventory { get; private set; }
@@ -229,11 +229,12 @@ public partial class PlayerNode : Node, IInjectable, INodeWithGameObject {
 
 	private void ConfigureCamera() {
 		// _cameraController.WithMouseButton(MouseButton.Middle).Attach(_camera2D);
-		StageController.AddTarget(PlayerDetector);
-		var rollback2 = StageController.OnChangeUpdateCameraLimits(Camera2D);
+		StageController = StageManager.Create(PlayerDetector);
+		
+		var rollback = StageController.OnChangeUpdateCameraLimits(Camera2D);
 		TreeExiting += () => {
 			StageController.ClearState();
-			rollback2();
+			rollback();
 		};
 	}
 
