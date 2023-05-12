@@ -50,7 +50,8 @@ public partial class Container {
             } else {
                 // Implicit name (from variable, [Inject] Node pepe, so "pepe" is the name).
                 name = setter.Name;
-                if (setter.Type is { IsInterface: true, IsGenericType: true } && setter.Type.GetGenericTypeDefinition() == typeof(IFactory<>)) {
+                if (setter.Type.ImplementsInterface(typeof(IGet<>))) {
+                    // If setter is IFactory<>, then the name is "Factory:pepe"
                     name = $"Factory:{name}";
                 }
                 if (TryInjectFieldByName(lifetime, target, context, setter, name)) {

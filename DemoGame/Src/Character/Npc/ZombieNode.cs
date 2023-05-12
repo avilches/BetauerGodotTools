@@ -89,7 +89,7 @@ public partial class ZombieNode : NpcNode, IInjectable {
 	[NodePath("Character/HealthBarPosition/HealthBar")] public TextureProgressBar HealthBar;
 
 	[Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
-	[Inject] private IFactory<Game> Game { get; set; }
+	[Inject] private ILazy<Game> Game { get; set; }
 	[Inject] private EventBus EventBus { get; set; }
 	[Inject] private PlayerConfig PlayerConfig { get; set; }
 	

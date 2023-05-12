@@ -14,7 +14,7 @@ public class ProviderCustomFactory<T> : ProviderCustomFactory where T : class {
     }
 
     public override object GetCustomFactory() {
-        IFactory<T> factory = (IFactory<T>)_customFactoryProvider.Get();
+        IGet<T> factory = (IGet<T>)_customFactoryProvider.Get();
         return factory.Get()!;
     }
 }

@@ -65,7 +65,7 @@ public partial class SettingsMenu : CanvasLayer {
 	[NodePath("%RedefineCounter")] 
 	private Label _redefineCounterLabel;
 
-	[Inject] private IFactory<BottomBar> BottomBarSceneFactory { get; set; }
+	[Inject] private ILazy<BottomBar> BottomBarSceneFactory { get; set; }
 	[Inject] private ScreenSettingsManager _screenSettingsManager { get; set; }
 
 	private BottomBar BottomBarScene => BottomBarSceneFactory.Get();

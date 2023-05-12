@@ -54,7 +54,7 @@ public abstract class ResourceFactory : IInjectable {
     }
 }
 
-public class ResourceFactory<T> : ResourceFactory, IFactory<T> where T : Resource {
+public class ResourceFactory<T> : ResourceFactory, ILazy<T> where T : Resource {
     
     public ResourceFactory(string path, string? tag = null) : base(path, tag) {
     }

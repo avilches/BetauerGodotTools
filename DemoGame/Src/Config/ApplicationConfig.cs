@@ -8,6 +8,7 @@ using Betauer.Application.Persistent;
 using Betauer.Application.Screen;
 using Betauer.Application.Settings;
 using Betauer.Application.Settings.Attributes;
+using Betauer.Camera;
 using Betauer.DI.Attributes;
 using Betauer.Input;
 using Betauer.Input.Attributes;
@@ -70,7 +71,7 @@ public class GameLoaderContainer : ResourceLoaderContainer {
 [Resource<Theme>("DebugConsoleTheme", "res://Platform/Assets/UI/DebugConsole.tres")]
 [Scene.Transient<RedefineActionButton>("RedefineActionButton", "res://Platform/Scenes/UI/RedefineActionButton.tscn")]
 [Scene.Transient<ModalBoxConfirm>("ModalBoxConfirm", "res://Platform/Scenes/Menu/ModalBoxConfirm.tscn")]
-[Scene.Transient<PlayerHud>("PlayerHud", "res://Platform/Scenes/UI/PlayerHud.tscn")]
+[Scene.Transient<PlayerHud>("PlayerHudFactory", "res://Platform/Scenes/UI/PlayerHud.tscn")]
 [Scene.Singleton<Game>("Game", "res://Src/Managers/Game.tscn")]
 [Scene.Singleton<MainMenu>("MainMenuResource", "res://Platform/Scenes/Menu/MainMenu.tscn")]
 [Scene.Singleton<BottomBar>("BottomBarResource", "res://Platform/Scenes/Menu/BottomBar.tscn")]

@@ -23,7 +23,7 @@ public partial class WorldScene : Node {
 	[Inject] private GameObjectRepository GameObjectRepository { get; set; }
 	[Inject] private PlatformManager PlatformManager { get; set; }
 	
-	[Inject] private StageController StageController { get; set; }
+	[Inject] private IFactory<StageController> StageControllerFactory { get; set; }
 	[Inject] private IFactory<PlayerNode> PlayerFactory { get; set; }
 	[Inject] private IPool<PickableItemNode> PickableItemPool { get; set; }
 	[Inject] private IPool<ProjectileTrail> ProjectilePool { get; set; }

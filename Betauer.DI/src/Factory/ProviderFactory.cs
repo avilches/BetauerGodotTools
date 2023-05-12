@@ -5,7 +5,7 @@ namespace Betauer.DI.Factory;
 public abstract class ProviderFactory {
 }
 
-public class ProviderFactory<T> : ProviderFactory, IFactory<T> where T : class {
+public class ProviderFactory<T> : ProviderFactory, IGet<T> where T : class {
     protected readonly IProvider Provider;
 
     public ProviderFactory(IProvider provider) {

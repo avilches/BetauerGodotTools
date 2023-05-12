@@ -186,12 +186,12 @@ public class ScannerLazyTests {
 
     [Singleton(Lazy = true)]
     class LazyPostInjectedD1 {
-        [Inject] internal ISingletonFactory<LazyPostInjectedD2> D2 { get; set; }
+        [Inject] internal ILazy<LazyPostInjectedD2> D2 { get; set; }
     }
 
     [Singleton(Lazy = true)]
     class LazyPostInjectedD2 {
-        [Inject] internal ISingletonFactory<LazyPostInjectedD1> D1 { get; set; }
+        [Inject] internal ILazy<LazyPostInjectedD1> D1 { get; set; }
     }
 
     [TestRunner.Test(Description = "Test if the [PostInject] methods are invoked + Lazy using Lazy and Factory<T>")]
@@ -225,19 +225,19 @@ public class ScannerLazyTests {
         }
     }
 
-    public class SingletonFactory : ISingletonFactory<LazySingleton> {
+    public class SingletonFactory : ILazy<LazySingleton> {
         public LazySingleton Get() => new LazySingleton();
     }
 
 
     [Configuration]
     public class LazySingletonConfiguration {
-        [Attributes.Factory.Singleton] public ISingletonFactory<LazySingleton> LazySingleton => new SingletonFactory();
+        [Attributes.Factory.Singleton] public ILazy<LazySingleton> LazySingleton => new SingletonFactory();
     }
 
     [Singleton]
     public class AnotherSingleton {
-        [Inject] public ISingletonFactory<LazySingleton> LazySingleton { get; set; }
+        [Inject] public ILazy<LazySingleton> LazySingleton { get; set; }
     }
 
     [TestRunner.Test(Description = "Simulate a lazy behaviour with with a Factory")]

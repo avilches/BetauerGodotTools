@@ -13,7 +13,7 @@ public class NodePool<T> : BasePoolLifecycle<T>, IInjectable
 
     [Inject] private Container Container { get; set; }
     private PoolContainer<IPoolLifecycle> _poolContainer;
-    private IFactory<T> _factory;
+    private IFactory<T>? _factory;
     private string? _factoryName;
     private string? _poolContainerName;
 
@@ -54,7 +54,7 @@ public class NodePool<T> : BasePoolLifecycle<T>, IInjectable
     }
 
     protected override T Create() {
-        var instance = _factory.Get();
+        var instance = _factory!.Get();
         return instance;
     }
     

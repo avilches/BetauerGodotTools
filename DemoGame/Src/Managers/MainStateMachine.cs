@@ -45,10 +45,10 @@ public enum MainEvent {
 [Singleton]
 public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInjectable {
 
-    [Inject] private IFactory<MainMenu> MainMenuSceneFactory { get; set; }
-    [Inject] private IFactory<BottomBar> BottomBarSceneFactory { get; set; }
-    [Inject] private IFactory<PauseMenu> PauseMenuSceneFactory { get; set; }
-    [Inject] private IFactory<SettingsMenu> SettingsMenuSceneFactory { get; set; }
+    [Inject] private ILazy<MainMenu> MainMenuSceneFactory { get; set; }
+    [Inject] private ILazy<BottomBar> BottomBarSceneFactory { get; set; }
+    [Inject] private ILazy<PauseMenu> PauseMenuSceneFactory { get; set; }
+    [Inject] private ILazy<SettingsMenu> SettingsMenuSceneFactory { get; set; }
     [Inject] private HUD HudScene { get; set; }
     [Inject] private GameLoaderContainer GameLoaderContainer { get; set; }
 
@@ -59,7 +59,7 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
     
     [Inject] private IFactory<ModalBoxConfirm> ModalBoxConfirm { get; set; }
     [Inject] private IFactory<Theme> MyTheme { get; set; }
-    [Inject] private IFactory<Game> Game { get; set; }
+    [Inject] private ILazy<Game> Game { get; set; }
 
     [Inject] private ScreenSettingsManager ScreenSettingsManager { get; set; }
     [Inject] private SceneTree SceneTree { get; set; }

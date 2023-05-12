@@ -1,5 +1,4 @@
 namespace Betauer.DI.Factory;
 
-public interface IFactory<out T> where T : class {
-    public T Get();
+public interface IFactory<out T> : IGet<T> where T : class {
 }

@@ -73,7 +73,7 @@ public partial class PlayerNode : Node, IInjectable, INodeWithGameObject {
 	[NodePath("Character/CanJump")] public RayCast2D RaycastCanJump;
 	[NodePath("Character/FloorRaycasts")] public List<RayCast2D> FloorRaycasts;
 
-	[Inject] private IFactory<Game> Game { get; set; }
+	[Inject] private ILazy<Game> Game { get; set; }
 	[Inject] private PlatformManager PlatformManager { get; set; }
 	[Inject] private IFactory<StageController> StageControllerFactory { get; set; }
 

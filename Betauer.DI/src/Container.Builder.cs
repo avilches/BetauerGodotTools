@@ -47,14 +47,14 @@ public partial class Container {
         public Builder RegisterFactoryFromProvider(IProvider providerFactory) {
             // Register the factory as IFactory<> so the user can get the real factory using Resolve<IFactory<T>>() or
             // Resolve<IFactory<T>>("Factory:"+name) and then call to Get() which returns new instances, injecting dependencies.
-            Type iFactoryType = (providerFactory.Lifetime == Lifetime.Singleton ? typeof(ISingletonFactory<>) : typeof(ITransientFactory<>)).MakeGenericType(providerFactory.ProviderType);
+            Type iFactoryType = (providerFactory.Lifetime == Lifetime.Singleton ? typeof(ILazy<>) : typeof(IFactory<>)).MakeGenericType(providerFactory.ProviderType);
             var factoryName = providerFactory.Name == null ? null : $"Factory:{providerFactory.Name}";
             object CustomFactory() => FactoryTools.CreateIFactoryFromProvider(providerFactory.ProviderType, providerFactory);
             Register(Provider.Create(iFactoryType, iFactoryType, Lifetime.Singleton, CustomFactory, factoryName, providerFactory.Primary, true));
             return this;
         }
 
-        private interface IHiddenFactory<T> : IFactory<T> where T : class { }
+        private interface IHiddenFactory<T> : IGet<T> where T : class { }
 
         public Builder RegisterFactory<T>(Func<T> customFactory, string? name = null, Lifetime lifetime = Lifetime.Singleton, bool primary = false) {
             return RegisterFactory(typeof(T), lifetime, () => customFactory(), name, primary);
@@ -87,7 +87,7 @@ public partial class Container {
             // It's always lazy because it's just a wrapper for the user
             var factoryName = name == null ? null : $"Factory:{name}";
             object CustomFactory() => FactoryTools.CreateIFactoryFromProvider(type, provider);
-            Type iFactoryType = (provider.Lifetime == Lifetime.Singleton ? typeof(ISingletonFactory<>) : typeof(ITransientFactory<>)).MakeGenericType(type);
+            Type iFactoryType = (provider.Lifetime == Lifetime.Singleton ? typeof(ILazy<>) : typeof(IFactory<>)).MakeGenericType(type);
             Register(Provider.Create(iFactoryType, iFactoryType, Lifetime.Singleton, CustomFactory, factoryName, primary, true));
             return this;
         }
