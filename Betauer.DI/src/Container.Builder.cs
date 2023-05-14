@@ -54,7 +54,7 @@ public partial class Container {
             return this;
         }
 
-        private interface IHiddenFactory<T> : IGet<T> where T : class { }
+        private interface IHiddenFactory<out T> where T : class { }
 
         public Builder RegisterFactory<T>(Func<T> customFactory, string? name = null, Lifetime lifetime = Lifetime.Singleton, bool primary = false) {
             return RegisterFactory(typeof(T), lifetime, () => customFactory(), name, primary);
