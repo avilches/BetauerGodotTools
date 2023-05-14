@@ -1,5 +1,5 @@
 using System;
-using Betauer.Core.Pool.Lifecycle;
+using Betauer.Application.Lifecycle.Pool;
 using Betauer.DI;
 using Betauer.DI.Attributes;
 using Betauer.DI.ServiceProvider;
@@ -7,16 +7,19 @@ using Betauer.DI.ServiceProvider;
 namespace Betauer.Application.Lifecycle.Attributes;
 
 [AttributeUsage(AttributeTargets.Class)]
-public class PoolContainerAttribute : Attribute, IConfigurationClassAttribute {
+public abstract class PoolContainerAttribute : Attribute {
     public string Name { get; set; }
+}
+
+public class PoolContainerAttribute<T> : PoolContainerAttribute, IConfigurationClassAttribute where T : class {
 
     public PoolContainerAttribute(string name) {
         Name = name;
     }
 
     public void CreateProvider(object configuration, Container.Builder builder) {
-        Func<PoolContainer<IPoolLifecycle>> factory = () => new PoolContainer<IPoolLifecycle>();
-        builder.RegisterServiceAndAddFactory(typeof(PoolContainer<IPoolLifecycle>), typeof(PoolContainer<IPoolLifecycle>),
+        Func<PoolContainer<T>> factory = () => new PoolContainer<T>();
+        builder.RegisterServiceAndAddFactory(typeof(PoolContainer<T>), typeof(PoolContainer<T>),
             Lifetime.Singleton,
             factory,
             Name, false, false);

@@ -6,8 +6,17 @@ using Godot;
 
 namespace Betauer.Application.Lifecycle;
 
-
 // TODO: TESTS!!
+
+// Resources are Transient because it can be unloaded and deleted, so they can't be cached as singleton
+// Even being transient, once loaded, the same resource is always returned (until it's unloaded)
+public class ResourceFactory<T> : ResourceFactory, IFactory<T> where T : Resource {
+    public ResourceFactory(string path, string? tag = null) : base(path, tag) {
+    }
+    public T Get() {
+        return (T)Resource!;
+    }
+}
 
 public abstract class ResourceFactory : IInjectable {
     public const string DefaultTag = "(default)";
@@ -51,15 +60,5 @@ public abstract class ResourceFactory : IInjectable {
     public void Unload() {
         Resource?.Dispose();
         Resource = null;
-    }
-}
-
-public class ResourceFactory<T> : ResourceFactory, ILazy<T> where T : Resource {
-    
-    public ResourceFactory(string path, string? tag = null) : base(path, tag) {
-    }
-
-    public T Get() {
-        return (T)Resource!;
     }
 }
