@@ -31,6 +31,8 @@ public class WeaponMeleeSaveObject : SaveObject<WeaponMeleeGameObject> {
     [JsonInclude] public float DamageBase { get; set; }
     [JsonInclude] public int EnemiesPerHit { get; set; }
 
+    public override string Discriminator() => "WeaponMelee";
+
     public WeaponMeleeSaveObject() {
     }
 

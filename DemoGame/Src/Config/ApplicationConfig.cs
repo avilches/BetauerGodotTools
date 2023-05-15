@@ -1,7 +1,6 @@
 using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Text.Json.Serialization.Metadata;
 using System.Threading.Tasks;
 using Betauer.Application;
 using Betauer.Application.Lifecycle;
@@ -21,7 +20,6 @@ using Godot;
 using Veronenger.Character.Npc;
 using Veronenger.Character.Player;
 using Veronenger.Managers;
-using Veronenger.Persistent;
 using Veronenger.Transient;
 using Veronenger.UI;
 using Veronenger.Worlds;
@@ -43,17 +41,9 @@ public class ApplicationConfig {
 	[Singleton] public IGameObjectLoader GameObjectLoader() {
 		var gameObjectRepository = new JsonGameLoader {
 			JsonPretty = true,
-			JsonConverters = {
-				new JsonStringEnumConverter(JsonNamingPolicy.CamelCase),
-			},
-			JsonDerivedTypes = {
-				new JsonDerivedType(typeof(PlayerSaveObject), "Player"),
-				new JsonDerivedType(typeof(ZombieSaveObject), "Zombie"),
-				new JsonDerivedType(typeof(WeaponRangeSaveObject), "WeaponRange"),
-				new JsonDerivedType(typeof(WeaponMeleeSaveObject), "WeaponMelee"),
-				new JsonDerivedType(typeof(AmmoSaveObject), "Ammo"),
-			}
+			JsonConverters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
 		};
+		gameObjectRepository.JsonSerializerOptions();
 		return gameObjectRepository;
 	}
 	[Singleton] public DebugOverlayManager DebugOverlayManager => new();

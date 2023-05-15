@@ -32,6 +32,8 @@ public class AmmoSaveObject : SaveObject<AmmoGameObject> {
     [JsonInclude] public AmmoType AmmoType { get; set; }
     [JsonInclude] public int Amount { get; set; }
 
+    public override string Discriminator() => "Pickable.Ammo";
+
     public AmmoSaveObject() {
     }
 

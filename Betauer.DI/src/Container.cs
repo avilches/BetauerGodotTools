@@ -8,15 +8,15 @@ using Betauer.Core.Pool.Basic;
 using Betauer.DI.Exceptions;
 using Betauer.DI.ServiceProvider;
 using Betauer.Tools.Logging;
-using Betauer.Tools.FastReflection;
 
 namespace Betauer.DI;
 
 public partial class Container {
     private static readonly Logger Logger = LoggerFactory.GetLogger<Container>();
-    private readonly Dictionary<Type, IProvider> _registry = new();
+    private readonly Dictionary<Type, IProvider> _registryByType = new();
     private readonly Dictionary<string, IProvider> _registryByName = new();
     private readonly Dictionary<Type, IProvider> _fallbackByType = new();
+    private readonly List<IProvider> _providers = new();
     private readonly Injector _injector;
     public bool CreateIfNotFound { get; set; }
     public event Action<Lifetime, object> OnCreated;
@@ -50,10 +50,8 @@ public partial class Container {
         if (_busy) throw new InvalidOperationException("Container is busy");
         _busy = true;
         var context = GetResolveContext();
-        providers
-            .ForEach(AddToRegistry);
-        providers
-            .Where(provider => provider is ISingletonProvider { Lazy: false, IsInstanceCreated: false })
+        providers.ForEach(AddToRegistry);
+        providers.Where(provider => provider is ISingletonProvider { Lazy: false, IsInstanceCreated: false })
             .ForEach(provider => {
                 Logger.Debug($"Initializing non lazy {Lifetime.Singleton}:{provider.ProviderType.GetTypeName()} | Name: \"{provider.Name}\"");
                 provider.Resolve(context);
@@ -94,16 +92,17 @@ public partial class Container {
                     Logger.Debug($"Registered {provider.Lifetime}:{provider.ProviderType.GetTypeName()} | Name: \"{name}\"");
                 }
         } else {
-            if (_registry.ContainsKey(provider.RegisterType)) throw new DuplicateServiceException(provider.RegisterType);
-            _registry[provider.RegisterType] = provider;
+            if (_registryByType.ContainsKey(provider.RegisterType)) throw new DuplicateServiceException(provider.RegisterType);
+            _registryByType[provider.RegisterType] = provider;
             Logger.Debug($"Registered {provider.Lifetime}:{provider.ProviderType.GetTypeName()} | Type: {provider.RegisterType.GetTypeName()}");
         }
+        _providers.Add(provider);
         provider.Container = this;
     }
 
     public bool Contains(string name) => _registryByName.ContainsKey(name);
     public bool Contains<T>() => Contains(typeof(T));
-    public bool Contains(Type type) => _registry.ContainsKey(type) || _fallbackByType.ContainsKey(type);
+    public bool Contains(Type type) => _registryByType.ContainsKey(type) || _fallbackByType.ContainsKey(type);
 
     public IProvider GetProvider(string name) => TryGetProvider(name, out var found) ? found! : throw new ServiceNotFoundException(name);
     public IProvider GetProvider<T>() => GetProvider(typeof(T));
@@ -112,7 +111,7 @@ public partial class Container {
     public bool TryGetProvider(string name, [MaybeNullWhen(false)] out IProvider provider) => _registryByName.TryGetValue(name, out provider);
     public bool TryGetProvider<T>(out IProvider? provider) => TryGetProvider(typeof(T), out provider);
     public bool TryGetProvider(Type type, out IProvider? provider) {
-        var found = _registry.TryGetValue(type, out provider);
+        var found = _registryByType.TryGetValue(type, out provider);
         if (!found) found = _fallbackByType.TryGetValue(type, out provider);
         if (!found) provider = null;
         return found;
@@ -168,20 +167,27 @@ public partial class Container {
         instance = null;
         return false;
     }
+
+    public List<T> GetAllInstances<T>() {
+        var context = GetResolveContext();
+        return Query<T>(Lifetime.Singleton)
+            .Select(provider => provider.Resolve(context))
+            .Cast<T>()
+            .ToList();
+    }
+
+    public List<IProvider> Query<T>(Lifetime? lifetime) {
+        return Query(typeof(T), lifetime);
+    }
+
+    public List<IProvider> Query(Type type, Lifetime? lifetime) {
+        return _providers
+            .Where(provider => type.IsAssignableFrom(provider.ProviderType) && (!lifetime.HasValue || provider.Lifetime == lifetime))
+            .ToList();
+    }
   
     public T ResolveOr<T>(Func<T> or) => TryResolve(typeof(T), out var instance) ? (T)instance : or();
     public T ResolveOr<T>(string name, Func<T> or) => TryResolve(name, out T instance) ? instance : or();
-
-    public List<T> GetAllInstances<T>() {
-        var instances = _registry.Values
-            .Concat(_fallbackByType.Values)
-            .OfType<ISingletonProvider>()
-            .Where(provider => typeof(T).IsAssignableFrom(provider.ProviderType))
-            .Select(provider => provider.Get())
-            .OfType<T>()
-            .ToList();
-        return instances;
-    }
 
     internal void ExecuteOnCreated(Lifetime lifetime, object instance) {
         OnCreated?.Invoke(lifetime, instance);

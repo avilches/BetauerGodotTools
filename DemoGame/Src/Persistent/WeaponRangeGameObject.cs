@@ -69,6 +69,8 @@ public class WeaponRangeSaveObject : SaveObject<WeaponRangeGameObject> {
     [JsonInclude] public float Dispersion { get; set; }
     [JsonInclude] public int Ammo { get; set; }
 
+    public override string Discriminator() => "WeaponRange";
+
     public WeaponRangeSaveObject() {
     }
 

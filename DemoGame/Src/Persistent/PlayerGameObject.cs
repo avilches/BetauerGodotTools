@@ -87,6 +87,8 @@ public class PlayerSaveObject : SaveObject<PlayerGameObject> {
     [JsonInclude] public Dictionary<AmmoType, int> Ammo { get; set; }
     [JsonInclude] public Vector2 GlobalPosition { get; set; }
 
+    public override string Discriminator() => "Player";
+
     public PlayerSaveObject() {}
 
     public PlayerSaveObject(PlayerGameObject player) : base(player) {

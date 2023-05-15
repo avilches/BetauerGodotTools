@@ -8,10 +8,11 @@ public abstract class SaveObject {
     [JsonInclude] public int Id { get; set; }
     [JsonInclude] public string Name { get; set; }
     [JsonInclude] public string? Alias { get; set; }
+    public abstract string Discriminator();
     
     [JsonIgnore] public GameObjectRepository GameObjectRepository;
     [JsonIgnore] public abstract Type GameObjectType { get; }
-    // [JsonIgnore] public abstract GameObject GameObject { get; }
+
 
     protected SaveObject() {
     }
