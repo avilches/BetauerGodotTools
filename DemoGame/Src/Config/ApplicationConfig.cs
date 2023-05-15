@@ -120,6 +120,7 @@ public class GameResources {
 [Configuration]
 [PoolContainer<Node>("PoolNodeContainer")]
 public class PoolConfig {
+	[Pool] NodePool<PlayerNode> PlayerPool => new();
 	[Pool] NodePool<ZombieNode> ZombiePool => new();
 	[Pool] NodePool<ProjectileTrail> ProjectilePool => new();
 	[Pool] NodePool<PickableItemNode> PickableItemPool => new();

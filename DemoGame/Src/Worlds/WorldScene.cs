@@ -26,7 +26,7 @@ public partial class WorldScene : Node {
 	[Inject] private JoypadPlayersMapping JoypadPlayersMapping { get; set; }
 	
 	[Inject] private IFactory<StageController> StageControllerFactory { get; set; }
-	[Inject] private IFactory<PlayerNode> PlayerFactory { get; set; }
+	[Inject] private NodePool<PlayerNode> PlayerPool { get; set; }
 	[Inject] private NodePool<PickableItemNode> PickableItemPool { get; set; }
 	[Inject] private NodePool<ProjectileTrail> ProjectilePool { get; set; }
 	[Inject] private NodePool<ZombieNode> ZombiePool { get; set; }
@@ -154,7 +154,7 @@ public partial class WorldScene : Node {
 	}
 
 	private PlayerNode CreatePlayerNode(PlayerGameObject playerGameObject, PlayerMapping playerMapping) {
-		var playerNode = PlayerFactory.Get();
+		var playerNode = PlayerPool.Get();
 		playerGameObject.LinkNode(playerNode);
 		playerNode.SetPlayerMapping(playerMapping);
 		Players.Add(playerNode);

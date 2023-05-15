@@ -275,14 +275,14 @@ public partial class ZombieNode : NpcNode, IInjectable {
 	private void UpdateHealthBar() {
 		if (NpcConfig.HealthBarVisible) {
 			HealthBar.MinValue = 0;
-			HealthBar.MaxValue = Status.MaxHealth;
-			HealthBar.Value = Status.Health;
+			HealthBar.MaxValue = NpcGameObject.MaxHealth;
+			HealthBar.Value = NpcGameObject.Health;
 		}
 		HealthBar.Visible = NpcConfig.HealthBarVisible;
 	}
 
 	public override bool CanBeAttacked(WeaponGameObject weapon) {
-		if (weapon is WeaponMeleeGameObject) return !Status.UnderMeleeAttack;
+		if (weapon is WeaponMeleeGameObject) return !NpcGameObject.UnderMeleeAttack;
 		if (weapon is WeaponRangeGameObject) return true;
 		return true;
 	}
@@ -291,15 +291,15 @@ public partial class ZombieNode : NpcNode, IInjectable {
 	private void OnPlayerAttackEvent(PlayerAttackEvent playerAttackEvent) {
 		if (playerAttackEvent.NpcNode != this) return;
 		if (playerAttackEvent.Weapon is WeaponMeleeGameObject) {
-			Status.UnderMeleeAttack = true;
+			NpcGameObject.UnderMeleeAttack = true;
 			Kickback(NpcConfig.KickbackMeleeAngle.start, NpcConfig.KickbackMeleeAngle.end, playerAttackEvent.Weapon.Damage * NpcConfig.KickbackMeleeEnergyMultiplier);
 		} else if (playerAttackEvent.Weapon is WeaponRangeGameObject) {
 			Kickback(NpcConfig.KickbackRangeAngle.start, NpcConfig.KickbackRangeAngle.end, playerAttackEvent.Weapon.Damage * NpcConfig.KickbackRangeEnergyMultiplier);
 		}
-		Status.UpdateHealth(-playerAttackEvent.Weapon.Damage);
+		NpcGameObject.UpdateHealth(-playerAttackEvent.Weapon.Damage);
 		UpdateHealthBar();
 		_labelHits.Get().Show(((int)playerAttackEvent.Weapon.Damage).ToString());
-		_fsm.Send(Status.IsDead() ? ZombieEvent.Death : ZombieEvent.Hurt);
+		_fsm.Send(NpcGameObject.IsDead() ? ZombieEvent.Death : ZombieEvent.Hurt);
 	}
 
 	// TODO: this could be moved to the weapon config?
@@ -484,7 +484,7 @@ public partial class ZombieNode : NpcNode, IInjectable {
 			})
 			.If(() => !AnimationHurt.IsPlaying() && PlatformBody.IsOnFloor()).Set(ZombieState.Idle)
 			.Exit(() => {
-				Status.UnderMeleeAttack = false;
+				NpcGameObject.UnderMeleeAttack = false;
 			})
 			.Build();
 

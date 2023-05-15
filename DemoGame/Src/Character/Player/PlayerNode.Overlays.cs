@@ -11,7 +11,7 @@ public partial class PlayerNode {
 
 	[Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
 
-	public void ConfigureOverlay() {
+	private void ConfigureOverlay() {
 
 		var overlay = DebugOverlayManager.Overlay(CharacterBody2D)
 			.Title("Player")

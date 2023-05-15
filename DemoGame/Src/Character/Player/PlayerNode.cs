@@ -116,7 +116,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 	private readonly GodotStopwatch _stateTimer = new(false, true);
 
 	public GameObject GameObject { get; set; }
-	public PlayerGameObject Status => (PlayerGameObject)GameObject;
+	public PlayerGameObject PlayerGameObject => (PlayerGameObject)GameObject;
 
 	public void PostInject() {
 		AddChild(_fsm);
@@ -124,7 +124,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 		ConfigureOverlay();
 		ConfigureCharacter(); // collisions are reset to 0 here
 		ConfigureInventory();
-		ConfigureStatus();
+		ConfigureHud();
 		ConfigureCamera();
 		ConfigureAttackArea();
 		ConfigurePlayerHurtArea();
@@ -206,11 +206,11 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 		};
 	}
 
-	public void ConfigureStatus() {
+	private void ConfigureHud() {
 		Ready += () => {
-			// Needs to be delayed until HudScene is loaded and ready
-			Status.OnHealthUpdate += (phe) => HudScene.UpdateHealth(this, phe);
-			Status.SetHealth(Status.MaxHealth);
+			// Needs to be delayed until HudScene is loaded and PlayerGameObject is set with LinkNode
+			PlayerGameObject.OnHealthUpdate += (phe) => HudScene.UpdateHealth(this, phe);
+			PlayerGameObject.SetHealth(PlayerGameObject.MaxHealth);
 		};
 	}
 
@@ -239,15 +239,15 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 	private void ConfigurePlayerHurtArea() {
 		CollisionLayerManager.PlayerConfigureHurtArea(_hurtArea);
 		this.OnProcess(delta => {
-			if (Status is { UnderAttack: false, Invincible: false } &&
+			if (PlayerGameObject is { UnderAttack: false, Invincible: false } &&
 				_hurtArea.Monitoring &&
 				_hurtArea.HasOverlappingAreas()) {
 				var attacker = _hurtArea.GetOverlappingAreas()
 					.Select(area2D => area2D.GetNodeFromMeta<NpcNode>())
 					.MinBy(enemy => enemy.DistanceToPlayer());
-				Status.UnderAttack = true;
-				Status.UpdateHealth(-attacker.NpcConfig.Attack);
-				if (Status.IsDead()) {
+				PlayerGameObject.UnderAttack = true;
+				PlayerGameObject.UpdateHealth(-attacker.NpcConfig.Attack);
+				if (PlayerGameObject.IsDead()) {
 					_fsm.Send(PlayerEvent.Death, 10000);
 				} else {
 					_fsm.Send(PlayerEvent.Hurt, 10000);
@@ -260,7 +260,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 		CollisionLayerManager.PlayerConfigureAttackArea(_attackArea1);
 		CollisionLayerManager.PlayerConfigureAttackArea(_attackArea2);
 		this.OnProcess(delta => {
-			if (Status.AvailableHits > 0) {
+			if (PlayerGameObject.AvailableHits > 0) {
 				CheckAttackArea(_attackArea1);
 				CheckAttackArea(_attackArea2);
 			}
@@ -271,9 +271,9 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 						.Select(area2D => area2D.GetNodeFromMeta<NpcNode>())
 						.Where(enemy => enemy.CanBeAttacked(Inventory.WeaponMeleeEquipped))
 						.OrderBy(enemy => enemy.DistanceToPlayer()) // Ascending, so first element is the closest to the player
-						.Take(Status.AvailableHits)
+						.Take(PlayerGameObject.AvailableHits)
 						.ForEach(enemy => {
-							Status.AvailableHits--;
+							PlayerGameObject.AvailableHits--;
 							EventBus.Publish(new PlayerAttackEvent(this, enemy, Inventory.WeaponMeleeEquipped));
 						});
 				}
@@ -314,14 +314,14 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 		_stateTimer.Restart();
 		// Logger.Debug(CurrentState.Key+ ": Attack started");
 		_attackState = AttackState.Start;
-		Status.AvailableHits = Inventory.WeaponMeleeEquipped!.EnemiesPerHit;
+		PlayerGameObject.AvailableHits = Inventory.WeaponMeleeEquipped!.EnemiesPerHit;
 	}
 
 	private void StopAttack() {
 		// Logger.Debug(CurrentState.Key+ ": Attack ended: GodotStopwatch physics: " + _stateTimer.Elapsed);
 		_attackState = AttackState.None;
 		// AnimationAttack.Stop();
-		Status.AvailableHits = 0;
+		PlayerGameObject.AvailableHits = 0;
 	}
 
 	public void AnimationCallback_EndAttack1() {
@@ -330,7 +330,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 			StopAttack();
 		} else if (_attackState == AttackState.Step2) {
 			// The player pressed attack twice, so the short attack is now a long attack, and this signal call is ignored
-			Status.AvailableHits = Inventory.WeaponMeleeEquipped!.EnemiesPerHit * 2;
+			PlayerGameObject.AvailableHits = Inventory.WeaponMeleeEquipped!.EnemiesPerHit * 2;
 		}
 	}
 
@@ -350,7 +350,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 		Inventory.Drop();
 	}
 
-	public void ConfigureFsm() {
+	private void ConfigureFsm() {
 		Tween? invincibleTween = null;
 		void StartInvincibleEffect() {
 			const float flashTime = 0.025f;
@@ -361,7 +361,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 				.SetDelay(flashTime);
 			invincibleTween.SetLoops((int)(PlayerConfig.HurtInvincibleTime / flashTime));
 			invincibleTween.Finished += () => {
-				Status.Invincible = false;
+				PlayerGameObject.Invincible = false;
 				_mainSprite.Visible = true;
 			};
 		}
@@ -555,7 +555,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 			AnimationShoot.PlayFrom(0);
 			if (weapon!.Ammo <= 0) {
 				// no ammo, reload?
-				Status.Reload(weapon);
+				PlayerGameObject.Reload(weapon);
 				return;
 			} 
 			shootTimer.Restart();
@@ -693,7 +693,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 
 		_fsm.State(PlayerState.Hurting)
 			.Enter(() => {
-				Status.Invincible = true;
+				PlayerGameObject.Invincible = true;
 				weaponSpriteVisible = _weaponSprite.Visible;
 				AnimationHurt.Play();
 			})
@@ -705,7 +705,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 			.If(() => XInput != 0).Set(PlayerState.Running)
 			.If(() => !PlatformBody.IsOnFloor()).Set(PlayerState.Fall)
 			.Exit(() => {
-				Status.UnderAttack = false;
+				PlayerGameObject.UnderAttack = false;
 				_weaponSprite.Visible = weaponSpriteVisible;
 				StartInvincibleEffect();
 			})

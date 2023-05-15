@@ -23,7 +23,7 @@ public class NpcConfig {
     public float Friction = 0; // pixels/seconds 0=stop immediately
 
     public int Attack = 6;
-    public float InitialHealth = 1000;
+    public float InitialHealth = 32;
     public float InitialMaxHealth = 32;
     public bool HealthBarVisible = false;
     

@@ -8,52 +8,39 @@ using Veronenger.Config;
 
 namespace Veronenger.Persistent;
 
-public class NpcGameObject : GameObject<NpcNode>  {
+public class NpcGameObject : GameObject<NpcNode> {
     [Inject] private ConfigManager ConfigManager { get; set; }
-    public NpcStatus Status { get; private set; }
-    
     public NpcConfig Config { get; private set; }
+
+    public float Health;
+    public float MaxHealth;
+    public float HealthPercent => Health / MaxHealth;
+    public bool UnderMeleeAttack { get; set; } = false; // true when the first attack signal is emitted. false when Hurt state ends.
 
     public override void New() {
         Config = ConfigManager.ZombieConfig;
-        Status = new NpcStatus(Config.InitialMaxHealth, Config.InitialHealth);
+        MaxHealth = Config.InitialMaxHealth;
+        Health = Config.InitialHealth;
     }
 
     protected override Type SaveObjectType => typeof(NpcSaveObject);
 
     protected override void DoLoad(SaveObject s) {
-        NpcSaveObject saveObject = (NpcSaveObject) s;
+        NpcSaveObject saveObject = (NpcSaveObject)s;
         Config = ConfigManager.ZombieConfig;
-        Status = new NpcStatus(saveObject);
+        MaxHealth = saveObject.MaxHealth;
+        Health = saveObject.Health;
     }
 
     public override SaveObject CreateSaveObject() {
         return new NpcSaveObject(this);
     }
 
-    public class NpcStatus {
-        public float Health;
-        public float MaxHealth;
-        public float HealthPercent => Health / MaxHealth;
-
-        public bool UnderMeleeAttack { get; set; } = false; // true when the first attack signal is emitted. false when Hurt state ends.
-
-        public NpcStatus(float maxHealth, float health = int.MaxValue) {
-            MaxHealth = maxHealth;
-            Health = Math.Min(health, maxHealth);
-        }
-
-        public NpcStatus(NpcSaveObject npcSaveObject) {
-            Health = npcSaveObject.Health;
-            MaxHealth = npcSaveObject.MaxHealth;
-        }
-
-        public void UpdateHealth(float update) {
-            Health += update;
-        }
-
-        public bool IsDead() => Health <= 0f;
+    public void UpdateHealth(float update) {
+        Health += update;
     }
+
+    public bool IsDead() => Health <= 0f;
 }
 
 public class NpcSaveObject : SaveObject<NpcGameObject> {
@@ -65,8 +52,8 @@ public class NpcSaveObject : SaveObject<NpcGameObject> {
     }
 
     public NpcSaveObject(NpcGameObject npc) : base(npc) {
-        Health = npc.Status.Health;
-        MaxHealth = npc.Status.MaxHealth;
-        GlobalPosition =  npc.Node.GlobalPosition;
+        Health = npc.Health;
+        MaxHealth = npc.MaxHealth;
+        GlobalPosition = npc.Node!.GlobalPosition;
     }
 }

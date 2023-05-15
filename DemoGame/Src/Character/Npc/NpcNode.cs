@@ -8,11 +8,9 @@ namespace Veronenger.Character.Npc;
 
 public abstract partial class NpcNode : Node, INodeGameObject {
 
-	public NpcGameObject.NpcStatus Status => NpcGameObject.Status;
-	public NpcConfig NpcConfig => NpcGameObject.Config;
-
 	public GameObject GameObject { get; set; }
-	protected NpcGameObject NpcGameObject => (NpcGameObject)GameObject;
+	public NpcGameObject NpcGameObject => (NpcGameObject)GameObject;
+	public NpcConfig NpcConfig => NpcGameObject.Config;
 
 	public abstract float DistanceToPlayer();
 	public abstract bool CanBeAttacked(WeaponGameObject weapon);
