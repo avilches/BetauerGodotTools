@@ -1,14 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using Betauer.Application.Lifecycle;
 using Betauer.Application.Lifecycle.Pool;
 using Betauer.Application.Persistent;
 using Betauer.Core;
 using Betauer.Core.Nodes;
-using Betauer.Core.Pool;
-using Betauer.Core.Pool.Lifecycle;
 using Betauer.Core.Signal;
 using Betauer.DI;
 using Betauer.DI.Attributes;
@@ -17,10 +13,9 @@ using Betauer.Input;
 using Betauer.Input.Joypad;
 using Betauer.NodePath;
 using Godot;
-using Veronenger.Character.Npc;
 using Veronenger.Character.Player;
 using Veronenger.Config;
-using Veronenger.Transient;
+using Veronenger.Persistent;
 using Veronenger.UI;
 using Veronenger.Worlds;
 
@@ -30,6 +25,7 @@ public partial class Game : Control, IInjectable {
 	private World2D _noWorld = new();
 
 	[Inject] private GameObjectRepository GameObjectRepository { get; set; }
+	[Inject] private IGameObjectLoader GameObjectLoader { get; set; }
 	[Inject] private HUD HudScene { get; set; }
 	[Inject] private IFactory<WorldScene> World3 { get; set; }
 
@@ -39,10 +35,6 @@ public partial class Game : Control, IInjectable {
 	[Inject] private UiActionsContainer UiActionsContainer { get; set; }
 	[Inject] private JoypadPlayersMapping JoypadPlayersMapping { get; set; }
 
-	[Inject] private NodePool<PickableItemNode> PickableItemPool { get; set; }
-	[Inject] private NodePool<ProjectileTrail> ProjectilePool { get; set; }
-	[Inject] private NodePool<ZombieNode> ZombiePool { get; set; }
-	
 	[NodePath("%SubViewport1")] private SubViewport _subViewport1;
 	[NodePath("%SubViewport2")] private SubViewport _subViewport2;
 
@@ -93,65 +85,70 @@ public partial class Game : Control, IInjectable {
 	}
 
 	public async Task NewGame() {
+		UiActionsContainer.SetJoypad(UiActionsContainer.CurrentJoyPad);	// Player who starts the game is the player who control the UI forever
 		await GameLoaderContainer.LoadGameResources();
 		InitializeWorld();
-		UiActionsContainer.SetJoypad(UiActionsContainer.CurrentJoyPad);	// Player who starts the game is the player who control the UI forever
 		CreatePlayer1(UiActionsContainer.CurrentJoyPad);
 		AllowAddingP2();				
 		WorldScene.StartNewGame();
 	}
 
 	public async void LoadFromMenu(string saveName) {
-		var (success, objects) = await LoadData(saveName);
+		UiActionsContainer.SetJoypad(UiActionsContainer.CurrentJoyPad);	// Player who starts the game is the player who control the UI forever
+		var (success, saveGame) = await LoadSaveGame(saveName);
 		if (!success) return;
-
+		
 		await GameLoaderContainer.LoadGameResources();
-		InitializeWorld();
-		LoadGame(objects!);
+		InitializeWorld(saveGame.SaveObjects);
+		LoadPlayer1(UiActionsContainer.CurrentJoyPad, saveGame.Player0);
+		WorldScene.LoadGame(saveGame);
+		HideLoading();
 	}
 
 	public async void LoadInGame(string saveName) {
-		var (success, objects) = await LoadData(saveName);
+		UiActionsContainer.SetJoypad(UiActionsContainer.CurrentJoyPad);	// Player who starts the game is the player who control the UI forever
+		var (success, saveGame) = await LoadSaveGame(saveName);
 		if (!success) return;
 
 		await FreeSceneAndKeepPoolData();
-		InitializeWorld();
-		LoadGame(objects!);
+		InitializeWorld(saveGame.SaveObjects);
+		LoadPlayer1(UiActionsContainer.CurrentJoyPad, saveGame.Player0);
+		WorldScene.LoadGame(saveGame);
+		HideLoading();
 	}
 	
+	public void ShowLoading() {}
+	public void HideLoading() {}
+	public void ShowSaving() {}
+	public void HideSaving() {}
+
 	public async Task Save(string saveName) {
-		// TODO: Show saving screen
+		ShowSaving();
 		try {
-			await GameObjectRepository.Save(saveName);
+			var saveObjects = GameObjectRepository.GetSaveObjects();
+			await GameObjectLoader.Save(saveObjects, saveName);
 		} catch (Exception e) {
-			// TODO: Hide saving screen and show error
+			// Show saving error
 			Console.WriteLine(e);
 		}
+		HideSaving();
 	}
 	
-	private void LoadGame(Dictionary<int, SaveObject> saveObjects) {
-		UiActionsContainer.SetJoypad(UiActionsContainer.CurrentJoyPad); // Player who starts the game is the player who control the UI forever
-		CreatePlayer1(UiActionsContainer.CurrentJoyPad);
-		AllowAddingP2();				
-		WorldScene.LoadGame(saveObjects);
-		// TODO: hide loading screen
-	}
-
-	public async Task<(bool, Dictionary<int, SaveObject>?)> LoadData(string save) {
-		// TODO: Show loading screen
+	public async Task<(bool, SaveGame)> LoadSaveGame(string save) {
+		ShowLoading();
 		try {
-			var objects = await GameObjectRepository.Load(save);
-			return (true, objects);
+			var saveObjects = await GameObjectLoader.Load(save);
+			return (true, new SaveGame(GameObjectRepository, saveObjects));
 		} catch (Exception e) {
-			// TODO: Hide loading screen and show error
+			HideLoading();
 			Console.WriteLine(e);
 			return (false, null);
 		}
 	}
 
-	public void InitializeWorld() {
+	public void InitializeWorld(List<SaveObject>? saveObjects = null) {
+		GameObjectRepository.Initialize(saveObjects);
 		JoypadPlayersMapping.RemoveAllPlayers();
-		GameObjectRepository.Clear();
 		WorldScene = World3.Get();
 		_subViewport1.AddChild(WorldScene);
 		HudScene.Enable();
@@ -160,6 +157,14 @@ public partial class Game : Control, IInjectable {
 	public PlayerNode CreatePlayer1(int joypad) {
 		var playerMapping = JoypadPlayersMapping.AddPlayer().SetJoypadId(joypad);
 		var player = WorldScene.AddNewPlayer(playerMapping);
+		player.SetViewport(_subViewport1);
+		DisablePlayer2(true);
+		return player;
+	}
+
+	public PlayerNode LoadPlayer1(int joypad, PlayerSaveObject playerSaveObject) {
+		var playerMapping = JoypadPlayersMapping.AddPlayer().SetJoypadId(joypad);
+		var player = WorldScene.LoadPlayer(playerMapping, playerSaveObject);
 		player.SetViewport(_subViewport1);
 		DisablePlayer2(true);
 		return player;

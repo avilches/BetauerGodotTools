@@ -49,12 +49,10 @@ public partial class WorldScene : Node {
 	
 	public void StartNewGame() {
 		GetNode("EnemySpawn").GetChildren().OfType<Marker2D>().ForEach(m => {
-			if (m.Visible) ZombieSpawn(this, m.GlobalPosition);
+			if (m.Visible) AddNewZombie(m.GlobalPosition);
 		});
 		GetNode<Node>("Lights").GetChildren().OfType<PointLight2D>().ForEach(light => {
-			if (light.Name.ToString().StartsWith("Candle")) {
-				CandleOff(light);
-			}
+			if (light.Name.ToString().StartsWith("Candle")) CandleOff(light);
 		});
 		PlaceMetalbar();
 		PlaceSlowGun();
@@ -110,32 +108,30 @@ public partial class WorldScene : Node {
 		this.AddChild(pickableItemNode, () => pickableItemNode.PlayerDrop(position, velocity));
 	}
 
-	public void ZombieSpawn(Node scene, Vector2 position) {
-		var zombieNode = ZombiePool.Get();
-		var zombieItem = GameObjectRepository.Create<NpcGameObject>("Zombie").Configure(ConfigManager.ZombieConfig);
-		zombieItem.LinkNode(zombieNode);
-		scene.AddChild(zombieNode, () => zombieNode.GlobalPosition = position);
-	}
-
 	public ProjectileTrail NewBullet() {
 		var projectileTrail = ProjectilePool.Get();
 		AddChild(projectileTrail);
 		return projectileTrail;
 	}
 
-	public void LoadGame(Dictionary<int, SaveObject> objects) {
-		var gameObject = GameObjectRepository.Get<PlayerGameObject>("Player0")!;
-		var saveObject = (PlayerSaveObject)objects[gameObject.Id];
-		LoadPlayer(gameObject, saveObject);
+	public void LoadGame(SaveGame saveGame) {
+		saveGame.Consume<NpcSaveObject>(LoadZombie);
+		if (saveGame.Pending.Count > 0) {
+			Console.WriteLine("Still pending objects to load");
+			// throw new Exception("Still pending objects to load");
+		}
 	}
 
-	private void LoadPlayer(PlayerGameObject playerGameObject, PlayerSaveObject saveObject) {
-		var playerMapping = JoypadPlayersMapping.Mapping[0];
-		playerGameObject.Load(ConfigManager.PlayerConfig, saveObject);
-		var playerNode = CreatePlayerNode(playerGameObject, playerMapping);
-		this.AddChild(playerNode, () => {
-			playerNode.GlobalPosition = saveObject.GlobalPosition;
-		});
+	public void AddNewZombie(Vector2 position) {
+		var zombieNode = ZombiePool.Get();
+		GameObjectRepository.Create<NpcGameObject>("Zombie").Configure(ConfigManager.ZombieConfig).LinkNode(zombieNode);
+		GetNode("EnemySpawn")!.AddChild(zombieNode, () => zombieNode.GlobalPosition = position);
+	}
+
+	public void LoadZombie(NpcSaveObject npcSaveObject) {
+		var zombieNode = ZombiePool.Get();
+		npcSaveObject.GameObject.Load(ConfigManager.ZombieConfig, npcSaveObject).LinkNode(zombieNode);
+		GetNode("EnemySpawn")!.AddChild(zombieNode, () => zombieNode.GlobalPosition = npcSaveObject.GlobalPosition);
 	}
 
 	public PlayerNode AddNewPlayer(PlayerMapping playerMapping, Action? onReady = null) {
@@ -144,6 +140,15 @@ public partial class WorldScene : Node {
 		var playerNode = CreatePlayerNode(playerGameObject, playerMapping);
 		this.AddChild(playerNode, () => {
 			playerNode.GlobalPosition = GetPositionFromMarker("SpawnPlayer"); // + new Vector2(playerMapping.Player * 100, 0);
+		});
+		return playerNode;
+	}
+
+	public PlayerNode LoadPlayer(PlayerMapping playerMapping, PlayerSaveObject saveObject) {
+		saveObject.GameObject.Load(ConfigManager.PlayerConfig, saveObject);
+		var playerNode = CreatePlayerNode(saveObject.GameObject, playerMapping);
+		this.AddChild(playerNode, () => {
+			playerNode.GlobalPosition = saveObject.GlobalPosition;
 		});
 		return playerNode;
 	}
@@ -167,7 +172,7 @@ public partial class WorldScene : Node {
 
 	public void InstantiateNewZombie() {
 		var position = GetNode("EnemySpawn").GetChildren().OfType<Marker2D>().First().GlobalPosition;
-		ZombieSpawn(this, position);
+		AddNewZombie(position);
 	}
 
 	public Vector2 GetPositionFromMarker(string path, bool freeMarker = false) {

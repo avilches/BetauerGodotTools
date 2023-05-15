@@ -1,6 +1,7 @@
 using System;
 using System.Text.Json.Serialization;
 using Betauer.Application.Persistent;
+using Godot;
 using Veronenger.Character.Npc;
 using Veronenger.Config;
 
@@ -17,6 +18,12 @@ public class NpcGameObject : GameObject<NpcNode>  {
         return this;
     }
 
+    public NpcGameObject Load(NpcConfig config, NpcSaveObject npcSaveObject) {
+        Config = config;
+        Status = new NpcStatus(npcSaveObject);
+        return this;
+    }
+
     public class NpcStatus {
         public float Health;
         public float MaxHealth;
@@ -27,6 +34,11 @@ public class NpcGameObject : GameObject<NpcNode>  {
         public NpcStatus(float maxHealth, float health = int.MaxValue) {
             MaxHealth = maxHealth;
             Health = Math.Min(health, maxHealth);
+        }
+
+        public NpcStatus(NpcSaveObject npcSaveObject) {
+            Health = npcSaveObject.Health;
+            MaxHealth = npcSaveObject.MaxHealth;
         }
 
         public void UpdateHealth(float update) {
@@ -44,6 +56,7 @@ public class NpcGameObject : GameObject<NpcNode>  {
 public class NpcSaveObject : SaveObject<NpcGameObject> {
     [JsonInclude] public float Health { get; set; }
     [JsonInclude] public float MaxHealth { get; set; }
+    [JsonInclude] public Vector2 GlobalPosition { get; set; }
 
     public NpcSaveObject() {
     }
@@ -51,5 +64,6 @@ public class NpcSaveObject : SaveObject<NpcGameObject> {
     public NpcSaveObject(NpcGameObject npc) : base(npc) {
         Health = npc.Status.Health;
         MaxHealth = npc.Status.MaxHealth;
+        GlobalPosition =  npc.Node.GlobalPosition;
     }
 }
