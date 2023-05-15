@@ -35,12 +35,9 @@ public class Vector3IConverter : JsonConverter<Vector3I> {
 
     public override void Write(Utf8JsonWriter writer, Vector3I value, JsonSerializerOptions options) {
         writer.WriteStartObject();
-        writer.WritePropertyName("x");
-        writer.WriteNumberValue(value.X);
-        writer.WritePropertyName("y");
-        writer.WriteNumberValue(value.Y);
-        writer.WritePropertyName("z");
-        writer.WriteNumberValue(value.Z);
+        writer.WriteNumber("x", value.X);
+        writer.WriteNumber("y", value.Y);
+        writer.WriteNumber("z", value.Z);
         writer.WriteEndObject();
     }
 }

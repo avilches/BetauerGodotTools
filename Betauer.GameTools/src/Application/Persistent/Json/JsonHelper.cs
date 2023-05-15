@@ -16,7 +16,7 @@ public static class JsonHelper {
     public static bool GetBool(ref Utf8JsonReader reader) {
         if (reader.TokenType == JsonTokenType.True) return true;
         if (reader.TokenType == JsonTokenType.False) return false;
-        throw new JsonException($"Wrong token: '{reader.TokenType}': expected bool")
+        throw new JsonException($"Wrong token: '{reader.TokenType}': expected bool");
     }
 
     public static bool GetBoolOr(ref Utf8JsonReader reader, bool @default) {
@@ -53,7 +53,7 @@ public static class JsonHelper {
         if (reader.TokenType == JsonTokenType.Null) return @default;
         return GetLong(ref reader);
     }
-
+    
     public static float GetFloat(ref Utf8JsonReader reader) {
         if (reader.TokenType == JsonTokenType.Number && reader.TryGetSingle(out var result)) return result;
         throw new JsonException($"Wrong token: '{reader.TokenType}': expected float");

@@ -7,12 +7,16 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 using System.Threading.Tasks;
+using Betauer.Application.Persistent.Json;
+using Betauer.Core;
 
 namespace Betauer.Application.Persistent;
 
 public class GameObjectRepository {
 
     public JsonPolymorphismOptions JsonPolymorphismOptions { get; init; }
+    public IList<JsonConverter> JsonConverters { get; init; }
+    public bool JsonPretty { get; init; }
     private JsonSerializerOptions? _jsonSerializerOptions;
     private JsonSerializerOptions JsonSerializerOptions => _jsonSerializerOptions ??= BuildJsonSerializerOptions();
 
@@ -99,7 +103,7 @@ public class GameObjectRepository {
     }
 
     public async Task<List<SaveObject>> LoadSaveObjects(string saveName) {
-        await using FileStream createStream = File.Create(AppTools.GetUserFile(saveName));
+        await using FileStream createStream = File.OpenRead(AppTools.GetUserFile(saveName));
         return (await JsonSerializer.DeserializeAsync<List<SaveObject>>(createStream, JsonSerializerOptions))!;
     }
     
@@ -110,13 +114,25 @@ public class GameObjectRepository {
             typeInfo.PolymorphismOptions = JsonPolymorphismOptions;
         }
         resolver.Modifiers.Add(Item);
-        return new JsonSerializerOptions {
-            WriteIndented = true,
-            Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
+
+        var options = new JsonSerializerOptions {
+            WriteIndented = JsonPretty,
             TypeInfoResolver = resolver,
         };
+        new JsonConverter[] {
+            new Rect2Converter(),
+            new Vector2Converter(),
+            new Vector3Converter(),
+            new Rect2IConverter(),
+            new Vector2IConverter(),
+            new Vector3IConverter(),
+            new ColorConverter(),
+            new JsonStringEnumConverter(JsonNamingPolicy.CamelCase),
+        }.ForEach(converter => options.Converters.Add(converter));
+        
+        JsonConverters?.ForEach(converter => options.Converters.Add(converter));
+        return options;
     }
-
 }
 
 public static class GameObjectExtensions {
