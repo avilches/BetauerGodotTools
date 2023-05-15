@@ -23,7 +23,7 @@ public class CharacterWeaponController {
 			_weaponSprite.Visible = false;
 		} else if (weapon is WeaponRangeGameObject range) {
 			_weaponSprite.Visible = true;
-			_weaponSprite.Texture = range.Config.WeaponAnimation?.Get();
+			_weaponSprite.Texture = range.Config.WeaponAnimation();
 			for (var i = 0; i < _attackAreas.Length; i++) {
 				var attackArea = _attackAreas[i];
 				attackArea.Monitorable = false;
@@ -31,7 +31,7 @@ public class CharacterWeaponController {
 			}
 		} else if (weapon is WeaponMeleeGameObject melee) {
 			_weaponSprite.Visible = true;
-			_weaponSprite.Texture = melee.Config.WeaponAnimation?.Get();
+			_weaponSprite.Texture = melee.Config.WeaponAnimation();
 			for (var i = 0; i < _attackAreas.Length; i++) {
 				var attackArea = _attackAreas[i];
 				attackArea.Monitorable = false;

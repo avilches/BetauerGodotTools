@@ -45,9 +45,7 @@ public class PlayerGameObject : GameObject<PlayerNode> {
         Ammo.ForEach(ammo => saveObject.Ammo[ammo.Key] = ammo.Value);
     }
 
-    public override SaveObject CreateSaveObject() {
-        return new PlayerSaveObject(this);
-    }
+    public override SaveObject CreateSaveObject() => new PlayerSaveObject(this);
 
     public int GetAmmo(AmmoType ammoType) => Ammo[ammoType];
     public bool HasAmmo(AmmoType ammoType) => Ammo[ammoType] > 0;

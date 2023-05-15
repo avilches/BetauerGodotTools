@@ -10,7 +10,7 @@ namespace Veronenger.Persistent;
 public class WeaponRangeGameObject : WeaponGameObject {
     private static readonly Random Random = new Pcg.PcgRandom();
 
-    public override WeaponConfig.Range Config => (WeaponConfig.Range)base.Config;
+    public override WeaponConfigRange Config => (WeaponConfigRange)base.Config;
     public AmmoType AmmoType;
     public int EnemiesPerHit;
     public float DelayBetweenShots;
@@ -30,7 +30,7 @@ public class WeaponRangeGameObject : WeaponGameObject {
     protected override void DoLoad(SaveObject saveObject) {
     }
 
-    public WeaponRangeGameObject Configure(WeaponConfig.Range config, 
+    public WeaponRangeGameObject Configure(WeaponConfigRange config, 
         AmmoType ammoType,
         float damageBase, 
         int enemiesPerHit = 1,
@@ -56,9 +56,7 @@ public class WeaponRangeGameObject : WeaponGameObject {
         return this;
     }
 
-    public override SaveObject CreateSaveObject() {
-        return new WeaponRangeSaveObject(this);
-    }
+    public override SaveObject CreateSaveObject() => new WeaponRangeSaveObject(this);
 }
 
 public class WeaponRangeSaveObject : SaveObject<WeaponRangeGameObject> {

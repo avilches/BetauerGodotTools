@@ -25,9 +25,7 @@ public class AmmoGameObject : PickableGameObject {
         AmmoSaveObject saveObject = (AmmoSaveObject) s;
     }
 
-    public override SaveObject CreateSaveObject() {
-        return new AmmoSaveObject(this);
-    }
+    public override SaveObject CreateSaveObject() => new AmmoSaveObject(this);
 }
 
 public class AmmoSaveObject : SaveObject<AmmoGameObject> {

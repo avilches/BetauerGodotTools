@@ -19,7 +19,7 @@ public partial class InventorySlot : ColorRect {
 	public void UpdateInventorySlot(PickableGameObject pickableGameObject, bool equipped, bool selected) {
 		PickableGameObject = pickableGameObject;
 		Visible = true;
-		pickableGameObject.Config.ConfigureInventoryTextureRect?.Invoke((AtlasTexture)TextureRect.Texture);
+		pickableGameObject.Config.ConfigureInventoryTextureRect((AtlasTexture)TextureRect.Texture);
 		TextureRect.Visible = true;
 		UpdateAmount();
 		if (selected && equipped) {
