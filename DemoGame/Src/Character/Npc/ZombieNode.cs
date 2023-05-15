@@ -68,7 +68,7 @@ public partial class ZombieNode : NpcNode, IInjectable {
 		RedFlash = colorAnimation.EndAnimate();
 	}
 
-	public Vector2 GlobalPosition {
+	public override Vector2 GlobalPosition {
 		get => CharacterBody2D.GlobalPosition;
 		set => CharacterBody2D.GlobalPosition = value;
 	}
