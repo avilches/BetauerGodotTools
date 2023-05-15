@@ -54,7 +54,7 @@ public partial class PickableItemNode : Node, IInjectable, INodeGameObject {
 		_state = State.Available;
 		_playerPosition = null;
 		_onPickup = null;
-		PickableGameObject.Config.ConfigurePickableSprite2D?.Invoke(Sprite);
+		PickableGameObject.Config.ConfigurePickableSprite2D(Sprite);
 		
 		// var overlay = DebugOverlayManager.Overlay(CharacterBody2D).Title(Item.Name);
 		// AddOverlayMotion(overlay);

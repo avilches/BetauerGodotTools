@@ -55,6 +55,7 @@ public partial class WorldScene : Node {
 			if (light.Name.ToString().StartsWith("Candle")) CandleOff(light);
 		});
 		PlaceMetalbar();
+		PlaceKnife();
 		PlaceSlowGun();
 		PlaceGun();
 		PlaceShotgun();
@@ -66,6 +67,13 @@ public partial class WorldScene : Node {
 			.Create<WeaponMeleeGameObject>("Metalbar")
 			.Configure(ConfigManager.Metalbar, damageBase: 9f, enemiesPerHit: 2);
 		PlacePickable(metalbar, GetPositionFromMarker("ItemSpawn/Metalbar"));
+	}
+	
+	private void PlaceKnife() {
+		var metalbar = GameObjectRepository
+			.Create<WeaponMeleeGameObject>("Knife")
+			.Configure(ConfigManager.Knife, damageBase: 12f, enemiesPerHit: 1);
+		PlacePickable(metalbar, GetPositionFromMarker("ItemSpawn/Metalbar")+ new Vector2(100,0));
 	}
 	
 	private void PlaceSlowGun() {

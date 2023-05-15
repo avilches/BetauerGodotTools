@@ -58,7 +58,7 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
     private SettingsMenu SettingsMenuScene => SettingsMenuSceneFactory.Get();
     
     [Inject] private IFactory<ModalBoxConfirm> ModalBoxConfirm { get; set; }
-    [Inject] private IFactory<Theme> MyTheme { get; set; }
+    [Inject("MyTheme")] private IFactory<Theme> MyTheme { get; set; }
     [Inject] private ILazy<Game> Game { get; set; }
 
     [Inject] private ScreenSettingsManager ScreenSettingsManager { get; set; }
@@ -71,7 +71,7 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
     [Inject] private UiActionsContainer UiActionsContainer { get; set; }
     [Inject] private JoypadPlayersMapping JoypadPlayersMapping { get; set; }
         
-    [Inject] private IFactory<Theme> DebugConsoleTheme { get; set; }
+    [Inject("DebugConsoleTheme")] private IFactory<Theme> DebugConsoleTheme { get; set; }
 
     [Inject] private EventBus EventBus { get; set; }
 
