@@ -123,7 +123,7 @@ public partial class WorldScene : Node {
 	}
 
 	public void LoadGame(SaveGame saveGame) {
-		saveGame.Consume<NpcSaveObject>(LoadZombie);
+		saveGame.Consume<ZombieSaveObject>(LoadZombie);
 		if (saveGame.Pending.Count > 0) {
 			Console.WriteLine("Still pending objects to load");
 			// throw new Exception("Still pending objects to load");
@@ -132,11 +132,11 @@ public partial class WorldScene : Node {
 
 	public void AddNewZombie(Vector2 position) {
 		var zombieNode = ZombiePool.Get();
-		GameObjectRepository.Create<NpcGameObject>("Zombie").LinkNode(zombieNode);
+		GameObjectRepository.Create<ZombieGameObject>("Zombie").LinkNode(zombieNode);
 		GetNode("EnemySpawn")!.AddChild(zombieNode, () => zombieNode.GlobalPosition = position);
 	}
 
-	public void LoadZombie(NpcSaveObject npcSaveObject) {
+	public void LoadZombie(ZombieSaveObject npcSaveObject) {
 		var zombieNode = ZombiePool.Get();
 		npcSaveObject.GameObject.LinkNode(zombieNode);
 		GetNode("EnemySpawn")!.AddChild(zombieNode, () => zombieNode.GlobalPosition = npcSaveObject.GlobalPosition);

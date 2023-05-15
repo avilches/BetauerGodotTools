@@ -48,7 +48,7 @@ public class ApplicationConfig {
 			},
 			JsonDerivedTypes = {
 				new JsonDerivedType(typeof(PlayerSaveObject), "Player"),
-				new JsonDerivedType(typeof(NpcSaveObject), "Npc"),
+				new JsonDerivedType(typeof(ZombieSaveObject), "Zombie"),
 				new JsonDerivedType(typeof(WeaponRangeSaveObject), "WeaponRange"),
 				new JsonDerivedType(typeof(WeaponMeleeSaveObject), "WeaponMelee"),
 				new JsonDerivedType(typeof(AmmoSaveObject), "Ammo"),
