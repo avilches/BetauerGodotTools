@@ -7,7 +7,6 @@ using Betauer.Bus;
 using Betauer.Core;
 using Betauer.Core.Nodes;
 using Betauer.Core.Nodes.Property;
-using Betauer.Core.Pool;
 using Betauer.Core.Pool.Lifecycle;
 using Betauer.Core.Restorer;
 using Betauer.DI;
@@ -119,7 +118,7 @@ public partial class ZombieNode : NpcNode, IInjectable {
 	private readonly FsmSync<ZombieState, ZombieEvent> _fsm = new(ZombieState.Idle, "Zombie.FSM");
 	private float _delta;
 	private ICharacterAi _zombieAi;
-	private IPool<ILabelEffect> _labelHits;
+	private BasePool<ILabelEffect> _labelHits;
 	private Restorer _restorer; 
 	private LazyRaycast2D _lazyRaycastToPlayer;
 	private DebugOverlay? _overlay;
@@ -140,9 +139,6 @@ public partial class ZombieNode : NpcNode, IInjectable {
 									 Mathf.Acos(Mathf.Abs(RightVector.Dot(DirectionToPlayer()))) <= NpcConfig.VisionAngle;
 
 	private Vector2 RightVector => PlatformBody.UpRightNormal.Rotate90Right();
-
-	public void OnGet() {
-	}
 
 	private Multicast<object, PlayerAttackEvent>.EventConsumer consumer;
 	

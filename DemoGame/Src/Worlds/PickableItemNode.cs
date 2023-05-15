@@ -16,7 +16,7 @@ using Vector2 = Godot.Vector2;
 
 namespace Veronenger.Worlds;
 
-public partial class PickableItemNode : Node, IPoolLifecycle, IInjectable, INodeWithGameObject {
+public partial class PickableItemNode : Node, IInjectable, INodeWithGameObject {
 	public enum State {
 		None, Dropping, Available, PickingUp, Finish
 	}
@@ -35,9 +35,6 @@ public partial class PickableItemNode : Node, IPoolLifecycle, IInjectable, INode
 	[NodePath("Character/Sprite")] public Sprite2D Sprite;
 	[NodePath("Character/PickZone")] public Area2D PickZone;
 
-	public bool IsBusy() => IsInsideTree();
-	public bool IsInvalid() => !IsInstanceValid(this);
-	
 	public KinematicPlatformMotion PlatformBody;
 	private State _state = State.Available;
 	private Func<Vector2> _playerPosition;
@@ -51,8 +48,6 @@ public partial class PickableItemNode : Node, IPoolLifecycle, IInjectable, INode
 		CollisionLayerManager.PickableItem(this);
 		ConfigureFsm();
 	}
-
-	public void OnGet() {}
 
 	public override void _Ready() {
 		PickZone.SetNodeIdToMeta(this);

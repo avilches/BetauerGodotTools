@@ -10,7 +10,7 @@ using Veronenger.Persistent;
 
 namespace Veronenger.Transient;
 
-public partial class ProjectileTrail : Node, IPoolLifecycle, IInjectable {
+public partial class ProjectileTrail : Node, IInjectable {
 	public enum Behaviour { Continue, Stop }
 	private static readonly Random Random = new Pcg.PcgRandom();
 	private static float RayLength = 40;
@@ -29,12 +29,6 @@ public partial class ProjectileTrail : Node, IPoolLifecycle, IInjectable {
 	private readonly LazyRaycast2D _lazyRaycast2D = new();
 	private Vector2 _collisionPosition = Vector2.Zero;
 	private bool _queueEnd = false;
-
-	public void OnGet() {
-	}
-
-	public bool IsBusy() => IsInsideTree();
-	public bool IsInvalid() => !IsInstanceValid(this);
 
 	public void PostInject() {
 		Trail = GetNode<Line2D>("Line2D");

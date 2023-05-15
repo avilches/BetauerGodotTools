@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Betauer.Application.Persistent;
 using Veronenger.Config;
 
@@ -20,9 +21,12 @@ public class AmmoGameObject : PickableGameObject {
 }
 
 public class AmmoSaveObject : SaveObject<AmmoGameObject> {
-    public AmmoType AmmoType { get; }
-    public int Amount { get; }
-    
+    [JsonInclude] public AmmoType AmmoType { get; set; }
+    [JsonInclude] public int Amount { get; set; }
+
+    public AmmoSaveObject() {
+    }
+
     public AmmoSaveObject(AmmoGameObject ammo) : base(ammo) {
         AmmoType = ammo.AmmoType;
         Amount = ammo.Amount;

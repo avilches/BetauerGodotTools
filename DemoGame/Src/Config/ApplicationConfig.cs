@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Betauer.Application;
 using Betauer.Application.Lifecycle;
 using Betauer.Application.Lifecycle.Attributes;
+using Betauer.Application.Lifecycle.Pool;
 using Betauer.Application.Monitor;
 using Betauer.Application.Persistent;
 using Betauer.Application.Screen;
@@ -113,11 +114,11 @@ public class GameResources {
 }
 
 [Configuration]
-[PoolContainer("PoolContainer")]
+[PoolContainer<Node>("PoolNodeContainer")]
 public class PoolConfig {
-	[NodePool<ZombieNode>] NodePool<ZombieNode> ZombiePool => new();
-	[NodePool<ProjectileTrail>] NodePool<ProjectileTrail> ProjectilePool => new();
-	[NodePool<PickableItemNode>] NodePool<PickableItemNode> PickableItemPool => new();
+	[Pool] NodePool<ZombieNode> ZombiePool => new();
+	[Pool] NodePool<ProjectileTrail> ProjectilePool => new();
+	[Pool] NodePool<PickableItemNode> PickableItemPool => new();
 }
 
 [Configuration]

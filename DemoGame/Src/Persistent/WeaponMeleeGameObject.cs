@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Betauer.Application.Persistent;
 using Veronenger.Config;
 
@@ -20,9 +21,12 @@ public class WeaponMeleeGameObject : WeaponGameObject {
 }
 
 public class WeaponMeleeSaveObject : SaveObject<WeaponMeleeGameObject> {
-    public float DamageBase { get; }
-    public int EnemiesPerHit { get; }
-    
+    [JsonInclude] public float DamageBase { get; set; }
+    [JsonInclude] public int EnemiesPerHit { get; set; }
+
+    public WeaponMeleeSaveObject() {
+    }
+
     public WeaponMeleeSaveObject(WeaponMeleeGameObject weapon) : base(weapon) {
         DamageBase = weapon.DamageBase;
         EnemiesPerHit = weapon.EnemiesPerHit;

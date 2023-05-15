@@ -1,9 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Betauer.Application.Lifecycle;
+using Betauer.Application.Lifecycle.Pool;
 using Betauer.Application.Persistent;
+using Betauer.Core;
 using Betauer.Core.Nodes;
+using Betauer.Core.Pool;
 using Betauer.Core.Pool.Lifecycle;
 using Betauer.Core.Signal;
 using Betauer.DI;
@@ -13,8 +17,10 @@ using Betauer.Input;
 using Betauer.Input.Joypad;
 using Betauer.NodePath;
 using Godot;
+using Veronenger.Character.Npc;
 using Veronenger.Character.Player;
 using Veronenger.Config;
+using Veronenger.Transient;
 using Veronenger.UI;
 using Veronenger.Worlds;
 
@@ -28,11 +34,15 @@ public partial class Game : Control, IInjectable {
 	[Inject] private IFactory<WorldScene> World3 { get; set; }
 
 	[Inject] private GameLoaderContainer GameLoaderContainer { get; set; }
-	[Inject] private PoolContainer<IPoolLifecycle> PoolContainer { get; set; }
+	[Inject] private PoolContainer<Node> PoolNodeContainer { get; set; }
 	[Inject] private InputActionsContainer PlayerActionsContainer { get; set; }
 	[Inject] private UiActionsContainer UiActionsContainer { get; set; }
 	[Inject] private JoypadPlayersMapping JoypadPlayersMapping { get; set; }
 
+	[Inject] private NodePool<PickableItemNode> PickableItemPool { get; set; }
+	[Inject] private NodePool<ProjectileTrail> ProjectilePool { get; set; }
+	[Inject] private NodePool<ZombieNode> ZombiePool { get; set; }
+	
 	[NodePath("%SubViewport1")] private SubViewport _subViewport1;
 	[NodePath("%SubViewport2")] private SubViewport _subViewport2;
 
@@ -122,8 +132,9 @@ public partial class Game : Control, IInjectable {
 		try {
 			var objects = await GameObjectRepository.Load();
 			return (true, objects);
-		} catch (Exception) {
+		} catch (Exception e) {
 			// TODO: Hide loading screen and show error
+			Console.WriteLine(e);
 			return (false, null);
 		}
 	}
@@ -138,7 +149,7 @@ public partial class Game : Control, IInjectable {
 
 	public PlayerNode CreatePlayer1(int joypad) {
 		var playerMapping = JoypadPlayersMapping.AddPlayer().SetJoypadId(joypad);
-		var player = WorldScene.AddPlayerToScene();
+		var player = WorldScene.AddNewPlayer(playerMapping);
 		player.SetViewport(_subViewport1);
 		DisablePlayer2(true);
 		return player;
@@ -147,7 +158,7 @@ public partial class Game : Control, IInjectable {
 	public PlayerNode CreatePlayer2(int joypad) {
 		if (JoypadPlayersMapping.Players >= MaxPlayer) throw new Exception("No more players allowed");
 		var playerMapping = JoypadPlayersMapping.AddPlayer().SetJoypadId(joypad);
-		var player = WorldScene.AddPlayerToScene();
+		var player = WorldScene.AddNewPlayer(playerMapping);
 		player.SetViewport(_subViewport2);
 		return player;
 	}
@@ -249,9 +260,9 @@ public partial class Game : Control, IInjectable {
 		// 1. All busy elements are still attached to the tree and will be destroyed with the scene, so we don't need to
 		// do anything with them.
 		// But the non busy and valid element are outside of the scene tree in the pool, so, loop them and free them:
-		PoolContainer.ForEachElementInAllPools(e => ((Node)e).Free());
+		PoolNodeContainer.Drain().ForEach(node => node.Free());
 		// 2. Remove the data from the pool to avoid having references to busy elements which are going to die with the scene
-		PoolContainer.Clear();
+		PoolNodeContainer.Clear();
 		GameLoaderContainer.UnloadGameResources();
 		WorldScene.QueueFree();
 		WorldScene = null;
@@ -262,8 +273,11 @@ public partial class Game : Control, IInjectable {
 
 	private async Task FreeSceneAndKeepPoolData() {
 		// This line keeps the godot nodes in the pool removing them from scene, because the scene is going to be freed
-		PoolContainer.ForEachElementInAllPools(e => ((Node)e).RemoveFromParent());
-		WorldScene.QueueFree();
+		// The busy nodes are the node who still belongs to the tree, so loop them and remove them from the tree is a way
+		// to keep them in the pool ready for the next game
+		PoolNodeContainer.GetAllBusy().ForEach(node => node.Free());
+		WorldScene.Free();
+		await GetTree().AwaitProcessFrame();
 		WorldScene = null;
 		GC.GetTotalMemory(true);
 		PrintOrphanNodes();

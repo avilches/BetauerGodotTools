@@ -1,4 +1,5 @@
 using System;
+using System.Text.Json.Serialization;
 using Betauer.Application.Persistent;
 using Veronenger.Character.Npc;
 using Veronenger.Config;
@@ -41,8 +42,11 @@ public class NpcGameObject : GameObject<NpcNode>  {
 }
 
 public class NpcSaveObject : SaveObject<NpcGameObject> {
-    public float Health { get; }
-    public float MaxHealth { get; }
+    [JsonInclude] public float Health { get; set; }
+    [JsonInclude] public float MaxHealth { get; set; }
+
+    public NpcSaveObject() {
+    }
 
     public NpcSaveObject(NpcGameObject npc) : base(npc) {
         Health = npc.Status.Health;

@@ -1,4 +1,5 @@
 using System;
+using System.Text.Json.Serialization;
 using Betauer.Application.Persistent;
 using Betauer.Core;
 using Godot;
@@ -53,14 +54,17 @@ public class WeaponRangeGameObject : WeaponGameObject {
 }
 
 public class WeaponRangeSaveObject : SaveObject<WeaponRangeGameObject> {
-    public float DamageBase { get; }
-    public float DamageFactor { get; }
-    public int EnemiesPerHit { get; }
-    public float DelayBetweenShots { get; }
-    public bool Auto { get; }
-    public int MagazineSize { get; }
-    public float Dispersion { get; }
-    public int Ammo { get; }
+    [JsonInclude] public float DamageBase { get; set; }
+    [JsonInclude] public float DamageFactor { get; set; }
+    [JsonInclude] public int EnemiesPerHit { get; set; }
+    [JsonInclude] public float DelayBetweenShots { get; set; }
+    [JsonInclude] public bool Auto { get; set; }
+    [JsonInclude] public int MagazineSize { get; set; }
+    [JsonInclude] public float Dispersion { get; set; }
+    [JsonInclude] public int Ammo { get; set; }
+
+    public WeaponRangeSaveObject() {
+    }
 
     public WeaponRangeSaveObject(WeaponRangeGameObject weapon) : base(weapon) {
         DamageBase = weapon.DamageBase;

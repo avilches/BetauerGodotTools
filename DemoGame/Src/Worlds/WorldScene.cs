@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Betauer.Application.Lifecycle.Pool;
 using Betauer.Application.Persistent;
 using Betauer.Camera;
 using Betauer.Core;
 using Betauer.Core.Nodes;
-using Betauer.Core.Pool;
 using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
 using Betauer.Input.Joypad;
@@ -27,9 +27,9 @@ public partial class WorldScene : Node {
 	
 	[Inject] private IFactory<StageController> StageControllerFactory { get; set; }
 	[Inject] private IFactory<PlayerNode> PlayerFactory { get; set; }
-	[Inject] private IPool<PickableItemNode> PickableItemPool { get; set; }
-	[Inject] private IPool<ProjectileTrail> ProjectilePool { get; set; }
-	[Inject] private IPool<ZombieNode> ZombiePool { get; set; }
+	[Inject] private NodePool<PickableItemNode> PickableItemPool { get; set; }
+	[Inject] private NodePool<ProjectileTrail> ProjectilePool { get; set; }
+	[Inject] private NodePool<ZombieNode> ZombiePool { get; set; }
 
 	public List<PlayerNode> Players { get; } = new();
 
@@ -124,31 +124,40 @@ public partial class WorldScene : Node {
 	}
 
 	public void LoadGame(Dictionary<int, SaveObject> objects) {
-		
+		var gameObject = GameObjectRepository.Get<PlayerGameObject>("Player0")!;
+		var saveObject = (PlayerSaveObject)objects[gameObject.Id];
+		LoadPlayer(gameObject, saveObject);
 	}
 
-	public PlayerNode AddPlayerToScene(PlayerMapping? playerMapping = null, Action? onReady = null) {
-		playerMapping ??= JoypadPlayersMapping.Mapping.Last();
-		if (playerMapping == null) throw new ArgumentNullException(nameof(playerMapping));
-		var playerNode = PlayerFactory.Get();
-		playerNode.SetPlayerMapping(playerMapping);
-		playerNode.Ready += () => {
+	private void LoadPlayer(PlayerGameObject playerGameObject, PlayerSaveObject saveObject) {
+		var playerMapping = JoypadPlayersMapping.Mapping[0];
+		playerGameObject.Load(ConfigManager.PlayerConfig, saveObject);
+		var playerNode = CreatePlayerNode(playerGameObject, playerMapping);
+		this.AddChild(playerNode, () => {
+			playerNode.GlobalPosition = saveObject.GlobalPosition;
+		});
+	}
+
+	public PlayerNode AddNewPlayer(PlayerMapping playerMapping, Action? onReady = null) {
+		var name = $"Player{playerMapping.Player}";
+		var playerGameObject = GameObjectRepository.Create<PlayerGameObject>(name, name).Configure(ConfigManager.PlayerConfig);
+		var playerNode = CreatePlayerNode(playerGameObject, playerMapping);
+		this.AddChild(playerNode, () => {
 			playerNode.GlobalPosition = GetPositionFromMarker("SpawnPlayer"); // + new Vector2(playerMapping.Player * 100, 0);
-		};
-		CreatePlayer(playerNode, ConfigManager.PlayerConfig);
-		AddChild(playerNode);
+		});
+		return playerNode;
+	}
+
+	private PlayerNode CreatePlayerNode(PlayerGameObject playerGameObject, PlayerMapping playerMapping) {
+		var playerNode = PlayerFactory.Get();
+		playerGameObject.LinkNode(playerNode);
+		playerNode.SetPlayerMapping(playerMapping);
+		Players.Add(playerNode);
 		return playerNode;
 	}
 
 	public bool IsPlayer(CharacterBody2D player) {
 		return Players.Find(p => p.CharacterBody2D == player) != null;
-	}
-
-	public PlayerGameObject CreatePlayer(PlayerNode playerNode, PlayerConfig playerConfig) {
-		Players.Add(playerNode);
-		var playerItem = GameObjectRepository.Create<PlayerGameObject>($"Player{playerNode.PlayerMapping.Player}").Configure(playerConfig);
-		playerItem.LinkNode(playerNode);
-		return playerItem;
 	}
 
 

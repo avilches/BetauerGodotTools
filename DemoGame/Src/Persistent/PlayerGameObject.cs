@@ -1,5 +1,6 @@
+using System.Text.Json.Serialization;
 using Betauer.Application.Persistent;
-using Betauer.Core;
+using Godot;
 using Godot.Collections;
 using Veronenger.Character.Player;
 using Veronenger.Config;
@@ -27,13 +28,17 @@ public class PlayerGameObject : GameObject<PlayerNode> {
 }
 
 public class PlayerSaveObject : SaveObject<PlayerGameObject> {
-    public float Health { get; }
-    public float MaxHealth { get; }
-    public Dictionary<AmmoType, int> Ammo { get; } = new();
+    [JsonInclude] public float Health { get; set; }
+    [JsonInclude] public float MaxHealth { get; set; }
+    [JsonInclude] public Dictionary<AmmoType, int> Ammo { get; set; }
+    [JsonInclude] public Vector2 GlobalPosition { get; set; }
+
+    public PlayerSaveObject() {}
 
     public PlayerSaveObject(PlayerGameObject player) : base(player) {
         Health = player.Status.Health;
         MaxHealth = player.Status.MaxHealth;
-        player.Status.Ammo.ForEach(ammo => Ammo[ammo.Key] = ammo.Value);
+        Ammo = new Dictionary<AmmoType, int>(player.Status.Ammo);
+        GlobalPosition = player.Node!.GlobalPosition;
     }
 }
