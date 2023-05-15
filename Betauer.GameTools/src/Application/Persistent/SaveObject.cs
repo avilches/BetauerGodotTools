@@ -5,16 +5,13 @@ using Betauer.Core;
 namespace Betauer.Application.Persistent;
 
 public abstract class SaveObject {
-    [JsonInclude]
-    public int Id { get; set; }
+    [JsonInclude] public int Id { get; set; }
+    [JsonInclude] public string Name { get; set; }
+    [JsonInclude] public string? Alias { get; set; }
     
-    [JsonInclude]
-    public string Name { get; set; }
-
-    [JsonInclude]
-    public string? Alias { get; set; }
-    
-    public abstract Type GameObjectType { get; }
+    [JsonIgnore] public GameObjectRepository GameObjectRepository;
+    [JsonIgnore] public abstract Type GameObjectType { get; }
+    // [JsonIgnore] public abstract GameObject GameObject { get; }
 
     protected SaveObject() {
     }
@@ -26,9 +23,9 @@ public abstract class SaveObject {
     }
 }
 
-public abstract class SaveObject<T> : SaveObject {
-    [JsonIgnore]
-    public override Type GameObjectType => typeof(T);
+public abstract class SaveObject<T> : SaveObject where T : GameObject {
+    [JsonIgnore] public override Type GameObjectType => typeof(T);
+    [JsonIgnore] public T GameObject => GameObjectRepository.Get<T>(Id);
 
     protected SaveObject() {
     }

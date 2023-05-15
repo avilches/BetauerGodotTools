@@ -1,32 +1,42 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
+using Betauer.Core;
+using Betauer.DI;
+using Betauer.DI.Attributes;
 
 namespace Betauer.Application.Persistent;
 
-public abstract class GameObjectRepository {
+public class GameObjectRepository {
+    [Inject] protected Container Container { get; set; }
 
     private int _lastId = 0;
     private readonly Dictionary<int, GameObject> _registry = new();
     private readonly Dictionary<string, GameObject> _alias = new();
 
-    public void Clear() {
+    public void Initialize(List<SaveObject>? objects = null) {
         _lastId = 0;
         _registry.Clear();
         _alias.Clear();
+        objects?.ForEach(saveObject => {
+            saveObject.GameObjectRepository = this;
+            CreateFrom(saveObject);
+        });
     }
 
-    public TItem Create<TItem>(string name, string? alias = null) where TItem : GameObject {
-        TItem item = Activator.CreateInstance<TItem>();
-        item.Name = name;
-        item.Alias = alias;
-        item.Id = ++_lastId;
-        return Add(item);
+    public List<SaveObject> GetSaveObjects() {
+        return _registry.Values.Select(g => g.CreateSaveObject()).ToList();
     }
 
-    private GameObject Create(SaveObject saveObject) {
+    public T Create<T>(string name, string? alias = null) where T : GameObject {
+        T gameObject = Activator.CreateInstance<T>();
+        gameObject.Name = name;
+        gameObject.Alias = alias;
+        gameObject.Id = ++_lastId;
+        return Add(gameObject);
+    }
+
+    public GameObject CreateFrom(SaveObject saveObject) {
         GameObject item = (GameObject)Activator.CreateInstance(saveObject.GameObjectType)!;
         item.Name = saveObject.Name;
         item.Alias = saveObject.Alias;
@@ -35,21 +45,27 @@ public abstract class GameObjectRepository {
         return Add(item);
     }
 
+    public T CreateFrom<T>(SaveObject<T> saveObject) where T : GameObject {
+        if (saveObject.GameObjectType != typeof(T))
+            throw new Exception($"Invalid type: Create<{typeof(T).GetTypeName()}> is receiving a wrong type {saveObject.GameObjectType.GetTypeName()}");
+        return (T)CreateFrom((SaveObject)saveObject);
+    }
+
     public GameObject Get(int id) => _registry[id];
 
     public GameObject? GetOrNull(int id) => _registry.TryGetValue(id, out var r) ? r : null;
 
-    public TItem Get<TItem>(int id) where TItem : GameObject => (TItem)_registry[id];
+    public T Get<T>(int id) where T : GameObject => (T)_registry[id];
 
-    public TItem? GetOrNull<TItem>(int id) where TItem : GameObject => _registry.TryGetValue(id, out var r) ? r as TItem : null;
+    public T? GetOrNull<T>(int id) where T : GameObject => _registry.TryGetValue(id, out var r) ? r as T : null;
 
     public GameObject Get(string alias) => _alias[alias];
 
     public GameObject? GetOrNull(string alias) => _alias.TryGetValue(alias, out var r) ? r : null;
 
-    public TItem Get<TItem>(string alias) where TItem : GameObject => (TItem)_alias[alias];
+    public T Get<T>(string alias) where T : GameObject => (T)_alias[alias];
 
-    public TItem? GetOrNull<TItem>(string alias) where TItem : GameObject => _alias.TryGetValue(alias, out var r) ? r as TItem : null;
+    public T? GetOrNull<T>(string alias) where T : GameObject => _alias.TryGetValue(alias, out var r) ? r as T : null;
 
     public void Remove(GameObject gameObject) {
         if (gameObject.Alias != null) _alias.Remove(gameObject.Alias);
@@ -61,35 +77,10 @@ public abstract class GameObjectRepository {
         Remove(_registry[id]);
     }
 
-    private TItem Add<TItem>(TItem item) where TItem : GameObject {
-        _registry.Add(item.Id, item);
-        if (item.Alias != null) _alias.Add(item.Alias, item);
-        return item;
+    private T Add<T>(T gameObject) where T : GameObject {
+        _registry.Add(gameObject.Id, gameObject);
+        if (gameObject.Alias != null) _alias.Add(gameObject.Alias, gameObject);
+        Container.InjectServices(gameObject);
+        return gameObject;
     }
-
-    public async Task Save(string saveName) {
-        var fileName = AppTools.GetUserFile(saveName);
-        var saveObjects = _registry.Values.Select(g => g.CreateSaveObject());
-        await using FileStream createStream = File.Create(fileName);
-        await SaveObjects(createStream, saveObjects);
-    }
-
-    public async Task<Dictionary<int, SaveObject>> Load(string saveName) {
-        var fileName = AppTools.GetUserFile(saveName);
-        await using FileStream openStream = File.OpenRead(fileName);
-        var objects = await LoadSaveObjects(openStream);
-        Clear();
-
-        var save = new Dictionary<int, SaveObject>();
-        foreach (var saveObject in objects) {
-            save[saveObject.Id] = saveObject;
-            Create(saveObject);
-        }
-        return save;
-    }
-
-    public abstract Task SaveObjects(FileStream createStream, IEnumerable<SaveObject> saveObjects);
-
-    public abstract Task<List<SaveObject>> LoadSaveObjects(FileStream openStream);
-    
 }
