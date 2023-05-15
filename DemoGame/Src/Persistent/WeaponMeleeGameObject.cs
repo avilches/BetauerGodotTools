@@ -1,3 +1,4 @@
+using System;
 using System.Text.Json.Serialization;
 using Betauer.Application.Persistent;
 using Veronenger.Config;
@@ -17,6 +18,14 @@ public class WeaponMeleeGameObject : WeaponGameObject {
 
     public override SaveObject CreateSaveObject() {
         return new WeaponMeleeSaveObject(this);
+    }
+
+    public override void New() {
+    }
+
+    protected override Type SaveObjectType => typeof(WeaponMeleeSaveObject);
+
+    protected override void DoLoad(SaveObject saveObject) {
     }
 }
 

@@ -1,5 +1,5 @@
 namespace Betauer.Application.Persistent;
 
-public interface INodeWithGameObject {
+public interface INodeGameObject {
     public GameObject GameObject { get; set; }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Text.Json.Serialization;
 using Betauer.Application.Persistent;
+using Betauer.DI.Attributes;
 using Godot;
 using Veronenger.Character.Npc;
 using Veronenger.Config;
@@ -8,20 +9,26 @@ using Veronenger.Config;
 namespace Veronenger.Persistent;
 
 public class NpcGameObject : GameObject<NpcNode>  {
+    [Inject] private ConfigManager ConfigManager { get; set; }
     public NpcStatus Status { get; private set; }
     
     public NpcConfig Config { get; private set; }
 
-    public NpcGameObject Configure(NpcConfig config) {
-        Config = config;
-        Status = new NpcStatus(config.InitialMaxHealth, config.InitialHealth);
-        return this;
+    public override void New() {
+        Config = ConfigManager.ZombieConfig;
+        Status = new NpcStatus(Config.InitialMaxHealth, Config.InitialHealth);
     }
 
-    public NpcGameObject Load(NpcConfig config, NpcSaveObject npcSaveObject) {
-        Config = config;
-        Status = new NpcStatus(npcSaveObject);
-        return this;
+    protected override Type SaveObjectType => typeof(NpcSaveObject);
+
+    protected override void DoLoad(SaveObject s) {
+        NpcSaveObject saveObject = (NpcSaveObject) s;
+        Config = ConfigManager.ZombieConfig;
+        Status = new NpcStatus(saveObject);
+    }
+
+    public override SaveObject CreateSaveObject() {
+        return new NpcSaveObject(this);
     }
 
     public class NpcStatus {
@@ -46,10 +53,6 @@ public class NpcGameObject : GameObject<NpcNode>  {
         }
 
         public bool IsDead() => Health <= 0f;
-    }
-
-    public override SaveObject CreateSaveObject() {
-        return new NpcSaveObject(this);
     }
 }
 

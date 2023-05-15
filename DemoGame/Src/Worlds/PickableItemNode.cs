@@ -16,7 +16,7 @@ using Vector2 = Godot.Vector2;
 
 namespace Veronenger.Worlds;
 
-public partial class PickableItemNode : Node, IInjectable, INodeWithGameObject {
+public partial class PickableItemNode : Node, IInjectable, INodeGameObject {
 	public enum State {
 		None, Dropping, Available, PickingUp, Finish
 	}

@@ -6,7 +6,7 @@ using Veronenger.Persistent;
 namespace Veronenger.Character.Npc;
 
 
-public abstract partial class NpcNode : Node, INodeWithGameObject {
+public abstract partial class NpcNode : Node, INodeGameObject {
 
 	public NpcGameObject.NpcStatus Status => NpcGameObject.Status;
 	public NpcConfig NpcConfig => NpcGameObject.Config;

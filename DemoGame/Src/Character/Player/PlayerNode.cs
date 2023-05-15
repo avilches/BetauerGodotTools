@@ -51,7 +51,7 @@ public enum PlayerEvent {
 	Death,
 }
 
-public partial class PlayerNode : Node, IInjectable, INodeWithGameObject {
+public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 
 	public Vector2 GlobalPosition {
 		get => CharacterBody2D.GlobalPosition;
@@ -81,6 +81,7 @@ public partial class PlayerNode : Node, IInjectable, INodeWithGameObject {
 	[Inject] private EventBus EventBus { get; set; }
 	[Inject] private InputActionsContainer PlayerActionsContainer { get; set; }
 	[Inject] private HUD HudScene { get; set; }
+	[Inject] private PlayerConfig PlayerConfig { get; set; }
 
 	private readonly FsmNodeSync<PlayerState, PlayerEvent> _fsm = new(PlayerState.Idle, "Player.FSM", true);
 
@@ -114,12 +115,8 @@ public partial class PlayerNode : Node, IInjectable, INodeWithGameObject {
 	private AttackState _attackState = AttackState.None;
 	private readonly GodotStopwatch _stateTimer = new(false, true);
 
-	private PlayerStatus Status => PlayerGameObject.Status;
-	private PlayerConfig PlayerConfig => PlayerGameObject.Config;
-
 	public GameObject GameObject { get; set; }
-
-	private PlayerGameObject PlayerGameObject => (PlayerGameObject)GameObject;
+	public PlayerGameObject Status => (PlayerGameObject)GameObject;
 
 	public void PostInject() {
 		AddChild(_fsm);

@@ -1,30 +1,86 @@
+using System;
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using Betauer.Application.Persistent;
+using Betauer.Core;
+using Betauer.DI.Attributes;
 using Godot;
-using Godot.Collections;
 using Veronenger.Character.Player;
 using Veronenger.Config;
 
-namespace Veronenger.Persistent; 
+namespace Veronenger.Persistent;
 
 public class PlayerGameObject : GameObject<PlayerNode> {
-    public PlayerStatus Status;
-    public PlayerConfig Config;
+    [Inject] public PlayerConfig PlayerConfig { get; private set; }
 
-    public PlayerGameObject Configure(PlayerConfig config) {
-        Config = config;
-        Status = new PlayerStatus(config);
-        return this;
+    public float Health { get; private set; }
+    public float MaxHealth { get; private set; }
+    public float HealthPercent => Health / MaxHealth;
+    public bool Invincible { get; set; } = false; // true when the Hurt state starts. A timeout sets it to false later
+    public bool UnderAttack { get; set; } = false; // true when the first attack signal is emitted. false when Hurt state ends.
+    public int AvailableHits { get; set; } = 0;
+
+    public Dictionary<AmmoType, int> Ammo { get; } = new();
+
+    public event Action<PlayerHealthEvent> OnHealthUpdate;
+
+    public PlayerGameObject() {
+        Invincible = false;
+        UnderAttack = false;
+        AvailableHits = 0;
+        Enum.GetValues<AmmoType>().ForEach(ammoType => Ammo[ammoType] = 10);
     }
 
-
-    public PlayerGameObject Load(PlayerConfig config, PlayerSaveObject saveObject) {
-        Config = config;
-        Status = new PlayerStatus(saveObject);
-        return this;
+    public override void New() {
+        MaxHealth = PlayerConfig.InitialMaxHealth;
+        Health = Math.Clamp(PlayerConfig.InitialHealth, 0, PlayerConfig.InitialMaxHealth);
     }
 
-    public override SaveObject CreateSaveObject() => new PlayerSaveObject(this);
+    protected override Type SaveObjectType => typeof(PlayerSaveObject);
+
+    protected override void DoLoad(SaveObject s) {
+        PlayerSaveObject saveObject = (PlayerSaveObject)s;
+        MaxHealth = saveObject.MaxHealth;
+        Health = saveObject.Health;
+        Ammo.ForEach(ammo => saveObject.Ammo[ammo.Key] = ammo.Value);
+    }
+
+    public override SaveObject CreateSaveObject() {
+        return new PlayerSaveObject(this);
+    }
+
+    public int GetAmmo(AmmoType ammoType) => Ammo[ammoType];
+    public bool HasAmmo(AmmoType ammoType) => Ammo[ammoType] > 0;
+    public void UpdateAmmo(AmmoType ammoType, int amount) => Ammo[ammoType] += amount;
+
+    public void UpdateHealth(float update) => SetHealth(Health + update);
+    public void UpdateMaxHealth(float update) => SetMaxHealth(MaxHealth + update);
+
+    public void Reload(WeaponRangeGameObject weapon) {
+        var needed = weapon.MagazineSize - weapon.Ammo;
+        var available = GetAmmo(weapon.AmmoType);
+        var toReload = Math.Min(needed, available);
+        UpdateAmmo(weapon.AmmoType, -toReload);
+        weapon.Ammo += toReload;
+        Console.WriteLine($"{weapon.AmmoType} reloaded {toReload} ammo. Now have {GetAmmo(weapon.AmmoType)} ammo.");
+    }
+
+    public void SetHealth(float health) {
+        var fromHealth = Health;
+        Health = Math.Clamp(health, 0, MaxHealth);
+        var toHealth = Health;
+        OnHealthUpdate?.Invoke(new PlayerHealthEvent(fromHealth, toHealth, MaxHealth));
+    }
+
+    public void SetMaxHealth(float newMaxHealth) {
+        var fromHealth = Health;
+        MaxHealth = newMaxHealth;
+        Health = Math.Clamp(Health, 0, MaxHealth);
+        var toHealth = Health;
+        OnHealthUpdate?.Invoke(new PlayerHealthEvent(fromHealth, toHealth, MaxHealth));
+    }
+
+    public bool IsDead() => Health <= 0f;
 }
 
 public class PlayerSaveObject : SaveObject<PlayerGameObject> {
@@ -36,9 +92,9 @@ public class PlayerSaveObject : SaveObject<PlayerGameObject> {
     public PlayerSaveObject() {}
 
     public PlayerSaveObject(PlayerGameObject player) : base(player) {
-        Health = player.Status.Health;
-        MaxHealth = player.Status.MaxHealth;
-        Ammo = new Dictionary<AmmoType, int>(player.Status.Ammo);
+        Health = player.Health;
+        MaxHealth = player.MaxHealth;
+        Ammo = new Dictionary<AmmoType, int>(player.Ammo);
         GlobalPosition = player.Node!.GlobalPosition;
     }
 }

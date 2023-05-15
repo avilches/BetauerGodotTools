@@ -20,7 +20,7 @@ public class GameObjectRepository {
         _alias.Clear();
         objects?.ForEach(saveObject => {
             saveObject.GameObjectRepository = this;
-            CreateFrom(saveObject);
+            Create(saveObject);
         });
     }
 
@@ -33,22 +33,28 @@ public class GameObjectRepository {
         gameObject.Name = name;
         gameObject.Alias = alias;
         gameObject.Id = ++_lastId;
+        
+        Container.InjectServices(gameObject);
+        gameObject.New();
         return Add(gameObject);
     }
 
-    public GameObject CreateFrom(SaveObject saveObject) {
-        GameObject item = (GameObject)Activator.CreateInstance(saveObject.GameObjectType)!;
-        item.Name = saveObject.Name;
-        item.Alias = saveObject.Alias;
-        item.Id = saveObject.Id;
-        _lastId = Math.Max(_lastId, item.Id);
-        return Add(item);
+    private GameObject Create(SaveObject saveObject) {
+        GameObject gameObject = (GameObject)Activator.CreateInstance(saveObject.GameObjectType)!;
+        gameObject.Name = saveObject.Name;
+        gameObject.Alias = saveObject.Alias;
+        gameObject.Id = saveObject.Id;
+        _lastId = Math.Max(_lastId, gameObject.Id);
+
+        Container.InjectServices(gameObject);
+        gameObject.Load(saveObject);
+        return Add(gameObject);
     }
 
     public T CreateFrom<T>(SaveObject<T> saveObject) where T : GameObject {
         if (saveObject.GameObjectType != typeof(T))
             throw new Exception($"Invalid type: Create<{typeof(T).GetTypeName()}> is receiving a wrong type {saveObject.GameObjectType.GetTypeName()}");
-        return (T)CreateFrom((SaveObject)saveObject);
+        return (T)Create((SaveObject)saveObject);
     }
 
     public GameObject Get(int id) => _registry[id];
@@ -80,7 +86,6 @@ public class GameObjectRepository {
     private T Add<T>(T gameObject) where T : GameObject {
         _registry.Add(gameObject.Id, gameObject);
         if (gameObject.Alias != null) _alias.Add(gameObject.Alias, gameObject);
-        Container.InjectServices(gameObject);
         return gameObject;
     }
 }

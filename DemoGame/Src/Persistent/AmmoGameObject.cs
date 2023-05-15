@@ -1,3 +1,4 @@
+using System;
 using System.Text.Json.Serialization;
 using Betauer.Application.Persistent;
 using Veronenger.Config;
@@ -13,6 +14,15 @@ public class AmmoGameObject : PickableGameObject {
         AmmoType = ammoType;
         Amount = amount;
         return this;
+    }
+
+    public override void New() {
+    }
+
+    protected override Type SaveObjectType => typeof(AmmoSaveObject);
+    
+    protected override void DoLoad(SaveObject s) {
+        AmmoSaveObject saveObject = (AmmoSaveObject) s;
     }
 
     public override SaveObject CreateSaveObject() {

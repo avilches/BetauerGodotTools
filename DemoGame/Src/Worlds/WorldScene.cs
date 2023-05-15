@@ -124,19 +124,19 @@ public partial class WorldScene : Node {
 
 	public void AddNewZombie(Vector2 position) {
 		var zombieNode = ZombiePool.Get();
-		GameObjectRepository.Create<NpcGameObject>("Zombie").Configure(ConfigManager.ZombieConfig).LinkNode(zombieNode);
+		GameObjectRepository.Create<NpcGameObject>("Zombie").LinkNode(zombieNode);
 		GetNode("EnemySpawn")!.AddChild(zombieNode, () => zombieNode.GlobalPosition = position);
 	}
 
 	public void LoadZombie(NpcSaveObject npcSaveObject) {
 		var zombieNode = ZombiePool.Get();
-		npcSaveObject.GameObject.Load(ConfigManager.ZombieConfig, npcSaveObject).LinkNode(zombieNode);
+		npcSaveObject.GameObject.LinkNode(zombieNode);
 		GetNode("EnemySpawn")!.AddChild(zombieNode, () => zombieNode.GlobalPosition = npcSaveObject.GlobalPosition);
 	}
 
 	public PlayerNode AddNewPlayer(PlayerMapping playerMapping, Action? onReady = null) {
 		var name = $"Player{playerMapping.Player}";
-		var playerGameObject = GameObjectRepository.Create<PlayerGameObject>(name, name).Configure(ConfigManager.PlayerConfig);
+		var playerGameObject = GameObjectRepository.Create<PlayerGameObject>(name, name);
 		var playerNode = CreatePlayerNode(playerGameObject, playerMapping);
 		this.AddChild(playerNode, () => {
 			playerNode.GlobalPosition = GetPositionFromMarker("SpawnPlayer"); // + new Vector2(playerMapping.Player * 100, 0);
@@ -145,7 +145,7 @@ public partial class WorldScene : Node {
 	}
 
 	public PlayerNode LoadPlayer(PlayerMapping playerMapping, PlayerSaveObject saveObject) {
-		saveObject.GameObject.Load(ConfigManager.PlayerConfig, saveObject);
+		saveObject.GameObject.Load(saveObject);
 		var playerNode = CreatePlayerNode(saveObject.GameObject, playerMapping);
 		this.AddChild(playerNode, () => {
 			playerNode.GlobalPosition = saveObject.GlobalPosition;
