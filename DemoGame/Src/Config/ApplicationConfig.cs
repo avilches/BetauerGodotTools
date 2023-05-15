@@ -40,27 +40,24 @@ public class ApplicationConfig {
 		true,
 		1f);
 
-	[Singleton] public DebugOverlayManager DebugOverlayManager => new();
-
-	[Singleton] public GameObjectRepository GameObjectRepository() {
-		var gameObjectRepository = new JsonGameObjectRepository {
+	[Singleton] public IGameObjectLoader GameObjectLoader() {
+		var gameObjectRepository = new JsonGameLoader {
 			JsonPretty = true,
-			JsonConverters = new JsonConverter[] {
+			JsonConverters = {
 				new JsonStringEnumConverter(JsonNamingPolicy.CamelCase),
 			},
-			JsonPolymorphismOptions = new JsonPolymorphismOptions {
-				DerivedTypes = {
-					new JsonDerivedType(typeof(PlayerSaveObject), "Player"),
-					new JsonDerivedType(typeof(NpcSaveObject), "Npc"),
-					new JsonDerivedType(typeof(WeaponRangeSaveObject), "WeaponRange"),
-					new JsonDerivedType(typeof(WeaponMeleeSaveObject), "WeaponMelee"),
-					new JsonDerivedType(typeof(AmmoSaveObject), "Ammo"),
-				}
+			JsonDerivedTypes = {
+				new JsonDerivedType(typeof(PlayerSaveObject), "Player"),
+				new JsonDerivedType(typeof(NpcSaveObject), "Npc"),
+				new JsonDerivedType(typeof(WeaponRangeSaveObject), "WeaponRange"),
+				new JsonDerivedType(typeof(WeaponMeleeSaveObject), "WeaponMelee"),
+				new JsonDerivedType(typeof(AmmoSaveObject), "Ammo"),
 			}
 		};
 		return gameObjectRepository;
 	}
-
+	[Singleton] public DebugOverlayManager DebugOverlayManager => new();
+	[Singleton] public GameObjectRepository GameObjectRepository => new();
 	[Singleton] public UiActionsContainer UiActionsContainer => new();
 	[Singleton] public InputActionsContainer PlayerActionsContainer => new();
 	[Singleton] public JoypadPlayersMapping JoypadPlayersMapping => new();
