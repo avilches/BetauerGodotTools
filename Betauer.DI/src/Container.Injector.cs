@@ -40,6 +40,10 @@ public partial class Container {
             var name = setter.SetterAttribute.Name;
             if (name != null) {
                 // Explicit name with [Inject(Name = "")]
+                if (setter.Type.ImplementsInterface(typeof(IGet<>)) && !name.StartsWith("Factory:")) {
+                    // If setter is IFactory<>, then the name is "Factory:pepe"
+                    name = $"Factory:{name}";
+                }
                 if (TryInjectFieldByName(lifetime, target, context, setter, name)) {
                     Logger.Debug($"Injected {target.GetType().GetTypeName()} ({target.GetHashCode():x8}) | {setter} | Name taken from [Inject(\"{name}\")");
                     return;
