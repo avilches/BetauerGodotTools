@@ -1,4 +1,6 @@
 using System;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 using System.Threading.Tasks;
 using Betauer.Application;
@@ -39,15 +41,20 @@ public class ApplicationConfig {
 		1f);
 
 	[Singleton] public DebugOverlayManager DebugOverlayManager => new();
+
 	[Singleton] public GameObjectRepository GameObjectRepository() {
-		var gameObjectRepository = new GameObjectRepository {
+		var gameObjectRepository = new JsonGameObjectRepository {
+			JsonPretty = true,
+			JsonConverters = new JsonConverter[] {
+				new JsonStringEnumConverter(JsonNamingPolicy.CamelCase),
+			},
 			JsonPolymorphismOptions = new JsonPolymorphismOptions {
 				DerivedTypes = {
 					new JsonDerivedType(typeof(PlayerSaveObject), "Player"),
 					new JsonDerivedType(typeof(NpcSaveObject), "Npc"),
 					new JsonDerivedType(typeof(WeaponRangeSaveObject), "WeaponRange"),
 					new JsonDerivedType(typeof(WeaponMeleeSaveObject), "WeaponMelee"),
-					new JsonDerivedType(typeof(AmmoSaveObject), "Ammo"), 
+					new JsonDerivedType(typeof(AmmoSaveObject), "Ammo"),
 				}
 			}
 		};

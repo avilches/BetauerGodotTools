@@ -86,9 +86,9 @@ public partial class Game : Control, IInjectable {
 			EnablePlayer2(false);
 			GetViewport().SetInputAsHandled();
 		} else if (e.IsKeyReleased(Key.F5)) {
-			GameObjectRepository.Save();
+			Save("savegame.json");
 		} else if (e.IsKeyReleased(Key.F6)) {
-			LoadInGame();
+			LoadInGame("savegame.json");
 		}
 	}
 
@@ -101,8 +101,8 @@ public partial class Game : Control, IInjectable {
 		WorldScene.StartNewGame();
 	}
 
-	public async void LoadFromMenu() {
-		var (success, objects) = await LoadData();
+	public async void LoadFromMenu(string saveName) {
+		var (success, objects) = await LoadData(saveName);
 		if (!success) return;
 
 		await GameLoaderContainer.LoadGameResources();
@@ -110,13 +110,23 @@ public partial class Game : Control, IInjectable {
 		LoadGame(objects!);
 	}
 
-	public async void LoadInGame() {
-		var (success, objects) = await LoadData();
+	public async void LoadInGame(string saveName) {
+		var (success, objects) = await LoadData(saveName);
 		if (!success) return;
 
 		await FreeSceneAndKeepPoolData();
 		InitializeWorld();
 		LoadGame(objects!);
+	}
+	
+	public async Task Save(string saveName) {
+		// TODO: Show saving screen
+		try {
+			await GameObjectRepository.Save(saveName);
+		} catch (Exception e) {
+			// TODO: Hide saving screen and show error
+			Console.WriteLine(e);
+		}
 	}
 	
 	private void LoadGame(Dictionary<int, SaveObject> saveObjects) {
@@ -127,10 +137,10 @@ public partial class Game : Control, IInjectable {
 		// TODO: hide loading screen
 	}
 
-	public async Task<(bool, Dictionary<int, SaveObject>?)> LoadData() {
+	public async Task<(bool, Dictionary<int, SaveObject>?)> LoadData(string save) {
 		// TODO: Show loading screen
 		try {
-			var objects = await GameObjectRepository.Load();
+			var objects = await GameObjectRepository.Load(save);
 			return (true, objects);
 		} catch (Exception e) {
 			// TODO: Hide loading screen and show error

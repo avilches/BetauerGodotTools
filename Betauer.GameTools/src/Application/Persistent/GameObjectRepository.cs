@@ -2,22 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Text.Json.Serialization.Metadata;
 using System.Threading.Tasks;
-using Betauer.Application.Persistent.Json;
-using Betauer.Core;
 
 namespace Betauer.Application.Persistent;
 
-public class GameObjectRepository {
-
-    public JsonPolymorphismOptions JsonPolymorphismOptions { get; init; }
-    public IList<JsonConverter> JsonConverters { get; init; }
-    public bool JsonPretty { get; init; }
-    private JsonSerializerOptions? _jsonSerializerOptions;
-    private JsonSerializerOptions JsonSerializerOptions => _jsonSerializerOptions ??= BuildJsonSerializerOptions();
+public abstract class GameObjectRepository {
 
     private int _lastId = 0;
     private readonly Dictionary<int, GameObject> _registry = new();
@@ -78,19 +67,17 @@ public class GameObjectRepository {
         return item;
     }
 
-    public async void Save(string saveName = "savegame.json") {
-        await Persist(saveName, _registry.Values.Select(g => g.CreateSaveObject()));
-    }
-
-
-    public async Task Persist(string saveName, IEnumerable<SaveObject> saveObjects) {
-        var fileName = AppTools.GetUserFile(AppTools.GetUserFile(saveName));
+    public async Task Save(string saveName) {
+        var fileName = AppTools.GetUserFile(saveName);
+        var saveObjects = _registry.Values.Select(g => g.CreateSaveObject());
         await using FileStream createStream = File.Create(fileName);
-        await JsonSerializer.SerializeAsync(createStream, saveObjects, JsonSerializerOptions);
+        await SaveObjects(createStream, saveObjects);
     }
 
-    public async Task<Dictionary<int, SaveObject>> Load(string saveName = "savegame.json") {
-        var objects = await LoadSaveObjects(saveName);
+    public async Task<Dictionary<int, SaveObject>> Load(string saveName) {
+        var fileName = AppTools.GetUserFile(saveName);
+        await using FileStream openStream = File.OpenRead(fileName);
+        var objects = await LoadSaveObjects(openStream);
         Clear();
 
         var save = new Dictionary<int, SaveObject>();
@@ -101,35 +88,8 @@ public class GameObjectRepository {
         return save;
     }
 
-    public async Task<List<SaveObject>> LoadSaveObjects(string saveName) {
-        await using FileStream createStream = File.OpenRead(AppTools.GetUserFile(saveName));
-        return (await JsonSerializer.DeserializeAsync<List<SaveObject>>(createStream, JsonSerializerOptions))!;
-    }
-    
-    private JsonSerializerOptions BuildJsonSerializerOptions() {
-        var resolver = new DefaultJsonTypeInfoResolver();
-        void Item(JsonTypeInfo typeInfo) {
-            if (typeInfo.Type != typeof(SaveObject)) return;
-            typeInfo.PolymorphismOptions = JsonPolymorphismOptions;
-        }
-        resolver.Modifiers.Add(Item);
+    public abstract Task SaveObjects(FileStream createStream, IEnumerable<SaveObject> saveObjects);
 
-        var options = new JsonSerializerOptions {
-            WriteIndented = JsonPretty,
-            TypeInfoResolver = resolver,
-        };
-        new JsonConverter[] {
-            new Rect2Converter(),
-            new Vector2Converter(),
-            new Vector3Converter(),
-            new Rect2IConverter(),
-            new Vector2IConverter(),
-            new Vector3IConverter(),
-            new ColorConverter(),
-            new JsonStringEnumConverter(JsonNamingPolicy.CamelCase),
-        }.ForEach(converter => options.Converters.Add(converter));
-        
-        JsonConverters?.ForEach(converter => options.Converters.Add(converter));
-        return options;
-    }
+    public abstract Task<List<SaveObject>> LoadSaveObjects(FileStream openStream);
+    
 }
