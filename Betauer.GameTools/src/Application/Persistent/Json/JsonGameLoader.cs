@@ -42,35 +42,62 @@ public class JsonGameLoader<TSaveGame> : IGameObjectLoader<TSaveGame> where TSav
 
     public virtual string GetSavegameFolder() => AppTools.GetUserFolder();
 
-    public virtual string GetSavegameFullPath(string saveName, string type) => 
-        Path.Combine(GetSavegameFolder(), Path.GetFileName($"{saveName}.{type}"));
+    public virtual string GetSavegameFullPath(string saveName, string type) {
+        var saveGameFolder = GetSavegameFolder();
+        if (!Directory.Exists(saveGameFolder)) {
+            var info = Directory.CreateDirectory(saveGameFolder);
+            if (!info.Exists) throw new Exception($"Unable to create save game folder: {saveGameFolder}");
+        }
+        return Path.Combine(saveGameFolder, Path.GetFileName($"{saveName}.{type}"));
+    }
 
     protected FileStream OpenMetadata(string saveName) => File.OpenRead(GetSavegameFullPath(saveName, "metadata"));
     protected FileStream WriteMetadata(string saveName) => File.Create(GetSavegameFullPath(saveName, "metadata"));
     protected FileStream OpenData(string saveName) => File.OpenRead(GetSavegameFullPath(saveName, "data"));
     protected FileStream WriteData(string saveName) => File.Create(GetSavegameFullPath(saveName, "data"));
 
+    public async Task<List<TSaveGame>> ListSaveGames() {
+        var saveGames = new List<TSaveGame>();
+        var saveGameFolder = GetSavegameFolder();
+        if (!Directory.Exists(saveGameFolder)) return saveGames;
+        var files = Directory.GetFiles(saveGameFolder, "*.metadata");
+        foreach (var file in files) {
+            var saveName = Path.GetFileNameWithoutExtension(file);
+            try {
+                var saveGame = await LoadHeader(saveName);
+                saveGames.Add(saveGame);
+            } catch (Exception e) {
+                saveGames.Add(CreateFaultedSaveGame(file, e.Message));
+            }
+        }
+        return saveGames;
+    }
 
-    public async Task Save(TSaveGame savegame, List<SaveObject> saveObjects, string saveName) {
-        if (savegame.CreateDate == null) savegame.CreateDate = DateTime.Now;
-        savegame.Version = Version;
-        savegame.UpdateDate = DateTime.Now;
+    public async Task Save(TSaveGame saveGame, List<SaveObject> saveObjects, string saveName) {
+        saveGame.Version = Version;
+        saveGame.UpdateDate = DateTime.Now;
         
         await using FileStream createStreamMetadata = WriteMetadata(saveName);
         await using FileStream createStreamSaveObjects = WriteData(saveName);
-        await JsonSerializer.SerializeAsync(createStreamMetadata, savegame, JsonSerializerOptions());
+        await JsonSerializer.SerializeAsync(createStreamMetadata, saveGame, JsonSerializerOptions());
         await JsonSerializer.SerializeAsync(createStreamSaveObjects, saveObjects, JsonSerializerOptions());
     }
 
-    public async Task<TSaveGame> Load(string saveName) {
+    public async Task<TSaveGame> LoadHeader(string saveName) {
         await using FileStream openStreamMetadata = OpenMetadata(saveName);
-        await using FileStream openStreamSaveObjects = OpenData(saveName);
+        var saveGame = (await JsonSerializer.DeserializeAsync<TSaveGame>(openStreamMetadata, JsonSerializerOptions()))!;
+        saveGame.Name = saveName;
+        saveGame.ReadDate = DateTime.Now;
+        saveGame.ErrorMessage = null;
+        return saveGame;
+    }
 
-        var savegame = (await JsonSerializer.DeserializeAsync<TSaveGame>(openStreamMetadata, JsonSerializerOptions()))!;
+    public async Task<TSaveGame> Load(string saveName) {
+        var saveGame = await LoadHeader(saveName);
+        await using FileStream openStreamSaveObjects = OpenData(saveName);
         var saveObjects = (await JsonSerializer.DeserializeAsync<List<SaveObject>>(openStreamSaveObjects, JsonSerializerOptions()))!;
-        savegame.GameObjects = saveObjects;
-        savegame.ReadDate = DateTime.Now;
-        return savegame;
+        saveGame.GameObjects = saveObjects;
+        return saveGame;
     }
 
     private static void ConfigureSaveObjectSerializer(JsonTypeInfo jsonTypeInfo) {
@@ -89,4 +116,18 @@ public class JsonGameLoader<TSaveGame> : IGameObjectLoader<TSaveGame> where TSav
         }
     }
 
+    private static TSaveGame CreateFaultedSaveGame(string file, string errorMessage) {
+        var saveName = Path.GetFileNameWithoutExtension(file);
+        var saveGame = Activator.CreateInstance<TSaveGame>();
+        saveGame.Name = saveName;
+        saveGame.ReadDate = DateTime.Now;
+        saveGame.ErrorMessage = errorMessage;
+        try {
+            saveGame.CreateDate = File.GetCreationTime(file);
+            saveGame.UpdateDate = File.GetLastWriteTime(file);
+        } catch (Exception exception) {
+            Console.WriteLine(exception);
+        }
+        return saveGame;
+    }
 }
