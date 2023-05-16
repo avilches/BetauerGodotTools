@@ -32,7 +32,7 @@ public partial class PickableItemNode : Node, IInjectable, INodeGameObject {
 		get => _gameObject;
 		set {
 			_gameObject = value;
-			Name = $"{_gameObject.Name}-{_gameObject.Id}";
+			if (value != null) Name = $"{_gameObject.Name}-{_gameObject.Id}";
 		}
 	}
 
