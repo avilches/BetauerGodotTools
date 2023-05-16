@@ -1,11 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using Betauer.Application;
 using Betauer.Application.Settings;
-using Betauer.DI;
 using Betauer.DI.Attributes;
 using Betauer.DI.Exceptions;
-using Betauer.DI.ServiceProvider;
 using Betauer.Input;
 using Betauer.TestRunner;
 using Godot;
@@ -206,7 +202,7 @@ public partial class InputActionAttributeTests : Node {
     [Configuration]
     internal class ConfigurableInputs {
         [Singleton] public InputActionsContainer MyInputActionsContainer => new InputActionsContainer();
-        [Singleton] public SettingsContainer MySettingContainer => new SettingsContainer(SettingsFile);
+        [Singleton] public SettingsContainer MySettingContainer => new SettingsContainer(new ConfigFileWrapper(SettingsFile));
         
         [InputAction(SaveAs = "Controls/Jump", AutoSave = true)]
         private InputAction Jump1 => InputAction.Create().AsSimulator();

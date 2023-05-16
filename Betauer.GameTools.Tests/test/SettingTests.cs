@@ -41,7 +41,7 @@ public partial class SettingTests : Node {
 
     [TestRunner.Test]
     public void FailIfNoContainer() {
-        var sc = new SettingsContainer(SettingsFile);
+        var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
         var saved = Setting.Create("Section/NoAutoSave", "Default", false);
 
         // Read without container
@@ -55,7 +55,7 @@ public partial class SettingTests : Node {
 
     [TestRunner.Test]
     public void WorksIfContainer() {
-        var sc = new SettingsContainer(SettingsFile);
+        var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
         var saved = Setting.Create("Section/NoAutoSave", "Default", false);
         saved.SetSettingsContainer(sc);
         Assert.That(saved.Value, Is.EqualTo("Default"));
@@ -73,13 +73,13 @@ public partial class SettingTests : Node {
         var propWithSlash = Setting.Create("Section/prop/other", "B");
         Assert.That(propWithSlash.SaveAs, Is.EqualTo("Section/prop/other"));
         
-        var sc = new SettingsContainer(SettingsFile);
+        var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
         noSection.SetSettingsContainer(sc);
         propWithSlash.SetSettingsContainer(sc);
 
         sc.Save();
 
-        var cf = new ConfigFileWrapper().SetFilePath(SettingsFile).Load();
+        var cf = new ConfigFileWrapper(SettingsFile).Load();
         Assert.That(cf.GetValue<string>(noSection.SaveAs, "_"), Is.EqualTo("A"));
         Assert.That(cf.GetValue<string>(propWithSlash.SaveAs, "_"), Is.EqualTo("B"));
     }
@@ -87,18 +87,18 @@ public partial class SettingTests : Node {
     [TestRunner.Test]
     public void SaveNoAutoSaveBeforeEvenUseTest() {
         var saved = Setting.Create("Section/prop", "B", false);
-        var sc = new SettingsContainer(SettingsFile);
+        var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
         saved.SetSettingsContainer(sc);
 
         sc.Save();
 
-        var cf = new ConfigFileWrapper().SetFilePath(SettingsFile).Load();
+        var cf = new ConfigFileWrapper(SettingsFile).Load();
         Assert.That(cf.GetValue<string>(saved.SaveAs, "_"), Is.EqualTo("B"));
     }
 
     [TestRunner.Test]
     public void RegularAutoSaveTest() {
-        var sc = new SettingsContainer(SettingsFile);
+        var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
         var saved = Setting.Create("Section/NoAutoSave", "Default", false);
         saved.SetSettingsContainer(sc);
 
@@ -106,7 +106,7 @@ public partial class SettingTests : Node {
         saved.Value = changed;
         Assert.That(saved.Value, Is.EqualTo(changed));
 
-        var cf = new ConfigFileWrapper().SetFilePath(SettingsFile).Load();
+        var cf = new ConfigFileWrapper(SettingsFile).Load();
         Assert.That(cf.GetValue<string>(saved.SaveAs, "NOT SAVED"), Is.EqualTo("NOT SAVED"));
         Assert.That(cf.GetValue<string>("Section", "NoAutoSave", "NOT SAVED"), Is.EqualTo("NOT SAVED"));
 
@@ -118,11 +118,11 @@ public partial class SettingTests : Node {
 
     [TestRunner.Test]
     public void RegularNoAutoSaveTest() {
-        var sc = new SettingsContainer(SettingsFile);
+        var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
         var saved = Setting.Create("Section/NoAutoSave", "Default", true);
         saved.SetSettingsContainer(sc);
 
-        var cf = new ConfigFileWrapper().SetFilePath(SettingsFile);
+        var cf = new ConfigFileWrapper(SettingsFile);
         cf.Load();
         Assert.That(cf.GetValue<string>(saved.SaveAs, "NOT SAVED"), Is.EqualTo("NOT SAVED"));
         Assert.That(cf.GetValue<string>("Section", "NoAutoSave", "NOT SAVED"), Is.EqualTo("NOT SAVED"));
@@ -138,7 +138,7 @@ public partial class SettingTests : Node {
 
     [TestRunner.Test]
     public void DisabledTest() {
-        var sc = new SettingsContainer(SettingsFile);
+        var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
         var savedDisabled = Setting.Create("Section/SavedDisabled", "Default", true, false);
             
         // A disabled setting works like a memory setting: it can be write and read, but data is not persisted
@@ -156,7 +156,7 @@ public partial class SettingTests : Node {
         savedDisabled.Value = "New2";
         Assert.That(savedDisabled.Value, Is.EqualTo("New2"));
 
-        var cf = new ConfigFileWrapper().SetFilePath(SettingsFile).Load();
+        var cf = new ConfigFileWrapper(SettingsFile).Load();
         Assert.That(cf.GetValue<string>(savedDisabled.SaveAs, "NOT FOUND"), Is.EqualTo("NOT FOUND"));
         
         
@@ -174,7 +174,7 @@ public partial class SettingTests : Node {
 
     [TestRunner.Test]
     public void DefaultValueTest() {
-        var sc = new SettingsContainer(SettingsFile);
+        var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
         var saved = Setting.Create("Section/SavedDisabled", "Default");
         saved.SetSettingsContainer(sc);
         

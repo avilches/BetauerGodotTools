@@ -4,32 +4,25 @@ using System.Collections.Generic;
 namespace Betauer.Application.Settings; 
 
 public class SettingsContainer {
+
     private ConfigFileWrapper _configFileWrapper;
 
     public readonly List<ISaveSetting> Settings = new();
-    public ConfigFileWrapper ConfigFileWrapper => _configFileWrapper ?? throw new Exception(
-        $"SettingContainer not initialized. User {nameof(SetConfigFileWrapper)}() method.");
-    public bool Dirty => ConfigFileWrapper.Dirty;
-    public string FilePath => ConfigFileWrapper.FilePath;
+    public ConfigFileWrapper ConfigFileWrapper {
+        get => _configFileWrapper;
+        set {
+            _configFileWrapper = value;
+            Load();
+        }
+    }
+    public bool Dirty => ValidateConfigFileWrapper().Dirty;
+    public string FilePath => ValidateConfigFileWrapper().FilePath;
 
     public SettingsContainer() {
     }
 
-    public SettingsContainer(string resourceName) {
-        SetConfigFileWrapper(resourceName);
-    }
-
     public SettingsContainer(ConfigFileWrapper configFileWrapper) {
-        SetConfigFileWrapper(configFileWrapper);
-    }
-
-    public void SetConfigFileWrapper(string resourceName) {
-        SetConfigFileWrapper(new ConfigFileWrapper().SetFilePath(resourceName));
-    }
-
-    public void SetConfigFileWrapper(ConfigFileWrapper configFileWrapper) {
-        _configFileWrapper = configFileWrapper;
-        _configFileWrapper.Load();
+        ConfigFileWrapper = configFileWrapper;
     }
 
     // Use SaveSetting.SetSettingsContainer() instead
@@ -49,9 +42,14 @@ public class SettingsContainer {
     /// </summary>
     /// <returns></returns>
     public SettingsContainer Load() {
-        ConfigFileWrapper.Load();
+        ValidateConfigFileWrapper().Load();
         foreach (var setting in Settings) setting.Refresh();
         return this;
+    }
+
+    private ConfigFileWrapper ValidateConfigFileWrapper() {
+        if (_configFileWrapper == null) throw new Exception($"SettingContainer not initialized. Please set the {nameof(ConfigFileWrapper)} property");
+        return _configFileWrapper;
     }
 
     /// <summary>
@@ -59,16 +57,17 @@ public class SettingsContainer {
     /// </summary>
     /// <returns></returns>
     public SettingsContainer Save() {
+        ValidateConfigFileWrapper();
         foreach (var setting in Settings) setting.Flush();
-        ConfigFileWrapper.Save();
+        _configFileWrapper.Save();
         return this;
     }
 
     internal object GetValue(string sectionAndKey, object @default) {
-        return ConfigFileWrapper.GetValue(sectionAndKey, @default);
+        return ValidateConfigFileWrapper().GetValue(sectionAndKey, @default);
     }
 
     internal void SetValue(string sectionAndKey, object value) {
-        ConfigFileWrapper.SetValue(sectionAndKey, value);
+        ValidateConfigFileWrapper().SetValue(sectionAndKey, value);
     }
 }

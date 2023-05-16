@@ -43,7 +43,7 @@ public partial class SettingAttributeTests : Node {
     [Setting<string>("ServiceName", SaveAs = "Section/NoAutoSave", Default = "Default", AutoSave = false)]
     internal class ErrorConfigWithContainerNotFoundByName {
         [Singleton]
-        public SettingsContainer SettingsContainer => new SettingsContainer(SettingsFile);
+        public SettingsContainer SettingsContainer => new SettingsContainer(new ConfigFileWrapper(SettingsFile));
     }
 
     [TestRunner.Test(Description = "Error if container not found (wrong name)")]
@@ -62,7 +62,7 @@ public partial class SettingAttributeTests : Node {
     [Setting<string>("NoEnabled", SaveAs = "Disabled/PropertyDisabled", Default = "DEFAULT", AutoSave = true, Enabled = false)]
     internal class ConfigWithSettingContainer {
         [Singleton]
-        public SettingsContainer MySettingsContainer => new SettingsContainer(SettingsFile);
+        public SettingsContainer MySettingsContainer => new SettingsContainer(new ConfigFileWrapper(SettingsFile));
     }
  
     [Singleton]
@@ -170,7 +170,7 @@ public partial class SettingAttributeTests : Node {
     [Setting<Resolution>("Resolution", SaveAs = "Section/Screen", DefaultAsString = "1280x800", AutoSave = true)]
     internal class ConfigWithSettingContainer2 {
         [Singleton]
-        public SettingsContainer MySettingsContainer => new SettingsContainer(SettingsFile);
+        public SettingsContainer MySettingsContainer => new SettingsContainer(new ConfigFileWrapper(SettingsFile));
     }
  
     [Singleton]
@@ -202,7 +202,7 @@ public partial class SettingAttributeTests : Node {
     [Setting<Resolution>("OtherName", SaveAs = "Section/Screen", DefaultAsString = "1280x800")]
     internal class ConfigWithSettingContainer3 {
         [Singleton]
-        public SettingsContainer MySettingsContainer => new SettingsContainer(SettingsFile);
+        public SettingsContainer MySettingsContainer => new SettingsContainer(new ConfigFileWrapper(SettingsFile));
     }
  
     [Singleton]

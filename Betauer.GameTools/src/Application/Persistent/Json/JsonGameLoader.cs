@@ -22,6 +22,7 @@ public class JsonGameLoader<TSaveGame> : IGameObjectLoader<TSaveGame> where TSav
     public void WithJsonSerializerOptions(Action<JsonSerializerOptions> action) => action(JsonSerializerOptions());
 
     protected virtual JsonSerializerOptions BuildJsonSerializerOptions() {
+        // more info: https://devblogs.microsoft.com/dotnet/system-text-json-in-dotnet-7/
         var options = new JsonSerializerOptions {
             TypeInfoResolver = new DefaultJsonTypeInfoResolver {
                 Modifiers = { ConfigureSaveObjectSerializer }

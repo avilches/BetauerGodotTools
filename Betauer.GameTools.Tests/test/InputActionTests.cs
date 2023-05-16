@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Betauer.Application;
 using Betauer.Application.Settings;
 using Betauer.Input;
 using Betauer.TestRunner;
@@ -39,7 +40,7 @@ public partial class InputActionTests : Node {
     [TestRunner.Test]
     public void InputActionImportExportTests() {
         SaveSetting<string> b = Setting.Create( "attack", "");
-        var sc = new SettingsContainer(SettingsFile);
+        var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
         b.SetSettingsContainer(sc);
             
         var jump = InputAction.Create().AsSimulator();
@@ -81,7 +82,7 @@ public partial class InputActionTests : Node {
     [TestRunner.Test]
     public void UpdateRollback() {
         SaveSetting<string> b = Setting.Create( "attack", "");
-        var sc = new SettingsContainer(SettingsFile);
+        var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
         b.SetSettingsContainer(sc);
             
         var jump = InputAction.Create().AsSimulator();
@@ -118,7 +119,7 @@ public partial class InputActionTests : Node {
     [TestRunner.Test]
     public void AxisActionImportExportTests() {
         SaveSetting<string> b = Setting.Create( "Lateral", "Reverse:True");
-        var sc = new SettingsContainer(SettingsFile);
+        var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
         b.SetSettingsContainer(sc);
         var lateral = AxisAction.Mock();
         Assert.That(lateral.Reverse, Is.False);
@@ -187,7 +188,7 @@ public partial class InputActionTests : Node {
 
         SaveSetting<string> b = Setting.Create("attack","button:A,button:B,key:H,key:F");
 
-        var sc = new SettingsContainer(SettingsFile);
+        var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
         b.SetSettingsContainer(sc);
         jump.SaveSetting = b;
         jump.Load();

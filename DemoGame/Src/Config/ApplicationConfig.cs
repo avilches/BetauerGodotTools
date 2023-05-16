@@ -65,7 +65,7 @@ public class ApplicationConfig {
 [Setting<Resolution>("Settings.Screen.WindowedResolution", SaveAs = "Video/WindowedResolution", DefaultAsString = "1920x1080")]
 public class Settings {
 	[Singleton] public ScreenSettingsManager ScreenSettingsManager => new(ApplicationConfig.Configuration);
-	[Singleton] public SettingsContainer SettingsContainer => new(AppTools.GetUserFile("settings.ini"));
+	[Singleton] public SettingsContainer SettingsContainer => new(new ConfigFileWrapper(AppTools.GetUserFile("settings.ini")));
 }
 
 [Singleton(Name = "MyGameLoader")]

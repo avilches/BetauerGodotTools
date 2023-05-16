@@ -6,33 +6,16 @@ namespace Betauer.Application;
 
 public class ConfigFileWrapper {
     private readonly ConfigFile _configFile = new();
-    public string? FilePath { get; private set; }
+    public string FilePath { get; private set; }
     public byte[]? EncryptionKey { get; private set; } // TODO:
     public Error LastError { get; private set; }
     public bool Dirty { get; private set; } = false;
 
-    public ConfigFileWrapper SetFilePathInUserFolder(string fileName) {
-        return SetFilePath(AppTools.GetUserFile(fileName));
+    public ConfigFileWrapper() {
     }
 
-    public ConfigFileWrapper SetFilePath(string resourceName) {
-        FilePath = resourceName;
-        return this;
-    }
-
-    public ConfigFileWrapper SetPassword(string password) {
-        EncryptionKey = password.ToUtf8Buffer();
-        return this;
-    }
-
-    public ConfigFileWrapper SetPassword(byte[] password) {
-        EncryptionKey = password;
-        return this;
-    }
-
-    public ConfigFileWrapper RemovePassword() {
-        EncryptionKey = null;
-        return this;
+    public ConfigFileWrapper(string filePath) {
+        FilePath = filePath;
     }
 
     public void SetValue<T>(string propertyWithSection, T val) {
@@ -105,7 +88,6 @@ public class ConfigFileWrapper {
 
     private void CheckFilePath() {
         if (FilePath == null)
-            throw new ArgumentNullException(nameof(FilePath),
-                $"Consider call to {nameof(SetFilePath)} or {nameof(SetFilePathInUserFolder)} methods first");
+            throw new ArgumentNullException(nameof(FilePath), $"Set {nameof(FilePath)} property first");
     }
 }
