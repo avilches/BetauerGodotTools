@@ -25,7 +25,7 @@ public partial class Game : Control, IInjectable {
 	private World2D _noWorld = new();
 
 	[Inject] private GameObjectRepository GameObjectRepository { get; set; }
-	[Inject] private IGameObjectLoader GameObjectLoader { get; set; }
+	[Inject] private IGameObjectLoader<MySaveGame> GameObjectLoader { get; set; }
 	[Inject] private HUD HudScene { get; set; }
 	[Inject] private IFactory<WorldScene> World3 { get; set; }
 
@@ -86,7 +86,11 @@ public partial class Game : Control, IInjectable {
 
 	public async Task NewGame() {
 		UiActionsContainer.SetJoypad(UiActionsContainer.CurrentJoyPad);	// Player who starts the game is the player who control the UI forever
+		
 		await GameLoaderContainer.LoadGameResources();
+		
+		CurrentSaveGame = new MySaveGame();
+		GameObjectRepository.Initialize();
 		InitializeWorld();
 		CreatePlayer1(UiActionsContainer.CurrentJoyPad);
 		AllowAddingP2();				
@@ -95,50 +99,63 @@ public partial class Game : Control, IInjectable {
 
 	public async void LoadFromMenu(string saveName) {
 		UiActionsContainer.SetJoypad(UiActionsContainer.CurrentJoyPad);	// Player who starts the game is the player who control the UI forever
-		var (success, saveGame) = await LoadSaveGame(saveName);
+		(var success, CurrentSaveGame) = await LoadSaveGame(saveName);
 		if (!success) return;
 		
 		await GameLoaderContainer.LoadGameResources();
-		InitializeWorld(saveGame.SaveObjects);
-		LoadPlayer1(UiActionsContainer.CurrentJoyPad, saveGame.Player0);
-		WorldScene.LoadGame(saveGame);
+
+		GameObjectRepository.Initialize(CurrentSaveGame.GameObjects);
+		InitializeWorld();
+		var consumer = new MySaveGameConsumer(CurrentSaveGame);
+		LoadPlayer1(UiActionsContainer.CurrentJoyPad, consumer.Player0);
+		if (consumer.Player1 == null) AllowAddingP2();
+		else NoAddingP2();
+		WorldScene.LoadGame(consumer);
 		HideLoading();
 	}
 
 	public async void LoadInGame(string saveName) {
 		UiActionsContainer.SetJoypad(UiActionsContainer.CurrentJoyPad);	// Player who starts the game is the player who control the UI forever
-		var (success, saveGame) = await LoadSaveGame(saveName);
+		(var success, CurrentSaveGame) = await LoadSaveGame(saveName);
 		if (!success) return;
 
 		await FreeSceneAndKeepPoolData();
-		InitializeWorld(saveGame.SaveObjects);
-		LoadPlayer1(UiActionsContainer.CurrentJoyPad, saveGame.Player0);
-		WorldScene.LoadGame(saveGame);
+
+		GameObjectRepository.Initialize(CurrentSaveGame.GameObjects);
+		InitializeWorld();
+		var consumer = new MySaveGameConsumer(CurrentSaveGame);
+		LoadPlayer1(UiActionsContainer.CurrentJoyPad, consumer.Player0);
+		NoAddingP2();
+		if (consumer.Player1 == null) AllowAddingP2();
+		else NoAddingP2();
+		WorldScene.LoadGame(consumer);
 		HideLoading();
 	}
-	
-	public void ShowLoading() {}
-	public void HideLoading() {}
-	public void ShowSaving() {}
-	public void HideSaving() {}
 
 	public async Task Save(string saveName) {
 		ShowSaving();
 		try {
 			var saveObjects = GameObjectRepository.GetSaveObjects();
-			await GameObjectLoader.Save(saveObjects, saveName);
+			await GameObjectLoader.Save(CurrentSaveGame, saveObjects, saveName);
 		} catch (Exception e) {
 			// Show saving error
 			Console.WriteLine(e);
 		}
 		HideSaving();
 	}
-	
-	public async Task<(bool, SaveGame)> LoadSaveGame(string save) {
+
+	public void ShowLoading() {}
+	public void HideLoading() {}
+	public void ShowSaving() {}
+	public void HideSaving() {}
+
+	public MySaveGame CurrentSaveGame { get; private set; }
+
+	public async Task<(bool, MySaveGame)> LoadSaveGame(string save) {
 		ShowLoading();
 		try {
-			var saveObjects = await GameObjectLoader.Load(save);
-			return (true, new SaveGame(GameObjectRepository, saveObjects));
+			var saveGame = await GameObjectLoader.Load(save);
+			return (true, saveGame);
 		} catch (Exception e) {
 			HideLoading();
 			Console.WriteLine(e);
@@ -146,8 +163,7 @@ public partial class Game : Control, IInjectable {
 		}
 	}
 
-	public void InitializeWorld(List<SaveObject>? saveObjects = null) {
-		GameObjectRepository.Initialize(saveObjects);
+	public void InitializeWorld() {
 		JoypadPlayersMapping.RemoveAllPlayers();
 		WorldScene = World3.Get();
 		_subViewport1.AddChild(WorldScene);

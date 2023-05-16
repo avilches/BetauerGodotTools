@@ -8,6 +8,7 @@ using Betauer.Application.Lifecycle.Attributes;
 using Betauer.Application.Lifecycle.Pool;
 using Betauer.Application.Monitor;
 using Betauer.Application.Persistent;
+using Betauer.Application.Persistent.Json;
 using Betauer.Application.Screen;
 using Betauer.Application.Settings;
 using Betauer.Application.Settings.Attributes;
@@ -38,13 +39,14 @@ public class ApplicationConfig {
 		true,
 		1f);
 
-	[Singleton] public IGameObjectLoader GameObjectLoader() {
-		var gameObjectRepository = new JsonGameLoader {
-			JsonPretty = true,
-			JsonConverters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
-		};
-		gameObjectRepository.JsonSerializerOptions();
-		return gameObjectRepository;
+	[Singleton] public IGameObjectLoader<MySaveGame> GameObjectLoader() {
+		var loader = new JsonGameLoader<MySaveGame>(1);
+		loader.WithJsonSerializerOptions(options => {
+			options.AllowTrailingCommas = true;
+			options.WriteIndented = true;
+			options.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
+		});
+		return loader;
 	}
 	[Singleton] public DebugOverlayManager DebugOverlayManager => new();
 	[Singleton] public GameObjectRepository GameObjectRepository => new();

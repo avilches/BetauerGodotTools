@@ -122,9 +122,10 @@ public partial class WorldScene : Node {
 		return projectileTrail;
 	}
 
-	public void LoadGame(SaveGame saveGame) {
-		saveGame.Consume<ZombieSaveObject>(LoadZombie);
-		if (saveGame.Pending.Count > 0) {
+	public void LoadGame(MySaveGameConsumer saveGameConsumer) {
+		saveGameConsumer.ConsumeAll<ZombieSaveObject>(LoadZombie);
+		// saveGameConsumer.Verify();
+		if (saveGameConsumer.Pending.Count > 0) {
 			Console.WriteLine("Still pending objects to load");
 			// throw new Exception("Still pending objects to load");
 		}
