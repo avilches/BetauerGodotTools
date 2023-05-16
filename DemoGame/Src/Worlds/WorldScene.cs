@@ -143,7 +143,7 @@ public partial class WorldScene : Node {
 		GetNode("EnemySpawn")!.AddChild(zombieNode, () => zombieNode.GlobalPosition = npcSaveObject.GlobalPosition);
 	}
 
-	public PlayerNode AddNewPlayer(PlayerMapping playerMapping, Action? onReady = null) {
+	public PlayerNode AddNewPlayer(PlayerMapping playerMapping) {
 		var name = $"Player{playerMapping.Player}";
 		var playerGameObject = GameObjectRepository.Create<PlayerGameObject>(name, name);
 		var playerNode = CreatePlayerNode(playerGameObject, playerMapping);
@@ -154,7 +154,6 @@ public partial class WorldScene : Node {
 	}
 
 	public PlayerNode LoadPlayer(PlayerMapping playerMapping, PlayerSaveObject saveObject) {
-		saveObject.GameObject.Load(saveObject);
 		var playerNode = CreatePlayerNode(saveObject.GameObject, playerMapping);
 		this.AddChild(playerNode, () => {
 			playerNode.GlobalPosition = saveObject.GlobalPosition;
