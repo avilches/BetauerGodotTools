@@ -9,6 +9,7 @@ using Betauer.Core.Nodes;
 using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
 using Betauer.Input.Joypad;
+using Betauer.NodePath;
 using Godot;
 using Veronenger.Character.Npc;
 using Veronenger.Character.Player;
@@ -31,27 +32,32 @@ public partial class WorldScene : Node {
 	[Inject] private NodePool<ProjectileTrail> ProjectilePool { get; set; }
 	[Inject] private NodePool<ZombieNode> ZombiePool { get; set; }
 
+	[NodePath("EnemySpawn")] private Node _enemySpawn;
+	[NodePath("Lights")] private Node _lights;
+	[NodePath("Stages")] private Node _stages;
+	private Node _bulletSpawn = new() { Name = "Bullets" };
+	private Node _pickableSpawn = new() { Name = "Pickables" };
+	private Node _playerSpawn = new() { Name = "PlayerSpawn" };
+
 	public List<PlayerNode> Players { get; } = new();
 
-	public WorldScene() {
-		var bullets = new Node();
-		bullets.Name = "Bullets";
-		AddChild(bullets);
-	}
-
 	public override void _Ready() {
-		GetChildren().OfType<CanvasModulate>().ForEach(cm => cm.Visible = true);
 		PlatformManager.ConfigurePlatformsCollisions();
-		var stageController = StageControllerFactory.Get();
-		GetNode<Node>("Stages").GetChildren().OfType<Area2D>().ForEach(stageController.ConfigureStage);
+
 		GetChildren().OfType<TileMap>().ForEach(PlatformManager.ConfigureTileMapCollision);
+		GetChildren().OfType<CanvasModulate>().ForEach(cm => cm.Visible = true);
+		var stageController = StageControllerFactory.Get();
+		_stages.GetChildren().OfType<Area2D>().ForEach(stageController.ConfigureStage);
+		AddChild(_pickableSpawn);
+		AddChild(_playerSpawn);
+		AddChild(_bulletSpawn);
 	}
 	
 	public void StartNewGame() {
-		GetNode("EnemySpawn").GetChildren().OfType<Marker2D>().ForEach(m => {
+		_enemySpawn.GetChildren().OfType<Marker2D>().ForEach(m => {
 			if (m.Visible) AddNewZombie(m.GlobalPosition);
 		});
-		GetNode<Node>("Lights").GetChildren().OfType<PointLight2D>().ForEach(light => {
+		_lights.GetChildren().OfType<PointLight2D>().ForEach(light => {
 			if (light.Name.ToString().StartsWith("Candle")) CandleOff(light);
 		});
 		PlaceMetalbar();
@@ -107,18 +113,18 @@ public partial class WorldScene : Node {
 	public void PlacePickable(PickableGameObject gameObject, Vector2 position, Vector2? velocity = null) {
 		PickableItemNode pickableItemNode = PickableItemPool.Get();
 		gameObject.LinkNode(pickableItemNode);
-		this.AddChild(pickableItemNode, () => pickableItemNode.Spawn(position, velocity));
+		_pickableSpawn.AddChild(pickableItemNode, () => pickableItemNode.Spawn(position, velocity));
 	}
 
 	public void PlayerDrop(PickableGameObject gameObject, Vector2 position, Vector2? velocity = null) {
 		PickableItemNode pickableItemNode = PickableItemPool.Get();
 		gameObject.LinkNode(pickableItemNode);
-		this.AddChild(pickableItemNode, () => pickableItemNode.PlayerDrop(position, velocity));
+		_pickableSpawn.AddChild(pickableItemNode, () => pickableItemNode.PlayerDrop(position, velocity));
 	}
 
 	public ProjectileTrail NewBullet() {
 		var projectileTrail = ProjectilePool.Get();
-		AddChild(projectileTrail);
+		_bulletSpawn.AddChild(projectileTrail);
 		return projectileTrail;
 	}
 
@@ -134,30 +140,26 @@ public partial class WorldScene : Node {
 	public void AddNewZombie(Vector2 position) {
 		var zombieNode = ZombiePool.Get();
 		GameObjectRepository.Create<ZombieGameObject>("Zombie").LinkNode(zombieNode);
-		GetNode("EnemySpawn")!.AddChild(zombieNode, () => zombieNode.GlobalPosition = position);
+		_enemySpawn.AddChild(zombieNode, () => zombieNode.GlobalPosition = position);
 	}
 
 	public void LoadZombie(ZombieSaveObject npcSaveObject) {
 		var zombieNode = ZombiePool.Get();
 		npcSaveObject.GameObject.LinkNode(zombieNode);
-		GetNode("EnemySpawn")!.AddChild(zombieNode, () => zombieNode.GlobalPosition = npcSaveObject.GlobalPosition);
+		_enemySpawn.AddChild(zombieNode, () => zombieNode.GlobalPosition = npcSaveObject.GlobalPosition);
 	}
 
 	public PlayerNode AddNewPlayer(PlayerMapping playerMapping) {
 		var name = $"Player{playerMapping.Player}";
 		var playerGameObject = GameObjectRepository.Create<PlayerGameObject>(name, name);
 		var playerNode = CreatePlayerNode(playerGameObject, playerMapping);
-		this.AddChild(playerNode, () => {
-			playerNode.GlobalPosition = GetPositionFromMarker("SpawnPlayer"); // + new Vector2(playerMapping.Player * 100, 0);
-		});
+		_playerSpawn.AddChild(playerNode, () => playerNode.GlobalPosition = GetPositionFromMarker("SpawnPlayer")); // + new Vector2(playerMapping.Player * 100, 0);
 		return playerNode;
 	}
 
 	public PlayerNode LoadPlayer(PlayerMapping playerMapping, PlayerSaveObject saveObject) {
 		var playerNode = CreatePlayerNode(saveObject.GameObject, playerMapping);
-		this.AddChild(playerNode, () => {
-			playerNode.GlobalPosition = saveObject.GlobalPosition;
-		});
+		_playerSpawn.AddChild(playerNode, () => playerNode.GlobalPosition = saveObject.GlobalPosition);
 		return playerNode;
 	}
 
@@ -179,7 +181,7 @@ public partial class WorldScene : Node {
 	}
 
 	public void InstantiateNewZombie() {
-		var position = GetNode("EnemySpawn").GetChildren().OfType<Marker2D>().First().GlobalPosition;
+		var position = _enemySpawn.GetChildren().OfType<Marker2D>().First().GlobalPosition;
 		AddNewZombie(position);
 	}
 
