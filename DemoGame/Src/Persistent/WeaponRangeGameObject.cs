@@ -56,7 +56,7 @@ public class WeaponRangeGameObject : WeaponGameObject {
         return this;
     }
 
-    public override SaveObject CreateSaveObject() => new WeaponRangeSaveObject(this);
+    public override WeaponRangeSaveObject CreateSaveObject() => new WeaponRangeSaveObject(this);
 }
 
 public class WeaponRangeSaveObject : SaveObject<WeaponRangeGameObject> {

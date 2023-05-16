@@ -21,7 +21,7 @@ public class ZombieGameObject : NpcGameObject {
         MaxHealth = saveObject.MaxHealth;
         Health = saveObject.Health;
     }
-    public override SaveObject CreateSaveObject() => new ZombieSaveObject(this);
+    public override ZombieSaveObject CreateSaveObject() => new ZombieSaveObject(this);
 }
 
 

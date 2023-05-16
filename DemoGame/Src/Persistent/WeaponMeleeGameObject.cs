@@ -16,7 +16,7 @@ public class WeaponMeleeGameObject : WeaponGameObject {
         return this;
     }
 
-    public override SaveObject CreateSaveObject() => new WeaponMeleeSaveObject(this);
+    public override WeaponMeleeSaveObject CreateSaveObject() => new WeaponMeleeSaveObject(this);
 
     public override void New() {
     }
