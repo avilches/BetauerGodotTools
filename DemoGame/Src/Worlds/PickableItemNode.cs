@@ -28,7 +28,14 @@ public partial class PickableItemNode : Node, IInjectable, INodeGameObject {
 	[Inject] private PlayerConfig PlayerConfig { get; set; }
 	[Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
 
-	public GameObject GameObject { get; set; }
+	public GameObject GameObject {
+		get => _gameObject;
+		set {
+			_gameObject = value;
+			Name = $"{_gameObject.Name}-{_gameObject.Id}";
+		}
+	}
+
 	public PickableGameObject PickableGameObject => (PickableGameObject)GameObject;
 
 	[NodePath("Character")] public CharacterBody2D CharacterBody2D;
@@ -42,12 +49,15 @@ public partial class PickableItemNode : Node, IInjectable, INodeGameObject {
 	private float _pickingUpSpeed;
 	private float _delta;
 	private readonly FsmSync<State, Event> _fsm = new(State.None, "PickableItem.FSM");
+	private GameObject _gameObject;
 
 	public void PostInject() {
 		PlatformBody = new KinematicPlatformMotion(CharacterBody2D, MotionConfig.FloorUpDirection);
 		CollisionLayerManager.PickableItem(this);
 		ConfigureFsm();
 	}
+	
+	
 
 	public override void _Ready() {
 		PickZone.SetNodeIdToMeta(this);

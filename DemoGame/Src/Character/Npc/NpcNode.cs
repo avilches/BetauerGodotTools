@@ -7,8 +7,16 @@ namespace Veronenger.Character.Npc;
 
 
 public abstract partial class NpcNode : Node, INodeGameObject {
+	private GameObject _gameObject;
 
-	public GameObject GameObject { get; set; }
+	public GameObject GameObject {
+		get => _gameObject;
+		set {
+			_gameObject = value;
+			Name = $"{_gameObject.Name}-{_gameObject.Id}";
+		}
+	}
+
 	public NpcGameObject NpcGameObject => (NpcGameObject)GameObject;
 	public NpcConfig NpcConfig => NpcGameObject.Config;
 

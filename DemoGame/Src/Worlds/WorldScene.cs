@@ -34,9 +34,9 @@ public partial class WorldScene : Node {
 
 	[NodePath("EnemySpawn")] private Node _enemySpawn;
 	[NodePath("Lights")] private Node _lights;
+	[NodePath("ItemSpawn")] private Node _pickableSpawn;
 	[NodePath("Stages")] private Node _stages;
 	private Node _bulletSpawn = new() { Name = "Bullets" };
-	private Node _pickableSpawn = new() { Name = "Pickables" };
 	private Node _playerSpawn = new() { Name = "PlayerSpawn" };
 
 	public List<PlayerNode> Players { get; } = new();
@@ -48,7 +48,6 @@ public partial class WorldScene : Node {
 		GetChildren().OfType<CanvasModulate>().ForEach(cm => cm.Visible = true);
 		var stageController = StageControllerFactory.Get();
 		_stages.GetChildren().OfType<Area2D>().ForEach(stageController.ConfigureStage);
-		AddChild(_pickableSpawn);
 		AddChild(_playerSpawn);
 		AddChild(_bulletSpawn);
 	}
