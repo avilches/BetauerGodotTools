@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Betauer.Core.Signal;
 using Godot;
 
@@ -53,6 +54,23 @@ namespace Betauer.Core.Nodes {
             return parent;
         }
 
+        public static Task AddChildReady(this Node parent, Node child) {
+            TaskCompletionSource promise = new();
+            child.RequestReady();
+            child.OnReady(promise.SetResult, true);
+            parent.AddChild(child);
+            return promise.Task;
+        }
+
+        public static Task AddChildReadyDeferred(this Node parent, Node child) {
+            TaskCompletionSource promise = new();
+            child.RequestReady();
+            child.OnReady(promise.SetResult, true);
+            parent.CallDeferred("add_child", child);
+            return promise.Task;
+        }
+
+        
         public static Node RemoveChildDeferred(this Node parent, Node child) {
             parent.CallDeferred("remove_child", child);
             return parent;
