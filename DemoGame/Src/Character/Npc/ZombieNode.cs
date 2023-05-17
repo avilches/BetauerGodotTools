@@ -68,11 +68,6 @@ public partial class ZombieNode : NpcNode, IInjectable {
 		RedFlash = colorAnimation.EndAnimate();
 	}
 
-	public override Vector2 GlobalPosition {
-		get => CharacterBody2D.GlobalPosition;
-		set => CharacterBody2D.GlobalPosition = value;
-	}
-
 	[NodePath("Character")] private CharacterBody2D CharacterBody2D;
 	[NodePath("Character/Sprites/Body")] private Sprite2D _mainSprite;
 	[NodePath("Character/Sprites/AnimationPlayer")] private AnimationPlayer _animationPlayer;
@@ -141,7 +136,22 @@ public partial class ZombieNode : NpcNode, IInjectable {
 	private Vector2 RightVector => PlatformBody.UpRightNormal.Rotate90Right();
 
 	private Multicast<object, PlayerAttackEvent>.EventConsumer consumer;
-	
+
+	public override Vector2 GlobalPosition {
+		get => CharacterBody2D.GlobalPosition;
+		set => CharacterBody2D.GlobalPosition = value;
+	}
+
+	public override Vector2 Velocity {
+		get => PlatformBody.Motion;
+		set => PlatformBody.Motion = value;
+	}
+
+	public override bool IsFacingRight {
+		get => LateralState.IsFacingRight;
+		set => LateralState.IsFacingRight = value;
+	}
+
 	public override void _Ready() {
 		_fsm.Reset();
 		_zombieAi.Reset();

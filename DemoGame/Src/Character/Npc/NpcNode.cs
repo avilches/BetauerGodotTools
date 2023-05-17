@@ -24,4 +24,6 @@ public abstract partial class NpcNode : Node, INodeGameObject {
 	public abstract bool CanBeAttacked(WeaponGameObject weapon);
 	
 	public abstract Vector2 GlobalPosition { get; set; }
+	public abstract Vector2 Velocity { get; set; }
+	public abstract bool IsFacingRight { get; set; }
 }
