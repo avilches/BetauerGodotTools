@@ -19,8 +19,6 @@ public class AmmoGameObject : PickableGameObject {
     public override void OnInitialize() {
     }
 
-    protected override Type SaveObjectType => typeof(AmmoSaveObject);
-    
     public override void OnLoad(SaveObject s) {
         AmmoSaveObject saveObject = (AmmoSaveObject) s;
     }

@@ -36,8 +36,6 @@ public class PlayerGameObject : GameObject<PlayerNode> {
         Health = Math.Clamp(PlayerConfig.InitialHealth, 0, PlayerConfig.InitialMaxHealth);
     }
 
-    protected override Type SaveObjectType => typeof(PlayerSaveObject);
-
     public override void OnLoad(SaveObject s) {
         PlayerSaveObject saveObject = (PlayerSaveObject)s;
         MaxHealth = saveObject.MaxHealth;

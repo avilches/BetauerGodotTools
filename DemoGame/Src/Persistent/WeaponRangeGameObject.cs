@@ -25,8 +25,6 @@ public class WeaponRangeGameObject : WeaponGameObject {
     public override void OnInitialize() {
     }
 
-    protected override Type SaveObjectType => typeof(WeaponRangeSaveObject);
-
     public override void OnLoad(SaveObject saveObject) {
     }
 

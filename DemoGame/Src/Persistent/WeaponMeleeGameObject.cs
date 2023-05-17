@@ -21,8 +21,6 @@ public class WeaponMeleeGameObject : WeaponGameObject {
     public override void OnInitialize() {
     }
 
-    protected override Type SaveObjectType => typeof(WeaponMeleeSaveObject);
-
     public override void OnLoad(SaveObject saveObject) {
     }
 }

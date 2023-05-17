@@ -1,5 +1,3 @@
-using System;
-using Betauer.Core;
 using Betauer.Core.Nodes;
 
 namespace Betauer.Application.Persistent;
@@ -14,8 +12,6 @@ public abstract class GameObject {
     public abstract void OnLoad(SaveObject saveObject);
 
     public abstract SaveObject CreateSaveObject();
-    protected abstract Type SaveObjectType { get; }
-
 }
 
 public abstract class GameObject<TNode> : GameObject
