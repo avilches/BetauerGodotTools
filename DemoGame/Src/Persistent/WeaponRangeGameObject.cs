@@ -11,6 +11,8 @@ public class WeaponRangeGameObject : WeaponGameObject {
     private static readonly Random Random = new Pcg.PcgRandom();
 
     public override WeaponConfigRange Config => (WeaponConfigRange)base.Config;
+    public override WeaponConfigRange GetConfig(string name) => (WeaponConfigRange)base.GetConfig(name);
+
     public AmmoType AmmoType;
     public int EnemiesPerHit;
     public float DelayBetweenShots;
@@ -25,12 +27,10 @@ public class WeaponRangeGameObject : WeaponGameObject {
     public override void OnInitialize() {
     }
 
-    public override void OnLoad(SaveObject saveObject) {
-    }
-
     public WeaponRangeGameObject Configure(WeaponConfigRange config, 
         AmmoType ammoType,
-        float damageBase, 
+        float damageBase,
+        float damageFactor = 1f,
         int enemiesPerHit = 1,
         float delayBetweenShots = 0,
         bool auto = false,
@@ -40,6 +40,7 @@ public class WeaponRangeGameObject : WeaponGameObject {
         
         Config = config;
         AmmoType = ammoType;
+        DamageFactor = damageFactor; // from base
         DamageBase = damageBase;
         EnemiesPerHit = enemiesPerHit;
         DelayBetweenShots = delayBetweenShots;
@@ -55,17 +56,37 @@ public class WeaponRangeGameObject : WeaponGameObject {
     }
 
     public override WeaponRangeSaveObject CreateSaveObject() => new WeaponRangeSaveObject(this);
+
+    public override void OnLoad(SaveObject saveObject) {
+        WeaponRangeSaveObject save = (WeaponRangeSaveObject)saveObject;
+        // From base
+        DamageFactor = save.DamageFactor;
+
+        AmmoType = save.AmmoType;
+        DamageBase = save.DamageBase;
+        EnemiesPerHit = save.EnemiesPerHit;
+        DelayBetweenShots = save.DelayBetweenShots;
+        Auto = save.Auto;
+        MagazineSize = save.MagazineSize;
+        Dispersion = save.Dispersion;
+        Ammo = save.Ammo;
+        Config = GetConfig(save.ConfigName);
+    }
 }
 
 public class WeaponRangeSaveObject : SaveObject<WeaponRangeGameObject> {
-    [JsonInclude] public float DamageBase { get; set; }
+    // From base
     [JsonInclude] public float DamageFactor { get; set; }
+
+    [JsonInclude] public AmmoType AmmoType { get; set; }
+    [JsonInclude] public float DamageBase { get; set; }
     [JsonInclude] public int EnemiesPerHit { get; set; }
     [JsonInclude] public float DelayBetweenShots { get; set; }
     [JsonInclude] public bool Auto { get; set; }
     [JsonInclude] public int MagazineSize { get; set; }
     [JsonInclude] public float Dispersion { get; set; }
     [JsonInclude] public int Ammo { get; set; }
+    [JsonInclude] public string ConfigName { get; set; }
 
     public override string Discriminator() => "WeaponRange";
 
@@ -73,13 +94,17 @@ public class WeaponRangeSaveObject : SaveObject<WeaponRangeGameObject> {
     }
 
     public WeaponRangeSaveObject(WeaponRangeGameObject weapon) : base(weapon) {
-        DamageBase = weapon.DamageBase;
+        // From base
         DamageFactor = weapon.DamageFactor;
+
+        AmmoType = weapon.AmmoType;
+        DamageBase = weapon.DamageBase;
         EnemiesPerHit = weapon.EnemiesPerHit;
         DelayBetweenShots = weapon.DelayBetweenShots;
         Auto = weapon.Auto;
         MagazineSize = weapon.MagazineSize;
         Dispersion = weapon.Dispersion;
         Ammo = weapon.Ammo;
+        ConfigName = weapon.GetConfigName();
     }
 }
