@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace Betauer.Core; 
@@ -29,6 +30,27 @@ public static class TypeExtensions {
                    implementedInterface.IsGenericType &&
                    implementedInterface.GetGenericTypeDefinition() == interfaceType);
     }
+    
+    public static Type[] FindGenericsFromBaseType(this Type from, Type typeToFind) {
+        if (!typeToFind.IsGenericTypeDefinition) throw new Exception("TypeToFind must be a generic type definition");
+        var type = from.GetTypeInfo();
+        while (!type.IsGenericType || type.GetGenericTypeDefinition() != typeToFind) {
+            type = type.BaseType.GetTypeInfo();
+        }
+        return type.GetGenericArguments();
+    }
+    
+    public static bool IsGenericSubclassOf(this Type from, Type typeToFind) {
+        if (!typeToFind.IsClass) throw new Exception("TypeToFind must be a class with a generic type definition");
+        if (!typeToFind.IsGenericType || !typeToFind.IsGenericTypeDefinition) return from.IsSubclassOf(typeToFind);
+        var type = from.GetTypeInfo();
+        while (!type.IsGenericType || type.GetGenericTypeDefinition() != typeToFind) {
+            if (type.BaseType == null) return false;
+            type = type.BaseType.GetTypeInfo();
+        }
+        return true;
+    }
+    
 
     /// <summary>
     /// Return a string with the type name and the generic arguments (if any). So, for Dictionary<string, int> it returns "Dictionary<string,int>" instead of "Dictionary`2"
