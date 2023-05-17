@@ -176,13 +176,23 @@ public partial class WorldScene : Node {
 		var name = $"Player{playerMapping.Player}";
 		var playerGameObject = GameObjectRepository.Create<PlayerGameObject>(name, name);
 		var playerNode = CreatePlayerNode(playerGameObject, playerMapping);
+
+		var inventoryName = $"PlayerInventory{playerMapping.Player}";
+		var inventoryGameObject = GameObjectRepository.Create<InventoryGameObject>(inventoryName, inventoryName);
+		playerNode.Inventory.InventoryGameObject = inventoryGameObject;
+		
 		_playerSpawn.AddChild(playerNode, () => playerNode.GlobalPosition = GetPositionFromMarker("SpawnPlayer")); // + new Vector2(playerMapping.Player * 100, 0);
 		return playerNode;
 	}
 
-	public PlayerNode LoadPlayer(PlayerMapping playerMapping, PlayerSaveObject saveObject) {
+	public PlayerNode LoadPlayer(PlayerMapping playerMapping, PlayerSaveObject saveObject, InventorySaveObject inventorySaveObject) {
 		var playerNode = CreatePlayerNode(saveObject.GameObject, playerMapping);
-		_playerSpawn.AddChild(playerNode, () => playerNode.GlobalPosition = saveObject.GlobalPosition);
+		playerNode.Inventory.InventoryGameObject = inventorySaveObject.GameObject;
+		
+		_playerSpawn.AddChild(playerNode, () => {
+			playerNode.GlobalPosition = saveObject.GlobalPosition;
+			playerNode.Inventory.TriggerLoad();
+		});
 		return playerNode;
 	}
 

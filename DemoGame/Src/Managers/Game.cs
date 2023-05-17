@@ -109,7 +109,7 @@ public partial class Game : Control, IInjectable {
 		GameObjectRepository.LoadSaveObjects(CurrentSaveGame.GameObjects);
 		InitializeWorld();
 		var consumer = new MySaveGameConsumer(CurrentSaveGame);
-		LoadPlayer1(UiActionsContainer.CurrentJoyPad, consumer.Player0);
+		LoadPlayer1(UiActionsContainer.CurrentJoyPad, consumer);
 		if (consumer.Player1 == null) AllowAddingP2();
 		else NoAddingP2();
 		WorldScene.LoadGame(consumer);
@@ -127,7 +127,7 @@ public partial class Game : Control, IInjectable {
 		GameObjectRepository.LoadSaveObjects(CurrentSaveGame.GameObjects);
 		InitializeWorld();
 		var consumer = new MySaveGameConsumer(CurrentSaveGame);
-		LoadPlayer1(UiActionsContainer.CurrentJoyPad, consumer.Player0);
+		LoadPlayer1(UiActionsContainer.CurrentJoyPad, consumer);
 		NoAddingP2();
 		if (consumer.Player1 == null) AllowAddingP2();
 		else NoAddingP2();
@@ -181,9 +181,9 @@ public partial class Game : Control, IInjectable {
 		return player;
 	}
 
-	public PlayerNode LoadPlayer1(int joypad, PlayerSaveObject playerSaveObject) {
+	public PlayerNode LoadPlayer1(int joypad, MySaveGameConsumer consumer) {
 		var playerMapping = JoypadPlayersMapping.AddPlayer().SetJoypadId(joypad);
-		var player = WorldScene.LoadPlayer(playerMapping, playerSaveObject);
+		var player = WorldScene.LoadPlayer(playerMapping, consumer.Player0, consumer.Inventory0);
 		player.SetViewport(_subViewport1);
 		DisablePlayer2(true);
 		return player;
