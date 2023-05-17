@@ -191,6 +191,7 @@ public partial class WorldScene : Node {
 		
 		_playerSpawn.AddChild(playerNode, () => {
 			playerNode.GlobalPosition = saveObject.GlobalPosition;
+			playerNode.LateralState.IsFacingRight = saveObject.IsFacingRight;
 			playerNode.Inventory.TriggerLoad();
 		});
 		return playerNode;

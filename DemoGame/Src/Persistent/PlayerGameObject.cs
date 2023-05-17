@@ -83,7 +83,9 @@ public class PlayerSaveObject : SaveObject<PlayerGameObject> {
     [JsonInclude] public float Health { get; set; }
     [JsonInclude] public float MaxHealth { get; set; }
     [JsonInclude] public Dictionary<AmmoType, int> Ammo { get; set; }
+    
     [JsonInclude] public Vector2 GlobalPosition { get; set; }
+    [JsonInclude] public bool IsFacingRight { get; set; }
 
     public override string Discriminator() => "Player";
 
@@ -94,5 +96,6 @@ public class PlayerSaveObject : SaveObject<PlayerGameObject> {
         MaxHealth = player.MaxHealth;
         Ammo = new Dictionary<AmmoType, int>(player.Ammo);
         GlobalPosition = player.Node!.GlobalPosition;
+        IsFacingRight = player.Node!.LateralState.IsFacingRight;
     }
 }
