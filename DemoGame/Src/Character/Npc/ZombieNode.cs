@@ -19,7 +19,6 @@ using Betauer.NodePath;
 using Betauer.Nodes;
 using Betauer.Physics;
 using Godot;
-using Pcg;
 using Veronenger.Character.InputActions;
 using Veronenger.Character.Player;
 using Veronenger.Config;
@@ -50,8 +49,6 @@ public enum ZombieState {
 
 public partial class ZombieNode : NpcNode, IInjectable {
 	
-	private static readonly PcgRandom Random = new();
-
 	private static readonly SequenceAnimation RedFlash;
 
 	static ZombieNode() {

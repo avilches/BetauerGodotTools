@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using Betauer.Core;
 using Betauer.Core.Nodes;
-using Betauer.Core.Pool.Lifecycle;
 using Betauer.DI;
+using Betauer.DI.Attributes;
 using Godot;
 using Godot.Collections;
 using Veronenger.Persistent;
@@ -12,7 +12,9 @@ namespace Veronenger.Transient;
 
 public partial class ProjectileTrail : Node, IInjectable {
 	public enum Behaviour { Continue, Stop }
-	private static readonly Random Random = new Pcg.PcgRandom();
+
+	[Inject] public Random Random { get; set; }
+	
 	private static float RayLength = 40;
 
 	private readonly HashSet<Rid> _exclude = new();

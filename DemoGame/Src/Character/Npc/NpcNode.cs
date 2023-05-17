@@ -1,4 +1,6 @@
+using System;
 using Betauer.Application.Persistent;
+using Betauer.DI.Attributes;
 using Godot;
 using Veronenger.Config;
 using Veronenger.Persistent;
@@ -7,6 +9,8 @@ namespace Veronenger.Character.Npc;
 
 
 public abstract partial class NpcNode : Node, INodeGameObject {
+	[Inject] public Random Random { get; set; }
+
 	private GameObject _gameObject;
 
 	public GameObject GameObject {

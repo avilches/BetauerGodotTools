@@ -360,7 +360,6 @@ file class RandomTest {
     }
     public static void Main() {
         var x = new Random();
-        x.PickElement(new IWeight[] { });
         Console.WriteLine(Distribution.Histogram(-5d, 6d, () => x.Range(-5L, 5L)));
         // Console.WriteLine(Distribution.Histogram(-2.5d, 2.5d, () => Normal.Sample(0.0, 0.5), 30));
         // Console.WriteLine(Distribution.DiscreteHistogram(() => Poisson.Sample(20)));

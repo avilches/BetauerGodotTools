@@ -5,14 +5,13 @@ using Betauer.Flipper;
 using Betauer.FSM.Sync;
 using Betauer.Physics;
 using Godot;
-using Pcg;
 using Veronenger.Character.InputActions;
 using Veronenger.Persistent;
 
 namespace Veronenger.Character.Npc;
 
 public class MeleeAi : FsmSync<MeleeAi.State, MeleeAi.Event>, ICharacterAi {
-    private static readonly PcgRandom Random = new();
+    private Random Random => _sensor.Random;
 
     private readonly NpcController _controller;
     private readonly Sensor _sensor;
@@ -200,6 +199,7 @@ public class MeleeAi : FsmSync<MeleeAi.State, MeleeAi.Event>, ICharacterAi {
             _delta = delta;
         }
 
+        public Random Random => _zombieNode.Random;
         public int FacingRight => _lateralState.FacingRight;
         public bool IsFacingRight => _lateralState.IsFacingRight;
         public void Flip() => _lateralState.Flip();

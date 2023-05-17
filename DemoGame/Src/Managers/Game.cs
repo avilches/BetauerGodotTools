@@ -55,16 +55,17 @@ public partial class Game : Control, IInjectable {
 		_subViewport1.AddChildDeferred(WorldScene);
 	}
 
+	private bool _allowAddingP2 = true;
 	private void AllowAddingP2() {
-		SetProcessUnhandledInput(true);
+		_allowAddingP2 = true;
 	}
 
 	private void NoAddingP2() {
-		SetProcessUnhandledInput(false);
+		_allowAddingP2 = false;
 	}
 
 	public override async void _UnhandledInput(InputEvent e) {
-		if (e is InputEventJoypadButton button && !JoypadPlayersMapping.IsJoypadUsed(button.Device)) {
+		if (_allowAddingP2 && e is InputEventJoypadButton button && !JoypadPlayersMapping.IsJoypadUsed(button.Device)) {
 			CreatePlayer2(button.Device);
 			GetViewport().SetInputAsHandled();
 			if (JoypadPlayersMapping.Players == MaxPlayer) NoAddingP2();				

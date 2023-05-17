@@ -13,6 +13,7 @@ using Betauer.Application.Screen;
 using Betauer.Application.Settings;
 using Betauer.Application.Settings.Attributes;
 using Betauer.Camera;
+using Betauer.Core.PcgRandom;
 using Betauer.DI.Attributes;
 using Betauer.Input;
 using Betauer.Input.Attributes;
@@ -48,6 +49,7 @@ public class ApplicationConfig {
 		});
 		return loader;
 	}
+	[Singleton] public Random Random => new PcgRandom();
 	[Singleton] public DebugOverlayManager DebugOverlayManager => new();
 	[Singleton] public GameObjectRepository GameObjectRepository => new();
 	[Singleton] public UiActionsContainer UiActionsContainer => new();

@@ -2,14 +2,16 @@ using System;
 using System.Text.Json.Serialization;
 using Betauer.Application.Persistent;
 using Betauer.Core;
+using Betauer.DI.Attributes;
 using Godot;
 using Veronenger.Config;
 
 namespace Veronenger.Persistent;
 
 public class WeaponRangeGameObject : WeaponGameObject {
-    private static readonly Random Random = new Pcg.PcgRandom();
 
+    [Inject] public Random Random { get; set; }
+    
     public override WeaponConfigRange Config => (WeaponConfigRange)base.Config;
     public override WeaponConfigRange GetConfig(string name) => (WeaponConfigRange)base.GetConfig(name);
 
