@@ -25,7 +25,21 @@ public class GameObjectRepository {
     /// </summary>
     /// <param name="saveObjects"></param>
     public void LoadSaveObjects(List<SaveObject> saveObjects) {
-        saveObjects.ForEach(saveObject => Load(saveObject));
+        // First, create and add all gameobjects
+        var gameObjects = saveObjects.Select(saveObject => {
+            GameObject gameObject = CreateFromSaveObject(saveObject);
+            return (gameObject, saveObject);
+        }).ToList();
+        // Then, call OnLoad for each gameobject, so they can access to the repository and load other gameobjects
+        foreach (var (gameObject, saveObject) in gameObjects) {
+            gameObject.OnLoad(saveObject);
+        }
+    }
+
+    public GameObject Load(SaveObject saveObject) {
+        var gameObject = CreateFromSaveObject(saveObject);
+        gameObject.OnLoad(saveObject);
+        return gameObject;
     }
 
     public List<SaveObject> GetSaveObjects() {
@@ -37,25 +51,28 @@ public class GameObjectRepository {
         gameObject.Name = name;
         gameObject.Alias = alias;
         gameObject.Id = ++_lastId;
+        gameObject.GameObjectRepository = this;
         
         Container.InjectServices(gameObject);
+        Index(gameObject);
         gameObject.OnInitialize();
-        return Index(gameObject);
+        return gameObject;
     }
 
-    public GameObject Load(SaveObject saveObject) {
-        if (!saveObject.GetType().IsGenericSubclassOf(typeof(SaveObject<>))) throw new Exception(
-            $"Invalid type: {saveObject.GetType().GetTypeName()} is not a subclass of {typeof(SaveObject<>).GetTypeName()}");
+    private GameObject CreateFromSaveObject(SaveObject saveObject) {
+        if (!saveObject.GetType().IsGenericSubclassOf(typeof(SaveObject<>)))
+            throw new Exception(
+                $"Invalid type: {saveObject.GetType().GetTypeName()} is not a subclass of {typeof(SaveObject<>).GetTypeName()}");
         var genericType = saveObject.GetType().FindGenericsFromBaseType(typeof(SaveObject<>))[0];
         GameObject gameObject = (GameObject)Activator.CreateInstance(genericType)!;
         gameObject.Name = saveObject.Name;
         gameObject.Alias = saveObject.Alias;
         gameObject.Id = saveObject.Id;
+        gameObject.GameObjectRepository = this;
         _lastId = Math.Max(_lastId, gameObject.Id);
 
         saveObject.SetGameObject(gameObject);
         Container.InjectServices(gameObject);
-        gameObject.OnLoad(saveObject);
         return Index(gameObject);
     }
 

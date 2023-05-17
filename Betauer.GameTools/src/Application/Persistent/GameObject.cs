@@ -3,6 +3,7 @@ using Betauer.Core.Nodes;
 namespace Betauer.Application.Persistent;
 
 public abstract class GameObject {
+    public GameObjectRepository GameObjectRepository { get; internal set; }
     public int Id { get; internal set; }
     public string Name { get; internal set; }
     public string? Alias { get; internal set; }
