@@ -37,6 +37,8 @@ public partial class PickableItemNode : Node, IInjectable, INodeGameObject {
 	}
 
 	public PickableGameObject PickableGameObject => (PickableGameObject)GameObject;
+	public Vector2 GlobalPosition => CharacterBody2D.GlobalPosition;
+	public Vector2 Velocity => PlatformBody.Motion;
 
 	[NodePath("Character")] public CharacterBody2D CharacterBody2D;
 	[NodePath("Character/Sprite")] public Sprite2D Sprite;

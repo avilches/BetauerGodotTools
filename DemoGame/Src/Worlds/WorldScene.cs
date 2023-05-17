@@ -121,6 +121,24 @@ public partial class WorldScene : Node {
 		_pickableSpawn.AddChild(pickableItemNode, () => pickableItemNode.PlayerDrop(position, velocity));
 	}
 
+	private void LoadPickable(WeaponRangeSaveObject saveObject) {
+		if (!saveObject.PickedUp) {
+			// State is not saved, so all weapons are loaded as they were spawned by the system, not dropped by the player
+			PickableItemNode pickableItemNode = PickableItemPool.Get();
+			saveObject.GameObject.LinkNode(pickableItemNode);
+			_pickableSpawn.AddChild(pickableItemNode, () => pickableItemNode.Spawn(saveObject.GlobalPosition, saveObject.Velocity));
+		}
+	}
+
+	private void LoadPickable(WeaponMeleeSaveObject saveObject) {
+		if (!saveObject.PickedUp) {
+			// State is not saved, so all weapons are loaded as they were spawned by the system, not dropped by the player
+			PickableItemNode pickableItemNode = PickableItemPool.Get();
+			saveObject.GameObject.LinkNode(pickableItemNode);
+			_pickableSpawn.AddChild(pickableItemNode, () => pickableItemNode.Spawn(saveObject.GlobalPosition, saveObject.Velocity));
+		}
+	}
+
 	public ProjectileTrail NewBullet() {
 		var projectileTrail = ProjectilePool.Get();
 		_bulletSpawn.AddChild(projectileTrail);
@@ -129,6 +147,8 @@ public partial class WorldScene : Node {
 
 	public void LoadGame(MySaveGameConsumer saveGameConsumer) {
 		saveGameConsumer.ConsumeAll<ZombieSaveObject>(LoadZombie);
+		saveGameConsumer.ConsumeAll<WeaponMeleeSaveObject>(LoadPickable);
+		saveGameConsumer.ConsumeAll<WeaponRangeSaveObject>(LoadPickable);
 		// saveGameConsumer.Verify();
 		if (saveGameConsumer.Pending.Count > 0) {
 			Console.WriteLine("Still pending objects to load");
@@ -145,7 +165,11 @@ public partial class WorldScene : Node {
 	public void LoadZombie(ZombieSaveObject npcSaveObject) {
 		var zombieNode = ZombiePool.Get();
 		npcSaveObject.GameObject.LinkNode(zombieNode);
-		_enemySpawn.AddChild(zombieNode, () => zombieNode.GlobalPosition = npcSaveObject.GlobalPosition);
+		_enemySpawn.AddChild(zombieNode, () => {
+			zombieNode.GlobalPosition = npcSaveObject.GlobalPosition;
+			// zombieNode.Velocity = npcSaveObject.Velocity; // Velocity doesn't matter because the MeleeAI state is not save, so it starts from Idle
+			zombieNode.LateralState.IsFacingRight = npcSaveObject.IsFacingRight;
+		});
 	}
 
 	public PlayerNode AddNewPlayer(PlayerMapping playerMapping) {

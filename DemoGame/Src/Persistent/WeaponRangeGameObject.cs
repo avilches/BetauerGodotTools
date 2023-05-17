@@ -88,6 +88,10 @@ public class WeaponRangeSaveObject : SaveObject<WeaponRangeGameObject> {
     [JsonInclude] public int Ammo { get; set; }
     [JsonInclude] public string ConfigName { get; set; }
 
+    [JsonInclude] public Vector2 GlobalPosition { get; set; }
+    [JsonInclude] public Vector2 Velocity { get; set; }
+    [JsonInclude] public bool PickedUp { get; set; }
+
     public override string Discriminator() => "WeaponRange";
 
     public WeaponRangeSaveObject() {
@@ -106,5 +110,17 @@ public class WeaponRangeSaveObject : SaveObject<WeaponRangeGameObject> {
         Dispersion = weapon.Dispersion;
         Ammo = weapon.Ammo;
         ConfigName = weapon.GetConfigName();
+        
+        // Node
+        if (weapon.Node != null) {
+            GlobalPosition = weapon.Node.GlobalPosition;
+            Velocity = weapon.Node.Velocity;
+            PickedUp = false;
+        } else {
+            GlobalPosition = Vector2.Zero;
+            Velocity = Vector2.Zero;
+            PickedUp = true;
+        }
+
     }
 }

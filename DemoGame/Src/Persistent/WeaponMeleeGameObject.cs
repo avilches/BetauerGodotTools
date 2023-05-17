@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using Betauer.Application.Persistent;
+using Godot;
 using Veronenger.Config;
 
 namespace Veronenger.Persistent;
@@ -40,6 +41,10 @@ public class WeaponMeleeSaveObject : SaveObject<WeaponMeleeGameObject> {
     [JsonInclude] public float DamageBase { get; set; }
     [JsonInclude] public int EnemiesPerHit { get; set; }
     [JsonInclude] public string ConfigName { get; set; }
+    
+    [JsonInclude] public Vector2 GlobalPosition { get; set; }
+    [JsonInclude] public Vector2 Velocity { get; set; }
+    [JsonInclude] public bool PickedUp { get; set; }
 
     public override string Discriminator() => "WeaponMelee";
 
@@ -53,5 +58,16 @@ public class WeaponMeleeSaveObject : SaveObject<WeaponMeleeGameObject> {
         DamageBase = weapon.DamageBase;
         EnemiesPerHit = weapon.EnemiesPerHit;
         ConfigName = weapon.GetConfigName();
+        
+        // Node
+        if (weapon.Node != null) {
+            GlobalPosition = weapon.Node.GlobalPosition;
+            Velocity = weapon.Node.Velocity;
+            PickedUp = false;
+        } else {
+            GlobalPosition = Vector2.Zero;
+            Velocity = Vector2.Zero;
+            PickedUp = true;
+        }
     }
 }

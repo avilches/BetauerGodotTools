@@ -24,7 +24,10 @@ public abstract class NpcGameObject : GameObject<NpcNode> {
 public abstract class NpcSaveObject<T> : SaveObject<T> where T : GameObject {
     [JsonInclude] public float Health { get; set; }
     [JsonInclude] public float MaxHealth { get; set; }
+
     [JsonInclude] public Vector2 GlobalPosition { get; set; }
+    // [JsonInclude] public Vector2 Velocity { get; set; } // Velocity doesn't matter because the MeleeAI state is not save, so it starts from Idle 
+    [JsonInclude] public bool IsFacingRight { get; set; }
 
     protected NpcSaveObject() {
     }
@@ -32,6 +35,10 @@ public abstract class NpcSaveObject<T> : SaveObject<T> where T : GameObject {
     protected NpcSaveObject(NpcGameObject npc) : base(npc) {
         Health = npc.Health;
         MaxHealth = npc.MaxHealth;
-        GlobalPosition = npc.Node!.GlobalPosition;
+        if (npc.Node != null) {
+            GlobalPosition = npc.Node.GlobalPosition;
+            // Velocity = npc.Node.Velocity;
+            IsFacingRight = npc.Node.IsFacingRight;
+        }
     }
 }
