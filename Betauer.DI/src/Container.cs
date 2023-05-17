@@ -176,7 +176,7 @@ public partial class Container {
             .ToList();
     }
 
-    public List<IProvider> Query<T>(Lifetime? lifetime) {
+    public List<IProvider> Query<T>(Lifetime? lifetime = null) {
         return Query(typeof(T), lifetime);
     }
 

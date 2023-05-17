@@ -49,7 +49,7 @@ public partial class Container {
                     return;
                 }
                 if (!nullable) {
-                    throw new InjectMemberException(setter.Name, target, $"Service Name=\"{name}\" not found when trying to inject {setter}");
+                    throw new InjectMemberException(setter.Name, target, $"Service Name=\"{name}\" not found when trying to inject {setter} in {target.GetType().GetTypeName()} ({target.GetHashCode():x8})");
                 }
             } else {
                 // Implicit name (from variable, [Inject] Node pepe, so "pepe" is the name).
