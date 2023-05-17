@@ -8,11 +8,12 @@ public abstract class SaveObject {
     [JsonInclude] public int Id { get; set; }
     [JsonInclude] public string Name { get; set; }
     [JsonInclude] public string? Alias { get; set; }
+    [JsonIgnore] protected GameObject _gameObject;
     public abstract string Discriminator();
     
-    [JsonIgnore] public GameObjectRepository GameObjectRepository;
-    [JsonIgnore] public abstract Type GameObjectType { get; }
-
+    public void SetGameObject(GameObject gameObject) {
+        _gameObject = gameObject;
+    }
 
     protected SaveObject() {
     }
@@ -25,8 +26,7 @@ public abstract class SaveObject {
 }
 
 public abstract class SaveObject<T> : SaveObject where T : GameObject {
-    [JsonIgnore] public override Type GameObjectType => typeof(T);
-    [JsonIgnore] public T GameObject => GameObjectRepository.Get<T>(Id);
+    [JsonIgnore] public T GameObject => (T)_gameObject;
 
     protected SaveObject() {
     }

@@ -63,7 +63,7 @@ public partial class Game : Control, IInjectable {
 		SetProcessUnhandledInput(false);
 	}
 
-	public override void _UnhandledInput(InputEvent e) {
+	public override async void _UnhandledInput(InputEvent e) {
 		if (e is InputEventJoypadButton button && !JoypadPlayersMapping.IsJoypadUsed(button.Device)) {
 			CreatePlayer2(button.Device);
 			GetViewport().SetInputAsHandled();
@@ -78,9 +78,10 @@ public partial class Game : Control, IInjectable {
 			EnablePlayer2(false);
 			GetViewport().SetInputAsHandled();
 		} else if (e.IsKeyReleased(Key.F5)) {
-			Save("savegame.json");
+			var l = await GameObjectLoader.ListSaveGames();
+			Save("savegame");
 		} else if (e.IsKeyReleased(Key.F6)) {
-			LoadInGame("savegame.json");
+			LoadInGame("savegame");
 		}
 	}
 
@@ -104,7 +105,8 @@ public partial class Game : Control, IInjectable {
 		
 		await GameLoaderContainer.LoadGameResources();
 
-		GameObjectRepository.Initialize(CurrentSaveGame.GameObjects);
+		GameObjectRepository.Initialize();
+		GameObjectRepository.LoadSaveObjects(CurrentSaveGame.GameObjects);
 		InitializeWorld();
 		var consumer = new MySaveGameConsumer(CurrentSaveGame);
 		LoadPlayer1(UiActionsContainer.CurrentJoyPad, consumer.Player0);
@@ -121,7 +123,8 @@ public partial class Game : Control, IInjectable {
 
 		await FreeSceneAndKeepPoolData();
 
-		GameObjectRepository.Initialize(CurrentSaveGame.GameObjects);
+		GameObjectRepository.Initialize();
+		GameObjectRepository.LoadSaveObjects(CurrentSaveGame.GameObjects);
 		InitializeWorld();
 		var consumer = new MySaveGameConsumer(CurrentSaveGame);
 		LoadPlayer1(UiActionsContainer.CurrentJoyPad, consumer.Player0);

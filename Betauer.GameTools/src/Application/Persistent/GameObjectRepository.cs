@@ -14,14 +14,18 @@ public class GameObjectRepository {
     private readonly Dictionary<int, GameObject> _registry = new();
     private readonly Dictionary<string, GameObject> _alias = new();
 
-    public void Initialize(List<SaveObject>? objects = null) {
+    public void Initialize() {
         _lastId = 0;
         _registry.Clear();
         _alias.Clear();
-        objects?.ForEach(saveObject => {
-            saveObject.GameObjectRepository = this;
-            Create(saveObject);
-        });
+    }
+    
+    /// <summary>
+    /// Mutates the saveObjects list, injecting the new created GameObject property in each saveObject 
+    /// </summary>
+    /// <param name="saveObjects"></param>
+    public void LoadSaveObjects(List<SaveObject> saveObjects) {
+        saveObjects.ForEach(saveObject => Load(saveObject));
     }
 
     public List<SaveObject> GetSaveObjects() {
@@ -36,25 +40,23 @@ public class GameObjectRepository {
         
         Container.InjectServices(gameObject);
         gameObject.New();
-        return Add(gameObject);
+        return Index(gameObject);
     }
 
-    private GameObject Create(SaveObject saveObject) {
-        GameObject gameObject = (GameObject)Activator.CreateInstance(saveObject.GameObjectType)!;
+    public GameObject Load(SaveObject saveObject) {
+        if (!saveObject.GetType().IsGenericSubclassOf(typeof(SaveObject<>))) throw new Exception(
+            $"Invalid type: {saveObject.GetType().GetTypeName()} is not a subclass of {typeof(SaveObject<>).GetTypeName()}");
+        var genericType = saveObject.GetType().FindGenericsFromBaseType(typeof(SaveObject<>))[0];
+        GameObject gameObject = (GameObject)Activator.CreateInstance(genericType)!;
         gameObject.Name = saveObject.Name;
         gameObject.Alias = saveObject.Alias;
         gameObject.Id = saveObject.Id;
         _lastId = Math.Max(_lastId, gameObject.Id);
 
+        saveObject.SetGameObject(gameObject);
         Container.InjectServices(gameObject);
         gameObject.Load(saveObject);
-        return Add(gameObject);
-    }
-
-    public T CreateFrom<T>(SaveObject<T> saveObject) where T : GameObject {
-        if (saveObject.GameObjectType != typeof(T))
-            throw new Exception($"Invalid type: Create<{typeof(T).GetTypeName()}> is receiving a wrong type {saveObject.GameObjectType.GetTypeName()}");
-        return (T)Create((SaveObject)saveObject);
+        return Index(gameObject);
     }
 
     public GameObject Get(int id) => _registry[id];
@@ -83,7 +85,7 @@ public class GameObjectRepository {
         Remove(_registry[id]);
     }
 
-    private T Add<T>(T gameObject) where T : GameObject {
+    private T Index<T>(T gameObject) where T : GameObject {
         _registry.Add(gameObject.Id, gameObject);
         if (gameObject.Alias != null) _alias.Add(gameObject.Alias, gameObject);
         return gameObject;
