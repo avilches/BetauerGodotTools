@@ -31,14 +31,14 @@ public class PlayerGameObject : GameObject<PlayerNode> {
         Enum.GetValues<AmmoType>().ForEach(ammoType => Ammo[ammoType] = 10);
     }
 
-    public override void New() {
+    public override void OnInitialize() {
         MaxHealth = PlayerConfig.InitialMaxHealth;
         Health = Math.Clamp(PlayerConfig.InitialHealth, 0, PlayerConfig.InitialMaxHealth);
     }
 
     protected override Type SaveObjectType => typeof(PlayerSaveObject);
 
-    protected override void DoLoad(SaveObject s) {
+    public override void OnLoad(SaveObject s) {
         PlayerSaveObject saveObject = (PlayerSaveObject)s;
         MaxHealth = saveObject.MaxHealth;
         Health = saveObject.Health;

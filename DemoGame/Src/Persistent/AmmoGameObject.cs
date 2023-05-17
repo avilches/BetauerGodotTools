@@ -16,12 +16,12 @@ public class AmmoGameObject : PickableGameObject {
         return this;
     }
 
-    public override void New() {
+    public override void OnInitialize() {
     }
 
     protected override Type SaveObjectType => typeof(AmmoSaveObject);
     
-    protected override void DoLoad(SaveObject s) {
+    public override void OnLoad(SaveObject s) {
         AmmoSaveObject saveObject = (AmmoSaveObject) s;
     }
 

@@ -39,7 +39,7 @@ public class GameObjectRepository {
         gameObject.Id = ++_lastId;
         
         Container.InjectServices(gameObject);
-        gameObject.New();
+        gameObject.OnInitialize();
         return Index(gameObject);
     }
 
@@ -55,7 +55,7 @@ public class GameObjectRepository {
 
         saveObject.SetGameObject(gameObject);
         Container.InjectServices(gameObject);
-        gameObject.Load(saveObject);
+        gameObject.OnLoad(saveObject);
         return Index(gameObject);
     }
 

@@ -22,12 +22,12 @@ public class WeaponRangeGameObject : WeaponGameObject {
 
     public float NewRandomDispersion() => Dispersion != 0 ? Random.Range(-Dispersion, Dispersion) : 0;
 
-    public override void New() {
+    public override void OnInitialize() {
     }
 
     protected override Type SaveObjectType => typeof(WeaponRangeSaveObject);
 
-    protected override void DoLoad(SaveObject saveObject) {
+    public override void OnLoad(SaveObject saveObject) {
     }
 
     public WeaponRangeGameObject Configure(WeaponConfigRange config, 

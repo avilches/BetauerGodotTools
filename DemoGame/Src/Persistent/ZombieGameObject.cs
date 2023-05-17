@@ -9,14 +9,14 @@ public class ZombieGameObject : NpcGameObject {
     [Inject] public ZombieConfig ZombieConfig { get; set; }
     public override NpcConfig Config => ZombieConfig;
 
-    public override void New() {
+    public override void OnInitialize() {
         MaxHealth = Config.InitialMaxHealth;
         Health = Config.InitialHealth;
     }
 
     protected override Type SaveObjectType => typeof(ZombieSaveObject);
 
-    protected override void DoLoad(SaveObject s) {
+    public override void OnLoad(SaveObject s) {
         ZombieSaveObject saveObject = (ZombieSaveObject)s;
         MaxHealth = saveObject.MaxHealth;
         Health = saveObject.Health;
