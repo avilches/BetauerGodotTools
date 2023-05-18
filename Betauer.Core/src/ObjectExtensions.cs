@@ -3,8 +3,13 @@ using Godot;
 
 namespace Betauer.Core; 
 
-public static class ObjectExtensions {
+public static partial class ObjectExtensions {
 
+    public static T? GetFromMeta<T>(this GodotObject o, StringName key) where T : GodotObject {
+        var id = o.GetMeta(key);
+        return id.IsInt() ? (T)GodotObject.InstanceFromId(id.AsUInt64()) : null;
+    }
+    
     public static bool IsInstanceValid(this GodotObject o) => GodotObject.IsInstanceValid(o);
         
     public static bool IsInstanceInvalid(this GodotObject o) => !GodotObject.IsInstanceValid(o);
