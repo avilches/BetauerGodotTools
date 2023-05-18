@@ -6,6 +6,45 @@ using Array = Godot.Collections.Array;
 namespace Betauer.Core; 
 
 public static class VariantHelper {
+    public static bool IsNull(this Variant variant) => variant.VariantType == Variant.Type.Nil;
+    public static bool IsBool(this Variant variant) => variant.VariantType == Variant.Type.Bool;
+    public static bool IsInt(this Variant variant) => variant.VariantType == Variant.Type.Int;
+    public static bool IsFloat(this Variant variant) => variant.VariantType == Variant.Type.Float;
+    public static bool IsString(this Variant variant) => variant.VariantType == Variant.Type.String;
+    public static bool IsVector2(this Variant variant) => variant.VariantType == Variant.Type.Vector2;
+    public static bool IsVector2I(this Variant variant) => variant.VariantType == Variant.Type.Vector2I;
+    public static bool IsRect2(this Variant variant) => variant.VariantType == Variant.Type.Rect2;
+    public static bool IsRect2I(this Variant variant) => variant.VariantType == Variant.Type.Rect2I;
+    public static bool IsVector3(this Variant variant) => variant.VariantType == Variant.Type.Vector3;
+    public static bool IsVector3I(this Variant variant) => variant.VariantType == Variant.Type.Vector3I;
+    public static bool IsTransform2D(this Variant variant) => variant.VariantType == Variant.Type.Transform2D;
+    public static bool IsVector4(this Variant variant) => variant.VariantType == Variant.Type.Vector4;
+    public static bool IsVector4I(this Variant variant) => variant.VariantType == Variant.Type.Vector4I;
+    public static bool IsPlane(this Variant variant) => variant.VariantType == Variant.Type.Plane;
+    public static bool IsQuaternion(this Variant variant) => variant.VariantType == Variant.Type.Quaternion;
+    public static bool IsAabb(this Variant variant) => variant.VariantType == Variant.Type.Aabb;
+    public static bool IsBasis(this Variant variant) => variant.VariantType == Variant.Type.Basis;
+    public static bool IsTransform3D(this Variant variant) => variant.VariantType == Variant.Type.Transform3D;
+    public static bool IsProjection(this Variant variant) => variant.VariantType == Variant.Type.Projection;
+    public static bool IsColor(this Variant variant) => variant.VariantType == Variant.Type.Color;
+    public static bool IsStringName(this Variant variant) => variant.VariantType == Variant.Type.StringName;
+    public static bool IsNodePath(this Variant variant) => variant.VariantType == Variant.Type.NodePath;
+    public static bool IsRid(this Variant variant) => variant.VariantType == Variant.Type.Rid;
+    public static bool IsObject(this Variant variant) => variant.VariantType == Variant.Type.Object;
+    public static bool IsCallable(this Variant variant) => variant.VariantType == Variant.Type.Callable;
+    public static bool IsSignal(this Variant variant) => variant.VariantType == Variant.Type.Signal;
+    public static bool IsDictionary(this Variant variant) => variant.VariantType == Variant.Type.Dictionary;
+    public static bool IsArray(this Variant variant) => variant.VariantType == Variant.Type.Array;
+    public static bool IsPackedByteArray(this Variant variant) => variant.VariantType == Variant.Type.PackedByteArray;
+    public static bool IsPackedInt32Array(this Variant variant) => variant.VariantType == Variant.Type.PackedInt32Array;
+    public static bool IsPackedInt64Array(this Variant variant) => variant.VariantType == Variant.Type.PackedInt64Array;
+    public static bool IsPackedFloat32Array(this Variant variant) => variant.VariantType == Variant.Type.PackedFloat32Array;
+    public static bool IsPackedFloat64Array(this Variant variant) => variant.VariantType == Variant.Type.PackedFloat64Array;
+    public static bool IsPackedStringArray(this Variant variant) => variant.VariantType == Variant.Type.PackedStringArray;
+    public static bool IsPackedVector2Array(this Variant variant) => variant.VariantType == Variant.Type.PackedVector2Array;
+    public static bool IsPackedVector3Array(this Variant variant) => variant.VariantType == Variant.Type.PackedVector3Array;
+    public static bool IsPackedColorArray(this Variant variant) => variant.VariantType == Variant.Type.PackedColorArray;
+
     public static Variant CreateFrom<T>(T value) {
         if (typeof(T) != typeof(object)) return Variant.From(value);
         return value switch {
