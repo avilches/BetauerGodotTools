@@ -179,14 +179,14 @@ public class ScannerFactoryTests : Node {
     
     [Singleton]
     public class DemoSingleton {
+        [Inject("MyService")] public ILazy<MyService> MyServiceName { get; set;  }
+        [Inject("Factory:MyService")] public ILazy<MyService> MyServiceFullName { get; set;  }
         [Inject] public ILazy<MyService> MyService { get; set;  }
         [Inject] public ILazy<MyService> ServiceFactory { get; set;  }
         [Inject] public IFactory<MyTransient> MyTransient { get; set;  }
         [Inject] public IFactory<MyTransient> TransientFactory { get; set;  }
-        [Inject("InnerFactory:MyService")] 
-        public IGet<MyService> InnerMyService { get; set;  }
-        [Inject("InnerFactory:MyTransient")] 
-        public IGet<MyTransient> InnerMyTransient { get; set;  }
+        [Inject("InnerFactory:MyService")] public IGet<MyService> InnerMyService { get; set;  }
+        [Inject("InnerFactory:MyTransient")] public IGet<MyTransient> InnerMyTransient { get; set;  }
     }
 
     [Transient]
@@ -213,6 +213,8 @@ public class ScannerFactoryTests : Node {
         Assert.That(MyTransientFactory.Gets, Is.EqualTo(0));
 
         var demoSingleton = c.Resolve<DemoSingleton>();
+        Assert.That(demoSingleton.MyServiceName, Is.EqualTo(c.Resolve<ILazy<MyService>>()));
+        Assert.That(demoSingleton.MyServiceFullName, Is.EqualTo(c.Resolve<ILazy<MyService>>()));
         Assert.That(demoSingleton.MyService, Is.EqualTo(c.Resolve<ILazy<MyService>>()));
         Assert.That(demoSingleton.ServiceFactory, Is.EqualTo(c.Resolve<ILazy<MyService>>()));
         Assert.That(demoSingleton.InnerMyService, Is.EqualTo(c.Resolve<MyServiceFactory>("InnerFactory:MyService")));
@@ -285,7 +287,9 @@ public class ScannerFactoryTests : Node {
     }
 
     [Singleton]
-    public class DemoSingleton3 {
+    public class DemoSingleton2 {
+        [Inject("MyService")] public ILazy<MyService> MyServiceName { get; set;  }
+        [Inject("Factory:MyService")] public ILazy<MyService> MyServiceFullName { get; set;  }
         [Inject] public ILazy<MyService> MyService { get; set;  }
         [Inject] public ILazy<MyService> ServiceFactory { get; set;  }
         [Inject] public IFactory<MyTransient> MyTransient { get; set;  }
@@ -302,7 +306,7 @@ public class ScannerFactoryTests : Node {
         [Inject] public MyTransient MyTransient { get; set;  }
     }
 
-    [TestRunner.Test(Description = "Custom service IFactory (in class), inject by name and type", Only = true)]
+    [TestRunner.Test(Description = "Custom service IFactory (in class), inject by name and type")]
     public void ServiceFactoryClassTests() {
         MyServiceFactoryClass.Reset();
         MyTransientFactoryClass.Reset();
@@ -310,7 +314,7 @@ public class ScannerFactoryTests : Node {
         var di = c.CreateBuilder();
         di.Scan<MyServiceFactoryClass>();
         di.Scan<MyTransientFactoryClass>();
-        di.Scan<DemoSingleton3>();
+        di.Scan<DemoSingleton2>();
         di.Scan<DemoTransient2>();
         di.Build();
 
@@ -320,7 +324,9 @@ public class ScannerFactoryTests : Node {
         Assert.That(MyTransientFactoryClass.Instances, Is.EqualTo(1));
         Assert.That(MyTransientFactoryClass.Gets, Is.EqualTo(0));
 
-        var demoSingleton = c.Resolve<DemoSingleton3>();
+        var demoSingleton = c.Resolve<DemoSingleton2>();
+        Assert.That(demoSingleton.MyServiceName, Is.EqualTo(c.Resolve<ILazy<MyService>>()));
+        Assert.That(demoSingleton.MyServiceFullName, Is.EqualTo(c.Resolve<ILazy<MyService>>()));
         Assert.That(demoSingleton.MyService, Is.EqualTo(c.Resolve<ILazy<MyService>>()));
         Assert.That(demoSingleton.ServiceFactory, Is.EqualTo(c.Resolve<ILazy<MyService>>()));
         Assert.That(demoSingleton.InnerMyService, Is.EqualTo(c.Resolve<MyServiceFactoryClass>("InnerFactory:MyService")));

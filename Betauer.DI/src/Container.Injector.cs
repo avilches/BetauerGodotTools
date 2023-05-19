@@ -42,7 +42,7 @@ public partial class Container {
                 // Explicit name with [Inject(Name = "")]
                 if (setter.Type.ImplementsInterface(typeof(IGet<>)) && !name.StartsWith(Builder.FactoryPrefix) && !name.StartsWith(Builder.InnerFactoryPrefix)) {
                     // If setter is IFactory<>, then the name is "Factory:pepe"
-                    name = $"{Builder.FactoryPrefix}:{name}";
+                    name = $"{Builder.FactoryPrefix}{name}";
                 }
                 if (TryInjectFieldByName(lifetime, target, context, setter, name)) {
                     Logger.Debug($"Injected {target.GetType().GetTypeName()} ({target.GetHashCode():x8}) | {setter} | Name taken from [Inject(\"{name}\")");
@@ -56,7 +56,7 @@ public partial class Container {
                 name = setter.Name;
                 if (setter.Type.ImplementsInterface(typeof(IGet<>))) {
                     // If setter is IFactory<>, then the name is "Factory:pepe"
-                    name = $"{Builder.FactoryPrefix}:{name}";
+                    name = $"{Builder.FactoryPrefix}{name}";
                 }
                 if (TryInjectFieldByName(lifetime, target, context, setter, name)) {
                     Logger.Debug($"Injected {target.GetType().GetTypeName()} ({target.GetHashCode():x8}) | {setter} | Name taken from member: {setter.Name} ({name})");
