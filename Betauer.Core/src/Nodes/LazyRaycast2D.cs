@@ -22,7 +22,7 @@ public class LazyRaycast2D {
         return this;
     }
     
-    public PhysicsDirectSpaceState2D DirectSpaceState => _directSpaceState ??= DirectSpaceStateAccessor!.GetWorld2D().DirectSpaceState; 
+    public PhysicsDirectSpaceState2D DirectSpaceState => _directSpaceState ?? DirectSpaceStateAccessor!.GetWorld2D().DirectSpaceState; 
 
     public LazyRaycast2D From(Vector2 from) {
         Query.From = from;
