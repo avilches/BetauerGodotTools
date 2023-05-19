@@ -63,7 +63,7 @@ public class GameObjectRepository {
         if (!saveObject.GetType().IsGenericSubclassOf(typeof(SaveObject<>)))
             throw new Exception(
                 $"Invalid type: {saveObject.GetType().GetTypeName()} is not a subclass of {typeof(SaveObject<>).GetTypeName()}");
-        var genericType = saveObject.GetType().FindGenericsFromBaseType(typeof(SaveObject<>))[0];
+        var genericType = saveObject.GetType().FindGenericsFromBaseTypeDefinition(typeof(SaveObject<>))[0];
         GameObject gameObject = (GameObject)Activator.CreateInstance(genericType)!;
         gameObject.Name = saveObject.Name;
         gameObject.Alias = saveObject.Alias;

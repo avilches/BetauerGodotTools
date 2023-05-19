@@ -302,7 +302,7 @@ public class ScannerFactoryTests : Node {
         [Inject] public MyTransient MyTransient { get; set;  }
     }
 
-    [TestRunner.Test(Description = "Custom service IFactory (in class), inject by name and type")]
+    [TestRunner.Test(Description = "Custom service IFactory (in class), inject by name and type", Only = true)]
     public void ServiceFactoryClassTests() {
         MyServiceFactoryClass.Reset();
         MyTransientFactoryClass.Reset();

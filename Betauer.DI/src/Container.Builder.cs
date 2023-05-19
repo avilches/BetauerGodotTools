@@ -54,14 +54,17 @@ public partial class Container {
             return this;
         }
 
-        private interface IHiddenFactory<out T> where T : class { }
+        private interface IInnerFactory<out T> : IGet<T> where T : class { }
 
         public Builder RegisterFactory<T>(Func<T> customFactory, string? name = null, Lifetime lifetime = Lifetime.Singleton, bool primary = false) {
             return RegisterFactory(typeof(T), lifetime, () => customFactory(), name, primary);
         }
 
+        public static string InnerFactoryPrefix = "InnerFactory:";
+        public static string FactoryPrefix = "Factory:";
+
         public Builder RegisterFactory(Type factoryType, Lifetime lifetime, Func<object> customFactory, string? name = null, bool primary = false) {
-            var type = FactoryTools.GetIFactoryGenericType(factoryType);
+            var type = factoryType.FindGenericsFromInterfaceDefinition(typeof(IGet<>))![0];
             if (type == null) throw new InvalidCastException($"Factory {factoryType.GetTypeName()} must implement IFactory<T>");
 
             // Register the real factory, it only can be accessed with
@@ -69,8 +72,8 @@ public partial class Container {
             // (If you use Resolve<IFactory<T>>(), you will get the regular factory, not the inner)
             // This factory returns the instances without inject dependencies in them
             // The factory are always instantiated. The lazy parameter only affects to the instance created by the factory, never to the factory itself.
-            var customFactoryName = name == null ? null : $"InnerFactory:{name}";
-            var innerFactoryType = typeof(IHiddenFactory<>).MakeGenericType(type);
+            var customFactoryName = name == null ? null : $"{InnerFactoryPrefix}{name}";
+            var innerFactoryType = typeof(IInnerFactory<>).MakeGenericType(type);
             var customProvider = Provider.Create(innerFactoryType, innerFactoryType, Lifetime.Singleton, customFactory, customFactoryName, primary, false);
             Register(customProvider);
     
@@ -85,7 +88,7 @@ public partial class Container {
             // - Resolve<IFactory<T>>("Factory:"+name)
             // This factory is a wrapper which return instances injecting dependencies.
             // It's always lazy because it's just a wrapper for the user
-            var factoryName = name == null ? null : $"Factory:{name}";
+            var factoryName = name == null ? null : $"{FactoryPrefix}{name}";
             object CustomFactory() => FactoryTools.CreateIFactoryFromProvider(type, provider);
             Type iFactoryType = (provider.Lifetime == Lifetime.Singleton ? typeof(ILazy<>) : typeof(IFactory<>)).MakeGenericType(type);
             Register(Provider.Create(iFactoryType, iFactoryType, Lifetime.Singleton, CustomFactory, factoryName, primary, true));
