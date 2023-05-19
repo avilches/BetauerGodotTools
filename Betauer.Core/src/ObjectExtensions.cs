@@ -5,9 +5,13 @@ namespace Betauer.Core;
 
 public static partial class ObjectExtensions {
 
-    public static T? GetFromMeta<T>(this GodotObject o, StringName key) where T : GodotObject {
+    public static T? GetObjectLinked<T>(this GodotObject o, StringName key) where T : GodotObject {
         var id = o.GetMeta(key);
         return id.IsInt() ? (T)GodotObject.InstanceFromId(id.AsUInt64()) : null;
+    }
+    
+    public static void LinkObject(this GodotObject o, StringName key, GodotObject store) {
+        o.SetMeta(key, store.GetInstanceId());
     }
     
     public static bool IsInstanceValid(this GodotObject o) => GodotObject.IsInstanceValid(o);
