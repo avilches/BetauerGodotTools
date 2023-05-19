@@ -4,6 +4,7 @@ using Betauer.Application.Lifecycle.Pool;
 using Betauer.Application.Persistent;
 using Betauer.Core;
 using Betauer.Core.Nodes;
+using Betauer.Core.Signal;
 using Betauer.DI;
 using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
@@ -82,8 +83,10 @@ public partial class Game : Control, IInjectable {
 			GetViewport().SetInputAsHandled();
 			if (JoypadPlayersMapping.Players == MaxPlayer) NoAddingP2();				
 		} else if (e.IsKeyReleased(Key.U)) {
-			CreatePlayer2(1);
-			GetViewport().SetInputAsHandled();
+			if (ActivePlayers < 2) {
+				CreatePlayer2(1);
+				GetViewport().SetInputAsHandled();
+			}
 		} else if (e.IsKeyReleased(Key.I)) {
 			EnableOnlyOneViewport(false);
 			GetViewport().SetInputAsHandled();
@@ -125,6 +128,8 @@ public partial class Game : Control, IInjectable {
 		var (success, saveGame) = await LoadSaveGame(saveName);
 		if (!success) return;
 		FreeSceneKeepingPoolData();
+		// The CanvasModulate needs 2 frames to free so it can be applied again
+		await this.AwaitPhysicsFrame(2);
 		ContinueLoad(saveGame);
 	}
 
@@ -311,7 +316,7 @@ public partial class Game : Control, IInjectable {
 		
 		// 1. All busy elements are still attached to the tree and will be destroyed with the scene, so we don't need to
 		// do anything with them.
-		// But the non busy and valid element are outside of the scene tree in the pool, so, loop them and free them:
+		// Drain() will loop over the non busy and valid element (which are outside of the scene tree) in the pool, so, loop them and free them:
 		PoolNodeContainer.Drain().ForEach(node => node.Free());
 		// 2. Remove the data from the pool to avoid having references to busy elements which are going to die with the scene
 		PoolNodeContainer.Clear();
@@ -323,6 +328,6 @@ public partial class Game : Control, IInjectable {
 		// The busy nodes are the nodes who still belongs to the tree, so loop them and remove them from the tree is a way
 		// to keep them in the pool ready for the next game
 		PoolNodeContainer.GetAllBusy().ForEach(node => node.RemoveFromParent());
-		WorldScene.Free();
+		WorldScene.QueueFree();
 	}
 }

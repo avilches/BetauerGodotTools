@@ -85,6 +85,7 @@ public class PlayerSaveObject : SaveObject<PlayerGameObject> {
     [JsonInclude] public Dictionary<AmmoType, int> Ammo { get; set; }
     
     [JsonInclude] public Vector2 GlobalPosition { get; set; }
+    [JsonInclude] public Vector2 Velocity { get; set; }
     [JsonInclude] public bool IsFacingRight { get; set; }
 
     public override string Discriminator() => "Player";
@@ -97,5 +98,6 @@ public class PlayerSaveObject : SaveObject<PlayerGameObject> {
         Ammo = new Dictionary<AmmoType, int>(player.Ammo);
         GlobalPosition = player.Node!.GlobalPosition;
         IsFacingRight = player.Node!.LateralState.IsFacingRight;
+        Velocity = player.Node!.CharacterBody2D.Velocity;
     }
 }

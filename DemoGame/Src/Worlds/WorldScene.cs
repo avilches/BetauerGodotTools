@@ -159,7 +159,10 @@ public partial class WorldScene : Node {
 	public void AddNewZombie(Vector2 position) {
 		var zombieNode = ZombiePool.Get();
 		GameObjectRepository.Create<ZombieGameObject>("Zombie").LinkNode(zombieNode);
-		_enemySpawn.AddChild(zombieNode, () => zombieNode.GlobalPosition = position);
+		_enemySpawn.AddChild(zombieNode, () => {
+			zombieNode.GlobalPosition = position;
+			zombieNode.Velocity = Vector2.Zero; // avoid weird movement when spawning from a pool instance who had a big velocity
+		});
 	}
 
 	public void LoadZombie(ZombieSaveObject npcSaveObject) {
@@ -167,7 +170,7 @@ public partial class WorldScene : Node {
 		npcSaveObject.GameObject.LinkNode(zombieNode);
 		_enemySpawn.AddChild(zombieNode, () => {
 			zombieNode.GlobalPosition = npcSaveObject.GlobalPosition;
-			// zombieNode.Velocity = npcSaveObject.Velocity; // Velocity doesn't matter because the MeleeAI state is not save, so it starts from Idle
+			zombieNode.Velocity = npcSaveObject.Velocity; // X Velocity doesn't matter because the MeleeAI state is not save, so it starts from Idle
 			zombieNode.LateralState.IsFacingRight = npcSaveObject.IsFacingRight;
 		});
 	}
@@ -181,7 +184,10 @@ public partial class WorldScene : Node {
 		var inventoryGameObject = GameObjectRepository.Create<InventoryGameObject>(inventoryName, inventoryName);
 		playerNode.Inventory.InventoryGameObject = inventoryGameObject;
 		
-		_playerSpawn.AddChild(playerNode, () => playerNode.GlobalPosition = GetPositionFromMarker("SpawnPlayer")); // + new Vector2(playerMapping.Player * 100, 0);
+		_playerSpawn.AddChild(playerNode, () => {
+			playerNode.GlobalPosition = GetPositionFromMarker("SpawnPlayer");
+			playerNode.PlatformBody.Motion = Vector2.Zero; // avoid weird movement when spawning from a pool instance who had a big velocity
+		});
 		return playerNode;
 	}
 
@@ -190,6 +196,7 @@ public partial class WorldScene : Node {
 		playerNode.Inventory.InventoryGameObject = inventorySaveObject.GameObject;
 		
 		_playerSpawn.AddChild(playerNode, () => {
+			playerNode.PlatformBody.Motion = saveObject.Velocity;
 			playerNode.GlobalPosition = saveObject.GlobalPosition;
 			playerNode.LateralState.IsFacingRight = saveObject.IsFacingRight;
 			playerNode.Inventory.TriggerLoad();
@@ -205,7 +212,7 @@ public partial class WorldScene : Node {
 		return playerNode;
 	}
 
-	public bool IsPlayer(CharacterBody2D player) {
+	public bool IsAnyPlayer(CharacterBody2D player) {
 		return Players.Find(p => p.CharacterBody2D == player) != null;
 	}
 
@@ -233,7 +240,7 @@ public partial class WorldScene : Node {
 		light.ShadowFilter = Light2D.ShadowFilterEnum.None;
 		light.GetNode<Area2D>("Area2D")
 			?.OnBodyEntered(LayerConstants.LayerPlayerBody, (player) => {
-				if (player is CharacterBody2D character && IsPlayer(character)) CandleOn(light);
+				if (player is CharacterBody2D character && IsAnyPlayer(character)) CandleOn(light);
 			});
 	}
 

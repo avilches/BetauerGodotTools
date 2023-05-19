@@ -194,8 +194,7 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
 
         State(MainState.GameOver)
             .Enter(async () => {
-                Game!.End(true);
-                SceneTree.Root.RemoveChild(Game);
+                Game!.End(false);
                 Game = null;
             })
             .If(() => true).Set(MainState.MainMenu)

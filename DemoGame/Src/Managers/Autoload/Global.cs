@@ -7,6 +7,6 @@ public partial class Global : Node {
     [Inject] private MainStateMachine MainStateMachine { get; set; }
 
     public bool IsPlayer(CharacterBody2D player) {
-        return MainStateMachine.Game!.WorldScene.IsPlayer(player);
+        return MainStateMachine.Game!.WorldScene.IsAnyPlayer(player);
     }
 }
