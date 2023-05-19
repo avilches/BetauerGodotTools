@@ -41,7 +41,6 @@ public static class CameraExtensions {
             if (camera.GetObjectLinked<RemoteTransform2D>(RT2DId) is RemoteTransform2D rt2d) {
                 if (rt2d.HasMeta(CameraId) && rt2d.GetObjectLinked<Camera2D>(CameraId) == camera) {
                     if (forever) {
-                        rt2d.RemoveFromParent();
                         rt2d.Free();
                     } else {
                         rt2d.RemotePath = null;
@@ -59,7 +58,6 @@ public static class CameraExtensions {
         var rt2d = node.GetNodeOrNull<RemoteTransform2D>(CameraTransformerNodeName);
         rt2d?.ClearFollowerCamera();
         if (forever) {
-            rt2d?.RemoveFromParent();
             rt2d?.Free();
         }
     } 
