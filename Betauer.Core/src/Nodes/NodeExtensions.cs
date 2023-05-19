@@ -7,6 +7,16 @@ using Godot;
 namespace Betauer.Core.Nodes {
     public static partial class NodeExtensions {
 
+        public static T GetChildOrCreate<T>(this Node node, string path, Func<T> create) where T : Node {
+            if (path.Contains('.') || path.Contains('/')) throw new Exception("No paths are allowed, only node names");
+            T child = node.GetNodeOrNull<T>(path);
+            if (child == null) {
+                child = create();
+                node.AddChild(child);
+            }
+            return child;
+        }
+
         public static void RemoveFromParent(this Node node) {
             node.GetParent()?.RemoveChild(node);
         }
