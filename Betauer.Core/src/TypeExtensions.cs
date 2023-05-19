@@ -13,36 +13,68 @@ public static class TypeExtensions {
     /// - typeof(List<string>).ImplementsInterface(typeof(IList<>)) returns true
     /// 
     /// </summary>
-    /// <param name="type"></param>
+    /// <param name="from"></param>
     /// <param name="interfaceType"></param>
     /// <returns></returns>
     /// <exception cref="ArgumentNullException"></exception>
-    public static bool ImplementsInterface(this Type type, Type interfaceType) {
-        if (type == null) throw new ArgumentNullException(nameof(type));
+    public static bool ImplementsInterface(this Type from, Type interfaceType) {
+        if (from == null) throw new ArgumentNullException(nameof(from));
         if (interfaceType == null) throw new ArgumentNullException(nameof(interfaceType));
+        if (!interfaceType.IsInterface) throw new Exception($"TypeToFind {interfaceType} must be an interface");
     
-        if (type.IsAssignableTo(interfaceType)) return true;
+        if (from.IsAssignableTo(interfaceType)) return true;
     
         // interfaceType is a GenericTypeDefinition (that means is something like List<> instead of List<string>)
-        return (type.IsGenericType && interfaceType.IsGenericTypeDefinition && interfaceType == type.GetGenericTypeDefinition()) ||
-               type.GetInterfaces().Any(implementedInterface =>
-                   implementedInterface == interfaceType ||
-                   implementedInterface.IsGenericType &&
-                   implementedInterface.GetGenericTypeDefinition() == interfaceType);
+        if (from.IsGenericType && interfaceType.IsGenericTypeDefinition && interfaceType == from.GetGenericTypeDefinition()) return true;
+        return from.GetInterfaces().Any(implementedInterface =>
+            implementedInterface == interfaceType ||
+            (implementedInterface.IsGenericType && implementedInterface.GetGenericTypeDefinition() == interfaceType));
     }
     
-    public static Type[] FindGenericsFromBaseType(this Type from, Type typeToFind) {
-        if (!typeToFind.IsGenericTypeDefinition) throw new Exception("TypeToFind must be a generic type definition");
+    /// <summary>
+    /// returns an array of Type from a generic interface definition, such as:
+    /// typeof(List<string>).FindGenericsFromInterfaceDefinition(typeof(IList<>)) returns new Type{}[typeof(string)] 
+    /// </summary>
+    /// <param name="from"></param>
+    /// <param name="interfaceType"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    /// <exception cref="Exception"></exception>
+    public static Type[] FindGenericsFromInterfaceDefinition(this Type from, Type interfaceType) {
+        if (from == null) throw new ArgumentNullException(nameof(from));
+        if (interfaceType == null) throw new ArgumentNullException(nameof(interfaceType));
+
+        if (!interfaceType.IsInterface || !interfaceType.IsGenericTypeDefinition) throw new Exception($"TypeToFind {interfaceType} must be a generic interface definition");
+        
+        if (from.IsInterface && interfaceType == from.GetGenericTypeDefinition()) return from.GetGenericArguments();
+        var interfaceFound = from.GetInterfaces().FirstOrDefault(implementedInterface => 
+            implementedInterface.IsGenericType && implementedInterface.GetGenericTypeDefinition() == interfaceType);
+        if (interfaceFound == null) throw new Exception($"Type {from} doesn't implements {interfaceType}");
+        return interfaceFound.GetGenericArguments();
+    }
+
+
+    public static Type[] FindGenericsFromBaseTypeDefinition(this Type from, Type typeToFind) {
+        if (from == null) throw new ArgumentNullException(nameof(from));
+        if (typeToFind == null) throw new ArgumentNullException(nameof(typeToFind));
+        
+        if (!typeToFind.IsClass || !typeToFind.IsGenericTypeDefinition) throw new Exception($"TypeToFind {typeToFind} must be a generic class definition");
+        
         var type = from.GetTypeInfo();
         while (!type.IsGenericType || type.GetGenericTypeDefinition() != typeToFind) {
+            if (type.BaseType == null) throw new Exception($"Type {from} is not a subclass of {typeToFind}");
             type = type.BaseType.GetTypeInfo();
         }
         return type.GetGenericArguments();
     }
     
     public static bool IsGenericSubclassOf(this Type from, Type typeToFind) {
+        if (from == null) throw new ArgumentNullException(nameof(from));
+        if (typeToFind == null) throw new ArgumentNullException(nameof(typeToFind));
+
         if (!typeToFind.IsClass) throw new Exception("TypeToFind must be a class with a generic type definition");
         if (!typeToFind.IsGenericType || !typeToFind.IsGenericTypeDefinition) return from.IsSubclassOf(typeToFind);
+        
         var type = from.GetTypeInfo();
         while (!type.IsGenericType || type.GetGenericTypeDefinition() != typeToFind) {
             if (type.BaseType == null) return false;

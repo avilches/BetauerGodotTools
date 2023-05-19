@@ -1,19 +1,9 @@
 using System;
-using System.Linq;
 using Betauer.DI.ServiceProvider;
 
 namespace Betauer.DI.Factory;
 
 public static class FactoryTools {
-
-    public static Type? GetIFactoryGenericType(Type factoryType) {
-        var isIFactoryInterface = factoryType.IsInterface && factoryType.GetGenericTypeDefinition() == typeof(IGet<>);
-        if (isIFactoryInterface) return factoryType.GetGenericArguments()[0];
-        var iFactoryInterface = factoryType
-            .GetInterfaces()
-            .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IGet<>));
-        return iFactoryInterface?.GetGenericArguments()[0];
-    }
 
     /// <summary>
     /// Returns a IFactory<type> where every call to Get() invokes a provider.Get(), creating a new instance
