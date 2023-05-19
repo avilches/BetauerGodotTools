@@ -88,7 +88,7 @@ public class GameLoaderContainer : ResourceLoaderContainer {
 [Scene.Transient<RedefineActionButton>("RedefineActionButton", "res://Platform/Scenes/UI/RedefineActionButton.tscn")]
 [Scene.Transient<ModalBoxConfirm>("ModalBoxConfirm", "res://Platform/Scenes/Menu/ModalBoxConfirm.tscn")]
 [Scene.Transient<PlayerHud>("PlayerHudFactory", "res://Platform/Scenes/UI/PlayerHud.tscn")]
-[Scene.Singleton<Game>("Game", "res://Src/Managers/Game.tscn")]
+[Scene.Transient<Game>("Game", "res://Src/Managers/Game.tscn")]
 [Scene.Singleton<MainMenu>("MainMenuResource", "res://Platform/Scenes/Menu/MainMenu.tscn")]
 [Scene.Singleton<BottomBar>("BottomBarResource", "res://Platform/Scenes/Menu/BottomBar.tscn")]
 [Scene.Singleton<PauseMenu>("PauseMenuResource", "res://Platform/Scenes/Menu/PauseMenu.tscn")]

@@ -59,7 +59,9 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
     
     [Inject] private IFactory<ModalBoxConfirm> ModalBoxConfirm { get; set; }
     [Inject("MyTheme")] private IFactory<Theme> MyTheme { get; set; }
-    [Inject] private ILazy<Game> Game { get; set; }
+    [Inject] private IFactory<Game> GameFactory { get; set; }
+    
+    public Game? Game { get; private set; }
 
     [Inject] private ScreenSettingsManager ScreenSettingsManager { get; set; }
     [Inject] private SceneTree SceneTree { get; set; }
@@ -171,7 +173,9 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
         State(MainState.StartingGame)
             .Enter(async () => {
                 await MainMenuScene.HideMainMenu();
-                await Game.Get().NewGame();
+                Game = GameFactory.Get();
+                SceneTree.Root.AddChild(Game);
+                await Game.StartNewGame();
             })
             .If(() => true).Set(MainState.Gaming)
             .Build();
@@ -190,7 +194,9 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
 
         State(MainState.GameOver)
             .Enter(async () => {
-                await Game.Get().End();
+                Game!.End(true);
+                SceneTree.Root.RemoveChild(Game);
+                Game = null;
             })
             .If(() => true).Set(MainState.MainMenu)
             .Build();
@@ -224,7 +230,8 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
                 
         State(MainState.QuitGame)
             .Enter(async () => {
-                await Game.Get().End();
+                Game!.End(false);
+                Game = null;
             })
             .If(() => true).Set(MainState.MainMenu)
             .Build();

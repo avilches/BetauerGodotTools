@@ -4,7 +4,6 @@ using Betauer.Application.Lifecycle.Pool;
 using Betauer.Application.Persistent;
 using Betauer.Core;
 using Betauer.Core.Nodes;
-using Betauer.Core.Signal;
 using Betauer.DI;
 using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
@@ -20,7 +19,7 @@ using Veronenger.Worlds;
 namespace Veronenger.Managers;
 
 public partial class Game : Control, IInjectable {
-	private World2D _noWorld = new();
+	private static readonly World2D NoWorld = new(); // A cached World2D to re-use
 
 	[Inject] private GameObjectRepository GameObjectRepository { get; set; }
 	[Inject] private IGameObjectLoader<MySaveGame> GameObjectLoader { get; set; }
@@ -40,12 +39,19 @@ public partial class Game : Control, IInjectable {
 	// private readonly DragCameraController _cameraController = new();
 
 	public const int MaxPlayer = 2;
-	
-	public WorldScene WorldScene { get; private set; }
+	private float _splitCameraEffectDuration = 0.2f; // in seconds
+
+	public WorldScene WorldScene { get; private set; } = null!;
+	public bool BusyPlayerTransition { get; private set; } = false;
+	public int VisiblePlayers { get; private set; } = 0;
+	public bool ManualCamera { get; private set; } = false;
+	private int ActivePlayers => WorldScene != null ? WorldScene.Players.Count : 0;
+	private bool _allowAddingP2 = true;
+	private void AllowAddingP2() => _allowAddingP2 = true;
+	private void NoAddingP2() => _allowAddingP2 = false;
 
 	public void PostInject() {
 		PlayerActionsContainer.Disable(); // The real actions are cloned per player in player.Connect()		
-		NoAddingP2();				
 	}
 
 	public void StartNewProceduralWorld() {
@@ -56,14 +62,6 @@ public partial class Game : Control, IInjectable {
 		_subViewport1.AddChildDeferred(WorldScene);
 	}
 
-	private bool _allowAddingP2 = true;
-	private void AllowAddingP2() {
-		_allowAddingP2 = true;
-	}
-
-	private void NoAddingP2() {
-		_allowAddingP2 = false;
-	}
 
 	public override void _Input(InputEvent e) {
 		// if (e.IsLeftDoubleClick()) {
@@ -87,10 +85,10 @@ public partial class Game : Control, IInjectable {
 			CreatePlayer2(1);
 			GetViewport().SetInputAsHandled();
 		} else if (e.IsKeyReleased(Key.I)) {
-			DisablePlayer2Viewport(false);
+			EnableOnlyOneViewport(false);
 			GetViewport().SetInputAsHandled();
 		} else if (e.IsKeyReleased(Key.O)) {
-			EnablePlayer2Viewport(false);
+			EnableDoubleViewport(false);
 			GetViewport().SetInputAsHandled();
 		} else if (e.IsKeyReleased(Key.F5)) {
 			var l = await GameObjectLoader.ListSaveGames();
@@ -100,7 +98,7 @@ public partial class Game : Control, IInjectable {
 		}
 	}
 
-	public async Task NewGame() {
+	public async Task StartNewGame() {
 		UiActionsContainer.SetJoypad(UiActionsContainer.CurrentJoyPad);	// Player who starts the game is the player who control the UI forever
 		
 		await GameLoaderContainer.LoadGameResources();
@@ -116,35 +114,27 @@ public partial class Game : Control, IInjectable {
 
 	public async void LoadFromMenu(string saveName) {
 		UiActionsContainer.SetJoypad(UiActionsContainer.CurrentJoyPad);	// Player who starts the game is the player who control the UI forever
-		(var success, CurrentSaveGame) = await LoadSaveGame(saveName);
+		var (success, saveGame) = await LoadSaveGame(saveName);
 		if (!success) return;
-		
 		await GameLoaderContainer.LoadGameResources();
-
-		GameObjectRepository.Initialize();
-		GameObjectRepository.LoadSaveObjects(CurrentSaveGame.GameObjects);
-		InitializeWorld();
-		var consumer = new MySaveGameConsumer(CurrentSaveGame);
-		LoadPlayer1(UiActionsContainer.CurrentJoyPad, consumer);
-		if (consumer.Player1 == null) AllowAddingP2();
-		else NoAddingP2();
-		WorldScene.LoadGame(consumer);
-		HideLoading();
+		ContinueLoad(saveGame);
 	}
 
 	public async void LoadInGame(string saveName) {
-		UiActionsContainer.SetJoypad(UiActionsContainer.CurrentJoyPad);	// Player who starts the game is the player who control the UI forever
-		(var success, CurrentSaveGame) = await LoadSaveGame(saveName);
+		UiActionsContainer.SetJoypad(UiActionsContainer.CurrentJoyPad); // Player who starts the game is the player who control the UI forever
+		var (success, saveGame) = await LoadSaveGame(saveName);
 		if (!success) return;
+		FreeSceneKeepingPoolData();
+		ContinueLoad(saveGame);
+	}
 
-		await FreeSceneAndKeepPoolData();
-
+	private void ContinueLoad(MySaveGame saveGame) {
+		CurrentSaveGame = saveGame;
 		GameObjectRepository.Initialize();
 		GameObjectRepository.LoadSaveObjects(CurrentSaveGame.GameObjects);
 		InitializeWorld();
 		var consumer = new MySaveGameConsumer(CurrentSaveGame);
 		LoadPlayer1(UiActionsContainer.CurrentJoyPad, consumer);
-		NoAddingP2();
 		if (consumer.Player1 == null) AllowAddingP2();
 		else NoAddingP2();
 		WorldScene.LoadGame(consumer);
@@ -193,15 +183,13 @@ public partial class Game : Control, IInjectable {
 		var playerMapping = JoypadPlayersMapping.AddPlayer().SetJoypadId(joypad);
 		var player = WorldScene.AddNewPlayer(playerMapping);
 		player.SetCamera(_camera1);
-		DisablePlayer2Viewport(true);
 		return player;
 	}
 
 	public PlayerNode LoadPlayer1(int joypad, MySaveGameConsumer consumer) {
 		var playerMapping = JoypadPlayersMapping.AddPlayer().SetJoypadId(joypad);
 		var player = WorldScene.LoadPlayer(playerMapping, consumer.Player0, consumer.Inventory0);
-		player.SetCamera(_camera2);
-		DisablePlayer2Viewport(true);
+		player.SetCamera(_camera1);
 		return player;
 	}
 
@@ -213,44 +201,53 @@ public partial class Game : Control, IInjectable {
 		return player;
 	}
 	
-	private float _effectDuration = 0.2f;
-	private bool _busyPlayerTransition = false;
-	private int _visiblePlayers = 0;
-
 	// TODO: this has been done because Vector2.DistanceTo didn't work (returned Infinity)
 	public float DistanceTo(Vector2 from, Vector2 to) {
 		double fromX = (from.X - to.X) * (from.X - to.X) + (from.Y - to.Y) * (from.Y - to.Y);
 		return Mathf.Sqrt((float)fromX);
 	}
 
-	public override void _PhysicsProcess(double delta) {
-		if (!_busyPlayerTransition && WorldScene is { Players.Count: 2 }) {
+	public override void _Process(double delta) {
+		if (!ManualCamera) {
+			ManageSplitScreen();
+		}
+	}
+
+	public void ManageSplitScreen() {
+		if (BusyPlayerTransition) return;
+		
+		if (ActivePlayers == 1) {
+			// Ensure only one viewport is shown
+			if (VisiblePlayers != 1) EnableOnlyOneViewport(true);
+			
+		} else if (ActivePlayers == 2) {
+
 			var p1Stage = WorldScene.Players[0].StageCameraController?.CurrentStage;
 			var p2Stage = WorldScene.Players[1].StageCameraController?.CurrentStage;
 			if (p1Stage == null || p2Stage == null) return;
 			var sameStage = p1Stage == p2Stage;
 			if (!sameStage) {
-				if (_visiblePlayers == 1) EnablePlayer2Viewport(false);
+				if (VisiblePlayers == 1) EnableDoubleViewport(false);
 			} else {
 				var p1Pos = WorldScene.Players[0].Marker2D.GlobalPosition;
 				var p2Pos = WorldScene.Players[1].Marker2D.GlobalPosition;
 				var distanceTo = DistanceTo(p1Pos, p2Pos);
 
-				if (_visiblePlayers == 2) {
+				if (VisiblePlayers == 2) {
 					if (distanceTo < (Size.X * 0.5 * 0.2f)) {
-						DisablePlayer2Viewport(false);
+						EnableOnlyOneViewport(false);
 					}
-				} else if (_visiblePlayers == 1) {
+				} else if (VisiblePlayers == 1) {
 					if (distanceTo > (Size.X * 0.5 * 0.3f)) {
-						EnablePlayer2Viewport(false);
+						EnableDoubleViewport(false);
 					}
 				}
 			}
 		}
 	}
 
-	private void EnablePlayer2Viewport(bool immediate) {
-		_visiblePlayers = 2;
+	private void EnableDoubleViewport(bool immediate) {
+		VisiblePlayers = 2;
 		var half = new Vector2I((int)Size.X / 2, (int)Size.Y);
 		if (immediate || true) {
 			_subViewport1.Size = half;
@@ -258,53 +255,58 @@ public partial class Game : Control, IInjectable {
 			_subViewport2.GetParent<SubViewportContainer>().Visible = true;
 			_subViewport2.World2D = _subViewport1.World2D;
 			HudScene.EnablePlayer2();
-			_busyPlayerTransition = false;
+			BusyPlayerTransition = false;
 		} else {
-			_busyPlayerTransition = true;
+			BusyPlayerTransition = true;
 			_subViewport2.World2D = _subViewport1.World2D;
 			_subViewport2.Size = new Vector2I(0, (int)Size.Y);
 			_subViewport2.GetParent<SubViewportContainer>().Visible = true;
-			CreateTween().SetProcessMode(Tween.TweenProcessMode.Physics).TweenProperty(_subViewport1, "size", half, _effectDuration).SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.InOut);
-			CreateTween().SetProcessMode(Tween.TweenProcessMode.Physics).TweenProperty(_subViewport2, "size", half, _effectDuration).SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.InOut);
+			CreateTween().SetProcessMode(Tween.TweenProcessMode.Physics).TweenProperty(_subViewport1, "size", half, _splitCameraEffectDuration).SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.InOut);
+			CreateTween().SetProcessMode(Tween.TweenProcessMode.Physics).TweenProperty(_subViewport2, "size", half, _splitCameraEffectDuration).SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.InOut);
 			CreateTween().TweenCallback(Callable.From(() => {
-				_busyPlayerTransition = false;
+				BusyPlayerTransition = false;
 				HudScene.EnablePlayer2();
-			})).SetDelay(_effectDuration);
+			})).SetDelay(_splitCameraEffectDuration);
 		}
 	}
 
-	public void DisablePlayer2Viewport(bool immediate) {
-		_visiblePlayers = 1;
+	public void EnableOnlyOneViewport(bool immediate) {
+		VisiblePlayers = 1;
 		var full = new Vector2I((int)Size.X, (int)Size.Y);
 		var zero = new Vector2I(0, (int)Size.Y);
 		if (immediate || true) {
-			_subViewport2.World2D = _noWorld;
+			_subViewport2.World2D = NoWorld;
 			_subViewport2.GetParent<SubViewportContainer>().Visible = false;
 			_subViewport1.Size = full;
 			HudScene.DisablePlayer2();
-			_busyPlayerTransition = false;
+			BusyPlayerTransition = false;
 		} else {
-			_busyPlayerTransition = true;
-			CreateTween().SetProcessMode(Tween.TweenProcessMode.Physics).TweenProperty(_subViewport1, "size", full, _effectDuration).SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.InOut);
-			CreateTween().SetProcessMode(Tween.TweenProcessMode.Physics).TweenProperty(_subViewport2, "size", zero, _effectDuration).SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.InOut);
+			BusyPlayerTransition = true;
+			CreateTween().SetProcessMode(Tween.TweenProcessMode.Physics).TweenProperty(_subViewport1, "size", full, _splitCameraEffectDuration).SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.InOut);
+			CreateTween().SetProcessMode(Tween.TweenProcessMode.Physics).TweenProperty(_subViewport2, "size", zero, _splitCameraEffectDuration).SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.InOut);
 			CreateTween().TweenCallback(Callable.From(() => {
-				_subViewport2.World2D = _noWorld;
+				_subViewport2.World2D = NoWorld;
 				_subViewport2.GetParent<SubViewportContainer>().Visible = false;
 				_subViewport1.Size = full;
 				HudScene.DisablePlayer2();
-				_busyPlayerTransition = false;
-			})).SetDelay(_effectDuration);
+				BusyPlayerTransition = false;
+			})).SetDelay(_splitCameraEffectDuration);
 		}
 	}
 
-	public async Task End() {
-		NoAddingP2();				
+	public void End(bool unload) {
 		HudScene.Disable();
-		// FreeSceneAndKeepPoolData();
-		await FreeSceneAndUnloadResources();
+		if (unload) {
+			UnloadResources();
+		} else {
+			FreeSceneKeepingPoolData();
+		}
+		Free();
+		GC.GetTotalMemory(true);
+		PrintOrphanNodes();
 	}
 
-	private async Task FreeSceneAndUnloadResources() {
+	public void UnloadResources() {
 		// To ensure the pool nodes are freed along with the scene:
 		
 		// 1. All busy elements are still attached to the tree and will be destroyed with the scene, so we don't need to
@@ -314,23 +316,13 @@ public partial class Game : Control, IInjectable {
 		// 2. Remove the data from the pool to avoid having references to busy elements which are going to die with the scene
 		PoolNodeContainer.Clear();
 		GameLoaderContainer.UnloadGameResources();
-		WorldScene.QueueFree();
-		WorldScene = null;
-		GC.GetTotalMemory(true);
-		PrintOrphanNodes();
-		await GetTree().AwaitProcessFrame();
 	}
 
-	private async Task FreeSceneAndKeepPoolData() {
+	public void FreeSceneKeepingPoolData() {
 		// This line keeps the godot nodes in the pool removing them from scene, because the scene is going to be freed
-		// The busy nodes are the node who still belongs to the tree, so loop them and remove them from the tree is a way
+		// The busy nodes are the nodes who still belongs to the tree, so loop them and remove them from the tree is a way
 		// to keep them in the pool ready for the next game
-		PoolNodeContainer.GetAllBusy().ForEach(node => node.Free());
+		PoolNodeContainer.GetAllBusy().ForEach(node => node.RemoveFromParent());
 		WorldScene.Free();
-		await GetTree().AwaitProcessFrame();
-		WorldScene = null;
-		GC.GetTotalMemory(true);
-		PrintOrphanNodes();
-		await GetTree().AwaitProcessFrame();
 	}
 }

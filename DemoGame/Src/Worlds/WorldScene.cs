@@ -209,7 +209,6 @@ public partial class WorldScene : Node {
 		return Players.Find(p => p.CharacterBody2D == player) != null;
 	}
 
-
 	public PlayerNode ClosestPlayer(Vector2 globalPosition) {
 		return Players.OrderBy(p => p.GlobalPosition.DistanceSquaredTo(globalPosition)).First();
 	}
