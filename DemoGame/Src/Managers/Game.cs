@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Betauer.Application.Lifecycle.Pool;
 using Betauer.Application.Persistent;
@@ -15,7 +14,6 @@ using Betauer.NodePath;
 using Godot;
 using Veronenger.Character.Player;
 using Veronenger.Config;
-using Veronenger.Persistent;
 using Veronenger.UI;
 using Veronenger.Worlds;
 
@@ -37,6 +35,9 @@ public partial class Game : Control, IInjectable {
 
 	[NodePath("%SubViewport1")] private SubViewport _subViewport1;
 	[NodePath("%SubViewport2")] private SubViewport _subViewport2;
+	[NodePath("%Camera2D1")] private Camera2D _camera1;
+	[NodePath("%Camera2D2")] private Camera2D _camera2;
+	// private readonly DragCameraController _cameraController = new();
 
 	public const int MaxPlayer = 2;
 	
@@ -64,6 +65,19 @@ public partial class Game : Control, IInjectable {
 		_allowAddingP2 = false;
 	}
 
+	public override void _Input(InputEvent e) {
+		// if (e.IsLeftDoubleClick()) {
+			// _camera2D.Position = Vector2.Zero;
+		// } else if (e.IsKeyPressed(Key.Q)) {
+			// _camera2D.Zoom -= new Vector2(0.05f, 0.05f);
+		// } else if (e.IsKeyPressed(Key.W)) {
+			// _camera2D.Zoom = new Vector2(1, 1);
+		// } else if (e.IsKeyPressed(Key.E)) {
+			// _camera2D.Zoom += new Vector2(0.05f, 0.05f);
+		// }
+	}
+
+
 	public override async void _UnhandledInput(InputEvent e) {
 		if (_allowAddingP2 && e is InputEventJoypadButton button && !JoypadPlayersMapping.IsJoypadUsed(button.Device)) {
 			CreatePlayer2(button.Device);
@@ -73,10 +87,10 @@ public partial class Game : Control, IInjectable {
 			CreatePlayer2(1);
 			GetViewport().SetInputAsHandled();
 		} else if (e.IsKeyReleased(Key.I)) {
-			DisablePlayer2(false);
+			DisablePlayer2Viewport(false);
 			GetViewport().SetInputAsHandled();
 		} else if (e.IsKeyReleased(Key.O)) {
-			EnablePlayer2(false);
+			EnablePlayer2Viewport(false);
 			GetViewport().SetInputAsHandled();
 		} else if (e.IsKeyReleased(Key.F5)) {
 			var l = await GameObjectLoader.ListSaveGames();
@@ -97,6 +111,7 @@ public partial class Game : Control, IInjectable {
 		CreatePlayer1(UiActionsContainer.CurrentJoyPad);
 		AllowAddingP2();				
 		WorldScene.StartNewGame();
+		// _cameraController.WithMouseButton(MouseButton.Middle).Attach(_camera2D);
 	}
 
 	public async void LoadFromMenu(string saveName) {
@@ -177,16 +192,16 @@ public partial class Game : Control, IInjectable {
 	public PlayerNode CreatePlayer1(int joypad) {
 		var playerMapping = JoypadPlayersMapping.AddPlayer().SetJoypadId(joypad);
 		var player = WorldScene.AddNewPlayer(playerMapping);
-		player.SetViewport(_subViewport1);
-		DisablePlayer2(true);
+		player.SetCamera(_camera1);
+		DisablePlayer2Viewport(true);
 		return player;
 	}
 
 	public PlayerNode LoadPlayer1(int joypad, MySaveGameConsumer consumer) {
 		var playerMapping = JoypadPlayersMapping.AddPlayer().SetJoypadId(joypad);
 		var player = WorldScene.LoadPlayer(playerMapping, consumer.Player0, consumer.Inventory0);
-		player.SetViewport(_subViewport1);
-		DisablePlayer2(true);
+		player.SetCamera(_camera2);
+		DisablePlayer2Viewport(true);
 		return player;
 	}
 
@@ -194,10 +209,10 @@ public partial class Game : Control, IInjectable {
 		if (JoypadPlayersMapping.Players >= MaxPlayer) throw new Exception("No more players allowed");
 		var playerMapping = JoypadPlayersMapping.AddPlayer().SetJoypadId(joypad);
 		var player = WorldScene.AddNewPlayer(playerMapping);
-		player.SetViewport(_subViewport2);
+		player.SetCamera(_camera2);
 		return player;
 	}
-
+	
 	private float _effectDuration = 0.2f;
 	private bool _busyPlayerTransition = false;
 	private int _visiblePlayers = 0;
@@ -210,12 +225,12 @@ public partial class Game : Control, IInjectable {
 
 	public override void _PhysicsProcess(double delta) {
 		if (!_busyPlayerTransition && WorldScene is { Players.Count: 2 }) {
-			var p1Stage = WorldScene.Players[0].StageController?.CurrentStage;
-			var p2Stage = WorldScene.Players[1].StageController?.CurrentStage;
+			var p1Stage = WorldScene.Players[0].StageCameraController?.CurrentStage;
+			var p2Stage = WorldScene.Players[1].StageCameraController?.CurrentStage;
 			if (p1Stage == null || p2Stage == null) return;
 			var sameStage = p1Stage == p2Stage;
 			if (!sameStage) {
-				if (_visiblePlayers == 1) EnablePlayer2(false);
+				if (_visiblePlayers == 1) EnablePlayer2Viewport(false);
 			} else {
 				var p1Pos = WorldScene.Players[0].Marker2D.GlobalPosition;
 				var p2Pos = WorldScene.Players[1].Marker2D.GlobalPosition;
@@ -223,18 +238,18 @@ public partial class Game : Control, IInjectable {
 
 				if (_visiblePlayers == 2) {
 					if (distanceTo < (Size.X * 0.5 * 0.2f)) {
-						DisablePlayer2(false);
+						DisablePlayer2Viewport(false);
 					}
 				} else if (_visiblePlayers == 1) {
 					if (distanceTo > (Size.X * 0.5 * 0.3f)) {
-						EnablePlayer2(false);
+						EnablePlayer2Viewport(false);
 					}
 				}
 			}
 		}
 	}
 
-	private void EnablePlayer2(bool immediate) {
+	private void EnablePlayer2Viewport(bool immediate) {
 		_visiblePlayers = 2;
 		var half = new Vector2I((int)Size.X / 2, (int)Size.Y);
 		if (immediate || true) {
@@ -258,7 +273,7 @@ public partial class Game : Control, IInjectable {
 		}
 	}
 
-	public void DisablePlayer2(bool immediate) {
+	public void DisablePlayer2Viewport(bool immediate) {
 		_visiblePlayers = 1;
 		var full = new Vector2I((int)Size.X, (int)Size.Y);
 		var zero = new Vector2I(0, (int)Size.Y);

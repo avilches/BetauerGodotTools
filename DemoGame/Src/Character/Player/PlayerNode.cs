@@ -26,7 +26,7 @@ using Veronenger.Transient;
 using Veronenger.UI;
 using Veronenger.Worlds;
 
-namespace Veronenger.Character.Player; 
+namespace Veronenger.Character.Player;
 
 public enum PlayerState {
 	Idle,
@@ -68,14 +68,13 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 	[NodePath("Character/HurtArea")] private Area2D _hurtArea;
 	[NodePath("Character/RichTextLabel")] public RichTextLabel Label;
 	[NodePath("Character/Detector")] public Area2D PlayerDetector;
-	[NodePath("Character/Camera2D")] public Camera2D Camera2D;
 	[NodePath("Character/Marker2D")] public Marker2D Marker2D;
 	[NodePath("Character/CanJump")] public RayCast2D RaycastCanJump;
 	[NodePath("Character/FloorRaycasts")] public List<RayCast2D> FloorRaycasts;
 
 	[Inject] private ILazy<Game> Game { get; set; }
 	[Inject] private PlatformManager PlatformManager { get; set; }
-	[Inject] private IFactory<StageController> StageControllerFactory { get; set; }
+	[Inject] private IFactory<StageCameraController> StageCameraControllerFactory { get; set; }
 
 	[Inject] private SceneTree SceneTree { get; set; }
 	[Inject] private EventBus EventBus { get; set; }
@@ -85,7 +84,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 
 	private readonly FsmNodeSync<PlayerState, PlayerEvent> _fsm = new(PlayerState.Idle, "Player.FSM", true);
 
-	public StageController StageController { get; private set; }
+	public StageCameraController StageCameraController { get; private set; }
 	public KinematicPlatformMotion PlatformBody { get; private set; }
 	public LateralState LateralState { get; private set; }
 	public Inventory Inventory { get; private set; }
@@ -110,7 +109,6 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 	private MonitorText? _coyoteMonitor;
 	private MonitorText? _jumpHelperMonitor;
 
-	// private readonly DragCameraController _cameraController = new();
 	private CharacterWeaponController _characterWeaponController;
 	private AttackState _attackState = AttackState.None;
 	private readonly GodotStopwatch _stateTimer = new(false, true);
@@ -182,7 +180,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 
 		CollisionLayerManager.PlayerConfigureCollisions(this);
 		CollisionLayerManager.PlayerPickableArea(this, area2D => {
-			var pickable = area2D.GetNodeFromMeta<PickableItemNode>();
+			var pickable = area2D.GetCollisionNode<PickableItemNode>();
 			pickable.PlayerPicksUp(() => Marker2D.GlobalPosition, () => PickUp(pickable.PickableGameObject));
 		});
 
@@ -219,21 +217,24 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 		Inventory.Pick(pickable);
 	}
 
-	public void SetViewport(SubViewport subViewport) {
-		Camera2D.CustomViewport = subViewport;
-		Camera2D.MakeCurrent();
+	private void ConfigureCamera() {
+		StageCameraController = StageCameraControllerFactory.Get();
+		StageCameraController.AddTarget(PlayerDetector);
+		TreeExiting += () => {
+			StageCameraController.ClearState();
+			StopFollowingCamera();
+		};
 	}
 
-	private void ConfigureCamera() {
-		// _cameraController.WithMouseButton(MouseButton.Middle).Attach(_camera2D);
-		StageController = StageControllerFactory.Get();
-		StageController.AddTarget(PlayerDetector);
-		
-		var rollback = StageController.OnChangeUpdateCameraLimits(Camera2D);
-		TreeExiting += () => {
-			StageController.ClearState();
-			rollback();
-		};
+	public void SetCamera(Camera2D camera) {
+		camera.Follow(CharacterBody2D);
+		// Uncomment to enable stages
+		// StageCameraController.CurrentCamera = camera; 
+	}
+	
+	public void StopFollowingCamera() {
+		CharacterBody2D.ClearFollowerCamera();
+		StageCameraController.CurrentCamera = null;
 	}
 
 	private void ConfigurePlayerHurtArea() {
@@ -243,7 +244,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 				_hurtArea.Monitoring &&
 				_hurtArea.HasOverlappingAreas()) {
 				var attacker = _hurtArea.GetOverlappingAreas()
-					.Select(area2D => area2D.GetNodeFromMeta<NpcNode>())
+					.Select(area2D => area2D.GetCollisionNode<NpcNode>())
 					.MinBy(enemy => enemy.DistanceToPlayer());
 				PlayerGameObject.UnderAttack = true;
 				PlayerGameObject.UpdateHealth(-attacker.NpcConfig.Attack);
@@ -268,7 +269,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 			void CheckAttackArea(Area2D attackArea) {
 				if (attackArea.Monitoring && attackArea.HasOverlappingAreas()) {
 					attackArea.GetOverlappingAreas()
-						.Select(area2D => area2D.GetNodeFromMeta<NpcNode>())
+						.Select(area2D => area2D.GetCollisionNode<NpcNode>())
 						.Where(enemy => enemy.CanBeAttacked(Inventory.WeaponMeleeEquipped))
 						.OrderBy(enemy => enemy.DistanceToPlayer()) // Ascending, so first element is the closest to the player
 						.Take(PlayerGameObject.AvailableHits)
@@ -280,18 +281,6 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 			}
 		});
 	}
-
-	// public new void _Input(InputEvent e) {
-		// base._Input(e);
-		// if (e.IsLeftDoubleClick()) _camera2D.Position = Vector2.Zero;
-		// if (e.IsKeyPressed(Key.Q)) {
-			// _camera2D.Zoom -= new Vector2(0.05f, 0.05f);
-		// } else if (e.IsKeyPressed(Key.W)) {
-			// _camera2D.Zoom = new Vector2(1, 1);
-		// } else if (e.IsKeyPressed(Key.E)) {
-			// _camera2D.Zoom += new Vector2(0.05f, 0.05f);
-		// }
-	// }
 
 	public bool CanJump() => !RaycastCanJump.IsColliding(); 
 
@@ -567,10 +556,10 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 			bullet.ShootFrom(weapon, CharacterBody2D.ToGlobal(bulletPosition), bulletDirection,
 				CollisionLayerManager.PlayerConfigureBullet,
 				collision => {
-					if (!collision.Collider.HasMetaNodeId()) {
+					if (!collision.Collider.HasCollisionNode()) {
 						return ProjectileTrail.Behaviour.Stop; // Something solid was hit
 					}
-					var npc = collision.Collider.GetNodeFromMeta<NpcNode>();
+					var npc = collision.Collider.GetCollisionNode<NpcNode>();
 					if (npc.CanBeAttacked(weapon)) {
 						hits++;
 						EventBus.Publish(new PlayerAttackEvent(this, npc, weapon));

@@ -1,7 +1,6 @@
 using System;
 using Betauer.Application.Monitor;
 using Betauer.Application.Persistent;
-using Betauer.Core.Pool.Lifecycle;
 using Betauer.DI;
 using Godot;
 using Betauer.DI.Attributes;
@@ -62,7 +61,7 @@ public partial class PickableItemNode : Node, IInjectable, INodeGameObject {
 	
 
 	public override void _Ready() {
-		PickZone.SetNodeIdToMeta(this);
+		PickZone.SetCollisionNode(this);
 		_state = State.Available;
 		_playerPosition = null;
 		_onPickup = null;
@@ -81,7 +80,6 @@ public partial class PickableItemNode : Node, IInjectable, INodeGameObject {
 		// 	.Text("Pick speed", () => _pickingUpSpeed.ToString("0.000")).EndMonitor()
 		// 	.CloseBox();
 		// overlay.Scale = new Vector2(0.5f, 0.5f);
-
 	}
 
 	public void AddOverlayMotion(DebugOverlay overlay) {    
@@ -177,5 +175,4 @@ public partial class PickableItemNode : Node, IInjectable, INodeGameObject {
 			PlatformBody.MotionX = -motionX;
 		}
 	}
-
 }

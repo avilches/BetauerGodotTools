@@ -153,8 +153,8 @@ public partial class ZombieNode : NpcNode, IInjectable {
 		_fsm.Reset();
 		_zombieAi.Reset();
 		_lazyRaycastToPlayer.GetDirectSpaceFrom(_mainSprite);
-		_attackArea.SetNodeIdToMeta(this);
-		_hurtArea.SetNodeIdToMeta(this);
+		_attackArea.SetCollisionNode(this);
+		_hurtArea.SetCollisionNode(this);
 		UpdateHealthBar();
 		EnableAttackAndHurtAreas();
 		_overlay?.Enable();

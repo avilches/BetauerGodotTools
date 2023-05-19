@@ -36,8 +36,8 @@ public partial class WorldScene : Node {
 	[NodePath("Lights")] private Node _lights;
 	[NodePath("ItemSpawn")] private Node _pickableSpawn;
 	[NodePath("Stages")] private Node _stages;
-	private Node _bulletSpawn = new() { Name = "Bullets" };
-	private Node _playerSpawn = new() { Name = "PlayerSpawn" };
+	private readonly Node _bulletSpawn = new() { Name = "Bullets" };
+	private readonly Node _playerSpawn = new() { Name = "PlayerSpawn" };
 
 	public List<PlayerNode> Players { get; } = new();
 

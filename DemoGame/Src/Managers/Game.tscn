@@ -1,6 +1,9 @@
-[gd_scene load_steps=2 format=3 uid="uid://cdyhbgqkwlf35"]
+[gd_scene load_steps=3 format=3 uid="uid://cdyhbgqkwlf35"]
 
 [ext_resource type="Script" path="res://Src/Managers/Game.cs" id="1_15w4k"]
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_iux0l"]
+load_path = "res://.godot/imported/sky.png-9ac1bff4572ee9f3efebd8b5f8919a0d.ctex"
 
 [node name="Game" type="Control"]
 layout_mode = 3
@@ -30,6 +33,13 @@ canvas_item_default_texture_filter = 0
 size = Vector2i(2, 1080)
 render_target_update_mode = 4
 
+[node name="Camera2D1" type="Camera2D" parent="SplitScreen/Container1/SubViewport1"]
+unique_name_in_owner = true
+zoom = Vector2(2, 2)
+
+[node name="Sprite2D" type="Sprite2D" parent="SplitScreen/Container1/SubViewport1/Camera2D1"]
+texture = SubResource("CompressedTexture2D_iux0l")
+
 [node name="Container2" type="SubViewportContainer" parent="SplitScreen"]
 layout_mode = 2
 
@@ -39,3 +49,9 @@ handle_input_locally = false
 canvas_item_default_texture_filter = 0
 size = Vector2i(2, 1080)
 render_target_update_mode = 4
+
+[node name="Camera2D2" type="Camera2D" parent="SplitScreen/Container2/SubViewport2"]
+unique_name_in_owner = true
+zoom = Vector2(2, 2)
+
+[node name="RemoteTransform2D" type="RemoteTransform2D" parent="."]
