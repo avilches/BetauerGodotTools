@@ -6,7 +6,7 @@ using Godot;
 namespace Betauer.Camera; 
 
 public class StageController {
-    private static readonly Logger Logger = LoggerFactory.GetLogger<StageController>();
+    protected static readonly Logger Logger = LoggerFactory.GetLogger<StageController>();
     public Area2D? CurrentStage;
     private readonly int _layer;
 
@@ -17,19 +17,6 @@ public class StageController {
 
     public StageController(int layer) {
         _layer = layer;
-    }
-
-    public Action OnChangeUpdateCameraLimits(Camera2D camera2D) {
-        void UpdateCamera(Area2D oldStage, Area2D newStage) {
-            var rect2 = CreateAbsoluteRect2(newStage);
-            Logger.Debug($"Camera {rect2.Position} {rect2.End}");
-            camera2D.LimitLeft = (int)rect2.Position.X;
-            camera2D.LimitTop = (int)rect2.Position.Y;
-            camera2D.LimitRight = (int)rect2.End.X;
-            camera2D.LimitBottom = (int)rect2.End.Y;
-        }
-        OnChangeStage += UpdateCamera;
-        return () => OnChangeStage -= UpdateCamera;
     }
 
     public void AddTarget(Area2D target) {
@@ -54,11 +41,15 @@ public class StageController {
         if (stageToEnter == CurrentStage) return;
         var oldStage = CurrentStage;
         CurrentStage = stageToEnter;
-        OnChangeStage?.Invoke(oldStage, CurrentStage);
+        TriggerChangeState(oldStage, CurrentStage);
     }
 
     public void ClearState() {
         CurrentStage = null;
+    }
+    
+    protected void TriggerChangeState(Area2D? from, Area2D stageToEnter) {
+        OnChangeStage?.Invoke(from, stageToEnter);
     }
         
     public Rect2 CreateAbsoluteRect2(Area2D area2D) {
