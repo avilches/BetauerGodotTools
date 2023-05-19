@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Betauer.Core.Nodes;
 using Godot;
 using static System.String;
 
@@ -18,7 +19,7 @@ public partial class NodeHandler : Node2D {
     private SceneTree _sceneTree;
     
     public void AddTo(Viewport viewport) {
-        GetParent()?.RemoveChild(this);
+        this.RemoveFromParent();
         viewport.AddChild(this);
     }
 

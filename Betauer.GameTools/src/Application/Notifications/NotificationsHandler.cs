@@ -1,4 +1,5 @@
 using System;
+using Betauer.Core.Nodes;
 using Godot;
 
 namespace Betauer.Application.Notifications; 
@@ -31,8 +32,8 @@ public partial class NotificationsHandler : Node {
     }
 
     public void AddTo(Viewport viewport) {
-        GetParent()?.RemoveChild(this);
-            viewport.AddChild(this);
+        this.RemoveFromParent();
+        viewport.AddChild(this);
     }
 
     public override void _Notification(int what) {
