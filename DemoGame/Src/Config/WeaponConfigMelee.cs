@@ -1,5 +1,5 @@
+using Betauer.Application.Lifecycle;
 using Betauer.DI.Attributes;
-using Betauer.DI.Factory;
 using Godot;
 
 namespace Veronenger.Config;
@@ -10,7 +10,7 @@ public abstract class WeaponConfigMelee : WeaponConfig {
 
 [Singleton("KnifeMelee")]
 public class KnifeMelee : WeaponConfigMelee {
-    [Inject("LeonKnifeAnimationSprite")] private IFactory<Texture2D> LeonKnifeAnimationSprite { get; set; }
+    [Inject("LeonKnifeAnimationSprite")] private ResourceHolder<Texture2D> LeonKnifeAnimationSprite { get; set; }
     public override Texture2D WeaponAnimation() => LeonKnifeAnimationSprite.Get();
 
     public KnifeMelee() {
@@ -23,7 +23,7 @@ public class KnifeMelee : WeaponConfigMelee {
 
 [Singleton("MetalbarMelee")]
 public class MetalbarMelee : WeaponConfigMelee {
-    [Inject("LeonMetalbarAnimationSprite")] private IFactory<Texture2D> LeonMetalbarAnimationSprite { get; set; }
+    [Inject("LeonMetalbarAnimationSprite")] private ResourceHolder<Texture2D> LeonMetalbarAnimationSprite { get; set; }
     public override Texture2D WeaponAnimation() => LeonMetalbarAnimationSprite.Get();
 
     public MetalbarMelee() {

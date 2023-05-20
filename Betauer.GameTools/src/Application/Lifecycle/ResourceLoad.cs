@@ -1,24 +1,11 @@
 using Betauer.Core;
 using Betauer.DI;
 using Betauer.DI.Attributes;
-using Betauer.DI.Factory;
 using Godot;
 
 namespace Betauer.Application.Lifecycle;
 
-// TODO: TESTS!!
-
-// Resources are Transient because it can be unloaded and deleted, so they can't be cached as singleton
-// Even being transient, once loaded, the same resource is always returned (until it's unloaded)
-public class ResourceFactory<T> : ResourceFactory, IFactory<T> where T : Resource {
-    public ResourceFactory(string path, string? tag = null) : base(path, tag) {
-    }
-    public T Get() {
-        return (T)Resource!;
-    }
-}
-
-public abstract class ResourceFactory : IInjectable {
+public abstract class ResourceLoad : IInjectable {
     public const string DefaultTag = "(default)";
 
     public ResourceLoaderContainer? ResourceLoaderContainer { get; private set; }
@@ -26,7 +13,7 @@ public abstract class ResourceFactory : IInjectable {
     public string Tag { get; }
     public Resource? Resource { get; protected set; }
 
-    protected ResourceFactory(string path, string? tag = null) {
+    protected ResourceLoad(string path, string? tag = null) {
         Path = path;
         Tag = tag ?? DefaultTag;
     }

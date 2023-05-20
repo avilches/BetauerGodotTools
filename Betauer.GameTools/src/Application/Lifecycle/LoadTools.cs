@@ -7,7 +7,7 @@ using Godot;
 namespace Betauer.Application.Lifecycle;
 
 public static class LoadTools {
-    public static async Task Load(List<ResourceLoad> resources, Func<Task> awaiter, Action<ResourceProgress>? progressAction = null) {
+    public static async Task Load(List<ResourceLoadingState> resources, Func<Task> awaiter, Action<ResourceProgress>? progressAction = null) {
         var resourceProgress = new ResourceProgress(progressAction);
         resourceProgress.Update(0f, 0f, null);
         for (var i = 0; i < resources.Count; i++) {
@@ -20,12 +20,12 @@ public static class LoadTools {
 
     public static async Task<Dictionary<string, Resource>> LoadThreaded(List<string> resourcesPaths,
         Func<Task> awaiter, Action<ResourceProgress>? progressAction = null) {
-        var resources = resourcesPaths.Select(path => new ResourceLoad(path)).ToList();
+        var resources = resourcesPaths.Select(path => new ResourceLoadingState(path)).ToList();
         await LoadThreaded(resources, awaiter, progressAction);
         return resources.Select(r => r.Resource!).ToDictionary(r => r.ResourcePath);
     }
 
-    public static async Task LoadThreaded(List<ResourceLoad> resources, Func<Task> awaiter, Action<ResourceProgress>? progressAction = null) {
+    public static async Task LoadThreaded(List<ResourceLoadingState> resources, Func<Task> awaiter, Action<ResourceProgress>? progressAction = null) {
         if (awaiter == null) throw new ArgumentNullException(nameof(awaiter));
         var resourceProgress = new ResourceProgress(progressAction);
         resourceProgress.Update(0f, 0f, null);
@@ -63,24 +63,24 @@ public static class LoadTools {
         resourceProgress.Update(1f, 0f, null);
     }
 
-    private static (ResourceLoader.ThreadLoadStatus, float) ThreadLoadStatus(ResourceLoad resource) {
+    private static (ResourceLoader.ThreadLoadStatus, float) ThreadLoadStatus(ResourceLoadingState resource) {
         var progressArray = new Godot.Collections.Array();
         var status = ResourceLoader.LoadThreadedGetStatus(resource.Path, progressArray);
         return (status, (float)progressArray[0]);
     }
 }
 
-public class ResourceLoad {
+public class ResourceLoadingState {
     internal Resource? Resource { get; private set; }
     internal readonly string Path;
     internal float Progress = 0;
     private readonly Action<Resource>? _onLoad;
 
-    public ResourceLoad(string path) {
+    public ResourceLoadingState(string path) {
         Path = path;
     }
     
-    public ResourceLoad(string path, Action<Resource> onLoad) {
+    public ResourceLoadingState(string path, Action<Resource> onLoad) {
         Path = path;
         _onLoad = onLoad;
     }

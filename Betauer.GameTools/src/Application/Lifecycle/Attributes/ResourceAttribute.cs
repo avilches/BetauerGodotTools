@@ -1,5 +1,4 @@
 using System;
-using Betauer.Application.Settings.Attributes;
 using Betauer.Core;
 using Betauer.DI.Attributes;
 using Betauer.DI.Exceptions;
@@ -27,13 +26,14 @@ public class ResourceAttribute<T> : Attribute, IConfigurationClassAttribute wher
             throw new InvalidAttributeException(
                 $"Attribute {typeof(ResourceAttribute<T>).FormatAttribute()} needs to be used in a class with attribute {typeof(LoaderAttribute).FormatAttribute()}");
         }
-        Func<ResourceFactory<T>> customFactory = () => {
-            var resourceFactory = new ResourceFactory<T>(Path, Tag ?? loaderConfiguration.Tag);
+
+        ResourceHolder<T> Factory() {
+            var resourceFactory = new ResourceHolder<T>(Path, Tag ?? loaderConfiguration.Tag);
             resourceFactory.PreInject(loaderConfiguration.Name);
             return resourceFactory;
-        };
-        // ResourceFactory already caches the resource, but it still needs to be transient: if they are unloaded and loaded again,
-        // Get() will always return a valid resource instance
-        builder.RegisterFactory(typeof(ResourceFactory<T>), Lifetime.Transient, customFactory, Name, false);
+        }
+
+        var providerFactory = Provider.Create(typeof(ResourceHolder<T>), typeof(ResourceHolder<T>), Lifetime.Singleton, (Func<ResourceHolder<T>>)Factory, Name, false, false);
+        builder.Register(providerFactory);
     }
 }

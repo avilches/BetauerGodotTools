@@ -1,5 +1,5 @@
+using Betauer.Application.Lifecycle;
 using Betauer.DI.Attributes;
-using Betauer.DI.Factory;
 using Godot;
 
 namespace Veronenger.Config;
@@ -7,7 +7,7 @@ namespace Veronenger.Config;
 public abstract class WeaponConfigRange : WeaponConfig {
     public Texture2D? Projectile { get; protected set; }
     public Vector2 ProjectileStartPosition { get; protected set; }
-    [Inject("LeonGun1AnimationSprite")] protected IFactory<Texture2D> LeonGun1AnimationSprite { get; set; }
+    [Inject("LeonGun1AnimationSprite")] protected ResourceHolder<Texture2D> LeonGun1AnimationSprite { get; set; }
 
     public int MaxDistance = 800;
     public int Speed = 2000;

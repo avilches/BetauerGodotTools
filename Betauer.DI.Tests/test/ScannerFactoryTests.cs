@@ -410,7 +410,7 @@ public class ScannerFactoryTests : Node {
     }
 
     [TestRunner.Test(Description = "RegisterServiceAndAddFactory tests, by type and by name")]
-    public void RegisterFactoryTests() {
+    public void RegisterServiceAndAddFactoryTests() {
         Element1Factory.Instances = 0;
         Element2Factory.Instances = 0;
         var c = new Container();
@@ -429,14 +429,14 @@ public class ScannerFactoryTests : Node {
         Assert.That(c.Resolve<IGet<Element>>("Factory:E").Get().WasInjected, Is.True);
     }
 
-    [TestRunner.Test(Description = "RegisterCustomFactory tests, by type and by name")]
-    public void RegisterCustomFactoryTests() {
+    [TestRunner.Test(Description = "RegisterFactory tests, by type and by name")]
+    public void RegisterFactoryTests() {
         Element1Factory.Instances = 0;
         Element2Factory.Instances = 0;
         var c = new Container();
         var di = c.CreateBuilder();
-        di.RegisterFactory(() => new Element1Factory(), "E1");
-        di.RegisterFactory(() => new Element2Factory(), "E2");
+        di.RegisterFactory(typeof(Element1Factory), Lifetime.Singleton, () => new Element1Factory(), "E1");
+        di.RegisterFactory(typeof(Element2Factory), Lifetime.Singleton, () => new Element2Factory(), "E2");
         di.Build();
 
         Assert.That(c.Resolve<Element>("E1").Type, Is.EqualTo(1));
@@ -454,7 +454,7 @@ public class ScannerFactoryTests : Node {
         Assert.That(c.Resolve<IGet<Element>>("Factory:E2").Get().WasInjected, Is.True);
         Assert.That(c.Resolve<ILazy<Element>>().Get().Type, Is.EqualTo(1)); // no name = type 1 (the first)
         Assert.That(c.Resolve<ILazy<Element>>().Get().WasInjected, Is.True);// no name = type 1 (the first)
-        Assert.That(c.Resolve<ILazy<Element>>(), Is.TypeOf<ProviderSingletonFactory<Element>>());
+        Assert.That(c.Resolve<ILazy<Element>>(), Is.TypeOf<ProxySingletonFactory<Element>>());
         
         // InnerFactory only by name. It doesn't inject
         Assert.Throws<ServiceNotFoundException>(() => c.Resolve<Element1Factory>());
@@ -463,69 +463,19 @@ public class ScannerFactoryTests : Node {
         Assert.That(c.Resolve<Element1Factory>("InnerFactory:E1").Get().WasInjected, Is.False);
         Assert.That(c.Resolve<Element2Factory>("InnerFactory:E2").Get().Type, Is.EqualTo(2));
         Assert.That(c.Resolve<Element2Factory>("InnerFactory:E2").Get().WasInjected, Is.False);
-        Assert.That(c.Resolve<IGet<Element>>("InnerFactory:E1").Get().Type, Is.EqualTo(1));
-        Assert.That(c.Resolve<IGet<Element>>("InnerFactory:E1").Get().WasInjected, Is.False);
-        Assert.That(c.Resolve<IGet<Element>>("InnerFactory:E2").Get().Type, Is.EqualTo(2));
-        Assert.That(c.Resolve<IGet<Element>>("InnerFactory:E2").Get().WasInjected, Is.False);
         
         Assert.That(Element1Factory.Instances, Is.EqualTo(1));
         Assert.That(Element2Factory.Instances, Is.EqualTo(1));
     }    
     
     [TestRunner.Test(Description = "RegisterCustomFactory tests, by type and by name. When the factory is exposed as IFactory<>")]
-    public void RegisterCustomFactoryAsIFactoryTests() {
-        Element1Factory.Instances = 0;
-        Element2Factory.Instances = 0;
-        var c = new Container();
-        var di = c.CreateBuilder();
-        // *******************************
-        // This is the difference: the real factory type is hidden 
-        di.RegisterFactory(typeof(IGet<Element>), Lifetime.Singleton, () => new Element1Factory(), "E1");
-        di.RegisterFactory(typeof(IGet<Element>), Lifetime.Singleton, () => new Element2Factory(), "E2");
-        // *******************************
-        di.Build();
-
-        Assert.That(c.Resolve<Element>("E1").Type, Is.EqualTo(1));
-        Assert.That(c.Resolve<Element>("E1").WasInjected, Is.True);
-        Assert.That(c.Resolve<Element>("E2").Type, Is.EqualTo(2));
-        Assert.That(c.Resolve<Element>("E2").WasInjected, Is.True);
-        // no name = type 1 (the first)
-        Assert.That(c.Resolve<Element>().Type, Is.EqualTo(1));
-        Assert.That(c.Resolve<Element>().WasInjected, Is.True);
-        
-        // Factory creates instances well injected
-        Assert.That(c.Resolve<IGet<Element>>("Factory:E1").Get().Type, Is.EqualTo(1));
-        Assert.That(c.Resolve<IGet<Element>>("Factory:E1").Get().WasInjected, Is.True);
-        Assert.That(c.Resolve<IGet<Element>>("Factory:E2").Get().Type, Is.EqualTo(2));
-        Assert.That(c.Resolve<IGet<Element>>("Factory:E2").Get().WasInjected, Is.True);
-        Assert.That(c.Resolve<ILazy<Element>>().Get().Type, Is.EqualTo(1)); // no name = type 1 (the first)
-        Assert.That(c.Resolve<ILazy<Element>>().Get().WasInjected, Is.True);// no name = type 1 (the first)
-        Assert.That(c.Resolve<ILazy<Element>>(), Is.TypeOf<ProviderSingletonFactory<Element>>());
-            
-        // InnerFactory only by name. It doesn't inject
-        Assert.Throws<ServiceNotFoundException>(() => c.Resolve<Element1Factory>());
-        Assert.Throws<ServiceNotFoundException>(() => c.Resolve<Element2Factory>());
-        Assert.That(c.Resolve<Element1Factory>("InnerFactory:E1").Get().Type, Is.EqualTo(1));
-        Assert.That(c.Resolve<Element1Factory>("InnerFactory:E1").Get().WasInjected, Is.False);
-        Assert.That(c.Resolve<Element2Factory>("InnerFactory:E2").Get().Type, Is.EqualTo(2));
-        Assert.That(c.Resolve<Element2Factory>("InnerFactory:E2").Get().WasInjected, Is.False);
-        Assert.That(c.Resolve<IGet<Element>>("InnerFactory:E1").Get().Type, Is.EqualTo(1));
-        Assert.That(c.Resolve<IGet<Element>>("InnerFactory:E1").Get().WasInjected, Is.False);
-        Assert.That(c.Resolve<IGet<Element>>("InnerFactory:E2").Get().Type, Is.EqualTo(2));
-        Assert.That(c.Resolve<IGet<Element>>("InnerFactory:E2").Get().WasInjected, Is.False);
-        
-        Assert.That(Element1Factory.Instances, Is.EqualTo(1));
-        Assert.That(Element2Factory.Instances, Is.EqualTo(1));
-    }
-
-    [TestRunner.Test(Description = "RegisterCustomFactory tests, by type and by name. When the factory is exposed as IFactory<>")]
     public void RegisterCustomFactoryPrimaryTests() {
         Element1Factory.Instances = 0;
         Element2Factory.Instances = 0;
         var c = new Container();
         var di = c.CreateBuilder();
-        di.RegisterFactory(() => new Element1Factory(), "E1", Lifetime.Transient);
-        di.RegisterFactory(() => new Element2Factory(), "E2", Lifetime.Transient, true);
+        di.RegisterFactory(typeof(Element1Factory), Lifetime.Transient, () => new Element1Factory(), "E1");
+        di.RegisterFactory(typeof(Element2Factory), Lifetime.Transient, () => new Element2Factory(), "E2", true);
         di.Build();
         
         // no name = type 2 (because primary)
@@ -535,6 +485,58 @@ public class ScannerFactoryTests : Node {
         // Factory creates instances well injected
         Assert.That(c.Resolve<IFactory<Element>>().Get().Type, Is.EqualTo(2)); // no name = type 2 (because primary)
         Assert.That(c.Resolve<IFactory<Element>>().Get().WasInjected, Is.True);// no name = type 2 (because primary)
-        Assert.That(c.Resolve<IFactory<Element>>(), Is.TypeOf<ProviderTransientFactory<Element>>());
+        Assert.That(c.Resolve<IFactory<Element>>(), Is.TypeOf<ProxyTransientFactory<Element>>());
+    }
+
+
+    public class MyProxy<T> {
+        private readonly IProvider _provider;
+        public MyProxy(IProvider provider) {
+            _provider = provider;
+        }
+        
+        public T MyGet() {
+            return (T)_provider.Get();
+        } 
+    }
+    [TestRunner.Test(Description = "RegisterCustomFactory tests, by type and by name. When the factory is exposed as IFactory<>")]
+    public void RegisterProxyTests() {
+        Element1Factory.Instances = 0;
+        Element2Factory.Instances = 0;
+        var c = new Container();
+        var di = c.CreateBuilder();
+        
+        di.RegisterProxyFactory(typeof(Element1Factory), Lifetime.Singleton, () => new Element1Factory(),
+            typeof(MyProxy<>).MakeGenericType(typeof(Element)), provider => new MyProxy<Element>(provider), "E1");
+        di.RegisterProxyFactory(typeof(Element2Factory), Lifetime.Singleton, () => new Element2Factory(),
+            typeof(MyProxy<>).MakeGenericType(typeof(Element)), provider => new MyProxy<Element>(provider), "E2");
+        di.Build();
+        
+        Assert.That(c.Resolve<Element>("E1").Type, Is.EqualTo(1));
+        Assert.That(c.Resolve<Element>("E1").WasInjected, Is.True);
+        Assert.That(c.Resolve<Element>("E2").Type, Is.EqualTo(2));
+        Assert.That(c.Resolve<Element>("E2").WasInjected, Is.True);
+        // no name = type 1 (the first)
+        Assert.That(c.Resolve<Element>().Type, Is.EqualTo(1));
+        Assert.That(c.Resolve<Element>().WasInjected, Is.True);
+        
+        // Factory creates instances well injected
+        Assert.That(c.Resolve<MyProxy<Element>>("Factory:E1").MyGet().Type, Is.EqualTo(1));
+        Assert.That(c.Resolve<MyProxy<Element>>("Factory:E1").MyGet().WasInjected, Is.True);
+        Assert.That(c.Resolve<MyProxy<Element>>("Factory:E2").MyGet().Type, Is.EqualTo(2));
+        Assert.That(c.Resolve<MyProxy<Element>>("Factory:E2").MyGet().WasInjected, Is.True);
+        Assert.That(c.Resolve<MyProxy<Element>>().MyGet().Type, Is.EqualTo(1)); // no name = type 1 (the first)
+        Assert.That(c.Resolve<MyProxy<Element>>().MyGet().WasInjected, Is.True);// no name = type 1 (the first)
+            
+        // InnerFactory only by name. It doesn't inject
+        Assert.Throws<ServiceNotFoundException>(() => c.Resolve<Element1Factory>());
+        Assert.Throws<ServiceNotFoundException>(() => c.Resolve<Element2Factory>());
+        Assert.That(c.Resolve<Element1Factory>("InnerFactory:E1").Get().Type, Is.EqualTo(1));
+        Assert.That(c.Resolve<Element1Factory>("InnerFactory:E1").Get().WasInjected, Is.False);
+        Assert.That(c.Resolve<Element2Factory>("InnerFactory:E2").Get().Type, Is.EqualTo(2));
+        Assert.That(c.Resolve<Element2Factory>("InnerFactory:E2").Get().WasInjected, Is.False);
+        
+        Assert.That(Element1Factory.Instances, Is.EqualTo(1));
+        Assert.That(Element2Factory.Instances, Is.EqualTo(1));
     }
 }

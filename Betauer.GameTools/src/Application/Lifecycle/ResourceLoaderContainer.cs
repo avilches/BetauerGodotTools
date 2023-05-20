@@ -14,7 +14,7 @@ namespace Betauer.Application.Lifecycle;
 public class ResourceLoaderContainer {
     private static readonly Logger Logger = LoggerFactory.GetLogger<ResourceLoaderContainer>();
 
-    public List<ResourceFactory> ResourceFactories { get; } = new();
+    public List<ResourceLoad> ResourceFactories { get; } = new();
 
     public Func<Task>? Awaiter { get; private set; }
     public event Action<ResourceProgress>? OnLoadResourceProgress;
@@ -22,18 +22,18 @@ public class ResourceLoaderContainer {
     [Inject] public SceneTree SceneTree { get; set; }
 
     // Use ResourceFactory.SetResourceLoaderContainer() instead
-    internal void Add(ResourceFactory resourceFactory) {
-        if (ResourceFactories.Contains(resourceFactory)) return; // avoid duplicates
-        ResourceFactories.Add(resourceFactory);
+    internal void Add(ResourceLoad resourceLoad) {
+        if (ResourceFactories.Contains(resourceLoad)) return; // avoid duplicates
+        ResourceFactories.Add(resourceLoad);
     }
 
     // Use ResourceFactory.SetResourceLoaderContainer() instead
-    internal void Remove(ResourceFactory resourceFactory) {
-        ResourceFactories.Remove(resourceFactory);
+    internal void Remove(ResourceLoad resourceLoad) {
+        ResourceFactories.Remove(resourceLoad);
     }
                   
     public Task<TimeSpan> LoadResources(Action<ResourceProgress>? progressAction = null) {
-        return LoadResources(new [] { ResourceFactory.DefaultTag }, progressAction);
+        return LoadResources(new [] { ResourceLoad.DefaultTag }, progressAction);
     }
 
     public Task<TimeSpan> LoadResources(string tag, Action<ResourceProgress>? progressAction = null) {
@@ -48,7 +48,7 @@ public class ResourceLoaderContainer {
         });
         var resources = GetResourceFactories(tags)
             .Where(sf => !sf.IsLoaded())
-            .Select(sf => new ResourceLoad(sf.Path, sf.Load))
+            .Select(sf => new ResourceLoadingState(sf.Path, sf.Load))
             .ToList();
         
         Logger.Debug($"Loading {tags.Join(", ")}");
@@ -63,7 +63,7 @@ public class ResourceLoaderContainer {
     }
 
     public void UnloadResources() {
-        GetResourceFactories(ResourceFactory.DefaultTag).ForEach(sf => sf.Unload());
+        GetResourceFactories(ResourceLoad.DefaultTag).ForEach(sf => sf.Unload());
     }
 
     public void UnloadResources(string tag) {
@@ -74,11 +74,11 @@ public class ResourceLoaderContainer {
         GetResourceFactories(tags).ForEach(sf => sf.Unload());
     }
 
-    public IEnumerable<ResourceFactory> GetResourceFactories(string tag) {
+    public IEnumerable<ResourceLoad> GetResourceFactories(string tag) {
         return ResourceFactories.Where(sf => sf.Tag == tag);
     }
 
-    public IEnumerable<ResourceFactory> GetResourceFactories(string[] tags) {
+    public IEnumerable<ResourceLoad> GetResourceFactories(string[] tags) {
         var set = new HashSet<string>(tags);
         return ResourceFactories.Where(sf => set.Contains(sf.Tag));
     }

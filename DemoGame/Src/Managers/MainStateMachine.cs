@@ -1,3 +1,4 @@
+using Betauer.Application.Lifecycle;
 using Betauer.Application.Monitor;
 using Godot;
 using Betauer.Application.Screen;
@@ -58,7 +59,7 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
     private SettingsMenu SettingsMenuScene => SettingsMenuSceneFactory.Get();
     
     [Inject] private IFactory<ModalBoxConfirm> ModalBoxConfirm { get; set; }
-    [Inject("MyTheme")] private IFactory<Theme> MyTheme { get; set; }
+    [Inject("MyTheme")] private ResourceHolder<Theme> MyTheme { get; set; }
     [Inject] private IFactory<Game> GameFactory { get; set; }
     
     public Game? Game { get; private set; }
@@ -73,7 +74,7 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
     [Inject] private UiActionsContainer UiActionsContainer { get; set; }
     [Inject] private JoypadPlayersMapping JoypadPlayersMapping { get; set; }
         
-    [Inject("DebugConsoleTheme")] private IFactory<Theme> DebugConsoleTheme { get; set; }
+    [Inject("DebugConsoleTheme")] private ResourceHolder<Theme> DebugConsoleTheme { get; set; }
 
     [Inject] private EventBus EventBus { get; set; }
 

@@ -40,24 +40,17 @@ public partial class Container {
             var name = setter.SetterAttribute.Name;
             if (name != null) {
                 // Explicit name with [Inject(Name = "")]
-                if (setter.Type.ImplementsInterface(typeof(IGet<>)) && !name.StartsWith(Builder.FactoryPrefix) && !name.StartsWith(Builder.InnerFactoryPrefix)) {
-                    // If setter is IFactory<>, then the name is "Factory:pepe"
-                    name = $"{Builder.FactoryPrefix}{name}";
-                }
                 if (TryInjectFieldByName(lifetime, target, context, setter, name)) {
                     Logger.Debug($"Injected {target.GetType().GetTypeName()} ({target.GetHashCode():x8}) | {setter} | Name taken from [Inject(\"{name}\")");
                     return;
                 }
                 if (!nullable) {
+                    TryInjectFieldByName(lifetime, target, context, setter, name);
                     throw new InjectMemberException(setter.Name, target, $"Service Name=\"{name}\" not found when trying to inject {setter} in {target.GetType().GetTypeName()} ({target.GetHashCode():x8})");
                 }
             } else {
                 // Implicit name (from variable, [Inject] Node pepe, so "pepe" is the name).
                 name = setter.Name;
-                if (setter.Type.ImplementsInterface(typeof(IGet<>))) {
-                    // If setter is IFactory<>, then the name is "Factory:pepe"
-                    name = $"{Builder.FactoryPrefix}{name}";
-                }
                 if (TryInjectFieldByName(lifetime, target, context, setter, name)) {
                     Logger.Debug($"Injected {target.GetType().GetTypeName()} ({target.GetHashCode():x8}) | {setter} | Name taken from member: {setter.Name} ({name})");
                     return;
@@ -77,8 +70,15 @@ public partial class Container {
         }
 
         private bool TryInjectFieldByName(Lifetime lifetime, object target, ResolveContext context, ISetter setter, string name) {
-            if (!_container.TryGetProvider(name, out var provider)) return false;
-            if (!setter.CanSetValue(provider!.ProviderType)) return false;
+            if (!_container.TryGetProvider(name, out var provider) || !setter.CanSetValue(provider.ProviderType)) {
+                if (name.StartsWith(Builder.FactoryPrefix) || name.StartsWith(Builder.InnerFactoryPrefix)) {
+                    return false;
+                }
+                name = $"{Builder.FactoryPrefix}{name}";
+                if (!_container.TryGetProvider(name, out provider) || !setter.CanSetValue(provider!.ProviderType)) {
+                    return false;
+                }
+            }
             CheckLifetimeMismatch(lifetime, target, setter, setter.Type, provider.Lifetime);
             var service = provider.Resolve(context);
             setter.SetValue(target, service);

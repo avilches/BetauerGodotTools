@@ -6,7 +6,7 @@ using Godot;
 
 namespace Betauer.Application.Lifecycle;
 
-public class SceneFactory<T> : ResourceFactory, IFactory<T> where T : Node {
+public class SceneFactory<T> : ResourceLoad, IGet<T> where T : Node {
     private static readonly Logger Logger = LoggerFactory.GetLogger<ResourceLoaderContainer>();
     
     public SceneFactory(string path, string? tag = null) : base(path, tag) {

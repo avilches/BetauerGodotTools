@@ -89,10 +89,10 @@ public partial class Bootstrap : Node /* needed to be instantiated as an Autoloa
 		LoggerFactory.SetTraceLevel<ConfigFileWrapper>(TraceLevel.All);
 
 		// DI
-		LoggerFactory.SetTraceLevel<Provider>(TraceLevel.Error);
-		LoggerFactory.SetTraceLevel<Betauer.DI.Container>(TraceLevel.Error);
+		LoggerFactory.SetTraceLevel<Provider>(TraceLevel.All);
+		LoggerFactory.SetTraceLevel<Betauer.DI.Container>(TraceLevel.All);
 		LoggerFactory.SetTraceLevel<Betauer.DI.Container.Injector>(TraceLevel.Error);
-		LoggerFactory.SetTraceLevel<Betauer.DI.Container.Scanner>(TraceLevel.Error);
+		LoggerFactory.SetTraceLevel<Betauer.DI.Container.Scanner>(TraceLevel.All);
 
 		// GameTools
 		LoggerFactory.SetTraceLevel<BaseScreenResolutionService>(TraceLevel.All);

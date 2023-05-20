@@ -49,6 +49,7 @@ public enum PlayerEvent {
 	Attack,
 	Hurt,
 	Death,
+	Start
 }
 
 public partial class PlayerNode : Node, IInjectable, INodeGameObject {
@@ -355,10 +356,6 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 			};
 		}
 
-		TreeExiting += () => {
-			invincibleTween?.Kill();
-		};
-
 		PhysicsBody2D? fallingPlatform = null;
 		void FallFromPlatform() {
 			fallingPlatform = PlatformBody.GetFloorCollider<PhysicsBody2D>()!;
@@ -369,7 +366,10 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 			if (fallingPlatform != null) PlatformManager.ConfigurePlatformCollision(fallingPlatform);
 		}
 
-		// this.OnEveryProcess(0.5f, Game.InstantiateZombie);
+		TreeExiting += () => {
+			invincibleTween?.Kill();
+			FinishFallFromPlatform();
+		};
 
 		var xInputEnterState = 0f;
 		_fsm.OnTransition += (args) => {
@@ -386,6 +386,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 		bool PlayerCanShoot() => Inventory.WeaponEquipped is WeaponRangeGameObject weaponRangeItem && 
 								 shootTimer.Elapsed >= weaponRangeItem.DelayBetweenShots;
 
+		_fsm.On(PlayerEvent.Start).Set(PlayerState.Idle);
 		_fsm.On(PlayerEvent.Hurt).Set(PlayerState.Hurting);
 		_fsm.On(PlayerEvent.Death).Set(PlayerState.Death);
 		_fsm.On(PlayerEvent.Attack).Then(ctx => {
