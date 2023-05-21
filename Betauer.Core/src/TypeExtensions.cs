@@ -6,7 +6,12 @@ using System.Text;
 namespace Betauer.Core; 
 
 public static class TypeExtensions {
-    
+
+    public static bool IsSubclassOfOrImplements(this Type from, Type interfaceType) {
+        if (interfaceType.IsInterface) return from.ImplementsInterface(interfaceType);
+        return from.IsGenericSubclassOf(interfaceType);
+    }
+
     /// <summary>
     /// A better version of type.IsAssignableTo(interfaceType) that also works with generic types, such as:
     ///
