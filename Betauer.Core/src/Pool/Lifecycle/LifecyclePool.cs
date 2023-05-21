@@ -40,18 +40,24 @@ public abstract class BasePool<T> where T : class {
             }
         }
         if (MustBePurged(Pool)) {
-            Pool.RemoveAll(IsInvalid);
+            Purge();
         }
         var more = Create();
         Pool.Add(more);
         return OnGet(more);
     }
+
+    public void Purge() => Pool.RemoveAll(IsInvalid);
+
+    public int BusyCount() => Pool.Count(e => !IsInvalid(e) && IsBusy(e));
+    public int AvailableCount() => Pool.Count(e => !IsInvalid(e) && !IsBusy(e));
+    public int InvalidCount() => Pool.Count(IsInvalid);
     
     /// <summary>
     /// Returns all the valid elements from the pool (non busy and non invalid).
     /// </summary>
     /// <returns></returns>
-    public IEnumerable<T> Drain() => Pool.Where(e => !IsInvalid(e) && !IsBusy(e)).Select(OnGet);
+    public IEnumerable<T> GetAvailable() => Pool.Where(e => !IsInvalid(e) && !IsBusy(e)).Select(OnGet);
 
     public IEnumerable<T> GetBusy() => Pool.Where(e => !IsInvalid(e) && IsBusy(e));
 

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Betauer.Core;
 
 namespace Betauer.Application.Lifecycle.Pool;
@@ -23,6 +24,11 @@ public class PoolContainer<T> : IPoolContainer {
     public void ForEachPool(Action<IManagedPool> action) {
         PoolFromFactories.ForEach(action);
     }
+
+    public int BusyCount() => PoolFromFactories.Sum(p => p.BusyCount());
+    public int AvailableCount() => PoolFromFactories.Sum(p => p.AvailableCount());
+    public int InvalidCount() => PoolFromFactories.Sum(p => p.InvalidCount());
+    public void Purge() => PoolFromFactories.ForEach(p => p.Purge());
     
     public IEnumerable<T> GetAllBusy() {
         foreach (var pool in PoolFromFactories) {
@@ -31,9 +37,9 @@ public class PoolContainer<T> : IPoolContainer {
             }
         }
     }
-    public IEnumerable<T> Drain() {
+    public IEnumerable<T> GetAvailable() {
         foreach (var pool in PoolFromFactories) {
-            foreach (var element in pool.Drain()) {
+            foreach (var element in pool.GetAvailable()) {
                 yield return (T)element;
             }
         }

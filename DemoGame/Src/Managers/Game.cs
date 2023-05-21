@@ -317,7 +317,7 @@ public partial class Game : Control, IInjectable {
 		// 1. All busy elements are still attached to the tree and will be destroyed with the scene, so we don't need to
 		// do anything with them.
 		// Drain() will loop over the non busy and valid element (which are outside of the scene tree) in the pool, so, loop them and free them:
-		PoolNodeContainer.Drain().ForEach(node => node.Free());
+		PoolNodeContainer.GetAvailable().ForEach(node => node.Free());
 		// 2. Remove the data from the pool to avoid having references to busy elements which are going to die with the scene
 		PoolNodeContainer.Clear();
 		GameLoader.UnloadGameResources();

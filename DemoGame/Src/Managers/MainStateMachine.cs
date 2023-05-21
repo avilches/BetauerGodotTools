@@ -1,4 +1,5 @@
 using Betauer.Application.Lifecycle;
+using Betauer.Application.Lifecycle.Pool;
 using Betauer.Application.Monitor;
 using Godot;
 using Betauer.Application.Screen;
@@ -52,6 +53,7 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
     [Inject] private ILazy<SettingsMenu> SettingsMenuSceneFactory { get; set; }
     [Inject] private HUD HudScene { get; set; }
     [Inject] private GameLoader GameLoader { get; set; }
+    [Inject] private PoolContainer<Node> PoolNodeContainer { get; set; }
 
     private MainMenu MainMenuScene => MainMenuSceneFactory.Get();
     private BottomBar BottomBarScene => BottomBarSceneFactory.Get();
@@ -271,6 +273,11 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
     private void ConfigureDebugOverlays() {
         DebugOverlayManager.OverlayContainer.Theme = MyTheme.Get();
         DebugOverlayManager.DebugConsole.Theme = DebugConsoleTheme.Get();
+        DebugOverlayManager.Overlay("Pool")
+            .Text("Busy", () => PoolNodeContainer.BusyCount() + "").EndMonitor()
+            .Text("Available", () => PoolNodeContainer.AvailableCount() + "").EndMonitor()
+            .Text("Invalid", () => PoolNodeContainer.InvalidCount() + "").EndMonitor();
+
     }
 
     private ModalBoxConfirm ShowModalBox(string title, string subtitle = null) {

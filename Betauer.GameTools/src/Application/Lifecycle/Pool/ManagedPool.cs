@@ -53,8 +53,8 @@ public abstract class ManagedPool<T> : BasePool<T>, IManagedPool, IInjectable wh
         }
     }
 
-    IEnumerable<object> IManagedPool.Drain() {
-        return Drain();
+    IEnumerable<object> IManagedPool.GetAvailable() {
+        return GetAvailable();
     }
 
     IEnumerable<object> IManagedPool.GetBusy() {
