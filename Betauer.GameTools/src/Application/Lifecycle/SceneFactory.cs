@@ -15,6 +15,7 @@ public class SceneFactory<T> : ResourceLoad, IFactory<T> where T : Node {
     public PackedScene Scene => (PackedScene)Resource!;
 
     public T Create() {
+        if (Scene == null) throw new Exception($"Can't instantiate scene from null resource: {Path}. Try to load tag '{Tag}' first");
         try {
             var instantiate = Scene.Instantiate<T>();
             NodePathScanner.ScanAndInject(instantiate);

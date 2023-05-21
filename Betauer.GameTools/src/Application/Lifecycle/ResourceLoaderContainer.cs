@@ -19,8 +19,6 @@ public class ResourceLoaderContainer {
     public Func<Task>? Awaiter { get; private set; }
     public event Action<ResourceProgress>? OnLoadResourceProgress;
 
-    [Inject] public SceneTree SceneTree { get; set; }
-
     // Use ResourceFactory.SetResourceLoaderContainer() instead
     internal void Add(ResourceLoad resourceLoad) {
         if (ResourceFactories.Contains(resourceLoad)) return; // avoid duplicates
@@ -43,8 +41,7 @@ public class ResourceLoaderContainer {
     public async Task<TimeSpan> LoadResources(string[] tags, Action<ResourceProgress>? progressAction = null) {
         var x = Stopwatch.StartNew();
         Func<Task> awaiter = Awaiter ?? (async () => {
-            if (SceneTree != null) await SceneTree.AwaitProcessFrame();
-            else await Task.Delay(10);
+            ((SceneTree)Engine.GetMainLoop()).AwaitProcessFrame();
         });
         var resources = GetResourceFactories(tags)
             .Where(sf => !sf.IsLoaded())
