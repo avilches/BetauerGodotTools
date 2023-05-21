@@ -42,7 +42,7 @@ public class ScannerFactoryTests : Node {
     public void FactoryWrongType3() {
         var c = new Container();
         var di = c.CreateBuilder();
-        Assert.Throws<InvalidCastException>(() => di.RegisterFactory(typeof(MyService), Lifetime.Singleton, () => new object()));
+        Assert.Throws<InvalidCastException>(() => di.RegisterFactoryFactory(typeof(MyService), Lifetime.Singleton, () => new object()));
     }
 
     [Configuration]
@@ -98,7 +98,7 @@ public class ScannerFactoryTests : Node {
         var c = new Container();
         var di = c.CreateBuilder();
         var x = 0;
-        di.RegisterServiceAndAddFactory(typeof(Node), typeof(Node), Lifetime.Singleton, () => {
+        di.RegisterServiceFactory<Node, Node>(Lifetime.Singleton, () => {
             x++;
             return new Node { Name = "L" };
         }, null, false);
@@ -114,7 +114,7 @@ public class ScannerFactoryTests : Node {
         var c = new Container();
         var di = c.CreateBuilder();
         var x = 0;
-        di.RegisterServiceAndAddFactory(typeof(Node), typeof(Node), Lifetime.Singleton, () => {
+        di.RegisterServiceFactory<Node, Node>(Lifetime.Singleton, () => {
             x++;
             return new Node { Name = "L" };
         }, null, true);
@@ -132,7 +132,7 @@ public class ScannerFactoryTests : Node {
         var c = new Container();
         var di = c.CreateBuilder();
         var x = 0;
-        di.RegisterServiceAndAddFactory(typeof(Node), typeof(Node), Lifetime.Singleton, () => {
+        di.RegisterServiceFactory<Node, Node>(Lifetime.Singleton, () => {
             x++;
             return new Node { Name = "L" };
         }, "X", false);
@@ -148,7 +148,7 @@ public class ScannerFactoryTests : Node {
         var c = new Container();
         var di = c.CreateBuilder();
         var x = 0;
-        di.RegisterServiceAndAddFactory(typeof(Node), typeof(Node), Lifetime.Singleton, () => {
+        di.RegisterServiceFactory<Node, Node>(Lifetime.Singleton, () => {
             x++;
             return new Node { Name = "L" };
         }, "X", true);
@@ -169,7 +169,7 @@ public class ScannerFactoryTests : Node {
         var c = new Container();
         var di = c.CreateBuilder();
         var x = 0;
-        di.RegisterServiceAndAddFactory(typeof(Node), typeof(Node), Lifetime.Transient, () => {
+        di.RegisterServiceFactory<Node, Node>(Lifetime.Transient, () => {
             x++;
             return new Node { Name = "L" };
         });
@@ -186,7 +186,7 @@ public class ScannerFactoryTests : Node {
         var c = new Container();
         var di = c.CreateBuilder();
         var x = 0;
-        di.RegisterServiceAndAddFactory(typeof(Node), typeof(Node), Lifetime.Transient, () => {
+        di.RegisterServiceFactory<Node, Node>(Lifetime.Transient, () => {
             x++;
             return new Node { Name = "L" };
         }, "X");
@@ -452,7 +452,7 @@ public class ScannerFactoryTests : Node {
         Element1Factory.Instances = 0;
         var c = new Container();
         var di = c.CreateBuilder();
-        di.RegisterServiceAndAddFactory(typeof(Element), typeof(Element), Lifetime.Transient, () => new Element(0), "E");
+        di.RegisterServiceFactory<Element, Element>(Lifetime.Transient, () => new Element(0), "E");
         di.Build();
     
         Assert.That(c.Resolve<Element>("E").Type, Is.EqualTo(0));
@@ -471,7 +471,7 @@ public class ScannerFactoryTests : Node {
         Element1Factory.Instances = 0;
         var c = new Container();
         var di = c.CreateBuilder();
-        di.RegisterFactory(typeof(Element1Factory), Lifetime.Singleton, () => new Element1Factory(), "E1");
+        di.RegisterFactoryFactory<Element, Element1Factory>(Lifetime.Singleton, () => new Element1Factory(), "E1");
         di.Build();
 
         Assert.That(c.Resolve<Element>("E1").Type, Is.EqualTo(1));
@@ -489,7 +489,7 @@ public class ScannerFactoryTests : Node {
         Element1Factory.Instances = 0;
         var c = new Container();
         var di = c.CreateBuilder();
-        di.RegisterFactory(typeof(Element1Factory), Lifetime.Transient, () => new Element1Factory(), "E1");
+        di.RegisterFactoryFactory<Element, Element1Factory>(Lifetime.Transient, () => new Element1Factory(), "E1");
         di.Build();
         
         // Factory creates instances well injected
@@ -517,8 +517,9 @@ public class ScannerFactoryTests : Node {
         var c = new Container();
         var di = c.CreateBuilder();
         
-        di.RegisterProxyFactory(typeof(Element1Factory), Lifetime.Singleton, () => new Element1Factory(),
-            typeof(MyProxy<>).MakeGenericType(typeof(Element)), provider => new MyProxy<Element>(provider), "E1");
+        di.RegisterFactoryFactory<Element, Element1Factory, MyProxy<Element>>(Lifetime.Singleton, 
+            () => new Element1Factory(), 
+            provider => new MyProxy<Element>(provider), "E1");
         di.Build();
         
         Assert.That(c.Resolve<Element>("E1").Type, Is.EqualTo(1));

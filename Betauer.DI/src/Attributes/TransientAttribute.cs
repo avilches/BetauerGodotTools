@@ -17,7 +17,7 @@ public class TransientAttribute : Attribute, IClassAttribute, IConfigurationMemb
     }
 
     public void CreateProvider(Type type, Container.Builder builder) {
-        builder.RegisterServiceAndAddFactory(
+        builder.RegisterServiceFactory(
             GetType().IsGenericType ? GetType().GetGenericArguments()[0] : type, // Trick to get the <T> from TransientAttribute<T>
             type,
             Lifetime.Transient,
@@ -27,7 +27,7 @@ public class TransientAttribute : Attribute, IClassAttribute, IConfigurationMemb
     }
 
     public void CreateProvider(object configuration, IGetter getter, Container.Builder builder) {
-        builder.RegisterServiceAndAddFactory(
+        builder.RegisterServiceFactory(
             GetType().IsGenericType ? GetType().GetGenericArguments()[0] : getter.Type, // Trick to get the <T> from TransientAttribute<T>
             getter.Type,
             Lifetime.Transient,

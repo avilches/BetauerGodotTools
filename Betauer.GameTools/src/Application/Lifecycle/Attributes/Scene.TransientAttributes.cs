@@ -27,7 +27,7 @@ public static partial class Scene {
                 throw new InvalidAttributeException(
                     $"Attribute {typeof(TransientAttribute<T>).FormatAttribute()} needs to be used in a class with attribute {typeof(LoaderAttribute).FormatAttribute()}");
             }
-            builder.RegisterFactory(typeof(SceneFactory<T>), Lifetime.Transient, () => {
+            builder.RegisterFactoryFactory<T, SceneFactory<T>>(Lifetime.Transient, () => {
                 var sceneFactory = new SceneFactory<T>(Path, Tag ?? loaderConfiguration.Tag);
                 sceneFactory.PreInject(loaderConfiguration.Name);
                 return sceneFactory;

@@ -17,11 +17,11 @@ public static partial class Factory {
         }
 
         public void CreateProvider(Type type, Container.Builder builder) {
-            builder.RegisterFactory(type, Lifetime.Transient, () => Activator.CreateInstance(type), Name);
+            builder.RegisterFactoryFactory(type, Lifetime.Transient, () => Activator.CreateInstance(type), Name);
         }
 
         public void CreateProvider(object configuration, IGetter getter, Container.Builder builder) {
-            builder.RegisterFactory(getter.Type, Lifetime.Transient, () => getter.GetValue(configuration), Name ?? getter.Name);
+            builder.RegisterFactoryFactory(getter.Type, Lifetime.Transient, () => getter.GetValue(configuration), Name ?? getter.Name);
         }
     }
 }
