@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Betauer.Core;
 using Betauer.Core.Pool.Lifecycle;
 using Betauer.DI;
 using Betauer.DI.Attributes;
@@ -35,10 +36,18 @@ public abstract class ManagedPool<T> : BasePool<T>, IManagedPool, IInjectable wh
     }
 
     public virtual void PostInject() {
-        _factory ??= _factoryName != null
-            ? Container.Resolve<ITransient<T>>(_factoryName)
-            : Container.Resolve<ITransient<T>>();
-
+        if (_factory == null) {
+            if (_factoryName == null) {
+                _factory = Container.Resolve<ITransient<T>>();
+            } else {
+                var provider = Container.GetProvider(_factoryName);
+                if (provider.ProviderType.ImplementsInterface(typeof(ITransient<T>))) {
+                    _factory = (ITransient<T>)provider.Get();
+                } else {
+                    _factory = Container.Resolve<ITransient<T>>($"{Container.Builder.FactoryPrefix}{_factoryName}");
+                }
+            }
+        }
         if (_poolContainerName != null) {
             SetPoolContainer(Container.Resolve<IPoolContainer>(_poolContainerName));
         }

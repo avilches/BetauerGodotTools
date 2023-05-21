@@ -80,7 +80,7 @@ public class GameLoader : ResourceLoaderContainer {
 
 [Configuration]
 [Loader("GameLoader", Tag = "main")]
-[Preload<Texture2D>("Icon", "res://icon.png", Lazy = true)]
+[Preload<Texture2D>("Icon", "res://icon.png")]
 [Resource<Theme>("MyTheme", "res://Platform/Assets/UI/my_theme2.tres")]
 [Resource<Theme>("DebugConsoleTheme", "res://Platform/Assets/UI/DebugConsole.tres")]
 [Resource<Texture2D>("Xbox360Buttons", "res://Platform/Assets/UI/Consoles/Xbox 360 Controller Updated.png")]
@@ -115,10 +115,10 @@ public class GameResources {
 [Configuration]
 [PoolContainer<Node>("PoolNodeContainer")]
 public class PoolConfig {
-	[Pool] NodePool<PlayerNode> PlayerPool => new("Factory:PlayerNode");
-	[Pool] NodePool<ZombieNode> ZombiePool => new("Factory:ZombieNode");
-	[Pool] NodePool<ProjectileTrail> ProjectilePool => new("Factory:ProjectileTrail");
-	[Pool] NodePool<PickableItemNode> PickableItemPool => new("Factory:PickableItem");
+	[Pool] NodePool<PlayerNode> PlayerPool => new("PlayerNode");
+	[Pool] NodePool<ZombieNode> ZombiePool => new("ZombieNode");
+	[Pool] NodePool<ProjectileTrail> ProjectilePool => new("ProjectileTrail");
+	[Pool] NodePool<PickableItemNode> PickableItemPool => new("PickableItem");
 }
 
 [Configuration]

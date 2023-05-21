@@ -12,17 +12,13 @@ public abstract class PoolContainerAttribute : Attribute {
 }
 
 public class PoolContainerAttribute<T> : PoolContainerAttribute, IConfigurationClassAttribute where T : class {
-
     public PoolContainerAttribute(string name) {
         Name = name;
     }
 
     public void CreateProvider(object configuration, Container.Builder builder) {
-        Func<PoolContainer<T>> factory = () => new PoolContainer<T>();
-        var provider = Provider.Create(typeof(PoolContainer<T>), typeof(PoolContainer<T>),
-            Lifetime.Singleton,
-            factory,
-            Name, false);
+        PoolContainer<T> Factory() => new();
+        var provider = Provider.Create<PoolContainer<T>, PoolContainer<T>>(Lifetime.Singleton, Factory, Name, false);
         builder.Register(provider);
     }
 }

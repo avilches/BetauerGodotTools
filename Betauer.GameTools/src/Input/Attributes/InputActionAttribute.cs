@@ -40,12 +40,12 @@ public class InputActionAttribute : Attribute, IConfigurationMemberAttribute {
                 $"Attribute {typeof(InputActionAttribute).FormatAttribute()} needs to be used in a class with attribute {typeof(InputActionsContainerAttribute).FormatAttribute()}");
         }
         var name = Name ?? getter.Name;
-        Func<object> factory = () => {
+        Func<InputAction> factory = () => {
             InputAction inputAction = (InputAction)getter.GetValue(configuration)!;
             inputAction.PreInject(name, AxisName, inputActionsContainer.Name, settingsContainerName, SaveAs, AutoSave);
             return inputAction;
         };
-        var provider = Provider.Create(typeof(InputAction), typeof(InputAction), Lifetime.Singleton, factory, name, false);
+        var provider = Provider.Create<InputAction, InputAction>(Lifetime.Singleton, factory, name, false);
         builder.Register(provider);
     }
 }

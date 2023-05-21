@@ -10,20 +10,17 @@ namespace Betauer.Application.Lifecycle.Attributes;
 public class PreloadAttribute<T> : Attribute, IConfigurationClassAttribute where T : Resource {
     public string? Name { get; set; }
     public string Path { get; set; }
-    public bool Lazy { get; set; }
+    public string? TypeHint { get; set; }
 
-    public PreloadAttribute(string name, string path, bool lazy = false) {
+    public PreloadAttribute(string name, string path, string typeHint = null) {
         Name = name;
         Path = path;
-        Lazy = lazy;
+        TypeHint = typeHint;
     }
 
     public void CreateProvider(object configuration, Container.Builder builder) {
-        Func<T> factory = () => ResourceLoader.Load<T>(Path);
-        var provider = Provider.Create(typeof(T), typeof(T),
-            Lifetime.Singleton,
-            factory,
-            Name, false);
+        T Factory() => ResourceLoader.Load<T>(Path, TypeHint);
+        var provider = Provider.Create<T, T>(Lifetime.Singleton, Factory, Name, false);
         builder.Register(provider);
     }
 }
