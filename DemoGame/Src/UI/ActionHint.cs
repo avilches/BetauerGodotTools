@@ -13,7 +13,6 @@ public partial class ActionHint : HBoxContainer {
 	[NodePath("%ConsoleButton")] private ConsoleButton _consoleButton;
 	[NodePath("%KeyButton")] private Label _keyButton;
 	[NodePath("%Label2")] private Label _label2;
-	[Inject] private InputActionsContainer _inputActionsContainer { get; set; }
 
 
 	public ActionHint Message(string label1) {

@@ -22,7 +22,7 @@ public class PoolContainerAttribute<T> : PoolContainerAttribute, IConfigurationC
         var provider = Provider.Create(typeof(PoolContainer<T>), typeof(PoolContainer<T>),
             Lifetime.Singleton,
             factory,
-            Name, false, false);
+            Name, false);
         builder.Register(provider);
     }
 }

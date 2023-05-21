@@ -188,19 +188,19 @@ public class ContainerTests : Node {
             var c = func();
             // By name, any compatible type is ok
             Assert.That(c.Contains("P"));
-            Assert.That(c.Contains<ClassWith1Interface>());
+            Assert.That(!c.Contains<ClassWith1Interface>());
             Assert.That(!c.Contains<IInterface1>());
 
             Assert.That(c.GetProvider("P").ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
-            Assert.That(c.GetProvider<ClassWith1Interface>().ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
+            Assert.Throws<ServiceNotFoundException>(() => c.GetProvider<ClassWith1Interface>());
             Assert.Throws<ServiceNotFoundException>(() => c.GetProvider<IInterface1>());
                 
             Assert.That(c.TryGetProvider("P", out var provider), Is.True);
             Assert.That(provider.ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
             Assert.That(c.TryGetProvider("P", out provider), Is.True);
             Assert.That(provider.ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
-            Assert.That(c.TryGetProvider<ClassWith1Interface>(out provider), Is.True);
-            Assert.That(provider.ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
+            Assert.That(c.TryGetProvider<ClassWith1Interface>(out provider), Is.False);
+            Assert.That(provider, Is.Null);
             Assert.That(c.TryGetProvider<IInterface1>(out provider), Is.False);
             Assert.That(provider, Is.Null);
                 
@@ -208,7 +208,7 @@ public class ContainerTests : Node {
             Assert.That(c.Resolve<IInterface1>("P"), Is.TypeOf<ClassWith1Interface>());
             Assert.That(c.Resolve<object>("P"), Is.TypeOf<ClassWith1Interface>());
             Assert.That(c.Resolve("P"), Is.TypeOf<ClassWith1Interface>());
-            Assert.That(c.Resolve<ClassWith1Interface>(), Is.TypeOf<ClassWith1Interface>());
+            Assert.Throws<ServiceNotFoundException>(() => c.Resolve<ClassWith1Interface>());
             Assert.Throws<ServiceNotFoundException>(() => c.Resolve<IInterface1>());
 
             Assert.That(c.TryResolve<ClassWith1Interface>("P", out var r), Is.True);
@@ -219,8 +219,8 @@ public class ContainerTests : Node {
             Assert.That(o, Is.TypeOf<ClassWith1Interface>());
             Assert.That(c.TryResolve("P", out r), Is.True);
             Assert.That(r, Is.TypeOf<ClassWith1Interface>());
-            Assert.That(c.TryResolve<ClassWith1Interface>(out r), Is.True);
-            Assert.That(r, Is.TypeOf<ClassWith1Interface>());
+            Assert.That(c.TryResolve<IInterface1>(out i), Is.False);
+            Assert.That(i, Is.Null);
             Assert.That(c.TryResolve<IInterface1>(out i), Is.False);
             Assert.That(i, Is.Null);
         }
@@ -244,23 +244,23 @@ public class ContainerTests : Node {
             var c = func();
             Assert.That(c.Contains("P"));
             Assert.That(!c.Contains<ClassWith1Interface>());
-            Assert.That(c.Contains<IInterface1>());
+            Assert.That(!c.Contains<IInterface1>());
 
             Assert.That(c.GetProvider("P").ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
             Assert.Throws<ServiceNotFoundException>(() => c.GetProvider<ClassWith1Interface>());
-            Assert.That(c.GetProvider<IInterface1>().ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
+            Assert.Throws<ServiceNotFoundException>(() => c.GetProvider<IInterface1>());
 
             Assert.That(c.TryGetProvider<ClassWith1Interface>(out var provider), Is.False);
             Assert.That(provider, Is.Null);
-            Assert.That(c.TryGetProvider<IInterface1>(out provider), Is.True);
-            Assert.That(provider.ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
+            Assert.That(c.TryGetProvider<IInterface1>(out provider), Is.False);
+            Assert.That(provider, Is.Null);
 
             Assert.That(c.Resolve<ClassWith1Interface>("P"), Is.TypeOf<ClassWith1Interface>());
             Assert.That(c.Resolve<IInterface1>("P"), Is.TypeOf<ClassWith1Interface>());
             Assert.That(c.Resolve<object>("P"), Is.TypeOf<ClassWith1Interface>());
             Assert.That(c.Resolve("P"), Is.TypeOf<ClassWith1Interface>());
             Assert.Throws<ServiceNotFoundException>(() => c.Resolve<ClassWith1Interface>());
-            Assert.That(c.Resolve<IInterface1>(), Is.TypeOf<ClassWith1Interface>());
+            Assert.Throws<ServiceNotFoundException>(() => c.Resolve<IInterface1>());
 
             Assert.That(c.TryResolve<ClassWith1Interface>("P", out var r), Is.True);
             Assert.That(r, Is.TypeOf<ClassWith1Interface>());
@@ -272,8 +272,8 @@ public class ContainerTests : Node {
             Assert.That(r, Is.TypeOf<ClassWith1Interface>());
             Assert.That(c.TryResolve<ClassWith1Interface>(out r), Is.False);
             Assert.That(r, Is.Null);
-            Assert.That(c.TryResolve<IInterface1>(out i), Is.True);
-            Assert.That(i, Is.TypeOf<ClassWith1Interface>());
+            Assert.That(c.TryResolve<IInterface1>(out i), Is.False);
+            Assert.That(i, Is.Null);
         }
     }
 
@@ -407,98 +407,14 @@ public class ContainerTests : Node {
         Assert.Throws<DuplicateServiceException>(() => b2.Build());
 
     }
-
-    [TestRunner.Test(Description = "GetProvider and TryGetProvider with fallbacks")]
-    public void GetProviderWithFallbackTest() {
-        var b = new Container.Builder();
-        var n1 = new ClassWith1Interface();
-        b.Register(Provider.Static(n1, "1"));
-        var c = b.Build();
-        Assert.That(c.GetProvider<ClassWith1Interface>(), Is.EqualTo(c.GetProvider("1")));
-        var foundByName = c.TryGetProvider<ClassWith1Interface>(out var pName);
-        var foundFallback = c.TryGetProvider("1", out var fName);
-        Assert.That(foundByName);
-        Assert.That(foundFallback);
-        Assert.That(pName, Is.EqualTo(fName));
-    }
-
-    [TestRunner.Test(Description = "Overwrite the fallback with type")]
-    public void CreateFallbackTest() {
-        var b = new Container.Builder();
-        var n1 = new ClassWith1Interface();
-        var n2 = new ClassWith1Interface();
-        var typed = new ClassWith1Interface();
-        b.Register(Provider.Static(n1, "1"));
-        b.Register(Provider.Static(n2, "2"));
-        // This one should overwrite the fallback
-        b.Register(Provider.Static(typed));
-        var c = b.Build();
-            
-        Assert.That(c.Resolve<ClassWith1Interface>(), Is.EqualTo(typed));
-        Assert.That(c.Resolve<ClassWith1Interface>("1"), Is.EqualTo(n1));
-        Assert.That(c.Resolve<ClassWith1Interface>("2"), Is.EqualTo(n2));
-    }
-
-    [TestRunner.Test(Description = "Fallback to the first element registered by type when register by name and resolve by type")]
-    public void FallbackFirstByTypeTest() {
-        var b = new Container.Builder();
-        var n1 = new ClassWith1Interface();
-        var n2 = new ClassWith1Interface();
-        b.Register(Provider.Static(n1, "1"));
-        b.Register(Provider.Static(n2, "2"));
-        var c = b.Build();
-        Assert.That(c.Resolve<ClassWith1Interface>(), Is.EqualTo(n1));
-    }
-
-    [TestRunner.Test(Description = "Fallback to the primary element only if it's not registered by")]
-    public void NoFallbackPrimaryByTypeTest() {
-        var b = new Container.Builder();
-        var n0 = new ClassWith1Interface();
-        var n1 = new ClassWith1Interface();
-        var n2 = new ClassWith1Interface();
-        var n3 = new ClassWith1Interface();
-        var n4 = new ClassWith1Interface();
-        b.Register(Provider.Static(n0));
-        b.Register(Provider.Static(n1, "1"));
-        b.Register(Provider.Static(n2, "2", true));
-        b.Register(Provider.Static(n3, "3", true));
-        b.Register(Provider.Static(n4, "4"));
-        var c = b.Build();
-        Assert.That(c.Resolve<ClassWith1Interface>("1"), Is.EqualTo(n1));
-        Assert.That(c.Resolve<ClassWith1Interface>("2"), Is.EqualTo(n2));
-        Assert.That(c.Resolve<ClassWith1Interface>("3"), Is.EqualTo(n3));
-        Assert.That(c.Resolve<ClassWith1Interface>("4"), Is.EqualTo(n4));
-
-        Assert.That(c.Resolve<ClassWith1Interface>(), Is.EqualTo(n0));
-    }
-
-    [TestRunner.Test(Description = "Fallback to the primary element registered by type when register by name and resolve by type")]
-    public void FallbackPrimaryByTypeTest() {
-        var b = new Container.Builder();
-        var n1 = new ClassWith1Interface();
-        var n2 = new ClassWith1Interface();
-        var n3 = new ClassWith1Interface();
-        var n4 = new ClassWith1Interface();
-        b.Register(Provider.Static(n1, "1"));
-        b.Register(Provider.Static(n2, "2", true));
-        b.Register(Provider.Static(n3, "3", true));
-        b.Register(Provider.Static(n4, "4"));
-        var c = b.Build();
-        Assert.That(c.Resolve<ClassWith1Interface>("1"), Is.EqualTo(n1));
-        Assert.That(c.Resolve<ClassWith1Interface>("2"), Is.EqualTo(n2));
-        Assert.That(c.Resolve<ClassWith1Interface>("3"), Is.EqualTo(n3));
-        Assert.That(c.Resolve<ClassWith1Interface>("4"), Is.EqualTo(n4));
-
-        Assert.That(c.Resolve<ClassWith1Interface>(), Is.EqualTo(n3));
-    }
-
+    
     [TestRunner.Test(Description = "Lazy tests")]
     public void LazyTest() {
         var b = new Container.Builder();
         b.Register(Provider.Singleton<ClassWith1Interface>("NoLazy1"));
         b.Register(Provider.Singleton<ClassWith1Interface>("NoLazy2"));
-        b.Register(Provider.Singleton<ClassWith1Interface>("Lazy1", false, true));
-        b.Register(Provider.Singleton<ClassWith1Interface>("Lazy2", false, true));
+        b.Register(Provider.Singleton<ClassWith1Interface>("Lazy1", true));
+        b.Register(Provider.Singleton<ClassWith1Interface>("Lazy2", true));
         var c = b.Build();
             
         var noLazy1Provider = c.GetProvider("NoLazy1") as SingletonFactoryProvider;

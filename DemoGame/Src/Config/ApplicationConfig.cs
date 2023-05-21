@@ -55,8 +55,8 @@ public class ApplicationConfig {
 	[Singleton] public UiActionsContainer UiActionsContainer => new();
 	[Singleton] public InputActionsContainer PlayerActionsContainer => new();
 	[Singleton] public JoypadPlayersMapping JoypadPlayersMapping => new();
-	[Transient] public StageController StageController => new(LayerConstants.LayerStageArea);
-	[Transient] public StageCameraController StageCameraController => new(LayerConstants.LayerStageArea);
+	[Transient] public StageController StageControllerFactory => new(LayerConstants.LayerStageArea);
+	[Transient] public StageCameraController StageCameraControllerFactory => new(LayerConstants.LayerStageArea);
 }
 
 [Configuration]
@@ -88,11 +88,11 @@ public class GameLoaderContainer : ResourceLoaderContainer {
 [Scene.Transient<RedefineActionButton>("RedefineActionButton", "res://Platform/Scenes/UI/RedefineActionButton.tscn")]
 [Scene.Transient<ModalBoxConfirm>("ModalBoxConfirm", "res://Platform/Scenes/Menu/ModalBoxConfirm.tscn")]
 [Scene.Transient<PlayerHud>("PlayerHudFactory", "res://Platform/Scenes/UI/PlayerHud.tscn")]
-[Scene.Transient<Game>("Game", "res://Src/Managers/Game.tscn")]
-[Scene.Singleton<MainMenu>("MainMenuResource", "res://Platform/Scenes/Menu/MainMenu.tscn")]
-[Scene.Singleton<BottomBar>("BottomBarResource", "res://Platform/Scenes/Menu/BottomBar.tscn")]
-[Scene.Singleton<PauseMenu>("PauseMenuResource", "res://Platform/Scenes/Menu/PauseMenu.tscn")]
-[Scene.Singleton<SettingsMenu>("SettingsMenuResource", "res://Platform/Scenes/Menu/SettingsMenu.tscn")]
+[Scene.Transient<Game>("GameSceneFactory", "res://Src/Managers/Game.tscn")]
+[Scene.Singleton<MainMenu>("MainMenuSceneFactory", "res://Platform/Scenes/Menu/MainMenu.tscn")]
+[Scene.Singleton<BottomBar>("BottomBarSceneFactory", "res://Platform/Scenes/Menu/BottomBar.tscn")]
+[Scene.Singleton<PauseMenu>("PauseMenuSceneFactory", "res://Platform/Scenes/Menu/PauseMenu.tscn")]
+[Scene.Singleton<SettingsMenu>("SettingsMenuSceneFactory", "res://Platform/Scenes/Menu/SettingsMenu.tscn")]
 public class MainResources {
 }
 
@@ -105,7 +105,7 @@ public class MainResources {
 [Resource<Texture2D>("LeonGun1AnimationSprite", "res://Platform/Assets/Characters/Player-Leon/Leon-gun1.png")]
 [Scene.Transient<InventorySlot>("InventorySlotResource", "res://Platform/Scenes/UI/InventorySlot.tscn")]
 [Scene.Transient<WorldScene>("World3", "res://Worlds/World3.tscn")]
-[Scene.Transient<PlayerNode>("Player", "res://Platform/Scenes/Player.tscn")]
+[Scene.Transient<PlayerNode>("PlayerNode", "res://Platform/Scenes/Player.tscn")]
 [Scene.Transient<ZombieNode>("ZombieNode", "res://Platform/Scenes/Zombie2.tscn")]
 [Scene.Transient<ProjectileTrail>("ProjectileTrail", "res://Platform/Scenes/ProjectileTrail.tscn")]
 [Scene.Transient<PickableItemNode>("PickableItem", "res://Platform/Scenes/PickableItem.tscn")]
@@ -115,10 +115,10 @@ public class GameResources {
 [Configuration]
 [PoolContainer<Node>("PoolNodeContainer")]
 public class PoolConfig {
-	[Pool] NodePool<PlayerNode> PlayerPool => new();
-	[Pool] NodePool<ZombieNode> ZombiePool => new();
-	[Pool] NodePool<ProjectileTrail> ProjectilePool => new();
-	[Pool] NodePool<PickableItemNode> PickableItemPool => new();
+	[Pool] NodePool<PlayerNode> PlayerPool => new("Factory:PlayerNode");
+	[Pool] NodePool<ZombieNode> ZombiePool => new("Factory:ZombieNode");
+	[Pool] NodePool<ProjectileTrail> ProjectilePool => new("Factory:ProjectileTrail");
+	[Pool] NodePool<PickableItemNode> PickableItemPool => new("Factory:PickableItem");
 }
 
 [Configuration]

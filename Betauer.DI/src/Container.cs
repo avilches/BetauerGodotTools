@@ -15,7 +15,6 @@ public partial class Container {
     private static readonly Logger Logger = LoggerFactory.GetLogger<Container>();
     private readonly Dictionary<Type, IProvider> _registryByType = new();
     private readonly Dictionary<string, IProvider> _registryByName = new();
-    private readonly Dictionary<Type, IProvider> _fallbackByType = new();
     private readonly List<IProvider> _providers = new();
     private readonly Injector _injector;
     public bool CreateIfNotFound { get; set; }
@@ -85,12 +84,6 @@ public partial class Container {
         if (name != null) {
             if (_registryByName.ContainsKey(name)) throw new DuplicateServiceException(name);
                 _registryByName[name] = provider;
-                if (provider.Primary || !_fallbackByType.ContainsKey(provider.RegisterType)) {
-                    _fallbackByType[provider.RegisterType] = provider;
-                    Logger.Debug($"Registered {provider.Lifetime}:{provider.ProviderType.GetTypeName()} | Name: \"{name}\" | Fallback type: {provider.RegisterType.GetTypeName()}");
-                } else {
-                    Logger.Debug($"Registered {provider.Lifetime}:{provider.ProviderType.GetTypeName()} | Name: \"{name}\"");
-                }
         } else {
             if (_registryByType.ContainsKey(provider.RegisterType)) throw new DuplicateServiceException(provider.RegisterType);
             _registryByType[provider.RegisterType] = provider;
@@ -102,7 +95,7 @@ public partial class Container {
 
     public bool Contains(string name) => _registryByName.ContainsKey(name);
     public bool Contains<T>() => Contains(typeof(T));
-    public bool Contains(Type type) => _registryByType.ContainsKey(type) || _fallbackByType.ContainsKey(type);
+    public bool Contains(Type type) => _registryByType.ContainsKey(type);
 
     public IProvider GetProvider(string name) => TryGetProvider(name, out var found) ? found! : throw new ServiceNotFoundException(name);
     public IProvider GetProvider<T>() => GetProvider(typeof(T));
@@ -112,7 +105,6 @@ public partial class Container {
     public bool TryGetProvider<T>(out IProvider? provider) => TryGetProvider(typeof(T), out provider);
     public bool TryGetProvider(Type type, out IProvider? provider) {
         var found = _registryByType.TryGetValue(type, out provider);
-        if (!found) found = _fallbackByType.TryGetValue(type, out provider);
         if (!found) provider = null;
         return found;
     }

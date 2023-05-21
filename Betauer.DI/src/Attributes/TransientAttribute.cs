@@ -7,7 +7,6 @@ namespace Betauer.DI.Attributes;
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method | AttributeTargets.Property)]
 public class TransientAttribute : Attribute, IClassAttribute, IConfigurationMemberAttribute {
     public string? Name { get; set; }
-    public bool Primary { get; set; } = false;
 
     
     public TransientAttribute() {
@@ -24,7 +23,6 @@ public class TransientAttribute : Attribute, IClassAttribute, IConfigurationMemb
             Lifetime.Transient,
             () => Activator.CreateInstance(type)!,
             Name,
-            Primary,
             true); // lazy flag is ignored in transient services
     }
 
@@ -35,7 +33,6 @@ public class TransientAttribute : Attribute, IClassAttribute, IConfigurationMemb
             Lifetime.Transient,
             () => getter.GetValue(configuration)!,
             Name ?? getter.Name,
-            Primary,
             true); // lazy flag is ignored in transient services
     }
 }

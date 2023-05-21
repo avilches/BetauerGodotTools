@@ -33,7 +33,7 @@ public class ResourceAttribute<T> : Attribute, IConfigurationClassAttribute wher
             return resourceFactory;
         }
 
-        var providerFactory = Provider.Create(typeof(ResourceHolder<T>), typeof(ResourceHolder<T>), Lifetime.Singleton, (Func<ResourceHolder<T>>)Factory, Name, false, false);
+        var providerFactory = Provider.Create(typeof(ResourceHolder<T>), typeof(ResourceHolder<T>), Lifetime.Singleton, (Func<ResourceHolder<T>>)Factory, Name, false);
         builder.Register(providerFactory);
     }
 }

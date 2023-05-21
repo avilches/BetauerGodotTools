@@ -240,7 +240,7 @@ public class ScannerLazyTests {
         [Inject] public ILazy<LazySingleton> LazySingleton { get; set; }
     }
 
-    [TestRunner.Test(Description = "Simulate a lazy behaviour with with a Factory")]
+    [TestRunner.Test(Description = "Simulate a lazy behaviour with a Factory")]
     public void LazySingletonFromConfiguration() {
         var c = new Container();
         var di = c.CreateBuilder();
@@ -251,11 +251,11 @@ public class ScannerLazyTests {
         AnotherSingleton another = c.Resolve<AnotherSingleton>();
 
         Assert.That(LazySingleton.Instances, Is.EqualTo(0));
-        Assert.That(c.GetProvider<LazySingleton>() is ISingletonProvider { IsInstanceCreated: false });
+        Assert.That(c.GetProvider("LazySingleton") is ISingletonProvider { IsInstanceCreated: false });
 
         another.LazySingleton.Get();
         Assert.That(LazySingleton.Instances, Is.EqualTo(1));
-        Assert.That(c.GetProvider<LazySingleton>() is ISingletonProvider { IsInstanceCreated: true });
+        Assert.That(c.GetProvider("LazySingleton") is ISingletonProvider { IsInstanceCreated: true });
     }
 
 

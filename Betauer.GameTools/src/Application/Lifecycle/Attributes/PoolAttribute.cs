@@ -32,7 +32,7 @@ public class PoolAttribute : Attribute, IConfigurationMemberAttribute {
             return nodePool;
         };
         var name = Name ?? getter.Name;
-        var provider = Provider.Create(getter.Type, getter.Type, Lifetime.Singleton, factory, name, false, false);
+        var provider = Provider.Create(getter.Type, getter.Type, Lifetime.Singleton, factory, name, false);
         builder.Register(provider);
     }
 }

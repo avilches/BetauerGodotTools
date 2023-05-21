@@ -163,47 +163,18 @@ public class ScannerBasicTests : Node {
         Assert.That(c.Contains<ExposeServiceClass1>());
         Assert.That(c.Resolve<ExposeServiceClass1>(), Is.TypeOf<ExposeServiceClass1>());
             
-        // [Singleton(Name = "C"] in class is registered by the name and type
+        // [Singleton(Name = "C"] in class is registered by name only
         Assert.That(c.Resolve("C"), Is.TypeOf<ExposeServiceClass2>());
-        Assert.That(c.Resolve<ExposeServiceClass2>(), Is.TypeOf<ExposeServiceClass2>());
+        Assert.That(c.Resolve<ExposeServiceClass2>("C"), Is.TypeOf<ExposeServiceClass2>());
 
         // [Service(Type=typeof(INotTagged)] class is exposed by specified type
         Assert.That(!c.Contains<ExposeServiceClass3>()); 
         Assert.That(c.Resolve<INotTagged>(), Is.TypeOf<ExposeServiceClass3>());
     }
 
-    [Singleton(Primary = true)]
-    public class PrimaryTagClass {
-    }
-        
-    [TestRunner.Test(Description = "Primary is false if there is no name specified")]
-    public void CheckPrimaryAttributeClasses() {
-        var di = new Container.Builder();
-        di.Scan<PrimaryTagClass>();
-        var c = di.Build();
-        Assert.That(c.GetProvider<PrimaryTagClass>().Primary, Is.False);
-    }
-
     public class DummyClass {
     }
-
-    [Configuration]
-    public class PrimaryServiceConfiguration {
-        [Singleton] private DummyClass noPrimary => new DummyClass();
-        [Singleton(Primary = true)] private DummyClass primary => new DummyClass();
-    }
-
-    [TestRunner.Test(Description = "Check Primary attribute in configuration")]
-    public void CheckPrimaryAttributeConfiguration() {
-        var di = new Container.Builder();
-        di.Scan<PrimaryServiceConfiguration>();
-        var c = di.Build();
-        Assert.That(c.GetProvider("noPrimary").Primary, Is.False);
-        Assert.That(c.GetProvider("primary").Primary, Is.True);
-
-        Assert.That(c.Resolve<DummyClass>(), Is.EqualTo(c.Resolve("primary")));
-    }
-
+    
     public interface I1 { }
     public interface I2 { }
 
@@ -217,12 +188,10 @@ public class ScannerBasicTests : Node {
     public class ConfigurationScanned {
         [Singleton] internal ExposeServiceMember1 member11 => new ExposeServiceMember1();
         [Singleton] internal ExposeServiceMember1 member12() => new ExposeServiceMember1();
-        [Singleton(Name = "M21", Primary = true)] internal ExposeServiceMember2 member21 => new ExposeServiceMember2();
+        [Singleton(Name = "M21")] internal ExposeServiceMember2 member21 => new ExposeServiceMember2();
         [Singleton(Name = "M22")] internal ExposeServiceMember2 member22() => new ExposeServiceMember2();
             
         [Singleton(Name = "M3")] internal ExposeServiceMember3 member3 => new ExposeServiceMember3();
-        [Singleton(Name = "M3P1", Primary = true)] internal ExposeServiceMember3 member3P1() => new ExposeServiceMember3();
-        [Singleton(Name = "M3P2", Primary = true)] internal ExposeServiceMember3 member3P2() => new ExposeServiceMember3();
             
         [Singleton<I1>] internal ExposeServiceMember4 member41 => new ExposeServiceMember4();
         [Singleton<I2>] internal ExposeServiceMember4 member42() => new ExposeServiceMember4();
@@ -253,66 +222,25 @@ public class ScannerBasicTests : Node {
         // [Singleton(Name="M")] member is exposed by name M and by type too (using the first one)
         Assert.That(c.Resolve("M21"), Is.TypeOf<ExposeServiceMember2>());
         Assert.That(c.Resolve("M22"), Is.TypeOf<ExposeServiceMember2>());
-        Assert.That(c.Resolve<ExposeServiceMember2>(), Is.EqualTo(c.Resolve("M21"))); 
+        Assert.That(!c.Contains<ExposeServiceMember2>()); 
         Assert.That(!c.Contains("member21")); 
         Assert.That(!c.Contains("member22")); 
 
         // [Singleton(Name="M")] member is exposed by name M and by type too (using the first one)
         Assert.That(c.Resolve("M3"), Is.TypeOf<ExposeServiceMember3>());
-        Assert.That(c.Resolve("M3P1"), Is.TypeOf<ExposeServiceMember3>());
-        Assert.That(c.Resolve("M3P2"), Is.TypeOf<ExposeServiceMember3>());
-        Assert.That(c.Resolve<ExposeServiceMember3>(), Is.EqualTo(c.Resolve("M3P2"))); 
+        Assert.That(!c.Contains<ExposeServiceMember3>()); 
         Assert.That(!c.Contains("member3")); 
-        Assert.That(!c.Contains("member3P1")); 
-        Assert.That(!c.Contains("member3P2")); 
 
         // [Service(Type=typeof(GodotObject)] member is exposed by specified type only, not the member type
         Assert.That(!c.Contains<ExposeServiceMember4>()); 
-        Assert.That(c.Resolve<I1>(), Is.TypeOf<ExposeServiceMember4>());
-        Assert.That(c.Resolve<I2>(), Is.TypeOf<ExposeServiceMember4>());
+        Assert.That(!c.Contains<I1>());
+        Assert.That(!c.Contains<I2>());
         Assert.That(c.Resolve<I1>("member41"), Is.TypeOf<ExposeServiceMember4>());
         Assert.That(c.Resolve<I2>("member42"), Is.TypeOf<ExposeServiceMember4>());
         Assert.That(c.Contains("member41")); 
         Assert.That(c.Contains("member42")); 
     }
-
-    [Singleton<IInterface1>(Name = "A")]
-    public class ServiceByNameFallbackA : IInterface1 {
-    }
-
-    [Singleton<IInterface1>(Name = "B")]
-    public class ServiceByNameFallbackB : IInterface1 {
-    }
-
-    [Singleton<IInterface1>(Name = "P1", Primary = true)]
-    public class ServiceByNameFallbackP1 : IInterface1 {
-    }
-
-    [Singleton<IInterface1>(Name = "P2", Primary = true)]
-    public class ServiceByNameFallbackP2 : IInterface1 {
-    }
-
-    [Singleton<IInterface1>(Name = "C")]
-    public class ServiceByNameFallbackC : IInterface1 {
-    }
-
-    [TestRunner.Test(Description = "Check Primary works")]
-    public void PrimaryTest() {
-        var di = new Container.Builder();
-        di.Scan<ServiceByNameFallbackA>();
-        di.Scan<ServiceByNameFallbackB>();
-        var c = di.Build();
-        Assert.That(c.Resolve<IInterface1>(), Is.EqualTo(c.Resolve<IInterface1>("A")));
-        di.Scan<ServiceByNameFallbackP1>();
-        di.Build();
-        Assert.That(c.Resolve<IInterface1>(), Is.EqualTo(c.Resolve<IInterface1>("P1")));
-        di.Scan<ServiceByNameFallbackP2>();
-        di.Scan<ServiceByNameFallbackC>();
-        di.Build();
-        Assert.That(c.Resolve<IInterface1>(), Is.EqualTo(c.Resolve<IInterface1>("P2")));
-    }
-
-
+    
     [Transient]
     public class EmptyTransient {
         public static int Created = 0;
@@ -690,7 +618,7 @@ public class ScannerBasicTests : Node {
         di.Scan<AddToScanByImport>();
         var c = di.Build();
         Assert.That(c.Resolve<ImportedService>(), Is.TypeOf<ImportedService>());
-        Assert.That(c.Resolve<ServiceMemberExposing2>(), Is.TypeOf<ServiceMemberExposing2>());
+        Assert.That(c.Resolve<ServiceMemberExposing2>("member"), Is.TypeOf<ServiceMemberExposing2>());
     }
 
     [TestRunner.Test]
@@ -699,7 +627,7 @@ public class ScannerBasicTests : Node {
         di.ScanConfiguration(new AddToScanByImport());
         var c = di.Build();
         Assert.That(c.Resolve<ImportedService>(), Is.TypeOf<ImportedService>());
-        Assert.That(c.Resolve<ServiceMemberExposing2>(), Is.TypeOf<ServiceMemberExposing2>());
+        Assert.That(c.Resolve<ServiceMemberExposing2>("member"), Is.TypeOf<ServiceMemberExposing2>());
     }
 
         

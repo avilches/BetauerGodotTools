@@ -31,7 +31,7 @@ public static partial class Scene {
                 var sceneFactory = new SceneFactory<T>(Path, Tag ?? loaderConfiguration.Tag);
                 sceneFactory.PreInject(loaderConfiguration.Name);
                 return sceneFactory;
-            }, Name, false);
+            }, Name);
         }
     }
 }

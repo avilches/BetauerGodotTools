@@ -51,7 +51,7 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
     [Inject] private ILazy<PauseMenu> PauseMenuSceneFactory { get; set; }
     [Inject] private ILazy<SettingsMenu> SettingsMenuSceneFactory { get; set; }
     [Inject] private HUD HudScene { get; set; }
-    [Inject] private GameLoaderContainer GameLoaderContainer { get; set; }
+    [Inject] private GameLoaderContainer MyGameLoader { get; set; }
 
     private MainMenu MainMenuScene => MainMenuSceneFactory.Get();
     private BottomBar BottomBarScene => BottomBarSceneFactory.Get();
@@ -60,7 +60,7 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
     
     [Inject] private ITransient<ModalBoxConfirm> ModalBoxConfirm { get; set; }
     [Inject("MyTheme")] private ResourceHolder<Theme> MyTheme { get; set; }
-    [Inject] private ITransient<Game> GameFactory { get; set; }
+    [Inject] private ITransient<Game> GameSceneFactory { get; set; }
     
     public Game? Game { get; private set; }
 
@@ -111,7 +111,7 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
         State(MainState.SplashScreenLoading)
             .Enter(async () => {
                 // GameLoaderContainer.OnLoadResourceProgress += (rp) => Console.WriteLine($"{rp.ResourcePercent:P} {rp.Resource}"); 
-                await GameLoaderContainer.LoadMainResources();
+                await MyGameLoader.LoadMainResources();
                 splashScreen.Stop();
             })
             .If(() => true).Set(MainState.Init)
@@ -139,7 +139,7 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
                 HudScene.Configure();
                 ScreenSettingsManager.Setup();
                 OnTransition += args => BottomBarScene.UpdateState(args.To);
-                GameLoaderContainer.OnLoadResourceProgress += BottomBarScene.OnLoadResourceProgress;
+                MyGameLoader.OnLoadResourceProgress += BottomBarScene.OnLoadResourceProgress;
                 loading = false;
             })
             .OnInput(e => {
@@ -174,7 +174,7 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
         State(MainState.StartingGame)
             .Enter(async () => {
                 await MainMenuScene.HideMainMenu();
-                Game = GameFactory.Create();
+                Game = GameSceneFactory.Create();
                 SceneTree.Root.AddChild(Game);
                 await Game.StartNewGame();
             })

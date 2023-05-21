@@ -8,7 +8,6 @@ public static partial class Factory {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method | AttributeTargets.Property)]
     public class SingletonAttribute : Attribute, IClassAttribute, IConfigurationMemberAttribute {
         public string? Name { get; set; }
-        public bool Primary { get; set; } = false;
 
         public SingletonAttribute() {
         }
@@ -18,11 +17,11 @@ public static partial class Factory {
         }
 
         public void CreateProvider(Type type, Container.Builder builder) {
-            builder.RegisterFactory(type, Lifetime.Singleton, () => Activator.CreateInstance(type), Name, Primary);
+            builder.RegisterFactory(type, Lifetime.Singleton, () => Activator.CreateInstance(type), Name);
         }
 
         public void CreateProvider(object configuration, IGetter getter, Container.Builder builder) {
-            builder.RegisterFactory(getter.Type, Lifetime.Singleton, () => getter.GetValue(configuration), Name ?? getter.Name, Primary);
+            builder.RegisterFactory(getter.Type, Lifetime.Singleton, () => getter.GetValue(configuration), Name ?? getter.Name);
         }
     }
 }

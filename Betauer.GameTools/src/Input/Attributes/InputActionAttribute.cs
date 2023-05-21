@@ -45,7 +45,7 @@ public class InputActionAttribute : Attribute, IConfigurationMemberAttribute {
             inputAction.PreInject(name, AxisName, inputActionsContainer.Name, settingsContainerName, SaveAs, AutoSave);
             return inputAction;
         };
-        var provider = Provider.Create(typeof(InputAction), typeof(InputAction), Lifetime.Singleton, factory, name, false, false);
+        var provider = Provider.Create(typeof(InputAction), typeof(InputAction), Lifetime.Singleton, factory, name, false);
         builder.Register(provider);
     }
 }

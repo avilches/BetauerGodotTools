@@ -66,7 +66,7 @@ public partial class SettingsMenu : CanvasLayer {
 	private Label _redefineCounterLabel;
 
 	[Inject] private ILazy<BottomBar> BottomBarSceneFactory { get; set; }
-	[Inject] private ScreenSettingsManager _screenSettingsManager { get; set; }
+	[Inject] private ScreenSettingsManager ScreenSettingsManager { get; set; }
 
 	private BottomBar BottomBarScene => BottomBarSceneFactory.Get();
 	
@@ -90,12 +90,12 @@ public partial class SettingsMenu : CanvasLayer {
 		AddInputControls();
 		UpdateResolutionButtonText();
 		
-		_fullscreenButtonWrapper.ButtonPressed = _screenSettingsManager.Fullscreen;
-		_pixelPerfectButtonWrapper.ButtonPressed = _screenSettingsManager.PixelPerfect;
-		_vsyncButtonWrapper.ButtonPressed = _screenSettingsManager.VSync;
-		_borderlessButtonWrapper.ButtonPressed = _screenSettingsManager.Borderless;
-		_borderlessButtonWrapper.SetFocusDisabled(_screenSettingsManager.Fullscreen);
-		_resolutionButton.SetFocusDisabled(_screenSettingsManager.Fullscreen);
+		_fullscreenButtonWrapper.ButtonPressed = ScreenSettingsManager.Fullscreen;
+		_pixelPerfectButtonWrapper.ButtonPressed = ScreenSettingsManager.PixelPerfect;
+		_vsyncButtonWrapper.ButtonPressed = ScreenSettingsManager.VSync;
+		_borderlessButtonWrapper.ButtonPressed = ScreenSettingsManager.Borderless;
+		_borderlessButtonWrapper.SetFocusDisabled(ScreenSettingsManager.Fullscreen);
+		_resolutionButton.SetFocusDisabled(ScreenSettingsManager.Fullscreen);
 		
 		_resolutions.Hide();
 		Hide();
@@ -127,7 +127,7 @@ public partial class SettingsMenu : CanvasLayer {
 			if (isChecked) {
 				_borderlessButtonWrapper.ButtonPressed = false;
 			}
-			_screenSettingsManager.SetFullscreen(isChecked);
+			ScreenSettingsManager.SetFullscreen(isChecked);
 			CheckIfResolutionStillMatches();
 		};
 		_resolutionButton.Pressed += OpenResolutionList;
@@ -135,22 +135,22 @@ public partial class SettingsMenu : CanvasLayer {
 		_resolutions.FocusExited += () => _resolutions.Hide();
 		_resolutions.ItemActivated += index => {
 			var resolution = _resolutions.GetItemMetadata((int)index).AsVector2I();
-			_screenSettingsManager.SetWindowed(new Resolution(resolution));
+			ScreenSettingsManager.SetWindowed(new Resolution(resolution));
 			UpdateResolutionButtonText();
 			CloseResolutionList();
 		};
 
 		_pixelPerfectButtonWrapper.FocusEntered += BottomBarScene.ConfigureSettingsChangeBack;
 		_pixelPerfectButtonWrapper.Pressed += () => {
-			_screenSettingsManager.SetPixelPerfect(_pixelPerfectButtonWrapper.ButtonPressed);
+			ScreenSettingsManager.SetPixelPerfect(_pixelPerfectButtonWrapper.ButtonPressed);
 			CheckIfResolutionStillMatches();
 		};
 
 		_borderlessButtonWrapper.FocusEntered += BottomBarScene.ConfigureSettingsChangeBack;
-		_borderlessButtonWrapper.Toggled += isChecked => _screenSettingsManager.SetBorderless(isChecked);
+		_borderlessButtonWrapper.Toggled += isChecked => ScreenSettingsManager.SetBorderless(isChecked);
 
 		_vsyncButtonWrapper.FocusEntered += BottomBarScene.ConfigureSettingsChangeBack;
-		_vsyncButtonWrapper.Toggled += isChecked => _screenSettingsManager.SetVSync(isChecked);
+		_vsyncButtonWrapper.Toggled += isChecked => ScreenSettingsManager.SetVSync(isChecked);
 	}
 
 	private void AddInputControls() {
@@ -187,8 +187,8 @@ public partial class SettingsMenu : CanvasLayer {
 	} 
 
 	private Tuple<List<ScaledResolution>, ScaledResolution, int> FindClosestResolutionToSelected() {
-		List<ScaledResolution> resolutions = _screenSettingsManager.GetResolutions();
-		Resolution currentResolution = _screenSettingsManager.WindowedResolution;
+		List<ScaledResolution> resolutions = ScreenSettingsManager.GetResolutions();
+		Resolution currentResolution = ScreenSettingsManager.WindowedResolution;
 		var pos = resolutions.FindIndex(scaledResolution => scaledResolution.Size == currentResolution.Size);
 		if (pos == -1) {
 			// Find the closest resolution with the same or smaller height
@@ -199,10 +199,10 @@ public partial class SettingsMenu : CanvasLayer {
 	}
 
 	private void CheckIfResolutionStillMatches() {
-		if (_screenSettingsManager.IsFullscreen()) return; 
+		if (ScreenSettingsManager.IsFullscreen()) return; 
 		var (resolutions, closestResolution, pos) = FindClosestResolutionToSelected();
-		if (_screenSettingsManager.WindowedResolution.Size != closestResolution.Size) {
-			_screenSettingsManager.SetWindowed(resolutions[pos]);
+		if (ScreenSettingsManager.WindowedResolution.Size != closestResolution.Size) {
+			ScreenSettingsManager.SetWindowed(resolutions[pos]);
 			UpdateResolutionButtonText();
 		}
 	}
@@ -234,9 +234,9 @@ public partial class SettingsMenu : CanvasLayer {
 
 	private string GetResolutionFullName(ScaledResolution scaledResolution) {
 		var res = new StringBuilder(scaledResolution.ToString());
-		if (scaledResolution.Size == _screenSettingsManager.ScreenConfiguration.BaseResolution.Size) {
+		if (scaledResolution.Size == ScreenSettingsManager.ScreenConfiguration.BaseResolution.Size) {
 			res.Append(" (Original)");
-		} else if (scaledResolution.Base == _screenSettingsManager.ScreenConfiguration.BaseResolution.Size) {
+		} else if (scaledResolution.Base == ScreenSettingsManager.ScreenConfiguration.BaseResolution.Size) {
 			if (scaledResolution.IsScaleYInteger()) {
 				res.Append(" (x");
 				res.Append(scaledResolution.Scale.Y);

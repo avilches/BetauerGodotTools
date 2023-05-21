@@ -23,7 +23,7 @@ public class PreloadAttribute<T> : Attribute, IConfigurationClassAttribute where
         var provider = Provider.Create(typeof(T), typeof(T),
             Lifetime.Singleton,
             factory,
-            Name, false, false);
+            Name, false);
         builder.Register(provider);
     }
 }

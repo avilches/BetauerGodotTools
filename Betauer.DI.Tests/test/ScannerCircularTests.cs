@@ -213,8 +213,8 @@ public class ScannerCircularTests : Node {
         di.Scan<AddToScanByImport>();
         var c = di.Build();
 
-        Assert.That(c.Resolve<A>(), Is.TypeOf<A>());
-        Assert.That(c.Resolve<B>(), Is.TypeOf<B>());
+        Assert.That(c.Resolve<A>("A"), Is.TypeOf<A>());
+        Assert.That(c.Resolve<B>("B"), Is.TypeOf<B>());
             
     }
 

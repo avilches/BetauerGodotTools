@@ -60,11 +60,10 @@ public partial class Container {
         /// <param name="lifetime"></param>
         /// <param name="factory"></param>
         /// <param name="name"></param>
-        /// <param name="primary"></param>
         /// <param name="lazy"></param>
         /// <returns></returns>
-        public Builder RegisterServiceAndAddFactory(Type registeredType, Type providerType, Lifetime lifetime, Func<object> factory, string? name = null, bool primary = false, bool lazy = false) {
-            var providerFactory = Provider.Create(registeredType, providerType, lifetime, factory, name, primary, lazy);
+        public Builder RegisterServiceAndAddFactory(Type registeredType, Type providerType, Lifetime lifetime, Func<object> factory, string? name = null, bool lazy = false) {
+            var providerFactory = Provider.Create(registeredType, providerType, lifetime, factory, name, lazy);
             Register(providerFactory);
             return RegisterFactoryFromProvider(providerFactory);
         }
@@ -85,13 +84,13 @@ public partial class Container {
         /// </summary>
         /// <param name="providerFactory"></param>
         /// <returns></returns>
-        public Builder RegisterFactoryFromProvider(IProvider providerFactory) {
+        private Builder RegisterFactoryFromProvider(IProvider providerFactory) {
             // Register the factory as ITransient<T> or ILazy<T> so the user can get the factory using Resolve<ITransient<T>>() or
             // Resolve<ILazy<T>>("Factory:"+name) or and then call to Get() which returns new instances, injecting dependencies.
             Type iFactoryType = (providerFactory.Lifetime == Lifetime.Singleton ? typeof(ILazy<>) : typeof(ITransient<>)).MakeGenericType(providerFactory.ProviderType);
             var factoryName = providerFactory.Name == null ? null : $"{FactoryPrefix}{providerFactory.Name}";
             object CustomFactory() => FactoryTools.CreateProxyFactory(providerFactory.ProviderType, providerFactory);
-            Register(Provider.Create(iFactoryType, iFactoryType, Lifetime.Singleton, CustomFactory, factoryName, providerFactory.Primary, true));
+            Register(Provider.Create(iFactoryType, iFactoryType, Lifetime.Singleton, CustomFactory, factoryName, true));
             return this;
         }
 
@@ -124,16 +123,15 @@ public partial class Container {
         /// <param name="lifetime"></param>
         /// <param name="customFactory">The Func<object> must return a factoryType and implements IGet<T> like `class YourFactory<T> : IGet<T>`</param>
         /// <param name="name"></param>
-        /// <param name="primary"></param>
         /// <returns></returns>
-        public Builder RegisterFactory(Type factoryType, Lifetime lifetime, Func<object> customFactory, string? name = null, bool primary = false) {
+        public Builder RegisterFactory(Type factoryType, Lifetime lifetime, Func<object> customFactory, string? name = null) {
             if (!factoryType.ImplementsInterface(typeof(IFactory<>))) {
                 throw new InvalidCastException($"Factory {factoryType.GetTypeName()} must implement IGet<T>");
             }
             var type = factoryType.FindGenericsFromInterfaceDefinition(typeof(IFactory<>))[0];
             ProxyFactory FactoryFromProvider(IProvider provider) => FactoryTools.CreateProxyFactory(type, provider);
             var proxyFactoryType = (lifetime == Lifetime.Singleton ? typeof(ILazy<>) : typeof(ITransient<>)).MakeGenericType(type);
-            return RegisterProxyFactory(factoryType, lifetime, customFactory, proxyFactoryType, FactoryFromProvider, name, primary);
+            return RegisterProxyFactory(factoryType, lifetime, customFactory, proxyFactoryType, FactoryFromProvider, name);
         }
 
         public interface IInnerFactory<out T> : IFactory<T> where T : class { }
@@ -155,11 +153,10 @@ public partial class Container {
         /// <param name="proxyFactoryType"></param>
         /// <param name="proxyFactory"></param>
         /// <param name="name"></param>
-        /// <param name="primary"></param>
         /// <returns></returns>
         /// <exception cref="InvalidCastException"></exception>
         /// <exception cref="Exception"></exception>
-        public Builder RegisterProxyFactory(Type factoryType, Lifetime lifetime, Func<object> customFactory, Type proxyFactoryType, Func<IProvider, object> proxyFactory, string? name = null, bool primary = false) {
+        public Builder RegisterProxyFactory(Type factoryType, Lifetime lifetime, Func<object> customFactory, Type proxyFactoryType, Func<IProvider, object> proxyFactory, string? name = null) {
             if (!factoryType.ImplementsInterface(typeof(IFactory<>))) {
                 throw new InvalidCastException($"Factory {factoryType.GetTypeName()} must implement IGet<T>");
             }
@@ -173,7 +170,7 @@ public partial class Container {
             // Register the factory allows to inject services IN THE FACTORY.
             var customFactoryName = name == null ? null : $"{InnerFactoryPrefix}{name}";
             var innerFactoryType = typeof(IInnerFactory<>).MakeGenericType(type);
-            var customProvider = Provider.Create(innerFactoryType, innerFactoryType, Lifetime.Singleton, customFactory, customFactoryName, primary, false);
+            var customProvider = Provider.Create(innerFactoryType, innerFactoryType, Lifetime.Singleton, customFactory, customFactoryName, false);
             Register(customProvider);
     
             // Register the regular instance factory. It's always lazy, this guarantees the factory is fully injected before the first Get()
@@ -182,14 +179,14 @@ public partial class Container {
             // - Resolve<T>(name)
             // To create instances injecting dependencies
             Func<object> getFromProviderFactory = FactoryTools.GetGetFromWrapperFactory(type, customProvider); // This is just () => customProvider.Get().Get()
-            var provider = Provider.Create(type, type, lifetime, getFromProviderFactory, name, primary, true);
+            var provider = Provider.Create(type, type, lifetime, getFromProviderFactory, name, true);
             Register(provider);
 
             // Register a proxy factory so users can access to the factory and use it to create new instances with dependencies injected
             // This factory could be ILazy<T> or ITransient<T> depending on the lifetime, or a custom proxy factory
             var factoryName = name == null ? null : $"{FactoryPrefix}{name}";
             object ProxyFactory() => proxyFactory(provider);
-            Register(Provider.Create(proxyFactoryType, proxyFactoryType, Lifetime.Singleton, ProxyFactory, factoryName, primary, true));
+            Register(Provider.Create(proxyFactoryType, proxyFactoryType, Lifetime.Singleton, ProxyFactory, factoryName, true));
             return this;
         }
 

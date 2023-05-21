@@ -1,7 +1,6 @@
 using System;
 using Betauer.Core;
 using Betauer.Tools.Logging;
-using Betauer.Tools.FastReflection;
 
 namespace Betauer.DI.ServiceProvider {
     public class SingletonFactoryProvider : Provider, ISingletonProvider {
@@ -12,7 +11,7 @@ namespace Betauer.DI.ServiceProvider {
         public bool Lazy { get; }
         public object? Instance { get; private set; }
 
-        public SingletonFactoryProvider(Type registerType, Type providerType, Func<object>? factory = null, string? name = null, bool primary = false, bool lazy = false) : base(registerType, providerType, name, primary) {
+        public SingletonFactoryProvider(Type registerType, Type providerType, Func<object>? factory = null, string? name = null, bool lazy = false) : base(registerType, providerType, name) {
             _factory = factory ?? CreateDefaultFactory(providerType, Lifetime);
             Lazy = lazy;
         }

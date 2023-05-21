@@ -7,7 +7,6 @@ namespace Betauer.DI.Attributes;
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method | AttributeTargets.Property)]
 public class SingletonAttribute : Attribute, IClassAttribute, IConfigurationMemberAttribute {
     public string? Name { get; set; }
-    public bool Primary { get; set; } = false;
     public bool Lazy { get; set; } = false;
 
     public SingletonAttribute() {
@@ -24,7 +23,6 @@ public class SingletonAttribute : Attribute, IClassAttribute, IConfigurationMemb
             Lifetime.Singleton,
             () => Activator.CreateInstance(type)!,
             Name,
-            Primary,
             Lazy);
     }
 
@@ -35,7 +33,6 @@ public class SingletonAttribute : Attribute, IClassAttribute, IConfigurationMemb
             Lifetime.Singleton,
             () => getter.GetValue(configuration)!,
             Name ?? getter.Name,
-            Primary,
             Lazy);
     }
 }

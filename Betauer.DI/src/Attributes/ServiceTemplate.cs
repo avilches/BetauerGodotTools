@@ -9,6 +9,5 @@ public class ServiceTemplate {
     public Type ProviderType { get; init; }
     public Func<object> Factory { get; init; }
     public string? Name { get; init; }
-    public bool Primary { get; init; }
     public bool Lazy { get; init; }
 }
