@@ -51,7 +51,7 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
     [Inject] private ILazy<PauseMenu> PauseMenuSceneFactory { get; set; }
     [Inject] private ILazy<SettingsMenu> SettingsMenuSceneFactory { get; set; }
     [Inject] private HUD HudScene { get; set; }
-    [Inject] private GameLoaderContainer MyGameLoader { get; set; }
+    [Inject] private GameLoader GameLoader { get; set; }
 
     private MainMenu MainMenuScene => MainMenuSceneFactory.Get();
     private BottomBar BottomBarScene => BottomBarSceneFactory.Get();
@@ -111,7 +111,7 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
         State(MainState.SplashScreenLoading)
             .Enter(async () => {
                 // GameLoaderContainer.OnLoadResourceProgress += (rp) => Console.WriteLine($"{rp.ResourcePercent:P} {rp.Resource}"); 
-                await MyGameLoader.LoadMainResources();
+                await GameLoader.LoadMainResources();
                 splashScreen.Stop();
             })
             .If(() => true).Set(MainState.Init)
@@ -139,7 +139,7 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
                 HudScene.Configure();
                 ScreenSettingsManager.Setup();
                 OnTransition += args => BottomBarScene.UpdateState(args.To);
-                MyGameLoader.OnLoadResourceProgress += BottomBarScene.OnLoadResourceProgress;
+                GameLoader.OnLoadResourceProgress += BottomBarScene.OnLoadResourceProgress;
                 loading = false;
             })
             .OnInput(e => {

@@ -27,7 +27,7 @@ public partial class Game : Control, IInjectable {
 	[Inject] private HUD HudScene { get; set; }
 	[Inject] private ITransient<WorldScene> World3 { get; set; }
 
-	[Inject] private GameLoaderContainer MyGameLoader { get; set; }
+	[Inject] private GameLoader GameLoader { get; set; }
 	[Inject] private PoolContainer<Node> PoolNodeContainer { get; set; }
 	[Inject] private InputActionsContainer PlayerActionsContainer { get; set; }
 	[Inject] private UiActionsContainer UiActionsContainer { get; set; }
@@ -104,7 +104,7 @@ public partial class Game : Control, IInjectable {
 	public async Task StartNewGame() {
 		UiActionsContainer.SetJoypad(UiActionsContainer.CurrentJoyPad);	// Player who starts the game is the player who control the UI forever
 		
-		await MyGameLoader.LoadGameResources();
+		await GameLoader.LoadGameResources();
 		
 		CurrentSaveGame = new MySaveGame();
 		GameObjectRepository.Initialize();
@@ -119,7 +119,7 @@ public partial class Game : Control, IInjectable {
 		UiActionsContainer.SetJoypad(UiActionsContainer.CurrentJoyPad);	// Player who starts the game is the player who control the UI forever
 		var (success, saveGame) = await LoadSaveGame(saveName);
 		if (!success) return;
-		await MyGameLoader.LoadGameResources();
+		await GameLoader.LoadGameResources();
 		ContinueLoad(saveGame);
 	}
 
@@ -320,7 +320,7 @@ public partial class Game : Control, IInjectable {
 		PoolNodeContainer.Drain().ForEach(node => node.Free());
 		// 2. Remove the data from the pool to avoid having references to busy elements which are going to die with the scene
 		PoolNodeContainer.Clear();
-		MyGameLoader.UnloadGameResources();
+		GameLoader.UnloadGameResources();
 	}
 
 	public void FreeSceneKeepingPoolData() {

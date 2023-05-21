@@ -71,15 +71,15 @@ public class Settings {
 	[Singleton] public SettingsContainer SettingsContainer => new(new ConfigFileWrapper(AppTools.GetUserFile("settings.ini")));
 }
 
-[Singleton(Name = "MyGameLoader")]
-public class GameLoaderContainer : ResourceLoaderContainer {
+[Singleton(Name = "GameLoader")]
+public class GameLoader : ResourceLoaderContainer {
 	public Task<TimeSpan> LoadMainResources() => LoadResources("main");
 	public Task<TimeSpan> LoadGameResources() => LoadResources("game");
 	public void UnloadGameResources() => UnloadResources("game");
 } 
 
 [Configuration]
-[Loader("MyGameLoader", Tag = "main")]
+[Loader("GameLoader", Tag = "main")]
 [Preload<Texture2D>("Icon", "res://icon.png", Lazy = true)]
 [Resource<Theme>("MyTheme", "res://Platform/Assets/UI/my_theme2.tres")]
 [Resource<Theme>("DebugConsoleTheme", "res://Platform/Assets/UI/DebugConsole.tres")]
@@ -97,7 +97,7 @@ public class MainResources {
 }
 
 [Configuration]
-[Loader("MyGameLoader", Tag = "game")]
+[Loader("GameLoader", Tag = "game")]
 [Resource<Texture2D>("Pickups", "res://Platform/Assets/pickups.png")]
 [Resource<Texture2D>("Pickups2", "res://Platform/Assets/pickups2.png")]
 [Resource<Texture2D>("LeonKnifeAnimationSprite", "res://Platform/Assets/Characters/Player-Leon/Leon-knife.png")]
