@@ -93,25 +93,109 @@ public class ScannerFactoryTests : Node {
         Assert.That(TransientD.Instances, Is.EqualTo(6));
     }
 
-    [TestRunner.Test(Description = "Register a Singleton Factory")]
-    public void RegisterSingletonAndAddFactoryTst() {
+    [TestRunner.Test(Description = "Register a Singleton Factory by type")]
+    public void RegisterSingletonAndAddFactoryTest() {
         var c = new Container();
         var di = c.CreateBuilder();
-        di.RegisterServiceAndAddFactory(typeof(Node), typeof(Node), Lifetime.Singleton, () => new Node { Name = "L" }, "X", true);
+        var x = 0;
+        di.RegisterServiceAndAddFactory(typeof(Node), typeof(Node), Lifetime.Singleton, () => {
+            x++;
+            return new Node { Name = "L" };
+        }, null, false);
         di.Build();
-        Assert.That(c.Resolve<Node>("X").Name.ToString(), Is.EqualTo("L"));
-        Assert.That(c.Resolve<ILazy<Node>>("Factory:X").Get(), Is.EqualTo(c.Resolve<Node>("X")));
+        Assert.That(x, Is.EqualTo(1));
+        Assert.That(c.Resolve<Node>().Name.ToString(), Is.EqualTo("L"));
+        Assert.That(c.Resolve<ILazy<Node>>().Get(), Is.EqualTo(c.Resolve<Node>()));
+        Assert.That(x, Is.EqualTo(1));
     }
 
-    [TestRunner.Test(Description = "Register a Transient Factory by name")]
+    [TestRunner.Test(Description = "Register a Singleton Factory by type lazy")]
+    public void RegisterSingletonAndAddFactoryLazyTest() {
+        var c = new Container();
+        var di = c.CreateBuilder();
+        var x = 0;
+        di.RegisterServiceAndAddFactory(typeof(Node), typeof(Node), Lifetime.Singleton, () => {
+            x++;
+            return new Node { Name = "L" };
+        }, null, true);
+        di.Build();
+        Assert.That(x, Is.EqualTo(0));
+        Assert.That(c.Resolve<Node>().Name.ToString(), Is.EqualTo("L"));
+        Assert.That(c.Resolve<ILazy<Node>>().Get(), Is.EqualTo(c.Resolve<Node>()));
+        Assert.That(x, Is.EqualTo(1));
+    }
+
+    
+    
+    [TestRunner.Test(Description = "Register a Singleton Factory by name")]
+    public void RegisterSingletonAndAddFactoryByNameTest() {
+        var c = new Container();
+        var di = c.CreateBuilder();
+        var x = 0;
+        di.RegisterServiceAndAddFactory(typeof(Node), typeof(Node), Lifetime.Singleton, () => {
+            x++;
+            return new Node { Name = "L" };
+        }, "X", false);
+        di.Build();
+        Assert.That(x, Is.EqualTo(1));
+        Assert.That(c.Resolve<Node>("X").Name.ToString(), Is.EqualTo("L"));
+        Assert.That(c.Resolve<ILazy<Node>>("Factory:X").Get(), Is.EqualTo(c.Resolve<Node>("X")));
+        Assert.That(x, Is.EqualTo(1));
+    }
+
+    [TestRunner.Test(Description = "Register a Singleton Factory by name lazy")]
+    public void RegisterSingletonAndAddFactoryByNameLazyTest() {
+        var c = new Container();
+        var di = c.CreateBuilder();
+        var x = 0;
+        di.RegisterServiceAndAddFactory(typeof(Node), typeof(Node), Lifetime.Singleton, () => {
+            x++;
+            return new Node { Name = "L" };
+        }, "X", true);
+        di.Build();
+        Assert.That(x, Is.EqualTo(0));
+        Assert.That(c.Resolve<Node>("X").Name.ToString(), Is.EqualTo("L"));
+        Assert.That(c.Resolve<ILazy<Node>>("Factory:X").Get(), Is.EqualTo(c.Resolve<Node>("X")));
+        Assert.That(x, Is.EqualTo(1));
+    }
+
+    
+    
+    
+    
+    
+    [TestRunner.Test(Description = "Register a Transient Factory by type")]
     public void RegisterTransientAndAddFactoryTest() {
         var c = new Container();
         var di = c.CreateBuilder();
-        di.RegisterServiceAndAddFactory(typeof(Node), typeof(Node), Lifetime.Transient, () => new Node { Name = "L" }, "X");
+        var x = 0;
+        di.RegisterServiceAndAddFactory(typeof(Node), typeof(Node), Lifetime.Transient, () => {
+            x++;
+            return new Node { Name = "L" };
+        });
         di.Build();
+        Assert.That(x, Is.EqualTo(0));
+        Assert.That(c.Resolve<Node>().Name.ToString(), Is.EqualTo("L"));
+        var factory = c.Resolve<ITransient<Node>>();
+        Assert.That(factory.Create(), Is.Not.EqualTo(factory.Create()));
+        Assert.That(x, Is.EqualTo(3));
+    }
+
+    [TestRunner.Test(Description = "Register a Transient Factory by name")]
+    public void RegisterTransientAndAddFactoryByNameTest() {
+        var c = new Container();
+        var di = c.CreateBuilder();
+        var x = 0;
+        di.RegisterServiceAndAddFactory(typeof(Node), typeof(Node), Lifetime.Transient, () => {
+            x++;
+            return new Node { Name = "L" };
+        }, "X");
+        di.Build();
+        Assert.That(x, Is.EqualTo(0));
         Assert.That(c.Resolve<Node>("X").Name.ToString(), Is.EqualTo("L"));
         var factory = c.Resolve<ITransient<Node>>("Factory:X");
         Assert.That(factory.Create(), Is.Not.EqualTo(factory.Create()));
+        Assert.That(x, Is.EqualTo(3));
     }
 
     [Configuration]
