@@ -49,7 +49,7 @@ public enum PlayerEvent {
 	Attack,
 	Hurt,
 	Death,
-	Start
+	Idle
 }
 
 public partial class PlayerNode : Node, IInjectable, INodeGameObject {
@@ -209,7 +209,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 		Ready += () => {
 			// Needs to be delayed until HudScene is loaded and PlayerGameObject is set with LinkNode
 			PlayerGameObject.OnHealthUpdate += (phe) => HudScene.UpdateHealth(this, phe);
-			PlayerGameObject.SetHealth(PlayerGameObject.MaxHealth);
+			PlayerGameObject.TriggerRefresh();
 		};
 	}
 
@@ -366,27 +366,20 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 			if (fallingPlatform != null) PlatformManager.ConfigurePlatformCollision(fallingPlatform);
 		}
 
-		TreeExiting += () => {
-			invincibleTween?.Kill();
-			FinishFallFromPlatform();
-		};
-
 		var xInputEnterState = 0f;
 		_fsm.OnTransition += (args) => {
 			_stateTimer.Restart();
 			xInputEnterState = XInput;
 		};
 		// OnTransition += (args) => Logger.Debug(args.From +" -> "+args.To);
-
 		
 		var shootTimer = new GodotStopwatch().Start();
 
 		bool PlayerCanMeleeAttack() => Inventory.WeaponEquipped is WeaponMeleeGameObject;
-
 		bool PlayerCanShoot() => Inventory.WeaponEquipped is WeaponRangeGameObject weaponRangeItem && 
 								 shootTimer.Elapsed >= weaponRangeItem.DelayBetweenShots;
 
-		_fsm.On(PlayerEvent.Start).Set(PlayerState.Idle);
+		_fsm.On(PlayerEvent.Idle).Set(PlayerState.Idle);
 		_fsm.On(PlayerEvent.Hurt).Set(PlayerState.Hurting);
 		_fsm.On(PlayerEvent.Death).Set(PlayerState.Death);
 		_fsm.On(PlayerEvent.Attack).Then(ctx => {
@@ -401,6 +394,14 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 		
 		var jumpJustInTime = false;
 		var weaponSpriteVisible = false;
+
+		TreeExiting += () => {
+			jumpJustInTime = false;
+			weaponSpriteVisible = false;
+			invincibleTween?.Kill();
+			FinishFallFromPlatform();
+			_fsm.Send(PlayerEvent.Idle);
+		};
 
 		void InventoryHandler(InputEvent e) {
 			if (NextItem.IsEventJustPressed(e)) {
@@ -706,6 +707,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 				Console.WriteLine("MUERTO");
 				EventBus.Publish(MainEvent.EndGame);                                                                     
 			})
+			.If(() => true).Set(PlayerState.Idle)
 			.Build();
 	}
 }

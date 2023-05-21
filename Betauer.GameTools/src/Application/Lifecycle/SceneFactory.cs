@@ -14,7 +14,7 @@ public class SceneFactory<T> : ResourceLoad, IFactory<T> where T : Node {
 
     public PackedScene Scene => (PackedScene)Resource!;
 
-    public T Get() {
+    public T Create() {
         try {
             var instantiate = Scene.Instantiate<T>();
             NodePathScanner.ScanAndInject(instantiate);

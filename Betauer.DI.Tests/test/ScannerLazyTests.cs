@@ -226,7 +226,7 @@ public class ScannerLazyTests {
     }
 
     public class SingletonFactory : IFactory<LazySingleton> {
-        public LazySingleton Get() => new LazySingleton();
+        public LazySingleton Create() => new LazySingleton();
     }
 
 

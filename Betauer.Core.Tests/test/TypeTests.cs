@@ -1,13 +1,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Betauer.TestRunner;
 using NUnit.Framework;
 
 namespace Betauer.Core.Tests;
 
 [TestRunner.Test]
-[Only]
 public class TypeTests {
     [TestRunner.Test]
     public void ImplementsInterfaceTests() {

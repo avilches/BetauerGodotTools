@@ -65,7 +65,7 @@ public class PlayerGameObject : GameObject<PlayerNode> {
         var fromHealth = Health;
         Health = Math.Clamp(health, 0, MaxHealth);
         var toHealth = Health;
-        OnHealthUpdate?.Invoke(new PlayerHealthEvent(fromHealth, toHealth, MaxHealth));
+        TriggerRefresh(fromHealth, toHealth, MaxHealth);
     }
 
     public void SetMaxHealth(float newMaxHealth) {
@@ -73,7 +73,15 @@ public class PlayerGameObject : GameObject<PlayerNode> {
         MaxHealth = newMaxHealth;
         Health = Math.Clamp(Health, 0, MaxHealth);
         var toHealth = Health;
-        OnHealthUpdate?.Invoke(new PlayerHealthEvent(fromHealth, toHealth, MaxHealth));
+        TriggerRefresh(fromHealth, toHealth, MaxHealth);
+    }
+
+    public void TriggerRefresh() {
+        TriggerRefresh(Health, Health, MaxHealth);
+    }
+
+    public void TriggerRefresh(float fromHealth, float toHealth, float maxHealth) {
+        OnHealthUpdate?.Invoke(new PlayerHealthEvent(fromHealth, toHealth, maxHealth));
     }
 
     public bool IsDead() => Health <= 0f;

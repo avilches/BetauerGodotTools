@@ -9,5 +9,5 @@ public abstract class Factory<T> : IFactory<T> where T : class {
         _func = func;
     }
 
-    public T Get() => _func.Invoke();
+    public T Create() => _func.Invoke();
 }
