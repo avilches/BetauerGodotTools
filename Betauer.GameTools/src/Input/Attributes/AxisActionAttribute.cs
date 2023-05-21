@@ -44,6 +44,7 @@ public class AxisActionAttribute : Attribute, IConfigurationMemberAttribute {
             axisAction.PreInject(name, inputActionContainer.Name, settingsContainerName, SaveAs, AutoSave);
             return axisAction;
         };
-        builder.RegisterServiceAndAddFactory(typeof(AxisAction), typeof(AxisAction), Lifetime.Singleton, factory, name, false, false);
+        var provider = Provider.Create(typeof(AxisAction), typeof(AxisAction), Lifetime.Singleton, factory, name, false, false);
+        builder.Register(provider);
     }
 }

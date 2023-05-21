@@ -20,9 +20,10 @@ public class PreloadAttribute<T> : Attribute, IConfigurationClassAttribute where
 
     public void CreateProvider(object configuration, Container.Builder builder) {
         Func<T> factory = () => ResourceLoader.Load<T>(Path);
-        builder.RegisterServiceAndAddFactory(typeof(T), typeof(T),
+        var provider = Provider.Create(typeof(T), typeof(T),
             Lifetime.Singleton,
             factory,
             Name, false, false);
+        builder.Register(provider);
     }
 }

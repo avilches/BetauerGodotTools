@@ -40,6 +40,7 @@ public class SettingAttribute<T> : Attribute, IConfigurationClassAttribute {
             setting.PreInject(settingConfiguration.Name);
             return setting;
         };
-        builder.RegisterServiceAndAddFactory(typeof(SaveSetting<T>), typeof(SaveSetting<T>), Lifetime.Singleton, factory, Name, false, false);
+        var provider = Provider.Create(typeof(SaveSetting<T>), typeof(SaveSetting<T>), Lifetime.Singleton, factory, Name, false, false);
+        builder.Register(provider);
     }
 }

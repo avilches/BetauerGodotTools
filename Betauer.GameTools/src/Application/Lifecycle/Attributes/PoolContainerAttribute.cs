@@ -19,9 +19,10 @@ public class PoolContainerAttribute<T> : PoolContainerAttribute, IConfigurationC
 
     public void CreateProvider(object configuration, Container.Builder builder) {
         Func<PoolContainer<T>> factory = () => new PoolContainer<T>();
-        builder.RegisterServiceAndAddFactory(typeof(PoolContainer<T>), typeof(PoolContainer<T>),
+        var provider = Provider.Create(typeof(PoolContainer<T>), typeof(PoolContainer<T>),
             Lifetime.Singleton,
             factory,
             Name, false, false);
+        builder.Register(provider);
     }
 }
