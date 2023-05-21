@@ -6,7 +6,7 @@ namespace Betauer.DI.Factory;
 public static class FactoryTools {
 
     /// <summary>
-    /// Returns a class that wraps a provider (implementing IFactory<T> or ILazy<T>) so it can be exposed to the users 
+    /// Returns a class that wraps a provider (implementing ITransient<T> or ILazy<T>) so it can be exposed to the users 
     /// </summary>
     /// <param name="type"></param>
     /// <param name="provider"></param>

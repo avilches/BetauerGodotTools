@@ -14,7 +14,7 @@ public class FactoryWrapper<T> : FactoryWrapper where T : class {
     }
 
     public override object GetFactory() {
-        IGet<T> factory = (IGet<T>)_customFactoryProvider.Get();
+        IFactory<T> factory = (IFactory<T>)_customFactoryProvider.Get();
         return factory.Get()!;
     }
 }

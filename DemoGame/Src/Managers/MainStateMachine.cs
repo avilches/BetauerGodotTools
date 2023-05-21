@@ -58,9 +58,9 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
     private PauseMenu PauseMenuScene => PauseMenuSceneFactory.Get();
     private SettingsMenu SettingsMenuScene => SettingsMenuSceneFactory.Get();
     
-    [Inject] private IFactory<ModalBoxConfirm> ModalBoxConfirm { get; set; }
+    [Inject] private ITransient<ModalBoxConfirm> ModalBoxConfirm { get; set; }
     [Inject("MyTheme")] private ResourceHolder<Theme> MyTheme { get; set; }
-    [Inject] private IFactory<Game> GameFactory { get; set; }
+    [Inject] private ITransient<Game> GameFactory { get; set; }
     
     public Game? Game { get; private set; }
 
@@ -174,7 +174,7 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
         State(MainState.StartingGame)
             .Enter(async () => {
                 await MainMenuScene.HideMainMenu();
-                Game = GameFactory.Get();
+                Game = GameFactory.Create();
                 SceneTree.Root.AddChild(Game);
                 await Game.StartNewGame();
             })
@@ -274,7 +274,7 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
     }
 
     private ModalBoxConfirm ShowModalBox(string title, string subtitle = null) {
-        var modalBoxConfirm = ModalBoxConfirm.Get();
+        var modalBoxConfirm = ModalBoxConfirm.Create();
         modalBoxConfirm.Layer = CanvasLayerConstants.ModalBox;
         modalBoxConfirm.Title(title, subtitle);
         modalBoxConfirm.ProcessMode = ProcessModeEnum.Always;

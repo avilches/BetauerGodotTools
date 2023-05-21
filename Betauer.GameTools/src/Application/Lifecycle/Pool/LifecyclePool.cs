@@ -7,7 +7,7 @@ public class LifecyclePool<T> : ManagedPool<T> where T : class, IPoolLifecycle {
     public LifecyclePool(int purgeIfBiggerThan = 0) : base(purgeIfBiggerThan) {
     }
 
-    public LifecyclePool(IFactory<T> factory, int purgeIfBiggerThan = 0) : base(factory, purgeIfBiggerThan) {
+    public LifecyclePool(ITransient<T> factory, int purgeIfBiggerThan = 0) : base(factory, purgeIfBiggerThan) {
     }
 
     public LifecyclePool(string? factoryName, int purgeIfBiggerThan = 0) : base(factoryName, purgeIfBiggerThan) {

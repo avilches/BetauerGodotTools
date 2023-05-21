@@ -10,7 +10,7 @@ namespace Betauer.Application.Lifecycle.Pool;
 public abstract class ManagedPool<T> : BasePool<T>, IManagedPool, IInjectable where T : class {
     [Inject] protected Container Container { get; set; }
     private IPoolContainer _poolContainer;
-    private IFactory<T>? _factory;
+    private ITransient<T>? _factory;
     private readonly string? _factoryName;
     private string? _poolContainerName;
 
@@ -20,7 +20,7 @@ public abstract class ManagedPool<T> : BasePool<T>, IManagedPool, IInjectable wh
         PurgeIfBiggerThan = purgeIfBiggerThan;
     }
 
-    protected ManagedPool(IFactory<T> factory, int purgeIfBiggerThan = 0) {
+    protected ManagedPool(ITransient<T> factory, int purgeIfBiggerThan = 0) {
         _factory = factory;
         PurgeIfBiggerThan = purgeIfBiggerThan;
     }
@@ -36,8 +36,8 @@ public abstract class ManagedPool<T> : BasePool<T>, IManagedPool, IInjectable wh
 
     public virtual void PostInject() {
         _factory ??= _factoryName != null
-            ? Container.Resolve<IFactory<T>>(_factoryName)
-            : Container.Resolve<IFactory<T>>();
+            ? Container.Resolve<ITransient<T>>(_factoryName)
+            : Container.Resolve<ITransient<T>>();
 
         if (_poolContainerName != null) {
             SetPoolContainer(Container.Resolve<IPoolContainer>(_poolContainerName));
@@ -59,7 +59,7 @@ public abstract class ManagedPool<T> : BasePool<T>, IManagedPool, IInjectable wh
     }
 
     protected override T Create() {
-        var instance = _factory!.Get();
+        var instance = _factory!.Create();
         return instance;
     }
 

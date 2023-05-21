@@ -7,7 +7,7 @@ public class NodePool<T> : ManagedPool<T> where T : Node {
     public NodePool(int purgeIfBiggerThan = 0) : base(purgeIfBiggerThan) {
     }
 
-    public NodePool(IFactory<T> factory, int purgeIfBiggerThan = 0) : base(factory, purgeIfBiggerThan) {
+    public NodePool(ITransient<T> factory, int purgeIfBiggerThan = 0) : base(factory, purgeIfBiggerThan) {
     }
 
     public NodePool(string? factoryName, int purgeIfBiggerThan = 0) : base(factoryName, purgeIfBiggerThan) {

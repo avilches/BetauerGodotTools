@@ -75,7 +75,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 
 	[Inject] private MainStateMachine MainStateMachine { get; set; }
 	[Inject] private PlatformManager PlatformManager { get; set; }
-	[Inject] private IFactory<StageCameraController> StageCameraControllerFactory { get; set; }
+	[Inject] private ITransient<StageCameraController> StageCameraControllerFactory { get; set; }
 
 	[Inject] private SceneTree SceneTree { get; set; }
 	[Inject] private EventBus EventBus { get; set; }
@@ -219,7 +219,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 	}
 
 	private void ConfigureCamera() {
-		StageCameraController = StageCameraControllerFactory.Get();
+		StageCameraController = StageCameraControllerFactory.Create();
 		StageCameraController.AddTarget(PlayerDetector);
 		TreeExiting += () => {
 			StageCameraController.ClearState();

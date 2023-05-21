@@ -225,14 +225,14 @@ public class ScannerLazyTests {
         }
     }
 
-    public class SingletonFactory : ILazy<LazySingleton> {
+    public class SingletonFactory : IFactory<LazySingleton> {
         public LazySingleton Get() => new LazySingleton();
     }
 
 
     [Configuration]
     public class LazySingletonConfiguration {
-        [Attributes.Factory.Singleton] public ILazy<LazySingleton> LazySingleton => new SingletonFactory();
+        [Attributes.Factory.Singleton] public IFactory<LazySingleton> LazySingleton => new SingletonFactory();
     }
 
     [Singleton]

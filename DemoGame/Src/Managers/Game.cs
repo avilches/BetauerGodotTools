@@ -25,7 +25,7 @@ public partial class Game : Control, IInjectable {
 	[Inject] private GameObjectRepository GameObjectRepository { get; set; }
 	[Inject] private IGameObjectLoader<MySaveGame> GameObjectLoader { get; set; }
 	[Inject] private HUD HudScene { get; set; }
-	[Inject] private IFactory<WorldScene> World3 { get; set; }
+	[Inject] private ITransient<WorldScene> World3 { get; set; }
 
 	[Inject] private GameLoaderContainer GameLoaderContainer { get; set; }
 	[Inject] private PoolContainer<Node> PoolNodeContainer { get; set; }
@@ -179,7 +179,7 @@ public partial class Game : Control, IInjectable {
 
 	public void InitializeWorld() {
 		JoypadPlayersMapping.RemoveAllPlayers();
-		WorldScene = World3.Get();
+		WorldScene = World3.Create();
 		_subViewport1.AddChild(WorldScene);
 		HudScene.Enable();
 	}

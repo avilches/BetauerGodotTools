@@ -26,7 +26,7 @@ public partial class WorldScene : Node {
 	[Inject] private PlatformManager PlatformManager { get; set; }
 	[Inject] private JoypadPlayersMapping JoypadPlayersMapping { get; set; }
 	
-	[Inject] private IFactory<StageController> StageControllerFactory { get; set; }
+	[Inject] private ITransient<StageController> StageControllerFactory { get; set; }
 	[Inject] private NodePool<PlayerNode> PlayerPool { get; set; }
 	[Inject] private NodePool<PickableItemNode> PickableItemPool { get; set; }
 	[Inject] private NodePool<ProjectileTrail> ProjectilePool { get; set; }
@@ -46,7 +46,7 @@ public partial class WorldScene : Node {
 
 		GetChildren().OfType<TileMap>().ForEach(PlatformManager.ConfigureTileMapCollision);
 		GetChildren().OfType<CanvasModulate>().ForEach(cm => cm.Visible = true);
-		var stageController = StageControllerFactory.Get();
+		var stageController = StageControllerFactory.Create();
 		_stages.GetChildren().OfType<Area2D>().ForEach(stageController.ConfigureStage);
 		AddChild(_playerSpawn);
 		AddChild(_bulletSpawn);

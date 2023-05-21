@@ -15,11 +15,11 @@ public partial class HUD : CanvasLayer {
 	public PlayerHud PlayerHud1;
 	public PlayerHud PlayerHud2;
 
-	[Inject] public IFactory<PlayerHud> PlayerHudFactory { get; set; }
+	[Inject] public ITransient<PlayerHud> PlayerHudFactory { get; set; }
 	
 	public void Configure() {
-		PlayerHud1 = PlayerHudFactory.Get();
-		PlayerHud2 = PlayerHudFactory.Get();
+		PlayerHud1 = PlayerHudFactory.Create();
+		PlayerHud2 = PlayerHudFactory.Create();
 		AddChild(SplitScreen);
 		PlayerHud1.Name = "PlayerHud1";
 		PlayerHud2.Name = "PlayerHud2";

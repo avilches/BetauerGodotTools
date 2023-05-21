@@ -10,7 +10,7 @@ namespace Veronenger.UI;
 
 public partial class Inventory : GridContainer {
 
-	[Inject] public IFactory<InventorySlot> InventorySlotResource { get; set; }
+	[Inject] public ITransient<InventorySlot> InventorySlotResource { get; set; }
 
 	private bool _initialize = false;
 	public override void _Ready() {
@@ -50,7 +50,7 @@ public partial class Inventory : GridContainer {
 			for (var i = size; i < childCount; i ++) GetChild<InventorySlot>(i).RemoveSlot();
 		} else if (childCount < size) {
 			while (childCount < size) {
-				var inventorySlot = InventorySlotResource.Get();
+				var inventorySlot = InventorySlotResource.Create();
 				AddChild(inventorySlot);
 				childCount++;
 			}

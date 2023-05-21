@@ -175,10 +175,10 @@ public partial class SettingsMenu : CanvasLayer {
 		};
 	}
 
-	[Inject] private IFactory<RedefineActionButton> RedefineActionButton { get; set; }
+	[Inject] private ITransient<RedefineActionButton> RedefineActionButton { get; set; }
 
 	private void AddConfigureControl(string name, InputAction action, bool isKey) {
-		var button = RedefineActionButton.Get();
+		var button = RedefineActionButton.Create();
 		button.Pressed += () => ShowRedefineActionPanel(button);
 		button.FocusEntered += BottomBarScene.ConfigureSettingsChangeBack;
 		button.SetInputAction(name, action, isKey);
