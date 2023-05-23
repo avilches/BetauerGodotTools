@@ -164,7 +164,11 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 
 		PlatformBody = new KinematicPlatformMotion(CharacterBody2D, MotionConfig.FloorUpDirection, FloorRaycasts);
 		LateralState = new LateralState(flipper, () => MotionConfig.FloorUpDirection.Rotate90Right(), () => GlobalPosition);
-		Ready += () => LateralState.IsFacingRight = true;
+		Ready += () => {
+			LateralState.IsFacingRight = true;
+			_mainSprite.Visible = true;
+			_mainSprite.Modulate = Colors.White;
+		};
 		
 		// OnAfter += () => {
 		// 	Label.Text = _animationStack.GetPlayingOnce() != null

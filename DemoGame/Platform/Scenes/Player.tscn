@@ -722,7 +722,6 @@ collision_mask = 0
 metadata/_edit_lock_ = true
 
 [node name="Short" type="CollisionShape2D" parent="Character/AttackArea1"]
-visible = false
 position = Vector2(16, -22)
 shape = SubResource("RectangleShape2D_shapq")
 metadata/_edit_lock_ = true
@@ -738,7 +737,6 @@ collision_mask = 0
 metadata/_edit_lock_ = true
 
 [node name="Short" type="CollisionShape2D" parent="Character/AttackArea2"]
-visible = false
 position = Vector2(5.75, -20.75)
 shape = SubResource("RectangleShape2D_1n1ol")
 metadata/_edit_lock_ = true
