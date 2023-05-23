@@ -76,6 +76,7 @@ public partial class ZombieNode : NpcNode, IInjectable {
 	[NodePath("Character/RayCasts/FinishFloorRight")] public RayCast2D FinishFloorRight;
 	[NodePath("Character/RayCasts/Floor")] public RayCast2D FloorRaycast;
 	[NodePath("Character/HealthBarPosition/HealthBar")] public TextureProgressBar HealthBar;
+	[NodePath("Character/Sprites/BloodParticles")] public GpuParticles2D BloodParticles;
 
 	[Inject] private MainStateMachine MainStateMachine { get; set; }
 	[Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
@@ -147,39 +148,25 @@ public partial class ZombieNode : NpcNode, IInjectable {
 		set => LateralState.IsFacingRight = value;
 	}
 
-	public override void _Ready() {
-		_fsm.Reset();
-		_zombieAi.Reset();
-		_lazyRaycastToPlayer.GetDirectSpaceFrom(_mainSprite);
-		_attackArea.SetCollisionNode(this);
-		_hurtArea.SetCollisionNode(this);
-		UpdateHealthBar();
-		EnableAttackAndHurtAreas();
-		_overlay?.Enable();
-		consumer = EventBus.Subscribe(OnPlayerAttackEvent).UnsubscribeIf(Predicates.IsInvalid(this));
-	}
-	
-	public void _ExitingTree() {
-		AnimationReset.PlayFrom(0);
-		_restorer.Restore();
-		// _fsm.Reset();
-		// _zombieAi.Reset();
-		_overlay?.Disable();
-		consumer.Unsubscribe();
-	}
-
 	public void PostInject() {
-		TreeExiting += _ExitingTree;
 		ConfigureAnimations();
 		ConfigureCharacter();
 		ConfigureFsm();
+		ConfigureAi();
 
-		// AI
-		_zombieAi = MeleeAi.Create(Handler, new MeleeAi.Sensor(this, PlatformBody, LateralState, () => PlayerPos, () => _delta));
-		_fsm.OnBefore += () =>_zombieAi.Execute();
-		_fsm.OnBefore += () => Label.Text = _zombieAi.GetState();
-		_fsm.OnAfter += () => _zombieAi.EndFrame();
+		// ConfigureOverlays();
+		ConfigureOverlayRays();
+				
+		// Uncomment to discover if all the Ready methods are restoring the data correctly or there is still some property updated
+		// this.OnReady(_restorer.Save, true);
+		// this.OnReady(_restorer.Restore);
+	
+		// Uncomment to discover all properties modified during the life of the Node in the scene
+		// TreeExiting += _restorer.Restore;
 
+	}
+	
+	private void ConfigureOverlayRays() { 
 		var drawRaycasts = this.OnDraw(canvas => {
 			// canvas.DrawRaycast(FacePlayerDetector, Colors.Red);
 			// canvas.DrawRaycast(BackPlayerDetector, Colors.Red);
@@ -210,14 +197,27 @@ public partial class ZombieNode : NpcNode, IInjectable {
 			canvas.DrawLine(Marker2D.GlobalPosition, PlayerPos, Colors.Lime, 2);
 		});
 		drawPlayerInsight.Disable();
+	}
 
-		// _overlay = DebugOverlayManager.Follow(CharacterBody2D).Title("Zombie");
-		// AddHurtStates(_overlay);
-		// AddOverlayStates(_overlay);
-		// AddOverlayPlayerInfo(_overlay);
-		// AddOverlayCrossAndDot(_overlay);
-		// AddOverlayMotion(_overlay);
-		// AddOverlayCollisions(_overlay);
+	private void ConfigureAi() {
+		_zombieAi = MeleeAi.Create(Handler, new MeleeAi.Sensor(this, PlatformBody, LateralState, () => PlayerPos, () => _delta));
+		_fsm.OnBefore += () => _zombieAi.Execute();
+		_fsm.OnBefore += () => Label.Text = _zombieAi.GetState();
+		_fsm.OnAfter += () => _zombieAi.EndFrame();
+		Ready += _fsm.Reset;
+		Ready += _zombieAi.Reset;
+	}
+
+	private void ConfigureOverlays() {
+		_overlay = DebugOverlayManager.Follow(CharacterBody2D).Title("Zombie");
+		AddHurtStates(_overlay);
+		AddOverlayStates(_overlay);
+		AddOverlayPlayerInfo(_overlay);
+		AddOverlayCrossAndDot(_overlay);
+		AddOverlayMotion(_overlay);
+		AddOverlayCollisions(_overlay);
+		Ready += () => _overlay?.Enable();
+		TreeExiting += () => _overlay?.Disable();
 	}
 
 	private void ConfigureAnimations() {
@@ -226,8 +226,13 @@ public partial class ZombieNode : NpcNode, IInjectable {
 		AnimationAttack = _animationPlayer.Anim("Attack");
 		AnimationHurt = _animationPlayer.Anim("Hurt");
 		AnimationDead = _animationPlayer.Anim("Dead");
-
 		AnimationReset = _animationPlayer.Anim("RESET");
+
+		Ready += () => {
+			_mainSprite.Modulate = Colors.White;
+			_mainSprite.Visible = true;
+			BloodParticles.Emitting = false;
+		};
 
 		var firstCall = true;
 		_labelHits = PoolTemplates.Lifecycle<ILabelEffect>(
@@ -254,27 +259,29 @@ public partial class ZombieNode : NpcNode, IInjectable {
 		
 		LateralState = new LateralState(flipper, () => CharacterBody2D.UpDirection.Rotate90Right(), () => Marker2D.GlobalPosition);
 		PlatformBody = new KinematicPlatformMotion(CharacterBody2D, MotionConfig.FloorUpDirection);
-
-		CollisionLayerManager.NpcConfigureCollisions(CharacterBody2D);
-		CollisionLayerManager.NpcConfigureCollisions(FloorRaycast);
-		CollisionLayerManager.NpcConfigureCollisions(FinishFloorRight);
-		CollisionLayerManager.NpcConfigureCollisions(FinishFloorLeft);
-		
 		_lazyRaycastToPlayer = new LazyRaycast2D().Config(CollisionLayerManager.NpcConfigureCollisions);
+		_attackArea.SetCollisionNode(this);
+		_hurtArea.SetCollisionNode(this);
 
-		EnableAttackAndHurtAreas();
-		CollisionLayerManager.EnemyConfigureAttackArea(_attackArea);
-		_attackArea.DisableAllShapes();
+		Ready += () => {
+			CollisionLayerManager.NpcConfigureCollisions(CharacterBody2D);
+			CollisionLayerManager.NpcConfigureCollisions(FloorRaycast);
+			CollisionLayerManager.NpcConfigureCollisions(FinishFloorRight);
+			CollisionLayerManager.NpcConfigureCollisions(FinishFloorLeft);
+			CollisionLayerManager.EnemyConfigureAttackArea(_attackArea);
+			CollisionLayerManager.EnemyConfigureHurtArea(_hurtArea);
+			_lazyRaycastToPlayer.UseDirectSpace(_mainSprite.GetWorld2D().DirectSpaceState);
+			UpdateHealthBar();
+			consumer = EventBus.Subscribe(OnPlayerAttackEvent).UnsubscribeIf(Predicates.IsInvalid(this));
+		};
 
-		CollisionLayerManager.EnemyConfigureHurtArea(_hurtArea);
+		TreeExiting += () => consumer.Unsubscribe();
 		
 		_restorer = new MultiRestorer()
 			.Add(CharacterBody2D.CreateRestorer())
 			.Add(_hurtArea.CreateRestorer())
 			.Add(_attackArea.CreateRestorer())
 			.Add(_mainSprite.CreateRestorer());
-		_restorer.Save();
-
 	}
 
 	private void UpdateHealthBar() {
@@ -291,7 +298,6 @@ public partial class ZombieNode : NpcNode, IInjectable {
 		if (weapon is WeaponRangeGameObject) return true;
 		return true;
 	}
-
 
 	private void OnPlayerAttackEvent(PlayerAttackEvent playerAttackEvent) {
 		if (playerAttackEvent.NpcNode != this) return;
@@ -314,12 +320,6 @@ public partial class ZombieNode : NpcNode, IInjectable {
 		var dir = Vector2.Right.Rotated(Mathf.DegToRad(angle)) * energy;                                                                           
 		PlatformBody.MotionX = IsToTheRightOfPlayer() ? dir.X : -dir.X;
 		PlatformBody.MotionY = -dir.Y;
-	}
-
-	public void EnableAttackAndHurtAreas(bool enabled = true) {
-		_attackArea.Monitoring = enabled;
-		_attackArea.Monitorable = enabled;
-		_hurtArea.EnableAllShapes(enabled);
 	}
 
 	public void ApplyFloorGravity(float factor = 1.0F) {
@@ -495,7 +495,7 @@ public partial class ZombieNode : NpcNode, IInjectable {
 
 		_fsm.State(ZombieState.Death)
 			.Enter(() => {
-				EnableAttackAndHurtAreas(false);
+				CollisionLayerManager.DisableAttackAndHurtAreas(_attackArea, _hurtArea);
 				HealthBar.Visible = false;
 				AnimationDead.Play();
 			})

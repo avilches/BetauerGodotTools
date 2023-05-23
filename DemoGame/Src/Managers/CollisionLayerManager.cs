@@ -107,8 +107,28 @@ public class CollisionLayerManager {
     public static void EnemyConfigureAttackArea(Area2D attackArea) {
         attackArea.CollisionMask = 0;
         attackArea.CollisionLayer = 0;
+        attackArea.Monitoring = true;
+        attackArea.Monitorable = true;
         attackArea.AddToLayer(LayerPlayerHurtArea);
-        attackArea.EnableAllShapes();
+        attackArea.GetNode<CollisionShape2D>("Body").Disabled = false;
+        attackArea.GetNode<CollisionShape2D>("Weapon").Disabled = true;
+    }
+
+    public static void EnemyConfigureHurtArea(Area2D hurtArea) {
+        hurtArea.CollisionMask = 0;
+        hurtArea.CollisionLayer = 0;
+        hurtArea.Monitoring = true;
+        hurtArea.Monitorable = true;
+        hurtArea.AddToLayer(LayerEnemyHurtArea);
+        hurtArea.EnableAllShapes();
+    }
+
+    public static void DisableAttackAndHurtAreas(Area2D attackArea, Area2D hurtArea) {
+        // Raycasts (bullets) ignore Monitorable, so to disable the hurt area, it's better to remove the mask/layer 
+        hurtArea.CollisionMask = 0;
+        hurtArea.CollisionLayer = 0;
+        attackArea.Monitoring = true;
+        attackArea.Monitorable = true;
     }
 
     public static void EnemyConfigurePlayerDetector(RayCast2D rayCast2D) {
@@ -125,13 +145,5 @@ public class CollisionLayerManager {
         rayCast2D.DetectLayer(LayerPlayerDetectorArea);
     }
 
-    public static void EnemyConfigureHurtArea(Area2D hurtArea) {
-        hurtArea.CollisionMask = 0;
-        hurtArea.CollisionLayer = 0;
-        hurtArea.AddToLayer(LayerEnemyHurtArea);
-        hurtArea.EnableAllShapes();
-    }
-
     public bool IsEnemy(CharacterBody2D platform) => platform.IsInGroup(GROUP_ENEMY);
-
 }
