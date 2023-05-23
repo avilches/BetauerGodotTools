@@ -51,7 +51,10 @@ public class PropertyNameRestorer : Restorer {
         foreach (var (property, value) in _properties.Zip(_values, ValueTuple.Create)) {
             if (RealBehaviour is Behaviour.SaveAndLog or Behaviour.LogOnly) {
                 if (!VariantHelper.EqualsVariant(_node.GetIndexed(property), value)) {
-                    GD.PushWarning($"[PropertyNameRestorer] Restoring '{_node.Name}' {_node.GetType().GetTypeName()}.{property} ({_node.GetIndexed(property)}) to original: {value}");
+                    var backup = Console.ForegroundColor;
+                    Console.ForegroundColor = ConsoleColor.DarkYellow;
+                    Console.WriteLine($"[PropertyNameRestorer] Restoring '{_node.Name}' {_node.GetType().GetTypeName()}.{property} ({_node.GetIndexed(property)}) to original: {value}");
+                    Console.ForegroundColor = backup;
                 }
             }
             if (RealBehaviour != Behaviour.LogOnly) {

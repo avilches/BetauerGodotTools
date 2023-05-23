@@ -91,7 +91,7 @@ public class Inventory {
         TriggerPickUp(gameObject);
         if (Items.Count == 1) {
             Selected = 0;
-            _Equip();
+            EquipCurrent();
         }
         TriggerRefresh();
     }
@@ -105,7 +105,7 @@ public class Inventory {
         if (Items.Count == 0) {
             _Unequip(item);
         } else {
-            _Equip();
+            EquipCurrent();
         }
         TriggerRefresh();
     }
@@ -113,14 +113,14 @@ public class Inventory {
     public void EquipPrevItem() {
         if (Items.Count == 0) return;
         Selected = (Selected - 1).Mod(Items.Count);
-        _Equip();
+        EquipCurrent();
         TriggerRefresh();
     }
 
     public void EquipNextItem() {
         if (Items.Count == 0) return;
         Selected = (Selected + 1).Mod(Items.Count);
-        _Equip();
+        EquipCurrent();
         TriggerRefresh();
     }
 
@@ -129,7 +129,7 @@ public class Inventory {
         OnUnequip?.Invoke(gameObject);
     }
 
-    private void _Equip() {
+    public void EquipCurrent() {
         var item = GetCurrent();
         if (item is WeaponGameObject weapon) {
             WeaponEquipped = weapon;
@@ -151,7 +151,4 @@ public class Inventory {
     public void TriggerRefresh() =>
         OnUpdateInventory?.Invoke(_playerInventoryEventCached);
 
-    public void TriggerLoad() {
-        _Equip();
-    }
 }

@@ -1,5 +1,5 @@
 using Betauer.Application.Monitor;
-using Betauer.DI;
+using Betauer.Core.Nodes;
 using Betauer.DI.Attributes;
 using Betauer.Input;
 using Betauer.Nodes;
@@ -12,6 +12,11 @@ public partial class PlayerNode {
 	[Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
 
 	private void ConfigureOverlay() {
+		var drawEvent = this.OnDraw(canvas => {
+			foreach (var floorRaycast in FloorRaycasts) canvas.DrawRaycast(floorRaycast, Colors.Red);
+			canvas.DrawRaycast(RaycastCanJump, Colors.Red);
+		});
+		drawEvent.Disable();
 
 		var overlay = DebugOverlayManager.Overlay(CharacterBody2D)
 			.Title("Player")

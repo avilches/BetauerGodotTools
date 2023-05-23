@@ -21,11 +21,11 @@ namespace Betauer.Core.Nodes {
             node.GetParent()?.RemoveChild(node);
         }
 
-        public static void DisableAllShapes(this Node parent) {
+        public static void DisableAllShapes(this CollisionObject2D parent) {
             parent.EnableAllShapes(false);
         }
 
-        public static void EnableAllShapes(this Node parent, bool enable = true) {
+        public static void EnableAllShapes(this CollisionObject2D parent, bool enable = true) {
             parent.GetChildren().ForEach(node => {
                 if (node is CollisionPolygon2D collisionPolygon2D) collisionPolygon2D.Disabled = !enable;
                 else if (node is CollisionShape2D collisionShape2D) collisionShape2D.Disabled = !enable; 

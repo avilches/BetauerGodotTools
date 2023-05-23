@@ -44,23 +44,22 @@ public partial class PickableItemNode : Node, IInjectable, INodeGameObject {
 	[NodePath("Character/PickZone")] public Area2D PickZone;
 
 	public KinematicPlatformMotion PlatformBody;
-	private State _state = State.Available;
-	private Func<Vector2> _playerPosition;
-	private Action? _onPickup;
-	private float _pickingUpSpeed;
 	private float _delta;
 	private readonly FsmSync<State, Event> _fsm = new(State.None, "PickableItem.FSM");
 	private GameObject _gameObject;
 
+	// State
+	private State _state = State.Available;
+	private Func<Vector2> _playerPosition;
+	private Action? _onPickup;
+	
 	public void PostInject() {
 		PlatformBody = new KinematicPlatformMotion(CharacterBody2D, MotionConfig.FloorUpDirection);
-		CollisionLayerManager.PickableItem(this);
 		ConfigureFsm();
 	}
-	
-	
 
 	public override void _Ready() {
+		CollisionLayerManager.PlayerPickableItem(this);
 		PickZone.SetCollisionNode(this);
 		_state = State.Available;
 		_playerPosition = null;
@@ -141,13 +140,14 @@ public partial class PickableItemNode : Node, IInjectable, INodeGameObject {
 			.Execute(FallAndBounce)
 			.Build();
 
+		var pickingUpSpeed = 0f;
 		_fsm.State(State.PickingUp)
-			.Enter(() => _pickingUpSpeed = PlayerConfig.PickingUpSpeed)
+			.Enter(() => pickingUpSpeed = PlayerConfig.PickingUpSpeed)
 			.Execute(() => {
 				var delta = _delta;
 				var destination = _playerPosition();
-				_pickingUpSpeed *= 1 + (PlayerConfig.PickingUpAcceleration * delta);
-				CharacterBody2D.GlobalPosition = CharacterBody2D.GlobalPosition.MoveToward(destination, delta * _pickingUpSpeed);
+				pickingUpSpeed *= 1 + (PlayerConfig.PickingUpAcceleration * delta);
+				CharacterBody2D.GlobalPosition = CharacterBody2D.GlobalPosition.MoveToward(destination, delta * pickingUpSpeed);
 			})
 			.If(() => CharacterBody2D.GlobalPosition.DistanceTo(_playerPosition()) < PlayerConfig.PickupDoneDistance).Set(State.Finish)
 			.Build();

@@ -13,10 +13,15 @@ public class CollisionLayerManager {
         playerNode.CharacterBody2D.CollisionMask = 0;
         playerNode.CharacterBody2D.AddToLayer(LayerPlayerBody);
         playerNode.CharacterBody2D.DetectLayer(LayerSolidBody);
+        playerNode.CharacterBody2D.EnableAllShapes();
 
         playerNode.PlayerDetector.CollisionLayer = 0;
         playerNode.PlayerDetector.CollisionMask = 0;
+        playerNode.PlayerDetector.Monitoring = true;
+        playerNode.PlayerDetector.Monitorable = true;
         playerNode.PlayerDetector.AddToLayer(LayerPlayerDetectorArea);
+        playerNode.PlayerDetector.DetectLayer(LayerPickableArea);
+        playerNode.PlayerDetector.EnableAllShapes();
         
         playerNode.RaycastCanJump.DetectLayer(LayerSolidBody);
         playerNode.FloorRaycasts.ForEach(rayCast2D => {
@@ -30,11 +35,13 @@ public class CollisionLayerManager {
         playerNode.PlayerDetector.OnAreaEntered(LayerPickableArea, onEnterPickableArea, false, true);
     }
 
-    public static void PickableItem(PickableItemNode pickableItemNode) {
+    public static void PlayerPickableItem(PickableItemNode pickableItemNode) {
         pickableItemNode.CharacterBody2D.CollisionLayer = 0;
         pickableItemNode.CharacterBody2D.CollisionMask = 0;
         pickableItemNode.CharacterBody2D.DetectLayer(LayerSolidBody);
 
+        pickableItemNode.PickZone.Monitoring = true;
+        pickableItemNode.PickZone.Monitorable = true;
         pickableItemNode.PickZone.CollisionLayer = 0;
         pickableItemNode.PickZone.CollisionMask = 0;
         pickableItemNode.PickZone.AddToLayer(LayerPickableArea);
@@ -48,21 +55,25 @@ public class CollisionLayerManager {
         rayCast2D.DetectLayer(LayerSolidBody);
     }
 
-    public static void PlayerConfigureAttackArea(Area2D attackArea, Area2D.AreaEnteredEventHandler? onAttack = null) {
+    public static void PlayerConfigureAttackArea(Area2D attackArea) {
         attackArea.CollisionMask = 0;
         attackArea.CollisionLayer = 0;
-        if (onAttack != null) attackArea.OnAreaEntered(LayerEnemyHurtArea, onAttack);
-        else attackArea.DetectLayer(LayerEnemyHurtArea);
+        attackArea.Monitorable = true;
+        attackArea.Monitoring = true;
+        attackArea.EnableAllShapes();
+        attackArea.DetectLayer(LayerEnemyHurtArea);
     }
 
-    public static void PlayerConfigureHurtArea(Area2D hurtArea, Area2D.AreaEnteredEventHandler? onAttack = null) {
+    public static void PlayerConfigureHurtArea(Area2D hurtArea) {
         hurtArea.CollisionMask = 0;
         hurtArea.CollisionLayer = 0;
-        if (onAttack != null) hurtArea.OnAreaEntered(LayerPlayerHurtArea, onAttack);
-        else hurtArea.DetectLayer(LayerPlayerHurtArea);
+        hurtArea.Monitorable = true;
+        hurtArea.Monitoring = true;
+        hurtArea.EnableAllShapes();
+        hurtArea.DetectLayer(LayerPlayerHurtArea);
     }
 
-    public static void PlayerConfigureBullet(PhysicsRayQueryParameters2D rayCast2D) {
+    public static void PlayerConfigureBulletRaycast(PhysicsRayQueryParameters2D rayCast2D) {
         rayCast2D.CollisionMask = 0;
         rayCast2D.CollideWithAreas = true;
         rayCast2D.CollideWithBodies = true;
@@ -76,6 +87,7 @@ public class CollisionLayerManager {
         enemy.CollisionMask = 0;
         enemy.CollisionLayer = 0;                                       
         enemy.DetectLayer(LayerSolidBody);
+        enemy.EnableAllShapes();
     }
 
     public static void NpcConfigureCollisions(RayCast2D rayCast2D) {
@@ -96,6 +108,7 @@ public class CollisionLayerManager {
         attackArea.CollisionMask = 0;
         attackArea.CollisionLayer = 0;
         attackArea.AddToLayer(LayerPlayerHurtArea);
+        attackArea.EnableAllShapes();
     }
 
     public static void EnemyConfigurePlayerDetector(RayCast2D rayCast2D) {
@@ -116,6 +129,7 @@ public class CollisionLayerManager {
         hurtArea.CollisionMask = 0;
         hurtArea.CollisionLayer = 0;
         hurtArea.AddToLayer(LayerEnemyHurtArea);
+        hurtArea.EnableAllShapes();
     }
 
     public bool IsEnemy(CharacterBody2D platform) => platform.IsInGroup(GROUP_ENEMY);

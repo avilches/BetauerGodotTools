@@ -6,7 +6,6 @@ using Betauer.Application.Monitor;
 using Betauer.Application.Persistent;
 using Betauer.Camera;
 using Betauer.Core;
-using Betauer.Core.Nodes;
 using Betauer.Core.Restorer;
 using Betauer.Core.Time;
 using Betauer.DI;
@@ -121,9 +120,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 	private readonly MultiRestorer _restorer = new ();  
 
 	public void PostInject() {
-		AddChild(_fsm);
 		ConfigureAnimations();
-		ConfigureOverlay();
 		ConfigureCharacter(); // collisions are reset to 0 here
 		ConfigureInventory();
 		ConfigureHud();
@@ -132,15 +129,14 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 		ConfigurePlayerHurtArea();
 		ConfigureFsm();
 		ConfigureInputActions();
-		_restorer.Save();
-		TreeExiting += () => {
-			_restorer.Restore();
-		};
-		var drawEvent = this.OnDraw(canvas => {
-			foreach (var floorRaycast in FloorRaycasts) canvas.DrawRaycast(floorRaycast, Colors.Red);
-			canvas.DrawRaycast(RaycastCanJump, Colors.Red);
-		});
-		drawEvent.Disable();
+		ConfigureOverlay();
+		
+		// Uncomment to discover if all the Ready methods are restoring the data correctly or there is still some property updated
+		// this.OnReady(_restorer.Save, true);
+		// this.OnReady(_restorer.Restore);
+	
+		// Uncomment to discover all properties modified during the life of the Node in the scene
+		// TreeExiting += _restorer.Restore;
 	}
 
 	private void ConfigureAnimations() {
@@ -153,8 +149,6 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 		AnimationAttack = _animationPlayer.Anim("Attack");
 		AnimationAirAttack = _animationPlayer.Anim("AirAttack");
 		AnimationHurt = _animationPlayer.Anim("Hurt");
-		_restorer.Add(_mainSprite);
-		_restorer.Add(_weaponSprite);
 	}
 
 	private void ConfigureCharacter() {
@@ -169,10 +163,8 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 			.ScaleX(_attackArea2);
 
 		PlatformBody = new KinematicPlatformMotion(CharacterBody2D, MotionConfig.FloorUpDirection, FloorRaycasts);
-		LateralState = new LateralState(flipper, () => MotionConfig.FloorUpDirection.Rotate90Right(), () => GlobalPosition) {
-			IsFacingRight = true
-		};
-		TreeExiting += () => LateralState.IsFacingRight = true;
+		LateralState = new LateralState(flipper, () => MotionConfig.FloorUpDirection.Rotate90Right(), () => GlobalPosition);
+		Ready += () => LateralState.IsFacingRight = true;
 		
 		// OnAfter += () => {
 		// 	Label.Text = _animationStack.GetPlayingOnce() != null
@@ -182,13 +174,16 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 		// };
 
 		_characterWeaponController = new CharacterWeaponController(new[] { _attackArea1, _attackArea2 }, _weaponSprite);
-		_characterWeaponController.Unequip();
+		Ready += _characterWeaponController.Unequip;
 
-		CollisionLayerManager.PlayerConfigureCollisions(this);
-		CollisionLayerManager.PlayerPickableArea(this, OnPick);
-
+		_restorer.Add(_mainSprite);
+		_restorer.Add(_weaponSprite);
 		_restorer.Add(CharacterBody2D);
 		_restorer.Add(PlayerDetector);
+		
+		Ready += () => CollisionLayerManager.PlayerConfigureCollisions(this);
+
+		CollisionLayerManager.PlayerPickableArea(this, OnPick);
 
 		// _lazyRaycast2DDrop.GetDirectSpaceFrom(Marker2D);
 		// _lazyRaycast2DDrop.Config(CollisionLayerManager.PlayerConfigureRaycastDrop);
@@ -223,11 +218,6 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 		};
 	}
 
-	private void PickUp(PickableGameObject pickable) {
-		pickable.UnlinkNode();
-		Inventory.Pick(pickable);
-	}
-
 	private void ConfigureCamera() {
 		StageCameraController = StageCameraControllerFactory.Create();
 		StageCameraController.AddTarget(PlayerDetector);
@@ -235,6 +225,11 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 			StageCameraController.ClearState();
 			StopFollowingCamera();
 		};
+	}
+
+	private void PickUp(PickableGameObject pickable) {
+		pickable.UnlinkNode();
+		Inventory.Pick(pickable);
 	}
 
 	public void SetCamera(Camera2D camera) {
@@ -249,7 +244,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 	}
 
 	private void ConfigurePlayerHurtArea() {
-		CollisionLayerManager.PlayerConfigureHurtArea(_hurtArea);
+		Ready += () => CollisionLayerManager.PlayerConfigureHurtArea(_hurtArea);
 		_restorer.Add(_hurtArea);
 		this.OnProcess(delta => {
 			if (PlayerGameObject is { UnderAttack: false, Invincible: false } &&
@@ -270,8 +265,10 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 	}
 
 	private void ConfigureAttackArea() {
-		CollisionLayerManager.PlayerConfigureAttackArea(_attackArea1);
-		CollisionLayerManager.PlayerConfigureAttackArea(_attackArea2);
+		Ready += () => {
+			CollisionLayerManager.PlayerConfigureAttackArea(_attackArea1);
+			CollisionLayerManager.PlayerConfigureAttackArea(_attackArea2);
+		};
 		_restorer.Add(_attackArea1);
 		_restorer.Add(_attackArea2);
 		this.OnProcess(delta => {
@@ -280,6 +277,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 				CheckAttackArea(_attackArea2);
 			}
 			
+			// Monitoring flag of every area is changed during the melee attack animations 
 			void CheckAttackArea(Area2D attackArea) {
 				if (attackArea.Monitoring && attackArea.HasOverlappingAreas()) {
 					attackArea.GetOverlappingAreas()
@@ -354,6 +352,8 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 	}
 
 	private void ConfigureFsm() {
+		AddChild(_fsm);
+
 		Tween? invincibleTween = null;
 
 		void RestoreInvincibleEffect() {
@@ -569,7 +569,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 			var bullet = MainStateMachine.Game!.WorldScene.NewBullet();
 			Inventory.UpdateWeaponRangeAmmo(weapon, -1);
 			bullet.ShootFrom(weapon, CharacterBody2D.ToGlobal(bulletPosition), bulletDirection,
-				CollisionLayerManager.PlayerConfigureBullet,
+				CollisionLayerManager.PlayerConfigureBulletRaycast,
 				collision => {
 					if (!collision.Collider.HasCollisionNode()) {
 						return ProjectileTrail.Behaviour.Stop; // Something solid was hit

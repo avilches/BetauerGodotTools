@@ -199,7 +199,7 @@ public partial class WorldScene : Node {
 			playerNode.PlatformBody.Motion = saveObject.Velocity;
 			playerNode.GlobalPosition = saveObject.GlobalPosition;
 			playerNode.LateralState.IsFacingRight = saveObject.IsFacingRight;
-			playerNode.Inventory.TriggerLoad();
+			playerNode.Inventory.EquipCurrent();
 		});
 		return playerNode;
 	}
