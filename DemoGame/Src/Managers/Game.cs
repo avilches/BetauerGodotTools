@@ -127,9 +127,7 @@ public partial class Game : Control, IInjectable {
 		UiActionsContainer.SetJoypad(UiActionsContainer.CurrentJoyPad); // Player who starts the game is the player who control the UI forever
 		var (success, saveGame) = await LoadSaveGame(saveName);
 		if (!success) return;
-		FreeSceneKeepingPoolData();
-		// The CanvasModulate needs 2 frames to free so it can be applied again
-		await this.AwaitPhysicsFrame(2);
+		await FreeSceneKeepingPoolData();
 		ContinueLoad(saveGame);
 	}
 
@@ -299,16 +297,16 @@ public partial class Game : Control, IInjectable {
 		}
 	}
 
-	public void End(bool unload) {
+	public async Task End(bool unload) {
 		HudScene.Disable();
 		if (unload) {
 			UnloadResources();
 		} else {
-			FreeSceneKeepingPoolData();
+			await FreeSceneKeepingPoolData();
 		}
 		Free();
 		GC.GetTotalMemory(true);
-		PrintOrphanNodes();
+		// PrintOrphanNodes();
 	}
 
 	public void UnloadResources() {
@@ -323,11 +321,14 @@ public partial class Game : Control, IInjectable {
 		GameLoader.UnloadGameResources();
 	}
 
-	public void FreeSceneKeepingPoolData() {
+	public async Task FreeSceneKeepingPoolData() {
 		// This line keeps the godot nodes in the pool removing them from scene, because the scene is going to be freed
 		// The busy nodes are the nodes who still belongs to the tree, so loop them and remove them from the tree is a way
 		// to keep them in the pool ready for the next game
 		PoolNodeContainer.GetAllBusy().ForEach(node => node.RemoveFromParent());
-		WorldScene.QueueFree();
+		// Wait one frame before free the scene. Not waiting one frame will cause canvas modulate will not shown (when LoadInGame)
+		// and some collisions will not work because the unparented nodes are still in the tree and the physics engine will try to use them
+		await this.AwaitPhysicsFrame();
+		WorldScene.Free();
 	}
 }

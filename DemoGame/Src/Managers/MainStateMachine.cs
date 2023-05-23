@@ -197,7 +197,7 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
 
         State(MainState.GameOver)
             .Enter(async () => {
-                Game!.End(false);
+                await Game!.End(false);
                 Game = null;
             })
             .If(() => true).Set(MainState.MainMenu)
@@ -232,7 +232,7 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
                 
         State(MainState.QuitGame)
             .Enter(async () => {
-                Game!.End(false);
+                await Game!.End(false);
                 Game = null;
             })
             .If(() => true).Set(MainState.MainMenu)
