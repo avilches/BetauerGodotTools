@@ -8,8 +8,8 @@ namespace Betauer.Core;
 public static class VariantHelper {
     public static bool IsNull(this Variant variant) => variant.VariantType == Variant.Type.Nil;
     public static bool IsBool(this Variant variant) => variant.VariantType == Variant.Type.Bool;
-    public static bool IsInt(this Variant variant) => variant.VariantType == Variant.Type.Int;
-    public static bool IsFloat(this Variant variant) => variant.VariantType == Variant.Type.Float;
+    public static bool IsInt64(this Variant variant) => variant.VariantType == Variant.Type.Int;
+    public static bool IsSingle(this Variant variant) => variant.VariantType == Variant.Type.Float;
     public static bool IsString(this Variant variant) => variant.VariantType == Variant.Type.String;
     public static bool IsVector2(this Variant variant) => variant.VariantType == Variant.Type.Vector2;
     public static bool IsVector2I(this Variant variant) => variant.VariantType == Variant.Type.Vector2I;
@@ -30,20 +30,20 @@ public static class VariantHelper {
     public static bool IsStringName(this Variant variant) => variant.VariantType == Variant.Type.StringName;
     public static bool IsNodePath(this Variant variant) => variant.VariantType == Variant.Type.NodePath;
     public static bool IsRid(this Variant variant) => variant.VariantType == Variant.Type.Rid;
-    public static bool IsObject(this Variant variant) => variant.VariantType == Variant.Type.Object;
+    public static bool IsGodotObject(this Variant variant) => variant.VariantType == Variant.Type.Object;
     public static bool IsCallable(this Variant variant) => variant.VariantType == Variant.Type.Callable;
     public static bool IsSignal(this Variant variant) => variant.VariantType == Variant.Type.Signal;
-    public static bool IsDictionary(this Variant variant) => variant.VariantType == Variant.Type.Dictionary;
-    public static bool IsArray(this Variant variant) => variant.VariantType == Variant.Type.Array;
-    public static bool IsPackedByteArray(this Variant variant) => variant.VariantType == Variant.Type.PackedByteArray;
-    public static bool IsPackedInt32Array(this Variant variant) => variant.VariantType == Variant.Type.PackedInt32Array;
-    public static bool IsPackedInt64Array(this Variant variant) => variant.VariantType == Variant.Type.PackedInt64Array;
-    public static bool IsPackedFloat32Array(this Variant variant) => variant.VariantType == Variant.Type.PackedFloat32Array;
-    public static bool IsPackedFloat64Array(this Variant variant) => variant.VariantType == Variant.Type.PackedFloat64Array;
-    public static bool IsPackedStringArray(this Variant variant) => variant.VariantType == Variant.Type.PackedStringArray;
-    public static bool IsPackedVector2Array(this Variant variant) => variant.VariantType == Variant.Type.PackedVector2Array;
-    public static bool IsPackedVector3Array(this Variant variant) => variant.VariantType == Variant.Type.PackedVector3Array;
-    public static bool IsPackedColorArray(this Variant variant) => variant.VariantType == Variant.Type.PackedColorArray;
+    public static bool IsGodotDictionary(this Variant variant) => variant.VariantType == Variant.Type.Dictionary;
+    public static bool IsGodotArray(this Variant variant) => variant.VariantType == Variant.Type.Array;
+    public static bool IsByteArray(this Variant variant) => variant.VariantType == Variant.Type.PackedByteArray;
+    public static bool IsInt32Array(this Variant variant) => variant.VariantType == Variant.Type.PackedInt32Array;
+    public static bool IsInt64Array(this Variant variant) => variant.VariantType == Variant.Type.PackedInt64Array;
+    public static bool IsFloat32Array(this Variant variant) => variant.VariantType == Variant.Type.PackedFloat32Array;
+    public static bool IsFloat64Array(this Variant variant) => variant.VariantType == Variant.Type.PackedFloat64Array;
+    public static bool IsStringArray(this Variant variant) => variant.VariantType == Variant.Type.PackedStringArray;
+    public static bool IsVector2Array(this Variant variant) => variant.VariantType == Variant.Type.PackedVector2Array;
+    public static bool IsVector3Array(this Variant variant) => variant.VariantType == Variant.Type.PackedVector3Array;
+    public static bool IsColorArray(this Variant variant) => variant.VariantType == Variant.Type.PackedColorArray;
 
     public static Variant CreateFrom<T>(T value) {
         if (typeof(T) != typeof(object)) return Variant.From(value);
@@ -173,6 +173,77 @@ public static class VariantHelper {
             Color fromColor when op2 is Color toColor => (fromColor + toColor),
             _ => throw new Exception($"Sum Variant: {op1?.GetType().Name} not implemented")
         };
+    }
+
+    public static bool Equals<[MustBeVariant] T>(T op1, T op2) {
+        return op1 switch {
+            char fromChar when op2 is char toChar => (fromChar == toChar),
+            sbyte fromSbyte when op2 is sbyte toSbyte => (fromSbyte == toSbyte),
+            short fromShort when op2 is short toShort => (fromShort == toShort),
+            int fromInt when op2 is int toInt => (fromInt == toInt),
+            long fromLong when op2 is long toLong => (fromLong == toLong),
+            byte fromByte when op2 is byte toByte => (fromByte == toByte),
+            ushort fromUshort when op2 is ushort toUshort => (fromUshort == toUshort),
+            uint fromUint when op2 is uint toUint => (fromUint == toUint),
+            ulong fromUlong when op2 is ulong toUlong => (fromUlong == toUlong),
+            float fromFloat when op2 is float toFloat => (fromFloat == toFloat),
+            double fromDouble when op2 is double toDouble => (fromDouble == toDouble),
+            Vector2 fromVector2 when op2 is Vector2 toVector2 => (fromVector2 == toVector2),
+            Vector2I fromVector2I when op2 is Vector2I toVector2I => (fromVector2I == toVector2I),
+            Vector3 fromVector3 when op2 is Vector3 toVector3 => (fromVector3 == toVector3),
+            Vector3I fromVector3I when op2 is Vector3I toVector3I => (fromVector3I == toVector3I),
+            Vector4 fromVector4 when op2 is Vector4 toVector4 => (fromVector4 == toVector4),
+            Vector4I fromVector4I when op2 is Vector4I toVector4I => (fromVector4I == toVector4I),
+            Quaternion fromQuaternion when op2 is Quaternion toQuaternion => (fromQuaternion == toQuaternion),
+            Color fromColor when op2 is Color toColor => (fromColor == toColor),
+            _ => throw new Exception($"Sum Variant: {op1?.GetType().Name} not implemented")
+        };
+    }
+
+    public static bool EqualsVariant(Variant op1, Variant op2) {
+        if (op1.VariantType != op2.VariantType) return false;
+        if (op1.IsNull()) return true;
+        if (op1.IsBool()) return op1.AsBool() == op2.AsBool();
+        if (op1.IsInt64()) return op1.AsInt64() == op2.AsInt64();
+        if (op1.IsSingle()) return op1.AsSingle() == op2.AsSingle();
+        if (op1.IsString()) return op1.AsString() == op2.AsString();
+        if (op1.IsVector2()) return op1.AsVector2() == op2.AsVector2();
+        if (op1.IsVector2I()) return op1.AsVector2I() == op2.AsVector2I();
+        if (op1.IsRect2()) return op1.AsRect2() == op2.AsRect2();
+        if (op1.IsRect2I()) return op1.AsRect2I() == op2.AsRect2I();
+        if (op1.IsVector3()) return op1.AsVector3() == op2.AsVector3();
+        if (op1.IsVector3I()) return op1.AsVector3I() == op2.AsVector3I();
+        if (op1.IsTransform2D()) return op1.AsTransform2D() == op2.AsTransform2D();
+        if (op1.IsVector4()) return op1.AsVector4() == op2.AsVector4();
+        if (op1.IsVector4I()) return op1.AsVector4I() == op2.AsVector4I();
+        if (op1.IsPlane()) return op1.AsPlane() == op2.AsPlane();
+        if (op1.IsQuaternion()) return op1.AsQuaternion() == op2.AsQuaternion();
+        if (op1.IsAabb()) return op1.AsAabb() == op2.AsAabb();
+        if (op1.IsBasis()) return op1.AsBasis() == op2.AsBasis();
+        if (op1.IsTransform3D()) return op1.AsTransform3D() == op2.AsTransform3D();
+        if (op1.IsProjection()) return op1.AsProjection() == op2.AsProjection();
+        if (op1.IsColor()) return op1.AsColor() == op2.AsColor();
+        if (op1.IsStringName()) return op1.AsStringName() == op2.AsStringName();
+        if (op1.IsNodePath()) return op1.AsNodePath() == op2.AsNodePath();
+        if (op1.IsRid()) return op1.AsRid() == op2.AsRid();
+        if (op1.IsGodotObject()) return op1.AsGodotObject() == op2.AsGodotObject();
+        // if (op1.IsCallable()) return op1.AsCallable() == op2.AsCallable();
+        if (op1.IsSignal()) {
+            var s1 = op1.AsSignal();
+            var s2 = op2.AsSignal();
+            return s1.Name == s2.Name && s1.Owner == s2.Owner;
+        }
+        if (op1.IsGodotDictionary()) return op1.AsGodotDictionary() == op2.AsGodotDictionary();
+        if (op1.IsByteArray()) return op1.AsByteArray().AsSpan().SequenceEqual(new ReadOnlySpan<byte>(op2.AsByteArray()));
+        if (op1.IsInt32Array()) return op1.AsInt32Array().AsSpan().SequenceEqual(new ReadOnlySpan<int>(op2.AsInt32Array()));
+        if (op1.IsInt64Array()) return op1.AsInt64Array().AsSpan().SequenceEqual(new ReadOnlySpan<long>(op2.AsInt64Array()));
+        if (op1.IsFloat32Array()) return op1.AsFloat32Array().AsSpan().SequenceEqual(new ReadOnlySpan<float>(op2.AsFloat32Array()));
+        if (op1.IsFloat64Array()) return op1.AsFloat64Array().AsSpan().SequenceEqual(new ReadOnlySpan<double>(op2.AsFloat64Array()));
+        if (op1.IsStringArray()) return op1.AsStringArray().AsSpan().SequenceEqual(new ReadOnlySpan<string>(op2.AsStringArray()));
+        if (op1.IsVector2Array()) return op1.AsVector2Array().AsSpan().SequenceEqual(new ReadOnlySpan<Vector2>(op2.AsVector2Array()));
+        if (op1.IsVector3Array()) return op1.AsVector3Array().AsSpan().SequenceEqual(new ReadOnlySpan<Vector3>(op2.AsVector3Array()));
+        if (op1.IsColorArray()) return op1.AsColorArray().AsSpan().SequenceEqual(new ReadOnlySpan<Color>(op2.AsColorArray()));
+        throw new Exception($"EqualsVariant: {op1.VariantType} not implemented");
     }
 
     public static Variant Subtract<[MustBeVariant] T>(T op1, T op2) {

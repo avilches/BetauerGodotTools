@@ -269,10 +269,10 @@ public partial class ZombieNode : NpcNode, IInjectable {
 		CollisionLayerManager.EnemyConfigureHurtArea(_hurtArea);
 		
 		_restorer = new MultiRestorer()
-			.Add(CharacterBody2D.CreateCollisionRestorer())
-			.Add(_hurtArea.CreateCollisionRestorer())
-			.Add(_attackArea.CreateCollisionRestorer())
-			.Add(_mainSprite.CreateRestorer(Properties.Modulate, Properties.Scale2D));
+			.Add(CharacterBody2D.CreateRestorer())
+			.Add(_hurtArea.CreateRestorer())
+			.Add(_attackArea.CreateRestorer())
+			.Add(_mainSprite.CreateRestorer());
 		_restorer.Save();
 
 	}

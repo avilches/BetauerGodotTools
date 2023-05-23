@@ -60,7 +60,7 @@ namespace Betauer.Core.Nodes {
                 child.RequestReady();
                 child.OnReady(onReady, true);
             }
-            parent.CallDeferred("add_child", child);
+            parent.CallDeferred(Node.MethodName.AddChild, child);
             return parent;
         }
 
@@ -76,13 +76,13 @@ namespace Betauer.Core.Nodes {
             TaskCompletionSource promise = new();
             child.RequestReady();
             child.OnReady(promise.SetResult, true);
-            parent.CallDeferred("add_child", child);
+            parent.CallDeferred(Node.MethodName.AddChild, child);
             return promise.Task;
         }
 
         
         public static Node RemoveChildDeferred(this Node parent, Node child) {
-            parent.CallDeferred("remove_child", child);
+            parent.CallDeferred(Node.MethodName.RemoveChild, child);
             return parent;
         }
 

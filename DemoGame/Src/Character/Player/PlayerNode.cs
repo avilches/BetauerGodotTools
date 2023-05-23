@@ -7,6 +7,7 @@ using Betauer.Application.Persistent;
 using Betauer.Camera;
 using Betauer.Core;
 using Betauer.Core.Nodes;
+using Betauer.Core.Restorer;
 using Betauer.Core.Time;
 using Betauer.DI;
 using Betauer.DI.Attributes;
@@ -117,6 +118,8 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 	public GameObject GameObject { get; set; }
 	public PlayerGameObject PlayerGameObject => (PlayerGameObject)GameObject;
 
+	private readonly MultiRestorer _restorer = new ();  
+
 	public void PostInject() {
 		AddChild(_fsm);
 		ConfigureAnimations();
@@ -129,13 +132,15 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 		ConfigurePlayerHurtArea();
 		ConfigureFsm();
 		ConfigureInputActions();
-		
+		_restorer.Save();
+		TreeExiting += () => {
+			_restorer.Restore();
+		};
 		var drawEvent = this.OnDraw(canvas => {
 			foreach (var floorRaycast in FloorRaycasts) canvas.DrawRaycast(floorRaycast, Colors.Red);
 			canvas.DrawRaycast(RaycastCanJump, Colors.Red);
 		});
 		drawEvent.Disable();
-
 	}
 
 	private void ConfigureAnimations() {
@@ -148,11 +153,8 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 		AnimationAttack = _animationPlayer.Anim("Attack");
 		AnimationAirAttack = _animationPlayer.Anim("AirAttack");
 		AnimationHurt = _animationPlayer.Anim("Hurt");
-
-		// Restorer restorer = new MultiRestorer() 
-		// 	.Add(CharacterBody2D.CreateRestorer(Properties.Modulate, Properties.Scale2D))
-		// 	.Add(_mainSprite.CreateRestorer(Properties.Modulate, Properties.Scale2D));
-		// restorer.Save();
+		_restorer.Add(_mainSprite);
+		_restorer.Add(_weaponSprite);
 	}
 
 	private void ConfigureCharacter() {
@@ -165,10 +167,13 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 			.Sprite2DFlipH(_weaponSprite)
 			.ScaleX(_attackArea1)
 			.ScaleX(_attackArea2);
-		flipper.IsFacingRight = true;
 
 		PlatformBody = new KinematicPlatformMotion(CharacterBody2D, MotionConfig.FloorUpDirection, FloorRaycasts);
-		LateralState = new LateralState(flipper, () => MotionConfig.FloorUpDirection.Rotate90Right(), () => GlobalPosition);
+		LateralState = new LateralState(flipper, () => MotionConfig.FloorUpDirection.Rotate90Right(), () => GlobalPosition) {
+			IsFacingRight = true
+		};
+		TreeExiting += () => LateralState.IsFacingRight = true;
+		
 		// OnAfter += () => {
 		// 	Label.Text = _animationStack.GetPlayingOnce() != null
 		// 		? _animationStack.GetPlayingOnce().Name
@@ -180,13 +185,18 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 		_characterWeaponController.Unequip();
 
 		CollisionLayerManager.PlayerConfigureCollisions(this);
-		CollisionLayerManager.PlayerPickableArea(this, area2D => {
-			var pickable = area2D.GetCollisionNode<PickableItemNode>();
-			pickable.PlayerPicksUp(() => Marker2D.GlobalPosition, () => PickUp(pickable.PickableGameObject));
-		});
+		CollisionLayerManager.PlayerPickableArea(this, OnPick);
+
+		_restorer.Add(CharacterBody2D);
+		_restorer.Add(PlayerDetector);
 
 		// _lazyRaycast2DDrop.GetDirectSpaceFrom(Marker2D);
 		// _lazyRaycast2DDrop.Config(CollisionLayerManager.PlayerConfigureRaycastDrop);
+	}
+
+	private void OnPick(Area2D area2D) {
+		var pickable = area2D.GetCollisionNode<PickableItemNode>();
+		pickable.PlayerPicksUp(() => Marker2D.GlobalPosition, () => PickUp(pickable.PickableGameObject));
 	}
 
 	private void ConfigureInventory() {
@@ -240,6 +250,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 
 	private void ConfigurePlayerHurtArea() {
 		CollisionLayerManager.PlayerConfigureHurtArea(_hurtArea);
+		_restorer.Add(_hurtArea);
 		this.OnProcess(delta => {
 			if (PlayerGameObject is { UnderAttack: false, Invincible: false } &&
 				_hurtArea.Monitoring &&
@@ -261,6 +272,8 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 	private void ConfigureAttackArea() {
 		CollisionLayerManager.PlayerConfigureAttackArea(_attackArea1);
 		CollisionLayerManager.PlayerConfigureAttackArea(_attackArea2);
+		_restorer.Add(_attackArea1);
+		_restorer.Add(_attackArea2);
 		this.OnProcess(delta => {
 			if (PlayerGameObject.AvailableHits > 0) {
 				CheckAttackArea(_attackArea1);
@@ -342,6 +355,13 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 
 	private void ConfigureFsm() {
 		Tween? invincibleTween = null;
+
+		void RestoreInvincibleEffect() {
+			invincibleTween?.Kill();
+			PlayerGameObject.Invincible = false;
+			_mainSprite.Visible = true;
+		}
+		
 		void StartInvincibleEffect() {
 			const float flashTime = 0.025f;
 			invincibleTween?.Kill();
@@ -350,10 +370,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 				.TweenCallback(Callable.From(() => _mainSprite.Visible = !_mainSprite.Visible))
 				.SetDelay(flashTime);
 			invincibleTween.SetLoops((int)(PlayerConfig.HurtInvincibleTime / flashTime));
-			invincibleTween.Finished += () => {
-				PlayerGameObject.Invincible = false;
-				_mainSprite.Visible = true;
-			};
+			invincibleTween.Finished += RestoreInvincibleEffect;
 		}
 
 		PhysicsBody2D? fallingPlatform = null;
@@ -392,13 +409,8 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 			return ctx.Stay();
 		});
 		
-		var jumpJustInTime = false;
-		var weaponSpriteVisible = false;
-
 		TreeExiting += () => {
-			jumpJustInTime = false;
-			weaponSpriteVisible = false;
-			invincibleTween?.Kill();
+			RestoreInvincibleEffect();
 			FinishFallFromPlatform();
 			_fsm.Send(PlayerEvent.Idle);
 		};
@@ -416,6 +428,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 			}
 		}
 
+		var jumpJustInTime = false;
 		_fsm.State(PlayerState.Landing)
 			.OnInput(InventoryHandler)
 			.Enter(() => {
@@ -682,6 +695,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 			.Exit(() => CharacterBody2D.MotionMode = CharacterBody2D.MotionModeEnum.Grounded)
 			.Build();
 
+		var weaponSpriteVisible = false;
 		_fsm.State(PlayerState.Hurting)
 			.Enter(() => {
 				PlayerGameObject.Invincible = true;

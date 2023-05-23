@@ -5,6 +5,7 @@ using Betauer.Application.Monitor;
 using Betauer.Application.Notifications;
 using Betauer.Application.Screen;
 using Betauer.Camera;
+using Betauer.Core.Restorer;
 using Betauer.DI.Attributes;
 using Betauer.DI.ServiceProvider;
 using Betauer.Tools.Logging;
@@ -77,9 +78,13 @@ public partial class Bootstrap : Node /* needed to be instantiated as an Autoloa
 		LoggerFactory.SetTraceLevel<ResourceLoaderContainer>(TraceLevel.All);
 		LoggerFactory.SetTraceLevel<ConfigFileWrapper>(TraceLevel.All);
 		LoggerFactory.SetTraceLevel<BaseScreenResolutionService>(TraceLevel.All);
+		PropertyNameRestorer.OverrideBehaviour = PropertyNameRestorer.Behaviour.DoNothing;
 	}
 
 	private static void DevelopmentConfig() {
+		PropertyNameRestorer.OverrideBehaviour = PropertyNameRestorer.Behaviour.SaveAndLog;
+
+		
 		// All enabled, then disabled one by one, so developers can enable just one 
 		LoggerFactory.SetDefaultTraceLevel(TraceLevel.All);
 

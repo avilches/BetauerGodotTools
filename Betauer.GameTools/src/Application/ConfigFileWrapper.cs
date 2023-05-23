@@ -28,11 +28,11 @@ public class ConfigFileWrapper {
         Dirty = true;
     }
 
-    public T GetValue<T>(string propertyWithSection, T @default) {
+    public T GetValue<[MustBeVariant] T>(string propertyWithSection, T @default) {
         return _configFile.GetTypedValue(propertyWithSection, @default);
     }
 
-    public T GetValue<T>(string section, string key, T @default) {
+    public T GetValue<[MustBeVariant] T>(string section, string key, T @default) {
         return _configFile.GetTypedValue(section, key, @default);
     }
 
