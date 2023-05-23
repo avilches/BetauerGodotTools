@@ -19,6 +19,14 @@ public abstract class NpcGameObject : GameObject<NpcNode> {
     }
 
     public bool IsDead() => Health <= 0f;
+
+    public override void OnInitialize() {
+        UnderMeleeAttack = false;
+    }
+
+    public override void OnLoad(SaveObject saveObject) {
+        UnderMeleeAttack = false;
+    }
 }
 
 public abstract class NpcSaveObject<T> : SaveObject<T> where T : GameObject {

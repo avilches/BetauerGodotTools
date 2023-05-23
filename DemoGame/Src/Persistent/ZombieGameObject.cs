@@ -1,4 +1,3 @@
-using System;
 using Betauer.Application.Persistent;
 using Betauer.DI.Attributes;
 using Veronenger.Config;
@@ -10,11 +9,13 @@ public class ZombieGameObject : NpcGameObject {
     public override NpcConfig Config => ZombieConfig;
 
     public override void OnInitialize() {
+        base.OnInitialize();
         MaxHealth = Config.InitialMaxHealth;
         Health = Config.InitialHealth;
     }
 
     public override void OnLoad(SaveObject s) {
+        base.OnLoad(s);
         ZombieSaveObject saveObject = (ZombieSaveObject)s;
         MaxHealth = saveObject.MaxHealth;
         Health = saveObject.Health;
