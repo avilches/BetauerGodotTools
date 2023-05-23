@@ -25,10 +25,7 @@ public class PlayerGameObject : GameObject<PlayerNode> {
     public event Action<PlayerHealthEvent> OnHealthUpdate;
 
     public PlayerGameObject() {
-        Invincible = false;
-        UnderAttack = false;
-        AvailableHits = 0;
-        Enum.GetValues<AmmoType>().ForEach(ammoType => Ammo[ammoType] = 10);
+        Enum.GetValues<AmmoType>().ForEach(ammoType => Ammo[ammoType] = 0);
     }
 
     public override void OnInitialize() {
