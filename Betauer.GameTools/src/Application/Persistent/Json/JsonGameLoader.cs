@@ -73,14 +73,14 @@ public class JsonGameLoader<TSaveGame> : IGameObjectLoader<TSaveGame> where TSav
         return saveGames;
     }
 
-    public async Task Save(TSaveGame saveGame, List<SaveObject> saveObjects, string saveName) {
+    public async Task Save(TSaveGame saveGame, List<SaveObject> saveObjects, string saveName, Action<float>? progress) {
         saveGame.Version = Version;
         saveGame.UpdateDate = DateTime.Now;
         
         await using FileStream createStreamMetadata = WriteMetadata(saveName);
         await using FileStream createStreamSaveObjects = WriteData(saveName);
         await JsonSerializer.SerializeAsync(createStreamMetadata, saveGame, JsonSerializerOptions());
-        await JsonSerializer.SerializeAsync(createStreamSaveObjects, saveObjects, JsonSerializerOptions());
+        await JsonSerializer.SerializeAsync(createStreamSaveObjects, CreateProgressList(saveObjects, progress), JsonSerializerOptions());
     }
 
     public async Task<TSaveGame> LoadHeader(string saveName) {
@@ -129,5 +129,16 @@ public class JsonGameLoader<TSaveGame> : IGameObjectLoader<TSaveGame> where TSav
             Console.WriteLine(exception);
         }
         return saveGame;
+    }
+
+    private static IEnumerable<SaveObject> CreateProgressList(IReadOnlyCollection<SaveObject> saveObjects, Action<float>? progress) {
+        progress?.Invoke(0f);
+        var current = 0f;
+        var total = (float)saveObjects.Count;
+        return saveObjects.Select(t => {
+            current++;
+            progress?.Invoke(current / total);
+            return t;
+        });
     }
 }

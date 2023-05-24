@@ -16,11 +16,15 @@ public partial class ProgressScreen : CanvasLayer {
 		_loadProgressBar.Value = 0;
 	}
 
-	public void ShowSaving() {
+	public void ShowSaving(float progress) {
+		ShowSaving($"Saving {progress * 100f:0}%...");
+	}
+
+	public void ShowSaving(string label = "Saving...") {
 		Visible = true;
 		_loadProgressBar.Visible = _loadLabel.Visible = false;
 		_savingLabel.Visible = true;
-		_savingLabel.Text = "Saving...";
+		_savingLabel.Text = label;
 	}
 
 	public void Loading(float progress) {

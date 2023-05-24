@@ -27,6 +27,7 @@ public partial class Game : Control, IInjectable {
 	[Inject] private ITransient<WorldScene> World3 { get; set; }
 
 	[Inject] private MainStateMachine MainStateMachine { get; set; }
+	[Inject] private ILazy<ProgressScreen> ProgressScreenFactory { get; set; }
 	[Inject] private GameLoader GameLoader { get; set; }
 	[Inject] private PoolContainer<Node> PoolNodeContainer { get; set; }
 	[Inject] private InputActionsContainer PlayerActionsContainer { get; set; }
@@ -147,10 +148,9 @@ public partial class Game : Control, IInjectable {
 		MainStateMachine.Send(MainEvent.StartSavingGame);
 		var l = await GameObjectLoader.ListSaveGames();
 		try {
-			await this.AwaitPhysicsFrameTimes(40);
 			var saveObjects = GameObjectRepository.GetSaveObjects();
-			await GameObjectLoader.Save(CurrentSaveGame, saveObjects, saveName);
-			await this.AwaitPhysicsFrameTimes(40);
+			Action<float>? saveProgress = saveObjects.Count < 1000 ? null : (progress) => ProgressScreenFactory.Get().ShowSaving(progress);
+			await GameObjectLoader.Save(CurrentSaveGame, saveObjects, saveName, saveProgress);
 		} catch (Exception e) {
 			// Show saving error
 			Console.WriteLine(e);
