@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,6 +13,7 @@ using NUnit.Framework;
 namespace Betauer.GameTools.Tests;
 
 [TestRunner.Test]
+[Only]
 public class JsonLoaderTests {
     public string SaveName1 = "a";
     public string SaveName2 = "b";
@@ -25,6 +27,8 @@ public class JsonLoaderTests {
         File.Delete($"{SaveName2}.data");
     }
 
+
+    public string key = new Guid().ToString();
     
     [TestRunner.Test]
     public async Task ListNoDataTest() {
@@ -40,7 +44,7 @@ public class JsonLoaderTests {
     [TestRunner.Test(Description = "Error, no data neither metadata")]
     public async Task LoadMissingMetadataAndDataTest() {
         var loader = new MyJsonGameLoader();
-        var mySaveGame = await loader.LoadMetadataFile(SaveName1);
+        var mySaveGame = await loader.LoadMetadata(SaveName1);
         Assert.That(mySaveGame.MyString, Is.EqualTo("Hello World"));
         Assert.That(mySaveGame.LoadStatus, Is.EqualTo(LoadStatus.SavegameNotFound));
         Assert.That(mySaveGame.SavegameFileName.EndsWith(SaveName1+".data"));
@@ -56,11 +60,11 @@ public class JsonLoaderTests {
         var saveGame = new MySaveGame() {
             MyString = "yu"
         };
-        await loader.Save(saveGame, new List<SaveObject>(), SaveName1, null);
+        await loader.Save(saveGame, new List<SaveObject>(), SaveName1, null, key);
         
         new FileInfo(Path.Combine(loader.GetSavegameFolder(), SaveName1 + ".data")).Delete();
 
-        var mySaveGame = await loader.LoadMetadataFile(SaveName1);
+        var mySaveGame = await loader.LoadMetadata(SaveName1);
         Assert.That(mySaveGame.MyString, Is.EqualTo("yu"));
         Assert.That(mySaveGame.LoadStatus, Is.EqualTo(LoadStatus.SavegameNotFound));
         Assert.That(mySaveGame.SavegameFileName.EndsWith(SaveName1+".data"));
@@ -69,7 +73,7 @@ public class JsonLoaderTests {
         Assert.That(mySaveGame.Size, Is.EqualTo(0));
         Assert.That(mySaveGame.GameObjects, Is.Null);
         
-        mySaveGame = await loader.Load(SaveName1, null);
+        mySaveGame = await loader.Load(SaveName1, null, key);
         Assert.That(mySaveGame.MyString, Is.EqualTo("yu"));
         Assert.That(mySaveGame.LoadStatus, Is.EqualTo(LoadStatus.SavegameNotFound));
         Assert.That(mySaveGame.SavegameFileName.EndsWith(SaveName1+".data"));
@@ -86,11 +90,11 @@ public class JsonLoaderTests {
         var saveGame = new MySaveGame() {
             MyString = "yu"
         };
-        await loader.Save(saveGame, new List<SaveObject>(), SaveName1, null);
+        await loader.Save(saveGame, new List<SaveObject>(), SaveName1, null, key);
 
         File.WriteAllLines(Path.Combine(loader.GetSavegameFolder(), SaveName1 + ".data"), new[] { "corrupted data" });
         
-        var mySaveGame = await loader.LoadMetadataFile(SaveName1);
+        var mySaveGame = await loader.LoadMetadata(SaveName1);
         Assert.That(mySaveGame.MyString, Is.EqualTo("yu"));
         Assert.That(mySaveGame.LoadStatus, Is.EqualTo(LoadStatus.Ok));
         Assert.That(mySaveGame.SavegameFileName.EndsWith(SaveName1+".data"));
@@ -99,7 +103,7 @@ public class JsonLoaderTests {
         Assert.That(mySaveGame.Size, Is.EqualTo(new FileInfo(Path.Combine(loader.GetSavegameFolder(), SaveName1 + ".data")).Length));
         Assert.That(mySaveGame.GameObjects, Is.Null);
         
-        mySaveGame = await loader.Load(SaveName1, null);
+        mySaveGame = await loader.Load(SaveName1, null, key);
         Assert.That(mySaveGame.MyString, Is.EqualTo("yu"));
         Assert.That(mySaveGame.LoadStatus, Is.EqualTo(LoadStatus.SaveGameError));
         Assert.That(mySaveGame.SavegameFileName.EndsWith(SaveName1+".data"));
@@ -116,13 +120,13 @@ public class JsonLoaderTests {
         var saveGame = new MySaveGame() {
             MyString = "yu"
         };
-        await loader.Save(saveGame, new List<SaveObject>(), SaveName1, null);
+        await loader.Save(saveGame, new List<SaveObject>(), SaveName1, null, key);
 
         var metadataFile = new FileInfo(Path.Combine(loader.GetSavegameFolder(), SaveName1 + ".metadata"));
         metadataFile.Delete();
         Assert.That(metadataFile.Exists, Is.False);
         
-        var mySaveGame = await loader.LoadMetadataFile(SaveName1);
+        var mySaveGame = await loader.LoadMetadata(SaveName1);
         metadataFile.Refresh();
         Assert.That(metadataFile.Exists, Is.True);
 
@@ -134,7 +138,7 @@ public class JsonLoaderTests {
         Assert.That(mySaveGame.Size, Is.EqualTo(new FileInfo(Path.Combine(loader.GetSavegameFolder(), SaveName1 + ".data")).Length));
         Assert.That(mySaveGame.GameObjects, Is.Null);
         
-        mySaveGame = await loader.Load(SaveName1, null);
+        mySaveGame = await loader.Load(SaveName1, null, key);
         Assert.That(mySaveGame.MyString, Is.EqualTo("Hello World"));
         Assert.That(mySaveGame.LoadStatus, Is.EqualTo(LoadStatus.Ok));
         Assert.That(mySaveGame.SavegameFileName.EndsWith(SaveName1+".data"));
@@ -144,18 +148,17 @@ public class JsonLoaderTests {
         Assert.That(mySaveGame.GameObjects.Count, Is.EqualTo(0));
     }
 
-    
     [TestRunner.Test(Description = "Error, corrupted metadata rebuild the metadata")]
     public async Task LoadCorruptedDataTest() {
         var loader = new MyJsonGameLoader();
         var saveGame = new MySaveGame() {
             MyString = "yu"
         };
-        await loader.Save(saveGame, new List<SaveObject>(), SaveName1, null);
+        await loader.Save(saveGame, new List<SaveObject>(), SaveName1, null, key);
         
         File.WriteAllLines(Path.Combine(loader.GetSavegameFolder(), SaveName1 + ".metadata"), new []{"corrupted data"});
 
-        var mySaveGame = await loader.LoadMetadataFile(SaveName1);
+        var mySaveGame = await loader.LoadMetadata(SaveName1);
         Assert.That(mySaveGame.MyString, Is.EqualTo("Hello World"));
         Assert.That(mySaveGame.LoadStatus, Is.EqualTo(LoadStatus.Ok));
         Assert.That(mySaveGame.SavegameFileName.EndsWith(SaveName1+".data"));
@@ -164,7 +167,7 @@ public class JsonLoaderTests {
         Assert.That(mySaveGame.Size, Is.EqualTo(new FileInfo(Path.Combine(loader.GetSavegameFolder(), SaveName1 + ".data")).Length));
         Assert.That(mySaveGame.GameObjects, Is.Null);
         
-        mySaveGame = await loader.Load(SaveName1, null);
+        mySaveGame = await loader.Load(SaveName1, null, key);
         Assert.That(mySaveGame.MyString, Is.EqualTo("Hello World"));
         Assert.That(mySaveGame.LoadStatus, Is.EqualTo(LoadStatus.Ok));
         Assert.That(mySaveGame.SavegameFileName.EndsWith(SaveName1+".data"));
@@ -203,6 +206,7 @@ public class JsonLoaderTests {
         public override bool Equivalent(Comp other) {
             return other.GetHashCode() != GetHashCode() && other is X x && x.MyX == MyX;
         }
+        public override int Hash() => System.HashCode.Combine(MyX);
     }
 
     public class Y : Comp {
@@ -221,6 +225,7 @@ public class JsonLoaderTests {
         public override bool Equivalent(Comp other) {
             return other.GetHashCode() != GetHashCode() && other is Y x && x.MyY == MyY;
         }
+        public override int Hash() => System.HashCode.Combine(MyY);
     }
 
     [TestRunner.Test]
@@ -249,8 +254,8 @@ public class JsonLoaderTests {
         var saveGame = new MySaveGame {
             MyString = "a"
         };
-        await loader.Save(saveGame, data, SaveName1, null);
-        var loadGame = await loader.Load(SaveName1, null);
+        await loader.Save(saveGame, data, SaveName1, null, key);
+        var loadGame = await loader.Load(SaveName1, null, key);
         Assert.That(saveGame.MyString, Is.EqualTo("a"));
 
         Assert.That(loadGame.GameObjects.Count, Is.EqualTo(4));
@@ -271,6 +276,7 @@ public class JsonLoaderTests {
         public override string Discriminator() {
             return "WD";
         }
+        public override int Hash() => System.HashCode.Combine(Rect2Value, Vector2Value, Vector3Value, Rect2IValue, Vector2IValue, Vector3IValue, ColorValue);
     }
 
     [TestRunner.Test]
@@ -291,8 +297,8 @@ public class JsonLoaderTests {
         };
         var data = new List<SaveObject> { wd };
         
-        await loader.Save(saveGame, data, SaveName1, null);
-        var loadGame = await loader.Load(SaveName1, null);
+        await loader.Save(saveGame, data, SaveName1, null, key);
+        var loadGame = await loader.Load(SaveName1, null, key);
         Assert.That(loadGame.GameObjects.Count, Is.EqualTo(1));
         var ld = loadGame.GameObjects.OfType<WithData>().First();
         Assert.That(wd.Id, Is.EqualTo(ld.Id));
@@ -312,7 +318,7 @@ public class JsonLoaderTests {
         var loader = new MyJsonGameLoader();
         await loader.Save(new MySaveGame() {
             MyString = "yu1"
-        }, new List<SaveObject> { new WithData() }, SaveName1, null);
+        }, new List<SaveObject> { new WithData() }, SaveName1, null, key);
 
 
         var list = await loader.ListSaveGames();
@@ -333,7 +339,7 @@ public class JsonLoaderTests {
         var loader = new MyJsonGameLoader();
         await loader.Save(new MySaveGame() {
             MyString = "yu1"
-        }, new List<SaveObject> { new WithData() }, SaveName1, null);
+        }, new List<SaveObject> { new WithData() }, SaveName1, null, key);
 
         new FileInfo(Path.Combine(loader.GetSavegameFolder(), SaveName1 + ".metadata")).Delete();
 

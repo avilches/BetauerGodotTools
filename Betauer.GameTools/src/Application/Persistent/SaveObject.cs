@@ -23,6 +23,8 @@ public abstract class SaveObject {
         Name = gameObject.Name;
         Alias = gameObject.Alias;
     }
+
+    public abstract int Hash();
 }
 
 public abstract class SaveObject<T> : SaveObject where T : GameObject {

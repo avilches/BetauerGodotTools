@@ -44,4 +44,8 @@ public class ProgressReadStream : Stream {
         get => _baseStream.Position;
         set => _baseStream.Position = value;
     }
+
+    public override void Close() {
+        _baseStream.Close();
+    }
 }
