@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Betauer.Core;
 using Betauer.Core.Signal;
-using Betauer.DI.Attributes;
 using Betauer.Tools.Logging;
 using Godot;
 
@@ -41,7 +40,7 @@ public class ResourceLoaderContainer {
     public async Task<TimeSpan> LoadResources(string[] tags, Action<ResourceProgress>? progressAction = null) {
         var x = Stopwatch.StartNew();
         Func<Task> awaiter = Awaiter ?? (async () => {
-            ((SceneTree)Engine.GetMainLoop()).AwaitProcessFrame();
+            await ((SceneTree)Engine.GetMainLoop()).AwaitProcessFrame();
         });
         var resources = GetResourceFactories(tags)
             .Where(sf => !sf.IsLoaded())
