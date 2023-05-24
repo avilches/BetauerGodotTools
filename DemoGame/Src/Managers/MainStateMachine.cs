@@ -20,11 +20,12 @@ public enum MainState {
     SplashScreenLoading,
     
     
-    Init,
+    SplashScreenInit,
     MainMenu,
     Settings,
     StartingGame,
     Gaming,
+    SavingGame,
     GameOver,
     PauseMenu,
     ModalQuitGame,
@@ -38,6 +39,7 @@ public enum MainEvent {
     Pause,
     Settings,
     StartGame,
+    StartSavingGame,
     EndGame,
     ModalBoxConfirmExitDesktop,
     ModalBoxConfirmQuitGame,
@@ -51,6 +53,7 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
     [Inject] private ILazy<BottomBar> BottomBarSceneFactory { get; set; }
     [Inject] private ILazy<PauseMenu> PauseMenuSceneFactory { get; set; }
     [Inject] private ILazy<SettingsMenu> SettingsMenuSceneFactory { get; set; }
+    [Inject] private ILazy<ProgressScreen> ProgressScreenFactory { get; set; }
     [Inject] private HUD HudScene { get; set; }
     [Inject] private GameLoader GameLoader { get; set; }
     [Inject] private PoolContainer<Node> PoolNodeContainer { get; set; }
@@ -59,6 +62,7 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
     private BottomBar BottomBarScene => BottomBarSceneFactory.Get();
     private PauseMenu PauseMenuScene => PauseMenuSceneFactory.Get();
     private SettingsMenu SettingsMenuScene => SettingsMenuSceneFactory.Get();
+    private ProgressScreen ProgressScreenScene => ProgressScreenFactory.Get();
     
     [Inject] private ITransient<ModalBoxConfirm> ModalBoxConfirm { get; set; }
     [Inject("MyTheme")] private ResourceHolder<Theme> MyTheme { get; set; }
@@ -116,17 +120,17 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
                 await GameLoader.LoadMainResources();
                 splashScreen.Stop();
             })
-            .If(() => true).Set(MainState.Init)
+            .If(() => true).Set(MainState.SplashScreenInit)
             .Build();
             
         var modalResponse = false;
         var endSplash = false;
-        var loading = true;
+        var splashScreenWorking = true;
 
         On(MainEvent.ModalBoxConfirmExitDesktop).Push(MainState.ModalExitDesktop);
         On(MainEvent.ExitDesktop).Set(MainState.ExitDesktop);
         On(MainEvent.ModalBoxConfirmQuitGame).Push(MainState.ModalQuitGame);
-        State(MainState.Init)
+        State(MainState.SplashScreenInit)
             .Enter(() => {
                 UiActionsContainer.OnNewUiJoypad += (deviceId) => {
                     // Console.WriteLine("New joypad for the ui " + deviceId);
@@ -141,11 +145,11 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
                 HudScene.Configure();
                 ScreenSettingsManager.Setup();
                 OnTransition += args => BottomBarScene.UpdateState(args.To);
-                GameLoader.OnLoadResourceProgress += BottomBarScene.OnLoadResourceProgress;
-                loading = false;
+                GameLoader.OnLoadResourceProgress += (rp) => ProgressScreenScene.Loading(rp.TotalPercent);
+                splashScreenWorking = false;
             })
             .OnInput(e => {
-                if (loading) return;
+                if (splashScreenWorking) return;
                 if (!endSplash && (e.IsAnyKey() || e.IsAnyButton() || e.IsAnyClick()) && e.IsJustPressed()) {
                     if (e is InputEventJoypadButton button) {
                         UiActionsContainer.SetJoypad(button.Device);
@@ -185,6 +189,7 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
 
         State(MainState.Gaming)
             .On(MainEvent.EndGame).Set(MainState.GameOver)
+            .On(MainEvent.StartSavingGame).Push(MainState.SavingGame)
             .OnInput(e => {
                 if (ControllerStart.IsEventJustPressed(e)) {
                     Send(MainEvent.Pause);
@@ -195,9 +200,21 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
             .On(MainEvent.Pause).Push(MainState.PauseMenu)
             .Build();
 
+        State(MainState.SavingGame)
+            .Enter(() => {
+                SceneTree.Paused = true;
+                ProgressScreenFactory.Get().ShowSaving();
+            })
+            .Exit(() => {
+                ProgressScreenFactory.Get().Visible = false;
+                SceneTree.Paused = false;
+            })
+            .On(MainEvent.Back).Pop()
+            .Build();
+
         State(MainState.GameOver)
             .Enter(async () => {
-                await Game!.End(false);
+                await Game!.End(true);
                 Game = null;
             })
             .If(() => true).Set(MainState.MainMenu)
@@ -232,7 +249,7 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
                 
         State(MainState.QuitGame)
             .Enter(async () => {
-                await Game!.End(false);
+                await Game!.End(true);
                 Game = null;
             })
             .If(() => true).Set(MainState.MainMenu)
@@ -259,12 +276,13 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
     private void ConfigureCanvasLayers() {
         MainMenuScene.Layer = CanvasLayerConstants.MainMenu;
         PauseMenuScene.Layer = CanvasLayerConstants.PauseMenu;
-        SettingsMenuScene.Layer = CanvasLayerConstants.SettingsMenu;
         BottomBarScene.Layer = CanvasLayerConstants.BottomBar;
         HudScene.Layer = CanvasLayerConstants.HudScene;
+        SettingsMenuScene.Layer = CanvasLayerConstants.SettingsMenu;
+        ProgressScreenScene.Layer = CanvasLayerConstants.ProgressScreen;
 
         OnlyInPause(PauseMenuScene);
-        NeverPause(SettingsMenuScene, BottomBarScene);
+        NeverPause(SettingsMenuScene, BottomBarScene, ProgressScreenScene);
     }
 
     private void NeverPause(params Node[] nodes) => nodes.ForEach(n=> n.ProcessMode = ProcessModeEnum.Always);

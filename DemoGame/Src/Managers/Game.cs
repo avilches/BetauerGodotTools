@@ -13,7 +13,6 @@ using Betauer.Input.Joypad;
 using Betauer.NodePath;
 using Godot;
 using Veronenger.Character.Player;
-using Veronenger.Config;
 using Veronenger.UI;
 using Veronenger.Worlds;
 
@@ -27,6 +26,7 @@ public partial class Game : Control, IInjectable {
 	[Inject] private HUD HudScene { get; set; }
 	[Inject] private ITransient<WorldScene> World3 { get; set; }
 
+	[Inject] private MainStateMachine MainStateMachine { get; set; }
 	[Inject] private GameLoader GameLoader { get; set; }
 	[Inject] private PoolContainer<Node> PoolNodeContainer { get; set; }
 	[Inject] private InputActionsContainer PlayerActionsContainer { get; set; }
@@ -94,7 +94,6 @@ public partial class Game : Control, IInjectable {
 			EnableDoubleViewport(false);
 			GetViewport().SetInputAsHandled();
 		} else if (e.IsKeyReleased(Key.F5)) {
-			var l = await GameObjectLoader.ListSaveGames();
 			Save("savegame");
 		} else if (e.IsKeyReleased(Key.F6)) {
 			LoadInGame("savegame");
@@ -145,22 +144,23 @@ public partial class Game : Control, IInjectable {
 	}
 
 	public async Task Save(string saveName) {
-		ShowSaving();
+		MainStateMachine.Send(MainEvent.StartSavingGame);
+		var l = await GameObjectLoader.ListSaveGames();
 		try {
+			await this.AwaitPhysicsFrameTimes(40);
 			var saveObjects = GameObjectRepository.GetSaveObjects();
 			await GameObjectLoader.Save(CurrentSaveGame, saveObjects, saveName);
+			await this.AwaitPhysicsFrameTimes(40);
 		} catch (Exception e) {
 			// Show saving error
 			Console.WriteLine(e);
 		}
-		HideSaving();
+		MainStateMachine.Send(MainEvent.Back);
 	}
 
 	public void ShowLoading() {}
 	public void HideLoading() {}
-	public void ShowSaving() {}
-	public void HideSaving() {}
-
+	
 	public MySaveGame CurrentSaveGame { get; private set; }
 
 	public async Task<(bool, MySaveGame)> LoadSaveGame(string save) {

@@ -1,9 +1,7 @@
 using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 using Betauer.Application;
-using Betauer.Application.Lifecycle;
 using Betauer.Application.Lifecycle.Attributes;
 using Betauer.Application.Lifecycle.Pool;
 using Betauer.Application.Monitor;
@@ -55,6 +53,7 @@ public class ApplicationConfig {
 	[Singleton] public UiActionsContainer UiActionsContainer => new();
 	[Singleton] public InputActionsContainer PlayerActionsContainer => new();
 	[Singleton] public JoypadPlayersMapping JoypadPlayersMapping => new();
+	[Singleton] public GameLoader GameLoader => new();
 	[Transient] public StageController StageControllerFactory => new(LayerConstants.LayerStageArea);
 	[Transient] public StageCameraController StageCameraControllerFactory => new(LayerConstants.LayerStageArea);
 }
@@ -71,13 +70,6 @@ public class Settings {
 	[Singleton] public SettingsContainer SettingsContainer => new(new ConfigFileWrapper(AppTools.GetUserFile("settings.ini")));
 }
 
-[Singleton(Name = "GameLoader")]
-public class GameLoader : ResourceLoaderContainer {
-	public Task<TimeSpan> LoadMainResources() => LoadResources("main");
-	public Task<TimeSpan> LoadGameResources() => LoadResources("game");
-	public void UnloadGameResources() => UnloadResources("game");
-} 
-
 [Configuration]
 [Loader("GameLoader", Tag = "main")]
 [Preload<Texture2D>("Icon", "res://icon.png")]
@@ -93,6 +85,7 @@ public class GameLoader : ResourceLoaderContainer {
 [Scene.Singleton<BottomBar>("BottomBarSceneFactory", "res://Platform/Scenes/Menu/BottomBar.tscn")]
 [Scene.Singleton<PauseMenu>("PauseMenuSceneFactory", "res://Platform/Scenes/Menu/PauseMenu.tscn")]
 [Scene.Singleton<SettingsMenu>("SettingsMenuSceneFactory", "res://Platform/Scenes/Menu/SettingsMenu.tscn")]
+[Scene.Singleton<ProgressScreen>("ProgressScreenFactory", "res://Platform/Scenes/Menu/ProgressScreen.tscn")]
 public class MainResources {
 }
 
