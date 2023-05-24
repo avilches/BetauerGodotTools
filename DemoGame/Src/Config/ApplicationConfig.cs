@@ -38,8 +38,8 @@ public class ApplicationConfig {
 		true,
 		1f);
 
-	[Singleton] public IGameObjectLoader<MySaveGame> GameObjectLoader() {
-		var loader = new JsonGameLoader<MySaveGame>(1);
+	[Singleton] public GameObjectLoader<MySaveGame> GameObjectLoader() {
+		var loader = new JsonGameLoader<MySaveGame>();
 		loader.WithJsonSerializerOptions(options => {
 			options.AllowTrailingCommas = true;
 			options.WriteIndented = true;

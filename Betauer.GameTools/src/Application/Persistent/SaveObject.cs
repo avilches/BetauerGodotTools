@@ -8,11 +8,11 @@ public abstract class SaveObject {
     [JsonInclude] public int Id { get; set; }
     [JsonInclude] public string Name { get; set; }
     [JsonInclude] public string? Alias { get; set; }
-    [JsonIgnore] protected GameObject _gameObject;
+    [JsonIgnore] public virtual GameObject GameObject { get; set; }
     public abstract string Discriminator();
     
     public void SetGameObject(GameObject gameObject) {
-        _gameObject = gameObject;
+        GameObject = gameObject;
     }
 
     protected SaveObject() {
@@ -26,7 +26,7 @@ public abstract class SaveObject {
 }
 
 public abstract class SaveObject<T> : SaveObject where T : GameObject {
-    [JsonIgnore] public T GameObject => (T)_gameObject;
+    [JsonIgnore] public T GameObject => (T)base.GameObject;
 
     protected SaveObject() {
     }

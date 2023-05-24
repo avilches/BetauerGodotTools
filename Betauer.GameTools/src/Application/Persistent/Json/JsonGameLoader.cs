@@ -9,16 +9,13 @@ using Betauer.Core;
 
 namespace Betauer.Application.Persistent.Json;
 
-public class JsonGameLoader<TSaveGame> : IGameObjectLoader<TSaveGame> where TSaveGame : SaveGame {
+public class JsonGameLoader<TSaveGame> : GameObjectLoader<TSaveGame> where TSaveGame : SaveGame {
     private JsonSerializerOptions? _jsonSerializerOptions;
     public JsonSerializerOptions JsonSerializerOptions() => _jsonSerializerOptions ??= BuildJsonSerializerOptions();
+
+    public static string MetadataExtension = "metadata";
+    public static string SaveGameExtension = "data";
     
-    public int Version { get; }
-
-    public JsonGameLoader(int version) {
-        Version = version;
-    }
-
     public void WithJsonSerializerOptions(Action<JsonSerializerOptions> action) => action(JsonSerializerOptions());
 
     protected virtual JsonSerializerOptions BuildJsonSerializerOptions() {
@@ -40,63 +37,111 @@ public class JsonGameLoader<TSaveGame> : IGameObjectLoader<TSaveGame> where TSav
         return options;
     }
 
-    public virtual string GetSavegameFolder() => AppTools.GetUserFolder();
+    private FileInfo GetMetadataInfo(string saveName) => CreateFullPath(saveName, MetadataExtension);
+    private FileInfo GetSavegameInfo(string saveName) => CreateFullPath(saveName, SaveGameExtension);
 
-    public virtual string GetSavegameFullPath(string saveName, string type) {
-        var saveGameFolder = GetSavegameFolder();
-        if (!Directory.Exists(saveGameFolder)) {
-            var info = Directory.CreateDirectory(saveGameFolder);
-            if (!info.Exists) throw new Exception($"Unable to create save game folder: {saveGameFolder}");
-        }
-        return Path.Combine(saveGameFolder, Path.GetFileName($"{saveName}.{type}"));
-    }
-
-    protected FileStream OpenMetadata(string saveName) => File.OpenRead(GetSavegameFullPath(saveName, "metadata"));
-    protected FileStream WriteMetadata(string saveName) => File.Create(GetSavegameFullPath(saveName, "metadata"));
-    protected FileStream OpenData(string saveName) => File.OpenRead(GetSavegameFullPath(saveName, "data"));
-    protected FileStream WriteData(string saveName) => File.Create(GetSavegameFullPath(saveName, "data"));
-
-    public async Task<List<TSaveGame>> ListSaveGames() {
+    public override async Task<List<TSaveGame>> GetSaveGames(params string[] saveNames) {
         var saveGames = new List<TSaveGame>();
         var saveGameFolder = GetSavegameFolder();
         if (!Directory.Exists(saveGameFolder)) return saveGames;
-        var files = Directory.GetFiles(saveGameFolder, "*.metadata");
-        foreach (var file in files) {
-            var saveName = Path.GetFileNameWithoutExtension(file);
-            try {
-                var saveGame = await LoadHeader(saveName);
-                saveGames.Add(saveGame);
-            } catch (Exception e) {
-                saveGames.Add(CreateFaultedSaveGame(file, e.Message));
-            }
+        foreach (var saveName in saveNames) {
+            var saveGame = await LoadMetadataFile(saveName);
+            saveGames.Add(saveGame);
         }
         return saveGames;
     }
 
-    public async Task Save(TSaveGame saveGame, List<SaveObject> saveObjects, string saveName, Action<float>? progress) {
-        saveGame.Version = Version;
+    public override async Task<List<TSaveGame>> ListSaveGames() {
+        var saveGames = new List<TSaveGame>();
+        var saveGameFolder = GetSavegameFolder();
+        if (!Directory.Exists(saveGameFolder)) return saveGames;
+        var files = Directory.GetFiles(saveGameFolder, "*."+MetadataExtension)
+            .Concat(Directory.GetFiles(saveGameFolder, "*."+SaveGameExtension))
+            .Select(Path.GetFileNameWithoutExtension)
+            .Distinct();
+        foreach (var saveName in files) {
+            var saveGame = await LoadMetadataFile(saveName);
+            saveGames.Add(saveGame);
+        }
+        return saveGames;
+    }
+
+    public override async Task Save(TSaveGame saveGame, List<SaveObject> saveObjects, string saveName, Action<float>? progress) {
         saveGame.UpdateDate = DateTime.Now;
-        
-        await using FileStream createStreamMetadata = WriteMetadata(saveName);
-        await using FileStream createStreamSaveObjects = WriteData(saveName);
+        if (!Directory.Exists(GetSavegameFolder())) Directory.CreateDirectory(GetSavegameFolder());
+        await using FileStream createStreamMetadata = File.Create(GetMetadataInfo(saveName).FullName);
+        await using FileStream createStreamSaveObjects = File.Create(GetSavegameInfo(saveName).FullName);
         await JsonSerializer.SerializeAsync(createStreamMetadata, saveGame, JsonSerializerOptions());
         await JsonSerializer.SerializeAsync(createStreamSaveObjects, CreateProgressList(saveObjects, progress), JsonSerializerOptions());
     }
 
-    public async Task<TSaveGame> LoadHeader(string saveName) {
-        await using FileStream openStreamMetadata = OpenMetadata(saveName);
-        var saveGame = (await JsonSerializer.DeserializeAsync<TSaveGame>(openStreamMetadata, JsonSerializerOptions()))!;
+    public override async Task<TSaveGame> LoadMetadataFile(string saveName) {
+        var metadataInfo = GetMetadataInfo(saveName);
+        var savegameInfo = GetSavegameInfo(saveName);
+        TSaveGame saveGame = null!;
+        if (metadataInfo.Exists) {
+            saveGame = await LoadMetadataFile(metadataInfo, savegameInfo);
+            if (savegameInfo.Exists) {
+                saveGame.Size = savegameInfo.Length;
+            } else {
+                saveGame.LoadStatus = LoadStatus.SavegameNotFound;
+            }
+        } else {
+            saveGame = await LoadMissingMetadata(metadataInfo, savegameInfo);
+        }
         saveGame.Name = saveName;
         saveGame.ReadDate = DateTime.Now;
-        saveGame.ErrorMessage = null;
+        saveGame.MetadataFileName = metadataInfo.FullName;
+        saveGame.SavegameFileName = savegameInfo.FullName;
         return saveGame;
     }
 
-    public async Task<TSaveGame> Load(string saveName) {
-        var saveGame = await LoadHeader(saveName);
-        await using FileStream openStreamSaveObjects = OpenData(saveName);
-        var saveObjects = (await JsonSerializer.DeserializeAsync<List<SaveObject>>(openStreamSaveObjects, JsonSerializerOptions()))!;
-        saveGame.GameObjects = saveObjects;
+    private async Task<TSaveGame> LoadMissingMetadata(FileInfo metadataInfo, FileInfo savegameInfo) {
+        var saveGame = Activator.CreateInstance<TSaveGame>();
+        if (savegameInfo.Exists) {
+            // No metadata but savegame, create metadata
+            saveGame.LoadStatus = LoadStatus.Ok;
+            saveGame.Size = savegameInfo.Length;
+            saveGame.CreateDate = savegameInfo.CreationTime;
+            saveGame.UpdateDate = savegameInfo.LastWriteTime;
+            try {
+                await using FileStream createStreamMetadata = File.Create(metadataInfo.FullName);
+                await JsonSerializer.SerializeAsync(createStreamMetadata, saveGame, JsonSerializerOptions());
+            } catch (Exception e) {
+                Logger.Error($"Error rebuilding metadata: {metadataInfo.FullName}\n{e}");
+                saveGame.LoadStatus = LoadStatus.MetadataError;
+            }
+        } else {
+            saveGame.LoadStatus = LoadStatus.SavegameNotFound;
+        }
+        return saveGame;
+    }
+
+    private async Task<TSaveGame> LoadMetadataFile(FileInfo metadataInfo, FileInfo savegameInfo) {
+        try {
+            await using FileStream openStreamMetadata = File.OpenRead(metadataInfo.FullName);
+            return (await JsonSerializer.DeserializeAsync<TSaveGame>(openStreamMetadata, JsonSerializerOptions()))!;
+        } catch (Exception e) {
+            Logger.Error($"Error loading metadata: {metadataInfo.FullName}. Rebuilding. {e.Message}");
+            return await LoadMissingMetadata(metadataInfo, savegameInfo);
+        }
+    }
+
+    public override async Task<TSaveGame> Load(string saveName, Action<float>? progress) {
+        var saveGame = await LoadMetadataFile(saveName);
+        if (!saveGame.Ok) return saveGame;
+
+        try {
+            await using FileStream openStreamSaveObjects = File.OpenRead(saveGame.SavegameFileName);
+            float total = saveGame.Size;
+            var progressReadStream = new ProgressReadStream(openStreamSaveObjects, (readPos) => progress?.Invoke(readPos / total));
+            var saveObjects = (await JsonSerializer.DeserializeAsync<List<SaveObject>>(progressReadStream,
+            JsonSerializerOptions()))!;
+            saveGame.GameObjects = saveObjects;
+        } catch (Exception e) {
+            Logger.Error($"Error loading savegame: {saveGame.SavegameFileName}\n{e}");
+            saveGame.LoadStatus = LoadStatus.SaveGameError;
+        }
         return saveGame;
     }
 
@@ -114,21 +159,6 @@ public class JsonGameLoader<TSaveGame> : IGameObjectLoader<TSaveGame> where TSav
                 .Select(t => new JsonDerivedType(t.GetType(), t.Discriminator()))
                 .ForEach(dt => jsonTypeInfo.PolymorphismOptions.DerivedTypes.Add(dt));
         }
-    }
-
-    private static TSaveGame CreateFaultedSaveGame(string file, string errorMessage) {
-        var saveName = Path.GetFileNameWithoutExtension(file);
-        var saveGame = Activator.CreateInstance<TSaveGame>();
-        saveGame.Name = saveName;
-        saveGame.ReadDate = DateTime.Now;
-        saveGame.ErrorMessage = errorMessage;
-        try {
-            saveGame.CreateDate = File.GetCreationTime(file);
-            saveGame.UpdateDate = File.GetLastWriteTime(file);
-        } catch (Exception exception) {
-            Console.WriteLine(exception);
-        }
-        return saveGame;
     }
 
     private static IEnumerable<SaveObject> CreateProgressList(IReadOnlyCollection<SaveObject> saveObjects, Action<float>? progress) {
