@@ -19,11 +19,4 @@ public class ResourceProgress {
         Resource = resource;
         _action?.Invoke(this);
     }
-
-    public bool IsStart() {
-        return TotalPercent == 0f && Resource == null;
-    }
-    public bool IsEnds() {
-        return TotalPercent >= 0.999f && Resource == null;
-    }
 }
