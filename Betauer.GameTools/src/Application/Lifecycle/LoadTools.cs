@@ -16,6 +16,7 @@ public static class LoadTools {
             resourceProgress.Update((float)i / resources.Count, 1f, resourceLoad.Path);
             if (i < resources.Count) await awaiter();
         }
+        resourceProgress.Update(1f, 0f, null);
     }
 
     public static async Task<Dictionary<string, Resource>> LoadThreaded(List<string> resourcesPaths,
