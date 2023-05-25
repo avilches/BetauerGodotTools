@@ -122,24 +122,34 @@ public class JsonGameLoader<TMetadata> : GameObjectLoader where TMetadata : Meta
     }
 
     public async Task Save(string saveName, TMetadata metadata, List<SaveObject> saveObjects, Action<float>? progress = null, string? seed = null, bool compress = true) {
-        await SaveMetadata(saveName, metadata, seed);
         var savegameInfo = GetSavegameInfo(saveName);
-        var fileStream = File.Create(savegameInfo.FullName);
         var progressList = CreateProgressList(saveObjects, progress);
         if (seed == null) {
-            await using var stream = Compress(fileStream, compress);
-            await JsonSerializer.SerializeAsync(stream, progressList, JsonSerializerOptions());
-        } else {    
-            using var encryptor = CreateEncryptor(seed);
+            // json --> hash --> compress --> file
             using var sha256 = SHA256.Create();
+            await using var fileStream = File.Create(savegameInfo.FullName);
+            await using var compressStream = Compress(fileStream, compress);
+            await using var hashStream = new CryptoStream(compressStream, sha256, CryptoStreamMode.Write);
+            await JsonSerializer.SerializeAsync(hashStream, progressList, JsonSerializerOptions());
+
+            await hashStream.FlushFinalBlockAsync();
+            metadata.Hash = BitConverter.ToString(sha256.Hash).Replace("-", "");
+            // Console.WriteLine("Save " + saveName + " " + BitConverter.ToString(sha256.Hash).Replace("-", ""));
+        } else {
+            // json --> hash --> compress --> encrypt --> file
+            using var encryptor = CreateEncryptor(seed);             
+            using var sha256 = SHA256.Create();
+            await using var fileStream = File.Create(savegameInfo.FullName);
             await using var cryptoStream = new CryptoStream(fileStream, encryptor, CryptoStreamMode.Write);
-            await using var stream = Compress(cryptoStream, compress);
-            await using var hashStream = new CryptoStream(stream, sha256, CryptoStreamMode.Write);
+            await using var compressStream = Compress(cryptoStream, compress);
+            await using var hashStream = new CryptoStream(compressStream, sha256, CryptoStreamMode.Write);
             await JsonSerializer.SerializeAsync(hashStream, progressList, JsonSerializerOptions());
             
             await hashStream.FlushFinalBlockAsync();
-            Console.WriteLine("Save " + saveName + " " + BitConverter.ToString(sha256.Hash).Replace("-", ""));
+            metadata.Hash = BitConverter.ToString(sha256.Hash).Replace("-", "");
+            // Console.WriteLine("Save " + saveName + " " + BitConverter.ToString(sha256.Hash).Replace("-", ""));
         }
+        await SaveMetadata(saveName, metadata, seed);
     }
 
     public async Task<SaveGame<TMetadata>> Load(string saveName, Action<float>? progress = null, string? seed = null, bool decompress = true) {
@@ -148,20 +158,33 @@ public class JsonGameLoader<TMetadata> : GameObjectLoader where TMetadata : Meta
         var savegameInfo = GetSavegameInfo(saveName);
         float total = savegameInfo.Length;
         void OnRead(long readPos) => progress?.Invoke(readPos / total);
-        var progressFileStream = new ProgressReadStream(File.OpenRead(savegameInfo.FullName), OnRead);
         if (seed == null) {
-            await using var stream = Decompress(progressFileStream, decompress);
-            var gameObjects = (await JsonSerializer.DeserializeAsync<List<SaveObject>>(stream, JsonSerializerOptions()))!;
+            // json <-- hash <-- decompress <-- progress <-- file
+            using var sha256 = SHA256.Create();
+            await using var fileStream = File.OpenRead(savegameInfo.FullName);
+            await using var progressFileStream = new ProgressReadStream(fileStream, OnRead);
+            await using var decompressStream = Decompress(progressFileStream, decompress);
+            await using var hashStream = new CryptoStream(decompressStream, sha256, CryptoStreamMode.Read);
+            var gameObjects = (await JsonSerializer.DeserializeAsync<List<SaveObject>>(hashStream, JsonSerializerOptions()))!;
+
+            // Console.WriteLine("Load " + saveName + " " + BitConverter.ToString(sha256.Hash).Replace("-", ""));
+            var hash = BitConverter.ToString(sha256.Hash).Replace("-", "");
+            if (hash != metadata.Hash) throw new Exception($"Savegame hash mismatch: {saveName} {hash} != {metadata.Hash}");
             return new SaveGame<TMetadata>(metadata, gameObjects);
         } else {
+            // json <-- hash <-- decompress <-- decrypt <-- progress <-- file
             using var decryptor = CreateDecryptor(seed);
             using var sha256 = SHA256.Create();
-            await using var cryptoStream = new CryptoStream(progressFileStream, decryptor, CryptoStreamMode.Read);
-            await using var hashStream = new CryptoStream(cryptoStream, sha256, CryptoStreamMode.Read);
-            await using var stream = Decompress(hashStream, decompress);
-            var gameObjects = (await JsonSerializer.DeserializeAsync<List<SaveObject>>(stream, JsonSerializerOptions()))!;
+            await using var fileStream = File.OpenRead(savegameInfo.FullName);
+            await using var progressFileStream = new ProgressReadStream(fileStream, OnRead);
+            await using var decryptStream = new CryptoStream(progressFileStream, decryptor, CryptoStreamMode.Read);
+            await using var decompressStream = Decompress(decryptStream, decompress);
+            await using var hashStream = new CryptoStream(decompressStream, sha256, CryptoStreamMode.Read);
+            var gameObjects = (await JsonSerializer.DeserializeAsync<List<SaveObject>>(hashStream, JsonSerializerOptions()))!;
             
-            Console.WriteLine("Load " + saveName + " " + BitConverter.ToString(sha256.Hash).Replace("-", ""));
+            var hash = BitConverter.ToString(sha256.Hash).Replace("-", "");
+            if (hash != metadata.Hash) throw new Exception($"Savegame hash mismatch: {saveName} {hash} != {metadata.Hash}");
+            // Console.WriteLine("Load " + saveName + " " + BitConverter.ToString(sha256.Hash).Replace("-", ""));
             return new SaveGame<TMetadata>(metadata, gameObjects);
         }
     }
