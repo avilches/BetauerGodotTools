@@ -8,11 +8,14 @@ public abstract class SaveObject {
     [JsonInclude] public int Id { get; set; }
     [JsonInclude] public string Name { get; set; }
     [JsonInclude] public string? Alias { get; set; }
-    [JsonIgnore] public virtual GameObject GameObject { get; set; }
+
+    // It needs to be a different name than "GameObject", because JsonSerialization fails with a duplicated attribute error
+    protected virtual GameObject _gameObject { get; set; }
+
     public abstract string Discriminator();
     
     public void SetGameObject(GameObject gameObject) {
-        GameObject = gameObject;
+        _gameObject = gameObject;
     }
 
     protected SaveObject() {
@@ -24,11 +27,11 @@ public abstract class SaveObject {
         Alias = gameObject.Alias;
     }
 
-    public abstract int Hash();
+    // public abstract int Hash();
 }
 
 public abstract class SaveObject<T> : SaveObject where T : GameObject {
-    [JsonIgnore] public T GameObject => (T)base.GameObject;
+    [JsonIgnore] public T GameObject => (T)base._gameObject;
 
     protected SaveObject() {
     }

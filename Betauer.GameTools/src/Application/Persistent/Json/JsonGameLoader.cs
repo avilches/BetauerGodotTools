@@ -79,27 +79,24 @@ public class JsonGameLoader<TSaveGame> : GameObjectLoader where TSaveGame : Save
         return saveGames;
     }
 
-    public async Task Save(TSaveGame saveGame, List<SaveObject> saveObjects, string saveName, Action<float>? progress, string? seed = null, bool compress = true) {
+    public async Task Save(TSaveGame saveGame, List<SaveObject> saveObjects, string saveName, Action<float>? progress = null, string? seed = null, bool compress = true) {
         saveGame.UpdateDate = DateTime.Now;
         if (!Directory.Exists(GetSavegameFolder())) Directory.CreateDirectory(GetSavegameFolder());
+        var metadataInfo = GetMetadataInfo(saveName);
+        var savegameInfo = GetSavegameInfo(saveName);
 
         // Save metadata
-        await using FileStream metadataStream = File.Create(GetMetadataInfo(saveName).FullName);
+        await using FileStream metadataStream = File.Create(metadataInfo.FullName);
         await JsonSerializer.SerializeAsync(metadataStream, saveGame, JsonSerializerOptions());
 
         // Save savegame
-        Stream stream = Compress(File.Create(GetSavegameInfo(saveName).FullName), compress);
-        ICryptoTransform? encryptor = null;
-        try {
-            if (seed != null) {
-                encryptor = CreateEncryptor(seed);
-                stream = new CryptoStream(stream, encryptor, CryptoStreamMode.Write);
-            }
-
+        if (seed == null) {
+            await using var stream = Compress(File.Create(savegameInfo.FullName), compress);
             await JsonSerializer.SerializeAsync(stream, CreateProgressList(saveObjects, progress), JsonSerializerOptions());
-        } finally {
-            await stream.DisposeAsync();
-            encryptor?.Dispose();
+        } else {    
+            using var encryptor = CreateEncryptor(seed);
+            await using var cryptoStream = new CryptoStream(Compress(File.Create(savegameInfo.FullName), compress), encryptor, CryptoStreamMode.Write);
+            await JsonSerializer.SerializeAsync(cryptoStream, CreateProgressList(saveObjects, progress), JsonSerializerOptions());
         }
     }
 
@@ -164,27 +161,24 @@ public class JsonGameLoader<TSaveGame> : GameObjectLoader where TSaveGame : Save
         }
     }
 
-    public async Task<TSaveGame> Load(string saveName, Action<float>? progress, string? seed = null, bool decompress = true) {
+    public async Task<TSaveGame> Load(string saveName, Action<float>? progress = null, string? seed = null, bool decompress = true) {
         var saveGame = await LoadMetadata(saveName);
         if (!saveGame.Ok) return saveGame;
+        float total = saveGame.Size;
 
-        Stream stream = Decompress(saveGame.SavegameFileName, decompress);
-        ICryptoTransform? decryptor = null;
         try {
-            float total = saveGame.Size;
-            if (seed != null) {
-                decryptor = CreateDecryptor(seed);
-                stream = new CryptoStream(stream, decryptor, CryptoStreamMode.Read);
+            if (seed == null) {
+                await using var progressStream = new ProgressReadStream(Decompress(saveGame.SavegameFileName, decompress), (readPos) => progress?.Invoke(readPos / total));
+                saveGame.GameObjects = await JsonSerializer.DeserializeAsync<List<SaveObject>>(progressStream, JsonSerializerOptions());
+            } else {
+                using var decryptor = CreateDecryptor(seed);
+                var cryptoStream = new CryptoStream(Decompress(saveGame.SavegameFileName, decompress), decryptor, CryptoStreamMode.Read);
+                await using var progressStream = new ProgressReadStream(cryptoStream, (readPos) => progress?.Invoke(readPos / total));
+                saveGame.GameObjects = await JsonSerializer.DeserializeAsync<List<SaveObject>>(progressStream, JsonSerializerOptions());
             }
-            stream = new ProgressReadStream(stream, (readPos) => progress?.Invoke(readPos / total));
-            var saveObjects = await JsonSerializer.DeserializeAsync<List<SaveObject>>(stream, JsonSerializerOptions());
-            saveGame.GameObjects = saveObjects!;
         } catch (Exception e) {
             Logger.Error($"Error loading savegame {saveGame.SavegameFileName}: {e.Message}");
             saveGame.LoadStatus = LoadStatus.SaveGameError;
-        } finally {
-            await stream.DisposeAsync();
-            decryptor?.Dispose();
         }
         return saveGame;
     }
@@ -219,12 +213,13 @@ public class JsonGameLoader<TSaveGame> : GameObjectLoader where TSaveGame : Save
     }
 
     private static IEnumerable<SaveObject> CreateProgressList(IReadOnlyCollection<SaveObject> saveObjects, Action<float>? progress) {
-        progress?.Invoke(0f);
+        if (progress == null) return saveObjects;
+        progress.Invoke(0f);
         var current = 0f;
         var total = (float)saveObjects.Count;
         return saveObjects.Select(t => {
             current++;
-            progress?.Invoke(current / total);
+            progress.Invoke(current / total);
             return t;
         });
     }

@@ -38,7 +38,7 @@ public class ApplicationConfig {
 		true,
 		1f);
 
-	[Singleton] public GameObjectLoader<MySaveGame> GameObjectLoader() {
+	[Singleton] public JsonGameLoader<MySaveGame> GameObjectLoader() {
 		var loader = new JsonGameLoader<MySaveGame>();
 		loader.WithJsonSerializerOptions(options => {
 			options.AllowTrailingCommas = true;

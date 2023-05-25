@@ -176,7 +176,6 @@ public class JsonLoaderTests {
         Assert.That(mySaveGame.Size, Is.EqualTo(new FileInfo(Path.Combine(loader.GetSavegameFolder(), SaveName1 + ".data")).Length));
         Assert.That(mySaveGame.GameObjects.Count, Is.EqualTo(0));
     }
-
     
     public class MyJsonGameLoader : JsonGameLoader<MySaveGame> {
         public override string GetSavegameFolder() {
@@ -206,7 +205,7 @@ public class JsonLoaderTests {
         public override bool Equivalent(Comp other) {
             return other.GetHashCode() != GetHashCode() && other is X x && x.MyX == MyX;
         }
-        public override int Hash() => System.HashCode.Combine(MyX);
+        // public override int Hash() => System.HashCode.Combine(MyX);
     }
 
     public class Y : Comp {
@@ -225,7 +224,31 @@ public class JsonLoaderTests {
         public override bool Equivalent(Comp other) {
             return other.GetHashCode() != GetHashCode() && other is Y x && x.MyY == MyY;
         }
-        public override int Hash() => System.HashCode.Combine(MyY);
+        // public override int Hash() => System.HashCode.Combine(MyY);
+    }
+
+    [TestRunner.Test(Description = "Read and write twice to ensure the file is not locked")]
+    public async Task BasicSaveLoadTest() {
+        var loader = new MyJsonGameLoader();
+        await loader.Save(new MySaveGame(), new List<SaveObject>(), SaveName1, null, null, false);
+        await loader.Load(SaveName1, null);
+        await loader.Save(new MySaveGame(), new List<SaveObject>(), SaveName1, null, null, false);
+        await loader.Load(SaveName1, null);
+
+        await loader.Save(new MySaveGame(), new List<SaveObject>(), SaveName1, null, null, true);
+        await loader.Load(SaveName1, null);
+        await loader.Save(new MySaveGame(), new List<SaveObject>(), SaveName1, null, null, true);
+        await loader.Load(SaveName1, null);
+
+        await loader.Save(new MySaveGame(), new List<SaveObject>(), SaveName1, null, "a", true);
+        await loader.Load(SaveName1, null);
+        await loader.Save(new MySaveGame(), new List<SaveObject>(), SaveName1, null, "a", true);
+        await loader.Load(SaveName1, null);
+
+        await loader.Save(new MySaveGame(), new List<SaveObject>(), SaveName1, null, "a", false);
+        await loader.Load(SaveName1, null);
+        await loader.Save(new MySaveGame(), new List<SaveObject>(), SaveName1, null, "a", false);
+        await loader.Load(SaveName1, null);
     }
 
     [TestRunner.Test]
@@ -276,7 +299,7 @@ public class JsonLoaderTests {
         public override string Discriminator() {
             return "WD";
         }
-        public override int Hash() => System.HashCode.Combine(Rect2Value, Vector2Value, Vector3Value, Rect2IValue, Vector2IValue, Vector3IValue, ColorValue);
+        // public override int Hash() => System.HashCode.Combine(Rect2Value, Vector2Value, Vector3Value, Rect2IValue, Vector2IValue, Vector3IValue, ColorValue);
     }
 
     [TestRunner.Test]

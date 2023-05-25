@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Betauer.Application.Lifecycle.Pool;
 using Betauer.Application.Persistent;
+using Betauer.Application.Persistent.Json;
 using Betauer.Core;
 using Betauer.Core.Nodes;
 using Betauer.Core.Signal;
@@ -22,7 +23,7 @@ public partial class Game : Control, IInjectable {
 	private static readonly World2D NoWorld = new(); // A cached World2D to re-use
 
 	[Inject] private GameObjectRepository GameObjectRepository { get; set; }
-	[Inject] private GameObjectLoader<MySaveGame> GameObjectLoader { get; set; }
+	[Inject] private JsonGameLoader<MySaveGame> GameObjectLoader { get; set; }
 	[Inject] private HUD HudScene { get; set; }
 	[Inject] private ITransient<WorldScene> World3 { get; set; }
 
