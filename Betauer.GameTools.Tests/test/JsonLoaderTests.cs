@@ -16,6 +16,7 @@ using NUnit.Framework;
 namespace Betauer.GameTools.Tests;
 
 [TestRunner.Test]
+[Only]
 public class JsonLoaderTests {
     public string SaveName1 = "a";
     public string SaveName2 = "b";
@@ -178,28 +179,32 @@ public class JsonLoaderTests {
         await loader.Save(SaveName1, new MyMetadata(), data, null, null, false);
         await loader.Load(SaveName1, null, null, false);
         var plainTextSize = new FileInfo(SaveName1 + ".data").Length;
+        Console.WriteLine("Plain text size: " + plainTextSize + " bytes");
 
         await loader.Save(SaveName1, new MyMetadata(), data, null, null, true);
         await loader.Load(SaveName1, null, null, true);
         await loader.Save(SaveName1, new MyMetadata(), data, null, null, true);
         await loader.Load(SaveName1, null, null, true);
         var compressedPlainSize = new FileInfo(SaveName1 + ".data").Length;
+        Console.WriteLine("Compressed plain text size: " + compressedPlainSize + " bytes");
 
         await loader.Save(SaveName1, new MyMetadata(), data, null, "a", false);
         await loader.Load(SaveName1, null, "a", false);
         await loader.Save(SaveName1, new MyMetadata(), data, null, "a", false);
         await loader.Load(SaveName1, null, "a", false);
         var cypherSize = new FileInfo(SaveName1 + ".data").Length;
+        Console.WriteLine("Cypher size: " + cypherSize + " bytes"); 
 
         await loader.Save(SaveName1, new MyMetadata(), data, null, "a", true);
         await loader.Load(SaveName1, null, "a", true);
         await loader.Save(SaveName1, new MyMetadata(), data, null, "a", true);
         await loader.Load(SaveName1, null, "a", true);
         var compressedCypherSize = new FileInfo(SaveName1 + ".data").Length;
+        Console.WriteLine("Compressed cypher size: " + compressedCypherSize + " bytes");
 
         Assert.That(compressedPlainSize, Is.LessThan(plainTextSize / 100));
-        Assert.That(cypherSize, Is.InRange(plainTextSize, plainTextSize * 1.01f));
-        Assert.That(compressedCypherSize, Is.InRange(compressedPlainSize, compressedPlainSize * 1.01f));
+        Assert.That(cypherSize, Is.InRange(plainTextSize, plainTextSize + 80)); // 80 bytes for the compression header
+        Assert.That(compressedCypherSize, Is.InRange(compressedPlainSize, compressedPlainSize + 80)); // 80 bytes for the compression header
     }
 
     [TestRunner.Test]

@@ -95,24 +95,10 @@ public class JsonGameLoader<TMetadata> : GameObjectLoader where TMetadata : Meta
             using var encryptor = CreateEncryptor(seed);
             await using var stream = new CryptoStream(File.Create(metadataInfo.FullName), encryptor, CryptoStreamMode.Write);
             await JsonSerializer.SerializeAsync(stream, metadata, JsonSerializerOptions());
+            await stream.FlushFinalBlockAsync();
         }
     }
 
-    public async Task Save(string saveName, TMetadata metadata, List<SaveObject> saveObjects, Action<float>? progress = null, string? seed = null, bool compress = true) {
-        await SaveMetadata(saveName, metadata, seed);
-
-        var savegameInfo = GetSavegameInfo(saveName);
-        // Save savegame
-        if (seed == null) {
-            await using var stream = Compress(File.Create(savegameInfo.FullName), compress);
-            await JsonSerializer.SerializeAsync(stream, CreateProgressList(saveObjects, progress), JsonSerializerOptions());
-        } else {    
-            using var encryptor = CreateEncryptor(seed);
-            await using var stream = Compress(new CryptoStream(File.Create(savegameInfo.FullName), encryptor, CryptoStreamMode.Write), compress);
-            await JsonSerializer.SerializeAsync(stream, CreateProgressList(saveObjects, progress), JsonSerializerOptions());
-        }
-    }
-    
     public async Task<TMetadata> LoadMetadata(string saveName, string? seed = null, bool decompress = true) {
         var metadataInfo = GetMetadataInfo(saveName);
         if (!metadataInfo.Exists) throw new FileNotFoundException($"Savegame metadata not found: {saveName}", metadataInfo.FullName);
@@ -135,20 +121,47 @@ public class JsonGameLoader<TMetadata> : GameObjectLoader where TMetadata : Meta
         return metadata;
     }
 
+    public async Task Save(string saveName, TMetadata metadata, List<SaveObject> saveObjects, Action<float>? progress = null, string? seed = null, bool compress = true) {
+        await SaveMetadata(saveName, metadata, seed);
+        var savegameInfo = GetSavegameInfo(saveName);
+        var fileStream = File.Create(savegameInfo.FullName);
+        var progressList = CreateProgressList(saveObjects, progress);
+        if (seed == null) {
+            await using var stream = Compress(fileStream, compress);
+            await JsonSerializer.SerializeAsync(stream, progressList, JsonSerializerOptions());
+        } else {    
+            using var encryptor = CreateEncryptor(seed);
+            using var sha256 = SHA256.Create();
+            await using var cryptoStream = new CryptoStream(fileStream, encryptor, CryptoStreamMode.Write);
+            await using var stream = Compress(cryptoStream, compress);
+            await using var hashStream = new CryptoStream(stream, sha256, CryptoStreamMode.Write);
+            await JsonSerializer.SerializeAsync(hashStream, progressList, JsonSerializerOptions());
+            
+            await hashStream.FlushFinalBlockAsync();
+            Console.WriteLine("Save " + saveName + " " + BitConverter.ToString(sha256.Hash).Replace("-", ""));
+        }
+    }
+
     public async Task<SaveGame<TMetadata>> Load(string saveName, Action<float>? progress = null, string? seed = null, bool decompress = true) {
         progress?.Invoke(0f);
         var metadata = await LoadMetadata(saveName, seed);
         var savegameInfo = GetSavegameInfo(saveName);
         float total = savegameInfo.Length;
         void OnRead(long readPos) => progress?.Invoke(readPos / total);
+        var progressFileStream = new ProgressReadStream(File.OpenRead(savegameInfo.FullName), OnRead);
         if (seed == null) {
-            await using var stream = Decompress(new ProgressReadStream(File.OpenRead(savegameInfo.FullName), OnRead), decompress);
+            await using var stream = Decompress(progressFileStream, decompress);
             var gameObjects = (await JsonSerializer.DeserializeAsync<List<SaveObject>>(stream, JsonSerializerOptions()))!;
             return new SaveGame<TMetadata>(metadata, gameObjects);
         } else {
             using var decryptor = CreateDecryptor(seed);
-            await using var stream = Decompress(new CryptoStream(new ProgressReadStream(File.OpenRead(savegameInfo.FullName), OnRead), decryptor, CryptoStreamMode.Read), decompress);
+            using var sha256 = SHA256.Create();
+            await using var cryptoStream = new CryptoStream(progressFileStream, decryptor, CryptoStreamMode.Read);
+            await using var hashStream = new CryptoStream(cryptoStream, sha256, CryptoStreamMode.Read);
+            await using var stream = Decompress(hashStream, decompress);
             var gameObjects = (await JsonSerializer.DeserializeAsync<List<SaveObject>>(stream, JsonSerializerOptions()))!;
+            
+            Console.WriteLine("Load " + saveName + " " + BitConverter.ToString(sha256.Hash).Replace("-", ""));
             return new SaveGame<TMetadata>(metadata, gameObjects);
         }
     }
