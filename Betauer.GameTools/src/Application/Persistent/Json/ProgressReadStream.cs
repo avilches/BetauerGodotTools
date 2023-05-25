@@ -7,6 +7,7 @@ public class ProgressReadStream : Stream {
     private readonly Stream _baseStream;
     private readonly Action<long> _onRead;
     private long _read = 0;
+    private long _lastRead = -1;
 
     public ProgressReadStream(Stream baseStream, Action<long> onRead) {
         _baseStream = baseStream;
@@ -17,10 +18,14 @@ public class ProgressReadStream : Stream {
         _baseStream.Flush();
     }
 
+    
     public override int Read(byte[] buffer, int offset, int count) {
         var read = _baseStream.Read(buffer, offset, count);
         _read += read;
-        _onRead.Invoke(_read);
+        if (_read != _lastRead) { // avoid duplicates when calling to onRead
+            _onRead.Invoke(_read);
+            _lastRead = _read;
+        }
         return read;
     }
 

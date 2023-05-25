@@ -16,7 +16,6 @@ using NUnit.Framework;
 namespace Betauer.GameTools.Tests;
 
 [TestRunner.Test]
-[Only]
 public class JsonLoaderTests {
     public string SaveName1 = "a";
     public string SaveName2 = "b";
@@ -32,7 +31,7 @@ public class JsonLoaderTests {
 
 
     public string key = new Guid().ToString();
-    
+
     [TestRunner.Test]
     public async Task ListNoDataTest() {
         var loader = new MyJsonGameLoader();
@@ -98,7 +97,7 @@ public class JsonLoaderTests {
     public async Task LoadWrongKeyTest() {
         var loader = new MyJsonGameLoader();
         await loader.Save(SaveName1, new MyMetadata(), new List<SaveObject>(), null, key);
-        await ThrowsAsync<CryptographicException>(async () => await loader.LoadMetadata(SaveName1, key+key));
+        await ThrowsAsync<CryptographicException>(async () => await loader.LoadMetadata(SaveName1, key + key));
     }
 
     [TestRunner.Test(Description = "Error reading plain metadata with key")]
@@ -108,8 +107,7 @@ public class JsonLoaderTests {
         await ThrowsAsync<CryptographicException>(async () => await loader.LoadMetadata(SaveName1, key));
     }
 
-    
-    
+
     [TestRunner.Test(Description = "Error reading metadata, corrupted")]
     public async Task LoadCorruptedDataTest() {
         var loader = new MyJsonGameLoader();
@@ -126,7 +124,6 @@ public class JsonLoaderTests {
 
     public abstract class Comp : SaveObject {
         public abstract bool Equivalent(Comp other);
-
     }
 
     public class X : Comp {
@@ -142,7 +139,7 @@ public class JsonLoaderTests {
         public override string Discriminator() {
             return "X.1";
         }
-        
+
         public override bool Equivalent(Comp other) {
             return other.GetHashCode() != GetHashCode() && other is X x && x.MyX == MyX;
         }
@@ -162,6 +159,7 @@ public class JsonLoaderTests {
         public override string Discriminator() {
             return "Y.2";
         }
+
         public override bool Equivalent(Comp other) {
             return other.GetHashCode() != GetHashCode() && other is Y x && x.MyY == MyY;
         }
@@ -178,7 +176,7 @@ public class JsonLoaderTests {
         await loader.Save(SaveName1, new MyMetadata(), data, null, null, false);
         await loader.Load(SaveName1, null, null, false);
         await loader.Save(SaveName1, new MyMetadata(), data, null, null, false);
-        await loader.Load(SaveName1, null,null, false);
+        await loader.Load(SaveName1, null, null, false);
         var plainTextSize = new FileInfo(SaveName1 + ".data").Length;
 
         await loader.Save(SaveName1, new MyMetadata(), data, null, null, true);
@@ -198,12 +196,10 @@ public class JsonLoaderTests {
         await loader.Save(SaveName1, new MyMetadata(), data, null, "a", true);
         await loader.Load(SaveName1, null, "a", true);
         var compressedCypherSize = new FileInfo(SaveName1 + ".data").Length;
-        
-        Assert.That(compressedPlainSize, Is.LessThan(plainTextSize/100));
-        Assert.That(cypherSize, Is.InRange(plainTextSize, plainTextSize*1.01f));
-        Assert.That(compressedCypherSize, Is.InRange(compressedPlainSize, compressedPlainSize*1.01f));
 
-
+        Assert.That(compressedPlainSize, Is.LessThan(plainTextSize / 100));
+        Assert.That(cypherSize, Is.InRange(plainTextSize, plainTextSize * 1.01f));
+        Assert.That(compressedCypherSize, Is.InRange(compressedPlainSize, compressedPlainSize * 1.01f));
     }
 
     [TestRunner.Test]
@@ -232,7 +228,8 @@ public class JsonLoaderTests {
         await loader.Save(SaveName1, new MyMetadata(), new List<SaveObject>(), null, seed, true);
 
         using var transform = GameObjectLoader.CreateDecryptor(seed);
-        using var stringReader = new StreamReader(GameObjectLoader.Decompress(new CryptoStream(File.OpenRead(SaveName1 + ".data"), transform, CryptoStreamMode.Read), true));
+        using var stringReader =
+            new StreamReader(GameObjectLoader.Decompress(new CryptoStream(File.OpenRead(SaveName1 + ".data"), transform, CryptoStreamMode.Read), true));
 
         Assert.That(await stringReader.ReadToEndAsync(), Is.EqualTo("[]"));
     }
@@ -306,6 +303,7 @@ public class JsonLoaderTests {
         public Vector2I Vector2IValue { get; set; }
         public Vector3I Vector3IValue { get; set; }
         public Color ColorValue { get; set; }
+
         public override string Discriminator() {
             return "WD";
         }
@@ -329,7 +327,7 @@ public class JsonLoaderTests {
             ColorValue = new Color(0.23f, 0.4f, 0.53f, 0.3f),
         };
         var data = new List<SaveObject> { wd };
-        
+
         await loader.Save(SaveName1, saveGame, data, null, key);
         var loadGame = await loader.Load(SaveName1, null, key);
         Assert.That(loadGame.GameObjects.Count, Is.EqualTo(1));
@@ -357,30 +355,28 @@ public class JsonLoaderTests {
             MyString = "yu2"
         }, new List<SaveObject> { new WithData() }, null, key);
 
-
         // Ignore cases
         Assert.That((await loader.ListMetadatas()).Count, Is.EqualTo(0)); // no key
         Assert.That((await loader.ListMetadatas("wrong")).Count, Is.EqualTo(0));
         Assert.That((await loader.GetMetadatas(null, "x", "y", SaveName1, SaveName2)).Count, Is.EqualTo(0));
         Assert.That((await loader.GetMetadatas("wrong", "x", "y", SaveName1, SaveName2)).Count, Is.EqualTo(0));
-        
+
         Assert.That((await loader.GetMetadatas(key, "x", "y")).Count, Is.EqualTo(0));
         Assert.That((await loader.GetMetadatas(key, "x", "y", SaveName1, SaveName2)).Count, Is.EqualTo(2));
 
         var list = await loader.ListMetadatas(key);
         Assert.That(list.Count, Is.EqualTo(2));
-        
+
         var mySaveGame1 = list.First(sg => sg.Name == SaveName1);
         Assert.That(mySaveGame1.MyString, Is.EqualTo("yu1"));
-        
+
         var mySaveGame2 = list.First(sg => sg.Name == SaveName2);
         Assert.That(mySaveGame2.MyString, Is.EqualTo("yu2"));
-        
+
         var get = await loader.GetMetadatas(key, SaveName1);
         Assert.That(get[0].MyString, Is.EqualTo("yu1"));
-        
     }
-    
+
     [TestRunner.Test(Description = "List save games with no key")]
     public async Task ListNoSeedOkTest() {
         var loader = new MyJsonGameLoader();
@@ -392,23 +388,86 @@ public class JsonLoaderTests {
             MyString = "yu2"
         }, new List<SaveObject> { new WithData() }, null);
 
-
         // Ignore cases
         Assert.That((await loader.ListMetadatas("aaaa")).Count, Is.EqualTo(0));
         Assert.That((await loader.GetMetadatas("aaaa", SaveName1, SaveName2)).Count, Is.EqualTo(0));
 
         var list = await loader.ListMetadatas();
         Assert.That(list.Count, Is.EqualTo(2));
-        
+
         var mySaveGame1 = list.First(sg => sg.Name == SaveName1);
         Assert.That(mySaveGame1.MyString, Is.EqualTo("yu1"));
-        
+
         var mySaveGame2 = list.First(sg => sg.Name == SaveName2);
         Assert.That(mySaveGame2.MyString, Is.EqualTo("yu2"));
-        
+
         var get = await loader.GetMetadatas(null, SaveName1);
         Assert.That(get[0].MyString, Is.EqualTo("yu1"));
-
     }
-    
+
+    [TestRunner.Test]
+    public async Task SaveProgressTest() {
+        var loader = new MyJsonGameLoader();
+        var saveGame = new MyMetadata();
+        var wd = new WithData();
+        var data = new List<SaveObject>() { wd, wd, wd, wd, wd, wd, wd, wd, wd, wd };
+
+        var progress = new List<float>(11);
+        await loader.Save(SaveName1, saveGame, data, (p) => {
+            Console.WriteLine(p + "%");
+            progress.Add(p);
+        }, key);
+        Assert.That(progress[0], Is.EqualTo(0f));
+        Assert.That(progress[1], Is.EqualTo(0.1f));
+        Assert.That(progress[2], Is.EqualTo(0.2f));
+        Assert.That(progress[3], Is.EqualTo(0.3f));
+        Assert.That(progress[4], Is.EqualTo(0.4f));
+        Assert.That(progress[5], Is.EqualTo(0.5f));
+        Assert.That(progress[6], Is.EqualTo(0.6f));
+        Assert.That(progress[7], Is.EqualTo(0.7f));
+        Assert.That(progress[8], Is.EqualTo(0.8f));
+        Assert.That(progress[9], Is.EqualTo(0.9f));
+        Assert.That(progress[10], Is.EqualTo(1f));
+    }
+
+    [TestRunner.Test]
+    public async Task LoadProgressTest() {
+        var loader = new MyJsonGameLoader();
+        var saveGame = new MyMetadata();
+        var wd = new WithData();
+        var data = new List<SaveObject>();
+        for (var i = 0; i < 25000; i++) {
+            data.Add(wd);
+        }
+        var progress = new List<float>(11);
+        await loader.Save(SaveName1, saveGame, data, null, key);
+        await loader.Load(SaveName1, (p) => {
+            progress.Add(p);
+            Console.WriteLine(p + "%");
+        }, key);
+
+        Assert.That(progress.First(), Is.EqualTo(0f));
+        Assert.That(progress.Last(), Is.EqualTo(1f));
+        for (var i = 1; i < progress.Count; i++) {
+            Assert.That(progress[i], Is.GreaterThanOrEqualTo(progress[i - 1]));
+        }
+        Assert.That(CalculateStandardDeviation(progress.ToArray()), Is.LessThan(0.06));
+    }
+
+    public double CalculateStandardDeviation(float[] array) {
+        // Calcula las diferencias entre los elementos consecutivos
+        var differences = new List<double>();
+        for (int i = 1; i < array.Length; i++) {
+            differences.Add(array[i] - array[i - 1]);
+        }
+        // Calcula la media de las diferencias
+        double mean = differences.Average();
+        // Calcula la varianza de las diferencias
+        double sumOfSquaredDifferences = differences.Select(val => (val - mean) * (val - mean)).Sum();
+        double variance = sumOfSquaredDifferences / differences.Count;
+        // La desviación estándar es la raíz cuadrada de la varianza
+        double standardDeviation = Math.Sqrt(variance);
+        Console.WriteLine($"Standard deviation: {standardDeviation:0.00000}%");
+        return standardDeviation;
+    }
 }

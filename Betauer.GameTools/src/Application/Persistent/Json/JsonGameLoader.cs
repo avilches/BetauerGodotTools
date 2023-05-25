@@ -136,19 +136,19 @@ public class JsonGameLoader<TMetadata> : GameObjectLoader where TMetadata : Meta
     }
 
     public async Task<SaveGame<TMetadata>> Load(string saveName, Action<float>? progress = null, string? seed = null, bool decompress = true) {
+        progress?.Invoke(0f);
         var metadata = await LoadMetadata(saveName, seed);
         var savegameInfo = GetSavegameInfo(saveName);
         float total = savegameInfo.Length;
-        
+        void OnRead(long readPos) => progress?.Invoke(readPos / total);
         if (seed == null) {
-            await using var progressStream = new ProgressReadStream(Decompress(File.OpenRead(savegameInfo.FullName), decompress), (readPos) => progress?.Invoke(readPos / total));
-            var gameObjects = (await JsonSerializer.DeserializeAsync<List<SaveObject>>(progressStream, JsonSerializerOptions()))!;
+            await using var stream = Decompress(new ProgressReadStream(File.OpenRead(savegameInfo.FullName), OnRead), decompress);
+            var gameObjects = (await JsonSerializer.DeserializeAsync<List<SaveObject>>(stream, JsonSerializerOptions()))!;
             return new SaveGame<TMetadata>(metadata, gameObjects);
         } else {
             using var decryptor = CreateDecryptor(seed);
-            var steam = Decompress(new CryptoStream(File.OpenRead(savegameInfo.FullName), decryptor, CryptoStreamMode.Read), decompress);
-            await using var progressStream = new ProgressReadStream(steam, (readPos) => progress?.Invoke(readPos / total));
-            var gameObjects = (await JsonSerializer.DeserializeAsync<List<SaveObject>>(progressStream, JsonSerializerOptions()))!;
+            await using var stream = Decompress(new CryptoStream(new ProgressReadStream(File.OpenRead(savegameInfo.FullName), OnRead), decryptor, CryptoStreamMode.Read), decompress);
+            var gameObjects = (await JsonSerializer.DeserializeAsync<List<SaveObject>>(stream, JsonSerializerOptions()))!;
             return new SaveGame<TMetadata>(metadata, gameObjects);
         }
     }
