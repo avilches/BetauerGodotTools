@@ -23,7 +23,7 @@ public partial class Game : Control, IInjectable {
 	private static readonly World2D NoWorld = new(); // A cached World2D to re-use
 
 	[Inject] private GameObjectRepository GameObjectRepository { get; set; }
-	[Inject] private JsonGameLoader<MySaveGame> GameObjectLoader { get; set; }
+	[Inject] private JsonGameLoader<MySaveGameMetadata> GameObjectLoader { get; set; }
 	[Inject] private HUD HudScene { get; set; }
 	[Inject] private ITransient<WorldScene> World3 { get; set; }
 
@@ -107,7 +107,7 @@ public partial class Game : Control, IInjectable {
 		
 		await GameLoader.LoadGameResources();
 		
-		CurrentSaveGame = new MySaveGame();
+		CurrentMetadata = new MySaveGameMetadata();
 		GameObjectRepository.Initialize();
 		InitializeWorld();
 		CreatePlayer1(UiActionsContainer.CurrentJoyPad);
@@ -132,12 +132,12 @@ public partial class Game : Control, IInjectable {
 		ContinueLoad(saveGame);
 	}
 
-	private void ContinueLoad(MySaveGame saveGame) {
-		CurrentSaveGame = saveGame;
+	private void ContinueLoad(SaveGame<MySaveGameMetadata> saveGame) {
+		CurrentMetadata = saveGame.Metadata;
 		GameObjectRepository.Initialize();
-		GameObjectRepository.LoadSaveObjects(CurrentSaveGame.GameObjects);
+		GameObjectRepository.LoadSaveObjects(saveGame.GameObjects);
 		InitializeWorld();
-		var consumer = new MySaveGameConsumer(CurrentSaveGame);
+		var consumer = new MySaveGameConsumer(saveGame);
 		LoadPlayer1(UiActionsContainer.CurrentJoyPad, consumer);
 		if (consumer.Player1 == null) AllowAddingP2();
 		else NoAddingP2();
@@ -147,11 +147,11 @@ public partial class Game : Control, IInjectable {
 
 	public async Task Save(string saveName) {
 		MainStateMachine.Send(MainEvent.StartSavingGame);
-		var l = await GameObjectLoader.ListSaveGames();
+		var l = await GameObjectLoader.ListMetadatas();
 		try {
 			var saveObjects = GameObjectRepository.GetSaveObjects();
 			Action<float>? saveProgress = saveObjects.Count < 1000 ? null : (progress) => ProgressScreenFactory.Get().ShowSaving(progress);
-			await GameObjectLoader.Save(CurrentSaveGame, saveObjects, saveName, saveProgress);
+			await GameObjectLoader.Save(saveName, CurrentMetadata, saveObjects, saveProgress);
 		} catch (Exception e) {
 			// Show saving error
 			Console.WriteLine(e);
@@ -162,9 +162,9 @@ public partial class Game : Control, IInjectable {
 	public void ShowLoading() {}
 	public void HideLoading() {}
 	
-	public MySaveGame CurrentSaveGame { get; private set; }
+	public MySaveGameMetadata CurrentMetadata { get; private set; }
 
-	public async Task<(bool, MySaveGame)> LoadSaveGame(string save) {
+	public async Task<(bool, SaveGame<MySaveGameMetadata>)> LoadSaveGame(string save) {
 		ShowLoading();
 		try {
 			var saveGame = await GameObjectLoader.Load(save);

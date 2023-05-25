@@ -5,8 +5,8 @@ using Veronenger.Persistent;
 
 namespace Veronenger.Managers;
 
-public class MySaveGameConsumer : SaveGameConsumer<MySaveGame> {
-    public MySaveGameConsumer(MySaveGame saveGame) : base(saveGame) {
+public class MySaveGameConsumer : SaveGameConsumer<MySaveGameMetadata> {
+    public MySaveGameConsumer(SaveGame<MySaveGameMetadata> saveGame) : base(saveGame) {
         ConsumePlayers();
     }
 

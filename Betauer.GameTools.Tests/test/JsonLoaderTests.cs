@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Betauer.Application.Persistent;
@@ -15,6 +16,7 @@ using NUnit.Framework;
 namespace Betauer.GameTools.Tests;
 
 [TestRunner.Test]
+[Only]
 public class JsonLoaderTests {
     public string SaveName1 = "a";
     public string SaveName2 = "b";
@@ -34,151 +36,89 @@ public class JsonLoaderTests {
     [TestRunner.Test]
     public async Task ListNoDataTest() {
         var loader = new MyJsonGameLoader();
-        var list = await loader.ListSaveGames();
+        var list = await loader.ListMetadatas();
         Assert.That(list, Is.Empty);
     }
 
-    public class MySaveGame : SaveGame {
+    public class MyMetadata : Metadata {
         [JsonInclude] public string MyString { get; set; } = "Hello World";
     }
 
-    [TestRunner.Test(Description = "Error, no data neither metadata")]
+    [TestRunner.Test(Description = "Error, no metadata")]
     public async Task LoadMissingMetadataAndDataTest() {
-        var loader = new MyJsonGameLoader();
-        var mySaveGame = await loader.LoadMetadata(SaveName1);
-        Assert.That(mySaveGame.MyString, Is.EqualTo("Hello World"));
-        Assert.That(mySaveGame.LoadStatus, Is.EqualTo(LoadStatus.SavegameNotFound));
-        Assert.That(mySaveGame.SavegameFileName.EndsWith(SaveName1+".data"));
-        Assert.That(mySaveGame.MetadataFileName.EndsWith(SaveName1+".metadata"));
-        Assert.That(mySaveGame.Name, Is.EqualTo(SaveName1));
-        Assert.That(mySaveGame.Size, Is.EqualTo(0));
-        Assert.That(mySaveGame.GameObjects, Is.Null);
+        await ThrowsAsync<FileNotFoundException>(async () => await new MyJsonGameLoader().LoadMetadata(SaveName1));
     }
 
-    [TestRunner.Test(Description = "Error, metadata exists but no data")]
+    [TestRunner.Test(Description = "Error, no data")]
     public async Task LoadMissingDataTest() {
         var loader = new MyJsonGameLoader();
-        var saveGame = new MySaveGame() {
-            MyString = "yu"
-        };
-        await loader.Save(saveGame, new List<SaveObject>(), SaveName1, null, key);
-        
+        await loader.Save(SaveName1, new MyMetadata(), new List<SaveObject>());
         new FileInfo(Path.Combine(loader.GetSavegameFolder(), SaveName1 + ".data")).Delete();
-
-        var mySaveGame = await loader.LoadMetadata(SaveName1);
-        Assert.That(mySaveGame.MyString, Is.EqualTo("yu"));
-        Assert.That(mySaveGame.LoadStatus, Is.EqualTo(LoadStatus.SavegameNotFound));
-        Assert.That(mySaveGame.SavegameFileName.EndsWith(SaveName1+".data"));
-        Assert.That(mySaveGame.MetadataFileName.EndsWith(SaveName1+".metadata"));
-        Assert.That(mySaveGame.Name, Is.EqualTo(SaveName1));
-        Assert.That(mySaveGame.Size, Is.EqualTo(0));
-        Assert.That(mySaveGame.GameObjects, Is.Null);
-        
-        mySaveGame = await loader.Load(SaveName1, null, key);
-        Assert.That(mySaveGame.MyString, Is.EqualTo("yu"));
-        Assert.That(mySaveGame.LoadStatus, Is.EqualTo(LoadStatus.SavegameNotFound));
-        Assert.That(mySaveGame.SavegameFileName.EndsWith(SaveName1+".data"));
-        Assert.That(mySaveGame.MetadataFileName.EndsWith(SaveName1+".metadata"));
-        Assert.That(mySaveGame.Name, Is.EqualTo(SaveName1));
-        Assert.That(mySaveGame.Size, Is.EqualTo(0));
-        Assert.That(mySaveGame.GameObjects, Is.Null);
-
+        await ThrowsAsync<FileNotFoundException>(async () => await loader.LoadMetadata(SaveName1));
     }
 
-    [TestRunner.Test(Description = "Error, metadata exists but corrupted data nothing happens, until the real data is read")]
-    public async Task LoaCorruptedDataTest() {
+    [TestRunner.Test(Description = "Reading metadata: key")]
+    public async Task LoadMetadataKeyTest() {
         var loader = new MyJsonGameLoader();
-        var saveGame = new MySaveGame() {
-            MyString = "yu"
-        };
-        await loader.Save(saveGame, new List<SaveObject>(), SaveName1, null, key);
-
-        File.WriteAllLines(Path.Combine(loader.GetSavegameFolder(), SaveName1 + ".data"), new[] { "corrupted data" });
-        
-        var mySaveGame = await loader.LoadMetadata(SaveName1);
-        Assert.That(mySaveGame.MyString, Is.EqualTo("yu"));
-        Assert.That(mySaveGame.LoadStatus, Is.EqualTo(LoadStatus.Ok));
-        Assert.That(mySaveGame.SavegameFileName.EndsWith(SaveName1+".data"));
-        Assert.That(mySaveGame.MetadataFileName.EndsWith(SaveName1+".metadata"));
-        Assert.That(mySaveGame.Name, Is.EqualTo(SaveName1));
-        Assert.That(mySaveGame.Size, Is.EqualTo(new FileInfo(Path.Combine(loader.GetSavegameFolder(), SaveName1 + ".data")).Length));
-        Assert.That(mySaveGame.GameObjects, Is.Null);
-        
-        mySaveGame = await loader.Load(SaveName1, null, key);
-        Assert.That(mySaveGame.MyString, Is.EqualTo("yu"));
-        Assert.That(mySaveGame.LoadStatus, Is.EqualTo(LoadStatus.SaveGameError));
-        Assert.That(mySaveGame.SavegameFileName.EndsWith(SaveName1+".data"));
-        Assert.That(mySaveGame.MetadataFileName.EndsWith(SaveName1+".metadata"));
-        Assert.That(mySaveGame.Name, Is.EqualTo(SaveName1));
-        Assert.That(mySaveGame.Size, Is.EqualTo(new FileInfo(Path.Combine(loader.GetSavegameFolder(), SaveName1 + ".data")).Length));
-        Assert.That(mySaveGame.GameObjects, Is.Null);
-
+        await loader.Save(SaveName1, new MyMetadata() {
+            MyString = "XXX"
+        }, new List<SaveObject>(), null, key);
+        var savegame = await loader.LoadMetadata(SaveName1, key);
+        Assert.That(savegame.MyString, Is.EqualTo("XXX"));
+        Assert.That(savegame.Name, Is.EqualTo(SaveName1));
     }
 
-    [TestRunner.Test(Description = "Missing metadata rebuild the metadata")]
-    public async Task LoadMissingMetadataOnlyTest() {
+    [TestRunner.Test(Description = "Reading metadata: no key")]
+    public async Task LoadMetadataNoTest() {
         var loader = new MyJsonGameLoader();
-        var saveGame = new MySaveGame() {
-            MyString = "yu"
-        };
-        await loader.Save(saveGame, new List<SaveObject>(), SaveName1, null, key);
-
-        var metadataFile = new FileInfo(Path.Combine(loader.GetSavegameFolder(), SaveName1 + ".metadata"));
-        metadataFile.Delete();
-        Assert.That(metadataFile.Exists, Is.False);
-        
-        var mySaveGame = await loader.LoadMetadata(SaveName1);
-        metadataFile.Refresh();
-        Assert.That(metadataFile.Exists, Is.True);
-
-        Assert.That(mySaveGame.MyString, Is.EqualTo("Hello World"));
-        Assert.That(mySaveGame.LoadStatus, Is.EqualTo(LoadStatus.Ok));
-        Assert.That(mySaveGame.SavegameFileName.EndsWith(SaveName1+".data"));
-        Assert.That(mySaveGame.MetadataFileName.EndsWith(SaveName1+".metadata"));
-        Assert.That(mySaveGame.Name, Is.EqualTo(SaveName1));
-        Assert.That(mySaveGame.Size, Is.EqualTo(new FileInfo(Path.Combine(loader.GetSavegameFolder(), SaveName1 + ".data")).Length));
-        Assert.That(mySaveGame.GameObjects, Is.Null);
-        
-        mySaveGame = await loader.Load(SaveName1, null, key);
-        Assert.That(mySaveGame.MyString, Is.EqualTo("Hello World"));
-        Assert.That(mySaveGame.LoadStatus, Is.EqualTo(LoadStatus.Ok));
-        Assert.That(mySaveGame.SavegameFileName.EndsWith(SaveName1+".data"));
-        Assert.That(mySaveGame.MetadataFileName.EndsWith(SaveName1+".metadata"));
-        Assert.That(mySaveGame.Name, Is.EqualTo(SaveName1));
-        Assert.That(mySaveGame.Size, Is.EqualTo(new FileInfo(Path.Combine(loader.GetSavegameFolder(), SaveName1 + ".data")).Length));
-        Assert.That(mySaveGame.GameObjects.Count, Is.EqualTo(0));
+        await loader.Save(SaveName1, new MyMetadata() {
+            MyString = "ZZZ"
+        }, new List<SaveObject>(), null);
+        var savegame = await loader.LoadMetadata(SaveName1);
+        Assert.That(savegame.MyString, Is.EqualTo("ZZZ"));
+        Assert.That(savegame.Name, Is.EqualTo(SaveName1));
     }
 
-    [TestRunner.Test(Description = "Error, corrupted metadata rebuild the metadata")]
+    [TestRunner.Test(Description = "Error reading metadata, missing key")]
+    public async Task LoadMissingKeyTest() {
+        var loader = new MyJsonGameLoader();
+        await loader.Save(SaveName1, new MyMetadata(), new List<SaveObject>(), null, key);
+        await ThrowsAsync<JsonException>(async () => await loader.LoadMetadata(SaveName1));
+    }
+
+    private async Task ThrowsAsync<T>(Func<Task> func) where T : Exception {
+        try {
+            await func();
+        } catch (Exception e) {
+            Assert.That(e, Is.TypeOf<T>());
+        }
+    }
+
+    [TestRunner.Test(Description = "Error reading metadata, wrong key")]
+    public async Task LoadWrongKeyTest() {
+        var loader = new MyJsonGameLoader();
+        await loader.Save(SaveName1, new MyMetadata(), new List<SaveObject>(), null, key);
+        await ThrowsAsync<CryptographicException>(async () => await loader.LoadMetadata(SaveName1, key+key));
+    }
+
+    [TestRunner.Test(Description = "Error reading plain metadata with key")]
+    public async Task LoadNoKeyWithKeyTest() {
+        var loader = new MyJsonGameLoader();
+        await loader.Save(SaveName1, new MyMetadata(), new List<SaveObject>());
+        await ThrowsAsync<CryptographicException>(async () => await loader.LoadMetadata(SaveName1, key));
+    }
+
+    
+    
+    [TestRunner.Test(Description = "Error reading metadata, corrupted")]
     public async Task LoadCorruptedDataTest() {
         var loader = new MyJsonGameLoader();
-        var saveGame = new MySaveGame() {
-            MyString = "yu"
-        };
-        await loader.Save(saveGame, new List<SaveObject>(), SaveName1, null, key);
-        
-        File.WriteAllLines(Path.Combine(loader.GetSavegameFolder(), SaveName1 + ".metadata"), new []{"corrupted data"});
-
-        var mySaveGame = await loader.LoadMetadata(SaveName1);
-        Assert.That(mySaveGame.MyString, Is.EqualTo("Hello World"));
-        Assert.That(mySaveGame.LoadStatus, Is.EqualTo(LoadStatus.Ok));
-        Assert.That(mySaveGame.SavegameFileName.EndsWith(SaveName1+".data"));
-        Assert.That(mySaveGame.MetadataFileName.EndsWith(SaveName1+".metadata"));
-        Assert.That(mySaveGame.Name, Is.EqualTo(SaveName1));
-        Assert.That(mySaveGame.Size, Is.EqualTo(new FileInfo(Path.Combine(loader.GetSavegameFolder(), SaveName1 + ".data")).Length));
-        Assert.That(mySaveGame.GameObjects, Is.Null);
-        
-        mySaveGame = await loader.Load(SaveName1, null, key);
-        Assert.That(mySaveGame.MyString, Is.EqualTo("Hello World"));
-        Assert.That(mySaveGame.LoadStatus, Is.EqualTo(LoadStatus.Ok));
-        Assert.That(mySaveGame.SavegameFileName.EndsWith(SaveName1+".data"));
-        Assert.That(mySaveGame.MetadataFileName.EndsWith(SaveName1+".metadata"));
-        Assert.That(mySaveGame.Name, Is.EqualTo(SaveName1));
-        Assert.That(mySaveGame.Size, Is.EqualTo(new FileInfo(Path.Combine(loader.GetSavegameFolder(), SaveName1 + ".data")).Length));
-        Assert.That(mySaveGame.GameObjects.Count, Is.EqualTo(0));
+        await loader.Save(SaveName1, new MyMetadata(), new List<SaveObject>(), null, key);
+        File.WriteAllLines(Path.Combine(loader.GetSavegameFolder(), SaveName1 + ".metadata"), new[] { "corrupted data" });
+        await ThrowsAsync<CryptographicException>(async () => await loader.LoadMetadata(SaveName1, key));
     }
-    
-    public class MyJsonGameLoader : JsonGameLoader<MySaveGame> {
+
+    public class MyJsonGameLoader : JsonGameLoader<MyMetadata> {
         public override string GetSavegameFolder() {
             return ".";
         }
@@ -200,7 +140,7 @@ public class JsonLoaderTests {
         }
 
         public override string Discriminator() {
-            return "X";
+            return "X.1";
         }
         
         public override bool Equivalent(Comp other) {
@@ -220,7 +160,7 @@ public class JsonLoaderTests {
         }
 
         public override string Discriminator() {
-            return "Y";
+            return "Y.2";
         }
         public override bool Equivalent(Comp other) {
             return other.GetHashCode() != GetHashCode() && other is Y x && x.MyY == MyY;
@@ -235,28 +175,28 @@ public class JsonLoaderTests {
         for (int i = 0; i < 10; i++) {
             data.AddRange(data.ToArray());
         }
-        await loader.Save(new MySaveGame(), data, SaveName1, null, null, false);
-        await loader.Load(SaveName1, null);
-        await loader.Save(new MySaveGame(), data, SaveName1, null, null, false);
-        await loader.Load(SaveName1, null);
+        await loader.Save(SaveName1, new MyMetadata(), data, null, null, false);
+        await loader.Load(SaveName1, null, null, false);
+        await loader.Save(SaveName1, new MyMetadata(), data, null, null, false);
+        await loader.Load(SaveName1, null,null, false);
         var plainTextSize = new FileInfo(SaveName1 + ".data").Length;
 
-        await loader.Save(new MySaveGame(), data, SaveName1, null, null, true);
-        await loader.Load(SaveName1, null);
-        await loader.Save(new MySaveGame(), data, SaveName1, null, null, true);
-        await loader.Load(SaveName1, null);
+        await loader.Save(SaveName1, new MyMetadata(), data, null, null, true);
+        await loader.Load(SaveName1, null, null, true);
+        await loader.Save(SaveName1, new MyMetadata(), data, null, null, true);
+        await loader.Load(SaveName1, null, null, true);
         var compressedPlainSize = new FileInfo(SaveName1 + ".data").Length;
 
-        await loader.Save(new MySaveGame(), data, SaveName1, null, "a", false);
-        await loader.Load(SaveName1, null);
-        await loader.Save(new MySaveGame(), data, SaveName1, null, "a", false);
-        await loader.Load(SaveName1, null);
+        await loader.Save(SaveName1, new MyMetadata(), data, null, "a", false);
+        await loader.Load(SaveName1, null, "a", false);
+        await loader.Save(SaveName1, new MyMetadata(), data, null, "a", false);
+        await loader.Load(SaveName1, null, "a", false);
         var cypherSize = new FileInfo(SaveName1 + ".data").Length;
 
-        await loader.Save(new MySaveGame(), data, SaveName1, null, "a", true);
-        await loader.Load(SaveName1, null);
-        await loader.Save(new MySaveGame(), data, SaveName1, null, "a", true);
-        await loader.Load(SaveName1, null);
+        await loader.Save(SaveName1, new MyMetadata(), data, null, "a", true);
+        await loader.Load(SaveName1, null, "a", true);
+        await loader.Save(SaveName1, new MyMetadata(), data, null, "a", true);
+        await loader.Load(SaveName1, null, "a", true);
         var compressedCypherSize = new FileInfo(SaveName1 + ".data").Length;
         
         Assert.That(compressedPlainSize, Is.LessThan(plainTextSize/100));
@@ -269,7 +209,7 @@ public class JsonLoaderTests {
     [TestRunner.Test]
     public async Task NoCompressTests() {
         var loader = new MyJsonGameLoader();
-        await loader.Save(new MySaveGame(), new List<SaveObject>(), SaveName1, null, null, false);
+        await loader.Save(SaveName1, new MyMetadata(), new List<SaveObject>(), null, null, false);
         Assert.That(await File.ReadAllTextAsync(SaveName1 + ".data"), Is.EqualTo("[]"));
     }
 
@@ -277,7 +217,7 @@ public class JsonLoaderTests {
     public async Task CypherTests() {
         var loader = new MyJsonGameLoader();
         var seed = "hola";
-        await loader.Save(new MySaveGame(), new List<SaveObject>(), SaveName1, null, seed, false);
+        await loader.Save(SaveName1, new MyMetadata(), new List<SaveObject>(), null, seed, false);
 
         using var transform = GameObjectLoader.CreateDecryptor(seed);
         using var stringReader = new StreamReader(new CryptoStream(File.OpenRead(SaveName1 + ".data"), transform, CryptoStreamMode.Read));
@@ -289,7 +229,7 @@ public class JsonLoaderTests {
     public async Task CypherCompressedTests() {
         var loader = new MyJsonGameLoader();
         var seed = "hola";
-        await loader.Save(new MySaveGame(), new List<SaveObject>(), SaveName1, null, seed, true);
+        await loader.Save(SaveName1, new MyMetadata(), new List<SaveObject>(), null, seed, true);
 
         using var transform = GameObjectLoader.CreateDecryptor(seed);
         using var stringReader = new StreamReader(GameObjectLoader.Decompress(new CryptoStream(File.OpenRead(SaveName1 + ".data"), transform, CryptoStreamMode.Read), true));
@@ -300,9 +240,25 @@ public class JsonLoaderTests {
     [TestRunner.Test]
     public async Task CompressedTests() {
         var loader = new MyJsonGameLoader();
-        await loader.Save(new MySaveGame(), new List<SaveObject>(), SaveName1, null, null, true);
+        await loader.Save(SaveName1, new MyMetadata(), new List<SaveObject>(), null, null, true);
         using var stringReader = new StreamReader(new GZipStream(File.OpenRead(SaveName1 + ".data"), CompressionMode.Decompress));
         Assert.That(await stringReader.ReadToEndAsync(), Is.EqualTo("[]"));
+    }
+
+    [TestRunner.Test]
+    public async Task LoadSaveGameWithMetadataTests() {
+        var loader = new MyJsonGameLoader();
+        var saveGame = new MyMetadata {
+            MyString = "a"
+        };
+        await loader.Save(SaveName1, saveGame, new List<SaveObject>(), null, key);
+        var loadGame = await loader.Load(SaveName1, null, key);
+        Assert.That(loadGame.Metadata.MyString, Is.EqualTo("a"));
+        Assert.That(loadGame.Metadata.Name, Is.EqualTo(SaveName1));
+        Assert.That(loadGame.Metadata.CreateDate, Is.Not.Null);
+        Assert.That(loadGame.Metadata.UpdateDate, Is.Not.Null);
+        Assert.That(loadGame.Metadata.ReadDate, Is.Not.Null);
+        Assert.That(loadGame.GameObjects.Count, Is.EqualTo(0));
     }
 
     [TestRunner.Test]
@@ -328,13 +284,13 @@ public class JsonLoaderTests {
                 Name = "dd",
             },
         };
-        var saveGame = new MySaveGame {
+        var saveGame = new MyMetadata {
             MyString = "a"
         };
-        await loader.Save(saveGame, data, SaveName1, null, key);
+        await loader.Save(SaveName1, saveGame, data, null, key);
         var loadGame = await loader.Load(SaveName1, null, key);
-        Assert.That(saveGame.MyString, Is.EqualTo("a"));
-
+        Assert.That(loadGame.Metadata.MyString, Is.EqualTo("a"));
+        Assert.That(loadGame.Metadata.Name, Is.EqualTo(SaveName1));
         Assert.That(loadGame.GameObjects.Count, Is.EqualTo(4));
         Assert.That(((Comp)data[0]).Equivalent((Comp)loadGame.GameObjects[0]));
         Assert.That(((Comp)data[1]).Equivalent((Comp)loadGame.GameObjects[1]));
@@ -359,7 +315,7 @@ public class JsonLoaderTests {
     [TestRunner.Test]
     public async Task ConverterTest() {
         var loader = new MyJsonGameLoader();
-        var saveGame = new MySaveGame();
+        var saveGame = new MyMetadata();
         var wd = new WithData {
             Id = 1,
             Name = "aa",
@@ -374,7 +330,7 @@ public class JsonLoaderTests {
         };
         var data = new List<SaveObject> { wd };
         
-        await loader.Save(saveGame, data, SaveName1, null, key);
+        await loader.Save(SaveName1, saveGame, data, null, key);
         var loadGame = await loader.Load(SaveName1, null, key);
         Assert.That(loadGame.GameObjects.Count, Is.EqualTo(1));
         var ld = loadGame.GameObjects.OfType<WithData>().First();
@@ -390,46 +346,69 @@ public class JsonLoaderTests {
         Assert.That(wd.ColorValue.ToHtml(true), Is.EqualTo(ld.ColorValue.ToHtml(true)));
     }
 
-    [TestRunner.Test]
-    public async Task ListDataTest() {
+    [TestRunner.Test(Description = "List save games with key")]
+    public async Task ListSeedOkTest() {
         var loader = new MyJsonGameLoader();
-        await loader.Save(new MySaveGame() {
+        await loader.Save(SaveName1, new MyMetadata() {
             MyString = "yu1"
-        }, new List<SaveObject> { new WithData() }, SaveName1, null, key);
+        }, new List<SaveObject> { new WithData() }, null, key);
+
+        await loader.Save(SaveName2, new MyMetadata() {
+            MyString = "yu2"
+        }, new List<SaveObject> { new WithData() }, null, key);
 
 
-        var list = await loader.ListSaveGames();
+        // Ignore cases
+        Assert.That((await loader.ListMetadatas()).Count, Is.EqualTo(0)); // no key
+        Assert.That((await loader.ListMetadatas("wrong")).Count, Is.EqualTo(0));
+        Assert.That((await loader.GetMetadatas(null, "x", "y", SaveName1, SaveName2)).Count, Is.EqualTo(0));
+        Assert.That((await loader.GetMetadatas("wrong", "x", "y", SaveName1, SaveName2)).Count, Is.EqualTo(0));
         
-        Assert.That(list.Count, Is.EqualTo(1));
-        var mySaveGame = list[0];
-        Assert.That(mySaveGame.MyString, Is.EqualTo("yu1"));
-        Assert.That(mySaveGame.LoadStatus, Is.EqualTo(LoadStatus.Ok));
-        Assert.That(mySaveGame.SavegameFileName.EndsWith(SaveName1+".data"));
-        Assert.That(mySaveGame.MetadataFileName.EndsWith(SaveName1+".metadata"));
-        Assert.That(mySaveGame.Name, Is.EqualTo(SaveName1));
-        Assert.That(mySaveGame.Size, Is.EqualTo(new FileInfo(Path.Combine(loader.GetSavegameFolder(), SaveName1 + ".data")).Length));
-        Assert.That(mySaveGame.GameObjects, Is.Null);
-    }
+        Assert.That((await loader.GetMetadatas(key, "x", "y")).Count, Is.EqualTo(0));
+        Assert.That((await loader.GetMetadatas(key, "x", "y", SaveName1, SaveName2)).Count, Is.EqualTo(2));
 
-    [TestRunner.Test]
-    public async Task ListRebuildTest() {
+        var list = await loader.ListMetadatas(key);
+        Assert.That(list.Count, Is.EqualTo(2));
+        
+        var mySaveGame1 = list.First(sg => sg.Name == SaveName1);
+        Assert.That(mySaveGame1.MyString, Is.EqualTo("yu1"));
+        
+        var mySaveGame2 = list.First(sg => sg.Name == SaveName2);
+        Assert.That(mySaveGame2.MyString, Is.EqualTo("yu2"));
+        
+        var get = await loader.GetMetadatas(key, SaveName1);
+        Assert.That(get[0].MyString, Is.EqualTo("yu1"));
+        
+    }
+    
+    [TestRunner.Test(Description = "List save games with no key")]
+    public async Task ListNoSeedOkTest() {
         var loader = new MyJsonGameLoader();
-        await loader.Save(new MySaveGame() {
+        await loader.Save(SaveName1, new MyMetadata() {
             MyString = "yu1"
-        }, new List<SaveObject> { new WithData() }, SaveName1, null, key);
+        }, new List<SaveObject> { new WithData() }, null);
 
-        new FileInfo(Path.Combine(loader.GetSavegameFolder(), SaveName1 + ".metadata")).Delete();
+        await loader.Save(SaveName2, new MyMetadata() {
+            MyString = "yu2"
+        }, new List<SaveObject> { new WithData() }, null);
 
-        var list = await loader.ListSaveGames();
+
+        // Ignore cases
+        Assert.That((await loader.ListMetadatas("aaaa")).Count, Is.EqualTo(0));
+        Assert.That((await loader.GetMetadatas("aaaa", SaveName1, SaveName2)).Count, Is.EqualTo(0));
+
+        var list = await loader.ListMetadatas();
+        Assert.That(list.Count, Is.EqualTo(2));
         
-        Assert.That(list.Count, Is.EqualTo(1));
-        var mySaveGame = list[0];
-        Assert.That(mySaveGame.MyString, Is.EqualTo("Hello World")); // because the metadata file was deleted and rebuilt
-        Assert.That(mySaveGame.LoadStatus, Is.EqualTo(LoadStatus.Ok));
-        Assert.That(mySaveGame.SavegameFileName.EndsWith(SaveName1+".data"));
-        Assert.That(mySaveGame.MetadataFileName.EndsWith(SaveName1+".metadata"));
-        Assert.That(mySaveGame.Name, Is.EqualTo(SaveName1));
-        Assert.That(mySaveGame.Size, Is.EqualTo(new FileInfo(Path.Combine(loader.GetSavegameFolder(), SaveName1 + ".data")).Length));
-        Assert.That(mySaveGame.GameObjects, Is.Null);
+        var mySaveGame1 = list.First(sg => sg.Name == SaveName1);
+        Assert.That(mySaveGame1.MyString, Is.EqualTo("yu1"));
+        
+        var mySaveGame2 = list.First(sg => sg.Name == SaveName2);
+        Assert.That(mySaveGame2.MyString, Is.EqualTo("yu2"));
+        
+        var get = await loader.GetMetadatas(null, SaveName1);
+        Assert.That(get[0].MyString, Is.EqualTo("yu1"));
+
     }
+    
 }

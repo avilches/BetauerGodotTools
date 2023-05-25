@@ -4,13 +4,13 @@ using System.Linq;
 
 namespace Betauer.Application.Persistent;
 
-public class SaveGameConsumer<TSaveGame> where TSaveGame : SaveGame {
+public class SaveGameConsumer<TMetadata> where TMetadata : Metadata {
     public List<SaveObject> Pending { get; }
-    public TSaveGame SaveGame { get; }
+    public SaveGame<TMetadata> SaveGame { get; }
 
-    public SaveGameConsumer(TSaveGame saveGame) {
+    public SaveGameConsumer(SaveGame<TMetadata> saveGame) {
         SaveGame = saveGame;
-        Pending = new List<SaveObject>(saveGame.GameObjects);
+        Pending = new List<SaveObject>(SaveGame.GameObjects);
     }
 
     public void Consume<T>(T saveObject) where T : SaveObject => Pending.Remove(saveObject);
