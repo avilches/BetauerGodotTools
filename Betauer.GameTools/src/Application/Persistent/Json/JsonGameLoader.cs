@@ -95,20 +95,10 @@ public class JsonGameLoader<TSaveGame> : GameObjectLoader where TSaveGame : Save
             await JsonSerializer.SerializeAsync(stream, CreateProgressList(saveObjects, progress), JsonSerializerOptions());
         } else {    
             using var encryptor = CreateEncryptor(seed);
-            await using var cryptoStream = new CryptoStream(Compress(File.Create(savegameInfo.FullName), compress), encryptor, CryptoStreamMode.Write);
+            await using var cryptoStream = Compress(new CryptoStream(File.Create(savegameInfo.FullName), encryptor, CryptoStreamMode.Write), compress);
             await JsonSerializer.SerializeAsync(cryptoStream, CreateProgressList(saveObjects, progress), JsonSerializerOptions());
         }
     }
-
-    private Stream Compress(Stream stream, bool compress) {
-        return compress ? new GZipStream(stream, CompressionMode.Compress) : stream;
-    }
-
-    private Stream Decompress(string path, bool decompress) {
-        var stream = File.OpenRead(path);
-        return decompress ? new GZipStream(stream, CompressionMode.Decompress) : stream;
-    }
-
     public async Task<TSaveGame> LoadMetadata(string saveName) {
         var metadataInfo = GetMetadataInfo(saveName);
         var savegameInfo = GetSavegameInfo(saveName);
@@ -168,12 +158,12 @@ public class JsonGameLoader<TSaveGame> : GameObjectLoader where TSaveGame : Save
 
         try {
             if (seed == null) {
-                await using var progressStream = new ProgressReadStream(Decompress(saveGame.SavegameFileName, decompress), (readPos) => progress?.Invoke(readPos / total));
+                await using var progressStream = new ProgressReadStream(Decompress(File.OpenRead(saveGame.SavegameFileName), decompress), (readPos) => progress?.Invoke(readPos / total));
                 saveGame.GameObjects = await JsonSerializer.DeserializeAsync<List<SaveObject>>(progressStream, JsonSerializerOptions());
             } else {
                 using var decryptor = CreateDecryptor(seed);
-                var cryptoStream = new CryptoStream(Decompress(saveGame.SavegameFileName, decompress), decryptor, CryptoStreamMode.Read);
-                await using var progressStream = new ProgressReadStream(cryptoStream, (readPos) => progress?.Invoke(readPos / total));
+                var steam = Decompress(new CryptoStream(File.OpenRead(saveGame.SavegameFileName), decryptor, CryptoStreamMode.Read), decompress);
+                await using var progressStream = new ProgressReadStream(steam, (readPos) => progress?.Invoke(readPos / total));
                 saveGame.GameObjects = await JsonSerializer.DeserializeAsync<List<SaveObject>>(progressStream, JsonSerializerOptions());
             }
         } catch (Exception e) {
@@ -183,19 +173,6 @@ public class JsonGameLoader<TSaveGame> : GameObjectLoader where TSaveGame : Save
         return saveGame;
     }
     
-    
-    public static ICryptoTransform CreateDecryptor(string seed) {
-        using var aes = Aes.Create();
-        var (key, iv) = GenerateKeyAndIV(seed);
-        return aes.CreateDecryptor(key, iv);
-    }
-        
-    public static ICryptoTransform CreateEncryptor(string seed) {
-        using var aes = Aes.Create();
-        var (key, iv) = GenerateKeyAndIV(seed);
-        return aes.CreateEncryptor(key, iv);
-    }
-
     private static void ConfigureSaveObjectSerializer(JsonTypeInfo jsonTypeInfo) {
         if (jsonTypeInfo.Type == typeof(SaveObject)) {
             jsonTypeInfo.PolymorphismOptions = new JsonPolymorphismOptions {

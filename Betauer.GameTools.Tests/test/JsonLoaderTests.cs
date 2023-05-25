@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Betauer.Application.Persistent;
@@ -13,7 +15,6 @@ using NUnit.Framework;
 namespace Betauer.GameTools.Tests;
 
 [TestRunner.Test]
-[Only]
 public class JsonLoaderTests {
     public string SaveName1 = "a";
     public string SaveName2 = "b";
@@ -230,25 +231,78 @@ public class JsonLoaderTests {
     [TestRunner.Test(Description = "Read and write twice to ensure the file is not locked")]
     public async Task BasicSaveLoadTest() {
         var loader = new MyJsonGameLoader();
+        var data = new List<SaveObject> { new WithData() };
+        for (int i = 0; i < 10; i++) {
+            data.AddRange(data.ToArray());
+        }
+        await loader.Save(new MySaveGame(), data, SaveName1, null, null, false);
+        await loader.Load(SaveName1, null);
+        await loader.Save(new MySaveGame(), data, SaveName1, null, null, false);
+        await loader.Load(SaveName1, null);
+        var plainTextSize = new FileInfo(SaveName1 + ".data").Length;
+
+        await loader.Save(new MySaveGame(), data, SaveName1, null, null, true);
+        await loader.Load(SaveName1, null);
+        await loader.Save(new MySaveGame(), data, SaveName1, null, null, true);
+        await loader.Load(SaveName1, null);
+        var compressedPlainSize = new FileInfo(SaveName1 + ".data").Length;
+
+        await loader.Save(new MySaveGame(), data, SaveName1, null, "a", false);
+        await loader.Load(SaveName1, null);
+        await loader.Save(new MySaveGame(), data, SaveName1, null, "a", false);
+        await loader.Load(SaveName1, null);
+        var cypherSize = new FileInfo(SaveName1 + ".data").Length;
+
+        await loader.Save(new MySaveGame(), data, SaveName1, null, "a", true);
+        await loader.Load(SaveName1, null);
+        await loader.Save(new MySaveGame(), data, SaveName1, null, "a", true);
+        await loader.Load(SaveName1, null);
+        var compressedCypherSize = new FileInfo(SaveName1 + ".data").Length;
+        
+        Assert.That(compressedPlainSize, Is.LessThan(plainTextSize/100));
+        Assert.That(cypherSize, Is.InRange(plainTextSize, plainTextSize*1.01f));
+        Assert.That(compressedCypherSize, Is.InRange(compressedPlainSize, compressedPlainSize*1.01f));
+
+
+    }
+
+    [TestRunner.Test]
+    public async Task NoCompressTests() {
+        var loader = new MyJsonGameLoader();
         await loader.Save(new MySaveGame(), new List<SaveObject>(), SaveName1, null, null, false);
-        await loader.Load(SaveName1, null);
-        await loader.Save(new MySaveGame(), new List<SaveObject>(), SaveName1, null, null, false);
-        await loader.Load(SaveName1, null);
+        Assert.That(await File.ReadAllTextAsync(SaveName1 + ".data"), Is.EqualTo("[]"));
+    }
 
+    [TestRunner.Test]
+    public async Task CypherTests() {
+        var loader = new MyJsonGameLoader();
+        var seed = "hola";
+        await loader.Save(new MySaveGame(), new List<SaveObject>(), SaveName1, null, seed, false);
+
+        using var transform = GameObjectLoader.CreateDecryptor(seed);
+        using var stringReader = new StreamReader(new CryptoStream(File.OpenRead(SaveName1 + ".data"), transform, CryptoStreamMode.Read));
+
+        Assert.That(await stringReader.ReadToEndAsync(), Is.EqualTo("[]"));
+    }
+
+    [TestRunner.Test]
+    public async Task CypherCompressedTests() {
+        var loader = new MyJsonGameLoader();
+        var seed = "hola";
+        await loader.Save(new MySaveGame(), new List<SaveObject>(), SaveName1, null, seed, true);
+
+        using var transform = GameObjectLoader.CreateDecryptor(seed);
+        using var stringReader = new StreamReader(GameObjectLoader.Decompress(new CryptoStream(File.OpenRead(SaveName1 + ".data"), transform, CryptoStreamMode.Read), true));
+
+        Assert.That(await stringReader.ReadToEndAsync(), Is.EqualTo("[]"));
+    }
+
+    [TestRunner.Test]
+    public async Task CompressedTests() {
+        var loader = new MyJsonGameLoader();
         await loader.Save(new MySaveGame(), new List<SaveObject>(), SaveName1, null, null, true);
-        await loader.Load(SaveName1, null);
-        await loader.Save(new MySaveGame(), new List<SaveObject>(), SaveName1, null, null, true);
-        await loader.Load(SaveName1, null);
-
-        await loader.Save(new MySaveGame(), new List<SaveObject>(), SaveName1, null, "a", true);
-        await loader.Load(SaveName1, null);
-        await loader.Save(new MySaveGame(), new List<SaveObject>(), SaveName1, null, "a", true);
-        await loader.Load(SaveName1, null);
-
-        await loader.Save(new MySaveGame(), new List<SaveObject>(), SaveName1, null, "a", false);
-        await loader.Load(SaveName1, null);
-        await loader.Save(new MySaveGame(), new List<SaveObject>(), SaveName1, null, "a", false);
-        await loader.Load(SaveName1, null);
+        using var stringReader = new StreamReader(new GZipStream(File.OpenRead(SaveName1 + ".data"), CompressionMode.Decompress));
+        Assert.That(await stringReader.ReadToEndAsync(), Is.EqualTo("[]"));
     }
 
     [TestRunner.Test]
