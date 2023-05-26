@@ -1,4 +1,4 @@
-<Project Sdk="Godot.NET.Sdk/4.1.0-dev">
+<Project Sdk="Godot.NET.Sdk/4.1.0-dev.3">
     <PropertyGroup>
         <TargetFramework>net7.0</TargetFramework>
         <EnableDynamicLoading>true</EnableDynamicLoading>
@@ -12,7 +12,7 @@
         <PackageReference Include="NUnit" Version="3.13.3" />
 
         <ProjectReference Include="../Betauer.TestRunner/Betauer.TestRunner.csproj" />
-        
+
     </ItemGroup>
     <ItemGroup Condition="'$(Configuration)' == 'ExportRelease'">
         <Compile Include="Src/**/*.cs" Exclude="Src/Build/**;Src/Tests/**" />

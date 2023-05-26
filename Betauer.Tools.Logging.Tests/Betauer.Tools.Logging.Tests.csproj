@@ -13,7 +13,7 @@
         <Compile Include="test/**/*.cs" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="GodotSharp" Version="4.1.0-dev" />
+        <PackageReference Include="GodotSharp" Version="4.1.0-dev.3" />
         <PackageReference Include="ZString" Version="2.5.0" />
         <PackageReference Include="NUnit" Version="3.13.3" />
     </ItemGroup>
