@@ -133,8 +133,8 @@ public class JsonGameLoader<TMetadata> : GameObjectLoader where TMetadata : Meta
             await JsonSerializer.SerializeAsync(hashStream, progressList, JsonSerializerOptions());
 
             await hashStream.FlushFinalBlockAsync();
-            metadata.Hash = BitConverter.ToString(sha256.Hash).Replace("-", "");
-            // Console.WriteLine("Save " + saveName + " " + BitConverter.ToString(sha256.Hash).Replace("-", ""));
+            metadata.Hash = FormatHash(sha256);
+            // Console.WriteLine($"Save {saveName} {metadata.Hash}");
         } else {
             // json --> hash --> compress --> encrypt --> file
             using var encryptor = CreateEncryptor(seed);             
@@ -146,8 +146,8 @@ public class JsonGameLoader<TMetadata> : GameObjectLoader where TMetadata : Meta
             await JsonSerializer.SerializeAsync(hashStream, progressList, JsonSerializerOptions());
             
             await hashStream.FlushFinalBlockAsync();
-            metadata.Hash = BitConverter.ToString(sha256.Hash).Replace("-", "");
-            // Console.WriteLine("Save " + saveName + " " + BitConverter.ToString(sha256.Hash).Replace("-", ""));
+            metadata.Hash = FormatHash(sha256);
+            // Console.WriteLine($"Save {saveName} {metadata.Hash}");
         }
         await SaveMetadata(saveName, metadata, seed);
     }
@@ -167,9 +167,9 @@ public class JsonGameLoader<TMetadata> : GameObjectLoader where TMetadata : Meta
             await using var hashStream = new CryptoStream(decompressStream, sha256, CryptoStreamMode.Read);
             var gameObjects = (await JsonSerializer.DeserializeAsync<List<SaveObject>>(hashStream, JsonSerializerOptions()))!;
 
-            // Console.WriteLine("Load " + saveName + " " + BitConverter.ToString(sha256.Hash).Replace("-", ""));
-            var hash = BitConverter.ToString(sha256.Hash).Replace("-", "");
-            if (hash != metadata.Hash) throw new Exception($"Savegame hash mismatch: {saveName} {hash} != {metadata.Hash}");
+            var hash = FormatHash(sha256);
+            // Console.WriteLine($"Save {saveName} {hash}");
+            if (hash != metadata.Hash) throw new Exception($"Savegame {saveName} hash expected: {metadata.Hash}");
             return new SaveGame<TMetadata>(metadata, gameObjects);
         } else {
             // json <-- hash <-- decompress <-- decrypt <-- progress <-- file
@@ -182,9 +182,9 @@ public class JsonGameLoader<TMetadata> : GameObjectLoader where TMetadata : Meta
             await using var hashStream = new CryptoStream(decompressStream, sha256, CryptoStreamMode.Read);
             var gameObjects = (await JsonSerializer.DeserializeAsync<List<SaveObject>>(hashStream, JsonSerializerOptions()))!;
             
-            var hash = BitConverter.ToString(sha256.Hash).Replace("-", "");
-            if (hash != metadata.Hash) throw new Exception($"Savegame hash mismatch: {saveName} {hash} != {metadata.Hash}");
-            // Console.WriteLine("Load " + saveName + " " + BitConverter.ToString(sha256.Hash).Replace("-", ""));
+            var hash = FormatHash(sha256);
+            // Console.WriteLine($"Save {saveName} {hash}");
+            if (hash != metadata.Hash) throw new Exception($"Savegame {saveName} hash expected: {metadata.Hash}");
             return new SaveGame<TMetadata>(metadata, gameObjects);
         }
     }
@@ -216,4 +216,7 @@ public class JsonGameLoader<TMetadata> : GameObjectLoader where TMetadata : Meta
             return t;
         });
     }
+    
+    private static string FormatHash(HashAlgorithm sha256) => BitConverter.ToString(sha256.Hash!).Replace("-", "").ToLower();
+
 }
