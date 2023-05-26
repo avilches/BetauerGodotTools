@@ -21,6 +21,7 @@ public class CollisionLayerManager {
         playerNode.PlayerDetector.Monitorable = true;
         playerNode.PlayerDetector.AddToLayer(LayerPlayerDetectorArea);
         playerNode.PlayerDetector.DetectLayer(LayerPickableArea);
+        playerNode.PlayerDetector.DetectLayer(LayerStageArea);
         playerNode.PlayerDetector.EnableAllShapes();
         
         playerNode.RaycastCanJump.DetectLayer(LayerSolidBody);

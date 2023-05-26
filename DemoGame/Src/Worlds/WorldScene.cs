@@ -24,7 +24,6 @@ public partial class WorldScene : Node {
 	[Inject] private ConfigManager ConfigManager { get; set; }
 	[Inject] private GameObjectRepository GameObjectRepository { get; set; }
 	[Inject] private PlatformManager PlatformManager { get; set; }
-	[Inject] private JoypadPlayersMapping JoypadPlayersMapping { get; set; }
 	
 	[Inject] private ITransient<StageController> StageControllerFactory { get; set; }
 	[Inject] private NodePool<PlayerNode> PlayerPool { get; set; }

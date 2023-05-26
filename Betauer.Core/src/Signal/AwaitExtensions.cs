@@ -1144,6 +1144,14 @@ public static partial class AwaitExtensions {
         return awaiter;
     }
 
+    public static SignalAwaiter AwaitDeltaSynchronized(this MultiplayerSynchronizer target, Action? onComplete = null) {
+        var awaiter = target.ToSignal(target, MultiplayerSynchronizer.SignalName.DeltaSynchronized);
+        if (onComplete != null) {
+            awaiter.OnCompleted(onComplete);
+        }
+        return awaiter;
+    }
+
     public static SignalAwaiter AwaitSynchronized(this MultiplayerSynchronizer target, Action? onComplete = null) {
         var awaiter = target.ToSignal(target, MultiplayerSynchronizer.SignalName.Synchronized);
         if (onComplete != null) {
@@ -1282,6 +1290,14 @@ public static partial class AwaitExtensions {
 
     public static SignalAwaiter AwaitNavigationServer2DNavigationDebugChanged(Action? onComplete = null) {
         var awaiter = NavigationServer2D.Singleton.ToSignal(NavigationServer2D.Singleton, NavigationServer2D.SignalName.NavigationDebugChanged);
+        if (onComplete != null) {
+            awaiter.OnCompleted(onComplete);
+        }
+        return awaiter;
+    }
+
+    public static SignalAwaiter AwaitNavigationServer3DAvoidanceDebugChanged(Action? onComplete = null) {
+        var awaiter = NavigationServer3D.Singleton.ToSignal(NavigationServer3D.Singleton, NavigationServer3D.SignalName.AvoidanceDebugChanged);
         if (onComplete != null) {
             awaiter.OnCompleted(onComplete);
         }
@@ -1896,6 +1912,14 @@ public static partial class AwaitExtensions {
         return awaiter;
     }
 
+    public static SignalAwaiter AwaitActiveTabRearranged(this TabContainer target, Action<long>? onComplete = null) {
+        var awaiter = target.ToSignal(target, TabContainer.SignalName.ActiveTabRearranged);
+        if (onComplete != null) {
+            awaiter.OnCompleted(() => onComplete(awaiter.GetResult()[0].As<long>()));
+        }
+        return awaiter;
+    }
+
     public static SignalAwaiter AwaitPrePopupPressed(this TabContainer target, Action? onComplete = null) {
         var awaiter = target.ToSignal(target, TabContainer.SignalName.PrePopupPressed);
         if (onComplete != null) {
@@ -1914,6 +1938,22 @@ public static partial class AwaitExtensions {
 
     public static SignalAwaiter AwaitTabChanged(this TabContainer target, Action<long>? onComplete = null) {
         var awaiter = target.ToSignal(target, TabContainer.SignalName.TabChanged);
+        if (onComplete != null) {
+            awaiter.OnCompleted(() => onComplete(awaiter.GetResult()[0].As<long>()));
+        }
+        return awaiter;
+    }
+
+    public static SignalAwaiter AwaitTabClicked(this TabContainer target, Action<long>? onComplete = null) {
+        var awaiter = target.ToSignal(target, TabContainer.SignalName.TabClicked);
+        if (onComplete != null) {
+            awaiter.OnCompleted(() => onComplete(awaiter.GetResult()[0].As<long>()));
+        }
+        return awaiter;
+    }
+
+    public static SignalAwaiter AwaitTabHovered(this TabContainer target, Action<long>? onComplete = null) {
+        var awaiter = target.ToSignal(target, TabContainer.SignalName.TabHovered);
         if (onComplete != null) {
             awaiter.OnCompleted(() => onComplete(awaiter.GetResult()[0].As<long>()));
         }

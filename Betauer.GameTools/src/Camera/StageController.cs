@@ -19,8 +19,8 @@ public class StageController {
         _layer = layer;
     }
 
-    public void AddTarget(Area2D target) {
-        target.OnAreaEntered(_layer, ChangeStage);
+    public Action AddTarget(Area2D target) {
+        return target.OnAreaEntered(_layer, ChangeStage);
     }
 
     public void ConfigureStage(Area2D stageArea2D) {
