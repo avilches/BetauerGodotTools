@@ -11,7 +11,6 @@ using Betauer.DI.Factory;
 using Betauer.Nodes;
 using Betauer.FSM.Async;
 using Betauer.Input.Joypad;
-using Veronenger.Config;
 using Veronenger.UI;
 
 namespace Veronenger.Managers; 
@@ -116,9 +115,9 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
         
         State(MainState.SplashScreenLoading)
             .Enter(async () => {
-                // GameLoaderContainer.OnLoadResourceProgress += (rp) => Console.WriteLine($"{rp.ResourcePercent:P} {rp.Resource}"); 
+                splashScreen.Start();
                 await GameLoader.LoadMainResources();
-                splashScreen.Stop();
+                splashScreen.ResourcesLoaded();
             })
             .If(() => true).Set(MainState.SplashScreenInit)
             .Build();

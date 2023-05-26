@@ -1,17 +1,23 @@
+using System;
 using Betauer.Animation;
+using Betauer.Application.Lifecycle;
 using Betauer.Core.Nodes.Property;
+using Betauer.DI.Attributes;
 using Betauer.NodePath;
 using Godot;
+using Veronenger.Managers;
 
 namespace Veronenger.UI; 
 
 public partial class SplashScreenNode : CanvasLayer {
 	[NodePath("%SplashScreen")] private Control _base;
 	[NodePath("%TextureRect")] private TextureRect _sprite;
+	
+	[Inject] private GameLoader GameLoader { get; set; }
 
 	private Tween? _tween;
 
-	public override void _Ready() {
+	public void Start() {
 		// TODO Godot 4
 		// Vector2 _baseResolutionSize = _screenSettingsManager.WindowedResolution.Size;
 		// if (_screenSettingsManager.Fullscreen) {
@@ -30,9 +36,15 @@ public partial class SplashScreenNode : CanvasLayer {
 			.EndAnimate()
 			.SetInfiniteLoops()
 			.Play();
+		GameLoader.OnLoadResourceProgress += OnLoadResourceProgress;
 	}
 
-	public void Stop() {
+	public void OnLoadResourceProgress(ResourceProgress rp) {
+		Console.WriteLine($"{rp.ResourcePercent:P} {rp.Resource}"); 
+	}
+
+	public void ResourcesLoaded() {
+		GameLoader.OnLoadResourceProgress -= OnLoadResourceProgress;
 		_tween?.Kill();
 		_tween = null;
 	}

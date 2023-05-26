@@ -1,9 +1,6 @@
-[gd_scene load_steps=3 format=3 uid="uid://cdyhbgqkwlf35"]
+[gd_scene load_steps=2 format=3 uid="uid://cdyhbgqkwlf35"]
 
-[ext_resource type="Script" path="res://Src/Managers/Game.cs" id="1_15w4k"]
-
-[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_iux0l"]
-load_path = "res://.godot/imported/sky.png-9ac1bff4572ee9f3efebd8b5f8919a0d.ctex"
+[ext_resource type="Script" path="res://Src/Managers/Game.cs" id="1_5g576"]
 
 [node name="Game" type="Control"]
 layout_mode = 3
@@ -13,7 +10,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 4
-script = ExtResource("1_15w4k")
+script = ExtResource("1_5g576")
 
 [node name="SplitScreen" type="HBoxContainer" parent="."]
 layout_mode = 1
@@ -36,9 +33,6 @@ render_target_update_mode = 4
 [node name="Camera2D1" type="Camera2D" parent="SplitScreen/Container1/SubViewport1"]
 unique_name_in_owner = true
 zoom = Vector2(2, 2)
-
-[node name="Sprite2D" type="Sprite2D" parent="SplitScreen/Container1/SubViewport1/Camera2D1"]
-texture = SubResource("CompressedTexture2D_iux0l")
 
 [node name="Container2" type="SubViewportContainer" parent="SplitScreen"]
 layout_mode = 2
