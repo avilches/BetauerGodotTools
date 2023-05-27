@@ -100,5 +100,4 @@ public partial class NotificationsHandler : Node {
                 break;
         }
     }  
-
 }

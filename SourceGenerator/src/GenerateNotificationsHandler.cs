@@ -21,6 +21,7 @@ public class GenerateNotificationHandler {
     private static string GenerateBodyClass(GodotClass[] clazz) {
         return $@"using System;
 using Godot;
+using Betauer.Core.Nodes;
 
 namespace Betauer.Application.Notifications; 
 
@@ -33,8 +34,8 @@ public partial class NotificationsHandler : Node {{
     }}
 
     public void AddTo(Viewport viewport) {{
-        GetParent()?.RemoveChild(this);
-            viewport.AddChild(this);
+        this.RemoveFromParent();
+        viewport.AddChild(this);
     }}
 
     public override void _Notification(int what) {{
@@ -42,7 +43,6 @@ public partial class NotificationsHandler : Node {{
 {string.Join("\n", GenerateSwitchCases(clazz))}
         }}
     }}  
-
 }}
 ";
     }
@@ -93,6 +93,4 @@ public partial class NotificationsHandler : Node {{
                 {NotificationEventName(clazz, n)}?.Invoke();
                 break;");
     }
-        
-        
 }
