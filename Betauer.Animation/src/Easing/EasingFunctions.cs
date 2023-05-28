@@ -5,102 +5,197 @@ namespace Betauer.Animation.Easing {
     public static class EasingFunctions {
         // Adapted from source : http://www.robertpenner.com/TransitionType/
 
-        public static float Ease(float linearStep, float acceleration, Godot.Tween.TransitionType type) {
-            var easedStep = acceleration > 0 ? EaseIn(linearStep, type) :
-                acceleration < 0 ? EaseOut(linearStep, type) : linearStep;
+        public static float Ease(Tween.TransitionType type, float linearStep, float acceleration) {
+            var easedStep = acceleration > 0 ? EaseIn(type, linearStep) :
+                acceleration < 0 ? EaseOut(type, linearStep) : linearStep;
 
-            return Mathf.Lerp(linearStep, easedStep, Math.Abs(acceleration));
+            return Mathf.Lerp(linearStep, easedStep, Mathf.Abs(acceleration));
         }
 
-        public static float EaseIn(float linearStep, Godot.Tween.TransitionType type) {
-            switch (type) {
-                case Godot.Tween.TransitionType.Linear: return linearStep;
-                case Godot.Tween.TransitionType.Sine: return Sine.EaseIn(linearStep);
-                case Godot.Tween.TransitionType.Quad: return Power.EaseIn(linearStep, 2);
-                case Godot.Tween.TransitionType.Cubic: return Power.EaseIn(linearStep, 3);
-                case Godot.Tween.TransitionType.Quart: return Power.EaseIn(linearStep, 4);
-                case Godot.Tween.TransitionType.Quint: return Power.EaseIn(linearStep, 5);
-
-                // case Godot.Tween.TransitionType.Expo:    return Power.EaseIn(linearStep, 5); // MAL!!!!
-                // case Godot.Tween.TransitionType.Elastic:    return Power.EaseIn(linearStep, 5); // MAL!!!!
-                // case Godot.Tween.TransitionType.Circ:    return Power.EaseIn(linearStep, 5); // MAL!!!!
-                // case Godot.Tween.TransitionType.Bounce:    return Power.EaseIn(linearStep, 5); // MAL!!!!
-                // case Godot.Tween.TransitionType.Back:    return Power.EaseIn(linearStep, 5); // MAL!!!!
-            }
-            throw new NotImplementedException();
+        public static float EaseIn(Tween.TransitionType type, float t) {
+            return type switch {
+                Tween.TransitionType.Linear => t,
+                Tween.TransitionType.Sine => Sine.EaseIn(t),
+                Tween.TransitionType.Quad => Power.EaseIn(t, 2),
+                Tween.TransitionType.Cubic => Power.EaseIn(t, 3),
+                Tween.TransitionType.Quart => Power.EaseIn(t, 4),
+                Tween.TransitionType.Quint => Power.EaseIn(t, 5),
+                Tween.TransitionType.Expo => Expo.EaseIn(t),
+                Tween.TransitionType.Elastic => Elastic.EaseIn(t),
+                Tween.TransitionType.Circ => Circle.EaseIn(t),
+                Tween.TransitionType.Bounce => Bounce.EaseIn(t),
+                Tween.TransitionType.Back => Back.EaseIn(t),
+                Tween.TransitionType.Spring => Spring.EaseIn(t),
+            };
         }
 
-        public static float EaseOut(float linearStep, Godot.Tween.TransitionType type) {
-            switch (type) {
-                case Godot.Tween.TransitionType.Linear: return linearStep;
-                case Godot.Tween.TransitionType.Sine: return Sine.EaseOut(linearStep);
-                case Godot.Tween.TransitionType.Quad: return Power.EaseOut(linearStep, 2);
-                case Godot.Tween.TransitionType.Cubic: return Power.EaseOut(linearStep, 3);
-                case Godot.Tween.TransitionType.Quart: return Power.EaseOut(linearStep, 4);
-                case Godot.Tween.TransitionType.Quint: return Power.EaseOut(linearStep, 5);
-
-                // case Godot.Tween.TransitionType.Expo:    return Power.EaseOut(linearStep, 5); // MAL!!!!
-                // case Godot.Tween.TransitionType.Elastic:    return Power.EaseOut(linearStep, 5); // MAL!!!!
-                // case Godot.Tween.TransitionType.Circ:    return Power.EaseOut(linearStep, 5); // MAL!!!!
-                // case Godot.Tween.TransitionType.Bounce:    return Power.EaseOut(linearStep, 5); // MAL!!!!
-                // case Godot.Tween.TransitionType.Back:    return Power.EaseOut(linearStep, 5); // MAL!!!!
-            }
-            throw new NotImplementedException();
+        public static float EaseOut(Tween.TransitionType type, float t) {
+            return type switch {
+                Tween.TransitionType.Linear => t,
+                Tween.TransitionType.Sine => Sine.EaseOut(t),
+                Tween.TransitionType.Quad => Power.EaseOut(t, 2),
+                Tween.TransitionType.Cubic => Power.EaseOut(t, 3),
+                Tween.TransitionType.Quart => Power.EaseOut(t, 4),
+                Tween.TransitionType.Quint => Power.EaseOut(t, 5),
+                Tween.TransitionType.Expo => Expo.EaseOut(t),
+                Tween.TransitionType.Elastic => Elastic.EaseOut(t),
+                Tween.TransitionType.Circ => Circle.EaseOut(t),
+                Tween.TransitionType.Bounce => Bounce.EaseOut(t),
+                Tween.TransitionType.Back => Back.EaseOut(t),
+                Tween.TransitionType.Spring => Spring.EaseOut(t),
+            };
         }
 
-        public static float EaseInOut(float linearStep, Godot.Tween.TransitionType easeIn, Godot.Tween.TransitionType easeOut) {
-            return linearStep < 0.5 ? EaseInOut(linearStep, easeIn) : EaseInOut(linearStep, easeOut);
+        public static float EaseInOut(float t, Tween.TransitionType type) {
+            return t < 0.5f ? EaseIn(type, t * 2) * 0.5f : 0.5f + EaseOut(type, (t - 0.5f) * 2f) * 0.5f;
         }
 
-        public static float EaseInOut(float linearStep, Godot.Tween.TransitionType type) {
-            switch (type) {
-                case Godot.Tween.TransitionType.Linear: return linearStep;
-                case Godot.Tween.TransitionType.Sine: return Sine.EaseInOut(linearStep);
-                case Godot.Tween.TransitionType.Quad: return Power.EaseInOut(linearStep, 2);
-                case Godot.Tween.TransitionType.Cubic: return Power.EaseInOut(linearStep, 3);
-                case Godot.Tween.TransitionType.Quart: return Power.EaseInOut(linearStep, 4);
-                case Godot.Tween.TransitionType.Quint: return Power.EaseInOut(linearStep, 5);
-
-                // case Godot.Tween.TransitionType.Expo:    return Power.EaseInOut(linearStep, 5); // MAL!!!!
-                // case Godot.Tween.TransitionType.Elastic:    return Power.EaseInOut(linearStep, 5); // MAL!!!!
-                // case Godot.Tween.TransitionType.Circ:    return Power.EaseInOut(linearStep, 5); // MAL!!!!
-                // case Godot.Tween.TransitionType.Bounce:    return Power.EaseInOut(linearStep, 5); // MAL!!!!
-                // case Godot.Tween.TransitionType.Back:    return Power.EaseInOut(linearStep, 5); // MAL!!!!
-            }
-            throw new NotImplementedException();
+        public static float EaseOutIn(float t, Tween.TransitionType type) {
+            return t < 0.5f ? EaseOut(type, t * 2) * 0.5f : 0.5f + EaseIn(type, (t - 0.5f) * 2f) * 0.5f;
         }
 
-        static class Sine {
+        public static class Sine {
             private const float HalfPi = Mathf.Pi / 2;
 
-            public static float EaseIn(float s) {
-                return (float)Math.Sin(s * HalfPi - HalfPi) + 1;
+            public static float EaseIn(float t) {
+                return 1f - Mathf.Sin((1f - t) * HalfPi);
             }
 
-            public static float EaseOut(float s) {
-                return (float)Math.Sin(s * HalfPi);
+            public static float EaseOut(float t) {
+                return Mathf.Sin(t * HalfPi);
             }
 
-            public static float EaseInOut(float s) {
-                return (float)(Math.Sin(s * Mathf.Pi - HalfPi) + 1) / 2;
+            public static float EaseInOut(float t) {
+                return (Mathf.Sin(t * Mathf.Pi - HalfPi) + 1) / 2;
+            }
+
+            public static float EaseOutIn(float t) {
+                return t < 0.5f ? 0.5f * Mathf.Sin(t * Mathf.Pi) : 0.5f + 0.5f * Mathf.Sin((t - 0.5f) * Mathf.Pi);
             }
         }
 
-        static class Power {
-            public static float EaseIn(float s, int power) {
-                return (float)Math.Pow(s, power);
+        public static class Power {
+            public static float EaseIn(float t, float power) {
+                return Mathf.Pow(t, power);
             }
 
-            public static float EaseOut(float s, int power) {
-                var sign = power % 2 == 0 ? -1 : 1;
-                return (float)(sign * (Math.Pow(s - 1, power) + sign));
+            public static float EaseOut(float t, float power) {
+                return 1f - Mathf.Pow(1f - t, power);
             }
 
-            public static float EaseInOut(float s, int power) {
-                s *= 2;
-                if (s < 1) return EaseIn(s, power) / 2;
-                var sign = power % 2 == 0 ? -1 : 1;
-                return (float)(sign / 2.0 * (Math.Pow(s - 2, power) + sign * 2));
+            public static float EaseInOut(float t, float power) {
+                return t < 0.5f ? EaseIn(t * 2f, power) * 0.5f : 0.5f + EaseOut((t - 0.5f) * 2f, power) * 0.5f;
+            }
+
+            public static float EaseOutIn(float t, float power) {
+                return t < 0.5f ? EaseOut(t * 2f, power) * 0.5f : 0.5f + EaseIn((t - 0.5f) * 2f, power) * 0.5f;
+            }
+        }
+
+        public static class Expo {
+            public static float EaseIn(float t) => Mathf.Pow(2, 10 * (t - 1));
+            public static float EaseOut(float t) => 1 - EaseIn(1 - t);
+
+            public static float EaseInOut(float t) {
+                return t < 0.5f ? EaseIn(t * 2f) * 0.5f : 0.5f + EaseOut((t - 0.5f) * 2f) * 0.5f;
+            }
+
+            public static float EaseOutIn(float t) {
+                return t < 0.5f ? EaseOut(t * 2f) * 0.5f : 0.5f + EaseIn((t - 0.5f) * 2f) * 0.5f;
+            }
+        }
+
+        public static class Elastic {
+            private const float P = 0.3f;
+            public static float EaseIn(float t) => 1 - EaseOut(1 - t);
+
+            public static float EaseOut(float t) {
+                return Mathf.Pow(2, -10 * t) * (float)Mathf.Sin((t - P / 4) * (2 * Mathf.Pi) / P) + 1;
+            }
+
+            public static float EaseInOut(float t) {
+                return t < 0.5f ? EaseIn(t * 2f) * 0.5f : 0.5f + EaseOut((t - 0.5f) * 2f) * 0.5f;
+            }
+
+            public static float EaseOutIn(float t) {
+                return t < 0.5f ? EaseOut(t * 2f) * 0.5f : 0.5f + EaseIn((t - 0.5f) * 2f) * 0.5f;
+            }
+        }
+
+        public static class Circle {
+            public static float EaseIn(float t) => -(Mathf.Sqrt(1 - t * t) - 1);
+            public static float EaseOut(float t) => 1 - EaseIn(1 - t);
+
+            public static float EaseInOut(float t) {
+                return t < 0.5f ? EaseIn(t * 2f) * 0.5f : 0.5f + EaseOut((t - 0.5f) * 2f) * 0.5f;
+            }
+
+            public static float EaseOutIn(float t) {
+                return t < 0.5f ? EaseOut(t * 2f) * 0.5f : 0.5f + EaseIn((t - 0.5f) * 2f) * 0.5f;
+            }
+        }
+
+        public static class Back {
+            private const float S = 1.70158f;
+            public static float EaseIn(float t) {
+                return t * t * ((S + 1) * t - S);
+            }
+
+            public static float EaseOut(float t) => 1 - EaseIn(1 - t);
+
+            public static float EaseInOut(float t) {
+                return t < 0.5f ? EaseIn(t * 2f) * 0.5f : 0.5f + EaseOut((t - 0.5f) * 2f) * 0.5f;
+            }
+
+            public static float EaseOutIn(float t) {
+                return t < 0.5f ? EaseOut(t * 2f) * 0.5f : 0.5f + EaseIn((t - 0.5f) * 2f) * 0.5f;
+            }
+        }
+
+        public static class Bounce {
+            private const float Div = 2.75f;
+            private const float Mult = 7.5625f;
+            public static float EaseIn(float t) => 1 - EaseOut(1 - t);
+
+            public static float EaseOut(float t) {
+                if (t < 1 / Div) {
+                    return Mult * t * t;
+                } else if (t < 2 / Div) {
+                    t -= 1.5f / Div;
+                    return Mult * t * t + 0.75f;
+                } else if (t < 2.5 / Div) {
+                    t -= 2.25f / Div;
+                    return Mult * t * t + 0.9375f;
+                } else {
+                    t -= 2.625f / Div;
+                    return Mult * t * t + 0.984375f;
+                }
+            }
+
+            public static float EaseInOut(float t) {
+                return t < 0.5f ? EaseIn(t * 2f) * 0.5f : 0.5f + EaseOut((t - 0.5f) * 2f) * 0.5f;
+            }
+
+            public static float EaseOutIn(float t) {
+                return t < 0.5f ? EaseOut(t * 2f) * 0.5f : 0.5f + EaseIn((t - 0.5f) * 2f) * 0.5f;
+            }
+        }
+
+        public static class Spring {
+            public static float EaseIn(float t) {
+                return 1f - EaseOut(1f - t);
+            }
+
+            public static float EaseOut(float t) {
+                return 1f - Mathf.Exp(-8f * t) * Mathf.Cos(12f * t);
+            }
+
+            public static float EaseInOut(float t) {
+                return t < 0.5f ? EaseIn(t * 2f) * 0.5f : 0.5f + EaseOut((t - 0.5f) * 2f) * 0.5f;
+            }
+
+            public static float EaseOutIn(float t) {
+                return t < 0.5f ? EaseOut(t * 2f) * 0.5f : 0.5f + EaseIn((t - 0.5f) * 2f) * 0.5f;
             }
         }
     }
