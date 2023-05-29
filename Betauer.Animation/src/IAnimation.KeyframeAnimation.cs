@@ -26,14 +26,20 @@ namespace Betauer.Animation {
         public Tween Play(Node target, float initialDelay, float duration) {
             duration = duration > 0 ? duration : Duration;
             var (node, sceneTreeTween) = ValidateAndCreateSceneTreeTween(target, duration);
-            StartAction?.Invoke(node);
+            if (StartAction != null) {
+                sceneTreeTween.TweenCallback(Callable.From(() => StartAction?.Invoke(target))).SetDelay(initialDelay);
+            }
             foreach (var tweener in TweenList) {
                 tweener.Start(sceneTreeTween, initialDelay, node, duration);
             }
+            if (FinishAction != null) {
+                sceneTreeTween.TweenCallback(Callable.From(() => FinishAction?.Invoke(target))).SetDelay(initialDelay + duration);
+            }
+            AddOnFinishAllEvent(sceneTreeTween);
             ApplySceneTreeTweenConfiguration(sceneTreeTween);
             return sceneTreeTween;
         }
-        
+
         public Tween Play(IEnumerable<Node> targets, float delayPerTarget = 0, float initialDelay = 0, float durationPerTarget = -1, float maxDurationAllTargets = -1) {
             durationPerTarget = durationPerTarget > 0 ? durationPerTarget : Duration;
             if (maxDurationAllTargets > 0) {
@@ -44,13 +50,19 @@ namespace Betauer.Animation {
             }
             
             var (_, sceneTreeTween) = ValidateAndCreateSceneTreeTween(targets.First(), durationPerTarget);
-            targets.ForEach(node => {
-                StartAction?.Invoke(node);
+            targets.ForEach(target => {
+                if (StartAction != null) {
+                    sceneTreeTween.TweenCallback(Callable.From(() => StartAction?.Invoke(target))).SetDelay(initialDelay);
+                }
                 foreach (var tweener in TweenList) {
-                    tweener.Start(sceneTreeTween, initialDelay, node, durationPerTarget);
+                    tweener.Start(sceneTreeTween, initialDelay, target, durationPerTarget);
+                }
+                if (FinishAction != null) {
+                    sceneTreeTween.TweenCallback(Callable.From(() => FinishAction?.Invoke(target))).SetDelay(initialDelay + durationPerTarget);
                 }
                 initialDelay += delayPerTarget;
             });
+            AddOnFinishAllEvent(sceneTreeTween);
             ApplySceneTreeTweenConfiguration(sceneTreeTween);
             return sceneTreeTween;
         }

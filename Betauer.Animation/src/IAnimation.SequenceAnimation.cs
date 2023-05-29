@@ -19,8 +19,8 @@ namespace Betauer.Animation {
         public override Tween Play(Node? target, float initialDelay = 0) {
             if (TweenList.Count == 0) throw new InvalidAnimationException("Can't start a sequence without animations");
             var (realTarget, sceneTreeTween) = CreateSceneTreeTween(target);
-            StartAction?.Invoke(realTarget);
             ExecuteTweenList(sceneTreeTween, initialDelay, realTarget);
+            AddOnFinishAllEvent(sceneTreeTween);
             ApplySceneTreeTweenConfiguration(sceneTreeTween);
             return sceneTreeTween;
         }
@@ -29,15 +29,18 @@ namespace Betauer.Animation {
             if (TweenList.Count == 0) throw new Exception("Can't start a sequence without animations");
             var (_, sceneTreeTween) = CreateSceneTreeTween(nodes.First());
             nodes.ForEach(node => {
-                StartAction?.Invoke(node);
                 ExecuteTweenList(sceneTreeTween, initialDelay, node);
                 initialDelay += delayBetweenNodes;
             });
+            AddOnFinishAllEvent(sceneTreeTween);
             ApplySceneTreeTweenConfiguration(sceneTreeTween);
             return sceneTreeTween;
         }
 
         protected float ExecuteTweenList(Tween sceneTreeTween, float initialDelay, Node target) {
+            if (StartAction != null) {
+                sceneTreeTween.TweenCallback(Callable.From(() => StartAction?.Invoke(target))).SetDelay(initialDelay);
+            }
             float accumulatedDelay = 0;
             foreach (var parallelGroup in TweenList) {
                 float longestTime = 0;
@@ -46,6 +49,9 @@ namespace Betauer.Animation {
                     longestTime = Math.Max(longestTime, tweenTime);
                 }
                 accumulatedDelay += longestTime;
+            }
+            if (FinishAction != null) {
+                sceneTreeTween.TweenCallback(Callable.From(() => FinishAction?.Invoke(target))).SetDelay(initialDelay + accumulatedDelay);
             }
             return accumulatedDelay;
         }
@@ -210,13 +216,13 @@ namespace Betauer.Animation {
             public float Start(Tween sceneTreeTween, float initialDelay, Node target) {
                 if (_sequenceAnimation.Loops == 0) throw new InvalidAnimationException("Nested sequence can not have infinite loops (0)");
                 if (_sequenceAnimation.TweenList.Count == 0) throw new InvalidAnimationException("Can't start a sequence without animations");
-                var accumulated = 0f;
-                _sequenceAnimation.StartAction?.Invoke(target);
+                var accumulatedDelay = 0f;
                 for (var loop = 0; loop < _sequenceAnimation.Loops; loop++) {
-                    var time = _sequenceAnimation.ExecuteTweenList(sceneTreeTween, accumulated + initialDelay, target);
-                    accumulated += time;
+                    var time = _sequenceAnimation.ExecuteTweenList(sceneTreeTween, initialDelay + accumulatedDelay, target);
+                    accumulatedDelay += time;
                 }
-                return accumulated;
+                _sequenceAnimation.AddOnFinishAllEvent(sceneTreeTween);
+                return accumulatedDelay;
             }
 
             public bool IsCompatibleWith(Node node) {

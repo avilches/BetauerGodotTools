@@ -28,6 +28,11 @@ namespace Betauer.Animation {
             return To(_ => to, duration, easing, callbackNode);
         }
 
+        public PropertyStepTweenerAbsolute<TProperty> To(Func<TProperty> to, float duration,
+            IEasing? easing = null, Action<Node>? callbackNode = null) {
+            return To(_ => to(), duration, easing, callbackNode);
+        }
+
         public PropertyStepTweenerAbsolute<TProperty> To(Func<Node, TProperty> to, float duration,
             IEasing? easing = null, Action<Node>? callbackNode = null) {
             var animationStepPropertyTweener =
