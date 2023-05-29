@@ -5,6 +5,7 @@ using Betauer.Animation.AnimationPlayer;
 using Betauer.Application.Monitor;
 using Betauer.Application.Persistent;
 using Betauer.Camera;
+using Betauer.Camera.Follower;
 using Betauer.Core;
 using Betauer.Core.Restorer;
 using Betauer.Core.Time;
@@ -76,6 +77,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 	[Inject] private MainStateMachine MainStateMachine { get; set; }
 	[Inject] private PlatformManager PlatformManager { get; set; }
 	[Inject] private ITransient<StageCameraController> StageCameraControllerFactory { get; set; }
+	[Inject] private CameraContainer CameraContainer { get; set; }
 
 	[Inject] private SceneTree SceneTree { get; set; }
 	[Inject] private EventBus EventBus { get; set; }
@@ -109,6 +111,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 	// private bool IsMovingPlatform() => PlatformManager.IsMovingPlatform(Body.GetFloor());
 	private MonitorText? _coyoteMonitor;
 	private MonitorText? _jumpHelperMonitor;
+	private CameraControl _cameraControl;
 
 	private CharacterWeaponController _characterWeaponController;
 	private AttackState _attackState = AttackState.None;
@@ -237,13 +240,12 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 	}
 
 	public void SetCamera(Camera2D camera) {
-		camera.Follow(CharacterBody2D);
+		_cameraControl = CameraContainer.Camera(camera).Follow(CharacterBody2D);
 		// Uncomment to enable stages
 		// StageCameraController.CurrentCamera = camera; 
 	}
 	
 	public void StopFollowingCamera() {
-		CharacterBody2D.ClearFollowerCamera();
 		StageCameraController.CurrentCamera = null;
 	}
 

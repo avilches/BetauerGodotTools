@@ -11,6 +11,7 @@ using Betauer.Application.Screen;
 using Betauer.Application.Settings;
 using Betauer.Application.Settings.Attributes;
 using Betauer.Camera;
+using Betauer.Camera.Follower;
 using Betauer.DI.Attributes;
 using Betauer.Input;
 using Betauer.Input.Attributes;
@@ -56,6 +57,7 @@ public class ApplicationConfig {
 	[Singleton] public GameLoader GameLoader => new();
 	[Transient] public StageController StageControllerFactory => new(LayerConstants.LayerStageArea);
 	[Transient] public StageCameraController StageCameraControllerFactory => new(LayerConstants.LayerStageArea);
+	[Singleton] public CameraContainer CameraContainer => new();
 }
 
 [Configuration]
