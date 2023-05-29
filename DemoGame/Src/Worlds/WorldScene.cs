@@ -31,6 +31,7 @@ public partial class WorldScene : Node {
 	[Inject] private NodePool<ProjectileTrail> ProjectilePool { get; set; }
 	[Inject] private NodePool<ZombieNode> ZombiePool { get; set; }
 
+	[NodePath("Focus1")] public Camera2D Focus1;
 	[NodePath("EnemySpawn")] private Node _enemySpawn;
 	[NodePath("Lights")] private Node _lights;
 	[NodePath("ItemSpawn")] private Node _pickableSpawn;
