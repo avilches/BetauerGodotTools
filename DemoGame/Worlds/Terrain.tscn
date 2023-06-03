@@ -1,6 +1,7 @@
-[gd_scene load_steps=4 format=3 uid="uid://163eoj5jr80w"]
+[gd_scene load_steps=6 format=3 uid="uid://163eoj5jr80w"]
 
 [ext_resource type="Texture2D" uid="uid://dlyg3lxl0c8kh" path="res://RTS/Assets/Sprout Lands/tilesets/Ground tiles/new tiles/Soil ground tiles.png" id="1_rd5u3"]
+[ext_resource type="Texture2D" uid="uid://ddllk40brysqn" path="res://RTS/Assets/Sprout Lands/tilesets/Ground tiles/new tiles/Darker Soil ground tiles.png" id="2_1dqwu"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_enas3"]
 texture = ExtResource("1_rd5u3")
@@ -354,11 +355,74 @@ texture = ExtResource("1_rd5u3")
 4:6/0 = 0
 4:6/0/terrain_set = 0
 
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_45igx"]
+texture = ExtResource("2_1dqwu")
+0:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+2:1/0 = 0
+2:2/0 = 0
+1:2/0 = 0
+0:2/0 = 0
+1:3/0 = 0
+2:3/0 = 0
+0:3/0 = 0
+3:3/0 = 0
+3:2/0 = 0
+3:1/0 = 0
+3:0/0 = 0
+4:0/0 = 0
+4:1/0 = 0
+4:2/0 = 0
+5:2/0 = 0
+4:3/0 = 0
+5:3/0 = 0
+6:2/0 = 0
+7:2/0 = 0
+7:3/0 = 0
+8:3/0 = 0
+9:3/0 = 0
+6:3/0 = 0
+5:1/0 = 0
+5:0/0 = 0
+6:0/0 = 0
+7:0/0 = 0
+8:0/0 = 0
+8:1/0 = 0
+7:1/0 = 0
+4:4/0 = 0
+5:4/0 = 0
+6:4/0 = 0
+7:4/0 = 0
+8:4/0 = 0
+4:5/0 = 0
+3:5/0 = 0
+2:5/0 = 0
+1:5/0 = 0
+0:5/0 = 0
+0:6/0 = 0
+1:6/0 = 0
+2:6/0 = 0
+3:6/0 = 0
+4:6/0 = 0
+9:0/0 = 0
+9:1/0 = 0
+9:2/0 = 0
+8:2/0 = 0
+6:1/0 = 0
+10:2/0 = 0
+10:3/0 = 0
+
 [sub_resource type="TileSet" id="TileSet_x8sol"]
 terrain_set_0/mode = 0
 terrain_set_0/terrain_0/name = "Soil"
 terrain_set_0/terrain_0/color = Color(1, 1, 1, 1)
+terrain_set_0/terrain_1/name = "Darker soil"
+terrain_set_0/terrain_1/color = Color(0.501961, 0.439216, 0.25098, 1)
 sources/0 = SubResource("TileSetAtlasSource_enas3")
+sources/1 = SubResource("TileSetAtlasSource_45igx")
 
 [node name="Node" type="Node"]
 
