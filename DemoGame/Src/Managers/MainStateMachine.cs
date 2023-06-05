@@ -65,9 +65,8 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
     
     [Inject] private ITransient<ModalBoxConfirm> ModalBoxConfirm { get; set; }
     [Inject("MyTheme")] private ResourceHolder<Theme> MyTheme { get; set; }
-    [Inject] private ITransient<Game> GameSceneFactory { get; set; }
-    
-    public Game? Game { get; private set; }
+
+    [Inject] private GameContainer GameContainer { get; set; }
 
     [Inject] private ScreenSettingsManager ScreenSettingsManager { get; set; }
     [Inject] private SceneTree SceneTree { get; set; }
@@ -179,9 +178,9 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
         State(MainState.StartingGame)
             .Enter(async () => {
                 await MainMenuScene.HideMainMenu();
-                Game = GameSceneFactory.Create();
-                SceneTree.Root.AddChild(Game);
-                await Game.StartNewGame();
+                GameContainer.CreateGame();
+                SceneTree.Root.AddChild(GameContainer.CurrentGame);
+                await GameContainer.CurrentGame.StartNewGame();
             })
             .If(() => true).Set(MainState.Gaming)
             .Build();
@@ -213,8 +212,8 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
 
         State(MainState.GameOver)
             .Enter(async () => {
-                await Game!.End(true);
-                Game = null;
+                await GameContainer.CurrentGame!.End(true);
+                GameContainer.RemoveGame();
             })
             .If(() => true).Set(MainState.MainMenu)
             .Build();
@@ -248,8 +247,8 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
                 
         State(MainState.QuitGame)
             .Enter(async () => {
-                await Game!.End(true);
-                Game = null;
+                await GameContainer.CurrentGame!.End(true);
+                GameContainer.RemoveGame();
             })
             .If(() => true).Set(MainState.MainMenu)
             .Build();

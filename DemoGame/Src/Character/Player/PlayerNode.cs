@@ -78,6 +78,8 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 	[Inject] private PlatformManager PlatformManager { get; set; }
 	[Inject] private ITransient<StageCameraController> StageCameraControllerFactory { get; set; }
 	[Inject] private CameraContainer CameraContainer { get; set; }
+	[Inject] private GameContainer GameContainer { get; set; }
+	private Game Game => GameContainer.CurrentGame;
 
 	[Inject] private SceneTree SceneTree { get; set; }
 	[Inject] private EventBus EventBus { get; set; }
@@ -353,7 +355,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 		// if (collision.IsColliding) return;
 		// var dropVelocity = new Vector2(MotionX + (PlatformBody.FacingRight * PlayerConfig.DropLateralSpeed), MotionY);
 		var dropVelocity = new Vector2(LateralState.FacingRight * Math.Max(Math.Abs(MotionX), PlayerConfig.DropLateralSpeed), MotionY);
-		MainStateMachine.Game!.WorldScene.PlayerDrop(item, Marker2D.GlobalPosition, dropVelocity);
+		Game.WorldScene.PlayerDrop(item, Marker2D.GlobalPosition, dropVelocity);
 		Inventory.Drop();
 	}
 
@@ -458,7 +460,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 		_fsm.State(PlayerState.Idle)
 			.OnInput(InventoryHandler)
 			.OnInput(e => {
-				if (e.IsKeyPressed(Key.V)) MainStateMachine.Game!.WorldScene.InstantiateNewZombie();
+				if (e.IsKeyPressed(Key.V)) Game.WorldScene.InstantiateNewZombie();
 			})
 			.Enter(() => {
 				if (AnimationShoot.IsPlaying()) AnimationIdle.Queue();
@@ -572,7 +574,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 			var bulletPosition = weapon.Config.ProjectileStartPosition * new Vector2(LateralState.FacingRight, 1);
 			var bulletDirection = new Vector2(LateralState.FacingRight, 0);
 			var hits = 0;
-			var bullet = MainStateMachine.Game!.WorldScene.NewBullet();
+			var bullet = Game.WorldScene.NewBullet();
 			Inventory.UpdateWeaponRangeAmmo(weapon, -1);
 			bullet.ShootFrom(weapon, CharacterBody2D.ToGlobal(bulletPosition), bulletDirection,
 				CollisionLayerManager.PlayerConfigureBulletRaycast,
