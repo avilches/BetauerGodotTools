@@ -19,6 +19,8 @@ using Betauer.Input.Joypad;
 using Godot;
 using Pcg;
 using Veronenger.Managers;
+using Veronenger.Platform.Character.Npc;
+using Veronenger.Platform.Character.Player;
 using Veronenger.Platform.Managers;
 using Veronenger.Transient;
 using Veronenger.UI;
