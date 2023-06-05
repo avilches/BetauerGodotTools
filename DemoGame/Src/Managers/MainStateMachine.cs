@@ -65,9 +65,9 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
     
     [Inject] private ITransient<ModalBoxConfirm> ModalBoxConfirm { get; set; }
     [Inject("MyTheme")] private ResourceHolder<Theme> MyTheme { get; set; }
-    [Inject] private ITransient<Game> GameSceneFactory { get; set; }
+    [Inject] private ITransient<Platform.Managers.PlatformGame> GameSceneFactory { get; set; }
     
-    public Game? Game { get; private set; }
+    public Platform.Managers.PlatformGame? Game { get; private set; }
 
     [Inject] private ScreenSettingsManager ScreenSettingsManager { get; set; }
     [Inject] private SceneTree SceneTree { get; set; }

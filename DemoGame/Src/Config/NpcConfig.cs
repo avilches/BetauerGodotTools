@@ -1,5 +1,5 @@
 using Godot;
-using Veronenger.Character;
+using Veronenger.Platform.Character;
 
 namespace Veronenger.Config; 
 

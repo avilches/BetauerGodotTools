@@ -1,5 +1,5 @@
 using Betauer.DI.Attributes;
-using Veronenger.Character;
+using Veronenger.Platform.Character;
 
 namespace Veronenger.Config; 
 

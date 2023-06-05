@@ -18,9 +18,8 @@ using Betauer.Input.Attributes;
 using Betauer.Input.Joypad;
 using Godot;
 using Pcg;
-using Veronenger.Character.Npc;
-using Veronenger.Character.Player;
 using Veronenger.Managers;
+using Veronenger.Platform.Managers;
 using Veronenger.Transient;
 using Veronenger.UI;
 using Veronenger.Worlds;
@@ -82,7 +81,7 @@ public class Settings {
 [Scene.Transient<RedefineActionButton>("RedefineActionButton", "res://Platform/Scenes/UI/RedefineActionButton.tscn")]
 [Scene.Transient<ModalBoxConfirm>("ModalBoxConfirm", "res://Platform/Scenes/Menu/ModalBoxConfirm.tscn")]
 [Scene.Transient<PlayerHud>("PlayerHudFactory", "res://Platform/Scenes/UI/PlayerHud.tscn")]
-[Scene.Transient<Game>("GameSceneFactory", "res://Src/Managers/Game.tscn")]
+[Scene.Transient<PlatformGame>("GameSceneFactory", "res://Src/Platform/Managers/PlatformGame.tscn")]
 [Scene.Singleton<MainMenu>("MainMenuSceneFactory", "res://Platform/Scenes/Menu/MainMenu.tscn")]
 [Scene.Singleton<BottomBar>("BottomBarSceneFactory", "res://Platform/Scenes/Menu/BottomBar.tscn")]
 [Scene.Singleton<PauseMenu>("PauseMenuSceneFactory", "res://Platform/Scenes/Menu/PauseMenu.tscn")]
@@ -99,9 +98,10 @@ public class MainResources {
 [Resource<Texture2D>("LeonMetalbarAnimationSprite", "res://Platform/Assets/Characters/Player-Leon/Leon-metalbar.png")]
 [Resource<Texture2D>("LeonGun1AnimationSprite", "res://Platform/Assets/Characters/Player-Leon/Leon-gun1.png")]
 [Scene.Transient<InventorySlot>("InventorySlotResource", "res://Platform/Scenes/UI/InventorySlot.tscn")]
-[Scene.Transient<WorldScene>("World3", "res://Worlds/World3.tscn")]
-[Scene.Transient<PlayerNode>("PlayerNode", "res://Platform/Scenes/Player.tscn")]
-[Scene.Transient<ZombieNode>("ZombieNode", "res://Platform/Scenes/Zombie2.tscn")]
+[Scene.Transient<WorldPlatform>("WorldPlatform", "res://Worlds/World3.tscn")]
+// [Scene.Transient<WorldTerrain>("WorldTerrain", "res://Worlds/Terrain.tscn")]
+[Scene.Transient<PlatformPlayerNode>("PlatformPlayerNode", "res://Platform/Scenes/PlatformPlayer.tscn")]
+[Scene.Transient<PlatformZombieNode>("PlatformZombieNode", "res://Platform/Scenes/PlatformZombie2.tscn")]
 [Scene.Transient<ProjectileTrail>("ProjectileTrail", "res://Platform/Scenes/ProjectileTrail.tscn")]
 [Scene.Transient<PickableItemNode>("PickableItem", "res://Platform/Scenes/PickableItem.tscn")]
 public class GameResources {
@@ -110,8 +110,8 @@ public class GameResources {
 [Configuration]
 [PoolContainer<Node>("PoolNodeContainer")]
 public class PoolConfig {
-	[Pool] NodePool<PlayerNode> PlayerPool => new("PlayerNode");
-	[Pool] NodePool<ZombieNode> ZombiePool => new("ZombieNode");
+	[Pool] NodePool<PlatformPlayerNode> PlatformPlayerPool => new("PlatformPlayerNode");
+	[Pool] NodePool<PlatformZombieNode> PlatformZombiePool => new("PlatformZombieNode");
 	[Pool] NodePool<ProjectileTrail> ProjectilePool => new("ProjectileTrail");
 	[Pool] NodePool<PickableItemNode> PickableItemPool => new("PickableItem");
 }

@@ -6,7 +6,7 @@ using Betauer.DI;
 using Betauer.DI.Attributes;
 using Godot;
 using Godot.Collections;
-using Veronenger.Persistent;
+using Veronenger.Platform.Persistent;
 
 namespace Veronenger.Transient;
 

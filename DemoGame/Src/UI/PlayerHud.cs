@@ -1,7 +1,7 @@
 using Betauer.NodePath;
 using Godot;
-using Veronenger.Character.Player;
-using Veronenger.Persistent;
+using Veronenger.Platform.Character.Player;
+using Veronenger.Platform.Persistent;
 
 namespace Veronenger.UI;
 

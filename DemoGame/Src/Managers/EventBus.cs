@@ -1,7 +1,7 @@
 using System;
 using Betauer.Bus;
 using Betauer.DI.Attributes;
-using Veronenger.Character.Player;
+using Veronenger.Platform.Character.Player;
 
 namespace Veronenger.Managers;
 

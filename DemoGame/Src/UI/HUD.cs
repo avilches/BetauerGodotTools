@@ -2,8 +2,9 @@ using Betauer.Core.Signal;
 using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
 using Godot;
-using Veronenger.Character.Player;
-using Veronenger.Persistent;
+using Veronenger.Platform.Character.Player;
+using Veronenger.Platform.Persistent;
+using PlatformPlayerNode = Veronenger.Platform.Character.Player.PlatformPlayerNode;
 
 namespace Veronenger.UI;
 
@@ -30,11 +31,11 @@ public partial class HUD : CanvasLayer {
 		Visible = false;
 	}
 
-	public void UpdateHealth(PlayerNode playerNode, PlayerHealthEvent he) {
+	public void UpdateHealth(PlatformPlayerNode playerNode, PlayerHealthEvent he) {
 		GetPlayerHud(playerNode).UpdateHealth(he);
 	}
 
-	private PlayerHud GetPlayerHud(PlayerNode playerNode) {
+	private PlayerHud GetPlayerHud(PlatformPlayerNode playerNode) {
 		if (playerNode.PlayerMapping.Player >= 2) throw new System.Exception("Only 2 players supported");
 		return playerNode.PlayerMapping.Player == 0 ? PlayerHud1 : PlayerHud2;
 	}
@@ -47,11 +48,11 @@ public partial class HUD : CanvasLayer {
 		Visible = false;
 	}
 
-	public void UpdateAmount(PlayerNode playerNode, PickableGameObject gameObject) {
+	public void UpdateAmount(PlatformPlayerNode playerNode, PickableGameObject gameObject) {
 		GetPlayerHud(playerNode).UpdateAmount(gameObject);
 	}
 
-	public void UpdateInventory(PlayerNode playerNode, PlayerInventoryEvent playerInventoryEvent) {
+	public void UpdateInventory(PlatformPlayerNode playerNode, PlayerInventoryEvent playerInventoryEvent) {
 		GetPlayerHud(playerNode).UpdateInventory(playerInventoryEvent);
 	}
 

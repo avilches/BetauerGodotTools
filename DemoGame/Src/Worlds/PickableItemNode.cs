@@ -7,10 +7,10 @@ using Betauer.DI.Attributes;
 using Betauer.FSM.Sync;
 using Betauer.NodePath;
 using Betauer.Physics;
-using Veronenger.Character;
 using Veronenger.Config;
-using Veronenger.Managers;
-using Veronenger.Persistent;
+using Veronenger.Platform.Character;
+using Veronenger.Platform.Managers;
+using Veronenger.Platform.Persistent;
 using Vector2 = Godot.Vector2;
 
 namespace Veronenger.Worlds;
@@ -59,7 +59,7 @@ public partial class PickableItemNode : Node, IInjectable, INodeGameObject {
 	}
 
 	public override void _Ready() {
-		CollisionLayerManager.PlayerPickableItem(this);
+		PlatformCollisionLayerManager.PlayerPickableItem(this);
 		PickZone.SetCollisionNode(this);
 		_state = State.Available;
 		_playerPosition = null;
