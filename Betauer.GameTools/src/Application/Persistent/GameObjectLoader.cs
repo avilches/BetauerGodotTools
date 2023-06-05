@@ -3,12 +3,19 @@ using System.IO;
 using System.IO.Compression;
 using System.Security.Cryptography;
 using Betauer.Tools.Logging;
+using Godot;
 
 namespace Betauer.Application.Persistent;
 
 public abstract class GameObjectLoader {
+    public bool Debug { get; set; }
+
     public static readonly Logger Logger = LoggerFactory.GetLogger<GameObjectLoader>();
-    
+
+    protected GameObjectLoader() {
+        Debug = OS.IsDebugBuild();
+    }
+
     public static ICryptoTransform CreateDecryptor(string seed) {
         using var aes = Aes.Create();
         var (key, iv) = GenerateKeyAndIV(aes, seed);

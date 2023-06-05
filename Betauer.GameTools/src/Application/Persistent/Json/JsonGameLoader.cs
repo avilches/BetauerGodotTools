@@ -12,11 +12,11 @@ namespace Betauer.Application.Persistent.Json;
 
 public class JsonGameLoader<TMetadata> : GameObjectLoader where TMetadata : Metadata {
     private JsonSerializerOptions? _jsonSerializerOptions;
-    public JsonSerializerOptions JsonSerializerOptions() => _jsonSerializerOptions ??= BuildJsonSerializerOptions();
 
     public static string MetadataExtension = "metadata";
     public static string SaveGameExtension = "data";
 
+    public JsonSerializerOptions JsonSerializerOptions() => _jsonSerializerOptions ??= BuildJsonSerializerOptions();
     public void WithJsonSerializerOptions(Action<JsonSerializerOptions> action) => action(JsonSerializerOptions());
 
     protected virtual JsonSerializerOptions BuildJsonSerializerOptions() {
@@ -89,14 +89,21 @@ public class JsonGameLoader<TMetadata> : GameObjectLoader where TMetadata : Meta
 
         // Save metadata
         if (seed == null) {
-            await using var stream = File.Create(metadataInfo.FullName);
-            await JsonSerializer.SerializeAsync(stream, metadata, JsonSerializerOptions());
+            await using var fileStream = File.Create(metadataInfo.FullName);
+            await JsonSerializer.SerializeAsync(fileStream, metadata, JsonSerializerOptions());
         } else {    
             using var encryptor = CreateEncryptor(seed);
-            await using var stream = new CryptoStream(File.Create(metadataInfo.FullName), encryptor, CryptoStreamMode.Write);
-            await JsonSerializer.SerializeAsync(stream, metadata, JsonSerializerOptions());
-            await stream.FlushFinalBlockAsync();
+            await using var fileStream = File.Create(metadataInfo.FullName);
+            await using var cryptoStream = new CryptoStream(fileStream, encryptor, CryptoStreamMode.Write);
+            await JsonSerializer.SerializeAsync(cryptoStream, metadata, JsonSerializerOptions());
+            await cryptoStream.FlushFinalBlockAsync();
         }
+        
+        if (Debug) {
+            await using var debugStream = File.Create(metadataInfo.FullName + ".debug");
+            await JsonSerializer.SerializeAsync(debugStream, metadata, JsonSerializerOptions());
+        }
+
     }
 
     public async Task<TMetadata> LoadMetadata(string saveName, string? seed = null, bool decompress = true) {
@@ -120,7 +127,7 @@ public class JsonGameLoader<TMetadata> : GameObjectLoader where TMetadata : Meta
         metadata.ReadDate = DateTime.Now;
         return metadata;
     }
-
+    
     public async Task Save(string saveName, TMetadata metadata, List<SaveObject> saveObjects, Action<float>? progress = null, string? seed = null, bool compress = true) {
         var savegameInfo = GetSavegameInfo(saveName);
         var progressList = CreateProgressList(saveObjects, progress);
@@ -149,6 +156,12 @@ public class JsonGameLoader<TMetadata> : GameObjectLoader where TMetadata : Meta
             metadata.Hash = FormatHash(sha256);
             // Console.WriteLine($"Save {saveName} {metadata.Hash}");
         }
+        
+        if (Debug) {
+            await using var debugStream = File.Create(savegameInfo.FullName + ".txt");
+            await JsonSerializer.SerializeAsync(debugStream, saveObjects, JsonSerializerOptions());
+        }
+        
         await SaveMetadata(saveName, metadata, seed);
     }
 
