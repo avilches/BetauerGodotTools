@@ -16,6 +16,10 @@ public static partial class Scene {
         public string Path { get; set; }
         public string? Tag { get; set; }
 
+        public SingletonAttribute(string name) {
+            Name = name;
+        }
+
         public SingletonAttribute(string name, string path) {
             Name = name;
             Path = path;
