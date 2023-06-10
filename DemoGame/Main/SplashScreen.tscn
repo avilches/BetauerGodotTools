@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://dvvip0qvxekg7"]
 
-[ext_resource type="Script" path="res://Main/SplashScreenNode.cs" id="1_ewv30"]
+[ext_resource type="Script" path="res://Main/SplashScreen.cs" id="1_ewv30"]
 [ext_resource type="Texture2D" uid="uid://c12blmsyum1yw" path="res://icon.png" id="2_4kdt6"]
 
 [node name="CanvasLayer" type="CanvasLayer"]

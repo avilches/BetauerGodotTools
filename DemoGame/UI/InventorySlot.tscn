@@ -5,7 +5,7 @@
 
 [sub_resource type="CompressedTexture2D" id="CompressedTexture2D_t4y30"]
 resource_local_to_scene = true
-load_path = "res://.godot/imported/pickups.png-7f54b646e005b917205d2de138715814.ctex"
+load_path = "res://.godot/imported/pickups.png-6f497491ed20cdd2c97bc2435d79a6b7.ctex"
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_ehtd3"]
 resource_local_to_scene = true

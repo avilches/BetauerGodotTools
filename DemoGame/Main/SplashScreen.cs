@@ -9,7 +9,7 @@ using Veronenger.Main;
 
 namespace Veronenger.UI; 
 
-public partial class SplashScreenNode : CanvasLayer {
+public partial class SplashScreen : CanvasLayer {
 	[NodePath("%SplashScreen")] private Control _base;
 	[NodePath("%TextureRect")] private TextureRect _sprite;
 	
