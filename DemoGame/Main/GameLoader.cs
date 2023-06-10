@@ -3,6 +3,8 @@ using Betauer.Application.Lifecycle;
 using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
 using Veronenger.UI;
+using BottomBar = Veronenger.Main.UI.BottomBar;
+using ProgressScreen = Veronenger.Main.UI.ProgressScreen;
 
 namespace Veronenger.Main;
 

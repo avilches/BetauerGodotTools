@@ -2,9 +2,9 @@
 
 [ext_resource type="Script" path="res://Worlds/WorldPlatform.cs" id="1_a6qu6"]
 [ext_resource type="PackedScene" uid="uid://bgoroc7wxd0fx" path="res://Worlds/Environment/City.tscn" id="2_f77fv"]
-[ext_resource type="PackedScene" uid="uid://crxuyxcrii0rb" path="res://Worlds/Environment/Anokalisa.tscn" id="3_fcp8k"]
-[ext_resource type="Texture2D" uid="uid://b7ir53ta6rglo" path="res://Platform/Assets/light.png" id="4_ctqfn"]
-[ext_resource type="Texture2D" uid="uid://hpw331rdkwps" path="res://Platform/Assets/light-spot.png" id="5_706rv"]
+[ext_resource type="PackedScene" uid="uid://crxuyxcrii0rb" path="res://Worlds/Environment/anokalisa/Anokalisa.tscn" id="3_fcp8k"]
+[ext_resource type="Texture2D" uid="uid://b7ir53ta6rglo" path="res://Worlds/light.png" id="4_ctqfn"]
+[ext_resource type="Texture2D" uid="uid://hpw331rdkwps" path="res://Worlds/light-spot.png" id="5_706rv"]
 
 [sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_wmw67"]
 polygon = PackedVector2Array(-489, 2, -489, 4, -402, 4, -403, -25, -265, -24, -265, -27, -405, -28, -404, 3)

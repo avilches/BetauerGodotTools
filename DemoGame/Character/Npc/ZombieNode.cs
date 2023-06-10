@@ -23,7 +23,6 @@ using Veronenger.Character.Player;
 using Veronenger.Main;
 using Veronenger.Main.Config;
 using Veronenger.Main.Game;
-using Veronenger.Managers;
 using Veronenger.Persistent;
 using MainStateMachine = Veronenger.Main.MainStateMachine;
 

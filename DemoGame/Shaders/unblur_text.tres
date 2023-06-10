@@ -1,0 +1,8 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://dgra7p6i3we55"]
+
+[ext_resource type="Shader" path="res://Shaders/unblur_text.gdshader" id="1_wqth0"]
+
+[resource]
+shader = ExtResource("1_wqth0")
+shader_parameter/threshold = null
+shader_parameter/color = null

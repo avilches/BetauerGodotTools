@@ -1,0 +1,66 @@
+[gd_scene load_steps=4 format=3 uid="uid://cftsvuoamo40d"]
+
+[ext_resource type="Script" path="res://Main/UI/ProgressScreen.cs" id="1_re1t2"]
+[ext_resource type="Theme" uid="uid://bei1s45ic3xtp" path="res://Main/UI/my_theme2.tres" id="2_04j3m"]
+[ext_resource type="Texture2D" uid="uid://3pvhwb1xss78" path="res://UI/player-health-bar-damage.png" id="3_b3rpj"]
+
+[node name="ProgressScreen" type="CanvasLayer"]
+layer = 101
+script = ExtResource("1_re1t2")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -104.0
+offset_bottom = 69.0
+grow_horizontal = 0
+theme_override_constants/margin_top = 40
+theme_override_constants/margin_right = 40
+
+[node name="HBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme = ExtResource("2_04j3m")
+alignment = 2
+
+[node name="SavingLabel" type="Label" parent="MarginContainer/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Saving..."
+horizontal_alignment = 1
+
+[node name="MarginContainer2" type="MarginContainer" parent="."]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -104.0
+offset_top = -69.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_constants/margin_right = 40
+theme_override_constants/margin_bottom = 40
+
+[node name="HBoxContainer" type="VBoxContainer" parent="MarginContainer2"]
+layout_mode = 2
+theme = ExtResource("2_04j3m")
+alignment = 2
+
+[node name="LoadProgressBar" type="TextureProgressBar" parent="MarginContainer2/HBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 0)
+layout_mode = 2
+value = 50.0
+stretch_margin_left = 1
+stretch_margin_top = 1
+stretch_margin_right = 1
+stretch_margin_bottom = 1
+texture_progress = ExtResource("3_b3rpj")
+texture_progress_offset = Vector2(2.08165e-12, 2.08165e-12)
+
+[node name="LoadLabel" type="Label" parent="MarginContainer2/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Loading..."
+horizontal_alignment = 1

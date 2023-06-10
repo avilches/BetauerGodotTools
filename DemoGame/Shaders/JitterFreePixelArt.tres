@@ -1,0 +1,6 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://djcjtj6pfd4ii"]
+
+[ext_resource type="Shader" path="res://Shaders/JitterFreePixelArt.gdshader" id="1_46li2"]
+
+[resource]
+shader = ExtResource("1_46li2")

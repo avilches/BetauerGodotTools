@@ -14,6 +14,12 @@ using Betauer.Input.Joypad;
 using Betauer.Nodes;
 using Godot;
 using Veronenger.UI;
+using BottomBar = Veronenger.Main.UI.BottomBar;
+using MainMenu = Veronenger.Main.UI.MainMenu;
+using ModalBoxConfirm = Veronenger.Main.UI.ModalBoxConfirm;
+using PauseMenu = Veronenger.Main.UI.PauseMenu;
+using ProgressScreen = Veronenger.Main.UI.ProgressScreen;
+using SettingsMenu = Veronenger.Main.UI.SettingsMenu;
 
 namespace Veronenger.Main; 
 

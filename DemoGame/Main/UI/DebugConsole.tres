@@ -1,0 +1,15 @@
+[gd_resource type="Theme" load_steps=2 format=3 uid="uid://cthe7dfw74cmy"]
+
+[ext_resource type="FontFile" uid="uid://cpgtmvnvbn5e0" path="res://Main/UI/Fonts/MonospacedMenlo/Menlo-Regular.ttf" id="1_fcg7b"]
+
+[resource]
+default_font = ExtResource("1_fcg7b")
+Label/font_sizes/font_size = 12
+Label/fonts/font = ExtResource("1_fcg7b")
+LineEdit/font_sizes/font_size = 12
+LineEdit/fonts/font = ExtResource("1_fcg7b")
+RichTextLabel/colors/default_color = Color(0.72, 0.72, 0.72, 1)
+RichTextLabel/font_sizes/bold_font_size = 12
+RichTextLabel/font_sizes/normal_font_size = 12
+RichTextLabel/fonts/mono_font = ExtResource("1_fcg7b")
+RichTextLabel/fonts/normal_font = ExtResource("1_fcg7b")

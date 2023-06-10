@@ -1,0 +1,94 @@
+[gd_scene load_steps=4 format=3 uid="uid://bjx7gbqxh6m7q"]
+
+[ext_resource type="Texture2D" uid="uid://c12blmsyum1yw" path="res://icon.png" id="1"]
+[ext_resource type="Theme" uid="uid://bei1s45ic3xtp" path="res://Main/UI/my_theme2.tres" id="2_uwqbt"]
+[ext_resource type="Script" path="res://Main/UI/MainMenu.cs" id="4"]
+
+[node name="MainMenuLayer" type="CanvasLayer"]
+script = ExtResource("4")
+
+[node name="MainMenu" type="HBoxContainer" parent="."]
+unique_name_in_owner = true
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -140.0
+offset_top = -83.0
+offset_right = 140.0
+offset_bottom = 83.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+theme = ExtResource("2_uwqbt")
+
+[node name="MarginContainer" type="MarginContainer" parent="MainMenu"]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MainMenu/MarginContainer"]
+layout_mode = 2
+alignment = 2
+
+[node name="Menu" type="VBoxContainer" parent="MainMenu/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+alignment = 2
+
+[node name="New game" type="Button" parent="MainMenu/MarginContainer/VBoxContainer/Menu"]
+layout_mode = 2
+text = "New game"
+
+[node name="Continue" type="Button" parent="MainMenu/MarginContainer/VBoxContainer/Menu"]
+layout_mode = 2
+text = "Continue"
+
+[node name="Settings" type="Button" parent="MainMenu/MarginContainer/VBoxContainer/Menu"]
+layout_mode = 2
+text = "Settings"
+
+[node name="Quit" type="Button" parent="MainMenu/MarginContainer/VBoxContainer/Menu"]
+layout_mode = 2
+text = "Exit"
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MainMenu/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Sep" type="Control" parent="MainMenu/MarginContainer/VBoxContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Author" type="Label" parent="MainMenu/MarginContainer/VBoxContainer/VBoxContainer"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+text = "Betauer Studios"
+
+[node name="Version" type="Label" parent="MainMenu/MarginContainer/VBoxContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "v0.1 - Betauer 2022"
+
+[node name="VBoxContainer2" type="VBoxContainer" parent="MainMenu"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Sep" type="Control" parent="MainMenu/VBoxContainer2"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="MainMenu/VBoxContainer2"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 64
+text = "Veronenger"
+
+[node name="Sep2" type="Control" parent="MainMenu/VBoxContainer2"]
+layout_mode = 2
+
+[node name="CenterContainer" type="CenterContainer" parent="MainMenu/VBoxContainer2"]
+layout_mode = 2
+
+[node name="TextureRect" type="TextureRect" parent="MainMenu/VBoxContainer2/CenterContainer"]
+layout_mode = 2
+texture = ExtResource("1")

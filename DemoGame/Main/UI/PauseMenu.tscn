@@ -1,0 +1,77 @@
+[gd_scene load_steps=4 format=3 uid="uid://bx5v1byc3d5g8"]
+
+[ext_resource type="Script" path="res://Main/UI/PauseMenu.cs" id="1"]
+[ext_resource type="Theme" uid="uid://bei1s45ic3xtp" path="res://Main/UI/my_theme2.tres" id="2_yd4j4"]
+[ext_resource type="FontFile" uid="uid://bah577vy7bskh" path="res://Main/UI/Fonts/dpcomic.ttf" id="3_w6run"]
+
+[node name="PauseMenu" type="CanvasLayer"]
+layer = 100
+script = ExtResource("1")
+
+[node name="BlackBar" type="ColorRect" parent="."]
+custom_minimum_size = Vector2(0, 200)
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_yd4j4")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 2
+
+[node name="Title" type="Label" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("3_w6run")
+theme_override_font_sizes/font_size = 32
+text = "Paused"
+
+[node name="Spacer" type="Control" parent="CenterContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+
+[node name="Menu" type="VBoxContainer" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+alignment = 1
+
+[node name="Resume" type="Button" parent="CenterContainer/VBoxContainer/Menu"]
+layout_mode = 2
+text = "Resume"
+
+[node name="Settings" type="Button" parent="CenterContainer/VBoxContainer/Menu"]
+layout_mode = 2
+text = "Settings"
+
+[node name="Quit game" type="Button" parent="CenterContainer/VBoxContainer/Menu"]
+layout_mode = 2
+text = "Quit game"
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/VBoxContainer"]
+visible = false
+layout_mode = 2
+
+[node name="line1" type="Label" parent="CenterContainer/VBoxContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="line2" type="Label" parent="CenterContainer/VBoxContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3

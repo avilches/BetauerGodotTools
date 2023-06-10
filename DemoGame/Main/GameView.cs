@@ -17,6 +17,7 @@ using Veronenger.Character.Player;
 using Veronenger.Main.Game;
 using Veronenger.UI;
 using Veronenger.Worlds;
+using ProgressScreen = Veronenger.Main.UI.ProgressScreen;
 
 namespace Veronenger.Main;
 

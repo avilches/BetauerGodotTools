@@ -23,6 +23,13 @@ using Veronenger.Character.Player;
 using Veronenger.Items;
 using Veronenger.UI;
 using Veronenger.Worlds;
+using BottomBar = Veronenger.Main.UI.BottomBar;
+using MainMenu = Veronenger.Main.UI.MainMenu;
+using ModalBoxConfirm = Veronenger.Main.UI.ModalBoxConfirm;
+using PauseMenu = Veronenger.Main.UI.PauseMenu;
+using ProgressScreen = Veronenger.Main.UI.ProgressScreen;
+using RedefineActionButton = Veronenger.Main.UI.RedefineActionButton;
+using SettingsMenu = Veronenger.Main.UI.SettingsMenu;
 
 namespace Veronenger.Main.Game; 
 
@@ -74,19 +81,19 @@ public class Settings {
 [Configuration]
 [Loader("GameLoader", Tag = "main")]
 [Preload<Texture2D>("Icon", "res://icon.png")]
-[Resource<Theme>("MyTheme", "res://Platform/Assets/UI/my_theme2.tres")]
-[Resource<Theme>("DebugConsoleTheme", "res://Platform/Assets/UI/DebugConsole.tres")]
-[Resource<Texture2D>("Xbox360Buttons", "res://Platform/Assets/UI/Consoles/Xbox 360 Controller Updated.png")]
-[Resource<Texture2D>("XboxOneButtons", "res://Platform/Assets/UI/Consoles/Xbox One Controller Updated.png")]
-[Scene.Transient<RedefineActionButton>("RedefineActionButton", "res://Platform/Scenes/UI/RedefineActionButton.tscn")]
-[Scene.Transient<ModalBoxConfirm>("ModalBoxConfirm", "res://Platform/Scenes/Menu/ModalBoxConfirm.tscn")]
-[Scene.Transient<PlayerHud>("PlayerHudFactory", "res://Platform/Scenes/UI/PlayerHud.tscn")]
+[Resource<Theme>("MyTheme", "res://Main/UI/my_theme2.tres")]
+[Resource<Theme>("DebugConsoleTheme", "res://Main/UI/DebugConsole.tres")]
+[Resource<Texture2D>("Xbox360Buttons", "res://Main/UI/Console/Xbox 360 Controller Updated.png")]
+[Resource<Texture2D>("XboxOneButtons", "res://Main/UI/Console/Xbox One Controller Updated.png")]
+[Scene.Transient<RedefineActionButton>("RedefineActionButton")]
+[Scene.Transient<ModalBoxConfirm>("ModalBoxConfirm")]
+[Scene.Transient<PlayerHud>("PlayerHudFactory")]
 [Scene.Transient<GameView>("GameSceneFactory")]
-[Scene.Singleton<MainMenu>("MainMenuSceneFactory", "res://Platform/Scenes/Menu/MainMenu.tscn")]
-[Scene.Singleton<BottomBar>("BottomBarSceneFactory", "res://Platform/Scenes/Menu/BottomBar.tscn")]
-[Scene.Singleton<PauseMenu>("PauseMenuSceneFactory", "res://Platform/Scenes/Menu/PauseMenu.tscn")]
-[Scene.Singleton<SettingsMenu>("SettingsMenuSceneFactory", "res://Platform/Scenes/Menu/SettingsMenu.tscn")]
-[Scene.Singleton<ProgressScreen>("ProgressScreenFactory", "res://Platform/Scenes/Menu/ProgressScreen.tscn")]
+[Scene.Singleton<MainMenu>("MainMenuSceneFactory")]
+[Scene.Singleton<BottomBar>("BottomBarSceneFactory")]
+[Scene.Singleton<PauseMenu>("PauseMenuSceneFactory")]
+[Scene.Singleton<SettingsMenu>("SettingsMenuSceneFactory")]
+[Scene.Singleton<ProgressScreen>("ProgressScreenFactory")]
 public class MainResources {
 }
 
@@ -94,10 +101,10 @@ public class MainResources {
 [Loader("GameLoader", Tag = "game")]
 [Resource<Texture2D>("Pickups", "res://Items/pickups.png")]
 [Resource<Texture2D>("Pickups2", "res://Items/pickups2.png")]
-[Resource<Texture2D>("LeonKnifeAnimationSprite", "res://Character/Player/Leon-knife.png")]
-[Resource<Texture2D>("LeonMetalbarAnimationSprite", "res://Character/Player/Leon-metalbar.png")]
-[Resource<Texture2D>("LeonGun1AnimationSprite", "res://Character/Player/Leon-gun1.png")]
-[Scene.Transient<InventorySlot>("InventorySlotResource", "res://Platform/Scenes/UI/InventorySlot.tscn")]
+[Resource<Texture2D>("LeonKnifeAnimationSprite", "res://Character/Player/Player-Leon/Leon-knife.png")]
+[Resource<Texture2D>("LeonMetalbarAnimationSprite", "res://Character/Player/Player-Leon/Leon-metalbar.png")]
+[Resource<Texture2D>("LeonGun1AnimationSprite", "res://Character/Player/Player-Leon/Leon-gun1.png")]
+[Scene.Transient<InventorySlot>("InventorySlotResource")]
 [Scene.Transient<WorldPlatform>("WorldPlatformFactory")]
 [Scene.Transient<PlayerNode>("PlayerNode")]
 [Scene.Transient<ZombieNode>("ZombieNode")]

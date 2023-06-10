@@ -10,7 +10,6 @@ using Betauer.Physics;
 using Veronenger.Character;
 using Veronenger.Main.Config;
 using Veronenger.Main.Game;
-using Veronenger.Managers;
 using Veronenger.Persistent;
 using Vector2 = Godot.Vector2;
 
