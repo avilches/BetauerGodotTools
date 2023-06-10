@@ -31,19 +31,17 @@ theme = ExtResource("7_v2wrj")
 
 [node name="ActionName" type="Label" parent="HBox"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 2.08165e-12)
 layout_mode = 2
 size_flags_horizontal = 3
 text = " Jump"
 
-[node name="Spacer" type="Control" parent="HBox"]
-layout_mode = 2
-size_flags_horizontal = 0
-size_flags_vertical = 0
-
 [node name="Key" type="Label" parent="HBox"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(56, 2.08165e-12)
 layout_mode = 2
 text = "E"
+horizontal_alignment = 2
 
 [node name="ControlConsoleButton" type="Control" parent="HBox"]
 custom_minimum_size = Vector2(14, 16)
@@ -54,3 +52,4 @@ size_flags_vertical = 0
 [node name="ConsoleButton" parent="HBox/ControlConsoleButton" instance=ExtResource("8_dfso4")]
 unique_name_in_owner = true
 position = Vector2(7, 8)
+offset = Vector2(46, 2.08165e-12)
