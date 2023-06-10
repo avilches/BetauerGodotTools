@@ -21,7 +21,6 @@ GODOT_LOGGER_DLL := -l:GodotTools.BuildLogger.GodotBuildLogger,/Applications/God
 
 CURRENT_VERSION:= $(shell cat ${ROOT_FOLDER}/project.godot | grep "config/version" | cut -d'=' -f2| tr -d '"')
 SOLUTION:= $(shell cat ${ROOT_FOLDER}/project.godot | grep "config/name" | cut -d'=' -f2| tr -d '"')
-CSPRJ_FOLDER:= $(shell cat ${ROOT_FOLDER}/project.godot | grep "project/c\#_project_directory" | cut -d'=' -f2| tr -d '"')
 
 .PHONY: help
 help:
@@ -104,7 +103,7 @@ run:
 
 .PHONY: test
 test:
-	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" -s "${CSPRJ_FOLDER}/Tests/RunTests.cs" --headless --verbose
+	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" -s "${ROOT_FOLDER}/Tests/RunTests.cs" --headless --verbose
 
 .PHONY: editor
 editor:
@@ -145,7 +144,7 @@ release:
 	@echo "Update project.godot and exports_presets.cfg?"
 	@echo "(CTRL+C to stop)"
 	@read -p ""
-	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" -s "${CSPRJ_FOLDER}/Build/Release.cs" --headless
+	${GODOT_EXECUTABLE} --path "${ROOT_FOLDER}" -s "${ROOT_FOLDER}/export/Release.cs" --headless
 
 .PHONY: export/all
 export/all: clean build/Debug release export/win export/osx export/linux

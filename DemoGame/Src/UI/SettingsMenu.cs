@@ -15,6 +15,7 @@ using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
 using Betauer.Nodes;
 using Godot;
+using Veronenger.Main;
 using Veronenger.Managers;
 
 namespace Veronenger.UI; 

@@ -5,6 +5,7 @@ using Betauer.DI.Attributes;
 using Betauer.Input;
 using Betauer.NodePath;
 using Godot;
+using Veronenger.Main;
 using Veronenger.Managers;
 
 namespace Veronenger.UI;

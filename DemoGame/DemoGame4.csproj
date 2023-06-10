@@ -8,22 +8,32 @@
         <EnableDefaultCompileItems>False</EnableDefaultCompileItems>
     </PropertyGroup>
     <ItemGroup Condition="'$(Configuration)' == 'Debug'">
-        <Compile Include="Src/**/*.cs" />
+        <Compile Include="export/**/*.cs" />
+        <Compile Include="Tests/**/*.cs" />
         <PackageReference Include="NUnit" Version="3.13.3" />
 
         <ProjectReference Include="../Betauer.TestRunner/Betauer.TestRunner.csproj" />
 
     </ItemGroup>
     <ItemGroup Condition="'$(Configuration)' == 'ExportRelease'">
-        <Compile Include="Src/**/*.cs" Exclude="Src/Build/**;Src/Tests/**" />
+    </ItemGroup>
+    <ItemGroup>
+        <Compile Include="Character/**/*.cs" />
+        <Compile Include="Src/**/*.cs" />
+        <Compile Include="Main/**/*.cs" />
+        <Compile Include="Items/**/*.cs" />
+        <Compile Include="Worlds/**/*.cs" />
     </ItemGroup>
     <ItemGroup>
         <Content Include="*" Exclude="mono_crash*" />
+        <Content Include="Character/**" />
+        <Content Include="Main/**" />
+        <Content Include="Items/**" />
         <Content Include="Platform/**" />
+        
         <Content Include="Docs/*" />
         <Content Include="export/*" />
         <Content Include="Scenes/**" />
-        <Content Include="Src/**/*.tscn" />
         <Content Include="Worlds/**" />
     </ItemGroup>
     <ItemGroup>

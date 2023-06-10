@@ -34,6 +34,10 @@ public class SceneFactory<T> : ResourceLoad, IFactory<T> where T : Node {
         if (attribute == null) {
             throw new Exception($"Can get path from {typeof(T).GetTypeName()} scene with");
         }
-        return attribute.Path.Replace(".cs", ".tscn");
+        path = attribute.Path.Replace(".cs", ".tscn");
+        if (!FileAccess.FileExists(path)) {
+            throw new Exception($"Scene from {typeof(T).GetTypeName()} class doesn't exist: {path}");
+        }
+        return path;
     }
 }

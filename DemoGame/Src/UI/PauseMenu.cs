@@ -7,8 +7,10 @@ using Betauer.Core.Signal;
 using Betauer.DI.Attributes;
 using Betauer.UI;
 using Godot;
+using Veronenger.Main;
 using Veronenger.Managers;
 using Container = Godot.Container;
+using MainStateMachine = Veronenger.Main.MainStateMachine;
 
 namespace Veronenger.UI; 
 

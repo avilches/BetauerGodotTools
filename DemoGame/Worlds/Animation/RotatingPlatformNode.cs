@@ -1,41 +1,39 @@
 using Godot;
-using Betauer;
-using Betauer.DI;
-using Veronenger.Managers;
+using Betauer.DI.Attributes;
+using Veronenger.Main.Game;
 using static Godot.Mathf;
 
-namespace Veronenger.Worlds.Animation {
-    public partial class RotatingPlatformNode : CharacterBody2D {
+namespace Veronenger.Worlds.Animation; 
 
-        [Export] public Vector2 Radius = new Vector2(50, 50);
-        [Export] public float RotationDuration = 4.0f;
-        [Inject] public PlatformManager PlatformManager { get; set;}
-        private float _angle = 0;
-        private float _speed;
+public partial class RotatingPlatformNode : CharacterBody2D {
 
-        public override void _Ready() {
-            Configure();
-        }
+    [Export] public Vector2 Radius = new Vector2(50, 50);
+    [Export] public float RotationDuration = 4.0f;
+    [Inject] public PlatformManager PlatformManager { get; set;}
+    private float _angle = 0;
+    private float _speed;
 
-        public override void _PhysicsProcess(double delta) {
-            UpdateAngle(delta);
-            UpdatePosition();
-        }
+    public override void _Ready() {
+        Configure();
+    }
 
-        private void Configure() {
-            _speed = Tau / RotationDuration;
-        }
+    public override void _PhysicsProcess(double delta) {
+        UpdateAngle(delta);
+        UpdatePosition();
+    }
 
-        private void UpdateAngle(double delta) {
-            _angle = Wrap(_angle + _speed * (float)delta, 0, Tau); // # Infinite rotation(in radians)
-        }
+    private void Configure() {
+        _speed = Tau / RotationDuration;
+    }
 
-        private void UpdatePosition() {
-            var x = Sin(_angle) * Radius.X;
-            var y = Cos(_angle) * Radius.Y;
-            Position = new Vector2(x, y);
-        }
+    private void UpdateAngle(double delta) {
+        _angle = Wrap(_angle + _speed * (float)delta, 0, Tau); // # Infinite rotation(in radians)
+    }
 
+    private void UpdatePosition() {
+        var x = Sin(_angle) * Radius.X;
+        var y = Cos(_angle) * Radius.Y;
+        Position = new Vector2(x, y);
     }
 
 }

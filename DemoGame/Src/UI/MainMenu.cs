@@ -9,6 +9,7 @@ using Betauer.Input;
 using Betauer.NodePath;
 using Betauer.UI;
 using Godot;
+using Veronenger.Main;
 using Veronenger.Managers;
 
 namespace Veronenger.UI; 
