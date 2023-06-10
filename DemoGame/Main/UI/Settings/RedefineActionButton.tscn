@@ -1,12 +1,13 @@
-[gd_scene load_steps=8 format=3 uid="uid://c4cm73gj1or01"]
+[gd_scene load_steps=9 format=3 uid="uid://c4cm73gj1or01"]
 
-[ext_resource type="Script" path="res://Main/UI/Settings/RedefineActionButton.cs" id="1"]
-[ext_resource type="StyleBox" path="res://Main/UI/Buttons/FakeButton_Normal.tres" id="1_jpxl8"]
-[ext_resource type="StyleBox" path="res://Main/UI/Buttons/FakeButton_Hover.tres" id="2_0bnpk"]
-[ext_resource type="StyleBox" path="res://Main/UI/Buttons/ButtonStyle_Pressed.tres" id="3_ms28e"]
-[ext_resource type="StyleBox" path="res://Main/UI/Buttons/FakeButton_Disabled.tres" id="4_dqgg7"]
-[ext_resource type="StyleBox" path="res://Main/UI/Buttons/FakeButton_Focussed.tres" id="5_0u8na"]
-[ext_resource type="Theme" uid="uid://bei1s45ic3xtp" path="res://Main/UI/my_theme2.tres" id="7_sh3em"]
+[ext_resource type="StyleBox" path="res://Main/UI/Buttons/FakeButton_Normal.tres" id="1_sih0b"]
+[ext_resource type="StyleBox" path="res://Main/UI/Buttons/FakeButton_Hover.tres" id="2_ooimt"]
+[ext_resource type="StyleBox" path="res://Main/UI/Buttons/ButtonStyle_Pressed.tres" id="3_32qgy"]
+[ext_resource type="StyleBox" path="res://Main/UI/Buttons/FakeButton_Disabled.tres" id="4_xyjrb"]
+[ext_resource type="StyleBox" path="res://Main/UI/Buttons/FakeButton_Focussed.tres" id="5_7h4m5"]
+[ext_resource type="Script" path="res://Main/UI/Settings/RedefineActionButton.cs" id="6_hywgf"]
+[ext_resource type="Theme" uid="uid://bei1s45ic3xtp" path="res://Main/UI/my_theme2.tres" id="7_v2wrj"]
+[ext_resource type="PackedScene" uid="uid://bm8nfxhxh5yr2" path="res://Main/UI/Console/ConsoleButton.tscn" id="8_dfso4"]
 
 [node name="RedefineActionButton" type="Button"]
 custom_minimum_size = Vector2(0, 16)
@@ -16,28 +17,40 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 3
-theme_override_styles/normal = ExtResource("1_jpxl8")
-theme_override_styles/hover = ExtResource("2_0bnpk")
-theme_override_styles/pressed = ExtResource("3_ms28e")
-theme_override_styles/disabled = ExtResource("4_dqgg7")
-theme_override_styles/focus = ExtResource("5_0u8na")
-script = ExtResource("1")
+theme_override_styles/normal = ExtResource("1_sih0b")
+theme_override_styles/hover = ExtResource("2_ooimt")
+theme_override_styles/pressed = ExtResource("3_32qgy")
+theme_override_styles/disabled = ExtResource("4_xyjrb")
+theme_override_styles/focus = ExtResource("5_7h4m5")
+script = ExtResource("6_hywgf")
 
 [node name="HBox" type="HBoxContainer" parent="."]
 layout_mode = 0
 size_flags_horizontal = 3
-theme = ExtResource("7_sh3em")
+theme = ExtResource("7_v2wrj")
 
 [node name="ActionName" type="Label" parent="HBox"]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = " Jump"
 
-[node name="Control" type="Control" parent="HBox"]
+[node name="Spacer" type="Control" parent="HBox"]
 layout_mode = 2
 size_flags_horizontal = 0
 size_flags_vertical = 0
 
 [node name="Key" type="Label" parent="HBox"]
+unique_name_in_owner = true
 layout_mode = 2
 text = "E"
+
+[node name="ControlConsoleButton" type="Control" parent="HBox"]
+custom_minimum_size = Vector2(14, 16)
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 0
+
+[node name="ConsoleButton" parent="HBox/ControlConsoleButton" instance=ExtResource("8_dfso4")]
+unique_name_in_owner = true
+position = Vector2(7, 8)

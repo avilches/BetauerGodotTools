@@ -37,8 +37,8 @@ public partial class ActionHint : HBoxContainer {
 	private JoyButton _joyButton;
 	private JoyAxis _joyAxis;
 	private bool _animate;
-		
-	private bool _isUsingKeyboard;
+
+	private bool _isUsingKeyboard = true;
 
 	public ActionHint AxisAction(AxisAction axisAction, bool animate) {
 		_joyAxis = axisAction.Positive.Axis;
@@ -93,12 +93,16 @@ public partial class ActionHint : HBoxContainer {
 	}
 
 	public override void _Input(InputEvent e) {
-		if ((e.IsAnyKey() || e.IsMouse()) && !_isUsingKeyboard) {
-			_isUsingKeyboard = true;
-			Refresh();
-		} else if ((e.IsAnyButton() || e.IsAnyAxis()) && _isUsingKeyboard) {
-			_isUsingKeyboard = false;
-			Refresh();
+		if (_isUsingKeyboard) {
+			if (e.IsAnyButton() || e.IsAnyAxis()) {
+				_isUsingKeyboard = false;
+				Refresh();
+			}
+		} else {
+			if (e.IsAnyKey() || e.IsMouse()) {
+				_isUsingKeyboard = true;
+				Refresh();
+			}
 		}
 	}
 }

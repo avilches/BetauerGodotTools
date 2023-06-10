@@ -2,13 +2,14 @@ using System.Linq;
 using Betauer.Input;
 using Betauer.NodePath;
 using Godot;
+using Veronenger.UI.Consoles;
 
 namespace Veronenger.Main.UI; 
 
 public partial class RedefineActionButton : Button {
-	[NodePath("HBox/ActionName")] private Label _actionNameLabel;
-	// [NodePath("HBox/Control/ConsoleButton")] private ConsoleButton _consoleButton;
-	[NodePath("HBox/Key")] private Label _keyLabel;
+	[NodePath("%ActionName")] private Label _actionNameLabel;
+	[NodePath("%ConsoleButton")] private ConsoleButton _consoleButton;
+	[NodePath("%Key")] private Label _keyLabel;
 		
 	public InputAction InputAction;
 	public string ActionName;
@@ -24,7 +25,7 @@ public partial class RedefineActionButton : Button {
 	public override void _Ready() {
 		Refresh();
 		if (IsKey) {
-			//_consoleButton.QueueFree();
+			_consoleButton.QueueFree();
 		} else {
 			_keyLabel.QueueFree();
 		}
@@ -34,16 +35,16 @@ public partial class RedefineActionButton : Button {
 		if (InputAction == null) return;
 		_actionNameLabel.Text = ActionName;
 		if (IsKey) {
-			// _consoleButton.Visible = false;
-			// _keyLabel.Visible = true;
+			_consoleButton.Visible = false;
+			_keyLabel.Visible = true;
 			if (InputAction.Keys.Count > 0) {
 				_keyLabel.Text = InputAction.Keys.First().ToString();
 			}
 		} else {
-			// _consoleButton.Visible = true;
-			// _keyLabel.Visible = false;
+			_consoleButton.Visible = true;
+			_keyLabel.Visible = false;
 				
-			//_consoleButton.InputAction(false, InputAction, ConsoleButton.State.Normal);
+			_consoleButton.InputAction(InputAction, ConsoleButtonState.Normal);
 		}
 	}
 }
