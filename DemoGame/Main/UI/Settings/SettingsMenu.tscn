@@ -49,7 +49,6 @@ size_flags_horizontal = 3
 
 [node name="ScrollContainer" type="ScrollContainer" parent="Panel/SettingsBox"]
 layout_mode = 2
-size_flags_horizontal = 3
 size_flags_vertical = 3
 follow_focus = true
 
@@ -85,11 +84,16 @@ alignment = 0
 
 [node name="Resolutions" type="ItemList" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu"]
 unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(2.08165e-12, 95)
 layout_mode = 2
-auto_height = true
-item_count = 2
+item_count = 6
 item_0/text = "asdads"
 item_1/text = "2234234"
+item_2/text = "222"
+item_3/text = "33aasda"
+item_4/text = "adasdasd"
+item_5/text = "asdasdasd"
 
 [node name="PixelPerfect" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu" instance=ExtResource("4_yy26m")]
 unique_name_in_owner = true

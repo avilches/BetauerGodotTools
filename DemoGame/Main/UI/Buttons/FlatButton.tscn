@@ -1,14 +1,14 @@
 [gd_scene load_steps=6 format=3 uid="uid://etv0voa53luq"]
 
-[ext_resource type="StyleBox" path="res://Main/UI/Buttons/FakeButton_Normal.tres" id="1_622q0"]
-[ext_resource type="StyleBox" path="res://Main/UI/Buttons/FakeButton_Hover.tres" id="2_75dty"]
-[ext_resource type="StyleBox" path="res://Main/UI/Buttons/FakeButton_Pressed.tres" id="3_c00c0"]
-[ext_resource type="StyleBox" path="res://Main/UI/Buttons/FakeButton_Disabled.tres" id="4_wxfaq"]
-[ext_resource type="StyleBox" path="res://Main/UI/Buttons/FakeButton_Focussed.tres" id="5_5m6oc"]
+[ext_resource type="StyleBox" path="res://Main/UI/Buttons/FakeButton_Normal.tres" id="1_bik0p"]
+[ext_resource type="StyleBox" path="res://Main/UI/Buttons/FakeButton_Hover.tres" id="2_jo8pt"]
+[ext_resource type="StyleBox" path="res://Main/UI/Buttons/FakeButton_Pressed.tres" id="3_8q5r5"]
+[ext_resource type="StyleBox" path="res://Main/UI/Buttons/FakeButton_Disabled.tres" id="4_olp37"]
+[ext_resource type="StyleBox" path="res://Main/UI/Buttons/FakeButton_Focussed.tres" id="5_n5oep"]
 
 [node name="FlatButton" type="Button"]
-theme_override_styles/normal = ExtResource("1_622q0")
-theme_override_styles/hover = ExtResource("2_75dty")
-theme_override_styles/pressed = ExtResource("3_c00c0")
-theme_override_styles/disabled = ExtResource("4_wxfaq")
-theme_override_styles/focus = ExtResource("5_5m6oc")
+theme_override_styles/normal = ExtResource("1_bik0p")
+theme_override_styles/hover = ExtResource("2_jo8pt")
+theme_override_styles/pressed = ExtResource("3_8q5r5")
+theme_override_styles/disabled = ExtResource("4_olp37")
+theme_override_styles/focus = ExtResource("5_n5oep")

@@ -230,6 +230,7 @@ public partial class SettingsMenu : CanvasLayer {
 		_resolutions.Select(selectedPosition);
 		_resolutions.Show();
 		_resolutions.GrabFocus();
+		_resolutions.EnsureCurrentIsVisible();
 	}
 
 	private string GetResolutionFullName(ScaledResolution scaledResolution) {
