@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="DemoGame4"
-run/main_scene="res://Main/SplashScreen.tscn"
+run/main_scene="res://Game/SplashScreen.tscn"
 config/use_custom_user_dir=true
 config/project_settings_override="user://override.cfg"
 config/features=PackedStringArray("4.1", "C#")
@@ -24,7 +24,7 @@ config/version="1.0.0"
 
 [autoload]
 
-Bootstrap="*res://Main/Bootstrap.cs"
+Bootstrap="*res://Game/Bootstrap.cs"
 
 [debug]
 

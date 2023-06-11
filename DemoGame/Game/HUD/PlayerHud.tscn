@@ -1,0 +1,61 @@
+[gd_scene load_steps=6 format=3 uid="uid://b2shbrwueaa74"]
+
+[ext_resource type="Texture2D" uid="uid://b1mxxkrpf3xej" path="res://Game/HUD/player-health-bar-over.png" id="1_gtut2"]
+[ext_resource type="Script" path="res://Game/HUD/PlayerHud.cs" id="1_ltqk2"]
+[ext_resource type="Texture2D" uid="uid://cxmo73r7h3lgq" path="res://Game/HUD/player-health-bar-under.png" id="1_y6xfw"]
+[ext_resource type="Texture2D" uid="uid://3pvhwb1xss78" path="res://Game/HUD/player-health-bar-damage.png" id="2_1ks8x"]
+[ext_resource type="PackedScene" uid="uid://cit0h4t4vue11" path="res://Game/HUD/Inventory.tscn" id="5_2lw04"]
+
+[node name="PlayerHud" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_ltqk2")
+
+[node name="TL" type="MarginContainer" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+
+[node name="HBoxContainer" type="HBoxContainer" parent="TL"]
+layout_mode = 2
+
+[node name="HealthBar" type="TextureProgressBar" parent="TL/HBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 0)
+layout_mode = 2
+value = 40.0
+allow_lesser = true
+stretch_margin_left = 1
+stretch_margin_top = 1
+stretch_margin_right = 1
+stretch_margin_bottom = 1
+texture_under = ExtResource("1_y6xfw")
+texture_over = ExtResource("1_gtut2")
+texture_progress = ExtResource("2_1ks8x")
+
+[node name="Control" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -40.0
+offset_top = -40.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 40
+
+[node name="BR" type="HBoxContainer" parent="Control"]
+layout_mode = 2
+
+[node name="Inventory" parent="Control/BR" instance=ExtResource("5_2lw04")]
+unique_name_in_owner = true
+layout_mode = 2

@@ -1,0 +1,16 @@
+[gd_scene load_steps=7 format=3 uid="uid://bcmwxxdfmwf7a"]
+
+[ext_resource type="StyleBox" path="res://Game/UI/Buttons/FakeButton_Normal.tres" id="1_xs840"]
+[ext_resource type="StyleBox" path="res://Game/UI/Buttons/FakeButton_Pressed.tres" id="2_wlkwy"]
+[ext_resource type="StyleBox" path="res://Game/UI/Buttons/FakeButton_Disabled.tres" id="3_ph3dn"]
+[ext_resource type="StyleBox" path="res://Game/UI/Buttons/FakeButton_Hover.tres" id="4_rskn6"]
+[ext_resource type="StyleBox" path="res://Game/UI/Buttons/FakeButton_Hover_Pressed.tres" id="5_5vo3d"]
+[ext_resource type="StyleBox" path="res://Game/UI/Buttons/FakeButton_Focussed.tres" id="6_j5g3h"]
+
+[node name="FlatCheckButton" type="CheckButton"]
+theme_override_styles/normal = ExtResource("1_xs840")
+theme_override_styles/pressed = ExtResource("2_wlkwy")
+theme_override_styles/disabled = ExtResource("3_ph3dn")
+theme_override_styles/hover = ExtResource("4_rskn6")
+theme_override_styles/hover_pressed = ExtResource("5_5vo3d")
+theme_override_styles/focus = ExtResource("6_j5g3h")

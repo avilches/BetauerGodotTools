@@ -18,24 +18,12 @@
     <ItemGroup Condition="'$(Configuration)' == 'ExportRelease'">
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="Character/**/*.cs" />
-        <Compile Include="Main/**/*.cs" />
-        <Compile Include="Items/**/*.cs" />
-        <Compile Include="UI/**/*.cs" />
-        <Compile Include="Worlds/**/*.cs" />
+        <Compile Include="Game/**/*.cs" />
     </ItemGroup>
     <ItemGroup>
         <Content Include="*" Exclude="mono_crash*" />
-        <Content Include="Character/**" />
-        <Content Include="Main/**" />
-        <Content Include="Items/**" />
-        <Content Include="Platform/**" />
-        <Content Include="UI/**" />
-        <Content Include="Worlds/**" />
-        
         <Content Include="Docs/*" />
         <Content Include="export/*" />
-        <Content Include="Scenes/**" />
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="PcgRandom" Version="1.2.0" />

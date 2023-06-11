@@ -1,0 +1,201 @@
+[gd_scene load_steps=7 format=3 uid="uid://d3oetnugexew"]
+
+[ext_resource type="Script" path="res://Game/UI/Settings/SettingsMenu.cs" id="1_t0csu"]
+[ext_resource type="Theme" uid="uid://bei1s45ic3xtp" path="res://Game/UI/my_theme2.tres" id="2_t1rc5"]
+[ext_resource type="FontFile" uid="uid://bah577vy7bskh" path="res://Game/UI/Fonts/dpcomic.ttf" id="3_pfhqv"]
+[ext_resource type="PackedScene" uid="uid://bcmwxxdfmwf7a" path="res://Game/UI/Buttons/CheckButton.tscn" id="4_yy26m"]
+[ext_resource type="PackedScene" uid="uid://etv0voa53luq" path="res://Game/UI/Buttons/FlatButton.tscn" id="5_hunpk"]
+[ext_resource type="PackedScene" uid="uid://c4cm73gj1or01" path="res://Game/UI/Settings/RedefineActionButton.tscn" id="6_yyd6a"]
+
+[node name="SettingsLayer" type="CanvasLayer"]
+layer = 101
+script = ExtResource("1_t0csu")
+
+[node name="Panel" type="Panel" parent="."]
+custom_minimum_size = Vector2(320, 400)
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_t1rc5")
+metadata/_edit_use_anchors_ = true
+
+[node name="SettingsBox" type="VBoxContainer" parent="Panel"]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 10.0
+offset_right = -16.0
+offset_bottom = -24.0
+size_flags_horizontal = 3
+size_flags_vertical = 2
+alignment = 1
+
+[node name="SettingsTitle" type="Label" parent="Panel/SettingsBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("3_pfhqv")
+theme_override_font_sizes/font_size = 32
+text = "Settings"
+horizontal_alignment = 1
+
+[node name="Spacer" type="Label" parent="Panel/SettingsBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Panel/SettingsBox"]
+layout_mode = 2
+size_flags_vertical = 3
+follow_focus = true
+
+[node name="MarginContainer" type="MarginContainer" parent="Panel/SettingsBox/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_right = 6
+theme_override_constants/margin_bottom = 3
+
+[node name="Menu" type="VBoxContainer" parent="Panel/SettingsBox/ScrollContainer/MarginContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="VideoTitle" type="Label" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("3_pfhqv")
+text = "Video"
+
+[node name="Fullscreen" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu" instance=ExtResource("4_yy26m")]
+unique_name_in_owner = true
+layout_mode = 2
+text = " Fullscreen"
+
+[node name="Resolution" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu" instance=ExtResource("5_hunpk")]
+unique_name_in_owner = true
+layout_mode = 2
+text = " Resolution"
+alignment = 0
+
+[node name="Resolutions" type="ItemList" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(2.08165e-12, 95)
+layout_mode = 2
+item_count = 6
+item_0/text = "asdads"
+item_1/text = "2234234"
+item_2/text = "222"
+item_3/text = "33aasda"
+item_4/text = "adasdasd"
+item_5/text = "asdasdasd"
+
+[node name="PixelPerfect" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu" instance=ExtResource("4_yy26m")]
+unique_name_in_owner = true
+layout_mode = 2
+text = " Pixel perfect"
+
+[node name="Borderless" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu" instance=ExtResource("4_yy26m")]
+unique_name_in_owner = true
+layout_mode = 2
+text = " Borderless window"
+
+[node name="VSync" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu" instance=ExtResource("4_yy26m")]
+unique_name_in_owner = true
+layout_mode = 2
+text = " Vertical sync"
+
+[node name="GamepadTitle" type="Label" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("3_pfhqv")
+text = "Gamepad"
+
+[node name="GamepadControls" type="VBoxContainer" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Jump1" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/GamepadControls" instance=ExtResource("6_yyd6a")]
+layout_mode = 2
+
+[node name="Jump2" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/GamepadControls" instance=ExtResource("6_yyd6a")]
+layout_mode = 2
+
+[node name="Jump3" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/GamepadControls" instance=ExtResource("6_yyd6a")]
+layout_mode = 2
+
+[node name="Jump4" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/GamepadControls" instance=ExtResource("6_yyd6a")]
+layout_mode = 2
+
+[node name="KeyboardTitle" type="Label" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("3_pfhqv")
+text = "Keyboard"
+
+[node name="KeyboardControls" type="VBoxContainer" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Jump1" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/KeyboardControls" instance=ExtResource("6_yyd6a")]
+layout_mode = 2
+
+[node name="Jump2" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/KeyboardControls" instance=ExtResource("6_yyd6a")]
+layout_mode = 2
+
+[node name="Jump3" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/KeyboardControls" instance=ExtResource("6_yyd6a")]
+layout_mode = 2
+
+[node name="Jump4" parent="Panel/SettingsBox/ScrollContainer/MarginContainer/Menu/KeyboardControls" instance=ExtResource("6_yyd6a")]
+layout_mode = 2
+
+[node name="RedefineBox" type="VBoxContainer" parent="Panel"]
+visible = false
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 2
+alignment = 1
+
+[node name="Spacer1" type="Control" parent="Panel/RedefineBox"]
+visible = false
+layout_mode = 2
+
+[node name="Message" type="Label" parent="Panel/RedefineBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Press key or button for"
+horizontal_alignment = 1
+
+[node name="Spacer2" type="Control" parent="Panel/RedefineBox"]
+layout_mode = 2
+
+[node name="RedefineActionName" type="Label" parent="Panel/RedefineBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 32
+text = "Jump"
+horizontal_alignment = 1
+
+[node name="Spacer3" type="Control" parent="Panel/RedefineBox"]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+
+[node name="RedefineCounter" type="Label" parent="Panel/RedefineBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "(Escape to cancel)"
+horizontal_alignment = 1
