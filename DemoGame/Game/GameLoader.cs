@@ -7,8 +7,8 @@ using Veronenger.Game.UI;
 namespace Veronenger.Game;
 
 public class GameLoader : ResourceLoaderContainer {
-    [Inject] private ILazy<BottomBar> BottomBarSceneFactory { get; set; }
-    [Inject] private ILazy<ProgressScreen> ProgressScreenFactory { get; set; }
+    [Inject] private ILazy<BottomBar> BottomBarLazy { get; set; }
+    [Inject] private ILazy<ProgressScreen> ProgressScreenLazy { get; set; }
 	
     public Task LoadMainResources() => LoadResources("main");
 
@@ -19,12 +19,12 @@ public class GameLoader : ResourceLoaderContainer {
     }
 
     private void LoadStart() {
-        BottomBarSceneFactory.Get().Visible = false;
+        BottomBarLazy.Get().Visible = false;
     }
 
     private void LoadEnd() {
-        BottomBarSceneFactory.Get().Visible = true;
-        ProgressScreenFactory.Get().Hide();
+        BottomBarLazy.Get().Visible = true;
+        ProgressScreenLazy.Get().Hide();
     }
 
     public void UnloadGameResources() => UnloadResources("game");

@@ -52,22 +52,22 @@ public enum MainEvent {
 [Singleton]
 public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInjectable {
 
-    [Inject] private ILazy<MainMenu> MainMenuSceneFactory { get; set; }
-    [Inject] private ILazy<BottomBar> BottomBarSceneFactory { get; set; }
-    [Inject] private ILazy<PauseMenu> PauseMenuSceneFactory { get; set; }
-    [Inject] private ILazy<SettingsMenu> SettingsMenuSceneFactory { get; set; }
-    [Inject] private ILazy<ProgressScreen> ProgressScreenFactory { get; set; }
+    [Inject] private ILazy<MainMenu> MainMenuSceneLazy { get; set; }
+    [Inject] private ILazy<BottomBar> BottomBarLazy { get; set; }
+    [Inject] private ILazy<PauseMenu> PauseMenuLazy { get; set; }
+    [Inject] private ILazy<SettingsMenu> SettingsMenuLazy { get; set; }
+    [Inject] private ILazy<ProgressScreen> ProgressScreenLazy { get; set; }
     [Inject] private HudCanvas HudCanvas { get; set; }
     [Inject] private GameLoader GameLoader { get; set; }
     [Inject] private PoolContainer<Node> PoolNodeContainer { get; set; }
 
-    private MainMenu MainMenuScene => MainMenuSceneFactory.Get();
-    private BottomBar BottomBarScene => BottomBarSceneFactory.Get();
-    private PauseMenu PauseMenuScene => PauseMenuSceneFactory.Get();
-    private SettingsMenu SettingsMenuScene => SettingsMenuSceneFactory.Get();
-    private ProgressScreen ProgressScreenScene => ProgressScreenFactory.Get();
+    private MainMenu MainMenuScene => MainMenuSceneLazy.Get();
+    private BottomBar BottomBarScene => BottomBarLazy.Get();
+    private PauseMenu PauseMenuScene => PauseMenuLazy.Get();
+    private SettingsMenu SettingsMenuScene => SettingsMenuLazy.Get();
+    private ProgressScreen ProgressScreenScene => ProgressScreenLazy.Get();
     
-    [Inject] private ITransient<ModalBoxConfirm> ModalBoxConfirm { get; set; }
+    [Inject] private ITransient<ModalBoxConfirm> ModalBoxConfirmFactory { get; set; }
     [Inject("MyTheme")] private ResourceHolder<Theme> MyTheme { get; set; }
 
     [Inject] private GameViewContainer GameViewContainer { get; set; }
@@ -202,10 +202,10 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
         State(MainState.SavingGame)
             .Enter(() => {
                 SceneTree.Paused = true;
-                ProgressScreenFactory.Get().ShowSaving();
+                ProgressScreenLazy.Get().ShowSaving();
             })
             .Exit(() => {
-                ProgressScreenFactory.Get().Visible = false;
+                ProgressScreenLazy.Get().Visible = false;
                 SceneTree.Paused = false;
             })
             .On(MainEvent.Back).Pop()
@@ -296,7 +296,7 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
     }
 
     private ModalBoxConfirm ShowModalBox(string title, string subtitle = null) {
-        var modalBoxConfirm = ModalBoxConfirm.Create();
+        var modalBoxConfirm = ModalBoxConfirmFactory.Create();
         modalBoxConfirm.Layer = CanvasLayerConstants.ModalBox;
         modalBoxConfirm.Title(title, subtitle);
         modalBoxConfirm.ProcessMode = ProcessModeEnum.Always;

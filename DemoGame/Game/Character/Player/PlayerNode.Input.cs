@@ -30,7 +30,7 @@ public partial class PlayerNode {
 
 	public PlayerMapping PlayerMapping { get; set; }
 
-	[Inject] private ILazy<SettingsMenu> SettingsMenuSceneFactory { get; set; }
+	[Inject] private ILazy<SettingsMenu> SettingsMenuLazy { get; set; }
 
 	public void SetPlayerMapping(PlayerMapping playerMapping) {
 		Name = $"Player{playerMapping.Player}";
@@ -53,9 +53,9 @@ public partial class PlayerNode {
 
 	private void ConfigureInputActions() {
 		// Update action on redefine
-		SettingsMenuSceneFactory.Get().OnRedefine += OnRedefineAction;
+		SettingsMenuLazy.Get().OnRedefine += OnRedefineAction;
 		TreeExiting += () => {
-			SettingsMenuSceneFactory.Get().OnRedefine -= OnRedefineAction;
+			SettingsMenuLazy.Get().OnRedefine -= OnRedefineAction;
 			_joypadController.Disconnect();
 		};
 	}

@@ -64,11 +64,11 @@ public partial class SettingsMenu : CanvasLayer {
 	[NodePath("%RedefineCounter")] 
 	private Label _redefineCounterLabel;
 
-	[Inject] private ILazy<BottomBar> BottomBarSceneFactory { get; set; }
+	[Inject] private ILazy<BottomBar> BottomBarLazy { get; set; }
 	[Inject] private Betauer.DI.Container Container { get; set; }
 	[Inject] private ScreenSettingsManager ScreenSettingsManager { get; set; }
 
-	private BottomBar BottomBarScene => BottomBarSceneFactory.Get();
+	private BottomBar BottomBarScene => BottomBarLazy.Get();
 	
 	[Inject] private InputAction UiAccept { get; set; }
 	[Inject] private InputAction UiCancel { get; set; }

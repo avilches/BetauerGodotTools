@@ -4,6 +4,7 @@ using Betauer.Application.Settings.Attributes;
 using Betauer.DI.Attributes;
 using Betauer.Input;
 using Betauer.Input.Attributes;
+using Betauer.Input.Joypad;
 using Godot;
 using Veronenger.Game.Character.Npc;
 using Veronenger.Game.Character.Player;
@@ -23,26 +24,28 @@ namespace Veronenger.Game.Character;
 [Resource<Texture2D>("LeonGun1AnimationSprite", "res://Game/Character/Player/Assets/Leon-gun1.png")]
 [Scene.Transient<InventorySlot>("InventorySlotResource")]
 [Scene.Transient<WorldPlatform>("WorldPlatformFactory")]
-[Scene.Transient<PlayerNode>("PlayerNode")]
-[Scene.Transient<ZombieNode>("ZombieNode")]
-[Scene.Transient<ProjectileTrail>("ProjectileTrail")]
-[Scene.Transient<PickableItemNode>("PickableItem")]
+[Scene.Transient<PlayerNode>("PlayerNodeFactory")]
+[Scene.Transient<ZombieNode>("ZombieNodeFactory")]
+[Scene.Transient<ProjectileTrail>("ProjectileTrailFactory")]
+[Scene.Transient<PickableItemNode>("PickableItemFactory")]
 public class CharacterResources {
 }
 
 [Configuration]
 [PoolContainer<Node>("PoolNodeContainer")]
 public class PoolConfig {
-    [Pool] NodePool<PlayerNode> PlayerPool => new("PlayerNode");
-    [Pool] NodePool<ZombieNode> ZombiePool => new("ZombieNode");
-    [Pool] NodePool<ProjectileTrail> ProjectilePool => new("ProjectileTrail");
-    [Pool] NodePool<PickableItemNode> PickableItemPool => new("PickableItem");
+    [Pool] NodePool<PlayerNode> PlayerPool => new("PlayerNodeFactory");
+    [Pool] NodePool<ZombieNode> ZombiePool => new("ZombieNodeFactory");
+    [Pool] NodePool<ProjectileTrail> ProjectilePool => new("ProjectileTrailFactory");
+    [Pool] NodePool<PickableItemNode> PickableItemPool => new("PickableItemFactory");
 }
 
 [Configuration]
 [SettingsContainer("SettingsContainer")]
 [InputActionsContainer("PlayerActionsContainer")]
 public class Actions {
+
+	[Singleton] public InputActionsContainer PlayerActionsContainer => new();
 
 	[AxisAction(SaveAs = "Controls/Lateral")] 
 	private AxisAction Lateral => AxisAction.Create().Build();

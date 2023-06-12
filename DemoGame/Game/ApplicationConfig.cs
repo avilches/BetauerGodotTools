@@ -36,25 +36,13 @@ public class ApplicationConfig {
 		true,
 		1f);
 
-	[Singleton] public JsonGameLoader<MySaveGameMetadata> GameObjectLoader() {
-		var loader = new JsonGameLoader<MySaveGameMetadata>();
-		loader.WithJsonSerializerOptions(options => {
-			options.AllowTrailingCommas = true;
-			options.WriteIndented = true;
-			options.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
-		});
-		return loader;
-	}
 	[Singleton] public Random Random => new PcgRandom();
 	[Singleton] public DebugOverlayManager DebugOverlayManager => new();
 	[Singleton] public GameObjectRepository GameObjectRepository => new();
 	[Singleton] public UiActionsContainer UiActionsContainer => new();
-	[Singleton] public InputActionsContainer PlayerActionsContainer => new();
-	[Singleton] public JoypadPlayersMapping JoypadPlayersMapping => new();
 	[Singleton] public GameLoader GameLoader => new();
-	[Transient] public StageController StageControllerFactory => new(CollisionLayerConstants.LayerStageArea);
-	[Transient] public StageCameraController StageCameraControllerFactory => new(CollisionLayerConstants.LayerStageArea);
 	[Singleton] public CameraContainer CameraContainer => new();
+	[Singleton] public JoypadPlayersMapping JoypadPlayersMapping => new();
 }
 
 [Configuration]
@@ -77,14 +65,14 @@ public class Settings {
 [Resource<Texture2D>("Xbox360Buttons", "res://Game/UI/Console/Xbox 360 Controller Updated.png")]
 [Resource<Texture2D>("XboxOneButtons", "res://Game/UI/Console/Xbox One Controller Updated.png")]
 [Scene.Transient<RedefineActionButton>("RedefineActionButton")]
-[Scene.Transient<ModalBoxConfirm>("ModalBoxConfirm")]
+[Scene.Transient<ModalBoxConfirm>("ModalBoxConfirmFactory")]
 [Scene.Transient<PlayerHud>("PlayerHudFactory")]
 [Scene.Transient<GameView>("GameSceneFactory")]
-[Scene.Singleton<MainMenu>("MainMenuSceneFactory")]
-[Scene.Singleton<BottomBar>("BottomBarSceneFactory")]
-[Scene.Singleton<PauseMenu>("PauseMenuSceneFactory")]
-[Scene.Singleton<SettingsMenu>("SettingsMenuSceneFactory")]
-[Scene.Singleton<ProgressScreen>("ProgressScreenFactory")]
+[Scene.Singleton<MainMenu>("MainMenuSceneLazy")]
+[Scene.Singleton<BottomBar>("BottomBarLazy")]
+[Scene.Singleton<PauseMenu>("PauseMenuLazy")]
+[Scene.Singleton<SettingsMenu>("SettingsMenuLazy")]
+[Scene.Singleton<ProgressScreen>("ProgressScreenLazy")]
 public class MainResources {
 }
 
