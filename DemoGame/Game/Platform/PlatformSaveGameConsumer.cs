@@ -4,8 +4,8 @@ using Veronenger.Game.Character.Player;
 
 namespace Veronenger.Game.Platform;
 
-public class MySaveGameConsumer : SaveGameConsumer<MySaveGameMetadata> {
-    public MySaveGameConsumer(SaveGame<MySaveGameMetadata> saveGame) : base(saveGame) {
+public class PlatformSaveGameConsumer : SaveGameConsumer<PlatformSaveGameMetadata> {
+    public PlatformSaveGameConsumer(SaveGame<PlatformSaveGameMetadata> saveGame) : base(saveGame) {
         ConsumePlayers();
     }
 

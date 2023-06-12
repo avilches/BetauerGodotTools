@@ -34,7 +34,7 @@ public class WeaponMeleeGameObject : WeaponGameObject {
     }
 }
 
-public class WeaponMeleeSaveObject : SaveObject<WeaponMeleeGameObject>, IMySaveObject {
+public class WeaponMeleeSaveObject : SaveObject<WeaponMeleeGameObject>, IPlatformSaveObject {
     // From base
     [JsonInclude] public float DamageFactor { get; set; }
 

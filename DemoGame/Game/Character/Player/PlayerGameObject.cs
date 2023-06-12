@@ -84,7 +84,7 @@ public class PlayerGameObject : GameObject<PlayerNode> {
     public bool IsDead() => Health <= 0f;
 }
 
-public class PlayerSaveObject : SaveObject<PlayerGameObject>, IMySaveObject {
+public class PlayerSaveObject : SaveObject<PlayerGameObject>, IPlatformSaveObject {
     [JsonInclude] public float Health { get; set; }
     [JsonInclude] public float MaxHealth { get; set; }
     [JsonInclude] public Dictionary<AmmoType, int> Ammo { get; set; }

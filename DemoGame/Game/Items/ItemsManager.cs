@@ -1,10 +1,10 @@
 using Betauer.DI.Attributes;
 using Veronenger.Game.Items.Config;
 
-namespace Veronenger.Game.Platform;
+namespace Veronenger.Game.Items;
 
 [Singleton]
-public class ConfigManager  {
+public class ItemsManager  {
     [Inject("KnifeMelee")] public KnifeMelee Knife { get; private set; }
     [Inject("MetalbarMelee")] public MetalbarMelee Metalbar { get; private set; }
     [Inject("SlowGun")] public RangeSlowGun SlowGun { get; private set; }

@@ -22,7 +22,7 @@ public class ZombieGameObject : NpcGameObject {
 }
 
 
-public class ZombieSaveObject : NpcSaveObject<ZombieGameObject>, IMySaveObject {
+public class ZombieSaveObject : NpcSaveObject<ZombieGameObject>, IPlatformSaveObject {
     public ZombieSaveObject() { }
     public ZombieSaveObject(NpcGameObject gameObject) : base(gameObject) { }
     public override string Discriminator() => "Npc.Zombie";

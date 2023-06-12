@@ -26,7 +26,7 @@ public class AmmoGameObject : PickableGameObject {
     public override AmmoSaveObject CreateSaveObject() => new AmmoSaveObject(this);
 }
 
-public class AmmoSaveObject : SaveObject<AmmoGameObject>, IMySaveObject {
+public class AmmoSaveObject : SaveObject<AmmoGameObject>, IPlatformSaveObject {
     [JsonInclude] public AmmoType AmmoType { get; set; }
     [JsonInclude] public int Amount { get; set; }
 

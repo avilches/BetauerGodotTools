@@ -32,7 +32,7 @@ public class InventoryGameObject : GameObject {
     public override SaveObject CreateSaveObject() => new InventorySaveObject(this);
 }
 
-public class InventorySaveObject : SaveObject<InventoryGameObject>, IMySaveObject {
+public class InventorySaveObject : SaveObject<InventoryGameObject>, IPlatformSaveObject {
     [JsonInclude] public int Selected { get; set; }
     [JsonInclude] public List<int> Items { get; set; }
     [JsonInclude] public int WeaponEquipped { get; set; }

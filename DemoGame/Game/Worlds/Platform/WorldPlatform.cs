@@ -19,7 +19,7 @@ using Veronenger.Game.Platform;
 namespace Veronenger.Game.Worlds.Platform;
 
 public partial class WorldPlatform : Node {
-	[Inject] private ConfigManager ConfigManager { get; set; }
+	[Inject] private ItemsManager ItemsManager { get; set; }
 	[Inject] private GameObjectRepository GameObjectRepository { get; set; }
 	[Inject] private PlatformConfig PlatformConfig { get; set; }
 	
@@ -67,42 +67,42 @@ public partial class WorldPlatform : Node {
 	private void PlaceMetalbar() {
 		var metalbar = GameObjectRepository
 			.Create<WeaponMeleeGameObject>("Metalbar")
-			.Configure(ConfigManager.Metalbar, damageBase: 9f, enemiesPerHit: 2);
+			.Configure(ItemsManager.Metalbar, damageBase: 9f, enemiesPerHit: 2);
 		PlacePickable(metalbar, GetPositionFromMarker("ItemSpawn/Metalbar"));
 	}
 	
 	private void PlaceKnife() {
 		var metalbar = GameObjectRepository
 			.Create<WeaponMeleeGameObject>("Knife")
-			.Configure(ConfigManager.Knife, damageBase: 12f, enemiesPerHit: 1);
+			.Configure(ItemsManager.Knife, damageBase: 12f, enemiesPerHit: 1);
 		PlacePickable(metalbar, GetPositionFromMarker("ItemSpawn/Metalbar")+ new Vector2(100,0));
 	}
 	
 	private void PlaceSlowGun() {
 		var range = GameObjectRepository
 			.Create<WeaponRangeGameObject>("Slow Gun")
-			.Configure(ConfigManager.SlowGun, AmmoType.Bullet, damageBase: 6f, delayBetweenShots: 0.2f, magazineSize: 22);
+			.Configure(ItemsManager.SlowGun, AmmoType.Bullet, damageBase: 6f, delayBetweenShots: 0.2f, magazineSize: 22);
 		PlacePickable(range, GetPositionFromMarker("ItemSpawn/Gun"));
 	}
 	
 	private void PlaceGun() {
 		var range = GameObjectRepository
 			.Create<WeaponRangeGameObject>("Gun")
-			.Configure(ConfigManager.Gun, AmmoType.Bullet, damageBase: 9f, delayBetweenShots: 0.3f, magazineSize: 12);
+			.Configure(ItemsManager.Gun, AmmoType.Bullet, damageBase: 9f, delayBetweenShots: 0.3f, magazineSize: 12);
 		PlacePickable(range, GetPositionFromMarker("ItemSpawn/Gun"));
 	}
 
 	private void PlaceShotgun() {
 		var range = GameObjectRepository
 			.Create<WeaponRangeGameObject>("Shotgun")
-			.Configure(ConfigManager.Shotgun, AmmoType.Cartridge, damageBase: 22f, delayBetweenShots: 0.5f, enemiesPerHit: 2, magazineSize: 8);
+			.Configure(ItemsManager.Shotgun, AmmoType.Cartridge, damageBase: 22f, delayBetweenShots: 0.5f, enemiesPerHit: 2, magazineSize: 8);
 		PlacePickable(range, GetPositionFromMarker("ItemSpawn/Gun"));
 	}
 
 	private void PlaceMachineGun() {
 		var range = GameObjectRepository
 			.Create<WeaponRangeGameObject>("MachineGun")
-			.Configure(ConfigManager.MachineGun, AmmoType.Bullet, damageBase: 4f, delayBetweenShots: 0.05f, enemiesPerHit: 1, magazineSize: 30, auto: true);
+			.Configure(ItemsManager.MachineGun, AmmoType.Bullet, damageBase: 4f, delayBetweenShots: 0.05f, enemiesPerHit: 1, magazineSize: 30, auto: true);
 		PlacePickable(range, GetPositionFromMarker("ItemSpawn/Gun"));
 	}
 
@@ -142,7 +142,7 @@ public partial class WorldPlatform : Node {
 		return projectileTrail;
 	}
 
-	public void LoadGame(MySaveGameConsumer saveGameConsumer) {
+	public void LoadGame(PlatformSaveGameConsumer saveGameConsumer) {
 		saveGameConsumer.ConsumeAll<ZombieSaveObject>(LoadZombie);
 		saveGameConsumer.ConsumeAll<WeaponMeleeSaveObject>(LoadPickable);
 		saveGameConsumer.ConsumeAll<WeaponRangeSaveObject>(LoadPickable);

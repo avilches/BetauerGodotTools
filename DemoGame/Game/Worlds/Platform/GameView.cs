@@ -24,7 +24,7 @@ public partial class GameView : Control, IInjectable, IGameView {
 
 	[Inject] private SceneTree SceneTree { get; set; }
 	[Inject] private GameObjectRepository GameObjectRepository { get; set; }
-	[Inject] private JsonGameLoader<MySaveGameMetadata> GameObjectLoader { get; set; }
+	[Inject] private JsonGameLoader<PlatformSaveGameMetadata> GameObjectLoader { get; set; }
 	[Inject] private HudCanvas HudCanvas { get; set; }
 	[Inject] private ITransient<WorldPlatform> WorldPlatformFactory { get; set; }
 
@@ -104,7 +104,7 @@ public partial class GameView : Control, IInjectable, IGameView {
 		
 		await GameLoader.LoadGameResources();
 		
-		CurrentMetadata = new MySaveGameMetadata();
+		CurrentMetadata = new PlatformSaveGameMetadata();
 		GameObjectRepository.Initialize();
 		InitializeWorld();
 		CreatePlayer1(UiActionsContainer.CurrentJoyPad);
@@ -130,12 +130,12 @@ public partial class GameView : Control, IInjectable, IGameView {
 		ContinueLoad(saveGame);
 	}
 
-	private void ContinueLoad(SaveGame<MySaveGameMetadata> saveGame) {
+	private void ContinueLoad(SaveGame<PlatformSaveGameMetadata> saveGame) {
 		CurrentMetadata = saveGame.Metadata;
 		GameObjectRepository.Initialize();
 		GameObjectRepository.LoadSaveObjects(saveGame.GameObjects);
 		InitializeWorld();
-		var consumer = new MySaveGameConsumer(saveGame);
+		var consumer = new PlatformSaveGameConsumer(saveGame);
 		LoadPlayer1(UiActionsContainer.CurrentJoyPad, consumer);
 		if (consumer.Player1 == null) AllowAddingP2();
 		else NoAddingP2();
@@ -160,9 +160,9 @@ public partial class GameView : Control, IInjectable, IGameView {
 	public void ShowLoading() {}
 	public void HideLoading() {}
 	
-	public MySaveGameMetadata CurrentMetadata { get; private set; }
+	public PlatformSaveGameMetadata CurrentMetadata { get; private set; }
 
-	public async Task<(bool, SaveGame<MySaveGameMetadata>)> LoadSaveGame(string save) {
+	public async Task<(bool, SaveGame<PlatformSaveGameMetadata>)> LoadSaveGame(string save) {
 		ShowLoading();
 		try {
 			var saveGame = await GameObjectLoader.Load(save);
@@ -188,7 +188,7 @@ public partial class GameView : Control, IInjectable, IGameView {
 		return player;
 	}
 
-	public PlayerNode LoadPlayer1(int joypad, MySaveGameConsumer consumer) {
+	public PlayerNode LoadPlayer1(int joypad, PlatformSaveGameConsumer consumer) {
 		var playerMapping = JoypadPlayersMapping.AddPlayer().SetJoypadId(joypad);
 		var player = WorldPlatform.LoadPlayer(playerMapping, consumer.Player0, consumer.Inventory0);
 		player.SetCamera(_splitScreen.Camera1);

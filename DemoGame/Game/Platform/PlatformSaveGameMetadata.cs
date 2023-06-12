@@ -3,7 +3,7 @@ using Betauer.Application.Persistent;
 
 namespace Veronenger.Game.Platform;
 
-public class MySaveGameMetadata : Metadata {
+public class PlatformSaveGameMetadata : Metadata {
 
     [JsonPropertyName("GamePercent")] public int GamePercent { get; set; } = 0;
 }

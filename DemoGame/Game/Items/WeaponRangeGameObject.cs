@@ -76,7 +76,7 @@ public class WeaponRangeGameObject : WeaponGameObject {
     }
 }
 
-public class WeaponRangeSaveObject : SaveObject<WeaponRangeGameObject>, IMySaveObject {
+public class WeaponRangeSaveObject : SaveObject<WeaponRangeGameObject>, IPlatformSaveObject {
     // From base
     [JsonInclude] public float DamageFactor { get; set; }
 

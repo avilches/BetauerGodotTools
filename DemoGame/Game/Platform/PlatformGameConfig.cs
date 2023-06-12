@@ -13,22 +13,22 @@ namespace Veronenger.Game.Platform;
 [Configuration]
 [Loader("GameLoader", Tag = "main")]
 [Scene.Transient<GameView>("GameViewFactory")]
-public class GameResources {
+public class PlatformResources {
 }
 
-public interface IMySaveObject : ISaveObject {
+public interface IPlatformSaveObject : ISaveObject {
 }
 
 [Configuration]
-public class GameConfig {
-	[Singleton] public JsonGameLoader<MySaveGameMetadata> GameObjectLoader() {
-		var loader = new JsonGameLoader<MySaveGameMetadata>();
+public class PlatformGameConfig {
+	[Singleton] public JsonGameLoader<PlatformSaveGameMetadata> GameObjectLoader() {
+		var loader = new JsonGameLoader<PlatformSaveGameMetadata>();
 		loader.WithJsonSerializerOptions(options => {
 			options.AllowTrailingCommas = true;
 			options.WriteIndented = true;
 			options.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
 		});
-		loader.Scan<IMySaveObject>();
+		loader.Scan<IPlatformSaveObject>();
 		return loader;
 	}
 	
