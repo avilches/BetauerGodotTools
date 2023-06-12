@@ -725,7 +725,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 		_fsm.State(PlayerState.Death)
 			.Enter(() => {
 				Console.WriteLine("MUERTO");
-				EventBus.Publish(MainEvent.EndGame);                                                                     
+				MainStateMachine.Send(MainEvent.EndGame);                                                                     
 			})
 			.If(() => true).Set(PlayerState.Idle)
 			.Build();

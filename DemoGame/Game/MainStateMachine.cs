@@ -111,8 +111,6 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
         }, ProcessModeEnum.Always);
 #endif
 
-        EventBus.Subscribe(evt => Send(evt)).UnsubscribeIf(Predicates.IsInvalid(this));
-        
         var splashScreen = SceneTree.GetMainScene<SplashScreen>();
         splashScreen.Layer = int.MaxValue;
         

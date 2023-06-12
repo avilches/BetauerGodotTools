@@ -82,7 +82,9 @@ public partial class SettingsMenu : CanvasLayer {
 	[Inject] private InputAction Left { get; set; }
 	[Inject] private InputAction Right { get; set; }
 		
-	[Inject] private EventBus EventBus { get; set; }
+	[Inject] private MainStateMachine MainStateMachine { get; set; }
+	[Inject] private ITransient<RedefineActionButton> RedefineActionButton { get; set; }
+	public event Action<InputAction>? OnRedefine;
 
 	public override void _Ready() {
 		ConfigureSignalEvents();
@@ -174,7 +176,6 @@ public partial class SettingsMenu : CanvasLayer {
 		};
 	}
 
-	[Inject] private ITransient<RedefineActionButton> RedefineActionButton { get; set; }
 
 	private void AddConfigureControl(string name, InputAction action, bool isKey) {
 		var button = RedefineActionButton.Create();
@@ -254,7 +255,7 @@ public partial class SettingsMenu : CanvasLayer {
 			if (_resolutions.HasFocus()) {
 				CloseResolutionList();
 			} else {
-				EventBus.Publish(MainEvent.Back);
+				MainStateMachine.Send(MainEvent.Back);
 				GetViewport().SetInputAsHandled();
 			}
 		}
@@ -309,11 +310,11 @@ public partial class SettingsMenu : CanvasLayer {
 			// Swap: set to the other the current key
 			var currentButton = redefineButton.InputAction.Buttons[0];
 			otherRedefine.InputAction.Update(u => u.SetButton(currentButton)).Save();
-			EventBus.Publish(new InputActionChangeEvent(otherRedefine.InputAction));
+			OnRedefine?.Invoke(otherRedefine.InputAction);
 			otherRedefine.Refresh();
 		}
 		redefineButton.InputAction.Update(u => u.SetButton(newButton)).Save();
-		EventBus.Publish(new InputActionChangeEvent(redefineButton.InputAction));
+		OnRedefine?.Invoke(redefineButton.InputAction);
 		redefineButton.Refresh();
 	}
 
@@ -325,11 +326,11 @@ public partial class SettingsMenu : CanvasLayer {
 			// Swap: set to the other the current key
 			var currentKey = redefineButton.InputAction.Keys[0];
 			otherRedefine.InputAction.Update(u => u.SetKey(currentKey)).Save();
-			EventBus.Publish(new InputActionChangeEvent(otherRedefine.InputAction));
+			OnRedefine?.Invoke(otherRedefine.InputAction);
 			otherRedefine.Refresh();
 		}
 		redefineButton.InputAction.Update(u => u.SetKey(newKey)).Save();
-		EventBus.Publish(new InputActionChangeEvent(redefineButton.InputAction));
+		OnRedefine?.Invoke(redefineButton.InputAction);
 		redefineButton.Refresh();
 	}
 }

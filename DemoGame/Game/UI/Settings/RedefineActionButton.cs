@@ -24,11 +24,6 @@ public partial class RedefineActionButton : Button {
 
 	public override void _Ready() {
 		Refresh();
-		if (IsKey) {
-			_consoleButton.QueueFree();
-		} else {
-			_keyLabel.QueueFree();
-		}
 	}
 
 	public void Refresh() {

@@ -1,8 +1,11 @@
 using System;
 using Betauer.Core;
+using Betauer.DI.Attributes;
+using Betauer.DI.Factory;
 using Betauer.Input;
 using Betauer.Input.Joypad;
 using Veronenger.Game.Character.InputActions;
+using Veronenger.Game.UI.Settings;
 
 namespace Veronenger.Game.Character.Player; 
 
@@ -27,6 +30,8 @@ public partial class PlayerNode {
 
 	public PlayerMapping PlayerMapping { get; set; }
 
+	[Inject] private ILazy<SettingsMenu> SettingsMenuSceneFactory { get; set; }
+
 	public void SetPlayerMapping(PlayerMapping playerMapping) {
 		Name = $"Player{playerMapping.Player}";
 		Label.Text = $"P{playerMapping.Player}";
@@ -48,13 +53,10 @@ public partial class PlayerNode {
 
 	private void ConfigureInputActions() {
 		// Update action on redefine
-		var consumer = EventBus
-			.Subscribe(inputActionChangeEvent => OnRedefineAction(inputActionChangeEvent.InputAction))
-			.UnsubscribeIf(Predicates.IsInvalid(this));
-		
+		SettingsMenuSceneFactory.Get().OnRedefine += OnRedefineAction;
 		TreeExiting += () => {
+			SettingsMenuSceneFactory.Get().OnRedefine -= OnRedefineAction;
 			_joypadController.Disconnect();
-			consumer.Unsubscribe();
 		};
 	}
 
