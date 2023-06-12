@@ -65,6 +65,7 @@ public partial class SettingsMenu : CanvasLayer {
 	private Label _redefineCounterLabel;
 
 	[Inject] private ILazy<BottomBar> BottomBarSceneFactory { get; set; }
+	[Inject] private Betauer.DI.Container Container { get; set; }
 	[Inject] private ScreenSettingsManager ScreenSettingsManager { get; set; }
 
 	private BottomBar BottomBarScene => BottomBarSceneFactory.Get();
@@ -74,16 +75,9 @@ public partial class SettingsMenu : CanvasLayer {
 	[Inject] private InputAction UiLeft { get; set; }
 	[Inject] private InputAction UiRight { get; set; }
 
-	[Inject] private InputAction Attack { get; set; }
-	[Inject] private InputAction Jump { get; set; }
-		
-	[Inject] private InputAction Up { get; set; }
-	[Inject] private InputAction Down { get; set; }
-	[Inject] private InputAction Left { get; set; }
-	[Inject] private InputAction Right { get; set; }
-		
 	[Inject] private MainStateMachine MainStateMachine { get; set; }
 	[Inject] private ITransient<RedefineActionButton> RedefineActionButton { get; set; }
+	
 	public event Action<InputAction>? OnRedefine;
 
 	public override void _Ready() {
@@ -160,22 +154,28 @@ public partial class SettingsMenu : CanvasLayer {
 		foreach (Node child in _keyboardControls.GetChildren()) child.QueueFree();
 			
 		// TODO: i18n
-		AddConfigureControl("Jump", Jump, false);
-		AddConfigureControl("Attack", Attack, false);
-			
-		AddConfigureControl("Up", Up, true);
-		AddConfigureControl("Down", Down, true);
-		AddConfigureControl("Left", Left, true);
-		AddConfigureControl("Right", Right, true);
-		AddConfigureControl("Jump", Jump, true);
-		AddConfigureControl("Attack", Attack, true);
+		Container.GetAllInstances<AxisAction>().ForEach(axisAction => {
+			if (axisAction.Negative.SaveSetting != null) {
+				// AddConfigureControl(axisAction.Name, axisAction);
+			}
+		});
+		
+		Container.GetAllInstances<InputAction>().ForEach(inputAction => {
+			if (inputAction.SaveSetting != null) {
+				if (inputAction.Keys.Count > 0) {
+					AddConfigureControl(inputAction.Name, inputAction, true);
+				}
+				if (inputAction.Buttons.Count > 0) {
+					AddConfigureControl(inputAction.Name, inputAction, false);
+				}
+			}
+		});
 			
 		_keyboardControls.GetChild<Button>(_gamepadControls.GetChildCount() - 1).FocusEntered += () => {
 			BottomBarScene.ConfigureSettingsChangeBack();
 			_scrollContainer.ScrollVertical = int.MaxValue;
 		};
 	}
-
 
 	private void AddConfigureControl(string name, InputAction action, bool isKey) {
 		var button = RedefineActionButton.Create();
