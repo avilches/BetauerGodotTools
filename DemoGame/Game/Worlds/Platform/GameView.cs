@@ -208,12 +208,6 @@ public partial class GameView : Control, IInjectable, IGameView {
 		return player;
 	}
 	
-	// TODO: this has been done because Vector2.DistanceTo didn't work (returned Infinity)
-	public float DistanceTo(Vector2 from, Vector2 to) {
-		double fromX = (from.X - to.X) * (from.X - to.X) + (from.Y - to.Y) * (from.Y - to.Y);
-		return Mathf.Sqrt((float)fromX);
-	}
-
 	public override void _Process(double delta) {
 		if (!ManualCamera) {
 			ManageSplitScreen();
@@ -238,7 +232,7 @@ public partial class GameView : Control, IInjectable, IGameView {
 			} else {
 				var p1Pos = WorldPlatform.Players[0].Marker2D.GlobalPosition;
 				var p2Pos = WorldPlatform.Players[1].Marker2D.GlobalPosition;
-				var distanceTo = DistanceTo(p1Pos, p2Pos);
+				var distanceTo = p1Pos.DistanceTo(p2Pos);
 
 				if (VisiblePlayers == 2) {
 					if (distanceTo < (Size.X * 0.5 * 0.2f)) {
