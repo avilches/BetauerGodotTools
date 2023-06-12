@@ -8,6 +8,12 @@ public abstract class WeaponConfigRange : WeaponConfig {
     public Texture2D? Projectile { get; protected set; }
     public Vector2 ProjectileStartPosition { get; protected set; }
     [Inject("LeonGun1AnimationSprite")] protected ResourceHolder<Texture2D> LeonGun1AnimationSprite { get; set; }
+    
+    // Name is used to save the config service in the savegame. It should match with the singleton name
+    public readonly string Name;
+    protected WeaponConfigRange(string name) {
+        Name = name;
+    }
 
     public int MaxDistance = 800;
     public int Speed = 2000;
@@ -19,7 +25,7 @@ public abstract class WeaponConfigRange : WeaponConfig {
 public class RangeSlowGun : WeaponConfigRange {
     public override Texture2D WeaponAnimation() => LeonGun1AnimationSprite.Get();
 
-    public RangeSlowGun() {
+    public RangeSlowGun() : base("SlowGun") {
         ProjectileStartPosition = new Vector2(20f, -33.5f);
         MaxDistance = 800;
         Speed = 500;
@@ -35,7 +41,7 @@ public class RangeSlowGun : WeaponConfigRange {
 public class RangeGun : WeaponConfigRange {
     public override Texture2D WeaponAnimation() => LeonGun1AnimationSprite.Get();
 
-    public RangeGun() {
+    public RangeGun() : base("Gun") {
         ProjectileStartPosition = new Vector2(20f, -33.5f);
         MaxDistance = 800;
         Speed = 800;
@@ -51,7 +57,7 @@ public class RangeGun : WeaponConfigRange {
 public class RangeShotgun : WeaponConfigRange {
     public override Texture2D WeaponAnimation() => LeonGun1AnimationSprite.Get();
 
-    public RangeShotgun() {
+    public RangeShotgun() : base("Shotgun") {
         ProjectileStartPosition = new Vector2(20f, -33.5f);
         MaxDistance = 800;
         Speed = 2000;
@@ -67,7 +73,7 @@ public class RangeShotgun : WeaponConfigRange {
 public class RangeMachineGun : WeaponConfigRange {
     public override Texture2D WeaponAnimation() => LeonGun1AnimationSprite.Get();
 
-    public RangeMachineGun() {
+    public RangeMachineGun() : base("MachineGun") {
         ProjectileStartPosition = new Vector2(20f, -33.5f);
         MaxDistance = 800;
         Speed = 3000;

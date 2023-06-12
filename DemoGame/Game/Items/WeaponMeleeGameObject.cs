@@ -7,7 +7,6 @@ namespace Veronenger.Game.Items;
 
 public class WeaponMeleeGameObject : WeaponGameObject {
     public override WeaponConfigMelee Config => (WeaponConfigMelee)base.Config;
-    public override WeaponConfigMelee GetConfig(string name) => (WeaponConfigMelee)base.GetConfig(name);
     public int EnemiesPerHit;
 
     public override void OnInitialize() {
@@ -30,7 +29,7 @@ public class WeaponMeleeGameObject : WeaponGameObject {
 
         DamageBase = save.DamageBase;
         EnemiesPerHit = save.EnemiesPerHit;
-        Config = GetConfig(save.ConfigName);
+        Config = Container.Resolve<WeaponConfigMelee>(save.ConfigName);
     }
 }
 
@@ -57,7 +56,7 @@ public class WeaponMeleeSaveObject : SaveObject<WeaponMeleeGameObject> {
         
         DamageBase = weapon.DamageBase;
         EnemiesPerHit = weapon.EnemiesPerHit;
-        ConfigName = weapon.GetConfigName();
+        ConfigName = weapon.Config.Name;
         
         // Node
         if (weapon.Node != null) {

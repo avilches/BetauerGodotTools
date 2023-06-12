@@ -6,6 +6,12 @@ namespace Veronenger.Game.Items.Config;
 
 public abstract class WeaponConfigMelee : WeaponConfig {
     public string ShapeName;
+
+    // Name is used to save the config service in the savegame. It should match with the singleton name
+    public readonly string Name;
+    protected WeaponConfigMelee(string name) {
+        Name = name;
+    }
 }
 
 [Singleton("KnifeMelee")]
@@ -13,7 +19,7 @@ public class KnifeMelee : WeaponConfigMelee {
     [Inject("LeonKnifeAnimationSprite")] private ResourceHolder<Texture2D> LeonKnifeAnimationSprite { get; set; }
     public override Texture2D WeaponAnimation() => LeonKnifeAnimationSprite.Get();
 
-    public KnifeMelee() {
+    public KnifeMelee() : base("KnifeMelee") {
         ShapeName = "Short";
     }
 
@@ -26,7 +32,7 @@ public class MetalbarMelee : WeaponConfigMelee {
     [Inject("LeonMetalbarAnimationSprite")] private ResourceHolder<Texture2D> LeonMetalbarAnimationSprite { get; set; }
     public override Texture2D WeaponAnimation() => LeonMetalbarAnimationSprite.Get();
 
-    public MetalbarMelee() {
+    public MetalbarMelee() : base("MetalbarMelee") {
         ShapeName = "Long";
     }
 

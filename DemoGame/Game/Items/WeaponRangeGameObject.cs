@@ -13,7 +13,6 @@ public class WeaponRangeGameObject : WeaponGameObject {
     [Inject] public Random Random { get; set; }
     
     public override WeaponConfigRange Config => (WeaponConfigRange)base.Config;
-    public override WeaponConfigRange GetConfig(string name) => (WeaponConfigRange)base.GetConfig(name);
 
     public AmmoType AmmoType;
     public int EnemiesPerHit;
@@ -72,7 +71,7 @@ public class WeaponRangeGameObject : WeaponGameObject {
         MagazineSize = save.MagazineSize;
         Dispersion = save.Dispersion;
         Ammo = save.Ammo;
-        Config = GetConfig(save.ConfigName);
+        Config = Container.Resolve<WeaponConfigRange>(save.ConfigName);
     }
 }
 
@@ -111,7 +110,7 @@ public class WeaponRangeSaveObject : SaveObject<WeaponRangeGameObject> {
         MagazineSize = weapon.MagazineSize;
         Dispersion = weapon.Dispersion;
         Ammo = weapon.Ammo;
-        ConfigName = weapon.GetConfigName();
+        ConfigName = weapon.Config.Name;
         
         // Node
         if (weapon.Node != null) {

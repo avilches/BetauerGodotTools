@@ -1,16 +1,13 @@
+using Betauer.DI;
 using Betauer.DI.Attributes;
 using Veronenger.Game.Items.Config;
-using Veronenger.Game.Platform;
 
 namespace Veronenger.Game.Items;
 
 public abstract class WeaponGameObject : PickableGameObject {
     public override WeaponConfig Config => (WeaponConfig)base.Config;
     
-    [Inject] protected ConfigManager ConfigManager { get; set; }
-
-    public string GetConfigName() => ConfigManager.GetConfigName(Config);
-    public virtual WeaponConfig GetConfig(string name) => (WeaponConfig)ConfigManager.GetConfig(name);
+    [Inject] protected Container Container { get; set; }
 
     public float DamageBase;
     public float DamageFactor = 1f;
