@@ -26,7 +26,6 @@ public partial class PauseMenu : CanvasFaderLayer {
 	[Inject] private InputAction UiAccept { get; set; }
 	[Inject] private InputAction UiCancel { get; set; }
 	[Inject] private InputAction ControllerStart { get; set; }
-	[Inject] private EventBus EventBus { get; set; }
 
 	public override void _Ready() {
 		_menuContainer = BuildMenu();

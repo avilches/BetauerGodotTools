@@ -24,6 +24,7 @@ using Veronenger.Game;
 using Veronenger.Game.HUD;
 using Veronenger.Game.Items;
 using Veronenger.Game.Platform;
+using Veronenger.Game.Worlds.Platform;
 
 namespace Veronenger.Game.Character.Player;
 
@@ -77,7 +78,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 	[Inject] private ITransient<StageCameraController> StageCameraControllerFactory { get; set; }
 	[Inject] private CameraContainer CameraContainer { get; set; }
 	[Inject] private GameViewContainer GameViewContainer { get; set; }
-	private GameView GameView => GameViewContainer.CurrentGame;
+	private WorldPlatform WorldPlatform => (WorldPlatform)GameViewContainer.CurrentGame.GetWorld();
 
 	[Inject] private SceneTree SceneTree { get; set; }
 	[Inject] private EventBus EventBus { get; set; }
@@ -353,7 +354,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 		// if (collision.IsColliding) return;
 		// var dropVelocity = new Vector2(MotionX + (PlatformBody.FacingRight * PlayerConfig.DropLateralSpeed), MotionY);
 		var dropVelocity = new Vector2(LateralState.FacingRight * Math.Max(Math.Abs(MotionX), PlayerConfig.DropLateralSpeed), MotionY);
-		GameView.WorldPlatform.PlayerDrop(item, Marker2D.GlobalPosition, dropVelocity);
+		WorldPlatform.PlayerDrop(item, Marker2D.GlobalPosition, dropVelocity);
 		Inventory.Drop();
 	}
 
@@ -458,7 +459,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 		_fsm.State(PlayerState.Idle)
 			.OnInput(InventoryHandler)
 			.OnInput(e => {
-				if (e.IsKeyPressed(Key.V)) GameView.WorldPlatform.InstantiateNewZombie();
+				if (e.IsKeyPressed(Key.V)) WorldPlatform.InstantiateNewZombie();
 			})
 			.Enter(() => {
 				if (AnimationShoot.IsPlaying()) AnimationIdle.Queue();
@@ -572,7 +573,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 			var bulletPosition = weapon.Config.ProjectileStartPosition * new Vector2(LateralState.FacingRight, 1);
 			var bulletDirection = new Vector2(LateralState.FacingRight, 0);
 			var hits = 0;
-			var bullet = GameView.WorldPlatform.NewBullet();
+			var bullet = WorldPlatform.NewBullet();
 			Inventory.UpdateWeaponRangeAmmo(weapon, -1);
 			bullet.ShootFrom(weapon, CharacterBody2D.ToGlobal(bulletPosition), bulletDirection,
 				CollisionLayerConfig.PlayerConfigureBulletRaycast,

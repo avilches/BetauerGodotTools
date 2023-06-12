@@ -22,7 +22,7 @@ using WorldPlatform = Veronenger.Game.Worlds.Platform.WorldPlatform;
 
 namespace Veronenger.Game;
 
-public partial class GameView : Control, IInjectable {
+public partial class GameView : Control, IInjectable, IGameView {
 	private static readonly World2D NoWorld = new(); // A cached World2D to re-use
 
 	[Inject] private GameObjectRepository GameObjectRepository { get; set; }
@@ -55,6 +55,8 @@ public partial class GameView : Control, IInjectable {
 	private bool _allowAddingP2 = true;
 	private void AllowAddingP2() => _allowAddingP2 = true;
 	private void NoAddingP2() => _allowAddingP2 = false;
+
+	public Node GetWorld() => WorldPlatform;
 
 	public void PostInject() {
 		PlayerActionsContainer.Disable(); // The real actions are cloned per player in player.Connect()		
@@ -119,7 +121,7 @@ public partial class GameView : Control, IInjectable {
 		// _cameraController.WithMouseButton(MouseButton.Middle).Attach(_camera2D);
 	}
 
-	public async void LoadFromMenu(string saveName) {
+	public async Task LoadFromMenu(string saveName) {
 		UiActionsContainer.SetJoypad(UiActionsContainer.CurrentJoyPad);	// Player who starts the game is the player who control the UI forever
 		var (success, saveGame) = await LoadSaveGame(saveName);
 		if (!success) return;
@@ -127,7 +129,7 @@ public partial class GameView : Control, IInjectable {
 		ContinueLoad(saveGame);
 	}
 
-	public async void LoadInGame(string saveName) {
+	public async Task LoadInGame(string saveName) {
 		UiActionsContainer.SetJoypad(UiActionsContainer.CurrentJoyPad); // Player who starts the game is the player who control the UI forever
 		var (success, saveGame) = await LoadSaveGame(saveName);
 		if (!success) return;
@@ -308,9 +310,6 @@ public partial class GameView : Control, IInjectable {
 		} else {
 			await FreeSceneKeepingPoolData();
 		}
-		Free();
-		GC.GetTotalMemory(true);
-		// PrintOrphanNodes();
 	}
 
 	public void UnloadResources() {

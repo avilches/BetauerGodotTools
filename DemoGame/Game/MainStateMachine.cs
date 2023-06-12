@@ -84,8 +84,6 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
         
     [Inject("DebugConsoleTheme")] private ResourceHolder<Theme> DebugConsoleTheme { get; set; }
 
-    [Inject] private EventBus EventBus { get; set; }
-
     public override void _Ready() {
         ProcessMode = ProcessModeEnum.Always;
     }
@@ -180,7 +178,6 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
         State(MainState.StartingGame).Enter((Func<Task>)(async () => {
                 await MainMenuScene.HideMainMenu();
                 GameViewContainer.CreateGame();
-                SceneTree.Root.AddChild(GameViewContainer.CurrentGame);
                 await GameViewContainer.CurrentGame.StartNewGame();
             }))
             .If(() => true).Set(MainState.Gaming)

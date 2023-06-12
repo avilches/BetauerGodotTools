@@ -23,6 +23,7 @@ using Veronenger.Game.Character.Player;
 using Veronenger.Game;
 using Veronenger.Game.Items;
 using Veronenger.Game.Platform;
+using Veronenger.Game.Worlds.Platform;
 
 namespace Veronenger.Game.Character.Npc; 
 
@@ -83,7 +84,7 @@ public partial class ZombieNode : NpcNode, IInjectable {
 	[Inject] private EventBus EventBus { get; set; }
 	[Inject] private PlayerConfig PlayerConfig { get; set; }
 	[Inject] private GameViewContainer GameViewContainer { get; set; }
-	private GameView GameView => GameViewContainer.CurrentGame;
+	private WorldPlatform WorldPlatform => (WorldPlatform)GameViewContainer.CurrentGame.GetWorld();
 	
 	// [Inject] private InputActionCharacterHandler Handler { get; set; }
 	private NpcController Handler { get; set; } = new NpcController();
@@ -116,7 +117,7 @@ public partial class ZombieNode : NpcNode, IInjectable {
 	private LazyRaycast2D _lazyRaycastToPlayer;
 	private DebugOverlay? _overlay;
 
-	private Vector2 PlayerPos => GameView.WorldPlatform.ClosestPlayer(Marker2D.GlobalPosition).Marker2D.GlobalPosition;
+	private Vector2 PlayerPos => WorldPlatform.ClosestPlayer(Marker2D.GlobalPosition).Marker2D.GlobalPosition;
 	public bool IsFacingToPlayer() => LateralState.IsFacingTo(PlayerPos);
 	public bool IsToTheRightOfPlayer() => LateralState.IsToTheRightOf(PlayerPos);
 	public int RightOfPlayer() => IsToTheRightOfPlayer() ? 1 : -1;
