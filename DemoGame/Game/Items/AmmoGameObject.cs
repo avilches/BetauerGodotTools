@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using Betauer.Application.Persistent;
 using Veronenger.Game.Items.Config;
+using Veronenger.Game.Platform;
 
 namespace Veronenger.Game.Items;
 
@@ -25,7 +26,7 @@ public class AmmoGameObject : PickableGameObject {
     public override AmmoSaveObject CreateSaveObject() => new AmmoSaveObject(this);
 }
 
-public class AmmoSaveObject : SaveObject<AmmoGameObject> {
+public class AmmoSaveObject : SaveObject<AmmoGameObject>, IMySaveObject {
     [JsonInclude] public AmmoType AmmoType { get; set; }
     [JsonInclude] public int Amount { get; set; }
 

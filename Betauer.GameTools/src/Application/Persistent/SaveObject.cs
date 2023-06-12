@@ -4,7 +4,11 @@ using Betauer.Core;
 
 namespace Betauer.Application.Persistent;
 
-public abstract class SaveObject {
+public interface ISaveObject {
+    public string Discriminator();
+}
+
+public abstract class SaveObject : ISaveObject {
     [JsonInclude] public int Id { get; set; }
     [JsonInclude] public string Name { get; set; }
     [JsonInclude] public string? Alias { get; set; }
@@ -26,8 +30,6 @@ public abstract class SaveObject {
         Name = gameObject.Name;
         Alias = gameObject.Alias;
     }
-
-    // public abstract int Hash();
 }
 
 public abstract class SaveObject<T> : SaveObject where T : GameObject {

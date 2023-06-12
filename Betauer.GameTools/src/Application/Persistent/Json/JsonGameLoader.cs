@@ -10,7 +10,9 @@ using Betauer.Core;
 
 namespace Betauer.Application.Persistent.Json;
 
-public class JsonGameLoader<TMetadata> : GameObjectLoader where TMetadata : Metadata {
+public class JsonGameLoader<TMetadata> : GameObjectLoader 
+    where TMetadata : Metadata {
+    
     private JsonSerializerOptions? _jsonSerializerOptions;
 
     public static string MetadataExtension = "metadata";
@@ -18,13 +20,12 @@ public class JsonGameLoader<TMetadata> : GameObjectLoader where TMetadata : Meta
 
     public JsonSerializerOptions JsonSerializerOptions() => _jsonSerializerOptions ??= BuildJsonSerializerOptions();
     public void WithJsonSerializerOptions(Action<JsonSerializerOptions> action) => action(JsonSerializerOptions());
+    public void WithDefaultJsonTypeInfoResolver(Action<DefaultJsonTypeInfoResolver> action) => action((DefaultJsonTypeInfoResolver)JsonSerializerOptions().TypeInfoResolver);
 
     protected virtual JsonSerializerOptions BuildJsonSerializerOptions() {
         // more info: https://devblogs.microsoft.com/dotnet/system-text-json-in-dotnet-7/
         var options = new JsonSerializerOptions {
-            TypeInfoResolver = new DefaultJsonTypeInfoResolver {
-                Modifiers = { ConfigureSaveObjectSerializer }
-            },
+            TypeInfoResolver = new DefaultJsonTypeInfoResolver(),
             Converters = {
                 new Rect2Converter(),
                 new Vector2Converter(),
@@ -38,6 +39,28 @@ public class JsonGameLoader<TMetadata> : GameObjectLoader where TMetadata : Meta
         return options;
     }
 
+    public void Scan<TSaveObject>() where TSaveObject : ISaveObject {
+        void Action(JsonTypeInfo jsonTypeInfo) {
+            if (jsonTypeInfo.Type != typeof(SaveObject)) return;
+
+            jsonTypeInfo.PolymorphismOptions = new JsonPolymorphismOptions {
+                // TypeDiscriminatorPropertyName = "_case",
+                // UnknownDerivedTypeHandling = JsonUnknownDerivedTypeHandling.FallBackToNearestAncestor,
+            };
+            AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(a => a.GetTypes())
+                .Where(t => t is { IsClass: true, IsAbstract: false } && t.IsSubclassOfOrImplements(typeof(TSaveObject)))
+                .Select(Activator.CreateInstance)
+                .Cast<SaveObject>()
+                .Select(t => new JsonDerivedType(t.GetType(), t.Discriminator()))
+                .ForEach(dt => jsonTypeInfo.PolymorphismOptions.DerivedTypes.Add(dt));
+        }
+
+        WithDefaultJsonTypeInfoResolver(resolver => {
+            resolver.Modifiers.Add(Action);
+        });
+    }
+
     public virtual string GetSavegameFolder() => AppTools.GetUserFolder();
 
     public virtual FileInfo CreateFullPath(string saveName, string type) {
@@ -48,9 +71,6 @@ public class JsonGameLoader<TMetadata> : GameObjectLoader where TMetadata : Meta
         }
         return new FileInfo(Path.Combine(saveGameFolder, Path.GetFileName($"{saveName}.{type}")));
     }
-
-    private FileInfo GetMetadataInfo(string saveName) => CreateFullPath(saveName, MetadataExtension);
-    private FileInfo GetSavegameInfo(string saveName) => CreateFullPath(saveName, SaveGameExtension);
 
     public async Task<List<TMetadata>> GetMetadatas(string? seed, params string[] saveNames) {
         var metadatas = new List<TMetadata>();
@@ -100,7 +120,7 @@ public class JsonGameLoader<TMetadata> : GameObjectLoader where TMetadata : Meta
         }
         
         if (Debug) {
-            await using var debugStream = File.Create(metadataInfo.FullName + ".debug");
+            await using var debugStream = File.Create(metadataInfo.FullName + ".txt");
             await JsonSerializer.SerializeAsync(debugStream, metadata, JsonSerializerOptions());
         }
 
@@ -127,7 +147,7 @@ public class JsonGameLoader<TMetadata> : GameObjectLoader where TMetadata : Meta
         metadata.ReadDate = DateTime.Now;
         return metadata;
     }
-    
+
     public async Task Save(string saveName, TMetadata metadata, List<SaveObject> saveObjects, Action<float>? progress = null, string? seed = null, bool compress = true) {
         var savegameInfo = GetSavegameInfo(saveName);
         var progressList = CreateProgressList(saveObjects, progress);
@@ -201,22 +221,9 @@ public class JsonGameLoader<TMetadata> : GameObjectLoader where TMetadata : Meta
             return new SaveGame<TMetadata>(metadata, gameObjects);
         }
     }
-    
-    private static void ConfigureSaveObjectSerializer(JsonTypeInfo jsonTypeInfo) {
-        if (jsonTypeInfo.Type == typeof(SaveObject)) {
-            jsonTypeInfo.PolymorphismOptions = new JsonPolymorphismOptions {
-                // TypeDiscriminatorPropertyName = "_case",
-                // UnknownDerivedTypeHandling = JsonUnknownDerivedTypeHandling.FallBackToNearestAncestor,
-                // DerivedTypes = JsonDerivedTypes
-            };
-            AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.GetTypes()).ToList()
-                .Where(t => t is { IsClass: true, IsAbstract: false } && typeof(SaveObject).IsAssignableFrom(t))
-                .Select(Activator.CreateInstance)
-                .Cast<SaveObject>()
-                .Select(t => new JsonDerivedType(t.GetType(), t.Discriminator()))
-                .ForEach(dt => jsonTypeInfo.PolymorphismOptions.DerivedTypes.Add(dt));
-        }
-    }
+
+    private FileInfo GetMetadataInfo(string saveName) => CreateFullPath(saveName, MetadataExtension);
+    private FileInfo GetSavegameInfo(string saveName) => CreateFullPath(saveName, SaveGameExtension);
 
     private static IEnumerable<SaveObject> CreateProgressList(IReadOnlyCollection<SaveObject> saveObjects, Action<float>? progress) {
         if (progress == null) return saveObjects;

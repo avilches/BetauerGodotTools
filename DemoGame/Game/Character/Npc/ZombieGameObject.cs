@@ -1,5 +1,6 @@
 using Betauer.Application.Persistent;
 using Betauer.DI.Attributes;
+using Veronenger.Game.Platform;
 
 namespace Veronenger.Game.Character.Npc;
 
@@ -21,7 +22,7 @@ public class ZombieGameObject : NpcGameObject {
 }
 
 
-public class ZombieSaveObject : NpcSaveObject<ZombieGameObject> {
+public class ZombieSaveObject : NpcSaveObject<ZombieGameObject>, IMySaveObject {
     public ZombieSaveObject() { }
     public ZombieSaveObject(NpcGameObject gameObject) : base(gameObject) { }
     public override string Discriminator() => "Npc.Zombie";

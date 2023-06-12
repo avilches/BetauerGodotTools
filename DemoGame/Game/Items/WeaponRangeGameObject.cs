@@ -5,6 +5,7 @@ using Betauer.Core;
 using Betauer.DI.Attributes;
 using Godot;
 using Veronenger.Game.Items.Config;
+using Veronenger.Game.Platform;
 
 namespace Veronenger.Game.Items;
 
@@ -75,7 +76,7 @@ public class WeaponRangeGameObject : WeaponGameObject {
     }
 }
 
-public class WeaponRangeSaveObject : SaveObject<WeaponRangeGameObject> {
+public class WeaponRangeSaveObject : SaveObject<WeaponRangeGameObject>, IMySaveObject {
     // From base
     [JsonInclude] public float DamageFactor { get; set; }
 

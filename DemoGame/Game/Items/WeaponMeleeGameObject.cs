@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 using Betauer.Application.Persistent;
 using Godot;
 using Veronenger.Game.Items.Config;
+using Veronenger.Game.Platform;
 
 namespace Veronenger.Game.Items;
 
@@ -33,7 +34,7 @@ public class WeaponMeleeGameObject : WeaponGameObject {
     }
 }
 
-public class WeaponMeleeSaveObject : SaveObject<WeaponMeleeGameObject> {
+public class WeaponMeleeSaveObject : SaveObject<WeaponMeleeGameObject>, IMySaveObject {
     // From base
     [JsonInclude] public float DamageFactor { get; set; }
 

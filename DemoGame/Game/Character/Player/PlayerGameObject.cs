@@ -6,6 +6,7 @@ using Betauer.Core;
 using Betauer.DI.Attributes;
 using Godot;
 using Veronenger.Game.Items;
+using Veronenger.Game.Platform;
 
 namespace Veronenger.Game.Character.Player;
 
@@ -83,7 +84,7 @@ public class PlayerGameObject : GameObject<PlayerNode> {
     public bool IsDead() => Health <= 0f;
 }
 
-public class PlayerSaveObject : SaveObject<PlayerGameObject> {
+public class PlayerSaveObject : SaveObject<PlayerGameObject>, IMySaveObject {
     [JsonInclude] public float Health { get; set; }
     [JsonInclude] public float MaxHealth { get; set; }
     [JsonInclude] public Dictionary<AmmoType, int> Ammo { get; set; }

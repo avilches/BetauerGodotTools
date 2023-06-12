@@ -118,6 +118,10 @@ public class JsonLoaderTests {
     }
 
     public class MyJsonGameLoader : JsonGameLoader<MyMetadata> {
+        public MyJsonGameLoader() {
+            Scan<ISaveObject>();
+        }
+
         public override string GetSavegameFolder() {
             return ".";
         }

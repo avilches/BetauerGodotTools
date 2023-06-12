@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Betauer.Application.Lifecycle.Attributes;
+using Betauer.Application.Persistent;
 using Betauer.Application.Persistent.Json;
 using Betauer.Camera;
 using Betauer.DI;
@@ -15,6 +16,9 @@ namespace Veronenger.Game.Platform;
 public class GameResources {
 }
 
+public interface IMySaveObject : ISaveObject {
+}
+
 [Configuration]
 public class GameConfig {
 	[Singleton] public JsonGameLoader<MySaveGameMetadata> GameObjectLoader() {
@@ -24,6 +28,7 @@ public class GameConfig {
 			options.WriteIndented = true;
 			options.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
 		});
+		loader.Scan<IMySaveObject>();
 		return loader;
 	}
 	
