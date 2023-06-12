@@ -1,0 +1,39 @@
+[gd_scene load_steps=2 format=3 uid="uid://yjpt3re1scn6"]
+
+[ext_resource type="Script" path="res://Game/SplitScreen.cs" id="1_cgeag"]
+
+[node name="SplitScreen" type="HBoxContainer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_cgeag")
+
+[node name="Container1" type="SubViewportContainer" parent="."]
+layout_mode = 2
+
+[node name="SubViewport1" type="SubViewport" parent="Container1"]
+unique_name_in_owner = true
+handle_input_locally = false
+canvas_item_default_texture_filter = 0
+size = Vector2i(2, 1080)
+render_target_update_mode = 4
+
+[node name="Camera2D1" type="Camera2D" parent="Container1/SubViewport1"]
+unique_name_in_owner = true
+zoom = Vector2(2, 2)
+
+[node name="Container2" type="SubViewportContainer" parent="."]
+layout_mode = 2
+
+[node name="SubViewport2" type="SubViewport" parent="Container2"]
+unique_name_in_owner = true
+handle_input_locally = false
+canvas_item_default_texture_filter = 0
+size = Vector2i(2, 1080)
+render_target_update_mode = 4
+
+[node name="Camera2D2" type="Camera2D" parent="Container2/SubViewport2"]
+unique_name_in_owner = true
+zoom = Vector2(2, 2)
