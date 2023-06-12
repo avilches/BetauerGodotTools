@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 using Betauer.Application.Persistent;
-using Veronenger.Game.Config;
+using Veronenger.Game.Items.Config;
 
 namespace Veronenger.Game.Items;
 

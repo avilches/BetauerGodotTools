@@ -20,10 +20,10 @@ using Betauer.Nodes;
 using Betauer.Physics;
 using Godot;
 using Veronenger.Game.Character.Npc;
-using Veronenger.Game.Config;
 using Veronenger.Game;
 using Veronenger.Game.HUD;
 using Veronenger.Game.Items;
+using Veronenger.Game.Platform;
 
 namespace Veronenger.Game.Character.Player;
 

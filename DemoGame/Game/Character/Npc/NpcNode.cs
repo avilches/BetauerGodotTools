@@ -2,7 +2,6 @@ using System;
 using Betauer.Application.Persistent;
 using Betauer.DI.Attributes;
 using Godot;
-using Veronenger.Game.Config;
 using Veronenger.Game.Items;
 
 namespace Veronenger.Game.Character.Npc;

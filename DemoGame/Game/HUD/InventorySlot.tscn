@@ -1,7 +1,7 @@
 [gd_scene load_steps=5 format=3 uid="uid://blphp8u56oyr5"]
 
 [ext_resource type="Script" path="res://Game/HUD/InventorySlot.cs" id="1_lw23r"]
-[ext_resource type="Texture2D" uid="uid://cxgekqcj7xuxo" path="res://Game/Items/pickups.png" id="2_okule"]
+[ext_resource type="Texture2D" uid="uid://cxgekqcj7xuxo" path="res://Game/Items/Assets/pickups.png" id="2_okule"]
 [ext_resource type="Theme" uid="uid://bei1s45ic3xtp" path="res://Game/UI/my_theme2.tres" id="3_hikp6"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_ehtd3"]

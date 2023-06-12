@@ -20,9 +20,9 @@ using Betauer.Physics;
 using Godot;
 using Veronenger.Game.Character.InputActions;
 using Veronenger.Game.Character.Player;
-using Veronenger.Game.Config;
 using Veronenger.Game;
 using Veronenger.Game.Items;
+using Veronenger.Game.Platform;
 
 namespace Veronenger.Game.Character.Npc; 
 

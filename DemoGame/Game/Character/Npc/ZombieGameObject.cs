@@ -1,6 +1,5 @@
 using Betauer.Application.Persistent;
 using Betauer.DI.Attributes;
-using Veronenger.Game.Config;
 
 namespace Veronenger.Game.Character.Npc;
 

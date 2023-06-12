@@ -1,9 +1,9 @@
 [gd_scene load_steps=6 format=3 uid="uid://b2shbrwueaa74"]
 
-[ext_resource type="Texture2D" uid="uid://b1mxxkrpf3xej" path="res://Game/HUD/player-health-bar-over.png" id="1_gtut2"]
+[ext_resource type="Texture2D" uid="uid://b1mxxkrpf3xej" path="res://Game/HUD/Assets/player-health-bar-over.png" id="1_gtut2"]
 [ext_resource type="Script" path="res://Game/HUD/PlayerHud.cs" id="1_ltqk2"]
-[ext_resource type="Texture2D" uid="uid://cxmo73r7h3lgq" path="res://Game/HUD/player-health-bar-under.png" id="1_y6xfw"]
-[ext_resource type="Texture2D" uid="uid://3pvhwb1xss78" path="res://Game/HUD/player-health-bar-damage.png" id="2_1ks8x"]
+[ext_resource type="Texture2D" uid="uid://cxmo73r7h3lgq" path="res://Game/HUD/Assets/player-health-bar-under.png" id="1_y6xfw"]
+[ext_resource type="Texture2D" uid="uid://3pvhwb1xss78" path="res://Game/HUD/Assets/player-health-bar-damage.png" id="2_1ks8x"]
 [ext_resource type="PackedScene" uid="uid://cit0h4t4vue11" path="res://Game/HUD/Inventory.tscn" id="5_2lw04"]
 
 [node name="PlayerHud" type="Control"]

@@ -4,7 +4,7 @@ using Betauer.Application.Persistent;
 using Betauer.Core;
 using Betauer.DI.Attributes;
 using Godot;
-using Veronenger.Game.Config;
+using Veronenger.Game.Items.Config;
 
 namespace Veronenger.Game.Items;
 

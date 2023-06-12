@@ -8,7 +8,8 @@ using Betauer.NodePath;
 using Betauer.Physics;
 using Godot;
 using Veronenger.Game.Character;
-using Veronenger.Game.Config;
+using Veronenger.Game.Character.Player;
+using Veronenger.Game.Platform;
 
 namespace Veronenger.Game.Items;
 

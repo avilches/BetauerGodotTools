@@ -1,5 +1,6 @@
 using Betauer.DI.Attributes;
-using Veronenger.Game.Config;
+using Veronenger.Game.Items.Config;
+using Veronenger.Game.Platform;
 
 namespace Veronenger.Game.Items;
 
