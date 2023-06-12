@@ -1,4 +1,4 @@
-namespace Veronenger.Game.Character;
+namespace Veronenger.Game.Character.Npc;
 
 public class DoNothingAI : ICharacterAi {
     public static readonly DoNothingAI Instance = new();

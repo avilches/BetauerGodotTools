@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dyxkhaoiyfoj1"
-path="res://.godot/imported/Leon-gun1.png-0dc0bbd3a28bebeb63f8083bc865580b.ctex"
+path="res://.godot/imported/Leon-gun1.png-23fece29fc43b64b36d2bfa029e5d046.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Game/Character/Player/Player-Leon/Leon-gun1.png"
-dest_files=["res://.godot/imported/Leon-gun1.png-0dc0bbd3a28bebeb63f8083bc865580b.ctex"]
+source_file="res://Game/Character/Player/Assets/Leon-gun1.png"
+dest_files=["res://.godot/imported/Leon-gun1.png-23fece29fc43b64b36d2bfa029e5d046.ctex"]
 
 [params]
 

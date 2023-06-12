@@ -19,11 +19,11 @@
     </ItemGroup>
     <ItemGroup>
         <Compile Include="Game/**/*.cs" />
-    </ItemGroup>
-    <ItemGroup>
         <Content Include="*" Exclude="mono_crash*" />
-        <Content Include="Docs/*" />
-        <Content Include="export/*" />
+        <Content Include="Docs/**" />
+        <Content Include="export/**" />
+        <Content Include="Game/**" />
+        <Content Include="Tests/**" />
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="PcgRandom" Version="1.2.0" />

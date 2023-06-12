@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://duwsk0qdrwrpt"
-path="res://.godot/imported/Zombie_Green.png-fc6849165a5af89ad12b1b5bd09b25d5.ctex"
+uid="uid://byusp6snrww28"
+path="res://.godot/imported/Leon-metalbar-original.png-27b63a9b353ace542d5cf6db4b3a815b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Game/Character/Npc/Zombie_Green.png"
-dest_files=["res://.godot/imported/Zombie_Green.png-fc6849165a5af89ad12b1b5bd09b25d5.ctex"]
+source_file="res://Game/Character/Player/Assets/original/Leon-metalbar-original.png"
+dest_files=["res://.godot/imported/Leon-metalbar-original.png-27b63a9b353ace542d5cf6db4b3a815b.ctex"]
 
 [params]
 

@@ -1,4 +1,4 @@
-namespace Veronenger.Game.Character;
+namespace Veronenger.Game.Character.Npc;
 
 public interface ICharacterAi {
     public void Execute();

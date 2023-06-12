@@ -1,8 +1,8 @@
 [gd_scene load_steps=22 format=3 uid="uid://d28t2wyjt7huu"]
 
 [ext_resource type="Script" path="res://Game/Character/Player/PlayerNode.cs" id="1_vke07"]
-[ext_resource type="Texture2D" uid="uid://uhs4s0y6eyo1" path="res://Game/Character/Player/Player-Leon/Leon.png" id="2_yu5gj"]
-[ext_resource type="Texture2D" uid="uid://bkdcmo0hx63sp" path="res://Game/Character/Player/Player-Leon/Leon-knife.png" id="3_3swl5"]
+[ext_resource type="Texture2D" uid="uid://uhs4s0y6eyo1" path="res://Game/Character/Player/Assets/Leon.png" id="2_yu5gj"]
+[ext_resource type="Texture2D" uid="uid://bkdcmo0hx63sp" path="res://Game/Character/Player/Assets/Leon-knife.png" id="3_3swl5"]
 [ext_resource type="Texture2D" uid="uid://b7ir53ta6rglo" path="res://Game/Worlds/light.png" id="4_s4ld0"]
 
 [sub_resource type="Animation" id="Animation_6gt7o"]

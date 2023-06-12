@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://Game/Character/Npc/ZombieNode.cs" id="1_uy3bp"]
 [ext_resource type="PackedScene" uid="uid://dmw5hkvxv022p" path="res://Game/Character/Npc/Enemy.tscn" id="2_lxaq2"]
-[ext_resource type="Texture2D" uid="uid://duwsk0qdrwrpt" path="res://Game/Character/Npc/Zombie_Green.png" id="3_3o1rs"]
+[ext_resource type="Texture2D" uid="uid://duwsk0qdrwrpt" path="res://Game/Character/Npc/Assets/Zombie_Green.png" id="3_3o1rs"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_csmg1"]
 size = Vector2(12, 42.5)

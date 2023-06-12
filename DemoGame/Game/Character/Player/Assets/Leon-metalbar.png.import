@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://qguxqei23r4v"
-path="res://.godot/imported/PrototypeHero_effects.png-257d19925240b146eeb033e633bae4cd.ctex"
+uid="uid://b1e716ggxw74p"
+path="res://.godot/imported/Leon-metalbar.png-5397884e17d0fc3fba45cb2e5858837c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Game/Character/Player/PrototypeHero/PrototypeHero_effects.png"
-dest_files=["res://.godot/imported/PrototypeHero_effects.png-257d19925240b146eeb033e633bae4cd.ctex"]
+source_file="res://Game/Character/Player/Assets/Leon-metalbar.png"
+dest_files=["res://.godot/imported/Leon-metalbar.png-5397884e17d0fc3fba45cb2e5858837c.ctex"]
 
 [params]
 

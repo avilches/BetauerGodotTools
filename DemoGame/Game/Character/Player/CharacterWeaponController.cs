@@ -2,7 +2,7 @@ using Betauer.Core;
 using Godot;
 using Veronenger.Game.Items;
 
-namespace Veronenger.Game.Character;
+namespace Veronenger.Game.Character.Player;
 
 public class CharacterWeaponController {
 	private readonly Area2D[] _attackAreas;

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://byusp6snrww28"
-path="res://.godot/imported/Leon-metalbar-original.png-071221c5184f4e36964780f0ac6907ad.ctex"
+uid="uid://uhs4s0y6eyo1"
+path="res://.godot/imported/Leon.png-efdf3876b3432ac0ddbbd7efc3292f35.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Game/Character/Player/Player-Leon/original/Leon-metalbar-original.png"
-dest_files=["res://.godot/imported/Leon-metalbar-original.png-071221c5184f4e36964780f0ac6907ad.ctex"]
+source_file="res://Game/Character/Player/Assets/Leon.png"
+dest_files=["res://.godot/imported/Leon.png-efdf3876b3432ac0ddbbd7efc3292f35.ctex"]
 
 [params]
 

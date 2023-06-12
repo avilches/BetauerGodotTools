@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://teh8n0m2e6kx"
-path="res://.godot/imported/PrototypeHero_all.png-cc7d04740b7854a55308299338cccde3.ctex"
+uid="uid://duwsk0qdrwrpt"
+path="res://.godot/imported/Zombie_Green.png-978a5a9ef0c63a82b40d73b8a92e74bc.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Game/Character/Player/PrototypeHero/PrototypeHero_all.png"
-dest_files=["res://.godot/imported/PrototypeHero_all.png-cc7d04740b7854a55308299338cccde3.ctex"]
+source_file="res://Game/Character/Npc/Assets/Zombie_Green.png"
+dest_files=["res://.godot/imported/Zombie_Green.png-978a5a9ef0c63a82b40d73b8a92e74bc.ctex"]
 
 [params]
 

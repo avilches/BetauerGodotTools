@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://8joor122usjq"
-path="res://.godot/imported/Leon-original.png-5c37e0eddb2b7901c4c2f36ace5279f4.ctex"
+path="res://.godot/imported/Leon-original.png-8597a6485dae94431f3406eaf9071a80.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Game/Character/Player/Player-Leon/original/Leon-original.png"
-dest_files=["res://.godot/imported/Leon-original.png-5c37e0eddb2b7901c4c2f36ace5279f4.ctex"]
+source_file="res://Game/Character/Player/Assets/original/Leon-original.png"
+dest_files=["res://.godot/imported/Leon-original.png-8597a6485dae94431f3406eaf9071a80.ctex"]
 
 [params]
 

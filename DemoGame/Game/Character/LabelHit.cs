@@ -1,7 +1,7 @@
 using Betauer.Core;
 using Godot;
 
-namespace Veronenger.Game.Character.Npc;
+namespace Veronenger.Game.Character;
 
 public class LabelHit : ILabelEffect {
     private Tween? _tweenHit;

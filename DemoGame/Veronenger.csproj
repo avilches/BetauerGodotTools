@@ -8,23 +8,22 @@
         <EnableDefaultCompileItems>False</EnableDefaultCompileItems>
     </PropertyGroup>
     <ItemGroup Condition="'$(Configuration)' == 'Debug'">
-        <Compile Include="Src/**/*.cs"/>
+        <Compile Include="export/**/*.cs" />
+        <Compile Include="Tests/**/*.cs" />
         <PackageReference Include="NUnit" Version="3.13.3" />
         <Reference Include="Betauer.TestRunner">
             <HintPath>../../export/releases/0.1.0/ExportRelease/Betauer.TestRunner.dll</HintPath>
         </Reference>
     </ItemGroup>
     <ItemGroup Condition="'$(Configuration)' == 'ExportRelease'">
-        <Compile Include="**/*.cs" Exclude="Build/**;Tests/**"/>
     </ItemGroup>
     <ItemGroup>
-        <Content Include="*" Exclude="../mono_crash*"/>
-        <Content Include="Platform//**"/>
-        <Content Include="Docs/*"/>
-        <Content Include="export/*"/>
-        <Content Include="Scenes/**"/>
-        <Content Include="Src/**/*.tscn" />
-        <Content Include="Worlds/**"/>
+        <Compile Include="Game/**/*.cs" />
+        <Content Include="*" Exclude="mono_crash*" />
+        <Content Include="Docs/**" />
+        <Content Include="export/**" />
+        <Content Include="Game/**" />
+        <Content Include="Tests/**" />
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="PcgRandom" Version="1.2.0" />

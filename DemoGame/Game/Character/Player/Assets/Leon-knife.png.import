@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bkdcmo0hx63sp"
-path="res://.godot/imported/Leon-knife.png-4aeb6a4cd0a610a66350719a39df4450.ctex"
+path="res://.godot/imported/Leon-knife.png-e799d3d228ad8c932b46a6578b1b8bb1.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Game/Character/Player/Player-Leon/Leon-knife.png"
-dest_files=["res://.godot/imported/Leon-knife.png-4aeb6a4cd0a610a66350719a39df4450.ctex"]
+source_file="res://Game/Character/Player/Assets/Leon-knife.png"
+dest_files=["res://.godot/imported/Leon-knife.png-e799d3d228ad8c932b46a6578b1b8bb1.ctex"]
 
 [params]
 
