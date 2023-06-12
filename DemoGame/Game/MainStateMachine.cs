@@ -16,6 +16,7 @@ using Godot;
 using Veronenger.Game.HUD;
 using Veronenger.Game.UI;
 using Veronenger.Game.UI.Settings;
+using Veronenger.Game.Worlds.Platform;
 
 namespace Veronenger.Game; 
 
@@ -70,7 +71,7 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
     [Inject] private ITransient<ModalBoxConfirm> ModalBoxConfirmFactory { get; set; }
     [Inject("MyTheme")] private ResourceHolder<Theme> MyTheme { get; set; }
 
-    [Inject] private GameViewContainer GameViewContainer { get; set; }
+    [Inject] private Holder<GameView> GameViewHolder { get; set; }
 
     [Inject] private ScreenSettingsManager ScreenSettingsManager { get; set; }
     [Inject] private SceneTree SceneTree { get; set; }
@@ -177,8 +178,9 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
 
         State(MainState.StartingGame).Enter((Func<Task>)(async () => {
                 await MainMenuScene.HideMainMenu();
-                GameViewContainer.CreateGame();
-                await GameViewContainer.CurrentGame.StartNewGame();
+                var gameView = GameViewHolder.Get();
+                SceneTree.Root.AddChild(gameView);
+                await gameView.StartNewGame();
             }))
             .If(() => true).Set(MainState.Gaming)
             .Build();
@@ -209,8 +211,8 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
             .Build();
 
         State(MainState.GameOver).Enter((Func<Task>)(async () => {
-                await GameViewContainer.CurrentGame!.End(true);
-                GameViewContainer.RemoveGame();
+                await GameViewHolder.Get().End(true);
+                GameViewHolder.Reset();
             }))
             .If(() => true).Set(MainState.MainMenu)
             .Build();
@@ -243,8 +245,8 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
             .Build();
                 
         State(MainState.QuitGame).Enter((Func<Task>)(async () => {
-                await GameViewContainer.CurrentGame!.End(true);
-                GameViewContainer.RemoveGame();
+                await GameViewHolder.Get().End(true);
+                GameViewHolder.Reset();
             }))
             .If(() => true).Set(MainState.MainMenu)
             .Build();

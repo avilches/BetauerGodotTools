@@ -16,7 +16,6 @@ using Pcg;
 using Veronenger.Game.HUD;
 using Veronenger.Game.UI;
 using Veronenger.Game.UI.Settings;
-using Veronenger.Game.Worlds.Platform;
 
 namespace Veronenger.Game; 
 
@@ -63,7 +62,6 @@ public class Settings {
 [Scene.Transient<RedefineActionButton>("RedefineActionButton")]
 [Scene.Transient<ModalBoxConfirm>("ModalBoxConfirmFactory")]
 [Scene.Transient<PlayerHud>("PlayerHudFactory")]
-[Scene.Transient<GameView>("GameSceneFactory")]
 [Scene.Singleton<MainMenu>("MainMenuSceneLazy")]
 [Scene.Singleton<BottomBar>("BottomBarLazy")]
 [Scene.Singleton<PauseMenu>("PauseMenuLazy")]

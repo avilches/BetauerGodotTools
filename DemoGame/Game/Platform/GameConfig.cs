@@ -1,28 +1,19 @@
-using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Betauer.Application;
 using Betauer.Application.Lifecycle.Attributes;
-using Betauer.Application.Monitor;
-using Betauer.Application.Persistent;
 using Betauer.Application.Persistent.Json;
-using Betauer.Application.Screen;
-using Betauer.Application.Settings;
-using Betauer.Application.Settings.Attributes;
 using Betauer.Camera;
-using Betauer.Camera.Follower;
+using Betauer.DI;
 using Betauer.DI.Attributes;
-using Betauer.Input;
-using Betauer.Input.Attributes;
-using Betauer.Input.Joypad;
-using Godot;
-using Pcg;
-using Veronenger.Game.HUD;
-using Veronenger.Game.Platform;
-using Veronenger.Game.UI;
-using Veronenger.Game.UI.Settings;
+using Veronenger.Game.Worlds.Platform;
 
-namespace Veronenger.Game.Platform; 
+namespace Veronenger.Game.Platform;
+
+[Configuration]
+[Loader("GameLoader", Tag = "main")]
+[Scene.Transient<GameView>("GameViewFactory")]
+public class GameResources {
+}
 
 [Configuration]
 public class GameConfig {
@@ -38,5 +29,5 @@ public class GameConfig {
 	
 	[Transient] public StageController StageControllerFactory => new(CollisionLayerConstants.LayerStageArea);
 	[Transient] public StageCameraController StageCameraControllerFactory => new(CollisionLayerConstants.LayerStageArea);
-
+	[Singleton] public Holder<GameView> GameViewHolder => new("GameViewFactory"); 
 }

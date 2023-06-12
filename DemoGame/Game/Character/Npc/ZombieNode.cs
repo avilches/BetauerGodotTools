@@ -1,6 +1,7 @@
 using System;
 using Betauer.Animation;
 using Betauer.Animation.AnimationPlayer;
+using Betauer.Application.Lifecycle;
 using Betauer.Application.Monitor;
 using Betauer.Application.Persistent;
 using Betauer.Bus;
@@ -11,6 +12,7 @@ using Betauer.Core.Pool.Lifecycle;
 using Betauer.Core.Restorer;
 using Betauer.DI;
 using Betauer.DI.Attributes;
+using Betauer.DI.Factory;
 using Betauer.Flipper;
 using Betauer.FSM.Sync;
 using Betauer.Input;
@@ -20,7 +22,6 @@ using Betauer.Physics;
 using Godot;
 using Veronenger.Game.Character.InputActions;
 using Veronenger.Game.Character.Player;
-using Veronenger.Game;
 using Veronenger.Game.Items;
 using Veronenger.Game.Platform;
 using Veronenger.Game.Worlds.Platform;
@@ -83,8 +84,8 @@ public partial class ZombieNode : NpcNode, IInjectable {
 	[Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
 	[Inject] private EventBus EventBus { get; set; }
 	[Inject] private PlayerConfig PlayerConfig { get; set; }
-	[Inject] private GameViewContainer GameViewContainer { get; set; }
-	private WorldPlatform WorldPlatform => (WorldPlatform)GameViewContainer.CurrentGame.GetWorld();
+	[Inject] private Holder<GameView> GameViewHolder { get; set; }
+	private WorldPlatform WorldPlatform => (WorldPlatform)GameViewHolder.Get().GetWorld();
 	
 	// [Inject] private InputActionCharacterHandler Handler { get; set; }
 	private NpcController Handler { get; set; } = new NpcController();

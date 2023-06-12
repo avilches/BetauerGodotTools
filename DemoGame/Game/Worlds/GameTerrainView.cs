@@ -13,21 +13,18 @@ using Betauer.Input;
 using Betauer.Input.Joypad;
 using Betauer.NodePath;
 using Godot;
-using Veronenger.Game.Character.Player;
 using Veronenger.Game.HUD;
 using Veronenger.Game.Platform;
 using Veronenger.Game.UI;
-using Veronenger.Game.Worlds.Platform;
 
 namespace Veronenger.Game.Worlds;
 
 public partial class GameTerrainView : Control, IInjectable, IGameView {
-	private static readonly World2D NoWorld = new(); // A cached World2D to re-use
 
 	[Inject] private GameObjectRepository GameObjectRepository { get; set; }
 	[Inject] private JsonGameLoader<MySaveGameMetadata> GameObjectLoader { get; set; }
 	[Inject] private HudCanvas HudCanvas { get; set; }
-	[Inject] private ITransient<WorldPlatform> WorldPlatformFactory { get; set; }
+	[Inject] private ITransient<Terrain> WorldPlatformFactory { get; set; }
 
 	[Inject] private MainStateMachine MainStateMachine { get; set; }
 	[Inject] private ILazy<ProgressScreen> ProgressScreenLazy { get; set; }
@@ -37,38 +34,31 @@ public partial class GameTerrainView : Control, IInjectable, IGameView {
 	[Inject] private UiActionsContainer UiActionsContainer { get; set; }
 	[Inject] private JoypadPlayersMapping JoypadPlayersMapping { get; set; }
 
-	[NodePath("%SubViewport1")] private SubViewport _subViewport1;
-	[NodePath("%SubViewport2")] private SubViewport _subViewport2;
-	[NodePath("%Camera2D1")] private Camera2D _camera1;
-	[NodePath("%Camera2D2")] private Camera2D _camera2;
+	[NodePath("SplitScreen")] private SplitScreen _splitScreen;
 	// private readonly DragCameraController _cameraController = new();
 
 	public const int MaxPlayer = 2;
-	private float _splitCameraEffectDuration = 0.2f; // in seconds
 
-	public WorldPlatform WorldPlatform { get; private set; } = null!;
-	public bool BusyPlayerTransition { get; private set; } = false;
-	public int VisiblePlayers { get; private set; } = 0;
+	public Terrain Terrain { get; private set; } = null!;
 	public bool ManualCamera { get; private set; } = false;
-	private int ActivePlayers => WorldPlatform != null ? WorldPlatform.Players.Count : 0;
+	private int ActivePlayers => 1; // WorldPlatform != null ? WorldPlatform.Players.Count : 0;
 	private bool _allowAddingP2 = true;
 	private void AllowAddingP2() => _allowAddingP2 = true;
 	private void NoAddingP2() => _allowAddingP2 = false;
 
-	public Node GetWorld() => WorldPlatform;
+	public Node GetWorld() => Terrain;
 
 	public void PostInject() {
-		PlayerActionsContainer.Disable(); // The real actions are cloned per player in player.Connect()		
-	}
+		PlayerActionsContainer.Disable(); // The real actions are cloned per player in player.Connect()
 
-	public void StartNewProceduralWorld() {
-		// _currentGameScene = MainResourceLoader.CreateWorld2Empty();
-		var tileMap = WorldPlatform.GetNode<TileMap>("RealTileMap");
-		new WorldGenerator().Generate(tileMap);
-		// AddPlayerToScene();
-		_subViewport1.AddChildDeferred(WorldPlatform);
+		_splitScreen.OnDoubleChanged += (visible) => {
+			if (visible) {
+				HudCanvas.EnablePlayer2();
+			} else {
+				HudCanvas.DisablePlayer2();
+			}
+		};
 	}
-
 
 	public override void _Input(InputEvent e) {
 		// if (e.IsLeftDoubleClick()) {
@@ -85,19 +75,19 @@ public partial class GameTerrainView : Control, IInjectable, IGameView {
 
 	public override async void _UnhandledInput(InputEvent e) {
 		if (_allowAddingP2 && e is InputEventJoypadButton button && !JoypadPlayersMapping.IsJoypadUsed(button.Device)) {
-			CreatePlayer2(button.Device);
+			// CreatePlayer2(button.Device);
 			GetViewport().SetInputAsHandled();
 			if (JoypadPlayersMapping.Players == MaxPlayer) NoAddingP2();				
 		} else if (e.IsKeyReleased(Key.U)) {
 			if (ActivePlayers < 2) {
-				CreatePlayer2(1);
+				// CreatePlayer2(1);
 				GetViewport().SetInputAsHandled();
 			}
 		} else if (e.IsKeyReleased(Key.I)) {
-			EnableOnlyOneViewport(false);
+			_splitScreen.EnableOnlyOneViewport(false);
 			GetViewport().SetInputAsHandled();
 		} else if (e.IsKeyReleased(Key.O)) {
-			EnableDoubleViewport(false);
+			_splitScreen.EnableDoubleViewport(false);
 			GetViewport().SetInputAsHandled();
 		} else if (e.IsKeyReleased(Key.F5)) {
 			Save("savegame");
@@ -114,9 +104,9 @@ public partial class GameTerrainView : Control, IInjectable, IGameView {
 		CurrentMetadata = new MySaveGameMetadata();
 		GameObjectRepository.Initialize();
 		InitializeWorld();
-		CreatePlayer1(UiActionsContainer.CurrentJoyPad);
+		// CreatePlayer1(UiActionsContainer.CurrentJoyPad);
 		AllowAddingP2();				
-		WorldPlatform.StartNewGame();
+		Terrain.StartNewGame();
 		// _cameraController.WithMouseButton(MouseButton.Middle).Attach(_camera2D);
 	}
 
@@ -142,10 +132,10 @@ public partial class GameTerrainView : Control, IInjectable, IGameView {
 		GameObjectRepository.LoadSaveObjects(saveGame.GameObjects);
 		InitializeWorld();
 		var consumer = new MySaveGameConsumer(saveGame);
-		LoadPlayer1(UiActionsContainer.CurrentJoyPad, consumer);
+		// LoadPlayer1(UiActionsContainer.CurrentJoyPad, consumer);
 		if (consumer.Player1 == null) AllowAddingP2();
 		else NoAddingP2();
-		WorldPlatform.LoadGame(consumer);
+		Terrain.LoadGame(consumer);
 		HideLoading();
 	}
 
@@ -182,33 +172,33 @@ public partial class GameTerrainView : Control, IInjectable, IGameView {
 
 	public void InitializeWorld() {
 		JoypadPlayersMapping.RemoveAllPlayers();
-		WorldPlatform = WorldPlatformFactory.Create();
-		_subViewport1.AddChild(WorldPlatform);
+		Terrain = WorldPlatformFactory.Create();
+		_splitScreen.AddNode(Terrain);
 		HudCanvas.Enable();
 	}
-
+/*
 	public PlayerNode CreatePlayer1(int joypad) {
 		var playerMapping = JoypadPlayersMapping.AddPlayer().SetJoypadId(joypad);
-		var player = WorldPlatform.AddNewPlayer(playerMapping);
-		player.SetCamera(_camera1);
+		var player = Terrain.AddNewPlayer(playerMapping);
+		player.SetCamera(_splitScreen.Camera1);
 		return player;
 	}
 
 	public PlayerNode LoadPlayer1(int joypad, MySaveGameConsumer consumer) {
 		var playerMapping = JoypadPlayersMapping.AddPlayer().SetJoypadId(joypad);
-		var player = WorldPlatform.LoadPlayer(playerMapping, consumer.Player0, consumer.Inventory0);
-		player.SetCamera(_camera1);
+		var player = Terrain.LoadPlayer(playerMapping, consumer.Player0, consumer.Inventory0);
+		player.SetCamera(_splitScreen.Camera1);
 		return player;
 	}
 
 	public PlayerNode CreatePlayer2(int joypad) {
 		if (JoypadPlayersMapping.Players >= MaxPlayer) throw new Exception("No more players allowed");
 		var playerMapping = JoypadPlayersMapping.AddPlayer().SetJoypadId(joypad);
-		var player = WorldPlatform.AddNewPlayer(playerMapping);
-		player.SetCamera(_camera2);
+		var player = Terrain.AddNewPlayer(playerMapping);
+		player.SetCamera(_splitScreen.Camera2);
 		return player;
 	}
-	
+*/	
 	public override void _Process(double delta) {
 		if (!ManualCamera) {
 			ManageSplitScreen();
@@ -216,84 +206,37 @@ public partial class GameTerrainView : Control, IInjectable, IGameView {
 	}
 
 	public void ManageSplitScreen() {
-		if (BusyPlayerTransition) return;
-		
-		if (ActivePlayers == 1) {
-			// Ensure only one viewport is shown
-			if (VisiblePlayers != 1) EnableOnlyOneViewport(true);
-			
-		} else if (ActivePlayers == 2) {
-
-			var p1Stage = WorldPlatform.Players[0].StageCameraController?.CurrentStage;
-			var p2Stage = WorldPlatform.Players[1].StageCameraController?.CurrentStage;
-			if (p1Stage == null || p2Stage == null) return;
-			var sameStage = p1Stage == p2Stage;
-			if (!sameStage) {
-				if (VisiblePlayers == 1) EnableDoubleViewport(false);
-			} else {
-				var p1Pos = WorldPlatform.Players[0].Marker2D.GlobalPosition;
-				var p2Pos = WorldPlatform.Players[1].Marker2D.GlobalPosition;
-				var distanceTo = p1Pos.DistanceTo(p2Pos);
-
-				if (VisiblePlayers == 2) {
-					if (distanceTo < (Size.X * 0.5 * 0.2f)) {
-						EnableOnlyOneViewport(false);
-					}
-				} else if (VisiblePlayers == 1) {
-					if (distanceTo > (Size.X * 0.5 * 0.3f)) {
-						EnableDoubleViewport(false);
-					}
-				}
-			}
-		}
-	}
-
-	private void EnableDoubleViewport(bool immediate) {
-		VisiblePlayers = 2;
-		var half = new Vector2I((int)Size.X / 2, (int)Size.Y);
-		if (immediate || true) {
-			_subViewport1.Size = half;
-			_subViewport2.Size = half;
-			_subViewport2.GetParent<SubViewportContainer>().Visible = true;
-			_subViewport2.World2D = _subViewport1.World2D;
-			HudCanvas.EnablePlayer2();
-			BusyPlayerTransition = false;
-		} else {
-			BusyPlayerTransition = true;
-			_subViewport2.World2D = _subViewport1.World2D;
-			_subViewport2.Size = new Vector2I(0, (int)Size.Y);
-			_subViewport2.GetParent<SubViewportContainer>().Visible = true;
-			CreateTween().SetProcessMode(Tween.TweenProcessMode.Physics).TweenProperty(_subViewport1, "size", half, _splitCameraEffectDuration).SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.InOut);
-			CreateTween().SetProcessMode(Tween.TweenProcessMode.Physics).TweenProperty(_subViewport2, "size", half, _splitCameraEffectDuration).SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.InOut);
-			CreateTween().TweenCallback(Callable.From(() => {
-				BusyPlayerTransition = false;
-				HudCanvas.EnablePlayer2();
-			})).SetDelay(_splitCameraEffectDuration);
-		}
-	}
-
-	public void EnableOnlyOneViewport(bool immediate) {
-		VisiblePlayers = 1;
-		var full = new Vector2I((int)Size.X, (int)Size.Y);
-		var zero = new Vector2I(0, (int)Size.Y);
-		if (immediate || true) {
-			_subViewport2.World2D = NoWorld;
-			_subViewport2.GetParent<SubViewportContainer>().Visible = false;
-			_subViewport1.Size = full;
-			HudCanvas.DisablePlayer2();
-			BusyPlayerTransition = false;
-		} else {
-			BusyPlayerTransition = true;
-			CreateTween().SetProcessMode(Tween.TweenProcessMode.Physics).TweenProperty(_subViewport1, "size", full, _splitCameraEffectDuration).SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.InOut);
-			CreateTween().SetProcessMode(Tween.TweenProcessMode.Physics).TweenProperty(_subViewport2, "size", zero, _splitCameraEffectDuration).SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.InOut);
-			CreateTween().TweenCallback(Callable.From(() => {
-				_subViewport2.World2D = NoWorld;
-				_subViewport2.GetParent<SubViewportContainer>().Visible = false;
-				_subViewport1.Size = full;
-				HudCanvas.DisablePlayer2();
-				BusyPlayerTransition = false;
-			})).SetDelay(_splitCameraEffectDuration);
-		}
+		if (_splitScreen.BusyPlayerTransition) return;
+		//
+		// var visiblePlayers = _splitScreen.VisiblePlayers;
+		// if (ActivePlayers == 1) {
+		// 	// Ensure only one viewport is shown
+		// 	if (visiblePlayers != 1) _splitScreen.EnableOnlyOneViewport(true);
+		// 	
+		// } else if (ActivePlayers == 2) {
+		//
+		// 	var p1Stage = WorldPlatform.Players[0].StageCameraController?.CurrentStage;
+		// 	var p2Stage = WorldPlatform.Players[1].StageCameraController?.CurrentStage;
+		// 	if (p1Stage == null || p2Stage == null) return;
+		// 	var sameStage = p1Stage == p2Stage;
+		// 	if (!sameStage) {
+		// 		if (visiblePlayers == 1) _splitScreen.EnableDoubleViewport(false);
+		// 	} else {
+		// 		var p1Pos = WorldPlatform.Players[0].Marker2D.GlobalPosition;
+		// 		var p2Pos = WorldPlatform.Players[1].Marker2D.GlobalPosition;
+		// 		var distanceTo = p1Pos.DistanceTo(p2Pos);
+		//
+		// 		if (visiblePlayers == 2) {
+		// 			if (distanceTo < (Size.X * 0.5 * 0.2f)) {
+		// 				_splitScreen.EnableOnlyOneViewport(false);
+		// 			}
+		// 		} else if (visiblePlayers == 1) {
+		// 			if (distanceTo > (Size.X * 0.5 * 0.3f)) {
+		// 				_splitScreen.EnableDoubleViewport(false);
+		// 			}
+		// 		}
+		// 	}
+		// }
 	}
 
 	public async Task End(bool unload) {
@@ -325,6 +268,7 @@ public partial class GameTerrainView : Control, IInjectable, IGameView {
 		// Wait one frame before free the scene. Not waiting one frame will cause canvas modulate will not shown (when LoadInGame)
 		// and some collisions will not work because the unparented nodes are still in the tree and the physics engine will try to use them
 		await this.AwaitPhysicsFrame();
-		WorldPlatform.Free();
+		Terrain.Free();
 	}
 }
+

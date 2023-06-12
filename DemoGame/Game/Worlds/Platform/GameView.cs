@@ -247,6 +247,9 @@ public partial class GameView : Control, IInjectable, IGameView {
 		} else {
 			await FreeSceneKeepingPoolData();
 		}
+		Free();
+		GC.GetTotalMemory(true);
+		// PrintOrphanNodes();
 	}
 
 	public void UnloadResources() {
