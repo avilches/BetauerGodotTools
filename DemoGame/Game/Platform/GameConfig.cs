@@ -29,5 +29,5 @@ public class GameConfig {
 	
 	[Transient] public StageController StageControllerFactory => new(CollisionLayerConstants.LayerStageArea);
 	[Transient] public StageCameraController StageCameraControllerFactory => new(CollisionLayerConstants.LayerStageArea);
-	[Singleton] public Holder<GameView> GameViewHolder => new("GameViewFactory"); 
+	[Singleton] public IHolder<IGameView> GameViewHolder => new Holder<IGameView>("GameViewFactory"); 
 }

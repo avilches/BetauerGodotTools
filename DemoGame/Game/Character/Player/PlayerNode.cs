@@ -77,7 +77,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 	[Inject] private PlatformConfig PlatformConfig { get; set; }
 	[Inject] private ITransient<StageCameraController> StageCameraControllerFactory { get; set; }
 	[Inject] private CameraContainer CameraContainer { get; set; }
-	[Inject] private Holder<GameView> GameViewHolder { get; set; }
+	[Inject] private IHolder<IGameView> GameViewHolder { get; set; }
 	private WorldPlatform WorldPlatform => (WorldPlatform)GameViewHolder.Get().GetWorld();
 
 	[Inject] private SceneTree SceneTree { get; set; }

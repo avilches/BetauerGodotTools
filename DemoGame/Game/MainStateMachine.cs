@@ -71,7 +71,7 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
     [Inject] private ITransient<ModalBoxConfirm> ModalBoxConfirmFactory { get; set; }
     [Inject("MyTheme")] private ResourceHolder<Theme> MyTheme { get; set; }
 
-    [Inject] private Holder<GameView> GameViewHolder { get; set; }
+    [Inject] private IHolder<IGameView> GameViewHolder { get; set; }
 
     [Inject] private ScreenSettingsManager ScreenSettingsManager { get; set; }
     [Inject] private SceneTree SceneTree { get; set; }
@@ -179,7 +179,6 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
         State(MainState.StartingGame).Enter((Func<Task>)(async () => {
                 await MainMenuScene.HideMainMenu();
                 var gameView = GameViewHolder.Get();
-                SceneTree.Root.AddChild(gameView);
                 await gameView.StartNewGame();
             }))
             .If(() => true).Set(MainState.Gaming)

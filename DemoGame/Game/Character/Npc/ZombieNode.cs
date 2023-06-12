@@ -84,7 +84,7 @@ public partial class ZombieNode : NpcNode, IInjectable {
 	[Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
 	[Inject] private EventBus EventBus { get; set; }
 	[Inject] private PlayerConfig PlayerConfig { get; set; }
-	[Inject] private Holder<GameView> GameViewHolder { get; set; }
+	[Inject] private IHolder<IGameView> GameViewHolder { get; set; }
 	private WorldPlatform WorldPlatform => (WorldPlatform)GameViewHolder.Get().GetWorld();
 	
 	// [Inject] private InputActionCharacterHandler Handler { get; set; }

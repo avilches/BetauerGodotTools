@@ -4,7 +4,7 @@ using Betauer.DI.Factory;
 
 namespace Betauer.DI;
 
-public class Holder<T> : IInjectable where T : class {
+public class Holder<T> : IHolder<T>, IInjectable where T : class {
     [Inject] protected Container Container { get; set; }
     private ITransient<T>? _factory;
     private string? _factoryName;

@@ -22,6 +22,7 @@ namespace Veronenger.Game.Worlds.Platform;
 
 public partial class GameView : Control, IInjectable, IGameView {
 
+	[Inject] private SceneTree SceneTree { get; set; }
 	[Inject] private GameObjectRepository GameObjectRepository { get; set; }
 	[Inject] private JsonGameLoader<MySaveGameMetadata> GameObjectLoader { get; set; }
 	[Inject] private HudCanvas HudCanvas { get; set; }
@@ -98,6 +99,7 @@ public partial class GameView : Control, IInjectable, IGameView {
 	}
 
 	public async Task StartNewGame() {
+		SceneTree.Root.AddChild(this);
 		UiActionsContainer.SetJoypad(UiActionsContainer.CurrentJoyPad);	// Player who starts the game is the player who control the UI forever
 		
 		await GameLoader.LoadGameResources();
@@ -112,6 +114,7 @@ public partial class GameView : Control, IInjectable, IGameView {
 	}
 
 	public async Task LoadFromMenu(string saveName) {
+		SceneTree.Root.AddChild(this);
 		UiActionsContainer.SetJoypad(UiActionsContainer.CurrentJoyPad);	// Player who starts the game is the player who control the UI forever
 		var (success, saveGame) = await LoadSaveGame(saveName);
 		if (!success) return;
