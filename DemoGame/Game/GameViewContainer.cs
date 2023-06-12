@@ -2,6 +2,7 @@ using System;
 using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
 using Godot;
+using Veronenger.Game.Worlds.Platform;
 
 namespace Veronenger.Game;
 

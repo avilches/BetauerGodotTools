@@ -17,10 +17,8 @@ using Veronenger.Game.Character.Player;
 using Veronenger.Game.HUD;
 using Veronenger.Game.Platform;
 using Veronenger.Game.UI;
-using Veronenger.Game.Worlds;
-using WorldPlatform = Veronenger.Game.Worlds.Platform.WorldPlatform;
 
-namespace Veronenger.Game;
+namespace Veronenger.Game.Worlds.Platform;
 
 public partial class GameView : Control, IInjectable, IGameView {
 	private static readonly World2D NoWorld = new(); // A cached World2D to re-use
