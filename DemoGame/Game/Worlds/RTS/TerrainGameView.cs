@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Betauer.Application.Lifecycle.Pool;
+using Betauer.Application.Monitor;
 using Betauer.Application.Persistent;
 using Betauer.Application.Persistent.Json;
 using Betauer.Core;
@@ -15,22 +16,24 @@ using Betauer.NodePath;
 using Godot;
 using Veronenger.Game.HUD;
 using Veronenger.Game.Platform;
+using Veronenger.Game.RTS;
 using Veronenger.Game.UI;
 
-namespace Veronenger.Game.Worlds;
+namespace Veronenger.Game.Worlds.RTS;
 
-public partial class GameTerrainView : Control, IInjectable, IGameView {
+public partial class TerrainGameView : Control, IInjectable, IGameView {
 
+	[Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
 	[Inject] private SceneTree SceneTree { get; set; }
 	[Inject] private GameObjectRepository GameObjectRepository { get; set; }
-	[Inject] private JsonGameLoader<PlatformSaveGameMetadata> GameObjectLoader { get; set; }
-	[Inject] private ITransient<Terrain> WorldPlatformFactory { get; set; }
+	[Inject] private JsonGameLoader<RtsSaveGameMetadata> RtsGameObjectLoader { get; set; }
+	[Inject] private ITransient<Terrain> TerrainFactory { get; set; }
 	[Inject] private ITransient<HudCanvas> HudCanvasFactory { get; set; }
 
 	[Inject] private MainStateMachine MainStateMachine { get; set; }
 	[Inject] private ILazy<ProgressScreen> ProgressScreenLazy { get; set; }
 	[Inject] private GameLoader GameLoader { get; set; }
-	[Inject] private PoolContainer<Node> PoolNodeContainer { get; set; }
+	[Inject("RtsPoolNodeContainer")] private PoolContainer<Node> PoolNodeContainer { get; set; }
 	[Inject] private InputActionsContainer PlayerActionsContainer { get; set; }
 	[Inject] private UiActionsContainer UiActionsContainer { get; set; }
 	[Inject] private JoypadPlayersMapping JoypadPlayersMapping { get; set; }
@@ -96,7 +99,7 @@ public partial class GameTerrainView : Control, IInjectable, IGameView {
 		
 		await GameLoader.LoadGameResources();
 		
-		CurrentMetadata = new PlatformSaveGameMetadata();
+		CurrentMetadata = new RtsSaveGameMetadata();
 		GameObjectRepository.Initialize();
 		InitializeWorld();
 		// CreatePlayer1(UiActionsContainer.CurrentJoyPad);
@@ -122,26 +125,26 @@ public partial class GameTerrainView : Control, IInjectable, IGameView {
 		ContinueLoad(saveGame);
 	}
 
-	private void ContinueLoad(SaveGame<PlatformSaveGameMetadata> saveGame) {
+	private void ContinueLoad(SaveGame<RtsSaveGameMetadata> saveGame) {
 		CurrentMetadata = saveGame.Metadata;
 		GameObjectRepository.Initialize();
 		GameObjectRepository.LoadSaveObjects(saveGame.GameObjects);
 		InitializeWorld();
-		var consumer = new PlatformSaveGameConsumer(saveGame);
+		// var consumer = new PlatformSaveGameConsumer(saveGame);
 		// LoadPlayer1(UiActionsContainer.CurrentJoyPad, consumer);
-		if (consumer.Player1 == null) AllowAddingP2();
-		else NoAddingP2();
-		Terrain.LoadGame(consumer);
+		// if (consumer.Player1 == null) AllowAddingP2();
+		// else NoAddingP2();
+		// Terrain.LoadGame(consumer);
 		HideLoading();
 	}
 
 	public async Task Save(string saveName) {
 		MainStateMachine.Send(MainEvent.StartSavingGame);
-		var l = await GameObjectLoader.ListMetadatas();
+		var l = await RtsGameObjectLoader.ListMetadatas();
 		try {
 			var saveObjects = GameObjectRepository.GetSaveObjects();
 			Action<float>? saveProgress = saveObjects.Count < 1000 ? null : (progress) => ProgressScreenLazy.Get().ShowSaving(progress);
-			await GameObjectLoader.Save(saveName, CurrentMetadata, saveObjects, saveProgress);
+			await RtsGameObjectLoader.Save(saveName, CurrentMetadata, saveObjects, saveProgress);
 		} catch (Exception e) {
 			// Show saving error
 			Console.WriteLine(e);
@@ -152,12 +155,12 @@ public partial class GameTerrainView : Control, IInjectable, IGameView {
 	public void ShowLoading() {}
 	public void HideLoading() {}
 	
-	public PlatformSaveGameMetadata CurrentMetadata { get; private set; }
+	public RtsSaveGameMetadata CurrentMetadata { get; private set; }
 
-	public async Task<(bool, SaveGame<PlatformSaveGameMetadata>)> LoadSaveGame(string save) {
+	public async Task<(bool, SaveGame<RtsSaveGameMetadata>)> LoadSaveGame(string save) {
 		ShowLoading();
 		try {
-			var saveGame = await GameObjectLoader.Load(save);
+			var saveGame = await RtsGameObjectLoader.Load(save);
 			return (true, saveGame);
 		} catch (Exception e) {
 			HideLoading();
@@ -169,7 +172,7 @@ public partial class GameTerrainView : Control, IInjectable, IGameView {
 	public void InitializeWorld() {
 		JoypadPlayersMapping.RemoveAllPlayers();
 
-		Terrain = WorldPlatformFactory.Create();
+		Terrain = TerrainFactory.Create();
 		_splitScreen.SetWorld(Terrain);
 		_splitScreen.SinglePlayer(true);
 
@@ -279,5 +282,13 @@ public partial class GameTerrainView : Control, IInjectable, IGameView {
 		// and some collisions will not work because the unparented nodes are still in the tree and the physics engine will try to use them
 		await this.AwaitPhysicsFrame();
 		Terrain.Free();
+	}
+
+	private void ConfigureDebugOverlays() {
+		DebugOverlayManager.Overlay("Pool")
+			.Text("Busy", () => PoolNodeContainer.BusyCount() + "").EndMonitor()
+			.Text("Available", () => PoolNodeContainer.AvailableCount() + "").EndMonitor()
+			.Text("Invalid", () => PoolNodeContainer.InvalidCount() + "").EndMonitor();
+
 	}
 }

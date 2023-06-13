@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Betauer.Application.Lifecycle.Pool;
+using Betauer.Application.Monitor;
 using Betauer.Application.Persistent;
 using Betauer.Application.Persistent.Json;
 using Betauer.Core;
@@ -22,16 +23,17 @@ namespace Veronenger.Game.Worlds.Platform;
 
 public partial class PlatformGameView : Control, IInjectable, IGameView {
 
+	[Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
 	[Inject] private SceneTree SceneTree { get; set; }
 	[Inject] private GameObjectRepository GameObjectRepository { get; set; }
-	[Inject] private JsonGameLoader<PlatformSaveGameMetadata> GameObjectLoader { get; set; }
+	[Inject] private JsonGameLoader<PlatformSaveGameMetadata> PlatformGameObjectLoader { get; set; }
 	[Inject] private ITransient<WorldPlatform> WorldPlatformFactory { get; set; }
 	[Inject] private ITransient<HudCanvas> HudCanvasFactory { get; set; }
 
 	[Inject] private MainStateMachine MainStateMachine { get; set; }
 	[Inject] private ILazy<ProgressScreen> ProgressScreenLazy { get; set; }
 	[Inject] private GameLoader GameLoader { get; set; }
-	[Inject] private PoolContainer<Node> PoolNodeContainer { get; set; }
+	[Inject("PlatformPoolNodeContainer")] private PoolContainer<Node> PoolNodeContainer { get; set; }
 	[Inject] private InputActionsContainer PlayerActionsContainer { get; set; }
 	[Inject] private UiActionsContainer UiActionsContainer { get; set; }
 	[Inject] private JoypadPlayersMapping JoypadPlayersMapping { get; set; }
@@ -138,11 +140,11 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 
 	public async Task Save(string saveName) {
 		MainStateMachine.Send(MainEvent.StartSavingGame);
-		var l = await GameObjectLoader.ListMetadatas();
+		var l = await PlatformGameObjectLoader.ListMetadatas();
 		try {
 			var saveObjects = GameObjectRepository.GetSaveObjects();
 			Action<float>? saveProgress = saveObjects.Count < 1000 ? null : (progress) => ProgressScreenLazy.Get().ShowSaving(progress);
-			await GameObjectLoader.Save(saveName, CurrentMetadata, saveObjects, saveProgress);
+			await PlatformGameObjectLoader.Save(saveName, CurrentMetadata, saveObjects, saveProgress);
 		} catch (Exception e) {
 			// Show saving error
 			Console.WriteLine(e);
@@ -158,7 +160,7 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 	public async Task<(bool, SaveGame<PlatformSaveGameMetadata>)> LoadSaveGame(string save) {
 		ShowLoading();
 		try {
-			var saveGame = await GameObjectLoader.Load(save);
+			var saveGame = await PlatformGameObjectLoader.Load(save);
 			return (true, saveGame);
 		} catch (Exception e) {
 			HideLoading();
@@ -280,5 +282,13 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 		// and some collisions will not work because the unparented nodes are still in the tree and the physics engine will try to use them
 		await this.AwaitPhysicsFrame();
 		WorldPlatform.Free();
+	}
+	
+	private void ConfigureDebugOverlays() {
+		DebugOverlayManager.Overlay("Pool")
+			.Text("Busy", () => PoolNodeContainer.BusyCount() + "").EndMonitor()
+			.Text("Available", () => PoolNodeContainer.AvailableCount() + "").EndMonitor()
+			.Text("Invalid", () => PoolNodeContainer.InvalidCount() + "").EndMonitor();
+
 	}
 }

@@ -58,7 +58,6 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
     [Inject] private ILazy<SettingsMenu> SettingsMenuLazy { get; set; }
     [Inject] private ILazy<ProgressScreen> ProgressScreenLazy { get; set; }
     [Inject] private GameLoader GameLoader { get; set; }
-    [Inject] private PoolContainer<Node> PoolNodeContainer { get; set; }
 
     private MainMenu MainMenuScene => MainMenuSceneLazy.Get();
     private BottomBar BottomBarScene => BottomBarLazy.Get();
@@ -70,6 +69,7 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
     [Inject("MyTheme")] private ResourceHolder<Theme> MyTheme { get; set; }
 
     [Inject("PlatformGameViewHolder")] private IMutableHolder<IGameView> GameView { get; set; }
+    // [Inject("TerrainGameViewHolder")] private IMutableHolder<IGameView> GameView { get; set; }
 
     [Inject] private ScreenSettingsManager ScreenSettingsManager { get; set; }
     [Inject] private SceneTree SceneTree { get; set; }
@@ -282,11 +282,6 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
     private void ConfigureDebugOverlays() {
         DebugOverlayManager.OverlayContainer.Theme = MyTheme.Get();
         DebugOverlayManager.DebugConsole.Theme = DebugConsoleTheme.Get();
-        DebugOverlayManager.Overlay("Pool")
-            .Text("Busy", () => PoolNodeContainer.BusyCount() + "").EndMonitor()
-            .Text("Available", () => PoolNodeContainer.AvailableCount() + "").EndMonitor()
-            .Text("Invalid", () => PoolNodeContainer.InvalidCount() + "").EndMonitor();
-
     }
 
     private ModalBoxConfirm ShowModalBox(string title, string subtitle = null) {

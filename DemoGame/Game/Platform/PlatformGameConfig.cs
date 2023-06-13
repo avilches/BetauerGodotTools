@@ -15,6 +15,7 @@ using Veronenger.Game.Character.Player;
 using Veronenger.Game.HUD;
 using Veronenger.Game.Items;
 using Veronenger.Game.Worlds.Platform;
+using Veronenger.Game.Worlds.RTS;
 
 namespace Veronenger.Game.Platform;
 
@@ -43,7 +44,7 @@ public class PlatformGameResources {
 }
 
 [Configuration]
-[PoolContainer<Node>("PoolNodeContainer")]
+[PoolContainer<Node>("PlatformPoolNodeContainer")]
 public class PoolConfig {
 	[Pool] NodePool<PlayerNode> PlayerPool => new("PlayerNodeFactory");
 	[Pool] NodePool<ZombieNode> ZombiePool => new("ZombieNodeFactory");
@@ -57,7 +58,7 @@ public interface IPlatformSaveObject : ISaveObject {
 
 [Configuration]
 public class PlatformGameConfig {
-	[Singleton] public JsonGameLoader<PlatformSaveGameMetadata> GameObjectLoader() {
+	[Singleton] public JsonGameLoader<PlatformSaveGameMetadata> PlatformGameObjectLoader() {
 		var loader = new JsonGameLoader<PlatformSaveGameMetadata>();
 		loader.WithJsonSerializerOptions(options => {
 			options.AllowTrailingCommas = true;

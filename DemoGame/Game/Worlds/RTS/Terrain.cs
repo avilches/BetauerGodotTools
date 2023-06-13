@@ -1,8 +1,7 @@
-using System;
 using Godot;
 using Veronenger.Game.Platform;
 
-namespace Veronenger.Game.Worlds; 
+namespace Veronenger.Game.Worlds.RTS; 
 
 public partial class Terrain : Node
 {
