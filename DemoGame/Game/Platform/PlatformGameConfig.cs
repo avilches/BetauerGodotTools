@@ -71,6 +71,6 @@ public class PlatformGameConfig {
 	[Transient] public StageController StageControllerFactory => new(CollisionLayerConstants.LayerStageArea);
 	[Transient] public StageCameraController StageCameraControllerFactory => new(CollisionLayerConstants.LayerStageArea);
 	[Singleton] public IMutableHolder<IGameView> PlatformGameViewHolder => Holder.From<IGameView>("PlatformGameViewFactory"); 
-	[Singleton] public ILazy<WorldPlatform> WorldPlatformHolder => Holder.Chain<IGameView, WorldPlatform>("PlatformGameViewHolder", (gameView) => (WorldPlatform)gameView.GetWorld()); 
-	[Singleton] public ILazy<HudCanvas> HudCanvasHolder => Holder.Chain<IGameView, HudCanvas>("PlatformGameViewHolder", (gameView) => ((PlatformGameView)gameView).HudCanvas); 
+	[Singleton] public IHolder<WorldPlatform> WorldPlatformHolder => Holder.Chain<IGameView, WorldPlatform>("PlatformGameViewHolder", (gameView) => (WorldPlatform)gameView.GetWorld()); 
+	[Singleton] public IHolder<HudCanvas> HudCanvasHolder => Holder.Chain<IGameView, HudCanvas>("PlatformGameViewHolder", (gameView) => ((PlatformGameView)gameView).HudCanvas); 
 }

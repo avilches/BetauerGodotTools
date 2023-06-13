@@ -12,6 +12,7 @@ using Betauer.Core.Time;
 using Betauer.DI;
 using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
+using Betauer.DI.Holder;
 using Betauer.Flipper;
 using Betauer.FSM.Sync;
 using Betauer.Input;
@@ -20,7 +21,6 @@ using Betauer.Nodes;
 using Betauer.Physics;
 using Godot;
 using Veronenger.Game.Character.Npc;
-using Veronenger.Game;
 using Veronenger.Game.HUD;
 using Veronenger.Game.Items;
 using Veronenger.Game.Platform;
@@ -77,8 +77,8 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 	[Inject] private PlatformConfig PlatformConfig { get; set; }
 	[Inject] private ITransient<StageCameraController> StageCameraControllerFactory { get; set; }
 	[Inject] private CameraContainer CameraContainer { get; set; }
-	[Inject("WorldPlatformHolder")] private ILazy<WorldPlatform> WorldPlatform { get; set; } 
-	[Inject("HudCanvasHolder")] private ILazy<HudCanvas> HudCanvas { get; set; } 
+	[Inject("WorldPlatformHolder")] private IHolder<WorldPlatform> WorldPlatform { get; set; } 
+	[Inject("HudCanvasHolder")] private IHolder<HudCanvas> HudCanvas { get; set; } 
 	
 	[Inject] private SceneTree SceneTree { get; set; }
 	[Inject] private EventBus EventBus { get; set; }

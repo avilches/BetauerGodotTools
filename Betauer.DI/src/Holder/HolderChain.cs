@@ -1,10 +1,9 @@
 using System;
 using Betauer.DI.Attributes;
-using Betauer.DI.Factory;
 
 namespace Betauer.DI.Holder;
 
-public class HolderChain<TH, T> : ILazy<T>, IInjectable 
+public class HolderChain<TH, T> : IHolder<T>, IInjectable 
     where T : class 
     where TH : class {
     

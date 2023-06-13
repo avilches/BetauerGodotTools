@@ -1,7 +1,6 @@
 using System;
 using Betauer.Animation;
 using Betauer.Animation.AnimationPlayer;
-using Betauer.Application.Lifecycle;
 using Betauer.Application.Monitor;
 using Betauer.Application.Persistent;
 using Betauer.Bus;
@@ -12,7 +11,7 @@ using Betauer.Core.Pool.Lifecycle;
 using Betauer.Core.Restorer;
 using Betauer.DI;
 using Betauer.DI.Attributes;
-using Betauer.DI.Factory;
+using Betauer.DI.Holder;
 using Betauer.Flipper;
 using Betauer.FSM.Sync;
 using Betauer.Input;
@@ -84,7 +83,7 @@ public partial class ZombieNode : NpcNode, IInjectable {
 	[Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
 	[Inject] private EventBus EventBus { get; set; }
 	[Inject] private PlayerConfig PlayerConfig { get; set; }
-	[Inject("WorldPlatformHolder")] private ILazy<WorldPlatform> WorldPlatform { get; set; } 
+	[Inject("WorldPlatformHolder")] private IHolder<WorldPlatform> WorldPlatform { get; set; } 
 	
 	// [Inject] private InputActionCharacterHandler Handler { get; set; }
 	private NpcController Handler { get; set; } = new NpcController();

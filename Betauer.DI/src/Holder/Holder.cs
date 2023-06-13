@@ -16,10 +16,9 @@ public class Holder {
         return new FuncHolder<T>(factory);
     }
     
-    public static ILazy<T> Chain<TH, T>(string holderName, Func<TH, T> chain) where T : class where TH : class {
+    public static IHolder<T> Chain<TH, T>(string holderName, Func<TH, T> chain) where T : class where TH : class {
         return new HolderChain<TH, T>(holderName, chain);
     }
-
 }
 
 public abstract class Holder<T> : Holder, IMutableHolder<T> where T : class {
