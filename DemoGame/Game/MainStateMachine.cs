@@ -208,7 +208,7 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
 
         State(MainState.GameOver).Enter((Func<Task>)(async () => {
                 await GameView.Get().End(true);
-                GameView.Reset();
+                GameView.Clear();
             }))
             .If(() => true).Set(MainState.MainMenu)
             .Build();
@@ -242,7 +242,7 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
                 
         State(MainState.QuitGame).Enter((Func<Task>)(async () => {
                 await GameView.Get().End(true);
-                GameView.Reset();
+                GameView.Clear();
             }))
             .If(() => true).Set(MainState.MainMenu)
             .Build();

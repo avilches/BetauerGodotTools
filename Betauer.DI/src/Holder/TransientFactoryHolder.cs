@@ -31,7 +31,7 @@ public class TransientFactoryHolder<T> : Holder<T>, IInjectable where T : class 
         }
     }
 
-    protected override T CreateInstance() {
+    protected override T CreateValue() {
         return _factory!.Create();
     }
 }

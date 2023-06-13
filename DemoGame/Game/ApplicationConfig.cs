@@ -13,7 +13,6 @@ using Betauer.Input.Attributes;
 using Betauer.Input.Joypad;
 using Godot;
 using Pcg;
-using Veronenger.Game.HUD;
 using Veronenger.Game.UI;
 using Veronenger.Game.UI.Settings;
 

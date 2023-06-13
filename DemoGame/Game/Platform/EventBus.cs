@@ -3,7 +3,7 @@ using Betauer.Bus;
 using Betauer.DI.Attributes;
 using Veronenger.Game.Character.Player;
 
-namespace Veronenger.Game;
+namespace Veronenger.Game.Platform;
 
 [Singleton]
 public class EventBus {

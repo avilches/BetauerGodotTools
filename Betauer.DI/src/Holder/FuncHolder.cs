@@ -9,7 +9,7 @@ public class FuncHolder<T> : Holder<T> where T : class {
         _factory = factory;
     }
 
-    protected override T CreateInstance() {
+    protected override T CreateValue() {
         return _factory();
     }
 }
