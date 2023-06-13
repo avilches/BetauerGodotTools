@@ -24,8 +24,8 @@ public partial class GameTerrainView : Control, IInjectable, IGameView {
 	[Inject] private SceneTree SceneTree { get; set; }
 	[Inject] private GameObjectRepository GameObjectRepository { get; set; }
 	[Inject] private JsonGameLoader<PlatformSaveGameMetadata> GameObjectLoader { get; set; }
-	[Inject] private HudCanvas HudCanvas { get; set; }
 	[Inject] private ITransient<Terrain> WorldPlatformFactory { get; set; }
+	[Inject] private ITransient<HudCanvas> HudCanvasFactory { get; set; }
 
 	[Inject] private MainStateMachine MainStateMachine { get; set; }
 	[Inject] private ILazy<ProgressScreen> ProgressScreenLazy { get; set; }
@@ -40,6 +40,7 @@ public partial class GameTerrainView : Control, IInjectable, IGameView {
 
 	public const int MaxPlayer = 2;
 
+	public HudCanvas HudCanvas { get; private set; } = null!;
 	public Terrain Terrain { get; private set; } = null!;
 	public bool ManualCamera { get; private set; } = false;
 	private int ActivePlayers => 1; // WorldPlatform != null ? WorldPlatform.Players.Count : 0;
@@ -51,14 +52,6 @@ public partial class GameTerrainView : Control, IInjectable, IGameView {
 
 	public void PostInject() {
 		PlayerActionsContainer.Disable(); // The real actions are cloned per player in player.Connect()
-
-		_splitScreen.OnDoubleChanged += (visible) => {
-			if (visible) {
-				HudCanvas.EnableSplitScreen();
-			} else {
-				HudCanvas.SinglePlayer();
-			}
-		};
 	}
 
 	public override void _Input(InputEvent e) {
@@ -98,6 +91,7 @@ public partial class GameTerrainView : Control, IInjectable, IGameView {
 	}
 
 	public async Task StartNewGame() {
+		SceneTree.Root.AddChild(this);
 		UiActionsContainer.SetJoypad(UiActionsContainer.CurrentJoyPad);	// Player who starts the game is the player who control the UI forever
 		
 		await GameLoader.LoadGameResources();
@@ -121,7 +115,6 @@ public partial class GameTerrainView : Control, IInjectable, IGameView {
 	}
 
 	public async Task LoadInGame(string saveName) {
-		SceneTree.Root.AddChild(this);
 		UiActionsContainer.SetJoypad(UiActionsContainer.CurrentJoyPad); // Player who starts the game is the player who control the UI forever
 		var (success, saveGame) = await LoadSaveGame(saveName);
 		if (!success) return;
@@ -175,21 +168,33 @@ public partial class GameTerrainView : Control, IInjectable, IGameView {
 
 	public void InitializeWorld() {
 		JoypadPlayersMapping.RemoveAllPlayers();
+
 		Terrain = WorldPlatformFactory.Create();
 		_splitScreen.SetWorld(Terrain);
-		HudCanvas.Enable();
+		_splitScreen.SinglePlayer(true);
+
+		HudCanvas = HudCanvasFactory.Create();
+		AddChild(HudCanvas);
+		HudCanvas.SinglePlayer();
+		
+		_splitScreen.OnDoubleChanged += (visible) => {
+			if (visible) {
+				HudCanvas.EnableSplitScreen();
+				// The HUD for player two should be always visible if the player 2 is alive 
+			}
+		};
 	}
 /*
 	public PlayerNode CreatePlayer1(int joypad) {
 		var playerMapping = JoypadPlayersMapping.AddPlayer().SetJoypadId(joypad);
-		var player = Terrain.AddNewPlayer(playerMapping);
+		var player = WorldPlatform.AddNewPlayer(playerMapping);
 		player.SetCamera(_splitScreen.Camera1);
 		return player;
 	}
 
-	public PlayerNode LoadPlayer1(int joypad, MySaveGameConsumer consumer) {
+	public PlayerNode LoadPlayer1(int joypad, PlatformSaveGameConsumer consumer) {
 		var playerMapping = JoypadPlayersMapping.AddPlayer().SetJoypadId(joypad);
-		var player = Terrain.LoadPlayer(playerMapping, consumer.Player0, consumer.Inventory0);
+		var player = WorldPlatform.LoadPlayer(playerMapping, consumer.Player0, consumer.Inventory0);
 		player.SetCamera(_splitScreen.Camera1);
 		return player;
 	}
@@ -197,7 +202,7 @@ public partial class GameTerrainView : Control, IInjectable, IGameView {
 	public PlayerNode CreatePlayer2(int joypad) {
 		if (JoypadPlayersMapping.Players >= MaxPlayer) throw new Exception("No more players allowed");
 		var playerMapping = JoypadPlayersMapping.AddPlayer().SetJoypadId(joypad);
-		var player = Terrain.AddNewPlayer(playerMapping);
+		var player = WorldPlatform.AddNewPlayer(playerMapping);
 		player.SetCamera(_splitScreen.Camera2);
 		return player;
 	}
@@ -243,12 +248,14 @@ public partial class GameTerrainView : Control, IInjectable, IGameView {
 	}
 
 	public async Task End(bool unload) {
-		HudCanvas.Disable();
 		if (unload) {
 			UnloadResources();
 		} else {
 			await FreeSceneKeepingPoolData();
 		}
+		Free();
+		GC.GetTotalMemory(true);
+		// PrintOrphanNodes();
 	}
 
 	public void UnloadResources() {
@@ -274,4 +281,3 @@ public partial class GameTerrainView : Control, IInjectable, IGameView {
 		Terrain.Free();
 	}
 }
-
