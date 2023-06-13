@@ -61,7 +61,6 @@ public class Settings {
 [Resource<Texture2D>("XboxOneButtons", "res://Game/UI/Console/Xbox One Controller Updated.png")]
 [Scene.Transient<RedefineActionButton>("RedefineActionButton")]
 [Scene.Transient<ModalBoxConfirm>("ModalBoxConfirmFactory")]
-[Scene.Transient<PlayerHud>("PlayerHudFactory")]
 [Scene.Singleton<MainMenu>("MainMenuSceneLazy")]
 [Scene.Singleton<BottomBar>("BottomBarLazy")]
 [Scene.Singleton<PauseMenu>("PauseMenuLazy")]

@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://cdyhbgqkwlf35"]
 
-[ext_resource type="Script" path="res://Game/Worlds/Platform/GameView.cs" id="1_wo4ja"]
+[ext_resource type="Script" path="res://Game/Worlds/Platform/PlatformGameView.cs" id="1_wo4ja"]
 [ext_resource type="PackedScene" uid="uid://yjpt3re1scn6" path="res://Game/SplitScreen.tscn" id="2_86vty"]
 
 [node name="Game" type="Control"]

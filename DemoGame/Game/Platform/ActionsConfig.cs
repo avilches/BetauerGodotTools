@@ -1,48 +1,15 @@
-using Betauer.Application.Lifecycle.Attributes;
-using Betauer.Application.Lifecycle.Pool;
 using Betauer.Application.Settings.Attributes;
 using Betauer.DI.Attributes;
 using Betauer.Input;
 using Betauer.Input.Attributes;
-using Betauer.Input.Joypad;
 using Godot;
-using Veronenger.Game.Character.Npc;
-using Veronenger.Game.Character.Player;
-using Veronenger.Game.HUD;
-using Veronenger.Game.Items;
-using WorldPlatform = Veronenger.Game.Worlds.Platform.WorldPlatform;
 
-namespace Veronenger.Game.Character; 
-
-[Configuration]
-[Loader("GameLoader", Tag = "game")]
-[Resource<Texture2D>("Pickups", "res://Game/Items/Assets/pickups.png")]
-[Resource<Texture2D>("Pickups2", "res://Game/Items/Assets/pickups2.png")]
-[Resource<Texture2D>("LeonKnifeAnimationSprite", "res://Game/Character/Player/Assets/Leon-knife.png")]
-[Resource<Texture2D>("LeonMetalbarAnimationSprite", "res://Game/Character/Player/Assets/Leon-metalbar.png")]
-[Resource<Texture2D>("LeonGun1AnimationSprite", "res://Game/Character/Player/Assets/Leon-gun1.png")]
-[Scene.Transient<InventorySlot>("InventorySlotResource")]
-[Scene.Transient<WorldPlatform>("WorldPlatformFactory")]
-[Scene.Transient<PlayerNode>("PlayerNodeFactory")]
-[Scene.Transient<ZombieNode>("ZombieNodeFactory")]
-[Scene.Transient<ProjectileTrail>("ProjectileTrailFactory")]
-[Scene.Transient<PickableItemNode>("PickableItemFactory")]
-public class CharacterResources {
-}
-
-[Configuration]
-[PoolContainer<Node>("PoolNodeContainer")]
-public class PoolConfig {
-    [Pool] NodePool<PlayerNode> PlayerPool => new("PlayerNodeFactory");
-    [Pool] NodePool<ZombieNode> ZombiePool => new("ZombieNodeFactory");
-    [Pool] NodePool<ProjectileTrail> ProjectilePool => new("ProjectileTrailFactory");
-    [Pool] NodePool<PickableItemNode> PickableItemPool => new("PickableItemFactory");
-}
+namespace Veronenger.Game.Platform; 
 
 [Configuration]
 [SettingsContainer("SettingsContainer")]
 [InputActionsContainer("PlayerActionsContainer")]
-public class Actions {
+public class ActionsConfig {
 
 	[Singleton] public InputActionsContainer PlayerActionsContainer => new();
 

@@ -17,39 +17,13 @@ public partial class SplitScreen : HBoxContainer {
 	public int VisiblePlayers { get; private set; } = 0;
 	public bool BusyPlayerTransition { get; private set; } = false;
 
-	public void AddNode(Node node) {
+	public void SetWorld(Node node) {
 		SubViewport1.AddChild(node);
 	}
 
 	public event Action<bool> OnDoubleChanged;
 
-	public void EnableDoubleViewport(bool immediate) {
-		VisiblePlayers = 2;
-		var half = new Vector2I((int)Size.X / 2, (int)Size.Y);
-		if (immediate || true) {
-			SubViewport1.Size = half;
-			SubViewport2.Size = half;
-			SubViewport2.GetParent<SubViewportContainer>().Visible = true;
-			SubViewport2.World2D = SubViewport1.World2D;
-			OnDoubleChanged?.Invoke(true);
-			BusyPlayerTransition = false;
-		} else {
-			BusyPlayerTransition = true;
-			SubViewport2.World2D = SubViewport1.World2D;
-			SubViewport2.Size = new Vector2I(0, (int)Size.Y);
-			SubViewport2.GetParent<SubViewportContainer>().Visible = true;
-			CreateTween().SetProcessMode(Tween.TweenProcessMode.Physics).TweenProperty(SubViewport1, "size", half, _splitCameraEffectDuration)
-				.SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.InOut);
-			CreateTween().SetProcessMode(Tween.TweenProcessMode.Physics).TweenProperty(SubViewport2, "size", half, _splitCameraEffectDuration)
-				.SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.InOut);
-			CreateTween().TweenCallback(Callable.From(() => {
-				BusyPlayerTransition = false;
-				OnDoubleChanged?.Invoke(true);
-			})).SetDelay(_splitCameraEffectDuration);
-		}
-	}
-
-	public void EnableOnlyOneViewport(bool immediate) {
+	public void SinglePlayer(bool immediate) {
 		VisiblePlayers = 1;
 		var full = new Vector2I((int)Size.X, (int)Size.Y);
 		var zero = new Vector2I(0, (int)Size.Y);
@@ -71,6 +45,32 @@ public partial class SplitScreen : HBoxContainer {
 				SubViewport1.Size = full;
 				OnDoubleChanged?.Invoke(false);
 				BusyPlayerTransition = false;
+			})).SetDelay(_splitCameraEffectDuration);
+		}
+	}
+
+	public void EnableSplitScreen(bool immediate) {
+		VisiblePlayers = 2;
+		var half = new Vector2I((int)Size.X / 2, (int)Size.Y);
+		if (immediate || true) {
+			SubViewport1.Size = half;
+			SubViewport2.Size = half;
+			SubViewport2.GetParent<SubViewportContainer>().Visible = true;
+			SubViewport2.World2D = SubViewport1.World2D;
+			OnDoubleChanged?.Invoke(true);
+			BusyPlayerTransition = false;
+		} else {
+			BusyPlayerTransition = true;
+			SubViewport2.World2D = SubViewport1.World2D;
+			SubViewport2.Size = new Vector2I(0, (int)Size.Y);
+			SubViewport2.GetParent<SubViewportContainer>().Visible = true;
+			CreateTween().SetProcessMode(Tween.TweenProcessMode.Physics).TweenProperty(SubViewport1, "size", half, _splitCameraEffectDuration)
+				.SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.InOut);
+			CreateTween().SetProcessMode(Tween.TweenProcessMode.Physics).TweenProperty(SubViewport2, "size", half, _splitCameraEffectDuration)
+				.SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.InOut);
+			CreateTween().TweenCallback(Callable.From(() => {
+				BusyPlayerTransition = false;
+				OnDoubleChanged?.Invoke(true);
 			})).SetDelay(_splitCameraEffectDuration);
 		}
 	}

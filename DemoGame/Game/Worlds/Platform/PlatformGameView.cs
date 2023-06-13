@@ -20,13 +20,13 @@ using Veronenger.Game.UI;
 
 namespace Veronenger.Game.Worlds.Platform;
 
-public partial class GameView : Control, IInjectable, IGameView {
+public partial class PlatformGameView : Control, IInjectable, IGameView {
 
 	[Inject] private SceneTree SceneTree { get; set; }
 	[Inject] private GameObjectRepository GameObjectRepository { get; set; }
 	[Inject] private JsonGameLoader<PlatformSaveGameMetadata> GameObjectLoader { get; set; }
-	[Inject] private HudCanvas HudCanvas { get; set; }
 	[Inject] private ITransient<WorldPlatform> WorldPlatformFactory { get; set; }
+	[Inject] private ITransient<HudCanvas> HudCanvasFactory { get; set; }
 
 	[Inject] private MainStateMachine MainStateMachine { get; set; }
 	[Inject] private ILazy<ProgressScreen> ProgressScreenLazy { get; set; }
@@ -41,6 +41,7 @@ public partial class GameView : Control, IInjectable, IGameView {
 
 	public const int MaxPlayer = 2;
 
+	public HudCanvas HudCanvas { get; private set; } = null!;
 	public WorldPlatform WorldPlatform { get; private set; } = null!;
 	public bool ManualCamera { get; private set; } = false;
 	private int ActivePlayers => WorldPlatform != null ? WorldPlatform.Players.Count : 0;
@@ -52,14 +53,6 @@ public partial class GameView : Control, IInjectable, IGameView {
 
 	public void PostInject() {
 		PlayerActionsContainer.Disable(); // The real actions are cloned per player in player.Connect()
-
-		_splitScreen.OnDoubleChanged += (visible) => {
-			if (visible) {
-				HudCanvas.EnablePlayer2();
-			} else {
-				HudCanvas.DisablePlayer2();
-			}
-		};
 	}
 
 	public override void _Input(InputEvent e) {
@@ -86,10 +79,10 @@ public partial class GameView : Control, IInjectable, IGameView {
 				GetViewport().SetInputAsHandled();
 			}
 		} else if (e.IsKeyReleased(Key.I)) {
-			_splitScreen.EnableOnlyOneViewport(false);
+			_splitScreen.SinglePlayer(false);
 			GetViewport().SetInputAsHandled();
 		} else if (e.IsKeyReleased(Key.O)) {
-			_splitScreen.EnableDoubleViewport(false);
+			_splitScreen.EnableSplitScreen(false);
 			GetViewport().SetInputAsHandled();
 		} else if (e.IsKeyReleased(Key.F5)) {
 			Save("savegame");
@@ -176,9 +169,21 @@ public partial class GameView : Control, IInjectable, IGameView {
 
 	public void InitializeWorld() {
 		JoypadPlayersMapping.RemoveAllPlayers();
+
 		WorldPlatform = WorldPlatformFactory.Create();
-		_splitScreen.AddNode(WorldPlatform);
-		HudCanvas.Enable();
+		_splitScreen.SetWorld(WorldPlatform);
+		_splitScreen.SinglePlayer(true);
+
+		HudCanvas = HudCanvasFactory.Create();
+		AddChild(HudCanvas);
+		HudCanvas.SinglePlayer();
+		
+		_splitScreen.OnDoubleChanged += (visible) => {
+			if (visible) {
+				HudCanvas.EnableSplitScreen();
+				// The HUD for player two should be always visible if the player 2 is alive 
+			}
+		};
 	}
 
 	public PlayerNode CreatePlayer1(int joypad) {
@@ -215,7 +220,7 @@ public partial class GameView : Control, IInjectable, IGameView {
 		var visiblePlayers = _splitScreen.VisiblePlayers;
 		if (ActivePlayers == 1) {
 			// Ensure only one viewport is shown
-			if (visiblePlayers != 1) _splitScreen.EnableOnlyOneViewport(true);
+			if (visiblePlayers != 1) _splitScreen.SinglePlayer(true);
 			
 		} else if (ActivePlayers == 2) {
 
@@ -224,7 +229,7 @@ public partial class GameView : Control, IInjectable, IGameView {
 			if (p1Stage == null || p2Stage == null) return;
 			var sameStage = p1Stage == p2Stage;
 			if (!sameStage) {
-				if (visiblePlayers == 1) _splitScreen.EnableDoubleViewport(false);
+				if (visiblePlayers == 1) _splitScreen.EnableSplitScreen(false);
 			} else {
 				var p1Pos = WorldPlatform.Players[0].Marker2D.GlobalPosition;
 				var p2Pos = WorldPlatform.Players[1].Marker2D.GlobalPosition;
@@ -232,11 +237,11 @@ public partial class GameView : Control, IInjectable, IGameView {
 
 				if (visiblePlayers == 2) {
 					if (distanceTo < (Size.X * 0.5 * 0.2f)) {
-						_splitScreen.EnableOnlyOneViewport(false);
+						_splitScreen.SinglePlayer(false);
 					}
 				} else if (visiblePlayers == 1) {
 					if (distanceTo > (Size.X * 0.5 * 0.3f)) {
-						_splitScreen.EnableDoubleViewport(false);
+						_splitScreen.EnableSplitScreen(false);
 					}
 				}
 			}
@@ -244,7 +249,6 @@ public partial class GameView : Control, IInjectable, IGameView {
 	}
 
 	public async Task End(bool unload) {
-		HudCanvas.Disable();
 		if (unload) {
 			UnloadResources();
 		} else {

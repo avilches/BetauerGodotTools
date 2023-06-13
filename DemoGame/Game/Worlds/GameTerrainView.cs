@@ -54,9 +54,9 @@ public partial class GameTerrainView : Control, IInjectable, IGameView {
 
 		_splitScreen.OnDoubleChanged += (visible) => {
 			if (visible) {
-				HudCanvas.EnablePlayer2();
+				HudCanvas.EnableSplitScreen();
 			} else {
-				HudCanvas.DisablePlayer2();
+				HudCanvas.SinglePlayer();
 			}
 		};
 	}
@@ -85,10 +85,10 @@ public partial class GameTerrainView : Control, IInjectable, IGameView {
 				GetViewport().SetInputAsHandled();
 			}
 		} else if (e.IsKeyReleased(Key.I)) {
-			_splitScreen.EnableOnlyOneViewport(false);
+			_splitScreen.SinglePlayer(false);
 			GetViewport().SetInputAsHandled();
 		} else if (e.IsKeyReleased(Key.O)) {
-			_splitScreen.EnableDoubleViewport(false);
+			_splitScreen.EnableSplitScreen(false);
 			GetViewport().SetInputAsHandled();
 		} else if (e.IsKeyReleased(Key.F5)) {
 			Save("savegame");
@@ -176,7 +176,7 @@ public partial class GameTerrainView : Control, IInjectable, IGameView {
 	public void InitializeWorld() {
 		JoypadPlayersMapping.RemoveAllPlayers();
 		Terrain = WorldPlatformFactory.Create();
-		_splitScreen.AddNode(Terrain);
+		_splitScreen.SetWorld(Terrain);
 		HudCanvas.Enable();
 	}
 /*

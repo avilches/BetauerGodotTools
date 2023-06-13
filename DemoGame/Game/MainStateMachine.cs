@@ -8,15 +8,14 @@ using Betauer.Core;
 using Betauer.DI;
 using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
+using Betauer.DI.Holder;
 using Betauer.FSM.Async;
 using Betauer.Input;
 using Betauer.Input.Joypad;
 using Betauer.Nodes;
 using Godot;
-using Veronenger.Game.HUD;
 using Veronenger.Game.UI;
 using Veronenger.Game.UI.Settings;
-using Veronenger.Game.Worlds.Platform;
 
 namespace Veronenger.Game; 
 
@@ -58,7 +57,6 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
     [Inject] private ILazy<PauseMenu> PauseMenuLazy { get; set; }
     [Inject] private ILazy<SettingsMenu> SettingsMenuLazy { get; set; }
     [Inject] private ILazy<ProgressScreen> ProgressScreenLazy { get; set; }
-    [Inject] private HudCanvas HudCanvas { get; set; }
     [Inject] private GameLoader GameLoader { get; set; }
     [Inject] private PoolContainer<Node> PoolNodeContainer { get; set; }
 
@@ -71,7 +69,7 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
     [Inject] private ITransient<ModalBoxConfirm> ModalBoxConfirmFactory { get; set; }
     [Inject("MyTheme")] private ResourceHolder<Theme> MyTheme { get; set; }
 
-    [Inject] private IHolder<IGameView> GameViewHolder { get; set; }
+    [Inject("PlatformGameViewHolder")] private IMutableHolder<IGameView> GameView { get; set; }
 
     [Inject] private ScreenSettingsManager ScreenSettingsManager { get; set; }
     [Inject] private SceneTree SceneTree { get; set; }
@@ -141,7 +139,6 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
                 UiActionsContainer.Start();
                 ConfigureCanvasLayers();
                 ConfigureDebugOverlays();
-                HudCanvas.Configure();
                 ScreenSettingsManager.Setup();
                 OnTransition += args => BottomBarScene.UpdateState(args.To);
                 GameLoader.OnLoadResourceProgress += (rp) => ProgressScreenScene.Loading(rp.TotalPercent);
@@ -178,7 +175,7 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
 
         State(MainState.StartingGame).Enter((Func<Task>)(async () => {
                 await MainMenuScene.HideMainMenu();
-                var gameView = GameViewHolder.Get();
+                var gameView = GameView.Get();
                 await gameView.StartNewGame();
             }))
             .If(() => true).Set(MainState.Gaming)
@@ -210,8 +207,8 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
             .Build();
 
         State(MainState.GameOver).Enter((Func<Task>)(async () => {
-                await GameViewHolder.Get().End(true);
-                GameViewHolder.Reset();
+                await GameView.Get().End(true);
+                GameView.Reset();
             }))
             .If(() => true).Set(MainState.MainMenu)
             .Build();
@@ -244,8 +241,8 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
             .Build();
                 
         State(MainState.QuitGame).Enter((Func<Task>)(async () => {
-                await GameViewHolder.Get().End(true);
-                GameViewHolder.Reset();
+                await GameView.Get().End(true);
+                GameView.Reset();
             }))
             .If(() => true).Set(MainState.MainMenu)
             .Build();
@@ -272,7 +269,6 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
         MainMenuScene.Layer = CanvasLayerConstants.MainMenu;
         PauseMenuScene.Layer = CanvasLayerConstants.PauseMenu;
         BottomBarScene.Layer = CanvasLayerConstants.BottomBar;
-        HudCanvas.Layer = CanvasLayerConstants.HudScene;
         SettingsMenuScene.Layer = CanvasLayerConstants.SettingsMenu;
         ProgressScreenScene.Layer = CanvasLayerConstants.ProgressScreen;
 
