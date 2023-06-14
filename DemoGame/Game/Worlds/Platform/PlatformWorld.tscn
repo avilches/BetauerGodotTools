@@ -1,6 +1,6 @@
 [gd_scene load_steps=20 format=3 uid="uid://booum8o1kq7ns"]
 
-[ext_resource type="Script" path="res://Game/Worlds/Platform/WorldPlatform.cs" id="1_a6qu6"]
+[ext_resource type="Script" path="res://Game/Worlds/Platform/PlatformWorld.cs" id="1_a6qu6"]
 [ext_resource type="PackedScene" uid="uid://bgoroc7wxd0fx" path="res://Game/Worlds/Platform/Environment/City.tscn" id="2_f77fv"]
 [ext_resource type="PackedScene" uid="uid://crxuyxcrii0rb" path="res://Game/Worlds/Platform/Environment/anokalisa/Anokalisa.tscn" id="3_fcp8k"]
 [ext_resource type="Texture2D" uid="uid://b7ir53ta6rglo" path="res://Game/Worlds/light.png" id="4_ctqfn"]

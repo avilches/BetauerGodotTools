@@ -15,19 +15,18 @@ using Betauer.Input.Joypad;
 using Betauer.NodePath;
 using Godot;
 using Veronenger.Game.HUD;
-using Veronenger.Game.Platform;
 using Veronenger.Game.RTS;
 using Veronenger.Game.UI;
 
 namespace Veronenger.Game.Worlds.RTS;
 
-public partial class TerrainGameView : Control, IInjectable, IGameView {
+public partial class RtsGameView : Control, IInjectable, IGameView {
 
 	[Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
 	[Inject] private SceneTree SceneTree { get; set; }
 	[Inject] private GameObjectRepository GameObjectRepository { get; set; }
 	[Inject] private JsonGameLoader<RtsSaveGameMetadata> RtsGameObjectLoader { get; set; }
-	[Inject] private ITransient<Terrain> TerrainFactory { get; set; }
+	[Inject] private ITransient<RtsWorld> RtsWorldFactory { get; set; }
 	[Inject] private ITransient<HudCanvas> HudCanvasFactory { get; set; }
 
 	[Inject] private MainStateMachine MainStateMachine { get; set; }
@@ -43,32 +42,19 @@ public partial class TerrainGameView : Control, IInjectable, IGameView {
 
 	public const int MaxPlayer = 2;
 
-	public HudCanvas HudCanvas { get; private set; } = null!;
-	public Terrain Terrain { get; private set; } = null!;
-	public bool ManualCamera { get; private set; } = false;
-	private int ActivePlayers => 1; // WorldPlatform != null ? WorldPlatform.Players.Count : 0;
+	// public HudCanvas HudCanvas { get; private set; } = null!;
+	public RtsWorld RtsWorld { get; private set; } = null!;
+	private int ActivePlayers => 1; // PlatformWorld != null ? PlatformWorld.Players.Count : 0;
 	private bool _allowAddingP2 = true;
 	private void AllowAddingP2() => _allowAddingP2 = true;
 	private void NoAddingP2() => _allowAddingP2 = false;
 
-	public Node GetWorld() => Terrain;
+	public Node GetWorld() => RtsWorld;
 
 	public void PostInject() {
 		PlayerActionsContainer.Disable(); // The real actions are cloned per player in player.Connect()
+		ConfigureDebugOverlays();
 	}
-
-	public override void _Input(InputEvent e) {
-		// if (e.IsLeftDoubleClick()) {
-			// _camera2D.Position = Vector2.Zero;
-		// } else if (e.IsKeyPressed(Key.Q)) {
-			// _camera2D.Zoom -= new Vector2(0.05f, 0.05f);
-		// } else if (e.IsKeyPressed(Key.W)) {
-			// _camera2D.Zoom = new Vector2(1, 1);
-		// } else if (e.IsKeyPressed(Key.E)) {
-			// _camera2D.Zoom += new Vector2(0.05f, 0.05f);
-		// }
-	}
-
 
 	public override async void _UnhandledInput(InputEvent e) {
 		if (_allowAddingP2 && e is InputEventJoypadButton button && !JoypadPlayersMapping.IsJoypadUsed(button.Device)) {
@@ -80,12 +66,6 @@ public partial class TerrainGameView : Control, IInjectable, IGameView {
 				// CreatePlayer2(1);
 				GetViewport().SetInputAsHandled();
 			}
-		} else if (e.IsKeyReleased(Key.I)) {
-			_splitScreen.SinglePlayer(false);
-			GetViewport().SetInputAsHandled();
-		} else if (e.IsKeyReleased(Key.O)) {
-			_splitScreen.EnableSplitScreen(false);
-			GetViewport().SetInputAsHandled();
 		} else if (e.IsKeyReleased(Key.F5)) {
 			Save("savegame");
 		} else if (e.IsKeyReleased(Key.F6)) {
@@ -97,14 +77,14 @@ public partial class TerrainGameView : Control, IInjectable, IGameView {
 		SceneTree.Root.AddChild(this);
 		UiActionsContainer.SetJoypad(UiActionsContainer.CurrentJoyPad);	// Player who starts the game is the player who control the UI forever
 		
-		await GameLoader.LoadGameResources();
+		await GameLoader.LoadRtsGameResources();
 		
 		CurrentMetadata = new RtsSaveGameMetadata();
 		GameObjectRepository.Initialize();
 		InitializeWorld();
 		// CreatePlayer1(UiActionsContainer.CurrentJoyPad);
 		AllowAddingP2();				
-		Terrain.StartNewGame();
+		RtsWorld.StartNewGame();
 		// _cameraController.WithMouseButton(MouseButton.Middle).Attach(_camera2D);
 	}
 
@@ -113,7 +93,7 @@ public partial class TerrainGameView : Control, IInjectable, IGameView {
 		UiActionsContainer.SetJoypad(UiActionsContainer.CurrentJoyPad);	// Player who starts the game is the player who control the UI forever
 		var (success, saveGame) = await LoadSaveGame(saveName);
 		if (!success) return;
-		await GameLoader.LoadGameResources();
+		await GameLoader.LoadRtsGameResources();
 		ContinueLoad(saveGame);
 	}
 
@@ -172,17 +152,17 @@ public partial class TerrainGameView : Control, IInjectable, IGameView {
 	public void InitializeWorld() {
 		JoypadPlayersMapping.RemoveAllPlayers();
 
-		Terrain = TerrainFactory.Create();
-		_splitScreen.SetWorld(Terrain);
+		RtsWorld = RtsWorldFactory.Create();
+		_splitScreen.SetWorld(RtsWorld);
 		_splitScreen.SinglePlayer(true);
 
-		HudCanvas = HudCanvasFactory.Create();
-		AddChild(HudCanvas);
-		HudCanvas.SinglePlayer();
+		// HudCanvas = HudCanvasFactory.Create();
+		// AddChild(HudCanvas);
+		// HudCanvas.SinglePlayer();
 		
 		_splitScreen.OnDoubleChanged += (visible) => {
 			if (visible) {
-				HudCanvas.EnableSplitScreen();
+				// HudCanvas.EnableSplitScreen();
 				// The HUD for player two should be always visible if the player 2 is alive 
 			}
 		};
@@ -190,14 +170,14 @@ public partial class TerrainGameView : Control, IInjectable, IGameView {
 /*
 	public PlayerNode CreatePlayer1(int joypad) {
 		var playerMapping = JoypadPlayersMapping.AddPlayer().SetJoypadId(joypad);
-		var player = WorldPlatform.AddNewPlayer(playerMapping);
+		var player = PlatformWorld.AddNewPlayer(playerMapping);
 		player.SetCamera(_splitScreen.Camera1);
 		return player;
 	}
 
 	public PlayerNode LoadPlayer1(int joypad, PlatformSaveGameConsumer consumer) {
 		var playerMapping = JoypadPlayersMapping.AddPlayer().SetJoypadId(joypad);
-		var player = WorldPlatform.LoadPlayer(playerMapping, consumer.Player0, consumer.Inventory0);
+		var player = PlatformWorld.LoadPlayer(playerMapping, consumer.Player0, consumer.Inventory0);
 		player.SetCamera(_splitScreen.Camera1);
 		return player;
 	}
@@ -205,50 +185,14 @@ public partial class TerrainGameView : Control, IInjectable, IGameView {
 	public PlayerNode CreatePlayer2(int joypad) {
 		if (JoypadPlayersMapping.Players >= MaxPlayer) throw new Exception("No more players allowed");
 		var playerMapping = JoypadPlayersMapping.AddPlayer().SetJoypadId(joypad);
-		var player = WorldPlatform.AddNewPlayer(playerMapping);
+		var player = PlatformWorld.AddNewPlayer(playerMapping);
 		player.SetCamera(_splitScreen.Camera2);
 		return player;
 	}
 */	
 	public override void _Process(double delta) {
-		if (!ManualCamera) {
-			ManageSplitScreen();
-		}
 	}
 
-	public void ManageSplitScreen() {
-		if (_splitScreen.BusyPlayerTransition) return;
-		//
-		// var visiblePlayers = _splitScreen.VisiblePlayers;
-		// if (ActivePlayers == 1) {
-		// 	// Ensure only one viewport is shown
-		// 	if (visiblePlayers != 1) _splitScreen.EnableOnlyOneViewport(true);
-		// 	
-		// } else if (ActivePlayers == 2) {
-		//
-		// 	var p1Stage = WorldPlatform.Players[0].StageCameraController?.CurrentStage;
-		// 	var p2Stage = WorldPlatform.Players[1].StageCameraController?.CurrentStage;
-		// 	if (p1Stage == null || p2Stage == null) return;
-		// 	var sameStage = p1Stage == p2Stage;
-		// 	if (!sameStage) {
-		// 		if (visiblePlayers == 1) _splitScreen.EnableDoubleViewport(false);
-		// 	} else {
-		// 		var p1Pos = WorldPlatform.Players[0].Marker2D.GlobalPosition;
-		// 		var p2Pos = WorldPlatform.Players[1].Marker2D.GlobalPosition;
-		// 		var distanceTo = p1Pos.DistanceTo(p2Pos);
-		//
-		// 		if (visiblePlayers == 2) {
-		// 			if (distanceTo < (Size.X * 0.5 * 0.2f)) {
-		// 				_splitScreen.EnableOnlyOneViewport(false);
-		// 			}
-		// 		} else if (visiblePlayers == 1) {
-		// 			if (distanceTo > (Size.X * 0.5 * 0.3f)) {
-		// 				_splitScreen.EnableDoubleViewport(false);
-		// 			}
-		// 		}
-		// 	}
-		// }
-	}
 
 	public async Task End(bool unload) {
 		if (unload) {
@@ -266,11 +210,11 @@ public partial class TerrainGameView : Control, IInjectable, IGameView {
 		
 		// 1. All busy elements are still attached to the tree and will be destroyed with the scene, so we don't need to
 		// do anything with them.
-		// Drain() will loop over the non busy and valid element (which are outside of the scene tree) in the pool, so, loop them and free them:
+		// GetAvailable() will loop over the non busy and valid element (which are outside of the scene tree) in the pool, so, loop them and free them:
 		PoolNodeContainer.GetAvailable().ForEach(node => node.Free());
 		// 2. Remove the data from the pool to avoid having references to busy elements which are going to die with the scene
 		PoolNodeContainer.Clear();
-		GameLoader.UnloadGameResources();
+		GameLoader.UnloadRtsGameResources();
 	}
 
 	public async Task FreeSceneKeepingPoolData() {
@@ -281,7 +225,7 @@ public partial class TerrainGameView : Control, IInjectable, IGameView {
 		// Wait one frame before free the scene. Not waiting one frame will cause canvas modulate will not shown (when LoadInGame)
 		// and some collisions will not work because the unparented nodes are still in the tree and the physics engine will try to use them
 		await this.AwaitPhysicsFrame();
-		Terrain.Free();
+		RtsWorld.Free();
 	}
 
 	private void ConfigureDebugOverlays() {

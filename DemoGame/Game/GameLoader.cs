@@ -12,9 +12,15 @@ public class GameLoader : ResourceLoaderContainer {
 	
     public Task LoadMainResources() => LoadResources("main");
 
-    public async Task LoadGameResources() {
+    public async Task LoadPlatformGameResources() {
         LoadStart();
-        await LoadResources("game");
+        await LoadResources("platform");
+        LoadEnd();
+    }
+
+    public async Task LoadRtsGameResources() {
+        LoadStart();
+        await LoadResources("rts");
         LoadEnd();
     }
 
@@ -27,5 +33,6 @@ public class GameLoader : ResourceLoaderContainer {
         ProgressScreenLazy.Get().Hide();
     }
 
-    public void UnloadGameResources() => UnloadResources("game");
+    public void UnloadPlatformGameResources() => UnloadResources("platform");
+    public void UnloadRtsGameResources() => UnloadResources("rts");
 }

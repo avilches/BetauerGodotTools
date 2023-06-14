@@ -3,7 +3,7 @@ using Veronenger.Game.Platform;
 
 namespace Veronenger.Game.Worlds.RTS; 
 
-public partial class Terrain : Node
+public partial class RtsWorld : Node
 {
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()

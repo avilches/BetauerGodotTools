@@ -20,14 +20,14 @@ namespace Veronenger.Game.RTS;
 
 [Configuration]
 [Loader("GameLoader", Tag = "main")]
-[Scene.Transient<TerrainGameView>("TerrainGameViewFactory")]
+[Scene.Transient<RtsGameView>("RtsGameViewFactory")]
 public class PlatformMainResources {
 }
 
 [Configuration]
-[Loader("GameLoader", Tag = "game")]
-[Scene.Transient<Terrain>("TerrainFactory")]
-public class PlatformGameResources {
+[Loader("GameLoader", Tag = "rts")]
+[Scene.Transient<RtsWorld>("RtsWorldFactory")]
+public class RtsGameResources {
 }
 
 [Configuration]
@@ -52,5 +52,5 @@ public class RtsGameConfig {
 		return loader;
 	}
 	
-	[Singleton] public IMutableHolder<IGameView> TerrainGameViewHolder => Holder.From<IGameView>("TerrainGameViewFactory"); 
+	[Singleton] public IMutableHolder<IGameView> TerrainGameViewHolder => Holder.From<IGameView>("RtsGameViewFactory"); 
 }

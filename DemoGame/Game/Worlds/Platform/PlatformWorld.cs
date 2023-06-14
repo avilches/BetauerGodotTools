@@ -18,7 +18,7 @@ using Veronenger.Game.Platform;
 
 namespace Veronenger.Game.Worlds.Platform;
 
-public partial class WorldPlatform : Node {
+public partial class PlatformWorld : Node {
 	[Inject] private ItemsManager ItemsManager { get; set; }
 	[Inject] private GameObjectRepository GameObjectRepository { get; set; }
 	[Inject] private PlatformConfig PlatformConfig { get; set; }

@@ -26,13 +26,13 @@ public class PlatformMainResources {
 }
 
 [Configuration]
-[Loader("GameLoader", Tag = "game")]
+[Loader("GameLoader", Tag = "platform")]
 [Resource<Texture2D>("Pickups", "res://Game/Items/Assets/pickups.png")]
 [Resource<Texture2D>("Pickups2", "res://Game/Items/Assets/pickups2.png")]
 [Resource<Texture2D>("LeonKnifeAnimationSprite", "res://Game/Character/Player/Assets/Leon-knife.png")]
 [Resource<Texture2D>("LeonMetalbarAnimationSprite", "res://Game/Character/Player/Assets/Leon-metalbar.png")]
 [Resource<Texture2D>("LeonGun1AnimationSprite", "res://Game/Character/Player/Assets/Leon-gun1.png")]
-[Scene.Transient<WorldPlatform>("WorldPlatformFactory")]
+[Scene.Transient<PlatformWorld>("PlatformWorldFactory")]
 [Scene.Transient<PlayerHud>("PlayerHudFactory")]
 [Scene.Transient<PlayerNode>("PlayerNodeFactory")]
 [Scene.Transient<ZombieNode>("ZombieNodeFactory")]
@@ -72,6 +72,6 @@ public class PlatformGameConfig {
 	[Transient] public StageController StageControllerFactory => new(CollisionLayerConstants.LayerStageArea);
 	[Transient] public StageCameraController StageCameraControllerFactory => new(CollisionLayerConstants.LayerStageArea);
 	[Singleton] public IMutableHolder<IGameView> PlatformGameViewHolder => Holder.From<IGameView>("PlatformGameViewFactory"); 
-	[Singleton] public IHolder<WorldPlatform> WorldPlatformHolder => Holder.Chain<IGameView, WorldPlatform>("PlatformGameViewHolder", (gameView) => (WorldPlatform)gameView.GetWorld()); 
+	[Singleton] public IHolder<PlatformWorld> PlatformWorldHolder => Holder.Chain<IGameView, PlatformWorld>("PlatformGameViewHolder", (gameView) => (PlatformWorld)gameView.GetWorld()); 
 	[Singleton] public IHolder<HudCanvas> HudCanvasHolder => Holder.Chain<IGameView, HudCanvas>("PlatformGameViewHolder", (gameView) => ((PlatformGameView)gameView).HudCanvas); 
 }

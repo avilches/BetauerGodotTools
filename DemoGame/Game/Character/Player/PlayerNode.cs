@@ -77,7 +77,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 	[Inject] private PlatformConfig PlatformConfig { get; set; }
 	[Inject] private ITransient<StageCameraController> StageCameraControllerFactory { get; set; }
 	[Inject] private CameraContainer CameraContainer { get; set; }
-	[Inject("WorldPlatformHolder")] private IHolder<WorldPlatform> WorldPlatform { get; set; } 
+	[Inject("PlatformWorldHolder")] private IHolder<PlatformWorld> PlatformWorld { get; set; } 
 	[Inject("HudCanvasHolder")] private IHolder<HudCanvas> HudCanvas { get; set; } 
 	
 	[Inject] private SceneTree SceneTree { get; set; }
@@ -353,7 +353,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 		// if (collision.IsColliding) return;
 		// var dropVelocity = new Vector2(MotionX + (PlatformBody.FacingRight * PlayerConfig.DropLateralSpeed), MotionY);
 		var dropVelocity = new Vector2(LateralState.FacingRight * Math.Max(Math.Abs(MotionX), PlayerConfig.DropLateralSpeed), MotionY);
-		WorldPlatform.Get().PlayerDrop(item, Marker2D.GlobalPosition, dropVelocity);
+		PlatformWorld.Get().PlayerDrop(item, Marker2D.GlobalPosition, dropVelocity);
 		Inventory.Drop();
 	}
 
@@ -458,7 +458,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 		_fsm.State(PlayerState.Idle)
 			.OnInput(InventoryHandler)
 			.OnInput(e => {
-				if (e.IsKeyPressed(Key.V)) WorldPlatform.Get().InstantiateNewZombie();
+				if (e.IsKeyPressed(Key.V)) PlatformWorld.Get().InstantiateNewZombie();
 			})
 			.Enter(() => {
 				if (AnimationShoot.IsPlaying()) AnimationIdle.Queue();
@@ -572,7 +572,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 			var bulletPosition = weapon.Config.ProjectileStartPosition * new Vector2(LateralState.FacingRight, 1);
 			var bulletDirection = new Vector2(LateralState.FacingRight, 0);
 			var hits = 0;
-			var bullet = WorldPlatform.Get().NewBullet();
+			var bullet = PlatformWorld.Get().NewBullet();
 			Inventory.UpdateWeaponRangeAmmo(weapon, -1);
 			bullet.ShootFrom(weapon, CharacterBody2D.ToGlobal(bulletPosition), bulletDirection,
 				CollisionLayerConfig.PlayerConfigureBulletRaycast,
