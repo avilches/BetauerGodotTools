@@ -49,8 +49,12 @@ public enum MainEvent {
     ExitDesktop
 }
 
-[Singleton]
-public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInjectable {
+public interface IMain {
+    public void Send(MainEvent e, int weight = 0);
+}
+
+[Singleton<IMain>]
+public partial class Main : FsmNodeAsync<MainState, MainEvent>, IMain, IInjectable {
 
     [Inject] private ILazy<MainMenu> MainMenuSceneLazy { get; set; }
     [Inject] private ILazy<BottomBar> BottomBarLazy { get; set; }
@@ -87,7 +91,7 @@ public partial class MainStateMachine : FsmNodeAsync<MainState, MainEvent>, IInj
         ProcessMode = ProcessModeEnum.Always;
     }
 
-    public MainStateMachine() : base(MainState.SplashScreenLoading) {
+    public Main() : base(MainState.SplashScreenLoading) {
     }
 
     public void PostInject() {

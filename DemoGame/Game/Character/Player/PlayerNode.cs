@@ -73,7 +73,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 	[NodePath("Character/CanJump")] public RayCast2D RaycastCanJump;
 	[NodePath("Character/FloorRaycasts")] public List<RayCast2D> FloorRaycasts;
 
-	[Inject] private MainStateMachine MainStateMachine { get; set; }
+	[Inject] private IMain Main { get; set; }
 	[Inject] private PlatformConfig PlatformConfig { get; set; }
 	[Inject] private ITransient<StageCameraController> StageCameraControllerFactory { get; set; }
 	[Inject] private CameraContainer CameraContainer { get; set; }
@@ -725,7 +725,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 		_fsm.State(PlayerState.Death)
 			.Enter(() => {
 				Console.WriteLine("MUERTO");
-				MainStateMachine.Send(MainEvent.EndGame);                                                                     
+				Main.Send(MainEvent.EndGame);                                                                     
 			})
 			.If(() => true).Set(PlayerState.Idle)
 			.Build();

@@ -26,7 +26,7 @@ public partial class MainMenu : CanvasFaderLayer {
 
 	private MenuContainer _menuContainer;
 
-	[Inject] private MainStateMachine MainStateMachine { get; set; }
+	[Inject] private IMain Main { get; set; }
 
 	[Inject] private InputAction UiAccept { get; set; }
 	[Inject] private InputAction UiCancel { get; set; }
@@ -66,16 +66,16 @@ public partial class MainMenu : CanvasFaderLayer {
 
 		var mainMenu = new MenuContainer(_menuBase);
 		var startMenu = mainMenu.GetRootMenu();
-		startMenu.AddButton("Start", "Start").Pressed += () => MainStateMachine.Send(MainEvent.StartGame);
-		startMenu.AddButton("Settings", "Settings").Pressed += () => MainStateMachine.Send(MainEvent.Settings);
-		startMenu.AddButton("Exit", "Exit").Pressed += () => MainStateMachine.Send(MainEvent.ExitDesktop);
+		startMenu.AddButton("Start", "Start").Pressed += () => Main.Send(MainEvent.StartGame);
+		startMenu.AddButton("Settings", "Settings").Pressed += () => Main.Send(MainEvent.Settings);
+		startMenu.AddButton("Exit", "Exit").Pressed += () => Main.Send(MainEvent.ExitDesktop);
 		return mainMenu;
 	}
 
 	public void OnInput(InputEvent e) {
 		if (UiCancel.IsEventJustPressed(e)) { 
 			if (_menuContainer.IsRootMenuActive()) {
-				MainStateMachine.Send(MainEvent.ModalBoxConfirmExitDesktop);
+				Main.Send(MainEvent.ModalBoxConfirmExitDesktop);
 			} else {
 				_menuContainer.Back();
 			}

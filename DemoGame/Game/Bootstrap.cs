@@ -110,7 +110,7 @@ public partial class Bootstrap : Node /* needed to be instantiated as an Autoloa
 		LoggerFactory.SetTraceLevel<PropertyTweener>(TraceLevel.Error);
 
 		// Game
-		LoggerFactory.SetTraceLevel<MainStateMachine>(TraceLevel.Error);
+		LoggerFactory.SetTraceLevel<Main>(TraceLevel.Error);
 		LoggerFactory.SetTraceLevel<StageController>(TraceLevel.Error);
 
 		// Player and enemies

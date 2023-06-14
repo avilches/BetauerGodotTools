@@ -30,7 +30,7 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 	[Inject] private ITransient<PlatformWorld> PlatformWorldFactory { get; set; }
 	[Inject] private ITransient<HudCanvas> HudCanvasFactory { get; set; }
 
-	[Inject] private MainStateMachine MainStateMachine { get; set; }
+	[Inject] private IMain Main { get; set; }
 	[Inject] private ILazy<ProgressScreen> ProgressScreenLazy { get; set; }
 	[Inject] private GameLoader GameLoader { get; set; }
 	[Inject("PlatformPoolNodeContainer")] private PoolContainer<Node> PoolNodeContainer { get; set; }
@@ -119,7 +119,7 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 	}
 
 	public async Task Save(string saveName) {
-		MainStateMachine.Send(MainEvent.StartSavingGame);
+		Main.Send(MainEvent.StartSavingGame);
 		var l = await PlatformGameObjectLoader.ListMetadatas();
 		try {
 			var saveObjects = GameObjectRepository.GetSaveObjects();
@@ -129,7 +129,7 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 			// Show saving error
 			Console.WriteLine(e);
 		}
-		MainStateMachine.Send(MainEvent.Back);
+		Main.Send(MainEvent.Back);
 	}
 
 	public void ShowLoading() {}

@@ -79,7 +79,6 @@ public partial class ZombieNode : NpcNode, IInjectable {
 	[NodePath("Character/HealthBarPosition/HealthBar")] public TextureProgressBar HealthBar;
 	[NodePath("Character/Sprites/BloodParticles")] public GpuParticles2D BloodParticles;
 
-	[Inject] private MainStateMachine MainStateMachine { get; set; }
 	[Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
 	[Inject] private EventBus EventBus { get; set; }
 	[Inject] private PlayerConfig PlayerConfig { get; set; }
