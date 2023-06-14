@@ -1,7 +1,6 @@
 using System;
 using System.Threading.Tasks;
 using Betauer.Application.Lifecycle;
-using Betauer.Application.Lifecycle.Pool;
 using Betauer.Application.Monitor;
 using Betauer.Application.Screen;
 using Betauer.Core;
@@ -20,10 +19,10 @@ using Veronenger.Game.UI.Settings;
 namespace Veronenger.Game; 
 
 public enum MainState {
-    SplashScreenLoading,
+    Init,
     
     
-    SplashScreenInit,
+    SplashScreen,
     MainMenu,
     Settings,
     StartingGame,
@@ -91,7 +90,7 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IMain, IInjectab
         ProcessMode = ProcessModeEnum.Always;
     }
 
-    public Main() : base(MainState.SplashScreenLoading) {
+    public Main() : base(MainState.Init) {
     }
 
     public void PostInject() {
@@ -112,48 +111,31 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IMain, IInjectab
         }, ProcessModeEnum.Always);
 #endif
 
-        var splashScreen = SceneTree.GetMainScene<SplashScreen>();
-        splashScreen.Layer = int.MaxValue;
-        
-        State(MainState.SplashScreenLoading)
-            .Enter(async () => {
-                splashScreen.Start();
-                await GameLoader.LoadMainResources();
-                splashScreen.ResourcesLoaded();
-            })
-            .If(() => true).Set(MainState.SplashScreenInit)
-            .Build();
-            
         var modalResponse = false;
-        var endSplash = false;
-        var splashScreenWorking = true;
 
         On(MainEvent.ModalBoxConfirmExitDesktop).Push(MainState.ModalExitDesktop);
         On(MainEvent.ExitDesktop).Set(MainState.ExitDesktop);
         On(MainEvent.ModalBoxConfirmQuitGame).Push(MainState.ModalQuitGame);
-        State(MainState.SplashScreenInit)
-            .Enter(() => {
-                UiActionsContainer.OnNewUiJoypad += (deviceId) => {
-                    // Console.WriteLine("New joypad for the ui " + deviceId);
-                };
-                JoypadPlayersMapping.OnPlayerMappingConnectionChanged += (playerMapping) => {
-                    // TODO: Launch the settings window
-                    // Console.WriteLine("OnPlayerMappingConnectionChanged: " + playerMapping);
-                };
-                UiActionsContainer.Start();
-                ConfigureCanvasLayers();
-                ConfigureDebugOverlays();
-                ScreenSettingsManager.Setup();
-                OnTransition += args => BottomBarScene.UpdateState(args.To);
-                GameLoader.OnLoadResourceProgress += (rp) => ProgressScreenScene.Loading(rp.TotalPercent);
-                splashScreenWorking = false;
+        
+        State(MainState.Init)
+            .Enter(async () => {
+                var splashScreen = SceneTree.GetMainScene<SplashScreen>();
+                splashScreen.StartLoadingAnimation();
+                await GameLoader.LoadMainResources();
+                splashScreen.StopLoadingAnimation();
+                ConfigureApp();
             })
+            .If(() => true).Set(MainState.SplashScreen)
+            .Build();
+
+        var endSplash = false;
+        State(MainState.SplashScreen)
             .OnInput(e => {
-                if (splashScreenWorking) return;
-                if (!endSplash && (e.IsAnyKey() || e.IsAnyButton() || e.IsAnyClick()) && e.IsJustPressed()) {
+                if ((e.IsAnyKey() || e.IsAnyButton() || e.IsAnyClick()) && e.IsJustPressed()) {
                     if (e is InputEventJoypadButton button) {
                         UiActionsContainer.SetJoypad(button.Device);
                     }
+                    var splashScreen = SceneTree.GetMainScene<SplashScreen>();
                     splashScreen.QueueFree();
                     endSplash = true;
                 }
@@ -269,24 +251,39 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IMain, IInjectab
             .Build();
     }
 
+    private void ConfigureApp() {
+        UiActionsContainer.OnNewUiJoypad += (deviceId) => {
+            // Console.WriteLine("New joypad for the ui " + deviceId);
+        };
+        JoypadPlayersMapping.OnPlayerMappingConnectionChanged += (playerMapping) => {
+            // TODO: Launch the settings window
+            // Console.WriteLine("OnPlayerMappingConnectionChanged: " + playerMapping);
+        };
+        UiActionsContainer.Start();
+        ConfigureCanvasLayers();
+        ConfigureDebugOverlays();
+        ScreenSettingsManager.Setup();
+        OnTransition += args => BottomBarScene.UpdateState(args.To);
+        GameLoader.OnLoadResourceProgress += (rp) => ProgressScreenScene.Loading(rp.TotalPercent);
+    }
+
+    private void ConfigureDebugOverlays() {
+        DebugOverlayManager.OverlayContainer.Theme = MyTheme.Get();
+        DebugOverlayManager.DebugConsole.Theme = DebugConsoleTheme.Get();
+    }
+
     private void ConfigureCanvasLayers() {
         MainMenuScene.Layer = CanvasLayerConstants.MainMenu;
         PauseMenuScene.Layer = CanvasLayerConstants.PauseMenu;
         BottomBarScene.Layer = CanvasLayerConstants.BottomBar;
         SettingsMenuScene.Layer = CanvasLayerConstants.SettingsMenu;
         ProgressScreenScene.Layer = CanvasLayerConstants.ProgressScreen;
-
         OnlyInPause(PauseMenuScene);
         NeverPause(SettingsMenuScene, BottomBarScene, ProgressScreenScene);
     }
 
     private void NeverPause(params Node[] nodes) => nodes.ForEach(n=> n.ProcessMode = ProcessModeEnum.Always);
     private void OnlyInPause(params Node[] nodes) => nodes.ForEach(n=> n.ProcessMode = ProcessModeEnum.WhenPaused);
-
-    private void ConfigureDebugOverlays() {
-        DebugOverlayManager.OverlayContainer.Theme = MyTheme.Get();
-        DebugOverlayManager.DebugConsole.Theme = DebugConsoleTheme.Get();
-    }
 
     private ModalBoxConfirm ShowModalBox(string title, string subtitle = null) {
         var modalBoxConfirm = ModalBoxConfirmFactory.Create();

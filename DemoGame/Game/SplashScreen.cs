@@ -16,7 +16,7 @@ public partial class SplashScreen : CanvasLayer {
 
 	private Tween? _tween;
 
-	public void Start() {
+	public void StartLoadingAnimation() {
 		// TODO Godot 4
 		// Vector2 _baseResolutionSize = _screenSettingsManager.WindowedResolution.Size;
 		// if (_screenSettingsManager.Fullscreen) {
@@ -42,7 +42,7 @@ public partial class SplashScreen : CanvasLayer {
 		Console.WriteLine($"{rp.ResourcePercent:P} {rp.Resource}"); 
 	}
 
-	public void ResourcesLoaded() {
+	public void StopLoadingAnimation() {
 		GameLoader.OnLoadResourceProgress -= OnLoadResourceProgress;
 		_tween?.Kill();
 		_tween = null;
