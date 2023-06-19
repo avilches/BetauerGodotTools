@@ -9,7 +9,7 @@ public interface ISaveObject {
 }
 
 public abstract class SaveObject : ISaveObject {
-    [JsonInclude] public int Id { get; set; }
+    [JsonInclude] public int Id { get; set; } = -1;
     [JsonInclude] public string Name { get; set; }
     [JsonInclude] public string? Alias { get; set; }
 

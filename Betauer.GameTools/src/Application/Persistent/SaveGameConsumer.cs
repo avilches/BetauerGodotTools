@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Betauer.Core;
 
 namespace Betauer.Application.Persistent;
 
@@ -14,6 +15,13 @@ public class SaveGameConsumer<TMetadata> where TMetadata : Metadata {
     }
 
     public void Consume<T>(T saveObject) where T : SaveObject => Pending.Remove(saveObject);
+
+    public T Consume<T>() where T : SaveObject {
+        var saveObject = Pending.OfType<T>().FirstOrDefault();
+        if (saveObject == null) throw new Exception("Type not found: " + typeof(T).GetTypeName());
+        Consume(saveObject);
+        return saveObject;
+    }
 
     public T ConsumeAlias<T>(string alias) where T : SaveObject {
         var saveObject = Pending.OfType<T>().FirstOrDefault(saveObject => saveObject.Name == alias);
