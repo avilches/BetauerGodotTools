@@ -43,7 +43,10 @@ public class GameObjectRepository {
     }
 
     public List<SaveObject> GetSaveObjects() {
-        return _registry.Values.Select(g => g.CreateSaveObject()).ToList();
+        return _registry.Values.Select(g => g.CreateSaveObject()).Where(s => {
+            if (s.Id == -1 || s.Name == null) throw new Exception($"Invalid Id/Name for {s.GetType().GetTypeName()}. Is the constructor calling to base properly with {s.GetType().GetTypeName()}(GameObject gameObject) : base(gameObject) {{}} ?");
+            return true;
+        }).ToList();
     }
 
     public T Create<T>(string name, string? alias = null) where T : GameObject {
