@@ -154,6 +154,7 @@ public partial class RtsGameView : Control, IInjectable, IGameView {
 			await FreeSceneKeepingPoolData();
 		}
 		Free();
+		DebugOverlayManager.Overlay("Pool").Free();
 		GC.GetTotalMemory(true);
 		// PrintOrphanNodes();
 	}
