@@ -1,15 +1,18 @@
+using Betauer.Animation.Easing;
 using Betauer.Application.Monitor;
 using Betauer.Core.Nodes;
 using Betauer.DI.Attributes;
 using Betauer.Input;
 using Betauer.Nodes;
 using Godot;
+using Veronenger.Game.Items;
 
 namespace Veronenger.Game.Character.Player; 
 
 public partial class PlayerNode {
 
 	[Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
+	[Inject] private ItemsManager ItemsManager { get; set; }
 
 	private void ConfigureOverlay() {
 		var drawEvent = this.OnDraw(canvas => {
@@ -18,25 +21,57 @@ public partial class PlayerNode {
 		});
 		drawEvent.Disable();
 
+
 		var overlay = DebugOverlayManager.Overlay(CharacterBody2D)
 			.Title("Player")
 			.SetMaxSize(1000, 1000);
 
-		// overlay.OpenBox()
-			// .Edit("Bullet speed", ConfigManager.SlowGun.Speed.ToString("0"), v => ConfigManager.SlowGun.Speed = int.Parse(v)).EndMonitor()
-			// .Edit("Bullet Trail", ConfigManager.SlowGun.TrailLength.ToString("0"), v => ConfigManager.SlowGun.TrailLength = int.Parse(v)).EndMonitor()
-			// .Edit("Raycast", ConfigManager.SlowGun.RaycastLength.ToString("0"), v => ConfigManager.SlowGun.RaycastLength = int.Parse(v)).EndMonitor()
-			// .CloseBox();
-
-		overlay.OpenBox()
-			.Text("PlayerJoys", () => PlayerMapping.ToString()).EndMonitor()
-			.CloseBox();
-
+		// AddBulletSpeedConfigurator(overlay);
+		// AddPlayerJoypadMappings(overlay);
+		// AddCameraAndZoomTests(overlay);
 		// AddDebuggingInputAction(overlay);
 		// AddOverlayHelpers(overlay);
 		// AddOverlayStates(overlay);
 		// AddOverlayMotion(overlay);
 		// AddOverlayCollisions(overlay);
+	}
+
+	private void AddPlayerJoypadMappings(DebugOverlay overlay) {
+		overlay.OpenBox()
+			.Text("PlayerJoys", () => PlayerMapping.ToString()).EndMonitor()
+			.CloseBox();
+	}
+
+	private void AddBulletSpeedConfigurator(DebugOverlay overlay) {
+		overlay.OpenBox()
+			.Edit("Bullet speed", ItemsManager.SlowGun.Speed.ToString("0"), v => ItemsManager.SlowGun.Speed = int.Parse(v)).EndMonitor()
+			.Edit("Bullet Trail", ItemsManager.SlowGun.TrailLength.ToString("0"), v => ItemsManager.SlowGun.TrailLength = int.Parse(v)).EndMonitor()
+			.Edit("Raycast", ItemsManager.SlowGun.RaycastLength.ToString("0"), v => ItemsManager.SlowGun.RaycastLength = int.Parse(v)).EndMonitor()
+			.CloseBox();
+	}
+
+	private void AddCameraAndZoomTests(DebugOverlay overlay) {
+		var spawnPlayer = PlatformWorld.Get().GetNode<Marker2D>("SpawnPlayer");
+		overlay.OpenBox()
+			.Text("Following", () => _cameraController.IsFollowing).EndMonitor()
+			.Text("Transition", () => _cameraController.IsBusy()).EndMonitor();
+
+		overlay.OpenBox()
+			.Button("Follow player", () => _cameraController.Follow(CharacterBody2D))
+			.Button("Follow player pos", () => _cameraController.Follow(() => CharacterBody2D.GlobalPosition))
+			.Button("Stop", () => _cameraController.StopFollowing())
+			.Button("Start", () => _cameraController.ContinueFollowing())
+			.Button("MoveTo Node", () => _cameraController.MoveTo(spawnPlayer.GlobalPosition, 0.8f))
+			.Button("MoveTo Pos", () => _cameraController.MoveTo(() => spawnPlayer.GlobalPosition, 0.8f))
+			.Button("MoveTo Node", () => _cameraController.MoveTo(spawnPlayer.GlobalPosition, 0.8f, BezierCurve.Create(0.755f, 0.05f, 0.855f, 0.06f)))
+			.Button("MoveTo Pos", () => _cameraController.MoveTo(() => spawnPlayer.GlobalPosition, 0.8f, BezierCurve.Create(0.755f, 0.05f, 0.855f, 0.06f)))
+			.Button("Zoom", async () => {
+				await _cameraController.Zoom(new Vector2(4f, 4f), 0.8f, null, () => _cameraController.Camera2D.GetLocalMousePosition());
+				await _cameraController.Zoom(new Vector2(0.5f, 0.5f), 0.8f, BezierCurve.Create(0.755f, 0.05f, 0.855f, 0.06f),
+					() => _cameraController.Camera2D.GetLocalMousePosition());
+				await _cameraController.Zoom(new Vector2(2f, 2f), 0.2f, BezierCurve.Create(0.755f, 0.05f, 0.855f, 0.06f),
+					() => _cameraController.Camera2D.GetLocalMousePosition());
+			});
 	}
 
 	private void AddDebuggingInputAction(DebugOverlay overlay) {

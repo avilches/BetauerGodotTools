@@ -1,5 +1,4 @@
 using Godot;
-using Veronenger.Game.Platform;
 
 namespace Veronenger.Game.Worlds.RTS; 
 
@@ -16,8 +15,5 @@ public partial class RtsWorld : Node
 	}
 
 	public void StartNewGame() {
-	}
-
-	public void LoadGame(PlatformSaveGameConsumer consumer) {
 	}
 }

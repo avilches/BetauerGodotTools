@@ -6,7 +6,7 @@ using Betauer.Application.Persistent;
 using Betauer.Application.Screen;
 using Betauer.Application.Settings;
 using Betauer.Application.Settings.Attributes;
-using Betauer.Camera.Follower;
+using Betauer.Camera.Control;
 using Betauer.DI.Attributes;
 using Betauer.Input;
 using Betauer.Input.Attributes;

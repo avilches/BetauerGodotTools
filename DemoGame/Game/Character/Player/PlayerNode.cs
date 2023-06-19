@@ -5,7 +5,7 @@ using Betauer.Animation.AnimationPlayer;
 using Betauer.Application.Monitor;
 using Betauer.Application.Persistent;
 using Betauer.Camera;
-using Betauer.Camera.Follower;
+using Betauer.Camera.Control;
 using Betauer.Core;
 using Betauer.Core.Restorer;
 using Betauer.Core.Time;
@@ -111,7 +111,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 	// private bool IsMovingPlatform() => PlatformManager.IsMovingPlatform(Body.GetFloor());
 	private MonitorText? _coyoteMonitor;
 	private MonitorText? _jumpHelperMonitor;
-	private CameraControl _cameraControl;
+	private CameraController _cameraController;
 
 	private CharacterWeaponController _characterWeaponController;
 	private AttackState _attackState = AttackState.None;
@@ -240,7 +240,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 	}
 
 	public void SetCamera(Camera2D camera) {
-		_cameraControl = CameraContainer.Camera(camera).Follow(CharacterBody2D);
+		_cameraController = CameraContainer.Camera(camera).Follow(CharacterBody2D);
 		// Uncomment to enable stages
 		// StageCameraController.CurrentCamera = camera; 
 	}

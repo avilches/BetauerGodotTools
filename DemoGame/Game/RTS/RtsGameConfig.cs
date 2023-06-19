@@ -52,5 +52,5 @@ public class RtsGameConfig {
 		return loader;
 	}
 	
-	[Singleton] public IMutableHolder<IGameView> TerrainGameViewHolder => Holder.From<IGameView>("RtsGameViewFactory"); 
+	[Singleton] public IMutableHolder<IGameView> RtsGameViewHolder => Holder.From<IGameView>("RtsGameViewFactory"); 
 }
