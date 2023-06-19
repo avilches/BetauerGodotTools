@@ -18,6 +18,19 @@ public static partial class DebugOverlayExtensions {
         return monitorText;
     }
 
+    public static DebugOverlay Button(this DebugOverlay overlay, string label, Action action, Action<Button>? config = null) {
+        return overlay.Button<Button>(label, action);
+    }
+    
+    public static DebugOverlay Button<TButton>(this DebugOverlay overlay, string label, Action action, Action<TButton>? config = null) where TButton : Button {
+        var b = Activator.CreateInstance<TButton>();
+        b.Text = label;
+        b.Pressed += action;
+        overlay.Add(b);
+        config?.Invoke(b);
+        return overlay;
+    }
+
     public static MonitorText Text(this DebugOverlay overlay, string? label = null) {
         return overlay.CreateMonitor<MonitorText>().SetLabel(label);
     }
