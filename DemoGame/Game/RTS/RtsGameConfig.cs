@@ -1,19 +1,12 @@
+using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Betauer.Application.Lifecycle.Attributes;
-using Betauer.Application.Lifecycle.Pool;
 using Betauer.Application.Persistent;
 using Betauer.Application.Persistent.Json;
-using Betauer.Camera;
 using Betauer.DI.Attributes;
 using Betauer.DI.Holder;
 using Godot;
-using Veronenger.Game.Character.Npc;
-using Veronenger.Game.Character.Player;
-using Veronenger.Game.HUD;
-using Veronenger.Game.Items;
-using Veronenger.Game.Platform;
-using Veronenger.Game.Worlds.Platform;
 using Veronenger.Game.Worlds.RTS;
 
 namespace Veronenger.Game.RTS;
@@ -53,4 +46,12 @@ public class RtsGameConfig {
 	}
 	
 	[Singleton] public IMutableHolder<IGameView> RtsGameViewHolder => Holder.From<IGameView>("RtsGameViewFactory"); 
+}
+
+[Singleton]
+public class RtsConfig {
+	public readonly List<float> ZoomLevels = new() { 0.0625f, 0.125f, 0.25f, 0.5f, 1f, 2f, 4f};
+	public readonly float DefaultZoom = 1;
+	public readonly float ZoomTime = 0.5f;
+
 }

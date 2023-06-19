@@ -38,16 +38,9 @@ public partial class RtsGameView : Control, IInjectable, IGameView {
 	[Inject] private JoypadPlayersMapping JoypadPlayersMapping { get; set; }
 
 	[NodePath("SplitScreen")] private SplitScreen _splitScreen;
-	// private readonly DragCameraController _cameraController = new();
-
-	public const int MaxPlayer = 2;
 
 	// public HudCanvas HudCanvas { get; private set; } = null!;
 	public RtsWorld RtsWorld { get; private set; } = null!;
-	private int ActivePlayers => 1; // PlatformWorld != null ? PlatformWorld.Players.Count : 0;
-	private bool _allowAddingP2 = true;
-	private void AllowAddingP2() => _allowAddingP2 = true;
-	private void NoAddingP2() => _allowAddingP2 = false;
 
 	public Node GetWorld() => RtsWorld;
 
@@ -57,16 +50,7 @@ public partial class RtsGameView : Control, IInjectable, IGameView {
 	}
 
 	public override async void _UnhandledInput(InputEvent e) {
-		if (_allowAddingP2 && e is InputEventJoypadButton button && !JoypadPlayersMapping.IsJoypadUsed(button.Device)) {
-			// CreatePlayer2(button.Device);
-			GetViewport().SetInputAsHandled();
-			if (JoypadPlayersMapping.Players == MaxPlayer) NoAddingP2();				
-		} else if (e.IsKeyReleased(Key.U)) {
-			if (ActivePlayers < 2) {
-				// CreatePlayer2(1);
-				GetViewport().SetInputAsHandled();
-			}
-		} else if (e.IsKeyReleased(Key.F5)) {
+		if (e.IsKeyReleased(Key.F5)) {
 			Save("savegame");
 		} else if (e.IsKeyReleased(Key.F6)) {
 			LoadInGame("savegame");
@@ -82,10 +66,7 @@ public partial class RtsGameView : Control, IInjectable, IGameView {
 		CurrentMetadata = new RtsSaveGameMetadata();
 		GameObjectRepository.Initialize();
 		InitializeWorld();
-		// CreatePlayer1(UiActionsContainer.CurrentJoyPad);
-		AllowAddingP2();				
 		RtsWorld.StartNewGame();
-		// _cameraController.WithMouseButton(MouseButton.Middle).Attach(_camera2D);
 	}
 
 	public async Task LoadFromMenu(string saveName) {
@@ -110,11 +91,8 @@ public partial class RtsGameView : Control, IInjectable, IGameView {
 		GameObjectRepository.Initialize();
 		GameObjectRepository.LoadSaveObjects(saveGame.GameObjects);
 		InitializeWorld();
-		// var consumer = new PlatformSaveGameConsumer(saveGame);
-		// LoadPlayer1(UiActionsContainer.CurrentJoyPad, consumer);
-		// if (consumer.Player1 == null) AllowAddingP2();
-		// else NoAddingP2();
-		// Terrain.LoadGame(consumer);
+		var consumer = new RtsSaveGameConsumer(saveGame);
+		RtsWorld.LoadGame(consumer);
 		HideLoading();
 	}
 
@@ -155,6 +133,7 @@ public partial class RtsGameView : Control, IInjectable, IGameView {
 		RtsWorld = RtsWorldFactory.Create();
 		_splitScreen.SetWorld(RtsWorld);
 		_splitScreen.SinglePlayer(true);
+		RtsWorld.SetMainCamera(_splitScreen.Camera1);
 
 		// HudCanvas = HudCanvasFactory.Create();
 		// AddChild(HudCanvas);
@@ -167,33 +146,7 @@ public partial class RtsGameView : Control, IInjectable, IGameView {
 			}
 		};
 	}
-/*
-	public PlayerNode CreatePlayer1(int joypad) {
-		var playerMapping = JoypadPlayersMapping.AddPlayer().SetJoypadId(joypad);
-		var player = PlatformWorld.AddNewPlayer(playerMapping);
-		player.SetCamera(_splitScreen.Camera1);
-		return player;
-	}
-
-	public PlayerNode LoadPlayer1(int joypad, PlatformSaveGameConsumer consumer) {
-		var playerMapping = JoypadPlayersMapping.AddPlayer().SetJoypadId(joypad);
-		var player = PlatformWorld.LoadPlayer(playerMapping, consumer.Player0, consumer.Inventory0);
-		player.SetCamera(_splitScreen.Camera1);
-		return player;
-	}
-
-	public PlayerNode CreatePlayer2(int joypad) {
-		if (JoypadPlayersMapping.Players >= MaxPlayer) throw new Exception("No more players allowed");
-		var playerMapping = JoypadPlayersMapping.AddPlayer().SetJoypadId(joypad);
-		var player = PlatformWorld.AddNewPlayer(playerMapping);
-		player.SetCamera(_splitScreen.Camera2);
-		return player;
-	}
-*/	
-	public override void _Process(double delta) {
-	}
-
-
+	
 	public async Task End(bool unload) {
 		if (unload) {
 			UnloadResources();

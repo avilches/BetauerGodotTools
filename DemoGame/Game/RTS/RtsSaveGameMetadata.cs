@@ -1,4 +1,3 @@
-using System.Text.Json.Serialization;
 using Betauer.Application.Persistent;
 
 namespace Veronenger.Game.RTS;
