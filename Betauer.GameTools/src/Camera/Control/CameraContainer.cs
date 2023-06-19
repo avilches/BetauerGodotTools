@@ -1,15 +1,15 @@
 using System.Collections.Generic;
 using Godot;
 
-namespace Betauer.Camera.Follower;
+namespace Betauer.Camera.Control;
 
 public class CameraContainer {
-    public Dictionary<Camera2D, CameraControl> Registry = new();
-    public List<CameraControl> Cameras = new();
+    public Dictionary<Camera2D, CameraController> Registry = new();
+    public List<CameraController> Cameras = new();
     
-    public CameraControl Camera(Camera2D camera) {
+    public CameraController Camera(Camera2D camera) {
         if (Registry.TryGetValue(camera, out var control)) return control;
-        var cameraControl = new CameraControl(this, camera);
+        var cameraControl = new CameraController(this, camera);
         Registry[camera] = cameraControl;
         Cameras.Add(cameraControl);
         return cameraControl;
