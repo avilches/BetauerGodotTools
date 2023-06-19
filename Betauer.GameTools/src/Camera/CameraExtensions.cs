@@ -1,3 +1,4 @@
+using System;
 using Betauer.Core;
 using Godot;
 
@@ -95,5 +96,17 @@ public static class CameraExtensions {
             }
             rt2d.RemoveMeta(CameraId);
         }
+    }
+
+    public static void ZoomCursor(this Camera2D camera, Vector2 newZoom) {
+        camera.ZoomTo(newZoom, camera.GetLocalMousePosition);
+    }
+
+    public static void ZoomTo(this Camera2D camera, Vector2 newZoom, Func<Vector2> getZoomPoint) {
+        Vector2 zoomPoint = getZoomPoint();
+        camera.Zoom = newZoom;
+        Vector2 currPoint = getZoomPoint();
+        Vector2 diff = zoomPoint - currPoint;
+        camera.Translate(diff);			
     }
 }
