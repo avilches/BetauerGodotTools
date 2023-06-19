@@ -110,10 +110,7 @@ public class NodeBuilder<TNodeBuilder, T> : INode where T : Node where TNodeBuil
     }
 
     public NodeBuilder<NodeBuilder<TNodeBuilder, T>, Button> Button(string label, Action action) {
-        var b = new Button();
-        b.Text = label;
-        b.Pressed += action;
-        return Child(b);
+        return Button<Button>(label, action);
     }
     
     public NodeBuilder<NodeBuilder<TNodeBuilder, T>, TButton> Button<TButton>(string label, Action action) where TButton : Button {

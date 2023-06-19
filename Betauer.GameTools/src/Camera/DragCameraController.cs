@@ -20,7 +20,12 @@ public class DragCameraController {
 
 
     public DragCameraController() {
-        DragAndDropController.OnDrag += offset => Camera2D!.Position -= offset;
+        DragAndDropController.OnDrag += OnDrag;
+    }
+
+    public void OnDrag(Vector2 offset) {
+        offset *= new Vector2(1 / Camera2D!.Zoom.X, 1 / Camera2D!.Zoom.Y);
+        Camera2D!.Position -= offset;
     }
 
     public DragCameraController WithMouseButton(MouseButton mouseButton) {
