@@ -40,7 +40,8 @@ public enum MainEvent {
     Back,
     Pause,
     Settings,
-    StartGame,
+    StartGameRts,
+    StartGamePlatform,
     StartSavingGame,
     EndGame,
     ModalBoxConfirmExitDesktop,
@@ -71,8 +72,8 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IMain, IInjectab
     [Inject] private ITransient<ModalBoxConfirm> ModalBoxConfirmFactory { get; set; }
     [Inject("MyTheme")] private ResourceHolder<Theme> MyTheme { get; set; }
 
-    [Inject("PlatformGameViewHolder")] private IMutableHolder<IGameView> GameView { get; set; }
-    // [Inject("RtsGameViewHolder")] private IMutableHolder<IGameView> GameView { get; set; }
+    [Inject("PlatformGameViewHolder")] private IMutableHolder<IGameView> PlatformGameView { get; set; }
+    [Inject("RtsGameViewHolder")] private IMutableHolder<IGameView> RtsGameView { get; set; }
 
     [Inject] private ScreenSettingsManager ScreenSettingsManager { get; set; }
     [Inject] private SceneTree SceneTree { get; set; }
@@ -142,10 +143,18 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IMain, IInjectab
             })
             .If(() => endSplash).Set(MainState.MainMenu)
             .Build();
-            
+
+        IGameView gameView = null;
         State(MainState.MainMenu)
             .OnInput(e => MainMenuScene.OnInput(e))
-            .On(MainEvent.StartGame).Set(MainState.StartingGame)
+            .On(MainEvent.StartGamePlatform).Then(ctx => {
+                gameView = PlatformGameView.Get();
+                return ctx.Set(MainState.StartingGame);
+            })
+            .On(MainEvent.StartGameRts).Then(ctx => {
+                gameView = RtsGameView.Get();
+                return ctx.Set(MainState.StartingGame);
+            })
             .On(MainEvent.Settings).Push(MainState.Settings)
             .Suspend(() => MainMenuScene.DisableMenus())
             .Awake(() => MainMenuScene.EnableMenus())
@@ -161,7 +170,7 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IMain, IInjectab
 
         State(MainState.StartingGame).Enter((Func<Task>)(async () => {
                 await MainMenuScene.HideMainMenu();
-                var gameView = GameView.Get();
+                // gameView = RtsGameView.Get();
                 await gameView.StartNewGame();
             }))
             .If(() => true).Set(MainState.Gaming)
@@ -193,8 +202,7 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IMain, IInjectab
             .Build();
 
         State(MainState.GameOver).Enter((Func<Task>)(async () => {
-                await GameView.Get().End(true);
-                GameView.Clear();
+                await EndGameView();
             }))
             .If(() => true).Set(MainState.MainMenu)
             .Build();
@@ -227,8 +235,7 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IMain, IInjectab
             .Build();
                 
         State(MainState.QuitGame).Enter((Func<Task>)(async () => {
-                await GameView.Get().End(true);
-                GameView.Clear();
+                await EndGameView();
             }))
             .If(() => true).Set(MainState.MainMenu)
             .Build();
@@ -249,6 +256,16 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IMain, IInjectab
         State(MainState.ExitDesktop)
             .Enter(() => SceneTree.QuitSafely())
             .Build();
+    }
+
+    private async Task EndGameView() {
+        if (RtsGameView.HasValue()) {
+            await RtsGameView.Get().End(true);
+            RtsGameView.Clear();
+        } else {
+            await PlatformGameView.Get().End(true);
+            PlatformGameView.Clear();
+        }
     }
 
     private void ConfigureApp() {

@@ -14,6 +14,7 @@ using Betauer.DI.Factory;
 using Betauer.Input;
 using Betauer.Input.Joypad;
 using Godot;
+using Veronenger.Game.RTS.HUD;
 using Veronenger.Game.UI;
 
 namespace Veronenger.Game.RTS.World;
@@ -25,7 +26,7 @@ public partial class RtsGameView : Control, IInjectable, IGameView {
 	[Inject] private GameObjectRepository GameObjectRepository { get; set; }
 	[Inject] private JsonGameLoader<RtsSaveGameMetadata> RtsGameObjectLoader { get; set; }
 	[Inject] private ITransient<RtsWorld> RtsWorldFactory { get; set; }
-	// [Inject] private ITransient<HudCanvas> HudCanvasFactory { get; set; }
+	[Inject] private ITransient<RtsHud> RtsHudFactory { get; set; }
 
 	[Inject] private IMain Main { get; set; }
 	[Inject] private ILazy<ProgressScreen> ProgressScreenLazy { get; set; }
@@ -37,7 +38,7 @@ public partial class RtsGameView : Control, IInjectable, IGameView {
 
 	private SplitViewport _splitViewport;
 
-	// public HudCanvas HudCanvas { get; private set; } = null!;
+	public RtsHud RtsHud { get; private set; } = null!;
 	public RtsWorld RtsWorld { get; private set; } = null!;
 
 	public Node GetWorld() => RtsWorld;
@@ -136,13 +137,12 @@ public partial class RtsGameView : Control, IInjectable, IGameView {
 		_splitViewport.Refresh();
 		_splitViewport.OnChange += (split) => {
 			if (split) {
-				// HudCanvas.SplitScreen();
-				// The HUD for player two should be always visible if the player 2 is alive 
+				RtsHud.SplitScreenContainer.Split = true;
 			}
 		};
 		
-		// HudCanvas = HudCanvasFactory.Create();
-		// AddChild(HudCanvas);
+		RtsHud = RtsHudFactory.Create();
+		AddChild(RtsHud);
 	}
 	
 	public async Task End(bool unload) {

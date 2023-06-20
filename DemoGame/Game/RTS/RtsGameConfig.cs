@@ -7,6 +7,7 @@ using Betauer.Application.Persistent.Json;
 using Betauer.DI.Attributes;
 using Betauer.DI.Holder;
 using Godot;
+using Veronenger.Game.RTS.HUD;
 using Veronenger.Game.RTS.World;
 
 namespace Veronenger.Game.RTS;
@@ -14,13 +15,15 @@ namespace Veronenger.Game.RTS;
 [Configuration]
 [Loader("GameLoader", Tag = "main")]
 [Scene.Transient<RtsGameView>("RtsGameViewFactory")]
-public class PlatformMainResources {
+public class RtsMainResources {
 }
 
 [Configuration]
 [Loader("GameLoader", Tag = "rts")]
 [Scene.Transient<RtsWorld>("RtsWorldFactory")]
+[Scene.Transient<RtsPlayerHud>("RtsPlayerHudFactory")]
 public class RtsGameResources {
+	[Transient<RtsHud>] RtsHud RtsHudFactory => new RtsHud();
 }
 
 [Configuration]

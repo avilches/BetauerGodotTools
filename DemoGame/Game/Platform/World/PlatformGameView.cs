@@ -27,7 +27,7 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 	[Inject] private GameObjectRepository GameObjectRepository { get; set; }
 	[Inject] private JsonGameLoader<PlatformSaveGameMetadata> PlatformGameObjectLoader { get; set; }
 	[Inject] private ITransient<PlatformWorld> PlatformWorldFactory { get; set; }
-	[Inject] private ITransient<HudCanvas> HudCanvasFactory { get; set; }
+	[Inject] private ITransient<PlatformHud> PlatformHudFactory { get; set; }
 
 	[Inject] private IMain Main { get; set; }
 	[Inject] private ILazy<ProgressScreen> ProgressScreenLazy { get; set; }
@@ -41,7 +41,7 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 
 	public const int MaxPlayer = 2;
 
-	public HudCanvas HudCanvas { get; private set; } = null!;
+	public PlatformHud PlatformHud { get; private set; } = null!;
 	public PlatformWorld PlatformWorld { get; private set; } = null!;
 	private int ActivePlayers => PlatformWorld != null ? PlatformWorld.Players.Count : 0;
 	private bool _allowAddingP2 = true;
@@ -157,13 +157,13 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 		_splitViewport.Refresh();
 		_splitViewport.OnChange += (split) => {
 			if (split) {
-				HudCanvas.SplitScreenContainer.Split = true;
+				PlatformHud.SplitScreenContainer.Split = true;
 				// The HUD for player two should be always visible if the player 2 is alive 
 			}
 		};
 		
-		HudCanvas = HudCanvasFactory.Create();
-		AddChild(HudCanvas);
+		PlatformHud = PlatformHudFactory.Create();
+		AddChild(PlatformHud);
 	}
 
 	public PlayerNode CreatePlayer1(int joypad) {

@@ -8,14 +8,14 @@ using Veronenger.Game.Platform.Items;
 
 namespace Veronenger.Game.Platform.HUD;
 
-public partial class HudCanvas : CanvasLayer, IInjectable {
+public partial class PlatformHud : CanvasLayer, IInjectable {
     
     [Inject("PlayerHudFactory")] public PlayerHud PlayerHud1 { get; set; }
     [Inject("PlayerHudFactory")] public PlayerHud PlayerHud2 { get; set; }
 
     public SplitScreenContainer<PlayerHud> SplitScreenContainer;
 
-    public HudCanvas() {
+    public PlatformHud() {
         Name = "HUD";
         Layer = CanvasLayerConstants.HudScene;
         SplitScreenContainer = new SplitScreenContainer<PlayerHud>(() => GetTree().Root.ContentScaleSize);
@@ -24,6 +24,9 @@ public partial class HudCanvas : CanvasLayer, IInjectable {
     public void PostInject() {
         PlayerHud1.Name = "PlayerHud1";
         PlayerHud2.Name = "PlayerHud2";
+
+        // Ignore is needed because the PlayerHUD captures the mouse
+        PlayerHud1.MouseFilter = PlayerHud2.MouseFilter = Control.MouseFilterEnum.Ignore;
         AddChild(PlayerHud1);
         AddChild(PlayerHud2);
         SplitScreenContainer.Split1 = PlayerHud1;

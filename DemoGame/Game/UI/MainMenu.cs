@@ -66,7 +66,8 @@ public partial class MainMenu : CanvasFaderLayer {
 
 		var mainMenu = new MenuContainer(_menuBase);
 		var startMenu = mainMenu.GetRootMenu();
-		startMenu.AddButton("Start", "Start").Pressed += () => Main.Send(MainEvent.StartGame);
+		startMenu.AddButton("Start RTS", "RTS").Pressed += () => Main.Send(MainEvent.StartGameRts);
+		startMenu.AddButton("Start Plat", "Platform").Pressed += () => Main.Send(MainEvent.StartGamePlatform);
 		startMenu.AddButton("Settings", "Settings").Pressed += () => Main.Send(MainEvent.Settings);
 		startMenu.AddButton("Exit", "Exit").Pressed += () => Main.Send(MainEvent.ExitDesktop);
 		return mainMenu;

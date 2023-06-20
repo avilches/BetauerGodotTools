@@ -37,7 +37,7 @@ public class PlatformMainResources {
 [Scene.Transient<ProjectileTrail>("ProjectileTrailFactory")]
 [Scene.Transient<PickableItemNode>("PickableItemFactory")]
 public class PlatformGameResources {
-	[Transient<HudCanvas>] HudCanvas HudCanvasFactory => new HudCanvas();
+	[Transient<PlatformHud>] PlatformHud PlatformHudFactory => new PlatformHud();
 }
 
 [Configuration]
@@ -70,5 +70,5 @@ public class PlatformGameConfig {
 	[Transient] public StageCameraController StageCameraControllerFactory => new(CollisionLayerConstants.LayerStageArea);
 	[Singleton] public IMutableHolder<IGameView> PlatformGameViewHolder => Holder.From<IGameView>("PlatformGameViewFactory"); 
 	[Singleton] public IHolder<PlatformWorld> PlatformWorldHolder => Holder.Chain<IGameView, PlatformWorld>("PlatformGameViewHolder", (gameView) => (PlatformWorld)gameView.GetWorld()); 
-	[Singleton] public IHolder<HudCanvas> HudCanvasHolder => Holder.Chain<IGameView, HudCanvas>("PlatformGameViewHolder", (gameView) => ((PlatformGameView)gameView).HudCanvas); 
+	[Singleton] public IHolder<PlatformHud> HudCanvasHolder => Holder.Chain<IGameView, PlatformHud>("PlatformGameViewHolder", (gameView) => ((PlatformGameView)gameView).PlatformHud); 
 }
