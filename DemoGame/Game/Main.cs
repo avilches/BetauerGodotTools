@@ -71,8 +71,8 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IMain, IInjectab
     [Inject] private ITransient<ModalBoxConfirm> ModalBoxConfirmFactory { get; set; }
     [Inject("MyTheme")] private ResourceHolder<Theme> MyTheme { get; set; }
 
-    [Inject("PlatformGameViewHolder")] private IMutableHolder<IGameView> GameView { get; set; }
-    // [Inject("RtsGameViewHolder")] private IMutableHolder<IGameView> GameView { get; set; }
+    // [Inject("PlatformGameViewHolder")] private IMutableHolder<IGameView> GameView { get; set; }
+    [Inject("RtsGameViewHolder")] private IMutableHolder<IGameView> GameView { get; set; }
 
     [Inject] private ScreenSettingsManager ScreenSettingsManager { get; set; }
     [Inject] private SceneTree SceneTree { get; set; }

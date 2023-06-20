@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://cdyhbgqkwlf35"]
 
-[ext_resource type="Script" path="res://Game/RTS/World//RtsGameView.cs" id="1_wo4ja"]
-[ext_resource type="PackedScene" uid="uid://yjpt3re1scn6" path="res://Game/SplitScreen.tscn" id="2_86vty"]
+[ext_resource type="Script" path="res://Game/RTS/World/RtsGameView.cs" id="1_pkncm"]
+[ext_resource type="PackedScene" path="res://Game/SplitViewport.tscn" id="2_wr85w"]
 
 [node name="Game" type="Control"]
 layout_mode = 3
@@ -11,7 +11,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 4
-script = ExtResource("1_wo4ja")
+script = ExtResource("1_pkncm")
 
-[node name="SplitScreen" parent="." instance=ExtResource("2_86vty")]
+[node name="SplitViewport" parent="." instance=ExtResource("2_wr85w")]
 layout_mode = 1

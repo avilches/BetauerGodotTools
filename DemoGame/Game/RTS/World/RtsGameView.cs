@@ -14,7 +14,6 @@ using Betauer.Input;
 using Betauer.Input.Joypad;
 using Betauer.NodePath;
 using Godot;
-using Veronenger.Game.Platform.HUD;
 using Veronenger.Game.UI;
 
 namespace Veronenger.Game.RTS.World;
@@ -26,7 +25,7 @@ public partial class RtsGameView : Control, IInjectable, IGameView {
 	[Inject] private GameObjectRepository GameObjectRepository { get; set; }
 	[Inject] private JsonGameLoader<RtsSaveGameMetadata> RtsGameObjectLoader { get; set; }
 	[Inject] private ITransient<RtsWorld> RtsWorldFactory { get; set; }
-	[Inject] private ITransient<HudCanvas> HudCanvasFactory { get; set; }
+	// [Inject] private ITransient<HudCanvas> HudCanvasFactory { get; set; }
 
 	[Inject] private IMain Main { get; set; }
 	[Inject] private ILazy<ProgressScreen> ProgressScreenLazy { get; set; }
@@ -36,7 +35,7 @@ public partial class RtsGameView : Control, IInjectable, IGameView {
 	[Inject] private UiActionsContainer UiActionsContainer { get; set; }
 	[Inject] private JoypadPlayersMapping JoypadPlayersMapping { get; set; }
 
-	[NodePath("SplitScreen")] private SplitScreen _splitScreen;
+	[NodePath("SplitViewport")] private SplitViewport _splitViewport;
 
 	// public HudCanvas HudCanvas { get; private set; } = null!;
 	public RtsWorld RtsWorld { get; private set; } = null!;
@@ -130,20 +129,21 @@ public partial class RtsGameView : Control, IInjectable, IGameView {
 		JoypadPlayersMapping.RemoveAllPlayers();
 
 		RtsWorld = RtsWorldFactory.Create();
-		_splitScreen.SetWorld(RtsWorld);
-		_splitScreen.SinglePlayer(true);
-		RtsWorld.SetMainCamera(_splitScreen.Camera1);
+		RtsWorld.SetMainCamera(_splitViewport.Camera1);
 
-		// HudCanvas = HudCanvasFactory.Create();
-		// AddChild(HudCanvas);
-		// HudCanvas.SinglePlayer();
-		
-		_splitScreen.OnDoubleChanged += (visible) => {
+		_splitViewport.SetWorld(RtsWorld);
+		_splitViewport.GetSize = () => GetTree().Root.ContentScaleSize;
+		_splitViewport.Split = false;
+		_splitViewport.Horizontal = false;
+		_splitViewport.OnChange += (visible) => {
 			if (visible) {
-				// HudCanvas.EnableSplitScreen();
+				// HudCanvas.SplitScreen();
 				// The HUD for player two should be always visible if the player 2 is alive 
 			}
 		};
+		
+		// HudCanvas = HudCanvasFactory.Create();
+		// AddChild(HudCanvas);
 	}
 	
 	public async Task End(bool unload) {

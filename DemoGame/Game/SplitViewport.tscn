@@ -1,8 +1,9 @@
 [gd_scene load_steps=2 format=3 uid="uid://yjpt3re1scn6"]
 
-[ext_resource type="Script" path="res://Game/SplitScreen.cs" id="1_cgeag"]
+[ext_resource type="Script" path="res://Game/SplitViewport.cs" id="1_cgeag"]
 
-[node name="SplitScreen" type="HBoxContainer"]
+[node name="SplitViewport" type="Control"]
+layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -12,6 +13,8 @@ script = ExtResource("1_cgeag")
 
 [node name="Container1" type="SubViewportContainer" parent="."]
 layout_mode = 2
+offset_right = 2.0
+offset_bottom = 1080.0
 
 [node name="SubViewport1" type="SubViewport" parent="Container1"]
 unique_name_in_owner = true
@@ -26,6 +29,9 @@ zoom = Vector2(2, 2)
 
 [node name="Container2" type="SubViewportContainer" parent="."]
 layout_mode = 2
+offset_left = 6.0
+offset_right = 8.0
+offset_bottom = 1080.0
 
 [node name="SubViewport2" type="SubViewport" parent="Container2"]
 unique_name_in_owner = true

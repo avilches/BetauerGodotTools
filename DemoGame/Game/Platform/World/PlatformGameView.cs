@@ -37,7 +37,7 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 	[Inject] private UiActionsContainer UiActionsContainer { get; set; }
 	[Inject] private JoypadPlayersMapping JoypadPlayersMapping { get; set; }
 
-	[NodePath("SplitScreen")] private SplitScreen _splitScreen;
+	[NodePath("SplitViewport")] private SplitViewport _splitViewport;
 
 	public const int MaxPlayer = 2;
 
@@ -152,32 +152,32 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 		JoypadPlayersMapping.RemoveAllPlayers();
 
 		PlatformWorld = PlatformWorldFactory.Create();
-		_splitScreen.SetWorld(PlatformWorld);
-		_splitScreen.SinglePlayer(true);
-
-		HudCanvas = HudCanvasFactory.Create();
-		AddChild(HudCanvas);
-		HudCanvas.SinglePlayer();
-		
-		_splitScreen.OnDoubleChanged += (visible) => {
+		_splitViewport.SetWorld(PlatformWorld);
+		_splitViewport.GetSize = () => GetTree().Root.ContentScaleSize;
+		_splitViewport.Split = false;
+		_splitViewport.Horizontal = false;
+		_splitViewport.OnChange += (visible) => {
 			if (visible) {
-				HudCanvas.EnableSplitScreen();
+				HudCanvas.SplitScreenContainer.Split = true;
 				// The HUD for player two should be always visible if the player 2 is alive 
 			}
 		};
+		
+		HudCanvas = HudCanvasFactory.Create();
+		AddChild(HudCanvas);
 	}
 
 	public PlayerNode CreatePlayer1(int joypad) {
 		var playerMapping = JoypadPlayersMapping.AddPlayer().SetJoypadId(joypad);
 		var player = PlatformWorld.AddNewPlayer(playerMapping);
-		player.SetCamera(_splitScreen.Camera1);
+		player.SetCamera(_splitViewport.Camera1);
 		return player;
 	}
 
 	public PlayerNode LoadPlayer1(int joypad, PlatformSaveGameConsumer consumer) {
 		var playerMapping = JoypadPlayersMapping.AddPlayer().SetJoypadId(joypad);
 		var player = PlatformWorld.LoadPlayer(playerMapping, consumer.Player0, consumer.Inventory0);
-		player.SetCamera(_splitScreen.Camera1);
+		player.SetCamera(_splitViewport.Camera1);
 		return player;
 	}
 
@@ -185,7 +185,7 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 		if (JoypadPlayersMapping.Players >= MaxPlayer) throw new Exception("No more players allowed");
 		var playerMapping = JoypadPlayersMapping.AddPlayer().SetJoypadId(joypad);
 		var player = PlatformWorld.AddNewPlayer(playerMapping);
-		player.SetCamera(_splitScreen.Camera2);
+		player.SetCamera(_splitViewport.Camera2);
 		return player;
 	}
 	
@@ -194,13 +194,12 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 	}
 
 	public void ManageSplitScreen() {
-		if (_splitScreen.BusyPlayerTransition) return;
+		if (_splitViewport.BusyPlayerTransition) return;
 
-		var visiblePlayers = _splitScreen.VisiblePlayers;
 		if (ActivePlayers == 1) {
 			// Ensure only one viewport is shown
-			if (visiblePlayers != 1) _splitScreen.SinglePlayer(true);
-			
+			_splitViewport.Split = false;
+
 		} else if (ActivePlayers == 2) {
 
 			var p1Stage = PlatformWorld.Players[0].StageCameraController?.CurrentStage;
@@ -208,19 +207,19 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 			if (p1Stage == null || p2Stage == null) return;
 			var sameStage = p1Stage == p2Stage;
 			if (!sameStage) {
-				if (visiblePlayers == 1) _splitScreen.EnableSplitScreen(false);
+				_splitViewport.Split = true;
 			} else {
 				var p1Pos = PlatformWorld.Players[0].Marker2D.GlobalPosition;
 				var p2Pos = PlatformWorld.Players[1].Marker2D.GlobalPosition;
 				var distanceTo = p1Pos.DistanceTo(p2Pos);
 
-				if (visiblePlayers == 2) {
+				if (_splitViewport.Split) {
 					if (distanceTo < (Size.X * 0.5 * 0.2f)) {
-						_splitScreen.SinglePlayer(false);
+						_splitViewport.Split = false;
 					}
-				} else if (visiblePlayers == 1) {
+				} else {
 					if (distanceTo > (Size.X * 0.5 * 0.3f)) {
-						_splitScreen.EnableSplitScreen(false);
+						_splitViewport.Split = true;
 					}
 				}
 			}

@@ -56,13 +56,13 @@ public partial class RtsWorld : Node, IInjectable {
         if (@event.IsKeyJustPressed(Key.Q) || @event.IsClickPressed(MouseButton.WheelUp)) {
             if (CameraGameObject.ZoomLevel == RtsConfig.ZoomLevels.Count - 1) return;
             var targetZoom = RtsConfig.ZoomLevels[++CameraGameObject.ZoomLevel];
-            CameraController.Zoom(new Vector2(targetZoom, targetZoom), RtsConfig.ZoomTime, Easings.CubicInOut, CameraController.Camera2D.GetLocalMousePosition);
+            CameraController.Zoom(new Vector2(targetZoom, targetZoom), RtsConfig.ZoomTime, Easings.Linear, CameraController.Camera2D.GetLocalMousePosition);
 
             GetViewport().SetInputAsHandled();
         } else if (@event.IsKeyJustPressed(Key.E) || @event.IsClickPressed(MouseButton.WheelDown)) {
             if (CameraGameObject.ZoomLevel == 0) return;
             var targetZoom = RtsConfig.ZoomLevels[--CameraGameObject.ZoomLevel];
-            CameraController.Zoom(new Vector2(targetZoom, targetZoom), RtsConfig.ZoomTime, Easings.CubicInOut, CameraController.Camera2D.GetLocalMousePosition);
+            CameraController.Zoom(new Vector2(targetZoom, targetZoom), RtsConfig.ZoomTime, Easings.Linear, CameraController.Camera2D.GetLocalMousePosition);
 
             GetViewport().SetInputAsHandled();
         }
