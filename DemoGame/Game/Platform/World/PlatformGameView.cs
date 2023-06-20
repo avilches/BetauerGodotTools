@@ -4,6 +4,7 @@ using Betauer.Application.Lifecycle.Pool;
 using Betauer.Application.Monitor;
 using Betauer.Application.Persistent;
 using Betauer.Application.Persistent.Json;
+using Betauer.Application.SplitScreen;
 using Betauer.Core;
 using Betauer.Core.Nodes;
 using Betauer.Core.Signal;
@@ -12,7 +13,6 @@ using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
 using Betauer.Input;
 using Betauer.Input.Joypad;
-using Betauer.NodePath;
 using Godot;
 using Veronenger.Game.Platform.Character.Player;
 using Veronenger.Game.Platform.HUD;
@@ -37,7 +37,7 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 	[Inject] private UiActionsContainer UiActionsContainer { get; set; }
 	[Inject] private JoypadPlayersMapping JoypadPlayersMapping { get; set; }
 
-	[NodePath("SplitViewport")] private SplitViewport _splitViewport;
+	private SplitViewport _splitViewport;
 
 	public const int MaxPlayer = 2;
 
@@ -53,6 +53,7 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 	public void PostInject() {
 		PlayerActionsContainer.Disable(); // The real actions are cloned per player in player.Connect()
 		ConfigureDebugOverlays();
+		_splitViewport = new SplitViewport(this, () => GetViewportRect().Size);
 	}
 
 	public override async void _UnhandledInput(InputEvent e) {
@@ -152,12 +153,10 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 		JoypadPlayersMapping.RemoveAllPlayers();
 
 		PlatformWorld = PlatformWorldFactory.Create();
-		_splitViewport.SetWorld(PlatformWorld);
-		_splitViewport.GetSize = () => GetTree().Root.ContentScaleSize;
-		_splitViewport.Split = false;
-		_splitViewport.Horizontal = false;
-		_splitViewport.OnChange += (visible) => {
-			if (visible) {
+		_splitViewport.SetCommonWorld(PlatformWorld);
+		_splitViewport.Refresh();
+		_splitViewport.OnChange += (split) => {
+			if (split) {
 				HudCanvas.SplitScreenContainer.Split = true;
 				// The HUD for player two should be always visible if the player 2 is alive 
 			}
@@ -194,8 +193,6 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 	}
 
 	public void ManageSplitScreen() {
-		if (_splitViewport.BusyPlayerTransition) return;
-
 		if (ActivePlayers == 1) {
 			// Ensure only one viewport is shown
 			_splitViewport.Split = false;

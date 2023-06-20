@@ -9,24 +9,25 @@ using Veronenger.Game.Platform.Items;
 namespace Veronenger.Game.Platform.HUD;
 
 public partial class HudCanvas : CanvasLayer, IInjectable {
-    [Inject("PlayerHudFactory")] public PlayerHud Split1 { get; set; }
-    [Inject("PlayerHudFactory")] public PlayerHud Split2 { get; set; }
+    
+    [Inject("PlayerHudFactory")] public PlayerHud PlayerHud1 { get; set; }
+    [Inject("PlayerHudFactory")] public PlayerHud PlayerHud2 { get; set; }
 
     public SplitScreenContainer<PlayerHud> SplitScreenContainer;
 
-    public void PostInject() {
-        Split1.Name = "PlayerHud1";
-        Split2.Name = "PlayerHud2";
-        AddChild(Split1);
-        AddChild(Split2);
+    public HudCanvas() {
         Name = "HUD";
         Layer = CanvasLayerConstants.HudScene;
-        SplitScreenContainer = new SplitScreenContainer<PlayerHud>() {
-            Split1 = Split1,
-            Split2 = Split2,
-            Horizontal = true,
-            GetSize = () => GetTree().Root.ContentScaleSize
-        };
+        SplitScreenContainer = new SplitScreenContainer<PlayerHud>(() => GetTree().Root.ContentScaleSize);
+    }
+
+    public void PostInject() {
+        PlayerHud1.Name = "PlayerHud1";
+        PlayerHud2.Name = "PlayerHud2";
+        AddChild(PlayerHud1);
+        AddChild(PlayerHud2);
+        SplitScreenContainer.Split1 = PlayerHud1;
+        SplitScreenContainer.Split2 = PlayerHud2;
     }
 
     public void UpdateHealth(PlayerNode playerNode, PlayerHealthEvent he) {
@@ -43,7 +44,7 @@ public partial class HudCanvas : CanvasLayer, IInjectable {
 
     private PlayerHud GetPlayerHud(PlayerNode playerNode) {
         if (playerNode.PlayerMapping.Player >= 2) throw new Exception("Only 2 players supported");
-        return playerNode.PlayerMapping.Player == 0 ? Split1 : Split2;
+        return playerNode.PlayerMapping.Player == 0 ? PlayerHud1 : PlayerHud2;
     }
 
     public void Enable() {
