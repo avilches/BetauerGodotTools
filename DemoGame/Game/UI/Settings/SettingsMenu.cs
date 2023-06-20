@@ -114,7 +114,7 @@ public partial class SettingsMenu : CanvasLayer {
 		_fullscreenButtonWrapper
 			.FocusEntered += () => {
 				_scrollContainer.ScrollVertical = 0;
-				BottomBarScene.ConfigureSettingsChangeBack();
+				BottomBarScene.ChangeBack();
 			};
 		_fullscreenButtonWrapper.Toggled += isChecked => {
 			_resolutionButton.SetFocusDisabled(isChecked);
@@ -135,16 +135,16 @@ public partial class SettingsMenu : CanvasLayer {
 			CloseResolutionList();
 		};
 
-		_pixelPerfectButtonWrapper.FocusEntered += BottomBarScene.ConfigureSettingsChangeBack;
+		_pixelPerfectButtonWrapper.FocusEntered += BottomBarScene.ChangeBack;
 		_pixelPerfectButtonWrapper.Pressed += () => {
 			ScreenSettingsManager.SetPixelPerfect(_pixelPerfectButtonWrapper.ButtonPressed);
 			CheckIfResolutionStillMatches();
 		};
 
-		_borderlessButtonWrapper.FocusEntered += BottomBarScene.ConfigureSettingsChangeBack;
+		_borderlessButtonWrapper.FocusEntered += BottomBarScene.ChangeBack;
 		_borderlessButtonWrapper.Toggled += isChecked => ScreenSettingsManager.SetBorderless(isChecked);
 
-		_vsyncButtonWrapper.FocusEntered += BottomBarScene.ConfigureSettingsChangeBack;
+		_vsyncButtonWrapper.FocusEntered += BottomBarScene.ChangeBack;
 		_vsyncButtonWrapper.Toggled += isChecked => ScreenSettingsManager.SetVSync(isChecked);
 	}
 
@@ -172,7 +172,7 @@ public partial class SettingsMenu : CanvasLayer {
 		});
 			
 		_keyboardControls.GetChild<Button>(_gamepadControls.GetChildCount() - 1).FocusEntered += () => {
-			BottomBarScene.ConfigureSettingsChangeBack();
+			BottomBarScene.ChangeBack();
 			_scrollContainer.ScrollVertical = int.MaxValue;
 		};
 	}
@@ -180,7 +180,7 @@ public partial class SettingsMenu : CanvasLayer {
 	private void AddConfigureControl(string name, InputAction action, bool isKey) {
 		var button = RedefineActionButton.Create();
 		button.Pressed += () => ShowRedefineActionPanel(button);
-		button.FocusEntered += BottomBarScene.ConfigureSettingsChangeBack;
+		button.FocusEntered += BottomBarScene.ChangeBack;
 		button.SetInputAction(name, action, isKey);
 		if (isKey) _keyboardControls.AddChild(button);
 		else _gamepadControls.AddChild(button);

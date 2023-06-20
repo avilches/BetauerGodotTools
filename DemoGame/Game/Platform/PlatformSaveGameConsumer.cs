@@ -1,6 +1,6 @@
 using System;
 using Betauer.Application.Persistent;
-using Veronenger.Game.Character.Player;
+using Veronenger.Game.Platform.Character.Player;
 
 namespace Veronenger.Game.Platform;
 

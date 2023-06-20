@@ -1,7 +1,7 @@
 using Betauer.Core.Nodes;
 using Godot;
-using Veronenger.Game.Character.Player;
-using Veronenger.Game.Items;
+using Veronenger.Game.Platform.Character.Player;
+using Veronenger.Game.Platform.Items;
 using static Veronenger.Game.Platform.CollisionLayerConstants;
 
 namespace Veronenger.Game.Platform; 

@@ -7,7 +7,7 @@ using Betauer.Application.Persistent.Json;
 using Betauer.DI.Attributes;
 using Betauer.DI.Holder;
 using Godot;
-using Veronenger.Game.Worlds.RTS;
+using Veronenger.Game.RTS.World;
 
 namespace Veronenger.Game.RTS;
 

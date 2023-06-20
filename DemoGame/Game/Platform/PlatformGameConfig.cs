@@ -5,17 +5,14 @@ using Betauer.Application.Lifecycle.Pool;
 using Betauer.Application.Persistent;
 using Betauer.Application.Persistent.Json;
 using Betauer.Camera;
-using Betauer.DI;
 using Betauer.DI.Attributes;
-using Betauer.DI.Factory;
 using Betauer.DI.Holder;
 using Godot;
-using Veronenger.Game.Character.Npc;
-using Veronenger.Game.Character.Player;
-using Veronenger.Game.HUD;
-using Veronenger.Game.Items;
-using Veronenger.Game.Worlds.Platform;
-using Veronenger.Game.Worlds.RTS;
+using Veronenger.Game.Platform.Character.Npc;
+using Veronenger.Game.Platform.Character.Player;
+using Veronenger.Game.Platform.HUD;
+using Veronenger.Game.Platform.Items;
+using Veronenger.Game.Platform.World;
 
 namespace Veronenger.Game.Platform;
 
@@ -27,11 +24,11 @@ public class PlatformMainResources {
 
 [Configuration]
 [Loader("GameLoader", Tag = "platform")]
-[Resource<Texture2D>("Pickups", "res://Game/Items/Assets/pickups.png")]
-[Resource<Texture2D>("Pickups2", "res://Game/Items/Assets/pickups2.png")]
-[Resource<Texture2D>("LeonKnifeAnimationSprite", "res://Game/Character/Player/Assets/Leon-knife.png")]
-[Resource<Texture2D>("LeonMetalbarAnimationSprite", "res://Game/Character/Player/Assets/Leon-metalbar.png")]
-[Resource<Texture2D>("LeonGun1AnimationSprite", "res://Game/Character/Player/Assets/Leon-gun1.png")]
+[Resource<Texture2D>("Pickups", "res://Game/Platform/Items/Assets/pickups.png")]
+[Resource<Texture2D>("Pickups2", "res://Game/Platform/Items/Assets/pickups2.png")]
+[Resource<Texture2D>("LeonKnifeAnimationSprite", "res://Game/Platform/Character/Player/Assets/Leon-knife.png")]
+[Resource<Texture2D>("LeonMetalbarAnimationSprite", "res://Game/Platform/Character/Player/Assets/Leon-metalbar.png")]
+[Resource<Texture2D>("LeonGun1AnimationSprite", "res://Game/Platform/Character/Player/Assets/Leon-gun1.png")]
 [Scene.Transient<PlatformWorld>("PlatformWorldFactory")]
 [Scene.Transient<PlayerHud>("PlayerHudFactory")]
 [Scene.Transient<PlayerNode>("PlayerNodeFactory")]

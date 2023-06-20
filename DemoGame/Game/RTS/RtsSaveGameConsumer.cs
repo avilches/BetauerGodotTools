@@ -1,5 +1,5 @@
 using Betauer.Application.Persistent;
-using Veronenger.Game.Worlds.RTS;
+using Veronenger.Game.RTS.World;
 
 namespace Veronenger.Game.RTS;
 

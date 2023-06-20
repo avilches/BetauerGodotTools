@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Betauer.DI.Attributes;
 using Betauer.Input;
@@ -45,19 +46,19 @@ public partial class BottomBar : CanvasLayer {
 	}
 
 	// TODO: i18n
-	public void ConfigureMenuAcceptBack() {
+	public void AcceptBack() {
 		HideAll()
 			.AddButton(null, UiAccept, "Accept")
 			.AddButton(null, UiCancel, "Back");
 	}
 
-	public void ConfigureModalAcceptCancel() {
+	public void AcceptCancel() {
 		HideAll()
 			.AddButton(null, UiAccept, "Accept")
 			.AddButton(null, UiCancel, "Cancel");
 	}
 
-	public void ConfigureSettingsChangeBack() {
+	public void ChangeBack() {
 		HideAll()
 			.AddButton(null, UiAccept, "Change")
 			.AddButton(null, UiCancel, "Back");
@@ -67,16 +68,25 @@ public partial class BottomBar : CanvasLayer {
 		switch (to) {
 			case MainState.ModalExitDesktop:
 			case MainState.ModalQuitGame:
-				ConfigureModalAcceptCancel();
+				AcceptCancel();
 				break;
 			case MainState.MainMenu:
 			case MainState.PauseMenu:
-				ConfigureMenuAcceptBack();
+				AcceptBack();
 				break;
+			case MainState.Settings:
+			case MainState.StartingGame:
+			case MainState.SavingGame:
+			case MainState.GameOver:
+			case MainState.QuitGame:
+			case MainState.Init:
 			case MainState.Gaming:
 			case MainState.ExitDesktop:
+			case MainState.SplashScreen:
 				HideAll();
 				break;
+			default:
+				throw new ArgumentOutOfRangeException(nameof(to), to, null);
 		}
 	}
 }
