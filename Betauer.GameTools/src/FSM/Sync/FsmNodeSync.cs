@@ -42,7 +42,7 @@ public partial class FsmNodeSync<TStateKey, TEventKey> :
     }
     public bool IsState(TStateKey state) => _stateMachine.IsState(state);
 
-    public override void _EnterTree() {
+    public override void _Ready() {
         base.Name = Name;
     }
 
