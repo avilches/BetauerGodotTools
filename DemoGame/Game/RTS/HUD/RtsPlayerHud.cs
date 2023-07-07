@@ -6,7 +6,7 @@ namespace Veronenger.Game.RTS;
 public partial class RtsPlayerHud : Control {
 	[NodePath("%HealthBar")] private TextureProgressBar _healthBar;
 	// [NodePath("%Inventory")] private Inventory _inventory;
-	                      /*
+						  /*
 	public void UpdateHealth(PlayerHealthEvent he) {
 		_healthBar.MinValue = 0;
 		_healthBar.MaxValue = he.Max;

@@ -44,7 +44,7 @@ public partial class FsmNodeAsync<TStateKey, TEventKey> :
     public bool IsState(TStateKey state) => _stateMachine.IsState(state);
 
     public override void _Ready() {
-        base.Name = Name;
+        CallDeferred("set_name", Name);
     }
 
     public StateNodeBuilderAsync<TStateKey, TEventKey> State(TStateKey stateKey) => _stateMachine.State(stateKey);
