@@ -13,8 +13,8 @@
         <Compile Include="src/**/*.cs" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="GodotSharp" Version="4.1.0-dev" />
-        <PackageReference Include="Godot.SourceGenerators" Version="4.1.0-dev" />
+        <PackageReference Include="GodotSharp" Version="4.1.0" />
+        <PackageReference Include="Godot.SourceGenerators" Version="4.1.0" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\Betauer.Animation\Betauer.Animation.csproj" />
