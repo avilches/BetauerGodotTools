@@ -53,7 +53,24 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 	public void PostInject() {
 		PlayerActionsContainer.Disable(); // The real actions are cloned per player in player.Connect()
 		ConfigureDebugOverlays();
-		_splitViewport = new SplitViewport(this, () => GetViewportRect().Size);
+		_splitViewport = new SplitViewport(this, () => GetViewportRect().Size) {
+			Camera1 = {
+				Zoom = new Vector2(2, 2)
+			},
+			Camera2 = {
+				Zoom = new Vector2(2, 2)
+			},
+			SubViewport1 = {
+				CanvasItemDefaultTextureFilter = Viewport.DefaultCanvasItemTextureFilter.Nearest,
+				RenderTargetUpdateMode = SubViewport.UpdateMode.Always,
+				HandleInputLocally = false
+			},
+			SubViewport2 = {
+				CanvasItemDefaultTextureFilter = Viewport.DefaultCanvasItemTextureFilter.Nearest,
+				RenderTargetUpdateMode = SubViewport.UpdateMode.Always,
+				HandleInputLocally = false
+			}
+		};
 	}
 
 	public override async void _UnhandledInput(InputEvent e) {
