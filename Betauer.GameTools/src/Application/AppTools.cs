@@ -44,13 +44,13 @@ public static partial class AppTools {
     }
 
     public static void AddLogOnException() {
-        Logging.UserExceptionReporter += e => LogException(null, "Godot.Logging.UserExceptionReporter", e.ToString());
+        // Logging.UserExceptionReporter += e => LogException(null, "Godot.Logging.UserExceptionReporter", e.ToString());
         TaskScheduler.UnobservedTaskException += (o, args) => LogException(o, "TaskScheduler.UnobservedTaskException", args.Exception.ToString());
         AppDomain.CurrentDomain.UnhandledException += (o, args) => LogException(o, "UnhandledException", ((Exception)args.ExceptionObject).ToString());
     }
 
     public static void AddExceptionHandler(Action<object?, Exception>? exceptionHandler = null) {
-        Logging.UserExceptionReporter += e => exceptionHandler?.Invoke(null, e);
+        // Logging.UserExceptionReporter += e => exceptionHandler?.Invoke(null, e);
         TaskScheduler.UnobservedTaskException += (o, args) => exceptionHandler?.Invoke(o, args.Exception);
         AppDomain.CurrentDomain.UnhandledException += (o, args) => exceptionHandler?.Invoke(o, (Exception)args.ExceptionObject);
     }

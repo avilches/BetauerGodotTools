@@ -1,4 +1,4 @@
-[gd_scene load_steps=55 format=3 uid="uid://163eoj5jr80w"]
+[gd_scene load_steps=58 format=3 uid="uid://163eoj5jr80w"]
 
 [ext_resource type="Script" path="res://Game/RTS/World/RtsWorld.cs" id="1_4ci2m"]
 [ext_resource type="Texture2D" uid="uid://dlyg3lxl0c8kh" path="res://RTS/Assets/Sprout Lands/tilesets/Ground tiles/new tiles/Soil ground tiles.png" id="2_q5woh"]
@@ -26,6 +26,21 @@
 [ext_resource type="Texture2D" uid="uid://dtcng3n7hm10l" path="res://RTS/Assets/ModernExterior/sand.png" id="24_uiuxk"]
 [ext_resource type="Texture2D" uid="uid://uwfo2r35ak8l" path="res://RTS/Assets/ModernExterior/1_Terrains_and_Fences_16x16.png" id="25_th3kw"]
 [ext_resource type="Texture2D" uid="uid://dgv100f2417ry" path="res://RTS/Assets/ModernExterior/11_Camping_16x16.png" id="26_wto8a"]
+
+[sub_resource type="Gradient" id="Gradient_addrv"]
+interpolation_mode = 1
+offsets = PackedFloat32Array(0, 0.327835, 0.406186, 0.517526)
+colors = PackedColorArray(1, 1, 1, 1, 0.596078, 0.596078, 0.596078, 1, 0.184314, 0.184314, 0.184314, 1, 0, 0, 0, 1)
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_utb0t"]
+noise_type = 5
+seed = 1337
+frequency = 0.025
+offset = Vector3(2.08167e-08, 2.08167e-08, 2.08167e-08)
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_r3nab"]
+color_ramp = SubResource("Gradient_addrv")
+noise = SubResource("FastNoiseLite_utb0t")
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_enas3"]
 texture = ExtResource("2_q5woh")
@@ -15285,8 +15300,12 @@ sources/1 = SubResource("TileSetAtlasSource_r2ocs")
 [node name="Node" type="Node"]
 script = ExtResource("1_4ci2m")
 
-[node name="Sprout2" type="TileMap" parent="."]
+[node name="TextureTerrainMap" type="Sprite2D" parent="."]
 visible = false
+position = Vector2(-162, 2)
+texture = SubResource("NoiseTexture2D_r3nab")
+
+[node name="Sprout2" type="TileMap" parent="."]
 tile_set = SubResource("TileSet_x8sol")
 format = 2
 layer_0/name = "0"
