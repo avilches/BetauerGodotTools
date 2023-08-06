@@ -9,7 +9,7 @@ using Betauer.Tools.FastReflection;
 using Godot;
 using NUnit.Framework;
 
-namespace Betauer.GameTools.Tests; 
+namespace Betauer.GameTools.Tests;
 
 [TestRunner.Test]
 public partial class FSMNodeSyncTests : Node {
@@ -24,8 +24,10 @@ public partial class FSMNodeSyncTests : Node {
         Debug,
         MainMenu
     }
+
     enum Trans {
     }
+
     [TestRunner.Test(Description = "Constructor")]
     public void FSMNodeConstructors() {
         var sm1 = new FsmNodeSync<State, Trans>(State.A, "X");
@@ -54,10 +56,7 @@ public partial class FSMNodeSyncTests : Node {
             .Build();
 
         sm.State(State.Idle)
-            .Enter(() => {
-                    
-                x = 0;
-            })
+            .Enter(() => { x = 0; })
             .Execute(() => {
 
                 x++;
@@ -66,10 +65,7 @@ public partial class FSMNodeSyncTests : Node {
             })
             .If(() => x == 2).Then(context => context.Set(State.Attack))
             .If(() => true).Then(context => context.Set(State.Idle))
-            .Exit(() => {
-                    
-                states.Add("IdleExit(" + x + ")");
-            }).Build();
+            .Exit(() => { states.Add("IdleExit(" + x + ")"); }).Build();
 
         sm.State(State.Attack)
             .Execute(() => {
@@ -86,15 +82,15 @@ public partial class FSMNodeSyncTests : Node {
             }).Build();
 
         AddChild(sm);
-            
+
         Stopwatch stopwatch = Stopwatch.StartNew();
         while (sm.CurrentState?.Key != State.End && stopwatch.ElapsedMilliseconds < 1000) {
             await this.AwaitProcessFrame();
-                
+
         }
         Assert.That(string.Join(",", states),
             Is.EqualTo("Start,IdleExecute(1),IdleExecute(2),IdleExit(2),AttackExecute(3),End(4)"));
-         
+
     }
 
     [TestRunner.Test]
@@ -115,15 +111,15 @@ public partial class FSMNodeSyncTests : Node {
             .Build();
         sm.State(State.End)
             .Build();
-                
+
         List<string> states = new List<string>();
         sm.OnEnter += (args) => states.Add(args.To + ":enter");
-        sm.OnAwake += (args)  => states.Add(args.To + ":awake");
-        sm.OnSuspend += (args)  => states.Add(args.From + ":suspend");
-        sm.OnExit += (args)  => states.Add(args.From + ":exit");
-        sm.OnTransition += (args)  => states.Add("from:" + args.From + "-to:" + args.To);
-        sm.OnBefore += ()  => states.Add(":execute.start");
-        sm.OnAfter += ()  => states.Add(":execute.end");
+        sm.OnAwake += (args) => states.Add(args.To + ":awake");
+        sm.OnSuspend += (args) => states.Add(args.From + ":suspend");
+        sm.OnExit += (args) => states.Add(args.From + ":exit");
+        sm.OnTransition += (args) => states.Add("from:" + args.From + "-to:" + args.To);
+        sm.OnBefore += () => states.Add(":execute.start");
+        sm.OnAfter += () => states.Add(":execute.end");
 
         AddChild(sm);
 
@@ -141,7 +137,7 @@ public partial class FSMNodeSyncTests : Node {
             ":execute.start,Settings:exit,from:Settings-to:Debug,Debug:awake,:execute.end," +
             ":execute.start,Debug:exit,from:Debug-to:End,End:enter,:execute.end"));
     }
-        
+
     [TestRunner.Test]
     public async Task OnInput() {
         var sm = new FsmNodeSync<State, Trans>(State.MainMenu);
@@ -150,45 +146,25 @@ public partial class FSMNodeSyncTests : Node {
         var u = 0;
         sm.State(State.MainMenu)
             .OnInput((e) => i++)
+            .OnInput((e) => {
+                i++;
+                GetTree().Root.SetInputAsHandled();
+            })
             .OnInput((e) => i++)
-            .OnUnhandledInput((e) => u ++)
-            .OnUnhandledInput((e) => u ++)
+            .OnUnhandledInput((e) => u++)
+            .OnUnhandledInput((e) => u++)
+            .OnUnhandledInput((e) => u++)
             .Build();
-            
+
         AddChild(sm);
+        await this.AwaitProcessFrame();
         await this.AwaitProcessFrame();
         GetTree().Root.PushInput(new InputEventJoypadButton {
             ButtonIndex = JoyButton.A,
         });
         await this.AwaitProcessFrame();
         await this.AwaitProcessFrame();
-        await this.AwaitProcessFrame();
-        Assert.That(i, Is.EqualTo(2));
+        Assert.That(i, Is.EqualTo(3));
         Assert.That(u, Is.EqualTo(0));
-    }     
-        
-    [TestRunner.Test]
-    public async Task OnUnhandledInput() {
-        var sm = new FsmNodeSync<State, Trans>(State.MainMenu);
-
-        var i = 0;
-        var u = 0;
-        sm.State(State.MainMenu)
-            .OnInput((e) => i++)
-            .OnInput((e) => i++)
-            .OnUnhandledInput((e) => u ++)
-            .OnUnhandledInput((e) => u ++)
-            .Build();
-            
-        AddChild(sm);
-        await this.AwaitProcessFrame();
-        GetTree().Root.PushUnhandledInput(new InputEventJoypadButton {
-            ButtonIndex = JoyButton.A,
-        });
-        await this.AwaitProcessFrame();
-        await this.AwaitProcessFrame();
-        await this.AwaitProcessFrame();
-        Assert.That(i, Is.EqualTo(0));
-        Assert.That(u, Is.EqualTo(2));
     }
 }

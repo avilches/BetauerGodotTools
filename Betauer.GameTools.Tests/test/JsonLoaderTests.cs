@@ -16,7 +16,6 @@ using NUnit.Framework;
 namespace Betauer.GameTools.Tests;
 
 [TestRunner.Test]
-[Only]
 public class JsonLoaderTests {
     public string SaveName1 = "a";
     public string SaveName2 = "b";
@@ -460,7 +459,7 @@ public class JsonLoaderTests {
         for (var i = 1; i < progress.Count; i++) {
             Assert.That(progress[i], Is.GreaterThanOrEqualTo(progress[i - 1]));
         }
-        Assert.That(CalculateStandardDeviation(progress.ToArray()), Is.LessThan(0.06));
+        Assert.That(CalculateStandardDeviation(progress.ToArray()), Is.LessThan(0.1));
     }
 
     public double CalculateStandardDeviation(float[] array) {

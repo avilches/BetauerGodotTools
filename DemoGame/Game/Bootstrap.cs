@@ -62,7 +62,7 @@ public partial class Bootstrap : Node /* needed to be instantiated as an Autoloa
 	}
 
 	public override void _Ready() {
-		Name = nameof(Bootstrap); // This name is shown in the remote editor
+		CallDeferred("set_name", nameof(Bootstrap)); // This name is shown in the remote editor
 		Logger.Info($"Bootstrap time: {Project.Uptime.TotalMilliseconds} ms");
 		NotificationsHandler.OnWMCloseRequest += () => {
 			GD.Print($"[WmQuitRequest] Uptime: {Project.Uptime.TotalMinutes:0} min {Project.Uptime.Seconds:00} sec");
@@ -94,10 +94,10 @@ public partial class Bootstrap : Node /* needed to be instantiated as an Autoloa
 		LoggerFactory.SetTraceLevel<ConfigFileWrapper>(TraceLevel.All);
 
 		// DI
-		LoggerFactory.SetTraceLevel<Provider>(TraceLevel.All);
-		LoggerFactory.SetTraceLevel<Betauer.DI.Container>(TraceLevel.All);
+		LoggerFactory.SetTraceLevel<Provider>(TraceLevel.Error);
+		LoggerFactory.SetTraceLevel<Betauer.DI.Container>(TraceLevel.Error);
 		LoggerFactory.SetTraceLevel<Betauer.DI.Container.Injector>(TraceLevel.Error);
-		LoggerFactory.SetTraceLevel<Betauer.DI.Container.Scanner>(TraceLevel.All);
+		LoggerFactory.SetTraceLevel<Betauer.DI.Container.Scanner>(TraceLevel.Error);
 
 		// GameTools
 		LoggerFactory.SetTraceLevel<BaseScreenResolutionService>(TraceLevel.All);

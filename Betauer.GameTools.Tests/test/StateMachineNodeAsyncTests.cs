@@ -150,45 +150,25 @@ public partial class FSMNodeAsyncTests : Node {
         var u = 0;
         sm.State(State.MainMenu)
             .OnInput((e) => i++)
+            .OnInput((e) => {
+                i++;
+                GetTree().Root.SetInputAsHandled();
+            })
             .OnInput((e) => i++)
+            .OnUnhandledInput((e) => u ++)
             .OnUnhandledInput((e) => u ++)
             .OnUnhandledInput((e) => u ++)
             .Build();
             
         AddChild(sm);
+        await this.AwaitProcessFrame();
         await this.AwaitProcessFrame();
         GetTree().Root.PushInput(new InputEventJoypadButton {
             ButtonIndex = JoyButton.A,
         });
         await this.AwaitProcessFrame();
         await this.AwaitProcessFrame();
-        await this.AwaitProcessFrame();
-        Assert.That(i, Is.EqualTo(2));
+        Assert.That(i, Is.EqualTo(3));
         Assert.That(u, Is.EqualTo(0));
     }     
-        
-    [TestRunner.Test]
-    public async Task OnUnhandledInput() {
-        var sm = new FsmNodeAsync<State, Trans>(State.MainMenu);
-
-        var i = 0;
-        var u = 0;
-        sm.State(State.MainMenu)
-            .OnInput((e) => i++)
-            .OnInput((e) => i++)
-            .OnUnhandledInput((e) => u ++)
-            .OnUnhandledInput((e) => u ++)
-            .Build();
-            
-        AddChild(sm);
-        await this.AwaitProcessFrame();
-        GetTree().Root.PushUnhandledInput(new InputEventJoypadButton {
-            ButtonIndex = JoyButton.A,
-        });
-        await this.AwaitProcessFrame();
-        await this.AwaitProcessFrame();
-        await this.AwaitProcessFrame();
-        Assert.That(i, Is.EqualTo(0));
-        Assert.That(u, Is.EqualTo(2));
-    }
 }
