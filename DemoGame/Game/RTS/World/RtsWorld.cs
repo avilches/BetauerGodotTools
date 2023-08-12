@@ -19,7 +19,6 @@ public partial class RtsWorld : Node, IInjectable {
 	private readonly DragCameraController _dragCameraController = new();
 	
 	[NodePath("Grasslands")] private TileMap Grasslands { get; set; }
-	[NodePath("Modern")] private TileMap Modern { get; set; }
 	[NodePath("TextureTerrainMap")] private Sprite2D Sprite2D { get; set; }
 
 	private CameraController CameraController;
@@ -82,7 +81,7 @@ public partial class RtsWorld : Node, IInjectable {
 	public void StartNewGame() {
 		CameraGameObject = GameObjectRepository.Create<CameraGameObject>("ScreenState", "ScreenState");
 		Init();
-		WorldGenerator.Generate(Grasslands, Modern, Sprite2D);
+		WorldGenerator.Generate(Grasslands, Sprite2D);
 	}
 
 	public void LoadGame(RtsSaveGameConsumer consumer) {

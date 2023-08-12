@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Betauer.Core;
 using Betauer.DI.Attributes;
 using Godot;
+using NUnit.Framework;
 
 namespace Veronenger.Game.RTS.World;
 
@@ -15,79 +15,124 @@ public partial class WorldGenerator {
 	private NoiseTexture2D _noiseTexture;
 	private Noise noise;
 
-	private static int Size = 512;
-	
+	private const int Layers = 2;
+	private const int Size = 512;
+
 	public TileSetController<TilePatterns> Controller { get; private set; }
 
-	public void Generate(TileMap grassland, TileMap modern, Sprite2D sprite2D) {
+	public void Generate(TileMap tileMap, Sprite2D sprite2D) {
 		_sprite2D = sprite2D;
 		_noiseTexture = (NoiseTexture2D)sprite2D.Texture;
 		noise = _noiseTexture.Noise;
 
-		Controller = CreateTileSetController(grassland, modern, Random);
+		Controller = CreateTileSetController(tileMap, Random);
+		Controller.Clear();
 
-		var normalizedOffsetsArray = CreateNormalizedOffsetsArray(_noiseTexture.ColorRamp);
-		var tiles = new[] { 
-			TilePatterns.ModernDirt, 
-			TilePatterns.ModernDirt, 
-			TilePatterns.ModernGreen, 
-			TilePatterns.ModernWater };
+		var tiles0 = new[] { 
+			TilePatterns.TextureGrassDark, 
+			TilePatterns.TextureGrass, 
+			TilePatterns.TextureGrassLight, 
+			TilePatterns.TextureSoil,
+			TilePatterns.TextureBigMud };
+		var tiles1 = new[] { 
+			TilePatterns.TextureBigMud, 
+			TilePatterns.TextureBigMud, 
+			TilePatterns.TextureBigMud, 
+			TilePatterns.TextureBigMud,
+			TilePatterns.TextureBigMud };
+		var tiles2 = new[] { 
+			TilePatterns.None, 
+			TilePatterns.None, 
+			TilePatterns.TextureAsphaltLight, 
+			TilePatterns.None,
+			TilePatterns.None };
+
+		var tiles = tiles0;
 		
-		if (normalizedOffsetsArray.Length - 1 != tiles.Length) throw new Exception("Tiles length should be offsets - 1");
-		for (var y = 0; y < Size; y += 1) {
-			for (var x = 0; x < Size; x += 1) {
-				var pos = new Vector2I(x, y);
-				var noise2Dv = noise.GetNoise2Dv(pos); // -0.77..0.77
-				var normalNoise = (noise2Dv + 1f) / 2f;  // 0..1 (normalized val) 
-				var tile = FloatToInt(normalNoise, normalizedOffsetsArray);
-				var tilePatterns = tiles[tile];
-				Controller.Set(tilePatterns, 0, pos);
+		var gradientOffsets = _noiseTexture.ColorRamp.Offsets;
+		var colorRampOffsets = new float[gradientOffsets.Length - 1];
+		Array.Copy(gradientOffsets, 1, colorRampOffsets, 0, colorRampOffsets.Length);
+		
+		for (var y = 0; y < Size; y++) {
+			for (var x = 0; x < Size; x++) {
+				var pos = new Vector2(x, y);
+				var tilePattern = tiles[FindPosition(colorRampOffsets, noise.GetNormalizedNoise2Dv(pos), false)];
+				Controller.Set(0, new Vector2I(x, y), tilePattern);
+				// Controller.Set(1, pos, tilePattern);
 			}
 		}
-		Controller.Smooth();
+		// Controller.Smooth(0);
 		Controller.Fill();
 	}
 
-	// Returns an array from 0.0f to 0.1f
-	private float[] CreateNormalizedOffsetsArray(Gradient noiseTextureColorRamp) {
-		var offsets = noiseTextureColorRamp.Offsets;
-		var normalizedOffsets = new List<float>();
-		if (offsets.First() > 0.0f) {
-			normalizedOffsets.Add(0f);
-		}
-		normalizedOffsets.AddRange(offsets);
-		if (normalizedOffsets.Last() < 1f) {
-			normalizedOffsets.Add(1f);
-		}
-		var normalizedOffsetsArray = normalizedOffsets.ToArray();
-		return normalizedOffsetsArray;
+	public static void Main() {
+		Assert.That(FindPosition(new[] { 0.1f, 0.2f}, 0f), Is.EqualTo(0));
+		Assert.That(FindPosition(new[] { 0.1f, 0.2f}, 0f, false), Is.EqualTo(0));
+
+		Assert.That(FindPosition(new[] { 0.1f, 0.2f}, 0.05f), Is.EqualTo(0));
+		Assert.That(FindPosition(new[] { 0.1f, 0.2f}, 0.05f, false), Is.EqualTo(0));
+
+		Assert.That(FindPosition(new[] { 0.1f, 0.2f}, 0.1f), Is.EqualTo(0));
+		Assert.That(FindPosition(new[] { 0.1f, 0.2f}, 0.1f, false), Is.EqualTo(1));
+
+		Assert.That(FindPosition(new[] { 0.1f, 0.2f}, 0.15f), Is.EqualTo(1));
+		Assert.That(FindPosition(new[] { 0.1f, 0.2f}, 0.15f, false), Is.EqualTo(1));
+
+		Assert.That(FindPosition(new[] { 0.1f, 0.2f}, 0.2f), Is.EqualTo(1));
+		Assert.That(FindPosition(new[] { 0.1f, 0.2f}, 0.2f, false), Is.EqualTo(2));
+
+		Assert.That(FindPosition(new[] { 0.1f, 0.2f}, 0.25f), Is.EqualTo(2));
+		Assert.That(FindPosition(new[] { 0.1f, 0.2f}, 0.25f, false), Is.EqualTo(2));
 	}
 
-	// Returns a value from 0 to max
-	public float[] CreateRanges(int amount, float start = 0f, float end = 1f) {
-		var ranges = new float[amount];
-		var step = 1f / amount;
-		for (var i = 0; i < amount; i++) {
-			ranges[i] = Mathf.Lerp(start, end, step * i);
+
+	/*
+	 * Find the position of value in the offsets array (the offsets array must be sorted in ascending order).
+	 * It takes every offset and check if the value is less than the offset (or less or equal if inclusive is true) and return the position of the offset.
+	 * Example with  { 0.1f, 0.2f }
+	 * 0.05f  => 0
+	 * 
+	 * 0.1f   => 0 if inclusive is true 
+	 * 0.1f   => 1 if inclusive is false
+	 * 
+	 * 0.15f  => 1
+	 * 
+	 * 0.2f   => 1 if inclusive is true
+	 * 0.2f   => 2 if inclusive is false
+	 * 
+	 * 0.25f  => 2
+	 */
+	static int FindPosition(IReadOnlyList<float> offsets, float value, bool inclusive = true) {
+		var left = 0;
+		var right = offsets.Count - 1;
+
+		while (left <= right) {
+			var mid = left + (right - left) / 2;
+			if (inclusive ? offsets[mid] < value : offsets[mid] <= value) {
+				left = mid + 1;
+			} else {
+				right = mid - 1;
+			}
 		}
-		return ranges;
+		return right + 1;
 	}
 
-	public int FloatToInt(float val, float[] ranges) {
+	public static int FloatToInt(float[] ranges, float val) {
 		for (var i = 1; i < ranges.Length; i++) {
 			var from = ranges[i - 1];
 			var to = ranges[i];
-			if (val > from && val <= to) return i - 1;
+			if (val >= from && val <= to) return i - 1;
 		}
-		throw new IndexOutOfRangeException();
+		return ranges.Length - 1;
 	}
+
 }
 
 public class TilePattern<TTile> where TTile : Enum {
 	public TTile Key { get; init; }
-	public TileMap TileMap { get; init; }
 	public int SourceId { get; init; }
 	public Rect2I AtlasCoords { get; init; }
+	public int Layer;
 
 	public Vector2I Position(Vector2I pos) {
 		var x = AtlasCoords.Position.X + pos.X % AtlasCoords.Size.X;
@@ -97,62 +142,62 @@ public class TilePattern<TTile> where TTile : Enum {
 }
 
 public class TileSetController<TTile> where TTile : Enum {
-	internal struct TileData {
+	internal class TileData {
 		internal readonly TTile Tile;
-		internal readonly int Layer;
-		internal readonly bool Set;
 
-		public TileData(TTile tile, int layer) {
+		public TileData(TTile tile) {
 			Tile = tile;
-			Layer = layer;
-			Set = true;
 		}
 	}
 
-	internal readonly TileData[,] Data;
+	internal readonly TileData[,,] Data;
+	internal readonly int Layers;
 	internal readonly int Size;
+	internal readonly TileMap TileMap;
 
 	private readonly Dictionary<TTile, TilePattern<TTile>> _tilePatterns = new();
 
 	public Random Random { get; set; }
 
-	public TileSetController(int size, Random random) {
+	public TileSetController(TileMap tileMap, int layers, int size, Random random) {
+		TileMap = tileMap;
 		Size = size;
 		Random = random;
-		Data = new TileData[size, size];
+		Layers = layers;
+		Data = new TileData[layers, size, size];
 	}
 
 	public void Add(TilePattern<TTile> tilePattern) {
 		_tilePatterns[tilePattern.Key] = tilePattern;
 	}
 	
-	public void Set(TTile tile, int layer, Vector2I pos) {
-		Data[pos.X, pos.Y] = new TileData(tile, layer);
+	public void Set(int layer, Vector2I pos, TTile tile) {
+		Data[layer, pos.X, pos.Y] = new TileData(tile);
 	}
 
-	public void Smooth() {
+	public void Smooth(int layer) {
 		var steps = 0;
-		while (SmoothStep() && steps ++ < 15) {
+		while (SmoothStep(layer) && steps ++ < 15) {
 		}
 	}
 
-	public bool SmoothStep() {
+	public bool SmoothStep(int layer) {
 		var worked = false;
 		void SetData(int x, int y, TileData data) {
-			if (Data[x, y].Tile.ToInt() == data.Tile.ToInt()) return;
-			Data[x, y] = data;
+			if (Data[layer, x, y].Tile.ToInt() == data.Tile.ToInt()) return;
+			Data[layer, x, y] = new TileData(data.Tile);
 			worked = true;
 		}
 
 		TileData GetData(int x, int y, TileData def) {
 			if (x < 0 || x >= Size ||
 				y < 0 || y >= Size) return def;
-			return Data[x, y];
+			return Data[layer, x, y];
 		}
 		
-		for (var y = 0; y < Size; y += 1) {
-			for (var x = 0; x < Size; x += 1) {
-				var data = Data[x, y];
+		for (var y = 0; y < Size; y++) {
+			for (var x = 0; x < Size; x++) {
+				var data = Data[layer, x, y];
 				var left = GetData(x - 1, y, data);
 				var right = GetData(x + 1, y, data);
 				var up = GetData(x, y - 1, data);
@@ -172,14 +217,23 @@ public class TileSetController<TTile> where TTile : Enum {
 	}
 
 	public void Fill() {
-		for (var y = 0; y < Size; y += 1) {
-			for (var x = 0; x < Size; x += 1) {
-				var data = Data[x, y];
-				var tilePattern = _tilePatterns[data.Tile];
-				var tileMap = tilePattern.TileMap;
-				var pos = new Vector2I(x, y);
-				tileMap.SetCell(data.Layer, pos, tilePattern.SourceId, tilePattern.Position(pos));
+		for (var layer = 0; layer < Layers; layer += 1) {
+			for (var y = 0; y < Size; y++) {
+				for (var x = 0; x < Size; x++) {
+					var data = Data[layer, x, y];
+					if (data != null) {
+						var tilePattern = _tilePatterns[data.Tile];
+						if (tilePattern.SourceId >= 0) {
+							var pos = new Vector2I(x, y);
+							TileMap.SetCell(layer, pos, tilePattern.SourceId, tilePattern.Position(pos));
+						}
+					}
+				}
 			}
 		}
+	}
+
+	public void Clear() {
+		TileMap.Clear();
 	}
 }
