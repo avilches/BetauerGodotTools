@@ -4,19 +4,27 @@ using Godot;
 namespace Betauer.Core;
 
 /*
- * It takes a NoiseTexture2D with a gradient with InterpolationMode Constant and return the noise using the pixel from the image
- * This results in a more accurate noise than using the Noise class, so you can be sure the noise generated is exactly the same as image
+ * It takes a NoiseTexture2D with a gradient with InterpolationMode Constant and return the noise using the pixel from the image.
+ * This works faster then use GetNoise2D or GetNoise2Dv, because it uses the image pixel directly which is already cached as a byte array and there is
+ * no interop with Godot and C#
+ * On the other hand, the noise values are more accurate noise than using the Noise class, so you can be sure the noise generated is exactly the same as image
  */
-public class FastNoiseTextureController : FastPixelTextureController {
+public class FastNoiseTextureGradientController : FastPixelTextureController {
     private readonly Color[] _colors;
     
-    public FastNoiseTextureController(NoiseTexture2D noiseTexture) : base(noiseTexture) {
+    public FastNoiseTextureGradientController(NoiseTexture2D noiseTexture) : base(noiseTexture) {
         if (noiseTexture.ColorRamp == null || noiseTexture.ColorRamp.InterpolationMode != Gradient.InterpolationModeEnum.Constant) {
             throw new Exception("A Gradient with InterpolationMode Constant is expected");
         }
         _colors = noiseTexture.ColorRamp.Colors;
     }
     
+    /// <summary>
+    /// Using the colors from the gradient, returns the noise as a value from 0 to number of gradient colors - 1
+    /// </summary>
+    /// <param name="x"></param>
+    /// <param name="y"></param>
+    /// <returns></returns>
     public int GetNoise(int x, int y) {
         var pixelColor = GetPixel(x, y); // a faster version of:_image.GetPixel(x, y);
         var p = FindColor(pixelColor);
