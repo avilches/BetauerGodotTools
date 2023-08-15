@@ -1,5 +1,4 @@
 using System;
-using Betauer.Core;
 using Godot;
 
 namespace Betauer.Core;
@@ -8,10 +7,10 @@ namespace Betauer.Core;
  * It takes a NoiseTexture2D with a gradient with InterpolationMode Constant and return the noise using the pixel from the image
  * This results in a more accurate noise than using the Noise class, so you can be sure the noise generated is exactly the same as image
  */
-public class NoiseTextureController : FastPixelTextureController {
+public class FastNoiseTextureController : FastPixelTextureController {
     private readonly Color[] _colors;
     
-    public NoiseTextureController(NoiseTexture2D noiseTexture) : base(noiseTexture) {
+    public FastNoiseTextureController(NoiseTexture2D noiseTexture) : base(noiseTexture) {
         if (noiseTexture.ColorRamp == null || noiseTexture.ColorRamp.InterpolationMode != Gradient.InterpolationModeEnum.Constant) {
             throw new Exception("A Gradient with InterpolationMode Constant is expected");
         }

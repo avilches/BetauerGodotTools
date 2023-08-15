@@ -1,4 +1,7 @@
+using System.Collections.Generic;
+using System.Linq;
 using Betauer.Animation.Easing;
+using Betauer.Application.Monitor;
 using Betauer.Application.Persistent;
 using Betauer.Camera;
 using Betauer.Camera.Control;
@@ -16,6 +19,7 @@ public partial class RtsWorld : Node, IInjectable {
 	[Inject] private GameObjectRepository GameObjectRepository { get; set; }
 	[Inject] public RtsConfig RtsConfig { get; private set; }
 	[Inject] public CameraContainer CameraContainer { get; private set; }
+	[Inject] protected DebugOverlayManager DebugOverlayManager { get; set; }
 	private readonly DragCameraController _dragCameraController = new();
 	
 	[NodePath("Grasslands")] private TileMap Grasslands { get; set; }
@@ -55,6 +59,22 @@ public partial class RtsWorld : Node, IInjectable {
 		_fsm.Execute();
 
 		AddChild(_fsm);
+
+		var colorRampOffsets = GetOffsets();
+		DebugOverlayManager.Overlay("RTS")
+			.SetMinSize(400, 100)
+			.Edit("Ranges", string.Join("|", colorRampOffsets), SetOffsets).SetMinSize(350);
+	}
+
+	private List<float> GetOffsets() {
+		var colorRampOffsets = ((NoiseTexture2D)Sprite2D.Texture).ColorRamp.Offsets.ToList();
+		colorRampOffsets.RemoveAt(0);
+		return colorRampOffsets;
+	}
+
+	private void SetOffsets(string offsets) {
+		((NoiseTexture2D)Sprite2D.Texture).ColorRamp.Offsets = offsets.Split("|").Select(float.Parse).Prepend(0).ToArray();
+		WorldGenerator.Generate(Grasslands, (NoiseTexture2D)Sprite2D.Texture);
 	}
 
 	private void Zooming(InputEvent @event) {
@@ -81,7 +101,7 @@ public partial class RtsWorld : Node, IInjectable {
 	public void StartNewGame() {
 		CameraGameObject = GameObjectRepository.Create<CameraGameObject>("ScreenState", "ScreenState");
 		Init();
-		WorldGenerator.Generate(Grasslands, Sprite2D);
+		WorldGenerator.Generate(Grasslands, (NoiseTexture2D)Sprite2D.Texture);
 	}
 
 	public void LoadGame(RtsSaveGameConsumer consumer) {

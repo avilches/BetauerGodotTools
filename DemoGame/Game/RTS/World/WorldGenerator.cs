@@ -10,20 +10,11 @@ namespace Veronenger.Game.RTS.World;
 [Singleton]
 public partial class WorldGenerator {
 	[Inject] public Random Random { get; set; }
-
-	private Sprite2D _sprite2D;
-	private NoiseTexture2D _noiseTexture;
-	private Noise noise;
-
 	private const int Layers = 2;
 	private const int Size = 512;
-
 	public TileSetController<TilePatterns> Controller { get; private set; }
 
-	public void Generate(TileMap tileMap, Sprite2D sprite2D) {
-		_sprite2D = sprite2D;
-		_noiseTexture = (NoiseTexture2D)sprite2D.Texture;
-		noise = _noiseTexture.Noise;
+	public void Generate(TileMap tileMap, NoiseTexture2D noiseTexture) {
 
 		Controller = CreateTileSetController(tileMap, Random);
 		Controller.Clear();
@@ -49,14 +40,10 @@ public partial class WorldGenerator {
 
 		var tiles = tiles0;
 		
-		var gradientOffsets = _noiseTexture.ColorRamp.Offsets;
-		var colorRampOffsets = new float[gradientOffsets.Length - 1];
-		Array.Copy(gradientOffsets, 1, colorRampOffsets, 0, colorRampOffsets.Length);
-		
+		var fastNoiseTextureController = new FastNoiseTextureController(noiseTexture);
 		for (var y = 0; y < Size; y++) {
 			for (var x = 0; x < Size; x++) {
-				var pos = new Vector2(x, y);
-				var tilePattern = tiles[FindPosition(colorRampOffsets, noise.GetNormalizedNoise2Dv(pos), false)];
+				var tilePattern = tiles[fastNoiseTextureController.GetNoise(x, y)];
 				Controller.Set(0, new Vector2I(x, y), tilePattern);
 				// Controller.Set(1, pos, tilePattern);
 			}

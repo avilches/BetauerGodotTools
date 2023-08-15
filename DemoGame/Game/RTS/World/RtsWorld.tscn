@@ -15983,7 +15983,7 @@ sources/7 = SubResource("TileSetAtlasSource_5lgrf")
 script = ExtResource("1_4ci2m")
 
 [node name="TextureTerrainMap" type="Sprite2D" parent="."]
-position = Vector2(-538, -236)
+position = Vector2(-541, -236)
 texture = SubResource("NoiseTexture2D_r3nab")
 
 [node name="Sprout2" type="TileMap" parent="."]
