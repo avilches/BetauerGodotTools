@@ -1,6 +1,6 @@
 using Godot;
 
-namespace Veronenger.Game.RTS.World;
+namespace Betauer.Core;
 
 public static class NoiseExtensions {
     public static float GetNormalizedNoise1D(this Noise noise, float x) =>
