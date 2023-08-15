@@ -24,6 +24,11 @@ public partial class MonitorEditValue : BaseMonitor<MonitorEditValue> {
         return this;
     }
 
+    public MonitorEditValue SetMinSize(int minSize) {
+        Edit.CustomMinimumSize = new Vector2(minSize, Edit.CustomMinimumSize.Y);
+        return this;
+    }
+
     public MonitorEditValue OnUpdate(Action<string> updateValue) {
         _updateValue = updateValue;
         return this;
