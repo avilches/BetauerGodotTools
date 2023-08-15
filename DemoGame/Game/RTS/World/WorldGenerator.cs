@@ -44,6 +44,7 @@ public partial class WorldGenerator {
 			for (var x = 0; x < Size; x++) {
 				var tilePattern = tiles[fastNoiseTextureController.GetNoise(x, y)];
 				Controller.Set(0, new Vector2I(x, y), tilePattern);
+				
 				// Controller.Set(1, pos, tilePattern);
 			}
 		}
@@ -52,16 +53,22 @@ public partial class WorldGenerator {
 	}
 }
 
-public class TilePattern<TTile> where TTile : Enum {
+public interface ITilePattern<TTile> where TTile : Enum {
+	public TTile Key { get; init; }
+	public int SourceId { get; init; }
+	public void Apply(TileMap tileMap, int layer, Vector2I pos);
+}
+
+public class TilePattern<TTile> : ITilePattern<TTile> 
+	where TTile : Enum {
 	public TTile Key { get; init; }
 	public int SourceId { get; init; }
 	public Rect2I AtlasCoords { get; init; }
-	public int Layer;
 
-	public Vector2I Position(Vector2I pos) {
+	public void Apply(TileMap tileMap, int layer, Vector2I pos) {
 		var x = AtlasCoords.Position.X + pos.X % AtlasCoords.Size.X;
 		var y = AtlasCoords.Position.Y + pos.Y % AtlasCoords.Size.Y;
-		return new Vector2I(x, y);
+		tileMap.SetCell(layer, pos, SourceId, new Vector2I(x, y));
 	}
 }
 
@@ -79,7 +86,7 @@ public class TileSetController<TTile> where TTile : Enum {
 	internal readonly int Size;
 	internal readonly TileMap TileMap;
 
-	private readonly Dictionary<TTile, TilePattern<TTile>> _tilePatterns = new();
+	private readonly Dictionary<TTile, ITilePattern<TTile>> _tilePatterns = new();
 
 	public Random Random { get; set; }
 
@@ -91,8 +98,8 @@ public class TileSetController<TTile> where TTile : Enum {
 		Data = new TileData[layers, size, size];
 	}
 
-	public void Add(TilePattern<TTile> tilePattern) {
-		_tilePatterns[tilePattern.Key] = tilePattern;
+	public void Add(TTile key, ITilePattern<TTile> tilePattern) {
+		_tilePatterns[key] = tilePattern;
 	}
 	
 	public void Set(int layer, Vector2I pos, TTile tile) {
@@ -149,7 +156,7 @@ public class TileSetController<TTile> where TTile : Enum {
 						var tilePattern = _tilePatterns[data.Tile];
 						if (tilePattern.SourceId >= 0) {
 							var pos = new Vector2I(x, y);
-							TileMap.SetCell(layer, pos, tilePattern.SourceId, tilePattern.Position(pos));
+							tilePattern.Apply(TileMap, layer, pos);
 						}
 					}
 				}

@@ -24,6 +24,12 @@ public enum TilePatterns {
     ModernGreen,
     ModernWater,
     ModernDeepWater,
+    
+    
+    TreesBigLight,
+    TreesBigDark,
+    TreesBigHangingLight,
+    TreesBigHangingDark,
 }
 
 
@@ -40,67 +46,56 @@ public partial class WorldGenerator {
     private static TileSetController<TilePatterns> CreateTileSetController(TileMap grassland, Random random) {
         var ts = new TileSetController<TilePatterns>(grassland, Layers, Size, random);
 
-        ts.Add(new TilePattern<TilePatterns> {
-            Key = TilePatterns.None,
+        ts.Add(TilePatterns.None, new TilePattern<TilePatterns> {
             SourceId = -1,
         });
         
-        ts.Add(new TilePattern<TilePatterns> {
-            Key = TilePatterns.TextureGreenWithYellowStone,
+        ts.Add(TilePatterns.TextureGreenWithYellowStone, new TilePattern<TilePatterns> {
             SourceId = (int)TileSetsEnum.GrasslandsTextures,
             AtlasCoords = new Rect2I(0, 0, 5, 5)
         });
 
-        ts.Add(new TilePattern<TilePatterns> {
-            Key = TilePatterns.TextureGrassLight,
+        ts.Add(TilePatterns.TextureGrassLight, new TilePattern<TilePatterns> {
             SourceId = (int)TileSetsEnum.GrasslandsTextures,
             AtlasCoords = new Rect2I(5, 0, 5, 5)
         });
 
-        ts.Add(new TilePattern<TilePatterns> {
-            Key = TilePatterns.TextureGrass,
+        ts.Add(TilePatterns.TextureGrass, new TilePattern<TilePatterns> {
             SourceId = (int)TileSetsEnum.GrasslandsTextures,
             AtlasCoords = new Rect2I(10, 0, 5, 5)
         });
 
-        ts.Add(new TilePattern<TilePatterns> {
-            Key = TilePatterns.TextureGrassDark,
+        ts.Add(TilePatterns.TextureGrassDark, new TilePattern<TilePatterns> {
             SourceId = (int)TileSetsEnum.GrasslandsTextures,
             AtlasCoords = new Rect2I(15, 0, 5, 5)
         });
         
-        ts.Add(new TilePattern<TilePatterns> {
-            Key = TilePatterns.TextureDirt,
+        ts.Add(TilePatterns.TextureDirt, new TilePattern<TilePatterns> {
             SourceId = (int)TileSetsEnum.GrasslandsTextures,
             AtlasCoords = new Rect2I(20, 0, 5, 5)
         });
 
-        ts.Add(new TilePattern<TilePatterns> {
-            Key = TilePatterns.TextureTransparentPlant,
+        ts.Add(TilePatterns.TextureTransparentPlant, new TilePattern<TilePatterns> {
             SourceId = (int)TileSetsEnum.GrasslandsTextures,
             AtlasCoords = new Rect2I(10, 20, 4, 4)
         });
         
         
-        ts.Add(new TilePattern<TilePatterns> {
-            Key = TilePatterns.TextureBigMud,
+        ts.Add(TilePatterns.TextureBigMud, new TilePattern<TilePatterns> {
             SourceId = 1,
             AtlasCoords = new Rect2I(0, 0, 64, 64)
         });
         
-        ts.Add(new TilePattern<TilePatterns> {
-            Key = TilePatterns.TextureSoil,
+        ts.Add(TilePatterns.TextureSoil, new TilePattern<TilePatterns> {
             SourceId = 2,
             AtlasCoords = new Rect2I(0, 0, 64, 64)
         });
         
-        ts.Add(new TilePattern<TilePatterns> {
-            Key = TilePatterns.TextureBigSand,
+        ts.Add(TilePatterns.TextureBigSand, new TilePattern<TilePatterns> {
             SourceId = 3,
             AtlasCoords = new Rect2I(0, 0, 7, 7)
         });
-        ts.Add(new TilePattern<TilePatterns> {
-            Key = TilePatterns.TextureAsphaltLight,
+        ts.Add(TilePatterns.TextureAsphaltLight, new TilePattern<TilePatterns> {
             SourceId = 5,
             AtlasCoords = new Rect2I(0, 0, 29, 21)
         });
@@ -109,26 +104,23 @@ public partial class WorldGenerator {
         
         
 		
-        ts.Add(new TilePattern<TilePatterns> {
-            Key = TilePatterns.ModernDirt,
+        ts.Add(TilePatterns.ModernDirt, new TilePattern<TilePatterns> {
             SourceId = (int)TileSetsEnum.ModernCamping,
             AtlasCoords = new Rect2I(18,4,1, 1)
         });
-        ts.Add(new TilePattern<TilePatterns> {
-            Key = TilePatterns.ModernGreen,
+        ts.Add(TilePatterns.ModernGreen, new TilePattern<TilePatterns> {
             SourceId = (int)TileSetsEnum.ModernCamping,
             AtlasCoords = new Rect2I(1,2,1, 1)
         });
-        ts.Add(new TilePattern<TilePatterns> {
-            Key = TilePatterns.ModernWater,
+        ts.Add(TilePatterns.ModernWater, new TilePattern<TilePatterns> {
             SourceId = (int)TileSetsEnum.ModernCamping,
             AtlasCoords = new Rect2I(5,7,1, 1)
         });
-        ts.Add(new TilePattern<TilePatterns> {
-            Key = TilePatterns.ModernWater,
+        ts.Add(TilePatterns.ModernWater, new TilePattern<TilePatterns> {
             SourceId = (int)TileSetsEnum.ModernCamping,
             AtlasCoords = new Rect2I(5,7,1, 1)
         });
+
         return ts;
     }
 
