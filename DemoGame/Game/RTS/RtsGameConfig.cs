@@ -9,6 +9,7 @@ using Betauer.DI.Holder;
 using Godot;
 using Veronenger.Game.RTS.HUD;
 using Veronenger.Game.RTS.World;
+using Veronenger.RTS.Assets;
 
 namespace Veronenger.Game.RTS;
 
@@ -20,6 +21,7 @@ public class RtsMainResources {
 
 [Configuration]
 [Loader("GameLoader", Tag = "rts")]
+[Scene.Transient<Trees>("TreesFactory")]
 [Scene.Transient<RtsWorld>("RtsWorldFactory")]
 [Scene.Transient<RtsPlayerHud>("RtsPlayerHudFactory")]
 public class RtsGameResources {

@@ -1,0 +1,69 @@
+[gd_scene load_steps=6 format=3 uid="uid://ca7r2d6382lfm"]
+
+[ext_resource type="Script" path="res://RTS/Assets/Trees.cs" id="1_h7nwq"]
+[ext_resource type="Texture2D" uid="uid://bmxqnhrg417mo" path="res://RTS/Assets/Trees.png" id="1_kdwbq"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_274xn"]
+height = 28.0
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_avwav"]
+radius = 5.0
+height = 14.0
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_43nid"]
+radius = 4.0
+height = 28.0
+
+[node name="Trees" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("1_h7nwq")
+
+[node name="Stump" type="StaticBody2D" parent="."]
+position = Vector2(277, 86)
+
+[node name="Sprite" type="Sprite2D" parent="Stump"]
+position = Vector2(2.08165e-12, 2.08165e-12)
+texture = ExtResource("1_kdwbq")
+region_enabled = true
+region_rect = Rect2(2.08165e-12, 2.08165e-12, 48, 32)
+metadata/_edit_lock_ = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Stump"]
+position = Vector2(2.08165e-12, 2.08165e-12)
+rotation = 1.5708
+shape = SubResource("CapsuleShape2D_274xn")
+metadata/_edit_lock_ = true
+
+[node name="MiniStump" type="StaticBody2D" parent="."]
+position = Vector2(307, 88)
+
+[node name="Sprite" type="Sprite2D" parent="MiniStump"]
+position = Vector2(2.08165e-12, 2.08165e-12)
+texture = ExtResource("1_kdwbq")
+region_enabled = true
+region_rect = Rect2(63.6174, -0.0223484, 17.0083, 15.5076)
+metadata/_edit_lock_ = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="MiniStump"]
+position = Vector2(-1, 2)
+rotation = 1.5708
+shape = SubResource("CapsuleShape2D_avwav")
+metadata/_edit_lock_ = true
+
+[node name="Trunk" type="StaticBody2D" parent="."]
+position = Vector2(333, 88)
+
+[node name="Sprite" type="Sprite2D" parent="Trunk"]
+position = Vector2(2.08165e-12, 2.08165e-12)
+texture = ExtResource("1_kdwbq")
+region_enabled = true
+region_rect = Rect2(47.1029, 15.0848, 33.6907, 16.9202)
+metadata/_edit_lock_ = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Trunk"]
+position = Vector2(0, 1)
+rotation = 1.5708
+shape = SubResource("CapsuleShape2D_43nid")
