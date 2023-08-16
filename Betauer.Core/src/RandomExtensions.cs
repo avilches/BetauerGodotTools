@@ -3,11 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Runtime.InteropServices;
 
 namespace Betauer.Core;
 
-public static class RandomExtensions {
+public static partial class RandomExtensions {
     // https://tryfinally.dev/distribution-sampling-trandom-statdist
     // https://statdist.com/
     // https://numerics.mathdotnet.com/Probability.html
@@ -32,10 +31,13 @@ public static class RandomExtensions {
     }
 
     /// <summary>
-    /// Returns a DateTime in the range [min, max] (both inclusive)
+    /// Returns a DateTime in the range [min, max] (both inclusive, within milliseconds)
     /// </summary>
-    public static DateTime Range(this Random random, DateTime min, DateTime max) {
-        return new DateTime(random.Range(min.Ticks, max.Ticks));
+    public static DateTime Range(this Random random, DateTime start, DateTime end) {
+        if (start > end) (start, end) = (end, start);
+        var diff = (end - start).TotalMilliseconds;
+        var rn = random.Next((int)diff + 1000);
+        return start.AddMilliseconds(rn);        
     }
 
     /// <summary>
@@ -102,12 +104,11 @@ public static class RandomExtensions {
         return random.NextSingle();
     }
 
-
     /// <summary>
     /// Returns a uniformly random integer representing one of the values 
     /// in the enum.
     /// </summary>
-    public static int PickEnum<T>(this Random random) where T : Enum {
+    public static int Next<T>(this Random random) where T : Enum {
         var values = (int[])Enum.GetValues(typeof(T));
         var randomIndex = random.Next(0, values.Length);
         return values[randomIndex];
@@ -117,7 +118,7 @@ public static class RandomExtensions {
     /// Returns a uniformly random element from the array 
     /// in the enum.
     /// </summary>
-    public static T PickElement<T>(this Random random, T[] values) {
+    public static T Next<T>(this Random random, T[] values) {
         var randomIndex = random.Next(0, values.Length);
         return values[randomIndex];
     }
@@ -126,151 +127,9 @@ public static class RandomExtensions {
     /// Returns a uniformly random element from the list
     /// in the enum.
     /// </summary>
-    public static T PickElement<T>(this Random random, IList<T> values) {
+    public static T Next<T>(this Random random, IList<T> values) {
         var randomIndex = random.Next(0, values.Count);
         return values[randomIndex];
-    }
-
-    /// <summary>
-    /// Returns a random element of the array, taking into account each value implements float IWeight.Weight property
-    /// in the enum.
-    /// </summary>
-    public static T PickWeightElement<T>(this Random random, IWeight[] values) where T : IWeight {
-        var randomIndex = PickPosition(random, values);
-        return (T)values[randomIndex];
-    }
-
-    /// <summary>
-    /// Returns a random element of the List, taking into account each value implements float IWeight.Weight property
-    /// in the enum.
-    /// </summary>
-    public static T PickWeightElement<T>(this Random random, List<IWeight> values) where T : IWeight {
-        var randomIndex = PickPosition(random, values);
-        return (T)values[randomIndex];
-    }
-
-    /// <summary>
-    /// Returns a random position of the array, taking into account each value is a weight
-    /// so int[] { 1, 1, 2 } the chance of every position is 0=25%, 1=25% and 2=50%
-    /// in the enum.
-    /// </summary>
-    public static int PickPosition(this Random random, int[] values) {
-        var total = 0D;
-        var span = values.AsSpan();
-        for (var j = 0; j < span.Length; j++) total += span[j];
-        var x = random.NextDouble() * total;
-        var sum = 0D;
-        var i = 0;
-        while (i < span.Length) {
-            sum += span[i];
-            if (sum > x) break;
-            i++;
-        }
-        return i;
-    }
-
-    /// <summary>
-    /// Returns a random position of the array, taking into account each value is a weight
-    /// so long[] { 1, 1, 2 } the chance of every position is 0=25%, 1=25% and 2=50%
-    /// in the enum.
-    /// </summary>
-    public static int PickPosition(this Random random, long[] values) {
-        var total = 0D;
-        var sum = 0D;
-        var position = 0;
-        var span = values.AsSpan();
-        for (var j = 0; j < span.Length; j++) total += span[j];
-        var x = random.NextDouble() * total;
-        while (position < span.Length) {
-            sum += span[position];
-            if (sum > x) break;
-            position++;
-        }
-        return position;
-    }
-
-    /// <summary>
-    /// Returns a random position of the array, taking into account each value is a weight
-    /// so double[] { 0.25, 0.25, 0.5 } the chance of every position is 0=25%, 1=25% and 2=50%
-    /// in the enum.
-    /// </summary>
-    public static int PickPosition(this Random random, float[] values) {
-        var total = 0D;
-        var sum = 0D;
-        var position = 0;
-        var span = values.AsSpan();
-        for (var j = 0; j < span.Length; j++) total += span[j];
-        var x = random.NextDouble() * total;
-        while (position < span.Length) {
-            sum += span[position];
-            if (sum > x) break;
-            position++;
-        }
-        return position;
-    }
-
-    /// <summary>
-    /// Returns a random position of the array, taking into account each value is a weight
-    /// so double[] { 0.25, 0.25, 0.5 } the chance of every position is 0=25%, 1=25% and 2=50%
-    /// in the enum.
-    /// </summary>
-    public static int PickPosition(this Random random, double[] values) {
-        var total = 0D;
-        var sum = 0D;
-        var position = 0;
-        var span = values.AsSpan();
-        for (var j = 0; j < span.Length; j++) total += span[j];
-        var x = random.NextDouble() * total;
-        while (position < span.Length) {
-            sum += span[position];
-            if (sum > x) break;
-            position++;
-        }
-        return position;
-    }
-
-    /// <summary>
-    /// Returns a random element of the array, taking into account each value is a weight
-    /// <code>
-    /// public class X : IWeight {
-    ///     public float Weight { get; }
-    /// 
-    ///     public X(float weight) {
-    ///         Weight = weight;
-    ///     }
-    /// }
-    /// </code>
-    /// so X[] { new X(0.25), new X(0.25), new X(0.5)} the chance of every position is 0=25%, 1=25% and 2=50%
-    /// in the enum.
-    /// </summary>
-    public static int PickPosition(this Random random, IWeight[] values) {
-        var total = 0D;
-        var sum = 0D;
-        var position = 0;
-        var span = values.AsSpan();
-        for (var j = 0; j < span.Length; j++) total += span[j].Weight;
-        var x = random.NextDouble() * total;
-        while (position < span.Length) {
-            sum += span[position].Weight;
-            if (sum > x) break;
-            position++;
-        }
-        return position;
-    }
-
-    public static int PickPosition(this Random random, List<IWeight> values) {
-        var total = 0D;
-        var sum = 0D;
-        var position = 0;
-        var span = CollectionsMarshal.AsSpan(values);
-        for (var j = 0; j < span.Length; j++) total += span[j].Weight;
-        var x = random.NextDouble() * total;
-        while (position < span.Length) {
-            sum += span[position].Weight;
-            if (sum > x) break;
-            position++;
-        }
-        return position;
     }
 }
 
@@ -292,24 +151,33 @@ public class Producer<T> : IEnumerable<T> {
 
 
 public static class Distribution {
-
-    public static string DiscreteHistogram(Func<int> producer, int barSize = 40, int sampleCount = 100000) {
-        var dict = new Producer<int>(producer)
+    public static Dictionary<long, long> DiscreteHistogram(Func<long> producer, int sampleCount) {
+        return new Producer<long>(producer)
             .Take(sampleCount)
             .GroupBy(x => x)
-            .ToDictionary(g => g.Key, g => g.Count());
+            .ToDictionary(g => g.Key, g => g.LongCount());
+    }
+
+    public static Dictionary<string, long> DiscreteHistogram(Func<string> producer, int sampleCount) {
+        return new Producer<string>(producer)
+            .Take(sampleCount)
+            .GroupBy(x => x)
+            .ToDictionary(g => g.Key, g => g.LongCount());
+    }
+
+    public static string Show<T>(Dictionary<T, long> dict, int barSize = 40) {
         int labelMax = dict.Keys
             .Select(x => x.ToString().Length)
             .Max();
 
-        string ToLabel(int t) => t.ToString().PadLeft(labelMax);
+        string ToLabel(T t) => t.ToString().PadLeft(labelMax);
 
         var sup = dict.Keys.OrderBy(t => t).ToList();
-        int max = dict.Values.Max();
+        long max = dict.Values.Max();
         double scale = max < barSize ? 1.0 : ((double)barSize) / max;
 
-        Func<int, string> Bar = t => new string('#', (int)(dict[t] * scale));
-        Func<int, string> Hint = t => new string('·', barSize - (int)(dict[t] * scale) + 1) + " " + dict[t];
+        string Bar(T t) => new('#', (int)(dict[t] * scale));
+        string Hint(T t) => new string('·', barSize - (int)(dict[t] * scale) + 1) + " " + dict[t];
 
         return sup.Select(t => $"{ToLabel(t)}|{Bar(t)}{Hint(t)}").Concatenated("\n");
     }
@@ -346,28 +214,4 @@ public static class Distribution {
                    .Concatenated()
                + $"Min: {min}, Max: {max}:\n";
     }
-
-    
 }  
-
-public interface IWeight {
-    public float Weight { get; } 
-}
-
-file class RandomTest {
-    internal enum Pepe {
-        A,B,C
-    }
-    public static void Main() {
-        var x = new Random();
-        Console.WriteLine(Distribution.Histogram(-5d, 6d, () => x.Range(-5L, 5L)));
-        // Console.WriteLine(Distribution.Histogram(-2.5d, 2.5d, () => Normal.Sample(0.0, 0.5), 30));
-        // Console.WriteLine(Distribution.DiscreteHistogram(() => Poisson.Sample(20)));
-        Console.WriteLine(Distribution.DiscreteHistogram(() => x.Range(-10, 10)));
-        // Console.WriteLine(Distribution.DiscreteHistogram(() => x.NextWeight(new[] { 1, 1, 2, 10 })));
-        // Console.WriteLine(Distribution.DiscreteHistogram(() => x.NextWeight(new[] { 1L, 1L, 2L, 10L })));
-        // Console.WriteLine(Distribution.DiscreteHistogram(() => x.NextWeight(new[] { 0.1, 0.1, 0.2, 1 })));
-        Console.WriteLine(Distribution.DiscreteHistogram(() => x.PickPosition(new[] { 0.1f, 0.1f, 0.2f, 1f })));
-        Console.WriteLine(Distribution.DiscreteHistogram(() => x.PickEnum<Pepe>()));
-    }
-}
