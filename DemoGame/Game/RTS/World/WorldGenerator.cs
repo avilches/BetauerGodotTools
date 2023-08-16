@@ -2,13 +2,17 @@ using System;
 using System.Collections.Generic;
 using Betauer.Core;
 using Betauer.DI.Attributes;
+using Betauer.DI.Factory;
 using Godot;
+using Veronenger.RTS.Assets;
 
 namespace Veronenger.Game.RTS.World;
 
 [Singleton]
 public partial class WorldGenerator {
 	[Inject] public Random Random { get; set; }
+	[Inject] public ITransient<Trees> TreesFactory { get; set; }
+	private Trees TreesInstance;
 	private const int Layers = 2;
 	private const int Size = 512;
 	public TileSetController<TilePatterns> Controller { get; private set; }
@@ -17,6 +21,8 @@ public partial class WorldGenerator {
 
 		Controller = CreateTileSetController(tileMap, Random);
 		Controller.Clear();
+		TreesInstance = TreesFactory.Create();
+		TreesInstance.Configure();
 
 		var tiles0 = new[] { 
 			TilePatterns.TextureGrassDark, 
@@ -38,18 +44,33 @@ public partial class WorldGenerator {
 			TilePatterns.None };
 
 		var tiles = tiles0;
-		
 		var fastNoiseTextureController = new FastNoiseTextureGradientController(noiseTexture);
+		var treeWeights = new[] {
+			WeightValue.Create(Trees.Id.Trunk, 1f),
+			WeightValue.Create(Trees.Id.Stump, 2f),
+			WeightValue.Create(Trees.Id.MiniStump, 4f),
+		};
 		for (var y = 0; y < Size; y++) {
 			for (var x = 0; x < Size; x++) {
 				var tilePattern = tiles[fastNoiseTextureController.GetNoise(x, y)];
 				Controller.Set(0, new Vector2I(x, y), tilePattern);
-				
+				if (tilePattern == TilePatterns.TextureGrassDark) {
+					if (Random.Next(0, 10) < 1) {
+						var val = Random.Pick(treeWeights).Value;
+						LocateSprite(tileMap, val, x, y);
+					}
+				}
 				// Controller.Set(1, pos, tilePattern);
 			}
 		}
 		// Controller.Smooth(0);
 		Controller.Fill();
+	}
+
+	private void LocateSprite(Node parent, Trees.Id id, int x, int y) {
+		var tree = TreesInstance.Duplicate(id);
+		tree.Position = new Vector2(x * 16, y * 16);
+		parent.AddChild(tree);
 	}
 }
 

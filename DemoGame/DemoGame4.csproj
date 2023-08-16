@@ -16,8 +16,9 @@
     <ItemGroup Condition="'$(Configuration)' == 'ExportRelease'">
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="Game/**/*.cs"/>
         <Content Include="*" Exclude="mono_crash*"/>
+        <Compile Include="Game/**/*.cs"/>
+        <Compile Include="RTS/**/*.cs"/>
         <Content Include="Docs/**"/>
         <Content Include="export/**"/>
         <Content Include="Game/**"/>
