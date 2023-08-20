@@ -120,4 +120,39 @@ public class FastPixelImage {
         _dirty = false;
         Image.SetData(_width, _height, _useMipmaps, Image.Format.Rgba8, _rawImage);
     }
+
+    public void DrawCircle(int centerX, int centerY, int r, Color color) {
+        var x = r;
+        var y = 0;
+
+        SetPixel(centerX + x, centerY + y, color);
+        if (r > 0) {
+            SetPixel(centerX - x, centerY - y, color);
+            SetPixel(centerX + y, centerY + x, color);
+            SetPixel(centerX - y, centerY - x, color);
+        }
+
+        var error = 1 - r;
+        while (x > y) {
+            y++;                                                         
+            if (error <= 0) 
+                error = error + 2 * y + 1; // draw up
+            else {
+                x--;
+                error = error + 2 * y - 2 * x + 1;
+            }
+            if (x < y) break; // circle finished
+            SetPixel(centerX + x, centerY + y, color);
+            SetPixel(centerX - x, centerY + y, color);
+            SetPixel(centerX + x, centerY - y, color);
+            SetPixel(centerX - x, centerY - y, color);
+
+            if (x != y) {
+                SetPixel(centerX + y, centerY + x, color);
+                SetPixel(centerX - y, centerY + x, color);
+                SetPixel(centerX + y, centerY - x, color);
+                SetPixel(centerX - y, centerY - x, color);
+            }
+        }
+    }
 }
