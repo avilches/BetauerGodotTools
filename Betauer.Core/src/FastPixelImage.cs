@@ -13,11 +13,11 @@ public class FastPixelImage {
     private readonly bool _useMipmaps;
     private bool _dirty = false;
     private Image? _image;
-    private Texture2D? _texture2D;
+    private ImageTexture? _texture2D;
 
     private const int BytesPerPixel = 4;
     private const Image.Format Format = Image.Format.Rgba8;
-    
+
     public Image Image {
         get {
             if (_image == null) {
@@ -27,7 +27,7 @@ public class FastPixelImage {
         }
     }
 
-    public Texture2D Texture2D {
+    public ImageTexture ImageTexture2D {
         get {
             if (_texture2D == null) {
                 if (_dirty) Flush();
@@ -38,7 +38,7 @@ public class FastPixelImage {
     }
 
     public FastPixelImage(Texture2D texture) : this(texture.GetImage()) {
-        _texture2D = texture;
+        _texture2D = texture as ImageTexture;
     }
 
     public FastPixelImage(Image image) {
@@ -51,14 +51,14 @@ public class FastPixelImage {
         _rawImage = Image.GetData();
         _useMipmaps = Image.HasMipmaps();
     }
-    
+
     public FastPixelImage(int width, int height, bool useMipmaps = false) {
         _width = width;
         _height = height;
         _rawImage = new byte[width * height * 4];
         _useMipmaps = useMipmaps;
     }
-	
+
     public Color GetPixel(int x, int y) {
         var ofs = y * _width + x;
         var r = _rawImage[ofs * BytesPerPixel + 0];
@@ -107,6 +107,7 @@ public class FastPixelImage {
     }
 
     public void SetPixel(int x, int y, byte r, byte g, byte b, byte a) {
+        if (x < 0 || y < 0 || x >= _width || y >= _height) return;
         var ofs = (y * _width + x) * BytesPerPixel;
         _rawImage[ofs + 0] = r;
         _rawImage[ofs + 1] = g;
@@ -114,11 +115,12 @@ public class FastPixelImage {
         _rawImage[ofs + 3] = a;
         _dirty = true;
     }
-    
+
     public void Flush() {
         if (!_dirty) return;
         _dirty = false;
         Image.SetData(_width, _height, _useMipmaps, Image.Format.Rgba8, _rawImage);
+        _texture2D?.Update(Image);
     }
 
     public void DrawCircle(int centerX, int centerY, int r, Color color) {
