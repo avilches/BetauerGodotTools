@@ -1,67 +1,88 @@
-using System;
 using Godot;
 
-namespace Betauer.Core;
+namespace Betauer.Core.Image;
 
 /// <summary>
-/// A class to extract pixels from a Texture2D faster than using GetPixel
+/// A class to read and write pixels from a Image or a Texture2D faster than using GetPixel
 /// </summary>
-public class FastPixelImage {
-    private readonly byte[] _rawImage;
-    private readonly int _width;
-    private readonly int _height;
-    private readonly bool _useMipmaps;
+public class FastImage {
+    private byte[] _rawImage;
+    private int _width;
+    private int _height;
+    private bool _useMipmaps;
     private bool _dirty = false;
-    private Image? _image;
-    private ImageTexture? _texture2D;
+    private Godot.Image? _image;
+    private ImageTexture? _imageTexture;
 
     private const int BytesPerPixel = 4;
-    private const Image.Format Format = Image.Format.Rgba8;
+    private const Godot.Image.Format Format = Godot.Image.Format.Rgba8;
 
-    public Image Image {
+    public Godot.Image Image {
         get {
             if (_image == null) {
-                _image = Image.Create(_width, _height, _useMipmaps, Format);
+                _image = Godot.Image.Create(_width, _height, _useMipmaps, Format);
             }
             return _image;
         }
     }
 
-    public ImageTexture ImageTexture2D {
+    public bool HasImageTexture => _imageTexture != null;
+    
+    public ImageTexture ImageTexture {
         get {
-            if (_texture2D == null) {
+            if (_imageTexture == null) {
                 if (_dirty) Flush();
-                _texture2D = ImageTexture.CreateFromImage(Image);
+                _imageTexture = ImageTexture.CreateFromImage(Image);
             }
-            return _texture2D;
+            return _imageTexture;
         }
     }
 
-    public FastPixelImage(Texture2D texture) : this(texture.GetImage()) {
-        _texture2D = texture as ImageTexture;
-    }
-
-    public FastPixelImage(Image image) {
-        _image = image;
-        if (Image.GetFormat() != Format) {
-            Image.Convert(Format);
-        }
-        _width = Image.GetWidth();
-        _height = Image.GetHeight();
-        _rawImage = Image.GetData();
-        _useMipmaps = Image.HasMipmaps();
-    }
-
-    public FastPixelImage(int width, int height, bool useMipmaps = false) {
+    public FastImage(int width, int height, bool useMipmaps = false) {
         _width = width;
         _height = height;
         _rawImage = new byte[width * height * 4];
         _useMipmaps = useMipmaps;
     }
 
+    public FastImage(Texture2D texture) {
+        Load(texture);
+    }
+
+    public FastImage(Godot.Image image) {
+        Load(image);
+    }
+
+    public void Load(Texture2D texture) {
+        _image = texture.GetImage();
+        _imageTexture = texture as ImageTexture;
+        Reload();
+    }
+
+    public void Load(Godot.Image image) {
+        _image = image;
+        _imageTexture?.SetImage(_image);
+        Reload();
+    }
+
+    public void Reload() {
+        if (_image == null && _imageTexture != null) {
+            _image = _imageTexture.GetImage();
+        }
+        if (_image != null) {
+            if (_image.GetFormat() != Format) {
+                _image.Convert(Format);
+            }
+            _width = _image.GetWidth();
+            _height = _image.GetHeight();
+            _rawImage = _image.GetData();
+            _useMipmaps = _image.HasMipmaps();
+        }
+    }
+
     public Color GetPixel(int x, int y) {
         var ofs = y * _width + x;
-        var r = _rawImage[ofs * BytesPerPixel + 0];
+        var r = _rawImage[ofs * BytesPerPixel + 0] / 255.0f;
         var g = _rawImage[ofs * BytesPerPixel + 1] / 255.0f;
         var b = _rawImage[ofs * BytesPerPixel + 2] / 255.0f;
         var a = _rawImage[ofs * BytesPerPixel + 3] / 255.0f;
@@ -119,8 +140,8 @@ public class FastPixelImage {
     public void Flush() {
         if (!_dirty) return;
         _dirty = false;
-        Image.SetData(_width, _height, _useMipmaps, Image.Format.Rgba8, _rawImage);
-        _texture2D?.Update(Image);
+        Image.SetData(_width, _height, _useMipmaps, Godot.Image.Format.Rgba8, _rawImage);
+        _imageTexture?.Update(Image);
     }
 
     public void DrawCircle(int centerX, int centerY, int r, Color color) {
