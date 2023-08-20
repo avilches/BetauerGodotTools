@@ -9,14 +9,14 @@ namespace Betauer.Core;
  * no interop with Godot and C#
  * On the other hand, the noise values are more accurate noise than using the Noise class, so you can be sure the noise generated is exactly the same as image
  */
-public class FastNoiseTextureGradientController : FastPixelTextureController {
+public class FastNoiseImageGradient : FastPixelImage {
     private readonly Color[] _colors;
     
-    public FastNoiseTextureGradientController(NoiseTexture2D noiseTexture) : base(noiseTexture) {
-        if (noiseTexture.ColorRamp == null || noiseTexture.ColorRamp.InterpolationMode != Gradient.InterpolationModeEnum.Constant) {
+    public FastNoiseImageGradient(NoiseTexture2D texture) : base(texture) {
+        if (texture.ColorRamp == null || texture.ColorRamp.InterpolationMode != Gradient.InterpolationModeEnum.Constant) {
             throw new Exception("A Gradient with InterpolationMode Constant is expected");
         }
-        _colors = noiseTexture.ColorRamp.Colors;
+        _colors = texture.ColorRamp.Colors;
     }
     
     /// <summary>
