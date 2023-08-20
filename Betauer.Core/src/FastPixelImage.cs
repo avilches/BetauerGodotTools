@@ -93,26 +93,25 @@ public class FastPixelImage {
         var g8 = (byte)color.G8;
         var b8 = (byte)color.B8;
         var a8 = (byte)color.A8;
-        var start = (y * _width + x) * BytesPerPixel;
-        var totalWidth = _width * BytesPerPixel;
-        var lineEnd = start + totalWidth * height;
-        for (var startY = start; startY < lineEnd; startY += totalWidth) {
-            var size = startY + width * BytesPerPixel;
-            for (var drawX = startY; drawX < size; drawX += 4) {
-                _rawImage[drawX + 0] = r8;
-                _rawImage[drawX + 1] = g8;
-                _rawImage[drawX + 2] = b8;
-                _rawImage[drawX + 3] = a8;
+        var lineEnd = y + height;
+        for (var drawY = y; drawY < lineEnd; drawY++) {
+            var pixelEnd = x + width;
+            for (var drawX = x; drawX < pixelEnd; drawX++) {
+                SetPixel(drawY, drawX, r8, g8, b8, a8);
             }
         }
     }
 
     public void SetPixel(int x, int y, Color color) {
+        SetPixel(x, y, (byte)color.R8, (byte)color.G8, (byte)color.B8, (byte)color.A8);
+    }
+
+    public void SetPixel(int x, int y, byte r, byte g, byte b, byte a) {
         var ofs = (y * _width + x) * BytesPerPixel;
-        _rawImage[ofs + 0] = (byte)color.R8;
-        _rawImage[ofs + 1] = (byte)color.G8;
-        _rawImage[ofs + 2] = (byte)color.B8;
-        _rawImage[ofs + 3] = (byte)color.A8;
+        _rawImage[ofs + 0] = r;
+        _rawImage[ofs + 1] = g;
+        _rawImage[ofs + 2] = b;
+        _rawImage[ofs + 3] = a;
         _dirty = true;
     }
     
