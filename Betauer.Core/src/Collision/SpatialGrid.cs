@@ -31,13 +31,14 @@ public class SpatialGrid {
     }
 
     public void Remove(IShape shape) {
-        if (Shapes.Remove(shape)) {
-            var affectedCells = GetCellsForShape(shape);
-            foreach (var cell in affectedCells) {
-                if (Grid.TryGetValue(cell, out var shapesInCell)) {
-                    if (shapesInCell.Remove(shape) && shapesInCell.Count == 0) {
-                        Grid.Remove(cell);
-                    }
+        if (!Shapes.Remove(shape)) {
+            return;
+        }
+        var affectedCells = GetCellsForShape(shape);
+        foreach (var cell in affectedCells) {
+            if (Grid.TryGetValue(cell, out var shapesInCell)) {
+                if (shapesInCell.Remove(shape) && shapesInCell.Count == 0) {
+                    Grid.Remove(cell);
                 }
             }
         }
@@ -49,24 +50,25 @@ public class SpatialGrid {
 
     public IEnumerable<IShape> GetOverlaps(IShape shape) {
         foreach (var cell in shape.GetCoveredCells(CellSize)) {
-            if (Grid.TryGetValue(cell, out var shapesInCell)) {
-                // First check same type of shapes because circle/circle or rectangle/rectangle are faster
-                for (var i = 0; i < shapesInCell.Count; i++) {
-                    var otherShape = shapesInCell[i];
-                    if (shape == otherShape) continue; // ignore itself
-                    if (!shape.SameTypeAs(otherShape)) continue; // ignore other types, only check same type
-                    if (shape.Overlaps(otherShape)) {
-                        yield return otherShape;
-                    }
+            if (!Grid.TryGetValue(cell, out var shapesInCell)) {
+                continue;
+            }
+            // First check same type of shapes because circle/circle or rectangle/rectangle are faster
+            for (var i = 0; i < shapesInCell.Count; i++) {
+                var otherShape = shapesInCell[i];
+                if (shape == otherShape) continue; // ignore itself
+                if (!shape.SameTypeAs(otherShape)) continue; // ignore other types, only check same type
+                if (shape.Overlaps(otherShape)) {
+                    yield return otherShape;
                 }
+            }
 
-                for (var i = 0; i < shapesInCell.Count; i++) {
-                    var otherShape = shapesInCell[i];
-                    if (shape == otherShape) continue; // ignore itself
-                    if (shape.SameTypeAs(otherShape)) continue; // ignore same type, checked before
-                    if (shape.Overlaps(otherShape)) {
-                        yield return otherShape;
-                    }
+            for (var i = 0; i < shapesInCell.Count; i++) {
+                var otherShape = shapesInCell[i];
+                if (shape == otherShape) continue; // ignore itself
+                if (shape.SameTypeAs(otherShape)) continue; // ignore same type, checked before
+                if (shape.Overlaps(otherShape)) {
+                    yield return otherShape;
                 }
             }
         }

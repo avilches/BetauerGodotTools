@@ -5,8 +5,9 @@ using Godot;
 namespace Betauer.Core.Collision;
 
 public class Rectangle : IShape {
-    public Vector2 Position { get; set; }
-    public Vector2 Size { get; set; }
+    public Vector2 Position { get; init; }
+    public Vector2 Size { get; init; }
+
     public float Width => Size.X;
     public float Height => Size.Y;
 
@@ -22,7 +23,7 @@ public class Rectangle : IShape {
         Position = rect.Position;
         Size = rect.Size;
     }
-    
+
     public Rectangle(Rect2I rect) {
         Position = rect.Position;
         Size = rect.Size;
@@ -54,8 +55,28 @@ public class Rectangle : IShape {
         return false;
     }
 
+    public bool Overlaps(Circle other) {
+        return Geometry.Overlaps(this, other);
+    }
+
+    public bool Overlaps(Rectangle other) {
+        return Geometry.Overlaps(this, other);
+    }
+
+    public bool OverlapsCircle(float x, float y, float radius) {
+        return Geometry.CircleRectangleOverlap(x, y, radius, Position.X, Position.Y, Width, Height);
+    }
+
+    public bool OverlapsRectangle(float x, float y, float width, float height) {
+        return Geometry.RectanglesOverlap(Position.X, Position.Y, Width, Height, x, y, width, height);
+    }
+
     public bool IsPointInside(float px, float py) {
-        return px >= MinX && px <= MaxX && py >= MinY && py <= MaxY;
+        return Geometry.IsPointInsideRectangle(px, py, this);
+    }
+
+    public bool IsPointInside(Vector2 point) {
+        return Geometry.IsPointInsideRectangle(point, this);
     }
 
     public bool SameTypeAs(IShape other) {
@@ -78,7 +99,7 @@ public class Rectangle : IShape {
     public bool Equals(Rect2 other) => Position.Equals(other.Position) && Size.Equals(other.Size);
 
     public bool Equals(Rectangle other) => Position.Equals(other.Position) && Size.Equals(other.Size);
-    
+
     public Area2D CreateArea2D() {
         var area2D = new Area2D() {
             Position = Position
@@ -90,5 +111,4 @@ public class Rectangle : IShape {
         });
         return area2D;
     }
-
 }

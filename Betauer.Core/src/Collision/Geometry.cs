@@ -1,18 +1,54 @@
 using System;
+using Godot;
 
 namespace Betauer.Core.Collision;
 
 public static class Geometry {
-    public static bool Overlaps(Circle c1, Circle c2) {
-        var dx = c1.Position.X - c2.Position.X;
-        var dy = c1.Position.Y - c2.Position.Y;
+    public static bool CirclesOverlap(float x1, float y1, float radius1, float x2, float y2, float radius2) {
+        var dx = x1 - x2;
+        var dy = y1 - y2;
         var distanceSquared = dx * dx + dy * dy;
-        var radiiSum = c1.Radius + c2.Radius;
+        var radiiSum = radius1 + radius2;
         return distanceSquared <= radiiSum * radiiSum;
     }
 
+    public static bool RectanglesOverlap(float x1, float y1, float width1, float height1, float x2, float y2, float width2, float height2) {
+        return x1 + width1 >= x2 &&
+               x1 <= x2 + width2 &&
+               y1 + height1 >= y2 &&
+               y1 <= y2 + height2;
+    }
+
+    public static bool CircleRectangleOverlap(float circleX, float circleY, float radius, float rectX, float rectY, float width, float height) {
+        var closestX = Math.Clamp(circleX, rectX, rectX + width);
+        var closestY = Math.Clamp(circleY, rectY, rectY + height);
+        var dx = circleX - closestX;
+        var dy = circleY - closestY;
+        return dx * dx + dy * dy <= radius * radius;
+    }
+
+    public static bool IsPointInsideCircle(float px, float py, float cx, float cy, float radius) {
+        var dx = cx - px;
+        var dy = cy - py;
+        return dx * dx + dy * dy <= radius * radius;
+    }
+
+    public static bool IsPointInsideRectangle(float px, float py, float rx, float ry, float width, float height) {
+        return px >= rx && 
+               px <= rx + width && 
+               py >= ry && 
+               py <= ry + height;
+    }
+
+
     public static bool Overlaps(Rectangle r1, Rectangle r2) {
-        return r1.MaxX >= r2.MinX && r1.MinX <= r2.MaxX && r1.MaxY >= r2.MinY && r1.MinY <= r2.MaxY;
+        return RectanglesOverlap(
+            r1.Position.X, r1.Position.Y, r1.Size.X, r1.Size.Y,
+            r2.Position.X, r2.Position.Y, r2.Size.X, r2.Size.Y);
+    }
+
+    public static bool Overlaps(Circle c1, Circle c2) {
+        return CirclesOverlap(c1.Position.X, c1.Position.Y, c1.Radius, c2.Position.X, c2.Position.Y, c2.Radius);
     }
 
     public static bool Overlaps(Rectangle rectangle, Circle circle) {
@@ -20,16 +56,25 @@ public static class Geometry {
     }
 
     public static bool Overlaps(Circle circle, Rectangle rectangle) {
-        var closestX = Math.Clamp(circle.Position.X, rectangle.MinX, rectangle.MaxX);
-        var closestY = Math.Clamp(circle.Position.Y, rectangle.MinY, rectangle.MaxY);
-        var dx = circle.Position.X - closestX;
-        var dy = circle.Position.Y - closestY;
-        return dx * dx + dy * dy <= circle.Radius * circle.Radius;
+        return CircleRectangleOverlap(
+            circle.Position.X, circle.Position.Y, circle.Radius,
+            rectangle.Position.X, rectangle.Position.Y, rectangle.Size.X, rectangle.Size.Y);
     }
 
-    public static bool IsPointInsideCircle(double px, double py, Circle circle) {
-        var dx = circle.Position.X - px;
-        var dy = circle.Position.Y - py;
-        return dx * dx + dy * dy <= circle.Radius * circle.Radius;
+    public static bool IsPointInsideCircle(Vector2 point, Circle circle) {
+        return IsPointInsideCircle(point.X, point.Y, circle);
     }
+
+    public static bool IsPointInsideCircle(float px, float py, Circle circle) {
+        return IsPointInsideCircle(px, py, circle.Position.X, circle.Position.Y, circle.Radius);
+    }
+
+    public static bool IsPointInsideRectangle(Vector2 point, Rectangle rectangle) {
+        return IsPointInsideRectangle(point.X, point.Y, rectangle);
+    }
+
+    public static bool IsPointInsideRectangle(float px, float py, Rectangle rectangle) {
+        return IsPointInsideRectangle(px, py, rectangle.Position.X, rectangle.Position.Y, rectangle.Size.X, rectangle.Size.Y);
+    }
+
 }
