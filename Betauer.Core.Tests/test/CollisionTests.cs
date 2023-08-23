@@ -27,7 +27,7 @@ public class CollisionTests : Node2D {
             Assert.IsFalse(spatialGrid.Overlaps(circle2));
             Assert.IsFalse(spatialGrid.Overlaps(circle3));
 
-            spatialGrid.AddShape(circle1);
+            spatialGrid.Add(circle1);
             Assert.IsTrue(spatialGrid.Overlaps(new Circle { Position = new Vector2(5, 5), Radius = 4 }));
             Assert.IsTrue(spatialGrid.Overlaps(new Circle { Position = new Vector2(7, 7), Radius = 4 }));
             Assert.IsFalse(spatialGrid.Overlaps(new Circle { Position = new Vector2(17, 17), Radius = 4 }));
@@ -35,7 +35,7 @@ public class CollisionTests : Node2D {
             Assert.IsTrue(spatialGrid.Overlaps(circle2));
             Assert.IsFalse(spatialGrid.Overlaps(circle3));
 
-            spatialGrid.AddShape(circle2);
+            spatialGrid.Add(circle2);
             Assert.IsTrue(spatialGrid.Overlaps(new Circle { Position = new Vector2(5, 5), Radius = 4 }));
             Assert.IsTrue(spatialGrid.Overlaps(new Circle { Position = new Vector2(7, 7), Radius = 4 }));
             Assert.IsFalse(spatialGrid.Overlaps(new Circle { Position = new Vector2(17, 17), Radius = 4 }));
@@ -43,7 +43,7 @@ public class CollisionTests : Node2D {
             Assert.IsTrue(spatialGrid.Overlaps(circle2));
             Assert.IsFalse(spatialGrid.Overlaps(circle3));
 
-            spatialGrid.AddShape(circle3);
+            spatialGrid.Add(circle3);
             Assert.IsTrue(spatialGrid.Overlaps(new Circle { Position = new Vector2(5, 5), Radius = 4 }));
             Assert.IsTrue(spatialGrid.Overlaps(new Circle { Position = new Vector2(7, 7), Radius = 4 }));
             Assert.IsTrue(spatialGrid.Overlaps(new Circle { Position = new Vector2(17, 17), Radius = 4 }));
@@ -74,13 +74,22 @@ public class CollisionTests : Node2D {
             Assert.IsFalse(spatialGrid.Overlaps(circle1));
             Assert.IsFalse(spatialGrid.Overlaps(circle2));
             
-            spatialGrid.AddShape(circle1);
+            spatialGrid.Add(circle1);
             Assert.IsFalse(spatialGrid.Overlaps(circle1));
             Assert.IsTrue(spatialGrid.Overlaps(circle2));
 
-            spatialGrid.AddShape(circle2);
+            spatialGrid.Add(circle2);
             Assert.IsTrue(spatialGrid.Overlaps(circle1));
             Assert.IsTrue(spatialGrid.Overlaps(circle2));
+            
+            Assert.That(spatialGrid.GetOverlaps(circle1).ToList(), Contains.Item(circle2));
+            Assert.That(spatialGrid.GetOverlaps(circle2).ToList(), Contains.Item(circle1));
+            
+            Assert.That(spatialGrid.GetOverlaps(new Circle { Position = new Vector2(6, 6), Radius = 4 }).ToList(), 
+                Contains.Item(circle1));
+            Assert.That(spatialGrid.GetOverlaps(new Circle { Position = new Vector2(6, 6), Radius = 4 }).ToList(), 
+                Contains.Item(circle2));
+
         }
     }
 
@@ -100,7 +109,7 @@ public class CollisionTests : Node2D {
 
         for (var i = 4; i < 100; i++) {
             var spatialGrid = new SpatialGrid(i);
-            spatialGrid.AddShape(circle1);
+            spatialGrid.Add(circle1);
             Assert.IsTrue(!spatialGrid.Overlaps(circle2));
         }
     }
@@ -124,13 +133,21 @@ public class CollisionTests : Node2D {
             Assert.IsFalse(spatialGrid.Overlaps(circle));
             Assert.IsFalse(spatialGrid.Overlaps(rectangle));
 
-            spatialGrid.AddShape(circle);
+            spatialGrid.Add(circle);
             Assert.IsFalse(spatialGrid.Overlaps(circle));
             Assert.IsTrue(spatialGrid.Overlaps(rectangle));
             
-            spatialGrid.AddShape(rectangle);
+            spatialGrid.Add(rectangle);
             Assert.IsTrue(spatialGrid.Overlaps(circle));
             Assert.IsTrue(spatialGrid.Overlaps(rectangle));
+            
+            Assert.That(spatialGrid.GetOverlaps(circle).ToList(), Contains.Item(rectangle));
+            Assert.That(spatialGrid.GetOverlaps(rectangle).ToList(), Contains.Item(circle));
+
+            Assert.That(spatialGrid.GetOverlaps(new Circle { Position = new Vector2(6, 6), Radius = 4 }).ToList(), 
+                Contains.Item(circle));
+            Assert.That(spatialGrid.GetOverlaps(new Circle { Position = new Vector2(6, 6), Radius = 4 }).ToList(), 
+                Contains.Item(rectangle));
         }
     }
 
@@ -150,7 +167,7 @@ public class CollisionTests : Node2D {
         
         for (var i = 4; i < 100; i++) {
             var spatialGrid = new SpatialGrid(i);
-            spatialGrid.AddShape(circle);
+            spatialGrid.Add(circle);
             Assert.IsFalse(spatialGrid.Overlaps(rectangle));
         }
     }
@@ -175,13 +192,20 @@ public class CollisionTests : Node2D {
             Assert.IsFalse(spatialGrid.Overlaps(rectangle1));
             Assert.IsFalse(spatialGrid.Overlaps(rectangle2));
 
-            spatialGrid.AddShape(rectangle1);
+            spatialGrid.Add(rectangle1);
             Assert.IsFalse(spatialGrid.Overlaps(rectangle1));
             Assert.IsTrue(spatialGrid.Overlaps(rectangle2));
 
-            spatialGrid.AddShape(rectangle2);
+            spatialGrid.Add(rectangle2);
             Assert.IsTrue(spatialGrid.Overlaps(rectangle1));
             Assert.IsTrue(spatialGrid.Overlaps(rectangle2));
+            Assert.That(spatialGrid.GetOverlaps(rectangle2).ToList(), Contains.Item(rectangle1));
+            Assert.That(spatialGrid.GetOverlaps(rectangle1).ToList(), Contains.Item(rectangle2));
+            
+            Assert.That(spatialGrid.GetOverlaps(new Circle { Position = new Vector2(6, 6), Radius = 4 }).ToList(), 
+                Contains.Item(rectangle1));
+            Assert.That(spatialGrid.GetOverlaps(new Circle { Position = new Vector2(6, 6), Radius = 4 }).ToList(), 
+                Contains.Item(rectangle2));
         }
     }
 
@@ -202,7 +226,7 @@ public class CollisionTests : Node2D {
         for (var i = 4; i < 100; i++) {
             var spatialGrid = new SpatialGrid(i);
 
-            spatialGrid.AddShape(rectangle1);
+            spatialGrid.Add(rectangle1);
 
             Assert.IsFalse(spatialGrid.Overlaps(rectangle2));
         }
@@ -215,8 +239,8 @@ public class CollisionTests : Node2D {
         for (var i = 4; i < 100; i++) {
             var spatialGrid = new SpatialGrid(i);
 
-            spatialGrid.AddShape(rectangle);
-            spatialGrid.RemoveShape(rectangle);
+            spatialGrid.Add(rectangle);
+            spatialGrid.Remove(rectangle);
 
             Assert.IsFalse(spatialGrid.Overlaps(rectangle));
         }

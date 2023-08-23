@@ -9,8 +9,7 @@ public class SpatialGrid {
     public Dictionary<(int, int), List<IShape>> Grid { get; }
     public List<IShape> Shapes { get; }
 
-    public SpatialGrid(float minRadius, float maxRadius) {
-        CellSize = (int)((minRadius + maxRadius) * 0.5f / Mathf.Sqrt2);
+    public SpatialGrid(float minRadius, float maxRadius) : this((int)((minRadius + maxRadius) * 0.5f / Mathf.Sqrt2)) {
     }
 
     public SpatialGrid(int cellSize) {
@@ -19,7 +18,7 @@ public class SpatialGrid {
         Shapes = new List<IShape>();
     }
 
-    public void AddShape(IShape shape) {
+    public void Add(IShape shape) {
         Shapes.Add(shape);
         var affectedCells = GetCellsForShape(shape);
         foreach (var cell in affectedCells) {
@@ -31,7 +30,7 @@ public class SpatialGrid {
         }
     }
 
-    public void RemoveShape(IShape shape) {
+    public void Remove(IShape shape) {
         if (Shapes.Remove(shape)) {
             var affectedCells = GetCellsForShape(shape);
             foreach (var cell in affectedCells) {
@@ -45,30 +44,32 @@ public class SpatialGrid {
     }
 
     public bool Overlaps(IShape shape) {
+        return GetOverlaps(shape).GetEnumerator().MoveNext();
+    }
+
+    public IEnumerable<IShape> GetOverlaps(IShape shape) {
         foreach (var cell in shape.GetCoveredCells(CellSize)) {
             if (Grid.TryGetValue(cell, out var shapesInCell)) {
-                var span = CollectionsMarshal.AsSpan(shapesInCell);
                 // First check same type of shapes because circle/circle or rectangle/rectangle are faster
-                for (var i = 0; i < span.Length; i++) {
-                    var otherShape = span[i];
+                for (var i = 0; i < shapesInCell.Count; i++) {
+                    var otherShape = shapesInCell[i];
                     if (shape == otherShape) continue; // ignore itself
                     if (!shape.SameTypeAs(otherShape)) continue; // ignore other types, only check same type
                     if (shape.Overlaps(otherShape)) {
-                        return true;
+                        yield return otherShape;
                     }
                 }
 
-                for (var i = 0; i < span.Length; i++) {
-                    var otherShape = span[i];
+                for (var i = 0; i < shapesInCell.Count; i++) {
+                    var otherShape = shapesInCell[i];
                     if (shape == otherShape) continue; // ignore itself
                     if (shape.SameTypeAs(otherShape)) continue; // ignore same type, checked before
                     if (shape.Overlaps(otherShape)) {
-                        return true;
+                        yield return otherShape;
                     }
                 }
             }
         }
-        return false;
     }
 
     /// <summary>
