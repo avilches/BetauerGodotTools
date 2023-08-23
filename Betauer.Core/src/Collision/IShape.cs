@@ -19,6 +19,5 @@ public interface IShape {
     public bool IsPointInside(float px, float py);
 
     public IEnumerable<(int, int)> GetCoveredCells(int cellSize);
-    bool SameTypeAs(IShape other);
     public Area2D CreateArea2D();
 }

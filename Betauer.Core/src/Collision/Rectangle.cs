@@ -79,15 +79,15 @@ public class Rectangle : IShape {
         return Geometry.IsPointInsideRectangle(point, this);
     }
 
-    public bool SameTypeAs(IShape other) {
-        return other is Rectangle;
+    public IEnumerable<(int, int)> GetCoveredCells(int cellSize) {
+        return GetCoveredCells(Position.X, Position.Y, Width, Height, cellSize);
     }
 
-    public IEnumerable<(int, int)> GetCoveredCells(int cellSize) {
-        var minCellX = (int)Math.Floor(MinX / cellSize);
-        var maxCellX = (int)Math.Ceiling(MaxX / cellSize);
-        var minCellY = (int)Math.Floor(MinY / cellSize);
-        var maxCellY = (int)Math.Ceiling(MaxY / cellSize);
+    public static IEnumerable<(int, int)> GetCoveredCells(float rx, float ry, float width, float height, int cellSize) {
+        var minCellX = (int)Math.Floor(rx / cellSize);
+        var maxCellX = (int)Math.Ceiling(rx + width / cellSize);
+        var minCellY = (int)Math.Floor(ry / cellSize);
+        var maxCellY = (int)Math.Ceiling(ry + height / cellSize);
 
         for (var x = minCellX; x <= maxCellX; x++) {
             for (var y = minCellY; y <= maxCellY; y++) {
