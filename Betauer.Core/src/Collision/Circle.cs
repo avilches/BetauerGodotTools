@@ -54,15 +54,15 @@ public class Circle : IShape {
         return Geometry.IsPointInsideCircle(px, py, this);
     }
 
-    public IEnumerable<(int, int)> GetCoveredCells(int cellSize) {
-        return GetCoveredCells(Position.X, Position.Y, Radius, cellSize);
+    public bool SameTypeAs(IShape other) {
+        return other is Circle;
     }
 
-    public static IEnumerable<(int, int)> GetCoveredCells(float cx, float cy, float radius, int cellSize) {
-        var minCellX = (int)Math.Floor(cx - radius / cellSize);
-        var maxCellX = (int)Math.Ceiling(cx + radius / cellSize);
-        var minCellY = (int)Math.Floor(cy - radius / cellSize);
-        var maxCellY = (int)Math.Ceiling(cy + radius / cellSize);
+    public IEnumerable<(int, int)> GetCoveredCells(int cellSize) {
+        var minCellX = (int)Math.Floor(MinX / cellSize);
+        var maxCellX = (int)Math.Ceiling(MaxX / cellSize);
+        var minCellY = (int)Math.Floor(MinY / cellSize);
+        var maxCellY = (int)Math.Ceiling(MaxY / cellSize);
 
         for (var x = minCellX; x <= maxCellX; x++) {
             for (var y = minCellY; y <= maxCellY; y++) {
