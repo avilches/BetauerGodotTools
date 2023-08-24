@@ -24,33 +24,33 @@ public class CollisionTests : Node2D {
         for (var i = 4; i < 100; i++) {
             var spatialGrid = new SpatialGrid(i);
 
-            Assert.IsFalse(spatialGrid.Intersect(circle1));
-            Assert.IsFalse(spatialGrid.Intersect(circle2));
-            Assert.IsFalse(spatialGrid.Intersect(circle3));
+            Assert.IsFalse(spatialGrid.ShapeIntersect(circle1));
+            Assert.IsFalse(spatialGrid.ShapeIntersect(circle2));
+            Assert.IsFalse(spatialGrid.ShapeIntersect(circle3));
 
             spatialGrid.Add(circle1);
-            Assert.IsTrue(spatialGrid.Intersect(new Circle { Position = new Vector2(5, 5), Radius = 4 }));
-            Assert.IsTrue(spatialGrid.Intersect(new Circle { Position = new Vector2(7, 7), Radius = 4 }));
-            Assert.IsFalse(spatialGrid.Intersect(new Circle { Position = new Vector2(17, 17), Radius = 4 }));
-            Assert.IsFalse(spatialGrid.Intersect(circle1));
-            Assert.IsTrue(spatialGrid.Intersect(circle2));
-            Assert.IsFalse(spatialGrid.Intersect(circle3));
+            Assert.IsTrue(spatialGrid.ShapeIntersect(new Circle { Position = new Vector2(5, 5), Radius = 4 }));
+            Assert.IsTrue(spatialGrid.ShapeIntersect(new Circle { Position = new Vector2(7, 7), Radius = 4 }));
+            Assert.IsFalse(spatialGrid.ShapeIntersect(new Circle { Position = new Vector2(17, 17), Radius = 4 }));
+            Assert.IsFalse(spatialGrid.ShapeIntersect(circle1));
+            Assert.IsTrue(spatialGrid.ShapeIntersect(circle2));
+            Assert.IsFalse(spatialGrid.ShapeIntersect(circle3));
 
             spatialGrid.Add(circle2);
-            Assert.IsTrue(spatialGrid.Intersect(new Circle { Position = new Vector2(5, 5), Radius = 4 }));
-            Assert.IsTrue(spatialGrid.Intersect(new Circle { Position = new Vector2(7, 7), Radius = 4 }));
-            Assert.IsFalse(spatialGrid.Intersect(new Circle { Position = new Vector2(17, 17), Radius = 4 }));
-            Assert.IsTrue(spatialGrid.Intersect(circle1));
-            Assert.IsTrue(spatialGrid.Intersect(circle2));
-            Assert.IsFalse(spatialGrid.Intersect(circle3));
+            Assert.IsTrue(spatialGrid.ShapeIntersect(new Circle { Position = new Vector2(5, 5), Radius = 4 }));
+            Assert.IsTrue(spatialGrid.ShapeIntersect(new Circle { Position = new Vector2(7, 7), Radius = 4 }));
+            Assert.IsFalse(spatialGrid.ShapeIntersect(new Circle { Position = new Vector2(17, 17), Radius = 4 }));
+            Assert.IsTrue(spatialGrid.ShapeIntersect(circle1));
+            Assert.IsTrue(spatialGrid.ShapeIntersect(circle2));
+            Assert.IsFalse(spatialGrid.ShapeIntersect(circle3));
 
             spatialGrid.Add(circle3);
-            Assert.IsTrue(spatialGrid.Intersect(new Circle { Position = new Vector2(5, 5), Radius = 4 }));
-            Assert.IsTrue(spatialGrid.Intersect(new Circle { Position = new Vector2(7, 7), Radius = 4 }));
-            Assert.IsTrue(spatialGrid.Intersect(new Circle { Position = new Vector2(17, 17), Radius = 4 }));
-            Assert.IsTrue(spatialGrid.Intersect(circle1));
-            Assert.IsTrue(spatialGrid.Intersect(circle2));
-            Assert.IsFalse(spatialGrid.Intersect(circle3));
+            Assert.IsTrue(spatialGrid.ShapeIntersect(new Circle { Position = new Vector2(5, 5), Radius = 4 }));
+            Assert.IsTrue(spatialGrid.ShapeIntersect(new Circle { Position = new Vector2(7, 7), Radius = 4 }));
+            Assert.IsTrue(spatialGrid.ShapeIntersect(new Circle { Position = new Vector2(17, 17), Radius = 4 }));
+            Assert.IsTrue(spatialGrid.ShapeIntersect(circle1));
+            Assert.IsTrue(spatialGrid.ShapeIntersect(circle2));
+            Assert.IsFalse(spatialGrid.ShapeIntersect(circle3));
         }
     }
 
@@ -71,16 +71,16 @@ public class CollisionTests : Node2D {
         for (var i = 4; i < 100; i++) {
             var spatialGrid = new SpatialGrid(i);
 
-            Assert.IsFalse(spatialGrid.Intersect(circle1));
-            Assert.IsFalse(spatialGrid.Intersect(circle2));
+            Assert.IsFalse(spatialGrid.ShapeIntersect(circle1));
+            Assert.IsFalse(spatialGrid.ShapeIntersect(circle2));
 
             spatialGrid.Add(circle1);
-            Assert.IsFalse(spatialGrid.Intersect(circle1));
-            Assert.IsTrue(spatialGrid.Intersect(circle2));
+            Assert.IsFalse(spatialGrid.ShapeIntersect(circle1));
+            Assert.IsTrue(spatialGrid.ShapeIntersect(circle2));
 
             spatialGrid.Add(circle2);
-            Assert.IsTrue(spatialGrid.Intersect(circle1));
-            Assert.IsTrue(spatialGrid.Intersect(circle2));
+            Assert.IsTrue(spatialGrid.ShapeIntersect(circle1));
+            Assert.IsTrue(spatialGrid.ShapeIntersect(circle2));
 
             Assert.That(spatialGrid.GetIntersectingShapes(circle1).ToList(), Contains.Item(circle2));
             Assert.That(spatialGrid.GetIntersectingShapes(circle2).ToList(), Contains.Item(circle1));
@@ -109,7 +109,7 @@ public class CollisionTests : Node2D {
         for (var i = 4; i < 100; i++) {
             var spatialGrid = new SpatialGrid(i);
             spatialGrid.Add(circle1);
-            Assert.IsTrue(!spatialGrid.Intersect(circle2));
+            Assert.IsTrue(!spatialGrid.ShapeIntersect(circle2));
         }
     }
 
@@ -129,16 +129,16 @@ public class CollisionTests : Node2D {
 
         for (var i = 4; i < 100; i++) {
             var spatialGrid = new SpatialGrid(i);
-            Assert.IsFalse(spatialGrid.Intersect(circle));
-            Assert.IsFalse(spatialGrid.Intersect(rectangle));
+            Assert.IsFalse(spatialGrid.ShapeIntersect(circle));
+            Assert.IsFalse(spatialGrid.ShapeIntersect(rectangle));
 
             spatialGrid.Add(circle);
-            Assert.IsFalse(spatialGrid.Intersect(circle));
-            Assert.IsTrue(spatialGrid.Intersect(rectangle));
+            Assert.IsFalse(spatialGrid.ShapeIntersect(circle));
+            Assert.IsTrue(spatialGrid.ShapeIntersect(rectangle));
 
             spatialGrid.Add(rectangle);
-            Assert.IsTrue(spatialGrid.Intersect(circle));
-            Assert.IsTrue(spatialGrid.Intersect(rectangle));
+            Assert.IsTrue(spatialGrid.ShapeIntersect(circle));
+            Assert.IsTrue(spatialGrid.ShapeIntersect(rectangle));
 
             Assert.That(spatialGrid.GetIntersectingShapes(circle).ToList(), Contains.Item(rectangle));
             Assert.That(spatialGrid.GetIntersectingShapes(rectangle).ToList(), Contains.Item(circle));
@@ -167,7 +167,7 @@ public class CollisionTests : Node2D {
         for (var i = 4; i < 100; i++) {
             var spatialGrid = new SpatialGrid(i);
             spatialGrid.Add(circle);
-            Assert.IsFalse(spatialGrid.Intersect(rectangle));
+            Assert.IsFalse(spatialGrid.ShapeIntersect(rectangle));
         }
     }
 
@@ -187,16 +187,16 @@ public class CollisionTests : Node2D {
 
         for (var i = 4; i < 100; i++) {
             var spatialGrid = new SpatialGrid(i);
-            Assert.IsFalse(spatialGrid.Intersect(rectangle1));
-            Assert.IsFalse(spatialGrid.Intersect(rectangle2));
+            Assert.IsFalse(spatialGrid.ShapeIntersect(rectangle1));
+            Assert.IsFalse(spatialGrid.ShapeIntersect(rectangle2));
 
             spatialGrid.Add(rectangle1);
-            Assert.IsFalse(spatialGrid.Intersect(rectangle1));
-            Assert.IsTrue(spatialGrid.Intersect(rectangle2));
+            Assert.IsFalse(spatialGrid.ShapeIntersect(rectangle1));
+            Assert.IsTrue(spatialGrid.ShapeIntersect(rectangle2));
 
             spatialGrid.Add(rectangle2);
-            Assert.IsTrue(spatialGrid.Intersect(rectangle1));
-            Assert.IsTrue(spatialGrid.Intersect(rectangle2));
+            Assert.IsTrue(spatialGrid.ShapeIntersect(rectangle1));
+            Assert.IsTrue(spatialGrid.ShapeIntersect(rectangle2));
             Assert.That(spatialGrid.GetIntersectingShapes(rectangle2).ToList(), Contains.Item(rectangle1));
             Assert.That(spatialGrid.GetIntersectingShapes(rectangle1).ToList(), Contains.Item(rectangle2));
 
@@ -225,7 +225,7 @@ public class CollisionTests : Node2D {
 
             spatialGrid.Add(rectangle1);
 
-            Assert.IsFalse(spatialGrid.Intersect(rectangle2));
+            Assert.IsFalse(spatialGrid.ShapeIntersect(rectangle2));
         }
     }
 
@@ -239,7 +239,7 @@ public class CollisionTests : Node2D {
             spatialGrid.Add(rectangle);
             spatialGrid.Remove(rectangle);
 
-            Assert.IsFalse(spatialGrid.Intersect(rectangle));
+            Assert.IsFalse(spatialGrid.ShapeIntersect(rectangle));
         }
     }
 
@@ -425,7 +425,7 @@ public class CollisionTests : Node2D {
 
     [TestRunner.Test]
     public void AssertCircleTryMove() {
-        var spatial = new SpatialGrid(10);
+        var spatial = new SpatialGrid(2);
         var shape1 = new Circle(0, 0, 2);
         var shape2 = new Circle(14, 6, 2);
         spatial.Add(shape1);
@@ -438,7 +438,7 @@ public class CollisionTests : Node2D {
 
     [TestRunner.Test]
     public void AssertCircleTryResize() {
-        var spatial = new SpatialGrid(10);
+        var spatial = new SpatialGrid(2);
         var shape1 = new Circle(6, 6, 1);
         var shape2 = new Circle(14, 6, 2);
         spatial.Add(shape1);
@@ -451,7 +451,7 @@ public class CollisionTests : Node2D {
 
     [TestRunner.Test]
     public void AssertRectangleTryMove() {
-        var spatial = new SpatialGrid(10);
+        var spatial = new SpatialGrid(2);
         var shape1 = new Rectangle(0, 0, 2, 2);
         var shape2 = new Circle(14, 6, 2);
         spatial.Add(shape1);
@@ -464,7 +464,7 @@ public class CollisionTests : Node2D {
 
     [TestRunner.Test]
     public void AssertRectangleTryResize() {
-        var spatial = new SpatialGrid(10);
+        var spatial = new SpatialGrid(2);
         var shape1 = new Rectangle(6, 6, 4, 4);
         var shape2 = new Circle(14, 6, 2);
         spatial.Add(shape1);
@@ -473,6 +473,26 @@ public class CollisionTests : Node2D {
         Assert.That(shape1.TryResize(5, 3));
         Assert.That(!shape1.TryResize(6, 3));
         Assert.That(shape1.Size, Is.EqualTo(new Vector2(5, 3)));
+    }
+
+    [TestRunner.Test]
+    public void AssertPointIntersect() {
+        var spatial = new SpatialGrid(2);
+        var shape1 = new Rectangle(6, 6, 4, 4);
+        var shape2 = new Circle(14, 6, 2);
+        spatial.Add(shape1);
+        spatial.Add(shape2);
+
+        Assert.That(!spatial.PointIntersect(5, 6));
+        Assert.That(spatial.PointIntersect(6, 6));
+        Assert.That(spatial.PointIntersect(10, 10));
+        Assert.That(!spatial.PointIntersect(11, 10));
+        
+        Assert.That(!spatial.PointIntersect(14, 3));
+        Assert.That(spatial.PointIntersect(14, 4));
+        Assert.That(spatial.PointIntersect(14, 8));
+        Assert.That(!spatial.PointIntersect(14, 9));
+
     }
 
     private void AssertRectangleFitCells(int cellSize, float x, float y, float width, float height, (int, int)[] cells) {

@@ -93,7 +93,7 @@ public class Circle : Shape {
     }
 
     public override IEnumerable<(int, int)> GetIntersectingCells(int cellSize) {
-        return GetIntersectingCells(Position.X, Position.Y, Radius, cellSize);
+        return Geometry.GetCircleIntersectingCells(Position.X, Position.Y, Radius, cellSize);
     }
 
     public override Area2D CreateArea2D() {
@@ -106,24 +106,6 @@ public class Circle : Shape {
             }
         });
         return area2D;
-    }
-
-    public static IEnumerable<(int, int)> GetIntersectingCells(float cx, float cy, float radius, int cellSize) {
-        var minCellXf = (cx - radius) / cellSize;
-        var maxCellXf = (cx + radius) / cellSize;
-        var minCellYf = (cy - radius) / cellSize;
-        var maxCellYf = (cy + radius) / cellSize;
-
-        var minCellX = cx < 0 ? (int)Mathf.Floor(minCellXf) : (int)minCellXf;
-        var maxCellX = cx < 0 ? (int)Mathf.Floor(maxCellXf) : (int)maxCellXf;
-        var minCellY = cy < 0 ? (int)Mathf.Floor(minCellYf) : (int)minCellYf;
-        var maxCellY = cy < 0 ? (int)Mathf.Floor(maxCellYf) : (int)maxCellYf;
-
-        for (var x = minCellX; x <= maxCellX; x++) {
-            for (var y = minCellY; y <= maxCellY; y++) {
-                yield return (x, y);
-            }
-        }
     }
 
     public bool Equals(Circle other) => Position.Equals(other.Position) && Radius == other.Radius;

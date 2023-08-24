@@ -1,10 +1,33 @@
 using System;
+using System.Collections.Generic;
 using Godot;
 
 namespace Betauer.Core.Collision;
 
 public static class Geometry {
+    public static bool IsPointInsideCircle(float px, float py, float cx, float cy, float radius) {
+        if (radius == 0) { // No area, no intersection
+            return false;
+        }
+        var dx = cx - px;
+        var dy = cy - py;
+        return dx * dx + dy * dy <= radius * radius;
+    }
+
+    public static bool IsPointInsideRectangle(float px, float py, float rx, float ry, float width, float height) {
+        if (width == 0 || height == 0) { // No area, no intersection
+            return false;
+        }
+        return px >= rx &&
+               px <= rx + width &&
+               py >= ry &&
+               py <= ry + height;
+    }
+
     public static bool IntersectCircles(float x1, float y1, float radius1, float x2, float y2, float radius2) {
+        if (radius1 == 0 || radius2 == 0) { // No area, no intersection
+            return false;
+        }
         var dx = x1 - x2;
         var dy = y1 - y2;
         var distanceSquared = dx * dx + dy * dy;
@@ -13,6 +36,9 @@ public static class Geometry {
     }
 
     public static bool IntersectRectangles(float x1, float y1, float width1, float height1, float x2, float y2, float width2, float height2) {
+        if (width1 == 0 || height1 == 0 || width2 == 0 || height2 == 0) {// No area, no intersection
+            return false;
+        }
         return x1 + width1 >= x2 &&
                x1 <= x2 + width2 &&
                y1 + height1 >= y2 &&
@@ -20,6 +46,9 @@ public static class Geometry {
     }
 
     public static bool IntersectCircleRectangle(float circleX, float circleY, float radius, float rectX, float rectY, float width, float height) {
+        if (width == 0 || height == 0 || radius == 0) { // No area, no intersection
+            return false;
+        }
         var closestX = Math.Clamp(circleX, rectX, rectX + width);
         var closestY = Math.Clamp(circleY, rectY, rectY + height);
         var dx = circleX - closestX;
@@ -27,19 +56,21 @@ public static class Geometry {
         return dx * dx + dy * dy <= radius * radius;
     }
 
-    public static bool IsPointInsideCircle(float px, float py, float cx, float cy, float radius) {
-        var dx = cx - px;
-        var dy = cy - py;
-        return dx * dx + dy * dy <= radius * radius;
+    public static bool IsPointInsideCircle(Vector2 point, Circle circle) {
+        return IsPointInsideCircle(point.X, point.Y, circle);
     }
 
-    public static bool IsPointInsideRectangle(float px, float py, float rx, float ry, float width, float height) {
-        return px >= rx && 
-               px <= rx + width && 
-               py >= ry && 
-               py <= ry + height;
+    public static bool IsPointInsideCircle(float px, float py, Circle circle) {
+        return IsPointInsideCircle(px, py, circle.Position.X, circle.Position.Y, circle.Radius);
     }
 
+    public static bool IsPointInsideRectangle(Vector2 point, Rectangle rectangle) {
+        return IsPointInsideRectangle(point.X, point.Y, rectangle);
+    }
+
+    public static bool IsPointInsideRectangle(float px, float py, Rectangle rectangle) {
+        return IsPointInsideRectangle(px, py, rectangle.Position.X, rectangle.Position.Y, rectangle.Size.X, rectangle.Size.Y);
+    }
 
     public static bool Intersect(Rectangle r1, Rectangle r2) {
         return IntersectRectangles(
@@ -61,20 +92,35 @@ public static class Geometry {
             rectangle.Position.X, rectangle.Position.Y, rectangle.Size.X, rectangle.Size.Y);
     }
 
-    public static bool IsPointInsideCircle(Vector2 point, Circle circle) {
-        return IsPointInsideCircle(point.X, point.Y, circle);
+    public static (int, int) GetPointIntersectingCells(float px, float py, int cellSize) {
+        var minCellX = (int)Mathf.Floor(px / cellSize);
+        var minCellY = (int)Mathf.Floor(py / cellSize);
+        return (minCellX, minCellY);
     }
 
-    public static bool IsPointInsideCircle(float px, float py, Circle circle) {
-        return IsPointInsideCircle(px, py, circle.Position.X, circle.Position.Y, circle.Radius);
+    public static IEnumerable<(int, int)> GetRectangleIntersectingCells(float rx, float ry, float width, float height, int cellSize) {
+        var minCellX = (int)Mathf.Floor(rx / cellSize);
+        var maxCellX = (int)Mathf.Floor((rx + width) / cellSize);
+        var minCellY = (int)Mathf.Floor(ry / cellSize);
+        var maxCellY = (int)Mathf.Floor((ry + height) / cellSize);
+
+        for (var x = minCellX; x <= maxCellX; x++) {
+            for (var y = minCellY; y <= maxCellY; y++) {
+                yield return (x, y);
+            }
+        }
     }
 
-    public static bool IsPointInsideRectangle(Vector2 point, Rectangle rectangle) {
-        return IsPointInsideRectangle(point.X, point.Y, rectangle);
-    }
+    public static IEnumerable<(int, int)> GetCircleIntersectingCells(float cx, float cy, float radius, int cellSize) {
+        var minCellX = (int)Mathf.Floor((cx - radius) / cellSize);
+        var maxCellX = (int)Mathf.Floor((cx + radius) / cellSize);
+        var minCellY = (int)Mathf.Floor((cy - radius) / cellSize);
+        var maxCellY = (int)Mathf.Floor((cy + radius) / cellSize);
 
-    public static bool IsPointInsideRectangle(float px, float py, Rectangle rectangle) {
-        return IsPointInsideRectangle(px, py, rectangle.Position.X, rectangle.Position.Y, rectangle.Size.X, rectangle.Size.Y);
+        for (var x = minCellX; x <= maxCellX; x++) {
+            for (var y = minCellY; y <= maxCellY; y++) {
+                yield return (x, y);
+            }
+        }
     }
-
 }

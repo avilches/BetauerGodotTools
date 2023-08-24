@@ -54,7 +54,15 @@ public class SpatialGrid {
         }
     }
 
-    public bool Intersect(Shape shape) {
+    public bool PointIntersect(Vector2 point) {
+        return PointIntersect(point.X, point.Y);
+    }
+
+    public bool PointIntersect(float px, float py) {
+        return GetIntersectingShapes(px, py).GetEnumerator().MoveNext();
+    }
+
+    public bool ShapeIntersect(Shape shape) {
         return GetIntersectingShapes(shape).GetEnumerator().MoveNext();
     }
 
@@ -64,6 +72,21 @@ public class SpatialGrid {
 
     public bool RectangleIntersect(float x, float y, float width, float height) {
         return GetRectangleIntersectingShapes(x, y, width, height).GetEnumerator().MoveNext();
+    }
+
+    public IEnumerable<Shape> GetIntersectingShapes(Vector2 point) {
+        return GetIntersectingShapes(point.X, point.Y);
+    }
+
+    public IEnumerable<Shape> GetIntersectingShapes(float px, float py) {
+        var cell = Geometry.GetPointIntersectingCells(px, py, CellSize);
+        if (!Grid.TryGetValue(cell, out var shapesInCell)) {
+            yield break;
+        }
+        for (var i = 0; i < shapesInCell.Count; i++) {
+            var otherShape = shapesInCell[i];
+            if (otherShape.IsPointInside(px, py)) yield return otherShape;
+        }
     }
 
     public IEnumerable<Shape> GetIntersectingShapes(Shape shape) {
@@ -80,7 +103,7 @@ public class SpatialGrid {
     }
 
     public IEnumerable<Shape> GetCircleIntersectingShapes(float cx, float cy, float radius) {
-        foreach (var cell in Circle.GetIntersectingCells(cx, cy, radius, CellSize)) {
+        foreach (var cell in Geometry.GetCircleIntersectingCells(cx, cy, radius, CellSize)) {
             if (!Grid.TryGetValue(cell, out var shapesInCell)) {
                 continue;
             }
@@ -92,7 +115,7 @@ public class SpatialGrid {
     }
 
     public IEnumerable<Shape> GetRectangleIntersectingShapes(float x, float y, float width, float height) {
-        foreach (var cell in Rectangle.GetIntersectingCells(x, y, width, height, CellSize)) {
+        foreach (var cell in Geometry.GetRectangleIntersectingCells(x, y, width, height, CellSize)) {
             if (!Grid.TryGetValue(cell, out var shapesInCell)) {
                 continue;
             }
@@ -103,19 +126,19 @@ public class SpatialGrid {
         }
     }
 
-    internal void Move(Rectangle rectangle, float x, float y) {
-        if (!Shapes.Contains(rectangle)) return;
-        if (rectangle.Position.X == x && rectangle.Position.Y == y) return;
-        var affectedCells = rectangle.GetIntersectingCells(CellSize);
-        var newAffectedCells = Rectangle.GetIntersectingCells(x, y, rectangle.Width, rectangle.Height, CellSize);
-        RefreshCells(rectangle, affectedCells, newAffectedCells);
-    }
-
     internal void Move(Circle rectangle, float x, float y) {
         if (!Shapes.Contains(rectangle)) return;
         if (rectangle.Position.X == x && rectangle.Position.Y == y) return;
         var affectedCells = rectangle.GetIntersectingCells(CellSize);
-        var newAffectedCells = Circle.GetIntersectingCells(x, y, rectangle.Radius, CellSize);
+        var newAffectedCells = Geometry.GetCircleIntersectingCells(x, y, rectangle.Radius, CellSize);
+        RefreshCells(rectangle, affectedCells, newAffectedCells);
+    }
+
+    internal void Move(Rectangle rectangle, float x, float y) {
+        if (!Shapes.Contains(rectangle)) return;
+        if (rectangle.Position.X == x && rectangle.Position.Y == y) return;
+        var affectedCells = rectangle.GetIntersectingCells(CellSize);
+        var newAffectedCells = Geometry.GetRectangleIntersectingCells(x, y, rectangle.Width, rectangle.Height, CellSize);
         RefreshCells(rectangle, affectedCells, newAffectedCells);
     }
 
@@ -123,7 +146,7 @@ public class SpatialGrid {
         if (!Shapes.Contains(circle)) return;
         if (circle.Radius == radius) return;
         var affectedCells = circle.GetIntersectingCells(CellSize);
-        var newAffectedCells = Circle.GetIntersectingCells(circle.Position.X, circle.Position.Y, radius, CellSize);
+        var newAffectedCells = Geometry.GetCircleIntersectingCells(circle.Position.X, circle.Position.Y, radius, CellSize);
         RefreshCells(circle, affectedCells, newAffectedCells);
     }
 
@@ -131,7 +154,7 @@ public class SpatialGrid {
         if (!Shapes.Contains(rectangle)) return;
         if (rectangle.Size.X == width && rectangle.Size.Y == height) return;
         var affectedCells = rectangle.GetIntersectingCells(CellSize);
-        var newAffectedCells = Rectangle.GetIntersectingCells(rectangle.Position.X, rectangle.Position.Y, width, height, CellSize);
+        var newAffectedCells = Geometry.GetRectangleIntersectingCells(rectangle.Position.X, rectangle.Position.Y, width, height, CellSize);
         RefreshCells(rectangle, affectedCells, newAffectedCells);
     }
 

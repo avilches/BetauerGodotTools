@@ -119,7 +119,7 @@ public class Rectangle : Shape {
     }
 
     public override IEnumerable<(int, int)> GetIntersectingCells(int cellSize) {
-        return GetIntersectingCells(Position.X, Position.Y, Width, Height, cellSize);
+        return Geometry.GetRectangleIntersectingCells(Position.X, Position.Y, Width, Height, cellSize);
     }
     
     public override Area2D CreateArea2D() {
@@ -132,23 +132,6 @@ public class Rectangle : Shape {
             }
         });
         return area2D;
-    }
-
-    public static IEnumerable<(int, int)> GetIntersectingCells(float rx, float ry, float width, float height, int cellSize) {
-        var minCellXf = rx / cellSize;
-        var maxCellXf = (rx + width) / cellSize;
-        var minCellYf = ry / cellSize;
-        var maxCellYf = (ry + height) / cellSize;
-        var minCellX = rx < 0 ? (int)Mathf.Floor(minCellXf) : (int)minCellXf;
-        var maxCellX = rx < 0 ? (int)Mathf.Floor(maxCellXf) : (int)maxCellXf;
-        var minCellY = ry < 0 ? (int)Mathf.Floor(minCellYf) : (int)minCellYf;
-        var maxCellY = ry < 0 ? (int)Mathf.Floor(maxCellYf) : (int)maxCellYf;
-
-        for (var x = minCellX; x <= maxCellX; x++) {
-            for (var y = minCellY; y <= maxCellY; y++) {
-                yield return (x, y);
-            }
-        }
     }
 
     public bool Equals(Rect2 other) => Position.Equals(other.Position) && Size.Equals(other.Size);
