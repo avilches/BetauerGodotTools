@@ -251,11 +251,15 @@ public class CollisionTests : Node2D {
         AssertRectangleFitCells(10, 0f, 0f, 10f, 10f, new[] { (0, 0), (0, 1), (1, 0), (1, 1) });
         // Bigger than 10x10        
         AssertRectangleFitCells(10, 0.11f, 0.11f, 9.99f, 9.99f, new[] { (0, 0), (0, 1), (1, 0), (1, 1) });
+        // Smaller than 10x10, negative
+        AssertRectangleFitCells(10, -2f, -2f, 4f, 4f, new[] { (0, 0), (0, -1), (-1, 0), (-1, -1) });
 
         // Smaller than 10x10, offset
         AssertRectangleFitCells(10, 10f, 10f, 9.99f, 9.99f, new[] { (1, 1) });
         // Exactly 10x10, it needs more adjacent cells with offset
         AssertRectangleFitCells(10, 10f, 10f, 10.0f, 10.0f, new[] { (1, 1), (1, 2), (2, 1), (2, 2) });
+        // Exactly 10x10, it needs more adjacent cells with offset Negative
+        AssertRectangleFitCells(10, -10f, -10f, 10.0f, 10.0f, new[] { (0, 0), (0, -1), (-1, 0), (-1, -1) });
         // Bigger than 10x10        
         AssertRectangleFitCells(10, 10.11f, 10.11f, 9.99f, 9.99f, new[] { (1, 1), (1, 2), (2, 1), (2, 2) });
 
@@ -271,16 +275,204 @@ public class CollisionTests : Node2D {
         AssertCircleFitCells(10, 5f, 5f, 5.00f, new[] { (0, 0), (0, 1), (1, 0), (1, 1) });
         // Bigger than 10x10        
         AssertCircleFitCells(10, 5.1f, 5.1f, 4.99f, new[] { (0, 0), (0, 1), (1, 0), (1, 1) });
+        // Smaller than 10x10, negative
+        AssertCircleFitCells(10, -2f, -2f, 4f, new[] { (0, 0), (0, -1), (-1, 0), (-1, -1) });
 
         // Smaller than 10x10, offset
         AssertCircleFitCells(10, 15f, 15f, 4.99f, new[] { (1, 1) });
         // Exactly 10x10, it needs more adjacent cells with offset
         AssertCircleFitCells(10, 15f, 15f, 5.00f, new[] { (1, 1), (1, 2), (2, 1), (2, 2) });
+        // Exactly 10x10, it needs more adjacent cells with offset Negative
+        AssertCircleFitCells(10, -15f, -15f, 5.00f, new[] { (-1, -1), (-1, -2), (-2, -1), (-2, -2) });
         // Bigger than 10x10        
         AssertCircleFitCells(10, 15.11f, 15.11f, 4.99f, new[] { (1, 1), (1, 2), (2, 1), (2, 2) });
 
         // Bigger than 10x10        
         AssertCircleFitCells(10, 25f, 25f, 7.49f, new[] { (1, 1), (1, 2), (1, 3), (2, 1), (2, 2), (2, 3), (3, 1), (3, 2), (3, 3) });
+    }
+
+    [TestRunner.Test]
+    public void AssertRectangleMoveSameCell() {
+        var spatial = new SpatialGrid(10);
+        var shape = new Rectangle(5, 5, 4, 4);
+        spatial.Add(shape);
+        Assert.That(spatial.Grid.Count, Is.EqualTo(1));
+        Assert.That(spatial.Grid[(0, 0)].Contains(shape));
+
+        shape.Position = new Vector2(4, 4);
+        Assert.That(shape.Position, Is.EqualTo(new Vector2(4, 4)));
+        Assert.That(spatial.Grid[(0, 0)].Contains(shape));
+
+        shape.Position = new Vector2(15, 15);
+        Assert.That(shape.Position, Is.EqualTo(new Vector2(15, 15)));
+        Assert.That(spatial.Grid.Count, Is.EqualTo(1));
+        Assert.That(spatial.Grid[(1, 1)].Contains(shape));
+    }
+
+    [TestRunner.Test]
+    public void AssertRectangleResizeSameCell() {
+        var spatial = new SpatialGrid(10);
+        var shape = new Rectangle(5, 5, 4, 4);
+        spatial.Add(shape);
+        Assert.That(spatial.Grid.Count, Is.EqualTo(1));
+        Assert.That(spatial.Grid[(0, 0)].Contains(shape));
+
+        shape.Size = new Vector2(3, 3);
+        Assert.That(shape.Size, Is.EqualTo(new Vector2(3, 3)));
+        Assert.That(spatial.Grid[(0, 0)].Contains(shape));
+    }
+
+    [TestRunner.Test]
+    public void AssertRectangleMoveOtherCell() {
+        var spatial = new SpatialGrid(10);
+        var shape = new Rectangle(2, 2, 7, 7);
+        spatial.Add(shape);
+        Assert.That(spatial.Grid.Count, Is.EqualTo(1));
+        Assert.That(spatial.Grid[(0, 0)].Contains(shape));
+
+        shape.Position = new Vector2(8, 8);
+        Assert.That(shape.Position, Is.EqualTo(new Vector2(8, 8)));
+        Assert.That(spatial.Grid.Count, Is.EqualTo(4));
+        Assert.That(spatial.Grid[(0, 0)].Contains(shape));
+        Assert.That(spatial.Grid[(0, 1)].Contains(shape));
+        Assert.That(spatial.Grid[(1, 0)].Contains(shape));
+        Assert.That(spatial.Grid[(1, 1)].Contains(shape));
+    }
+
+    [TestRunner.Test]
+    public void AssertRectangleResizeOtherCell() {
+        var spatial = new SpatialGrid(10);
+        var shape = new Rectangle(2, 2, 7, 7);
+        spatial.Add(shape);
+        Assert.That(spatial.Grid.Count, Is.EqualTo(1));
+        Assert.That(spatial.Grid[(0, 0)].Contains(shape));
+
+        shape.Size = new Vector2(9, 9);
+        Assert.That(shape.Size, Is.EqualTo(new Vector2(9, 9)));
+        Assert.That(spatial.Grid.Count, Is.EqualTo(4));
+        Assert.That(spatial.Grid[(0, 0)].Contains(shape));
+        Assert.That(spatial.Grid[(0, 1)].Contains(shape));
+        Assert.That(spatial.Grid[(1, 0)].Contains(shape));
+        Assert.That(spatial.Grid[(1, 1)].Contains(shape));
+    }
+
+    [TestRunner.Test]
+    public void AssertCircleMoveSameCell() {
+        var spatial = new SpatialGrid(10);
+        var shape = new Circle(5, 5, 3);
+        spatial.Add(shape);
+        Assert.That(spatial.Grid.Count, Is.EqualTo(1));
+        Assert.That(spatial.Grid[(0, 0)].Contains(shape));
+
+        shape.Position = new Vector2(6, 6);
+        Assert.That(shape.Position, Is.EqualTo(new Vector2(6, 6)));
+        Assert.That(spatial.Grid.Count, Is.EqualTo(1));
+        Assert.That(spatial.Grid[(0, 0)].Contains(shape));
+
+        shape.Position = new Vector2(15, 15);
+        Assert.That(shape.Position, Is.EqualTo(new Vector2(15, 15)));
+        Assert.That(spatial.Grid.Count, Is.EqualTo(1));
+        Assert.That(spatial.Grid[(1, 1)].Contains(shape));
+    }
+
+    [TestRunner.Test]
+    public void AssertCircleResizeSameCell() {
+        var spatial = new SpatialGrid(10);
+        var shape = new Circle(5, 5, 3);
+        spatial.Add(shape);
+        Assert.That(spatial.Grid.Count, Is.EqualTo(1));
+        Assert.That(spatial.Grid[(0, 0)].Contains(shape));
+
+        shape.Radius = 4;
+        Assert.That(shape.Radius, Is.EqualTo(4));
+        Assert.That(spatial.Grid.Count, Is.EqualTo(1));
+        Assert.That(spatial.Grid[(0, 0)].Contains(shape));
+    }
+
+    [TestRunner.Test]
+    public void AssertCircleMoveOtherCell() {
+        var spatial = new SpatialGrid(10);
+        var shape = new Circle(5, 5, 3);
+        spatial.Add(shape);
+        Assert.That(spatial.Grid.Count, Is.EqualTo(1));
+        Assert.That(spatial.Grid[(0, 0)].Contains(shape));
+
+        shape.Position = new Vector2(9, 9);
+        Assert.That(shape.Position, Is.EqualTo(new Vector2(9, 9)));
+        Assert.That(spatial.Grid.Count, Is.EqualTo(4));
+        Assert.That(spatial.Grid[(0, 0)].Contains(shape));
+        Assert.That(spatial.Grid[(0, 1)].Contains(shape));
+        Assert.That(spatial.Grid[(1, 0)].Contains(shape));
+        Assert.That(spatial.Grid[(1, 1)].Contains(shape));
+    }
+
+    [TestRunner.Test]
+    public void AssertCircleResizeOtherCell() {
+        var spatial = new SpatialGrid(10);
+        var shape = new Circle(6, 6, 3);
+        spatial.Add(shape);
+        Assert.That(spatial.Grid.Count, Is.EqualTo(1));
+        Assert.That(spatial.Grid[(0, 0)].Contains(shape));
+
+        shape.Radius = 5;
+        Assert.That(shape.Radius, Is.EqualTo(5));
+        Assert.That(spatial.Grid.Count, Is.EqualTo(4));
+        Assert.That(spatial.Grid[(0, 0)].Contains(shape));
+        Assert.That(spatial.Grid[(0, 1)].Contains(shape));
+        Assert.That(spatial.Grid[(1, 0)].Contains(shape));
+        Assert.That(spatial.Grid[(1, 1)].Contains(shape));
+    }
+
+    [TestRunner.Test]
+    public void AssertCircleTryMove() {
+        var spatial = new SpatialGrid(10);
+        var shape1 = new Circle(0, 0, 2);
+        var shape2 = new Circle(14, 6, 2);
+        spatial.Add(shape1);
+        spatial.Add(shape2);
+        
+        Assert.That(shape1.TryMove(7,6));
+        Assert.That(!shape1.TryMove(10,6));
+        Assert.That(shape1.Position, Is.EqualTo(new Vector2(7, 6)));
+    }
+
+    [TestRunner.Test]
+    public void AssertCircleTryResize() {
+        var spatial = new SpatialGrid(10);
+        var shape1 = new Circle(6, 6, 1);
+        var shape2 = new Circle(14, 6, 2);
+        spatial.Add(shape1);
+        spatial.Add(shape2);
+        
+        Assert.That(shape1.TryResize(5));
+        Assert.That(!shape1.TryResize(6));
+        Assert.That(shape1.Radius, Is.EqualTo(5));
+    }
+
+    [TestRunner.Test]
+    public void AssertRectangleTryMove() {
+        var spatial = new SpatialGrid(10);
+        var shape1 = new Rectangle(0, 0, 2, 2);
+        var shape2 = new Circle(14, 6, 2);
+        spatial.Add(shape1);
+        spatial.Add(shape2);
+        
+        Assert.That(shape1.TryMove(7,6));
+        Assert.That(!shape1.TryMove(10,6));
+        Assert.That(shape1.Position, Is.EqualTo(new Vector2(7, 6)));
+    }
+
+    [TestRunner.Test]
+    public void AssertRectangleTryResize() {
+        var spatial = new SpatialGrid(10);
+        var shape1 = new Rectangle(6, 6, 4, 4);
+        var shape2 = new Circle(14, 6, 2);
+        spatial.Add(shape1);
+        spatial.Add(shape2);
+        
+        Assert.That(shape1.TryResize(5, 3));
+        Assert.That(!shape1.TryResize(6, 3));
+        Assert.That(shape1.Size, Is.EqualTo(new Vector2(5, 3)));
     }
 
     private void AssertRectangleFitCells(int cellSize, float x, float y, float width, float height, (int, int)[] cells) {
