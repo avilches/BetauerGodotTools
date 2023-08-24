@@ -24,26 +24,26 @@ public class Circle : IShape {
         Radius = radius;
     }
 
-    public bool Overlaps<T>(T other) where T : IShape {
-        if (other is Rectangle otherRectangle) return Geometry.Overlaps(this, otherRectangle);
-        if (other is Circle otherCircle) return Geometry.Overlaps(this, otherCircle);
+    public bool Intersect<T>(T other) where T : IShape {
+        if (other is Rectangle otherRectangle) return Geometry.Intersect(this, otherRectangle);
+        if (other is Circle otherCircle) return Geometry.Intersect(this, otherCircle);
         return false;
     }
 
-    public bool Overlaps(Circle other) {
-        return Geometry.Overlaps(this, other);
+    public bool Intersect(Circle other) {
+        return Geometry.Intersect(this, other);
     }
 
-    public bool Overlaps(Rectangle other) {
-        return Geometry.Overlaps(this, other);
+    public bool Intersect(Rectangle other) {
+        return Geometry.Intersect(this, other);
     }
 
-    public bool OverlapsCircle(float x, float y, float radius) {
-        return Geometry.CirclesOverlap(Position.X, Position.Y, Radius, x, y, radius);
+    public bool IntersectCircle(float x, float y, float radius) {
+        return Geometry.IntersectCircles(Position.X, Position.Y, Radius, x, y, radius);
     }
 
-    public bool OverlapsRectangle(float x, float y, float width, float height) {
-        return Geometry.CircleRectangleOverlap(Position.X, Position.Y, Radius, x, y, width, height);
+    public bool IntersectRectangle(float x, float y, float width, float height) {
+        return Geometry.IntersectCircleRectangle(Position.X, Position.Y, Radius, x, y, width, height);
     }
 
     public bool IsPointInside(Vector2 point) {
@@ -54,15 +54,15 @@ public class Circle : IShape {
         return Geometry.IsPointInsideCircle(px, py, this);
     }
 
-    public bool SameTypeAs(IShape other) {
-        return other is Circle;
+    public IEnumerable<(int, int)> GetIntersectingCells(int cellSize) {
+        return GetIntersectingCells(Position.X, Position.Y, Radius, cellSize);
     }
 
-    public IEnumerable<(int, int)> GetCoveredCells(int cellSize) {
-        var minCellX = (int)Math.Floor(MinX / cellSize);
-        var maxCellX = (int)Math.Ceiling(MaxX / cellSize);
-        var minCellY = (int)Math.Floor(MinY / cellSize);
-        var maxCellY = (int)Math.Ceiling(MaxY / cellSize);
+    public static IEnumerable<(int, int)> GetIntersectingCells(float cx, float cy, float radius, int cellSize) {
+        var minCellX = (int)((cx - radius) / cellSize);
+        var maxCellX = (int)((cx + radius) / cellSize);
+        var minCellY = (int)((cy - radius) / cellSize);
+        var maxCellY = (int)((cy + radius) / cellSize);
 
         for (var x = minCellX; x <= maxCellX; x++) {
             for (var y = minCellY; y <= maxCellY; y++) {
@@ -74,7 +74,7 @@ public class Circle : IShape {
     public bool Equals(Circle other) => Position.Equals(other.Position) && Radius == other.Radius;
     
     public Area2D CreateArea2D() {
-        var area2D = new Area2D() {
+        var area2D = new Area2D {
             Position = Position
         };
         area2D.AddChild(new CollisionShape2D {

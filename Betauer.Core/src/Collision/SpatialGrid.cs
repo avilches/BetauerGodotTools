@@ -20,7 +20,7 @@ public class SpatialGrid {
 
     public void Add(IShape shape) {
         Shapes.Add(shape);
-        var affectedCells = shape.GetCoveredCells(CellSize);
+        var affectedCells = shape.GetIntersectingCells(CellSize);
         foreach (var cell in affectedCells) {
             if (Grid.TryGetValue(cell, out var shapesInCell)) {
                 shapesInCell.Add(shape);
@@ -34,7 +34,7 @@ public class SpatialGrid {
         if (!Shapes.Remove(shape)) {
             return;
         }
-        var affectedCells = shape.GetCoveredCells(CellSize);
+        var affectedCells = shape.GetIntersectingCells(CellSize);
         foreach (var cell in affectedCells) {
             if (Grid.TryGetValue(cell, out var shapesInCell)) {
                 if (shapesInCell.Remove(shape) && shapesInCell.Count == 0) {
@@ -44,49 +44,51 @@ public class SpatialGrid {
         }
     }
 
-    public bool Overlaps(IShape shape) {
-        return GetOverlaps(shape).GetEnumerator().MoveNext();
+    public bool Intersect(IShape shape) {
+        return GetIntersectingShapes(shape).GetEnumerator().MoveNext();
     }
 
-    public IEnumerable<IShape> GetOverlaps(IShape shape) {
-        foreach (var cell in shape.GetCoveredCells(CellSize)) {
+    public bool CircleIntersect(float cx, float cy, float radius) {
+        return GetIntersectingShapes(cx, cy, radius).GetEnumerator().MoveNext();
+    }
+
+    public bool RectangleIntersect(float x, float y, float width, float height) {
+        return GetRectangleIntersectingShapes(x,y, width, height).GetEnumerator().MoveNext();
+    }
+
+    public IEnumerable<IShape> GetIntersectingShapes(IShape shape) {
+        foreach (var cell in shape.GetIntersectingCells(CellSize)) {
             if (!Grid.TryGetValue(cell, out var shapesInCell)) {
                 continue;
             }
-            // First check same type of shapes because circle/circle or rectangle/rectangle are faster
             for (var i = 0; i < shapesInCell.Count; i++) {
                 var otherShape = shapesInCell[i];
                 if (shape == otherShape) continue; // ignore itself
-                if (!shape.SameTypeAs(otherShape)) continue; // ignore other types, only check same type
-                if (shape.Overlaps(otherShape)) {
-                    yield return otherShape;
-                }
-            }
-
-            for (var i = 0; i < shapesInCell.Count; i++) {
-                var otherShape = shapesInCell[i];
-                if (shape == otherShape) continue; // ignore itself
-                if (shape.SameTypeAs(otherShape)) continue; // ignore same type, checked before
-                if (shape.Overlaps(otherShape)) {
-                    yield return otherShape;
-                }
+                if (shape.Intersect(otherShape)) yield return otherShape;
             }
         }
     }
 
-    /// <summary>
-    /// Returns all cells where the shape could be
-    /// </summary>
-    /// <param name="shape"></param>
-    /// <returns></returns>
-    private IEnumerable<(int, int)> GetCellsForShape(IShape shape) {
-        var startX = (int)(shape.MinX / CellSize);
-        var endX = (int)(shape.MaxX / CellSize);
-        var startY = (int)(shape.MinY / CellSize);
-        var endY = (int)(shape.MaxY / CellSize);
-        for (var x = startX; x <= endX; x++) {
-            for (var y = startY; y <= endY; y++) {
-                yield return (x, y);
+    public IEnumerable<IShape> GetIntersectingShapes(float cx, float cy, float radius) {
+        foreach (var cell in Circle.GetIntersectingCells(cx, cy, radius, CellSize)) {
+            if (!Grid.TryGetValue(cell, out var shapesInCell)) {
+                continue;
+            }
+            for (var i = 0; i < shapesInCell.Count; i++) {
+                var otherShape = shapesInCell[i];
+                if (otherShape.IntersectCircle(cx, cy, radius)) yield return otherShape;
+            }
+        }
+    }
+
+    public IEnumerable<IShape> GetRectangleIntersectingShapes(float x, float y, float width, float height) {
+        foreach (var cell in Rectangle.GetIntersectingCells(x, y, width, height, CellSize)) {
+            if (!Grid.TryGetValue(cell, out var shapesInCell)) {
+                continue;
+            }
+            for (var i = 0; i < shapesInCell.Count; i++) {
+                var otherShape = shapesInCell[i];
+                if (otherShape.IntersectRectangle(x, y, width, height)) yield return otherShape;
             }
         }
     }
