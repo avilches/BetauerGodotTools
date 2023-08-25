@@ -11,15 +11,22 @@ public abstract class Shape {
     public abstract float MinY { get; }
     public abstract float MaxY { get; }
 
-    public abstract bool Intersect<T>(T other) where T : Shape;
-    public abstract bool Intersect(Circle other);
-    public abstract bool Intersect(Rectangle other);
+    public abstract bool TryMove(float x, float y);
+    public bool TryMove(Vector2 position) => TryMove(position.X, position.Y);
+
     public abstract bool IntersectCircle(float x, float y, float radius);
     public abstract bool IntersectRectangle(float x, float y, float width, float height);
+    public abstract bool IntersectPoint(float px, float py);
+    public bool Intersect<T>(T other) {
+        if (other is Rectangle rectangle) return Intersect(rectangle);
+        if (other is Circle circle) return Intersect(circle);
+        if (other is Point point) return Intersect(point.Position);
+        return false;
+    }
+    public bool Intersect(Circle other) => IntersectCircle(other.Position.X, other.Position.Y, other.Radius);
+    public bool Intersect(Rectangle other) => IntersectRectangle(other.MinX, other.MinY, other.Width, other.Height);
+    public bool Intersect(Vector2 point) => IntersectPoint(point.X, point.Y);
 
-    public abstract bool IsPointInside(Vector2 point);
-    public abstract bool IsPointInside(float px, float py);
-
-    public abstract IEnumerable<(int, int)> GetIntersectingCells(int cellSize);
+    public abstract (int, int)[] GetIntersectingCells(float cellSize);
     public abstract Area2D CreateArea2D();
 }

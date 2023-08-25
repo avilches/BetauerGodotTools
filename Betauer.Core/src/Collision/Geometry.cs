@@ -92,35 +92,43 @@ public static class Geometry {
             rectangle.Position.X, rectangle.Position.Y, rectangle.Size.X, rectangle.Size.Y);
     }
 
-    public static (int, int) GetPointIntersectingCells(float px, float py, int cellSize) {
+    public static (int, int) GetPointIntersectingCell(float px, float py, float cellSize) {
         var minCellX = (int)Mathf.Floor(px / cellSize);
         var minCellY = (int)Mathf.Floor(py / cellSize);
         return (minCellX, minCellY);
     }
 
-    public static IEnumerable<(int, int)> GetRectangleIntersectingCells(float rx, float ry, float width, float height, int cellSize) {
+    public static (int, int)[] GetRectangleIntersectingCells(float rx, float ry, float width, float height, float cellSize) {
         var minCellX = (int)Mathf.Floor(rx / cellSize);
         var maxCellX = (int)Mathf.Floor((rx + width) / cellSize);
         var minCellY = (int)Mathf.Floor(ry / cellSize);
         var maxCellY = (int)Mathf.Floor((ry + height) / cellSize);
-
+        
+        (int, int)[] cells = new (int, int)[(maxCellX - minCellX + 1) * (maxCellY - minCellY + 1)];
+        var cellIndex = 0;
+        
         for (var x = minCellX; x <= maxCellX; x++) {
             for (var y = minCellY; y <= maxCellY; y++) {
-                yield return (x, y);
+                cells[cellIndex++] = (x, y);
             }
         }
+        return cells;
     }
 
-    public static IEnumerable<(int, int)> GetCircleIntersectingCells(float cx, float cy, float radius, int cellSize) {
+    public static (int, int)[] GetCircleIntersectingCells(float cx, float cy, float radius, float cellSize) {
         var minCellX = (int)Mathf.Floor((cx - radius) / cellSize);
         var maxCellX = (int)Mathf.Floor((cx + radius) / cellSize);
         var minCellY = (int)Mathf.Floor((cy - radius) / cellSize);
         var maxCellY = (int)Mathf.Floor((cy + radius) / cellSize);
 
+        (int, int)[] cells = new (int, int)[(maxCellX - minCellX + 1) * (maxCellY - minCellY + 1)];
+        var cellIndex = 0;
+        
         for (var x = minCellX; x <= maxCellX; x++) {
             for (var y = minCellY; y <= maxCellY; y++) {
-                yield return (x, y);
+                cells[cellIndex++] = (x, y);
             }
         }
+        return cells;
     }
 }

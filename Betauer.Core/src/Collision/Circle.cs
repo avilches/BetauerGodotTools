@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using Godot;
 
@@ -26,7 +25,7 @@ public class Circle : Shape {
 
     public bool TryResize(float newRadius) {
         if (SpatialGrid != null) {
-            if (SpatialGrid.GetCircleIntersectingShapes(Position.X, Position.Y, newRadius).Any(shape => shape != this)) {
+            if (SpatialGrid.GetIntersectingShapesInCircle(Position.X, Position.Y, newRadius).Any(shape => shape != this)) {
                 return false;
             }
             SpatialGrid.Resize(this, newRadius);
@@ -35,9 +34,9 @@ public class Circle : Shape {
         return true;
     }
 
-    public bool TryMove(float x, float y) {
+    public override bool TryMove(float x, float y) {
         if (SpatialGrid != null) {
-            if (SpatialGrid.GetCircleIntersectingShapes(x, y, Radius).Any(shape => shape != this)) {
+            if (SpatialGrid.GetIntersectingShapesInCircle(x, y, Radius).Any(shape => shape != this)) {
                 return false;
             }
             SpatialGrid.Move(this, x, y);
@@ -62,20 +61,6 @@ public class Circle : Shape {
         Radius = radius;
     }
 
-    public override bool Intersect<T>(T other) {
-        if (other is Rectangle otherRectangle) return Geometry.Intersect(this, otherRectangle);
-        if (other is Circle otherCircle) return Geometry.Intersect(this, otherCircle);
-        return false;
-    }
-
-    public override bool Intersect(Circle other) {
-        return Geometry.Intersect(this, other);
-    }
-
-    public override bool Intersect(Rectangle other) {
-        return Geometry.Intersect(this, other);
-    }
-
     public override bool IntersectCircle(float x, float y, float radius) {
         return Geometry.IntersectCircles(Position.X, Position.Y, Radius, x, y, radius);
     }
@@ -84,15 +69,11 @@ public class Circle : Shape {
         return Geometry.IntersectCircleRectangle(Position.X, Position.Y, Radius, x, y, width, height);
     }
 
-    public override bool IsPointInside(Vector2 point) {
-        return Geometry.IsPointInsideCircle(point, this);
-    }
-
-    public override bool IsPointInside(float px, float py) {
+    public override bool IntersectPoint(float px, float py) {
         return Geometry.IsPointInsideCircle(px, py, this);
     }
 
-    public override IEnumerable<(int, int)> GetIntersectingCells(int cellSize) {
+    public override (int, int)[] GetIntersectingCells(float cellSize) {
         return Geometry.GetCircleIntersectingCells(Position.X, Position.Y, Radius, cellSize);
     }
 

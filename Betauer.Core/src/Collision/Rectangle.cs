@@ -27,7 +27,7 @@ public class Rectangle : Shape {
 
     public bool TryResize(float width, float height) {
         if (SpatialGrid != null) {
-            if (SpatialGrid.GetRectangleIntersectingShapes(Position.X, Position.Y, width, height).Any(shape => shape != this)) {
+            if (SpatialGrid.GetIntersectingShapesInRectangle(Position.X, Position.Y, width, height).Any(shape => shape != this)) {
                 return false;
             }
             SpatialGrid.Resize(this, width, height);
@@ -36,9 +36,9 @@ public class Rectangle : Shape {
         return true;
     }
 
-    public bool TryMove(float x, float y) {
+    public override bool TryMove(float x, float y) {
         if (SpatialGrid != null) {
-            if (SpatialGrid.GetRectangleIntersectingShapes(x, y, Width, Height).Any(shape => shape != this)) {
+            if (SpatialGrid.GetIntersectingShapesInRectangle(x, y, Width, Height).Any(shape => shape != this)) {
                 return false;
             }
             SpatialGrid.Move(this, x, y);
@@ -88,20 +88,6 @@ public class Rectangle : Shape {
         Size = size;
     }
 
-    public override bool Intersect<T>(T other) {
-        if (other is Rectangle otherRectangle) return Geometry.Intersect(this, otherRectangle);
-        if (other is Circle otherCircle) return Geometry.Intersect(otherCircle, this);
-        return false;
-    }
-
-    public override bool Intersect(Circle other) {
-        return Geometry.Intersect(this, other);
-    }
-
-    public override bool Intersect(Rectangle other) {
-        return Geometry.Intersect(this, other);
-    }
-
     public override bool IntersectCircle(float x, float y, float radius) {
         return Geometry.IntersectCircleRectangle(x, y, radius, Position.X, Position.Y, Width, Height);
     }
@@ -110,18 +96,14 @@ public class Rectangle : Shape {
         return Geometry.IntersectRectangles(Position.X, Position.Y, Width, Height, x, y, width, height);
     }
 
-    public override bool IsPointInside(float px, float py) {
+    public override bool IntersectPoint(float px, float py) {
         return Geometry.IsPointInsideRectangle(px, py, this);
     }
 
-    public override bool IsPointInside(Vector2 point) {
-        return Geometry.IsPointInsideRectangle(point, this);
-    }
-
-    public override IEnumerable<(int, int)> GetIntersectingCells(int cellSize) {
+    public override (int, int)[] GetIntersectingCells(float cellSize) {
         return Geometry.GetRectangleIntersectingCells(Position.X, Position.Y, Width, Height, cellSize);
     }
-    
+
     public override Area2D CreateArea2D() {
         var area2D = new Area2D {
             Position = Position
@@ -135,6 +117,6 @@ public class Rectangle : Shape {
     }
 
     public bool Equals(Rect2 other) => Position.Equals(other.Position) && Size.Equals(other.Size);
-
+    
     public bool Equals(Rectangle other) => Position.Equals(other.Position) && Size.Equals(other.Size);
 }
