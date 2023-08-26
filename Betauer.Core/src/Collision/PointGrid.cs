@@ -10,7 +10,10 @@ namespace Betauer.Core.Collision;
 /// - Query if there is a point in a given circle
 /// - Get all the points inside a circle
 /// 
-/// It's very efficient and it has a very low memory footprint. If you need more features, like adding and querying points, circles and rectangles
+/// It's very efficient and it has a very low memory footprint: the points per cell are stored in lists. And all these lists are stored in a unidimensional
+/// array, for this reason the grid must have width and height.
+///
+/// If you need more features, like adding and querying points, circles and rectangles
 /// Use <see cref="PointGrid"/> instead.
 /// </summary>
 public sealed class PointGrid {
@@ -25,7 +28,7 @@ public sealed class PointGrid {
     public PointGrid(float width, float height, float minRadius, float maxRadius) {
         Width = width;
         Height = height;
-        CellSize = ((minRadius + maxRadius) * 0.5f) / Mathf.Sqrt2;
+        CellSize = (minRadius + maxRadius) * 0.5f / Mathf.Sqrt2;
         CellsPerX = (int)Math.Ceiling(Width / CellSize);
         CellsPerY = (int)Math.Ceiling(Height / CellSize);
         GridCells = new List<Vector2>[CellsPerX * CellsPerY];
@@ -33,40 +36,48 @@ public sealed class PointGrid {
     }
 
     public bool Add(float x, float y) {
-        var index = GetCellIndexFromPosition(x, y);
+        return Add( new Vector2(x, y));
+    }
+
+    public bool Add(Vector2 point) {
+        var index = GetCellIndexFromPosition(point.X, point.Y);
         if (index == -1) {
             return false;
         }
-
-        var vector2 = new Vector2(x, y);
-        Items.Add(vector2);
+        Items.Add(point);
         var cellItems = GridCells[index];
         if (cellItems != null) {
-            cellItems.Add(vector2);
+            cellItems.Add(point);
         } else {
-            GridCells[index] = new List<Vector2> { vector2 };
+            GridCells[index] = new List<Vector2> { point };
         }
         return true;
     }
 
     public bool Remove(float x, float y) {
-        var index = GetCellIndexFromPosition(x, y);
+        return Remove(new Vector2(x, y));
+    }
+
+    public bool Remove(Vector2 point) {
+        var index = GetCellIndexFromPosition(point.X, point.Y);
         if (index == -1) {
             return false;
         }
-
-        var vector2 = new Vector2(x, y);
         var cellItems = GridCells[index];
         if (cellItems != null) {
-            cellItems!.Remove(vector2);
+            cellItems!.Remove(point);
+            if (cellItems.Count == 0) {
+                GridCells[index] = null;
+            }
         }
-        return Items.Remove(vector2);
+        return Items.Remove(point);
     }
 
     public void Clear() {
         Items.Clear();
         for (var i = 0; i < GridCells.Length; i++) {
             GridCells[i]?.Clear();
+            GridCells[i] = null;
         }
     }
 

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Betauer.Core.Collision;
 using Betauer.Core.Collision.Spatial2D;
+using Betauer.Core.PoissonDiskSampling;
 using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
@@ -12,7 +13,7 @@ namespace Betauer.Core.Tests;
 
 [TestRunner.Test]
 [Only]
-public class CollisionTests : Node2D {
+public class SpatialGridTests : Node2D {
     [TestRunner.SetUp]
     public void SetUp() {
         GetChildren().ForEach(n => n.Free());
