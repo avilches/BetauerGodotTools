@@ -1,7 +1,7 @@
 using System.Linq;
 using Godot;
 
-namespace Betauer.Core.Collision;
+namespace Betauer.Core.Collision.Spatial2D;
 
 public class Circle : Shape {
     private Vector2 _position;
@@ -70,7 +70,7 @@ public class Circle : Shape {
     }
 
     public override bool IntersectPoint(float px, float py) {
-        return Geometry.IsPointInsideCircle(px, py, this);
+        return Geometry.IsPointInsideCircle(px, py, Position.X, Position.Y, Radius);
     }
 
     public override (int, int)[] GetIntersectingCells(float cellSize) {

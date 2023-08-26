@@ -1,8 +1,7 @@
-using System.Collections.Generic;
 using System.Linq;
 using Godot;
 
-namespace Betauer.Core.Collision;
+namespace Betauer.Core.Collision.Spatial2D;
 
 public class Point : Shape {
     private Vector2 _position;

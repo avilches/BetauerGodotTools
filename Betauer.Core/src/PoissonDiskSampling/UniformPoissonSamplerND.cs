@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Godot;
 
 namespace Betauer.Core.PoissonDiskSampling; 
 
@@ -16,9 +17,6 @@ public sealed class UniformPoissonSamplerND {
     /// </summary>
     public List<float[]> Samples { get; private set; }
 
-    /// <summary>
-    /// 
-    /// </summary>
     public float[] GridDimensions { get; }
 
     /// <summary>
@@ -228,7 +226,7 @@ public sealed class UniformPoissonSamplerND {
     /// <returns></returns>
     private float[] GenerateRandomPointInAnnulus(float[] point) {
         float[] randomVector = GetRandomUnitVectorOnHypersphere(_random, _spatialDimensions);
-        float randomDistance = Lerp(Radius, Radius * 2.0f, (float)_random.NextDouble());
+        float randomDistance = Mathf.Lerp(Radius, Radius * 2.0f, (float)_random.NextDouble());
         float[] newSamplePoint = new float[_spatialDimensions];
 
         for (int i = 0; i < _spatialDimensions; ++i) {
@@ -270,8 +268,8 @@ public sealed class UniformPoissonSamplerND {
         int[] maxCell = new int[_spatialDimensions];
 
         for (int i = 0; i < _spatialDimensions; ++i) {
-            float localMin = Clamp(sample[i] - Radius, 0, GridDimensions[i]);
-            float localMax = Clamp(sample[i] + Radius, 0, GridDimensions[i]);
+            float localMin = Math.Clamp(sample[i] - Radius, 0, GridDimensions[i]);
+            float localMax = Math.Clamp(sample[i] + Radius, 0, GridDimensions[i]);
 
             minCell[i] = (int)(localMin / _cellLength);
             maxCell[i] = (int)(localMax / _cellLength);
@@ -341,18 +339,7 @@ public sealed class UniformPoissonSamplerND {
 
         return squaredDistance;
     }
-
-    /// <summary>
-    /// Clamps the value.
-    /// </summary>
-    /// <param name="x"></param>
-    /// <param name="min"></param>
-    /// <param name="max"></param>
-    /// <returns></returns>
-    private static float Clamp(float x, float min, float max) {
-        return (x < min ? min : x > max ? max : x);
-    }
-
+    
     /// <summary>
     /// Returns a unit n-dimensional vector.
     /// </summary>
@@ -379,17 +366,6 @@ public sealed class UniformPoissonSamplerND {
         }
 
         return randomUnitVector;
-    }
-
-    /// <summary>
-    /// Standard linear interpolation.
-    /// </summary>
-    /// <param name="a"></param>
-    /// <param name="b"></param>
-    /// <param name="frac"></param>
-    /// <returns></returns>
-    private static float Lerp(float a, float b, float frac) {
-        return (a * (1.0f - frac) + (b * frac));
     }
 
     /// <summary>

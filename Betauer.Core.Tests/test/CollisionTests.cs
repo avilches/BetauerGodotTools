@@ -1,6 +1,9 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Betauer.Core.Collision;
+using Betauer.Core.Collision.Spatial2D;
 using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
@@ -298,7 +301,7 @@ public class CollisionTests : Node2D {
         spatial.Add(shape);
         Assert.That(spatial.Grid.Count, Is.EqualTo(1));
         Assert.That(spatial.Grid[(0, 0)].Contains(shape));
-        
+
         shape.Position = new Vector2(4, 4);
         Assert.That(shape.Position, Is.EqualTo(new Vector2(4, 4)));
         Assert.That(spatial.Grid[(0, 0)].Contains(shape));
@@ -448,9 +451,9 @@ public class CollisionTests : Node2D {
         var shape2 = new Circle(14, 6, 2);
         spatial.Add(shape1);
         spatial.Add(shape2);
-        
-        Assert.That(shape1.TryMove(7,6));
-        Assert.That(!shape1.TryMove(10,6));
+
+        Assert.That(shape1.TryMove(7, 6));
+        Assert.That(!shape1.TryMove(10, 6));
         Assert.That(shape1.Position, Is.EqualTo(new Vector2(7, 6)));
     }
 
@@ -461,7 +464,7 @@ public class CollisionTests : Node2D {
         var shape2 = new Circle(14, 6, 2);
         spatial.Add(shape1);
         spatial.Add(shape2);
-        
+
         Assert.That(shape1.TryResize(5));
         Assert.That(!shape1.TryResize(6));
         Assert.That(shape1.Radius, Is.EqualTo(5));
@@ -474,9 +477,9 @@ public class CollisionTests : Node2D {
         var shape2 = new Circle(14, 6, 2);
         spatial.Add(shape1);
         spatial.Add(shape2);
-        
-        Assert.That(shape1.TryMove(7,6));
-        Assert.That(!shape1.TryMove(10,6));
+
+        Assert.That(shape1.TryMove(7, 6));
+        Assert.That(!shape1.TryMove(10, 6));
         Assert.That(shape1.Position, Is.EqualTo(new Vector2(7, 6)));
     }
 
@@ -487,7 +490,7 @@ public class CollisionTests : Node2D {
         var shape2 = new Circle(14, 6, 2);
         spatial.Add(shape1);
         spatial.Add(shape2);
-        
+
         Assert.That(shape1.TryResize(5, 3));
         Assert.That(!shape1.TryResize(6, 3));
         Assert.That(shape1.Size, Is.EqualTo(new Vector2(5, 3)));
@@ -505,7 +508,7 @@ public class CollisionTests : Node2D {
         Assert.That(spatial.IntersectPoint(6, 6));
         Assert.That(spatial.IntersectPoint(10, 10));
         Assert.That(!spatial.IntersectPoint(11, 10));
-        
+
         Assert.That(!spatial.IntersectPoint(14, 3));
         Assert.That(spatial.IntersectPoint(14, 4));
         Assert.That(spatial.IntersectPoint(14, 8));
@@ -517,6 +520,31 @@ public class CollisionTests : Node2D {
         Assert.That(spatial.IntersectCircle(20, 20, 1));
         Assert.That(!spatial.IntersectRectangle(18, 18, 1, 1));
         Assert.That(spatial.IntersectRectangle(20, 20, 1, 1));
+    }
+
+    [TestRunner.Test]
+    public void CompareSpatialGridWithPointGridTest() {
+        for (int i = 5; i < 20; i++) {
+            var random = new Random(0);
+            var spatial = new SpatialGrid(i, i * 4);
+            var spatial2d = new PointGrid(100, 100, i, i * 3);
+
+            for (int j = 0; j < 20; j++) {
+                var p = new Point(random.Next(80) + 20, random.Next(80) + 20);
+                spatial.Add(p);
+                spatial2d.Add(p.Position.X, p.Position.Y);
+            }
+            for (int j = 0; j < 100; j++) {
+                var circle = new Circle(random.Next(80) + 20, random.Next(80) + 20, random.Next(80) + 20);
+                var intersectSpacial = spatial.IntersectShape(circle);
+                var intersectSpacial2D = spatial2d.Intersects(circle.Position.X, circle.Position.Y, circle.Radius);
+                Assert.That(intersectSpacial, Is.EqualTo(intersectSpacial2D));
+
+                List<Vector2> spatialPoints = spatial.GetIntersectingShapesInShape(circle).OfType<Point>().Select(p => p.Position).ToList();
+                List<Vector2> spatial2DPoints = spatial2d.GetIntersectingPoints(circle.Position.X, circle.Position.Y, circle.Radius).ToList();
+                CollectionAssert.AreEquivalent(spatialPoints, spatial2DPoints);
+            }
+        }
     }
 
     private void AssertRectangleFitCells(int cellSize, float x, float y, float width, float height, (int, int)[] cells) {

@@ -102,11 +102,12 @@ public sealed class UniformPoissonSampler2D {
     /// <returns></returns>
     public List<Vector2> Generate() {
         Initialize();
-        GenerateFirstPoint();
+        var firstPoint = new Vector2((float)_random.NextDouble() * Width,(float)_random.NextDouble() * Height);
+        AddSample(ref firstPoint);
 
         while (_activeList.Count > 0) {
             var sampleFound = false;
-            var activeIndex = GetRandomActiveListIndex();
+            var activeIndex = _random.Next(_activeList.Count);
             Vector2 currentSample = Samples[_activeList[activeIndex]];
 
             for (var i = 0; i < RejectionLimit; ++i) {
@@ -146,17 +147,6 @@ public sealed class UniformPoissonSampler2D {
     }
 
     /// <summary>
-    /// Generates the first random point in the sample domain and adds it to our collections.
-    /// </summary>
-    private void GenerateFirstPoint() {
-        Vector2 sample = new Vector2(
-            (float)_random.NextDouble() * Width,
-            (float)_random.NextDouble() * Height);
-
-        AddSample(ref sample);
-    }
-
-    /// <summary>
     /// Adds the new sample to the samples list, active list, and spatial grid.
     /// </summary>
     /// <param name="sample"></param>
@@ -180,14 +170,6 @@ public sealed class UniformPoissonSampler2D {
         int dy = (int)(sample.Y / _cellLength);
 
         return (dx + (dy * _cellsPerX));
-    }
-
-    /// <summary>
-    /// Retrieves a random index from the active list.
-    /// </summary>
-    /// <returns></returns>
-    private int GetRandomActiveListIndex() {
-        return _random.Next(_activeList.Count);
     }
 
     /// <summary>

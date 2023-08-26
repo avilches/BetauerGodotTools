@@ -1,7 +1,6 @@
-using System.Collections.Generic;
 using Godot;
 
-namespace Betauer.Core.Collision;
+namespace Betauer.Core.Collision.Spatial2D;
 
 public abstract class Shape {
     public SpatialGrid? SpatialGrid { get; internal set; }

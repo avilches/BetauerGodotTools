@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Generic;
+using Betauer.Core.Collision.Spatial2D;
 using Godot;
 
 namespace Betauer.Core.Collision;
@@ -56,14 +56,6 @@ public static class Geometry {
         return dx * dx + dy * dy <= radius * radius;
     }
 
-    public static bool IsPointInsideCircle(Vector2 point, Circle circle) {
-        return IsPointInsideCircle(point.X, point.Y, circle);
-    }
-
-    public static bool IsPointInsideCircle(float px, float py, Circle circle) {
-        return IsPointInsideCircle(px, py, circle.Position.X, circle.Position.Y, circle.Radius);
-    }
-
     public static bool IsPointInsideRectangle(Vector2 point, Rectangle rectangle) {
         return IsPointInsideRectangle(point.X, point.Y, rectangle);
     }
@@ -76,20 +68,6 @@ public static class Geometry {
         return IntersectRectangles(
             r1.Position.X, r1.Position.Y, r1.Size.X, r1.Size.Y,
             r2.Position.X, r2.Position.Y, r2.Size.X, r2.Size.Y);
-    }
-
-    public static bool Intersect(Circle c1, Circle c2) {
-        return IntersectCircles(c1.Position.X, c1.Position.Y, c1.Radius, c2.Position.X, c2.Position.Y, c2.Radius);
-    }
-
-    public static bool Intersect(Rectangle rectangle, Circle circle) {
-        return Intersect(circle, rectangle);
-    }
-
-    public static bool Intersect(Circle circle, Rectangle rectangle) {
-        return IntersectCircleRectangle(
-            circle.Position.X, circle.Position.Y, circle.Radius,
-            rectangle.Position.X, rectangle.Position.Y, rectangle.Size.X, rectangle.Size.Y);
     }
 
     public static (int, int) GetPointIntersectingCell(float px, float py, float cellSize) {
