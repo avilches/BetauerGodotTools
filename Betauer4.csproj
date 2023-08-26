@@ -7,6 +7,8 @@
     <PackageId>Betauer4</PackageId>
     <Nullable>enable</Nullable>
     <EnableDefaultCompileItems>False</EnableDefaultCompileItems>
+    <Configurations>Debug;ExportDebug;ExportRelease;RELEASE</Configurations>
+    <Platforms>AnyCPU</Platforms>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="ZString" Version="2.5.0" />
