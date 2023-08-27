@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
@@ -15,16 +16,49 @@ namespace Betauer.Core.Collision.Spatial2D;
 public class SpatialGrid {
     public float CellSize { get; }
     public Dictionary<(int, int), List<Shape>> Grid { get; }
-    public List<Shape> Shapes { get; }
-
-    public SpatialGrid(float minRadius, float maxRadius) : this((int)((minRadius + maxRadius) * 0.5f / Mathf.Sqrt2)) {
-    }
+    protected List<Shape> Shapes { get; }
 
     public SpatialGrid(float cellSize) {
         CellSize = cellSize;
         Grid = new Dictionary<(int, int), List<Shape>>();
         Shapes = new List<Shape>();
     }
+
+    public List<Shape> FindShapes() => Shapes.ToList();
+    public List<Shape> FindShapes(Func<Shape, bool> match) => Shapes.Where(match).ToList();
+    
+    public List<T> FindShapes<T>() where T : Shape => Shapes.OfType<T>().ToList();
+    public List<T> FindShapes<T>(Func<T, bool> match) where T : Shape => Shapes.OfType<T>().Where(match).ToList();
+
+    public void ForEach(Action<Shape> action) => Shapes.ForEach(action);
+    public void ForEach<T>(Action<T> action) where T : Shape => Shapes.ForEach(shape => {
+        if (shape is T t) {
+            action(t);
+        }
+    });
+
+    public void RemoveAll() {
+        Shapes.ForEach(shape => shape.SpatialGrid = null);
+        Shapes.Clear();
+        Grid.Clear();
+    }
+    
+    public void RemoveAll(Func<Shape, bool> match) => Shapes.RemoveAll(shape => {
+        if (!match(shape)) return false;
+        if (shape is Point point) RemovePointFromCells(point);
+        if (shape is Circle circle) RemoveCircleFromCells(circle);
+        if (shape is Rectangle rectangle) RemoveRectangleFromCells(rectangle);
+        shape.SpatialGrid = null;
+        return true;
+    });
+    
+    public void RemoveAll<T>(Func<T, bool> match) where T : Shape => RemoveAll(shape => shape is T t && match(t));
+
+    public static SpatialGrid FromAverageDistance(float averageDistance) =>
+        new SpatialGrid(averageDistance / Mathf.Sqrt2);
+
+    public static SpatialGrid FromAverageDistance(float minRadius, float maxRadius) =>
+        new SpatialGrid((int)((minRadius + maxRadius) * 0.5f / Mathf.Sqrt2));
 
     public void Add(Shape shape) {
         if (shape is Point point) Add(point);
@@ -87,14 +121,28 @@ public class SpatialGrid {
     public void Remove(Point point) {
         Shapes.Remove(point);
         point.SpatialGrid = this;
-        var x = (int)Mathf.Floor(point.Position.X / CellSize);
-        var y = (int)Mathf.Floor(point.Position.Y / CellSize);
-        RemoveShapeFromCell(point, (x, y));
+        RemovePointFromCells(point);
     }
 
     public void Remove(Circle circle) {
         Shapes.Remove(circle);
         circle.SpatialGrid = this;
+        RemoveCircleFromCells(circle);
+    }
+
+    private void RemovePointFromCells(Point point) {
+        var x = (int)Mathf.Floor(point.Position.X / CellSize);
+        var y = (int)Mathf.Floor(point.Position.Y / CellSize);
+        RemoveShapeFromCell(point, (x, y));
+    }
+
+    public void Remove(Rectangle rectangle) {
+        Shapes.Remove(rectangle);
+        rectangle.SpatialGrid = this;
+        RemoveRectangleFromCells(rectangle);
+    }
+
+    private void RemoveCircleFromCells(Circle circle) {
         var minCellX = (int)Mathf.Floor((circle.Position.X - circle.Radius) / CellSize);
         var maxCellX = (int)Mathf.Floor((circle.Position.X + circle.Radius) / CellSize);
         var minCellY = (int)Mathf.Floor((circle.Position.Y - circle.Radius) / CellSize);
@@ -107,9 +155,7 @@ public class SpatialGrid {
         }
     }
 
-    public void Remove(Rectangle rectangle) {
-        Shapes.Remove(rectangle);
-        rectangle.SpatialGrid = this;
+    private void RemoveRectangleFromCells(Rectangle rectangle) {
         var minCellX = (int)Mathf.Floor(rectangle.Position.X / CellSize);
         var maxCellX = (int)Mathf.Floor((rectangle.Position.X + rectangle.Width) / CellSize);
         var minCellY = (int)Mathf.Floor(rectangle.Position.Y / CellSize);
@@ -196,7 +242,8 @@ public class SpatialGrid {
     public IEnumerable<Shape> GetIntersectingShapesInShape(Shape shape) {
         if (shape is Point point) return GetIntersectingShapesInPoint(point.Position.X, point.Position.Y, point);
         if (shape is Circle circle) return GetIntersectingShapesInCircle(circle.Position.X, circle.Position.Y, circle.Radius, circle);
-        if (shape is Rectangle rectangle) return GetIntersectingShapesInRectangle(rectangle.Position.X, rectangle.Position.Y, rectangle.Width, rectangle.Height, rectangle);
+        if (shape is Rectangle rectangle)
+            return GetIntersectingShapesInRectangle(rectangle.Position.X, rectangle.Position.Y, rectangle.Width, rectangle.Height, rectangle);
         return Enumerable.Empty<Shape>();
     }
 
@@ -253,7 +300,7 @@ public class SpatialGrid {
         }
     }
 
-    internal void Move(Point point, float x, float y) {
+    internal void Update(Point point, float x, float y) {
         if (!Shapes.Contains(point)) return;
         if (point.Position.X == x && point.Position.Y == y) return;
         var intersectingCells = point.GetIntersectingCells(CellSize)[0];
@@ -264,35 +311,19 @@ public class SpatialGrid {
         }
     }
 
-    internal void Move(Circle rectangle, float x, float y) {
-        if (!Shapes.Contains(rectangle)) return;
-        if (rectangle.Position.X == x && rectangle.Position.Y == y) return;
-        var intersectingCells = rectangle.GetIntersectingCells(CellSize);
-        var newIntersectingCells = Geometry.GetCircleIntersectingCells(x, y, rectangle.Radius, CellSize);
-        RefreshCells(rectangle, intersectingCells, newIntersectingCells);
-    }
-
-    internal void Move(Rectangle rectangle, float x, float y) {
-        if (!Shapes.Contains(rectangle)) return;
-        if (rectangle.Position.X == x && rectangle.Position.Y == y) return;
-        var intersectingCells = rectangle.GetIntersectingCells(CellSize);
-        var newIntersectingCells = Geometry.GetRectangleIntersectingCells(x, y, rectangle.Width, rectangle.Height, CellSize);
-        RefreshCells(rectangle, intersectingCells, newIntersectingCells);
-    }
-
-    internal void Resize(Circle circle, float radius) {
+    internal void Update(Circle circle, float x, float y, float radius) {
         if (!Shapes.Contains(circle)) return;
-        if (circle.Radius == radius) return;
+        if (circle.Position.X == x && circle.Position.Y == y && circle.Radius == radius) return;
         var intersectingCells = circle.GetIntersectingCells(CellSize);
-        var newIntersectingCells = Geometry.GetCircleIntersectingCells(circle.Position.X, circle.Position.Y, radius, CellSize);
+        var newIntersectingCells = Geometry.GetCircleIntersectingCells(x, y, radius, CellSize);
         RefreshCells(circle, intersectingCells, newIntersectingCells);
     }
 
-    internal void Resize(Rectangle rectangle, float width, float height) {
+    internal void Update(Rectangle rectangle, float x, float y, float width, float height) {
         if (!Shapes.Contains(rectangle)) return;
-        if (rectangle.Size.X == width && rectangle.Size.Y == height) return;
+        if (rectangle.Size.X == width && rectangle.Size.Y == height && rectangle.Position.X == x && rectangle.Position.Y == y) return;
         var intersectingCells = rectangle.GetIntersectingCells(CellSize);
-        var newIntersectingCells = Geometry.GetRectangleIntersectingCells(rectangle.Position.X, rectangle.Position.Y, width, height, CellSize);
+        var newIntersectingCells = Geometry.GetRectangleIntersectingCells(x, y, width, height, CellSize);
         RefreshCells(rectangle, intersectingCells, newIntersectingCells);
     }
 

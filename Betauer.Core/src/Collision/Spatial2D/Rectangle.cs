@@ -10,7 +10,7 @@ public class Rectangle : Shape {
     public Vector2 Position {
         get => _position;
         set {
-            SpatialGrid?.Move(this, value.X, value.Y);
+            SpatialGrid?.Update(this, value.X, value.Y, _size.X, _size.Y);
             _position = value;
         }
     }
@@ -18,30 +18,35 @@ public class Rectangle : Shape {
     public Vector2 Size {
         get => _size;
         set {
-            SpatialGrid?.Resize(this, value.X, value.Y);
+            SpatialGrid?.Update(this, _position.X, _position.Y, value.X, value.Y);
             _size = value;
         }
     }
 
-    public bool TryResize(float width, float height) {
-        if (SpatialGrid != null) {
-            if (SpatialGrid.GetIntersectingShapesInRectangle(Position.X, Position.Y, width, height).Any(shape => shape != this)) {
-                return false;
-            }
-            SpatialGrid.Resize(this, width, height);
-        }
+    public bool Update(float x, float y, float width, float height) {
+        SpatialGrid?.Update(this, x, y, width, height);
+        _position = new Vector2(x, y);
         _size = new Vector2(width, height);
         return true;
     }
 
     public override bool TryMove(float x, float y) {
+        return TryUpdate(x, y, _size.X, _size.Y);
+    }
+
+    public bool TryResize(float width, float height) {
+        return TryUpdate(_position.X, _position.Y, width, height);
+    }
+
+    public bool TryUpdate(float x, float y, float width, float height) {
         if (SpatialGrid != null) {
-            if (SpatialGrid.GetIntersectingShapesInRectangle(x, y, Width, Height).Any(shape => shape != this)) {
+            if (SpatialGrid.GetIntersectingShapesInRectangle(x, y, width, height).Any(shape => shape != this)) {
                 return false;
             }
-            SpatialGrid.Move(this, x, y);
+            SpatialGrid.Update(this, x, y, width, height);
         }
         _position = new Vector2(x, y);
+        _size = new Vector2(width, height);
         return true;
     }
 

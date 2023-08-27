@@ -9,7 +9,7 @@ public class Point : Shape {
     public Vector2 Position {
         get => _position;
         set {
-            SpatialGrid?.Move(this, value.X, value.Y);
+            SpatialGrid?.Update(this, value.X, value.Y);
             _position = value;
         }
     }
@@ -19,7 +19,7 @@ public class Point : Shape {
             if (SpatialGrid.GetIntersectingShapesInPoint(x, y).Any(shape => shape != this)) {
                 return false;
             }
-            SpatialGrid.Move(this, x, y);
+            SpatialGrid.Update(this, x, y);
         }
         _position = new Vector2(x, y);
         return true;

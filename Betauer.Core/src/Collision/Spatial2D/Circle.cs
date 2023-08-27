@@ -10,7 +10,7 @@ public class Circle : Shape {
     public Vector2 Position {
         get => _position;
         set {
-            SpatialGrid?.Move(this, value.X, value.Y);
+            SpatialGrid?.Update(this, value.X, value.Y, _radius);
             _position = value;
         }
     }
@@ -18,30 +18,35 @@ public class Circle : Shape {
     public float Radius {
         get => _radius;
         set {
-            SpatialGrid?.Resize(this, value);
+            SpatialGrid?.Update(this, _position.X, _position.Y, value);
             _radius = value;
         }
     }
 
-    public bool TryResize(float newRadius) {
-        if (SpatialGrid != null) {
-            if (SpatialGrid.GetIntersectingShapesInCircle(Position.X, Position.Y, newRadius).Any(shape => shape != this)) {
-                return false;
-            }
-            SpatialGrid.Resize(this, newRadius);
-        }
-        _radius = newRadius;
+    public bool Update(float x, float y, float radius) {
+        SpatialGrid?.Update(this, x, y, radius);
+        _position = new Vector2(x, y);
+        _radius = radius;
         return true;
     }
 
     public override bool TryMove(float x, float y) {
+        return TryUpdate(x, y, _radius);
+    }
+
+    public bool TryResize(float radius) {
+        return TryUpdate(_position.X, _position.Y, radius);
+    }
+
+    public bool TryUpdate(float x, float y, float radius) {
         if (SpatialGrid != null) {
-            if (SpatialGrid.GetIntersectingShapesInCircle(x, y, Radius).Any(shape => shape != this)) {
+            if (SpatialGrid.GetIntersectingShapesInCircle(x, y, radius).Any(shape => shape != this)) {
                 return false;
             }
-            SpatialGrid.Move(this, x, y);
+            SpatialGrid.Update(this, x, y, radius);
         }
         _position = new Vector2(x, y);
+        _radius = radius;
         return true;
     }
 
