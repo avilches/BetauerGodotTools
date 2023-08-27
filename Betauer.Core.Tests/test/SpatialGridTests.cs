@@ -527,7 +527,7 @@ public class SpatialGridTests : Node2D {
     public void CompareSpatialGridWithPointGridTest() {
         for (int i = 5; i < 20; i++) {
             var random = new Random(0);
-            var spatial = new SpatialGrid(i, i * 4);
+            var spatial = SpatialGrid.FromAverageDistance(i, i * 4);
             var spatial2d = new PointGrid(100, 100, i, i * 3);
 
             for (int j = 0; j < 20; j++) {

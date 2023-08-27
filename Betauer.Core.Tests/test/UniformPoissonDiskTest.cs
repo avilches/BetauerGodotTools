@@ -1,9 +1,7 @@
 using System;
-using System.Linq;
 using Betauer.Core.Collision.Spatial2D;
 using Betauer.Core.PoissonDiskSampling;
 using Betauer.TestRunner;
-using Godot;
 using NUnit.Framework;
 
 namespace Betauer.Core.Tests;
@@ -22,7 +20,7 @@ public class UniformPoissonDiskTest {
             points.ForEach(point => {
                 spatial.Add(new Point(point));
             });
-            spatial.Shapes.OfType<Point>().ForEach(point => {
+            spatial.ForEach<Point>(point => {
                 Assert.That(spatial.IntersectCircle(point.Position.X, point.Position.Y, i/2f, point), Is.False);
             });
         }
