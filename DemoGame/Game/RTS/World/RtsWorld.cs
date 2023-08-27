@@ -15,105 +15,106 @@ using Godot;
 namespace Veronenger.Game.RTS.World;
 
 public partial class RtsWorld : Node, IInjectable {
-	[Inject] private WorldGenerator WorldGenerator { get; set; }
-	[Inject] private GameObjectRepository GameObjectRepository { get; set; }
-	[Inject] public RtsConfig RtsConfig { get; private set; }
-	[Inject] public CameraContainer CameraContainer { get; private set; }
-	[Inject] protected DebugOverlayManager DebugOverlayManager { get; set; }
-	private readonly DragCameraController _dragCameraController = new();
-	
-	[NodePath("Grasslands")] private TileMap Grasslands { get; set; }
-	[NodePath("TextureTerrainMap")] private Sprite2D Sprite2D { get; set; }
+    [Inject] private WorldGenerator WorldGenerator { get; set; }
+    [Inject] private GameObjectRepository GameObjectRepository { get; set; }
+    [Inject] public RtsConfig RtsConfig { get; private set; }
+    [Inject] public CameraContainer CameraContainer { get; private set; }
+    [Inject] protected DebugOverlayManager DebugOverlayManager { get; set; }
+    private readonly DragCameraController _dragCameraController = new();
 
-	private CameraController CameraController;
-	private CameraGameObject CameraGameObject;
-	private Camera2D Camera => CameraController.Camera2D;
+    [NodePath("Grasslands")] private TileMap Grasslands { get; set; }
+    [NodePath("TextureTerrainMap")] private Sprite2D TextureTerrainMap { get; set; }
+    [NodePath("TexturePoisson")] private Sprite2D TexturePoisson { get; set; }
 
-	public enum RtsState {
-		DoNothing,
-		Idle
-	}
+    private CameraController CameraController;
+    private CameraGameObject CameraGameObject;
+    private Camera2D Camera => CameraController.Camera2D;
 
-	public enum RtsTransition {
-		Idle,
-	}
+    public enum RtsState {
+        DoNothing,
+        Idle
+    }
 
-	private readonly FsmNodeSync<RtsState, RtsTransition> _fsm = new(RtsState.DoNothing, "ScreenState.FSM", true);
+    public enum RtsTransition {
+        Idle,
+    }
 
-	public void PostInject() {
-		_fsm.On(RtsTransition.Idle).Set(RtsState.Idle);
-		
-		_fsm.State(RtsState.DoNothing)
-			.Enter(() => {
-				_dragCameraController.Enable(false);
-			})
-			.Build();
+    private readonly FsmNodeSync<RtsState, RtsTransition> _fsm = new(RtsState.DoNothing, "ScreenState.FSM", true);
 
-		_fsm.State(RtsState.Idle)
-			.Enter(() => {
-				_dragCameraController.Enable();
-			})
-			.OnInput(Zooming)
-			.Build();
-		
-		_fsm.Execute();
+    public void PostInject() {
+        _fsm.On(RtsTransition.Idle).Set(RtsState.Idle);
 
-		AddChild(_fsm);
+        _fsm.State(RtsState.DoNothing)
+            .Enter(() => { _dragCameraController.Enable(false); })
+            .Build();
 
-		var colorRampOffsets = GetOffsets();
-		DebugOverlayManager.Overlay("RTS")
-			.SetMinSize(400, 100)
-			.Edit("Ranges", string.Join("|", colorRampOffsets), SetOffsets).SetMinSize(350);
-	}
+        _fsm.State(RtsState.Idle)
+            .Enter(() => { _dragCameraController.Enable(); })
+            .OnInput(Zooming)
+            .Build();
 
-	private List<float> GetOffsets() {
-		var colorRampOffsets = ((NoiseTexture2D)Sprite2D.Texture).ColorRamp.Offsets.ToList();
-		colorRampOffsets.RemoveAt(0);
-		return colorRampOffsets;
-	}
+        _fsm.Execute();
 
-	private void SetOffsets(string offsets) {
-		((NoiseTexture2D)Sprite2D.Texture).ColorRamp.Offsets = offsets.Split("|").Select(float.Parse).Prepend(0).ToArray();
-		WorldGenerator.Generate(Grasslands, (NoiseTexture2D)Sprite2D.Texture);
-	}
+        AddChild(_fsm);
 
-	private void Zooming(InputEvent @event) {
-		if (@event.IsKeyJustPressed(Key.Q) || @event.IsClickPressed(MouseButton.WheelUp)) {
-			if (CameraGameObject.ZoomLevel == RtsConfig.ZoomLevels.Count - 1) return;
-			var targetZoom = RtsConfig.ZoomLevels[++CameraGameObject.ZoomLevel];
-			CameraController.Zoom(new Vector2(targetZoom, targetZoom), RtsConfig.ZoomTime, Easings.Linear, CameraController.Camera2D.GetLocalMousePosition);
+        var colorRampOffsets = GetOffsets();
+        DebugOverlayManager.Overlay("RTS")
+            .SetMinSize(400, 100)
+            .Edit("Ranges", string.Join("|", colorRampOffsets), SetOffsets).SetMinSize(350);
+    }
 
-			GetViewport().SetInputAsHandled();
-		} else if (@event.IsKeyJustPressed(Key.E) || @event.IsClickPressed(MouseButton.WheelDown)) {
-			if (CameraGameObject.ZoomLevel == 0) return;
-			var targetZoom = RtsConfig.ZoomLevels[--CameraGameObject.ZoomLevel];
-			CameraController.Zoom(new Vector2(targetZoom, targetZoom), RtsConfig.ZoomTime, Easings.Linear, CameraController.Camera2D.GetLocalMousePosition);
+    private List<float> GetOffsets() {
+        var colorRampOffsets = ((NoiseTexture2D)TextureTerrainMap.Texture).ColorRamp.Offsets.ToList();
+        colorRampOffsets.RemoveAt(0);
+        return colorRampOffsets;
+    }
 
-			GetViewport().SetInputAsHandled();
-		}
-	}
+    private void SetOffsets(string offsets) {
+        ((NoiseTexture2D)TextureTerrainMap.Texture).ColorRamp.Offsets = offsets.Split("|").Select(float.Parse).Prepend(0).ToArray();
+        WorldGenerator.Generate(Grasslands, (NoiseTexture2D)TextureTerrainMap.Texture);
+    }
 
-	public void SetMainCamera(Camera2D camera2D) {
-		CameraController = CameraContainer.Camera(camera2D);
-		_dragCameraController.Attach(camera2D).WithMouseButton(MouseButton.Left).Enable(false);
-	}
+    private void Zooming(InputEvent @event) {
+        if (@event.IsKeyJustPressed(Key.Q) || @event.IsClickPressed(MouseButton.WheelUp)) {
+            if (CameraGameObject.ZoomLevel == RtsConfig.ZoomLevels.Count - 1) return;
+            var targetZoom = RtsConfig.ZoomLevels[++CameraGameObject.ZoomLevel];
+            CameraController.Zoom(new Vector2(targetZoom, targetZoom), RtsConfig.ZoomTime, Easings.Linear, CameraController.Camera2D.GetLocalMousePosition);
 
-	public void StartNewGame() {
-		CameraGameObject = GameObjectRepository.Create<CameraGameObject>("ScreenState", "ScreenState");
-		Init();
-		WorldGenerator.Generate(Grasslands, (NoiseTexture2D)Sprite2D.Texture);
-	}
+            GetViewport().SetInputAsHandled();
+        } else if (@event.IsKeyJustPressed(Key.E) || @event.IsClickPressed(MouseButton.WheelDown)) {
+            if (CameraGameObject.ZoomLevel == 0) return;
+            var targetZoom = RtsConfig.ZoomLevels[--CameraGameObject.ZoomLevel];
+            CameraController.Zoom(new Vector2(targetZoom, targetZoom), RtsConfig.ZoomTime, Easings.Linear, CameraController.Camera2D.GetLocalMousePosition);
 
-	public void LoadGame(RtsSaveGameConsumer consumer) {
-		CameraGameObject = GameObjectRepository.Get<CameraGameObject>("ScreenState");
-		Init();
-		CameraController.Camera2D.Position = CameraGameObject.Position;
-	}
+            GetViewport().SetInputAsHandled();
+        }
+    }
 
-	private void Init() {
-		CameraGameObject.Configure(Camera);
-		var zoom = RtsConfig.ZoomLevels[CameraGameObject.ZoomLevel];
-		CameraController.Camera2D.Zoom = new Vector2(zoom, zoom);
-		_fsm.Send(RtsTransition.Idle);
-	}
+    public void SetMainCamera(Camera2D camera2D) {
+        CameraController = CameraContainer.Camera(camera2D);
+        _dragCameraController.Attach(camera2D).WithMouseButton(MouseButton.Left).Enable(false);
+    }
+
+    public async void StartNewGame() {
+        CameraGameObject = GameObjectRepository.Create<CameraGameObject>("ScreenState", "ScreenState");
+        Init();
+        WorldGenerator.Generate(Grasslands, (NoiseTexture2D)TexturePoisson.Texture);
+
+        var poissonDemos = new PoissonDemos(TextureTerrainMap, TexturePoisson);
+        AddChild(poissonDemos);
+        poissonDemos.QueueFree();
+    }
+
+    public void LoadGame(RtsSaveGameConsumer consumer) {
+        CameraGameObject = GameObjectRepository.Get<CameraGameObject>("ScreenState");
+        Init();
+        CameraController.Camera2D.Position = CameraGameObject.Position;
+    }
+
+    private void Init() {
+        CameraGameObject.Configure(Camera);
+        var zoom = RtsConfig.ZoomLevels[CameraGameObject.ZoomLevel];
+        CameraController.Camera2D.Zoom = new Vector2(zoom, zoom);
+        _fsm.Send(RtsTransition.Idle);
+    }
 }
