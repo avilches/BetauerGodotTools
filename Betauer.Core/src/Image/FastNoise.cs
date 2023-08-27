@@ -3,10 +3,10 @@ using Godot;
 namespace Betauer.Core.Image;
 
 /// <summary>
-/// A Noise wrapper to get values faster.
-///
-/// The trick is to create a NoiseTexture2D with the noise where all the values are calculated and normalized and then, get the image as array of bytes, so
-/// it can be used as a cached and access to the values directly (no inter-op with Godot), which is faster than using GetNoise2D.
+/// A Noise wrapper to get values faster from a Godot Noise class. It creates a image with the noise, so all the values in the width x height size
+/// must b calculated and normalized to create the image. Then, it convert the internal image to a L8 format (just one byte per color), which is the smallest
+/// possible binary to format to store the noise and get the image as array of bytes. This array of bytes can be used as a cache and allow access to the noise
+/// values directly (no inter-op with Godot), which is faster than using noise.GetNoise2D.
 /// </summary>
 public class FastNoise {
     public NoiseTexture2D NoiseTexture2D { get; private set; }
