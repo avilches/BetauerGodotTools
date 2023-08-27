@@ -1,3 +1,4 @@
+using System;
 using Godot;
 
 namespace Betauer.Core.Image;
@@ -27,7 +28,7 @@ public class FastImage {
     }
 
     public bool HasImageTexture => _imageTexture != null;
-    
+
     public ImageTexture ImageTexture {
         get {
             if (_imageTexture == null) {
@@ -118,16 +119,16 @@ public class FastImage {
         for (var drawY = y; drawY < lineEnd; drawY++) {
             var pixelEnd = x + width;
             for (var drawX = x; drawX < pixelEnd; drawX++) {
-                SetPixel(drawY, drawX, r8, g8, b8, a8);
+                Write(drawY, drawX, r8, g8, b8, a8);
             }
         }
     }
 
     public void SetPixel(int x, int y, Color color) {
-        SetPixel(x, y, (byte)color.R8, (byte)color.G8, (byte)color.B8, (byte)color.A8);
+        Write(x, y, (byte)color.R8, (byte)color.G8, (byte)color.B8, (byte)color.A8);
     }
 
-    public void SetPixel(int x, int y, byte r, byte g, byte b, byte a) {
+    public void Write(int x, int y, byte r, byte g, byte b, byte a) {
         if (x < 0 || y < 0 || x >= _width || y >= _height) return;
         var ofs = (y * _width + x) * BytesPerPixel;
         _rawImage[ofs + 0] = r;
@@ -144,7 +145,12 @@ public class FastImage {
         _imageTexture?.Update(Image);
     }
 
-    public void DrawCircle(int centerX, int centerY, int r, Color color) {
+    public void DrawCircle(int cx, int cy, int r, Color color, bool fill = false) {
+        if (fill) DrawCircleFill(cx, cy, r, color);
+        else DrawCircleOutline(cx, cy, r, color);
+    }
+
+    private void DrawCircleOutline(int centerX, int centerY, int r, Color color) {
         var x = r;
         var y = 0;
 
@@ -157,8 +163,8 @@ public class FastImage {
 
         var error = 1 - r;
         while (x > y) {
-            y++;                                                         
-            if (error <= 0) 
+            y++;
+            if (error <= 0)
                 error = error + 2 * y + 1; // draw up
             else {
                 x--;
@@ -177,5 +183,101 @@ public class FastImage {
                 SetPixel(centerX - y, centerY - x, color);
             }
         }
+    }
+
+    public void DrawCircleFill(int cx, int cy, int r, Color color) {
+        var x = r;
+        var y = 0;
+
+        DrawLine(cx - x, cy + y, cx + x, cy + y, color);
+        DrawLine(cx - x, cy - y, cx + x, cy - y, color);
+        DrawLine(cx - y, cy + x, cx + y, cy + x, color);
+        DrawLine(cx - y, cy - x, cx + y, cy - x, color);
+
+        var error = 1 - r;
+        while (x > y) {
+            y++;
+            if (error <= 0)
+                error = error + 2 * y + 1; // draw up
+            else {
+                x--;
+                error = error + 2 * y - 2 * x + 1;
+            }
+            if (x < y) break; // circle finished
+            DrawLine(cx - x, cy + y, cx + x, cy + y, color);
+            DrawLine(cx - x, cy - y, cx + x, cy - y, color);
+            DrawLine(cx - y, cy + x, cx + y, cy + x, color);
+            DrawLine(cx - y, cy - x, cx + y, cy - x, color);
+        }
+    }
+
+    private void DrawLine(int x, int y, int x2, int y2, Color color) {
+        if (x == x2 && y == y2) {
+            SetPixel(x, y, color);
+            return;
+        }
+        if (x == x2) {
+            if (y > y2) (y, y2) = (y2, y);
+            for (var i = y; i <= y2; i++) {
+                SetPixel(x, i, color);
+            }
+            return;
+        }
+        if (y == y2) {
+            if (x > x2) (x, x2) = (x2, x);
+            for (var i = x; i <= x2; i++) {
+                SetPixel(i, y, color);
+            }
+            return;
+        }
+
+        var dx = x2 - x;
+        var dy = y2 - y;
+        var stepX = Math.Sign(dx);
+        var stepY = Math.Sign(dy);
+        dx = Math.Abs(dx);
+        dy = Math.Abs(dy);
+        var swap = false;
+        if (dy > dx) {
+            (dx, dy) = (dy, dx);
+            swap = true;
+        }
+        var e = 2 * dy - dx;
+        for (var i = 0; i < dx; i++) {
+            SetPixel(x, y, color);
+            while (e >= 0) {
+                if (swap) x += stepX;
+                else y += stepY;
+                e -= 2 * dx;
+            }
+            if (swap) y += stepY;
+            else x += stepX;
+            e += 2 * dy;
+        }
+    }
+
+
+    public void DrawRectangle(int x, int y, int width, int height, Color color, bool fill = false) {
+        if (fill) DrawRectangleFill(x, y, width, height, color);
+        else DrawRectangleOutline(x, y, width, height, color);
+    }
+
+    public void DrawRectangleFill(int x, int y, int width, int height, Color color) {
+        var x2 = x + width;
+        var y2 = y + height;
+        for (var drawY = y; drawY < y2; drawY++) {
+            for (var drawX = x; drawX < x2; drawX++) {
+                SetPixel(drawX, drawY, color);
+            }
+        }
+    }
+
+    public void DrawRectangleOutline(int x, int y, int width, int height, Color color) {
+        var x2 = x + width;
+        var y2 = y + height;
+        DrawLine(x, y, x2, y, color);
+        DrawLine(x, y, x, y2, color);
+        DrawLine(x2, y, x2, y2, color);
+        DrawLine(x, y2, x2, y2, color);
     }
 }
