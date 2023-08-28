@@ -107,8 +107,12 @@ public class FastImage {
     }
 
     public void SetPixel(int x, int y, Color color) {
+        if (color.A <= 0) return;
         if (x < 0 || y < 0 || x >= Width || y >= Height) return;
-        // TODO: blend with alpha + tests
+        if (color.A < 1f) {
+            var currentColor = GetPixel(x, y);
+            color = currentColor.Blend(color);
+        }
         if (Format == Godot.Image.Format.Rgba8) {
             SetPixelRgba8(x, y, color);
             _dirty = true;

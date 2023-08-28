@@ -141,18 +141,8 @@ public static class FastImageExtensions {
 
 
     public static void DrawRectangle(this FastImage fast, int x, int y, int width, int height, Color color, bool fill = false) {
-        if (fill) fast.DrawRectangleFill(x, y, width, height, color);
+        if (fill) fast.FillRect(x, y, width, height, color);
         else fast.DrawRectangleOutline(x, y, width, height, color);
-    }
-
-    public static void DrawRectangleFill(this FastImage fast, int x, int y, int width, int height, Color color) {
-        var x2 = x + width;
-        var y2 = y + height;
-        for (var drawY = y; drawY < y2; drawY++) {
-            for (var drawX = x; drawX < x2; drawX++) {
-                fast.SetPixel(drawX, drawY, color);
-            }
-        }
     }
 
     public static void DrawRectangleOutline(this FastImage fast, int x, int y, int width, int height, Color color) {

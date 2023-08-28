@@ -9,7 +9,6 @@ namespace Betauer.Core.Tests;
 public class FastNoiseTest {
 
     [TestRunner.Test]
-    // [TestRunner.Ignore("Just create images")]
     public void Test() {
         var fastNoiseLite = new FastNoiseLite() {
             Seed = 1
