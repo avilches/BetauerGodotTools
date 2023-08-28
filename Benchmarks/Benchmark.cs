@@ -6,7 +6,6 @@ namespace Benchmarks;
 
 [MemoryDiagnoser(true)]
 public class Benchmark {
-    private VariablePoissonSampler2DMio mine;
     // private VariablePoissonSampler2DOriginal original;
     private VariablePoissonSampler2D better;
     private Random r1 = new Random(0);
@@ -18,21 +17,16 @@ public class Benchmark {
     
     
     public Benchmark() {
-        mine = new VariablePoissonSampler2DMio(r1, 512, 512);
         better = new VariablePoissonSampler2D( 512, 512);
     }
 
-    // [Benchmark]
-    public List<Vector2> PoissonMine() {
-        return mine.Generate((x, y) => Range(r1, minRadius, maxRadius), minRadius, maxRadius);
-    }
     //
     // [Benchmark]
     // public List<Vector2> PoissonOriginal() {
     //     return original.Generate((x, y) => Range(r2, minRadius, maxRadius), minRadius, maxRadius);
     // }
     //
-    // [Benchmark]
+    [Benchmark]
     public List<Vector2> PoissonBetter() {
         return better.Generate((x, y) => Range(r3, minRadius, maxRadius), minRadius, maxRadius, r3);
     }

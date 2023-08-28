@@ -7,7 +7,6 @@ using NUnit.Framework;
 namespace Betauer.Core.Tests;
 
 [TestRunner.Test]
-[Only]
 public class UniformPoissonDiskTest {
 
     [TestRunner.Test]
