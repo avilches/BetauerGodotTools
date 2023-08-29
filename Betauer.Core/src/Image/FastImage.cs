@@ -20,6 +20,22 @@ public class FastImage {
     private ImageTexture? _imageTexture;
     private Godot.Image.Format _format;
 
+    public FastImage(Texture2D texture) {
+        Load(texture);
+    }
+
+    public FastImage(string resource, Godot.Image.Format? format = null) {
+        var image = Godot.Image.LoadFromFile(resource);
+        if (format.HasValue && image.GetFormat() != format) {
+            image.Convert(format.Value);
+        }
+        Load(image);
+    }
+
+    public FastImage(Godot.Image image) {
+        Load(image);
+    }
+
     public FastImage(int width, int height, bool useMipmaps = false, Godot.Image.Format format = DefaultFormat) {
         Width = width;
         Height = height;
@@ -30,7 +46,7 @@ public class FastImage {
 
     public Godot.Image.Format Format {
         get => _format;
-        private set {
+        set {
             if (_format == value) return;
             Image.Convert(value);
             _format = value;
@@ -70,14 +86,6 @@ public class FastImage {
         }
     }
 
-    public FastImage(Texture2D texture) {
-        Load(texture);
-    }
-
-    public FastImage(Godot.Image image) {
-        Load(image);
-    }
-
     public void Load(Texture2D texture) {
         _image = texture.GetImage();
         _imageTexture = texture as ImageTexture;
@@ -106,12 +114,14 @@ public class FastImage {
         }
     }
 
-    public void SetPixel(int x, int y, Color color) {
-        if (color.A <= 0) return;
+    public void SetPixel(int x, int y, Color color, bool blend = true) {
         if (x < 0 || y < 0 || x >= Width || y >= Height) return;
-        if (color.A < 1f) {
-            var currentColor = GetPixel(x, y);
-            color = currentColor.Blend(color);
+        if (blend) {
+            if (color.A <= 0) return;
+            if (color.A < 1f) {
+                var currentColor = GetPixel(x, y);
+                color = currentColor.Blend(color);
+            }
         }
         if (Format == Godot.Image.Format.Rgba8) {
             SetPixelRgba8(x, y, color);
@@ -133,11 +143,25 @@ public class FastImage {
         throw new Exception($"Format not supported: {Format}");
     }
 
+    public float GetChannel(int x, int y, int channel) {
+        if (Format == Godot.Image.Format.Rgba8) {
+            return GetChannelRgba8(x, y, channel) / 255.0f;
+        } else if (Format == Godot.Image.Format.Rgbaf) {
+            return GetChannelRgbaF(x, y, channel);
+        }
+        throw new Exception($"Format not supported: {Format}");
+    }
+
     public void Flush() {
         if (!_dirty) return;
         _dirty = false;
         Image.SetData(Width, Height, UseMipmaps, Format, RawImage);
         _imageTexture?.Update(Image);
+    }
+
+    private int GetChannelRgba8(int x, int y, int channel) {
+        var ofs = (y * Width + x) * BytesPerPixel();
+        return RawImage[ofs + channel];
     }
 
     private Color GetPixelRgba8(int x, int y) {
@@ -149,13 +173,9 @@ public class FastImage {
         return new Color(r, g, b, a);
     }
 
-    private void SetPixelRgbaF(int x, int y, Color color) {
-        var bytesPerPixel = BytesPerPixel();
-        var ofs = (y * Width + x) * bytesPerPixel;
-        WriteFloat(RawImage, color.R, ofs + 4 * 0);
-        WriteFloat(RawImage, color.G, ofs + 4 * 1);
-        WriteFloat(RawImage, color.B, ofs + 4 * 2);
-        WriteFloat(RawImage, color.A, ofs + 4 * 3);
+    private float GetChannelRgbaF(int x, int y, int channel) {
+        var ofs = (y * Width + x) * BytesPerPixel();
+        return BitConverter.ToSingle(RawImage, ofs + (channel * 4));
     }
 
     private Color GetPixelRgbaF(int x, int y) {
@@ -165,6 +185,15 @@ public class FastImage {
         var b = BitConverter.ToSingle(RawImage, ofs + 8);
         var a = BitConverter.ToSingle(RawImage, ofs + 12);
         return new Color(r, g, b, a);
+    }
+
+    private void SetPixelRgbaF(int x, int y, Color color) {
+        var bytesPerPixel = BytesPerPixel();
+        var ofs = (y * Width + x) * bytesPerPixel;
+        WriteFloat(RawImage, color.R, ofs + 4 * 0);
+        WriteFloat(RawImage, color.G, ofs + 4 * 1);
+        WriteFloat(RawImage, color.B, ofs + 4 * 2);
+        WriteFloat(RawImage, color.A, ofs + 4 * 3);
     }
 
     private void SetPixelRgba8(int x, int y, Color color) {
@@ -180,4 +209,5 @@ public class FastImage {
         // Array.Reverse(bytes);
         Buffer.BlockCopy(bytes, 0, arr, startIndex, 4);
     }
+
 }
