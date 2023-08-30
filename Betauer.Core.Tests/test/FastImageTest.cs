@@ -44,6 +44,8 @@ public class FastImageTest {
         fast.DrawLine(1, 0, 101, 100, gray);
         fast.DrawLine(0, 40, 100, 100, gray);
 
+        fast.DrawLine(100, 0, 150, 20, 3, Colors.Red, true);
+
         fast.FillCircle(45, 40, 0, Colors.Green);
         fast.FillCircle(48, 40, 1, Colors.Green);
         fast.FillCircle(54, 40, 2, Colors.Green);
@@ -63,11 +65,20 @@ public class FastImageTest {
         fast.DrawCircle(94, 65, 6, Colors.Green);
         fast.DrawCircle(110, 65, 7, Colors.Green);
         fast.DrawCircle(128, 65, 8, Colors.Green);
-        
+
+        Draw.GradientCircle(30, 30, 10, (x, y, g) => {
+            fast.SetPixel(x, y, new Color(Colors.Green, 1-g));
+        });
+
+        fast.DrawLineAntialiasing(100, 100, 150, 55, Colors.Wheat);
+        fast.DrawLineAntialiasing(100, 100, 150, 60, 2, Colors.Green);
+        fast.DrawLineAntialiasing(100, 100, 150, 70, 3, Colors.BlueViolet);
+        fast.DrawLineAntialiasing(100, 100, 150, 80, 4, Colors.Fuchsia);
+
         fast.Flush();
+
         fast.Image.SavePng("test1.png");
     }
-
     
     [TestRunner.Test]
     [TestRunner.Ignore("Just create images")]
@@ -92,14 +103,25 @@ public class FastImageTest {
         compo.SetLayer(0, textures.Extract( null, 0, 0, 80, 80), true);
         compo.SetLayer(1, textures.Extract( null, 80, 0, 80, 80).ExpandTiled(512, 512), true);
 
-        var thick = 24f;
-        var halfThick = thick/2f;
-        for (int i = 0; i < thick; i++) {
-            Draw.Line(0, 10+i, 512, 64+i, (x, y) => {
-                // compo.GetLayer(1).Image.SetPixel(x, y, new Color(1, 1, 1, 0.5f), false);
-                compo.GetLayer(1).Image.SetAlpha(x, y, Math.Abs(halfThick - i) / halfThick);
-            });
-        }
+        var layer1 = compo.GetLayer(1).Image;
+        layer1.DrawLineAntialiasing(0, 10, 512, 64, 24, Colors.Green);
+
+        var step = 0;
+        var circleStep = 0;
+        Draw.Line(0, 80, 512, 190, (x, y) => {
+            if (step++ % 30 == 0) {
+                Draw.GradientCircle(x, y, 20 + ((circleStep++ % 5))*2, (x, y, g) => {
+                    if (x < 0 || y < 0 || x >= layer1.Width || y >= layer1.Height) return;
+                    layer1.SetAlpha(x, y, Math.Min(layer1.GetAlpha(x, y), g));
+                    // layer1.SetPixel(x, y, Colors.Azure, false);
+                });
+                // layer1.FillCircle(x, y, 20 + ((circleStep++ % 5))*2, Colors.Aqua);
+            }
+        });
+        
+        Draw.Line(0, 512, 80, -10, 12, (x, y) => {
+            layer1.SetPixel(x,y,Colors.Green);
+        });
         
         compo.Export().Image.SavePng("test3.png");
     }
