@@ -114,6 +114,10 @@ public class FastImage {
         }
     }
 
+    public void SetAlpha(int x, int y, float alpha) {
+        SetChannel(x, y, 3, alpha);
+    }
+
     public void SetPixel(int x, int y, Color color, bool blend = true) {
         if (x < 0 || y < 0 || x >= Width || y >= Height) return;
         if (blend) {
@@ -152,6 +156,17 @@ public class FastImage {
         throw new Exception($"Format not supported: {Format}");
     }
 
+    public void SetChannel(int x, int y, int channel, float value) {
+        if (Format == Godot.Image.Format.Rgba8) {
+            var value8 = (byte) Math.Round(value * 255.0f);
+            SetChannelRgba8(x, y, channel, value8);
+        } else if (Format == Godot.Image.Format.Rgbaf) {
+            SetChannelRgbaF(x, y, channel, value);
+        } else {
+            throw new Exception($"Format not supported: {Format}");
+        }
+    }
+
     public void Flush() {
         if (!_dirty) return;
         _dirty = false;
@@ -159,7 +174,7 @@ public class FastImage {
         _imageTexture?.Update(Image);
     }
 
-    private int GetChannelRgba8(int x, int y, int channel) {
+    private byte GetChannelRgba8(int x, int y, int channel) {
         var ofs = (y * Width + x) * BytesPerPixel();
         return RawImage[ofs + channel];
     }
@@ -202,6 +217,17 @@ public class FastImage {
         RawImage[ofs + 1] = (byte)color.G8;
         RawImage[ofs + 2] = (byte)color.B8;
         RawImage[ofs + 3] = (byte)color.A8;
+    }
+
+    private void SetChannelRgbaF(int x, int y, int channel, float value) {
+        var bytesPerPixel = BytesPerPixel();
+        var ofs = (y * Width + x) * bytesPerPixel;
+        WriteFloat(RawImage, value, ofs + 4 * channel);
+    }
+
+    private void SetChannelRgba8(int x, int y, int channel, byte value) {
+        var ofs = (y * Width + x) * BytesPerPixel();
+        RawImage[ofs + channel] = value;
     }
 
     private static void WriteFloat(byte[] arr, float value, int startIndex) {
