@@ -1,3 +1,4 @@
+using System;
 using Godot;
 
 namespace Betauer.Core.Image;
@@ -7,8 +8,22 @@ public static partial class FastImageExtensions {
         fast.FillRect(0, 0, fast.Width, fast.Height, color, blend);
     }
 
-    public static void DrawLine(this FastImage fast, int x, int y, int x2, int y2, Color color, bool blend = true) {
-        Draw.Line(x, y, x2, y2, (x, y) => fast.SetPixel(x, y, color, blend));
+    public static void DrawLine(this FastImage fast, int x1, int y1, int x2, int y2, Color color, bool blend = true) {
+        DrawLine(fast, x1, y1, x2, y2, 1, color);
+    }
+
+    public static void DrawLine(this FastImage fast, int x1, int y1, int x2, int y2, int width, Color color, bool blend = true) {
+        Draw.Line(x1, y1, x2, y2, width, (x, y) => fast.SetPixel(x, y, color, blend));
+    }
+
+    public static void DrawLineAntialiasing(this FastImage fast, int x1, int y1, int x2, int y2, Color color) {
+        DrawLineAntialiasing(fast, x1, y1, x2, y2, 1, color);
+    }
+
+    public static void DrawLineAntialiasing(this FastImage fast, int x1, int y1, int x2, int y2, int width, Color color) {
+        Draw.LineAntialiasing(x1, y1, x2, y2, width, (x, y, a) => {
+            fast.SetPixel(x, y, a < color.A ? new Color(color, a) : color, true);
+        });
     }
 
     public static void DrawRect(this FastImage fast, int x, int y, int width, int height, Color color, bool blend = true) {

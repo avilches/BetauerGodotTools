@@ -118,6 +118,10 @@ public class FastImage {
         SetChannel(x, y, 3, alpha);
     }
 
+    public float GetAlpha(int x, int y) {
+        return GetChannel(x, y, 3);
+    }
+
     public void SetPixel(int x, int y, Color color, bool blend = true) {
         if (x < 0 || y < 0 || x >= Width || y >= Height) return;
         if (blend) {
@@ -139,6 +143,7 @@ public class FastImage {
     }
 
     public Color GetPixel(int x, int y) {
+        if (x < 0 || y < 0 || x >= Width || y >= Height) throw new Exception($"Coords x:{x} y:{y} out of bounds");
         if (Format == Godot.Image.Format.Rgba8) {
             return GetPixelRgba8(x, y);
         } else if (Format == Godot.Image.Format.Rgbaf) {
@@ -148,6 +153,7 @@ public class FastImage {
     }
 
     public float GetChannel(int x, int y, int channel) {
+        if (x < 0 || y < 0 || x >= Width || y >= Height) throw new Exception($"Coords x:{x} y:{y} out of bounds");
         if (Format == Godot.Image.Format.Rgba8) {
             return GetChannelRgba8(x, y, channel) / 255.0f;
         } else if (Format == Godot.Image.Format.Rgbaf) {
@@ -157,6 +163,7 @@ public class FastImage {
     }
 
     public void SetChannel(int x, int y, int channel, float value) {
+        if (x < 0 || y < 0 || x >= Width || y >= Height) return;
         if (Format == Godot.Image.Format.Rgba8) {
             var value8 = (byte) Math.Round(value * 255.0f);
             SetChannelRgba8(x, y, channel, value8);
