@@ -28,11 +28,16 @@ public static class Geometry {
         if (radius1 == 0 || radius2 == 0) { // No area, no intersection
             return false;
         }
+        var distanceSquared = DistanceSquared(x1, y1, x2, y2);
+        var radiiSum = radius1 + radius2;
+        return distanceSquared <= radiiSum * radiiSum;
+    }
+
+    public static float DistanceSquared(float x1, float y1, float x2, float y2) {
         var dx = x1 - x2;
         var dy = y1 - y2;
         var distanceSquared = dx * dx + dy * dy;
-        var radiiSum = radius1 + radius2;
-        return distanceSquared <= radiiSum * radiiSum;
+        return distanceSquared;
     }
 
     public static bool IntersectRectangles(float x1, float y1, float width1, float height1, float x2, float y2, float width2, float height2) {
