@@ -32,10 +32,16 @@ public class Draw {
         Line(x, y2, x2, y2, onPixel);
     }
 
-    public static void FillCircle(int cx, int cy, int r, Action<int, int> onPixel) {
-        if (r <= 0) return;
-        if (r == 1) {
+    public static void Circle(int cx, int cy, int r, Action<int, int> onPixel) {
+        if (r <= 0) {
             onPixel(cx, cy);
+            return;
+        }
+        if (r == 1) {
+            onPixel(cx, cy - 1);
+            onPixel(cx, cy + 1);
+            onPixel(cx - 1, cy);
+            onPixel(cx + 1, cy);
             return;
         }
         var x = r;
@@ -72,20 +78,27 @@ public class Draw {
         }
     }
 
-    public static void Circle(int cx, int cy, int r, Action<int, int> onPixel) {
-        if (r <= 0) return;
-        if (r == 1) {
+    public static void FillCircle(int cx, int cy, int r, Action<int, int> onPixel) {
+        if (r <= 0) {
             onPixel(cx, cy);
             return;
         }
+        if (r == 1) {
+            onPixel(cx, cy - 1);
+            onPixel(cx, cy + 1);
+            onPixel(cx - 1, cy);
+            onPixel(cx + 1, cy);
+            onPixel(cx, cy);
+            return;
+        }
+        
+        Line(cx - r, cy, cx + r, cy, onPixel);
+        Line(cx - r, cy, cx + r, cy, onPixel);
+        Line(cx, cy + r, cx, cy + r, onPixel);
+        Line(cx, cy - r, cx, cy - r, onPixel);
+
         var x = r;
         var y = 0;
-
-        Line(cx - x, cy + y, cx + x, cy + y, onPixel);
-        Line(cx - x, cy - y, cx + x, cy - y, onPixel);
-        Line(cx - y, cy + x, cx + y, cy + x, onPixel);
-        Line(cx - y, cy - x, cx + y, cy - x, onPixel);
-
         var error = 1 - r;
         while (x > y) {
             y++;

@@ -12,7 +12,7 @@ public class FastImageTest {
     // [TestRunner.Ignore("Just create images")]
     [TestRunner.Only]
     public void Test1() {
-        var fast = new FastImage(100, 100);
+        var fast = new FastImage(150, 100);
         Assert.That(fast.Format, Is.EqualTo(FastImage.DefaultFormat));
         //
         var yellow = Colors.Yellow;
@@ -24,6 +24,7 @@ public class FastImageTest {
         fast.DrawCircle(6, 6, 6, Colors.Red);
         fast.DrawCircle(20, 20, 20, Colors.Blue);
         fast.FillCircle(35, 14, 10, Colors.Green);
+        
         fast.SetPixel(35, 10, Colors.Azure);
         fast.DrawRect(16, 16, 60, 15, Colors.Red);
         fast.DrawRect(30, 0, 20, 60, yellow);
@@ -42,6 +43,27 @@ public class FastImageTest {
         fast.DrawLine(0, 0, 100, 100, gray);
         fast.DrawLine(1, 0, 101, 100, gray);
         fast.DrawLine(0, 40, 100, 100, gray);
+
+        fast.FillCircle(45, 40, 0, Colors.Green);
+        fast.FillCircle(48, 40, 1, Colors.Green);
+        fast.FillCircle(54, 40, 2, Colors.Green);
+        fast.FillCircle(61, 40, 3, Colors.Green);
+        fast.FillCircle(70, 40, 4, Colors.Green);
+        fast.FillCircle(81, 40, 5, Colors.Green);
+        fast.FillCircle(94, 40, 6, Colors.Green);
+        fast.FillCircle(110, 40, 7, Colors.Green);
+        fast.FillCircle(128, 40, 8, Colors.Green);
+        
+        fast.DrawCircle(45, 65, 0, Colors.Green);
+        fast.DrawCircle(48, 65, 1, Colors.Green);
+        fast.DrawCircle(54, 65, 2, Colors.Green);
+        fast.DrawCircle(61, 65, 3, Colors.Green);
+        fast.DrawCircle(70, 65, 4, Colors.Green);
+        fast.DrawCircle(81, 65, 5, Colors.Green);
+        fast.DrawCircle(94, 65, 6, Colors.Green);
+        fast.DrawCircle(110, 65, 7, Colors.Green);
+        fast.DrawCircle(128, 65, 8, Colors.Green);
+        
         fast.Flush();
         fast.Image.SavePng("test1.png");
     }
@@ -76,7 +98,6 @@ public class FastImageTest {
             Draw.Line(0, 10+i, 512, 64+i, (x, y) => {
                 // compo.GetLayer(1).Image.SetPixel(x, y, new Color(1, 1, 1, 0.5f), false);
                 compo.GetLayer(1).Image.SetAlpha(x, y, Math.Abs(halfThick - i) / halfThick);
-
             });
         }
         
