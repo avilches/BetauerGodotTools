@@ -34,51 +34,49 @@ public static partial class Draw {
     }
 
     // width 1
-    public static void Line(int x, int y, int x2, int y2, Action<int, int> onPixel) {
-        if (x == x2 && y == y2) {
-            onPixel(x, y);
+    public static void Line(int x0, int y0, int x1, int y1, Action<int, int> onPixel) {
+        if (x0 == x1 && y0 == y1) {
+            onPixel(x0, y0);
             return;
         }
-        if (x == x2) {
-            if (y > y2) (y, y2) = (y2, y);
-            for (var i = y; i <= y2; i++) {
-                onPixel(x, i);
+        if (x0 == x1) {
+            if (y0 > y1) (y0, y1) = (y1, y0);
+            for (var i = y0; i <= y1; i++) {
+                onPixel(x0, i);
             }
             return;
         }
-        if (y == y2) {
-            if (x > x2) (x, x2) = (x2, x);
-            for (var i = x; i <= x2; i++) {
-                onPixel(i, y);
+        if (y0 == y1) {
+            if (x0 > x1) (x0, x1) = (x1, x0);
+            for (var i = x0; i <= x1; i++) {
+                onPixel(i, y0);
             }
             return;
         }
 
-        var dx = x2 - x;
-        var dy = y2 - y;
-        var stepX = Math.Sign(dx);
-        var stepY = Math.Sign(dy);
-        dx = Math.Abs(dx);
-        dy = Math.Abs(dy);
-        var swap = false;
-        if (dy > dx) {
-            (dx, dy) = (dy, dx);
-            swap = true;
-        }
-        var e = 2 * dy - dx;
-        for (var i = 0; i < dx; i++) {
-            onPixel(x, y);
-            while (e >= 0) {
-                if (swap) x += stepX;
-                else y += stepY;
-                e -= 2 * dx;
-            }
-            if (swap) y += stepY;
-            else x += stepX;
-            e += 2 * dy;
+        var dx = Math.Abs(x1 - x0);
+        var sx = x0 < x1 ? 1 : -1;
+        var dy = -Math.Abs(y1 - y0);
+        var sy = y0 < y1 ? 1 : -1;
+        int err = dx + dy, e2; /* error value e_xy */
+
+        for (;;) { /* loop */
+            onPixel(x0, y0);
+            if (x0 == x1 && y0 == y1) break;
+            e2 = 2 * err;
+            if (e2 >= dy) {
+                err += dy;
+                x0 += sx;
+            } /* e_xy+e_x > 0 */
+            if (e2 <= dx) {
+                err += dx;
+                y0 += sy;
+            } /* e_xy+e_y < 0 */
         }
     }
-
+    
+    // aliasing with width 1
+    // http://members.chello.at/~easyfilter/bresenham.html
     public static void LineAntialiasing(int x0, int y0, int x1, int y1, int width, Action<int, int, float> onPixel) {
         if (width == 0) return;
         if (width == 1) {
