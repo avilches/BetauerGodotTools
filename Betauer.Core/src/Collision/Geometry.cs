@@ -33,11 +33,31 @@ public static class Geometry {
         return distanceSquared <= radiiSum * radiiSum;
     }
 
+    public static float Distance(float x1, float y1, float x2, float y2) {
+        return Mathf.Sqrt(DistanceSquared(x1, y1, x2, y2));
+    }
+
     public static float DistanceSquared(float x1, float y1, float x2, float y2) {
         var dx = x1 - x2;
         var dy = y1 - y2;
         var distanceSquared = dx * dx + dy * dy;
         return distanceSquared;
+    }
+
+    public static Vector2 ExtendLineAtStart(float x0, float y0, float x1, float y1, float extension) {
+        var length = Distance(x0, y0, x1, y1);
+        var dx = (x1 - x0) / length;
+        var dy = (y1 - y0) / length;
+
+        return new Vector2(x0 - dx * extension, y0 - dy * extension);
+    }
+
+    public static Vector2 ExtendLineAtEnd(float x0, float y0, float x1, float y1, float extension) {
+        var length = Distance(x0, y0, x1, y1);
+        var dx = (x1 - x0) / length;
+        var dy = (y1 - y0) / length;
+
+        return new Vector2(x1 + dx * extension, y1 + dy * extension);
     }
 
     public static bool IntersectRectangles(float x1, float y1, float width1, float height1, float x2, float y2, float width2, float height2) {
