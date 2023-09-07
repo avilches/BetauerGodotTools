@@ -10,7 +10,7 @@ namespace Betauer.Core.Image;
  * It allows to query pixels and return a gradient color position. This allow to generate content based on the noise and it will look exactly the same as the texture.
  */
 public class FastTextureNoiseWithGradient : FastImage {
-    private readonly Color[] _colors;
+    private readonly Color[]? _colors;
     
     public FastTextureNoiseWithGradient(NoiseTexture2D texture) : base(texture) {
         if (texture.ColorRamp != null) {
@@ -20,24 +20,25 @@ public class FastTextureNoiseWithGradient : FastImage {
             _colors = texture.ColorRamp.Colors;
         }
     }
-
+    
     /// <summary>
     /// Using the colors from the gradient, returns the noise as a value from 0 to (number of gradient colors - 1)
     /// So, gradient with 3 colors will return values from 0 to 2
-    /// If there is no constant gradient, it will return 0
+    /// If there is no constant gradient, it will return a value from 0..255
     /// </summary>
     /// <param name="x"></param>
     /// <param name="y"></param>
     /// <returns></returns>
     public int GetNoiseGradient(int x, int y) {
-        if (_colors == null) return 0;
         var pixelColor = GetPixel(x, y);
-        var p = FindColor(pixelColor);
-        return p;
+        if (_colors != null) {
+            return FindColor(pixelColor);
+        }
+        return (int)(pixelColor.V * 255f);
     }
 
     public float GetNoise(int x, int y) {
-        return GetPixel(x, y).Luminance;
+        return GetPixel(x, y).V;
     }
 
     private int FindColor(Color pixelColor) {
