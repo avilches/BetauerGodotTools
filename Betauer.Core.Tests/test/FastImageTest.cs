@@ -9,8 +9,7 @@ namespace Betauer.Core.Tests;
 public class FastImageTest {
 
     [TestRunner.Test]
-    // [TestRunner.Ignore("Just create images")]
-    [TestRunner.Only]
+    [TestRunner.Ignore("Just create images")]
     public void Test1() {
         var fast = new FastImage(150, 100);
         Assert.That(fast.Format, Is.EqualTo(FastImage.DefaultFormat));
@@ -95,7 +94,7 @@ public class FastImageTest {
     }
     
     [TestRunner.Test]
-    [TestRunner.Only]
+    [TestRunner.Ignore("Just create images")]
     public void Test3() {
         var compo = new LayerImageComposition(3, 512, 512);
         
