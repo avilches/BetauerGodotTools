@@ -86,13 +86,13 @@ public static class Geometry {
     }
 
     public static bool IsPointInsideRectangle(float px, float py, Rectangle rectangle) {
-        return IsPointInsideRectangle(px, py, rectangle.Position.X, rectangle.Position.Y, rectangle.Size.X, rectangle.Size.Y);
+        return IsPointInsideRectangle(px, py, rectangle.X, rectangle.Y, rectangle.Size.X, rectangle.Size.Y);
     }
 
     public static bool Intersect(Rectangle r1, Rectangle r2) {
         return IntersectRectangles(
-            r1.Position.X, r1.Position.Y, r1.Size.X, r1.Size.Y,
-            r2.Position.X, r2.Position.Y, r2.Size.X, r2.Size.Y);
+            r1.X, r1.Y, r1.Size.X, r1.Size.Y,
+            r2.X, r2.Y, r2.Size.X, r2.Size.Y);
     }
 
     public static (int, int) GetPointIntersectingCell(float px, float py, float cellSize) {

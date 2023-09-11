@@ -69,18 +69,18 @@ public class SpatialGrid {
     public void Add(Point point) {
         Shapes.Add(point);
         point.SpatialGrid = this;
-        var x = (int)Mathf.Floor(point.Position.X / CellSize);
-        var y = (int)Mathf.Floor(point.Position.Y / CellSize);
+        var x = (int)Mathf.Floor(point.X / CellSize);
+        var y = (int)Mathf.Floor(point.Y / CellSize);
         AddShapeToCell(point, (x, y));
     }
 
     public void Add(Circle circle) {
         Shapes.Add(circle);
         circle.SpatialGrid = this;
-        var minCellX = (int)Mathf.Floor((circle.Position.X - circle.Radius) / CellSize);
-        var maxCellX = (int)Mathf.Floor((circle.Position.X + circle.Radius) / CellSize);
-        var minCellY = (int)Mathf.Floor((circle.Position.Y - circle.Radius) / CellSize);
-        var maxCellY = (int)Mathf.Floor((circle.Position.Y + circle.Radius) / CellSize);
+        var minCellX = (int)Mathf.Floor((circle.X - circle.Radius) / CellSize);
+        var maxCellX = (int)Mathf.Floor((circle.X + circle.Radius) / CellSize);
+        var minCellY = (int)Mathf.Floor((circle.Y - circle.Radius) / CellSize);
+        var maxCellY = (int)Mathf.Floor((circle.Y + circle.Radius) / CellSize);
 
         for (var x = minCellX; x <= maxCellX; x++) {
             for (var y = minCellY; y <= maxCellY; y++) {
@@ -92,10 +92,10 @@ public class SpatialGrid {
     public void Add(Rectangle rectangle) {
         Shapes.Add(rectangle);
         rectangle.SpatialGrid = this;
-        var minCellX = (int)Mathf.Floor(rectangle.Position.X / CellSize);
-        var maxCellX = (int)Mathf.Floor((rectangle.Position.X + rectangle.Width) / CellSize);
-        var minCellY = (int)Mathf.Floor(rectangle.Position.Y / CellSize);
-        var maxCellY = (int)Mathf.Floor((rectangle.Position.Y + rectangle.Height) / CellSize);
+        var minCellX = (int)Mathf.Floor(rectangle.X / CellSize);
+        var maxCellX = (int)Mathf.Floor((rectangle.X + rectangle.Width) / CellSize);
+        var minCellY = (int)Mathf.Floor(rectangle.Y / CellSize);
+        var maxCellY = (int)Mathf.Floor((rectangle.Y + rectangle.Height) / CellSize);
 
         for (var x = minCellX; x <= maxCellX; x++) {
             for (var y = minCellY; y <= maxCellY; y++) {
@@ -131,8 +131,8 @@ public class SpatialGrid {
     }
 
     private void RemovePointFromCells(Point point) {
-        var x = (int)Mathf.Floor(point.Position.X / CellSize);
-        var y = (int)Mathf.Floor(point.Position.Y / CellSize);
+        var x = (int)Mathf.Floor(point.X / CellSize);
+        var y = (int)Mathf.Floor(point.Y / CellSize);
         RemoveShapeFromCell(point, (x, y));
     }
 
@@ -143,10 +143,10 @@ public class SpatialGrid {
     }
 
     private void RemoveCircleFromCells(Circle circle) {
-        var minCellX = (int)Mathf.Floor((circle.Position.X - circle.Radius) / CellSize);
-        var maxCellX = (int)Mathf.Floor((circle.Position.X + circle.Radius) / CellSize);
-        var minCellY = (int)Mathf.Floor((circle.Position.Y - circle.Radius) / CellSize);
-        var maxCellY = (int)Mathf.Floor((circle.Position.Y + circle.Radius) / CellSize);
+        var minCellX = (int)Mathf.Floor((circle.X - circle.Radius) / CellSize);
+        var maxCellX = (int)Mathf.Floor((circle.X + circle.Radius) / CellSize);
+        var minCellY = (int)Mathf.Floor((circle.Y - circle.Radius) / CellSize);
+        var maxCellY = (int)Mathf.Floor((circle.Y + circle.Radius) / CellSize);
 
         for (var x = minCellX; x <= maxCellX; x++) {
             for (var y = minCellY; y <= maxCellY; y++) {
@@ -156,10 +156,10 @@ public class SpatialGrid {
     }
 
     private void RemoveRectangleFromCells(Rectangle rectangle) {
-        var minCellX = (int)Mathf.Floor(rectangle.Position.X / CellSize);
-        var maxCellX = (int)Mathf.Floor((rectangle.Position.X + rectangle.Width) / CellSize);
-        var minCellY = (int)Mathf.Floor(rectangle.Position.Y / CellSize);
-        var maxCellY = (int)Mathf.Floor((rectangle.Position.Y + rectangle.Height) / CellSize);
+        var minCellX = (int)Mathf.Floor(rectangle.X / CellSize);
+        var maxCellX = (int)Mathf.Floor((rectangle.X + rectangle.Width) / CellSize);
+        var minCellY = (int)Mathf.Floor(rectangle.Y / CellSize);
+        var maxCellY = (int)Mathf.Floor((rectangle.Y + rectangle.Height) / CellSize);
 
         for (var x = minCellX; x <= maxCellX; x++) {
             for (var y = minCellY; y <= maxCellY; y++) {
@@ -177,9 +177,9 @@ public class SpatialGrid {
     }
 
     public bool IntersectShape(Shape shape) {
-        if (shape is Point point) return IntersectPoint(point.Position.X, point.Position.Y, point);
-        if (shape is Circle circle) return IntersectCircle(circle.Position.X, circle.Position.Y, circle.Radius, circle);
-        if (shape is Rectangle rectangle) return IntersectRectangle(rectangle.Position.X, rectangle.Position.Y, rectangle.Width, rectangle.Height, rectangle);
+        if (shape is Point point) return IntersectPoint(point.X, point.Y, point);
+        if (shape is Circle circle) return IntersectCircle(circle.X, circle.Y, circle.Radius, circle);
+        if (shape is Rectangle rectangle) return IntersectRectangle(rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height, rectangle);
         return false;
     }
 
@@ -240,10 +240,10 @@ public class SpatialGrid {
     }
 
     public IEnumerable<Shape> GetIntersectingShapesInShape(Shape shape) {
-        if (shape is Point point) return GetIntersectingShapesInPoint(point.Position.X, point.Position.Y, point);
-        if (shape is Circle circle) return GetIntersectingShapesInCircle(circle.Position.X, circle.Position.Y, circle.Radius, circle);
+        if (shape is Point point) return GetIntersectingShapesInPoint(point.X, point.Y, point);
+        if (shape is Circle circle) return GetIntersectingShapesInCircle(circle.X, circle.Y, circle.Radius, circle);
         if (shape is Rectangle rectangle)
-            return GetIntersectingShapesInRectangle(rectangle.Position.X, rectangle.Position.Y, rectangle.Width, rectangle.Height, rectangle);
+            return GetIntersectingShapesInRectangle(rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height, rectangle);
         return Enumerable.Empty<Shape>();
     }
 
@@ -302,7 +302,7 @@ public class SpatialGrid {
 
     internal void Update(Point point, float x, float y) {
         if (!Shapes.Contains(point)) return;
-        if (point.Position.X == x && point.Position.Y == y) return;
+        if (point.X == x && point.Y == y) return;
         var intersectingCells = point.GetIntersectingCells(CellSize)[0];
         var newIntersectingCells = Geometry.GetPointIntersectingCell(x, y, CellSize);
         if (intersectingCells != newIntersectingCells) {
@@ -313,7 +313,7 @@ public class SpatialGrid {
 
     internal void Update(Circle circle, float x, float y, float radius) {
         if (!Shapes.Contains(circle)) return;
-        if (circle.Position.X == x && circle.Position.Y == y && circle.Radius == radius) return;
+        if (circle.X == x && circle.Y == y && circle.Radius == radius) return;
         var intersectingCells = circle.GetIntersectingCells(CellSize);
         var newIntersectingCells = Geometry.GetCircleIntersectingCells(x, y, radius, CellSize);
         RefreshCells(circle, intersectingCells, newIntersectingCells);
@@ -321,7 +321,7 @@ public class SpatialGrid {
 
     internal void Update(Rectangle rectangle, float x, float y, float width, float height) {
         if (!Shapes.Contains(rectangle)) return;
-        if (rectangle.Size.X == width && rectangle.Size.Y == height && rectangle.Position.X == x && rectangle.Position.Y == y) return;
+        if (rectangle.Size.X == width && rectangle.Size.Y == height && rectangle.X == x && rectangle.Y == y) return;
         var intersectingCells = rectangle.GetIntersectingCells(CellSize);
         var newIntersectingCells = Geometry.GetRectangleIntersectingCells(x, y, width, height, CellSize);
         RefreshCells(rectangle, intersectingCells, newIntersectingCells);

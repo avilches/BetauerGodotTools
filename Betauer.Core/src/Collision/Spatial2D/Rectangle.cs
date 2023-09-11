@@ -7,7 +7,14 @@ public class Rectangle : Shape {
     private Vector2 _position;
     private Vector2 _size;
 
-    public Vector2 Position {
+    public override float Width => Size.X;
+    public override float Height => Size.Y;
+    public override float MinX => Position.X;
+    public override float MaxX => Position.X + Width;
+    public override float MinY => Position.Y;
+    public override float MaxY => Position.Y + Height;
+
+    public override Vector2 Position {
         get => _position;
         set {
             SpatialGrid?.Update(this, value.X, value.Y, _size.X, _size.Y);
@@ -49,14 +56,6 @@ public class Rectangle : Shape {
         _size = new Vector2(width, height);
         return true;
     }
-
-    public float Width => Size.X;
-    public float Height => Size.Y;
-
-    public override float MinX => Position.X;
-    public override float MaxX => Position.X + Width;
-    public override float MinY => Position.Y;
-    public override float MaxY => Position.Y + Height;
 
     public Rectangle() {
     }

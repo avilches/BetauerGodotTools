@@ -50,11 +50,11 @@ public static class SpatialGridExtensions {
                         if (!grid.IntersectShape(rectangle)) {
                             return true; // rectangle was resized successfully, delete it
                         }
-                        rectangle.Position = new Vector2(rectangle.Position.X + amount, rectangle.Position.Y);
+                        rectangle.Position = new Vector2(rectangle.X + amount, rectangle.Y);
                         if (!grid.IntersectShape(rectangle)) {
                             return true; // rectangle was resized successfully, delete it
                         }
-                        rectangle.Position = new Vector2(rectangle.Position.X, rectangle.Position.Y + amount);
+                        rectangle.Position = new Vector2(rectangle.X, rectangle.Y + amount);
                         if (!grid.IntersectShape(rectangle)) {
                             return true; // rectangle was resized successfully, delete it
                         }
@@ -96,8 +96,8 @@ public static class SpatialGridExtensions {
                     case Rectangle rectangle: {
                         if (rectangle.TryResize(rectangle.Width + amount, rectangle.Height) &&
                             rectangle.TryResize(rectangle.Width, rectangle.Height + amount) &&
-                            rectangle.TryUpdate(rectangle.Position.X - amount, rectangle.Position.Y, rectangle.Width + amount, rectangle.Height) &&
-                            rectangle.TryUpdate(rectangle.Position.X, rectangle.Position.Y - amount, rectangle.Width, rectangle.Height + amount)) {
+                            rectangle.TryUpdate(rectangle.X - amount, rectangle.Y, rectangle.Width + amount, rectangle.Height) &&
+                            rectangle.TryUpdate(rectangle.X, rectangle.Y - amount, rectangle.Width, rectangle.Height + amount)) {
                             return false; // shape was resized successfully, don't delete it 
                         }
                         return true; // rectangle failed at some step when resized/moved, delete it

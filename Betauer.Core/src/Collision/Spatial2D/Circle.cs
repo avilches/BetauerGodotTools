@@ -7,7 +7,14 @@ public class Circle : Shape {
     private Vector2 _position;
     private float _radius;
 
-    public Vector2 Position {
+    public override float Width => Radius * 2f;
+    public override float Height => Radius * 2f;
+    public override float MinX => Position.X - Radius;
+    public override float MaxX => Position.X + Radius;
+    public override float MinY => Position.Y - Radius;
+    public override float MaxY => Position.Y + Radius;
+
+    public override Vector2 Position {
         get => _position;
         set {
             SpatialGrid?.Update(this, value.X, value.Y, _radius);
@@ -22,7 +29,7 @@ public class Circle : Shape {
             _radius = value;
         }
     }
-
+    
     public bool Update(float x, float y, float radius) {
         SpatialGrid?.Update(this, x, y, radius);
         _position = new Vector2(x, y);
@@ -49,11 +56,6 @@ public class Circle : Shape {
         _radius = radius;
         return true;
     }
-
-    public override float MinX => Position.X - Radius;
-    public override float MaxX => Position.X + Radius;
-    public override float MinY => Position.Y - Radius;
-    public override float MaxY => Position.Y + Radius;
 
     public Circle() {
     }

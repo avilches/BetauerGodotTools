@@ -77,13 +77,12 @@ public static partial class RandomExtensions {
     }
 
     /// <summary>
-    /// Returns true/false with a chance probability (0.0 to 1.0) of getting a true
-    /// So, NextBool(0.7) true is (less than) 70% 
+    /// Returns true with a specific chance. So, NextBool(0.7f) will be true the 70% 
     /// </summary>
     /// <returns></returns>
     public static bool NextBool(this Random random, double chance) {
         var rn = random.NextDouble();
-        return rn < chance;
+        return rn <= chance;
     }
 
     /// <summary>Returns a non-negative random integer.</summary>

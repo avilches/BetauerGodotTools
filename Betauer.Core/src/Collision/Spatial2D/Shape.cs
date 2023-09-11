@@ -5,6 +5,12 @@ namespace Betauer.Core.Collision.Spatial2D;
 public abstract class Shape {
     public SpatialGrid? SpatialGrid { get; internal set; }
     
+    public abstract Vector2 Position { get; set; }
+    public float X => Position.X;
+    public float Y => Position.Y;
+
+    public abstract float Width { get; }
+    public abstract float Height { get; }
     public abstract float MinX { get; }
     public abstract float MaxX { get; }
     public abstract float MinY { get; }
@@ -22,7 +28,7 @@ public abstract class Shape {
         if (other is Point point) return Intersect(point.Position);
         return false;
     }
-    public bool Intersect(Circle other) => IntersectCircle(other.Position.X, other.Position.Y, other.Radius);
+    public bool Intersect(Circle other) => IntersectCircle(other.X, other.Y, other.Radius);
     public bool Intersect(Rectangle other) => IntersectRectangle(other.MinX, other.MinY, other.Width, other.Height);
     public bool Intersect(Vector2 point) => IntersectPoint(point.X, point.Y);
 

@@ -6,7 +6,14 @@ namespace Betauer.Core.Collision.Spatial2D;
 public class Point : Shape {
     private Vector2 _position;
 
-    public Vector2 Position {
+    public override float MinX => Position.X;
+    public override float MaxX => Position.X;
+    public override float MinY => Position.Y;
+    public override float MaxY => Position.Y;
+    public override float Width => 0f;
+    public override float Height => 0f;
+
+    public override Vector2 Position {
         get => _position;
         set {
             SpatialGrid?.Update(this, value.X, value.Y);
@@ -24,11 +31,6 @@ public class Point : Shape {
         _position = new Vector2(x, y);
         return true;
     }
-
-    public override float MinX => Position.X;
-    public override float MaxX => Position.X;
-    public override float MinY => Position.Y;
-    public override float MaxY => Position.Y;
 
     public Point() {
     }
