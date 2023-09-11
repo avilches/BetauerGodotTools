@@ -9,7 +9,7 @@ using Betauer.DI.Holder;
 using Godot;
 using Veronenger.Game.RTS.HUD;
 using Veronenger.Game.RTS.World;
-using Veronenger.RTS.Assets;
+using Veronenger.RTS.Assets.Trees;
 
 namespace Veronenger.Game.RTS;
 

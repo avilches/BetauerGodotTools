@@ -1,10 +1,14 @@
 using System;
-using System.Collections.Generic;
-using Betauer.Core;
+using System.Diagnostics;
+using System.Linq;
+using Betauer.Core.PoissonDiskSampling;
 using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
 using Godot;
-using Veronenger.RTS.Assets;
+using Veronenger.RTS.Assets.Trees;
+using Betauer.Core;
+using Betauer.Core.Collision.Spatial2D;
+using Betauer.Core.Image;
 
 namespace Veronenger.Game.RTS.World;
 
@@ -13,9 +17,13 @@ public partial class WorldGenerator {
 	[Inject] public Random Random { get; set; }
 	[Inject] public ITransient<Trees> TreesFactory { get; set; }
 	private Trees TreesInstance;
+	private const int CellSize = 16;
+
 	private const int Layers = 2;
-	private const int Size = 512;
+	private const int GridSize = 256;
+	private const int Size = GridSize * CellSize;
 	public TileSetController<TilePatterns> Controller { get; private set; }
+	public FastTextureNoiseWithGradient FastNoise { get; private set; }
 
 	public void Generate(TileMap tileMap, NoiseTexture2D noiseTexture) {
 
@@ -23,9 +31,18 @@ public partial class WorldGenerator {
 		Controller.Clear();
 		TreesInstance = TreesFactory.Create();
 		TreesInstance.Configure();
+		
+		FastNoise = new FastTextureNoiseWithGradient(noiseTexture);
 
+		CreateBackground(FastNoise);
+		PlaceObjects(tileMap);
+
+		Controller.Flush();
+	}
+
+	private void CreateBackground(FastTextureNoiseWithGradient fastNoiseTextureController) {
 		var tiles0 = new[] { 
-			TilePatterns.TextureGrassDark, 
+			TilePatterns.TextureGrass, 
 			TilePatterns.TextureGrass, 
 			TilePatterns.TextureGrassLight, 
 			TilePatterns.TextureSoil,
@@ -39,153 +56,94 @@ public partial class WorldGenerator {
 		var tiles2 = new[] { 
 			TilePatterns.None, 
 			TilePatterns.None, 
-			TilePatterns.TextureAsphaltLight, 
+			TilePatterns.TransparentAsphalt, 
 			TilePatterns.None,
 			TilePatterns.None };
 
 		var tiles = tiles0;
-		var fastNoiseTextureController = new FastNoiseTextureGradientController(noiseTexture);
-		var treeWeights = new[] {
+		for (var y = 0; y < GridSize; y++) {
+			for (var x = 0; x < GridSize; x++) {
+				var pos = new Vector2I(x, y);
+				var tilePattern = tiles[fastNoiseTextureController.GetNoiseGradient(x, y)];
+				Controller.Set(0, pos, tilePattern);
+				Controller.Set(0, pos, TilePatterns.TextureSoil);
+				if (tilePattern is TilePatterns.TextureGrass or TilePatterns.TextureGrassLight or TilePatterns.TextureGrassDark) {
+					// LocateSprite(tileMap, Trees.Id.BigTree1, x * 16, y * 16);
+					Controller.Set(1, pos, TilePatterns.TransparentGrass);
+				}
+
+				// Controller.Set(1, pos, tilePattern);
+			}
+		}
+	}
+
+	private void PlaceObjects(TileMap tileMap) {
+		var stumps = new[] {
 			WeightValue.Create(Trees.Id.Trunk, 1f),
 			WeightValue.Create(Trees.Id.Stump, 2f),
 			WeightValue.Create(Trees.Id.MiniStump, 4f),
 		};
-		for (var y = 0; y < Size; y++) {
-			for (var x = 0; x < Size; x++) {
-				var tilePattern = tiles[fastNoiseTextureController.GetNoise(x, y)];
-				Controller.Set(0, new Vector2I(x, y), tilePattern);
-				if (tilePattern == TilePatterns.TextureGrassDark) {
-					if (Random.Next(0, 10) < 1) {
-						var val = Random.Pick(treeWeights).Value;
-						LocateSprite(tileMap, val, x, y);
-					}
+
+		var bigTrees = new[] {
+			WeightValue.Create(Trees.Id.BigTree1, 5f),
+			WeightValue.Create(Trees.Id.BigTree2, 5f),
+		};
+		var smallTrees = new[] {
+			WeightValue.Create(Trees.Id.SmallTree1, 5f),
+			WeightValue.Create(Trees.Id.SmallTree2, 5f),
+			WeightValue.Create(Trees.Id.SmallTree5, 3f),
+			WeightValue.Create(Trees.Id.SmallTree6, 1f),
+			WeightValue.Create(Trees.Id.SmallTree9, 5f),
+			WeightValue.Create(Trees.Id.SmallTree10, 6f),
+		};
+
+		var miniForestRadius = CellSize;
+		var minRadius = 16;
+		var maxRadius = 120;
+
+		var points = new VariablePoissonSampler2D(Size, Size)
+			.Generate((float x, float y) => {
+				var noise = 1f - FastNoise.GetNoise((int)x / 16, (int)y / 16);
+				return Mathf.Lerp(minRadius, maxRadius, noise);
+			}, minRadius, maxRadius);
+
+		var grid = SpatialGrid.FromAverageDistance(minRadius, maxRadius);
+		grid.AddPointsAsCircles(points);
+		grid.ExpandAll(1);
+		grid.RemoveAll(s => Random.NextBool(0.5));
+		grid.FindShapes<Circle>().OrderBy(v => v.Y)
+			.ThenBy(v => v.X)
+			.ForEach(circle => {
+				var width = (int)circle.Width;
+				Console.WriteLine(width);
+				if (width <= 32) {
+					LocateSprite(tileMap, Random.Pick(smallTrees).Value, (int)circle.X, (int)circle.Y);
+				} else {
+					LocateSprite(tileMap, Random.Pick(bigTrees).Value, (int)circle.X, (int)circle.Y);
 				}
-				// Controller.Set(1, pos, tilePattern);
-			}
-		}
-		// Controller.Smooth(0);
-		Controller.Fill();
+			});
+		Console.WriteLine(grid.FindShapes().Select(s => s.Width).Min());
+		Console.WriteLine(grid.FindShapes().Select(s => s.Width).Max());
+	}
+
+	private void Measure(string name, Action action, int times = 10000) {
+		var x = Stopwatch.StartNew();
+		for (var i = 0; i < times; i++) {
+			action();
+		}		
+		Console.WriteLine(name + " " + x.ElapsedMilliseconds + "ms (" + times + " times)");
+	}
+
+	private void LocateSprite(Node parent, string name, int x, int y) {
+		var tree = Random.Next(TreesInstance.List(name)).Duplicate() as StaticBody2D;
+		tree.Position = new Vector2(x , y);
+		parent.AddChild(tree);
 	}
 
 	private void LocateSprite(Node parent, Trees.Id id, int x, int y) {
 		var tree = TreesInstance.Duplicate(id);
-		tree.Position = new Vector2(x * 16, y * 16);
+		tree.Position = new Vector2(x , y);
 		parent.AddChild(tree);
 	}
 }
 
-public interface ITilePattern<TTile> where TTile : Enum {
-	public TTile Key { get; init; }
-	public int SourceId { get; init; }
-	public void Apply(TileMap tileMap, int layer, Vector2I pos);
-}
-
-public class TilePattern<TTile> : ITilePattern<TTile> 
-	where TTile : Enum {
-	public TTile Key { get; init; }
-	public int SourceId { get; init; }
-	public Rect2I AtlasCoords { get; init; }
-
-	public void Apply(TileMap tileMap, int layer, Vector2I pos) {
-		var x = AtlasCoords.Position.X + pos.X % AtlasCoords.Size.X;
-		var y = AtlasCoords.Position.Y + pos.Y % AtlasCoords.Size.Y;
-		tileMap.SetCell(layer, pos, SourceId, new Vector2I(x, y));
-	}
-}
-
-public class TileSetController<TTile> where TTile : Enum {
-	internal class TileData {
-		internal readonly TTile Tile;
-
-		public TileData(TTile tile) {
-			Tile = tile;
-		}
-	}
-
-	internal readonly TileData[,,] Data;
-	internal readonly int Layers;
-	internal readonly int Size;
-	internal readonly TileMap TileMap;
-
-	private readonly Dictionary<TTile, ITilePattern<TTile>> _tilePatterns = new();
-
-	public Random Random { get; set; }
-
-	public TileSetController(TileMap tileMap, int layers, int size, Random random) {
-		TileMap = tileMap;
-		Size = size;
-		Random = random;
-		Layers = layers;
-		Data = new TileData[layers, size, size];
-	}
-
-	public void Add(TTile key, ITilePattern<TTile> tilePattern) {
-		_tilePatterns[key] = tilePattern;
-	}
-	
-	public void Set(int layer, Vector2I pos, TTile tile) {
-		Data[layer, pos.X, pos.Y] = new TileData(tile);
-	}
-
-	public void Smooth(int layer) {
-		var steps = 0;
-		while (SmoothStep(layer) && steps ++ < 15) {
-		}
-	}
-
-	public bool SmoothStep(int layer) {
-		var worked = false;
-		void SetData(int x, int y, TileData data) {
-			if (Data[layer, x, y].Tile.ToInt() == data.Tile.ToInt()) return;
-			Data[layer, x, y] = new TileData(data.Tile);
-			worked = true;
-		}
-
-		TileData GetData(int x, int y, TileData def) {
-			if (x < 0 || x >= Size ||
-				y < 0 || y >= Size) return def;
-			return Data[layer, x, y];
-		}
-		
-		for (var y = 0; y < Size; y++) {
-			for (var x = 0; x < Size; x++) {
-				var data = Data[layer, x, y];
-				var left = GetData(x - 1, y, data);
-				var right = GetData(x + 1, y, data);
-				var up = GetData(x, y - 1, data);
-				var down = GetData(x, y + 1, data);
-				bool equalLat = left.Tile.ToInt() == right.Tile.ToInt();
-				bool equalVer = up.Tile.ToInt() == down.Tile.ToInt();
-				if (equalLat && equalVer) {
-					SetData(x, y, Random.NextBool() ? left : up);
-				} else if (equalLat) {
-					SetData(x, y, left);
-				} else if (equalVer) {
-					SetData(x, y, up);
-				}
-			}
-		}
-		return worked;
-	}
-
-	public void Fill() {
-		for (var layer = 0; layer < Layers; layer += 1) {
-			for (var y = 0; y < Size; y++) {
-				for (var x = 0; x < Size; x++) {
-					var data = Data[layer, x, y];
-					if (data != null) {
-						var tilePattern = _tilePatterns[data.Tile];
-						if (tilePattern.SourceId >= 0) {
-							var pos = new Vector2I(x, y);
-							tilePattern.Apply(TileMap, layer, pos);
-						}
-					}
-				}
-			}
-		}
-	}
-
-	public void Clear() {
-		TileMap.Clear();
-	}
-}

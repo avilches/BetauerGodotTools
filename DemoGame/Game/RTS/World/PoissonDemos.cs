@@ -220,7 +220,7 @@ public partial class PoissonDemos : Node2D {
         grid.RemoveAll<Rectangle>(c => x++ % 2 == 0);
         grid.AdjustAll();
         grid.ForEach<Rectangle>(v => {
-            fast.DrawRectangle((int)v.Position.X, (int)v.Position.Y, (int)v.Width, (int)v.Height, Colors.Red);
+            fast.DrawRect((int)v.Position.X, (int)v.Position.Y, (int)v.Width, (int)v.Height, Colors.Red);
         });
         fast.Flush();
     }

@@ -16,7 +16,8 @@ public enum TilePatterns {
     TextureBigMud,
     TextureSoil,
     TextureBigSand,
-    TextureAsphaltLight,
+    TransparentGrass,
+    TransparentAsphalt,
     
     
 	
@@ -44,7 +45,7 @@ public partial class WorldGenerator {
     }
 
     private static TileSetController<TilePatterns> CreateTileSetController(TileMap grassland, Random random) {
-        var ts = new TileSetController<TilePatterns>(grassland, Layers, Size, random);
+        var ts = new TileSetController<TilePatterns>(grassland, Layers, GridSize, random);
 
         ts.Add(TilePatterns.None, new TilePattern<TilePatterns> {
             SourceId = -1,
@@ -95,7 +96,13 @@ public partial class WorldGenerator {
             SourceId = 3,
             AtlasCoords = new Rect2I(0, 0, 7, 7)
         });
-        ts.Add(TilePatterns.TextureAsphaltLight, new TilePattern<TilePatterns> {
+        
+        ts.Add(TilePatterns.TransparentGrass, new TilePattern<TilePatterns> {
+            SourceId = 4,
+            AtlasCoords = new Rect2I(0, 0, 8, 8)
+        });
+        
+        ts.Add(TilePatterns.TransparentAsphalt, new TilePattern<TilePatterns> {
             SourceId = 5,
             AtlasCoords = new Rect2I(0, 0, 29, 21)
         });

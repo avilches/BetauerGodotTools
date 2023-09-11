@@ -22,8 +22,8 @@ namespace Veronenger.Game;
 public class ApplicationConfig {
 	public static readonly ScreenConfiguration Configuration = new(
 		FixedViewportStrategy.Instance, 
-		Resolutions.FULLHD_DIV2,
-		Resolutions.FULLHD_DIV2,
+		Resolutions.FULLHD,
+		Resolutions.FULLHD,
 		Window.ContentScaleModeEnum.CanvasItems, // (viewport is blur)
 		Window.ContentScaleAspectEnum.Keep,
 		Resolutions.GetAll(AspectRatios.Ratio16_9, AspectRatios.Ratio21_9), 

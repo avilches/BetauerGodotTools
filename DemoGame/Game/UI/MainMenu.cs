@@ -6,6 +6,7 @@ using Betauer.Input;
 using Betauer.NodePath;
 using Betauer.UI;
 using Godot;
+using Veronenger.Game.RTS.World;
 
 namespace Veronenger.Game.UI; 
 
@@ -30,6 +31,7 @@ public partial class MainMenu : CanvasFaderLayer {
 
 	[Inject] private InputAction UiAccept { get; set; }
 	[Inject] private InputAction UiCancel { get; set; }
+	[Inject] private WorldGenerator WorldGenerator { get; set; }
 
 	public override void _Ready() {
 		_version.Text = $"{AppTools.GetProjectName()} {AppTools.GetProjectVersion()} - Betauer 2022";
