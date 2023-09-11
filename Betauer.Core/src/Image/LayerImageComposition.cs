@@ -4,15 +4,17 @@ namespace Betauer.Core.Image;
 
 public class Layer {
     public FastImage Image;
-    public bool Tiled;
+    public bool Seamless;
 
-    public Layer(FastImage image, bool tiled) {
+    public Layer(FastImage image, bool seamless) {
         Image = image;
-        Tiled = tiled;
+        Seamless = seamless;
     }
 
+    public bool Enabled { get; set; } = true;
+
     public Color GetPixel(int x, int y) {
-        if (Tiled) {
+        if (Seamless) {
             return Image.GetPixel(x % Image.Width, y % Image.Height);
         }
         if (x >= Image.Width || y >= Image.Height) return new Color(0, 0, 0, 0);
@@ -21,28 +23,30 @@ public class Layer {
 }
 
 public class LayerImageComposition {
-    private readonly int _layers;
-    private readonly int _width;
-    private readonly int _height;
+    public int Layers { get; init; }
+    public int Width { get; init; }
+    public int Height { get; init; }
+    
     private readonly Layer[] _images;
 
     public LayerImageComposition(int layers, int width, int height) {
-        _layers = layers;
-        _width = width;
-        _height = height;
+        Layers = layers;
+        Width = width;
+        Height = height;
         _images = new Layer[layers];
     }
 
-    public void SetLayer(int layer, FastImage image, bool tiled = false) {
-        _images[layer] = new Layer(image, tiled);
+    public void SetLayer(int layer, FastImage image, bool seamless = false) {
+        _images[layer] = new Layer(image, seamless);
     }
 
     public FastImage Export() {
-        var canvas = new FastImage(_width, _height, false, FastImage.DefaultFormat);
-        for (var layer = 0; layer < _layers; layer++) {
+        var canvas = new FastImage(Width, Height, false, FastImage.DefaultFormat);
+        for (var layer = 0; layer < Layers; layer++) {
             var layerImage = _images[layer];
-            for (var x = 0; x < _width; x++) {
-                for (var y = 0; y < _height; y++) {
+            if (!layerImage.Enabled) continue;
+            for (var x = 0; x < Width; x++) {
+                for (var y = 0; y < Height; y++) {
                     if (layerImage == null) continue;
                     var layerPixel = layerImage.GetPixel(x, y);
                     if (layer == 0) {
@@ -60,7 +64,7 @@ public class LayerImageComposition {
     public Layer GetLayer(int i) {
         var image = _images[i];
         if (image != null) return image;
-        image = new Layer(new FastImage(_width, _height, false, FastImage.DefaultFormat), false);
+        image = new Layer(new FastImage(Width, Height, false, FastImage.DefaultFormat), false);
         _images[i] = image;
         return image;
     }
