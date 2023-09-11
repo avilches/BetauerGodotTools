@@ -9,7 +9,7 @@ namespace Betauer.Core.Image;
 /// possible binary to format to store the noise and get the image as array of bytes. This array of bytes can be used as a cache and allow access to the noise
 /// values directly (no inter-op with Godot), which is faster than using noise.GetNoise2D.
 /// </summary>
-public class FastNoise {
+public class FastNoise : INoise2D {
     private readonly Noise _noise;
     // public NoiseTexture2D NoiseTexture2D { get; private set; }
 

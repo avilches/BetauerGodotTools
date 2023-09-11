@@ -9,10 +9,12 @@ namespace Betauer.Core.Image;
  * It takes more memory than FastNoise, but it's still as faster as it.
  * It allows to query pixels and return a gradient color position. This allow to generate content based on the noise and it will look exactly the same as the texture.
  */
-public class FastTextureNoiseWithGradient : FastImage {
+public class FastTextureNoiseWithGradient : INoise2D {
     private readonly Color[]? _colors;
+    private readonly FastImage _fastImage;
     
-    public FastTextureNoiseWithGradient(NoiseTexture2D texture) : base(texture) {
+    public FastTextureNoiseWithGradient(NoiseTexture2D texture) {
+        _fastImage = new FastImage(texture);
         if (texture.ColorRamp != null) {
             if (texture.ColorRamp.InterpolationMode != Gradient.InterpolationModeEnum.Constant) {
                 throw new Exception("A Gradient with InterpolationMode Constant is expected. If you only want to get the noise, use FastTextureNoise instead");
@@ -30,7 +32,7 @@ public class FastTextureNoiseWithGradient : FastImage {
     /// <param name="y"></param>
     /// <returns></returns>
     public int GetNoiseGradient(int x, int y) {
-        var pixelColor = GetPixel(x, y);
+        var pixelColor = _fastImage.GetPixel(x, y);
         if (_colors != null) {
             return FindColor(pixelColor);
         }
@@ -38,7 +40,7 @@ public class FastTextureNoiseWithGradient : FastImage {
     }
 
     public float GetNoise(int x, int y) {
-        return GetPixel(x, y).V;
+        return _fastImage.GetPixel(x, y).V;
     }
 
     private int FindColor(Color pixelColor) {
