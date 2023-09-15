@@ -12,7 +12,7 @@ using NUnit.Framework;
 namespace Betauer.GameTools.Tests;
 
 [TestRunner.Test]
-public partial class FSMNodeSyncTests : Node {
+public partial class FsmNodeSyncTests : Node {
     enum State {
         A,
         Idle,
