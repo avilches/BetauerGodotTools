@@ -6,6 +6,7 @@
 ### Godot ###
 
 # Godot-specific ignores
+.tmp
 .godot/editor/
 .godot/mono/
 .godot/shader_cache/
