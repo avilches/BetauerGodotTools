@@ -18,12 +18,12 @@ public class TileRegionHandler<TTile> : ITileHandler<TTile> where TTile : struct
     /// </summary>
     /// <param name="tileMap"></param>
     /// <returns></returns>
-    public Image GetAtlasClip(TileMap tileMap) {
+    public Godot.Image GetAtlasClip(TileMap tileMap) {
         var texture = GetTexture(tileMap);
         var image = texture.GetImage();
         var cellSize = new Vector2I(tileMap.TileSet.TileSize.X, tileMap.TileSet.TileSize.Y);
         var rect = new Rect2I(Region.Position * cellSize, Region.Size * cellSize);
-        var newImage = Image.Create(rect.Size.X, rect.Size.Y, false, image.GetFormat());
+        var newImage = Godot.Image.Create(rect.Size.X, rect.Size.Y, false, image.GetFormat());
         newImage.BlitRect(image, rect, Vector2I.Zero);
         return newImage;
     }

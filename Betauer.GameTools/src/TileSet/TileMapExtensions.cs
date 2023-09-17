@@ -69,7 +69,6 @@ public static class TileMapExtensions {
             var cellInfo = tileMap.GetCellInfo(layer, x, y);
             if (cellInfo.Type.HasValue && cellInfo.AtlasCoords.HasValue) {
                 var tileRectAtlasConfiguration = handlers[cellInfo.Type.Value];
-                godotTileMap.SetCellsTerrainConnect();
                 godotTileMap.SetCell(layer, new Vector2I(x, y), tileRectAtlasConfiguration.SourceId, cellInfo.AtlasCoords.Value);
             }
         });

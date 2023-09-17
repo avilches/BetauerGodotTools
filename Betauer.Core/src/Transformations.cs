@@ -4,7 +4,7 @@ public static partial class Transformations {
     public static T[,] Rotate90<T>(this T[,] source) {
         var height = source.GetLength(0);
         var width = source.GetLength(1);
-        T[,] temp = new T[width, height];
+        var temp = new T[width, height];
         for (var y = 0; y < height; y++) {
             for (var x = 0; x < width; x++) {
                 temp[x, y] = source[height - 1 - y, x];
@@ -16,7 +16,7 @@ public static partial class Transformations {
     public static T[,] Rotate180<T>(this T[,] source) {
         var height = source.GetLength(0);
         var width = source.GetLength(1);
-        T[,] temp = new T[height, width];
+        var temp = new T[height, width];
         for (var y = 0; y < height; y++) {
             for (var x = 0; x < width; x++) {
                 temp[y, x] = source[height - 1 - y, width - 1 - x];
@@ -28,7 +28,7 @@ public static partial class Transformations {
     public static T[,] RotateMinus90<T>(this T[,] source) {
         var height = source.GetLength(0);
         var width = source.GetLength(1);
-        T[,] temp = new T[width, height];
+        var temp = new T[width, height];
         for (var y = 0; y < height; y++) {
             for (var x = 0; x < width; x++) {
                 temp[width - 1 - x, y] = source[y, x];
@@ -36,10 +36,11 @@ public static partial class Transformations {
         }
         return temp;
     }
+
     public static T[,] FlipH<T>(this T[,] source) {
         var height = source.GetLength(0);
         var width = source.GetLength(1);
-        T[,] temp = new T[height, width];
+        var temp = new T[height, width];
         for (var y = 0; y < height; y++) {
             for (var x = 0; x < width; x++) {
                 temp[y, x] = source[y, width - 1 - x];
@@ -51,7 +52,7 @@ public static partial class Transformations {
     public static T[,] FlipV<T>(this T[,] source) {
         var height = source.GetLength(0);
         var width = source.GetLength(1);
-        T[,] temp = new T[height, width];
+        var temp = new T[height, width];
         for (var y = 0; y < height; y++) {
             for (var x = 0; x < width; x++) {
                 temp[y, x] = source[height - 1 - y, x];
@@ -69,13 +70,12 @@ public static partial class Transformations {
     public static T[,] FlipDiagonal<T>(this T[,] source) {
         var height = source.GetLength(0);
         var width = source.GetLength(1);
-        T[,] temp = new T[height, width];
+        var temp = new T[width, height];
         for (var y = 0; y < height; y++) {
             for (var x = 0; x < width; x++) {
-                temp[y, x] = source[x, y];
+                temp[x, y] = source[y, x];
             }
         }
-
         return temp;
     }
 
@@ -88,10 +88,10 @@ public static partial class Transformations {
     public static T[,] FlipDiagonalSecondary<T>(this T[,] source) {
         var height = source.GetLength(0);
         var width = source.GetLength(1);
-        T[,] temp = new T[height, width];
+        var temp = new T[width, height];
         for (var y = 0; y < height; y++) {
             for (var x = 0; x < width; x++) {
-                temp[y, x] = source[height - 1 - x, width - 1 - y];
+                temp[width - 1 - x, height - 1 - y] = source[y, x];
             }
         }
         return temp;

@@ -1,5 +1,6 @@
 using System;
 using Betauer.Core.Image;
+using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
 
