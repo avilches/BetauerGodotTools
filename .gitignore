@@ -33,3 +33,4 @@ mono_crash.*
 /*.sln.DotSettings.*
 /export/releases
 
+/.tmp/
