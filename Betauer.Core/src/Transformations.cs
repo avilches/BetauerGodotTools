@@ -54,7 +54,7 @@ public static partial class Transformations {
         var width = source.GetLength(1);
         var halfWidth = width / 2;
         if (width % 2 != 0) halfWidth++;
-        var temp = new T[height, halfWidth];
+        var temp = new T[height, width];
         for (var y = 0; y < height; y++) {
             for (var x = 0; x < halfWidth; x++) {
                 temp[y, x] = source[y, x];
