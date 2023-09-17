@@ -13,77 +13,148 @@ public class TransformationsTests {
     
     [Betauer.TestRunner.Test]
     public void TransformationsRectTests() {
-        var rect = new[,] {
+        AreEqual(new[,] {
             {  0,  1,  2,  3 },
             { 10, 11, 12, 13 },
             { 20, 21, 22, 23 }
-        };
-        
-        AreEqual(rect.FlipH(), new[,] {
+        }.FlipH(), new[,] {
             {  3,  2,  1,  0 },
             { 13, 12, 11, 10 },
             { 23, 22, 21, 20 }
         });
         
-        AreEqual(rect.MirrorLeftToRight(), new[,] {
+        AreEqual(new[,] {
+            {  0,  1,  2,  3,  4 },
+            { 10, 11, 12, 13, 14 },
+            { 20, 21, 22, 23, 15 }
+        }.MirrorLeftToRight(), new[,] {
+            {  0,  1,  2,  1,  0 },
+            { 10, 11, 12, 11, 10 },
+            { 20, 21, 22, 21, 20 }
+        });
+        
+        AreEqual(new[,] {
+            {  0,  1,  2,  3 },
+            { 10, 11, 12, 13 },
+            { 20, 21, 22, 23 }
+        }.MirrorLeftToRight(), new[,] {
             {  0,  1,  1,  0 },
             { 10, 11, 11, 10 },
             { 20, 21, 21, 20 }
         });
+
+        AreEqual(new[,] {
+            {  0,  1,  2,  3,  4 },
+            { 10, 11, 12, 13, 14 },
+            { 20, 21, 22, 23, 15 }
+        }.MirrorRightToLeft(), new[,] {
+            {  4,  3,  2,  3,  4 },
+            { 14, 13, 12, 13, 14 },
+            { 15, 23, 22, 23, 15 }
+        });
         
-        AreEqual(rect.MirrorRightToLeft(), new[,] {
+        AreEqual(new[,] {
+            {  0,  1,  2,  3 },
+            { 10, 11, 12, 13 },
+            { 20, 21, 22, 23 }
+        }.MirrorRightToLeft(), new[,] {
             {  3,  2,  2,  3 },
             { 13, 12, 12, 13 },
             { 23, 22, 22, 23 }
         });
         
-        AreEqual(rect.FlipV(), new[,] {
+        AreEqual(new[,] {
+            {  0,  1,  2,  3 },
+            { 10, 11, 12, 13 },
+            { 20, 21, 22, 23 }
+        }.FlipV(), new[,] {
             { 20, 21, 22, 23 },
             { 10, 11, 12, 13 },
             {  0,  1,  2,  3 }
         });
 
-        AreEqual(rect.MirrorTopToBottom(), new[,] {
+        AreEqual(new[,] {
+            {  0,  1,  2,  3 },
+            { 10, 11, 12, 13 },
+            { 20, 21, 22, 23 }
+        }.MirrorTopToBottom(), new[,] {
             {  0,  1,  2,  3 },
             { 10, 11, 12, 13 },
             {  0,  1,  2,  3 }
         });
 
-        AreEqual(rect.MirrorBottomToTop(), new[,] {
-            { 20, 21, 22, 23 },
+        AreEqual(new[,] {
+            {  0,  1,  2,  3 },
             { 10, 11, 12, 13 },
             { 20, 21, 22, 23 },
+            { 30, 31, 32, 33 }
+        }.MirrorTopToBottom(), new[,] {
+            {  0,  1,  2,  3 },
+            { 10, 11, 12, 13 },
+            { 10, 11, 12, 13 },
+            {  0,  1,  2,  3 }
         });
 
+        AreEqual(new[,] {
+            {  0,  1,  2,  3 },
+            { 10, 11, 12, 13 },
+            { 20, 21, 22, 23 },
+            { 30, 31, 32, 33 }
+        }.MirrorBottomToTop(), new[,] {
+            { 30, 31, 32, 33 },
+            { 20, 21, 22, 23 },
+            { 20, 21, 22, 23 },
+            { 30, 31, 32, 33 }
+        });
 
-        AreEqual(rect.Rotate90(), new[,] {
+        AreEqual(new[,] {
+            {  0,  1,  2,  3 },
+            { 10, 11, 12, 13 },
+            { 20, 21, 22, 23 }
+        }.Rotate90(), new[,] {
             { 20, 10, 0 },
             { 21, 11, 1 },
             { 22, 12, 2 },
             { 23, 13, 3 }
         });
         
-        AreEqual(rect.RotateMinus90(), new[,] {
+        AreEqual(new[,] {
+            {  0,  1,  2,  3 },
+            { 10, 11, 12, 13 },
+            { 20, 21, 22, 23 }
+        }.RotateMinus90(), new[,] {
             { 3, 13, 23 },
             { 2, 12, 22 },
             { 1, 11, 21 },
             { 0, 10, 20 }
         });
         
-        AreEqual(rect.Rotate180(), new[,] {
+        AreEqual(new[,] {
+            {  0,  1,  2,  3 },
+            { 10, 11, 12, 13 },
+            { 20, 21, 22, 23 }
+        }.Rotate180(), new[,] {
             { 23, 22, 21, 20},
             { 13, 12, 11, 10},
             {  3,  2,  1,  0}
         });
         
-        AreEqual(rect.FlipDiagonal(), new[,] {
+        AreEqual(new[,] {
+            {  0,  1,  2,  3 },
+            { 10, 11, 12, 13 },
+            { 20, 21, 22, 23 }
+        }.FlipDiagonal(), new[,] {
             { 0, 10, 20 },
             { 1, 11, 21 },
             { 2, 12, 22 },
             { 3, 13, 23 }
         });
 
-        AreEqual(rect.FlipDiagonalSecondary(), new[,] {
+        AreEqual(new[,] {
+            {  0,  1,  2,  3 },
+            { 10, 11, 12, 13 },
+            { 20, 21, 22, 23 }
+        }.FlipDiagonalSecondary(), new[,] {
             { 23, 13, 3 },
             { 22, 12, 2 },
             { 21, 11, 1 },
@@ -251,11 +322,27 @@ public class TransformationsTests {
     }
 
     [Betauer.TestRunner.Test]
+    public void FlipHOddTest() {
+        var textures = new FastImage("test-resources/imagen2.png", Godot.Image.Format.Rgba8);
+        textures.FlipH(90, 10, 181, 341);
+        textures.Flush();
+        textures.Image.SavePng(".tmp/imagen-FlipH-odd.png");
+    }
+
+    [Betauer.TestRunner.Test]
     public void MirrorLeftToRightTest() {
         var textures = new FastImage("test-resources/imagen2.png", Godot.Image.Format.Rgba8);
         textures.MirrorLeftToRight(90, 10, 180, 340);
         textures.Flush();
         textures.Image.SavePng(".tmp/imagen-MirrorLeftToRight.png");
+    }
+
+    [Betauer.TestRunner.Test]
+    public void MirrorLeftToRightOddTest() {
+        var textures = new FastImage("test-resources/imagen2.png", Godot.Image.Format.Rgba8);
+        textures.MirrorLeftToRight(90, 10, 181, 341);
+        textures.Flush();
+        textures.Image.SavePng(".tmp/imagen-MirrorLeftToRight-odd.png");
     }
 
     [Betauer.TestRunner.Test]
@@ -267,11 +354,27 @@ public class TransformationsTests {
     }
 
     [Betauer.TestRunner.Test]
+    public void MirrorRightToLeftOddTest() {
+        var textures = new FastImage("test-resources/imagen2.png", Godot.Image.Format.Rgba8);
+        textures.MirrorRightToLeft(90, 10, 181, 341);
+        textures.Flush();
+        textures.Image.SavePng(".tmp/imagen-MirrorRightToLeft-odd.png");
+    }
+
+    [Betauer.TestRunner.Test]
     public void FlipVTest() {
         var textures = new FastImage("test-resources/imagen2.png", Godot.Image.Format.Rgba8);
         textures.FlipV(90, 10, 180, 340);
         textures.Flush();
         textures.Image.SavePng(".tmp/imagen-FlipV.png");
+    }
+
+    [Betauer.TestRunner.Test]
+    public void FlipVOddTest() {
+        var textures = new FastImage("test-resources/imagen2.png", Godot.Image.Format.Rgba8);
+        textures.FlipV(90, 10, 181, 341);
+        textures.Flush();
+        textures.Image.SavePng(".tmp/imagen-FlipV-odd.png");
     }
 
     [Betauer.TestRunner.Test]
@@ -283,11 +386,27 @@ public class TransformationsTests {
     }
 
     [Betauer.TestRunner.Test]
+    public void MirrorTopToBottomOddTest() {
+        var textures = new FastImage("test-resources/imagen2.png", Godot.Image.Format.Rgba8);
+        textures.MirrorTopToBottom(90, 10, 181, 341);
+        textures.Flush();
+        textures.Image.SavePng(".tmp/imagen-MirrorTopToBottom-odd.png");
+    }
+
+    [Betauer.TestRunner.Test]
     public void MirrorBottomToTopTest() {
         var textures = new FastImage("test-resources/imagen2.png", Godot.Image.Format.Rgba8);
         textures.MirrorBottomToTop(90, 10, 180, 340);
         textures.Flush();
         textures.Image.SavePng(".tmp/imagen-MirrorBottomToTop.png");
+    }
+
+    [Betauer.TestRunner.Test]
+    public void MirrorBottomToTopOddTest() {
+        var textures = new FastImage("test-resources/imagen2.png", Godot.Image.Format.Rgba8);
+        textures.MirrorBottomToTop(90, 10, 181, 341);
+        textures.Flush();
+        textures.Image.SavePng(".tmp/imagen-MirrorBottomToTop-odd.png");
     }
 
     [Betauer.TestRunner.Test]

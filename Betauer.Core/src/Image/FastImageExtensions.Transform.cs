@@ -85,29 +85,27 @@ public static partial class FastImageExtensions {
         if (startX < 0 || startY < 0 || startX + width > source.Width || startY + height > source.Height) {
             throw new System.Exception("Invalid region");
         }
-        var temp = new Color[height, width];
-        var halfWidth = width / 2;
-        if (width % 2 != 0) halfWidth++;
+        var halfWidth = width / 2 + (width % 2 != 0 ? 1 : 0);
+        var temp = new Color[height, halfWidth];
+        var widthOffset = halfWidth - (width % 2 != 0 ? 1 : 0); 
         for (var y = 0; y < height; y++) {
             for (var x = 0; x < halfWidth; x++) {
-                temp[y, x] = source.GetPixel(x + startX, y + startY);
-                temp[y, width - 1 - x] = source.GetPixel(x + startX, y + startY);
+                temp[y, halfWidth - 1 - x] = source.GetPixel(x + startX, y + startY);
             }
         }
-        SetRegion(source, temp, startX, startY);
+        SetRegion(source, temp, startX + widthOffset, startY);
     }
     
     public static void MirrorRightToLeft(this FastImage source, int startX, int startY, int width, int height) {
         if (startX < 0 || startY < 0 || startX + width > source.Width || startY + height > source.Height) {
             throw new System.Exception("Invalid region");
         }
-        var temp = new Color[height, width];
-        var halfWidth = width / 2;
-        if (width % 2 != 0) halfWidth++;
+        var halfWidth = width / 2 + (width % 2 != 0 ? 1 : 0);
+        var temp = new Color[height, halfWidth];
+        var widthOffset = halfWidth - (width % 2 != 0 ? 1 : 0); 
         for (var y = 0; y < height; y++) {
             for (var x = 0; x < halfWidth; x++) {
-                temp[y, x] = source.GetPixel(width - 1 - x + startX, y + startY); 
-                temp[y, width - 1 - x] = source.GetPixel(width - 1 - x + startX, y + startY);
+                temp[y, halfWidth - 1 - x] = source.GetPixel(x + startX + widthOffset, y + startY);
             }
         }
         SetRegion(source, temp, startX, startY);
@@ -130,29 +128,27 @@ public static partial class FastImageExtensions {
         if (startX < 0 || startY < 0 || startX + width > source.Width || startY + height > source.Height) {
             throw new System.Exception("Invalid region");
         }
-        var temp = new Color[height, width];
-        var halfHeight = height / 2;
-        if (height % 2 != 0) halfHeight++;
+        var halfHeight = height / 2 + (height % 2 != 0 ? 1 : 0);
+        var temp = new Color[halfHeight, width];
+        var heightOffset = halfHeight - (height % 2 != 0 ? 1 : 0); 
         for (var y = 0; y < halfHeight; y++) {
             for (var x = 0; x < width; x++) {
-                temp[y, x] = source.GetPixel(x + startX, y + startY);
-                temp[height - 1 - y, x] = source.GetPixel(x + startX, y + startY);
+                temp[halfHeight - 1 - y, x] = source.GetPixel(x + startX, y + startY);
             }
         }
-        SetRegion(source, temp, startX, startY);
+        SetRegion(source, temp, startX, startY + heightOffset);
     }
 
     public static void MirrorBottomToTop(this FastImage source, int startX, int startY, int width, int height) {
         if (startX < 0 || startY < 0 || startX + width > source.Width || startY + height > source.Height) {
             throw new System.Exception("Invalid region");
         }
-        var temp = new Color[height, width];
-        var halfHeight = height / 2;
-        if (height % 2 != 0) halfHeight++;
+        var halfHeight = height / 2 + (height % 2 != 0 ? 1 : 0);
+        var temp = new Color[halfHeight, width];
+        var heightOffset = halfHeight - (height % 2 != 0 ? 1 : 0); 
         for (var y = 0; y < halfHeight; y++) {
             for (var x = 0; x < width; x++) {
-                temp[y, x] = source.GetPixel(x + startX, height - 1 - y + startY);
-                temp[height - 1 - y, x] = source.GetPixel(x + startX, height - 1 - y + startY);
+                temp[halfHeight - 1 - y, x] = source.GetPixel(x + startX, y + startY + heightOffset);
             }
         }
         SetRegion(source, temp, startX, startY);
