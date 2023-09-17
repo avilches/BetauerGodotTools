@@ -8,10 +8,13 @@ namespace Betauer.Core.Image;
 /// A class to read and write pixels from a Image or a Texture2D faster than using GetPixel
 /// </summary>
 public class FastImage {
-    public const Godot.Image.Format DefaultFormat = Godot.Image.Format.Rgbaf;
-    public static readonly Godot.Image.Format[] AllowedFormats = { Godot.Image.Format.Rgbaf, Godot.Image.Format.Rgba8, Godot.Image.Format.L8 };
+    public const Godot.Image.Format DefaultFormat = Godot.Image.Format.Rgba8;
+    public static readonly Godot.Image.Format[] AllowedFormats = { 
+        Godot.Image.Format.Rgbaf, // 4 channels, 4 bytes (float) per channel 
+        Godot.Image.Format.Rgba8, 
+        Godot.Image.Format.L8 };
 
-    public byte[] RawImage;
+    public byte[] RawImage { get; private set; }
     public int Width { get; private set; }
     public int Height { get; private set; }
     public bool UseMipmaps { get; private set; }
@@ -141,6 +144,7 @@ public class FastImage {
             }
         }
         _pixel.SetPixel(this, x, y, color);
+        _dirty = true;
     }
 
     public void SetChannel(int x, int y, int channel, float value) {
