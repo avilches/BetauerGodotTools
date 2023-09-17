@@ -19,18 +19,43 @@ public class TransformationsTests {
             { 20, 21, 22, 23 }
         };
         
-        AreEqual(rect.FlipV(), new[,] {
-            { 20, 21, 22, 23 },
-            { 10, 11, 12, 13 },
-            {  0,  1,  2,  3 }
-        });
-
         AreEqual(rect.FlipH(), new[,] {
             {  3,  2,  1,  0 },
             { 13, 12, 11, 10 },
             { 23, 22, 21, 20 }
         });
         
+        AreEqual(rect.MirrorLeftToRight(), new[,] {
+            {  0,  1,  1,  0 },
+            { 10, 11, 11, 10 },
+            { 20, 21, 21, 20 }
+        });
+        
+        AreEqual(rect.MirrorRightToLeft(), new[,] {
+            {  3,  2,  2,  3 },
+            { 13, 12, 12, 13 },
+            { 23, 22, 22, 23 }
+        });
+        
+        AreEqual(rect.FlipV(), new[,] {
+            { 20, 21, 22, 23 },
+            { 10, 11, 12, 13 },
+            {  0,  1,  2,  3 }
+        });
+
+        AreEqual(rect.MirrorTopToBottom(), new[,] {
+            {  0,  1,  2,  3 },
+            { 10, 11, 12, 13 },
+            {  0,  1,  2,  3 }
+        });
+
+        AreEqual(rect.MirrorBottomToTop(), new[,] {
+            { 20, 21, 22, 23 },
+            { 10, 11, 12, 13 },
+            { 20, 21, 22, 23 },
+        });
+
+
         AreEqual(rect.Rotate90(), new[,] {
             { 20, 10, 0 },
             { 21, 11, 1 },
@@ -86,12 +111,48 @@ public class TransformationsTests {
             { 30, 31, 32, 33 }
         });
 
+        var mirrorTToB = ImageFrom(rect);
+        mirrorTToB.MirrorTopToBottom(1, 1, 3, 2);
+        AreEqual(GetData(mirrorTToB), new[,] {
+            {  0,  1,  2,  3 },
+            { 10, 11, 12, 13 },
+            { 20, 11, 12, 13 },
+            { 30, 31, 32, 33 }
+        });
+
+        var mirrorBToT = ImageFrom(rect);
+        mirrorBToT.MirrorBottomToTop(1, 1, 3, 2);
+        AreEqual(GetData(mirrorBToT), new[,] {
+            {  0,  1,  2,  3 },
+            { 10, 21, 22, 23 },
+            { 20, 21, 22, 23 },
+            { 30, 31, 32, 33 }
+        });
+
         var flipH = ImageFrom(rect);
         flipH.FlipH(1, 1, 2, 2);
         AreEqual(GetData(flipH), new[,] {
             {  0,  1,  2,  3 },
             { 10, 12, 11, 13 },
             { 20, 22, 21, 23 },
+            { 30, 31, 32, 33 }
+        });
+            
+        var mirrorRToL = ImageFrom(rect);
+        mirrorRToL.MirrorRightToLeft(1, 1, 3, 2);
+        AreEqual(GetData(mirrorRToL), new[,] {
+            {  0,  1,  2,  3 },
+            { 10, 13, 12, 13 },
+            { 20, 23, 22, 23 },
+            { 30, 31, 32, 33 }
+        });
+            
+        var mirrorLToR = ImageFrom(rect);
+        mirrorLToR.MirrorLeftToRight(1, 1, 3, 2);
+        AreEqual(GetData(mirrorLToR), new[,] {
+            {  0,  1,  2,  3 },
+            { 10, 11, 12, 11 },
+            { 20, 21, 22, 21 },
             { 30, 31, 32, 33 }
         });
             
@@ -162,7 +223,7 @@ public class TransformationsTests {
         var textures = new FastImage("test-resources/imagen2.png", Godot.Image.Format.Rgba8);
         textures.Rotate90(90, 10, 180, 340);
         textures.Flush();
-        textures.Image.SavePng(".tmp/imagen-rotate-90.png");
+        textures.Image.SavePng(".tmp/imagen-Rotate90.png");
     }
 
     [Betauer.TestRunner.Test]
@@ -170,7 +231,7 @@ public class TransformationsTests {
         var textures = new FastImage("test-resources/imagen2.png", Godot.Image.Format.Rgba8);
         textures.RotateMinus90(90, 10, 180, 340);
         textures.Flush();
-        textures.Image.SavePng(".tmp/imagen-rotate-minus-90.png");
+        textures.Image.SavePng(".tmp/imagen-RotateMinus90.png");
     }
 
     [Betauer.TestRunner.Test]
@@ -178,27 +239,59 @@ public class TransformationsTests {
         var textures = new FastImage("test-resources/imagen2.png", Godot.Image.Format.Rgba8);
         textures.Rotate180(90, 10, 180, 340);
         textures.Flush();
-        textures.Image.SavePng(".tmp/imagen-rotate-180.png");
+        textures.Image.SavePng(".tmp/imagen-Rotate180.png");
     }
 
     [Betauer.TestRunner.Test]
-    public void RotateFlipHTest() {
+    public void FlipHTest() {
         var textures = new FastImage("test-resources/imagen2.png", Godot.Image.Format.Rgba8);
         textures.FlipH(90, 10, 180, 340);
         textures.Flush();
-        textures.Image.SavePng(".tmp/imagen-fliph.png");
+        textures.Image.SavePng(".tmp/imagen-FlipH.png");
     }
 
     [Betauer.TestRunner.Test]
-    public void RotateFlipVTest() {
+    public void MirrorLeftToRightTest() {
+        var textures = new FastImage("test-resources/imagen2.png", Godot.Image.Format.Rgba8);
+        textures.MirrorLeftToRight(90, 10, 180, 340);
+        textures.Flush();
+        textures.Image.SavePng(".tmp/imagen-MirrorLeftToRight.png");
+    }
+
+    [Betauer.TestRunner.Test]
+    public void MirrorRightToLeftTest() {
+        var textures = new FastImage("test-resources/imagen2.png", Godot.Image.Format.Rgba8);
+        textures.MirrorRightToLeft(90, 10, 180, 340);
+        textures.Flush();
+        textures.Image.SavePng(".tmp/imagen-MirrorRightToLeft.png");
+    }
+
+    [Betauer.TestRunner.Test]
+    public void FlipVTest() {
         var textures = new FastImage("test-resources/imagen2.png", Godot.Image.Format.Rgba8);
         textures.FlipV(90, 10, 180, 340);
         textures.Flush();
-        textures.Image.SavePng(".tmp/imagen-flipv.png");
+        textures.Image.SavePng(".tmp/imagen-FlipV.png");
     }
 
     [Betauer.TestRunner.Test]
-    public void RotateFlipDiagonalTest() {
+    public void MirrorTopToBottomTest() {
+        var textures = new FastImage("test-resources/imagen2.png", Godot.Image.Format.Rgba8);
+        textures.MirrorTopToBottom(90, 10, 180, 340);
+        textures.Flush();
+        textures.Image.SavePng(".tmp/imagen-MirrorTopToBottom.png");
+    }
+
+    [Betauer.TestRunner.Test]
+    public void MirrorBottomToTopTest() {
+        var textures = new FastImage("test-resources/imagen2.png", Godot.Image.Format.Rgba8);
+        textures.MirrorBottomToTop(90, 10, 180, 340);
+        textures.Flush();
+        textures.Image.SavePng(".tmp/imagen-MirrorBottomToTop.png");
+    }
+
+    [Betauer.TestRunner.Test]
+    public void FlipDiagonalTest() {
         var textures = new FastImage("test-resources/imagen2.png", Godot.Image.Format.Rgba8);
         textures.FlipDiagonal(90, 50, 300, 260);
         textures.Flush();
@@ -206,7 +299,7 @@ public class TransformationsTests {
     }
 
     [Betauer.TestRunner.Test]
-    public void RotateFlipDiagonalSecondaryTest() {
+    public void FlipDiagonalSecondaryTest() {
         var textures = new FastImage("test-resources/imagen2.png", Godot.Image.Format.Rgba8);
         textures.FlipDiagonalSecondary(90, 50, 300, 260);
         textures.Flush();
