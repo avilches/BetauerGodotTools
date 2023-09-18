@@ -19,7 +19,7 @@ public static partial class FastImageExtensions {
         return region;
     }
 
-    public static void SetRegion(this FastImage source, Color[,] region, int startX, int startY, bool blend = true, int width = -1, int height = -1) {
+    public static void SetRegion(this FastImage source, Color[,] region, int startX, int startY, int width = -1, int height = -1, bool blend = true) {
         height = height < 0 ? region.GetLength(0) : height;
         width = width < 0 ? region.GetLength(1) : width;
         for (var x = 0; x < width; x++) {
