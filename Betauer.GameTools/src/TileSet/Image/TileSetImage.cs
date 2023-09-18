@@ -122,18 +122,18 @@ public class TileSetImage {
         // *
         // |
         // *
-        new StepRule(16).Do(20, StepRule.Step.LH).Do(80, StepRule.Step.RH),
-        new StepRule(17).Do(21, StepRule.Step.LH).Do(81, StepRule.Step.RH),
-        new StepRule(1).Do(5, StepRule.Step.LH).Do(65, StepRule.Step.RH),
+        new StepRule(16).Do(28, StepRule.Step.LH).Do(112, StepRule.Step.RH),
+        new StepRule(17).Do(31, StepRule.Step.LH).Do(241, StepRule.Step.RH),
+        new StepRule(1).Do(7, StepRule.Step.LH).Do(193, StepRule.Step.RH),
         
         // *-*
-        new StepRule(4).Do(20, StepRule.Step.TH).Do(5, StepRule.Step.BH),
-        new StepRule(68).Do(84, StepRule.Step.TH).Do(69, StepRule.Step.BH),
-        new StepRule(64).Do(80, StepRule.Step.TH).Do(65, StepRule.Step.BH),
+        new StepRule(4).Do(28, StepRule.Step.TH).Do(7, StepRule.Step.BH),
+        new StepRule(68).Do(124, StepRule.Step.TH).Do(199, StepRule.Step.BH),
+        new StepRule(64).Do(112, StepRule.Step.TH).Do(193, StepRule.Step.BH),
 
         // *
-        new StepRule(0).Do(20, StepRule.Step.TLQ).Do(80, StepRule.Step.TRQ)
-            .Do(5, StepRule.Step.BLQ).Do(64, StepRule.Step.BRQ),
+        new StepRule(0).Do(28, StepRule.Step.TLQ).Do(112, StepRule.Step.TRQ)
+            .Do(7, StepRule.Step.BLQ).Do(193, StepRule.Step.BRQ),
         
     };
 

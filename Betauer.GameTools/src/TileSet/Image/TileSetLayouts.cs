@@ -12,8 +12,8 @@ public static class TileSetLayouts {
 
     private static TileSetLayout? _wangSubset13;
     public static TileSetLayout WangSubset13 => _wangSubset13 ??= new TileSetLayout(new [,] {
-        { 20, 84, 80, 247, 223 },
-        { 21, 85, 81, 253, 127 },
-        {  5, 69, 65,  -1,  -1 }
+        { 28, 124, 112, 247, 223 },
+        { 31, 255, 241, 253, 127 },
+        {  7, 199, 193,  -1,  -1 }
     });
 }

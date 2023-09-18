@@ -18,8 +18,14 @@ public class TileSetGeneratorTests {
     [TestRunner.Test]
     public void BasicTest() {
         var source = new TileSetImage(new FastImage("test-resources/tileset/wang-subset-13.png"), TileSetLayouts.WangSubset13);
-        source.ExportAs(TileSetLayouts.Minimal3X3Godot).SavePng(".tmp/wang-subset-13-export.png");
-        source.ExportAs(TileSetLayouts.Minimal3X3Godot, TileSetImage.Blob47Rules).SavePng(".tmp/wang-subset-13-export-rules.png");
+        source.ExportAs(TileSetLayouts.Minimal3X3Godot).SavePng(".tmp/wang-47-export.png");
+        source.ExportAs(TileSetLayouts.Minimal3X3Godot, TileSetImage.Blob47Rules).SavePng(".tmp/wang-47-export-rules.png");
     }
 
+    [TestRunner.Test]
+    public void CreateWangSubset13Test() {
+        var source = new TileSetImage(new FastImage("test-resources/tileset/godot-full-example.png"), TileSetLayouts.Minimal3X3Godot);
+        // source.ExportAs(TileSetLayouts.WangSubset13).SavePng("test-resources/tileset/wang-subset-13.png");
+        source.ExportAs(TileSetLayouts.WangSubset13).SavePng(".tmp/wang-13-from-full.png");
+    }
 }
