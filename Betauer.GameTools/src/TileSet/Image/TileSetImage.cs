@@ -122,18 +122,54 @@ public class TileSetImage {
         // *
         // |
         // *
-        new StepRule(16).Do(28, StepRule.Step.LH).Do(112, StepRule.Step.RH),
-        new StepRule(17).Do(31, StepRule.Step.LH).Do(241, StepRule.Step.RH),
-        new StepRule(1).Do(7, StepRule.Step.LH).Do(193, StepRule.Step.RH),
+        new StepRule(16).LeftRight(28,112),
+        new StepRule(17).LeftRight(31,241),
+        new StepRule(1).LeftRight(7, 193),
         
         // *-*
-        new StepRule(4).Do(28, StepRule.Step.TH).Do(7, StepRule.Step.BH),
-        new StepRule(68).Do(124, StepRule.Step.TH).Do(199, StepRule.Step.BH),
-        new StepRule(64).Do(112, StepRule.Step.TH).Do(193, StepRule.Step.BH),
+        new StepRule(4).UpDown(28, 7),
+        new StepRule(68).UpDown(124, 199),
+        new StepRule(64).UpDown(112, 193),
 
         // *
-        new StepRule(0).Do(28, StepRule.Step.TLQ).Do(112, StepRule.Step.TRQ)
-            .Do(7, StepRule.Step.BLQ).Do(193, StepRule.Step.BRQ),
+        new StepRule(0).Do(28, StepRule.Step.UpLeftQuarter).Do(112, StepRule.Step.UpRightQuarter)
+            .Do(7, StepRule.Step.DownLeftQuarter).Do(193, StepRule.Step.DownRightQuarter),
+        
+        new StepRule(20).Quarters(28, 28, 28, 247),
+        new StepRule(84).Quarters(124, 124, 223, 247),
+        new StepRule(80).Quarters(112, 112, 223, 112),
+        new StepRule(21).Quarters(31, 253,31, 247),
+        new StepRule(85).Quarters(127,253, 223, 247),
+        new StepRule(81).Quarters(127, 241, 223, 241),
+        new StepRule( 5).Quarters(7, 253, 7, 7),
+        new StepRule(69).Quarters(127, 253, 199, 199),
+        new StepRule(65).Quarters(127, 193, 193, 193),
+
+        new StepRule(213).Quarters(193, 253, 223, 247),
+        new StepRule(92).Quarters(124, 124, 223, 28),
+        new StepRule(116).Quarters(124, 124, 112, 247),
+        new StepRule(87).Quarters(127, 7, 223, 247),
+        new StepRule(29).Quarters(31, 253, 31, 28),
+        // 127
+        // 253
+        new StepRule(113).Quarters(127, 241, 112, 241),
+        new StepRule(23).Quarters(31, 7, 31, 247),
+        // 223
+        // 247
+        new StepRule(209).Quarters(193, 241, 223, 241),
+        new StepRule(117).Quarters(127, 253, 112, 247),
+        new StepRule(71).Quarters(127, 7, 199, 199),
+        new StepRule(197).Quarters(193, 253, 199, 199),
+        new StepRule(93).Quarters(127, 253, 223, 28),
+        
+        
+        new StepRule(125).Quarters(127, 253, 124, 124),
+        new StepRule(119).Quarters(127, 7, 112, 247),
+        new StepRule(245).Quarters(241, 253, 241, 247),
+        new StepRule(95).Quarters(127, 31, 223, 31),
+        new StepRule(221).Quarters(193, 253, 223, 28),
+        new StepRule(215).Quarters(199,199, 223, 247),
+
         
     };
 
