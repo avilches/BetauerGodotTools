@@ -9,8 +9,7 @@ using NUnit.Framework;
 namespace Betauer.GameTools.Tests;
 
 [TestRunner.Test]
-[Only]
-public class TileSetGeneratorTests {
+public class TileSetImageTests {
     [SetUpClass]
     public void SetUp() {
         if (!Directory.Exists(".tmp")) {

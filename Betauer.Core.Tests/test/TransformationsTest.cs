@@ -456,7 +456,6 @@ public class TransformationsTests {
                 Assert.That(array1[i, j], Is.EqualTo(array2[i, j]), "Element position: [" + i + "," + j + "]");
             }
         }
-
         return true;
     }
 }

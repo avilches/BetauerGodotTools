@@ -11,8 +11,8 @@ public class TileSetImage {
 
     public CellImage CellImage { get; }
     
-    public int Columns => CellImage.Columns;
-    public int Rows => CellImage.Rows;
+    public int Width => CellImage.Width;
+    public int Height => CellImage.Height;
     public int ImageWidth => CellImage.ImageWidth;
     public int ImageHeight => CellImage.ImageHeight;
     public int CellSize => CellImage.CellSize;
@@ -21,19 +21,19 @@ public class TileSetImage {
 
     public TileSetLayout Layout { get; }
     
-    public IReadOnlyCollection<TileSetLayoutBuilder.TilePosition> GetTiles() => Layout.GetTiles();
+    public IReadOnlyCollection<TileSetLayout.TilePosition> GetTiles() => Layout.GetTiles();
     public IReadOnlyCollection<int> GetTileIds() => Layout.GetTileIds();
     public bool HasTile(int tileId) => Layout.HasTile(tileId);
     public (int, int) GetTilePositionById(int tileId) => Layout.GetTilePositionById(tileId);
     public int GetTileIdByPosition(int x, int y) => Layout.GetTileIdByPosition(x, y);
 
     public TileSetImage(TileSetLayout layout, int cellSize) {
-        CellImage = new CellImage(layout.Columns, layout.Rows, cellSize);
+        CellImage = new CellImage(layout.Width, layout.Height, cellSize);
         Layout = layout;
     }
 
     public TileSetImage(FastImage fastImage, TileSetLayout layout) {
-        CellImage = new CellImage(fastImage, layout.Rows, layout.Columns);
+        CellImage = new CellImage(fastImage, layout.Height, layout.Width);
         Layout = layout;
     }
 
@@ -86,22 +86,22 @@ public class TileSetImage {
         var canApplyMoreRules = true;
         while (canApplyMoreRules) {
             canApplyMoreRules = false;
-            Console.WriteLine("Checking rules...");
+            // Console.WriteLine("Checking rules...");
             rules.RemoveAll(rule => {
                 if (tilesGenerated.Contains(rule.TileId)) {
-                    Console.WriteLine($"Removing rule. Tile {rule.TileId} already processed");
+                    // Console.WriteLine($"Removing rule. Tile {rule.TileId} already processed");
                     // Delete the rules that are already applied
                     return true;
                 }
                 if (!destination.HasTile(rule.TileId)) {
                     // TODO: the rule could be applied, but there is no place to put the tile generated. It can be placed in some of temporal
                     // place and make it available for the next rules so they can use to generate other tiles that are present or needed in the
-                    Console.WriteLine($"Removing rule. Tile {rule.TileId} is not present in destination");
+                    // Console.WriteLine($"Removing rule. Tile {rule.TileId} is not present in destination");
                     // Delete the rules that are already applied
                     return true;
                 }
                 if (rule.Dependencies?.All(tilesGenerated.Contains) ?? true) {
-                    Console.WriteLine($"Generating tile {rule.TileId}...");
+                    // Console.WriteLine($"Generating tile {rule.TileId}...");
                     rule.Apply(destination);
                     tilesGenerated.Add(rule.TileId);
                     tilesPending.Remove(rule.TileId);
@@ -169,8 +169,6 @@ public class TileSetImage {
         new StepRule(95).Quarters(127, 31, 223, 31),
         new StepRule(221).Quarters(193, 253, 223, 28),
         new StepRule(215).Quarters(199,199, 223, 247),
-
-        
     };
 
 }

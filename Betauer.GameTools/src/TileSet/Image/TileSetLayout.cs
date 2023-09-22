@@ -16,8 +16,8 @@ public class TileSetLayout {
         }
     }
 
-    public int Columns { get; protected set; }
-    public int Rows { get; protected set; }
+    public int Width { get; protected set; }
+    public int Height { get; protected set; }
     protected readonly Dictionary<int, TilePosition> Tiles = new();
     protected int[,] Positions;
     
@@ -31,10 +31,10 @@ public class TileSetLayout {
     protected void _Load(int[,] layout) {
         Tiles.Clear();
         Positions = layout;
-        Rows = layout.GetLength(0);
-        Columns = layout.GetLength(1);
-        for (var y = 0; y < Rows; y++) {
-            for (var x = 0; x < Columns; x++) {
+        Height = layout.GetLength(0);
+        Width = layout.GetLength(1);
+        for (var y = 0; y < Height; y++) {
+            for (var x = 0; x < Width; x++) {
                 var tileId = layout[y, x];
                 if (tileId >= 0) {
                     Tiles[tileId] = new TilePosition(tileId, x, y);
@@ -65,9 +65,9 @@ public class TileSetLayout {
     }
 
     public int[,] Export() {
-        var positions = new int[Rows, Columns];
-        for (var y = 0; y < Rows; y++) {
-            for (var x = 0; x < Columns; x++) {
+        var positions = new int[Height, Width];
+        for (var y = 0; y < Height; y++) {
+            for (var x = 0; x < Width; x++) {
                 positions[y, x] = Positions[y, x];
             }
         }

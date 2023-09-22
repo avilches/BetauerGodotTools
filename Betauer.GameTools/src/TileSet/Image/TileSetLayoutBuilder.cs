@@ -5,22 +5,22 @@ namespace Betauer.TileSet.Image;
 public class TileSetLayoutBuilder : TileSetLayout {
     
     public TileSetLayoutBuilder(TileSetLayout tileSetLayout) {
-        Rows = tileSetLayout.Rows;
-        Columns = tileSetLayout.Columns;
+        Height = tileSetLayout.Height;
+        Width = tileSetLayout.Width;
         _Load(tileSetLayout.Export());
     }
 
-    public TileSetLayoutBuilder(int rows, int columns) {
-        Rows = rows;
-        Columns = columns;
+    public TileSetLayoutBuilder(int height, int width) {
+        Height = height;
+        Width = width;
+        Positions = new int[height, width];
         Clear();
     }
 
     public TileSetLayoutBuilder Clear() {
         Tiles.Clear();
-        Positions = new int[Rows, Columns];
-        for (var y = 0; y < Rows; y++) {
-            for (var x = 0; x < Columns; x++) {
+        for (var y = 0; y < Height; y++) {
+            for (var x = 0; x < Width; x++) {
                 Positions[y, x] = -1;
             }
         }
