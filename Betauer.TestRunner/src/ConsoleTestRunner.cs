@@ -44,7 +44,7 @@ public class ConsoleTestRunner {
             Red($"│ [Error: #{testReport.TestsFailed}/?]");
             Red($"| {testMethod.Exception.GetType()}");
             RedIndent(testMethod.Exception.Message.Split("\n"));
-            var line = testMethod.Exception.StackTrace.Split("\n").ToList().Find(it => it.Contains(testMethod.TestClass.Type.Name));
+            var line = testMethod.Exception.StackTrace.Split("\n").Reverse().Select(it => it.Contains(testMethod.TestClass.Type.Name)).FirstOrDefault();
             if (line != null) {
                 Red("| Error:");
                 Red($"| {line}");
