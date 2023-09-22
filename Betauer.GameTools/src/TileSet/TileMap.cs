@@ -25,17 +25,17 @@ public class TileMap<TTileType> where TTileType : struct {
         Width = width;
         Height = height;
         Layers = layers;
-        InternalData = new TileInfo[layers, width, height];
+        InternalData = new TileInfo[layers, height, width];
     }
 
     public TileInfo GetCellInfo(int layer, int x, int y) {
-        return InternalData[layer, x, y];
+        return InternalData[layer, y, x];
     }
 
     public bool SetCellInfo(int layer, int x, int y, TileInfo tileInfo) {
-        var currentInfo = InternalData[layer, x, y];
+        var currentInfo = InternalData[layer, y, x];
         if (currentInfo.Type.Equals(tileInfo.Type) && currentInfo.AtlasCoords.Equals(tileInfo.AtlasCoords)) return false;
-        InternalData[layer, x, y] = tileInfo;
+        InternalData[layer, y, x] = tileInfo;
         return true;
     }
 
@@ -44,9 +44,9 @@ public class TileMap<TTileType> where TTileType : struct {
     }
 
     public bool SetType(int layer, int x, int y, TTileType? type) {
-        var currentInfo = InternalData[layer, x, y];
+        var currentInfo = InternalData[layer, y, x];
         if (currentInfo.Type.Equals(type)) return false;
-        InternalData[layer, x, y] = new TileInfo(type, currentInfo.AtlasCoords);
+        InternalData[layer, y, x] = new TileInfo(type, currentInfo.AtlasCoords);
         return true;
     }
 
@@ -55,9 +55,9 @@ public class TileMap<TTileType> where TTileType : struct {
     }
 
     public bool SetAtlasCoords(int layer, int x, int y, Vector2I? atlasCoords) {
-        var currentInfo = InternalData[layer, x, y];
+        var currentInfo = InternalData[layer, y, x];
         if (currentInfo.AtlasCoords.Equals(atlasCoords)) return false;
-        InternalData[layer, x, y] = new TileInfo(currentInfo.Type, atlasCoords);
+        InternalData[layer, y, x] = new TileInfo(currentInfo.Type, atlasCoords);
         return true;
     }
 
