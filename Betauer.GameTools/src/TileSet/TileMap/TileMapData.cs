@@ -1,4 +1,4 @@
-namespace Betauer.TileSet;
+namespace Betauer.TileSet.TileMap;
 
 public class TileMapData<TTileType, TTileData> : TileMap<TTileType> where TTileType : struct {
     public TTileData?[,] Data { get; private set; }

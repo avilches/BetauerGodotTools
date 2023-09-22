@@ -1,14 +1,13 @@
 using System;
-using Betauer.TileSet;
-using Betauer.TileSet.Image;
+using Betauer.TileSet.Terrain;
 using NUnit.Framework;
 
-namespace Betauer.GameTools.Tests;
+namespace Betauer.GameTools.Tests.TileSet;
 
-public class BlobTests {
+public class BaseBlobTests {
     protected void AssertExpandGrid(string str, int[,] grid) {
-        var tileMap = Terrain.Parse(str);
-        tileMap.Expand(TileSetLayouts.Minimal3X3Godot.GetTileIds());
+        var tileMap = SingleTerrain.Parse(str);
+        tileMap.ExpandBlob47();
         try {
             AreEqual(tileMap.Grid, grid);
         } catch (Exception e) {

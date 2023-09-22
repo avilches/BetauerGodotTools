@@ -1,6 +1,6 @@
 using Godot;
 
-namespace Betauer.TileSet;
+namespace Betauer.TileSet.TileMap;
 
 public class TileMap<TTileType> where TTileType : struct {
     public struct TileInfo {

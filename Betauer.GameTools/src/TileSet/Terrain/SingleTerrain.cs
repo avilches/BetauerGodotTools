@@ -2,16 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Betauer.Core;
-using Godot;
 
-namespace Betauer.TileSet;
+namespace Betauer.TileSet.Terrain;
 
-public class Terrain {
+public class SingleTerrain {
     public int Width { get; protected set; }
     public int Height { get; protected set; }
     public int[,] Grid { get; }
 
-    public Terrain(int height, int width) {
+    public SingleTerrain(int height, int width) {
         Width = width;
         Height = height;
         Grid = new int[Height, Width];
@@ -65,23 +64,32 @@ public class Terrain {
 
     private static readonly Dictionary<char, int> Defaults = new() {
         { ' ', (int)TileType.None },
-        { '#', (int)TileType.Auto },
+        { '*', (int)TileType.Auto },
+        { '0', 0 },
+        
+        { '<', 4 },
+        { '-', 68 },
+        { '>', 64 },
+        
+        { '^', 16 },
+        { '|', 17 },
+        { 'v', 1 },
+        
+        { '#', 255 },
     };
 
-    public static Terrain Parse(string value, Dictionary<char, int>? charToTileId = null) {
+    public static SingleTerrain Parse(string value, Dictionary<char, int>? charToTileId = null) {
         var lines = value.Split('\n')
             .SkipWhile(string.IsNullOrWhiteSpace) // Remove empty lines at beginning
             .Reverse().SkipWhile(string.IsNullOrWhiteSpace).Reverse() // Remove empty lines at end
             .ToList();
 
+        const char sep = ':';
         var maxLength = -1;
-        if (lines.Any(s => s.Contains('|'))) {
+        if (lines.Any(s => s.Contains(sep))) {
             for (var i = 0; i < lines.Count; i++) {
                 var line = lines[i].Trim();
-                if (line.Count(c => c == '|') != 2) {
-                    throw new Exception("Line must contains only 2 bars: " + (line.Length == 0 ? "(empty line)" : lines[i]));
-                }
-                if (line.StartsWith("|") && line.EndsWith("|")) {
+                if (line.StartsWith(sep) && line.EndsWith(sep)) {
                     line = line.Substring(1, line.Length - 2);
                     lines[i] = line;
                     if (maxLength == -1) {
@@ -90,7 +98,7 @@ public class Terrain {
                         throw new Exception("All lines must have the same size: " + lines[i]);
                     }
                 } else {
-                    throw new Exception("Line must contains only 2 bars: "+lines[i]);
+                    throw new Exception("Line must contains 2 ':' separators: "+lines[i]);
                 }
             }
         } else {
@@ -98,7 +106,7 @@ public class Terrain {
             lines = lines.Select(line => line.PadRight(maxLength, ' ')).ToList();
         }
         var y = 0;
-        var tileMap = new Terrain(lines.Count, maxLength);
+        var tileMap = new SingleTerrain(lines.Count, maxLength);
         foreach (var line in lines) {
             var x = 0;
             foreach (var tileId in line.Select(c => charToTileId?.TryGetValue(c, out var t) ?? false ? t : Defaults[c])) {
@@ -111,36 +119,16 @@ public class Terrain {
         return tileMap;
     }
 
-    public void Expand(IReadOnlyCollection<int> availableTileIds) {
+    public void Transform(Func<int, int> transform) {
         for (var y = 0; y < Height; y++) {
             for (var x = 0; x < Width; x++) {
                 var tileId = Grid[y, x];
                 if (tileId == (int)TileType.Auto) {
-                    var neighbours = GetNeighbours(x, y);
-                    var mask = CreateMask(neighbours);
-                    if (availableTileIds.Contains(mask)) {
-                        Grid[y, x] = mask;
-                    } else {
-                        Grid[y, x] = FindClosestMask(availableTileIds, mask);
-                    }
+                    var mask = GetNeighboursOccupiedMask(x, y);
+                    Grid[y, x] = transform(mask);
                 }
             }
         }
-    }
-
-    private int FindClosestMask(IReadOnlyCollection<int> tileIds, int mask) {
-        // tileIds.
-        return mask;
-    }
-
-    public static int CreateMask(int[] neighbours) {
-        var bits = 0;
-        for (var i = 0; i < neighbours.Length; i++) {
-            if (neighbours[i] != (int)TileType.None) {
-                bits = BitTools.EnableBit(bits, i + 1);
-            }
-        }
-        return bits;
     }
 
     /// <summary>
@@ -159,7 +147,7 @@ public class Terrain {
     /// <param name="x"></param>
     /// <param name="y"></param>
     /// <returns></returns>
-    public int[] GetNeighbours(int x, int y) {
+    public int[] GetNeighboursTile(int x, int y) {
         var neighbours = new int[8];
         neighbours[0] = GetCellOrDefault(x,       y - 1);   // TopSide
         neighbours[1] = GetCellOrDefault(x + 1, y - 1);   // TopRightCorner
@@ -170,55 +158,54 @@ public class Terrain {
         neighbours[6] = GetCellOrDefault(x - 1, y);         // LeftSide
         neighbours[7] = GetCellOrDefault(x - 1, y - 1);   // TopLeftCorner
         return neighbours;
-        int GetCellOrDefault(int x, int y) {
-            if (x < 0 || x >= Width || y < 0 || y >= Height) return (int)TileType.None;
-            return GetCell(x, y);
-        }
+        
+        int GetCellOrDefault(int x, int y) => 
+            x >= 0 && x < Width && y >= 0 && y < Height ? GetCell(x, y) : (int)TileType.None;
     }
-    
-    public static int[,] CreateNeighboursGrid(int mask) {
-        var neighbours = new int[3, 3];
-        const int x = 1;
-        const int y = 1;
-        neighbours[y - 1, x    ] = BitTools.HasBit(mask, 1) ? 0 : -1; // TopSide
-        neighbours[y - 1, x + 1] = BitTools.HasBit(mask, 2) ? 0 : -1; // TopRightCorner
-        neighbours[y    , x + 1] = BitTools.HasBit(mask, 3) ? 0 : -1; // RightSide
-        neighbours[y + 1, x + 1] = BitTools.HasBit(mask, 4) ? 0 : -1; // BottomRightCorner
-        neighbours[y + 1, x    ] = BitTools.HasBit(mask, 5) ? 0 : -1; // BottomSide
-        neighbours[y + 1, x - 1] = BitTools.HasBit(mask, 6) ? 0 : -1; // BottomLeftCorner
-        neighbours[y    , x - 1] = BitTools.HasBit(mask, 7) ? 0 : -1; // LeftSide
-        neighbours[y - 1, x - 1] = BitTools.HasBit(mask, 8) ? 0 : -1; // TopLeftCorner
-        neighbours[y    , x    ] = 0; // Center
+
+    /// If the x, y position (the center, where th 0 symbol) neighbours are these:
+    /// |   |
+    /// | 0*|
+    /// | * |
+    /// it will return { { false, false, false }, { false, true, true }, { false, true, false } }
+    public bool[] GetNeighboursOccupied(int x, int y) {
+        var neighbours = new bool[8];
+        neighbours[0] = GetCellOrDefault(x,       y - 1);   // TopSide
+        neighbours[1] = GetCellOrDefault(x + 1, y - 1);   // TopRightCorner
+        neighbours[2] = GetCellOrDefault(x + 1, y);         // RightSide
+        neighbours[3] = GetCellOrDefault(x + 1, y + 1);   // BottomRightCorner
+        neighbours[4] = GetCellOrDefault(x,       y + 1);   // BottomSide
+        neighbours[5] = GetCellOrDefault(x - 1, y + 1);   // BottomLeftCorner
+        neighbours[6] = GetCellOrDefault(x - 1, y);         // LeftSide
+        neighbours[7] = GetCellOrDefault(x - 1, y - 1);   // TopLeftCorner
         return neighbours;
+        
+        bool GetCellOrDefault(int x, int y) => 
+            x >= 0 && x < Width && y >= 0 && y < Height && GetCell(x, y) != (int)TileType.None;
     }
     
-    
-}
-
-public static class TerrainExtensions {
-    public static void PrintTileIdsArray(this Terrain terrain) {
-        var tiles = terrain.Grid;
-        Console.WriteLine("new[,] {");
-        for (var y = 0; y < tiles.GetLength(0); y++) {
-            Console.Write("  {");
-            for (var x = 0; x < tiles.GetLength(1); x++) {
-                var tileId = tiles[y, x];
-                Console.Write(tileId.ToString().PadLeft(3) + ",");
+    /// If the x, y position (the center, where th 0 symbol) neighbours are these:
+    /// |   |
+    /// | 0*|
+    /// | * |
+    /// it will return 20
+    public int GetNeighboursOccupiedMask(int x, int y) {
+        var bits = 0;
+        bits = SetBitIfOccupied(bits, 1, x,       y - 1);   // TopSide
+        bits = SetBitIfOccupied(bits, 2, x + 1, y - 1);   // TopRightCorner
+        bits = SetBitIfOccupied(bits, 3, x + 1, y);         // RightSide
+        bits = SetBitIfOccupied(bits, 4, x + 1, y + 1);   // BottomRightCorner
+        bits = SetBitIfOccupied(bits, 5, x,       y + 1);   // BottomSide
+        bits = SetBitIfOccupied(bits, 6, x - 1, y + 1);   // BottomLeftCorner
+        bits = SetBitIfOccupied(bits, 7, x - 1, y);         // LeftSide
+        bits = SetBitIfOccupied(bits, 8, x - 1, y - 1);   // TopLeftCorner
+        return bits;
+        
+        int SetBitIfOccupied(int bits, int bitPosition, int x, int y) {
+            if (x >= 0 && x < Width && y >= 0 && y < Height && GetCell(x, y) != (int)TileType.None) {
+                bits = BitTools.EnableBit(bits, bitPosition);
             }
-            Console.WriteLine("},");
-        }
-        Console.WriteLine("};");
-    }
-
-    public static void PrintBlocks(this Terrain terrain) {
-        var tiles = terrain.Grid;
-        for (var y = 0; y < tiles.GetLength(0); y++) {
-            for (var x = 0; x < tiles.GetLength(1); x++) {
-                var tileId = tiles[y, x];
-                Console.Write(tileId >= 0 ? "#" : " ");
-            }
-            Console.WriteLine();
+            return bits;
         }
     }
-
 }

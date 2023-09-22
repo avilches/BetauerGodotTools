@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Betauer.Core;
 using Godot;
 
-namespace Betauer.TileSet;
+namespace Betauer.TileSet.TileMap;
 
 public static class TileMapExtensions {
     private static readonly Random Random = new Random();
@@ -64,7 +64,7 @@ public static class TileMapExtensions {
         }
     }
 
-    public static void Flush<TTile>(this TileMap<TTile> tileMap, Dictionary<TTile, ISource> handlers, TileMap godotTileMap) where TTile : struct {
+    public static void Flush<TTile>(this TileMap<TTile> tileMap, Dictionary<TTile, ISource> handlers, Godot.TileMap godotTileMap) where TTile : struct {
         tileMap.LoopLayerCells( (layer, x, y) => {
             var cellInfo = tileMap.GetCellInfo(layer, x, y);
             if (cellInfo.Type.HasValue && cellInfo.AtlasCoords.HasValue) {

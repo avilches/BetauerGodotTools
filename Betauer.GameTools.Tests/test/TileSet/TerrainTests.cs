@@ -1,15 +1,15 @@
 using System.Collections.Generic;
 using Betauer.TestRunner;
-using Betauer.TileSet;
+using Betauer.TileSet.Terrain;
 
-namespace Betauer.GameTools.Tests;
+namespace Betauer.GameTools.Tests.TileSet;
 
 [Test]
 [Only]
-public class TerrainTests : BlobTests {
+public class TerrainTests : BaseBlobTests {
     [Betauer.TestRunner.Test]
     public void BasicTest() {
-        var tileMap = new Terrain(3, 3);
+        var tileMap = new SingleTerrain(3, 3);
         AreEqual(tileMap.Grid, new[,] {
             { -1, -1, -1 },
             { -1, -1, -1 },
@@ -19,37 +19,39 @@ public class TerrainTests : BlobTests {
 
     [Betauer.TestRunner.Test]
     public void ParseDictionaryTest() {
-        var tileMap = Terrain.Parse(@$"
- ###
+        var tileMap = SingleTerrain.Parse(@$"
+ ***
 
- P P
-@@ @@
+ P P|
+@- @@
 ", new Dictionary<char, int>() {
-            { ' ', (int)Terrain.TileType.None },
+            { ' ', (int)SingleTerrain.TileType.None },
             { '@', 0 },
             { 'P', 124 },
-            { '#', (int)Terrain.TileType.Auto },
+            { '*', (int)SingleTerrain.TileType.Auto },
         });
         AreEqual(tileMap.Grid, new[,] {
             { -1, -2, -2, -2, -1 },
             { -1, -1, -1, -1, -1 },
-            { -1, 124, -1, 124, -1 },
-            { 0, 0, -1, 0, 0 },
+            { -1, 124, -1, 124, 17 },
+            { 0, 68, -1, 0, 0 },
         });
     }
 
     [Betauer.TestRunner.Test]
     public void ParseWithBordersTest() {
-        var tileMap = Terrain.Parse(@$"
+        var tileMap = SingleTerrain.Parse(@$"
 
-    |   |
-    | # |
-     |   |
+:   :
+ : * :
+  :|| :
+
+
 ");
         AreEqual(tileMap.Grid, new[,] {
             { -1, -1, -1 },
             { -1, -2, -1 },
-            { -1, -1, -1 },
+            { 17, 17, -1 },
         });
     }
 }
