@@ -70,9 +70,23 @@ public class TileSetImage {
             }
         });
         return destination;
-    }    
+    }
+    
+    public ImageTexture CreateTexture(string? path = null) {
+        var texture2D = new ImageTexture();
+        if (path != null) {
+            texture2D.ResourcePath = $"res://{path}";
+        }
+        texture2D.SetImage(CellImage.FastImage.Image);
+        return texture2D;
+    }
 
     public TileSetImage ExportAs(TileSetLayout desiredLayout, List<BaseRule> originalRules) {
+        if (desiredLayout.GetTileIds().All(HasTile)) {
+            return ExportAs(desiredLayout);
+        }
+        
+        // create (clone) the layout, because maybe some of the tiles are not present in the source and the layout will end up with some tiles -1
         var layout = new TileSetLayoutBuilder(desiredLayout);
         var destination = new TileSetImage(layout, CellSize);
         var tilesGenerated = new HashSet<int>();
