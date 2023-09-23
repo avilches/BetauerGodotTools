@@ -40,11 +40,11 @@ public class FastImage {
         Load(image);
     }
     
-    public FastImage(int width, int height, bool useMipmaps = false, Godot.Image.Format format = DefaultFormat) {
+    public FastImage(int width, int height, bool useMipmaps = false, Godot.Image.Format? format = null) {
         Width = width;
         Height = height;
         UseMipmaps = useMipmaps;
-        _format = format;
+        _format = format ?? DefaultFormat;
         UpdatedPixel();
         RawImage = new byte[width * height * _pixel!.GetBytesPerPixel()];
     }
