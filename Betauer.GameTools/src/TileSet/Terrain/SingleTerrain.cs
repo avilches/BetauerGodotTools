@@ -124,7 +124,7 @@ public class SingleTerrain {
             for (var x = 0; x < Width; x++) {
                 var tileId = Grid[y, x];
                 if (tileId == (int)TileType.Auto) {
-                    var mask = GetNeighboursOccupiedMask(x, y);
+                    var mask = GetNeighbourOccupiedMasks(x, y);
                     Grid[y, x] = transform(mask);
                 }
             }
@@ -147,7 +147,7 @@ public class SingleTerrain {
     /// <param name="x"></param>
     /// <param name="y"></param>
     /// <returns></returns>
-    public int[] GetNeighboursTile(int x, int y) {
+    public int[] GetNeighbourTiles(int x, int y) {
         var neighbours = new int[8];
         neighbours[0] = GetCellOrDefault(x,       y - 1);   // TopSide
         neighbours[1] = GetCellOrDefault(x + 1, y - 1);   // TopRightCorner
@@ -168,7 +168,7 @@ public class SingleTerrain {
     /// | 0*|
     /// | * |
     /// it will return { { false, false, false }, { false, true, true }, { false, true, false } }
-    public bool[] GetNeighboursOccupied(int x, int y) {
+    public bool[] GetOccupiedNeighbours(int x, int y) {
         var neighbours = new bool[8];
         neighbours[0] = GetCellOrDefault(x,       y - 1);   // TopSide
         neighbours[1] = GetCellOrDefault(x + 1, y - 1);   // TopRightCorner
@@ -189,7 +189,7 @@ public class SingleTerrain {
     /// | 0*|
     /// | * |
     /// it will return 20
-    public int GetNeighboursOccupiedMask(int x, int y) {
+    public int GetNeighbourOccupiedMasks(int x, int y) {
         var bits = 0;
         bits = SetBitIfOccupied(bits, 1, x,       y - 1);   // TopSide
         bits = SetBitIfOccupied(bits, 2, x + 1, y - 1);   // TopRightCorner

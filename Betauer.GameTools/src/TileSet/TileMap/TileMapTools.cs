@@ -1,10 +1,9 @@
 using System;
-using Betauer.TileSet.TileMap;
 using Godot;
 
-namespace Betauer.TileSet;
+namespace Betauer.TileSet.TileMap;
 
-public static class TileTools {
+public static class TileMapTools {
     private static readonly Random Random = new Random();
 
     /// <summary>

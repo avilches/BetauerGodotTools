@@ -4,7 +4,7 @@ namespace Betauer.TileSet.Terrain;
 
 public static class TerrainExtensions {
     public static void ExpandBlob47(this SingleTerrain singleTerrain) {
-        singleTerrain.Transform(mask => Blob47Tools.Blob256To47[mask]);
+        singleTerrain.Transform(mask => TerrainMappings.Blob256To47[mask]);
     }
 
     public static void PrintTileIdsArray(this SingleTerrain singleTerrain) {

@@ -10,7 +10,7 @@ public class TileSetLayoutBuilder : TileSetLayout {
         _Load(tileSetLayout.Export());
     }
 
-    public TileSetLayoutBuilder(int height, int width) {
+    public TileSetLayoutBuilder(int width, int height) {
         Height = height;
         Width = width;
         Positions = new int[height, width];

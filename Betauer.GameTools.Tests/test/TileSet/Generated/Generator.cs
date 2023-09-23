@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Betauer.TestRunner;
 using Betauer.TileSet;
+using Betauer.TileSet.Godot;
 using Betauer.TileSet.Image;
 using Betauer.TileSet.Terrain;
 using Godot;
@@ -12,6 +13,7 @@ using NUnit.Framework;
 namespace Betauer.GameTools.Tests.TileSet.Generated;
 
 [Betauer.TestRunner.Test]
+// [Only]
 [Betauer.TestRunner.Ignore("Only use it to generate the test and the Blob47Tools.cs file")]
 public class GeneratorTests {
 
@@ -25,7 +27,7 @@ public class GeneratorTests {
         var values = tiles.Cast<int>().Distinct().ToList();
         values.Remove(-1);
         Assert.That(values.Count, Is.EqualTo(47));
-        CollectionAssert.AreEquivalent(values, TileSetLayouts.Minimal3X3Godot.GetTileIds());
+        CollectionAssert.AreEquivalent(values, TileSetLayouts.Blob47.GetTileIds());
     }
     
     /*
@@ -111,7 +113,7 @@ public class GeneratorTests {
         Console.WriteLine(tileLegend);
         var values = tiles.Distinct().ToList();
         Assert.That(values.Count, Is.EqualTo(47));
-        CollectionAssert.AreEquivalent(values, TileSetLayouts.Minimal3X3Godot.GetTileIds());
+        CollectionAssert.AreEquivalent(values, TileSetLayouts.Blob47.GetTileIds());
 
         Dictionary<int, List<int>> shared = new();
         for (var i = 0; i < 256; i++) {

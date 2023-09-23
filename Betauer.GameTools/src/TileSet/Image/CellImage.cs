@@ -18,13 +18,16 @@ public class CellImage {
     /// <param name="width"></param>
     /// <param name="height"></param>
     /// <param name="cellSize"></param>
-    public CellImage(int width, int height, int cellSize) {
+    public CellImage(int width, int height, int cellSize, global::Godot.Image.Format? format = null) {
         Width = width;
         Height = height;
         CellSize = cellSize;
         ImageWidth = width * cellSize;
         ImageHeight = height * cellSize;
-        FastImage = new FastImage(ImageWidth, ImageHeight);
+        FastImage = new FastImage(ImageWidth, ImageHeight, false, format);
+    }
+
+    public CellImage(string resource, int cellSize, global::Godot.Image.Format? format = null) : this(new FastImage(resource, format), cellSize) {
     }
 
     /// <summary>
@@ -45,14 +48,17 @@ public class CellImage {
         FastImage = fastImage;
     }
     
+    public CellImage(string resource, int width, int height, global::Godot.Image.Format? format = null) : this(new FastImage(resource, format), width, height) {
+    }
+
     /// <summary>
     /// Load and image and get the cellSize from the rows and columns (ensure that the image size is a multiple of rows and columns)
     /// </summary>
     /// <param name="fastImage"></param>
-    /// <param name="height"></param>
     /// <param name="width"></param>
+    /// <param name="height"></param>
     /// <exception cref="Exception"></exception>
-    public CellImage(FastImage fastImage, int height, int width) {
+    public CellImage(FastImage fastImage, int width, int height) {
         if (fastImage.Width % width != 0) {
             throw new Exception($"The image width {fastImage.Width} must be a multiple of columns {width}");
         }  
