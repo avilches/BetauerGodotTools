@@ -156,4 +156,19 @@ public static partial class Transformations {
         }
         return temp;
     }
+    
+    public static T[,] Resize<T>(this T[,] source, int newWidth, int newHeight, T defaultValue = default) {
+        var height = source.GetLength(0);
+        var width = source.GetLength(1);
+        if (newWidth == width && newHeight == height) {
+            return source;
+        }
+        var newGrid = new T[newHeight, newWidth];
+        for (var y = 0; y < newHeight; y++) {
+            for (var x = 0; x < newWidth; x++) {
+                newGrid[y, x] = x < width && y < height ? source[y, x] : defaultValue;
+            }
+        }
+        return newGrid;
+    }    
 }
