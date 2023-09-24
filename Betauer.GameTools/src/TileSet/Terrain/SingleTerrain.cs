@@ -163,6 +163,30 @@ public class SingleTerrain {
             x >= 0 && x < Width && y >= 0 && y < Height ? GetCell(x, y) : (int)TileType.None;
     }
 
+    /// <summary>
+    /// Returns a a subset of the grid, where x and y are THE CENTER of this subgrid.
+    /// Possible sizes are only 1, 3, 5, 7 and 9.
+    /// If the subgrid takes a position outside the grid, it will be filled with -1
+    /// </summary>
+    /// <param name="x"></param>
+    /// <param name="y"></param>
+    /// <param name="size"></param>
+    /// <returns></returns>
+    public int[,] GetGrid(int x, int y, int size) {
+        if (size == 1) return new[,] { { GetCell(x, y) } };
+        if (size != 3 && size != 5 && size != 7 && size != 9) throw new Exception("Size must be 1, 3, 5, 7 or 9");
+        var grid = new int[size, size];
+        var offset = size / 2;
+        for (var yy = 0; yy < size; yy++) {
+            for (var xx = 0; xx < size; xx++) {
+                grid[yy, xx] = GetCellOrDefault(x - offset + xx, y - offset + yy);
+            }
+        }
+        return grid;
+        int GetCellOrDefault(int x, int y) => 
+            x >= 0 && x < Width && y >= 0 && y < Height ? GetCell(x, y) : (int)TileType.None;
+    }
+
     /// If the x, y position (the center, where th 0 symbol) neighbours are these:
     /// |   |
     /// | 0*|

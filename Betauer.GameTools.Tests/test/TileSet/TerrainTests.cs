@@ -32,10 +32,27 @@ public class TerrainTests : BaseBlobTests {
             { '*', (int)SingleTerrain.TileType.Auto },
         });
         AreEqual(tileMap.Grid, new[,] {
-            { -1, -2, -2, -2, -1 },
-            { -1, -1, -1, -1, -1 },
+            { -1,  -2, -2,  -2, -1 },
+            { -1,  -1, -1,  -1, -1 },
             { -1, 124, -1, 124, 17 },
-            { 0, 68, -1, 0, 0 },
+            {  0,  68, -1,   0, 0 },
+        });
+
+        AreEqual(tileMap.GetGrid(1, 2, 1), new[,] {
+            { 124 }
+        });
+        
+        AreEqual(tileMap.GetGrid(1, 2, 3), new[,] {
+            { -1,  -1, -1 },
+            { -1, 124, -1 },
+            {  0,  68, -1 },
+        });
+        AreEqual(tileMap.GetGrid(1, 2, 5), new[,] {
+            { -1,  -1,  -2, -2,  -2 },
+            { -1,  -1,  -1, -1,  -1 },
+            { -1,  -1, 124, -1, 124 },
+            { -1,   0,  68, -1,   0 },
+            { -1,  -1,  -1, -1, -1  },
         });
     }
 
