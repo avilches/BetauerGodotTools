@@ -13,8 +13,8 @@ using NUnit.Framework;
 namespace Betauer.GameTools.Tests.TileSet.Generated;
 
 [Betauer.TestRunner.Test]
-// [Only]
-[Betauer.TestRunner.Ignore("Only use it to generate the test and the Blob47Tools.cs file")]
+[Only]
+// [Betauer.TestRunner.Ignore("Only use it to generate the test and the Blob47Tools.cs file")]
 public class GeneratorTests {
 
     [Betauer.TestRunner.Test(Description = "Ensure the Tilemap.tscn has all the possible values for the minimal 3x3 tileset blob 47")]
@@ -81,20 +81,18 @@ public class GeneratorTests {
         var scene = ResourceLoader.Load<PackedScene>("res://test-resources/tileset/Tilemap-256.tscn");
 
         var godotTileMap = scene.Instantiate<TileMap>();
-        var x = 0;
-        var y = 0;
-        var tiles = new List<int>();
-        var tileLegend = new StringWriter();
+        var tiles = GetCentralTiles(godotTileMap);
+        var values = tiles.Distinct().ToList();
+        Assert.That(values.Count, Is.EqualTo(47));
+        CollectionAssert.AreEquivalent(values, TileSetLayouts.Blob47.GetTileIds());
+
+        Dictionary<int, List<int>> shared = new();
         for (var i = 0; i < 256; i++) {
-            var tileData = godotTileMap.GetCellTileData(0, new Vector2I(x + 1, y + 1));
-            var bitmask = tileData?.GetTerrainMask() ?? -1;
-            tileLegend.Write(i.ToString().PadLeft(3) + ":" + bitmask.ToString().PadRight(3) + " | ");
-            tiles.Add(bitmask);
-            x += 4;
-            if (x >= 16 * 4) {
-                x = 0;
-                tileLegend.WriteLine();
-                y += 4;
+            var tile = tiles[i];
+            if (!shared.ContainsKey(tile)) {
+                shared[tile] = new List<int>() { i };
+            } else {
+                shared[tile].Add(i);
             }
         }
 
@@ -109,46 +107,59 @@ public class GeneratorTests {
                   public static int[] Blob256To47 = new int[256] { {{string.Join(", ", tiles)}}};
               }
               """);
-
-        Console.WriteLine(tileLegend);
-        var values = tiles.Distinct().ToList();
-        Assert.That(values.Count, Is.EqualTo(47));
-        CollectionAssert.AreEquivalent(values, TileSetLayouts.Blob47.GetTileIds());
-
-        Dictionary<int, List<int>> shared = new();
-        for (var i = 0; i < 256; i++) {
-            var tile = tiles[i];
-            if (!shared.ContainsKey(tile)) {
-                shared[tile] = new List<int>() { i };
-            } else {
-                shared[tile].Add(i);
-            }
-        }
-        var terrain = new SingleTerrain(3, 3);
+        
         var testClass = new StringWriter();
         foreach (var (mainTileId, sharedList) in shared) {
-            testClass.WriteLine($"    [Test(Description=\"{mainTileId} when {string.Join(",", sharedList)}\")]");
-            testClass.WriteLine($"    public void TestTile{mainTileId}() {{");
+    
+            var x = 0;  
+            var terrainList = new SingleTerrain(3, 3 * sharedList.Count);
+            foreach (var tileId in sharedList) {
+                terrainList.SetCells(x, 0, TerrainTools.CreateNeighboursGrid(tileId));
+                x += 3;
+            }
+            testClass.Write($"    // |");
             x = 0;
             foreach (var tileId in sharedList) {
+                if (x == 1) testClass.Write("   |");
+                testClass.Write(tileId.ToString().PadLeft(3, ' ') + "|");
+                x++;
+            }
+            testClass.WriteLine();
+            for (var yy = 0; yy < terrainList.Grid.GetLength(0); yy++) {
+                testClass.Write($"    // |");
+                for (var xx = 0; xx < terrainList.Grid.GetLength(1); xx++) {
+                    if (xx == 3) testClass.Write("   |");
+                    var tileId = terrainList.Grid[yy, xx];
+                    testClass.Write(tileId >= 0 ? "#" : " ");
+                    if (xx % 3 == 2) {
+                        testClass.Write("|");
+                    }
+                }
+                testClass.WriteLine();
+            }
+            
+            testClass.WriteLine($"    [Test(Description=\"{mainTileId} when {string.Join(",", sharedList)}\")]");
+            testClass.WriteLine($"    public void TestTile{mainTileId}() {{");
+    
+            foreach (var tileId in sharedList) {
+                var terrain = new SingleTerrain(3, 3);
                 terrain.SetCells(0, 0, TerrainTools.CreateNeighboursGrid(tileId));
-                x += 4;
                 testClass.WriteLine($"        ");
                 testClass.WriteLine($"        // Pattern where central tile with {tileId} mask is transformed to {mainTileId}");
                 testClass.WriteLine($"        AssertExpandGrid(\"\"\"");
-                for (y = 0; y < terrain.Grid.GetLength(0); y++) {
+                for (var yy = 0; yy < terrain.Grid.GetLength(0); yy++) {
                     testClass.Write($"                         :");
-                    for (x = 0; x < terrain.Grid.GetLength(1); x++) {
-                        testClass.Write(terrain.Grid[y, x] >= 0 ? "*" : " ");
+                    for (var xx = 0; xx < terrain.Grid.GetLength(1); xx++) {
+                        testClass.Write(terrain.Grid[yy, xx] >= 0 ? "*" : " ");
                     }
                     testClass.WriteLine(":");
                 }
                 testClass.WriteLine($"                         \"\"\", new[,] {{");
                 var maskGrid = godotTileMap.GetTerrainMasksGrid(0, tileId % 16 * 4, tileId / 16 * 4, 3, 3);
-                for (y = 0; y < maskGrid.GetLength(0); y++) {
+                for (var yy = 0; yy < maskGrid.GetLength(0); yy++) {
                     testClass.Write($"                         {{");
-                    for (x = 0; x < maskGrid.GetLength(1); x++) {
-                        testClass.Write(maskGrid[y, x].ToString().PadLeft(4) + ", ");
+                    for (var xx = 0; xx < maskGrid.GetLength(1); xx++) {
+                        testClass.Write(maskGrid[yy, xx].ToString().PadLeft(4) + ", ");
                     }
                     testClass.WriteLine("}, ");
                 }
@@ -168,5 +179,27 @@ public class GeneratorTests {
               {{testClass}}
               }
               """);
+    }
+
+    private static List<int> GetCentralTiles(TileMap godotTileMap) {
+        var x = 0;
+        var y = 0;
+        var tiles = new List<int>();
+        var tileLegend = new StringWriter();
+        for (var i = 0; i < 256; i++) {
+            var tileData = godotTileMap.GetCellTileData(0, new Vector2I(x + 1, y + 1));
+            var bitmask = tileData?.GetTerrainMask() ?? -1;
+            tileLegend.Write(i.ToString().PadLeft(3) + ":" + bitmask.ToString().PadRight(3) + " | ");
+            tiles.Add(bitmask);
+            x += 4;
+            if (x >= 16 * 4) {
+                x = 0;
+                tileLegend.WriteLine();
+                y += 4;
+            }
+        }
+
+        Console.WriteLine(tileLegend);
+        return tiles;
     }
 }

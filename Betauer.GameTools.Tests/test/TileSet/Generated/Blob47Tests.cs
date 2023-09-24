@@ -4,6 +4,10 @@ namespace Betauer.GameTools.Tests.TileSet.Generated;
 
 [Test]
 public class Blob47Tests : BaseBlobTests {
+    // |  0|   |  2|  8| 10| 32| 34| 40| 42|128|130|136|138|160|162|168|170|
+    // |   |   |  #|   |  #|   |  #|   |  #|#  |# #|#  |# #|#  |# #|#  |# #|
+    // | # |   | # | # | # | # | # | # | # | # | # | # | # | # | # | # | # |
+    // |   |   |   |  #|  #|#  |#  |# #|# #|   |   |  #|  #|#  |#  |# #|# #|
     [Test(Description="0 when 0,2,8,10,32,34,40,42,128,130,136,138,160,162,168,170")]
     public void TestTile0() {
         
@@ -183,6 +187,10 @@ public class Blob47Tests : BaseBlobTests {
                          {   0,   -1,    0, }, 
                          });
    }
+    // |  1|   |  3|  9| 11| 33| 35| 41| 43|129|131|137|139|161|163|169|171|
+    // | # |   | ##| # | ##| # | ##| # | ##|## |###|## |###|## |###|## |###|
+    // | # |   | # | # | # | # | # | # | # | # | # | # | # | # | # | # | # |
+    // |   |   |   |  #|  #|#  |#  |# #|# #|   |   |  #|  #|#  |#  |# #|# #|
     [Test(Description="1 when 1,3,9,11,33,35,41,43,129,131,137,139,161,163,169,171")]
     public void TestTile1() {
         
@@ -362,6 +370,10 @@ public class Blob47Tests : BaseBlobTests {
                          {   0,   -1,    0, }, 
                          });
    }
+    // |  4|   |  6| 12| 14| 36| 38| 44| 46|132|134|140|142|164|166|172|174|
+    // |   |   |  #|   |  #|   |  #|   |  #|#  |# #|#  |# #|#  |# #|#  |# #|
+    // | ##|   | ##| ##| ##| ##| ##| ##| ##| ##| ##| ##| ##| ##| ##| ##| ##|
+    // |   |   |   |  #|  #|#  |#  |# #|# #|   |   |  #|  #|#  |#  |# #|# #|
     [Test(Description="4 when 4,6,12,14,36,38,44,46,132,134,140,142,164,166,172,174")]
     public void TestTile4() {
         
@@ -541,6 +553,10 @@ public class Blob47Tests : BaseBlobTests {
                          {   0,   -1,    1, }, 
                          });
    }
+    // |  5|   | 13| 37| 45|133|141|165|173|
+    // | # |   | # | # | # |## |## |## |## |
+    // | ##|   | ##| ##| ##| ##| ##| ##| ##|
+    // |   |   |  #|#  |# #|   |  #|#  |# #|
     [Test(Description="5 when 5,13,37,45,133,141,165,173")]
     public void TestTile5() {
         
@@ -632,6 +648,10 @@ public class Blob47Tests : BaseBlobTests {
                          {   0,   -1,    1, }, 
                          });
    }
+    // |  7|   | 15| 39| 47|135|143|167|175|
+    // | ##|   | ##| ##| ##|###|###|###|###|
+    // | ##|   | ##| ##| ##| ##| ##| ##| ##|
+    // |   |   |  #|#  |# #|   |  #|#  |# #|
     [Test(Description="7 when 7,15,39,47,135,143,167,175")]
     public void TestTile7() {
         
@@ -723,6 +743,10 @@ public class Blob47Tests : BaseBlobTests {
                          {   0,   -1,    1, }, 
                          });
    }
+    // | 16|   | 18| 24| 26| 48| 50| 56| 58|144|146|152|154|176|178|184|186|
+    // |   |   |  #|   |  #|   |  #|   |  #|#  |# #|#  |# #|#  |# #|#  |# #|
+    // | # |   | # | # | # | # | # | # | # | # | # | # | # | # | # | # | # |
+    // | # |   | # | ##| ##|## |## |###|###| # | # | ##| ##|## |## |###|###|
     [Test(Description="16 when 16,18,24,26,48,50,56,58,144,146,152,154,176,178,184,186")]
     public void TestTile16() {
         
@@ -902,6 +926,10 @@ public class Blob47Tests : BaseBlobTests {
                          {   4,   69,   64, }, 
                          });
    }
+    // | 17|   | 19| 25| 27| 49| 51| 57| 59|145|147|153|155|177|179|185|187|
+    // | # |   | ##| # | ##| # | ##| # | ##|## |###|## |###|## |###|## |###|
+    // | # |   | # | # | # | # | # | # | # | # | # | # | # | # | # | # | # |
+    // | # |   | # | ##| ##|## |## |###|###| # | # | ##| ##|## |## |###|###|
     [Test(Description="17 when 17,19,25,27,49,51,57,59,145,147,153,155,177,179,185,187")]
     public void TestTile17() {
         
@@ -1081,6 +1109,10 @@ public class Blob47Tests : BaseBlobTests {
                          {   4,   69,   64, }, 
                          });
    }
+    // | 20|   | 22| 52| 54|148|150|180|182|
+    // |   |   |  #|   |  #|#  |# #|#  |# #|
+    // | ##|   | ##| ##| ##| ##| ##| ##| ##|
+    // | # |   | # |## |## | # | # |## |## |
     [Test(Description="20 when 20,22,52,54,148,150,180,182")]
     public void TestTile20() {
         
@@ -1172,6 +1204,10 @@ public class Blob47Tests : BaseBlobTests {
                          {   4,   65,   -1, }, 
                          });
    }
+    // | 21|   | 53|149|181|
+    // | # |   | # |## |## |
+    // | ##|   | ##| ##| ##|
+    // | # |   |## | # |## |
     [Test(Description="21 when 21,53,149,181")]
     public void TestTile21() {
         
@@ -1219,6 +1255,10 @@ public class Blob47Tests : BaseBlobTests {
                          {   4,   65,   -1, }, 
                          });
    }
+    // | 23|   | 55|151|183|
+    // | ##|   | ##|###|###|
+    // | ##|   | ##| ##| ##|
+    // | # |   |## | # |## |
     [Test(Description="23 when 23,55,151,183")]
     public void TestTile23() {
         
@@ -1266,6 +1306,10 @@ public class Blob47Tests : BaseBlobTests {
                          {   4,   65,   -1, }, 
                          });
    }
+    // | 28|   | 30| 60| 62|156|158|188|190|
+    // |   |   |  #|   |  #|#  |# #|#  |# #|
+    // | ##|   | ##| ##| ##| ##| ##| ##| ##|
+    // | ##|   | ##|###|###| ##| ##|###|###|
     [Test(Description="28 when 28,30,60,62,156,158,188,190")]
     public void TestTile28() {
         
@@ -1357,6 +1401,10 @@ public class Blob47Tests : BaseBlobTests {
                          {   4,   71,  193, }, 
                          });
    }
+    // | 29|   | 61|157|189|
+    // | # |   | # |## |## |
+    // | ##|   | ##| ##| ##|
+    // | ##|   |###| ##|###|
     [Test(Description="29 when 29,61,157,189")]
     public void TestTile29() {
         
@@ -1404,6 +1452,10 @@ public class Blob47Tests : BaseBlobTests {
                          {   4,   71,  193, }, 
                          });
    }
+    // | 31|   | 63|159|191|
+    // | ##|   | ##|###|###|
+    // | ##|   | ##| ##| ##|
+    // | ##|   |###| ##|###|
     [Test(Description="31 when 31,63,159,191")]
     public void TestTile31() {
         
@@ -1451,6 +1503,10 @@ public class Blob47Tests : BaseBlobTests {
                          {   4,   71,  193, }, 
                          });
    }
+    // | 64|   | 66| 72| 74| 96| 98|104|106|192|194|200|202|224|226|232|234|
+    // |   |   |  #|   |  #|   |  #|   |  #|#  |# #|#  |# #|#  |# #|#  |# #|
+    // |## |   |## |## |## |## |## |## |## |## |## |## |## |## |## |## |## |
+    // |   |   |   |  #|  #|#  |#  |# #|# #|   |   |  #|  #|#  |#  |# #|# #|
     [Test(Description="64 when 64,66,72,74,96,98,104,106,192,194,200,202,224,226,232,234")]
     public void TestTile64() {
         
@@ -1630,6 +1686,10 @@ public class Blob47Tests : BaseBlobTests {
                          {   1,   -1,    0, }, 
                          });
    }
+    // | 65|   | 67| 73| 75| 97| 99|105|107|
+    // | # |   | ##| # | ##| # | ##| # | ##|
+    // |## |   |## |## |## |## |## |## |## |
+    // |   |   |   |  #|  #|#  |#  |# #|# #|
     [Test(Description="65 when 65,67,73,75,97,99,105,107")]
     public void TestTile65() {
         
@@ -1721,6 +1781,10 @@ public class Blob47Tests : BaseBlobTests {
                          {   1,   -1,    0, }, 
                          });
    }
+    // | 68|   | 70| 76| 78|100|102|108|110|196|198|204|206|228|230|236|238|
+    // |   |   |  #|   |  #|   |  #|   |  #|#  |# #|#  |# #|#  |# #|#  |# #|
+    // |###|   |###|###|###|###|###|###|###|###|###|###|###|###|###|###|###|
+    // |   |   |   |  #|  #|#  |#  |# #|# #|   |   |  #|  #|#  |#  |# #|# #|
     [Test(Description="68 when 68,70,76,78,100,102,108,110,196,198,204,206,228,230,236,238")]
     public void TestTile68() {
         
@@ -1900,6 +1964,10 @@ public class Blob47Tests : BaseBlobTests {
                          {   1,   -1,    1, }, 
                          });
    }
+    // | 69|   | 77|101|109|
+    // | # |   | # | # | # |
+    // |###|   |###|###|###|
+    // |   |   |  #|#  |# #|
     [Test(Description="69 when 69,77,101,109")]
     public void TestTile69() {
         
@@ -1947,6 +2015,10 @@ public class Blob47Tests : BaseBlobTests {
                          {   1,   -1,    1, }, 
                          });
    }
+    // | 71|   | 79|103|111|
+    // | ##|   | ##| ##| ##|
+    // |###|   |###|###|###|
+    // |   |   |  #|#  |# #|
     [Test(Description="71 when 71,79,103,111")]
     public void TestTile71() {
         
@@ -1994,6 +2066,10 @@ public class Blob47Tests : BaseBlobTests {
                          {   1,   -1,    1, }, 
                          });
    }
+    // | 80|   | 82| 88| 90|208|210|216|218|
+    // |   |   |  #|   |  #|#  |# #|#  |# #|
+    // |## |   |## |## |## |## |## |## |## |
+    // | # |   | # | ##| ##| # | # | ##| ##|
     [Test(Description="80 when 80,82,88,90,208,210,216,218")]
     public void TestTile80() {
         
@@ -2085,6 +2161,10 @@ public class Blob47Tests : BaseBlobTests {
                          {  -1,    5,   64, }, 
                          });
    }
+    // | 81|   | 83| 89| 91|
+    // | # |   | ##| # | ##|
+    // |## |   |## |## |## |
+    // | # |   | # | ##| ##|
     [Test(Description="81 when 81,83,89,91")]
     public void TestTile81() {
         
@@ -2132,6 +2212,10 @@ public class Blob47Tests : BaseBlobTests {
                          {  -1,    5,   64, }, 
                          });
    }
+    // | 84|   | 86|212|214|
+    // |   |   |  #|#  |# #|
+    // |###|   |###|###|###|
+    // | # |   | # | # | # |
     [Test(Description="84 when 84,86,212,214")]
     public void TestTile84() {
         
@@ -2179,6 +2263,10 @@ public class Blob47Tests : BaseBlobTests {
                          {  -1,    1,   -1, }, 
                          });
    }
+    // | 85|
+    // | # |
+    // |###|
+    // | # |
     [Test(Description="85 when 85")]
     public void TestTile85() {
         
@@ -2193,6 +2281,10 @@ public class Blob47Tests : BaseBlobTests {
                          {  -1,    1,   -1, }, 
                          });
    }
+    // | 87|
+    // | ##|
+    // |###|
+    // | # |
     [Test(Description="87 when 87")]
     public void TestTile87() {
         
@@ -2207,6 +2299,10 @@ public class Blob47Tests : BaseBlobTests {
                          {  -1,    1,   -1, }, 
                          });
    }
+    // | 92|   | 94|220|222|
+    // |   |   |  #|#  |# #|
+    // |###|   |###|###|###|
+    // | ##|   | ##| ##| ##|
     [Test(Description="92 when 92,94,220,222")]
     public void TestTile92() {
         
@@ -2254,6 +2350,10 @@ public class Blob47Tests : BaseBlobTests {
                          {  -1,    7,  193, }, 
                          });
    }
+    // | 93|
+    // | # |
+    // |###|
+    // | ##|
     [Test(Description="93 when 93")]
     public void TestTile93() {
         
@@ -2268,6 +2368,10 @@ public class Blob47Tests : BaseBlobTests {
                          {  -1,    7,  193, }, 
                          });
    }
+    // | 95|
+    // | ##|
+    // |###|
+    // | ##|
     [Test(Description="95 when 95")]
     public void TestTile95() {
         
@@ -2282,6 +2386,10 @@ public class Blob47Tests : BaseBlobTests {
                          {  -1,    7,  193, }, 
                          });
    }
+    // |112|   |114|120|122|240|242|248|250|
+    // |   |   |  #|   |  #|#  |# #|#  |# #|
+    // |## |   |## |## |## |## |## |## |## |
+    // |## |   |## |###|###|## |## |###|###|
     [Test(Description="112 when 112,114,120,122,240,242,248,250")]
     public void TestTile112() {
         
@@ -2373,6 +2481,10 @@ public class Blob47Tests : BaseBlobTests {
                          {   7,  197,   64, }, 
                          });
    }
+    // |113|   |115|121|123|
+    // | # |   | ##| # | ##|
+    // |## |   |## |## |## |
+    // |## |   |## |###|###|
     [Test(Description="113 when 113,115,121,123")]
     public void TestTile113() {
         
@@ -2420,6 +2532,10 @@ public class Blob47Tests : BaseBlobTests {
                          {   7,  197,   64, }, 
                          });
    }
+    // |116|   |118|244|246|
+    // |   |   |  #|#  |# #|
+    // |###|   |###|###|###|
+    // |## |   |## |## |## |
     [Test(Description="116 when 116,118,244,246")]
     public void TestTile116() {
         
@@ -2467,6 +2583,10 @@ public class Blob47Tests : BaseBlobTests {
                          {   7,  193,   -1, }, 
                          });
    }
+    // |117|
+    // | # |
+    // |###|
+    // |## |
     [Test(Description="117 when 117")]
     public void TestTile117() {
         
@@ -2481,6 +2601,10 @@ public class Blob47Tests : BaseBlobTests {
                          {   7,  193,   -1, }, 
                          });
    }
+    // |119|
+    // | ##|
+    // |###|
+    // |## |
     [Test(Description="119 when 119")]
     public void TestTile119() {
         
@@ -2495,6 +2619,10 @@ public class Blob47Tests : BaseBlobTests {
                          {   7,  193,   -1, }, 
                          });
    }
+    // |124|   |126|252|254|
+    // |   |   |  #|#  |# #|
+    // |###|   |###|###|###|
+    // |###|   |###|###|###|
     [Test(Description="124 when 124,126,252,254")]
     public void TestTile124() {
         
@@ -2542,6 +2670,10 @@ public class Blob47Tests : BaseBlobTests {
                          {   7,  199,  193, }, 
                          });
    }
+    // |125|
+    // | # |
+    // |###|
+    // |###|
     [Test(Description="125 when 125")]
     public void TestTile125() {
         
@@ -2556,6 +2688,10 @@ public class Blob47Tests : BaseBlobTests {
                          {   7,  199,  193, }, 
                          });
    }
+    // |127|
+    // | ##|
+    // |###|
+    // |###|
     [Test(Description="127 when 127")]
     public void TestTile127() {
         
@@ -2570,6 +2706,10 @@ public class Blob47Tests : BaseBlobTests {
                          {   7,  199,  193, }, 
                          });
    }
+    // |193|   |195|201|203|225|227|233|235|
+    // |## |   |###|## |###|## |###|## |###|
+    // |## |   |## |## |## |## |## |## |## |
+    // |   |   |   |  #|  #|#  |#  |# #|# #|
     [Test(Description="193 when 193,195,201,203,225,227,233,235")]
     public void TestTile193() {
         
@@ -2661,6 +2801,10 @@ public class Blob47Tests : BaseBlobTests {
                          {   1,   -1,    0, }, 
                          });
    }
+    // |197|   |205|229|237|
+    // |## |   |## |## |## |
+    // |###|   |###|###|###|
+    // |   |   |  #|#  |# #|
     [Test(Description="197 when 197,205,229,237")]
     public void TestTile197() {
         
@@ -2708,6 +2852,10 @@ public class Blob47Tests : BaseBlobTests {
                          {   1,   -1,    1, }, 
                          });
    }
+    // |199|   |207|231|239|
+    // |###|   |###|###|###|
+    // |###|   |###|###|###|
+    // |   |   |  #|#  |# #|
     [Test(Description="199 when 199,207,231,239")]
     public void TestTile199() {
         
@@ -2755,6 +2903,10 @@ public class Blob47Tests : BaseBlobTests {
                          {   1,   -1,    1, }, 
                          });
    }
+    // |209|   |211|217|219|
+    // |## |   |###|## |###|
+    // |## |   |## |## |## |
+    // | # |   | # | ##| ##|
     [Test(Description="209 when 209,211,217,219")]
     public void TestTile209() {
         
@@ -2802,6 +2954,10 @@ public class Blob47Tests : BaseBlobTests {
                          {  -1,    5,   64, }, 
                          });
    }
+    // |213|
+    // |## |
+    // |###|
+    // | # |
     [Test(Description="213 when 213")]
     public void TestTile213() {
         
@@ -2816,6 +2972,10 @@ public class Blob47Tests : BaseBlobTests {
                          {  -1,    1,   -1, }, 
                          });
    }
+    // |215|
+    // |###|
+    // |###|
+    // | # |
     [Test(Description="215 when 215")]
     public void TestTile215() {
         
@@ -2830,6 +2990,10 @@ public class Blob47Tests : BaseBlobTests {
                          {  -1,    1,   -1, }, 
                          });
    }
+    // |221|
+    // |## |
+    // |###|
+    // | ##|
     [Test(Description="221 when 221")]
     public void TestTile221() {
         
@@ -2844,6 +3008,10 @@ public class Blob47Tests : BaseBlobTests {
                          {  -1,    7,  193, }, 
                          });
    }
+    // |223|
+    // |###|
+    // |###|
+    // | ##|
     [Test(Description="223 when 223")]
     public void TestTile223() {
         
@@ -2858,6 +3026,10 @@ public class Blob47Tests : BaseBlobTests {
                          {  -1,    7,  193, }, 
                          });
    }
+    // |241|   |243|249|251|
+    // |## |   |###|## |###|
+    // |## |   |## |## |## |
+    // |## |   |## |###|###|
     [Test(Description="241 when 241,243,249,251")]
     public void TestTile241() {
         
@@ -2905,6 +3077,10 @@ public class Blob47Tests : BaseBlobTests {
                          {   7,  197,   64, }, 
                          });
    }
+    // |245|
+    // |## |
+    // |###|
+    // |## |
     [Test(Description="245 when 245")]
     public void TestTile245() {
         
@@ -2919,6 +3095,10 @@ public class Blob47Tests : BaseBlobTests {
                          {   7,  193,   -1, }, 
                          });
    }
+    // |247|
+    // |###|
+    // |###|
+    // |## |
     [Test(Description="247 when 247")]
     public void TestTile247() {
         
@@ -2933,6 +3113,10 @@ public class Blob47Tests : BaseBlobTests {
                          {   7,  193,   -1, }, 
                          });
    }
+    // |253|
+    // |## |
+    // |###|
+    // |###|
     [Test(Description="253 when 253")]
     public void TestTile253() {
         
@@ -2947,6 +3131,10 @@ public class Blob47Tests : BaseBlobTests {
                          {   7,  199,  193, }, 
                          });
    }
+    // |255|
+    // |###|
+    // |###|
+    // |###|
     [Test(Description="255 when 255")]
     public void TestTile255() {
         
