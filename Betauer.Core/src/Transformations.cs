@@ -170,5 +170,27 @@ public static partial class Transformations {
             }
         }
         return newGrid;
-    }    
+    }
+
+    public static T[,] GetSubGrid<T>(this T[,] source, int startX, int startY, int width, int height) {
+        var destination = new T[height, width];
+        source.CopyGrid(startX, startY, width, height, destination);
+        return destination;
+    }
+
+    public static void CopyGrid<T>(this T[,] source, int startX, int startY, int width, int height, T[,] destination) {
+        var sourceHeight = source.GetLength(0);
+        var sourceWidth = source.GetLength(1);
+        var destHeight = destination.GetLength(0);
+        var destWidth = destination.GetLength(1);
+        for (var y = 0; y < height; y++) {
+            for (var x = 0; x < width; x++) {
+                var sourceX = startX + x;
+                var sourceY = startY + y;
+                if (sourceX < sourceWidth && sourceY < sourceHeight && x < destWidth && y < destHeight) {
+                    destination[y, x] = source[sourceY, sourceX];
+                }
+            }
+        }
+    }
 }
