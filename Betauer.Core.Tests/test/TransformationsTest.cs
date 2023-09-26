@@ -174,6 +174,7 @@ public class TransformationsTests {
     }
 
     [TestRunner.Test]
+    [Only]
     public void TransformationsResizeTests() {
         AreEqual(new[,] {
             {  0,  1,  2,  3 },
@@ -219,14 +220,14 @@ public class TransformationsTests {
         AreEqual(dest, new[,] {
             { 21, 22, 0, 0 },
             { 31, 32, 0, 0 },
-            { 20, 21, 0, 0 },
+            {  0,  0, 0, 0 },
             {  0,  0, 0, 0 },
         });
         original.CopyGrid(1, 2, 10, 10, dest);
         AreEqual(dest, new[,] {
             { 21, 22, 23, 24 },
             { 31, 32, 33, 34 },
-            { 20, 21,  0,  0 },
+            {  0,  0,  0,  0 },
             {  0,  0,  0,  0 },
         });
         
@@ -245,6 +246,11 @@ public class TransformationsTests {
         AreEqual(dest, new[,] {
             {  0,  1,  2 },
             { 10, 11, 12 },
+        });
+        original.CopyGrid(-1, -1, 8, 8, dest);
+        AreEqual(dest, new[,] {
+            {  0,  0,  0 },
+            {  0,  0,  1 },
         });
     }
 

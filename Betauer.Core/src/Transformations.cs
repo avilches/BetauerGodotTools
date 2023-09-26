@@ -1,3 +1,5 @@
+using System;
+
 namespace Betauer.Core;
 
 public static partial class Transformations {
@@ -178,17 +180,20 @@ public static partial class Transformations {
         return destination;
     }
 
-    public static void CopyGrid<T>(this T[,] source, int startX, int startY, int width, int height, T[,] destination) {
+    public static void CopyGrid<T>(this T[,] source, int startX, int startY, int width, int height, T[,] destination, T defaultValue = default) {
         var sourceHeight = source.GetLength(0);
         var sourceWidth = source.GetLength(1);
-        var destHeight = destination.GetLength(0);
-        var destWidth = destination.GetLength(1);
+        height = Math.Min(destination.GetLength(0), height);
+        width = Math.Min(destination.GetLength(1), width);
         for (var y = 0; y < height; y++) {
             for (var x = 0; x < width; x++) {
                 var sourceX = startX + x;
                 var sourceY = startY + y;
-                if (sourceX < sourceWidth && sourceY < sourceHeight && x < destWidth && y < destHeight) {
+                if (sourceX >= 0 && sourceX < sourceWidth &&
+                    sourceY >= 0 && sourceY < sourceHeight) {
                     destination[y, x] = source[sourceY, sourceX];
+                } else {
+                    destination[y, x] = defaultValue;
                 }
             }
         }
