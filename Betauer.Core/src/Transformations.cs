@@ -174,13 +174,23 @@ public static partial class Transformations {
         return newGrid;
     }
 
-    public static T[,] GetSubGrid<T>(this T[,] source, int startX, int startY, int width, int height) {
+    public static T[,] GetSubGrid<T>(this T[,] source, int startX, int startY, int width, int height, T defaultValue = default) {
         var destination = new T[height, width];
-        source.CopyGrid(startX, startY, width, height, destination);
+        source.CopyGrid(startX, startY, width, height, destination, value => value, defaultValue);
+        return destination;
+    }
+
+    public static TDest[,] GetSubGrid<TSource, TDest>(this TSource[,] source, int startX, int startY, int width, int height, Func<TSource, TDest> transformer, TDest defaultValue = default) {
+        var destination = new TDest[height, width];
+        source.CopyGrid(startX, startY, width, height, destination, transformer, defaultValue);
         return destination;
     }
 
     public static void CopyGrid<T>(this T[,] source, int startX, int startY, int width, int height, T[,] destination, T defaultValue = default) {
+        source.CopyGrid(startX, startY, width, height, destination, value => value, defaultValue);
+    }
+
+    public static void CopyGrid<TSource, TDest>(this TSource[,] source, int startX, int startY, int width, int height, TDest[,] destination, Func<TSource, TDest> transformer, TDest defaultValue = default) {
         var sourceHeight = source.GetLength(0);
         var sourceWidth = source.GetLength(1);
         height = Math.Min(destination.GetLength(0), height);
@@ -191,7 +201,7 @@ public static partial class Transformations {
                 var sourceY = startY + y;
                 if (sourceX >= 0 && sourceX < sourceWidth &&
                     sourceY >= 0 && sourceY < sourceHeight) {
-                    destination[y, x] = source[sourceY, sourceX];
+                    destination[y, x] = transformer(source[sourceY, sourceX]);
                 } else {
                     destination[y, x] = defaultValue;
                 }
