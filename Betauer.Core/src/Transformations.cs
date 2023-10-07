@@ -186,8 +186,18 @@ public static partial class Transformations {
         return destination;
     }
 
+    public static TDest[,] GetGrid<TSource, TDest>(this TSource[,] source, Func<TSource, TDest> transformer, TDest defaultValue = default) {
+        var destination = new TDest[source.GetLength(0), source.GetLength(1)];
+        source.CopyGrid(destination, transformer, defaultValue);
+        return destination;
+    }
+
     public static void CopyGrid<T>(this T[,] source, int startX, int startY, int width, int height, T[,] destination, T defaultValue = default) {
         source.CopyGrid(startX, startY, width, height, destination, value => value, defaultValue);
+    }
+
+    public static void CopyGrid<TSource, TDest>(this TSource[,] source, TDest[,] destination, Func<TSource, TDest> transformer, TDest defaultValue = default) {
+        source.CopyGrid(0, 0, destination.GetLength(1), destination.GetLength(0), destination, transformer, defaultValue);
     }
 
     public static void CopyGrid<TSource, TDest>(this TSource[,] source, int startX, int startY, int width, int height, TDest[,] destination, Func<TSource, TDest> transformer, TDest defaultValue = default) {
