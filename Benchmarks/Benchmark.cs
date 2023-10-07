@@ -1,4 +1,5 @@
 using BenchmarkDotNet.Attributes;
+using Betauer.Core;
 using Betauer.Core.PoissonDiskSampling;
 using Godot;
 
@@ -18,6 +19,8 @@ public class Benchmark {
     
     public Benchmark() {
         better = new VariablePoissonSampler2D( 512, 512);
+        a = 1;
+        b = 2;
     }
 
     //
@@ -26,16 +29,40 @@ public class Benchmark {
     //     return original.Generate((x, y) => Range(r2, minRadius, maxRadius), minRadius, maxRadius);
     // }
     //
-    [Benchmark]
-    public List<Vector2> PoissonBetter() {
-        return better.Generate((x, y) => Range(r3, minRadius, maxRadius), minRadius, maxRadius, r3);
+    // [Benchmark]
+    // public List<Vector2> PoissonBetter() {
+    //     return better.Generate((x, y) => Range(r3, minRadius, maxRadius), minRadius, maxRadius, r3);
+    // }
+    //
+    // public static float Range(Random random, float start, float endExcluded) {
+    //     if (start > endExcluded) (start, endExcluded) = (endExcluded, start);
+    //     var limit = endExcluded - start;
+    //     var rn = random.NextDouble() * limit;
+    //     return (float)rn + start;
+    // }
+
+    public enum MyEnum {
+        A,
+        B,
+        C,
     }
-    
-    public static float Range(Random random, float start, float endExcluded) {
-        if (start > endExcluded) (start, endExcluded) = (endExcluded, start);
-        var limit = endExcluded - start;
-        var rn = random.NextDouble() * limit;
-        return (float)rn + start;
+
+    [Benchmark]
+    public void CompareEquals() {
+        var x = MyEnum.A.Equals(MyEnum.B);
+    }
+
+    [Benchmark]
+    public void CompareToInt() {
+        var x = MyEnum.A.ToInt() == MyEnum.B.ToInt();
+    }
+
+    public int a = 1;
+    public int b = 1;
+
+    [Benchmark]
+    public void CompareInts() {
+        var x = a == b;
     }
 
 }
