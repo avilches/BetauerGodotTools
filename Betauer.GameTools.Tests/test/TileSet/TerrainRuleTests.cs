@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using Betauer.Core;
 using Betauer.TestRunner;
 using Betauer.TileSet.Image;
 using Betauer.TileSet.Terrain;
@@ -9,7 +7,6 @@ using Betauer.TileSet.TileMap.Handlers;
 using NUnit.Framework;
 
 namespace Betauer.GameTools.Tests.TileSet;
-
 
 internal static class TerrainRuleExtension {
     public static bool Check(this TerrainRule terrainRule, int value) {
@@ -94,7 +91,7 @@ public class TerrainRuleTests : BaseBlobTests {
 112
 1 0
 ", 2);
-        AreEqual(tileMap.ExportTerrainIdGrid(), new[,] {
+        AreEqual(tileMap.TypeGrid, new[,] {
             { 1 , 1, 2 },
             { 1, -1, 0 },
         });

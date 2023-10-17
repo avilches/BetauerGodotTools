@@ -16,6 +16,7 @@ using Betauer.TileSet.Terrain;
 using Betauer.TileSet.TileMap;
 using Betauer.TileSet.TileMap.Handlers;
 using Godot.Collections;
+using TileMap = Godot.TileMap;
 
 namespace Veronenger.Game.RTS.World;
 
@@ -57,11 +58,9 @@ public partial class WorldGenerator {
 			// TilePatterns.TextureSoil,
 			// TilePatterns.TextureStoneSquare
 		};
-		var tileMap = new TileMap<TilePatterns>(2, GridSize, GridSize);
-		var map = new System.Collections.Generic.Dictionary<TilePatterns, int> {
+		var tileMap = new TileMap<TilePatterns>(2, GridSize, GridSize, new System.Collections.Generic.Dictionary<TilePatterns, int> {
 			{ TilePatterns.None, -1 }
-		};
-		tileMap.SetTypeToTerrain(map);
+		});
 		tileMap.Apply((x, y) => {
 			var tilePattern = tiles[FastNoise.GetNoiseGradient(x, y)];
 			tileMap.SetType(x, y, tilePattern);

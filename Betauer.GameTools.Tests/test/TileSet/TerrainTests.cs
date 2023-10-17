@@ -14,12 +14,8 @@ public class TerrainTests : BaseBlobTests {
     [Betauer.TestRunner.Test]
     public void BasicTest() {
         var tileMap = new BasicTileMap(2, 3, 2);
-        AreEqual(tileMap.TypeGrid, new[,] {
-            { BasicTileType.Empty, BasicTileType.Empty, BasicTileType.Empty },
-            { BasicTileType.Empty, BasicTileType.Empty, BasicTileType.Empty },
-        });
 
-        AreEqual(tileMap.ExportTerrainIdGrid(), new[,] {
+        AreEqual(tileMap.TypeGrid, new[,] {
             { -1, -1, -1 },
             { -1, -1, -1 },
         });
@@ -49,17 +45,12 @@ public class TerrainTests : BaseBlobTests {
         Assert.That(tileMap.GetCellInfoRef(0, 0, 0).AtlasCoords.HasValue, Is.EqualTo(true));
         Assert.That(tileMap.GetCellInfoRef(0, 0, 0).AtlasCoords.Value, Is.EqualTo(Vector2I.Right));
 
-        AreEqual(tileMap.TypeGrid, new[,] {
-            { BasicTileType.Type1, BasicTileType.Empty, BasicTileType.Empty },
-            { BasicTileType.Empty, BasicTileType.Empty, BasicTileType.Empty },
-        });
-
         AreEqual(tileMap.ExportTileIdGrid(0), new[,] {
             { 2, -1, -1 },
             { -1, -1, -1 },
         });
         
-        AreEqual(tileMap.ExportTerrainIdGrid(), new[,] {
+        AreEqual(tileMap.TypeGrid, new[,] {
             {  1, -1, -1 },
             { -1, -1, -1 },
         });
@@ -92,7 +83,7 @@ public class TerrainTests : BaseBlobTests {
             { '*', DemoTerrain.DemoTerrain5 },
         });
         
-        AreEqual(tileMap.TypeGrid.GetGrid(type => type.ToInt()), new[,] {
+        AreEqual(tileMap.TypeGrid, new[,] {
             { -1,   3,  3,   3, -1 },
             { -1,  -1, -1,  -1, -1 },
             { -1, 124, -1, 124, 17 },
