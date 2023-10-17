@@ -1,21 +1,24 @@
 using System;
 using Betauer.TileSet.Terrain;
+using Betauer.TileSet.TileMap;
+using Betauer.TileSet.TileMap.Handlers;
 using NUnit.Framework;
 
 namespace Betauer.GameTools.Tests.TileSet;
 
 public class BaseBlobTests {
-    protected void AssertExpandGrid(string str, int[,] grid) {
-        var tileMap = SingleTerrain.Parse(str);
-        tileMap.ExpandBlob47();
+    protected void AssertBlob47(string str, int[,] grid) {
+        var tileMap = BasicTileMap.Parse(str);
+        tileMap.Apply(new SetTileIdFromTerrainHandler(0, TerrainRuleSets.Blob47Rules.ApplyTerrain(0)));
         try {
-            AreEqual(tileMap.Grid, grid);
+            AreEqual(tileMap.ExportTileIdGrid(0), grid);
         } catch (Exception e) {
             Console.WriteLine("Error parsing: ");
             for (var y = 0; y < tileMap.Height; y++) {
                 Console.Write("|");
                 for (var x = 0; x < tileMap.Width; x++) {
-                    Console.Write(tileMap.GetCell(x, y).ToString().PadLeft(3) + "|" );
+                    ref var cellInfo = ref tileMap.GetCellInfoRef(0, x, y);
+                    Console.Write(cellInfo.TileId.ToString().PadLeft(3) + "|" );
                 }
                 Console.WriteLine();
             }

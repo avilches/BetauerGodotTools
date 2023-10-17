@@ -1,6 +1,8 @@
+using System;
+
 namespace Betauer.TileSet.TileMap;
 
-public class TileMapData<TTileType, TTileData> : TileMap<TTileType> where TTileType : struct {
+public class TileMapData<TType, TTileData> : TileMap<TType> where TType : Enum {
     public TTileData?[,] Data { get; private set; }
     private bool _hasData = false;
 

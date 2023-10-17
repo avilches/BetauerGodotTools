@@ -1,24 +1,13 @@
 using System.Collections.Generic;
+using Godot;
 
 namespace Betauer.TileSet.Image;
 
-public class TileSetLayout {
+public class TileSetLayout : ITileSetLayout {
     
-    public readonly struct TilePosition {
-        public readonly int TileId;
-        public readonly int X;
-        public readonly int Y;
-
-        public TilePosition(int tileId, int x, int y) {
-            TileId = tileId;
-            X = x;
-            Y = y;
-        }
-    }
-
     public int Width { get; protected set; }
     public int Height { get; protected set; }
-    protected readonly Dictionary<int, TilePosition> Tiles = new();
+    protected readonly Dictionary<int, Vector2I> Tiles = new();
     protected int[,] Positions;
     
     protected TileSetLayout() {
@@ -37,14 +26,10 @@ public class TileSetLayout {
             for (var x = 0; x < Width; x++) {
                 var tileId = layout[y, x];
                 if (tileId >= 0) {
-                    Tiles[tileId] = new TilePosition(tileId, x, y);
+                    Tiles[tileId] = new Vector2I(x, y);
                 }
             }
         }
-    }
-
-    public IReadOnlyCollection<TilePosition> GetTiles() {
-        return Tiles.Values;
     }
 
     public IReadOnlyCollection<int> GetTileIds() {
@@ -55,9 +40,8 @@ public class TileSetLayout {
         return Tiles.ContainsKey(tileId);
     }
 
-    public (int, int) GetTilePositionById(int tileId) {
-        var tile = Tiles[tileId];
-        return (tile.X, tile.Y);
+    public Vector2I GetTilePositionById(int tileId) {
+        return Tiles.TryGetValue(tileId, out var position) ? position : new Vector2I(-1, -1);
     }
 
     public int GetTileIdByPosition(int x, int y) {
@@ -73,5 +57,4 @@ public class TileSetLayout {
         }
         return positions;
     }
-
 }

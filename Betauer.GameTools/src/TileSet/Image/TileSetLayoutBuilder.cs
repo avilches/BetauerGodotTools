@@ -1,10 +1,11 @@
 using System;
+using Godot;
 
 namespace Betauer.TileSet.Image;
 
 public class TileSetLayoutBuilder : TileSetLayout {
     
-    public TileSetLayoutBuilder(TileSetLayout tileSetLayout) {
+    public TileSetLayoutBuilder(ITileSetLayout tileSetLayout) {
         Height = tileSetLayout.Height;
         Width = tileSetLayout.Width;
         _Load(tileSetLayout.Export());
@@ -53,7 +54,7 @@ public class TileSetLayoutBuilder : TileSetLayout {
     public TileSetLayoutBuilder AddTile(int tileId, int x, int y) {
         if (tileId < 0) throw new Exception($"Invalid tile id {tileId}");
         Positions[y, x] = tileId;
-        Tiles[tileId] = new TilePosition(tileId, x, y);
+        Tiles[tileId] = new Vector2I(x, y);
         return this;
     }
 }

@@ -7,7 +7,7 @@ public static class TerrainTools {
     public static int CreateMask(int[] neighbours) {
         var bits = 0;
         for (var i = 0; i < neighbours.Length; i++) {
-            if (neighbours[i] != (int)SingleTerrain.TileType.None) {
+            if (neighbours[i] != -1) {
                 bits = BitTools.EnableBit(bits, i + 1);
             }
         }
@@ -33,19 +33,19 @@ public static class TerrainTools {
     /// </summary>
     /// <param name="mask"></param>
     /// <returns></returns>
-    public static int[,] CreateNeighboursGrid(int mask) {
-        var neighbours = new int[3, 3];
+    public static T[,] CreateNeighboursGrid<T>(int mask, T value, T empty) {
+        var neighbours = new T[3, 3];
         const int x = 1;
         const int y = 1;
-        neighbours[y - 1, x    ] = BitTools.HasBit(mask, 1) ? 0 : -1; // TopSide
-        neighbours[y - 1, x + 1] = BitTools.HasBit(mask, 2) ? 0 : -1; // TopRightCorner
-        neighbours[y    , x + 1] = BitTools.HasBit(mask, 3) ? 0 : -1; // RightSide
-        neighbours[y + 1, x + 1] = BitTools.HasBit(mask, 4) ? 0 : -1; // BottomRightCorner
-        neighbours[y + 1, x    ] = BitTools.HasBit(mask, 5) ? 0 : -1; // BottomSide
-        neighbours[y + 1, x - 1] = BitTools.HasBit(mask, 6) ? 0 : -1; // BottomLeftCorner
-        neighbours[y    , x - 1] = BitTools.HasBit(mask, 7) ? 0 : -1; // LeftSide
-        neighbours[y - 1, x - 1] = BitTools.HasBit(mask, 8) ? 0 : -1; // TopLeftCorner
-        neighbours[y    , x    ] = 0; // Center
+        neighbours[y - 1, x    ] = BitTools.HasBit(mask, 1) ? value : empty; // TopSide
+        neighbours[y - 1, x + 1] = BitTools.HasBit(mask, 2) ? value : empty; // TopRightCorner
+        neighbours[y    , x + 1] = BitTools.HasBit(mask, 3) ? value : empty; // RightSide
+        neighbours[y + 1, x + 1] = BitTools.HasBit(mask, 4) ? value : empty; // BottomRightCorner
+        neighbours[y + 1, x    ] = BitTools.HasBit(mask, 5) ? value : empty; // BottomSide
+        neighbours[y + 1, x - 1] = BitTools.HasBit(mask, 6) ? value : empty; // BottomLeftCorner
+        neighbours[y    , x - 1] = BitTools.HasBit(mask, 7) ? value : empty; // LeftSide
+        neighbours[y - 1, x - 1] = BitTools.HasBit(mask, 8) ? value : empty; // TopLeftCorner
+        neighbours[y    , x    ] = value; // Center
         return neighbours;
     }
 }

@@ -1,143 +1,169 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using Betauer.Core;
 using Godot;
 
 namespace Betauer.TileSet.Terrain;
 
 public partial class TerrainRule {
+    public enum ConditionType {
+        EqualsTo,
+        NotEqualsTo,
+        TemplateEqualsTo,
+        TemplateNotEqualsTo
+    }
 
-    public abstract class NeighbourRule {
-        public abstract bool Check(short terrainId);
-        
-        public static NeighbourRule ParseRule(string neighbourRule) {
-            switch (neighbourRule) {
-                case "?": return NeighbourRuleIgnore.Instance;
-                case ".": return NeighbourRuleEquals.EqualsEmptyInstance;
-                case "X": return NeighbourRuleNotEquals.NotEqualsEmptyInstance;
-            }
-            if (neighbourRule.StartsWith("!")) {
-                var terrainId = neighbourRule[1..];
-                if (!terrainId.IsValidInt()) {
-                    throw new Exception($"Rule not recognized: {neighbourRule}");
-                }
-                return new NeighbourRuleNotEquals(byte.Parse(terrainId));
-            }
-            if (!neighbourRule.IsValidInt()) {
+    public class TileRule {
+        public ConditionType Type { get; set; }
+        public int ExpectedTerrainId { get; set; }
+        public bool IsTemplate => Type is ConditionType.TemplateEqualsTo or ConditionType.TemplateNotEqualsTo;
+        public int X;
+        public int Y;
+
+        public TileRule(ConditionType type, int expectedTerrainId, int x, int y) {
+            Type = type;
+            ExpectedTerrainId = expectedTerrainId;
+            X = x;
+            Y = y;
+        }
+        public void Deconstruct(out ConditionType type, out int expectedTerrainId) {
+            type = Type;
+            expectedTerrainId = ExpectedTerrainId;
+        }
+
+        public bool CheckTile(int terrainId) {
+            return Type switch {
+                ConditionType.EqualsTo => terrainId == ExpectedTerrainId,
+                ConditionType.NotEqualsTo => terrainId != ExpectedTerrainId,
+                _ => throw new Exception($"Template rules cannot be checked {Enum.GetName(Type)}")
+            };
+        }
+
+        public override bool Equals(object? obj) {
+            return obj is TileRule rule && Type == rule.Type && X == rule.X && Y == rule.Y;
+        }
+    }
+    
+    public static TileRule? ParseRule(string neighbourRule, int x, int y) {
+        switch (neighbourRule) {
+            case "?": return null; // ignore
+            case ".": return new TileRule(ConditionType.EqualsTo, -1, x, y); // is empty
+            case "X": return new TileRule(ConditionType.NotEqualsTo, -1, x, y); // is not empty
+            case "!": return new TileRule(ConditionType.TemplateNotEqualsTo, -1, x, y); // equals to something not defined yet
+            case "#": return new TileRule(ConditionType.TemplateEqualsTo, -1, x, y); // not equals to something not defined yet
+        }
+        if (neighbourRule.StartsWith("!")) {
+            var terrainId = neighbourRule[1..];
+            if (!terrainId.IsValidInt()) {
                 throw new Exception($"Rule not recognized: {neighbourRule}");
             }
-            return new NeighbourRuleEquals(byte.Parse(neighbourRule));
+            return new TileRule(ConditionType.NotEqualsTo, terrainId.ToInt(), x, y);
         }
-    }
-
-    public class NeighbourRuleIgnore : NeighbourRule {
-
-        public static NeighbourRuleIgnore Instance { get; } = new NeighbourRuleIgnore();
-
-        private NeighbourRuleIgnore() {
-        }   
-        
-        public override bool Check(short terrainId) => true;
-    }
-
-    public class NeighbourRuleEquals : NeighbourRule {
-
-        public static NeighbourRuleEquals EqualsEmptyInstance { get; } = new NeighbourRuleEquals(-1);
-        
-        public short TerrainId { get; } = -1; // -1 == empty
-
-        public NeighbourRuleEquals(short terrainId) {
-            TerrainId = terrainId;
+        if (!neighbourRule.IsValidInt()) {
+            throw new Exception($"Rule not recognized: {neighbourRule}");
         }
-
-        public override bool Check(short terrainId) => TerrainId == terrainId;
+        return new TileRule(ConditionType.EqualsTo, neighbourRule.ToInt(), x, y);
     }
-    
-    public class NeighbourRuleNotEquals : NeighbourRule {
 
-        public static NeighbourRuleNotEquals NotEqualsEmptyInstance { get; } = new NeighbourRuleNotEquals(-1);
+    private List<TileRule> Rules { get; } = new();
+    public int TileId { get; }
+    public int GridSize { get; }
+    public bool IsTemplate { get; private set; }
 
-        public short TerrainId { get; } = -1; // -1 == empty
-
-        public NeighbourRuleNotEquals(short terrainId) {
-            TerrainId = terrainId;
+    public override bool Equals(object? obj) {
+        if (obj is not TerrainRule other ||
+            TileId != other.TileId || 
+            GridSize != other.GridSize || 
+            Rules.Count != other.Rules.Count || 
+            IsTemplate != other.IsTemplate) return false;
+        for (var i = 0; i < Rules.Count; i++) {
+            if (!Rules[i].Equals(other.Rules[i])) return false;
         }
-
-        public override bool Check(short terrainId) => TerrainId != terrainId;
+        return true;
     }
-    
-    public NeighbourRule[,] Rules;
 
-    public TerrainRule(int size) {
+    public TerrainRule(int tileId, int gridSize) {
         // 3 means 3x3, 5 means 5x5
-        if (size is 1 or 3 or 5 or 7 or 9) {
-            Rules = new NeighbourRule[size, size];
-        } else {
-            throw new Exception($"Size {size}x{size} is not valid: only sizes 1x1, 3x3, 5x5, 7x7 and 9x9 are supported");
+        if (gridSize % 2 == 0) {
+            throw new Exception($"Size {gridSize}x{gridSize} is not valid: only odd sizes are allowed: 1x1, 3x3, 5x5...");
         }
-            
+        GridSize = gridSize;
+        TileId = tileId;
     }
 
-    public static TerrainRule Parse(string value) {
+    public static TerrainRule Parse(int tileId, string value) {
         var lines = value.Split('\n')
             .Select(v => v.Trim())
             .Where(v => v.Length > 0)
             .ToArray();
-
-        if (lines.Length is 1) {
-            var tileMap = new TerrainRule((byte)lines.Length);
-            var parts = SplitWords().Split(lines[0].Trim());
-            if (parts.Length != 1) {
-                throw new Exception($"Line 1 must have only 1 part, but it has {parts.Length}: {lines[0]}");
-            }
-            tileMap.Rules[0, 0] = NeighbourRule.ParseRule(lines[0].Trim());
-            return tileMap;
+        var gridSize = lines.Length;
+        if (gridSize % 2 == 0) {
+            throw new Exception($"Size {gridSize}x{gridSize} is not valid: only odd sizes are allowed: 1x1, 3x3, 5x5...");
         }
-        if (lines.Length is 3 or 5 or 7 or 9) {
-            var y = 0;
-            var tileMap = new TerrainRule((byte)lines.Length);
-            foreach (var line in lines) {
-                var parts = SplitWords().Split(line);
-                var x = 0;
-                foreach (var neighbourRule in parts) {
-                    tileMap.Rules[y, x] = NeighbourRule.ParseRule(neighbourRule);
-                    x++;
+        var y = 0;
+        var tileMap = new TerrainRule(tileId, gridSize);
+        foreach (var line in lines) {
+            var parts = SplitWords().Split(line);
+            if (parts.Length != gridSize) {
+                throw new Exception($"Line has to be {gridSize} parts instead of {parts.Length}: {line}");
+            }
+            var x = 0;
+            foreach (var neighbourRule in parts) {
+                var tileRule = ParseRule(neighbourRule, x, y);
+                if (tileRule != null) {
+                    tileMap.Rules.Add(tileRule);
+                    tileMap.IsTemplate = tileMap.IsTemplate || tileRule.IsTemplate;
                 }
-                y++;
+                x++;
             }
-
-            return tileMap;
+            y++;
         }
-        throw new Exception($"Size {lines.Length}x{lines.Length} is not valid: only sizes 1x1, 3x3, 5x5, 7x7 and 9x9 are supported");
+        return tileMap;
+    }
+    
+    public TileRule? FindRuleByPosition(int x, int y) {
+        foreach (var rule in Rules) {
+            if (rule.X == x && rule.Y == y) return rule;
+        }
+        return null;
     }
 
     public string Export() {
-        var size = Rules.GetLength(0);
-        var sb = new StringBuilder(size * 3 * size - 1);
-        for (var y = 0; y < size; y++) {
-            for (var x = 0; x < size; x++) {
-                var neighbourRule = Rules[y, x];
-                if (neighbourRule is NeighbourRuleEquals neighbourRuleEquals) {
-                    if (neighbourRuleEquals.TerrainId == -1) {
+        var sb = new StringBuilder(GridSize * 3 * GridSize - 1);
+        for (var y = 0; y < GridSize; y++) {
+            for (var x = 0; x < GridSize; x++) {
+                var tileRule = FindRuleByPosition(x, y);
+                if (tileRule == null) {
+                    sb.Append(" ?");
+                    continue;
+                }
+                var conditionType = tileRule.Type;
+                var tileRuleExpectedTerrain = tileRule.ExpectedTerrainId;
+                if (conditionType == ConditionType.EqualsTo) {
+                    if (tileRuleExpectedTerrain == -1) {
                         sb.Append(" .");
                     } else {
-                        sb.Append(' ').Append(neighbourRuleEquals.TerrainId);
+                        sb.Append(' ').Append(tileRuleExpectedTerrain);
                     }
-                } else if (neighbourRule is NeighbourRuleNotEquals neighbourRuleNotEquals) {
-                    if (neighbourRuleNotEquals.TerrainId == -1) {
+                } else if (conditionType == ConditionType.NotEqualsTo) {
+                    if (tileRuleExpectedTerrain == -1) {
                         sb.Append(" X");
                     } else {
-                        sb.Append('!').Append(neighbourRuleNotEquals.TerrainId);
+                        sb.Append('!').Append(tileRuleExpectedTerrain);
                     }
-                } else if (neighbourRule is NeighbourRuleIgnore) {
-                    sb.Append(" ?");
+                } else if (conditionType == ConditionType.TemplateEqualsTo) {
+                    sb.Append(" #");
+                } else if (conditionType == ConditionType.TemplateNotEqualsTo) {
+                    sb.Append(" !");
                 } else {
-                    throw new Exception($"Unknown neighbour rule: {neighbourRule}");
+                    throw new Exception($"Unknown neighbour rule: {tileRule}");
                 }
-                if (x < size - 1) sb.Append(' ');
+                if (x < GridSize - 1) sb.Append(' ');
             }
-            if (y < size - 1) sb.Append('\n');
+            if (y < GridSize - 1) sb.Append('\n');
         }
         return sb.ToString();
     }
@@ -146,16 +172,25 @@ public partial class TerrainRule {
     [GeneratedRegex("\\s+")]
     private static partial Regex SplitWords();
 
-    public bool Check(int[,] cells) {
-        var size = Rules.GetLength(0);
-        if (cells.GetLength(0) != size || cells.GetLength(1) != size) {
-            throw new Exception($"Cells to check array must be {size}x{size}, but it is {cells.GetLength(0)}x{cells.GetLength(1)}");
-        }
-        for (var y = 0; y < size; y++) {
-            for (var x = 0; x < size; x++) {
-                if (!Rules[y, x].Check((short)cells[y, x])) return false;
-            }
+    public bool Check<TType>(TileMap.TileMap<TType> tileMap, int x, int y) where TType : Enum {
+        var center = GridSize / 2;
+        foreach (var rule in Rules) {
+            var ruleX = x + rule.X - center;
+            var ruleY = y + rule.Y - center;
+            var tileId = ruleX < 0 || ruleY < 0 || ruleX >= tileMap.Width || ruleY >= tileMap.Height ? -1 : tileMap.GetTypeAsTerrain(ruleX, ruleY);
+            if (!rule.CheckTile(tileId)) return false;
         }
         return true;
+    }
+
+    public TerrainRule ApplyTerrain(int terrainId) {
+        if (!IsTemplate) return this;
+        var terrainRule = new TerrainRule(TileId, GridSize);
+        Rules.Select(rule => rule.Type switch {
+            ConditionType.TemplateEqualsTo => new TileRule(ConditionType.EqualsTo, terrainId, rule.X, rule.Y),
+            ConditionType.TemplateNotEqualsTo => new TileRule(ConditionType.NotEqualsTo, terrainId, rule.X, rule.Y),
+            _ => rule
+        }).ForEach(rule => terrainRule.Rules.Add(rule));
+        return terrainRule;
     }
 }

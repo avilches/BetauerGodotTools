@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,7 +11,11 @@ using Veronenger.RTS.Assets.Trees;
 using Betauer.Core;
 using Betauer.Core.Collision.Spatial2D;
 using Betauer.Core.Image;
-using Betauer.TileSet;
+using Betauer.TileSet.Image;
+using Betauer.TileSet.Terrain;
+using Betauer.TileSet.TileMap;
+using Betauer.TileSet.TileMap.Handlers;
+using Godot.Collections;
 
 namespace Veronenger.Game.RTS.World;
 
@@ -30,21 +33,18 @@ public partial class WorldGenerator {
 	private const int Size = GridSize * CellSize;
 	public FastTextureNoiseWithGradient FastNoise { get; private set; }
 
-	public async void Generate(TileMap godotTileMap, NoiseTexture2D noiseTexture) {
+	public void Generate(TileMap godotTileMap, NoiseTexture2D noiseTexture) {
 		godotTileMap.Clear();
-		var parent = godotTileMap.GetParent();
 		TreesInstance = TreesFactory.Create();
 		TreesInstance.Configure();
-		
+
 		FastNoise = new FastTextureNoiseWithGradient(noiseTexture);
 
-		Measure("Place objects", () => {
-			PlaceObjects(godotTileMap);
-		});
-		
-		var config = CreateTileHandlers();
-		var sources = config.ToDictionary(pair => pair.Key, pair => (ISource)pair.Value);
-		
+		Measure("Place objects", () => { PlaceObjects(godotTileMap); });
+
+		// var config = CreateTileHandlers();
+		// var sources = config.ToDictionary(pair => pair.Key, pair => (ISource)pair.Value);
+
 		var tiles = new[] {
 			TilePatterns.TerrainGreen,
 			TilePatterns.TerrainGreen,
@@ -58,17 +58,25 @@ public partial class WorldGenerator {
 			// TilePatterns.TextureStoneSquare
 		};
 		var tileMap = new TileMap<TilePatterns>(2, GridSize, GridSize);
-		tileMap.LoopCells((x, y) => {
+		var map = new System.Collections.Generic.Dictionary<TilePatterns, int> {
+			{ TilePatterns.None, -1 }
+		};
+		tileMap.SetTypeToTerrain(map);
+		tileMap.Apply((x, y) => {
 			var tilePattern = tiles[FastNoise.GetNoiseGradient(x, y)];
-			tileMap.SetType(0, x, y, tilePattern);
-			if (tilePattern is TilePatterns.TerrainGreen && Random.NextBool(0.2f)) {
-				tileMap.SetType(1, x, y, TilePatterns.TransparentAsfalt);
-			}
+			tileMap.SetType(x, y, tilePattern);
+			// if (tilePattern is TilePatterns.TerrainGreen && Random.NextBool(0.2f)) {
+			// tileMap.SetType(1, x, y, TilePatterns.TransparentAsfalt);
+			// }
 		});
+
+		tileMap.Apply(new TerrainTileHandler(1, TerrainRuleSets.Blob47Rules.ApplyTerrain((int)TilePatterns.ModernDirt), 8, TileSetLayouts.Blob47Godot));
+		// tileMap.Apply(new TerrainTileHandler(1, TerrainRuleSets.Blob47Rules.ApplyTerrain((int)TilePatterns.TerrainGreen), 8, TileSetLayouts.Blob47Godot));
+		// tileMap.Apply(new TerrainTileHandler(1, TerrainRuleSets.Blob47Rules.ApplyTerrain((int)TilePatterns.ModernDeepWater), 8, TileSetLayouts.Blob47Godot));
+		
 		godotTileMap.ZIndex = 1;
-		tileMap.Smooth(0);
-		tileMap.Apply(config);
-		tileMap.Flush(sources, godotTileMap);
+		tileMap.Smooth();
+		tileMap.Flush(godotTileMap);
 	}
 	
 	private void PlaceObjects(Node parent) {

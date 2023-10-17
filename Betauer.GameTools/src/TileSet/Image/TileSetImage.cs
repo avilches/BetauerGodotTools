@@ -19,25 +19,24 @@ public class TileSetImage {
     public void SavePng(string filename) => CellImage.SavePng(filename);
     public byte[] GetPng() => CellImage.GetPng();
 
-    public TileSetLayout Layout { get; }
+    public ITileSetLayout Layout { get; }
     
-    public IReadOnlyCollection<TileSetLayout.TilePosition> GetTiles() => Layout.GetTiles();
     public IReadOnlyCollection<int> GetTileIds() => Layout.GetTileIds();
     public bool HasTile(int tileId) => Layout.HasTile(tileId);
-    public (int, int) GetTilePositionById(int tileId) => Layout.GetTilePositionById(tileId);
+    public Vector2I GetTilePositionById(int tileId) => Layout.GetTilePositionById(tileId);
     public int GetTileIdByPosition(int x, int y) => Layout.GetTileIdByPosition(x, y);
 
-    public TileSetImage(TileSetLayout layout, int cellSize) {
+    public TileSetImage(ITileSetLayout layout, int cellSize) {
         CellImage = new CellImage(layout.Width, layout.Height, cellSize);
         Layout = layout;
     }
 
-    public TileSetImage(string resourcePath, TileSetLayout layout, global::Godot.Image.Format? format = null) {
+    public TileSetImage(string resourcePath, ITileSetLayout layout, global::Godot.Image.Format? format = null) {
         CellImage = new CellImage(resourcePath, layout.Width, layout.Height, format);
         Layout = layout;
     }
 
-    public TileSetImage(FastImage fastImage, TileSetLayout layout) {
+    public TileSetImage(FastImage fastImage, ITileSetLayout layout) {
         CellImage = new CellImage(fastImage, layout.Width, layout.Height);
         Layout = layout;
     }
@@ -62,7 +61,7 @@ public class TileSetImage {
         CellImage.PastePart(cell, cellX, cellY, x, y, blend);
     }
 
-    public TileSetImage ExportAs(TileSetLayout layout) {
+    public TileSetImage ExportAs(ITileSetLayout layout) {
         var destination = new TileSetImage(layout, CellSize);
         layout.GetTileIds().ForEach(tileId => {
             if (HasTile(tileId)) {
@@ -81,7 +80,7 @@ public class TileSetImage {
         return texture2D;
     }
 
-    public TileSetImage ExportAs(TileSetLayout desiredLayout, List<BaseRule> originalRules) {
+    public TileSetImage ExportAs(ITileSetLayout desiredLayout, List<BaseRule> originalRules) {
         if (desiredLayout.GetTileIds().All(HasTile)) {
             return ExportAs(desiredLayout);
         }

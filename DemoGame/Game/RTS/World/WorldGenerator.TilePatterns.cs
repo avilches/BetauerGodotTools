@@ -1,5 +1,8 @@
 using System.Collections.Generic;
 using Betauer.TileSet;
+using Betauer.TileSet.Image;
+using Betauer.TileSet.TileMap;
+using Betauer.TileSet.TileMap.Handlers;
 using Godot;
 
 namespace Veronenger.Game.RTS.World;
@@ -30,6 +33,7 @@ public enum TilePatterns {
 }
 
 public partial class WorldGenerator {
+    /*
     private static Dictionary<TilePatterns, ITileHandler<TilePatterns>> CreateTileHandlers() {
         var d = new Dictionary<TilePatterns, ITileHandler<TilePatterns>>();
         GrasslandTextures(d);
@@ -108,10 +112,15 @@ public partial class WorldGenerator {
 
     private static void ModernCamping(IDictionary<TilePatterns, ITileHandler<TilePatterns>> d) {
         const int modernCampingSourceId = 7;
-        d[TilePatterns.ModernDirt] = new TileRegionHandler<TilePatterns> {
-            SourceId = modernCampingSourceId,
-            Region = new Rect2I(18, 4, 1, 1)
+        d[TilePatterns.ModernDirt] = new TileTerrainHandler<TilePatterns> {
+            SourceId = 8,
+            TerrainId = (int)TilePatterns.ModernDirt,
+            Rules = TileSetLayouts.Blob47Rules,
         };
+        // d[TilePatterns.ModernDirt] = new TileRegionHandler<TilePatterns> {
+            // SourceId = modernCampingSourceId,
+            // Region = new Rect2I(18, 4, 1, 1)
+        // };
         d[TilePatterns.ModernGreen] = new TileRegionHandler<TilePatterns> {
             SourceId = modernCampingSourceId,
             Region = new Rect2I(1, 2, 1, 1)
@@ -132,9 +141,11 @@ public partial class WorldGenerator {
 
     private static void Terrain(IDictionary<TilePatterns, ITileHandler<TilePatterns>> d) {
         const int terrainSourceId = 10;
-        d[TilePatterns.TerrainGreen] = new TerrainHandler<TilePatterns> {
+        d[TilePatterns.TerrainGreen] = new RandomTileHandler<TilePatterns> {
             SourceId = terrainSourceId,
+            Region = new Rect2I(7, 4, 7, 4),
             Id = 0,
         };
     }
+    */
 }

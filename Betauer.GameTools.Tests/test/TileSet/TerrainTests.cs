@@ -1,6 +1,9 @@
 using System.Collections.Generic;
+using Betauer.Core;
 using Betauer.TestRunner;
 using Betauer.TileSet.Terrain;
+using Betauer.TileSet.TileMap;
+using Godot;
 using NUnit.Framework;
 
 namespace Betauer.GameTools.Tests.TileSet;
@@ -10,144 +13,90 @@ namespace Betauer.GameTools.Tests.TileSet;
 public class TerrainTests : BaseBlobTests {
     [Betauer.TestRunner.Test]
     public void BasicTest() {
-        var tileMap = new SingleTerrain(3, 3);
-        AreEqual(tileMap.Grid, new[,] {
-            { -1, -1, -1 },
+        var tileMap = new BasicTileMap(2, 3, 2);
+        AreEqual(tileMap.TypeGrid, new[,] {
+            { BasicTileType.Empty, BasicTileType.Empty, BasicTileType.Empty },
+            { BasicTileType.Empty, BasicTileType.Empty, BasicTileType.Empty },
+        });
+
+        AreEqual(tileMap.ExportTerrainIdGrid(), new[,] {
             { -1, -1, -1 },
             { -1, -1, -1 },
         });
+
+        AreEqual(tileMap.ExportTileIdGrid(0), new[,] {
+            { -1, -1, -1 },
+            { -1, -1, -1 },
+        });
+
+        AreEqual(tileMap.ExportTileIdGrid(1), new[,] {
+            { -1, -1, -1 },
+            { -1, -1, -1 },
+        });
+
+        Assert.That(tileMap.GetType(0, 0), Is.EqualTo(BasicTileType.Empty));
+        Assert.That(tileMap.GetCellInfoRef(0, 0, 0).TileId, Is.EqualTo(-1));
+        Assert.That(tileMap.GetCellInfoRef(0, 0, 0).AtlasCoords.HasValue, Is.EqualTo(false));
+
+        // Type
+        tileMap.SetType(0, 0, BasicTileType.Type1);
+        tileMap.SetTileId(0, 0, 0, 2);
+        tileMap.SetAtlasCoords(0, 1,0, 0, Vector2I.Right);
+
+        Assert.That(tileMap.GetType(0, 0), Is.EqualTo(BasicTileType.Type1));
+        Assert.That(tileMap.GetCellInfoRef(0, 0, 0).TileId, Is.EqualTo(2));
+        Assert.That(tileMap.GetCellInfoRef(0, 0, 0).SourceId, Is.EqualTo(1));
+        Assert.That(tileMap.GetCellInfoRef(0, 0, 0).AtlasCoords.HasValue, Is.EqualTo(true));
+        Assert.That(tileMap.GetCellInfoRef(0, 0, 0).AtlasCoords.Value, Is.EqualTo(Vector2I.Right));
+
+        AreEqual(tileMap.TypeGrid, new[,] {
+            { BasicTileType.Type1, BasicTileType.Empty, BasicTileType.Empty },
+            { BasicTileType.Empty, BasicTileType.Empty, BasicTileType.Empty },
+        });
+
+        AreEqual(tileMap.ExportTileIdGrid(0), new[,] {
+            { 2, -1, -1 },
+            { -1, -1, -1 },
+        });
+        
+        AreEqual(tileMap.ExportTerrainIdGrid(), new[,] {
+            {  1, -1, -1 },
+            { -1, -1, -1 },
+        });
+
+
     }
 
+    public enum DemoTerrain {
+        DemoTerrainEmpty = -1,
+        DemoTerrain1 = 0,
+        DemoTerrain2 = 124,
+        DemoTerrain3 = 17,
+        DemoTerrain4 = 68,
+        DemoTerrain5 = 3,
+    }
+   
     [Betauer.TestRunner.Test]
     public void ParseDictionaryTest() {
-        var tileMap = SingleTerrain.Parse(@$"
+        var tileMap = BasicTileMap.Parse(@$"
  ***
 
  P P|
 @- @@
-", new Dictionary<char, int>() {
-            { ' ', (int)SingleTerrain.TileType.None },
-            { '@', 0 },
-            { 'P', 124 },
-            { '*', (int)SingleTerrain.TileType.Auto },
+", new Dictionary<char, DemoTerrain>() {
+            { ' ', DemoTerrain.DemoTerrainEmpty },
+            { '@', DemoTerrain.DemoTerrain1 },
+            { 'P', DemoTerrain.DemoTerrain2 },
+            { '|', DemoTerrain.DemoTerrain3 },
+            { '-', DemoTerrain.DemoTerrain4 },
+            { '*', DemoTerrain.DemoTerrain5 },
         });
-        AreEqual(tileMap.Grid, new[,] {
-            { -1,  -2, -2,  -2, -1 },
+        
+        AreEqual(tileMap.TypeGrid.GetGrid(type => type.ToInt()), new[,] {
+            { -1,   3,  3,   3, -1 },
             { -1,  -1, -1,  -1, -1 },
             { -1, 124, -1, 124, 17 },
             {  0,  68, -1,   0, 0 },
         });
-
-        AreEqual(tileMap.GetGrid(1, 2, 1), new[,] {
-            { 124 }
-        });
-        
-        AreEqual(tileMap.GetGrid(1, 2, 3), new[,] {
-            { -1,  -1, -1 },
-            { -1, 124, -1 },
-            {  0,  68, -1 },
-        });
-        AreEqual(tileMap.GetGrid(1, 2, 5), new[,] {
-            { -1,  -1,  -2, -2,  -2 },
-            { -1,  -1,  -1, -1,  -1 },
-            { -1,  -1, 124, -1, 124 },
-            { -1,   0,  68, -1,   0 },
-            { -1,  -1,  -1, -1, -1  },
-        });
-    }
-
-    [Betauer.TestRunner.Test]
-    public void ParseWithBordersTest() {
-        var tileMap = SingleTerrain.Parse(@$"
-
-:   :
- : * :
-  :|| :
-
-
-");
-        AreEqual(tileMap.Grid, new[,] {
-            { -1, -1, -1 },
-            { -1, -2, -1 },
-            { 17, 17, -1 },
-        });
-    }
-
-    [TestRunner.Test]
-    public void RulesTest() {
-        Assert.That(TerrainRule.Parse(
-            """
-              1 ? .
-              
-            !2 X 2
-            1 X X
-            """).Export(), Is.EqualTo(
-            """
-             1  ?  .
-            !2  X  2
-             1  X  X
-            """));
-
-        Assert.That(TerrainRule.Parse(
-            """
-              1 ? . 1 !1
-              
-            !2 X 2   ? .
-            1 X X  .  2
-            !2 X 2   ? .
-            . . . . .
-            
-            """).Export(), Is.EqualTo(
-            """
-             1  ?  .  1 !1
-            !2  X  2  ?  .
-             1  X  X  .  2
-            !2  X  2  ?  .
-             .  .  .  .  .
-            """));
-    }
-
-    [TestRunner.Test]
-    public void ParseRulesCheckTest() {
-        Assert.That(TerrainRule.Parse("?").Rules[0,0], Is.EqualTo(TerrainRule.NeighbourRuleIgnore.Instance));
-        Assert.True(TerrainRule.Parse(".").Rules[0,0] is TerrainRule.NeighbourRuleEquals { TerrainId: -1 });
-        Assert.True(TerrainRule.Parse("X").Rules[0,0] is TerrainRule.NeighbourRuleNotEquals { TerrainId: -1 });
-        Assert.True(TerrainRule.Parse("2").Rules[0,0] is TerrainRule.NeighbourRuleEquals { TerrainId: 2 });
-        Assert.True(TerrainRule.Parse("!2").Rules[0,0] is TerrainRule.NeighbourRuleNotEquals { TerrainId: 2 });
-
-        
-        // !2 means anything but 2, even empty is ok
-        Assert.True(TerrainRule.Parse("!2").Check(new int[,] { { -1 } }));
-        Assert.True(TerrainRule.Parse("!2").Check(new int[,] { { 0 } }));
-        Assert.True(TerrainRule.Parse("!2").Check(new int[,] { { 1 } }));
-        Assert.False(TerrainRule.Parse("!2").Check(new int[,] { { 2 } }));
-
-        // 2 means only 2, empty is not ok
-        Assert.False(TerrainRule.Parse("2").Check(new int[,] { { -1 } }));
-        Assert.False(TerrainRule.Parse("2").Check(new int[,] { { 0 } }));
-        Assert.False(TerrainRule.Parse("2").Check(new int[,] { { 1 } }));
-        Assert.True(TerrainRule.Parse("2").Check(new int[,] { { 2 } }));
-
-        // X means not empty
-        Assert.False(TerrainRule.Parse("X").Check(new int[,] { { -1 } }));
-        Assert.True(TerrainRule.Parse("X").Check(new int[,] { { 0 } }));
-        Assert.True(TerrainRule.Parse("X").Check(new int[,] { { 1 } }));
-        Assert.True(TerrainRule.Parse("X").Check(new int[,] { { 2 } }));
-
-        // . means empty
-        Assert.True(TerrainRule.Parse(".").Check(new int[,] { { -1 } }));
-        Assert.False(TerrainRule.Parse(".").Check(new int[,] { { 0 } }));
-        Assert.False(TerrainRule.Parse(".").Check(new int[,] { { 1 } }));
-        Assert.False(TerrainRule.Parse(".").Check(new int[,] { { 2 } }));
-
-        // ? means anything, even empty
-        Assert.True(TerrainRule.Parse("?").Check(new int[,] { { -1 } }));
-        Assert.True(TerrainRule.Parse("?").Check(new int[,] { { 0 } }));
-        Assert.True(TerrainRule.Parse("?").Check(new int[,] { { 1 } }));
-        Assert.True(TerrainRule.Parse("?").Check(new int[,] { { 2 } }));
-    }
-
-    [TestRunner.Test]
-    public void RulesCheckTest() {
     }
 }

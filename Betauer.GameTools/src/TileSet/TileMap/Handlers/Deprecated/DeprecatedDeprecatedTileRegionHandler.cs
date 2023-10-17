@@ -1,9 +1,9 @@
 using System;
 using Godot;
 
-namespace Betauer.TileSet.TileMap;
+namespace Betauer.TileSet.TileMap.Handlers.Deprecated;
 
-public class TileRegionHandler<TTile> : ITileHandler<TTile> where TTile : struct, Enum {
+public class DeprecatedDeprecatedTileRegionHandler<TTile> : IDeprecatedTileHandler<TTile> where TTile : Enum {
     public int SourceId { get; init; }
     public Rect2I Region { get; init; }
     public bool Randomize { get; init; }
@@ -32,6 +32,6 @@ public class TileRegionHandler<TTile> : ITileHandler<TTile> where TTile : struct
         var atlasCoords = Randomize
             ? TileMapTools.GetRandomAtlasCoords(Region)
             : TileMapTools.GetAtlasCoords(Region, x, y);
-        tileMap.SetAtlasCoords(layer, x, y, atlasCoords);
+        tileMap.SetAtlasCoords(layer, SourceId, x, y, atlasCoords);
     }
 }

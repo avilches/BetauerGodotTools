@@ -49,6 +49,10 @@ public static class GodotTileMapExtensions {
         return terrainMasks;
     }
 
+    public static int[,] GetTerrainGrid(this global::Godot.TileMap godotTileMap, int layer, int startX, int startY, int width, int height) {
+        return GetGrid(godotTileMap, layer, startX, startY, width, height, (pos) => godotTileMap.GetCellTileData(0, pos)?.Terrain ?? -1);
+    }
+
     public static int[,] GetTerrainMasksGrid(this global::Godot.TileMap godotTileMap, int layer) {
         var terrainMasks = GetGrid(godotTileMap, layer, (pos) => {
             var tileData = godotTileMap.GetCellTileData(0, pos);

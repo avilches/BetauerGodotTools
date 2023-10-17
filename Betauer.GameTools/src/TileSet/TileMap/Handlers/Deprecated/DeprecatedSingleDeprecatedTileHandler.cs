@@ -1,9 +1,9 @@
 using System;
 using Godot;
 
-namespace Betauer.TileSet.TileMap;
+namespace Betauer.TileSet.TileMap.Handlers.Deprecated;
 
-public class SingleTileHandler<TTile> : ITileHandler<TTile> where TTile : struct, Enum {
+public class DeprecatedSingleDeprecatedTileHandler<TTile> : IDeprecatedTileHandler<TTile> where TTile : Enum {
     public int SourceId { get; init; }
     public Vector2I AtlasCoords { get; init; }
 
@@ -28,6 +28,6 @@ public class SingleTileHandler<TTile> : ITileHandler<TTile> where TTile : struct
     }
 
     public void Apply(TileMap<TTile> tileMap, int layer, int x, int y) {
-        tileMap.SetAtlasCoords(layer, x, y, AtlasCoords);
+        tileMap.SetAtlasCoords(layer, SourceId, x, y, AtlasCoords);
     }
 }

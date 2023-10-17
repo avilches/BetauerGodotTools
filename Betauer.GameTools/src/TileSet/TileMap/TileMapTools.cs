@@ -41,51 +41,51 @@ public static class TileMapTools {
     /// <param name="layer"></param>
     /// <param name="pos"></param>
     /// <returns></returns>
-    public static Vector2I GetRandomAtlasCoordsDifferent<TTile>(TileMap<TTile> tileMap, Rect2I region, int layer, int x, int y) where TTile : struct {
+    ///
+    public static Vector2I GetRandomAtlasCoordsDifferent<TTile>(TileMap<TTile> tileMap, Rect2I region, int layer, int x, int y) where TTile : Enum {
         var regionPos = RandomRegionPosition(region.Size);
-
-        Vector2I atlasCoords;
-        TileMap<TTile>.TileInfo tile;
-        do {
+        var atlasCoords = regionPos + region.Position;
+        ref var tile = ref tileMap.GetCellInfoRef(layer, x, y);
+        while (
+            (y > 0 && tile.Equals(Up(tileMap, layer, x, y))) ||
+            (x > 0 && tile.Equals(Left(tileMap, layer, x, y)))) {
             regionPos = NextPosition(regionPos, region.Size);
             atlasCoords = regionPos + region.Position;
-            tile = new TileMap<TTile>.TileInfo(tileMap.GetCellInfo(layer, x, y).Type, atlasCoords);
-        } while (
-            (y > 0 && tile.Equals(Up(tileMap, layer, x, y))) ||
-            (x > 0 && tile.Equals(Left(tileMap, layer, x, y))));
+            tile = ref tileMap.GetCellInfoRef(layer, x, y);
+        }
         return atlasCoords;
     }
 
-    public static TileMap<TTile>.TileInfo Left<TTile>(TileMap<TTile> tileMap, int layer, int x, int y) where TTile : struct {
-        return tileMap.GetCellInfo(layer, x - 1, y);
+    public static ref TileMap<TTile>.TileInfo Left<TTile>(TileMap<TTile> tileMap, int layer, int x, int y) where TTile : Enum {
+        return ref tileMap.GetCellInfoRef(layer, x - 1, y);
     }
 
-    public static TileMap<TTile>.TileInfo Right<TTile>(TileMap<TTile> tileMap, int layer, int x, int y) where TTile : struct {
-        return tileMap.GetCellInfo(layer, x + 1, y);
+    public static ref TileMap<TTile>.TileInfo Right<TTile>(TileMap<TTile> tileMap, int layer, int x, int y) where TTile : Enum {
+        return ref tileMap.GetCellInfoRef(layer, x + 1, y);
     }
 
-    public static TileMap<TTile>.TileInfo Up<TTile>(TileMap<TTile> tileMap, int layer, int x, int y) where TTile : struct {
-        return tileMap.GetCellInfo(layer, x, y - 1);
+    public static ref TileMap<TTile>.TileInfo Up<TTile>(TileMap<TTile> tileMap, int layer, int x, int y) where TTile : Enum {
+        return ref tileMap.GetCellInfoRef(layer, x, y - 1);
     }
 
-    public static TileMap<TTile>.TileInfo Down<TTile>(TileMap<TTile> tileMap, int layer, int x, int y) where TTile : struct {
-        return tileMap.GetCellInfo(layer, x, y + 1);
+    public static ref TileMap<TTile>.TileInfo Down<TTile>(TileMap<TTile> tileMap, int layer, int x, int y) where TTile : Enum {
+        return ref tileMap.GetCellInfoRef(layer, x, y + 1);
     }
 
-    public static TileMap<TTile>.TileInfo UpLeft<TTile>(TileMap<TTile> tileMap, int layer, int x, int y) where TTile : struct {
-        return tileMap.GetCellInfo(layer, x - 1, y - 1);
+    public static ref TileMap<TTile>.TileInfo UpLeft<TTile>(TileMap<TTile> tileMap, int layer, int x, int y) where TTile : Enum {
+        return ref tileMap.GetCellInfoRef(layer, x - 1, y - 1);
     }
 
-    public static TileMap<TTile>.TileInfo UpRight<TTile>(TileMap<TTile> tileMap, int layer, int x, int y) where TTile : struct {
-        return tileMap.GetCellInfo(layer, x + 1, y - 1);
+    public static ref TileMap<TTile>.TileInfo UpRight<TTile>(TileMap<TTile> tileMap, int layer, int x, int y) where TTile : Enum {
+        return ref tileMap.GetCellInfoRef(layer, x + 1, y - 1);
     }
 
-    public static TileMap<TTile>.TileInfo DownLeft<TTile>(TileMap<TTile> tileMap, int layer, int x, int y) where TTile : struct {
-        return tileMap.GetCellInfo(layer, x - 1, y + 1);
+    public static ref TileMap<TTile>.TileInfo DownLeft<TTile>(TileMap<TTile> tileMap, int layer, int x, int y) where TTile : Enum {
+        return ref tileMap.GetCellInfoRef(layer, x - 1, y + 1);
     }
 
-    public static TileMap<TTile>.TileInfo DownRight<TTile>(TileMap<TTile> tileMap, int layer, int x, int y) where TTile : struct {
-        return tileMap.GetCellInfo(layer, x + 1, y + 1);
+    public static ref TileMap<TTile>.TileInfo DownRight<TTile>(TileMap<TTile> tileMap, int layer, int x, int y) where TTile : Enum {
+        return ref tileMap.GetCellInfoRef(layer, x + 1, y + 1);
     }
 
     private static Vector2I NextPosition(Vector2I pos, Vector2I bounds) {

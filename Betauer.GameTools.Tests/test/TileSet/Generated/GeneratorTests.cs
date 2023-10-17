@@ -3,18 +3,19 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Betauer.TestRunner;
-using Betauer.TileSet;
 using Betauer.TileSet.Godot;
 using Betauer.TileSet.Image;
 using Betauer.TileSet.Terrain;
+using Betauer.TileSet.TileMap;
 using Godot;
 using NUnit.Framework;
+using TileMap = Godot.TileMap;
 
 namespace Betauer.GameTools.Tests.TileSet.Generated;
 
 [Betauer.TestRunner.Test]
-[Only]
-// [Betauer.TestRunner.Ignore("Only use it to generate the test and the Blob47Tools.cs file")]
+// [Only]
+[Betauer.TestRunner.Ignore("Only use it to generate the test")]
 public class GeneratorTests {
 
     [Betauer.TestRunner.Test(Description = "Ensure the Tilemap.tscn has all the possible values for the minimal 3x3 tileset blob 47")]
@@ -27,7 +28,7 @@ public class GeneratorTests {
         var values = tiles.Cast<int>().Distinct().ToList();
         values.Remove(-1);
         Assert.That(values.Count, Is.EqualTo(47));
-        CollectionAssert.AreEquivalent(values, TileSetLayouts.Blob47.GetTileIds());
+        CollectionAssert.AreEquivalent(values, TileSetLayouts.Blob47Godot.GetTileIds());
     }
     
     /*
@@ -35,25 +36,25 @@ public class GeneratorTests {
      *
      * 1) Run the Generate256Combinations() test only to generate the Tilemap-256-no-connected.tscn scene
      * 2) Open the Tilemap-256-no-connected.tscn in the Godot editor, connect all the tiles manually and save the file as Tilemap-256.tscn
-     * 3) Run the GenerateBlob47Tests() test to generate the Blob47Tests.cs and the Blob47Tools.cs files
+     * 3) Run the GenerateBlob47Tests() test to generate the Blob47Tests.cs 
      * 4) Now you can run the Blob47Tests.cs test to verify that all the 256 combinations are correctly mapped to the blob 47
      */
 
     [Betauer.TestRunner.Test(Description = "Generate a no connected patterns in a Godot Tilemap with all the 256 combinations")]
-    [Betauer.TestRunner.Ignore(
-    "This test is only to generate a file that it will need to manually in Godot and save it as Tilemap-256.tscn with all the connections")]
+    // [Betauer.TestRunner.Ignore(
+    // "This test is only to generate a file that it will need to manually in Godot and save it as Tilemap-256.tscn with all the connections")]
     public void Generate256Combinations() {
         var scene = ResourceLoader.Load<PackedScene>("res://test-resources/tileset/Tilemap.tscn");
 
         var godotTileMap = scene.Instantiate<TileMap>();
         godotTileMap.Clear();
 
-        var terrain = new SingleTerrain(16 * 4, 16 * 4);
+        var terrain = new  Betauer.TileSet.TileMap.BasicTileMap(16 * 4, 16 * 4);
         var x = 0;
         var y = 0;
         for (var i = 0; i < 256; i++) {
-            var neighbours = TerrainTools.CreateNeighboursGrid(i);
-            terrain.SetCells(x, y, neighbours);
+            var neighbours = TerrainTools.CreateNeighboursGrid(i, BasicTileType.Type0, BasicTileType.Empty);
+            terrain.SetTypeGrid(x, y, neighbours);
             x += 4;
             if (x >= terrain.Width) {
                 x = 0;
@@ -65,7 +66,7 @@ public class GeneratorTests {
         var atlasCoords = new Vector2I(0, 3);
         for (var yy = 0; yy < terrain.Height; yy++) {
             for (var xx = 0; xx < terrain.Width; xx++) {
-                var tileId = terrain.Grid[yy, xx];
+                var tileId = terrain.GetCellInfoRef(0, xx, yy).TileId;
                 if (tileId >= 0) {
                     godotTileMap.SetCell(layer, new Vector2I(xx, yy), sourceId, atlasCoords);
                 }
@@ -76,7 +77,7 @@ public class GeneratorTests {
         ResourceSaver.Save(packedScene, "res://test-resources/tileset/Tilemap-256-no-connected.tscn");
     }
 
-    [Betauer.TestRunner.Test(Description = "Generate Blob47Tests.cs, which tests all the 256 possible combinations and the Blob47Tools.cs with the blob 256 to blob 47 mapping")]
+    [Betauer.TestRunner.Test(Description = "Generate Blob47Tests.cs, which tests all the 256 possible combinations")]
     public void GenerateBlob47Tests() {
         var scene = ResourceLoader.Load<PackedScene>("res://test-resources/tileset/Tilemap-256.tscn");
 
@@ -84,7 +85,7 @@ public class GeneratorTests {
         var tiles = GetCentralTiles(godotTileMap);
         var values = tiles.Distinct().ToList();
         Assert.That(values.Count, Is.EqualTo(47));
-        CollectionAssert.AreEquivalent(values, TileSetLayouts.Blob47.GetTileIds());
+        CollectionAssert.AreEquivalent(values, TileSetLayouts.Blob47Godot.GetTileIds());
 
         Dictionary<int, List<int>> shared = new();
         for (var i = 0; i < 256; i++) {
@@ -95,26 +96,15 @@ public class GeneratorTests {
                 shared[tile].Add(i);
             }
         }
-
-        File.WriteAllText("Betauer.GameTools/src/TileSet/Blob47Tools.cs",
-            $$"""
-              namespace Betauer.TileSet;
-
-              public static class Blob47Tools {
-                  // The 256 blob tileset has too many tiles, most of them can be converted to the blob 47
-                  // This array contains the mapping from the 256 blob to the blob 47 in each position, so the
-                  // tile 2 real mask (which is 0) is in the position 2 of the array
-                  public static int[] Blob256To47 = new int[256] { {{string.Join(", ", tiles)}}};
-              }
-              """);
         
         var testClass = new StringWriter();
         foreach (var (mainTileId, sharedList) in shared) {
     
             var x = 0;  
-            var terrainList = new SingleTerrain(3, 3 * sharedList.Count);
+            var terrainList = new Betauer.TileSet.TileMap.BasicTileMap(3 * sharedList.Count, 3);
             foreach (var tileId in sharedList) {
-                terrainList.SetCells(x, 0, TerrainTools.CreateNeighboursGrid(tileId));
+                var neighbours = TerrainTools.CreateNeighboursGrid(tileId, BasicTileType.Type0, BasicTileType.Empty);
+                terrainList.SetTypeGrid(x, 0, neighbours);
                 x += 3;
             }
             testClass.Write($"    // |");
@@ -125,12 +115,12 @@ public class GeneratorTests {
                 x++;
             }
             testClass.WriteLine();
-            for (var yy = 0; yy < terrainList.Grid.GetLength(0); yy++) {
+            for (var yy = 0; yy < terrainList.Height; yy++) {
                 testClass.Write($"    // |");
-                for (var xx = 0; xx < terrainList.Grid.GetLength(1); xx++) {
+                for (var xx = 0; xx < terrainList.Width; xx++) {
                     if (xx == 3) testClass.Write("   |");
-                    var tileId = terrainList.Grid[yy, xx];
-                    testClass.Write(tileId >= 0 ? "#" : " ");
+                    var tileId = terrainList.GetType(xx, yy);
+                    testClass.Write(tileId == BasicTileType.Type0 ? "#" : " ");
                     if (xx % 3 == 2) {
                         testClass.Write("|");
                     }
@@ -142,15 +132,15 @@ public class GeneratorTests {
             testClass.WriteLine($"    public void TestTile{mainTileId}() {{");
     
             foreach (var tileId in sharedList) {
-                var terrain = new SingleTerrain(3, 3);
-                terrain.SetCells(0, 0, TerrainTools.CreateNeighboursGrid(tileId));
+                var terrain = new Betauer.TileSet.TileMap.BasicTileMap(3, 3);
+                terrain.SetTypeGrid(0, 0, TerrainTools.CreateNeighboursGrid(tileId, BasicTileType.Type0, BasicTileType.Empty));
                 testClass.WriteLine($"        ");
                 testClass.WriteLine($"        // Pattern where central tile with {tileId} mask is transformed to {mainTileId}");
-                testClass.WriteLine($"        AssertExpandGrid(\"\"\"");
-                for (var yy = 0; yy < terrain.Grid.GetLength(0); yy++) {
+                testClass.WriteLine($"        AssertBlob47(\"\"\"");
+                for (var yy = 0; yy < terrain.Height; yy++) {
                     testClass.Write($"                         :");
-                    for (var xx = 0; xx < terrain.Grid.GetLength(1); xx++) {
-                        testClass.Write(terrain.Grid[yy, xx] >= 0 ? "*" : " ");
+                    for (var xx = 0; xx < terrain.Width; xx++) {
+                        testClass.Write(terrain.GetType(xx, yy) == BasicTileType.Type0 ? "0" : " ");
                     }
                     testClass.WriteLine(":");
                 }
