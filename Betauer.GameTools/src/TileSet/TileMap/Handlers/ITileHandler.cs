@@ -6,9 +6,10 @@ using Betauer.Core;
 namespace Betauer.TileSet.TileMap.Handlers;
 
 public interface ITileHandler {
-    public void Apply<TType>(TileMap<TType> tileMap, int x, int y) where TType : Enum;
+    public void Apply(TileMap tileMap, int x, int y);
 }
-                       /*
+
+/*
 public class FilterHandler : ITileHandler  {
     private readonly ITileHandler _handler;
     private readonly int _type;

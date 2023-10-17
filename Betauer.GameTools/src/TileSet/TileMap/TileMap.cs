@@ -6,7 +6,67 @@ using Godot;
 
 namespace Betauer.TileSet.TileMap;
 
-public class TileMap<TType> where TType : Enum {
+public class TileMap<TType> : TileMap where TType : Enum {
+    private readonly IReadOnlyDictionary<TType, int>? _typeToTerrainMap;
+    private readonly IReadOnlyDictionary<int, TType>? _terrainToTypeMap;
+
+    public TileMap(int layers, int width, int height, TType defaultType = default) : base(layers, width, height, defaultType.ToInt()) {
+    }
+
+    public TileMap(int layers, int width, int height, IReadOnlyDictionary<TType, int>? typeToTerrainMap, TType defaultType = default) : base(layers, width,
+        height,
+        typeToTerrainMap != null && typeToTerrainMap.TryGetValue(defaultType, out var terrainId) ? terrainId : defaultType.ToInt()) {
+        _typeToTerrainMap = typeToTerrainMap;
+        _terrainToTypeMap = typeToTerrainMap?.ToDictionary(kv => kv.Value, kv => kv.Key);
+    }
+
+    public int TypeToTerrain(TType type) {
+        return _typeToTerrainMap == null ? type.ToInt() : _typeToTerrainMap.TryGetValue(type, out var terrainId) ? terrainId : type.ToInt();
+    }
+
+    public void SetType(int x, int y, TType type) {
+        TypeGrid[y, x] = TypeToTerrain(type);
+    }
+
+    public void SetTypeGrid(int x, int y, TType[,] grid) {
+        for (var yy = 0; yy < grid.GetLength(0); yy++) {
+            for (var xx = 0; xx < grid.GetLength(1); xx++) {
+                TypeGrid[y + yy, x + xx] = TypeToTerrain(grid[yy, xx]);
+            }
+        }
+    }
+
+    public TType TerrainToType(int type) {
+        return _terrainToTypeMap == null ? type.ToEnum<TType>() : _terrainToTypeMap.TryGetValue(type, out var terrainId) ? terrainId : type.ToEnum<TType>();
+    }
+
+    public TType GetType(int x, int y) {
+        return TerrainToType(TypeGrid[y, x]);
+    }
+
+    public void SetTypeGrid(int x, int y, int width, int height, TType type) {
+        SetTypeGrid(x, y, width, height, TypeToTerrain(type));
+    }
+
+    public static TileMap<T> Parse<T>(string value, Dictionary<char, T> charToType, int layers = 1, IReadOnlyDictionary<T, int> typeToTerrainMap = null)
+        where T : Enum {
+        var lines = TileMap.Parse(value);
+        var maxLength = lines[0].Length; // all lines have the same length
+        var tileMap = new TileMap<T>(layers, maxLength, lines.Count, typeToTerrainMap);
+        var y = 0;
+        foreach (var line in lines) {
+            var x = 0;
+            foreach (var type in line.Select(c => charToType[c])) {
+                tileMap.SetType(x, y, type);
+                x++;
+            }
+            y++;
+        }
+        return tileMap;
+    }
+}
+
+public class TileMap {
     public struct TileInfo {
         public int TileId { get; set; }
 
@@ -14,61 +74,35 @@ public class TileMap<TType> where TType : Enum {
         public Vector2I? AtlasCoords { get; set; }
     }
 
-    public TType[,] TypeGrid { get; }
+    public int[,] TypeGrid { get; }
     public TileInfo[][,] TileInfoGrid { get; }
     public int Layers { get; init; }
     public int Width { get; init; }
     public int Height { get; init; }
-    private Func<TType, int> _typeToTerrain = (type) => type.ToInt();
-    public Dictionary<TType, int> TypeToTerrainMap { get; private set; } = new ();
 
-    public TileMap(int width, int height) : this(1, width, height) {
-    }
-
-    public TileMap(int layers, int width, int height, TType defaultType = default) {
+    public TileMap(int layers, int width, int height, int defaultType = -1) {
         Width = width;
         Height = height;
         Layers = layers;
         TileInfoGrid = new TileInfo[layers][,];
-        TypeGrid = new TType[height, width];
+        TypeGrid = new int[height, width];
 
-        // Only fill the TypeGrid if the default value is different from the default value of the type
-        TType originalDefaultType = default;
-        if (defaultType.ToInt() != originalDefaultType.ToInt()) {
-            for (var y = 0; y < height; y++) {
-                for (var x = 0; x < width; x++) {
-                    TypeGrid[y, x] = defaultType;
-                }
+        for (var y = 0; y < height; y++) {
+            for (var x = 0; x < width; x++) {
+                TypeGrid[y, x] = defaultType;
             }
         }
-        
+
         for (var layer = 0; layer < layers; layer++) {
             TileInfoGrid[layer] = new TileInfo[height, width];
             for (var y = 0; y < height; y++) {
                 for (var x = 0; x < width; x++) {
                     ref var cell = ref TileInfoGrid[layer][y, x];
-                    // cell.TerrainId = -1;
                     cell.TileId = -1;
                     cell.AtlasCoords = null;
                 }
             }
         }
-    }
-
-    public void SetTypeToTerrain(Func<TType, int> typeToTerrain) {
-        _typeToTerrain = typeToTerrain;
-    }
-
-    public void SetTypeToTerrain(Dictionary<TType, int> typeToTerrainMap) {
-        TypeToTerrainMap = typeToTerrainMap;
-    }
-
-    public void SetTypeToTerrain(TType type, int terrainId) {
-        TypeToTerrainMap[type] = terrainId;
-    }
-
-    public int TypeToTerrain(TType type) {
-        return TypeToTerrainMap.TryGetValue(type, out var terrainId) ? terrainId : _typeToTerrain.Invoke(type);
     }
 
     public ref TileInfo GetCellInfoRef(int layer, int x, int y) {
@@ -89,26 +123,21 @@ public class TileMap<TType> where TType : Enum {
 
     public void RemoveCell(int layer, int x, int y) {
         ref var currentInfo = ref TileInfoGrid[layer][y, x];
-        // currentInfo.TerrainId = -1;
         currentInfo.TileId = -1;
         currentInfo.AtlasCoords = null;
     }
 
-    public TType GetType(int x, int y) {
+    public int GetType(int x, int y) {
         return TypeGrid[y, x];
     }
 
-    public int GetTypeAsTerrain(int x, int y) {
-        return TypeToTerrain(GetType(x, y));
-    }
-
-    public bool SetType(int x, int y, TType type) {
-        if (TypeGrid[y, x].ToInt() == type.ToInt()) return false;
+    public bool SetType(int x, int y, int type) {
+        if (TypeGrid[y, x] == type) return false;
         TypeGrid[y, x] = type;
         return true;
     }
 
-    public void SetTypeGrid(int x, int y, TType[,] grid) {
+    public void SetTypeGrid(int x, int y, int[,] grid) {
         for (var yy = 0; yy < grid.GetLength(0); yy++) {
             for (var xx = 0; xx < grid.GetLength(1); xx++) {
                 TypeGrid[y + yy, x + xx] = grid[yy, xx];
@@ -116,7 +145,7 @@ public class TileMap<TType> where TType : Enum {
         }
     }
 
-    public void SetTypeGrid(int x, int y, int width, int height, TType type) {
+    public void SetTypeGrid(int x, int y, int width, int height, int type) {
         for (var yy = 0; yy < height; yy++) {
             for (var xx = 0; xx < width; xx++) {
                 TypeGrid[y + yy, x + xx] = type;
@@ -176,15 +205,13 @@ public class TileMap<TType> where TType : Enum {
     }
 
     public int[,] ExportTileIdGrid(int layer) => TileInfoGrid[layer].GetGrid(tileInfo => tileInfo.TileId);
-    
-    public int[,] ExportTerrainIdGrid() => TypeGrid.GetGrid(TypeToTerrain);
-    
+
     public Vector2I?[,] ExportAtlasCoordsGrid(int layer) => TileInfoGrid[layer].GetGrid(tileInfo => tileInfo.AtlasCoords);
 
-    public static TileMap<T> Parse<T>(string value, Dictionary<char, T> charToType, int layers = 1) where T : Enum {
+    public static TileMap Parse(string value, Dictionary<char, int> charToType, int layers = 1) {
         var lines = Parse(value);
         var maxLength = lines[0].Length; // all lines have the same length
-        var tileMap = new TileMap<T>(layers, maxLength, lines.Count);
+        var tileMap = new TileMap(layers, maxLength, lines.Count);
         var y = 0;
         foreach (var line in lines) {
             var x = 0;
@@ -197,7 +224,7 @@ public class TileMap<TType> where TType : Enum {
         return tileMap;
     }
 
-    private static List<string> Parse(string value) {
+    internal static List<string> Parse(string value) {
         var lines = value.Split('\n')
             .SkipWhile(string.IsNullOrWhiteSpace) // Remove empty lines at beginning
             .Reverse().SkipWhile(string.IsNullOrWhiteSpace).Reverse() // Remove empty lines at end

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Betauer.TileSet.TileMap;
 
@@ -6,10 +7,10 @@ public class TileMapData<TType, TTileData> : TileMap<TType> where TType : Enum {
     public TTileData?[,] Data { get; private set; }
     private bool _hasData = false;
 
-    public TileMapData(int width, int height) : base(width, height) {
+    public TileMapData(int layers, int width, int height, TType defaultType = default) : base(layers, width, height, defaultType) {
     }
 
-    public TileMapData(int layers, int width, int height) : base(layers, width, height) {
+    public TileMapData(int layers, int width, int height, IReadOnlyDictionary<TType, int> typeToTerrainMap, TType defaultType = default) : base(layers, width, height, typeToTerrainMap, defaultType) {
     }
 
     public TTileData? GetCellData(int x, int y) {

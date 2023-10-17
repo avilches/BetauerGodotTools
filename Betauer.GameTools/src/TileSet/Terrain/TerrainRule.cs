@@ -29,6 +29,7 @@ public partial class TerrainRule {
             X = x;
             Y = y;
         }
+
         public void Deconstruct(out ConditionType type, out int expectedTerrainId) {
             type = Type;
             expectedTerrainId = ExpectedTerrainId;
@@ -46,7 +47,7 @@ public partial class TerrainRule {
             return obj is TileRule rule && Type == rule.Type && X == rule.X && Y == rule.Y;
         }
     }
-    
+
     public static TileRule? ParseRule(string neighbourRule, int x, int y) {
         switch (neighbourRule) {
             case "?": return null; // ignore
@@ -75,9 +76,9 @@ public partial class TerrainRule {
 
     public override bool Equals(object? obj) {
         if (obj is not TerrainRule other ||
-            TileId != other.TileId || 
-            GridSize != other.GridSize || 
-            Rules.Count != other.Rules.Count || 
+            TileId != other.TileId ||
+            GridSize != other.GridSize ||
+            Rules.Count != other.Rules.Count ||
             IsTemplate != other.IsTemplate) return false;
         for (var i = 0; i < Rules.Count; i++) {
             if (!Rules[i].Equals(other.Rules[i])) return false;
@@ -123,7 +124,7 @@ public partial class TerrainRule {
         }
         return tileMap;
     }
-    
+
     public TileRule? FindRuleByPosition(int x, int y) {
         foreach (var rule in Rules) {
             if (rule.X == x && rule.Y == y) return rule;
@@ -172,13 +173,13 @@ public partial class TerrainRule {
     [GeneratedRegex("\\s+")]
     private static partial Regex SplitWords();
 
-    public bool Check<TType>(TileMap.TileMap<TType> tileMap, int x, int y) where TType : Enum {
+    public bool Check(TileMap.TileMap tileMap, int x, int y) {
         var center = GridSize / 2;
         foreach (var rule in Rules) {
             var ruleX = x + rule.X - center;
             var ruleY = y + rule.Y - center;
-            var tileId = ruleX < 0 || ruleY < 0 || ruleX >= tileMap.Width || ruleY >= tileMap.Height ? -1 : tileMap.GetTypeAsTerrain(ruleX, ruleY);
-            if (!rule.CheckTile(tileId)) return false;
+            var type = ruleX < 0 || ruleY < 0 || ruleX >= tileMap.Width || ruleY >= tileMap.Height ? -1 : tileMap.GetType(ruleX, ruleY);
+            if (!rule.CheckTile(type)) return false;
         }
         return true;
     }

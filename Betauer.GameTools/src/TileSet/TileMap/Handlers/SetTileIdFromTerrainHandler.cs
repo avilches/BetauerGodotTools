@@ -15,7 +15,7 @@ public class SetTileIdFromTerrainHandler : ITileHandler {
         Layer = layer;
     }
 
-    public void Apply<TType>(TileMap<TType> tileMap, int x, int y) where TType : Enum {
+    public void Apply(TileMap tileMap, int x, int y) {
         var tileId = TerrainRuleSet.FindTileId(tileMap, x, y);
         if (tileId != -1) tileMap.SetTileId(Layer, x, y, tileId);
     }

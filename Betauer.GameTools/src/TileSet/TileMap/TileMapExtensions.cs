@@ -9,19 +9,19 @@ namespace Betauer.TileSet.TileMap;
 public static class TileMapExtensions {
     private static readonly Random Random = new Random();
 
-    public static void Apply<TType>(this TileMap<TType> tileMap, Action<int, int> action) where TType : Enum {
+    public static void Apply(this TileMap tileMap, Action<int, int> action) {
         tileMap.Apply((tileMap, layer, x, y) => action(x, y));
     }
 
-    public static void Apply<TType>(this TileMap<TType> tileMap, Action<TileMap<TType>, int, int> action) where TType : Enum {
+    public static void Apply(this TileMap tileMap, Action<TileMap, int, int> action) {
         tileMap.Apply((tileMap, layer, x, y) => action(tileMap, x, y));
     }
 
-    public static void Apply<TType>(this TileMap<TType> tileMap, Action<int, int, int> action) where TType : Enum {
+    public static void Apply(this TileMap tileMap, Action<int, int, int> action) {
         tileMap.Apply((tileMap, layer, x, y) => action(layer, x, y));
     }
 
-    public static void Apply<TType>(this TileMap<TType> tileMap, Action<TileMap<TType>, int, int, int> action) where TType : Enum {
+    public static void Apply(this TileMap tileMap, Action<TileMap, int, int, int> action) {
         for (var l = 0; l < tileMap.Layers; l++) {
             for (var y = 0; y < tileMap.Height; y++) {
                 for (var x = 0; x < tileMap.Width; x++) {
@@ -31,11 +31,11 @@ public static class TileMapExtensions {
         }
     }
 
-    public static void Apply<TType>(this TileMap<TType> tileMap, ITileHandler handler) where TType : Enum {
+    public static void Apply(this TileMap tileMap, ITileHandler handler) {
         tileMap.Apply((x, y) => handler.Apply(tileMap, x, y));
     }
 
-    public static void Apply<TType>(this TileMap<TType> tileMap, params ITileHandler[] handlers) where TType : Enum {
+    public static void Apply(this TileMap tileMap, params ITileHandler[] handlers) {
         tileMap.Apply((x, y) => {
             handlers.ForEach(handler => {
                 handler.Apply(tileMap, x, y);
@@ -43,7 +43,7 @@ public static class TileMapExtensions {
         });
     }
 
-    public static void Apply<TType>(this TileMap<TType> tileMap, IEnumerable<ITileHandler> handlers) where TType : Enum {
+    public static void Apply(this TileMap tileMap, IEnumerable<ITileHandler> handlers) {
         tileMap.Apply((x, y) => {
             handlers.ForEach(handler => {
                 handler.Apply(tileMap, x, y);
@@ -51,7 +51,7 @@ public static class TileMapExtensions {
         });
     }
 
-    public static void Flush<TType>(this TileMap<TType> tileMap, global::Godot.TileMap godotTileMap) where TType : Enum {
+    public static void Flush(this TileMap tileMap, global::Godot.TileMap godotTileMap) {
         tileMap.Apply((layer, x, y) => {
             ref var cellInfo = ref tileMap.GetCellInfoRef(layer, x, y);
             if (!cellInfo.AtlasCoords.HasValue) return;
@@ -59,13 +59,13 @@ public static class TileMapExtensions {
         });
     }
     
-    public static void Smooth<TType>(this TileMap<TType> tileMap) where TType : Enum {
+    public static void Smooth(this TileMap tileMap) {
         var steps = 0;
         while (SmoothStep(tileMap) && steps++ < 15) {
         }
     }
 
-    public static bool SmoothStep<TType>(this TileMap<TType> tileMap) where TType : Enum {
+    public static bool SmoothStep(this TileMap tileMap) {
         var worked = false;
 
         tileMap.Apply((x, y) => {
@@ -86,13 +86,13 @@ public static class TileMapExtensions {
         });
         return worked;
 
-        TType? GetSafeData(int x, int y, TType? def) {
+        int GetSafeData(int x, int y, int def) {
             if (x < 0 || x >= tileMap.Height ||
                 y < 0 || y >= tileMap.Width) return def;
             return tileMap.GetType(x, y);
         }
 
-        void SetData(int x, int y, TType? other) {
+        void SetData(int x, int y, int other) {
             worked = tileMap.SetType(x, y, other) || worked;
         }
     }

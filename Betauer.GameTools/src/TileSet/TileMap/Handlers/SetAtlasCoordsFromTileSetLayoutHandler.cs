@@ -17,7 +17,7 @@ public class SetAtlasCoordsFromTileSetLayoutHandler : ITileHandler {
         SourceId = sourceId;
     }
 
-    public void Apply<TType>(TileMap<TType> tileMap, int x, int y) where TType : Enum {
+    public void Apply(TileMap tileMap, int x, int y) {
         var tileId = tileMap.GetCellInfoRef(Layer, x, y).TileId;
         if (tileId == -1) return;
         var atlasCoords = TileSetLayout.GetTilePositionById(tileId);

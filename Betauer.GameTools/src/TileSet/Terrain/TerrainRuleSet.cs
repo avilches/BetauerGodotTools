@@ -18,14 +18,14 @@ public class TerrainRuleSet : IReadOnlyList<TerrainRule> {
         return new TerrainRuleSet(Rules.Select(r => r.ApplyTerrain(terrainId)).ToList());
     }
 
-    public void Do<TType>(TileMap.TileMap<TType> tileMap, int x, int y, Action<int> action) where TType : Enum {
+    public void Do(TileMap.TileMap tileMap, int x, int y, Action<int> action) {
         for (var r = 0; r < Rules.Count; r++) {
             var rule = this[r];
             if (rule.Check(tileMap, x, y)) action(rule.TileId);
         }
     }
 
-    public int FindTileId<TType>(TileMap.TileMap<TType> tileMap, int x, int y) where TType : Enum {
+    public int FindTileId(TileMap.TileMap tileMap, int x, int y) {
         for (var r = 0; r < Rules.Count; r++) {
             var rule = this[r];
             if (rule.Check(tileMap, x, y)) return rule.TileId;
