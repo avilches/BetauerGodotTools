@@ -2,7 +2,7 @@ using System;
 using Godot;
 using Expression = System.Linq.Expressions.Expression;
 
-namespace Betauer.Core; 
+namespace Betauer.Core;
 
 public static class EnumExtensions {
     /// <summary>
@@ -19,7 +19,7 @@ public static class EnumExtensions {
 
     private static class CastEnumToIntFuncHolder<T> where T : Enum {
         internal static readonly Func<T, int> CastEnumToInt = GenerateCastEnumToIntFunc<T>();
-            
+
         private static Func<TEnum, int> GenerateCastEnumToIntFunc<TEnum>() where TEnum : Enum {
             var inputParameter = Expression.Parameter(typeof(TEnum));
             var body = Expression.Convert(inputParameter, typeof(int)); // means: (int)input;
@@ -27,5 +27,25 @@ public static class EnumExtensions {
             return lambda.Compile();
         }
     }
+    
+    /// <summary>
+    /// Cast a int to a generic enum without boxing (that means not allocating new memory during the conversion)
+    /// https://stackoverflow.com/questions/1189144/c-sharp-non-boxing-conversion-of-generic-enum-to-int
+    public static TEnum ToEnum<TEnum>(this int s) where TEnum : Enum {
+        return Cache<TEnum, int>.CastIntToEnum(s);
+    }
 
+    public static TEnum ToEnum<TEnum>(this long s) where TEnum : Enum {
+        return Cache<TEnum, long>.CastIntToEnum(s);
+    }
+
+    private static class Cache<TEnum, S> {
+        internal static readonly Func<S, TEnum> CastIntToEnum = Get();
+
+        private static Func<S, TEnum> Get() {
+            var p = Expression.Parameter(typeof(S));
+            var c = Expression.ConvertChecked(p, typeof(TEnum));
+            return Expression.Lambda<Func<S, TEnum>>(c, p).Compile();
+        }
+    }
 }
