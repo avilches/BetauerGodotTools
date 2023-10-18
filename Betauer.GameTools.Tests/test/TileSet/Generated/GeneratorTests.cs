@@ -2,11 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Betauer.Core;
 using Betauer.TestRunner;
 using Betauer.TileSet.Godot;
 using Betauer.TileSet.Image;
-using Betauer.TileSet.Terrain;
-using Betauer.TileSet.TileMap;
 using Godot;
 using NUnit.Framework;
 using TileMap = Godot.TileMap;
@@ -49,12 +48,12 @@ public class GeneratorTests {
         var godotTileMap = scene.Instantiate<TileMap>();
         godotTileMap.Clear();
 
-        var terrain = new  Betauer.TileSet.TileMap.BasicTileMap(16 * 4, 16 * 4);
+        var terrain = new  Betauer.TileSet.TileMap.TileMap(1, 16 * 4, 16 * 4);
         var x = 0;
         var y = 0;
         for (var i = 0; i < 256; i++) {
-            var neighbours = TerrainTools.CreateNeighboursGrid(i, BasicTileType.Type0, BasicTileType.Empty);
-            terrain.SetTypeGrid(x, y, neighbours);
+            var neighbours = CreateNeighboursGrid(i, 0, -1);
+            terrain.SetTerrainGrid(x, y, neighbours);
             x += 4;
             if (x >= terrain.Width) {
                 x = 0;
@@ -101,10 +100,10 @@ public class GeneratorTests {
         foreach (var (mainTileId, sharedList) in shared) {
     
             var x = 0;  
-            var terrainList = new Betauer.TileSet.TileMap.BasicTileMap(3 * sharedList.Count, 3);
+            var terrainList = new Betauer.TileSet.TileMap.TileMap(1, 3 * sharedList.Count, 3);
             foreach (var tileId in sharedList) {
-                var neighbours = TerrainTools.CreateNeighboursGrid(tileId, BasicTileType.Type0, BasicTileType.Empty);
-                terrainList.SetTypeGrid(x, 0, neighbours);
+                var neighbours = CreateNeighboursGrid(tileId, 0, -1);
+                terrainList.SetTerrainGrid(x, 0, neighbours);
                 x += 3;
             }
             testClass.Write($"    // |");
@@ -119,8 +118,8 @@ public class GeneratorTests {
                 testClass.Write($"    // |");
                 for (var xx = 0; xx < terrainList.Width; xx++) {
                     if (xx == 3) testClass.Write("   |");
-                    var tileId = terrainList.GetType(xx, yy);
-                    testClass.Write(tileId == BasicTileType.Type0 ? "#" : " ");
+                    var tileId = terrainList.GetTerrain(xx, yy);
+                    testClass.Write(tileId == 0 ? "#" : " ");
                     if (xx % 3 == 2) {
                         testClass.Write("|");
                     }
@@ -132,15 +131,15 @@ public class GeneratorTests {
             testClass.WriteLine($"    public void TestTile{mainTileId}() {{");
     
             foreach (var tileId in sharedList) {
-                var terrain = new Betauer.TileSet.TileMap.BasicTileMap(3, 3);
-                terrain.SetTypeGrid(0, 0, TerrainTools.CreateNeighboursGrid(tileId, BasicTileType.Type0, BasicTileType.Empty));
+                var terrain = new Betauer.TileSet.TileMap.TileMap(1, 3, 3);
+                terrain.SetTerrainGrid(0, 0, CreateNeighboursGrid(tileId, 0, -1));
                 testClass.WriteLine($"        ");
                 testClass.WriteLine($"        // Pattern where central tile with {tileId} mask is transformed to {mainTileId}");
                 testClass.WriteLine($"        AssertBlob47(\"\"\"");
                 for (var yy = 0; yy < terrain.Height; yy++) {
                     testClass.Write($"                         :");
                     for (var xx = 0; xx < terrain.Width; xx++) {
-                        testClass.Write(terrain.GetType(xx, yy) == BasicTileType.Type0 ? "0" : " ");
+                        testClass.Write(terrain.GetTerrain(xx, yy) == 0 ? "0" : " ");
                     }
                     testClass.WriteLine(":");
                 }
@@ -169,6 +168,31 @@ public class GeneratorTests {
               {{testClass}}
               }
               """);
+    }
+
+    /// <summary>
+    /// From mask 20, which is
+    /// |   |
+    /// | **|
+    /// | * |
+    /// it will return { { -1, -1, -1 }, { -1, 0, 0 }, { -1, 0,-1 } }
+    /// </summary>
+    /// <param name="mask"></param>
+    /// <returns></returns>
+    public static T[,] CreateNeighboursGrid<T>(int mask, T value, T empty) {
+        var neighbours = new T[3, 3];
+        const int x = 1;
+        const int y = 1;
+        neighbours[y - 1, x    ] = BitTools.HasBit(mask, 1) ? value : empty; // TopSide
+        neighbours[y - 1, x + 1] = BitTools.HasBit(mask, 2) ? value : empty; // TopRightCorner
+        neighbours[y    , x + 1] = BitTools.HasBit(mask, 3) ? value : empty; // RightSide
+        neighbours[y + 1, x + 1] = BitTools.HasBit(mask, 4) ? value : empty; // BottomRightCorner
+        neighbours[y + 1, x    ] = BitTools.HasBit(mask, 5) ? value : empty; // BottomSide
+        neighbours[y + 1, x - 1] = BitTools.HasBit(mask, 6) ? value : empty; // BottomLeftCorner
+        neighbours[y    , x - 1] = BitTools.HasBit(mask, 7) ? value : empty; // LeftSide
+        neighbours[y - 1, x - 1] = BitTools.HasBit(mask, 8) ? value : empty; // TopLeftCorner
+        neighbours[y    , x    ] = value; // Center
+        return neighbours;
     }
 
     private static List<int> GetCentralTiles(TileMap godotTileMap) {

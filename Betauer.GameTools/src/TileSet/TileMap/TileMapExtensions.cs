@@ -9,16 +9,12 @@ namespace Betauer.TileSet.TileMap;
 public static class TileMapExtensions {
     private static readonly Random Random = new Random();
 
-    public static void Apply(this TileMap tileMap, Action<int, int> action) {
-        tileMap.Apply((tileMap, layer, x, y) => action(x, y));
-    }
-
     public static void Apply(this TileMap tileMap, Action<TileMap, int, int> action) {
-        tileMap.Apply((tileMap, layer, x, y) => action(tileMap, x, y));
-    }
-
-    public static void Apply(this TileMap tileMap, Action<int, int, int> action) {
-        tileMap.Apply((tileMap, layer, x, y) => action(layer, x, y));
+        for (var y = 0; y < tileMap.Height; y++) {
+            for (var x = 0; x < tileMap.Width; x++) {
+                action(tileMap, x, y);
+            }
+        }
     }
 
     public static void Apply(this TileMap tileMap, Action<TileMap, int, int, int> action) {
@@ -32,27 +28,19 @@ public static class TileMapExtensions {
     }
 
     public static void Apply(this TileMap tileMap, ITileHandler handler) {
-        tileMap.Apply((x, y) => handler.Apply(tileMap, x, y));
+        tileMap.Apply(handler.Apply);
     }
 
     public static void Apply(this TileMap tileMap, params ITileHandler[] handlers) {
-        tileMap.Apply((x, y) => {
-            handlers.ForEach(handler => {
-                handler.Apply(tileMap, x, y);
-            });
-        });
+        handlers.ForEach(handler => tileMap.Apply(handler.Apply));
     }
 
     public static void Apply(this TileMap tileMap, IEnumerable<ITileHandler> handlers) {
-        tileMap.Apply((x, y) => {
-            handlers.ForEach(handler => {
-                handler.Apply(tileMap, x, y);
-            });
-        });
+        handlers.ForEach(handler => tileMap.Apply(handler.Apply));
     }
 
     public static void Flush(this TileMap tileMap, global::Godot.TileMap godotTileMap) {
-        tileMap.Apply((layer, x, y) => {
+        tileMap.Apply((t, layer, x, y) => {
             ref var cellInfo = ref tileMap.GetCellInfoRef(layer, x, y);
             if (!cellInfo.AtlasCoords.HasValue) return;
             godotTileMap.SetCell(layer, new Vector2I(x, y), cellInfo.SourceId, cellInfo.AtlasCoords.Value);
@@ -68,8 +56,8 @@ public static class TileMapExtensions {
     public static bool SmoothStep(this TileMap tileMap) {
         var worked = false;
 
-        tileMap.Apply((x, y) => {
-            var type = tileMap.GetType(x, y);
+        tileMap.Apply((t, x, y) => {
+            var type = tileMap.GetTerrain(x, y);
             var left = GetSafeData(x - 1, y, type);
             var right = GetSafeData(x + 1, y, type);
             var up = GetSafeData(x, y - 1, type);
@@ -89,11 +77,11 @@ public static class TileMapExtensions {
         int GetSafeData(int x, int y, int def) {
             if (x < 0 || x >= tileMap.Height ||
                 y < 0 || y >= tileMap.Width) return def;
-            return tileMap.GetType(x, y);
+            return tileMap.GetTerrain(x, y);
         }
 
         void SetData(int x, int y, int other) {
-            worked = tileMap.SetType(x, y, other) || worked;
+            worked = tileMap.SetTerrain(x, y, other) || worked;
         }
     }
 

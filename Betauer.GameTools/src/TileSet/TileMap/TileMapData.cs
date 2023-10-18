@@ -10,7 +10,7 @@ public class TileMapData<TType, TTileData> : TileMap<TType> where TType : Enum {
     public TileMapData(int layers, int width, int height, TType defaultType = default) : base(layers, width, height, defaultType) {
     }
 
-    public TileMapData(int layers, int width, int height, IReadOnlyDictionary<TType, int> typeToTerrainMap, TType defaultType = default) : base(layers, width, height, typeToTerrainMap, defaultType) {
+    public TileMapData(int layers, int width, int height, IReadOnlyDictionary<TType, int> enumToTerrainMap, TType defaultTerrain = default) : base(layers, width, height, enumToTerrainMap, defaultTerrain) {
     }
 
     public TTileData? GetCellData(int x, int y) {

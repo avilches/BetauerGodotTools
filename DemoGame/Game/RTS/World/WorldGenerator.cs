@@ -16,7 +16,6 @@ using Betauer.TileSet.Terrain;
 using Betauer.TileSet.TileMap;
 using Betauer.TileSet.TileMap.Handlers;
 using Godot.Collections;
-using TileMap = Godot.TileMap;
 
 namespace Veronenger.Game.RTS.World;
 
@@ -34,7 +33,7 @@ public partial class WorldGenerator {
 	private const int Size = GridSize * CellSize;
 	public FastTextureNoiseWithGradient FastNoise { get; private set; }
 
-	public void Generate(TileMap godotTileMap, NoiseTexture2D noiseTexture) {
+	public void Generate(Godot.TileMap godotTileMap, NoiseTexture2D noiseTexture) {
 		godotTileMap.Clear();
 		TreesInstance = TreesFactory.Create();
 		TreesInstance.Configure();
@@ -61,15 +60,15 @@ public partial class WorldGenerator {
 		var tileMap = new TileMap<TilePatterns>(2, GridSize, GridSize, new System.Collections.Generic.Dictionary<TilePatterns, int> {
 			{ TilePatterns.None, -1 }
 		});
-		tileMap.Apply((x, y) => {
+		tileMap.Apply((t, x, y) => {
 			var tilePattern = tiles[FastNoise.GetNoiseGradient(x, y)];
-			tileMap.SetType(x, y, tilePattern);
+			tileMap.SetTerrain(x, y, tilePattern);
 			// if (tilePattern is TilePatterns.TerrainGreen && Random.NextBool(0.2f)) {
 			// tileMap.SetType(1, x, y, TilePatterns.TransparentAsfalt);
 			// }
 		});
 
-		tileMap.Apply(new TerrainTileHandler(1, TerrainRuleSets.Blob47Rules.ApplyTerrain((int)TilePatterns.ModernDirt), 8, TileSetLayouts.Blob47Godot));
+		tileMap.Apply(new TerrainTileHandler(1, (int)TilePatterns.ModernDirt, TerrainRuleSets.Blob47Rules, 8, TileSetLayouts.Blob47Godot));
 		// tileMap.Apply(new TerrainTileHandler(1, TerrainRuleSets.Blob47Rules.ApplyTerrain((int)TilePatterns.TerrainGreen), 8, TileSetLayouts.Blob47Godot));
 		// tileMap.Apply(new TerrainTileHandler(1, TerrainRuleSets.Blob47Rules.ApplyTerrain((int)TilePatterns.ModernDeepWater), 8, TileSetLayouts.Blob47Godot));
 		

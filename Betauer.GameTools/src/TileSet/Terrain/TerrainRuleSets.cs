@@ -3,251 +3,251 @@ using System.Collections.Generic;
 namespace Betauer.TileSet.Terrain;
 
 public static class TerrainRuleSets {
-    public static readonly TerrainRuleSet Blob47Rules = new TerrainRuleSet(new List<TerrainRule> {
-        TerrainRule.Parse(0, """
-                             ? ! ?
-                             ! # !
-                             ? ! ?
-                             """),
-        TerrainRule.Parse(1, """
-                             ? # ?
-                             ! # !
-                             ? ! ?
-                             """),
-        TerrainRule.Parse(4, """
-                             ? ! ?
-                             ! # #
-                             ? ! ?
-                             """),
-        TerrainRule.Parse(5, """
-                             ? # !
-                             ! # #
-                             ? ! ?
-                             """),
-        TerrainRule.Parse(7, """
-                             ? # #
-                             ! # #
-                             ? ! ?
-                             """),
-        TerrainRule.Parse(16, """
+    public static readonly TemplateTerrainRuleSet Blob47Rules = new TemplateTerrainRuleSet(new List<(int, TilePattern)> {
+        (0, TilePattern.Parse("""
                               ? ! ?
                               ! # !
-                              ? # ?
-                              """),
-        TerrainRule.Parse(17, """
+                              ? ! ?
+                              """)),
+        (1, TilePattern.Parse("""
                               ? # ?
                               ! # !
-                              ? # ?
-                              """),
-        TerrainRule.Parse(20, """
+                              ? ! ?
+                              """)),
+        (4, TilePattern.Parse("""
                               ? ! ?
                               ! # #
-                              ? # !
-                              """),
-        TerrainRule.Parse(21, """
-                              ? # !
-                              ! # #
-                              ? # !
-                              """),
-        TerrainRule.Parse(23, """
-                              ? # #
-                              ! # #
-                              ? # !
-                              """),
-        TerrainRule.Parse(28, """
                               ? ! ?
-                              ! # #
-                              ? # #
-                              """),
-        TerrainRule.Parse(29, """
+                              """)),
+        (5, TilePattern.Parse("""
                               ? # !
                               ! # #
+                              ? ! ?
+                              """)),
+        (7, TilePattern.Parse("""
                               ? # #
-                              """),
-        TerrainRule.Parse(31, """
-                              ? # #
                               ! # #
-                              ? # #
-                              """),
-        TerrainRule.Parse(64, """
                               ? ! ?
-                              # # !
-                              ? ! ?
-                              """),
-        TerrainRule.Parse(64, """
-                              ? ! ?
-                              # # !
-                              ? ! ?
-                              """),
-        TerrainRule.Parse(65, """
-                              ! # ?
-                              # # !
-                              ? ! ?
-                              """),
-        TerrainRule.Parse(68, """
-                              ? ! ?
-                              # # #
-                              ? ! ?
-                              """),
-        TerrainRule.Parse(69, """
-                              ! # !
-                              # # #
-                              ? ! ?
-                              """),
-        TerrainRule.Parse(71, """
-                              ! # #
-                              # # #
-                              ? ! ?
-                              """),
-        TerrainRule.Parse(80, """
-                              ? ! ?
-                              # # !
-                              ! # ?
-                              """),
-        TerrainRule.Parse(81, """
-                              ! # ?
-                              # # !
-                              ! # ?
-                              """),
-        TerrainRule.Parse(84, """
-                              ? ! ?
-                              # # #
-                              ! # !
-                              """),
-        TerrainRule.Parse(85, """
-                              ! # !
-                              # # #
-                              ! # !
-                              """),
-        TerrainRule.Parse(87, """
-                              ! # #
-                              # # #
-                              ! # !
-                              """),
-        TerrainRule.Parse(92, """
-                              ? ! ?
-                              # # #
-                              ! # #
-                              """),
-        TerrainRule.Parse(93, """
-                              ! # !
-                              # # #
-                              ! # #
-                              """),
-        TerrainRule.Parse(95, """
-                              ! # #
-                              # # #
-                              ! # #
-                              """),
-        TerrainRule.Parse(112, """
+                              """)),
+        (16, TilePattern.Parse("""
+                               ? ! ?
+                               ! # !
+                               ? # ?
+                               """)),
+        (17, TilePattern.Parse("""
+                               ? # ?
+                               ! # !
+                               ? # ?
+                               """)),
+        (20, TilePattern.Parse("""
+                               ? ! ?
+                               ! # #
+                               ? # !
+                               """)),
+        (21, TilePattern.Parse("""
+                               ? # !
+                               ! # #
+                               ? # !
+                               """)),
+        (23, TilePattern.Parse("""
+                               ? # #
+                               ! # #
+                               ? # !
+                               """)),
+        (28, TilePattern.Parse("""
+                               ? ! ?
+                               ! # #
+                               ? # #
+                               """)),
+        (29, TilePattern.Parse("""
+                               ? # !
+                               ! # #
+                               ? # #
+                               """)),
+        (31, TilePattern.Parse("""
+                               ? # #
+                               ! # #
+                               ? # #
+                               """)),
+        (64, TilePattern.Parse("""
                                ? ! ?
                                # # !
-                               # # ?
-                               """),
-        TerrainRule.Parse(113, """
+                               ? ! ?
+                               """)),
+        (64, TilePattern.Parse("""
+                               ? ! ?
+                               # # !
+                               ? ! ?
+                               """)),
+        (65, TilePattern.Parse("""
                                ! # ?
                                # # !
-                               # # ?
-                               """),
-        TerrainRule.Parse(116, """
+                               ? ! ?
+                               """)),
+        (68, TilePattern.Parse("""
                                ? ! ?
                                # # #
-                               # # !
-                               """),
-        TerrainRule.Parse(117, """
+                               ? ! ?
+                               """)),
+        (69, TilePattern.Parse("""
                                ! # !
                                # # #
-                               # # !
-                               """),
-        TerrainRule.Parse(119, """
+                               ? ! ?
+                               """)),
+        (71, TilePattern.Parse("""
                                ! # #
                                # # #
-                               # # !
-                               """),
-        TerrainRule.Parse(124, """
                                ? ! ?
-                               # # #
-                               # # #
-                               """),
-        TerrainRule.Parse(125, """
-                               ! # !
-                               # # #
-                               # # #
-                               """),
-        TerrainRule.Parse(127, """
-                               ! # #
-                               # # #
-                               # # #
-                               """),
-        TerrainRule.Parse(193, """
-                               # # ?
-                               # # !
+                               """)),
+        (80, TilePattern.Parse("""
                                ? ! ?
-                               """),
-        TerrainRule.Parse(197, """
-                               # # !
-                               # # #
-                               ? ! ?
-                               """),
-        TerrainRule.Parse(199, """
-                               # # #
-                               # # #
-                               ? ! ?
-                               """),
-        TerrainRule.Parse(209, """
-                               # # ?
                                # # !
                                ! # ?
-                               """),
-        TerrainRule.Parse(213, """
+                               """)),
+        (81, TilePattern.Parse("""
+                               ! # ?
                                # # !
+                               ! # ?
+                               """)),
+        (84, TilePattern.Parse("""
+                               ? ! ?
                                # # #
                                ! # !
-                               """),
-        TerrainRule.Parse(215, """
-                               # # #
+                               """)),
+        (85, TilePattern.Parse("""
+                               ! # !
                                # # #
                                ! # !
-                               """),
-        TerrainRule.Parse(221, """
-                               # # !
+                               """)),
+        (87, TilePattern.Parse("""
+                               ! # #
+                               # # #
+                               ! # !
+                               """)),
+        (92, TilePattern.Parse("""
+                               ? ! ?
                                # # #
                                ! # #
-                               """),
-        TerrainRule.Parse(223, """
-                               # # #
+                               """)),
+        (93, TilePattern.Parse("""
+                               ! # !
                                # # #
                                ! # #
-                               """),
-        TerrainRule.Parse(241, """
-                               # # ?
-                               # # !
-                               # # ?
-                               """),
-        TerrainRule.Parse(241, """
-                               # # ?
-                               # # !
-                               # # ?
-                               """),
-        TerrainRule.Parse(245, """
-                               # # !
+                               """)),
+        (95, TilePattern.Parse("""
+                               ! # #
                                # # #
-                               # # !
-                               """),
-        TerrainRule.Parse(247, """
-                               # # #
-                               # # #
-                               # # !
-                               """),
-        TerrainRule.Parse(253, """
-                               # # !
-                               # # #
-                               # # #
-                               """),
-        TerrainRule.Parse(255, """
-                               # # #
-                               # # #
-                               # # #
-                               """),
+                               ! # #
+                               """)),
+        (112, TilePattern.Parse("""
+                                ? ! ?
+                                # # !
+                                # # ?
+                                """)),
+        (113, TilePattern.Parse("""
+                                ! # ?
+                                # # !
+                                # # ?
+                                """)),
+        (116, TilePattern.Parse("""
+                                ? ! ?
+                                # # #
+                                # # !
+                                """)),
+        (117, TilePattern.Parse("""
+                                ! # !
+                                # # #
+                                # # !
+                                """)),
+        (119, TilePattern.Parse("""
+                                ! # #
+                                # # #
+                                # # !
+                                """)),
+        (124, TilePattern.Parse("""
+                                ? ! ?
+                                # # #
+                                # # #
+                                """)),
+        (125, TilePattern.Parse("""
+                                ! # !
+                                # # #
+                                # # #
+                                """)),
+        (127, TilePattern.Parse("""
+                                ! # #
+                                # # #
+                                # # #
+                                """)),
+        (193, TilePattern.Parse("""
+                                # # ?
+                                # # !
+                                ? ! ?
+                                """)),
+        (197, TilePattern.Parse("""
+                                # # !
+                                # # #
+                                ? ! ?
+                                """)),
+        (199, TilePattern.Parse("""
+                                # # #
+                                # # #
+                                ? ! ?
+                                """)),
+        (209, TilePattern.Parse("""
+                                # # ?
+                                # # !
+                                ! # ?
+                                """)),
+        (213, TilePattern.Parse("""
+                                # # !
+                                # # #
+                                ! # !
+                                """)),
+        (215, TilePattern.Parse("""
+                                # # #
+                                # # #
+                                ! # !
+                                """)),
+        (221, TilePattern.Parse("""
+                                # # !
+                                # # #
+                                ! # #
+                                """)),
+        (223, TilePattern.Parse("""
+                                # # #
+                                # # #
+                                ! # #
+                                """)),
+        (241, TilePattern.Parse("""
+                                # # ?
+                                # # !
+                                # # ?
+                                """)),
+        (241, TilePattern.Parse("""
+                                # # ?
+                                # # !
+                                # # ?
+                                """)),
+        (245, TilePattern.Parse("""
+                                # # !
+                                # # #
+                                # # !
+                                """)),
+        (247, TilePattern.Parse("""
+                                # # #
+                                # # #
+                                # # !
+                                """)),
+        (253, TilePattern.Parse("""
+                                # # !
+                                # # #
+                                # # #
+                                """)),
+        (255, TilePattern.Parse("""
+                                # # #
+                                # # #
+                                # # #
+                                """)),
     });
 }

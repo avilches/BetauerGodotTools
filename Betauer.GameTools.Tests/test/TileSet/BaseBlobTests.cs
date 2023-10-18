@@ -9,7 +9,7 @@ namespace Betauer.GameTools.Tests.TileSet;
 public class BaseBlobTests {
     protected void AssertBlob47(string str, int[,] grid) {
         var tileMap = BasicTileMap.Parse(str);
-        tileMap.Apply(new SetTileIdFromTerrainHandler(0, TerrainRuleSets.Blob47Rules.ApplyTerrain(0)));
+        tileMap.Apply(new SetTileIdFromTerrainHandler(0, TerrainRuleSets.Blob47Rules.WithTerrain(0)));
         try {
             AreEqual(tileMap.ExportTileIdGrid(0), grid);
         } catch (Exception e) {

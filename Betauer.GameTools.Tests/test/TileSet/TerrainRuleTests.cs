@@ -1,4 +1,5 @@
 using System;
+using Betauer.Core;
 using Betauer.TestRunner;
 using Betauer.TileSet.Image;
 using Betauer.TileSet.Terrain;
@@ -9,14 +10,22 @@ using NUnit.Framework;
 namespace Betauer.GameTools.Tests.TileSet;
 
 internal static class TerrainRuleExtension {
-    public static bool Check(this TerrainRule terrainRule, int value) {
-
-        var other = TerrainRule.Parse(terrainRule.TileId, terrainRule.Export());
-        Assert.True(terrainRule.Equals(other));
+    public static bool Matches(this TilePattern tilePattern, int value) {
+        var other = TilePattern.Parse(tilePattern.Export());
+        Assert.True(tilePattern.Equals(other));
         
         var tileMap = new BasicTileMap(1, 1, 1);
-        tileMap.SetType(0, 0, (BasicTileType)value);
-        return terrainRule.Check(tileMap, 0, 0);
+        tileMap.SetTerrain(0, 0, value.ToEnum<BasicTileType>());
+        return tilePattern.Matches(tileMap, 0, 0);
+    }
+
+    public static bool MatchesTemplate(this TilePattern tilePattern, int templateTerrain, int value) {
+        var other = TilePattern.Parse(tilePattern.Export());
+        Assert.True(tilePattern.Equals(other));
+        
+        var tileMap = new BasicTileMap(1, 1, 1);
+        tileMap.SetTerrain(0, 0, value.ToEnum<BasicTileType>());
+        return tilePattern.MatchesTemplate(tileMap, templateTerrain, 0, 0);
     }
 }
 
@@ -27,61 +36,61 @@ public class TerrainRuleTests : BaseBlobTests {
     [TestRunner.Test]
     public void ParseRulesCheckTest() {
         // !2 means anything but 2, even empty is ok
-        Assert.True(TerrainRule.Parse(0, "!2").Check(-1));
-        Assert.True(TerrainRule.Parse(0, "!2").Check(0));
-        Assert.True(TerrainRule.Parse(0, "!2").Check(1));
-        Assert.False(TerrainRule.Parse(0, "!2").Check(2));
+        Assert.True(TilePattern.Parse("!2").Matches(-1));
+        Assert.True(TilePattern.Parse("!2").Matches(0));
+        Assert.True(TilePattern.Parse("!2").Matches(1));
+        Assert.False(TilePattern.Parse("!2").Matches(2));
 
         // 2 means only 2, empty is not ok
-        Assert.False(TerrainRule.Parse(0, "2").Check(-1));
-        Assert.False(TerrainRule.Parse(0, "2").Check(0));
-        Assert.False(TerrainRule.Parse(0, "2").Check(1));
-        Assert.True(TerrainRule.Parse(0, "2").Check(2));
+        Assert.False(TilePattern.Parse("2").Matches(-1));
+        Assert.False(TilePattern.Parse("2").Matches(0));
+        Assert.False(TilePattern.Parse("2").Matches(1));
+        Assert.True(TilePattern.Parse("2").Matches(2));
 
         // X means not empty
-        Assert.False(TerrainRule.Parse(0, "X").Check(-1));
-        Assert.True(TerrainRule.Parse(0, "X").Check(0));
-        Assert.True(TerrainRule.Parse(0, "X").Check(1));
-        Assert.True(TerrainRule.Parse(0, "X").Check(2));
+        Assert.False(TilePattern.Parse("X").Matches(-1));
+        Assert.True(TilePattern.Parse("X").Matches(0));
+        Assert.True(TilePattern.Parse("X").Matches(1));
+        Assert.True(TilePattern.Parse("X").Matches(2));
 
         // . means empty
-        Assert.True(TerrainRule.Parse(0, ".").Check(-1));
-        Assert.False(TerrainRule.Parse(0, ".").Check(0));
-        Assert.False(TerrainRule.Parse(0, ".").Check(1));
-        Assert.False(TerrainRule.Parse(0, ".").Check(2));
+        Assert.True(TilePattern.Parse(".").Matches(-1));
+        Assert.False(TilePattern.Parse(".").Matches(0));
+        Assert.False(TilePattern.Parse(".").Matches(1));
+        Assert.False(TilePattern.Parse(".").Matches(2));
 
         // ? means anything, even empty
-        Assert.True(TerrainRule.Parse(0, "?").Check(-1));
-        Assert.True(TerrainRule.Parse(0, "?").Check(0));
-        Assert.True(TerrainRule.Parse(0, "?").Check(1));
-        Assert.True(TerrainRule.Parse(0, "?").Check(2));
+        Assert.True(TilePattern.Parse("?").Matches(-1));
+        Assert.True(TilePattern.Parse("?").Matches(0));
+        Assert.True(TilePattern.Parse("?").Matches(1));
+        Assert.True(TilePattern.Parse("?").Matches(2));
 
         // # means currentTerrain (0 in this case)
-        Assert.False(TerrainRule.Parse(0, "#").ApplyTerrain(0).Check(-1));
-        Assert.True(TerrainRule.Parse(0, "#").ApplyTerrain(0).Check(0));
-        Assert.False(TerrainRule.Parse(0, "#").ApplyTerrain(0).Check(1));
-        Assert.False(TerrainRule.Parse(0, "#").ApplyTerrain(11).Check(-1));
-        Assert.True(TerrainRule.Parse(0, "#").ApplyTerrain(11).Check(11));
-        Assert.False(TerrainRule.Parse(0, "#").ApplyTerrain(11).Check(12));
-        Assert.Throws<Exception>(() => TerrainRule.Parse(0, "#").Check(-1));
+        Assert.False(TilePattern.Parse("#").MatchesTemplate(0, -1));
+        Assert.True(TilePattern.Parse("#").MatchesTemplate(0, 0));
+        Assert.False(TilePattern.Parse("#").MatchesTemplate(0, 1));
+        Assert.False(TilePattern.Parse("#").MatchesTemplate(11, -1));
+        Assert.True(TilePattern.Parse("#").MatchesTemplate(11, 11));
+        Assert.False(TilePattern.Parse("#").MatchesTemplate(11, 12));
+        Assert.Throws<Exception>(() => TilePattern.Parse("#").Matches(-1));
 
         
         // ! means not currentTerrain (0 in this case)
-        Assert.True(TerrainRule.Parse(0, "!").ApplyTerrain(0).Check(-1));
-        Assert.False(TerrainRule.Parse(0, "!").ApplyTerrain(0).Check(0));
-        Assert.True(TerrainRule.Parse(0, "!").ApplyTerrain(0).Check(1));
-        Assert.True(TerrainRule.Parse(0, "!").ApplyTerrain(11).Check(-1));
-        Assert.False(TerrainRule.Parse(0, "!").ApplyTerrain(11).Check(11));
-        Assert.True(TerrainRule.Parse(0, "!").ApplyTerrain(11).Check(12));
-        Assert.Throws<Exception>(() => TerrainRule.Parse(0, "!").Check(0));
+        Assert.True(TilePattern.Parse("!").MatchesTemplate(0,-1));
+        Assert.False(TilePattern.Parse("!").MatchesTemplate(0,0));
+        Assert.True(TilePattern.Parse("!").MatchesTemplate(0,1));
+        Assert.True(TilePattern.Parse("!").MatchesTemplate(11,-1));
+        Assert.False(TilePattern.Parse("!").MatchesTemplate(11,11));
+        Assert.True(TilePattern.Parse("!").MatchesTemplate(11,12));
+        Assert.Throws<Exception>(() => TilePattern.Parse("!").Matches(0));
         
     }
     
     [Betauer.TestRunner.Test]
     public void ExportParseTest() {
         foreach (var rule in TerrainRuleSets.Blob47Rules) {
-            var other = TerrainRule.Parse(rule.TileId, rule.Export());
-            Assert.True(rule.Equals(other));
+            var other = TilePattern.Parse(rule.Item2.Export());
+            Assert.True(rule.Item2.Equals(other));
         }
     }
     
@@ -91,12 +100,12 @@ public class TerrainRuleTests : BaseBlobTests {
 112
 1 0
 ", 2);
-        AreEqual(tileMap.TypeGrid, new[,] {
+        AreEqual(tileMap.TerrainGrid, new[,] {
             { 1 , 1, 2 },
             { 1, -1, 0 },
         });
 
-        tileMap.Apply(new TerrainTileHandler(0, TerrainRuleSets.Blob47Rules.ApplyTerrain(1), 8, TileSetLayouts.Blob47Godot));
+        tileMap.Apply(new TerrainTileHandler(0, 1, TerrainRuleSets.Blob47Rules, 8, TileSetLayouts.Blob47Godot));
 
         // layer 0, terrain 1
         AreEqual(tileMap.ExportTileIdGrid(0), new[,] {
@@ -107,7 +116,7 @@ public class TerrainRuleTests : BaseBlobTests {
         Assert.That(tileMap.GetCellInfoRef(0, 0, 0).TileId, Is.EqualTo(20));
         Assert.That(tileMap.GetCellInfoRef(0, 0, 0).AtlasCoords.Value, Is.EqualTo(TileSetLayouts.Blob47Godot.GetTilePositionById(20)));
         
-        tileMap.Apply(new SetTileIdFromTerrainHandler(1, TerrainRuleSets.Blob47Rules.ApplyTerrain(2)),
+        tileMap.Apply(new SetTileIdFromTerrainHandler(1, TerrainRuleSets.Blob47Rules.WithTerrain(2)),
             new SetAtlasCoordsFromTileSetLayoutHandler(1, 8, TileSetLayouts.Blob47Godot)
         );
 

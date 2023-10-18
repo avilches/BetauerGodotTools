@@ -15,7 +15,7 @@ public class TerrainTests : BaseBlobTests {
     public void BasicTest() {
         var tileMap = new BasicTileMap(2, 3, 2);
 
-        AreEqual(tileMap.TypeGrid, new[,] {
+        AreEqual(tileMap.TerrainGrid, new[,] {
             { -1, -1, -1 },
             { -1, -1, -1 },
         });
@@ -30,16 +30,18 @@ public class TerrainTests : BaseBlobTests {
             { -1, -1, -1 },
         });
 
-        Assert.That(tileMap.GetType(0, 0), Is.EqualTo(BasicTileType.Empty));
+        Assert.That(tileMap.GetTerrain(0, 0), Is.EqualTo(-1));
+        Assert.That(tileMap.GetTerrainEnum(0, 0), Is.EqualTo(BasicTileType.Empty));
         Assert.That(tileMap.GetCellInfoRef(0, 0, 0).TileId, Is.EqualTo(-1));
         Assert.That(tileMap.GetCellInfoRef(0, 0, 0).AtlasCoords.HasValue, Is.EqualTo(false));
 
         // Type
-        tileMap.SetType(0, 0, BasicTileType.Type1);
+        tileMap.SetTerrain(0, 0, BasicTileType.Type1);
         tileMap.SetTileId(0, 0, 0, 2);
         tileMap.SetAtlasCoords(0, 1,0, 0, Vector2I.Right);
 
-        Assert.That(tileMap.GetType(0, 0), Is.EqualTo(BasicTileType.Type1));
+        Assert.That(tileMap.GetTerrain(0, 0), Is.EqualTo(1));
+        Assert.That(tileMap.GetTerrainEnum(0, 0), Is.EqualTo(BasicTileType.Type1));
         Assert.That(tileMap.GetCellInfoRef(0, 0, 0).TileId, Is.EqualTo(2));
         Assert.That(tileMap.GetCellInfoRef(0, 0, 0).SourceId, Is.EqualTo(1));
         Assert.That(tileMap.GetCellInfoRef(0, 0, 0).AtlasCoords.HasValue, Is.EqualTo(true));
@@ -50,7 +52,7 @@ public class TerrainTests : BaseBlobTests {
             { -1, -1, -1 },
         });
         
-        AreEqual(tileMap.TypeGrid, new[,] {
+        AreEqual(tileMap.TerrainGrid, new[,] {
             {  1, -1, -1 },
             { -1, -1, -1 },
         });
@@ -83,7 +85,7 @@ public class TerrainTests : BaseBlobTests {
             { '*', DemoTerrain.DemoTerrain5 },
         });
         
-        AreEqual(tileMap.TypeGrid, new[,] {
+        AreEqual(tileMap.TerrainGrid, new[,] {
             { -1,   3,  3,   3, -1 },
             { -1,  -1, -1,  -1, -1 },
             { -1, 124, -1, 124, 17 },

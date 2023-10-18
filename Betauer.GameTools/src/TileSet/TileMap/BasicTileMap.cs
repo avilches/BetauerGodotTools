@@ -31,9 +31,6 @@ public class BasicTileMap : TileMap<BasicTileType> {
         { '9', BasicTileType.Type9 },
     };
 
-    public BasicTileMap(int width, int height) : this(1, width, height) {
-    }
-
     public BasicTileMap(int layers, int width, int height) : base(layers, width, height, BasicTileType.Empty) {
     }
 
