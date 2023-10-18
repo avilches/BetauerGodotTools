@@ -19,20 +19,20 @@ public class TileSetResourceBuilder {
 
     public class TileSetTerrainBuilder {
         private readonly TileSetResourceBuilder _resourceBuilder;
-        private readonly TileSetLayout _layout;
+        private readonly ITileSetLayout _layout;
         private readonly string _resourceName;
         private readonly global::Godot.Image.Format? _format;
 
         private TileSetImage? _tileSetImage;
 
-        public TileSetTerrainBuilder(TileSetResourceBuilder resourceBuilder, TileSetLayout layout, string resourceName, global::Godot.Image.Format? format = null) {
+        public TileSetTerrainBuilder(TileSetResourceBuilder resourceBuilder, ITileSetLayout layout, string resourceName, global::Godot.Image.Format? format = null) {
             _resourceBuilder = resourceBuilder;
             _layout = layout;
             _resourceName = resourceName;
             _format = format;
         }
 
-        public TileSetTerrainBuilder From(TileSetLayout sourceLayout, string sourceImagePath, global::Godot.Image.Format? format = null) {
+        public TileSetTerrainBuilder From(ITileSetLayout sourceLayout, string sourceImagePath, global::Godot.Image.Format? format = null) {
             var tileSetImage = new TileSetImage(sourceImagePath, sourceLayout, format);
             _tileSetImage = tileSetImage.ExportAs(_layout, TileSetImage.Blob47Rules);
             _tileSetImage.SavePng(_resourceName);
@@ -45,7 +45,7 @@ public class TileSetResourceBuilder {
         }
     }
     
-    public TileSetTerrainBuilder Terrain(TileSetLayout layout, string resourceName, global::Godot.Image.Format? format = null) {
+    public TileSetTerrainBuilder Terrain(ITileSetLayout layout, string resourceName, global::Godot.Image.Format? format = null) {
         return new TileSetTerrainBuilder(this, layout, resourceName, format);
     }
 

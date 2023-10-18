@@ -4,14 +4,14 @@ using Betauer.TileSet.Image;
 namespace Betauer.TileSet.TileMap.Handlers;
 
 /**
- * Read the TileIf from every cell and set the AtlasCoords from the TileSetLayout
+ * Read the TileIf from every cell and set the AtlasCoords from the ITileSetLayout
  */
 public class SetAtlasCoordsFromTileSetLayoutHandler : ITileHandler {
-    public TileSetLayout TileSetLayout { get; }
+    public ITileSetLayout TileSetLayout { get; }
     public int Layer { get; } = 0;
     public int SourceId { get; } = 0;
 
-    public SetAtlasCoordsFromTileSetLayoutHandler(int layer, int sourceId, TileSetLayout tileSetLayout) {
+    public SetAtlasCoordsFromTileSetLayoutHandler(int layer, int sourceId, ITileSetLayout tileSetLayout) {
         Layer = layer;
         TileSetLayout = tileSetLayout;
         SourceId = sourceId;
