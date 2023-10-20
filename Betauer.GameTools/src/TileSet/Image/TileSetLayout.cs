@@ -40,7 +40,7 @@ public class TileSetLayout : ITileSetLayout {
         return Tiles.ContainsKey(tileId);
     }
 
-    public Vector2I GetTilePositionById(int tileId) {
+    public Vector2I GetAtlasCoordsByTileId(int tileId) {
         return Tiles.TryGetValue(tileId, out var position) ? position : new Vector2I(-1, -1);
     }
 

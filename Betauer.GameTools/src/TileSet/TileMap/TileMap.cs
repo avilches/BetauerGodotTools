@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Betauer.Core;
+using Betauer.TileSet.Image;
+using Betauer.TileSet.TileMap.Handlers;
 using Godot;
 
 namespace Betauer.TileSet.TileMap;
@@ -15,13 +17,13 @@ public class TileMap<TTerrain> : TileMap where TTerrain : Enum {
 
     public TileMap(int layers, int width, int height, IReadOnlyDictionary<TTerrain, int>? enumToTerrainMap, TTerrain defaultTerrain = default) : base(layers, width,
         height,
-        enumToTerrainMap != null && enumToTerrainMap.TryGetValue(defaultTerrain, out var terrainId) ? terrainId : defaultTerrain.ToInt()) {
+        enumToTerrainMap != null && enumToTerrainMap.TryGetValue(defaultTerrain, out var terrain) ? terrain : defaultTerrain.ToInt()) {
         _enumToTerrainMap = enumToTerrainMap;
         _terrainToEnumMap = enumToTerrainMap?.ToDictionary(kv => kv.Value, kv => kv.Key);
     }
 
-    public int EnumToTerrain(TTerrain enumTerrain) {
-        return _enumToTerrainMap == null ? enumTerrain.ToInt() : _enumToTerrainMap.TryGetValue(enumTerrain, out var terrainId) ? terrainId : enumTerrain.ToInt();
+    public int EnumToTerrain(TTerrain terrainEnum) {
+        return _enumToTerrainMap == null ? terrainEnum.ToInt() : _enumToTerrainMap.TryGetValue(terrainEnum, out var terrain) ? terrain : terrainEnum.ToInt();
     }
 
     public void SetTerrain(int x, int y, TTerrain terrain) {
@@ -37,7 +39,7 @@ public class TileMap<TTerrain> : TileMap where TTerrain : Enum {
     }
 
     public TTerrain TerrainToEnum(int terrain) {
-        return _terrainToEnumMap == null ? terrain.ToEnum<TTerrain>() : _terrainToEnumMap.TryGetValue(terrain, out var terrainId) ? terrainId : terrain.ToEnum<TTerrain>();
+        return _terrainToEnumMap == null ? terrain.ToEnum<TTerrain>() : _terrainToEnumMap.TryGetValue(terrain, out var terrainEnum) ? terrainEnum : terrain.ToEnum<TTerrain>();
     }
 
     public TTerrain GetTerrainEnum(int x, int y) {
@@ -63,6 +65,14 @@ public class TileMap<TTerrain> : TileMap where TTerrain : Enum {
             y++;
         }
         return tileMap;
+    }
+
+    public TileMapPipeline CreatePipeline() {
+        return new TileMapPipeline(this);
+    }
+
+    public TileMapSource CreateSource(int sourceId, ITileSetLayout tileSetLayout) {
+        return new TileMapSource(this, sourceId, TileSetLayouts.Blob47Godot);
     }
 }
 
@@ -161,22 +171,8 @@ public class TileMap {
         return true;
     }
 
-    public void SetAtlasCoordsGrid(int layer, int x, int y, Vector2I?[,] grid) {
-        for (var yy = 0; yy < grid.GetLength(0); yy++) {
-            for (var xx = 0; xx < grid.GetLength(1); xx++) {
-                ref var currentInfo = ref TileInfoGrid[layer][y + yy, x + xx];
-                currentInfo.AtlasCoords = grid[yy, xx];
-            }
-        }
-    }
-
-    public void SetAtlasCoordsGrid(int layer, int x, int y, int width, int height, Vector2I? atlasCoords) {
-        for (var yy = 0; yy < height; yy++) {
-            for (var xx = 0; xx < width; xx++) {
-                ref var currentInfo = ref TileInfoGrid[layer][y + yy, x + xx];
-                currentInfo.AtlasCoords = atlasCoords;
-            }
-        }
+    public bool SetAtlasCoords(int layer, TileMapSource source, int x, int y, int tileId) {
+        return SetAtlasCoords(layer, source.SourceId, x, y, source.TileSetLayout.GetAtlasCoordsByTileId(tileId));
     }
 
     public bool SetTileId(int layer, int x, int y, int tileId) {

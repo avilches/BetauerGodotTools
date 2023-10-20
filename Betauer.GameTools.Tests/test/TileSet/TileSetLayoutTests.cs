@@ -18,7 +18,7 @@ public class TileSetLayoutTests : BaseBlobTests {
         Assert.True(tileSet.HasTile(0));
         Assert.False(tileSet.HasTile(9));
         Assert.That(tileSet.GetTileIdByPosition(1, 1), Is.EqualTo(3));
-        Assert.That(tileSet.GetTilePositionById(3), Is.EqualTo(new Vector2I(1, 1)));
+        Assert.That(tileSet.GetAtlasCoordsByTileId(3), Is.EqualTo(new Vector2I(1, 1)));
         Assert.That(tileSet.Width, Is.EqualTo(2));
         Assert.That(tileSet.Height, Is.EqualTo(2));
         CollectionAssert.AreEquivalent(tileSet.GetTileIds(), new[] { 0, 1, 2, 3 });

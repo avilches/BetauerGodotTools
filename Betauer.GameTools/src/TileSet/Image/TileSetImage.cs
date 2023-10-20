@@ -23,7 +23,7 @@ public class TileSetImage {
     
     public IReadOnlyCollection<int> GetTileIds() => Layout.GetTileIds();
     public bool HasTile(int tileId) => Layout.HasTile(tileId);
-    public Vector2I GetTilePositionById(int tileId) => Layout.GetTilePositionById(tileId);
+    public Vector2I GetTilePositionById(int tileId) => Layout.GetAtlasCoordsByTileId(tileId);
     public int GetTileIdByPosition(int x, int y) => Layout.GetTileIdByPosition(x, y);
 
     public TileSetImage(ITileSetLayout layout, int cellSize) {

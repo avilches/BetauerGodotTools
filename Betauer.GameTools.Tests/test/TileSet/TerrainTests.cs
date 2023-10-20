@@ -68,7 +68,21 @@ public class TerrainTests : BaseBlobTests {
         DemoTerrain4 = 68,
         DemoTerrain5 = 3,
     }
-   
+
+    [Betauer.TestRunner.Test]
+    public void ParseTest() {
+        var tileMap = BasicTileMap.Parse(@$"
+112
+100
+ 9
+", 3);
+        AreEqual(tileMap.TerrainGrid, new[,] {
+            { 1, 1, 2 },
+            { 1, 0, 0 },
+            { -1, 9, -1 },
+        });
+    }
+
     [Betauer.TestRunner.Test]
     public void ParseDictionaryTest() {
         var tileMap = BasicTileMap.Parse(@$"
