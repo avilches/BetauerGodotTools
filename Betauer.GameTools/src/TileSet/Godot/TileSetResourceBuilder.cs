@@ -17,36 +17,59 @@ public class TileSetResourceBuilder {
         }
     }
 
-    public class TileSetTerrainBuilder {
-        private readonly TileSetResourceBuilder _resourceBuilder;
-        private readonly ITileSetLayout _layout;
-        private readonly string _resourceName;
-        private readonly global::Godot.Image.Format? _format;
+    public abstract class TileSetTerrainBuilder {
+        protected readonly TileSetResourceBuilder ResourceBuilder;
+        protected readonly ITileSetLayout Layout;
+        protected readonly string ResourceName;
+        protected readonly global::Godot.Image.Format? Format;
 
-        private TileSetImage? _tileSetImage;
+        protected TileSetImage? TileSetImage;
 
-        public TileSetTerrainBuilder(TileSetResourceBuilder resourceBuilder, ITileSetLayout layout, string resourceName, global::Godot.Image.Format? format = null) {
-            _resourceBuilder = resourceBuilder;
-            _layout = layout;
-            _resourceName = resourceName;
-            _format = format;
+        protected TileSetTerrainBuilder(TileSetResourceBuilder resourceBuilder, ITileSetLayout layout, string resourceName, global::Godot.Image.Format? format = null) {
+            ResourceBuilder = resourceBuilder;
+            Layout = layout;
+            ResourceName = resourceName;
+            Format = format;
+        }
+
+        public virtual void Add(Color color, string name, int terrainSet = 0) {
+            ResourceBuilder.AddTerrain(TileSetImage, ResourceName, color, name, terrainSet);
+        }
+    }
+
+    public class UseTileSetTerrainBuilder : TileSetTerrainBuilder {
+        public UseTileSetTerrainBuilder(TileSetResourceBuilder resourceBuilder, ITileSetLayout layout, string resourceName, global::Godot.Image.Format? format = null) :
+            base(resourceBuilder, layout, resourceName, format) {
+            TileSetImage = new TileSetImage(ResourceName, Layout, Format);
+        }
+    }
+
+    public class CreateTileSetTerrainBuilder : TileSetTerrainBuilder {
+        public CreateTileSetTerrainBuilder(TileSetResourceBuilder resourceBuilder, ITileSetLayout layout, string resourceName, global::Godot.Image.Format? format = null) :
+            base(resourceBuilder, layout, resourceName, format) {
         }
 
         public TileSetTerrainBuilder From(ITileSetLayout sourceLayout, string sourceImagePath, global::Godot.Image.Format? format = null) {
             var tileSetImage = new TileSetImage(sourceImagePath, sourceLayout, format);
-            _tileSetImage = tileSetImage.ExportAs(_layout, TileSetImage.Blob47Rules);
-            _tileSetImage.SavePng(_resourceName);
+            TileSetImage = tileSetImage.ExportAs(Layout, TileSetImage.Blob47Rules);
+            TileSetImage.SavePng(ResourceName);
             return this;
         }
 
-        public void Add(Color color, string name, int terrainSet = 0) {
-            var tileSetImage = _tileSetImage ?? new TileSetImage(_resourceName, _layout, _format);
-            _resourceBuilder.AddTerrain(tileSetImage, _resourceName, color, name, terrainSet);
+        public override void Add(Color color, string name, int terrainSet = 0) {
+            if (TileSetImage == null) {
+                throw new System.Exception("TileSetImage is null. Call to From() in order to generate and save the TileSet image.");
+            }
+            base.Add(color, name, terrainSet);
         }
     }
-    
-    public TileSetTerrainBuilder Terrain(ITileSetLayout layout, string resourceName, global::Godot.Image.Format? format = null) {
-        return new TileSetTerrainBuilder(this, layout, resourceName, format);
+
+    public CreateTileSetTerrainBuilder CreateTerrain(ITileSetLayout layout, string resourceName, global::Godot.Image.Format? format = null) {
+        return new CreateTileSetTerrainBuilder(this, layout, resourceName, format);
+    }
+
+    public UseTileSetTerrainBuilder UseTerrain(ITileSetLayout layout, string resourceName, global::Godot.Image.Format? format = null) {
+        return new UseTileSetTerrainBuilder(this, layout, resourceName, format);
     }
 
 
