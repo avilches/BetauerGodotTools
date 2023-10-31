@@ -7,7 +7,7 @@ public class TerrainTileHandler : ITileHandler {
     private readonly SetAtlasCoordsFromTileSetLayoutHandler _setAtlasCoordsFromTileSetLayoutHandler;
 
     public TerrainTileHandler(int layer, TilePatternRuleSet<int> tilePatternRuleSet, TileMapSource tileMapSource) {
-        _setTileIdFromTerrainHandler = new SetTileIdFromTerrainHandler(layer, tilePatternRuleSet);
+        _setTileIdFromTerrainHandler = new SetTileIdFromTerrainHandler(tilePatternRuleSet);
         _setAtlasCoordsFromTileSetLayoutHandler = new SetAtlasCoordsFromTileSetLayoutHandler(layer, tileMapSource);
     }
 

@@ -12,7 +12,9 @@ namespace Betauer.Core.Image;
 public class FastTextureNoiseWithGradient : INoise2D {
     private readonly Color[]? _colors;
     private readonly FastImage _fastImage;
-    
+
+    public int Size => _colors != null ? _colors!.Length : 256;
+
     public FastTextureNoiseWithGradient(NoiseTexture2D texture) {
         _fastImage = new FastImage(texture);
         if (texture.ColorRamp != null) {

@@ -11,7 +11,6 @@ namespace Betauer.Core.Image;
 /// </summary>
 public class FastNoise : INoise2D {
     private readonly Noise _noise;
-    // public NoiseTexture2D NoiseTexture2D { get; private set; }
 
     private byte[][] _rawImage3D;
     private readonly int _width;

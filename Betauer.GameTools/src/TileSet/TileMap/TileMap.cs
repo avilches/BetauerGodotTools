@@ -26,6 +26,14 @@ public class TileMap<TTerrain> : TileMap where TTerrain : Enum {
         return _enumToTerrainMap == null ? terrainEnum.ToInt() : _enumToTerrainMap.TryGetValue(terrainEnum, out var terrain) ? terrain : terrainEnum.ToInt();
     }
 
+    public TTerrain TerrainToEnum(int terrain) {
+        return _terrainToEnumMap == null ? terrain.ToEnum<TTerrain>() : _terrainToEnumMap.TryGetValue(terrain, out var terrainEnum) ? terrainEnum : terrain.ToEnum<TTerrain>();
+    }
+
+    public TTerrain GetTerrainEnum(int x, int y) {
+        return TerrainToEnum(TerrainGrid[y, x]);
+    }
+
     public void SetTerrain(int x, int y, TTerrain terrain) {
         TerrainGrid[y, x] = EnumToTerrain(terrain);
     }
@@ -36,14 +44,6 @@ public class TileMap<TTerrain> : TileMap where TTerrain : Enum {
                 TerrainGrid[y + yy, x + xx] = EnumToTerrain(grid[yy, xx]);
             }
         }
-    }
-
-    public TTerrain TerrainToEnum(int terrain) {
-        return _terrainToEnumMap == null ? terrain.ToEnum<TTerrain>() : _terrainToEnumMap.TryGetValue(terrain, out var terrainEnum) ? terrainEnum : terrain.ToEnum<TTerrain>();
-    }
-
-    public TTerrain GetTerrainEnum(int x, int y) {
-        return TerrainToEnum(TerrainGrid[y, x]);
     }
 
     public void SetTerrainGrid(int x, int y, int width, int height, TTerrain terrain) {
@@ -66,29 +66,34 @@ public class TileMap<TTerrain> : TileMap where TTerrain : Enum {
         }
         return tileMap;
     }
-
-    public TileMapPipeline CreatePipeline() {
-        return new TileMapPipeline(this);
-    }
-
-    public TileMapSource CreateSource(int sourceId, ITileSetLayout tileSetLayout) {
-        return new TileMapSource(this, sourceId, TileSetLayouts.Blob47Godot);
-    }
 }
 
 public class TileMap {
     public struct TileInfo {
-        public int TileId { get; set; }
-
         public int SourceId { get; set; }
         public Vector2I? AtlasCoords { get; set; }
+
+        public TileInfo() {
+            Clear();
+        }
+
+        public void Clear() {
+            SourceId = 0;
+            AtlasCoords = null;
+        }
     }
 
-    public int[,] TerrainGrid { get; }
-    public TileInfo[][,] TileInfoGrid { get; }
+    private readonly List<TileActionList> _pendingPipelines = new();
+
     public int Layers { get; init; }
     public int Width { get; init; }
     public int Height { get; init; }
+
+    public int[,] TerrainGrid { get; }
+    public int[,] TileId { get; }
+    public TileInfo[][,] TileInfoGrid { get; }
+
+    private readonly int _defaultTerrain;
 
     public TileMap(int layers, int width, int height, int defaultTerrain = -1) {
         Width = width;
@@ -96,45 +101,57 @@ public class TileMap {
         Layers = layers;
         TileInfoGrid = new TileInfo[layers][,];
         TerrainGrid = new int[height, width];
-
-        for (var y = 0; y < height; y++) {
-            for (var x = 0; x < width; x++) {
-                TerrainGrid[y, x] = defaultTerrain;
+        TileId = new int[height, width];
+        _defaultTerrain = defaultTerrain;
+        
+        for (var yy = 0; yy < height; yy++) {
+            for (var xx = 0; xx < width; xx++) {
+                TerrainGrid[yy, xx] = _defaultTerrain;
+                TileId[yy, xx] = -1;
             }
         }
 
-        for (var layer = 0; layer < layers; layer++) {
+        for (var layer = 0; layer < Layers; layer++) {
             TileInfoGrid[layer] = new TileInfo[height, width];
-            for (var y = 0; y < height; y++) {
-                for (var x = 0; x < width; x++) {
-                    ref var cell = ref TileInfoGrid[layer][y, x];
-                    cell.TileId = -1;
-                    cell.AtlasCoords = null;
+        }
+    }
+
+    public TileMapSource CreateSource(int sourceId, ITileSetLayout tileSetLayout) {
+        return new TileMapSource(this, sourceId, tileSetLayout);
+    }
+    
+    public ref TileInfo GetCellInfoRef(int layer, int x, int y) {
+        return ref TileInfoGrid[layer][y, x];
+    }
+
+    public void Clear() {
+        Clear(0, 0, Width, Height);
+    }
+
+    public void Clear(int x, int y, int width, int height) {
+        for (var yy = 0; yy < height; yy++) {
+            for (var xx = 0; xx < width; xx++) {
+                TerrainGrid[yy, xx] = _defaultTerrain;
+                TileId[yy, xx] = -1;
+            }
+        }
+        for (var layer = 0; layer < Layers; layer++) {
+            for (var yy = 0; yy < height; yy++) {
+                for (var xx = 0; xx < width; xx++) {
+                    ref var currentInfo = ref TileInfoGrid[layer][y + yy, x + xx];
+                    currentInfo.Clear();
                 }
             }
         }
     }
 
-    public ref TileInfo GetCellInfoRef(int layer, int x, int y) {
-        return ref TileInfoGrid[layer][y, x];
-    }
-
-    public void Clear(int layer) {
-        Clear(layer, 0, 0, Width, Height);
-    }
-
-    public void Clear(int layer, int x, int y, int width, int height) {
-        for (var yy = 0; yy < height; yy++) {
-            for (var xx = 0; xx < width; xx++) {
-                RemoveCell(layer, x + xx, y + yy);
-            }
+    public void ClearCell(int x, int y) {
+        TerrainGrid[y, x] = _defaultTerrain;
+        TileId[y, x] = -1;
+        for (var layer = 0; layer < Layers; layer++) {
+            ref var currentInfo = ref TileInfoGrid[layer][y, x];
+            currentInfo.Clear();
         }
-    }
-
-    public void RemoveCell(int layer, int x, int y) {
-        ref var currentInfo = ref TileInfoGrid[layer][y, x];
-        currentInfo.TileId = -1;
-        currentInfo.AtlasCoords = null;
     }
 
     public int GetTerrain(int x, int y) {
@@ -163,6 +180,20 @@ public class TileMap {
         }
     }
 
+    public bool UpdateAtlasCoords(int layer, TileMapSource source, int x, int y) {
+        var atlasCoords = source.TileSetLayout.GetAtlasCoordsByTileId(GetTileId(x, y));
+        return SetAtlasCoords(layer, source.SourceId, x, y, atlasCoords);
+    }
+
+    public bool SetAtlasCoords(int layer, TileMapSource source, int x, int y, int tileId) {
+        var atlasCoords = source.TileSetLayout.GetAtlasCoordsByTileId(tileId);
+        return SetAtlasCoords(layer, source.SourceId, x, y, atlasCoords);
+    }
+
+    public bool SetAtlasCoords(int layer, TileMapSource source, int x, int y, Vector2I? atlasCoords) {
+        return SetAtlasCoords(layer, source.SourceId, x, y, atlasCoords);
+    }
+
     public bool SetAtlasCoords(int layer, int sourceId, int x, int y, Vector2I? atlasCoords) {
         ref var currentInfo = ref TileInfoGrid[layer][y, x];
         if (currentInfo.AtlasCoords == atlasCoords && currentInfo.SourceId == sourceId) return false;
@@ -171,22 +202,20 @@ public class TileMap {
         return true;
     }
 
-    public bool SetAtlasCoords(int layer, TileMapSource source, int x, int y, int tileId) {
-        return SetAtlasCoords(layer, source.SourceId, x, y, source.TileSetLayout.GetAtlasCoordsByTileId(tileId));
+    public int GetTileId(int x, int y) {
+        return TileId[y, x];
     }
 
-    public bool SetTileId(int layer, int x, int y, int tileId) {
-        ref var currentInfo = ref TileInfoGrid[layer][y, x];
-        if (currentInfo.TileId == tileId) return false;
-        currentInfo.TileId = tileId;
+    public bool SetTileId(int x, int y, int tileId) {
+        if (TileId[y, x] == tileId) return false;
+        TileId[y, x] = tileId;
         return true;
     }
 
     public void SetTileIdGrid(int layer, int x, int y, int width, int height, int tileId) {
         for (var yy = 0; yy < height; yy++) {
             for (var xx = 0; xx < width; xx++) {
-                ref var currentInfo = ref TileInfoGrid[layer][y + yy, x + xx];
-                currentInfo.TileId = tileId;
+                TileId[y, x] = tileId;
             }
         }
     }
@@ -194,15 +223,21 @@ public class TileMap {
     public void SetTileIdGrid(int layer, int x, int y, int[,] tileIdGrid) {
         for (var yy = 0; yy < tileIdGrid.GetLength(0); yy++) {
             for (var xx = 0; xx < tileIdGrid.GetLength(1); xx++) {
-                ref var currentInfo = ref TileInfoGrid[layer][y + yy, x + xx];
-                currentInfo.TileId = tileIdGrid[yy, xx];
+                TileId[y, x] = tileIdGrid[yy, xx];
             }
         }
     }
-
-    public int[,] ExportTileIdGrid(int layer) => TileInfoGrid[layer].GetGrid(tileInfo => tileInfo.TileId);
-
-    public Vector2I?[,] ExportAtlasCoordsGrid(int layer) => TileInfoGrid[layer].GetGrid(tileInfo => tileInfo.AtlasCoords);
+    
+    public TileActionList CreateTileActionList() {
+        var pipeline = new TileActionList(this);
+        _pendingPipelines.Add(pipeline);
+        return pipeline;
+    }
+    
+    public void Flush() {
+        _pendingPipelines.ForEach(pipeline => pipeline.Apply());
+        _pendingPipelines.Clear();
+    }
 
     public static TileMap Parse(string value, Dictionary<char, int> charToTerrain, int layers = 1) {
         var lines = Parse(value);
