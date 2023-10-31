@@ -20,34 +20,29 @@ public class TerrainTests : BaseBlobTests {
             { -1, -1, -1 },
         });
 
-        AreEqual(tileMap.ExportTileIdGrid(0), new[,] {
-            { -1, -1, -1 },
-            { -1, -1, -1 },
-        });
-
-        AreEqual(tileMap.ExportTileIdGrid(1), new[,] {
+        AreEqual(tileMap.TileId, new[,] {
             { -1, -1, -1 },
             { -1, -1, -1 },
         });
 
         Assert.That(tileMap.GetTerrain(0, 0), Is.EqualTo(-1));
         Assert.That(tileMap.GetTerrainEnum(0, 0), Is.EqualTo(BasicTileType.Empty));
-        Assert.That(tileMap.GetCellInfoRef(0, 0, 0).TileId, Is.EqualTo(-1));
+        Assert.That(tileMap.GetTileId(0, 0), Is.EqualTo(-1));
         Assert.That(tileMap.GetCellInfoRef(0, 0, 0).AtlasCoords.HasValue, Is.EqualTo(false));
 
         // Type
         tileMap.SetTerrain(0, 0, BasicTileType.Type1);
-        tileMap.SetTileId(0, 0, 0, 2);
+        tileMap.SetTileId(0, 0, 2);
         tileMap.SetAtlasCoords(0, 1,0, 0, Vector2I.Right);
 
         Assert.That(tileMap.GetTerrain(0, 0), Is.EqualTo(1));
         Assert.That(tileMap.GetTerrainEnum(0, 0), Is.EqualTo(BasicTileType.Type1));
-        Assert.That(tileMap.GetCellInfoRef(0, 0, 0).TileId, Is.EqualTo(2));
+        Assert.That(tileMap.GetTileId(0, 0), Is.EqualTo(2));
         Assert.That(tileMap.GetCellInfoRef(0, 0, 0).SourceId, Is.EqualTo(1));
         Assert.That(tileMap.GetCellInfoRef(0, 0, 0).AtlasCoords.HasValue, Is.EqualTo(true));
         Assert.That(tileMap.GetCellInfoRef(0, 0, 0).AtlasCoords.Value, Is.EqualTo(Vector2I.Right));
 
-        AreEqual(tileMap.ExportTileIdGrid(0), new[,] {
+        AreEqual(tileMap.TileId, new[,] {
             { 2, -1, -1 },
             { -1, -1, -1 },
         });

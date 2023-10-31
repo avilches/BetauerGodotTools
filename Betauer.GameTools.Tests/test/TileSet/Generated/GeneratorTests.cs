@@ -65,7 +65,7 @@ public class GeneratorTests {
         var atlasCoords = new Vector2I(0, 3);
         for (var yy = 0; yy < terrain.Height; yy++) {
             for (var xx = 0; xx < terrain.Width; xx++) {
-                var tileId = terrain.GetCellInfoRef(0, xx, yy).TileId;
+                var tileId = terrain.GetTileId(xx, yy);
                 if (tileId >= 0) {
                     godotTileMap.SetCell(layer, new Vector2I(xx, yy), sourceId, atlasCoords);
                 }

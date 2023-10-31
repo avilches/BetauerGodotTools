@@ -102,28 +102,28 @@ public class TerrainRuleTests : BaseBlobTests {
 ", 3);
 
         // layer 0, terrain 1 without template
-        tileMap.Apply(new TerrainTileHandler(0, TilePatternRuleSets.Blob47Rules.WithTerrain(1), tileMap.CreateSource(7, TileSetLayouts.Blob47Godot)));
+        tileMap.Execute(new TerrainTileHandler(0, TilePatternRuleSets.Blob47Rules.WithTerrain(1), tileMap.CreateSource(7, TileSetLayouts.Blob47Godot)));
 
-        AreEqual(tileMap.ExportTileIdGrid(0), new[,] {
+        AreEqual(tileMap.TileId, new[,] {
             { 20 , 64, -1 },
             {  1,  -1, -1 },
         });
         
+        Assert.That(tileMap.GetTileId(0, 0), Is.EqualTo(20));
         Assert.That(tileMap.GetCellInfoRef(0, 0, 0).SourceId, Is.EqualTo(7));
-        Assert.That(tileMap.GetCellInfoRef(0, 0, 0).TileId, Is.EqualTo(20));
         Assert.That(tileMap.GetCellInfoRef(0, 0, 0).AtlasCoords.Value, Is.EqualTo(TileSetLayouts.Blob47Godot.GetAtlasCoordsByTileId(20)));
         
 
         // layer 1, terrain 0 with template
-        tileMap.Apply(new TerrainTileHandler(1, TilePatternRuleSets.Blob47Rules.WithTerrain(0), tileMap.CreateSource(8, TileSetLayouts.Blob47Godot)));
+        tileMap.Execute(new TerrainTileHandler(1, TilePatternRuleSets.Blob47Rules.WithTerrain(0), tileMap.CreateSource(8, TileSetLayouts.Blob47Godot)));
 
-        AreEqual(tileMap.ExportTileIdGrid(1), new[,] {
-            { -1, -1, -1 },
-            { -1,  4, 64 },
+        AreEqual(tileMap.TileId, new[,] {
+            { 20, 64, -1 },
+            {  1,  4, 64 },
         });
         
+        Assert.That(tileMap.GetTileId(1, 1), Is.EqualTo(4));
         Assert.That(tileMap.GetCellInfoRef(1, 1, 1).SourceId, Is.EqualTo(8));
-        Assert.That(tileMap.GetCellInfoRef(1, 1, 1).TileId, Is.EqualTo(4));
         Assert.That(tileMap.GetCellInfoRef(1, 1, 1).AtlasCoords.Value, Is.EqualTo(TileSetLayouts.Blob47Godot.GetAtlasCoordsByTileId(4)));
         
     }
@@ -136,16 +136,16 @@ public class TerrainRuleTests : BaseBlobTests {
 ", 3);
 
         // layer 2, terrain 2
-        tileMap.Apply(new SetTileIdFromTerrainHandler(2, TilePatternRuleSets.Blob47Rules.WithTerrain(2)),
+        tileMap.Execute(new SetTileIdFromTerrainHandler(TilePatternRuleSets.Blob47Rules.WithTerrain(2)),
             new SetAtlasCoordsFromTileSetLayoutHandler(2, tileMap.CreateSource(9, TileSetLayouts.Blob47Godot))
         );
 
-        AreEqual(tileMap.ExportTileIdGrid(2), new[,] {
+        AreEqual(tileMap.TileId, new[,] {
             { -1, -1,  0 },
             { -1, -1, -1 },
         });
+        Assert.That(tileMap.GetTileId(2, 0), Is.EqualTo(0));
         Assert.That(tileMap.GetCellInfoRef(2, 2, 0).SourceId, Is.EqualTo(9));
-        Assert.That(tileMap.GetCellInfoRef(2, 2, 0).TileId, Is.EqualTo(0));
         Assert.That(tileMap.GetCellInfoRef(2, 2, 0).AtlasCoords.Value, Is.EqualTo(TileSetLayouts.Blob47Godot.GetAtlasCoordsByTileId(0)));
     }
 
@@ -157,20 +157,19 @@ public class TerrainRuleTests : BaseBlobTests {
 ", 3);
 
         // layer 2, terrain 2
-        tileMap.CreatePipeline()
-            .Filter((t, x, y) => true)
-            .Filter((x, y) => true)
-            .FilterTerrain(2)
-            .Do(new SetTileIdFromTerrainHandler(2, TilePatternRuleSets.Blob47Rules.WithTerrain(2)))
+        tileMap.If((t, x, y) => true)
+            .If((x, y) => true)
+            .IfTerrain(2)
+            .Do(new SetTileIdFromTerrainHandler(TilePatternRuleSets.Blob47Rules.WithTerrain(2)))
             .Do(new SetAtlasCoordsFromTileSetLayoutHandler(2, tileMap.CreateSource(9, TileSetLayouts.Blob47Godot)))
             .Apply();
 
-        AreEqual(tileMap.ExportTileIdGrid(2), new[,] {
+        AreEqual(tileMap.TileId, new[,] {
             { -1, -1,  0 },
             { -1, -1, -1 },
         });
+        Assert.That(tileMap.GetTileId(2, 0), Is.EqualTo(0));
         Assert.That(tileMap.GetCellInfoRef(2, 2, 0).SourceId, Is.EqualTo(9));
-        Assert.That(tileMap.GetCellInfoRef(2, 2, 0).TileId, Is.EqualTo(0));
         Assert.That(tileMap.GetCellInfoRef(2, 2, 0).AtlasCoords.Value, Is.EqualTo(TileSetLayouts.Blob47Godot.GetAtlasCoordsByTileId(0)));
     }
     
@@ -183,18 +182,18 @@ public class TerrainRuleTests : BaseBlobTests {
 
         var called = false;
 
-        tileMap.CreatePipeline()
-            .FilterTerrain(3)
+        tileMap
+            .IfTerrain(3)
             .Do((x, y) => called = true)
             .Apply();
         
-        tileMap.CreatePipeline()
-            .FilterTerrain(BasicTileType.Type9)
+        tileMap
+            .IfTerrain(BasicTileType.Type9)
             .Do((x, y) => called = true)
             .Apply();
         
-        tileMap.CreatePipeline()
-            .Filter((t, x, y) => false)
+        tileMap
+            .If((t, x, y) => false)
             .Do((x, y) => called = true)
             .Apply();
         
