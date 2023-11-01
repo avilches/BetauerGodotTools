@@ -74,21 +74,21 @@ public class TileActionList {
     public void Apply() {
         if (Applied) return;
         Applied = true;
-        var calls = 0;
-        _tileMap.Execute((map, x, y) => {
-            calls++;
-            var span = CollectionsMarshal.AsSpan(_tilePipe);
-            for (var idx = 0; idx < span.Length; idx++) {
-                var pipe = span[idx];
-                if (pipe is ITileFilter filter) {
-                    if (!filter.Filter(_tileMap, x, y)) {
-                        return;
-                    }
-                } else if (pipe is ITileHandler handler) {
-                    handler.Apply(_tileMap, x, y);
+        _tileMap.Execute(_Apply);
+    }
+
+    internal void _Apply(TileMap map, int x, int y) {
+        var span = CollectionsMarshal.AsSpan(_tilePipe);
+        for (var idx = 0; idx < span.Length; idx++) {
+            var pipe = span[idx];
+            if (pipe is ITileFilter filter) {
+                if (!filter.Filter(_tileMap, x, y)) {
+                    return;
                 }
+            } else if (pipe is ITileHandler handler) {
+                handler.Apply(_tileMap, x, y);
             }
-        });
+        }
     }
 
     public TileActionList UpdateAtlasCoords(int layer, TileMapSource source, int x, int y) {

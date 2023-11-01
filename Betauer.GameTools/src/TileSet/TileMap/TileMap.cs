@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Betauer.Core;
 using Betauer.TileSet.Image;
+using Betauer.TileSet.Terrain;
 using Betauer.TileSet.TileMap.Handlers;
 using Godot;
 
@@ -48,6 +50,14 @@ public class TileMap<TTerrain> : TileMap where TTerrain : Enum {
 
     public void SetTerrainGrid(int x, int y, int width, int height, TTerrain terrain) {
         SetTerrainGrid(x, y, width, height, EnumToTerrain(terrain));
+    }
+
+    public TileActionList IfTerrainEnum<T>(T terrain) where T : Enum {
+        return CreateTileActionList().IfTerrain(terrain);
+    }
+
+    public TileActionList IfPatternRuleSet<T>(TilePatternRuleSet<T> tilePatternRuleSet) where T : Enum {
+        return CreateTileActionList().IfPatternRuleSet(tilePatternRuleSet);
     }
 
     public static TileMap<T> Parse<T>(string value, Dictionary<char, T> charToEnum, int layers = 1, IReadOnlyDictionary<T, int> enumToTerrainMap = null)
@@ -235,8 +245,78 @@ public class TileMap {
     }
     
     public void Flush() {
-        _pendingPipelines.ForEach(pipeline => pipeline.Apply());
+        for (var y = 0; y < Height; y++) {
+            for (var x = 0; x < Width; x++) {
+                var span = CollectionsMarshal.AsSpan(_pendingPipelines);
+                for (var idx = 0; idx < span.Length; idx++) {
+                    var pipeline = span[idx];
+                    pipeline._Apply(this, x, y);
+                }
+            }
+        }
         _pendingPipelines.Clear();
+    }
+
+    public void Execute(Action<TileMap, int, int> action) {
+        for (var y = 0; y < Height; y++) {
+            for (var x = 0; x < Width; x++) {
+                action(this, x, y);
+            }
+        }
+    }
+
+    public void Execute(Action<TileMap, int, int, int> action) {
+        for (var layer = 0; layer < Layers; layer++) {
+            for (var y = 0; y < Height; y++) {
+                for (var x = 0; x < Width; x++) {
+                    action(this, layer, x, y);
+                }
+            }
+        }
+    }
+
+    public void Execute(ITileHandler handler) {
+        Execute(handler.Apply);
+    }
+
+    public void Execute(params ITileHandler[] handlers) {
+        handlers.ForEach(handler => Execute(handler.Apply));
+    }
+
+    public void Execute(IEnumerable<ITileHandler> handlers) {
+        handlers.ForEach(handler => Execute(handler.Apply));
+    }
+
+    public void DumpAtlasCoordsTo(global::Godot.TileMap godotTileMap) {
+        Execute((t, layer, x, y) => {
+            ref var cellInfo = ref GetCellInfoRef(layer, x, y);
+            if (!cellInfo.AtlasCoords.HasValue) return;
+            godotTileMap.SetCell(layer, new Vector2I(x, y), cellInfo.SourceId, cellInfo.AtlasCoords.Value);
+        });
+    }
+
+    public TileActionList If(Func<TileMap, int, int, bool> filter) {
+        return CreateTileActionList().If(filter);
+    }
+
+    public TileActionList If(Func<int, int, bool> filter) {
+        return CreateTileActionList().If(filter);
+    }
+
+    public TileActionList If(ITileFilter filter) {
+        return CreateTileActionList().If(filter);
+    }
+
+    public TileActionList IfTerrain(int terrain) {
+        return CreateTileActionList().IfTerrain(terrain);
+    }
+
+    public TileActionList IfTileId(int tileId) {
+        return CreateTileActionList().IfTileId(tileId);
+    }
+
+    public TileActionList IfPattern(TilePattern tilePattern) {
+        return CreateTileActionList().IfPattern(tilePattern);
     }
 
     public static TileMap Parse(string value, Dictionary<char, int> charToTerrain, int layers = 1) {

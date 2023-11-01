@@ -188,7 +188,7 @@ public class TerrainRuleTests : BaseBlobTests {
             .Apply();
         
         tileMap
-            .IfTerrain(BasicTileType.Type9)
+            .IfTerrainEnum(BasicTileType.Type9)
             .Do((x, y) => called = true)
             .Apply();
         
