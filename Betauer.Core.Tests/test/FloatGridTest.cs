@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Betauer.TestRunner;
 using NUnit.Framework;
@@ -5,7 +6,33 @@ using NUnit.Framework;
 namespace Betauer.Core.Tests; 
 
 [TestRunner.Test]
+[Only]
 public class FloatGridTest {
+
+    [TestRunner.Test]
+    public void FloatArrayTest() {
+        var mapping = new Dictionary<char, string>() {
+            { 'A', "A" },
+            { 'B', "B" },
+            { 'C', "C" },
+            { 'D', "D" },
+            { 'E', "E" },
+            { 'F', "F" },
+            { 'G', "G" },
+            { 'H', "H" },
+            { 'I', "I" },
+        };
+        var floatArray = FloatArray<string>.Parse("ABC", mapping);
+
+        Assert.AreEqual("A", floatArray.Get(-1000f));
+        Assert.AreEqual("A", floatArray.Get(-1f));
+        Assert.AreEqual("B", floatArray.Get(-0.2f));
+        Assert.AreEqual("B", floatArray.Get(0f));
+        Assert.AreEqual("B", floatArray.Get(0.2f));
+        Assert.AreEqual("C", floatArray.Get(1f));
+        Assert.AreEqual("C", floatArray.Get(100f));
+    }
+
 
     [TestRunner.Test]
     public void Test1() {
@@ -74,6 +101,100 @@ public class FloatGridTest {
         Assert.AreEqual("A", floatArray.Get(-50, 1000f));
         Assert.AreEqual("E", floatArray.Get(0, 500f));
         Assert.AreEqual("I", floatArray.Get(50f, 0f));
+    }
 
+    [TestRunner.Test]
+    [Only]
+    public void Validate() {
+        var mapping = new Dictionary<char, string>() {
+            { 'A', "A" },
+            { 'B', "B" },
+            { 'C', "C" },
+            { 'D', "D" },
+            { 'E', "E" },
+            { 'F', "F" },
+            { 'G', "G" },
+            { 'H', "H" },
+            { 'I', "I" },
+            { 'J', "J" },
+            { 'K', "K" },
+            { 'L', "L" },
+            { 'M', "M" },
+        };
+        Assert.That(FloatGrid<string>.Parse("A", mapping).IsValid(), Is.True);
+        Assert.That(FloatGrid<string>.Parse("AA", mapping).IsValid(), Is.True);
+        Assert.That(FloatGrid<string>.Parse("AB", mapping).IsValid(), Is.True);
+        Assert.That(FloatGrid<string>.Parse("ABBCCC", mapping).IsValid(), Is.True);
+        Assert.That(FloatGrid<string>.Parse("""
+                                            :A:
+                                            :A:
+                                            """, mapping).IsValid(), Is.True);
+        Assert.That(FloatGrid<string>.Parse("""
+                                            :A:
+                                            :B:
+                                            """, mapping).IsValid(), Is.True);
+        Assert.That(FloatGrid<string>.Parse("""
+                                            :AAA:
+                                            :AAA:
+                                            :AAA:
+                                            """, mapping).IsValid(), Is.True);
+        Assert.That(FloatGrid<string>.Parse("""
+                                            :AA:
+                                            :BB:
+                                            """, mapping).IsValid(), Is.True);
+        Assert.That(FloatGrid<string>.Parse("""
+                                            :A:
+                                            :B:
+                                            :B:
+                                            :C:
+                                            :C:
+                                            :C:
+                                            """, mapping).IsValid(), Is.True);
+        Assert.That(FloatGrid<string>.Parse("""
+                                            :AAB:
+                                            :AAC:
+                                            :DDC:
+                                            """, mapping).IsValid(), Is.True);
+
+        Assert.That(FloatGrid<string>.Parse("""
+                                            :AABBG:
+                                            :AACFF:
+                                            :DDCFF:
+                                            :HIJJK:
+                                            :HLJJM:
+                                            """, mapping).IsValid(), Is.True);
+
+        
+        
+        Assert.That(FloatGrid<string>.Parse("ABA", mapping).IsValid(), Is.False);
+        
+        Assert.That(FloatGrid<string>.Parse("""
+                                            :AA:
+                                            :AB:
+                                            """, mapping).IsValid(), Is.False);
+
+        Assert.That(FloatGrid<string>.Parse("""
+                                            :ABA:
+                                            :ABC:
+                                            """, mapping).IsValid(), Is.False);
+
+        Assert.That(FloatGrid<string>.Parse("""
+                                            :AAA:
+                                            :ABA:
+                                            :AAA:
+                                            """, mapping).IsValid(), Is.False);
+
+    }
+}
+
+file static class FloatGridExtensions {
+    public static bool IsValid<T>(this FloatGrid<T> grid) {
+        try {
+            grid.ValidateRectangles();
+            return true;
+        } catch (Exception e) {
+            Console.WriteLine(e);
+            return false;
+        }
     }
 }
