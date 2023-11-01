@@ -35,10 +35,10 @@ public class FloatGridTest {
 
 
     [TestRunner.Test]
-    public void Test1() {
+    public void Test0() {
         
         
-        var x = FloatGrid<string>.Parse("""
+        var floatArray = FloatGrid<string>.Parse("""
                                            :AAAAA:
                                            :BCCCB:
                                            :.....:
@@ -51,13 +51,42 @@ public class FloatGridTest {
             {'D', "D"},
             {'.', "Empty"},
         });
-        
-        Assert.AreEqual( x.Get(0f, 0f), "Empty");
-        Assert.AreEqual( x.Get(1f, 1f), "D");
-        Assert.AreEqual( x.Get(-1f, -1f), "A");
-        Assert.AreEqual( x.Get(0.5f, 0.5f), "A");
+
+        floatArray.MinX = -1f;
+        floatArray.MaxX = 1;
+        floatArray.MinY = -1f;
+        floatArray.MaxY = 1;
+
+        Assert.AreEqual( floatArray.Get(0f, 0f), "Empty");
+        Assert.AreEqual( floatArray.Get(1f, 1f), "D");
+        Assert.AreEqual( floatArray.Get(-1f, -1f), "A");
+        Assert.AreEqual( floatArray.Get(0.5f, 0.5f), "A");
     }
-    
+
+    [TestRunner.Test]
+    public void Test1() {
+        var floatArray = FloatGrid<string>.Parse("""
+                                                 :ABC:
+                                                 :DEF:
+                                                 :GHI:
+                                                 """, new Dictionary<char, string>() {
+            { 'A', "A" },
+            { 'B', "B" },
+            { 'C', "C" },
+            { 'D', "D" },
+            { 'E', "E" },
+            { 'F', "F" },
+            { 'G', "G" },
+            { 'H', "H" },
+            { 'I', "I" },
+        });
+
+        Assert.AreEqual("A", floatArray.Get(0, 0));
+        Assert.AreEqual("B", floatArray.Get(0.5f, 0));
+        Assert.AreEqual("E", floatArray.Get(0.5f, 0.5f));
+        Assert.AreEqual("I", floatArray.Get(1f, 1f));
+    }
+
     [TestRunner.Test]
     public void Test2() {
         var floatArray = FloatGrid<string>.Parse("""
@@ -76,6 +105,11 @@ public class FloatGridTest {
             {'I', "I"},
         });
         
+        floatArray.MinX = -1f;
+        floatArray.MaxX = 1;
+        floatArray.MinY = -1f;
+        floatArray.MaxY = 1;
+
         Assert.AreEqual("A", floatArray.Get(-1000f, -1000f));
         Assert.AreEqual("A", floatArray.Get(-1f, -1f));
         Assert.AreEqual("B", floatArray.Get(0f, -1f));
@@ -104,7 +138,6 @@ public class FloatGridTest {
     }
 
     [TestRunner.Test]
-    [Only]
     public void Validate() {
         var mapping = new Dictionary<char, string>() {
             { 'A', "A" },

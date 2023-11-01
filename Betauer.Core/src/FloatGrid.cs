@@ -6,14 +6,16 @@ using Godot;
 namespace Betauer.Core;
 
 /// <summary>
-/// A Grid of T values that can be accessed by float coordinates
+/// A bidimensional array of T values that can be accessed by float coordinates from 0.0 to 1.0, no matter of the size
+///
+/// The range from 0.0 to 1.0 can be changed using MinX, MaxX, MinY and MaxY
 /// </summary>
 /// <typeparam name="T"></typeparam>
 public class FloatGrid<T> {
     public T[,] Grid { get; set; }
-    public float MinX { get; set; } = -1.0f;
+    public float MinX { get; set; } = 0f;
     public float MaxX { get; set; } = 1.0f;
-    public float MinY { get; set; } = -1.0f;
+    public float MinY { get; set; } = 0f;
     public float MaxY { get; set; } = 1.0f;
 
     public FloatGrid(int sizeX, int sizeY) {
@@ -41,11 +43,27 @@ public class FloatGrid<T> {
     }
 
     public T Get(float x, float y) {
+        var posX = GetPosX(x);
+        var posY = GetPosY(y);
+        return Grid[posY, posX];
+    }
+
+    public void Set(float x, float y, T value) {
+        var posX = GetPosX(x);
+        var posY = GetPosY(y);
+        Grid[posY, posX] = value;
+    }
+
+    private int GetPosX(float x) {
         var maxXValue = Grid.GetLength(1) - 1;
+        var posX = Math.Clamp(Mathf.RoundToInt(Mathf.Lerp(0, maxXValue, (x - MinX) / (MaxX - MinX))), 0, maxXValue);
+        return posX;
+    }
+
+    private int GetPosY(float y) {
         var maxYValue = Grid.GetLength(0) - 1;
-        var posX = Mathf.RoundToInt(Mathf.Lerp(0, maxXValue, (x - MinX) / (MaxX - MinX)));
-        var posY = Mathf.RoundToInt(Mathf.Lerp(0, maxYValue, (y - MinY) / (MaxY - MinY)));
-        return Grid[Math.Clamp(posY, 0, maxYValue), Math.Clamp(posX, 0, maxYValue)];
+        var posY = Math.Clamp(Mathf.RoundToInt(Mathf.Lerp(0, maxYValue, (y - MinY) / (MaxY - MinY))), 0, maxYValue);
+        return posY;
     }
 
     public static FloatGrid<TT> Parse<TT>(string template, Dictionary<char, TT> mapping) {
