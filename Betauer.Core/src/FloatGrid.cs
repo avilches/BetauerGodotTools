@@ -5,6 +5,10 @@ using Godot;
 
 namespace Betauer.Core;
 
+/// <summary>
+/// A Grid of T values that can be accessed by float coordinates
+/// </summary>
+/// <typeparam name="T"></typeparam>
 public class FloatGrid<T> {
     public T[,] Grid { get; set; }
     public float MinX { get; set; } = -1.0f;
