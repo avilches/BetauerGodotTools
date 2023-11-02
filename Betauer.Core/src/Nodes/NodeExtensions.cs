@@ -7,21 +7,6 @@ using Godot;
 namespace Betauer.Core.Nodes; 
 
 public static partial class NodeExtensions {
-
-    public static T GetChildOrCreate<T>(this Node node, string path, Func<T> create) where T : Node {
-        if (path.Contains('.') || path.Contains('/')) throw new Exception("No paths are allowed, only node names");
-        T child = node.GetNodeOrNull<T>(path);
-        if (child == null) {
-            child = create();
-            node.AddChild(child);
-        }
-        return child;
-    }
-
-    public static void RemoveFromParent(this Node node) {
-        node.GetParent()?.RemoveChild(node);
-    }
-
     public static void DisableAllShapes(this CollisionObject2D parent) {
         parent.EnableAllShapes(false);
     }
@@ -35,13 +20,40 @@ public static partial class NodeExtensions {
         });
     }
 
-    public static T FirstNode<T>(this Node parent, Func<T, bool>? predicate = null) where T : Node {
-        return predicate != null ? 
-            parent.GetChildren().OfType<T>().First(predicate) : 
-            parent.GetChildren().OfType<T>().First();
+    public static void RemoveFromParent(this Node node) {
+        node.GetParent()?.RemoveChild(node);
     }
 
-    public static T? FirstNodeOrNull<T>(this Node parent, Func<T, bool>? predicate = null) where T : Node {
+    public static void RemoveFromParentDeferred(this Node node) {
+        node.GetParent()?.RemoveChildDeferred(node);
+    }
+
+    /// <summary>
+    /// Find the first node with T type in the children of the node parent.
+    /// If not found, go up to next parent and repeat until found or until the are no more parents.
+    /// </summary>
+    /// <param name="node"></param>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    public static T? FirstChildInParentOrNull<T>(this Node node) where T : Node {
+        var parent = node.GetParent();
+        var found = parent?.GetChildren().OfType<T>().FirstOrDefault();
+        while (found == null && parent != null) {
+            parent = parent.GetParent();
+            found = parent?.GetChildren().OfType<T>().FirstOrDefault();
+        }
+        return found;
+    }
+
+
+    /// <summary>
+    /// Returns the first node among the children with the T type and the predicate, or returns null.
+    /// </summary>
+    /// <param name="parent"></param>
+    /// <param name="predicate"></param>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    public static T? FirstNode<T>(this Node parent, Func<T, bool>? predicate = null) where T : Node {
         return predicate != null ? 
             parent.GetChildren().OfType<T>().FirstOrDefault(predicate) : 
             parent.GetChildren().OfType<T>().FirstOrDefault();
@@ -82,6 +94,11 @@ public static partial class NodeExtensions {
     }
 
         
+    public static Node MoveChildDeferred(this Node parent, Node child, int pos) {
+        parent.CallDeferred(Node.MethodName.MoveChild, child, pos);
+        return parent;
+    }
+
     public static Node RemoveChildDeferred(this Node parent, Node child) {
         parent.CallDeferred(Node.MethodName.RemoveChild, child);
         return parent;
