@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Godot;
 
-namespace Betauer.Application.Screen;
+namespace Betauer.Application.Screen.Resolution;
 public static class Resolutions {
     private static readonly List<Resolution> _all = new();
 
@@ -127,11 +127,7 @@ public static class Resolutions {
         return resolutions;
     }
 
-    public static IEnumerable<Resolution> Clamp(this IEnumerable<Resolution> resolutions, Vector2 min) {
-        return Clamp(resolutions, min, DisplayServer.ScreenGetSize());
-    }
-
-    public static IEnumerable<Resolution> Clamp(this IEnumerable<Resolution> resolutions, Vector2 min, Vector2 max) {
+    public static IEnumerable<Resolution> Clamp(this IEnumerable<Resolution> resolutions, Vector2I min, Vector2I max) {
         if (min.X > max.X) throw new Exception($"Impossible to clamp: min.X {min.X} > max.X {max.X}");
         if (min.Y > max.Y) throw new Exception($"Impossible to clamp: min.Y {min.Y} > max.Y {max.Y}");
         return resolutions.Where(resolution => resolution.X >= min.X &&

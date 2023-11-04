@@ -5,7 +5,7 @@ namespace Betauer.NodePath;
 public abstract class NodePathException : Exception {
     public readonly object Instance;
 
-    public NodePathException(string message, object instance) : base(message) {
+    protected NodePathException(string message, object instance) : base(message) {
         Instance = instance;
     }
 }

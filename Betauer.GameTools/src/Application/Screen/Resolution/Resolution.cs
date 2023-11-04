@@ -2,31 +2,13 @@ using System;
 using System.Collections.Generic;
 using Godot;
 
-namespace Betauer.Application.Screen;
-internal class ResolutionByHeightComparer : IComparer<Resolution> {
-    /// <summary>
-    /// Compare first the height. If equals, compare the width. 
-    /// </summary>
-    public int Compare(Resolution left, Resolution right) {
-        var height = left.Y.CompareTo(right.Y);
-        return height != 0 ? height : left.X.CompareTo(right.X);
-    }
-}
-
-internal class ResolutionByAreaComparer : IComparer<Resolution> {
-    /// <summary>
-    /// Multiply the height x width to get the area
-    /// </summary>
-    public int Compare(Resolution left, Resolution right) => (left.X * left.Y).CompareTo(right.X * right.Y);
-}
+namespace Betauer.Application.Screen.Resolution;
 
 public class Resolution {
     public static readonly IComparer<Resolution> ComparerByHeight = new ResolutionByHeightComparer();
     public static readonly IComparer<Resolution> ComparerByArea = new ResolutionByAreaComparer();
-    public static readonly Comparison<Resolution> ComparisonByArea = (left, right) =>
-        ComparerByArea.Compare(left, right);
-    public static readonly Comparison<Resolution> ComparisonByHeight = (left, right) =>
-        ComparerByHeight.Compare(left, right);
+    public static readonly Comparison<Resolution> ComparisonByArea = (left, right) => ComparerByArea.Compare(left, right);
+    public static readonly Comparison<Resolution> ComparisonByHeight = (left, right) => ComparerByHeight.Compare(left, right);
 
     /**
      * Returns how many times can be multiplied the base resolution (size) without create a resolution bigger than maxSize

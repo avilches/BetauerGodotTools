@@ -35,7 +35,7 @@ public partial class Bootstrap : Node /* needed to be instantiated as an Autoloa
 		new GodotContainer(this)
 			.Start(options => {
 				options
-					.ScanConfiguration(new DefaultConfiguration(GetTree()))
+					.ScanConfiguration(new DefaultConfiguration())
 					.Scan(GetType().Assembly);
 			});
 
@@ -77,7 +77,7 @@ public partial class Bootstrap : Node /* needed to be instantiated as an Autoloa
 		LoggerFactory.SetTraceLevel<Bootstrap>(TraceLevel.All);
 		LoggerFactory.SetTraceLevel<ResourceLoaderContainer>(TraceLevel.All);
 		LoggerFactory.SetTraceLevel<ConfigFileWrapper>(TraceLevel.All);
-		LoggerFactory.SetTraceLevel<BaseScreenResolutionService>(TraceLevel.All);
+		LoggerFactory.SetTraceLevel<BaseScreenResolutionStrategy>(TraceLevel.All);
 		PropertyNameRestorer.OverrideBehaviour = PropertyNameRestorer.Behaviour.DoNothing;
 	}
 
@@ -100,7 +100,7 @@ public partial class Bootstrap : Node /* needed to be instantiated as an Autoloa
 		LoggerFactory.SetTraceLevel<Betauer.DI.Container.Scanner>(TraceLevel.Error);
 
 		// GameTools
-		LoggerFactory.SetTraceLevel<BaseScreenResolutionService>(TraceLevel.All);
+		LoggerFactory.SetTraceLevel<BaseScreenResolutionStrategy>(TraceLevel.All);
 		LoggerFactory.SetTraceLevel<Fsm>(TraceLevel.Error);
 
 		// Animation

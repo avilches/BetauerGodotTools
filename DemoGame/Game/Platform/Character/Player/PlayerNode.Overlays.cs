@@ -14,26 +14,32 @@ public partial class PlayerNode {
 	[Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
 	[Inject] private ItemsManager ItemsManager { get; set; }
 
-	private void ConfigureOverlay() {
-		var drawEvent = this.OnDraw(canvas => {
-			foreach (var floorRaycast in FloorRaycasts) canvas.DrawRaycast(floorRaycast, Colors.Red);
-			canvas.DrawRaycast(RaycastCanJump, Colors.Red);
-		});
-		drawEvent.Disable();
-
+	public void ConfigureOverlay() {
+		Ready += () => {
+			DrawNodeWrapper drawEvent = null;
+			drawEvent = this.OnDraw(canvas => {
+				// canvas.TopLevel = true;
+				// canvas.DrawSetTransform(CharacterBody2D.GlobalPosition);
+				// canvas.DrawCircle(Marker2D.GlobalPosition, 200, Colors.Blue);
+				foreach (var floorRaycast in FloorRaycasts) canvas.DrawRaycast(floorRaycast, Colors.Red);
+				canvas.DrawRaycast(RaycastCanJump, Colors.Red);
+				drawEvent.Redraw = true;
+			});
+			drawEvent.Disable();
+		};
 
 		var overlay = DebugOverlayManager.Overlay(CharacterBody2D)
 			.Title("Player")
 			.SetMaxSize(1000, 1000);
 
-		// AddBulletSpeedConfigurator(overlay);
-		// AddPlayerJoypadMappings(overlay);
-		// AddCameraAndZoomTests(overlay);
-		// AddDebuggingInputAction(overlay);
-		// AddOverlayHelpers(overlay);
-		// AddOverlayStates(overlay);
-		// AddOverlayMotion(overlay);
-		// AddOverlayCollisions(overlay);
+		AddBulletSpeedConfigurator(overlay);
+		AddPlayerJoypadMappings(overlay);
+		AddCameraAndZoomTests(overlay);
+		AddDebuggingInputAction(overlay);
+		AddOverlayHelpers(overlay);
+		AddOverlayStates(overlay);
+		AddOverlayMotion(overlay);
+		AddOverlayCollisions(overlay);
 	}
 
 	private void AddPlayerJoypadMappings(DebugOverlay overlay) {

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Betauer.Application.Monitor;
+using Betauer.Application.Screen.Resolution;
 using Betauer.Application.Settings;
 using Betauer.DI;
 using Betauer.DI.Attributes;
@@ -9,31 +10,30 @@ using Container = Betauer.DI.Container;
 namespace Betauer.Application.Screen;
 public class ScreenSettingsManager : IInjectable {
     [Inject] protected Container Container { get; set; }
-    [Inject] protected SceneTree SceneTree { get; set; }
     [Inject(Nullable = true)] protected DebugOverlayManager? DebugOverlayManager { get; set; }
 
     private const bool DontSave = false;
 
-    private readonly ScreenConfiguration _initialScreenConfiguration;
-    public ScreenService ScreenService => _service ??= new ScreenService(SceneTree, _initialScreenConfiguration, FixedViewportStrategy.Instance);
-    public ScreenConfiguration ScreenConfiguration => ScreenService.ScreenConfiguration;
+    private readonly ScreenConfig _initialScreenConfig;
+    public ScreenController ScreenController => _service ??= new ScreenController(_initialScreenConfig);
+    // public ScreenConfig ScreenConfig => ScreenController.ScreenConfig;
 
-    private ScreenService? _service;
+    private ScreenController? _service;
     
     private ISetting<bool> _pixelPerfect;
     private ISetting<bool> _fullscreen;
     private ISetting<bool> _vSync;
     private ISetting<bool> _borderless;
-    private ISetting<Resolution> _windowedResolution;
+    private ISetting<Resolution.Resolution> _windowedResolution;
 
     public bool PixelPerfect => _pixelPerfect.Value;
     public bool Fullscreen => _fullscreen.Value;
     public bool VSync => _vSync.Value;
     public bool Borderless => _borderless.Value;
-    public Resolution WindowedResolution => _windowedResolution.Value;
+    public Resolution.Resolution WindowedResolution => _windowedResolution.Value;
 
-    public ScreenSettingsManager(ScreenConfiguration initialScreenConfiguration) {
-        _initialScreenConfiguration = initialScreenConfiguration;
+    public ScreenSettingsManager(ScreenConfig initialScreenConfig) {
+        _initialScreenConfig = initialScreenConfig;
     }
 
     public void PostInject() {
@@ -49,8 +49,8 @@ public class ScreenSettingsManager : IInjectable {
         _borderless = Container.ResolveOr<ISetting<bool>>("Settings.Screen.Borderless",
             () => Setting.Memory(AppTools.GetWindowBorderless()));
 
-        _windowedResolution = Container.ResolveOr<ISetting<Resolution>>("Settings.Screen.WindowedResolution",
-            () => Setting.Memory(_initialScreenConfiguration.BaseResolution));
+        _windowedResolution = Container.ResolveOr<ISetting<Resolution.Resolution>>("Settings.Screen.WindowedResolution",
+            () => Setting.Memory(_initialScreenConfig.BaseResolution));
         
         DebugOverlayManager?.DebugConsole.AddScreenSettingsCommand(this);
     }
@@ -66,16 +66,8 @@ public class ScreenSettingsManager : IInjectable {
         }
     }
 
-    public void SetScreenConfiguration(ScreenConfiguration screenConfiguration) {
-        ScreenService.SetScreenConfiguration(screenConfiguration);
-    }
-
-    public void SetStrategy(IScreenStrategy strategy) {
-        ScreenService.SetStrategy(strategy);
-    }
-
-    public bool IsFullscreen() => ScreenService.IsFullscreen();
-    public List<ScaledResolution> GetResolutions() => ScreenService.GetResolutions();
+    public bool IsFullscreen() => ScreenController.IsFullscreen();
+    public List<ScaledResolution> GetResolutions() => ScreenController.GetResolutions();
 
     public void SetPixelPerfect(bool pixelPerfect, bool save = true) {
         // TODO Godot 4
@@ -109,7 +101,7 @@ public class ScreenSettingsManager : IInjectable {
 
     public void SetFullscreen(bool fs, bool save = true) {
         if (fs) {
-            ScreenService.SetFullscreen();
+            ScreenController.SetFullscreen();
         } else {
             SetWindowed(WindowedResolution, false); // Never save resolution because it has not changed
             CenterWindow();
@@ -125,8 +117,8 @@ public class ScreenSettingsManager : IInjectable {
         if (setting is ISaveSetting { AutoSave: false } saveSetting) saveSetting.SettingsContainer!.Save();
     }
 
-    public void SetWindowed(Resolution resolution, bool save = true) {
-        ScreenService.SetWindowed(resolution);
+    public void SetWindowed(Resolution.Resolution resolution, bool save = true) {
+        ScreenController.SetWindowed(resolution);
         if (save) {
             _windowedResolution.Value = resolution;
             ForceSave(_windowedResolution);
@@ -134,7 +126,7 @@ public class ScreenSettingsManager : IInjectable {
     }
 
     public void CenterWindow() {
-        ScreenService.CenterWindow();
+        ScreenController.CenterWindow();
     }
 
     /*

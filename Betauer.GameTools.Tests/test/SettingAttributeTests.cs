@@ -1,5 +1,5 @@
 using Betauer.Application;
-using Betauer.Application.Screen;
+using Betauer.Application.Screen.Resolution;
 using Betauer.Application.Settings;
 using Betauer.Application.Settings.Attributes;
 using Betauer.DI.Attributes;

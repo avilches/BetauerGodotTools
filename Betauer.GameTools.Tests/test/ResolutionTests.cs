@@ -1,5 +1,5 @@
 using System;
-using Betauer.Application.Screen;
+using Betauer.Application.Screen.Resolution;
 using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;

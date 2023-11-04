@@ -1,5 +1,6 @@
 using System;
 using Betauer.Core.Nodes;
+using Betauer.Nodes;
 using Godot;
 
 namespace Betauer.Application.SplitScreen;
@@ -36,14 +37,17 @@ public partial class SplitViewport : BaseSplitScreen {
 		Name = "Camera2"
 	};
 
-	public SplitViewport(Node parent, Func<Vector2> getParentSize) {
+	public void Configure(Node parent, Func<Vector2> getParentSize) {
 		GetParentSize = getParentSize;
-		parent.AddChild(SubViewportContainer1);
-		parent.AddChild(SubViewportContainer2);
-		SubViewportContainer1.AddChild(SubViewport1);
-		SubViewportContainer2.AddChild(SubViewport2);
-		SubViewport1.AddChild(Camera1);
-		SubViewport2.AddChild(Camera2);
+		AddToTree(parent, SubViewportContainer1, SubViewport1, Camera1);
+		AddToTree(parent, SubViewportContainer2, SubViewport2, Camera2);
+	}
+
+	private static void AddToTree(Node parent, SubViewportContainer subViewportContainer, SubViewport subViewport, Camera2D camera) {
+		parent.AddChild(subViewportContainer);
+		subViewportContainer.AddChild(subViewport);
+		subViewport.AddChild(camera);
+		subViewport.AddChild(new NodeHandler());
 	}
 
 	public void SetCommonWorld(Node node) {

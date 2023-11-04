@@ -166,13 +166,15 @@ public partial class ZombieNode : NpcNode, IInjectable {
 
 	}
 	
-	private void ConfigureOverlayRays() { 
-		var drawRaycasts = this.OnDraw(canvas => {
+	private void ConfigureOverlayRays() {
+		DrawNodeWrapper drawRaycasts = null;
+		drawRaycasts = this.OnDraw(canvas => {
 			// canvas.DrawRaycast(FacePlayerDetector, Colors.Red);
 			// canvas.DrawRaycast(BackPlayerDetector, Colors.Red);
 			// canvas.DrawRaycast(FloorRaycast, Colors.Blue);
 			canvas.DrawRaycast(FinishFloorRight, Colors.Blue);
 			canvas.DrawRaycast(FinishFloorLeft, Colors.Blue);
+			drawRaycasts.Redraw = true;
 		});
 		drawRaycasts.Disable();
 

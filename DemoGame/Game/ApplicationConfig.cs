@@ -4,6 +4,7 @@ using Betauer.Application.Lifecycle.Attributes;
 using Betauer.Application.Monitor;
 using Betauer.Application.Persistent;
 using Betauer.Application.Screen;
+using Betauer.Application.Screen.Resolution;
 using Betauer.Application.Settings;
 using Betauer.Application.Settings.Attributes;
 using Betauer.Camera.Control;
@@ -20,9 +21,8 @@ namespace Veronenger.Game;
 
 [Configuration]
 public class ApplicationConfig {
-	public static readonly ScreenConfiguration Configuration = new(
+	public static readonly ScreenConfig Config = new(
 		FixedViewportStrategy.Instance, 
-		Resolutions.FULLHD,
 		Resolutions.FULLHD,
 		Window.ContentScaleModeEnum.CanvasItems, // (viewport is blur)
 		Window.ContentScaleAspectEnum.Keep,
@@ -47,7 +47,7 @@ public class ApplicationConfig {
 [Setting<bool>("Settings.Screen.Borderless", SaveAs = "Video/Borderless", Default = false)]
 [Setting<Resolution>("Settings.Screen.WindowedResolution", SaveAs = "Video/WindowedResolution", DefaultAsString = "1920x1080")]
 public class Settings {
-	[Singleton] public ScreenSettingsManager ScreenSettingsManager => new(ApplicationConfig.Configuration);
+	[Singleton] public ScreenSettingsManager ScreenSettingsManager => new(ApplicationConfig.Config);
 	[Singleton] public SettingsContainer SettingsContainer => new(new ConfigFileWrapper(AppTools.GetUserFile("settings.ini")));
 }
 

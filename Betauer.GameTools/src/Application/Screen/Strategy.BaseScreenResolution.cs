@@ -1,24 +1,25 @@
 using System.Collections.Generic;
+using Betauer.Application.Screen.Resolution;
 using Betauer.Tools.Logging;
 using Godot;
 
 namespace Betauer.Application.Screen;
-public abstract class BaseScreenResolutionService : IScreenResizeHandler {
-    protected static readonly Logger Logger = LoggerFactory.GetLogger<BaseScreenResolutionService>();
-    protected ScreenService ScreenService;
-    protected SceneTree SceneTree => ScreenService.SceneTree;
+public abstract class BaseScreenResolutionStrategy : IScreenResizeHandler {
+    protected static readonly SceneTree SceneTree = (SceneTree)Engine.GetMainLoop();
 
-    protected ScreenConfiguration ScreenConfiguration => ScreenService.ScreenConfiguration;
-    protected Resolution DownScaledMinimumResolution => ScreenConfiguration.DownScaledMinimumResolution;
-    protected Resolution BaseResolution => ScreenConfiguration.BaseResolution;
+    protected static readonly Logger Logger = LoggerFactory.GetLogger<BaseScreenResolutionStrategy>();
 
-    protected List<Resolution> Resolutions => ScreenConfiguration.Resolutions;
-    protected List<AspectRatio> AspectRatios => ScreenConfiguration.AspectRatios;
-    protected Window.ContentScaleModeEnum ScaleMode => ScreenConfiguration.ScaleMode;
-    protected Window.ContentScaleAspectEnum ScaleAspect => ScreenConfiguration.ScaleAspect;
-    protected float ScaleFactor => ScreenConfiguration.ScaleFactor;
+    protected ScreenConfig ScreenConfig;
+    protected Resolution.Resolution BaseResolution => ScreenConfig.BaseResolution;
+
+    protected List<Resolution.Resolution> Resolutions => ScreenConfig.Resolutions;
+    protected List<AspectRatio> AspectRatios => ScreenConfig.AspectRatios;
+    protected Window.ContentScaleModeEnum ScaleMode => ScreenConfig.ScaleMode;
+    protected Window.ContentScaleAspectEnum ScaleAspect => ScreenConfig.ScaleAspect;
+    protected float ScaleFactor => ScreenConfig.ScaleFactor;
 
     public virtual void Apply() {
+        DisplayServer.WindowSetFlag(DisplayServer.WindowFlags.ResizeDisabled, !ScreenConfig.IsResizeable);
         DoApply();
         var windowSize = DisplayServer.WindowGetSize();
         var viewport = SceneTree.Root;
@@ -31,8 +32,8 @@ public abstract class BaseScreenResolutionService : IScreenResizeHandler {
     public virtual void Disable() {
     }
 
-    public void SetScreenService(ScreenService screenService) {
-        ScreenService = screenService;
+    public void SetScreenConfig(ScreenConfig screenController) {
+        ScreenConfig = screenController;
     }
 
     public virtual bool IsFullscreen() {
@@ -53,20 +54,20 @@ public abstract class BaseScreenResolutionService : IScreenResizeHandler {
         Apply();
     }
 
-    public virtual void SetWindowed(Resolution resolution) {
+    public virtual void SetWindowed(Resolution.Resolution resolution) {
         var screenSize = DisplayServer.ScreenGetSize();
         if (resolution.X > screenSize.X || resolution.Y > screenSize.Y) {
             // SetFullscreen();
             return;
         }
-        if (resolution.X < DownScaledMinimumResolution.X || 
-            resolution.Y < DownScaledMinimumResolution.Y) {
-            resolution = DownScaledMinimumResolution;
+        if (resolution.X < BaseResolution.X || 
+            resolution.Y < BaseResolution.Y) {
+            resolution = BaseResolution;
         }
         DisplayServer.WindowSetMode(DisplayServer.WindowMode.Windowed);
         DisplayServer.WindowSetSize(resolution.Size);
-        DisplayServer.WindowSetMinSize(DownScaledMinimumResolution.Size);
-        DisplayServer.WindowSetFlag(DisplayServer.WindowFlags.ResizeDisabled, !ScreenConfiguration.IsResizeable);
+        DisplayServer.WindowSetMinSize(BaseResolution.Size);
+        DisplayServer.WindowSetFlag(DisplayServer.WindowFlags.ResizeDisabled, !ScreenConfig.IsResizeable);
         Apply();
     }
 

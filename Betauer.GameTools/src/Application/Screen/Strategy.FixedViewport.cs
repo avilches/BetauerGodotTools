@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Betauer.Application.Screen.Resolution;
 using Godot;
 
 namespace Betauer.Application.Screen; 
@@ -10,11 +11,11 @@ namespace Betauer.Application.Screen;
 /// User interface container changes their size with the viewport (following StretchAspect) and
 /// controls (and fonts!) doesn't keep the aspect ratio (they shrink or expand)
 /// </summary>
-public class FixedViewportStrategy : BaseScreenResolutionService, IScreenStrategy {
+public class FixedViewportStrategy : BaseScreenResolutionStrategy, IScreenStrategy {
     public static readonly FixedViewportStrategy Instance = new();
         
     public List<ScaledResolution> GetResolutions() {
-        return Resolutions.Clamp(DownScaledMinimumResolution.Size).ExpandResolutions(BaseResolution, AspectRatios).ToList();
+        return Resolutions.Clamp(BaseResolution.Size, DisplayServer.ScreenGetSize()).ExpandResolutions(BaseResolution, AspectRatios).ToList();
     }
 
     protected override void DoApply() {

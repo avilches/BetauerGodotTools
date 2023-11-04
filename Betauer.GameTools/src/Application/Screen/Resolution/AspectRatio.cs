@@ -1,7 +1,7 @@
 using System;
 using Godot;
 
-namespace Betauer.Application.Screen; 
+namespace Betauer.Application.Screen.Resolution; 
 
 public class AspectRatio {
     internal const float Tolerance = 0.05f;

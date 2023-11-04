@@ -2,14 +2,7 @@ using System;
 using System.Collections.Generic;
 using Godot;
 
-namespace Betauer.Application.Screen;
-internal class ScaledResolutionComparer : IEqualityComparer<ScaledResolution> {
-    internal ScaledResolutionComparer() {
-    }
-
-    public bool Equals(ScaledResolution x, ScaledResolution y) => x.Size.Equals(y.Size);
-    public int GetHashCode(ScaledResolution scaledResolution) => scaledResolution.Size.GetHashCode();
-}
+namespace Betauer.Application.Screen.Resolution;
 
 public class ScaledResolution : Resolution, IEquatable<ScaledResolution> {
     public static readonly IEqualityComparer<ScaledResolution> ComparerByBaseSize = new ScaledResolutionComparer();

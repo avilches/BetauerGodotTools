@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Betauer.Application.Screen.Resolution;
 using Godot;
 
 namespace Betauer.Application.Screen; 
@@ -10,26 +11,26 @@ namespace Betauer.Application.Screen;
 /// - StretchAspect.KeepHeight: the viewport grows/shrink keeping the aspect ratio of base. Expand width only. The more width, the smaller the controls. Changing height keep aspect ratio of controls.
 /// - StretchAspect.KeepWidth: the viewport grows/shrink, but keeping the width aspect ratio of base. Expand height only. The more height, the smaller the controls. Changing width keep aspect ratio of controls.
 /// </summary>
-public class ResizeViewportStrategy : BaseScreenResolutionService, IScreenStrategy {
+public class ResizeViewportStrategy : BaseScreenResolutionStrategy, IScreenStrategy {
     public static readonly ResizeViewportStrategy Instance = new();
 
     public List<ScaledResolution> GetResolutions() {
-        return Resolutions.Clamp(DownScaledMinimumResolution.Size).ExpandResolutions(BaseResolution, AspectRatios).ToList();
+        return Resolutions.Clamp(BaseResolution.Size, DisplayServer.ScreenGetSize()).ExpandResolutions(BaseResolution, AspectRatios).ToList();
     }
 
     protected override void DoApply() {
         var windowSize = DisplayServer.WindowGetSize();
-        var keepRatio = KeepRatio(new Resolution(windowSize));
+        var keepRatio = KeepRatio(new Resolution.Resolution(windowSize));
         SceneTree.Root.ContentScaleMode = ScaleMode;
         SceneTree.Root.ContentScaleAspect = ScaleAspect;
         SceneTree.Root.ContentScaleFactor = ScaleFactor;
         SceneTree.Root.ContentScaleSize = keepRatio.Size;
     }
 
-    public Resolution KeepRatio(Resolution resolution) {
+    public Resolution.Resolution KeepRatio(Resolution.Resolution resolution) {
         return ScaleAspect switch {
-            Window.ContentScaleAspectEnum.KeepHeight => new Resolution(resolution.X, (int)(resolution.X / BaseResolution.AspectRatio.Ratio)),
-            Window.ContentScaleAspectEnum.KeepWidth => new Resolution((int)(resolution.Y * BaseResolution.AspectRatio.Ratio), resolution.Y),
+            Window.ContentScaleAspectEnum.KeepHeight => new Resolution.Resolution(resolution.X, (int)(resolution.X / BaseResolution.AspectRatio.Ratio)),
+            Window.ContentScaleAspectEnum.KeepWidth => new Resolution.Resolution((int)(resolution.Y * BaseResolution.AspectRatio.Ratio), resolution.Y),
             _ => resolution
         };
     }

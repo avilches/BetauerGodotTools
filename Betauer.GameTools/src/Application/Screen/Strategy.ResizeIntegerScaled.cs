@@ -1,16 +1,14 @@
 using System;
 using System.Collections.Generic;
+using Betauer.Application.Screen.Resolution;
 using Godot;
 
-namespace Betauer.Application.Screen; 
+namespace Betauer.Application.Screen;
 
 /**
-     * https://github.com/Yukitty/godot-addon-integer_resolution_handler
-     *
-     * 
-     * 
-     */
-public class ResizeIntegerScaledStrategy : BaseScreenResolutionService, IScreenStrategy {
+* https://github.com/Yukitty/godot-addon-integer_resolution_handler
+*/
+public class ResizeIntegerScaledStrategy : BaseScreenResolutionStrategy, IScreenStrategy {
     public static readonly ResizeIntegerScaledStrategy Instance = new();
 
     public List<ScaledResolution> GetResolutions() {

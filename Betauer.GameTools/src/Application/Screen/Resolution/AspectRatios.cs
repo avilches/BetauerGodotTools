@@ -1,8 +1,7 @@
-using System;
 using System.Collections.Generic;
 using Godot;
 
-namespace Betauer.Application.Screen; 
+namespace Betauer.Application.Screen.Resolution; 
 
 public static class AspectRatios {
     public static readonly List<AspectRatio> Cache = new List<AspectRatio>();

@@ -13,6 +13,7 @@ using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
 using Betauer.Input;
 using Betauer.Input.Joypad;
+using Betauer.Nodes;
 using Godot;
 using Veronenger.Game.RTS.HUD;
 using Veronenger.Game.UI;
@@ -46,7 +47,7 @@ public partial class RtsGameView : Control, IInjectable, IGameView {
 	public void PostInject() {
 		PlayerActionsContainer.Disable(); // The real actions are cloned per player in player.Connect()
 		ConfigureDebugOverlays();
-		_splitViewport = new SplitViewport(this, () => GetViewportRect().Size) {
+		_splitViewport = new SplitViewport {
 			Camera1 = {
 				Zoom = new Vector2(2, 2)
 			},
@@ -64,6 +65,7 @@ public partial class RtsGameView : Control, IInjectable, IGameView {
 				HandleInputLocally = false
 			}
 		};
+		_splitViewport.Configure(this, () => GetViewportRect().Size);
 	}
 
 	public override async void _UnhandledInput(InputEvent e) {
@@ -149,17 +151,15 @@ public partial class RtsGameView : Control, IInjectable, IGameView {
 
 		RtsWorld = RtsWorldFactory.Create();
 		RtsWorld.SetMainCamera(_splitViewport.Camera1);
-
-		_splitViewport.SetCommonWorld(RtsWorld);
-		_splitViewport.Refresh();
-		_splitViewport.OnChange += (split) => {
-			if (split) {
-				RtsHud.SplitScreenContainer.Split = true;
-			}
-		};
 		
 		RtsHud = RtsHudFactory.Create();
 		AddChild(RtsHud);
+		
+		_splitViewport.SetCommonWorld(RtsWorld);
+		_splitViewport.OnChange += (split) => RtsHud.SplitScreenContainer.Split = split;
+		_splitViewport.Refresh();
+		
+		GetTree().Root.SizeChanged += () => _splitViewport.Refresh();
 	}
 	
 	public async Task End(bool unload) {

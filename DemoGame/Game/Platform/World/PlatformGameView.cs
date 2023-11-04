@@ -53,7 +53,7 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 	public void PostInject() {
 		PlayerActionsContainer.Disable(); // The real actions are cloned per player in player.Connect()
 		ConfigureDebugOverlays();
-		_splitViewport = new SplitViewport(this, () => GetViewportRect().Size) {
+		_splitViewport = new SplitViewport {
 			Camera1 = {
 				Zoom = new Vector2(2, 2)
 			},
@@ -71,6 +71,7 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 				HandleInputLocally = false
 			}
 		};
+		_splitViewport.Configure(this, () => GetViewportRect().Size);
 	}
 
 	public override async void _UnhandledInput(InputEvent e) {
@@ -170,17 +171,15 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 		JoypadPlayersMapping.RemoveAllPlayers();
 
 		PlatformWorld = PlatformWorldFactory.Create();
-		_splitViewport.SetCommonWorld(PlatformWorld);
-		_splitViewport.Refresh();
-		_splitViewport.OnChange += (split) => {
-			if (split) {
-				PlatformHud.SplitScreenContainer.Split = true;
-				// The HUD for player two should be always visible if the player 2 is alive 
-			}
-		};
-		
+
 		PlatformHud = PlatformHudFactory.Create();
 		AddChild(PlatformHud);
+		
+		_splitViewport.SetCommonWorld(PlatformWorld);
+		_splitViewport.OnChange += (split) => PlatformHud.SplitScreenContainer.Split = split;
+		_splitViewport.Refresh();
+		
+		GetTree().Root.SizeChanged += () => _splitViewport.Refresh();
 	}
 
 	public PlayerNode CreatePlayer1(int joypad) {
