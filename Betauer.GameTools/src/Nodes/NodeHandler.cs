@@ -34,7 +34,7 @@ public partial class NodeHandler : Node2D {
     }
 
     private void EnsureLastChild(Node _) {
-        GetParent()?.MoveChild(this, -1);
+        GetParent()?.MoveChildDeferred(this, -1);
     }
 
     public void OnProcess(IProcessHandler inputEvent) {
@@ -76,7 +76,7 @@ public partial class NodeHandler : Node2D {
         ProcessNodeEvents(ProcessList, delta, () => {
             if (DrawList.Count == 0) SetProcess(false);
         });
-        if (DrawList.Count > 0) QueueRedraw();
+        if (DrawList.Count > 0 && DrawList.Any(dwe => dwe.Redraw)) QueueRedraw();
     }
 
     public override void _PhysicsProcess(double delta) {
@@ -119,7 +119,8 @@ public partial class NodeHandler : Node2D {
         var isTreePaused = _sceneTree.Paused;
         DrawList.RemoveAll(processHandler => {
             if (processHandler.IsDestroyed) return true;
-            if (processHandler.IsEnabled(isTreePaused)) {
+            if (processHandler.IsEnabled(isTreePaused) && processHandler.Redraw) {
+                processHandler.Redraw = false;
                 processHandler.Handle(this);
             }
             return false;
@@ -150,6 +151,7 @@ $@"{ProcessList.Count} Process: {Join(", ", ProcessList.Select(e => e.Name))}
 {InputList.Count} Input: {Join(", ", InputList.Select(e => e.Name))}
 {UnhandledInputList.Count} UnhandledInput: {Join(", ", UnhandledInputList.Select(e => e.Name))}
 {ShortcutInputList.Count} ShortcutInput: {Join(", ", ShortcutInputList.Select(e => e.Name))}
-{UnhandledKeyInputList.Count} UnhandledKeyInput: {Join(", ", UnhandledKeyInputList.Select(e => e.Name))}";
+{UnhandledKeyInputList.Count} UnhandledKeyInput: {Join(", ", UnhandledKeyInputList.Select(e => e.Name))}
+{DrawList.Count} Draw: {Join(", ", DrawList.Select(e => e.Name))}";
     }
 }

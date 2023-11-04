@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Generic;
-using Betauer.Application.Screen;
+using Betauer.Application.Screen.Resolution;
 using Betauer.Core;
-using Betauer.Tools.FastReflection;
 using Godot;
 
 namespace Betauer.Application.Settings; 

@@ -5,6 +5,7 @@ namespace Betauer.Nodes;
 public class DrawNodeWrapper : IDrawHandler {
     public Node Node { get; }
     public string Name { get; }
+    public bool Redraw { get; set; } = true;
     private readonly IDrawHandler _delegate;
     
     public DrawNodeWrapper(Node node, IDrawHandler @delegate, string? name = null) {

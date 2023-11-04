@@ -1,66 +1,70 @@
 using System;
 using System.Threading.Tasks;
+using Betauer.Core.Nodes;
 using Betauer.Core.Signal;
-using Betauer.Core.Time;
 using Godot;
 
 namespace Betauer.Nodes;
 
 public static class DefaultNodeHandlerExtensions {
+    public static NodeHandler GetNodeHandler(this Node node) {
+        return node.FirstChildInParentOrNull<NodeHandler>() ?? DefaultNodeHandler.Instance;
+    } 
+        
     public static ProcessNodeWrapper OnProcess(this Node node, Action<double> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
         var handler = new ProcessNodeWrapper(node, new ProcessHandler(action, pauseMode, node.Name));
-        DefaultNodeHandler.Instance.OnProcess(handler);
+        node.GetNodeHandler().OnProcess(handler);
         return handler;
     }
 
     public static ProcessNodeWrapper OnPhysicsProcess(this Node node, Action<double> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
         var handler = new ProcessNodeWrapper(node, new ProcessHandler(action, pauseMode, node.Name));
-        DefaultNodeHandler.Instance.OnPhysicsProcess(handler);
+        node.GetNodeHandler().OnPhysicsProcess(handler);
         return handler;
     }
 
     public static ProcessEveryWrapper OnEveryProcess(this Node node, float every, Action action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
         var handler = new ProcessNodeWrapper(node, new ProcessHandler(_ => action(), pauseMode, node.Name));
-        return DefaultNodeHandler.Instance.OnEveryProcess(every, handler);
+        return node.GetNodeHandler().OnEveryProcess(every, handler);
     }
 
     public static ProcessEveryWrapper OnEveryPhysicsProcess(this Node node, float every, Action action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
         var handler = new ProcessNodeWrapper(node, new ProcessHandler(_ => action(), pauseMode, node.Name));
-        return DefaultNodeHandler.Instance.OnEveryPhysicsProcess(every, handler);
+        return node.GetNodeHandler().OnEveryPhysicsProcess(every, handler);
     }
 
     public static InputEventNodeWrapper OnInput(this Node node, Action<InputEvent> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
         var handler = new InputEventNodeWrapper(node, new InputEventHandler(action, pauseMode, node.Name));
-        DefaultNodeHandler.Instance.OnInput(handler);
+        node.GetNodeHandler().OnInput(handler);
         return handler;
     }
 
     public static InputEventNodeWrapper OnUnhandledInput(this Node node, Action<InputEvent> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
         var handler = new InputEventNodeWrapper(node, new InputEventHandler(action, pauseMode, node.Name));
-        DefaultNodeHandler.Instance.OnUnhandledInput(handler);
+        node.GetNodeHandler().OnUnhandledInput(handler);
         return handler;
     }
 
     public static InputEventNodeWrapper OnShortcutInput(this Node node, Action<InputEvent> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
         var handler = new InputEventNodeWrapper(node, new InputEventHandler(action, pauseMode, node.Name));
-        DefaultNodeHandler.Instance.OnShortcutInput(handler);
+        node.GetNodeHandler().OnShortcutInput(handler);
         return handler;
     }
 
     public static InputEventNodeWrapper OnUnhandledKeyInput(this Node node, Action<InputEvent> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
         var handler = new InputEventNodeWrapper(node, new InputEventHandler(action, pauseMode, node.Name));
-        DefaultNodeHandler.Instance.OnUnhandledKeyInput(handler);
+        node.GetNodeHandler().OnUnhandledKeyInput(handler);
         return handler;
     }
 
     public static DrawNodeWrapper OnDraw(this Node node, Action<CanvasItem> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
         var handler = new DrawNodeWrapper(node, new DrawHandler(action, pauseMode, node.Name));
-        DefaultNodeHandler.Instance.OnDraw(handler);
+        node.GetNodeHandler().OnDraw(handler);
         return handler;
     }
 
     public static void QueueDraw(this Node node, Action<CanvasItem> action) {
-        DefaultNodeHandler.Instance.QueueDraw(action);
+        node.GetNodeHandler().QueueDraw(action);
     }
 }
     
