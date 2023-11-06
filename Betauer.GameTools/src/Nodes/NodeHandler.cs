@@ -14,7 +14,6 @@ public partial class NodeHandler : Node2D {
     public readonly List<IInputEventHandler> ShortcutInputList = new();
     public readonly List<IInputEventHandler> UnhandledInputList = new();
     public readonly List<IInputEventHandler> UnhandledKeyInputList = new();
-    public readonly List<IDrawHandler> DrawList = new();
     
     private SceneTree _sceneTree;
     
@@ -67,16 +66,9 @@ public partial class NodeHandler : Node2D {
         SetProcessUnhandledKeyInput(true);
     }
 
-    public void OnDraw(IDrawHandler inputEvent) {
-        DrawList.Add(inputEvent);
-        SetProcess(true);
-    }
     
     public override void _Process(double delta) {
-        ProcessNodeEvents(ProcessList, delta, () => {
-            if (DrawList.Count == 0) SetProcess(false);
-        });
-        if (DrawList.Count > 0 && DrawList.Any(dwe => dwe.Redraw)) QueueRedraw();
+        ProcessNodeEvents(ProcessList, delta, () => SetProcess(false));
     }
 
     public override void _PhysicsProcess(double delta) {
@@ -113,20 +105,7 @@ public partial class NodeHandler : Node2D {
     public override void _UnhandledKeyInput(InputEvent inputEvent) {
         ProcessInputEventList(UnhandledKeyInputList, inputEvent, () => SetProcessUnhandledKeyInput(false));
     }
-
-    public override void _Draw() {
-        if (DrawList.Count == 0) return;
-        var isTreePaused = _sceneTree.Paused;
-        DrawList.RemoveAll(processHandler => {
-            if (processHandler.IsDestroyed) return true;
-            if (processHandler.IsEnabled(isTreePaused) && processHandler.Redraw) {
-                processHandler.Redraw = false;
-                processHandler.Handle(this);
-            }
-            return false;
-        });
-    }
-
+    
     private void ProcessInputEventList(List<IInputEventHandler> inputEventHandlerList, InputEvent inputEvent, Action disabler) {
         if (inputEventHandlerList.Count == 0) {
             disabler();
@@ -145,13 +124,12 @@ public partial class NodeHandler : Node2D {
     }
 
     public string GetStateAsString() {
-        return 
-$@"{ProcessList.Count} Process: {Join(", ", ProcessList.Select(e => e.Name))}
+        return
+            $@"{ProcessList.Count} Process: {Join(", ", ProcessList.Select(e => e.Name))}
 {PhysicsProcessList.Count} PhysicsProcess: {Join(", ", PhysicsProcessList.Select(e => e.Name))}
 {InputList.Count} Input: {Join(", ", InputList.Select(e => e.Name))}
 {UnhandledInputList.Count} UnhandledInput: {Join(", ", UnhandledInputList.Select(e => e.Name))}
 {ShortcutInputList.Count} ShortcutInput: {Join(", ", ShortcutInputList.Select(e => e.Name))}
-{UnhandledKeyInputList.Count} UnhandledKeyInput: {Join(", ", UnhandledKeyInputList.Select(e => e.Name))}
-{DrawList.Count} Draw: {Join(", ", DrawList.Select(e => e.Name))}";
+{UnhandledKeyInputList.Count} UnhandledKeyInput: {Join(", ", UnhandledKeyInputList.Select(e => e.Name))}";
     }
 }

@@ -11,11 +11,12 @@ public static class RayCast2DExtensions {
     }
 
     public static void DrawRaycast(this CanvasItem owner, RayCast2D rayCast, Color color) {
-        var targetPosition = rayCast.GlobalPosition + rayCast.TargetPosition * rayCast.Scale;
-        owner.DrawLine(rayCast.GlobalPosition, targetPosition, color, 2F);
+        var start = owner.ToLocal(rayCast.GlobalPosition);
+        var targetPosition = start + rayCast.TargetPosition * rayCast.Scale;
+        owner.DrawLine(start, targetPosition, color, 2F);
         if (rayCast.IsColliding()) {
             targetPosition = rayCast.GetLocalCollisionPoint();
-            owner.DrawLine(rayCast.GlobalPosition, rayCast.GlobalPosition + targetPosition, Colors.White);
+            owner.DrawLine(start, start + targetPosition, Colors.White);
         }
     }
 }

@@ -6,7 +6,7 @@ using Godot;
 
 namespace Betauer.Nodes;
 
-public static class DefaultNodeHandlerExtensions {
+public static class NodeHandlerExtensions {
     public static NodeHandler GetNodeHandler(this Node node) {
         return node.FirstChildInParentOrNull<NodeHandler>() ?? DefaultNodeHandler.Instance;
     } 
@@ -57,19 +57,6 @@ public static class DefaultNodeHandlerExtensions {
         return handler;
     }
 
-    public static DrawNodeWrapper OnDraw(this Node node, Action<CanvasItem> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
-        var handler = new DrawNodeWrapper(node, new DrawHandler(action, pauseMode, node.Name));
-        node.GetNodeHandler().OnDraw(handler);
-        return handler;
-    }
-
-    public static void QueueDraw(this Node node, Action<CanvasItem> action) {
-        node.GetNodeHandler().QueueDraw(action);
-    }
-}
-    
-public static class NodeHandlerExtensions {
-
     public static ProcessHandler OnProcess(this NodeHandler nodeHandler, Action<double> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
         var handler = new ProcessHandler(action, pauseMode);
         nodeHandler.OnProcess(handler);
@@ -103,21 +90,6 @@ public static class NodeHandlerExtensions {
     public static InputEventHandler OnUnhandledKeyInput(this NodeHandler nodeHandler, Action<InputEvent> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
         var handler = new InputEventHandler(action, pauseMode);
         nodeHandler.OnUnhandledKeyInput(handler);
-        return handler;
-    }
-
-    public static DrawHandler OnDraw(this NodeHandler nodeHandler, Action<CanvasItem> action, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
-        var handler = new DrawHandler(action, pauseMode);
-        nodeHandler.OnDraw(handler);
-        return handler;
-    }
-
-    public static DrawHandler QueueDraw(this NodeHandler nodeHandler, Action<CanvasItem> action) {
-        DrawHandler handler = null;
-        handler = nodeHandler.OnDraw(canvas => {
-            action(canvas);
-            handler.Disable();
-        }, Node.ProcessModeEnum.Always);
         return handler;
     }
 

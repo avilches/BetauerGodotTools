@@ -155,7 +155,7 @@ public partial class ZombieNode : NpcNode, IInjectable {
 		ConfigureAi();
 
 		// ConfigureOverlays();
-		ConfigureOverlayRays();
+		// ConfigureOverlayRays();
 				
 		// Uncomment to discover if all the Ready methods are restoring the data correctly or there is still some property updated
 		// this.OnReady(_restorer.Save, true);
@@ -165,40 +165,37 @@ public partial class ZombieNode : NpcNode, IInjectable {
 		// TreeExiting += _restorer.Restore;
 
 	}
-	
+
 	private void ConfigureOverlayRays() {
-		DrawNodeWrapper drawRaycasts = null;
-		drawRaycasts = this.OnDraw(canvas => {
-			// canvas.DrawRaycast(FacePlayerDetector, Colors.Red);
-			// canvas.DrawRaycast(BackPlayerDetector, Colors.Red);
-			// canvas.DrawRaycast(FloorRaycast, Colors.Blue);
+		var drawer = _mainSprite.AddDraw(canvas => {
+			canvas.DrawRaycast(FloorRaycast, Colors.Blue);
 			canvas.DrawRaycast(FinishFloorRight, Colors.Blue);
 			canvas.DrawRaycast(FinishFloorLeft, Colors.Blue);
-			drawRaycasts.Redraw = true;
 		});
-		drawRaycasts.Disable();
-
-		var drawPlayerInsight = this.OnDraw(canvas => {
+		drawer.OnProcess(delta => {
+			drawer.QueueRedraw();
+		});
+		drawer.OnDraw += (canvas) => {
 			// Same conditions as CanSeeThePlayer
+			var start = canvas.ToLocal(Marker2D.GlobalPosition);
 			if (!IsFacingToPlayer() ||
-				DistanceToPlayer() > NpcConfig.VisionDistance ||
-				!IsPlayerInAngle()) {
+			    DistanceToPlayer() > NpcConfig.VisionDistance ||
+			    !IsPlayerInAngle()) {
 				var distance = new Vector2(NpcConfig.VisionDistance, 0);
 				var direction = new Vector2(LateralState.FacingRight, 1);
-				canvas.DrawLine(Marker2D.GlobalPosition, Marker2D.GlobalPosition + distance.Rotated(-NpcConfig.VisionAngle) * direction, Colors.Gray);
-				canvas.DrawLine(Marker2D.GlobalPosition, Marker2D.GlobalPosition + distance.Rotated(+NpcConfig.VisionAngle) * direction, Colors.Gray);
-				canvas.DrawLine(Marker2D.GlobalPosition, Marker2D.GlobalPosition + distance * direction, Colors.Gray);
+				canvas.DrawLine(start, start + distance.Rotated(-NpcConfig.VisionAngle) * direction, Colors.Gray);
+				canvas.DrawLine(start, start + distance.Rotated(+NpcConfig.VisionAngle) * direction, Colors.Gray);
+				canvas.DrawLine(start, start + distance * direction, Colors.Gray);
 				return;
 			}
 
 			var result = _lazyRaycastToPlayer.From(Marker2D).To(PlayerPos).Cast().Collision;
 			if (result.IsColliding) {
-				canvas.DrawLine(Marker2D.GlobalPosition, result.Position, Colors.Red, 2);
+				canvas.DrawLine(start, result.Position, Colors.Red, 2);
 				return;
 			}
-			canvas.DrawLine(Marker2D.GlobalPosition, PlayerPos, Colors.Lime, 2);
-		});
-		drawPlayerInsight.Disable();
+			canvas.DrawLine(start, PlayerPos, Colors.Lime, 2);
+		};
 	}
 
 	private void ConfigureAi() {

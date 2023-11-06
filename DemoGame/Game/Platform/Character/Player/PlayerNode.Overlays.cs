@@ -15,18 +15,13 @@ public partial class PlayerNode {
 	[Inject] private ItemsManager ItemsManager { get; set; }
 
 	public void ConfigureOverlay() {
-		Ready += () => {
-			DrawNodeWrapper drawEvent = null;
-			drawEvent = this.OnDraw(canvas => {
-				// canvas.TopLevel = true;
-				// canvas.DrawSetTransform(CharacterBody2D.GlobalPosition);
-				// canvas.DrawCircle(Marker2D.GlobalPosition, 200, Colors.Blue);
-				foreach (var floorRaycast in FloorRaycasts) canvas.DrawRaycast(floorRaycast, Colors.Red);
-				canvas.DrawRaycast(RaycastCanJump, Colors.Red);
-				drawEvent.Redraw = true;
-			});
-			drawEvent.Disable();
-		};
+		var drawer = CharacterBody2D.AddDraw(canvas => {
+			foreach (var floorRaycast in FloorRaycasts) canvas.DrawRaycast(floorRaycast, Colors.Red);
+			canvas.DrawRaycast(RaycastCanJump, Colors.Red);
+		});
+		this.OnProcess((d) => {
+			drawer.QueueRedraw();
+		});
 
 		var overlay = DebugOverlayManager.Overlay(CharacterBody2D)
 			.Title("Player")
