@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Betauer.Animation;
 using Betauer.Application.Screen;
+using Betauer.Application.Screen.Resolution;
 using Betauer.Core;
 using Betauer.Core.Nodes;
 using Betauer.Core.Signal;
@@ -235,9 +236,9 @@ public partial class SettingsMenu : CanvasLayer {
 
 	private string GetResolutionFullName(ScaledResolution scaledResolution) {
 		var res = new StringBuilder(scaledResolution.ToString());
-		if (scaledResolution.Size == ScreenSettingsManager.ScreenConfiguration.BaseResolution.Size) {
+		if (scaledResolution.Size == ScreenSettingsManager.ScreenController.ScreenConfig.BaseResolution.Size) {
 			res.Append(" (Original)");
-		} else if (scaledResolution.Base == ScreenSettingsManager.ScreenConfiguration.BaseResolution.Size) {
+		} else if (scaledResolution.Base == ScreenSettingsManager.ScreenController.ScreenConfig.BaseResolution.Size) {
 			if (scaledResolution.IsScaleYInteger()) {
 				res.Append(" (x");
 				res.Append(scaledResolution.Scale.Y);
@@ -305,7 +306,7 @@ public partial class SettingsMenu : CanvasLayer {
 	private void RedefineButton(RedefineActionButton redefineButton, JoyButton newButton) {
 		if (redefineButton.InputAction.HasButton(newButton)) return;
 
-		var otherRedefine = _gamepadControls.FirstNodeOrNull<RedefineActionButton>(r => r.InputAction.HasButton(newButton));
+		var otherRedefine = _gamepadControls.FirstNode<RedefineActionButton>(r => r.InputAction.HasButton(newButton));
 		if (otherRedefine != null && otherRedefine != redefineButton) {
 			// Swap: set to the other the current key
 			var currentButton = redefineButton.InputAction.Buttons[0];
@@ -321,7 +322,7 @@ public partial class SettingsMenu : CanvasLayer {
 	private void RedefineKey(RedefineActionButton redefineButton, Key newKey) {
 		if (redefineButton.InputAction.HasKey(newKey)) return;
 		
-		var otherRedefine = _keyboardControls.FirstNodeOrNull<RedefineActionButton>(r => r.InputAction.HasKey(newKey));
+		var otherRedefine = _keyboardControls.FirstNode<RedefineActionButton>(r => r.InputAction.HasKey(newKey));
 		if (otherRedefine != null && otherRedefine != redefineButton) {
 			// Swap: set to the other the current key
 			var currentKey = redefineButton.InputAction.Keys[0];
