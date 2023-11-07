@@ -1,4 +1,3 @@
-using System;
 using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
 using Betauer.DI.ServiceProvider;
@@ -56,7 +55,7 @@ public class ScannerLazyTests {
     }
 
     [Singleton]
-    class PostInjectedA2 : IInjectable{
+    class PostInjectedA2 : IInjectable {
         [Inject] internal Container container { get; set; }
 
         internal int Called = 0;
@@ -216,7 +215,7 @@ public class ScannerLazyTests {
         Assert.That(D2, Is.EqualTo(c.Resolve<LazyPostInjectedD2>()));
         Assert.That(D2.D1.Get(), Is.EqualTo(D1));
     }
-    
+
     public class LazySingleton {
         public static int Instances = 0;
 
@@ -257,7 +256,4 @@ public class ScannerLazyTests {
         Assert.That(LazySingleton.Instances, Is.EqualTo(1));
         Assert.That(c.GetProvider("LazySingleton") is ISingletonProvider { IsInstanceCreated: true });
     }
-
-
-    
 }

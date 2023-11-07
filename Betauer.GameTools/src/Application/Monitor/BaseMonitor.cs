@@ -41,7 +41,7 @@ public abstract partial class BaseMonitor : VBoxContainer {
 public abstract partial class BaseMonitor<TBuilder> : BaseMonitor where TBuilder : class {
     private double _timeElapsed = 0;
     private double _updateEvery = 0;
-    public Func<bool>? RemoveIfFunc { get; private set; }
+    public Func<bool>? DestroyIfFunc { get; private set; }
 
     public TBuilder Enable(bool enable = true) {
         Visible = enable;
@@ -49,8 +49,8 @@ public abstract partial class BaseMonitor<TBuilder> : BaseMonitor where TBuilder
         return this as TBuilder;
     }
 
-    public TBuilder RemoveIf(Func<bool> func) {
-        RemoveIfFunc = func;
+    public TBuilder DestroyIf(Func<bool> destroyIf) {
+        DestroyIfFunc = destroyIf;
         return this as TBuilder;
     }
 
@@ -65,7 +65,7 @@ public abstract partial class BaseMonitor<TBuilder> : BaseMonitor where TBuilder
 
     public override void _PhysicsProcess(double delta) {
         var watching = DebugOverlayOwner.Target;
-        if ((watching != null && !IsInstanceValid(watching)) || (RemoveIfFunc != null && RemoveIfFunc())) {
+        if ((watching != null && !IsInstanceValid(watching)) || (DestroyIfFunc != null && DestroyIfFunc())) {
             QueueFree();
         } else if (!Visible) {
             Disable();

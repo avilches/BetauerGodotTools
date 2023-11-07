@@ -45,6 +45,14 @@ public static partial class NodeExtensions {
         return found;
     }
 
+    public static T? FindParent<T>(this Node node) where T : Node {
+        Node parent = node.GetParent();
+        return parent switch {
+            null => null,
+            T parentT => parentT,
+            _ => parent.FindParent<T>()
+        };
+    }
 
     /// <summary>
     /// Returns the first node among the children with the T type and the predicate, or returns null.

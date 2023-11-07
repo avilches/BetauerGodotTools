@@ -202,79 +202,75 @@ public partial class DebugConsole : Panel {
 
     public override void _Ready() {
         this.NodeBuilder()
-            .Child<MarginContainer>()
-                .Config(margin => {
+            .Child<MarginContainer>(margin => {
                     // Full rect
                     margin.Name = "MarginContainer";
                     margin.AnchorRight = 1;
                     margin.AnchorBottom = 1;
                     margin.SetMargin(10, 10, 10, 10);
                 })
-                .Child<VBoxContainer>()
-                    .Config(box => {
-                        // Full rect
-                        box.Name = "VBoxContainer";
-                        box.AnchorRight = 1;
-                        box.AnchorBottom = 1;
+                .Child<VBoxContainer>(box => {
+                    // Full rect
+                    box.Name = "VBoxContainer";
+                    box.AnchorRight = 1;
+                    box.AnchorBottom = 1;
+                })
+                    .Child(ConsoleOutput, text => {
+                        text.Name = nameof(ConsoleOutput);
+                        text.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+                        text.SizeFlagsVertical = SizeFlags.ExpandFill;
+                        text.BbcodeEnabled = true;
+                        text.SelectionEnabled = true;
+                        text.ScrollFollowing = true;
                     })
-                    .Child(ConsoleOutput)
-                        .Config(text => {
-                            text.Name = nameof(ConsoleOutput);
-                            text.SizeFlagsHorizontal = SizeFlags.ExpandFill;
-                            text.SizeFlagsVertical = SizeFlags.ExpandFill;
-                            text.BbcodeEnabled = true;
-                            text.SelectionEnabled = true;
-                            text.ScrollFollowing = true;
-                        })
                     .End()
                     .Child<HBoxContainer>()
-                        .Child<Label>()
-                            .Config(label => {
-                                label.Name = "Prompt";
-                                label.Text = ">";
-                            })
+                        .Child<Label>(label => {
+                            label.Name = "Prompt";
+                            label.Text = ">";
+                        })
                         .End()
-                        .Child(Prompt)
-                            .Config(prompt => {
-                                prompt.Name = nameof(Prompt);
-                                var style = new StyleBoxFlat() {
-                                    BgColor = DebugOverlay.ColorInvisible,
-                                    BorderWidthTop = 0,
-                                    BorderWidthRight = 0,
-                                    BorderWidthBottom = 0,
-                                    BorderWidthLeft = 0
-                                };
-                                prompt.AddThemeStyleboxOverride("normal", style);
-                                prompt.AddThemeStyleboxOverride("focus", style);
-                                prompt.SizeFlagsHorizontal = SizeFlags.ExpandFill;
-                                prompt.CaretBlink = true;
-                                prompt.CaretBlinkInterval = 0.250f;
-                                prompt.GrabFocus();
-                                prompt.TextChanged += (_) => _caretAutoCompleting = 0;         
-                            })
+                        .Child(Prompt, prompt => {
+                            prompt.Name = nameof(Prompt);
+                            var style = new StyleBoxFlat() {
+                                BgColor = DebugOverlay.ColorInvisible,
+                                BorderWidthTop = 0,
+                                BorderWidthRight = 0,
+                                BorderWidthBottom = 0,
+                                BorderWidthLeft = 0
+                            };
+                            prompt.AddThemeStyleboxOverride("normal", style);
+                            prompt.AddThemeStyleboxOverride("focus", style);
+                            prompt.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+                            prompt.CaretBlink = true;
+                            prompt.CaretBlinkInterval = 0.250f;
+                            prompt.GrabFocus();
+                            prompt.TextChanged += (_) => _caretAutoCompleting = 0;         
+                        })
                         .End()
-                        .Child<HSlider>()
-                            .Config(slider => {
-                                slider.Name = "OpacitySlider";
-                                slider.Editable = true;
-                                slider.TooltipText = "Opacity";
-                                slider.CustomMinimumSize = new Vector2(50, 5);
-                                slider.Value = InitialTransparentBackground * 25f;
-                                slider.ValueChanged += (value) => {
-                                    SelfModulate = new Color(1, 1, 1, (float)(value / 25f));
-                                    Prompt.GrabFocus();
-                                };
-                                slider.MaxValue = 25f;
-                                slider.MinValue = 0f;
-                            })
+                        .Child<HSlider>(slider => {
+                            slider.Name = "OpacitySlider";
+                            slider.Editable = true;
+                            slider.TooltipText = "Opacity";
+                            slider.CustomMinimumSize = new Vector2(50, 5);
+                            slider.Value = InitialTransparentBackground * 25f;
+                            slider.ValueChanged += (value) => {
+                                SelfModulate = new Color(1, 1, 1, (float)(value / 25f));
+                                Prompt.GrabFocus();
+                            };
+                            slider.MaxValue = 25f;
+                            slider.MinValue = 0f;
+                        })
                         .End()
                     .End()
                 .End()
-            .End();
-        
-        SelfModulate = new Color(1, 1, 1, InitialTransparentBackground);
-        Layout = LayoutEnum.DownThird;
-        ClearConsole();
+            .End()
+        .End((debugOverlay) => {
+            SelfModulate = new Color(1, 1, 1, InitialTransparentBackground);
+            Layout = LayoutEnum.DownThird;
+            ClearConsole();
+        });
+
     }
 
     private void SetConsoleInputText(string text) {

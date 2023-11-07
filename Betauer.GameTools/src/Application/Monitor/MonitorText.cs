@@ -57,14 +57,12 @@ public partial class MonitorText : BaseMonitor<MonitorText> {
     public override void _Ready() {
         this.NodeBuilder()
             .Child(HBoxContainer)
-                .Child(Label)
-                    .Config(label => {
-                        label.SetFontColor(DefaultLabelColor);
-                    })
+                .Child(Label, label => label.SetFontColor(DefaultLabelColor))
                 .End()
                 .Child(Content)
                 .End()
-            .End();
+            .End()
+        .End();
     }
 
     public override void UpdateMonitor(double delta) {

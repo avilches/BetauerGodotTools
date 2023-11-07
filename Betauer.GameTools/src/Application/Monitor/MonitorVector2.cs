@@ -106,18 +106,18 @@ public partial class MonitorVector2 : BaseMonitor<MonitorVector2> {
             .Child(BorderLine).End()
             .Child<Label>()
                 .Child(_legend)
-                    .Child(Label)
-                        .Config(label => {
-                label.HorizontalAlignment = HorizontalAlignment.Right;
-                            label.SetFontColor(DefaultLabelColor);
-                        })
+                    .Child(Label, label => {
+                        label.HorizontalAlignment = HorizontalAlignment.Right;
+                        label.SetFontColor(DefaultLabelColor);
+                    })
                     .End()
-                    .Child(CurrentValue)
-                        .Config(label => {
-                            label.HorizontalAlignment = HorizontalAlignment.Left;
-                        }).End()
+                    .Child(CurrentValue, label => {
+                        label.HorizontalAlignment = HorizontalAlignment.Left;
+                    })
                     .End()
-                .End();
+                .End()
+            .End()
+        .End();
     }
 
     public override void UpdateMonitor(double delta) {

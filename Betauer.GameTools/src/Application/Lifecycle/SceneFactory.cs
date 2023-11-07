@@ -1,5 +1,6 @@
 using System;
 using Betauer.Core;
+using Betauer.Core.Nodes;
 using Betauer.DI.Factory;
 using Betauer.NodePath;
 using Betauer.Tools.FastReflection;
@@ -19,9 +20,9 @@ public class SceneFactory<T> : ResourceLoad, IFactory<T> where T : Node {
     public T Create() {
         if (Scene == null) throw new Exception($"Can't instantiate scene from null resource: {Path}. Try to load tag '{Tag}' first");
         try {
-            var instantiate = Scene.Instantiate<T>();
-            NodePathScanner.ScanAndInject(instantiate);
-            return instantiate;
+            var instance = Scene.Instantiate<T>();
+            NodePathScanner.ScanAndInject(instance);
+            return instance;
         } catch (Exception) {
             Logger.Error("Error instantiating scene: {0} Tag: {1}",Path, Tag);
             throw;

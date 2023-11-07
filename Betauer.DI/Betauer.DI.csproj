@@ -13,7 +13,6 @@
         <Compile Include="src/**/*.cs" />
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\Betauer.Core\Betauer.Core.csproj" />
         <ProjectReference Include="..\Betauer.Tools.FastReflection\Betauer.Tools.FastReflection.csproj" />
         <ProjectReference Include="..\Betauer.Tools.Logging\Betauer.Tools.Logging.csproj" />
     </ItemGroup>

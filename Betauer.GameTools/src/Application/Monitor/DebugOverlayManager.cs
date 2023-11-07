@@ -38,23 +38,24 @@ public partial class DebugOverlayManager : CanvasLayer {
     }
 
     public override void _Ready() {
-        Name = "DebugOverlayManager";
-        Layer = 1000000;
-        ProcessMode = ProcessModeEnum.Always;
-        Visible = false;
         this.NodeBuilder()
-            .Child(Right).
-                Config(label => {
-                    label.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.TopRight);
-                    label.GrowHorizontal = Control.GrowDirection.Begin;
-                    // label.MarginLeft = 0;
-                    // label.MarginRight = 0;
-                    label.HorizontalAlignment = HorizontalAlignment.Right;
+            .Child(Right, label => {
+                label.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.TopRight);
+                label.GrowHorizontal = Control.GrowDirection.Begin;
+                // label.MarginLeft = 0;
+                // label.MarginRight = 0;
+                label.HorizontalAlignment = HorizontalAlignment.Right;
             })
             .End()
             .Child(OverlayContainer)
             .End()
-            .Child(DebugConsole);
+            .Child(DebugConsole)
+        .End((debugOverlay) => {
+            Name = "DebugOverlayManager";
+            Layer = 1000000;
+            ProcessMode = ProcessModeEnum.Always;
+            Visible = false;
+        });
     }
 
     public DebugOverlay Overlay(string title) {
@@ -173,7 +174,7 @@ public partial class DebugOverlayManager : CanvasLayer {
         } else {
             var debugOverlay = Find(id);
             if (debugOverlay.IsHideOnClose) debugOverlay.Disable();
-            else debugOverlay.QueueFree();
+            else debugOverlay.Destroy();
         }
     }
 }  

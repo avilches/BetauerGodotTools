@@ -220,17 +220,16 @@ public partial class MonitorGraph : BaseMonitor<MonitorGraph> {
         _series.Add(serie);
         _lineChartHolder.AddChild(serie.ChartLine);
         _legend.NodeBuilder()
-            .Child(serie.Label)
-                .Config(label => {
+            .Child(serie.Label, label => {
                 label.HorizontalAlignment = HorizontalAlignment.Right;
-                    label.SetFontColor(DefaultLabelColor);
-                })
+                label.SetFontColor(DefaultLabelColor);
+            })
             .End()
-            .Child(serie.CurrentValue)
-                .Config(label => {
-                    label.HorizontalAlignment = HorizontalAlignment.Right;
-                })
-            .End();
+            .Child(serie.CurrentValue, label => {
+                label.HorizontalAlignment = HorizontalAlignment.Right;
+            })
+            .End()
+        .End();
         _dirty = true;
         return serie;
     }
@@ -243,11 +242,13 @@ public partial class MonitorGraph : BaseMonitor<MonitorGraph> {
             .Child(_lineChartHolder).End()
             .Child(BorderLine).End()
             .Child<Label>()
-                .Child(_legend).End()
+                .Child(_legend, (legend) => {
+                    _legend.GrowHorizontal = GrowDirection.Begin;
+                    _legend.SetAnchorsAndOffsetsPreset(LayoutPreset.RightWide);
+                })
+                .End()
             .End();
 
-        _legend.GrowHorizontal = GrowDirection.Begin;
-        _legend.SetAnchorsAndOffsetsPreset(LayoutPreset.RightWide);
         _dirty = true;
     }
 

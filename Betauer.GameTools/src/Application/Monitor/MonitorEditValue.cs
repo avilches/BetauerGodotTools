@@ -51,10 +51,9 @@ public partial class MonitorEditValue : BaseMonitor<MonitorEditValue> {
         };
         this.NodeBuilder()
             .Child(HBoxContainer)
-                .Child(Label)
-                    .Config(label => {
-                        label.SetFontColor(DefaultLabelColor);
-                    })
+                .Child(Label, label => {
+                    label.SetFontColor(DefaultLabelColor);
+                })
                 .End()
                 .Child(Edit)
                 .End()
