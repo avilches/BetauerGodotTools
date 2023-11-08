@@ -146,10 +146,41 @@ public static partial class DebugOverlayExtensions {
             .SetLabel(label);
     }
 
+    public static MonitorEditValue Edit(this DebugOverlay overlay, string label, int initialValue, Action<int> update) {
+        return overlay.Edit(label, initialValue.ToString(), (s) => update(s.ToInt()));
+    }
+
+    public static MonitorEditValue Edit(this DebugOverlay overlay, string label, float initialValue, Action<float> update) {
+        return overlay.Edit(label, initialValue.ToString(), (s) => update(s.ToFloat()));
+    }
+
+    public static MonitorEditValue Edit(this DebugOverlay overlay, string label, double initialValue, Action<double> update) {
+        return overlay.Edit(label, initialValue.ToString(), (s) => update(s.ToFloat()));
+    }
+
     public static MonitorEditValue Edit(this DebugOverlay overlay, string label, string initialValue, Action<string> update) {
         return overlay.CreateMonitor<MonitorEditValue>()
             .SetLabel(label)
             .SetValue(initialValue)
+            .OnUpdate(update);
+    }
+
+    public static MonitorEditValue Edit(this DebugOverlay overlay, string label, Func<int> initialValueLoader, Action<int> update) {
+        return overlay.Edit(label, () => initialValueLoader().ToString(), (s) => update(s.ToInt()));
+    }
+
+    public static MonitorEditValue Edit(this DebugOverlay overlay, string label, Func<float> initialValueLoader, Action<float> update) {
+        return overlay.Edit(label, () => initialValueLoader().ToString(), (s) => update(s.ToFloat()));
+    }
+
+    public static MonitorEditValue Edit(this DebugOverlay overlay, string label, Func<double> initialValueLoader, Action<double> update) {
+        return overlay.Edit(label, () => initialValueLoader().ToString(), (s) => update(s.ToFloat()));
+    }
+
+    public static MonitorEditValue Edit(this DebugOverlay overlay, string label, Func<string> initialValueLoader, Action<string> update) {
+        return overlay.CreateMonitor<MonitorEditValue>()
+            .SetLabel(label)
+            .SetValueLoader(initialValueLoader)
             .OnUpdate(update);
     }
 

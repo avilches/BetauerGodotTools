@@ -8,6 +8,9 @@ namespace Betauer.Application.Monitor;
 public partial class MonitorEditValue : BaseMonitor<MonitorEditValue> {
     private Action<string>? _updateValue;
     public readonly HBoxContainer HBoxContainer = new();
+    public Func<string>? ValueLoader;
+    private bool _focused = false;
+    
 
     public readonly Label Label = new() {
         Name = "Label",
@@ -49,6 +52,10 @@ public partial class MonitorEditValue : BaseMonitor<MonitorEditValue> {
                 Edit.SetFontColor(DefaultErrorColor);
             }
         };
+        Edit.FocusEntered += () => {
+            _focused = true;
+        };
+        Edit.FocusExited += () => _focused = false;
         this.NodeBuilder()
             .Child(HBoxContainer)
                 .Child(Label, label => {
@@ -59,8 +66,20 @@ public partial class MonitorEditValue : BaseMonitor<MonitorEditValue> {
                 .End()
             .End();
     }
+    
+    public void LoadValue() {
+        if (ValueLoader != null) {
+            Edit.Text = ValueLoader();
+        }
+    }
 
     public override void UpdateMonitor(double delta) {
+        if (!_focused) LoadValue();
+    }
+
+    public MonitorEditValue SetValueLoader(Func<string> valueLoader) {
+        ValueLoader = valueLoader;
+        return this;
     }
 
     public MonitorEditValue SetValue(string value) {
