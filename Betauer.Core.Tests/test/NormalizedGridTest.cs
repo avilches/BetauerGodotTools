@@ -1,3 +1,5 @@
+using Betauer.TestRunner;
+
 namespace Betauer.Core.Tests;
 
 using NUnit.Framework;
@@ -35,22 +37,22 @@ public class NormalizedGridTests {
         var grid = new NormalizedGrid(2, 2, (x, y) => x + y);
         grid.Load();
 
-        Assert.AreEqual(-1f, grid.GetValue(0, 0));
-        Assert.AreEqual(0f, grid.GetValue(1, 0));
-        Assert.AreEqual(0f, grid.GetValue(0, 1));
-        Assert.AreEqual(1f, grid.GetValue(1, 1));
+        Assert.AreEqual(0f , grid.GetValue(0, 0));
+        Assert.AreEqual(0.5f, grid.GetValue(1, 0));
+        Assert.AreEqual(0.5f, grid.GetValue(0, 1));
+        Assert.AreEqual(1f , grid.GetValue(1, 1));
     }
 
     [Betauer.TestRunner.Test]
     public void Load_GivenValueFunc_PopulatesValuesAndNormalizesRange() {
         var grid = new NormalizedGrid(2, 2, (x, y) => x + y);
-        grid.NormalizedRange(0f, 1f);
+        grid.NormalizedRange(-1f, 1f);
         grid.Load();
 
         // Assert
-        Assert.AreEqual(0f, grid.GetValue(0, 0));
-        Assert.AreEqual(0.5f, grid.GetValue(1, 0));
-        Assert.AreEqual(0.5f, grid.GetValue(0, 1));
-        Assert.AreEqual(1f, grid.GetValue(1, 1));
+        Assert.AreEqual(-1f,grid.GetValue(0, 0));
+        Assert.AreEqual(0f, grid.GetValue(1, 0));
+        Assert.AreEqual(0f, grid.GetValue(0, 1));
+        Assert.AreEqual(1f,grid.GetValue(1, 1));
     }
 }

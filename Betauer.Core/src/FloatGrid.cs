@@ -6,28 +6,15 @@ using Godot;
 namespace Betauer.Core;
 
 /// <summary>
-/// A bidimensional array of T values that can be accessed by float coordinates from 0.0 to 1.0, no matter of the size
-///
-/// The range from 0.0 to 1.0 can be changed using MinX, MaxX, MinY and MaxY
+/// A bidimensional array of T values that can be accessed by float normalized coordinates (0.0..1.0), no matter of the size
 /// </summary>
 /// <typeparam name="T"></typeparam>
 public class FloatGrid<T> {
     public T[,] Grid { get; set; }
-    public float MinX { get; set; } = 0f;
-    public float MaxX { get; set; } = 1.0f;
-    public float MinY { get; set; } = 0f;
-    public float MaxY { get; set; } = 1.0f;
+    public readonly Dictionary<T, Rect2> Rects = new();
 
     public FloatGrid(int sizeX, int sizeY) {
         Grid = new T[sizeY, sizeX];
-    }
-
-    public FloatGrid(int sizeX, int sizeY, float minX, float maxX, float minY, float maxY) {
-        Grid = new T[sizeY, sizeX];
-        MinX = minX;
-        MaxX = maxX;
-        MinY = minY;
-        MaxY = maxY;
     }
 
     public void Set(int x, int y, T value) {
@@ -54,16 +41,16 @@ public class FloatGrid<T> {
         Grid[posY, posX] = value;
     }
 
-    private int GetPosX(float x) {
-        var maxXValue = Grid.GetLength(1) - 1;
-        var posX = Math.Clamp(Mathf.RoundToInt(Mathf.Lerp(0, maxXValue, (x - MinX) / (MaxX - MinX))), 0, maxXValue);
-        return posX;
+    private int GetPosY(float y) {
+        var maxValue = Grid.GetLength(0) - 1;
+        var pos = Mathf.RoundToInt(Mathf.Lerp(0, maxValue, y));
+        return Math.Clamp(pos, 0, maxValue);    
     }
 
-    private int GetPosY(float y) {
-        var maxYValue = Grid.GetLength(0) - 1;
-        var posY = Math.Clamp(Mathf.RoundToInt(Mathf.Lerp(0, maxYValue, (y - MinY) / (MaxY - MinY))), 0, maxYValue);
-        return posY;
+    private int GetPosX(float x) {
+        var maxValue = Grid.GetLength(1) - 1;
+        var pos = Mathf.RoundToInt(Mathf.Lerp(0, maxValue, x));
+        return Math.Clamp(pos, 0, maxValue);    
     }
 
     public static FloatGrid<TT> Parse<TT>(string template, Dictionary<char, TT> mapping) {
@@ -113,28 +100,52 @@ public class FloatGrid<T> {
         return lines;
     }
 
-    public void ValidateRectangles() {
-        var rects = new Dictionary<T, (Vector2I, Vector2I)>();
+    public Rect2 GetRect(T value) => Rects[value];
+
+    /// <summary>
+    /// First validate all elements has a unique rectangle without overlapping others.
+    /// So, this is valid:
+    ///
+    ///    AAxxCxw
+    ///    AAxxDDD
+    ///    AA..FFF
+    ///
+    /// But these are not valid:
+    ///
+    ///    AAxA
+    ///    AAxD Because A appears twice
+    ///
+    ///    AAxx
+    ///    AAxD Because x is not a rectangle (it has a D inside)
+    ///
+    /// If validation is ok, then create the Rects dictionary with all the rectangles 
+    /// 
+    /// </summary>
+    /// <exception cref="Exception"></exception>
+    public void CreateRectangles() {
         var width = Grid.GetLength(1);
         var height = Grid.GetLength(0);
+        var rectPositions = new Dictionary<T, (Vector2I, Vector2I)>();
         for (var y = 0; y < height; y++) {
             for (var x = 0; x < width; x++) {
                 T value = Grid[y, x];
-                if (!rects.ContainsKey(value)) {
-                    rects[value] = (new Vector2I(x, y), new Vector2I(x, y));
+                if (!rectPositions.ContainsKey(value)) {
+                    rectPositions[value] = (new Vector2I(x, y), new Vector2I(x, y));
                 } else {
-                    var (start, end) = rects[value];
+                    var (start, end) = rectPositions[value];
                     if (x < start.X) start = new Vector2I(x, start.Y);
                     if (y < start.Y) start = new Vector2I(start.X, y);
 
                     if (x > end.X) end = new Vector2I(x, end.Y);
                     if (y > end.Y) end = new Vector2I(end.X, y);
 
-                    rects[value] = (start, end);
+                    rectPositions[value] = (start, end);
                 }
             }
         }
-        foreach (var (value, (start, end)) in rects) {
+        var rectWidth = 1f / width;
+        var rectHeight = 1f / height;
+        foreach (var (value, (start, end)) in rectPositions) {
             for (var y = start.Y; y <= end.Y; y++) {
                 for (var x = start.X; x <= end.X; x++) {
                     T gridValue = Grid[y, x];
@@ -142,6 +153,9 @@ public class FloatGrid<T> {
                     throw new Exception($"Wrong value {gridValue} in position ({x},{y}). Expected value: {value}");
                 }
             }
+            var rectStart = new Vector2(start.X * rectWidth, start.Y * rectHeight);
+            var rectEnd = new Vector2(end.X * rectWidth + rectWidth, end.Y * rectHeight + rectHeight);
+            Rects[value] = new Rect2(rectStart, rectEnd - rectStart);
         }
     }
 }

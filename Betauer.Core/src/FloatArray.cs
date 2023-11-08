@@ -5,35 +5,31 @@ using Godot;
 
 namespace Betauer.Core;
 
+/// <summary>
+/// A unidimensional array of T values that can be accessed by float normalized coordinates (0.0..1.0), no matter of the size
+/// </summary>
+/// <typeparam name="T"></typeparam>
 public class FloatArray<T> {
-    public T[] Grid { get; set; }
-    public float Min { get; set; } = -1.0f;
-    public float Max { get; set; } = 1.0f;
+    public T[] Array { get; set; }
 
     public FloatArray(int size) {
-        Grid = new T[size];
-    }
-
-    public FloatArray(int size, float minX, float maxX) {
-        Grid = new T[size];
-        Min = minX;
-        Max = maxX;
+        Array = new T[size];
     }
 
     public void Set(int x, T value) {
-        Grid[x] = value;
+        Array[x] = value;
     }
 
-    public void Set(int x, int width, T biome) {
+    public void Set(int x, int width, T value) {
         for (var xx = 0; xx < width; xx++) {
-            Grid[x + xx] = biome;
+            Array[x + xx] = value;
         }
     }
 
     public T Get(float x) {
-        var maxValue = Grid.Length - 1;
-        var pos = Mathf.RoundToInt(Mathf.Lerp(0, maxValue, (x - Min) / (Max - Min)));
-        return Grid[Math.Clamp(pos, 0, maxValue)];
+        var maxValue = Array.Length - 1;
+        var pos = Mathf.RoundToInt(Mathf.Lerp(0, maxValue, x));
+        return Array[Math.Clamp(pos, 0, maxValue)];    
     }
 
     public static FloatArray<TT> Parse<TT>(string line, Dictionary<char, TT> mapping) {

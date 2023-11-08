@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using Betauer.TestRunner;
+using Godot;
 using NUnit.Framework;
 
-namespace Betauer.Core.Tests; 
+namespace Betauer.Core.Tests;
 
 [TestRunner.Test]
 public class FloatGridTest {
-
     [TestRunner.Test]
     public void FloatArrayTest() {
         var mapping = new Dictionary<char, string>() {
@@ -21,49 +21,66 @@ public class FloatGridTest {
             { 'H', "H" },
             { 'I', "I" },
         };
-        var floatArray = FloatArray<string>.Parse("ABC", mapping);
+        var floatArray = FloatArray<string>.Parse("ABBBBBCCCD", mapping);
 
-        Assert.AreEqual("A", floatArray.Get(-1000f));
         Assert.AreEqual("A", floatArray.Get(-1f));
-        Assert.AreEqual("B", floatArray.Get(-0.2f));
-        Assert.AreEqual("B", floatArray.Get(0f));
+        
+        Assert.AreEqual("A", floatArray.Get(0f));
+        Assert.AreEqual("B", floatArray.Get(0.1f));
         Assert.AreEqual("B", floatArray.Get(0.2f));
-        Assert.AreEqual("C", floatArray.Get(1f));
-        Assert.AreEqual("C", floatArray.Get(100f));
+        Assert.AreEqual("B", floatArray.Get(0.3f));
+        Assert.AreEqual("B", floatArray.Get(0.4f));
+        Assert.AreEqual("B", floatArray.Get(0.5f));
+        Assert.AreEqual("B", floatArray.Get(0.6f));
+        Assert.AreEqual("C", floatArray.Get(0.7f));
+        Assert.AreEqual("C", floatArray.Get(0.8f));
+        Assert.AreEqual("D", floatArray.Get(0.945f));
+        Assert.AreEqual("D", floatArray.Get(1f));
     }
 
 
     [TestRunner.Test]
-    public void Test0() {
-        
-        
+    public void NoRectanglesTest() {
         var floatArray = FloatGrid<string>.Parse("""
-                                           :AAAAA:
-                                           :BCCCB:
-                                           :.....:
-                                           :...A.:
-                                           :DDDDD:
-                                           """, new Dictionary<char, string>() {
-            {'A', "A"},
-            {'B', "B"},
-            {'C', "C"},
-            {'D', "D"},
-            {'.', "Empty"},
+                                                 :AAAAA:
+                                                 :BCCCB:
+                                                 :.....:
+                                                 :...A.:
+                                                 :DDDDD:
+                                                 """, new Dictionary<char, string>() {
+            { 'A', "A" },
+            { 'B', "B" },
+            { 'C', "C" },
+            { 'D', "D" },
+            { '.', "Empty" },
         });
 
-        floatArray.MinX = -1f;
-        floatArray.MaxX = 1;
-        floatArray.MinY = -1f;
-        floatArray.MaxY = 1;
-
-        Assert.AreEqual( floatArray.Get(0f, 0f), "Empty");
-        Assert.AreEqual( floatArray.Get(1f, 1f), "D");
-        Assert.AreEqual( floatArray.Get(-1f, -1f), "A");
-        Assert.AreEqual( floatArray.Get(0.5f, 0.5f), "A");
+        Assert.AreEqual(floatArray.Get(-1f, -1f), "A");
+        Assert.AreEqual(floatArray.Get(0.1f, 0.1f), "A");
+        Assert.AreEqual(floatArray.Get(0.5f, 0.5f), "Empty");
+        Assert.AreEqual(floatArray.Get(1f, 1f), "D");
     }
 
     [TestRunner.Test]
-    public void Test1() {
+    public void RectanglesTest() {
+        var floatArray = FloatGrid<string>.Parse("""
+                                                 :AABB:
+                                                 :CCBB:
+                                                 :CCBB:
+                                                 """, new Dictionary<char, string>() {
+            { 'A', "A" },
+            { 'B', "B" },
+            { 'C', "C" },
+        });
+        
+        floatArray.CreateRectangles();
+        Assert.AreEqual(floatArray.GetRect("A"), new Rect2(0f, 0f, 1f / 2, 1f / 3));
+        Assert.AreEqual(floatArray.GetRect("B"), new Rect2(0.5f, 0f, 1f / 2, 1f));
+        Assert.AreEqual(floatArray.GetRect("C"), new Rect2(0f, 1f/3, 1f / 2, 0.666666627f));
+    }
+
+    [TestRunner.Test]
+    public void SimpleTest() {
         var floatArray = FloatGrid<string>.Parse("""
                                                  :ABC:
                                                  :DEF:
@@ -80,64 +97,28 @@ public class FloatGridTest {
             { 'I', "I" },
         });
 
-        Assert.AreEqual("A", floatArray.Get(0, 0));
-        Assert.AreEqual("B", floatArray.Get(0.5f, 0));
-        Assert.AreEqual("E", floatArray.Get(0.5f, 0.5f));
-        Assert.AreEqual("I", floatArray.Get(1f, 1f));
-    }
+        // Assert.AreEqual(floatArray.GetRect("A"), new Rect2());
 
-    [TestRunner.Test]
-    public void Test2() {
-        var floatArray = FloatGrid<string>.Parse("""
-                                           :ABC:
-                                           :DEF:
-                                           :GHI:
-                                           """, new Dictionary<char, string>() {
-            {'A', "A"},
-            {'B', "B"},
-            {'C', "C"},
-            {'D', "D"},
-            {'E', "E"},
-            {'F', "F"},
-            {'G', "G"},
-            {'H', "H"},
-            {'I', "I"},
-        });
+        Assert.AreEqual("A", floatArray.Get(-10f, -10f));
         
-        floatArray.MinX = -1f;
-        floatArray.MaxX = 1;
-        floatArray.MinY = -1f;
-        floatArray.MaxY = 1;
-
-        Assert.AreEqual("A", floatArray.Get(-1000f, -1000f));
         Assert.AreEqual("A", floatArray.Get(-1f, -1f));
-        Assert.AreEqual("B", floatArray.Get(0f, -1f));
+        Assert.AreEqual("B", floatArray.Get(0.5f, -1f));
         Assert.AreEqual("C", floatArray.Get(1f, -1f));
+        Assert.AreEqual("C", floatArray.Get(10f, -1f));
+
+        Assert.AreEqual("D", floatArray.Get(0f, 0.5f));
+        Assert.AreEqual("E", floatArray.Get(0.5f, 0.5f));
+        Assert.AreEqual("F", floatArray.Get(0.75f, 0.5f));
+
+        Assert.AreEqual("G", floatArray.Get(0f, 0.75f));
+        Assert.AreEqual("H", floatArray.Get(0.5f, 0.75f));
+        Assert.AreEqual("I", floatArray.Get(0.75f, 0.75f));
         
-        Assert.AreEqual("D", floatArray.Get(-1f, 0f));
-
-        Assert.AreEqual("E", floatArray.Get(-0.49f, -0.49f));
-        Assert.AreEqual("E", floatArray.Get(0f, 0f));
-        Assert.AreEqual("E", floatArray.Get(0.49f, 0.49f));
-        Assert.AreEqual("F", floatArray.Get(1f, 0f));
-        
-        Assert.AreEqual("G", floatArray.Get(-1f, 1f));
-        Assert.AreEqual("H", floatArray.Get(0f, 1f));
-        Assert.AreEqual("I", floatArray.Get(1f, 1f));
-        Assert.AreEqual("I", floatArray.Get(100f, 100f));
-
-        floatArray.MinX = -50;
-        floatArray.MaxX = 50;
-        floatArray.MinY = 1000;
-        floatArray.MaxY = 0;
-
-        Assert.AreEqual("A", floatArray.Get(-50, 1000f));
-        Assert.AreEqual("E", floatArray.Get(0, 500f));
-        Assert.AreEqual("I", floatArray.Get(50f, 0f));
+        Assert.AreEqual("I", floatArray.Get(10f, 10f));
     }
 
     [TestRunner.Test]
-    public void Validate() {
+    public void ValidateRectanglesTest() {
         var mapping = new Dictionary<char, string>() {
             { 'A', "A" },
             { 'B', "B" },
@@ -222,7 +203,7 @@ public class FloatGridTest {
 file static class FloatGridExtensions {
     public static bool IsValid<T>(this FloatGrid<T> grid) {
         try {
-            grid.ValidateRectangles();
+            grid.CreateRectangles();
             return true;
         } catch (Exception e) {
             Console.WriteLine(e);

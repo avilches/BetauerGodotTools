@@ -86,12 +86,6 @@ public class BiomeGenerator {
         var charMapping = Biomes.ToDictionary(pair => pair.Value.Char, pair => pair.Value.Type);
         BiomeGrid = FloatGrid<BiomeType>.Parse(BiomeConfig, charMapping);
 
-        BiomeGrid.MinY = 0;
-        BiomeGrid.MaxY = 1;
-
-        BiomeGrid.MinX = 0;
-        BiomeGrid.MaxX = 1;
-
         HeightNoise.NoiseTypeValue = FastNoiseLite.NoiseType.OpenSimplex2S;
         HeightNoise.Frequency = 0.02f;
 
