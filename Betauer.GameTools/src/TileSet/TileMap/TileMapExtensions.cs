@@ -4,16 +4,14 @@ using Betauer.Core;
 namespace Betauer.TileSet.TileMap;
 
 public static class TileMapExtensions {
-    private static readonly Random Random = new Random();
-
-
-    public static void Smooth(this TileMap tileMap) {
+    public static void Smooth(this TileMap tileMap, int seed = 0) {
         var steps = 0;
-        while (SmoothStep(tileMap) && steps++ < 15) {
+        var random = new Random(seed);
+        while (SmoothStep(tileMap, random) && steps++ < 15) {
         }
     }
 
-    public static bool SmoothStep(this TileMap tileMap) {
+    public static bool SmoothStep(this TileMap tileMap, Random random) {
         var worked = false;
 
         tileMap.Execute((t, x, y) => {
@@ -25,7 +23,7 @@ public static class TileMapExtensions {
             var equalLat = left.Equals(right);
             var equalVer = up.Equals(down);
             if (equalLat && equalVer) {
-                SetData(x, y, Random.NextBool() ? left : up);
+                SetData(x, y, random.NextBool() ? left : up);
             } else if (equalLat) {
                 SetData(x, y, left);
             } else if (equalVer) {
