@@ -35,8 +35,8 @@ public static class TileMapExtensions {
         return worked;
 
         int GetSafeData(int x, int y, int def) {
-            if (x < 0 || x >= tileMap.Height ||
-                y < 0 || y >= tileMap.Width) return def;
+            if (x < 0 || x >= tileMap.Width ||
+                y < 0 || y >= tileMap.Height) return def;
             return tileMap.GetTerrain(x, y);
         }
 
