@@ -46,7 +46,7 @@ public partial class RtsGameView : Control, IInjectable, IGameView {
 
 	public void PostInject() {
 		PlayerActionsContainer.Disable(); // The real actions are cloned per player in player.Connect()
-		ConfigureDebugOverlays();
+		// ConfigureDebugOverlays();
 		_splitViewport = new SplitViewport {
 			Camera1 = {
 				Zoom = new Vector2(2, 2)

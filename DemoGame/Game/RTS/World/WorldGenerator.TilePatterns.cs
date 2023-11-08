@@ -1,11 +1,18 @@
-using System.Collections.Generic;
-using Betauer.TileSet;
-using Betauer.TileSet.Image;
-using Betauer.TileSet.TileMap;
-using Betauer.TileSet.TileMap.Handlers;
-using Godot;
-
 namespace Veronenger.Game.RTS.World;
+
+public enum Biomes {
+    None = -1,
+    Water,
+    
+    Beach,
+    RockyBeach,
+    
+    Forest,
+    Jungle,
+    
+    Rock,
+    Snow,
+}
 
 public enum TilePatterns {
     None,

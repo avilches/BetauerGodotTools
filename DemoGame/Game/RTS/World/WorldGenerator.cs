@@ -1,20 +1,21 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Betauer.Application.Lifecycle;
-using Betauer.Core.PoissonDiskSampling;
 using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
 using Godot;
 using Veronenger.RTS.Assets.Trees;
 using Betauer.Core;
+using Betauer.Nodes;
 using Betauer.Core.Collision.Spatial2D;
-using Betauer.Core.Image;
 using Betauer.TileSet.Image;
 using Betauer.TileSet.Terrain;
 using Betauer.TileSet.TileMap;
 using Betauer.TileSet.TileMap.Handlers;
+using TileMap = Godot.TileMap;
 
 namespace Veronenger.Game.RTS.World;
 
@@ -24,25 +25,163 @@ public partial class WorldGenerator {
     [Inject] public ITransient<Trees> TreesFactory { get; set; }
     [Inject] public SceneTree SceneTree { get; set; }
     [Inject] public ResourceHolder<Texture2D> Grasslands { get; set; }
-    private Trees TreesInstance;
+
+    public BiomeGenerator BiomeGenerator { get; } = new();
+    public TileMap<BiomeType> TileMap { get; private set; }
+    public TileMap GodotTileMap { get; private set; }
+    public Trees TreesInstance;
+    public Drawer Drawer { get; private set; }
     private const int CellSize = 16;
 
     private const int Layers = 2;
-    private const int GridSize = 200;
-    private const int Size = GridSize * CellSize;
-    public FastTextureNoiseWithGradient FastNoise { get; private set; }
+    private const int Width = 500;
+    private const int Height = 500;
+    
+    public enum ViewMode {
+        Terrain,
+        Height,
+        Humidity,
+        FalloffMap,
+    }
+    
+    public ViewMode CurrentViewMode { get; set; } = ViewMode.Terrain;
 
-    public void Generate(Godot.TileMap godotTileMap, NoiseTexture2D noiseTexture) {
+    public void Configure(TileMap godotTileMap) {
+        BiomeGenerator.Configure(Width, Height);
+        TileMap = new TileMap<BiomeType>(Layers, Width, Height);
+        GodotTileMap = godotTileMap;
+        
+        Drawer = GodotTileMap.AddDraw((canvas) => {
+            // Hack needed to draw on top of the tilemap:
+            // https://www.reddit.com/r/godot/comments/w3l48f/does_anyone_know_how_to_set_the_draw_order_when/
+            // https://github.com/godotengine/godot/issues/35002 
+            GodotTileMap.Visible = false;
+            var subViewport = (SubViewport)canvas.GetViewport();
+            subViewport.RenderTargetClearMode = SubViewport.ClearMode.Never;
+            Draw(canvas);
+            GodotTileMap.Visible = true;
+            subViewport.RenderTargetClearMode = SubViewport.ClearMode.Always;
+        });
+        GodotTileMap.OnProcess(d => {
+            // drawer.QueueRedraw();
+        });
+    }
+
+
+    public void Generate() {
+        var biomeGrid = BiomeGenerator.Generate();
+
+        TileMap.Execute((t, x, y) => {
+            var biomeType = biomeGrid[y, x].Biome.Type;
+            TileMap.SetTerrain(x, y, biomeType);
+        });
+
+        TileMap.Smooth();
+        // TileMap.IfTerrainEnum(BiomeType.Ocean).SetAtlasCoords(0, 6, new Vector2I(19, 13)); // Modern, deep water
+        TileMap.IfTerrainEnum(BiomeType.Glacier).SetAtlasCoords(0, 6, new Vector2I(2, 2)); // Modern, snow
+        TileMap.IfTerrainEnum(BiomeType.Mountain).SetAtlasCoords(0, 1, new Vector2I(0, 0)); // Mud
+        
+        TileMap.IfTerrainEnum(BiomeType.Desert).SetAtlasCoords(0, 0, new Vector2I(0, 15)); // Red
+        TileMap.IfTerrainEnum(BiomeType.Savannah).SetAtlasCoords(0, 0, new Vector2I(0, 2)); // GreenYellow 
+        TileMap.IfTerrainEnum(BiomeType.Forest).SetAtlasCoords(0, 0, new Vector2I(11, 1)); // 
+        TileMap.IfTerrainEnum(BiomeType.Jungle).SetAtlasCoords(0, 0, new Vector2I(16, 2)); // 
+        
+        
+        // TileMap.IfTerrainEnum(BiomeType.Beach).SetAtlasCoords(0, 3, new Vector2I(0, 0)); // Sand
+        TileMap.IfTerrainEnum(BiomeType.Beach).SetAtlasCoords(0, 7, new Vector2I(18, 4)); // Sand
+        TileMap.IfTerrainEnum(BiomeType.Sea).SetAtlasCoords(0, 6, new Vector2I(20, 13)); // Modern, water
+
+        // TileMap.IfTerrain(BiomeType.ColdBeach).SetAtlasCoords(0, 3, new Vector2I(0, 0));
+        // TileMap.IfTerrain(BiomeType.Glacier).SetAtlasCoords(0, 3, new Vector2I(0, 0));
+
+        // TileMap.IfTerrain(Biomes.RockyBeach)
+        //     .Do((t, x, y) => TileMap.SetAtlasCoords(0, 2, x, y, new Vector2I(0, 0)))
+        //     .Apply();
+        //
+        // TileMap.IfTerrain(Biomes.Forest)
+        //     .Do((t, x, y) => TileMap.SetAtlasCoords(0, 0, x, y, new Vector2I(5, 0)))
+        //     .Apply();
+        //
+        // TileMap.IfTerrain(Biomes.Jungle)
+        //     .Do((t, x, y) => TileMap.SetAtlasCoords(0, 0, x, y, new Vector2I(15, 0)))
+        //     .Apply();
+        //
+        // TileMap.IfTerrain(Biomes.Snow)
+        //     .Do((t, x, y) => TileMap.SetAtlasCoords(0, 0, x, y, new Vector2I(15, 5)))
+        //     .Apply();
+        //
+        // TileMap.IfTerrain(Biomes.Rock)
+        //     .Do((t, x, y) => TileMap.SetAtlasCoords(0, 0, x, y, new Vector2I(20, 0)))
+        //     .Apply();
+
+        GodotTileMap.Clear();
+        TileMap.Flush();
+        TileMap.DumpAtlasCoordsTo(GodotTileMap);
+
+        /*
+        TileMap.Execute((t, x, y) => {
+            if (x > 100 || y > 100) return;
+            if (TileMap.GetTerrainEnum(x, y) == BiomeType.Beach ||
+                TileMap.GetTerrainEnum(x, y) == BiomeType.ColdBeach ||
+                TileMap.GetTerrainEnum(x, y) == BiomeType.Glacier) {
+                var l = new Label {
+                    Text = biomeGrid[y, x].Height > 0 ? "+" : "-",
+                    Position = godotTileMap.MapToLocal(new Vector2I(x, y))
+                };
+                godotTileMap.AddChild(l);
+            }
+        });
+        */
+        // GodotTileMap.ZIndex = 1;
+        UpdateView();
+    }
+    
+    public void UpdateView() {
+        // GodotTileMap.Visible = CurrentViewMode == ViewMode.Terrain;
+        Drawer.QueueRedraw();
+    }
+
+    private void Draw(CanvasItem canvas) {
+        if (CurrentViewMode == ViewMode.Height) {
+            DrawGrid(canvas, BiomeGenerator.HeightGrid);
+        } else if (CurrentViewMode == ViewMode.Humidity) {
+            DrawGrid(canvas, BiomeGenerator.HumidityGrid);
+        } else if (CurrentViewMode == ViewMode.FalloffMap) {
+            DrawGrid(canvas, BiomeGenerator.FalloffMap);
+        } else if (CurrentViewMode == ViewMode.Terrain) {
+        }
+    }
+
+    private void DrawGrid(CanvasItem canvas, float[,] grid) {
+        var offset = new Vector2(8, 8);
+        TileMap.Execute((t, x, y) => {
+            // canvas.TopLevel = true;
+            var noise = grid[y, x];
+            var color = new Color(1f, noise, noise);
+            var position = (GodotTileMap.MapToLocal(new Vector2I(x, y))) - offset;
+            canvas.DrawRect(new Rect2(position, new Vector2(16, 16)), color, true);
+        });
+    }
+
+    private void DrawGrid(CanvasItem canvas, NormalizedGrid grid) {
+        var offset = new Vector2(8, 8);
+        TileMap.Execute((t, x, y) => {
+            // canvas.TopLevel = true;
+            var noise = grid.GetValue(x, y);
+            var color = new Color(1f, noise, noise);
+            var position = (GodotTileMap.MapToLocal(new Vector2I(x, y))) - offset;
+            canvas.DrawRect(new Rect2(position, new Vector2(16, 16)), color, true);
+        });
+    }
+
+    public void GenerateOld(TileMap godotTileMap, NoiseTexture2D noiseHeight, NoiseTexture2D noiseMoisture) {
         godotTileMap.Clear();
         TreesInstance = TreesFactory.Create();
         TreesInstance.Configure();
 
-        FastNoise = new FastTextureNoiseWithGradient(noiseTexture);
+        // FastNoiseHeight = new FastTextureNoiseWithGradient(noiseHeight);
 
         Measure("Place objects", () => { PlaceObjects(godotTileMap); });
-
-        // var config = CreateTileHandlers();
-        // var sources = config.ToDictionary(pair => pair.Key, pair => (ISource)pair.Value);
 
         var tiles = new[] {
             TilePatterns.TerrainGreen,
@@ -50,27 +189,22 @@ public partial class WorldGenerator {
             TilePatterns.ModernDirt,
             TilePatterns.ModernWater,
             TilePatterns.ModernDeepWater
-            // TilePatterns.TextureGrass,
-            // TilePatterns.TextureGrass,
-            // TilePatterns.TextureGrassLight,
-            // TilePatterns.TextureSoil,
-            // TilePatterns.TextureStoneSquare
         };
-        var tileMap = new TileMap<TilePatterns>(2, GridSize, GridSize, new System.Collections.Generic.Dictionary<TilePatterns, int> {
+        var tileMap = new TileMap<TilePatterns>(Layers, Width, Height, new Dictionary<TilePatterns, int> {
             { TilePatterns.None, -1 }
         });
-        var tileMapSource = tileMap.CreateSource(8, TileSetLayouts.Blob47Godot);
+        var sproutDarkerGrass = tileMap.CreateSource(8, TileSetLayouts.Blob47Godot);
 
-        tileMap.Apply((t, x, y) => tileMap.SetTerrain(x, y, tiles[FastNoise.GetNoiseGradient(x, y)]));
-        tileMap.Apply(new TerrainTileHandler(1, TilePatternRuleSets.Blob47Rules.WithTerrain(tileMap.EnumToTerrain(TilePatterns.ModernDirt)), tileMapSource));
-        tileMap.CreatePipeline()
-            .FilterTerrain(TilePatterns.ModernDirt)
-            .Do((t, x, y) => tileMapSource.SetAtlasCoords(0, x, y, 255))
+        // tileMap.Execute((t, x, y) => tileMap.SetTerrain(x, y, tiles[FastNoiseHeight.GetNoiseGradient(x, y)]));
+        tileMap.Smooth();
+        tileMap.Execute(new TerrainTileHandler(1, TilePatternRuleSets.Blob47Rules.WithTerrain(tileMap.EnumToTerrain(TilePatterns.ModernDirt)), sproutDarkerGrass));
+        tileMap.Execute(new TerrainTileHandler(1, TilePatternRuleSets.Blob47Rules.WithTerrain(tileMap.EnumToTerrain(TilePatterns.TerrainGreen)), sproutDarkerGrass));
+        tileMap.IfTerrain((int)TilePatterns.ModernDirt)
+            .Do((t, x, y) => sproutDarkerGrass.SetAtlasCoords(0, x, y, 255))
             .Apply();
 
         godotTileMap.ZIndex = 1;
-        tileMap.Smooth();
-        tileMap.Flush(godotTileMap);
+        tileMap.DumpAtlasCoordsTo(godotTileMap);
     }
 
     private void PlaceObjects(Node parent) {
@@ -96,15 +230,15 @@ public partial class WorldGenerator {
         var miniForestRadius = CellSize;
         var minRadius = 16;
         var maxRadius = 120;
-
-        var points = new VariablePoissonSampler2D(Size, Size)
-            .Generate((float x, float y) => {
-                var noise = 1f - FastNoise.GetNoise((int)x / 16, (int)y / 16);
-                return Mathf.Lerp(minRadius, maxRadius, noise);
-            }, minRadius, maxRadius);
-
+        //
+        // var points = new VariablePoissonSampler2D(Size, Size)
+        //     .Generate((float x, float y) => {
+        //         var noise = 1f - FastNoiseHeight.GetNoise((int)x / 16, (int)y / 16);
+        //         return Mathf.Lerp(minRadius, maxRadius, noise);
+        //     }, minRadius, maxRadius);
+        //
         var grid = SpatialGrid.FromAverageDistance(minRadius, maxRadius);
-        grid.AddPointsAsCircles(points);
+        // grid.AddPointsAsCircles(points);
         grid.ExpandAll(1);
         grid.RemoveAll(s => Random.NextBool(0.5));
         grid.FindShapes<Circle>().OrderBy(v => v.Y)

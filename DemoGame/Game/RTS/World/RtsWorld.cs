@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using Betauer.Animation.Easing;
 using Betauer.Application.Monitor;
@@ -10,6 +9,7 @@ using Betauer.DI.Attributes;
 using Betauer.FSM.Sync;
 using Betauer.Input;
 using Betauer.NodePath;
+using Betauer.UI;
 using Godot;
 
 namespace Veronenger.Game.RTS.World;
@@ -22,8 +22,9 @@ public partial class RtsWorld : Node, IInjectable {
 	[Inject] protected DebugOverlayManager DebugOverlayManager { get; set; }
 	private readonly DragCameraController _dragCameraController = new();
 
-	[NodePath("Grasslands")] private TileMap Grasslands { get; set; }
-	[NodePath("TextureTerrainMap")] private Sprite2D TextureTerrainMap { get; set; }
+	[NodePath("TerrainTileMap")] private TileMap TerrainTileMap { get; set; }
+	[NodePath("TextureHeight")] private Sprite2D TextureHeight { get; set; }
+	[NodePath("TextureHumidity")] private Sprite2D TextureHumidity { get; set; }
 	[NodePath("TexturePoisson")] private Sprite2D TexturePoisson { get; set; }
 
 	private CameraController CameraController;
@@ -56,22 +57,13 @@ public partial class RtsWorld : Node, IInjectable {
 		_fsm.Execute();
 
 		AddChild(_fsm);
-
-		var colorRampOffsets = GetOffsets();
-		DebugOverlayManager.Overlay("RTS")
-			.SetMinSize(400, 100)
-			.Edit("Ranges", string.Join("|", colorRampOffsets), SetOffsets).SetMinSize(350);
 	}
-
-	private List<float> GetOffsets() {
-		var colorRampOffsets = ((NoiseTexture2D)TextureTerrainMap.Texture).ColorRamp.Offsets.ToList();
-		colorRampOffsets.RemoveAt(0);
-		return colorRampOffsets;
-	}
-
-	private void SetOffsets(string offsets) {
-		((NoiseTexture2D)TextureTerrainMap.Texture).ColorRamp.Offsets = offsets.Split("|").Select(float.Parse).Prepend(0).ToArray();
-		WorldGenerator.Generate(Grasslands, (NoiseTexture2D)TextureTerrainMap.Texture);
+	
+	private void SetSeed(string seed) {
+		if (seed.IsValidInt() && seed.ToInt() != WorldGenerator.BiomeGenerator.Seed)  {
+			WorldGenerator.BiomeGenerator.Seed = seed.ToInt();
+			WorldGenerator.Generate();
+		}
 	}
 
 	private void Zooming(InputEvent @event) {
@@ -98,8 +90,10 @@ public partial class RtsWorld : Node, IInjectable {
 	public async void StartNewGame() {
 		CameraGameObject = GameObjectRepository.Create<CameraGameObject>("ScreenState", "ScreenState");
 		Init();
-		WorldGenerator.Generate(Grasslands, (NoiseTexture2D)TextureTerrainMap.Texture);
-
+		TerrainTileMap.Clear();
+		WorldGenerator.Configure(TerrainTileMap);
+		WorldGenerator.Generate();
+		ConfigureDebugOverlay();
 		// var poissonDemos = new PoissonDemos(TextureTerrainMap, TexturePoisson);
 		// AddChild(poissonDemos);
 		// poissonDemos.QueueFree();
@@ -108,6 +102,8 @@ public partial class RtsWorld : Node, IInjectable {
 	public void LoadGame(RtsSaveGameConsumer consumer) {
 		CameraGameObject = GameObjectRepository.Get<CameraGameObject>("ScreenState");
 		Init();
+		// Load the values from the save game
+		ConfigureDebugOverlay();
 		CameraController.Camera2D.Position = CameraGameObject.Position;
 	}
 
@@ -117,4 +113,45 @@ public partial class RtsWorld : Node, IInjectable {
 		CameraController.Camera2D.Zoom = new Vector2(zoom, zoom);
 		_fsm.Send(RtsTransition.Idle);
 	}
+	
+	private void ConfigureDebugOverlay() {
+		var viewGroup = new ButtonGroup();
+
+		DebugOverlayManager.Overlay("RTS")
+			.OnDestroy(() => viewGroup.Dispose())
+			.SetMinSize(400, 100)
+			.Edit("Seed", "100", SetSeed).SetMinSize(20).EndMonitor()
+			.Add(new HBoxContainer().NodeBuilder()
+				.Label("View Mode").End()
+				.ToggleButton("Terrain", (button) => {
+					WorldGenerator.CurrentViewMode = WorldGenerator.ViewMode.Terrain;
+					WorldGenerator.UpdateView();
+				}, () => WorldGenerator.CurrentViewMode == WorldGenerator.ViewMode.Terrain, viewGroup).End()
+				.ToggleButton("Height", (button) => {
+					WorldGenerator.CurrentViewMode = WorldGenerator.ViewMode.Height;
+					WorldGenerator.UpdateView();
+				}, () => WorldGenerator.CurrentViewMode == WorldGenerator.ViewMode.Terrain, viewGroup).End()
+				.ToggleButton("Humidity", (button) => {
+					WorldGenerator.CurrentViewMode = WorldGenerator.ViewMode.Humidity;
+					WorldGenerator.UpdateView();
+				}, () => WorldGenerator.CurrentViewMode == WorldGenerator.ViewMode.Terrain, viewGroup).End()
+				.ToggleButton("FallOff", (button) => {
+					WorldGenerator.CurrentViewMode = WorldGenerator.ViewMode.FalloffMap;
+					WorldGenerator.UpdateView();
+				}, () => WorldGenerator.CurrentViewMode == WorldGenerator.ViewMode.FalloffMap, viewGroup).End()
+				.End())
+			.Text("Humidity").EndMonitor()
+			.Edit("Frequency", () => WorldGenerator.BiomeGenerator.HeightNoise.Frequency, (value) => {
+				WorldGenerator.BiomeGenerator.HeightNoise.Frequency = value;
+				WorldGenerator.Generate();
+			}).EndMonitor()
+			.Text("Humidity").EndMonitor()
+			.Edit("Frequency", () => WorldGenerator.BiomeGenerator.HumidityNoise.Frequency, (value) => {
+				WorldGenerator.BiomeGenerator.HumidityNoise.Frequency = value;
+				WorldGenerator.Generate();
+			}).EndMonitor()
+			;
+
+	}
+
 }
