@@ -30,7 +30,6 @@ internal static class TerrainRuleExtension {
 }
 
 [TestRunner.Test]
-[Only]
 public class TerrainRuleTests : BaseBlobTests {
     
     [TestRunner.Test]

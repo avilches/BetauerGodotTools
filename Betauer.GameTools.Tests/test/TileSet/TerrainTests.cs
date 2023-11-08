@@ -1,7 +1,5 @@
 using System.Collections.Generic;
-using Betauer.Core;
 using Betauer.TestRunner;
-using Betauer.TileSet.Terrain;
 using Betauer.TileSet.TileMap;
 using Godot;
 using NUnit.Framework;
@@ -9,7 +7,6 @@ using NUnit.Framework;
 namespace Betauer.GameTools.Tests.TileSet;
 
 [TestRunner.Test]
-[Only]
 public class TerrainTests : BaseBlobTests {
     [Betauer.TestRunner.Test]
     public void BasicTest() {
