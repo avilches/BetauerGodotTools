@@ -41,14 +41,24 @@ public partial class WorldGenerator {
     public enum ViewMode {
         Terrain,
         Height,
+        HeightFalloff,
         Humidity,
         FalloffMap,
     }
     
     public ViewMode CurrentViewMode { get; set; } = ViewMode.Terrain;
 
+    private int _seed = 0;
+    public int Seed {
+        get => _seed;
+        set {
+            _seed = value;
+            BiomeGenerator.Seed = _seed;
+        }
+    }
+
     public void Configure(TileMap godotTileMap) {
-        BiomeGenerator.Configure(Width, Height);
+        BiomeGenerator.Configure(Width, Height, Seed);
         TileMap = new TileMap<BiomeType>(Layers, Width, Height);
         GodotTileMap = godotTileMap;
         
@@ -68,7 +78,6 @@ public partial class WorldGenerator {
         });
     }
 
-
     public void Generate() {
         var biomeGrid = BiomeGenerator.Generate();
 
@@ -77,7 +86,7 @@ public partial class WorldGenerator {
             TileMap.SetTerrain(x, y, biomeType);
         });
 
-        TileMap.Smooth();
+        TileMap.Smooth(Seed);
         // TileMap.IfTerrainEnum(BiomeType.Ocean).SetAtlasCoords(0, 6, new Vector2I(19, 13)); // Modern, deep water
         TileMap.IfTerrainEnum(BiomeType.Glacier).SetAtlasCoords(0, 6, new Vector2I(2, 2)); // Modern, snow
         TileMap.IfTerrainEnum(BiomeType.Mountain).SetAtlasCoords(0, 1, new Vector2I(0, 0)); // Mud
@@ -147,29 +156,20 @@ public partial class WorldGenerator {
             DrawGrid(canvas, BiomeGenerator.HeightNormalizedGrid);
         } else if (CurrentViewMode == ViewMode.Humidity) {
             DrawGrid(canvas, BiomeGenerator.HumidityNormalizedGrid);
+        } else if (CurrentViewMode == ViewMode.HeightFalloff) {
+            DrawGrid(canvas, BiomeGenerator.HeightFalloffGrid);
         } else if (CurrentViewMode == ViewMode.FalloffMap) {
             DrawGrid(canvas, BiomeGenerator.FalloffMap);
         } else if (CurrentViewMode == ViewMode.Terrain) {
         }
     }
-
-    private void DrawGrid(CanvasItem canvas, float[,] grid) {
-        var offset = new Vector2(8, 8);
-        TileMap.Execute((t, x, y) => {
-            // canvas.TopLevel = true;
-            var noise = grid[y, x];
-            var color = new Color(1f, noise, noise);
-            var position = (GodotTileMap.MapToLocal(new Vector2I(x, y))) - offset;
-            canvas.DrawRect(new Rect2(position, new Vector2(16, 16)), color, true);
-        });
-    }
-
+    
     private void DrawGrid(CanvasItem canvas, IDataGrid<float> normalizedGrid) {
         var offset = new Vector2(8, 8);
         TileMap.Execute((t, x, y) => {
             // canvas.TopLevel = true;
             var noise = normalizedGrid.GetValue(x, y);
-            var color = new Color(1f, noise, noise);
+            var color = new Color(noise, noise, noise);
             var position = (GodotTileMap.MapToLocal(new Vector2I(x, y))) - offset;
             canvas.DrawRect(new Rect2(position, new Vector2(16, 16)), color, true);
         });

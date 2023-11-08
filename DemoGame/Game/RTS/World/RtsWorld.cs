@@ -59,13 +59,6 @@ public partial class RtsWorld : Node, IInjectable {
 		AddChild(_fsm);
 	}
 	
-	private void SetSeed(string seed) {
-		if (seed.IsValidInt() && seed.ToInt() != WorldGenerator.BiomeGenerator.Seed)  {
-			WorldGenerator.BiomeGenerator.Seed = seed.ToInt();
-			WorldGenerator.Generate();
-		}
-	}
-
 	private void Zooming(InputEvent @event) {
 		if (@event.IsKeyJustPressed(Key.Q) || @event.IsClickPressed(MouseButton.WheelUp)) {
 			if (CameraGameObject.ZoomLevel == RtsConfig.ZoomLevels.Count - 1) return;
@@ -120,31 +113,55 @@ public partial class RtsWorld : Node, IInjectable {
 		DebugOverlayManager.Overlay("RTS")
 			.OnDestroy(() => viewGroup.Dispose())
 			.SetMinSize(400, 100)
-			.Edit("Seed", "100", SetSeed).SetMinSize(20).EndMonitor()
+			.Edit("Seed", WorldGenerator.Seed, seed => {
+				WorldGenerator.Seed = seed;
+				WorldGenerator.Generate();
+			}).SetMinSize(20).EndMonitor()
 			.Add(new HBoxContainer().NodeBuilder()
 				.Label("View Mode").End()
 				.ToggleButton("Terrain", (button) => {
 					WorldGenerator.CurrentViewMode = WorldGenerator.ViewMode.Terrain;
 					WorldGenerator.UpdateView();
 				}, () => WorldGenerator.CurrentViewMode == WorldGenerator.ViewMode.Terrain, viewGroup).End()
+				.ToggleButton("HeightFallOff", (button) => {
+					WorldGenerator.CurrentViewMode = WorldGenerator.ViewMode.HeightFalloff;
+					WorldGenerator.UpdateView();
+				}, () => WorldGenerator.CurrentViewMode == WorldGenerator.ViewMode.HeightFalloff, viewGroup).End()
 				.ToggleButton("Height", (button) => {
 					WorldGenerator.CurrentViewMode = WorldGenerator.ViewMode.Height;
 					WorldGenerator.UpdateView();
-				}, () => WorldGenerator.CurrentViewMode == WorldGenerator.ViewMode.Terrain, viewGroup).End()
+				}, () => WorldGenerator.CurrentViewMode == WorldGenerator.ViewMode.Height, viewGroup).End()
 				.ToggleButton("Humidity", (button) => {
 					WorldGenerator.CurrentViewMode = WorldGenerator.ViewMode.Humidity;
 					WorldGenerator.UpdateView();
-				}, () => WorldGenerator.CurrentViewMode == WorldGenerator.ViewMode.Terrain, viewGroup).End()
+				}, () => WorldGenerator.CurrentViewMode == WorldGenerator.ViewMode.Humidity, viewGroup).End()
 				.ToggleButton("FallOff", (button) => {
 					WorldGenerator.CurrentViewMode = WorldGenerator.ViewMode.FalloffMap;
 					WorldGenerator.UpdateView();
 				}, () => WorldGenerator.CurrentViewMode == WorldGenerator.ViewMode.FalloffMap, viewGroup).End()
 				.End())
-			.Text("Humidity").EndMonitor()
+			.Text("Height").EndMonitor()
 			.Edit("Frequency", () => WorldGenerator.BiomeGenerator.HeightNoise.Frequency, (value) => {
 				WorldGenerator.BiomeGenerator.HeightNoise.Frequency = value;
 				WorldGenerator.Generate();
 			}).EndMonitor()
+			.OpenBox<HBoxContainer>()
+				.Button("Enabled", () => {
+					WorldGenerator.BiomeGenerator.FalloffEnabled = !WorldGenerator.BiomeGenerator.FalloffEnabled;
+					WorldGenerator.Generate();
+				},button => {
+					button.ToggleMode = true;
+					button.ButtonPressed = WorldGenerator.BiomeGenerator.FalloffEnabled;
+				})
+				.Edit("FallOff Exp", () => WorldGenerator.BiomeGenerator.FalloffMap.Exp, (value) => {
+					WorldGenerator.BiomeGenerator.FalloffMap.Exp = value;
+					WorldGenerator.Generate();
+				}).EndMonitor()
+				.Edit("FallOff Offset", () => WorldGenerator.BiomeGenerator.FalloffMap.Offset, (value) => {
+					WorldGenerator.BiomeGenerator.FalloffMap.Offset = value;
+					WorldGenerator.Generate();
+				}).EndMonitor()
+			.CloseBox()
 			.Text("Humidity").EndMonitor()
 			.Edit("Frequency", () => WorldGenerator.BiomeGenerator.HumidityNoise.Frequency, (value) => {
 				WorldGenerator.BiomeGenerator.HumidityNoise.Frequency = value;
