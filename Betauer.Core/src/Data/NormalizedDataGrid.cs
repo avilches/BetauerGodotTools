@@ -5,7 +5,7 @@ namespace Betauer.Core.Data;
 /// <summary>
 /// A bidimensional array of float values that can be normalized to a given range
 /// </summary>
-public class NormalizedDataGrid : INormalizedDataGrid<float> {
+public class NormalizedDataGrid : INormalizedDataGrid {
     public int Width { get; private set; }
     public int Height { get; private set; }
     public float[,] Values { get; set; }

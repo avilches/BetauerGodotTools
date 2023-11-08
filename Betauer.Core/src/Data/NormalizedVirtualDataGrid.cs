@@ -2,7 +2,7 @@ using System;
 
 namespace Betauer.Core.Data;
 
-public class NormalizedVirtualDataGrid : INormalizedDataGrid<float> {
+public class NormalizedVirtualDataGrid : INormalizedDataGrid {
     public int Width { get; private set; }
     public int Height { get; private set; }
     public Func<int, int, float> ValueFunc { get; }
