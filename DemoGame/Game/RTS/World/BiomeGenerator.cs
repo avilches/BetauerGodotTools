@@ -57,11 +57,11 @@ public class BiomeGenerator {
     public int Height { get; private set; }
 
     public FastNoiseLite HeightNoise { get; } = new();
-    public IDataGrid<float> HeightNormalizedGrid { get; private set; }
+    public INormalizedDataGrid<float> HeightNormalizedGrid { get; private set; }
 
     public float[,] FalloffMap { get; private set; }
     public FastNoiseLite HumidityNoise { get; } = new();
-    public IDataGrid<float> HumidityNormalizedGrid { get; private set;}
+    public INormalizedDataGrid<float> HumidityNormalizedGrid { get; private set;}
 
     public FloatGrid<BiomeType> BiomeGrid { get; private set; }
     public BiomeCell[,] BiomeCells { get; private set; }
