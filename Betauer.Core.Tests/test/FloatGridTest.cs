@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Betauer.Core.Data;
 using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;

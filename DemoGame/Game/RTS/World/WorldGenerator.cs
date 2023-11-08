@@ -11,6 +11,7 @@ using Veronenger.RTS.Assets.Trees;
 using Betauer.Core;
 using Betauer.Nodes;
 using Betauer.Core.Collision.Spatial2D;
+using Betauer.Core.Data;
 using Betauer.TileSet.Image;
 using Betauer.TileSet.Terrain;
 using Betauer.TileSet.TileMap;
@@ -34,8 +35,8 @@ public partial class WorldGenerator {
     private const int CellSize = 16;
 
     private const int Layers = 2;
-    private const int Width = 500;
-    private const int Height = 500;
+    private const int Width = 300;
+    private const int Height = 200;
     
     public enum ViewMode {
         Terrain,
@@ -143,9 +144,9 @@ public partial class WorldGenerator {
 
     private void Draw(CanvasItem canvas) {
         if (CurrentViewMode == ViewMode.Height) {
-            DrawGrid(canvas, BiomeGenerator.HeightGrid);
+            DrawGrid(canvas, BiomeGenerator.HeightNormalizedGrid);
         } else if (CurrentViewMode == ViewMode.Humidity) {
-            DrawGrid(canvas, BiomeGenerator.HumidityGrid);
+            DrawGrid(canvas, BiomeGenerator.HumidityNormalizedGrid);
         } else if (CurrentViewMode == ViewMode.FalloffMap) {
             DrawGrid(canvas, BiomeGenerator.FalloffMap);
         } else if (CurrentViewMode == ViewMode.Terrain) {
@@ -163,11 +164,11 @@ public partial class WorldGenerator {
         });
     }
 
-    private void DrawGrid(CanvasItem canvas, NormalizedGrid grid) {
+    private void DrawGrid(CanvasItem canvas, IDataGrid<float> normalizedGrid) {
         var offset = new Vector2(8, 8);
         TileMap.Execute((t, x, y) => {
             // canvas.TopLevel = true;
-            var noise = grid.GetValue(x, y);
+            var noise = normalizedGrid.GetValue(x, y);
             var color = new Color(1f, noise, noise);
             var position = (GodotTileMap.MapToLocal(new Vector2I(x, y))) - offset;
             canvas.DrawRect(new Rect2(position, new Vector2(16, 16)), color, true);

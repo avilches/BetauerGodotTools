@@ -1,4 +1,6 @@
-namespace Betauer.Core;
+using Betauer.Core.Data;
+
+namespace Betauer.Core.Data;
 
 // MIT License
 //
@@ -2443,9 +2445,9 @@ public class FastNoiseLite {
         zr += vz * warpAmp;
     }
 
-    public NormalizedGrid CreateNormalizedGrid(int width, int height, float min, float max) {
-        var normalizedGrid = new NormalizedGrid(width, height, (x, y) => GetNoise(x, y));
-        normalizedGrid.NormalizedRange(min, max);
-        return normalizedGrid;
-    }
+    public NormalizedDataGrid CreateNormalizedDataGrid(int width, int height) => 
+        new NormalizedDataGrid(width, height, (x, y) => GetNoise(x, y));
+
+    public NormalizedVirtualDataGrid CreateNormalizedVirtualDataGrid(int width, int height) => 
+        new NormalizedVirtualDataGrid(width, height, (x, y) => GetNoise(x, y));
 }

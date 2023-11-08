@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Betauer.Animation.Easing;
 using Betauer.Core;
+using Betauer.Core.Data;
 using Godot;
-using FastNoiseLite = Betauer.Core.FastNoiseLite;
+using FastNoiseLite = Betauer.Core.Data.FastNoiseLite;
 
 namespace Veronenger.Game.RTS.World;
 
@@ -56,11 +57,11 @@ public class BiomeGenerator {
     public int Height { get; private set; }
 
     public FastNoiseLite HeightNoise { get; } = new();
-    public NormalizedGrid HeightGrid { get; private set; }
+    public IDataGrid<float> HeightNormalizedGrid { get; private set; }
 
     public float[,] FalloffMap { get; private set; }
     public FastNoiseLite HumidityNoise { get; } = new();
-    public NormalizedGrid HumidityGrid { get; private set;}
+    public IDataGrid<float> HumidityNormalizedGrid { get; private set;}
 
     public FloatGrid<BiomeType> BiomeGrid { get; private set; }
     public BiomeCell[,] BiomeCells { get; private set; }
@@ -80,8 +81,8 @@ public class BiomeGenerator {
 
         BiomeCells = new BiomeCell[height, width];
         FalloffMap = FalloffGenerator.GenerateFalloffMap(width, height);
-        HeightGrid = HeightNoise.CreateNormalizedGrid(width, height, 0, 1);
-        HumidityGrid = HumidityNoise.CreateNormalizedGrid(width, height, 0, 1);         
+        HeightNormalizedGrid = HeightNoise.CreateNormalizedVirtualDataGrid(width, height);
+        HumidityNormalizedGrid = HumidityNoise.CreateNormalizedVirtualDataGrid(width, height);         
 
         var charMapping = Biomes.ToDictionary(pair => pair.Value.Char, pair => pair.Value.Type);
         BiomeGrid = FloatGrid<BiomeType>.Parse(BiomeConfig, charMapping);
@@ -113,15 +114,15 @@ public class BiomeGenerator {
         var transitionType = Tween.TransitionType.Quad;
         // noiseMap [x, y] = Mathf.Clamp01(noiseMap [x, y] - falloffMap [x, y]);
 
-        HeightGrid.Load(); // v => EasingFunctions.EaseInOut(v, transitionType));
-        HumidityGrid.Load();
+        HeightNormalizedGrid.Load(); // v => EasingFunctions.EaseInOut(v, transitionType));
+        HumidityNormalizedGrid.Load();
                 
         var list = new List<BiomeCell>();
         for (var y = 0; y < Height; y++) {
             for (var x = 0; x < Width; x++) {
                 BiomeCell biomeCell = new BiomeCell {
-                    Height = HeightGrid.GetValue(x, y),
-                    Humidity = HumidityGrid.GetValue(x, y),
+                    Height = HeightNormalizedGrid.GetValue(x, y),
+                    Humidity = HumidityNormalizedGrid.GetValue(x, y),
                 };
                 biomeCell.Temp = CalculateTemperature(y, Height, biomeCell.Height);
                 // Console.Write(cell.Height.ToString("0.0")+ " | ");

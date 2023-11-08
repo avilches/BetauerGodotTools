@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Godot;
 
-namespace Betauer.Core;
+namespace Betauer.Core.Data;
 
 /// <summary>
 /// A bidimensional array of T values that can be accessed by float normalized coordinates (0.0..1.0), no matter of the size

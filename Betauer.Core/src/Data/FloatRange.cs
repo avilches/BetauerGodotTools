@@ -1,6 +1,6 @@
 using System;
 
-namespace Betauer.Core;
+namespace Betauer.Core.Data;
 
 public class FloatRange<T> {
     public float[] Floats { get; }
