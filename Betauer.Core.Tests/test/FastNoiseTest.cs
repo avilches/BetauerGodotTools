@@ -10,7 +10,7 @@ public class FastNoiseTest {
 
     [TestRunner.Test]
     public void Test() {
-        var fastNoiseLite = new FastNoiseLite() {
+        var fastNoiseLite = new Godot.FastNoiseLite() {
             Seed = 1
         };
         var noise = new FastNoise(fastNoiseLite, 100, 100, 4);

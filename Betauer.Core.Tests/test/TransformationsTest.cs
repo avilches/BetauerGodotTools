@@ -174,7 +174,6 @@ public class TransformationsTests {
     }
 
     [TestRunner.Test]
-    [Only]
     public void TransformationsResizeTests() {
         AreEqual(new[,] {
             {  0,  1,  2,  3 },

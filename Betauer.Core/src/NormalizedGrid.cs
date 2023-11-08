@@ -8,7 +8,7 @@ namespace Betauer.Core;
 public class NormalizedGrid {
     public int Width { get; private set; }
     public int Height { get; private set; }
-    public float RangeMin { get; private set; } = -1.0f;
+    public float RangeMin { get; private set; } = 0f;
     public float RangeMax { get; private set; } = 1.0f;
     public float[,] Values { get; set; }
     public Func<int, int, float> ValueFunc { get; }
@@ -43,7 +43,7 @@ public class NormalizedGrid {
         var range = RangeMax - RangeMin;
         var minMaxRange = max - min;
         for (var y = 0; y < Height; y++) {
-            for (var x = 0; x < Width; x++) { 
+            for (var x = 0; x < Width; x++) {
                 Values[y, x] = (Values[y, x] - min) / minMaxRange * range + RangeMin;
             }
         }
