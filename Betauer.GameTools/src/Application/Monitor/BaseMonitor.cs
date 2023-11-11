@@ -1,3 +1,5 @@
+using Betauer.Core.Nodes;
+
 namespace Betauer.Application.Monitor; 
 
 using System;
@@ -37,9 +39,13 @@ public abstract partial class BaseMonitor<TBuilder> : BaseMonitor where TBuilder
     private bool _updateOnPhysics = true;
     public Func<bool>? DestroyIfFunc { get; private set; }
     public GodotObject? Target { get; private set; }
+    public GodotObject? ParentTarget { get; private set; }
 
     protected BaseMonitor() {
-        Ready += CheckProcessBasedOnVisibility;
+        Ready += () => {
+            CheckProcessBasedOnVisibility();
+            ParentTarget = this.FindParent<DebugOverlay>()?.Target;
+        };
         VisibilityChanged += CheckProcessBasedOnVisibility;
     }
 
@@ -91,7 +97,9 @@ public abstract partial class BaseMonitor<TBuilder> : BaseMonitor where TBuilder
     }
 
     private void Process(double delta) {
-        if ((Target != null && !IsInstanceValid(Target)) || (DestroyIfFunc != null && DestroyIfFunc())) {
+        if ((Target != null && !IsInstanceValid(Target)) ||
+            (ParentTarget != null && !IsInstanceValid(ParentTarget)) ||
+            (DestroyIfFunc != null && DestroyIfFunc())) {
             QueueFree();
         } else if (_updateEvery > 0) {
             if (_timeElapsed == 0) {

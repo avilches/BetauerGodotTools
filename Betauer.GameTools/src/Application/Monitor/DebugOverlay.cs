@@ -178,7 +178,7 @@ public partial class DebugOverlay : Panel, IInjectable {
         return this;
     }
 
-    public NodeBuilder<VBoxContainer> Children() {
+    public NodeBuilder Children() {
         return OverlayContent.Children();
     }
 
@@ -212,7 +212,7 @@ public partial class DebugOverlay : Panel, IInjectable {
     }
 
     public override void _Ready() {
-        new NodeBuilder<DebugOverlay>(this)
+        new NodeBuilder(this)
             .Add<VBoxContainer>(box => {
                 box.Children()
                     .Add(TitleBar, titleBar => {

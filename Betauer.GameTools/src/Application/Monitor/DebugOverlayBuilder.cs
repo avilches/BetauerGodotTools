@@ -15,28 +15,28 @@ namespace Betauer.Application.Monitor;
 
 public static class DebugOverlayBuilder {
 
-    public static NodeBuilder<T> TextField<T>(this NodeBuilder<T> builder, Action<MonitorText>? config = null) where T : Node {
+    public static NodeBuilder TextField(this NodeBuilder builder, Action<MonitorText>? config = null) {
         var monitor = builder.Create<MonitorText>();
         config?.Invoke(monitor);
         return builder;
     }
 
-    public static NodeBuilder<T> TextField<T>(this NodeBuilder<T> builder, string label, Action<MonitorText>? config = null) where T : Node {
+    public static NodeBuilder TextField(this NodeBuilder builder, string label, Action<MonitorText>? config = null) {
         var monitor = builder.Create<MonitorText>()
             .SetLabel(label);
         config?.Invoke(monitor);
         return builder;
     }
 
-    public static NodeBuilder<T> TextField<T>(this NodeBuilder<T> builder, string label, Func<int> updater, int updateEvery = 0, Action<MonitorText>? config = null) where T : Node {
+    public static NodeBuilder TextField(this NodeBuilder builder, string label, Func<int> updater, int updateEvery = 0, Action<MonitorText>? config = null) {
         return TextField(builder, label, () => updater().ToString(), updateEvery, config);
     }
 
-    public static NodeBuilder<T> TextField<T>(this NodeBuilder<T> builder, string label, Func<float> updater, int updateEvery = 0, Action<MonitorText>? config = null) where T : Node {
+    public static NodeBuilder TextField(this NodeBuilder builder, string label, Func<float> updater, int updateEvery = 0, Action<MonitorText>? config = null) {
         return TextField(builder, label, () => updater().ToString(), updateEvery, config);
     }
 
-    public static NodeBuilder<T> TextField<T>(this NodeBuilder<T> builder, string label, Func<string> updater, int updateEvery = 0, Action<MonitorText>? config = null) where T : Node {
+    public static NodeBuilder TextField(this NodeBuilder builder, string label, Func<string> updater, int updateEvery = 0, Action<MonitorText>? config = null) {
         var monitor = builder.Create<MonitorText>()
             .UpdateEvery(updateEvery)
             .SetLabel(label)
@@ -45,7 +45,7 @@ public static class DebugOverlayBuilder {
         return builder;
     }
 
-    public static NodeBuilder<T> TextField<T>(this NodeBuilder<T> builder, string label, Func<bool> updater, int updateEvery = 0, Action<MonitorText>? config = null) where T : Node {
+    public static NodeBuilder TextField(this NodeBuilder builder, string label, Func<bool> updater, int updateEvery = 0, Action<MonitorText>? config = null) {
         var monitor = builder.Create<MonitorText>()
             .UpdateEvery(updateEvery)
             .SetLabel(label)
@@ -54,7 +54,7 @@ public static class DebugOverlayBuilder {
         return builder;
     }
 
-    public static NodeBuilder<T> TextSpeed<T>(this NodeBuilder<T> builder, string label, Node2D node2D, string format = "000.00", Action<MonitorText>? config = null) where T : Node {
+    public static NodeBuilder TextSpeed(this NodeBuilder builder, string label, Node2D node2D, string format = "000.00", Action<MonitorText>? config = null) {
         var speedometer2D = Speedometer2D.Position(node2D);
         speedometer2D.UpdateOnPhysicsProcess(node2D);
         var monitor = builder.Create<MonitorText>()
@@ -65,7 +65,7 @@ public static class DebugOverlayBuilder {
         return builder;
     }
 
-    public static NodeBuilder<T> GraphSpeed<T>(this NodeBuilder<T> builder, string label, Speedometer2D speedometer2D, float limit = 0, string format = "000.00", Action<MonitorGraph>? config = null) where T : Node {
+    public static NodeBuilder GraphSpeed(this NodeBuilder builder, string label, Speedometer2D speedometer2D, float limit = 0, string format = "000.00", Action<MonitorGraph>? config = null) {
         var monitorGraph = builder.Create<MonitorGraph>()
             .AddSerie()
             .Load(() => speedometer2D.Speed)
@@ -77,7 +77,7 @@ public static class DebugOverlayBuilder {
         return builder;
     }
 
-    public static NodeBuilder<T> GraphSpeed<T>(this NodeBuilder<T> builder, string label, CharacterBody2D characterBody2D, float limit = 0, string format = "000.00", Action<MonitorGraph>? config = null) where T : Node {
+    public static NodeBuilder GraphSpeed(this NodeBuilder builder, string label, CharacterBody2D characterBody2D, float limit = 0, string format = "000.00", Action<MonitorGraph>? config = null) {
         var monitorGraph = builder.Create<MonitorGraph>()
             .Follow(characterBody2D)
             .AddSerie()
@@ -90,7 +90,7 @@ public static class DebugOverlayBuilder {
         return builder;
     }
 
-    public static NodeBuilder<T> Graph<T>(this NodeBuilder<T> builder, string label, Func<float> func, Color? color = null, Action<MonitorGraph>? config = null) where T : Node {
+    public static NodeBuilder Graph(this NodeBuilder builder, string label, Func<float> func, Color? color = null, Action<MonitorGraph>? config = null) {
         var monitorGraph = builder.Create<MonitorGraph>()
             .AutoRange()
             .AddSerie()
@@ -102,7 +102,7 @@ public static class DebugOverlayBuilder {
         return builder;
     }
 
-    public static NodeBuilder<T> Graph<T>(this NodeBuilder<T> builder, string label, Func<float> func, float min, float max, Color? color = null, Action<MonitorGraph>? config = null) where T : Node {
+    public static NodeBuilder Graph(this NodeBuilder builder, string label, Func<float> func, float min, float max, Color? color = null, Action<MonitorGraph>? config = null) {
         var monitorGraph = builder.Create<MonitorGraph>()
             .Range(min, max)
             .AddSerie()
@@ -114,7 +114,7 @@ public static class DebugOverlayBuilder {
         return builder;
     }
 
-    public static NodeBuilder<T> Graph<T>(this NodeBuilder<T> builder, string label, Func<bool> func, Color? color = null, Action<MonitorGraph>? config = null) where T : Node {
+    public static NodeBuilder Graph(this NodeBuilder builder, string label, Func<bool> func, Color? color = null, Action<MonitorGraph>? config = null) {
         var monitorGraph = builder.Create<MonitorGraph>()
             .Range(0, 1)
             .AddSerie()
@@ -126,7 +126,7 @@ public static class DebugOverlayBuilder {
         return builder;
     }
 
-    public static NodeBuilder<T> Vector<T>(this NodeBuilder<T> builder, string label, Func<Vector2> func, float maxValue, Action<MonitorVector2>? config = null) where T : Node {
+    public static NodeBuilder Vector(this NodeBuilder builder, string label, Func<Vector2> func, float maxValue, Action<MonitorVector2>? config = null) {
         var monitor = builder.Create<MonitorVector2>()
             .Load(func, maxValue)
             .SetLabel(label);
@@ -134,7 +134,7 @@ public static class DebugOverlayBuilder {
         return builder;
     }
 
-    public static NodeBuilder<T> VectorNormalized<T>(this NodeBuilder<T> builder, string label, Func<Vector2> func, Action<MonitorVector2>? config = null) where T : Node {
+    public static NodeBuilder VectorNormalized(this NodeBuilder builder, string label, Func<Vector2> func, Action<MonitorVector2>? config = null) {
         var monitor = builder.Create<MonitorVector2>()
             .LoadNormalized(func)
             .SetLabel(label);
@@ -142,7 +142,7 @@ public static class DebugOverlayBuilder {
         return builder;
     }
 
-    public static NodeBuilder<T> Angle<T>(this NodeBuilder<T> builder, string label, Func<float> func, Action<MonitorVector2>? config = null) where T : Node {
+    public static NodeBuilder Angle(this NodeBuilder builder, string label, Func<float> func, Action<MonitorVector2>? config = null) {
         var monitor = builder.Create<MonitorVector2>()
             .LoadAngle(func)
             .SetLabel(label);
@@ -150,42 +150,42 @@ public static class DebugOverlayBuilder {
         return builder;
     }
 
-    public static NodeBuilder<T> Edit<T>(this NodeBuilder<T> builder, string label, int initialValue, Action<int> update, Action<MonitorEditValue>? config = null) where T : Node {
+    public static NodeBuilder Edit(this NodeBuilder builder, string label, int initialValue, Action<int> update, Action<MonitorEditValue>? config = null) {
         builder.Edit(label, initialValue.ToString, (s) => update(s.ToInt()), config);
         return builder;
     }
 
-    public static NodeBuilder<T> Edit<T>(this NodeBuilder<T> builder, string label, float initialValue, Action<float> update, Action<MonitorEditValue>? config = null) where T : Node {
+    public static NodeBuilder Edit(this NodeBuilder builder, string label, float initialValue, Action<float> update, Action<MonitorEditValue>? config = null) {
         builder.Edit(label, initialValue.ToString, (s) => update(s.ToFloat()), config);
         return builder;
     }
 
-    public static NodeBuilder<T> Edit<T>(this NodeBuilder<T> builder, string label, double initialValue, Action<double> update, Action<MonitorEditValue>? config = null) where T : Node {
+    public static NodeBuilder Edit(this NodeBuilder builder, string label, double initialValue, Action<double> update, Action<MonitorEditValue>? config = null) {
         builder.Edit(label, initialValue.ToString, (s) => update(s.ToFloat()), config);
         return builder;
     }
 
-    public static NodeBuilder<T> Edit<T>(this NodeBuilder<T> builder, string label, string initialValue, Action<string> update, Action<MonitorEditValue>? config = null) where T : Node {
+    public static NodeBuilder Edit(this NodeBuilder builder, string label, string initialValue, Action<string> update, Action<MonitorEditValue>? config = null) {
         builder.Edit(label, initialValue.ToString, update, config);
         return builder;
     }
 
-    public static NodeBuilder<T> Edit<T>(this NodeBuilder<T> builder, string label, Func<int> initialValueLoader, Action<int> update, Action<MonitorEditValue>? config = null) where T : Node {
+    public static NodeBuilder Edit(this NodeBuilder builder, string label, Func<int> initialValueLoader, Action<int> update, Action<MonitorEditValue>? config = null) {
         builder.Edit(label, () => initialValueLoader().ToString(), (s) => update(s.ToInt()), config);
         return builder;
     }
 
-    public static NodeBuilder<T> Edit<T>(this NodeBuilder<T> builder, string label, Func<float> initialValueLoader, Action<float> update, Action<MonitorEditValue>? config = null) where T : Node {
+    public static NodeBuilder Edit(this NodeBuilder builder, string label, Func<float> initialValueLoader, Action<float> update, Action<MonitorEditValue>? config = null) {
         builder.Edit(label, () => initialValueLoader().ToString(), (s) => update(s.ToFloat()), config);
         return builder;
     }
 
-    public static NodeBuilder<T> Edit<T>(this NodeBuilder<T> builder, string label, Func<double> initialValueLoader, Action<double> update, Action<MonitorEditValue>? config = null) where T : Node {
+    public static NodeBuilder Edit(this NodeBuilder builder, string label, Func<double> initialValueLoader, Action<double> update, Action<MonitorEditValue>? config = null) {
         builder.Edit(label, () => initialValueLoader().ToString(), (s) => update(s.ToFloat()), config);
         return builder;
     }
 
-    public static NodeBuilder<T> Edit<T>(this NodeBuilder<T> builder, string label, Func<string> initialValueLoader, Action<string> update, Action<MonitorEditValue>? config = null) where T : Node {
+    public static NodeBuilder Edit(this NodeBuilder builder, string label, Func<string> initialValueLoader, Action<string> update, Action<MonitorEditValue>? config = null) {
          var monitor = builder.Create<MonitorEditValue>()
             .SetLabel(label)
             .SetValueLoader(initialValueLoader)
@@ -194,7 +194,7 @@ public static class DebugOverlayBuilder {
         return builder;
     }
 
-    public static NodeBuilder<T> AddMonitorVideoInfo<T>(this NodeBuilder<T> builder) where T : Node {
+    public static NodeBuilder AddMonitorVideoInfo(this NodeBuilder builder) {
         // TODO Godot 4
         // overlay.OpenBox()
             // .Text("Driver", () => OS.GetCurrentVideoDriver().ToString()).UpdateEvery(1f).EndMonitor()
@@ -205,7 +205,7 @@ public static class DebugOverlayBuilder {
         return builder;
     }
 
-    public static NodeBuilder<T> AddMonitorInternals<T>(this NodeBuilder<T> builder) where T : Node {
+    public static NodeBuilder AddMonitorInternals(this NodeBuilder builder) {
         var maxNodes = 0;
         var maxOrphans = 0;
         var maxResources = 0;
@@ -220,8 +220,7 @@ public static class DebugOverlayBuilder {
                     var count = (int)Performance.GetMonitor(Performance.Monitor.ObjectOrphanNodeCount);
                     maxOrphans = Math.Max(maxOrphans, count);
                     return $"{count.ToString()}/{maxOrphans.ToString()}";
-                }, 1)
-                .Node)
+                }, 1))
             .Add(new HBoxContainer().Children()
                 .TextField("Resources/max", () => {
                     var count = (int)Performance.GetMonitor(Performance.Monitor.ObjectResourceCount);
@@ -232,20 +231,20 @@ public static class DebugOverlayBuilder {
                     var count = (int)Performance.GetMonitor(Performance.Monitor.ObjectCount);
                     maxObjects = Math.Max(maxObjects, count);
                     return $"{count.ToString()}/{maxObjects.ToString()}";
-                }, 1).Node);
+                }, 1));
         return builder;
     }
 
-    public static NodeBuilder<T> AddWindowNotificationStatus<T>(this NodeBuilder<T> builder, WindowNotificationStatus windowNotificationStatus) where T : Node {
+    public static NodeBuilder AddWindowNotificationStatus(this NodeBuilder builder, WindowNotificationStatus windowNotificationStatus) {
         builder.Add(new HBoxContainer().Children()
             .TextField("Window Focus", () => windowNotificationStatus.IsWindowFocused)
             .TextField("Application Focus", () => windowNotificationStatus.IsApplicationFocused)
             .TextField("Mouse inside game", () => windowNotificationStatus.IsMouseInsideScreen)
-            .Node);
+            );
         return builder;
     }
 
-    public static NodeBuilder<T> AddMonitorFpsTimeScaleAndUptime<T>(this NodeBuilder<T> builder) where T : Node {
+    public static NodeBuilder AddMonitorFpsTimeScaleAndUptime(this NodeBuilder builder) {
         builder.Add(new HBoxContainer().Children()
             .TextField("FPS/limit",
                 () => $"{((int)Engine.GetFramesPerSecond()).ToString()}/{Engine.MaxFps.ToString()}", 1)
@@ -253,16 +252,16 @@ public static class DebugOverlayBuilder {
             .TextField("Uptime", () => {
                 var timespan = TimeSpan.FromMilliseconds(Time.GetTicksMsec());
                 return $"{(int)timespan.TotalMinutes}:{timespan.Seconds:00}";
-            }, 1).Node);
+            }, 1));
         return builder;
     }
 
-    public static NodeBuilder<T> AddMonitorMemory<T>(this NodeBuilder<T> builder) where T : Node {
+    public static NodeBuilder AddMonitorMemory(this NodeBuilder builder) {
         #if DEBUG
         builder.Add(new HBoxContainer().Children()
             .TextField("Static", () => ((long)OS.GetStaticMemoryUsage()).HumanReadableBytes(), 1)
             .TextField("Max", () => ((long)OS.GetStaticMemoryPeakUsage()).HumanReadableBytes(), 1)
-            .Node);
+            );
             // TODO Godot 4
             // .Text("Dynamic", () => ((long)OS.GetDynamicMemoryUsage()).HumanReadableBytes()).UpdateEvery(1f).EndMonitor()
             // .Text("Max", () => ((long)Performance.GetMonitor(Performance.Monitor.MemoryDynamicMax)).HumanReadableBytes()).UpdateEvery(1f).EndMonitor()
@@ -270,7 +269,7 @@ public static class DebugOverlayBuilder {
         return builder;
     }
     
-    public static NodeBuilder<T> AddMonitorInputEvent<T>(this NodeBuilder<T> builder, InputActionsContainer inputActionsContainer, int history = 10) where T : Node {
+    public static NodeBuilder AddMonitorInputEvent(this NodeBuilder builder, InputActionsContainer inputActionsContainer, int history = 10) {
         var inputs = new LinkedList<string>();
         builder.Node.OnInput(e => {
             var pressed = e.IsJustPressed()?"Just Pressed":e.IsPressed()?"Pressed":e.IsReleased()?"Released": "Unknown";
@@ -300,7 +299,7 @@ public static class DebugOverlayBuilder {
         return builder;
     }
     
-    public static NodeBuilder<T> AddMonitorInputAction<T>(this NodeBuilder<T> builder, InputActionsContainer inputActionsContainer) where T : Node {
+    public static NodeBuilder AddMonitorInputAction(this NodeBuilder builder, InputActionsContainer inputActionsContainer) {
         builder.TextField("", () => {
             var s = new StringBuilder();
             foreach (var a in inputActionsContainer.InputActionList) {
@@ -326,7 +325,7 @@ public static class DebugOverlayBuilder {
         return builder;
     }
 
-    public static NodeBuilder<T> AddMonitorScreenSettings<T>(this NodeBuilder<T> builder, ScreenSettingsManager screenSettingsManager) where T : Node {
+    public static NodeBuilder AddMonitorScreenSettings(this NodeBuilder builder, ScreenSettingsManager screenSettingsManager) {
         var strategyGroup = new ButtonGroup();
         var modeGroup = new ButtonGroup();
         var aspectGroup = new ButtonGroup();
@@ -344,7 +343,7 @@ public static class DebugOverlayBuilder {
                 .TextField("Stretch", () => $"{sc.ScreenConfig.ScaleMode.ToString()}/{sc.ScreenConfig.ScaleAspect.ToString()}")
                 .TextField("Zoom", () => sc.ScreenConfig.ScaleFactor.ToString())
                 .TextField("Viewport", () => $"{window.Size.ToString("0")}")
-                .Node)
+                )
             .Add(new HBoxContainer().Children()
                 .Label("Strategy")
                 .ToggleButton(nameof(FixedViewportStrategy),
@@ -362,8 +361,8 @@ public static class DebugOverlayBuilder {
                         sc.ScreenConfig.Strategy = ResizeIntegerScaledStrategy.Instance;
                         sc.Apply();
                     }, strategyGroup)
-                .Node)
-            .Add(new HBoxContainer().Children()
+                )
+            .Add<HBoxContainer>(box => box.Children()
                 .Label("Mode")
                 .ToggleButton(nameof(Window.ContentScaleModeEnum.Disabled),
                     () => sc.ScreenConfig.ScaleMode == Window.ContentScaleModeEnum.Disabled, () => {
@@ -380,7 +379,7 @@ public static class DebugOverlayBuilder {
                         sc.ScreenConfig.ScaleMode = Window.ContentScaleModeEnum.Viewport;
                         sc.Apply();
                     }, modeGroup)
-                .Node)
+                )
             .Add(new HBoxContainer().Children()
                 .Label("Aspect")
                 .ToggleButton(nameof(Window.ContentScaleAspectEnum.Ignore),
@@ -408,7 +407,7 @@ public static class DebugOverlayBuilder {
                         sc.ScreenConfig.ScaleAspect = Window.ContentScaleAspectEnum.KeepWidth;
                         sc.Apply();
                     }, aspectGroup)
-                .Node);
+                );
         return builder;
     }
 }
