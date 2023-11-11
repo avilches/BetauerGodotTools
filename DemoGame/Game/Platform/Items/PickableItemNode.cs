@@ -6,6 +6,7 @@ using Betauer.DI.Attributes;
 using Betauer.FSM.Sync;
 using Betauer.NodePath;
 using Betauer.Physics;
+using Betauer.UI;
 using Godot;
 using Veronenger.Game.Platform.Character;
 using Veronenger.Game.Platform.Character.Player;
@@ -62,30 +63,19 @@ public partial class PickableItemNode : Node, IInjectable, INodeGameObject {
 		_playerPosition = null;
 		_onPickup = null;
 		PickableGameObject.Config.ConfigurePickableSprite2D(Sprite);
-		
-		// var overlay = DebugOverlayManager.Overlay(CharacterBody2D).Title(Item.Name);
-		// AddOverlayMotion(overlay);
-		// overlay
-		// 	.OpenBox()
-		// 	.Graph("Floor", () => PlatformBody.IsOnFloor()).Keep(10).SetChartHeight(10)
-		// 	.AddSerie("Slope").Load(() => PlatformBody.IsOnSlope()).EndSerie()
-		// 	.EndMonitor()
-		// 	.CloseBox()
-		// 	.OpenBox()
-		// 	.Text("State", () => _state.ToString()).EndMonitor()
-		// 	.Text("Pick speed", () => _pickingUpSpeed.ToString("0.000")).EndMonitor()
-		// 	.CloseBox();
-		// overlay.Scale = new Vector2(0.5f, 0.5f);
+		// ConfigureOverlay();
 	}
 
-	public void AddOverlayMotion(DebugOverlay overlay) {    
+	public void ConfigureOverlay() {    
+		var overlay = DebugOverlayManager.Overlay(CharacterBody2D);
+		// overlay.Scale = new Vector2(0.5f, 0.5f);
 		overlay
-			.OpenBox()
-			.Vector("Motion", () => PlatformBody.Motion, PlayerConfig.MaxSpeed).SetChartWidth(100).EndMonitor()
-			.Graph("MotionX", () => PlatformBody.MotionX, -PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed).AddSeparator(0)
-			.AddSerie("MotionY").Load(() => PlatformBody.MotionY).EndSerie().EndMonitor()
-			.CloseBox()
-			.GraphSpeed("Speed", PlayerConfig.JumpSpeed * 2).EndMonitor();
+			.Children()
+			.Vector("Motion", () => PlatformBody.Motion, PlayerConfig.MaxSpeed, config: (motion) => motion.SetChartWidth(100))
+			.Graph("MotionX", () => PlatformBody.MotionX, -PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed, config: (motion) => {
+				motion.AddSeparator(0).AddSerie("MotionY").Load(() => PlatformBody.MotionY).EndSerie();
+			})
+			.GraphSpeed("Speed", CharacterBody2D, PlayerConfig.JumpSpeed * 2);
 	}
 
 	public void Spawn(Vector2 position, Vector2? velocity = null) {

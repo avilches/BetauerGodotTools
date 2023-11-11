@@ -276,9 +276,10 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 	
 	private void ConfigureDebugOverlays() {
 		DebugOverlayManager.Overlay("Pool")
-			.Text("Busy", () => PoolNodeContainer.BusyCount() + "").EndMonitor()
-			.Text("Available", () => PoolNodeContainer.AvailableCount() + "").EndMonitor()
-			.Text("Invalid", () => PoolNodeContainer.InvalidCount() + "").EndMonitor();
+			.Children()
+			.TextField("Busy", () => PoolNodeContainer.BusyCount() + "")
+			.TextField("Available", () => PoolNodeContainer.AvailableCount() + "")
+			.TextField("Invalid", () => PoolNodeContainer.InvalidCount() + "");
 
 	}
 }

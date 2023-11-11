@@ -98,26 +98,24 @@ public partial class MonitorVector2 : BaseMonitor<MonitorVector2> {
         LineLength.DefaultColor = DefaultLineLengthColor;
         LineLength.Width = 1;
 
-        this.NodeBuilder()
-            .Child(_chartSpacer).End()
-            .Child(LineLength).End()
-            .Child(LineX).End()
-            .Child(LineY).End()
-            .Child(BorderLine).End()
-            .Child<Label>()
-                .Child(_legend)
-                    .Child(Label, label => {
+        this.Children()
+            .Add(_chartSpacer)
+            .Add(LineLength)
+            .Add(LineX)
+            .Add(LineY)
+            .Add(BorderLine)
+            .Add<Label>(label => label
+                .Children()
+                .Add(_legend, legend => legend
+                    .Children()
+                    .Add(Label, label => {
                         label.HorizontalAlignment = HorizontalAlignment.Right;
-                        label.SetFontColor(DefaultLabelColor);
                     })
-                    .End()
-                    .Child(CurrentValue, label => {
+                    .Add(CurrentValue, label => {
                         label.HorizontalAlignment = HorizontalAlignment.Left;
                     })
-                    .End()
-                .End()
-            .End()
-        .End();
+                )
+            );
     }
 
     public override void UpdateMonitor(double delta) {

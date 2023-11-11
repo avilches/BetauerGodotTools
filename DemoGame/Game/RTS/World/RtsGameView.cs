@@ -13,7 +13,6 @@ using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
 using Betauer.Input;
 using Betauer.Input.Joypad;
-using Betauer.Nodes;
 using Godot;
 using Veronenger.Game.RTS.HUD;
 using Veronenger.Game.UI;
@@ -199,9 +198,10 @@ public partial class RtsGameView : Control, IInjectable, IGameView {
 
 	private void ConfigureDebugOverlays() {
 		DebugOverlayManager.Overlay("Pool")
-			.Text("Busy", () => PoolNodeContainer.BusyCount() + "").EndMonitor()
-			.Text("Available", () => PoolNodeContainer.AvailableCount() + "").EndMonitor()
-			.Text("Invalid", () => PoolNodeContainer.InvalidCount() + "").EndMonitor();
+			.Children()
+			.TextField("Busy", () => PoolNodeContainer.BusyCount() + "", 1)
+			.TextField("Available", () => PoolNodeContainer.AvailableCount() + "", 1)
+			.TextField("Invalid", () => PoolNodeContainer.InvalidCount() + "", 1);
 
 	}
 }

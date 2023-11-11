@@ -1,0 +1,73 @@
+[gd_resource type="Theme" load_steps=11 format=3 uid="uid://y848upkxxchu"]
+
+[ext_resource type="FontFile" uid="uid://demcrithnsq31" path="res://Game/UI/Fonts/HelvetiPixel.ttf" id="1_6potx"]
+[ext_resource type="StyleBox" path="res://Game/UI/Buttons/ButtonStyle_Disabled.tres" id="2_ilobi"]
+[ext_resource type="StyleBox" path="res://Game/UI/Buttons/ButtonStyle_Focussed.tres" id="3_2gqsq"]
+[ext_resource type="StyleBox" path="res://Game/UI/Buttons/ButtonStyle_Hover.tres" id="4_sj1tb"]
+[ext_resource type="StyleBox" uid="uid://jcuo80sf211v" path="res://Game/UI/Buttons/ButtonStyle_Normal.tres" id="5_ydgcw"]
+[ext_resource type="StyleBox" path="res://Game/UI/Buttons/ButtonStyle_Pressed.tres" id="6_v68pw"]
+[ext_resource type="Texture2D" uid="uid://b26vfepu7fwb3" path="res://Game/UI/Images/ToggleOn.png" id="7_2irkt"]
+[ext_resource type="Texture2D" uid="uid://crkrymnrg68h5" path="res://Game/UI/Images/ToggleOff.png" id="8_lwjkc"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_043d6"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_siqey"]
+bg_color = Color(0.2, 0.2, 0.2, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.576471, 0.576471, 0.576471, 1)
+
+[resource]
+default_font_size = 16
+Button/colors/background_color = Color(0, 0, 0, 1)
+Button/colors/font_color = Color(0.88, 0.88, 0.88, 1)
+Button/colors/font_color_disabled = Color(0.9, 0.9, 0.9, 0.2)
+Button/colors/font_color_focus = Color(0.94, 0.94, 0.94, 1)
+Button/colors/font_color_hover = Color(0.94902, 0.937255, 0.937255, 1)
+Button/colors/font_color_pressed = Color(1, 1, 1, 1)
+Button/font_sizes/font_size = 16
+Button/fonts/font = ExtResource("1_6potx")
+Button/styles/disabled = ExtResource("2_ilobi")
+Button/styles/focus = ExtResource("3_2gqsq")
+Button/styles/hover = ExtResource("4_sj1tb")
+Button/styles/normal = ExtResource("5_ydgcw")
+Button/styles/pressed = ExtResource("6_v68pw")
+CheckButton/font_sizes/font_size = 16
+CheckButton/fonts/font = ExtResource("1_6potx")
+CheckButton/icons/checked = ExtResource("7_2irkt")
+CheckButton/icons/checked_disabled = ExtResource("7_2irkt")
+CheckButton/icons/unchecked = ExtResource("8_lwjkc")
+CheckButton/icons/unchecked_disabled = ExtResource("8_lwjkc")
+CheckButton/styles/disabled = ExtResource("2_ilobi")
+CheckButton/styles/focus = ExtResource("3_2gqsq")
+CheckButton/styles/hover = ExtResource("4_sj1tb")
+CheckButton/styles/hover_pressed = ExtResource("6_v68pw")
+CheckButton/styles/normal = ExtResource("5_ydgcw")
+CheckButton/styles/pressed = ExtResource("5_ydgcw")
+ContentLabel/colors/font_color = Color(1, 1, 1, 1)
+ItemList/font_sizes/font_size = 16
+ItemList/fonts/font = ExtResource("1_6potx")
+ItemList/styles/focus = SubResource("StyleBoxEmpty_043d6")
+Label/colors/font_color = Color(0.509804, 0.509804, 0.509804, 1)
+Label/colors/font_color_shadow = Color(0, 0, 0, 0)
+Label/colors/font_outline_color = Color(0, 0, 0, 1)
+Label/colors/font_outline_modulate = Color(1, 1, 1, 1)
+Label/colors/font_shadow_color = Color(0, 0, 0, 1)
+Label/constants/line_spacing = 0
+Label/constants/outline_size = 0
+Label/constants/shadow_offset_x = 0
+Label/constants/shadow_offset_y = 0
+Label/constants/shadow_outline_size = 0
+Label/font_sizes/font_size = 16
+Label/fonts/font = ExtResource("1_6potx")
+Label/styles/normal = null
+LineEdit/fonts/font = ExtResource("1_6potx")
+Panel/styles/panel = SubResource("StyleBoxFlat_siqey")
+TitleLabel/base_type = &"Label"
+TitleLabel/colors/background_color = Color(0.188235, 0.164706, 0.176471, 1)
+TitleLabel/colors/font_color = Color(1, 1, 1, 1)
+TitleLabel/colors/font_outline_color = Color(0, 0, 0, 1)
+TitleLabel/font_sizes/font_size = 16
+TitleLabel/fonts/font = ExtResource("1_6potx")

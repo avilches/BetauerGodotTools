@@ -4,6 +4,7 @@ using Betauer.Core.Nodes;
 using Betauer.DI.Attributes;
 using Betauer.Input;
 using Betauer.Nodes;
+using Betauer.UI;
 using Godot;
 using Veronenger.Game.Platform.Items;
 
@@ -38,26 +39,35 @@ public partial class PlayerNode {
 	}
 
 	private void AddPlayerJoypadMappings(DebugOverlay overlay) {
-		overlay.OpenBox()
-			.Text("PlayerJoys", () => PlayerMapping.ToString()).EndMonitor()
-			.CloseBox();
+		overlay
+			.Children()
+			.Add(new HBoxContainer().Children()
+			.TextField("PlayerJoys", () => PlayerMapping.ToString())
+			.Node);
 	}
 
 	private void AddBulletSpeedConfigurator(DebugOverlay overlay) {
-		overlay.OpenBox()
-			.Edit("Bullet speed", ItemsManager.SlowGun.Speed.ToString("0"), v => ItemsManager.SlowGun.Speed = int.Parse(v)).EndMonitor()
-			.Edit("Bullet Trail", ItemsManager.SlowGun.TrailLength.ToString("0"), v => ItemsManager.SlowGun.TrailLength = int.Parse(v)).EndMonitor()
-			.Edit("Raycast", ItemsManager.SlowGun.RaycastLength.ToString("0"), v => ItemsManager.SlowGun.RaycastLength = int.Parse(v)).EndMonitor()
-			.CloseBox();
+		overlay
+			.Children()
+			.Add(new HBoxContainer().Children()
+			.Edit("Bullet speed", ItemsManager.SlowGun.Speed.ToString("0"), v => ItemsManager.SlowGun.Speed = int.Parse(v))
+			.Edit("Bullet Trail", ItemsManager.SlowGun.TrailLength.ToString("0"), v => ItemsManager.SlowGun.TrailLength = int.Parse(v))
+			.Edit("Raycast", ItemsManager.SlowGun.RaycastLength.ToString("0"), v => ItemsManager.SlowGun.RaycastLength = int.Parse(v))
+			.Node);
 	}
 
 	private void AddCameraAndZoomTests(DebugOverlay overlay) {
 		var spawnPlayer = PlatformWorld.Get().GetNode<Marker2D>("SpawnPlayer");
-		overlay.OpenBox()
-			.Text("Following", () => _cameraController.IsFollowing).EndMonitor()
-			.Text("Transition", () => _cameraController.IsBusy()).EndMonitor();
+		overlay
+			.Children()
+			.Add(new HBoxContainer().Children()
+			.TextField("Following", () => _cameraController.IsFollowing)
+			.TextField("Transition", () => _cameraController.IsBusy())
+			.Node);
 
-		overlay.OpenBox()
+		overlay
+			.Children()
+			.Add(new HBoxContainer().Children()
 			.Button("Follow player", () => _cameraController.Follow(CharacterBody2D))
 			.Button("Follow player pos", () => _cameraController.Follow(() => CharacterBody2D.GlobalPosition))
 			.Button("Stop", () => _cameraController.StopFollowing())
@@ -72,30 +82,37 @@ public partial class PlayerNode {
 					() => _cameraController.Camera2D.GetLocalMousePosition());
 				await _cameraController.Zoom(new Vector2(2f, 2f), 0.2f, BezierCurve.Create(0.755f, 0.05f, 0.855f, 0.06f),
 					() => _cameraController.Camera2D.GetLocalMousePosition());
-			});
+			})
+			.Node);
 	}
 
 	private void AddDebuggingInputAction(DebugOverlay overlay) {
-		overlay.OpenBox()
-			.Text("LR", () => _joypadController.Lateral.Strength.ToString("0.00") ).EndMonitor()
-			.Text("UD", () => _joypadController.Vertical.Strength.ToString("0.00") ).EndMonitor()
-			.CloseBox();
+		overlay
+			.Children()
+			.Add(new HBoxContainer().Children()
+			.TextField("LR", () => _joypadController.Lateral.Strength.ToString("0.00") )
+			.TextField("UD", () => _joypadController.Vertical.Strength.ToString("0.00") )
+			.Node);
 
-		overlay.OpenBox()
-			.Text("P", () => Jump.IsPressed).EndMonitor()
-			.Text("JP", () => Jump.IsJustPressed).EndMonitor()
-			.Text("Pressed", () => Jump.PressedTime.ToString("0.00")).EndMonitor()
-			.Text("R", () => Jump.IsJustReleased).EndMonitor()
-			.Text("Released", () => Jump.ReleasedTime.ToString("0.00")).EndMonitor()
-			.CloseBox();
+		overlay
+			.Children()
+			.Add(new HBoxContainer().Children()
+			.TextField("P", () => Jump.IsPressed)
+			.TextField("JP", () => Jump.IsJustPressed)
+			.TextField("Pressed", () => Jump.PressedTime.ToString("0.00"))
+			.TextField("R", () => Jump.IsJustReleased)
+			.TextField("Released", () => Jump.ReleasedTime.ToString("0.00"))
+			.Node);
 
-		overlay.OpenBox()
-			.Text("P", () => Attack.IsPressed).EndMonitor()
-			.Text("JP", () => Attack.IsJustPressed).EndMonitor()
-			.Text("Pressed", () => Attack.PressedTime.ToString("0.00")).EndMonitor()
-			.Text("R", () => Attack.IsJustReleased).EndMonitor()
-			.Text("Released", () => Attack.ReleasedTime.ToString("0.00")).EndMonitor()
-			.CloseBox();
+		overlay
+			.Children()
+			.Add(new HBoxContainer().Children()
+			.TextField("P", () => Attack.IsPressed)
+			.TextField("JP", () => Attack.IsJustPressed)
+			.TextField("Pressed", () => Attack.PressedTime.ToString("0.00"))
+			.TextField("R", () => Attack.IsJustReleased)
+			.TextField("Released", () => Attack.ReleasedTime.ToString("0.00"))
+			.Node);
 		
 		var prevResult = "";
 		var axisLogger = this.OnProcess(d => {
@@ -126,37 +143,47 @@ public partial class PlayerNode {
 	}
 
 	public void AddOverlayHelpers(DebugOverlay overlay) {
-		_jumpHelperMonitor = overlay.Text("JumpHelper");
-		_coyoteMonitor = overlay.Text("Coyote");
+		overlay.Children().TextField("JumpHelper", text => _jumpHelperMonitor = text);
+		overlay.Children().TextField("Coyote", text => _coyoteMonitor = text);
 	}
 
 	public void AddOverlayStates(DebugOverlay overlay) {
 		overlay
-			.OpenBox()
-				.Text("State", () => _fsm.CurrentState.Key.ToString()).EndMonitor()
-			.CloseBox();
+			.Children()
+			.Add(new HBoxContainer().Children()
+				.TextField("State", () => _fsm.CurrentState.Key.ToString())
+			.Node);
 	}
 
 	public void AddOverlayMotion(DebugOverlay overlay) {
 		overlay
-			.OpenBox()
-				.Vector("Motion", () => PlatformBody.Motion, PlayerConfig.MaxSpeed).SetChartWidth(100).EndMonitor()
-				.Graph("MotionX", () => PlatformBody.MotionX, -PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed).AddSeparator(0)
-					.AddSerie("MotionY").Load(() => PlatformBody.MotionY).EndSerie()
-				.EndMonitor()
-			.CloseBox()
-			.GraphSpeed("Speed", PlayerConfig.JumpSpeed * 2).EndMonitor();
+			.Children()
+			.Add(new HBoxContainer().Children()
+				.Vector("Motion", () => PlatformBody.Motion, PlayerConfig.MaxSpeed, motion => motion.SetChartWidth(100))
+				.Graph("MotionX", () => PlatformBody.MotionX, -PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed, config: motion => {
+					motion.AddSeparator(0)
+						.AddSerie("MotionY")
+						.Load(() => PlatformBody.MotionY)
+						.EndSerie();
+				})
+				.Node)
+			.GraphSpeed("Speed", CharacterBody2D, PlayerConfig.JumpSpeed * 2);
 
 	}
 	
 	public void AddOverlayCollisions(DebugOverlay overlay) {    
 		overlay
-			.Graph("Floor", () => PlatformBody.IsOnFloor()).Keep(10).SetChartHeight(10)
-				.AddSerie("Slope").Load(() => PlatformBody.IsOnSlope()).EndSerie()
-			.EndMonitor()
-			.Text("Floor", () => PlatformBody.GetFloorCollisionInfo()).EndMonitor()
-			.Text("Ceiling", () => PlatformBody.GetCeilingCollisionInfo()).EndMonitor()
-			.Text("Wall", () => PlatformBody.GetWallCollisionInfo()).EndMonitor();
+			.Children()
+			.Graph("Floor", () => PlatformBody.IsOnFloor(), config: floor => {
+				floor.Keep(10)
+					.SetChartHeight(10)
+					.AddSerie("Slope")
+					.Load(() => PlatformBody.IsOnSlope())
+					.EndSerie();
+			})
+			.TextField("Floor", () => PlatformBody.GetFloorCollisionInfo())
+			.TextField("Ceiling", () => PlatformBody.GetCeilingCollisionInfo())
+			.TextField("Wall", () => PlatformBody.GetWallCollisionInfo());
 	}
 
 

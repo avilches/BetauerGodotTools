@@ -9,12 +9,9 @@ public abstract partial class BaseMonitor : VBoxContainer {
 
     public static readonly Color DefaultSeparatorColor = new(1,1,1,0.05f);
     public static readonly Color DefaultBorderColor = new(1,1,1,0.1f);
-    public static readonly Color DefaultLabelColor = new(0.584314f, 0.584314f, 0.584314f, 1);
     public static readonly Color DefaultErrorColor = Colors.Red;
         
-    public bool IsEnabled => Visible;
-    public DebugOverlay DebugOverlayOwner { get; set; }
-
+    public abstract void CheckProcessBasedOnVisibility();
 
     public static List<Color> Palette;
     private static int _nextColor = 0; 
@@ -32,21 +29,18 @@ public abstract partial class BaseMonitor : VBoxContainer {
     public Color NextColor() {
         return Palette[_nextColor++ % Palette.Count];
     }
-
-    public DebugOverlay EndMonitor() {
-        return DebugOverlayOwner;
-    }
 }
 
 public abstract partial class BaseMonitor<TBuilder> : BaseMonitor where TBuilder : class {
     private double _timeElapsed = 0;
     private double _updateEvery = 0;
+    private bool _updateOnPhysics = true;
     public Func<bool>? DestroyIfFunc { get; private set; }
+    public GodotObject? Target { get; private set; }
 
-    public TBuilder Enable(bool enable = true) {
-        Visible = enable;
-        SetPhysicsProcess(enable);
-        return this as TBuilder;
+    protected BaseMonitor() {
+        Ready += CheckProcessBasedOnVisibility;
+        VisibilityChanged += CheckProcessBasedOnVisibility;
     }
 
     public TBuilder DestroyIf(Func<bool> destroyIf) {
@@ -54,40 +48,64 @@ public abstract partial class BaseMonitor<TBuilder> : BaseMonitor where TBuilder
         return this as TBuilder;
     }
 
+    public TBuilder Follow(GodotObject godotObject) {
+        Target = godotObject;
+        return this as TBuilder;
+    }
+
+    public TBuilder Enable(bool enable = true) {
+        Visible = enable;
+        return this as TBuilder;
+    }
+
     public TBuilder Disable() {
         return Enable(false);
     }
-        
+
+    public override void CheckProcessBasedOnVisibility() {
+        var isVisible = IsVisibleInTree();
+        if (isVisible) _timeElapsed = 0; // this ensure next time when the monitor is visible, the data is updated immediately
+        SetPhysicsProcess(isVisible && _updateOnPhysics);
+        SetProcess(isVisible && !_updateOnPhysics);
+    }
+
     public TBuilder UpdateEvery(float time) {
         _updateEvery = Math.Max(time, 0);
         return this as TBuilder;
     }
 
+    public TBuilder UpdateOnPhysics(bool updateOnPhysics = true) {
+        _updateOnPhysics = updateOnPhysics;
+        CheckProcessBasedOnVisibility();
+        return this as TBuilder;
+    }
+
+    public override void _Process(double delta) {
+        if (_updateOnPhysics) CheckProcessBasedOnVisibility();
+        Process(delta);
+    }
+
     public override void _PhysicsProcess(double delta) {
-        var watching = DebugOverlayOwner.Target;
-        if ((watching != null && !IsInstanceValid(watching)) || (DestroyIfFunc != null && DestroyIfFunc())) {
+        if (!_updateOnPhysics) CheckProcessBasedOnVisibility();
+        Process(delta);
+    }
+
+    private void Process(double delta) {
+        if ((Target != null && !IsInstanceValid(Target)) || (DestroyIfFunc != null && DestroyIfFunc())) {
             QueueFree();
-        } else if (!Visible) {
-            Disable();
-        } else {
-            if (DebugOverlayOwner.Visible) {
-                if (_updateEvery > 0) {
-                    if (_timeElapsed == 0) {
-                        _timeElapsed += delta;
-                        UpdateMonitor(delta);
-                    } else {
-                        _timeElapsed += delta;
-                        if (_timeElapsed >= _updateEvery) {
-                            UpdateMonitor(delta);
-                            _timeElapsed -= _updateEvery;
-                        }
-                    }
-                } else {
-                    UpdateMonitor(delta);
-                }
+        } else if (_updateEvery > 0) {
+            if (_timeElapsed == 0) {
+                _timeElapsed += delta;
+                UpdateMonitor(delta);
             } else {
-                _timeElapsed = 0;
+                _timeElapsed += delta;
+                if (_timeElapsed >= _updateEvery) {
+                    UpdateMonitor(delta);
+                    _timeElapsed -= _updateEvery;
+                }
             }
+        } else {
+            UpdateMonitor(delta);
         }
     }
 

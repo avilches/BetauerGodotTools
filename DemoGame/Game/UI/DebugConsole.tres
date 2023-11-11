@@ -1,13 +1,22 @@
-[gd_resource type="Theme" load_steps=2 format=3 uid="uid://cthe7dfw74cmy"]
+[gd_resource type="Theme" load_steps=4 format=3 uid="uid://cthe7dfw74cmy"]
 
 [ext_resource type="FontFile" uid="uid://cpgtmvnvbn5e0" path="res://Game/UI/Fonts/MonospacedMenlo/Menlo-Regular.ttf" id="1_fcg7b"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_57v24"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3vwg1"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
 
 [resource]
 default_font = ExtResource("1_fcg7b")
 Label/font_sizes/font_size = 12
 Label/fonts/font = ExtResource("1_fcg7b")
+Label/styles/normal = null
 LineEdit/font_sizes/font_size = 12
 LineEdit/fonts/font = ExtResource("1_fcg7b")
+LineEdit/styles/focus = SubResource("StyleBoxFlat_57v24")
+LineEdit/styles/normal = SubResource("StyleBoxFlat_3vwg1")
 RichTextLabel/colors/default_color = Color(0.72, 0.72, 0.72, 1)
 RichTextLabel/font_sizes/bold_font_size = 12
 RichTextLabel/font_sizes/normal_font_size = 12

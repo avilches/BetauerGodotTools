@@ -6,6 +6,7 @@ using Betauer.Application.Screen;
 using Betauer.Core.Nodes;
 using Betauer.Input;
 using Betauer.Nodes;
+using Betauer.UI;
 using Godot;
 
 namespace Betauer.Application.Monitor; 
@@ -152,7 +153,8 @@ public static partial class DebugConsoleExtensions {
                 .Overlay(title)
                 .HideOnClose(false)
                 .Solid()
-                .Text((nodeHandler ?? DefaultNodeHandler.Instance).GetStateAsString).UpdateEvery(1f).EndMonitor();
+                .Children()
+                .TextField("", (nodeHandler ?? DefaultNodeHandler.Instance).GetStateAsString, 1);
         }, "Open the NodeHandler info window.");
     }
 
@@ -164,6 +166,7 @@ public static partial class DebugConsoleExtensions {
                 .Overlay(title)
                 .HideOnClose(false)
                 .Solid()
+                .Children()
                 .AddWindowNotificationStatus(windowNotificationStatus)
                 .AddMonitorFpsTimeScaleAndUptime()
                 .AddMonitorMemory()
@@ -179,6 +182,7 @@ public static partial class DebugConsoleExtensions {
                 .Overlay(title)
                 .HideOnClose(false)
                 .Solid()
+                .Children()
                 .AddMonitorVideoInfo()
                 .AddMonitorScreenSettings(screenSettingsManager);
         }, "Open the screen settings info window.");
@@ -192,6 +196,7 @@ public static partial class DebugConsoleExtensions {
                 .Overlay(title)
                 .HideOnClose(false)
                 .Solid()
+                .Children()
                 .AddMonitorInputAction(inputActionsContainer);
         }, "Open the input map window.");
     }
@@ -205,6 +210,7 @@ public static partial class DebugConsoleExtensions {
                 .HideOnClose(false)
                 .Solid()
                 .SetMinSize(400, 200)
+                .Children()
                 .AddMonitorInputEvent(inputActionsContainer);
         }, "Open the input event logger window.");
     }

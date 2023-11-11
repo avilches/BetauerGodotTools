@@ -18,6 +18,7 @@ using Betauer.Input;
 using Betauer.NodePath;
 using Betauer.Nodes;
 using Betauer.Physics;
+using Betauer.UI;
 using Godot;
 using Veronenger.Game.Platform.Character.InputActions;
 using Veronenger.Game.Platform.Character.Player;
@@ -154,8 +155,8 @@ public partial class ZombieNode : NpcNode, IInjectable {
 		ConfigureFsm();
 		ConfigureAi();
 
-		// ConfigureOverlays();
-		// ConfigureOverlayRays();
+		ConfigureOverlays();
+		ConfigureOverlayRays();
 				
 		// Uncomment to discover if all the Ready methods are restoring the data correctly or there is still some property updated
 		// this.OnReady(_restorer.Save, true);
@@ -331,81 +332,91 @@ public partial class ZombieNode : NpcNode, IInjectable {
 
 	public void AddHurtStates(DebugOverlay overlay) {
 		overlay
-		.OpenBox()
-			.Text("Hurting", () => _hurtArea.Monitoring).EndMonitor()
-			.Text("Hurtable", () => _hurtArea.Monitorable).EndMonitor()
-		.CloseBox();
+			.Children()
+			.Add(new HBoxContainer().Children()
+				.TextField("Hurting", () => _hurtArea.Monitoring)
+				.TextField("Hurtable", () => _hurtArea.Monitorable)
+				.Node);
 	}
 
 	public void AddOverlayStates(DebugOverlay overlay) {
 		overlay
-		.OpenBox()
-			.Text("State", () => _fsm.CurrentState.Key.ToString()).EndMonitor()
-			.Text("IA", () => _zombieAi.GetState()).EndMonitor()
-			.Text("Animation", () => _animationPlayer.CurrentAnimation).EndMonitor()
-			.Text("GameObjectId", () => NpcGameObject.Id.ToString()).EndMonitor()
-			.Text("ObjectId", () => GetInstanceId().ToString()).EndMonitor()
-		.CloseBox();
+			.Children()
+			.Add(new HBoxContainer().Children()
+				.TextField("State", () => _fsm.CurrentState.Key.ToString())
+				.TextField("IA", () => _zombieAi.GetState())
+				.TextField("Animation", () => _animationPlayer.CurrentAnimation)
+				.TextField("GameObjectId", () => NpcGameObject.Id.ToString())
+				.TextField("ObjectId", () => GetInstanceId().ToString()).Node);
 	}
 
-	public void AddOverlayPlayerInfo(DebugOverlay overlay) {    
+	public void AddOverlayPlayerInfo(DebugOverlay overlay) {
 		overlay
-			.OpenBox()
-			.Text("Pos", () => IsFacingToPlayer()?
-											IsToTheRightOfPlayer()?"P <me|":"|me> P":
-											IsToTheRightOfPlayer()?"P |me>":"<me| P").EndMonitor()
-			.Text("See Player", CanSeeThePlayer).EndMonitor()
-		.CloseBox()
-		.OpenBox()
-			.Angle("Player angle", AngleToPlayer).EndMonitor()
-			.Text("Player is", () => IsToTheRightOfPlayer()?"Left":"Right").EndMonitor()
-			.Text("FacingPlayer", IsFacingToPlayer).EndMonitor()
-			.Text("Distance", () => DistanceToPlayer().ToString()).EndMonitor()
-		.CloseBox();
+			.Children()
+			.Add(new HBoxContainer().Children()
+				.TextField("Pos", () => IsFacingToPlayer() ? IsToTheRightOfPlayer() ? "P <me|" : "|me> P" :
+					IsToTheRightOfPlayer() ? "P |me>" : "<me| P")
+				.TextField("See Player", CanSeeThePlayer)
+				.Node)
+			.Add(new HBoxContainer().Children()
+				.Angle("Player angle", AngleToPlayer)
+				.TextField("Player is", () => IsToTheRightOfPlayer() ? "Left" : "Right")
+				.TextField("FacingPlayer", IsFacingToPlayer)
+				.TextField("Distance", () => DistanceToPlayer().ToString()).Node);
 	}
 
-	public void AddOverlayCrossAndDot(DebugOverlay overlay) {    
+	public void AddOverlayCrossAndDot(DebugOverlay overlay) {
 		overlay
-			.OpenBox()
-				.Text("Dot", () => RightVector.Dot(DirectionToPlayer()).ToString("0.00")).EndMonitor()
-				.Text("Cross", () => RightVector.Cross(DirectionToPlayer()).ToString("0.00")).EndMonitor()
-				.Text("Acos(Dot)", () => Mathf.RadToDeg(Mathf.Acos(Math.Abs(RightVector.Dot(DirectionToPlayer())))).ToString("0.00")).EndMonitor()
-				.Text("Acos(Cross)", () => Mathf.RadToDeg(Mathf.Acos(Math.Abs(RightVector.Cross(DirectionToPlayer())))).ToString("0.00")).EndMonitor()
-			.CloseBox()
-			.OpenBox()
-				.Text("SameDir", () => RightVector.IsSameDirection(DirectionToPlayer())).EndMonitor()
-				.Text("OppDir", () => RightVector.IsOppositeDirection(DirectionToPlayer())).EndMonitor()
-				.Text("IsRight", () => RightVector.IsRight(DirectionToPlayer())).EndMonitor()
-				.Text("IsLeft", () => RightVector.IsLeft(DirectionToPlayer())).EndMonitor()
-			.CloseBox()
-			.OpenBox()
-				.Text("SameDirA", () => RightVector.IsSameDirectionAngle(DirectionToPlayer())).EndMonitor()
-				.Text("OppDirA", () => RightVector.IsOppositeDirectionAngle(DirectionToPlayer())).EndMonitor()
-				.Text("IsRightA", () => RightVector.IsRightAngle(DirectionToPlayer())).EndMonitor()
-				.Text("IsLeftA", () => RightVector.IsLeftAngle(DirectionToPlayer())).EndMonitor()
-			.CloseBox()
-			.OpenBox()
-			.CloseBox();
+			.Children()
+			.Add(new HBoxContainer().Children()
+				.TextField("Dot", () => RightVector.Dot(DirectionToPlayer()).ToString("0.00"))
+				.TextField("Cross", () => RightVector.Cross(DirectionToPlayer()).ToString("0.00"))
+				.TextField("Acos(Dot)", () => Mathf.RadToDeg(Mathf.Acos(Math.Abs(RightVector.Dot(DirectionToPlayer())))).ToString("0.00"))
+				.TextField("Acos(Cross)", () => Mathf.RadToDeg(Mathf.Acos(Math.Abs(RightVector.Cross(DirectionToPlayer())))).ToString("0.00"))
+				.Node)
+			.Add(new HBoxContainer().Children()
+				.TextField("SameDir", () => RightVector.IsSameDirection(DirectionToPlayer()))
+				.TextField("OppDir", () => RightVector.IsOppositeDirection(DirectionToPlayer()))
+				.TextField("IsRight", () => RightVector.IsRight(DirectionToPlayer()))
+				.TextField("IsLeft", () => RightVector.IsLeft(DirectionToPlayer()))
+				.Node)
+			.Add(new HBoxContainer().Children()
+				.TextField("SameDirA", () => RightVector.IsSameDirectionAngle(DirectionToPlayer()))
+				.TextField("OppDirA", () => RightVector.IsOppositeDirectionAngle(DirectionToPlayer()))
+				.TextField("IsRightA", () => RightVector.IsRightAngle(DirectionToPlayer()))
+				.TextField("IsLeftA", () => RightVector.IsLeftAngle(DirectionToPlayer()))
+				.Node);
 	}
 
-	public void AddOverlayMotion(DebugOverlay overlay) {    
+	public void AddOverlayMotion(DebugOverlay overlay) {
 		overlay
-			.OpenBox()
-				.Vector("Motion", () => PlatformBody.Motion, PlayerConfig.MaxSpeed).SetChartWidth(100).EndMonitor()
-				.Graph("MotionX", () => PlatformBody.MotionX, -PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed).AddSeparator(0)
-				.AddSerie("MotionY").Load(() => PlatformBody.MotionY).EndSerie().EndMonitor()
-			.CloseBox()
-			.GraphSpeed("Speed", PlayerConfig.JumpSpeed * 2).EndMonitor();
+			.Children()
+			.Add(new HBoxContainer().Children()
+				.Vector("Motion", () => PlatformBody.Motion, PlayerConfig.MaxSpeed, motion => motion.SetChartWidth(100))
+				.Graph("MotionX", () => PlatformBody.MotionX, -PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed, config: motion => {
+					motion.AddSeparator(0)
+						.AddSerie("MotionY")
+						.Load(() => PlatformBody.MotionY)
+						.EndSerie();
+				}).Node)
+			.GraphSpeed("Speed", CharacterBody2D, PlayerConfig.JumpSpeed * 2);
 	}
-	
-	public void AddOverlayCollisions(DebugOverlay overlay) {    
+
+	public void AddOverlayCollisions(DebugOverlay overlay) {
 		overlay
-			.Graph("Floor", () => PlatformBody.IsOnFloor()).Keep(10).SetChartHeight(10)
-				.AddSerie("Slope").Load(() => PlatformBody.IsOnSlope()).EndSerie()
-			.EndMonitor()
-			.Text("Floor", () => PlatformBody.GetFloorCollisionInfo()).EndMonitor()
-			.Text("Ceiling", () => PlatformBody.GetCeilingCollisionInfo()).EndMonitor()
-			.Text("Wall", () => PlatformBody.GetWallCollisionInfo()).EndMonitor();
+			.Children()
+			.Add(new HBoxContainer().Children()
+				.Graph("Floor", () => PlatformBody.IsOnFloor(), config: graph => {
+					graph.Keep(10)
+						.SetChartHeight(10)
+						.AddSerie("Slope")
+						.Load(() => PlatformBody.IsOnSlope())
+						.EndSerie();
+				})
+				.Node)
+			.TextField("Floor", () => PlatformBody.GetFloorCollisionInfo())
+			.TextField("Ceiling", () => PlatformBody.GetCeilingCollisionInfo())
+			.TextField("Wall", () => PlatformBody.GetWallCollisionInfo());
 	}
 
 	public override void _PhysicsProcess(double delta) {

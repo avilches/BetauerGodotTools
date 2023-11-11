@@ -56,6 +56,7 @@ public class Settings {
 [Preload<Texture2D>("Icon", "res://icon.png")]
 [Resource<Theme>("MyTheme", "res://Game/UI/my_theme2.tres")]
 [Resource<Theme>("DebugConsoleTheme", "res://Game/UI/DebugConsole.tres")]
+[Resource<Theme>("DebugOverlayTheme", "res://Game/UI/DebugOverlay.tres")]
 [Resource<Texture2D>("Xbox360Buttons", "res://Game/UI/Console/Xbox 360 Controller Updated.png")]
 [Resource<Texture2D>("XboxOneButtons", "res://Game/UI/Console/Xbox One Controller Updated.png")]
 [Scene.Transient<RedefineActionButton>("RedefineActionButton")]

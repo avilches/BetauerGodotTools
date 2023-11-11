@@ -70,7 +70,8 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IMain, IInjectab
     private ProgressScreen ProgressScreenScene => ProgressScreenLazy.Get();
     
     [Inject] private ITransient<ModalBoxConfirm> ModalBoxConfirmFactory { get; set; }
-    [Inject("MyTheme")] private ResourceHolder<Theme> MyTheme { get; set; }
+    [Inject("DebugOverlayTheme")] private ResourceHolder<Theme> DebugOverlayTheme { get; set; }
+    [Inject("DebugConsoleTheme")] private ResourceHolder<Theme> DebugConsoleTheme { get; set; }
 
     [Inject("PlatformGameViewHolder")] private IMutableHolder<IGameView> PlatformGameView { get; set; }
     [Inject("RtsGameViewHolder")] private IMutableHolder<IGameView> RtsGameView { get; set; }
@@ -85,7 +86,6 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IMain, IInjectab
     [Inject] private UiActionsContainer UiActionsContainer { get; set; }
     [Inject] private JoypadPlayersMapping JoypadPlayersMapping { get; set; }
         
-    [Inject("DebugConsoleTheme")] private ResourceHolder<Theme> DebugConsoleTheme { get; set; }
 
     public override void _Ready() {
         ProcessMode = ProcessModeEnum.Always;
@@ -285,7 +285,7 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IMain, IInjectab
     }
 
     private void ConfigureDebugOverlays() {
-        DebugOverlayManager.OverlayContainer.Theme = MyTheme.Get();
+        DebugOverlayManager.OverlayContainer.Theme = DebugOverlayTheme.Get();
         DebugOverlayManager.DebugConsole.Theme = DebugConsoleTheme.Get();
     }
 

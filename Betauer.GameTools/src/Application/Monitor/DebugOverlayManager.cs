@@ -38,24 +38,20 @@ public partial class DebugOverlayManager : CanvasLayer {
     }
 
     public override void _Ready() {
-        this.NodeBuilder()
-            .Child(Right, label => {
+        this.Children()
+            .Add(Right, label => {
                 label.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.TopRight);
                 label.GrowHorizontal = Control.GrowDirection.Begin;
                 // label.MarginLeft = 0;
                 // label.MarginRight = 0;
                 label.HorizontalAlignment = HorizontalAlignment.Right;
             })
-            .End()
-            .Child(OverlayContainer)
-            .End()
-            .Child(DebugConsole)
-        .End((debugOverlay) => {
-            Name = "DebugOverlayManager";
-            Layer = 1000000;
-            ProcessMode = ProcessModeEnum.Always;
-            Visible = false;
-        });
+            .Add(OverlayContainer)
+            .Add(DebugConsole);
+        Name = "DebugOverlayManager";
+        Layer = 1000000;
+        ProcessMode = ProcessModeEnum.Always;
+        Visible = false;
     }
 
     public DebugOverlay Overlay(string title) {
@@ -100,21 +96,37 @@ public partial class DebugOverlayManager : CanvasLayer {
         Overlays.FirstOrDefault(overlay => overlay.Target == target)?.Enable();
     }
 
+    private Control? _lastFocus;
     public override void _Input(InputEvent input) {
         if (DebugOverlayAction != null && DebugOverlayAction.IsEventJustPressed(input)) {
-            if (input.HasShift()) {
-                if (Visible) {
-                    DebugConsole.Enable(!DebugConsole.Visible);
+            UserHitDebug(input);
+        }
+    }
+
+    private void UserHitDebug(InputEvent input) {
+        if (input.HasShift()) {
+            if (Visible) {
+                // Overlay visible: change the console only
+                if (DebugConsole.Visible) {
+                    DebugConsole.Disable();
+                    if (_lastFocus != null && _lastFocus.IsInstanceValid() && _lastFocus.IsVisibleInTree()) _lastFocus.GrabFocus();
                 } else {
-                    Enable();
+                    _lastFocus = OverlayContainer.GetViewport().GuiGetFocusOwner();
                     DebugConsole.Enable();
                 }
             } else {
-                if (Visible) {
-                    Disable();
-                } else {
-                    Enable();
-                }
+                // Overlay not visible: enable console and overlay
+                _lastFocus = OverlayContainer.GetViewport().GuiGetFocusOwner();
+                Enable();
+                DebugConsole.Enable();
+            }
+        } else {
+            if (Visible) {
+                // Overlay visible: just hide everything
+                Disable();
+                if (_lastFocus != null && _lastFocus.IsInstanceValid() && _lastFocus.IsVisibleInTree()) _lastFocus.GrabFocus();
+            } else {
+                Enable();
             }
         }
     }
@@ -132,9 +144,11 @@ public partial class DebugOverlayManager : CanvasLayer {
         SetPhysicsProcess(enable);
         if (enable) {
             if (DebugConsole.Visible) DebugConsole.Enable();
+            // Use the actives before disable all
             Overlays.ForEach(overlay => overlay.Enable(_actives.Contains(overlay.Id)));
         } else {
             DebugConsole.Sleep();
+            // Remember the actives before disable all, so they can be restored when the manager is enabled again
             _actives = Overlays
                 .Where(overlay => overlay.Visible)
                 .Select(overlay => overlay.Id)

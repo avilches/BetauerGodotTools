@@ -56,15 +56,12 @@ public partial class MonitorEditValue : BaseMonitor<MonitorEditValue> {
             _focused = true;
         };
         Edit.FocusExited += () => _focused = false;
-        this.NodeBuilder()
-            .Child(HBoxContainer)
-                .Child(Label, label => {
-                    label.SetFontColor(DefaultLabelColor);
-                })
-                .End()
-                .Child(Edit)
-                .End()
-            .End();
+        this.Children()
+            .Add(HBoxContainer, box => {
+                box.Children()
+                    .Add(Label)
+                    .Add(Edit);
+            });
     }
     
     public void LoadValue() {

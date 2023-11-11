@@ -11,7 +11,7 @@ public partial class MonitorGraph : BaseMonitor<MonitorGraph> {
 
     public class Serie {
         private readonly MonitorGraph _graph;
-        private Action<Line2D> _chartLineConfig = _ => { };
+        private Action<Line2D>? _chartLineConfig;
         private Color _color = Colors.YellowGreen;
         private Func<float> _loadValue;
         private Func<float, string>? _formatValue;
@@ -71,7 +71,7 @@ public partial class MonitorGraph : BaseMonitor<MonitorGraph> {
         internal void ConfigureChartLine() {
             ChartLine.Width = 2f;
             ChartLine.DefaultColor = _color;
-            _chartLineConfig.Invoke(ChartLine);
+            _chartLineConfig?.Invoke(ChartLine);
             CurrentValue.SetFontColor(_color);
         }
 
@@ -219,36 +219,31 @@ public partial class MonitorGraph : BaseMonitor<MonitorGraph> {
         serie.SetLabel(label);
         _series.Add(serie);
         _lineChartHolder.AddChild(serie.ChartLine);
-        _legend.NodeBuilder()
-            .Child(serie.Label, label => {
-                label.HorizontalAlignment = HorizontalAlignment.Right;
-                label.SetFontColor(DefaultLabelColor);
-            })
-            .End()
-            .Child(serie.CurrentValue, label => {
+        _legend.Children()
+            .Add(serie.Label, label => {
                 label.HorizontalAlignment = HorizontalAlignment.Right;
             })
-            .End()
-        .End();
+            .Add(serie.CurrentValue, label => {
+                label.HorizontalAlignment = HorizontalAlignment.Right;
+            });
         _dirty = true;
         return serie;
     }
 
     public override void _Ready() {
-        this.NodeBuilder()
-            .Child(_chartSpacer).End()
-            .Child(_timeSeparatorsHolder).End()
-            .Child(_separatorsHolder).End()
-            .Child(_lineChartHolder).End()
-            .Child(BorderLine).End()
-            .Child<Label>()
-                .Child(_legend, (legend) => {
-                    _legend.GrowHorizontal = GrowDirection.Begin;
-                    _legend.SetAnchorsAndOffsetsPreset(LayoutPreset.RightWide);
-                })
-                .End()
-            .End();
-
+        this.Children()
+            .Add(_chartSpacer)
+            .Add(_timeSeparatorsHolder)
+            .Add(_separatorsHolder)
+            .Add(_lineChartHolder)
+            .Add(BorderLine)
+            .Add<Label>(label => {
+                label.Children()
+                    .Add(_legend, (legend) => {
+                        _legend.GrowHorizontal = GrowDirection.Begin;
+                        _legend.SetAnchorsAndOffsetsPreset(LayoutPreset.RightWide);
+                    });
+            });
         _dirty = true;
     }
 

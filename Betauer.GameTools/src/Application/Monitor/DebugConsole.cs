@@ -7,12 +7,10 @@ using System.Linq;
 using Betauer.Core;
 using Betauer.Input;
 using Betauer.Core.Nodes;
-using Betauer.Core.Signal;
 using Betauer.UI;
 using Godot;
 
 public partial class DebugConsole : Panel {
-
     public interface ICommand {
         string Name { get; }
         string ShortHelp { get; }
@@ -26,7 +24,7 @@ public partial class DebugConsole : Panel {
         public string ArgumentString { get; internal set; }
         public string[] Arguments { get; internal set; }
     }
-    
+
     public class Command : ICommand {
         public string Name { get; }
         public string ShortHelp { get; }
@@ -44,7 +42,7 @@ public partial class DebugConsole : Panel {
             _execute(input);
         }
     }
-    
+
     public class ConditionalCommand : ICommand {
         public string Name { get; }
         public string ShortHelp { get; }
@@ -72,7 +70,8 @@ public partial class DebugConsole : Panel {
         }
 
         public ConditionalCommand ArgumentIsFloat(Action<CommandInput> execute) {
-            _execute.Add((input => input.Arguments.Length > 0 && double.TryParse(input.Arguments[0], NumberStyles.Float, CultureInfo.InvariantCulture, out _), execute));
+            _execute.Add((input => input.Arguments.Length > 0 && double.TryParse(input.Arguments[0], NumberStyles.Float, CultureInfo.InvariantCulture, out _),
+                execute));
             return this;
         }
 
@@ -88,9 +87,8 @@ public partial class DebugConsole : Panel {
 
 
         public void Execute(CommandInput input) {
-            var found = false;
             foreach (var valueTuple in _execute) {
-                found = valueTuple.Item1(input);
+                var found = valueTuple.Item1(input);
                 if (found) {
                     valueTuple.Item2(input);
                     return;
@@ -104,28 +102,30 @@ public partial class DebugConsole : Panel {
             return _debugConsole;
         }
     }
-    
+
     private static readonly int DebugConsoleLayoutEnumSize = Enum.GetNames(typeof(LayoutEnum)).Length;
     private const float InitialTransparentBackground = 0.8f;
+
     public enum LayoutEnum {
-        UpQuarter = 5, 
-        UpThird = 4, 
-        UpHalf = 3, 
+        UpQuarter = 5,
+        UpThird = 4,
+        UpHalf = 3,
         DownHalf = 2,
         DownThird = 1,
         DownQuarter = 0
     }
+
     private int _historyPos = -1;
     private string? _historyBuffer = null;
     private bool IsBrowsingHistory => _historyPos > -1;
     private LayoutEnum _layout = LayoutEnum.DownThird;
     private readonly CommandInput _commandInput = new();
     private bool IsAutoCompleting => _caretAutoCompleting > 0;
-    private readonly List<string> _sortedCommandList = new();        
+    private readonly List<string> _sortedCommandList = new();
     private int _caretAutoCompleting = 0;
 
     public DebugOverlayManager DebugOverlayManager { get; }
-    public readonly Dictionary<string, ICommand> Commands = new();        
+    public readonly Dictionary<string, ICommand> Commands = new();
     public readonly RichTextLabel ConsoleOutput = new();
     public readonly LineEdit Prompt = new();
     public readonly List<string> History = new();
@@ -168,13 +168,13 @@ public partial class DebugConsole : Panel {
         ConsoleOutput.Newline();
         return this;
     }
-    
+
     public DebugConsole ClearConsole() {
         ConsoleOutput.Clear();
         ConsoleOutput.PushColor(new Color(0.8f, 0.8f, 0.8f));
         return this;
     }
-    
+
     public DebugConsole AddCommand(ICommand command) {
         Commands[command.Name.ToLower()] = command;
         _sortedCommandList.Add(command.Name.ToLower());
@@ -201,76 +201,63 @@ public partial class DebugConsole : Panel {
     }
 
     public override void _Ready() {
-        this.NodeBuilder()
-            .Child<MarginContainer>(margin => {
-                    // Full rect
-                    margin.Name = "MarginContainer";
-                    margin.AnchorRight = 1;
-                    margin.AnchorBottom = 1;
-                    margin.SetMargin(10, 10, 10, 10);
-                })
-                .Child<VBoxContainer>(box => {
-                    // Full rect
-                    box.Name = "VBoxContainer";
-                    box.AnchorRight = 1;
-                    box.AnchorBottom = 1;
-                })
-                    .Child(ConsoleOutput, text => {
-                        text.Name = nameof(ConsoleOutput);
-                        text.SizeFlagsHorizontal = SizeFlags.ExpandFill;
-                        text.SizeFlagsVertical = SizeFlags.ExpandFill;
-                        text.BbcodeEnabled = true;
-                        text.SelectionEnabled = true;
-                        text.ScrollFollowing = true;
-                    })
-                    .End()
-                    .Child<HBoxContainer>()
-                        .Child<Label>(label => {
-                            label.Name = "Prompt";
-                            label.Text = ">";
-                        })
-                        .End()
-                        .Child(Prompt, prompt => {
-                            prompt.Name = nameof(Prompt);
-                            var style = new StyleBoxFlat() {
-                                BgColor = DebugOverlay.ColorInvisible,
-                                BorderWidthTop = 0,
-                                BorderWidthRight = 0,
-                                BorderWidthBottom = 0,
-                                BorderWidthLeft = 0
-                            };
-                            prompt.AddThemeStyleboxOverride("normal", style);
-                            prompt.AddThemeStyleboxOverride("focus", style);
-                            prompt.SizeFlagsHorizontal = SizeFlags.ExpandFill;
-                            prompt.CaretBlink = true;
-                            prompt.CaretBlinkInterval = 0.250f;
-                            prompt.GrabFocus();
-                            prompt.TextChanged += (_) => _caretAutoCompleting = 0;         
-                        })
-                        .End()
-                        .Child<HSlider>(slider => {
-                            slider.Name = "OpacitySlider";
-                            slider.Editable = true;
-                            slider.TooltipText = "Opacity";
-                            slider.CustomMinimumSize = new Vector2(50, 5);
-                            slider.Value = InitialTransparentBackground * 25f;
-                            slider.ValueChanged += (value) => {
-                                SelfModulate = new Color(1, 1, 1, (float)(value / 25f));
-                                Prompt.GrabFocus();
-                            };
-                            slider.MaxValue = 25f;
-                            slider.MinValue = 0f;
-                        })
-                        .End()
-                    .End()
-                .End()
-            .End()
-        .End((debugOverlay) => {
-            SelfModulate = new Color(1, 1, 1, InitialTransparentBackground);
-            Layout = LayoutEnum.DownThird;
-            ClearConsole();
-        });
-
+        this.Children()
+            .Add<MarginContainer>(margin => {
+                // Full rect
+                margin.Name = "MarginContainer";
+                margin.AnchorRight = 1;
+                margin.AnchorBottom = 1;
+                margin.SetMargin(10, 10, 10, 10);
+                margin
+                    .Children()
+                    .Add<VBoxContainer>(box => {
+                        // Full rect
+                        box.Name = "VBoxContainer";
+                        box.AnchorRight = 1;
+                        box.AnchorBottom = 1;
+                        box
+                            .Children()
+                            .Add(ConsoleOutput, text => {
+                                text.Name = nameof(ConsoleOutput);
+                                text.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+                                text.SizeFlagsVertical = SizeFlags.ExpandFill;
+                                text.BbcodeEnabled = true;
+                                text.SelectionEnabled = true;
+                                text.ScrollFollowing = true;
+                            })
+                            .Add<HBoxContainer>(hbox => {
+                                hbox.Children()
+                                    .Add<Label>(label => {
+                                        label.Name = "Prompt";
+                                        label.Text = ">";
+                                    })
+                                    .Add(Prompt, prompt => {
+                                        prompt.Name = nameof(Prompt);
+                                        prompt.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+                                        prompt.CaretBlink = true;
+                                        prompt.CaretBlinkInterval = 0.250f;
+                                        prompt.GrabFocus();
+                                        prompt.TextChanged += (_) => _caretAutoCompleting = 0;
+                                    })
+                                    .Add<HSlider>(slider => {
+                                        slider.Name = "OpacitySlider";
+                                        slider.Editable = true;
+                                        slider.TooltipText = "Opacity";
+                                        slider.CustomMinimumSize = new Vector2(50, 5);
+                                        slider.Value = InitialTransparentBackground * 25f;
+                                        slider.ValueChanged += (value) => {
+                                            SelfModulate = new Color(1, 1, 1, (float)(value / 25f));
+                                            Prompt.GrabFocus();
+                                        };
+                                        slider.MaxValue = 25f;
+                                        slider.MinValue = 0f;
+                                    });
+                            });
+                    });
+            });
+        SelfModulate = new Color(1, 1, 1, InitialTransparentBackground);
+        Layout = LayoutEnum.DownThird;
+        ClearConsole();
     }
 
     private void SetConsoleInputText(string text) {
@@ -282,17 +269,14 @@ public partial class DebugConsole : Panel {
     private void OnConsoleInputKeyEvent(InputEventKey eventKey) {
         if (eventKey.IsKeyJustPressed(Key.Enter) || eventKey.IsKeyJustPressed(Key.KpEnter)) {
             OnTextEntered(Prompt.Text);
-            
         } else if (eventKey.IsKeyJustPressed(Key.Up) && (eventKey.HasAlt() || eventKey.HasMeta())) {
             var newState = Math.Min((int)_layout + 1, DebugConsoleLayoutEnumSize - 1);
             Layout = (LayoutEnum)newState;
             GetViewport().SetInputAsHandled();
-            
         } else if (eventKey.IsKeyJustPressed(Key.Down) && (eventKey.HasAlt() || eventKey.HasMeta())) {
             var newState = Math.Max((int)_layout - 1, 0);
             Layout = (LayoutEnum)newState;
             GetViewport().SetInputAsHandled();
-            
         } else if (eventKey.IsKeyJustPressed(Key.Up)) {
             OnHistoryUp();
         } else if (eventKey.IsKeyJustPressed(Key.Down)) {
@@ -309,9 +293,9 @@ public partial class DebugConsole : Panel {
             OnConsoleInputKeyEvent(eventKey);
         } else if (input.IsLeftClickPressed() && input.IsMouseInside(ConsoleOutput)) {
             Prompt.GrabFocus();
-        } 
+        }
     }
-    
+
     private void OnTextEntered(string text) {
         if (!string.IsNullOrWhiteSpace(text)) {
             text = text.Trim();
@@ -323,7 +307,7 @@ public partial class DebugConsole : Panel {
             var pos = text.IndexOf(" ", StringComparison.Ordinal);
             var commandName = pos > 0 ? text[..pos] : text;
             if (Commands.TryGetValue(commandName.ToLower(), out var command)) {
-                var argumentString = pos > 0 ? text[(pos+1)..text.Length] : "";
+                var argumentString = pos > 0 ? text[(pos + 1)..text.Length] : "";
                 var arguments = argumentString.Length > 0 ? argumentString.Split(" ") : Array.Empty<string>();
                 _commandInput.Raw = text;
                 _commandInput.Name = commandName;
