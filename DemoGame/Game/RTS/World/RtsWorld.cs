@@ -118,7 +118,7 @@ public partial class RtsWorld : Node, IInjectable {
 				WorldGenerator.Seed = seed;
 				WorldGenerator.Generate();
 			}, (edit) => edit.SetMinSize(20))
-			.Add(new HBoxContainer().Children()
+			.Add<HBoxContainer>(box => box.Children()
 				.Label("View Mode")
 				.ToggleButton("Terrain", () => WorldGenerator.CurrentViewMode == WorldGenerator.ViewMode.Terrain, () => {
 					WorldGenerator.CurrentViewMode = WorldGenerator.ViewMode.Terrain;
@@ -140,15 +140,13 @@ public partial class RtsWorld : Node, IInjectable {
 					WorldGenerator.CurrentViewMode = WorldGenerator.ViewMode.FalloffMap;
 					WorldGenerator.UpdateView();
 				})
-				.Node
 			)
 			.Label("Height")
 			.Edit("Frequency", () => WorldGenerator.BiomeGenerator.HeightNoise.Frequency, (value) => {
 				WorldGenerator.BiomeGenerator.HeightNoise.Frequency = value;
 				WorldGenerator.Generate();
 			})
-			.Add(new HBoxContainer()
-				.Children()
+			.Add<HBoxContainer>(box => box.Children()
 				.ToggleButton("Enabled", () => WorldGenerator.BiomeGenerator.FalloffEnabled, () => {
 					WorldGenerator.BiomeGenerator.FalloffEnabled = !WorldGenerator.BiomeGenerator.FalloffEnabled;
 					WorldGenerator.Generate();
@@ -161,7 +159,7 @@ public partial class RtsWorld : Node, IInjectable {
 						WorldGenerator.BiomeGenerator.FalloffMap.Offset = value;
 						WorldGenerator.Generate();
 					}
-				).Node
+				)
 			)
 			.Label("Humidity")
 			.Edit("Frequency", () => WorldGenerator.BiomeGenerator.HumidityNoise.Frequency, (value) => {

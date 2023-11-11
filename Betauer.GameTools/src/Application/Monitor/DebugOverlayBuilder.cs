@@ -210,7 +210,7 @@ public static class DebugOverlayBuilder {
         var maxOrphans = 0;
         var maxResources = 0;
         var maxObjects = 0;
-        builder.Add(new HBoxContainer().Children()
+        builder.Add<HBoxContainer>(box => box.Children()
                 .TextField("Nodes/max", () => {
                     var count = (int)Performance.GetMonitor(Performance.Monitor.ObjectNodeCount);
                     maxNodes = Math.Max(maxNodes, count);
@@ -220,8 +220,9 @@ public static class DebugOverlayBuilder {
                     var count = (int)Performance.GetMonitor(Performance.Monitor.ObjectOrphanNodeCount);
                     maxOrphans = Math.Max(maxOrphans, count);
                     return $"{count.ToString()}/{maxOrphans.ToString()}";
-                }, 1))
-            .Add(new HBoxContainer().Children()
+                }, 1)
+            )
+            .Add<HBoxContainer>(box => box.Children()
                 .TextField("Resources/max", () => {
                     var count = (int)Performance.GetMonitor(Performance.Monitor.ObjectResourceCount);
                     maxResources = Math.Max(maxResources, count);
@@ -231,41 +232,43 @@ public static class DebugOverlayBuilder {
                     var count = (int)Performance.GetMonitor(Performance.Monitor.ObjectCount);
                     maxObjects = Math.Max(maxObjects, count);
                     return $"{count.ToString()}/{maxObjects.ToString()}";
-                }, 1));
-        return builder;
-    }
-
-    public static NodeBuilder AddWindowNotificationStatus(this NodeBuilder builder, WindowNotificationStatus windowNotificationStatus) {
-        builder.Add(new HBoxContainer().Children()
-            .TextField("Window Focus", () => windowNotificationStatus.IsWindowFocused)
-            .TextField("Application Focus", () => windowNotificationStatus.IsApplicationFocused)
-            .TextField("Mouse inside game", () => windowNotificationStatus.IsMouseInsideScreen)
+                }, 1)
             );
         return builder;
     }
 
+    public static NodeBuilder AddWindowNotificationStatus(this NodeBuilder builder, WindowNotificationStatus windowNotificationStatus) {
+        builder.Add<HBoxContainer>(box => box.Children()
+            .TextField("Window Focus", () => windowNotificationStatus.IsWindowFocused)
+            .TextField("Application Focus", () => windowNotificationStatus.IsApplicationFocused)
+            .TextField("Mouse inside game", () => windowNotificationStatus.IsMouseInsideScreen)
+        );
+        return builder;
+    }
+
     public static NodeBuilder AddMonitorFpsTimeScaleAndUptime(this NodeBuilder builder) {
-        builder.Add(new HBoxContainer().Children()
+        builder.Add<HBoxContainer>(box => box.Children()
             .TextField("FPS/limit",
                 () => $"{((int)Engine.GetFramesPerSecond()).ToString()}/{Engine.MaxFps.ToString()}", 1)
             .TextField("TimeScale", () => Engine.TimeScale.ToString("0.0"), 1)
             .TextField("Uptime", () => {
                 var timespan = TimeSpan.FromMilliseconds(Time.GetTicksMsec());
                 return $"{(int)timespan.TotalMinutes}:{timespan.Seconds:00}";
-            }, 1));
+            }, 1)
+        );
         return builder;
     }
 
     public static NodeBuilder AddMonitorMemory(this NodeBuilder builder) {
-        #if DEBUG
-        builder.Add(new HBoxContainer().Children()
+#if DEBUG
+        builder.Add<HBoxContainer>(box => box.Children()
             .TextField("Static", () => ((long)OS.GetStaticMemoryUsage()).HumanReadableBytes(), 1)
             .TextField("Max", () => ((long)OS.GetStaticMemoryPeakUsage()).HumanReadableBytes(), 1)
-            );
-            // TODO Godot 4
-            // .Text("Dynamic", () => ((long)OS.GetDynamicMemoryUsage()).HumanReadableBytes()).UpdateEvery(1f).EndMonitor()
-            // .Text("Max", () => ((long)Performance.GetMonitor(Performance.Monitor.MemoryDynamicMax)).HumanReadableBytes()).UpdateEvery(1f).EndMonitor()
-        #endif
+        );
+        // TODO Godot 4
+        // .Text("Dynamic", () => ((long)OS.GetDynamicMemoryUsage()).HumanReadableBytes()).UpdateEvery(1f).EndMonitor()
+        // .Text("Max", () => ((long)Performance.GetMonitor(Performance.Monitor.MemoryDynamicMax)).HumanReadableBytes()).UpdateEvery(1f).EndMonitor()
+#endif
         return builder;
     }
     
@@ -338,13 +341,13 @@ public static class DebugOverlayBuilder {
             aspectGroup.Dispose();
         });
 
-        builder.Add(new HBoxContainer().Children()
+        builder.Add<HBoxContainer>(box => box.Children()
                 .TextField("Strategy", () => sc.GetType().Name)
                 .TextField("Stretch", () => $"{sc.ScreenConfig.ScaleMode.ToString()}/{sc.ScreenConfig.ScaleAspect.ToString()}")
                 .TextField("Zoom", () => sc.ScreenConfig.ScaleFactor.ToString())
                 .TextField("Viewport", () => $"{window.Size.ToString("0")}")
-                )
-            .Add(new HBoxContainer().Children()
+            )
+            .Add<HBoxContainer>(box => box.Children()
                 .Label("Strategy")
                 .ToggleButton(nameof(FixedViewportStrategy),
                     () => sc.ScreenConfig.Strategy is FixedViewportStrategy, () => {
@@ -361,7 +364,7 @@ public static class DebugOverlayBuilder {
                         sc.ScreenConfig.Strategy = ResizeIntegerScaledStrategy.Instance;
                         sc.Apply();
                     }, strategyGroup)
-                )
+            )
             .Add<HBoxContainer>(box => box.Children()
                 .Label("Mode")
                 .ToggleButton(nameof(Window.ContentScaleModeEnum.Disabled),
@@ -379,8 +382,8 @@ public static class DebugOverlayBuilder {
                         sc.ScreenConfig.ScaleMode = Window.ContentScaleModeEnum.Viewport;
                         sc.Apply();
                     }, modeGroup)
-                )
-            .Add(new HBoxContainer().Children()
+            )
+            .Add<HBoxContainer>(box => box.Children()
                 .Label("Aspect")
                 .ToggleButton(nameof(Window.ContentScaleAspectEnum.Ignore),
                     () => sc.ScreenConfig.ScaleAspect == Window.ContentScaleAspectEnum.Ignore, () => {
@@ -407,7 +410,7 @@ public static class DebugOverlayBuilder {
                         sc.ScreenConfig.ScaleAspect = Window.ContentScaleAspectEnum.KeepWidth;
                         sc.Apply();
                     }, aspectGroup)
-                );
+            );
         return builder;
     }
 }

@@ -5,7 +5,7 @@ namespace Betauer.UI;
 
 public static class NodeBuilderExtensions {
     public static NodeBuilder Children<TParent>(this TParent parent) where TParent : Node {
-        return new NodeBuilder(parent);
+        return NodeBuilder.Children(parent);
     }
 
     public static NodeBuilder Button(this NodeBuilder builder, string label, Action? pressed = null, Action<Button>? config = null) {

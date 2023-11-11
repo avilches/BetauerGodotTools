@@ -333,79 +333,82 @@ public partial class ZombieNode : NpcNode, IInjectable {
 	public void AddHurtStates(DebugOverlay overlay) {
 		overlay
 			.Children()
-			.Add(new HBoxContainer().Children()
+			.Add<HBoxContainer>(box => box.Children()
 				.TextField("Hurting", () => _hurtArea.Monitoring)
 				.TextField("Hurtable", () => _hurtArea.Monitorable)
-				.Node);
+			);
 	}
 
 	public void AddOverlayStates(DebugOverlay overlay) {
 		overlay
 			.Children()
-			.Add(new HBoxContainer().Children()
+			.Add<HBoxContainer>(box => box.Children()
 				.TextField("State", () => _fsm.CurrentState.Key.ToString())
 				.TextField("IA", () => _zombieAi.GetState())
 				.TextField("Animation", () => _animationPlayer.CurrentAnimation)
 				.TextField("GameObjectId", () => NpcGameObject.Id.ToString())
-				.TextField("ObjectId", () => GetInstanceId().ToString()).Node);
+				.TextField("ObjectId", () => GetInstanceId().ToString())
+			);
 	}
 
 	public void AddOverlayPlayerInfo(DebugOverlay overlay) {
 		overlay
 			.Children()
-			.Add(new HBoxContainer().Children()
+			.Add<HBoxContainer>(box => box.Children()
 				.TextField("Pos", () => IsFacingToPlayer() ? IsToTheRightOfPlayer() ? "P <me|" : "|me> P" :
 					IsToTheRightOfPlayer() ? "P |me>" : "<me| P")
 				.TextField("See Player", CanSeeThePlayer)
-				.Node)
-			.Add(new HBoxContainer().Children()
+			)
+			.Add<HBoxContainer>(box => box.Children()
 				.Angle("Player angle", AngleToPlayer)
 				.TextField("Player is", () => IsToTheRightOfPlayer() ? "Left" : "Right")
 				.TextField("FacingPlayer", IsFacingToPlayer)
-				.TextField("Distance", () => DistanceToPlayer().ToString()).Node);
+				.TextField("Distance", () => DistanceToPlayer().ToString())
+			);
 	}
 
 	public void AddOverlayCrossAndDot(DebugOverlay overlay) {
 		overlay
 			.Children()
-			.Add(new HBoxContainer().Children()
+			.Add<HBoxContainer>(box => box.Children()
 				.TextField("Dot", () => RightVector.Dot(DirectionToPlayer()).ToString("0.00"))
 				.TextField("Cross", () => RightVector.Cross(DirectionToPlayer()).ToString("0.00"))
 				.TextField("Acos(Dot)", () => Mathf.RadToDeg(Mathf.Acos(Math.Abs(RightVector.Dot(DirectionToPlayer())))).ToString("0.00"))
 				.TextField("Acos(Cross)", () => Mathf.RadToDeg(Mathf.Acos(Math.Abs(RightVector.Cross(DirectionToPlayer())))).ToString("0.00"))
-				.Node)
-			.Add(new HBoxContainer().Children()
+			)
+			.Add<HBoxContainer>(box => box.Children()
 				.TextField("SameDir", () => RightVector.IsSameDirection(DirectionToPlayer()))
 				.TextField("OppDir", () => RightVector.IsOppositeDirection(DirectionToPlayer()))
 				.TextField("IsRight", () => RightVector.IsRight(DirectionToPlayer()))
 				.TextField("IsLeft", () => RightVector.IsLeft(DirectionToPlayer()))
-				.Node)
-			.Add(new HBoxContainer().Children()
+			)
+			.Add<HBoxContainer>(box => box.Children()
 				.TextField("SameDirA", () => RightVector.IsSameDirectionAngle(DirectionToPlayer()))
 				.TextField("OppDirA", () => RightVector.IsOppositeDirectionAngle(DirectionToPlayer()))
 				.TextField("IsRightA", () => RightVector.IsRightAngle(DirectionToPlayer()))
 				.TextField("IsLeftA", () => RightVector.IsLeftAngle(DirectionToPlayer()))
-				.Node);
+			);
 	}
 
 	public void AddOverlayMotion(DebugOverlay overlay) {
 		overlay
 			.Children()
-			.Add(new HBoxContainer().Children()
+			.Add<HBoxContainer>(box => box.Children()
 				.Vector("Motion", () => PlatformBody.Motion, PlayerConfig.MaxSpeed, motion => motion.SetChartWidth(100))
 				.Graph("MotionX", () => PlatformBody.MotionX, -PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed, config: motion => {
 					motion.AddSeparator(0)
 						.AddSerie("MotionY")
 						.Load(() => PlatformBody.MotionY)
 						.EndSerie();
-				}).Node)
+				})
+			)
 			.GraphSpeed("Speed", CharacterBody2D, PlayerConfig.JumpSpeed * 2);
 	}
 
 	public void AddOverlayCollisions(DebugOverlay overlay) {
 		overlay
 			.Children()
-			.Add(new HBoxContainer().Children()
+			.Add<HBoxContainer>(box => box.Children()
 				.Graph("Floor", () => PlatformBody.IsOnFloor(), config: graph => {
 					graph.Keep(10)
 						.SetChartHeight(10)
@@ -413,7 +416,7 @@ public partial class ZombieNode : NpcNode, IInjectable {
 						.Load(() => PlatformBody.IsOnSlope())
 						.EndSerie();
 				})
-				.Node)
+			)
 			.TextField("Floor", () => PlatformBody.GetFloorCollisionInfo())
 			.TextField("Ceiling", () => PlatformBody.GetCeilingCollisionInfo())
 			.TextField("Wall", () => PlatformBody.GetWallCollisionInfo());
