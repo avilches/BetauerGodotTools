@@ -57,8 +57,12 @@ public class BiomeGenerator {
 
     public FastNoiseLite HeightNoise { get; } = new();
     public INormalizedDataGrid HeightNormalizedGrid { get; private set; }
+    
     public bool FalloffEnabled { get; set; }
-    public FalloffDataGrid FalloffMap { get; private set; }
+    public IDataGrid<float> FalloffMap { get; private set; }
+    public float FallOffMapExp { get; set; } = 3;
+    public float FallOffMapOffset { get; set; } = 5f;
+    
     public IDataGrid<float> HeightFalloffGrid { get; private set; }
     
     public FastNoiseLite HumidityNoise { get; } = new();
@@ -80,7 +84,11 @@ public class BiomeGenerator {
         Seed = seed;
 
         BiomeCells = new BiomeCell[height, width];
-        FalloffMap = new FalloffDataGrid(width, height, 3, 5);
+        var rectRampDataGrid = new RectRampDataGrid(width, height);
+        FalloffMap = new VirtualDataGrid<float>((x, y) => {
+            var value = EasingFunctions.Logistic(rectRampDataGrid.GetValue(x, y), FallOffMapExp, FallOffMapOffset);
+            return 1 - value;
+        });
         HeightNormalizedGrid = HeightNoise.CreateNormalizedVirtualDataGrid(width, height);
         HumidityNormalizedGrid = HumidityNoise.CreateNormalizedVirtualDataGrid(width, height);         
         HeightFalloffGrid = new VirtualDataGrid<float>((x,y) => {

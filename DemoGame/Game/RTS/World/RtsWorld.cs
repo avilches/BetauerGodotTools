@@ -151,12 +151,12 @@ public partial class RtsWorld : Node, IInjectable {
 					WorldGenerator.BiomeGenerator.FalloffEnabled = !WorldGenerator.BiomeGenerator.FalloffEnabled;
 					WorldGenerator.Generate();
 				})
-				.Edit("FallOff Exp", () => WorldGenerator.BiomeGenerator.FalloffMap.Exp, (value) => {
-					WorldGenerator.BiomeGenerator.FalloffMap.Exp = value;
+				.Edit("FallOff Exp", () => WorldGenerator.BiomeGenerator.FallOffMapExp, (value) => {
+					WorldGenerator.BiomeGenerator.FallOffMapExp = value;
 					WorldGenerator.Generate();
 				})
-				.Edit("FallOff Offset", () => WorldGenerator.BiomeGenerator.FalloffMap.Offset, (value) => {
-						WorldGenerator.BiomeGenerator.FalloffMap.Offset = value;
+				.Edit("FallOff Offset", () => WorldGenerator.BiomeGenerator.FallOffMapOffset, (value) => {
+						WorldGenerator.BiomeGenerator.FallOffMapOffset = value;
 						WorldGenerator.Generate();
 					}
 				)
