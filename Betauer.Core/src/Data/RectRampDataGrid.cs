@@ -18,17 +18,20 @@ public class RectRampDataGrid : IDataGrid<float> {
         PositionX = Width / 2;
         PositionY = Height / 2;
     }
-    
-    public RectRampDataGrid From(float centerX, float centerY) {
+
+    /// <summary>
+    /// Center as a normalized value from 0 to 1, where 0.5 is the middle of the grid
+    /// </summary>
+    /// <param name="centerX"></param>
+    /// <param name="centerY"></param>
+    public void SetCenter(float centerX, float centerY) {
         PositionX = (int)(Math.Clamp(centerX, 0f, 1f) * Width);
         PositionY = (int)(Math.Clamp(centerY, 0f, 1f) * Height);
-        return this;
     }
-    
-    public RectRampDataGrid FromPosition(int x, int y) {
-        PositionX = Math.Clamp(x, 0, Width-1);
-        PositionY = Math.Clamp(y, 0, Height-1);
-        return this;
+
+    public void SetCenterPosition(int x, int y) {
+        PositionX = Math.Clamp(x, 0, Width - 1);
+        PositionY = Math.Clamp(y, 0, Height - 1);
     }
 
     public float GetValue(int x, int y) {

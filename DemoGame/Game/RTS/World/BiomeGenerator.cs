@@ -56,17 +56,18 @@ public class BiomeGenerator {
     public int Height { get; private set; }
 
     public FastNoiseLite HeightNoise { get; } = new();
-    public INormalizedDataGrid HeightNormalizedGrid { get; private set; }
+    public NormalizedVirtualDataGrid HeightNormalizedGrid { get; private set; }
     
+    public IslandGenerator MassLands { get; private set; }
     public bool FalloffEnabled { get; set; }
-    public IDataGrid<float> FalloffMap { get; private set; }
-    public float FallOffMapExp { get; set; } = 3;
-    public float FallOffMapOffset { get; set; } = 5f;
+    public IDataGrid<float> ContinentMap { get; private set; }
+    public float FallOffMapExp { get; set; } = 1;
+    public float FallOffMapOffset { get; set; } = 0.4f;
     
-    public IDataGrid<float> HeightFalloffGrid { get; private set; }
+    public NormalizedVirtualDataGrid HeightFalloffGrid { get; private set; }
     
     public FastNoiseLite HumidityNoise { get; } = new();
-    public INormalizedDataGrid HumidityNormalizedGrid { get; private set;}
+    public NormalizedVirtualDataGrid HumidityNormalizedGrid { get; private set;}
 
     public FloatGrid<BiomeType> BiomeGrid { get; private set; }
     public BiomeCell[,] BiomeCells { get; private set; }
@@ -84,23 +85,24 @@ public class BiomeGenerator {
         Seed = seed;
 
         BiomeCells = new BiomeCell[height, width];
-        var rectRampDataGrid = new RectRampDataGrid(width, height);
-        FalloffMap = new VirtualDataGrid<float>((x, y) => {
-            var value = EasingFunctions.Logistic(rectRampDataGrid.GetValue(x, y), FallOffMapExp, FallOffMapOffset);
-            return 1 - value;
-        });
+
+        MassLands = new IslandGenerator(width, height);
+        ContinentMap = new VirtualDataGrid<float>((x, y) =>
+            EasingFunctions.Logistic(MassLands.GetValue(x, y), FallOffMapExp, FallOffMapOffset));
+        
         HeightNormalizedGrid = HeightNoise.CreateNormalizedVirtualDataGrid(width, height);
         HumidityNormalizedGrid = HumidityNoise.CreateNormalizedVirtualDataGrid(width, height);         
-        HeightFalloffGrid = new VirtualDataGrid<float>((x,y) => {
-            var noise = HeightNormalizedGrid.GetValue(x, y);
-            return FalloffEnabled ? Math.Max(0, noise - FalloffMap.GetValue(x, y)) : noise;
+        HeightFalloffGrid = new NormalizedVirtualDataGrid(width, height, (x,y) => {
+            var height = HeightNormalizedGrid.GetValue(x, y);
+            if (!FalloffEnabled) return height;
+            return height + ContinentMap.GetValue(x, y);
         });
 
         var charMapping = Biomes.ToDictionary(pair => pair.Value.Char, pair => pair.Value.Type);
         BiomeGrid = FloatGrid<BiomeType>.Parse(BiomeConfig, charMapping);
 
         HeightNoise.NoiseTypeValue = FastNoiseLite.NoiseType.OpenSimplex2S;
-        HeightNoise.Frequency = 0.02f;
+        HeightNoise.Frequency = 0.024f;
 
         HeightNoise.FractalTypeValue = FastNoiseLite.FractalType.FBm;
         HeightNoise.FractalOctaves = 5;
@@ -109,7 +111,7 @@ public class BiomeGenerator {
         HeightNoise.FractalWeightedStrength = 0f;
 
         HumidityNoise.NoiseTypeValue = FastNoiseLite.NoiseType.OpenSimplex2S;
-        HumidityNoise.Frequency = 0.005f;
+        HumidityNoise.Frequency = 0.004f;
         HumidityNoise.FractalTypeValue = FastNoiseLite.FractalType.FBm;
         HumidityNoise.FractalOctaves = 5;
         HumidityNoise.FractalLacunarity = 2;
@@ -124,11 +126,20 @@ public class BiomeGenerator {
     }
 
     public BiomeCell[,] Generate() {
-        var transitionType = Tween.TransitionType.Quad;
-        // noiseMap [x, y] = Mathf.Clamp01(noiseMap [x, y] - falloffMap [x, y]);
-
-        HeightNormalizedGrid.Load(); // v => EasingFunctions.EaseInOut(v, transitionType));
-        HumidityNormalizedGrid.Load();
+        var overlapType = IslandGenerator.OverlapType.MaxHeight;
+        MassLands.Clear();
+        MassLands.AddIsland(100, 50, 90, 80, overlapType);
+        MassLands.AddIsland(200, 100, 90, 80, overlapType);
+        MassLands.AddIsland(300, 250, 90, 80, overlapType);
+        MassLands.AddIsland(400, 320, 90, 80, overlapType);
+        MassLands.AddIsland(Width/2, Height/2, Width/3, Height/3, overlapType);
+        MassLands.AddIsland(Width/6 * 2, Height/4 * 3, Width/8, Height/6, overlapType);
+        MassLands.AddIsland(Width/6 * 4, Height/2 * 1, Width/8, Height/6, overlapType);
+        MassLands.Normalize();
+        
+        HeightNormalizedGrid.Normalize();
+        HumidityNormalizedGrid.Normalize();
+        HeightFalloffGrid.Normalize();
                 
         var list = new List<BiomeCell>();
         for (var y = 0; y < Height; y++) {

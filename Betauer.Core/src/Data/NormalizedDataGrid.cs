@@ -5,45 +5,34 @@ namespace Betauer.Core.Data;
 /// <summary>
 /// A bidimensional array of float values that can be normalized to a given range
 /// </summary>
-public class NormalizedDataGrid : INormalizedDataGrid {
-    public int Width { get; private set; }
-    public int Height { get; private set; }
-    public float[,] Values { get; set; }
-    public Func<int, int, float> ValueFunc { get; }
-    public float Min { get; private set; } = float.MaxValue;
-    public float Max { get; private set; } = float.MinValue;
+public class NormalizedDataGrid : DataGrid<float> {
 
-    public NormalizedDataGrid(int width, int height, Func<int, int, float> value) {
-        Resize(width, height);
-        ValueFunc = value;
+    public NormalizedDataGrid(int width, int height) : base(width, height) {
     }
 
-    public void Resize(int width, int height) {
-        Values = new float[height, width];
-        Width = width;
-        Height = height;
+    public NormalizedDataGrid(float[,] data) : base(data) {
     }
 
-    public void Load() {
-        Min = float.MaxValue;
-        Max = float.MinValue;
+    public void Normalize() {
+        var min = float.MaxValue;
+        var max = float.MinValue;
         for (var y = 0; y < Height; y++) {
             for (var x = 0; x < Width; x++) {
-                var value = ValueFunc(x, y);
-                Values[y, x] = value;
-                Min = Math.Min(Min, value);
-                Max = Math.Max(Max, value);
+                var value = Data[x, y];
+                Data[x, y] = value;
+                min = Math.Min(min, value);
+                max = Math.Max(max, value);
             }
         }
-        var minMaxRange = Max - Min;
-        for (var y = 0; y < Height; y++) {
-            for (var x = 0; x < Width; x++) {
-                Values[y, x] = (Values[y, x] - Min) / minMaxRange;
-            }
-        }
+        Normalize(min, max);
     }
 
-    public float GetValue(int x, int y) {
-        return Values[y, x];
+    public void Normalize(float min, float max) {
+        var minMaxRange = max - min;
+        for (var y = 0; y < Height; y++) {
+            for (var x = 0; x < Width; x++) {
+                Data[x, y] = (Data[x, y] - min) / minMaxRange;
+            }
+        }
     }
 }

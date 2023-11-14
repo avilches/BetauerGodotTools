@@ -35,8 +35,8 @@ public partial class WorldGenerator {
     private const int CellSize = 16;
 
     private const int Layers = 2;
-    private const int Width = 300;
-    private const int Height = 200;
+    private const int Width = 500;
+    private const int Height = 400;
     
     public enum ViewMode {
         Terrain,
@@ -159,7 +159,7 @@ public partial class WorldGenerator {
         } else if (CurrentViewMode == ViewMode.HeightFalloff) {
             DrawGrid(canvas, BiomeGenerator.HeightFalloffGrid);
         } else if (CurrentViewMode == ViewMode.FalloffMap) {
-            DrawGrid(canvas, BiomeGenerator.FalloffMap);
+            DrawGrid(canvas, BiomeGenerator.ContinentMap);
         } else if (CurrentViewMode == ViewMode.Terrain) {
         }
     }

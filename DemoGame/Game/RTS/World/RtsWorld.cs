@@ -1,9 +1,9 @@
-using System.Linq;
 using Betauer.Animation.Easing;
 using Betauer.Application.Monitor;
 using Betauer.Application.Persistent;
 using Betauer.Camera;
 using Betauer.Camera.Control;
+using Betauer.Core;
 using Betauer.DI;
 using Betauer.DI.Attributes;
 using Betauer.FSM.Sync;
@@ -82,6 +82,9 @@ public partial class RtsWorld : Node, IInjectable {
 
 	public async void StartNewGame() {
 		CameraGameObject = GameObjectRepository.Create<CameraGameObject>("ScreenState", "ScreenState");
+		CameraGameObject.ZoomLevel = 1;
+		CameraGameObject.Position = new Vector2(4500, 3200);
+		
 		Init();
 		TerrainTileMap.Clear();
 		WorldGenerator.Configure(TerrainTileMap);
@@ -94,16 +97,17 @@ public partial class RtsWorld : Node, IInjectable {
 
 	public void LoadGame(RtsSaveGameConsumer consumer) {
 		CameraGameObject = GameObjectRepository.Get<CameraGameObject>("ScreenState");
-		Init();
 		// Load the values from the save game
+
+		Init();
 		ConfigureDebugOverlay();
-		CameraController.Camera2D.Position = CameraGameObject.Position;
 	}
 
 	private void Init() {
 		CameraGameObject.Configure(Camera);
 		var zoom = RtsConfig.ZoomLevels[CameraGameObject.ZoomLevel];
 		CameraController.Camera2D.Zoom = new Vector2(zoom, zoom);
+		CameraController.Camera2D.Position = CameraGameObject.Position;
 		_fsm.Send(RtsTransition.Idle);
 	}
 	
@@ -111,6 +115,7 @@ public partial class RtsWorld : Node, IInjectable {
 		var viewGroup = new ButtonGroup();
 
 		DebugOverlayManager.Overlay("RTS")
+			.DestroyIf(() => TerrainTileMap.IsInstanceInvalid())
 			.OnDestroy(() => viewGroup.Dispose())
 			.SetMinSize(400, 100)
 			.Children()

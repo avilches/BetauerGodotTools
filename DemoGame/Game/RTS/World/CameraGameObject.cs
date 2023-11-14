@@ -15,6 +15,7 @@ public class CameraGameObject : GameObject {
     public Camera2D Camera2D { get; set; }
     
     public override void OnInitialize() {
+        // TODO: what if it's not found?
         ZoomLevel = RtsConfig.ZoomLevels.FindIndex(z => z == RtsConfig.DefaultZoom);
     }
 
