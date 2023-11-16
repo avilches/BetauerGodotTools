@@ -19,12 +19,10 @@ public static partial class Draw {
         var x = r;
         var y = 0;
 
-        onPixel(cx + x, cy + y);
-        if (r > 0) {
-            onPixel(cx - x, cy - y);
-            onPixel(cx + y, cy + x);
-            onPixel(cx - y, cy - x);
-        }
+        onPixel(cx + x, cy);
+        onPixel(cx - x, cy);
+        onPixel(cx, cy + x);
+        onPixel(cx, cy - x);
 
         var error = 1 - r;
         while (x > y) {

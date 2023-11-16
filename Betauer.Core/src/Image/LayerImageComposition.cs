@@ -44,7 +44,7 @@ public class LayerImageComposition {
         var canvas = new FastImage(Width, Height, false, FastImage.DefaultFormat);
         for (var layer = 0; layer < Layers; layer++) {
             var layerImage = _images[layer];
-            if (!layerImage.Enabled) continue;
+            if (layerImage is not { Enabled: true }) continue;
             for (var x = 0; x < Width; x++) {
                 for (var y = 0; y < Height; y++) {
                     if (layerImage == null) continue;
