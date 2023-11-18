@@ -186,9 +186,9 @@ public partial class Container {
     }
 
     internal void ExecutePostInjectMethods<T>(T instance) {
-        if (instance.GetType().ImplementsInterface(typeof(IInjectable))) {
-            Logger.Debug($"Executing {nameof(IInjectable.PostInject)} in {instance.GetType().GetTypeName()}. HashCode: {instance.GetHashCode():X}");
-            ((IInjectable)instance).PostInject();
+        if (instance is IInjectable injectable) {
+            Logger.Debug($"Executing {nameof(IInjectable.PostInject)} in {injectable.GetType().GetTypeName()}. HashCode: {injectable.GetHashCode():X}");
+            injectable.PostInject();
         }
         OnPostInject?.Invoke(instance);
     }
