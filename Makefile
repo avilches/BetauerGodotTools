@@ -40,6 +40,7 @@ help:
 clean:
 	rm -rf "${ROOT_FOLDER}/.mono"
 	rm -rf "${ROOT_FOLDER}/.godot/mono"
+	dotnet clean
 
 .PHONY: import
 import:

@@ -15,17 +15,21 @@
     <PackageReference Include="NUnit" Version="3.13.3" />
     <ProjectReference Include="Betauer.Animation/Betauer.Animation.csproj" />
     <ProjectReference Include="Betauer.Core/Betauer.Core.csproj" />
+    <ProjectReference Include="Betauer.SourceGenerators/Betauer.SourceGenerators.csproj" />
     <ProjectReference Include="Betauer.Tools.Logging/Betauer.Tools.Logging.csproj" />
+    <ProjectReference Include="Betauer.Tools.FastReflection/Betauer.Tools.FastReflection.csproj" />
     <ProjectReference Include="Betauer.Bus/Betauer.Bus.csproj" />
     <ProjectReference Include="Betauer.DI/Betauer.DI.csproj" />
     <ProjectReference Include="Betauer.GameTools/Betauer.GameTools.csproj" />
     <ProjectReference Include="Betauer.FSM/Betauer.FSM.csproj" />
+    
     <ProjectReference Include="Betauer.TestRunner/Betauer.TestRunner.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="*.cs" />
     <ProjectReference Include="Betauer.Animation.Tests/Betauer.Animation.Tests.csproj" />
     <ProjectReference Include="Betauer.Core.Tests/Betauer.Core.Tests.csproj" />
+    <ProjectReference Include="Betauer.SourceGenerators.Tests/Betauer.SourceGenerators.Tests.csproj" />
     <ProjectReference Include="Betauer.Tools.Logging.Tests/Betauer.Tools.Logging.Tests.csproj" />
     <ProjectReference Include="Betauer.Tools.FastReflection.Tests/Betauer.Tools.FastReflection.Tests.csproj" />
     <ProjectReference Include="Betauer.Bus.Tests/Betauer.Bus.Tests.csproj" />

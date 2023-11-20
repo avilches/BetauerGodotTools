@@ -18,6 +18,7 @@ public partial class RunTests : SceneTree {
                 // These two are time sensitive, it's better to run them at the end. Godot has some issues with the time
                 // in the first seconds since start.
                 typeof(Core.Tests.Assembly),
+                typeof(SourceGenerators.Tests.Assembly),
                 typeof(Tools.Logging.Tests.Assembly),
                 typeof(Tools.FastReflection.Tests.Assembly),
                 typeof(Animation.Tests.Assembly),

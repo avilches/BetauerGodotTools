@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <EnableDynamicLoading>true</EnableDynamicLoading>
+        <LangVersion>11.0</LangVersion>
+        <RootNamespace>Betauer.SourceGenerators.Tests</RootNamespace>
+        <PackageId>Betauer.SourceGenerators.Tests</PackageId>
+        <AssemblyName>Betauer.SourceGenerators.Tests</AssemblyName>
+        <Nullable>enable</Nullable>
+        <EnableDefaultCompileItems>False</EnableDefaultCompileItems>
+    </PropertyGroup>
+    <ItemGroup>
+        <Compile Include="test/**/*.cs" />
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="GodotSharp" Version="4.1.1" />
+        <PackageReference Include="Godot.SourceGenerators" Version="4.1.1" />
+        <PackageReference Include="NUnit" Version="3.13.3" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Betauer.TestRunner\Betauer.TestRunner.csproj" />
+        <ProjectReference Include="..\Betauer.SourceGenerators\Betauer.SourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
+        <ProjectReference Include="..\Betauer.Core\Betauer.Core.csproj" />
+    </ItemGroup>
+</Project>
