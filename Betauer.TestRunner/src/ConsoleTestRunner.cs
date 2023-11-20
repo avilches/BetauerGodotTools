@@ -57,7 +57,7 @@ public class ConsoleTestRunner {
 
     private static void PrintConsoleFinish(TestReport testReport, Stopwatch stopwatch) {
         if (testReport.TestsFailed > 0) {
-            RedBanner($"Failed: {testReport.TestsFailed} / Passed: {testReport.TestsTotal} / Total: {testReport.TestsTotal}", $"Elapsed: {stopwatch.Elapsed.Seconds}s");
+            RedBanner($"Failed: {testReport.TestsFailed}/{testReport.TestsTotal}. Passed: {testReport.TestsPassed}/{testReport.TestsTotal}", $"Elapsed: {stopwatch.Elapsed.Seconds}s");
 
             var x = 1;
             testReport.TestsFailedResults.ForEach(testMethod => {
@@ -77,9 +77,9 @@ public class ConsoleTestRunner {
                 x++;
             });
 
-            RedBanner($"{testReport.TestsFailed} failed, {testReport.TestsPassed} passed (of {testReport.TestsTotal} tests)", $"Elapsed: {stopwatch.Elapsed.Seconds}s");
+            RedBanner($"Failed: {testReport.TestsFailed}/{testReport.TestsTotal}. Passed: {testReport.TestsPassed}/{testReport.TestsTotal}", $"Elapsed: {stopwatch.Elapsed.Seconds}s");
         } else {
-            GreenBanner($"{testReport.TestsPassed} tests passed :-)", $"Time: {stopwatch.Elapsed.Seconds}s");
+            GreenBanner($"Passed: {testReport.TestsPassed}/{testReport.TestsTotal}! :-)", $"Time: {stopwatch.Elapsed.Seconds}s");
         }
     }
 
