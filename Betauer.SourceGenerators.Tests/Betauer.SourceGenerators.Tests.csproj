@@ -19,7 +19,7 @@
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\Betauer.TestRunner\Betauer.TestRunner.csproj" />
-        <ProjectReference Include="..\Betauer.SourceGenerators\Betauer.SourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
         <ProjectReference Include="..\Betauer.Core\Betauer.Core.csproj" />
+        <ProjectReference Include="..\Betauer.SourceGenerators\Betauer.SourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
     </ItemGroup>
 </Project>

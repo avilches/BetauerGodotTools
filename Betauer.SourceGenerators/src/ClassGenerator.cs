@@ -108,7 +108,7 @@ public class ClassGenerator {
                 id: id,
                 title: $"Missing partial `{methodName}` method signature.",
                 messageFormat:
-                $"Class with attribute [{attribute}] must have a partial `{methodName}` method with this signature: `public override partial void{parametersSignature};`",
+                $"Class with attribute [{attribute}] must have a partial `{methodName}` method with this signature: `public override partial void{methodName}{parametersSignature};`",
                 category: "Usage",
                 defaultSeverity: DiagnosticSeverity.Error,
                 isEnabledByDefault: true
@@ -117,4 +117,7 @@ public class ClassGenerator {
             Cds.SyntaxTree.FilePath));
     }
 
+    public override string ToString() {
+        return Symbol.ToDisplayString();
+    }
 }

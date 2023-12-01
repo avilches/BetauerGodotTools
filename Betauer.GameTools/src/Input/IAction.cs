@@ -10,7 +10,7 @@ public interface IAction {
     public float RawStrength { get; }
     JoyAxis Axis { get; }
     bool IsEvent(InputEvent inputEvent);
-    void Enable(bool enabled);
+    void Enable(bool enable);
 
     public void UnsetInputActionsContainer();
     public void SetInputActionsContainer(InputActionsContainer inputActionsContainer);

@@ -1,9 +1,9 @@
 using System;
-using Betauer.Application.Notifications;
 using Betauer.Input;
 using Betauer.Core.Nodes;
 using Betauer.DI;
 using Betauer.Input.Controller;
+using Betauer.Nodes;
 using Betauer.UI;
 using Godot;
 using Color = Godot.Color;
@@ -193,6 +193,7 @@ public partial class DebugOverlay : Panel, IInjectable {
 
     private void CheckProcessBasedOnVisibility() {
         var isVisibleInTree = IsVisibleInTree();
+        // TODO: memory leak if it's disabled and the target is destroyed
         SetProcess(isVisibleInTree);
         SetProcessInput(isVisibleInTree);
     }
@@ -285,9 +286,19 @@ public partial class DebugOverlay : Panel, IInjectable {
         _dragAndDropController = new DragAndDropController().WithMouseButton(MouseButton.Left).OnlyIf(DragPredicate);
         _dragAndDropController.OnStartDrag += OnStartDrag;
         _dragAndDropController.OnDrag += OnDrag;
-        DefaultNotificationsHandler.Instance.OnWMMouseExit += () => _dragAndDropController.ForceDrop();
-        DefaultNotificationsHandler.Instance.OnWMWindowFocusOut += () => _dragAndDropController.ForceDrop(); 
-        DefaultNotificationsHandler.Instance.OnApplicationFocusOut += () => _dragAndDropController.ForceDrop();
+
+        NodeEventHandler.DefaultInstance.OnWMMouseExit += ForceDrop;
+        NodeEventHandler.DefaultInstance.OnWMWindowFocusOut += ForceDrop; 
+        NodeEventHandler.DefaultInstance.OnApplicationFocusOut += ForceDrop;
+        
+        TreeExited += () => {
+            NodeEventHandler.DefaultInstance.OnWMMouseExit -= ForceDrop;
+            NodeEventHandler.DefaultInstance.OnWMWindowFocusOut -= ForceDrop; 
+            NodeEventHandler.DefaultInstance.OnApplicationFocusOut -=ForceDrop;
+        };
+        return;
+
+        void ForceDrop() =>_dragAndDropController.ForceDrop();
     }
 
     public override void _Input(InputEvent input) {

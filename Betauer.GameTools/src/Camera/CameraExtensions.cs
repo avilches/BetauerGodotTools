@@ -70,13 +70,13 @@ public static class CameraExtensions {
         return null;
     }
 
-    public static Camera2D? GetFollowerCamera(this Node node) {
+    public static Camera2D? GetFollowerCamera(this Node2D node) {
         var rt2d = node.GetNodeOrNull<RemoteTransform2D>(CameraTransformerNodeName);
         if (rt2d == null) return null;
         return rt2d.HasMeta(CameraId) && rt2d.GetObjectLinked<Camera2D>(CameraId) is Camera2D camera ? camera : null;
     }
 
-    public static void ClearFollowerCamera(this Node node, bool forever = false) {
+    public static void ClearFollowerCamera(this Node2D node, bool forever = false) {
         var rt2d = node.GetNodeOrNull<RemoteTransform2D>(CameraTransformerNodeName);
         rt2d?.ClearFollowerCamera();
         if (forever) {

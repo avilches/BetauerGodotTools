@@ -47,7 +47,6 @@ public partial class SplitViewport : BaseSplitScreen {
 		parent.AddChild(subViewportContainer);
 		subViewportContainer.AddChild(subViewport);
 		subViewport.AddChild(camera);
-		subViewport.AddChild(new NodeHandler());
 	}
 
 	public void SetCommonWorld(Node node) {

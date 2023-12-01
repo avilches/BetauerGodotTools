@@ -100,8 +100,8 @@ public partial class InputAction {
             return this;
         }
 
-        public Builder Enabled(bool enabled = true) {
-            _enabled = enabled;
+        public Builder Enabled(bool enable = true) {
+            _enabled = enable;
             return this;
         }
 

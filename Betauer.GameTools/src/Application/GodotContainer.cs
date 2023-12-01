@@ -32,6 +32,7 @@ public class GodotContainer {
     }
 
     private void StartContainer() {
+        _container.Add(Provider.Singleton(() => _owner.GetTree(), "SceneTree"));
         if (_injectPropertiesOnNodeAddedToTree) {
             NodePathScanner.ConfigureAutoInject(_owner.GetTree());
         }

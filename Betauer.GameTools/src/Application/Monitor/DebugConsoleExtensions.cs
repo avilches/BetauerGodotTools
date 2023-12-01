@@ -1,12 +1,9 @@
 using System;
 using System.Globalization;
 using System.Linq;
-using Betauer.Application.Notifications;
 using Betauer.Application.Screen;
-using Betauer.Core.Nodes;
 using Betauer.Input;
 using Betauer.Nodes;
-using Betauer.UI;
 using Godot;
 
 namespace Betauer.Application.Monitor; 
@@ -45,15 +42,14 @@ public static partial class DebugConsoleExtensions {
         return console.AddCommand(new DebugConsole.Command(name, executeWithCommandInput, shortHelp, longHelp));
     }
 
-    public static DebugConsole AddAllCommands(this DebugConsole console, WindowNotificationStatus windowNotificationStatus) {
+    public static DebugConsole AddAllCommands(this DebugConsole console) {
         console.AddHelpCommand();
         console.AddEngineTimeScaleCommand();
         console.AddEngineMaxFpsCommand();
         console.AddClearConsoleCommand();
         console.AddQuitCommand();
-        console.AddNodeHandlerInfoCommand();
         console.AddShowAllCommand();
-        console.AddSystemInfoCommand(windowNotificationStatus);
+        console.AddSystemInfoCommand();
         return console;
     }
 
@@ -145,20 +141,7 @@ public static partial class DebugConsoleExtensions {
             }).End();
     }
 
-    public static DebugConsole AddNodeHandlerInfoCommand(this DebugConsole console, NodeHandler? nodeHandler = null) {
-        const string title = nameof(NodeHandler);
-        return console.CreateCommand("node-handler", () => {
-            if (console.DebugOverlayManager.HasOverlay(title)) return;
-            console.DebugOverlayManager
-                .Overlay(title)
-                .HideOnClose(false)
-                .Solid()
-                .Children()
-                .TextField("", (nodeHandler ?? DefaultNodeHandler.Instance).GetStateAsString, 1);
-        }, "Open the NodeHandler info window.");
-    }
-
-    public static DebugConsole AddSystemInfoCommand(this DebugConsole console, WindowNotificationStatus windowNotificationStatus) {
+    public static DebugConsole AddSystemInfoCommand(this DebugConsole console) {
         const string title = "System info";
         return console.CreateCommand("system-info", () => {
             if (console.DebugOverlayManager.HasOverlay(title)) return;
@@ -167,7 +150,7 @@ public static partial class DebugConsoleExtensions {
                 .HideOnClose(false)
                 .Solid()
                 .Children()
-                .AddWindowNotificationStatus(windowNotificationStatus)
+                .AddWindowNotificationStatus()
                 .AddMonitorFpsTimeScaleAndUptime()
                 .AddMonitorMemory()
                 .AddMonitorInternals();

@@ -9,14 +9,13 @@ using NUnit.Framework;
 
 namespace Betauer.SourceGenerators.Tests;
 
-[NotificationEvent]
+[Notification(Process = false, PhysicsProcess = false)]
 public partial class NotificationClass : Node {
     public override partial void _Notification(int what);
 }
 
 public partial class Outer {
-    [ProcessEvent]
-    [PhysicsProcessEvent]
+    [Process, PhysicsProcess]
     public partial class ProcessClass : Node {
         public override partial void _Process(double delta);
         public override partial void _PhysicsProcess(double delta);
@@ -28,9 +27,7 @@ public partial class PloterOuter {
     
         // TODO: wait for Godot 4.2 until this bug is fixed
     
-        [ProcessEvent]
-        [PhysicsProcessEvent]
-        [NotificationEvent]
+        [Notification]
         public partial class NotificationProcessClass : Node {
             public override partial void _Process(double delta);
             public override partial void _PhysicsProcess(double delta);
@@ -41,10 +38,7 @@ public partial class PloterOuter {
 }
 
 
-[InputEvent]
-[UnhandledInputEvent]
-[UnhandledKeyInputEvent]
-[ShortcutInputEvent]
+[InputEvents]
 public partial class InputClass : Node {
     public override partial void _Input(InputEvent inputEvent);
     public override partial void _UnhandledInput(InputEvent @event);
@@ -52,13 +46,8 @@ public partial class InputClass : Node {
     public override partial void _ShortcutInput(InputEvent e);
 }
 
-[InputEvent]
-[UnhandledInputEvent]
-[UnhandledKeyInputEvent]
-[ShortcutInputEvent]
-[ProcessEvent]
-[PhysicsProcessEvent]
-[NotificationEvent]
+[InputEvents]
+[Notification]
 public partial class InputNotificationProcessClass : Node {
     public override partial void _Input(InputEvent inputEvent);
     public override partial void _UnhandledInput(InputEvent @event);

@@ -35,7 +35,7 @@ public static partial class NodeExtensions {
     /// <param name="node"></param>
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
-    public static T? FirstChildInParentOrNull<T>(this Node node) where T : Node {
+    public static T? FirstChildInParentOrNull<T>(this Node node) where T : class {
         var parent = node.GetParent();
         var found = parent?.GetChildren().OfType<T>().FirstOrDefault();
         while (found == null && parent != null) {
@@ -45,7 +45,7 @@ public static partial class NodeExtensions {
         return found;
     }
 
-    public static T? FindParent<T>(this Node node) where T : Node {
+    public static T? FindParent<T>(this Node node) where T : class {
         Node parent = node.GetParent();
         return parent switch {
             null => null,
@@ -61,7 +61,7 @@ public static partial class NodeExtensions {
     /// <param name="predicate"></param>
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
-    public static T? FirstNode<T>(this Node parent, Func<T, bool>? predicate = null) where T : Node {
+    public static T? FirstNode<T>(this Node parent, Func<T, bool>? predicate = null) where T : class {
         return predicate != null ? 
             parent.GetChildren().OfType<T>().FirstOrDefault(predicate) : 
             parent.GetChildren().OfType<T>().FirstOrDefault();

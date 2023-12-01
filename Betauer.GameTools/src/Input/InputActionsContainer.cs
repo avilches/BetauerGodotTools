@@ -41,12 +41,8 @@ public partial class InputActionsContainer : Node, IInjectable {
         return newIac;
     }
 
-    public InputActionsContainer(bool enabled) {
-        if (enabled) DefaultNodeHandler.Instance.AddChild(this);
-    }
-
-    public InputActionsContainer() {
-        DefaultNodeHandler.Instance.AddChild(this);
+    public InputActionsContainer(bool enable = true) {
+        if (enable) NodeEventHandler.DefaultInstance.AddChild(this);
     }
 
     public void PostInject() {
@@ -113,9 +109,9 @@ public partial class InputActionsContainer : Node, IInjectable {
         InputActionList.ForEach(action => action.Enable(false));
     }
 
-    public void Enable(bool enabled = true) {
+    public void Enable(bool enable = true) {
         Enabled = true;
-        InputActionList.ForEach(action => action.Enable(enabled));
+        InputActionList.ForEach(action => action.Enable(enable));
     }
 
     internal void EnableAction(InputAction inputAction) {

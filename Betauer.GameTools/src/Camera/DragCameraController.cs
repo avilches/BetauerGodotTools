@@ -1,11 +1,15 @@
+using System;
+using Betauer.Core;
 using Betauer.Input.Controller;
 using Betauer.Nodes;
 using Godot;
 
-namespace Betauer.Camera; 
+namespace Betauer.Camera;
 
 public class DragCameraController {
     public Camera2D? Camera2D { get; private set; }
+
+    public bool Enabled { get; private set; } = true;
     // public float DragSensitivity { get; set; } = 1.5f;
     // public float DragSmoothingSpeed { get; set; } = -1f;
 
@@ -15,7 +19,6 @@ public class DragCameraController {
     // private float _camera2DSmoothingSpeed;
     // private bool _cameraLimitSmoothed;
 
-    private IEventHandler? _nodeEvent;
     public readonly DragAndDropController DragAndDropController = new();
 
 
@@ -24,8 +27,13 @@ public class DragCameraController {
     }
 
     public void OnDrag(Vector2 offset) {
-        offset *= new Vector2(1 / Camera2D!.Zoom.X, 1 / Camera2D!.Zoom.Y);
-        Camera2D!.Position -= offset;
+        try {
+            offset *= new Vector2(1 / Camera2D!.Zoom.X, 1 / Camera2D!.Zoom.Y);
+            Camera2D!.Position -= offset;
+        } catch (Exception) {
+            if (Camera2D != null && !Camera2D.IsInstanceValid()) Detach();
+            else throw;
+        }
     }
 
     public DragCameraController WithMouseButton(MouseButton mouseButton) {
@@ -33,24 +41,26 @@ public class DragCameraController {
         return this;
     }
 
-    public DragCameraController Attach(Camera2D camera2D, Node.ProcessModeEnum pauseMode = Node.ProcessModeEnum.Inherit) {
+    public DragCameraController Attach(Camera2D camera2D) {
+        Detach();
         Camera2D = camera2D;
-        _nodeEvent?.Destroy();
-        _nodeEvent = camera2D.OnInput(DragAndDropController.Handle, pauseMode);
+        NodeEventHandler.DefaultInstance.OnInput += Handle;
         return this;
     }
 
     public DragCameraController Detach() {
-        _nodeEvent?.Destroy();
+        // TODO: memory leak if it's not detached
+        NodeEventHandler.DefaultInstance.OnInput -= Handle;
         Camera2D = null;
-        _nodeEvent = null;
         return this;
     }
 
-    public DragCameraController Enable(bool enable = true) {
-        if (enable) _nodeEvent?.Enable();
-        else _nodeEvent?.Disable();
-        return this;
+    private void Handle(InputEvent @event) {
+        if (Enabled) DragAndDropController.Handle(@event);
+    }
+
+    public void Enable(bool enable = true) {
+        Enabled = enable;
     }
 /*        
         private void RollbackSmoothingSpeed() {

@@ -17,9 +17,9 @@ public class AxisAction : IAction, IInjectable {
     public bool Enabled => Negative is { Enabled: true } && Positive is { Enabled: true }; 
     public SaveSetting<string>? SaveSetting { get; set; }
     public bool IsEvent(InputEvent inputEvent) => inputEvent is InputEventJoypadMotion motion && motion.Axis == Axis;
-    public void Enable(bool enabled) {
-        Negative.Enable(enabled);
-        Positive.Enable(enabled);
+    public void Enable(bool enable) {
+        Negative.Enable(enable);
+        Positive.Enable(enable);
     }
     
     public InputActionsContainer? InputActionsContainer { get; private set; }

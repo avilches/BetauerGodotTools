@@ -163,8 +163,11 @@ internal static class ExtensionMethods {
             .Replace("<", "(Of ")
             .Replace(">", ")");
 
-    public static bool HasAttribute(this INamedTypeSymbol symbol, string attributeFullName)
-        => symbol.GetAttributes().Any(attr => attr.AttributeClass!.FullQualifiedNameOmitGlobal() == attributeFullName);
+    public static bool HasAttribute(this INamedTypeSymbol symbol, string attributeFullName) =>
+        symbol.GetAttribute(attributeFullName) != null;
+    
+    public static AttributeData? GetAttribute(this INamedTypeSymbol symbol, string attributeFullName) => 
+        symbol.GetAttributes().FirstOrDefault(attr => attr.AttributeClass!.FullQualifiedNameOmitGlobal() == attributeFullName);
 
     public static MethodDeclarationSyntax? FindPartialMethod(this ClassDeclarationSyntax cds, string methodName, string[] paramTypes) {
         return cds.Members.OfType<MethodDeclarationSyntax>().FirstOrDefault(

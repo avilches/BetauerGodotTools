@@ -241,8 +241,8 @@ public partial class InputAction : IAction, IInjectable {
         InputActionsContainer.Add(this);
     }
 
-    public void Enable(bool enabled = true) {
-        if (enabled) {
+    public void Enable(bool enable = true) {
+        if (enable) {
             if (Enabled) return;
             Enabled = true;
             InputActionsContainer?.EnableAction(this);

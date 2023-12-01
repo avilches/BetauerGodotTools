@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Betauer.Application.Notifications;
 using Betauer.Application.Screen;
 using Betauer.Core;
 using Betauer.Core.Nodes;
@@ -54,13 +53,11 @@ public static class DebugOverlayBuilder {
         return builder;
     }
 
-    public static NodeBuilder TextSpeed(this NodeBuilder builder, string label, Node2D node2D, string format = "000.00", Action<MonitorText>? config = null) {
-        var speedometer2D = Speedometer2D.Position(node2D);
-        speedometer2D.UpdateOnPhysicsProcess(node2D);
+    public static NodeBuilder TextSpeed(this NodeBuilder builder, string label, Speedometer2D speedometer2D, string format = "000.00", int updateEvery = 0, Action<MonitorText>? config = null) {
         var monitor = builder.Create<MonitorText>()
-            .Follow(node2D)
+            .UpdateEvery(updateEvery)
             .SetLabel(label)
-            .Show(() => speedometer2D.GetInfo());
+            .Show(() => $"{speedometer2D.Speed.ToString(format)} {speedometer2D.SpeedVector.ToString(format)}");
         config?.Invoke(monitor);
         return builder;
     }
@@ -69,20 +66,7 @@ public static class DebugOverlayBuilder {
         var monitorGraph = builder.Create<MonitorGraph>()
             .AddSerie()
             .Load(() => speedometer2D.Speed)
-            .Format((v) => $"{speedometer2D.Speed.ToString(format)} {speedometer2D.SpeedVector.ToString(format)}")
-            .SetLabel(label)
-            .EndSerie();
-        if (limit > 0) monitorGraph.Range(0, limit);
-        config?.Invoke(monitorGraph);
-        return builder;
-    }
-
-    public static NodeBuilder GraphSpeed(this NodeBuilder builder, string label, CharacterBody2D characterBody2D, float limit = 0, string format = "000.00", Action<MonitorGraph>? config = null) {
-        var monitorGraph = builder.Create<MonitorGraph>()
-            .Follow(characterBody2D)
-            .AddSerie()
-            .Load(() => characterBody2D.GetRealVelocity().Length())
-            .Format((v) => $"{characterBody2D.GetRealVelocity().Length().ToString(format)} {characterBody2D.GetRealVelocity().ToString(format)}")
+            .Format((v) => $"{v.ToString(format)} {speedometer2D.SpeedVector.ToString(format)}")
             .SetLabel(label)
             .EndSerie();
         if (limit > 0) monitorGraph.Range(0, limit);
@@ -237,11 +221,11 @@ public static class DebugOverlayBuilder {
         return builder;
     }
 
-    public static NodeBuilder AddWindowNotificationStatus(this NodeBuilder builder, WindowNotificationStatus windowNotificationStatus) {
+    public static NodeBuilder AddWindowNotificationStatus(this NodeBuilder builder) {
         builder.Add<HBoxContainer>(box => box.Children()
-            .TextField("Window Focus", () => windowNotificationStatus.IsWindowFocused)
-            .TextField("Application Focus", () => windowNotificationStatus.IsApplicationFocused)
-            .TextField("Mouse inside game", () => windowNotificationStatus.IsMouseInsideScreen)
+            .TextField("Window Focus", () => NodeEventHandler.DefaultInstance.IsWindowFocused)
+            .TextField("Application Focus", () => NodeEventHandler.DefaultInstance.IsApplicationFocused)
+            .TextField("Mouse inside game", () => NodeEventHandler.DefaultInstance.IsMouseInsideScreen)
         );
         return builder;
     }
@@ -274,7 +258,8 @@ public static class DebugOverlayBuilder {
     
     public static NodeBuilder AddMonitorInputEvent(this NodeBuilder builder, InputActionsContainer inputActionsContainer, int history = 10) {
         var inputs = new LinkedList<string>();
-        builder.Node.OnInput(e => {
+        // TODO: memory leak
+        NodeEventHandler.DefaultInstance.OnInput += (e) => {
             var pressed = e.IsJustPressed()?"Just Pressed":e.IsPressed()?"Pressed":e.IsReleased()?"Released": "Unknown";
             var modifiers = new List<string>(5);
             if (e.HasShift()) modifiers.Add("Shift");
@@ -297,7 +282,7 @@ public static class DebugOverlayBuilder {
             // else if (e.IsMouseMotion())
                 // inputs.AddLast($"Mouse motion {e.GetMouseGlobalPosition()} {actionName}");
             if (inputs.Count > history) inputs.RemoveFirst();
-        });
+        };
         builder.TextField("", () => string.Join('\n', inputs));
         return builder;
     }
