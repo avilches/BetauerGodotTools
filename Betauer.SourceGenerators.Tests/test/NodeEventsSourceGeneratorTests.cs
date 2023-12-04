@@ -9,7 +9,7 @@ using NUnit.Framework;
 
 namespace Betauer.SourceGenerators.Tests;
 
-[Notification(Process = false, PhysicsProcess = false)]
+[Notifications(Process = false, PhysicsProcess = false)]
 public partial class NotificationClass : Node {
     public override partial void _Notification(int what);
 }
@@ -27,7 +27,7 @@ public partial class PloterOuter {
     
         // TODO: wait for Godot 4.2 until this bug is fixed
     
-        [Notification]
+        [Notifications]
         public partial class NotificationProcessClass : Node {
             public override partial void _Process(double delta);
             public override partial void _PhysicsProcess(double delta);
@@ -47,7 +47,7 @@ public partial class InputClass : Node {
 }
 
 [InputEvents]
-[Notification]
+[Notifications]
 public partial class InputNotificationProcessClass : Node {
     public override partial void _Input(InputEvent inputEvent);
     public override partial void _UnhandledInput(InputEvent @event);

@@ -8,10 +8,15 @@ namespace Betauer.SourceGenerators;
 
 public class NodeEventsClassGenerator : ClassGenerator {
     private const string AttributeNamespace = "Betauer.Core.Nodes.Events";
-    private const string ProcessAttribute = $"{AttributeNamespace}.ProcessAttribute";
-    private const string PhysicsProcessAttribute = $"{AttributeNamespace}.PhysicsProcessAttribute";
-    private const string NotificationAttribute = $"{AttributeNamespace}.NotificationAttribute";
-    private const string EventsInputEventsAttribute = $"{AttributeNamespace}.InputEventsAttribute";
+    private const string ProcessAttributeName = "Process";
+    private const string PhysicsProcessAttributeName = "PhysicsProcess";
+    private const string NotificationAttributeName = "Notifications";
+    private const string InputEventsAttributeName = "InputEvents";
+
+    private const string ProcessAttribute = $"{AttributeNamespace}.{ProcessAttributeName}Attribute";
+    private const string PhysicsProcessAttribute = $"{AttributeNamespace}.{PhysicsProcessAttributeName}Attribute";
+    private const string NotificationAttribute = $"{AttributeNamespace}.{NotificationAttributeName}Attribute";
+    private const string InputEventsAttribute = $"{AttributeNamespace}.{InputEventsAttributeName}Attribute";
 
     public bool HasPartialNotificationMethod { get; private set; }
     public string PartialNotificationParameterName { get; private set; }
@@ -57,10 +62,10 @@ public class NodeEventsClassGenerator : ClassGenerator {
         AddPhysicsProcess = HasAttribute(NotificationAttribute, "PhysicsProcess") || Symbol.HasAttribute(PhysicsProcessAttribute);
         AddNotification = Symbol.HasAttribute(NotificationAttribute);
 
-        AddInput = HasAttribute(EventsInputEventsAttribute, "Handled");
-        AddUnhandledInput = HasAttribute(EventsInputEventsAttribute, "Unhandled");
-        AddUnhandledKeyInput = HasAttribute(EventsInputEventsAttribute, "UnhandledKey");
-        AddShortcutInput = HasAttribute(EventsInputEventsAttribute, "Shortcut");
+        AddInput = HasAttribute(InputEventsAttribute, "Handled");
+        AddUnhandledInput = HasAttribute(InputEventsAttribute, "Unhandled");
+        AddUnhandledKeyInput = HasAttribute(InputEventsAttribute, "UnhandledKey");
+        AddShortcutInput = HasAttribute(InputEventsAttribute, "Shortcut");
         if (!AddProcess &&
             !AddPhysicsProcess &&
             !AddNotification &&
@@ -80,31 +85,31 @@ public class NodeEventsClassGenerator : ClassGenerator {
         (HasPartialNotificationMethod, PartialNotificationParameterName) = LoadNotificationMethod();
 
         if (AddProcess && !HasPartialProcessMethod) {
-            ReportNonPartialMethod("B001", "_Process", "(double delta)", Symbol.HasAttribute(ProcessAttribute) ? "Process" : "Notification");
+            ReportNonPartialMethod("B001", "_Process", "(double delta)", Symbol.HasAttribute(ProcessAttribute) ? "Process" : NotificationAttributeName);
         }
 
         if (AddPhysicsProcess && !HasPartialPhysicsProcessMethod) {
-            ReportNonPartialMethod("B002", "_PhysicsProcess", "(double delta)", Symbol.HasAttribute(PhysicsProcessAttribute) ? "Process" : "Notification");
+            ReportNonPartialMethod("B002", "_PhysicsProcess", "(double delta)", Symbol.HasAttribute(PhysicsProcessAttribute) ? "Process" : NotificationAttributeName);
         }
 
         if (AddNotification && !HasPartialNotificationMethod) {
-            ReportNonPartialMethod("B003", "_Notification", "(int what)", "Notification");
+            ReportNonPartialMethod("B003", "_Notification", "(int what)", NotificationAttributeName);
         }
 
         if (AddInput && !HasPartialInputMethod) {
-            ReportNonPartialMethod("B004", "_Input", "(InputEvent @event)", "InputEvents");
+            ReportNonPartialMethod("B004", "_Input", "(InputEvent @event)", InputEventsAttributeName);
         }
 
         if (AddUnhandledInput && !HasPartialUnhandledInputMethod) {
-            ReportNonPartialMethod("B005", "_UnhandledInput", "(InputEvent @event)", "InputEvents");
+            ReportNonPartialMethod("B005", "_UnhandledInput", "(InputEvent @event)", InputEventsAttributeName);
         }
 
         if (AddUnhandledKeyInput && !HasPartialUnhandledKeyInputMethod) {
-            ReportNonPartialMethod("B006", "_UnhandledKeyInput", "(InputEvent @event)", "InputEvents");
+            ReportNonPartialMethod("B006", "_UnhandledKeyInput", "(InputEvent @event)", InputEventsAttributeName);
         }
 
         if (AddShortcutInput && !HasPartialShortcutInputMethod) {
-            ReportNonPartialMethod("B007", "_ShortcutInput", "(InputEvent @event)", "InputEvents");
+            ReportNonPartialMethod("B007", "_ShortcutInput", "(InputEvent @event)", InputEventsAttributeName);
         }
         return true;
     }
@@ -181,11 +186,12 @@ public class NodeEventsClassGenerator : ClassGenerator {
 
         if (AddShortcutInput) {
             AppendLine(OnShortcutInput());
-            if (HasPartialShortcutInputMethod) AppendLine(_ShortcutInput(PartialShortcutInputParameterName));
+            if (HasPartialShortcutInputMethod) AppendLine( _ShortcutInput(PartialShortcutInputParameterName));
         }
 
         if (AddNotification) {
-            AppendLine(OnNotificationEvents(PartialNotificationParameterName, AddProcess, AddPhysicsProcess));
+            AppendLine(OnNotificationEvents());
+            if (HasPartialNotificationMethod) _Notification(PartialNotificationParameterName, AddProcess, AddPhysicsProcess);
         }
 
         EndScope();
@@ -393,325 +399,327 @@ public class NodeEventsClassGenerator : ClassGenerator {
 
           """;
 
-    private static string OnNotificationEvents(string partialNotificationParameterName, bool addProcess, bool addPhysicsProcess) {
-        var lines = new StringBuilder();
-        lines.AppendLine(
-            $$"""
-              /// <summary>
-              /// <para>Event called when the object is initialized, before its script is attached. Used internally.</para>
-              /// </summary>
-              public event Action OnPostinitialize;
-              /// <summary>
-              /// <para>Event called when the object is about to be deleted. Can act as the deconstructor of some programming languages.</para>
-              /// </summary>
-              public event Action OnPredelete;
-              /// <summary>
-              /// <para>Event called when the node is paused.</para>
-              /// </summary>
-              public event Action OnPaused;
-              /// <summary>
-              /// <para>Event called when the node is unpaused.</para>
-              /// </summary>
-              public event Action OnUnpaused;
-              /// <summary>
-              /// <para>Event called every frame when the physics process flag is set (see <see cref="M:Godot.Node.SetPhysicsProcess(System.Boolean)" />).</para>
-              /// </summary>
-              public event Action OnParented;
-              /// <summary>
-              /// <para>Event called when a node is unparented (parent removed it from the list of children).</para>
-              /// </summary>
-              public event Action OnUnparented;
-              /// <summary>
-              /// <para>Event called by scene owner when its scene is instantiated.</para>
-              /// </summary>
-              public event Action OnSceneInstantiated;
-              /// <summary>
-              /// <para>Event called when a drag operation begins. All nodes receive this notification, not only the dragged one.</para>
-              /// <para>Can be triggered either by dragging a <see cref="T:Godot.Control" /> that provides drag data (see <see cref="M:Godot.Control._GetDragData(Godot.Vector2)" />) or using <see cref="M:Godot.Control.ForceDrag(Godot.Variant,Godot.Control)" />.</para>
-              /// <para>Use <see cref="M:Godot.Viewport.GuiGetDragData" /> to get the dragged data.</para>
-              /// </summary>
-              public event Action OnDragBegin;
-              /// <summary>
-              /// <para>Event called when a drag operation ends.</para>
-              /// <para>Use <see cref="M:Godot.Viewport.GuiIsDragSuccessful" /> to check if the drag succeeded.</para>
-              /// </summary>
-              public event Action OnDragEnd;
-              /// <summary>
-              /// <para>Event called when the node's name or one of its parents' name is changed. This notification is <i>not</i> received when the node is removed from the scene tree to be added to another parent later on.</para>
-              /// </summary>
-              public event Action OnPathRenamed;
-              /// <summary>
-              /// <para>Event called when the list of children is changed. This happens when child nodes are added, moved or removed.</para>
-              /// </summary>
-              public event Action OnChildOrderChanged;
-              /// <summary>
-              /// <para>Event called every frame when the internal process flag is set (see <see cref="M:Godot.Node.SetProcessInternal(System.Boolean)" />).</para>
-              /// </summary>
-              public event Action OnInternalProcess;
-              /// <summary>
-              /// <para>Event called every frame when the internal physics process flag is set (see <see cref="M:Godot.Node.SetPhysicsProcessInternal(System.Boolean)" />).</para>
-              /// </summary>
-              public event Action OnInternalPhysicsProcess;
-              /// <summary>
-              /// <para>Event called when the node is ready, just before <see cref="F:Godot.Node.NotificationReady" /> is received. Unlike the latter, it's sent every time the node enters tree, instead of only once.</para>
-              /// </summary>
-              public event Action OnPostEnterTree;
-              /// <summary>
-              /// <para>Event called when the node is disabled. See <see cref="F:Godot.Node.ProcessModeEnum.Disabled" />.</para>
-              /// </summary>
-              public event Action OnDisabled;
-              /// <summary>
-              /// <para>Event called when the node is enabled again after being disabled. See <see cref="F:Godot.Node.ProcessModeEnum.Disabled" />.</para>
-              /// </summary>
-              public event Action OnEnabled;
-              /// <summary>
-              /// <para>Event called when other nodes in the tree may have been removed/replaced and node pointers may require re-caching.</para>
-              /// </summary>
-              public event Action OnNodeRecacheRequested;
-              /// <summary>
-              /// <para>Event called right before the scene with the node is saved in the editor. This notification is only sent in the Godot editor and will not occur in exported projects.</para>
-              /// </summary>
-              public event Action OnEditorPreSave;
-              /// <summary>
-              /// <para>Event called right after the scene with the node is saved in the editor. This notification is only sent in the Godot editor and will not occur in exported projects.</para>
-              /// </summary>
-              public event Action OnEditorPostSave;
-              /// <summary>
-              /// <para>Event called from the OS when the mouse enters the game window.</para>
-              /// <para>Implemented on desktop and web platforms.</para>
-              /// </summary>
-              public event Action OnWMMouseEnter;
-              /// <summary>
-              /// <para>Event called from the OS when the mouse leaves the game window.</para>
-              /// <para>Implemented on desktop and web platforms.</para>
-              /// </summary>
-              public event Action OnWMMouseExit;
-              /// <summary>
-              /// <para>Event called when the node's parent <see cref="T:Godot.Window" /> is focused. This may be a change of focus between two windows of the same engine instance, or from the OS desktop or a third-party application to a window of the game (in which case <see cref="F:Godot.Node.NotificationApplicationFocusIn" /> is also emitted).</para>
-              /// <para>A <see cref="T:Godot.Window" /> node receives this notification when it is focused.</para>
-              /// </summary>
-              public event Action OnWMWindowFocusIn;
-              /// <summary>
-              /// <para>Event called when the node's parent <see cref="T:Godot.Window" /> is defocused. This may be a change of focus between two windows of the same engine instance, or from a window of the game to the OS desktop or a third-party application (in which case <see cref="F:Godot.Node.NotificationApplicationFocusOut" /> is also emitted).</para>
-              /// <para>A <see cref="T:Godot.Window" /> node receives this notification when it is defocused.</para>
-              /// </summary>
-              public event Action OnWMWindowFocusOut;
-              /// <summary>
-              /// <para>Event called from the OS when a close request is sent (e.g. closing the window with a "Close" button or Alt + F4).</para>
-              /// <para>Implemented on desktop platforms.</para>
-              /// </summary>
-              public event Action OnWMCloseRequest;
-              /// <summary>
-              /// <para>Event called from the OS when a go back request is sent (e.g. pressing the "Back" button on Android).</para>
-              /// <para>Specific to the Android platform.</para>
-              /// </summary>
-              public event Action OnWMGoBackRequest;
-              /// <summary>
-              /// <para>Event called from the OS when the window is resized.</para>
-              /// </summary>
-              public event Action OnWMSizeChanged;
-              /// <summary>
-              /// <para>Event called from the OS when the screen's DPI has been changed. Only implemented on macOS.</para>
-              /// </summary>
-              public event Action OnWMDpiChange;
-              /// <summary>
-              /// <para>Event called when the mouse enters the viewport.</para>
-              /// </summary>
-              public event Action OnVpMouseEnter;
-              /// <summary>
-              /// <para>Event called when the mouse leaves the viewport.</para>
-              /// </summary>
-              public event Action OnVpMouseExit;
-              /// <summary>
-              /// <para>Event called from the OS when the application is exceeding its allocated memory.</para>
-              /// <para>Specific to the iOS platform.</para>
-              /// </summary>
-              public event Action OnOsMemoryWarning;
-              /// <summary>
-              /// <para>Event called when translations may have changed. Can be triggered by the user changing the locale. Can be used to respond to language changes, for example to change the UI strings on the fly. Useful when working with the built-in translation support, like <see cref="M:Godot.GodotObject.Tr(Godot.StringName,Godot.StringName)" />.</para>
-              /// </summary>
-              public event Action OnTranslationChanged;
-              /// <summary>
-              /// <para>Event called from the OS when a request for "About" information is sent.</para>
-              /// <para>Specific to the macOS platform.</para>
-              /// </summary>
-              public event Action OnWMAbout;
-              /// <summary>
-              /// <para>Event called from Godot's crash handler when the engine is about to crash.</para>
-              /// <para>Implemented on desktop platforms if the crash handler is enabled.</para>
-              /// </summary>
-              public event Action OnCrash;
-              /// <summary>
-              /// <para>Event called from the OS when an update of the Input Method Engine occurs (e.g. change of IME cursor position or composition string).</para>
-              /// <para>Specific to the macOS platform.</para>
-              /// </summary>
-              public event Action OnOsImeUpdate;
-              /// <summary>
-              /// <para>Event called from the OS when the application is resumed.</para>
-              /// <para>Specific to the Android platform.</para>
-              /// </summary>
-              public event Action OnApplicationResumed;
-              /// <summary>
-              /// <para>Event called from the OS when the application is paused.</para>
-              /// <para>Specific to the Android platform.</para>
-              /// </summary>
-              public event Action OnApplicationPaused;
-              /// <summary>
-              /// <para>Event called from the OS when the application is focused, i.e. when changing the focus from the OS desktop or a thirdparty application to any open window of the Godot instance.</para>
-              /// <para>Implemented on desktop platforms.</para>
-              /// </summary>
-              public event Action OnApplicationFocusIn;
-              /// <summary>
-              /// <para>Event called from the OS when the application is defocused, i.e. when changing the focus from any open window of the Godot instance to the OS desktop or a thirdparty application.</para>
-              /// <para>Implemented on desktop platforms.</para>
-              /// </summary>
-              public event Action OnApplicationFocusOut;
-              /// <summary>
-              /// <para>Event called when text server is changed.</para>
-              /// </summary>
-              public event Action OnTextServerChanged;
-
+    private static string OnNotificationEvents() =>
+        $$"""
+          /// <summary>
+          /// <para>Event called when the object is initialized, before its script is attached. Used internally.</para>
+          /// </summary>
+          public event Action OnPostinitialize;
+          /// <summary>
+          /// <para>Event called when the object is about to be deleted. Can act as the deconstructor of some programming languages.</para>
+          /// </summary>
+          public event Action OnPredelete;
+          /// <summary>
+          /// <para>Event called when the node is paused.</para>
+          /// </summary>
+          public event Action OnPaused;
+          /// <summary>
+          /// <para>Event called when the node is unpaused.</para>
+          /// </summary>
+          public event Action OnUnpaused;
+          /// <summary>
+          /// <para>Event called every frame when the physics process flag is set (see <see cref="M:Godot.Node.SetPhysicsProcess(System.Boolean)" />).</para>
+          /// </summary>
+          public event Action OnParented;
+          /// <summary>
+          /// <para>Event called when a node is unparented (parent removed it from the list of children).</para>
+          /// </summary>
+          public event Action OnUnparented;
+          /// <summary>
+          /// <para>Event called by scene owner when its scene is instantiated.</para>
+          /// </summary>
+          public event Action OnSceneInstantiated;
+          /// <summary>
+          /// <para>Event called when a drag operation begins. All nodes receive this notification, not only the dragged one.</para>
+          /// <para>Can be triggered either by dragging a <see cref="T:Godot.Control" /> that provides drag data (see <see cref="M:Godot.Control._GetDragData(Godot.Vector2)" />) or using <see cref="M:Godot.Control.ForceDrag(Godot.Variant,Godot.Control)" />.</para>
+          /// <para>Use <see cref="M:Godot.Viewport.GuiGetDragData" /> to get the dragged data.</para>
+          /// </summary>
+          public event Action OnDragBegin;
+          /// <summary>
+          /// <para>Event called when a drag operation ends.</para>
+          /// <para>Use <see cref="M:Godot.Viewport.GuiIsDragSuccessful" /> to check if the drag succeeded.</para>
+          /// </summary>
+          public event Action OnDragEnd;
+          /// <summary>
+          /// <para>Event called when the node's name or one of its parents' name is changed. This notification is <i>not</i> received when the node is removed from the scene tree to be added to another parent later on.</para>
+          /// </summary>
+          public event Action OnPathRenamed;
+          /// <summary>
+          /// <para>Event called when the list of children is changed. This happens when child nodes are added, moved or removed.</para>
+          /// </summary>
+          public event Action OnChildOrderChanged;
+          /// <summary>
+          /// <para>Event called every frame when the internal process flag is set (see <see cref="M:Godot.Node.SetProcessInternal(System.Boolean)" />).</para>
+          /// </summary>
+          public event Action OnInternalProcess;
+          /// <summary>
+          /// <para>Event called every frame when the internal physics process flag is set (see <see cref="M:Godot.Node.SetPhysicsProcessInternal(System.Boolean)" />).</para>
+          /// </summary>
+          public event Action OnInternalPhysicsProcess;
+          /// <summary>
+          /// <para>Event called when the node is ready, just before <see cref="F:Godot.Node.NotificationReady" /> is received. Unlike the latter, it's sent every time the node enters tree, instead of only once.</para>
+          /// </summary>
+          public event Action OnPostEnterTree;
+          /// <summary>
+          /// <para>Event called when the node is disabled. See <see cref="F:Godot.Node.ProcessModeEnum.Disabled" />.</para>
+          /// </summary>
+          public event Action OnDisabled;
+          /// <summary>
+          /// <para>Event called when the node is enabled again after being disabled. See <see cref="F:Godot.Node.ProcessModeEnum.Disabled" />.</para>
+          /// </summary>
+          public event Action OnEnabled;
+          /// <summary>
+          /// <para>Event called when other nodes in the tree may have been removed/replaced and node pointers may require re-caching.</para>
+          /// </summary>
+          public event Action OnNodeRecacheRequested;
+          /// <summary>
+          /// <para>Event called right before the scene with the node is saved in the editor. This notification is only sent in the Godot editor and will not occur in exported projects.</para>
+          /// </summary>
+          public event Action OnEditorPreSave;
+          /// <summary>
+          /// <para>Event called right after the scene with the node is saved in the editor. This notification is only sent in the Godot editor and will not occur in exported projects.</para>
+          /// </summary>
+          public event Action OnEditorPostSave;
+          /// <summary>
+          /// <para>Event called from the OS when the mouse enters the game window.</para>
+          /// <para>Implemented on desktop and web platforms.</para>
+          /// </summary>
+          public event Action OnWMMouseEnter;
+          /// <summary>
+          /// <para>Event called from the OS when the mouse leaves the game window.</para>
+          /// <para>Implemented on desktop and web platforms.</para>
+          /// </summary>
+          public event Action OnWMMouseExit;
+          /// <summary>
+          /// <para>Event called when the node's parent <see cref="T:Godot.Window" /> is focused. This may be a change of focus between two windows of the same engine instance, or from the OS desktop or a third-party application to a window of the game (in which case <see cref="F:Godot.Node.NotificationApplicationFocusIn" /> is also emitted).</para>
+          /// <para>A <see cref="T:Godot.Window" /> node receives this notification when it is focused.</para>
+          /// </summary>
+          public event Action OnWMWindowFocusIn;
+          /// <summary>
+          /// <para>Event called when the node's parent <see cref="T:Godot.Window" /> is defocused. This may be a change of focus between two windows of the same engine instance, or from a window of the game to the OS desktop or a third-party application (in which case <see cref="F:Godot.Node.NotificationApplicationFocusOut" /> is also emitted).</para>
+          /// <para>A <see cref="T:Godot.Window" /> node receives this notification when it is defocused.</para>
+          /// </summary>
+          public event Action OnWMWindowFocusOut;
+          /// <summary>
+          /// <para>Event called from the OS when a close request is sent (e.g. closing the window with a "Close" button or Alt + F4).</para>
+          /// <para>Implemented on desktop platforms.</para>
+          /// </summary>
+          public event Action OnWMCloseRequest;
+          /// <summary>
+          /// <para>Event called from the OS when a go back request is sent (e.g. pressing the "Back" button on Android).</para>
+          /// <para>Specific to the Android platform.</para>
+          /// </summary>
+          public event Action OnWMGoBackRequest;
+          /// <summary>
+          /// <para>Event called from the OS when the window is resized.</para>
+          /// </summary>
+          public event Action OnWMSizeChanged;
+          /// <summary>
+          /// <para>Event called from the OS when the screen's DPI has been changed. Only implemented on macOS.</para>
+          /// </summary>
+          public event Action OnWMDpiChange;
+          /// <summary>
+          /// <para>Event called when the mouse enters the viewport.</para>
+          /// </summary>
+          public event Action OnVpMouseEnter;
+          /// <summary>
+          /// <para>Event called when the mouse leaves the viewport.</para>
+          /// </summary>
+          public event Action OnVpMouseExit;
+          /// <summary>
+          /// <para>Event called from the OS when the application is exceeding its allocated memory.</para>
+          /// <para>Specific to the iOS platform.</para>
+          /// </summary>
+          public event Action OnOsMemoryWarning;
+          /// <summary>
+          /// <para>Event called when translations may have changed. Can be triggered by the user changing the locale. Can be used to respond to language changes, for example to change the UI strings on the fly. Useful when working with the built-in translation support, like <see cref="M:Godot.GodotObject.Tr(Godot.StringName,Godot.StringName)" />.</para>
+          /// </summary>
+          public event Action OnTranslationChanged;
+          /// <summary>
+          /// <para>Event called from the OS when a request for "About" information is sent.</para>
+          /// <para>Specific to the macOS platform.</para>
+          /// </summary>
+          public event Action OnWMAbout;
+          /// <summary>
+          /// <para>Event called from Godot's crash handler when the engine is about to crash.</para>
+          /// <para>Implemented on desktop platforms if the crash handler is enabled.</para>
+          /// </summary>
+          public event Action OnCrash;
+          /// <summary>
+          /// <para>Event called from the OS when an update of the Input Method Engine occurs (e.g. change of IME cursor position or composition string).</para>
+          /// <para>Specific to the macOS platform.</para>
+          /// </summary>
+          public event Action OnOsImeUpdate;
+          /// <summary>
+          /// <para>Event called from the OS when the application is resumed.</para>
+          /// <para>Specific to the Android platform.</para>
+          /// </summary>
+          public event Action OnApplicationResumed;
+          /// <summary>
+          /// <para>Event called from the OS when the application is paused.</para>
+          /// <para>Specific to the Android platform.</para>
+          /// </summary>
+          public event Action OnApplicationPaused;
+          /// <summary>
+          /// <para>Event called from the OS when the application is focused, i.e. when changing the focus from the OS desktop or a thirdparty application to any open window of the Godot instance.</para>
+          /// <para>Implemented on desktop platforms.</para>
+          /// </summary>
+          public event Action OnApplicationFocusIn;
+          /// <summary>
+          /// <para>Event called from the OS when the application is defocused, i.e. when changing the focus from any open window of the Godot instance to the OS desktop or a thirdparty application.</para>
+          /// <para>Implemented on desktop platforms.</para>
+          /// </summary>
+          public event Action OnApplicationFocusOut;
+          /// <summary>
+          /// <para>Event called when text server is changed.</para>
+          /// </summary>
+          public event Action OnTextServerChanged;
+          """;
+              
+      private void _Notification(string partialNotificationParameterName, bool addProcess, bool addPhysicsProcess) {
+          AppendLine(
+              $$"""
               public override partial void _Notification(int {{partialNotificationParameterName}}) {
                   switch ((long){{partialNotificationParameterName}}) {
               """);
-        if (!addPhysicsProcess) {
-            lines.AppendLine(
-                """
-                case NotificationPhysicsProcess:
-                    __physicsProcessAction?.Invoke(GetProcessDeltaTime());
-                    break;
-                """);
-        }
-        if (!addProcess) {
-            lines.AppendLine(
-                """
-                case NotificationProcess:
-                    __processAction?.Invoke(GetPhysicsProcessDeltaTime());
-                    break;
-                """);
-        }
-        lines.AppendLine(
-            """
-                case NotificationPostinitialize:
-                    OnPostinitialize?.Invoke();
-                    break;
-                case NotificationPredelete:
-                    OnPredelete?.Invoke();
-                    break;
-                case NotificationPaused:
-                    OnPaused?.Invoke();
-                    break;
-                case NotificationUnpaused:
-                    OnUnpaused?.Invoke();
-                    break;
-                case NotificationParented:
-                    OnParented?.Invoke();
-                    break;
-                case NotificationUnparented:
-                    OnUnparented?.Invoke();
-                    break;
-                case NotificationSceneInstantiated:
-                    OnSceneInstantiated?.Invoke();
-                    break;
-                case NotificationDragBegin:
-                    OnDragBegin?.Invoke();
-                    break;
-                case NotificationDragEnd:
-                    OnDragEnd?.Invoke();
-                    break;
-                case NotificationPathRenamed:
-                    OnPathRenamed?.Invoke();
-                    break;
-                case NotificationChildOrderChanged:
-                    OnChildOrderChanged?.Invoke();
-                    break;
-                case NotificationInternalProcess:
-                    OnInternalProcess?.Invoke();
-                    break;
-                case NotificationInternalPhysicsProcess:
-                    OnInternalPhysicsProcess?.Invoke();
-                    break;
-                case NotificationPostEnterTree:
-                    OnPostEnterTree?.Invoke();
-                    break;
-                case NotificationDisabled:
-                    OnDisabled?.Invoke();
-                    break;
-                case NotificationEnabled:
-                    OnEnabled?.Invoke();
-                    break;
-                case NotificationNodeRecacheRequested:
-                    OnNodeRecacheRequested?.Invoke();
-                    break;
-                case NotificationEditorPreSave:
-                    OnEditorPreSave?.Invoke();
-                    break;
-                case NotificationEditorPostSave:
-                    OnEditorPostSave?.Invoke();
-                    break;
-                case NotificationWMMouseEnter:
-                    OnWMMouseEnter?.Invoke();
-                    break;
-                case NotificationWMMouseExit:
-                    OnWMMouseExit?.Invoke();
-                    break;
-                case NotificationWMWindowFocusIn:
-                    OnWMWindowFocusIn?.Invoke();
-                    break;
-                case NotificationWMWindowFocusOut:
-                    OnWMWindowFocusOut?.Invoke();
-                    break;
-                case NotificationWMCloseRequest:
-                    OnWMCloseRequest?.Invoke();
-                    break;
-                case NotificationWMGoBackRequest:
-                    OnWMGoBackRequest?.Invoke();
-                    break;
-                case NotificationWMSizeChanged:
-                    OnWMSizeChanged?.Invoke();
-                    break;
-                case NotificationWMDpiChange:
-                    OnWMDpiChange?.Invoke();
-                    break;
-                case NotificationVpMouseEnter:
-                    OnVpMouseEnter?.Invoke();
-                    break;
-                case NotificationVpMouseExit:
-                    OnVpMouseExit?.Invoke();
-                    break;
-                case NotificationOsMemoryWarning:
-                    OnOsMemoryWarning?.Invoke();
-                    break;
-                case NotificationTranslationChanged:
-                    OnTranslationChanged?.Invoke();
-                    break;
-                case NotificationWMAbout:
-                    OnWMAbout?.Invoke();
-                    break;
-                case NotificationCrash:
-                    OnCrash?.Invoke();
-                    break;
-                case NotificationOsImeUpdate:
-                    OnOsImeUpdate?.Invoke();
-                    break;
-                case NotificationApplicationResumed:
-                    OnApplicationResumed?.Invoke();
-                    break;
-                case NotificationApplicationPaused:
-                    OnApplicationPaused?.Invoke();
-                    break;
-                case NotificationApplicationFocusIn:
-                    OnApplicationFocusIn?.Invoke();
-                    break;
-                case NotificationApplicationFocusOut:
-                    OnApplicationFocusOut?.Invoke();
-                    break;
-                case NotificationTextServerChanged:
-                    OnTextServerChanged?.Invoke();
-                    break;
-                }
-            }
-            """);
-        return lines.ToString();
+          
+          if (!addPhysicsProcess) {
+              AppendLine(
+                  """
+                          case NotificationPhysicsProcess:
+                              __physicsProcessAction?.Invoke(GetProcessDeltaTime());
+                              break;
+                  """);
+          }
+          if (!addProcess) {
+              AppendLine(
+                  """
+                          case NotificationProcess:
+                              __processAction?.Invoke(GetPhysicsProcessDeltaTime());
+                              break;
+                  """);
+          }
+          AppendLine(
+              """
+                      case NotificationPostinitialize:
+                          OnPostinitialize?.Invoke();
+                          break;
+                      case NotificationPredelete:
+                          OnPredelete?.Invoke();
+                          break;
+                      case NotificationPaused:
+                          OnPaused?.Invoke();
+                          break;
+                      case NotificationUnpaused:
+                          OnUnpaused?.Invoke();
+                          break;
+                      case NotificationParented:
+                          OnParented?.Invoke();
+                          break;
+                      case NotificationUnparented:
+                          OnUnparented?.Invoke();
+                          break;
+                      case NotificationSceneInstantiated:
+                          OnSceneInstantiated?.Invoke();
+                          break;
+                      case NotificationDragBegin:
+                          OnDragBegin?.Invoke();
+                          break;
+                      case NotificationDragEnd:
+                          OnDragEnd?.Invoke();
+                          break;
+                      case NotificationPathRenamed:
+                          OnPathRenamed?.Invoke();
+                          break;
+                      case NotificationChildOrderChanged:
+                          OnChildOrderChanged?.Invoke();
+                          break;
+                      case NotificationInternalProcess:
+                          OnInternalProcess?.Invoke();
+                          break;
+                      case NotificationInternalPhysicsProcess:
+                          OnInternalPhysicsProcess?.Invoke();
+                          break;
+                      case NotificationPostEnterTree:
+                          OnPostEnterTree?.Invoke();
+                          break;
+                      case NotificationDisabled:
+                          OnDisabled?.Invoke();
+                          break;
+                      case NotificationEnabled:
+                          OnEnabled?.Invoke();
+                          break;
+                      case NotificationNodeRecacheRequested:
+                          OnNodeRecacheRequested?.Invoke();
+                          break;
+                      case NotificationEditorPreSave:
+                          OnEditorPreSave?.Invoke();
+                          break;
+                      case NotificationEditorPostSave:
+                          OnEditorPostSave?.Invoke();
+                          break;
+                      case NotificationWMMouseEnter:
+                          OnWMMouseEnter?.Invoke();
+                          break;
+                      case NotificationWMMouseExit:
+                          OnWMMouseExit?.Invoke();
+                          break;
+                      case NotificationWMWindowFocusIn:
+                          OnWMWindowFocusIn?.Invoke();
+                          break;
+                      case NotificationWMWindowFocusOut:
+                          OnWMWindowFocusOut?.Invoke();
+                          break;
+                      case NotificationWMCloseRequest:
+                          OnWMCloseRequest?.Invoke();
+                          break;
+                      case NotificationWMGoBackRequest:
+                          OnWMGoBackRequest?.Invoke();
+                          break;
+                      case NotificationWMSizeChanged:
+                          OnWMSizeChanged?.Invoke();
+                          break;
+                      case NotificationWMDpiChange:
+                          OnWMDpiChange?.Invoke();
+                          break;
+                      case NotificationVpMouseEnter:
+                          OnVpMouseEnter?.Invoke();
+                          break;
+                      case NotificationVpMouseExit:
+                          OnVpMouseExit?.Invoke();
+                          break;
+                      case NotificationOsMemoryWarning:
+                          OnOsMemoryWarning?.Invoke();
+                          break;
+                      case NotificationTranslationChanged:
+                          OnTranslationChanged?.Invoke();
+                          break;
+                      case NotificationWMAbout:
+                          OnWMAbout?.Invoke();
+                          break;
+                      case NotificationCrash:
+                          OnCrash?.Invoke();
+                          break;
+                      case NotificationOsImeUpdate:
+                          OnOsImeUpdate?.Invoke();
+                          break;
+                      case NotificationApplicationResumed:
+                          OnApplicationResumed?.Invoke();
+                          break;
+                      case NotificationApplicationPaused:
+                          OnApplicationPaused?.Invoke();
+                          break;
+                      case NotificationApplicationFocusIn:
+                          OnApplicationFocusIn?.Invoke();
+                          break;
+                      case NotificationApplicationFocusOut:
+                          OnApplicationFocusOut?.Invoke();
+                          break;
+                      case NotificationTextServerChanged:
+                          OnTextServerChanged?.Invoke();
+                          break;
+                  }
+              }
+              """);
     }
 }

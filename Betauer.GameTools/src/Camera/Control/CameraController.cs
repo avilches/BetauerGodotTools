@@ -18,32 +18,32 @@ public class CameraController {
     private RemoteTransform2D? _remoteTransform2D;
 
     public Camera2D Camera2D { get; }
-    public PhysicsProcessEventHolder OnPhysicsProcessEventHolder;
+    public IEventHandler Handler { get; }
 
     public bool IsFollowing => Camera2D.IsInstanceValid() && (
-        (_getFollowingPosition != null && OnPhysicsProcessEventHolder.IsEnabled) ||
+        (_getFollowingPosition != null && Handler.IsEnabled) ||
         (_remoteTransform2D != null && !_remoteTransform2D.RemotePath.IsEmpty));
     
     public bool IsBusy() => (_zoomTween?.IsValid() ?? false) ||
                           (_positionTween?.IsValid() ?? false);
 
-    internal CameraController(CameraContainer cameraContainer, Camera2D camera2D) {
+    public CameraController(CameraContainer cameraContainer, Camera2D camera2D) {
         _cameraContainer = cameraContainer;
         Camera2D = camera2D;
-        // TODO: memory leak if the camera is disabled and destroyed later
-        OnPhysicsProcessEventHolder = camera2D.AddOnPhysicsProcess(Refresh);
+        Handler = camera2D.OnPhysicsProcess(Refresh);
+        Handler.Disable();
     }
     
     public void Destroy() {
         _cameraContainer.Remove(Camera2D);
-        OnPhysicsProcessEventHolder.Disable();
+        Handler.Destroy();
     }
 
     public CameraController Follow(Func<Vector2> getFollowingPosition) {
         _positionTween?.Kill();
         _getFollowingPosition = getFollowingPosition;
         if (_remoteTransform2D != null) _remoteTransform2D.RemotePath = null;
-        OnPhysicsProcessEventHolder.Enable();
+        Handler.Enable();
         return this;
     }
 
@@ -56,7 +56,7 @@ public class CameraController {
 
     public CameraController StopFollowing() {
         if (_getFollowingPosition != null) {
-            OnPhysicsProcessEventHolder.Disable();
+            Handler.Disable();
         } else if (_remoteTransform2D != null) {
             _remoteTransform2D.RemotePath = null;
         }
@@ -65,7 +65,7 @@ public class CameraController {
 
     public CameraController ContinueFollowing() {
         if (_getFollowingPosition != null) {
-            OnPhysicsProcessEventHolder.Enable();
+            Handler.Enable();
         } else if (_remoteTransform2D != null) {
             _remoteTransform2D.RemotePath = Camera2D.GetPath();
         }
@@ -145,7 +145,7 @@ public class CameraController {
         if (_getFollowingPosition != null) {
             Camera2D.GlobalPosition = _getFollowingPosition.Invoke();
         } else {
-            OnPhysicsProcessEventHolder.Disable();
+            Handler.Disable();
         }
     }
 }

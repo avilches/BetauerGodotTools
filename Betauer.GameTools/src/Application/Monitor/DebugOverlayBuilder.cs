@@ -256,37 +256,6 @@ public static class DebugOverlayBuilder {
         return builder;
     }
     
-    public static NodeBuilder AddMonitorInputEvent(this NodeBuilder builder, InputActionsContainer inputActionsContainer, int history = 10) {
-        var inputs = new LinkedList<string>();
-        // TODO: memory leak
-        NodeEventHandler.DefaultInstance.OnInput += (e) => {
-            var pressed = e.IsJustPressed()?"Just Pressed":e.IsPressed()?"Pressed":e.IsReleased()?"Released": "Unknown";
-            var modifiers = new List<string>(5);
-            if (e.HasShift()) modifiers.Add("Shift");
-            if (e.HasAlt()) modifiers.Add("Alt");
-            if (e.HasControl()) modifiers.Add("Ctrl");
-            if (e.HasMeta()) modifiers.Add("Meta");
-            var actions = inputActionsContainer.InputActionList.Where(a => a.IsEvent(e)).Select(a => a.Name).ToList();
-            var actionName = actions.Count > 0 ? $" | Action [{string.Join(",", actions)}]" : "";
-            if (e.IsAnyKey()) {
-                modifiers.Add(e.GetKeyString());
-                inputs.AddLast($"Key {(int)e.GetKey()} [{string.Join('+', modifiers)}] {pressed} {actionName}");
-            } else if (e.IsAnyClick()) {
-                modifiers.Add(e.GetClick().ToString());
-                inputs.AddLast($"Click {(int)e.GetClick()} [{string.Join('+', modifiers)}] {pressed} {actionName}");
-            } else if (e.IsAnyButton()) {
-                modifiers.Add(e.GetButton().ToString());
-                inputs.AddLast($"Button {(int)e.GetButton()} [{string.Join('+', modifiers)}] {pressed} | {e.GetButtonPressure()} {actionName}");
-            } else if (e.IsAnyAxis())
-                inputs.AddLast($"Axis {(int)e.GetAxis()} [{e.GetAxis()}] {e.GetAxisValue():0.00} {actionName}");
-            // else if (e.IsMouseMotion())
-                // inputs.AddLast($"Mouse motion {e.GetMouseGlobalPosition()} {actionName}");
-            if (inputs.Count > history) inputs.RemoveFirst();
-        };
-        builder.TextField("", () => string.Join('\n', inputs));
-        return builder;
-    }
-    
     public static NodeBuilder AddMonitorInputAction(this NodeBuilder builder, InputActionsContainer inputActionsContainer) {
         builder.TextField("", () => {
             var s = new StringBuilder();

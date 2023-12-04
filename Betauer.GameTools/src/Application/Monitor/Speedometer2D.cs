@@ -44,12 +44,12 @@ public class SpeedometerVector2D : Speedometer2D {
     public override Vector2 SpeedVector => _speedVector;
     public override float Speed => _speed;
     public float MaxSpeed { get; private set; } = 0f;
-    public PhysicsProcessEventHolder PhysicsProcessEventHolder { get; private set; }
+    public IProcessHandler PhysicsProcessEventHolder { get; private set; }
     public Func<Vector2> Provider { get; }
 
     public SpeedometerVector2D(Node node, Func<Vector2> provider) {
         Provider = provider;
-        PhysicsProcessEventHolder = node.AddOnPhysicsProcess(Update);
+        PhysicsProcessEventHolder = node.OnPhysicsProcess(Update);
     }
     
     public void Update(double delta) {

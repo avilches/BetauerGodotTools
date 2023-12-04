@@ -33,6 +33,8 @@ public partial class DebugOverlay : Panel, IInjectable {
     public static Color ColorSolid = new(1, 1, 1);
     public static Color ColorInvisible = new(1, 1, 1, 0);
     public event Action? OnDestroyEvent;
+    public event Action? OnShowEvent;
+    public event Action? OnHideEvent;
     
     private Vector2 FollowPosition => IsFollowing && Target is Node2D node ? node.GetGlobalTransformWithCanvas().Origin : Vector2.Zero;
     private Vector2 _position;
@@ -65,7 +67,6 @@ public partial class DebugOverlay : Panel, IInjectable {
     public GodotObject? Target { get; private set; }
     public bool IsFollowing { get; private set; } = false;
     public bool CanFollow => Target is Node2D;
-    public Func<bool>? DestroyIfFunc { get; private set; }
     public Button? FollowButton { get; private set; }
     public bool IsHideOnClose { get; set; } = true;
     
@@ -133,13 +134,18 @@ public partial class DebugOverlay : Panel, IInjectable {
         return this;
     }
 
-    public DebugOverlay DestroyIf(Func<bool> destroyIf) {
-        DestroyIfFunc = destroyIf;
+    public DebugOverlay OnShow(Action action) {
+        OnShowEvent += action;
         return this;
     }
-
-    public DebugOverlay OnDestroy(Action destroyIf) {
-        OnDestroyEvent += destroyIf;
+    
+    public DebugOverlay OnHide(Action action) {
+        OnHideEvent += action;
+        return this;
+    }
+    
+    public DebugOverlay OnDestroy(Action action) {
+        OnDestroyEvent += action;
         return this;
     }
 
@@ -193,7 +199,6 @@ public partial class DebugOverlay : Panel, IInjectable {
 
     private void CheckProcessBasedOnVisibility() {
         var isVisibleInTree = IsVisibleInTree();
-        // TODO: memory leak if it's disabled and the target is destroyed
         SetProcess(isVisibleInTree);
         SetProcessInput(isVisibleInTree);
     }
@@ -280,6 +285,11 @@ public partial class DebugOverlay : Panel, IInjectable {
         FitContent();
         CheckProcessBasedOnVisibility();
         VisibilityChanged += CheckProcessBasedOnVisibility;
+        VisibilityChanged += () => {
+            var isVisibleInTree = IsVisibleInTree();
+            if (isVisibleInTree) OnShowEvent?.Invoke();
+            else OnHideEvent?.Invoke();
+        };
     }
 
     public void PostInject() {
@@ -287,16 +297,11 @@ public partial class DebugOverlay : Panel, IInjectable {
         _dragAndDropController.OnStartDrag += OnStartDrag;
         _dragAndDropController.OnDrag += OnDrag;
 
-        NodeEventHandler.DefaultInstance.OnWMMouseExit += ForceDrop;
-        NodeEventHandler.DefaultInstance.OnWMWindowFocusOut += ForceDrop; 
-        NodeEventHandler.DefaultInstance.OnApplicationFocusOut += ForceDrop;
-        
-        TreeExited += () => {
-            NodeEventHandler.DefaultInstance.OnWMMouseExit -= ForceDrop;
-            NodeEventHandler.DefaultInstance.OnWMWindowFocusOut -= ForceDrop; 
-            NodeEventHandler.DefaultInstance.OnApplicationFocusOut -=ForceDrop;
-        };
+        NodeManager.MainInstance.OnWMMouseExit(this, ForceDrop);
+        NodeManager.MainInstance.OnWMWindowFocusOut(this, ForceDrop); 
+        NodeManager.MainInstance.OnApplicationFocusOut(this, ForceDrop);
         return;
+        
 
         void ForceDrop() =>_dragAndDropController.ForceDrop();
     }
@@ -331,32 +336,36 @@ public partial class DebugOverlay : Panel, IInjectable {
     private bool DragPredicate(InputEvent input) =>
         input.IsMouseInside(TitleBackground) && !input.IsMouseInside(ButtonBar);
 
+    private bool _destroyed = false;
 
     public void Destroy() {
+        if (_destroyed) {
+            return;
+        }
         OnDestroyEvent?.Invoke();
         QueueFree();
     }
     
     public override void _Process(double delta) {
-        if ((Target != null && !IsInstanceValid(Target)) || (DestroyIfFunc != null && DestroyIfFunc())) {
+        if (Target != null && !IsInstanceValid(Target)) {
             Destroy();
-        } else {
-            if (IsFollowing) {
-                var newPosition = FollowPosition + _position;
-                // Ensure the overlay doesn't go out of the screen when following the node
-                var screenSize = GetTree().Root.Size;
-                var limitX = Size.X >= screenSize.X ? 20 : Size.X; 
-                var limitY = Size.Y >= screenSize.Y ? 20 : Size.Y; 
-                newPosition = new Vector2(
-                    Mathf.Clamp(newPosition.X, 0, screenSize.X - limitX),
-                    Mathf.Clamp(newPosition.Y, 0, screenSize.Y - limitY));
-                SetPosition(newPosition);
-            } else {
-                SetPosition(_position);
-            }
-            // Hack time: set a very small size to ensure the panel is resized big enough for the data inside
-            Size = Vector2.Zero;
+            return;
         }
+        if (IsFollowing) {
+            var newPosition = FollowPosition + _position;
+            // Ensure the overlay doesn't go out of the screen when following the node
+            var screenSize = GetTree().Root.Size;
+            var limitX = Size.X >= screenSize.X ? 20 : Size.X; 
+            var limitY = Size.Y >= screenSize.Y ? 20 : Size.Y; 
+            newPosition = new Vector2(
+                Mathf.Clamp(newPosition.X, 0, screenSize.X - limitX),
+                Mathf.Clamp(newPosition.Y, 0, screenSize.Y - limitY));
+            SetPosition(newPosition);
+        } else {
+            SetPosition(_position);
+        }
+        // Hack time: set a very small size to ensure the panel is resized big enough for the data inside
+        Size = Vector2.Zero;
     }
     
     private void UpdateFollowButtonState() {

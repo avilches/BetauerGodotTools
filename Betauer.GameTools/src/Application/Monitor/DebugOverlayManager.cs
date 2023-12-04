@@ -9,7 +9,6 @@ using Godot;
 namespace Betauer.Application.Monitor;
 public partial class DebugOverlayManager : CanvasLayer {
     private int _count = 0;
-    private HashSet<int> _actives = new();
     private HashSet<int> _preSolo = new();
     private bool _isSolo = false;
 
@@ -23,8 +22,14 @@ public partial class DebugOverlayManager : CanvasLayer {
         Name = "Right"
     };
     
-    public IEnumerable<DebugOverlay> Overlays => OverlayContainer.GetChildren().OfType<DebugOverlay>().Where(IsInstanceValid);
-    public int VisibleCount => Overlays.Count(debugOverlay => debugOverlay.Visible);
+    private readonly List<DebugOverlay> _overlays = new();
+    private List<DebugOverlay> Overlays {
+        get {
+            PurgeOverlays();
+            return _overlays;
+        }
+    }
+
     public DebugOverlay Find(int id) => Overlays.First(overlay => overlay.Id == id);
 
     [Inject(Nullable = true)]
@@ -77,7 +82,7 @@ public partial class DebugOverlayManager : CanvasLayer {
     public DebugOverlay CreateOverlay(string? title = null) {
         var overlay = new DebugOverlay(this, _count++).Title(title);
         OverlayContainer.AddChild(overlay);
-        _actives.Add(overlay.Id);
+        Overlays.Add(overlay);
         return overlay;
     }
 
@@ -131,29 +136,27 @@ public partial class DebugOverlayManager : CanvasLayer {
         }
     }
 
-    public override void _PhysicsProcess(double delta) {
-        if (!Visible) {
-            Disable();
-        } else {
-            Right.Text = ((int)Engine.GetFramesPerSecond()).ToString();
-        }
+    public override void _Process(double delta) {
+        PurgeOverlays();
+        Right.Text = ((int)Engine.GetFramesPerSecond()).ToString();
+    }
+
+    private void PurgeOverlays() {
+        _overlays.RemoveAll(overlay => {
+            if (!IsInstanceValid(overlay)) return true;
+            if (overlay.Target == null || IsInstanceValid(overlay.Target)) return false;
+            overlay.Destroy();
+            return true;
+        });
     }
 
     public DebugOverlayManager Enable(bool enable = true) {
         Visible = enable;
-        SetPhysicsProcess(enable);
+        SetProcess(enable);
         if (enable) {
             if (DebugConsole.Visible) DebugConsole.Enable();
-            // Use the actives before disable all
-            Overlays.ForEach(overlay => overlay.Enable(_actives.Contains(overlay.Id)));
         } else {
             DebugConsole.Sleep();
-            // Remember the actives before disable all, so they can be restored when the manager is enabled again
-            _actives = Overlays
-                .Where(overlay => overlay.Visible)
-                .Select(overlay => overlay.Id)
-                .ToHashSet();
-            Overlays.ForEach(overlay => overlay.Disable());
         }
         return this;
     }
@@ -181,7 +184,8 @@ public partial class DebugOverlayManager : CanvasLayer {
     }
 
     public void CloseOrHideOverlay(int id) {
-        if (VisibleCount == 1 && !DebugConsole.Visible) {
+        var visibleCount = Overlays.Count(debugOverlay => debugOverlay.Visible);
+        if (visibleCount == 1 && !DebugConsole.Visible) {
             // If the overlay to close is the last one (and there is no console), hide the manager instead, so
             // when the manager is shown again, the last closed overlay will be shown.
             Disable();

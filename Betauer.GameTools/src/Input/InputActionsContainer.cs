@@ -42,7 +42,7 @@ public partial class InputActionsContainer : Node, IInjectable {
     }
 
     public InputActionsContainer(bool enable = true) {
-        if (enable) NodeEventHandler.DefaultInstance.AddChild(this);
+        if (enable) NodeManager.MainInstance.Node.AddChild(this);
     }
 
     public void PostInject() {

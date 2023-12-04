@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Betauer.Application.Screen;
@@ -184,17 +185,48 @@ public static partial class DebugConsoleExtensions {
         }, "Open the input map window.");
     }
 
-    public static DebugConsole AddInputEventCommand(this DebugConsole console, InputActionsContainer inputActionsContainer) {
+    public static DebugConsole AddInputEventCommand(this DebugConsole console, InputActionsContainer inputActionsContainer, int history = 10) {
         const string title = "Input event logger";
         return console.CreateCommand("input-logger", () => {
             if (console.DebugOverlayManager.HasOverlay(title)) return;
+
+            var inputs = new LinkedList<string>();
+            var nodeHandler = NodeManager.MainInstance.OnInput((e) => {
+                var pressed = e.IsJustPressed()?"Just Pressed":e.IsPressed()?"Pressed":e.IsReleased()?"Released": "Unknown";
+                var modifiers = new List<string>(5);
+                if (e.HasShift()) modifiers.Add("Shift");
+                if (e.HasAlt()) modifiers.Add("Alt");
+                if (e.HasControl()) modifiers.Add("Ctrl");
+                if (e.HasMeta()) modifiers.Add("Meta");
+                var actions = inputActionsContainer.InputActionList.Where(a => a.IsEvent(e)).Select(a => a.Name).ToList();
+                var actionName = actions.Count > 0 ? $" | Action [{string.Join(",", actions)}]" : "";
+                if (e.IsAnyKey()) {
+                    modifiers.Add(e.GetKeyString());
+                    inputs.AddLast($"Key {(int)e.GetKey()} [{string.Join('+', modifiers)}] {pressed} {actionName}");
+                } else if (e.IsAnyClick()) {
+                    modifiers.Add(e.GetClick().ToString());
+                    inputs.AddLast($"Click {(int)e.GetClick()} [{string.Join('+', modifiers)}] {pressed} {actionName}");
+                } else if (e.IsAnyButton()) {
+                    modifiers.Add(e.GetButton().ToString());
+                    inputs.AddLast($"Button {(int)e.GetButton()} [{string.Join('+', modifiers)}] {pressed} | {e.GetButtonPressure()} {actionName}");
+                } else if (e.IsAnyAxis())
+                    inputs.AddLast($"Axis {(int)e.GetAxis()} [{e.GetAxis()}] {e.GetAxisValue():0.00} {actionName}");
+                // else if (e.IsMouseMotion())
+                // inputs.AddLast($"Mouse motion {e.GetMouseGlobalPosition()} {actionName}");
+                if (inputs.Count > history) inputs.RemoveFirst();
+            });
+
             console.DebugOverlayManager
                 .Overlay(title)
                 .HideOnClose(false)
+                .OnShow(() => nodeHandler.Enable())
+                .OnHide(() => nodeHandler.Disable())
+                .OnDestroy(() => nodeHandler.Destroy())
                 .Solid()
                 .SetMinSize(400, 200)
                 .Children()
-                .AddMonitorInputEvent(inputActionsContainer);
+                .TextField("", () => string.Join('\n', inputs));
+            
         }, "Open the input event logger window.");
     }
 

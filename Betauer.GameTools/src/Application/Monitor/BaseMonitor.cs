@@ -47,6 +47,7 @@ public abstract partial class BaseMonitor<TBuilder> : BaseMonitor where TBuilder
             ParentTarget = this.FindParent<DebugOverlay>()?.Target;
         };
         VisibilityChanged += CheckProcessBasedOnVisibility;
+        ProcessMode = ProcessModeEnum.Pausable;
     }
 
     public TBuilder DestroyIf(Func<bool> destroyIf) {
