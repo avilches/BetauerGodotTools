@@ -192,7 +192,8 @@ public static partial class DebugConsoleExtensions {
 
             var inputs = new LinkedList<string>();
             var nodeHandler = NodeManager.MainInstance.OnInput((e) => {
-                var pressed = e.IsJustPressed()?"Just Pressed":e.IsPressed()?"Pressed":e.IsReleased()?"Released": "Unknown";
+                var pressed = e.IsPressed() ? "Pressed" + (e.IsJustPressed() ? " (Just)" : "") :
+                    e.IsReleased() ? "Released" : "Unknown";
                 var modifiers = new List<string>(5);
                 if (e.HasShift()) modifiers.Add("Shift");
                 if (e.HasAlt()) modifiers.Add("Alt");
@@ -219,8 +220,7 @@ public static partial class DebugConsoleExtensions {
             console.DebugOverlayManager
                 .Overlay(title)
                 .HideOnClose(false)
-                .OnShow(() => nodeHandler.Enable())
-                .OnHide(() => nodeHandler.Disable())
+                .OnVisible(visible => nodeHandler.Enable(visible))
                 .OnDestroy(() => nodeHandler.Destroy())
                 .Solid()
                 .SetMinSize(400, 200)

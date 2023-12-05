@@ -32,9 +32,6 @@ public partial class DebugOverlay : Panel, IInjectable {
     public static Color ColorTransparent = new(1, 1, 1, 0.490196f);
     public static Color ColorSolid = new(1, 1, 1);
     public static Color ColorInvisible = new(1, 1, 1, 0);
-    public event Action? OnDestroyEvent;
-    public event Action? OnShowEvent;
-    public event Action? OnHideEvent;
     
     private Vector2 FollowPosition => IsFollowing && Target is Node2D node ? node.GetGlobalTransformWithCanvas().Origin : Vector2.Zero;
     private Vector2 _position;
@@ -134,21 +131,16 @@ public partial class DebugOverlay : Panel, IInjectable {
         return this;
     }
 
-    public DebugOverlay OnShow(Action action) {
-        OnShowEvent += action;
-        return this;
-    }
-    
-    public DebugOverlay OnHide(Action action) {
-        OnHideEvent += action;
+    public DebugOverlay OnVisible(Action<bool> action) {
+        CanvasItemExtensions.OnVisible(this, action);
         return this;
     }
     
     public DebugOverlay OnDestroy(Action action) {
-        OnDestroyEvent += action;
+        NodeManager.MainInstance.OnDestroy(this, action);
         return this;
     }
-
+    
     public DebugOverlay StopFollowing() {
         IsFollowing = false;
         UpdateFollowButtonState();
@@ -162,13 +154,15 @@ public partial class DebugOverlay : Panel, IInjectable {
     }
 
     public DebugOverlay Attach(GodotObject o) {
+        NodeManager.MainInstance.RemoveOnDestroy(Target, QueueFree);
         Target = o;
+        NodeManager.MainInstance.OnDestroy(o, QueueFree);
         if (o is not Node2D) StopFollowing();
         UpdateFollowButtonState();
         return this;
     }
 
-    public DebugOverlay Follow(Node2D? followNode) => Attach(followNode).Follow();
+    public DebugOverlay Follow(Node2D followNode) => Attach(followNode).Follow();
 
     public DebugOverlay Follow() {
         if (Target is Node2D followNode) {
@@ -285,11 +279,6 @@ public partial class DebugOverlay : Panel, IInjectable {
         FitContent();
         CheckProcessBasedOnVisibility();
         VisibilityChanged += CheckProcessBasedOnVisibility;
-        VisibilityChanged += () => {
-            var isVisibleInTree = IsVisibleInTree();
-            if (isVisibleInTree) OnShowEvent?.Invoke();
-            else OnHideEvent?.Invoke();
-        };
     }
 
     public void PostInject() {
@@ -336,19 +325,9 @@ public partial class DebugOverlay : Panel, IInjectable {
     private bool DragPredicate(InputEvent input) =>
         input.IsMouseInside(TitleBackground) && !input.IsMouseInside(ButtonBar);
 
-    private bool _destroyed = false;
-
-    public void Destroy() {
-        if (_destroyed) {
-            return;
-        }
-        OnDestroyEvent?.Invoke();
-        QueueFree();
-    }
-    
     public override void _Process(double delta) {
         if (Target != null && !IsInstanceValid(Target)) {
-            Destroy();
+            // Just in case, but it shouldn't happen ever
             return;
         }
         if (IsFollowing) {

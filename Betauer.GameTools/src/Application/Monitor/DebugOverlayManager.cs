@@ -137,17 +137,11 @@ public partial class DebugOverlayManager : CanvasLayer {
     }
 
     public override void _Process(double delta) {
-        PurgeOverlays();
         Right.Text = ((int)Engine.GetFramesPerSecond()).ToString();
     }
 
     private void PurgeOverlays() {
-        _overlays.RemoveAll(overlay => {
-            if (!IsInstanceValid(overlay)) return true;
-            if (overlay.Target == null || IsInstanceValid(overlay.Target)) return false;
-            overlay.Destroy();
-            return true;
-        });
+        _overlays.RemoveAll(overlay => !IsInstanceValid(overlay));
     }
 
     public DebugOverlayManager Enable(bool enable = true) {
@@ -192,7 +186,7 @@ public partial class DebugOverlayManager : CanvasLayer {
         } else {
             var debugOverlay = Find(id);
             if (debugOverlay.IsHideOnClose) debugOverlay.Disable();
-            else debugOverlay.Destroy();
+            else debugOverlay.QueueFree();
         }
     }
 }  
