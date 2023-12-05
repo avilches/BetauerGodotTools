@@ -114,8 +114,7 @@ public partial class RtsWorld : Node, IInjectable {
 	private void ConfigureDebugOverlay() {
 		var viewGroup = new ButtonGroup();
 
-		DebugOverlayManager.Overlay("RTS")
-			.DestroyIf(() => TerrainTileMap.IsInstanceInvalid())
+		DebugOverlayManager.Overlay(TerrainTileMap)
 			.OnDestroy(() => viewGroup.Dispose())
 			.SetMinSize(400, 100)
 			.Children()

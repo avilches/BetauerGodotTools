@@ -48,8 +48,7 @@ public class DragCameraController {
     }
 
     public DragCameraController Enable(bool enable = true) {
-        if (enable) _nodeEvent?.Enable();
-        else _nodeEvent?.Disable();
+        _nodeEvent?.Enable(enable);
         return this;
     }
 /*        

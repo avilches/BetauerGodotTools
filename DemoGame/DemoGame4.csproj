@@ -36,5 +36,6 @@
         <ProjectReference Include="../Betauer.DI/Betauer.DI.csproj"/>
         <ProjectReference Include="../Betauer.Tools.Logging/Betauer.Tools.Logging.csproj"/>
         <ProjectReference Include="../Betauer.FSM/Betauer.FSM.csproj"/>
+        <ProjectReference Include="../Betauer.SourceGenerators/Betauer.SourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
     </ItemGroup>
 </Project>

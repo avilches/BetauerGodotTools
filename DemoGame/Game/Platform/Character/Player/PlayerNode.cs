@@ -7,6 +7,7 @@ using Betauer.Application.Persistent;
 using Betauer.Camera;
 using Betauer.Camera.Control;
 using Betauer.Core;
+using Betauer.Core.Nodes.Events;
 using Betauer.Core.Restorer;
 using Betauer.Core.Time;
 using Betauer.DI;
@@ -17,7 +18,6 @@ using Betauer.Flipper;
 using Betauer.FSM.Sync;
 using Betauer.Input;
 using Betauer.NodePath;
-using Betauer.Nodes;
 using Betauer.Physics;
 using Godot;
 using Veronenger.Game.Platform.Character.Npc;
@@ -51,7 +51,14 @@ public enum PlayerEvent {
 	Idle
 }
 
+[InputEvents(Shortcut = false, UnhandledKey = false)]
+[Notifications(Process = false, PhysicsProcess = false)]
 public partial class PlayerNode : Node, IInjectable, INodeGameObject {
+
+	public override partial void _Input(InputEvent @event);
+	public override partial void _UnhandledInput(InputEvent @event);
+
+	public override partial void _Notification(int what);
 
 	public Vector2 GlobalPosition {
 		get => CharacterBody2D.GlobalPosition;
@@ -119,7 +126,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 	public GameObject GameObject { get; set; }
 	public PlayerGameObject PlayerGameObject => (PlayerGameObject)GameObject;
 
-	private readonly MultiRestorer _restorer = new ();  
+	private readonly MultiRestorer _restorer = new ();
 
 	public void PostInject() {
 		ConfigureAnimations();
@@ -251,7 +258,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 	private void ConfigurePlayerHurtArea() {
 		Ready += () => CollisionLayerConfig.PlayerConfigureHurtArea(_hurtArea);
 		_restorer.Add(_hurtArea);
-		this.OnProcess(delta => {
+		OnProcess += (delta) => {
 			if (PlayerGameObject is { UnderAttack: false, Invincible: false } &&
 				_hurtArea.Monitoring &&
 				_hurtArea.HasOverlappingAreas()) {
@@ -266,7 +273,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 					_fsm.Send(PlayerEvent.Hurt, 10000);
 				}
 			}
-		});
+		};
 	}
 
 	private void ConfigureAttackArea() {
@@ -276,7 +283,8 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 		};
 		_restorer.Add(_attackArea1);
 		_restorer.Add(_attackArea2);
-		this.OnProcess(delta => {
+		
+		OnProcess += delta => {
 			if (PlayerGameObject.AvailableHits > 0) {
 				CheckAttackArea(_attackArea1);
 				CheckAttackArea(_attackArea2);
@@ -296,7 +304,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 						});
 				}
 			}
-		});
+		};
 	}
 
 	public bool CanJump() => !RaycastCanJump.IsColliding(); 
@@ -393,7 +401,6 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 			_stateTimer.Restart();
 			xInputEnterState = XInput;
 		};
-		// OnTransition += (args) => Logger.Debug(args.From +" -> "+args.To);
 		
 		var shootTimer = new GodotStopwatch().Start();
 

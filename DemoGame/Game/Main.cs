@@ -96,7 +96,7 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IMain, IInjectab
 
     public void PostInject() {
 #if DEBUG
-        this.OnInput((e) => {
+        this.OnInput(e => {
             if (e.IsKeyPressed(Key.Q)) {
                 // _settingsMenuScene.Scale -= new Vector2(0.05f, 0.05f);
                 // Engine.TimeScale -= 0.05f;
@@ -109,7 +109,7 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IMain, IInjectab
                 // Engine.TimeScale += 0.05f;
                 // _settingsMenuScene.Scale += new Vector2(0.05f, 0.05f);
             }
-        }, ProcessModeEnum.Always);
+        });
 #endif
 
         var modalResponse = false;

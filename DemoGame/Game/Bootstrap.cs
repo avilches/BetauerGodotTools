@@ -2,13 +2,13 @@ using Betauer.Animation;
 using Betauer.Application;
 using Betauer.Application.Lifecycle;
 using Betauer.Application.Monitor;
-using Betauer.Application.Notifications;
 using Betauer.Application.Screen;
 using Betauer.Camera;
 using Betauer.Core.Restorer;
 using Betauer.DI.Attributes;
 using Betauer.DI.ServiceProvider;
 using Betauer.FSM;
+using Betauer.Nodes;
 using Betauer.Tools.Logging;
 using Godot;
 using PropertyTweener = Betauer.Animation.PropertyTweener;
@@ -18,9 +18,7 @@ namespace Veronenger.Game;
 public partial class Bootstrap : Node /* needed to be instantiated as an Autoload from Godot */ {
 	private static readonly Logger Logger = LoggerFactory.GetLogger<Bootstrap>();
 
-	[Inject] private NotificationsHandler NotificationsHandler { get; set; }
 	[Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
-	[Inject] private WindowNotificationStatus WindowNotificationStatus { get; set; }
 
 	public Bootstrap() {
 		//Logging.SendToScriptDebugger = false;
@@ -32,12 +30,7 @@ public partial class Bootstrap : Node /* needed to be instantiated as an Autoloa
 		// throw new Exception("Xxxxx");
 
 
-		new GodotContainer(this)
-			.Start(options => {
-				options
-					.ScanConfiguration(new DefaultConfiguration())
-					.Scan(GetType().Assembly);
-			});
+		new GodotContainer(this).Start(options => options.Scan(GetType().Assembly));
 
 #if DEBUG
 		DevelopmentConfig();
@@ -64,10 +57,10 @@ public partial class Bootstrap : Node /* needed to be instantiated as an Autoloa
 	public override void _Ready() {
 		CallDeferred("set_name", nameof(Bootstrap)); // This name is shown in the remote editor
 		Logger.Info($"Bootstrap time: {Project.Uptime.TotalMilliseconds} ms");
-		NotificationsHandler.OnWMCloseRequest += () => {
-			GD.Print($"[WmQuitRequest] Uptime: {Project.Uptime.TotalMinutes:0} min {Project.Uptime.Seconds:00} sec");
+		NodeManager.MainInstance.Node.OnWMCloseRequest += () => {
+			GD.Print($"[OnWMCloseRequest] Uptime: {Project.Uptime.TotalMinutes:0} min {Project.Uptime.Seconds:00} sec");
 		};
-		DebugOverlayManager.DebugConsole.AddAllCommands(WindowNotificationStatus);
+		DebugOverlayManager.DebugConsole.AddAllCommands();
 	}
 
 	private static void ExportConfig() {

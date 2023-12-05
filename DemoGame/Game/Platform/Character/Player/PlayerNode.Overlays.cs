@@ -3,7 +3,6 @@ using Betauer.Application.Monitor;
 using Betauer.Core.Nodes;
 using Betauer.DI.Attributes;
 using Betauer.Input;
-using Betauer.Nodes;
 using Betauer.UI;
 using Godot;
 using Veronenger.Game.Platform.Items;
@@ -16,14 +15,10 @@ public partial class PlayerNode {
 	[Inject] private ItemsManager ItemsManager { get; set; }
 
 	public void ConfigureOverlay() {
-		var drawer = CharacterBody2D.AddDraw(canvas => {
-			foreach (var floorRaycast in FloorRaycasts) canvas.DrawRaycast(floorRaycast, Colors.Red);
-			canvas.DrawRaycast(RaycastCanJump, Colors.Red);
-		});
-		this.OnProcess((d) => {
-			drawer.QueueRedraw();
-		});
-
+		CharacterBody2D.Draw += () => {
+			foreach (var floorRaycast in FloorRaycasts) CharacterBody2D.DrawRaycast(floorRaycast, Colors.Red);
+			CharacterBody2D.DrawRaycast(RaycastCanJump, Colors.Red);
+		};
 		var overlay = DebugOverlayManager.Overlay(CharacterBody2D)
 			.Title("Player")
 			.SetMaxSize(1000, 1000);
@@ -112,7 +107,7 @@ public partial class PlayerNode {
 				.TextField("Released", () => Attack.ReleasedTime.ToString("0.00")));
 
 		var prevResult = "";
-		var axisLogger = this.OnProcess(d => {
+		OnProcess += (double d) => {
 			var v = string (InputAction a) => {
 				var x = a.IsJustPressed ? "JP" : a.IsPressed ? "P" : a.IsJustReleased ? "R" : null;
 				return x == null ? "" : a.Name + "[" + x + "]";
@@ -136,8 +131,7 @@ public partial class PlayerNode {
 			if (godotAxis != _joypadController.Lateral.Strength.ToString("0.00")) {
 				GD.Print("wooo");
 			}
-		});
-		axisLogger.Disable();
+		};
 	}
 
 	public void AddOverlayHelpers(DebugOverlay overlay) {
@@ -165,7 +159,7 @@ public partial class PlayerNode {
 						.EndSerie();
 				})
 			)
-			.GraphSpeed("Speed", CharacterBody2D, PlayerConfig.JumpSpeed * 2);
+			.GraphSpeed("Speed", Speedometer2D.Velocity(CharacterBody2D), PlayerConfig.JumpSpeed * 2);
 	}
 
 	public void AddOverlayCollisions(DebugOverlay overlay) {

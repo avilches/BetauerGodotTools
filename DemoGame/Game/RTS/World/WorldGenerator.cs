@@ -31,7 +31,6 @@ public partial class WorldGenerator {
     public TileMap<BiomeType> TileMap { get; private set; }
     public TileMap GodotTileMap { get; private set; }
     public Trees TreesInstance;
-    public Drawer Drawer { get; private set; }
     private const int CellSize = 16;
 
     private const int Layers = 2;
@@ -62,20 +61,17 @@ public partial class WorldGenerator {
         TileMap = new TileMap<BiomeType>(Layers, Width, Height);
         GodotTileMap = godotTileMap;
         
-        Drawer = GodotTileMap.AddDraw((canvas) => {
+        GodotTileMap.Draw += () => {
             // Hack needed to draw on top of the tilemap:
             // https://www.reddit.com/r/godot/comments/w3l48f/does_anyone_know_how_to_set_the_draw_order_when/
             // https://github.com/godotengine/godot/issues/35002 
             GodotTileMap.Visible = false;
-            var subViewport = (SubViewport)canvas.GetViewport();
+            var subViewport = (SubViewport)GodotTileMap.GetViewport();
             subViewport.RenderTargetClearMode = SubViewport.ClearMode.Never;
-            Draw(canvas);
+            Draw(GodotTileMap);
             GodotTileMap.Visible = true;
             subViewport.RenderTargetClearMode = SubViewport.ClearMode.Always;
-        });
-        GodotTileMap.OnProcess(d => {
-            // drawer.QueueRedraw();
-        });
+        };
     }
 
     public void Generate() {
@@ -148,7 +144,7 @@ public partial class WorldGenerator {
     
     public void UpdateView() {
         // GodotTileMap.Visible = CurrentViewMode == ViewMode.Terrain;
-        Drawer.QueueRedraw();
+        GodotTileMap.QueueRedraw();
     }
 
     private void Draw(CanvasItem canvas) {

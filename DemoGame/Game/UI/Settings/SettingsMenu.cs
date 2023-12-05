@@ -277,7 +277,7 @@ public partial class SettingsMenu : CanvasLayer {
 		var redefineSeconds = RedefineSecondsTimeout;
 		void UpdateCounter() =>_redefineCounterLabel.Text = $"Esc to cancel {redefineSeconds--}...";
 		var scheduler = new GodotScheduler(GetTree(), 0, 1, UpdateCounter, true).Start();
-		await DefaultNodeHandler.Instance.AwaitInput(e => {
+		await NodeManager.MainInstance.AwaitInput(e => {
 			if (!e.IsPressed()) return false;
 			if (e.IsKey(Key.Escape)) return true; // Close the redefine button window
 			if (redefineButton.IsKey && e.IsAnyKey()) {
@@ -296,7 +296,7 @@ public partial class SettingsMenu : CanvasLayer {
 		_redefineCounterLabel.Text = "";
 		scheduler.Stop();
 
-		if (redefineOk) await DefaultNodeHandler.Instance.AwaitInput(e => e.IsPressed() && (e.IsAnyKey() || e.IsAnyButton()), true, 0.9f);
+		if (redefineOk) await NodeManager.MainInstance.AwaitInput(e => e.IsPressed() && (e.IsAnyKey() || e.IsAnyButton() || e.IsAnyClick()), true, 1.2f);
 		
 		_redefineBox.Hide();
 		_settingsBox.Show();

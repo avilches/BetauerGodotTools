@@ -75,7 +75,7 @@ public partial class PickableItemNode : Node, IInjectable, INodeGameObject {
 			.Graph("MotionX", () => PlatformBody.MotionX, -PlayerConfig.MaxSpeed, PlayerConfig.MaxSpeed, config: (motion) => {
 				motion.AddSeparator(0).AddSerie("MotionY").Load(() => PlatformBody.MotionY).EndSerie();
 			})
-			.GraphSpeed("Speed", CharacterBody2D, PlayerConfig.JumpSpeed * 2);
+			.GraphSpeed("Speed", Speedometer2D.Velocity(CharacterBody2D), PlayerConfig.JumpSpeed * 2);
 	}
 
 	public void Spawn(Vector2 position, Vector2? velocity = null) {

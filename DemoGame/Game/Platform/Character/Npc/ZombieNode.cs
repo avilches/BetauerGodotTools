@@ -168,34 +168,30 @@ public partial class ZombieNode : NpcNode, IInjectable {
 	}
 
 	private void ConfigureOverlayRays() {
-		var drawer = _mainSprite.AddDraw(canvas => {
-			canvas.DrawRaycast(FloorRaycast, Colors.Blue);
-			canvas.DrawRaycast(FinishFloorRight, Colors.Blue);
-			canvas.DrawRaycast(FinishFloorLeft, Colors.Blue);
-		});
-		drawer.OnProcess(delta => {
-			drawer.QueueRedraw();
-		});
-		drawer.OnDraw += (canvas) => {
+		_mainSprite.Draw += () => {
+			_mainSprite.DrawRaycast(FloorRaycast, Colors.Blue);
+			_mainSprite.DrawRaycast(FinishFloorRight, Colors.Blue);
+			_mainSprite.DrawRaycast(FinishFloorLeft, Colors.Blue);
+
 			// Same conditions as CanSeeThePlayer
-			var start = canvas.ToLocal(Marker2D.GlobalPosition);
+			var start = _mainSprite.ToLocal(Marker2D.GlobalPosition);
 			if (!IsFacingToPlayer() ||
 			    DistanceToPlayer() > NpcConfig.VisionDistance ||
 			    !IsPlayerInAngle()) {
 				var distance = new Vector2(NpcConfig.VisionDistance, 0);
 				var direction = new Vector2(LateralState.FacingRight, 1);
-				canvas.DrawLine(start, start + distance.Rotated(-NpcConfig.VisionAngle) * direction, Colors.Gray);
-				canvas.DrawLine(start, start + distance.Rotated(+NpcConfig.VisionAngle) * direction, Colors.Gray);
-				canvas.DrawLine(start, start + distance * direction, Colors.Gray);
+				_mainSprite.DrawLine(start, start + distance.Rotated(-NpcConfig.VisionAngle) * direction, Colors.Gray);
+				_mainSprite.DrawLine(start, start + distance.Rotated(+NpcConfig.VisionAngle) * direction, Colors.Gray);
+				_mainSprite.DrawLine(start, start + distance * direction, Colors.Gray);
 				return;
 			}
 
 			var result = _lazyRaycastToPlayer.From(Marker2D).To(PlayerPos).Cast().Collision;
 			if (result.IsColliding) {
-				canvas.DrawLine(start, result.Position, Colors.Red, 2);
+				_mainSprite.DrawLine(start, result.Position, Colors.Red, 2);
 				return;
 			}
-			canvas.DrawLine(start, PlayerPos, Colors.Lime, 2);
+			_mainSprite.DrawLine(start, PlayerPos, Colors.Lime, 2);
 		};
 	}
 
@@ -217,7 +213,6 @@ public partial class ZombieNode : NpcNode, IInjectable {
 		AddOverlayMotion(_overlay);
 		AddOverlayCollisions(_overlay);
 		Ready += () => _overlay?.Enable();
-		TreeExiting += () => _overlay?.Disable();
 	}
 
 	private void ConfigureAnimations() {
@@ -402,7 +397,7 @@ public partial class ZombieNode : NpcNode, IInjectable {
 						.EndSerie();
 				})
 			)
-			.GraphSpeed("Speed", CharacterBody2D, PlayerConfig.JumpSpeed * 2);
+			.GraphSpeed("Speed", Speedometer2D.Velocity(CharacterBody2D), PlayerConfig.JumpSpeed * 2);
 	}
 
 	public void AddOverlayCollisions(DebugOverlay overlay) {
