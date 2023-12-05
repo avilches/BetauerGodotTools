@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -10,13 +9,13 @@ public class NodeEventsClassGenerator : ClassGenerator {
     private const string AttributeNamespace = "Betauer.Core.Nodes.Events";
     private const string ProcessAttributeName = "Process";
     private const string PhysicsProcessAttributeName = "PhysicsProcess";
-    private const string NotificationAttributeName = "Notifications";
+    private const string NotificationsAttributeName = "Notifications";
     private const string InputEventsAttributeName = "InputEvents";
 
-    private const string ProcessAttribute = $"{AttributeNamespace}.{ProcessAttributeName}Attribute";
-    private const string PhysicsProcessAttribute = $"{AttributeNamespace}.{PhysicsProcessAttributeName}Attribute";
-    private const string NotificationAttribute = $"{AttributeNamespace}.{NotificationAttributeName}Attribute";
-    private const string InputEventsAttribute = $"{AttributeNamespace}.{InputEventsAttributeName}Attribute";
+    private const string ProcessAttributeFullName = $"{AttributeNamespace}.{ProcessAttributeName}Attribute";
+    private const string PhysicsProcessAttributeFullName = $"{AttributeNamespace}.{PhysicsProcessAttributeName}Attribute";
+    private const string NotificationsAttributeFullName = $"{AttributeNamespace}.{NotificationsAttributeName}Attribute";
+    private const string InputEventsAttributeFullName = $"{AttributeNamespace}.{InputEventsAttributeName}Attribute";
 
     public bool HasPartialNotificationMethod { get; private set; }
     public string PartialNotificationParameterName { get; private set; }
@@ -58,14 +57,14 @@ public class NodeEventsClassGenerator : ClassGenerator {
     }
     
     public bool Verify() {
-        AddProcess = HasAttribute(NotificationAttribute, "Process") || Symbol.HasAttribute(ProcessAttribute);
-        AddPhysicsProcess = HasAttribute(NotificationAttribute, "PhysicsProcess") || Symbol.HasAttribute(PhysicsProcessAttribute);
-        AddNotification = Symbol.HasAttribute(NotificationAttribute);
+        AddProcess = HasAttribute(NotificationsAttributeFullName, "Process") || Symbol.HasAttribute(ProcessAttributeFullName);
+        AddPhysicsProcess = HasAttribute(NotificationsAttributeFullName, "PhysicsProcess") || Symbol.HasAttribute(PhysicsProcessAttributeFullName);
+        AddNotification = Symbol.HasAttribute(NotificationsAttributeFullName);
 
-        AddInput = HasAttribute(InputEventsAttribute, "Handled");
-        AddUnhandledInput = HasAttribute(InputEventsAttribute, "Unhandled");
-        AddUnhandledKeyInput = HasAttribute(InputEventsAttribute, "UnhandledKey");
-        AddShortcutInput = HasAttribute(InputEventsAttribute, "Shortcut");
+        AddInput = HasAttribute(InputEventsAttributeFullName, "Handled");
+        AddUnhandledInput = HasAttribute(InputEventsAttributeFullName, "Unhandled");
+        AddUnhandledKeyInput = HasAttribute(InputEventsAttributeFullName, "UnhandledKey");
+        AddShortcutInput = HasAttribute(InputEventsAttributeFullName, "Shortcut");
         if (!AddProcess &&
             !AddPhysicsProcess &&
             !AddNotification &&
@@ -85,15 +84,15 @@ public class NodeEventsClassGenerator : ClassGenerator {
         (HasPartialNotificationMethod, PartialNotificationParameterName) = LoadNotificationMethod();
 
         if (AddProcess && !HasPartialProcessMethod) {
-            ReportNonPartialMethod("B001", "_Process", "(double delta)", Symbol.HasAttribute(ProcessAttribute) ? "Process" : NotificationAttributeName);
+            ReportNonPartialMethod("B001", "_Process", "(double delta)", Symbol.HasAttribute(ProcessAttributeFullName) ? "Process" : NotificationsAttributeName);
         }
 
         if (AddPhysicsProcess && !HasPartialPhysicsProcessMethod) {
-            ReportNonPartialMethod("B002", "_PhysicsProcess", "(double delta)", Symbol.HasAttribute(PhysicsProcessAttribute) ? "Process" : NotificationAttributeName);
+            ReportNonPartialMethod("B002", "_PhysicsProcess", "(double delta)", Symbol.HasAttribute(PhysicsProcessAttributeFullName) ? "Process" : NotificationsAttributeName);
         }
 
         if (AddNotification && !HasPartialNotificationMethod) {
-            ReportNonPartialMethod("B003", "_Notification", "(int what)", NotificationAttributeName);
+            ReportNonPartialMethod("B003", "_Notification", "(int what)", NotificationsAttributeName);
         }
 
         if (AddInput && !HasPartialInputMethod) {

@@ -7,7 +7,7 @@ public interface INotificationEvent : IProcessEvent, IPhysicsProcessEvent {
 	// NotificationEnterTree disabled. There is already a Godot.Node.TreeEntered event name and "_EnterTree" virtual method name
 	// NotificationExitTree disabled. There is already a Godot.Node.TreeExiting event name and "_ExitTree" virtual method name
 	// NotificationReady disabled. There is already a Godot.Node.Ready event name and "_Ready" virtual method name
-	
+
 	/// <summary>
 	/// <para>Event called when the object is initialized, before its script is attached. Used internally.</para>
 	/// </summary>
