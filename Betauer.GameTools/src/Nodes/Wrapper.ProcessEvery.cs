@@ -21,7 +21,7 @@ public class ProcessEveryWrapper : IProcessHandler {
 
     public bool IsDestroyed => _delegate.IsDestroyed;
     public bool IsEnabled => _delegate.IsEnabled;
-    public void Disable() => _delegate.Disable();
-    public void Enable() => _delegate.Enable();
+    public void Disable() => Enable(false);
+    public void Enable(bool enable) => _delegate.Enable(enable);
     public void Destroy() => _delegate.Destroy();
 }

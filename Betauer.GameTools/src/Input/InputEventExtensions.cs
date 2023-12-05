@@ -14,13 +14,14 @@ public static partial class InputEventExtensions {
     }
 
     /// <summary>
-    /// For key events, this method ignores echoes. Joypads don't send echoes, so it works like IsPressed()
+    /// For key events, this method ensures echoes are ignored. No echo means it is the first press (just pressed!).
+    /// Joypads don't send echoes, so it works like IsPressed()
     /// For axis actions, this will return tru only if strength is 1, which is different from listening in InputAction
     /// or Godot.Input, where the action.IsJustPressed returns null the first event > deadzone 
     /// </summary>
     /// <param name="input"></param>
     /// <returns></returns>
-    public static bool IsJustPressed(this InputEvent input) => input.IsPressed() && !input.IsEcho();
+    public static bool IsJustPressed(this InputEvent input) => input.IsPressed() && (input is not InputEventKey key || !key.IsEcho());
     
     /// <summary>
     /// For key events, this method ignores echoes. Joypads don't send echoes, so it works like !IsPressed() 

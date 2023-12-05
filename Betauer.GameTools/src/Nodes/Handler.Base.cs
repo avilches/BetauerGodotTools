@@ -11,8 +11,8 @@ public abstract class BaseHandler : IEventHandler {
     }
 
     public virtual bool IsEnabled => _isEnabled;
-    public void Disable() => _isEnabled = false;
-    public void Enable() => _isEnabled = true;
+    public void Disable() => Enable(false);
+    public void Enable(bool enable = true) => _isEnabled = enable;
 
     public virtual bool IsDestroyed => _isDestroyed;
     public void Destroy() => _isDestroyed = true;
