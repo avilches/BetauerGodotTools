@@ -1,4 +1,5 @@
 using System;
+using Betauer.Core.Image;
 
 namespace Betauer.Core.Data;
 
@@ -16,18 +17,15 @@ public class IslandGenerator : NormalizedDataGrid {
     }
 
     public void AddIsland(int cx, int cy, int rx, int ry, OverlapType overlap) {
-        for (var y = 0; y < Height; y++) {
-            for (var x = 0; x < Width; x++) {
-                var distance = (float)Math.Sqrt(Math.Pow((cx - x) / (double)rx, 2) + Math.Pow((cy - y) / (double)ry, 2));
-                var heightValue = distance <= 1 ? 1 - distance : 0;
+        Draw.GradientCircle(cx, cy, Math.Max(rx, ry), (x, y, value) => {
+            if (x < 0 || y < 0 || x >= Width || y >= Height) return;
+            var heightValue = value <= 1 ? 1 - value : 0;
 
-                if (overlap == OverlapType.Simple) {
-                    Data[x, y] += heightValue;
-                    
-                } else if (overlap == OverlapType.MaxHeight) {
-                    Data[x, y] = Math.Max(Data[x, y], heightValue);
-                }
+            if (overlap == OverlapType.Simple) {
+                Data[x, y] += heightValue;
+            } else if (overlap == OverlapType.MaxHeight) {
+                Data[x, y] = Math.Max(Data[x, y], heightValue);
             }
-        }
+        });
     }
 }

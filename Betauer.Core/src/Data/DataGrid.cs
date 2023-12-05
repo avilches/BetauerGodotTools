@@ -3,18 +3,16 @@ using System;
 namespace Betauer.Core.Data;
 
 public class DataGrid<T> : IDataGrid<T> {
-    public int Width { get; }
-    public int Height { get; }
+    public int Width { get; private set; }
+    public int Height { get; private set; }
     
-    public T[,] Data { get; }
+    public T[,] Data { get; private set; }
 
     public DataGrid(int width, int height) : this(new T[width, height]) {
     }
 
     public DataGrid(T[,] data) {
-        Data = data;
-        Width = Data.GetLength(0);
-        Height =  Data.GetLength(1);
+        SetAll(data);
     }
 
     public void Load(Func<int, int, T> valueFunc) {
@@ -23,6 +21,12 @@ public class DataGrid<T> : IDataGrid<T> {
 
     public void SetAll(T value) {
         Set(0, 0, Width, Height, value);
+    }
+
+    public void SetAll(T[,] data) {
+        Data = data;
+        Width = Data.GetLength(0);
+        Height =  Data.GetLength(1);
     }
 
     public void Set(int x, int y, int width, int height, T value) {
