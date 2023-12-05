@@ -28,7 +28,9 @@ public class NodeManager {
 
     public NotificationsNodeHandler Node { get; } = new NotificationsNodeHandler();
 
-    public void OnDestroy(Node node, Action removeAction) => Node.OnDestroy(node, removeAction);
+    public void OnDestroy(GodotObject node, Action removeAction) => Node.AddOnDestroy(node, removeAction);
+    
+    public void RemoveOnDestroy(GodotObject node, Action removeAction) => Node.RemoveOnDestroy(node, removeAction);
 
     public void OnProcess(IProcessHandler inputEvent) => Node.AddOnProcess(inputEvent);
 
@@ -287,7 +289,7 @@ public class NodeManager {
         OnDestroy(node, () => Node.OnVpMouseExit -= action);
     }
     */
-
+    
     /// <summary>
     /// <para>Event called from the OS when the application is exceeding its allocated memory.</para>
     /// <para>Specific to the iOS platform.</para>
@@ -379,20 +381,14 @@ public class NodeManager {
 
 [Notifications(PhysicsProcess = false, Process = false)]
 public partial class NotificationsNodeHandler : Node {
+
     private static readonly Logger Logger = LoggerFactory.GetLogger<NotificationsNodeHandler>();
 
-    public override partial void _Notification(int what);
-
     public NotificationsNodeHandler() {
-        ProcessMode = Godot.Node.ProcessModeEnum.Always;
+        ProcessMode = ProcessModeEnum.Always;
     }
 
-    private readonly List<(Node, Action)> _watchers = new();
-
-    public void OnDestroy(Node? node, Action removeAction) {
-        if (node == null) return;
-        _watchers.Add((node, removeAction));
-    }
+    private readonly List<(GodotObject, Action)> _watchers = new();
     
     public List<IProcessHandler> ProcessList { get; } = new();
     public List<IProcessHandler> PhysicsProcessList { get; } = new();
@@ -400,12 +396,16 @@ public partial class NotificationsNodeHandler : Node {
     public List<IInputEventHandler> ShortcutInputList { get; } = new();
     public List<IInputEventHandler> UnhandledInputList { get; } = new();
     public List<IInputEventHandler> UnhandledKeyInputList { get; } = new();
-    
+
+    private Viewport? _viewport;
+
     public override void _EnterTree() {
+        _viewport = GetViewport();
         GetParent().ChildEnteredTree += EnsureLastChild;
     }
 
     public override void _ExitTree() {
+        _viewport = null;
         GetParent().ChildEnteredTree -= EnsureLastChild;
     }
 
@@ -413,6 +413,17 @@ public partial class NotificationsNodeHandler : Node {
         GetParent()?.MoveChildDeferred(this, -1);
     }
 
+    public void AddOnDestroy(GodotObject? o, Action removeAction) {
+        if (o == null) return;
+        _watchers.Add((o, removeAction));
+        SetProcess(true);
+    }
+    
+    public void RemoveOnDestroy(GodotObject? o, Action removeAction) {
+        if (o == null) return;
+        _watchers.Remove((o, removeAction));
+    }
+    
     public void AddOnProcess(IProcessHandler inputEvent) {
         ProcessList.Add(inputEvent);
         SetProcess(true);
@@ -443,8 +454,35 @@ public partial class NotificationsNodeHandler : Node {
         SetProcessUnhandledKeyInput(true);
     }
 
-    
+    public override partial void _Notification(int what);
+
     public override void _Process(double delta) {
+        PurgeWatchers();
+        var watchers = _watchers.Count;
+        ProcessNodeEvents(ProcessList, delta, watchers == 0 ? () => SetProcess(false) : null);
+    }
+
+    public override void _PhysicsProcess(double delta) {
+        ProcessNodeEvents(PhysicsProcessList, delta, () => SetPhysicsProcess(false));
+    }
+
+    public override void _Input(InputEvent inputEvent) {
+        ProcessInputEventList(InputList, inputEvent, _viewport!, () => SetProcessInput(false));
+    }
+
+    public override void _UnhandledInput(InputEvent inputEvent) {
+        ProcessInputEventList(UnhandledInputList, inputEvent, _viewport!, () => SetProcessUnhandledInput(false));
+    }
+
+    public override void _ShortcutInput(InputEvent inputEvent) {
+        ProcessInputEventList(ShortcutInputList, inputEvent, _viewport!, () => SetProcessShortcutInput(false));
+    }
+
+    public override void _UnhandledKeyInput(InputEvent inputEvent) {
+        ProcessInputEventList(UnhandledKeyInputList, inputEvent, _viewport!, () => SetProcessUnhandledKeyInput(false));
+    }
+
+    private void PurgeWatchers() {
         var destroyed = 0;
         _watchers.RemoveAll(tuple => {
             if (IsInstanceValid(tuple.Item1)) return false;
@@ -453,19 +491,13 @@ public partial class NotificationsNodeHandler : Node {
             return true;
         });
         if (destroyed > 0) {
-            Logger.Debug("Removed {0} destroyed notification handlers", destroyed);
+            Logger.Debug("Removed {0} destroyed GodotObjects", destroyed);
         }
-        var watchers = _watchers.Count;
-        ProcessNodeEvents(ProcessList, delta, watchers == 0 ? () => SetProcess(false) : () => { });
     }
 
-    public override void _PhysicsProcess(double delta) {
-        ProcessNodeEvents(PhysicsProcessList, delta, () => SetPhysicsProcess(false));
-    }
-
-    private void ProcessNodeEvents(List<IProcessHandler> processHandlerList, double delta, Action disabler) {
+    private static void ProcessNodeEvents(List<IProcessHandler> processHandlerList, double delta, Action? disabler) {
         if (processHandlerList.Count == 0) {
-            disabler();
+            disabler?.Invoke();
             return;
         }
         var destroyed = 0;
@@ -489,28 +521,12 @@ public partial class NotificationsNodeHandler : Node {
         }
     }
 
-    public override void _Input(InputEvent inputEvent) {
-        ProcessInputEventList(InputList, inputEvent, () => SetProcessInput(false));
-    }
-
-    public override void _UnhandledInput(InputEvent inputEvent) {
-        ProcessInputEventList(UnhandledInputList, inputEvent, () => SetProcessUnhandledInput(false));
-    }
-
-    public override void _ShortcutInput(InputEvent inputEvent) {
-        ProcessInputEventList(ShortcutInputList, inputEvent, () => SetProcessShortcutInput(false));
-    }
-
-    public override void _UnhandledKeyInput(InputEvent inputEvent) {
-        ProcessInputEventList(UnhandledKeyInputList, inputEvent, () => SetProcessUnhandledKeyInput(false));
-    }
-    
-    private void ProcessInputEventList(List<IInputEventHandler> inputEventHandlerList, InputEvent inputEvent, Action disabler) {
+    private static void ProcessInputEventList(List<IInputEventHandler> inputEventHandlerList, InputEvent inputEvent, Viewport viewport, Action disabler) {
         if (inputEventHandlerList.Count == 0) {
             disabler();
             return;
         }
-        var isInputHandled = GetViewport().IsInputHandled();
+        var isInputHandled = viewport.IsInputHandled();
         var destroyed = 0;
         inputEventHandlerList.RemoveAll(inputEventHandler => {
             if (inputEventHandler.IsDestroyed) {
@@ -519,7 +535,7 @@ public partial class NotificationsNodeHandler : Node {
             }
             if (!isInputHandled && inputEventHandler.IsEnabled) {
                 inputEventHandler.Handle(inputEvent);
-                isInputHandled = GetViewport().IsInputHandled();
+                isInputHandled = viewport.IsInputHandled();
             }
             return false;
         });

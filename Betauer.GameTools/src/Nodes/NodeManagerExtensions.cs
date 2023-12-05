@@ -9,8 +9,16 @@ namespace Betauer.Nodes;
 public static class NodeManagerExtensions {
     public static NodeManager GetNodeHandler(this Node node) {
         return node.FirstChildInParentOrNull<NodeManager>() ?? NodeManager.MainInstance;
-    } 
+    }
+    
+    public static void OnDestroy(this Node node, Action action) {
+        node.GetNodeHandler().OnDestroy(node, action);
+    }
         
+    public static void OnDestroy(this GodotObject godotObject, Action action) {
+        NodeManager.MainInstance.OnDestroy(godotObject, action);
+    }
+    
     public static ProcessNodeHandler OnProcess(this Node node, Action<double> action) {
         var handler = new ProcessNodeHandler(node, new ProcessHandler(action, node.Name));
         node.GetNodeHandler().OnProcess(handler);
