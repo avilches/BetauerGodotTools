@@ -7,6 +7,12 @@ using static Betauer.Core.Signal.SignalTools;
 
 namespace Betauer.Core.Signal;
 
+/**
+ * Godot version: 4.1.1-stable (official)
+ * Date: 2023-12-05 01:17:54
+ *
+ * Regular signal C# events don't allow flags as deferred or one shot. This class allows it.
+ */
 public static partial class SignalExtensions {
   
     public static Action OnCanceled(this AcceptDialog target, Action action, bool oneShot = false, bool deferred = false) {
@@ -1027,6 +1033,12 @@ public static partial class SignalExtensions {
         var callable = Callable.From(action);
         target.Connect(Node.SignalName.Renamed, callable, SignalFlags(oneShot, deferred));
         return () => target.Disconnect(Node.SignalName.Renamed, callable);
+    }
+
+    public static Action OnReplacingBy(this Node target, Action<Node> action, bool oneShot = false, bool deferred = false) {
+        var callable = Callable.From(action);
+        target.Connect(Node.SignalName.ReplacingBy, callable, SignalFlags(oneShot, deferred));
+        return () => target.Disconnect(Node.SignalName.ReplacingBy, callable);
     }
 
     public static Action OnTreeEntered(this Node target, Action action, bool oneShot = false, bool deferred = false) {

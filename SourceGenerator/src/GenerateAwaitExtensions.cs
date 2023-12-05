@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
+using Godot;
 
 namespace Generator; 
 
@@ -48,6 +49,10 @@ using Range = Godot.Range;
 
 namespace Betauer.Core.Signal;
 
+/**
+ * Godot version: {Engine.GetVersionInfo()["string"].ToString()}
+ * Date: {DateTime.Now:yyyy-MM-dd hh:mm:ss}
+ */
 public static partial class AwaitExtensions {{
   {string.Join("\n", methods)}
 }}";

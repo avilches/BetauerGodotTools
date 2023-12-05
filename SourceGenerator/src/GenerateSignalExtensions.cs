@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Godot;
 
 namespace Generator; 
 
@@ -40,6 +41,12 @@ using static Betauer.Core.Signal.SignalTools;
 
 namespace Betauer.Core.Signal;
 
+/**
+ * Godot version: {Engine.GetVersionInfo()["string"].ToString()}
+ * Date: {DateTime.Now:yyyy-MM-dd hh:mm:ss}
+ *
+ * Regular signal C# events don't allow flags as deferred or one shot. This class allows it.
+ */
 public static partial class SignalExtensions {{
   {string.Join("\n", methods)}
 }}";

@@ -6,6 +6,10 @@ using Range = Godot.Range;
 
 namespace Betauer.Core.Signal;
 
+/**
+ * Godot version: 4.1.1-stable (official)
+ * Date: 2023-12-05 01:17:54
+ */
 public static partial class AwaitExtensions {
   
     public static SignalAwaiter AwaitCanceled(this AcceptDialog target, Action? onComplete = null) {
@@ -1364,6 +1368,14 @@ public static partial class AwaitExtensions {
         var awaiter = target.ToSignal(target, Node.SignalName.Renamed);
         if (onComplete != null) {
             awaiter.OnCompleted(onComplete);
+        }
+        return awaiter;
+    }
+
+    public static SignalAwaiter AwaitReplacingBy(this Node target, Action<Node>? onComplete = null) {
+        var awaiter = target.ToSignal(target, Node.SignalName.ReplacingBy);
+        if (onComplete != null) {
+            awaiter.OnCompleted(() => onComplete(awaiter.GetResult()[0].As<Node>()));
         }
         return awaiter;
     }
