@@ -153,44 +153,36 @@ public class NodeEventsClassGenerator : ClassGenerator {
         AppendLine($"partial class {Symbol.NameWithTypeParameters()} : {string.Join(", ", interfaces)} {{");
         BeginScope();
 
-        if (AddProcess || AddNotification) {
-            AppendLine(OnProcess());
-        }
+        if (AddProcess || AddNotification) OnProcess();
 
-        if (AddPhysicsProcess || AddNotification) {
-            AppendLine(OnPhysicsProcess());
-        }
+        if (AddPhysicsProcess || AddNotification) OnPhysicsProcess();
         
-        if (AddProcess && HasPartialProcessMethod) {
-            AppendLine(_Process(PartialProcessParameterName));
-        }
+        if (AddProcess && HasPartialProcessMethod) _Process(PartialProcessParameterName);
 
-        if (AddPhysicsProcess && HasPartialPhysicsProcessMethod) {
-            AppendLine(_PhysicsProcess(PartialPhysicsProcessParameterName));
-        }
+        if (AddPhysicsProcess && HasPartialPhysicsProcessMethod) _PhysicsProcess(PartialPhysicsProcessParameterName);
 
         if (AddInput) {
-            AppendLine(OnInput());
-            if (HasPartialInputMethod) AppendLine(_InputEvent(PartialInputParameterName));
+            OnInput();
+            if (HasPartialInputMethod) _InputEvent(PartialInputParameterName);
         }
 
         if (AddUnhandledInput) {
-            AppendLine(OnUnhandledInput());
-            if (HasPartialUnhandledInputMethod) AppendLine(_UnhandledInput(PartialUnhandledInputParameterName));
+            OnUnhandledInput();
+            if (HasPartialUnhandledInputMethod) _UnhandledInput(PartialUnhandledInputParameterName);
         }
 
         if (AddUnhandledKeyInput) {
-            AppendLine(OnUnhandledKeyInput());
-            if (HasPartialUnhandledKeyInputMethod) AppendLine(_UnhandledKeyInput(PartialUnhandledKeyInputParameterName));
+            OnUnhandledKeyInput();
+            if (HasPartialUnhandledKeyInputMethod) _UnhandledKeyInput(PartialUnhandledKeyInputParameterName);
         }
 
         if (AddShortcutInput) {
-            AppendLine(OnShortcutInput());
-            if (HasPartialShortcutInputMethod) AppendLine( _ShortcutInput(PartialShortcutInputParameterName));
+            OnShortcutInput();
+            if (HasPartialShortcutInputMethod) _ShortcutInput(PartialShortcutInputParameterName);
         }
 
         if (AddNotification) {
-            AppendLine(OnNotificationEvents());
+            OnNotificationEvents();
             if (HasPartialNotificationMethod) _Notification(PartialNotificationParameterName, AddProcess, AddPhysicsProcess);
         }
 
@@ -203,204 +195,204 @@ public class NodeEventsClassGenerator : ClassGenerator {
         Context.AddSource(UniqueHint, Content.ToString());
     }
     
-    private static string OnProcess() =>
-        """
-        private Action<double>? __processAction;
-
-        /// <para>Called during the processing step of the main loop. Processing happens at every frame and as fast as possible, so the <c>delta</c> time since the previous frame is not constant. <c>delta</c> is in seconds.</para>
-        /// <para>It is only called if processing is enabled and can be toggled with <see cref="M:Godot.Node.SetProcess(System.Boolean)" />.</para>
-        /// <para>Corresponds to the <see cref="F:Godot.Node.NotificationProcess" /> notification in <see cref="M:Godot.GodotObject._Notification(System.Int32)" />.</para>
-        /// <para><b>Note:</b> This event is only called if the node is present in the scene tree (i.e. if it's not an orphan).</para>
-        public event Action<double>? OnProcess {
-        	add {
-        		__processAction += value;
-        		SetProcess(true);
-        	}
-        	remove {
-        		__processAction -= value;
-        		SetProcess(__processAction != null);
-        	}
-        }
-
-        """;
-
-    private static string OnPhysicsProcess() =>
-        """
-        private Action<double>? __physicsProcessAction;
-
-        /// <summary>
-        /// <para>Called during the physics processing step of the main loop. Physics processing means that the frame rate is synced to the physics, i.e. the <c>delta</c> variable should be constant. <c>delta</c> is in seconds.</para>
-        /// <para>It is only called if physics processing is enabled and can be toggled with <see cref="M:Godot.Node.SetPhysicsProcess(System.Boolean)" />.</para>
-        /// <para>Corresponds to the <see cref="F:Godot.Node.NotificationPhysicsProcess" /> notification in <see cref="M:Godot.GodotObject._Notification(System.Int32)" />.</para>
-        /// <para><b>Note:</b> This event is only called if the node is present in the scene tree (i.e. if it's not an orphan).</para>
-        /// </summary>
-        public event Action<double> OnPhysicsProcess {
-            add {
-                __physicsProcessAction += value;
-                SetPhysicsProcess(true);
+    private void OnProcess() =>
+        AppendLine($$"""
+            private Action<double>? __processAction;
+            
+            /// <para>Called during the processing step of the main loop. Processing happens at every frame and as fast as possible, so the <c>delta</c> time since the previous frame is not constant. <c>delta</c> is in seconds.</para>
+            /// <para>It is only called if processing is enabled and can be toggled with <see cref="M:Godot.Node.SetProcess(System.Boolean)" />.</para>
+            /// <para>Corresponds to the <see cref="F:Godot.Node.NotificationProcess" /> notification in <see cref="M:Godot.GodotObject._Notification(System.Int32)" />.</para>
+            /// <para><b>Note:</b> This event is only called if the node is present in the scene tree (i.e. if it's not an orphan).</para>
+            public event Action<double>? OnProcess {
+            	add {
+            		__processAction += value;
+            		SetProcess(true);
+            	}
+            	remove {
+            		__processAction -= value;
+            		SetProcess(__processAction != null);
+            	}
             }
-            remove {
-                __physicsProcessAction -= value;
-                SetPhysicsProcess(__physicsProcessAction != null);
+            
+            """);
+
+    private void OnPhysicsProcess() =>
+        AppendLine($$"""
+            private Action<double>? __physicsProcessAction;
+            
+            /// <summary>
+            /// <para>Called during the physics processing step of the main loop. Physics processing means that the frame rate is synced to the physics, i.e. the <c>delta</c> variable should be constant. <c>delta</c> is in seconds.</para>
+            /// <para>It is only called if physics processing is enabled and can be toggled with <see cref="M:Godot.Node.SetPhysicsProcess(System.Boolean)" />.</para>
+            /// <para>Corresponds to the <see cref="F:Godot.Node.NotificationPhysicsProcess" /> notification in <see cref="M:Godot.GodotObject._Notification(System.Int32)" />.</para>
+            /// <para><b>Note:</b> This event is only called if the node is present in the scene tree (i.e. if it's not an orphan).</para>
+            /// </summary>
+            public event Action<double> OnPhysicsProcess {
+                add {
+                    __physicsProcessAction += value;
+                    SetPhysicsProcess(true);
+                }
+                remove {
+                    __physicsProcessAction -= value;
+                    SetPhysicsProcess(__physicsProcessAction != null);
+                }
             }
-        }
+            
+            """);
 
-        """;
+    private void OnInput() =>
+        AppendLine($$"""
+            private Action<InputEvent>? __inputAction;
+            
+            /// <summary>
+            /// <para>Called when there is an input event. The input event propagates up through the node tree until a node consumes it.</para>
+            /// <para>It is only called if input processing is enabled, which is done automatically if this method is overridden, and can be toggled with <see cref="M:Godot.Node.SetProcessInput(System.Boolean)" />.</para>
+            /// <para>To consume the input event and stop it propagating further to other nodes, <see cref="M:Godot.Viewport.SetInputAsHandled" /> can be called.</para>
+            /// <para>For gameplay input, <see cref="M:Godot.Node._UnhandledInput(Godot.InputEvent)" /> and <see cref="M:Godot.Node._UnhandledKeyInput(Godot.InputEvent)" /> are usually a better fit as they allow the GUI to intercept the events first.</para>
+            /// <para><b>Note:</b> This method is only called if the node is present in the scene tree (i.e. if it's not an orphan).</para>
+            /// </summary>
+            public event Action<InputEvent>? OnInput {
+            	add {
+            		__inputAction += value;
+            		SetProcessInput(true);
+            	}
+            	remove {
+            		__inputAction -= value;
+            		SetProcessInput(__inputAction != null);
+            	}
+            }
+            
+            """);
 
-    private static string OnInput() =>
-        """
-        private Action<InputEvent>? __inputAction;
+    private void OnUnhandledInput() =>
+        AppendLine($$"""
+            private Action<InputEvent>? __unhandledInputAction;
+            
+            /// <summary>
+            /// <para>Called when an <see cref="T:Godot.InputEvent" /> hasn't been consumed by <see cref="M:Godot.Node._Input(Godot.InputEvent)" /> or any GUI <see cref="T:Godot.Control" /> item. The input event propagates up through the node tree until a node consumes it.</para>
+            /// <para>It is only called if unhandled input processing is enabled, which is done automatically if this method is overridden, and can be toggled with <see cref="M:Godot.Node.SetProcessUnhandledInput(System.Boolean)" />.</para>
+            /// <para>To consume the input event and stop it propagating further to other nodes, <see cref="M:Godot.Viewport.SetInputAsHandled" /> can be called.</para>
+            /// <para>For gameplay input, this and <see cref="M:Godot.Node._UnhandledKeyInput(Godot.InputEvent)" /> are usually a better fit than <see cref="M:Godot.Node._Input(Godot.InputEvent)" /> as they allow the GUI to intercept the events first.</para>
+            /// <para><b>Note:</b> This method is only called if the node is present in the scene tree (i.e. if it's not an orphan).</para>
+            /// </summary>
+            public event Action<InputEvent> OnUnhandledInput {
+            	add {
+            		__unhandledInputAction += value;
+            		SetProcessUnhandledInput(true);
+            	}
+            	remove {
+            		__unhandledInputAction -= value;
+            		SetProcessUnhandledInput(__unhandledInputAction != null);
+            	}
+            }
+            
+            """);
 
-        /// <summary>
-        /// <para>Called when there is an input event. The input event propagates up through the node tree until a node consumes it.</para>
-        /// <para>It is only called if input processing is enabled, which is done automatically if this method is overridden, and can be toggled with <see cref="M:Godot.Node.SetProcessInput(System.Boolean)" />.</para>
-        /// <para>To consume the input event and stop it propagating further to other nodes, <see cref="M:Godot.Viewport.SetInputAsHandled" /> can be called.</para>
-        /// <para>For gameplay input, <see cref="M:Godot.Node._UnhandledInput(Godot.InputEvent)" /> and <see cref="M:Godot.Node._UnhandledKeyInput(Godot.InputEvent)" /> are usually a better fit as they allow the GUI to intercept the events first.</para>
-        /// <para><b>Note:</b> This method is only called if the node is present in the scene tree (i.e. if it's not an orphan).</para>
-        /// </summary>
-        public event Action<InputEvent>? OnInput {
-        	add {
-        		__inputAction += value;
-        		SetProcessInput(true);
-        	}
-        	remove {
-        		__inputAction -= value;
-        		SetProcessInput(__inputAction != null);
-        	}
-        }
+    private void OnUnhandledKeyInput() =>
+        AppendLine($$"""
+            private Action<InputEvent>? __unhandledKeyInputAction;
+            
+            /// <summary>
+            /// <para>Called when an <see cref="T:Godot.InputEventKey" /> hasn't been consumed by <see cref="M:Godot.Node._Input(Godot.InputEvent)" /> or any GUI <see cref="T:Godot.Control" /> item. The input event propagates up through the node tree until a node consumes it.</para>
+            /// <para>It is only called if unhandled key input processing is enabled, which is done automatically if this method is overridden, and can be toggled with <see cref="M:Godot.Node.SetProcessUnhandledKeyInput(System.Boolean)" />.</para>
+            /// <para>To consume the input event and stop it propagating further to other nodes, <see cref="M:Godot.Viewport.SetInputAsHandled" /> can be called.</para>
+            /// <para>This method can be used to handle Unicode character input with Alt, Alt + Ctrl, and Alt + Shift modifiers, after shortcuts were handled.</para>
+            /// <para>For gameplay input, this and <see cref="M:Godot.Node._UnhandledInput(Godot.InputEvent)" /> are usually a better fit than <see cref="M:Godot.Node._Input(Godot.InputEvent)" /> as they allow the GUI to intercept the events first.</para>
+            /// <para>This method also performs better than <see cref="M:Godot.Node._UnhandledInput(Godot.InputEvent)" />, since unrelated events such as <see cref="T:Godot.InputEventMouseMotion" /> are automatically filtered.</para>
+            /// <para><b>Note:</b> This method is only called if the node is present in the scene tree (i.e. if it's not an orphan).</para>
+            /// </summary>
+            public event Action<InputEvent> OnUnhandledKeyInput {
+            	add {
+            		__unhandledKeyInputAction += value;
+            		SetProcessUnhandledKeyInput(true);
+            	}
+            	remove {
+            		__unhandledKeyInputAction -= value;
+            		SetProcessUnhandledKeyInput(__unhandledKeyInputAction != null);
+            	}
+            }
+            
+            """);
 
-        """;
+    private void OnShortcutInput() =>
+        AppendLine($$"""
+            private Action<InputEvent>? __shortcutInputAction;
+            
+            /// <summary>
+            /// <para>Called when an <see cref="T:Godot.InputEventKey" /> or <see cref="T:Godot.InputEventShortcut" /> hasn't been consumed by <see cref="M:Godot.Node._Input(Godot.InputEvent)" /> or any GUI <see cref="T:Godot.Control" /> item. The input event propagates up through the node tree until a node consumes it.</para>
+            /// <para>It is only called if shortcut processing is enabled, which is done automatically if this method is overridden, and can be toggled with <see cref="M:Godot.Node.SetProcessShortcutInput(System.Boolean)" />.</para>
+            /// <para>To consume the input event and stop it propagating further to other nodes, <see cref="M:Godot.Viewport.SetInputAsHandled" /> can be called.</para>
+            /// <para>This method can be used to handle shortcuts.</para>
+            /// <para><b>Note:</b> This method is only called if the node is present in the scene tree (i.e. if it's not orphan).</para>
+            /// </summary>
+            public event Action<InputEvent> OnShortcutInput {
+            	add {
+            		__shortcutInputAction += value;
+            		SetProcessShortcutInput(true);
+            	}
+            	remove {
+            		__shortcutInputAction -= value;
+            		SetProcessShortcutInput(__shortcutInputAction != null);
+            	}
+            }
+            
+            """);
 
-    private static string OnUnhandledInput() =>
-        """
-        private Action<InputEvent>? __unhandledInputAction;
+    private void _Process(string partialProcessParameterName) =>
+        AppendLine($$"""
+            public override partial void _Process(double {{partialProcessParameterName}}) {
+                if (__processAction == null) SetProcess(false);
+                else __processAction.Invoke({{partialProcessParameterName}});
+            }
+            
+            """);
 
-        /// <summary>
-        /// <para>Called when an <see cref="T:Godot.InputEvent" /> hasn't been consumed by <see cref="M:Godot.Node._Input(Godot.InputEvent)" /> or any GUI <see cref="T:Godot.Control" /> item. The input event propagates up through the node tree until a node consumes it.</para>
-        /// <para>It is only called if unhandled input processing is enabled, which is done automatically if this method is overridden, and can be toggled with <see cref="M:Godot.Node.SetProcessUnhandledInput(System.Boolean)" />.</para>
-        /// <para>To consume the input event and stop it propagating further to other nodes, <see cref="M:Godot.Viewport.SetInputAsHandled" /> can be called.</para>
-        /// <para>For gameplay input, this and <see cref="M:Godot.Node._UnhandledKeyInput(Godot.InputEvent)" /> are usually a better fit than <see cref="M:Godot.Node._Input(Godot.InputEvent)" /> as they allow the GUI to intercept the events first.</para>
-        /// <para><b>Note:</b> This method is only called if the node is present in the scene tree (i.e. if it's not an orphan).</para>
-        /// </summary>
-        public event Action<InputEvent> OnUnhandledInput {
-        	add {
-        		__unhandledInputAction += value;
-        		SetProcessUnhandledInput(true);
-        	}
-        	remove {
-        		__unhandledInputAction -= value;
-        		SetProcessUnhandledInput(__unhandledInputAction != null);
-        	}
-        }
+    private void _PhysicsProcess(string partialPhysicsProcessParameterName) =>
+        AppendLine($$"""
+            public override partial void _PhysicsProcess(double {{partialPhysicsProcessParameterName}}) {
+                if (__physicsProcessAction == null) SetPhysicsProcess(false);
+                else __physicsProcessAction.Invoke({{partialPhysicsProcessParameterName}});
+            }
+            
+            """);
 
-        """;
+    private void _InputEvent(string partialInputParameterName) =>
+        AppendLine($$"""
+            public override partial void _Input(InputEvent {{partialInputParameterName}}) {
+            	if (__inputAction == null) SetProcessInput(false);
+            	else __inputAction.Invoke({{partialInputParameterName}});
+            }
+            
+            """);
 
-    private static string OnUnhandledKeyInput() =>
-        """
-        private Action<InputEvent>? __unhandledKeyInputAction;
+    private void _UnhandledInput(string partialUnhandledInputParameterName) =>
+        AppendLine($$"""
+            public override partial void _UnhandledInput(InputEvent {{partialUnhandledInputParameterName}}) {
+            	if (__unhandledInputAction == null) SetProcessUnhandledInput(false);
+            	else __unhandledInputAction.Invoke({{partialUnhandledInputParameterName}});
+            }
+            
+            """);
 
-        /// <summary>
-        /// <para>Called when an <see cref="T:Godot.InputEventKey" /> hasn't been consumed by <see cref="M:Godot.Node._Input(Godot.InputEvent)" /> or any GUI <see cref="T:Godot.Control" /> item. The input event propagates up through the node tree until a node consumes it.</para>
-        /// <para>It is only called if unhandled key input processing is enabled, which is done automatically if this method is overridden, and can be toggled with <see cref="M:Godot.Node.SetProcessUnhandledKeyInput(System.Boolean)" />.</para>
-        /// <para>To consume the input event and stop it propagating further to other nodes, <see cref="M:Godot.Viewport.SetInputAsHandled" /> can be called.</para>
-        /// <para>This method can be used to handle Unicode character input with Alt, Alt + Ctrl, and Alt + Shift modifiers, after shortcuts were handled.</para>
-        /// <para>For gameplay input, this and <see cref="M:Godot.Node._UnhandledInput(Godot.InputEvent)" /> are usually a better fit than <see cref="M:Godot.Node._Input(Godot.InputEvent)" /> as they allow the GUI to intercept the events first.</para>
-        /// <para>This method also performs better than <see cref="M:Godot.Node._UnhandledInput(Godot.InputEvent)" />, since unrelated events such as <see cref="T:Godot.InputEventMouseMotion" /> are automatically filtered.</para>
-        /// <para><b>Note:</b> This method is only called if the node is present in the scene tree (i.e. if it's not an orphan).</para>
-        /// </summary>
-        public event Action<InputEvent> OnUnhandledKeyInput {
-        	add {
-        		__unhandledKeyInputAction += value;
-        		SetProcessUnhandledKeyInput(true);
-        	}
-        	remove {
-        		__unhandledKeyInputAction -= value;
-        		SetProcessUnhandledKeyInput(__unhandledKeyInputAction != null);
-        	}
-        }
+    private void _UnhandledKeyInput(string partialUnhandledKeyInputParameterName) =>
+        AppendLine($$"""
+            public override partial void _UnhandledKeyInput(InputEvent {{partialUnhandledKeyInputParameterName}}) {
+               if (__unhandledKeyInputAction == null) SetProcessUnhandledKeyInput(false);
+               else __unhandledKeyInputAction.Invoke({{partialUnhandledKeyInputParameterName}});
+            }
+            
+            """);
 
-        """;
+    private void _ShortcutInput(string partialShortcutInputParameterName) =>
+        AppendLine($$"""
+            public override partial void _ShortcutInput(InputEvent {{partialShortcutInputParameterName}}) {
+            	if (__shortcutInputAction == null) SetProcessShortcutInput(false);
+            	else __shortcutInputAction.Invoke({{partialShortcutInputParameterName}});
+            }
+            
+            """);
 
-    private static string OnShortcutInput() =>
-        """
-        private Action<InputEvent>? __shortcutInputAction;
-
-        /// <summary>
-        /// <para>Called when an <see cref="T:Godot.InputEventKey" /> or <see cref="T:Godot.InputEventShortcut" /> hasn't been consumed by <see cref="M:Godot.Node._Input(Godot.InputEvent)" /> or any GUI <see cref="T:Godot.Control" /> item. The input event propagates up through the node tree until a node consumes it.</para>
-        /// <para>It is only called if shortcut processing is enabled, which is done automatically if this method is overridden, and can be toggled with <see cref="M:Godot.Node.SetProcessShortcutInput(System.Boolean)" />.</para>
-        /// <para>To consume the input event and stop it propagating further to other nodes, <see cref="M:Godot.Viewport.SetInputAsHandled" /> can be called.</para>
-        /// <para>This method can be used to handle shortcuts.</para>
-        /// <para><b>Note:</b> This method is only called if the node is present in the scene tree (i.e. if it's not orphan).</para>
-        /// </summary>
-        public event Action<InputEvent> OnShortcutInput {
-        	add {
-        		__shortcutInputAction += value;
-        		SetProcessShortcutInput(true);
-        	}
-        	remove {
-        		__shortcutInputAction -= value;
-        		SetProcessShortcutInput(__shortcutInputAction != null);
-        	}
-        }
-
-        """;
-
-    private static string _Process(string partialProcessParameterName) =>
-        $$"""
-          public override partial void _Process(double {{partialProcessParameterName}}) {
-              if (__processAction == null) SetProcess(false);
-              else __processAction.Invoke({{partialProcessParameterName}});
-          }
-
-          """;
-
-    private static string _PhysicsProcess(string partialPhysicsProcessParameterName) =>
-        $$"""
-          public override partial void _PhysicsProcess(double {{partialPhysicsProcessParameterName}}) {
-              if (__physicsProcessAction == null) SetPhysicsProcess(false);
-              else __physicsProcessAction.Invoke({{partialPhysicsProcessParameterName}});
-          }
-
-          """;
-
-    private static string _InputEvent(string partialInputParameterName) =>
-        $$"""
-          public override partial void _Input(InputEvent {{partialInputParameterName}}) {
-          	if (__inputAction == null) SetProcessInput(false);
-          	else __inputAction.Invoke({{partialInputParameterName}});
-          }
-
-          """;
-
-    private static string _UnhandledInput(string partialUnhandledInputParameterName) =>
-        $$"""
-          public override partial void _UnhandledInput(InputEvent {{partialUnhandledInputParameterName}}) {
-          	if (__unhandledInputAction == null) SetProcessUnhandledInput(false);
-          	else __unhandledInputAction.Invoke({{partialUnhandledInputParameterName}});
-          }
-
-          """;
-
-    private static string _UnhandledKeyInput(string partialUnhandledKeyInputParameterName) =>
-        $$"""
-          public override partial void _UnhandledKeyInput(InputEvent {{partialUnhandledKeyInputParameterName}}) {
-          	if (__unhandledKeyInputAction == null) SetProcessUnhandledKeyInput(false);
-          	else __unhandledKeyInputAction.Invoke({{partialUnhandledKeyInputParameterName}});
-          }
-
-          """;
-
-    private static string _ShortcutInput(string partialShortcutInputParameterName) =>
-        $$"""
-          public override partial void _ShortcutInput(InputEvent {{partialShortcutInputParameterName}}) {
-          	if (__shortcutInputAction == null) SetProcessShortcutInput(false);
-          	else __shortcutInputAction.Invoke({{partialShortcutInputParameterName}});
-          }
-
-          """;
-
-    private static string OnNotificationEvents() =>
-        $$"""
+    private void OnNotificationEvents() =>
+        AppendLine($$"""
           /// <summary>
           /// <para>Event called when the object is initialized, before its script is attached. Used internally.</para>
           /// </summary>
@@ -574,7 +566,7 @@ public class NodeEventsClassGenerator : ClassGenerator {
           /// <para>Event called when text server is changed.</para>
           /// </summary>
           public event Action OnTextServerChanged;
-          """;
+          """);
               
       private void _Notification(string partialNotificationParameterName, bool addProcess, bool addPhysicsProcess) {
           AppendLine(
