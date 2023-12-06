@@ -5,6 +5,7 @@ using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Betauer.SourceGenerators;
 
@@ -35,10 +36,43 @@ internal static class ExtensionMethods {
 
             symbol = symbol.BaseType;
         }
-
         return false;
     }
+    
+    /*
+    public static bool TryGetGlobalAnalyzerProperty(
+        this AnalyzerConfigOptionsProvider provider, string property, out string? value
+    ) => provider.GlobalOptions.TryGetValue("build_property." + property, out value);
 
+    public static bool AreGodotSourceGeneratorsDisabled(this AnalyzerConfigOptionsProvider context)
+        => context.TryGetGlobalAnalyzerProperty("GodotSourceGenerators", out string? toggle) &&
+           toggle != null &&
+           toggle.Equals("disabled", StringComparison.OrdinalIgnoreCase);
+
+    public static bool IsGodotToolsProject(this AnalyzerConfigOptionsProvider context)
+        => context.TryGetGlobalAnalyzerProperty("IsGodotToolsProject", out string? toggle) &&
+           toggle != null &&
+           toggle.Equals("true", StringComparison.OrdinalIgnoreCase);
+    */
+    
+    // Incremental generator
+    public static bool IsGodotScriptClass(this ClassDeclarationSyntax cds, SemanticModel sm, out INamedTypeSymbol? symbol, string parentClassFullName) {
+        var classTypeSymbol = sm.GetDeclaredSymbol(cds);
+
+        if (classTypeSymbol?.BaseType == null
+            || !classTypeSymbol.BaseType.InheritsFrom("GodotSharp", parentClassFullName))
+        {
+            symbol = null;
+            return false;
+        }
+        symbol = classTypeSymbol;
+        return true;
+        
+    }
+
+    
+    // Regular generator
+    /*
     public static bool IsGodotScriptClass(this ClassDeclarationSyntax cds, Compilation compilation, out INamedTypeSymbol? symbol, string parentClassFullName) {
         var sm = compilation.GetSemanticModel(cds.SyntaxTree);
 
@@ -61,16 +95,14 @@ internal static class ExtensionMethods {
             yield return (cds, symbol!);
         }
     }
+    */
 
     public static bool IsNested(this TypeDeclarationSyntax cds) => cds.Parent is TypeDeclarationSyntax;
 
     public static bool IsPartial(this TypeDeclarationSyntax cds)
         => cds.Modifiers.Any(SyntaxKind.PartialKeyword);
 
-    public static bool AreAllOuterTypesPartial(
-        this TypeDeclarationSyntax cds,
-        out TypeDeclarationSyntax? typeMissingPartial
-    ) {
+    public static bool AreAllOuterTypesPartial(this TypeDeclarationSyntax cds, out TypeDeclarationSyntax? typeMissingPartial) {
         SyntaxNode? outerSyntaxNode = cds.Parent;
 
         while (outerSyntaxNode is TypeDeclarationSyntax outerTypeDeclSyntax) {

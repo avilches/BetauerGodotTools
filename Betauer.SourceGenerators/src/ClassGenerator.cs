@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Betauer.SourceGenerators;
 
 public class ClassGenerator {
-    public GeneratorExecutionContext Context { get; }
+    public SourceProductionContext Context { get; }
     public ClassDeclarationSyntax Cds { get; }
     public INamedTypeSymbol Symbol { get; }
 
@@ -19,7 +19,7 @@ public class ClassGenerator {
     public int IndentLevel { get; private set; } = 0;
     public string Indent { get; private set; } = string.Empty;
 
-    public ClassGenerator(GeneratorExecutionContext generatorExecutionContext, ClassDeclarationSyntax cds, INamedTypeSymbol symbol,
+    public ClassGenerator(SourceProductionContext generatorExecutionContext, ClassDeclarationSyntax cds, INamedTypeSymbol symbol,
         string classGeneratedSuffix) {
         Context = generatorExecutionContext;
         Cds = cds;

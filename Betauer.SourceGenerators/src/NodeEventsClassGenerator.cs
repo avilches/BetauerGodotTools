@@ -46,7 +46,7 @@ public class NodeEventsClassGenerator : ClassGenerator {
     public bool AddShortcutInput { get; private set; }
 
     public NodeEventsClassGenerator(
-        GeneratorExecutionContext generatorExecutionContext, ClassDeclarationSyntax cds, INamedTypeSymbol symbol, string classGeneratedSuffix) :
+        SourceProductionContext generatorExecutionContext, ClassDeclarationSyntax cds, INamedTypeSymbol symbol, string classGeneratedSuffix) :
         base(generatorExecutionContext, cds, symbol, classGeneratedSuffix) {
     }
 
