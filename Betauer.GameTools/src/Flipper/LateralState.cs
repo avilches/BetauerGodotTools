@@ -23,6 +23,8 @@ public class LateralState : IFlipper {
         get => _flipper.IsFacingRight;
         set => _flipper.IsFacingRight = value;
     }
+
+    public Vector2 FacingDirection => IsFacingRight ? _lookRightDirection() : -_lookRightDirection();
     
     /// <summary>
     /// Return true if the current body is to the right of the parameter 

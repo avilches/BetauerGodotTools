@@ -7,6 +7,9 @@ namespace Betauer.Application.Monitor;
 
 public partial class MonitorText : BaseMonitor<MonitorText> {
     private Func<string>? _showValue;
+    private Func<Color>? _colorFunc;
+    private Color? _lastColor;
+
     public readonly HBoxContainer HBoxContainer = new();
 
     public readonly Label Label = new() {
@@ -54,6 +57,17 @@ public partial class MonitorText : BaseMonitor<MonitorText> {
         return this;
     }
 
+
+    public MonitorText Color(Func<Color> color) {
+        _colorFunc = color;
+        return this;
+    }
+
+    public MonitorText Color(Func<bool> color) {
+        _colorFunc = () => color() ? Colors.GreenYellow : Colors.Tomato;
+        return this;
+    }
+
     public override void _Ready() {
         this.Children()
             .Add(HBoxContainer, box => {
@@ -66,6 +80,13 @@ public partial class MonitorText : BaseMonitor<MonitorText> {
     public override void UpdateMonitor(double delta) {
         if (_showValue != null) {
             Content.Text = _showValue.Invoke();
+            if (_colorFunc != null) {
+                var newColor = _colorFunc.Invoke();
+                if (newColor != _lastColor) {
+                    Content.SetFontColor(newColor);
+                    _lastColor = newColor;
+                }
+            }
         }
     }
 }

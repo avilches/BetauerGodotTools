@@ -6,6 +6,7 @@ using Betauer.Application.Persistent;
 using Betauer.Bus;
 using Betauer.Core;
 using Betauer.Core.Nodes;
+using Betauer.Core.Nodes.Events;
 using Betauer.Core.Nodes.Property;
 using Betauer.Core.Pool.Lifecycle;
 using Betauer.Core.Restorer;
@@ -46,6 +47,7 @@ public enum ZombieState {
 	Fall
 }
 
+[Process, PhysicsProcess]
 public partial class ZombieNode : NpcNode, IInjectable {
 	
 	private static readonly SequenceAnimation RedFlash;
@@ -115,24 +117,27 @@ public partial class ZombieNode : NpcNode, IInjectable {
 	private LazyRaycast2D _lazyRaycastToPlayer;
 	private DebugOverlay? _overlay;
 
-	private Vector2 PlayerPos => PlatformWorld.Get().ClosestPlayer(Marker2D.GlobalPosition).Marker2D.GlobalPosition;
-	public bool IsFacingToPlayer() => LateralState.IsFacingTo(PlayerPos);
-	public bool IsToTheRightOfPlayer() => LateralState.IsToTheRightOf(PlayerPos);
+	private Vector2 PlayerGlobalPos => PlatformWorld.Get().ClosestPlayer(Marker2D.GlobalPosition).Marker2D.GlobalPosition;
+	public bool IsFacingToPlayer() => LateralState.IsFacingTo(PlayerGlobalPos);
+	public bool IsToTheRightOfPlayer() => LateralState.IsToTheRightOf(PlayerGlobalPos);
 	public int RightOfPlayer() => IsToTheRightOfPlayer() ? 1 : -1;
 	public float AngleToPlayer() => Marker2D.GlobalPosition.AngleTo(DirectionToPlayer());
-	public override float DistanceToPlayer() => Marker2D.GlobalPosition.DistanceTo(PlayerPos);
-	public Vector2 DirectionToPlayer() => Marker2D.GlobalPosition.DirectionTo(PlayerPos);
+	public override float DistanceToPlayer() => Marker2D.GlobalPosition.DistanceTo(PlayerGlobalPos);
+	public Vector2 DirectionToPlayer() => Marker2D.GlobalPosition.DirectionTo(PlayerGlobalPos);
 	public bool CanSeeThePlayer() => IsFacingToPlayer() &&
 									 DistanceToPlayer() <= NpcConfig.VisionDistance &&
 									 IsPlayerInAngle() &&
-									 !_lazyRaycastToPlayer.From(Marker2D).To(PlayerPos).Cast().Collision.IsColliding;
-	
-	public bool IsPlayerInAngle() => NpcConfig.VisionAngle > 0 && 
-									 Mathf.Acos(Mathf.Abs(RightVector.Dot(DirectionToPlayer()))) <= NpcConfig.VisionAngle;
+									 !_lazyRaycastToPlayer.From(Marker2D).To(PlayerGlobalPos).Cast().Collision.IsColliding;
 
-	private Vector2 RightVector => PlatformBody.UpRightNormal.Rotate90Right();
+	public bool IsPlayerInAngle() => NpcConfig.VisionAngle > 0 &&
+	                                 LateralState.FacingDirection.IsSameDirectionAngle(DirectionToPlayer(), NpcConfig.VisionAngle);
+
+	private Vector2 RightVector => PlatformBody.FloorUpDirection.Rotate90Right();
 
 	private Multicast<object, PlayerAttackEvent>.EventConsumer consumer;
+	
+	public override partial void _Process(double delta);
+	public override partial void _PhysicsProcess(double delta);
 
 	public override Vector2 GlobalPosition {
 		get => CharacterBody2D.GlobalPosition;
@@ -186,17 +191,18 @@ public partial class ZombieNode : NpcNode, IInjectable {
 				return;
 			}
 
-			var result = _lazyRaycastToPlayer.From(Marker2D).To(PlayerPos).Cast().Collision;
+			var result = _lazyRaycastToPlayer.From(Marker2D.GlobalPosition).To(PlayerGlobalPos).Cast().Collision;
 			if (result.IsColliding) {
-				_mainSprite.DrawLine(start, result.Position, Colors.Red, 2);
+				_mainSprite.DrawLine(start, _mainSprite.ToLocal(result.Position), Colors.Red, 2);
 				return;
 			}
-			_mainSprite.DrawLine(start, PlayerPos, Colors.Lime, 2);
+			_mainSprite.DrawLine(start, _mainSprite.ToLocal(PlayerGlobalPos), Colors.Lime, 2);
 		};
+		OnProcess += (d) => _mainSprite.QueueRedraw();
 	}
 
 	private void ConfigureAi() {
-		_zombieAi = MeleeAi.Create(Handler, new MeleeAi.Sensor(this, PlatformBody, LateralState, () => PlayerPos, () => _delta));
+		_zombieAi = MeleeAi.Create(Handler, new MeleeAi.Sensor(this, PlatformBody, LateralState, () => PlayerGlobalPos, () => _delta));
 		_fsm.OnBefore += () => _zombieAi.Execute();
 		_fsm.OnBefore += () => Label.Text = _zombieAi.GetState();
 		_fsm.OnAfter += () => _zombieAi.EndFrame();
@@ -254,7 +260,7 @@ public partial class ZombieNode : NpcNode, IInjectable {
 		
 		LateralState = new LateralState(flipper, () => CharacterBody2D.UpDirection.Rotate90Right(), () => Marker2D.GlobalPosition);
 		PlatformBody = new KinematicPlatformMotion(CharacterBody2D, MotionConfig.FloorUpDirection);
-		_lazyRaycastToPlayer = new LazyRaycast2D().Config(CollisionLayerConfig.NpcConfigureCollisions);
+		_lazyRaycastToPlayer = new LazyRaycast2D().Config(CollisionLayerConfig.NpcConfigureCollisions).GetDirectSpaceFrom(_mainSprite);
 		_attackArea.SetCollisionNode(this);
 		_hurtArea.SetCollisionNode(this);
 
@@ -265,7 +271,6 @@ public partial class ZombieNode : NpcNode, IInjectable {
 			CollisionLayerConfig.NpcConfigureCollisions(FinishFloorLeft);
 			CollisionLayerConfig.EnemyConfigureAttackArea(_attackArea);
 			CollisionLayerConfig.EnemyConfigureHurtArea(_hurtArea);
-			_lazyRaycastToPlayer.UseDirectSpace(_mainSprite.GetWorld2D().DirectSpaceState);
 			UpdateHealthBar();
 			consumer = EventBus.Subscribe(OnPlayerAttackEvent).UnsubscribeIf(Predicates.IsInvalid(this));
 		};
@@ -352,13 +357,20 @@ public partial class ZombieNode : NpcNode, IInjectable {
 			.Add<HBoxContainer>(box => box.Children()
 				.TextField("Pos", () => IsFacingToPlayer() ? IsToTheRightOfPlayer() ? "P <me|" : "|me> P" :
 					IsToTheRightOfPlayer() ? "P |me>" : "<me| P")
-				.TextField("See Player", CanSeeThePlayer)
+				.TextField("Facing Player", IsFacingToPlayer)
+				.TextField("See", CanSeeThePlayer)
 			)
 			.Add<HBoxContainer>(box => box.Children()
-				.Angle("Player angle", AngleToPlayer)
-				.TextField("Player is", () => IsToTheRightOfPlayer() ? "Left" : "Right")
-				.TextField("FacingPlayer", IsFacingToPlayer)
-				.TextField("Distance", () => DistanceToPlayer().ToString())
+				.TextField("Dist", () => DistanceToPlayer() + " < " + NpcConfig.VisionDistance,
+					config: text => text.Color(() => DistanceToPlayer() < NpcConfig.VisionDistance))
+				
+				.TextField("Angle vision", () => Mathf.Acos(DirectionToPlayer().Dot(RightVector))+ " <=" + NpcConfig.VisionAngle,
+					config: text => text.Color(() => Mathf.Acos(DirectionToPlayer().Dot(RightVector)) <= NpcConfig.VisionAngle))
+				
+				.TextField("Collision", () => _lazyRaycastToPlayer.From(Marker2D.GlobalPosition).To(PlayerGlobalPos).Cast().Collision.IsColliding)
+			)
+			.Add<VBoxContainer>(box => box.Children()
+				.Angle("AngleToPlayer", AngleToPlayer)
 			);
 	}
 
@@ -366,22 +378,16 @@ public partial class ZombieNode : NpcNode, IInjectable {
 		overlay
 			.Children()
 			.Add<HBoxContainer>(box => box.Children()
-				.TextField("Dot", () => RightVector.Dot(DirectionToPlayer()).ToString("0.00"))
-				.TextField("Cross", () => RightVector.Cross(DirectionToPlayer()).ToString("0.00"))
-				.TextField("Acos(Dot)", () => Mathf.RadToDeg(Mathf.Acos(Math.Abs(RightVector.Dot(DirectionToPlayer())))).ToString("0.00"))
-				.TextField("Acos(Cross)", () => Mathf.RadToDeg(Mathf.Acos(Math.Abs(RightVector.Cross(DirectionToPlayer())))).ToString("0.00"))
+				.TextField("Dot", () => LateralState.FacingDirection.Dot(DirectionToPlayer()).ToString("0.00"))
+				.TextField("Cross", () => LateralState.FacingDirection.Cross(DirectionToPlayer()).ToString("0.00"))
+				.TextField("Acos(Dot)", () => Mathf.RadToDeg(Mathf.Acos(LateralState.FacingDirection.Dot(DirectionToPlayer()))).ToString("0.00"))
+				.TextField("Acos(Cross)", () => Mathf.RadToDeg(Mathf.Acos(LateralState.FacingDirection.Cross(DirectionToPlayer()))).ToString("0.00"))
 			)
 			.Add<HBoxContainer>(box => box.Children()
-				.TextField("SameDir", () => RightVector.IsSameDirection(DirectionToPlayer()))
-				.TextField("OppDir", () => RightVector.IsOppositeDirection(DirectionToPlayer()))
-				.TextField("IsRight", () => RightVector.IsRight(DirectionToPlayer()))
-				.TextField("IsLeft", () => RightVector.IsLeft(DirectionToPlayer()))
-			)
-			.Add<HBoxContainer>(box => box.Children()
-				.TextField("SameDirA", () => RightVector.IsSameDirectionAngle(DirectionToPlayer()))
-				.TextField("OppDirA", () => RightVector.IsOppositeDirectionAngle(DirectionToPlayer()))
-				.TextField("IsRightA", () => RightVector.IsRightAngle(DirectionToPlayer()))
-				.TextField("IsLeftA", () => RightVector.IsLeftAngle(DirectionToPlayer()))
+				.TextField("SameDir", () => LateralState.FacingDirection.IsSameDirection(DirectionToPlayer()))
+				.TextField("OppDir", () => LateralState.FacingDirection.IsOppositeDirection(DirectionToPlayer()))
+				.TextField("IsRight", () => LateralState.FacingDirection.IsRight(DirectionToPlayer()))
+				.TextField("IsLeft", () => LateralState.FacingDirection.IsLeft(DirectionToPlayer()))
 			);
 	}
 
@@ -415,11 +421,6 @@ public partial class ZombieNode : NpcNode, IInjectable {
 			.TextField("Floor", () => PlatformBody.GetFloorCollisionInfo())
 			.TextField("Ceiling", () => PlatformBody.GetCeilingCollisionInfo())
 			.TextField("Wall", () => PlatformBody.GetWallCollisionInfo());
-	}
-
-	public override void _PhysicsProcess(double delta) {
-		_delta = (float)delta;
-		_fsm.Execute();
 	}
 
 	public void ConfigureFsm() {    
@@ -546,6 +547,15 @@ public partial class ZombieNode : NpcNode, IInjectable {
 			})
 			.If(PlatformBody.IsOnFloor).Set(ZombieState.Landing)
 			.Build();
+
+		var enabled = true;
+		// this.OnInput((e) => {
+			// if (e.IsKeyJustPressed(Key.H)) enabled = !enabled;
+		// });
+		OnPhysicsProcess += (delta) => {
+			_delta = (float)delta;
+			if (enabled) _fsm.Execute();
+		};
 	}
 
 	public bool IsState(ZombieState state) => _fsm.IsState(state);

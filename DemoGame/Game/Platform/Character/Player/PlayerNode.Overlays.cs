@@ -15,6 +15,8 @@ public partial class PlayerNode {
 	[Inject] private ItemsManager ItemsManager { get; set; }
 
 	public void ConfigureOverlay() {
+		// This is only drawn once, because it's the CharacterBody2D which doesn't have anything to draw. Change to the sprite to force drawing more often (or
+		// use QueueRedraw() in every frame
 		CharacterBody2D.Draw += () => {
 			foreach (var floorRaycast in FloorRaycasts) CharacterBody2D.DrawRaycast(floorRaycast, Colors.Red);
 			CharacterBody2D.DrawRaycast(RaycastCanJump, Colors.Red);

@@ -8,8 +8,8 @@ namespace Betauer.Core.Nodes;
 public class LazyRaycast2D {
     private PhysicsDirectSpaceState2D? _directSpaceState;
 
-    public RaycastCollision Collision = new(null);
-    public PhysicsRayQueryParameters2D Query = new();
+    public readonly RaycastCollision Collision = new(null);
+    public readonly PhysicsRayQueryParameters2D Query = new();
     public CanvasItem? DirectSpaceStateAccessor;
 
     public LazyRaycast2D UseDirectSpace(PhysicsDirectSpaceState2D directSpaceState) {
