@@ -223,9 +223,9 @@ public static class DebugOverlayBuilder {
 
     public static NodeBuilder AddWindowNotificationStatus(this NodeBuilder builder) {
         builder.Add<HBoxContainer>(box => box.Children()
-            .TextField("Window Focus", () => NodeEventHandler.DefaultInstance.IsWindowFocused)
-            .TextField("Application Focus", () => NodeEventHandler.DefaultInstance.IsApplicationFocused)
-            .TextField("Mouse inside game", () => NodeEventHandler.DefaultInstance.IsMouseInsideScreen)
+            .TextField("Window Focus", () => NodeManager.MainInstance.IsWindowFocused)
+            .TextField("Application Focus", () => NodeManager.MainInstance.IsApplicationFocused)
+            .TextField("Mouse inside game", () => NodeManager.MainInstance.IsMouseInsideScreen)
         );
         return builder;
     }
