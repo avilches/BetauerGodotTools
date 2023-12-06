@@ -11,6 +11,7 @@ public abstract class BaseNodeHandler : BaseHandler {
 
     public override bool IsEnabled {
         get {
+            if (base.IsEnabled == false) return false;
             var tree = Node.GetTree();
             return tree != null && ShouldProcess(tree.Paused, Node.ProcessMode);
         }

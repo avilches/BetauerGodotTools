@@ -17,8 +17,7 @@ public partial class NotificationsNodeHandler : Node {
         ProcessMode = ProcessModeEnum.Always;
     }
 
-    private readonly List<(GodotObject, Action)> _watchers = new();
-    
+    public List<(GodotObject, Action)> Watchers { get; } = new();
     public List<IProcessHandler> ProcessList { get; } = new();
     public List<IProcessHandler> PhysicsProcessList { get; } = new();
     public List<IInputEventHandler> InputList { get; } = new();
@@ -44,13 +43,13 @@ public partial class NotificationsNodeHandler : Node {
 
     public void AddOnDestroy(GodotObject? o, Action removeAction) {
         if (o == null) return;
-        _watchers.Add((o, removeAction));
+        Watchers.Add((o, removeAction));
         SetProcess(true);
     }
     
     public void RemoveOnDestroy(GodotObject? o, Action removeAction) {
         if (o == null) return;
-        _watchers.Remove((o, removeAction));
+        Watchers.Remove((o, removeAction));
     }
     
     public void AddOnProcess(IProcessHandler inputEvent) {
@@ -87,7 +86,7 @@ public partial class NotificationsNodeHandler : Node {
 
     public override void _Process(double delta) {
         PurgeWatchers();
-        var watchers = _watchers.Count;
+        var watchers = Watchers.Count;
         ProcessNodeEvents(ProcessList, delta, watchers == 0 ? () => SetProcess(false) : null);
     }
 
@@ -113,7 +112,7 @@ public partial class NotificationsNodeHandler : Node {
 
     private void PurgeWatchers() {
         var destroyed = 0;
-        _watchers.RemoveAll(tuple => {
+        Watchers.RemoveAll(tuple => {
             if (IsInstanceValid(tuple.Item1)) return false;
             tuple.Item2();
             destroyed++;
@@ -175,12 +174,22 @@ public partial class NotificationsNodeHandler : Node {
 
     public string GetStateAsString() {
         return
-            $@"{_watchers.Count} Node watchers
+            $@"{Watchers.Count} Node watchers
 {ProcessList.Count} Process: {String.Join(", ", ProcessList.Select(e => e.Name))}
 {PhysicsProcessList.Count} PhysicsProcess: {String.Join(", ", PhysicsProcessList.Select(e => e.Name))}
 {InputList.Count} Input: {String.Join(", ", InputList.Select(e => e.Name))}
 {UnhandledInputList.Count} UnhandledInput: {String.Join(", ", UnhandledInputList.Select(e => e.Name))}
 {ShortcutInputList.Count} ShortcutInput: {String.Join(", ", ShortcutInputList.Select(e => e.Name))}
 {UnhandledKeyInputList.Count} UnhandledKeyInput: {String.Join(", ", UnhandledKeyInputList.Select(e => e.Name))}";
+    }
+
+    public void Reset() {
+        Watchers.Clear();
+        ProcessList.Clear();
+        PhysicsProcessList.Clear();
+        InputList.Clear();
+        ShortcutInputList.Clear();
+        UnhandledInputList.Clear();
+        UnhandledKeyInputList.Clear();        
     }
 }

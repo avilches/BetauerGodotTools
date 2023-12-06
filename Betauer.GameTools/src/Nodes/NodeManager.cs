@@ -386,4 +386,6 @@ public class NodeManager {
         Node.OnTextServerChanged += action;
         OnDestroy(node, () => Node.OnTextServerChanged -= action);
     }
+
+    public void Reset() => Node.Reset();
 }

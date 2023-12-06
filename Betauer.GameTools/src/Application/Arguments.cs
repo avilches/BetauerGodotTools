@@ -3,16 +3,16 @@ using System.Collections.Generic;
 namespace Betauer.Application; 
 
 public class Arguments {
-    public readonly Godot.Collections.Dictionary<string, string> Options;
+    public readonly Dictionary<string, string> Options;
     public readonly List<string> Commands;
 
-    public Arguments(Godot.Collections.Dictionary<string, string> options, List<string> commands) {
+    public Arguments(Dictionary<string, string> options, List<string> commands) {
         Options = options;
         Commands = commands;
     }
             
     public static Arguments ParseArgs(IEnumerable<string> getCmdlineArgs) {
-        var options = new Godot.Collections.Dictionary<string, string>();
+        var options = new Dictionary<string, string>();
         var commands = new List<string>();
         string option = null;
         foreach (var arg in getCmdlineArgs) {
