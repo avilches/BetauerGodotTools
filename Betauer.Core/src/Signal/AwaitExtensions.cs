@@ -8,7 +8,7 @@ namespace Betauer.Core.Signal;
 
 /**
  * Godot version: 4.2-stable (official)
- * Date: 2023-12-07 09:47:30
+ * Date: 2023-12-07 23:24:54
  */
 public static partial class AwaitExtensions {
   

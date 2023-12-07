@@ -46,7 +46,7 @@ public class NodeEventsGenerator : IIncrementalGenerator {
                 // Report and skip non-partial classes
                 if (x.DeclarationSyntax.IsPartial()) {
                     if (x.DeclarationSyntax.IsNested() && !x.DeclarationSyntax.AreAllOuterTypesPartial(out var typeMissingPartial)) {
-                        // error, no need to report because the GodotSDK already does it
+                        // error, no need to report because the Godot.Net.SDK already does it
                         return false;
                     }
                     return true;
@@ -58,7 +58,7 @@ public class NodeEventsGenerator : IIncrementalGenerator {
             .ForEach(partialClass => partialClass.GenerateSource());
     }
 
-    private const string ClassGeneratedSuffix = "_Betauer_NodeEvents";
+    private const string ClassGeneratedSuffix = "_Betauer_Events";
 }
 
 public readonly struct GodotClassData {

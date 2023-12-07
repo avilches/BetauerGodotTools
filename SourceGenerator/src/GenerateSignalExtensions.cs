@@ -43,7 +43,7 @@ namespace Betauer.Core.Signal;
 
 /**
  * Godot version: {Engine.GetVersionInfo()["string"].ToString()}
- * Date: {DateTime.Now:yyyy-MM-dd hh:mm:ss}
+ * Date: {DateTime.Now:yyyy-MM-dd HH:mm:ss}
  *
  * Regular signal C# events don't allow flags as deferred or one shot. This class allows it.
  */

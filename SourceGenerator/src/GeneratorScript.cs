@@ -17,9 +17,7 @@ public partial class GeneratorScript : SceneTree {
         while (Root.GetChildCount() > 0) Root.RemoveChild(Root.GetChild(0));
         var classes = LoadGodotClasses();
             
-        // Notifications are now deprecated. Generated manually using a real source generator
-        // var GetClass = (string name) => classes.First(c => c.ClassName == name);
-        // GenerateNotificationHandler.Write(GetClass("Node"));
+        GenerateNotificationsMetadata.Write(classes);
 
         // Signal extensions
         GenerateAwaitExtensions.Write(classes);

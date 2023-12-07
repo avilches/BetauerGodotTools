@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Godot;
 using Godot.Collections;
 using Godot.NativeInterop;
@@ -72,12 +73,14 @@ public class GodotClass {
     public readonly List<Signal> Signals;
     public readonly List<Signal> AllSignals;
     public readonly Type? Type;
+    public readonly string[] Notifications;
 
     public GodotClass(string className) {
         class_name = className;
         var camelCase = className.CamelCase();
         ClassName = ClassMap.ContainsKey(camelCase) ? ClassMap[camelCase] : camelCase;
         IsValid = ClassDB.IsClassEnabled(className);
+        Notifications = System.Array.Empty<string>();
         if (IsValid) {
             var godotSharpAssemblyName = typeof(Node).Assembly.GetName().Name;
             var fullQualifiedName = $"Godot.{ClassName}, {godotSharpAssemblyName}";
@@ -88,6 +91,15 @@ public class GodotClass {
                 IsStatic = Type.IsAbstract && Type.IsSealed;
                 IsAbstract = Type.IsAbstract;
                 IsNode = Type.IsSubclassOf(typeof(Node));
+                if (IsNode) {
+                    Notifications = ClassDB.ClassGetIntegerConstantList(ClassName, true)
+                        .Where(n => n.StartsWith("NOTIFICATION"))
+                        .Select(s => s.ToLower().CamelCase()
+                            .Replace("Wm", "WM")
+                            .Replace("2d", "2D")
+                            .Replace("3d", "3D"))
+                        .ToArray();
+                }
             }
         }
         if (IsValid) {
@@ -95,6 +107,12 @@ public class GodotClass {
             AllSignals = GetSignalsFromClass(false);
         }
     }
+
+    public long GetNotificationValue(string name) {
+        return (long)Type!.GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)
+            .First(fi => fi is { IsLiteral: true, IsInitOnly: false } && fi.Name == name).GetRawConstantValue()!;
+    }
+
 
     public List<Signal> GetSignalsFromClass(bool noInheritance) {
         var classDbSignals = ClassDB.ClassGetSignalList(class_name, noInheritance);

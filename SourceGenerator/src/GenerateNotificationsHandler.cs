@@ -1,96 +1,92 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
+using System.Text;
 using Godot;
 using File = System.IO.File;
 using Path = System.IO.Path;
 
 namespace Generator; 
 
-public class GenerateNotificationHandler {
-    private static string CreateFileName() =>
-        "../Betauer.GameTools/src/Application/Notifications/NotificationsHandler.cs";
+public static class GenerateNotificationsMetadata {
+    private static string CreateConstantsLongFileName() =>
+        "../Betauer.SourceGenerators.Tests/test/Notifications.ConstantValues.cs";
 
-    public static void Write(params GodotClass[] classes) {
-        var body = GenerateBodyClass(classes);
-        Console.WriteLine($"Generated {Path.GetFullPath(CreateFileName())}");
-        File.WriteAllText(CreateFileName(), body);
+    private static string CreateNotificationNamesFileName() =>
+        "../Betauer.SourceGenerators/src/Notifications.Names.cs";
+
+    public static void Write(List<GodotClass> classes) {
+        var bodyConstantsLong = GenerateNotificationConstantsValues(classes);
+        Console.WriteLine($"Generated {Path.GetFullPath(CreateConstantsLongFileName())}");
+        File.WriteAllText(CreateConstantsLongFileName(), bodyConstantsLong);
+
+        var bodyStringNames = GenerateNotificationStringNamesClass(classes);
+        Console.WriteLine($"Generated {Path.GetFullPath(CreateNotificationNamesFileName())}");
+        File.WriteAllText(CreateNotificationNamesFileName(), bodyStringNames);
     }
 
-    private static string GenerateBodyClass(GodotClass[] clazz) {
+    private static string GenerateNotificationConstantsValues(List<GodotClass> classes) {
+        var godotClasses = classes.Where(c => c is { IsValid: true, IsStatic: false, IsAbstract: false, IsNode: true }).ToArray();
+        var content = new StringBuilder($@"using Godot;
+using Betauer.Core.Nodes.Events;
+using Betauer.TestRunner;
+
+namespace Betauer.SourceGenerators.Tests; 
+
+/**
+ * Godot version: {Engine.GetVersionInfo()["string"].ToString()}
+ * Date: {DateTime.Now:yyyy-MM-dd HH:mm:ss}
+ */
+
+[Test]
+public class NotificationTest {{
+
+    [Test]
+    public void NotificationTests() {{
+        {string.Join("\n        ", godotClasses.Where(c => c.Notifications.Length > 0).Select(c => $"var instance{c.ClassName} = new {c.ClassName}NotificationTest();"))}
+    }}
+}}
+");
+        foreach (var godotClass in godotClasses.Where(c => c.Notifications.Length > 0)) {
+            var parent = godotClass.ClassName;
+            if (parent == "CanvasItem") {
+                parent = "Node2D /* CanvasItem can not be inherit from */";
+            }
+            content.AppendLine($@"
+[Notifications(Process = false, PhysicsProcess = false)]
+public partial class {godotClass.ClassName}NotificationTest : {parent} {{
+    public override partial void _Notification(int what);
+    public override void _Ready() {{
+        {string.Join("\n        ", godotClass.Notifications.Select(n => $"On{n.Replace("Notification", "")} += () => {{ }};"))}
+    }}
+}}");
+        }
+        return content.ToString();
+    }
+
+    private static string GenerateNotificationStringNamesClass(List<GodotClass> classes) {
         return $@"using System;
-using Godot;
-using Betauer.Core.Nodes;
+using System.Collections.Generic;
 
-namespace Betauer.Application.Notifications; 
+namespace Betauer.SourceGenerators; 
 
-public partial class NotificationsHandler : Node {{
-
-{string.Join("\n", GenerateEvents(clazz))}
-
-    public override void _EnterTree() {{
-        ProcessMode = ProcessModeEnum.Always;
-    }}
-
-    public void AddTo(Viewport viewport) {{
-        this.RemoveFromParent();
-        viewport.AddChild(this);
-    }}
-
-    public override void _Notification(int what) {{
-        switch ((long)what) {{
-{string.Join("\n", GenerateSwitchCases(clazz))}
-        }}
-    }}  
+public static class Notifications {{
+    public static Dictionary<string, string[]> Names = new() {{
+        {string.Join("\n        ", classes.Where(c => c.Notifications.Length > 0).Select(GenerateNotificationNames))}
+    }};
 }}
 ";
     }
 
-    private static IEnumerable<string> GenerateEvents(GodotClass[] classes) {
-        return classes.SelectMany(GenerateEvents);
+    private static string GenerateNotificationLongValues(GodotClass clazz) {
+        return $@"{{ ""Godot.{clazz.ClassName}"", new long[] {{
+                {string.Join(",\n                ", clazz.Notifications.Select(n => clazz.ClassName + "." + n))} }}
+        }},";
     }
 
-    private static IEnumerable<string> GenerateEvents(GodotClass clazz) {
-        return ClassDB.ClassGetIntegerConstantList(clazz.ClassName)
-            .Where(n => FilterNotification(clazz, n))
-            .Select(n =>              
-                $"    public event Action {NotificationEventName(clazz, n)};");
-    }
-        
-    private static bool FilterNotification(GodotClass clazz, string n) {
-        // 0-1 GodotObject lifecycle (ctor and predelete)
-        // 0-100 Node notifications (like enter tree camera becomes active)
-        // 1### notifications = SO
-        // 2### notifications = MainLoop (Node already include them)
-        // 9### notifications = Editor
-        return n.StartsWith("NOTIFICATION") && GetNotificationValue(clazz, n) is >= 1000 and < 9000;
-    }
-
-    private static string NotificationEventName(GodotClass clazz, string s) {
-        return $"On{s.ToLower().CamelCase().Replace("Wm", "WM").Remove(0, "Notification".Length)}";
-    }
-
-    private static string NotificationConstantName(string s) {
-        return s.ToLower().CamelCase().Replace("Wm", "WM");
-    }
-    private static long GetNotificationValue(GodotClass clazz, string s) {
-        var name = NotificationConstantName(s);
-        return (long)clazz.Type!
-            .GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)
-            .First(fi => fi.IsLiteral && !fi.IsInitOnly && fi.Name == name).GetRawConstantValue()!;
-    }
-
-    private static IEnumerable<string> GenerateSwitchCases(GodotClass[] classes) {
-        return classes.SelectMany(GenerateSwitchCases);
-    }
-
-    private static IEnumerable<string> GenerateSwitchCases(GodotClass clazz) {
-        return ClassDB.ClassGetIntegerConstantList(clazz.ClassName)
-            .Where(n => FilterNotification(clazz, n))
-            .Select(n => 
-                $@"            case {clazz.ClassName}.{NotificationConstantName(n)}: // {GetNotificationValue(clazz, n)}
-                {NotificationEventName(clazz, n)}?.Invoke();
-                break;");
+    private static string GenerateNotificationNames(GodotClass clazz) {
+        return $@"{{ ""Godot.{clazz.ClassName}"", new string[] {{
+                {string.Join(",\n                ", clazz.Notifications.Select(n => $@"""{n}"""))} }}
+        }},";
     }
 }

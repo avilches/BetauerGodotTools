@@ -51,7 +51,7 @@ namespace Betauer.Core.Signal;
 
 /**
  * Godot version: {Engine.GetVersionInfo()["string"].ToString()}
- * Date: {DateTime.Now:yyyy-MM-dd hh:mm:ss}
+ * Date: {DateTime.Now:yyyy-MM-dd HH:mm:ss}
  */
 public static partial class AwaitExtensions {{
   {string.Join("\n", methods)}

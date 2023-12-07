@@ -19,8 +19,7 @@ public class ClassGenerator {
     public int IndentLevel { get; private set; } = 0;
     public string Indent { get; private set; } = string.Empty;
 
-    public ClassGenerator(SourceProductionContext generatorExecutionContext, ClassDeclarationSyntax cds, INamedTypeSymbol symbol,
-        string classGeneratedSuffix) {
+    public ClassGenerator(SourceProductionContext generatorExecutionContext, ClassDeclarationSyntax cds, INamedTypeSymbol symbol, string classGeneratedSuffix) {
         Context = generatorExecutionContext;
         Cds = cds;
         Symbol = symbol;

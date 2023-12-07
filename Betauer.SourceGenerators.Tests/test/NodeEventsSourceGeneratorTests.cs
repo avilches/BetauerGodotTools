@@ -16,7 +16,7 @@ public partial class NotificationClass : Node {
 
 public partial class Outer {
     [Process, PhysicsProcess]
-    public partial class ProcessClass : Node {
+    public partial class ProcessClass : Button {
         public override partial void _Process(double delta);
         public override partial void _PhysicsProcess(double delta);
     }
@@ -25,7 +25,7 @@ public partial class Outer {
 public partial class PloterOuter {
     public partial class MoreOuter {
         [Notifications]
-        public partial class NotificationProcessClass : Node {
+        public partial class NotificationProcessClass : Button {
             public override partial void _Process(double delta);
             public override partial void _PhysicsProcess(double delta);
 
