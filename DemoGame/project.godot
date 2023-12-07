@@ -11,16 +11,16 @@ config_version=5
 [application]
 
 config/name="DemoGame4"
+config/version="1.0.0"
 run/main_scene="res://Game/SplashScreen.tscn"
 config/use_custom_user_dir=true
 config/project_settings_override="user://override.cfg"
-config/features=PackedStringArray("4.1", "C#")
+config/features=PackedStringArray("4.2", "C#")
 boot_splash/bg_color=Color(0.141176, 0.141176, 0.141176, 1)
 boot_splash/show_image=false
 boot_splash/fullsize=false
 boot_splash/use_filter=false
 config/icon="res://icon.png"
-config/version="1.0.0"
 
 [autoload]
 

@@ -23,10 +23,7 @@ public partial class Outer {
 }
 
 public partial class PloterOuter {
-    // public partial class MoreOuter {
-    
-        // TODO: wait for Godot 4.2 until this bug is fixed
-    
+    public partial class MoreOuter {
         [Notifications]
         public partial class NotificationProcessClass : Node {
             public override partial void _Process(double delta);
@@ -34,7 +31,7 @@ public partial class PloterOuter {
 
             public override partial void _Notification(int what);
         }
-    // }
+    }
 }
 
 
@@ -61,10 +58,11 @@ public partial class InputNotificationProcessClass : Node {
 }
 
 [TestRunner.Test]
+[Only]
 public partial class NodeEventsSourceGeneratorTests : Node {
     [TestRunner.Test]
     public async Task ProcessOnNotificationOnlyTest() {
-        var nodes = new Node[] { new NotificationClass(), new PloterOuter.NotificationProcessClass(), new Outer.ProcessClass(), new InputNotificationProcessClass() };
+        var nodes = new Node[] { new NotificationClass(), new PloterOuter.MoreOuter.NotificationProcessClass(), new Outer.ProcessClass(), new InputNotificationProcessClass() };
 
         foreach (var node in nodes) {
             var calls = 0;
@@ -91,7 +89,7 @@ public partial class NodeEventsSourceGeneratorTests : Node {
 
     [TestRunner.Test]
     public async Task PhysicsProcessOnNotificationOnlyTest() {
-        var nodes = new Node[] { new NotificationClass(), new PloterOuter.NotificationProcessClass(), new Outer.ProcessClass(), new InputNotificationProcessClass() };
+        var nodes = new Node[] { new NotificationClass(), new PloterOuter.MoreOuter.NotificationProcessClass(), new Outer.ProcessClass(), new InputNotificationProcessClass() };
 
         foreach (var node in nodes) {
             var calls = 0;
@@ -118,7 +116,7 @@ public partial class NodeEventsSourceGeneratorTests : Node {
 
     [TestRunner.Test]
     public async Task IsProcessingEnabledTest() {
-        var nodes = new Node[] { new NotificationClass(), new PloterOuter.NotificationProcessClass(), new Outer.ProcessClass() };
+        var nodes = new Node[] { new NotificationClass(), new PloterOuter.MoreOuter.NotificationProcessClass(), new Outer.ProcessClass() };
 
         foreach (var node in nodes) {
             AddChild(node);
@@ -136,7 +134,7 @@ public partial class NodeEventsSourceGeneratorTests : Node {
 
     [TestRunner.Test]
     public async Task IsPhysicsProcessingEnabledTest() {
-        var nodes = new Node[] { new NotificationClass(), new PloterOuter.NotificationProcessClass(), new Outer.ProcessClass() };
+        var nodes = new Node[] { new NotificationClass(), new PloterOuter.MoreOuter.NotificationProcessClass(), new Outer.ProcessClass() };
 
         foreach (var node in nodes) {
             AddChild(node);

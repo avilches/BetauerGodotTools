@@ -56,6 +56,7 @@ help:
 clean:
 	rm -rf "${ROOT_FOLDER}/.mono"
 	rm -rf "${ROOT_FOLDER}/.godot/mono"
+	dotnet clean DemoGame4.sln
 	
 .PHONY: import
 import:

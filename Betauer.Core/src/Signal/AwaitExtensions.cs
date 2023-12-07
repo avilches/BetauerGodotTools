@@ -7,8 +7,8 @@ using Range = Godot.Range;
 namespace Betauer.Core.Signal;
 
 /**
- * Godot version: 4.1.1-stable (official)
- * Date: 2023-12-05 01:17:54
+ * Godot version: 4.2-stable (official)
+ * Date: 2023-12-07 09:47:30
  */
 public static partial class AwaitExtensions {
   
@@ -148,6 +148,54 @@ public static partial class AwaitExtensions {
         return awaiter;
     }
 
+    public static SignalAwaiter AwaitAnimationFinished(this AnimationMixer target, Action<StringName>? onComplete = null) {
+        var awaiter = target.ToSignal(target, AnimationMixer.SignalName.AnimationFinished);
+        if (onComplete != null) {
+            awaiter.OnCompleted(() => onComplete(awaiter.GetResult()[0].As<StringName>()));
+        }
+        return awaiter;
+    }
+
+    public static SignalAwaiter AwaitAnimationLibrariesUpdated(this AnimationMixer target, Action? onComplete = null) {
+        var awaiter = target.ToSignal(target, AnimationMixer.SignalName.AnimationLibrariesUpdated);
+        if (onComplete != null) {
+            awaiter.OnCompleted(onComplete);
+        }
+        return awaiter;
+    }
+
+    public static SignalAwaiter AwaitAnimationListChanged(this AnimationMixer target, Action? onComplete = null) {
+        var awaiter = target.ToSignal(target, AnimationMixer.SignalName.AnimationListChanged);
+        if (onComplete != null) {
+            awaiter.OnCompleted(onComplete);
+        }
+        return awaiter;
+    }
+
+    public static SignalAwaiter AwaitAnimationStarted(this AnimationMixer target, Action<StringName>? onComplete = null) {
+        var awaiter = target.ToSignal(target, AnimationMixer.SignalName.AnimationStarted);
+        if (onComplete != null) {
+            awaiter.OnCompleted(() => onComplete(awaiter.GetResult()[0].As<StringName>()));
+        }
+        return awaiter;
+    }
+
+    public static SignalAwaiter AwaitCachesCleared(this AnimationMixer target, Action? onComplete = null) {
+        var awaiter = target.ToSignal(target, AnimationMixer.SignalName.CachesCleared);
+        if (onComplete != null) {
+            awaiter.OnCompleted(onComplete);
+        }
+        return awaiter;
+    }
+
+    public static SignalAwaiter AwaitMixerUpdated(this AnimationMixer target, Action? onComplete = null) {
+        var awaiter = target.ToSignal(target, AnimationMixer.SignalName.MixerUpdated);
+        if (onComplete != null) {
+            awaiter.OnCompleted(onComplete);
+        }
+        return awaiter;
+    }
+
     public static SignalAwaiter AwaitAnimationNodeRemoved(this AnimationNode target, Action<long, string>? onComplete = null) {
         var awaiter = target.ToSignal(target, AnimationNode.SignalName.AnimationNodeRemoved);
         if (onComplete != null) {
@@ -204,50 +252,10 @@ public static partial class AwaitExtensions {
         return awaiter;
     }
 
-    public static SignalAwaiter AwaitAnimationFinished(this AnimationPlayer target, Action<StringName>? onComplete = null) {
-        var awaiter = target.ToSignal(target, AnimationPlayer.SignalName.AnimationFinished);
+    public static SignalAwaiter AwaitCurrentAnimationChanged(this AnimationPlayer target, Action<string>? onComplete = null) {
+        var awaiter = target.ToSignal(target, AnimationPlayer.SignalName.CurrentAnimationChanged);
         if (onComplete != null) {
-            awaiter.OnCompleted(() => onComplete(awaiter.GetResult()[0].As<StringName>()));
-        }
-        return awaiter;
-    }
-
-    public static SignalAwaiter AwaitAnimationLibrariesUpdated(this AnimationPlayer target, Action? onComplete = null) {
-        var awaiter = target.ToSignal(target, AnimationPlayer.SignalName.AnimationLibrariesUpdated);
-        if (onComplete != null) {
-            awaiter.OnCompleted(onComplete);
-        }
-        return awaiter;
-    }
-
-    public static SignalAwaiter AwaitAnimationListChanged(this AnimationPlayer target, Action? onComplete = null) {
-        var awaiter = target.ToSignal(target, AnimationPlayer.SignalName.AnimationListChanged);
-        if (onComplete != null) {
-            awaiter.OnCompleted(onComplete);
-        }
-        return awaiter;
-    }
-
-    public static SignalAwaiter AwaitAnimationStarted(this AnimationPlayer target, Action<StringName>? onComplete = null) {
-        var awaiter = target.ToSignal(target, AnimationPlayer.SignalName.AnimationStarted);
-        if (onComplete != null) {
-            awaiter.OnCompleted(() => onComplete(awaiter.GetResult()[0].As<StringName>()));
-        }
-        return awaiter;
-    }
-
-    public static SignalAwaiter AwaitCachesCleared(this AnimationPlayer target, Action? onComplete = null) {
-        var awaiter = target.ToSignal(target, AnimationPlayer.SignalName.CachesCleared);
-        if (onComplete != null) {
-            awaiter.OnCompleted(onComplete);
-        }
-        return awaiter;
-    }
-
-    public static SignalAwaiter AwaitAnimationFinished(this AnimationTree target, Action<StringName>? onComplete = null) {
-        var awaiter = target.ToSignal(target, AnimationTree.SignalName.AnimationFinished);
-        if (onComplete != null) {
-            awaiter.OnCompleted(() => onComplete(awaiter.GetResult()[0].As<StringName>()));
+            awaiter.OnCompleted(() => onComplete(awaiter.GetResult()[0].As<string>()));
         }
         return awaiter;
     }
@@ -256,14 +264,6 @@ public static partial class AwaitExtensions {
         var awaiter = target.ToSignal(target, AnimationTree.SignalName.AnimationPlayerChanged);
         if (onComplete != null) {
             awaiter.OnCompleted(onComplete);
-        }
-        return awaiter;
-    }
-
-    public static SignalAwaiter AwaitAnimationStarted(this AnimationTree target, Action<StringName>? onComplete = null) {
-        var awaiter = target.ToSignal(target, AnimationTree.SignalName.AnimationStarted);
-        if (onComplete != null) {
-            awaiter.OnCompleted(() => onComplete(awaiter.GetResult()[0].As<StringName>()));
         }
         return awaiter;
     }
@@ -400,6 +400,14 @@ public static partial class AwaitExtensions {
         var awaiter = AudioServer.Singleton.ToSignal(AudioServer.Singleton, AudioServer.SignalName.BusLayoutChanged);
         if (onComplete != null) {
             awaiter.OnCompleted(onComplete);
+        }
+        return awaiter;
+    }
+
+    public static SignalAwaiter AwaitAudioServerBusRenamed(Action<long, StringName, StringName>? onComplete = null) {
+        var awaiter = AudioServer.Singleton.ToSignal(AudioServer.Singleton, AudioServer.SignalName.BusRenamed);
+        if (onComplete != null) {
+            awaiter.OnCompleted(() => onComplete(awaiter.GetResult()[0].As<long>(), awaiter.GetResult()[1].As<StringName>(), awaiter.GetResult()[2].As<StringName>()));
         }
         return awaiter;
     }
@@ -804,6 +812,14 @@ public static partial class AwaitExtensions {
         return awaiter;
     }
 
+    public static SignalAwaiter AwaitGDExtensionManagerExtensionsReloaded(Action? onComplete = null) {
+        var awaiter = GDExtensionManager.Singleton.ToSignal(GDExtensionManager.Singleton, GDExtensionManager.SignalName.ExtensionsReloaded);
+        if (onComplete != null) {
+            awaiter.OnCompleted(onComplete);
+        }
+        return awaiter;
+    }
+
     public static SignalAwaiter AwaitBeginNodeMove(this GraphEdit target, Action? onComplete = null) {
         var awaiter = target.ToSignal(target, GraphEdit.SignalName.BeginNodeMove);
         if (onComplete != null) {
@@ -932,56 +948,56 @@ public static partial class AwaitExtensions {
         return awaiter;
     }
 
-    public static SignalAwaiter AwaitCloseRequest(this GraphNode target, Action? onComplete = null) {
-        var awaiter = target.ToSignal(target, GraphNode.SignalName.CloseRequest);
+    public static SignalAwaiter AwaitDeleteRequest(this GraphElement target, Action? onComplete = null) {
+        var awaiter = target.ToSignal(target, GraphElement.SignalName.DeleteRequest);
         if (onComplete != null) {
             awaiter.OnCompleted(onComplete);
         }
         return awaiter;
     }
 
-    public static SignalAwaiter AwaitDragged(this GraphNode target, Action<Vector2, Vector2>? onComplete = null) {
-        var awaiter = target.ToSignal(target, GraphNode.SignalName.Dragged);
+    public static SignalAwaiter AwaitDragged(this GraphElement target, Action<Vector2, Vector2>? onComplete = null) {
+        var awaiter = target.ToSignal(target, GraphElement.SignalName.Dragged);
         if (onComplete != null) {
             awaiter.OnCompleted(() => onComplete(awaiter.GetResult()[0].As<Vector2>(), awaiter.GetResult()[1].As<Vector2>()));
         }
         return awaiter;
     }
 
-    public static SignalAwaiter AwaitNodeDeselected(this GraphNode target, Action? onComplete = null) {
-        var awaiter = target.ToSignal(target, GraphNode.SignalName.NodeDeselected);
+    public static SignalAwaiter AwaitNodeDeselected(this GraphElement target, Action? onComplete = null) {
+        var awaiter = target.ToSignal(target, GraphElement.SignalName.NodeDeselected);
         if (onComplete != null) {
             awaiter.OnCompleted(onComplete);
         }
         return awaiter;
     }
 
-    public static SignalAwaiter AwaitNodeSelected(this GraphNode target, Action? onComplete = null) {
-        var awaiter = target.ToSignal(target, GraphNode.SignalName.NodeSelected);
+    public static SignalAwaiter AwaitNodeSelected(this GraphElement target, Action? onComplete = null) {
+        var awaiter = target.ToSignal(target, GraphElement.SignalName.NodeSelected);
         if (onComplete != null) {
             awaiter.OnCompleted(onComplete);
         }
         return awaiter;
     }
 
-    public static SignalAwaiter AwaitPositionOffsetChanged(this GraphNode target, Action? onComplete = null) {
-        var awaiter = target.ToSignal(target, GraphNode.SignalName.PositionOffsetChanged);
+    public static SignalAwaiter AwaitPositionOffsetChanged(this GraphElement target, Action? onComplete = null) {
+        var awaiter = target.ToSignal(target, GraphElement.SignalName.PositionOffsetChanged);
         if (onComplete != null) {
             awaiter.OnCompleted(onComplete);
         }
         return awaiter;
     }
 
-    public static SignalAwaiter AwaitRaiseRequest(this GraphNode target, Action? onComplete = null) {
-        var awaiter = target.ToSignal(target, GraphNode.SignalName.RaiseRequest);
+    public static SignalAwaiter AwaitRaiseRequest(this GraphElement target, Action? onComplete = null) {
+        var awaiter = target.ToSignal(target, GraphElement.SignalName.RaiseRequest);
         if (onComplete != null) {
             awaiter.OnCompleted(onComplete);
         }
         return awaiter;
     }
 
-    public static SignalAwaiter AwaitResizeRequest(this GraphNode target, Action<Vector2>? onComplete = null) {
-        var awaiter = target.ToSignal(target, GraphNode.SignalName.ResizeRequest);
+    public static SignalAwaiter AwaitResizeRequest(this GraphElement target, Action<Vector2>? onComplete = null) {
+        var awaiter = target.ToSignal(target, GraphElement.SignalName.ResizeRequest);
         if (onComplete != null) {
             awaiter.OnCompleted(() => onComplete(awaiter.GetResult()[0].As<Vector2>()));
         }
@@ -1000,6 +1016,14 @@ public static partial class AwaitExtensions {
         var awaiter = target.ToSignal(target, GridMap.SignalName.CellSizeChanged);
         if (onComplete != null) {
             awaiter.OnCompleted(() => onComplete(awaiter.GetResult()[0].As<Vector3>()));
+        }
+        return awaiter;
+    }
+
+    public static SignalAwaiter AwaitChanged(this GridMap target, Action? onComplete = null) {
+        var awaiter = target.ToSignal(target, GridMap.SignalName.Changed);
+        if (onComplete != null) {
+            awaiter.OnCompleted(onComplete);
         }
         return awaiter;
     }
@@ -1268,6 +1292,22 @@ public static partial class AwaitExtensions {
         return awaiter;
     }
 
+    public static SignalAwaiter AwaitBakeFinished(this NavigationRegion2D target, Action? onComplete = null) {
+        var awaiter = target.ToSignal(target, NavigationRegion2D.SignalName.BakeFinished);
+        if (onComplete != null) {
+            awaiter.OnCompleted(onComplete);
+        }
+        return awaiter;
+    }
+
+    public static SignalAwaiter AwaitNavigationPolygonChanged(this NavigationRegion2D target, Action? onComplete = null) {
+        var awaiter = target.ToSignal(target, NavigationRegion2D.SignalName.NavigationPolygonChanged);
+        if (onComplete != null) {
+            awaiter.OnCompleted(onComplete);
+        }
+        return awaiter;
+    }
+
     public static SignalAwaiter AwaitBakeFinished(this NavigationRegion3D target, Action? onComplete = null) {
         var awaiter = target.ToSignal(target, NavigationRegion3D.SignalName.BakeFinished);
         if (onComplete != null) {
@@ -1412,6 +1452,46 @@ public static partial class AwaitExtensions {
         return awaiter;
     }
 
+    public static SignalAwaiter AwaitPoseRecentered(this OpenXRInterface target, Action? onComplete = null) {
+        var awaiter = target.ToSignal(target, OpenXRInterface.SignalName.PoseRecentered);
+        if (onComplete != null) {
+            awaiter.OnCompleted(onComplete);
+        }
+        return awaiter;
+    }
+
+    public static SignalAwaiter AwaitSessionBegun(this OpenXRInterface target, Action? onComplete = null) {
+        var awaiter = target.ToSignal(target, OpenXRInterface.SignalName.SessionBegun);
+        if (onComplete != null) {
+            awaiter.OnCompleted(onComplete);
+        }
+        return awaiter;
+    }
+
+    public static SignalAwaiter AwaitSessionFocussed(this OpenXRInterface target, Action? onComplete = null) {
+        var awaiter = target.ToSignal(target, OpenXRInterface.SignalName.SessionFocussed);
+        if (onComplete != null) {
+            awaiter.OnCompleted(onComplete);
+        }
+        return awaiter;
+    }
+
+    public static SignalAwaiter AwaitSessionStopping(this OpenXRInterface target, Action? onComplete = null) {
+        var awaiter = target.ToSignal(target, OpenXRInterface.SignalName.SessionStopping);
+        if (onComplete != null) {
+            awaiter.OnCompleted(onComplete);
+        }
+        return awaiter;
+    }
+
+    public static SignalAwaiter AwaitSessionVisible(this OpenXRInterface target, Action? onComplete = null) {
+        var awaiter = target.ToSignal(target, OpenXRInterface.SignalName.SessionVisible);
+        if (onComplete != null) {
+            awaiter.OnCompleted(onComplete);
+        }
+        return awaiter;
+    }
+
     public static SignalAwaiter AwaitItemFocused(this OptionButton target, Action<long>? onComplete = null) {
         var awaiter = target.ToSignal(target, OptionButton.SignalName.ItemFocused);
         if (onComplete != null) {
@@ -1470,6 +1550,14 @@ public static partial class AwaitExtensions {
 
     public static SignalAwaiter AwaitMenuChanged(this PopupMenu target, Action? onComplete = null) {
         var awaiter = target.ToSignal(target, PopupMenu.SignalName.MenuChanged);
+        if (onComplete != null) {
+            awaiter.OnCompleted(onComplete);
+        }
+        return awaiter;
+    }
+
+    public static SignalAwaiter AwaitProjectSettingsSettingsChanged(Action? onComplete = null) {
+        var awaiter = ProjectSettings.Singleton.ToSignal(ProjectSettings.Singleton, ProjectSettings.SignalName.SettingsChanged);
         if (onComplete != null) {
             awaiter.OnCompleted(onComplete);
         }
@@ -2572,6 +2660,14 @@ public static partial class AwaitExtensions {
         return awaiter;
     }
 
+    public static SignalAwaiter AwaitTrackingChanged(this XRNode3D target, Action<bool>? onComplete = null) {
+        var awaiter = target.ToSignal(target, XRNode3D.SignalName.TrackingChanged);
+        if (onComplete != null) {
+            awaiter.OnCompleted(() => onComplete(awaiter.GetResult()[0].As<bool>()));
+        }
+        return awaiter;
+    }
+
     public static SignalAwaiter AwaitButtonPressed(this XRPositionalTracker target, Action<string>? onComplete = null) {
         var awaiter = target.ToSignal(target, XRPositionalTracker.SignalName.ButtonPressed);
         if (onComplete != null) {
@@ -2606,6 +2702,14 @@ public static partial class AwaitExtensions {
 
     public static SignalAwaiter AwaitPoseChanged(this XRPositionalTracker target, Action<XRPose>? onComplete = null) {
         var awaiter = target.ToSignal(target, XRPositionalTracker.SignalName.PoseChanged);
+        if (onComplete != null) {
+            awaiter.OnCompleted(() => onComplete(awaiter.GetResult()[0].As<XRPose>()));
+        }
+        return awaiter;
+    }
+
+    public static SignalAwaiter AwaitPoseLostTracking(this XRPositionalTracker target, Action<XRPose>? onComplete = null) {
+        var awaiter = target.ToSignal(target, XRPositionalTracker.SignalName.PoseLostTracking);
         if (onComplete != null) {
             awaiter.OnCompleted(() => onComplete(awaiter.GetResult()[0].As<XRPose>()));
         }

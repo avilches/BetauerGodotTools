@@ -77,10 +77,6 @@ public interface INotificationEvent : IProcessEvent, IPhysicsProcessEvent {
     /// </summary>
     public event Action OnEnabled;
     /// <summary>
-    /// <para>Event called when other nodes in the tree may have been removed/replaced and node pointers may require re-caching.</para>
-    /// </summary>
-    public event Action OnNodeRecacheRequested;
-    /// <summary>
     /// <para>Event called right before the scene with the node is saved in the editor. This notification is only sent in the Godot editor and will not occur in exported projects.</para>
     /// </summary>
     public event Action OnEditorPreSave;
