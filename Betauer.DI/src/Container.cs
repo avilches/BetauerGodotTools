@@ -18,8 +18,8 @@ public partial class Container {
     private readonly List<IProvider> _providers = new();
     private readonly Injector _injector;
     public bool CreateIfNotFound { get; set; }
-    public event Action<Lifetime, object> OnCreated;
-    public event Action<object> OnPostInject;
+    public event Action<ProviderResolved> OnCreated;
+    public event Action<object>? OnPostInject;
 
     private readonly BasicPool<ResolveContext> _resolveContextPool;
     private ResolveContext GetResolveContext() => _resolveContextPool.Get();
@@ -37,7 +37,6 @@ public partial class Container {
     private ResolveContext CreateResolveContext() {
         ResolveContext? context = null;
         context = new ResolveContext(this, () => {
-            context!.Clear();
             _resolveContextPool!.Return(context);
         });
         return context;
@@ -181,8 +180,8 @@ public partial class Container {
     public T ResolveOr<T>(Func<T> or) => TryResolve(typeof(T), out var instance) ? (T)instance : or();
     public T ResolveOr<T>(string name, Func<T> or) => TryResolve(name, out T instance) ? instance : or();
 
-    internal void ExecuteOnCreated(Lifetime lifetime, object instance) {
-        OnCreated?.Invoke(lifetime, instance);
+    internal void ExecuteOnCreated(ProviderResolved providerResolved) {
+        OnCreated?.Invoke(providerResolved);
     }
 
     internal void ExecutePostInjectMethods<T>(T instance) {

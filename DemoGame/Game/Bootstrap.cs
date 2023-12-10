@@ -5,32 +5,51 @@ using Betauer.Application.Monitor;
 using Betauer.Application.Screen;
 using Betauer.Camera;
 using Betauer.Core.Restorer;
-using Betauer.DI.Attributes;
 using Betauer.DI.ServiceProvider;
 using Betauer.FSM;
+using Betauer.NodePath;
 using Betauer.Nodes;
 using Betauer.Tools.Logging;
 using Godot;
 using PropertyTweener = Betauer.Animation.PropertyTweener;
+using Container = Betauer.DI.Container;
 
-namespace Veronenger.Game; 
+namespace Veronenger.Game;
 
 public partial class Bootstrap : Node /* needed to be instantiated as an Autoload from Godot */ {
 	private static readonly Logger Logger = LoggerFactory.GetLogger<Bootstrap>();
 
-	[Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
-
 	public Bootstrap() {
-		//Logging.SendToScriptDebugger = false;
+		Logging.Configure();
+	}
+
+	public override void _EnterTree() {
+		var sceneTree = GetTree();
+		NodePathScanner.ConfigureAutoInject(sceneTree);
+		var container = new Container()
+			.CreateBuilder()
+			.InjectOnEnterTree(sceneTree)
+			.Scan(GetType().Assembly)
+			.Register(Provider.Static(sceneTree, "SceneTree"))
+			.Build();
+		Logger.Info($"Bootstrap time: {Project.Uptime.TotalMilliseconds} ms");
+		NodeManager.MainInstance.Node.OnWMCloseRequest += () => {
+			GD.Print($"[OnWMCloseRequest] Uptime: {Project.Uptime.TotalMinutes:0} min {Project.Uptime.Seconds:00} sec");
+		};
+		container.Resolve<DebugOverlayManager>("DebugOverlayManager").DebugConsole.AddAllCommands();
+		QueueFree();
+	}
+}
+
+file static class Logging {
+
+	public static void Configure() {
 		AppTools.AddLogOnException();
 		AppTools.AddQuitGameOnException();
 
 		// new Task(() => throw new Exception()).Start();
 		// new Thread(() => throw new Exception()).Start();
 		// throw new Exception("Xxxxx");
-
-
-		new GodotContainer(this).Start(options => options.Scan(GetType().Assembly));
 
 #if DEBUG
 		DevelopmentConfig();
@@ -52,15 +71,6 @@ public partial class Bootstrap : Node /* needed to be instantiated as an Autoloa
 			"application/config/project_settings_override",
 			"application/config/version"
 		)));
-	}
-
-	public override void _Ready() {
-		CallDeferred("set_name", nameof(Bootstrap)); // This name is shown in the remote editor
-		Logger.Info($"Bootstrap time: {Project.Uptime.TotalMilliseconds} ms");
-		NodeManager.MainInstance.Node.OnWMCloseRequest += () => {
-			GD.Print($"[OnWMCloseRequest] Uptime: {Project.Uptime.TotalMinutes:0} min {Project.Uptime.Seconds:00} sec");
-		};
-		DebugOverlayManager.DebugConsole.AddAllCommands();
 	}
 
 	private static void ExportConfig() {

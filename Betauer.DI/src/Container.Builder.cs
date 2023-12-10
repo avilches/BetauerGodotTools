@@ -9,29 +9,23 @@ namespace Betauer.DI;
 
 public partial class Container {
     public partial class Builder {
-        private readonly List<IProvider> _pendingToBuild = new();
-        private readonly Container _container;
+        public Container Container { get; }
+
+        private readonly List<IProvider> _providers = new();
         private readonly Scanner _scanner;
     
         public Builder(Container container) {
-            _container = container;
-            _scanner = new Scanner(this, _container);
+            Container = container;
+            _scanner = new Scanner(this, Container);
         }
     
         public Builder() {
-            _container = new Container();
-            _scanner = new Scanner(this, _container);
+            Container = new Container();
+            _scanner = new Scanner(this, Container);
         }
-    
-        public Container Build() {
-            var toBuild = new List<IProvider>(_pendingToBuild);
-            _pendingToBuild.Clear();
-            _container.Build(toBuild);
-            return _container;
-        }
-    
+
         public Builder Register(IProvider provider) {
-            _pendingToBuild.Add(provider);
+            _providers.Add(provider);
             return this;
         }
 
@@ -39,20 +33,20 @@ public partial class Container {
             assemblies.ForEach(assembly => Scan(assembly, predicate));
             return this;
         }
-    
+
         public Builder Scan(Assembly assembly, Func<Type, bool>? predicate = null) {
             Scan(assembly.GetTypes(), predicate);
             return this;
         }
-    
+
         public Builder Scan(IEnumerable<Type> types, Func<Type, bool>? predicate = null) {
             if (predicate != null) types = types.Where(predicate);
             types.ForEach(type => Scan(type));
             return this;
         }
-    
+
         public Builder Scan<T>() => Scan(typeof(T));
-    
+
         public Builder Scan(Type type) {
             _scanner.Scan(type, null);
             return this;
@@ -63,6 +57,13 @@ public partial class Container {
                 _scanner.ScanConfiguration(configuration);
             }
             return this;
+        }
+
+        public Container Build() {
+            var toBuild = new List<IProvider>(_providers);
+            _providers.Clear();
+            Container.Build(toBuild);
+            return Container;
         }
     }
 }

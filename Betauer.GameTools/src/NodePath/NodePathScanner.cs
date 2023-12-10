@@ -9,7 +9,7 @@ using Godot;
 
 namespace Betauer.NodePath; 
 
-public class NodePathScanner {
+public static class NodePathScanner {
 
     private static readonly StringName MetaInjected = "__node_path_injected";
 
@@ -82,5 +82,4 @@ public class NodePathScanner {
                 $"Path returns an incompatible type {node.GetType().Name} for field {FieldInfo()}, class {target.GetType().Name}");
         }
     }
-        
 }

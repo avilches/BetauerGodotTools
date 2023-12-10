@@ -656,11 +656,11 @@ public class ScannerBasicTests : Node {
         var singletons = new List<object>();
         var transients = new List<object>();
         var c = new Container();
-        c.OnCreated += (lifetime, instance) => {
-            if (lifetime == Lifetime.Singleton) {
-                singletons.Add(instance);
+        c.OnCreated += (providerResolved) => {
+            if (providerResolved.Lifetime == Lifetime.Singleton) {
+                singletons.Add(providerResolved.Instance);
             } else {
-                transients.Add(instance);
+                transients.Add(providerResolved.Instance);
             }
         };
 

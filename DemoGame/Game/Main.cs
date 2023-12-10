@@ -53,7 +53,7 @@ public interface IMain {
     public void Send(MainEvent e, int weight = 0);
 }
 
-[Singleton<IMain>]
+[Singleton<IMain>(Flags = "AddToTree")]
 public partial class Main : FsmNodeAsync<MainState, MainEvent>, IMain, IInjectable {
 
     [Inject] private ILazy<MainMenu> MainMenuSceneLazy { get; set; }

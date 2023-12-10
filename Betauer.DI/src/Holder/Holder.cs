@@ -22,20 +22,19 @@ public class Holder {
 }
 
 public abstract class Holder<T> : Holder, IMutableHolder<T> where T : class {
-
-    protected T? Instance;
+    private T? _instance;
     protected abstract T CreateValue();
 
     public T Get() {
-        Instance ??= CreateValue();
-        return Instance;
+        _instance ??= CreateValue();
+        return _instance;
     }
 
     public void Clear() {
-        Instance = null!;
+        _instance = null!;
     }
     
     public bool HasValue() {
-        return Instance != null;
+        return _instance != null;
     }
 }

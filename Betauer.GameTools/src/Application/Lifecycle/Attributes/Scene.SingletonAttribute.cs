@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Betauer.Core;
 using Betauer.DI.Attributes;
 using Betauer.DI.Exceptions;
@@ -12,9 +13,10 @@ namespace Betauer.Application.Lifecycle.Attributes;
 public static partial class Scene {
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     public class SingletonAttribute<T> : Attribute, IConfigurationClassAttribute where T : Node {
-        public string Name { get; set; }
-        public string Path { get; set; }
-        public string? Tag { get; set; }
+        public string Name { get; init; }
+        public string Path { get; init; }
+        public string? Tag { get; init; }
+        public string? Flags { get; init; }
 
         public SingletonAttribute(string name) {
             Name = name;
@@ -35,7 +37,7 @@ public static partial class Scene {
                 var sceneFactory = new SceneFactory<T>(Path, Tag ?? loaderConfiguration.Tag);
                 sceneFactory.PreInject(loaderConfiguration.Name);
                 return sceneFactory;
-            }, Name);
+            }, Name, Flags?.Split(",").ToDictionary(valor => valor, _ => (object)true));
         }
     }
 }

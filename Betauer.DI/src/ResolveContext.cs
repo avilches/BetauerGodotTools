@@ -3,61 +3,62 @@ using System.Collections.Generic;
 using Betauer.DI.Exceptions;
 using Betauer.DI.ServiceProvider;
 
-namespace Betauer.DI; 
+namespace Betauer.DI;
 
 public class ResolveContext {
-    internal readonly Dictionary<(Type, string?), object> NewSingletonsCreated = new();
-    internal readonly List<object> NewTransientsCreated = new();
-    internal readonly Stack<Type> TransientNameStack = new();
-    internal readonly Container Container;
-
+    private readonly Dictionary<Provider, ProviderResolved> _newSingletonsCreated = new();
+    private readonly List<ProviderResolved> _newTransientsCreated = new();
+    private readonly Stack<Type> _transientNameStack = new();
     private readonly Action? _onEnd;
+
+    internal Container Container { get; }
 
     public ResolveContext(Container container, Action? onEnd = null) {
         Container = container;
         _onEnd = onEnd;
     }
 
-    internal bool TryGetSingletonFromCache(Type type, string? name, out object? instanceFound) {
-        var key = name ?? type.FullName;
-        return NewSingletonsCreated.TryGetValue((type, name), out instanceFound);
+    internal bool TryGetSingletonFromCache(Provider provider, out object? instanceFound) {
+        if (_newSingletonsCreated.TryGetValue(provider, out var resolved)) {
+            instanceFound = resolved.Instance;
+            return true;
+        }
+        instanceFound = null;
+        return false;
     }
 
-    internal void AddSingleton(Type type, string? name, object instance) {
-        NewSingletonsCreated[(type, name)] = instance;
+    internal void AddSingleton(Provider provider, object instance) {
+        _newSingletonsCreated[provider] = new ProviderResolved(provider, instance);
     }
 
     // This stack avoid circular dependencies between transients
     internal void TryStartTransient(Type type, string? name) {
-        if (TransientNameStack.Contains(type)) {
-            throw new CircularDependencyException(string.Join("\n", TransientNameStack));
+        if (_transientNameStack.Contains(type)) {
+            throw new CircularDependencyException(string.Join("\n", _transientNameStack));
         }
-        TransientNameStack.Push(type);
+        _transientNameStack.Push(type);
     }
 
-    internal void PushTransient(object instance) {
-        NewTransientsCreated.Add(instance);
+    internal void PushTransient(Provider provider, object instance) {
+        _newTransientsCreated.Add(new ProviderResolved(provider, instance));
     }
 
     internal void PopTransient() {
-        TransientNameStack.Pop();
+        _transientNameStack.Pop();
     }
 
     internal void End() {
-        foreach (var instance in NewSingletonsCreated.Values) {
-            Container.ExecutePostInjectMethods(instance);
-            Container.ExecuteOnCreated(Lifetime.Singleton, instance);
+        foreach (var providerResolved in _newSingletonsCreated.Values) {
+            Container.ExecutePostInjectMethods(providerResolved.Instance);
+            Container.ExecuteOnCreated(providerResolved);
         }
-        foreach (var instance in NewTransientsCreated) {
-            Container.ExecutePostInjectMethods(instance);
-            Container.ExecuteOnCreated(Lifetime.Transient, instance);
+        foreach (var providerResolved in _newTransientsCreated) {
+            Container.ExecutePostInjectMethods(providerResolved.Instance);
+            Container.ExecuteOnCreated(providerResolved);
         }
+        _newSingletonsCreated.Clear();
+        _newTransientsCreated.Clear();
+        _transientNameStack.Clear();
         _onEnd?.Invoke();
-    }
-
-    public void Clear() {
-        NewSingletonsCreated.Clear();
-        NewTransientsCreated.Clear();
-        TransientNameStack.Clear();
     }
 }

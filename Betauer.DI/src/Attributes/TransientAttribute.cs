@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Betauer.DI.ServiceProvider;
 using Betauer.Tools.FastReflection;
 
@@ -7,6 +8,7 @@ namespace Betauer.DI.Attributes;
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method | AttributeTargets.Property)]
 public class TransientAttribute : Attribute, IClassAttribute, IConfigurationMemberAttribute {
     public string? Name { get; set; }
+    public string? Flags { get; set; }
 
     
     public TransientAttribute() {
@@ -23,7 +25,8 @@ public class TransientAttribute : Attribute, IClassAttribute, IConfigurationMemb
             Lifetime.Transient,
             () => Activator.CreateInstance(type)!,
             Name,
-            true); // lazy flag is ignored in transient services
+            true, // lazy flag is ignored in transient services
+        Flags?.Split(",").ToDictionary(valor => valor, _ => (object)true));
         builder.Register(provider);
         builder.RegisterFactory(provider);
     }
@@ -35,7 +38,8 @@ public class TransientAttribute : Attribute, IClassAttribute, IConfigurationMemb
             Lifetime.Transient,
             () => getter.GetValue(configuration)!,
             Name ?? getter.Name,
-            true); // lazy flag is ignored in transient services
+            true, // lazy flag is ignored in transient services
+            Flags?.Split(",").ToDictionary(valor => valor, _ => (object)true));
         builder.Register(provider);
         builder.RegisterFactory(provider);
     }

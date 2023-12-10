@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Betauer.DI.ServiceProvider;
 using Betauer.Tools.FastReflection;
 
@@ -8,6 +9,7 @@ namespace Betauer.DI.Attributes;
 public class SingletonAttribute : Attribute, IClassAttribute, IConfigurationMemberAttribute {
     public string? Name { get; set; }
     public bool Lazy { get; set; } = false;
+    public string? Flags { get; set; }
 
     public SingletonAttribute() {
     }
@@ -23,7 +25,8 @@ public class SingletonAttribute : Attribute, IClassAttribute, IConfigurationMemb
             Lifetime.Singleton,
             () => Activator.CreateInstance(type)!,
             Name,
-            Lazy);
+            Lazy,
+            Flags?.Split(",").ToDictionary(valor => valor, _ => (object)true));
         builder.Register(provider);
         builder.RegisterFactory(provider);
     }
@@ -35,7 +38,8 @@ public class SingletonAttribute : Attribute, IClassAttribute, IConfigurationMemb
             Lifetime.Singleton,
             () => getter.GetValue(configuration)!,
             Name ?? getter.Name,
-            Lazy);
+            Lazy,
+            Flags?.Split(",").ToDictionary(valor => valor, _ => (object)true));
         builder.Register(provider);
         builder.RegisterFactory(provider);
     }
