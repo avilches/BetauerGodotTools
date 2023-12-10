@@ -150,7 +150,7 @@ public partial class Container {
             return true;
         }
         if (CreateIfNotFound) {
-            AddToRegistry(Provider.Create(type, type, Lifetime.Transient, null));
+            AddToRegistry(new TransientFactoryProvider(type, type));
             // ReSharper disable once TailRecursiveCall
             return TryResolve(type, out instance);
         }
@@ -219,7 +219,7 @@ public partial class Container {
             return provider!.Resolve(context);
         }
         if (CreateIfNotFound) {
-            AddToRegistry(Provider.Create(type, type, Lifetime.Transient));
+            AddToRegistry(new TransientFactoryProvider(type, type));
             // ReSharper disable once TailRecursiveCall
             return Resolve(type, context);
         }

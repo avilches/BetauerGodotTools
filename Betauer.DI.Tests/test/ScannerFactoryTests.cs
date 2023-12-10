@@ -97,7 +97,7 @@ public class ScannerFactoryTests : Node {
         var c = new Container();
         var di = c.CreateBuilder();
         var x = 0;
-        var provider = Provider.Create<Node, Node>(Lifetime.Singleton, () => {
+        var provider = Provider.Singleton<Node, Node>( () => {
             x++;
             return new Node { Name = "L" };
         }, null, false);
@@ -115,7 +115,7 @@ public class ScannerFactoryTests : Node {
         var c = new Container();
         var di = c.CreateBuilder();
         var x = 0;
-        var provider = Provider.Create<Node, Node>(Lifetime.Singleton, () => {
+        var provider = Provider.Singleton<Node, Node>( () => {
             x++;
             return new Node { Name = "L" };
         }, null, true);
@@ -135,7 +135,7 @@ public class ScannerFactoryTests : Node {
         var c = new Container();
         var di = c.CreateBuilder();
         var x = 0;
-        var provider = Provider.Create<Node, Node>(Lifetime.Singleton, () => {
+        var provider = Provider.Singleton<Node, Node>( () => {
             x++;
             return new Node { Name = "L" };
         }, "X", false);
@@ -153,7 +153,7 @@ public class ScannerFactoryTests : Node {
         var c = new Container();
         var di = c.CreateBuilder();
         var x = 0;
-        var provider = Provider.Create<Node, Node>(Lifetime.Singleton, () => {
+        var provider = Provider.Singleton<Node, Node>(() => {
             x++;
             return new Node { Name = "L" };
         }, "X", true);
@@ -176,7 +176,7 @@ public class ScannerFactoryTests : Node {
         var c = new Container();
         var di = c.CreateBuilder();
         var x = 0;
-        var provider = Provider.Create<Node, Node>(Lifetime.Transient, () => {
+        var provider = Provider.Transient<Node, Node>(() => {
             x++;
             return new Node { Name = "L" };
         });
@@ -195,7 +195,7 @@ public class ScannerFactoryTests : Node {
         var c = new Container();
         var di = c.CreateBuilder();
         var x = 0;
-        var provider = Provider.Create<Node, Node>(Lifetime.Transient, () => {
+        var provider = Provider.Transient<Node, Node>(() => {
             x++;
             return new Node { Name = "L" };
         }, "X");
@@ -462,7 +462,7 @@ public class ScannerFactoryTests : Node {
         Element1Factory.Instances = 0;
         var c = new Container();
         var di = c.CreateBuilder();
-        var provider = Provider.Create<Element, Element>(Lifetime.Transient, () => new Element(0), "E");
+        var provider = Provider.Transient<Element, Element>(() => new Element(0), "E");
         di.Register(provider);
         di.RegisterFactory(provider);
         di.Build();

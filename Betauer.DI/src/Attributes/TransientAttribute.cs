@@ -18,27 +18,22 @@ public class TransientAttribute : Attribute, IClassAttribute, IConfigurationMemb
         Name = name;
     }
 
-    public void CreateProvider(Type type, Container.Builder builder) {
-        var provider = Provider.Create(
+    public virtual void Apply(Type type, Container.Builder builder) {
+        var provider = new TransientFactoryProvider(
             GetType().IsGenericType ? GetType().GetGenericArguments()[0] : type, // Trick to get the <T> from TransientAttribute<T>
             type,
-            Lifetime.Transient,
-            () => Activator.CreateInstance(type)!,
-            Name,
-            true, // lazy flag is ignored in transient services
-        Flags?.Split(",").ToDictionary(valor => valor, _ => (object)true));
+            name: Name,
+            metadata: Flags?.Split(",").ToDictionary(valor => valor, _ => (object)true));
         builder.Register(provider);
         builder.RegisterFactory(provider);
     }
 
-    public void CreateProvider(object configuration, IGetter getter, Container.Builder builder) {
-        var provider = Provider.Create(
+    public virtual void Apply(object configuration, IGetter getter, Container.Builder builder) {
+        var provider = new TransientFactoryProvider(
             GetType().IsGenericType ? GetType().GetGenericArguments()[0] : getter.Type, // Trick to get the <T> from TransientAttribute<T>
             getter.Type,
-            Lifetime.Transient,
             () => getter.GetValue(configuration)!,
             Name ?? getter.Name,
-            true, // lazy flag is ignored in transient services
             Flags?.Split(",").ToDictionary(valor => valor, _ => (object)true));
         builder.Register(provider);
         builder.RegisterFactory(provider);

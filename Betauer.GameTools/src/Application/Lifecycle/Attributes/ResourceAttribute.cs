@@ -20,7 +20,7 @@ public class ResourceAttribute<T> : Attribute, IConfigurationClassAttribute wher
         Path = path;
     }
 
-    public void CreateProvider(object configuration, Container.Builder builder) {
+    public void Apply(object configuration, Container.Builder builder) {
         var loaderConfiguration = configuration.GetType().GetAttribute<LoaderAttribute>();
         if (loaderConfiguration == null) {
             throw new InvalidAttributeException(
@@ -33,7 +33,7 @@ public class ResourceAttribute<T> : Attribute, IConfigurationClassAttribute wher
             return resourceFactory;
         }
 
-        var providerFactory = Provider.Create<ResourceHolder<T>, ResourceHolder<T>>(Lifetime.Singleton, Factory, Name, false);
+        var providerFactory = Provider.Singleton<ResourceHolder<T>, ResourceHolder<T>>(Factory, Name, false);
         builder.Register(providerFactory);
     }
 }

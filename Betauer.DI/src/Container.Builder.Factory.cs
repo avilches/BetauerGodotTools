@@ -22,7 +22,7 @@ public partial class Container {
             var proxyFactoryType = (provider.Lifetime == Lifetime.Singleton ? typeof(ILazy<>) : typeof(ITransient<>)).MakeGenericType(provider.ProviderType);
             var proxyFactoryName = provider.Name == null ? null : $"{FactoryPrefix}{provider.Name}";
             object ProxyFactory() => CreateProxyFactory(provider.ProviderType, provider);
-            var factoryProvider = Provider.Create(proxyFactoryType, proxyFactoryType, Lifetime.Singleton, ProxyFactory, proxyFactoryName, true);
+            var factoryProvider = new SingletonFactoryProvider(proxyFactoryType, proxyFactoryType, ProxyFactory, proxyFactoryName, true);
             return Register(factoryProvider);
         }
 
@@ -126,7 +126,7 @@ public partial class Container {
             // Register the factory as a service allows to the developers to [Inject] services in the factory.
             var factoryName = name == null ? null : $"{InnerFactoryPrefix}{name}";
             var innerFactoryType = typeof(IInnerFactory<>).MakeGenericType(type);
-            var factoryProvider = Provider.Create(innerFactoryType, innerFactoryType, Lifetime.Singleton, factoryFactory, factoryName, false);
+            var factoryProvider = new SingletonFactoryProvider(innerFactoryType, innerFactoryType, factoryFactory, factoryName, false);
             Register(factoryProvider);
     
             // Register the regular instance factory. It's always lazy, this guarantees the factory is fully injected before the first Get()
@@ -136,18 +136,20 @@ public partial class Container {
             // To create instances injecting dependencies
             var providerFactoryWrapper = ProviderFactoryWrapper.CreateFromProvider(type, factoryProvider);
             Func<object> factory = providerFactoryWrapper.Create; // This is just () => factoryProvider.Get().Create()
-            var provider = Provider.Create(type, type, lifetime, factory, name, true, metadata);
+            IProvider provider = lifetime == Lifetime.Singleton
+                ? new SingletonFactoryProvider(type, type, factory, name, true, metadata)
+                : new TransientFactoryProvider(type, type, factory, name, metadata);
             Register(provider);
 
             // Register the proxy factory so users can get the factory and use it to create new instances with dependencies injected
             var proxyFactoryName = name == null ? null : $"{FactoryPrefix}{name}";
             object ProxyFactory() => proxyFactory(provider);
-            var proxyProvider = Provider.Create(proxyFactoryType, proxyFactoryType, Lifetime.Singleton, ProxyFactory, proxyFactoryName, true);
+            var proxyProvider = new SingletonFactoryProvider(proxyFactoryType, proxyFactoryType, ProxyFactory, proxyFactoryName, true);
             Register(proxyProvider);
             
             return this;
         }
-        
+
         /// <summary>
         /// Returns a class that wraps a provider (implementing ITransient<T> or ILazy<T>) so it can be exposed to the users 
         /// </summary>

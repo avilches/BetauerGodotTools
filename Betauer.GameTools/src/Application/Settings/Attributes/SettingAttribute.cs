@@ -26,7 +26,7 @@ public class SettingAttribute<T> : Attribute, IConfigurationClassAttribute {
         SaveAs = saveAs;
     }
 
-    public void CreateProvider(object configuration, Container.Builder builder) {
+    public void Apply(object configuration, Container.Builder builder) {
         var settingConfiguration = configuration.GetType().GetAttribute<SettingsContainerAttribute>();
         if (settingConfiguration == null) {
             throw new InvalidAttributeException(
@@ -42,7 +42,7 @@ public class SettingAttribute<T> : Attribute, IConfigurationClassAttribute {
             return setting;
         }
 
-        var provider = Provider.Create<SaveSetting<T>, SaveSetting<T>>(Lifetime.Singleton, Factory, Name, false);
+        var provider = Provider.Singleton<SaveSetting<T>, SaveSetting<T>>(Factory, Name, false);
         builder.Register(provider);
     }
 }

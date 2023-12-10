@@ -16,9 +16,9 @@ public class PoolContainerAttribute<T> : PoolContainerAttribute, IConfigurationC
         Name = name;
     }
 
-    public void CreateProvider(object configuration, Container.Builder builder) {
+    public void Apply(object configuration, Container.Builder builder) {
         PoolContainer<T> Factory() => new();
-        var provider = Provider.Create<PoolContainer<T>, PoolContainer<T>>(Lifetime.Singleton, Factory, Name, false);
+        var provider = Provider.Singleton<PoolContainer<T>, PoolContainer<T>>(Factory, Name, false);
         builder.Register(provider);
     }
 }

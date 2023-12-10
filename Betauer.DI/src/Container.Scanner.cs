@@ -70,7 +70,7 @@ public partial class Container {
         private void ScanConfigurationAttributes(object configuration, IEnumerable<Attribute> attributes) {
             foreach (var configurationClassAttributes in attributes.OfType<IConfigurationClassAttribute>()) {
                 Logger.Debug($"{(configurationClassAttributes as Attribute).FormatAttribute()} class {configuration.GetType().GetTypeName()}");
-                configurationClassAttributes.CreateProvider(configuration, _builder);
+                configurationClassAttributes.Apply(configuration, _builder);
             }
         }
 
@@ -81,14 +81,14 @@ public partial class Container {
             var configurationMemberAttributes = configuration.GetType().GetGetters<IConfigurationMemberAttribute>(memberFlags, bindingFlags);
             foreach (var getter in configurationMemberAttributes) {
                 Logger.Debug($"class {configuration.GetType().GetTypeName()}: {getter}");
-                getter.GetterAttribute.CreateProvider(configuration, getter, _builder);
+                getter.GetterAttribute.Apply(configuration, getter, _builder);
             }
         }
 
         private void ScanClassHeaderAttributes(Type type, IEnumerable<Attribute> attributes) {
             foreach (var classAttribute in attributes.OfType<IClassAttribute>()) {
                 Logger.Debug($"{(classAttribute as Attribute).FormatAttribute()} class {type.GetTypeName()}");
-                classAttribute.CreateProvider(type, _builder);
+                classAttribute.Apply(type, _builder);
             }
         }
     }

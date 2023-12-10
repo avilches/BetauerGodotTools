@@ -18,9 +18,9 @@ public class PreloadAttribute<T> : Attribute, IConfigurationClassAttribute where
         TypeHint = typeHint;
     }
 
-    public void CreateProvider(object configuration, Container.Builder builder) {
+    public void Apply(object configuration, Container.Builder builder) {
         T Factory() => ResourceLoader.Load<T>(Path, TypeHint);
-        var provider = Provider.Create<T, T>(Lifetime.Singleton, Factory, Name, false);
+        var provider = Provider.Singleton<T, T>(Factory, Name, false);
         builder.Register(provider);
     }
 }

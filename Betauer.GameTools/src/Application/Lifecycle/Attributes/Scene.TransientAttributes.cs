@@ -25,7 +25,7 @@ public static partial class Scene {
             Path = path;
         }
 
-        public void CreateProvider(object configuration, Container.Builder builder) {
+        public void Apply(object configuration, Container.Builder builder) {
             var loaderConfiguration = configuration.GetType().GetAttribute<LoaderAttribute>();
             if (loaderConfiguration == null) {
                 throw new InvalidAttributeException(

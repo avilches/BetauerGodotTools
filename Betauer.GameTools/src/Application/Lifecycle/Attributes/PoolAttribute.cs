@@ -20,7 +20,7 @@ public class PoolAttribute : Attribute, IConfigurationMemberAttribute {
         Name = name;
     }
 
-    public void CreateProvider(object configuration, IGetter getter, Container.Builder builder) {
+    public void Apply(object configuration, IGetter getter, Container.Builder builder) {
         var poolContainerAttribute = configuration.GetType().GetAttribute<PoolContainerAttribute>()!;
         if (poolContainerAttribute == null) {
             throw new InvalidAttributeException(
@@ -32,7 +32,7 @@ public class PoolAttribute : Attribute, IConfigurationMemberAttribute {
             return nodePool;
         };
         var name = Name ?? getter.Name;
-        var provider = Provider.Create(getter.Type, getter.Type, Lifetime.Singleton, factory, name, false);
+        var provider = new SingletonFactoryProvider(getter.Type, getter.Type, factory, name, false);
         builder.Register(provider);
     }
 }

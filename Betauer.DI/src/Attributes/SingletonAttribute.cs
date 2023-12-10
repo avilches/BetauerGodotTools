@@ -18,24 +18,21 @@ public class SingletonAttribute : Attribute, IClassAttribute, IConfigurationMemb
         Name = name;
     }
 
-    public void CreateProvider(Type type, Container.Builder builder) {
-        var provider = Provider.Create(
+    public virtual void Apply(Type type, Container.Builder builder) {
+        var provider = new SingletonFactoryProvider(
             GetType().IsGenericType ? GetType().GetGenericArguments()[0] : type, // Trick to get the <T> from SingletonAttribute<T>
             type,
-            Lifetime.Singleton,
-            () => Activator.CreateInstance(type)!,
-            Name,
-            Lazy,
-            Flags?.Split(",").ToDictionary(valor => valor, _ => (object)true));
+            name: Name,
+            lazy: Lazy,
+            metadata: Flags?.Split(",").ToDictionary(valor => valor, _ => (object)true));
         builder.Register(provider);
         builder.RegisterFactory(provider);
     }
 
-    public void CreateProvider(object configuration, IGetter getter, Container.Builder builder) {
-        var provider = Provider.Create(
+    public virtual void Apply(object configuration, IGetter getter, Container.Builder builder) {
+        var provider = new SingletonFactoryProvider(
             GetType().IsGenericType ? GetType().GetGenericArguments()[0] : getter.Type, // Trick to get the <T> from SingletonAttribute<T>
             getter.Type,
-            Lifetime.Singleton,
             () => getter.GetValue(configuration)!,
             Name ?? getter.Name,
             Lazy,

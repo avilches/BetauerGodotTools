@@ -80,18 +80,10 @@ public class ContainerTests : Node {
     [TestRunner.Test(Description = "Error creating factories")]
     public void CantCreateFactoryFromInterfaceTest() {
         var di = new Container();
-        Assert.Throws<MissingMethodException>(() => di.CreateBuilder().Register(Provider.Singleton<ClassWith1Interface, IInterface1>()).Build());
-        Assert.Throws<MissingMethodException>(() => di.CreateBuilder().Register(Provider.Singleton<ClassWith1Interface, IInterface1>("P")).Build());
-        Assert.Throws<MissingMethodException>(() => di.CreateBuilder().Register(Provider.Transient<ClassWith1Interface, IInterface1>()).Build());
-        Assert.Throws<MissingMethodException>(() => di.CreateBuilder().Register(Provider.Transient<ClassWith1Interface, IInterface1>("P")).Build());
-        Assert.Throws<MissingMethodException>(() => di.CreateBuilder().Register(Provider.Service<ClassWith1Interface, IInterface1>(Lifetime.Singleton)).Build());
-        Assert.Throws<MissingMethodException>(() => di.CreateBuilder().Register(Provider.Service<ClassWith1Interface, IInterface1>(Lifetime.Singleton, "P")).Build());
-        Assert.Throws<MissingMethodException>(() => di.CreateBuilder().Register(Provider.Service<ClassWith1Interface, IInterface1>(Lifetime.Transient)).Build());
-        Assert.Throws<MissingMethodException>(() => di.CreateBuilder().Register(Provider.Service<ClassWith1Interface, IInterface1>(Lifetime.Transient, "P")).Build());
-        Assert.Throws<MissingMethodException>(() => di.CreateBuilder().Register(Provider.Create<IInterface1, IInterface1>(Lifetime.Singleton)).Build());
-        Assert.Throws<MissingMethodException>(() => di.CreateBuilder().Register(Provider.Create<IInterface1, IInterface1>(Lifetime.Singleton, null, "P")).Build());
-        Assert.Throws<MissingMethodException>(() => di.CreateBuilder().Register(Provider.Create<IInterface1, IInterface1>(Lifetime.Transient)).Build());
-        Assert.Throws<MissingMethodException>(() => di.CreateBuilder().Register(Provider.Create<IInterface1, IInterface1>(Lifetime.Transient, null, "P")).Build());
+        Assert.Throws<InvalidCastException>(() => di.CreateBuilder().Register(Provider.Singleton<ClassWith1Interface, IInterface1>()).Build());
+        Assert.Throws<InvalidCastException>(() => di.CreateBuilder().Register(Provider.Singleton<ClassWith1Interface, IInterface1>("P")).Build());
+        Assert.Throws<InvalidCastException>(() => di.CreateBuilder().Register(Provider.Transient<ClassWith1Interface, IInterface1>()).Build());
+        Assert.Throws<InvalidCastException>(() => di.CreateBuilder().Register(Provider.Transient<ClassWith1Interface, IInterface1>("P")).Build());
             
     }
 
@@ -103,10 +95,6 @@ public class ContainerTests : Node {
             () => new Container.Builder().Register(Provider.Singleton(() => new ClassWith1Interface())).Build(),
             () => new Container.Builder().Register(Provider.Transient<ClassWith1Interface>()).Build(),
             () => new Container.Builder().Register(Provider.Transient(() => new ClassWith1Interface())).Build(),
-            () => new Container.Builder().Register(Provider.Service<ClassWith1Interface>(Lifetime.Singleton)).Build(),
-            () => new Container.Builder().Register(Provider.Service<ClassWith1Interface>(Lifetime.Transient)).Build(),
-            () => new Container.Builder().Register(Provider.Service(() => new ClassWith1Interface(), Lifetime.Singleton)).Build(),
-            () => new Container.Builder().Register(Provider.Service(() => new ClassWith1Interface(), Lifetime.Transient)).Build(),
         };
         foreach (var func in x) {
             Console.WriteLine($"Test #{x}");
@@ -140,10 +128,6 @@ public class ContainerTests : Node {
             () => new Container.Builder().Register(Provider.Singleton<IInterface1, ClassWith1Interface>(() => new ClassWith1Interface())).Build(),
             () => new Container.Builder().Register(Provider.Transient<IInterface1, ClassWith1Interface>()).Build(),
             () => new Container.Builder().Register(Provider.Transient<IInterface1, ClassWith1Interface>(() => new ClassWith1Interface())).Build(),
-            () => new Container.Builder().Register(Provider.Service<IInterface1, ClassWith1Interface>(Lifetime.Singleton)).Build(),
-            () => new Container.Builder().Register(Provider.Service<IInterface1, ClassWith1Interface>(Lifetime.Transient)).Build(),
-            () => new Container.Builder().Register(Provider.Service<IInterface1, ClassWith1Interface>(() => new ClassWith1Interface(), Lifetime.Singleton)).Build(),
-            () => new Container.Builder().Register(Provider.Service<IInterface1, ClassWith1Interface>(() => new ClassWith1Interface(), Lifetime.Transient)).Build(),
         };
         foreach (var func in x) {
             Console.WriteLine($"Test #{x}");
@@ -178,10 +162,6 @@ public class ContainerTests : Node {
             () => new Container.Builder().Register(Provider.Singleton(() => new ClassWith1Interface(), "P")).Build(),
             () => new Container.Builder().Register(Provider.Transient<ClassWith1Interface>("P")).Build(),
             () => new Container.Builder().Register(Provider.Transient(() => new ClassWith1Interface(), "P")).Build(),
-            () => new Container.Builder().Register(Provider.Service<ClassWith1Interface>(Lifetime.Singleton, "P")).Build(),
-            () => new Container.Builder().Register(Provider.Service<ClassWith1Interface>(Lifetime.Transient, "P")).Build(),
-            () => new Container.Builder().Register(Provider.Service(() => new ClassWith1Interface(), Lifetime.Singleton, "P")).Build(),
-            () => new Container.Builder().Register(Provider.Service(() => new ClassWith1Interface(), Lifetime.Transient, "P")).Build(),
         };
         foreach (var func in x) {
             Console.WriteLine($"Test #{x}");
@@ -234,10 +214,6 @@ public class ContainerTests : Node {
             () => new Container.Builder().Register(Provider.Singleton<IInterface1, ClassWith1Interface>(() => new ClassWith1Interface(),"P")).Build(),
             () => new Container.Builder().Register(Provider.Transient<IInterface1, ClassWith1Interface>("P")).Build(),
             () => new Container.Builder().Register(Provider.Transient<IInterface1, ClassWith1Interface>(() => new ClassWith1Interface(),"P")).Build(),
-            () => new Container.Builder().Register(Provider.Service<IInterface1, ClassWith1Interface>(Lifetime.Singleton, "P")).Build(),
-            () => new Container.Builder().Register(Provider.Service<IInterface1, ClassWith1Interface>(Lifetime.Transient, "P")).Build(),
-            () => new Container.Builder().Register(Provider.Service<IInterface1, ClassWith1Interface>(() => new ClassWith1Interface(), Lifetime.Singleton, "P")).Build(),
-            () => new Container.Builder().Register(Provider.Service<IInterface1, ClassWith1Interface>(() => new ClassWith1Interface(), Lifetime.Transient, "P")).Build(),
         };
         foreach (var func in x) {
             Console.WriteLine($"Test #{x}");

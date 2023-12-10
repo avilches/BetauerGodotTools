@@ -14,71 +14,42 @@ public abstract class Provider : IProvider {
         return Singleton<TI, T>(() => instance, name);
     }
 
+    
+    
     public static IProvider Singleton<T>(string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) where T : class {
-        var factory = CreateDefaultFactory<T>(Lifetime.Singleton);
-        return Create<T, T>(Lifetime.Singleton, factory, name, lazy, metadata);
+        return Singleton<T, T>(null!, name, lazy, metadata);
     }
 
     public static IProvider Singleton<T>(Func<T> factory, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) where T : class {
-        return Create<T, T>(Lifetime.Singleton, factory, name, lazy, metadata);
-    }
-
-    public static IProvider Singleton<TI, T>(Func<T> factory, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) where T : class {
-        return Create<TI, T>(Lifetime.Singleton, factory, name, lazy, metadata);
+        return Singleton<T, T>(factory, name, lazy, metadata);
     }
 
     public static IProvider Singleton<TI, T>(string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) where T : class {
-        var factory = CreateDefaultFactory<T>(Lifetime.Singleton);
-        return Create<TI, T>(Lifetime.Singleton, factory, name, lazy, metadata);
+        return Singleton<TI, T>(null!, name, lazy, metadata);
     }
 
+    public static IProvider Singleton<TI, T>(Func<T> factory, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) where T : class {
+        return new SingletonFactoryProvider(typeof(TI), typeof(T), factory, name, lazy, metadata);
+    }
+    
+    
+
     public static IProvider Transient<T>(string? name = null, Dictionary<string, object>? metadata = null) where T : class {
-        var factory = CreateDefaultFactory<T>(Lifetime.Transient);
-        return Create<T, T>(Lifetime.Transient, factory, name, false, metadata);
+        return Transient<T, T>(null!, name, metadata);
     }
 
     public static IProvider Transient<T>(Func<T> factory, string? name = null, Dictionary<string, object>? metadata = null) where T : class {
-        return Create<T, T>(Lifetime.Transient, factory, name, false, metadata);
-    }
-
-    public static IProvider Transient<TI, T>(Func<T> factory, string? name = null, Dictionary<string, object>? metadata = null) where T : class {
-        return Create<TI, T>(Lifetime.Transient, factory, name, false, metadata);
+        return Transient<T, T>(factory, name, metadata);
     }
 
     public static IProvider Transient<TI, T>(string? name = null, Dictionary<string, object>? metadata = null) where T : class {
-        var factory = CreateDefaultFactory<T>(Lifetime.Transient);
-        return Create<TI, T>(Lifetime.Transient, factory, name, false, metadata);
+        return Transient<TI, T>(null!, name, metadata);
     }
 
-    public static IProvider Service<T>(Lifetime lifetime, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) where T : class {
-        Func<T> factory = CreateDefaultFactory<T>(lifetime);
-        return Create<T, T>(lifetime, factory, name, lazy, metadata);
+    public static IProvider Transient<TI, T>(Func<T> factory, string? name = null, Dictionary<string, object>? metadata = null) where T : class {
+        return new TransientFactoryProvider(typeof(TI), typeof(T), factory, name, metadata);
     }
 
-    public static IProvider Service<T>(Func<T> factory, Lifetime lifetime, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) where T : class {
-        return Create<T, T>(lifetime, factory, name, lazy, metadata);
-    }
-
-    public static IProvider Service<TI, T>(Func<T> factory, Lifetime lifetime, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) where T : class {
-        return Create<TI, T>(lifetime, factory, name, lazy, metadata);
-    }
-
-    public static IProvider Service<TI, T>(Lifetime lifetime, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) where T : class {
-        Func<T> factory = CreateDefaultFactory<T>(lifetime);
-        return Create<TI, T>(lifetime, factory, name, lazy, metadata);
-    }
-
-    public static IProvider Create<TI, T>(Lifetime lifetime, Func<T>? factory = null, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) where T : class {
-        factory ??= CreateDefaultFactory<T>(lifetime);
-        return Create(typeof(TI), typeof(T), lifetime, factory, name, lazy, metadata);
-    }
-
-    public static IProvider Create(Type registeredType, Type type, Lifetime lifetime, Func<object>? factory = null, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) {
-        factory ??= CreateDefaultFactory(type, lifetime);
-        return lifetime == Lifetime.Singleton
-            ? new SingletonFactoryProvider(registeredType, type, factory, name, lazy, metadata)
-            : new TransientFactoryProvider(registeredType, type, factory, name, metadata);
-    }
 
     public static Func<object> CreateDefaultFactory(Type type, Lifetime lifetime) {
         if (type.IsAbstract || type.IsInterface)

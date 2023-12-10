@@ -23,7 +23,7 @@ public class InputActionAttribute : Attribute, IConfigurationMemberAttribute {
         Name = name;
     }
 
-    public void CreateProvider(object configuration, IGetter getter, Container.Builder builder) {
+    public void Apply(object configuration, IGetter getter, Container.Builder builder) {
         string? settingsContainerName = null;
         if (SaveAs != null) {
             var settingContainer = configuration.GetType().GetAttribute<SettingsContainerAttribute>();
@@ -45,7 +45,7 @@ public class InputActionAttribute : Attribute, IConfigurationMemberAttribute {
             inputAction.PreInject(name, AxisName, inputActionsContainer.Name, settingsContainerName, SaveAs, AutoSave);
             return inputAction;
         };
-        var provider = Provider.Create<InputAction, InputAction>(Lifetime.Singleton, factory, name, false);
+        var provider = Provider.Singleton<InputAction, InputAction>(factory, name, false);
         builder.Register(provider);
     }
 }
