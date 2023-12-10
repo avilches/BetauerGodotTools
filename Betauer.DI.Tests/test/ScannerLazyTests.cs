@@ -1,3 +1,4 @@
+using System;
 using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
 using Betauer.DI.ServiceProvider;
@@ -86,31 +87,12 @@ public class ScannerLazyTests {
     }
 
     [Singleton]
-    class PostInjectedB1 : IInjectable {
+    class PostInjectedB1 {
         [Inject] internal LazyPostInjectedB2 B2 { get; set; }
-        [Inject] internal Container container { get; set; }
-
-        internal int Called = 0;
-
-        public void PostInject() {
-            Assert.That(B2, Is.Not.Null);
-            Assert.That(B2.B1, Is.Not.Null);
-            Called++;
-        }
     }
 
     [Singleton(Lazy = true)]
-    class LazyPostInjectedB2 : IInjectable {
-        [Inject] internal PostInjectedB1 B1 { get; set; }
-        [Inject] internal Container container { get; set; }
-
-        internal int Called = 0;
-
-        public void PostInject() {
-            Assert.That(B1, Is.Not.Null);
-            Assert.That(B1.B2, Is.Not.Null);
-            Called++;
-        }
+    class LazyPostInjectedB2 {
     }
 
     [TestRunner.Test(Description = "Test if the [PostInject] methods are invoked + Non Lazy using Lazy")]
@@ -119,18 +101,9 @@ public class ScannerLazyTests {
         var di = c.CreateBuilder();
         di.Scan<PostInjectedB1>();
         di.Scan<LazyPostInjectedB2>();
-        di.Build();
+        var e = Assert.Throws<InvalidOperationException>(() => di.Build());
 
-        Assert.That(c.GetProvider<PostInjectedB1>() is ISingletonProvider { IsInstanceCreated: true });
-        Assert.That(c.GetProvider<LazyPostInjectedB2>() is ISingletonProvider { IsInstanceCreated: true });
-
-        var B1 = c.Resolve<PostInjectedB1>();
-        var B2 = c.Resolve<LazyPostInjectedB2>();
-
-        Assert.That(B1.B2, Is.EqualTo(B2));
-        Assert.That(B1.Called, Is.EqualTo(1));
-        Assert.That(B2.B1, Is.EqualTo(B1));
-        Assert.That(B2.Called, Is.EqualTo(1));
+        Assert.That(e.Message, Contains.Substring("Container initialization failed. These Lazy Singletons are initialized when they shouldn't."));
     }
 
     [Singleton(Lazy = true)]

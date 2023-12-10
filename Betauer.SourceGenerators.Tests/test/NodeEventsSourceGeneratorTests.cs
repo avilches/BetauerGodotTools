@@ -58,7 +58,6 @@ public partial class InputNotificationProcessClass : Node {
 }
 
 [TestRunner.Test]
-[Only]
 public partial class NodeEventsSourceGeneratorTests : Node {
     [TestRunner.Test]
     public async Task ProcessOnNotificationOnlyTest() {

@@ -44,17 +44,31 @@ public partial class Container {
 
     public Builder CreateBuilder() => new Builder(this);
 
-    public Container Build(ICollection<IProvider> providers) {
+    public Container Build(List<IProvider> providers) {
         if (_busy) throw new InvalidOperationException("Container is busy");
         _busy = true;
-        var context = GetResolveContext();
+        
         providers.ForEach(AddToRegistry);
-        providers.Where(provider => provider is ISingletonProvider { Lazy: false, IsInstanceCreated: false })
+
+        var context = GetResolveContext();
+        providers
+            .OfType<ISingletonProvider>()
+            .Where(provider => provider is { Lazy: false, IsInstanceCreated: false })
             .ForEach(provider => {
                 Logger.Debug($"Initializing non lazy {Lifetime.Singleton}:{provider.ProviderType.GetTypeName()} | Name: \"{provider.Name}\"");
                 provider.Resolve(context);
             });
         context.End();
+        
+        var errors = providers
+            .OfType<ISingletonProvider>()
+            .Where(provider => provider is { Lazy: true, IsInstanceCreated: true } && (provider.Name == null || !provider.Name.StartsWith("Factory:")))
+            .Select(provider => $"- {provider.ProviderType.GetTypeName()} | Name: \"{provider.Name}\"")
+            .ToList();
+        if (errors.Count > 0) {
+            throw new InvalidOperationException("Container initialization failed. These Lazy Singletons are initialized when they shouldn't.\nPlease, remove the Lazy flag or ensure the injection is done using [Inject] ILazy<T> instead of [Inject] T:\n" + string.Join("\n", errors));
+        }
+        
         _busy = false;
         return this;
     }
@@ -63,7 +77,7 @@ public partial class Container {
         if (_busy) throw new InvalidOperationException("Container is busy");
         _busy = true;
         AddToRegistry(provider);
-        if (provider is ISingletonProvider { Lazy: false, IsInstanceCreated: false }) {
+        if (provider is ISingletonProvider { Lazy: false }) {
             Logger.Debug($"Initializing non lazy {Lifetime.Singleton}:{provider.ProviderType.GetTypeName()} | Name: \"{provider.Name}\"");
             provider.Get();
         }
