@@ -6,7 +6,7 @@ using Betauer.Core;
 namespace Betauer.Application.Lifecycle.Pool;
 
 public class PoolContainer<T> : IPoolContainer {
-    public List<IManagedPool> PoolFromFactories = new();
+    public readonly List<IManagedPool> PoolFromFactories = new();
 
     public void Add(IManagedPool poolFromFactory) {
         var poolType = poolFromFactory.GetType().GetGenericArguments()[0];

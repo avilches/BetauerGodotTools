@@ -1,11 +1,9 @@
 using Betauer.Core;
-using Betauer.DI;
-using Betauer.DI.Attributes;
 using Godot;
 
 namespace Betauer.Application.Lifecycle;
 
-public abstract class ResourceLoad : IInjectable {
+public abstract class ResourceLoad {
     public const string DefaultTag = "(default)";
     
     public ResourceLoaderContainer? ResourceLoaderContainer { get; private set; }
@@ -18,17 +16,7 @@ public abstract class ResourceLoad : IInjectable {
         Tag = tag ?? DefaultTag;
     }
 
-    [Inject] public DI.Container Container { get; set; }
-    private string? _resourceLoaderContainerName;
-    public void PreInject(string resourceLoaderContainerName) {
-        _resourceLoaderContainerName = resourceLoaderContainerName;
-    }
-
-    public virtual void PostInject() {
-        SetResourceLoaderContainer(Container.Resolve<ResourceLoaderContainer>(_resourceLoaderContainerName!));
-    }
-
-    public void SetResourceLoaderContainer(ResourceLoaderContainer resourceLoaderContainer) {
+    public virtual void SetResourceLoaderContainer(ResourceLoaderContainer resourceLoaderContainer) {
         if (ResourceLoaderContainer != null && ResourceLoaderContainer != resourceLoaderContainer) {
             ResourceLoaderContainer.Remove(this);
         }

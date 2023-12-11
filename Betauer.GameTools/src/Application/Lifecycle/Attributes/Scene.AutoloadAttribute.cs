@@ -35,12 +35,18 @@ public static partial class Scene {
                     $"Attribute {typeof(SingletonAttribute<T>).FormatAttribute()} needs to be used in a class with attribute {typeof(LoaderAttribute).FormatAttribute()}");
             }
             var sceneFactory = new SceneFactory<T>(Path, Tag ?? loaderConfiguration.Tag);
+            var metadata = Provider.FlagsToMetadata(Flags, "AddToTree");
             var providers = builder.RegisterSingletonFactory<T, SceneFactory<T>>(
                 sceneFactory,
                 Name,
                 true, // must be lazy to allow to the Loader to load the scene first
-                Provider.FlagsToMetadata(Flags, "AddToTree"));
-            sceneFactory.PreInject(loaderConfiguration.Name, providers.Provider);
+                metadata);
+            
+            builder.OnBuildFinished += () => {
+                var loader = builder.Container.Resolve<ResourceLoaderContainer>(loaderConfiguration.Name);
+                sceneFactory.SetResourceLoaderContainer(loader);
+                loader.OnLoadFinished += () => providers.Provider.Get();
+            };
         }
     }
 }

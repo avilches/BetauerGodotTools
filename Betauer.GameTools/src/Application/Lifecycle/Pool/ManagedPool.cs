@@ -1,20 +1,12 @@
 using System;
 using System.Collections.Generic;
-using Betauer.Core;
 using Betauer.Core.Pool.Lifecycle;
-using Betauer.DI;
-using Betauer.DI.Attributes;
-using Betauer.DI.Factory;
-using Betauer.DI.ServiceProvider;
 
 namespace Betauer.Application.Lifecycle.Pool;
 
-public abstract class ManagedPool<T> : BasePool<T>, IManagedPool, IInjectable where T : class {
-    [Inject] protected Container Container { get; set; }
+public abstract class ManagedPool<T> : BasePool<T>, IManagedPool where T : class {
     private IPoolContainer _poolContainer;
-    private ITransient<T>? _factory;
-    private readonly string? _factoryName;
-    private string? _poolContainerName;
+    private readonly Func<T>? _factory;
 
     public int PurgeIfBiggerThan { get; set; } = 0;
 
@@ -22,36 +14,9 @@ public abstract class ManagedPool<T> : BasePool<T>, IManagedPool, IInjectable wh
         PurgeIfBiggerThan = purgeIfBiggerThan;
     }
 
-    protected ManagedPool(ITransient<T> factory, int purgeIfBiggerThan = 0) {
+    protected ManagedPool(Func<T> factory, int purgeIfBiggerThan = 0) {
         _factory = factory;
         PurgeIfBiggerThan = purgeIfBiggerThan;
-    }
-
-    protected ManagedPool(string? factoryName, int purgeIfBiggerThan = 0) {
-        _factoryName = factoryName;
-        PurgeIfBiggerThan = purgeIfBiggerThan;
-    }
-
-    public void PreInject(string poolContainerName) {
-        _poolContainerName = poolContainerName;
-    }
-
-    public virtual void PostInject() {
-        if (_factory == null) {
-            if (_factoryName == null) {
-                _factory = Container.Resolve<ITransient<T>>();
-            } else {
-                var provider = Container.GetProvider(_factoryName);
-                if (provider.ProviderType.ImplementsInterface(typeof(ITransient<T>))) {
-                    _factory = (ITransient<T>)provider.Get();
-                } else {
-                    _factory = Container.Resolve<ITransient<T>>($"{ProxyFactoryProvider.FactoryPrefix}{_factoryName}");
-                }
-            }
-        }
-        if (_poolContainerName != null) {
-            SetPoolContainer(Container.Resolve<IPoolContainer>(_poolContainerName));
-        }
     }
 
     IEnumerable<object> IManagedPool.GetAvailable() {
@@ -69,7 +34,7 @@ public abstract class ManagedPool<T> : BasePool<T>, IManagedPool, IInjectable wh
     }
 
     protected override T Create() {
-        var instance = _factory!.Create();
+        var instance = _factory();
         return instance;
     }
 

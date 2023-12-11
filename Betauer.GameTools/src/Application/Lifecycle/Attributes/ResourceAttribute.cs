@@ -26,14 +26,13 @@ public class ResourceAttribute<T> : Attribute, IConfigurationClassAttribute wher
             throw new InvalidAttributeException(
                 $"Attribute {typeof(ResourceAttribute<T>).FormatAttribute()} needs to be used in a class with attribute {typeof(LoaderAttribute).FormatAttribute()}");
         }
-
-        ResourceHolder<T> Factory() {
-            var resourceFactory = new ResourceHolder<T>(Path, Tag ?? loaderConfiguration.Tag);
-            resourceFactory.PreInject(loaderConfiguration.Name);
-            return resourceFactory;
-        }
-
-        var providerFactory = Provider.Singleton<ResourceHolder<T>, ResourceHolder<T>>(Factory, Name, false);
+        
+        var resourceHolder = new ResourceHolder<T>(Path, Tag ?? loaderConfiguration.Tag);
+        var providerFactory = Provider.Static(resourceHolder, Name);
         builder.Register(providerFactory);
+        builder.OnBuildFinished += () => {
+            var loader = builder.Container.Resolve<ResourceLoaderContainer>(loaderConfiguration.Name);
+            resourceHolder.SetResourceLoaderContainer(loader);
+        };
     }
 }

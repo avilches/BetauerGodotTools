@@ -125,6 +125,7 @@ public partial class PlayerNode {
 				result =
 					$"{left}{right}={_joypadController.Lateral.Strength:0.00} {v(_joypadController.Left)}{v(_joypadController.Right)} ";
 			}
+			/*
 			if (result != prevResult) {
 				GD.Print(result);
 				prevResult = result;
@@ -133,6 +134,7 @@ public partial class PlayerNode {
 			if (godotAxis != _joypadController.Lateral.Strength.ToString("0.00")) {
 				GD.Print("wooo");
 			}
+			*/
 		};
 	}
 

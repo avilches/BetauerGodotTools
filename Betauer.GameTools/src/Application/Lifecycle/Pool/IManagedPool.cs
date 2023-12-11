@@ -10,5 +10,4 @@ public interface IManagedPool {
     public IEnumerable<object> GetAvailable();
     public IEnumerable<object> GetBusy();
     void Clear();
-    void PreInject(string name);
 }

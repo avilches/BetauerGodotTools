@@ -23,10 +23,10 @@ public partial class PlatformWorld : Node {
 	[Inject] private PlatformConfig PlatformConfig { get; set; }
 	
 	[Inject] private ITransient<StageController> StageControllerFactory { get; set; }
-	[Inject] private NodePool<PlayerNode> PlayerPool { get; set; }
-	[Inject] private NodePool<PickableItemNode> PickableItemPool { get; set; }
-	[Inject] private NodePool<ProjectileTrail> ProjectilePool { get; set; }
-	[Inject] private NodePool<ZombieNode> ZombiePool { get; set; }
+	[Inject(Name="Pool:Player")] private NodePool<PlayerNode> PlayerPool { get; set; }
+	[Inject(Name="Pool:PickableItem")] private NodePool<PickableItemNode> PickableItemPool { get; set; }
+	[Inject(Name="Pool:ProjectileTrail")] private NodePool<ProjectileTrail> ProjectilePool { get; set; }
+	[Inject(Name="Pool:Zombie")] private NodePool<ZombieNode> ZombiePool { get; set; }
 
 	[NodePath("EnemySpawn")] private Node _enemySpawn;
 	[NodePath("Lights")] private Node _lights;

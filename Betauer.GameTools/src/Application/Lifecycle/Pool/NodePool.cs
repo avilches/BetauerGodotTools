@@ -1,16 +1,10 @@
-using Betauer.DI.Factory;
+using System;
 using Godot;
 
 namespace Betauer.Application.Lifecycle.Pool;
 
 public class NodePool<T> : ManagedPool<T> where T : Node {
-    public NodePool(int purgeIfBiggerThan = 0) : base(purgeIfBiggerThan) {
-    }
-
-    public NodePool(ITransient<T> factory, int purgeIfBiggerThan = 0) : base(factory, purgeIfBiggerThan) {
-    }
-
-    public NodePool(string? factoryName, int purgeIfBiggerThan = 0) : base(factoryName, purgeIfBiggerThan) {
+    public NodePool(Func<T> factory, int purgeIfBiggerThan = 0) : base(factory, purgeIfBiggerThan) {
     }
 
     protected override bool IsBusy(T node) => GodotObject.IsInstanceValid(node) && node.IsInsideTree();
