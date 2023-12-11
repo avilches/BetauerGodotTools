@@ -5,12 +5,12 @@ using Betauer.Tools.Logging;
 
 namespace Betauer.DI.ServiceProvider; 
 
-public class TransientFactoryProvider : Provider {
+public class TransientProvider : Provider {
     private static readonly Logger Logger = LoggerFactory.GetLogger<Provider>();
     private readonly Func<object> _factory;
     public override Lifetime Lifetime => Lifetime.Transient;
 
-    public TransientFactoryProvider(Type registerType, Type providerType, Func<object>? factory = null, string? name = null, Dictionary<string, object>? metadata = null) : base(registerType, providerType, name, metadata) {
+    public TransientProvider(Type registerType, Type providerType, Func<object>? factory = null, string? name = null, Dictionary<string, object>? metadata = null) : base(registerType, providerType, name, metadata) {
         _factory = factory ?? CreateDefaultFactory(providerType, Lifetime);
     }
 

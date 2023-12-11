@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using Betauer.DI.ServiceProvider;
 using Betauer.Tools.FastReflection;
 
@@ -19,28 +18,28 @@ public class SingletonAttribute : Attribute, IClassAttribute, IConfigurationMemb
     }
 
     public void Apply(Type type, Container.Builder builder) {
-        var provider = new SingletonFactoryProvider(
+        var provider = new SingletonProvider(
             GetType().IsGenericType ? GetType().GetGenericArguments()[0] : type, // Trick to get the <T> from SingletonAttribute<T>
             type,
             name: Name,
             lazy: Lazy,
-            metadata: Flags?.Split(",").ToDictionary(valor => valor, _ => (object)true));
+            metadata: Provider.FlagsToMetadata(Flags));
         builder.Register(provider);
         builder.RegisterFactory(provider);
     }
 
     public void Apply(object configuration, IGetter getter, Container.Builder builder) {
-        var provider = new SingletonFactoryProvider(
+        var provider = new SingletonProvider(
             GetType().IsGenericType ? GetType().GetGenericArguments()[0] : getter.Type, // Trick to get the <T> from SingletonAttribute<T>
             getter.Type,
             () => getter.GetValue(configuration)!,
             Name ?? getter.Name,
             Lazy,
-            Flags?.Split(",").ToDictionary(valor => valor, _ => (object)true));
+            Provider.FlagsToMetadata(Flags));
         builder.Register(provider);
         builder.RegisterFactory(provider);
     }
 }
 
 public class SingletonAttribute<T> : SingletonAttribute {
-}
+ }

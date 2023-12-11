@@ -5,7 +5,7 @@ using Betauer.Tools.Logging;
 
 namespace Betauer.DI.ServiceProvider; 
 
-public class SingletonFactoryProvider : Provider, ISingletonProvider {
+public class SingletonProvider : Provider, ISingletonProvider {
     private static readonly Logger Logger = LoggerFactory.GetLogger<Provider>();
     private readonly Func<object> _factory;
     public override Lifetime Lifetime => Lifetime.Singleton;
@@ -13,7 +13,7 @@ public class SingletonFactoryProvider : Provider, ISingletonProvider {
     public bool Lazy { get; }
     public object? Instance { get; private set; }
         
-    public SingletonFactoryProvider(Type registerType, Type providerType, Func<object>? factory = null, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) : base(registerType, providerType, name, metadata) {
+    public SingletonProvider(Type registerType, Type providerType, Func<object>? factory = null, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) : base(registerType, providerType, name, metadata) {
         _factory = factory ?? CreateDefaultFactory(providerType, Lifetime);
         Lazy = lazy;
     }

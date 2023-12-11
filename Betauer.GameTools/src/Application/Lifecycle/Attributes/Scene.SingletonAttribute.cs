@@ -33,17 +33,16 @@ public static partial class Scene {
                 throw new InvalidAttributeException(
                     $"Attribute {typeof(SingletonAttribute<T>).FormatAttribute()} needs to be used in a class with attribute {typeof(LoaderAttribute).FormatAttribute()}");
             }
-            Container.Builder.CustomFactoryProviders providers = null;
-            providers = builder.RegisterFactory<T, SceneFactory<T>>(
+            var sceneFactory = new SceneFactory<T>(Path, Tag ?? loaderConfiguration.Tag);
+            var metadata = Provider.FlagsToMetadata(Flags);
+            var isAutoload = metadata.TryGetValue("Autoload", out var autoload) && autoload is true;
+            var providers = builder.RegisterFactory<T, SceneFactory<T>>(
                 Lifetime.Singleton,
-                () => {
-                    var sceneFactory = new SceneFactory<T>(Path, Tag ?? loaderConfiguration.Tag);
-                    var isAutoload = providers.Provider.Metadata.TryGetValue("Autoload", out var flag) && flag is true;
-                    sceneFactory.PreInject(loaderConfiguration.Name, isAutoload ? providers.Provider : null);
-                    return sceneFactory;
-                },
+                sceneFactory,
                 Name,
+                true,
                 Flags?.Split(",").ToDictionary(valor => valor, _ => (object)true));
+            sceneFactory.PreInject(loaderConfiguration.Name, isAutoload ? providers.Provider : null);
 
         }
     }

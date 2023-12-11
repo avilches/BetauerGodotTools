@@ -12,13 +12,17 @@ namespace Betauer.Application.Lifecycle;
 public class SceneFactory<T> : ResourceLoad, IFactory<T> where T : Node {
     private static readonly Logger Logger = LoggerFactory.GetLogger<ResourceLoaderContainer>();
     
+    private IProvider? _autoload;
+
     public SceneFactory(string? path = null, string? tag = null) : base(ExtractScenePathFromScriptPathIfNull<T>(path), tag) {
     }
 
     public PackedScene Scene => (PackedScene)Resource!;
 
     public T Create() {
-        if (Scene == null) throw new Exception($"Can't instantiate scene from null resource: {Path}. Try to load tag '{Tag}' first");
+        if (Scene == null) {
+            throw new Exception($"Can't instantiate scene from null resource: {Path}. Load the tag '{Tag}' first");
+        }
         try {
             var instance = Scene.Instantiate<T>();
             NodePathScanner.ScanAndInject(instance);
@@ -29,8 +33,7 @@ public class SceneFactory<T> : ResourceLoad, IFactory<T> where T : Node {
         }
     }
 
-    private IProvider? _autoload;
-    public void PreInject(string resourceLoaderContainerName, IProvider autoload) {
+    public void PreInject(string resourceLoaderContainerName, IProvider? autoload) {
         base.PreInject(resourceLoaderContainerName);
         _autoload = autoload;
     }

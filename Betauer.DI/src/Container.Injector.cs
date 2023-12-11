@@ -71,7 +71,7 @@ public partial class Container {
 
         private bool TryInjectFieldByName(Lifetime lifetime, object target, ResolveContext context, ISetter setter, string name) {
             if (!_container.TryGetProvider(name, out var provider) || !setter.CanSetValue(provider.ProviderType)) {
-                if (name.StartsWith(Builder.FactoryPrefix) || name.StartsWith(Builder.InnerFactoryPrefix)) {
+                if (name.StartsWith(Builder.FactoryPrefix)) {
                     return false;
                 }
                 name = $"{Builder.FactoryPrefix}{name}";

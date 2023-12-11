@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using Betauer.DI.ServiceProvider;
 using Betauer.Tools.FastReflection;
 
@@ -10,6 +9,7 @@ public static partial class Factory {
     public class SingletonAttribute : Attribute, IClassAttribute, IConfigurationMemberAttribute {
         public string? Name { get; init; }
         public string? Flags { get; init; }
+        public bool Lazy { get; init; } = false;
 
         public SingletonAttribute() {
         }
@@ -22,18 +22,20 @@ public static partial class Factory {
             builder.RegisterFactory(
                 type, 
                 Lifetime.Singleton, 
-                () => Activator.CreateInstance(type)!, 
+                Activator.CreateInstance(type)!, 
                 Name,
-                Flags?.Split(",").ToDictionary(valor => valor, _ => (object)true));
+                Lazy,
+                Provider.FlagsToMetadata(Flags));
         }
 
         public void Apply(object configuration, IGetter getter, Container.Builder builder) {
             builder.RegisterFactory(
                 getter.Type, 
                 Lifetime.Singleton, 
-                () => getter.GetValue(configuration)!, 
+                getter.GetValue(configuration)!, 
                 Name ?? getter.Name,
-                Flags?.Split(",").ToDictionary(valor => valor, _ => (object)true));
+                Lazy,
+                Provider.FlagsToMetadata(Flags));
         }
     }
 }

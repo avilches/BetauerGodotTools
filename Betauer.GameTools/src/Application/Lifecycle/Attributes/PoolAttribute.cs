@@ -32,7 +32,7 @@ public class PoolAttribute : Attribute, IConfigurationMemberAttribute {
             return nodePool;
         };
         var name = Name ?? getter.Name;
-        var provider = new SingletonFactoryProvider(getter.Type, getter.Type, factory, name, false);
+        var provider = new SingletonProvider(getter.Type, getter.Type, factory, name, false);
         builder.Register(provider);
     }
 }

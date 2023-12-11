@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using Betauer.DI.ServiceProvider;
 using Betauer.Tools.FastReflection;
 
@@ -19,22 +18,22 @@ public class TransientAttribute : Attribute, IClassAttribute, IConfigurationMemb
     }
 
     public void Apply(Type type, Container.Builder builder) {
-        var provider = new TransientFactoryProvider(
+        var provider = new TransientProvider(
             GetType().IsGenericType ? GetType().GetGenericArguments()[0] : type, // Trick to get the <T> from TransientAttribute<T>
             type,
             name: Name,
-            metadata: Flags?.Split(",").ToDictionary(valor => valor, _ => (object)true));
+            metadata: Provider.FlagsToMetadata(Flags));
         builder.Register(provider);
         builder.RegisterFactory(provider);
     }
 
     public void Apply(object configuration, IGetter getter, Container.Builder builder) {
-        var provider = new TransientFactoryProvider(
+        var provider = new TransientProvider(
             GetType().IsGenericType ? GetType().GetGenericArguments()[0] : getter.Type, // Trick to get the <T> from TransientAttribute<T>
             getter.Type,
             () => getter.GetValue(configuration)!,
             Name ?? getter.Name,
-            Flags?.Split(",").ToDictionary(valor => valor, _ => (object)true));
+            Provider.FlagsToMetadata(Flags));
         builder.Register(provider);
         builder.RegisterFactory(provider);
     }

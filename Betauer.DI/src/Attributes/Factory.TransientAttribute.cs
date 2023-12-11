@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using Betauer.DI.ServiceProvider;
 using Betauer.Tools.FastReflection;
 
@@ -11,6 +10,7 @@ public static partial class Factory {
         public string? Name { get; init; }
         public string? Flags { get; init; }
 
+        
         public TransientAttribute() {
         }
 
@@ -22,18 +22,20 @@ public static partial class Factory {
             builder.RegisterFactory(
                 type, 
                 Lifetime.Transient, 
-                () => Activator.CreateInstance(type)!, 
-                Name, 
-                Flags?.Split(",").ToDictionary(valor => valor, _ => (object)true));
+                Activator.CreateInstance(type)!, 
+                Name,
+                true, // ignored because transient
+                Provider.FlagsToMetadata(Flags));
         }
 
         public void Apply(object configuration, IGetter getter, Container.Builder builder) {
             builder.RegisterFactory(
                 getter.Type, 
                 Lifetime.Transient, 
-                () => getter.GetValue(configuration)!, 
+                getter.GetValue(configuration)!, 
                 Name ?? getter.Name, 
-                Flags?.Split(",").ToDictionary(valor => valor, _ => (object)true));
+                true, // ignored because transient
+                Provider.FlagsToMetadata(Flags));
         }
     }
 }

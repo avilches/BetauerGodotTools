@@ -189,44 +189,74 @@ public class ScannerLazyTests {
         Assert.That(D2.D1.Get(), Is.EqualTo(D1));
     }
 
-    public class LazySingleton {
+    public class Singleton {
         public static int Instances = 0;
 
-        public LazySingleton() {
+        public Singleton() {
             Instances++;
         }
     }
 
-    public class SingletonFactory : IFactory<LazySingleton> {
-        public LazySingleton Create() => new LazySingleton();
+    public class SingletonFactory : IFactory<Singleton> {
+        public Singleton Create() => new Singleton();
     }
 
 
     [Configuration]
     public class LazySingletonConfiguration {
-        [Attributes.Factory.Singleton] public IFactory<LazySingleton> LazySingleton => new SingletonFactory();
+        [Attributes.Factory.Singleton(Lazy = true)] public IFactory<Singleton> LazySingleton => new SingletonFactory();
     }
 
     [Singleton]
-    public class AnotherSingleton {
-        [Inject] public ILazy<LazySingleton> LazySingleton { get; set; }
+    public class UsingLazySingleton {
+        [Inject] public ILazy<Singleton> LazySingleton { get; set; }
     }
 
     [TestRunner.Test(Description = "Simulate a lazy behaviour with a Factory")]
-    public void LazySingletonFromConfiguration() {
+    public void LazySingletonFromConfigurationTest() {
+        Singleton.Instances = 0;
         var c = new Container();
         var di = c.CreateBuilder();
         di.Scan<LazySingletonConfiguration>();
-        di.Scan<AnotherSingleton>();
+        di.Scan<UsingLazySingleton>();
         di.Build();
 
-        AnotherSingleton another = c.Resolve<AnotherSingleton>();
+        UsingLazySingleton usingLazy = c.Resolve<UsingLazySingleton>();
 
-        Assert.That(LazySingleton.Instances, Is.EqualTo(0));
+        Assert.That(Singleton.Instances, Is.EqualTo(0));
         Assert.That(c.GetProvider("LazySingleton") is ISingletonProvider { IsInstanceCreated: false });
 
-        another.LazySingleton.Get();
-        Assert.That(LazySingleton.Instances, Is.EqualTo(1));
+        usingLazy.LazySingleton.Get();
+        Assert.That(Singleton.Instances, Is.EqualTo(1));
         Assert.That(c.GetProvider("LazySingleton") is ISingletonProvider { IsInstanceCreated: true });
+    }
+
+    [Configuration]
+    public class SingletonConfiguration {
+        [Attributes.Factory.Singleton(Lazy = false)] public IFactory<Singleton> Singleton => new SingletonFactory();
+    }
+    
+    [Singleton]
+    public class UsingSingleton {
+        [Inject] public ILazy<Singleton> Singleton { get; set; }
+    }
+
+    [TestRunner.Test(Description = "Simulate a no lazy behaviour with a Factory")]
+    public void SingletonFromConfigurationTest() {
+        Singleton.Instances = 0;
+        var c = new Container();
+        var di = c.CreateBuilder();
+        di.Scan<SingletonConfiguration>();
+        di.Scan<UsingSingleton>();
+        di.Build();
+
+        UsingSingleton usingSingleton = c.Resolve<UsingSingleton>();
+
+        Assert.That(Singleton.Instances, Is.EqualTo(1));
+        Assert.That(c.GetProvider("Singleton") is ISingletonProvider { IsInstanceCreated: true });
+
+        usingSingleton.Singleton.Get();
+        Assert.That(Singleton.Instances, Is.EqualTo(1));
+        Assert.That(c.GetProvider("Singleton") is ISingletonProvider { IsInstanceCreated: true });
     }
 }

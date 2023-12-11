@@ -393,10 +393,10 @@ public class ContainerTests : Node {
         b.Register(Provider.Singleton<ClassWith1Interface>("Lazy2", true));
         var c = b.Build();
             
-        var noLazy1Provider = c.GetProvider("NoLazy1") as SingletonFactoryProvider;
-        var noLazy2Provider = c.GetProvider("NoLazy2") as SingletonFactoryProvider;
-        var lazy1Provider = c.GetProvider("Lazy1") as SingletonFactoryProvider;
-        var lazy2Provider = c.GetProvider("Lazy2") as SingletonFactoryProvider;
+        var noLazy1Provider = c.GetProvider("NoLazy1") as SingletonProvider;
+        var noLazy2Provider = c.GetProvider("NoLazy2") as SingletonProvider;
+        var lazy1Provider = c.GetProvider("Lazy1") as SingletonProvider;
+        var lazy2Provider = c.GetProvider("Lazy2") as SingletonProvider;
             
         Assert.That(noLazy1Provider.Lazy, Is.False);
         Assert.That(noLazy1Provider.IsInstanceCreated, Is.True);

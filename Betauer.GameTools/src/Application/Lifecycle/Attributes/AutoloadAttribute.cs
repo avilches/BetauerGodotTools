@@ -21,30 +21,26 @@ public class AutoloadAttribute : Attribute, IClassAttribute, IConfigurationMembe
     }
 
     public void Apply(Type type, Container.Builder builder) {
-        var metadata = Flags?.Split(",").ToDictionary(valor => valor, _ => (object)true) ?? new Dictionary<string, object>();
-        metadata["AddToTree"] = true;
         // if (!type.IsSubclassOf(typeof(Node))) throw new Exception();
-        var provider = new SingletonFactoryProvider(
+        var provider = new SingletonProvider(
             GetType().IsGenericType ? GetType().GetGenericArguments()[0] : type, // Trick to get the <T> from SingletonAttribute<T>
             type,
             name: Name,
             lazy: false,
-            metadata: metadata);
+            metadata: Provider.FlagsToMetadata(Flags, "AddToTree"));
         builder.Register(provider);
         builder.RegisterFactory(provider);
     }
 
     public void Apply(object configuration, IGetter getter, Container.Builder builder) {
-        var metadata = Flags?.Split(",").ToDictionary(valor => valor, _ => (object)true) ?? new Dictionary<string, object>();
-        metadata["AddToTree"] = true;
         // if (!getter.Type.IsSubclassOf(typeof(Node))) throw new Exception();
-        var provider = new SingletonFactoryProvider(
+        var provider = new SingletonProvider(
             GetType().IsGenericType ? GetType().GetGenericArguments()[0] : getter.Type, // Trick to get the <T> from SingletonAttribute<T>
             getter.Type,
             () => getter.GetValue(configuration)!,
             Name ?? getter.Name,
             false,
-            metadata);
+            Provider.FlagsToMetadata(Flags, "AddToTree"));
         builder.Register(provider);
         builder.RegisterFactory(provider);
     }

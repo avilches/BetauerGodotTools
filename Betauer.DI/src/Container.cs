@@ -48,9 +48,19 @@ public partial class Container {
         if (_busy) throw new InvalidOperationException("Container is busy");
         _busy = true;
         
+        providers.ForEach(provider => provider.Container = this);
+        var factories = providers.OfType<FactoryProvider>().ToList();
+        providers.RemoveAll(provider => provider is FactoryProvider);
         providers.ForEach(AddToRegistry);
 
         var context = GetResolveContext();
+        factories.ForEach(provider => {
+            Logger.Debug($"Initializing factory {provider.ProviderType.GetTypeName()}");
+            provider.Resolve(context);
+        });
+        context.End();
+        context = GetResolveContext();
+        
         providers
             .OfType<ISingletonProvider>()
             .Where(provider => provider is { Lazy: false, IsInstanceCreated: false })
@@ -150,7 +160,7 @@ public partial class Container {
             return true;
         }
         if (CreateIfNotFound) {
-            AddToRegistry(new TransientFactoryProvider(type, type));
+            AddToRegistry(new TransientProvider(type, type));
             // ReSharper disable once TailRecursiveCall
             return TryResolve(type, out instance);
         }
@@ -219,7 +229,7 @@ public partial class Container {
             return provider!.Resolve(context);
         }
         if (CreateIfNotFound) {
-            AddToRegistry(new TransientFactoryProvider(type, type));
+            AddToRegistry(new TransientProvider(type, type));
             // ReSharper disable once TailRecursiveCall
             return Resolve(type, context);
         }

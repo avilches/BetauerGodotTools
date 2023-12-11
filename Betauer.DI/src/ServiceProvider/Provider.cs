@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Betauer.Core;
 using Betauer.Tools.FastReflection;
 
@@ -29,7 +30,7 @@ public abstract class Provider : IProvider {
     }
 
     public static IProvider Singleton<TI, T>(Func<T> factory, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) where T : class {
-        return new SingletonFactoryProvider(typeof(TI), typeof(T), factory, name, lazy, metadata);
+        return new SingletonProvider(typeof(TI), typeof(T), factory, name, lazy, metadata);
     }
     
     
@@ -47,7 +48,7 @@ public abstract class Provider : IProvider {
     }
 
     public static IProvider Transient<TI, T>(Func<T> factory, string? name = null, Dictionary<string, object>? metadata = null) where T : class {
-        return new TransientFactoryProvider(typeof(TI), typeof(T), factory, name, metadata);
+        return new TransientProvider(typeof(TI), typeof(T), factory, name, metadata);
     }
 
 
@@ -63,6 +64,15 @@ public abstract class Provider : IProvider {
             throw new MissingMethodException(
                 $"Can't create default factory for and abstract or interface type: {typeof(T).GetTypeName()}");
         return lifetime == Lifetime.Singleton ? Activator.CreateInstance<T> : LambdaCtor<T>.CreateInstance;
+    }
+
+
+    public static Dictionary<string, object> FlagsToMetadata(string? flags, string? moreFlags = null) {
+        flags ??= "";
+        moreFlags ??= "";
+        return (flags+","+moreFlags).Split(",")
+            .Where(flag => flag.Length > 0)
+            .ToDictionary(valor => valor, _ => (object)true) ?? new Dictionary<string, object>();
     }
 
     public Container Container { get; set; }
