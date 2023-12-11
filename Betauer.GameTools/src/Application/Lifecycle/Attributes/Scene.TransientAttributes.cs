@@ -35,11 +35,9 @@ public static partial class Scene {
             }
             var sceneFactory = new SceneFactory<T>(Path, Tag ?? loaderConfiguration.Tag);
             sceneFactory.PreInject(loaderConfiguration.Name);
-            builder.RegisterFactory<T, SceneFactory<T>>(
-                Lifetime.Transient,
+            builder.RegisterTransientFactory<T, SceneFactory<T>>(
                 sceneFactory,
                 Name,
-                true, // Ignored because transient
                 Provider.FlagsToMetadata(Flags));
         }
     }

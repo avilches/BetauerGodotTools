@@ -5,6 +5,7 @@ using Betauer.Core.Pool.Lifecycle;
 using Betauer.DI;
 using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
+using Betauer.DI.ServiceProvider;
 
 namespace Betauer.Application.Lifecycle.Pool;
 
@@ -44,7 +45,7 @@ public abstract class ManagedPool<T> : BasePool<T>, IManagedPool, IInjectable wh
                 if (provider.ProviderType.ImplementsInterface(typeof(ITransient<T>))) {
                     _factory = (ITransient<T>)provider.Get();
                 } else {
-                    _factory = Container.Resolve<ITransient<T>>($"{Container.Builder.FactoryPrefix}{_factoryName}");
+                    _factory = Container.Resolve<ITransient<T>>($"{ProxyFactoryProvider.FactoryPrefix}{_factoryName}");
                 }
             }
         }

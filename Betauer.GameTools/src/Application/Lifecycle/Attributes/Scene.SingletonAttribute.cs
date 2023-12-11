@@ -36,11 +36,10 @@ public static partial class Scene {
             var sceneFactory = new SceneFactory<T>(Path, Tag ?? loaderConfiguration.Tag);
             var metadata = Provider.FlagsToMetadata(Flags);
             var isAutoload = metadata.TryGetValue("Autoload", out var autoload) && autoload is true;
-            var providers = builder.RegisterFactory<T, SceneFactory<T>>(
-                Lifetime.Singleton,
+            var providers = builder.RegisterSingletonFactory<T, SceneFactory<T>>(
                 sceneFactory,
                 Name,
-                true,
+                true, // must be lazy to allow to the Loader to load the scene first
                 Flags?.Split(",").ToDictionary(valor => valor, _ => (object)true));
             sceneFactory.PreInject(loaderConfiguration.Name, isAutoload ? providers.Provider : null);
 

@@ -5,20 +5,17 @@ using Betauer.Tools.Logging;
 
 namespace Betauer.DI.ServiceProvider;
 
-public class FactoryProvider : Provider {
+public class CustomFactoryProvider : Provider {
     private static readonly Logger Logger = LoggerFactory.GetLogger<Provider>();
-    public override Lifetime Lifetime { get; }
+    public override Lifetime Lifetime => Lifetime.Singleton;
     public bool IsInstanceCreated { get; private set; }
-    public bool Lazy { get; }
-    public object? Instance { get; private set; }
+    public object? Instance { get; }
         
-    public FactoryProvider(object factory, Lifetime lifetime, bool lazy = false) : base(typeof(object), typeof(object), null, null) {
+    public CustomFactoryProvider(object factory) : base(typeof(object), typeof(object), null, null) {
         if (!factory.GetType().ImplementsInterface(typeof(IFactory<>))) {
             throw new InvalidCastException($"Factory {factory.GetType().GetTypeName()} must implement IFactory<T>");
         }
         Instance = factory;
-        Lifetime = lifetime;
-        Lazy = lazy;
     }
     
     public override object Get() {

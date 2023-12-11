@@ -5,7 +5,7 @@ using Betauer.Tools.Logging;
 
 namespace Betauer.DI.ServiceProvider; 
 
-public class SingletonProvider : Provider, ISingletonProvider {
+public class SingletonProvider : Provider {
     private static readonly Logger Logger = LoggerFactory.GetLogger<Provider>();
     private readonly Func<object> _factory;
     public override Lifetime Lifetime => Lifetime.Singleton;

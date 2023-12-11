@@ -71,10 +71,10 @@ public partial class Container {
 
         private bool TryInjectFieldByName(Lifetime lifetime, object target, ResolveContext context, ISetter setter, string name) {
             if (!_container.TryGetProvider(name, out var provider) || !setter.CanSetValue(provider.ProviderType)) {
-                if (name.StartsWith(Builder.FactoryPrefix)) {
+                if (name.StartsWith(ProxyFactoryProvider.FactoryPrefix)) {
                     return false;
                 }
-                name = $"{Builder.FactoryPrefix}{name}";
+                name = $"{ProxyFactoryProvider.FactoryPrefix}{name}";
                 if (!_container.TryGetProvider(name, out provider) || !setter.CanSetValue(provider!.ProviderType)) {
                     return false;
                 }

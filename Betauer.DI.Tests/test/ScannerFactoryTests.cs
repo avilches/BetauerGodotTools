@@ -102,7 +102,7 @@ public class ScannerFactoryTests : Node {
             return new Node { Name = "L" };
         }, null, false);
         di.Register(provider);
-        di.RegisterFactory(provider);
+        di.Register(ProxyFactoryProvider.Create(provider));
         di.Build();
         Assert.That(x, Is.EqualTo(1));
         Assert.That(c.Resolve<Node>().Name.ToString(), Is.EqualTo("L"));
@@ -120,7 +120,7 @@ public class ScannerFactoryTests : Node {
             return new Node { Name = "L" };
         }, null, true);
         di.Register(provider);
-        di.RegisterFactory(provider);
+        di.Register(ProxyFactoryProvider.Create(provider));
         di.Build();
         Assert.That(x, Is.EqualTo(0));
         Assert.That(c.Resolve<Node>().Name.ToString(), Is.EqualTo("L"));
@@ -140,7 +140,7 @@ public class ScannerFactoryTests : Node {
             return new Node { Name = "L" };
         }, "X", false);
         di.Register(provider);
-        di.RegisterFactory(provider);
+        di.Register(ProxyFactoryProvider.Create(provider));
         di.Build();
         Assert.That(x, Is.EqualTo(1));
         Assert.That(c.Resolve<Node>("X").Name.ToString(), Is.EqualTo("L"));
@@ -158,7 +158,7 @@ public class ScannerFactoryTests : Node {
             return new Node { Name = "L" };
         }, "X", true);
         di.Register(provider);
-        di.RegisterFactory(provider);
+        di.Register(ProxyFactoryProvider.Create(provider));
         di.Build();
         Assert.That(x, Is.EqualTo(0));
         Assert.That(c.Resolve<Node>("X").Name.ToString(), Is.EqualTo("L"));
@@ -181,7 +181,7 @@ public class ScannerFactoryTests : Node {
             return new Node { Name = "L" };
         });
         di.Register(provider);
-        di.RegisterFactory(provider);
+        di.Register(ProxyFactoryProvider.Create(provider));
         di.Build();
         Assert.That(x, Is.EqualTo(0));
         Assert.That(c.Resolve<Node>().Name.ToString(), Is.EqualTo("L"));
@@ -200,7 +200,7 @@ public class ScannerFactoryTests : Node {
             return new Node { Name = "L" };
         }, "X");
         di.Register(provider);
-        di.RegisterFactory(provider);
+        di.Register(ProxyFactoryProvider.Create(provider));
         di.Build();
         Assert.That(x, Is.EqualTo(0));
         Assert.That(c.Resolve<Node>("X").Name.ToString(), Is.EqualTo("L"));
@@ -484,7 +484,7 @@ public class ScannerFactoryTests : Node {
         var di = c.CreateBuilder();
         var provider = Provider.Transient<Element, Element>(() => new Element(0), "E");
         di.Register(provider);
-        di.RegisterFactory(provider);
+        di.Register(ProxyFactoryProvider.Create(provider));
         di.Build();
     
         Assert.That(c.Resolve<Element>("E").Type, Is.EqualTo(0));
@@ -502,7 +502,7 @@ public class ScannerFactoryTests : Node {
         var c = new Container();
         var di = c.CreateBuilder();
         Element.Instances = 0;
-        di.RegisterFactory<Element, Element1Factory>(Lifetime.Singleton, new Element1Factory(), "E1", true);
+        di.RegisterSingletonFactory<Element, Element1Factory>(new Element1Factory(), "E1", true);
         di.Build();
 
         Assert.That(Element.Instances, Is.EqualTo(0));
@@ -521,7 +521,7 @@ public class ScannerFactoryTests : Node {
         var c = new Container();
         var di = c.CreateBuilder();
         Element.Instances = 0;
-        di.RegisterFactory<Element, Element1Factory>(Lifetime.Singleton, new Element1Factory(), "E1", false);
+        di.RegisterSingletonFactory<Element, Element1Factory>(new Element1Factory(), "E1", false);
         di.Build();
 
         Assert.That(Element.Instances, Is.EqualTo(1));
@@ -539,7 +539,7 @@ public class ScannerFactoryTests : Node {
         var c = new Container();
         var di = c.CreateBuilder();
         Element.Instances = 0;
-        di.RegisterFactory<Element, Element1Factory>(Lifetime.Transient, new Element1Factory(), "E1");
+        di.RegisterTransientFactory<Element, Element1Factory>(new Element1Factory(), "E1");
         di.Build();
         
         // Factory creates instances well injected
@@ -548,7 +548,7 @@ public class ScannerFactoryTests : Node {
         Assert.That(c.Resolve<Element>("E1").WasInjected, Is.True);
         Assert.That(c.Resolve<ITransient<Element>>("Factory:E1").Create().Type, Is.EqualTo(1));
         Assert.That(c.Resolve<ITransient<Element>>("Factory:E1").Create().WasInjected, Is.True);
-        Assert.That(c.Resolve<ITransient<Element>>("Factory:E1"), Is.TypeOf<ProxyTransientFactory<Element>>());
+        Assert.That(c.Resolve<ITransient<Element>>("Factory:E1"), Is.TypeOf<ProxyFactoryProvider.Proxy.Transient<Element>>());
         Assert.That(Element.Instances, Is.EqualTo(4));
     }
 
@@ -562,24 +562,5 @@ public class ScannerFactoryTests : Node {
         public T MyGet() {
             return (T)_provider.Get();
         } 
-    }
-    [TestRunner.Test(Description = "RegisterCustomFactory tests, by type and by name. When the factory is exposed as ITransient<>")]
-    public void RegisterProxyTests() {
-        var c = new Container();
-        var di = c.CreateBuilder();
-        
-        di.RegisterFactory<Element, Element1Factory, MyProxy<Element>>(Lifetime.Singleton, 
-            new Element1Factory(), 
-            provider => new MyProxy<Element>(provider), "E1");
-        di.Build();
-        
-        Assert.That(c.Resolve<Element>("E1").Type, Is.EqualTo(1));
-        Assert.That(c.Resolve<Element>("E1").WasInjected, Is.True);
-        
-        // Factory creates instances well injected
-        Assert.That(c.Resolve<MyProxy<Element>>("Factory:E1").MyGet().Type, Is.EqualTo(1));
-        Assert.That(c.Resolve<MyProxy<Element>>("Factory:E1").MyGet().WasInjected, Is.True);
-            
-        Assert.Throws<ServiceNotFoundException>(() => c.Resolve<Element1Factory>());
     }
 }

@@ -29,7 +29,7 @@ public class AutoloadAttribute : Attribute, IClassAttribute, IConfigurationMembe
             lazy: false,
             metadata: Provider.FlagsToMetadata(Flags, "AddToTree"));
         builder.Register(provider);
-        builder.RegisterFactory(provider);
+        builder.Register(ProxyFactoryProvider.Create(provider));
     }
 
     public void Apply(object configuration, IGetter getter, Container.Builder builder) {
@@ -42,7 +42,7 @@ public class AutoloadAttribute : Attribute, IClassAttribute, IConfigurationMembe
             false,
             Provider.FlagsToMetadata(Flags, "AddToTree"));
         builder.Register(provider);
-        builder.RegisterFactory(provider);
+        builder.Register(ProxyFactoryProvider.Create(provider));
     }
 }
 

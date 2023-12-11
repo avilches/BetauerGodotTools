@@ -19,23 +19,11 @@ public static partial class Factory {
         }
 
         public void Apply(Type type, Container.Builder builder) {
-            builder.RegisterFactory(
-                type, 
-                Lifetime.Singleton, 
-                Activator.CreateInstance(type)!, 
-                Name,
-                Lazy,
-                Provider.FlagsToMetadata(Flags));
+            builder.RegisterSingletonFactory(Activator.CreateInstance(type)!, Name, Lazy, Provider.FlagsToMetadata(Flags));
         }
 
         public void Apply(object configuration, IGetter getter, Container.Builder builder) {
-            builder.RegisterFactory(
-                getter.Type, 
-                Lifetime.Singleton, 
-                getter.GetValue(configuration)!, 
-                Name ?? getter.Name,
-                Lazy,
-                Provider.FlagsToMetadata(Flags));
+            builder.RegisterSingletonFactory(getter.GetValue(configuration)!, Name ?? getter.Name, Lazy, Provider.FlagsToMetadata(Flags));
         }
     }
 }

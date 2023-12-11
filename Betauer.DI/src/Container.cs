@@ -49,8 +49,8 @@ public partial class Container {
         _busy = true;
         
         providers.ForEach(provider => provider.Container = this);
-        var factories = providers.OfType<FactoryProvider>().ToList();
-        providers.RemoveAll(provider => provider is FactoryProvider);
+        var factories = providers.OfType<CustomFactoryProvider>().ToList();
+        providers.RemoveAll(provider => provider is CustomFactoryProvider);
         providers.ForEach(AddToRegistry);
 
         var context = GetResolveContext();
@@ -62,7 +62,7 @@ public partial class Container {
         context = GetResolveContext();
         
         providers
-            .OfType<ISingletonProvider>()
+            .OfType<SingletonProvider>()
             .Where(provider => provider is { Lazy: false, IsInstanceCreated: false })
             .ForEach(provider => {
                 Logger.Debug($"Initializing non lazy {Lifetime.Singleton}:{provider.ProviderType.GetTypeName()} | Name: \"{provider.Name}\"");
@@ -71,7 +71,7 @@ public partial class Container {
         context.End();
         
         var errors = providers
-            .OfType<ISingletonProvider>()
+            .OfType<SingletonProvider>()
             .Where(provider => provider is { Lazy: true, IsInstanceCreated: true } && (provider.Name == null || !provider.Name.StartsWith("Factory:")))
             .Select(provider => $"- {provider.ProviderType.GetTypeName()} | Name: \"{provider.Name}\"")
             .ToList();
@@ -87,7 +87,7 @@ public partial class Container {
         if (_busy) throw new InvalidOperationException("Container is busy");
         _busy = true;
         AddToRegistry(provider);
-        if (provider is ISingletonProvider { Lazy: false }) {
+        if (provider is SingletonProvider { Lazy: false }) {
             Logger.Debug($"Initializing non lazy {Lifetime.Singleton}:{provider.ProviderType.GetTypeName()} | Name: \"{provider.Name}\"");
             provider.Get();
         }

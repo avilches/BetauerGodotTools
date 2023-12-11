@@ -19,23 +19,11 @@ public static partial class Factory {
         }
 
         public void Apply(Type type, Container.Builder builder) {
-            builder.RegisterFactory(
-                type, 
-                Lifetime.Transient, 
-                Activator.CreateInstance(type)!, 
-                Name,
-                true, // ignored because transient
-                Provider.FlagsToMetadata(Flags));
+            builder.RegisterTransientFactory(Activator.CreateInstance(type)!, Name, Provider.FlagsToMetadata(Flags));
         }
 
         public void Apply(object configuration, IGetter getter, Container.Builder builder) {
-            builder.RegisterFactory(
-                getter.Type, 
-                Lifetime.Transient, 
-                getter.GetValue(configuration)!, 
-                Name ?? getter.Name, 
-                true, // ignored because transient
-                Provider.FlagsToMetadata(Flags));
+            builder.RegisterTransientFactory(getter.GetValue(configuration)!, Name ?? getter.Name, Provider.FlagsToMetadata(Flags));
         }
     }
 }
