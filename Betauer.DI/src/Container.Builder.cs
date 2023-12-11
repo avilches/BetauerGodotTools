@@ -13,6 +13,8 @@ public partial class Container {
 
         private readonly List<IProvider> _providers = new();
         private readonly Scanner _scanner;
+        
+        public event Action? OnBuildFinished;
     
         public Builder(Container container) {
             Container = container;
@@ -63,6 +65,7 @@ public partial class Container {
             var toBuild = new List<IProvider>(_providers);
             _providers.Clear();
             Container.Build(toBuild);
+            OnBuildFinished?.Invoke();
             return Container;
         }
     }

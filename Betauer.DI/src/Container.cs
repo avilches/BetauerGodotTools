@@ -108,8 +108,8 @@ public partial class Container {
     private void AddToRegistry(IProvider provider) {
         var name = provider.Name;
         if (name != null) {
-            if (_registryByName.ContainsKey(name)) throw new DuplicateServiceException(name);
-                _registryByName[name] = provider;
+            if (_registryByName.TryGetValue(name, out var found)) throw new DuplicateServiceException(found.RegisterType, name);
+            _registryByName[name] = provider;
         } else {
             if (_registryByType.ContainsKey(provider.RegisterType)) throw new DuplicateServiceException(provider.RegisterType);
             _registryByType[provider.RegisterType] = provider;

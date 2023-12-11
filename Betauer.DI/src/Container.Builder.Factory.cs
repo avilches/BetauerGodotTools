@@ -75,7 +75,7 @@ public partial class Container {
             // - Resolve<T>(name)
             // To create instances with the dependencies injected.
             // If the factory is a lazy singleton, it will not be registered
-            IProvider? provider = lifetime == Lifetime.Singleton
+            IProvider provider = lifetime == Lifetime.Singleton
                 ? new SingletonProvider(type, type, createMethod, name, lazy, metadata)
                 : new TransientProvider(type, type, createMethod, name, metadata);
 
