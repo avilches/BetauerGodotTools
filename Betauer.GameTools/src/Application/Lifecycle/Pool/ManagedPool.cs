@@ -6,7 +6,8 @@ namespace Betauer.Application.Lifecycle.Pool;
 
 public abstract class ManagedPool<T> : BasePool<T>, IManagedPool where T : class {
     private IPoolContainer _poolContainer;
-    private readonly Func<T>? _factory;
+    
+    public Func<T>? Factory { get; set; }
 
     public int PurgeIfBiggerThan { get; set; } = 0;
 
@@ -15,7 +16,7 @@ public abstract class ManagedPool<T> : BasePool<T>, IManagedPool where T : class
     }
 
     protected ManagedPool(Func<T> factory, int purgeIfBiggerThan = 0) {
-        _factory = factory;
+        Factory = factory;
         PurgeIfBiggerThan = purgeIfBiggerThan;
     }
 
@@ -34,7 +35,7 @@ public abstract class ManagedPool<T> : BasePool<T>, IManagedPool where T : class
     }
 
     protected override T Create() {
-        var instance = _factory();
+        var instance = Factory();
         return instance;
     }
 
