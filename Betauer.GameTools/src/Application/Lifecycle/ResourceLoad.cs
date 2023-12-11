@@ -16,7 +16,7 @@ public abstract class ResourceLoad {
         Tag = tag ?? DefaultTag;
     }
 
-    public virtual void SetResourceLoaderContainer(ResourceLoaderContainer resourceLoaderContainer) {
+    public void SetResourceLoaderContainer(ResourceLoaderContainer resourceLoaderContainer) {
         if (ResourceLoaderContainer != null && ResourceLoaderContainer != resourceLoaderContainer) {
             ResourceLoaderContainer.Remove(this);
         }

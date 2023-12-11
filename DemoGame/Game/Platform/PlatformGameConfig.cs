@@ -24,6 +24,7 @@ public class PlatformMainResources {
 
 [Configuration]
 [Loader("GameLoader", Tag = "platform")]
+[PoolContainer<Node>("PlatformPoolNodeContainer")]
 [Resource<Texture2D>("Pickups", "res://Game/Platform/Items/Assets/pickups.png")]
 [Resource<Texture2D>("Pickups2", "res://Game/Platform/Items/Assets/pickups2.png")]
 [Resource<Texture2D>("LeonKnifeAnimationSprite", "res://Game/Platform/Character/Player/Assets/Leon-knife.png")]
@@ -31,24 +32,14 @@ public class PlatformMainResources {
 [Resource<Texture2D>("LeonGun1AnimationSprite", "res://Game/Platform/Character/Player/Assets/Leon-gun1.png")]
 [Scene.Transient<PlatformWorld>("PlatformWorldFactory")]
 [Scene.Transient<PlayerHud>("PlayerHudFactory")]
-[Scene.Transient<PlayerNode>("PlayerNodeFactory")]
-[Scene.Transient<ZombieNode>("ZombieNodeFactory")]
 [Scene.Transient<InventorySlot>("InventorySlotFactory")]
-[Scene.Transient<ProjectileTrail>("ProjectileTrailFactory")]
-[Scene.Transient<PickableItemNode>("PickableItemFactory")]
+[Scene.NodePool<PlayerNode>("PlayerPool")]
+[Scene.NodePool<PickableItemNode>("PickableItemPool")]
+[Scene.NodePool<ProjectileTrail>("ProjectilePool")]
+[Scene.NodePool<ZombieNode>("ZombiePool")]
 public class PlatformGameResources {
 	[Transient<PlatformHud>] PlatformHud PlatformHudFactory => new PlatformHud();
 }
-
-[Configuration]
-[PoolContainer<Node>("PlatformPoolNodeContainer")]
-public class PoolConfig {
-	[Pool] NodePool<PlayerNode> PlayerPool => new("PlayerNodeFactory");
-	[Pool] NodePool<ZombieNode> ZombiePool => new("ZombieNodeFactory");
-	[Pool] NodePool<ProjectileTrail> ProjectilePool => new("ProjectileTrailFactory");
-	[Pool] NodePool<PickableItemNode> PickableItemPool => new("PickableItemFactory");
-}
-
 
 public interface IPlatformSaveObject : ISaveObject {
 }
