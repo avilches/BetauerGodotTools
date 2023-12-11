@@ -7,7 +7,7 @@ namespace Betauer.Application.Lifecycle;
 
 public abstract class ResourceLoad : IInjectable {
     public const string DefaultTag = "(default)";
-
+    
     public ResourceLoaderContainer? ResourceLoaderContainer { get; private set; }
     public string Path { get; }
     public string Tag { get; }

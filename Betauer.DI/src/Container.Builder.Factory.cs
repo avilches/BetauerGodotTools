@@ -45,6 +45,7 @@ public partial class Container {
         /// <param name="lifetime">The lifetime of the objects creates by your own factory</param>
         /// <param name="factoryFactory">A function returning a IFactory<T> that creates the objects</param>
         /// <param name="name"></param>
+        /// <param name="metadata"></param>
         /// <typeparam name="T"></typeparam>
         /// <typeparam name="TF"></typeparam>
         /// <returns></returns>
@@ -85,6 +86,7 @@ public partial class Container {
         /// <param name="factoryFactory">A function returning a IFactory<T> that creates the objects</param>
         /// <param name="proxyFactory">A function returning the proxy, it can be any type</param>
         /// <param name="name"></param>
+        /// <param name="metadata"></param>
         /// <typeparam name="T"></typeparam>
         /// <typeparam name="TF"></typeparam>
         /// <typeparam name="TP"></typeparam>
@@ -112,6 +114,7 @@ public partial class Container {
         /// <param name="proxyFactoryType"></param>
         /// <param name="proxyFactory"></param>
         /// <param name="name"></param>
+        /// <param name="metadata"></param>
         /// <returns></returns>
         /// <exception cref="InvalidCastException"></exception>
         /// <exception cref="Exception"></exception>

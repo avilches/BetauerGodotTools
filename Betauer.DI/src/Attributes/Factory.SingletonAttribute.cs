@@ -8,8 +8,8 @@ namespace Betauer.DI.Attributes;
 public static partial class Factory {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method | AttributeTargets.Property)]
     public class SingletonAttribute : Attribute, IClassAttribute, IConfigurationMemberAttribute {
-        public string? Name { get; set; }
-        public string? Flags { get; set; }
+        public string? Name { get; init; }
+        public string? Flags { get; init; }
 
         public SingletonAttribute() {
         }
@@ -18,16 +18,16 @@ public static partial class Factory {
             Name = name;
         }
 
-        public virtual void Apply(Type type, Container.Builder builder) {
+        public void Apply(Type type, Container.Builder builder) {
             builder.RegisterFactory(
                 type, 
                 Lifetime.Singleton, 
                 () => Activator.CreateInstance(type)!, 
-                name: Name,
-                metadata: Flags?.Split(",").ToDictionary(valor => valor, _ => (object)true));
+                Name,
+                Flags?.Split(",").ToDictionary(valor => valor, _ => (object)true));
         }
 
-        public virtual void Apply(object configuration, IGetter getter, Container.Builder builder) {
+        public void Apply(object configuration, IGetter getter, Container.Builder builder) {
             builder.RegisterFactory(
                 getter.Type, 
                 Lifetime.Singleton, 

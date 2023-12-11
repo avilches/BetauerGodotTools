@@ -33,11 +33,15 @@ public static partial class Scene {
                 throw new InvalidAttributeException(
                     $"Attribute {typeof(SingletonAttribute<T>).FormatAttribute()} needs to be used in a class with attribute {typeof(LoaderAttribute).FormatAttribute()}");
             }
-            builder.RegisterFactory<T, SceneFactory<T>>(Lifetime.Singleton, () => {
-                var sceneFactory = new SceneFactory<T>(Path, Tag ?? loaderConfiguration.Tag);
-                sceneFactory.PreInject(loaderConfiguration.Name);
-                return sceneFactory;
-            }, Name, Flags?.Split(",").ToDictionary(valor => valor, _ => (object)true));
+            builder.RegisterFactory<T, SceneFactory<T>>(
+                Lifetime.Singleton,
+                () => {
+                    var sceneFactory = new SceneFactory<T>(Path, Tag ?? loaderConfiguration.Tag);
+                    sceneFactory.PreInject(loaderConfiguration.Name);
+                    return sceneFactory;
+                },
+                Name,
+                Flags?.Split(",").ToDictionary(valor => valor, _ => (object)true));
         }
     }
 }

@@ -7,10 +7,10 @@ namespace Betauer.DI.Attributes;
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method | AttributeTargets.Property)]
 public class TransientAttribute : Attribute, IClassAttribute, IConfigurationMemberAttribute {
-    public string? Name { get; set; }
-    public string? Flags { get; set; }
+    public string? Name { get; init; }
+    public string? Flags { get; init; }
 
-    
+
     public TransientAttribute() {
     }
 
@@ -18,7 +18,7 @@ public class TransientAttribute : Attribute, IClassAttribute, IConfigurationMemb
         Name = name;
     }
 
-    public virtual void Apply(Type type, Container.Builder builder) {
+    public void Apply(Type type, Container.Builder builder) {
         var provider = new TransientFactoryProvider(
             GetType().IsGenericType ? GetType().GetGenericArguments()[0] : type, // Trick to get the <T> from TransientAttribute<T>
             type,
@@ -28,7 +28,7 @@ public class TransientAttribute : Attribute, IClassAttribute, IConfigurationMemb
         builder.RegisterFactory(provider);
     }
 
-    public virtual void Apply(object configuration, IGetter getter, Container.Builder builder) {
+    public void Apply(object configuration, IGetter getter, Container.Builder builder) {
         var provider = new TransientFactoryProvider(
             GetType().IsGenericType ? GetType().GetGenericArguments()[0] : getter.Type, // Trick to get the <T> from TransientAttribute<T>
             getter.Type,
@@ -40,4 +40,5 @@ public class TransientAttribute : Attribute, IClassAttribute, IConfigurationMemb
     }
 }
 
-public class TransientAttribute<T> : TransientAttribute { }
+public class TransientAttribute<T> : TransientAttribute {
+}

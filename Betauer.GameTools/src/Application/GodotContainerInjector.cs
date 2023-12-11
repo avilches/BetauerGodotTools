@@ -13,13 +13,13 @@ public static class GodotContainerInjector {
 
     private static readonly StringName MetaDiInjected = "__di_injected";
     
-    public static Container.Builder InjectOnEnterTree(this Container.Builder builder, SceneTree sceneTree) {
+    public static Container.Builder InjectOnEnterTree(this Container.Builder builder, SceneTree sceneTree, bool autoAddNodeSingletonsToTree = false) {
         var container = builder.Container;
         // Auto add singleton Node to the scene tree root if they have the "AddToTree" flag enabled. This mimics the Autoload behaviour.
         container.OnCreated += providerResolved => {
             if (providerResolved is { Lifetime: Lifetime.Singleton, Instance: Node node } && 
-                providerResolved.GetFlag("AddToTree") && 
-                node.GetParent() == null) {
+                (autoAddNodeSingletonsToTree || providerResolved.GetFlag("AddToTree")) && 
+                 node.GetParent() == null) {
                 sceneTree.Root.AddChildDeferred(node);
             }
         };

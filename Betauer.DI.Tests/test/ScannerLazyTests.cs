@@ -95,7 +95,7 @@ public class ScannerLazyTests {
     class LazyPostInjectedB2 {
     }
 
-    [TestRunner.Test(Description = "Test if the [PostInject] methods are invoked + Non Lazy using Lazy")]
+    [TestRunner.Test(Description = "Using Lazy singleton as non Lazy fails during initialization")]
     public void PostInjectMethodTest() {
         var c = new Container();
         var di = c.CreateBuilder();

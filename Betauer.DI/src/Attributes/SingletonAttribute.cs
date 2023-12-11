@@ -7,9 +7,9 @@ namespace Betauer.DI.Attributes;
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method | AttributeTargets.Property)]
 public class SingletonAttribute : Attribute, IClassAttribute, IConfigurationMemberAttribute {
-    public string? Name { get; set; }
-    public bool Lazy { get; set; } = false;
-    public string? Flags { get; set; }
+    public string? Name { get; init; }
+    public string? Flags { get; init; }
+    public bool Lazy { get; init; } = false;
 
     public SingletonAttribute() {
     }
@@ -18,7 +18,7 @@ public class SingletonAttribute : Attribute, IClassAttribute, IConfigurationMemb
         Name = name;
     }
 
-    public virtual void Apply(Type type, Container.Builder builder) {
+    public void Apply(Type type, Container.Builder builder) {
         var provider = new SingletonFactoryProvider(
             GetType().IsGenericType ? GetType().GetGenericArguments()[0] : type, // Trick to get the <T> from SingletonAttribute<T>
             type,
@@ -29,7 +29,7 @@ public class SingletonAttribute : Attribute, IClassAttribute, IConfigurationMemb
         builder.RegisterFactory(provider);
     }
 
-    public virtual void Apply(object configuration, IGetter getter, Container.Builder builder) {
+    public void Apply(object configuration, IGetter getter, Container.Builder builder) {
         var provider = new SingletonFactoryProvider(
             GetType().IsGenericType ? GetType().GetGenericArguments()[0] : getter.Type, // Trick to get the <T> from SingletonAttribute<T>
             getter.Type,
@@ -42,4 +42,5 @@ public class SingletonAttribute : Attribute, IClassAttribute, IConfigurationMemb
     }
 }
 
-public class SingletonAttribute<T> : SingletonAttribute { }
+public class SingletonAttribute<T> : SingletonAttribute {
+}
