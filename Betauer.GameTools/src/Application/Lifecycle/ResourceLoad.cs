@@ -24,7 +24,7 @@ public abstract class ResourceLoad : IInjectable {
         _resourceLoaderContainerName = resourceLoaderContainerName;
     }
 
-    public void PostInject() {
+    public virtual void PostInject() {
         SetResourceLoaderContainer(Container.Resolve<ResourceLoaderContainer>(_resourceLoaderContainerName!));
     }
 

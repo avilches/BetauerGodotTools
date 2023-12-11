@@ -1,7 +1,7 @@
 using System;
 using Betauer.Core;
-using Betauer.Core.Nodes;
 using Betauer.DI.Factory;
+using Betauer.DI.ServiceProvider;
 using Betauer.NodePath;
 using Betauer.Tools.FastReflection;
 using Betauer.Tools.Logging;
@@ -26,6 +26,19 @@ public class SceneFactory<T> : ResourceLoad, IFactory<T> where T : Node {
         } catch (Exception) {
             Logger.Error("Error instantiating scene: {0} Tag: {1}",Path, Tag);
             throw;
+        }
+    }
+
+    private IProvider? _autoload;
+    public void PreInject(string resourceLoaderContainerName, IProvider autoload) {
+        base.PreInject(resourceLoaderContainerName);
+        _autoload = autoload;
+    }
+
+    public override void PostInject() {
+        base.PostInject();
+        if (_autoload != null) {
+            ResourceLoaderContainer!.OnLoadFinished += () => _autoload.Get();
         }
     }
 

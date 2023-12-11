@@ -18,12 +18,13 @@ public partial class Container {
         /// with Resolve<ITransient<T>>("Factory:"+name) or Resolve<ILazy<T>>("Factory:"+name)
         /// </summary>
         /// <returns></returns>
-        public Builder RegisterFactory(IProvider provider) {
+        public FactoryProviders RegisterFactory(IProvider provider) {
             var proxyFactoryType = (provider.Lifetime == Lifetime.Singleton ? typeof(ILazy<>) : typeof(ITransient<>)).MakeGenericType(provider.ProviderType);
             var proxyFactoryName = provider.Name == null ? null : $"{FactoryPrefix}{provider.Name}";
             object ProxyFactory() => CreateProxyFactory(provider.ProviderType, provider);
             var factoryProvider = new SingletonFactoryProvider(proxyFactoryType, proxyFactoryType, ProxyFactory, proxyFactoryName, true);
-            return Register(factoryProvider);
+            Register(factoryProvider);
+            return new FactoryProviders(provider, factoryProvider);
         }
 
         /// <summary>
@@ -49,14 +50,14 @@ public partial class Container {
         /// <typeparam name="T"></typeparam>
         /// <typeparam name="TF"></typeparam>
         /// <returns></returns>
-        public Builder RegisterFactory<T, TF>(Lifetime lifetime, Func<TF> factoryFactory, string? name = null, Dictionary<string, object>? metadata = null) 
+        public CustomFactoryProviders RegisterFactory<T, TF>(Lifetime lifetime, Func<TF> factoryFactory, string? name = null, Dictionary<string, object>? metadata = null) 
             where T : class
             where TF : class, IFactory<T> {
             return RegisterFactory(typeof(TF), lifetime, factoryFactory, name, metadata);
         }
 
         // Dynamic version, without generics
-        public Builder RegisterFactory(Type factoryType, Lifetime lifetime, Func<object> factoryFactory, string? name = null, Dictionary<string, object>? metadata = null) {
+        public CustomFactoryProviders RegisterFactory(Type factoryType, Lifetime lifetime, Func<object> factoryFactory, string? name = null, Dictionary<string, object>? metadata = null) {
             if (!factoryType.ImplementsInterface(typeof(IFactory<>))) {
                 throw new InvalidCastException($"Factory {factoryType.GetTypeName()} must implement IFactory<T>");
             }
@@ -91,7 +92,7 @@ public partial class Container {
         /// <typeparam name="TF"></typeparam>
         /// <typeparam name="TP"></typeparam>
         /// <returns></returns>
-        public Builder RegisterFactory<T, TF, TP>(Lifetime lifetime, Func<TF> factoryFactory, Func<IProvider, TP> proxyFactory, string? name = null, Dictionary<string, object>? metadata = null) 
+        public CustomFactoryProviders RegisterFactory<T, TF, TP>(Lifetime lifetime, Func<TF> factoryFactory, Func<IProvider, TP> proxyFactory, string? name = null, Dictionary<string, object>? metadata = null) 
             where T : class
             where TF : class, IFactory<T>
             where TP : class {
@@ -118,7 +119,7 @@ public partial class Container {
         /// <returns></returns>
         /// <exception cref="InvalidCastException"></exception>
         /// <exception cref="Exception"></exception>
-        public Builder RegisterFactory(Type factoryType, Lifetime lifetime, Func<object> factoryFactory, Type proxyFactoryType, Func<IProvider, object> proxyFactory, string? name = null, Dictionary<string, object>? metadata = null) {
+        public CustomFactoryProviders RegisterFactory(Type factoryType, Lifetime lifetime, Func<object> factoryFactory, Type proxyFactoryType, Func<IProvider, object> proxyFactory, string? name = null, Dictionary<string, object>? metadata = null) {
             if (!factoryType.ImplementsInterface(typeof(IFactory<>))) {
                 throw new InvalidCastException($"Factory {factoryType.GetTypeName()} must implement IGet<T>");
             }
@@ -150,7 +151,7 @@ public partial class Container {
             var proxyProvider = new SingletonFactoryProvider(proxyFactoryType, proxyFactoryType, ProxyFactory, proxyFactoryName, true);
             Register(proxyProvider);
             
-            return this;
+            return new CustomFactoryProviders(factoryProvider, provider, proxyProvider);
         }
 
         /// <summary>
@@ -170,5 +171,8 @@ public partial class Container {
                 return instance;
             }
         }
+
+        public record CustomFactoryProviders(IProvider CustomFactoryProvider, IProvider Provider, IProvider ProxyProvider);
+        public record FactoryProviders(IProvider Provider, IProvider ProxyProvider);
     }
 }

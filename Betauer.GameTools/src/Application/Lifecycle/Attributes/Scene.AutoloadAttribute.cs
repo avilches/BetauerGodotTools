@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Betauer.Core;
 using Betauer.DI.Attributes;
@@ -12,17 +13,17 @@ namespace Betauer.Application.Lifecycle.Attributes;
 
 public static partial class Scene {
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-    public class SingletonAttribute<T> : Attribute, IConfigurationClassAttribute where T : Node {
+    public class AutoloadAttribute<T> : Attribute, IConfigurationClassAttribute where T : Node {
         public string Name { get; init; }
         public string Path { get; init; }
         public string? Tag { get; init; }
         public string? Flags { get; init; }
 
-        public SingletonAttribute(string name) {
+        public AutoloadAttribute(string name) {
             Name = name;
         }
 
-        public SingletonAttribute(string name, string path) {
+        public AutoloadAttribute(string name, string path) {
             Name = name;
             Path = path;
         }
@@ -34,16 +35,17 @@ public static partial class Scene {
                     $"Attribute {typeof(SingletonAttribute<T>).FormatAttribute()} needs to be used in a class with attribute {typeof(LoaderAttribute).FormatAttribute()}");
             }
             Container.Builder.CustomFactoryProviders providers = null;
+            var metadata = Flags?.Split(",").ToDictionary(valor => valor, _ => (object)true) ?? new Dictionary<string, object>();
+            metadata["AddToTree"] = true;
             providers = builder.RegisterFactory<T, SceneFactory<T>>(
                 Lifetime.Singleton,
                 () => {
                     var sceneFactory = new SceneFactory<T>(Path, Tag ?? loaderConfiguration.Tag);
-                    var isAutoload = providers.Provider.Metadata.TryGetValue("Autoload", out var flag) && flag is true;
-                    sceneFactory.PreInject(loaderConfiguration.Name, isAutoload ? providers.Provider : null);
+                    sceneFactory.PreInject(loaderConfiguration.Name, providers.Provider);
                     return sceneFactory;
                 },
                 Name,
-                Flags?.Split(",").ToDictionary(valor => valor, _ => (object)true));
+                metadata);
 
         }
     }

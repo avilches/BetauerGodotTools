@@ -30,8 +30,9 @@ public class ApplicationConfig {
 		true,
 		1f);
 
+	[Autoload] public DebugOverlayManager DebugOverlayManager => new();
+
 	[Singleton] public Random Random => new PcgRandom();
-	[Singleton] public DebugOverlayManager DebugOverlayManager => new();
 	[Singleton] public GameObjectRepository GameObjectRepository => new();
 	[Singleton] public UiActionsContainer UiActionsContainer => new();
 	[Singleton] public GameLoader GameLoader => new();
@@ -61,11 +62,11 @@ public class Settings {
 [Resource<Texture2D>("XboxOneButtons", "res://Game/UI/Console/Xbox One Controller Updated.png")]
 [Scene.Transient<RedefineActionButton>("RedefineActionButton")]
 [Scene.Transient<ModalBoxConfirm>("ModalBoxConfirmFactory")]
-[Scene.Singleton<MainMenu>("MainMenuSceneLazy")]
-[Scene.Singleton<BottomBar>("BottomBarLazy")]
-[Scene.Singleton<PauseMenu>("PauseMenuLazy")]
-[Scene.Singleton<SettingsMenu>("SettingsMenuLazy")]
-[Scene.Singleton<ProgressScreen>("ProgressScreenLazy")]
+[Scene.Autoload<MainMenu>("MainMenuSceneLazy")]
+[Scene.Autoload<BottomBar>("BottomBarLazy")]
+[Scene.Autoload<PauseMenu>("PauseMenuLazy")]
+[Scene.Autoload<SettingsMenu>("SettingsMenuLazy")]
+[Scene.Autoload<ProgressScreen>("ProgressScreenLazy")]
 public class MainResources {
 }
 
