@@ -10,6 +10,8 @@ namespace Betauer.Application.Lifecycle;
 
 public class SceneFactory<T> : ResourceLoad, IFactory<T> where T : Node {
     private static readonly Logger Logger = LoggerFactory.GetLogger<ResourceLoaderContainer>();
+
+    public event Action<T>? OnInstantiate;
     
     public SceneFactory(string? path = null, string? tag = null) : base(ExtractScenePathFromScriptPathIfNull<T>(path), tag) {
     }
@@ -23,6 +25,7 @@ public class SceneFactory<T> : ResourceLoad, IFactory<T> where T : Node {
         try {
             var instance = Scene.Instantiate<T>();
             NodePathScanner.ScanAndInject(instance);
+            OnInstantiate?.Invoke(instance);
             return instance;
         } catch (Exception) {
             Logger.Error("Error instantiating scene: {0} Tag: {1}",Path, Tag);
