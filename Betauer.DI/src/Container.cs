@@ -48,19 +48,22 @@ public partial class Container {
         if (_busy) throw new InvalidOperationException("Container is busy");
         _busy = true;
         
-        providers.ForEach(provider => provider.Container = this);
-        var factories = providers.OfType<CustomFactoryProvider>().ToList();
+        var customFactories = providers.OfType<CustomFactoryProvider>().ToList();
         providers.RemoveAll(provider => provider is CustomFactoryProvider);
+        
+        // Add only the providers to the registry (no CustomFactoryProvider will be added)
         providers.ForEach(AddToRegistry);
 
+        // Resolve only the CustomFactoryProvider, just to inject the dependencies needed
         var context = GetResolveContext();
-        factories.ForEach(provider => {
+        customFactories.ForEach(provider => {
             Logger.Debug($"Initializing factory {provider.ProviderType.GetTypeName()}");
+            provider.Container = this;
             provider.Resolve(context);
         });
         context.End();
-        context = GetResolveContext();
         
+        context = GetResolveContext();
         providers
             .OfType<SingletonProvider>()
             .Where(provider => provider is { Lazy: false, IsInstanceCreated: false })

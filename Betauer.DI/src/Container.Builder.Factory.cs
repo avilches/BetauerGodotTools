@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 using Betauer.Core;
 using Betauer.DI.Factory;
 using Betauer.DI.ServiceProvider;
@@ -76,18 +74,23 @@ public partial class Container {
             // - Resolve<T>()
             // - Resolve<T>(name)
             // To create instances with the dependencies injected.
-            IProvider provider = lifetime == Lifetime.Singleton
+            // If the factory is a lazy singleton, it will not be registered
+            IProvider? provider = lifetime == Lifetime.Singleton
                 ? new SingletonProvider(type, type, createMethod, name, lazy, metadata)
                 : new TransientProvider(type, type, createMethod, name, metadata);
+
             Register(provider);
 
-            // Register the proxy factory so users can get the factory and use it to create new instances with dependencies injected
-            var proxyProvider = ProxyFactoryProvider.Create(provider);
-            Register(proxyProvider);
-            
+            IProvider? proxyProvider = null;
+            // Non lazy singletons doesn't need the ILazy<> proxy factory
+            if (lifetime == Lifetime.Transient || lazy) {
+                // Register the proxy factory so users can get the factory and use it to create new instances with dependencies injected
+                proxyProvider = ProxyFactoryProvider.Create(provider);
+                Register(proxyProvider);
+            }
             return new CustomFactoryProviders(factoryProvider, provider, proxyProvider);
         }
 
-        public record CustomFactoryProviders(IProvider CustomFactoryProvider, IProvider Provider, IProvider ProxyProvider);
+        public record CustomFactoryProviders(IProvider CustomFactoryProvider, IProvider Provider, IProvider? ProxyProvider);
     }
 }

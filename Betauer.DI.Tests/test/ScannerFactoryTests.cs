@@ -281,9 +281,8 @@ public class ScannerFactoryTests : Node {
     
     [Singleton]
     public class DemoSingleton {
-        [Inject("MyService")] public ILazy<MyService> MyServiceName { get; set;  }
-        [Inject("Factory:MyService")] public ILazy<MyService> MyServiceFullName { get; set;  }
-        [Inject] public ILazy<MyService> MyService { get; set;  }
+        [Inject("MyService")] public MyService MyServiceName { get; set;  }
+        [Inject] public MyService MyService { get; set;  }
         [Inject] public ITransient<MyTransient> MyTransient { get; set;  }
     }
 
@@ -311,13 +310,11 @@ public class ScannerFactoryTests : Node {
         Assert.That(MyTransientFactory.Gets, Is.EqualTo(0));
 
         var demoSingleton = c.Resolve<DemoSingleton>();
-        Assert.That(demoSingleton.MyServiceName, Is.EqualTo(c.Resolve<ILazy<MyService>>("Factory:MyService")));
-        Assert.That(demoSingleton.MyServiceFullName, Is.EqualTo(c.Resolve<ILazy<MyService>>("Factory:MyService")));
-        Assert.That(demoSingleton.MyService, Is.EqualTo(c.Resolve<ILazy<MyService>>("Factory:MyService")));
+        Assert.That(demoSingleton.MyServiceName, Is.EqualTo(demoSingleton.MyService));
 
         var d = c.Resolve<DemoTransient>();
 
-        var x1 = demoSingleton.MyService.Get();
+        var x1 = demoSingleton.MyService;
         var x3 = c.Resolve<MyService>("MyService");
 
         Assert.That(x1.WasInjected, Is.True);
@@ -510,7 +507,7 @@ public class ScannerFactoryTests : Node {
         Assert.That(c.Resolve<Element>("E1").WasInjected, Is.True);
         Assert.That(Element.Instances, Is.EqualTo(1));
         
-        // Factory creates instances well injected
+        // Lazy Factory creates instances well injected
         Assert.That(c.Resolve<ILazy<Element>>("Factory:E1").Get().Type, Is.EqualTo(1));
         Assert.That(c.Resolve<ILazy<Element>>("Factory:E1").Get().WasInjected, Is.True);
         Assert.That(Element.Instances, Is.EqualTo(1));
@@ -528,9 +525,8 @@ public class ScannerFactoryTests : Node {
         Assert.That(c.Resolve<Element>("E1").Type, Is.EqualTo(1));
         Assert.That(c.Resolve<Element>("E1").WasInjected, Is.True);
         
-        // Factory creates instances well injected
-        Assert.That(c.Resolve<ILazy<Element>>("Factory:E1").Get().Type, Is.EqualTo(1));
-        Assert.That(c.Resolve<ILazy<Element>>("Factory:E1").Get().WasInjected, Is.True);
+        // Non Lazy factories don't create ILazy<> providers
+        Assert.That(c.TryResolve<ILazy<Element>>("Factory:E1", out _), Is.False);
         Assert.That(Element.Instances, Is.EqualTo(1));
     }    
     

@@ -40,7 +40,7 @@ public static partial class Scene {
                 sceneFactory,
                 Name,
                 true, // must be lazy to allow to the Loader to load the scene first
-                Flags?.Split(",").ToDictionary(valor => valor, _ => (object)true));
+                Provider.FlagsToMetadata(Flags));
             sceneFactory.PreInject(loaderConfiguration.Name, isAutoload ? providers.Provider : null);
 
         }
