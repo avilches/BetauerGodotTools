@@ -1,4 +1,5 @@
 using System;
+using Betauer.Application.Settings;
 using Betauer.Application.Settings.Attributes;
 using Betauer.Core;
 using Betauer.DI;
@@ -11,9 +12,9 @@ namespace Betauer.Input.Attributes;
 
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Method, AllowMultiple = false)]
 public class AxisActionAttribute : Attribute, IConfigurationMemberAttribute {
-    public string? Name { get; set; }
-    public string? SaveAs { get; set; }
-    public bool AutoSave { get; set; } = false;
+    public string? Name { get; init; }
+    public string? SaveAs { get; init; }
+    public bool AutoSave { get; init; } = true;
 
     public AxisActionAttribute() {
     }
@@ -38,13 +39,21 @@ public class AxisActionAttribute : Attribute, IConfigurationMemberAttribute {
             throw new InvalidAttributeException(
                 $"Attribute {typeof(AxisActionAttribute).FormatAttribute()} needs to be used in a class with attribute {typeof(InputActionsContainerAttribute).FormatAttribute()}");
         }
+        
         var name = Name ?? getter.Name;
-        Func<AxisAction> factory = () => {
-            AxisAction axisAction = (AxisAction)getter.GetValue(configuration)!;
-            axisAction.PreInject(name, inputActionContainer.Name, settingsContainerName, SaveAs, AutoSave);
-            return axisAction;
+        AxisAction axisAction = (AxisAction)getter.GetValue(configuration)!;
+        // It's ok to change the name here, the name is not used for anything (yet!)
+        if (axisAction.Name == null) axisAction.Name = name;
+        builder.Register(Provider.Static<AxisAction, AxisAction>(axisAction, name));
+        
+        builder.OnBuildFinished += () => {
+            var inputActionsContainer = builder.Container.Resolve<InputActionsContainer>(inputActionContainer.Name);
+            axisAction.SetInputActionsContainer(inputActionsContainer);
+            
+            if (settingsContainerName != null) {
+                var settingsContainer = builder.Container.Resolve<SettingsContainer>(settingsContainerName);
+                axisAction.CreateSaveSetting(settingsContainer, SaveAs!, AutoSave, true);
+            }
         };
-        var provider = Provider.Singleton<AxisAction, AxisAction>(factory, name, false);
-        builder.Register(provider);
     }
 }

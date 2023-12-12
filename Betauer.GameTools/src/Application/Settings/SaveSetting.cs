@@ -21,7 +21,7 @@ public interface ISaveSetting {
     void Flush();
 }
 
-public class SaveSetting<T> : ISaveSetting, ISetting<T>, IInjectable {
+public class SaveSetting<T> : ISaveSetting, ISetting<T> {
     public SettingsContainer? SettingsContainer { get; protected set; }
     public string SaveAs { get; }
     public bool AutoSave { get; set; }
@@ -44,17 +44,6 @@ public class SaveSetting<T> : ISaveSetting, ISetting<T>, IInjectable {
         AutoSave = autoSave;
         Enabled = enabled;
         _initialized = false;
-    }
-
-    [Inject] private Container Container { get; set; }
-    private string? _settingsContainerName;
-
-    public void PreInject(string settingsContainerName) {
-        _settingsContainerName = settingsContainerName;
-    }
-
-    public void PostInject() {
-        SetSettingsContainer(Container.Resolve<SettingsContainer>(_settingsContainerName));
     }
 
     public void SetSettingsContainer(SettingsContainer settingsContainer) {

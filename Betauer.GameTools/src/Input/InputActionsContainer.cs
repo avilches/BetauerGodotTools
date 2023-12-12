@@ -59,7 +59,7 @@ public partial class InputActionsContainer : Node, IInjectable {
         return ActionMap.TryGetValue(name, out var action) ? action as T: null;
     }
 
-    // Use InputAction.SetInputActionContainer() instead
+    // Please, dont use this method directly: use InputAction.SetInputActionContainer() instead
     internal void Add(AxisAction axisAction) {
         if (InputActionList.Contains(axisAction)) return; // Avoid duplicates
         InputActionList.Add(axisAction);
@@ -67,13 +67,13 @@ public partial class InputActionsContainer : Node, IInjectable {
         LinkAxisAction(axisAction);
     }
 
-     // Use InputAction.SetInputActionContainer() instead
+     // Please, dont use this method directly: use InputAction.SetInputActionContainer() instead
     internal void Add(InputAction inputAction) {
         if (InputActionList.Contains(inputAction)) return; // Avoid duplicates
         InputActionList.Add(inputAction);
         ActionMap.Add(inputAction.Name, inputAction);
-        if (inputAction.AxisActionName != null) {
-            LinkAxisAction(inputAction.AxisActionName);
+        if (inputAction.AxisName != null) {
+            LinkAxisAction(inputAction.AxisName);
         }
         EnableAction(inputAction);
     }
@@ -87,7 +87,7 @@ public partial class InputActionsContainer : Node, IInjectable {
     // The link is needed because the axis action could be created in random order when using [InputAction] and [AxisAction] attributes.
     // So, as soon as the actions are added in PostInject() to the container, we try to link them.
     private void LinkAxisAction(AxisAction axisAction) {
-        var pairs = InputActionList.FindAll(action => action is InputAction inputAction && inputAction.AxisActionName == axisAction.Name);
+        var pairs = InputActionList.FindAll(action => action is InputAction inputAction && inputAction.AxisName == axisAction.Name);
         if (pairs.Count == 2 && axisAction.Negative == null && axisAction.Positive == null) {
             axisAction.SetNegativeAndPositive((InputAction)pairs[0], (InputAction)pairs[1]);
         }

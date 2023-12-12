@@ -134,8 +134,8 @@ public partial class InputActionAttributeTests : Node {
         Assert.That(inputActionsContainer.FindAction<InputAction>("Right"), Is.EqualTo(right));
         Assert.That(inputActionsContainer.FindAction<InputAction>("MyLeft"), Is.EqualTo(left));
 
-        Assert.That(right.AxisActionName, Is.EqualTo("Lateral"));
-        Assert.That(left.AxisActionName, Is.EqualTo("Lateral"));
+        Assert.That(right.AxisName, Is.EqualTo("Lateral"));
+        Assert.That(left.AxisName, Is.EqualTo("Lateral"));
         Assert.That(axisAction.Name, Is.EqualTo("Lateral"));
 
         Assert.That(right.AxisAction, Is.EqualTo(axisAction));
@@ -175,8 +175,8 @@ public partial class InputActionAttributeTests : Node {
         Assert.That(inputActionsContainer.FindAction<InputAction>("r"), Is.EqualTo(right));
         Assert.That(inputActionsContainer.FindAction<InputAction>("l"), Is.EqualTo(left));
 
-        Assert.That(right.AxisActionName, Is.EqualTo("lat"));
-        Assert.That(left.AxisActionName, Is.EqualTo("lat"));
+        Assert.That(right.AxisName, Is.EqualTo("lat"));
+        Assert.That(left.AxisName, Is.EqualTo("lat"));
         Assert.That(axisAction.Name, Is.EqualTo("lat"));
 
         Assert.That(right.AxisAction, Is.EqualTo(axisAction));

@@ -33,16 +33,17 @@ public class SettingAttribute<T> : Attribute, IConfigurationClassAttribute {
                 $"Attribute {typeof(SettingAttribute<T>).FormatAttribute()} needs to be used in a class with attribute {typeof(SettingsContainerAttribute).FormatAttribute()}");
         }
 
-        SaveSetting<T> Factory() {
-            if (DefaultAsString != null) {
-                Default = (T)Transformers.FromString(typeof(T), DefaultAsString);
-            }
-            SaveSetting<T> setting = Setting.Create(SaveAs ?? Name, Default, AutoSave, Enabled);
-            setting.PreInject(settingConfiguration.Name);
-            return setting;
+        if (DefaultAsString != null) {
+            Default = (T)Transformers.FromString(typeof(T), DefaultAsString);
         }
-
-        var provider = Provider.Singleton<SaveSetting<T>, SaveSetting<T>>(Factory, Name, false);
-        builder.Register(provider);
+        
+        var setting = Setting.Create(SaveAs ?? Name, Default, AutoSave, Enabled);
+        builder.Register(Provider.Static<SaveSetting<T>, SaveSetting<T>>(setting, Name));
+        
+        builder.OnBuildFinished += () => {
+            var settingsContainer = builder.Container.Resolve<SettingsContainer>(settingConfiguration.Name);
+            setting.SetSettingsContainer(settingsContainer);
+        };
+        
     }
 }

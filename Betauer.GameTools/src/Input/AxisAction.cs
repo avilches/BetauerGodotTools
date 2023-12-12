@@ -1,19 +1,16 @@
 using System;
 using Betauer.Application.Settings;
 using Betauer.Core;
-using Betauer.DI;
-using Betauer.DI.Attributes;
 using Godot;
-using Container = Betauer.DI.Container;
 
 namespace Betauer.Input;
 
-public class AxisAction : IAction, IInjectable {
+public class AxisAction : IAction {
     public float Strength => (Positive.Strength - Negative.Strength) * (Reverse ? -1 : 1);
     public float RawStrength => (Positive.RawStrength - Negative.RawStrength) * (Reverse ? -1 : 1);
     public JoyAxis Axis => Positive.Axis;
     public bool Reverse { get; set; } = false;
-    public string Name { get; private set; }
+    public string Name { get; internal set; }
     public bool Enabled => Negative is { Enabled: true } && Positive is { Enabled: true }; 
     public SaveSetting<string>? SaveSetting { get; set; }
     public bool IsEvent(InputEvent inputEvent) => inputEvent is InputEventJoypadMotion motion && motion.Axis == Axis;
@@ -66,43 +63,18 @@ public class AxisAction : IAction, IInjectable {
         Positive = positive;
         Positive.AxisAction = this;
         Negative.AxisAction = this;
-        Positive.AxisActionName = Name;
-        Negative.AxisActionName = Name;
+        Positive.AxisName = Name;
+        Negative.AxisName = Name;
         if (InputActionsContainer != null) {
             Positive.SetInputActionsContainer(InputActionsContainer);
             Negative.SetInputActionsContainer(InputActionsContainer);
         }
     }
 
-    [Inject] private Container Container { get; set; }
-    private string _inputActionsContainerName;
-    private string? _settingsContainerName;
-    private string? _settingSaveAs;
-    private bool _settingAutoSave;
-
-    public void PreInject(string? name, string inputActionsContainerName, string? settingsContainerName, string? saveAs, bool autoSave) {
-        if (Name == null) Name = name;
-        _inputActionsContainerName = inputActionsContainerName;
-        _settingsContainerName = settingsContainerName;
-        _settingSaveAs = saveAs;
-        _settingAutoSave = autoSave;
-    }
-
-    public void PostInject() {
-        if (_settingsContainerName != null && _settingSaveAs != null) {
-            CreateSaveSettings(_settingsContainerName, _settingSaveAs, _settingAutoSave, true);
-            // Load settings from file
-            Load();
-        }
-
-        SetInputActionsContainer(Container.Resolve<InputActionsContainer>(_inputActionsContainerName));
-    }
-
-    private void CreateSaveSettings(string settingsContainerName, string propertyName, bool autoSave = false, bool enabled = true) {
-        var setting = Setting.Create(propertyName, AsString(), autoSave, enabled);
-        setting.PreInject(settingsContainerName);
-        Container.InjectServices(setting);
-        SaveSetting = setting;
+    public void CreateSaveSetting(SettingsContainer settingsContainer, string saveAs, bool autoSave, bool enabled) {
+        SaveSetting = Setting.Create(saveAs, AsString(), autoSave, enabled);
+        SaveSetting.SetSettingsContainer(settingsContainer);
+        Load();
     }
 
     public void UnsetInputActionsContainer() {

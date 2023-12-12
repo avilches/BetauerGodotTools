@@ -160,8 +160,8 @@ public partial class InputActionTests : Node {
         Assert.That(right.InputActionsContainer, Is.EqualTo(c));
         
 
-        Assert.That(right.AxisActionName, Is.EqualTo("Lateral"));
-        Assert.That(left.AxisActionName, Is.EqualTo("Lateral"));
+        Assert.That(right.AxisName, Is.EqualTo("Lateral"));
+        Assert.That(left.AxisName, Is.EqualTo("Lateral"));
         Assert.That(lateral.Name, Is.EqualTo("Lateral"));
 
         Assert.That(right.AxisAction, Is.EqualTo(lateral));

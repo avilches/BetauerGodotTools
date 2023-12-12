@@ -1,4 +1,5 @@
 using System;
+using Betauer.Application.Settings;
 using Betauer.Application.Settings.Attributes;
 using Betauer.Core;
 using Betauer.DI;
@@ -14,7 +15,7 @@ public class InputActionAttribute : Attribute, IConfigurationMemberAttribute {
     public string? Name { get; set; }
     public string? AxisName { get; set; }
     public string? SaveAs { get; set; }
-    public bool AutoSave { get; set; } = false;
+    public bool AutoSave { get; set; } = true;
 
     public InputActionAttribute() {
     }
@@ -34,18 +35,28 @@ public class InputActionAttribute : Attribute, IConfigurationMemberAttribute {
             settingsContainerName = settingContainer.Name;
         }
         
-        var inputActionsContainer = configuration.GetType().GetAttribute<InputActionsContainerAttribute>()!;
-        if (inputActionsContainer == null) {
+        var inputActionContainer = configuration.GetType().GetAttribute<InputActionsContainerAttribute>()!;
+        if (inputActionContainer == null) {
             throw new InvalidAttributeException(
                 $"Attribute {typeof(InputActionAttribute).FormatAttribute()} needs to be used in a class with attribute {typeof(InputActionsContainerAttribute).FormatAttribute()}");
         }
         var name = Name ?? getter.Name;
-        Func<InputAction> factory = () => {
-            InputAction inputAction = (InputAction)getter.GetValue(configuration)!;
-            inputAction.PreInject(name, AxisName, inputActionsContainer.Name, settingsContainerName, SaveAs, AutoSave);
-            return inputAction;
+        InputAction inputAction = (InputAction)getter.GetValue(configuration)!;
+        // It's ok to change the name here, the name is not used for anything (yet!)
+        if (inputAction.Name == null) inputAction.Name = name;
+        if (inputAction.AxisName == null) inputAction.AxisName = AxisName;
+        builder.Register(Provider.Static<InputAction, InputAction>(inputAction, name));
+    
+        builder.OnBuildFinished += () => {
+            var inputActionsContainer = builder.Container.Resolve<InputActionsContainer>(inputActionContainer.Name);
+            inputAction.SetInputActionsContainer(inputActionsContainer);
+            
+            if (settingsContainerName != null) {
+                var settingsContainer = builder.Container.Resolve<SettingsContainer>(settingsContainerName);
+                inputAction.CreateSaveSetting(settingsContainer, SaveAs!, AutoSave, true);
+            }
+            
+            inputAction.RefreshGodotInputMap();
         };
-        var provider = Provider.Singleton<InputAction, InputAction>(factory, name, false);
-        builder.Register(provider);
     }
 }
