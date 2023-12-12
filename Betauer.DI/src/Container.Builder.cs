@@ -12,18 +12,18 @@ public partial class Container {
         public Container Container { get; }
 
         private readonly List<IProvider> _providers = new();
+        private readonly List<object> _instances = new();
         private readonly Scanner _scanner;
         
         public event Action? OnBuildFinished;
     
-        public Builder(Container container) {
+        internal Builder(Container container) {
             Container = container;
             _scanner = new Scanner(this, Container);
         }
-    
-        internal Builder() {
-            Container = new Container();
-            _scanner = new Scanner(this, Container);
+
+        internal void AddToInitialInject(object provider) {
+            _instances.Add(provider);
         }
 
         public Builder Register(IProvider provider) {
@@ -62,9 +62,7 @@ public partial class Container {
         }
 
         internal void Build() {
-            var toBuild = new List<IProvider>(_providers);
-            _providers.Clear();
-            Container.Build(toBuild);
+            Container.Build(_providers, _instances);
             OnBuildFinished?.Invoke();
         }
     }

@@ -13,8 +13,7 @@ public static class NodePathScanner {
 
     private static readonly StringName MetaInjected = "__node_path_injected";
 
-    private const BindingFlags NodePathFlags =
-        BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+    private const BindingFlags NodePathFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
 
     public static void ConfigureAutoInject(SceneTree sceneTree) {
         sceneTree.NodeAdded += node => ScanAndInject(node);

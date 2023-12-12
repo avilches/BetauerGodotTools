@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Betauer.DI.Attributes;
 using Betauer.DI.Exceptions;
 using Betauer.DI.ServiceProvider;
 using Betauer.TestRunner;
@@ -68,13 +69,32 @@ public class ContainerTests : Node {
         var n1 = di.Resolve<Node>();
         var n2 = di.Resolve<Node>();
         Assert.That(n1, Is.Not.Null);
+        Assert.That(n2, Is.Not.Null);
         Assert.That(n1, Is.Not.EqualTo(n2));
 
         // Not allowed interfaces
         Assert.Throws<MissingMethodException>(() => di.Resolve<IInterface1>());
         // Not allowed abstract classes
         Assert.Throws<MissingMethodException>(() => di.Resolve(typeof(AbstractClass)));
+    }
 
+    [Transient]
+    public class CreateIfNotFoundClass {
+        [Inject] public Node N1 { get; set; }
+        [Inject] public Node N2 { get; set; }
+    }
+    
+    [TestRunner.Test(Description = "CreateIfNotFound: if type is not found, create a new instance automatically (like transient)")]
+    public void CreateTransientIfNotFoundTestScan() {
+        var c = new Container() {
+            CreateIfNotFound = true
+        };
+        c.Build(build => build.Scan<CreateIfNotFoundClass>());
+
+        var test = c.Resolve<CreateIfNotFoundClass>();
+        Assert.That(test.N1, Is.Not.Null);
+        Assert.That(test.N2, Is.Not.Null);
+        Assert.That(test, Is.Not.EqualTo(test.N2));
     }
 
     [TestRunner.Test(Description = "Error creating factories")]
@@ -467,8 +487,8 @@ public class ContainerTests : Node {
             b.Register(Provider.Transient<Node>());
         });
         c.Resolve<Node2D>();
-        Assert.That(singletons.Count, Is.EqualTo(2)); // +1 because of Container
-        Assert.That(singletons[1], Is.TypeOf<ClassWith1Interface>());
+        Assert.That(singletons.Count, Is.EqualTo(1)); // +1 because of Container
+        Assert.That(singletons[0], Is.TypeOf<ClassWith1Interface>());
         c.Resolve<Node>();
         Assert.That(transients.Count, Is.EqualTo(1));
         Assert.That(transients[0], Is.TypeOf<Node>());

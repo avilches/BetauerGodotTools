@@ -9,13 +9,11 @@ public class ResolveContext {
     private readonly Dictionary<Provider, ProviderResolved> _newSingletonsCreated = new();
     private readonly List<ProviderResolved> _newTransientsCreated = new();
     private readonly Stack<Type> _transientNameStack = new();
-    private readonly Action? _onEnd;
 
     internal Container Container { get; }
 
-    public ResolveContext(Container container, Action? onEnd = null) {
+    public ResolveContext(Container container) {
         Container = container;
-        _onEnd = onEnd;
     }
 
     internal bool TryGetSingletonFromCache(Provider provider, out object? instanceFound) {
@@ -27,19 +25,19 @@ public class ResolveContext {
         return false;
     }
 
-    internal void AddSingleton(Provider provider, object instance) {
+    internal void NewSingleton(Provider provider, object instance) {
         _newSingletonsCreated[provider] = new ProviderResolved(provider, instance);
     }
 
     // This stack avoid circular dependencies between transients
-    internal void TryStartTransient(Type type, string? name) {
+    internal void PushTransient(Type type) {
         if (_transientNameStack.Contains(type)) {
             throw new CircularDependencyException(string.Join("\n", _transientNameStack));
         }
         _transientNameStack.Push(type);
     }
 
-    internal void PushTransient(Provider provider, object instance) {
+    internal void NewTransient(Provider provider, object instance) {
         _newTransientsCreated.Add(new ProviderResolved(provider, instance));
     }
 
@@ -59,6 +57,9 @@ public class ResolveContext {
         _newSingletonsCreated.Clear();
         _newTransientsCreated.Clear();
         _transientNameStack.Clear();
-        _onEnd?.Invoke();
+    }
+
+    public void InjectServices(Lifetime lifetime, object o) {
+        Container.Injector.InjectServices(this, lifetime, o);
     }
 }

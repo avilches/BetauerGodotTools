@@ -6,7 +6,7 @@ using Betauer.Tools.Logging;
 namespace Betauer.DI.ServiceProvider; 
 
 public class SingletonProvider : Provider {
-    private static readonly Logger Logger = LoggerFactory.GetLogger<Provider>();
+    private static readonly Logger Logger = LoggerFactory.GetLogger<SingletonProvider>();
     private readonly Func<object> _factory;
     public override Lifetime Lifetime => Lifetime.Singleton;
     public bool IsInstanceCreated { get; private set; }
@@ -19,26 +19,24 @@ public class SingletonProvider : Provider {
     }
     
     public override object Get() {
-        return IsInstanceCreated ? Instance! : Container.Resolve(this);
+        if (!IsInstanceCreated) {
+            Container.WithContext(context => Resolve(context));
+        }
+        return Instance!;
     }
 
     public override object Resolve(ResolveContext context) {
         if (IsInstanceCreated) return Instance!;
-        if (context == null) throw new ArgumentNullException(nameof(context));
         if (context.TryGetSingletonFromCache(this, out var singleton)) {
-            Logger.Debug($"Get from context {Lifetime} {singleton.GetType().GetTypeName()} exposed as {ExposedType.GetTypeName()}: {singleton.GetHashCode():X}");
+            Logger.Debug("Get from context {0} {1} exposed as {2}: {3:X}", Lifetime.Singleton, singleton.GetType().GetTypeName(), ExposedType.GetTypeName(), singleton.GetHashCode());
             return singleton;
         }
-        lock (this) {
-            // Just in case another thread was waiting for the lock
-            if (IsInstanceCreated) return Instance!;
-            Instance = _factory.Invoke();
-            if (Instance == null) throw new NullReferenceException($"Singleton factory returned null for {ExposedType.GetTypeName()} {Name}");
-            Logger.Debug($"Creating {Lifetime.Singleton}:{Instance.GetType().GetTypeName()}. Name: \"{Name}\". HashCode: {Instance.GetHashCode():X}");
-            context.AddSingleton(this, Instance);
-            IsInstanceCreated = true;
-            context.Container.InjectServices(Lifetime, Instance, context);
-        }
+        Instance = _factory.Invoke();
+        if (Instance == null) throw new NullReferenceException($"Singleton factory returned null for {ExposedType.GetTypeName()} {Name}");
+        Logger.Debug("Creating {0}:{1}. Name: \"{2}\". HashCode: {3:X}", Lifetime.Singleton, Instance.GetType().GetTypeName(), Name, Instance.GetHashCode());
+        context.NewSingleton(this, Instance);
+        context.InjectServices(Lifetime.Singleton, Instance);
+        IsInstanceCreated = true;
         return Instance;
     }
 }

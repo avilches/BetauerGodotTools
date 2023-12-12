@@ -16,31 +16,19 @@ public partial class Container {
     private readonly Dictionary<Type, IProvider> _registryByExposedType = new();
     private readonly Dictionary<string, IProvider> _registryByName = new();
     private readonly List<IProvider> _providers = new();
-    private readonly Injector _injector;
     public bool CreateIfNotFound { get; set; }
     public event Action<ProviderResolved> OnCreated;
     public event Action<object>? OnPostInject;
 
     private readonly BasicPool<ResolveContext> _resolveContextPool;
-    private ResolveContext GetResolveContext() => _resolveContextPool.Get();
 
     private bool _busy = false;
     
     public Container() {
-        _injector = new Injector(this);
-        _resolveContextPool = new(CreateResolveContext);        
-        
+        _resolveContextPool = new BasicPool<ResolveContext>(() => new ResolveContext(this));        
         // Adding the Container in the Container allows to use [Inject] Container...
         AddToRegistry(Provider.Static(this));
     }
-
-    private ResolveContext CreateResolveContext() {
-        ResolveContext? context = null;
-        context = new ResolveContext(this, () => {
-            _resolveContextPool!.Return(context);
-        });
-        return context;
-    } 
 
     public Container Build(Action<Builder> action) {
         var builder = new Builder(this);
@@ -48,43 +36,54 @@ public partial class Container {
         builder.Build();
         return this;
     }
+
+    public T FromContext<T>(Func<ResolveContext, T> action) {
+        var context = _resolveContextPool.Get();
+        try {
+            return action.Invoke(context);
+        } finally {
+            context.End();
+        }
+    }
+
+    public void WithContext(Action<ResolveContext> action) {
+        var context = _resolveContextPool.Get();
+        try {
+            action.Invoke(context);
+        } finally {
+            context.End();
+        }
+    }
     
-    internal Container Build(List<IProvider> providers) {
+    internal Container Build(List<IProvider> providers, List<object> instances) {
         if (_busy) throw new InvalidOperationException("Container is busy");
         _busy = true;
         
-        // Add all the providers to the registry (no CustomFactoryProvider will be added)
-        providers.Where(provider => provider is not CustomFactoryProvider).ForEach(AddToRegistry);
+        // Add all the providers to the registry first
+        providers.ForEach(AddToRegistry);
 
-        // Resolve only the CustomFactoryProviders first, just to inject the dependencies they need
-        var context = GetResolveContext();
-        providers
-            .OfType<CustomFactoryProvider>()
-            .ForEach(provider => {
-                Logger.Debug($"Initializing factory {provider.InstanceType.GetTypeName()}");
-                provider.Container = this;
-                provider.Resolve(context);
+        // Inject the custom factories first
+        WithContext(context => {
+            instances.ForEach(instance => {
+                Logger.Debug("Initializing {0}", instance.GetType().GetTypeName());
+                context.InjectServices(Lifetime.Singleton, instance);
+                ExecutePostInjectMethods(instance);
             });
-        context.End();
-        
-        // Initialize the rest of the providers, if they need it
-        context = GetResolveContext();
-        providers
-            .ForEach(provider => {
+
+            providers.ForEach(provider => {
                 switch (provider) {
-                    case CustomFactoryProvider:
                     case TransientProvider:
                     case ProxyFactoryProvider:
                         return;
                     case SingletonProvider singletonProvider:
                         if (!singletonProvider.IsInstanceCreated && !singletonProvider.Lazy) {
-                            Logger.Debug($"Initializing non lazy {Lifetime.Singleton}:{provider.InstanceType.GetTypeName()} | Name: \"{provider.Name}\"");
+                            Logger.Debug("Initializing non lazy {0}:{1} | Name: \"{2}\"", Lifetime.Singleton, provider.InstanceType.GetTypeName(), provider.Name);
                             provider.Resolve(context);
                         }
                         break;
                     case StaticProvider staticProvider:
                         if (!staticProvider.IsInitialized) {
-                            Logger.Debug($"Initializing static {Lifetime.Singleton}:{provider.InstanceType.GetTypeName()} | Name: \"{provider.Name}\"");
+                            Logger.Debug("Initializing static {0}:{1} | Name: \"{2}\"", Lifetime.Singleton, provider.InstanceType.GetTypeName(), provider.Name);
                             provider.Resolve(context);
                         }
                         break;
@@ -92,7 +91,7 @@ public partial class Container {
                         throw new NotImplementedException($"Unknown provider type: {provider.GetType().GetTypeName()}");
                 }
             });
-        context.End();
+        });
         
         // Check if a lazy singleton was initialized by mistake
         var errors = providers
@@ -125,7 +124,8 @@ public partial class Container {
         } else {
             if (_registryByExposedType.ContainsKey(provider.ExposedType)) throw new DuplicateServiceException(provider.ExposedType);
             _registryByExposedType[provider.ExposedType] = provider;
-            Logger.Debug($"Registered {provider.Lifetime}:{provider.InstanceType.GetTypeName()} | Type: {provider.ExposedType.GetTypeName()}");
+            Logger.Debug("Registered {0}:{1} | Type: {2}", provider.Lifetime, provider.InstanceType.GetTypeName(),
+                provider.ExposedType.GetTypeName());
         }
         _providers.Add(provider);
         provider.Container = this;
@@ -141,7 +141,7 @@ public partial class Container {
 
     public bool TryGetProvider(string name, [MaybeNullWhen(false)] out IProvider provider) => _registryByName.TryGetValue(name, out provider);
     public bool TryGetProvider<T>(out IProvider? provider) => TryGetProvider(typeof(T), out provider);
-    public bool TryGetProvider(Type type, out IProvider? provider) {
+    public bool TryGetProvider(Type type, [MaybeNullWhen(false)] out IProvider provider) {
         var found = _registryByExposedType.TryGetValue(type, out provider);
         if (!found) provider = null;
         return found;
@@ -169,27 +169,28 @@ public partial class Container {
         return result;
     }
 
-    public bool TryResolve(Type type, out object instance) {
+    public bool TryResolve(Type type, [MaybeNullWhen(false)] out object instance) {
         if (TryGetProvider(type, out IProvider? provider)) {
             instance = provider!.Get();
             return true;
         }
         if (CreateIfNotFound) {
-            AddToRegistry(new TransientProvider(type, type));
-            // ReSharper disable once TailRecursiveCall
-            return TryResolve(type, out instance);
+            var transientProvider = new TransientProvider(type, type);
+            AddToRegistry(transientProvider);
+            instance = transientProvider!.Get();
+            return true;
         }
         instance = null;
         return false;
     }
 
-    public bool TryResolve<T>(string name, out T instance) {
+    public bool TryResolve<T>(string name, [MaybeNullWhen(false)] out T instance) {
         var result = TryResolve(name, out var o);
         instance = (T)o;
         return result;
     }
 
-    public bool TryResolve(string name, out object instance) {
+    public bool TryResolve(string name, [MaybeNullWhen(false)] out object instance) {
         if (TryGetProvider(name, out IProvider? provider)) {
             instance = provider!.Get();
             return true;
@@ -199,11 +200,10 @@ public partial class Container {
     }
 
     public List<T> GetAllInstances<T>() {
-        var context = GetResolveContext();
-        return Query<T>(Lifetime.Singleton)
+        return FromContext(context => Query<T>(Lifetime.Singleton)
             .Select(provider => provider.Resolve(context))
             .Cast<T>()
-            .ToList();
+            .ToList());
     }
 
     public List<IProvider> Query<T>(Lifetime? lifetime = null) {
@@ -225,47 +225,28 @@ public partial class Container {
 
     internal void ExecutePostInjectMethods<T>(T instance) {
         if (instance is IInjectable injectable) {
-            Logger.Debug($"Executing {nameof(IInjectable.PostInject)} in {injectable.GetType().GetTypeName()}. HashCode: {injectable.GetHashCode():X}");
+            Logger.Debug("Executing {0} in {1}. HashCode: {2:X}", nameof(IInjectable.PostInject), injectable.GetType().GetTypeName(),
+                injectable.GetHashCode());
             injectable.PostInject();
         }
         OnPostInject?.Invoke(instance);
     }
 
-    internal object Resolve(Provider provider) {
-        var context = GetResolveContext();
-        var instance = provider.Resolve(context);
-        context.End();
-        return instance;
-
-    }
-
-    internal object Resolve(Type type, ResolveContext context) {
-        if (TryGetProvider(type, out IProvider? provider)) {
-            return provider!.Resolve(context);
-        }
-        if (CreateIfNotFound) {
-            AddToRegistry(new TransientProvider(type, type));
-            // ReSharper disable once TailRecursiveCall
-            return Resolve(type, context);
-        }
-        throw new ServiceNotFoundException(type);
-    }
-
-    internal object Resolve(string name, ResolveContext context) {
-        if (TryGetProvider(name, out IProvider? provider)) {
+    internal object TryCreateTransientFromInjector(Type type, ResolveContext context) {
+        if (TryGetProvider(type, out IProvider provider)) {
             return provider.Resolve(context);
         }
-        throw new ServiceNotFoundException(name);
+        if (!CreateIfNotFound) throw new ServiceNotFoundException(type);
+        var transientProvider = new TransientProvider(type, type);
+        AddToRegistry(transientProvider);
+        return transientProvider.Resolve(context);
     }
 
     public void InjectServices(object o) {
-        var context = GetResolveContext();
-        InjectServices(Lifetime.Transient, o, context);
-        context.End();
+        WithContext(context => {
+            context.InjectServices(Lifetime.Transient, o);
+            context.End();
+        });
         ExecutePostInjectMethods(o);
-    }
-
-    internal void InjectServices(Lifetime lifetime, object o, ResolveContext context) {
-        _injector.InjectServices(lifetime, o, context);
     }
 }

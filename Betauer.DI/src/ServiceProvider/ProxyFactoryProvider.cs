@@ -20,8 +20,7 @@ public class ProxyFactoryProvider : Provider {
             provider is not TransientProvider) {
             throw new ArgumentException($"Provider must be a {nameof(SingletonProvider)} or {nameof(TransientProvider)}, but was {provider.GetType().GetTypeName()}");
         }
-        var type = provider.InstanceType;
-        var proxyFactory = CreateProxyFactory(type, provider);
+        var proxyFactory = CreateProxyFactory(provider.InstanceType, provider);
         var proxyFactoryName = provider.Name == null ? null : $"{FactoryPrefix}{provider.Name}";
         var proxyFactoryType = (provider.Lifetime == Lifetime.Singleton ? typeof(ILazy<>) : typeof(ITransient<>)).MakeGenericType(provider.InstanceType);
         var lazy = provider is not SingletonProvider singletonProvider || singletonProvider.Lazy;
@@ -34,14 +33,6 @@ public class ProxyFactoryProvider : Provider {
         ServiceLifetime = lifetime;
         ProxyInstance = factory;
         ServiceLazy = serviceLazy;
-    }
-
-    private static Type Create(Type type, Lifetime lifetime, object proxyFactory) {
-        var proxyFactoryType = (lifetime == Lifetime.Singleton ? typeof(ILazy<>) : typeof(ITransient<>)).MakeGenericType(type);
-        if (!proxyFactory.GetType().ImplementsInterface(proxyFactoryType)) {
-            throw new InvalidCastException($"Factory {proxyFactory.GetType().GetTypeName()} must implement {proxyFactoryType.GetTypeName()}");
-        }
-        return proxyFactoryType;
     }
 
     public override object Get() {

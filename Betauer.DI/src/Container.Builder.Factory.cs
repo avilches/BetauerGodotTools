@@ -9,19 +9,19 @@ namespace Betauer.DI;
 public partial class Container {
     public partial class Builder {
 
-        public CustomFactoryProviders RegisterSingletonFactory<T, TF>(TF factoryInstance, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) 
+        public FactoryProviders RegisterSingletonFactory<T, TF>(TF factoryInstance, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) 
             where T : class
             where TF : class, IFactory<T> {
             return RegisterSingletonFactory(factoryInstance, name, lazy, metadata);
         }
 
-        public CustomFactoryProviders RegisterTransientFactory<T, TF>(TF factoryInstance, string? name = null, Dictionary<string, object>? metadata = null) 
+        public FactoryProviders RegisterTransientFactory<T, TF>(TF factoryInstance, string? name = null, Dictionary<string, object>? metadata = null) 
             where T : class
             where TF : class, IFactory<T> {
             return RegisterTransientFactory(factoryInstance, name, metadata);
         }
 
-        public CustomFactoryProviders RegisterSingletonFactory(object factoryInstance, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) {
+        public FactoryProviders RegisterSingletonFactory(object factoryInstance, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) {
             var factoryType = factoryInstance.GetType();
             if (!factoryType.ImplementsInterface(typeof(IFactory<>))) {
                 throw new InvalidCastException($"Factory {factoryType.GetTypeName()} must implement IFactory<>");
@@ -29,7 +29,7 @@ public partial class Container {
             return RegisterFactory(Lifetime.Singleton, factoryInstance.GetType(), factoryInstance, name, lazy, metadata);
         }
 
-        public CustomFactoryProviders RegisterTransientFactory(object factoryInstance, string? name = null, Dictionary<string, object>? metadata = null) {
+        public FactoryProviders RegisterTransientFactory(object factoryInstance, string? name = null, Dictionary<string, object>? metadata = null) {
             var factoryType = factoryInstance.GetType();
             if (!factoryType.ImplementsInterface(typeof(IFactory<>))) {
                 throw new InvalidCastException($"Factory {factoryType.GetTypeName()} must implement IFactory<>");
@@ -56,7 +56,7 @@ public partial class Container {
         /// <param name="metadata"></param>
         /// <returns></returns>
         /// <exception cref="InvalidCastException"></exception>
-        private CustomFactoryProviders RegisterFactory(Lifetime lifetime, Type /* IFactory<T> */ factoryType, object factoryInstance, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) {
+        private FactoryProviders RegisterFactory(Lifetime lifetime, Type /* IFactory<T> */ factoryType, object factoryInstance, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) {
             var type = factoryType.FindGenericsFromInterfaceDefinition(typeof(IFactory<>))[0];
 
             // The factory is not really registered in the container. It's added only to the pending providers so it can be processed during the Build(),
@@ -64,8 +64,7 @@ public partial class Container {
             // This is why it doesn't need a name or a type, it doesn't belong to the container registry at all.
             // The factory is not lazy and it will be resolved to ensure the factory is fully injected before the first Get()
             // You can use [Inject] inside the factories.
-            var factoryProvider = new CustomFactoryProvider(factoryInstance);
-            Register(factoryProvider);
+            AddToInitialInject(factoryInstance);
 
             // This is just () => ((IFactory<T>)factoryProvider).Create() but it's faster than using reflection to find the "Create()" method and invoke it
             var createMethod = FactoryWrapper.Create(type, factoryInstance).Create; 
@@ -88,9 +87,9 @@ public partial class Container {
                 proxyProvider = ProxyFactoryProvider.Create(provider);
                 Register(proxyProvider);
             }
-            return new CustomFactoryProviders(factoryProvider, provider, proxyProvider);
+            return new FactoryProviders(provider, proxyProvider);
         }
 
-        public record CustomFactoryProviders(IProvider CustomFactoryProvider, IProvider Provider, IProvider? ProxyProvider);
+        public record FactoryProviders(IProvider Provider, IProvider? ProxyProvider);
     }
 }
