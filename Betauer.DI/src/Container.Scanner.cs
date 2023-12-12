@@ -37,7 +37,7 @@ public partial class Container {
                     throw new InvalidAttributeException(
                         $"Can't use {classAttribute.FormatAttribute()} and {typeof(ConfigurationAttribute).FormatAttribute()} in the same class: {type.GetTypeName()}");
                 }
-                Logger.Debug($"{typeof(ConfigurationAttribute).FormatAttribute()} class {type.GetTypeName()}");
+                Logger.Debug("{0} class {1}", typeof(ConfigurationAttribute).FormatAttribute(), type.GetTypeName());
                 var configuration = Activator.CreateInstance(type)!;
                 ScanConfigurationScanAttributes(type, attributes, stack);
                 ScanConfigurationAttributes(configuration, attributes);
@@ -58,7 +58,7 @@ public partial class Container {
 
         private void ScanConfigurationScanAttributes(Type type, IEnumerable<Attribute> attributes, HashSet<Type>? stack) {
             foreach (var scanAttribute in attributes.OfType<ScanAttribute>()) {
-                Logger.Debug($"{scanAttribute.FormatAttribute()} class {type.GetTypeName()}");
+                Logger.Debug("{0} class {1}", scanAttribute.FormatAttribute(), type.GetTypeName());
                 stack ??= new HashSet<Type>();
                 stack.Add(type);
                 scanAttribute.GetType().GetGenericArguments()
@@ -69,7 +69,8 @@ public partial class Container {
 
         private void ScanConfigurationAttributes(object configuration, IEnumerable<Attribute> attributes) {
             foreach (var configurationClassAttributes in attributes.OfType<IConfigurationClassAttribute>()) {
-                Logger.Debug($"{(configurationClassAttributes as Attribute).FormatAttribute()} class {configuration.GetType().GetTypeName()}");
+                Logger.Debug("{0} class {1}", (configurationClassAttributes as Attribute).FormatAttribute(),
+                    configuration.GetType().GetTypeName());
                 configurationClassAttributes.Apply(configuration, _builder);
             }
         }
@@ -80,14 +81,14 @@ public partial class Container {
 
             var configurationMemberAttributes = configuration.GetType().GetGetters<IConfigurationMemberAttribute>(memberFlags, bindingFlags);
             foreach (var getter in configurationMemberAttributes) {
-                Logger.Debug($"class {configuration.GetType().GetTypeName()}: {getter}");
+                Logger.Debug("class {0}: {1}", configuration.GetType().GetTypeName(), getter);
                 getter.GetterAttribute.Apply(configuration, getter, _builder);
             }
         }
 
         private void ScanClassHeaderAttributes(Type type, IEnumerable<Attribute> attributes) {
             foreach (var classAttribute in attributes.OfType<IClassAttribute>()) {
-                Logger.Debug($"{(classAttribute as Attribute).FormatAttribute()} class {type.GetTypeName()}");
+                Logger.Debug("{0} class {1}", (classAttribute as Attribute)!.FormatAttribute(), type.GetTypeName());
                 classAttribute.Apply(type, _builder);
             }
         }

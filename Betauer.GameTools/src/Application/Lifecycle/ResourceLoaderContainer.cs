@@ -48,15 +48,15 @@ public class ResourceLoaderContainer {
             .Select(sf => new ResourceLoadingState(sf.Path, sf.Load))
             .ToList();
         
-        Logger.Debug($"Loading {tags.Join(", ")}");
+        Logger.Debug("Loading {0}", tags.Join(", "));
         await LoadTools.Load(resources, awaiter, (rp) => {
-            Logger.Debug($"{(rp.TotalPercent*100):0.00}% | {rp.Resource} ({(rp.ResourcePercent*100):0.00}%)");
+            Logger.Debug("{0:0.00}% | {1} ({2:0.00}%)", rp.TotalPercent * 100, rp.Resource, rp.ResourcePercent * 100);
             OnLoadResourceProgress?.Invoke(rp);
             progressAction?.Invoke(rp);
         });
         OnLoadFinished?.Invoke();
         var timeSpan = x.Elapsed;
-        Logger.Debug($"Total load time: {timeSpan.Seconds}s {timeSpan.Milliseconds:D3}ms");
+        Logger.Debug("Total load time: {0}s {1:D3}ms", timeSpan.Seconds, timeSpan.Milliseconds);
         return x.Elapsed;
     }
 

@@ -32,7 +32,7 @@ namespace Betauer.Animation {
             
             if (target == null) throw new InvalidAnimationException("No target defined for the animation");
             if (!GodotObject.IsInstanceValid(target)) {
-                Logger.Warning($"Can't start {GetType()} using a freed target instance");
+                Logger.Warning("Can't start {0} using a freed target instance", GetType());
                 return false;
             }
             return true;
@@ -45,12 +45,8 @@ namespace Betauer.Animation {
             
             easing ??= DefaultEasing ?? Easings.Linear;
             var end = start + duration;
-            Logger.Debug("\"" + target?.Name + "\" " + target?.GetType().Name + ":" + property +
-                        " Interpolate(" +
-                        from + ", " + to +
-                        ") Scheduled from " + start.ToString("F") +
-                        "s to " + end.ToString("F") +
-                        "s (+" + duration.ToString("F") + "s) CurveBezier");
+            Logger.Debug("\"{0}\" {1}:{2} Interpolate({3}, {4}) Scheduled from {5:F}s to {6:F}s (+{7:F}s) CurveBezier", target?.Name,
+                    target?.GetType().Name, property, from, to, start, end, duration);
             DebugSteps?.Add(new DebugStep<TProperty>(target, from, to, start, duration, easing));
 
             return easing is BezierCurve bezierCurve ?

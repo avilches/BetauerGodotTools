@@ -16,8 +16,7 @@ namespace Betauer.Animation {
 
         public float Start(Tween sceneTreeTween, float initialDelay, Node? ignoredDefaultTarget) {
             var delayEndTime = _delay + initialDelay;
-            Logger.Debug("Adding a delay of " + _delay + "s. Scheduled from " + initialDelay.ToString("F") + "s to " +
-                        delayEndTime.ToString("F") + "s");
+            Logger.Debug("Adding a delay of {0}s. Scheduled from {1:F}s to {2:F}s", _delay, initialDelay, delayEndTime);
             return _delay;
         }
     }

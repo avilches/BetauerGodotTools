@@ -25,7 +25,7 @@ public class StageCameraController : StageController {
             _currentCamera.LimitTop = (int)rect2.Position.Y;
             _currentCamera.LimitRight = (int)rect2.End.X;
             _currentCamera.LimitBottom = (int)rect2.End.Y;
-            Logger.Debug($"Camera {rect2.Position} {rect2.End}");
+            Logger.Debug("Camera {0} {1}", rect2.Position, rect2.End);
         }
     }
 

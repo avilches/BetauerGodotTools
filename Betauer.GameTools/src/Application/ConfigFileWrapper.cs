@@ -5,6 +5,7 @@ using Godot;
 namespace Betauer.Application;
 
 public class ConfigFileWrapper {
+    private static readonly Logger Logger = LoggerFactory.GetLogger<ConfigFileWrapper>();
     private readonly ConfigFile _configFile = new();
     public string FilePath { get; private set; }
     public byte[]? EncryptionKey { get; private set; } // TODO:
@@ -68,7 +69,7 @@ public class ConfigFileWrapper {
             : _configFile.LoadEncrypted(FilePath, EncryptionKey);
         Dirty = false;
         if (LastError != Error.Ok) {
-            LoggerFactory.GetLogger<ConfigFileWrapper>().Error($"Load \"{FilePath}\" error: {LastError}");
+            Logger.Error("Load \"{0}\" error: {1}", FilePath, LastError);
         }
         return this;
     }
@@ -81,7 +82,7 @@ public class ConfigFileWrapper {
             : _configFile.SaveEncrypted(FilePath, EncryptionKey);
         Dirty = false;
         if (LastError != Error.Ok) {
-            LoggerFactory.GetLogger<ConfigFileWrapper>().Error($"Save \"{FilePath}\" error: {LastError}");
+            Logger.Error("Save \"{0}\" error: {1}", FilePath, LastError);
         }
         return this;
     }
