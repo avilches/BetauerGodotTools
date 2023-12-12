@@ -52,11 +52,11 @@ public class ContainerTests : Node {
 
     [TestRunner.Test(Description = "Resolve by name using a wrong type")]
     public void ResolveByNameWithWrongNameTests() {
-        var di = new Container.Builder()
-            .Register(Provider.Transient<ClassWith1Interface>("P")).Build();
+        var c = new Container();
+        c.Build(di => { di.Register(Provider.Transient<ClassWith1Interface>("P")); });
 
-        Assert.Throws<InvalidCastException>(() => di.Resolve<Node>("P"));
-        Assert.Throws<InvalidCastException>(() => di.TryResolve<Node>("P", out var r));
+        Assert.Throws<InvalidCastException>(() => c.Resolve<Node>("P"));
+        Assert.Throws<InvalidCastException>(() => c.TryResolve<Node>("P", out var r));
     }
 
     [TestRunner.Test(Description = "CreateIfNotFound: if type is not found, create a new instance automatically (like transient)")]
@@ -79,34 +79,35 @@ public class ContainerTests : Node {
 
     [TestRunner.Test(Description = "Error creating factories")]
     public void CantCreateFactoryFromInterfaceTest() {
-        var di = new Container();
-        Assert.Throws<InvalidCastException>(() => di.CreateBuilder().Register(Provider.Singleton<ClassWith1Interface, IInterface1>()).Build());
-        Assert.Throws<InvalidCastException>(() => di.CreateBuilder().Register(Provider.Singleton<ClassWith1Interface, IInterface1>("P")).Build());
-        Assert.Throws<InvalidCastException>(() => di.CreateBuilder().Register(Provider.Transient<ClassWith1Interface, IInterface1>()).Build());
-        Assert.Throws<InvalidCastException>(() => di.CreateBuilder().Register(Provider.Transient<ClassWith1Interface, IInterface1>("P")).Build());
+        var c = new Container();
+        Assert.Throws<InvalidCastException>(() => c.Build(di=>di.Register(Provider.Singleton<ClassWith1Interface, IInterface1>())));
+        Assert.Throws<InvalidCastException>(() => c.Build(di=>di.Register(Provider.Singleton<ClassWith1Interface, IInterface1>("P"))));
+        Assert.Throws<InvalidCastException>(() => c.Build(di=>di.Register(Provider.Transient<ClassWith1Interface, IInterface1>())));
+        Assert.Throws<InvalidCastException>(() => c.Build(di=>di.Register(Provider.Transient<ClassWith1Interface, IInterface1>("P"))));
             
     }
 
     [TestRunner.Test(Description = "Resolve, TryResolve, Contains, TryGetProvider and GetProvider: type")]
     public void TypeTest() {
-        Func<Container>[] x = {
-            () => new Container.Builder().Register(Provider.Static(new ClassWith1Interface())).Build(),
-            () => new Container.Builder().Register(Provider.Singleton<ClassWith1Interface>()).Build(),
-            () => new Container.Builder().Register(Provider.Singleton(() => new ClassWith1Interface())).Build(),
-            () => new Container.Builder().Register(Provider.Transient<ClassWith1Interface>()).Build(),
-            () => new Container.Builder().Register(Provider.Transient(() => new ClassWith1Interface())).Build(),
+        Action<Container>[] x = {
+            (c) => c.Build(di => di.Register(Provider.Static(new ClassWith1Interface()))),
+            (c) => c.Build(di => di.Register(Provider.Singleton<ClassWith1Interface>())),
+            (c) => c.Build(di => di.Register(Provider.Singleton(() => new ClassWith1Interface()))),
+            (c) => c.Build(di => di.Register(Provider.Transient<ClassWith1Interface>())),
+            (c) => c.Build(di => di.Register(Provider.Transient(() => new ClassWith1Interface()))),
         };
         foreach (var func in x) {
             Console.WriteLine($"Test #{x}");
-            var c = func();
+            var c = new Container();
+            func(c);
             Assert.That(c.Contains<ClassWith1Interface>());
             Assert.That(!c.Contains<IInterface1>());
 
-            Assert.That(c.GetProvider<ClassWith1Interface>().ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
+            Assert.That(c.GetProvider<ClassWith1Interface>().InstanceType, Is.EqualTo(typeof(ClassWith1Interface)));
             Assert.Throws<ServiceNotFoundException>(() => c.GetProvider<IInterface1>());
 
             Assert.That(c.TryGetProvider<ClassWith1Interface>(out var provider), Is.True);
-            Assert.That(provider.ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
+            Assert.That(provider.InstanceType, Is.EqualTo(typeof(ClassWith1Interface)));
             Assert.That(c.TryGetProvider<IInterface1>(out provider), Is.False);
             Assert.That(provider, Is.Null);
 
@@ -122,26 +123,27 @@ public class ContainerTests : Node {
         
     [TestRunner.Test(Description = "Resolve, TryResolve, Contains, TryGetProvider and GetProvider: othertype")]
     public void OtherTypeTest() {
-        Func<Container>[] x = {
-            () => new Container.Builder().Register(Provider.Static<IInterface1, ClassWith1Interface>(new ClassWith1Interface())).Build(),
-            () => new Container.Builder().Register(Provider.Singleton<IInterface1, ClassWith1Interface>()).Build(),
-            () => new Container.Builder().Register(Provider.Singleton<IInterface1, ClassWith1Interface>(() => new ClassWith1Interface())).Build(),
-            () => new Container.Builder().Register(Provider.Transient<IInterface1, ClassWith1Interface>()).Build(),
-            () => new Container.Builder().Register(Provider.Transient<IInterface1, ClassWith1Interface>(() => new ClassWith1Interface())).Build(),
+        Action<Container>[] x = {
+            (c) => c.Build(di => di.Register(Provider.Static<IInterface1, ClassWith1Interface>(new ClassWith1Interface()))),
+            (c) => c.Build(di => di.Register(Provider.Singleton<IInterface1, ClassWith1Interface>())),
+            (c) => c.Build(di => di.Register(Provider.Singleton<IInterface1, ClassWith1Interface>(() => new ClassWith1Interface()))),
+            (c) => c.Build(di => di.Register(Provider.Transient<IInterface1, ClassWith1Interface>())),
+            (c) => c.Build(di => di.Register(Provider.Transient<IInterface1, ClassWith1Interface>(() => new ClassWith1Interface()))),
         };
         foreach (var func in x) {
             Console.WriteLine($"Test #{x}");
-            var c = func();
+            var c = new Container();
+            func(c);
             Assert.That(!c.Contains<ClassWith1Interface>());
             Assert.That(c.Contains<IInterface1>());
 
             Assert.Throws<ServiceNotFoundException>(() => c.GetProvider<ClassWith1Interface>());
-            Assert.That(c.GetProvider<IInterface1>().ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
+            Assert.That(c.GetProvider<IInterface1>().InstanceType, Is.EqualTo(typeof(ClassWith1Interface)));
 
             Assert.That(c.TryGetProvider<ClassWith1Interface>(out var provider), Is.False);
             Assert.That(provider, Is.Null);
             Assert.That(c.TryGetProvider<IInterface1>(out provider), Is.True);
-            Assert.That(provider.ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
+            Assert.That(provider.InstanceType, Is.EqualTo(typeof(ClassWith1Interface)));
 
             Assert.Throws<ServiceNotFoundException>(() => c.Resolve<ClassWith1Interface>());
             Assert.That(c.Resolve<IInterface1>(), Is.TypeOf<ClassWith1Interface>());
@@ -156,29 +158,30 @@ public class ContainerTests : Node {
         
     [TestRunner.Test(Description = "Resolve, TryResolve, Contains, TryGetProvider and GetProvider: name")]
     public void NameTest() {
-        Func<Container>[] x = {
-            () => new Container.Builder().Register(Provider.Static(new ClassWith1Interface(), "P")).Build(),
-            () => new Container.Builder().Register(Provider.Singleton<ClassWith1Interface>("P")).Build(),
-            () => new Container.Builder().Register(Provider.Singleton(() => new ClassWith1Interface(), "P")).Build(),
-            () => new Container.Builder().Register(Provider.Transient<ClassWith1Interface>("P")).Build(),
-            () => new Container.Builder().Register(Provider.Transient(() => new ClassWith1Interface(), "P")).Build(),
+        Action<Container>[] x = {
+            (c) => c.Build(di => di.Register(Provider.Static(new ClassWith1Interface(), "P"))),
+            (c) => c.Build(di => di.Register(Provider.Singleton<ClassWith1Interface>("P"))),
+            (c) => c.Build(di => di.Register(Provider.Singleton(() => new ClassWith1Interface(), "P"))),
+            (c) => c.Build(di => di.Register(Provider.Transient<ClassWith1Interface>("P"))),
+            (c) => c.Build(di => di.Register(Provider.Transient(() => new ClassWith1Interface(), "P"))),
         };
         foreach (var func in x) {
             Console.WriteLine($"Test #{x}");
-            var c = func();
+            var c = new Container();
+            func(c);
             // By name, any compatible type is ok
             Assert.That(c.Contains("P"));
             Assert.That(!c.Contains<ClassWith1Interface>());
             Assert.That(!c.Contains<IInterface1>());
 
-            Assert.That(c.GetProvider("P").ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
+            Assert.That(c.GetProvider("P").InstanceType, Is.EqualTo(typeof(ClassWith1Interface)));
             Assert.Throws<ServiceNotFoundException>(() => c.GetProvider<ClassWith1Interface>());
             Assert.Throws<ServiceNotFoundException>(() => c.GetProvider<IInterface1>());
                 
             Assert.That(c.TryGetProvider("P", out var provider), Is.True);
-            Assert.That(provider.ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
+            Assert.That(provider.InstanceType, Is.EqualTo(typeof(ClassWith1Interface)));
             Assert.That(c.TryGetProvider("P", out provider), Is.True);
-            Assert.That(provider.ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
+            Assert.That(provider.InstanceType, Is.EqualTo(typeof(ClassWith1Interface)));
             Assert.That(c.TryGetProvider<ClassWith1Interface>(out provider), Is.False);
             Assert.That(provider, Is.Null);
             Assert.That(c.TryGetProvider<IInterface1>(out provider), Is.False);
@@ -208,21 +211,22 @@ public class ContainerTests : Node {
 
     [TestRunner.Test(Description = "Resolve, TryResolve, Contains, TryGetProvider and GetProvider: name other type")]
     public void NameOtherTypeTest() {
-        Func<Container>[] x = {
-            () => new Container.Builder().Register(Provider.Static<IInterface1, ClassWith1Interface>(new ClassWith1Interface(), "P")).Build(),
-            () => new Container.Builder().Register(Provider.Singleton<IInterface1, ClassWith1Interface>("P")).Build(),
-            () => new Container.Builder().Register(Provider.Singleton<IInterface1, ClassWith1Interface>(() => new ClassWith1Interface(),"P")).Build(),
-            () => new Container.Builder().Register(Provider.Transient<IInterface1, ClassWith1Interface>("P")).Build(),
-            () => new Container.Builder().Register(Provider.Transient<IInterface1, ClassWith1Interface>(() => new ClassWith1Interface(),"P")).Build(),
+        Action<Container>[] x = {
+            (c) => c.Build(di => di.Register(Provider.Static<IInterface1, ClassWith1Interface>(new ClassWith1Interface(), "P"))),
+            (c) => c.Build(di => di.Register(Provider.Singleton<IInterface1, ClassWith1Interface>("P"))),
+            (c) => c.Build(di => di.Register(Provider.Singleton<IInterface1, ClassWith1Interface>(() => new ClassWith1Interface(),"P"))),
+            (c) => c.Build(di => di.Register(Provider.Transient<IInterface1, ClassWith1Interface>("P"))),
+            (c) => c.Build(di => di.Register(Provider.Transient<IInterface1, ClassWith1Interface>(() => new ClassWith1Interface(),"P"))),
         };
         foreach (var func in x) {
             Console.WriteLine($"Test #{x}");
-            var c = func();
+            var c = new Container();
+            func(c);
             Assert.That(c.Contains("P"));
             Assert.That(!c.Contains<ClassWith1Interface>());
             Assert.That(!c.Contains<IInterface1>());
 
-            Assert.That(c.GetProvider("P").ProviderType, Is.EqualTo(typeof(ClassWith1Interface)));
+            Assert.That(c.GetProvider("P").InstanceType, Is.EqualTo(typeof(ClassWith1Interface)));
             Assert.Throws<ServiceNotFoundException>(() => c.GetProvider<ClassWith1Interface>());
             Assert.Throws<ServiceNotFoundException>(() => c.GetProvider<IInterface1>());
 
@@ -255,18 +259,18 @@ public class ContainerTests : Node {
 
     [TestRunner.Test(Description = "GetAllInstances - no transients")]
     public void GetAllInstancesTransitionTests() {
-        var b = new Container.Builder();
-        b.Register(Provider.Transient<ClassWith1Interface>());
-        b.Register(Provider.Transient<ClassWith1Interface>("A"));
-        var c = b.Build();
+        var c = new Container();
+        c.Build(b => {
+            b.Register(Provider.Transient<ClassWith1Interface>());
+            b.Register(Provider.Transient<ClassWith1Interface>("A"));
+        });
         Assert.That(c.GetAllInstances<ClassWith1Interface>(), Is.Empty);
     }
 
     [TestRunner.Test(Description = "GetAllInstances - singleton")]
     public void GetAllInstancesSingletonTests() {
-        var b = new Container.Builder();
-        b.Register(Provider.Singleton<ClassWith1Interface>("A"));
-        var c = b.Build();
+        var c = new Container();
+        c.Build(b => { b.Register(Provider.Singleton<ClassWith1Interface>("A")); });
         Assert.That(c.GetAllInstances<ClassWith1Interface>().Count, Is.EqualTo(1));
         Assert.That(c.GetAllInstances<IInterface1>().Count, Is.EqualTo(1));
         Assert.That(c.GetAllInstances<object>().Count, Is.EqualTo(2)); // +1 (Include the container)
@@ -274,14 +278,15 @@ public class ContainerTests : Node {
 
     [TestRunner.Test(Description = "GetAllInstances - singleton")]
     public void GetAllInstancesMultipleSingletonTests() {
-        var b = new Container.Builder();
-        b.Register(Provider.Transient<Node2D>()); // ignored
-        b.Register(Provider.Singleton<Node>("n1"));
-        b.Register(Provider.Singleton<Node2D>("n2"));
-        b.Register(Provider.Singleton<ClassWith1Interface>("A"));
-        b.Register(Provider.Static<IInterface1, ClassWith1Interface>(new ClassWith1Interface(), "B"));
-        b.Register(Provider.Singleton<ClassWith1Interface>());
-        var c = b.Build();
+        var c = new Container();
+        c.Build(b => {
+            b.Register(Provider.Transient<Node2D>()); // ignored
+            b.Register(Provider.Singleton<Node>("n1"));
+            b.Register(Provider.Singleton<Node2D>("n2"));
+            b.Register(Provider.Singleton<ClassWith1Interface>("A"));
+            b.Register(Provider.Static<IInterface1, ClassWith1Interface>(new ClassWith1Interface(), "B"));
+            b.Register(Provider.Singleton<ClassWith1Interface>());
+        });
         Assert.That(c.GetAllInstances<ClassWith1Interface>().Count, Is.EqualTo(3));
         Assert.That(c.GetAllInstances<IInterface1>().Count, Is.EqualTo(3));
         Assert.That(c.GetAllInstances<Node>().Count, Is.EqualTo(2));
@@ -295,12 +300,13 @@ public class ContainerTests : Node {
         var n2 = new ClassWith1Interface();
         var n3 = new ClassWith1Interface();
         var n4 = new ClassWith1Interface();
-        var b = new Container.Builder();
-        b.Register(Provider.Static(n1));
-        b.Register(Provider.Static<IInterface1>(n2));
-        b.Register(Provider.Static(n3, "3"));
-        b.Register(Provider.Static(n4, "4"));
-        var c = b.Build();
+        var c = new Container();
+        c.Build(b => {
+            b.Register(Provider.Static(n1));
+            b.Register(Provider.Static<IInterface1>(n2));
+            b.Register(Provider.Static(n3, "3"));
+            b.Register(Provider.Static(n4, "4"));
+        });
             
         Assert.That(c.Resolve<ClassWith1Interface>(), Is.EqualTo(n1));
         Assert.That(c.Resolve<ClassWith1Interface>(), Is.EqualTo(n1));
@@ -314,12 +320,13 @@ public class ContainerTests : Node {
 
     [TestRunner.Test(Description = "Singleton tests")]
     public void SingletonTests() {
-        var b = new Container.Builder();
-        b.Register(Provider.Singleton<ClassWith1Interface>());
-        b.Register(Provider.Singleton<IInterface1>(() => new ClassWith1Interface()));
-        b.Register(Provider.Singleton<ClassWith1Interface>("3"));
-        b.Register(Provider.Singleton<IInterface1>(() => new ClassWith1Interface(), "4"));
-        var c = b.Build();
+        var c = new Container();
+        c.Build(b => {
+            b.Register(Provider.Singleton<ClassWith1Interface>());
+            b.Register(Provider.Singleton<IInterface1>(() => new ClassWith1Interface()));
+            b.Register(Provider.Singleton<ClassWith1Interface>("3"));
+            b.Register(Provider.Singleton<IInterface1>(() => new ClassWith1Interface(), "4"));
+        });
 
         var n1 = c.Resolve<ClassWith1Interface>();
         var n2 = c.Resolve<IInterface1>();
@@ -338,12 +345,13 @@ public class ContainerTests : Node {
         
     [TestRunner.Test(Description = "Transient tests")]
     public void TransientTests() {
-        var b = new Container.Builder();
-        b.Register(Provider.Transient<ClassWith1Interface>());
-        b.Register(Provider.Transient<IInterface1>(() => new ClassWith1Interface()));
-        b.Register(Provider.Transient<ClassWith1Interface>("3"));
-        b.Register(Provider.Transient<IInterface1>(() => new ClassWith1Interface(), "4"));
-        var c = b.Build();
+        var c = new Container();
+        c.Build(b => {
+            b.Register(Provider.Transient<ClassWith1Interface>());
+            b.Register(Provider.Transient<IInterface1>(() => new ClassWith1Interface()));
+            b.Register(Provider.Transient<ClassWith1Interface>("3"));
+            b.Register(Provider.Transient<IInterface1>(() => new ClassWith1Interface(), "4"));
+        });
 
         var n11 = c.Resolve<ClassWith1Interface>();
         var n12 = c.Resolve<ClassWith1Interface>();
@@ -358,41 +366,52 @@ public class ContainerTests : Node {
         
     [TestRunner.Test(Description = "Not allow duplicates by type")]
     public void DuplicatedTypeTest() {
-        var b1 = new Container.Builder();
-        b1.Register(Provider.Singleton<ClassWith1Interface>());
-        b1.Register(Provider.Transient<ClassWith1Interface>());
-        Assert.Throws<DuplicateServiceException>(() => b1.Build());
+        Assert.Throws<DuplicateServiceException>(() => {
+            var c = new Container();
+            c.Build(b1 => {
+                b1.Register(Provider.Singleton<ClassWith1Interface>());
+                b1.Register(Provider.Transient<ClassWith1Interface>());
+            });
+        });
 
-        var b2 = new Container.Builder();
-        b2.Register(Provider.Static(new ClassWith1Interface()));
-        b2.Register(Provider.Static(new ClassWith1Interface()));
-        Assert.Throws<DuplicateServiceException>(() => b2.Build());
-
+        Assert.Throws<DuplicateServiceException>(() => {
+            var c2 = new Container();
+            c2.Build(b2 => {
+                b2.Register(Provider.Static(new ClassWith1Interface()));
+                b2.Register(Provider.Static(new ClassWith1Interface()));
+            });
+        });
     }
 
     [TestRunner.Test(Description = "Not allow duplicates by name")]
     public void DuplicatedNameTest() {
-        var b1 = new Container.Builder();
-        b1.Register(Provider.Singleton(() => new ClassWith1Interface(), "A"));
-        b1.Register(Provider.Transient<IInterface1, ClassWith1Interface>("A"));
-        Assert.Throws<DuplicateServiceException>(() => b1.Build());
+        Assert.Throws<DuplicateServiceException>(() => {
+            var c = new Container();
+            c.Build(b1 => {
+                b1.Register(Provider.Singleton(() => new ClassWith1Interface(), "A"));
+                b1.Register(Provider.Transient<IInterface1, ClassWith1Interface>("A"));
+            });
+        });
 
-        var b2 = new Container.Builder();
-        b2.Register(Provider.Singleton<ClassWith1Interface>("A"));
-        b2.Register(Provider.Static<IInterface1>(new ClassWith1Interface(), "A"));
-        Assert.Throws<DuplicateServiceException>(() => b2.Build());
-
+        Assert.Throws<DuplicateServiceException>(() => {
+            var c2 = new Container();
+            c2.Build(b2 => {
+                b2.Register(Provider.Singleton<ClassWith1Interface>("A"));
+                b2.Register(Provider.Static<IInterface1>(new ClassWith1Interface(), "A"));
+            });
+        });
     }
     
     [TestRunner.Test(Description = "Lazy tests")]
     public void LazyTest() {
-        var b = new Container.Builder();
-        b.Register(Provider.Singleton<ClassWith1Interface>("NoLazy1"));
-        b.Register(Provider.Singleton<ClassWith1Interface>("NoLazy2"));
-        b.Register(Provider.Singleton<ClassWith1Interface>("Lazy1", true));
-        b.Register(Provider.Singleton<ClassWith1Interface>("Lazy2", true));
-        var c = b.Build();
-            
+        var c = new Container();
+        c.Build(b => {
+            b.Register(Provider.Singleton<ClassWith1Interface>("NoLazy1"));
+            b.Register(Provider.Singleton<ClassWith1Interface>("NoLazy2"));
+            b.Register(Provider.Singleton<ClassWith1Interface>("Lazy1", true));
+            b.Register(Provider.Singleton<ClassWith1Interface>("Lazy2", true));
+        });
+
         var noLazy1Provider = c.GetProvider("NoLazy1") as SingletonProvider;
         var noLazy2Provider = c.GetProvider("NoLazy2") as SingletonProvider;
         var lazy1Provider = c.GetProvider("Lazy1") as SingletonProvider;
@@ -442,11 +461,11 @@ public class ContainerTests : Node {
         c.OnCreated += (providerResolved) => {
             calls++;
         };
-        var b = new Container.Builder(c);
-        b.Register(Provider.Static(new Node2D()));
-        b.Register(Provider.Singleton<ClassWith1Interface>());
-        b.Register(Provider.Transient<Node>());
-        b.Build();
+        c.Build(b => {
+            b.Register(Provider.Static(new Node2D()));
+            b.Register(Provider.Singleton<ClassWith1Interface>());
+            b.Register(Provider.Transient<Node>());
+        });
         c.Resolve<Node2D>();
         Assert.That(singletons.Count, Is.EqualTo(2)); // +1 because of Container
         Assert.That(singletons[1], Is.TypeOf<ClassWith1Interface>());

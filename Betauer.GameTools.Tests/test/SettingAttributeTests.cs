@@ -33,9 +33,7 @@ public partial class SettingAttributeTests : Node {
 
     [TestRunner.Test(Description = "Error if container not found (no name)")]
     public void ErrorConfigWithNoContainerTest() {
-        var di = new Container.Builder();
-        
-        Assert.Throws<InvalidAttributeException>(() =>di.Scan<ErrorConfigWithNoContainer>());
+        Assert.Throws<InvalidAttributeException>(() =>new Container().Build(di=>di.Scan<ErrorConfigWithNoContainer>()));
     }
 
     [Configuration]
@@ -48,9 +46,7 @@ public partial class SettingAttributeTests : Node {
 
     [TestRunner.Test(Description = "Error if container not found (wrong name)")]
     public void ErrorConfigWithContainerNotFoundByNameTest() {
-        var di = new Container.Builder();
-        di.Scan<ErrorConfigWithContainerNotFoundByName>();
-        Assert.Throws<ServiceNotFoundException>(() => di.Build());
+        Assert.Throws<ServiceNotFoundException>(() => new Container().Build(di=>di.Scan<ErrorConfigWithContainerNotFoundByName>()));
     }
 
 
@@ -76,10 +72,11 @@ public partial class SettingAttributeTests : Node {
 
     [TestRunner.Test]
     public void ConfigWithSettingContainerTest() {
-        var di = new Container.Builder();
-        di.Scan<ConfigWithSettingContainer>();
-        di.Scan<Service1>();
-        var c = di.Build();
+        var c = new Container();
+        c.Build(di => {
+            di.Scan<ConfigWithSettingContainer>();
+            di.Scan<Service1>();
+        });
 
         var b = c.Resolve<Service1>();
 
@@ -153,10 +150,11 @@ public partial class SettingAttributeTests : Node {
         cf.Clear();
         cf.Dispose();
             
-        var di = new Container.Builder();
-        di.Scan<ConfigWithSettingContainer>();
-        di.Scan<Service1>();
-        var c = di.Build();
+        var c = new Container();
+        c.Build(di => {
+            di.Scan<ConfigWithSettingContainer>();
+            di.Scan<Service1>();
+        });
         var b = c.Resolve<Service1>();
             
         // Stored values are read
@@ -180,10 +178,11 @@ public partial class SettingAttributeTests : Node {
 
     [TestRunner.Test]
     public void ConfigWithTransformerTest() {
-        var di = new Container.Builder();
-        di.Scan<ConfigWithSettingContainer2>();
-        di.Scan<Service2>();
-        var c = di.Build();
+        var c = new Container();
+        c.Build(di => {
+            di.Scan<ConfigWithSettingContainer2>();
+            di.Scan<Service2>();
+        });
 
         var b = c.Resolve<Service2>();
         
@@ -212,10 +211,11 @@ public partial class SettingAttributeTests : Node {
 
     [TestRunner.Test]
     public void InjectionNameTest() {
-        var di = new Container.Builder();
-        di.Scan<ConfigWithSettingContainer3>();
-        di.Scan<Service3>();
-        var c = di.Build();
+        var c = new Container();
+        c.Build(di => {
+            di.Scan<ConfigWithSettingContainer3>();
+            di.Scan<Service3>();
+        });
         var b = c.Resolve<Service3>();
         Assert.That(b.Resolution.Value, Is.EqualTo(Resolutions.WXGA));
         

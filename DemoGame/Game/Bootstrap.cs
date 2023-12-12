@@ -26,12 +26,12 @@ public partial class Bootstrap : Node /* needed to be instantiated as an Autoloa
 	public override void _EnterTree() {
 		var sceneTree = GetTree();
 		NodePathScanner.ConfigureAutoInject(sceneTree);
-		var container = new Container()
-			.CreateBuilder()
-			.InjectOnEnterTree(sceneTree)
-			.Scan(GetType().Assembly)
-			.Register(Provider.Static(sceneTree, "SceneTree"))
-			.Build();
+		var container = new Container();
+		container.Build(builder => {
+			builder.InjectOnEnterTree(sceneTree);
+			builder.Scan(GetType().Assembly);
+			builder.Register(Provider.Static(sceneTree, "SceneTree"));
+		});
 		Logger.Info($"Bootstrap time: {Project.Uptime.TotalMilliseconds} ms");
 		NodeManager.MainInstance.Node.OnWMCloseRequest += () => {
 			GD.Print($"[OnWMCloseRequest] Uptime: {Project.Uptime.TotalMinutes:0} min {Project.Uptime.Seconds:00} sec");

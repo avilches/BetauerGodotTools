@@ -29,8 +29,7 @@ public partial class InputActionAttributeTests : Node {
 
     [TestRunner.Test(Description = "Error if there is no InputActionsContainer")]
     public void InputWithoutInputActionsContainerTest() {
-        var di = new Container.Builder();
-        Assert.Throws<InvalidAttributeException>(() => di.Scan<InputWithoutInputActionsContainer>());
+        Assert.Throws<InvalidAttributeException>(() => new Container().Build(di => di.Scan<InputWithoutInputActionsContainer>()));
     }
 
     
@@ -46,8 +45,7 @@ public partial class InputActionAttributeTests : Node {
 
     [TestRunner.Test(Description = "Error if there is not a SettingContainer when a Configurable() action is used")]
     public void ConfigurableInputWithContainerButWithoutSettingContainerTest() {
-        var di = new Container.Builder();
-        Assert.Throws<InvalidAttributeException>(() => di.Scan<ConfigurableInputWithContainerButWithoutSettingContainer>());
+        Assert.Throws<InvalidAttributeException>(() => new Container().Build(di=>di.Scan<ConfigurableInputWithContainerButWithoutSettingContainer>()));
     }
 
     
@@ -64,9 +62,8 @@ public partial class InputActionAttributeTests : Node {
 
     [TestRunner.Test(Description = "A non configurable input action does not need a SettingContainer")]
     public void NoNeedForSettingContainerTest() {
-        var di = new Container.Builder();
-        di.Scan<NoNeedForSettingContainer>();
-        var c = di.Build();
+        var c = new Container();
+        c.Build(di => { di.Scan<NoNeedForSettingContainer>(); });
         var jump = c.Resolve<InputAction>("JumpConfigurable");
         Assert.That(jump.SaveSetting, Is.Null);
     }
@@ -89,9 +86,8 @@ public partial class InputActionAttributeTests : Node {
 
     [TestRunner.Test(Description = "Test service names and action names")]
     public void ServiceNameTests() {
-        var di = new Container.Builder();
-        di.Scan<InputActionServiceNameConfig>();
-        var c = di.Build();
+        var c = new Container();
+        c.Build(di => { di.Scan<InputActionServiceNameConfig>(); });
 
         var ac1 = c.Resolve<InputAction>("Action1");
         Assert.That(ac1.Name, Is.EqualTo("Action1"));
@@ -127,9 +123,8 @@ public partial class InputActionAttributeTests : Node {
 
     [TestRunner.Test(Description = "Test service names and action names for AxisActions")]
     public void AxisActionServiceNameConfigTests() {
-        var di = new Container.Builder();
-        di.Scan<AxisActionServiceNameConfig>();
-        var c = di.Build();
+        var c = new Container();
+        c.Build(di => { di.Scan<AxisActionServiceNameConfig>(); });
         var right = c.Resolve<InputAction>("Right");
         var left = c.Resolve<InputAction>("MyLeft");
         var axisAction = c.Resolve<AxisAction>("Lateral");
@@ -169,9 +164,8 @@ public partial class InputActionAttributeTests : Node {
 
     [TestRunner.Test(Description = "Test service names and action names for AxisActions")]
     public void AxisActionServiceNameWithNameConfigTests() {
-        var di = new Container.Builder();
-        di.Scan<AxisActionServiceNameWithNameConfig>();
-        var c = di.Build();
+        var c = new Container();
+        c.Build(di => { di.Scan<AxisActionServiceNameWithNameConfig>(); });
         var right = c.Resolve<InputAction>("Right");
         var left = c.Resolve<InputAction>("MyLeft");
         var axisAction = c.Resolve<AxisAction>("Lateral");
@@ -223,9 +217,8 @@ public partial class InputActionAttributeTests : Node {
 
     [TestRunner.Test(Description = "Input and AxisAction with configurable settings")]
     public void ConfigurableInputsTests() {
-        var di = new Container.Builder();
-        di.Scan<ConfigurableInputs>();
-        var c = di.Build();
+        var c = new Container();
+        c.Build(di => { di.Scan<ConfigurableInputs>(); });
         var jump1 = c.Resolve<InputAction>("Jump1");
         Assert.That(jump1.SaveSetting.SaveAs, Is.EqualTo("Controls/Jump"));
         Assert.That(jump1.SaveSetting.AutoSave, Is.True);

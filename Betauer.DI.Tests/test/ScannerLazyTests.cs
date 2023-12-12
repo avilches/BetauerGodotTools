@@ -31,9 +31,11 @@ public class ScannerLazyTests {
 
     [TestRunner.Test(Description = "Check Lazy attribute")]
     public void CheckLazyAttribute() {
-        var di = new Container.Builder();
-        di.Scan<LazyConfiguration>();
-        var c = di.Build();
+        var c = new Container();
+        c.Build(di => {
+            di.Scan<LazyConfiguration>(); 
+            
+        });
         Assert.That((c.GetProvider<NoLazyClass>() as SingletonProvider)!.Lazy, Is.False);
         Assert.That((c.GetProvider<LazyClass>() as SingletonProvider)!.Lazy, Is.True);
 
@@ -69,10 +71,10 @@ public class ScannerLazyTests {
     [TestRunner.Test(Description = "Test if the [PostInject] methods are invoked + Lazy using a non lazy")]
     public void PostInjectMethodLazyWithNoLazyTest() {
         var c = new Container();
-        var di = c.CreateBuilder();
-        di.Scan<LazyPostInjectedA1>();
-        di.Scan<PostInjectedA2>();
-        di.Build();
+        c.Build(di => {
+            di.Scan<LazyPostInjectedA1>();
+            di.Scan<PostInjectedA2>();
+        });
 
         Assert.That(c.GetProvider<LazyPostInjectedA1>() is SingletonProvider { IsInstanceCreated: false });
         Assert.That(c.GetProvider<PostInjectedA2>() is SingletonProvider { IsInstanceCreated: true });
@@ -97,11 +99,12 @@ public class ScannerLazyTests {
 
     [TestRunner.Test(Description = "Using Lazy singleton as non Lazy fails during initialization")]
     public void PostInjectMethodTest() {
-        var c = new Container();
-        var di = c.CreateBuilder();
-        di.Scan<PostInjectedB1>();
-        di.Scan<LazyPostInjectedB2>();
-        var e = Assert.Throws<InvalidOperationException>(() => di.Build());
+        var e = Assert.Throws<InvalidOperationException>(() => {
+            new Container().Build(di => {
+                di.Scan<PostInjectedB1>();
+                di.Scan<LazyPostInjectedB2>();
+            });
+        });
 
         Assert.That(e.Message, Contains.Substring("Container initialization failed. These Lazy Singletons are initialized when they shouldn't."));
     }
@@ -137,10 +140,10 @@ public class ScannerLazyTests {
     [TestRunner.Test(Description = "Test if the [PostInject] methods are invoked + Lazy using Lazy")]
     public void PostInjectMethodLazyWithLazyTest() {
         var c = new Container();
-        var di = c.CreateBuilder();
-        di.Scan<LazyPostInjectedC1>();
-        di.Scan<LazyPostInjectedC2>();
-        di.Build();
+        c.Build(di => {
+            di.Scan<LazyPostInjectedC1>();
+            di.Scan<LazyPostInjectedC2>();
+        });
 
         Assert.That(c.GetProvider<LazyPostInjectedC1>() is SingletonProvider { IsInstanceCreated: false });
         Assert.That(c.GetProvider<LazyPostInjectedC2>() is SingletonProvider { IsInstanceCreated: false });
@@ -169,10 +172,10 @@ public class ScannerLazyTests {
     [TestRunner.Test(Description = "Test if the [PostInject] methods are invoked + Lazy using Lazy and Factory<T>")]
     public void PostInjectMethodLazyWithLazyTypedAsLazyTest() {
         var c = new Container();
-        var di = c.CreateBuilder();
-        di.Scan<LazyPostInjectedD1>();
-        di.Scan<LazyPostInjectedD2>();
-        di.Build();
+        c.Build(di => {
+            di.Scan<LazyPostInjectedD1>();
+            di.Scan<LazyPostInjectedD2>();
+        });
 
         Assert.That(c.GetProvider<LazyPostInjectedD1>() is SingletonProvider { IsInstanceCreated: false });
         Assert.That(c.GetProvider<LazyPostInjectedD2>() is SingletonProvider { IsInstanceCreated: false });
@@ -216,10 +219,10 @@ public class ScannerLazyTests {
     public void LazySingletonFromConfigurationTest() {
         Singleton.Instances = 0;
         var c = new Container();
-        var di = c.CreateBuilder();
-        di.Scan<LazySingletonConfiguration>();
-        di.Scan<UsingLazySingleton>();
-        di.Build();
+        c.Build(di => {
+            di.Scan<LazySingletonConfiguration>();
+            di.Scan<UsingLazySingleton>();
+        });
 
         UsingLazySingleton usingLazy = c.Resolve<UsingLazySingleton>();
 
@@ -248,10 +251,10 @@ public class ScannerLazyTests {
     public void SingletonFromConfigurationTest() {
         Singleton.Instances = 0;
         var c = new Container();
-        var di = c.CreateBuilder();
-        di.Scan<SingletonConfiguration>();
-        di.Scan<UsingSingleton>();
-        di.Build();
+        c.Build(di => {
+            di.Scan<SingletonConfiguration>();
+            di.Scan<UsingSingleton>();
+        });
 
         Assert.That(Singleton.Instances, Is.EqualTo(1));
 

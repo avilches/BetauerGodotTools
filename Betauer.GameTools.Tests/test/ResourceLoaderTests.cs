@@ -6,6 +6,7 @@ using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
 using Godot;
 using NUnit.Framework;
+using Container = Betauer.DI.Container;
 
 namespace Betauer.GameTools.Tests;
 
@@ -27,10 +28,11 @@ public class ResourceLoaderTests {
 
     [TestRunner.Test]
     public async Task BasicTests() {
-        var di = new Betauer.DI.Container.Builder();
-        di.Scan<MainResources>();
-        di.Scan<MainResources2>();
-        var c = di.Build();
+        var c = new Container();
+        c.Build(di => {
+            di.Scan<MainResources>();
+            di.Scan<MainResources2>();
+        });
 
         var resource = c.Resolve<ResourceHolder<Texture2D>>("1x1.png");
         var transient = c.Resolve<ITransient<Node2D>>("Factory:SceneTransient");

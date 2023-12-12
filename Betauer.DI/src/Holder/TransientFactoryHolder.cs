@@ -24,7 +24,7 @@ public class TransientFactoryHolder<T> : Holder<T>, IInjectable where T : class 
             _factory = Container.Resolve<ITransient<T>>();
         } else {
             var provider = Container.GetProvider(_factoryName);
-            if (provider.ProviderType.ImplementsInterface(typeof(ITransient<T>))) {
+            if (provider.InstanceType.ImplementsInterface(typeof(ITransient<T>))) {
                 _factory = (ITransient<T>)provider.Get();
             } else {
                 _factory = Container.Resolve<ITransient<T>>($"{ProxyFactoryProvider.FactoryPrefix}{_factoryName}");

@@ -6,8 +6,8 @@ namespace Betauer.DI.ServiceProvider;
 public interface IProvider {
     public Container Container { get; set; }
     public string? Name { get; }
-    public Type RegisterType { get; }
-    public Type ProviderType { get; }
+    public Type ExposedType { get; }
+    public Type InstanceType { get; }
     public Lifetime Lifetime { get; }
     public object Get();
     public object Resolve(ResolveContext context);

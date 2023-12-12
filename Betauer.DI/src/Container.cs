@@ -13,7 +13,7 @@ namespace Betauer.DI;
 
 public partial class Container {
     private static readonly Logger Logger = LoggerFactory.GetLogger<Container>();
-    private readonly Dictionary<Type, IProvider> _registryByType = new();
+    private readonly Dictionary<Type, IProvider> _registryByExposedType = new();
     private readonly Dictionary<string, IProvider> _registryByName = new();
     private readonly List<IProvider> _providers = new();
     private readonly Injector _injector;
@@ -31,7 +31,7 @@ public partial class Container {
         _resolveContextPool = new(CreateResolveContext);        
         
         // Adding the Container in the Container allows to use [Inject] Container...
-        Add(Provider.Static(this));
+        AddToRegistry(Provider.Static(this));
     }
 
     private ResolveContext CreateResolveContext() {
@@ -42,41 +42,63 @@ public partial class Container {
         return context;
     } 
 
-    public Builder CreateBuilder() => new Builder(this);
-
-    public Container Build(List<IProvider> providers) {
+    public Container Build(Action<Builder> action) {
+        var builder = new Builder(this);
+        action.Invoke(builder);
+        builder.Build();
+        return this;
+    }
+    
+    internal Container Build(List<IProvider> providers) {
         if (_busy) throw new InvalidOperationException("Container is busy");
         _busy = true;
         
-        var customFactories = providers.OfType<CustomFactoryProvider>().ToList();
-        providers.RemoveAll(provider => provider is CustomFactoryProvider);
-        
-        // Add only the providers to the registry (no CustomFactoryProvider will be added)
-        providers.ForEach(AddToRegistry);
+        // Add all the providers to the registry (no CustomFactoryProvider will be added)
+        providers.Where(provider => provider is not CustomFactoryProvider).ForEach(AddToRegistry);
 
-        // Resolve only the CustomFactoryProvider, just to inject the dependencies needed
+        // Resolve only the CustomFactoryProviders first, just to inject the dependencies they need
         var context = GetResolveContext();
-        customFactories.ForEach(provider => {
-            Logger.Debug($"Initializing factory {provider.ProviderType.GetTypeName()}");
-            provider.Container = this;
-            provider.Resolve(context);
-        });
-        context.End();
-        
-        context = GetResolveContext();
         providers
-            .OfType<SingletonProvider>()
-            .Where(provider => provider is { Lazy: false, IsInstanceCreated: false })
+            .OfType<CustomFactoryProvider>()
             .ForEach(provider => {
-                Logger.Debug($"Initializing non lazy {Lifetime.Singleton}:{provider.ProviderType.GetTypeName()} | Name: \"{provider.Name}\"");
+                Logger.Debug($"Initializing factory {provider.InstanceType.GetTypeName()}");
+                provider.Container = this;
                 provider.Resolve(context);
             });
         context.End();
         
+        // Initialize the rest of the providers, if they need it
+        context = GetResolveContext();
+        providers
+            .ForEach(provider => {
+                switch (provider) {
+                    case CustomFactoryProvider:
+                    case TransientProvider:
+                    case ProxyFactoryProvider:
+                        return;
+                    case SingletonProvider singletonProvider:
+                        if (!singletonProvider.IsInstanceCreated && !singletonProvider.Lazy) {
+                            Logger.Debug($"Initializing non lazy {Lifetime.Singleton}:{provider.InstanceType.GetTypeName()} | Name: \"{provider.Name}\"");
+                            provider.Resolve(context);
+                        }
+                        break;
+                    case StaticProvider staticProvider:
+                        if (!staticProvider.IsInitialized) {
+                            Logger.Debug($"Initializing static {Lifetime.Singleton}:{provider.InstanceType.GetTypeName()} | Name: \"{provider.Name}\"");
+                            provider.Resolve(context);
+                        }
+                        break;
+                    default:
+                        throw new NotImplementedException($"Unknown provider type: {provider.GetType().GetTypeName()}");
+                }
+            });
+        context.End();
+        
+        // Check if a lazy singleton was initialized by mistake
         var errors = providers
             .OfType<SingletonProvider>()
-            .Where(provider => provider is { Lazy: true, IsInstanceCreated: true } && (provider.Name == null || !provider.Name.StartsWith("Factory:")))
-            .Select(provider => $"- {provider.ProviderType.GetTypeName()} | Name: \"{provider.Name}\"")
+            .Where(provider => provider is { Lazy: true, IsInstanceCreated: true })
+            .Select(provider => $"- {provider.InstanceType.GetTypeName()} | Name: \"{provider.Name}\"")
             .ToList();
         if (errors.Count > 0) {
             throw new InvalidOperationException("Container initialization failed. These Lazy Singletons are initialized when they shouldn't.\nPlease, remove the Lazy flag or ensure the injection is done using [Inject] ILazy<T> instead of [Inject] T:\n" + string.Join("\n", errors));
@@ -86,16 +108,6 @@ public partial class Container {
         return this;
     }
 
-    public void Add(IProvider provider) {
-        if (_busy) throw new InvalidOperationException("Container is busy");
-        _busy = true;
-        AddToRegistry(provider);
-        if (provider is SingletonProvider { Lazy: false }) {
-            Logger.Debug($"Initializing non lazy {Lifetime.Singleton}:{provider.ProviderType.GetTypeName()} | Name: \"{provider.Name}\"");
-            provider.Get();
-        }
-        _busy = false;
-    }
     /// <summary>
     /// Register by type only always overwrite. That means register the same type twice will not fail: the second
     /// one will replace the first one.
@@ -108,12 +120,12 @@ public partial class Container {
     private void AddToRegistry(IProvider provider) {
         var name = provider.Name;
         if (name != null) {
-            if (_registryByName.TryGetValue(name, out var found)) throw new DuplicateServiceException(found.RegisterType, name);
+            if (_registryByName.TryGetValue(name, out var found)) throw new DuplicateServiceException(found.ExposedType, name);
             _registryByName[name] = provider;
         } else {
-            if (_registryByType.ContainsKey(provider.RegisterType)) throw new DuplicateServiceException(provider.RegisterType);
-            _registryByType[provider.RegisterType] = provider;
-            Logger.Debug($"Registered {provider.Lifetime}:{provider.ProviderType.GetTypeName()} | Type: {provider.RegisterType.GetTypeName()}");
+            if (_registryByExposedType.ContainsKey(provider.ExposedType)) throw new DuplicateServiceException(provider.ExposedType);
+            _registryByExposedType[provider.ExposedType] = provider;
+            Logger.Debug($"Registered {provider.Lifetime}:{provider.InstanceType.GetTypeName()} | Type: {provider.ExposedType.GetTypeName()}");
         }
         _providers.Add(provider);
         provider.Container = this;
@@ -121,7 +133,7 @@ public partial class Container {
 
     public bool Contains(string name) => _registryByName.ContainsKey(name);
     public bool Contains<T>() => Contains(typeof(T));
-    public bool Contains(Type type) => _registryByType.ContainsKey(type);
+    public bool Contains(Type type) => _registryByExposedType.ContainsKey(type);
 
     public IProvider GetProvider(string name) => TryGetProvider(name, out var found) ? found! : throw new ServiceNotFoundException(name);
     public IProvider GetProvider<T>() => GetProvider(typeof(T));
@@ -130,7 +142,7 @@ public partial class Container {
     public bool TryGetProvider(string name, [MaybeNullWhen(false)] out IProvider provider) => _registryByName.TryGetValue(name, out provider);
     public bool TryGetProvider<T>(out IProvider? provider) => TryGetProvider(typeof(T), out provider);
     public bool TryGetProvider(Type type, out IProvider? provider) {
-        var found = _registryByType.TryGetValue(type, out provider);
+        var found = _registryByExposedType.TryGetValue(type, out provider);
         if (!found) provider = null;
         return found;
     }
@@ -200,7 +212,7 @@ public partial class Container {
 
     public List<IProvider> Query(Type type, Lifetime? lifetime) {
         return _providers
-            .Where(provider => type.IsAssignableFrom(provider.ProviderType) && (!lifetime.HasValue || provider.Lifetime == lifetime))
+            .Where(provider => type.IsAssignableFrom(provider.InstanceType) && (!lifetime.HasValue || provider.Lifetime == lifetime))
             .ToList();
     }
   

@@ -56,7 +56,7 @@ public partial class Container {
         /// <param name="metadata"></param>
         /// <returns></returns>
         /// <exception cref="InvalidCastException"></exception>
-        private CustomFactoryProviders RegisterFactory(Lifetime lifetime, Type factoryType, object factoryInstance, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) {
+        private CustomFactoryProviders RegisterFactory(Lifetime lifetime, Type /* IFactory<T> */ factoryType, object factoryInstance, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) {
             var type = factoryType.FindGenericsFromInterfaceDefinition(typeof(IFactory<>))[0];
 
             // The factory is not really registered in the container. It's added only to the pending providers so it can be processed during the Build(),

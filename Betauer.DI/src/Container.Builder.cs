@@ -21,7 +21,7 @@ public partial class Container {
             _scanner = new Scanner(this, Container);
         }
     
-        public Builder() {
+        internal Builder() {
             Container = new Container();
             _scanner = new Scanner(this, Container);
         }
@@ -61,12 +61,11 @@ public partial class Container {
             return this;
         }
 
-        public Container Build() {
+        internal void Build() {
             var toBuild = new List<IProvider>(_providers);
             _providers.Clear();
             Container.Build(toBuild);
             OnBuildFinished?.Invoke();
-            return Container;
         }
     }
 }

@@ -8,11 +8,11 @@ namespace Betauer.DI.ServiceProvider;
 
 public abstract class Provider : IProvider {
     public static IProvider Static<T>(T instance, string? name = null) where T : class {
-        return Singleton(() => instance, name);
+        return Static<T, T>(instance, name);
     }
 
     public static IProvider Static<TI, T>(T instance, string? name = null) where T : class {
-        return Singleton<TI, T>(() => instance, name);
+        return new StaticProvider(typeof(TI), typeof(T), instance, name);
     }
 
     
@@ -76,20 +76,20 @@ public abstract class Provider : IProvider {
     }
 
     public Container Container { get; set; }
-    public Type RegisterType { get; }
-    public Type ProviderType { get; }
+    public Type ExposedType { get; }
+    public Type InstanceType { get; }
     public string? Name { get; }
     public abstract Lifetime Lifetime { get; }
 
     public Dictionary<string, object> Metadata { get; }
 
-    protected Provider(Type registerType, Type providerType, string? name, Dictionary<string, object>? metadata) {
-        if (!registerType.IsAssignableFrom(providerType)) {
+    protected Provider(Type exposedType, Type instanceType, string? name, Dictionary<string, object>? metadata) {
+        if (!exposedType.IsAssignableFrom(instanceType)) {
             throw new InvalidCastException(
-                $"Can't create a provider of {providerType.GetTypeName()} and register with {registerType.GetTypeName()}");
+                $"Can't create a provider of {instanceType.GetTypeName()} and register with {exposedType.GetTypeName()}");
         }
-        RegisterType = registerType;
-        ProviderType = providerType;
+        ExposedType = exposedType;
+        InstanceType = instanceType;
         Name = name;
         Metadata = metadata ?? new Dictionary<string, object>();
     }

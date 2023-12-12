@@ -25,13 +25,12 @@ public partial class GodotContainerTests : Node {
     
     [TestRunner.Test]
     public async Task BasicTests() {
-
         var container = new Container()
-            .CreateBuilder()
-            .InjectOnEnterTree(GetTree())
-            .Scan<GodotContainerConfiguration>()
-            .Scan<Injected>()
-            .Build();
+            .Build(builder => {
+                builder.InjectOnEnterTree(GetTree());
+                builder.Scan<GodotContainerConfiguration>();
+                builder.Scan<Injected>();
+            });
 
         await this.AwaitProcessFrame();
         var injected = container.Resolve<Injected>();
