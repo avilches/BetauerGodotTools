@@ -15,7 +15,6 @@ public class InputActionAttribute : Attribute, IConfigurationMemberAttribute {
     public string? Name { get; set; }
     public string? AxisName { get; set; }
     public string? SaveAs { get; set; }
-    public bool AutoSave { get; set; } = true;
 
     public InputActionAttribute() {
     }
@@ -53,7 +52,7 @@ public class InputActionAttribute : Attribute, IConfigurationMemberAttribute {
             
             if (settingsContainerName != null) {
                 var settingsContainer = builder.Container.Resolve<SettingsContainer>(settingsContainerName);
-                inputAction.CreateSaveSetting(settingsContainer, SaveAs!, AutoSave, true);
+                inputAction.CreateSaveSetting(settingsContainer, SaveAs!);
             }
             
             inputAction.RefreshGodotInputMap();

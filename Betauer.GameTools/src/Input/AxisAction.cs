@@ -71,8 +71,8 @@ public class AxisAction : IAction {
         }
     }
 
-    public void CreateSaveSetting(SettingsContainer settingsContainer, string saveAs, bool autoSave, bool enabled) {
-        SaveSetting = Setting.Create(saveAs, AsString(), autoSave, enabled);
+    public void CreateSaveSetting(SettingsContainer settingsContainer, string saveAs) {
+        SaveSetting = Setting.Create(saveAs, AsString(), true, true);
         SaveSetting.SetSettingsContainer(settingsContainer);
         Load();
     }
@@ -127,6 +127,7 @@ public class AxisAction : IAction {
     public void Save() {
         if (SaveSetting == null) throw new Exception("AxisAction does not have a SaveSetting");
         SaveSetting.Value = AsString();
+        if (!SaveSetting.AutoSave) SaveSetting.SettingsContainer?.Save();
     }
     
     public void SimulatePress(float strength) {

@@ -38,6 +38,23 @@ public partial class InputActionTests : Node {
     }
 
     [TestRunner.Test]
+    public void InputActionSave() {
+        SaveSetting<string> b = Setting.Create("attack", "", false);
+        var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
+        b.SetSettingsContainer(sc);
+
+        var reg = InputAction.Create("N")
+            .Keys(Key.A)
+            .AsSimulator();
+
+        reg.SaveSetting = b;
+        reg.Save();
+
+        sc.ConfigFileWrapper.GetValue("Setting/attack", "nop");
+        Assert.That(sc.ConfigFileWrapper.GetValue("Settings/attack", "nop") == reg.AsString());
+    }
+
+    [TestRunner.Test]
     public void InputActionImportExportTests() {
         SaveSetting<string> b = Setting.Create( "attack", "");
         var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
@@ -118,7 +135,7 @@ public partial class InputActionTests : Node {
 
     [TestRunner.Test]
     public void AxisActionImportExportTests() {
-        SaveSetting<string> b = Setting.Create( "Lateral", "Reverse:True");
+        SaveSetting<string> b = Setting.Create( "Lateral", "Reverse:True", false, true);
         var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
         b.SetSettingsContainer(sc);
         var lateral = AxisAction.Mock();
@@ -139,6 +156,22 @@ public partial class InputActionTests : Node {
         lateral.ResetToDefaults();
         Assert.That(lateral.Reverse, Is.True);
     }
+
+    [TestRunner.Test]
+    public void AxisActionSave() {
+        SaveSetting<string> b = Setting.Create("move", "", false);
+        var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
+        b.SetSettingsContainer(sc);
+
+        var lateral = AxisAction.Mock();
+        Assert.That(lateral.Reverse, Is.False);
+
+        lateral.SaveSetting = b;
+        lateral.Save();
+
+        Assert.That(sc.ConfigFileWrapper.GetValue("Settings/move", "nop") == lateral.AsString());
+    }
+
 
     [TestRunner.Test]
     public void InputActionFindByName() {

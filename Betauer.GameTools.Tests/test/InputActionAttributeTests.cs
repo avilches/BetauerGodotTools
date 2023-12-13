@@ -198,7 +198,7 @@ public partial class InputActionAttributeTests : Node {
         [Singleton] public InputActionsContainer MyInputActionsContainer => new InputActionsContainer();
         [Singleton] public SettingsContainer MySettingContainer => new SettingsContainer(new ConfigFileWrapper(SettingsFile));
         
-        [InputAction(SaveAs = "Controls/Jump", AutoSave = true)]
+        [InputAction(SaveAs = "Controls/Jump")]
         private InputAction Jump1 => InputAction.Create().AsSimulator();
 
         [InputAction(SaveAs = "Jump2")]
@@ -224,9 +224,10 @@ public partial class InputActionAttributeTests : Node {
         Assert.That(jump1.SaveSetting.AutoSave, Is.True);
         Assert.That(jump1.SaveSetting.SettingsContainer, Is.EqualTo(c.Resolve<SettingsContainer>("MySettingContainer")));
 
+        // No section creates "Settings" section
         var jump2 = c.Resolve<InputAction>("Jump2");
         Assert.That(jump2.SaveSetting.SaveAs, Is.EqualTo("Settings/Jump2"));
-        Assert.That(jump2.SaveSetting.AutoSave, Is.False);
+        Assert.That(jump2.SaveSetting.AutoSave, Is.True);
         Assert.That(jump2.SaveSetting.SettingsContainer, Is.EqualTo(c.Resolve<SettingsContainer>("MySettingContainer")));
 
         var right = c.Resolve<InputAction>("Right");
@@ -236,7 +237,7 @@ public partial class InputActionAttributeTests : Node {
         Assert.That(axisAction.SaveSetting.SettingsContainer, Is.EqualTo(c.Resolve<SettingsContainer>("MySettingContainer")));
         Assert.That(axisAction.SaveSetting.SaveAs, Is.EqualTo("Controls/Lateral"));
         Assert.That(axisAction.AsString(), Is.EqualTo("Reverse:True"));
-        Assert.That(axisAction.SaveSetting.AutoSave, Is.False);
+        Assert.That(axisAction.SaveSetting.AutoSave, Is.True);
         Assert.That(axisAction.Negative, Is.EqualTo(left));
         Assert.That(axisAction.Positive, Is.EqualTo(right));
     }

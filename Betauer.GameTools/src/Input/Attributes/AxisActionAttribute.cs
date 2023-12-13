@@ -14,7 +14,6 @@ namespace Betauer.Input.Attributes;
 public class AxisActionAttribute : Attribute, IConfigurationMemberAttribute {
     public string? Name { get; init; }
     public string? SaveAs { get; init; }
-    public bool AutoSave { get; init; } = true;
 
     public AxisActionAttribute() {
     }
@@ -52,7 +51,7 @@ public class AxisActionAttribute : Attribute, IConfigurationMemberAttribute {
             
             if (settingsContainerName != null) {
                 var settingsContainer = builder.Container.Resolve<SettingsContainer>(settingsContainerName);
-                axisAction.CreateSaveSetting(settingsContainer, SaveAs!, AutoSave, true);
+                axisAction.CreateSaveSetting(settingsContainer, SaveAs!);
             }
         };
     }

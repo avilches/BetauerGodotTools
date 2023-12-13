@@ -2,11 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Betauer.Application.Settings;
-using Betauer.DI;
-using Betauer.DI.Attributes;
 using Betauer.Input.Handler;
 using Godot;
-using Container = Betauer.DI.Container;
 
 namespace Betauer.Input;
 
@@ -193,8 +190,8 @@ public partial class InputAction : IAction {
         return inputAction;
     }
     
-    public void CreateSaveSetting(SettingsContainer settingsContainer, string saveAs, bool autoSave, bool enabled) {
-        SaveSetting = Setting.Create(saveAs, AsString(), autoSave, enabled);
+    public void CreateSaveSetting(SettingsContainer settingsContainer, string saveAs) {
+        SaveSetting = Setting.Create(saveAs, AsString(), true, true);
         SaveSetting.SetSettingsContainer(settingsContainer);
         Load();
     }
@@ -368,6 +365,7 @@ public partial class InputAction : IAction {
     public void Save() {
         if (SaveSetting == null) throw new Exception("InputAction does not have a SaveSetting");
         SaveSetting.Value = AsString();
+        if (!SaveSetting.AutoSave) SaveSetting.SettingsContainer!.Save();
     }
 
     public InputAction Update(Action<Updater> updater) {
