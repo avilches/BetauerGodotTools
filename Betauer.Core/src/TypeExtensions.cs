@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -126,11 +127,22 @@ public static class TypeExtensions {
     /// </summary>
     /// <param name="att"></param>
     /// <returns></returns>
-    public static string FormatAttribute(this Type type) {
+    public static string FormatAttribute(this Type type, Dictionary<string, object>? parameters = null) {
         var name = type.GetTypeName();
         var lastIndexOf = name.LastIndexOf("Attribute", StringComparison.Ordinal);
         if (lastIndexOf > 0) name = name.Remove(lastIndexOf);
+        if (parameters != null) {
+            parameters = parameters.Where(x => x.Value != null).ToDictionary(x => x.Key, x => x.Value);
+            if (parameters.Count <= 0) return $"[{name}]";
+            var parametersString = string.Join(", ", parameters.Select(p => $"{p.Key} = {Format(p.Value)}"));
+            return $"[{name}({parametersString})]";
+        }
         return $"[{name}]";
+
+        string Format(object o) {
+            if (o is string s) return $"\"{s}\"";
+            return o.ToString();
+        }
     }
 
     
