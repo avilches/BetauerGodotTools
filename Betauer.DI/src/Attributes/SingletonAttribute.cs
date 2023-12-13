@@ -25,7 +25,7 @@ public class SingletonAttribute : Attribute, IClassAttribute, IConfigurationMemb
             lazy: Lazy,
             metadata: Provider.FlagsToMetadata(Flags));
         builder.Register(provider);
-        if (Lazy) builder.Register(ProxyFactoryProvider.Create(provider));
+        if (Lazy) builder.Register(ProxyProvider.Create(provider));
     }
 
     public void Apply(object configuration, IGetter getter, Container.Builder builder) {
@@ -37,9 +37,14 @@ public class SingletonAttribute : Attribute, IClassAttribute, IConfigurationMemb
             Lazy,
             Provider.FlagsToMetadata(Flags));
         builder.Register(provider);
-        if (Lazy) builder.Register(ProxyFactoryProvider.Create(provider));
+        if (Lazy) builder.Register(ProxyProvider.Create(provider));
     }
 }
 
 public class SingletonAttribute<T> : SingletonAttribute {
- }
+    public SingletonAttribute() {
+    }
+
+    public SingletonAttribute(string name) : base(name) {
+    }
+}

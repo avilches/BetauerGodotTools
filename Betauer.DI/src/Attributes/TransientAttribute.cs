@@ -24,7 +24,7 @@ public class TransientAttribute : Attribute, IClassAttribute, IConfigurationMemb
             name: Name,
             metadata: Provider.FlagsToMetadata(Flags));
         builder.Register(provider);
-        builder.Register(ProxyFactoryProvider.Create(provider));
+        builder.Register(ProxyProvider.Create(provider));
     }
 
     public void Apply(object configuration, IGetter getter, Container.Builder builder) {
@@ -35,9 +35,15 @@ public class TransientAttribute : Attribute, IClassAttribute, IConfigurationMemb
             Name ?? getter.Name,
             Provider.FlagsToMetadata(Flags));
         builder.Register(provider);
-        builder.Register(ProxyFactoryProvider.Create(provider));
+        builder.Register(ProxyProvider.Create(provider));
     }
 }
 
 public class TransientAttribute<T> : TransientAttribute {
+
+    public TransientAttribute() {
+    }
+
+    public TransientAttribute(string name) : base(name) {
+    }
 }

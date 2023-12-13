@@ -195,7 +195,7 @@ public class ScannerBasicTests : Node {
     public class ConfigurationScanned {
         [Singleton] internal ExposeServiceMember1 member11 => new ExposeServiceMember1();
         [Singleton] internal ExposeServiceMember1 member12() => new ExposeServiceMember1();
-        [Singleton(Name = "M21")] internal ExposeServiceMember2 member21 => new ExposeServiceMember2();
+        [Singleton("M21")] internal ExposeServiceMember2 member21 => new ExposeServiceMember2();
         [Singleton(Name = "M22")] internal ExposeServiceMember2 member22() => new ExposeServiceMember2();
             
         [Singleton(Name = "M3")] internal ExposeServiceMember3 member3 => new ExposeServiceMember3();
@@ -499,7 +499,7 @@ public class ScannerBasicTests : Node {
         private Hold Hold1 => new Hold("1");
             
         // Property with Name
-        [Transient(Name = "Hold2")]
+        [Transient("Hold2")]
         private Hold _hold2 => new Hold("2");
 
         // Method

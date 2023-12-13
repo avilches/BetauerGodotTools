@@ -84,7 +84,7 @@ public partial class Container {
             // Non lazy singletons doesn't need the ILazy<> proxy factory
             if (lifetime == Lifetime.Transient || lazy) {
                 // Register the proxy factory so users can get the factory and use it to create new instances with dependencies injected
-                proxyProvider = ProxyFactoryProvider.Create(provider);
+                proxyProvider = ProxyProvider.Create(provider);
                 Register(proxyProvider);
             }
             return new FactoryProviders(provider, proxyProvider);

@@ -5,7 +5,7 @@ using Betauer.DI.Factory;
 
 namespace Betauer.DI.ServiceProvider;
 
-public class ProxyFactoryProvider : Provider {
+public class ProxyProvider : Provider {
     public override Lifetime Lifetime => Lifetime.Singleton;
     public Proxy ProxyInstance { get; }
 
@@ -15,7 +15,7 @@ public class ProxyFactoryProvider : Provider {
 
     public static readonly string FactoryPrefix = "Factory:";
 
-    public static ProxyFactoryProvider Create(IProvider provider) {
+    public static ProxyProvider Create(IProvider provider) {
         if (provider is not SingletonProvider &&
             provider is not TransientProvider) {
             throw new ArgumentException($"Provider must be a {nameof(SingletonProvider)} or {nameof(TransientProvider)}, but was {provider.GetType().GetTypeName()}");
@@ -24,11 +24,11 @@ public class ProxyFactoryProvider : Provider {
         var proxyFactoryName = provider.Name == null ? null : $"{FactoryPrefix}{provider.Name}";
         var proxyFactoryType = (provider.Lifetime == Lifetime.Singleton ? typeof(ILazy<>) : typeof(ITransient<>)).MakeGenericType(provider.InstanceType);
         var lazy = provider is not SingletonProvider singletonProvider || singletonProvider.Lazy;
-        var proxyProvider = new ProxyFactoryProvider(proxyFactoryType, provider.Lifetime, proxyFactory, proxyFactoryName, lazy);
+        var proxyProvider = new ProxyProvider(proxyFactoryType, provider.Lifetime, proxyFactory, proxyFactoryName, lazy);
         return proxyProvider;
     }
 
-    public ProxyFactoryProvider(Type proxyFactoryType, Lifetime lifetime, Proxy factory, string? name = null, bool serviceLazy = false,
+    public ProxyProvider(Type proxyFactoryType, Lifetime lifetime, Proxy factory, string? name = null, bool serviceLazy = false,
         Dictionary<string, object>? metadata = null) : base(proxyFactoryType, proxyFactoryType, name, metadata) {
         ServiceLifetime = lifetime;
         ProxyInstance = factory;

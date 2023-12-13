@@ -73,7 +73,7 @@ public partial class Container {
             providers.ForEach(provider => {
                 switch (provider) {
                     case TransientProvider:
-                    case ProxyFactoryProvider:
+                    case ProxyProvider:
                         return;
                     case SingletonProvider singletonProvider:
                         if (!singletonProvider.IsInstanceCreated && !singletonProvider.Lazy) {
@@ -199,21 +199,19 @@ public partial class Container {
         return false;
     }
 
-    public List<T> GetAllInstances<T>() {
+    public IEnumerable<T> GetAllInstances<T>() {
         return FromContext(context => Query<T>(Lifetime.Singleton)
             .Select(provider => provider.Resolve(context))
-            .Cast<T>()
-            .ToList());
+            .Cast<T>());
     }
 
-    public List<IProvider> Query<T>(Lifetime? lifetime = null) {
+    public IEnumerable<IProvider> Query<T>(Lifetime? lifetime = null) {
         return Query(typeof(T), lifetime);
     }
 
-    public List<IProvider> Query(Type type, Lifetime? lifetime) {
+    public IEnumerable<IProvider> Query(Type type, Lifetime? lifetime = null) {
         return _providers
-            .Where(provider => type.IsAssignableFrom(provider.InstanceType) && (!lifetime.HasValue || provider.Lifetime == lifetime))
-            .ToList();
+            .Where(provider => type.IsAssignableFrom(provider.InstanceType) && (!lifetime.HasValue || provider.Lifetime == lifetime));
     }
   
     public T ResolveOr<T>(Func<T> or) => TryResolve(typeof(T), out var instance) ? (T)instance : or();
