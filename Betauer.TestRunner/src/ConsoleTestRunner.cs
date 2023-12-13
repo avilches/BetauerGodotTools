@@ -37,10 +37,10 @@ public class ConsoleTestRunner {
         var testPasses = testMethod.Result == TestRunner.Result.Passed;
 
         if (testPasses) {
-            GreenBanner($"{GetTestMethodLine(testReport, testMethod)}: Passed ({testMethod.Stopwatch.ElapsedMilliseconds}ms)");
+            GreenBanner($"{GetTestMethodLine(testReport, testMethod)}: Passed ({Elapsed(testMethod.Stopwatch.Elapsed)})");
         } else {
             Red($"┌─────────────────────────────────────────────────────────────────────────────────");
-            Red($"│ {GetTestMethodLine(testReport, testMethod)}: Failed ({testMethod.Stopwatch.ElapsedMilliseconds}ms)");
+            Red($"│ {GetTestMethodLine(testReport, testMethod)}: Failed ({Elapsed(testMethod.Stopwatch.Elapsed)})");
             Red($"│ [Error: #{testReport.TestsFailed}/?]");
             Red($"| {testMethod.Exception.GetType()}");
             RedIndent(testMethod.Exception.Message.Split("\n"));
@@ -57,7 +57,7 @@ public class ConsoleTestRunner {
 
     private static void PrintConsoleFinish(TestReport testReport, Stopwatch stopwatch) {
         if (testReport.TestsFailed > 0) {
-            RedBanner($"Failed: {testReport.TestsFailed}/{testReport.TestsTotal}. Passed: {testReport.TestsPassed}/{testReport.TestsTotal}", $"Elapsed: {stopwatch.Elapsed.Seconds}s");
+            RedBanner($"Failed: {testReport.TestsFailed}/{testReport.TestsTotal}. Passed: {testReport.TestsPassed}/{testReport.TestsTotal}", $"Time: {Elapsed(stopwatch.Elapsed)}");
 
             var x = 1;
             testReport.TestsFailedResults.ForEach(testMethod => {
@@ -77,10 +77,18 @@ public class ConsoleTestRunner {
                 x++;
             });
 
-            RedBanner($"Failed: {testReport.TestsFailed}/{testReport.TestsTotal}. Passed: {testReport.TestsPassed}/{testReport.TestsTotal}", $"Elapsed: {stopwatch.Elapsed.Seconds}s");
+            RedBanner($"Failed: {testReport.TestsFailed}/{testReport.TestsTotal}. Passed: {testReport.TestsPassed}/{testReport.TestsTotal}", $"Time: {Elapsed(stopwatch.Elapsed)}");
         } else {
-            GreenBanner($"Passed: {testReport.TestsPassed}/{testReport.TestsTotal}! :-)", $"Time: {stopwatch.Elapsed.Seconds}s");
+            GreenBanner($"Passed: {testReport.TestsPassed}/{testReport.TestsTotal}! :-)", $"Time: {Elapsed(stopwatch.Elapsed)}");
         }
+    }
+
+    private static string Elapsed(TimeSpan span) {
+        return span.TotalSeconds switch {
+            < 10 => $"{span.TotalSeconds:N3}s",
+            < 60 => $"{span.TotalSeconds:N0}s",
+            _ => $"{(int)span.TotalMinutes}m {span.Seconds}s"
+        };
     }
 
     private static void RedIndent(string[] split) {
