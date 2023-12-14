@@ -15,14 +15,14 @@ public class ResourceLoaderTests {
     [Configuration]
     [Loader("GameLoader")]
     [Resource<Texture2D>("1x1.png", "res://test-resources/1x1.png")]
-    [Scene.Transient<Node2D>("SceneTransient", "res://test-resources/MyScene.tscn")]
+    [Scene.Transient<Node2D>(Name = "SceneTransient", Path = "res://test-resources/MyScene.tscn")]
     public class MainResources {
         [Singleton] public ResourceLoaderContainer GameLoader => new();
     }
 
     [Configuration]
     [Loader("GameLoader", Tag = "main2")]
-    [Scene.Singleton<Node2D>("SceneSingleton", "res://test-resources/MyScene.tscn")]
+    [Scene.Singleton<Node2D>(Name = "SceneSingleton", Path = "res://test-resources/MyScene.tscn")]
     public class MainResources2 {
     }
 

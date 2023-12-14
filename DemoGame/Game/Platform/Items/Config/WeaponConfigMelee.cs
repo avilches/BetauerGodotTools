@@ -14,7 +14,7 @@ public abstract class WeaponConfigMelee : WeaponConfig {
     }
 }
 
-[Singleton("KnifeMelee")]
+[Singleton(Name = "KnifeMelee")]
 public class KnifeMelee : WeaponConfigMelee {
     [Inject("LeonKnifeAnimationSprite")] private ResourceHolder<Texture2D> LeonKnifeAnimationSprite { get; set; }
     public override Texture2D WeaponAnimation() => LeonKnifeAnimationSprite.Get();
@@ -27,7 +27,7 @@ public class KnifeMelee : WeaponConfigMelee {
     public override void ConfigureInventoryTextureRect(AtlasTexture atlasTexture) => PickupSpriteSheet.ConfigurePickups(atlasTexture, 0, 1);
 }
 
-[Singleton("MetalbarMelee")]
+[Singleton(Name = "MetalbarMelee")]
 public class MetalbarMelee : WeaponConfigMelee {
     [Inject("LeonMetalbarAnimationSprite")] private ResourceHolder<Texture2D> LeonMetalbarAnimationSprite { get; set; }
     public override Texture2D WeaponAnimation() => LeonMetalbarAnimationSprite.Get();

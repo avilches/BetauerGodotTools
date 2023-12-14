@@ -21,7 +21,7 @@ public abstract class WeaponConfigRange : WeaponConfig {
     public int RaycastLength = -1;
 }
 
-[Singleton("SlowGun")]
+[Singleton(Name = "SlowGun")]
 public class RangeSlowGun : WeaponConfigRange {
     public override Texture2D WeaponAnimation() => LeonGun1AnimationSprite.Get();
 
@@ -37,7 +37,7 @@ public class RangeSlowGun : WeaponConfigRange {
     public override void ConfigureInventoryTextureRect(AtlasTexture atlasTexture) => PickupSpriteSheet.ConfigurePickups(atlasTexture, 4, 1);
 }
 
-[Singleton("Gun")]
+[Singleton(Name = "Gun")]
 public class RangeGun : WeaponConfigRange {
     public override Texture2D WeaponAnimation() => LeonGun1AnimationSprite.Get();
 
@@ -53,7 +53,7 @@ public class RangeGun : WeaponConfigRange {
     public override void ConfigureInventoryTextureRect(AtlasTexture atlasTexture) => PickupSpriteSheet.ConfigurePickups(atlasTexture, 4, 1);
 }
 
-[Singleton("Shotgun")]
+[Singleton(Name = "Shotgun")]
 public class RangeShotgun : WeaponConfigRange {
     public override Texture2D WeaponAnimation() => LeonGun1AnimationSprite.Get();
 
@@ -69,7 +69,7 @@ public class RangeShotgun : WeaponConfigRange {
     public override void ConfigureInventoryTextureRect(AtlasTexture atlasTexture) => PickupSpriteSheet.ConfigurePickups(atlasTexture, 4, 1);
 }
 
-[Singleton("MachineGun")]
+[Singleton(Name = "MachineGun")]
 public class RangeMachineGun : WeaponConfigRange {
     public override Texture2D WeaponAnimation() => LeonGun1AnimationSprite.Get();
 

@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Betauer.Core;
+using Betauer.DI.Factory;
 using Betauer.DI.ServiceProvider;
 
 namespace Betauer.DI;
 
 public partial class Container {
-    public partial class Builder {
+    public class Builder {
         public Container Container { get; }
 
         private readonly List<IProvider> _providers = new();
@@ -22,8 +23,15 @@ public partial class Container {
             _scanner = new Scanner(this, Container);
         }
 
-        internal void AddToInitialInject(object provider) {
-            _instances.Add(provider);
+        public void RegisterFactory(object factory) {
+            if (!factory.GetType().ImplementsInterface(typeof(IFactory<>))) {
+                throw new InvalidCastException($"Factory {factory.GetType().GetTypeName()} must implement IFactory<>");
+            }
+            _instances.Add(factory);
+        }
+
+        public void RegisterFactory<T>(IFactory<T> factory) where T : class {
+            _instances.Add(factory);
         }
 
         public Builder Register(IProvider provider) {

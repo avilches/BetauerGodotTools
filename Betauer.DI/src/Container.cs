@@ -199,10 +199,10 @@ public partial class Container {
         return false;
     }
 
-    public IEnumerable<T> GetAllInstances<T>() {
+    public List<T> GetAllInstances<T>() {
         return FromContext(context => Query<T>(Lifetime.Singleton)
             .Select(provider => provider.Resolve(context))
-            .Cast<T>());
+            .Cast<T>().ToList());
     }
 
     public IEnumerable<IProvider> Query<T>(Lifetime? lifetime = null) {

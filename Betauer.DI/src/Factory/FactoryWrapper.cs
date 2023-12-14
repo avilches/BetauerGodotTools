@@ -1,10 +1,9 @@
 using System;
 using Betauer.Core;
-using Betauer.DI.ServiceProvider;
 
 namespace Betauer.DI.Factory;
 
-public abstract class FactoryWrapper {
+internal abstract class FactoryWrapper {
 
     /// <summary>
     /// Cast at compile time a IFactory<T> from object to IFactory<object>

@@ -60,6 +60,6 @@ public class ResolveContext {
     }
 
     public void InjectServices(Lifetime lifetime, object o) {
-        Container.Injector.InjectServices(this, lifetime, o);
+        Injector.InjectServices(this, lifetime, o);
     }
 }

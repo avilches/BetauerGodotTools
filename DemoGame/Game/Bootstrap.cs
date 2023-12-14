@@ -98,9 +98,8 @@ file static class Logging {
 
 		// DI
 		LoggerFactory.SetTraceLevel<Provider>(TraceLevel.Error);
-		LoggerFactory.SetTraceLevel<Betauer.DI.Container>(TraceLevel.Error);
-		LoggerFactory.SetTraceLevel<Betauer.DI.Container.Injector>(TraceLevel.Error);
-		LoggerFactory.SetTraceLevel<Betauer.DI.Container.Scanner>(TraceLevel.Error);
+		LoggerFactory.SetTraceLevel<Container>(TraceLevel.Error);
+		LoggerFactory.SetTraceLevel<Container.Scanner>(TraceLevel.Error);
 
 		// GameTools
 		LoggerFactory.SetTraceLevel<BaseScreenResolutionStrategy>(TraceLevel.All);

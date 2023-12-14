@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Betauer.Core;
+using Betauer.DI.Factory;
 using Betauer.Tools.FastReflection;
 
 namespace Betauer.DI.ServiceProvider; 
@@ -30,9 +31,26 @@ public abstract class Provider : IProvider {
     }
 
     public static IProvider Singleton<TI, T>(Func<T> factory, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) where T : class {
-        return new SingletonProvider(typeof(TI), typeof(T), factory, name, lazy, metadata);
+        return new SingletonProvider(typeof(TI), typeof(T), null, factory, name, lazy, metadata);
     }
     
+/*    
+    public static IProvider ScopedSingleton<T>(string scope, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) where T : class {
+        return ScopedSingleton<T, T>(null!, name, lazy, metadata);
+    }
+
+    public static IProvider ScopedSingleton<T>(Func<T> factory, string scope, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) where T : class {
+        return ScopedSingleton<T, T>(factory, scope, name, lazy, metadata);
+    }
+
+    public static IProvider ScopedSingleton<TI, T>(string scope, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) where T : class {
+        return ScopedSingleton<TI, T>(null!, scope, name, lazy, metadata);
+    }
+
+    public static IProvider ScopedSingleton<TI, T>(Func<T> factory, string scope, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) where T : class {
+        return new SingletonProvider(typeof(TI), typeof(T), scope, factory, name, lazy, metadata);
+    }
+*/
     
 
     public static IProvider Transient<T>(string? name = null, Dictionary<string, object>? metadata = null) where T : class {
@@ -52,17 +70,46 @@ public abstract class Provider : IProvider {
     }
 
 
-    public static Func<object> CreateDefaultFactory(Type type, Lifetime lifetime) {
+    public static IProvider Proxy(IProvider provider) {
+        return ProxyProvider.Create(provider);
+    }
+
+
+
+    public static IProvider SingletonFactory(object factoryInstance, string? scope, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) {
+        var factoryType = factoryInstance.GetType();
+        if (!factoryType.ImplementsInterface(typeof(IFactory<>))) {
+            throw new InvalidCastException($"Factory {factoryType.GetTypeName()} must implement IFactory<>");
+        }
+        var type = factoryType.FindGenericsFromInterfaceDefinition(typeof(IFactory<>))[0];
+        // This is just () => ((IFactory<T>)factoryProvider).Create() but it's faster than using reflection to find the "Create()" method and invoke it
+        var createMethod = FactoryWrapper.Create(type, factoryInstance).Create;
+        return new SingletonProvider(type, type, scope, createMethod, name, lazy, metadata);
+    }
+    
+    public static IProvider TransientFactory(object factoryInstance, string? name = null, Dictionary<string, object>? metadata = null) {
+        var factoryType = factoryInstance.GetType();
+        if (!factoryType.ImplementsInterface(typeof(IFactory<>))) {
+            throw new InvalidCastException($"Factory {factoryType.GetTypeName()} must implement IFactory<>");
+        }
+        var type = factoryType.FindGenericsFromInterfaceDefinition(typeof(IFactory<>))[0];
+        // This is just () => ((IFactory<T>)factoryProvider).Create() but it's faster than using reflection to find the "Create()" method and invoke it
+        var createMethod = FactoryWrapper.Create(type, factoryInstance).Create;
+        return new TransientProvider(type, type, createMethod, name, metadata);
+    }
+    
+    
+
+
+    public static Func<object> CreateCtor(Type type, Lifetime lifetime) {
         if (type.IsAbstract || type.IsInterface)
-            throw new MissingMethodException(
-                $"Can't create default factory for and abstract or interface type: {type.GetTypeName()}");
+            throw new MissingMethodException($"Can't create constructor for abstract or interface type: {type}");
         return lifetime == Lifetime.Singleton ? () => Activator.CreateInstance(type)! : LambdaCtor.CreateCtor(type);
     }
 
-    public static Func<T> CreateDefaultFactory<T>(Lifetime lifetime) {
+    public static Func<T> CreateCtor<T>(Lifetime lifetime) {
         if (typeof(T).IsAbstract || typeof(T).IsInterface)
-            throw new MissingMethodException(
-                $"Can't create default factory for and abstract or interface type: {typeof(T).GetTypeName()}");
+            throw new MissingMethodException($"Can't create constructor for abstract or interface type: {typeof(T)}");
         return lifetime == Lifetime.Singleton ? Activator.CreateInstance<T> : LambdaCtor<T>.CreateInstance;
     }
 

@@ -30,7 +30,7 @@ public class ApplicationConfig {
 		true,
 		1f);
 
-	[Autoload] public DebugOverlayManager DebugOverlayManager => new();
+	[Singleton(Flags = "AddToTree")] public DebugOverlayManager DebugOverlayManager => new();
 
 	[Singleton] public Random Random => new PcgRandom();
 	[Singleton] public GameObjectRepository GameObjectRepository => new();
@@ -60,14 +60,15 @@ public class Settings {
 [Resource<Theme>("DebugOverlayTheme", "res://Game/UI/DebugOverlay.tres")]
 [Resource<Texture2D>("Xbox360Buttons", "res://Game/UI/Console/Xbox 360 Controller Updated.png")]
 [Resource<Texture2D>("XboxOneButtons", "res://Game/UI/Console/Xbox One Controller Updated.png")]
-[Scene.Transient<RedefineActionButton>("RedefineActionButton")]
-[Scene.Transient<ModalBoxConfirm>("ModalBoxConfirmFactory")]
-[Scene.Autoload<MainMenu>("MainMenuSceneLazy")]
-[Scene.Autoload<BottomBar>("BottomBarLazy")]
-[Scene.Autoload<PauseMenu>("PauseMenuLazy")]
-[Scene.Autoload<SettingsMenu>("SettingsMenuLazy")]
-[Scene.Autoload<ProgressScreen>("ProgressScreenLazy")]
+[Scene.Transient<RedefineActionButton>(Name = "RedefineActionButton")]
+[Scene.Transient<ModalBoxConfirm>(Name = "ModalBoxConfirmFactory")]
+[Scene.Singleton<MainMenu>(Name = "MainMenuSceneLazy", Flags = "AddToTree,Autoload")]
+[Scene.Singleton<BottomBar>(Name = "BottomBarLazy", Flags = "AddToTree,Autoload")]
+[Scene.Singleton<PauseMenu>(Name = "PauseMenuLazy", Flags = "AddToTree,Autoload")]
+[Scene.Singleton<SettingsMenu>(Name = "SettingsMenuLazy", Flags = "AddToTree,Autoload")]
+[Scene.Singleton<ProgressScreen>(Name = "ProgressScreenLazy", Flags = "AddToTree,Autoload")]
 public class MainResources {
+	Lazy<MainMenu> a = new(() => new MainMenu());
 }
 
 [Configuration]

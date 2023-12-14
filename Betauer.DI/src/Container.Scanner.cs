@@ -35,7 +35,7 @@ public partial class Container {
             if (type.HasAttribute<ConfigurationAttribute>()) {
                 if (attributes.OfType<IClassAttribute>().FirstOrDefault() is Attribute classAttribute) {
                     throw new InvalidAttributeException(
-                        $"Can't use {classAttribute.FormatAttribute()} and {typeof(ConfigurationAttribute).FormatAttribute()} in the same class: {type.GetTypeName()}");
+                        $"Can't use {classAttribute.FormatAttribute()} and {typeof(ConfigurationAttribute).FormatAttribute()} attribute in the same class. Type: {type}");
                 }
                 Logger.Debug("{0} class {1}", typeof(ConfigurationAttribute).FormatAttribute(), type.GetTypeName());
                 var configuration = Activator.CreateInstance(type)!;
@@ -45,12 +45,12 @@ public partial class Container {
             } else {
                 if (attributes.OfType<IConfigurationClassAttribute>().FirstOrDefault() is Attribute configurationClassAttribute) {
                     throw new InvalidAttributeException(
-                        $"Can't use {configurationClassAttribute.FormatAttribute()} without {typeof(ConfigurationAttribute).FormatAttribute()} in the same class: {type.GetTypeName()}");
+                        $"The attribute {configurationClassAttribute.FormatAttribute()} needs a {typeof(ConfigurationAttribute).FormatAttribute()} attribute in the same class. Type: {type}");
                 }
 
                 if (type.GetAttributes<ScanAttribute>().FirstOrDefault() is Attribute scanAttribute) {
                     throw new InvalidAttributeException(
-                        $"Can't use {scanAttribute.FormatAttribute()} without {typeof(ConfigurationAttribute).FormatAttribute()} in the same class: {type.GetTypeName()}");
+                        $"The attribute {scanAttribute.FormatAttribute()} needs a {typeof(ConfigurationAttribute).FormatAttribute()} attribute in the same class: Type: {type}");
                 }
                 ScanClassHeaderAttributes(type, attributes);
             }

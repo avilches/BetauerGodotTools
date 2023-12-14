@@ -15,15 +15,15 @@ namespace Veronenger.Game.RTS;
 
 [Configuration]
 [Loader("GameLoader", Tag = "main")]
-[Scene.Transient<RtsGameView>("RtsGameViewFactory")]
+[Scene.Transient<RtsGameView>(Name = "RtsGameViewFactory")]
 public class RtsMainResources {
 }
 
 [Configuration]
 [Loader("GameLoader", Tag = "rts")]
-[Scene.Transient<Trees>("TreesFactory")]
-[Scene.Transient<RtsWorld>("RtsWorldFactory")]
-[Scene.Transient<RtsPlayerHud>("RtsPlayerHudFactory")]
+[Scene.Transient<Trees>(Name = "TreesFactory")]
+[Scene.Transient<RtsWorld>(Name = "RtsWorldFactory")]
+[Scene.Transient<RtsPlayerHud>(Name = "RtsPlayerHudFactory")]
 [Resource<Texture2D>("Grasslands", "res://RTS/Assets/Textures/GrasslandsTextures.png")]
 public class RtsGameResources {
 	[Transient<RtsHud>] RtsHud RtsHudFactory => new RtsHud();

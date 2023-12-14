@@ -15,7 +15,7 @@ public class ProxyProvider : Provider {
 
     public static readonly string FactoryPrefix = "Factory:";
 
-    public static ProxyProvider Create(IProvider provider) {
+    internal static ProxyProvider Create(IProvider provider) {
         if (provider is not SingletonProvider &&
             provider is not TransientProvider) {
             throw new ArgumentException($"Provider must be a {nameof(SingletonProvider)} or {nameof(TransientProvider)}, but was {provider.GetType().GetTypeName()}");

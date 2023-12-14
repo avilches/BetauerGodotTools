@@ -13,7 +13,7 @@ public class SceneFactory<T> : ResourceLoad, IFactory<T> where T : Node {
 
     public event Action<T>? OnInstantiate;
     
-    public SceneFactory(string? path = null, string? tag = null) : base(ExtractScenePathFromScriptPathIfNull<T>(path), tag) {
+    public SceneFactory(string? path = null, string? tag = null) : base(ExtractScenePathFromScriptPathIfNull(path), tag) {
     }
 
     public PackedScene Scene => (PackedScene)Resource!;
@@ -33,7 +33,7 @@ public class SceneFactory<T> : ResourceLoad, IFactory<T> where T : Node {
         }
     }
 
-    private static string ExtractScenePathFromScriptPathIfNull<T>(string? path) where T : Node {
+    private static string ExtractScenePathFromScriptPathIfNull(string? path) {
         if (path != null) return path;
         var attribute = typeof(T).GetAttribute<ScriptPathAttribute>();
         if (attribute == null) {

@@ -11,7 +11,7 @@ public class TransientProvider : Provider {
     public override Lifetime Lifetime => Lifetime.Transient;
 
     public TransientProvider(Type exposedType, Type instanceType, Func<object>? factory = null, string? name = null, Dictionary<string, object>? metadata = null) : base(exposedType, instanceType, name, metadata) {
-        _factory = factory ?? CreateDefaultFactory(instanceType, Lifetime.Transient);
+        _factory = factory ?? CreateCtor(instanceType, Lifetime.Transient);
     }
 
     public override object Get() {

@@ -18,7 +18,7 @@ namespace Veronenger.Game.Platform;
 
 [Configuration]
 [Loader("GameLoader", Tag = "main")]
-[Scene.Transient<PlatformGameView>("PlatformGameViewFactory")]
+[Scene.Transient<PlatformGameView>(Name = "PlatformGameViewFactory")]
 public class PlatformMainResources {
 }
 
@@ -30,13 +30,13 @@ public class PlatformMainResources {
 [Resource<Texture2D>("LeonKnifeAnimationSprite", "res://Game/Platform/Character/Player/Assets/Leon-knife.png")]
 [Resource<Texture2D>("LeonMetalbarAnimationSprite", "res://Game/Platform/Character/Player/Assets/Leon-metalbar.png")]
 [Resource<Texture2D>("LeonGun1AnimationSprite", "res://Game/Platform/Character/Player/Assets/Leon-gun1.png")]
-[Scene.Transient<PlatformWorld>("PlatformWorldFactory")]
-[Scene.Transient<PlayerHud>("PlayerHudFactory")]
-[Scene.Transient<InventorySlot>("InventorySlotFactory")]
-[Scene.NodePool<PlayerNode>("PlayerPool")]
-[Scene.NodePool<PickableItemNode>("PickableItemPool")]
-[Scene.NodePool<ProjectileTrail>("ProjectilePool")]
-[Scene.NodePool<ZombieNode>("ZombiePool")]
+[Scene.Transient<PlatformWorld>(Name = "PlatformWorldFactory")]
+[Scene.Transient<PlayerHud>(Name = "PlayerHudFactory")]
+[Scene.Transient<InventorySlot>(Name = "InventorySlotFactory")]
+[Scene.NodePool<PlayerNode>(Name = "PlayerPool")]
+[Scene.NodePool<PickableItemNode>(Name = "PickableItemPool")]
+[Scene.NodePool<ProjectileTrail>(Name = "ProjectilePool")]
+[Scene.NodePool<ZombieNode>(Name = "ZombiePool")]
 public class PlatformGameResources {
 	[Transient<PlatformHud>] PlatformHud PlatformHudFactory => new PlatformHud();
 }
