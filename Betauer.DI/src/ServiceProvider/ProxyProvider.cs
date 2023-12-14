@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Betauer.Core;
 using Betauer.DI.Factory;
 
 namespace Betauer.DI.ServiceProvider;
@@ -9,30 +8,13 @@ public class ProxyProvider : Provider {
     public override Lifetime Lifetime => Lifetime.Singleton;
     public Proxy ProxyInstance { get; }
 
-
-    public Lifetime ServiceLifetime { get; }
-    public bool ServiceLazy { get; }
+    public Provider Provider { get;  }
 
     public static readonly string FactoryPrefix = "Factory:";
 
-    internal static ProxyProvider Create(Provider provider) {
-        if (provider is not SingletonProvider &&
-            provider is not TransientProvider) {
-            throw new ArgumentException($"Provider must be a {nameof(SingletonProvider)} or {nameof(TransientProvider)}, but was {provider.GetType().GetTypeName()}");
-        }
-        var proxyFactory = CreateProxyFactory(provider.RealType, provider);
-        var proxyFactoryName = provider.Name == null ? null : $"{FactoryPrefix}{provider.Name}";
-        var proxyFactoryType = (provider.Lifetime == Lifetime.Singleton ? typeof(ILazy<>) : typeof(ITransient<>)).MakeGenericType(provider.PublicType);
-        var lazy = provider is not SingletonProvider singletonProvider || singletonProvider.Lazy;
-        var proxyProvider = new ProxyProvider(proxyFactoryType, provider.Lifetime, proxyFactory, proxyFactoryName, lazy);
-        return proxyProvider;
-    }
-
     public ProxyProvider(Type proxyFactoryType, Lifetime lifetime, Proxy factory, string? name = null, bool serviceLazy = false,
         Dictionary<string, object>? metadata = null) : base(proxyFactoryType, proxyFactoryType, name, metadata) {
-        ServiceLifetime = lifetime;
         ProxyInstance = factory;
-        ServiceLazy = serviceLazy;
     }
 
     public override object Get() {
@@ -43,26 +25,8 @@ public class ProxyProvider : Provider {
         return ProxyInstance;
     }
 
-    /// <summary>
-    /// Returns a class that wraps a provider (implementing ITransient<T> or ILazy<T>) so it can be exposed to the users 
-    /// </summary>
-    /// <param name="type"></param>
-    /// <param name="provider"></param>
-    /// <returns></returns>
-    private static Proxy CreateProxyFactory(Type type, Provider provider) {
-        if (provider.Lifetime == Lifetime.Singleton) {
-            var factoryType = typeof(Proxy.Singleton<>).MakeGenericType(type);
-            Proxy instance = (Proxy)Activator.CreateInstance(factoryType, provider)!;
-            return instance;
-        } else {
-            var factoryType = typeof(Proxy.Transient<>).MakeGenericType(type);
-            Proxy instance = (Proxy)Activator.CreateInstance(factoryType, provider)!;
-            return instance;
-        }
-    }
-
     public abstract class Proxy {
-        protected readonly Provider Provider;
+        public Provider Provider { get; }
 
         protected Proxy(Provider provider) {
             Provider = provider;

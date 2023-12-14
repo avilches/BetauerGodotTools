@@ -44,23 +44,7 @@ public abstract class Provider {
     public static SingletonProvider Singleton<TI, T>(Func<T> factory, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) where T : class {
         return new SingletonProvider(typeof(TI), typeof(T), null, factory, name, lazy, metadata);
     }
-    
-    public static SingletonProvider ScopedSingleton<T>(string scope, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) where T : class {
-        return ScopedSingleton<T, T>(null!, name, lazy, metadata);
-    }
 
-    public static SingletonProvider ScopedSingleton<T>(Func<T> factory, string scope, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) where T : class {
-        return ScopedSingleton<T, T>(factory, scope, name, lazy, metadata);
-    }
-
-    public static SingletonProvider ScopedSingleton<TI, T>(string scope, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) where T : class {
-        return ScopedSingleton<TI, T>(null!, scope, name, lazy, metadata);
-    }
-
-    public static SingletonProvider ScopedSingleton<TI, T>(Func<T> factory, string scope, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) where T : class {
-        return new SingletonProvider(typeof(TI), typeof(T), scope, factory, name, lazy, metadata);
-    }
-    
     // Transient
 
     public static TransientProvider Transient<T>(string? name = null, Dictionary<string, object>? metadata = null) where T : class {
@@ -90,11 +74,20 @@ public abstract class Provider {
     // Proxy
     
     public static ProxyProvider Proxy(SingletonProvider provider) {
-        return ProxyProvider.Create(provider);
+        var factoryType = typeof(ProxyProvider.Proxy.Singleton<>).MakeGenericType(provider.RealType);
+        var proxyInstance = (ProxyProvider.Proxy)Activator.CreateInstance(factoryType, provider)!;
+        var name = provider.Name == null ? null : $"{ProxyProvider.FactoryPrefix}{provider.Name}";
+        var type = typeof(ILazy<>).MakeGenericType(provider.PublicType);
+        return new ProxyProvider(type, provider.Lifetime, proxyInstance, name, provider.Lazy);
     }
 
     public static ProxyProvider Proxy(TransientProvider provider) {
-        return ProxyProvider.Create(provider);
+        var factoryType = typeof(ProxyProvider.Proxy.Transient<>).MakeGenericType(provider.RealType);
+        var proxyInstance = (ProxyProvider.Proxy)Activator.CreateInstance(factoryType, provider)!;
+        var name = provider.Name == null ? null : $"{ProxyProvider.FactoryPrefix}{provider.Name}";
+        var proxyFactoryType = typeof(ITransient<>).MakeGenericType(provider.PublicType);
+        var type = new ProxyProvider(proxyFactoryType, provider.Lifetime, proxyInstance, name, true);
+        return type;
     }
 
     public static Func<object> CreateCtor(Type type, Lifetime lifetime) {
