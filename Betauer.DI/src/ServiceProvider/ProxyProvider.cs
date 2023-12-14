@@ -15,7 +15,7 @@ public class ProxyProvider : Provider {
 
     public static readonly string FactoryPrefix = "Factory:";
 
-    internal static ProxyProvider Create(IProvider provider) {
+    internal static ProxyProvider Create(Provider provider) {
         if (provider is not SingletonProvider &&
             provider is not TransientProvider) {
             throw new ArgumentException($"Provider must be a {nameof(SingletonProvider)} or {nameof(TransientProvider)}, but was {provider.GetType().GetTypeName()}");
@@ -49,7 +49,7 @@ public class ProxyProvider : Provider {
     /// <param name="type"></param>
     /// <param name="provider"></param>
     /// <returns></returns>
-    private static Proxy CreateProxyFactory(Type type, IProvider provider) {
+    private static Proxy CreateProxyFactory(Type type, Provider provider) {
         if (provider.Lifetime == Lifetime.Singleton) {
             var factoryType = typeof(Proxy.Singleton<>).MakeGenericType(type);
             Proxy instance = (Proxy)Activator.CreateInstance(factoryType, provider)!;
@@ -62,21 +62,21 @@ public class ProxyProvider : Provider {
     }
 
     public abstract class Proxy {
-        protected readonly IProvider Provider;
+        protected readonly Provider Provider;
 
-        protected Proxy(IProvider provider) {
+        protected Proxy(Provider provider) {
             Provider = provider;
         }
 
         public class Transient<T> : Proxy, ITransient<T> where T : class {
-            public Transient(IProvider provider) : base(provider) {
+            public Transient(Provider provider) : base(provider) {
             }
 
             public T Create() => (T)Provider.Get();
         }
 
         public class Singleton<T> : Proxy, ILazy<T> where T : class {
-            public Singleton(IProvider provider) : base(provider) {
+            public Singleton(Provider provider) : base(provider) {
             }
 
             public T Get() => (T)Provider.Get();

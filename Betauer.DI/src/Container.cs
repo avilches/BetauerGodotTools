@@ -13,12 +13,13 @@ namespace Betauer.DI;
 
 public partial class Container {
     private static readonly Logger Logger = LoggerFactory.GetLogger<Container>();
-    private readonly Dictionary<Type, IProvider> _registryByExposedType = new();
-    private readonly Dictionary<string, IProvider> _registryByName = new();
-    private readonly List<IProvider> _providers = new();
+    private readonly Dictionary<Type, Provider> _registryByExposedType = new();
+    private readonly Dictionary<string, Provider> _registryByName = new();
+    private readonly List<Provider> _providers = new();
     public bool CreateIfNotFound { get; set; }
     public event Action<ProviderResolved> OnCreated;
     public event Action<object>? OnPostInject;
+    public event Action<Provider>? OnValidate;
 
     private readonly BasicPool<ResolveContext> _resolveContextPool;
 
@@ -55,7 +56,7 @@ public partial class Container {
         }
     }
     
-    internal Container Build(List<IProvider> providers, List<object> instances) {
+    internal Container Build(List<Provider> providers, List<object> instances) {
         if (_busy) throw new InvalidOperationException("Container is busy");
         _busy = true;
         
@@ -71,6 +72,7 @@ public partial class Container {
             });
 
             providers.ForEach(provider => {
+                OnValidate?.Invoke(provider);
                 switch (provider) {
                     case TransientProvider:
                     case ProxyProvider:
@@ -116,7 +118,7 @@ public partial class Container {
     /// <returns></returns>
     /// <exception cref="Exception"></exception>
     /// <exception cref="DuplicateNameException"></exception>
-    private void AddToRegistry(IProvider provider) {
+    private void AddToRegistry(Provider provider) {
         var name = provider.Name;
         if (name != null) {
             if (_registryByName.TryGetValue(name, out var found)) throw new DuplicateServiceException(found.ExposedType, name);
@@ -135,13 +137,13 @@ public partial class Container {
     public bool Contains<T>() => Contains(typeof(T));
     public bool Contains(Type type) => _registryByExposedType.ContainsKey(type);
 
-    public IProvider GetProvider(string name) => TryGetProvider(name, out var found) ? found! : throw new ServiceNotFoundException(name);
-    public IProvider GetProvider<T>() => GetProvider(typeof(T));
-    public IProvider GetProvider(Type type) => TryGetProvider(type, out var found) ? found! : throw new ServiceNotFoundException(type);
+    public Provider GetProvider(string name) => TryGetProvider(name, out var found) ? found! : throw new ServiceNotFoundException(name);
+    public Provider GetProvider<T>() => GetProvider(typeof(T));
+    public Provider GetProvider(Type type) => TryGetProvider(type, out var found) ? found! : throw new ServiceNotFoundException(type);
 
-    public bool TryGetProvider(string name, [MaybeNullWhen(false)] out IProvider provider) => _registryByName.TryGetValue(name, out provider);
-    public bool TryGetProvider<T>(out IProvider? provider) => TryGetProvider(typeof(T), out provider);
-    public bool TryGetProvider(Type type, [MaybeNullWhen(false)] out IProvider provider) {
+    public bool TryGetProvider(string name, [MaybeNullWhen(false)] out Provider provider) => _registryByName.TryGetValue(name, out provider);
+    public bool TryGetProvider<T>(out Provider? provider) => TryGetProvider(typeof(T), out provider);
+    public bool TryGetProvider(Type type, [MaybeNullWhen(false)] out Provider provider) {
         var found = _registryByExposedType.TryGetValue(type, out provider);
         if (!found) provider = null;
         return found;
@@ -170,7 +172,7 @@ public partial class Container {
     }
 
     public bool TryResolve(Type type, [MaybeNullWhen(false)] out object instance) {
-        if (TryGetProvider(type, out IProvider? provider)) {
+        if (TryGetProvider(type, out Provider? provider)) {
             instance = provider!.Get();
             return true;
         }
@@ -191,7 +193,7 @@ public partial class Container {
     }
 
     public bool TryResolve(string name, [MaybeNullWhen(false)] out object instance) {
-        if (TryGetProvider(name, out IProvider? provider)) {
+        if (TryGetProvider(name, out Provider? provider)) {
             instance = provider!.Get();
             return true;
         }
@@ -205,11 +207,11 @@ public partial class Container {
             .Cast<T>().ToList());
     }
 
-    public IEnumerable<IProvider> Query<T>(Lifetime? lifetime = null) {
+    public IEnumerable<Provider> Query<T>(Lifetime? lifetime = null) {
         return Query(typeof(T), lifetime);
     }
 
-    public IEnumerable<IProvider> Query(Type type, Lifetime? lifetime = null) {
+    public IEnumerable<Provider> Query(Type type, Lifetime? lifetime = null) {
         return _providers
             .Where(provider => type.IsAssignableFrom(provider.InstanceType) && (!lifetime.HasValue || provider.Lifetime == lifetime));
     }
@@ -231,7 +233,7 @@ public partial class Container {
     }
 
     internal object TryCreateTransientFromInjector(Type type, ResolveContext context) {
-        if (TryGetProvider(type, out IProvider provider)) {
+        if (TryGetProvider(type, out Provider provider)) {
             return provider.Resolve(context);
         }
         if (!CreateIfNotFound) throw new ServiceNotFoundException(type);

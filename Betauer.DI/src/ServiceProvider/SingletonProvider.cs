@@ -12,7 +12,7 @@ public class SingletonProvider : Provider {
     public bool IsInstanceCreated { get; private set; }
     public bool Lazy { get; }
     public object? Instance { get; private set; }
-    public string Scope { get; }
+    public string? Scope { get; }
         
     public SingletonProvider(Type exposedType, Type instanceType, string? scope, Func<object>? factory = null, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) : base(exposedType, instanceType, name, metadata) {
         Scope = scope;

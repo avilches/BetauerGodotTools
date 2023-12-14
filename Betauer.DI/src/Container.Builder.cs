@@ -12,7 +12,7 @@ public partial class Container {
     public class Builder {
         public Container Container { get; }
 
-        private readonly List<IProvider> _providers = new();
+        private readonly List<Provider> _providers = new();
         private readonly List<object> _instances = new();
         
         public event Action? OnBuildFinished;
@@ -32,7 +32,7 @@ public partial class Container {
             _instances.Add(factory);
         }
 
-        public Builder Register(IProvider provider) {
+        public Builder Register(Provider provider) {
             _providers.Add(provider);
             return this;
         }

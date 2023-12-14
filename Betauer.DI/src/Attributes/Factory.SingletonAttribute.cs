@@ -6,7 +6,8 @@ namespace Betauer.DI.Attributes;
 
 public static partial class Factory {
     /// <summary>
-    /// If Name is null, the singleton only can be resolved by type
+    /// If Name is null, the singleton only can be resolved by type. This only possible when using with classes. Using [Factory.Singleton] in a property or method
+    /// will take the name from the variable/method [Factory.Singleton] IService service => new Service()
     /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method | AttributeTargets.Property)]
     public class SingletonAttribute : Attribute, IClassAttribute, IConfigurationMemberAttribute {

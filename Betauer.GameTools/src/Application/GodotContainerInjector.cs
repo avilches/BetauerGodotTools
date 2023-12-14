@@ -1,6 +1,7 @@
+using System;
+using Betauer.Core;
 using Betauer.DI.ServiceProvider;
 using Betauer.Core.Nodes;
-using Betauer.DI;
 using Godot;
 using Container = Betauer.DI.Container;
 
@@ -13,12 +14,27 @@ public static class GodotContainerInjector {
 
     private static readonly StringName MetaDiInjected = "__di_injected";
     
+    public static class Flags {
+        public const string Autoload = "Autoload";
+
+        public static void ValidateAutoloadFlag(Provider provider) {
+            if (!provider.InstanceType.IsSubclassOf(typeof(Node))) {
+                throw new Exception($"Error in {Lifetime.Singleton}:{provider.InstanceType.GetTypeName()}. The {nameof(Autoload)} flag can only be used with Nodes, but {provider.InstanceType} is not a Node.");
+            }
+        }
+    }
+    
     public static Container.Builder InjectOnEnterTree(this Container.Builder builder, SceneTree sceneTree, bool autoAddNodeSingletonsToTree = false) {
         var container = builder.Container;
-        // Auto add singleton Node to the scene tree root if they have the "AddToTree" flag enabled. This mimics the Autoload behaviour.
+
+        container.OnValidate += (provider) => {
+            if (provider.GetFlag(Flags.Autoload)) Flags.ValidateAutoloadFlag(provider);
+        };
+        
+        // Auto add singleton Node to the scene tree root if they have the "Autoload" flag enabled
         container.OnCreated += providerResolved => {
-            if (providerResolved is { Lifetime: Lifetime.Singleton, Instance: Node node } && 
-                (autoAddNodeSingletonsToTree || providerResolved.GetFlag("AddToTree")) && 
+            if (providerResolved is { Instance: Node node } && 
+                (autoAddNodeSingletonsToTree || providerResolved.GetFlag(Flags.Autoload)) && 
                  node.GetParent() == null) {
                 sceneTree.Root.AddChildDeferred(node);
             }

@@ -19,7 +19,7 @@ public static partial class Scene {
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     public class TransientAttribute<T> : Attribute, IConfigurationClassAttribute where T : Node {
         public string? Name { get; init; }
-        public string Path { get; init; }
+        public string? Path { get; init; }
         public string? Tag { get; init; }
         public string? Flags { get; init; }
 

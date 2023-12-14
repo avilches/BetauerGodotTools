@@ -7,76 +7,78 @@ using Betauer.Tools.FastReflection;
 
 namespace Betauer.DI.ServiceProvider; 
 
-public abstract class Provider : IProvider {
-    public static IProvider Static<T>(T instance, string? name = null) where T : class {
+public abstract class Provider {
+    public static StaticProvider Static<T>(T instance, string? name = null) where T : class {
         return Static<T, T>(instance, name);
     }
 
-    public static IProvider Static<TI, T>(T instance, string? name = null) where T : class {
+    public static StaticProvider Static<TI, T>(T instance, string? name = null) where T : class {
         return new StaticProvider(typeof(TI), typeof(T), instance, name);
     }
 
     
     
-    public static IProvider Singleton<T>(string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) where T : class {
+    public static SingletonProvider Singleton<T>(string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) where T : class {
         return Singleton<T, T>(null!, name, lazy, metadata);
     }
 
-    public static IProvider Singleton<T>(Func<T> factory, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) where T : class {
+    public static SingletonProvider Singleton<T>(Func<T> factory, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) where T : class {
         return Singleton<T, T>(factory, name, lazy, metadata);
     }
 
-    public static IProvider Singleton<TI, T>(string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) where T : class {
+    public static SingletonProvider Singleton<TI, T>(string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) where T : class {
         return Singleton<TI, T>(null!, name, lazy, metadata);
     }
 
-    public static IProvider Singleton<TI, T>(Func<T> factory, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) where T : class {
+    public static SingletonProvider Singleton<TI, T>(Func<T> factory, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) where T : class {
         return new SingletonProvider(typeof(TI), typeof(T), null, factory, name, lazy, metadata);
     }
     
-/*    
-    public static IProvider ScopedSingleton<T>(string scope, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) where T : class {
+    public static SingletonProvider ScopedSingleton<T>(string scope, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) where T : class {
         return ScopedSingleton<T, T>(null!, name, lazy, metadata);
     }
 
-    public static IProvider ScopedSingleton<T>(Func<T> factory, string scope, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) where T : class {
+    public static SingletonProvider ScopedSingleton<T>(Func<T> factory, string scope, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) where T : class {
         return ScopedSingleton<T, T>(factory, scope, name, lazy, metadata);
     }
 
-    public static IProvider ScopedSingleton<TI, T>(string scope, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) where T : class {
+    public static SingletonProvider ScopedSingleton<TI, T>(string scope, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) where T : class {
         return ScopedSingleton<TI, T>(null!, scope, name, lazy, metadata);
     }
 
-    public static IProvider ScopedSingleton<TI, T>(Func<T> factory, string scope, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) where T : class {
+    public static SingletonProvider ScopedSingleton<TI, T>(Func<T> factory, string scope, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) where T : class {
         return new SingletonProvider(typeof(TI), typeof(T), scope, factory, name, lazy, metadata);
     }
-*/
     
 
-    public static IProvider Transient<T>(string? name = null, Dictionary<string, object>? metadata = null) where T : class {
+    public static TransientProvider Transient<T>(string? name = null, Dictionary<string, object>? metadata = null) where T : class {
         return Transient<T, T>(null!, name, metadata);
     }
 
-    public static IProvider Transient<T>(Func<T> factory, string? name = null, Dictionary<string, object>? metadata = null) where T : class {
+    public static TransientProvider Transient<T>(Func<T> factory, string? name = null, Dictionary<string, object>? metadata = null) where T : class {
         return Transient<T, T>(factory, name, metadata);
     }
 
-    public static IProvider Transient<TI, T>(string? name = null, Dictionary<string, object>? metadata = null) where T : class {
+    public static TransientProvider Transient<TI, T>(string? name = null, Dictionary<string, object>? metadata = null) where T : class {
         return Transient<TI, T>(null!, name, metadata);
     }
 
-    public static IProvider Transient<TI, T>(Func<T> factory, string? name = null, Dictionary<string, object>? metadata = null) where T : class {
+    public static TransientProvider Transient<TI, T>(Func<T> factory, string? name = null, Dictionary<string, object>? metadata = null) where T : class {
         return new TransientProvider(typeof(TI), typeof(T), factory, name, metadata);
     }
 
 
-    public static IProvider Proxy(IProvider provider) {
+    public static ProxyProvider Proxy(SingletonProvider provider) {
+        return ProxyProvider.Create(provider);
+    }
+
+    public static ProxyProvider Proxy(TransientProvider provider) {
         return ProxyProvider.Create(provider);
     }
 
 
 
-    public static IProvider SingletonFactory(object factoryInstance, string? scope, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) {
+    public static SingletonProvider SingletonFactory(object factoryInstance, string? scope, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) {
         var factoryType = factoryInstance.GetType();
         if (!factoryType.ImplementsInterface(typeof(IFactory<>))) {
             throw new InvalidCastException($"Factory {factoryType.GetTypeName()} must implement IFactory<>");
@@ -87,7 +89,7 @@ public abstract class Provider : IProvider {
         return new SingletonProvider(type, type, scope, createMethod, name, lazy, metadata);
     }
     
-    public static IProvider TransientFactory(object factoryInstance, string? name = null, Dictionary<string, object>? metadata = null) {
+    public static TransientProvider TransientFactory(object factoryInstance, string? name = null, Dictionary<string, object>? metadata = null) {
         var factoryType = factoryInstance.GetType();
         if (!factoryType.ImplementsInterface(typeof(IFactory<>))) {
             throw new InvalidCastException($"Factory {factoryType.GetTypeName()} must implement IFactory<>");
@@ -129,6 +131,10 @@ public abstract class Provider : IProvider {
     public abstract Lifetime Lifetime { get; }
 
     public Dictionary<string, object> Metadata { get; }
+
+    public T GetMetadata<T>(string key) => (T)Metadata[key];
+    public T GetMetadata<T>(string key, T @default) => Metadata.TryGetValue(key, out var value) ? (T)value : @default;
+    public bool GetFlag(string key, bool @default = false) => Metadata.TryGetValue(key, out var value) ? (bool)value : @default;
 
     protected Provider(Type exposedType, Type instanceType, string? name, Dictionary<string, object>? metadata) {
         if (!exposedType.IsAssignableFrom(instanceType)) {
