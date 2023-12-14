@@ -14,13 +14,11 @@ public partial class Container {
 
         private readonly List<IProvider> _providers = new();
         private readonly List<object> _instances = new();
-        private readonly Scanner _scanner;
         
         public event Action? OnBuildFinished;
     
         internal Builder(Container container) {
             Container = container;
-            _scanner = new Scanner(this, Container);
         }
 
         public void RegisterFactory(object factory) {
@@ -58,13 +56,13 @@ public partial class Container {
         public Builder Scan<T>() => Scan(typeof(T));
 
         public Builder Scan(Type type) {
-            _scanner.Scan(type, null);
+            Scanner.Scan(this, type, null);
             return this;
         }
 
         public Builder ScanConfiguration(params object[] instances) {
             foreach (var configuration in instances) {
-                _scanner.ScanConfiguration(configuration);
+                Scanner.ScanConfiguration(this, configuration);
             }
             return this;
         }

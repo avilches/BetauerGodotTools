@@ -9,7 +9,7 @@ using Betauer.Tools.Logging;
 
 namespace Betauer.DI;
 
-internal class Injector {
+public abstract class Injector {
     private static readonly Logger Logger = LoggerFactory.GetLogger<Injector>();
 
     private const BindingFlags InjectFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
