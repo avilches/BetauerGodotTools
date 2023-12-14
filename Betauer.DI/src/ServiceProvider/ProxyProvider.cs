@@ -20,9 +20,9 @@ public class ProxyProvider : Provider {
             provider is not TransientProvider) {
             throw new ArgumentException($"Provider must be a {nameof(SingletonProvider)} or {nameof(TransientProvider)}, but was {provider.GetType().GetTypeName()}");
         }
-        var proxyFactory = CreateProxyFactory(provider.InstanceType, provider);
+        var proxyFactory = CreateProxyFactory(provider.RealType, provider);
         var proxyFactoryName = provider.Name == null ? null : $"{FactoryPrefix}{provider.Name}";
-        var proxyFactoryType = (provider.Lifetime == Lifetime.Singleton ? typeof(ILazy<>) : typeof(ITransient<>)).MakeGenericType(provider.InstanceType);
+        var proxyFactoryType = (provider.Lifetime == Lifetime.Singleton ? typeof(ILazy<>) : typeof(ITransient<>)).MakeGenericType(provider.PublicType);
         var lazy = provider is not SingletonProvider singletonProvider || singletonProvider.Lazy;
         var proxyProvider = new ProxyProvider(proxyFactoryType, provider.Lifetime, proxyFactory, proxyFactoryName, lazy);
         return proxyProvider;

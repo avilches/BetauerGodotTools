@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Betauer.Core;
 using Betauer.DI.Attributes;
 using Betauer.DI.Exceptions;
+using Betauer.DI.Factory;
 using Betauer.DI.ServiceProvider;
 using Betauer.Tools.FastReflection;
 using Godot;
@@ -43,8 +44,8 @@ public static partial class Scene {
             }
             var sceneFactory = new SceneFactory<T>(Path, Tag ?? loaderConfiguration.Tag);
             var metadata = Provider.FlagsToMetadata(Flags);
-
-            var provider = Provider.SingletonFactory(sceneFactory, Scope, Name, true /* must be lazy to allow to the Loader to load the scene first */,
+            var create = FactoryTools.From(sceneFactory);
+            var provider = new SingletonProvider(typeof(T), typeof(T), Scope, create, Name, true, // must be lazy so the Loader can load the scene first
                 metadata);
             builder.Register(provider);
             builder.Register(Provider.Proxy(provider));

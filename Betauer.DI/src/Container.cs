@@ -13,8 +13,8 @@ namespace Betauer.DI;
 
 public partial class Container {
     private static readonly Logger Logger = LoggerFactory.GetLogger<Container>();
-    private readonly Dictionary<Type, Provider> _registryByExposedType = new();
-    private readonly Dictionary<string, Provider> _registryByName = new();
+    private readonly Dictionary<Type, Provider> _providersByPublicType = new();
+    private readonly Dictionary<string, Provider> _providersByName = new();
     private readonly List<Provider> _providers = new();
     public bool CreateIfNotFound { get; set; }
     public event Action<ProviderResolved> OnCreated;
@@ -79,13 +79,13 @@ public partial class Container {
                         return;
                     case SingletonProvider singletonProvider:
                         if (!singletonProvider.IsInstanceCreated && !singletonProvider.Lazy) {
-                            Logger.Debug("Initializing non lazy {0}:{1} | Name: \"{2}\"", Lifetime.Singleton, provider.InstanceType.GetTypeName(), provider.Name);
+                            Logger.Debug("Initializing non lazy {0}:{1} | Name: \"{2}\"", Lifetime.Singleton, provider.RealType.GetTypeName(), provider.Name);
                             provider.Resolve(context);
                         }
                         break;
                     case StaticProvider staticProvider:
                         if (!staticProvider.IsInitialized) {
-                            Logger.Debug("Initializing static {0}:{1} | Name: \"{2}\"", Lifetime.Singleton, provider.InstanceType.GetTypeName(), provider.Name);
+                            Logger.Debug("Initializing static {0}:{1} | Name: \"{2}\"", Lifetime.Singleton, provider.RealType.GetTypeName(), provider.Name);
                             provider.Resolve(context);
                         }
                         break;
@@ -99,7 +99,7 @@ public partial class Container {
         var errors = providers
             .OfType<SingletonProvider>()
             .Where(provider => provider is { Lazy: true, IsInstanceCreated: true })
-            .Select(provider => $"- {provider.InstanceType.GetTypeName()} | Name: \"{provider.Name}\"")
+            .Select(provider => $"- {provider.RealType.GetTypeName()} | Name: \"{provider.Name}\"")
             .ToList();
         if (errors.Count > 0) {
             throw new InvalidOperationException("Container initialization failed. These Lazy Singletons are initialized when they shouldn't.\nPlease, remove the Lazy flag or ensure the injection is done using [Inject] ILazy<T> instead of [Inject] T:\n" + string.Join("\n", errors));
@@ -121,30 +121,30 @@ public partial class Container {
     private void AddToRegistry(Provider provider) {
         var name = provider.Name;
         if (name != null) {
-            if (_registryByName.TryGetValue(name, out var found)) throw new DuplicateServiceException(found.ExposedType, name);
-            _registryByName[name] = provider;
+            if (_providersByName.TryGetValue(name, out var found)) throw new DuplicateServiceException(found.PublicType, name);
+            _providersByName[name] = provider;
         } else {
-            if (_registryByExposedType.ContainsKey(provider.ExposedType)) throw new DuplicateServiceException(provider.ExposedType);
-            _registryByExposedType[provider.ExposedType] = provider;
-            Logger.Debug("Registered {0}:{1} | Type: {2}", provider.Lifetime, provider.InstanceType.GetTypeName(),
-                provider.ExposedType.GetTypeName());
+            if (_providersByPublicType.ContainsKey(provider.PublicType)) throw new DuplicateServiceException(provider.PublicType);
+            _providersByPublicType[provider.PublicType] = provider;
+            Logger.Debug("Registered {0}:{1} | Type: {2}", provider.Lifetime, provider.RealType.GetTypeName(),
+                provider.PublicType.GetTypeName());
         }
         _providers.Add(provider);
         provider.Container = this;
     }
 
-    public bool Contains(string name) => _registryByName.ContainsKey(name);
+    public bool Contains(string name) => _providersByName.ContainsKey(name);
     public bool Contains<T>() => Contains(typeof(T));
-    public bool Contains(Type type) => _registryByExposedType.ContainsKey(type);
+    public bool Contains(Type type) => _providersByPublicType.ContainsKey(type);
 
     public Provider GetProvider(string name) => TryGetProvider(name, out var found) ? found! : throw new ServiceNotFoundException(name);
     public Provider GetProvider<T>() => GetProvider(typeof(T));
     public Provider GetProvider(Type type) => TryGetProvider(type, out var found) ? found! : throw new ServiceNotFoundException(type);
 
-    public bool TryGetProvider(string name, [MaybeNullWhen(false)] out Provider provider) => _registryByName.TryGetValue(name, out provider);
+    public bool TryGetProvider(string name, [MaybeNullWhen(false)] out Provider provider) => _providersByName.TryGetValue(name, out provider);
     public bool TryGetProvider<T>(out Provider? provider) => TryGetProvider(typeof(T), out provider);
     public bool TryGetProvider(Type type, [MaybeNullWhen(false)] out Provider provider) {
-        var found = _registryByExposedType.TryGetValue(type, out provider);
+        var found = _providersByPublicType.TryGetValue(type, out provider);
         if (!found) provider = null;
         return found;
     }
@@ -213,7 +213,7 @@ public partial class Container {
 
     public IEnumerable<Provider> Query(Type type, Lifetime? lifetime = null) {
         return _providers
-            .Where(provider => type.IsAssignableFrom(provider.InstanceType) && (!lifetime.HasValue || provider.Lifetime == lifetime));
+            .Where(provider => type.IsAssignableFrom(provider.RealType) && (!lifetime.HasValue || provider.Lifetime == lifetime));
     }
   
     public T ResolveOr<T>(Func<T> or) => TryResolve(typeof(T), out var instance) ? (T)instance : or();

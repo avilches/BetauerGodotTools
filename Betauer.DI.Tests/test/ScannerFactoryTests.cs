@@ -1,6 +1,5 @@
 using System;
 using Betauer.DI.Attributes;
-using Betauer.DI.Exceptions;
 using Betauer.DI.Factory;
 using Betauer.DI.ServiceProvider;
 using Betauer.Tools.Logging;
@@ -28,7 +27,7 @@ public class ScannerFactoryTests : Node {
     public void FactoryWrongType1() {
         var c = new Container();
         c.Build(di => {
-            Assert.Throws<InvalidCastException>(() => di.Scan<WrongFactory>());
+            Assert.Throws<InvalidOperationException>(() => di.Scan<WrongFactory>());
         });
     }
 
@@ -36,7 +35,7 @@ public class ScannerFactoryTests : Node {
     public void FactoryWrongType2() {
         var c = new Container();
         c.Build(di => {
-            Assert.Throws<InvalidCastException>(() => di.Scan<WrongConfig>());
+            Assert.Throws<InvalidOperationException>(() => di.Scan<WrongConfig>());
         });
     }
 
@@ -448,33 +447,70 @@ public class ScannerFactoryTests : Node {
         Assert.That(MyTransientFactoryClass.Gets, Is.EqualTo(3));
     }
    
-    /*
-     * The same ITransient<T> with different names
-     */
-
-    public class Element : IInjectable {
-        public bool WasInjected = false;
-        public int Type;
-        public static int Instances = 0;
-
-        public Element(int type) {
-            Type = type;
-            Instances++;
-        }
-        public void PostInject() {
-            WasInjected = true;
-        }
+    public class Element1 : Node {
     }
 
-    public class Element1Factory : IFactory<Element>, IInjectable {
-        public bool WasInjected = false;
-        
-        public Element Create() {
-            Assert.That(WasInjected, Is.True);
-            return new Element(1);
-        }
-        public void PostInject() {
-            WasInjected = true;
-        }
+    public class Element2 : Node2D {
     }
+
+    public class Element3 : Node3D {
+    }
+
+    public class Element4 : Control {
+    }
+
+    [Attributes.Factory.Singleton<Node>(Lazy = true)]
+    public class Element1Factory : IFactory<Element1> {
+        public Element1 Create() => new Element1();
+    }
+    
+    [Attributes.Factory.Transient<Node2D>]
+    public class Element2Factory : IFactory<Element2> {
+        public Element2 Create() => new Element2();
+    }
+    public class Element3Factory : IFactory<Element3> {
+        public Element3 Create() => new Element3();
+    }
+    public class Element4Factory : IFactory<Element4> {
+        public Element4 Create() => new Element4();
+    }
+
+    [Configuration]
+    public class Config {
+        [Attributes.Factory.Singleton<Node>(Lazy = true)] IFactory<Node3D> Element3 => new Element3Factory();
+        [Attributes.Factory.Transient] IFactory<Control> Element4 => new Element4Factory();
+    }
+
+    [TestRunner.Test]
+    public void ExposeFactoriesWithDifferentTypeTest() {
+        var c = new Container();
+        c.Build(di => {
+            di.Scan<Config>();
+            di.Scan<Element1Factory>();
+            di.Scan<Element2Factory>();
+        });
+        // Singleton
+        Assert.That(c.Resolve<Node>(), Is.EqualTo(c.Resolve<Node>()));
+        Assert.That(c.Resolve<Node>(), Is.TypeOf<Element1>());
+        Assert.That(c.Resolve<ILazy<Node>>().Get(), Is.EqualTo(c.Resolve<Node>()));
+
+        // Transient
+        Assert.That(c.Resolve<Node2D>(), Is.Not.EqualTo(c.Resolve<Node2D>()));
+        Assert.That(c.Resolve<Node2D>(), Is.TypeOf<Element2>());
+        Assert.That(c.Resolve<ITransient<Node2D>>().Create(), Is.TypeOf<Element2>());
+        Assert.That(c.Resolve<ITransient<Node2D>>().Create(), Is.Not.EqualTo(c.Resolve<Node2D>()));
+
+        // Singleton
+        Assert.That(c.Resolve<Node3D>("Element3"), Is.EqualTo(c.Resolve<Node3D>("Element3")));
+        Assert.That(c.Resolve<Node3D>("Element3"), Is.TypeOf<Element3>());
+        Assert.That(c.Resolve<ILazy<Node3D>>("Factory:Element3").Get(), Is.EqualTo(c.Resolve<Node3D>("Element3")));
+
+        // Transient
+        Assert.That(c.Resolve<Control>("Element4"), Is.Not.EqualTo(c.Resolve<Control>("Element4")));
+        Assert.That(c.Resolve<Control>("Element4"), Is.TypeOf<Element4>());
+        Assert.That(c.Resolve<ITransient<Control>>("Factory:Element4").Create(), Is.Not.EqualTo(c.Resolve<Control>("Element4")));
+
+
+    }
+    
 }

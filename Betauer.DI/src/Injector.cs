@@ -66,12 +66,12 @@ public abstract class Injector {
     }
 
     private static bool TryInjectFieldByName(ResolveContext context, Lifetime lifetime, object target, ISetter setter, string name) {
-        if (!context.Container.TryGetProvider(name, out var provider) || !setter.CanSetValue(provider.InstanceType)) {
+        if (!context.Container.TryGetProvider(name, out var provider) || !setter.CanSetValue(provider.RealType)) {
             if (name.StartsWith(ProxyProvider.FactoryPrefix)) {
                 return false;
             }
             name = $"{ProxyProvider.FactoryPrefix}{name}";
-            if (!context.Container.TryGetProvider(name, out provider) || !setter.CanSetValue(provider!.InstanceType)) {
+            if (!context.Container.TryGetProvider(name, out provider) || !setter.CanSetValue(provider!.RealType)) {
                 return false;
             }
         }

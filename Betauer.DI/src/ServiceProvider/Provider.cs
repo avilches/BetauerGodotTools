@@ -8,6 +8,9 @@ using Betauer.Tools.FastReflection;
 namespace Betauer.DI.ServiceProvider; 
 
 public abstract class Provider {
+    
+    // Static
+    
     public static StaticProvider Static<T>(T instance, string? name = null) where T : class {
         return Static<T, T>(instance, name);
     }
@@ -16,10 +19,14 @@ public abstract class Provider {
         return new StaticProvider(typeof(TI), typeof(T), instance, name);
     }
 
-    
+    // Singleton
     
     public static SingletonProvider Singleton<T>(string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) where T : class {
-        return Singleton<T, T>(null!, name, lazy, metadata);
+        return Singleton<T, T>((Func<T>)null!, name, lazy, metadata);
+    }
+
+    public static SingletonProvider Singleton<T>(IFactory<T> factory, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) where T : class {
+        return Singleton<T, T>(DI.Factory.FactoryTools.From(factory), name, lazy, metadata);
     }
 
     public static SingletonProvider Singleton<T>(Func<T> factory, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) where T : class {
@@ -27,9 +34,13 @@ public abstract class Provider {
     }
 
     public static SingletonProvider Singleton<TI, T>(string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) where T : class {
-        return Singleton<TI, T>(null!, name, lazy, metadata);
+        return Singleton<TI, T>((Func<T>)null!, name, lazy, metadata);
     }
 
+    public static SingletonProvider Singleton<TI, T>(IFactory<T> factory, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) where T : class {
+        return Singleton<TI, T>(DI.Factory.FactoryTools.From(factory), name, lazy, metadata);
+    }
+    
     public static SingletonProvider Singleton<TI, T>(Func<T> factory, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) where T : class {
         return new SingletonProvider(typeof(TI), typeof(T), null, factory, name, lazy, metadata);
     }
@@ -50,9 +61,14 @@ public abstract class Provider {
         return new SingletonProvider(typeof(TI), typeof(T), scope, factory, name, lazy, metadata);
     }
     
+    // Transient
 
     public static TransientProvider Transient<T>(string? name = null, Dictionary<string, object>? metadata = null) where T : class {
-        return Transient<T, T>(null!, name, metadata);
+        return Transient<T, T>((Func<T>)null!, name, metadata);
+    }
+
+    public static TransientProvider Transient<T>(IFactory<T> factory, string? name = null, Dictionary<string, object>? metadata = null) where T : class {
+        return Transient<T, T>(DI.Factory.FactoryTools.From(factory), name, metadata);
     }
 
     public static TransientProvider Transient<T>(Func<T> factory, string? name = null, Dictionary<string, object>? metadata = null) where T : class {
@@ -60,14 +76,19 @@ public abstract class Provider {
     }
 
     public static TransientProvider Transient<TI, T>(string? name = null, Dictionary<string, object>? metadata = null) where T : class {
-        return Transient<TI, T>(null!, name, metadata);
+        return Transient<TI, T>((Func<T>)null!, name, metadata);
+    }
+
+    public static TransientProvider Transient<TI, T>(IFactory<T> factory, string? name = null, Dictionary<string, object>? metadata = null) where T : class {
+        return Transient<TI, T>(DI.Factory.FactoryTools.From(factory), name, metadata);
     }
 
     public static TransientProvider Transient<TI, T>(Func<T> factory, string? name = null, Dictionary<string, object>? metadata = null) where T : class {
         return new TransientProvider(typeof(TI), typeof(T), factory, name, metadata);
     }
 
-
+    // Proxy
+    
     public static ProxyProvider Proxy(SingletonProvider provider) {
         return ProxyProvider.Create(provider);
     }
@@ -75,33 +96,6 @@ public abstract class Provider {
     public static ProxyProvider Proxy(TransientProvider provider) {
         return ProxyProvider.Create(provider);
     }
-
-
-
-    public static SingletonProvider SingletonFactory(object factoryInstance, string? scope, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) {
-        var factoryType = factoryInstance.GetType();
-        if (!factoryType.ImplementsInterface(typeof(IFactory<>))) {
-            throw new InvalidCastException($"Factory {factoryType.GetTypeName()} must implement IFactory<>");
-        }
-        var type = factoryType.FindGenericsFromInterfaceDefinition(typeof(IFactory<>))[0];
-        // This is just () => ((IFactory<T>)factoryProvider).Create() but it's faster than using reflection to find the "Create()" method and invoke it
-        var createMethod = FactoryWrapper.Create(type, factoryInstance).Create;
-        return new SingletonProvider(type, type, scope, createMethod, name, lazy, metadata);
-    }
-    
-    public static TransientProvider TransientFactory(object factoryInstance, string? name = null, Dictionary<string, object>? metadata = null) {
-        var factoryType = factoryInstance.GetType();
-        if (!factoryType.ImplementsInterface(typeof(IFactory<>))) {
-            throw new InvalidCastException($"Factory {factoryType.GetTypeName()} must implement IFactory<>");
-        }
-        var type = factoryType.FindGenericsFromInterfaceDefinition(typeof(IFactory<>))[0];
-        // This is just () => ((IFactory<T>)factoryProvider).Create() but it's faster than using reflection to find the "Create()" method and invoke it
-        var createMethod = FactoryWrapper.Create(type, factoryInstance).Create;
-        return new TransientProvider(type, type, createMethod, name, metadata);
-    }
-    
-    
-
 
     public static Func<object> CreateCtor(Type type, Lifetime lifetime) {
         if (type.IsAbstract || type.IsInterface)
@@ -125,8 +119,8 @@ public abstract class Provider {
     }
 
     public Container Container { get; set; }
-    public Type ExposedType { get; }
-    public Type InstanceType { get; }
+    public Type PublicType { get; }
+    public Type RealType { get; }
     public string? Name { get; }
     public abstract Lifetime Lifetime { get; }
 
@@ -136,13 +130,13 @@ public abstract class Provider {
     public T GetMetadata<T>(string key, T @default) => Metadata.TryGetValue(key, out var value) ? (T)value : @default;
     public bool GetFlag(string key, bool @default = false) => Metadata.TryGetValue(key, out var value) ? (bool)value : @default;
 
-    protected Provider(Type exposedType, Type instanceType, string? name, Dictionary<string, object>? metadata) {
-        if (!exposedType.IsAssignableFrom(instanceType)) {
+    protected Provider(Type publicType, Type realType, string? name, Dictionary<string, object>? metadata) {
+        if (!publicType.IsAssignableFrom(realType)) {
             throw new InvalidCastException(
-                $"Can't create a provider of {instanceType.GetTypeName()} and register with {exposedType.GetTypeName()}");
+                $"Can't create a provider of {realType.GetTypeName()} and register with {publicType.GetTypeName()}");
         }
-        ExposedType = exposedType;
-        InstanceType = instanceType;
+        PublicType = publicType;
+        RealType = realType;
         Name = name;
         Metadata = metadata ?? new Dictionary<string, object>();
     }

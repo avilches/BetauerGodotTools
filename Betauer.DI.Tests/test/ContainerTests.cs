@@ -123,11 +123,11 @@ public class ContainerTests : Node {
             Assert.That(c.Contains<ClassWith1Interface>());
             Assert.That(!c.Contains<IInterface1>());
 
-            Assert.That(c.GetProvider<ClassWith1Interface>().InstanceType, Is.EqualTo(typeof(ClassWith1Interface)));
+            Assert.That(c.GetProvider<ClassWith1Interface>().RealType, Is.EqualTo(typeof(ClassWith1Interface)));
             Assert.Throws<ServiceNotFoundException>(() => c.GetProvider<IInterface1>());
 
             Assert.That(c.TryGetProvider<ClassWith1Interface>(out var provider), Is.True);
-            Assert.That(provider.InstanceType, Is.EqualTo(typeof(ClassWith1Interface)));
+            Assert.That(provider.RealType, Is.EqualTo(typeof(ClassWith1Interface)));
             Assert.That(c.TryGetProvider<IInterface1>(out provider), Is.False);
             Assert.That(provider, Is.Null);
 
@@ -158,12 +158,12 @@ public class ContainerTests : Node {
             Assert.That(c.Contains<IInterface1>());
 
             Assert.Throws<ServiceNotFoundException>(() => c.GetProvider<ClassWith1Interface>());
-            Assert.That(c.GetProvider<IInterface1>().InstanceType, Is.EqualTo(typeof(ClassWith1Interface)));
+            Assert.That(c.GetProvider<IInterface1>().RealType, Is.EqualTo(typeof(ClassWith1Interface)));
 
             Assert.That(c.TryGetProvider<ClassWith1Interface>(out var provider), Is.False);
             Assert.That(provider, Is.Null);
             Assert.That(c.TryGetProvider<IInterface1>(out provider), Is.True);
-            Assert.That(provider.InstanceType, Is.EqualTo(typeof(ClassWith1Interface)));
+            Assert.That(provider.RealType, Is.EqualTo(typeof(ClassWith1Interface)));
 
             Assert.Throws<ServiceNotFoundException>(() => c.Resolve<ClassWith1Interface>());
             Assert.That(c.Resolve<IInterface1>(), Is.TypeOf<ClassWith1Interface>());
@@ -194,14 +194,14 @@ public class ContainerTests : Node {
             Assert.That(!c.Contains<ClassWith1Interface>());
             Assert.That(!c.Contains<IInterface1>());
 
-            Assert.That(c.GetProvider("P").InstanceType, Is.EqualTo(typeof(ClassWith1Interface)));
+            Assert.That(c.GetProvider("P").RealType, Is.EqualTo(typeof(ClassWith1Interface)));
             Assert.Throws<ServiceNotFoundException>(() => c.GetProvider<ClassWith1Interface>());
             Assert.Throws<ServiceNotFoundException>(() => c.GetProvider<IInterface1>());
                 
             Assert.That(c.TryGetProvider("P", out var provider), Is.True);
-            Assert.That(provider.InstanceType, Is.EqualTo(typeof(ClassWith1Interface)));
+            Assert.That(provider.RealType, Is.EqualTo(typeof(ClassWith1Interface)));
             Assert.That(c.TryGetProvider("P", out provider), Is.True);
-            Assert.That(provider.InstanceType, Is.EqualTo(typeof(ClassWith1Interface)));
+            Assert.That(provider.RealType, Is.EqualTo(typeof(ClassWith1Interface)));
             Assert.That(c.TryGetProvider<ClassWith1Interface>(out provider), Is.False);
             Assert.That(provider, Is.Null);
             Assert.That(c.TryGetProvider<IInterface1>(out provider), Is.False);
@@ -246,7 +246,7 @@ public class ContainerTests : Node {
             Assert.That(!c.Contains<ClassWith1Interface>());
             Assert.That(!c.Contains<IInterface1>());
 
-            Assert.That(c.GetProvider("P").InstanceType, Is.EqualTo(typeof(ClassWith1Interface)));
+            Assert.That(c.GetProvider("P").RealType, Is.EqualTo(typeof(ClassWith1Interface)));
             Assert.Throws<ServiceNotFoundException>(() => c.GetProvider<ClassWith1Interface>());
             Assert.Throws<ServiceNotFoundException>(() => c.GetProvider<IInterface1>());
 

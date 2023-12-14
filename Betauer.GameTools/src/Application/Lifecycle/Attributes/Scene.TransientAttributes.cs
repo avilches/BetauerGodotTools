@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Betauer.Core;
 using Betauer.DI.Attributes;
 using Betauer.DI.Exceptions;
+using Betauer.DI.Factory;
 using Betauer.DI.ServiceProvider;
 using Betauer.Tools.FastReflection;
 using Godot;
@@ -36,8 +37,8 @@ public static partial class Scene {
             }
             var sceneFactory = new SceneFactory<T>(Path, Tag ?? loaderConfiguration.Tag);
             var metadata = Provider.FlagsToMetadata(Flags);
-
-            var transientProvider = Provider.TransientFactory(sceneFactory, Name, metadata);
+            var create = FactoryTools.From(sceneFactory);
+            var transientProvider = new TransientProvider(typeof(T), typeof(T), create, Name, metadata);
             builder.Register(transientProvider);
             builder.Register(Provider.Proxy(transientProvider));
 

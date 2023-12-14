@@ -34,12 +34,12 @@ public static class TypeExtensions {
     /// <param name="parentClass"></param>
     /// <returns></returns>
     /// <exception cref="ArgumentNullException"></exception>
-    /// <exception cref="Exception"></exception>
+    /// <exception cref="ArgumentException"></exception>
     public static bool IsGenericSubclassOf(this Type from, Type parentClass) {
         if (from == null) throw new ArgumentNullException(nameof(from));
         if (parentClass == null) throw new ArgumentNullException(nameof(parentClass));
 
-        if (!parentClass.IsClass) throw new Exception("TypeToFind must be a class");
+        if (!parentClass.IsClass) throw new ArgumentException("The parentClass type to find must be a class", nameof(parentClass));
         if (!parentClass.IsGenericType || !parentClass.IsGenericTypeDefinition) return from.IsSubclassOf(parentClass);
         
         var type = from.GetTypeInfo();
@@ -58,10 +58,11 @@ public static class TypeExtensions {
     /// <param name="interfaceType"></param>
     /// <returns></returns>
     /// <exception cref="ArgumentNullException"></exception>
+    /// <exception cref="ArgumentException"></exception>
     public static bool ImplementsInterface(this Type from, Type interfaceType) {
         if (from == null) throw new ArgumentNullException(nameof(from));
         if (interfaceType == null) throw new ArgumentNullException(nameof(interfaceType));
-        if (!interfaceType.IsInterface) throw new Exception($"TypeToFind {interfaceType} must be an interface");
+        if (!interfaceType.IsInterface) throw new ArgumentException("The interfaceType type to find must be an interface", nameof(interfaceType));
     
         if (from.IsAssignableTo(interfaceType)) return true;
     
@@ -80,17 +81,18 @@ public static class TypeExtensions {
     /// <param name="interfaceType"></param>
     /// <returns></returns>
     /// <exception cref="ArgumentNullException"></exception>
-    /// <exception cref="Exception"></exception>
+    /// <exception cref="ArgumentException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
     public static Type[] FindGenericsFromInterfaceDefinition(this Type from, Type interfaceType) {
         if (from == null) throw new ArgumentNullException(nameof(from));
         if (interfaceType == null) throw new ArgumentNullException(nameof(interfaceType));
 
-        if (!interfaceType.IsInterface || !interfaceType.IsGenericTypeDefinition) throw new Exception($"TypeToFind {interfaceType} must be a generic type definition interface");
+        if (!interfaceType.IsInterface || !interfaceType.IsGenericTypeDefinition) throw new ArgumentException("The interfaceType type to find must be a generic type definition interface", nameof(interfaceType));
         
         if (from.IsInterface && interfaceType == from.GetGenericTypeDefinition()) return from.GetGenericArguments();
         var interfaceFound = from.GetInterfaces().FirstOrDefault(implementedInterface => 
             implementedInterface.IsGenericType && implementedInterface.GetGenericTypeDefinition() == interfaceType);
-        if (interfaceFound == null) throw new Exception($"Type {from} doesn't implements {interfaceType}");
+        if (interfaceFound == null) throw new InvalidOperationException($"Type {from} doesn't implements {interfaceType}");
         return interfaceFound.GetGenericArguments();
     }
 
@@ -104,13 +106,13 @@ public static class TypeExtensions {
     /// <param name="from"></param>
     /// <param name="parentType"></param>
     /// <returns></returns>
+    /// <exception cref="ArgumentException"></exception>
     /// <exception cref="ArgumentNullException"></exception>
-    /// <exception cref="Exception"></exception>
     public static Type[] FindGenericsFromBaseTypeDefinition(this Type from, Type parentType) {
         if (from == null) throw new ArgumentNullException(nameof(from));
         if (parentType == null) throw new ArgumentNullException(nameof(parentType));
         
-        if (!parentType.IsClass || !parentType.IsGenericTypeDefinition) throw new Exception($"TypeToFind {parentType} must be a generic type definition class");
+        if (!parentType.IsClass || !parentType.IsGenericTypeDefinition) throw new ArgumentException("The parentType type to find must be a generic type definition interface", nameof(parentType));
         
         var type = from.GetTypeInfo();
         while (!type.IsGenericType || type.GetGenericTypeDefinition() != parentType) {

@@ -18,8 +18,8 @@ public static class GodotContainerInjector {
         public const string Autoload = "Autoload";
 
         public static void ValidateAutoloadFlag(Provider provider) {
-            if (!provider.InstanceType.IsSubclassOf(typeof(Node))) {
-                throw new Exception($"Error in {Lifetime.Singleton}:{provider.InstanceType.GetTypeName()}. The {nameof(Autoload)} flag can only be used with Nodes, but {provider.InstanceType} is not a Node.");
+            if (!provider.RealType.IsSubclassOf(typeof(Node))) {
+                throw new Exception($"Error in {Lifetime.Singleton}:{provider.RealType.GetTypeName()}. The {nameof(Autoload)} flag can only be used with Nodes, but {provider.RealType} is not a Node.");
             }
         }
     }

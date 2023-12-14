@@ -5,6 +5,7 @@ using Betauer.Application.Monitor;
 using Betauer.Application.Screen;
 using Betauer.Camera;
 using Betauer.Core.Restorer;
+using Betauer.DI;
 using Betauer.DI.ServiceProvider;
 using Betauer.FSM;
 using Betauer.NodePath;
@@ -99,7 +100,7 @@ file static class Logging {
 		// DI
 		LoggerFactory.SetTraceLevel<Provider>(TraceLevel.Error);
 		LoggerFactory.SetTraceLevel<Container>(TraceLevel.Error);
-		LoggerFactory.SetTraceLevel<Container.Scanner>(TraceLevel.Error);
+		LoggerFactory.SetTraceLevel<Scanner>(TraceLevel.Error);
 
 		// GameTools
 		LoggerFactory.SetTraceLevel<BaseScreenResolutionStrategy>(TraceLevel.All);

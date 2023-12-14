@@ -11,7 +11,7 @@ public class StaticProvider : Provider {
     public bool IsInitialized { get; private set; }
     public object? Instance { get; }
         
-    public StaticProvider(Type exposedType, Type providerType, object instance, string? name = null, Dictionary<string, object>? metadata = null) : base(exposedType, providerType, name, metadata) {
+    public StaticProvider(Type publicType, Type providerType, object instance, string? name = null, Dictionary<string, object>? metadata = null) : base(publicType, providerType, name, metadata) {
         Instance = instance;
     }
     
