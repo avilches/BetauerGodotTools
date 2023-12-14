@@ -18,16 +18,16 @@ public class TypeTests {
         // True
         Assert.That(typeof(IList).ImplementsInterface(typeof(IEnumerable)), Is.True);
         Assert.That(typeof(List<string>).ImplementsInterface(typeof(IEnumerable)), Is.True);
-        Assert.That(typeof(List<string>).ImplementsInterface(typeof(IEnumerable<>)), Is.True);
+        Assert.That(typeof(List<string>).ImplementsInterface(typeof(IEnumerable<>)), Is.True); // IsAssignableTo will fail
         Assert.That(typeof(List<string>).ImplementsInterface(typeof(IList<string>)), Is.True);
-        Assert.That(typeof(List<string>).ImplementsInterface(typeof(IList<>)), Is.True);
-        Assert.That(typeof(List<>).ImplementsInterface(typeof(IList<>)), Is.True);
+        Assert.That(typeof(List<string>).ImplementsInterface(typeof(IList<>)), Is.True); // IsAssignableTo will fail
+        Assert.That(typeof(List<>).ImplementsInterface(typeof(IList<>)), Is.True); // IsAssignableTo will fail
         Assert.That(typeof(IList<string>).ImplementsInterface(typeof(IList<string>)), Is.True);
-        Assert.That(typeof(IList<string>).ImplementsInterface(typeof(IList<>)), Is.True);
-        Assert.That(typeof(IList<>).ImplementsInterface(typeof(IList<>)), Is.True);
+        Assert.That(typeof(IList<string>).ImplementsInterface(typeof(IList<>)), Is.True); // IsAssignableTo will fail
+        Assert.That(typeof(IList<>).ImplementsInterface(typeof(IList<>)), Is.True); // IsAssignableTo will fail
         Assert.That(typeof(Dictionary<string, int>).ImplementsInterface(typeof(IEnumerable)), Is.True);
-        Assert.That(typeof(Dictionary<string, int>).ImplementsInterface(typeof(IEnumerable<>)), Is.True);
-        Assert.That(typeof(Dictionary<string, int>).ImplementsInterface(typeof(IDictionary<,>)), Is.True);
+        Assert.That(typeof(Dictionary<string, int>).ImplementsInterface(typeof(IEnumerable<>)), Is.True); // IsAssignableTo will fail
+        Assert.That(typeof(Dictionary<string, int>).ImplementsInterface(typeof(IDictionary<,>)), Is.True); // IsAssignableTo will fail
         Assert.That(typeof(Dictionary<string, int>).ImplementsInterface(typeof(IDictionary<string, int>)), Is.True);
         Assert.That(typeof(Dictionary<string, int>).ImplementsInterface(typeof(IReadOnlyDictionary<string, int>)), Is.True);
         Assert.That(typeof(Dictionary<string, int>).ImplementsInterface(typeof(IReadOnlyCollection<KeyValuePair<string, int>>)), Is.True);
@@ -71,13 +71,13 @@ public class TypeTests {
 
 
     [TestRunner.Test]
-    public void IsGenericSubclassOfTests() {
+    public void IsGenericSubclassOfTest() {
         Assert.That(typeof(ChildChild).IsGenericSubclassOf(typeof(Child)), Is.True);
-        Assert.That(typeof(ChildChild).IsGenericSubclassOf(typeof(Parent<>)), Is.True);
+        Assert.That(typeof(ChildChild).IsGenericSubclassOf(typeof(Parent<>)), Is.True); // IsSubClassOf will fail
         Assert.That(typeof(ChildChild).IsGenericSubclassOf(typeof(Parent<object>)), Is.True);
-        Assert.That(typeof(ChildChild).IsGenericSubclassOf(typeof(GrandParent<,>)), Is.True);
+        Assert.That(typeof(ChildChild).IsGenericSubclassOf(typeof(GrandParent<,>)), Is.True);  // IsSubClassOf will fail
         Assert.That(typeof(ChildChild).IsGenericSubclassOf(typeof(GrandParent<object, string>)), Is.True);
-        Assert.That(typeof(ChildChild).IsGenericSubclassOf(typeof(GrandGrandParent<>)), Is.True);
+        Assert.That(typeof(ChildChild).IsGenericSubclassOf(typeof(GrandGrandParent<>)), Is.True); // IsSubClassOf will fail
         Assert.That(typeof(ChildChild).IsGenericSubclassOf(typeof(GrandGrandParent<string>)), Is.True);
         Assert.That(typeof(ChildChild).IsGenericSubclassOf(typeof(GPP)), Is.True);
         Assert.That(typeof(ChildChild).IsGenericSubclassOf(typeof(object)), Is.True);
@@ -86,8 +86,8 @@ public class TypeTests {
         Assert.That(typeof(ChildChild).IsGenericSubclassOf(typeof(string)), Is.False);
 
         Assert.That(typeof(object).IsGenericSubclassOf(typeof(string)), Is.False);
-        Assert.That(typeof(object).IsGenericSubclassOf(typeof(object)), Is.False); // Like IsSubclassOf
-        Assert.That(typeof(string).IsGenericSubclassOf(typeof(string)), Is.False); // Like IsSubclassOf
+        Assert.That(typeof(object).IsGenericSubclassOf(typeof(object)), Is.False);
+        Assert.That(typeof(string).IsGenericSubclassOf(typeof(string)), Is.False);
         Assert.That(typeof(string).IsGenericSubclassOf(typeof(object)), Is.True);
     }
 

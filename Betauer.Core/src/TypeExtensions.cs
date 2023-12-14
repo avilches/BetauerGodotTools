@@ -7,17 +7,52 @@ using System.Text;
 namespace Betauer.Core; 
 
 public static class TypeExtensions {
-
-    public static bool IsSubclassOfOrImplements(this Type from, Type interfaceType) {
-        if (interfaceType.IsInterface) return from.ImplementsInterface(interfaceType);
-        return from.IsGenericSubclassOf(interfaceType);
+    
+    /// <summary>
+    /// If works like type.IsSubclassOf() and type.IsAssignableTo() but it can accept any kind of type:
+    /// - classes: without generic, with generic (like Class<string>) and generic type definition (like MyClass<,>)
+    /// - interfaces: without generic, with generic (like MyInterface<string>) and generic type definition (like MyInterface<,>)
+    /// 
+    /// </summary>
+    /// <param name="from"></param>
+    /// <param name="typeToFind"></param>
+    /// <returns></returns>
+    public static bool IsSubclassOfOrImplements(this Type from, Type typeToFind) {
+        if (typeToFind.IsInterface) return from.ImplementsInterface(typeToFind);
+        return from.IsGenericSubclassOf(typeToFind);
     }
 
     /// <summary>
-    /// A better version of type.IsAssignableTo(interfaceType) that also works with generic types, such as:
+    /// It works like type.IsSubclassOf() but it also works with generic type definitions, such as:
+    /// - typeof(MyClass).IsSubclassOf(typeof(ParentClass<,>))
     ///
-    /// - typeof(List<string>).ImplementsInterface(typeof(IList<>)) returns true
+    /// Remember IsSubClassOf() works with generic types only like:
+    /// - typeof(MyClass).IsSubclassOf(typeof(ParentClass<string>))
     /// 
+    /// </summary>
+    /// <param name="from"></param>
+    /// <param name="parentClass"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    /// <exception cref="Exception"></exception>
+    public static bool IsGenericSubclassOf(this Type from, Type parentClass) {
+        if (from == null) throw new ArgumentNullException(nameof(from));
+        if (parentClass == null) throw new ArgumentNullException(nameof(parentClass));
+
+        if (!parentClass.IsClass) throw new Exception("TypeToFind must be a class");
+        if (!parentClass.IsGenericType || !parentClass.IsGenericTypeDefinition) return from.IsSubclassOf(parentClass);
+        
+        var type = from.GetTypeInfo();
+        while (!type.IsGenericType || type.GetGenericTypeDefinition() != parentClass) {
+            if (type.BaseType == null) return false;
+            type = type.BaseType.GetTypeInfo();
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// A better version of type.IsAssignableTo(interfaceType) but it works with generic type definition too, such as:
+    /// - typeof(List<string>).ImplementsInterface(typeof(IList<>))
     /// </summary>
     /// <param name="from"></param>
     /// <param name="interfaceType"></param>
@@ -36,10 +71,10 @@ public static class TypeExtensions {
             implementedInterface == interfaceType ||
             (implementedInterface.IsGenericType && implementedInterface.GetGenericTypeDefinition() == interfaceType));
     }
-    
+
     /// <summary>
-    /// returns an array of Type from a generic interface definition, such as:
-    /// typeof(List<string>).FindGenericsFromInterfaceDefinition(typeof(IList<>)) returns new Type{}[typeof(string)] 
+    /// Returns an array of Type from a generic interface definition, such as:
+    /// - typeof(List<string>).FindGenericsFromInterfaceDefinition(typeof(IList<>)) returns new Type{}[typeof(string)] 
     /// </summary>
     /// <param name="from"></param>
     /// <param name="interfaceType"></param>
@@ -50,7 +85,7 @@ public static class TypeExtensions {
         if (from == null) throw new ArgumentNullException(nameof(from));
         if (interfaceType == null) throw new ArgumentNullException(nameof(interfaceType));
 
-        if (!interfaceType.IsInterface || !interfaceType.IsGenericTypeDefinition) throw new Exception($"TypeToFind {interfaceType} must be a generic interface definition");
+        if (!interfaceType.IsInterface || !interfaceType.IsGenericTypeDefinition) throw new Exception($"TypeToFind {interfaceType} must be a generic type definition interface");
         
         if (from.IsInterface && interfaceType == from.GetGenericTypeDefinition()) return from.GetGenericArguments();
         var interfaceFound = from.GetInterfaces().FirstOrDefault(implementedInterface => 
@@ -60,35 +95,31 @@ public static class TypeExtensions {
     }
 
 
-    public static Type[] FindGenericsFromBaseTypeDefinition(this Type from, Type typeToFind) {
+    /// <summary>
+    /// Returns an array of Type from a generic parent definition, such as:
+    /// class Parent<T> {}
+    /// class SubClass : Parent<string> {}
+    /// - typeof(SubClass).FindGenericsFromBaseTypeDefinition(typeof(Parent<>)) returns new Type{}[typeof(string)] 
+    /// </summary>
+    /// <param name="from"></param>
+    /// <param name="parentType"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    /// <exception cref="Exception"></exception>
+    public static Type[] FindGenericsFromBaseTypeDefinition(this Type from, Type parentType) {
         if (from == null) throw new ArgumentNullException(nameof(from));
-        if (typeToFind == null) throw new ArgumentNullException(nameof(typeToFind));
+        if (parentType == null) throw new ArgumentNullException(nameof(parentType));
         
-        if (!typeToFind.IsClass || !typeToFind.IsGenericTypeDefinition) throw new Exception($"TypeToFind {typeToFind} must be a generic class definition");
+        if (!parentType.IsClass || !parentType.IsGenericTypeDefinition) throw new Exception($"TypeToFind {parentType} must be a generic type definition class");
         
         var type = from.GetTypeInfo();
-        while (!type.IsGenericType || type.GetGenericTypeDefinition() != typeToFind) {
-            if (type.BaseType == null) throw new Exception($"Type {from} is not a subclass of {typeToFind}");
+        while (!type.IsGenericType || type.GetGenericTypeDefinition() != parentType) {
+            if (type.BaseType == null) throw new Exception($"Type {from} is not a subclass of {parentType}");
             type = type.BaseType.GetTypeInfo();
         }
         return type.GetGenericArguments();
     }
-    
-    public static bool IsGenericSubclassOf(this Type from, Type typeToFind) {
-        if (from == null) throw new ArgumentNullException(nameof(from));
-        if (typeToFind == null) throw new ArgumentNullException(nameof(typeToFind));
 
-        if (!typeToFind.IsClass) throw new Exception("TypeToFind must be a class with a generic type definition");
-        if (!typeToFind.IsGenericType || !typeToFind.IsGenericTypeDefinition) return from.IsSubclassOf(typeToFind);
-        
-        var type = from.GetTypeInfo();
-        while (!type.IsGenericType || type.GetGenericTypeDefinition() != typeToFind) {
-            if (type.BaseType == null) return false;
-            type = type.BaseType.GetTypeInfo();
-        }
-        return true;
-    }
-    
 
     /// <summary>
     /// Return a string with the type name and the generic arguments (if any). So, for Dictionary<string, int> it returns "Dictionary<string,int>" instead of "Dictionary`2"
