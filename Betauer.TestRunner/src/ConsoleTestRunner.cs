@@ -21,66 +21,51 @@ public class ConsoleTestRunner {
         PrintConsoleFinish(testReport, stopwatch);
 
         if (testReport.TestsFailed == 0) {
-            Green($"exit(0)");
             tree.Quit(0);
+            await tree.AwaitProcessFrame();
         } else {
-            Red($"exit(1)");
             tree.Quit(1);
+            await tree.AwaitProcessFrame();
         }
     }
 
     private static void PrintConsoleStart(TestReport testReport, TestRunner.TestMethod testMethod) {
-        Banner($"{GetTestMethodLine(testReport, testMethod)}: Executing...");
+        Normal($"{GetTestMethodLine(testReport, testMethod)}: Executing...");
     }
 
     private static void PrintConsoleResult(TestReport testReport, TestRunner.TestMethod testMethod) {
         var testPasses = testMethod.Result == TestRunner.Result.Passed;
 
         if (testPasses) {
-            GreenBanner($"{GetTestMethodLine(testReport, testMethod)}: Passed ({Elapsed(testMethod.Stopwatch.Elapsed)})");
+            Green($"{GetTestMethodLine(testReport, testMethod)}: Passed ({Elapsed(testMethod.Stopwatch.Elapsed)})");
         } else {
-            Red($"┌─────────────────────────────────────────────────────────────────────────────────");
-            Red($"│ {GetTestMethodLine(testReport, testMethod)}: Failed ({Elapsed(testMethod.Stopwatch.Elapsed)})");
-            Red($"│ [Error: #{testReport.TestsFailed}/?]");
-            Red($"| {testMethod.Exception.GetType()}");
-            RedIndent(testMethod.Exception.Message.Split("\n"));
-            var line = testMethod.Exception.StackTrace.Split("\n").Reverse().ToList().Find(it => it.Contains(testMethod.TestClass.Type.Name));
-            if (line != null) {
-                Red("| Error:");
-                Red($"| {line}");
-            }
-            Red("| Stacktrace:");
-            NormalIndent(testMethod.Exception.StackTrace.Split("\n"));
-            Red($"└──────────────────────────────────────────────────────────────────────────────────");
+            MethodError(testReport.TestsFailed, testReport, testMethod);
         }
     }
 
     private static void PrintConsoleFinish(TestReport testReport, Stopwatch stopwatch) {
         if (testReport.TestsFailed > 0) {
-            RedBanner($"Failed: {testReport.TestsFailed}/{testReport.TestsTotal}. Passed: {testReport.TestsPassed}/{testReport.TestsTotal}", $"Time: {Elapsed(stopwatch.Elapsed)}");
+            Red($"- Passed: {testReport.TestsPassed}/{testReport.TestsTotal}, {testReport.TestsFailed} ({Elapsed(stopwatch.Elapsed)}) -");
 
             var x = 1;
             testReport.TestsFailedResults.ForEach(testMethod => {
-                Red($"│ {GetTestMethodLine(testReport, testMethod)}: Failed");
-                Red($"│ [Error: #{x}/{testReport.TestsFailed}]");
-                Red($"| {testMethod.Exception.GetType()}");
-                RedIndent(testMethod.Exception.Message.Split("\n"));
-                var line = testMethod.Exception.StackTrace.Split("\n").ToList().Find(it => it.Contains(testMethod.TestClass.Type.Name));
-                if (line != null) {
-                    Red("| Error:");
-                    Normal($"| {line}");
-                } else {
-                    Red("| Stacktrace:");
-                    NormalIndent(testMethod.Exception.StackTrace.Split("\n"));
-                }
-                Red("├─────────────────────────────────────────────────────────────────────────────────");
+                MethodError(x, testReport, testMethod);
+                Console.WriteLine();
                 x++;
             });
 
-            RedBanner($"Failed: {testReport.TestsFailed}/{testReport.TestsTotal}. Passed: {testReport.TestsPassed}/{testReport.TestsTotal}", $"Time: {Elapsed(stopwatch.Elapsed)}");
+            Red($"- Passed: {testReport.TestsPassed}/{testReport.TestsTotal}, {testReport.TestsFailed} failed ({Elapsed(stopwatch.Elapsed)}) -");
         } else {
-            GreenBanner($"Passed: {testReport.TestsPassed}/{testReport.TestsTotal}! :-)", $"Time: {Elapsed(stopwatch.Elapsed)}");
+            Green($"- Passed: {testReport.TestsPassed}/{testReport.TestsTotal} :-) ({Elapsed(stopwatch.Elapsed)}) -");
         }
+    }
+
+    private static void MethodError(int error, TestReport testReport, TestRunner.TestMethod testMethod) {
+        Red($"{GetTestMethodLine(testReport, testMethod)}: Failed ({Elapsed(testMethod.Stopwatch.Elapsed)})");
+        Red($"Error: {error}/{testReport.TestsFailed}");
+        Red($"{testMethod.Exception.GetType()}");
+        Red(testMethod.Exception.Message);
+        Normal(testMethod.Exception.StackTrace.Split("\n"), it => it.Contains(testMethod.TestClass.Type.Name));
     }
 
     private static string Elapsed(TimeSpan span) {
@@ -91,24 +76,19 @@ public class ConsoleTestRunner {
         };
     }
 
-    private static void RedIndent(string[] split) {
-        foreach (var line in split) Red($"| {line}");
-    }
-
-    private static void NormalIndent(string[] split) {
-        foreach (var line in split) Normal($"| {line}");
+    private static void Normal(string[] split, Func<string, bool> redPredicate) {
+        foreach (var line in split) {
+            if (redPredicate(line)) Red(line);
+            else Normal(line);
+        }
     }
 
     private static string GetTestMethodLine(TestReport testReport, TestRunner.TestMethod testMethod) {
-        var line = $"[Test : #{testMethod.Id}/{testReport.TestsTotal}] {testMethod.TestClass.Type.Name}.{testMethod.Name}";
+        var line = $"Test: {testMethod.Id}/{testReport.TestsTotal} {testMethod.TestClass.Type.Name}.{testMethod.Name}";
         if (testMethod.Description != null) {
             line += " \"" + testMethod.Description + "\"";
         }
         return line;
-    }
-
-    private static void Banner(params string[] lines) {
-        Banner(lines, ConsoleColor.Gray);
     }
 
     private static void Banner(string[] lines, ConsoleColor color) {
