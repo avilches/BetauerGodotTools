@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Betauer.TestRunner;
 using NUnit.Framework;
 
 namespace Betauer.Core.Tests;
@@ -40,11 +41,13 @@ public class TypeTests {
 
     [TestRunner.Test]
     public void FindGenericsFromInterfaceDefinitionTests() {
-        Assert.Throws<Exception>(() => typeof(List<>).FindGenericsFromInterfaceDefinition(typeof(List<string>))); // Not an interface
+        // Invalid parameter
+        Assert.Throws<ArgumentException>(() => typeof(List<>).FindGenericsFromInterfaceDefinition(typeof(List<string>))); // a class
+        Assert.Throws<ArgumentException>(() => typeof(List<>).FindGenericsFromInterfaceDefinition(typeof(IList<string>))); // an interface, but it's not a generic type definition
+        Assert.Throws<ArgumentException>(() => typeof(IEnumerable).FindGenericsFromInterfaceDefinition(typeof(IList)));    // an interface, but it's not a generic type definition
 
-        Assert.Throws<Exception>(() => typeof(List<>).FindGenericsFromInterfaceDefinition(typeof(IList<string>))); // Not an interface definition
-        Assert.Throws<Exception>(() => typeof(IEnumerable).FindGenericsFromInterfaceDefinition(typeof(IList))); // Interface without generics
-        Assert.Throws<Exception>(() => typeof(List).FindGenericsFromInterfaceDefinition(typeof(IList<>))); // Is not implemented
+        // Valid parameter, not found
+        Assert.Throws<InvalidOperationException>(() => typeof(List).FindGenericsFromInterfaceDefinition(typeof(IList<>))); // Is not implemented
 
         Assert.That(typeof(List<string>).FindGenericsFromInterfaceDefinition(typeof(IList<>)), Is.EqualTo(new[] { typeof(string) }));
         Assert.That(typeof(Dictionary<string, int>).FindGenericsFromInterfaceDefinition(typeof(IDictionary<,>)),
@@ -93,17 +96,16 @@ public class TypeTests {
 
     [TestRunner.Test]
     public void FindGenericsFromBaseTypeDefinitionTests() {
+        // Invalid parameter
+        Assert.Throws<ArgumentException>(() => typeof(ChildChild).FindGenericsFromBaseTypeDefinition(typeof(IList<string>)));  // an interface, but it's not a generic type definition
+        Assert.Throws<ArgumentException>(() => typeof(ChildChild).FindGenericsFromBaseTypeDefinition(typeof(IList<>)));        // an interface 
+        Assert.Throws<ArgumentException>(() => typeof(ChildChild).FindGenericsFromBaseTypeDefinition(typeof(GrandGrandParent<string>)));  // a class, but it's not a generic type definition
+
+        // Valid parameter, not found
+        Assert.Throws<InvalidOperationException>(() => typeof(ChildChild).FindGenericsFromBaseTypeDefinition(typeof(List<>)));
+        
         Assert.That(typeof(ChildChild).FindGenericsFromBaseTypeDefinition(typeof(Parent<>)), Is.EqualTo(new[] { typeof(object) }));
         Assert.That(typeof(ChildChild).FindGenericsFromBaseTypeDefinition(typeof(GrandParent<,>)), Is.EqualTo(new[] { typeof(object), typeof(string) }));
         Assert.That(typeof(ChildChild).FindGenericsFromBaseTypeDefinition(typeof(GrandGrandParent<>)), Is.EqualTo(new[] { typeof(string) }));
-
-        // Invalid parameter
-        Assert.Throws<Exception>(() => typeof(ChildChild).FindGenericsFromBaseTypeDefinition(typeof(List<string>))); // not an interface
-        Assert.Throws<Exception>(() => typeof(ChildChild).FindGenericsFromBaseTypeDefinition(typeof(IList<>)));
-        Assert.Throws<Exception>(() => typeof(ChildChild).FindGenericsFromBaseTypeDefinition(typeof(IList<string>)));
-        Assert.Throws<Exception>(() => typeof(ChildChild).FindGenericsFromBaseTypeDefinition(typeof(GrandGrandParent<string>)));
-
-        // Not a subclass
-        Assert.Throws<Exception>(() => typeof(ChildChild).FindGenericsFromBaseTypeDefinition(typeof(List<>)));
     }
 }

@@ -116,7 +116,7 @@ public static class TypeExtensions {
         
         var type = from.GetTypeInfo();
         while (!type.IsGenericType || type.GetGenericTypeDefinition() != parentType) {
-            if (type.BaseType == null) throw new Exception($"Type {from} is not a subclass of {parentType}");
+            if (type.BaseType == null) throw new InvalidOperationException($"Type {from} is not a subclass of {parentType}");
             type = type.BaseType.GetTypeInfo();
         }
         return type.GetGenericArguments();
