@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Godot;
 
-namespace Betauer.TestRunner; 
+namespace Betauer.TestRunner;
 
 public class ConsoleTestRunner {
     public static async Task RunTests(SceneTree tree, params Assembly[]? assemblies) {
@@ -13,10 +13,10 @@ public class ConsoleTestRunner {
 
         TestRunner testRunner = new TestRunner();
         testRunner.OnStart += PrintConsoleStart;
-        testRunner.OnResult +=  PrintConsoleResult;
+        testRunner.OnResult += PrintConsoleResult;
         testRunner.Load(assemblies);
         var testReport = await testRunner.Run(tree);
-            
+
         stopwatch.Stop();
         PrintConsoleFinish(testReport, stopwatch);
 
@@ -30,14 +30,14 @@ public class ConsoleTestRunner {
     }
 
     private static void PrintConsoleStart(TestReport testReport, TestRunner.TestMethod testMethod) {
-        Normal($"{GetTestMethodLine(testReport, testMethod)}: Executing...");
+        // Normal($"{GetTestMethodLine(testReport, testMethod)}: Executing...");
     }
 
     private static void PrintConsoleResult(TestReport testReport, TestRunner.TestMethod testMethod) {
         var testPasses = testMethod.Result == TestRunner.Result.Passed;
 
         if (testPasses) {
-            Green($"{GetTestMethodLine(testReport, testMethod)}: Passed ({Elapsed(testMethod.Stopwatch.Elapsed)})");
+            Print($@"\{(int)ConsoleColor.White}{GetTestMethodLine(testReport, testMethod)} \{(int)ConsoleColor.Green}passed ({Elapsed(testMethod.Stopwatch.Elapsed)})");
         } else {
             MethodError(testReport.TestsFailed, testReport, testMethod);
         }
@@ -45,8 +45,10 @@ public class ConsoleTestRunner {
 
     private static void PrintConsoleFinish(TestReport testReport, Stopwatch stopwatch) {
         if (testReport.TestsFailed > 0) {
-            Red($"- Passed: {testReport.TestsPassed}/{testReport.TestsTotal}, {testReport.TestsFailed} ({Elapsed(stopwatch.Elapsed)}) -");
-
+            Print($@"\{(int)ConsoleColor.White}Passed: {testReport.TestsPassed}/{testReport.TestsTotal}\{(int)ConsoleColor.Red} {testReport.TestsFailed} failed ({Elapsed(stopwatch.Elapsed)})");
+            Console.WriteLine();
+            Console.WriteLine($"{testReport.TestsFailed} failed tests:");
+            Console.WriteLine();
             var x = 1;
             testReport.TestsFailedResults.ForEach(testMethod => {
                 MethodError(x, testReport, testMethod);
@@ -54,18 +56,17 @@ public class ConsoleTestRunner {
                 x++;
             });
 
-            Red($"- Passed: {testReport.TestsPassed}/{testReport.TestsTotal}, {testReport.TestsFailed} failed ({Elapsed(stopwatch.Elapsed)}) -");
+            Print($@"\{(int)ConsoleColor.White}Passed: {testReport.TestsPassed}/{testReport.TestsTotal}\{(int)ConsoleColor.Red} {testReport.TestsFailed} failed ({Elapsed(stopwatch.Elapsed)})");
         } else {
-            Green($"- Passed: {testReport.TestsPassed}/{testReport.TestsTotal} :-) ({Elapsed(stopwatch.Elapsed)}) -");
+            Print($@"\{(int)ConsoleColor.White}Passed: {testReport.TestsPassed}/{testReport.TestsTotal}\{(int)ConsoleColor.Green} 0 failed ({Elapsed(stopwatch.Elapsed)})");
         }
     }
 
     private static void MethodError(int error, TestReport testReport, TestRunner.TestMethod testMethod) {
-        Red($"{GetTestMethodLine(testReport, testMethod)}: Failed ({Elapsed(testMethod.Stopwatch.Elapsed)})");
-        Red($"Error: {error}/{testReport.TestsFailed}");
-        Red($"{testMethod.Exception.GetType()}");
-        Red(testMethod.Exception.Message);
-        Normal(testMethod.Exception.StackTrace.Split("\n"), it => it.Contains(testMethod.TestClass.Type.Name));
+        Print($@"\{(int)ConsoleColor.White}Error {error}/{testReport.TestsFailed} {GetTestMethodLine(testReport, testMethod)}\{(int)ConsoleColor.Red} failed ({Elapsed(testMethod.Stopwatch.Elapsed)})");
+        Print($"{testMethod.Exception.GetType()}");
+        Print(testMethod.Exception.Message);
+        Stacktrace(testMethod.Exception.StackTrace.Split("\n"), it => it.Contains(testMethod.TestClass.Type.Name));
     }
 
     private static string Elapsed(TimeSpan span) {
@@ -76,57 +77,46 @@ public class ConsoleTestRunner {
         };
     }
 
-    private static void Normal(string[] split, Func<string, bool> redPredicate) {
+    private static void Stacktrace(string[] split, Func<string, bool> redPredicate) {
         foreach (var line in split) {
-            if (redPredicate(line)) Red(line);
-            else Normal(line);
+            if (redPredicate(line)) Print($@"\{(int)ConsoleColor.Red}{line}");
+            else Console.WriteLine(line);
         }
     }
 
     private static string GetTestMethodLine(TestReport testReport, TestRunner.TestMethod testMethod) {
-        var line = $"Test: {testMethod.Id}/{testReport.TestsTotal} {testMethod.TestClass.Type.Name}.{testMethod.Name}";
+        var line = $"Test {testMethod.Id}/{testReport.TestsTotal}: {testMethod.TestClass.Type.Name}.{testMethod.Name}";
         if (testMethod.Description != null) {
             line += " \"" + testMethod.Description + "\"";
         }
         return line;
     }
 
-    private static void Banner(string[] lines, ConsoleColor color) {
-        if (color == ConsoleColor.Gray) {
-            Console.ResetColor();
-        } else {
-            Console.ForegroundColor = color;
+    public static void Print(string text) {
+        var parts = text.Split('\\');
+
+        for (var i = 0; i < parts.Length; i++) {
+            var part = parts[i];
+            if (i == 0) {
+                Console.Write(part);
+                continue;
+            }
+
+            if (part.Length > 1 && char.IsDigit(part[0])) {
+                var j = 1;
+                if (char.IsDigit(part[j])) {
+                    j++;
+                }
+
+                var colorCode = int.Parse(part[0..j]);
+                Console.ForegroundColor = (ConsoleColor)colorCode;
+                Console.Write(part[j..]);
+            } else {
+                Console.Write("\\" + part);
+            }
         }
-        var max = lines.Max(i => i.Length);
-        var fill = new string('─', max);
-        Console.WriteLine($"┌─{fill}─┐");
-        foreach (var line in lines) Console.WriteLine($"│ {line.PadRight(max)} │");
-        Console.WriteLine($"└─{fill}─┘");
-    }
+        Console.WriteLine();
 
-    private static void GreenBanner(params string[] print) {
-        Banner(print, ConsoleColor.Green);
-    }
-
-    private static void RedBanner(params string[] print) {
-        Banner(print, ConsoleColor.Red);
-    }
-
-    private static void Normal(string print) {
-        Console.ResetColor();
-        Console.WriteLine(print);
-    }
-
-    private static void Green(string print) {
-        Console.ForegroundColor = ConsoleColor.Green;
-        Console.WriteLine(print);
         Console.ResetColor();
     }
-
-    private static void Red(string print) {
-        Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine(print);
-        Console.ResetColor();
-    }
-
 }
