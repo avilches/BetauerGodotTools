@@ -6,9 +6,9 @@ using Betauer.DI.ServiceProvider;
 namespace Betauer.DI;
 
 public class ResolveContext {
-    private readonly Dictionary<Provider, ProviderResolved> _newSingletonsCreated = new();
-    private readonly List<ProviderResolved> _newTransientsCreated = new();
-    private readonly Stack<Type> _transientNameStack = new();
+    private readonly Dictionary<Provider, InstanceCreatedEvent> _newSingletonsCreated = new();
+    private readonly List<InstanceCreatedEvent> _newTransientsCreated = new();
+    private readonly Stack<Type> _transientStack = new();
 
     internal Container Container { get; }
 
@@ -26,37 +26,41 @@ public class ResolveContext {
     }
 
     internal void NewSingleton(Provider provider, object instance) {
-        _newSingletonsCreated[provider] = new ProviderResolved(provider, instance);
+        _newSingletonsCreated[provider] = new InstanceCreatedEvent(provider, instance);
     }
 
     // This stack avoid circular dependencies between transients
     internal void PushTransient(Type type) {
-        if (_transientNameStack.Contains(type)) {
-            throw new CircularDependencyException(string.Join("\n", _transientNameStack));
+        if (_transientStack.Contains(type)) {
+            throw new CircularDependencyException(string.Join("\n", _transientStack));
         }
-        _transientNameStack.Push(type);
+        _transientStack.Push(type);
     }
 
     internal void NewTransient(Provider provider, object instance) {
-        _newTransientsCreated.Add(new ProviderResolved(provider, instance));
+        _newTransientsCreated.Add(new InstanceCreatedEvent(provider, instance));
     }
 
     internal void PopTransient() {
-        _transientNameStack.Pop();
+        _transientStack.Pop();
     }
 
     internal void End() {
-        foreach (var providerResolved in _newSingletonsCreated.Values) {
-            Container.ExecutePostInjectMethods(providerResolved.Instance);
-            Container.ExecuteOnCreated(providerResolved);
+        foreach (var instanceCreatedEvent in _newSingletonsCreated.Values) {
+            Container.ExecutePostInjectMethods(instanceCreatedEvent.Instance);
         }
-        foreach (var providerResolved in _newTransientsCreated) {
-            Container.ExecutePostInjectMethods(providerResolved.Instance);
-            Container.ExecuteOnCreated(providerResolved);
+        foreach (var instanceCreatedEvent in _newTransientsCreated) {
+            Container.ExecutePostInjectMethods(instanceCreatedEvent.Instance);
+        }
+        foreach (var instanceCreatedEvent in _newSingletonsCreated.Values) {
+            Container.ExecuteOnCreated(instanceCreatedEvent);
+        }
+        foreach (var instanceCreatedEvent in _newTransientsCreated) {
+            Container.ExecuteOnCreated(instanceCreatedEvent);
         }
         _newSingletonsCreated.Clear();
         _newTransientsCreated.Clear();
-        _transientNameStack.Clear();
+        _transientStack.Clear();
     }
 
     public void InjectServices(Lifetime lifetime, object o) {

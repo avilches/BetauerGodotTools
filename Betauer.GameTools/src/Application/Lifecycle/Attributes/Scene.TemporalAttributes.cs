@@ -18,7 +18,7 @@ public static partial class Scene {
     /// The resource path will be extracted using the [ScriptPathAttribute]
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-    public class TemporalAttribute<T> : Attribute, IConfigurationClassAttribute where T : Node {
+    public class TransientAttribute<T> : Attribute, IConfigurationClassAttribute where T : Node {
         public string? Name { get; init; }
         public string? Path { get; init; }
         public string? Tag { get; init; }
@@ -28,7 +28,7 @@ public static partial class Scene {
             var loaderConfiguration = configuration.GetType().GetAttribute<LoaderAttribute>();
             if (loaderConfiguration == null) {
                 throw new InvalidAttributeException(
-                    $"Attribute {typeof(TemporalAttribute<T>).FormatAttribute(new Dictionary<string, object> {
+                    $"Attribute {typeof(TransientAttribute<T>).FormatAttribute(new Dictionary<string, object> {
                         { "Name", Name },
                         { "Path", Path },
                         { "Tag", Tag },
@@ -38,7 +38,9 @@ public static partial class Scene {
             var sceneFactory = new SceneFactory<T>(Path, Tag ?? loaderConfiguration.Tag);
             var metadata = Provider.FlagsToMetadata(Flags);
             var create = FactoryTools.From(sceneFactory);
-            builder.Register(Provider.Temporal(typeof(T), typeof(T), create, Name, metadata));
+            var transientProvider = new TransientProvider(typeof(T), typeof(T), create, Name, metadata);
+            builder.Register(transientProvider);
+            builder.Register(Provider.TransientFactory(transientProvider));
 
             builder.OnBuildFinished += () => {
                 var loader = builder.Container.Resolve<ResourceLoaderContainer>(loaderConfiguration.Name);

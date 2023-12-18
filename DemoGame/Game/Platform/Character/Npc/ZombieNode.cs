@@ -12,12 +12,11 @@ using Betauer.Core.Pool.Lifecycle;
 using Betauer.Core.Restorer;
 using Betauer.DI;
 using Betauer.DI.Attributes;
-using Betauer.DI.Holder;
+using Betauer.DI.Factory;
 using Betauer.Flipper;
 using Betauer.FSM.Sync;
 using Betauer.Input;
 using Betauer.NodePath;
-using Betauer.Nodes;
 using Betauer.Physics;
 using Betauer.UI;
 using Godot;
@@ -84,7 +83,8 @@ public partial class ZombieNode : NpcNode, IInjectable {
 	[Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
 	[Inject] private EventBus EventBus { get; set; }
 	[Inject] private PlayerConfig PlayerConfig { get; set; }
-	[Inject("PlatformWorldHolder")] private IHolder<PlatformWorld> PlatformWorld { get; set; } 
+	[Inject] private ITemporal<PlatformGameView> PlatformGameView { get; set; }
+	[Inject] private PlatformWorld PlatformWorld => (PlatformWorld)PlatformGameView.Get().GetWorld(); 
 	
 	// [Inject] private InputActionCharacterHandler Handler { get; set; }
 	private NpcController Handler { get; set; } = new NpcController();
@@ -117,7 +117,7 @@ public partial class ZombieNode : NpcNode, IInjectable {
 	private LazyRaycast2D _lazyRaycastToPlayer;
 	private DebugOverlay? _overlay;
 
-	private Vector2 PlayerGlobalPos => PlatformWorld.Get().ClosestPlayer(Marker2D.GlobalPosition).Marker2D.GlobalPosition;
+	private Vector2 PlayerGlobalPos => PlatformWorld.ClosestPlayer(Marker2D.GlobalPosition).Marker2D.GlobalPosition;
 	public bool IsFacingToPlayer() => LateralState.IsFacingTo(PlayerGlobalPos);
 	public bool IsToTheRightOfPlayer() => LateralState.IsToTheRightOf(PlayerGlobalPos);
 	public int RightOfPlayer() => IsToTheRightOfPlayer() ? 1 : -1;

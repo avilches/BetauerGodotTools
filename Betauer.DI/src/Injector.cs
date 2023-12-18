@@ -16,8 +16,9 @@ public abstract class Injector {
 
     internal static void InjectServices(ResolveContext context, Lifetime lifetime, object target) {
         if (target is Delegate) return;
-        Logger.Debug("Injecting fields in {0}: {1:x8}", target.GetType().GetTypeName(), target.GetHashCode());
         var members = target.GetType().GetSettersCached<InjectAttribute>(MemberTypes.Method | MemberTypes.Property, InjectFlags);
+        if (members.Count == 0) return;
+        Logger.Debug("Injecting fields in {0}: {1:x8}", target.GetType().GetTypeName(), target.GetHashCode());
         foreach (var setter in members) {
             if (setter is not IGetter getter || // no getter, like methods 
                 getter.GetValue(target) is null) { // getter (properties and fields) returned null
@@ -37,7 +38,6 @@ public abstract class Injector {
                 return;
             }
             if (!nullable) {
-                TryInjectFieldByName(context, lifetime, target, setter, name);
                 throw new InjectMemberException(setter.Name, target,
                     $"Service Name=\"{name}\" not found when trying to inject {setter} in {target.GetType().GetTypeName()} ({target.GetHashCode():x8})");
             }
@@ -51,12 +51,12 @@ public abstract class Injector {
             }
         }
         if (TryInjectFieldByType(context, lifetime, target, setter)) {
-            Logger.Debug("Injected {0} ({1:x8}) | {2} | Type: {3}", target.GetType().GetTypeName(), target.GetHashCode(), setter, setter.Type);
+            Logger.Debug("Injected {0} ({1:x8}) | {2} | Type: {3}", target.GetType().GetTypeName(), target.GetHashCode(), setter, setter.MemberType);
             return;
         }
         if (TryCreateAndInject(context, lifetime, target, setter)) {
             Logger.Debug("Injected {0} ({1:x8}) | {2} | Auto created. Type: {3}", target.GetType().GetTypeName(), target.GetHashCode(),
-                setter, setter.Type);
+                setter, setter.MemberType);
             return;
         }
         if (!nullable) {
@@ -66,24 +66,16 @@ public abstract class Injector {
     }
 
     private static bool TryInjectFieldByName(ResolveContext context, Lifetime lifetime, object target, ISetter setter, string name) {
-        if (!context.Container.TryGetProvider(name, out var provider) || !setter.CanSetValue(provider.RealType)) {
-            if (name.StartsWith(ProxyProvider.FactoryPrefix)) {
-                return false;
-            }
-            name = $"{ProxyProvider.FactoryPrefix}{name}";
-            if (!context.Container.TryGetProvider(name, out provider) || !setter.CanSetValue(provider!.RealType)) {
-                return false;
-            }
-        }
-        CheckLifetimeMismatch(lifetime, target, setter, setter.Type, provider.Lifetime);
+        if (!context.Container.TryGetProvider(name, out var provider, setter.MemberType)) return false;
+        CheckLifetimeMismatch(lifetime, target, setter, setter.MemberType, provider.Lifetime);
         var service = provider.Resolve(context);
         setter.SetValue(target, service);
         return true;
     }
 
     private static bool TryInjectFieldByType(ResolveContext context, Lifetime lifetime, object target, ISetter setter) {
-        if (!context.Container.TryGetProvider(setter.Type, out var provider)) return false;
-        CheckLifetimeMismatch(lifetime, target, setter, setter.Type, provider!.Lifetime);
+        if (!context.Container.TryGetProvider(setter.MemberType, out var provider)) return false;
+        CheckLifetimeMismatch(lifetime, target, setter, setter.MemberType, provider!.Lifetime);
         var service = provider.Resolve(context);
         setter.SetValue(target, service);
         return true;
@@ -91,8 +83,8 @@ public abstract class Injector {
 
     private static bool TryCreateAndInject(ResolveContext context, Lifetime lifetime, object target, ISetter setter) {
         if (!context.Container.CreateIfNotFound) return false;
-        CheckLifetimeMismatch(lifetime, target, setter, setter.Type, Lifetime.Transient);
-        var service = context.Container.TryCreateTransientFromInjector(setter.Type, context);
+        CheckLifetimeMismatch(lifetime, target, setter, setter.MemberType, Lifetime.Transient);
+        var service = context.Container.TryCreateTransientFromInjector(setter.MemberType, context);
         setter.SetValue(target, service);
         return true;
     }

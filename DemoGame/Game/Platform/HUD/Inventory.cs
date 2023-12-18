@@ -9,7 +9,7 @@ namespace Veronenger.Game.Platform.HUD;
 
 public partial class Inventory : GridContainer {
 
-	[Inject] public ITransient<InventorySlot> InventorySlotFactory { get; set; }
+	[Inject] public ITransient<InventorySlot> InventorySlot { get; set; }
 
 	private bool _initialize = false;
 	public override void _Ready() {
@@ -49,7 +49,7 @@ public partial class Inventory : GridContainer {
 			for (var i = size; i < childCount; i ++) GetChild<InventorySlot>(i).RemoveSlot();
 		} else if (childCount < size) {
 			while (childCount < size) {
-				var inventorySlot = InventorySlotFactory.Create();
+				var inventorySlot = InventorySlot.Create();
 				AddChild(inventorySlot);
 				childCount++;
 			}

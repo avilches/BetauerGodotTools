@@ -18,7 +18,7 @@ public class FastSetter : ISetter {
         };
     }
 
-    public Type Type => Setter.Type;
+    public Type MemberType => Setter.MemberType;
     public string Name => Setter.Name;
     public MemberInfo MemberInfo => Setter.MemberInfo;
     public Type DeclaringType => Setter.DeclaringType;

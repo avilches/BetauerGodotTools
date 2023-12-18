@@ -1,12 +1,9 @@
 using System;
 using System.Collections.Generic;
-using Betauer.Tools.Logging;
 
 namespace Betauer.DI.ServiceProvider; 
 
 public class StaticProvider : Provider {
-    private static readonly Logger Logger = LoggerFactory.GetLogger<Provider>();
-    
     public override Lifetime Lifetime => Lifetime.Singleton;
     public bool IsInitialized { get; private set; }
     public object? Instance { get; }

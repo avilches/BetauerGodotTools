@@ -1,12 +1,10 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Betauer.Application.Lifecycle.Attributes;
-using Betauer.Application.Lifecycle.Pool;
 using Betauer.Application.Persistent;
 using Betauer.Application.Persistent.Json;
 using Betauer.Camera;
 using Betauer.DI.Attributes;
-using Betauer.DI.Holder;
 using Godot;
 using Veronenger.Game.Platform.Character.Npc;
 using Veronenger.Game.Platform.Character.Player;
@@ -18,7 +16,7 @@ namespace Veronenger.Game.Platform;
 
 [Configuration]
 [Loader("GameLoader", Tag = "main")]
-[Scene.Transient<PlatformGameView>(Name = "PlatformGameViewFactory")]
+[Scene.Temporal<PlatformGameView>(Name = "PlatformGameView")]
 public class PlatformMainResources {
 }
 
@@ -30,15 +28,15 @@ public class PlatformMainResources {
 [Resource<Texture2D>("LeonKnifeAnimationSprite", "res://Game/Platform/Character/Player/Assets/Leon-knife.png")]
 [Resource<Texture2D>("LeonMetalbarAnimationSprite", "res://Game/Platform/Character/Player/Assets/Leon-metalbar.png")]
 [Resource<Texture2D>("LeonGun1AnimationSprite", "res://Game/Platform/Character/Player/Assets/Leon-gun1.png")]
-[Scene.Transient<PlatformWorld>(Name = "PlatformWorldFactory")]
-[Scene.Transient<PlayerHud>(Name = "PlayerHudFactory")]
-[Scene.Transient<InventorySlot>(Name = "InventorySlotFactory")]
+[Scene.Temporal<PlatformWorld>(Name = "PlatformWorld")]
+[Scene.Transient<PlayerHud>(Name = "PlayerHud")]
+[Scene.Transient<InventorySlot>(Name = "InventorySlot")]
 [Scene.NodePool<PlayerNode>(Name = "PlayerPool")]
 [Scene.NodePool<PickableItemNode>(Name = "PickableItemPool")]
 [Scene.NodePool<ProjectileTrail>(Name = "ProjectilePool")]
 [Scene.NodePool<ZombieNode>(Name = "ZombiePool")]
 public class PlatformGameResources {
-	[Transient<PlatformHud>] PlatformHud PlatformHudFactory => new PlatformHud();
+	[Temporal<PlatformHud>] PlatformHud PlatformHud => new PlatformHud();
 }
 
 public interface IPlatformSaveObject : ISaveObject {
@@ -59,7 +57,4 @@ public class PlatformGameConfig {
 	
 	[Transient] public StageController StageControllerFactory => new(CollisionLayerConstants.LayerStageArea);
 	[Transient] public StageCameraController StageCameraControllerFactory => new(CollisionLayerConstants.LayerStageArea);
-	[Singleton] public IMutableHolder<IGameView> PlatformGameViewHolder => Holder.From<IGameView>("PlatformGameViewFactory"); 
-	[Singleton] public IHolder<PlatformWorld> PlatformWorldHolder => Holder.Chain<IGameView, PlatformWorld>("PlatformGameViewHolder", (gameView) => (PlatformWorld)gameView.GetWorld()); 
-	[Singleton] public IHolder<PlatformHud> HudCanvasHolder => Holder.Chain<IGameView, PlatformHud>("PlatformGameViewHolder", (gameView) => ((PlatformGameView)gameView).PlatformHud); 
 }

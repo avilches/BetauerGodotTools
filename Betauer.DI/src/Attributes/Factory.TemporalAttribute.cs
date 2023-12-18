@@ -12,7 +12,7 @@ public static partial class Factory {
     /// will take the name from the variable/method, so "service" will be the default name in this example: [Factory.Transient] IService service => new Service()
     /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method | AttributeTargets.Property)]
-    public class TransientAttribute : Attribute, IClassAttribute, IConfigurationMemberAttribute {
+    public class TemporalAttribute : Attribute, IClassAttribute, IConfigurationMemberAttribute {
 
         public string? Name { get; init; }
         public string? Flags { get; init; }
@@ -27,10 +27,7 @@ public static partial class Factory {
                 ? GetType().GetGenericArguments()[0]                                                 // Node because [Factory.Transient<Node>]
                 : factoryType;                                                                       // Node3D 
             var create = FactoryTools.From(factory);
-            var provider = new TransientProvider(publicType, factoryType, create, Name, Provider.FlagsToMetadata(Flags));
-            builder.RegisterFactory(factory);
-            builder.Register(provider);
-            builder.Register(Provider.TransientFactory(provider));
+            builder.Register(Provider.Temporal(publicType, factoryType, create, Name, Provider.FlagsToMetadata(Flags)));
         }
 
         
@@ -43,13 +40,10 @@ public static partial class Factory {
                 ? GetType().GetGenericArguments()[0] // Trick to get the <T> from TransientAttribute<T>         // Node because [Factory.Transient<Node>]    
                 : getter.MemberType.FindGenericsFromInterfaceDefinition(typeof(IFactory<>))[0];                       // Node3D because IFactory<Node3D> Element3                                              
             var create = FactoryTools.From(factory);
-            var provider =  new TransientProvider(publicType, factoryType, create, Name ?? getter.Name, Provider.FlagsToMetadata(Flags));
-            builder.RegisterFactory(factory);
-            builder.Register(provider);
-            builder.Register(Provider.TransientFactory(provider));
+            builder.Register(Provider.Temporal(publicType, factoryType, create, Name ?? getter.Name, Provider.FlagsToMetadata(Flags)));
         }
     }
 
-    public class TransientAttribute<T> : TransientAttribute {
+    public class TemporalAttribute<T> : TemporalAttribute {
     }
 }

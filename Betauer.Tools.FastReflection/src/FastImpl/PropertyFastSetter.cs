@@ -14,12 +14,12 @@ public class PropertyFastSetter : ISetter {
             throw new ArgumentException($"PropertyInfo {propertyInfo.Name} doesn't have set", nameof(propertyInfo));
         PropertyInfo = propertyInfo;
         MemberInfo = propertyInfo;
-        Type = propertyInfo.PropertyType;
+        MemberType = propertyInfo.PropertyType;
         Name = propertyInfo.Name;
         DeclaringType = propertyInfo.DeclaringType;
         _setValue = CreateLambdaSetter(propertyInfo);
 #if DEBUG
-        _toString = Type.GetTypeName() + " " + Name +
+        _toString = MemberType.GetTypeName() + " " + Name +
                     (propertyInfo.GetMethod != null
                         ? propertyInfo.GetMethod.IsPrivate ? " { private get; " : " { public get; "
                         : " { ") +
@@ -27,7 +27,7 @@ public class PropertyFastSetter : ISetter {
 #endif
     }
 
-    public Type Type { get; }
+    public Type MemberType { get; }
     public string Name { get; }
     public MemberInfo MemberInfo { get; }
     public PropertyInfo PropertyInfo { get; }

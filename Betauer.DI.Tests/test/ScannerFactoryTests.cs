@@ -47,6 +47,43 @@ public class ScannerFactoryTests : Node {
         });
     }
 
+    [TestRunner.Test(Description = "Test defining a Transient by type")]
+    public void TransientProxyTest() {
+        TransientD.Instances = 0;
+        var c = new Container();
+        c.Build(di => {
+            var transientProvider = Provider.Transient<TransientD>();
+            di.Register(transientProvider);
+            di.Register(Provider.TransientFactory(transientProvider));
+        });
+        
+        c.Resolve<TransientD>();
+        c.Resolve<TransientD>();
+        c.Resolve<ITransient<TransientD>>().Create();
+        c.Resolve<ITransient<TransientD>>().Create();
+        Assert.That(TransientD.Instances, Is.EqualTo(4));
+    }
+
+    [TestRunner.Test(Description = "Test defining a Transient by name")]
+    public void TransientProxyNameTest() {
+        TransientD.Instances = 0;
+        var c = new Container();
+        c.Build(di => {
+            var transientProvider = Provider.Transient<TransientD>("Name");
+            di.Register(transientProvider);
+            di.Register(Provider.TransientFactory(transientProvider));
+        });
+        
+        c.Resolve<TransientD>("Name");
+        c.Resolve<TransientD>("Name");
+        c.Resolve<ITransient<TransientD>>("Proxy:Name").Create();
+        c.Resolve<ITransient<TransientD>>("Proxy:Name").Create();
+        c.Resolve<ITransient<TransientD>>("Name").Create();
+        c.Resolve<ITransient<TransientD>>("Name").Create();
+        Assert.That(TransientD.Instances, Is.EqualTo(6));
+        
+    }
+
     [Configuration]
     public class TransientFactoryConfiguration {
         [Transient] public TransientD TransientD => new();
@@ -70,7 +107,7 @@ public class ScannerFactoryTests : Node {
         [Inject] public ITransient<TransientD> TransientD { get; set; }
     }
 
-    [TestRunner.Test(Description = "Test defining a Transient service by name with a Factory")]
+    [TestRunner.Test(Description = "Test defining a Transient by name with a Factory")]
     public void FactoryTransientFromConfiguration() {
         TransientD.Instances = 0;
         var c = new Container();
@@ -104,7 +141,7 @@ public class ScannerFactoryTests : Node {
                 return new Node { Name = "L" };
             }, null, false);
             di.Register(provider);
-            di.Register(Provider.Proxy(provider));
+            di.Register(Provider.Lazy(provider));
         });
         Assert.That(x, Is.EqualTo(1));
         Assert.That(c.Resolve<Node>().Name.ToString(), Is.EqualTo("L"));
@@ -122,7 +159,7 @@ public class ScannerFactoryTests : Node {
                 return new Node { Name = "L" };
             }, null, true);
             di.Register(provider);
-            di.Register(Provider.Proxy(provider));
+            di.Register(Provider.Lazy(provider));
         });
         Assert.That(x, Is.EqualTo(0));
         Assert.That(c.Resolve<Node>().Name.ToString(), Is.EqualTo("L"));
@@ -142,11 +179,12 @@ public class ScannerFactoryTests : Node {
                 return new Node { Name = "L" };
             }, "X", false);
             di.Register(provider);
-            di.Register(Provider.Proxy(provider));
+            di.Register(Provider.Lazy(provider));
         });
         Assert.That(x, Is.EqualTo(1));
         Assert.That(c.Resolve<Node>("X").Name.ToString(), Is.EqualTo("L"));
-        Assert.That(c.Resolve<ILazy<Node>>("Factory:X").Get(), Is.EqualTo(c.Resolve<Node>("X")));
+        Assert.That(c.Resolve<ILazy<Node>>("Proxy:X").Get(), Is.EqualTo(c.Resolve<Node>("X")));
+        Assert.That(c.Resolve<ILazy<Node>>("X").Get(), Is.EqualTo(c.Resolve<Node>("X")));
         Assert.That(x, Is.EqualTo(1));
     }
 
@@ -160,11 +198,12 @@ public class ScannerFactoryTests : Node {
                 return new Node { Name = "L" };
             }, "X", true);
             di.Register(provider);
-            di.Register(Provider.Proxy(provider));
+            di.Register(Provider.Lazy(provider));
         });
         Assert.That(x, Is.EqualTo(0));
         Assert.That(c.Resolve<Node>("X").Name.ToString(), Is.EqualTo("L"));
-        Assert.That(c.Resolve<ILazy<Node>>("Factory:X").Get(), Is.EqualTo(c.Resolve<Node>("X")));
+        Assert.That(c.Resolve<ILazy<Node>>("Proxy:X").Get(), Is.EqualTo(c.Resolve<Node>("X")));
+        Assert.That(c.Resolve<ILazy<Node>>("X").Get(), Is.EqualTo(c.Resolve<Node>("X")));
         Assert.That(x, Is.EqualTo(1));
     }
 
@@ -183,7 +222,7 @@ public class ScannerFactoryTests : Node {
                 return new Node { Name = "L" };
             });
             di.Register(provider);
-            di.Register(Provider.Proxy(provider));
+            di.Register(Provider.TransientFactory(provider));
         });
         Assert.That(x, Is.EqualTo(0));
         Assert.That(c.Resolve<Node>().Name.ToString(), Is.EqualTo("L"));
@@ -202,13 +241,15 @@ public class ScannerFactoryTests : Node {
                 return new Node { Name = "L" };
             }, "X");
             di.Register(provider);
-            di.Register(Provider.Proxy(provider));
+            di.Register(Provider.TransientFactory(provider));
         });
         Assert.That(x, Is.EqualTo(0));
         Assert.That(c.Resolve<Node>("X").Name.ToString(), Is.EqualTo("L"));
-        var factory = c.Resolve<ITransient<Node>>("Factory:X");
-        Assert.That(factory.Create(), Is.Not.EqualTo(factory.Create()));
-        Assert.That(x, Is.EqualTo(3));
+        var factory1 = c.Resolve<ITransient<Node>>("Proxy:X");
+        var factory2 = c.Resolve<ITransient<Node>>("X");
+        Assert.That(factory1.Create(), Is.Not.EqualTo(factory1.Create()));
+        Assert.That(factory2.Create(), Is.Not.EqualTo(factory2.Create()));
+        Assert.That(x, Is.EqualTo(5));
     }
 
     [Configuration]
@@ -391,7 +432,7 @@ public class ScannerFactoryTests : Node {
     [Singleton]
     public class DemoSingleton2 {
         [Inject("MyService")] public ILazy<MyService> MyServiceName { get; set;  }
-        [Inject("Factory:MyService")] public ILazy<MyService> MyServiceFullName { get; set;  }
+        [Inject("Proxy:MyService")] public ILazy<MyService> MyServiceFullName { get; set;  }
         [Inject] public ILazy<MyService> MyService { get; set;  }
         [Inject] public ITransient<MyTransient> MyTransient { get; set;  }
     }
@@ -421,9 +462,12 @@ public class ScannerFactoryTests : Node {
         Assert.That(MyTransientFactoryClass.Gets, Is.EqualTo(0));
 
         var demoSingleton = c.Resolve<DemoSingleton2>();
-        Assert.That(demoSingleton.MyServiceName, Is.EqualTo(c.Resolve<ILazy<MyService>>("Factory:MyService")));
-        Assert.That(demoSingleton.MyServiceFullName, Is.EqualTo(c.Resolve<ILazy<MyService>>("Factory:MyService")));
-        Assert.That(demoSingleton.MyService, Is.EqualTo(c.Resolve<ILazy<MyService>>("Factory:MyService")));
+        Assert.That(demoSingleton.MyServiceName, Is.EqualTo(c.Resolve<ILazy<MyService>>("Proxy:MyService")));
+        Assert.That(demoSingleton.MyServiceName, Is.EqualTo(c.Resolve<ILazy<MyService>>("MyService")));
+        Assert.That(demoSingleton.MyServiceFullName, Is.EqualTo(c.Resolve<ILazy<MyService>>("Proxy:MyService")));
+        Assert.That(demoSingleton.MyServiceFullName, Is.EqualTo(c.Resolve<ILazy<MyService>>("MyService")));
+        Assert.That(demoSingleton.MyService, Is.EqualTo(c.Resolve<ILazy<MyService>>("Proxy:MyService")));
+        Assert.That(demoSingleton.MyService, Is.EqualTo(c.Resolve<ILazy<MyService>>("MyService")));
 
         var d = c.Resolve<DemoTransient2>();
 
@@ -459,26 +503,44 @@ public class ScannerFactoryTests : Node {
     public class Element4 : Control {
     }
 
+    public class Element5 : Button {
+    }
+
+    public class Element6 : HBoxContainer {
+    }
+
     [Attributes.Factory.Singleton<Node>(Lazy = true)]
-    public class Element1Factory : IFactory<Element1> {
+    public class ElementSingletonFactory : IFactory<Element1> {
         public Element1 Create() => new Element1();
     }
     
     [Attributes.Factory.Transient<Node2D>]
-    public class Element2Factory : IFactory<Element2> {
+    public class ElementTransientFactory : IFactory<Element2> {
         public Element2 Create() => new Element2();
     }
-    public class Element3Factory : IFactory<Element3> {
+    
+    [Attributes.Factory.Temporal<Button>]
+    public class ElementTemporalFactory : IFactory<Element5> {
+        public Element5 Create() => new Element5();
+    }
+    
+    public class ElementSingletonLazyConfigFactory : IFactory<Element3> {
         public Element3 Create() => new Element3();
     }
-    public class Element4Factory : IFactory<Element4> {
+    public class ElementTransientConfigFactory : IFactory<Element4> {
         public Element4 Create() => new Element4();
     }
 
+    public class ElementTemporalConfigFactory : IFactory<Element6> {
+        public Element6 Create() => new Element6();
+    }
+
+
     [Configuration]
     public class Config {
-        [Attributes.Factory.Singleton<Node>(Lazy = true)] IFactory<Node3D> Element3 => new Element3Factory();
-        [Attributes.Factory.Transient] IFactory<Control> Element4 => new Element4Factory();
+        [Attributes.Factory.Singleton<Node>(Lazy = true)] IFactory<Node3D> Element3 => new ElementSingletonLazyConfigFactory();
+        [Attributes.Factory.Transient] IFactory<Control> Element4 => new ElementTransientConfigFactory();
+        [Attributes.Factory.Temporal] IFactory<HBoxContainer> Element6 => new ElementTemporalConfigFactory();
     }
 
     [TestRunner.Test]
@@ -486,8 +548,9 @@ public class ScannerFactoryTests : Node {
         var c = new Container();
         c.Build(di => {
             di.Scan<Config>();
-            di.Scan<Element1Factory>();
-            di.Scan<Element2Factory>();
+            di.Scan<ElementSingletonFactory>();
+            di.Scan<ElementTransientFactory>();
+            di.Scan<ElementTemporalFactory>();
         });
         // Singleton
         Assert.That(c.Resolve<Node>(), Is.EqualTo(c.Resolve<Node>()));
@@ -500,15 +563,28 @@ public class ScannerFactoryTests : Node {
         Assert.That(c.Resolve<ITransient<Node2D>>().Create(), Is.TypeOf<Element2>());
         Assert.That(c.Resolve<ITransient<Node2D>>().Create(), Is.Not.EqualTo(c.Resolve<Node2D>()));
 
+        // Temporal
+        Assert.That(c.Resolve<ITemporal<Button>>(), Is.TypeOf<Proxy.Temporal<Element5>>());
+        Assert.That(c.Resolve<ITemporal<Button>>().Get(), Is.TypeOf<Element5>());
+        Assert.That(c.Resolve<ITemporal<Button>>().Get(), Is.EqualTo(c.Resolve<ITemporal<Button>>().Get()));
+
         // Singleton
         Assert.That(c.Resolve<Node3D>("Element3"), Is.EqualTo(c.Resolve<Node3D>("Element3")));
         Assert.That(c.Resolve<Node3D>("Element3"), Is.TypeOf<Element3>());
-        Assert.That(c.Resolve<ILazy<Node3D>>("Factory:Element3").Get(), Is.EqualTo(c.Resolve<Node3D>("Element3")));
+        Assert.That(c.TryResolve<ILazy<Node3D>>("Element3", out var _), Is.False);
+        Assert.That(c.TryResolve<ILazy<Node3D>>("Proxy:Element3", out var _), Is.False);
 
         // Transient
         Assert.That(c.Resolve<Control>("Element4"), Is.Not.EqualTo(c.Resolve<Control>("Element4")));
         Assert.That(c.Resolve<Control>("Element4"), Is.TypeOf<Element4>());
-        Assert.That(c.Resolve<ITransient<Control>>("Factory:Element4").Create(), Is.Not.EqualTo(c.Resolve<Control>("Element4")));
+        Assert.That(c.Resolve<ITransient<Control>>("Proxy:Element4").Create(), Is.Not.EqualTo(c.Resolve<Control>("Element4")));
+        Assert.That(c.Resolve<ITransient<Control>>("Element4").Create(), Is.Not.EqualTo(c.Resolve<Control>("Element4")));
+
+        // Temporal
+        Assert.That(c.Resolve<ITemporal<Control>>("Element6"), Is.EqualTo(c.Resolve<ITemporal<Control>>("Element6")));
+        Assert.That(c.Resolve<ITemporal<Control>>("Element6"), Is.TypeOf<Proxy.Temporal<Element6>>());
+        Assert.That(c.Resolve<ITemporal<Control>>("Element6").Get(), Is.TypeOf<Element6>());
+        Assert.That(c.Resolve<ITemporal<Control>>("Element6").Get(), Is.EqualTo(c.Resolve<ITemporal<Control>>("Element6").Get()));
 
 
     }

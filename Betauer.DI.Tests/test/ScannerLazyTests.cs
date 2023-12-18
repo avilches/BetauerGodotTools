@@ -233,7 +233,8 @@ public class ScannerLazyTests {
         Assert.That(Singleton.Instances, Is.EqualTo(1));
         Assert.That(c.GetProvider("Singleton") is SingletonProvider { IsInstanceCreated: true });
 
-        Assert.That(c.TryResolve<ILazy<Singleton>>("Factory:Singleton", out _), Is.True);
+        Assert.That(c.TryResolve<ILazy<Singleton>>("Proxy:Singleton", out _), Is.True);
+        Assert.That(c.TryResolve<ILazy<Singleton>>("Singleton", out _), Is.True);
 
     }
 
@@ -259,7 +260,8 @@ public class ScannerLazyTests {
         Assert.That(Singleton.Instances, Is.EqualTo(1));
 
         Assert.That(c.GetProvider("Singleton") is SingletonProvider { IsInstanceCreated: true });
-        Assert.That(c.TryResolve<ILazy<Singleton>>("Factory:Singleton", out _), Is.False);
+        Assert.That(c.TryResolve<ILazy<Singleton>>("Proxy:Singleton", out _), Is.False);
+        Assert.That(c.TryResolve<ILazy<Singleton>>("Singleton", out _), Is.False);
         
     }
 }

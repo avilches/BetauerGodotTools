@@ -1,3 +1,4 @@
+using System;
 using Betauer.Core;
 using Godot;
 
@@ -10,6 +11,8 @@ public abstract class ResourceLoad {
     public string Path { get; }
     public string Tag { get; }
     public Resource? Resource { get; protected set; }
+    public event Action OnLoad;
+    public event Action OnUnload;
 
     protected ResourceLoad(string path, string? tag = null) {
         Path = path;
@@ -28,6 +31,7 @@ public abstract class ResourceLoad {
         if (Resource != null && Resource == resource) return;
         Unload();
         Resource = resource;
+        OnLoad?.Invoke();
     }
 
     public bool IsLoaded() => Resource != null && Resource.IsInstanceValid();
@@ -35,5 +39,6 @@ public abstract class ResourceLoad {
     public void Unload() {
         Resource?.Dispose();
         Resource = null;
+        OnUnload?.Invoke();
     }
 }

@@ -23,20 +23,20 @@ public class SingletonAttribute : Attribute, IClassAttribute, IConfigurationMemb
             lazy: Lazy,
             metadata: Provider.FlagsToMetadata(Flags));
         builder.Register(provider);
-        if (Lazy) builder.Register(Provider.Proxy(provider)); // Non lazy singletons don't need the ILazy<T>
+        if (Lazy) builder.Register(Provider.Lazy(provider)); // Non lazy singletons don't need the ILazy<T>
     }
 
     public void Apply(object configuration, IGetter getter, Container.Builder builder) {
         var provider = new SingletonProvider(
-            GetType().IsGenericType ? GetType().GetGenericArguments()[0] : getter.Type, // Trick to get the <T> from SingletonAttribute<T>
-            getter.Type,
+            GetType().IsGenericType ? GetType().GetGenericArguments()[0] : getter.MemberType, // Trick to get the <T> from SingletonAttribute<T>
+            getter.MemberType,
             Scope,
             () => getter.GetValue(configuration)!,
             Name ?? getter.Name,
             Lazy,
             Provider.FlagsToMetadata(Flags));
         builder.Register(provider);
-        if (Lazy) builder.Register(Provider.Proxy(provider)); // Non lazy singletons don't need the ILazy<T>
+        if (Lazy) builder.Register(Provider.Lazy(provider)); // Non lazy singletons don't need the ILazy<T>
     }
 }
 

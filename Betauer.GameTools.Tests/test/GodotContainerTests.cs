@@ -14,7 +14,7 @@ public partial class GodotContainerTests : Node {
     [Configuration]
     public class GodotContainerConfiguration {
         [Singleton] public Node NoAdded => new() { Name = "NoAdded" };
-        [Singleton(Flags = "AddToTree")] public Node Added => new() { Name = "Added" };
+        [Singleton(Flags = "Autoload")] public Node Added => new() { Name = "Added" };
     }
 
     [Transient]

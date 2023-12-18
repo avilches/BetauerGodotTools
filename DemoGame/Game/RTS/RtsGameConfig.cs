@@ -5,7 +5,6 @@ using Betauer.Application.Lifecycle.Attributes;
 using Betauer.Application.Persistent;
 using Betauer.Application.Persistent.Json;
 using Betauer.DI.Attributes;
-using Betauer.DI.Holder;
 using Godot;
 using Veronenger.Game.RTS.HUD;
 using Veronenger.Game.RTS.World;
@@ -15,7 +14,7 @@ namespace Veronenger.Game.RTS;
 
 [Configuration]
 [Loader("GameLoader", Tag = "main")]
-[Scene.Transient<RtsGameView>(Name = "RtsGameViewFactory")]
+[Scene.Temporal<RtsGameView>(Name = "RtsGameView")]
 public class RtsMainResources {
 }
 
@@ -23,7 +22,7 @@ public class RtsMainResources {
 [Loader("GameLoader", Tag = "rts")]
 [Scene.Transient<Trees>(Name = "TreesFactory")]
 [Scene.Transient<RtsWorld>(Name = "RtsWorldFactory")]
-[Scene.Transient<RtsPlayerHud>(Name = "RtsPlayerHudFactory")]
+[Scene.Transient<RtsPlayerHud>(Name = "RtsPlayerHud")]
 [Resource<Texture2D>("Grasslands", "res://RTS/Assets/Textures/GrasslandsTextures.png")]
 public class RtsGameResources {
 	[Transient<RtsHud>] RtsHud RtsHudFactory => new RtsHud();
@@ -50,8 +49,6 @@ public class RtsGameConfig {
 		loader.Scan<IRtsSaveObject>();
 		return loader;
 	}
-	
-	[Singleton] public IMutableHolder<IGameView> RtsGameViewHolder => Holder.From<IGameView>("RtsGameViewFactory"); 
 }
 
 [Singleton]

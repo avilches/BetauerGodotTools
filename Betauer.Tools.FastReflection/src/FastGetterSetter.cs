@@ -23,9 +23,9 @@ public class FastGetterSetter : IGetterSetter {
         }
     }
 
-    public Type Type => Getter.Type;
+    public Type MemberType => Getter.MemberType;
     public string Name => Getter.Name;
-    public MemberInfo MemberInfo => Getter.Type;
+    public MemberInfo MemberInfo => Getter.MemberType;
     public Type DeclaringType => Getter.DeclaringType;
 
     public void SetValue(object instance, object? value) {

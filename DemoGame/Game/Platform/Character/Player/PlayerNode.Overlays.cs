@@ -54,7 +54,7 @@ public partial class PlayerNode {
 	}
 
 	private void AddCameraAndZoomTests(DebugOverlay overlay) {
-		var spawnPlayer = PlatformWorld.Get().GetNode<Marker2D>("SpawnPlayer");
+		var spawnPlayer = PlatformWorld.GetNode<Marker2D>("SpawnPlayer");
 		overlay
 			.Children()
 			.Add<HBoxContainer>(box => box.Children()

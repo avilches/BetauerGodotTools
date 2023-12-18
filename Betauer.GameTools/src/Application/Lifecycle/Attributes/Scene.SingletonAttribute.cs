@@ -48,13 +48,13 @@ public static partial class Scene {
             var provider = new SingletonProvider(typeof(T), typeof(T), Scope, create, Name, true, // must be lazy so the Loader can load the scene first
                 metadata);
             builder.Register(provider);
-            builder.Register(Provider.Proxy(provider));
+            builder.Register(Provider.Lazy(provider));
 
             builder.OnBuildFinished += () => {
                 var loader = builder.Container.Resolve<ResourceLoaderContainer>(loaderConfiguration.Name);
                 sceneFactory.SetResourceLoaderContainer(loader);
                 if (!Lazy) {
-                    loader.OnLoadFinished += () => provider.Get();
+                    sceneFactory.OnLoad += () => provider.Get();
                 }
             };
         }

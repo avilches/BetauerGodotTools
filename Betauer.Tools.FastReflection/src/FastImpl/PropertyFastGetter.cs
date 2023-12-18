@@ -14,12 +14,12 @@ public class PropertyFastGetter : IGetter {
             throw new ArgumentException($"PropertyInfo {propertyInfo.Name} doesn't have get", nameof(propertyInfo));
         PropertyInfo = propertyInfo;
         MemberInfo = propertyInfo;
-        Type = propertyInfo.PropertyType;
+        MemberType = propertyInfo.PropertyType;
         Name = propertyInfo.Name;
         DeclaringType = propertyInfo.DeclaringType;
         _getValue = CreateLambdaGetter(propertyInfo);
 #if DEBUG
-        _toString = Type.GetTypeName() + " " + Name +
+        _toString = MemberType.GetTypeName() + " " + Name +
                     (propertyInfo.GetMethod.IsPrivate ? " { private" : " { public") + " get; " +
                     (propertyInfo.SetMethod != null
                         ? propertyInfo.SetMethod.IsPrivate ? "private set; }" : "public set; }"
@@ -27,7 +27,7 @@ public class PropertyFastGetter : IGetter {
 #endif
     }
 
-    public Type Type { get; }
+    public Type MemberType { get; }
     public string Name { get; }
     public MemberInfo MemberInfo { get; }
     public PropertyInfo PropertyInfo { get; }

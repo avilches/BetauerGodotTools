@@ -4,8 +4,8 @@ namespace Betauer.Tools.FastReflection;
 
 public interface ISetter : IMember {
     public void SetValue(object instance, object? value);
-    bool CanSetValue(Type type) => Type.IsAssignableFrom(type);
-    bool CanSetValue(object instance) => Type.IsInstanceOfType(instance);
+    bool CanSetValue(Type type) => MemberType.IsAssignableFrom(type);
+    bool CanSetValue(object instance) => MemberType.IsInstanceOfType(instance);
 }
 
 public interface ISetter<out T> : ISetter {

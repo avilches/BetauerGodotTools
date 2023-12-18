@@ -17,7 +17,7 @@ public class ResourceLoaderContainer {
 
     public Func<Task>? Awaiter { get; private set; }
     public event Action<ResourceProgress>? OnLoadResourceProgress;
-    public event Action? OnLoadFinished;
+    // public event Action? OnLoadFinished;
 
     // Use ResourceFactory.SetResourceLoaderContainer() instead
     internal void Add(ResourceLoad resourceLoad) {
@@ -54,7 +54,7 @@ public class ResourceLoaderContainer {
             OnLoadResourceProgress?.Invoke(rp);
             progressAction?.Invoke(rp);
         });
-        OnLoadFinished?.Invoke();
+        // OnLoadFinished?.Invoke();
         var timeSpan = x.Elapsed;
         Logger.Debug("Total load time: {0}s {1:D3}ms", timeSpan.Seconds, timeSpan.Milliseconds);
         return x.Elapsed;

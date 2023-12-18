@@ -7,8 +7,8 @@ namespace Veronenger.Game.RTS.HUD;
 
 public partial class RtsHud : CanvasLayer, IInjectable {
     
-    [Inject("RtsPlayerHudFactory")] public RtsPlayerHud PlayerHud1 { get; set; }
-    [Inject("RtsPlayerHudFactory")] public RtsPlayerHud PlayerHud2 { get; set; }
+    [Inject("RtsPlayerHud")] public RtsPlayerHud PlayerHud1 { get; set; }
+    [Inject("RtsPlayerHud")] public RtsPlayerHud PlayerHud2 { get; set; }
 
     public SplitScreenContainer<RtsPlayerHud> SplitScreenContainer;
 

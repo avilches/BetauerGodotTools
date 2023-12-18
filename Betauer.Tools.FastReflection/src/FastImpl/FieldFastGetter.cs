@@ -12,16 +12,16 @@ public class FieldFastGetter : IGetter {
     public FieldFastGetter(FieldInfo fieldInfo) {
         FieldInfo = fieldInfo;
         MemberInfo = fieldInfo;
-        Type = fieldInfo.FieldType;
+        MemberType = fieldInfo.FieldType;
         Name = fieldInfo.Name;
         DeclaringType = fieldInfo.DeclaringType;
         _getValue = CreateLambdaGetter(fieldInfo);
 #if DEBUG
-        _toString = $"{(fieldInfo.IsPrivate ? "private " : "public ")}{Type.GetTypeName()} {Name};";
+        _toString = $"{(fieldInfo.IsPrivate ? "private " : "public ")}{MemberType.GetTypeName()} {Name};";
 #endif
     }
 
-    public Type Type { get; }
+    public Type MemberType { get; }
     public string Name { get; }
     public MemberInfo MemberInfo { get; }
     public FieldInfo FieldInfo { get; }

@@ -18,7 +18,7 @@ public class FastGetter : IGetter {
         };
     }
 
-    public Type Type => Getter.Type;
+    public Type MemberType => Getter.MemberType;
     public string Name => Getter.Name;
     public MemberInfo MemberInfo => Getter.MemberInfo;
     public Type DeclaringType => Getter.DeclaringType;

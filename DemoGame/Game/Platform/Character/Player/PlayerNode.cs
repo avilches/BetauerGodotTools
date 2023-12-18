@@ -13,7 +13,6 @@ using Betauer.Core.Time;
 using Betauer.DI;
 using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
-using Betauer.DI.Holder;
 using Betauer.Flipper;
 using Betauer.FSM.Sync;
 using Betauer.Input;
@@ -83,8 +82,11 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 	[Inject] private PlatformConfig PlatformConfig { get; set; }
 	[Inject] private ITransient<StageCameraController> StageCameraControllerFactory { get; set; }
 	[Inject] private CameraContainer CameraContainer { get; set; }
-	[Inject("PlatformWorldHolder")] private IHolder<PlatformWorld> PlatformWorld { get; set; } 
-	[Inject("HudCanvasHolder")] private IHolder<PlatformHud> HudCanvas { get; set; } 
+	
+	[Inject] private ITemporal<PlatformGameView> PlatformGameView { get; set; }
+	[Inject] private ITemporal<PlatformHud> PlatformHud { get; set; }
+	[Inject] private PlatformWorld PlatformWorld => (PlatformWorld)PlatformGameView.Get().GetWorld(); 
+	[Inject] private PlatformHud HudCanvas => PlatformHud.Get();  
 	
 	[Inject] private SceneTree SceneTree { get; set; }
 	[Inject] private EventBus EventBus { get; set; }
@@ -217,8 +219,8 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 		Inventory.OnUnequip += item => { _characterWeaponController.Unequip(); };
 		Ready += () => {
 			// Needs to be delayed until HudScene is loaded and ready
-			Inventory.OnUpdateInventory += (e) => HudCanvas.Get().UpdateInventory(this, e);
-			Inventory.OnSlotAmountUpdate += (e) => HudCanvas.Get().UpdateAmount(this, e);
+			Inventory.OnUpdateInventory += (e) => HudCanvas.UpdateInventory(this, e);
+			Inventory.OnSlotAmountUpdate += (e) => HudCanvas.UpdateAmount(this, e);
 			Inventory.TriggerRefresh();
 		};
 	}
@@ -226,7 +228,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 	private void ConfigureHud() {
 		Ready += () => {
 			// Needs to be delayed until HudScene is loaded and PlayerGameObject is set with LinkNode
-			PlayerGameObject.OnHealthUpdate += (phe) => HudCanvas.Get().UpdateHealth(this, phe);
+			PlayerGameObject.OnHealthUpdate += (phe) => HudCanvas.UpdateHealth(this, phe);
 			PlayerGameObject.TriggerRefresh();
 		};
 	}
@@ -360,7 +362,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 		// if (collision.IsColliding) return;
 		// var dropVelocity = new Vector2(MotionX + (PlatformBody.FacingRight * PlayerConfig.DropLateralSpeed), MotionY);
 		var dropVelocity = new Vector2(LateralState.FacingRight * Math.Max(Math.Abs(MotionX), PlayerConfig.DropLateralSpeed), MotionY);
-		PlatformWorld.Get().PlayerDrop(item, Marker2D.GlobalPosition, dropVelocity);
+		PlatformWorld.PlayerDrop(item, Marker2D.GlobalPosition, dropVelocity);
 		Inventory.Drop();
 	}
 
@@ -464,7 +466,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 		_fsm.State(PlayerState.Idle)
 			.OnInput(InventoryHandler)
 			.OnInput(e => {
-				if (e.IsKeyPressed(Key.V)) PlatformWorld.Get().InstantiateNewZombie();
+				if (e.IsKeyPressed(Key.V)) PlatformWorld.InstantiateNewZombie();
 			})
 			.Enter(() => {
 				if (AnimationShoot.IsPlaying()) AnimationIdle.Queue();
@@ -578,7 +580,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 			var bulletPosition = weapon.Config.ProjectileStartPosition * new Vector2(LateralState.FacingRight, 1);
 			var bulletDirection = new Vector2(LateralState.FacingRight, 0);
 			var hits = 0;
-			var bullet = PlatformWorld.Get().NewBullet();
+			var bullet = PlatformWorld.NewBullet();
 			Inventory.UpdateWeaponRangeAmmo(weapon, -1);
 			bullet.ShootFrom(weapon, CharacterBody2D.ToGlobal(bulletPosition), bulletDirection,
 				CollisionLayerConfig.PlayerConfigureBulletRaycast,

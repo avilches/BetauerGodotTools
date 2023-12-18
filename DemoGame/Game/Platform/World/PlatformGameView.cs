@@ -26,8 +26,6 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 	[Inject] private SceneTree SceneTree { get; set; }
 	[Inject] private GameObjectRepository GameObjectRepository { get; set; }
 	[Inject] private JsonGameLoader<PlatformSaveGameMetadata> PlatformGameObjectLoader { get; set; }
-	[Inject] private ITransient<PlatformWorld> PlatformWorldFactory { get; set; }
-	[Inject] private ITransient<PlatformHud> PlatformHudFactory { get; set; }
 
 	[Inject] private IMain Main { get; set; }
 	[Inject] private ILazy<ProgressScreen> ProgressScreenLazy { get; set; }
@@ -41,14 +39,14 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 
 	public const int MaxPlayer = 2;
 
-	public PlatformHud PlatformHud { get; private set; } = null!;
-	public PlatformWorld PlatformWorld { get; private set; } = null!;
-	private int ActivePlayers => PlatformWorld != null ? PlatformWorld.Players.Count : 0;
+	[Inject] public ITemporal<PlatformHud> PlatformHud { get; private set; } = null!;
+	[Inject] public ITemporal<PlatformWorld> PlatformWorld { get; private set; } = null!;
+	private int ActivePlayers => PlatformWorld.HasValue() ? PlatformWorld.Get().Players.Count : 0;
 	private bool _allowAddingP2 = true;
 	private void AllowAddingP2() => _allowAddingP2 = true;
 	private void NoAddingP2() => _allowAddingP2 = false;
 
-	public Node GetWorld() => PlatformWorld;
+	public Node GetWorld() => PlatformWorld.Get();
 
 	public void PostInject() {
 		PlayerActionsContainer.Disable(); // The real actions are cloned per player in player.Connect()
@@ -102,7 +100,7 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 		InitializeWorld();
 		CreatePlayer1(UiActionsContainer.CurrentJoyPad);
 		AllowAddingP2();				
-		PlatformWorld.StartNewGame();
+		PlatformWorld.Get().StartNewGame();
 		// _cameraController.WithMouseButton(MouseButton.Middle).Attach(_camera2D);
 	}
 
@@ -132,7 +130,7 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 		LoadPlayer1(UiActionsContainer.CurrentJoyPad, consumer);
 		if (consumer.Player1 == null) AllowAddingP2();
 		else NoAddingP2();
-		PlatformWorld.LoadGame(consumer);
+		PlatformWorld.Get().LoadGame(consumer);
 		HideLoading();
 	}
 
@@ -169,14 +167,10 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 
 	public void InitializeWorld() {
 		JoypadPlayersMapping.RemoveAllPlayers();
-
-		PlatformWorld = PlatformWorldFactory.Create();
-
-		PlatformHud = PlatformHudFactory.Create();
-		AddChild(PlatformHud);
+		AddChild(PlatformHud.Get());
 		
-		_splitViewport.SetCommonWorld(PlatformWorld);
-		_splitViewport.OnChange += (split) => PlatformHud.SplitScreenContainer.Split = split;
+		_splitViewport.SetCommonWorld(PlatformWorld.Get());
+		_splitViewport.OnChange += (split) => PlatformHud.Get().SplitScreenContainer.Split = split;
 		_splitViewport.Refresh();
 		
 		GetTree().Root.SizeChanged += () => _splitViewport.Refresh();
@@ -184,14 +178,14 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 
 	public PlayerNode CreatePlayer1(int joypad) {
 		var playerMapping = JoypadPlayersMapping.AddPlayer().SetJoypadId(joypad);
-		var player = PlatformWorld.AddNewPlayer(playerMapping);
+		var player = PlatformWorld.Get().AddNewPlayer(playerMapping);
 		player.SetCamera(_splitViewport.Camera1);
 		return player;
 	}
 
 	public PlayerNode LoadPlayer1(int joypad, PlatformSaveGameConsumer consumer) {
 		var playerMapping = JoypadPlayersMapping.AddPlayer().SetJoypadId(joypad);
-		var player = PlatformWorld.LoadPlayer(playerMapping, consumer.Player0, consumer.Inventory0);
+		var player = PlatformWorld.Get().LoadPlayer(playerMapping, consumer.Player0, consumer.Inventory0);
 		player.SetCamera(_splitViewport.Camera1);
 		return player;
 	}
@@ -199,7 +193,7 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 	public PlayerNode CreatePlayer2(int joypad) {
 		if (JoypadPlayersMapping.Players >= MaxPlayer) throw new Exception("No more players allowed");
 		var playerMapping = JoypadPlayersMapping.AddPlayer().SetJoypadId(joypad);
-		var player = PlatformWorld.AddNewPlayer(playerMapping);
+		var player = PlatformWorld.Get().AddNewPlayer(playerMapping);
 		player.SetCamera(_splitViewport.Camera2);
 		return player;
 	}
@@ -215,15 +209,15 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 
 		} else if (ActivePlayers == 2) {
 
-			var p1Stage = PlatformWorld.Players[0].StageCameraController?.CurrentStage;
-			var p2Stage = PlatformWorld.Players[1].StageCameraController?.CurrentStage;
+			var p1Stage = PlatformWorld.Get().Players[0].StageCameraController?.CurrentStage;
+			var p2Stage = PlatformWorld.Get().Players[1].StageCameraController?.CurrentStage;
 			if (p1Stage == null || p2Stage == null) return;
 			var sameStage = p1Stage == p2Stage;
 			if (!sameStage) {
 				_splitViewport.Split = true;
 			} else {
-				var p1Pos = PlatformWorld.Players[0].Marker2D.GlobalPosition;
-				var p2Pos = PlatformWorld.Players[1].Marker2D.GlobalPosition;
+				var p1Pos = PlatformWorld.Get().Players[0].Marker2D.GlobalPosition;
+				var p2Pos = PlatformWorld.Get().Players[1].Marker2D.GlobalPosition;
 				var distanceTo = p1Pos.DistanceTo(p2Pos);
 
 				if (_splitViewport.Split) {
@@ -271,7 +265,7 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 		// Wait one frame before free the scene. Not waiting one frame will cause canvas modulate will not shown (when LoadInGame)
 		// and some collisions will not work because the unparented nodes are still in the tree and the physics engine will try to use them
 		await this.AwaitPhysicsFrame();
-		PlatformWorld.Free();
+		PlatformWorld.Get().Free();
 	}
 	
 	private void ConfigureDebugOverlays() {

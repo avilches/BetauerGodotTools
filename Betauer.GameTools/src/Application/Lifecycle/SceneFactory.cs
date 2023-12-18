@@ -19,16 +19,14 @@ public class SceneFactory<T> : ResourceLoad, IFactory<T> where T : Node {
     public PackedScene Scene => (PackedScene)Resource!;
 
     public T Create() {
-        if (Scene == null) {
-            throw new Exception($"Can't instantiate scene from null resource: {Path}. Load the tag '{Tag}' first");
-        }
         try {
+            if (Scene == null) throw new Exception($"Can't instantiate scene without resource: {Path}. Load the tag '{Tag}' first");
             var instance = Scene.Instantiate<T>();
             NodePathScanner.ScanAndInject(instance);
             OnInstantiate?.Invoke(instance);
             return instance;
-        } catch (Exception) {
-            Logger.Error("Error instantiating scene: {0} Tag: {1}",Path, Tag);
+        } catch (Exception e) {
+            Logger.Error("Error instantiating scene {0} Tag {1}:",Path, Tag, e.Message);
             throw;
         }
     }

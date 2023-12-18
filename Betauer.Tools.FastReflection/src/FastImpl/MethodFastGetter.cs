@@ -14,7 +14,7 @@ public class MethodFastGetter : IGetter {
             throw new ArgumentException("Getter method must have 0 parameters and return non void type");
         MethodInfo = methodInfo;
         MemberInfo = methodInfo;
-        Type = methodInfo.ReturnType;
+        MemberType = methodInfo.ReturnType;
         Name = methodInfo.Name;
         DeclaringType = methodInfo.DeclaringType;
         _fastMethodInfo = new FastMethodInfo(methodInfo);
@@ -24,7 +24,7 @@ public class MethodFastGetter : IGetter {
 #endif
     }
 
-    public Type Type { get; }
+    public Type MemberType { get; }
     public string Name { get; }
     public MemberInfo MemberInfo { get; }
     public MethodInfo MethodInfo { get; }

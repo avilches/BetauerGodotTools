@@ -31,7 +31,7 @@ public static partial class Factory {
             var provider = new SingletonProvider(publicType, factoryType, Scope, create, Name, Lazy, Provider.FlagsToMetadata(Flags));
             builder.RegisterFactory(factory);
             builder.Register(provider);
-            if (Lazy) builder.Register(Provider.Proxy(provider)); // Non lazy singletons don't need the ILazy<T>
+            if (Lazy) builder.Register(Provider.Lazy(provider)); // Non lazy singletons don't need the ILazy<T>
         }
 
         
@@ -42,12 +42,12 @@ public static partial class Factory {
             var factoryType = factory.GetType().FindGenericsFromInterfaceDefinition(typeof(IFactory<>))[0];     // Node3D
             var publicType = GetType().IsGenericType                                                           
                 ? GetType().GetGenericArguments()[0] // Trick to get the <T> from SingletonAttribute<T>         // Node because [Factory.Singleton<Node>]    
-                : getter.Type.FindGenericsFromInterfaceDefinition(typeof(IFactory<>))[0];                       // Node3D because IFactory<Node3D> Element3                                              
+                : getter.MemberType.FindGenericsFromInterfaceDefinition(typeof(IFactory<>))[0];                       // Node3D because IFactory<Node3D> Element3                                              
             var create = FactoryTools.From(factory);
             var provider =  new SingletonProvider(publicType, factoryType, Scope, create, Name ?? getter.Name, Lazy, Provider.FlagsToMetadata(Flags));
             builder.RegisterFactory(factory);
             builder.Register(provider);
-            if (Lazy) builder.Register(Provider.Proxy(provider)); // Non lazy singletons don't need the ILazy<T>
+            if (Lazy) builder.Register(Provider.Lazy(provider)); // Non lazy singletons don't need the ILazy<T>
         }
     }
 

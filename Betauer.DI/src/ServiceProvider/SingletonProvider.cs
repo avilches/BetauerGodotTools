@@ -9,7 +9,7 @@ public class SingletonProvider : Provider {
     private static readonly Logger Logger = LoggerFactory.GetLogger<SingletonProvider>();
     private readonly Func<object> _factory;
     public override Lifetime Lifetime => Lifetime.Singleton;
-    public bool IsInstanceCreated { get; private set; }
+    public bool IsInstanceCreated => Instance != null;
     public bool Lazy { get; }
     public object? Instance { get; private set; }
     public string? Scope { get; }
@@ -21,24 +21,20 @@ public class SingletonProvider : Provider {
     }
     
     public override object Get() {
-        if (!IsInstanceCreated) {
-            Container.WithContext(context => Resolve(context));
-        }
-        return Instance!;
+        return Instance == null ? Container.FromContext(Resolve) : Instance!;
     }
 
     public override object Resolve(ResolveContext context) {
-        if (IsInstanceCreated) return Instance!;
+        if (Instance != null) return Instance!;
         if (context.TryGetSingletonFromCache(this, out var singleton)) {
             Logger.Debug("Get from context {0} {1} exposed as {2}: {3:X}", Lifetime.Singleton, singleton.GetType().GetTypeName(), PublicType.GetTypeName(), singleton.GetHashCode());
             return singleton;
         }
         Instance = _factory.Invoke();
-        if (Instance == null) throw new NullReferenceException($"Singleton factory returned null for {PublicType.GetTypeName()} {Name}");
+        if (Instance == null) throw new NullReferenceException($"Singleton factory returned null for {RealType.GetTypeName()} {Name}");
         Logger.Debug("Creating {0}:{1}. Name: \"{2}\". HashCode: {3:X}", Lifetime.Singleton, Instance.GetType().GetTypeName(), Name, Instance.GetHashCode());
         context.NewSingleton(this, Instance);
         context.InjectServices(Lifetime.Singleton, Instance);
-        IsInstanceCreated = true;
         return Instance;
     }
 }

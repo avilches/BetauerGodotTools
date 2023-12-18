@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Betauer.DI.Attributes;
 using Betauer.DI.Exceptions;
+using Betauer.DI.Factory;
 using Betauer.DI.ServiceProvider;
 using Betauer.Tools.Logging;
 using Betauer.TestRunner;
@@ -665,11 +666,11 @@ public class ScannerBasicTests : Node {
         var singletons = new List<object>();
         var transients = new List<object>();
         var c = new Container();
-        c.OnCreated += (providerResolved) => {
-            if (providerResolved.Lifetime == Lifetime.Singleton) {
-                singletons.Add(providerResolved.Instance);
+        c.OnInstanceCreated += (instanceCreatedEvent) => {
+            if (instanceCreatedEvent.Lifetime == Lifetime.Singleton) {
+                singletons.Add(instanceCreatedEvent.Instance);
             } else {
-                transients.Add(providerResolved.Instance);
+                transients.Add(instanceCreatedEvent.Instance);
             }
         };
         c.Build(di => {
@@ -688,7 +689,80 @@ public class ScannerBasicTests : Node {
         Assert.That(transients.Count, Is.EqualTo(2));
         Assert.That(s, Is.EqualTo(transients[0]));
         Assert.That(s.Transient, Is.EqualTo(transients[1]));
-
     }
+
+    [Temporal<Node>]
+    class Temporal1 : Node {
+    }
+    
+    [Temporal(Flags = "a")]
+    class Temporal2 : Node {
+    }
+
+    [TestRunner.Test(Description = "Temporal by class attribute")]
+    public void TemporalTest() {
+        var c = new Container();
+        c.Build(di => {
+            di.Scan<Temporal1>();
+            di.Scan<Temporal2>();
+        });
+        c.OnInstanceCreated += (instanceCreatedEvent) => {
+            
+        };
+        Assert.Throws<ServiceNotFoundException>(() => c.Resolve<Temporal1>());
+        Assert.Throws<ServiceNotFoundException>(() => c.Resolve<Temporal2>());
+        Assert.Throws<ServiceNotFoundException>(() => c.Resolve<Node>());
+        var proxy1 = c.Resolve<ITemporal<Node>>();
+        var proxy2 = c.Resolve<ITemporal<Temporal2>>();
+        Assert.That(proxy1, Is.Not.EqualTo(proxy2));
+        
+        Assert.That(proxy1.HasValue(), Is.False);
+        Assert.That(proxy2.HasValue(), Is.False);
+
+        Assert.That(proxy1.Get(), Is.EqualTo(proxy1.Get()));
+        Assert.That(proxy2.Get(), Is.EqualTo(proxy2.Get()));
+    }
+
+    [Temporal<Node>]
+    class TemporalConfig1 : Node {
+    }
+    
+    [Temporal(Flags = "a")]
+    class TemporalConfig2 : Node {
+    }
+    
+    [Configuration]
+    class TemporalConfig {
+        [Temporal<Node>] public TemporalConfig1 Temporal1 => new TemporalConfig1();
+        [Temporal] public TemporalConfig2 Temporal2 => new TemporalConfig2();
+    }
+
+    [TestRunner.Test(Description = "Temporal by configuration class attribute with name")]
+    public void TemporalConfigTest() {
+        var c = new Container();
+        c.Build(di => {
+            di.Scan<TemporalConfig>();
+        });
+        var calls = 0;
+        c.OnInstanceCreated += (instanceCreatedEvent) => {
+            calls++;
+            Assert.That(instanceCreatedEvent.Lifetime, Is.EqualTo(Lifetime.Transient));
+            
+        };
+        Assert.Throws<ServiceNotFoundException>(() => c.Resolve<TemporalConfig1>("Temporal1"));
+        Assert.Throws<ServiceNotFoundException>(() => c.Resolve<TemporalConfig2>("Temporal2"));
+        Assert.Throws<ServiceNotFoundException>(() => c.Resolve<Node>("Temporal1"));
+        var proxy1 = c.Resolve<ITemporal<Node>>("Temporal1");
+        var proxy2 = c.Resolve<ITemporal<TemporalConfig2>>("Temporal2");
+        Assert.That(proxy1, Is.Not.EqualTo(proxy2));
+        
+        Assert.That(proxy1.HasValue(), Is.False);
+        Assert.That(proxy2.HasValue(), Is.False);
+
+        Assert.That(proxy1.Get(), Is.EqualTo(proxy1.Get()));
+        Assert.That(proxy2.Get(), Is.EqualTo(proxy2.Get()));
+        Assert.That(calls, Is.EqualTo(2));
+    }
+
 
 }

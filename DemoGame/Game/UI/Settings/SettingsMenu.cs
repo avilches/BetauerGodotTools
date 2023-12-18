@@ -155,13 +155,13 @@ public partial class SettingsMenu : CanvasLayer {
 		foreach (Node child in _keyboardControls.GetChildren()) child.QueueFree();
 			
 		// TODO: i18n
-		Container.GetAllInstances<AxisAction>().ForEach(axisAction => {
+		Container.ResolveAll<AxisAction>().ForEach(axisAction => {
 			if (axisAction.Negative.SaveSetting != null) {
 				// AddConfigureControl(axisAction.Name, axisAction);
 			}
 		});
 		
-		Container.GetAllInstances<InputAction>().ForEach(inputAction => {
+		Container.ResolveAll<InputAction>().ForEach(inputAction => {
 			if (inputAction.SaveSetting != null) {
 				if (inputAction.Keys.Count > 0) {
 					AddConfigureControl(inputAction.Name, inputAction, true);

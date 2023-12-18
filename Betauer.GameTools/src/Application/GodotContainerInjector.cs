@@ -18,7 +18,7 @@ public static class GodotContainerInjector {
         public const string Autoload = "Autoload";
 
         public static void ValidateAutoloadFlag(Provider provider) {
-            if (!provider.RealType.IsSubclassOf(typeof(Node))) {
+            if (provider.RealType != typeof(Node) && !provider.RealType.IsSubclassOf(typeof(Node))) {
                 throw new Exception($"Error in {Lifetime.Singleton}:{provider.RealType.GetTypeName()}. The {nameof(Autoload)} flag can only be used with Nodes, but {provider.RealType} is not a Node.");
             }
         }
@@ -32,9 +32,9 @@ public static class GodotContainerInjector {
         };
         
         // Auto add singleton Node to the scene tree root if they have the "Autoload" flag enabled
-        container.OnCreated += providerResolved => {
-            if (providerResolved is { Instance: Node node } && 
-                (autoAddNodeSingletonsToTree || providerResolved.GetFlag(Flags.Autoload)) && 
+        container.OnInstanceCreated += instanceCreatedEvent => {
+            if (instanceCreatedEvent is { Instance: Node node } && 
+                (autoAddNodeSingletonsToTree || instanceCreatedEvent.GetFlag(Flags.Autoload)) && 
                  node.GetParent() == null) {
                 sceneTree.Root.AddChildDeferred(node);
             }

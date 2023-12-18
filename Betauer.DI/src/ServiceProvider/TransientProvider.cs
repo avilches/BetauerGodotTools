@@ -22,7 +22,7 @@ public class TransientProvider : Provider {
         if (context == null) throw new ArgumentNullException(nameof(context));
         context.PushTransient(PublicType); // This call could throw a CircularDependencyException
         var instance = _factory.Invoke();
-        if (instance == null) throw new NullReferenceException($"Transient factory returned null for {PublicType.GetTypeName()} {Name}");
+        if (instance == null) throw new NullReferenceException($"Transient factory returned null for {RealType.GetTypeName()} {Name}");
         Logger.Debug("Creating {0}:{1}. Name: \"{2}\". HashCode: {3:X}", Lifetime.Transient, instance.GetType().GetTypeName(), Name, instance.GetHashCode());
         context.NewTransient(this, instance);
         context.InjectServices(Lifetime, instance);

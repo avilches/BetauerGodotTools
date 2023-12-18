@@ -10,8 +10,8 @@ namespace Veronenger.Game.Platform.HUD;
 
 public partial class PlatformHud : CanvasLayer, IInjectable {
     
-    [Inject("PlayerHudFactory")] public PlayerHud PlayerHud1 { get; set; }
-    [Inject("PlayerHudFactory")] public PlayerHud PlayerHud2 { get; set; }
+    [Inject("PlayerHud")] public PlayerHud PlayerHud1 { get; set; }
+    [Inject("PlayerHud")] public PlayerHud PlayerHud2 { get; set; }
 
     public SplitScreenContainer<PlayerHud> SplitScreenContainer;
 

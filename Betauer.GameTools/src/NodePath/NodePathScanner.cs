@@ -39,41 +39,41 @@ public static class NodePathScanner {
         // [NodePath("path/to/node")
         // private Sprite2D sprite = this.GetNode<Sprite2D>("path/to/node");
         var node = target.GetNode(path);
-        string FieldInfo() => $"[NodePath(\"{path}\")] {getterSetter.Type.GetTypeName()} {getterSetter.Name}";
+        string FieldInfo() => $"[NodePath(\"{path}\")] {getterSetter.MemberType.GetTypeName()} {getterSetter.Name}";
 
         if (node == null) {
             if (nullable) return;
             throw new NodePathFieldException(getterSetter.Name, target, $"Path returns a null value for field {FieldInfo()}, class {target.GetType().Name}");
         }
         
-        if (getterSetter.Type.IsArray) {
-            var elementType = getterSetter.Type.GetElementType()!;
+        if (getterSetter.MemberType.IsArray) {
+            var elementType = getterSetter.MemberType.GetElementType()!;
             var nodeArray = node.GetChildren().Where(child => elementType.IsInstanceOfType(child)).ToArray();
             var elementArray = Array.CreateInstance(elementType, nodeArray.Length);
             Array.Copy(nodeArray, elementArray, nodeArray.Length);                
             getterSetter.SetValue(target, elementArray);
                 
-        } else if (getterSetter.Type.ImplementsInterface(typeof(IList<>))) {
-            var valueType = getterSetter.Type.GenericTypeArguments[0];
-            var list = (IList)Activator.CreateInstance(getterSetter.Type)!;
+        } else if (getterSetter.MemberType.ImplementsInterface(typeof(IList<>))) {
+            var valueType = getterSetter.MemberType.GenericTypeArguments[0];
+            var list = (IList)Activator.CreateInstance(getterSetter.MemberType)!;
             foreach (var child in node.GetChildren()) {
                 if (valueType == null || valueType.IsInstanceOfType(child)) list.Add(child);
             }
             getterSetter.SetValue(target, list);
 
-        } else if (getterSetter.Type.ImplementsInterface(typeof(IDictionary<,>))) {
-            var keyType = getterSetter.Type.GenericTypeArguments[0];
+        } else if (getterSetter.MemberType.ImplementsInterface(typeof(IDictionary<,>))) {
+            var keyType = getterSetter.MemberType.GenericTypeArguments[0];
             if (keyType != typeof(string)) 
-                throw new NodePathFieldException(getterSetter.Name, target, $"IDictionary compatible type {node.GetType().Name} for field {FieldInfo()}, class {target.GetType().Name} only accepts string as key: {getterSetter.Type.GenericTypeArguments[0]}");
+                throw new NodePathFieldException(getterSetter.Name, target, $"IDictionary compatible type {node.GetType().Name} for field {FieldInfo()}, class {target.GetType().Name} only accepts string as key: {getterSetter.MemberType.GenericTypeArguments[0]}");
                 
-            var valueType = getterSetter.Type.GenericTypeArguments[1];
-            IDictionary dictionary = (IDictionary)Activator.CreateInstance(getterSetter.Type)!;
+            var valueType = getterSetter.MemberType.GenericTypeArguments[1];
+            IDictionary dictionary = (IDictionary)Activator.CreateInstance(getterSetter.MemberType)!;
             foreach (var child in node.GetChildren()) {
                 if (valueType == null || valueType.IsInstanceOfType(child)) dictionary[(string)child.Name] = child; 
             }
             getterSetter.SetValue(target, dictionary);
 
-        } else if (getterSetter.Type.IsInstanceOfType(node)) {
+        } else if (getterSetter.MemberType.IsInstanceOfType(node)) {
             getterSetter.SetValue(target, node);
                 
         } else {
