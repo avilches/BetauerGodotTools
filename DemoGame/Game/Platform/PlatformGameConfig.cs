@@ -31,7 +31,7 @@ public class PlatformMainResources {
 [Scene.Temporal<PlatformWorld>(Name = "PlatformWorld")]
 [Scene.Transient<PlayerHud>(Name = "PlayerHud")]
 [Scene.Transient<InventorySlot>(Name = "InventorySlot")]
-[Scene.NodePool<PlayerNode>(Name = "PlayerPool")]
+[Scene.Transient<PlayerNode>(Name = "Player")]
 [Scene.NodePool<PickableItemNode>(Name = "PickableItemPool")]
 [Scene.NodePool<ProjectileTrail>(Name = "ProjectilePool")]
 [Scene.NodePool<ZombieNode>(Name = "ZombiePool")]

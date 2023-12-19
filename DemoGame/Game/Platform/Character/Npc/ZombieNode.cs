@@ -1,6 +1,7 @@
 using System;
 using Betauer.Animation;
 using Betauer.Animation.AnimationPlayer;
+using Betauer.Application.Lifecycle.Pool;
 using Betauer.Application.Monitor;
 using Betauer.Application.Persistent;
 using Betauer.Bus;
@@ -518,7 +519,10 @@ public partial class ZombieNode : NpcNode, IInjectable {
 			.Build();
 
 		_fsm.State(ZombieState.End)
-			.Enter(() => GameObjectRepository.Remove(NpcGameObject))
+			.Enter(() => {
+				this.Release();
+				GameObjectRepository.Remove(NpcGameObject);
+			})
 			.If(() => true).Set(ZombieState.Idle)
 			.Build();
 

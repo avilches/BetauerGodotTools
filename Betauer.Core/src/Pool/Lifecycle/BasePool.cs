@@ -21,7 +21,7 @@ public abstract class BasePool<T> where T : class {
 
     protected abstract T Create();
     protected abstract bool IsBusy(T node);
-    protected virtual T OnGet(T element) => element;
+    protected abstract T OnGet(T element);
     protected abstract bool IsInvalid(T element);
     protected abstract bool MustBePurged(IReadOnlyList<T> pool);
 

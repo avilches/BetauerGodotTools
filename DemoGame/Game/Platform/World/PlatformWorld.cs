@@ -23,7 +23,7 @@ public partial class PlatformWorld : Node {
 	[Inject] private PlatformConfig PlatformConfig { get; set; }
 	
 	[Inject] private ITransient<StageController> StageControllerFactory { get; set; }
-	[Inject] private NodePool<PlayerNode> PlayerPool { get; set; }
+	[Inject] private ITransient<PlayerNode> Player { get; set; }
 	[Inject] private NodePool<PickableItemNode> PickableItemPool { get; set; }
 	[Inject] private NodePool<ProjectileTrail> ProjectilePool { get; set; }
 	[Inject] private NodePool<ZombieNode> ZombiePool { get; set; }
@@ -201,7 +201,7 @@ public partial class PlatformWorld : Node {
 	}
 
 	private PlayerNode CreatePlayerNode(PlayerGameObject playerGameObject, PlayerMapping playerMapping) {
-		var playerNode = PlayerPool.Get();
+		var playerNode = Player.Create();
 		playerGameObject.LinkNode(playerNode);
 		playerNode.SetPlayerMapping(playerMapping);
 		Players.Add(playerNode);

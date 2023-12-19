@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Betauer.Application.Lifecycle.Pool;
 using Betauer.Core;
 using Betauer.Core.Nodes;
 using Betauer.DI;
@@ -78,11 +79,11 @@ public partial class ProjectileTrail : Node, IInjectable {
 
 	public override void _PhysicsProcess(double delta) {
 		if (_queueEnd) {
-			this.RemoveFromParent();
+			this.Release();
 		} else {
 			var currentPosition = Sprite2D.Position;
 			if (IsTooFar(currentPosition)) {
-				this.RemoveFromParent();
+				this.Release();
 				return;
 			}
 			var newPosition = currentPosition + _velocity * (float)delta;

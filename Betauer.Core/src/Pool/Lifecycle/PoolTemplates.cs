@@ -13,6 +13,7 @@ public static class PoolTemplates {
         new PoolTemplate<T>.Builder()
             .Factory(factory)
             .BusyIf(e => e.IsBusy())
+            .OnGet(e => (T)e.OnGet())
             .InvalidIf(e => e.IsInvalid())
             .PurgeIf(purgeIf ?? ((_) => false))
             .Build();
