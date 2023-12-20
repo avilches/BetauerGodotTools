@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using Betauer.Application.Lifecycle.Pool;
 using Betauer.Core;
+using Betauer.Core.Pool;
 using Betauer.DI.Attributes;
 using Betauer.DI.Exceptions;
 using Betauer.DI.ServiceProvider;
@@ -35,12 +35,6 @@ public static partial class Scene {
                         { "Flags", Flags },
                     })} needs the attribute {typeof(LoaderAttribute).FormatAttribute()} in the same class. Type: {configuration.GetType()}");
             }
-            var poolContainerAttribute = configuration.GetType().GetAttribute<PoolContainerAttribute>()!;
-            if (poolContainerAttribute == null) {
-                throw new InvalidAttributeException(
-                    $"Attribute {typeof(PoolContainerAttribute).FormatAttribute()} needs to be used in a class with attribute {typeof(NodePoolAttribute<T>).FormatAttribute()}");
-            }
-            
             var sceneFactory = new SceneFactory<T>(Path, Tag ?? loaderConfiguration.Tag);
             sceneFactory.OnInstantiate += instance => {
                 builder.Container.InjectServices(instance);
@@ -50,9 +44,6 @@ public static partial class Scene {
             builder.OnBuildFinished += () => {
                 var loader = builder.Container.Resolve<ResourceLoaderContainer>(loaderConfiguration.Name);
                 sceneFactory.SetResourceLoaderContainer(loader);
-
-                var poolContainer = builder.Container.Resolve<IPoolContainer>(poolContainerAttribute.Name);
-                nodePool.SetPoolContainer(poolContainer);
             };
         }
     }

@@ -28,11 +28,14 @@ public abstract class GameObject<TNode> : GameObject
         }
     }
 
-    public void UnlinkNode() {
+    public TNode? UnlinkNode() {
+        if (Node is null) return null;
         if (Node is INodeGameObject nodeItem) {
             nodeItem.GameObject = null;
         }
-        Node!.RemoveFromParent();
+        var node = Node;
+        Node.RemoveFromParent();
         Node = null;
+        return node;
     }
 }

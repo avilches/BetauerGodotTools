@@ -4,7 +4,7 @@ using System.Data;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Betauer.Core;
-using Betauer.Core.Pool.Basic;
+using Betauer.Core.Pool;
 using Betauer.DI.Exceptions;
 using Betauer.DI.Factory;
 using Betauer.DI.ServiceProvider;
@@ -22,12 +22,12 @@ public partial class Container {
     public event Action<object>? OnPostInject;
     public event Action<Provider>? OnValidate;
 
-    private readonly BasicPool<ResolveContext> _resolveContextPool;
+    private readonly Pool<ResolveContext> _resolveContextPool;
 
     private bool _busy = false;
     
     public Container() {
-        _resolveContextPool = new BasicPool<ResolveContext>(() => new ResolveContext(this));        
+        _resolveContextPool = new Pool<ResolveContext>(() => new ResolveContext(this));        
         // Adding the Container in the Container allows to use [Inject] Container...
         AddToRegistry(Provider.Static(this));
     }
@@ -40,14 +40,14 @@ public partial class Container {
     }
 
     public T FromContext<T>(Func<ResolveContext, T> action) {
-        var context = _resolveContextPool.Get();
+        var context = _resolveContextPool.GetOrCreate();
         var instance = action.Invoke(context);
         context.End();
         return instance;
     }
 
     public void WithContext(Action<ResolveContext> action) {
-        var context = _resolveContextPool.Get();
+        var context = _resolveContextPool.GetOrCreate();
         action.Invoke(context);
         context.End();
     }
