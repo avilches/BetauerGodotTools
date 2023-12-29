@@ -245,7 +245,8 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 	private void PickUp(PickableGameObject pickable) {
 		// pickable objects are not removed from the gamerepository because they belong to the user in the inventory,
 		// so they need to be saved. Unlink just make the node (the object in the ground) available for other uses.
-		pickable.UnlinkNode();
+		var node = pickable.UnlinkNode();
+		PlatformWorld.Release(node!);
 		Inventory.Pick(pickable);
 	}
 

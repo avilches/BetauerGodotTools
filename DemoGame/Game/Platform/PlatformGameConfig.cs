@@ -22,7 +22,6 @@ public class PlatformMainResources {
 
 [Configuration]
 [Loader("GameLoader", Tag = "platform")]
-[PoolContainer<Node>("PlatformPoolNodeContainer")]
 [Resource<Texture2D>("Pickups", "res://Game/Platform/Items/Assets/pickups.png")]
 [Resource<Texture2D>("Pickups2", "res://Game/Platform/Items/Assets/pickups2.png")]
 [Resource<Texture2D>("LeonKnifeAnimationSprite", "res://Game/Platform/Character/Player/Assets/Leon-knife.png")]

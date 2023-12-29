@@ -28,11 +28,6 @@ public class RtsGameResources {
 	[Transient<RtsHud>] RtsHud RtsHudFactory => new RtsHud();
 }
 
-[Configuration]
-[PoolContainer<Node>("RtsPoolNodeContainer")]
-public class PoolConfig {
-}
-
 
 public interface IRtsSaveObject : ISaveObject {
 }

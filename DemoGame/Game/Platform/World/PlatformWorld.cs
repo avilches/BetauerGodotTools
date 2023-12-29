@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Betauer.Application.Lifecycle.Pool;
 using Betauer.Application.Persistent;
 using Betauer.Camera;
 using Betauer.Core;
 using Betauer.Core.Nodes;
+using Betauer.Core.Pool;
 using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
 using Betauer.Input.Joypad;
@@ -106,13 +106,13 @@ public partial class PlatformWorld : Node {
 	}
 
 	public void PlacePickable(PickableGameObject gameObject, Vector2 position, Vector2? velocity = null) {
-		PickableItemNode pickableItemNode = PickableItemPool.Get();
+		PickableItemNode pickableItemNode = PickableItemPool.GetOrCreate();
 		gameObject.LinkNode(pickableItemNode);
 		_pickableSpawn.AddChild(pickableItemNode, () => pickableItemNode.Spawn(position, velocity));
 	}
 
 	public void PlayerDrop(PickableGameObject gameObject, Vector2 position, Vector2? velocity = null) {
-		PickableItemNode pickableItemNode = PickableItemPool.Get();
+		PickableItemNode pickableItemNode = PickableItemPool.GetOrCreate();
 		gameObject.LinkNode(pickableItemNode);
 		_pickableSpawn.AddChild(pickableItemNode, () => pickableItemNode.PlayerDrop(position, velocity));
 	}
@@ -120,7 +120,7 @@ public partial class PlatformWorld : Node {
 	private void LoadPickable(WeaponRangeSaveObject saveObject) {
 		if (!saveObject.PickedUp) {
 			// State is not saved, so all weapons are loaded as they were spawned by the system, not dropped by the player
-			PickableItemNode pickableItemNode = PickableItemPool.Get();
+			PickableItemNode pickableItemNode = PickableItemPool.GetOrCreate();
 			saveObject.GameObject.LinkNode(pickableItemNode);
 			_pickableSpawn.AddChild(pickableItemNode, () => pickableItemNode.Spawn(saveObject.GlobalPosition, saveObject.Velocity));
 		}
@@ -129,14 +129,14 @@ public partial class PlatformWorld : Node {
 	private void LoadPickable(WeaponMeleeSaveObject saveObject) {
 		if (!saveObject.PickedUp) {
 			// State is not saved, so all weapons are loaded as they were spawned by the system, not dropped by the player
-			PickableItemNode pickableItemNode = PickableItemPool.Get();
+			PickableItemNode pickableItemNode = PickableItemPool.GetOrCreate();
 			saveObject.GameObject.LinkNode(pickableItemNode);
 			_pickableSpawn.AddChild(pickableItemNode, () => pickableItemNode.Spawn(saveObject.GlobalPosition, saveObject.Velocity));
 		}
 	}
 
 	public ProjectileTrail NewBullet() {
-		var projectileTrail = ProjectilePool.Get();
+		var projectileTrail = ProjectilePool.GetOrCreate();
 		_bulletSpawn.AddChild(projectileTrail);
 		return projectileTrail;
 	}
@@ -153,7 +153,7 @@ public partial class PlatformWorld : Node {
 	}
 
 	public void AddNewZombie(Vector2 position) {
-		var zombieNode = ZombiePool.Get();
+		var zombieNode = ZombiePool.GetOrCreate();
 		GameObjectRepository.Create<ZombieGameObject>("Zombie").LinkNode(zombieNode);
 		_enemySpawn.AddChild(zombieNode, () => {
 			zombieNode.GlobalPosition = position;
@@ -162,7 +162,7 @@ public partial class PlatformWorld : Node {
 	}
 
 	public void LoadZombie(ZombieSaveObject npcSaveObject) {
-		var zombieNode = ZombiePool.Get();
+		var zombieNode = ZombiePool.GetOrCreate();
 		npcSaveObject.GameObject.LinkNode(zombieNode);
 		_enemySpawn.AddChild(zombieNode, () => {
 			zombieNode.GlobalPosition = npcSaveObject.GlobalPosition;
@@ -245,5 +245,17 @@ public partial class PlatformWorld : Node {
 		light.Color = new Color("ffd1c8");
 		light.TextureScale = 0.8f;
 		// light.ShadowEnabled = false;
+	}
+
+	public void Release(ZombieNode p) {
+		ZombiePool.Release(p);
+	}
+
+	public void Release(ProjectileTrail p) {
+		ProjectilePool.Release(p);
+	}
+
+	public void Release(PickableItemNode node) {
+		PickableItemPool.Release(node);
 	}
 }

@@ -1,13 +1,10 @@
 using System;
 using System.Threading.Tasks;
-using Betauer.Application.Lifecycle.Pool;
 using Betauer.Application.Monitor;
 using Betauer.Application.Persistent;
 using Betauer.Application.Persistent.Json;
 using Betauer.Application.SplitScreen;
-using Betauer.Core;
-using Betauer.Core.Nodes;
-using Betauer.Core.Signal;
+using Betauer.Core.Pool;
 using Betauer.DI;
 using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
@@ -22,6 +19,7 @@ namespace Veronenger.Game.Platform.World;
 
 public partial class PlatformGameView : Control, IInjectable, IGameView {
 
+	[Inject] private Betauer.DI.Container Container { get; set; }
 	[Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
 	[Inject] private SceneTree SceneTree { get; set; }
 	[Inject] private GameObjectRepository GameObjectRepository { get; set; }
@@ -30,7 +28,6 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 	[Inject] private IMain Main { get; set; }
 	[Inject] private ILazy<ProgressScreen> ProgressScreenLazy { get; set; }
 	[Inject] private GameLoader GameLoader { get; set; }
-	[Inject("PlatformPoolNodeContainer")] private PoolContainer<Node> PoolNodeContainer { get; set; }
 	[Inject] private InputActionsContainer PlayerActionsContainer { get; set; }
 	[Inject] private UiActionsContainer UiActionsContainer { get; set; }
 	[Inject] private JoypadPlayersMapping JoypadPlayersMapping { get; set; }
@@ -117,7 +114,7 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 		UiActionsContainer.SetJoypad(UiActionsContainer.CurrentJoyPad); // Player who starts the game is the player who control the UI forever
 		var (success, saveGame) = await LoadSaveGame(saveName);
 		if (!success) return;
-		await FreeSceneKeepingPoolData();
+		PlatformWorld.Get().Free();
 		ContinueLoad(saveGame);
 	}
 
@@ -153,7 +150,7 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 	
 	public PlatformSaveGameMetadata CurrentMetadata { get; private set; }
 
-	public async Task<(bool, SaveGame<PlatformSaveGameMetadata>)> LoadSaveGame(string save) {
+	private async Task<(bool, SaveGame<PlatformSaveGameMetadata>)> LoadSaveGame(string save) {
 		ShowLoading();
 		try {
 			var saveGame = await PlatformGameObjectLoader.Load(save);
@@ -176,21 +173,21 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 		GetTree().Root.SizeChanged += () => _splitViewport.Refresh();
 	}
 
-	public PlayerNode CreatePlayer1(int joypad) {
+	private PlayerNode CreatePlayer1(int joypad) {
 		var playerMapping = JoypadPlayersMapping.AddPlayer().SetJoypadId(joypad);
 		var player = PlatformWorld.Get().AddNewPlayer(playerMapping);
 		player.SetCamera(_splitViewport.Camera1);
 		return player;
 	}
 
-	public PlayerNode LoadPlayer1(int joypad, PlatformSaveGameConsumer consumer) {
+	private PlayerNode LoadPlayer1(int joypad, PlatformSaveGameConsumer consumer) {
 		var playerMapping = JoypadPlayersMapping.AddPlayer().SetJoypadId(joypad);
 		var player = PlatformWorld.Get().LoadPlayer(playerMapping, consumer.Player0, consumer.Inventory0);
 		player.SetCamera(_splitViewport.Camera1);
 		return player;
 	}
 
-	public PlayerNode CreatePlayer2(int joypad) {
+	private PlayerNode CreatePlayer2(int joypad) {
 		if (JoypadPlayersMapping.Players >= MaxPlayer) throw new Exception("No more players allowed");
 		var playerMapping = JoypadPlayersMapping.AddPlayer().SetJoypadId(joypad);
 		var player = PlatformWorld.Get().AddNewPlayer(playerMapping);
@@ -235,45 +232,23 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 
 	public async Task End(bool unload) {
 		if (unload) {
-			UnloadResources();
-		} else {
-			await FreeSceneKeepingPoolData();
+			// If you comment this line, the objects in the pool will be used in the next game
+			Container.ResolveAll<INodePool>().ForEach(p => p.FreeAll());
+			GameLoader.UnloadPlatformGameResources();
 		}
 		Free();
 		DebugOverlayManager.Overlay("Pool").Free();
 		GC.GetTotalMemory(true);
-		// PrintOrphanNodes();
-	}
-
-	public void UnloadResources() {
-		// To ensure the pool nodes are freed along with the scene:
-		
-		// 1. All busy elements are still attached to the tree and will be destroyed with the scene, so we don't need to
-		// do anything with them.
-		// GetAvailable() will loop over the non busy and valid element (which are outside of the scene tree) in the pool, so, loop them and free them:
-		PoolNodeContainer.GetAvailable().ForEach(node => node.Free());
-		// 2. Remove the data from the pool to avoid having references to busy elements which are going to die with the scene
-		PoolNodeContainer.Clear();
-		GameLoader.UnloadPlatformGameResources();
-	}
-
-	public async Task FreeSceneKeepingPoolData() {
-		// This line keeps the godot nodes in the pool removing them from scene, because the scene is going to be freed
-		// The busy nodes are the nodes who still belongs to the tree, so loop them and remove them from the tree is a way
-		// to keep them in the pool ready for the next game
-		PoolNodeContainer.GetAllBusy().ForEach(node => node.RemoveFromParent());
-		// Wait one frame before free the scene. Not waiting one frame will cause canvas modulate will not shown (when LoadInGame)
-		// and some collisions will not work because the unparented nodes are still in the tree and the physics engine will try to use them
-		await this.AwaitPhysicsFrame();
-		PlatformWorld.Get().Free();
+		PrintOrphanNodes();
 	}
 	
 	private void ConfigureDebugOverlays() {
-		DebugOverlayManager.Overlay("Pool")
-			.Children()
-			.TextField("Busy", () => PoolNodeContainer.BusyCount() + "")
-			.TextField("Available", () => PoolNodeContainer.AvailableCount() + "")
-			.TextField("Invalid", () => PoolNodeContainer.InvalidCount() + "");
+		
+		// DebugOverlayManager.Overlay("Pool")
+			// .Children()
+			// .TextField("Busy", () => PoolNodeContainer.BusyCount() + "")
+			// .TextField("Available", () => PoolNodeContainer.AvailableCount() + "")
+			// .TextField("Invalid", () => PoolNodeContainer.InvalidCount() + "");
 
 	}
 }

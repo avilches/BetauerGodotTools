@@ -1,30 +1,24 @@
-using Betauer.Core;
 using Godot;
 
 namespace Veronenger.Game.Platform.Character;
 
-public class LabelHit : ILabelEffect {
-    private Tween? _tweenHit;
-    public readonly Label Label;
+public class LabelHit {
+    private readonly Label _label;
 
     public LabelHit(Label label) {
-        Label = label;
-        Label.Visible = false;
-        Label.Text = "";
+        _label = label;
+        _label.Visible = false;
+        _label.Text = "";
     }
 
-    public void Show(string text) {
-        Label.Text = text;
-        Label.Visible = true;
-        Label.Modulate = Colors.White;
-        Label.Position = Vector2.Zero;
-        _tweenHit?.Kill();
-        _tweenHit = Label.GetTree().CreateTween();
-        _tweenHit.Parallel().TweenProperty(Label, "position:y", -40, 0.8f).SetDelay(0.1);
-        _tweenHit.Parallel().TweenProperty(Label, "modulate:a", 0, 0.8f).SetDelay(0.1);
+    public Tween Show(string text) {
+        _label.Text = text;
+        _label.Visible = true;
+        _label.Modulate = Colors.White;
+        _label.Position = Vector2.Zero;
+        var tweenHit = _label.GetTree().CreateTween();
+        tweenHit.Parallel().TweenProperty(_label, "position:y", -40, 0.8f).SetDelay(0.1);
+        tweenHit.Parallel().TweenProperty(_label, "modulate:a", 0, 0.8f).SetDelay(0.1);
+        return tweenHit;
     }
-
-    public bool IsBusy() => _tweenHit?.IsRunning() ?? false;
-
-    public bool IsInvalid() => !Label.IsInstanceValid();
 }

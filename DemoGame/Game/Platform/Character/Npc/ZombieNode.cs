@@ -1,7 +1,6 @@
 using System;
 using Betauer.Animation;
 using Betauer.Animation.AnimationPlayer;
-using Betauer.Application.Lifecycle.Pool;
 using Betauer.Application.Monitor;
 using Betauer.Application.Persistent;
 using Betauer.Bus;
@@ -9,8 +8,9 @@ using Betauer.Core;
 using Betauer.Core.Nodes;
 using Betauer.Core.Nodes.Events;
 using Betauer.Core.Nodes.Property;
-using Betauer.Core.Pool.Lifecycle;
+using Betauer.Core.Pool;
 using Betauer.Core.Restorer;
+using Betauer.Core.Signal;
 using Betauer.DI;
 using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
@@ -113,7 +113,7 @@ public partial class ZombieNode : NpcNode, IInjectable {
 	private readonly FsmSync<ZombieState, ZombieEvent> _fsm = new(ZombieState.Idle, "Zombie.FSM");
 	private float _delta;
 	private ICharacterAi _zombieAi;
-	private BasePool<ILabelEffect> _labelHits;
+	private BasePool<LabelHit> _labelHits;
 	private Restorer _restorer; 
 	private LazyRaycast2D _lazyRaycastToPlayer;
 	private DebugOverlay? _overlay;
@@ -236,18 +236,15 @@ public partial class ZombieNode : NpcNode, IInjectable {
 			BloodParticles.Emitting = false;
 		};
 
-		var firstCall = true;
-		_labelHits = PoolTemplates.Lifecycle<ILabelEffect>(
-			() => {
-				if (firstCall) {
-					firstCall = false;
-					return new LabelHit(HitLabel);
-				}
-				var duplicate = (Label)HitLabel.Duplicate();
-				HitLabel.AddSibling(duplicate);
-				return new LabelHit(duplicate);
-			});
-		_labelHits.Fill(1);
+		_labelHits = new Pool<LabelHit>(LabelHitFactory);
+		_labelHits.Release(new LabelHit(HitLabel));
+		return;
+
+		LabelHit LabelHitFactory() {
+			var duplicate = (Label)HitLabel.Duplicate();
+			HitLabel.AddSibling(duplicate);
+			return new LabelHit(duplicate);
+		}
 	}
 
 	private void ConfigureCharacter() {
@@ -310,7 +307,9 @@ public partial class ZombieNode : NpcNode, IInjectable {
 		}
 		NpcGameObject.UpdateHealth(-playerAttackEvent.Weapon.Damage);
 		UpdateHealthBar();
-		_labelHits.Get().Show(((int)playerAttackEvent.Weapon.Damage).ToString());
+		var hit = _labelHits.GetOrCreate();
+		var tween = hit.Show(((int)playerAttackEvent.Weapon.Damage).ToString());
+		tween.OnFinished(() => _labelHits.Release(hit));
 		_fsm.Send(NpcGameObject.IsDead() ? ZombieEvent.Death : ZombieEvent.Hurt);
 	}
 
@@ -520,7 +519,7 @@ public partial class ZombieNode : NpcNode, IInjectable {
 
 		_fsm.State(ZombieState.End)
 			.Enter(() => {
-				this.Release();
+				PlatformWorld.Release(this);
 				GameObjectRepository.Remove(NpcGameObject);
 			})
 			.If(() => true).Set(ZombieState.Idle)

@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using Betauer.Application.Lifecycle.Pool;
 using Betauer.Application.Monitor;
 using Betauer.Application.Persistent;
 using Betauer.Application.Persistent.Json;
@@ -31,7 +30,6 @@ public partial class RtsGameView : Control, IInjectable, IGameView {
 	[Inject] private IMain Main { get; set; }
 	[Inject] private ILazy<ProgressScreen> ProgressScreenLazy { get; set; }
 	[Inject] private GameLoader GameLoader { get; set; }
-	[Inject("RtsPoolNodeContainer")] private PoolContainer<Node> PoolNodeContainer { get; set; }
 	[Inject] private InputActionsContainer PlayerActionsContainer { get; set; }
 	[Inject] private UiActionsContainer UiActionsContainer { get; set; }
 	[Inject] private JoypadPlayersMapping JoypadPlayersMapping { get; set; }
@@ -179,9 +177,9 @@ public partial class RtsGameView : Control, IInjectable, IGameView {
 		// 1. All busy elements are still attached to the tree and will be destroyed with the scene, so we don't need to
 		// do anything with them.
 		// GetAvailable() will loop over the non busy and valid element (which are outside of the scene tree) in the pool, so, loop them and free them:
-		PoolNodeContainer.GetAvailable().ForEach(node => node.Free());
+		// PoolNodeContainer.GetAvailable().ForEach(node => node.Free());
 		// 2. Remove the data from the pool to avoid having references to busy elements which are going to die with the scene
-		PoolNodeContainer.Clear();
+		// PoolNodeContainer.Clear();
 		GameLoader.UnloadRtsGameResources();
 	}
 
@@ -189,19 +187,19 @@ public partial class RtsGameView : Control, IInjectable, IGameView {
 		// This line keeps the godot nodes in the pool removing them from scene, because the scene is going to be freed
 		// The busy nodes are the nodes who still belongs to the tree, so loop them and remove them from the tree is a way
 		// to keep them in the pool ready for the next game
-		PoolNodeContainer.GetAllBusy().ForEach(node => node.RemoveFromParent());
+		// PoolNodeContainer.GetAllBusy().ForEach(node => node.RemoveFromParent());
 		// Wait one frame before free the scene. Not waiting one frame will cause canvas modulate will not shown (when LoadInGame)
 		// and some collisions will not work because the unparented nodes are still in the tree and the physics engine will try to use them
 		await this.AwaitPhysicsFrame();
 		RtsWorld.Free();
 	}
 
-	private void ConfigureDebugOverlays() {
-		DebugOverlayManager.Overlay("Pool")
-			.Children()
-			.TextField("Busy", () => PoolNodeContainer.BusyCount() + "", 1)
-			.TextField("Available", () => PoolNodeContainer.AvailableCount() + "", 1)
-			.TextField("Invalid", () => PoolNodeContainer.InvalidCount() + "", 1);
+	// private void ConfigureDebugOverlays() {
+		// DebugOverlayManager.Overlay("Pool")
+			// .Children()
+			// .TextField("Busy", () => PoolNodeContainer.BusyCount() + "", 1)
+			// .TextField("Available", () => PoolNodeContainer.AvailableCount() + "", 1)
+			// .TextField("Invalid", () => PoolNodeContainer.InvalidCount() + "", 1);
 
-	}
+	// }
 }

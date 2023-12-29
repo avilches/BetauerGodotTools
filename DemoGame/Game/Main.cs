@@ -254,7 +254,6 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IMain, IInjectab
             .If(() => !modalResponse).Pop()
             .Build();
                 
-                
         State(MainState.ExitDesktop)
             .Enter(() => SceneTree.QuitSafely())
             .Build();
