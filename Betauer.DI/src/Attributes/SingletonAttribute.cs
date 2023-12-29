@@ -9,7 +9,6 @@ namespace Betauer.DI.Attributes;
 /// </summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method | AttributeTargets.Property)]
 public class SingletonAttribute : Attribute, IClassAttribute, IConfigurationMemberAttribute {
-    public string? Scope { get; init; }
     public string? Name { get; init; }
     public string? Flags { get; init; }
     public bool Lazy { get; init; } = false;
@@ -18,7 +17,6 @@ public class SingletonAttribute : Attribute, IClassAttribute, IConfigurationMemb
         var provider = new SingletonProvider(
             GetType().IsGenericType ? GetType().GetGenericArguments()[0] : type, // Trick to get the <T> from SingletonAttribute<T>
             type,
-            Scope,
             name: Name,
             lazy: Lazy,
             metadata: Provider.FlagsToMetadata(Flags));
@@ -30,7 +28,6 @@ public class SingletonAttribute : Attribute, IClassAttribute, IConfigurationMemb
         var provider = new SingletonProvider(
             GetType().IsGenericType ? GetType().GetGenericArguments()[0] : getter.MemberType, // Trick to get the <T> from SingletonAttribute<T>
             getter.MemberType,
-            Scope,
             () => getter.GetValue(configuration)!,
             Name ?? getter.Name,
             Lazy,

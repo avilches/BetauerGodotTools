@@ -13,7 +13,6 @@ public static partial class Factory {
     /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method | AttributeTargets.Property)]
     public class SingletonAttribute : Attribute, IClassAttribute, IConfigurationMemberAttribute {
-        public string? Scope { get; init; }
         public string? Name { get; init; }
         public string? Flags { get; init; }
         public bool Lazy { get; init; } = false;
@@ -28,7 +27,7 @@ public static partial class Factory {
                 ? GetType().GetGenericArguments()[0]                                                 // Node because [Factory.Singleton<Node>]
                 : factoryType;                                                                       // Node3D 
             var create = FactoryTools.From(factory);
-            var provider = new SingletonProvider(publicType, factoryType, Scope, create, Name, Lazy, Provider.FlagsToMetadata(Flags));
+            var provider = new SingletonProvider(publicType, factoryType, create, Name, Lazy, Provider.FlagsToMetadata(Flags));
             builder.RegisterFactory(factory);
             builder.Register(provider);
             if (Lazy) builder.Register(Provider.Lazy(provider)); // Non lazy singletons don't need the ILazy<T>
@@ -44,7 +43,7 @@ public static partial class Factory {
                 ? GetType().GetGenericArguments()[0] // Trick to get the <T> from SingletonAttribute<T>         // Node because [Factory.Singleton<Node>]    
                 : getter.MemberType.FindGenericsFromInterfaceDefinition(typeof(IFactory<>))[0];                       // Node3D because IFactory<Node3D> Element3                                              
             var create = FactoryTools.From(factory);
-            var provider =  new SingletonProvider(publicType, factoryType, Scope, create, Name ?? getter.Name, Lazy, Provider.FlagsToMetadata(Flags));
+            var provider =  new SingletonProvider(publicType, factoryType, create, Name ?? getter.Name, Lazy, Provider.FlagsToMetadata(Flags));
             builder.RegisterFactory(factory);
             builder.Register(provider);
             if (Lazy) builder.Register(Provider.Lazy(provider)); // Non lazy singletons don't need the ILazy<T>

@@ -12,10 +12,8 @@ public class SingletonProvider : Provider {
     public bool IsInstanceCreated => Instance != null;
     public bool Lazy { get; }
     public object? Instance { get; private set; }
-    public string? Scope { get; }
         
-    public SingletonProvider(Type publicType, Type realType, string? scope, Func<object>? factory = null, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) : base(publicType, realType, name, metadata) {
-        Scope = scope;
+    public SingletonProvider(Type publicType, Type realType, Func<object>? factory = null, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) : base(publicType, realType, name, metadata) {
         _factory = factory ?? CreateCtor(realType, Lifetime.Singleton);
         Lazy = lazy;
     }

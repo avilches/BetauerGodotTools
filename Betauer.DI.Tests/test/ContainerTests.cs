@@ -32,7 +32,7 @@ public class ContainerTests : Node {
     // [TestRunner.Ignore("Fails in debugger because the NotSupportedException")]
     public void DefaultCtorTypes() {
         NotSupportedTypes.ForEach(type => {
-            Assert.Throws<NotSupportedException>(() => new SingletonProvider(type, type, null, null, null, false, null));
+            Assert.Throws<NotSupportedException>(() => new SingletonProvider(type, type, null, null, false, null));
             Assert.Throws<NotSupportedException>(() => new TransientProvider(type, type));
             Assert.Throws<NotSupportedException>(() => new TemporalProvider(type, type));
             Assert.Throws<NotSupportedException>(() => Provider.CreateCtor(type, Lifetime.Singleton));

@@ -42,7 +42,7 @@ public abstract class Provider {
     }
     
     public static SingletonProvider Singleton<TI, T>(Func<T> factory, string? name = null, bool lazy = false, Dictionary<string, object>? metadata = null) where T : class {
-        return new SingletonProvider(typeof(TI), typeof(T), null, factory, name, lazy, metadata);
+        return new SingletonProvider(typeof(TI), typeof(T), factory, name, lazy, metadata);
     }
 
     // Transient
