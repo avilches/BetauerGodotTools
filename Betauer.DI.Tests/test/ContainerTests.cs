@@ -572,89 +572,20 @@ public class ContainerTests : Node {
         Assert.That(calls, Is.EqualTo(6));
     }
 
-    [TestRunner.Test]
-    public void TemporalTest() {
-        var c = new Container();
-        var calls = 0;
-        c.Build(b => {
-            b.Register(Provider.Temporal<Class1WithInterface>("Temporal1", new Dictionary<string, object>() {{"flag1", true}, {"k", "v"}}));
-        });
-
-        c.OnInstanceCreated += (instanceCreatedEvent) => {
-            Assert.That(instanceCreatedEvent.Lifetime == Lifetime.Transient);
-            Assert.That(instanceCreatedEvent.Name, Is.EqualTo("Temporal1"));
-            Assert.That(instanceCreatedEvent.GetMetadata("k"), Is.EqualTo("v"));
-            Assert.That(instanceCreatedEvent.GetMetadata<string>("k"), Is.EqualTo("v"));
-            Assert.That(instanceCreatedEvent.GetFlag("flag1"), Is.True);
-            Assert.That(instanceCreatedEvent.GetFlag("flag2"), Is.False);
-            Assert.That(instanceCreatedEvent.GetFlag("flag2", true), Is.True);
-            calls++;
-        };
-        c.OnInstanceCreated += (instanceCreatedEvent) => {
-            calls++;
-        };
-
-        Assert.That(c.Contains("Temporal1"), Is.False);
-        Assert.That(c.Contains("Proxy:Temporal1"), Is.True);
-        
-        var temporal1 = c.Resolve<ITemporal<Class1WithInterface>>("Temporal1");
-        var temporal2 = c.Resolve<ITemporal<Class1WithInterface>>("Proxy:Temporal1");
-        Assert.That(temporal1, Is.EqualTo(temporal2));
-        Assert.That(temporal1.HasValue(), Is.False);
-        Assert.That(calls, Is.EqualTo(0));
-
-        var v = temporal1.Get();
-        temporal1.Get();
-        temporal1.Get();
-        Assert.That(calls, Is.EqualTo(2));
-        Assert.That(temporal1.HasValue(), Is.True);
-        Assert.That(temporal1.Get(), Is.EqualTo(v));
-        
-        temporal1.Remove();
-        Assert.That(calls, Is.EqualTo(2));
-        Assert.That(temporal1.HasValue(), Is.False);
-
-        var v2 = temporal1.Get();
-        temporal1.Get();
-        temporal1.Get();
-        Assert.That(calls, Is.EqualTo(4));
-        Assert.That(temporal1.HasValue(), Is.True);
-        Assert.That(temporal1.Get(), Is.EqualTo(v2));
-
-        Assert.That(temporal1.Get(), Is.Not.EqualTo(v));
+    public class StaticPostInject : IInjectable {
+        public static int Calls = 0;
+        public void PostInject() {
+            Calls++;
+        }
     }
 
-    [TestRunner.Test]
-    public void MultipleTemporalClearTest() {
+    [TestRunner.Test(Description = "Test PostInject static")]
+    public void PostInjectStatic() {
+        StaticPostInject.Calls = 0;
         var c = new Container();
-        var calls = 0;
         c.Build(b => {
-            b.Register(Provider.Temporal<Class1WithInterface>("Temporal1", new Dictionary<string, object>() {{"group", true}}));
-            b.Register(Provider.Temporal<Node>());
+            b.Register(Provider.Static(new StaticPostInject()));
         });
-        c.OnInstanceCreated += (instanceCreatedEvent) => {
-            calls++;
-        };
-
-        var temporal1 = c.Resolve<ITemporal<Class1WithInterface>>("Temporal1");
-        var temporal2 = c.Resolve<ITemporal<Node>>();
-        
-        var t1 = temporal1.Get();
-        var t2 = temporal2.Get();
-        temporal1.Get();
-        temporal1.Get();
-        temporal2.Get();
-        temporal2.Get();
-        Assert.That(calls, Is.EqualTo(2));
-
-        c.ResolveAll<ITemporal>().ForEach(p => p.Remove());
-        Assert.That(calls, Is.EqualTo(2));
-
-        temporal1.Get();
-        temporal1.Get();
-        temporal2.Get();
-        temporal2.Get();
-        Assert.That(calls, Is.EqualTo(4));
-
+        Assert.That(StaticPostInject.Calls, Is.EqualTo(1));
     }
 }

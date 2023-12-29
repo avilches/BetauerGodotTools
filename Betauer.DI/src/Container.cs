@@ -31,6 +31,14 @@ public partial class Container {
         // Adding the Container in the Container allows to use [Inject] Container...
         AddToRegistry(Provider.Static(this));
     }
+    
+    internal ResolveContext CreateContext() {
+        return _resolveContextPool.GetOrCreate();
+    }
+
+    internal void ReleaseContext(ResolveContext context) {
+        _resolveContextPool.Release(context);
+    }
 
     public Container Build(Action<Builder> action) {
         var builder = new Builder(this);
@@ -39,7 +47,7 @@ public partial class Container {
         return this;
     }
 
-    public T FromContext<T>(Func<ResolveContext, T> action) {
+    internal T FromContext<T>(Func<ResolveContext, T> action) {
         var context = _resolveContextPool.GetOrCreate();
         var instance = action.Invoke(context);
         context.End();
@@ -63,7 +71,7 @@ public partial class Container {
         WithContext(context => {
             instances.ForEach(instance => {
                 Logger.Debug("Initializing {0}", instance.GetType().GetTypeName());
-                context.InjectServices(Lifetime.Singleton, instance);
+                Injector.InjectServices(context, Lifetime.Singleton, instance);
                 ExecutePostInjectMethods(instance);
             });
 
@@ -258,7 +266,7 @@ public partial class Container {
     }
 
     internal object TryCreateTransientFromInjector(Type type, ResolveContext context) {
-        if (TryGetProvider(type, out Provider provider)) {
+        if (TryGetProvider(type, out Provider? provider)) {
             return provider.Resolve(context);
         }
         if (!CreateIfNotFound) throw new ServiceNotFoundException(type);
@@ -268,10 +276,11 @@ public partial class Container {
     }
 
     public void InjectServices(object o) {
-        WithContext(context => {
-            context.InjectServices(Lifetime.Transient, o);
+        if (Injector.NeedsInjection(o)) {
+            var context = CreateContext();
+            Injector.InjectServices(context, Lifetime.Transient, o);
             context.End();
-        });
+        }
         ExecutePostInjectMethods(o);
     }
 }

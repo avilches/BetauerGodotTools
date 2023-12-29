@@ -14,6 +14,11 @@ public abstract class Injector {
 
     private const BindingFlags InjectFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
 
+    internal static bool NeedsInjection(object target) {
+        var members = target.GetType().GetSettersCached<InjectAttribute>(MemberTypes.Method | MemberTypes.Property, InjectFlags);
+        return members.Count > 0;
+    }
+
     internal static void InjectServices(ResolveContext context, Lifetime lifetime, object target) {
         if (target is Delegate) return;
         var members = target.GetType().GetSettersCached<InjectAttribute>(MemberTypes.Method | MemberTypes.Property, InjectFlags);

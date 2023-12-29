@@ -21,20 +21,40 @@ public class SingletonProvider : Provider {
     }
     
     public override object Get() {
-        return Instance == null ? Container.FromContext(Resolve) : Instance!;
+        if (Instance != null) return Instance;
+
+        Instance = CreateSingleton();
+
+        if (Injector.NeedsInjection(Instance)) {
+            var context = Container.CreateContext();
+            context.NewSingleton(this, Instance);
+            Injector.InjectServices(context, Lifetime.Singleton, Instance);
+            context.End();
+        } else {
+            Container.ExecutePostInjectMethods(Instance);
+            Container.ExecuteOnCreated(new InstanceCreatedEvent(this, Instance));
+        }
+        return Instance;
     }
 
     public override object Resolve(ResolveContext context) {
-        if (Instance != null) return Instance!;
+        if (Instance != null) return Instance;
         if (context.TryGetSingletonFromCache(this, out var singleton)) {
             Logger.Debug("Get from context {0} {1} exposed as {2}: {3:X}", Lifetime.Singleton, singleton.GetType().GetTypeName(), PublicType.GetTypeName(), singleton.GetHashCode());
             return singleton;
         }
-        Instance = _factory.Invoke();
-        if (Instance == null) throw new NullReferenceException($"Singleton factory returned null for {RealType.GetTypeName()} {Name}");
-        Logger.Debug("Creating {0}:{1}. Name: \"{2}\". HashCode: {3:X}", Lifetime.Singleton, Instance.GetType().GetTypeName(), Name, Instance.GetHashCode());
+        
+        Instance = CreateSingleton();
+        
         context.NewSingleton(this, Instance);
-        context.InjectServices(Lifetime.Singleton, Instance);
+        Injector.InjectServices(context, Lifetime.Singleton, Instance);
         return Instance;
+    }
+
+    private object CreateSingleton() {
+        var instance = _factory.Invoke();
+        if (instance == null) throw new NullReferenceException($"Singleton factory returned null for {RealType.GetTypeName()} {Name}");
+        Logger.Debug("Creating {0}:{1}. Name: \"{2}\". HashCode: {3:X}", Lifetime.Singleton, instance.GetType().GetTypeName(), Name, instance.GetHashCode());
+        return instance;
     }
 }

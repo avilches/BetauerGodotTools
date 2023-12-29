@@ -15,18 +15,34 @@ public class TransientProvider : Provider {
     }
 
     public override object Get() {
-        return Container.FromContext(Resolve);
+        var instance = CreateTransient();
+
+        if (Injector.NeedsInjection(instance)) {
+            var context = Container.CreateContext();
+            context.PushTransient(this, instance);
+            Injector.InjectServices(context, Lifetime, instance);
+            context.PopTransient();
+            context.End();
+        } else {
+            Container.ExecutePostInjectMethods(instance);
+            Container.ExecuteOnCreated(new InstanceCreatedEvent(this, instance));
+        }
+        return instance;
     }
 
     public override object Resolve(ResolveContext context) {
         if (context == null) throw new ArgumentNullException(nameof(context));
-        context.PushTransient(PublicType); // This call could throw a CircularDependencyException
+        var instance = CreateTransient();
+        context.PushTransient(this, instance);  // This call could throw a CircularDependencyException            
+        Injector.InjectServices(context, Lifetime, instance);
+        context.PopTransient();
+        return instance;
+    }
+
+    private object CreateTransient() {
         var instance = _factory.Invoke();
         if (instance == null) throw new NullReferenceException($"Transient factory returned null for {RealType.GetTypeName()} {Name}");
         Logger.Debug("Creating {0}:{1}. Name: \"{2}\". HashCode: {3:X}", Lifetime.Transient, instance.GetType().GetTypeName(), Name, instance.GetHashCode());
-        context.NewTransient(this, instance);
-        context.InjectServices(Lifetime, instance);
-        context.PopTransient();
         return instance;
     }
 }

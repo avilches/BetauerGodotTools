@@ -45,7 +45,7 @@ public class ScannerCircularTests : Node {
         });
         Assert.Throws<CircularDependencyException>(() => c.Resolve<Transient>());
 
-        Assert.That(Transient.Created, Is.EqualTo(1));
+        Assert.That(Transient.Created, Is.EqualTo(2));
     }
 
     public interface ISingletonX {
@@ -99,7 +99,7 @@ public class ScannerCircularTests : Node {
             di.Register(Provider.Transient<ITransientX, TransientX>());
         });
         Assert.Throws<CircularDependencyException>(() => c.Resolve<ITransientX>());
-        Assert.That(TransientX.Created, Is.EqualTo(1));
+        Assert.That(TransientX.Created, Is.EqualTo(2));
     }
 
     [Singleton]
@@ -190,7 +190,7 @@ public class ScannerCircularTests : Node {
         });
 
         Assert.Throws<CircularDependencyException>(() => c.Resolve<TransientA>());
-        Assert.That(TransientA.Created, Is.EqualTo(1));
+        Assert.That(TransientA.Created, Is.EqualTo(2));
         Assert.That(TransientB.Created, Is.EqualTo(1));
         Assert.That(TransientC.Created, Is.EqualTo(1));
     }

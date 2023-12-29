@@ -24,13 +24,12 @@ public class TemporalProvider : Provider {
     public override object Resolve(ResolveContext context) {
         if (Instance != null) return Instance!;
         if (context == null) throw new ArgumentNullException(nameof(context));
-        context.PushTransient(PublicType); // This call could throw a CircularDependencyException
         Instance = _factory.Invoke();
         if (Instance == null) throw new NullReferenceException($"Temporal factory returned null for {RealType.GetTypeName()} {Name}");
         Logger.Debug("Creating {0}:{1}. Name: \"{2}\". HashCode: {3:X}", Lifetime.Transient, Instance.GetType().GetTypeName(), Name, Instance.GetHashCode());
-        context.NewTransient(this, Instance);
-        context.InjectServices(Lifetime, Instance);
-        context.PopTransient();
+        // context.NewTransient(this, Instance);
+        Injector.InjectServices(context, Lifetime, Instance);
+        // context.PopTransient();
         return Instance;
     }
 
