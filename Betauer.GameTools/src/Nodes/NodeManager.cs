@@ -41,7 +41,14 @@ public class NodeManager {
     
     public void RemoveOnDestroy(GodotObject node, Action removeAction) => Node.RemoveOnDestroy(node, removeAction);
 
-    public void OnProcess(IProcessHandler inputEvent) => Node.AddOnProcess(inputEvent);
+    public void OnProcess(IProcessHandler inputEvent) {
+        Console.WriteLine("["+Engine.GetProcessFrames()+ "] NodeManager frame");
+        Node.AddOnProcess(inputEvent);
+    }
+
+    public void CallDeferred(Action action) {
+        Node.CallDeferred(action);
+    }
 
     public void OnPhysicsProcess(IProcessHandler inputEvent) => Node.AddOnPhysicsProcess(inputEvent);
 

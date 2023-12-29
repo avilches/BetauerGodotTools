@@ -12,6 +12,12 @@ namespace Betauer.Nodes;
 public partial class NotificationsNodeHandler : Node {
 
     private static readonly Logger Logger = LoggerFactory.GetLogger<NotificationsNodeHandler>();
+    private static readonly StringName CallDeferredInvocationMethodName = "CallDeferredInvocation";
+    private static readonly StringName NextFrameInvocationMethodName = "NextFrameInvocation";
+    private bool _callDeferredScheduled = false;
+    private bool _nextFrameScheduled = false;
+    private readonly Stack<Action> _deferredActions = new();
+    private readonly Stack<Action> _nextFrameActions = new();
 
     public NotificationsNodeHandler() {
         ProcessMode = ProcessModeEnum.Always;
@@ -26,14 +32,53 @@ public partial class NotificationsNodeHandler : Node {
     public List<IInputEventHandler> UnhandledKeyInputList { get; } = new();
 
     private Viewport? _viewport;
+    private SceneTree? _sceneTree;
 
     public override void _EnterTree() {
         _viewport = GetViewport();
+        _sceneTree = GetTree();
         GetParent().ChildEnteredTree += EnsureLastChild;
+        if (_nextFrameActions.Count > 0) {
+            _nextFrameScheduled = true;
+            GetTree().Connect(SceneTree.SignalName.ProcessFrame, new Callable(this, NextFrameInvocationMethodName), (uint)ConnectFlags.OneShot);
+        }
+    }
+
+    public void CallDeferred(Action action) {
+        if (!_callDeferredScheduled) {
+            _callDeferredScheduled = true;
+            CallDeferred(CallDeferredInvocationMethodName);
+        }
+        _deferredActions.Push(action);
+    }
+
+    private void CallDeferredInvocation() {
+        _callDeferredScheduled = false;
+        while (_deferredActions.Count > 0) {
+            _deferredActions.Pop().Invoke();
+        }
+    }
+
+    public void NextFrame(Action action) {
+        if (!_nextFrameScheduled) {
+            if (_sceneTree != null) {
+                _nextFrameScheduled = true;
+                GetTree().Connect(SceneTree.SignalName.ProcessFrame, new Callable(this, NextFrameInvocationMethodName), (uint)ConnectFlags.OneShot);
+            }
+        }
+        _nextFrameActions.Push(action);
+    }
+
+    private void NextFrameInvocation() {
+        _nextFrameScheduled = false;
+        while (_nextFrameActions.Count > 0) {
+            _nextFrameActions.Pop().Invoke();
+        }
     }
 
     public override void _ExitTree() {
         _viewport = null;
+        _sceneTree = null;
         GetParent().ChildEnteredTree -= EnsureLastChild;
     }
 
