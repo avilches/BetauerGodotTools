@@ -23,7 +23,6 @@ public static partial class Scene {
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     public class SingletonAttribute<T> : Attribute, IConfigurationClassAttribute where T : Node {
-        public string? Scope { get; init; }
         public string? Name { get; init; }
         public string? Path { get; init; }
         public string? Tag { get; init; }
@@ -35,7 +34,6 @@ public static partial class Scene {
             if (loaderConfiguration == null) {
                 throw new InvalidAttributeException(
                     $"Attribute {typeof(SingletonAttribute<T>).FormatAttribute(new Dictionary<string, object> {
-                        { "Scope", Scope },
                         { "Name", Name },
                         { "Path", Path },
                         { "Tag", Tag },
@@ -45,7 +43,7 @@ public static partial class Scene {
             var sceneFactory = new SceneFactory<T>(Path, Tag ?? loaderConfiguration.Tag);
             var metadata = Provider.FlagsToMetadata(Flags);
             var create = FactoryTools.From(sceneFactory);
-            var provider = new SingletonProvider(typeof(T), typeof(T), Scope, create, Name, true, // must be lazy so the Loader can load the scene first
+            var provider = new SingletonProvider(typeof(T), typeof(T), create, Name, true, // must be lazy so the Loader can load the scene first
                 metadata);
             builder.Register(provider);
             builder.Register(Provider.Lazy(provider));
