@@ -1,7 +1,6 @@
 using Betauer.NodePath;
 using Godot;
 using Veronenger.Game.Platform.Character.Player;
-using Veronenger.Game.Platform.Items;
 
 namespace Veronenger.Game.Platform.HUD;
 
@@ -15,11 +14,7 @@ public partial class PlayerHud : Control {
 		_healthBar.Value = he.ToHealth;
 	}
 
-	public void UpdateAmount(PickableGameObject gameObject) {
-		_inventory.UpdateAmount(gameObject);
-	}
-
-	public void UpdateInventory(PlayerInventoryEvent playerInventoryEvent) {
+	public void UpdateInventory(PlayerInventoryChangeEvent playerInventoryEvent) {
 		_inventory.UpdateInventory(playerInventoryEvent);
 	}
 }

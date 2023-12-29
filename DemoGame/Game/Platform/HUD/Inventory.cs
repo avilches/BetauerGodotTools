@@ -16,20 +16,15 @@ public partial class Inventory : GridContainer {
 		RemoveAllChildrenIfNeeded();
 	}
 
-	public void UpdateAmount(PickableGameObject gameObject) {
-		var childCount = GetChildCount();
-		for (var i = 0; i < childCount; i++) {
-			var inventorySlot = GetChild<InventorySlot>(i);
-			if (inventorySlot.PickableGameObject == gameObject) {
-				inventorySlot.UpdateAmount();
-				break;
-			}
+	public void UpdateInventory(PlayerInventoryChangeEvent playerInventoryEvent) {
+		if (playerInventoryEvent.Type == PlayerInventoryEventType.SlotAmountUpdate) {
+			UpdateAmount(playerInventoryEvent.PickableGameObject);
+			return;
 		}
-	}
-
-	public void UpdateInventory(PlayerInventoryEvent playerInventorySlotEvent) {
+		// All types are handled in the same update: just re draw all the slots...
+		
 		RemoveAllChildrenIfNeeded();
-		var inventory = playerInventorySlotEvent.Inventory;
+		var inventory = playerInventoryEvent.Inventory;
 		FixSlotSize(inventory.Items.Count);
 		
 		inventory.Items.ForEach((pickableGameObject, i) => {
@@ -40,6 +35,17 @@ public partial class Inventory : GridContainer {
 				pickableGameObject is WeaponRangeGameObject range && inventory.WeaponRangeEquipped == range;
 			inventorySlot.UpdateInventorySlot(pickableGameObject, equipped, selected);
 		});
+	}
+
+	private void UpdateAmount(PickableGameObject gameObject) {
+		var childCount = GetChildCount();
+		for (var i = 0; i < childCount; i++) {
+			var inventorySlot = GetChild<InventorySlot>(i);
+			if (inventorySlot.PickableGameObject == gameObject) {
+				inventorySlot.UpdateAmount();
+				break;
+			}
+		}
 	}
 
 	private void FixSlotSize(int size) {

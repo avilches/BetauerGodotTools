@@ -20,7 +20,6 @@ using Betauer.NodePath;
 using Betauer.Physics;
 using Godot;
 using Veronenger.Game.Platform.Character.Npc;
-using Veronenger.Game.Platform.HUD;
 using Veronenger.Game.Platform.Items;
 using Veronenger.Game.Platform.World;
 
@@ -84,12 +83,11 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 	[Inject] private CameraContainer CameraContainer { get; set; }
 	
 	[Inject] private ITemporal<PlatformGameView> PlatformGameView { get; set; }
-	[Inject] private ITemporal<PlatformHud> PlatformHud { get; set; }
 	[Inject] private PlatformWorld PlatformWorld => (PlatformWorld)PlatformGameView.Get().GetWorld(); 
-	[Inject] private PlatformHud HudCanvas => PlatformHud.Get();  
 	
 	[Inject] private SceneTree SceneTree { get; set; }
-	[Inject] private EventBus EventBus { get; set; }
+	[Inject] private PlatformBus PlatformBus { get; set; }
+	[Inject] private PlatformQuery PlatformQuery { get; set; }
 	[Inject] private InputActionsContainer PlayerActionsContainer { get; set; }
 	[Inject] private PlayerConfig PlayerConfig { get; set; }
 
@@ -210,25 +208,27 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 	}
 
 	private void ConfigureInventory() {
-		Inventory = new Inventory();
-		Inventory.OnEquip += item => {
-			if (item is WeaponGameObject weapon) {
-				_characterWeaponController.Equip(weapon);
+		Inventory = new Inventory(this);
+		Inventory.OnChange += e => {
+			if (e.Type is PlayerInventoryEventType.Equip) {
+				if (e.PickableGameObject is WeaponGameObject weapon) {
+					_characterWeaponController.Equip(weapon);
+				}
+			} else if (e.Type is PlayerInventoryEventType.Unequip) {
+				_characterWeaponController.Unequip();
 			}
+			PlatformBus.Publish(e);
 		};
-		Inventory.OnUnequip += item => { _characterWeaponController.Unequip(); };
 		Ready += () => {
 			// Needs to be delayed until HudScene is loaded and ready
-			Inventory.OnUpdateInventory += (e) => HudCanvas.UpdateInventory(this, e);
-			Inventory.OnSlotAmountUpdate += (e) => HudCanvas.UpdateAmount(this, e);
-			Inventory.TriggerRefresh();
+			PlatformBus.Publish(new PlayerInventoryChangeEvent(Inventory, PlayerInventoryEventType.Refresh, null!));
 		};
 	}
 
 	private void ConfigureHud() {
 		Ready += () => {
-			// Needs to be delayed until HudScene is loaded and PlayerGameObject is set with LinkNode
-			PlayerGameObject.OnHealthUpdate += (phe) => HudCanvas.UpdateHealth(this, phe);
+			// Needs to be delayed PlayerGameObject is linked with LinkNode
+			PlayerGameObject.OnHealthUpdate += (phe) => PlatformBus.Publish(phe);
 			PlayerGameObject.TriggerRefresh();
 		};
 	}
@@ -305,7 +305,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 						.Take(PlayerGameObject.AvailableHits)
 						.ForEach(enemy => {
 							PlayerGameObject.AvailableHits--;
-							EventBus.Publish(new PlayerAttackEvent(this, enemy, Inventory.WeaponMeleeEquipped));
+							PlatformBus.Publish(new PlayerAttackEvent(this, enemy, Inventory.WeaponMeleeEquipped));
 						});
 				}
 			}
@@ -594,7 +594,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 					var npc = collision.Collider.GetCollisionNode<NpcNode>();
 					if (npc.CanBeAttacked(weapon)) {
 						hits++;
-						EventBus.Publish(new PlayerAttackEvent(this, npc, weapon));
+						PlatformBus.Publish(new PlayerAttackEvent(this, npc, weapon));
 					}
 					return hits < weapon.EnemiesPerHit ? ProjectileTrail.Behaviour.Continue : ProjectileTrail.Behaviour.Stop;
 				}

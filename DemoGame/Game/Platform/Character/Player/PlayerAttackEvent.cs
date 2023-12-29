@@ -3,7 +3,7 @@ using Veronenger.Game.Platform.Items;
 
 namespace Veronenger.Game.Platform.Character.Player;
 
-public class PlayerAttackEvent {
+public readonly struct PlayerAttackEvent {
     // public PlayerNode Player { get; }
     public NpcNode NpcNode { get; }
     public WeaponGameObject Weapon { get; }

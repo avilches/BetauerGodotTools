@@ -77,7 +77,7 @@ public class PlayerGameObject : GameObject<PlayerNode> {
     }
 
     public void TriggerRefresh(float fromHealth, float toHealth, float maxHealth) {
-        OnHealthUpdate?.Invoke(new PlayerHealthEvent(fromHealth, toHealth, maxHealth));
+        OnHealthUpdate?.Invoke(new PlayerHealthEvent(Node, fromHealth, toHealth, maxHealth));
     }
 
     public bool IsDead() => Health <= 0f;

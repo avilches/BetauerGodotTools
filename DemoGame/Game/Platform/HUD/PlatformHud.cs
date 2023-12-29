@@ -1,10 +1,10 @@
 using System;
 using Betauer.Application.SplitScreen;
+using Betauer.Core;
 using Betauer.DI;
 using Betauer.DI.Attributes;
 using Godot;
 using Veronenger.Game.Platform.Character.Player;
-using Veronenger.Game.Platform.Items;
 
 namespace Veronenger.Game.Platform.HUD;
 
@@ -12,6 +12,7 @@ public partial class PlatformHud : CanvasLayer, IInjectable {
     
     [Inject("PlayerHud")] public PlayerHud PlayerHud1 { get; set; }
     [Inject("PlayerHud")] public PlayerHud PlayerHud2 { get; set; }
+    [Inject] public PlatformBus PlatformBus { get; set; }
 
     public SplitScreenContainer<PlayerHud> SplitScreenContainer;
 
@@ -31,18 +32,17 @@ public partial class PlatformHud : CanvasLayer, IInjectable {
         AddChild(PlayerHud2);
         SplitScreenContainer.Split1 = PlayerHud1;
         SplitScreenContainer.Split2 = PlayerHud2;
+
+        PlatformBus.Subscribe(UpdateInventory).UnsubscribeIf(Predicates.IsInvalid(this));
+        PlatformBus.Subscribe(UpdateHealth).UnsubscribeIf(Predicates.IsInvalid(this));
     }
 
-    public void UpdateHealth(PlayerNode playerNode, PlayerHealthEvent he) {
-        GetPlayerHud(playerNode).UpdateHealth(he);
+    public void UpdateHealth(PlayerHealthEvent he) {
+        GetPlayerHud(he.PlayerNode).UpdateHealth(he);
     }
 
-    public void UpdateAmount(PlayerNode playerNode, PickableGameObject gameObject) {
-        GetPlayerHud(playerNode).UpdateAmount(gameObject);
-    }
-
-    public void UpdateInventory(PlayerNode playerNode, PlayerInventoryEvent playerInventoryEvent) {
-        GetPlayerHud(playerNode).UpdateInventory(playerInventoryEvent);
+    public void UpdateInventory(PlayerInventoryChangeEvent playerInventoryEvent) {
+        GetPlayerHud(playerInventoryEvent.Inventory.PlayerNode).UpdateInventory(playerInventoryEvent);
     }
 
     private PlayerHud GetPlayerHud(PlayerNode playerNode) {

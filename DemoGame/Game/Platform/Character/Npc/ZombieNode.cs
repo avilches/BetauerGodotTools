@@ -82,7 +82,7 @@ public partial class ZombieNode : NpcNode, IInjectable {
 	[NodePath("Character/Sprites/BloodParticles")] public GpuParticles2D BloodParticles;
 
 	[Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
-	[Inject] private EventBus EventBus { get; set; }
+	[Inject] private PlatformBus PlatformBus { get; set; }
 	[Inject] private PlayerConfig PlayerConfig { get; set; }
 	[Inject] private ITemporal<PlatformGameView> PlatformGameView { get; set; }
 	[Inject] private PlatformWorld PlatformWorld => (PlatformWorld)PlatformGameView.Get().GetWorld(); 
@@ -270,7 +270,7 @@ public partial class ZombieNode : NpcNode, IInjectable {
 			CollisionLayerConfig.EnemyConfigureAttackArea(_attackArea);
 			CollisionLayerConfig.EnemyConfigureHurtArea(_hurtArea);
 			UpdateHealthBar();
-			consumer = EventBus.Subscribe(OnPlayerAttackEvent).UnsubscribeIf(Predicates.IsInvalid(this));
+			consumer = PlatformBus.Subscribe(OnPlayerAttackEvent).UnsubscribeIf(Predicates.IsInvalid(this));
 		};
 
 		TreeExiting += () => consumer.Unsubscribe();
