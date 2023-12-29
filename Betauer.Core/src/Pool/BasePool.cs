@@ -20,15 +20,22 @@ public abstract class BasePool<T> : IPool {
     protected PoolCollection<T> Elements { get; }
     
     public Type ElementType => typeof(T);
+    public int StatsCreated { get; private set; } = 0;
+    public int StatsRecycled { get; private set; } = 0;
 
     protected BasePool(PoolCollection<T>? pool = null) {
         Elements = pool ?? new PoolCollection<T>.Stack();
     }
 
     public T GetOrCreate() {
-        var element = Elements.Count == 0
-            ? ExecuteCreate()
-            : Elements.Get();
+        T element;
+        if (Elements.Count == 0) {
+            element = ExecuteCreate();
+            StatsCreated++;
+        } else {
+            element = Elements.Get();
+            StatsRecycled++;
+        }
         ExecuteOnGet(element);
         return element;
     }
