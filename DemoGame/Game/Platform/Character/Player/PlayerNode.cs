@@ -8,6 +8,7 @@ using Betauer.Camera;
 using Betauer.Camera.Control;
 using Betauer.Core;
 using Betauer.Core.Nodes.Events;
+using Betauer.Core.Pool;
 using Betauer.Core.Restorer;
 using Betauer.Core.Time;
 using Betauer.DI;
@@ -82,8 +83,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 	[Inject] private ITransient<StageCameraController> StageCameraControllerFactory { get; set; }
 	[Inject] private CameraContainer CameraContainer { get; set; }
 	
-	[Inject] private ITemporal<PlatformGameView> PlatformGameView { get; set; }
-	[Inject] private PlatformWorld PlatformWorld => (PlatformWorld)PlatformGameView.Get().GetWorld(); 
+	[Inject] private NodePool<PickableItemNode> PickableItemPool { get; set; }
 	
 	[Inject] private SceneTree SceneTree { get; set; }
 	[Inject] private PlatformBus PlatformBus { get; set; }
@@ -246,7 +246,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 		// pickable objects are not removed from the gamerepository because they belong to the user in the inventory,
 		// so they need to be saved. Unlink just make the node (the object in the ground) available for other uses.
 		var node = pickable.UnlinkNode();
-		PlatformWorld.Release(node!);
+		PickableItemPool.Release(node!);
 		Inventory.Pick(pickable);
 	}
 
@@ -365,7 +365,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 		// if (collision.IsColliding) return;
 		// var dropVelocity = new Vector2(MotionX + (PlatformBody.FacingRight * PlayerConfig.DropLateralSpeed), MotionY);
 		var dropVelocity = new Vector2(LateralState.FacingRight * Math.Max(Math.Abs(MotionX), PlayerConfig.DropLateralSpeed), MotionY);
-		PlatformWorld.PlayerDrop(item, Marker2D.GlobalPosition, dropVelocity);
+		PlatformBus.Publish(new PlayerDropEvent(item, Marker2D.GlobalPosition, dropVelocity));
 		Inventory.Drop();
 	}
 
@@ -469,7 +469,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 		_fsm.State(PlayerState.Idle)
 			.OnInput(InventoryHandler)
 			.OnInput(e => {
-				if (e.IsKeyPressed(Key.V)) PlatformWorld.InstantiateNewZombie();
+				if (e.IsKeyJustPressed(Key.V)) PlatformBus.SpawnZombie();
 			})
 			.Enter(() => {
 				if (AnimationShoot.IsPlaying()) AnimationIdle.Queue();
@@ -583,7 +583,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 			var bulletPosition = weapon.Config.ProjectileStartPosition * new Vector2(LateralState.FacingRight, 1);
 			var bulletDirection = new Vector2(LateralState.FacingRight, 0);
 			var hits = 0;
-			var bullet = PlatformWorld.NewBullet();
+			var bullet = PlatformQuery.NewBullet();
 			Inventory.UpdateWeaponRangeAmmo(weapon, -1);
 			bullet.ShootFrom(weapon, CharacterBody2D.ToGlobal(bulletPosition), bulletDirection,
 				CollisionLayerConfig.PlayerConfigureBulletRaycast,

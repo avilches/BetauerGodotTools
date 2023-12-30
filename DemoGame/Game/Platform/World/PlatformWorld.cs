@@ -6,6 +6,7 @@ using Betauer.Camera;
 using Betauer.Core;
 using Betauer.Core.Nodes;
 using Betauer.Core.Pool;
+using Betauer.DI;
 using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
 using Betauer.Input.Joypad;
@@ -17,13 +18,14 @@ using Veronenger.Game.Platform.Items;
 
 namespace Veronenger.Game.Platform.World;
 
-public partial class PlatformWorld : Node {
+public partial class PlatformWorld : Node, IInjectable {
 	[Inject] private ItemsManager ItemsManager { get; set; }
 	[Inject] private GameObjectRepository GameObjectRepository { get; set; }
 	[Inject] private PlatformConfig PlatformConfig { get; set; }
 	
 	[Inject] private ITransient<StageController> StageControllerFactory { get; set; }
 	[Inject] private ITransient<PlayerNode> Player { get; set; }
+	[Inject] private PlatformBus PlatformBus { get; set; }
 	[Inject] private NodePool<PickableItemNode> PickableItemPool { get; set; }
 	[Inject] private NodePool<ProjectileTrail> ProjectilePool { get; set; }
 	[Inject] private NodePool<ZombieNode> ZombiePool { get; set; }
@@ -36,6 +38,13 @@ public partial class PlatformWorld : Node {
 	private readonly Node _playerSpawn = new() { Name = "PlayerSpawn" };
 
 	public List<PlayerNode> Players { get; } = new();
+
+	public void PostInject() {
+		PlatformBus.Subscribe((e) => {
+			if (e == PlatformEvent.SpawnZombie) InstantiateNewZombie();
+		});
+	}
+
 
 	public override void _Ready() {
 		PlatformConfig.ConfigurePlatformsCollisions();
@@ -255,7 +264,4 @@ public partial class PlatformWorld : Node {
 		ProjectilePool.Release(p);
 	}
 
-	public void Release(PickableItemNode node) {
-		PickableItemPool.Release(node);
-	}
 }

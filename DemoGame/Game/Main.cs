@@ -275,7 +275,7 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IMain, IInjectab
             // TODO: Launch the settings window
             // Console.WriteLine("OnPlayerMappingConnectionChanged: " + playerMapping);
         };
-        UiActionsContainer.Start();
+        UiActionsContainer.SetFirstJoypadConnected();
         ConfigureCanvasLayers();
         ConfigureDebugOverlays();
         ScreenSettingsManager.Setup();

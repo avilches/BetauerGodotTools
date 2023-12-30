@@ -31,6 +31,7 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 	[Inject] private InputActionsContainer PlayerActionsContainer { get; set; }
 	[Inject] private UiActionsContainer UiActionsContainer { get; set; }
 	[Inject] private JoypadPlayersMapping JoypadPlayersMapping { get; set; }
+	[Inject] private PlatformQuery PlatformQuery { get; set; }
 
 	private SplitViewport _splitViewport;
 
@@ -97,12 +98,14 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 		InitializeWorld();
 		CreatePlayer1(UiActionsContainer.CurrentJoyPad);
 		AllowAddingP2();				
+		PlatformQuery.Configure(PlatformWorld.Get());
 		PlatformWorld.Get().StartNewGame();
 		// _cameraController.WithMouseButton(MouseButton.Middle).Attach(_camera2D);
 	}
 
 	public async Task LoadFromMenu(string saveName) {
 		SceneTree.Root.AddChild(this);
+		PlatformQuery.Configure(PlatformWorld.Get());
 		UiActionsContainer.SetJoypad(UiActionsContainer.CurrentJoyPad);	// Player who starts the game is the player who control the UI forever
 		var (success, saveGame) = await LoadSaveGame(saveName);
 		if (!success) return;
