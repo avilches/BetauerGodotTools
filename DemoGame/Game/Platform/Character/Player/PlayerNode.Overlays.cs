@@ -54,7 +54,7 @@ public partial class PlayerNode {
 	}
 
 	private void AddCameraAndZoomTests(DebugOverlay overlay) {
-		var spawnPlayer = PlatformWorld.GetNode<Marker2D>("SpawnPlayer");
+		var spawnPlayer = new Vector2(-618, 13);
 		overlay
 			.Children()
 			.Add<HBoxContainer>(box => box.Children()
@@ -69,10 +69,10 @@ public partial class PlayerNode {
 				.Button("Follow player pos", () => _cameraController.Follow(() => CharacterBody2D.GlobalPosition))
 				.Button("Stop", () => _cameraController.StopFollowing())
 				.Button("Start", () => _cameraController.ContinueFollowing())
-				.Button("MoveTo Node", () => _cameraController.MoveTo(spawnPlayer.GlobalPosition, 0.8f))
-				.Button("MoveTo Pos", () => _cameraController.MoveTo(() => spawnPlayer.GlobalPosition, 0.8f))
-				.Button("MoveTo Node", () => _cameraController.MoveTo(spawnPlayer.GlobalPosition, 0.8f, BezierCurve.Create(0.755f, 0.05f, 0.855f, 0.06f)))
-				.Button("MoveTo Pos", () => _cameraController.MoveTo(() => spawnPlayer.GlobalPosition, 0.8f, BezierCurve.Create(0.755f, 0.05f, 0.855f, 0.06f)))
+				.Button("MoveTo V2", () => _cameraController.MoveTo(spawnPlayer, 0.8f))
+				.Button("MoveTo f()", () => _cameraController.MoveTo(() => spawnPlayer, 0.8f))
+				.Button("MoveTo V2 bezier", () => _cameraController.MoveTo(spawnPlayer, 0.8f, BezierCurve.Create(0.755f, 0.05f, 0.855f, 0.06f)))
+				.Button("MoveTo f() bezier", () => _cameraController.MoveTo(() => spawnPlayer, 0.8f, BezierCurve.Create(0.755f, 0.05f, 0.855f, 0.06f)))
 				.Button("Zoom", async () => {
 					await _cameraController.Zoom(new Vector2(4f, 4f), 0.8f, null, () => _cameraController.Camera2D.GetLocalMousePosition());
 					await _cameraController.Zoom(new Vector2(0.5f, 0.5f), 0.8f, BezierCurve.Create(0.755f, 0.05f, 0.855f, 0.06f),
