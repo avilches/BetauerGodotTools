@@ -2,12 +2,11 @@ using System;
 using System.Collections.Generic;
 using Betauer.Core;
 using Betauer.Core.Nodes;
+using Betauer.Core.Pool;
 using Betauer.DI;
 using Betauer.DI.Attributes;
-using Betauer.DI.Factory;
 using Godot;
 using Godot.Collections;
-using Veronenger.Game.Platform.World;
 
 namespace Veronenger.Game.Platform.Items;
 
@@ -15,6 +14,7 @@ public partial class ProjectileTrail : Node, IInjectable {
 	public enum Behaviour { Continue, Stop }
 
 	[Inject] public Random Random { get; set; }
+	[Inject] private NodePool<ProjectileTrail> ProjectilePool { get; set; }
 	
 	private static float RayLength = 40;
 
@@ -78,15 +78,13 @@ public partial class ProjectileTrail : Node, IInjectable {
 		
 	}
 
-	[Inject] private ITemporal<PlatformWorld> PlatformWorld { get; set; }
-
 	public override void _PhysicsProcess(double delta) {
 		if (_queueEnd) {
-			PlatformWorld.Get().Release(this);
+			ProjectilePool.Release(this);
 		} else {
 			var currentPosition = Sprite2D.Position;
 			if (IsTooFar(currentPosition)) {
-				PlatformWorld.Get().Release(this);
+				ProjectilePool.Release(this);
 				return;
 			}
 			var newPosition = currentPosition + _velocity * (float)delta;

@@ -1,4 +1,6 @@
 using Betauer.DI.Attributes;
+using Godot;
+using Veronenger.Game.Platform.Character.Player;
 using Veronenger.Game.Platform.Items;
 using Veronenger.Game.Platform.World;
 
@@ -13,4 +15,6 @@ public class PlatformQuery {
     }
     
     public ProjectileTrail NewBullet() => _platformWorld.NewBullet();
+
+    public PlayerNode FindClosestPlayer(Vector2 origin) => _platformWorld.FindClosestPlayer(origin);
 }
