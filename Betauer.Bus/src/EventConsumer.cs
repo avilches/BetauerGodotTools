@@ -18,12 +18,12 @@ public class EventConsumer<TEvent> {
         Action.Invoke(@event);
     }
 
-    public virtual void Unsubscribe() {
+    public void Unsubscribe() {
         Action = null;
         UnsubscribeIfFunc = null;
     }
 
-    public virtual bool IsValid() {
+    public bool IsValid() {
         return Action != null && (UnsubscribeIfFunc == null || !UnsubscribeIfFunc.Invoke());
     }
 }

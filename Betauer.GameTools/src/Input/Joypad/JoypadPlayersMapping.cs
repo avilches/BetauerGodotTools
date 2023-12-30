@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Betauer.Core.Signal;
 
 namespace Betauer.Input.Joypad;
 
@@ -12,16 +11,17 @@ public class JoypadPlayersMapping {
     public event Action<PlayerMapping> OnPlayerMappingConnectionChanged;
 
     public JoypadPlayersMapping() {
-        // TODO: Godot 4 lacks a way to disconnect callable lambdas, so this connection lasts forever
-         SignalExtensions.OnInputJoyConnectionChanged((deviceId, connected) => {
-            for (var i = 0; i < Players; i++) {
-                var playerMapping = Mapping[i];
-                if (playerMapping.JoypadId == deviceId) {
-                    playerMapping.SetConnected(connected);
-                    OnPlayerMappingConnectionChanged?.Invoke(playerMapping);
-                }
+        Godot.Input.Singleton.JoyConnectionChanged += JoyConnectionChanged;
+    }
+
+    private void JoyConnectionChanged(long deviceId, bool connected) {
+        for (var i = 0; i < Players; i++) {
+            var playerMapping = Mapping[i];
+            if (playerMapping.JoypadId == deviceId) {
+                playerMapping.SetConnected(connected);
+                OnPlayerMappingConnectionChanged?.Invoke(playerMapping);
             }
-        });
+        }
     }
 
     public PlayerMapping AddPlayer() {

@@ -59,7 +59,7 @@ public partial class InputActionsContainer : Node, IInjectable {
         return ActionMap.TryGetValue(name, out var action) ? action as T: null;
     }
 
-    // Please, dont use this method directly: use InputAction.SetInputActionContainer() instead
+    // This method is only used by InputAction.SetInputActionContainer(). Don't use it directly, use InputAction.SetInputActionContainer() instead
     internal void Add(AxisAction axisAction) {
         if (InputActionList.Contains(axisAction)) return; // Avoid duplicates
         InputActionList.Add(axisAction);
@@ -67,7 +67,7 @@ public partial class InputActionsContainer : Node, IInjectable {
         LinkAxisAction(axisAction);
     }
 
-     // Please, dont use this method directly: use InputAction.SetInputActionContainer() instead
+     // This method is only used by InputAction.SetInputActionContainer(). Don't use it directly, use InputAction.SetInputActionContainer() instead
     internal void Add(InputAction inputAction) {
         if (InputActionList.Contains(inputAction)) return; // Avoid duplicates
         InputActionList.Add(inputAction);
