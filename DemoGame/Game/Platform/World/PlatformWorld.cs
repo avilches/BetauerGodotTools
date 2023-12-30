@@ -221,8 +221,8 @@ public partial class PlatformWorld : Node, IInjectable {
 		return Players.Find(p => p.CharacterBody2D == player) != null;
 	}
 
-	public PlayerNode ClosestPlayer(Vector2 globalPosition) {
-		return Players.OrderBy(p => p.GlobalPosition.DistanceSquaredTo(globalPosition)).First();
+	public PlayerNode FindClosestPlayer(Vector2 globalPosition) {
+		return FastSearch.FindMinimumValue(Players, p => p.GlobalPosition.DistanceSquaredTo(globalPosition));
 	}
 
 	public void InstantiateNewZombie() {
