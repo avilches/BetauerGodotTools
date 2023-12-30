@@ -15,9 +15,9 @@ public class PlatformBus {
     public void Publish(PlayerInventoryChangeEvent e) => _inventoryBus.Publish(e);
     public void Publish(PlayerHealthEvent e) => _healthBush.Publish(e);
     
-    public Multicast<PlayerAttackEvent>.EventConsumer Subscribe(Action<PlayerAttackEvent> action) => _attackBus.Subscribe(action);
-    public Multicast<PlayerInventoryChangeEvent>.EventConsumer Subscribe(Action<PlayerInventoryChangeEvent> action) => _inventoryBus.Subscribe(action);
-    public Multicast<PlayerHealthEvent>.EventConsumer Subscribe(Action<PlayerHealthEvent> action) => _healthBush.Subscribe(action);
+    public EventConsumer<PlayerAttackEvent> Subscribe(Action<PlayerAttackEvent> action) => _attackBus.Subscribe(action);
+    public EventConsumer<PlayerInventoryChangeEvent> Subscribe(Action<PlayerInventoryChangeEvent> action) => _inventoryBus.Subscribe(action);
+    public EventConsumer<PlayerHealthEvent> Subscribe(Action<PlayerHealthEvent> action) => _healthBush.Subscribe(action);
 
     public void Clear() {
         _attackBus.Dispose();

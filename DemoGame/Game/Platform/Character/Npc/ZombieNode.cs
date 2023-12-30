@@ -135,7 +135,7 @@ public partial class ZombieNode : NpcNode, IInjectable {
 
 	private Vector2 RightVector => PlatformBody.FloorUpDirection.Rotate90Right();
 
-	private Multicast<object, PlayerAttackEvent>.EventConsumer consumer;
+	private EventConsumer<PlayerAttackEvent> _consumer;
 	
 	public override partial void _Process(double delta);
 	public override partial void _PhysicsProcess(double delta);
@@ -270,10 +270,11 @@ public partial class ZombieNode : NpcNode, IInjectable {
 			CollisionLayerConfig.EnemyConfigureAttackArea(_attackArea);
 			CollisionLayerConfig.EnemyConfigureHurtArea(_hurtArea);
 			UpdateHealthBar();
-			consumer = PlatformBus.Subscribe(OnPlayerAttackEvent).UnsubscribeIf(Predicates.IsInvalid(this));
+			_consumer = PlatformBus.Subscribe(OnPlayerAttackEvent);
+			_consumer.UnsubscribeIf(Predicates.IsInvalid(this));
 		};
 
-		TreeExiting += () => consumer.Unsubscribe();
+		TreeExiting += () => _consumer.Unsubscribe();
 		
 		_restorer = new MultiRestorer()
 			.Add(CharacterBody2D.CreateRestorer())

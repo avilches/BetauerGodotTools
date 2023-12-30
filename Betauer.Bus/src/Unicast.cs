@@ -1,62 +1,33 @@
 using System ;
 using Betauer.Core;
 
-namespace Betauer.Bus {
-    public class Unicast<TEvent> : Unicast<object, TEvent> {
+namespace Betauer.Bus; 
+
+public class Unicast<TEvent> {
+    public readonly EventConsumer<TEvent> Consumer = new();
+
+    public void Execute(TEvent @event) {
+        if (Consumer.IsValid()) {
+            Consumer.Execute(@event);
+        }
     }
 
-    public class Unicast<TPublisher, TEvent> {
-        public readonly EventConsumer Consumer = new();
+    public EventConsumer<TEvent> Subscribe(Action<TEvent> action) {
+        Consumer.Unsubscribe();
+        Consumer.Do(action);
+        return Consumer;
+    }
 
-        public Func<TPublisher, TEvent, bool>? Condition { get; set; }
+    // This allows to subscribe with a subtype of TEvent only, which is valid but it will fail in the method above
+    public EventConsumer<TEvent> Subscribe<T>(Action<T> action) where T : TEvent {
+        Consumer.Unsubscribe();
+        Consumer.Do(e => {
+            if (e is null or T) action((T)e);
+        });
+        return Consumer;
+    }
 
-        public void Publish() {
-            Publish(default, default);
-        }
-
-        public void Publish(TEvent args) {
-            Publish(default, args);
-        }
-
-        public void Publish(TPublisher publisher, TEvent args) {
-            if (Consumer.IsValid() &&
-                (Condition == null || Condition(publisher, args))) {
-                Execute(Consumer, publisher, args);
-            }
-        }
-
-        protected virtual void Execute(EventConsumer consumer, TPublisher publisher, TEvent args) {
-            consumer.Execute(publisher, args);
-        }
-        
-        public EventConsumer Subscribe(Action action) {
-            return Subscribe<TPublisher, TEvent>((_, _) => action());
-        }
-
-        public EventConsumer Subscribe(Action<TEvent> action) {
-            return Subscribe((_, args) => action(args));
-        }
-
-        public EventConsumer Subscribe(Action<TPublisher, TEvent> action) {
-            return Subscribe<TPublisher, TEvent>(action);
-        }
-
-
-        public EventConsumer Subscribe<T>(Action<T> action) where T : TEvent {
-            return Subscribe<TPublisher, T>((_, args) => action(args));
-        }
-
-        public EventConsumer Subscribe<TP, T>(Action<TP, T> action) where T : TEvent where TP : TPublisher {
-            Consumer.Unsubscribe();
-            Consumer.Do(ActionTools.Convert<TPublisher, TEvent, TP, T>(action));
-            return Consumer;
-        }
-
-        public void Dispose() {
-            Consumer.Unsubscribe();
-        }
-
-        public class EventConsumer : BaseEventConsumer<EventConsumer, TPublisher, TEvent> {
-        }
+    public void Dispose() {
+        Consumer.Unsubscribe();
     }
 }
