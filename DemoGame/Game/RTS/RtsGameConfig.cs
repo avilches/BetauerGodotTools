@@ -14,7 +14,7 @@ namespace Veronenger.Game.RTS;
 
 [Configuration]
 [Loader("GameLoader", Tag = "main")]
-[Scene.Temporal<RtsGameView>(Name = "RtsGameView")]
+[Scene.Transient<RtsGameView>(Name = "RtsGameView")]
 public class RtsMainResources {
 }
 

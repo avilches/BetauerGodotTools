@@ -1,4 +1,5 @@
 using System;
+using Betauer.Core;
 using Betauer.DI.ServiceProvider;
 using Betauer.Tools.FastReflection;
 

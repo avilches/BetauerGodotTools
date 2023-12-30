@@ -127,6 +127,7 @@ public partial class Container {
         if (name != null) {
             if (_providersByName.TryGetValue(name, out var found)) throw new DuplicateServiceException(found.PublicType, name);
             _providersByName[name] = provider;
+            Logger.Debug("Registered {0}:{1} | Name: {2}", provider.Lifetime, provider.RealType.GetTypeName(), name);
         } else {
             if (_providersByPublicType.ContainsKey(provider.PublicType)) throw new DuplicateServiceException(provider.PublicType);
             _providersByPublicType[provider.PublicType] = provider;

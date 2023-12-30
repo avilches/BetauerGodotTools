@@ -503,9 +503,6 @@ public class ScannerFactoryTests : Node {
     public class Element4 : Control {
     }
 
-    public class Element5 : Button {
-    }
-
     public class Element6 : HBoxContainer {
     }
 
@@ -517,11 +514,6 @@ public class ScannerFactoryTests : Node {
     [Attributes.Factory.Transient<Node2D>]
     public class ElementTransientFactory : IFactory<Element2> {
         public Element2 Create() => new Element2();
-    }
-    
-    [Attributes.Factory.Temporal<Button>]
-    public class ElementTemporalFactory : IFactory<Element5> {
-        public Element5 Create() => new Element5();
     }
     
     public class ElementSingletonLazyConfigFactory : IFactory<Element3> {
@@ -540,7 +532,6 @@ public class ScannerFactoryTests : Node {
     public class Config {
         [Attributes.Factory.Singleton<Node>(Lazy = true)] IFactory<Node3D> Element3 => new ElementSingletonLazyConfigFactory();
         [Attributes.Factory.Transient] IFactory<Control> Element4 => new ElementTransientConfigFactory();
-        [Attributes.Factory.Temporal] IFactory<HBoxContainer> Element6 => new ElementTemporalConfigFactory();
     }
 
     [TestRunner.Test]
@@ -550,7 +541,6 @@ public class ScannerFactoryTests : Node {
             di.Scan<Config>();
             di.Scan<ElementSingletonFactory>();
             di.Scan<ElementTransientFactory>();
-            di.Scan<ElementTemporalFactory>();
         });
         // Singleton
         Assert.That(c.Resolve<Node>(), Is.EqualTo(c.Resolve<Node>()));
@@ -563,11 +553,6 @@ public class ScannerFactoryTests : Node {
         Assert.That(c.Resolve<ITransient<Node2D>>().Create(), Is.TypeOf<Element2>());
         Assert.That(c.Resolve<ITransient<Node2D>>().Create(), Is.Not.EqualTo(c.Resolve<Node2D>()));
 
-        // Temporal
-        Assert.That(c.Resolve<ITemporal<Button>>(), Is.TypeOf<Proxy.Temporal<Element5>>());
-        Assert.That(c.Resolve<ITemporal<Button>>().Get(), Is.TypeOf<Element5>());
-        Assert.That(c.Resolve<ITemporal<Button>>().Get(), Is.EqualTo(c.Resolve<ITemporal<Button>>().Get()));
-
         // Singleton
         Assert.That(c.Resolve<Node3D>("Element3"), Is.EqualTo(c.Resolve<Node3D>("Element3")));
         Assert.That(c.Resolve<Node3D>("Element3"), Is.TypeOf<Element3>());
@@ -579,13 +564,6 @@ public class ScannerFactoryTests : Node {
         Assert.That(c.Resolve<Control>("Element4"), Is.TypeOf<Element4>());
         Assert.That(c.Resolve<ITransient<Control>>("Proxy:Element4").Create(), Is.Not.EqualTo(c.Resolve<Control>("Element4")));
         Assert.That(c.Resolve<ITransient<Control>>("Element4").Create(), Is.Not.EqualTo(c.Resolve<Control>("Element4")));
-
-        // Temporal
-        Assert.That(c.Resolve<ITemporal<Control>>("Element6"), Is.EqualTo(c.Resolve<ITemporal<Control>>("Element6")));
-        Assert.That(c.Resolve<ITemporal<Control>>("Element6"), Is.TypeOf<Proxy.Temporal<Element6>>());
-        Assert.That(c.Resolve<ITemporal<Control>>("Element6").Get(), Is.TypeOf<Element6>());
-        Assert.That(c.Resolve<ITemporal<Control>>("Element6").Get(), Is.EqualTo(c.Resolve<ITemporal<Control>>("Element6").Get()));
-
 
     }
     

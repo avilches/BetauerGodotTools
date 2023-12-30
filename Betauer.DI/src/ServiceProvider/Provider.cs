@@ -70,37 +70,7 @@ public abstract class Provider {
     public static TransientProvider Transient<TI, T>(Func<T> factory, string? name = null, Dictionary<string, object>? metadata = null) where T : class {
         return new TransientProvider(typeof(TI), typeof(T), factory, name, metadata);
     }
-
-    // Transient
-
-    public static ProxyProvider Temporal<T>(string? name = null, Dictionary<string, object>? metadata = null) where T : class {
-        return Temporal<T, T>((Func<T>)null!, name, metadata);
-    }
-
-    public static ProxyProvider Temporal<T>(IFactory<T> factory, string? name = null, Dictionary<string, object>? metadata = null) where T : class {
-        return Temporal<T, T>(FactoryTools.From(factory), name, metadata);
-    }
-
-    public static ProxyProvider Temporal<T>(Func<T> factory, string? name = null, Dictionary<string, object>? metadata = null) where T : class {
-        return Temporal<T, T>(factory, name, metadata);
-    }
-
-    public static ProxyProvider Temporal<TI, T>(string? name = null, Dictionary<string, object>? metadata = null) where T : class {
-        return Temporal<TI, T>((Func<T>)null!, name, metadata);
-    }
-
-    public static ProxyProvider Temporal<TI, T>(IFactory<T> factory, string? name = null, Dictionary<string, object>? metadata = null) where T : class {
-        return Temporal<TI, T>(FactoryTools.From(factory), name, metadata);
-    }
-
-    public static ProxyProvider Temporal<TI, T>(Func<T> factory, string? name = null, Dictionary<string, object>? metadata = null) where T : class {
-        return Temporal(typeof(TI), typeof(T), factory, name, metadata);
-    }
-
-    public static ProxyProvider Temporal(Type publicType, Type realType, Func<object> factory, string? name = null, Dictionary<string, object>? metadata = null) {
-        return TransientTemporal(new TemporalProvider(publicType, realType, factory, name, metadata));
-    }
-
+    
     // Proxy
     
     public static readonly string ProxyPrefix = "Proxy:";
@@ -121,14 +91,6 @@ public abstract class Provider {
         return new ProxyProvider(proxyPublicType, proxyInstance, name);
     }
     
-    private static ProxyProvider TransientTemporal(TemporalProvider provider) {
-        var proxyPublicType = typeof(ITemporal<>).MakeGenericType(provider.PublicType);
-        var factoryType = typeof(Proxy.Temporal<>).MakeGenericType(provider.RealType);
-        var proxyInstance = (Proxy)Activator.CreateInstance(factoryType, provider)!;
-        var name = provider.Name == null ? null : $"{ProxyPrefix}{provider.Name}";
-        return new ProxyProvider(proxyPublicType, proxyInstance, name);
-    }
-
     public static Func<object> CreateCtor(Type type, Lifetime lifetime) {
         if (type.IsAbstract || type.IsInterface || type.IsGenericTypeDefinition || type == typeof(void))
             throw new NotSupportedException($"Can't create a constructor for void, abstract classes, interfaces or generic type definition classes: {type}");

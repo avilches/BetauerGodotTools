@@ -16,7 +16,7 @@ namespace Veronenger.Game.Platform;
 
 [Configuration]
 [Loader("GameLoader", Tag = "main")]
-[Scene.Temporal<PlatformGameView>(Name = "PlatformGameView")]
+[Scene.Transient<PlatformGameView>(Name = "PlatformGameView")]
 public class PlatformMainResources {
 }
 
@@ -27,7 +27,7 @@ public class PlatformMainResources {
 [Resource<Texture2D>("LeonKnifeAnimationSprite", "res://Game/Platform/Character/Player/Assets/Leon-knife.png")]
 [Resource<Texture2D>("LeonMetalbarAnimationSprite", "res://Game/Platform/Character/Player/Assets/Leon-metalbar.png")]
 [Resource<Texture2D>("LeonGun1AnimationSprite", "res://Game/Platform/Character/Player/Assets/Leon-gun1.png")]
-[Scene.Temporal<PlatformWorld>(Name = "PlatformWorld")]
+[Scene.Transient<PlatformWorld>(Name = "PlatformWorldFactory")]
 [Scene.Transient<PlayerHud>(Name = "PlayerHud")]
 [Scene.Transient<InventorySlot>(Name = "InventorySlot")]
 [Scene.Transient<PlayerNode>(Name = "Player")]
@@ -35,7 +35,7 @@ public class PlatformMainResources {
 [Scene.NodePool<ProjectileTrail>(Name = "ProjectilePool")]
 [Scene.NodePool<ZombieNode>(Name = "ZombiePool")]
 public class PlatformGameResources {
-	[Temporal<PlatformHud>] PlatformHud PlatformHud => new PlatformHud();
+	[Transient<PlatformHud>(Name = "PlatformHudFactory")] PlatformHud PlatformHud => new PlatformHud();
 }
 
 public interface IPlatformSaveObject : ISaveObject {

@@ -37,14 +37,17 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 
 	public const int MaxPlayer = 2;
 
-	[Inject] public ITemporal<PlatformHud> PlatformHud { get; private set; } = null!;
-	[Inject] public ITemporal<PlatformWorld> PlatformWorld { get; private set; } = null!;
-	private int ActivePlayers => PlatformWorld.HasValue() ? PlatformWorld.Get().Players.Count : 0;
+	[Inject] private ITransient<PlatformHud> PlatformHudFactory { get; set; }
+	[Inject] private ITransient<PlatformWorld> PlatformWorldFactory { get; set; }
+	
+	private PlatformHud PlatformHud { get; set; }
+	private PlatformWorld PlatformWorld { get; set; }
+	private int ActivePlayers => PlatformWorld != null ? PlatformWorld.Players.Count : 0;
 	private bool _allowAddingP2 = true;
 	private void AllowAddingP2() => _allowAddingP2 = true;
 	private void NoAddingP2() => _allowAddingP2 = false;
 
-	public Node GetWorld() => PlatformWorld.Get();
+	public Node GetWorld() => PlatformWorld;
 
 	public void PostInject() {
 		PlayerActionsContainer.Disable(); // The real actions are cloned per player in player.Connect()
@@ -92,20 +95,22 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 		UiActionsContainer.SetJoypad(UiActionsContainer.CurrentJoyPad);	// Player who starts the game is the player who control the UI forever
 		
 		await GameLoader.LoadPlatformGameResources();
+		PlatformWorld = PlatformWorldFactory.Create();
+		PlatformHud = PlatformHudFactory.Create();
 		
 		CurrentMetadata = new PlatformSaveGameMetadata();
 		GameObjectRepository.Initialize();
 		InitializeWorld();
 		CreatePlayer1(UiActionsContainer.CurrentJoyPad);
 		AllowAddingP2();				
-		PlatformQuery.Configure(PlatformWorld.Get());
-		PlatformWorld.Get().StartNewGame();
+		PlatformQuery.Configure(PlatformWorld);
+		PlatformWorld.StartNewGame();
 		// _cameraController.WithMouseButton(MouseButton.Middle).Attach(_camera2D);
 	}
 
 	public async Task LoadFromMenu(string saveName) {
 		SceneTree.Root.AddChild(this);
-		PlatformQuery.Configure(PlatformWorld.Get());
+		PlatformQuery.Configure(PlatformWorld);
 		UiActionsContainer.SetJoypad(UiActionsContainer.CurrentJoyPad);	// Player who starts the game is the player who control the UI forever
 		var (success, saveGame) = await LoadSaveGame(saveName);
 		if (!success) return;
@@ -117,7 +122,7 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 		UiActionsContainer.SetJoypad(UiActionsContainer.CurrentJoyPad); // Player who starts the game is the player who control the UI forever
 		var (success, saveGame) = await LoadSaveGame(saveName);
 		if (!success) return;
-		PlatformWorld.Get().Free();
+		PlatformWorld.Free();
 		ContinueLoad(saveGame);
 	}
 
@@ -130,7 +135,7 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 		LoadPlayer1(UiActionsContainer.CurrentJoyPad, consumer);
 		if (consumer.Player1 == null) AllowAddingP2();
 		else NoAddingP2();
-		PlatformWorld.Get().LoadGame(consumer);
+		PlatformWorld.LoadGame(consumer);
 		HideLoading();
 	}
 
@@ -167,10 +172,10 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 
 	public void InitializeWorld() {
 		JoypadPlayersMapping.RemoveAllPlayers();
-		AddChild(PlatformHud.Get());
+		AddChild(PlatformHud);
 		
-		_splitViewport.SetCommonWorld(PlatformWorld.Get());
-		_splitViewport.OnChange += (split) => PlatformHud.Get().SplitScreenContainer.Split = split;
+		_splitViewport.SetCommonWorld(PlatformWorld);
+		_splitViewport.OnChange += (split) => PlatformHud.SplitScreenContainer.Split = split;
 		_splitViewport.Refresh();
 		
 		GetTree().Root.SizeChanged += () => _splitViewport.Refresh();
@@ -178,14 +183,14 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 
 	private PlayerNode CreatePlayer1(int joypad) {
 		var playerMapping = JoypadPlayersMapping.AddPlayer().SetJoypadId(joypad);
-		var player = PlatformWorld.Get().AddNewPlayer(playerMapping);
+		var player = PlatformWorld.AddNewPlayer(playerMapping);
 		player.SetCamera(_splitViewport.Camera1);
 		return player;
 	}
 
 	private PlayerNode LoadPlayer1(int joypad, PlatformSaveGameConsumer consumer) {
 		var playerMapping = JoypadPlayersMapping.AddPlayer().SetJoypadId(joypad);
-		var player = PlatformWorld.Get().LoadPlayer(playerMapping, consumer.Player0, consumer.Inventory0);
+		var player = PlatformWorld.LoadPlayer(playerMapping, consumer.Player0, consumer.Inventory0);
 		player.SetCamera(_splitViewport.Camera1);
 		return player;
 	}
@@ -193,7 +198,7 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 	private PlayerNode CreatePlayer2(int joypad) {
 		if (JoypadPlayersMapping.Players >= MaxPlayer) throw new Exception("No more players allowed");
 		var playerMapping = JoypadPlayersMapping.AddPlayer().SetJoypadId(joypad);
-		var player = PlatformWorld.Get().AddNewPlayer(playerMapping);
+		var player = PlatformWorld.AddNewPlayer(playerMapping);
 		player.SetCamera(_splitViewport.Camera2);
 		return player;
 	}
@@ -209,15 +214,15 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 
 		} else if (ActivePlayers == 2) {
 
-			var p1Stage = PlatformWorld.Get().Players[0].StageCameraController?.CurrentStage;
-			var p2Stage = PlatformWorld.Get().Players[1].StageCameraController?.CurrentStage;
+			var p1Stage = PlatformWorld.Players[0].StageCameraController?.CurrentStage;
+			var p2Stage = PlatformWorld.Players[1].StageCameraController?.CurrentStage;
 			if (p1Stage == null || p2Stage == null) return;
 			var sameStage = p1Stage == p2Stage;
 			if (!sameStage) {
 				_splitViewport.Split = true;
 			} else {
-				var p1Pos = PlatformWorld.Get().Players[0].Marker2D.GlobalPosition;
-				var p2Pos = PlatformWorld.Get().Players[1].Marker2D.GlobalPosition;
+				var p1Pos = PlatformWorld.Players[0].Marker2D.GlobalPosition;
+				var p2Pos = PlatformWorld.Players[1].Marker2D.GlobalPosition;
 				var distanceTo = p1Pos.DistanceTo(p2Pos);
 
 				if (_splitViewport.Split) {

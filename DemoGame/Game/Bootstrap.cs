@@ -104,7 +104,6 @@ file static class Logging {
 		LoggerFactory.SetTraceLevel<Injector>(TraceLevel.Error);
 		LoggerFactory.SetTraceLevel<SingletonProvider>(TraceLevel.Error);
 		LoggerFactory.SetTraceLevel<TransientProvider>(TraceLevel.Error);
-		LoggerFactory.SetTraceLevel<TemporalProvider>(TraceLevel.Error);
 
 		// GameTools
 		LoggerFactory.SetTraceLevel<BaseScreenResolutionStrategy>(TraceLevel.All);

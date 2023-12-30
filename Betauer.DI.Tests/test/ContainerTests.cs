@@ -34,7 +34,6 @@ public class ContainerTests : Node {
         NotSupportedTypes.ForEach(type => {
             Assert.Throws<NotSupportedException>(() => new SingletonProvider(type, type, null, null, false, null));
             Assert.Throws<NotSupportedException>(() => new TransientProvider(type, type));
-            Assert.Throws<NotSupportedException>(() => new TemporalProvider(type, type));
             Assert.Throws<NotSupportedException>(() => Provider.CreateCtor(type, Lifetime.Singleton));
             Assert.Throws<NotSupportedException>(() => Provider.CreateCtor(type, Lifetime.Transient));
         });
@@ -146,9 +145,7 @@ public class ContainerTests : Node {
         Assert.Throws<InvalidCastException>(() => c.Build(di => di.Register(Provider.Singleton<Class1WithInterface, IInterface1>())));
         Assert.Throws<InvalidCastException>(() => c.Build(di => di.Register(Provider.Singleton<Class1WithInterface, IInterface1>())));
         Assert.Throws<InvalidCastException>(() => c.Build(di => di.Register(Provider.Transient<Class1WithInterface, IInterface1>())));
-        Assert.Throws<InvalidCastException>(() => c.Build(di => di.Register(Provider.Temporal<Class1WithInterface, IInterface1>())));
         Assert.Throws<InvalidCastException>(() => c.Build(di => di.Register(Provider.Static<Class1WithInterface, IInterface1>(new Class1WithInterface()))));
-        Assert.Throws<InvalidCastException>(() => c.Build(di => di.Register(Provider.Temporal<Class1WithInterface, IInterface1>())));
     }
 
     [TestRunner.Test(Description = "Resolve, TryResolve, Contains, TryGetProvider and GetProvider: type")]
