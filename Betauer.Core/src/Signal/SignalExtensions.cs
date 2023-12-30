@@ -9,7 +9,7 @@ namespace Betauer.Core.Signal;
 
 /**
  * Godot version: 4.2-stable (official)
- * Date: 2023-12-07 23:24:54
+ * Date: 2023-12-30 13:13:02
  *
  * Regular signal C# events don't allow flags as deferred or one shot. This class allows it.
  */
@@ -303,16 +303,16 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(Area3D.SignalName.BodyShapeExited, callable);
     }
 
-    public static Action OnAudioServerBusLayoutChanged(Action action, bool oneShot = false, bool deferred = false) {
+    public static Action OnAudioServerBusLayoutChanged(this AudioServerInstance target, Action action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
-        AudioServer.Singleton.Connect(AudioServer.SignalName.BusLayoutChanged, callable, SignalFlags(oneShot, deferred));
-        return () => AudioServer.Singleton.Disconnect(AudioServer.SignalName.BusLayoutChanged, callable);
+        target.Connect(AudioServer.SignalName.BusLayoutChanged, callable, SignalFlags(oneShot, deferred));
+        return () => target.Disconnect(AudioServer.SignalName.BusLayoutChanged, callable);
     }
 
-    public static Action OnAudioServerBusRenamed(Action<long, StringName, StringName> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnAudioServerBusRenamed(this AudioServerInstance target, Action<long, StringName, StringName> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
-        AudioServer.Singleton.Connect(AudioServer.SignalName.BusRenamed, callable, SignalFlags(oneShot, deferred));
-        return () => AudioServer.Singleton.Disconnect(AudioServer.SignalName.BusRenamed, callable);
+        target.Connect(AudioServer.SignalName.BusRenamed, callable, SignalFlags(oneShot, deferred));
+        return () => target.Disconnect(AudioServer.SignalName.BusRenamed, callable);
     }
 
     public static Action OnFinished(this AudioStreamPlayer target, Action action, bool oneShot = false, bool deferred = false) {
@@ -375,16 +375,16 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(ButtonGroup.SignalName.Pressed, callable);
     }
 
-    public static Action OnCameraServerCameraFeedAdded(Action<long> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnCameraServerCameraFeedAdded(this CameraServerInstance target, Action<long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
-        CameraServer.Singleton.Connect(CameraServer.SignalName.CameraFeedAdded, callable, SignalFlags(oneShot, deferred));
-        return () => CameraServer.Singleton.Disconnect(CameraServer.SignalName.CameraFeedAdded, callable);
+        target.Connect(CameraServer.SignalName.CameraFeedAdded, callable, SignalFlags(oneShot, deferred));
+        return () => target.Disconnect(CameraServer.SignalName.CameraFeedAdded, callable);
     }
 
-    public static Action OnCameraServerCameraFeedRemoved(Action<long> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnCameraServerCameraFeedRemoved(this CameraServerInstance target, Action<long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
-        CameraServer.Singleton.Connect(CameraServer.SignalName.CameraFeedRemoved, callable, SignalFlags(oneShot, deferred));
-        return () => CameraServer.Singleton.Disconnect(CameraServer.SignalName.CameraFeedRemoved, callable);
+        target.Connect(CameraServer.SignalName.CameraFeedRemoved, callable, SignalFlags(oneShot, deferred));
+        return () => target.Disconnect(CameraServer.SignalName.CameraFeedRemoved, callable);
     }
 
     public static Action OnDraw(this CanvasItem target, Action action, bool oneShot = false, bool deferred = false) {
@@ -615,10 +615,10 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(FileDialog.SignalName.FilesSelected, callable);
     }
 
-    public static Action OnGDExtensionManagerExtensionsReloaded(Action action, bool oneShot = false, bool deferred = false) {
+    public static Action OnGDExtensionManagerExtensionsReloaded(this GDExtensionManagerInstance target, Action action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
-        GDExtensionManager.Singleton.Connect(GDExtensionManager.SignalName.ExtensionsReloaded, callable, SignalFlags(oneShot, deferred));
-        return () => GDExtensionManager.Singleton.Disconnect(GDExtensionManager.SignalName.ExtensionsReloaded, callable);
+        target.Connect(GDExtensionManager.SignalName.ExtensionsReloaded, callable, SignalFlags(oneShot, deferred));
+        return () => target.Disconnect(GDExtensionManager.SignalName.ExtensionsReloaded, callable);
     }
 
     public static Action OnBeginNodeMove(this GraphEdit target, Action action, bool oneShot = false, bool deferred = false) {
@@ -777,10 +777,10 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(GridMap.SignalName.Changed, callable);
     }
 
-    public static Action OnInputJoyConnectionChanged(Action<long, bool> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnInputJoyConnectionChanged(this InputInstance target, Action<long, bool> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
-        Input.Singleton.Connect(Input.SignalName.JoyConnectionChanged, callable, SignalFlags(oneShot, deferred));
-        return () => Input.Singleton.Disconnect(Input.SignalName.JoyConnectionChanged, callable);
+        target.Connect(Input.SignalName.JoyConnectionChanged, callable, SignalFlags(oneShot, deferred));
+        return () => target.Disconnect(Input.SignalName.JoyConnectionChanged, callable);
     }
 
     public static Action OnEmptyClicked(this ItemList target, Action<Vector2, long> action, bool oneShot = false, bool deferred = false) {
@@ -813,10 +813,10 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(ItemList.SignalName.MultiSelected, callable);
     }
 
-    public static Action OnJavaScriptBridgePwaUpdateAvailable(Action action, bool oneShot = false, bool deferred = false) {
+    public static Action OnJavaScriptBridgePwaUpdateAvailable(this JavaScriptBridgeInstance target, Action action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
-        JavaScriptBridge.Singleton.Connect(JavaScriptBridge.SignalName.PwaUpdateAvailable, callable, SignalFlags(oneShot, deferred));
-        return () => JavaScriptBridge.Singleton.Disconnect(JavaScriptBridge.SignalName.PwaUpdateAvailable, callable);
+        target.Connect(JavaScriptBridge.SignalName.PwaUpdateAvailable, callable, SignalFlags(oneShot, deferred));
+        return () => target.Disconnect(JavaScriptBridge.SignalName.PwaUpdateAvailable, callable);
     }
 
     public static Action OnTextChanged(this LineEdit target, Action<string> action, bool oneShot = false, bool deferred = false) {
@@ -999,34 +999,34 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(NavigationRegion3D.SignalName.NavigationMeshChanged, callable);
     }
 
-    public static Action OnNavigationServer2DMapChanged(Action<Rid> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnNavigationServer2DMapChanged(this NavigationServer2DInstance target, Action<Rid> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
-        NavigationServer2D.Singleton.Connect(NavigationServer2D.SignalName.MapChanged, callable, SignalFlags(oneShot, deferred));
-        return () => NavigationServer2D.Singleton.Disconnect(NavigationServer2D.SignalName.MapChanged, callable);
+        target.Connect(NavigationServer2D.SignalName.MapChanged, callable, SignalFlags(oneShot, deferred));
+        return () => target.Disconnect(NavigationServer2D.SignalName.MapChanged, callable);
     }
 
-    public static Action OnNavigationServer2DNavigationDebugChanged(Action action, bool oneShot = false, bool deferred = false) {
+    public static Action OnNavigationServer2DNavigationDebugChanged(this NavigationServer2DInstance target, Action action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
-        NavigationServer2D.Singleton.Connect(NavigationServer2D.SignalName.NavigationDebugChanged, callable, SignalFlags(oneShot, deferred));
-        return () => NavigationServer2D.Singleton.Disconnect(NavigationServer2D.SignalName.NavigationDebugChanged, callable);
+        target.Connect(NavigationServer2D.SignalName.NavigationDebugChanged, callable, SignalFlags(oneShot, deferred));
+        return () => target.Disconnect(NavigationServer2D.SignalName.NavigationDebugChanged, callable);
     }
 
-    public static Action OnNavigationServer3DAvoidanceDebugChanged(Action action, bool oneShot = false, bool deferred = false) {
+    public static Action OnNavigationServer3DAvoidanceDebugChanged(this NavigationServer3DInstance target, Action action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
-        NavigationServer3D.Singleton.Connect(NavigationServer3D.SignalName.AvoidanceDebugChanged, callable, SignalFlags(oneShot, deferred));
-        return () => NavigationServer3D.Singleton.Disconnect(NavigationServer3D.SignalName.AvoidanceDebugChanged, callable);
+        target.Connect(NavigationServer3D.SignalName.AvoidanceDebugChanged, callable, SignalFlags(oneShot, deferred));
+        return () => target.Disconnect(NavigationServer3D.SignalName.AvoidanceDebugChanged, callable);
     }
 
-    public static Action OnNavigationServer3DMapChanged(Action<Rid> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnNavigationServer3DMapChanged(this NavigationServer3DInstance target, Action<Rid> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
-        NavigationServer3D.Singleton.Connect(NavigationServer3D.SignalName.MapChanged, callable, SignalFlags(oneShot, deferred));
-        return () => NavigationServer3D.Singleton.Disconnect(NavigationServer3D.SignalName.MapChanged, callable);
+        target.Connect(NavigationServer3D.SignalName.MapChanged, callable, SignalFlags(oneShot, deferred));
+        return () => target.Disconnect(NavigationServer3D.SignalName.MapChanged, callable);
     }
 
-    public static Action OnNavigationServer3DNavigationDebugChanged(Action action, bool oneShot = false, bool deferred = false) {
+    public static Action OnNavigationServer3DNavigationDebugChanged(this NavigationServer3DInstance target, Action action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
-        NavigationServer3D.Singleton.Connect(NavigationServer3D.SignalName.NavigationDebugChanged, callable, SignalFlags(oneShot, deferred));
-        return () => NavigationServer3D.Singleton.Disconnect(NavigationServer3D.SignalName.NavigationDebugChanged, callable);
+        target.Connect(NavigationServer3D.SignalName.NavigationDebugChanged, callable, SignalFlags(oneShot, deferred));
+        return () => target.Disconnect(NavigationServer3D.SignalName.NavigationDebugChanged, callable);
     }
 
     public static Action OnTextureChanged(this NinePatchRect target, Action action, bool oneShot = false, bool deferred = false) {
@@ -1173,10 +1173,10 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(PopupMenu.SignalName.MenuChanged, callable);
     }
 
-    public static Action OnProjectSettingsSettingsChanged(Action action, bool oneShot = false, bool deferred = false) {
+    public static Action OnProjectSettingsSettingsChanged(this ProjectSettingsInstance target, Action action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
-        ProjectSettings.Singleton.Connect(ProjectSettings.SignalName.SettingsChanged, callable, SignalFlags(oneShot, deferred));
-        return () => ProjectSettings.Singleton.Disconnect(ProjectSettings.SignalName.SettingsChanged, callable);
+        target.Connect(ProjectSettings.SignalName.SettingsChanged, callable, SignalFlags(oneShot, deferred));
+        return () => target.Disconnect(ProjectSettings.SignalName.SettingsChanged, callable);
     }
 
     public static Action OnChanged(this Range target, Action action, bool oneShot = false, bool deferred = false) {
@@ -1191,16 +1191,16 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(Range.SignalName.ValueChanged, callable);
     }
 
-    public static Action OnRenderingServerFramePostDraw(Action action, bool oneShot = false, bool deferred = false) {
+    public static Action OnRenderingServerFramePostDraw(this RenderingServerInstance target, Action action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
-        RenderingServer.Singleton.Connect(RenderingServer.SignalName.FramePostDraw, callable, SignalFlags(oneShot, deferred));
-        return () => RenderingServer.Singleton.Disconnect(RenderingServer.SignalName.FramePostDraw, callable);
+        target.Connect(RenderingServer.SignalName.FramePostDraw, callable, SignalFlags(oneShot, deferred));
+        return () => target.Disconnect(RenderingServer.SignalName.FramePostDraw, callable);
     }
 
-    public static Action OnRenderingServerFramePreDraw(Action action, bool oneShot = false, bool deferred = false) {
+    public static Action OnRenderingServerFramePreDraw(this RenderingServerInstance target, Action action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
-        RenderingServer.Singleton.Connect(RenderingServer.SignalName.FramePreDraw, callable, SignalFlags(oneShot, deferred));
-        return () => RenderingServer.Singleton.Disconnect(RenderingServer.SignalName.FramePreDraw, callable);
+        target.Connect(RenderingServer.SignalName.FramePreDraw, callable, SignalFlags(oneShot, deferred));
+        return () => target.Disconnect(RenderingServer.SignalName.FramePreDraw, callable);
     }
 
     public static Action OnChanged(this Resource target, Action action, bool oneShot = false, bool deferred = false) {
@@ -1599,22 +1599,22 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(TextEdit.SignalName.TextSet, callable);
     }
 
-    public static Action OnTextServerManagerInterfaceAdded(Action<StringName> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnTextServerManagerInterfaceAdded(this TextServerManagerInstance target, Action<StringName> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
-        TextServerManager.Singleton.Connect(TextServerManager.SignalName.InterfaceAdded, callable, SignalFlags(oneShot, deferred));
-        return () => TextServerManager.Singleton.Disconnect(TextServerManager.SignalName.InterfaceAdded, callable);
+        target.Connect(TextServerManager.SignalName.InterfaceAdded, callable, SignalFlags(oneShot, deferred));
+        return () => target.Disconnect(TextServerManager.SignalName.InterfaceAdded, callable);
     }
 
-    public static Action OnTextServerManagerInterfaceRemoved(Action<StringName> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnTextServerManagerInterfaceRemoved(this TextServerManagerInstance target, Action<StringName> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
-        TextServerManager.Singleton.Connect(TextServerManager.SignalName.InterfaceRemoved, callable, SignalFlags(oneShot, deferred));
-        return () => TextServerManager.Singleton.Disconnect(TextServerManager.SignalName.InterfaceRemoved, callable);
+        target.Connect(TextServerManager.SignalName.InterfaceRemoved, callable, SignalFlags(oneShot, deferred));
+        return () => target.Disconnect(TextServerManager.SignalName.InterfaceRemoved, callable);
     }
 
-    public static Action OnThemeDBFallbackChanged(Action action, bool oneShot = false, bool deferred = false) {
+    public static Action OnThemeDBFallbackChanged(this ThemeDBInstance target, Action action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
-        ThemeDB.Singleton.Connect(ThemeDB.SignalName.FallbackChanged, callable, SignalFlags(oneShot, deferred));
-        return () => ThemeDB.Singleton.Disconnect(ThemeDB.SignalName.FallbackChanged, callable);
+        target.Connect(ThemeDB.SignalName.FallbackChanged, callable, SignalFlags(oneShot, deferred));
+        return () => target.Disconnect(ThemeDB.SignalName.FallbackChanged, callable);
     }
 
     public static Action OnChanged(this TileData target, Action action, bool oneShot = false, bool deferred = false) {
@@ -2049,33 +2049,33 @@ public static partial class SignalExtensions {
         return () => target.Disconnect(XRPositionalTracker.SignalName.ProfileChanged, callable);
     }
 
-    public static Action OnXRServerInterfaceAdded(Action<StringName> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnXRServerInterfaceAdded(this XRServerInstance target, Action<StringName> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
-        XRServer.Singleton.Connect(XRServer.SignalName.InterfaceAdded, callable, SignalFlags(oneShot, deferred));
-        return () => XRServer.Singleton.Disconnect(XRServer.SignalName.InterfaceAdded, callable);
+        target.Connect(XRServer.SignalName.InterfaceAdded, callable, SignalFlags(oneShot, deferred));
+        return () => target.Disconnect(XRServer.SignalName.InterfaceAdded, callable);
     }
 
-    public static Action OnXRServerInterfaceRemoved(Action<StringName> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnXRServerInterfaceRemoved(this XRServerInstance target, Action<StringName> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
-        XRServer.Singleton.Connect(XRServer.SignalName.InterfaceRemoved, callable, SignalFlags(oneShot, deferred));
-        return () => XRServer.Singleton.Disconnect(XRServer.SignalName.InterfaceRemoved, callable);
+        target.Connect(XRServer.SignalName.InterfaceRemoved, callable, SignalFlags(oneShot, deferred));
+        return () => target.Disconnect(XRServer.SignalName.InterfaceRemoved, callable);
     }
 
-    public static Action OnXRServerTrackerAdded(Action<StringName, long> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnXRServerTrackerAdded(this XRServerInstance target, Action<StringName, long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
-        XRServer.Singleton.Connect(XRServer.SignalName.TrackerAdded, callable, SignalFlags(oneShot, deferred));
-        return () => XRServer.Singleton.Disconnect(XRServer.SignalName.TrackerAdded, callable);
+        target.Connect(XRServer.SignalName.TrackerAdded, callable, SignalFlags(oneShot, deferred));
+        return () => target.Disconnect(XRServer.SignalName.TrackerAdded, callable);
     }
 
-    public static Action OnXRServerTrackerRemoved(Action<StringName, long> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnXRServerTrackerRemoved(this XRServerInstance target, Action<StringName, long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
-        XRServer.Singleton.Connect(XRServer.SignalName.TrackerRemoved, callable, SignalFlags(oneShot, deferred));
-        return () => XRServer.Singleton.Disconnect(XRServer.SignalName.TrackerRemoved, callable);
+        target.Connect(XRServer.SignalName.TrackerRemoved, callable, SignalFlags(oneShot, deferred));
+        return () => target.Disconnect(XRServer.SignalName.TrackerRemoved, callable);
     }
 
-    public static Action OnXRServerTrackerUpdated(Action<StringName, long> action, bool oneShot = false, bool deferred = false) {
+    public static Action OnXRServerTrackerUpdated(this XRServerInstance target, Action<StringName, long> action, bool oneShot = false, bool deferred = false) {
         var callable = Callable.From(action);
-        XRServer.Singleton.Connect(XRServer.SignalName.TrackerUpdated, callable, SignalFlags(oneShot, deferred));
-        return () => XRServer.Singleton.Disconnect(XRServer.SignalName.TrackerUpdated, callable);
+        target.Connect(XRServer.SignalName.TrackerUpdated, callable, SignalFlags(oneShot, deferred));
+        return () => target.Disconnect(XRServer.SignalName.TrackerUpdated, callable);
     }
 }

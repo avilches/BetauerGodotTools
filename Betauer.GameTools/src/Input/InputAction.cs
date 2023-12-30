@@ -210,13 +210,11 @@ public partial class InputAction : IAction {
     }
 
     public void Enable(bool enable = true) {
-        if (enable) {
-            if (Enabled) return;
+        if (enable && !Enabled) {
             Enabled = true;
             InputActionsContainer?.EnableAction(this);
             RefreshGodotInputMap();
-        } else {
-            if (!Enabled) return;
+        } else if (!enable && Enabled) {
             Enabled = false;
             InputActionsContainer?.DisableAction(this);
             if (Handler is FrameStateHandler stateHandler) stateHandler.ClearState();
