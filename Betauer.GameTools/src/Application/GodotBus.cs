@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Betauer.Bus;
 using Betauer.Core;
+using Godot;
 
-namespace Betauer.Bus;
+namespace Betauer.Application; 
 
-public class MulticastBus<TF> : IDisposable {
+public class GodotBus<TF> : IDisposable {
 
     public HashSet<Multicast> Multicasts { get; } = new();
 
@@ -17,6 +19,12 @@ public class MulticastBus<TF> : IDisposable {
         Multicast<T> multicast = Holder<T>.Bus;
         Multicasts.Add(multicast);
         return multicast.Subscribe(action);
+    }
+
+    public EventConsumer<T> Subscribe<T>(GodotObject o, Action<T> action) where T : TF {
+        var eventConsumer = Subscribe(action);
+        eventConsumer.UnsubscribeIf(Predicates.IsInvalid(o));
+        return eventConsumer;
     }
 
     public void Dispose() {

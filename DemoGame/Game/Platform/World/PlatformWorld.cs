@@ -41,9 +41,11 @@ public partial class PlatformWorld : Node, IInjectable {
 	public List<PlayerNode> Players { get; } = new();
 
 	public void PostInject() {
-		PlatformBus.Subscribe<PlatformCommand>((e) => {
+		PlatformBus.Subscribe<PlatformCommand>(this, (e) => {
 			if (e.Type == PlatformCommandType.SpawnZombie) InstantiateNewZombie();
-		}).UnsubscribeIf(Predicates.IsInvalid(this));
+		});
+
+		PlatformBus.Subscribe<PlayerDropEvent>(this, (e) => PlayerDrop(e.Item, e.GlobalPosition, e.DropVelocity));
 	}
 
 

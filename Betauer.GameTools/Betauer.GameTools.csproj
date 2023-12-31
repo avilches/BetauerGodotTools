@@ -18,6 +18,7 @@
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\Betauer.Animation\Betauer.Animation.csproj" />
+        <ProjectReference Include="..\Betauer.Bus\Betauer.Bus.csproj" />
         <ProjectReference Include="..\Betauer.Core\Betauer.Core.csproj" />
         <ProjectReference Include="..\Betauer.DI\Betauer.DI.csproj" />
         <ProjectReference Include="..\Betauer.Tools.Logging\Betauer.Tools.Logging.csproj" />

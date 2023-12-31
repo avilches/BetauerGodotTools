@@ -268,8 +268,7 @@ public partial class ZombieNode : NpcNode, IInjectable {
 			CollisionLayerConfig.EnemyConfigureAttackArea(_attackArea);
 			CollisionLayerConfig.EnemyConfigureHurtArea(_hurtArea);
 			UpdateHealthBar();
-			_consumer = PlatformBus.Subscribe<PlayerAttackEvent>(OnPlayerAttackEvent);
-			_consumer.UnsubscribeIf(Predicates.IsInvalid(this));
+			_consumer = PlatformBus.Subscribe<PlayerAttackEvent>(this, OnPlayerAttackEvent);
 		};
 
 		TreeExiting += () => _consumer.Unsubscribe();

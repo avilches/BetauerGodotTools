@@ -37,7 +37,6 @@ public abstract partial class BaseMonitor<TBuilder> : BaseMonitor where TBuilder
     private double _timeElapsed = 0;
     private double _updateEvery = 0;
     private bool _updateOnPhysics = true;
-    public Func<bool>? DestroyIfFunc { get; private set; }
     public GodotObject? Target { get; private set; }
     public GodotObject? ParentTarget { get; private set; }
 
@@ -48,11 +47,6 @@ public abstract partial class BaseMonitor<TBuilder> : BaseMonitor where TBuilder
         };
         VisibilityChanged += CheckProcessBasedOnVisibility;
         ProcessMode = ProcessModeEnum.Pausable;
-    }
-
-    public TBuilder DestroyIf(Func<bool> destroyIf) {
-        DestroyIfFunc = destroyIf;
-        return this as TBuilder;
     }
 
     public TBuilder Follow(GodotObject godotObject) {
@@ -99,8 +93,7 @@ public abstract partial class BaseMonitor<TBuilder> : BaseMonitor where TBuilder
 
     private void Process(double delta) {
         if ((Target != null && !IsInstanceValid(Target)) ||
-            (ParentTarget != null && !IsInstanceValid(ParentTarget)) ||
-            (DestroyIfFunc != null && DestroyIfFunc())) {
+            (ParentTarget != null && !IsInstanceValid(ParentTarget))) {
             QueueFree();
         } else if (_updateEvery > 0) {
             if (_timeElapsed == 0) {
