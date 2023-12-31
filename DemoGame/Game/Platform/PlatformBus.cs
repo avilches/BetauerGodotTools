@@ -1,4 +1,4 @@
-using Betauer.Bus;
+using Betauer.Application;
 using Betauer.DI.Attributes;
 using Godot;
 using Veronenger.Game.Platform.Character.Npc;
@@ -8,7 +8,7 @@ using Veronenger.Game.Platform.Items;
 namespace Veronenger.Game.Platform;
 
 [Singleton]
-public class PlatformBus : MulticastBus<IMulticastEvent> {
+public class PlatformBus : GodotBus<IMulticastEvent> {
 }
 
 public interface IMulticastEvent {
