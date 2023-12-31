@@ -27,16 +27,14 @@ public class Multicast<TEvent> : Multicast {
     }
 
     public EventConsumer<TEvent> Subscribe(Action<TEvent> action) {
-        var consumer = new EventConsumer<TEvent>();
-        consumer.Do(action);
+        var consumer = new EventConsumer<TEvent>(action);
         Consumers.Add(consumer);
         return consumer;
     }
 
     // This allows to subscribe with a subtype of TEvent, which is valid but it will fail in the method above
     public EventConsumer<TEvent> Subscribe<T>(Action<T> action) where T : TEvent {
-        var consumer = new EventConsumer<TEvent>();
-        consumer.Do(e => {
+        var consumer = new EventConsumer<TEvent>(e => {
             if (e is null or T) action((T)e);
         });
         Consumers.Add(consumer);

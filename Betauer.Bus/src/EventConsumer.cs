@@ -3,10 +3,10 @@ using System;
 namespace Betauer.Bus; 
 
 public class EventConsumer<TEvent> {
-    public Action<TEvent>? Action { get; set; }
+    public Action<TEvent> Action { get; set; }
     public Func<bool>? UnsubscribeIfFunc { get; set; }
         
-    public void Do(Action<TEvent>? action) {
+    public EventConsumer(Action<TEvent> action) {
         Action = action;
     }
 
@@ -19,8 +19,7 @@ public class EventConsumer<TEvent> {
     }
 
     public void Unsubscribe() {
-        Action = null;
-        UnsubscribeIfFunc = null;
+        Action = null!;
     }
 
     public bool IsValid() {
