@@ -1,10 +1,18 @@
 using System ;
 using System.Collections.Generic;
 
-namespace Betauer.Bus; 
+namespace Betauer.Bus;
 
-public class Multicast<TEvent> {
+public abstract class Multicast : IDisposable {
+    public abstract void Purge();
+    public abstract void Dispose();
+    public abstract int ConsumerCount { get; }
+}
+
+public class Multicast<TEvent> : Multicast {
     public readonly List<EventConsumer<TEvent>> Consumers = new();
+
+    public override int ConsumerCount => Consumers.Count;
 
     public void Publish(TEvent @event) {
         Consumers.RemoveAll(consumer => {
@@ -12,6 +20,10 @@ public class Multicast<TEvent> {
             consumer.Execute(@event);
             return false;
         });
+    }
+
+    public override void Purge() {
+        Consumers.RemoveAll(consumer => !consumer.IsValid());
     }
 
     public EventConsumer<TEvent> Subscribe(Action<TEvent> action) {
@@ -31,7 +43,7 @@ public class Multicast<TEvent> {
         return consumer;
     }
 
-    public void Dispose() {
+    public override void Dispose() {
         Consumers.Clear();
     }
 }

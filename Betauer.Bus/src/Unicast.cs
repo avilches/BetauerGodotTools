@@ -2,7 +2,7 @@ using System ;
 
 namespace Betauer.Bus; 
 
-public class Unicast<TEvent> {
+public class Unicast<TEvent> : IDisposable {
     public readonly EventConsumer<TEvent> Consumer = new();
 
     public void Execute(TEvent @event) {
