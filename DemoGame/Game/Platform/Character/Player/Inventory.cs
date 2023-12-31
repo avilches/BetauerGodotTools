@@ -131,19 +131,19 @@ public class Inventory {
     }
 
     private void TriggerPickUp(PickableGameObject gameObject) =>
-        OnChange?.Invoke(new PlayerInventoryChangeEvent(this, PlayerInventoryEventType.Add, gameObject));
+        OnChange?.Invoke(new PlayerInventoryChangeEvent(this, PlayerInventoryChangeEvent.EventType.Add, gameObject));
 
     private void TriggerDropItem(PickableGameObject gameObject) =>
-        OnChange?.Invoke(new PlayerInventoryChangeEvent(this, PlayerInventoryEventType.Remove, gameObject));
+        OnChange?.Invoke(new PlayerInventoryChangeEvent(this, PlayerInventoryChangeEvent.EventType.Remove, gameObject));
 
     private void TriggerUnequipItem(PickableGameObject gameObject) =>
-        OnChange?.Invoke(new PlayerInventoryChangeEvent(this, PlayerInventoryEventType.Unequip, gameObject));
+        OnChange?.Invoke(new PlayerInventoryChangeEvent(this, PlayerInventoryChangeEvent.EventType.Unequip, gameObject));
 
     private void TriggerSlotAmountUpdate(PickableGameObject gameObject) =>
-        OnChange?.Invoke(new PlayerInventoryChangeEvent(this, PlayerInventoryEventType.SlotAmountUpdate, gameObject));
+        OnChange?.Invoke(new PlayerInventoryChangeEvent(this, PlayerInventoryChangeEvent.EventType.SlotAmountUpdate, gameObject));
 
     private void TriggerEquipItem(PickableGameObject gameObject) {
-        OnChange?.Invoke(new PlayerInventoryChangeEvent(this, PlayerInventoryEventType.Equip, gameObject));
+        OnChange?.Invoke(new PlayerInventoryChangeEvent(this, PlayerInventoryChangeEvent.EventType.Equip, gameObject));
     }
     
 }

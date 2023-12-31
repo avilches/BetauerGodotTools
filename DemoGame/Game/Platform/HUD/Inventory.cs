@@ -2,7 +2,6 @@ using Betauer.Core;
 using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
 using Godot;
-using Veronenger.Game.Platform.Character.Player;
 using Veronenger.Game.Platform.Items;
 
 namespace Veronenger.Game.Platform.HUD;
@@ -17,7 +16,7 @@ public partial class Inventory : GridContainer {
 	}
 
 	public void UpdateInventory(PlayerInventoryChangeEvent playerInventoryEvent) {
-		if (playerInventoryEvent.Type == PlayerInventoryEventType.SlotAmountUpdate) {
+		if (playerInventoryEvent.Type == PlayerInventoryChangeEvent.EventType.SlotAmountUpdate) {
 			UpdateAmount(playerInventoryEvent.PickableGameObject);
 			return;
 		}

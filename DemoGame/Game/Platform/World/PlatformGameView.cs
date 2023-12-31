@@ -32,6 +32,7 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 	[Inject] private UiActionsContainer UiActionsContainer { get; set; }
 	[Inject] private JoypadPlayersMapping JoypadPlayersMapping { get; set; }
 	[Inject] private PlatformQuery PlatformQuery { get; set; }
+	[Inject] private PlatformBus PlatformBus { get; set; }
 
 	private SplitViewport _splitViewport;
 
@@ -248,6 +249,7 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 		DebugOverlayManager.Overlay("Pool").Free();
 		GC.GetTotalMemory(true);
 		PrintOrphanNodes();
+		PlatformBus.VerifyNoConsumers();
 	}
 	
 	private void ConfigureDebugOverlays() {

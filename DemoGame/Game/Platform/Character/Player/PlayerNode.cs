@@ -210,18 +210,18 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 	private void ConfigureInventory() {
 		Inventory = new Inventory(this);
 		Inventory.OnChange += e => {
-			if (e.Type is PlayerInventoryEventType.Equip) {
+			if (e.Type is PlayerInventoryChangeEvent.EventType.Equip) {
 				if (e.PickableGameObject is WeaponGameObject weapon) {
 					_characterWeaponController.Equip(weapon);
 				}
-			} else if (e.Type is PlayerInventoryEventType.Unequip) {
+			} else if (e.Type is PlayerInventoryChangeEvent.EventType.Unequip) {
 				_characterWeaponController.Unequip();
 			}
 			PlatformBus.Publish(e);
 		};
 		Ready += () => {
 			// Needs to be delayed until HudScene is loaded and ready
-			PlatformBus.Publish(new PlayerInventoryChangeEvent(Inventory, PlayerInventoryEventType.Refresh, null!));
+			PlatformBus.Publish(new PlayerInventoryChangeEvent(Inventory, PlayerInventoryChangeEvent.EventType.Refresh, null!));
 		};
 	}
 
@@ -469,7 +469,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 		_fsm.State(PlayerState.Idle)
 			.OnInput(InventoryHandler)
 			.OnInput(e => {
-				if (e.IsKeyJustPressed(Key.V)) PlatformBus.SpawnZombie();
+				if (e.IsKeyJustPressed(Key.V)) PlatformBus.Publish(new PlatformCommand(PlatformCommandType.SpawnZombie));
 			})
 			.Enter(() => {
 				if (AnimationShoot.IsPlaying()) AnimationIdle.Queue();

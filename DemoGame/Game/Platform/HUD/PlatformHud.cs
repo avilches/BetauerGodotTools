@@ -33,8 +33,8 @@ public partial class PlatformHud : CanvasLayer, IInjectable {
         SplitScreenContainer.Split1 = PlayerHud1;
         SplitScreenContainer.Split2 = PlayerHud2;
 
-        PlatformBus.Subscribe(UpdateInventory).UnsubscribeIf(Predicates.IsInvalid(this));
-        PlatformBus.Subscribe(UpdateHealth).UnsubscribeIf(Predicates.IsInvalid(this));
+        PlatformBus.Subscribe<PlayerInventoryChangeEvent>(UpdateInventory).UnsubscribeIf(Predicates.IsInvalid(this));
+        PlatformBus.Subscribe<PlayerHealthEvent>(UpdateHealth).UnsubscribeIf(Predicates.IsInvalid(this));
     }
 
     public void UpdateHealth(PlayerHealthEvent he) {
