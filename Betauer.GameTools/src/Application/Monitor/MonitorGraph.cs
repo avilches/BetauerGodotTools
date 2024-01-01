@@ -93,7 +93,7 @@ public partial class MonitorGraph : BaseMonitor<MonitorGraph> {
             }
         }
 
-        internal void Process(double delta) {
+        internal void AddNewFrame() {
             var value = _loadValue.Invoke();
             CurrentValue.Text = _formatValue != null? _formatValue.Invoke(value) : value.ToString("000.00");
             Add(value);
@@ -146,6 +146,7 @@ public partial class MonitorGraph : BaseMonitor<MonitorGraph> {
     }
 
     private const int Fps = 60;
+    private const float GraphSpeed = 1f / Fps;
     private readonly Node2D _timeSeparatorsHolder = new();
     private readonly Node2D _separatorsHolder = new();
     private readonly Node2D _lineChartHolder = new();
@@ -159,7 +160,8 @@ public partial class MonitorGraph : BaseMonitor<MonitorGraph> {
     private int _secondsHistory = 10;
     private int _frameCount = 0;
     private int DataSize => _secondsHistory * Fps;
-    private List<Serie> _series = new();
+    private double _accumulatedDelta = 0;
+    private readonly List<Serie> _series = new();
 
     public Line2D BorderLine { get; } = new();
     public int ChartHeight { get; private set; } = 100;
@@ -335,17 +337,23 @@ public partial class MonitorGraph : BaseMonitor<MonitorGraph> {
             ConfigureChartSpaceAndBorder();
             _dirty = false;
         }
-        for (var i = 0; i < _series.Count; i++) {
-            _series[i].Process(delta);
-        }
-        UpdateSeparators();
-        _frameCount ++;
-        if (_frameCount == Fps) {
-            if (IsAutoRange) {
-                MinValue = _series.SelectMany(s => s.Data).Min();
-                MaxValue = _series.SelectMany(s => s.Data).Max();
+        _accumulatedDelta += delta;
+        if (_accumulatedDelta >= GraphSpeed) {
+            while (_accumulatedDelta >= 0) {
+                _accumulatedDelta -= 1f / Fps;
+                for (var i = 0; i < _series.Count; i++) {
+                    _series[i].AddNewFrame();
+                }
+                UpdateSeparators();
             }
-            _frameCount = 0;
+            _frameCount ++;
+            if (_frameCount == Fps) {
+                if (IsAutoRange) {
+                    MinValue = _series.SelectMany(s => s.Data).Min();
+                    MaxValue = _series.SelectMany(s => s.Data).Max();
+                }
+                _frameCount = 0;
+            }
         }
     }
 }
