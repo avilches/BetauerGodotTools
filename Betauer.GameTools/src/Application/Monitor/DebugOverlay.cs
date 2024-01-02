@@ -286,11 +286,10 @@ public partial class DebugOverlay : Panel, IInjectable {
         _dragAndDropController.OnStartDrag += OnStartDrag;
         _dragAndDropController.OnDrag += OnDrag;
 
-        NodeManager.MainInstance.AddOnWMMouseExit(this, ForceDrop);
-        NodeManager.MainInstance.AddOnWMWindowFocusOut(this, ForceDrop); 
-        NodeManager.MainInstance.AddOnApplicationFocusOut(this, ForceDrop);
+        this.OnWMMouseExit(ForceDrop);
+        this.OnWMWindowFocusOut(ForceDrop); 
+        this.OnApplicationFocusOut(ForceDrop);
         return;
-        
 
         void ForceDrop() =>_dragAndDropController.ForceDrop();
     }

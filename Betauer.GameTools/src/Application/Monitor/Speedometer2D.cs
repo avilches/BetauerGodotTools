@@ -46,7 +46,7 @@ public class SpeedometerVector2D : Speedometer2D {
 
     public SpeedometerVector2D(Node node, Func<Vector2> provider) {
         Provider = provider;
-        NodeManager.MainInstance.AddOnPhysicsProcess(node, Update);
+        node.OnPhysicsProcess(Update);
     }
     
     public void Update(double delta) {
