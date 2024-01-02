@@ -61,7 +61,7 @@ public class NodeManager {
     public void OnUnhandledKeyInput(IInputEventHandler inputEvent) => Node.AddOnUnhandledKeyInput(inputEvent);
 
     public string GetStateAsString() => Node.GetStateAsString();
-  
+
     /*
     /// <summary>
     /// <para>Event called when the object is initialized, before its script is attached. Used internally.</para>

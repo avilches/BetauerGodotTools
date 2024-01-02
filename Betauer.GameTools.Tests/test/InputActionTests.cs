@@ -21,7 +21,7 @@ public partial class InputActionTests : Node {
 
     [TestRunner.Test]
     public void BuilderTests() {
-        var empty = InputAction.Create("N").AsSimulator();
+        var empty = InputAction.Create("N").AsMock();
         Assert.That(empty.Name, Is.EqualTo("N"));
         Assert.That(empty.Keys, Is.Empty);
         Assert.That(empty.Buttons, Is.Empty);
@@ -31,7 +31,7 @@ public partial class InputActionTests : Node {
             .Keys(Key.K, Key.Alt)
             .Buttons(JoyButton.A)
             .Buttons(JoyButton.B, JoyButton.Back)
-            .AsSimulator();
+            .AsMock();
         Assert.That(reg.Name, Is.EqualTo("N"));
         Assert.That(reg.Keys, Is.EqualTo(new [] {Key.A, Key.K, Key.Alt}.ToList()));
         Assert.That(reg.Buttons, Is.EqualTo(new [] {JoyButton.A, JoyButton.B, JoyButton.Back}.ToList()));
@@ -45,7 +45,7 @@ public partial class InputActionTests : Node {
 
         var reg = InputAction.Create("N")
             .Keys(Key.A)
-            .AsSimulator();
+            .AsMock();
 
         reg.SaveSetting = b;
         reg.Save();
@@ -60,7 +60,7 @@ public partial class InputActionTests : Node {
         var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
         b.SetSettingsContainer(sc);
             
-        var jump = InputAction.Create().AsSimulator();
+        var jump = InputAction.Create().AsMock();
         jump.SaveSetting = b;
         jump.Load();
         Assert.That(jump.Buttons, Is.Empty);
@@ -102,7 +102,7 @@ public partial class InputActionTests : Node {
         var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
         b.SetSettingsContainer(sc);
             
-        var jump = InputAction.Create().AsSimulator();
+        var jump = InputAction.Create().AsMock();
         jump.SaveSetting = b;
         jump.Load();
         Assert.That(jump.Buttons, Is.Empty);
@@ -175,10 +175,10 @@ public partial class InputActionTests : Node {
 
     [TestRunner.Test]
     public void InputActionFindByName() {
-        var attack = InputAction.Create("ManualAttack").AsSimulator();
-        var jump = InputAction.Create("ManualJump").AsSimulator();
-        var left = InputAction.Create("Left").NegativeAxis(JoyAxis.LeftX).AsSimulator();
-        var right = InputAction.Create("Right").PositiveAxis(JoyAxis.LeftX).AsSimulator();
+        var attack = InputAction.Create("ManualAttack").AsMock();
+        var jump = InputAction.Create("ManualJump").AsMock();
+        var left = InputAction.Create("Left").NegativeAxis(JoyAxis.LeftX).AsMock();
+        var right = InputAction.Create("Right").PositiveAxis(JoyAxis.LeftX).AsMock();
         var lateral = new AxisAction("Lateral", left, right);
         
         var c = new InputActionsContainer();
@@ -213,10 +213,10 @@ public partial class InputActionTests : Node {
     
     [TestRunner.Test]
     public void ManualConfigurationWithSettingTest() {
-        var attack = InputAction.Create("ManualAttack").AsSimulator();
+        var attack = InputAction.Create("ManualAttack").AsMock();
         Assert.That(attack.SaveSetting, Is.Null);
 
-        var jump = InputAction.Create("ManualJump").AsSimulator();
+        var jump = InputAction.Create("ManualJump").AsMock();
         Assert.That(jump.SaveSetting, Is.Null);
 
         SaveSetting<string> b = Setting.Create("attack","button:A,button:B,key:H,key:F");

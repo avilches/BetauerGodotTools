@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Betauer.Core;
 using Betauer.Tools.FastReflection;
-using TypeExtensions = Betauer.Core.TypeExtensions;
 
 namespace Betauer.Input.Joypad;
 
@@ -16,7 +16,7 @@ public class JoypadController {
 
     protected List<ISetter> FastSetters => _fastSetters ??=
         GetType().GetProperties()
-            .Where(p => TypeExtensions.ImplementsInterface(p.PropertyType, typeof(IAction)))
+            .Where(p => p.PropertyType.ImplementsInterface(typeof(IAction)))
             .Select(p => new FastSetter(p) as ISetter)
             .ToList();
     

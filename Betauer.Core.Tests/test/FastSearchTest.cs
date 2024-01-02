@@ -9,7 +9,6 @@ namespace Betauer.Core.Tests;
 public class FastSearchTest {
 
     [Betauer.TestRunner.Test]
-    [Only]
     public void FindMinimumValueTest() {
         Assert.AreEqual(1, FastSearch.FindMinimumValue(new[] { 1 }.ToList(), i => i));
         Assert.AreEqual(1, FastSearch.FindMinimumValue(new[] { 5, 1 }.ToList(), i => i));

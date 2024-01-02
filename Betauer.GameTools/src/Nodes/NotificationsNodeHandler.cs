@@ -179,10 +179,9 @@ public partial class NotificationsNodeHandler : Node {
                 destroyed++;
                 return true;
             }
+            if (!processHandler.IsEnabled) return false;
             try {
-                if (processHandler.IsEnabled) {
-                    processHandler.Handle(delta);
-                }
+                processHandler.Handle(delta);
             } catch (Exception e) {
                 Console.WriteLine(e);
                 throw;

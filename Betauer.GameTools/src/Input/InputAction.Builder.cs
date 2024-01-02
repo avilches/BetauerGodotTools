@@ -21,7 +21,6 @@ public partial class InputAction {
         private bool _altPressed;
         private bool _metaPressed;
         private bool _commandOrCtrlAutoremap;
-        private bool _pausable = false;
         private bool _enabled = true;
                       
         internal Builder(string name) {
@@ -95,11 +94,6 @@ public partial class InputAction {
             return this;
         }
 
-        public Builder Pausable(bool pausable = true) {
-            _pausable = pausable;
-            return this;
-        }
-
         public Builder Enabled(bool enable = true) {
             _enabled = enable;
             return this;
@@ -133,47 +127,26 @@ public partial class InputAction {
             inputAction.Alt = _altPressed;
             inputAction.Meta = _metaPressed;
             inputAction.CommandOrCtrlAutoremap = _commandOrCtrlAutoremap;
-            inputAction.Pausable = _pausable;
-            inputAction.Enabled = _enabled;
         }
         
         public InputAction AsMock() {
-            var input = CreateInputAction(InputActionBehaviour.Mock, false, false);
+            var input = CreateInputAction(InputActionBehaviour.Mock);
             ApplyConfig(input);
             return input;
         }
 
-        public InputAction AsSimulator(bool godotInputMapToo = false) {
-            var input = CreateInputAction(InputActionBehaviour.Simulate, godotInputMapToo, false);
+        public InputAction Create(bool addWasPressed = false) {
+            var input = CreateInputAction(addWasPressed ? InputActionBehaviour.Extended : InputActionBehaviour.GodotInput);
             ApplyConfig(input);
             return input;
         }
 
-        public InputAction AsGodotInput() {
-            var input = CreateInputAction(InputActionBehaviour.GodotInput, true, false);
-            ApplyConfig(input);
-            return input;
-        }
-
-        public InputAction AsExtended(bool godotInputMapToo = false) {
-            var input = CreateInputAction(InputActionBehaviour.Extended, godotInputMapToo, false);
-            ApplyConfig(input);
-            return input;
-        }
-
-        public InputAction AsExtendedUnhandled(bool godotInputMapToo = false) {
-            var input = CreateInputAction(InputActionBehaviour.Extended, godotInputMapToo, true);
-            ApplyConfig(input);
-            return input;
-        }
-
-        protected InputAction CreateInputAction(InputActionBehaviour behaviour, bool configureGodotInputMap, bool unhandled) {
+        protected InputAction CreateInputAction(InputActionBehaviour behaviour) {
             var inputAction = new InputAction(
                 _name,
                 null,
                 behaviour,
-                configureGodotInputMap,
-                unhandled);
+                _enabled);
             if (_isKeepProjectSettings) {
                 inputAction.LoadFromGodotProjectSettings();
             }

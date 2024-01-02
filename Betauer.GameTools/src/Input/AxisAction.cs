@@ -162,14 +162,6 @@ public class AxisAction : IAction {
         return axisAction;
     }
 
-    public static AxisAction Simulate(JoyAxis joyAxis = JoyAxis.LeftX) {
-        var positive = InputAction.Create().PositiveAxis(joyAxis).AsSimulator();
-        var negative = InputAction.Create().NegativeAxis(joyAxis).AsSimulator();
-        var axisAction = new AxisAction(null);
-        axisAction.SetNegativeAndPositive(negative, positive);
-        return axisAction;
-    }
-
     public static Builder Create(string name = null) {
         return new Builder(name);
     }

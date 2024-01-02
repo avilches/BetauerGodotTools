@@ -24,7 +24,7 @@ public partial class InputActionAttributeTests : Node {
 
     [Configuration]
     internal class InputWithoutInputActionsContainer {
-        [InputAction] private InputAction Jump => InputAction.Create("Jump").AsSimulator();
+        [InputAction] private InputAction Jump => InputAction.Create("Jump").AsMock();
     }
 
     [TestRunner.Test(Description = "Error if there is no InputActionsContainer")]
@@ -40,7 +40,7 @@ public partial class InputActionAttributeTests : Node {
         [Singleton] public InputActionsContainer MyInputActionsContainer => new InputActionsContainer();
         
         [InputAction(SaveAs = "Jump")]
-        private InputAction JumpConfigurable => InputAction.Create().AsSimulator();
+        private InputAction JumpConfigurable => InputAction.Create().AsMock();
     }
 
     [TestRunner.Test(Description = "Error if there is not a SettingContainer when a Configurable() action is used")]
@@ -57,7 +57,7 @@ public partial class InputActionAttributeTests : Node {
         [Singleton] public InputActionsContainer MyInputActionsContainer => new InputActionsContainer();
         
         [InputAction]
-        private InputAction JumpConfigurable => InputAction.Create().AsSimulator();
+        private InputAction JumpConfigurable => InputAction.Create().AsMock();
     }
 
     [TestRunner.Test(Description = "A non configurable input action does not need a SettingContainer")]
@@ -75,13 +75,13 @@ public partial class InputActionAttributeTests : Node {
         [Singleton] public InputActionsContainer MyInputActionsContainer => new InputActionsContainer();
         
         [InputAction]
-        private InputAction Action1 => InputAction.Create().AsSimulator();
+        private InputAction Action1 => InputAction.Create().AsMock();
 
         [InputAction("ActionOtherName2")]
-        private InputAction Action2 => InputAction.Create().AsSimulator();
+        private InputAction Action2 => InputAction.Create().AsMock();
 
         [InputAction("ActionOtherName3")]
-        private InputAction Action3 => InputAction.Create("ActionName").AsSimulator();
+        private InputAction Action3 => InputAction.Create("ActionName").AsMock();
     }
 
     [TestRunner.Test(Description = "Test service names and action names")]
@@ -115,10 +115,10 @@ public partial class InputActionAttributeTests : Node {
         [AxisAction] private AxisAction Lateral => AxisAction.Create().Build();
         
         [InputAction(AxisName = "Lateral")]
-        private InputAction Right => InputAction.Create().PositiveAxis(JoyAxis.LeftX).AsSimulator();
+        private InputAction Right => InputAction.Create().PositiveAxis(JoyAxis.LeftX).AsMock();
 
         [InputAction("MyLeft", AxisName = "Lateral")]
-        private InputAction Left => InputAction.Create().NegativeAxis(JoyAxis.LeftX).AsSimulator();
+        private InputAction Left => InputAction.Create().NegativeAxis(JoyAxis.LeftX).AsMock();
     }
 
     [TestRunner.Test(Description = "Test service names and action names for AxisActions")]
@@ -156,10 +156,10 @@ public partial class InputActionAttributeTests : Node {
         [AxisAction] private AxisAction Lateral => AxisAction.Create("lat").Build();
         
         [InputAction(AxisName = "lat")]
-        private InputAction Right => InputAction.Create("r").PositiveAxis(JoyAxis.LeftX).AsSimulator();
+        private InputAction Right => InputAction.Create("r").PositiveAxis(JoyAxis.LeftX).AsMock();
 
         [InputAction("MyLeft", AxisName = "lat")]
-        private InputAction Left => InputAction.Create("l").NegativeAxis(JoyAxis.LeftX).AsSimulator();
+        private InputAction Left => InputAction.Create("l").NegativeAxis(JoyAxis.LeftX).AsMock();
     }
 
     [TestRunner.Test(Description = "Test service names and action names for AxisActions")]
@@ -199,16 +199,16 @@ public partial class InputActionAttributeTests : Node {
         [Singleton] public SettingsContainer MySettingContainer => new SettingsContainer(new ConfigFileWrapper(SettingsFile));
         
         [InputAction(SaveAs = "Controls/Jump")]
-        private InputAction Jump1 => InputAction.Create().AsSimulator();
+        private InputAction Jump1 => InputAction.Create().AsMock();
 
         [InputAction(SaveAs = "Jump2")]
-        private InputAction Jump2 => InputAction.Create().AsSimulator();
+        private InputAction Jump2 => InputAction.Create().AsMock();
 
         [InputAction(AxisName = "Lateral")]
-        private InputAction Right => InputAction.Create("r").PositiveAxis(JoyAxis.LeftX).AsSimulator();
+        private InputAction Right => InputAction.Create("r").PositiveAxis(JoyAxis.LeftX).AsMock();
 
         [InputAction(AxisName = "Lateral")]
-        private InputAction Left => InputAction.Create("l").NegativeAxis(JoyAxis.LeftX).AsSimulator();
+        private InputAction Left => InputAction.Create("l").NegativeAxis(JoyAxis.LeftX).AsMock();
         
         [AxisAction(SaveAs = "Controls/Lateral")]
         private AxisAction Lateral => AxisAction.Create().ReverseAxis(true).Build();

@@ -25,7 +25,7 @@ public class ActionsConfig {
 		.Buttons(JoyButton.DpadUp)
 		.NegativeAxis(JoyAxis.LeftY)
 		.DeadZone(0.5f)
-		.AsGodotInput();
+		.Create();
 
 	[InputAction(AxisName = "Vertical", SaveAs = "Controls/Down")]
 	private InputAction Down => InputAction.Create()
@@ -33,7 +33,7 @@ public class ActionsConfig {
 		.Buttons(JoyButton.DpadDown)
 		.PositiveAxis(JoyAxis.LeftY)
 		.DeadZone(0.5f)
-		.AsGodotInput();
+		.Create();
 
 	[InputAction(AxisName = "Lateral", SaveAs = "Controls/Left")]
 	private InputAction Left => InputAction.Create()
@@ -41,7 +41,7 @@ public class ActionsConfig {
 		.Buttons(JoyButton.DpadLeft)
 		.NegativeAxis(JoyAxis.LeftX)
 		.DeadZone(0.5f)
-		.AsGodotInput();
+		.Create();
 
 	[InputAction(AxisName = "Lateral", SaveAs = "Controls/Right")]
 	private InputAction Right => InputAction.Create()
@@ -49,48 +49,41 @@ public class ActionsConfig {
 		.Buttons(JoyButton.DpadRight)
 		.PositiveAxis(JoyAxis.LeftX)
 		.DeadZone(0.5f)
-		.AsGodotInput();
-
+		.Create();
 
 	[InputAction(SaveAs = "Controls/Jump")]
 	private InputAction Jump => InputAction.Create()
 		.Keys(Key.Space)
 		.Buttons(JoyButton.A)
-		.Pausable()
-		.AsExtendedUnhandled();
+		.Create(true);
 
 	[InputAction(SaveAs = "Controls/Attack")]
 	private InputAction Attack => InputAction.Create()
 		.Keys(Key.C)
 		.Click(MouseButton.Left)
 		.Buttons(JoyButton.B)
-		.Pausable()
-		.AsExtendedUnhandled();
+		.Create();
 
 	[InputAction()]
 	private InputAction Drop => InputAction.Create()
 		.Keys(Key.G)
-		.Pausable()
-		.AsExtendedUnhandled();
+		.Create();
 
 	[InputAction(SaveAs = "Controls/NextItem")]
 	private InputAction NextItem => InputAction.Create()
 		.Keys(Key.E)
 		.Buttons(JoyButton.RightShoulder)
-		.Pausable()
-		.AsExtendedUnhandled();
+		.Create();
 
 	[InputAction(SaveAs = "Controls/PrevItem")]
 	private InputAction PrevItem => InputAction.Create()
 		.Keys(Key.Q)
 		.Buttons(JoyButton.LeftShoulder)
-		.Pausable()
-		.AsExtendedUnhandled();
+		.Create();
 
 	[InputAction(SaveAs = "Controls/Float")]
 	private InputAction Float => InputAction.Create()
 		.Keys(Key.F)
 		.Buttons(JoyButton.Y)
-		.Pausable()
-		.AsExtendedUnhandled();
+		.Create();
 }

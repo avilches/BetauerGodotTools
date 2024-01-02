@@ -9,7 +9,7 @@ namespace Betauer.Input;
 
 public enum InputActionBehaviour {
     /// <summary>
-    /// It works only through Simulate*() methods but:
+    /// - It works only through Simulate*() methods
     /// - WasPressed() and WasReleased() always return false
     /// - JustPressed is true only the first call to SimulatePress() when the action is not pressed.
     /// - JustReleased is true only the first call to SimulateRelease() when the action was pressed.
@@ -43,26 +43,12 @@ public enum InputActionBehaviour {
     Mock,
     
     /// <summary>
-    /// It works only through Simulate*() methods.
-    /// - JustPressed and JustRelease uses the current process/physics frame to check if the button is just pressed or
-    /// just released in the same frame.
-    /// - ClearJustStates() makes the JustPressed, JustReleased, WasPressed() and WasReleased() returns false setting the frame to 0 and the PressedTime/ReleaseTime one year ago
-    /// - WasPressed() and WasReleased() works
-    /// </summary>
-    Simulate,
-    
-    /// <summary>
-    /// It uses the Godot Input singleton to handle the action.
-    /// - WasPressed() and WasReleased() always return false
+    /// It uses the Godot Input singleton to handle the action (WasPressed() and WasReleased() always return false)
     /// </summary>
     GodotInput,
     
     /// <summary>
-    /// Add new features to the action, like WasPressed() and WasReleased() methods.
-    /// It can be processed in _Input or _UnhandledInput, so using unhandled, if a event is consumed by the GUI or any
-    /// other part of the game, the action won't be affected.
-    /// Optionally, the action can be added to the Godot Input Singleton too, so you can access to the action
-    /// using Godot.Input.IsActionPressed too.
+    /// It add WasPressed() and WasReleased() methods.
     /// </summary>
     Extended,
 }
@@ -71,25 +57,8 @@ public partial class InputAction : IAction {
     public const float DefaultDeadZone = 0.5f;
     public static Builder Create() => new(null);
     public static Builder Create(string name) => new(name);
-    public static InputAction Mock(string? name = null) => new(
-        name, 
-        null,
-        InputActionBehaviour.Mock,
-        false,
-        false,
-        false,
-        true);
-
-    public static InputAction Simulate(string? name = null) => new(
-        name,
-        null,
-        InputActionBehaviour.Simulate,
-        false,
-        false, 
-        false, 
-        true);
-
-
+    public static InputAction Mock(string? name = null) => new(name, null, InputActionBehaviour.Mock, true);
+   
     // Usage
     public bool IsPressed => Handler.Pressed;
     public bool IsJustPressed => Handler.JustPressed;
@@ -112,7 +81,6 @@ public partial class InputAction : IAction {
 
     // Configuration
     public string Name { get; internal set; }
-    public bool Pausable { get; private set; } = false;
     public List<JoyButton> Buttons { get; } = new();
     public List<Key> Keys { get; } = new();
     public int JoypadId { get; private set; } = 0;
@@ -127,13 +95,7 @@ public partial class InputAction : IAction {
     public bool Meta { get; private set; }
     public string? AxisName { get; internal set; }
     public InputActionBehaviour Behaviour { get; }
-    public bool IsUnhandledInput { get; } = false;
     public bool Enabled { get; private set; } = true;
-    private bool _godotInputMapEnabled = false;
-    public bool GodotInputMapEnabled {
-        get => _godotInputMapEnabled || Behaviour == InputActionBehaviour.GodotInput;
-        set => _godotInputMapEnabled = value || Behaviour == InputActionBehaviour.GodotInput;
-    }
 
     public AxisAction? AxisAction { get; internal set; }
 
@@ -148,32 +110,22 @@ public partial class InputAction : IAction {
     /// <param name="name"></param>
     /// <param name="axisName"></param>
     /// <param name="behaviour"></param>
-    /// <param name="configureGodotInputMap">Forced to true if Behaviour is GodotInput</param>
-    /// <param name="isUnhandledInput">Only when Behaviour is Extended</param>
-    /// <param name="pausable">Only when Behaviour is Extended</param>
     /// <param name="enabled"></param>
     private InputAction(
         string name,
         string? axisName,
         InputActionBehaviour behaviour,
-        bool configureGodotInputMap = false,
-        bool isUnhandledInput = false, 
-        bool pausable = false,
         bool enabled = true) {
 
         Name = name;
         AxisName = axisName;
         Behaviour = behaviour;
-        GodotInputMapEnabled = configureGodotInputMap;
-        IsUnhandledInput = isUnhandledInput;
-        Pausable = pausable;
         Enabled = enabled;
 
         Handler = behaviour switch {
             InputActionBehaviour.Mock => new MockStateHandler(this),
-            InputActionBehaviour.Simulate => new FrameStateHandler(this),
-            InputActionBehaviour.GodotInput => new GodotInputHandler(this),
-            InputActionBehaviour.Extended => new ExtendedInputHandler(this),
+            InputActionBehaviour.GodotInput => new GodotInputHandler(this, false),
+            InputActionBehaviour.Extended => new GodotInputHandler(this, true),
         };
         _updater = new Updater(this);
     }
@@ -186,7 +138,7 @@ public partial class InputAction : IAction {
     public InputAction Clone(string suffix) {
         var name = $"{Name}/{suffix}";
         var axisName = AxisName != null ? $"{AxisName}/{suffix}" : null;
-        var inputAction = new InputAction(name, axisName, Behaviour, GodotInputMapEnabled, IsUnhandledInput, Pausable, Enabled);
+        var inputAction = new InputAction(name, axisName, Behaviour, Enabled);
         return inputAction;
     }
     
@@ -217,7 +169,6 @@ public partial class InputAction : IAction {
         } else if (!enable && Enabled) {
             Enabled = false;
             InputActionsContainer?.DisableAction(this);
-            if (Handler is FrameStateHandler stateHandler) stateHandler.ClearState();
             RefreshGodotInputMap();
         }
     }
@@ -225,8 +176,6 @@ public partial class InputAction : IAction {
     public void Disable() => Enable(false);
 
     public void RefreshGodotInputMap() {
-        if (!GodotInputMapEnabled) return;
-
         var stringName = (StringName)Name;
         if (InputMap.HasAction(stringName)) {
             InputMap.EraseAction(stringName);

@@ -85,57 +85,57 @@ public class UiActions {
 		.KeepProjectSettings()
 		.NegativeAxis(JoyAxis.LeftY)
 		.DeadZone(0.5f)
-		.AsGodotInput();
+		.Create();
 
 	[InputAction(AxisName = "UiVertical")]
 	private InputAction UiDown => InputAction.Create("ui_down")
 		.KeepProjectSettings()
 		.PositiveAxis(JoyAxis.LeftY)
 		.DeadZone(0.5f)
-		.AsGodotInput();
+		.Create();
 
 	[InputAction(AxisName = "UiLateral")]
 	private InputAction UiLeft => InputAction.Create("ui_left")
 		.KeepProjectSettings()
 		.NegativeAxis(JoyAxis.LeftX)
 		.DeadZone(0.5f)
-		.AsGodotInput();
+		.Create();
 
 	[InputAction(AxisName = "UiLateral")]
 	private InputAction UiRight => InputAction.Create("ui_right")
 		.KeepProjectSettings()
 		.PositiveAxis(JoyAxis.LeftX)
 		.DeadZone(0.5f)
-		.AsGodotInput();
+		.Create();
 
 	[InputAction]
 	private InputAction UiAccept => InputAction.Create("ui_accept")
 		.KeepProjectSettings()
 		.Buttons(JoyButton.A)
-		.AsGodotInput();
+		.Create();
 
 	[InputAction]
 	private InputAction UiSelect => InputAction.Create("ui_select")
 		.KeepProjectSettings()
-		.AsGodotInput();
+		.Create();
 
 	[InputAction]
 	private InputAction UiCancel => InputAction.Create("ui_cancel")
 		.KeepProjectSettings()
 		.Buttons(JoyButton.B)
-		.AsGodotInput();
+		.Create();
 
 	[InputAction]
 	private InputAction ControllerSelect => InputAction.Create("select")
 		.Keys(Key.Tab)
 		.Buttons(JoyButton.Back)
-		.AsGodotInput();
+		.Create();
 
 	[InputAction]
 	private InputAction ControllerStart => InputAction.Create("start")
 		.Keys(Key.Escape)
 		.Buttons(JoyButton.Start)
-		.AsGodotInput();
+		.Create();
 }
 
 [Configuration]
@@ -145,6 +145,6 @@ public class OtherActions {
 	[InputAction]
 	private InputAction DebugOverlayAction => InputAction.Create("DebugOverlay")
 		.Keys(Key.F9)
-		.AsGodotInput();
+		.Create();
 
 }
