@@ -5,6 +5,7 @@ using Betauer.Application.Monitor;
 using Betauer.DI;
 using Betauer.DI.Attributes;
 using Betauer.Input.Handler;
+using Betauer.Input.Joypad;
 using Betauer.Nodes;
 using Godot;
 
@@ -26,7 +27,7 @@ public partial class InputActionsContainer : Node, IInjectable {
     /// <param name="suffix"></param>
     /// <param name="updater"></param>
     /// <returns></returns>
-    public InputActionsContainer Clone(int joypadId, string suffix, Action<InputAction, InputAction.Updater> updater) {
+    public InputActionsContainer Clone(string suffix, Action<InputAction, InputAction.Updater> updater) {
         var newIac = new InputActionsContainer();
 
         InputActionList.ForEach(i => {
@@ -136,5 +137,11 @@ public partial class InputActionsContainer : Node, IInjectable {
             var handler = span[i];
             handler.UpdateJustTimers();
         }
+    }
+
+    public T CreateJoypadController<T>(PlayerMapping playerMapping) where T : JoypadController, new() {
+        var joypadController = new T();
+        joypadController.Configure(playerMapping, this);
+        return joypadController;
     }
 }

@@ -135,7 +135,7 @@ public partial class InputAction {
             return input;
         }
 
-        public InputAction Create(bool addWasPressed = false) {
+        public InputAction Build(bool addWasPressed = false) {
             var input = CreateInputAction(addWasPressed ? InputActionBehaviour.Extended : InputActionBehaviour.GodotInput);
             ApplyConfig(input);
             return input;

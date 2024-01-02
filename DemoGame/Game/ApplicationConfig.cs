@@ -85,57 +85,57 @@ public class UiActions {
 		.KeepProjectSettings()
 		.NegativeAxis(JoyAxis.LeftY)
 		.DeadZone(0.5f)
-		.Create();
+		.Build();
 
 	[InputAction(AxisName = "UiVertical")]
 	private InputAction UiDown => InputAction.Create("ui_down")
 		.KeepProjectSettings()
 		.PositiveAxis(JoyAxis.LeftY)
 		.DeadZone(0.5f)
-		.Create();
+		.Build();
 
 	[InputAction(AxisName = "UiLateral")]
 	private InputAction UiLeft => InputAction.Create("ui_left")
 		.KeepProjectSettings()
 		.NegativeAxis(JoyAxis.LeftX)
 		.DeadZone(0.5f)
-		.Create();
+		.Build();
 
 	[InputAction(AxisName = "UiLateral")]
 	private InputAction UiRight => InputAction.Create("ui_right")
 		.KeepProjectSettings()
 		.PositiveAxis(JoyAxis.LeftX)
 		.DeadZone(0.5f)
-		.Create();
+		.Build();
 
 	[InputAction]
 	private InputAction UiAccept => InputAction.Create("ui_accept")
 		.KeepProjectSettings()
 		.Buttons(JoyButton.A)
-		.Create();
+		.Build();
 
 	[InputAction]
 	private InputAction UiSelect => InputAction.Create("ui_select")
 		.KeepProjectSettings()
-		.Create();
+		.Build();
 
 	[InputAction]
 	private InputAction UiCancel => InputAction.Create("ui_cancel")
 		.KeepProjectSettings()
 		.Buttons(JoyButton.B)
-		.Create();
+		.Build();
 
 	[InputAction]
 	private InputAction ControllerSelect => InputAction.Create("select")
 		.Keys(Key.Tab)
 		.Buttons(JoyButton.Back)
-		.Create();
+		.Build();
 
 	[InputAction]
 	private InputAction ControllerStart => InputAction.Create("start")
 		.Keys(Key.Escape)
 		.Buttons(JoyButton.Start)
-		.Create();
+		.Build();
 }
 
 [Configuration]
@@ -145,6 +145,6 @@ public class OtherActions {
 	[InputAction]
 	private InputAction DebugOverlayAction => InputAction.Create("DebugOverlay")
 		.Keys(Key.F9)
-		.Create();
+		.Build();
 
 }

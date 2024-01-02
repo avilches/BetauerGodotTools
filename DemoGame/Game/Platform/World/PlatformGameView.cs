@@ -75,7 +75,7 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 	}
 
 	public override async void _UnhandledInput(InputEvent e) {
-		if (_allowAddingP2 && e is InputEventJoypadButton button && !JoypadPlayersMapping.IsJoypadUsed(button.Device)) {
+		if (_allowAddingP2 && e is InputEventJoypadButton button && !JoypadPlayersMapping.IsJoypadInUse(button.Device)) {
 			CreatePlayer2(button.Device);
 			GetViewport().SetInputAsHandled();
 			if (JoypadPlayersMapping.Players == MaxPlayer) NoAddingP2();				
@@ -182,23 +182,23 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 		GetTree().Root.SizeChanged += () => _splitViewport.Refresh();
 	}
 
-	private PlayerNode CreatePlayer1(int joypad) {
-		var playerMapping = JoypadPlayersMapping.AddPlayer().SetJoypadId(joypad);
+	private PlayerNode CreatePlayer1(int joypadId) {
+		var playerMapping = JoypadPlayersMapping.AddPlayer(joypadId);
 		var player = PlatformWorld.AddNewPlayer(playerMapping);
 		player.SetCamera(_splitViewport.Camera1);
 		return player;
 	}
 
-	private PlayerNode LoadPlayer1(int joypad, PlatformSaveGameConsumer consumer) {
-		var playerMapping = JoypadPlayersMapping.AddPlayer().SetJoypadId(joypad);
+	private PlayerNode LoadPlayer1(int joypadId, PlatformSaveGameConsumer consumer) {
+		var playerMapping = JoypadPlayersMapping.AddPlayer(joypadId);
 		var player = PlatformWorld.LoadPlayer(playerMapping, consumer.Player0, consumer.Inventory0);
 		player.SetCamera(_splitViewport.Camera1);
 		return player;
 	}
 
-	private PlayerNode CreatePlayer2(int joypad) {
+	private PlayerNode CreatePlayer2(int joypadId) {
 		if (JoypadPlayersMapping.Players >= MaxPlayer) throw new Exception("No more players allowed");
-		var playerMapping = JoypadPlayersMapping.AddPlayer().SetJoypadId(joypad);
+		var playerMapping = JoypadPlayersMapping.AddPlayer(joypadId);
 		var player = PlatformWorld.AddNewPlayer(playerMapping);
 		player.SetCamera(_splitViewport.Camera2);
 		return player;

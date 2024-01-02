@@ -1,4 +1,3 @@
-using System;
 using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
 using Betauer.Input;
@@ -10,7 +9,7 @@ namespace Veronenger.Game.Platform.Character.Player;
 
 public partial class PlayerNode {
 
-	private readonly PlayerJoypadController _joypadController = new();
+	private PlayerJoypadController _joypadController;
 	private float XInput => _joypadController.Lateral.Strength;
 	private float YInput => _joypadController.Vertical.Strength;
 	private bool IsPressingRight => _joypadController.Right.IsPressed;
@@ -35,43 +34,21 @@ public partial class PlayerNode {
 		Name = $"Player{playerMapping.Player}";
 		Label.Text = $"P{playerMapping.Player}";
 		PlayerMapping = playerMapping;
-		_joypadController.Configure(PlayerMapping, PlayerActionsContainer, (inputAction, updater) => {
-			// Player 1 uses all the mapping (keys included), player 2 and so on uses only the joypad
-			UpdateInputAction(updater, inputAction);
-		});
-		PlayerMapping.OnJoypadChanged += () => {
-			//Console.WriteLine("OnJoypadChanged:"+PlayerMapping);
-		};
-		PlayerMapping.OnJoypadConnect += () => {
-			//Console.WriteLine("OnJoypadConnect:"+PlayerMapping);
-		};
-		PlayerMapping.OnJoypadDisconnect += () => {
-			//Console.WriteLine("OnJoypadDisconnect:"+PlayerMapping);
-		};
-	}
 
-	private void ConfigureInputActions() {
-		// Update action on redefine
-		SettingsMenuLazy.Get().OnRedefine += OnRedefineAction;
+		_joypadController = PlayerActionsContainer.CreateJoypadController<PlayerJoypadController>(PlayerMapping);
+		SettingsMenuLazy.Get().OnRedefine += _joypadController.Redefine;
 		TreeExiting += () => {
-			SettingsMenuLazy.Get().OnRedefine -= OnRedefineAction;
+			SettingsMenuLazy.Get().OnRedefine -= _joypadController.Redefine;
 			_joypadController.Disconnect();
 		};
-	}
-
-	private void OnRedefineAction(InputAction from) {
-		var name = $"{from.Name}/{PlayerMapping.Player}";
-		var found = _joypadController.InputActionsContainer!.InputActionList.Find(i => i.Name == name);
-		if (found is InputAction inputAction) {
-			inputAction.Update(updater => UpdateInputAction(updater, from));
-		} else {
-			throw new Exception($"Action not found: {from.Name}");
-		}
-	}
-
-	private void UpdateInputAction(InputAction.Updater updater, InputAction from) {
-		if (PlayerMapping.Player == 0) updater.CopyAll(from);
-		else updater.CopyJoypad(from);
-		updater.SetJoypadId(PlayerMapping.JoypadId);
+		// PlayerMapping.OnJoypadIdChanged += () => {
+			//Console.WriteLine("OnJoypadChanged:"+PlayerMapping);
+		// };
+		// PlayerMapping.OnJoypadConnect += () => {
+			//Console.WriteLine("OnJoypadConnect:"+PlayerMapping);
+		// };
+		// PlayerMapping.OnJoypadDisconnect += () => {
+			//Console.WriteLine("OnJoypadDisconnect:"+PlayerMapping);
+		// };
 	}
 }

@@ -6,11 +6,10 @@ using Betauer.Tools.FastReflection;
 
 namespace Betauer.Input.Joypad;
 
-public class JoypadController {
+public abstract class JoypadController {
     public InputActionsContainer InputActionsContainer { get; private set; }
     private InputActionsContainer _source;
     private PlayerMapping _playerMapping;
-    private Action<InputAction, InputAction.Updater> _updater;
 
     private List<ISetter>? _fastSetters;
 
@@ -20,18 +19,18 @@ public class JoypadController {
             .Select(p => new FastSetter(p) as ISetter)
             .ToList();
     
-    public void Configure(PlayerMapping playerMapping, InputActionsContainer source, Action<InputAction, InputAction.Updater> updater) {
+    internal void Configure(PlayerMapping playerMapping, InputActionsContainer source) {
         _playerMapping = playerMapping;
         _source = source;
-        _updater = updater; 
-        Reconnect();
-        playerMapping.OnJoypadChanged += Reconnect;
+        JoypadIdChanged();
+        playerMapping.OnJoypadIdChanged += JoypadIdChanged;
     }
     
-    private void Reconnect() {
-        Disconnect();
+    private void JoypadIdChanged() {
+        InputActionsContainer?.Disable();
+        InputActionsContainer?.Free();
         var suffix = _playerMapping.Player.ToString();
-        InputActionsContainer = _source.Clone(_playerMapping.JoypadId, suffix, _updater);
+        InputActionsContainer = _source.Clone(suffix, UpdateInputAction);
         InputActionsContainer.Enable();
         
         FastSetters.ForEach(setter => {
@@ -42,7 +41,30 @@ public class JoypadController {
         });
     }
 
+    public void Redefine(InputAction newInputAction) {
+        if (InputActionsContainer == null) return;
+        var suffix = _playerMapping.Player.ToString();
+        var name = $"{newInputAction.Name}/{suffix}";
+        var found = InputActionsContainer!.InputActionList.Find(i => i.Name == name);
+        if (found is InputAction inputAction) {
+            inputAction.Update(updater => UpdateInputAction(newInputAction, updater));
+        } else {
+            throw new Exception($"Action not found: {newInputAction.Name}");
+        }
+    }
+
+    private void UpdateInputAction(InputAction fromInputAction, InputAction.Updater newInputAction) {
+        if (_playerMapping.Player == 0) {
+            newInputAction.CopyAll(fromInputAction);
+        } else {
+            newInputAction.CopyJoypad(fromInputAction);
+        }
+        newInputAction.SetJoypadId(_playerMapping.JoypadId);
+    }
+
+
     public void Disconnect() {
+        _playerMapping.OnJoypadIdChanged -= JoypadIdChanged;
         InputActionsContainer?.Disable();
         InputActionsContainer?.QueueFree();
         InputActionsContainer = null;

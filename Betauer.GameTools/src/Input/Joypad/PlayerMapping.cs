@@ -10,7 +10,7 @@ public class PlayerMapping {
 
     public event Action OnJoypadDisconnect;
     public event Action OnJoypadConnect;
-    public event Action OnJoypadChanged;
+    public event Action OnJoypadIdChanged;
 
     internal PlayerMapping(JoypadPlayersMapping joypadPlayersMapping, int player) {
         JoypadPlayersMapping = joypadPlayersMapping;
@@ -25,7 +25,7 @@ public class PlayerMapping {
         if (joypadId != JoypadId) {
             JoypadId = joypadId;
             Connected = Godot.Input.GetConnectedJoypads().Contains(joypadId);
-            OnJoypadChanged?.Invoke();
+            OnJoypadIdChanged?.Invoke();
         }
         return this;
     }

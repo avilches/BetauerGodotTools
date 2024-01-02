@@ -24,8 +24,8 @@ public class JoypadPlayersMapping {
         }
     }
 
-    public PlayerMapping AddPlayer() {
-        var mapping = new PlayerMapping(this, Players);
+    public PlayerMapping AddPlayer(int joypadId) {
+        var mapping = new PlayerMapping(this, Players).SetJoypadId(joypadId);
         Mapping.Add(mapping);
         return mapping;
     }
@@ -38,7 +38,7 @@ public class JoypadPlayersMapping {
         return Mapping.Where(mapping => mapping.JoypadId == joypadId).ToList();
     }
 
-    public bool IsJoypadUsed(int joypadId) {
+    public bool IsJoypadInUse(int joypadId) {
         return Mapping.Find(mapping => mapping.JoypadId == joypadId) != null;
     }
 

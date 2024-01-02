@@ -137,7 +137,6 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 		ConfigureAttackArea();
 		ConfigurePlayerHurtArea();
 		ConfigureFsm();
-		ConfigureInputActions();
 		ConfigureOverlay();
 		
 		// Uncomment to discover if all the Ready methods are restoring the data correctly or there is still some property updated
