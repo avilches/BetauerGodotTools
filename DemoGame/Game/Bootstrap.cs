@@ -34,7 +34,7 @@ public partial class Bootstrap : Node /* needed to be instantiated as an Autoloa
 			builder.Register(Provider.Static(sceneTree, "SceneTree"));
 		});
 		Logger.Info($"Bootstrap time: {Project.Uptime.TotalMilliseconds} ms");
-		NodeManager.MainInstance.Node.OnWMCloseRequest += () => {
+		NodeManager.MainInstance.OnWMCloseRequest += () => {
 			GD.Print($"[OnWMCloseRequest] Uptime: {Project.Uptime.TotalMinutes:0} min {Project.Uptime.Seconds:00} sec");
 		};
 		container.Resolve<DebugOverlayManager>("DebugOverlayManager").DebugConsole.AddAllCommands();

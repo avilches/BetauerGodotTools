@@ -15,7 +15,6 @@ public class DragCameraController {
     // private float _camera2DSmoothingSpeed;
     // private bool _cameraLimitSmoothed;
 
-    private IEventHandler? _nodeEvent;
     public readonly DragAndDropController DragAndDropController = new();
 
 
@@ -34,21 +33,27 @@ public class DragCameraController {
     }
 
     public DragCameraController Attach(Camera2D camera2D) {
+        NodeManager.MainInstance.RemoveOnDestroy(Camera2D, OnCameraDestroy);
         Camera2D = camera2D;
-        _nodeEvent?.Destroy();
-        _nodeEvent = camera2D.OnInput(DragAndDropController.Handle);
+        NodeManager.MainInstance.OnDestroy(Camera2D, OnCameraDestroy);
+        Enable();
         return this;
     }
 
     public DragCameraController Detach() {
-        _nodeEvent?.Destroy();
+        NodeManager.MainInstance.RemoveOnDestroy(Camera2D, OnCameraDestroy);
+        Enable(false);
         Camera2D = null;
-        _nodeEvent = null;
         return this;
     }
 
+    private void OnCameraDestroy() {
+        NodeManager.MainInstance.OnInput -= DragAndDropController.Handle;
+    }
+
     public DragCameraController Enable(bool enable = true) {
-        _nodeEvent?.Enable(enable);
+        NodeManager.MainInstance.OnInput -= DragAndDropController.Handle;
+        if (enable) NodeManager.MainInstance.OnInput += DragAndDropController.Handle;
         return this;
     }
 /*        

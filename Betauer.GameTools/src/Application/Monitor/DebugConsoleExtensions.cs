@@ -191,7 +191,7 @@ public static partial class DebugConsoleExtensions {
             if (console.DebugOverlayManager.HasOverlay(title)) return;
 
             var inputs = new LinkedList<string>();
-            var nodeHandler = NodeManager.MainInstance.OnInput((e) => {
+            Action<InputEvent> print = (e) => {
                 var pressed = e.IsPressed() ? "Pressed" + (e.IsJustPressed() ? " (Just)" : "") :
                     e.IsReleased() ? "Released" : "Unknown";
                 var modifiers = new List<string>(5);
@@ -215,13 +215,17 @@ public static partial class DebugConsoleExtensions {
                 // else if (e.IsMouseMotion())
                 // inputs.AddLast($"Mouse motion {e.GetMouseGlobalPosition()} {actionName}");
                 if (inputs.Count > history) inputs.RemoveFirst();
-            });
+            };
 
+            NodeManager.MainInstance.OnInput += print;
             console.DebugOverlayManager
                 .Overlay(title)
                 .HideOnClose(false)
-                .OnVisible(visible => nodeHandler.Enable(visible))
-                .OnDestroy(() => nodeHandler.Destroy())
+                .OnVisible(visible => {
+                    NodeManager.MainInstance.OnInput -= print;
+                    if (visible) NodeManager.MainInstance.OnInput += print;                    
+                })
+                .OnDestroy(() => NodeManager.MainInstance.OnInput -= print)
                 .Solid()
                 .SetMinSize(400, 200)
                 .Children()

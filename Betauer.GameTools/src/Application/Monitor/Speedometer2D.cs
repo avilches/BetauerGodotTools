@@ -18,11 +18,9 @@ public abstract class Speedometer2D {
     /// <returns></returns>
     public static SpeedometerVector2D From(Node watcher, Func<Vector2> provider) => new(watcher, provider);
 
-    public static SpeedometerVector2D Position(Node2D node2D) =>
-        From(node2D, () => node2D.Position);
+    public static SpeedometerVector2D Position(Node2D node2D) => From(node2D, () => node2D.Position);
 
-    public static SpeedometerVector2D GlobalPosition(Node2D node2D) => 
-        From(node2D, () => node2D.GlobalPosition);
+    public static SpeedometerVector2D GlobalPosition(Node2D node2D) => From(node2D, () => node2D.GlobalPosition);
 }
 
 public class SpeedometerCharacter2D : Speedometer2D {
@@ -44,12 +42,11 @@ public class SpeedometerVector2D : Speedometer2D {
     public override Vector2 SpeedVector => _speedVector;
     public override float Speed => _speed;
     public float MaxSpeed { get; private set; } = 0f;
-    public IProcessHandler PhysicsProcessEventHolder { get; private set; }
     public Func<Vector2> Provider { get; }
 
     public SpeedometerVector2D(Node node, Func<Vector2> provider) {
         Provider = provider;
-        PhysicsProcessEventHolder = node.OnPhysicsProcess(Update);
+        NodeManager.MainInstance.AddOnPhysicsProcess(node, Update);
     }
     
     public void Update(double delta) {
@@ -58,6 +55,5 @@ public class SpeedometerVector2D : Speedometer2D {
         _speed = SpeedVector.Length();
         _prevPosition = position;
         MaxSpeed = Math.Max(MaxSpeed, Speed);
-        Console.WriteLine(GetHashCode());
     }
 }

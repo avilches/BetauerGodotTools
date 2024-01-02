@@ -12,16 +12,16 @@ public class CameraController {
 
     private readonly CameraContainer _cameraContainer;
     private Func<Vector2>? _getFollowingPosition;
+    private bool _followingPositionPaused;
 
     private Tween? _positionTween;
     private Tween? _zoomTween;
     private RemoteTransform2D? _remoteTransform2D;
 
     public Camera2D Camera2D { get; }
-    public IEventHandler Handler { get; }
 
     public bool IsFollowing => Camera2D.IsInstanceValid() && (
-        (_getFollowingPosition != null && Handler.IsEnabled) ||
+        (_getFollowingPosition != null && !_followingPositionPaused) ||
         (_remoteTransform2D != null && !_remoteTransform2D.RemotePath.IsEmpty));
     
     public bool IsBusy() => (_zoomTween?.IsValid() ?? false) ||
@@ -30,33 +30,45 @@ public class CameraController {
     public CameraController(CameraContainer cameraContainer, Camera2D camera2D) {
         _cameraContainer = cameraContainer;
         Camera2D = camera2D;
-        Handler = camera2D.OnPhysicsProcess(Refresh);
-        Handler.Disable();
     }
     
     public void Destroy() {
         _cameraContainer.Remove(Camera2D);
-        Handler.Destroy();
+        NodeManager.MainInstance.OnPhysicsProcess -= Refresh;
     }
 
     public CameraController Follow(Func<Vector2> getFollowingPosition) {
         _positionTween?.Kill();
+        if (_remoteTransform2D != null) {
+            // Unfollow Node2D
+            _remoteTransform2D.RemotePath = null;
+        }
+
+        // Follow func
         _getFollowingPosition = getFollowingPosition;
-        if (_remoteTransform2D != null) _remoteTransform2D.RemotePath = null;
-        Handler.Enable();
+        _followingPositionPaused = false;
+        NodeManager.MainInstance.OnPhysicsProcess += Refresh;
         return this;
     }
 
     public CameraController Follow(Node2D target) {
         _positionTween?.Kill();
-        _getFollowingPosition = null;
+        if (_getFollowingPosition != null) {
+            // Unfollow func forever
+            NodeManager.MainInstance.OnPhysicsProcess -= Refresh;
+            _getFollowingPosition = null;
+        }
+        
+        // Follow Node2D
         _remoteTransform2D = Camera2D.Follow(target);
         return this;
     }
 
     public CameraController StopFollowing() {
         if (_getFollowingPosition != null) {
-            Handler.Disable();
+            // Unfollow func temporarily
+            NodeManager.MainInstance.OnPhysicsProcess -= Refresh;
+            _followingPositionPaused = true;
         } else if (_remoteTransform2D != null) {
             _remoteTransform2D.RemotePath = null;
         }
@@ -65,7 +77,8 @@ public class CameraController {
 
     public CameraController ContinueFollowing() {
         if (_getFollowingPosition != null) {
-            Handler.Enable();
+            NodeManager.MainInstance.OnPhysicsProcess += Refresh;
+            _followingPositionPaused = false;
         } else if (_remoteTransform2D != null) {
             _remoteTransform2D.RemotePath = Camera2D.GetPath();
         }
@@ -145,7 +158,7 @@ public class CameraController {
         if (_getFollowingPosition != null) {
             Camera2D.GlobalPosition = _getFollowingPosition.Invoke();
         } else {
-            Handler.Disable();
+            NodeManager.MainInstance.OnPhysicsProcess -= Refresh;
         }
     }
 }

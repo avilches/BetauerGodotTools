@@ -5,7 +5,7 @@ using Betauer.Core.Signal;
 using Godot;
 
 namespace Betauer.Nodes;
-
+                           /*
 public static class NodeManagerExtensions {
     public static NodeManager GetNodeHandler(this Node node) {
         return node.FirstChildInParentOrNull<NodeManager>() ?? NodeManager.MainInstance;
@@ -165,4 +165,4 @@ public static class NodeManagerExtensions {
         return promise.Task;
     }
     
-}
+}                            */

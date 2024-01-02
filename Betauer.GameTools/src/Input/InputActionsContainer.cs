@@ -21,9 +21,8 @@ public partial class InputActionsContainer : Node, IInjectable {
     public bool Enabled { get; private set; } = true;
 
     /// <summary>
-    /// The inputs inside don't have SaveSetting
+    /// The new cloned inputs won't have SaveSetting
     /// </summary>
-    /// <param name="joypadId"></param>
     /// <param name="suffix"></param>
     /// <param name="updater"></param>
     /// <returns></returns>
@@ -42,7 +41,7 @@ public partial class InputActionsContainer : Node, IInjectable {
     }
 
     public InputActionsContainer(bool enable = true) {
-        if (enable) NodeManager.MainInstance.Node.AddChild(this);
+        if (enable) NodeManager.MainInstance.AddChild(this);
     }
 
     public void PostInject() {
