@@ -32,6 +32,10 @@ public partial class MainMenu : CanvasFaderLayer {
 	[Inject] private InputAction UiAccept { get; set; }
 	[Inject] private InputAction UiCancel { get; set; }
 	[Inject] private WorldGenerator WorldGenerator { get; set; }
+	
+	public MainMenu() {
+		Visible = false;
+	}
 
 	public override void _Ready() {
 		_version.Text = $"{AppTools.GetProjectName()} {AppTools.GetProjectVersion()} - Betauer 2022";

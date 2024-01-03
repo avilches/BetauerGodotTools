@@ -80,10 +80,8 @@ public partial class BottomBar : CanvasLayer {
 			case MainState.SavingGame:
 			case MainState.GameOver:
 			case MainState.QuitGame:
-			case MainState.Init:
 			case MainState.Gaming:
 			case MainState.ExitDesktop:
-			case MainState.SplashScreen:
 				HideAll();
 				break;
 			default:

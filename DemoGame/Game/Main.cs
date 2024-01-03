@@ -18,10 +18,6 @@ using Veronenger.Game.UI.Settings;
 namespace Veronenger.Game; 
 
 public enum MainState {
-    Init,
-    
-    
-    SplashScreen,
     MainMenu,
     Settings,
     StartingGamePlatform,
@@ -53,7 +49,7 @@ public interface IMain {
     public void Send(MainEvent e, int weight = 0);
 }
 
-[Singleton<IMain>(Flags = "Autoload")]
+[Singleton<IMain>]
 public partial class Main : FsmNodeAsync<MainState, MainEvent>, IMain, IInjectable {
 
     [Inject] private ILazy<MainMenu> MainMenuSceneLazy { get; set; }
@@ -86,13 +82,14 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IMain, IInjectab
     [Inject] private InputAction ControllerStart { get; set; }
     [Inject] private UiActionsContainer UiActionsContainer { get; set; }
     [Inject] private JoypadPlayersMapping JoypadPlayersMapping { get; set; }
-        
+
+
+    public Main() : base(MainState.MainMenu) {
+    }
 
     public override void _Ready() {
         ProcessMode = ProcessModeEnum.Always;
-    }
-
-    public Main() : base(MainState.Init) {
+        ConfigureApp();
     }
 
     public void PostInject() {
@@ -118,32 +115,6 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IMain, IInjectab
         On(MainEvent.ModalBoxConfirmExitDesktop).Push(MainState.ModalExitDesktop);
         On(MainEvent.ExitDesktop).Set(MainState.ExitDesktop);
         On(MainEvent.ModalBoxConfirmQuitGame).Push(MainState.ModalQuitGame);
-        
-        State(MainState.Init)
-            .Enter(async () => {
-                var splashScreen = SceneTree.GetMainScene<SplashScreen>();
-                splashScreen.StartLoadingAnimation();
-                await GameLoader.LoadMainResources();
-                splashScreen.StopLoadingAnimation();
-                ConfigureApp();
-            })
-            .If(() => true).Set(MainState.SplashScreen)
-            .Build();
-
-        var endSplash = false;
-        State(MainState.SplashScreen)
-            .OnInput(e => {
-                if ((e.IsAnyKey() || e.IsAnyButton() || e.IsAnyClick()) && e.IsJustPressed()) {
-                    if (e is InputEventJoypadButton button) {
-                        UiActionsContainer.SetJoypad(button.Device);
-                    }
-                    var splashScreen = SceneTree.GetMainScene<SplashScreen>();
-                    splashScreen.QueueFree();
-                    endSplash = true;
-                }
-            })
-            .If(() => endSplash).Set(MainState.MainMenu)
-            .Build();
 
         State(MainState.MainMenu)
             .OnInput(e => MainMenuScene.OnInput(e))

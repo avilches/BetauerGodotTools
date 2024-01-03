@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Betauer.Application.Lifecycle;
 using Betauer.DI.Attributes;
@@ -10,7 +11,7 @@ public class GameLoader : ResourceLoaderContainer {
     [Inject] private ILazy<BottomBar> BottomBarLazy { get; set; }
     [Inject] private ILazy<ProgressScreen> ProgressScreenLazy { get; set; }
 	
-    public Task LoadMainResources() => LoadResources("main");
+    public Task LoadMainResources(Action<ResourceProgress>? progressAction = null) => LoadResources("main", progressAction);
 
     public async Task LoadPlatformGameResources() {
         LoadStart();
