@@ -76,7 +76,7 @@ public partial class SettingsMenu : CanvasLayer {
 	[Inject] private InputAction UiLeft { get; set; }
 	[Inject] private InputAction UiRight { get; set; }
 
-	[Inject] private IMain Main { get; set; }
+	[Inject] private MainBus MainBus { get; set; }
 	[Inject] private ITransient<RedefineActionButton> RedefineActionButton { get; set; }
 	
 	public event Action<InputAction>? OnRedefine;
@@ -256,7 +256,7 @@ public partial class SettingsMenu : CanvasLayer {
 			if (_resolutions.HasFocus()) {
 				CloseResolutionList();
 			} else {
-				Main.Send(MainEvent.Back);
+				MainBus.Publish(MainEvent.Back);
 				GetViewport().SetInputAsHandled();
 			}
 		}

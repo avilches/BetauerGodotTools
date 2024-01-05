@@ -27,7 +27,7 @@ public partial class MainMenu : CanvasFaderLayer {
 
 	private MenuContainer _menuContainer;
 
-	[Inject] private IMain Main { get; set; }
+	[Inject] private MainBus MainBus { get; set; }
 
 	[Inject] private InputAction UiAccept { get; set; }
 	[Inject] private InputAction UiCancel { get; set; }
@@ -72,17 +72,17 @@ public partial class MainMenu : CanvasFaderLayer {
 
 		var mainMenu = new MenuContainer(_menuBase);
 		var startMenu = mainMenu.GetRootMenu();
-		startMenu.AddButton("Start RTS", "RTS").Pressed += () => Main.Send(MainEvent.StartGameRts);
-		startMenu.AddButton("Start Plat", "Platform").Pressed += () => Main.Send(MainEvent.StartGamePlatform);
-		startMenu.AddButton("Settings", "Settings").Pressed += () => Main.Send(MainEvent.Settings);
-		startMenu.AddButton("Exit", "Exit").Pressed += () => Main.Send(MainEvent.ExitDesktop);
+		startMenu.AddButton("Start RTS", "RTS").Pressed += () => MainBus.Publish(MainEvent.StartGameRts);
+		startMenu.AddButton("Start Plat", "Platform").Pressed += () => MainBus.Publish(MainEvent.StartGamePlatform);
+		startMenu.AddButton("Settings", "Settings").Pressed += () => MainBus.Publish(MainEvent.Settings);
+		startMenu.AddButton("Exit", "Exit").Pressed += () => MainBus.Publish(MainEvent.ExitDesktop);
 		return mainMenu;
 	}
 
 	public void OnInput(InputEvent e) {
 		if (UiCancel.IsEventJustPressed(e)) { 
 			if (_menuContainer.IsRootMenuActive()) {
-				Main.Send(MainEvent.ModalBoxConfirmExitDesktop);
+				MainBus.Publish(MainEvent.ModalBoxConfirmExitDesktop);
 			} else {
 				_menuContainer.Back();
 			}

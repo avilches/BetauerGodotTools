@@ -24,7 +24,6 @@ config/icon="res://icon.png"
 
 [autoload]
 
-Bootstrap="*res://Game/Bootstrap.cs"
 
 [debug]
 

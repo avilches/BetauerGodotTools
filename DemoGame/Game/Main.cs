@@ -1,3 +1,4 @@
+using Betauer.Application;
 using Betauer.Application.Lifecycle;
 using Betauer.Application.Monitor;
 using Betauer.Application.Screen;
@@ -45,12 +46,12 @@ public enum MainEvent {
     ExitDesktop
 }
 
-public interface IMain {
-    public void Send(MainEvent e, int weight = 0);
+[Singleton]
+public class MainBus : GodotBus<MainEvent> {
 }
 
-[Singleton<IMain>]
-public partial class Main : FsmNodeAsync<MainState, MainEvent>, IMain, IInjectable {
+[Singleton]
+public partial class Main : FsmNodeAsync<MainState, MainEvent>, IInjectable {
 
     [Inject] private ILazy<MainMenu> MainMenuSceneLazy { get; set; }
     [Inject] private ILazy<BottomBar> BottomBarLazy { get; set; }
@@ -76,6 +77,7 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IMain, IInjectab
     [Inject] private ScreenSettingsManager ScreenSettingsManager { get; set; }
     [Inject] private SceneTree SceneTree { get; set; }
     [Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
+    [Inject] private MainBus MainBus { get; set; }
 
     [Inject] private InputAction UiAccept { get; set; }
     [Inject] private InputAction UiCancel { get; set; }
@@ -111,6 +113,8 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IMain, IInjectab
 #endif
 
         var modalResponse = false;
+
+        MainBus.Subscribe((MainEvent e) => Send(e));
 
         On(MainEvent.ModalBoxConfirmExitDesktop).Push(MainState.ModalExitDesktop);
         On(MainEvent.ExitDesktop).Set(MainState.ExitDesktop);

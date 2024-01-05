@@ -27,7 +27,7 @@ public partial class RtsGameView : Control, IInjectable, IGameView {
 	[Inject] private ITransient<RtsWorld> RtsWorldFactory { get; set; }
 	[Inject] private ITransient<RtsHud> RtsHudFactory { get; set; }
 
-	[Inject] private IMain Main { get; set; }
+	[Inject] private MainBus MainBus { get; set; }
 	[Inject] private ILazy<ProgressScreen> ProgressScreenLazy { get; set; }
 	[Inject] private GameLoader GameLoader { get; set; }
 	[Inject] private InputActionsContainer PlayerActionsContainer { get; set; }
@@ -113,7 +113,7 @@ public partial class RtsGameView : Control, IInjectable, IGameView {
 	}
 
 	public async Task Save(string saveName) {
-		Main.Send(MainEvent.StartSavingGame);
+		MainBus.Publish(MainEvent.StartSavingGame);
 		var l = await RtsGameObjectLoader.ListMetadatas();
 		try {
 			var saveObjects = GameObjectRepository.GetSaveObjects();
@@ -123,7 +123,7 @@ public partial class RtsGameView : Control, IInjectable, IGameView {
 			// Show saving error
 			Console.WriteLine(e);
 		}
-		Main.Send(MainEvent.Back);
+		MainBus.Publish(MainEvent.Back);
 	}
 
 	public void ShowLoading() {}

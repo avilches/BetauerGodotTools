@@ -21,7 +21,7 @@ public partial class PauseMenu : CanvasFaderLayer {
 
 	private MenuContainer _menuContainer;
 
-	[Inject] private IMain Main { get; set; }
+	[Inject] private MainBus MainBus { get; set; }
 
 	[Inject] private InputAction UiAccept { get; set; }
 	[Inject] private InputAction UiCancel { get; set; }
@@ -60,23 +60,23 @@ public partial class PauseMenu : CanvasFaderLayer {
 
 		var mainMenu = new MenuContainer(_menuBase);
 		var startMenu = mainMenu.GetRootMenu();
-		startMenu.AddButton("Resume", "Resume").Pressed += () => Main.Send(MainEvent.Back);
-		startMenu.AddButton("Settings", "Settings").Pressed += () => Main.Send(MainEvent.Settings);
-		startMenu.AddButton("QuitGame", "Quit game").Pressed += () => Main.Send(MainEvent.ModalBoxConfirmQuitGame);
+		startMenu.AddButton("Resume", "Resume").Pressed += () => MainBus.Publish(MainEvent.Back);
+		startMenu.AddButton("Settings", "Settings").Pressed += () => MainBus.Publish(MainEvent.Settings);
+		startMenu.AddButton("QuitGame", "Quit game").Pressed += () => MainBus.Publish(MainEvent.ModalBoxConfirmQuitGame);
 		return mainMenu;
 	}
 
 	public void OnInput(InputEvent e) {
 		if (UiCancel.IsEventJustPressed(e)) {
 			if (_menuContainer.IsRootMenuActive()) {
-				Main.Send(MainEvent.Back);
+				MainBus.Publish(MainEvent.Back);
 			} else {
 				_menuContainer.Back();
 			}
 			GetViewport().SetInputAsHandled();
 
 		} else if (ControllerStart.IsJustPressed) {
-			Main.Send(MainEvent.Back);
+			MainBus.Publish(MainEvent.Back);
 			GetViewport().SetInputAsHandled();
 				
 		}

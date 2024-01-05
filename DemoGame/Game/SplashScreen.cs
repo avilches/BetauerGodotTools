@@ -30,7 +30,7 @@ public partial class SplashScreen : CanvasLayer {
 	[Inject] private GameLoader GameLoader { get; set; }
 	[Inject] private UiActionsContainer UiActionsContainer { get; set; }
 	[Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
-	[Inject] private IMain Main { get; set; }
+	[Inject] private Main Main { get; set; }
 	
 	public SplashScreen() {
 		Logging.Configure();
@@ -47,7 +47,7 @@ public partial class SplashScreen : CanvasLayer {
 		
 		Ready += async () => {
 			await LoadResources();
-			AddSibling(Main as Node);
+			AddSibling(Main);
 			QueueFree();
 		};
 	}
@@ -173,7 +173,7 @@ file static class Logging {
 		LoggerFactory.SetTraceLevel<PropertyTweener>(TraceLevel.Error);
 
 		// Game
-		LoggerFactory.SetTraceLevel<Main>(TraceLevel.Error);
+		LoggerFactory.SetTraceLevel<MainBus>(TraceLevel.Error);
 		LoggerFactory.SetTraceLevel<StageController>(TraceLevel.Error);
 
 		// Player and enemies
