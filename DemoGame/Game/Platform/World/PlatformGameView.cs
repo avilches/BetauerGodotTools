@@ -151,7 +151,7 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 			// Show saving error
 			Console.WriteLine(e);
 		}
-		MainBus.Publish(MainEvent.Back);
+		MainBus.Publish(MainEvent.EndSavingGame);
 	}
 
 	public void ShowLoading() {}

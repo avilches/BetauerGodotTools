@@ -256,7 +256,7 @@ public partial class SettingsMenu : CanvasLayer {
 			if (_resolutions.HasFocus()) {
 				CloseResolutionList();
 			} else {
-				MainBus.Publish(MainEvent.Back);
+				MainBus.Publish(MainEvent.CloseSettingsMenu);
 				GetViewport().SetInputAsHandled();
 			}
 		}

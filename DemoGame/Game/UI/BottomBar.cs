@@ -74,7 +74,7 @@ public partial class BottomBar : CanvasLayer {
 			case MainState.PauseMenu:
 				AcceptBack();
 				break;
-			case MainState.Settings:
+			case MainState.SettingsMenu:
 			case MainState.StartingGamePlatform:
 			case MainState.StartingGameRts:
 			case MainState.SavingGame:

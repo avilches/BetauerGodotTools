@@ -16,38 +16,47 @@ using Veronenger.Game.RTS.World;
 using Veronenger.Game.UI;
 using Veronenger.Game.UI.Settings;
 
-namespace Veronenger.Game; 
-
-public enum MainState {
-    MainMenu,
-    Settings,
-    StartingGamePlatform,
-    StartingGameRts,
-    Gaming,
-    SavingGame,
-    GameOver,
-    PauseMenu,
-    ModalQuitGame,
-    QuitGame,
-    ModalExitDesktop,
-    ExitDesktop,
-}
-    
-public enum MainEvent {
-    Back,
-    Pause,
-    Settings,
-    StartGameRts,
-    StartGamePlatform,
-    StartSavingGame,
-    EndGame,
-    ModalBoxConfirmExitDesktop,
-    ModalBoxConfirmQuitGame,
-    ExitDesktop
-}
+namespace Veronenger.Game;
 
 [Singleton]
 public class MainBus : GodotBus<MainEvent> {
+}
+
+public enum MainEvent {
+    OpenPauseMenu,
+    ClosePauseMenu,
+    
+    OpenSettingsMenu,
+    CloseSettingsMenu,
+    
+    StartGameRts,
+    StartGamePlatform,
+    
+    StartSavingGame,
+    EndSavingGame,
+
+    OpenModalBoxQuitGame,
+    EndGame,
+    
+    OpenModalBoxExitToDesktop,
+    ExitDesktop
+}
+
+public enum MainState {
+    MainMenu,
+    SettingsMenu,
+    StartingGamePlatform,
+    StartingGameRts,
+    Gaming,
+    PauseMenu,
+    SavingGame,
+    GameOver,
+    
+    ModalQuitGame,
+    QuitGame,
+    
+    ModalExitDesktop,
+    ExitDesktop,
 }
 
 [Singleton]
@@ -70,7 +79,6 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IInjectable {
     [Inject("DebugOverlayTheme")] private ResourceHolder<Theme> DebugOverlayTheme { get; set; }
     [Inject("DebugConsoleTheme")] private ResourceHolder<Theme> DebugConsoleTheme { get; set; }
 
-    [Inject] private Betauer.DI.Container Container { get; set; }
     [Inject] private ITransient<PlatformGameView> PlatformGameView { get; set; }
     [Inject] private ITransient<RtsGameView> RtsGameView { get; set; }
 
@@ -79,8 +87,6 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IInjectable {
     [Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
     [Inject] private MainBus MainBus { get; set; }
 
-    [Inject] private InputAction UiAccept { get; set; }
-    [Inject] private InputAction UiCancel { get; set; }
     [Inject] private InputAction ControllerStart { get; set; }
     [Inject] private UiActionsContainer UiActionsContainer { get; set; }
     [Inject] private JoypadPlayersMapping JoypadPlayersMapping { get; set; }
@@ -116,23 +122,23 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IInjectable {
 
         MainBus.Subscribe((MainEvent e) => Send(e));
 
-        On(MainEvent.ModalBoxConfirmExitDesktop).Push(MainState.ModalExitDesktop);
+        On(MainEvent.OpenModalBoxExitToDesktop).Push(MainState.ModalExitDesktop);
         On(MainEvent.ExitDesktop).Set(MainState.ExitDesktop);
-        On(MainEvent.ModalBoxConfirmQuitGame).Push(MainState.ModalQuitGame);
+        On(MainEvent.OpenModalBoxQuitGame).Push(MainState.ModalQuitGame);
 
         State(MainState.MainMenu)
             .OnInput(e => MainMenuScene.OnInput(e))
             .On(MainEvent.StartGamePlatform).Set(MainState.StartingGamePlatform)
             .On(MainEvent.StartGameRts).Set(MainState.StartingGameRts)
-            .On(MainEvent.Settings).Push(MainState.Settings)
+            .On(MainEvent.OpenSettingsMenu).Push(MainState.SettingsMenu)
             .Suspend(() => MainMenuScene.DisableMenus())
             .Awake(() => MainMenuScene.EnableMenus())
             .Enter(async () => await MainMenuScene.ShowMenu())
             .Build();
 
-        State(MainState.Settings)
+        State(MainState.SettingsMenu)
             .OnInput(e => SettingsMenuScene.OnInput(e))
-            .On(MainEvent.Back).Pop()
+            .On(MainEvent.CloseSettingsMenu).Pop()
             .Enter(() => SettingsMenuScene.ShowSettingsMenu())
             .Exit(() => SettingsMenuScene.HideSettingsMenu())
             .Build();
@@ -159,12 +165,11 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IInjectable {
             .On(MainEvent.StartSavingGame).Push(MainState.SavingGame)
             .OnInput(e => {
                 if (ControllerStart.IsEventJustPressed(e)) {
-                    Send(MainEvent.Pause);
+                    Send(MainEvent.OpenPauseMenu);
                     GetViewport().SetInputAsHandled();
                 }
             })
-            .On(MainEvent.Back).Pop()
-            .On(MainEvent.Pause).Push(MainState.PauseMenu)
+            .On(MainEvent.OpenPauseMenu).Push(MainState.PauseMenu)
             .Build();
 
         State(MainState.SavingGame)
@@ -176,7 +181,7 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IInjectable {
                 ProgressScreenLazy.Get().Visible = false;
                 SceneTree.Paused = false;
             })
-            .On(MainEvent.Back).Pop()
+            .On(MainEvent.EndSavingGame).Pop()
             .Build();
 
         State(MainState.GameOver).Enter(async () => {
@@ -187,8 +192,8 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IInjectable {
             
         State(MainState.PauseMenu)
             .OnInput((e) => PauseMenuScene.OnInput(e))
-            .On(MainEvent.Back).Pop()
-            .On(MainEvent.Settings).Push(MainState.Settings)
+            .On(MainEvent.ClosePauseMenu).Pop()
+            .On(MainEvent.OpenSettingsMenu).Push(MainState.SettingsMenu)
             .Suspend(() => PauseMenuScene.DisableMenus())
             .Awake(() => PauseMenuScene.EnableMenus())
             .Enter(async () => {
@@ -203,7 +208,6 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IInjectable {
             .Build();
 
         State(MainState.ModalQuitGame)
-            .On(MainEvent.Back).Pop()
             .Execute(async () => {
                 var modalBoxConfirm = ShowModalBox("Quit game?", "Any progress not saved will be lost");
                 modalResponse = await modalBoxConfirm.AwaitResult();
@@ -220,7 +224,6 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IInjectable {
                 
 
         State(MainState.ModalExitDesktop)
-            .On(MainEvent.Back).Pop()
             .Execute(async () => {
                 var modalBoxConfirm = ShowModalBox("Exit game?");
                 modalBoxConfirm.FadeBackgroundOut(1, 0.5f);

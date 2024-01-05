@@ -74,7 +74,7 @@ public partial class MainMenu : CanvasFaderLayer {
 		var startMenu = mainMenu.GetRootMenu();
 		startMenu.AddButton("Start RTS", "RTS").Pressed += () => MainBus.Publish(MainEvent.StartGameRts);
 		startMenu.AddButton("Start Plat", "Platform").Pressed += () => MainBus.Publish(MainEvent.StartGamePlatform);
-		startMenu.AddButton("Settings", "Settings").Pressed += () => MainBus.Publish(MainEvent.Settings);
+		startMenu.AddButton("Settings", "Settings").Pressed += () => MainBus.Publish(MainEvent.OpenSettingsMenu);
 		startMenu.AddButton("Exit", "Exit").Pressed += () => MainBus.Publish(MainEvent.ExitDesktop);
 		return mainMenu;
 	}
@@ -82,7 +82,7 @@ public partial class MainMenu : CanvasFaderLayer {
 	public void OnInput(InputEvent e) {
 		if (UiCancel.IsEventJustPressed(e)) { 
 			if (_menuContainer.IsRootMenuActive()) {
-				MainBus.Publish(MainEvent.ModalBoxConfirmExitDesktop);
+				MainBus.Publish(MainEvent.OpenModalBoxExitToDesktop);
 			} else {
 				_menuContainer.Back();
 			}
