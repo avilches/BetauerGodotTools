@@ -12,7 +12,7 @@ public class SettingsContainer {
         get => _configFileWrapper;
         set {
             _configFileWrapper = value;
-            Load();
+            if (_configFileWrapper.Exists()) Load();
         }
     }
     public bool Dirty => ValidateConfigFileWrapper().Dirty;

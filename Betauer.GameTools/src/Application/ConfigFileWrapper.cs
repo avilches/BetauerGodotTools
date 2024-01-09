@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using Betauer.Tools.Logging;
 using Godot;
 
@@ -7,13 +8,20 @@ namespace Betauer.Application;
 public class ConfigFileWrapper {
     private static readonly Logger Logger = LoggerFactory.GetLogger<ConfigFileWrapper>();
     private readonly ConfigFile _configFile = new();
-    public string FilePath { get; private set; }
+
+    public string AbsoluteFilePath { get; private set; }
+    private string _filePath;
+    public string FilePath {
+        get => _filePath;
+        set {
+            _filePath = value ?? throw new ArgumentNullException(nameof(FilePath));
+            AbsoluteFilePath = ProjectSettings.GlobalizePath(value);
+        }
+    }
+
     public byte[]? EncryptionKey { get; private set; } // TODO:
     public Error LastError { get; private set; }
     public bool Dirty { get; private set; } = false;
-
-    public ConfigFileWrapper() {
-    }
 
     public ConfigFileWrapper(string filePath) {
         FilePath = filePath;
@@ -62,7 +70,6 @@ public class ConfigFileWrapper {
     }
 
     public ConfigFileWrapper Load() {
-        CheckFilePath();
         _configFile.Clear();
         LastError = EncryptionKey == null
             ? _configFile.Load(FilePath)
@@ -76,7 +83,6 @@ public class ConfigFileWrapper {
 
     public ConfigFileWrapper Save() {
         if (!Dirty) return this;
-        CheckFilePath();
         LastError = EncryptionKey == null
             ? _configFile.Save(FilePath)
             : _configFile.SaveEncrypted(FilePath, EncryptionKey);
@@ -87,8 +93,8 @@ public class ConfigFileWrapper {
         return this;
     }
 
-    private void CheckFilePath() {
-        if (FilePath == null)
-            throw new ArgumentNullException(nameof(FilePath), $"Set {nameof(FilePath)} property first");
+    public bool Exists() {
+        return File.Exists(AbsoluteFilePath);
+        
     }
 }
