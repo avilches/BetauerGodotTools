@@ -7,6 +7,7 @@ using Betauer.Application.Screen;
 using Betauer.Application.Screen.Resolution;
 using Betauer.Application.Settings;
 using Betauer.Camera.Control;
+using Betauer.DI;
 using Betauer.DI.Attributes;
 using Betauer.Input;
 using Godot;
@@ -36,20 +37,21 @@ public class ApplicationConfig {
 	[Singleton] public CameraContainer CameraContainer => new();
 	[Singleton] public PlatformMultiPlayerContainer MultiPlayerContainer => new();
 	[Singleton] public ScreenSettingsManager ScreenSettingsManager => new(Config);
+	[Singleton] public SettingsContainer SettingsContainer => new(AppTools.GetUserFile("settings.ini"));
 }
 
 [Singleton]
-public class Settings : SettingsContainer {
+public class Settings : IInjectable {
+	[Inject] public SettingsContainer SettingsContainer { get; set; }
 	public SaveSetting<bool> PixelPerfect { get; } = Setting.Create("Video/PixelPerfect", false);
 	public SaveSetting<bool> Fullscreen { get; } = Setting.Create("Video/Fullscreen", true);
 	public SaveSetting<bool> VSync { get; } = Setting.Create("Video/VSync", true);
 	public SaveSetting<bool> Borderless { get; } = Setting.Create("Video/Borderless", false);
 	public SaveSetting<Vector2I> WindowedResolution { get; } = Setting.Create("Video/WindowedResolution", Resolutions.FULLHD.Size);
 
-	public Settings() {
-		ConfigFileWrapper = new ConfigFileWrapper(AppTools.GetUserFile("settings.ini"));
-		AddFromInstanceProperties(this);
-		Load();
+	public void PostInject() {
+		SettingsContainer.AddFromInstanceProperties(this);
+		SettingsContainer.Load();
 	}
 }
 
