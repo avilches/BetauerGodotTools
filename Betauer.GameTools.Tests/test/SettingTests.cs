@@ -18,8 +18,6 @@ public partial class SettingTests : Node {
         System.IO.File.Delete(SettingsFile);
     }
 
-
-
     [TestRunner.Test]
     public void FailIfNoContainer() {
         // var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
@@ -157,5 +155,4 @@ public partial class SettingTests : Node {
         Assert.That(sc.Settings.Contains(t.Saved1));
         Assert.That(sc.Settings.Contains(t.Saved1));
     }
-
 }

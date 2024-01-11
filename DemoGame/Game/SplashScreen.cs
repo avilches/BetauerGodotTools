@@ -138,7 +138,7 @@ file static class Logging {
 		LoggerFactory.SetTraceLevel<SplashScreen>(TraceLevel.All);
 		LoggerFactory.SetTraceLevel<ResourceLoaderContainer>(TraceLevel.All);
 		LoggerFactory.SetTraceLevel<ConfigFileWrapper>(TraceLevel.All);
-		LoggerFactory.SetTraceLevel<BaseScreenResolutionStrategy>(TraceLevel.All);
+		LoggerFactory.SetTraceLevel<ScreenController>(TraceLevel.All);
 		PropertyNameRestorer.OverrideBehaviour = PropertyNameRestorer.Behaviour.DoNothing;
 	}
 
@@ -163,7 +163,7 @@ file static class Logging {
 		LoggerFactory.SetTraceLevel<TransientProvider>(TraceLevel.Error);
 
 		// GameTools
-		LoggerFactory.SetTraceLevel<BaseScreenResolutionStrategy>(TraceLevel.All);
+		LoggerFactory.SetTraceLevel<ScreenController>(TraceLevel.Error);
 		LoggerFactory.SetTraceLevel<Fsm>(TraceLevel.Error);
 
 		// Animation

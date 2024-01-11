@@ -243,7 +243,7 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IInjectable {
         UiActions.SetFirstConnectedJoypad();
         ConfigureCanvasLayers();
         ConfigureDebugOverlays();
-        ScreenSettingsManager.Setup();
+        ScreenSettingsManager.Start();
         OnTransition += args => BottomBarScene.UpdateState(args.To);
         GameLoader.OnLoadResourceProgress += (rp) => ProgressScreenScene.Loading(rp.TotalPercent);
     }

@@ -68,6 +68,8 @@ public partial class SettingsMenu : CanvasLayer {
 	[Inject] private ILazy<BottomBar> BottomBarLazy { get; set; }
 	[Inject] private Betauer.DI.Container Container { get; set; }
 	[Inject] private ScreenSettingsManager ScreenSettingsManager { get; set; }
+	private ScreenController ScreenController => ScreenSettingsManager.ScreenController;
+	private ScreenConfig ScreenConfig => ScreenController.ScreenConfig;
 
 	private BottomBar BottomBarScene => BottomBarLazy.Get();
 	
@@ -83,12 +85,12 @@ public partial class SettingsMenu : CanvasLayer {
 		AddInputControls();
 		UpdateResolutionButtonText();
 		
-		_fullscreenButtonWrapper.ButtonPressed = ScreenSettingsManager.Fullscreen;
-		_pixelPerfectButtonWrapper.ButtonPressed = ScreenSettingsManager.PixelPerfect;
-		_vsyncButtonWrapper.ButtonPressed = ScreenSettingsManager.VSync;
-		_borderlessButtonWrapper.ButtonPressed = ScreenSettingsManager.Borderless;
-		_borderlessButtonWrapper.SetFocusDisabled(ScreenSettingsManager.Fullscreen);
-		_resolutionButton.SetFocusDisabled(ScreenSettingsManager.Fullscreen);
+		_fullscreenButtonWrapper.ButtonPressed = ScreenSettingsManager.Fullscreen.Value;
+		// _pixelPerfectButtonWrapper.ButtonPressed = ScreenSettingsManager.PixelPerfect;
+		_vsyncButtonWrapper.ButtonPressed = ScreenSettingsManager.VSync.Value;
+		_borderlessButtonWrapper.ButtonPressed = ScreenSettingsManager.Borderless.Value;
+		_borderlessButtonWrapper.SetFocusDisabled(ScreenSettingsManager.Fullscreen.Value);
+		_resolutionButton.SetFocusDisabled(ScreenSettingsManager.Fullscreen.Value);
 		
 		_resolutions.Hide();
 		Hide();
@@ -120,7 +122,7 @@ public partial class SettingsMenu : CanvasLayer {
 			if (isChecked) {
 				_borderlessButtonWrapper.ButtonPressed = false;
 			}
-			ScreenSettingsManager.SetFullscreen(isChecked);
+			ScreenController.SetFullscreen(isChecked);
 			CheckIfResolutionStillMatches();
 		};
 		_resolutionButton.Pressed += OpenResolutionList;
@@ -135,15 +137,15 @@ public partial class SettingsMenu : CanvasLayer {
 
 		_pixelPerfectButtonWrapper.FocusEntered += BottomBarScene.ChangeBack;
 		_pixelPerfectButtonWrapper.Pressed += () => {
-			ScreenSettingsManager.SetPixelPerfect(_pixelPerfectButtonWrapper.ButtonPressed);
+			// ScreenSettingsManager.SetPixelPerfect(_pixelPerfectButtonWrapper.ButtonPressed);
 			CheckIfResolutionStillMatches();
 		};
 
 		_borderlessButtonWrapper.FocusEntered += BottomBarScene.ChangeBack;
-		_borderlessButtonWrapper.Toggled += isChecked => ScreenSettingsManager.SetBorderless(isChecked);
+		_borderlessButtonWrapper.Toggled += isChecked => ScreenController.SetBorderless(isChecked);
 
 		_vsyncButtonWrapper.FocusEntered += BottomBarScene.ChangeBack;
-		_vsyncButtonWrapper.Toggled += isChecked => ScreenSettingsManager.SetVSync(isChecked);
+		_vsyncButtonWrapper.Toggled += isChecked => ScreenController.SetVSync(isChecked);
 	}
 
 	private void AddInputControls() {
@@ -185,8 +187,8 @@ public partial class SettingsMenu : CanvasLayer {
 	} 
 
 	private Tuple<List<ScaledResolution>, ScaledResolution, int> FindClosestResolutionToSelected() {
-		List<ScaledResolution> resolutions = ScreenSettingsManager.GetResolutions();
-		Resolution currentResolution = ScreenSettingsManager.WindowedResolution;
+		List<ScaledResolution> resolutions = ScreenController.GetResolutions();
+		Resolution currentResolution = new Resolution(ScreenSettingsManager.WindowedResolution.Value);
 		var pos = resolutions.FindIndex(scaledResolution => scaledResolution.Size == currentResolution.Size);
 		if (pos == -1) {
 			// Find the closest resolution with the same or smaller height
@@ -197,9 +199,9 @@ public partial class SettingsMenu : CanvasLayer {
 	}
 
 	private void CheckIfResolutionStillMatches() {
-		if (ScreenSettingsManager.IsFullscreen()) return; 
+		if (ScreenController.IsFullscreen()) return; 
 		var (resolutions, closestResolution, pos) = FindClosestResolutionToSelected();
-		if (ScreenSettingsManager.WindowedResolution.Size != closestResolution.Size) {
+		if (ScreenSettingsManager.WindowedResolution.Value != closestResolution.Size) {
 			ScreenSettingsManager.SetWindowed(resolutions[pos]);
 			UpdateResolutionButtonText();
 		}
@@ -233,9 +235,9 @@ public partial class SettingsMenu : CanvasLayer {
 
 	private string GetResolutionFullName(ScaledResolution scaledResolution) {
 		var res = new StringBuilder(scaledResolution.ToString());
-		if (scaledResolution.Size == ScreenSettingsManager.ScreenController.ScreenConfig.BaseResolution.Size) {
+		if (scaledResolution.Size == ScreenConfig.BaseResolution.Size) {
 			res.Append(" (Original)");
-		} else if (scaledResolution.Base == ScreenSettingsManager.ScreenController.ScreenConfig.BaseResolution.Size) {
+		} else if (scaledResolution.Base == ScreenConfig.BaseResolution.Size) {
 			if (scaledResolution.IsScaleYInteger()) {
 				res.Append(" (x");
 				res.Append(scaledResolution.Scale.Y);

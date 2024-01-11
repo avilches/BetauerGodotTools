@@ -21,7 +21,6 @@ namespace Veronenger.Game;
 [Configuration]
 public class ApplicationConfig {
 	public static readonly ScreenConfig Config = new(
-		FixedViewportStrategy.Instance, 
 		Resolutions.FULLHD,
 		Window.ContentScaleModeEnum.CanvasItems, // (viewport is blur)
 		Window.ContentScaleAspectEnum.Keep,
@@ -43,11 +42,11 @@ public class ApplicationConfig {
 [Singleton]
 public class Settings : IInjectable {
 	[Inject] public SettingsContainer SettingsContainer { get; set; }
-	public SaveSetting<bool> PixelPerfect { get; } = Setting.Create("Video/PixelPerfect", false);
-	public SaveSetting<bool> Fullscreen { get; } = Setting.Create("Video/Fullscreen", true);
-	public SaveSetting<bool> VSync { get; } = Setting.Create("Video/VSync", true);
-	public SaveSetting<bool> Borderless { get; } = Setting.Create("Video/Borderless", false);
-	public SaveSetting<Vector2I> WindowedResolution { get; } = Setting.Create("Video/WindowedResolution", Resolutions.FULLHD.Size);
+	// public SaveSetting<bool> PixelPerfect { get; } = Setting.Create("Video/PixelPerfect", false, true);
+	public SaveSetting<bool> Fullscreen { get; } = Setting.Create("Video/Fullscreen", true, true);
+	public SaveSetting<bool> VSync { get; } = Setting.Create("Video/VSync", true, true);
+	public SaveSetting<bool> Borderless { get; } = Setting.Create("Video/Borderless", false, true);
+	public SaveSetting<Vector2I> WindowedResolution { get; } = Setting.Create("Video/WindowedResolution", Resolutions.FULLHD.Size, true);
 
 	public void PostInject() {
 		SettingsContainer.AddFromInstanceProperties(this);
