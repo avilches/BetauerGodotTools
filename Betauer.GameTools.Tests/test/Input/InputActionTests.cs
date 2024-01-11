@@ -126,7 +126,7 @@ public class InputActionTests {
     public void InputActionSaveTest() {
         SaveSetting<string> b = Setting.Create("attack", "", false);
         var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
-        b.SetSettingsContainer(sc);
+        sc.Add(b);
 
         var reg = InputAction.Create("N")
             .Keys(Key.A)
@@ -178,7 +178,7 @@ public class InputActionTests {
     public void InputActionImportExportTests() {
         SaveSetting<string> b = Setting.Create( "attack", "");
         var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
-        b.SetSettingsContainer(sc);
+        sc.Add(b);
             
         var jump = InputAction.Mock();
         jump.SaveSetting = b;
@@ -222,7 +222,7 @@ public class InputActionTests {
     public void UpdateRollback() {
         SaveSetting<string> b = Setting.Create( "Controls/attack", "");
         var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
-        b.SetSettingsContainer(sc);
+        sc.Add(b);
             
         var jump = InputAction.Mock();
         jump.SaveSetting = b;
@@ -260,7 +260,7 @@ public class InputActionTests {
     public void AxisActionImportExportTests() {
         SaveSetting<string> b = Setting.Create( "Lateral", "Reverse:True", false);
         var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
-        b.SetSettingsContainer(sc);
+        sc.Add(b);
         var lateral = AxisAction.Mock();
         Assert.That(lateral.Reverse, Is.False);
         
@@ -286,7 +286,7 @@ public class InputActionTests {
     public void AxisActionSave() {
         SaveSetting<string> b = Setting.Create("move", "", false);
         var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
-        b.SetSettingsContainer(sc);
+        sc.Add(b);
 
         var lateral = AxisAction.Mock();
         Assert.That(lateral.Reverse, Is.False);
@@ -345,7 +345,7 @@ public class InputActionTests {
         SaveSetting<string> b = Setting.Create("attack","button:A,button:B,key:H,key:F");
 
         var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
-        b.SetSettingsContainer(sc);
+        sc.Add(b);
         jump.SaveSetting = b;
         jump.Load();
         Assert.That(jump.SaveSetting, Is.EqualTo(b));

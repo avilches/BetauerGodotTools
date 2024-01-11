@@ -1,5 +1,6 @@
-using System;
 using System.Collections.Generic;
+using System.Linq;
+using Betauer.Core;
 using Godot;
 
 namespace Betauer.Application.Settings; 
@@ -8,7 +9,7 @@ public class SettingsContainer {
 
     private ConfigFileWrapper _configFileWrapper;
 
-    public readonly List<ISaveSetting> Settings = new();
+    public readonly List<SaveSetting> Settings = new();
     public ConfigFileWrapper ConfigFileWrapper {
         get => _configFileWrapper;
         set {
@@ -19,19 +20,38 @@ public class SettingsContainer {
     public bool Dirty => _configFileWrapper.Dirty;
     public string FilePath => _configFileWrapper.FilePath;
 
+    public SettingsContainer() {
+    }
+
+    public SettingsContainer(string filePath) {
+        ConfigFileWrapper = new ConfigFileWrapper(filePath);
+    }
+
     public SettingsContainer(ConfigFileWrapper configFileWrapper) {
         ConfigFileWrapper = configFileWrapper;
     }
 
-    // Use SaveSetting.SetSettingsContainer() instead
-    internal void Add(ISaveSetting saveSetting) {
-        if (Settings.Contains(saveSetting)) return; // avoid duplicates
-        Settings.Add(saveSetting);
+    public void AddFromInstanceProperties(object instance) {
+        var propertyInfos = instance.GetType().GetProperties();
+
+        propertyInfos
+            .Where(p => typeof(SaveSetting).IsAssignableFrom(p.PropertyType))
+            .Select(p => p.GetValue(instance) as SaveSetting)
+            .Where(i => i != null)
+            .ForEach(Add);
     }
 
-    // Use SaveSetting.SetSettingsContainer() instead
-    internal void Remove(ISaveSetting saveSetting) {
-        Settings.Remove(saveSetting);
+
+    public void Add(SaveSetting saveSetting) {
+        if (Settings.Contains(saveSetting)) return; // avoid duplicates
+        Settings.Add(saveSetting);
+        saveSetting.SettingsContainer = this;
+    }
+
+    public void Remove(SaveSetting saveSetting) {
+        if (Settings.Remove(saveSetting)) {
+            saveSetting.SettingsContainer = null;
+        }
     }
 
     /// <summary>
@@ -39,23 +59,21 @@ public class SettingsContainer {
     /// load again the settings when the file has been changed in the disk directly.
     /// </summary>
     /// <returns></returns>
-    public SettingsContainer Load() {
+    public void Load() {
         _configFileWrapper.Load();
         foreach (var setting in Settings) setting.Refresh();
-        return this;
     }
 
     /// <summary>
     /// Use Save() when a setting is changed and there are settings with the AutoSave flag to false. 
     /// </summary>
     /// <returns></returns>
-    public SettingsContainer Save() {
+    public void Save() {
         foreach (var setting in Settings) {
             // Flush the default values
             setting.Flush();
         }
         _configFileWrapper.Save();
-        return this;
     }
 
     internal T GetValue<[MustBeVariant] T>(string sectionAndKey, T @default) {

@@ -157,7 +157,7 @@ public static partial class DebugConsoleExtensions {
                 .AddMonitorInternals();
         }, "Open the system info window.");
     }
-
+/*
     public static DebugConsole AddScreenSettingsCommand(this DebugConsole console, ScreenSettingsManager screenSettingsManager) {
         const string title = nameof(ScreenSettingsManager);
         return console.CreateCommand("screen-settings", () => {
@@ -171,7 +171,7 @@ public static partial class DebugConsoleExtensions {
                 .AddMonitorScreenSettings(screenSettingsManager);
         }, "Open the screen settings info window.");
     }
-
+ */
     public static DebugConsole AddInputMapCommand(this DebugConsole console, InputActionsContainer inputActionsContainer) {
         const string title = nameof(InputActionsContainer);
         return console.CreateCommand("input-map", () => {

@@ -32,6 +32,17 @@ public class PlayerActionsContainer : InputActionsContainer {
         }
     }
 
+    /// <summary>
+    /// Use this method when you add a second or third player and you only want to use the joypad (so keyboard and mouse are only used by the first player)
+    /// </summary>
+    public void RemoveNonJoypadActions() {
+        InputActions.ForEach(action => action.Update(u => {
+            u.ClearKeys();
+            u.ClearMouse();
+            u.ClearModifiers(); // Only mouse and key can use modifiers, so they are cleared too
+        })); 
+    }
+
     public void SetAllJoypads() => JoypadId = -1;
 
     public void Start(int playerId, int joypadId) {
@@ -119,7 +130,7 @@ public class PlayerActionsContainer : InputActionsContainer {
     }
 
     private void _JoypadIdChanged() {
-        InputActions.ForEach(action => { action.Update(u => u.SetJoypadId(JoypadId)); });
+        InputActions.ForEach(action => action.Update(u => u.SetJoypadId(JoypadId))); 
         Connected = Godot.Input.GetConnectedJoypads().Contains(JoypadId);
         OnJoypadIdChanged?.Invoke();
     }

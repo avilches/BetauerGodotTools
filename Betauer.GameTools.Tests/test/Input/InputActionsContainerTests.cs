@@ -119,7 +119,7 @@ public class InputActionContainerTests {
     [TestRunner.Test(Description = "Regular load from instance. No SettingContainer")]
     public void InputActionLoadInstanceTest() {
         var t = new Test1();
-        t.LoadFromInstance(t);
+        t.AddFromInstanceProperties(t);
 
         Assert.That(t.Jump.SaveSetting, Is.Null);
         Assert.That(t.Attack.SaveSetting, Is.Null);
@@ -171,7 +171,7 @@ public class InputActionContainerTests {
     }
 
     [Singleton]
-    public class Test2 : ISettingsContainerAware {
+    public class Test2 : SaveSettingsContainerAware {
         public InputAction Jump { get; } = InputAction.Create("Jump").Buttons(JoyButton.B).Keys(Key.A).SaveAs("Setting/Jump").Build();
         public InputAction Attack { get; } = InputAction.Create("Attack").Buttons(JoyButton.B).JoypadId(2).Build();
         public InputAction Left { get; } = InputAction.Create("Left").AxisName("Lateral").NegativeAxis(JoyAxis.LeftX).Build();
@@ -191,7 +191,7 @@ public class InputActionContainerTests {
         var t = c.Resolve<Test2>();
 
         var iac = new InputActionsContainer();
-        iac.LoadFromInstance(t);
+        iac.AddFromInstanceProperties(t);
         Assert.That(iac.InputActions.Count, Is.EqualTo(4));
         Assert.That(iac.AxisActions.Count, Is.EqualTo(1));
         

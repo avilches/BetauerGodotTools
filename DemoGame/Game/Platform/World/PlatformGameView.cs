@@ -92,7 +92,7 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 
 	public async Task StartNewGame() {
 		SceneTree.Root.AddChild(this);
-		UiActions.SetJoypad(UiActions.CurrentJoyPad);	// Player who starts the game is the player who control the UI forever
+		UiActions.SetJoypad(UiActions.CurrentJoypad);	// Player who starts the game is the player who control the UI forever
 		
 		await GameLoader.LoadPlatformGameResources();
 		PlatformWorld = PlatformWorldFactory.Create();
@@ -101,7 +101,7 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 		CurrentMetadata = new PlatformSaveGameMetadata();
 		GameObjectRepository.Initialize();
 		InitializeWorld();
-		CreatePlayer1(UiActions.CurrentJoyPad);
+		CreatePlayer1(UiActions.CurrentJoypad);
 		AllowAddingP2();				
 		PlatformQuery.Configure(PlatformWorld);
 		PlatformWorld.StartNewGame();
@@ -111,7 +111,7 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 	public async Task LoadFromMenu(string saveName) {
 		SceneTree.Root.AddChild(this);
 		PlatformQuery.Configure(PlatformWorld);
-		UiActions.SetJoypad(UiActions.CurrentJoyPad);	// Player who starts the game is the player who control the UI forever
+		UiActions.SetJoypad(UiActions.CurrentJoypad);	// Player who starts the game is the player who control the UI forever
 		var (success, saveGame) = await LoadSaveGame(saveName);
 		if (!success) return;
 		await GameLoader.LoadPlatformGameResources();
@@ -119,7 +119,7 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 	}
 
 	public async Task LoadInGame(string saveName) {
-		UiActions.SetJoypad(UiActions.CurrentJoyPad); // Player who starts the game is the player who control the UI forever
+		UiActions.SetJoypad(UiActions.CurrentJoypad); // Player who starts the game is the player who control the UI forever
 		var (success, saveGame) = await LoadSaveGame(saveName);
 		if (!success) return;
 		PlatformWorld.Free();
@@ -132,7 +132,7 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 		GameObjectRepository.LoadSaveObjects(saveGame.GameObjects);
 		InitializeWorld();
 		var consumer = new PlatformSaveGameConsumer(saveGame);
-		LoadPlayer1(UiActions.CurrentJoyPad, consumer);
+		LoadPlayer1(UiActions.CurrentJoypad, consumer);
 		if (consumer.Player1 == null) AllowAddingP2();
 		else NoAddingP2();
 		PlatformWorld.LoadGame(consumer);

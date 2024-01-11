@@ -1,56 +1,44 @@
 using System;
 using Betauer.Core;
 using Godot;
-using Godot.NativeInterop;
 
 namespace Betauer.Application.Settings;
 public static class Setting {
     public static SaveSetting<T> Create<[MustBeVariant] T>(string saveAs, T defaultValue, bool autoSave = false) => new(saveAs, defaultValue, autoSave);
-
-    public static MemorySetting<T> Memory<[MustBeVariant] T>(T value) => new(value);
 }
 
-public interface ISaveSetting {
-    public SettingsContainer? SettingsContainer { get; }
-    public string SaveAs { get; }
+public abstract class SaveSetting {
+    public SettingsContainer? SettingsContainer { get; internal set; }
+    public string SaveAs { get; protected set; }
     public bool AutoSave { get; set; }
+    public event Action? OnValueChanged;
+    
+    protected void TriggerValueChanged() {
+        OnValueChanged?.Invoke();
+    }
 
-    void Refresh();
-    void Flush();
+    public abstract void Refresh();
+    
+    internal abstract void Flush();
 }
 
-public class SaveSetting<[MustBeVariant] T> : ISaveSetting, ISetting<T> {
-    public SettingsContainer? SettingsContainer { get; protected set; }
-    public string SaveAs { get; }
-    public bool AutoSave { get; set; }
+public class SaveSetting<[MustBeVariant] T> : SaveSetting {
     public T DefaultValue { get; }
 
     private T _value;
-    private bool _initialized;
-
-    public event Action? OnValueChanged;
+    private bool _initialized = false;
 
     private SettingsContainer SettingsContainerSafe => SettingsContainer
                                                        ?? throw new NullReferenceException(
-                                                           $"{nameof(SettingsContainer)} is not initialized. Add it to a SettingsContainer");
+                                                           $"{nameof(SettingsContainer)} is not initialized. Add it to a SettingsContainer with Add()");
 
-
-    internal SaveSetting(string saveAs, T defaultValue, bool autoSave) {
+    public SaveSetting(string saveAs, T defaultValue, bool autoSave) {
         if (!saveAs.Contains('/')) {
             saveAs = $"Settings/{saveAs}";
         }
         SaveAs = saveAs;
         DefaultValue = defaultValue;
         AutoSave = autoSave;
-        _initialized = false;
-    }
-
-    public void SetSettingsContainer(SettingsContainer settingsContainer) {
-        if (SettingsContainer != null && SettingsContainer != settingsContainer) {
-            SettingsContainer.Remove(this);
-        }
-        SettingsContainer = settingsContainer;
-        SettingsContainer.Add(this);
     }
 
     public T Value {
@@ -63,22 +51,22 @@ public class SaveSetting<[MustBeVariant] T> : ISaveSetting, ISetting<T> {
             _value = value;
             _initialized = true;
             Flush();
-            if (dispatchEvent) OnValueChanged?.Invoke();
+            if (dispatchEvent) TriggerValueChanged();
             SettingsContainerSafe.RefreshSharedSettings(this);
             if (AutoSave) SettingsContainerSafe.Save();
         }
     }
 
-    public void Flush() {
-        Initialize();
-        SettingsContainerSafe.SetValue(SaveAs, _value);
-    }
-
-    public void Refresh() {
+    public override void Refresh() {
         var value = SettingsContainerSafe.GetValue(SaveAs, DefaultValue);
         var dispatchEvent = !VariantHelper.Equals(_value, value);
         _value = value;
-        if (dispatchEvent) OnValueChanged?.Invoke();
+        if (dispatchEvent) TriggerValueChanged();
+    }
+
+    internal override void Flush() {
+        Initialize();
+        SettingsContainerSafe.SetValue(SaveAs, _value);
     }
 
     private void Initialize() {

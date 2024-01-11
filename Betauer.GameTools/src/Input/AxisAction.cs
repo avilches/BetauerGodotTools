@@ -67,7 +67,7 @@ public class AxisAction {
     public void CreateSaveSetting(SettingsContainer settingsContainer, string? saveAs = null) {
         if (saveAs != null) SaveAs = saveAs;
         SaveSetting = Setting.Create(SaveAs, AsString(), true);
-        SaveSetting.SetSettingsContainer(settingsContainer);
+        settingsContainer.Add(SaveSetting);
         Load();
     }
 

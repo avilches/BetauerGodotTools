@@ -280,7 +280,7 @@ public static class DebugOverlayBuilder {
         });
         return builder;
     }
-
+/*
     public static NodeBuilder AddMonitorScreenSettings(this NodeBuilder builder, ScreenSettingsManager screenSettingsManager) {
         var strategyGroup = new ButtonGroup();
         var modeGroup = new ButtonGroup();
@@ -366,4 +366,5 @@ public static class DebugOverlayBuilder {
             );
         return builder;
     }
+        */
 }

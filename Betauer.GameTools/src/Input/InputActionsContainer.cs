@@ -6,7 +6,7 @@ using Betauer.Input.Handler;
 
 namespace Betauer.Input;
 
-public interface ISettingsContainerAware {
+public interface SaveSettingsContainerAware {
     public SettingsContainer SettingsContainer { get; }
 }
 
@@ -23,13 +23,13 @@ public class InputActionsContainer {
         return InputActions.Find(action => action.Name == name);
     }
 
-    public void LoadFromInstance(object instance) {
+    public void AddFromInstanceProperties(object instance) {
         var propertyInfos = instance.GetType().GetProperties();
 
         propertyInfos
             .Where(p =>
-                p.PropertyType.IsAssignableFrom(typeof(AxisAction)) ||
-                p.PropertyType.IsAssignableFrom(typeof(InputAction)))
+                typeof(AxisAction).IsAssignableFrom(p.PropertyType) ||
+                typeof(InputAction).IsAssignableFrom(p.PropertyType))
             .Select(p => p.GetValue(instance))
             .Where(i => i != null)
             .ForEach(i => {
@@ -47,16 +47,16 @@ public class InputActionsContainer {
 
     private void TryAddSaveSettings(AxisAction axisAction, object instance) {
         if (axisAction.SaveAs == null) return;
-        if (!instance.GetType().ImplementsInterface(typeof(ISettingsContainerAware))) return;
-        var settingsContainer = ((ISettingsContainerAware) instance).SettingsContainer;
+        if (!instance.GetType().ImplementsInterface(typeof(SaveSettingsContainerAware))) return;
+        var settingsContainer = ((SaveSettingsContainerAware) instance).SettingsContainer;
         if (settingsContainer == null) return;
         axisAction.CreateSaveSetting(settingsContainer);
     }
 
     private void TryAddSaveSettings(InputAction axisAction, object instance) {
         if (axisAction.SaveAs == null) return;
-        if (!instance.GetType().ImplementsInterface(typeof(ISettingsContainerAware))) return;
-        var settingsContainer = ((ISettingsContainerAware) instance).SettingsContainer;
+        if (!instance.GetType().ImplementsInterface(typeof(SaveSettingsContainerAware))) return;
+        var settingsContainer = ((SaveSettingsContainerAware) instance).SettingsContainer;
         if (settingsContainer == null) return;
         axisAction.CreateSaveSetting(settingsContainer);
     }

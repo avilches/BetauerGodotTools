@@ -1,43 +1,39 @@
 ﻿using System;
-using System.Linq;
-using Betauer.Core;
-using Betauer.DI;
 
 namespace Betauer.Input;
 
-public abstract class UiActionsContainer : InputActionsContainer, IInjectable {
+public class UiActionsContainer : InputActionsContainer {
 
-    public int BackupJoypad { get; private set; } = 0;
-    public int CurrentJoyPad { get; private set; } = 0;
+    public int OriginalJoypad { get; private set; } = 0;
+    public int CurrentJoypad { get; private set; } = 0;
     
     public event Action<int>? OnNewUiJoypad;
+    
+    private bool _initialized = false;
 
-    public UiActionsContainer() {
-        Godot.Input.Singleton.JoyConnectionChanged += JoyConnectionChanged;
-    }
-
-    public void PostInject() {
-        // TODO: What if there are more than one InputActionsContainer? Only the last one will have the command linked
-        // DebugOverlayManager?.DebugConsole.AddInputEventCommand(this);
-        // DebugOverlayManager?.DebugConsole.AddInputMapCommand(this);
-        LoadFromInstance(this);
-        EnableAll();
+    public void ConfigureOnlyOnePlayerUI() {
+        if (!_initialized) {
+            _initialized = true;
+            Godot.Input.Singleton.JoyConnectionChanged += JoyConnectionChanged;
+        }
     }
 
     private void JoyConnectionChanged(long deviceId, bool connected) {
-        if (connected && deviceId == BackupJoypad) {
+        if (connected && deviceId == OriginalJoypad) {
             // The original controller has ben re-connected, use it again
-            SetJoypad(BackupJoypad);
-        } else if (!connected && deviceId == CurrentJoyPad) {
+            SetJoypad(OriginalJoypad);
+        } else if (!connected && deviceId == CurrentJoypad) {
             // The current joy pad is disconnected, try to connect other as temporal
             var pads = Godot.Input.GetConnectedJoypads();
             if (pads.Count > 0) {
-                SetTemporalJoypad(pads[0]);
+                var joypadId = pads[0];
+                CurrentJoypad = joypadId;
+                SetJoypadAllInputActions(joypadId);
             }
         }
     }
 
-    public void SetFirstJoypadConnected() {
+    public void SetFirstConnectedJoypad() {
         var pads = Godot.Input.GetConnectedJoypads();
         var joypad = pads.Count > 0 ? pads[0] : 0;
         SetJoypad(joypad);
@@ -48,22 +44,13 @@ public abstract class UiActionsContainer : InputActionsContainer, IInjectable {
     }
 
     public void SetJoypad(int joypadId) {
-        CurrentJoyPad = joypadId;
-        BackupJoypad = joypadId;
+        CurrentJoypad = joypadId;
+        OriginalJoypad = joypadId;
         SetJoypadAllInputActions(joypadId);
         OnNewUiJoypad?.Invoke(joypadId);
     }
 
-    public void SetTemporalJoypad(int joypadId) {
-        CurrentJoyPad = joypadId;
-        SetJoypadAllInputActions(joypadId);
-    }
-
     private void SetJoypadAllInputActions(int joypadId) {
-        InputActions.ForEach(inputAction => {
-            inputAction.Update(updater => {
-                updater.SetJoypadId(joypadId);
-            });
-        });
+        InputActions.ForEach(action => action.Update(u => u.SetJoypadId(joypadId))); 
     }
 }

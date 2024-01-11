@@ -85,7 +85,7 @@ public abstract class MultiPlayerContainer {
         }
         T playerActionsContainer = Activator.CreateInstance<T>();
         Container?.InjectServices(playerActionsContainer);
-        playerActionsContainer.LoadFromInstance(playerActionsContainer);
+        playerActionsContainer.AddFromInstanceProperties(playerActionsContainer);
         Mapping.Add(playerActionsContainer);
         playerActionsContainer.Start(playerId, joypadId);
         return playerActionsContainer;

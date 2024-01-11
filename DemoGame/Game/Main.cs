@@ -240,7 +240,7 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IInjectable {
         UiActions.OnNewUiJoypad += (deviceId) => {
             // Console.WriteLine("New joypad for the ui " + deviceId);
         };
-        UiActions.SetFirstJoypadConnected();
+        UiActions.SetFirstConnectedJoypad();
         ConfigureCanvasLayers();
         ConfigureDebugOverlays();
         ScreenSettingsManager.Setup();

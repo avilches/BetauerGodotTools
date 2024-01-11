@@ -137,7 +137,7 @@ public class MultiPlayerContainerTests {
     }
 
 
-    public class Test4PlayerActions : PlayerActionsContainer, ISettingsContainerAware {
+    public class Test4PlayerActions : PlayerActionsContainer, SaveSettingsContainerAware {
         public InputAction Jump { get; } = InputAction.Create("Jump").Buttons(JoyButton.B).Keys(Key.A).SaveAs("Setting/Jump").Build();
         public InputAction Attack { get; } = InputAction.Create("Attack").Buttons(JoyButton.B).JoypadId(2).Build();
         public InputAction Left { get; } = InputAction.Create("Left").AxisName("Lateral").NegativeAxis(JoyAxis.LeftX).Build();

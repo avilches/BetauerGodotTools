@@ -1,60 +1,38 @@
 using System.Collections.Generic;
-using Betauer.Application.Monitor;
+using Betauer.Application.Screen;
 using Betauer.Application.Screen.Resolution;
 using Betauer.Application.Settings;
-using Betauer.DI;
 using Betauer.DI.Attributes;
 using Godot;
-using Container = Betauer.DI.Container;
 
-namespace Betauer.Application.Screen;
-public class ScreenSettingsManager : IInjectable {
-    [Inject] protected Container Container { get; set; }
-    [Inject(Nullable = true)] protected DebugOverlayManager? DebugOverlayManager { get; set; }
+namespace Veronenger.Game;
 
+public class ScreenSettingsManager {
     private const bool DontSave = false;
+    
+    [Inject] public Settings Settings { get; set; }
 
     private readonly ScreenConfig _initialScreenConfig;
     public ScreenController ScreenController => _service ??= new ScreenController(_initialScreenConfig);
-    // public ScreenConfig ScreenConfig => ScreenController.ScreenConfig;
 
     private ScreenController? _service;
     
-    private ISetting<bool> _pixelPerfect;
-    private ISetting<bool> _fullscreen;
-    private ISetting<bool> _vSync;
-    private ISetting<bool> _borderless;
-    private ISetting<Vector2I> _windowedResolution;
+    public SaveSetting<bool> PixelPerfectSetting => Settings.PixelPerfect;                
+    public SaveSetting<bool> FullscreenSetting => Settings.Fullscreen;                  
+    public SaveSetting<bool> VSyncSetting => Settings.VSync;                       
+    public SaveSetting<bool> BorderlessSetting => Settings.Borderless;                  
+    public SaveSetting<Vector2I> WindowedResolutionSetting => Settings.WindowedResolution;       
 
-    public bool PixelPerfect => _pixelPerfect.Value;
-    public bool Fullscreen => _fullscreen.Value;
-    public bool VSync => _vSync.Value;
-    public bool Borderless => _borderless.Value;
-    public Resolution.Resolution WindowedResolution => new Resolution.Resolution(_windowedResolution.Value);
+    public bool PixelPerfect => PixelPerfectSetting.Value;
+    public bool Fullscreen => FullscreenSetting.Value;
+    public bool VSync => VSyncSetting.Value;
+    public bool Borderless => BorderlessSetting.Value;
+    public Resolution WindowedResolution => new Resolution(WindowedResolutionSetting.Value);
 
     public ScreenSettingsManager(ScreenConfig initialScreenConfig) {
         _initialScreenConfig = initialScreenConfig;
     }
 
-    public void PostInject() {
-        _pixelPerfect = Container.ResolveOr<ISetting<bool>>("Settings.Screen.PixelPerfect",
-            () => Setting.Memory(false));
-
-        _fullscreen = Container.ResolveOr<ISetting<bool>>("Settings.Screen.Fullscreen",
-            () => Setting.Memory(AppTools.GetWindowFullscreen()));
-
-        _vSync = Container.ResolveOr<ISetting<bool>>("Settings.Screen.VSync",
-            () => Setting.Memory(AppTools.GetWindowVsync()));
-
-        _borderless = Container.ResolveOr<ISetting<bool>>("Settings.Screen.Borderless",
-            () => Setting.Memory(AppTools.GetWindowBorderless()));
-
-        _windowedResolution = Container.ResolveOr<ISetting<Vector2I>>("Settings.Screen.WindowedResolution",
-            () => Setting.Memory(_initialScreenConfig.BaseResolution.Size));
-        
-        DebugOverlayManager?.DebugConsole.AddScreenSettingsCommand(this);
-    }
-    
     public void Setup() {
         SetPixelPerfect(PixelPerfect, DontSave);
         SetVSync(VSync, DontSave);
@@ -76,8 +54,8 @@ public class ScreenSettingsManager : IInjectable {
             // : ScreenService.ScreenStrategyKey.ViewportSize;
         // ScreenService.SetStrategy(strategy);
         if (save) {
-            _pixelPerfect.Value = pixelPerfect;
-            ForceSave(_pixelPerfect);
+            PixelPerfectSetting.Value = pixelPerfect;
+            ForceSave(PixelPerfectSetting);
         }
     }
 
@@ -85,8 +63,8 @@ public class ScreenSettingsManager : IInjectable {
         // TODO Godot 4
         // ScreenService.SetBorderless(borderless);
         if (save) {
-            _borderless.Value = borderless;
-            ForceSave(_borderless);
+            BorderlessSetting.Value = borderless;
+            ForceSave(BorderlessSetting);
         }
     }
 
@@ -94,8 +72,8 @@ public class ScreenSettingsManager : IInjectable {
         // TODO Godot 4: allow more VSync modes
         DisplayServer.WindowSetVsyncMode(vsync ? DisplayServer.VSyncMode.Enabled : DisplayServer.VSyncMode.Disabled);
         if (save) {
-            _vSync.Value = vsync;
-            ForceSave(_vSync);
+            VSyncSetting.Value = vsync;
+            ForceSave(VSyncSetting);
         }
     }
 
@@ -107,21 +85,21 @@ public class ScreenSettingsManager : IInjectable {
             CenterWindow();
         }
         if (save) {
-            _fullscreen.Value = fs;
-            ForceSave(_fullscreen);
+            FullscreenSetting.Value = fs;
+            ForceSave(FullscreenSetting);
         }
     }
 
-    private static void ForceSave(ISetting setting) {
+    private static void ForceSave(SaveSetting setting) {
         // Only force save if the setting is not auto-saved
-        if (setting is ISaveSetting { AutoSave: false } saveSetting) saveSetting.SettingsContainer!.Save();
+        if (setting is SaveSetting { AutoSave: false } saveSetting) saveSetting.SettingsContainer!.Save();
     }
 
-    public void SetWindowed(Resolution.Resolution resolution, bool save = true) {
+    public void SetWindowed(Betauer.Application.Screen.Resolution.Resolution resolution, bool save = true) {
         ScreenController.SetWindowed(resolution);
         if (save) {
-            _windowedResolution.Value = resolution.Size;
-            ForceSave(_windowedResolution);
+            WindowedResolutionSetting.Value = resolution.Size;
+            ForceSave(WindowedResolutionSetting);
         }
     }
 

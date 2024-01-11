@@ -71,7 +71,7 @@ public partial class RtsGameView : Control, IInjectable, IGameView {
 
 	public async Task StartNewGame() {
 		SceneTree.Root.AddChild(this);
-		UiActions.SetJoypad(UiActions.CurrentJoyPad);	// Player who starts the game is the player who control the UI forever
+		UiActions.SetJoypad(UiActions.CurrentJoypad);	// Player who starts the game is the player who control the UI forever
 		
 		await GameLoader.LoadRtsGameResources();
 		
@@ -83,7 +83,7 @@ public partial class RtsGameView : Control, IInjectable, IGameView {
 
 	public async Task LoadFromMenu(string saveName) {
 		SceneTree.Root.AddChild(this);
-		UiActions.SetJoypad(UiActions.CurrentJoyPad);	// Player who starts the game is the player who control the UI forever
+		UiActions.SetJoypad(UiActions.CurrentJoypad);	// Player who starts the game is the player who control the UI forever
 		var (success, saveGame) = await LoadSaveGame(saveName);
 		if (!success) return;
 		await GameLoader.LoadRtsGameResources();
@@ -91,7 +91,7 @@ public partial class RtsGameView : Control, IInjectable, IGameView {
 	}
 
 	public async Task LoadInGame(string saveName) {
-		UiActions.SetJoypad(UiActions.CurrentJoyPad); // Player who starts the game is the player who control the UI forever
+		UiActions.SetJoypad(UiActions.CurrentJoypad); // Player who starts the game is the player who control the UI forever
 		var (success, saveGame) = await LoadSaveGame(saveName);
 		if (!success) return;
 		await FreeSceneKeepingPoolData();

@@ -6,7 +6,6 @@ using Betauer.Application.Persistent;
 using Betauer.Application.Screen;
 using Betauer.Application.Screen.Resolution;
 using Betauer.Application.Settings;
-using Betauer.Application.Settings.Attributes;
 using Betauer.Camera.Control;
 using Betauer.DI.Attributes;
 using Betauer.Input;
@@ -36,18 +35,22 @@ public class ApplicationConfig {
 	[Singleton] public GameLoader GameLoader => new();
 	[Singleton] public CameraContainer CameraContainer => new();
 	[Singleton] public PlatformMultiPlayerContainer MultiPlayerContainer => new();
+	[Singleton] public ScreenSettingsManager ScreenSettingsManager => new(Config);
 }
 
-[Configuration]
-[SettingsContainer("SettingsContainer")]
-[Setting<bool>("Settings.Screen.PixelPerfect", SaveAs = "Video/PixelPerfect", Default = false)]
-[Setting<bool>("Settings.Screen.Fullscreen", SaveAs = "Video/Fullscreen", Default = true)]
-[Setting<bool>("Settings.Screen.VSync", SaveAs = "Video/VSync", Default = true)]
-[Setting<bool>("Settings.Screen.Borderless", SaveAs = "Video/Borderless", Default = false)]
-[Setting<Vector2I>("Settings.Screen.WindowedResolution", SaveAs = "Video/WindowedResolution")]
-public class Settings {
-	[Singleton] public ScreenSettingsManager ScreenSettingsManager => new(ApplicationConfig.Config);
-	[Singleton] public SettingsContainer SettingsContainer => new(new ConfigFileWrapper(AppTools.GetUserFile("settings.ini")));
+[Singleton]
+public class Settings : SettingsContainer {
+	public SaveSetting<bool> PixelPerfect { get; } = Setting.Create("Video/PixelPerfect", false);
+	public SaveSetting<bool> Fullscreen { get; } = Setting.Create("Video/Fullscreen", true);
+	public SaveSetting<bool> VSync { get; } = Setting.Create("Video/VSync", true);
+	public SaveSetting<bool> Borderless { get; } = Setting.Create("Video/Borderless", false);
+	public SaveSetting<Vector2I> WindowedResolution { get; } = Setting.Create("Video/WindowedResolution", Resolutions.FULLHD.Size);
+
+	public Settings() {
+		ConfigFileWrapper = new ConfigFileWrapper(AppTools.GetUserFile("settings.ini"));
+		AddFromInstanceProperties(this);
+		Load();
+	}
 }
 
 [Configuration]
@@ -66,11 +69,17 @@ public class Settings {
 [Scene.Singleton<SettingsMenu>(Name = "SettingsMenuLazy", Flags = "Autoload")]
 [Scene.Singleton<ProgressScreen>(Name = "ProgressScreenLazy", Flags = "Autoload")]
 public class MainResources {
-	Lazy<MainMenu> a = new(() => new MainMenu());
 }
 
 [Singleton]
 public class UiActions : UiActionsContainer {
+	public UiActions() {
+		AddFromInstanceProperties(this);
+		EnableAll();
+		SetFirstConnectedJoypad();
+		ConfigureOnlyOnePlayerUI();
+	}
+
 	public AxisAction UiVertical { get; } = new AxisAction("UiVertical");
 	public AxisAction UiLateral { get; } = new AxisAction("UiLateral");
 
