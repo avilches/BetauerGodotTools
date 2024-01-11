@@ -15,7 +15,9 @@ public abstract class BaseFsmAsync<TStateKey, TEventKey, TState> :
     protected BaseFsmAsync(TStateKey initialState, string? name = null) : base(initialState, name) {
     }
 
-    public async Task Execute() {
+    public Task Execute() => IsDisposed || !Available ? Task.CompletedTask : _Execute();
+
+    private async Task _Execute() {
         if (IsDisposed || !Available) return;
         Available = false;
         var currentStateBackup = CurrentState;
