@@ -29,6 +29,7 @@ public class ScreenController {
     }
 
     public void Stop() {
+        
         SceneTree.Root.SizeChanged -= Apply;
     }
 
@@ -53,7 +54,7 @@ public class ScreenController {
     }
 
     public void SetFullscreen(bool fs) {
-        if (FullscreenSetting != null) FullscreenSetting.Value = true;
+        if (FullscreenSetting != null) FullscreenSetting.Value = fs;
         DoFullscreen(fs);
     }
 
@@ -116,6 +117,7 @@ public class ScreenController {
         Apply();
     }
 
+    public bool _resizeViewport = false;
     public void DoApply() {
         if (_resizeViewport) {
             var windowSize = DisplayServer.WindowGetSize();
@@ -132,7 +134,6 @@ public class ScreenController {
         }
     }
 
-    public bool _resizeViewport = true;
 
     private Resolution.Resolution KeepRatio(Resolution.Resolution resolution) {
         return ScreenConfig.ScaleAspect switch {
