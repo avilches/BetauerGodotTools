@@ -7,13 +7,15 @@ namespace Betauer.Input;
 public partial class InputAction {
     public class Builder {
         private readonly string _name;
+        private string _axisName;
+        private string _saveAs;
         private bool _isKeepProjectSettings = false;
 
         private readonly ISet<JoyButton> _buttons = new HashSet<JoyButton>();
         private readonly ISet<Key> _keys = new HashSet<Key>();
         private JoyAxis _axis = JoyAxis.Invalid;
         private int _axisSign = 0;
-        private int _joypadId = 0;
+        private int _joypadId = -1;
         private float _deadZone = -1f;
         private MouseButton _mouseButton = MouseButton.None;
         private bool _ctrlPressed;
@@ -21,10 +23,14 @@ public partial class InputAction {
         private bool _altPressed;
         private bool _metaPressed;
         private bool _commandOrCtrlAutoremap;
-        private bool _enabled = true;
                       
         internal Builder(string name) {
             _name = name;
+        }
+
+        public Builder AxisName(string axisName) {
+            _axisName = axisName;
+            return this;
         }
 
         public Builder DeadZone(float deadZone) {
@@ -49,7 +55,7 @@ public partial class InputAction {
             return this;
         }
 
-        public Builder Keys(params Key[] keys) {
+        public Builder  Keys(params Key[] keys) {
             keys.ForEach(key => _keys.Add(key));
             return this;
         }
@@ -61,6 +67,11 @@ public partial class InputAction {
 
         public Builder JoypadId(int joypadId) {
             _joypadId = joypadId;
+            return this;
+        }
+
+        public Builder AllJoypad() {
+            _joypadId = -1;
             return this;
         }
 
@@ -94,13 +105,8 @@ public partial class InputAction {
             return this;
         }
 
-        public Builder Enabled(bool enable = true) {
-            _enabled = enable;
-            return this;
-        }
-
-        public Builder Disabled() {
-            _enabled = false;
+        public Builder SaveAs(string saveAs) {
+            _saveAs = saveAs;
             return this;
         }
 
@@ -144,9 +150,9 @@ public partial class InputAction {
         protected InputAction CreateInputAction(InputActionBehaviour behaviour) {
             var inputAction = new InputAction(
                 _name,
-                null,
+                _axisName,
                 behaviour,
-                _enabled);
+                _saveAs);
             if (_isKeepProjectSettings) {
                 inputAction.LoadFromGodotProjectSettings();
             }

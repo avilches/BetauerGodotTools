@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Betauer.Application.Settings;
 using Betauer.Input.Handler;
+using Betauer.Tools.Logging;
 using Godot;
 
 namespace Betauer.Input;
@@ -53,12 +54,16 @@ public enum InputActionBehaviour {
     Extended,
 }
 
-public partial class InputAction : IAction {
+public partial class InputAction {
+    public static readonly Logger Logger = LoggerFactory.GetLogger<InputAction>();
     public const float DefaultDeadZone = 0.5f;
-    public static Builder Create() => new(null);
     public static Builder Create(string name) => new(name);
-    public static InputAction Mock(string? name = null) => new(name, null, InputActionBehaviour.Mock, true);
-   
+    public static InputAction Mock(string? name = null, string? saveAs = null) {
+        return new InputAction(name, null, InputActionBehaviour.Mock, saveAs) {
+            Enabled = true
+        };
+    }
+
     // Usage
     public bool IsPressed => Handler.Pressed;
     public bool IsJustPressed => Handler.JustPressed;
@@ -83,7 +88,7 @@ public partial class InputAction : IAction {
     public string Name { get; internal set; }
     public List<JoyButton> Buttons { get; } = new();
     public List<Key> Keys { get; } = new();
-    public int JoypadId { get; private set; } = 0;
+    public int JoypadId { get; private set; } = -1;
     public JoyAxis Axis { get; private set; } = JoyAxis.Invalid;
     public int AxisSign { get; private set; } = 1;
     public float DeadZone { get; private set; } = DefaultDeadZone;
@@ -95,14 +100,25 @@ public partial class InputAction : IAction {
     public bool Meta { get; private set; }
     public string? AxisName { get; internal set; }
     public InputActionBehaviour Behaviour { get; }
-    public bool Enabled { get; private set; } = true;
+    public bool Enabled { get; private set; } = false;
 
     public AxisAction? AxisAction { get; internal set; }
 
-    public InputActionsContainer? InputActionsContainer { get; private set; }
-    public SaveSetting<string>? SaveSetting { get; set; }
+    public string? SaveAs { get; private set; }
+    private SaveSetting<string>? _saveSetting;
+    public SaveSetting<string>? SaveSetting {
+        get => _saveSetting;
+        set {
+            _saveSetting = value;
+            SaveAs = _saveSetting.SaveAs;
+        }
+    }
+
     internal readonly IHandler Handler;
     private readonly Updater _updater;
+
+    public event Action<bool> OnEnable;
+    public event Action OnUpdate;
 
     /// <summary>
     /// 
@@ -114,13 +130,12 @@ public partial class InputAction : IAction {
     private InputAction(
         string name,
         string? axisName,
-        InputActionBehaviour behaviour,
-        bool enabled = true) {
+        InputActionBehaviour behaviour, string? saveAs) {
 
         Name = name;
         AxisName = axisName;
         Behaviour = behaviour;
-        Enabled = enabled;
+        SaveAs = saveAs;
 
         Handler = behaviour switch {
             InputActionBehaviour.Mock => new MockStateHandler(this),
@@ -130,104 +145,34 @@ public partial class InputAction : IAction {
         _updater = new Updater(this);
     }
 
-    /// <summary>
-    /// Cloned need to be updated later with Update(u => u.CopyAll(input)). Cloned doesn't have save setting
-    /// </summary>
-    /// <param name="suffix"></param>
-    /// <returns></returns>
-    public InputAction Clone(string suffix) {
-        var name = $"{Name}/{suffix}";
-        var axisName = AxisName != null ? $"{AxisName}/{suffix}" : null;
-        var inputAction = new InputAction(name, axisName, Behaviour, Enabled);
-        return inputAction;
+    internal void ChangeName(string newName) {
+        Name = newName;
+        var stringName = (StringName)Name;
+        if (InputMap.HasAction(stringName)) {
+            InputMap.EraseAction(stringName);
+        }
+        Name = newName;
+        RefreshGodotInputMap();
     }
     
-    public void CreateSaveSetting(SettingsContainer settingsContainer, string saveAs) {
-        SaveSetting = Setting.Create(saveAs, AsString(), true, true);
+    public void CreateSaveSetting(SettingsContainer settingsContainer, string? saveAs = null) {
+        if (saveAs != null) SaveAs = saveAs;
+        SaveSetting = Setting.Create(SaveAs, AsString(), true);
         SaveSetting.SetSettingsContainer(settingsContainer);
         Load();
     }
 
-    public void UnsetInputActionsContainer() {
-        InputActionsContainer?.Remove(this);
-        InputActionsContainer = null;
-    }
-
-    public void SetInputActionsContainer(InputActionsContainer inputActionsContainer) {
-        if (InputActionsContainer != null && InputActionsContainer != inputActionsContainer) {
-            UnsetInputActionsContainer();
-        }
-        InputActionsContainer = inputActionsContainer;
-        InputActionsContainer.Add(this);
-    }
-
     public void Enable(bool enable = true) {
-        if (enable && !Enabled) {
-            Enabled = true;
-            InputActionsContainer?.EnableAction(this);
-            RefreshGodotInputMap();
-        } else if (!enable && Enabled) {
-            Enabled = false;
-            InputActionsContainer?.DisableAction(this);
-            RefreshGodotInputMap();
-        }
+        if (enable == Enabled) return;
+        Enabled = enable;
+        RefreshGodotInputMap();
+        OnEnable?.Invoke(enable);
     }
 
     public void Disable() => Enable(false);
 
     public void RefreshGodotInputMap() {
-        var stringName = (StringName)Name;
-        if (InputMap.HasAction(stringName)) {
-            InputMap.EraseAction(stringName);
-        }
-        if (Enabled) {
-            InputMap.AddAction(stringName, DeadZone);
-            CreateInputEvents().ForEach(e => InputMap.ActionAddEvent(stringName, e));
-        }
-    }
-
-    private List<InputEvent> CreateInputEvents() {
-        void AddModifiers(InputEventWithModifiers e) {
-            e.ShiftPressed = Shift;
-            e.AltPressed = Alt;
-            if (CommandOrCtrlAutoremap) {
-                e.CommandOrControlAutoremap = true;
-            } else {
-                e.CtrlPressed = Ctrl;
-                e.MetaPressed = Meta;
-            }
-        }
-        
-        List<InputEvent> events = new List<InputEvent>(Keys.Count + Buttons.Count + 1);
-        foreach (var key in Keys) {
-            var e = new InputEventKey();
-            // TODO: if (KeyboardDeviceId >= 0) e.Device = KeyboardDeviceId;
-            e.Keycode = key;
-            AddModifiers(e);
-            events.Add(e);
-        }
-        if (MouseButton != MouseButton.None) {
-            var e = new InputEventMouseButton();
-            // TODO: if (MouseDeviceId >= 0) e.Device = MouseDeviceId;
-            e.ButtonIndex = MouseButton;
-            AddModifiers(e);
-            events.Add(e);
-        }
-        foreach (var button in Buttons) {
-            var e = new InputEventJoypadButton();
-            if (JoypadId >= 0) e.Device = JoypadId;
-            e.ButtonIndex = button;
-            events.Add(e);
-        }
-
-        if (Axis != JoyAxis.Invalid && AxisSign != 0) {
-            var e = new InputEventJoypadMotion();
-            if (JoypadId >= 0) e.Device = JoypadId;
-            e.Axis = Axis;
-            e.AxisValue = AxisSign;
-            events.Add(e);
-        }
-        return events;
+        Handler.Refresh(this);
     }
 
     public void LoadFromGodotProjectSettings() {
@@ -306,12 +251,14 @@ public partial class InputAction : IAction {
     
     public void Load() {
         if (SaveSetting == null) throw new Exception("InputAction does not have a SaveSetting");
+        SaveSetting.Refresh(); // Since multiple SaveSetting could share the same SettingsContainer and same SaveAs property, we need to refresh it
         Parse(SaveSetting.Value, true);
     }
     
     public void Save() {
         if (SaveSetting == null) throw new Exception("InputAction does not have a SaveSetting");
         SaveSetting.Value = AsString();
+        
         if (!SaveSetting.AutoSave) SaveSetting.SettingsContainer!.Save();
     }
 
@@ -322,6 +269,7 @@ public partial class InputAction : IAction {
         try {
             updater.Invoke(_updater);
             RefreshGodotInputMap();
+            OnUpdate?.Invoke();
         } catch (Exception e) {
             _updater.SetButtons(backupButtons)
                 .SetKeys(backupKeys)

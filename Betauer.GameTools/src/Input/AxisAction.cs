@@ -5,38 +5,37 @@ using Godot;
 
 namespace Betauer.Input;
 
-public class AxisAction : IAction {
+public class AxisAction {
     public float Strength => (Positive.Strength - Negative.Strength) * (Reverse ? -1 : 1);
     public float RawStrength => (Positive.RawStrength - Negative.RawStrength) * (Reverse ? -1 : 1);
     public JoyAxis Axis => Positive.Axis;
     public bool Reverse { get; set; } = false;
     public string Name { get; internal set; }
     public bool Enabled => Negative is { Enabled: true } && Positive is { Enabled: true }; 
-    public SaveSetting<string>? SaveSetting { get; set; }
-    public bool IsEvent(InputEvent inputEvent) => inputEvent is InputEventJoypadMotion motion && motion.Axis == Axis;
-    public void Enable(bool enable) {
-        Negative.Enable(enable);
-        Positive.Enable(enable);
-    }
     
-    public InputActionsContainer? InputActionsContainer { get; private set; }
     public InputAction Negative { get; private set; }
     public InputAction Positive { get; private set; }
 
-    public AxisAction Clone(string suffix) {
-        var axisAction = new AxisAction($"{Name}/{suffix}") {
-            Reverse = Reverse,
-        };
-        return axisAction;
+    public string? SaveAs { get; private set; }
+    private SaveSetting<string>? _saveSetting;
+    public SaveSetting<string>? SaveSetting {
+        get => _saveSetting;
+        set {
+            _saveSetting = value;
+            SaveAs = _saveSetting.SaveAs;
+        }
     }
 
-    public AxisAction(string name) {
-        Name = name;
+    public bool IsEvent(InputEvent inputEvent) => inputEvent is InputEventJoypadMotion motion && motion.Axis == Axis;
+    public void Disable() => Enable(false);
+    public void Enable(bool enable = true) {
+        Negative?.Enable(enable);
+        Positive?.Enable(enable);
     }
     
-    public AxisAction(string name, InputAction left, InputAction right) {
+    public AxisAction(string name, string? saveAs = null) {
         Name = name;
-        SetNegativeAndPositive(left, right);
+        SaveAs = saveAs;
     }
 
     public void SetNegativeAndPositive(InputAction negative, InputAction positive) {
@@ -54,44 +53,22 @@ public class AxisAction : IAction {
         // Swap if needed
         if (positive.AxisSign < 0) (negative, positive) = (positive, negative);
         
-        Positive?.UnsetInputActionsContainer();
-        Negative?.UnsetInputActionsContainer();
         if (Positive != null) Positive.AxisAction = null;
         if (Negative != null) Negative.AxisAction = null;
         
         Negative = negative;
         Positive = positive;
         Positive.AxisAction = this;
-        Negative.AxisAction = this;
         Positive.AxisName = Name;
+        Negative.AxisAction = this;
         Negative.AxisName = Name;
-        if (InputActionsContainer != null) {
-            Positive.SetInputActionsContainer(InputActionsContainer);
-            Negative.SetInputActionsContainer(InputActionsContainer);
-        }
     }
 
-    public void CreateSaveSetting(SettingsContainer settingsContainer, string saveAs) {
-        SaveSetting = Setting.Create(saveAs, AsString(), true, true);
+    public void CreateSaveSetting(SettingsContainer settingsContainer, string? saveAs = null) {
+        if (saveAs != null) SaveAs = saveAs;
+        SaveSetting = Setting.Create(SaveAs, AsString(), true);
         SaveSetting.SetSettingsContainer(settingsContainer);
         Load();
-    }
-
-    public void UnsetInputActionsContainer() {
-        InputActionsContainer?.Remove(this);
-        InputActionsContainer = null;
-        Positive?.UnsetInputActionsContainer();
-        Negative?.UnsetInputActionsContainer();
-    }
-
-    public void SetInputActionsContainer(InputActionsContainer inputActionsContainer) {
-        if (InputActionsContainer != null && InputActionsContainer != inputActionsContainer) {
-            UnsetInputActionsContainer();
-        }
-        InputActionsContainer = inputActionsContainer;
-        InputActionsContainer.Add(this); 
-        Positive?.SetInputActionsContainer(inputActionsContainer);
-        Negative?.SetInputActionsContainer(inputActionsContainer);
     }
 
     public string AsString() {
@@ -155,8 +132,8 @@ public class AxisAction : IAction {
     }
 
     public static AxisAction Mock(JoyAxis joyAxis = JoyAxis.LeftX) {
-        var positive = InputAction.Create().PositiveAxis(joyAxis).AsMock();
-        var negative = InputAction.Create().NegativeAxis(joyAxis).AsMock();
+        var positive = InputAction.Create(null).PositiveAxis(joyAxis).AsMock();
+        var negative = InputAction.Create(null).NegativeAxis(joyAxis).AsMock();
         var axisAction = new AxisAction(null);
         axisAction.SetNegativeAndPositive(negative, positive);
         return axisAction;
@@ -168,6 +145,7 @@ public class AxisAction : IAction {
 
     public class Builder {
         private readonly string _name;
+        private string _saveAs;
         private InputAction? _positive;
         private InputAction? _negative;
         private bool _reverse = false;
@@ -191,10 +169,15 @@ public class AxisAction : IAction {
             return this;
         }
         
+        public Builder SaveAs(string saveAs) {
+            _saveAs = saveAs;
+            return this;
+        }
+        
         public AxisAction Build() {
-            var axisAction = new AxisAction(_name);
-            if (_positive != null) {
-                if (_negative == null) {
+            var axisAction = new AxisAction(_name, _saveAs);
+            if (_positive != null || _negative != null) {
+                if (_positive == null ||_negative == null) {
                     throw new Exception("AxisAction must have both positive and negative actions");
                 }
                 axisAction.SetNegativeAndPositive(_negative, _positive);

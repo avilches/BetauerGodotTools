@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Linq;
 using Betauer.Core;
+using Betauer.DI;
 
 namespace Betauer.Input;
 
-public partial class UiActionsContainer : InputActionsContainer {
+public abstract class UiActionsContainer : InputActionsContainer, IInjectable {
 
     public int BackupJoypad { get; private set; } = 0;
     public int CurrentJoyPad { get; private set; } = 0;
@@ -13,6 +14,14 @@ public partial class UiActionsContainer : InputActionsContainer {
 
     public UiActionsContainer() {
         Godot.Input.Singleton.JoyConnectionChanged += JoyConnectionChanged;
+    }
+
+    public void PostInject() {
+        // TODO: What if there are more than one InputActionsContainer? Only the last one will have the command linked
+        // DebugOverlayManager?.DebugConsole.AddInputEventCommand(this);
+        // DebugOverlayManager?.DebugConsole.AddInputMapCommand(this);
+        LoadFromInstance(this);
+        EnableAll();
     }
 
     private void JoyConnectionChanged(long deviceId, bool connected) {
@@ -34,10 +43,15 @@ public partial class UiActionsContainer : InputActionsContainer {
         SetJoypad(joypad);
     }
 
+    public void SetAllJoypads() {
+        SetJoypad(-1);
+    }
+
     public void SetJoypad(int joypadId) {
         CurrentJoyPad = joypadId;
         BackupJoypad = joypadId;
         SetJoypadAllInputActions(joypadId);
+        OnNewUiJoypad?.Invoke(joypadId);
     }
 
     public void SetTemporalJoypad(int joypadId) {
@@ -46,11 +60,10 @@ public partial class UiActionsContainer : InputActionsContainer {
     }
 
     private void SetJoypadAllInputActions(int joypadId) {
-        InputActionList.OfType<InputAction>().ForEach(inputAction => {
+        InputActions.ForEach(inputAction => {
             inputAction.Update(updater => {
                 updater.SetJoypadId(joypadId);
             });
         });
-        OnNewUiJoypad?.Invoke(joypadId);
     }
 }

@@ -11,4 +11,5 @@ internal interface IHandler {
     internal void SimulatePress(float strength);
     internal void SimulateRelease();
     internal void ClearJustStates();
+    internal void Refresh(InputAction inputAction);
 }

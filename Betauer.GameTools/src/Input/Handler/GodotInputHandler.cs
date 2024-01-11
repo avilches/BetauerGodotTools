@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Betauer.Core.Time;
 using Godot;
 
@@ -10,9 +11,9 @@ internal class GodotInputHandler : IHandler {
     private StringName? _stringName;
     private readonly GodotStopwatch? _stopwatchPressed;
     private readonly GodotStopwatch? _stopwatchReleased;
-    
+
     public bool HasJustTimers => _stopwatchPressed != null;
-    
+
     // Don't cache the string name in the constructor.
     // Delay the StringName creation until it's actually needed. Reason: the InputAction.Name could be empty and changed later through [InputAction] attribute.
     private StringName ActionStringName => _stringName ??= new StringName(InputAction.Name);
@@ -53,6 +54,62 @@ internal class GodotInputHandler : IHandler {
             _stopwatchPressed!.Restart();
         } else if (JustReleased) {
             _stopwatchReleased!.Restart();
+        }
+    }
+
+    public void Refresh(InputAction inputAction) {
+        var stringName = (StringName)inputAction.Name;
+        if (InputMap.HasAction(stringName)) {
+            InputMap.EraseAction(stringName);
+        }
+        if (inputAction.Enabled) {
+            InputAction.Logger.Info("Adding action: {0} Joypad:{1}", inputAction.Name, inputAction.JoypadId);
+            InputMap.AddAction(stringName, inputAction.DeadZone);
+            CreateInputEvents(inputAction).ForEach(e => InputMap.ActionAddEvent(stringName, e));
+        }
+    }
+
+    private List<InputEvent> CreateInputEvents(InputAction inputAction) {
+        List<InputEvent> events = new List<InputEvent>(inputAction.Keys.Count + inputAction.Buttons.Count + 1);
+        foreach (var key in inputAction.Keys) {
+            var e = new InputEventKey();
+            // TODO: if (KeyboardDeviceId >= 0) e.Device = KeyboardDeviceId;
+            e.Keycode = key;
+            AddModifiers(e);
+            events.Add(e);
+        }
+        if (inputAction.MouseButton != MouseButton.None) {
+            var e = new InputEventMouseButton();
+            // TODO: if (MouseDeviceId >= 0) e.Device = MouseDeviceId;
+            e.ButtonIndex = inputAction.MouseButton;
+            AddModifiers(e);
+            events.Add(e);
+        }
+        foreach (var button in inputAction.Buttons) {
+            var e = new InputEventJoypadButton();
+            e.Device = inputAction.JoypadId;
+            e.ButtonIndex = button;
+            events.Add(e);
+        }
+
+        if (inputAction.Axis != JoyAxis.Invalid && inputAction.AxisSign != 0) {
+            var e = new InputEventJoypadMotion();
+            e.Device = inputAction.JoypadId;
+            e.Axis = inputAction.Axis;
+            e.AxisValue = inputAction.AxisSign;
+            events.Add(e);
+        }
+        return events;
+
+        void AddModifiers(InputEventWithModifiers e) {
+            e.ShiftPressed = inputAction.Shift;
+            e.AltPressed = inputAction.Alt;
+            if (inputAction.CommandOrCtrlAutoremap) {
+                e.CommandOrControlAutoremap = true;
+            } else {
+                e.CtrlPressed = inputAction.Ctrl;
+                e.MetaPressed = inputAction.Meta;
+            }
         }
     }
 }

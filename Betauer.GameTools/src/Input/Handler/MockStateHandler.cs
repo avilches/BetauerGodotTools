@@ -56,4 +56,7 @@ internal class MockStateHandler : IHandler {
         }
         RawStrength = strength;
     }
+
+    public void Refresh(InputAction inputAction) {
+    }
 }

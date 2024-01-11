@@ -1,146 +1,142 @@
-using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using Betauer.Application.Monitor;
-using Betauer.DI;
-using Betauer.DI.Attributes;
+using System.Linq;
+using Betauer.Application.Settings;
+using Betauer.Core;
 using Betauer.Input.Handler;
-using Betauer.Input.Joypad;
-using Betauer.Nodes;
-using Godot;
 
-namespace Betauer.Input; 
+namespace Betauer.Input;
 
-public partial class InputActionsContainer : Node, IInjectable {
-    [Inject(Nullable = true)] protected DebugOverlayManager? DebugOverlayManager { get; set; }
+public interface ISettingsContainerAware {
+    public SettingsContainer SettingsContainer { get; }
+}
 
-    public readonly List<IAction> InputActionList = new();
-    public readonly Dictionary<string, IAction> ActionMap = new();
-    private readonly List<GodotInputHandler> _onInputActions = new(); 
+public class InputActionsContainer {
+    public List<AxisAction> AxisActions { get; } = new();
+    public List<InputAction> InputActions { get; } = new();
+    private readonly HashSet<GodotInputHandler> _onInputActions = new();
 
-    public bool Enabled { get; private set; } = true;
-
-    /// <summary>
-    /// The new cloned inputs won't have SaveSetting
-    /// </summary>
-    /// <param name="suffix"></param>
-    /// <param name="updater"></param>
-    /// <returns></returns>
-    public InputActionsContainer Clone(string suffix, Action<InputAction, InputAction.Updater> updater) {
-        var newIac = new InputActionsContainer();
-
-        InputActionList.ForEach(i => {
-            IAction? newInputAction = i switch {
-                InputAction inputAction => inputAction.Clone(suffix).Update(u => updater(inputAction, u)),
-                AxisAction axisAction => axisAction.Clone(suffix),
-                _ => null
-            };
-            newInputAction?.SetInputActionsContainer(newIac);
-        });
-        return newIac;
+    public AxisAction? GetAxisAction(string name) {
+        return AxisActions.Find(action => action.Name == name);
     }
 
-    public InputActionsContainer(bool enable = true) {
-        if (enable) NodeManager.MainInstance.AddChild(this);
+    public InputAction? GetInputAction(string name) {
+        return InputActions.Find(action => action.Name == name);
     }
 
-    public void PostInject() {
-        // TODO: What if there are more than one InputActionsContainer? Only the last one will have the command linked
-        DebugOverlayManager?.DebugConsole.AddInputEventCommand(this);
-        DebugOverlayManager?.DebugConsole.AddInputMapCommand(this);
+    public void LoadFromInstance(object instance) {
+        var propertyInfos = instance.GetType().GetProperties();
+
+        propertyInfos
+            .Where(p =>
+                p.PropertyType.IsAssignableFrom(typeof(AxisAction)) ||
+                p.PropertyType.IsAssignableFrom(typeof(InputAction)))
+            .Select(p => p.GetValue(instance))
+            .Where(i => i != null)
+            .ForEach(i => {
+                if (i is AxisAction axisAction) {
+                    Add(axisAction);
+                    TryAddSaveSettings(axisAction, instance);
+                }
+                else if (i is InputAction inputAction) {
+                    Add(inputAction);
+                    TryAddSaveSettings(inputAction, instance);
+                }
+                
+            });
     }
 
-    public IAction? FindAction(string name) {
-        return FindAction<IAction>(name);
+    private void TryAddSaveSettings(AxisAction axisAction, object instance) {
+        if (axisAction.SaveAs == null) return;
+        if (!instance.GetType().ImplementsInterface(typeof(ISettingsContainerAware))) return;
+        var settingsContainer = ((ISettingsContainerAware) instance).SettingsContainer;
+        if (settingsContainer == null) return;
+        axisAction.CreateSaveSetting(settingsContainer);
     }
 
-    public T? FindAction<T>(string name) where T : class, IAction {
-        return ActionMap.TryGetValue(name, out var action) ? action as T: null;
+    private void TryAddSaveSettings(InputAction axisAction, object instance) {
+        if (axisAction.SaveAs == null) return;
+        if (!instance.GetType().ImplementsInterface(typeof(ISettingsContainerAware))) return;
+        var settingsContainer = ((ISettingsContainerAware) instance).SettingsContainer;
+        if (settingsContainer == null) return;
+        axisAction.CreateSaveSetting(settingsContainer);
     }
 
-    // This method is only used by InputAction.SetInputActionContainer(). Don't use it directly, use InputAction.SetInputActionContainer() instead
-    internal void Add(AxisAction axisAction) {
-        if (InputActionList.Contains(axisAction)) return; // Avoid duplicates
-        InputActionList.Add(axisAction);
-        ActionMap.Add(axisAction.Name, axisAction);
-        LinkAxisAction(axisAction);
+    public void Add(AxisAction axisAction) {
+        if (axisAction == null || AxisActions.Contains(axisAction)) return; // Avoid duplicates
+        AxisActions.Add(axisAction);
+        TryLinkAxisActionToNegativePositiveInputs(axisAction);
+        Add(axisAction.Negative);
+        Add(axisAction.Positive);
     }
 
-     // This method is only used by InputAction.SetInputActionContainer(). Don't use it directly, use InputAction.SetInputActionContainer() instead
-    internal void Add(InputAction inputAction) {
-        if (InputActionList.Contains(inputAction)) return; // Avoid duplicates
-        InputActionList.Add(inputAction);
-        ActionMap.Add(inputAction.Name, inputAction);
+    public void Add(InputAction inputAction) {
+        if (inputAction == null || InputActions.Contains(inputAction)) return; // Avoid duplicates
+        InputActions.Add(inputAction);
         if (inputAction.AxisName != null) {
-            LinkAxisAction(inputAction.AxisName);
+            if (AxisActions.Find(action => action.Name == inputAction.AxisName) is AxisAction axisAction) {
+                TryLinkAxisActionToNegativePositiveInputs(axisAction);
+            }
         }
-        EnableAction(inputAction);
+        CheckInputHandler(inputAction);
     }
 
-    private void LinkAxisAction(string axisActionName) {
-        if (InputActionList.Find(action => action is AxisAction xa && xa.Name == axisActionName) is AxisAction axisAction) {
-            LinkAxisAction(axisAction);
-        }
-    }
-
-    // The link is needed because the axis action could be created in random order when using [InputAction] and [AxisAction] attributes.
-    // So, as soon as the actions are added in PostInject() to the container, we try to link them.
-    private void LinkAxisAction(AxisAction axisAction) {
-        var pairs = InputActionList.FindAll(action => action is InputAction inputAction && inputAction.AxisName == axisAction.Name);
-        if (pairs.Count == 2 && axisAction.Negative == null && axisAction.Positive == null) {
-            axisAction.SetNegativeAndPositive((InputAction)pairs[0], (InputAction)pairs[1]);
+    private void TryLinkAxisActionToNegativePositiveInputs(AxisAction axisAction) {
+        if (axisAction.Negative == null && axisAction.Positive == null) {
+            var pairs = InputActions.FindAll(action => action.AxisName == axisAction.Name);
+            if (pairs.Count == 2) {
+                axisAction.SetNegativeAndPositive(pairs[0], pairs[1]);
+                Add(pairs[0]);
+                Add(pairs[1]);
+            }
         }
     }
 
-    internal void Remove(AxisAction inputAction) {
-        InputActionList.Remove(inputAction);
-        ActionMap.Remove(inputAction.Name);
+    public void Remove(AxisAction axisAction) {
+        if (axisAction == null) return;
+        AxisActions.Remove(axisAction);
+        Remove(axisAction.Negative);
+        Remove(axisAction.Positive);
     }
 
-    internal void Remove(InputAction inputAction) {
-        InputActionList.Remove(inputAction);
-        ActionMap.Remove(inputAction.Name);
-        DisableAction(inputAction);
+    public void Remove(InputAction inputAction) {
+        if (inputAction == null) return;
+        InputActions.Remove(inputAction);
+        CheckInputHandler(inputAction);
     }
 
-    public void Disable() {
-        Enabled = false;
-        InputActionList.ForEach(action => action.Enable(false));
+    public void DisableAll() {
+        InputActions.ForEach(action => action.Enable(false));
     }
 
-    public void Enable(bool enable = true) {
-        Enabled = true;
-        InputActionList.ForEach(action => action.Enable(enable));
+    public void EnableAll(bool enable = true) {
+        InputActions.ForEach(action => action.Enable(enable));
     }
 
-    internal void EnableAction(InputAction inputAction) {
-        if (Enabled && inputAction is { Enabled: true, Handler: GodotInputHandler { HasJustTimers: true } handler }) {
-            SetProcessInput(true);
-            _onInputActions.Add(handler);
+    public void Clear() {
+        InputActions.ToList().ForEach(Remove);
+        AxisActions.ToList().ForEach(Remove);
+        // TODO: call to CheckInputHandler? 
+    }
+
+    internal void CheckInputHandler(InputAction inputAction) {
+        if (inputAction.Handler is GodotInputHandler handler && handler.HasJustTimers) {
+            if (inputAction.Enabled) {
+                _onInputActions.Add(handler); // This is Set, so it already take care of duplicates
+            } else {
+                _onInputActions.Remove(handler);
+            }
         }
     }
 
-    internal void DisableAction(InputAction inputAction) {
-        if (inputAction.Handler is GodotInputHandler handler) {
-            _onInputActions.Remove(handler);
-        }
-    }
-
-    public override void _Input(InputEvent e) {
-        if (_onInputActions.Count == 0) {
-            SetProcessInput(false);
-            return;
-        }
-        var span = CollectionsMarshal.AsSpan(_onInputActions);
-        for (var i = 0; i < span.Length; i++) {
-            var handler = span[i];
-            handler.UpdateJustTimers();
-        }
-    }
-
-    public T CreateJoypadController<T>(PlayerMapping playerMapping) where T : JoypadController, new() {
-        var joypadController = new T();
-        joypadController.Configure(playerMapping, this);
-        return joypadController;
-    }
+    // public override void _Input(InputEvent e) {
+    //     if (_onInputActions.Count == 0) {
+    //         SetProcessInput(false);
+    //         return;
+    //     }
+    //     var span = CollectionsMarshal.AsSpan(_onInputActions);
+    //     for (var i = 0; i < span.Length; i++) {
+    //         var handler = span[i];
+    //         handler.UpdateJustTimers();
+    //     }
+    // }
 }
