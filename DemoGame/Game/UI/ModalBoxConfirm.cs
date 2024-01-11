@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 using Betauer.DI.Attributes;
-using Betauer.Input;
 using Betauer.NodePath;
 using Betauer.UI;
 using Godot;
@@ -24,7 +23,7 @@ public partial class ModalBoxConfirm : CanvasFaderLayer {
 	[NodePath("%Accept")] private Button _acceptButton;
 	[NodePath("%Cancel")] private Button _cancelButton;
 
-	[Inject] private InputAction UiCancel { get; set; }
+	[Inject] private UiActions UiActions { get; set; }
 
 	private readonly TaskCompletionSource<bool> _promise = new();
 
@@ -79,7 +78,7 @@ public partial class ModalBoxConfirm : CanvasFaderLayer {
 	}
 
 	public override void _Input(InputEvent e) {
-		if (UiCancel.IsEventJustPressed(e)) {
+		if (UiActions.UiCancel.IsEventJustPressed(e)) {
 			SetResult(false);
 			GetViewport().SetInputAsHandled();
 		}

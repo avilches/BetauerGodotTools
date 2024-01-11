@@ -71,10 +71,7 @@ public partial class SettingsMenu : CanvasLayer {
 
 	private BottomBar BottomBarScene => BottomBarLazy.Get();
 	
-	[Inject] private InputAction UiAccept { get; set; }
-	[Inject] private InputAction UiCancel { get; set; }
-	[Inject] private InputAction UiLeft { get; set; }
-	[Inject] private InputAction UiRight { get; set; }
+	[Inject] private UiActions UiActions { get; set; }
 
 	[Inject] private MainBus MainBus { get; set; }
 	[Inject] private ITransient<RedefineActionButton> RedefineActionButton { get; set; }
@@ -252,7 +249,7 @@ public partial class SettingsMenu : CanvasLayer {
 		if (_redefineBox.Visible) {
 			// Do nothing!
 			
-		} else if (UiCancel.IsEventPressed(e)) {
+		} else if (UiActions.UiCancel.IsEventPressed(e)) {
 			if (_resolutions.HasFocus()) {
 				CloseResolutionList();
 			} else {

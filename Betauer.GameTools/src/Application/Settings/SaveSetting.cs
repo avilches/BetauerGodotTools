@@ -1,12 +1,11 @@
 using System;
-using Betauer.DI;
-using Betauer.DI.Attributes;
+using Betauer.Core;
 using Godot;
-using Container = Betauer.DI.Container;
+using Godot.NativeInterop;
 
 namespace Betauer.Application.Settings;
 public static class Setting {
-    public static SaveSetting<T> Create<[MustBeVariant] T>(string saveAs, T defaultValue, bool autoSave = false, bool enabled = true) => new(saveAs, defaultValue, autoSave, enabled);
+    public static SaveSetting<T> Create<[MustBeVariant] T>(string saveAs, T defaultValue, bool autoSave = false) => new(saveAs, defaultValue, autoSave);
 
     public static MemorySetting<T> Memory<[MustBeVariant] T>(T value) => new(value);
 }
@@ -15,34 +14,34 @@ public interface ISaveSetting {
     public SettingsContainer? SettingsContainer { get; }
     public string SaveAs { get; }
     public bool AutoSave { get; set; }
-    public bool Enabled { get; set; }
 
     void Refresh();
     void Flush();
 }
 
-public class SaveSetting<T> : ISaveSetting, ISetting<T> {
+public class SaveSetting<[MustBeVariant] T> : ISaveSetting, ISetting<T> {
     public SettingsContainer? SettingsContainer { get; protected set; }
     public string SaveAs { get; }
     public bool AutoSave { get; set; }
-    public bool Enabled { get; set; } = true;
+    public T DefaultValue { get; }
 
-    private T _defaultValue;
     private T _value;
     private bool _initialized;
-    private SettingsContainer SettingsContainerSafe => SettingsContainer 
+
+    public event Action? OnValueChanged;
+
+    private SettingsContainer SettingsContainerSafe => SettingsContainer
                                                        ?? throw new NullReferenceException(
                                                            $"{nameof(SettingsContainer)} is not initialized. Add it to a SettingsContainer");
 
 
-    internal SaveSetting(string saveAs, T defaultValue, bool autoSave, bool enabled) {
+    internal SaveSetting(string saveAs, T defaultValue, bool autoSave) {
         if (!saveAs.Contains('/')) {
-            saveAs = $"Settings/{saveAs}";            
+            saveAs = $"Settings/{saveAs}";
         }
         SaveAs = saveAs;
-        _defaultValue = defaultValue;
+        DefaultValue = defaultValue;
         AutoSave = autoSave;
-        Enabled = enabled;
         _initialized = false;
     }
 
@@ -60,41 +59,31 @@ public class SaveSetting<T> : ISaveSetting, ISetting<T> {
             return _value;
         }
         set {
+            var dispatchEvent = !VariantHelper.Equals(_value, value);
             _value = value;
             _initialized = true;
-            if (Enabled) {
-                Flush();
-                if (AutoSave) SettingsContainerSafe.Save();
-            }
-        }
-    }
-    
-    public T DefaultValue {
-        get => _defaultValue;
-        set {
-            _defaultValue = value;
-            _initialized = false; // This force to refresh the value in the next Value get, that means read from the file using the new default value
+            Flush();
+            if (dispatchEvent) OnValueChanged?.Invoke();
+            SettingsContainerSafe.RefreshSharedSettings(this);
+            if (AutoSave) SettingsContainerSafe.Save();
         }
     }
 
     public void Flush() {
-        if (!Enabled) return;
         Initialize();
-        var value = Transformers.ToVariant(_value);
-        SettingsContainerSafe.SetValue(SaveAs, value);
+        SettingsContainerSafe.SetValue(SaveAs, _value);
     }
 
     public void Refresh() {
-        if (!Enabled) return;
-        var @default = Transformers.ToVariant(_defaultValue);
-        var value = SettingsContainerSafe.GetValue(SaveAs, @default);
-        _value = (T)Transformers.FromVariant(typeof(T), value);
+        var value = SettingsContainerSafe.GetValue(SaveAs, DefaultValue);
+        var dispatchEvent = !VariantHelper.Equals(_value, value);
+        _value = value;
+        if (dispatchEvent) OnValueChanged?.Invoke();
     }
 
     private void Initialize() {
         if (_initialized) return;
-        if (Enabled) Refresh();
-        else _value = _defaultValue;
+        Refresh();
         _initialized = true;
     }
 }

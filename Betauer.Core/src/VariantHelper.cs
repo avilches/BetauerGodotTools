@@ -146,57 +146,123 @@ public static class VariantHelper {
             Variant.Type.PackedVector2Array => op1.AsVector2Array(),
             Variant.Type.PackedVector3Array => op1.AsVector3Array(),
             Variant.Type.PackedColorArray => op1.AsColorArray(),
-            _ => throw new Exception("ConvertTo: Unknown variant type: "+op1.VariantType)
+            _ => throw new Exception($"ConvertTo({op1.VariantType}) not implement4d. Unknown variant type")
         };
     }
 
     public static Variant Add<[MustBeVariant] T>(T op1, T op2) {
         return op1 switch {
-            char fromChar when op2 is char toChar => (fromChar + toChar),
-            sbyte fromSbyte when op2 is sbyte toSbyte => (fromSbyte + toSbyte),
-            short fromShort when op2 is short toShort => (fromShort + toShort),
-            int fromInt when op2 is int toInt => (fromInt + toInt),
-            long fromLong when op2 is long toLong => (fromLong + toLong),
-            byte fromByte when op2 is byte toByte => (fromByte + toByte),
-            ushort fromUshort when op2 is ushort toUshort => (fromUshort + toUshort),
-            uint fromUint when op2 is uint toUint => (fromUint + toUint),
-            ulong fromUlong when op2 is ulong toUlong => (fromUlong + toUlong),
-            float fromFloat when op2 is float toFloat => (fromFloat + toFloat),
-            double fromDouble when op2 is double toDouble => (fromDouble + toDouble),
-            Vector2 fromVector2 when op2 is Vector2 toVector2 => (fromVector2 + toVector2),
-            Vector2I fromVector2I when op2 is Vector2I toVector2I => (fromVector2I + toVector2I),
-            Vector3 fromVector3 when op2 is Vector3 toVector3 => (fromVector3 + toVector3),
-            Vector3I fromVector3I when op2 is Vector3I toVector3I => (fromVector3I + toVector3I),
-            Vector4 fromVector4 when op2 is Vector4 toVector4 => (fromVector4 + toVector4),
-            Vector4I fromVector4I when op2 is Vector4I toVector4I => (fromVector4I + toVector4I),
-            Quaternion fromQuaternion when op2 is Quaternion toQuaternion => (fromQuaternion + toQuaternion),
-            Color fromColor when op2 is Color toColor => (fromColor + toColor),
-            _ => throw new Exception($"Sum Variant: {op1?.GetType().Name} not implemented")
+            // bool from when op2 is bool to => (from + to),
+            char from when op2 is char to => (from + to),
+            sbyte from when op2 is sbyte to => (from + to),
+            short from when op2 is short to => (from + to),
+            int from when op2 is int to => (from + to),
+            long from when op2 is long to => (from + to),
+            byte from when op2 is byte to => (from + to),
+            ushort from when op2 is ushort to => (from + to),
+            uint from when op2 is uint to => (from + to),
+            ulong from when op2 is ulong to => (from + to),
+            float from when op2 is float to => (from + to),
+            double from when op2 is double to => (from + to),
+            string from when op2 is string to => (from + to),
+            Vector2 from when op2 is Vector2 to => (from + to),
+            Vector2I from when op2 is Vector2I to => (from + to),
+            // Rect2 from when op2 is Rect2 to => (from + to),
+            // Rect2I from when op2 is Rect2I to => (from + to),
+            // Transform2D from when op2 is Transform2D to => (from + to),
+            Vector3 from when op2 is Vector3 to => (from + to),
+            Vector3I from when op2 is Vector3I to => (from + to),
+            Vector4 from when op2 is Vector4 to => (from + to),
+            Vector4I from when op2 is Vector4I to => (from + to),
+            // Basis from when op2 is Basis to => (from + to),
+            Quaternion from when op2 is Quaternion to => (from + to),
+            // Transform3D from when op2 is Transform3D to => (from + to),
+            // Projection from when op2 is Projection to => (from + to),
+            // Aabb from when op2 is Aabb to => (from + to),
+            // Color from when op2 is Color to => (from + to),
+            // Plane from when op2 is Plane to => (from + to),
+            // Callable from when op2 is Callable to => EqualsVariant(from, to),
+            // Godot.Signal from when op2 is Godot.Signal to => EqualsVariant(from, to),
+            // byte[]
+            // int[]
+            // long[]
+            // float[]
+            // double[]
+            // string[]
+            // Vector2[]
+            // Vector3[]
+            // Color[]
+            // GodotObject[]
+            // StringName[]
+            // NodePath[]
+            // Rid[]
+            // GodotObject from when op2 is GodotObject to => (from + to),
+            StringName from when op2 is StringName to => (from + to),
+            NodePath from when op2 is NodePath to => (from + to),
+            // Rid from when op2 is Rid to => (from + to),
+            // Dictionary
+            // Array
+            _ => throw new Exception($"Add<{op1?.GetType().Name}>() not implemented")
         };
     }
 
     public static bool Equals<[MustBeVariant] T>(T op1, T op2) {
+        if (op1 is null && op2 is null) return true;
+        if (op1 is null && op2 is not null) return false;
+        if (op1 is not null && op2 is null) return false;
+        
         return op1 switch {
-            char fromChar when op2 is char toChar => (fromChar == toChar),
-            sbyte fromSbyte when op2 is sbyte toSbyte => (fromSbyte == toSbyte),
-            short fromShort when op2 is short toShort => (fromShort == toShort),
-            int fromInt when op2 is int toInt => (fromInt == toInt),
-            long fromLong when op2 is long toLong => (fromLong == toLong),
-            byte fromByte when op2 is byte toByte => (fromByte == toByte),
-            ushort fromUshort when op2 is ushort toUshort => (fromUshort == toUshort),
-            uint fromUint when op2 is uint toUint => (fromUint == toUint),
-            ulong fromUlong when op2 is ulong toUlong => (fromUlong == toUlong),
-            float fromFloat when op2 is float toFloat => (fromFloat == toFloat),
-            double fromDouble when op2 is double toDouble => (fromDouble == toDouble),
-            Vector2 fromVector2 when op2 is Vector2 toVector2 => (fromVector2 == toVector2),
-            Vector2I fromVector2I when op2 is Vector2I toVector2I => (fromVector2I == toVector2I),
-            Vector3 fromVector3 when op2 is Vector3 toVector3 => (fromVector3 == toVector3),
-            Vector3I fromVector3I when op2 is Vector3I toVector3I => (fromVector3I == toVector3I),
-            Vector4 fromVector4 when op2 is Vector4 toVector4 => (fromVector4 == toVector4),
-            Vector4I fromVector4I when op2 is Vector4I toVector4I => (fromVector4I == toVector4I),
-            Quaternion fromQuaternion when op2 is Quaternion toQuaternion => (fromQuaternion == toQuaternion),
-            Color fromColor when op2 is Color toColor => (fromColor == toColor),
-            _ => throw new Exception($"Sum Variant: {op1?.GetType().Name} not implemented")
+            bool from when op2 is bool to => (from == to),
+            char from when op2 is char to => (from == to),
+            sbyte from when op2 is sbyte to => (from == to),
+            short from when op2 is short to => (from == to),
+            int from when op2 is int to => (from == to),
+            long from when op2 is long to => (from == to),
+            byte from when op2 is byte to => (from == to),
+            ushort from when op2 is ushort to => (from == to),
+            uint from when op2 is uint to => (from == to),
+            ulong from when op2 is ulong to => (from == to),
+            float from when op2 is float to => (from == to),
+            double from when op2 is double to => (from == to),
+            string from when op2 is string to => (from == to),
+            Vector2 from when op2 is Vector2 to => (from == to),
+            Vector2I from when op2 is Vector2I to => (from == to),
+            Rect2 from when op2 is Rect2 to => (from == to),
+            Rect2I from when op2 is Rect2I to => (from == to),
+            Transform2D from when op2 is Transform2D to => (from == to),
+            Vector3 from when op2 is Vector3 to => (from == to),
+            Vector3I from when op2 is Vector3I to => (from == to),
+            Vector4 from when op2 is Vector4 to => (from == to),
+            Vector4I from when op2 is Vector4I to => (from == to),
+            Basis from when op2 is Basis to => (from == to),
+            Quaternion from when op2 is Quaternion to => (from == to),
+            Transform3D from when op2 is Transform3D to => (from == to),
+            Projection from when op2 is Projection to => (from == to),
+            Aabb from when op2 is Aabb to => (from == to),
+            Color from when op2 is Color to => (from == to),
+            Plane from when op2 is Plane to => (from == to),
+            // Callable from when op2 is Callable to => EqualsVariant(from, to),
+            // Godot.Signal from when op2 is Godot.Signal to => EqualsVariant(from, to),
+            // byte[]
+            // int[]
+            // long[]
+            // float[]
+            // double[]
+            // string[]
+            // Vector2[]
+            // Vector3[]
+            // Color[]
+            // GodotObject[]
+            // StringName[]
+            // NodePath[]
+            // Rid[]
+            GodotObject from when op2 is GodotObject to => (from == to),
+            StringName from when op2 is StringName to => (from == to),
+            NodePath from when op2 is NodePath to => (from == to),
+            Rid from when op2 is Rid to => (from == to),
+            // Dictionary
+            // Array
+            _ => throw new Exception($"Equals<{op1?.GetType().Name}>() not implemented")
         };
     }
 
@@ -243,31 +309,62 @@ public static class VariantHelper {
         if (op1.IsVector2Array()) return op1.AsVector2Array().AsSpan().SequenceEqual(new ReadOnlySpan<Vector2>(op2.AsVector2Array()));
         if (op1.IsVector3Array()) return op1.AsVector3Array().AsSpan().SequenceEqual(new ReadOnlySpan<Vector3>(op2.AsVector3Array()));
         if (op1.IsColorArray()) return op1.AsColorArray().AsSpan().SequenceEqual(new ReadOnlySpan<Color>(op2.AsColorArray()));
-        throw new Exception($"EqualsVariant: {op1.VariantType} not implemented");
+        throw new Exception($"EqualsVariant({op1.VariantType}) not implemented");
     }
 
     public static Variant Subtract<[MustBeVariant] T>(T op1, T op2) {
         return op1 switch {
-            char fromChar when op2 is char toChar => (fromChar - toChar),
-            sbyte fromSbyte when op2 is sbyte toSbyte => (fromSbyte - toSbyte),
-            short fromShort when op2 is short toShort => (fromShort - toShort),
-            int fromInt when op2 is int toInt => (fromInt - toInt),
-            long fromLong when op2 is long toLong => (fromLong - toLong),
-            byte fromByte when op2 is byte toByte => (fromByte - toByte),
-            ushort fromUshort when op2 is ushort toUshort => (fromUshort - toUshort),
-            uint fromUint when op2 is uint toUint => (fromUint - toUint),
-            ulong fromUlong when op2 is ulong toUlong => (fromUlong - toUlong),
-            float fromFloat when op2 is float toFloat => (fromFloat - toFloat),
-            double fromDouble when op2 is double toDouble => (fromDouble - toDouble),
-            Vector2 fromVector2 when op2 is Vector2 toVector2 => (fromVector2 - toVector2),
-            Vector2I fromVector2I when op2 is Vector2I toVector2I => (fromVector2I - toVector2I),
-            Vector3 fromVector3 when op2 is Vector3 toVector3 => (fromVector3 - toVector3),
-            Vector3I fromVector3I when op2 is Vector3I toVector3I => (fromVector3I - toVector3I),
-            Vector4 fromVector4 when op2 is Vector4 toVector4 => (fromVector4 - toVector4),
-            Vector4I fromVector4I when op2 is Vector4I toVector4I => (fromVector4I - toVector4I),
-            Quaternion fromQuaternion when op2 is Quaternion toQuaternion => (fromQuaternion - toQuaternion),
-            Color fromColor when op2 is Color toColor => (fromColor - toColor),
-            _ => throw new Exception($"Subtract Variant: {op1?.GetType().Name} not implemented")
+            // bool from when op2 is bool to => (from - to),
+            char from when op2 is char to => (from - to),
+            sbyte from when op2 is sbyte to => (from - to),
+            short from when op2 is short to => (from - to),
+            int from when op2 is int to => (from - to),
+            long from when op2 is long to => (from - to),
+            byte from when op2 is byte to => (from - to),
+            ushort from when op2 is ushort to => (from - to),
+            uint from when op2 is uint to => (from - to),
+            ulong from when op2 is ulong to => (from - to),
+            float from when op2 is float to => (from - to),
+            double from when op2 is double to => (from - to),
+            // string from when op2 is string to => (from - to),
+            Vector2 from when op2 is Vector2 to => (from - to),
+            Vector2I from when op2 is Vector2I to => (from - to),
+            // Rect2 from when op2 is Rect2 to => (from - to),
+            // Rect2I from when op2 is Rect2I to => (from - to),
+            // Transform2D from when op2 is Transform2D to => (from - to),
+            Vector3 from when op2 is Vector3 to => (from - to),
+            Vector3I from when op2 is Vector3I to => (from - to),
+            Vector4 from when op2 is Vector4 to => (from - to),
+            Vector4I from when op2 is Vector4I to => (from - to),
+            // Basis from when op2 is Basis to => (from - to),
+            Quaternion from when op2 is Quaternion to => (from - to),
+            // Transform3D from when op2 is Transform3D to => (from - to),
+            // Projection from when op2 is Projection to => (from - to),
+            // Aabb from when op2 is Aabb to => (from - to),
+            // Color from when op2 is Color to => (from - to),
+            // Plane from when op2 is Plane to => (from - to),
+            // Callable from when op2 is Callable to => EqualsVariant(from, to),
+            // Godot.Signal from when op2 is Godot.Signal to => EqualsVariant(from, to),
+            // byte[]
+            // int[]
+            // long[]
+            // float[]
+            // double[]
+            // string[]
+            // Vector2[]
+            // Vector3[]
+            // Color[]
+            // GodotObject[]
+            // StringName[]
+            // NodePath[]
+            // Rid[]
+            // GodotObject from when op2 is GodotObject to => (from - to),
+            // StringName from when op2 is StringName to => (from - to),
+            // NodePath from when op2 is NodePath to => (from - to),
+            // Rid from when op2 is Rid to => (from - to),
+            // Dictionary
+            // Array
+            _ => throw new Exception($"Substract<{op1?.GetType().Name}>() not implemented")
         };
     }
 

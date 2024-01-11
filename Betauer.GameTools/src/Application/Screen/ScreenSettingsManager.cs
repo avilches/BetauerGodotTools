@@ -24,13 +24,13 @@ public class ScreenSettingsManager : IInjectable {
     private ISetting<bool> _fullscreen;
     private ISetting<bool> _vSync;
     private ISetting<bool> _borderless;
-    private ISetting<Resolution.Resolution> _windowedResolution;
+    private ISetting<Vector2I> _windowedResolution;
 
     public bool PixelPerfect => _pixelPerfect.Value;
     public bool Fullscreen => _fullscreen.Value;
     public bool VSync => _vSync.Value;
     public bool Borderless => _borderless.Value;
-    public Resolution.Resolution WindowedResolution => _windowedResolution.Value;
+    public Resolution.Resolution WindowedResolution => new Resolution.Resolution(_windowedResolution.Value);
 
     public ScreenSettingsManager(ScreenConfig initialScreenConfig) {
         _initialScreenConfig = initialScreenConfig;
@@ -49,8 +49,8 @@ public class ScreenSettingsManager : IInjectable {
         _borderless = Container.ResolveOr<ISetting<bool>>("Settings.Screen.Borderless",
             () => Setting.Memory(AppTools.GetWindowBorderless()));
 
-        _windowedResolution = Container.ResolveOr<ISetting<Resolution.Resolution>>("Settings.Screen.WindowedResolution",
-            () => Setting.Memory(_initialScreenConfig.BaseResolution));
+        _windowedResolution = Container.ResolveOr<ISetting<Vector2I>>("Settings.Screen.WindowedResolution",
+            () => Setting.Memory(_initialScreenConfig.BaseResolution.Size));
         
         DebugOverlayManager?.DebugConsole.AddScreenSettingsCommand(this);
     }
@@ -120,7 +120,7 @@ public class ScreenSettingsManager : IInjectable {
     public void SetWindowed(Resolution.Resolution resolution, bool save = true) {
         ScreenController.SetWindowed(resolution);
         if (save) {
-            _windowedResolution.Value = resolution;
+            _windowedResolution.Value = resolution.Size;
             ForceSave(_windowedResolution);
         }
     }

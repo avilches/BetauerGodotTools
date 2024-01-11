@@ -4,15 +4,13 @@ using Betauer.Application.Monitor;
 using Betauer.Application.Persistent;
 using Betauer.Application.Persistent.Json;
 using Betauer.Application.SplitScreen;
-using Betauer.Core;
-using Betauer.Core.Nodes;
 using Betauer.Core.Signal;
 using Betauer.DI;
 using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
 using Betauer.Input;
-using Betauer.Input.Joypad;
 using Godot;
+using Veronenger.Game.Platform.Character.InputActions;
 using Veronenger.Game.RTS.HUD;
 using Veronenger.Game.UI;
 
@@ -30,9 +28,8 @@ public partial class RtsGameView : Control, IInjectable, IGameView {
 	[Inject] private MainBus MainBus { get; set; }
 	[Inject] private ILazy<ProgressScreen> ProgressScreenLazy { get; set; }
 	[Inject] private GameLoader GameLoader { get; set; }
-	[Inject] private InputActionsContainer PlayerActionsContainer { get; set; }
-	[Inject] private UiActionsContainer UiActionsContainer { get; set; }
-	[Inject] private JoypadPlayersMapping JoypadPlayersMapping { get; set; }
+	[Inject] private PlatformMultiPlayerContainer MultiPlayerContainer { get; set; }
+	[Inject] private UiActions UiActions { get; set; }
 
 	private SplitViewport _splitViewport;
 
@@ -42,7 +39,6 @@ public partial class RtsGameView : Control, IInjectable, IGameView {
 	public Node GetWorld() => RtsWorld;
 
 	public void PostInject() {
-		PlayerActionsContainer.Disable(); // The real actions are cloned per player in player.Connect()
 		// ConfigureDebugOverlays();
 		_splitViewport = new SplitViewport {
 			Camera1 = {
@@ -75,7 +71,7 @@ public partial class RtsGameView : Control, IInjectable, IGameView {
 
 	public async Task StartNewGame() {
 		SceneTree.Root.AddChild(this);
-		UiActionsContainer.SetJoypad(UiActionsContainer.CurrentJoyPad);	// Player who starts the game is the player who control the UI forever
+		UiActions.SetJoypad(UiActions.CurrentJoyPad);	// Player who starts the game is the player who control the UI forever
 		
 		await GameLoader.LoadRtsGameResources();
 		
@@ -87,7 +83,7 @@ public partial class RtsGameView : Control, IInjectable, IGameView {
 
 	public async Task LoadFromMenu(string saveName) {
 		SceneTree.Root.AddChild(this);
-		UiActionsContainer.SetJoypad(UiActionsContainer.CurrentJoyPad);	// Player who starts the game is the player who control the UI forever
+		UiActions.SetJoypad(UiActions.CurrentJoyPad);	// Player who starts the game is the player who control the UI forever
 		var (success, saveGame) = await LoadSaveGame(saveName);
 		if (!success) return;
 		await GameLoader.LoadRtsGameResources();
@@ -95,7 +91,7 @@ public partial class RtsGameView : Control, IInjectable, IGameView {
 	}
 
 	public async Task LoadInGame(string saveName) {
-		UiActionsContainer.SetJoypad(UiActionsContainer.CurrentJoyPad); // Player who starts the game is the player who control the UI forever
+		UiActions.SetJoypad(UiActions.CurrentJoyPad); // Player who starts the game is the player who control the UI forever
 		var (success, saveGame) = await LoadSaveGame(saveName);
 		if (!success) return;
 		await FreeSceneKeepingPoolData();
@@ -144,8 +140,6 @@ public partial class RtsGameView : Control, IInjectable, IGameView {
 	}
 
 	public void InitializeWorld() {
-		JoypadPlayersMapping.RemoveAllPlayers();
-
 		RtsWorld = RtsWorldFactory.Create();
 		RtsWorld.SetMainCamera(_splitViewport.Camera1);
 		
@@ -160,6 +154,7 @@ public partial class RtsGameView : Control, IInjectable, IGameView {
 	}
 	
 	public async Task End(bool unload) {
+		MultiPlayerContainer.RemoveAllPlayers();
 		if (unload) {
 			UnloadResources();
 		} else {

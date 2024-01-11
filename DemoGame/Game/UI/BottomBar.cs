@@ -13,10 +13,10 @@ public partial class BottomBar : CanvasLayer {
 	[NodePath("%ActionHint3")] private ActionHint _actionHint3;
 	[NodePath("%ActionHint4")] private ActionHint _actionHint4;
 	private readonly List<ActionHint> _actionHintList = new();
-	[Inject] private InputAction UiAccept { get; set; }
-	[Inject] private InputAction UiCancel { get; set; }
-	[Inject] private InputAction UiLeft { get; set; }
-	[Inject] private AxisAction UiLateral { get; set; }
+	
+	[Inject] private UiActions UiActions { get; set; }
+	private InputAction UiAccept => UiActions.UiAccept;
+	private InputAction UiCancel => UiActions.UiCancel;
 
 
 	public override void _Ready() {

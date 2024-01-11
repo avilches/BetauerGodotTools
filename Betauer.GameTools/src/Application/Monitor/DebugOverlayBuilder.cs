@@ -259,23 +259,22 @@ public static class DebugOverlayBuilder {
     public static NodeBuilder AddMonitorInputAction(this NodeBuilder builder, InputActionsContainer inputActionsContainer) {
         builder.TextField("", () => {
             var s = new StringBuilder();
-            foreach (var a in inputActionsContainer.InputActionList) {
-                if (a is InputAction inputAction) {
-                    var keys = inputAction.Keys.Select(key => $"Key:{key}").ToList();
-                    keys.AddRange(inputAction.Buttons.Select(button => $"Button:{button}"));
-                    s.Append($"{inputAction.Name}: {string.Join(" | ", keys)}");
-                    if (inputAction.HasAxis()) {
-                        s.Append($" {(inputAction.AxisSign > 0 ? "Positive" : "Negative")} DeadZone:{inputAction.DeadZone}");
-                    }
-                    if (inputAction.HasMouseButton()) {
-                        s.Append($" Mouse:{inputAction.MouseButton}");
-                    }
-                    if (inputAction.IsPressed) s.Append(" [Pressed]");
-                    s.Append('\n');
-                } else if (a is AxisAction axis) {
-                    s.Append($"{axis.Name}: {axis.Strength:0.00} ({axis.RawStrength:0.00})");
-                    s.Append('\n');
+            foreach (var axis in inputActionsContainer.AxisActions) {
+                s.Append($"{axis.Name}: {axis.Strength:0.00} ({axis.RawStrength:0.00})");
+                s.Append('\n');
+            }
+            foreach (var inputAction in inputActionsContainer.InputActions) {
+                var keys = inputAction.Keys.Select(key => $"Key:{key}").ToList();
+                keys.AddRange(inputAction.Buttons.Select(button => $"Button:{button}"));
+                s.Append($"{inputAction.Name}: {string.Join(" | ", keys)}");
+                if (inputAction.HasAxis()) {
+                    s.Append($" {(inputAction.AxisSign > 0 ? "Positive" : "Negative")} DeadZone:{inputAction.DeadZone}");
                 }
+                if (inputAction.HasMouseButton()) {
+                    s.Append($" Mouse:{inputAction.MouseButton}");
+                }
+                if (inputAction.IsPressed) s.Append(" [Pressed]");
+                s.Append('\n');
             }
             return s.ToString();
         });

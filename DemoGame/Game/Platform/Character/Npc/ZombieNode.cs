@@ -85,7 +85,6 @@ public partial class ZombieNode : NpcNode, IInjectable {
 	[Inject] private PlatformQuery PlatformQuery { get; set; } 
 	[Inject] private NodePool<ZombieNode> ZombiePool { get; set; } 
 	
-	// [Inject] private InputActionCharacterHandler Handler { get; set; }
 	private NpcController Handler { get; set; } = new NpcController();
 
 	[Inject] private GameObjectRepository GameObjectRepository { get; set; }

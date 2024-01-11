@@ -1,11 +1,11 @@
-using System ;
+using System;
 using System.Collections.Generic;
 
 namespace Betauer.Bus;
 
-public abstract class Multicast : IDisposable {
+public abstract class Multicast {
     public abstract void Purge();
-    public abstract void Dispose();
+    public abstract void Clear();
     public abstract int ConsumerCount { get; }
 }
 
@@ -15,6 +15,7 @@ public class Multicast<TEvent> : Multicast {
     public override int ConsumerCount => Consumers.Count;
 
     public void Publish(TEvent @event) {
+        if (Consumers.Count == 0) return;
         Consumers.RemoveAll(consumer => {
             if (!consumer.IsValid()) return true; // Deleting consumer
             consumer.Execute(@event);
@@ -41,7 +42,7 @@ public class Multicast<TEvent> : Multicast {
         return consumer;
     }
 
-    public override void Dispose() {
+    public override void Clear() {
         Consumers.Clear();
     }
 }

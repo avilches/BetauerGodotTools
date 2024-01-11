@@ -13,6 +13,7 @@ using Betauer.DI.Factory;
 using Betauer.Input.Joypad;
 using Betauer.NodePath;
 using Godot;
+using Veronenger.Game.Platform.Character.InputActions;
 using Veronenger.Game.Platform.Character.Npc;
 using Veronenger.Game.Platform.Character.Player;
 using Veronenger.Game.Platform.Items;
@@ -44,7 +45,7 @@ public partial class PlatformWorld : Node, IInjectable {
 		PlatformBus.Subscribe<PlatformCommand>(this, (e) => {
 			if (e.Type == PlatformCommandType.SpawnZombie) InstantiateNewZombie();
 		});
-
+		
 		PlatformBus.Subscribe<PlayerDropEvent>(this, (e) => PlayerDrop(e.Item, e.GlobalPosition, e.DropVelocity));
 	}
 
@@ -183,12 +184,13 @@ public partial class PlatformWorld : Node, IInjectable {
 		});
 	}
 
-	public PlayerNode AddNewPlayer(PlayerMapping playerMapping) {
-		var name = $"Player{playerMapping.Player}";
+	public PlayerNode AddNewPlayer(PlatformPlayerActions actions) {
+		var name = $"Player{actions.PlayerId}";
 		var playerGameObject = GameObjectRepository.Create<PlayerGameObject>(name, name);
-		var playerNode = CreatePlayerNode(playerGameObject, playerMapping);
+		var playerNode = CreatePlayerNode(playerGameObject);
+		playerNode.SetPlayerActions(actions);
 
-		var inventoryName = $"PlayerInventory{playerMapping.Player}";
+		var inventoryName = $"PlayerInventory{actions.PlayerId}";
 		var inventoryGameObject = GameObjectRepository.Create<InventoryGameObject>(inventoryName, inventoryName);
 		playerNode.Inventory.InventoryGameObject = inventoryGameObject;
 		
@@ -199,8 +201,9 @@ public partial class PlatformWorld : Node, IInjectable {
 		return playerNode;
 	}
 
-	public PlayerNode LoadPlayer(PlayerMapping playerMapping, PlayerSaveObject saveObject, InventorySaveObject inventorySaveObject) {
-		var playerNode = CreatePlayerNode(saveObject.GameObject, playerMapping);
+	public PlayerNode LoadPlayer(PlayerSaveObject saveObject, InventorySaveObject inventorySaveObject, PlatformPlayerActions actions) {
+		var playerNode = CreatePlayerNode(saveObject.GameObject);
+		playerNode.SetPlayerActions(actions);
 		playerNode.Inventory.InventoryGameObject = inventorySaveObject.GameObject;
 		
 		_playerSpawn.AddChild(playerNode, () => {
@@ -212,10 +215,9 @@ public partial class PlatformWorld : Node, IInjectable {
 		return playerNode;
 	}
 
-	private PlayerNode CreatePlayerNode(PlayerGameObject playerGameObject, PlayerMapping playerMapping) {
+	private PlayerNode CreatePlayerNode(PlayerGameObject playerGameObject) {
 		var playerNode = Player.Create();
 		playerGameObject.LinkNode(playerNode);
-		playerNode.SetPlayerMapping(playerMapping);
 		Players.Add(playerNode);
 		return playerNode;
 	}

@@ -10,10 +10,9 @@ using Betauer.Application.Settings.Attributes;
 using Betauer.Camera.Control;
 using Betauer.DI.Attributes;
 using Betauer.Input;
-using Betauer.Input.Attributes;
-using Betauer.Input.Joypad;
 using Godot;
 using Pcg;
+using Veronenger.Game.Platform.Character.InputActions;
 using Veronenger.Game.UI;
 using Veronenger.Game.UI.Settings;
 
@@ -34,10 +33,9 @@ public class ApplicationConfig {
 
 	[Singleton] public Random Random => new PcgRandom();
 	[Singleton] public GameObjectRepository GameObjectRepository => new();
-	[Singleton] public UiActionsContainer UiActionsContainer => new();
 	[Singleton] public GameLoader GameLoader => new();
 	[Singleton] public CameraContainer CameraContainer => new();
-	[Singleton] public JoypadPlayersMapping JoypadPlayersMapping => new();
+	[Singleton] public PlatformMultiPlayerContainer MultiPlayerContainer => new();
 }
 
 [Configuration]
@@ -46,7 +44,7 @@ public class ApplicationConfig {
 [Setting<bool>("Settings.Screen.Fullscreen", SaveAs = "Video/Fullscreen", Default = true)]
 [Setting<bool>("Settings.Screen.VSync", SaveAs = "Video/VSync", Default = true)]
 [Setting<bool>("Settings.Screen.Borderless", SaveAs = "Video/Borderless", Default = false)]
-[Setting<Resolution>("Settings.Screen.WindowedResolution", SaveAs = "Video/WindowedResolution", DefaultAsString = "1920x1080")]
+[Setting<Vector2I>("Settings.Screen.WindowedResolution", SaveAs = "Video/WindowedResolution")]
 public class Settings {
 	[Singleton] public ScreenSettingsManager ScreenSettingsManager => new(ApplicationConfig.Config);
 	[Singleton] public SettingsContainer SettingsContainer => new(new ConfigFileWrapper(AppTools.GetUserFile("settings.ini")));
@@ -71,79 +69,64 @@ public class MainResources {
 	Lazy<MainMenu> a = new(() => new MainMenu());
 }
 
-[Configuration]
-[InputActionsContainer("UiActionsContainer")]
-public class UiActions {
-	[AxisAction] 
-	private AxisAction UiVertical => AxisAction.Create().Build();
+[Singleton]
+public class UiActions : UiActionsContainer {
+	public AxisAction UiVertical { get; } = new AxisAction("UiVertical");
+	public AxisAction UiLateral { get; } = new AxisAction("UiLateral");
 
-	[AxisAction] 
-	private AxisAction UiLateral => AxisAction.Create().Build();
-
-	[InputAction(AxisName = "UiVertical")]
-	private InputAction UiUp => InputAction.Create("ui_up")
+	public InputAction UiUp { get; } = InputAction.Create("ui_up")
+		.AxisName("UiVertical")
 		.KeepProjectSettings()
 		.NegativeAxis(JoyAxis.LeftY)
 		.DeadZone(0.5f)
 		.Build();
 
-	[InputAction(AxisName = "UiVertical")]
-	private InputAction UiDown => InputAction.Create("ui_down")
+	public InputAction UiDown { get; } = InputAction.Create("ui_down")
+		.AxisName("UiVertical")
 		.KeepProjectSettings()
 		.PositiveAxis(JoyAxis.LeftY)
 		.DeadZone(0.5f)
 		.Build();
 
-	[InputAction(AxisName = "UiLateral")]
-	private InputAction UiLeft => InputAction.Create("ui_left")
+	public InputAction UiLeft { get; } = InputAction.Create("ui_left")
+		.AxisName("UiLateral")
 		.KeepProjectSettings()
 		.NegativeAxis(JoyAxis.LeftX)
 		.DeadZone(0.5f)
 		.Build();
 
-	[InputAction(AxisName = "UiLateral")]
-	private InputAction UiRight => InputAction.Create("ui_right")
+	public InputAction UiRight { get; } = InputAction.Create("ui_right")
+		.AxisName("UiLateral")
 		.KeepProjectSettings()
 		.PositiveAxis(JoyAxis.LeftX)
 		.DeadZone(0.5f)
 		.Build();
 
-	[InputAction]
-	private InputAction UiAccept => InputAction.Create("ui_accept")
+	public InputAction UiAccept { get; } = InputAction.Create("ui_accept")
 		.KeepProjectSettings()
 		.Buttons(JoyButton.A)
 		.Build();
 
-	[InputAction]
-	private InputAction UiSelect => InputAction.Create("ui_select")
+	public InputAction UiSelect { get; } = InputAction.Create("ui_select")
 		.KeepProjectSettings()
 		.Build();
 
-	[InputAction]
-	private InputAction UiCancel => InputAction.Create("ui_cancel")
+	public InputAction UiCancel { get; } = InputAction.Create("ui_cancel")
 		.KeepProjectSettings()
 		.Buttons(JoyButton.B)
 		.Build();
 
-	[InputAction]
-	private InputAction ControllerSelect => InputAction.Create("select")
+	public InputAction ControllerSelect { get; } = InputAction.Create("select")
 		.Keys(Key.Tab)
 		.Buttons(JoyButton.Back)
 		.Build();
 
-	[InputAction]
-	private InputAction ControllerStart => InputAction.Create("start")
+	public InputAction ControllerStart { get; } = InputAction.Create("start")
 		.Keys(Key.Escape)
 		.Buttons(JoyButton.Start)
 		.Build();
-}
 
-[Configuration]
-[SettingsContainer("SettingsContainer")]
-[InputActionsContainer("UiActionsContainer")]
-public class OtherActions {
-	[InputAction]
-	private InputAction DebugOverlayAction => InputAction.Create("DebugOverlay")
+	public InputAction DebugOverlayAction { get; } = InputAction.Create("DebugOverlay")
 		.Keys(Key.F9)
 		.Build();
 

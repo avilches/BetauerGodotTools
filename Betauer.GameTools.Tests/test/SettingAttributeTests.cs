@@ -15,15 +15,11 @@ namespace Betauer.GameTools.Tests;
 public partial class SettingAttributeTests : Node {
 
     const string SettingsFile = "./test-settings.ini";
-    const string SettingsFile1 = "./test-settings-1.ini";
-    const string SettingsFile2 = "./test-settings-2.ini";
         
     [SetUpClass]
     [TestRunner.SetUp]
     public void Clear() {
         System.IO.File.Delete(SettingsFile);
-        System.IO.File.Delete(SettingsFile1);
-        System.IO.File.Delete(SettingsFile2);
     }
 
     [Configuration]
@@ -55,7 +51,6 @@ public partial class SettingAttributeTests : Node {
     [Setting<bool>("BoolSetting", SaveAs = "Section/PixelPerfect", Default = true, AutoSave = true)]
     [Setting<string>("StringSetting", SaveAs = "Section/Name", Default = "Default", AutoSave = true)]
     [Setting<string>("NoAutoSave", SaveAs = "Video/NoAutoSave", Default = "DEFAULT")]
-    [Setting<string>("NoEnabled", SaveAs = "Disabled/PropertyDisabled", Default = "DEFAULT", AutoSave = true, Enabled = false)]
     internal class ConfigWithSettingContainer {
         [Singleton]
         public SettingsContainer MySettingsContainer => new SettingsContainer(new ConfigFileWrapper(SettingsFile));
@@ -67,7 +62,6 @@ public partial class SettingAttributeTests : Node {
         [Inject] public SaveSetting<bool> BoolSetting { get; set; }
         [Inject] public SaveSetting<string> StringSetting { get; set; }
         [Inject] public SaveSetting<string> NoAutoSave { get; set; }
-        [Inject] public SaveSetting<string> NoEnabled { get; set; }
     }
 
     [TestRunner.Test]
@@ -84,13 +78,14 @@ public partial class SettingAttributeTests : Node {
         Assert.That(b.BoolSetting.SettingsContainer, Is.EqualTo(b.MySettingsContainer));
         Assert.That(b.StringSetting.SettingsContainer, Is.EqualTo(b.MySettingsContainer));
         Assert.That(b.NoAutoSave.SettingsContainer, Is.EqualTo(b.MySettingsContainer));
-        Assert.That(b.NoEnabled.SettingsContainer, Is.EqualTo(b.MySettingsContainer));
 
-        // Read with no settings save, the default values are used
+        // Read with no file settings saved, the default values are used and it remains not dirty
         Assert.That(b.BoolSetting.Value, Is.True);
         Assert.That(b.StringSetting.Value, Is.EqualTo("Default"));
         Assert.That(b.NoAutoSave.Value, Is.EqualTo("DEFAULT"));
-        Assert.That(b.NoEnabled.Value, Is.EqualTo("DEFAULT"));
+        Assert.That(b.MySettingsContainer.Dirty, Is.False);
+        
+        b.MySettingsContainer.Load();
         Assert.That(b.MySettingsContainer.Dirty, Is.False);
             
         // When force saved, default values are stored, except the no enabled
@@ -101,13 +96,8 @@ public partial class SettingAttributeTests : Node {
         Assert.That(cf.GetTypedValue(b.BoolSetting.SaveAs, false), Is.True);
         Assert.That(cf.GetTypedValue(b.StringSetting.SaveAs, "XXX"), Is.EqualTo("Default"));
         Assert.That(cf.GetTypedValue(b.NoAutoSave.SaveAs, "XXX"), Is.EqualTo("DEFAULT"));
-        Assert.That(cf.GetTypedValue(b.NoEnabled.SaveAs, "XXX"), Is.EqualTo("XXX")); // not written to file
-
-        b.NoEnabled.Value = "NEW VALUE";
-        Assert.That(b.NoEnabled.Value, Is.EqualTo("NEW VALUE"));
         Assert.That(b.MySettingsContainer.Dirty, Is.False);
         cf.Load(SettingsFile);
-        Assert.That(cf.GetTypedValue( b.NoEnabled.SaveAs, "XXX"), Is.EqualTo("XXX")); // not present in file
             
         // When changed, only the auto-saved are stored
         b.BoolSetting.Value = false;
@@ -132,13 +122,10 @@ public partial class SettingAttributeTests : Node {
         // Change the data from the disk
         cf.Clear();
         cf.SetTypedValue(b.NoAutoSave.SaveAs, "FROM DISK");
-        cf.SetTypedValue(b.NoEnabled.SaveAs, "FROM DISK");
         cf.Save(SettingsFile);
         Assert.That(b.NoAutoSave.Value, Is.EqualTo("CHANGED"));
-        Assert.That(b.NoEnabled.Value, Is.EqualTo("NEW VALUE"));
         b.NoAutoSave.SettingsContainer.Load();
         Assert.That(b.NoAutoSave.Value, Is.EqualTo("FROM DISK"));
-        Assert.That(b.NoEnabled.Value, Is.EqualTo("NEW VALUE")); // still the same, no matter the load
     }
         
     [TestRunner.Test]
@@ -165,7 +152,7 @@ public partial class SettingAttributeTests : Node {
     
     [Configuration]
     [SettingsContainer("MySettingsContainer")]
-    [Setting<Resolution>("Resolution", SaveAs = "Section/Screen", DefaultAsString = "1280x800", AutoSave = true)]
+    [Setting<Vector2I>("Resolution", SaveAs = "Section/Screen", AutoSave = true)]
     internal class ConfigWithSettingContainer2 {
         [Singleton]
         public SettingsContainer MySettingsContainer => new SettingsContainer(new ConfigFileWrapper(SettingsFile));
@@ -173,7 +160,7 @@ public partial class SettingAttributeTests : Node {
  
     [Singleton]
     internal class Service2 {
-        [Inject] public SaveSetting<Resolution> Resolution { get; set; }
+        [Inject] public SaveSetting<Vector2I> Resolution { get; set; }
     }
 
     [TestRunner.Test]
@@ -188,7 +175,7 @@ public partial class SettingAttributeTests : Node {
         
         Assert.That(b.Resolution.Value, Is.EqualTo(Resolutions.WXGA));
 
-        b.Resolution.Value = Resolutions.UWDI238_0;
+        b.Resolution.Value = Resolutions.UWDI238_0.Size;
         
         var cf = new ConfigFile();
         cf.Load(SettingsFile);
@@ -198,7 +185,7 @@ public partial class SettingAttributeTests : Node {
 
     [Configuration]
     [SettingsContainer("MySettingsContainer")]
-    [Setting<Resolution>("OtherName", SaveAs = "Section/Screen", DefaultAsString = "1280x800")]
+    [Setting<Resolution>("OtherName", SaveAs = "Section/Screen")]
     internal class ConfigWithSettingContainer3 {
         [Singleton]
         public SettingsContainer MySettingsContainer => new SettingsContainer(new ConfigFileWrapper(SettingsFile));
@@ -206,7 +193,7 @@ public partial class SettingAttributeTests : Node {
  
     [Singleton]
     internal class Service3 {
-        [Inject("OtherName")] public SaveSetting<Resolution> Resolution { get; set; }
+        [Inject("OtherName")] public SaveSetting<Vector2I> Resolution { get; set; }
     }
 
     [TestRunner.Test]
@@ -217,9 +204,7 @@ public partial class SettingAttributeTests : Node {
             di.Scan<Service3>();
         });
         var b = c.Resolve<Service3>();
-        Assert.That(b.Resolution.Value, Is.EqualTo(Resolutions.WXGA));
+        Assert.That(b.Resolution.Value, Is.EqualTo(Resolutions.WXGA.Size));
         
     }
-
-
 }

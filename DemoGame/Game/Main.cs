@@ -87,9 +87,7 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IInjectable {
     [Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
     [Inject] private MainBus MainBus { get; set; }
 
-    [Inject] private InputAction ControllerStart { get; set; }
-    [Inject] private UiActionsContainer UiActionsContainer { get; set; }
-    [Inject] private JoypadPlayersMapping JoypadPlayersMapping { get; set; }
+    [Inject] private UiActions UiActions { get; set; }
 
 
     public Main() : base(MainState.MainMenu) {
@@ -164,7 +162,7 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IInjectable {
             .On(MainEvent.EndGame).Set(MainState.GameOver)
             .On(MainEvent.StartSavingGame).Push(MainState.SavingGame)
             .OnInput(e => {
-                if (ControllerStart.IsEventJustPressed(e)) {
+                if (UiActions.ControllerStart.IsEventJustPressed(e)) {
                     Send(MainEvent.OpenPauseMenu);
                     GetViewport().SetInputAsHandled();
                 }
@@ -239,14 +237,10 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IInjectable {
     }
 
     private void ConfigureApp() {
-        UiActionsContainer.OnNewUiJoypad += (deviceId) => {
+        UiActions.OnNewUiJoypad += (deviceId) => {
             // Console.WriteLine("New joypad for the ui " + deviceId);
         };
-        JoypadPlayersMapping.OnPlayerMappingConnectionChanged += (playerMapping) => {
-            // TODO: Launch the settings window
-            // Console.WriteLine("OnPlayerMappingConnectionChanged: " + playerMapping);
-        };
-        UiActionsContainer.SetFirstJoypadConnected();
+        UiActions.SetFirstJoypadConnected();
         ConfigureCanvasLayers();
         ConfigureDebugOverlays();
         ScreenSettingsManager.Setup();

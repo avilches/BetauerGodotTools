@@ -20,6 +20,7 @@ using Betauer.Input;
 using Betauer.NodePath;
 using Betauer.Physics;
 using Godot;
+using Veronenger.Game.Platform.Character.InputActions;
 using Veronenger.Game.Platform.Character.Npc;
 using Veronenger.Game.Platform.Items;
 
@@ -87,7 +88,7 @@ public partial class PlayerNode : Node, IInjectable, INodeGameObject {
 	[Inject] private SceneTree SceneTree { get; set; }
 	[Inject] private PlatformBus PlatformBus { get; set; }
 	[Inject] private PlatformQuery PlatformQuery { get; set; }
-	[Inject] private InputActionsContainer PlayerActionsContainer { get; set; }
+	[Inject] private PlatformMultiPlayerContainer PlatformMultiPlayerContainer { get; set; }
 	[Inject] private PlayerConfig PlayerConfig { get; set; }
 
 	private readonly FsmNodeSync<PlayerState, PlayerEvent> _fsm = new(PlayerState.Idle, "Player.FSM", true);

@@ -5,20 +5,21 @@ using Betauer.Bus;
 using Betauer.Core;
 using Godot;
 
-namespace Betauer.Application; 
+namespace Betauer.Application;
 
-public class GodotBus<TF> : IDisposable {
+public class GodotBus<TF> {
+    private HashSet<Multicast> Multicasts { get; } = new();
 
-    public HashSet<Multicast> Multicasts { get; } = new();
-
-    public void Publish<T>(T e) where T : TF {
-        Holder<T>.Bus.Publish(e);
+    public Multicast<T> Bus<T>() where T : TF {
+        Multicast<T> multicast = Holder<T>.Bus;
+        if (Holder<T>.Initialized) return multicast;
+        Multicasts.Add(multicast);
+        Holder<T>.Initialized = true;
+        return multicast;
     }
 
     public EventConsumer<T> Subscribe<T>(Action<T> action) where T : TF {
-        Multicast<T> multicast = Holder<T>.Bus;
-        Multicasts.Add(multicast);
-        return multicast.Subscribe(action);
+        return Bus<T>().Subscribe(action);
     }
 
     public EventConsumer<T> Subscribe<T>(GodotObject o, Action<T> action) where T : TF {
@@ -27,9 +28,13 @@ public class GodotBus<TF> : IDisposable {
         return eventConsumer;
     }
 
-    public void Dispose() {
+    public void Publish<T>(T e) where T : TF {
+        Bus<T>().Publish(e);
+    }
+
+    public void Clear() {
         foreach (var multicast in Multicasts) {
-            multicast.Dispose();
+            multicast.Clear();
         }
         Multicasts.Clear();
     }
@@ -42,5 +47,6 @@ public class GodotBus<TF> : IDisposable {
 
     private static class Holder<T> where T : TF {
         internal static readonly Multicast<T> Bus = new();
+        internal static bool Initialized = false;
     }
 }

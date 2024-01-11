@@ -1,7 +1,6 @@
 using System.Threading.Tasks;
 using Betauer.Core.Restorer;
 using Betauer.DI.Attributes;
-using Betauer.Input;
 using Betauer.NodePath;
 using Betauer.UI;
 using Godot;
@@ -23,9 +22,7 @@ public partial class PauseMenu : CanvasFaderLayer {
 
 	[Inject] private MainBus MainBus { get; set; }
 
-	[Inject] private InputAction UiAccept { get; set; }
-	[Inject] private InputAction UiCancel { get; set; }
-	[Inject] private InputAction ControllerStart { get; set; }
+	[Inject] private UiActions UiActions { get; set; }
 
 	public override void _Ready() {
 		_menuContainer = BuildMenu();
@@ -67,7 +64,7 @@ public partial class PauseMenu : CanvasFaderLayer {
 	}
 
 	public void OnInput(InputEvent e) {
-		if (UiCancel.IsEventJustPressed(e)) {
+		if (UiActions.UiCancel.IsEventJustPressed(e)) {
 			if (_menuContainer.IsRootMenuActive()) {
 				MainBus.Publish(MainEvent.ClosePauseMenu);
 			} else {
@@ -75,7 +72,7 @@ public partial class PauseMenu : CanvasFaderLayer {
 			}
 			GetViewport().SetInputAsHandled();
 
-		} else if (ControllerStart.IsJustPressed) {
+		} else if (UiActions.ControllerStart.IsJustPressed) {
 			MainBus.Publish(MainEvent.ClosePauseMenu);
 			GetViewport().SetInputAsHandled();
 				

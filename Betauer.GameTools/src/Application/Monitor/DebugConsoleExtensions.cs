@@ -199,7 +199,7 @@ public static partial class DebugConsoleExtensions {
                 if (e.HasAlt()) modifiers.Add("Alt");
                 if (e.HasControl()) modifiers.Add("Ctrl");
                 if (e.HasMeta()) modifiers.Add("Meta");
-                var actions = inputActionsContainer.InputActionList.Where(a => a.IsEvent(e)).Select(a => a.Name).ToList();
+                var actions = inputActionsContainer.InputActions.Where(a => a.IsEvent(e)).Select(a => a.Name).ToList();
                 var actionName = actions.Count > 0 ? $" | Action [{string.Join(",", actions)}]" : "";
                 if (e.IsAnyKey()) {
                     modifiers.Add(e.GetKeyString());

@@ -39,7 +39,7 @@ public partial class PlayerNode {
 		overlay
 			.Children()
 			.Add<HBoxContainer>(box => box.Children()
-				.TextField("PlayerJoys", () => PlayerMapping.ToString())
+				.TextField("PlayerJoys", () => PlayerActions?.ToString())
 			);
 	}
 
@@ -87,8 +87,8 @@ public partial class PlayerNode {
 		overlay
 			.Children()
 			.Add<HBoxContainer>(box => box.Children()
-				.TextField("LR", () => _joypadController.Lateral.Strength.ToString("0.00"))
-				.TextField("UD", () => _joypadController.Vertical.Strength.ToString("0.00")));
+				.TextField("LR", () => PlayerActions.Lateral.Strength.ToString("0.00"))
+				.TextField("UD", () => PlayerActions.Vertical.Strength.ToString("0.00")));
 
 		overlay
 			.Children()
@@ -116,14 +116,14 @@ public partial class PlayerNode {
 			};
 
 			var result = "";
-			if (_joypadController.Lateral.Strength == 0f) {
+			if (PlayerActions.Lateral.Strength == 0f) {
 				result =
-					$"-{_joypadController.Left.Strength:0.00}+{_joypadController.Right.Strength:0.00}={_joypadController.Lateral.Strength:0.00} {v(_joypadController.Left)}{v(_joypadController.Right)} ";
+					$"-{PlayerActions.Left.Strength:0.00}+{PlayerActions.Right.Strength:0.00}={PlayerActions.Lateral.Strength:0.00} {v(PlayerActions.Left)}{v(PlayerActions.Right)} ";
 			} else {
-				var left = _joypadController.Left.Strength > 0 ? "-" + _joypadController.Left.Strength.ToString("0.00") : "     ";
-				var right = _joypadController.Right.Strength > 0 ? "+" + _joypadController.Right.Strength.ToString("0.00") : "     ";
+				var left = PlayerActions.Left.Strength > 0 ? "-" + PlayerActions.Left.Strength.ToString("0.00") : "     ";
+				var right = PlayerActions.Right.Strength > 0 ? "+" + PlayerActions.Right.Strength.ToString("0.00") : "     ";
 				result =
-					$"{left}{right}={_joypadController.Lateral.Strength:0.00} {v(_joypadController.Left)}{v(_joypadController.Right)} ";
+					$"{left}{right}={PlayerActions.Lateral.Strength:0.00} {v(PlayerActions.Left)}{v(PlayerActions.Right)} ";
 			}
 			/*
 			if (result != prevResult) {

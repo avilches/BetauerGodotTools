@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Godot;
 
 namespace Betauer.Application.Settings; 
 
@@ -15,11 +16,8 @@ public class SettingsContainer {
             if (_configFileWrapper.Exists()) Load();
         }
     }
-    public bool Dirty => ValidateConfigFileWrapper().Dirty;
-    public string FilePath => ValidateConfigFileWrapper().FilePath;
-
-    public SettingsContainer() {
-    }
+    public bool Dirty => _configFileWrapper.Dirty;
+    public string FilePath => _configFileWrapper.FilePath;
 
     public SettingsContainer(ConfigFileWrapper configFileWrapper) {
         ConfigFileWrapper = configFileWrapper;
@@ -42,32 +40,38 @@ public class SettingsContainer {
     /// </summary>
     /// <returns></returns>
     public SettingsContainer Load() {
-        ValidateConfigFileWrapper().Load();
+        _configFileWrapper.Load();
         foreach (var setting in Settings) setting.Refresh();
         return this;
     }
 
-    private ConfigFileWrapper ValidateConfigFileWrapper() {
-        if (_configFileWrapper == null) throw new Exception($"SettingContainer not initialized. Please set the {nameof(ConfigFileWrapper)} property");
-        return _configFileWrapper;
-    }
-
     /// <summary>
-    /// Use Save() when a setting is changed and the AutoSave flag is false. 
+    /// Use Save() when a setting is changed and there are settings with the AutoSave flag to false. 
     /// </summary>
     /// <returns></returns>
     public SettingsContainer Save() {
-        ValidateConfigFileWrapper();
-        foreach (var setting in Settings) setting.Flush();
+        foreach (var setting in Settings) {
+            // Flush the default values
+            setting.Flush();
+        }
         _configFileWrapper.Save();
         return this;
     }
 
-    internal object GetValue(string sectionAndKey, object @default) {
-        return ValidateConfigFileWrapper().GetValue(sectionAndKey, @default);
+    internal T GetValue<[MustBeVariant] T>(string sectionAndKey, T @default) {
+        return _configFileWrapper.GetValue(sectionAndKey, @default);
     }
 
-    internal void SetValue(string sectionAndKey, object value) {
-        ValidateConfigFileWrapper().SetValue(sectionAndKey, value);
+    internal void SetValue<[MustBeVariant] T>(string sectionAndKey, T value) {
+        _configFileWrapper.SetValue(sectionAndKey, value);
+    }
+
+    public void RefreshSharedSettings<[MustBeVariant] T>(SaveSetting<T> saveSettingUpdated) {
+        foreach (var setting in Settings) {
+            if (setting == saveSettingUpdated) continue;
+            if (setting.SaveAs == saveSettingUpdated.SaveAs) {
+                setting.Refresh();
+            }
+        }
     }
 }

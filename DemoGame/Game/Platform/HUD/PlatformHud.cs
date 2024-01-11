@@ -46,8 +46,8 @@ public partial class PlatformHud : CanvasLayer, IInjectable {
     }
 
     private PlayerHud GetPlayerHud(PlayerNode playerNode) {
-        if (playerNode.PlayerMapping.Player >= 2) throw new Exception("Only 2 players supported");
-        return playerNode.PlayerMapping.Player == 0 ? PlayerHud1 : PlayerHud2;
+        if (playerNode.PlayerActions.PlayerId >= 2) throw new Exception("Only 2 players supported");
+        return playerNode.PlayerActions.PlayerId == 0 ? PlayerHud1 : PlayerHud2;
     }
 
     public void Enable() {

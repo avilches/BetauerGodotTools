@@ -1,17 +1,9 @@
 using System;
-using System.Collections.Generic;
 using Betauer.Application;
-using Betauer.Application.Screen;
 using Betauer.Application.Settings;
-using Betauer.Core;
-using Betauer.DI;
-using Betauer.DI.Attributes;
-using Betauer.DI.Exceptions;
-using Betauer.Input;
 using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
-using Container = Betauer.DI.Container;
 
 namespace Betauer.GameTools.Tests; 
   
@@ -19,15 +11,11 @@ namespace Betauer.GameTools.Tests;
 public partial class SettingTests : Node {
 
     const string SettingsFile = "./test-settings.ini";
-    const string SettingsFile1 = "./test-settings-1.ini";
-    const string SettingsFile2 = "./test-settings-2.ini";
         
     [SetUpClass]
     [TestRunner.SetUp]
     public void Clear() {
         System.IO.File.Delete(SettingsFile);
-        System.IO.File.Delete(SettingsFile1);
-        System.IO.File.Delete(SettingsFile2);
     }
 
     [TestRunner.Test]
@@ -41,7 +29,7 @@ public partial class SettingTests : Node {
 
     [TestRunner.Test]
     public void FailIfNoContainer() {
-        var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
+        // var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
         var saved = Setting.Create("Section/NoAutoSave", "Default", false);
 
         // Read without container
@@ -137,50 +125,30 @@ public partial class SettingTests : Node {
     } 
 
     [TestRunner.Test]
-    public void DisabledTest() {
-        var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
-        var savedDisabled = Setting.Create("Section/SavedDisabled", "Default", true, false);
-            
-        // A disabled setting works like a memory setting: it can be write and read, but data is not persisted
-        
-        // Read without container
-        Assert.That(savedDisabled.Value, Is.EqualTo("Default"));
-        // Write without container
-        savedDisabled.Value = "New1";
-        Assert.That(savedDisabled.Value, Is.EqualTo("New1"));
-
-        // Setting a container doesn't make any difference
-        savedDisabled.SetSettingsContainer(sc);
-        Assert.That(savedDisabled.Value, Is.EqualTo("New1"));
-        Assert.That(savedDisabled.SettingsContainer, Is.EqualTo(sc));
-        savedDisabled.Value = "New2";
-        Assert.That(savedDisabled.Value, Is.EqualTo("New2"));
-
-        var cf = new ConfigFileWrapper(SettingsFile).Load();
-        Assert.That(cf.GetValue<string>(savedDisabled.SaveAs, "NOT FOUND"), Is.EqualTo("NOT FOUND"));
-        
-        
-        // Now, enable the setting again
-        savedDisabled.Enabled = true;
-
-        // Ensure that the value is still the same
-        cf.Load();
-        Assert.That(cf.GetValue<string>(savedDisabled.SaveAs, "NOT FOUND"), Is.EqualTo("NOT FOUND"));
-        
-        savedDisabled.Value = "New3";
-        cf.Load();
-        Assert.That(cf.GetValue<string>(savedDisabled.SaveAs, "NOT FOUND"), Is.EqualTo("New3"));
-    }
-
-    [TestRunner.Test]
     public void DefaultValueTest() {
         var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
         var saved = Setting.Create("Section/SavedDisabled", "Default");
         saved.SetSettingsContainer(sc);
         
         Assert.That(saved.Value, Is.EqualTo("Default"));
-        saved.DefaultValue = "Default2";
-        Assert.That(saved.Value, Is.EqualTo("Default2"));
+    }
+
+    [TestRunner.Test]
+    public void SharedSettingNameTest() {
+        var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
+        var saved1 = Setting.Create("Section/SavedDisabled", "Default");
+        var saved2 = Setting.Create("Section/SavedDisabled", "Pepe");
+        saved1.SetSettingsContainer(sc);
+        saved2.SetSettingsContainer(sc);
+
+        saved1.Value = "Nuevo";
+        Assert.That(saved1.Value, Is.EqualTo("Nuevo"));
+        Assert.That(saved2.Value, Is.EqualTo("Nuevo"));
+        sc.Save();
+
+        var cf = new ConfigFileWrapper(SettingsFile);
+        cf.Load();
+        Assert.That(cf.GetValue<string>("Section/SavedDisabled", "NOT SAVED"), Is.EqualTo("Nuevo"));
 
     }
 

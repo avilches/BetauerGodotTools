@@ -28,7 +28,7 @@ public partial class SplashScreen : CanvasLayer {
 	[NodePath("%TextureRect")] private TextureRect _sprite;
 	
 	[Inject] private GameLoader GameLoader { get; set; }
-	[Inject] private UiActionsContainer UiActionsContainer { get; set; }
+	[Inject] private UiActions UiActions { get; set; }
 	[Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
 	[Inject] private Main Main { get; set; }
 	
@@ -37,7 +37,7 @@ public partial class SplashScreen : CanvasLayer {
 		NodeManager.MainInstance.OnWMCloseRequest += () => {
 			GD.Print($"[OnWMCloseRequest] Uptime: {Project.Uptime.TotalMinutes:0} min {Project.Uptime.Seconds:00} sec");
 		};
-
+		
 		TreeEntered += () => {
 			var sceneTree = GetTree();
 			NodePathScanner.ConfigureAutoInject(sceneTree); // This adds a hook to inject the [NodePath] attributes.
@@ -89,7 +89,7 @@ public partial class SplashScreen : CanvasLayer {
 		await NodeManager.MainInstance.AwaitInput(e => {
 			if (e.IsJustPressed() && (e.IsAnyKey() || e.IsAnyButton() || e.IsAnyClick())) {
 				if (e is InputEventJoypadButton button) {
-					UiActionsContainer.SetJoypad(button.Device); // Configure the default joypad for the UI
+					UiActions.SetJoypad(button.Device); // Configure the default joypad for the UI
 				}
 				return true;
 			}

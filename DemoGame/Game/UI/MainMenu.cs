@@ -2,7 +2,6 @@ using System.Threading.Tasks;
 using Betauer.Application;
 using Betauer.Core.Restorer;
 using Betauer.DI.Attributes;
-using Betauer.Input;
 using Betauer.NodePath;
 using Betauer.UI;
 using Godot;
@@ -29,8 +28,7 @@ public partial class MainMenu : CanvasFaderLayer {
 
 	[Inject] private MainBus MainBus { get; set; }
 
-	[Inject] private InputAction UiAccept { get; set; }
-	[Inject] private InputAction UiCancel { get; set; }
+	[Inject] private UiActions UiActions { get; set; }
 	[Inject] private WorldGenerator WorldGenerator { get; set; }
 	
 	public MainMenu() {
@@ -80,7 +78,7 @@ public partial class MainMenu : CanvasFaderLayer {
 	}
 
 	public void OnInput(InputEvent e) {
-		if (UiCancel.IsEventJustPressed(e)) { 
+		if (UiActions.UiCancel.IsEventJustPressed(e)) { 
 			if (_menuContainer.IsRootMenuActive()) {
 				MainBus.Publish(MainEvent.OpenModalBoxExitToDesktop);
 			} else {
