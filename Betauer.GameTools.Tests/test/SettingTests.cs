@@ -5,27 +5,20 @@ using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
 
-namespace Betauer.GameTools.Tests; 
-  
+namespace Betauer.GameTools.Tests;
+
 [TestRunner.Test]
 public partial class SettingTests : Node {
 
     const string SettingsFile = "./test-settings.ini";
-        
+
     [SetUpClass]
     [TestRunner.SetUp]
     public void Clear() {
         System.IO.File.Delete(SettingsFile);
     }
 
-    [TestRunner.Test]
-    public void MemoryTest() {
-        var imm = Setting.Memory("I");
-            
-        Assert.That(imm.Value, Is.EqualTo("I"));
-        imm.Value = "X";
-        Assert.That(imm.Value, Is.EqualTo("X"));
-    }
+
 
     [TestRunner.Test]
     public void FailIfNoContainer() {
@@ -45,7 +38,7 @@ public partial class SettingTests : Node {
     public void WorksIfContainer() {
         var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
         var saved = Setting.Create("Section/NoAutoSave", "Default", false);
-        saved.SetSettingsContainer(sc);
+        sc.Add(saved);
         Assert.That(saved.Value, Is.EqualTo("Default"));
         Assert.That(saved.SettingsContainer, Is.EqualTo(sc));
 
@@ -60,10 +53,10 @@ public partial class SettingTests : Node {
         // Property with slash
         var propWithSlash = Setting.Create("Section/prop/other", "B");
         Assert.That(propWithSlash.SaveAs, Is.EqualTo("Section/prop/other"));
-        
+
         var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
-        noSection.SetSettingsContainer(sc);
-        propWithSlash.SetSettingsContainer(sc);
+        sc.Add(noSection);
+        sc.Add(propWithSlash);
 
         sc.Save();
 
@@ -76,7 +69,7 @@ public partial class SettingTests : Node {
     public void SaveNoAutoSaveBeforeEvenUseTest() {
         var saved = Setting.Create("Section/prop", "B", false);
         var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
-        saved.SetSettingsContainer(sc);
+        sc.Add(saved);
 
         sc.Save();
 
@@ -88,7 +81,7 @@ public partial class SettingTests : Node {
     public void RegularAutoSaveTest() {
         var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
         var saved = Setting.Create("Section/NoAutoSave", "Default", false);
-        saved.SetSettingsContainer(sc);
+        sc.Add(saved);
 
         const string changed = "XXXX";
         saved.Value = changed;
@@ -100,15 +93,15 @@ public partial class SettingTests : Node {
 
         saved.SettingsContainer.Save();
         cf.Load();
-        Assert.That(cf.GetValue<string>( saved.SaveAs, "_"), Is.EqualTo(changed));
-        Assert.That(cf.GetValue<string>( "Section", "NoAutoSave", "_"), Is.EqualTo(changed));
-    } 
+        Assert.That(cf.GetValue<string>(saved.SaveAs, "_"), Is.EqualTo(changed));
+        Assert.That(cf.GetValue<string>("Section", "NoAutoSave", "_"), Is.EqualTo(changed));
+    }
 
     [TestRunner.Test]
     public void RegularNoAutoSaveTest() {
         var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
         var saved = Setting.Create("Section/NoAutoSave", "Default", true);
-        saved.SetSettingsContainer(sc);
+        sc.Add(saved);
 
         var cf = new ConfigFileWrapper(SettingsFile);
         cf.Load();
@@ -120,16 +113,16 @@ public partial class SettingTests : Node {
         Assert.That(saved.Value, Is.EqualTo(changed));
 
         cf.Load();
-        Assert.That(cf.GetValue<string>( saved.SaveAs, "_"), Is.EqualTo(changed));
-        Assert.That(cf.GetValue<string>( "Section", "NoAutoSave", "_"), Is.EqualTo(changed));
-    } 
+        Assert.That(cf.GetValue<string>(saved.SaveAs, "_"), Is.EqualTo(changed));
+        Assert.That(cf.GetValue<string>("Section", "NoAutoSave", "_"), Is.EqualTo(changed));
+    }
 
     [TestRunner.Test]
     public void DefaultValueTest() {
         var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
         var saved = Setting.Create("Section/SavedDisabled", "Default");
-        saved.SetSettingsContainer(sc);
-        
+        sc.Add(saved);
+
         Assert.That(saved.Value, Is.EqualTo("Default"));
     }
 
@@ -138,8 +131,8 @@ public partial class SettingTests : Node {
         var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
         var saved1 = Setting.Create("Section/SavedDisabled", "Default");
         var saved2 = Setting.Create("Section/SavedDisabled", "Pepe");
-        saved1.SetSettingsContainer(sc);
-        saved2.SetSettingsContainer(sc);
+        sc.Add(saved1);
+        sc.Add(saved2);
 
         saved1.Value = "Nuevo";
         Assert.That(saved1.Value, Is.EqualTo("Nuevo"));
@@ -149,7 +142,20 @@ public partial class SettingTests : Node {
         var cf = new ConfigFileWrapper(SettingsFile);
         cf.Load();
         Assert.That(cf.GetValue<string>("Section/SavedDisabled", "NOT SAVED"), Is.EqualTo("Nuevo"));
+    }
 
+    public class Test1 {
+        public SaveSetting<string> Saved1 { get; } = Setting.Create("Section/SavedDisabled", "Default");
+        public SaveSetting<bool> Saved2 { get; } = Setting.Create("Section/SavedDisabled", true);
+    }
+
+    [TestRunner.Test]
+    public void LoadInstanceTest() {
+        var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
+        var t = new Test1();
+        sc.AddFromInstanceProperties(t);
+        Assert.That(sc.Settings.Contains(t.Saved1));
+        Assert.That(sc.Settings.Contains(t.Saved1));
     }
 
 }
