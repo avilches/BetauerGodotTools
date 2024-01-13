@@ -150,15 +150,20 @@ public partial class NodeManager : Node {
             Logger.Debug("Removed {0} destroyed GodotObjects", destroyed);
         }
     }
-    
-    public Task<InputEvent> AwaitInput(Func<InputEvent, bool> predicate, float timeout = 0) {
-        TaskCompletionSource<InputEvent> promise = new();
+
+    public Task<InputEvent?> AwaitInput(Func<InputEvent, bool> predicate, float timeout = 0) {
+        return AwaitInput<InputEvent>(predicate, timeout);
+    }
+
+    public Task<T?> AwaitInput<T>(Func<T, bool> predicate, float timeout = 0) where T : InputEvent {
+        TaskCompletionSource<T?> promise = new();
         Action<InputEvent> handler = null!;
         handler = (e) => {
-            if (promise.Task.IsCompleted || !predicate(e)) return;
-            OnInput -= handler;
-            _viewport!.SetInputAsHandled();
-            promise.TrySetResult(e);
+            if (!promise.Task.IsCompleted && e is T @event && predicate(@event)) {
+                OnInput -= handler;
+                _viewport!.SetInputAsHandled();
+                promise.TrySetResult(@event);
+            }
         };
         if (timeout > 0) {
             _sceneTree!.CreateTimer(timeout).OnTimeout(() => {
