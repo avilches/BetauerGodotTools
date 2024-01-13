@@ -25,11 +25,10 @@ public class ScreenController {
     }
 
     public void Start() {
-        SceneTree.Root.SizeChanged -= Apply;
+        SceneTree.Root.SizeChanged += Apply;
     }
 
     public void Stop() {
-        
         SceneTree.Root.SizeChanged -= Apply;
     }
 
