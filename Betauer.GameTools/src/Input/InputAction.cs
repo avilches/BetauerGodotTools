@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Betauer.Application.Settings;
+using Betauer.Core;
 using Betauer.Input.Handler;
 using Betauer.Tools.Logging;
 using Godot;
@@ -41,7 +42,7 @@ public enum InputActionBehaviour {
     /// 
     /// * To force a JustPressed (no matter if the action is pressed or it isn't) call to ClearJustStates() and SimulatePress().
     /// </summary>
-    Mock,
+    Simulator,
     
     /// <summary>
     /// It uses the Godot Input singleton to handle the action (WasPressed() and WasReleased() always return false)
@@ -58,10 +59,15 @@ public partial class InputAction {
     public static readonly Logger Logger = LoggerFactory.GetLogger<InputAction>();
     public const float DefaultDeadZone = 0.5f;
     public static Builder Create(string name) => new(name);
-    public static InputAction Mock(string? name = null, string? saveAs = null) {
-        return new InputAction(name, null, InputActionBehaviour.Mock, saveAs) {
+    public static InputAction Simulator(string? name = null, string? saveAs = null) {
+        return new InputAction(name, null, InputActionBehaviour.Simulator, saveAs) {
             Enabled = true
         };
+    }
+
+    public enum AxisSignEnum {
+        Positive = 1,
+        Negative = -1,
     }
 
     // Usage
@@ -88,9 +94,19 @@ public partial class InputAction {
     public string Name { get; internal set; }
     public List<JoyButton> Buttons { get; } = new();
     public List<Key> Keys { get; } = new();
-    public int JoypadId { get; private set; } = -1;
+
+    private int _joypadId = -1;
+    public int JoypadId {
+        get => _joypadId;
+        set {
+            if (_joypadId == value) return;
+            _joypadId = value;
+            RefreshGodotInputMap();
+        }
+    }
+
     public JoyAxis Axis { get; private set; } = JoyAxis.Invalid;
-    public int AxisSign { get; private set; } = 1;
+    public AxisSignEnum AxisSign { get; private set; } = AxisSignEnum.Positive;
     public float DeadZone { get; private set; } = DefaultDeadZone;
     public MouseButton MouseButton { get; private set; } = MouseButton.None;
     public bool CommandOrCtrlAutoremap { get; private set; }
@@ -138,7 +154,7 @@ public partial class InputAction {
         SaveAs = saveAs;
 
         Handler = behaviour switch {
-            InputActionBehaviour.Mock => new MockStateHandler(this),
+            InputActionBehaviour.Simulator => new MockStateHandler(this),
             InputActionBehaviour.GodotInput => new GodotInputHandler(this, false),
             InputActionBehaviour.Extended => new GodotInputHandler(this, true),
         };
@@ -157,7 +173,7 @@ public partial class InputAction {
     
     public void CreateSaveSetting(SettingsContainer settingsContainer, string? saveAs = null) {
         if (saveAs != null) SaveAs = saveAs;
-        SaveSetting = Setting.Create(SaveAs, AsString(), true);
+        SaveSetting = Setting.Create(SaveAs, Export(), true);
         settingsContainer.Add(SaveSetting);
         Load();
     }
@@ -190,7 +206,7 @@ public partial class InputAction {
             } else if (inputEvent is InputEventJoypadMotion motion) {
                 // TODO: feature missing, not tested!!!
                 Axis = motion.Axis;
-                AxisSign = (int)motion.AxisValue;
+                AxisSign = motion.AxisValue > 0 ? AxisSignEnum.Positive : AxisSignEnum.Negative;
             } else if (inputEvent is InputEventMouseButton mouseButton) {
                 MouseButton = mouseButton.ButtonIndex;
             }
@@ -222,62 +238,50 @@ public partial class InputAction {
 
     public bool IsJoypadId(int device) => (JoypadId < 0 || JoypadId == device);
 
-    public bool HasMouseButton() {
-        return MouseButton != MouseButton.None;
-    }
+    public bool HasMouseButton() => MouseButton != MouseButton.None;
 
-    public bool HasAxis() {
-        return Axis != JoyAxis.Invalid;
-    }
+    public bool HasAxis() => Axis != JoyAxis.Invalid;
 
-    public bool HasKey(Key key) {
-        if (Keys.Count == 0) return false;
-        if (Keys.Count == 1) return Keys[0] == key;
-        for (var i = 2; i < Keys.Count; i++) if (Keys[i] == key) return true;
-        return false;
-    }
-
-    public bool HasButton(JoyButton button) {
-        if (Buttons.Count == 0) return false;
-        if (Buttons.Count == 1) return Buttons[0] == button;
-        for (var i = 2; i < Buttons.Count; i++) if (Buttons[i] == button) return true;
-        return false;
-    }
-
-    public void ResetToDefaults() {
-        if (SaveSetting == null) throw new Exception("InputAction does not have a SaveSetting");
-        Parse(SaveSetting.DefaultValue, true);
-    }
+    public bool HasKeys() => Keys.Count > 0;
     
+    public bool HasButtons() => Buttons.Count > 0;
+    
+    public bool HasKey(Key key) =>  Keys.Contains(key);
+
+    public bool HasButton(JoyButton button) => Buttons.Contains(button);
+
     public void Load() {
         if (SaveSetting == null) throw new Exception("InputAction does not have a SaveSetting");
         SaveSetting.Refresh(); // Since multiple SaveSetting could share the same SettingsContainer and same SaveAs property, we need to refresh it
-        Parse(SaveSetting.Value, true);
+        Update(u => {
+            u.ImportJoypad(SaveSetting.Value, true, true, true);
+            u.ImportKeys(SaveSetting.Value, true, true);
+            u.ImportMouse(SaveSetting.Value, true);
+        });
     }
     
     public void Save() {
         if (SaveSetting == null) throw new Exception("InputAction does not have a SaveSetting");
-        SaveSetting.Value = AsString();
+        SaveSetting.Value = Export();
         
         if (!SaveSetting.AutoSave) SaveSetting.SettingsContainer!.Save();
     }
 
     public InputAction Update(Action<Updater> updater) {
         var (backupButtons, backupKeys, backupMouse) = (Buttons.ToArray(), Keys.ToArray(), MouseButton);
-        var (axis, axisSign, backupDeadZone, joypadId) = (Axis, AxisSign, DeadZone, JoypadId);
-        var (commandOrCtrlAutoremap, ctrl, shift, alt, meta) = (CommandOrCtrl: CommandOrCtrlAutoremap, Ctrl, Shift, Alt, Meta);
+        var (axis, axisSign, backupDeadZone) = (Axis, AxisSign, DeadZone);
+        var (commandOrCtrlAutoremap, ctrl, shift, alt, meta) = (CommandOrCtrlAutoremap, Ctrl, Shift, Alt, Meta);
         try {
             updater.Invoke(_updater);
             RefreshGodotInputMap();
             OnUpdate?.Invoke();
-        } catch (Exception e) {
+        } catch (Exception) {
             _updater.SetButtons(backupButtons)
                 .SetKeys(backupKeys)
                 .SetMouse(backupMouse)
                 .SetAxis(axis)
                 .SetAxisSign(axisSign)
                 .SetDeadZone(backupDeadZone)
-                .SetJoypadId(joypadId)
                 .WithCommandOrCtrlAutoremap(commandOrCtrlAutoremap)
                 .WithCtrl(ctrl)
                 .WithShift(shift)
@@ -287,67 +291,32 @@ public partial class InputAction {
         return this;
     }
 
-    public string AsString() {
-        var export = new List<string>(Keys.Count + Buttons.Count + 1);
-        export.AddRange(Keys.Select(key => $"Key:{key}"));
-        export.AddRange(Buttons.Select(button => $"Button:{button}"));
-        if (Axis != JoyAxis.Invalid) {
-            export.Add($"Axis:{Axis}");
+    public string Export(bool includeAxisSign = false, bool includeDeadZone = false, bool includeModifiers = true) {
+        var export = new List<string>();
+        if (HasButtons()) {
+            Buttons.Where(button => button != JoyButton.Invalid)
+                .Select(button => $"Button:{button}")
+                .ForEach(export.Add);
+        }
+        if (HasAxis()) {
+            export.Add($"JoyAxis:{Axis}");
+            if (includeAxisSign) export.Add($"AxisSign:{AxisSign}");
+            if (includeDeadZone) export.Add($"DeadZone:{DeadZone.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+        }
+        if (HasKeys()) {
+            Keys.Where(key => key != Key.Unknown && key != Key.None)
+                .Select(key => $"Key:{key}")
+                .ForEach(export.Add);
+        }
+        if (HasMouseButton()) {
+            export.Add($"Mouse:{MouseButton}");
+        }
+        if (includeModifiers && (HasKeys() || HasMouseButton())) {
+            if (Alt) export.Add("Alt");
+            if (Shift) export.Add("Shift");
+            if (Ctrl) export.Add("Ctrl");
+            if (Meta) export.Add("Meta");
         }
         return string.Join(",", export);
     }
-
-    public void Parse(string input, bool reset) {
-        if (string.IsNullOrWhiteSpace(input)) return;
-        Update(updater => {
-            if (reset) updater.ClearAll();
-            input.Split(",").ToList().ForEach(ImportItem);
-        });
-    }
-
-    private void ImportItem(string item) {
-        if (!item.Contains(':')) return;
-        var parts = item.Split(":");
-        var key = parts[0].ToLower().Trim();
-        var value = parts[1].Trim();
-        if (key == "key") {
-            ImportKey(value);
-        } else if (key == "button") {
-            ImportButton(value);
-        } else if (key == "axis") {
-            ImportAxis(value);
-        }
-    }
-
-    private bool ImportKey(string value) {
-        try {
-            var key = int.TryParse(value, out _) ? (Key)value.ToInt() : Parse<Key>(value); 
-            Keys.Add(key);
-            return true;
-        } catch (Exception) {
-            return false;
-        }
-    }
-
-    private bool ImportButton(string value) {
-        try {
-            var joyButton = int.TryParse(value, out _) ? (JoyButton)value.ToInt() : Parse<JoyButton>(value); 
-            Buttons.Add(joyButton);
-            return true;
-        } catch (Exception) {
-            return false;
-        }
-    }
-
-    private bool ImportAxis(string value) {
-        try {
-            var axis = int.TryParse(value, out _) ? (JoyAxis)value.ToInt() : Parse<JoyAxis>(value); 
-            Axis = axis;
-            return true;
-        } catch (Exception) {
-            return false;
-        }
-    }
-
-    private static T Parse<T>(string key) => (T)Enum.Parse(typeof(T), key);
 }

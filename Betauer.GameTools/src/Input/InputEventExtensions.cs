@@ -72,30 +72,41 @@ public static partial class InputEventExtensions {
     
     // Joypad: buttons
     public static bool IsAnyButton(this InputEvent input, int deviceId = -1) =>
-        input is InputEventJoypadButton
+        input is InputEventJoypadButton b
         && (deviceId == -1 || input.Device == deviceId);
+
+    public static bool IsAnyButtonPressed(this InputEvent input, int deviceId = -1) =>
+        input is InputEventJoypadButton b
+        && (deviceId == -1 || input.Device == deviceId)
+        && b.Pressed;
+
+    public static bool IsAnyButtonReleased(this InputEvent input, int deviceId = -1) =>
+        input is InputEventJoypadButton b
+        && (deviceId == -1 || input.Device == deviceId)
+        && !b.Pressed;
 
     public static bool IsButton(this InputEvent input, JoyButton button, int deviceId = -1) =>
         input is InputEventJoypadButton k
         && (deviceId == -1 || input.Device == deviceId)
         && k.ButtonIndex == button;
 
+    public static bool IsButtonPressed(this InputEvent input, JoyButton button, int deviceId = -1) =>
+        input is InputEventJoypadButton b
+        && (deviceId == -1 || input.Device == deviceId)
+        && b.ButtonIndex == button
+        && b.Pressed;
+
+    public static bool IsButtonReleased(this InputEvent input, JoyButton button, int deviceId = -1) =>
+        input is InputEventJoypadButton b
+        && (deviceId == -1 || input.Device == deviceId)
+        && b.ButtonIndex == button 
+        && !b.Pressed;
+
     public static JoyButton GetButton(this InputEvent input) =>
         input is InputEventJoypadButton k ? k.ButtonIndex : JoyButton.Invalid;
 
     public static float GetButtonPressure(this InputEvent input) =>
         input is InputEventJoypadButton k ? k.Pressure : 0f;
-
-    // This include echoes
-    public static bool IsButtonPressed(this InputEvent input, JoyButton button, int deviceId = -1) =>
-        input is InputEventJoypadButton k
-        && (deviceId == -1 || input.Device == deviceId)
-        && k.ButtonIndex == button && k.Pressed;
-
-    public static bool IsButtonReleased(this InputEvent input, JoyButton button, int deviceId = -1) =>
-        input is InputEventJoypadButton k
-        && (deviceId == -1 || input.Device == deviceId)
-        && k.ButtonIndex == button && !k.Pressed;
 
     // Keys
     public static bool IsAnyKey(this InputEvent input) =>
@@ -116,15 +127,32 @@ public static partial class InputEventExtensions {
     public static string GetKeyUnicode(this InputEvent input) =>
         input is InputEventKey k ? char.ToString((char)k.Unicode) : "";
     
-    // This include echoes
-    public static bool IsKeyPressed(this InputEvent input, Key key) =>
-        input is InputEventKey k && k.Keycode == key && k.Pressed;
+    public static bool IsAnyKeyPressedOrEcho(this InputEvent input) =>
+        input is InputEventKey k 
+        && k.Pressed;
+
+    public static bool IsAnyKeyJustPressed(this InputEvent input) =>
+        input is InputEventKey k 
+        && input.IsJustPressed();
+
+    public static bool IsAnyKeyReleased(this InputEvent input) =>
+        input is InputEventKey k 
+        && input.IsReleased();
+
+    public static bool IsKeyPressedOrEcho(this InputEvent input, Key key) =>
+        input is InputEventKey k 
+        && k.Keycode == key 
+        && k.Pressed;
 
     public static bool IsKeyJustPressed(this InputEvent input, Key key) =>
-        input is InputEventKey k && k.Keycode == key && input.IsJustPressed();
+        input is InputEventKey k 
+        && k.Keycode == key 
+        && input.IsJustPressed();
 
     public static bool IsKeyReleased(this InputEvent input, Key key) =>
-        input is InputEventKey k && k.Keycode == key && input.IsReleased();
+        input is InputEventKey k 
+        && k.Keycode == key 
+        && input.IsReleased();
 
     /*
      * Mouse

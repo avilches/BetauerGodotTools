@@ -1,14 +1,13 @@
+using System;
 using Betauer.Application;
 using Betauer.Application.Lifecycle;
 using Betauer.Application.Monitor;
-using Betauer.Application.Screen;
 using Betauer.Core;
 using Betauer.DI;
 using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
 using Betauer.FSM.Async;
 using Betauer.Input;
-using Betauer.Input.Joypad;
 using Betauer.Nodes;
 using Godot;
 using Veronenger.Game.Platform.World;
@@ -101,15 +100,15 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IInjectable {
     public void PostInject() {
 #if DEBUG
         NodeManager.MainInstance.OnInput += e => {
-            if (e.IsKeyPressed(Key.Q)) {
+            if (e.IsKeyJustPressed(Key.Q)) {
                 // _settingsMenuScene.Scale -= new Vector2(0.05f, 0.05f);
                 // Engine.TimeScale -= 0.05f;
             }
-            if (e.IsKeyPressed(Key.W)) {
+            if (e.IsKeyJustPressed(Key.W)) {
                 // _settingsMenuScene.Scale = new Vector2(1, 1);
                 // Engine.TimeScale = 1;
             }
-            if (e.IsKeyPressed(Key.E)) {
+            if (e.IsKeyJustPressed(Key.E)) {
                 // Engine.TimeScale += 0.05f;
                 // _settingsMenuScene.Scale += new Vector2(0.05f, 0.05f);
             }
@@ -237,8 +236,11 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IInjectable {
     }
 
     private void ConfigureApp() {
-        UiActions.OnNewUiJoypad += (deviceId) => {
-            // Console.WriteLine("New joypad for the ui " + deviceId);
+        UiActions.OnJoypadDisconnected += () => {
+            Console.WriteLine("Joypad disconnected for the ui");
+        };
+        UiActions.OnJoypadReconnected += () => {
+            Console.WriteLine("New joypad for the ui " + UiActions.CurrentJoypad);
         };
         UiActions.SetFirstConnectedJoypad();
         ConfigureCanvasLayers();

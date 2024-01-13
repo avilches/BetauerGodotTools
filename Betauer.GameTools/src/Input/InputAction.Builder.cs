@@ -14,8 +14,7 @@ public partial class InputAction {
         private readonly ISet<JoyButton> _buttons = new HashSet<JoyButton>();
         private readonly ISet<Key> _keys = new HashSet<Key>();
         private JoyAxis _axis = JoyAxis.Invalid;
-        private int _axisSign = 0;
-        private int _joypadId = -1;
+        private AxisSignEnum _axisSign = AxisSignEnum.Positive;
         private float _deadZone = -1f;
         private MouseButton _mouseButton = MouseButton.None;
         private bool _ctrlPressed;
@@ -40,13 +39,13 @@ public partial class InputAction {
 
         public Builder NegativeAxis(JoyAxis axis) {
             _axis = axis;
-            _axisSign = -1;
+            _axisSign = AxisSignEnum.Negative;
             return this;
         }
 
         public Builder PositiveAxis(JoyAxis axis) {
             _axis = axis;
-            _axisSign = 1;
+            _axisSign = AxisSignEnum.Positive;
             return this;
         }
 
@@ -65,17 +64,7 @@ public partial class InputAction {
             return this;
         }
 
-        public Builder JoypadId(int joypadId) {
-            _joypadId = joypadId;
-            return this;
-        }
-
-        public Builder AllJoypad() {
-            _joypadId = -1;
-            return this;
-        }
-
-        public Builder Click(MouseButton mouseButton) {
+        public Builder Mouse(MouseButton mouseButton) {
             _mouseButton = mouseButton;
             return this;
         }
@@ -127,7 +116,6 @@ public partial class InputAction {
             if (_buttons.Count > 0) {
                 _buttons.ForEach(b => inputAction.Buttons.Add(b));
             }
-            inputAction.JoypadId = _joypadId;
             inputAction.Ctrl = _ctrlPressed;
             inputAction.Shift = _shiftPressed;
             inputAction.Alt = _altPressed;
@@ -135,8 +123,8 @@ public partial class InputAction {
             inputAction.CommandOrCtrlAutoremap = _commandOrCtrlAutoremap;
         }
         
-        public InputAction AsMock() {
-            var input = CreateInputAction(InputActionBehaviour.Mock);
+        public InputAction Simulator() {
+            var input = CreateInputAction(InputActionBehaviour.Simulator);
             ApplyConfig(input);
             return input;
         }

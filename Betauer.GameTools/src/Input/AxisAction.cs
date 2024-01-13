@@ -44,10 +44,8 @@ public class AxisAction {
         if (positive.Axis == JoyAxis.Invalid) throw new InvalidAxisConfigurationException($"InputAction {positive.Name} should define a valid Axis.");
         
         // Ensure sign is 1 or -1
-        if (Math.Abs(negative.AxisSign) != 1) throw new InvalidAxisConfigurationException($"InputAction {negative.Name} AxisSign should be 1 or -1. Wrong value: {negative.AxisSign}");
-        if (Math.Abs(positive.AxisSign) != 1) throw new InvalidAxisConfigurationException($"InputAction {positive.Name} AxisSign should be 1 or -1. Wrong value: {positive.AxisSign}");
         if (positive.AxisSign == negative.AxisSign) {
-            throw new InvalidAxisConfigurationException($"InputAction {negative.Name} and {positive.Name} can't have the same AxisSign {positive.AxisSign}. One must be -1 and other 1");
+            throw new InvalidAxisConfigurationException($"InputAction {negative.Name} and {positive.Name} can't have the same AxisSign {positive.AxisSign}. One must be Positive and other Negative");
         }
 
         // Swap if needed
@@ -66,16 +64,16 @@ public class AxisAction {
 
     public void CreateSaveSetting(SettingsContainer settingsContainer, string? saveAs = null) {
         if (saveAs != null) SaveAs = saveAs;
-        SaveSetting = Setting.Create(SaveAs, AsString(), true);
+        SaveSetting = Setting.Create(SaveAs, Export(), true);
         settingsContainer.Add(SaveSetting);
         Load();
     }
 
-    public string AsString() {
+    public string Export() {
         return $"Reverse:{Reverse}";
     }
 
-    public void Parse(string values, bool reset) {
+    public void Import(string values, bool reset) {
         if (reset) Reverse = false;
         values.Split(',').ForEach(value => {
             if (value.Contains(':')) {
@@ -93,17 +91,17 @@ public class AxisAction {
 
     public void ResetToDefaults() {
         if (SaveSetting == null) throw new Exception("AxisAction does not have a SaveSetting");
-        Parse(SaveSetting.DefaultValue, true);
+        Import(SaveSetting.DefaultValue, true);
     }
     
     public void Load() {
         if (SaveSetting == null) throw new Exception("AxisAction does not have a SaveSetting");
-        Parse(SaveSetting.Value, true);
+        Import(SaveSetting.Value, true);
     }
     
     public void Save() {
         if (SaveSetting == null) throw new Exception("AxisAction does not have a SaveSetting");
-        SaveSetting.Value = AsString();
+        SaveSetting.Value = Export();
         if (!SaveSetting.AutoSave) SaveSetting.SettingsContainer?.Save();
     }
     
@@ -132,8 +130,8 @@ public class AxisAction {
     }
 
     public static AxisAction Mock(JoyAxis joyAxis = JoyAxis.LeftX) {
-        var positive = InputAction.Create(null).PositiveAxis(joyAxis).AsMock();
-        var negative = InputAction.Create(null).NegativeAxis(joyAxis).AsMock();
+        var positive = InputAction.Create(null).PositiveAxis(joyAxis).Simulator();
+        var negative = InputAction.Create(null).NegativeAxis(joyAxis).Simulator();
         var axisAction = new AxisAction(null);
         axisAction.SetNegativeAndPositive(negative, positive);
         return axisAction;

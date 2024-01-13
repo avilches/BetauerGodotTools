@@ -60,7 +60,7 @@ public class PlatformPlayerActions : PlayerActionsContainer {
     public InputAction Attack { get; } = InputAction.Create("Attack")
         .SaveAs("Controls/Attack")
         .Keys(Key.C)
-        .Click(MouseButton.Left)
+        .Mouse(MouseButton.Left)
         .Buttons(JoyButton.B)
         .Build();
 

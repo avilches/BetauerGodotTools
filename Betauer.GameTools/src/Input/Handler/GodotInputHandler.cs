@@ -74,6 +74,7 @@ internal class GodotInputHandler : IHandler {
         foreach (var key in inputAction.Keys) {
             var e = new InputEventKey();
             // TODO: if (KeyboardDeviceId >= 0) e.Device = KeyboardDeviceId;
+            if (key is Key.Unknown or Key.None) continue;
             e.Keycode = key;
             AddModifiers(e);
             events.Add(e);
@@ -87,16 +88,17 @@ internal class GodotInputHandler : IHandler {
         }
         foreach (var button in inputAction.Buttons) {
             var e = new InputEventJoypadButton();
+            if (button == JoyButton.Invalid) continue;
             e.Device = inputAction.JoypadId;
             e.ButtonIndex = button;
             events.Add(e);
         }
 
-        if (inputAction.Axis != JoyAxis.Invalid && inputAction.AxisSign != 0) {
+        if (inputAction.Axis != JoyAxis.Invalid) {
             var e = new InputEventJoypadMotion();
             e.Device = inputAction.JoypadId;
             e.Axis = inputAction.Axis;
-            e.AxisValue = inputAction.AxisSign;
+            e.AxisValue = (int)inputAction.AxisSign;
             events.Add(e);
         }
         return events;
