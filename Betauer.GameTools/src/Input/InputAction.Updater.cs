@@ -150,6 +150,7 @@ public partial class InputAction {
         }
 
         public Updater AddKey(Key key) {
+            if (!_inputAction.AllowMultipleKeys) ClearKeys();
             _inputAction.Keys.Add(key);
             return this;
         }
@@ -182,6 +183,7 @@ public partial class InputAction {
         }
 
         public Updater AddButton(JoyButton button) {
+            if (!_inputAction.AllowMultipleButtons) ClearButtons();
             _inputAction.Buttons.Add(button);
             return this;
         }
@@ -200,17 +202,15 @@ public partial class InputAction {
         /// If error, the key is not added. So, check if the Keys list is empty.
         /// </summary>
         /// <param name="input"></param>
-        /// <param name="multipleKeys">true if you want more than key. false if you only want one</param>
-        /// <param name="includeModifiers"></param>
         /// <returns></returns>
-        public Updater ImportKeys(string input, bool multipleKeys, bool includeModifiers = false) {
+        public Updater ImportKeys(string input) {
             ClearKeys();
             Parser(input, (key, value) => {
-                if (key != "key" || value.Length == 0 || (!multipleKeys && _inputAction.HasKeys())) return;
+                if (key != "key" || value.Length == 0 || (!_inputAction.AllowMultipleKeys && _inputAction.HasKeys())) return;
                 var keyValue = ParseEnum(value, Key.Unknown);
                 if (keyValue != Key.Unknown) AddKey(keyValue);
             });
-            if (includeModifiers) ImportModifiers(input);
+            if (_inputAction.IncludeModifiers) ImportModifiers(input);
             return this;
         }
 
@@ -218,19 +218,19 @@ public partial class InputAction {
         /// If error, then the mouse is set to MouseButton.None
         /// </summary>
         /// <param name="input"></param>
-        /// <param name="includeModifiers"></param>
         /// <returns></returns>
-        public Updater ImportMouse(string input, bool includeModifiers = false) {
+        public Updater ImportMouse(string input) {
             ClearMouse();
             Parser(input, (key, value) => {
                 if (key != "mouse" || value.Length == 0) return;
                 _inputAction.MouseButton = ParseEnum(value, MouseButton.None);
             });
-            if (includeModifiers) ImportModifiers(input);
+            if (_inputAction.IncludeModifiers) ImportModifiers(input);
             return this;
         }
 
         public Updater ImportModifiers(string input) {
+            if (!_inputAction.IncludeModifiers) return this;
             ClearModifiers();
             Parser(input, (key, value) => {
                 if (key == "ctrl") {
@@ -253,28 +253,25 @@ public partial class InputAction {
         /// A wrong deadZone will be ignored
         /// </summary>
         /// <param name="input"></param>
-        /// <param name="multipleButtons">true if you want more than button. false if you only want one</param>
-        /// <param name="includeAxisSign"></param>
-        /// <param name="includeDeadZone"></param>
         /// <returns></returns>
-        public Updater ImportJoypad(string input, bool multipleButtons = false, bool includeAxisSign = false, bool includeDeadZone = false) {
+        public Updater ImportJoypad(string input) {
             ClearButtons();
             ClearAxis();
             Parser(input, (key, value) => {
                 if (value.Length == 0) return;
                 if (key == "button") {
-                    if (!multipleButtons && _inputAction.HasButtons()) return;
+                    if (!_inputAction.AllowMultipleButtons && _inputAction.HasButtons()) return;
                     var joyButtonValue = ParseEnum(value, JoyButton.Invalid);
                     if (joyButtonValue >= 0 && joyButtonValue <= JoyButton.Max) AddButtons(joyButtonValue);
                 } else if (key == "joyaxis") {
                     var axisValue = ParseEnum(value, JoyAxis.Invalid);
                     _inputAction.Axis = axisValue;
-                } else if (includeAxisSign && key == "axissign") {
+                } else if (_inputAction.IncludeAxisSign && key == "axissign") {
                     try {
                         _inputAction.AxisSign = Enum.Parse<AxisSignEnum>(value, true);
                     } catch (Exception) {
                     }
-                } else if (includeDeadZone && key == "deadzone") {
+                } else if (_inputAction.IncludeDeadZone && key == "deadzone") {
                     if (float.TryParse(value, System.Globalization.CultureInfo.InvariantCulture, out var deadZoneValue)) {
                         if (deadZoneValue >= 0f && deadZoneValue <= 1f) _inputAction.DeadZone = deadZoneValue;
                     }

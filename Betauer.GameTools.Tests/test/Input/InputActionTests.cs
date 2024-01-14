@@ -179,17 +179,18 @@ public class InputActionTests {
         var reg = InputAction.Create("N").Build();
         Assert.That(reg.Buttons, Is.Empty);
 
-        reg.Update(u => u.ImportJoypad("a:2,,Button:asdas,Button:230", true));
+        reg.Update(u => u.ImportJoypad("a:2,,Button:asdas,Button:230"));
         Assert.That(reg.Buttons, Is.Empty);
         // Assert.That(reg.Export(true, true, true), Is.EqualTo(""));
 
-        reg.Update(u => u.ImportJoypad("a:2,,Button:A,BUTTON:1", true));
+        reg.AllowMultipleButtons = true;
+        reg.Update(u => u.ImportJoypad("a:2,,Button:A,BUTTON:1"));
         Assert.That(reg.HasButton(JoyButton.A));
         Assert.That(reg.HasButton(JoyButton.B));
         // Assert.That(reg.Export(true, true, true), Is.EqualTo("Button:A,Button:B"));
 
-        // No multiple
-        reg.Update(u => u.ImportJoypad("a:2,,Button:A,BUTTON:1", false));
+        reg.AllowMultipleButtons = false;
+        reg.Update(u => u.ImportJoypad("a:2,,Button:A,BUTTON:1"));
         Assert.That(reg.HasButton(JoyButton.A));
         Assert.That(!reg.HasButton(JoyButton.B));
         // Assert.That(reg.Export(true, true, true), Is.EqualTo("Button:A"));
@@ -201,62 +202,68 @@ public class InputActionTests {
         Assert.That(reg.Axis, Is.EqualTo(JoyAxis.Invalid));
         Assert.That(reg.DeadZone, Is.EqualTo(InputAction.DefaultDeadZone));
 
-        reg.Update(u => u.ImportJoypad("a:2,,Axis:asdas", true, true, true));
+        reg.AllowMultipleButtons = true;
+        reg.Update(u => u.ImportJoypad("a:2,,Axis:asdas"));
         Assert.That(reg.Axis, Is.EqualTo(JoyAxis.Invalid));
         Assert.That(reg.DeadZone, Is.EqualTo(InputAction.DefaultDeadZone));
 
-        reg.Update(u => u.ImportJoypad("a:2,,Axis:230", true, true, true));
+        reg.Update(u => u.ImportJoypad("a:2,,Axis:230"));
         Assert.That(reg.Axis, Is.EqualTo(JoyAxis.Invalid));
         Assert.That(reg.DeadZone, Is.EqualTo(InputAction.DefaultDeadZone));
 
-        reg.Update(u => u.ImportJoypad("a:2,,Button:A,Joyaxis:RIGHTX", true, true, true));
+        reg.Update(u => u.ImportJoypad("a:2,,Button:A,Joyaxis:RIGHTX"));
         Assert.That(reg.Axis, Is.EqualTo(JoyAxis.RightX));
         Assert.That(reg.DeadZone, Is.EqualTo(InputAction.DefaultDeadZone));
+
+        reg.IncludeDeadZone = true;
+        reg.IncludeAxisSign = true;
 
         // Deadzone values
-        reg.Update(u => u.ImportJoypad("a:2,,Button:A,JoyaxIS:RIGHTX,deadzone:H", true, true, true));
+        reg.Update(u => u.ImportJoypad("a:2,,Button:A,JoyaxIS:RIGHTX,deadzone:H"));
         Assert.That(reg.Axis, Is.EqualTo(JoyAxis.RightX));
         Assert.That(reg.DeadZone, Is.EqualTo(InputAction.DefaultDeadZone));
 
-        reg.Update(u => u.ImportJoypad("a:2,,Button:A,Joyaxis:RIGHTX,deadzone:-1", true, true, true));
+        reg.Update(u => u.ImportJoypad("a:2,,Button:A,Joyaxis:RIGHTX,deadzone:-1"));
         Assert.That(reg.Axis, Is.EqualTo(JoyAxis.RightX));
         Assert.That(reg.DeadZone, Is.EqualTo(InputAction.DefaultDeadZone));
 
-        reg.Update(u => u.ImportJoypad("a:2,,Button:A,Joyaxis:RIGHTX,deadzone:-0.1", true, true, true));
+        reg.Update(u => u.ImportJoypad("a:2,,Button:A,Joyaxis:RIGHTX,deadzone:-0.1"));
         Assert.That(reg.Axis, Is.EqualTo(JoyAxis.RightX));
         Assert.That(reg.DeadZone, Is.EqualTo(InputAction.DefaultDeadZone));
 
-        reg.Update(u => u.ImportJoypad("a:2,,Button:A,Joyaxis:RIGHTX,deadzone:1.1", true, true, true));
+        reg.Update(u => u.ImportJoypad("a:2,,Button:A,Joyaxis:RIGHTX,deadzone:1.1"));
         Assert.That(reg.Axis, Is.EqualTo(JoyAxis.RightX));
         Assert.That(reg.DeadZone, Is.EqualTo(InputAction.DefaultDeadZone));
 
-        reg.Update(u => u.ImportJoypad("a:2,,Button:A,Joyaxis:RIGHTX,DEADzone:0.2", true, true, true));
+        reg.Update(u => u.ImportJoypad("a:2,,Button:A,Joyaxis:RIGHTX,DEADzone:0.2"));
         Assert.That(reg.Axis, Is.EqualTo(JoyAxis.RightX));
         Assert.That(reg.DeadZone, Is.EqualTo(0.2f));
 
-        reg.Update(u => u.ImportJoypad("a:2,,Button:A,Joyaxis:RIGHTX,axisSIGN:POSITIVE", true, true, true));
+        reg.Update(u => u.ImportJoypad("a:2,,Button:A,Joyaxis:RIGHTX,axisSIGN:POSITIVE"));
         Assert.That(reg.Axis, Is.EqualTo(JoyAxis.RightX));
         Assert.That(reg.DeadZone, Is.EqualTo(0.2f));
         Assert.That(reg.AxisSign, Is.EqualTo(InputAction.AxisSignEnum.Positive));
 
-        reg.Update(u => u.ImportJoypad("a:2,,Button:A,axisSIGN:NEGATIVE", true, true, true));
+        reg.Update(u => u.ImportJoypad("a:2,,Button:A,axisSIGN:NEGATIVE"));
         Assert.That(reg.Axis, Is.EqualTo(JoyAxis.Invalid));
         Assert.That(reg.DeadZone, Is.EqualTo(0.2f));
         Assert.That(reg.AxisSign, Is.EqualTo(InputAction.AxisSignEnum.Negative));
 
-        reg.Update(u => u.ImportJoypad("a:2,,Joyaxis:RIGHTX,axisSIGN:Positive", true, true, true));
+        reg.Update(u => u.ImportJoypad("a:2,,Joyaxis:RIGHTX,axisSIGN:Positive"));
         Assert.That(reg.Axis, Is.EqualTo(JoyAxis.RightX));
         Assert.That(reg.DeadZone, Is.EqualTo(0.2f));
         Assert.That(reg.AxisSign, Is.EqualTo(InputAction.AxisSignEnum.Positive));
 
         // In case of error, sign remains with its old value
-        reg.Update(u => u.ImportJoypad("a:2,Joyaxis:RIGHTX,axisSIGN:1", true, true, true));
+        reg.Update(u => u.ImportJoypad("a:2,Joyaxis:RIGHTX,axisSIGN:1"));
         Assert.That(reg.Axis, Is.EqualTo(JoyAxis.RightX));
         Assert.That(reg.DeadZone, Is.EqualTo(0.2f));
         Assert.That(reg.AxisSign, Is.EqualTo(InputAction.AxisSignEnum.Positive));
 
+        reg.IncludeDeadZone = false;
+        reg.IncludeAxisSign = false;
         // Ignore deadzone and sign if false
-        reg.Update(u => u.ImportJoypad("a:2,Joyaxis:RIGHTX,axisSIGN:Negative,DEADzone:0.5", true, false, false));
+        reg.Update(u => u.ImportJoypad("a:2,Joyaxis:RIGHTX,axisSIGN:Negative,DEADzone:0.5"));
         Assert.That(reg.Axis, Is.EqualTo(JoyAxis.RightX));
         Assert.That(reg.DeadZone, Is.EqualTo(0.2f));
         Assert.That(reg.AxisSign, Is.EqualTo(InputAction.AxisSignEnum.Positive));
@@ -267,33 +274,37 @@ public class InputActionTests {
     public void ImportKeysTest() {
         var reg = InputAction.Create("N").Build();
 
-        reg.Update(u => u.ImportKeys("a:2,,Key:asdas,Key:2", true, true));
-        Assert.That(reg.Keys, Is.Empty);
-        // Assert.That(reg.Export(true, true, true), Is.EqualTo(""));
+        reg.AllowMultipleKeys = true;
+        reg.IncludeModifiers = true;
 
-        reg.Update(u => u.ImportKeys("a:2,,KEY:A,Key:76", true, true));
+        reg.Update(u => u.ImportKeys("a:2,,Key:asdas,Key:2"));
+        Assert.That(reg.Keys, Is.Empty);
+        // Assert.That(reg.Export(true), Is.EqualTo(""));
+
+        reg.Update(u => u.ImportKeys("a:2,,KEY:A,Key:76"));
         Assert.That(reg.HasKey(Key.A));
         Assert.That(reg.HasKey(Key.L));
-        // Assert.That(reg.Export(true, true, true), Is.EqualTo("Key:A,Key:L"));
+        // Assert.That(reg.Export(true), Is.EqualTo("Key:A,Key:L"));
 
-        // No multiple
-        reg.Update(u => u.ImportKeys("a:2,,key:A,key:76", false, true));
+        reg.AllowMultipleKeys = false;
+        reg.Update(u => u.ImportKeys("a:2,,key:A,key:76"));
         Assert.That(reg.HasKey(Key.A));
         Assert.That(!reg.HasKey(Key.L));
-        // Assert.That(reg.Export(true, true, true), Is.EqualTo("Key:A"));
+        // Assert.That(reg.Export(true), Is.EqualTo("Key:A"));
 
         reg.Update(u => {
             u.ClearModifiers();
-            u.ImportKeys("a:2,,ctrl,alt,meta,shift", true, true);
+            u.ImportKeys("a:2,,ctrl,alt,meta,shift");
         });
         Assert.That(reg.Ctrl, Is.True);
         Assert.That(reg.Alt, Is.True);
         Assert.That(reg.Meta, Is.True);
         Assert.That(reg.Shift, Is.True);
 
+        reg.IncludeModifiers = false;
         reg.Update(u => {
             u.ClearModifiers();
-            u.ImportKeys("a:2,,ctrl,alt,meta,shift", true, false);
+            u.ImportKeys("a:2,,ctrl,alt,meta,shift");
         });
         Assert.That(reg.Ctrl, Is.False);
         Assert.That(reg.Alt, Is.False);
@@ -306,30 +317,33 @@ public class InputActionTests {
         var reg = InputAction.Create("N").Build();
         Assert.That(reg.MouseButton == MouseButton.None);
         
-        reg.Update(u => u.ImportMouse("MOUSE:LEFT", true));
+        reg.IncludeModifiers = true;
+        reg.Update(u => u.ImportMouse("MOUSE:LEFT"));
         Assert.That(reg.MouseButton == MouseButton.Left);
         
-        reg.Update(u => u.ImportMouse("mouse:right", true));
+        reg.Update(u => u.ImportMouse("mouse:right"));
         Assert.That(reg.MouseButton == MouseButton.Right);
         
-        reg.Update(u => u.ImportMouse("mouse:xx", true));
+        reg.Update(u => u.ImportMouse("mouse:xx"));
         Assert.That(reg.MouseButton == MouseButton.None);
         
-        reg.Update(u => u.ImportMouse("mouse:3", true));
+        reg.Update(u => u.ImportMouse("mouse:3"));
         Assert.That(reg.MouseButton == MouseButton.Middle);
 
+        reg.IncludeModifiers = false;
         reg.Update(u => {
             u.ClearModifiers();
-            u.ImportMouse("a:2,,ctrl,alt,meta,shift", false);
+            u.ImportMouse("a:2,,ctrl,alt,meta,shift");
         });
         Assert.That(reg.Ctrl, Is.False);
         Assert.That(reg.Alt, Is.False);
         Assert.That(reg.Meta, Is.False);
         Assert.That(reg.Shift, Is.False);
 
+        reg.IncludeModifiers = true;
         reg.Update(u => {
             u.ClearModifiers();
-            u.ImportMouse("a:2,,ctrl,alt,meta,shift", true);
+            u.ImportMouse("a:2,,ctrl,alt,meta,shift");
         });
         Assert.That(reg.Ctrl, Is.True);
         Assert.That(reg.Alt, Is.True);
@@ -345,8 +359,9 @@ public class InputActionTests {
         Assert.That(reg.Meta, Is.False);
         Assert.That(reg.Shift, Is.False);
 
+        reg.IncludeModifiers = true;
+
         reg.Update(u => {
-            u.ClearModifiers();
             u.ImportModifiers("a:2,,ctrl,alt,meta,shift");
         });
         Assert.That(reg.Ctrl, Is.True);
@@ -363,13 +378,22 @@ public class InputActionTests {
         Assert.That(reg.Shift, Is.False);
 
         reg.Update(u => {
-            u.ClearModifiers();
             u.ImportModifiers("a:2,,ctrl:truE,alt:TRUE,meta:False,shift:falsE");
         });
         Assert.That(reg.Ctrl, Is.True);
         Assert.That(reg.Alt, Is.True);
         Assert.That(reg.Meta, Is.False);
         Assert.That(reg.Shift, Is.False);
+        
+        reg.IncludeModifiers = false;
+        reg.Update(u => {
+            u.ImportModifiers("a:2,,ctrl,alt,meta,shift");
+        });
+        Assert.That(reg.Ctrl, Is.True);
+        Assert.That(reg.Alt, Is.True);
+        Assert.That(reg.Meta, Is.False);
+        Assert.That(reg.Shift, Is.False);
+
     }
     
     [TestRunner.Test]
@@ -383,40 +407,71 @@ public class InputActionTests {
     }
 
     [TestRunner.Test]
-    public void InputActionExportImport() {
-
+    public void LateralExportImport() {
         Assert.That(AxisAction.Create("Lateral").ReverseAxis(true).Build().Export(), Is.EqualTo("Reverse:True"));
         Assert.That(AxisAction.Create("Lateral").ReverseAxis(false).Build().Export(), Is.EqualTo("Reverse:False"));
+    }
 
-        Assert.That(InputAction.Create("N").Simulator().Export(false, false, false), Is.EqualTo(""));
-        Assert.That(InputAction.Create("N").Simulator().Export(true, true, true), Is.EqualTo(""));
+    [TestRunner.Test]
+    public void InputActionExportImport() {
+        Assert.That(InputAction.Create("N").Simulator().Export(), Is.EqualTo(""));
 
-        var reg = InputAction.Create("N")
+        var complete = InputAction.Create("N")
             .Keys(Key.A)
             .Keys(Key.B)
             .Mouse(MouseButton.Left)
             .Buttons(JoyButton.A, JoyButton.B)
-            .NegativeAxis(JoyAxis.LeftX)
-            .DeadZone(0.2f)
+            .NegativeAxis(JoyAxis.LeftX, true)
+            .DeadZone(0.2f, true)
             .Ctrl()
             .Meta()
             .Shift()
             .SaveAs("Setting/N")
-            .Simulator();
+            .Build(true);
 
-        Assert.That(reg.Export(false, false, false), Is.EqualTo("Button:A,Button:B,JoyAxis:LeftX,Key:A,Key:B,Mouse:Left"));
-        Assert.That(reg.Export(true, true, true), Is.EqualTo("Button:A,Button:B,JoyAxis:LeftX,AxisSign:Negative,DeadZone:0.2,Key:A,Key:B,Mouse:Left,Shift,Ctrl,Meta"));
+        
+        Assert.That(complete.Export(), Is.EqualTo("Button:A,Button:B,JoyAxis:LeftX,AxisSign:Negative,DeadZone:0.2,Key:A,Key:B,Mouse:Left,Shift,Ctrl,Meta"));
 
-        var regEmpty = InputAction.Create("N").Build();
-        regEmpty.Update(u => {
-            u.ImportKeys(reg.Export(true, true, true), true, true);
-            u.ImportMouse(reg.Export(true, true, true), true);
-            u.ImportJoypad(reg.Export(true, true, true), true, true, true);
+        var imported = InputAction.Create("N").Build();
+        imported.IncludeAxisSign = true;
+        imported.IncludeDeadZone = true;
+        imported.IncludeModifiers = true;
+        imported.Update(u => {
+            u.ImportKeys(complete.Export());
+            u.ImportMouse(complete.Export());
+            u.ImportJoypad(complete.Export());
         });
 
-        Assert.That(regEmpty.Export(false, false, false), Is.EqualTo(reg.Export(false, false, false)));
-        Assert.That(regEmpty.Export(true, true, true), Is.EqualTo(reg.Export(true, true, true)));
+        Assert.That(imported.Export(), Is.EqualTo(complete.Export()));
         
+        var imported2 = InputAction.Create("N").Build();
+        imported2.IncludeAxisSign = false;
+        imported2.IncludeDeadZone = false;
+        imported2.IncludeModifiers = false;
+        imported2.Update(u => {
+            u.ImportKeys(complete.Export());
+            u.ImportMouse(complete.Export());
+            u.ImportJoypad(complete.Export());
+        });
+
+        Assert.That(imported2.Export(), Is.EqualTo("Button:A,Button:B,JoyAxis:LeftX,Key:A,Key:B,Mouse:Left"));
+        imported2.AllowMultipleButtons = false;
+        imported2.AllowMultipleKeys = false;
+        Assert.That(imported2.Export(), Is.EqualTo("Button:A,JoyAxis:LeftX,Key:A,Mouse:Left"));
+
+        var imported3 = InputAction.Create("N").Build();
+        imported3.IncludeAxisSign = false;
+        imported3.IncludeDeadZone = false;
+        imported3.IncludeModifiers = false;
+        imported3.AllowMultipleButtons = false;
+        imported3.AllowMultipleKeys = false;
+        imported3.Update(u => {
+            u.ImportKeys(complete.Export());
+            u.ImportMouse(complete.Export());
+            u.ImportJoypad(complete.Export());
+        });
+
+        Assert.That(imported3.Export(), Is.EqualTo("Button:A,JoyAxis:LeftX,Key:A,Mouse:Left"));
     }
 
     [TestRunner.Test]

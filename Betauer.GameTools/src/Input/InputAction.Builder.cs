@@ -22,6 +22,10 @@ public partial class InputAction {
         private bool _altPressed;
         private bool _metaPressed;
         private bool _commandOrCtrlAutoremap;
+        private bool _includeImportExportDeadzone = false;
+        private bool _includeImportExportAxisSign = false;
+        private bool _allowMultipleButtons = true;
+        private bool _allowMultipleKeys = true;
                       
         internal Builder(string name) {
             _name = name;
@@ -32,20 +36,23 @@ public partial class InputAction {
             return this;
         }
 
-        public Builder DeadZone(float deadZone) {
+        public Builder DeadZone(float deadZone, bool includeImportExport = false) {
             _deadZone = deadZone;
+            _includeImportExportDeadzone = includeImportExport;
             return this;
         }
 
-        public Builder NegativeAxis(JoyAxis axis) {
+        public Builder NegativeAxis(JoyAxis axis, bool includeImportExport = false) {
             _axis = axis;
             _axisSign = AxisSignEnum.Negative;
+            _includeImportExportAxisSign = includeImportExport;
             return this;
         }
 
-        public Builder PositiveAxis(JoyAxis axis) {
+        public Builder PositiveAxis(JoyAxis axis, bool includeImportExport = false) {
             _axis = axis;
             _axisSign = AxisSignEnum.Positive;
+            _includeImportExportAxisSign = includeImportExport;
             return this;
         }
 
@@ -54,12 +61,28 @@ public partial class InputAction {
             return this;
         }
 
-        public Builder  Keys(params Key[] keys) {
+        public Builder Key(Key key, bool allowMultipleKeys = true) {
+            _allowMultipleKeys = allowMultipleKeys;
+            if (!allowMultipleKeys) _keys.Clear();
+            _keys.Add(key);
+            return this;
+        }
+
+        public Builder Keys(params Key[] keys) {
+            _allowMultipleKeys = true;
             keys.ForEach(key => _keys.Add(key));
             return this;
         }
 
+        public Builder Button(JoyButton button, bool allowMultipleButtons = true) {
+            _allowMultipleButtons = allowMultipleButtons;
+            if (!allowMultipleButtons) _buttons.Clear();
+            _buttons.Add(button);
+            return this;
+        }
+
         public Builder Buttons(params JoyButton[] buttons) {
+            _allowMultipleButtons = true;
             buttons.ForEach(button => _buttons.Add(button));
             return this;
         }
@@ -129,9 +152,14 @@ public partial class InputAction {
             return input;
         }
 
-        public InputAction Build(bool addWasPressed = false) {
+        public InputAction Build(bool includeModifiers = true, bool addWasPressed = false) {
             var input = CreateInputAction(addWasPressed ? InputActionBehaviour.Extended : InputActionBehaviour.GodotInput);
             ApplyConfig(input);
+            input.IncludeModifiers = includeModifiers;
+            input.IncludeDeadZone = _includeImportExportDeadzone;
+            input.IncludeAxisSign = _includeImportExportAxisSign;
+            input.AllowMultipleKeys = _allowMultipleKeys;
+            input.AllowMultipleButtons = _allowMultipleButtons;
             return input;
         }
 

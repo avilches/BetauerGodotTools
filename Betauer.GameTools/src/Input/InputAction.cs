@@ -90,21 +90,10 @@ public partial class InputAction {
     public bool IsEventJustPressed(InputEvent e) => IsEvent(e) && e.IsJustPressed();
     public bool IsEventReleased(InputEvent e) => IsEvent(e) && e.IsReleased();
 
-    // Configuration
+    // Updateable Input configuration 
     public string Name { get; internal set; }
     public List<JoyButton> Buttons { get; } = new();
     public List<Key> Keys { get; } = new();
-
-    private int _joypadId = -1;
-    public int JoypadId {
-        get => _joypadId;
-        set {
-            if (_joypadId == value) return;
-            _joypadId = value;
-            RefreshGodotInputMap();
-        }
-    }
-
     public JoyAxis Axis { get; private set; } = JoyAxis.Invalid;
     public AxisSignEnum AxisSign { get; private set; } = AxisSignEnum.Positive;
     public float DeadZone { get; private set; } = DefaultDeadZone;
@@ -115,11 +104,48 @@ public partial class InputAction {
     public bool Alt { get; private set; }
     public bool Meta { get; private set; }
     public string? AxisName { get; internal set; }
+
+    // Joypad
+    private int _joypadId = -1;
+    public int JoypadId {
+        get => _joypadId;
+        set {
+            if (_joypadId == value) return;
+            _joypadId = value;
+            RefreshGodotInputMap();
+        }
+    }
+
     public InputActionBehaviour Behaviour { get; }
     public bool Enabled { get; private set; } = false;
-
     public AxisAction? AxisAction { get; internal set; }
 
+    // Needed for Load() and Save()
+    private bool _allowMultipleButtons = true;
+    public bool AllowMultipleButtons {
+        get => _allowMultipleButtons;
+        set {
+            _allowMultipleButtons = value;
+            if (!_allowMultipleButtons && Buttons.Count > 1) {
+                Buttons.RemoveRange(1, Buttons.Count - 1);
+            }
+        }
+    }
+
+    private bool _allowMultipleKeys = true;
+    public bool AllowMultipleKeys {
+        get => _allowMultipleKeys;
+        set {
+            _allowMultipleKeys = value;
+            if (!_allowMultipleKeys && Keys.Count > 1) {
+                Keys.RemoveRange(1, Keys.Count - 1);
+            }
+        }
+    }
+
+    public bool IncludeAxisSign { get; set; } = false;
+    public bool IncludeDeadZone { get; set; } = false;
+    public bool IncludeModifiers { get; set; } = true;
     public string? SaveAs { get; private set; }
     private SaveSetting<string>? _saveSetting;
     public SaveSetting<string>? SaveSetting {
@@ -170,7 +196,7 @@ public partial class InputAction {
         Name = newName;
         RefreshGodotInputMap();
     }
-    
+
     public void CreateSaveSetting(SettingsContainer settingsContainer, string? saveAs = null) {
         if (saveAs != null) SaveAs = saveAs;
         SaveSetting = Setting.Create(SaveAs, Export(), true);
@@ -254,12 +280,12 @@ public partial class InputAction {
         if (SaveSetting == null) throw new Exception("InputAction does not have a SaveSetting");
         SaveSetting.Refresh(); // Since multiple SaveSetting could share the same SettingsContainer and same SaveAs property, we need to refresh it
         Update(u => {
-            u.ImportJoypad(SaveSetting.Value, true, true, true);
-            u.ImportKeys(SaveSetting.Value, true, true);
-            u.ImportMouse(SaveSetting.Value, true);
+            u.ImportJoypad(SaveSetting.Value);
+            u.ImportKeys(SaveSetting.Value);
+            u.ImportMouse(SaveSetting.Value);
         });
     }
-    
+
     public void Save() {
         if (SaveSetting == null) throw new Exception("InputAction does not have a SaveSetting");
         SaveSetting.Value = Export();
@@ -291,7 +317,7 @@ public partial class InputAction {
         return this;
     }
 
-    public string Export(bool includeAxisSign = false, bool includeDeadZone = false, bool includeModifiers = true) {
+    public string Export() {
         var export = new List<string>();
         if (HasButtons()) {
             Buttons.Where(button => button != JoyButton.Invalid)
@@ -300,8 +326,8 @@ public partial class InputAction {
         }
         if (HasAxis()) {
             export.Add($"JoyAxis:{Axis}");
-            if (includeAxisSign) export.Add($"AxisSign:{AxisSign}");
-            if (includeDeadZone) export.Add($"DeadZone:{DeadZone.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+            if (IncludeAxisSign) export.Add($"AxisSign:{AxisSign}");
+            if (IncludeDeadZone) export.Add($"DeadZone:{DeadZone.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
         }
         if (HasKeys()) {
             Keys.Where(key => key != Key.Unknown && key != Key.None)
@@ -311,7 +337,7 @@ public partial class InputAction {
         if (HasMouseButton()) {
             export.Add($"Mouse:{MouseButton}");
         }
-        if (includeModifiers && (HasKeys() || HasMouseButton())) {
+        if (IncludeModifiers && (HasKeys() || HasMouseButton())) {
             if (Alt) export.Add("Alt");
             if (Shift) export.Add("Shift");
             if (Ctrl) export.Add("Ctrl");
