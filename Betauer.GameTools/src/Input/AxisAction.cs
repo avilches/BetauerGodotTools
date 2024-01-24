@@ -1,5 +1,4 @@
 using System;
-using Betauer.Application.Settings;
 using Betauer.Core;
 using Godot;
 
@@ -16,15 +15,7 @@ public class AxisAction {
     public InputAction Negative { get; private set; }
     public InputAction Positive { get; private set; }
 
-    public string? SaveAs { get; private set; }
-    private SaveSetting<string>? _saveSetting;
-    public SaveSetting<string>? SaveSetting {
-        get => _saveSetting;
-        set {
-            _saveSetting = value;
-            SaveAs = _saveSetting.SaveAs;
-        }
-    }
+    public string? SaveAs { get; }
 
     public bool IsEvent(InputEvent inputEvent) => inputEvent is InputEventJoypadMotion motion && motion.Axis == Axis;
     public void Disable() => Enable(false);
@@ -62,13 +53,6 @@ public class AxisAction {
         Negative.AxisName = Name;
     }
 
-    public void CreateSaveSetting(SettingsContainer settingsContainer, string? saveAs = null) {
-        if (saveAs != null) SaveAs = saveAs;
-        SaveSetting = Setting.Create(SaveAs, Export(), true);
-        settingsContainer.Add(SaveSetting);
-        Load();
-    }
-
     public string Export() {
         return $"Reverse:{Reverse}";
     }
@@ -89,22 +73,6 @@ public class AxisAction {
         });
     }
 
-    public void ResetToDefaults() {
-        if (SaveSetting == null) throw new Exception("AxisAction does not have a SaveSetting");
-        Import(SaveSetting.DefaultValue, true);
-    }
-    
-    public void Load() {
-        if (SaveSetting == null) throw new Exception("AxisAction does not have a SaveSetting");
-        Import(SaveSetting.Value, true);
-    }
-    
-    public void Save() {
-        if (SaveSetting == null) throw new Exception("AxisAction does not have a SaveSetting");
-        SaveSetting.Value = Export();
-        if (!SaveSetting.AutoSave) SaveSetting.SettingsContainer?.Save();
-    }
-    
     public void SimulatePress(float strength) {
         if (strength == 0f) {
             if (Strength != 0) SimulateRelease();
