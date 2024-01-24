@@ -63,18 +63,18 @@ internal class GodotInputHandler : IHandler {
             InputMap.EraseAction(stringName);
         }
         if (inputAction.Enabled) {
-            InputAction.Logger.Info("Adding action: {0} Joypad:{1}", inputAction.Name, inputAction.JoypadId);
             InputMap.AddAction(stringName, inputAction.DeadZone);
             CreateInputEvents(inputAction).ForEach(e => InputMap.ActionAddEvent(stringName, e));
+            InputAction.Logger.Info("Adding action: {0} J:{1} {2}", inputAction.Name, inputAction.JoypadId, inputAction.Export());
         }
     }
 
     private List<InputEvent> CreateInputEvents(InputAction inputAction) {
         List<InputEvent> events = new List<InputEvent>(inputAction.Keys.Count + inputAction.Buttons.Count + 1);
         foreach (var key in inputAction.Keys) {
+            if (key is Key.Unknown or Key.None) continue;
             var e = new InputEventKey();
             // TODO: if (KeyboardDeviceId >= 0) e.Device = KeyboardDeviceId;
-            if (key is Key.Unknown or Key.None) continue;
             e.Keycode = key;
             AddModifiers(e);
             events.Add(e);
@@ -87,13 +87,12 @@ internal class GodotInputHandler : IHandler {
             events.Add(e);
         }
         foreach (var button in inputAction.Buttons) {
-            var e = new InputEventJoypadButton();
             if (button == JoyButton.Invalid) continue;
+            var e = new InputEventJoypadButton();
             e.Device = inputAction.JoypadId;
             e.ButtonIndex = button;
             events.Add(e);
         }
-
         if (inputAction.Axis != JoyAxis.Invalid) {
             var e = new InputEventJoypadMotion();
             e.Device = inputAction.JoypadId;
