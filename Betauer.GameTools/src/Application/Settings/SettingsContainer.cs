@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Betauer.Core;
@@ -6,10 +7,10 @@ using Godot;
 namespace Betauer.Application.Settings; 
 
 public class SettingsContainer {
-
     private ConfigFileWrapper _configFileWrapper;
 
     public readonly List<SaveSetting> Settings = new();
+
     public ConfigFileWrapper ConfigFileWrapper {
         get => _configFileWrapper;
         set {
@@ -40,10 +41,16 @@ public class SettingsContainer {
             .Where(i => i != null)
             .ForEach(Add);
     }
-
+    
+    public SaveSetting? Find(string? saveAs) {
+        return saveAs == null ? null : Settings.Find(setting => setting.SaveAs == saveAs);
+    }
 
     public void Add(SaveSetting saveSetting) {
-        if (Settings.Contains(saveSetting)) return; // avoid duplicates
+        var duplicated = Settings.Find(setting => setting.SaveAs == saveSetting.SaveAs);
+        if (duplicated != null) {
+            throw new Exception($"Can't setting: {saveSetting.SaveAs}. There is already a setting with the same name.");
+        }
         Settings.Add(saveSetting);
         saveSetting.SettingsContainer = this;
     }
