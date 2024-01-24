@@ -10,6 +10,7 @@ using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
 using Betauer.Input;
 using Godot;
+using Veronenger.Game.Platform;
 using Veronenger.Game.Platform.Character.InputActions;
 using Veronenger.Game.RTS.HUD;
 using Veronenger.Game.UI;
@@ -28,7 +29,6 @@ public partial class RtsGameView : Control, IInjectable, IGameView {
 	[Inject] private MainBus MainBus { get; set; }
 	[Inject] private ILazy<ProgressScreen> ProgressScreenLazy { get; set; }
 	[Inject] private GameLoader GameLoader { get; set; }
-	[Inject] private PlatformMultiPlayerContainer MultiPlayerContainer { get; set; }
 	[Inject] private UiActions UiActions { get; set; }
 
 	private SplitViewport _splitViewport;
@@ -71,7 +71,7 @@ public partial class RtsGameView : Control, IInjectable, IGameView {
 
 	public async Task StartNewGame() {
 		SceneTree.Root.AddChild(this);
-		UiActions.SetJoypad(UiActions.CurrentJoypad);	// Player who starts the game is the player who control the UI forever
+		UiActions.SetJoypad(UiActions.JoypadId);	// Player who starts the game is the player who control the UI forever
 		
 		await GameLoader.LoadRtsGameResources();
 		
@@ -83,7 +83,7 @@ public partial class RtsGameView : Control, IInjectable, IGameView {
 
 	public async Task LoadFromMenu(string saveName) {
 		SceneTree.Root.AddChild(this);
-		UiActions.SetJoypad(UiActions.CurrentJoypad);	// Player who starts the game is the player who control the UI forever
+		UiActions.SetJoypad(UiActions.JoypadId);	// Player who starts the game is the player who control the UI forever
 		var (success, saveGame) = await LoadSaveGame(saveName);
 		if (!success) return;
 		await GameLoader.LoadRtsGameResources();
@@ -91,7 +91,7 @@ public partial class RtsGameView : Control, IInjectable, IGameView {
 	}
 
 	public async Task LoadInGame(string saveName) {
-		UiActions.SetJoypad(UiActions.CurrentJoypad); // Player who starts the game is the player who control the UI forever
+		UiActions.SetJoypad(UiActions.JoypadId); // Player who starts the game is the player who control the UI forever
 		var (success, saveGame) = await LoadSaveGame(saveName);
 		if (!success) return;
 		await FreeSceneKeepingPoolData();
@@ -154,7 +154,6 @@ public partial class RtsGameView : Control, IInjectable, IGameView {
 	}
 	
 	public async Task End(bool unload) {
-		MultiPlayerContainer.RemoveAllPlayers();
 		if (unload) {
 			UnloadResources();
 		} else {

@@ -1,8 +1,9 @@
 using System;
-using System.Collections.Generic;
+using System.Linq;
 using Betauer.Application;
 using Betauer.Application.Settings;
 using Betauer.Core;
+using Betauer.DI;
 using Betauer.DI.Attributes;
 using Betauer.DI.ServiceProvider;
 using Betauer.Input;
@@ -29,7 +30,7 @@ public class MultiPlayerContainerTests {
     }
 
     public class Test3PlayerActions : PlayerActionsContainer {
-        public InputAction Jump { get; } = InputAction.Create("Jump").Buttons(JoyButton.B).Build();
+        public InputAction Jump { get; } = InputAction.Create("Jump").Buttons(JoyButton.B).Keys(Key.A).Build();
         public InputAction Left { get; } = InputAction.Create("Left").AxisName("Lateral").NegativeAxis(JoyAxis.LeftX).Build();
         public AxisAction Lateral { get; } = new AxisAction("Lateral");
         public InputAction Right { get; } = InputAction.Create("Right").AxisName("Lateral").PositiveAxis(JoyAxis.LeftX).Build();
@@ -65,7 +66,6 @@ public class MultiPlayerContainerTests {
 
         Assert.That(c.GetPlayerActionsByJoypadId(10), Is.Null);
         Assert.That(c.IsJoypadInUse(1), Is.False);
-
     }
 
     [TestRunner.Test(Description = "Test auto incremental player id creation")]
@@ -78,12 +78,6 @@ public class MultiPlayerContainerTests {
         Assert.That(c.GetNextPlayerId(), Is.EqualTo(2));
         Assert.That(c.AddPlayerActions(5).PlayerId, Is.EqualTo(2));
 
-        var e1 = Assert.Throws<Exception>(() => c.AddPlayerActions(3));
-        Assert.That(e1.Message, Is.EqualTo("Player 1 already have the joypad 3"));
-        
-        var e2 = Assert.Throws<Exception>(() => c.CreatePlayerActions(10, 5));
-        Assert.That(e2.Message, Is.EqualTo("Player 2 already have the joypad 5"));
-        
         // If we skip the playerId 3 creating the player 4 instead...
         Assert.That(c.GetNextPlayerId(), Is.EqualTo(3));
         Assert.That(c.CreatePlayerActions(4, 6).PlayerId, Is.EqualTo(4));
@@ -101,79 +95,185 @@ public class MultiPlayerContainerTests {
         Assert.That(c.AddPlayerActions(6).PlayerId, Is.EqualTo(4));
     }
 
-    [TestRunner.Test(Description = "Error when duplicated joypad id")]
-    public void PlayerActionsContainerDuplicatedTest() {
-        var c = new Test3MultiPlayerContainer();
-        c.AddPlayerActions(0);
-        c.AddPlayerActions(1);
-        c.AddPlayerActions(2);
-        var e = Assert.Throws<Exception>(() => c.AddPlayerActions(1));
-        Assert.That(e.Message, Is.EqualTo("Player 1 already have the joypad 1"));
-    }
-
-    [TestRunner.Test(Description = "")]
+    [TestRunner.Test(Description = "Add players and change player id")]
     public void PlayerActionsContainerTest() {
         var c = new Test3MultiPlayerContainer();
 
-        Test3PlayerActions p1 = c.AddPlayerActions(2);
+        var joypadId = 2;
+        Test3PlayerActions p1 = c.AddPlayerActions(joypadId);
         Assert.That(p1.PlayerId, Is.EqualTo(0));
-        Assert.That(p1.JoypadId, Is.EqualTo(2));
+        Assert.That(p1.JoypadId, Is.EqualTo(joypadId));
         var playerId = p1.PlayerId;
         
-        Assert.That(InputMap.HasAction("Jump/"+playerId), Is.True);
-        Assert.That(InputMap.HasAction("Right/"+playerId), Is.True);
-        Assert.That(InputMap.HasAction("Left/"+playerId), Is.True);
+        Assert.That(InputMap.HasAction("Jump/P"+playerId), Is.True);
+        Assert.That(InputMap.HasAction("Right/P"+playerId), Is.True);
+        Assert.That(InputMap.HasAction("Left/P"+playerId), Is.True);
 
-        Assert.That((InputMap.ActionGetEvents("Jump/" + playerId)[0] as InputEventJoypadButton)!.Device, Is.EqualTo(2));
+        Assert.That((InputMap.ActionGetEvents("Jump/P"+playerId).OfType<InputEventJoypadButton>().ToList()[0])!.Device, Is.EqualTo(joypadId));
+        Assert.That((InputMap.ActionGetEvents("Left/P"+playerId).OfType<InputEventJoypadMotion>().ToList()[0])!.Device, Is.EqualTo(joypadId));
+
+        var newPlayerId = 7;
+        c.ChangePlayerId(playerId, 7);
+        Assert.That(p1.PlayerId, Is.EqualTo(newPlayerId));
+        Assert.That(p1.JoypadId, Is.EqualTo(2));
+        Assert.That((InputMap.ActionGetEvents("Jump/P"+newPlayerId).OfType<InputEventJoypadButton>().ToList()[0])!.Device, Is.EqualTo(joypadId));
+        Assert.That((InputMap.ActionGetEvents("Left/P"+newPlayerId).OfType<InputEventJoypadMotion>().ToList()[0])!.Device, Is.EqualTo(joypadId));
+
+        Assert.That(InputMap.HasAction("Jump/P"+newPlayerId), Is.True);
+        Assert.That(InputMap.HasAction("Right/P"+newPlayerId), Is.True);
+        Assert.That(InputMap.HasAction("Left/P"+newPlayerId), Is.True);
+        Assert.That(InputMap.HasAction("Jump/P"+playerId), Is.False);
+        Assert.That(InputMap.HasAction("Right/P"+playerId), Is.False);
+        Assert.That(InputMap.HasAction("Left/P"+playerId), Is.False);
         
-        p1.Stop();
-        Assert.That(InputMap.HasAction("Jump/"+playerId), Is.False);
-        Assert.That(InputMap.HasAction("Right/"+playerId), Is.False);
-        Assert.That(InputMap.HasAction("Left/"+playerId), Is.False);
+        var p2 = c.AddPlayerActions(6);
+        Assert.Throws<Exception>(() => c.ChangePlayerId(newPlayerId, p2.PlayerId));
+
+        c.RemovePlayerActions(p1);
+        Assert.That(InputMap.HasAction("Jump/P"+newPlayerId), Is.False);
+        Assert.That(InputMap.HasAction("Right/P"+newPlayerId), Is.False);
+        Assert.That(InputMap.HasAction("Left/P"+newPlayerId), Is.False);
+    }
+
+    [TestRunner.Test(Description = "ChangeKeyboard")]
+    public void ChangeKeyboard() {
+        var mpc = new Test3MultiPlayerContainer();
+
+        var t1 = mpc.CreatePlayerActions(0, 1, true);
+        InputIsEquals(mpc.SharedInputActions.Jump, t1.Jump);
+        InputIsEquals(mpc.SharedInputActions.Left, t1.Left);
+        InputIsEquals(mpc.SharedInputActions.Right, t1.Right);
+        InputIsEquals(mpc.SharedInputActions.Lateral, t1.Lateral);
+        
+        mpc.ChangeKeyboard(0, false);
+        InputIsJoypadEqualsButNoKeyboard(mpc.SharedInputActions.Jump, t1.Jump);
+        InputIsJoypadEqualsButNoKeyboard(mpc.SharedInputActions.Left, t1.Left);
+        InputIsEquals(mpc.SharedInputActions.Right, t1.Right);
+        InputIsEquals(mpc.SharedInputActions.Lateral, t1.Lateral);
+        
+        mpc.ChangeKeyboard(0, true);
+        InputIsEquals(mpc.SharedInputActions.Jump, t1.Jump);
+        InputIsEquals(mpc.SharedInputActions.Left, t1.Left);
+        InputIsEquals(mpc.SharedInputActions.Right, t1.Right);
+        InputIsEquals(mpc.SharedInputActions.Lateral, t1.Lateral);
+    }
+
+    [TestRunner.Test(Description = "ChangeJoypad")]
+    public void ChangeJoypad() {
+        var mpc = new Test3MultiPlayerContainer();
+
+        var joypadId = 1;
+        var t1 = mpc.CreatePlayerActions(0, joypadId, true);
+        Assert.That((InputMap.ActionGetEvents("Jump/P0").OfType<InputEventJoypadButton>().ToList()[0])!.Device, Is.EqualTo(joypadId));
+        Assert.That((InputMap.ActionGetEvents("Left/P0").OfType<InputEventJoypadMotion>().ToList()[0])!.Device, Is.EqualTo(joypadId));
+
+        var newJoypadId = 2;
+        mpc.ChangeJoypad(0, newJoypadId);
+        Assert.That(t1.JoypadId, Is.EqualTo(newJoypadId));
+        Assert.That((InputMap.ActionGetEvents("Jump/P0").OfType<InputEventJoypadButton>().ToList()[0])!.Device, Is.EqualTo(newJoypadId));
+        Assert.That((InputMap.ActionGetEvents("Left/P0").OfType<InputEventJoypadMotion>().ToList()[0])!.Device, Is.EqualTo(newJoypadId));
+    }
+
+    [TestRunner.Test(Description = "SyncActions")]
+    public void SyncActionsTest() {
+        var mpc = new Test3MultiPlayerContainer();
+
+        var t1 = mpc.CreatePlayerActions(0, 1, true);
+        InputIsEquals(mpc.SharedInputActions.Jump, t1.Jump);
+        InputIsEquals(mpc.SharedInputActions.Left, t1.Left);
+        InputIsEquals(mpc.SharedInputActions.Right, t1.Right);
+        InputIsEquals(mpc.SharedInputActions.Lateral, t1.Lateral);
+
+        var t2 = mpc.CreatePlayerActions(1, 2, false);
+        InputIsJoypadEqualsButNoKeyboard(mpc.SharedInputActions.Jump, t2.Jump);
+        InputIsJoypadEqualsButNoKeyboard(mpc.SharedInputActions.Left, t2.Left);
+        InputIsEquals(mpc.SharedInputActions.Right, t2.Right);
+        InputIsEquals(mpc.SharedInputActions.Lateral, t2.Lateral);
+        
+        // Change the shared input without syncing...
+        mpc.SharedInputActions.Jump.Update(u => 
+            u.ClearButtons().SetButton(JoyButton.Start).ClearKeys().SetKey(Key.B));
+
+        Assert.That(mpc.SharedInputActions.Jump.Buttons, Is.Not.EqualTo(t1.Jump.Buttons));
+        Assert.That(mpc.SharedInputActions.Jump.Buttons, Is.Not.EqualTo(t2.Jump.Buttons));
+        
+        // sync
+        mpc.SyncActions();
+        InputIsEquals(mpc.SharedInputActions.Jump, t1.Jump);
+        InputIsEquals(mpc.SharedInputActions.Left, t1.Left);
+        InputIsEquals(mpc.SharedInputActions.Right, t1.Right);
+        InputIsEquals(mpc.SharedInputActions.Lateral, t1.Lateral);
+
+        InputIsJoypadEqualsButNoKeyboard(mpc.SharedInputActions.Jump, t2.Jump);
+        InputIsJoypadEqualsButNoKeyboard(mpc.SharedInputActions.Left, t2.Left);
+        InputIsEquals(mpc.SharedInputActions.Right, t2.Right);
+        InputIsEquals(mpc.SharedInputActions.Lateral, t2.Lateral);
+        
+        // New players have the new actions too
+        var t3 = mpc.AddPlayerActions(2, true);
+        InputIsEquals(mpc.SharedInputActions.Jump, t3.Jump);
+        InputIsEquals(mpc.SharedInputActions.Left, t3.Left);
+        InputIsEquals(mpc.SharedInputActions.Right, t3.Right);
+        InputIsEquals(mpc.SharedInputActions.Lateral, t3.Lateral);
+        
+        var t4 = mpc.AddPlayerActions( 4, false);
+        InputIsJoypadEqualsButNoKeyboard(mpc.SharedInputActions.Jump, t4.Jump);
+        InputIsJoypadEqualsButNoKeyboard(mpc.SharedInputActions.Left, t4.Left);
+        InputIsEquals(mpc.SharedInputActions.Right, t4.Right);
+        InputIsEquals(mpc.SharedInputActions.Lateral, t4.Lateral);
+    }
+
+
+    private static void InputIsEquals(AxisAction a1, AxisAction a2) {
+        // Assert.That(a1.Name, Is.EqualTo(a2.Name));
+        Assert.That(a1.Reverse, Is.EqualTo(a2.Reverse));
+    }
+
+    private static void InputIsEquals(InputAction a1, InputAction a2) {
+        // Assert.That(a1.Name, Is.EqualTo(a2.Name));
+        Assert.That(a1.Buttons, Is.EqualTo(a2.Buttons));
+        Assert.That(a1.AxisName, Is.EqualTo(a2.AxisName));
+        Assert.That(a1.Axis, Is.EqualTo(a2.Axis));
+        Assert.That(a1.AxisSign, Is.EqualTo(a2.AxisSign));
+        Assert.That(a1.DeadZone, Is.EqualTo(a2.DeadZone));
+        
+        Assert.That(a1.Keys, Is.EqualTo(a2.Keys));
+        Assert.That(a1.MouseButton, Is.EqualTo(a2.MouseButton));
+        Assert.That(a1.CommandOrCtrlAutoremap, Is.EqualTo(a2.CommandOrCtrlAutoremap));
+        Assert.That(a1.Ctrl, Is.EqualTo(a2.Ctrl));
+        Assert.That(a1.Shift, Is.EqualTo(a2.Shift));
+        Assert.That(a1.Alt, Is.EqualTo(a2.Alt));
+        Assert.That(a1.Meta, Is.EqualTo(a2.Meta));
+    }
+
+    private static void InputIsJoypadEqualsButNoKeyboard(InputAction a1, InputAction a2) {
+        // Assert.That(a1.Name, Is.EqualTo(a2.Name));
+        Assert.That(a1.Buttons, Is.EqualTo(a2.Buttons));
+        Assert.That(a1.AxisName, Is.EqualTo(a2.AxisName));
+        Assert.That(a1.Axis, Is.EqualTo(a2.Axis));
+        Assert.That(a1.AxisSign, Is.EqualTo(a2.AxisSign));
+        Assert.That(a1.DeadZone, Is.EqualTo(a2.DeadZone));
+        
+        Assert.That(a2.Keys.Count, Is.EqualTo(0));
+        Assert.That(a2.MouseButton, Is.EqualTo(MouseButton.None));
+        Assert.That(a2.CommandOrCtrlAutoremap, Is.False);
+        Assert.That(a2.Ctrl, Is.False);
+        Assert.That(a2.Shift, Is.False);
+        Assert.That(a2.Alt, Is.False);
+        Assert.That(a2.Meta, Is.False);
     }
 
     [Singleton]
-    public class Test4MultiPlayerContainer : MultiPlayerContainer<Test4PlayerActions> {
+    public class Test4MultiPlayerContainer : MultiPlayerContainer<Test4PlayerActions>, IInjectable {
+        [Inject] SettingsContainer SettingsContainer { get; set; }
+        public void PostInject() {
+            ConfigureSaveSettings(SettingsContainer);
+        }
     }
 
-
-    public class Test4PlayerActions : PlayerActionsContainer, SaveSettingsContainerAware {
-        public InputAction Jump { get; } = InputAction.Create("Jump").Buttons(JoyButton.B).Keys(Key.A).SaveAs("Setting/Jump").Build();
-        public InputAction Attack { get; } = InputAction.Create("Attack").Buttons(JoyButton.B).JoypadId(2).Build();
-        public InputAction Left { get; } = InputAction.Create("Left").AxisName("Lateral").NegativeAxis(JoyAxis.LeftX).Build();
-        public AxisAction Lateral { get; } = AxisAction.Create("Lateral").SaveAs("Setting/Lateral").Build();
-        public InputAction Right { get; } = InputAction.Create("Right").AxisName("Lateral").PositiveAxis(JoyAxis.LeftX).Build();
-        
-        [Inject] public SettingsContainer SettingsContainer { get; set;  }
+    public class Test4PlayerActions : PlayerActionsContainer {
+        public InputAction Jump { get; } = InputAction.Create("Jump").Buttons(JoyButton.B).Build();
     }
-
-    [TestRunner.Test(Description = "SettingContainer injected, only the Jump and Lateral actions will have a SaveSetting")]
-    public void SettingContainerIntegrationTests() {
-        var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
-        var c = new Betauer.DI.Container().Build(b => {
-            b.Scan<Test4MultiPlayerContainer>();
-            b.Register(Provider.Static(sc));
-        });
-        var mpc = c.Resolve<Test4MultiPlayerContainer>();
-
-        var t = mpc.CreatePlayerActions(3, 3);
-
-        Assert.That(t.InputActions.Count, Is.EqualTo(4));
-        Assert.That(t.AxisActions.Count, Is.EqualTo(1));
-        
-        Assert.That(t.Attack.SaveSetting, Is.Null);
-        Assert.That(t.Left.SaveSetting, Is.Null);
-        Assert.That(t.Right.SaveSetting, Is.Null);
-        
-        Assert.That(t.Jump.SaveSetting.SaveAs, Is.EqualTo("Setting/Jump"));       
-        Assert.That(t.Jump.SaveSetting.DefaultValue, Is.EqualTo(t.Jump.AsString()));
-        Assert.That(t.Jump.SaveSetting.AutoSave, Is.True);
-
-        Assert.That(t.Lateral.SaveSetting.SaveAs, Is.EqualTo("Setting/Lateral"));
-        Assert.That(t.Lateral.SaveSetting.DefaultValue, Is.EqualTo(t.Lateral.AsString()));
-        Assert.That(t.Lateral.SaveSetting.AutoSave, Is.True);
-    }
-
 
     [TestRunner.Test(Description = "SettingContainer injected, only the Jump and Lateral actions will have a SaveSetting")]
     public void SharingSettingContainerIntegrationTests() {
@@ -183,30 +283,7 @@ public class MultiPlayerContainerTests {
             b.Register(Provider.Static(sc));
         });
         var mpc = c.Resolve<Test4MultiPlayerContainer>();
-
-        var t1 = mpc.CreatePlayerActions(0, 1);
-        var t2 = mpc.CreatePlayerActions(1, 2);
         
-        // t1 and t2 have have different SaveSetting but using the same SaveAs and the same SettingsContainer
-        // Both have JoyButton.B
-        Assert.That(t1.Jump.Buttons, Is.EqualTo(new [] { JoyButton.B }));
-        Assert.That(t1.Jump.Buttons, Is.EqualTo(t2.Jump.Buttons));
-        t1.Jump.Update(u => u.ClearButtons().SetButton(JoyButton.Start));
-        Assert.That(t1.Jump.Buttons, Is.EqualTo(new [] { JoyButton.Start }));
-        t1.Jump.Save();
-        
-        // EL save refresca el resto de SaveSettings que tengan el mimo nombre, pero no refrescan sus InputAction
-        
-        Assert.That(sc.ConfigFileWrapper.GetValue("Setting/Jump", "nop"), Is.EqualTo(t1.Jump.AsString()));
-        
-        // t1 is now JoyButton.Start, but t2 is not aware of this change
-        Assert.That(t2.Jump.Buttons, Is.EqualTo(new [] { JoyButton.B }));
-        t2.Jump.Load();
-        Assert.That(t2.Jump.Buttons, Is.EqualTo(new [] { JoyButton.Start }));
-        
-        var t3 = mpc.CreatePlayerActions(3, 3);
-
+        Assert.That(mpc.SharedInputActionsContainer.SettingsContainer, Is.EqualTo(sc));
     }
-
-
 }

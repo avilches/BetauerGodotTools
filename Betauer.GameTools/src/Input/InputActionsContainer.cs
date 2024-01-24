@@ -1,18 +1,41 @@
 using System.Collections.Generic;
 using System.Linq;
-using Betauer.Application.Settings;
+using System.Reflection;
 using Betauer.Core;
 using Betauer.Input.Handler;
 
 namespace Betauer.Input;
 
-public interface SaveSettingsContainerAware {
-    public SettingsContainer SettingsContainer { get; }
-}
+/*
+Caso 1: solo hay un jugador, 
+se usa InputActionsContainer o SingleJoypadActionsContainer con su SettingsContainer. Solo se crea una vez y solo hay un conjunto de input cada uno con su saveSetting para siempre
 
-public class InputActionsContainer {
+
+Caso 2: hay multiples jugadores, todos comparten el mismo mapeo de botones, salvo el primer jugador que puede usar teclado y raton
+Se crea un PlayerActionsContainer (que herada de InputActionsContainer) por cada jugador y se van creando. Cada uno tiene su joystyickId y su playerId.
+A medida que se crean mas y mas, se van creando mas InputAction, y en cada uno se añade un nuevo SaveSetting, que se añade al SettingContainer. Cuando se
+deja de usar un jugado y se elimina el PlayerActionsContainer del multiplayer, se eliminan todos los InputAction pero no se eliminar los SaveSetting. ESTO ES UN ERROR.
+Una de dos, o se borran los SaveSetting cuando se borran los InputAction, o se reciclan.
+
+Al compartir el mapeo, cuando se redefine un boton del jugador 1, se debe reflejar en el resto. Ahora se puede simular haciendo un Load() en el resto de jugadores
+que tengan un InputAction con el mismo SaveAs que el que se ha modificado. Esto habria que hacerlo automaticamente.
+
+tareas:
+- refrescar el resto de valores cuando el player 1 se redefine
+- reciclar los SaveSetting
+
+
+Caso 3: solo hay 2 jugadores y cada uno tiene sus mapeos de botones diferentes (por ejemplo uno de lucha). Tiene que haber dos InputActionsContainer con diferentes SaveSetting, 
+se les tiene que añadir a los SaveSetting un sufijo, como "_P1" y "_P2". Esto se puede hacer con un Suffix en el SaveSettingContainerAware.
+
+
+
+ */
+
+public partial class InputActionsContainer {
     public List<AxisAction> AxisActions { get; } = new();
     public List<InputAction> InputActions { get; } = new();
+    
     private readonly HashSet<GodotInputHandler> _onInputActions = new();
 
     public AxisAction? GetAxisAction(string name) {
@@ -23,54 +46,36 @@ public class InputActionsContainer {
         return InputActions.Find(action => action.Name == name);
     }
 
-    public void AddFromInstanceProperties(object instance) {
+    public void AddActionsFromProperties(object instance) {
         var propertyInfos = instance.GetType().GetProperties();
 
         propertyInfos
-            .Where(p =>
-                typeof(AxisAction).IsAssignableFrom(p.PropertyType) ||
-                typeof(InputAction).IsAssignableFrom(p.PropertyType))
+            .Where(p => typeof(InputAction).IsAssignableFrom(p.PropertyType))
             .Select(p => p.GetValue(instance))
             .Where(i => i != null)
-            .ForEach(i => {
-                if (i is AxisAction axisAction) {
-                    Add(axisAction);
-                    TryAddSaveSettings(axisAction, instance);
-                }
-                else if (i is InputAction inputAction) {
-                    Add(inputAction);
-                    TryAddSaveSettings(inputAction, instance);
-                }
-                
-            });
+            .Cast<InputAction>()
+            .ForEach(Add);
+        
+        propertyInfos
+            .Where(p => typeof(AxisAction).IsAssignableFrom(p.PropertyType))
+            .Select(p => p.GetValue(instance))
+            .Where(i => i != null)
+            .Cast<AxisAction>()
+            .ForEach(Add);
     }
-
-    private void TryAddSaveSettings(AxisAction axisAction, object instance) {
-        if (axisAction.SaveAs == null) return;
-        if (!instance.GetType().ImplementsInterface(typeof(SaveSettingsContainerAware))) return;
-        var settingsContainer = ((SaveSettingsContainerAware) instance).SettingsContainer;
-        if (settingsContainer == null) return;
-        axisAction.CreateSaveSetting(settingsContainer);
-    }
-
-    private void TryAddSaveSettings(InputAction axisAction, object instance) {
-        if (axisAction.SaveAs == null) return;
-        if (!instance.GetType().ImplementsInterface(typeof(SaveSettingsContainerAware))) return;
-        var settingsContainer = ((SaveSettingsContainerAware) instance).SettingsContainer;
-        if (settingsContainer == null) return;
-        axisAction.CreateSaveSetting(settingsContainer);
-    }
-
+    
     public void Add(AxisAction axisAction) {
-        if (axisAction == null || AxisActions.Contains(axisAction)) return; // Avoid duplicates
+        if (AxisActions.Contains(axisAction)) return; // Avoid duplicates
         AxisActions.Add(axisAction);
         TryLinkAxisActionToNegativePositiveInputs(axisAction);
-        Add(axisAction.Negative);
-        Add(axisAction.Positive);
+        TryAddSaveSettings(axisAction);
+        if (axisAction.Negative != null) Add(axisAction.Negative);
+        if (axisAction.Positive != null) Add(axisAction.Positive);
     }
 
     public void Add(InputAction inputAction) {
-        if (inputAction == null || InputActions.Contains(inputAction)) return; // Avoid duplicates
+        if (InputActions.Contains(inputAction)) return; // Avoid duplicates
+        TryAddSaveSettings(inputAction);
         InputActions.Add(inputAction);
         if (inputAction.AxisName != null) {
             if (AxisActions.Find(action => action.Name == inputAction.AxisName) is AxisAction axisAction) {
@@ -91,31 +96,37 @@ public class InputActionsContainer {
         }
     }
 
-    public void Remove(AxisAction axisAction) {
-        if (axisAction == null) return;
-        AxisActions.Remove(axisAction);
-        Remove(axisAction.Negative);
-        Remove(axisAction.Positive);
-    }
-
     public void Remove(InputAction inputAction) {
-        if (inputAction == null) return;
-        InputActions.Remove(inputAction);
-        CheckInputHandler(inputAction);
+        if (InputActions.Remove(inputAction)) {
+            CheckInputHandler(inputAction);
+        }
     }
 
-    public void DisableAll() {
-        InputActions.ForEach(action => action.Enable(false));
+    public void Remove(AxisAction axisAction) {
+        AxisActions.Remove(axisAction);
+        if (axisAction.Negative != null) Remove(axisAction.Negative);
+        if (axisAction.Positive != null) Remove(axisAction.Positive);
     }
 
     public void EnableAll(bool enable = true) {
         InputActions.ForEach(action => action.Enable(enable));
     }
 
+    public void DisableAll() {
+        InputActions.ForEach(action => action.Disable());
+    }
+
     public void Clear() {
-        InputActions.ToList().ForEach(Remove);
-        AxisActions.ToList().ForEach(Remove);
-        // TODO: call to CheckInputHandler? 
+        InputActions.ForEach(action => {
+            action.Disable();
+            TryRemoveSaveSettings(action);
+        });
+        InputActions.Clear();
+        AxisActions.ForEach(axisAction => {
+            axisAction.Disable();
+            TryRemoveSaveSettings(axisAction);
+        });
+        AxisActions.Clear();
     }
 
     internal void CheckInputHandler(InputAction inputAction) {

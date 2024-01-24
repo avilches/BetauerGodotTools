@@ -12,45 +12,35 @@ public partial class InputAction {
             _inputAction = inputAction;
         }
 
-        public Updater Reset() {
+        public Updater ClearAll() {
             // Keyboard and mouse
-            ClearModifiers();
             ClearKeys();
+            ClearMouse();
+            ClearModifiers();
 
             // Joypad
-            SetDeadZone(DefaultDeadZone);
-            ClearAxis();
             ClearButtons();
+            ClearAxis();
+            SetDeadZone(DefaultDeadZone);
             return this;
         }
 
-        public Updater CopyAll(InputAction inputAction) {
-            CopyModifiers(inputAction);
-            CopyMouse(inputAction);
-            CopyJoypad(inputAction);
-            CopyKeys(inputAction);
-            return this;
-        }
-
-        public Updater CopyModifiers(InputAction inputAction) {
-            WithCommandOrCtrlAutoremap(inputAction.CommandOrCtrlAutoremap);
+        public Updater CopyKeyboardAndMouse(InputAction inputAction) {
+            SetKeys(inputAction.Keys.ToArray());
+            SetMouse(inputAction.MouseButton);
             WithCtrl(inputAction.Ctrl);
             WithShift(inputAction.Shift);
             WithAlt(inputAction.Alt);
             WithMeta(inputAction.Meta);
-            return this;
-        }
-
-        public Updater CopyMouse(InputAction inputAction) {
-            SetMouse(inputAction.MouseButton);
+            WithCommandOrCtrlAutoremap(inputAction.CommandOrCtrlAutoremap);
             return this;
         }
 
         public Updater CopyJoypad(InputAction inputAction) {
-            SetDeadZone(inputAction.DeadZone);
+            SetButtons(inputAction.Buttons.ToArray());
             SetAxis(inputAction.Axis);
             SetAxisSign(inputAction.AxisSign);
-            SetButtons(inputAction.Buttons.ToArray());
+            SetDeadZone(inputAction.DeadZone);
             return this;
         }
 
@@ -205,7 +195,7 @@ public partial class InputAction {
         /// <returns></returns>
         public Updater ImportKeys(string input) {
             ClearKeys();
-            Parser(input, (key, value) => {
+            ParserLoop(input, (key, value) => {
                 if (key != "key" || value.Length == 0 || (!_inputAction.AllowMultipleKeys && _inputAction.HasKeys())) return;
                 var keyValue = ParseEnum(value, Key.Unknown);
                 if (keyValue != Key.Unknown) AddKey(keyValue);
@@ -221,7 +211,7 @@ public partial class InputAction {
         /// <returns></returns>
         public Updater ImportMouse(string input) {
             ClearMouse();
-            Parser(input, (key, value) => {
+            ParserLoop(input, (key, value) => {
                 if (key != "mouse" || value.Length == 0) return;
                 _inputAction.MouseButton = ParseEnum(value, MouseButton.None);
             });
@@ -229,10 +219,10 @@ public partial class InputAction {
             return this;
         }
 
-        public Updater ImportModifiers(string input) {
+        private Updater ImportModifiers(string input) {
             if (!_inputAction.IncludeModifiers) return this;
             ClearModifiers();
-            Parser(input, (key, value) => {
+            ParserLoop(input, (key, value) => {
                 if (key == "ctrl") {
                     _inputAction.Ctrl = ParseModifierValue(value);
                 } else if (key == "shift") {
@@ -257,7 +247,7 @@ public partial class InputAction {
         public Updater ImportJoypad(string input) {
             ClearButtons();
             ClearAxis();
-            Parser(input, (key, value) => {
+            ParserLoop(input, (key, value) => {
                 if (value.Length == 0) return;
                 if (key == "button") {
                     if (!_inputAction.AllowMultipleButtons && _inputAction.HasButtons()) return;
@@ -289,7 +279,7 @@ public partial class InputAction {
             return false;
         }
 
-        private void Parser(string input, Action<string, string> action) {
+        private void ParserLoop(string input, Action<string, string> action) {
             if (string.IsNullOrWhiteSpace(input)) return;
             input.Split(",")
                 .ToList()
@@ -304,6 +294,7 @@ public partial class InputAction {
         }
 
         private static T ParseEnum<T>(string input, T defaultValue) where T : struct {
+            // TryParse works with string names like "Up", but it works with numbers like "2" too. This can 
             if (Enum.TryParse<T>(input, true, out var result)) {
                 // The parsing was ok, but if the value name was a number like "2" the value could be wrong (2 couldn't be a valid value)
                 var underlyingType = Enum.GetUnderlyingType(typeof(Key));

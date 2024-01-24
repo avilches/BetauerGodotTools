@@ -240,7 +240,7 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IInjectable {
             Console.WriteLine("Joypad disconnected for the ui");
         };
         UiActions.OnJoypadReconnected += () => {
-            Console.WriteLine("New joypad for the ui " + UiActions.CurrentJoypad);
+            Console.WriteLine("New joypad for the ui " + UiActions.JoypadId);
         };
         UiActions.SetFirstConnectedJoypad();
         ConfigureCanvasLayers();

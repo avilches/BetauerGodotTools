@@ -93,17 +93,17 @@ public partial class InputAction {
     // Updateable Input configuration 
     public string Name { get; internal set; }
     public List<JoyButton> Buttons { get; } = new();
-    public List<Key> Keys { get; } = new();
     public JoyAxis Axis { get; private set; } = JoyAxis.Invalid;
     public AxisSignEnum AxisSign { get; private set; } = AxisSignEnum.Positive;
+    public string? AxisName { get; internal set; }
     public float DeadZone { get; private set; } = DefaultDeadZone;
     public MouseButton MouseButton { get; private set; } = MouseButton.None;
+    public List<Key> Keys { get; } = new();
     public bool CommandOrCtrlAutoremap { get; private set; }
     public bool Ctrl { get; private set; }
     public bool Shift { get; private set; }
     public bool Alt { get; private set; }
     public bool Meta { get; private set; }
-    public string? AxisName { get; internal set; }
 
     // Joypad
     private int _joypadId = -1;
@@ -146,21 +146,13 @@ public partial class InputAction {
     public bool IncludeAxisSign { get; set; } = false;
     public bool IncludeDeadZone { get; set; } = false;
     public bool IncludeModifiers { get; set; } = true;
-    public string? SaveAs { get; private set; }
-    private SaveSetting<string>? _saveSetting;
-    public SaveSetting<string>? SaveSetting {
-        get => _saveSetting;
-        set {
-            _saveSetting = value;
-            SaveAs = _saveSetting.SaveAs;
-        }
-    }
+    public string? SaveAs { get; }
 
     internal readonly IHandler Handler;
     private readonly Updater _updater;
 
-    public event Action<bool> OnEnable;
-    public event Action OnUpdate;
+    // public event Action<bool> OnEnable;
+    // public event Action OnUpdate;
 
     /// <summary>
     /// 
@@ -188,27 +180,21 @@ public partial class InputAction {
     }
 
     internal void ChangeName(string newName) {
-        Name = newName;
+        // Delete old
         var stringName = (StringName)Name;
         if (InputMap.HasAction(stringName)) {
             InputMap.EraseAction(stringName);
         }
+        // Set new name and refresh
         Name = newName;
         RefreshGodotInputMap();
-    }
-
-    public void CreateSaveSetting(SettingsContainer settingsContainer, string? saveAs = null) {
-        if (saveAs != null) SaveAs = saveAs;
-        SaveSetting = Setting.Create(SaveAs, Export(), true);
-        settingsContainer.Add(SaveSetting);
-        Load();
     }
 
     public void Enable(bool enable = true) {
         if (enable == Enabled) return;
         Enabled = enable;
         RefreshGodotInputMap();
-        OnEnable?.Invoke(enable);
+        // OnEnable?.Invoke(enable);
     }
 
     public void Disable() => Enable(false);
@@ -276,23 +262,6 @@ public partial class InputAction {
 
     public bool HasButton(JoyButton button) => Buttons.Contains(button);
 
-    public void Load() {
-        if (SaveSetting == null) throw new Exception("InputAction does not have a SaveSetting");
-        SaveSetting.Refresh(); // Since multiple SaveSetting could share the same SettingsContainer and same SaveAs property, we need to refresh it
-        Update(u => {
-            u.ImportJoypad(SaveSetting.Value);
-            u.ImportKeys(SaveSetting.Value);
-            u.ImportMouse(SaveSetting.Value);
-        });
-    }
-
-    public void Save() {
-        if (SaveSetting == null) throw new Exception("InputAction does not have a SaveSetting");
-        SaveSetting.Value = Export();
-        
-        if (!SaveSetting.AutoSave) SaveSetting.SettingsContainer!.Save();
-    }
-
     public InputAction Update(Action<Updater> updater) {
         var (backupButtons, backupKeys, backupMouse) = (Buttons.ToArray(), Keys.ToArray(), MouseButton);
         var (axis, axisSign, backupDeadZone) = (Axis, AxisSign, DeadZone);
@@ -300,7 +269,7 @@ public partial class InputAction {
         try {
             updater.Invoke(_updater);
             RefreshGodotInputMap();
-            OnUpdate?.Invoke();
+            // OnUpdate?.Invoke();
         } catch (Exception) {
             _updater.SetButtons(backupButtons)
                 .SetKeys(backupKeys)

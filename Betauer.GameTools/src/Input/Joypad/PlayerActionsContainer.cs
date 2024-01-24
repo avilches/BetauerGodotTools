@@ -1,69 +1,103 @@
 ﻿using System;
+using System.Linq;
 using Godot;
 
 namespace Betauer.Input.Joypad;
 
-public class PlayerActionsContainer : InputActionsContainer {
-    private int _playerId = -1;
-    private int _joypadId = -1;
-    private bool _started = false;
+public class PlayerActionsContainer {
 
-    public event Action? OnJoypadDisconnect;
-    public event Action? OnJoypadConnect;
-    public event Action? OnJoypadIdChanged;
+    public event Action? OnJoypadReconnected;
+    public event Action? OnJoypadDisconnected;
 
-    public bool Connected { get; internal set; } = false;
+    public bool Connected { get; private set; } = false;
+    public int PlayerId { get; private set; } = -1;
+    public int JoypadId { get; private set; } = -1;
+    public bool Keyboard { get; private set; } = false;
 
-    public int PlayerId {
-        get => _playerId;
-        private set {
-            if (_playerId == value) return;
-            _playerId = value;
-            _PlayerIdChanged();
-        }
+    public InputActionsContainer InputActionsContainer { get;  } = new();
+    private InputActionsContainer _inputActionsContainerSource;
+
+    internal void Start(int playerId, int joypadId, bool keyboard, InputActionsContainer inputActionsContainerSource) {
+        PlayerId = playerId;
+        JoypadId = joypadId;
+        Keyboard = keyboard;
+        Connected = Godot.Input.GetConnectedJoypads().ToArray().Contains(JoypadId);
+        _inputActionsContainerSource = inputActionsContainerSource;
+        InputActionsContainer.Clear();
+        InputActionsContainer.AddActionsFromProperties(this);
+        SyncActions();
+        InputActionsContainer.EnableAll();
     }
 
-    public int JoypadId {
-        get => _joypadId;
-        private set {
-            if (_joypadId == value) return;
-            _joypadId = value;
-            _JoypadIdChanged();
-        }
+    internal void Stop() {
+        PlayerId = -1;
+        JoypadId = -1;
+        Keyboard = false;
+        Connected = false;
+        InputActionsContainer.Clear();
     }
 
     /// <summary>
-    /// Use this method when you add a second or third player and you only want to use the joypad (so keyboard and mouse are only used by the first player)
+    /// This method is used when the player redefine some actions in the PlayerActionsContainer so the changes are reflected in the InputActionsContainer.
     /// </summary>
-    public void RemoveNonJoypadActions() {
-        InputActions.ForEach(action => action.Update(u => {
-            u.ClearKeys();
-            u.ClearMouse();
-            u.ClearModifiers(); // Only mouse and key can use modifiers, so they are cleared too
-        })); 
+    /// <exception cref="Exception"></exception>
+    internal void SyncActions() {
+        var suffix = PlayerId.ToString();
+        InputActionsContainer.InputActions.ForEach(action => {
+            // The first time, the name is just "Jump", but the second time it could be "Jump/P1" or "Jump/P4"
+            var inputActionName = action.Name.Split("/")[0]; 
+            var defaultAction = _inputActionsContainerSource.GetInputAction(inputActionName);
+            if (defaultAction == null) {
+                throw new Exception($"Action {inputActionName} not found in default player actions container");
+            }
+            // Disable it first to avoid calling to RefreshGodotInputMap() in Update(), ChangeName() and setting the JoypadId
+            var wasEnabled = action.Enabled;
+            action.Disable();
+            action.Update(u => {
+                u.ClearAll();
+                if (Keyboard) {
+                    u.CopyKeyboardAndMouse(defaultAction);
+                }
+                if (JoypadId >= 0) {
+                    u.CopyJoypad(defaultAction);
+                }
+            });
+            action.ChangeName($"{inputActionName}/P{suffix}");
+            action.JoypadId = JoypadId;
+            if (wasEnabled) action.Enable();
+        });
     }
 
-    public void SetAllJoypads() => JoypadId = -1;
-
-    public void Start(int playerId, int joypadId) {
-        DisableAll();
-        PlayerId = playerId;
-        JoypadId = joypadId;
-        EnableAll();
-        if (!_started) {
-            _started = true;
-            Godot.Input.Singleton.JoyConnectionChanged += JoyConnectionChanged;
-        }
+    internal void ChangePlayerId(int newPlayerId) {
+        if (newPlayerId == PlayerId) return;
+        PlayerId = newPlayerId;
+        var suffix = PlayerId.ToString();
+        InputActionsContainer.InputActions.ForEach(action => {
+            // The first time, the name is just "Jump", but the second time it could be "Jump/P1" or "Jump/P4"
+            var inputActionName = action.Name.Split("/")[0]; 
+            action.ChangeName($"{inputActionName}/P{suffix}");
+        });
     }
 
-    public void Stop() {
-        DisableAll();
-        if (_started) {
-            _started = false;
-            Godot.Input.Singleton.JoyConnectionChanged -= JoyConnectionChanged;
-        }
+    public void ChangeJoypad(int newJoypadId) {
+        if (newJoypadId == JoypadId) return;
+        JoypadId = newJoypadId;
+        InputActionsContainer.InputActions.ForEach(action => action.JoypadId = JoypadId);
     }
-    
+
+    public void ChangeKeyboard(bool newKeyboard) {
+        if (newKeyboard == Keyboard) return;
+        Keyboard = newKeyboard;
+        SyncActions();
+    }
+
+    internal void JoyConnectionChanged(bool connected) {
+        if (Connected == connected) return;
+        Connected = connected;
+        if (Connected) OnJoypadReconnected?.Invoke();
+        else OnJoypadDisconnected?.Invoke();
+    }
+
     /// <summary>
     /// <para>Returns <c>true</c> if you are pressing the joypad button (see <see cref="T:Godot.JoyButton" />).</para>
     /// </summary>
@@ -88,8 +122,6 @@ public class PlayerActionsContainer : InputActionsContainer {
     /// <para>Returns a SDL2-compatible device GUID on platforms that use gamepad remapping, e.g. <c>030000004c050000c405000000010000</c>. Returns <c>"Default Gamepad"</c> otherwise. Godot uses the <a href="https://github.com/gabomdq/SDL_GameControllerDB">SDL2 game controller database</a> to determine gamepad names and mappings based on this GUID.</para>
     /// </summary>
     public string GetJoyGuid() => Godot.Input.GetJoyGuid(JoypadId);
-
-
     
     /// <summary>
     /// <para>Returns the strength of the joypad vibration: x is the strength of the weak motor, and y is the strength of the strong motor.</para>
@@ -111,29 +143,6 @@ public class PlayerActionsContainer : InputActionsContainer {
     /// <para>Stops the vibration of the joypad started with <see cref="M:Godot.Input.StartJoyVibration(System.Int32,System.Single,System.Single,System.Single)" />.</para>
     /// </summary>
     public void StopJoyVibration() => Godot.Input.StopJoyVibration(JoypadId);
-
-    private void JoyConnectionChanged(long device, bool connected) {
-        if (device != JoypadId) return;
-        if (Connected == connected) return;
-        Connected = connected;
-        _ConnectedChanged();
-    }
-
-    private void _ConnectedChanged() {
-        if (Connected) OnJoypadConnect?.Invoke();
-        else OnJoypadDisconnect?.Invoke();
-    }
-
-    private void _PlayerIdChanged() {
-        var suffix = PlayerId.ToString();
-        InputActions.ForEach(action => { action.ChangeName($"{action.Name}/{suffix}"); });
-    }
-
-    private void _JoypadIdChanged() {
-        InputActions.ForEach(action => action.Update(u => u.SetJoypadId(JoypadId))); 
-        Connected = Godot.Input.GetConnectedJoypads().Contains(JoypadId);
-        OnJoypadIdChanged?.Invoke();
-    }
 
     public override string ToString() {
         return $"P{PlayerId}:{JoypadId}{(Connected ? "" : "(disconnected)")}";

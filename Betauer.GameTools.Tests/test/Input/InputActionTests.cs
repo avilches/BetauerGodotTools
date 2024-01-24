@@ -1,7 +1,5 @@
 using System;
 using System.Linq;
-using Betauer.Application;
-using Betauer.Application.Settings;
 using Betauer.Input;
 using Betauer.TestRunner;
 using System.Collections.Generic;
@@ -120,58 +118,6 @@ public class InputActionTests {
         Assert.That(right.Enabled, Is.False);
         Assert.That(InputMap.HasAction("Right"), Is.False);
         Assert.That(InputMap.HasAction("Left"), Is.False);
-    }
-
-    [TestRunner.Test]
-    public void InputActionSaveTest() {
-        SaveSetting<string> b = Setting.Create("attack", "", false);
-        var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
-        sc.Add(b);
-
-        var reg = InputAction.Create("N")
-            .Keys(Key.A)
-            .Simulator();
-
-        reg.SaveSetting = b;
-        reg.Save();
-
-        sc.ConfigFileWrapper.GetValue("Setting/attack", "nop");
-        Assert.That(sc.ConfigFileWrapper.GetValue("Settings/attack", "nop"), Is.EqualTo(reg.Export()));
-    }
-
-    [TestRunner.Test]
-    public void CreateSaveSettingTest() {
-        var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
-
-        var reg = InputAction.Create("N")
-            .Keys(Key.A)
-            .Build();
-
-        reg.CreateSaveSetting(sc, "Setting/N");
-        Assert.That(reg.SaveSetting.SaveAs, Is.EqualTo("Setting/N"));
-        Assert.That(reg.SaveSetting.DefaultValue, Is.EqualTo(reg.Export()));
-        Assert.That(reg.SaveSetting.AutoSave, Is.True);
-        reg.Save();
-
-        Assert.That(sc.ConfigFileWrapper.GetValue("Setting/N", "nop"), Is.EqualTo(reg.Export()));
-    }
-
-    [TestRunner.Test]
-    public void CreateSaveSettingTest2() {
-        var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
-
-        var reg = InputAction.Create("N")
-            .SaveAs("Setting/N")
-            .Keys(Key.A)
-            .Build();
-
-        reg.CreateSaveSetting(sc);
-        Assert.That(reg.SaveSetting.SaveAs, Is.EqualTo("Setting/N"));
-        Assert.That(reg.SaveSetting.DefaultValue, Is.EqualTo(reg.Export()));
-        Assert.That(reg.SaveSetting.AutoSave, Is.True);
-        reg.Save();
-
-        Assert.That(sc.ConfigFileWrapper.GetValue("Setting/N", "nop"), Is.EqualTo(reg.Export()));
     }
 
     [TestRunner.Test]
@@ -352,51 +298,6 @@ public class InputActionTests {
     }
 
     [TestRunner.Test]
-    public void ImportModifiersTest() {
-        var reg = InputAction.Create("N").Build();
-        Assert.That(reg.Ctrl, Is.False);
-        Assert.That(reg.Alt, Is.False);
-        Assert.That(reg.Meta, Is.False);
-        Assert.That(reg.Shift, Is.False);
-
-        reg.IncludeModifiers = true;
-
-        reg.Update(u => {
-            u.ImportModifiers("a:2,,ctrl,alt,meta,shift");
-        });
-        Assert.That(reg.Ctrl, Is.True);
-        Assert.That(reg.Alt, Is.True);
-        Assert.That(reg.Meta, Is.True);
-        Assert.That(reg.Shift, Is.True);
-        
-        reg.Update(u => {
-            u.ClearModifiers();
-        });
-        Assert.That(reg.Ctrl, Is.False);
-        Assert.That(reg.Alt, Is.False);
-        Assert.That(reg.Meta, Is.False);
-        Assert.That(reg.Shift, Is.False);
-
-        reg.Update(u => {
-            u.ImportModifiers("a:2,,ctrl:truE,alt:TRUE,meta:False,shift:falsE");
-        });
-        Assert.That(reg.Ctrl, Is.True);
-        Assert.That(reg.Alt, Is.True);
-        Assert.That(reg.Meta, Is.False);
-        Assert.That(reg.Shift, Is.False);
-        
-        reg.IncludeModifiers = false;
-        reg.Update(u => {
-            u.ImportModifiers("a:2,,ctrl,alt,meta,shift");
-        });
-        Assert.That(reg.Ctrl, Is.True);
-        Assert.That(reg.Alt, Is.True);
-        Assert.That(reg.Meta, Is.False);
-        Assert.That(reg.Shift, Is.False);
-
-    }
-    
-    [TestRunner.Test]
     public void ImportLateralTest() {
         var lateral = AxisAction.Create("Lateral").Build();
         lateral.Import("Reverse:True", true);
@@ -429,7 +330,6 @@ public class InputActionTests {
             .SaveAs("Setting/N")
             .Build(true);
 
-        
         Assert.That(complete.Export(), Is.EqualTo("Button:A,Button:B,JoyAxis:LeftX,AxisSign:Negative,DeadZone:0.2,Key:A,Key:B,Mouse:Left,Shift,Ctrl,Meta"));
 
         var imported = InputAction.Create("N").Build();
@@ -473,185 +373,34 @@ public class InputActionTests {
 
         Assert.That(imported3.Export(), Is.EqualTo("Button:A,JoyAxis:LeftX,Key:A,Mouse:Left"));
     }
-
-    [TestRunner.Test]
-    public void InputActionImportExportTests() {
-        SaveSetting<string> b = Setting.Create( "attack", "");
-        var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
-        sc.Add(b);
-            
-        var jump = InputAction.Simulator();
-        jump.SaveSetting = b;
-        jump.Load();
-        Assert.That(jump.Buttons, Is.Empty);
-        Assert.That(jump.Keys, Is.Empty);
-        Assert.That(jump.Axis, Is.EqualTo(JoyAxis.Invalid));
-
-        // Configure and save
-        jump.Update(u => {
-            u.AddKeys(Key.A, Key.Exclam);
-            u.AddButtons(JoyButton.Paddle1, JoyButton.X);
-            u.SetAxis(JoyAxis.RightX);
-        });
-        Assert.That(jump.Buttons, Is.EqualTo(new [] {JoyButton.Paddle1, JoyButton.X}.ToList()));
-        Assert.That(jump.Keys, Is.EqualTo(new [] {Key.A, Key.Exclam}.ToList()));
-        Assert.That(jump.Axis, Is.EqualTo(JoyAxis.RightX));
-        Assert.That(jump.Export(), Is.EqualTo("Button:Paddle1,Button:X,JoyAxis:RightX,Key:A,Key:Exclam"));
-        jump.Save();
-        Assert.That(sc.ConfigFileWrapper.GetValue("Settings/attack", "nop"), Is.EqualTo(jump.Export()));
-
-
-        // Delete
-        jump.Update(u => {
-            u.ClearKeys().ClearButtons();
-            u.SetAxis(JoyAxis.Invalid);
-        });
-            
-        // Its changed
-        Assert.That(jump.Buttons, Is.Empty);
-        Assert.That(jump.Keys, Is.Empty);
-        Assert.That(jump.Axis, Is.EqualTo(JoyAxis.Invalid));
-
-        // But it load again, data is recovered
-        jump.Load();
-        Assert.That(jump.Buttons, Is.EqualTo(new [] {JoyButton.Paddle1, JoyButton.X}.ToList()));
-        Assert.That(jump.Keys, Is.EqualTo(new [] {Key.A, Key.Exclam}.ToList()));
-        Assert.That(jump.Axis, Is.EqualTo(JoyAxis.RightX));
-    }
     
     [TestRunner.Test]
     public void UpdateRollback() {
-        SaveSetting<string> b = Setting.Create( "Controls/attack", "");
-        var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
-        sc.Add(b);
-            
-        var jump = InputAction.Simulator();
-        jump.SaveSetting = b;
-        jump.Load();
-        Assert.That(jump.Buttons, Is.Empty);
-        Assert.That(jump.Keys, Is.Empty);
-        Assert.That(jump.Axis, Is.EqualTo(JoyAxis.Invalid));
+        var complete = InputAction.Create("N")
+            .Keys(Key.A)
+            .Keys(Key.B)
+            .Mouse(MouseButton.Left)
+            .Buttons(JoyButton.A, JoyButton.B)
+            .NegativeAxis(JoyAxis.LeftX, true)
+            .DeadZone(0.2f, true)
+            .Ctrl()
+            .Meta()
+            .Shift()
+            .SaveAs("Setting/N")
+            .Build(true);
+
+        var backup = complete.Export();
 
         // Configure and save
-        jump.Update(u => {
-            u.AddKeys(Key.A, Key.Exclam);
+        complete.Update(u => {
+            u.AddKeys(Key.Exclam);
             u.AddButtons(JoyButton.Paddle1, JoyButton.X);
             u.SetAxis(JoyAxis.RightX);
-        });
-        Assert.That(jump.Buttons, Is.EqualTo(new [] {JoyButton.Paddle1, JoyButton.X}.ToList()));
-        Assert.That(jump.Keys, Is.EqualTo(new [] {Key.A, Key.Exclam}.ToList()));
-        Assert.That(jump.Axis, Is.EqualTo(JoyAxis.RightX));
-        jump.Save();
-        Assert.That(sc.ConfigFileWrapper.GetValue("Controls/attack", "nop"), Is.EqualTo(jump.Export()));
-
-        // Delete but fail
-        jump.Update(u => {
-            u.ClearKeys().ClearButtons();
-            u.SetAxis(JoyAxis.Invalid);
+            u.SetDeadZone(0.8f);
+            u.ClearModifiers();
             throw new Exception();
         });
-
-        // Data is recovered
-        Assert.That(jump.Buttons, Is.EqualTo(new [] {JoyButton.Paddle1, JoyButton.X}.ToList()));
-        Assert.That(jump.Keys, Is.EqualTo(new [] {Key.A, Key.Exclam}.ToList()));
-        Assert.That(jump.Axis, Is.EqualTo(JoyAxis.RightX));
+        Assert.That(complete.Export(), Is.EqualTo(backup));
     }
 
-    [TestRunner.Test]
-    public void AxisActionImportExportTests() {
-        SaveSetting<string> b = Setting.Create( "Lateral", "Reverse:True", false);
-        var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
-        sc.Add(b);
-        var lateral = AxisAction.Mock();
-        Assert.That(lateral.Reverse, Is.False);
-        
-        // Load -> true
-        lateral.SaveSetting = b;
-        lateral.Load();
-        Assert.That(lateral.Reverse, Is.True);
-
-        // false -> Save -> Load -> false again
-        lateral.Reverse = false;
-        lateral.Save();
-        Assert.That(sc.ConfigFileWrapper.GetValue("Settings/Lateral", "nop"), Is.EqualTo(lateral.Export()));
-        
-        Assert.That(lateral.Reverse, Is.False);
-        lateral.Load();
-        Assert.That(lateral.Reverse, Is.False);
-
-        lateral.ResetToDefaults();
-        Assert.That(lateral.Reverse, Is.True);
-    }
-
-    [TestRunner.Test]
-    public void AxisActionSave() {
-        SaveSetting<string> b = Setting.Create("move", "", false);
-        var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
-        sc.Add(b);
-
-        var lateral = AxisAction.Mock();
-        Assert.That(lateral.Reverse, Is.False);
-
-        lateral.SaveSetting = b;
-        lateral.Save();
-
-        Assert.That(sc.ConfigFileWrapper.GetValue("Settings/move", "nop") == lateral.Export());
-    }
-    
-    [TestRunner.Test]
-    public void CreateSaveSettingAxisTest() {
-        var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
-
-        var reg = AxisAction.Create("N")
-            .SaveAs("Setting/Lateral")
-            .ReverseAxis()
-            .Build();
-
-        reg.CreateSaveSetting(sc, "Setting/Lateral");
-        Assert.That(reg.SaveSetting.SaveAs, Is.EqualTo("Setting/Lateral"));
-        Assert.That(reg.SaveSetting.DefaultValue, Is.EqualTo(reg.Export()));
-        Assert.That(reg.SaveSetting.AutoSave, Is.True);
-        reg.Save();
-
-        Assert.That(sc.ConfigFileWrapper.GetValue("Setting/Lateral", "nop"), Is.EqualTo(reg.Export()));
-    }
-
-    [TestRunner.Test]
-    public void CreateSaveSettingAxisTest2() {
-        var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
-
-        var reg = AxisAction.Create("N")
-            .SaveAs("Setting/Lateral")
-            .ReverseAxis()
-            .Build();
-
-        reg.CreateSaveSetting(sc);
-        Assert.That(reg.SaveSetting.SaveAs, Is.EqualTo("Setting/Lateral"));
-        Assert.That(reg.SaveSetting.DefaultValue, Is.EqualTo(reg.Export()));
-        Assert.That(reg.SaveSetting.AutoSave, Is.True);
-        reg.Save();
-
-        Assert.That(sc.ConfigFileWrapper.GetValue("Setting/Lateral", "nop"), Is.EqualTo(reg.Export()));
-    }
-
-
-    [TestRunner.Test]
-    public void ManualConfigurationWithSettingTest() {
-        var attack = InputAction.Create("ManualAttack").Simulator();
-        Assert.That(attack.SaveSetting, Is.Null);
-
-        var jump = InputAction.Create("ManualJump").Simulator();
-        Assert.That(jump.SaveSetting, Is.Null);
-
-        SaveSetting<string> b = Setting.Create("attack","button:A,button:B,key:H,key:F");
-
-        var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
-        sc.Add(b);
-        jump.SaveSetting = b;
-        jump.Load();
-        Assert.That(jump.SaveSetting, Is.EqualTo(b));
-            
-        Assert.That(jump.Buttons, Is.EqualTo(new [] {JoyButton.A, JoyButton.B}.ToList()));
-        Assert.That(jump.Keys, Is.EqualTo(new [] {Key.H, Key.F}.ToList()));
-    }
 }

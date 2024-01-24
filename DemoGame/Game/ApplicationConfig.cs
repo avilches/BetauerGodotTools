@@ -12,6 +12,7 @@ using Betauer.DI.Attributes;
 using Betauer.Input;
 using Godot;
 using Pcg;
+using Veronenger.Game.Platform;
 using Veronenger.Game.Platform.Character.InputActions;
 using Veronenger.Game.UI;
 using Veronenger.Game.UI.Settings;
@@ -34,7 +35,6 @@ public class ApplicationConfig {
 	[Singleton] public GameObjectRepository GameObjectRepository => new();
 	[Singleton] public GameLoader GameLoader => new();
 	[Singleton] public CameraContainer CameraContainer => new();
-	[Singleton] public PlatformMultiPlayerContainer MultiPlayerContainer => new();
 	[Singleton] public ScreenSettingsManager ScreenSettingsManager => new(Config);
 	[Singleton] public SettingsContainer SettingsContainer => new(AppTools.GetUserFile("settings.ini"));
 }
@@ -73,12 +73,12 @@ public class MainResources {
 }
 
 [Singleton]
-public class UiActions : UiActionsContainer {
+public class UiActions : SingleJoypadActionsContainer {
 	public UiActions() {
-		AddFromInstanceProperties(this);
-		EnableAll();
+		AddActionsFromProperties(this);
 		SetFirstConnectedJoypad();
-		ConfigureOnlyOnePlayerUI();
+		EnableAll();
+		Start();
 	}
 
 	public AxisAction UiVertical { get; } = new AxisAction("UiVertical");

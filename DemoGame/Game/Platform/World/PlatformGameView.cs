@@ -9,9 +9,7 @@ using Betauer.DI;
 using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
 using Betauer.Input;
-using Betauer.Input.Joypad;
 using Godot;
-using Veronenger.Game.Platform.Character.InputActions;
 using Veronenger.Game.Platform.Character.Player;
 using Veronenger.Game.Platform.HUD;
 using Veronenger.Game.UI;
@@ -30,7 +28,7 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 	[Inject] private ILazy<ProgressScreen> ProgressScreenLazy { get; set; }
 	[Inject] private GameLoader GameLoader { get; set; }
 	[Inject] private UiActions UiActions { get; set; }
-	[Inject] private PlatformMultiPlayerContainer MultiPlayerContainer { get; set; }
+	[Inject] private PlatformMultiPlayerContainer PlatformMultiPlayerContainer { get; set; }
 	[Inject] private PlatformQuery PlatformQuery { get; set; }
 	[Inject] private PlatformBus PlatformBus { get; set; }
 
@@ -74,10 +72,10 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 	}
 
 	public override void _UnhandledInput(InputEvent e) {
-		if (_allowAddingP2 && e is InputEventJoypadButton button && !MultiPlayerContainer.IsJoypadInUse(button.Device)) {
+		if (_allowAddingP2 && e is InputEventJoypadButton button && !PlatformMultiPlayerContainer.IsJoypadInUse(button.Device)) {
 			CreatePlayer2(button.Device);
 			GetViewport().SetInputAsHandled();
-			if (MultiPlayerContainer.Players == MaxPlayer) NoAddingP2();				
+			if (PlatformMultiPlayerContainer.Players == MaxPlayer) NoAddingP2();				
 		} else if (e.IsKeyReleased(Key.U)) {
 			if (ActivePlayers < 2) {
 				CreatePlayer2(1);
@@ -92,7 +90,7 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 
 	public async Task StartNewGame() {
 		SceneTree.Root.AddChild(this);
-		UiActions.SetJoypad(UiActions.CurrentJoypad);	// Player who starts the game is the player who control the UI forever
+		UiActions.SetJoypad(UiActions.JoypadId);	// Player who starts the game is the player who control the UI forever
 		
 		await GameLoader.LoadPlatformGameResources();
 		PlatformWorld = PlatformWorldFactory.Create();
@@ -101,7 +99,7 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 		CurrentMetadata = new PlatformSaveGameMetadata();
 		GameObjectRepository.Initialize();
 		InitializeWorld();
-		CreatePlayer1(UiActions.CurrentJoypad);
+		CreatePlayer1(UiActions.JoypadId);
 		AllowAddingP2();				
 		PlatformQuery.Configure(PlatformWorld);
 		PlatformWorld.StartNewGame();
@@ -111,7 +109,7 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 	public async Task LoadFromMenu(string saveName) {
 		SceneTree.Root.AddChild(this);
 		PlatformQuery.Configure(PlatformWorld);
-		UiActions.SetJoypad(UiActions.CurrentJoypad);	// Player who starts the game is the player who control the UI forever
+		UiActions.SetJoypad(UiActions.JoypadId);	// Player who starts the game is the player who control the UI forever
 		var (success, saveGame) = await LoadSaveGame(saveName);
 		if (!success) return;
 		await GameLoader.LoadPlatformGameResources();
@@ -119,7 +117,7 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 	}
 
 	public async Task LoadInGame(string saveName) {
-		UiActions.SetJoypad(UiActions.CurrentJoypad); // Player who starts the game is the player who control the UI forever
+		UiActions.SetJoypad(UiActions.JoypadId); // Player who starts the game is the player who control the UI forever
 		var (success, saveGame) = await LoadSaveGame(saveName);
 		if (!success) return;
 		PlatformWorld.Free();
@@ -132,7 +130,7 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 		GameObjectRepository.LoadSaveObjects(saveGame.GameObjects);
 		InitializeWorld();
 		var consumer = new PlatformSaveGameConsumer(saveGame);
-		LoadPlayer1(UiActions.CurrentJoypad, consumer);
+		LoadPlayer1(UiActions.JoypadId, consumer);
 		if (consumer.Player1 == null) AllowAddingP2();
 		else NoAddingP2();
 		PlatformWorld.LoadGame(consumer);
@@ -172,7 +170,7 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 
 	public void InitializeWorld() {
 		AddChild(PlatformHud);
-		
+		PlatformMultiPlayerContainer.Start();
 		_splitViewport.SetCommonWorld(PlatformWorld);
 		_splitViewport.OnChange += (split) => PlatformHud.SplitScreenContainer.Split = split;
 		_splitViewport.Refresh();
@@ -181,22 +179,22 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 	}
 
 	private PlayerNode CreatePlayer1(int joypadId) {
-		PlatformPlayerActions playerActions = MultiPlayerContainer.AddPlayerActions(joypadId);
+		PlatformPlayerActions playerActions = PlatformMultiPlayerContainer.AddPlayerActions(joypadId, true);
 		PlayerNode playerNode = PlatformWorld.AddNewPlayer(playerActions);
 		playerNode.SetCamera(_splitViewport.Camera1);
 		return playerNode;
 	}
 
 	private PlayerNode LoadPlayer1(int joypadId, PlatformSaveGameConsumer consumer) {
-		PlatformPlayerActions playerActions = MultiPlayerContainer.AddPlayerActions(joypadId);
+		PlatformPlayerActions playerActions = PlatformMultiPlayerContainer.AddPlayerActions(joypadId, true);
 		PlayerNode playerNode = PlatformWorld.LoadPlayer(consumer.Player0, consumer.Inventory0, playerActions);
 		playerNode.SetCamera(_splitViewport.Camera1);
 		return playerNode;
 	}
 
 	private PlayerNode CreatePlayer2(int joypadId) {
-		if (MultiPlayerContainer.Players >= MaxPlayer) throw new Exception("No more players allowed");
-		PlatformPlayerActions playerActions = MultiPlayerContainer.AddPlayerActions(joypadId);
+		if (PlatformMultiPlayerContainer.Players >= MaxPlayer) throw new Exception("No more players allowed");
+		PlatformPlayerActions playerActions = PlatformMultiPlayerContainer.AddPlayerActions(joypadId, false);
 		PlayerNode playerNode = PlatformWorld.AddNewPlayer(playerActions);
 		playerNode.SetCamera(_splitViewport.Camera2);
 		return playerNode;
@@ -238,7 +236,7 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 	}
 
 	public async Task End(bool unload) {
-		MultiPlayerContainer.RemoveAllPlayers();
+		PlatformMultiPlayerContainer.Stop();
 		if (unload) {
 			// If you comment this line, the objects in the pool will be used in the next game
 			Container.ResolveAll<INodePool>().ForEach(p => p.FreeAll());

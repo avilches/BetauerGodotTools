@@ -1,27 +1,67 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Betauer.DI;
-using Betauer.DI.Attributes;
+using Betauer.Application.Settings;
+using Betauer.Core;
+using Betauer.Tools.Logging;
 
 namespace Betauer.Input.Joypad;
 
-public abstract class MultiPlayerContainer {
+public class MultiPlayerContainer<T> where T : PlayerActionsContainer {
+    
+    public static readonly Logger Logger = LoggerFactory.GetLogger<MultiPlayerContainer<T>>();
+
     public int Players => Mapping.Count;
-    protected readonly List<PlayerActionsContainer> Mapping = new();
+    public List<T> Mapping { get; } = new();
+    public InputActionsContainer SharedInputActionsContainer { get; private set; } = new();
+    public T SharedInputActions { get; private set; }
 
-    [Inject] protected Container? Container { get; set; }
+    public bool Running { get; private set; } = false;
 
-    protected PlayerActionsContainer? GetPlayerActionsById(int playerId) {
-        return Mapping.Find(mapping => mapping.PlayerId == playerId);
+    public MultiPlayerContainer() {
+        SharedInputActions = Create();
+        SharedInputActionsContainer.AddActionsFromProperties(SharedInputActions);
     }
 
-    protected PlayerActionsContainer? GetPlayerActionsByJoypadId(int joypadId) {
-        return Mapping.Find(mapping => mapping.JoypadId == joypadId);
+    public void ConfigureSaveSettings(SettingsContainer settingsContainer) {
+        SharedInputActionsContainer.ConfigureSaveSettings(settingsContainer);
+    }
+
+    public void Start() {
+        if (Running) throw new Exception($"Cant' start {GetType().GetTypeName()}: instance is already running.");
+        // Create the only instance of RedefineInputPlayerActionsContainer with settings
+        Godot.Input.Singleton.JoyConnectionChanged += OnJoyConnectionChanged;
+        Running = true;
+    }
+
+    public void Stop() {
+        if (!Running) return;
+        Logger.Debug("Stop all players");
+        Godot.Input.Singleton.JoyConnectionChanged -= OnJoyConnectionChanged;
+        Mapping.ToList().ForEach(RemovePlayerActions); // The ToList clones the list so we can remove items while iterating without problems
+        Running = false;
+    }
+
+    /// <summary>
+    /// This method must be used when the player redefine any action in the SharedInputActions so the changes are reflected in every T.
+    /// </summary>
+    /// <exception cref="Exception"></exception>
+    public void SyncActions() {
+        Mapping.ForEach(playerActionsContainer => playerActionsContainer.SyncActions());
+    }
+
+    private void OnJoyConnectionChanged(long device, bool connected) {
+        Logger.Debug("OnJoyConnectionChanged {0} {1}", device, connected ? "connected" : "disconnected");
+        var playerAction = GetPlayerActionsByJoypadId((int)device);
+        playerAction?.JoyConnectionChanged(connected);
     }
 
     public bool IsJoypadInUse(int joypadId) {
-        return Mapping.Find(mapping => mapping.JoypadId == joypadId) != null;
+        return Mapping.Any(mapping => mapping.JoypadId == joypadId);
+    }
+
+    public bool IsKeyboardInUse() {
+        return Mapping.Any(mapping => mapping.Keyboard);
     }
 
     public int[] GetJoypadIdsConnected() {
@@ -42,14 +82,6 @@ public abstract class MultiPlayerContainer {
         return available.Length > 0 ? available[0] : -1;
     }
 
-    public int GetNextPlayerId() {
-        var playerId = 0;
-        while (Mapping.Find(mapping => mapping.PlayerId == playerId) != null) {
-            playerId++;
-        }
-        return playerId;
-    }
-
     public int[] GetJoypadIdsInUse() {
         if (Players == 0) return Array.Empty<int>();
         var joypads = new int[Players];
@@ -59,54 +91,85 @@ public abstract class MultiPlayerContainer {
         return joypads;
     }
 
-    public void RemoveAllPlayers() {
-        Mapping.ForEach(container => container.Stop());
-        Mapping.Clear();
+    public int GetNextPlayerId() {
+        var playerId = 0;
+        while (Mapping.Any(mapping => mapping.PlayerId == playerId)) {
+            playerId++;
+        }
+        return playerId;
+    }
+
+    public T? GetPlayerActionsById(int playerId) {
+        return Mapping.Find(mapping => mapping.PlayerId == playerId);
+    }
+
+    public T? GetPlayerActionsByJoypadId(int joypadId) {
+        return Mapping.Find(mapping => mapping.JoypadId == joypadId);
+    }
+
+    public T? GetPlayerActionsByKeyboard() {
+        return Mapping.Find(mapping => mapping.Keyboard);
+    }
+
+    public T AddPlayerActions(int joypadId, bool keyboard = false) {
+        return CreatePlayerActions(GetNextPlayerId(), joypadId, keyboard);
+    }
+
+    public void ChangeJoypad(int playerId, int newJoypadId) {
+        var playerActions = GetPlayerActionsById(playerId);
+        if (playerActions == null) throw new Exception($"Player {playerId} not found");
+        playerActions.ChangeJoypad(newJoypadId);
+    }
+
+    public void ChangeKeyboard(int playerId, bool newKeyboard) {
+        var playerActions = GetPlayerActionsById(playerId);
+        if (playerActions == null) throw new Exception($"Player {playerId} not found");
+        playerActions.ChangeKeyboard(newKeyboard);
+    }
+
+    public void ChangePlayerId(int oldPlayerId, int newPlayerId) {
+        if (oldPlayerId == newPlayerId) return;
+        var oldPlayerActions = GetPlayerActionsById(oldPlayerId);
+        if (oldPlayerActions == null) throw new Exception($"Player {oldPlayerId} not found");
+
+        var newPlayerActions = GetPlayerActionsById(newPlayerId);
+        if (newPlayerActions != null) throw new Exception($"Can't change player {oldPlayerId} to {newPlayerId}: there is already a player with {newPlayerId} id");
+        oldPlayerActions.ChangePlayerId(newPlayerId);
+    }
+
+    /// <summary>
+    /// It's your responsibility to ensure that 
+    /// </summary>
+    /// <param name="playerId"></param>
+    /// <param name="joypadId"></param>
+    /// <param name="keyboard"></param>
+    /// <returns></returns>
+    /// <exception cref="Exception"></exception>
+    public T CreatePlayerActions(int playerId, int joypadId, bool keyboard = false) {
+        if (GetPlayerActionsById(playerId) != null) {
+            throw new Exception($"Player {playerId} already exists");
+        }
+        var playerActions = Create();
+        Logger.Debug("Creating player {0} with joypad {1} {2}", playerId, joypadId, keyboard ? "and keyboard" : "");
+        playerActions.Start(playerId, joypadId, keyboard, SharedInputActionsContainer);
+        Mapping.Add(playerActions);
+        return playerActions;
+    }
+
+    public void RemovePlayerActions(T playerActionsContainer) {
+        Logger.Debug($"Stopping player {playerActionsContainer.PlayerId}");
+        playerActionsContainer.Stop();
+        Mapping.Remove(playerActionsContainer);
     }
 
     public void RemovePlayerActions(int playerId) {
         var playerActionsContainer = Mapping.Find(mapping => mapping.PlayerId == playerId);
         if (playerActionsContainer == null) return;
-        playerActionsContainer.Stop();
-        Mapping.Remove(playerActionsContainer);
+        RemovePlayerActions(playerActionsContainer);
     }
 
-    protected T AddPlayerActions<T>(int joypadId) where T : PlayerActionsContainer {
-        return CreatePlayerActions<T>(GetNextPlayerId(), joypadId);
-    }
-
-    protected T CreatePlayerActions<T>(int playerId, int joypadId) where T : PlayerActionsContainer {
-        if (Mapping.Find(mapping => mapping.PlayerId == playerId) != null) {
-            throw new Exception($"Player {playerId} already exists");
-        }
-        var otherWithSameJoypad = Mapping.Find(mapping => mapping.JoypadId == joypadId);
-        if (otherWithSameJoypad != null) {
-            throw new Exception($"Player {otherWithSameJoypad.PlayerId} already have the joypad {joypadId}");
-        }
+    private T Create() {
         T playerActionsContainer = Activator.CreateInstance<T>();
-        Container?.InjectServices(playerActionsContainer);
-        playerActionsContainer.AddFromInstanceProperties(playerActionsContainer);
-        Mapping.Add(playerActionsContainer);
-        playerActionsContainer.Start(playerId, joypadId);
         return playerActionsContainer;
-    }
-}
-
-public class MultiPlayerContainer<T> : MultiPlayerContainer where T : PlayerActionsContainer {
-
-    public T CreatePlayerActions(int playerId, int joypadId) {
-        return CreatePlayerActions<T>(playerId, joypadId);
-    }
-
-    public T AddPlayerActions(int joypadId) {
-        return AddPlayerActions<T>(joypadId);
-    }
-
-    public T? GetPlayerActionsById(int playerId) {
-        return base.GetPlayerActionsById(playerId) as T;
-    }
-
-    public T? GetPlayerActionsByJoypadId(int joypadId) {
-        return base.GetPlayerActionsByJoypadId(joypadId) as T;
     }
 }

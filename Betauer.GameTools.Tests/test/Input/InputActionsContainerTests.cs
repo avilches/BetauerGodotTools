@@ -3,7 +3,6 @@ using Betauer.Application;
 using Betauer.Application.Settings;
 using Betauer.Core;
 using Betauer.DI.Attributes;
-using Betauer.DI.ServiceProvider;
 using Betauer.Input;
 using Betauer.TestRunner;
 using Godot;
@@ -110,7 +109,7 @@ public class InputActionContainerTests {
     [Singleton]
     public class Test1 : InputActionsContainer {
         public InputAction Jump { get; } = InputAction.Create("Jump").Buttons(JoyButton.B).Keys(Key.A).SaveAs("Setting/Jump").Build();
-        public InputAction Attack { get; } = InputAction.Create("Attack").Buttons(JoyButton.B).JoypadId(2).Build();
+        public InputAction Attack { get; } = InputAction.Create("Attack").Buttons(JoyButton.B).Build();
         public InputAction Left { get; } = InputAction.Create("Left").AxisName("Lateral").NegativeAxis(JoyAxis.LeftX).Build();
         public AxisAction Lateral { get; } = AxisAction.Create("Lateral").SaveAs("Setting/Lateral").Build();
         public InputAction Right { get; } = InputAction.Create("Right").AxisName("Lateral").PositiveAxis(JoyAxis.LeftX).Build();
@@ -119,14 +118,10 @@ public class InputActionContainerTests {
     [TestRunner.Test(Description = "Regular load from instance. No SettingContainer")]
     public void InputActionLoadInstanceTest() {
         var t = new Test1();
-        t.AddFromInstanceProperties(t);
-
-        Assert.That(t.Jump.SaveSetting, Is.Null);
-        Assert.That(t.Attack.SaveSetting, Is.Null);
-        Assert.That(t.Left.SaveSetting, Is.Null);
-        Assert.That(t.Right.SaveSetting, Is.Null);
-        Assert.That(t.Lateral.SaveSetting, Is.Null);
+        t.AddActionsFromProperties(t);
         
+        t.Attack.JoypadId = 2;
+
         Assert.That(t.InputActions.Count, Is.EqualTo(4));
         Assert.That(t.AxisActions.Count, Is.EqualTo(1));
 
@@ -170,41 +165,98 @@ public class InputActionContainerTests {
         Assert.That(InputMap.HasAction("Left"), Is.False);
     }
 
-    [Singleton]
-    public class Test2 : SaveSettingsContainerAware {
+    public class Test2 {
         public InputAction Jump { get; } = InputAction.Create("Jump").Buttons(JoyButton.B).Keys(Key.A).SaveAs("Setting/Jump").Build();
-        public InputAction Attack { get; } = InputAction.Create("Attack").Buttons(JoyButton.B).JoypadId(2).Build();
+        public InputAction Attack { get; } = InputAction.Create("Attack").Buttons(JoyButton.B).Build();
         public InputAction Left { get; } = InputAction.Create("Left").AxisName("Lateral").NegativeAxis(JoyAxis.LeftX).Build();
         public AxisAction Lateral { get; } = AxisAction.Create("Lateral").SaveAs("Setting/Lateral").Build();
         public InputAction Right { get; } = InputAction.Create("Right").AxisName("Lateral").PositiveAxis(JoyAxis.LeftX).Build();
-        
-        [Inject] public SettingsContainer SettingsContainer { get; set;  }
     }
 
-    [TestRunner.Test(Description = "SettingContainer injected, only the Jump and Lateral actions will have a SaveSetting")]
+    [TestRunner.Test(Description = "With SettingContainer")]
     public void InputActionLoadInstanceContainerTest() {
         var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
-        var c = new Betauer.DI.Container().Build(b => {
-            b.Scan<Test2>();
-            b.Register(Provider.Static(sc));
-        });
-        var t = c.Resolve<Test2>();
-
+        var t = new Test2();
         var iac = new InputActionsContainer();
-        iac.AddFromInstanceProperties(t);
+        iac.AddActionsFromProperties(t);
+        iac.ConfigureSaveSettings(sc);
+        
         Assert.That(iac.InputActions.Count, Is.EqualTo(4));
         Assert.That(iac.AxisActions.Count, Is.EqualTo(1));
+        Assert.That(iac.SettingsContainer!.Settings.Count, Is.EqualTo(2));
+    }
+    
+    [TestRunner.Test(Description = "With SettingContainer REVERSE, first configure save settings, then add from instance")]
+    public void InputActionLoadInstanceContainerReverseTest() {
+        var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
+        var t = new Test2();
+        var iac = new InputActionsContainer();
+        iac.ConfigureSaveSettings(sc);
+        iac.AddActionsFromProperties(t);
         
-        Assert.That(t.Attack.SaveSetting, Is.Null);
-        Assert.That(t.Left.SaveSetting, Is.Null);
-        Assert.That(t.Right.SaveSetting, Is.Null);
-        
-        Assert.That(t.Jump.SaveSetting.SaveAs, Is.EqualTo("Setting/Jump"));
-        Assert.That(t.Jump.SaveSetting.DefaultValue, Is.EqualTo(t.Jump.AsString()));
-        Assert.That(t.Jump.SaveSetting.AutoSave, Is.True);
+        Assert.That(iac.InputActions.Count, Is.EqualTo(4));
+        Assert.That(iac.AxisActions.Count, Is.EqualTo(1));
+        Assert.That(iac.SettingsContainer!.Settings.Count, Is.EqualTo(2));
+    }
 
-        Assert.That(t.Lateral.SaveSetting.SaveAs, Is.EqualTo("Setting/Lateral"));
-        Assert.That(t.Lateral.SaveSetting.DefaultValue, Is.EqualTo(t.Lateral.AsString()));
-        Assert.That(t.Lateral.SaveSetting.AutoSave, Is.True);
+    
+    [TestRunner.Test(Description = "With SettingContainer, update and save")]
+    public void UpdateAndSaveTest() {
+        var o = new ConfigFileWrapper(SettingsFile);
+        var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
+        var t = new Test2();
+        var iac = new InputActionsContainer();
+        iac.ConfigureSaveSettings(sc);
+        iac.AddActionsFromProperties(t);
+
+        // If Save() for the very first time, the default values are saved
+        iac.Save();
+        o.Load();
+        Assert.That(o.GetValue("Setting/Jump", "nop"), Is.EqualTo("Button:B,Key:A"));
+        Assert.That(o.GetValue("Setting/Lateral", "nop"), Is.EqualTo("Reverse:False"));
+
+        // When update the values and Save()
+        t.Jump.Update(u=> u.ClearButtons().ClearKeys().SetMouse(MouseButton.Left));
+        t.Lateral.Reverse = true;
+        Assert.That(t.Jump.Export(), Is.EqualTo("Mouse:Left"));
+        Assert.That(t.Lateral.Export(), Is.EqualTo("Reverse:True"));
+        iac.Save();
+        // The values are saved
+        o.Load();
+        Assert.That(o.GetValue("Setting/Jump", "nop"), Is.EqualTo("Mouse:Left"));
+        Assert.That(o.GetValue("Setting/Lateral", "nop"), Is.EqualTo("Reverse:True"));
+        
+        // When update the values and Load()
+        t.Jump.Update(u=> u.ClearMouse().SetKey(Key.K));
+        t.Lateral.Reverse = false;
+        Assert.That(t.Jump.Export(), Is.EqualTo("Key:K"));
+        Assert.That(t.Lateral.Export(), Is.EqualTo("Reverse:False"));
+        iac.Load();
+        
+        // The values are lost and previous values are restored
+        Assert.That(t.Jump.Export(), Is.EqualTo("Mouse:Left"));
+        Assert.That(t.Lateral.Export(), Is.EqualTo("Reverse:True"));
+        o.Load();
+        Assert.That(o.GetValue("Setting/Jump", "nop"), Is.EqualTo("Mouse:Left"));
+        Assert.That(o.GetValue("Setting/Lateral", "nop"), Is.EqualTo("Reverse:True"));
+
+        // When restore defaults, Inputs recover the default values from the SaveSetting
+        // but they are not saved yet
+        iac.RestoreDefaults();
+        Assert.That(t.Jump.Export(), Is.EqualTo("Button:B,Key:A"));
+        Assert.That(t.Lateral.Export(), Is.EqualTo("Reverse:False"));
+        o.Load();
+        Assert.That(o.GetValue("Setting/Jump", "nop"), Is.EqualTo("Mouse:Left"));
+        Assert.That(o.GetValue("Setting/Lateral", "nop"), Is.EqualTo("Reverse:True"));
+
+        // When restore defaults and save, default values are saved
+        iac.RestoreDefaults();
+        iac.Save();
+        Assert.That(t.Jump.Export(), Is.EqualTo("Button:B,Key:A"));
+        Assert.That(t.Lateral.Export(), Is.EqualTo("Reverse:False"));
+        o.Load();
+        Assert.That(o.GetValue("Setting/Jump", "nop"), Is.EqualTo("Button:B,Key:A"));
+        Assert.That(o.GetValue("Setting/Lateral", "nop"), Is.EqualTo("Reverse:False"));
+
     }
 }

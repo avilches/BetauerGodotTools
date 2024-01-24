@@ -16,58 +16,32 @@ using Betauer.Input;
 using Betauer.NodePath;
 using Betauer.Nodes;
 using Godot;
+using Veronenger.Game.Platform;
 
 namespace Veronenger.Game.UI.Settings; 
 
 public partial class SettingsMenu : CanvasLayer {
-	[NodePath("Panel")] 
-	private Panel _panel;
-
-	[NodePath("Panel/SettingsBox")] 
-	private VBoxContainer _settingsBox;
-
-	[NodePath("%Fullscreen")]
-	private CheckButton _fullscreenButtonWrapper;
-
-	[NodePath("%Resolution")]
-	private Button _resolutionButton;
-
-	[NodePath("%Resolutions")]
-	private ItemList _resolutions;
-
-	[NodePath("%PixelPerfect")]
-	private CheckButton _pixelPerfectButtonWrapper;
-
-	[NodePath("%Borderless")]
-	private CheckButton _borderlessButtonWrapper;
-
-	[NodePath("%VSync")]
-	private CheckButton _vsyncButtonWrapper;
-
-	[NodePath("%GamepadControls")]
-	private VBoxContainer _gamepadControls;
-
-	[NodePath("%KeyboardControls")]
-	private VBoxContainer _keyboardControls;
-
-	[NodePath("Panel/SettingsBox/ScrollContainer")]
-	private ScrollContainer _scrollContainer;
-
-	[NodePath("Panel/RedefineBox")] 
-	private VBoxContainer _redefineBox;
-
-	[NodePath("Panel/RedefineBox/Message")] 
-	private Label _redefineActionMessage;
-
-	[NodePath("%RedefineActionName")] 
-	private Label _redefineActionName;
-
-	[NodePath("%RedefineCounter")] 
-	private Label _redefineCounterLabel;
+	[NodePath("Panel")] private Panel _panel;
+	[NodePath("Panel/SettingsBox")] private VBoxContainer _settingsBox;
+	[NodePath("%Fullscreen")] private CheckButton _fullscreenButtonWrapper;
+	[NodePath("%Resolution")] private Button _resolutionButton;
+	[NodePath("%Resolutions")] private ItemList _resolutions;
+	[NodePath("%PixelPerfect")] private CheckButton _pixelPerfectButtonWrapper;
+	[NodePath("%Borderless")] private CheckButton _borderlessButtonWrapper;
+	[NodePath("%VSync")] private CheckButton _vsyncButtonWrapper;
+	[NodePath("%GamepadControls")] private VBoxContainer _gamepadControls;
+	[NodePath("%KeyboardControls")] private VBoxContainer _keyboardControls;
+	[NodePath("Panel/SettingsBox/ScrollContainer")] private ScrollContainer _scrollContainer;
+	[NodePath("Panel/RedefineBox")] private VBoxContainer _redefineBox;
+	[NodePath("Panel/RedefineBox/Message")] private Label _redefineActionMessage;
+	[NodePath("%RedefineActionName")] private Label _redefineActionName;
+	[NodePath("%RedefineCounter")] private Label _redefineCounterLabel;
 
 	[Inject] private ILazy<BottomBar> BottomBarLazy { get; set; }
 	[Inject] private Betauer.DI.Container Container { get; set; }
 	[Inject] private ScreenSettingsManager ScreenSettingsManager { get; set; }
+	[Inject] private PlatformMultiPlayerContainer PlatformMultiPlayerContainer { get; set; }
+	[Inject] private InputActionsContainer PlatformPlayerActions => PlatformMultiPlayerContainer.SharedInputActionsContainer;
 	private ScreenController ScreenController => ScreenSettingsManager.ScreenController;
 	private ScreenConfig ScreenConfig => ScreenController.ScreenConfig;
 
@@ -78,8 +52,6 @@ public partial class SettingsMenu : CanvasLayer {
 	[Inject] private MainBus MainBus { get; set; }
 	[Inject] private ITransient<RedefineActionButton> RedefineActionButton { get; set; }
 	
-	public event Action<InputAction>? OnRedefine;
-
 	public override void _Ready() {
 		ConfigureSignalEvents();
 		AddInputControls();
@@ -154,14 +126,10 @@ public partial class SettingsMenu : CanvasLayer {
 		foreach (Node child in _keyboardControls.GetChildren()) child.QueueFree();
 			
 		// TODO: i18n
-		Container.ResolveAll<AxisAction>().ForEach(axisAction => {
-			if (axisAction.Negative.SaveSetting != null) {
-				// AddConfigureControl(axisAction.Name, axisAction);
-			}
-		});
-		
-		Container.ResolveAll<InputAction>().ForEach(inputAction => {
-			if (inputAction.SaveSetting != null) {
+		PlatformPlayerActions.Load();
+		PlatformPlayerActions.InputActions.ForEach(inputAction => {
+			var saveSetting = PlatformPlayerActions.FindSaveSetting(inputAction);
+			if (saveSetting != null) {
 				if (inputAction.Keys.Count > 0) {
 					AddConfigureControl(inputAction.Name, inputAction, true);
 				}
@@ -296,7 +264,11 @@ public partial class SettingsMenu : CanvasLayer {
 		_redefineCounterLabel.Text = "";
 		scheduler.Stop();
 
-		if (redefineOk) await NodeManager.MainInstance.AwaitInput(e => e.IsPressed() && (e.IsAnyKey() || e.IsAnyButton() || e.IsAnyClick()), 1.2f);
+		if (redefineOk) {
+			PlatformPlayerActions.Save();
+			PlatformMultiPlayerContainer.SyncActions(); // If there is game in progress, sync the actions
+			await NodeManager.MainInstance.AwaitInput(e => e.IsPressed() && (e.IsAnyKey() || e.IsAnyButton() || e.IsAnyClick()), 1.2f);
+		}
 		
 		_redefineBox.Hide();
 		_settingsBox.Show();
@@ -310,12 +282,10 @@ public partial class SettingsMenu : CanvasLayer {
 		if (otherRedefine != null && otherRedefine != redefineButton) {
 			// Swap: set to the other the current key
 			var currentButton = redefineButton.InputAction.Buttons[0];
-			otherRedefine.InputAction.Update(u => u.SetButton(currentButton)).Save();
-			OnRedefine?.Invoke(otherRedefine.InputAction);
+			otherRedefine.InputAction.Update(u => u.SetButton(currentButton));
 			otherRedefine.Refresh();
 		}
-		redefineButton.InputAction.Update(u => u.SetButton(newButton)).Save();
-		OnRedefine?.Invoke(redefineButton.InputAction);
+		redefineButton.InputAction.Update(u => u.SetButton(newButton));
 		redefineButton.Refresh();
 	}
 
@@ -326,12 +296,10 @@ public partial class SettingsMenu : CanvasLayer {
 		if (otherRedefine != null && otherRedefine != redefineButton) {
 			// Swap: set to the other the current key
 			var currentKey = redefineButton.InputAction.Keys[0];
-			otherRedefine.InputAction.Update(u => u.SetKey(currentKey)).Save();
-			OnRedefine?.Invoke(otherRedefine.InputAction);
+			otherRedefine.InputAction.Update(u => u.SetKey(currentKey));
 			otherRedefine.Refresh();
 		}
-		redefineButton.InputAction.Update(u => u.SetKey(newKey)).Save();
-		OnRedefine?.Invoke(redefineButton.InputAction);
+		redefineButton.InputAction.Update(u => u.SetKey(newKey));
 		redefineButton.Refresh();
 	}
 }

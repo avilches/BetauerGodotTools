@@ -33,6 +33,13 @@ public partial class SettingTests : Node {
     }
 
     [TestRunner.Test]
+    public void DuplicatedSettingTest() {
+        var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
+        sc.Add(Setting.Create("Section/SavedDisabled", "Default"));
+        Assert.Throws<Exception>(() => sc.Add(Setting.Create("Section/SavedDisabled", "Pepe")));
+    }
+
+    [TestRunner.Test]
     public void WorksIfContainer() {
         var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
         var saved = Setting.Create("Section/NoAutoSave", "Default", false);
@@ -124,27 +131,9 @@ public partial class SettingTests : Node {
         Assert.That(saved.Value, Is.EqualTo("Default"));
     }
 
-    [TestRunner.Test]
-    public void SharedSettingNameTest() {
-        var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
-        var saved1 = Setting.Create("Section/SavedDisabled", "Default");
-        var saved2 = Setting.Create("Section/SavedDisabled", "Pepe");
-        sc.Add(saved1);
-        sc.Add(saved2);
-
-        saved1.Value = "Nuevo";
-        Assert.That(saved1.Value, Is.EqualTo("Nuevo"));
-        Assert.That(saved2.Value, Is.EqualTo("Nuevo"));
-        sc.Save();
-
-        var cf = new ConfigFileWrapper(SettingsFile);
-        cf.Load();
-        Assert.That(cf.GetValue<string>("Section/SavedDisabled", "NOT SAVED"), Is.EqualTo("Nuevo"));
-    }
-
     public class Test1 {
-        public SaveSetting<string> Saved1 { get; } = Setting.Create("Section/SavedDisabled", "Default");
-        public SaveSetting<bool> Saved2 { get; } = Setting.Create("Section/SavedDisabled", true);
+        public SaveSetting<string> Saved1 { get; } = Setting.Create("Section/B", "Default");
+        public SaveSetting<bool> Saved2 { get; } = Setting.Create("Section/A", true);
     }
 
     [TestRunner.Test]
