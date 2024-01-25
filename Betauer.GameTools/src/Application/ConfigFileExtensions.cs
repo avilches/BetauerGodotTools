@@ -1,5 +1,4 @@
 using System;
-using Betauer.Core;
 using Godot;
 
 namespace Betauer.Application;
@@ -11,8 +10,7 @@ public static class ConfigFileExtensions {
     }
 
     public static void SetTypedValue<[MustBeVariant] T>(this ConfigFile configFile, string section, string key, T value) {
-        var variantValue = VariantHelper.CreateFrom(value);
-        configFile.SetValue(section, key, variantValue);
+        configFile.SetValue(section, key, Variant.From(value));
     }
 
     public static T GetTypedValue<[MustBeVariant] T>(this ConfigFile configFile, string propertyWithSection, T @default) {
@@ -21,16 +19,15 @@ public static class ConfigFileExtensions {
     }
 
     public static T GetTypedValue<[MustBeVariant] T>(this ConfigFile configFile, string section, string key, T @default) {
-        var variantDefault = VariantHelper.CreateFrom(@default);
-        var variantValue = configFile.GetValue(section, key, variantDefault);
-        return VariantHelper.ConvertTo<T>(variantValue);
+        var variantValue = configFile.GetValue(section, key, Variant.From(@default));
+        return variantValue.As<T>();
     }
 
     public static (string, string) GetSectionAndKey<T>(string propertyWithSection) {
         var pos = propertyWithSection.IndexOf('/');
-        if (pos == -1) throw new ArgumentException("Property must be in the format 'Section/Key'", nameof(propertyWithSection));
-        var section = propertyWithSection.Substring(0, pos);
-        var key = propertyWithSection.Substring(pos + 1);
+        if (pos <= 0) throw new ArgumentException("Property must be in the format 'Section/Key'", nameof(propertyWithSection));
+        var section = propertyWithSection[..pos];
+        var key = propertyWithSection[(pos + 1)..];
         return (section, key);
     }
 }
