@@ -328,7 +328,8 @@ public class InputActionTests {
             .Meta()
             .Shift()
             .SaveAs("Setting/N")
-            .Build(true);
+            .IncludeModifiers()
+            .Build();
 
         Assert.That(complete.Export(), Is.EqualTo("Button:A,Button:B,JoyAxis:LeftX,AxisSign:Negative,DeadZone:0.2,Key:A,Key:B,Mouse:Left,Shift,Ctrl,Meta"));
 
@@ -387,7 +388,8 @@ public class InputActionTests {
             .Meta()
             .Shift()
             .SaveAs("Setting/N")
-            .Build(true);
+            .IncludeModifiers()
+            .Build();
 
         var backup = complete.Export();
 

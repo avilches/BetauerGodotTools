@@ -5,7 +5,6 @@ using Godot;
 namespace Betauer.Input.Handler;
 
 internal class GodotInputHandler : IHandler {
-    public const float MaxPressedTime = 31536000f; // 1 year! 
 
     internal readonly InputAction InputAction;
     private StringName? _stringName;
@@ -29,8 +28,8 @@ internal class GodotInputHandler : IHandler {
     public bool Pressed => Godot.Input.IsActionPressed(ActionStringName);
     public float Strength => Godot.Input.GetActionStrength(ActionStringName);
     public float RawStrength => Godot.Input.GetActionRawStrength(ActionStringName);
-    public float PressedTime => _stopwatchPressed != null ? (float)_stopwatchPressed.Elapsed : MaxPressedTime;
-    public float ReleasedTime => _stopwatchReleased != null ? (float)_stopwatchReleased.Elapsed : MaxPressedTime;
+    public float PressedTime => _stopwatchPressed != null ? (float)_stopwatchPressed.Elapsed : 0;
+    public float ReleasedTime => _stopwatchReleased != null ? (float)_stopwatchReleased.Elapsed : 0;
     public bool JustPressed => Godot.Input.IsActionJustPressed(ActionStringName);
     public bool JustReleased => Godot.Input.IsActionJustReleased(ActionStringName);
 

@@ -6,8 +6,8 @@ internal class MockStateHandler : IHandler {
     public bool Pressed { get; protected set; } = false;
     public float Strength { get; protected set; }
     public float RawStrength { get; protected set; }
-    public float PressedTime => GodotInputHandler.MaxPressedTime; // Pressed one year ago ;)
-    public float ReleasedTime => GodotInputHandler.MaxPressedTime; // Pressed one year ago ;)
+    public float PressedTime => 0;
+    public float ReleasedTime => 0;
     public bool JustPressed { get; protected set; }
     public bool JustReleased { get; protected set; }
 

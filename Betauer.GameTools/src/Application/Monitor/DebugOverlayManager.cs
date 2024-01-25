@@ -32,9 +32,6 @@ public partial class DebugOverlayManager : CanvasLayer {
 
     public DebugOverlay Find(int id) => Overlays.First(overlay => overlay.Id == id);
 
-    [Inject(Nullable = true)]
-    public InputAction? DebugOverlayAction { get; set; }
-
     public DebugOverlayManager() {
         DebugConsole = new DebugConsole(this) {
             Name = nameof(DebugConsole),
@@ -102,13 +99,8 @@ public partial class DebugOverlayManager : CanvasLayer {
     }
 
     private Control? _lastFocus;
-    public override void _Input(InputEvent input) {
-        if (DebugOverlayAction != null && DebugOverlayAction.IsEventJustPressed(input)) {
-            UserHitDebug(input);
-        }
-    }
 
-    private void UserHitDebug(InputEvent input) {
+    public void UserHitDebug(InputEvent input) {
         if (input.HasShift()) {
             if (Visible) {
                 // Overlay visible: change the console only

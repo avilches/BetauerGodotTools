@@ -24,6 +24,8 @@ public partial class InputAction {
         private bool _commandOrCtrlAutoremap;
         private bool _includeImportExportDeadzone = false;
         private bool _includeImportExportAxisSign = false;
+        private bool _includeModifiers = false;
+        private bool _enableJustTimer = false;
         private bool _allowMultipleButtons = true;
         private bool _allowMultipleKeys = true;
                       
@@ -36,6 +38,13 @@ public partial class InputAction {
             return this;
         }
 
+        /// <summary>
+        /// If includeImportExport is true, the deadZone value will be included in the export/import string, used by the SaveSetting created when you add
+        /// a SettingContainer to the InputActionContainer where this InputAction is located.
+        /// </summary>
+        /// <param name="deadZone"></param>
+        /// <param name="includeImportExport"></param>
+        /// <returns></returns>
         public Builder DeadZone(float deadZone, bool includeImportExport = false) {
             _deadZone = deadZone;
             _includeImportExportDeadzone = includeImportExport;
@@ -122,6 +131,30 @@ public partial class InputAction {
             return this;
         }
 
+        /// <summary>
+        /// If true, the modifiers (Ctrl, Shift, Alt, Meta) will be included in the export/import string, used by the SaveSetting created when you add
+        /// a SettingContainer to the InputActionContainer where this InputAction is located.
+        /// </summary>
+        /// <param name="includeModifiers"></param>
+        /// <returns></returns>
+        public Builder IncludeModifiers(bool includeModifiers = true) {
+            _includeModifiers = includeModifiers;
+            return this;
+        }
+
+        /// <summary>
+        /// If true, the PressedTime and ReleasedTime attributes will return the time, in seconds, since the last press or release. And WasPressed() and
+        /// WasReleased() will work properly.
+        /// 
+        /// If false, the PressedTime and ReleasedTime attributes will return a value of 0, and WasPressed() and WasReleased() will always return false.
+        /// </summary>
+        /// <param name="enableJustTimer"></param>
+        /// <returns></returns>
+        public Builder EnableJustTimers(bool enableJustTimer = true) {
+            _enableJustTimer = enableJustTimer;
+            return this;
+        }
+
         private void ApplyConfig(InputAction inputAction) {
             if (_axis != JoyAxis.Invalid) {
                 inputAction.Axis = _axis;
@@ -152,10 +185,10 @@ public partial class InputAction {
             return input;
         }
 
-        public InputAction Build(bool includeModifiers = true, bool addWasPressed = false) {
-            var input = CreateInputAction(addWasPressed ? InputActionBehaviour.Extended : InputActionBehaviour.GodotInput);
+        public InputAction Build() {
+            var input = CreateInputAction(_enableJustTimer ? InputActionBehaviour.Extended : InputActionBehaviour.GodotInput);
             ApplyConfig(input);
-            input.IncludeModifiers = includeModifiers;
+            input.IncludeModifiers = _includeModifiers;
             input.IncludeDeadZone = _includeImportExportDeadzone;
             input.IncludeAxisSign = _includeImportExportAxisSign;
             input.AllowMultipleKeys = _allowMultipleKeys;

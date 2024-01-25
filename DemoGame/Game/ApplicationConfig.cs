@@ -10,6 +10,7 @@ using Betauer.Camera.Control;
 using Betauer.DI;
 using Betauer.DI.Attributes;
 using Betauer.Input;
+using Betauer.Nodes;
 using Godot;
 using Pcg;
 using Veronenger.Game.Platform;
@@ -74,11 +75,15 @@ public class MainResources {
 
 [Singleton]
 public class UiActions : SingleJoypadActionsContainer {
+	[Inject] DebugOverlayManager DebugOverlayManager { get; set; }
 	public UiActions() {
 		AddActionsFromProperties(this);
 		SetFirstConnectedJoypad();
 		EnableAll();
 		Start();
+		
+		var disabler = DebugOverlayAction.AddOnJustPressed((e) => DebugOverlayManager!.UserHitDebug(e));
+		// disabler(); // This will remove the event
 	}
 
 	public AxisAction UiVertical { get; } = new AxisAction("UiVertical");

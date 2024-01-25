@@ -121,7 +121,8 @@ public class PlatformPlayerActions : PlayerActionsContainer {
         .SaveAs("Controls/Jump")
         .Keys(Key.Space)
         .Buttons(JoyButton.A)
-        .Build(true);
+        .EnableJustTimers()
+        .Build();
 
     public InputAction Attack { get; } = InputAction.Create("Attack")
         .SaveAs("Controls/Attack")
