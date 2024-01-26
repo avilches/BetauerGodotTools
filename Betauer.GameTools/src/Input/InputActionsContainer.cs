@@ -1,18 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using Betauer.Core;
-using Betauer.Input.Handler;
-using Betauer.Nodes;
-using Godot;
 
 namespace Betauer.Input;
 
 public partial class InputActionsContainer {
     public List<AxisAction> AxisActions { get; } = new();
     public List<InputAction> InputActions { get; } = new();
-
-    private readonly List<GodotInputHandler> _onInputActions = new();
 
     public AxisAction? GetAxisAction(string name) {
         return AxisActions.Find(action => action.Name == name);
@@ -58,7 +52,6 @@ public partial class InputActionsContainer {
                 TryLinkAxisActionToNegativePositiveInputs(axisAction);
             }
         }
-        CheckInputHandler(inputAction);
     }
 
     private void TryLinkAxisActionToNegativePositiveInputs(AxisAction axisAction) {
@@ -73,9 +66,7 @@ public partial class InputActionsContainer {
     }
 
     public void Remove(InputAction inputAction) {
-        if (InputActions.Remove(inputAction)) {
-            CheckInputHandler(inputAction);
-        }
+        InputActions.Remove(inputAction);
     }
 
     public void Remove(AxisAction axisAction) {
@@ -87,16 +78,10 @@ public partial class InputActionsContainer {
     public void EnableAll(bool enable = true) {
         InputActions.ForEach(action => {
             action.Enable(enable);
-            CheckInputHandler(action);
         });
-        NodeManager.MainInstance.OnInput -= OnInputHandler;
-        if (_onInputActions.Count > 0) {
-            NodeManager.MainInstance.OnInput += OnInputHandler;
-        }
     }
 
     public void DisableAll() {
-        NodeManager.MainInstance.OnInput -= OnInputHandler;
         InputActions.ForEach(action => action.Disable());
     }
 
@@ -111,27 +96,5 @@ public partial class InputActionsContainer {
             TryRemoveSaveSettings(axisAction);
         });
         AxisActions.Clear();
-    }
-
-    private void CheckInputHandler(InputAction inputAction) {
-        if (inputAction.Handler is GodotInputHandler handler && handler.HasJustTimers) {
-            if (inputAction.Enabled) {
-                if (!_onInputActions.Contains(handler)) _onInputActions.Add(handler);
-            } else {
-                _onInputActions.Remove(handler);
-            }
-        }
-    }
-
-    private void OnInputHandler(InputEvent obj) {
-        if (_onInputActions.Count == 0) {
-            NodeManager.MainInstance.OnInput -= OnInputHandler;
-            return;
-        }
-        var span = CollectionsMarshal.AsSpan(_onInputActions);
-        for (var i = 0; i < span.Length; i++) {
-            var handler = span[i];
-            handler.UpdateJustTimers();
-        }
     }
 }

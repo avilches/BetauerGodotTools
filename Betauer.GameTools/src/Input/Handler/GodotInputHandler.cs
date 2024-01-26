@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Betauer.Core.Time;
+using Betauer.Nodes;
 using Godot;
 
 namespace Betauer.Input.Handler;
@@ -48,23 +49,20 @@ internal class GodotInputHandler : IHandler {
     public void ClearJustStates() {
     }
 
-    public void UpdateJustTimers() {
-        if (JustPressed) {
-            _stopwatchPressed!.Restart();
-        } else if (JustReleased) {
-            _stopwatchReleased!.Restart();
-        }
-    }
-
-    public void Refresh(InputAction inputAction) {
-        var stringName = (StringName)inputAction.Name;
+    public void Refresh() {
+        var stringName = (StringName)InputAction.Name;
         if (InputMap.HasAction(stringName)) {
             InputMap.EraseAction(stringName);
         }
-        if (inputAction.Enabled) {
-            InputMap.AddAction(stringName, inputAction.DeadZone);
-            CreateInputEvents(inputAction).ForEach(e => InputMap.ActionAddEvent(stringName, e));
-            InputAction.Logger.Info("Adding action: {0} J:{1} {2}", inputAction.Name, inputAction.JoypadId, inputAction.Export());
+        if (InputAction.Enabled) {
+            InputMap.AddAction(stringName, InputAction.DeadZone);
+            CreateInputEvents(InputAction).ForEach(e => InputMap.ActionAddEvent(stringName, e));
+            InputAction.Logger.Info("Adding action: {0} J:{1} {2}", InputAction.Name, InputAction.JoypadId, InputAction.Export());
+        }
+
+        if (HasJustTimers) {
+            NodeManager.MainInstance.OnInput -= UpdateJustTimers;
+            if (InputAction.Enabled) NodeManager.MainInstance.OnInput += UpdateJustTimers;
         }
     }
 
@@ -110,6 +108,14 @@ internal class GodotInputHandler : IHandler {
                 e.CtrlPressed = inputAction.Ctrl;
                 e.MetaPressed = inputAction.Meta;
             }
+        }
+    }
+
+    private void UpdateJustTimers(InputEvent e) {
+        if (InputAction.IsJustPressed) {
+            _stopwatchPressed!.Restart();
+        } else if (InputAction.IsJustReleased) {
+            _stopwatchReleased!.Restart();
         }
     }
 }

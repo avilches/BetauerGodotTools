@@ -11,9 +11,9 @@ internal class MockStateHandler : IHandler {
     public bool JustPressed { get; protected set; }
     public bool JustReleased { get; protected set; }
 
-    public void ClearJustStates() {
-        JustPressed = false;
-        JustReleased = false;
+    internal MockStateHandler(InputAction inputAction) {
+        InputAction = inputAction;
+        ClearState();
     }
 
     internal void ClearState() {
@@ -23,9 +23,9 @@ internal class MockStateHandler : IHandler {
         ClearJustStates();
     }
 
-    internal MockStateHandler(InputAction inputAction) {
-        InputAction = inputAction;
-        ClearState();
+    public void ClearJustStates() {
+        JustPressed = false;
+        JustReleased = false;
     }
 
     protected void SetPressed(float strength) {
@@ -57,6 +57,5 @@ internal class MockStateHandler : IHandler {
         RawStrength = strength;
     }
 
-    public void Refresh(InputAction inputAction) {
-    }
+    public void Refresh() { }
 }

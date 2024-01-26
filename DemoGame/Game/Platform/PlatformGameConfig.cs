@@ -64,7 +64,6 @@ public class PlatformGameConfig {
     [Singleton] public PlatformMultiPlayerContainer PlatformMultiPlayerContainer => new();
 }
 
-
 [Singleton]
 public class PlatformMultiPlayerContainer : MultiPlayerContainer<PlatformPlayerActions>, IInjectable {
     

@@ -200,7 +200,7 @@ public partial class InputAction {
     public void Disable() => Enable(false);
 
     public void RefreshGodotInputMap() {
-        Handler.Refresh(this);
+        Handler.Refresh();
     }
 
     public void LoadFromGodotProjectSettings() {
