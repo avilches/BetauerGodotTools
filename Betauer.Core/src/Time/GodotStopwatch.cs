@@ -135,8 +135,7 @@ public class GodotStopwatch {
     }
 
     public override string ToString() {
-        return
-            $"{(IsRunning() ? "Running: " : "Stopped: ")}{Elapsed:0.000} (internal TimeLeft: {_sceneTreeTimer.TimeLeft})";
+        return $"{(IsRunning() ? "Running: " : "Stopped: ")}{Elapsed:0.000} (internal TimeLeft: {_sceneTreeTimer.TimeLeft})";
     }
 
     private double GetElapsed() { 
