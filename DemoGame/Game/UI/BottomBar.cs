@@ -74,18 +74,9 @@ public partial class BottomBar : CanvasLayer {
 			case MainState.PauseMenu:
 				AcceptBack();
 				break;
-			case MainState.SettingsMenu:
-			case MainState.StartingGamePlatform:
-			case MainState.StartingGameRts:
-			case MainState.SavingGame:
-			case MainState.GameOver:
-			case MainState.QuitGame:
-			case MainState.Gaming:
-			case MainState.ExitDesktop:
+			default:
 				HideAll();
 				break;
-			default:
-				throw new ArgumentOutOfRangeException(nameof(to), to, null);
 		}
 	}
 }

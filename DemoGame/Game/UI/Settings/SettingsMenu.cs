@@ -223,7 +223,7 @@ public partial class SettingsMenu : CanvasLayer {
 			if (_resolutions.HasFocus()) {
 				CloseResolutionList();
 			} else {
-				MainBus.Publish(MainEvent.CloseSettingsMenu);
+				MainBus.Publish(MainEvent.TriggerCloseSettingsMenu);
 				GetViewport().SetInputAsHandled();
 			}
 		}

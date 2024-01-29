@@ -22,23 +22,26 @@ public class MainBus : GodotBus<MainEvent> {
 }
 
 public enum MainEvent {
-    OpenPauseMenu,
-    ClosePauseMenu,
+    TriggerOpenPauseMenu,
+    TriggerClosePauseMenu,
     
-    OpenSettingsMenu,
-    CloseSettingsMenu,
+    TriggerOpenSettingsMenu,
+    TriggerCloseSettingsMenu,
     
-    StartGameRts,
-    StartGamePlatform,
+    TriggerStartGameRts,
+    TriggerStartGamePlatform,
     
-    StartSavingGame,
-    EndSavingGame,
+    TriggerLoadInGame,
+    
+    OnStartSavingGame,
+    OnEndSavingGame,
 
-    OpenModalBoxQuitGame,
-    EndGame,
+    TriggerOpenModalBoxQuitGame,
+    TriggerGameOver,
+    TriggerPlayerQuitGame,
     
-    OpenModalBoxExitToDesktop,
-    ExitDesktop
+    TriggerOpenModalBoxExitToDesktop,
+    TriggerExitDesktop
 }
 
 public enum MainState {
@@ -49,6 +52,7 @@ public enum MainState {
     Gaming,
     PauseMenu,
     SavingGame,
+    LoadInGame,
     GameOver,
     
     ModalQuitGame,
@@ -119,15 +123,15 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IInjectable {
 
         MainBus.Subscribe((MainEvent e) => Send(e));
 
-        On(MainEvent.OpenModalBoxExitToDesktop).Push(MainState.ModalExitDesktop);
-        On(MainEvent.ExitDesktop).Set(MainState.ExitDesktop);
-        On(MainEvent.OpenModalBoxQuitGame).Push(MainState.ModalQuitGame);
+        On(MainEvent.TriggerOpenModalBoxExitToDesktop).Push(MainState.ModalExitDesktop);
+        On(MainEvent.TriggerExitDesktop).Set(MainState.ExitDesktop);
+        On(MainEvent.TriggerOpenModalBoxQuitGame).Push(MainState.ModalQuitGame);
 
         State(MainState.MainMenu)
             .OnInput(e => MainMenuScene.OnInput(e))
-            .On(MainEvent.StartGamePlatform).Set(MainState.StartingGamePlatform)
-            .On(MainEvent.StartGameRts).Set(MainState.StartingGameRts)
-            .On(MainEvent.OpenSettingsMenu).Push(MainState.SettingsMenu)
+            .On(MainEvent.TriggerStartGamePlatform).Set(MainState.StartingGamePlatform)
+            .On(MainEvent.TriggerStartGameRts).Set(MainState.StartingGameRts)
+            .On(MainEvent.TriggerOpenSettingsMenu).Push(MainState.SettingsMenu)
             .Suspend(() => MainMenuScene.DisableMenus())
             .Awake(() => MainMenuScene.EnableMenus())
             .Enter(async () => await MainMenuScene.ShowMenu())
@@ -135,7 +139,7 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IInjectable {
 
         State(MainState.SettingsMenu)
             .OnInput(e => SettingsMenuScene.OnInput(e))
-            .On(MainEvent.CloseSettingsMenu).Pop()
+            .On(MainEvent.TriggerCloseSettingsMenu).Pop()
             .Enter(() => SettingsMenuScene.ShowSettingsMenu())
             .Exit(() => SettingsMenuScene.HideSettingsMenu())
             .Build();
@@ -158,15 +162,17 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IInjectable {
             .Build();
 
         State(MainState.Gaming)
-            .On(MainEvent.EndGame).Set(MainState.GameOver)
-            .On(MainEvent.StartSavingGame).Push(MainState.SavingGame)
+            .On(MainEvent.TriggerGameOver).Set(MainState.GameOver) // Player died
+            .On(MainEvent.TriggerPlayerQuitGame).Set(MainState.GameOver) // Player wanted to quit
+            .On(MainEvent.OnStartSavingGame).Push(MainState.SavingGame)
+            .On(MainEvent.TriggerLoadInGame).Set(MainState.LoadInGame)
             .OnInput(e => {
                 if (UiActions.ControllerStart.IsEventJustPressed(e)) {
-                    Send(MainEvent.OpenPauseMenu);
+                    Send(MainEvent.TriggerOpenPauseMenu);
                     GetViewport().SetInputAsHandled();
                 }
             })
-            .On(MainEvent.OpenPauseMenu).Push(MainState.PauseMenu)
+            .On(MainEvent.TriggerOpenPauseMenu).Push(MainState.PauseMenu)
             .Build();
 
         State(MainState.SavingGame)
@@ -178,7 +184,20 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IInjectable {
                 ProgressScreenLazy.Get().Visible = false;
                 SceneTree.Paused = false;
             })
-            .On(MainEvent.EndSavingGame).Pop()
+            .On(MainEvent.OnEndSavingGame).Pop()
+            .Build();
+
+        State(MainState.LoadInGame)
+            .Enter(async () => {
+                SceneTree.Paused = true;
+                await gameView.End(false);
+                gameView = PlatformGameView.Create();
+                await gameView.StartNewGame("savegame");
+            })
+            .Exit(() => {
+                SceneTree.Paused = false;
+            })
+            .If(() => true).Set(MainState.Gaming)
             .Build();
 
         State(MainState.GameOver).Enter(async () => {
@@ -189,8 +208,8 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IInjectable {
             
         State(MainState.PauseMenu)
             .OnInput((e) => PauseMenuScene.OnInput(e))
-            .On(MainEvent.ClosePauseMenu).Pop()
-            .On(MainEvent.OpenSettingsMenu).Push(MainState.SettingsMenu)
+            .On(MainEvent.TriggerClosePauseMenu).Pop()
+            .On(MainEvent.TriggerOpenSettingsMenu).Push(MainState.SettingsMenu)
             .Suspend(() => PauseMenuScene.DisableMenus())
             .Awake(() => PauseMenuScene.EnableMenus())
             .Enter(async () => {

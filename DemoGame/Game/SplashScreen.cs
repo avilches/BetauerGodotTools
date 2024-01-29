@@ -43,6 +43,8 @@ public partial class SplashScreen : CanvasLayer {
 			NodePathScanner.ConfigureAutoInject(sceneTree); // This adds a hook to inject the [NodePath] attributes.
 			StartContainer(sceneTree);
 			DebugOverlayManager!.DebugConsole.AddAllCommands();
+			DebugOverlayManager.DebugConsole.AddInputEventCommand(UiActions!);
+			DebugOverlayManager.DebugConsole.AddInputMapCommand(UiActions!);
 		};
 		
 		Ready += async () => {

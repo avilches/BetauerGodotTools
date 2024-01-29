@@ -5,10 +5,10 @@ using Betauer.Application.Persistent;
 using Betauer.Application.Persistent.Json;
 using Betauer.Application.SplitScreen;
 using Betauer.Core.Pool;
-using Betauer.DI;
 using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
 using Betauer.Input;
+using Betauer.Nodes;
 using Godot;
 using Veronenger.Game.Platform.Character.Player;
 using Veronenger.Game.Platform.HUD;
@@ -16,7 +16,7 @@ using Veronenger.Game.UI;
 
 namespace Veronenger.Game.Platform.World;
 
-public partial class PlatformGameView : Control, IInjectable, IGameView {
+public partial class PlatformGameView : Control, IGameView {
 
 	[Inject] private Betauer.DI.Container Container { get; set; }
 	[Inject] private DebugOverlayManager DebugOverlayManager { get; set; }
@@ -32,7 +32,24 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 	[Inject] private PlatformQuery PlatformQuery { get; set; }
 	[Inject] private PlatformBus PlatformBus { get; set; }
 
-	private SplitViewport _splitViewport;
+	private readonly SplitViewport _splitViewport = new SplitViewport {
+		Camera1 = {
+			Zoom = new Vector2(2, 2)
+		},
+		Camera2 = {
+			Zoom = new Vector2(2, 2)
+		},
+		SubViewport1 = {
+			CanvasItemDefaultTextureFilter = Viewport.DefaultCanvasItemTextureFilter.Nearest,
+			RenderTargetUpdateMode = SubViewport.UpdateMode.Always,
+			HandleInputLocally = false
+		},
+		SubViewport2 = {
+			CanvasItemDefaultTextureFilter = Viewport.DefaultCanvasItemTextureFilter.Nearest,
+			RenderTargetUpdateMode = SubViewport.UpdateMode.Always,
+			HandleInputLocally = false
+		}
+	};
 
 	public const int MaxPlayer = 2;
 
@@ -46,99 +63,36 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 	private void AllowAddingP2() => _allowAddingP2 = true;
 	private void NoAddingP2() => _allowAddingP2 = false;
 
-	public Node GetWorld() => PlatformWorld;
+	public async Task StartNewGame(string? saveName = null) {
+		SaveGame<PlatformSaveGameMetadata>? saveGame = null;
+		if (saveName != null) {
+			(var success, saveGame) = await LoadSaveGame(saveName);
+			if (!success) return;
+			CurrentMetadata = saveGame.Metadata;
+		} else {
+			CurrentMetadata = new PlatformSaveGameMetadata();
+		}
 
-	public void PostInject() {
-		ConfigureDebugOverlays();
-		_splitViewport = new SplitViewport {
-			Camera1 = {
-				Zoom = new Vector2(2, 2)
-			},
-			Camera2 = {
-				Zoom = new Vector2(2, 2)
-			},
-			SubViewport1 = {
-				CanvasItemDefaultTextureFilter = Viewport.DefaultCanvasItemTextureFilter.Nearest,
-				RenderTargetUpdateMode = SubViewport.UpdateMode.Always,
-				HandleInputLocally = false
-			},
-			SubViewport2 = {
-				CanvasItemDefaultTextureFilter = Viewport.DefaultCanvasItemTextureFilter.Nearest,
-				RenderTargetUpdateMode = SubViewport.UpdateMode.Always,
-				HandleInputLocally = false
-			}
-		};
-		_splitViewport.Configure(this, () => GetViewportRect().Size);
-	}
+		await GameLoader.LoadPlatformGameResources();
+		
+		Configure();
+		if (saveGame != null) {
+			GameObjectRepository.LoadSaveObjects(saveGame.GameObjects);
+			var consumer = new PlatformSaveGameConsumer(saveGame);
 
-	public override void _UnhandledInput(InputEvent e) {
-		if (_allowAddingP2 && e is InputEventJoypadButton button && !PlatformMultiPlayerContainer.IsJoypadInUse(button.Device)) {
-			CreatePlayer2(button.Device);
-			GetViewport().SetInputAsHandled();
-			if (PlatformMultiPlayerContainer.Players == MaxPlayer) NoAddingP2();				
-		} else if (e.IsKeyReleased(Key.U)) {
-			if (ActivePlayers < 2) {
-				CreatePlayer2(1);
-				GetViewport().SetInputAsHandled();
-			}
-		} else if (e.IsKeyReleased(Key.F5)) {
-			Save("savegame");
-		} else if (e.IsKeyReleased(Key.F6)) {
-			LoadInGame("savegame");
+			LoadPlayer1(UiActions.JoypadId, consumer);
+			if (consumer.Player1 == null) AllowAddingP2();
+			else NoAddingP2();
+			PlatformWorld.LoadGame(consumer);
+		} else {
+			CreatePlayer1(UiActions.JoypadId);
+			AllowAddingP2();				
+			PlatformWorld.StartNewGame();
 		}
 	}
 
-	public async Task StartNewGame() {
-		SceneTree.Root.AddChild(this);
-		UiActions.SetJoypad(UiActions.JoypadId);	// Player who starts the game is the player who control the UI forever
-		
-		await GameLoader.LoadPlatformGameResources();
-		PlatformWorld = PlatformWorldFactory.Create();
-		PlatformHud = PlatformHudFactory.Create();
-		
-		CurrentMetadata = new PlatformSaveGameMetadata();
-		GameObjectRepository.Initialize();
-		InitializeWorld();
-		CreatePlayer1(UiActions.JoypadId);
-		AllowAddingP2();				
-		PlatformQuery.Configure(PlatformWorld);
-		PlatformWorld.StartNewGame();
-		// _cameraController.WithMouseButton(MouseButton.Middle).Attach(_camera2D);
-	}
-
-	public async Task LoadFromMenu(string saveName) {
-		SceneTree.Root.AddChild(this);
-		PlatformQuery.Configure(PlatformWorld);
-		UiActions.SetJoypad(UiActions.JoypadId);	// Player who starts the game is the player who control the UI forever
-		var (success, saveGame) = await LoadSaveGame(saveName);
-		if (!success) return;
-		await GameLoader.LoadPlatformGameResources();
-		ContinueLoad(saveGame);
-	}
-
-	public async Task LoadInGame(string saveName) {
-		UiActions.SetJoypad(UiActions.JoypadId); // Player who starts the game is the player who control the UI forever
-		var (success, saveGame) = await LoadSaveGame(saveName);
-		if (!success) return;
-		PlatformWorld.Free();
-		ContinueLoad(saveGame);
-	}
-
-	private void ContinueLoad(SaveGame<PlatformSaveGameMetadata> saveGame) {
-		CurrentMetadata = saveGame.Metadata;
-		GameObjectRepository.Initialize();
-		GameObjectRepository.LoadSaveObjects(saveGame.GameObjects);
-		InitializeWorld();
-		var consumer = new PlatformSaveGameConsumer(saveGame);
-		LoadPlayer1(UiActions.JoypadId, consumer);
-		if (consumer.Player1 == null) AllowAddingP2();
-		else NoAddingP2();
-		PlatformWorld.LoadGame(consumer);
-		HideLoading();
-	}
-
 	public async Task Save(string saveName) {
-		MainBus.Publish(MainEvent.StartSavingGame);
+		MainBus.Publish(MainEvent.OnStartSavingGame);
 		var l = await PlatformGameObjectLoader.ListMetadatas();
 		try {
 			var saveObjects = GameObjectRepository.GetSaveObjects();
@@ -148,7 +102,7 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 			// Show saving error
 			Console.WriteLine(e);
 		}
-		MainBus.Publish(MainEvent.EndSavingGame);
+		MainBus.Publish(MainEvent.OnEndSavingGame);
 	}
 
 	public void ShowLoading() {}
@@ -168,14 +122,46 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 		}
 	}
 
-	public void InitializeWorld() {
+	private bool _initialized = false;
+	private void Configure() {
+		if (_initialized) throw new Exception("Already initialized, can't call it twice");
+		_initialized = true;
+		GameObjectRepository.Initialize(); // Singleton, so it must be initialized every time this class is created
+		ConfigureDebugOverlays();
+
+		UiActions.SetJoypad(UiActions.JoypadId);	// Player who starts the game is the player who control the UI forever
+		SceneTree.Root.AddChild(this);
+		
+		PlatformWorld = PlatformWorldFactory.Create();
+		PlatformHud = PlatformHudFactory.Create();
+		PlatformQuery.Configure(PlatformWorld);
 		AddChild(PlatformHud);
-		PlatformMultiPlayerContainer.Start();
+		
 		_splitViewport.SetCommonWorld(PlatformWorld);
+		_splitViewport.Configure(this, () => GetViewportRect().Size);
 		_splitViewport.OnChange += (split) => PlatformHud.SplitScreenContainer.Split = split;
+		_splitViewport.Split = false;
 		_splitViewport.Refresh();
 		
 		GetTree().Root.SizeChanged += () => _splitViewport.Refresh();
+		this.OnPhysicsProcess((e) => ManageSplitScreen());
+		this.OnInput((e) => {
+			if (_allowAddingP2 && e is InputEventJoypadButton button && !PlatformMultiPlayerContainer.IsJoypadInUse(button.Device)) {
+				CreatePlayer2(button.Device);
+				GetViewport().SetInputAsHandled();
+				if (PlatformMultiPlayerContainer.Players == MaxPlayer) NoAddingP2();
+			} else if (e.IsKeyReleased(Key.U)) {
+				if (ActivePlayers < 2) {
+					CreatePlayer2(1);
+					GetViewport().SetInputAsHandled();
+				}
+			} else if (e.IsKeyReleased(Key.F5)) {
+				Save("savegame");
+			} else if (e.IsKeyReleased(Key.F6)) {
+				MainBus.Publish(MainEvent.TriggerLoadInGame);
+			}
+		});
+		PlatformMultiPlayerContainer.Start();
 	}
 
 	private PlayerNode CreatePlayer1(int joypadId) {
@@ -200,11 +186,7 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 		return playerNode;
 	}
 	
-	public override void _Process(double delta) {
-		ManageSplitScreen();
-	}
-
-	public void ManageSplitScreen() {
+	private void ManageSplitScreen() {
 		if (ActivePlayers == 1) {
 			// Ensure only one viewport is shown
 			_splitViewport.Split = false;
@@ -250,7 +232,6 @@ public partial class PlatformGameView : Control, IInjectable, IGameView {
 	}
 	
 	private void ConfigureDebugOverlays() {
-		
 		// DebugOverlayManager.Overlay("Pool")
 			// .Children()
 			// .TextField("Busy", () => PoolNodeContainer.BusyCount() + "")

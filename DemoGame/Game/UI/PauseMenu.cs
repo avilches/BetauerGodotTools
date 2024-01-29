@@ -57,23 +57,23 @@ public partial class PauseMenu : CanvasFaderLayer {
 
 		var mainMenu = new MenuContainer(_menuBase);
 		var startMenu = mainMenu.GetRootMenu();
-		startMenu.AddButton("Resume", "Resume").Pressed += () => MainBus.Publish(MainEvent.ClosePauseMenu);
-		startMenu.AddButton("Settings", "Settings").Pressed += () => MainBus.Publish(MainEvent.OpenSettingsMenu);
-		startMenu.AddButton("QuitGame", "Quit game").Pressed += () => MainBus.Publish(MainEvent.OpenModalBoxQuitGame);
+		startMenu.AddButton("Resume", "Resume").Pressed += () => MainBus.Publish(MainEvent.TriggerClosePauseMenu);
+		startMenu.AddButton("Settings", "Settings").Pressed += () => MainBus.Publish(MainEvent.TriggerOpenSettingsMenu);
+		startMenu.AddButton("QuitGame", "Quit game").Pressed += () => MainBus.Publish(MainEvent.TriggerOpenModalBoxQuitGame);
 		return mainMenu;
 	}
 
 	public void OnInput(InputEvent e) {
 		if (UiActions.UiCancel.IsEventJustPressed(e)) {
 			if (_menuContainer.IsRootMenuActive()) {
-				MainBus.Publish(MainEvent.ClosePauseMenu);
+				MainBus.Publish(MainEvent.TriggerClosePauseMenu);
 			} else {
 				_menuContainer.Back();
 			}
 			GetViewport().SetInputAsHandled();
 
 		} else if (UiActions.ControllerStart.IsJustPressed) {
-			MainBus.Publish(MainEvent.ClosePauseMenu);
+			MainBus.Publish(MainEvent.TriggerClosePauseMenu);
 			GetViewport().SetInputAsHandled();
 				
 		}
