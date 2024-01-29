@@ -10,7 +10,7 @@ public partial class MonitorEditValue : BaseMonitor<MonitorEditValue> {
     public readonly HBoxContainer HBoxContainer = new();
     public Func<string>? ValueLoader;
     private bool _focused = false;
-    
+    private string _previousValue = null;
 
     public readonly Label Label = new() {
         Name = "Label",
@@ -43,7 +43,10 @@ public partial class MonitorEditValue : BaseMonitor<MonitorEditValue> {
     }
 
     public override void _Ready() {
+        LoadValue();
         Edit.TextChanged += text => {
+            if (_previousValue == text) return;
+            _previousValue = text;
             try {
                 _updateValue?.Invoke(text);
                 Edit.RemoveFontColor();
@@ -52,9 +55,7 @@ public partial class MonitorEditValue : BaseMonitor<MonitorEditValue> {
                 Edit.SetFontColor(DefaultErrorColor);
             }
         };
-        Edit.FocusEntered += () => {
-            _focused = true;
-        };
+        Edit.FocusEntered += () => _focused = true;
         Edit.FocusExited += () => _focused = false;
         this.Children()
             .Add(HBoxContainer, box => {
@@ -66,7 +67,8 @@ public partial class MonitorEditValue : BaseMonitor<MonitorEditValue> {
     
     public void LoadValue() {
         if (ValueLoader != null) {
-            Edit.Text = ValueLoader();
+            _previousValue = ValueLoader();
+            Edit.Text = _previousValue;
         }
     }
 
