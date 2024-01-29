@@ -36,10 +36,9 @@ public class MultiPlayerContainer<T> where T : PlayerActionsContainer {
 
     public void Stop() {
         if (!Running) return;
-        Logger.Debug("Stop all players");
         Godot.Input.Singleton.JoyConnectionChanged -= OnJoyConnectionChanged;
-        Mapping.ToList().ForEach(RemovePlayerActions); // The ToList clones the list so we can remove items while iterating without problems
         Running = false;
+        RemoveAllPlayers();
     }
 
     /// <summary>
@@ -154,6 +153,10 @@ public class MultiPlayerContainer<T> where T : PlayerActionsContainer {
         playerActions.Start(playerId, joypadId, keyboard, SharedInputActionsContainer);
         Mapping.Add(playerActions);
         return playerActions;
+    }
+
+    public void RemoveAllPlayers() {
+        Mapping.ToList().ForEach(RemovePlayerActions); // The ToList clones the list so we can remove items while iterating without problems
     }
 
     public void RemovePlayerActions(T playerActionsContainer) {
