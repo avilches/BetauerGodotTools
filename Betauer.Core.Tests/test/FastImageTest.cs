@@ -37,12 +37,12 @@ public class FastImageTest {
         
         fast.BlitRect(fastTree, new Rect2I(16, 32, 16, 16), new Vector2I(50, 60));
         fast.BlendRect(fastTree, new Rect2I(16, 32, 16, 16), new Vector2I(66, 76));
-        fast.DrawLine(10, 0, 10, 100, Colors.Fuchsia);
-        fast.DrawLine(0, 10, 100, 10, Colors.Fuchsia);
-        fast.DrawLine(26, 60, 26, 60, Colors.Fuchsia);
-        fast.DrawLine(0, 0, 100, 100, gray);
-        fast.DrawLine(1, 0, 101, 100, gray);
-        fast.DrawLine(0, 40, 100, 100, gray);
+        fast.DrawLine(10, 0, 10, 100, 1, Colors.Fuchsia);
+        fast.DrawLine(0, 10, 100, 10, 1, Colors.Fuchsia);
+        fast.DrawLine(26, 60, 26, 60, 1, Colors.Fuchsia);
+        fast.DrawLine(0, 0, 100, 100, 1, gray);
+        fast.DrawLine(1, 0, 101, 100, 1, gray);
+        fast.DrawLine(0, 40, 100, 100,1,  gray);
 
         fast.DrawLine(100, 0, 150, 20, 3, Colors.Red, true);
 
@@ -70,7 +70,7 @@ public class FastImageTest {
             fast.SetPixel(x, y, new Color(Colors.Green, 1-g));
         });
 
-        fast.DrawLineAntialiasing(100, 100, 150, 55, Colors.Wheat);
+        fast.DrawLineAntialiasing(100, 100, 150, 55, 1, Colors.Wheat);
         fast.DrawLineAntialiasing(100, 100, 150, 60, 2, Colors.Green);
         fast.DrawLineAntialiasing(100, 100, 150, 70, 3, Colors.BlueViolet);
         fast.DrawLineAntialiasing(100, 100, 150, 80, 4, Colors.Fuchsia);

@@ -16,7 +16,7 @@ public class FastTextureNoiseWithGradient : INoise2D {
     public int Size => _colors != null ? _colors!.Length : 256;
 
     public FastTextureNoiseWithGradient(NoiseTexture2D texture) {
-        _fastImage = new FastImage(texture);
+        _fastImage = new FastImage(texture.GetImage());
         if (texture.ColorRamp != null) {
             if (texture.ColorRamp.InterpolationMode != Gradient.InterpolationModeEnum.Constant) {
                 throw new Exception("A Gradient with InterpolationMode Constant is expected. If you only want to get the noise, use FastTextureNoise instead");

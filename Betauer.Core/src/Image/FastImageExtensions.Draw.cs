@@ -8,16 +8,16 @@ public static partial class FastImageExtensions {
         fast.FillRect(0, 0, fast.Width, fast.Height, color, blend);
     }
 
-    public static void DrawLine(this FastImage fast, int x1, int y1, int x2, int y2, Color color, bool blend = true) {
-        DrawLine(fast, x1, y1, x2, y2, 1, color);
+    public static void DrawLine(this FastImage fast, Vector2I start, Vector2I end, int width, Color color, bool blend = true) {
+        DrawLine(fast, start.X, start.Y, end.X, end.Y, width, color, blend);
     }
 
     public static void DrawLine(this FastImage fast, int x1, int y1, int x2, int y2, int width, Color color, bool blend = true) {
         Draw.Line(x1, y1, x2, y2, width, (x, y) => fast.SetPixel(x, y, color, blend));
     }
 
-    public static void DrawLineAntialiasing(this FastImage fast, int x1, int y1, int x2, int y2, Color color) {
-        DrawLineAntialiasing(fast, x1, y1, x2, y2, 1, color);
+    public static void DrawLineAntialiasing(this FastImage fast, Vector2I start, Vector2I end, int width, Color color) {
+        DrawLineAntialiasing(fast, start.X, start.Y, end.X, end.Y, width, color);
     }
 
     public static void DrawLineAntialiasing(this FastImage fast, int x1, int y1, int x2, int y2, int width, Color color) {
@@ -28,6 +28,10 @@ public static partial class FastImageExtensions {
 
     public static void DrawRect(this FastImage fast, int x, int y, int width, int height, Color color, bool blend = true) {
         Draw.Rect(x, y, width, height, (x, y) => fast.SetPixel(x, y, color, blend));
+    }
+
+    public static void DrawRect(this FastImage fast, Rect2I rect2, Color color, bool blend) {
+        Draw.Rect(rect2.Position.X, rect2.Position.Y, rect2.Size.X, rect2.Size.Y, (x, y) => fast.SetPixel(x, y, color, blend));
     }
 
     public static void FillRect(this FastImage fast, Rect2I rect2I, Color color, bool blend = true) {

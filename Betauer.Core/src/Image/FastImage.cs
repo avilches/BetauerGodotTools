@@ -11,7 +11,7 @@ public class FastImage {
     public const Godot.Image.Format DefaultFormat = Godot.Image.Format.Rgba8;
     public static readonly Godot.Image.Format[] AllowedFormats = { 
         Godot.Image.Format.Rgbaf, // 4 channels, 4 bytes (float) per channel 
-        Godot.Image.Format.Rgba8, 
+        Godot.Image.Format.Rgba8, // 4 channels, 1 bytes per channel 
         Godot.Image.Format.L8 };
 
     public byte[] RawImage { get; private set; }
@@ -21,12 +21,7 @@ public class FastImage {
     private bool _dirty = false;
     private Pixel _pixel;
     private Godot.Image? _image;
-    private ImageTexture? _imageTexture;
     private Godot.Image.Format _format;
-
-    public FastImage(Texture2D texture) {
-        Load(texture);
-    }
 
     public FastImage(string resource, Godot.Image.Format? format = null) {
         var image = Godot.Image.LoadFromFile(resource);
@@ -74,26 +69,15 @@ public class FastImage {
         }
     }
 
-    public bool HasImageTexture => _imageTexture != null;
-
-    public ImageTexture ImageTexture {
-        get {
-            if (_imageTexture != null) return _imageTexture;
-            if (_dirty) Flush();
-            _imageTexture = ImageTexture.CreateFromImage(Image);
-            return _imageTexture;
-        }
-    }
+    public ImageTexture CreateImageTexture() => ImageTexture.CreateFromImage(Image);
 
     public void Load(Texture2D texture) {
         _image = texture.GetImage();
-        _imageTexture = texture as ImageTexture;
         Reload();
     }
 
     public void Load(Godot.Image image) {
         _image = image;
-        _imageTexture?.SetImage(_image);
         Reload();
     }
 
@@ -109,9 +93,6 @@ public class FastImage {
     }
 
     public void Reload() {
-        if (_image == null && _imageTexture != null) {
-            _image = _imageTexture.GetImage();
-        }
         if (_image != null) {
             _format = _image.GetFormat();
             if (!AllowedFormats.Contains(_format)) {
@@ -156,7 +137,7 @@ public class FastImage {
     private void ValidateChannel(int channel) {
         if (channel >= _pixel.GetChannels()) {
             if (_pixel.GetChannels() == 1) {
-                throw new Exception($"Channel {channel} out of bounds: 1 channel available as 0");
+                throw new Exception($"Channel {channel} out of bounds: 1 channel only available as 0");
             } else {
                 throw new Exception($"Channel {channel} out of bounds: {_pixel.GetChannels()} channels available as {string.Join(", ", Enumerable.Range(0, _pixel.GetChannels()))}");
             }
@@ -178,7 +159,10 @@ public class FastImage {
         if (!_dirty) return;
         _dirty = false;
         Image.SetData(Width, Height, UseMipmaps, _format, RawImage);
-        _imageTexture?.Update(Image);
+    }
+
+    public void Dump(ImageTexture imageTexture) {
+        imageTexture.Update(Image);
     }
 }
 
