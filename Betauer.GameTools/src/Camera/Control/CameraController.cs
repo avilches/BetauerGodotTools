@@ -23,9 +23,10 @@ public class CameraController {
     public bool IsFollowing => Camera2D.IsInstanceValid() && (
         (_getFollowingPosition != null && !_followingPositionPaused) ||
         (_remoteTransform2D != null && !_remoteTransform2D.RemotePath.IsEmpty));
-    
-    public bool IsBusy() => (_zoomTween?.IsValid() ?? false) ||
-                          (_positionTween?.IsValid() ?? false);
+
+    public bool IsBusy() => IsZooming() || IsMoving();
+    public bool IsZooming() => _zoomTween?.IsValid() ?? false;
+    public bool IsMoving() => _positionTween?.IsValid() ?? false;
 
     public CameraController(CameraContainer cameraContainer, Camera2D camera2D) {
         _cameraContainer = cameraContainer;
