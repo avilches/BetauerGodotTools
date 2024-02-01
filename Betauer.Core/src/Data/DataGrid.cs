@@ -24,7 +24,11 @@ public class DataGrid {
         Fill(defaultValue);
     }
 
-    public void Fill(float value) {
+    public DataGrid(float[,] data) {
+        SetAll(data);
+    }
+
+    public DataGrid Fill(float value) {
         for (var y = 0; y < Height; y++) {
             for (var x = 0; x < Width; x++) {
                 Data[x, y] = value;
@@ -32,9 +36,10 @@ public class DataGrid {
         }
         MinValue = value;
         MaxValue = value;
+        return this;
     }
 
-    public void Fill(int x, int y, int width, int height, float value) {
+    public DataGrid Fill(int x, int y, int width, int height, float value) {
         for (var xx = x; xx < width - x; xx++) {
             for (var yy = y; yy < height - y; yy++) {
                 Data[xx, yy] = value;
@@ -42,13 +47,10 @@ public class DataGrid {
         }
         MinValue = Math.Min(MinValue, value);
         MaxValue = Math.Max(MaxValue, value);
+        return this;
     }
 
-    public DataGrid(float[,] data) {
-        SetAll(data);
-    }
-
-    public void SetAll(float[,] data) {
+    public DataGrid SetAll(float[,] data) {
         MinValue = float.MaxValue;
         MaxValue = float.MinValue;
         Width = data.GetLength(0);
@@ -62,15 +64,17 @@ public class DataGrid {
                 MaxValue = Math.Max(MaxValue, value);
             }
         }
+        return this;
     }
 
-    public void Load(Func<int, int, float> valueFunc) {
+    public DataGrid Load(Func<int, int, float> valueFunc) {
         MinValue = float.MaxValue;
         MaxValue = float.MinValue;
         Load(0, 0, Width, Height, valueFunc);
+        return this;
     }
 
-    public void Load(int x, int y, int width, int height, Func<int, int, float> valueFunc) {
+    public DataGrid Load(int x, int y, int width, int height, Func<int, int, float> valueFunc) {
         for (var xx = x; xx < width - x; xx++) {
             for (var yy = y; yy < height - y; yy++) {
                 var value = valueFunc.Invoke(xx, yy);
@@ -79,15 +83,10 @@ public class DataGrid {
                 MaxValue = Math.Max(MaxValue, value);
             }
         }
+        return this;
     }
 
-    public void SetValue(int x, int y, float value) {
-        Data[x, y] = value;
-        MinValue = Math.Min(MinValue, value);
-        MaxValue = Math.Max(MaxValue, value);
-    }
-
-    public void UpdateMinMax() {
+    public DataGrid UpdateMinMax() {
         MinValue = float.MaxValue;
         MaxValue = float.MinValue;
         for (var y = 0; y < Height; y++) {
@@ -98,9 +97,10 @@ public class DataGrid {
                 MaxValue = Math.Max(MaxValue, value);
             }
         }
+        return this;
     }
 
-    public void Normalize(float newMin, float newMax) {
+    public DataGrid Normalize(float newMin, float newMax) {
         var minMaxRange = MaxValue - MinValue;
         var normalizedRange = newMax - newMin;
         for (var y = 0; y < Height; y++) {
@@ -110,9 +110,10 @@ public class DataGrid {
         }
         MinValue = newMin;
         MaxValue = newMax;
+        return this;
     }
 
-    public void Normalize() {
+    public DataGrid Normalize() {
         var minMaxRange = MaxValue - MinValue;
         for (var y = 0; y < Height; y++) {
             for (var x = 0; x < Width; x++) {
@@ -121,21 +122,30 @@ public class DataGrid {
         }
         MinValue = 0;
         MaxValue = 1;
+        return this;
     }
 
-    public float GetValue(int x, int y) {
-        return Data[x, y];
-    }
-
-    public void Loop(Action<float, int, int> action) {
+    public DataGrid Loop(Action<float, int, int> action) {
         Loop(0, 0, Width, Height, action);
+        return this;
     }
 
-    public void Loop(int x, int y, int width, int height, Action<float, int, int> action) {
+    public DataGrid Loop(int x, int y, int width, int height, Action<float, int, int> action) {
         for (var xx = x; xx < width - x; xx++) {
             for (var yy = y; yy < height - y; yy++) {
                 action.Invoke(GetValue(xx, yy), xx, yy);
             }
         }
+        return this;
+    }
+
+    public void SetValue(int x, int y, float value) {
+        Data[x, y] = value;
+        MinValue = Math.Min(MinValue, value);
+        MaxValue = Math.Max(MaxValue, value);
+    }
+
+    public float GetValue(int x, int y) {
+        return Data[x, y];
     }
 }
