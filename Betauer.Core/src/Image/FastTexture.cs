@@ -13,7 +13,7 @@ public class FastTexture : FastImage {
     /// <param name="height"></param>
     /// <param name="useMipmaps"></param>
     /// <param name="format"></param>
-    public FastTexture(Sprite2D sprite2D, int width, int height, bool useMipmaps = false, Godot.Image.Format? format = null) : base(width, height, useMipmaps, format) {
+    public FastTexture(Sprite2D sprite2D, int width, int height, bool useMipmaps = false, Godot.Image.Format format = DefaultFormat) : base(width, height, useMipmaps, format) {
         _imageTexture = CreateImageTexture();
         sprite2D.Texture = _imageTexture;
     }

@@ -14,16 +14,18 @@ public class FastImage {
     public int Width { get; private set; }
     public int Height { get; private set; }
     public bool UseMipmaps { get; private set; }
-    public Godot.Image.Format Format => _pixel.Format;
     public Godot.Image Image { get; private set; }
-
-    private bool _dirty = false;
+    public Godot.Image.Format Format => _pixel.Format;
     private Pixel _pixel;
+    private bool _dirty = false;
 
     public FastImage(string resource, Godot.Image.Format? format = null) {
         var image = Godot.Image.LoadFromFile(resource);
-        if (format.HasValue && image.GetFormat() != format) {
-            image.Convert(format.Value);
+        if (format.HasValue) {
+            var pixel = Pixel.Get(format.Value); // fail fast if the format is not supported
+            if (pixel.Format != image.GetFormat()) {
+                image.Convert(pixel.Format);
+            }
         }
         Load(image);
     }
@@ -32,8 +34,8 @@ public class FastImage {
         Load(image);
     }
     
-    public FastImage(int width, int height, bool useMipmaps = false, Godot.Image.Format? format = null) {
-        _pixel = Pixel.Get(format ?? DefaultFormat);
+    public FastImage(int width, int height, bool useMipmaps = false, Godot.Image.Format format = DefaultFormat) {
+        _pixel = Pixel.Get(format);
         Width = width;
         Height = height;
         UseMipmaps = useMipmaps;
