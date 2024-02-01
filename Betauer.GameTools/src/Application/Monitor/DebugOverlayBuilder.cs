@@ -1,10 +1,8 @@
 using System;
-using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
-using Betauer.Application.Screen;
 using Betauer.Core;
-using Betauer.Core.Nodes;
 using Betauer.Input;
 using Betauer.Nodes;
 using Betauer.UI;
@@ -134,47 +132,36 @@ public static class DebugOverlayBuilder {
         return builder;
     }
 
-    public static NodeBuilder Edit(this NodeBuilder builder, string label, int initialValue, Action<int> update, Action<MonitorEditValue>? config = null) {
-        builder.Edit(label, initialValue.ToString, (s) => update(s.ToInt()), config);
-        return builder;
-    }
-
-    public static NodeBuilder Edit(this NodeBuilder builder, string label, float initialValue, Action<float> update, Action<MonitorEditValue>? config = null) {
-        builder.Edit(label, initialValue.ToString, (s) => update(s.ToFloat()), config);
-        return builder;
-    }
-
-    public static NodeBuilder Edit(this NodeBuilder builder, string label, double initialValue, Action<double> update, Action<MonitorEditValue>? config = null) {
-        builder.Edit(label, initialValue.ToString, (s) => update(s.ToFloat()), config);
-        return builder;
-    }
-
     public static NodeBuilder Edit(this NodeBuilder builder, string label, string initialValue, Action<string> update, Action<MonitorEditValue>? config = null) {
-        builder.Edit(label, initialValue.ToString, update, config);
-        return builder;
-    }
-
-    public static NodeBuilder Edit(this NodeBuilder builder, string label, Func<int> initialValueLoader, Action<int> update, Action<MonitorEditValue>? config = null) {
-        builder.Edit(label, () => initialValueLoader().ToString(), (s) => update(s.ToInt()), config);
-        return builder;
-    }
-
-    public static NodeBuilder Edit(this NodeBuilder builder, string label, Func<float> initialValueLoader, Action<float> update, Action<MonitorEditValue>? config = null) {
-        builder.Edit(label, () => initialValueLoader().ToString(), (s) => update(s.ToFloat()), config);
-        return builder;
-    }
-
-    public static NodeBuilder Edit(this NodeBuilder builder, string label, Func<double> initialValueLoader, Action<double> update, Action<MonitorEditValue>? config = null) {
-        builder.Edit(label, () => initialValueLoader().ToString(), (s) => update(s.ToFloat()), config);
-        return builder;
-    }
-
-    public static NodeBuilder Edit(this NodeBuilder builder, string label, Func<string> initialValueLoader, Action<string> update, Action<MonitorEditValue>? config = null) {
-         var monitor = builder.Create<MonitorEditValue>()
+        var monitor = builder.Create<MonitorEditValue>()
             .SetLabel(label)
-            .SetValueLoader(initialValueLoader)
+            .SetValue(initialValue)
             .OnUpdate(update);
-         config?.Invoke(monitor);
+        config?.Invoke(monitor);
+        return builder;
+    }
+
+    public static NodeBuilder Edit(this NodeBuilder builder, string label, Func<int> valueLoader, Action<int> update, Action<MonitorEditValue>? config = null) {
+        builder.Edit(label, () => valueLoader().ToString(), (s) => update(s.ToInt()), config);
+        return builder;
+    }
+
+    public static NodeBuilder Edit(this NodeBuilder builder, string label, Func<float> valueLoader, Action<float> update, Action<MonitorEditValue>? config = null) {
+        builder.Edit(label, () => valueLoader().ToString(CultureInfo.InvariantCulture), (s) => update(s.ToFloat()), config);
+        return builder;
+    }
+
+    public static NodeBuilder Edit(this NodeBuilder builder, string label, Func<double> valueLoader, Action<double> update, Action<MonitorEditValue>? config = null) {
+        builder.Edit(label, () => valueLoader().ToString(CultureInfo.InvariantCulture), (s) => update(s.ToFloat()), config);
+        return builder;
+    }
+
+    public static NodeBuilder Edit(this NodeBuilder builder, string label, Func<string> valueLoader, Action<string> update, Action<MonitorEditValue>? config = null) {
+        var monitor = builder.Create<MonitorEditValue>()
+            .SetLabel(label)
+            .SetValueLoader(valueLoader)
+            .OnUpdate(update);
+        config?.Invoke(monitor);
         return builder;
     }
 
