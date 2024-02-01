@@ -1,27 +1,24 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Godot;
 
 namespace Betauer.Core.Image;
 
 /// <summary>
-/// A class to read and write pixels from a Image or a Texture2D faster than using GetPixel
+/// A class to read and write pixels from a Image faster than using GetPixel
 /// </summary>
 public class FastImage {
     public const Godot.Image.Format DefaultFormat = Godot.Image.Format.Rgba8;
-    public static readonly Godot.Image.Format[] AllowedFormats = { 
-        Godot.Image.Format.Rgbaf, // 4 channels, 4 bytes (float) per channel 
-        Godot.Image.Format.Rgba8, // 4 channels, 1 bytes per channel 
-        Godot.Image.Format.L8 };
-
     public byte[] RawImage { get; private set; }
     public int Width { get; private set; }
     public int Height { get; private set; }
     public bool UseMipmaps { get; private set; }
+    public Godot.Image.Format Format => _pixel.Format;
+    public Godot.Image Image { get; private set; }
+
     private bool _dirty = false;
     private Pixel _pixel;
-    private Godot.Image? _image;
-    private Godot.Image.Format _format;
 
     public FastImage(string resource, Godot.Image.Format? format = null) {
         var image = Godot.Image.LoadFromFile(resource);
@@ -36,75 +33,38 @@ public class FastImage {
     }
     
     public FastImage(int width, int height, bool useMipmaps = false, Godot.Image.Format? format = null) {
+        _pixel = Pixel.Get(format ?? DefaultFormat);
         Width = width;
         Height = height;
         UseMipmaps = useMipmaps;
-        _format = format ?? DefaultFormat;
-        UpdatedPixel();
-        RawImage = new byte[width * height * _pixel!.GetBytesPerPixel()];
+        RawImage = new byte[width * height * _pixel.GetBytesPerPixel()];
+        Image = Godot.Image.CreateFromData(Width, Height, UseMipmaps, Format, RawImage);
     }
 
-    public Godot.Image.Format Format {
-        get => _format;
-        set {
-            if (_format == value) return;
-            _format = value;
-            UpdatedPixel();
-            if (Image != null && Image.GetFormat() != _format) {
-                Image.Convert(_format);
-            }
-        }
+    
+    public void Convert(Godot.Image.Format newFormat) {
+        if (Format == newFormat) return;
+        _pixel = Pixel.Get(newFormat);
+        Image.Convert(newFormat);
+        RawImage = Image.GetData();
     }
-
-    public bool HasImage => _image != null;
-
-    public Godot.Image Image {
-        get {
-            if (_image == null) {
-                _image = Godot.Image.Create(Width, Height, UseMipmaps, _format);
-                _dirty = true;
-                Flush();
-            }
-            return _image;
-        }
-    }
-
-    public ImageTexture CreateImageTexture() => ImageTexture.CreateFromImage(Image);
 
     public void Load(Texture2D texture) {
-        _image = texture.GetImage();
+        Image = texture.GetImage();
         Reload();
     }
 
     public void Load(Godot.Image image) {
-        _image = image;
+        Image = image;
         Reload();
     }
 
-    private void UpdatedPixel() {
-        if (!AllowedFormats.Contains(_format)) throw new Exception($"Format not supported: {_format}");
-        if (_format == Godot.Image.Format.Rgba8) {
-            _pixel = PixelRgba8.Instance;
-        } else if (_format == Godot.Image.Format.Rgbaf) {
-            _pixel = PixelRgbaF.Instance;
-        } else if (_format == Godot.Image.Format.L8) {
-            _pixel = PixelL8.Instance;
-        }
-    }
-
     public void Reload() {
-        if (_image != null) {
-            _format = _image.GetFormat();
-            if (!AllowedFormats.Contains(_format)) {
-                _image.Convert(DefaultFormat);
-                _format = DefaultFormat;
-            }
-            UpdatedPixel();
-            Width = _image.GetWidth();
-            Height = _image.GetHeight();
-            UseMipmaps = _image.HasMipmaps();
-            RawImage = _image.GetData();
-        }
+        _pixel = Pixel.Get(Image.GetFormat());
+        Width = Image.GetWidth();
+        Height = Image.GetHeight();
+        UseMipmaps = Image.HasMipmaps();
+        RawImage = Image.GetData();
     }
 
     public void SetAlpha(int x, int y, float alpha) {
@@ -155,15 +115,13 @@ public class FastImage {
         return _pixel.GetChannel(this, x, y, channel);
     }
 
-    public void Flush() {
+    public virtual void Flush() {
         if (!_dirty) return;
+        Image.SetData(Width, Height, UseMipmaps, Format, RawImage);
         _dirty = false;
-        Image.SetData(Width, Height, UseMipmaps, _format, RawImage);
     }
 
-    public void Dump(ImageTexture imageTexture) {
-        imageTexture.Update(Image);
-    }
+    public ImageTexture CreateImageTexture() => ImageTexture.CreateFromImage(Image);
 }
 
 public abstract class Pixel {
@@ -176,8 +134,28 @@ public abstract class Pixel {
     public abstract void SetPixel(FastImage image, int x, int y, Color color);
     public abstract void SetChannel(FastImage image, int x, int y, int channel, float value);
     
+    public abstract Godot.Image.Format Format { get;  }
+
+    public static readonly Dictionary<Godot.Image.Format, Pixel> PixelByFormat = new();
+
+    static Pixel() {
+        new Pixel[] {
+            PixelRgbaF.Instance, 
+            PixelRgbF.Instance, 
+            PixelRgba8.Instance, 
+            PixelRgb8.Instance, 
+            PixelL8.Instance
+        }.ForEach(p => PixelByFormat.Add(p.Format, p));
+    }
+    
     public int GetPixelPosition(FastImage image, int x, int y) {
         return (y * image.Width + x) * GetBytesPerPixel();
+    }
+
+    public static Pixel Get(Godot.Image.Format format) {
+        return PixelByFormat.TryGetValue(format, out var pixel) 
+            ? pixel 
+            : throw new Exception($"Format {format} is not supported. Allowed formats: {string.Join(", ", PixelByFormat.Keys)}");
     }
 
     protected static void WriteFloat(byte[] arr, float value, int startIndex) {
@@ -186,10 +164,8 @@ public abstract class Pixel {
         Buffer.BlockCopy(bytes, 0, arr, startIndex, 4);
     }
     
-    protected const float MaxByteValue = byte.MaxValue;
-
     protected static byte FloatToByte(float value) {
-        return (byte)Math.Round(value * MaxByteValue);
+        return (byte)Math.Round(value * 255f);
     }
 }
 
@@ -203,16 +179,17 @@ public class PixelL8 : Pixel {
     public override int GetBytesPerPixel() => BytesPerPixel;
     public override int GetBytesPerChannel() => BytesPerChannel;
     public override int GetChannels() => Channels;
+    public override Godot.Image.Format Format => Godot.Image.Format.L8;
 
     public override Color GetPixel(FastImage image, int x, int y) {
         var ofs = GetPixelPosition(image, x, y);
-        var l = image.RawImage[ofs + 0] / MaxByteValue;
+        var l = image.RawImage[ofs + 0] / 255f;
         return new Color(l, l, l, 1);
     }
 
     public override float GetChannel(FastImage image, int x, int y, int channel) {
         var ofs = GetPixelPosition(image, x, y);
-        return image.RawImage[ofs + channel] / MaxByteValue;
+        return image.RawImage[ofs + channel] / 255f;
     }
 
     public override void SetPixel(FastImage image, int x, int y, Color color) {
@@ -236,6 +213,7 @@ public class PixelRgba8 : Pixel {
     public override int GetBytesPerPixel() => BytesPerPixel;
     public override int GetBytesPerChannel() => BytesPerChannel;
     public override int GetChannels() => Channels;
+    public override Godot.Image.Format Format => Godot.Image.Format.Rgba8;
 
     public override Color GetPixel(FastImage image, int x, int y) {
         var ofs = GetPixelPosition(image, x, y);
@@ -265,6 +243,44 @@ public class PixelRgba8 : Pixel {
     }
 }
 
+public class PixelRgb8 : Pixel {
+    public static readonly PixelRgb8 Instance = new();
+    
+    public const int Channels = 3;
+    public const int BytesPerChannel = 1;
+    public const int BytesPerPixel = BytesPerChannel * Channels;
+
+    public override int GetBytesPerPixel() => BytesPerPixel;
+    public override int GetBytesPerChannel() => BytesPerChannel;
+    public override int GetChannels() => Channels;
+    public override Godot.Image.Format Format => Godot.Image.Format.Rgb8;
+
+    public override Color GetPixel(FastImage image, int x, int y) {
+        var ofs = GetPixelPosition(image, x, y);
+        var r = image.RawImage[ofs + 0] / 255f;
+        var g = image.RawImage[ofs + 1] / 255f;
+        var b = image.RawImage[ofs + 2] / 255f;
+        return new Color(r, g, b, 1);
+    }
+
+    public override float GetChannel(FastImage image, int x, int y, int channel) {
+        var ofs = GetPixelPosition(image, x, y);
+        return image.RawImage[ofs + channel] / 255f;
+    }
+
+    public override void SetPixel(FastImage image, int x, int y, Color color) {
+        var ofs = GetPixelPosition(image, x, y);
+        image.RawImage[ofs + 0] = (byte)color.R8;
+        image.RawImage[ofs + 1] = (byte)color.G8;
+        image.RawImage[ofs + 2] = (byte)color.B8;
+    }
+
+    public override void SetChannel(FastImage image, int x, int y, int channel, float value) {
+        var ofs = GetPixelPosition(image, x, y);
+        image.RawImage[ofs + channel] = (byte)(value * 255f);
+    }
+}
+
 public class PixelRgbaF : Pixel {
     public static readonly PixelRgbaF Instance = new();
 
@@ -275,6 +291,7 @@ public class PixelRgbaF : Pixel {
     public override int GetBytesPerPixel() => BytesPerPixel;
     public override int GetBytesPerChannel() => BytesPerChannel;
     public override int GetChannels() => Channels;
+    public override Godot.Image.Format Format => Godot.Image.Format.Rgbaf;
     
     public override Color GetPixel(FastImage image, int x, int y) {
         var ofs = GetPixelPosition(image, x, y);
@@ -296,6 +313,44 @@ public class PixelRgbaF : Pixel {
         WriteFloat(image.RawImage, color.G, ofs + 4);
         WriteFloat(image.RawImage, color.B, ofs + 8);
         WriteFloat(image.RawImage, color.A, ofs + 12);
+    }
+
+    public override void SetChannel(FastImage image, int x, int y, int channel, float value) {
+        var ofs = GetPixelPosition(image, x, y);
+        WriteFloat(image.RawImage, value, ofs + 4 * channel);
+    }
+}
+
+public class PixelRgbF : Pixel {
+    public static readonly PixelRgbF Instance = new();
+
+    public const int Channels = 3;
+    public const int BytesPerChannel = 4;
+    public const int BytesPerPixel = BytesPerChannel * Channels;
+    
+    public override int GetBytesPerPixel() => BytesPerPixel;
+    public override int GetBytesPerChannel() => BytesPerChannel;
+    public override int GetChannels() => Channels;
+    public override Godot.Image.Format Format => Godot.Image.Format.Rgbf;
+    
+    public override Color GetPixel(FastImage image, int x, int y) {
+        var ofs = GetPixelPosition(image, x, y);
+        var r = BitConverter.ToSingle(image.RawImage, ofs + 0);
+        var g = BitConverter.ToSingle(image.RawImage, ofs + 4);
+        var b = BitConverter.ToSingle(image.RawImage, ofs + 8);
+        return new Color(r, g, b, 1);
+    }
+
+    public override float GetChannel(FastImage image, int x, int y, int channel) {
+        var ofs = GetPixelPosition(image, x, y);
+        return BitConverter.ToSingle(image.RawImage, ofs + (channel * 4));
+    }
+
+    public override void SetPixel(FastImage image, int x, int y, Color color) {
+        var ofs = GetPixelPosition(image, x, y);
+        WriteFloat(image.RawImage, color.R, ofs + 0);
+        WriteFloat(image.RawImage, color.G, ofs + 4);
+        WriteFloat(image.RawImage, color.B, ofs + 8);
     }
 
     public override void SetChannel(FastImage image, int x, int y, int channel, float value) {
