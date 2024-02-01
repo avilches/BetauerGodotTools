@@ -183,7 +183,7 @@ public class SpatialGrid {
         return false;
     }
 
-    public bool IntersectPoint(float px, float py, Shape exclude = null) {
+    public bool IntersectPoint(float px, float py, Shape? exclude = null) {
         var x = (int)Mathf.Floor(px / CellSize);
         var y = (int)Mathf.Floor(py / CellSize);
         if (!Grid.TryGetValue((x, y), out var shapesInCell)) {
@@ -197,7 +197,7 @@ public class SpatialGrid {
         return false;
     }
 
-    public bool IntersectCircle(float cx, float cy, float radius, Shape exclude = null) {
+    public bool IntersectCircle(float cx, float cy, float radius, Shape? exclude = null) {
         var minCellX = (int)Mathf.Floor((cx - radius) / CellSize);
         var maxCellX = (int)Mathf.Floor((cx + radius) / CellSize);
         var minCellY = (int)Mathf.Floor((cy - radius) / CellSize);
@@ -218,7 +218,7 @@ public class SpatialGrid {
         return false;
     }
 
-    public bool IntersectRectangle(float rx, float ry, float width, float height, Shape exclude = null) {
+    public bool IntersectRectangle(float rx, float ry, float width, float height, Shape? exclude = null) {
         var minCellX = (int)Mathf.Floor(rx / CellSize);
         var maxCellX = (int)Mathf.Floor((rx + width) / CellSize);
         var minCellY = (int)Mathf.Floor(ry / CellSize);
@@ -247,7 +247,7 @@ public class SpatialGrid {
         return Enumerable.Empty<Shape>();
     }
 
-    public IEnumerable<Shape> GetIntersectingShapesInPoint(float px, float py, Shape exclude = null) {
+    public IEnumerable<Shape> GetIntersectingShapesInPoint(float px, float py, Shape? exclude = null) {
         var x = (int)Mathf.Floor(px / CellSize);
         var y = (int)Mathf.Floor(py / CellSize);
         if (!Grid.TryGetValue((x, y), out var shapesInCell)) {
@@ -260,7 +260,7 @@ public class SpatialGrid {
         }
     }
 
-    public IEnumerable<Shape> GetIntersectingShapesInCircle(float cx, float cy, float radius, Shape exclude = null) {
+    public IEnumerable<Shape> GetIntersectingShapesInCircle(float cx, float cy, float radius, Shape? exclude = null) {
         var minCellX = (int)Mathf.Floor((cx - radius) / CellSize);
         var maxCellX = (int)Mathf.Floor((cx + radius) / CellSize);
         var minCellY = (int)Mathf.Floor((cy - radius) / CellSize);
@@ -280,7 +280,7 @@ public class SpatialGrid {
         }
     }
 
-    public IEnumerable<Shape> GetIntersectingShapesInRectangle(float rx, float ry, float width, float height, Shape exclude = null) {
+    public IEnumerable<Shape> GetIntersectingShapesInRectangle(float rx, float ry, float width, float height, Shape? exclude = null) {
         var minCellX = (int)Mathf.Floor(rx / CellSize);
         var maxCellX = (int)Mathf.Floor((rx + width) / CellSize);
         var minCellY = (int)Mathf.Floor(ry / CellSize);

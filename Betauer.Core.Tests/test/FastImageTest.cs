@@ -10,7 +10,8 @@ namespace Betauer.Core.Tests;
 public class FastImageTest {
 
     [TestRunner.Test]
-    [TestRunner.Ignore("Just create images")]
+    // [TestRunner.Ignore("Just create images")]
+    [Only]
     public void Test1() {
         var fast = new FastImage(150, 100);
         Assert.That(fast.Format, Is.EqualTo(FastImage.DefaultFormat));
@@ -46,28 +47,46 @@ public class FastImageTest {
 
         fast.DrawLine(100, 0, 150, 20, 3, Colors.Red, true);
 
-        fast.FillCircle(45, 40, 0, Colors.Green);
-        fast.FillCircle(48, 40, 1, Colors.Green);
-        fast.FillCircle(54, 40, 2, Colors.Green);
-        fast.FillCircle(61, 40, 3, Colors.Green);
-        fast.FillCircle(70, 40, 4, Colors.Green);
-        fast.FillCircle(81, 40, 5, Colors.Green);
-        fast.FillCircle(94, 40, 6, Colors.Green);
-        fast.FillCircle(110, 40, 7, Colors.Green);
-        fast.FillCircle(128, 40, 8, Colors.Green);
+        fast.FillCircle(45,  30, 0, Colors.Green);
+        fast.FillCircle(48,  30, 1, Colors.Green);
+        fast.FillCircle(54,  30, 2, Colors.Green);
+        fast.FillCircle(61,  30, 3, Colors.Green);
+        fast.FillCircle(70,  30, 4, Colors.Green);
+        fast.FillCircle(81,  30, 5, Colors.Green);
+        fast.FillCircle(94,  30, 6, Colors.Green);
+        fast.FillCircle(110, 30, 7, Colors.Green);
+        fast.FillCircle(128, 30, 8, Colors.Green);
         
-        fast.DrawCircle(45, 65, 0, Colors.Green);
-        fast.DrawCircle(48, 65, 1, Colors.Green);
-        fast.DrawCircle(54, 65, 2, Colors.Green);
-        fast.DrawCircle(61, 65, 3, Colors.Green);
-        fast.DrawCircle(70, 65, 4, Colors.Green);
-        fast.DrawCircle(81, 65, 5, Colors.Green);
-        fast.DrawCircle(94, 65, 6, Colors.Green);
-        fast.DrawCircle(110, 65, 7, Colors.Green);
-        fast.DrawCircle(128, 65, 8, Colors.Green);
+        fast.FillEllipse(45,  45, 0, 0, Colors.Green);
+        fast.FillEllipse(48,  45, 1, 2, Colors.Green);
+        fast.FillEllipse(54,  45, 2, 3, Colors.Green);
+        fast.FillEllipse(61,  45, 3, 4, Colors.Green);
+        fast.FillEllipse(70,  45, 4, 5, Colors.Green);
+        fast.FillEllipse(81,  45, 5, 8, Colors.Green);
+        fast.FillEllipse(94, 45, 6, 12, Colors.Green);
+        fast.FillEllipse(110, 45, 7, 6, Colors.Green);
+        fast.FillEllipse(128, 45, 8, 4, Colors.Green);
+        
+        fast.DrawCircle(45,  70, 0, Colors.Green);
+        fast.DrawCircle(48,  70, 1, Colors.Green);
+        fast.DrawCircle(54,  70, 2, Colors.Green);
+        fast.DrawCircle(61,  70, 3, Colors.Green);
+        fast.DrawCircle(70,  70, 4, Colors.Green);
+        fast.DrawCircle(81,  70, 5, Colors.Green);
+        fast.DrawCircle(94,  70, 6, Colors.Green);
+        fast.DrawCircle(110, 70, 7, Colors.Green);
+        fast.DrawCircle(128, 70, 8, Colors.Green);
 
         Draw.GradientCircle(30, 30, 10, (x, y, g) => {
-            fast.SetPixel(x, y, new Color(Colors.Green, 1-g));
+            fast.SetPixel(x, y, new Color(Colors.Green, 1 - g));
+        });
+
+        Draw.GradientEllipse(30, 45, 6, 12, (x, y, g) => {
+            fast.SetPixel(x, y, new Color(Colors.Red, 1 - g));
+        });
+
+        Draw.GradientEllipse(30, 80, 22, 16, (x, y, g) => {
+            fast.SetPixel(x, y, new Color(Colors.Red, 1 - g));
         });
 
         fast.DrawLineAntialiasing(100, 100, 150, 55, 1, Colors.Wheat);

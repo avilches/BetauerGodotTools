@@ -48,7 +48,15 @@ public static partial class FastImageExtensions {
         Draw.Circle(cx, cy, r, (x, y) => fast.SetPixel(x, y, color, blend));
     }
 
+    public static void DrawEllipse(this FastImage fast, int cx, int cy, int rx, int ry, Color color, bool blend = true) {
+        Draw.Ellipse(cx, cy, rx, ry, (x, y) => fast.SetPixel(x, y, color, blend));
+    }
+
     public static void FillCircle(this FastImage fast, int cx, int cy, int r, Color color, bool blend = true) {
         Draw.FillCircle(cx, cy, r, (x, y) => fast.SetPixel(x, y, color, blend));
+    }
+
+    public static void FillEllipse(this FastImage fast, int cx, int cy, int rx, int ry, Color color, bool blend = true) {
+        Draw.FillEllipse(cx, cy, rx, ry, (x, y) => fast.SetPixel(x, y, color, blend));
     }
 }
