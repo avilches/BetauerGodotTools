@@ -14,21 +14,21 @@ public partial class TileScript : SceneTree {
     public override void _Initialize() {
         var godotTileSet = new TileSetResourceBuilder(new Vector2I(16, 16));
 
-        Directory.GetFiles(Destination).ForEach(File.Delete);
+        // Directory.GetFiles(Destination).ForEach(File.Delete);
         
-        godotTileSet
-            .UseTerrain(SproutBushes, $"{Destination}/sprout-bush.png")
-            .SourceId(0)
-            .CopyFrom("RTS/Assets/Sprout Lands/tilesets/Ground tiles/new tiles/bush tiles.png")
-            .Add(Colors.Blue, "Bushes");
+        // godotTileSet
+        //     .UseTerrain(SproutBushes, $"{Destination}/sprout-bush.png")
+        //     .SourceId(0)
+        //     .CopyFrom("RTS/Assets/Sprout Lands/tilesets/Ground tiles/new tiles/bush tiles.png")
+        //     .Add(Colors.Blue, "Bushes");
 
         godotTileSet
-            .CreateTerrain(TileSetLayouts.Blob47Godot, $"{Destination}/sprout-dark-grass-hill.png")
+            .CreateTerrain(TileSetLayouts.Blob47Godot, "RTS/Assets/Sprout Lands/tilesets/Ground tiles/new tiles/Darker Grass hill tiles v.2-47.png")
             .SourceId(1)
             .From(SproutGround, "RTS/Assets/Sprout Lands/tilesets/Ground tiles/new tiles/Darker Grass hill tiles v.2.png")
             .Add(Colors.Green, "Dark Grass Hill");
 
-        godotTileSet.Save($"{Destination}/Tileset.tres");
+        // godotTileSet.Save($"{Destination}/Tileset.tres");
         Console.WriteLine("Done!");
 
         Quit(0);

@@ -1,0 +1,323 @@
+[gd_scene load_steps=17 format=3 uid="uid://ca7r2d6382lfm"]
+
+[ext_resource type="Script" path="res://RTS/Assets/Trees/Trees.cs" id="1_8lglq"]
+[ext_resource type="Texture2D" uid="uid://dmwlj5f44dbd6" path="res://RTS/Assets/Trees/trees-16x16.png" id="2_8py4m"]
+[ext_resource type="Texture2D" uid="uid://bg8v1kbssg5gm" path="res://RTS/Assets/Trees/trees-logs.png" id="2_shcux"]
+[ext_resource type="Texture2D" uid="uid://ctaepvggtwod8" path="res://RTS/Assets/Trees/trees-16x32.png" id="3_mmxg1"]
+[ext_resource type="Texture2D" uid="uid://cfe3lsrowk762" path="res://RTS/Assets/Trees/trees-64x64.png" id="4_3wmbw"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_6wj6d"]
+radius = 1.0
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_u0jhk"]
+radius = 9.0
+height = 18.0
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_0alj2"]
+radius = 5.0
+height = 14.0
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_5jy5k"]
+radius = 4.0
+height = 28.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_wkeub"]
+radius = 3.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_plr1p"]
+radius = 3.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_fn2yp"]
+radius = 3.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_ne2io"]
+radius = 3.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_k7t3l"]
+radius = 3.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_873dx"]
+radius = 5.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_06shg"]
+radius = 9.0
+
+[node name="Trees" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("1_8lglq")
+
+[node name="Control" type="Control" parent="."]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Bush" type="StaticBody2D" parent="Control"]
+position = Vector2(280, -36)
+
+[node name="Sprite" type="Sprite2D" parent="Control/Bush"]
+position = Vector2(2.08165e-12, 2.08165e-12)
+texture = ExtResource("2_8py4m")
+hframes = 16
+vframes = 16
+region_rect = Rect2(2.08165e-12, 2.08165e-12, 48, 32)
+metadata/_edit_lock_ = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Control/Bush"]
+position = Vector2(2.08165e-12, 2.08165e-12)
+rotation = 1.5708
+shape = SubResource("CapsuleShape2D_6wj6d")
+metadata/_edit_lock_ = true
+
+[node name="Bush2" type="StaticBody2D" parent="Control"]
+position = Vector2(280, -36)
+
+[node name="Sprite" type="Sprite2D" parent="Control/Bush2"]
+position = Vector2(2.08165e-12, 2.08165e-12)
+texture = ExtResource("2_8py4m")
+hframes = 16
+vframes = 16
+region_rect = Rect2(2.08165e-12, 2.08165e-12, 48, 32)
+metadata/_edit_lock_ = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Control/Bush2"]
+position = Vector2(2.08165e-12, 2.08165e-12)
+rotation = 1.5708
+shape = SubResource("CapsuleShape2D_6wj6d")
+metadata/_edit_lock_ = true
+
+[node name="Logs" type="Control" parent="."]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Stump" type="StaticBody2D" parent="Logs"]
+position = Vector2(277, 86)
+metadata/_edit_lock_ = true
+
+[node name="Sprite" type="Sprite2D" parent="Logs/Stump"]
+position = Vector2(2.08165e-12, 2.08165e-12)
+texture = ExtResource("2_shcux")
+region_enabled = true
+region_rect = Rect2(2.08165e-12, 2.08165e-12, 48, 32)
+metadata/_edit_lock_ = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Logs/Stump"]
+position = Vector2(2.08165e-12, 2.08165e-12)
+rotation = 1.5708
+shape = SubResource("CapsuleShape2D_u0jhk")
+metadata/_edit_lock_ = true
+
+[node name="MiniStump" type="StaticBody2D" parent="Logs"]
+position = Vector2(307, 88)
+
+[node name="Sprite" type="Sprite2D" parent="Logs/MiniStump"]
+position = Vector2(2.08165e-12, 2.08165e-12)
+texture = ExtResource("2_shcux")
+region_enabled = true
+region_rect = Rect2(63.6174, -0.0223484, 17.0083, 15.5076)
+metadata/_edit_lock_ = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Logs/MiniStump"]
+position = Vector2(-1, 2)
+rotation = 1.5708
+shape = SubResource("CapsuleShape2D_0alj2")
+metadata/_edit_lock_ = true
+
+[node name="Trunk" type="StaticBody2D" parent="Logs"]
+position = Vector2(333, 88)
+
+[node name="Sprite" type="Sprite2D" parent="Logs/Trunk"]
+position = Vector2(2.08165e-12, 2.08165e-12)
+texture = ExtResource("2_shcux")
+region_enabled = true
+region_rect = Rect2(47.1029, 15.0848, 33.6907, 16.9202)
+metadata/_edit_lock_ = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Logs/Trunk"]
+position = Vector2(0, 1)
+rotation = 1.5708
+shape = SubResource("CapsuleShape2D_5jy5k")
+
+[node name="16x32" type="Control" parent="."]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="SmallTrees-row1" type="Control" parent="16x32"]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="SmallTree1" type="StaticBody2D" parent="16x32/SmallTrees-row1"]
+position = Vector2(277, 159)
+
+[node name="Sprite" type="Sprite2D" parent="16x32/SmallTrees-row1/SmallTree1"]
+position = Vector2(2.08165e-12, 2.08165e-12)
+texture = ExtResource("3_mmxg1")
+hframes = 16
+vframes = 8
+frame = 1
+region_rect = Rect2(2.08165e-12, 2.08165e-12, 48, 32)
+metadata/_edit_lock_ = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="16x32/SmallTrees-row1/SmallTree1"]
+position = Vector2(0, 11)
+rotation = 1.5708
+shape = SubResource("CircleShape2D_wkeub")
+metadata/_edit_lock_ = true
+
+[node name="SmallTree2" type="StaticBody2D" parent="16x32/SmallTrees-row1"]
+position = Vector2(292, 159)
+
+[node name="Sprite" type="Sprite2D" parent="16x32/SmallTrees-row1/SmallTree2"]
+position = Vector2(2.08165e-12, 2.08165e-12)
+texture = ExtResource("3_mmxg1")
+hframes = 16
+vframes = 8
+region_rect = Rect2(2.08165e-12, 2.08165e-12, 48, 32)
+metadata/_edit_lock_ = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="16x32/SmallTrees-row1/SmallTree2"]
+position = Vector2(0, 11)
+rotation = 1.5708
+shape = SubResource("CircleShape2D_plr1p")
+metadata/_edit_lock_ = true
+
+[node name="SmallTree5" type="StaticBody2D" parent="16x32/SmallTrees-row1"]
+position = Vector2(338, 160)
+
+[node name="Sprite" type="Sprite2D" parent="16x32/SmallTrees-row1/SmallTree5"]
+position = Vector2(2.08165e-12, 2.08165e-12)
+texture = ExtResource("3_mmxg1")
+hframes = 16
+vframes = 8
+frame = 4
+region_rect = Rect2(2.08165e-12, 2.08165e-12, 48, 32)
+metadata/_edit_lock_ = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="16x32/SmallTrees-row1/SmallTree5"]
+position = Vector2(0, 11)
+rotation = 1.5708
+shape = SubResource("CircleShape2D_fn2yp")
+metadata/_edit_lock_ = true
+
+[node name="SmallTree6" type="StaticBody2D" parent="16x32/SmallTrees-row1"]
+position = Vector2(357, 161)
+
+[node name="Sprite" type="Sprite2D" parent="16x32/SmallTrees-row1/SmallTree6"]
+position = Vector2(2.08165e-12, 2.08165e-12)
+texture = ExtResource("3_mmxg1")
+hframes = 16
+vframes = 8
+frame = 5
+region_rect = Rect2(2.08165e-12, 2.08165e-12, 48, 32)
+metadata/_edit_lock_ = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="16x32/SmallTrees-row1/SmallTree6"]
+position = Vector2(0, 11)
+rotation = 1.5708
+shape = SubResource("CircleShape2D_ne2io")
+metadata/_edit_lock_ = true
+
+[node name="SmallTree9" type="StaticBody2D" parent="16x32/SmallTrees-row1"]
+position = Vector2(411, 160)
+
+[node name="Sprite" type="Sprite2D" parent="16x32/SmallTrees-row1/SmallTree9"]
+position = Vector2(2.08165e-12, 2.08165e-12)
+texture = ExtResource("3_mmxg1")
+hframes = 16
+vframes = 8
+frame = 8
+region_rect = Rect2(2.08165e-12, 2.08165e-12, 48, 32)
+metadata/_edit_lock_ = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="16x32/SmallTrees-row1/SmallTree9"]
+position = Vector2(0, 11)
+rotation = 1.5708
+shape = SubResource("CircleShape2D_ne2io")
+metadata/_edit_lock_ = true
+
+[node name="SmallTree10" type="StaticBody2D" parent="16x32/SmallTrees-row1"]
+position = Vector2(429, 160)
+
+[node name="Sprite" type="Sprite2D" parent="16x32/SmallTrees-row1/SmallTree10"]
+position = Vector2(2.08165e-12, 2.08165e-12)
+texture = ExtResource("3_mmxg1")
+hframes = 16
+vframes = 8
+frame = 9
+region_rect = Rect2(2.08165e-12, 2.08165e-12, 48, 32)
+metadata/_edit_lock_ = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="16x32/SmallTrees-row1/SmallTree10"]
+position = Vector2(0, 11)
+rotation = 1.5708
+shape = SubResource("CircleShape2D_k7t3l")
+metadata/_edit_lock_ = true
+
+[node name="SmallTrees-row2" type="Control" parent="16x32"]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Tree-1" type="StaticBody2D" parent="16x32/SmallTrees-row2"]
+position = Vector2(277, 189)
+
+[node name="Sprite" type="Sprite2D" parent="16x32/SmallTrees-row2/Tree-1"]
+position = Vector2(2.08165e-12, 2.08165e-12)
+texture = ExtResource("3_mmxg1")
+hframes = 16
+vframes = 8
+frame = 16
+region_rect = Rect2(2.08165e-12, 2.08165e-12, 48, 32)
+metadata/_edit_lock_ = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="16x32/SmallTrees-row2/Tree-1"]
+position = Vector2(0, 11)
+rotation = 1.5708
+shape = SubResource("CircleShape2D_wkeub")
+metadata/_edit_lock_ = true
+
+[node name="BigTrees" type="Control" parent="."]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="BigTree1" type="StaticBody2D" parent="BigTrees"]
+position = Vector2(275, 269)
+
+[node name="Sprite" type="Sprite2D" parent="BigTrees/BigTree1"]
+position = Vector2(2.08165e-12, 2.08165e-12)
+texture = ExtResource("4_3wmbw")
+hframes = 10
+vframes = 11
+frame = 26
+region_rect = Rect2(2.08165e-12, 2.08165e-12, 48, 32)
+metadata/_edit_lock_ = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="BigTrees/BigTree1"]
+position = Vector2(0, 20)
+rotation = 1.5708
+shape = SubResource("CircleShape2D_873dx")
+
+[node name="BigTree2" type="StaticBody2D" parent="BigTrees"]
+position = Vector2(331, 270)
+
+[node name="Sprite" type="Sprite2D" parent="BigTrees/BigTree2"]
+modulate = Color(0.61, 0.7595, 1, 1)
+position = Vector2(2.08165e-12, 2.08165e-12)
+texture = ExtResource("4_3wmbw")
+hframes = 10
+vframes = 11
+frame = 5
+region_rect = Rect2(2.08165e-12, 2.08165e-12, 48, 32)
+metadata/_edit_lock_ = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="BigTrees/BigTree2"]
+position = Vector2(0, 20)
+rotation = 1.5708
+shape = SubResource("CircleShape2D_06shg")
+one_way_collision_margin = 10.1
