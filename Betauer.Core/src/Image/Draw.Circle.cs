@@ -1,5 +1,7 @@
 using System;
 using Betauer.Core.Collision;
+using Betauer.Core.Easing;
+using Godot;
 
 namespace Betauer.Core.Image;
 
@@ -48,11 +50,12 @@ public static partial class Draw {
         }
     }
 
-    public static void GradientCircle(int cx, int cy, int r, Action<int, int, float> onPixel) {
+    public static void GradientCircle(int cx, int cy, int r, Action<int, int, float> onPixel, IEasing? easing = null) {
         var radii = r * r;
         FillCircle(cx, cy, r, (x, y) => {
             var distanceSquared = Geometry.DistanceSquared(cx, cy, x, y);
-            onPixel(x, y, distanceSquared / radii);
+            var pos = distanceSquared / radii;
+            onPixel(x, y, easing?.GetY(pos) ?? pos);
         });
     }
 
