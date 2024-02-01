@@ -142,17 +142,17 @@ public static class DebugOverlayBuilder {
     }
 
     public static NodeBuilder Edit(this NodeBuilder builder, string label, Func<int> valueLoader, Action<int> update, Action<MonitorEditValue>? config = null) {
-        builder.Edit(label, () => valueLoader().ToString(), (s) => update(s.ToInt()), config);
+        builder.Edit(label, () => valueLoader().ToString(CultureInfo.InvariantCulture), (s) => update(int.Parse(s, CultureInfo.InvariantCulture)), config);
         return builder;
     }
 
     public static NodeBuilder Edit(this NodeBuilder builder, string label, Func<float> valueLoader, Action<float> update, Action<MonitorEditValue>? config = null) {
-        builder.Edit(label, () => valueLoader().ToString(CultureInfo.InvariantCulture), (s) => update(s.ToFloat()), config);
+        builder.Edit(label, () => valueLoader().ToString(CultureInfo.InvariantCulture), (s) => update(float.Parse(s, CultureInfo.InvariantCulture)), config);
         return builder;
     }
 
     public static NodeBuilder Edit(this NodeBuilder builder, string label, Func<double> valueLoader, Action<double> update, Action<MonitorEditValue>? config = null) {
-        builder.Edit(label, () => valueLoader().ToString(CultureInfo.InvariantCulture), (s) => update(s.ToFloat()), config);
+        builder.Edit(label, () => valueLoader().ToString(CultureInfo.InvariantCulture), (s) => update(double.Parse(s, CultureInfo.InvariantCulture)), config);
         return builder;
     }
 

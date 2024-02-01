@@ -24,7 +24,7 @@ public class CellImage {
         CellSize = cellSize;
         ImageWidth = width * cellSize;
         ImageHeight = height * cellSize;
-        FastImage = new FastImage(ImageWidth, ImageHeight, false, format);
+        FastImage = new FastImage(ImageWidth, ImageHeight, false, format ?? global::Godot.Image.Format.Rgba8);
     }
 
     public CellImage(string resource, int cellSize, global::Godot.Image.Format? format = null) : this(new FastImage(resource, format), cellSize) {
