@@ -25,16 +25,16 @@ public static class NodeBuilderExtensions {
         });
     }
 
-    public static NodeBuilder ToggleButton(this NodeBuilder builder, string label, Func<bool> isPressed, Action? pressed = null, ButtonGroup? group = null, Action<CheckButton>? config = null) {
+    public static NodeBuilder ToggleButton(this NodeBuilder builder, string label, Func<bool> isPressed, Action<bool>? pressed = null, ButtonGroup? group = null, Action<CheckButton>? config = null) {
         return ToggleButton<CheckButton>(builder, label, isPressed, pressed, group, config);
     }
 
-    public static NodeBuilder ToggleButton<TButton>(this NodeBuilder builder, string label, Func<bool> isPressed, Action? pressed = null, ButtonGroup? group = null, Action<TButton>? config = null) where TButton : Button {
+    public static NodeBuilder ToggleButton<TButton>(this NodeBuilder builder, string label, Func<bool> isPressed, Action<bool>? pressed = null, ButtonGroup? group = null, Action<TButton>? config = null) where TButton : Button {
         var b = Activator.CreateInstance<TButton>();
         b.ToggleMode = true;
         b.Text = label;
         b.ButtonGroup = group;
-        if (pressed != null) b.Pressed += pressed;
+        if (pressed != null) b.Pressed += () => pressed(b.ButtonPressed);
         b.Ready += () => b.SetPressedNoSignal(isPressed());
         config?.Invoke(b);
         return builder.Add(b);
