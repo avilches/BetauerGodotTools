@@ -2,50 +2,140 @@ using System;
 
 namespace Betauer.Core.Data;
 
-public class DataGrid<T> : IDataGrid<T> {
+public class DataGrid {
     public int Width { get; private set; }
     public int Height { get; private set; }
-    
-    public T[,] Data { get; private set; }
+    public float MinValue { get; private set; } = float.MaxValue;
+    public float MaxValue { get; private set; } = float.MinValue;
 
-    public DataGrid(int width, int height) : this(new T[width, height]) {
-    }
+    public float[,] Data { get; private set; }
 
-    public DataGrid(T[,] data) {
-        SetAll(data);
-    }
-
-    public void Load(Func<int, int, T> valueFunc) {
-        Load(0, 0, Width, Height, valueFunc);
-    }
-
-    public void SetAll(T value) {
-        Set(0, 0, Width, Height, value);
-    }
-
-    public void SetAll(T[,] data) {
-        Data = data;
+    public DataGrid(int width, int height, Func<int, int, float> valueFunc) {
+        Data = new float[width, height];
         Width = Data.GetLength(0);
-        Height =  Data.GetLength(1);
+        Height = Data.GetLength(1);
+        Load(valueFunc);
     }
 
-    public void Set(int x, int y, int width, int height, T value) {
+    public DataGrid(int width, int height, float defaultValue) {
+        Data = new float[width, height];
+        Width = Data.GetLength(0);
+        Height = Data.GetLength(1);
+        Fill(defaultValue);
+    }
+
+    public void Fill(float value) {
+        for (var y = 0; y < Height; y++) {
+            for (var x = 0; x < Width; x++) {
+                Data[x, y] = value;
+            }
+        }
+        MinValue = value;
+        MaxValue = value;
+    }
+
+    public void Fill(int x, int y, int width, int height, float value) {
         for (var xx = x; xx < width - x; xx++) {
             for (var yy = y; yy < height - y; yy++) {
                 Data[xx, yy] = value;
             }
         }
+        MinValue = Math.Min(MinValue, value);
+        MaxValue = Math.Max(MaxValue, value);
     }
 
-    public void Load(int x, int y, int width, int height, Func<int, int, T> valueFunc) {
-        for (var xx = x; xx < width-x; xx++) {
-            for (var yy = y; yy < height-y; yy++) {
-                Data[xx, yy] = valueFunc.Invoke(xx, yy);
+    public DataGrid(float[,] data) {
+        SetAll(data);
+    }
+
+    public void SetAll(float[,] data) {
+        MinValue = float.MaxValue;
+        MaxValue = float.MinValue;
+        Width = data.GetLength(0);
+        Height = data.GetLength(1);
+        Data = new float[Width, Height];
+        for (var y = 0; y < data.GetLength(1); y++) {
+            for (var x = 0; x < data.GetLength(0); x++) {
+                var value = data[x, y];
+                Data[x, y] = value;
+                MinValue = Math.Min(MinValue, value);
+                MaxValue = Math.Max(MaxValue, value);
             }
         }
     }
 
-    public T GetValue(int x, int y) => Data[x, y];
+    public void Load(Func<int, int, float> valueFunc) {
+        MinValue = float.MaxValue;
+        MaxValue = float.MinValue;
+        Load(0, 0, Width, Height, valueFunc);
+    }
 
-    public void SetValue(int x, int y, T value) => Data[x, y] = value;
+    public void Load(int x, int y, int width, int height, Func<int, int, float> valueFunc) {
+        for (var xx = x; xx < width - x; xx++) {
+            for (var yy = y; yy < height - y; yy++) {
+                var value = valueFunc.Invoke(xx, yy);
+                Data[xx, yy] = value;
+                MinValue = Math.Min(MinValue, value);
+                MaxValue = Math.Max(MaxValue, value);
+            }
+        }
+    }
+
+    public void SetValue(int x, int y, float value) {
+        Data[x, y] = value;
+        MinValue = Math.Min(MinValue, value);
+        MaxValue = Math.Max(MaxValue, value);
+    }
+
+    public void UpdateMinMax() {
+        MinValue = float.MaxValue;
+        MaxValue = float.MinValue;
+        for (var y = 0; y < Height; y++) {
+            for (var x = 0; x < Width; x++) {
+                var value = Data[x, y];
+                Data[x, y] = value;
+                MinValue = Math.Min(MinValue, value);
+                MaxValue = Math.Max(MaxValue, value);
+            }
+        }
+    }
+
+    public void Normalize(float newMin, float newMax) {
+        var minMaxRange = MaxValue - MinValue;
+        var normalizedRange = newMax - newMin;
+        for (var y = 0; y < Height; y++) {
+            for (var x = 0; x < Width; x++) {
+                Data[x, y] = (Data[x, y] - MinValue) / minMaxRange * normalizedRange + newMin;
+            }
+        }
+        MinValue = newMin;
+        MaxValue = newMax;
+    }
+
+    public void Normalize() {
+        var minMaxRange = MaxValue - MinValue;
+        for (var y = 0; y < Height; y++) {
+            for (var x = 0; x < Width; x++) {
+                Data[x, y] = (Data[x, y] - MinValue) / minMaxRange;
+            }
+        }
+        MinValue = 0;
+        MaxValue = 1;
+    }
+
+    public float GetValue(int x, int y) {
+        return Data[x, y];
+    }
+
+    public void Loop(Action<float, int, int> action) {
+        Loop(0, 0, Width, Height, action);
+    }
+
+    public void Loop(int x, int y, int width, int height, Action<float, int, int> action) {
+        for (var xx = x; xx < width - x; xx++) {
+            for (var yy = y; yy < height - y; yy++) {
+                action.Invoke(GetValue(xx, yy), xx, yy);
+            }
+        }
+    }
 }

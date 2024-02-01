@@ -5,7 +5,7 @@ namespace Betauer.Core.Data;
 /// <summary>
 /// Returns 1 in PositionX, PositionY (which is the center of the grid by default) and goes to 0 in the border in a linear way
 /// </summary>
-public class RectRampDataGrid : IDataGrid<float> {
+public class RectRampDataGrid  {
     public int Width { get; set; }
     public int Height { get; set; }
     public int PositionX { get; set; }
@@ -44,5 +44,13 @@ public class RectRampDataGrid : IDataGrid<float> {
         var valueX = 1 - distanceX / maxDistanceX;
         var valueY = 1 - distanceY / maxDistanceY;
         return Math.Min(valueX, valueY);
+    }
+
+    public void Loop(int x, int y, int width, int height, Action<float, int, int> action) {
+        for (var xx = x; xx < width - x; xx++) {
+            for (var yy = y; yy < height - y; yy++) {
+                action.Invoke(GetValue(xx, yy), xx, yy);
+            }
+        }
     }
 }
