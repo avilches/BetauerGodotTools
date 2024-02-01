@@ -62,18 +62,18 @@ public partial class RtsWorld : Node, IInjectable {
 	private void Zooming(InputEvent @event) {
 		if (@event.IsKeyJustPressed(Key.Q) || @event.IsClickPressed(MouseButton.WheelUp)) {
 			if (CameraController.IsBusy()) return;
-			if (CameraGameObject.ZoomLevel == RtsConfig.ZoomLevels.Count - 1) return;
-			var targetZoom = RtsConfig.ZoomLevels[++CameraGameObject.ZoomLevel];
-			Console.WriteLine($"Zooming to level {CameraGameObject.ZoomLevel}: {targetZoom}");
-			CameraController.Zoom(new Vector2(targetZoom, targetZoom), RtsConfig.ZoomTime, Easings.Linear, CameraController.Camera2D.GetLocalMousePosition);
-			GetViewport().SetInputAsHandled();
+			if (CameraGameObject.ZoomIn()) {
+				Console.WriteLine($"Zooming {CameraGameObject.Zoom}x");
+				CameraController.Zoom(new Vector2(CameraGameObject.Zoom, CameraGameObject.Zoom), RtsConfig.ZoomTime, Easings.Linear, CameraController.Camera2D.GetLocalMousePosition);
+				GetViewport().SetInputAsHandled();
+			}
 		} else if (@event.IsKeyJustPressed(Key.E) || @event.IsClickPressed(MouseButton.WheelDown)) {
 			if (CameraController.IsBusy()) return;
-			if (CameraGameObject.ZoomLevel == 0) return;
-			var targetZoom = RtsConfig.ZoomLevels[--CameraGameObject.ZoomLevel];
-			Console.WriteLine($"Zooming to level {CameraGameObject.ZoomLevel}: {targetZoom}");
-			CameraController.Zoom(new Vector2(targetZoom, targetZoom), RtsConfig.ZoomTime, Easings.Linear, CameraController.Camera2D.GetLocalMousePosition);
-			GetViewport().SetInputAsHandled();
+			if (CameraGameObject.ZoomOut()) {
+				Console.WriteLine($"Zooming {CameraGameObject.Zoom}x");
+				CameraController.Zoom(new Vector2(CameraGameObject.Zoom, CameraGameObject.Zoom), RtsConfig.ZoomTime, Easings.Linear, CameraController.Camera2D.GetLocalMousePosition);
+				GetViewport().SetInputAsHandled();
+			}
 		}
 	}
 
