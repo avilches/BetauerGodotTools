@@ -1,6 +1,6 @@
 using Betauer.Animation;
-using Betauer.Animation.Easing;
 using Betauer.Application.Monitor;
+using Betauer.Core.Easing;
 using Betauer.Core.Nodes.Property;
 using Betauer.DI.Attributes;
 using Godot;

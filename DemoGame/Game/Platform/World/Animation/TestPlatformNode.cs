@@ -1,5 +1,5 @@
 using Betauer.Animation;
-using Betauer.Animation.Easing;
+using Betauer.Core.Easing;
 using Betauer.Core.Nodes.Property;
 using Betauer.NodePath;
 using Godot;

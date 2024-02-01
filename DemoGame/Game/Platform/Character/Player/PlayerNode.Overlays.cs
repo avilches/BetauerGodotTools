@@ -1,5 +1,5 @@
-using Betauer.Animation.Easing;
 using Betauer.Application.Monitor;
+using Betauer.Core.Easing;
 using Betauer.Core.Nodes;
 using Betauer.DI.Attributes;
 using Betauer.Input;
