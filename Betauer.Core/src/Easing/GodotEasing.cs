@@ -1,6 +1,6 @@
 using Godot;
 
-namespace Betauer.Animation.Easing {
+namespace Betauer.Core.Easing {
     public class GodotEasing : IEasing {
         public readonly Tween.EaseType EaseType;
         public readonly Tween.TransitionType TransitionType;
@@ -17,8 +17,8 @@ namespace Betauer.Animation.Easing {
             return EaseType switch {
                 Tween.EaseType.In => EasingFunctions.EaseIn(TransitionType, t),
                 Tween.EaseType.Out => EasingFunctions.EaseOut(TransitionType, t),
-                Tween.EaseType.InOut => EasingFunctions.EaseInOut(t, TransitionType),
-                Tween.EaseType.OutIn => EasingFunctions.EaseOutIn(t, TransitionType),
+                Tween.EaseType.InOut => EasingFunctions.EaseInOut(TransitionType, t),
+                Tween.EaseType.OutIn => EasingFunctions.EaseOutIn(TransitionType, t),
             };
         }
     }

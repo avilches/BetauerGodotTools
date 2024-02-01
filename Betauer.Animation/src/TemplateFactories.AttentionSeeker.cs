@@ -1,4 +1,4 @@
-using Betauer.Animation.Easing;
+using Betauer.Core.Easing;
 using Betauer.Core.Nodes;
 using Betauer.Core.Nodes.Property;
 using Godot;

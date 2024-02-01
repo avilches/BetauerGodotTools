@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using Betauer.Animation.Easing;
+using Betauer.Core.Easing;
 using Betauer.Core.Nodes.Property;
 using Godot;
 using NUnit.Framework;

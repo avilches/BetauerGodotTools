@@ -1,6 +1,6 @@
 using Godot;
 
-namespace Betauer.Animation.Easing {
+namespace Betauer.Core.Easing {
     // Got from https://www.icode.com/c-function-for-a-bezier-curve/
 
     /*

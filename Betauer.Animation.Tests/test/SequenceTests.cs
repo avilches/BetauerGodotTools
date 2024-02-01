@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Betauer.Animation.Easing;
+using Betauer.Core.Easing;
 using Betauer.Core.Nodes;
 using Betauer.Core.Nodes.Property;
 using Betauer.Core.Signal;

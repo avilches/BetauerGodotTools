@@ -1,6 +1,6 @@
 using System;
-using Betauer.Animation.Easing;
 using Betauer.Core;
+using Betauer.Core.Easing;
 using Godot;
 
 namespace Betauer.Animation {

@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Betauer.Animation.Easing;
 using Betauer.Core;
+using Betauer.Core.Easing;
 using Betauer.Core.Nodes.Property;
 using Godot;
 

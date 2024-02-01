@@ -1,17 +1,10 @@
 using System;
 using Godot;
 
-namespace Betauer.Animation.Easing; 
+namespace Betauer.Core.Easing; 
 
 public static class EasingFunctions {
     // Adapted from source : http://www.robertpenner.com/TransitionType/
-
-    public static float Ease(Tween.TransitionType type, float linearStep, float acceleration) {
-        var easedStep = acceleration > 0 ? EaseIn(type, linearStep) :
-            acceleration < 0 ? EaseOut(type, linearStep) : linearStep;
-
-        return Mathf.Lerp(linearStep, easedStep, Mathf.Abs(acceleration));
-    }
 
     public static float EaseIn(Tween.TransitionType type, float t) {
         return type switch {
@@ -47,11 +40,13 @@ public static class EasingFunctions {
         };
     }
 
-    public static float EaseInOut(float t, Tween.TransitionType type) {
+    public static float EaseInOut(Tween.TransitionType type, float t) {
+        if (type == Tween.TransitionType.Linear) return t;
         return t < 0.5f ? EaseIn(type, t * 2) * 0.5f : 0.5f + EaseOut(type, (t - 0.5f) * 2f) * 0.5f;
     }
 
-    public static float EaseOutIn(float t, Tween.TransitionType type) {
+    public static float EaseOutIn(Tween.TransitionType type, float t) {
+        if (type == Tween.TransitionType.Linear) return t;
         return t < 0.5f ? EaseOut(type, t * 2) * 0.5f : 0.5f + EaseIn(type, (t - 0.5f) * 2f) * 0.5f;
     }
 
@@ -208,7 +203,8 @@ public static class EasingFunctions {
         var pow = Mathf.Pow(time, exp);
         return pow / (pow + Mathf.Pow(offset - offset * time, exp));
     }
-
+    
+    
     /// <summary>
     /// Shift a easing curve to the right
     /// </summary>
