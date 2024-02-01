@@ -49,7 +49,7 @@ public class RtsGameConfig {
 [Singleton]
 public class RtsConfig {
 	public readonly List<float> ZoomLevels = new() { 0.0625f, 0.125f, 0.25f, 0.5f, 1f, 2f, 4f};
-	public readonly float DefaultZoom = 1;
+	public readonly float DefaultZoom = 2f;
 	public readonly float ZoomTime = 0.25f;
 
 }

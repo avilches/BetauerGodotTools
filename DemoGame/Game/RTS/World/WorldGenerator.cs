@@ -12,6 +12,7 @@ using Betauer.Core;
 using Betauer.Nodes;
 using Betauer.Core.Collision.Spatial2D;
 using Betauer.Core.Data;
+using Betauer.Core.Image;
 using Betauer.TileSet.Image;
 using Betauer.TileSet.Terrain;
 using Betauer.TileSet.TileMap;
@@ -30,6 +31,8 @@ public partial class WorldGenerator {
     public BiomeGenerator BiomeGenerator { get; } = new();
     public TileMap<BiomeType> TileMap { get; private set; }
     public TileMap GodotTileMap { get; private set; }
+    public FastTexture FastFinalMap { get; private set; }
+    public Sprite2D SpriteMap { get; private set; }
     public Trees TreesInstance;
     private const int CellSize = 16;
 
@@ -38,28 +41,24 @@ public partial class WorldGenerator {
     private const int Height = 400;
     
     public enum ViewMode {
-        Terrain,
+        Massland,
         Height,
         HeightFalloff,
         Humidity,
-        FalloffMap,
+        Terrain,
     }
     
     public ViewMode CurrentViewMode { get; set; } = ViewMode.Terrain;
 
-    private int _seed = 0;
-    public int Seed {
-        get => _seed;
-        set {
-            _seed = value;
-            BiomeGenerator.Seed = _seed;
-        }
-    }
+    public int Seed { get; set; } = 0;
 
-    public void Configure(TileMap godotTileMap) {
+    public void Configure(TileMap godotTileMap, Sprite2D textureFinalMap) {
+        GodotTileMap = godotTileMap;
+        SpriteMap = textureFinalMap;
+
         BiomeGenerator.Configure(Width, Height, Seed);
         TileMap = new TileMap<BiomeType>(Layers, Width, Height);
-        GodotTileMap = godotTileMap;
+        FastFinalMap = new FastTexture(SpriteMap, Width, Height, false, Image.Format.Rgba8);
         
         GodotTileMap.Draw += () => {
             // Hack needed to draw on top of the tilemap:
@@ -68,14 +67,17 @@ public partial class WorldGenerator {
             GodotTileMap.Visible = false;
             var subViewport = (SubViewport)GodotTileMap.GetViewport();
             subViewport.RenderTargetClearMode = SubViewport.ClearMode.Never;
-            Draw(GodotTileMap);
+            // put here your Draw calls, like DrawRect, DrawCircle, etc.
             GodotTileMap.Visible = true;
             subViewport.RenderTargetClearMode = SubViewport.ClearMode.Always;
         };
     }
-
+    
     public void Generate() {
-        var biomeGrid = BiomeGenerator.Generate();
+        BiomeGenerator.Seed = Seed;
+        BiomeGenerator.Generate();
+        return;
+        var biomeGrid = BiomeGenerator.BiomeCells;
 
         TileMap.Execute((t, x, y) => {
             var biomeType = biomeGrid[y, x].Biome.Type;
@@ -85,12 +87,12 @@ public partial class WorldGenerator {
         TileMap.Smooth(Seed);
         // TileMap.IfTerrainEnum(BiomeType.Ocean).SetAtlasCoords(0, 6, new Vector2I(19, 13)); // Modern, deep water
         TileMap.IfTerrainEnum(BiomeType.Glacier).SetAtlasCoords(0, 6, new Vector2I(2, 2)); // Modern, snow
-        TileMap.IfTerrainEnum(BiomeType.Mountain).SetAtlasCoords(0, 1, new Vector2I(0, 0)); // Mud
+        TileMap.IfTerrainEnum(BiomeType.Rock).SetAtlasCoords(0, 1, new Vector2I(0, 0)); // Mud
         
         TileMap.IfTerrainEnum(BiomeType.Desert).SetAtlasCoords(0, 0, new Vector2I(0, 15)); // Red
-        TileMap.IfTerrainEnum(BiomeType.Savannah).SetAtlasCoords(0, 0, new Vector2I(0, 2)); // GreenYellow 
+        TileMap.IfTerrainEnum(BiomeType.Plains).SetAtlasCoords(0, 0, new Vector2I(0, 2)); // GreenYellow 
         TileMap.IfTerrainEnum(BiomeType.Forest).SetAtlasCoords(0, 0, new Vector2I(11, 1)); // 
-        TileMap.IfTerrainEnum(BiomeType.Jungle).SetAtlasCoords(0, 0, new Vector2I(16, 2)); // 
+        TileMap.IfTerrainEnum(BiomeType.Dirty).SetAtlasCoords(0, 0, new Vector2I(16, 2)); // 
         
         
         // TileMap.IfTerrainEnum(BiomeType.Beach).SetAtlasCoords(0, 3, new Vector2I(0, 0)); // Sand
@@ -139,38 +141,33 @@ public partial class WorldGenerator {
         });
         */
         // GodotTileMap.ZIndex = 1;
-        UpdateView();
-    }
-    
-    public void UpdateView() {
-        // GodotTileMap.Visible = CurrentViewMode == ViewMode.Terrain;
-        GodotTileMap.QueueRedraw();
+        Draw(ViewMode.Height);
     }
 
-    private void Draw(CanvasItem canvas) {
-        if (CurrentViewMode == ViewMode.Height) {
-            DrawGrid(canvas, BiomeGenerator.HeightNormalizedGrid);
-        } else if (CurrentViewMode == ViewMode.Humidity) {
-            DrawGrid(canvas, BiomeGenerator.HumidityNormalizedGrid);
+    public void Draw(ViewMode viewMode) {
+        CurrentViewMode = viewMode;
+        ReDraw();
+    }
+
+    public void ReDraw() {
+        if (CurrentViewMode == ViewMode.Massland) {
+            BiomeGenerator.FillMassland(FastFinalMap);
+        } else if (CurrentViewMode == ViewMode.Height) {
+            BiomeGenerator.FillHeight(FastFinalMap);
         } else if (CurrentViewMode == ViewMode.HeightFalloff) {
-            DrawGrid(canvas, BiomeGenerator.HeightFalloffGrid);
-        } else if (CurrentViewMode == ViewMode.FalloffMap) {
-            DrawGrid(canvas, BiomeGenerator.ContinentMap);
+            BiomeGenerator.FillFalloff(FastFinalMap);
+        } else if (CurrentViewMode == ViewMode.Humidity) {
+            BiomeGenerator.FillHumidity(FastFinalMap);
         } else if (CurrentViewMode == ViewMode.Terrain) {
+            TileMap.Execute((t, x, y) => {
+                // canvas.TopLevel = true;
+                var biome = BiomeGenerator.BiomeCells[y, x];
+                FastFinalMap.SetPixel(x, y, biome.Biome.Color, false);
+            });
+            FastFinalMap.Flush();
         }
     }
     
-    private void DrawGrid(CanvasItem canvas, IDataGrid<float> normalizedGrid) {
-        var offset = new Vector2(8, 8);
-        TileMap.Execute((t, x, y) => {
-            // canvas.TopLevel = true;
-            var noise = normalizedGrid.GetValue(x, y);
-            var color = new Color(noise, noise, noise);
-            var position = (GodotTileMap.MapToLocal(new Vector2I(x, y))) - offset;
-            canvas.DrawRect(new Rect2(position, new Vector2(16, 16)), color, true);
-        });
-    }
-
     public void GenerateOld(TileMap godotTileMap, NoiseTexture2D noiseHeight, NoiseTexture2D noiseMoisture) {
         godotTileMap.Clear();
         TreesInstance = TreesFactory.Create();

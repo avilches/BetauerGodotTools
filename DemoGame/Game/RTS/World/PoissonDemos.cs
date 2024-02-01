@@ -34,13 +34,8 @@ public partial class PoissonDemos : Node2D {
     }
 
     private async Task GenerateUniformPoissonDisks() {
-
         var fast = new FastImage(512, 512);
         fast.Fill(Color.FromHtml("221133"));
-        AddChild(new Sprite2D() {
-            GlobalPosition = TextureTerrainMap.GlobalPosition + new Vector2(512, 0),
-            Texture = fast.ImageTexture
-        });
         var radius = 30;
         var random = new Random(1);
         var uni = new UniformPoissonSampler2D(512, 512);
@@ -55,15 +50,17 @@ public partial class PoissonDemos : Node2D {
         points.ForEach(v => fast.SetPixel((int)v.X, (int)v.Y, Colors.Green));
         points.ForEach(v => { fast.DrawCircle((int)v.X, (int)v.Y, radius / 2, new Color("#AA5555", 0.5f)); });
         fast.Flush();
+        AddChild(new Sprite2D() {
+            GlobalPosition = TextureTerrainMap.GlobalPosition + new Vector2(512, 0),
+            Texture = fast.CreateImageTexture()
+        });
     }
 
     private async Task GenerateUniformPoissonDisksExpanded() {
         var fast = new FastImage(512, 512);
         fast.Fill(Color.FromHtml("221133"));
-        AddChild(new Sprite2D() {
-            GlobalPosition = TextureTerrainMap.GlobalPosition + new Vector2(1024, 0),
-            Texture = fast.ImageTexture
-        });
+        var imageTexture = new ImageTexture();
+        imageTexture.SetSizeOverride(new Vector2I(fast.Width, fast.Height));
         var radius = 30;
         var random = new Random(1);
         var uni = new UniformPoissonSampler2D(512, 512);
@@ -73,15 +70,15 @@ public partial class PoissonDemos : Node2D {
         var grid = ExpandCircles(radius, radius, points);
         grid.ForEach<Circle>(v => { fast.DrawCircle((int)v.Position.X, (int)v.Position.Y, (int)v.Radius, Colors.Red); });
         fast.Flush();
+        AddChild(new Sprite2D() {
+            GlobalPosition = TextureTerrainMap.GlobalPosition + new Vector2(1024, 0),
+            Texture = imageTexture
+        });
     }
 
     private async Task GenerateVariablePoissonDisksWithNoise() {
         var fast = new FastImage(512, 512);
         fast.Fill(Color.FromHtml("221133"));
-        AddChild(new Sprite2D() {
-            GlobalPosition = TextureTerrainMap.GlobalPosition + new Vector2(0, 512),
-            Texture = fast.ImageTexture
-        });
         var minRadius = 1;
         var maxRadius = 30;
         var fastNoise = new FastNoise((NoiseTexture2D)TexturePoisson.Texture);
@@ -89,15 +86,15 @@ public partial class PoissonDemos : Node2D {
         var points = new VariablePoissonSampler2D(512, 512).GenerateFromNoise(fastNoise, minRadius, maxRadius, random);
         points.ForEach(v => fast.SetPixel((int)v.X, (int)v.Y, Colors.Green));
         fast.Flush();
+        AddChild(new Sprite2D() {
+            GlobalPosition = TextureTerrainMap.GlobalPosition + new Vector2(0, 512),
+            Texture = fast.CreateImageTexture()
+        });
     }
 
     private async Task GenerateVariablePoissonDisksWithNoiseExpanded() {
         var fast = new FastImage(512, 512);
         fast.Fill(Color.FromHtml("221133"));
-        AddChild(new Sprite2D() {
-            GlobalPosition = TextureTerrainMap.GlobalPosition + new Vector2(512, 512),
-            Texture = fast.ImageTexture
-        });
         var minRadius = 4;
         var maxRadius = 60;
         var fastNoise = new FastNoise((NoiseTexture2D)TexturePoisson.Texture);
@@ -107,15 +104,15 @@ public partial class PoissonDemos : Node2D {
         points.ForEach(v => fast.SetPixel((int)v.X, (int)v.Y, Colors.Green));
         grid.ForEach<Circle>(v => { fast.DrawCircle((int)v.Position.X, (int)v.Position.Y, (int)v.Radius, Colors.Red); });
         fast.Flush();
+        AddChild(new Sprite2D() {
+            GlobalPosition = TextureTerrainMap.GlobalPosition + new Vector2(512, 512),
+            Texture = fast.CreateImageTexture()
+        });
     }
 
     private async Task GenerateVariablePoissonDisksWithNoiseExpanded2() {
         var fast = new FastImage(512, 512);
         fast.Fill(Color.FromHtml("332211"));
-        AddChild(new Sprite2D() {
-            GlobalPosition = TextureTerrainMap.GlobalPosition + new Vector2(1024, 512),
-            Texture = fast.ImageTexture
-        });
         var minRadius = 2f;
         var maxRadius = 80f;
         var fastNoise = new FastNoise((NoiseTexture2D)TexturePoisson.Texture);
@@ -125,16 +122,16 @@ public partial class PoissonDemos : Node2D {
         points.ForEach(v => fast.SetPixel((int)v.X, (int)v.Y, Colors.Green));
         grid.ForEach<Circle>(v => { fast.DrawCircle((int)v.Position.X, (int)v.Position.Y, (int)v.Radius, Colors.Red); });
         fast.Flush();
+        AddChild(new Sprite2D() {
+            GlobalPosition = TextureTerrainMap.GlobalPosition + new Vector2(1024, 512),
+            Texture = fast.CreateImageTexture()
+        });
     }
 
     private async Task GenerateVariablePoissonDisksWithRandomRadius() {
         var fast = new FastImage(512, 512);
         fast.Fill(Color.FromHtml("332211"));
         fast.Flush();
-        AddChild(new Sprite2D() {
-            GlobalPosition = TextureTerrainMap.GlobalPosition + new Vector2(0, 1024),
-            Texture = fast.ImageTexture
-        });
         var minRadius = 10f;
         var maxRadius = 60f;
         var random = new Random(1);
@@ -143,16 +140,16 @@ public partial class PoissonDemos : Node2D {
         var grid = ExpandCircles(minRadius, maxRadius, points);
         grid.ForEach<Circle>(v => { fast.DrawCircle((int)v.Position.X, (int)v.Position.Y, (int)v.Radius, Colors.Red); });
         fast.Flush();
+        AddChild(new Sprite2D() {
+            GlobalPosition = TextureTerrainMap.GlobalPosition + new Vector2(0, 1024),
+            Texture = fast.CreateImageTexture()
+        });
     }
 
     private async Task GenerateVariablePoissonDisksWithRandomRadius2() {
         var fast = new FastImage(512, 512);
         fast.Fill(Color.FromHtml("332211"));
         fast.Flush();
-        AddChild(new Sprite2D() {
-            GlobalPosition = TextureTerrainMap.GlobalPosition + new Vector2(512, 1024),
-            Texture = fast.ImageTexture
-        });
         var minRadius = 20f;
         var maxRadius = 120f;
         var random = new Random(1);
@@ -161,16 +158,16 @@ public partial class PoissonDemos : Node2D {
         var grid = ExpandCircles(minRadius, maxRadius, points);
         grid.ForEach<Circle>(v => { fast.DrawCircle((int)v.Position.X, (int)v.Position.Y, (int)v.Radius, Colors.Red); });
         fast.Flush();
+        AddChild(new Sprite2D() {
+            GlobalPosition = TextureTerrainMap.GlobalPosition + new Vector2(512, 1024),
+            Texture = fast.CreateImageTexture()
+        });
     }
 
     private async Task GenerateVariablePoissonDisksWithRandomRadiusRemovingRandom() {
         var fast = new FastImage(512, 512);
         fast.Fill(Color.FromHtml("332211"));
         fast.Flush();
-        AddChild(new Sprite2D() {
-            GlobalPosition = TextureTerrainMap.GlobalPosition + new Vector2(1024, 1024),
-            Texture = fast.ImageTexture
-        });
         var minRadius = 20f;
         var maxRadius = 120f;
         var random = new Random(1);
@@ -191,16 +188,16 @@ public partial class PoissonDemos : Node2D {
             fast.DrawCircle((int)v.Position.X, (int)v.Position.Y, (int)v.Radius, Colors.Red);
         });
         fast.Flush();
+        AddChild(new Sprite2D() {
+            GlobalPosition = TextureTerrainMap.GlobalPosition + new Vector2(1024, 1024),
+            Texture = fast.CreateImageTexture()
+        });
     }
 
     private async Task GenerateVariablePoissonDisksWithRectangleRandomRadiusRemovingRandom() {
         var fast = new FastImage(512, 512);
         fast.Fill(Color.FromHtml("333333"));
         fast.Flush();
-        AddChild(new Sprite2D() {
-            GlobalPosition = TextureTerrainMap.GlobalPosition + new Vector2(1024+512, 1024),
-            Texture = fast.ImageTexture
-        });
         var minRadius = 20f;
         var maxRadius = 120f;
         var random = new Random(1);
@@ -223,6 +220,10 @@ public partial class PoissonDemos : Node2D {
             fast.DrawRect((int)v.Position.X, (int)v.Position.Y, (int)v.Width, (int)v.Height, Colors.Red);
         });
         fast.Flush();
+        AddChild(new Sprite2D() {
+            GlobalPosition = TextureTerrainMap.GlobalPosition + new Vector2(1024+512, 1024),
+            Texture = fast.CreateImageTexture()
+        });
     }
 
     private static SpatialGrid ExpandCircles(float minRadius, float maxRadius, List<Vector2> points) {
@@ -238,6 +239,4 @@ public partial class PoissonDemos : Node2D {
         grid.ExpandAll(1);
         return grid;
     }
-
-
 }
