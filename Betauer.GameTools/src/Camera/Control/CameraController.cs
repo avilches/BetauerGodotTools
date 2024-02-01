@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
-using Betauer.Animation.Easing;
 using Betauer.Core;
+using Betauer.Core.Easing;
 using Betauer.Core.Signal;
 using Betauer.Nodes;
 using Godot;
