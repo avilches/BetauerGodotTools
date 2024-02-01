@@ -113,10 +113,12 @@ public partial class DebugOverlay : Panel, IInjectable {
 
     public DebugOverlay SetMaxSize(Vector2 maxSize) {
         MaxSize = maxSize;
+        MinSize = new Vector2(Mathf.Min(maxSize.X, MinSize.X), Mathf.Min(maxSize.Y, MinSize.Y));
         return this;
     }
 
     public DebugOverlay SetMinSize(Vector2 minSize) {
+        MaxSize = new Vector2(Mathf.Max(minSize.X, MaxSize.X), Mathf.Max(minSize.Y, MaxSize.Y));
         MinSize = minSize;
         return this;
     }
