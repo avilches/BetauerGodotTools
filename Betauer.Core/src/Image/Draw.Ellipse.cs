@@ -5,7 +5,7 @@ using Godot;
 namespace Betauer.Core.Image;
 
 public static partial class Draw {
-    public static void Ellipse(int xc, int yc, int rx, int ry, Action<int, int> onPixel) {
+    public static void Ellipse(int cx, int cy, int rx, int ry, Action<int, int> onPixel) {
         double dx, dy, d1, d2, x, y;
         x = 0;
         y = ry;
@@ -19,10 +19,10 @@ public static partial class Draw {
         // For region 1
         while (dx < dy) {
             // Print points based on 4-way symmetry
-            onPixel((int)Mathf.Round(x + xc), (int)Mathf.Round(y + yc));
-            onPixel((int)Mathf.Round(-x + xc), (int)Mathf.Round(y + yc));
-            onPixel((int)Mathf.Round(x + xc), (int)Mathf.Round(-y + yc));
-            onPixel((int)Mathf.Round(-x + xc), (int)Mathf.Round(-y + yc));
+            onPixel((int)Mathf.Round(x + cx), (int)Mathf.Round(y + cy));
+            onPixel((int)Mathf.Round(-x + cx), (int)Mathf.Round(y + cy));
+            onPixel((int)Mathf.Round(x + cx), (int)Mathf.Round(-y + cy));
+            onPixel((int)Mathf.Round(-x + cx), (int)Mathf.Round(-y + cy));
             // Checking and updating value of
             // decision parameter based on algorithm
             if (d1 < 0) {
@@ -46,10 +46,10 @@ public static partial class Draw {
         // Plotting points of region 2
         while (y >= 0) {
             // printing points based on 4-way symmetry
-            onPixel((int)Mathf.Round(x + xc), (int)Mathf.Round(y + yc));
-            onPixel((int)Mathf.Round(-x + xc), (int)Mathf.Round(y + yc));
-            onPixel((int)Mathf.Round(x + xc), (int)Mathf.Round(-y + yc));
-            onPixel((int)Mathf.Round(-x + xc), (int)Mathf.Round(-y + yc));
+            onPixel((int)Mathf.Round(x + cx), (int)Mathf.Round(y + cy));
+            onPixel((int)Mathf.Round(-x + cx), (int)Mathf.Round(y + cy));
+            onPixel((int)Mathf.Round(x + cx), (int)Mathf.Round(-y + cy));
+            onPixel((int)Mathf.Round(-x + cx), (int)Mathf.Round(-y + cy));
 
 
             // Checking and updating parameter
@@ -70,15 +70,14 @@ public static partial class Draw {
 
     public static void GradientEllipse(int cx, int cy, int rx, int ry, Action<int, int, float> onPixel, IEasing? easing = null) {
         FillEllipse(cx, cy, rx, ry, (x, y) => {
-            var dx = Math.Abs(x - cx) / (float)rx;
-            var dy = Math.Abs(y - cy) / (float)ry;
-            var distance = Math.Sqrt(dx * dx + dy * dy);
-            var pos = distance / Math.Sqrt(2);
-            onPixel(x, y, easing?.GetY((float)pos) ?? (float)pos);
+            float dx = x - cx;
+            float dy = y - cy;
+            var pos = (dx * dx) / (rx * rx) + (dy * dy) / (ry * ry);            
+            onPixel(x, y, easing?.GetY(pos) ?? pos);
         });
     }
 
-    public static void FillEllipse(int xc, int yc, int rx, int ry, Action<int, int> onPixel) {
+    public static void FillEllipse(int cx, int cy, int rx, int ry, Action<int, int> onPixel) {
         double dx, dy, d1, d2, x, y;
         x = 0;
         y = ry;
@@ -92,10 +91,10 @@ public static partial class Draw {
         // For region 1
         while (dx < dy) {
             // Print points based on 4-way symmetry
-            Line((int)Mathf.Round(x + xc), (int)Mathf.Round(y + yc),
-                (int)Mathf.Round(-x + xc), (int)Mathf.Round(y + yc), 1, onPixel);
-            Line((int)Mathf.Round(x + xc), (int)Mathf.Round(-y + yc),
-                (int)Mathf.Round(-x + xc), (int)Mathf.Round(-y + yc), 1, onPixel);
+            Line((int)Mathf.Round(x + cx), (int)Mathf.Round(y + cy),
+                (int)Mathf.Round(-x + cx), (int)Mathf.Round(y + cy), 1, onPixel);
+            Line((int)Mathf.Round(x + cx), (int)Mathf.Round(-y + cy),
+                (int)Mathf.Round(-x + cx), (int)Mathf.Round(-y + cy), 1, onPixel);
             // Checking and updating value of
             // decision parameter based on algorithm
             if (d1 < 0) {
@@ -119,10 +118,10 @@ public static partial class Draw {
         // Plotting points of region 2
         while (y >= 0) {
             // printing points based on 4-way symmetry
-            Line((int)Mathf.Round(x + xc), (int)Mathf.Round(y + yc),
-                (int)Mathf.Round(-x + xc), (int)Mathf.Round(y + yc), 1, onPixel);
-            Line((int)Mathf.Round(x + xc), (int)Mathf.Round(-y + yc),
-                (int)Mathf.Round(-x + xc), (int)Mathf.Round(-y + yc), 1, onPixel);
+            Line((int)Mathf.Round(x + cx), (int)Mathf.Round(y + cy),
+                (int)Mathf.Round(-x + cx), (int)Mathf.Round(y + cy), 1, onPixel);
+            Line((int)Mathf.Round(x + cx), (int)Mathf.Round(-y + cy),
+                (int)Mathf.Round(-x + cx), (int)Mathf.Round(-y + cy), 1, onPixel);
 
 
             // Checking and updating parameter

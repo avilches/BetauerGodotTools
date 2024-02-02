@@ -18,6 +18,12 @@ public class FastTexture : FastImage {
         sprite2D.Texture = _imageTexture;
     }
 
+    public FastTexture(TextureRect textureRect, int width, int height, bool useMipmaps = false, Godot.Image.Format format = DefaultFormat) : base(width, height, useMipmaps, format) {
+        _imageTexture = CreateImageTexture();
+        textureRect.Texture = _imageTexture;
+        textureRect.Size = new Vector2(width, height);
+    }
+
     /// <summary>
     /// Load the image from the Sprite2D and create a new FastImage. If the Sprite2D is not an ImageTexture (like a CompressedTexture2D), it will read the
     /// image from the texture and it will be converted to an ImageTexture using the proper format (Rgba8 for png or Rgb8 for jpg)
