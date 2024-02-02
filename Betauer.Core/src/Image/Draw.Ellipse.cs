@@ -51,7 +51,6 @@ public static partial class Draw {
             onPixel((int)Mathf.Round(x + cx), (int)Mathf.Round(-y + cy));
             onPixel((int)Mathf.Round(-x + cx), (int)Mathf.Round(-y + cy));
 
-
             // Checking and updating parameter
             // value based on algorithm
             if (d2 > 0) {
@@ -69,14 +68,45 @@ public static partial class Draw {
     }
 
     public static void GradientEllipse(int cx, int cy, int rx, int ry, Action<int, int, float> onPixel, IEasing? easing = null) {
-        FillEllipse(cx, cy, rx, ry, (x, y) => {
+        FillEllipseNoAccurate(cx, cy, rx, ry, (x, y) => {
             float dx = x - cx;
             float dy = y - cy;
-            var pos = (dx * dx) / (rx * rx) + (dy * dy) / (ry * ry);            
+            var pos = (dx * dx) / (rx * rx) + (dy * dy) / (ry * ry);
             onPixel(x, y, easing?.GetY(pos) ?? pos);
         });
     }
 
+    /// <summary>
+    /// This method is not accurate in the edges of the ellipse, where some points could be not drawn.
+    /// But it ensures that only the pixels inside the ellipse are drawn, which is useful for filling the ellipse with a gradient (gradients need to be
+    /// drawn only once per pixel. Accumulate more calls in the same pixel could change the color of the pixel if the pixel has a transparent color, creating
+    /// artifacts in the gradient)
+    /// </summary>
+    /// <param name="cx"></param>
+    /// <param name="cy"></param>
+    /// <param name="rx"></param>
+    /// <param name="ry"></param>
+    /// <param name="onPixel"></param>
+    public static void FillEllipseNoAccurate(int cx, int cy, int rx, int ry, Action<int, int> onPixel) {
+        // Loop the x axis from left to right
+        for (var x = -rx; x <= rx; x++) {
+            // Calculate the height of the ellipse at this x position
+            var height = (int)Math.Round(Math.Sqrt((1 - (x * x) / (double)(rx * rx)) * ry * ry));
+            // Draw a vertical line from -height to height
+            for (var y = -height; y <= height; y++) {
+                onPixel(cx + x, cy + y);
+            }
+        }
+    }
+    
+    /// <summary>
+    /// This method is accurate with the edges, but it draws some lines duplicated. This is ok for drawing the ellipse with a solid color
+    /// </summary>
+    /// <param name="cx"></param>
+    /// <param name="cy"></param>
+    /// <param name="rx"></param>
+    /// <param name="ry"></param>
+    /// <param name="onPixel"></param>
     public static void FillEllipse(int cx, int cy, int rx, int ry, Action<int, int> onPixel) {
         double dx, dy, d1, d2, x, y;
         x = 0;
@@ -139,5 +169,4 @@ public static partial class Draw {
             }
         }
     }
-
 }

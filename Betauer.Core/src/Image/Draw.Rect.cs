@@ -27,9 +27,9 @@ public static partial class Draw {
         }
         var x2 = x + width;
         var y2 = y + height;
-        Line(x, y, x2, y, onPixel);
-        Line(x, y, x, y2, onPixel);
-        Line(x2, y, x2, y2, onPixel);
-        Line(x, y2, x2, y2, onPixel);
+        Line1Width(x, y, x2, y, onPixel);
+        Line1Width(x, y, x, y2, onPixel);
+        Line1Width(x2, y, x2, y2, onPixel);
+        Line1Width(x, y2, x2, y2, onPixel);
     }
 }

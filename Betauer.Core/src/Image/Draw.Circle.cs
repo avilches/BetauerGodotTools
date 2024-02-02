@@ -73,10 +73,10 @@ public static partial class Draw {
             return;
         }
 
-        Line(cx - r, cy, cx + r, cy, onPixel);
-        Line(cx - r, cy, cx + r, cy, onPixel);
-        Line(cx, cy + r, cx, cy + r, onPixel);
-        Line(cx, cy - r, cx, cy - r, onPixel);
+        Line1Width(cx - r, cy, cx + r, cy, onPixel);
+        Line1Width(cx - r, cy, cx + r, cy, onPixel);
+        Line1Width(cx, cy + r, cx, cy + r, onPixel);
+        Line1Width(cx, cy - r, cx, cy - r, onPixel);
 
         var x = r;
         var y = 0;
@@ -90,10 +90,10 @@ public static partial class Draw {
                 error = error + 2 * y - 2 * x + 1;
             }
             if (x < y) break; // circle finished
-            Line(cx - x, cy + y, cx + x, cy + y, onPixel);
-            Line(cx - x, cy - y, cx + x, cy - y, onPixel);
-            Line(cx - y, cy + x, cx + y, cy + x, onPixel);
-            Line(cx - y, cy - x, cx + y, cy - x, onPixel);
+            Line1Width(cx - x, cy + y, cx + x, cy + y, onPixel);
+            Line1Width(cx - x, cy - y, cx + x, cy - y, onPixel);
+            Line1Width(cx - y, cy + x, cx + y, cy + x, onPixel);
+            Line1Width(cx - y, cy - x, cx + y, cy - x, onPixel);
         }
     }
 }

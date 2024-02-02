@@ -7,7 +7,7 @@ public static partial class Draw {
     public static void Line(int x0, int y0, int x1, int y1, int width, Action<int, int> onPixel) {
         if (width == 0) return;
         if (width == 1) {
-            Line(x0, y0, x1, y1, onPixel);
+            Line1Width(x0, y0, x1, y1, onPixel);
             return;
         }
         int dx = Math.Abs(x1-x0), sx = x0 < x1 ? 1 : -1; 
@@ -34,12 +34,14 @@ public static partial class Draw {
     }
 
     // width 1
-    public static void Line(int x0, int y0, int x1, int y1, Action<int, int> onPixel) {
+    public static void Line1Width(int x0, int y0, int x1, int y1, Action<int, int> onPixel) {
         if (x0 == x1 && y0 == y1) {
+            // one point case
             onPixel(x0, y0);
             return;
         }
         if (x0 == x1) {
+            // horizontal line
             if (y0 > y1) (y0, y1) = (y1, y0);
             for (var i = y0; i <= y1; i++) {
                 onPixel(x0, i);
@@ -47,6 +49,7 @@ public static partial class Draw {
             return;
         }
         if (y0 == y1) {
+            // vertical line
             if (x0 > x1) (x0, x1) = (x1, x0);
             for (var i = x0; i <= x1; i++) {
                 onPixel(i, y0);
@@ -54,6 +57,7 @@ public static partial class Draw {
             return;
         }
 
+        // diagonal
         var dx = Math.Abs(x1 - x0);
         var sx = x0 < x1 ? 1 : -1;
         var dy = -Math.Abs(y1 - y0);
@@ -80,7 +84,7 @@ public static partial class Draw {
     public static void LineAntialiasing(int x0, int y0, int x1, int y1, int width, Action<int, int, float> onPixel) {
         if (width == 0) return;
         if (width == 1) {
-            LineAntialiasing(x0, y0, x1, y1, onPixel);
+            LineAntialiasing1Width(x0, y0, x1, y1, onPixel);
             return;
         }
         int dx = Math.Abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
@@ -107,7 +111,7 @@ public static partial class Draw {
     }
     
     // aliasing with width 1
-    public static void LineAntialiasing(int x0, int y0, int x1, int y1, Action<int, int, float> onPixel) {
+    public static void LineAntialiasing1Width(int x0, int y0, int x1, int y1, Action<int, int, float> onPixel) {
         int dx = Math.Abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
         int dy = Math.Abs(y1 - y0), sy = y0 < y1 ? 1 : -1; 
         int err = dx-dy, e2, x2;                       /* error value e_xy */

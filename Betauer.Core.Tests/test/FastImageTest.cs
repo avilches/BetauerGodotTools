@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using Betauer.Core.Image;
 using Betauer.TestRunner;
 using Godot;
@@ -57,16 +58,6 @@ public class FastImageTest {
         fast.FillCircle(110, 30, 7, Colors.Green);
         fast.FillCircle(128, 30, 8, Colors.Green);
         
-        fast.FillEllipse(45,  45, 0, 0, Colors.Green);
-        fast.FillEllipse(48,  45, 1, 2, Colors.Green);
-        fast.FillEllipse(54,  45, 2, 3, Colors.Green);
-        fast.FillEllipse(61,  45, 3, 4, Colors.Green);
-        fast.FillEllipse(70,  45, 4, 5, Colors.Green);
-        fast.FillEllipse(81,  45, 5, 8, Colors.Green);
-        fast.FillEllipse(94, 45, 6, 12, Colors.Green);
-        fast.FillEllipse(110, 45, 7, 6, Colors.Green);
-        fast.FillEllipse(128, 45, 8, 4, Colors.Green);
-        
         fast.DrawCircle(45,  70, 0, Colors.Green);
         fast.DrawCircle(48,  70, 1, Colors.Green);
         fast.DrawCircle(54,  70, 2, Colors.Green);
@@ -77,17 +68,7 @@ public class FastImageTest {
         fast.DrawCircle(110, 70, 7, Colors.Green);
         fast.DrawCircle(128, 70, 8, Colors.Green);
 
-        Draw.GradientCircle(30, 30, 10, (x, y, g) => {
-            fast.SetPixel(x, y, new Color(Colors.Green, 1 - g));
-        });
-
-        Draw.GradientEllipse(30, 45, 6, 12, (x, y, g) => {
-            fast.SetPixel(x, y, new Color(Colors.Red, 1 - g));
-        });
-
-        Draw.GradientEllipse(30, 80, 22, 16, (x, y, g) => {
-            fast.SetPixel(x, y, new Color(Colors.Red, 1 - g));
-        });
+        fast.GradientCircle(30, 30, 10, Colors.Red);
 
         fast.DrawLineAntialiasing(100, 100, 150, 55, 1, Colors.Wheat);
         fast.DrawLineAntialiasing(100, 100, 150, 60, 2, Colors.Green);
@@ -97,6 +78,57 @@ public class FastImageTest {
         fast.Flush();
 
         fast.Image.SavePng("test1.png");
+    }
+    
+    [TestRunner.Test]
+    // [TestRunner.Ignore("Just create images")]
+    [Only]
+    public void TestEllipses() {
+        var fast = new FastImage(300, 300);
+        fast.Fill(Colors.White);
+        
+        fast.FillEllipse(45,  45, 0, 0, Colors.Green);
+        fast.FillEllipse(48,  45, 1, 2, Colors.Green);
+        fast.FillEllipse(54,  45, 2, 3, Colors.Green);
+        fast.FillEllipse(61,  45, 3, 4, Colors.Green);
+        fast.FillEllipse(70,  45, 4, 5, Colors.Green);
+        fast.FillEllipse(81,  45, 5, 8, Colors.Green);
+        fast.FillEllipse(94,  45, 6, 12, Colors.Green);
+        fast.FillEllipse(110, 45, 7, 6, Colors.Green);
+        fast.FillEllipse(128, 45, 8, 4, Colors.Green);
+
+        fast.FillEllipse(145,  45, 0, 0, Colors.Green);
+        fast.FillEllipse(148,  45, 1, 2, Colors.Green);
+        fast.FillEllipse(154,  45, 2, 3, Colors.Green);
+        fast.FillEllipse(161,  45, 3, 4, Colors.Green);
+        fast.FillEllipse(170,  45, 4, 5, Colors.Green);
+        fast.FillEllipse(181,  45, 5, 8, Colors.Green);
+        fast.FillEllipse(194,  45, 6, 12, Colors.Green);
+        fast.FillEllipse(210, 45, 7, 6, Colors.Green);
+        fast.FillEllipse(228, 45, 8, 4, Colors.Green);
+        
+        fast.DrawEllipse(45,  75, 0, 0, Colors.Red);
+        fast.DrawEllipse(48,  75, 1, 2, Colors.Red);
+        fast.DrawEllipse(54,  75, 2, 3, Colors.Red);
+        fast.DrawEllipse(61,  75, 3, 4, Colors.Red);
+        fast.DrawEllipse(70,  75, 4, 5, Colors.Red);
+        fast.DrawEllipse(81,  75, 5, 8, Colors.Red);
+        fast.DrawEllipse(94,  75, 6, 12, Colors.Red);
+        fast.DrawEllipse(110, 75, 7, 6, Colors.Red);
+        fast.DrawEllipse(128, 75, 8, 4, Colors.Red);
+        
+        fast.GradientEllipse(145,  75, 0, 0, Colors.Red);
+        fast.GradientEllipse(148,  75, 1, 2, Colors.Red);
+        fast.GradientEllipse(154,  75, 2, 3, Colors.Red);
+        fast.GradientEllipse(161,  75, 3, 4, Colors.Red);
+        fast.GradientEllipse(170,  75, 4, 5, Colors.Red);
+        fast.GradientEllipse(181,  75, 5, 8, Colors.Red);
+        fast.GradientEllipse(194,  75, 6, 12, Colors.Red);
+        fast.GradientEllipse(210,  75, 7, 6, Colors.Red);
+        fast.GradientEllipse(228,  75, 8, 4, Colors.Red);
+
+        fast.Flush();
+        fast.Image.SavePng("test-ellipse.png");
     }
     
     [TestRunner.Test]
@@ -127,7 +159,7 @@ public class FastImageTest {
 
         var step = 0;
         var circleStep = 0;
-        Draw.Line(0, 80, 512, 190, (x, y) => {
+        Draw.Line1Width(0, 80, 512, 190, (x, y) => {
             if (step++ % 30 == 0) {
                 Draw.GradientCircle(x, y, 20 + ((circleStep++ % 5))*2, (x, y, g) => {
                     if (x < 0 || y < 0 || x >= layer1.Width || y >= layer1.Height) return;
