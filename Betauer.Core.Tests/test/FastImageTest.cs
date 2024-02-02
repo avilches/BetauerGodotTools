@@ -11,8 +11,7 @@ namespace Betauer.Core.Tests;
 public class FastImageTest {
 
     [TestRunner.Test]
-    // [TestRunner.Ignore("Just create images")]
-    [Only]
+    [TestRunner.Ignore("Just create images")]
     public void Test1() {
         var fast = new FastImage(150, 100);
         Assert.That(fast.Format, Is.EqualTo(FastImage.DefaultFormat));
@@ -81,8 +80,7 @@ public class FastImageTest {
     }
     
     [TestRunner.Test]
-    // [TestRunner.Ignore("Just create images")]
-    [Only]
+    [TestRunner.Ignore("Just create images")]
     public void TestEllipses() {
         var fast = new FastImage(300, 300);
         fast.Fill(Colors.White);
