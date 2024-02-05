@@ -1,3 +1,4 @@
+using System;
 using Betauer.Core.Easing;
 using Godot;
 
@@ -52,6 +53,10 @@ public static partial class FastImageExtensions {
         Draw.Ellipse(cx, cy, rx, ry, (x, y) => fast.SetPixel(x, y, color, blend));
     }
 
+    public static void DrawEllipse(this FastImage fast, int cx, int cy, int rx, int ry, double rotationAngle, Color color, bool blend = true) {
+        Draw.Ellipse(cx, cy, rx, ry, rotationAngle, (x, y) => fast.SetPixel(x, y, color, blend));
+    }
+
     public static void FillCircle(this FastImage fast, int cx, int cy, int r, Color color, bool blend = true) {
         Draw.FillCircle(cx, cy, r, (x, y) => fast.SetPixel(x, y, color, blend));
     }
@@ -62,13 +67,13 @@ public static partial class FastImageExtensions {
 
     public static void GradientCircle(this FastImage fast, int cx, int cy, int r, Color color, IEasing? easing = null) {
         Draw.GradientCircle(cx, cy, r, (x, y, g) => {
-            fast.SetPixel(x, y, new Color(color, 1 - g), true);
+            fast.SetPixel(x, y, new Color(color, g), true);
         }, easing);
     }
 
     public static void GradientEllipse(this FastImage fast, int cx, int cy, int rx, int ry, Color color, IEasing? easing = null) {
         Draw.GradientEllipse(cx, cy, rx, ry, (x, y, g) => {
-            fast.SetPixel(x, y, new Color(color, 1 - g), true);
+            fast.SetPixel(x, y, new Color(color, g), true);
         }, easing);
     }
 

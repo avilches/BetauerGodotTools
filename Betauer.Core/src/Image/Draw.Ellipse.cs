@@ -11,8 +11,7 @@ public static partial class Draw {
         y = ry;
 
         // Initial decision parameter of region 1
-        d1 = (ry * ry) - (rx * rx * ry) +
-             (0.25f * rx * rx);
+        d1 = (ry * ry) - (rx * rx * ry) + (0.25f * rx * rx);
         dx = 2 * ry * ry * x;
         dy = 2 * rx * rx * y;
 
@@ -67,11 +66,44 @@ public static partial class Draw {
         }
     }
 
+    public static void Ellipse(int cx, int cy, int rx, int ry, double rotationAngle, Action<int, int> onPixel) {
+        double cosTheta = Math.Cos(rotationAngle);
+        double sinTheta = Math.Sin(rotationAngle);
+
+        // Calculate the approximate perimeter of the ellipse
+        double perimeter = Math.PI * (3 * (rx + ry) - Math.Sqrt((3 * rx + ry) * (rx + 3 * ry)));
+
+        // Calculate the number of points we want to use to draw the ellipse
+        int numPoints = (int)Math.Max(100, perimeter);
+
+        for (int i = 0; i < numPoints; i++) {
+            double theta = 2 * Math.PI * i / numPoints;
+
+            // Calculate the point on the ellipse before rotation
+            double x = rx * Math.Cos(theta);
+            double y = ry * Math.Sin(theta);
+
+            // Rotate the point
+            int rotatedX = cx + (int)Math.Round(x * cosTheta - y * sinTheta);
+            int rotatedY = cy + (int)Math.Round(x * sinTheta + y * cosTheta);
+
+            // Draw every pixel inside the ellipse
+            for (int xi = -rx; xi <= rx; xi++) {
+                for (int yi = -ry; yi <= ry; yi++) {
+                    double ellipseEquation = Math.Pow(xi, 2) / Math.Pow(rx, 2) + Math.Pow(yi, 2) / Math.Pow(ry, 2);
+                    if (ellipseEquation <= 1) {
+                        onPixel(rotatedX + xi, rotatedY + yi);
+                    }
+                }
+            }
+        }
+    }
+
     public static void GradientEllipse(int cx, int cy, int rx, int ry, Action<int, int, float> onPixel, IEasing? easing = null) {
         FillEllipseNoAccurate(cx, cy, rx, ry, (x, y) => {
             float dx = x - cx;
             float dy = y - cy;
-            var pos = (dx * dx) / (rx * rx) + (dy * dy) / (ry * ry);
+            var pos = 1- ((dx * dx) / (rx * rx) + (dy * dy) / (ry * ry));
             onPixel(x, y, easing?.GetY(pos) ?? pos);
         });
     }
@@ -98,7 +130,7 @@ public static partial class Draw {
             }
         }
     }
-    
+
     /// <summary>
     /// This method is accurate with the edges, but it draws some lines duplicated. This is ok for drawing the ellipse with a solid color
     /// </summary>
@@ -113,8 +145,7 @@ public static partial class Draw {
         y = ry;
 
         // Initial decision parameter of region 1
-        d1 = (ry * ry) - (rx * rx * ry) +
-             (0.25f * rx * rx);
+        d1 = (ry * ry) - (rx * rx * ry) + (0.25f * rx * rx);
         dx = 2 * ry * ry * x;
         dy = 2 * rx * rx * y;
 
@@ -152,7 +183,6 @@ public static partial class Draw {
                 (int)Mathf.Round(-x + cx), (int)Mathf.Round(y + cy), 1, onPixel);
             Line((int)Mathf.Round(x + cx), (int)Mathf.Round(-y + cy),
                 (int)Mathf.Round(-x + cx), (int)Mathf.Round(-y + cy), 1, onPixel);
-
 
             // Checking and updating parameter
             // value based on algorithm
