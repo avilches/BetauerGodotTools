@@ -9,7 +9,7 @@ namespace Betauer.Animation {
         private readonly KeyframeAnimation _animation;
 
         internal PropertyKeyframeTweenerOffset(KeyframeAnimation animation,
-            Func<Node, IProperty<TProperty>> propertyFactory, IEasing? defaultEasing, bool relativeToFrom) :
+            Func<Node, IProperty<TProperty>> propertyFactory, IInterpolation? defaultEasing, bool relativeToFrom) :
             base(propertyFactory, defaultEasing) {
             _animation = animation;
             RelativeToFrom = relativeToFrom;
@@ -26,13 +26,13 @@ namespace Betauer.Animation {
         }
 
         public PropertyKeyframeTweenerOffset<TProperty> KeyframeOffset(float percentage, TProperty offset,
-            IEasing? easing = null, Action<Node>? callbackNode = null) {
+            IInterpolation? easing = null, Action<Node>? callbackNode = null) {
             return KeyframeOffset(percentage, _ => offset, easing, callbackNode);
         }
 
         public PropertyKeyframeTweenerOffset<TProperty> KeyframeOffset(float percentage,
             Func<Node, TProperty> offset,
-            IEasing? easing = null, Action<Node>? callbackNode = null) {
+            IInterpolation? easing = null, Action<Node>? callbackNode = null) {
             var animationStepPropertyTweener =
                 new AnimationKeyframeOffset<TProperty>(percentage, offset, easing, callbackNode);
             Keyframes.Add(animationStepPropertyTweener);

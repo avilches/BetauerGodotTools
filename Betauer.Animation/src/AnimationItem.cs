@@ -4,10 +4,10 @@ using Godot;
 
 namespace Betauer.Animation {
     public abstract class AnimationItem<[MustBeVariant] TProperty> {
-        public readonly IEasing? Easing;
+        public readonly IInterpolation? Easing;
         public readonly Action<Node>? CallbackNode;
 
-        internal AnimationItem(IEasing? easing, Action<Node>? callbackNode) {
+        internal AnimationItem(IInterpolation? easing, Action<Node>? callbackNode) {
             Easing = easing;
             CallbackNode = callbackNode;
         }

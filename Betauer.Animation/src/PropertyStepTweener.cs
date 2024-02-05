@@ -8,7 +8,7 @@ namespace Betauer.Animation {
     public abstract class PropertyStepTweener<[MustBeVariant] TProperty> : PropertyTweener<TProperty>, ITweener {
         public readonly ICollection<AnimationStep<TProperty>> Steps = new List<AnimationStep<TProperty>>();
 
-        protected PropertyStepTweener(Func<Node, IProperty<TProperty>> propertyFactory, IEasing? defaultEasing) :
+        protected PropertyStepTweener(Func<Node, IProperty<TProperty>> propertyFactory, IInterpolation? defaultEasing) :
             base(propertyFactory, defaultEasing) {
         }
 

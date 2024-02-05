@@ -49,8 +49,8 @@ public static partial class Draw {
         }
     }
 
-    public static void GradientCircle(int cx, int cy, int r, Action<int, int, float> onPixel, IEasing? easing = null) {
-        var radii = r * r;
+    public static void GradientCircle(int cx, int cy, int r, Action<int, int, float> onPixel, IInterpolation? easing = null) {
+        float radii = r * r;
         FillCircle(cx, cy, r, (x, y) => {
             var distanceSquared = Geometry.DistanceSquared(cx, cy, x, y);
             var pos = 1 - (distanceSquared / radii);

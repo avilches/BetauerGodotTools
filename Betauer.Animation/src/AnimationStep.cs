@@ -10,7 +10,7 @@ namespace Betauer.Animation {
     public abstract class AnimationStep<[MustBeVariant] TProperty> : AnimationItem<TProperty> {
         public readonly float Duration;
 
-        protected AnimationStep(float duration, IEasing? easing, Action<Node>? callbackNode) : base(easing, callbackNode) {
+        protected AnimationStep(float duration, IInterpolation? easing, Action<Node>? callbackNode) : base(easing, callbackNode) {
             Duration = duration;
         }
     }
@@ -18,7 +18,7 @@ namespace Betauer.Animation {
     public class AnimationStepAbsolute<[MustBeVariant] TProperty> : AnimationStep<TProperty> {
         public readonly Func<Node, TProperty> To;
 
-        internal AnimationStepAbsolute(Func<Node, TProperty> to, float duration, IEasing? easing, Action<Node>? callbackNode) : base(duration, easing, callbackNode) {
+        internal AnimationStepAbsolute(Func<Node, TProperty> to, float duration, IInterpolation? easing, Action<Node>? callbackNode) : base(duration, easing, callbackNode) {
             To = to;
         }
 
@@ -30,7 +30,7 @@ namespace Betauer.Animation {
     public class AnimationStepOffset<[MustBeVariant] TProperty> : AnimationStep<TProperty> {
         public readonly Func<Node, TProperty> Offset;
 
-        internal AnimationStepOffset(Func<Node, TProperty> offset, float duration, IEasing? easing, Action<Node>? callbackNode) : base(duration, easing, callbackNode) {
+        internal AnimationStepOffset(Func<Node, TProperty> offset, float duration, IInterpolation? easing, Action<Node>? callbackNode) : base(duration, easing, callbackNode) {
             Offset = offset;
         }
 

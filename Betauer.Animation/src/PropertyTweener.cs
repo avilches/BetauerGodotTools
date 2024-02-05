@@ -14,12 +14,12 @@ namespace Betauer.Animation {
 
     public abstract class PropertyTweener<[MustBeVariant] TProperty> : PropertyTweener {
         protected readonly Func<Node, IProperty<TProperty>> PropertyFactory;
-        protected readonly IEasing? DefaultEasing;
+        protected readonly IInterpolation? DefaultEasing;
         protected Func<Node, TProperty>? FromFunction;
         protected bool RelativeToFrom = false;
         protected List<DebugStep<TProperty>>? DebugSteps = null;
 
-        internal PropertyTweener(Func<Node, IProperty<TProperty>> propertyFactory, IEasing? defaultEasing) {
+        internal PropertyTweener(Func<Node, IProperty<TProperty>> propertyFactory, IInterpolation? defaultEasing) {
             PropertyFactory = propertyFactory;
             DefaultEasing = defaultEasing;
         }
@@ -41,9 +41,9 @@ namespace Betauer.Animation {
         protected Tweener RunStep(
             Tween sceneTreeTween,
             Node target, IProperty<TProperty> property, TProperty from, TProperty to, 
-            float start, float duration, IEasing? easing) {
+            float start, float duration, IInterpolation? easing) {
             
-            easing ??= DefaultEasing ?? Easings.Linear;
+            easing ??= DefaultEasing ?? Interpolation.Linear;
             var end = start + duration;
             Logger.Debug("\"{0}\" {1}:{2} Interpolate({3}, {4}) Scheduled from {5:F}s to {6:F}s (+{7:F}s) CurveBezier", target?.Name,
                     target?.GetType().Name, property, from, to, start, end, duration);
@@ -51,7 +51,7 @@ namespace Betauer.Animation {
 
             return easing is BezierCurve bezierCurve ?
                 RunCurveBezierStep(sceneTreeTween, target, property, from, to, start, duration, bezierCurve) :
-                RunEasingStep(sceneTreeTween, target, property, from, to, start, duration, (GodotEasing)easing);
+                RunEasingStep(sceneTreeTween, target, property, from, to, start, duration, (Interpolation)easing);
         }
 
         private static Tweener RunCurveBezierStep(
@@ -78,14 +78,14 @@ namespace Betauer.Animation {
         private static Tweener RunEasingStep(
             Tween sceneTreeTween,
             Node target, IProperty<TProperty> property,
-            TProperty from, TProperty to, float start, float duration, GodotEasing godotEasing) {
+            TProperty from, TProperty to, float start, float duration, Interpolation interpolation) {
             if (property is IIndexedProperty indexedProperty) {
                 return sceneTreeTween
                     .Parallel()
                     .TweenProperty(target, indexedProperty.GetIndexedPropertyName(target), Variant.From(to), duration)
                     .From(Variant.From(from))
-                    .SetTrans(godotEasing.TransitionType)
-                    .SetEase(godotEasing.EaseType)
+                    .SetTrans(interpolation.TransitionType)
+                    .SetEase(interpolation.EaseType)
                     .SetDelay(start);
             } else {
                 return sceneTreeTween
@@ -96,8 +96,8 @@ namespace Betauer.Animation {
                             // + " value:" + value+"");
                             property.SetValue(target, value);
                         }), Variant.From(from), Variant.From(to), duration)
-                    .SetTrans(godotEasing.TransitionType)
-                    .SetEase(godotEasing.EaseType)
+                    .SetTrans(interpolation.TransitionType)
+                    .SetEase(interpolation.EaseType)
                     .SetDelay(start);
             }
         }

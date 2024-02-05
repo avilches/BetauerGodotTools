@@ -95,9 +95,9 @@ public class CameraController {
         };
     }
 
-    public SignalAwaiter MoveTo(Vector2 target, float time, IEasing? easing = null) {
-        easing ??= Easings.Linear;
-        if (easing is not GodotEasing godotEasing) return MoveTo(() => target, time, easing);
+    public SignalAwaiter MoveTo(Vector2 target, float time, IInterpolation? easing = null) {
+        easing ??= Interpolation.Linear;
+        if (easing is not Interpolation godotEasing) return MoveTo(() => target, time, easing);
 
         StopFollowing();
         _positionTween?.Kill();
@@ -109,11 +109,11 @@ public class CameraController {
         return _positionTween.AwaitFinished();
     }
 
-    public SignalAwaiter MoveTo(Func<Vector2> target, float time, IEasing? easing = null) {
+    public SignalAwaiter MoveTo(Func<Vector2> target, float time, IInterpolation? easing = null) {
         StopFollowing();
         _positionTween?.Kill();
         _positionTween = Camera2D.GetTree().CreateTween().SetProcessMode(Tween.TweenProcessMode.Physics);
-        easing ??= Easings.Linear;
+        easing ??= Interpolation.Linear;
         var from = Camera2D.GlobalPosition;
         _positionTween.TweenMethod(Callable.From<float>(t => {
             Camera2D.GlobalPosition = from.Lerp(target(), easing.GetY(t));
@@ -121,11 +121,11 @@ public class CameraController {
         return _positionTween.AwaitFinished();
     }
 
-    public SignalAwaiter Zoom(Vector2 zoom, float time, IEasing? easing = null, Func<Vector2>? getZoomPoint = null) {
+    public SignalAwaiter Zoom(Vector2 zoom, float time, IInterpolation? easing = null, Func<Vector2>? getZoomPoint = null) {
         _zoomTween?.Kill();
         _zoomTween = Camera2D.GetTree().CreateTween().SetProcessMode(Tween.TweenProcessMode.Physics);
-        easing ??= Easings.Linear;
-        if (easing is GodotEasing godotEasing && getZoomPoint == null) {
+        easing ??= Interpolation.Linear;
+        if (easing is Interpolation godotEasing && getZoomPoint == null) {
             _zoomTween.TweenProperty(Camera2D, "zoom", zoom, time)
                 .FromCurrent()
                 .SetEase(godotEasing.EaseType)

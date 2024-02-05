@@ -1,53 +1,108 @@
 using System;
+using Betauer.Core.Collision;
 using Godot;
 
 namespace Betauer.Core.Easing; 
 
-public static class EasingFunctions {
-    // Adapted from source : http://www.robertpenner.com/TransitionType/
+public static class Functions {
+    // Adapted from source : http://robertpenner.com/easing/
 
-    public static float EaseIn(Tween.TransitionType type, float t) {
-        return type switch {
-            Tween.TransitionType.Linear => t,
-            Tween.TransitionType.Sine => Sine.EaseIn(t),
-            Tween.TransitionType.Quad => Power.EaseIn(t, 2),
-            Tween.TransitionType.Cubic => Power.EaseIn(t, 3),
-            Tween.TransitionType.Quart => Power.EaseIn(t, 4),
-            Tween.TransitionType.Quint => Power.EaseIn(t, 5),
-            Tween.TransitionType.Expo => Expo.EaseIn(t),
-            Tween.TransitionType.Elastic => Elastic.EaseIn(t),
-            Tween.TransitionType.Circ => Circle.EaseIn(t),
-            Tween.TransitionType.Bounce => Bounce.EaseIn(t),
-            Tween.TransitionType.Back => Back.EaseIn(t),
-            Tween.TransitionType.Spring => Spring.EaseIn(t),
+    public static Func<float, float> GetEaseFunc(Tween.TransitionType type, Tween.EaseType easeType) {
+        if (type == Tween.TransitionType.Linear) return (t) => t;
+        return easeType switch {
+            Tween.EaseType.In => GetEaseInFunc(type),
+            Tween.EaseType.Out => GetEaseOutFunc(type),
+            Tween.EaseType.InOut => GetEaseInOutFunc(type),
+            Tween.EaseType.OutIn => GetEaseOutInFunc(type),
         };
     }
 
-    public static float EaseOut(Tween.TransitionType type, float t) {
+    public static Func<float, float> GetEaseInFunc(Tween.TransitionType type) {
         return type switch {
-            Tween.TransitionType.Linear => t,
-            Tween.TransitionType.Sine => Sine.EaseOut(t),
-            Tween.TransitionType.Quad => Power.EaseOut(t, 2),
-            Tween.TransitionType.Cubic => Power.EaseOut(t, 3),
-            Tween.TransitionType.Quart => Power.EaseOut(t, 4),
-            Tween.TransitionType.Quint => Power.EaseOut(t, 5),
-            Tween.TransitionType.Expo => Expo.EaseOut(t),
-            Tween.TransitionType.Elastic => Elastic.EaseOut(t),
-            Tween.TransitionType.Circ => Circle.EaseOut(t),
-            Tween.TransitionType.Bounce => Bounce.EaseOut(t),
-            Tween.TransitionType.Back => Back.EaseOut(t),
-            Tween.TransitionType.Spring => Spring.EaseOut(t),
+            Tween.TransitionType.Linear => (t) => t,
+            Tween.TransitionType.Sine => Sine.EaseIn,
+            Tween.TransitionType.Quad => (t) => Power.EaseIn(t, 2),
+            Tween.TransitionType.Cubic => (t) => Power.EaseIn(t, 3),
+            Tween.TransitionType.Quart => (t) => Power.EaseIn(t, 4),
+            Tween.TransitionType.Quint => (t) => Power.EaseIn(t, 5),
+            Tween.TransitionType.Expo => Expo.EaseIn,
+            Tween.TransitionType.Elastic => Elastic.EaseIn,
+            Tween.TransitionType.Circ => Circle.EaseIn,
+            Tween.TransitionType.Bounce => Bounce.EaseIn,
+            Tween.TransitionType.Back => Back.EaseIn,
+            Tween.TransitionType.Spring => Spring.EaseIn,
         };
+    }
+
+    public static Func<float, float> GetEaseOutFunc(Tween.TransitionType type) {
+        return type switch {
+            Tween.TransitionType.Linear => (t) => t,
+            Tween.TransitionType.Sine => Sine.EaseOut,
+            Tween.TransitionType.Quad => (t) => Power.EaseOut(t, 2),
+            Tween.TransitionType.Cubic => (t) => Power.EaseOut(t, 3),
+            Tween.TransitionType.Quart => (t) => Power.EaseOut(t, 4),
+            Tween.TransitionType.Quint => (t) => Power.EaseOut(t, 5),
+            Tween.TransitionType.Expo => Expo.EaseOut,
+            Tween.TransitionType.Elastic => Elastic.EaseOut,
+            Tween.TransitionType.Circ => Circle.EaseOut,
+            Tween.TransitionType.Bounce => Bounce.EaseOut,
+            Tween.TransitionType.Back => Back.EaseOut,
+            Tween.TransitionType.Spring => Spring.EaseOut,
+        };
+    }
+
+    public static Func<float, float> GetEaseInOutFunc(Tween.TransitionType type) {
+        return type switch {
+            Tween.TransitionType.Linear => (t) => t,
+            Tween.TransitionType.Sine => Sine.EaseInOut,
+            Tween.TransitionType.Quad => (t) => Power.EaseInOut(t, 2),
+            Tween.TransitionType.Cubic => (t) => Power.EaseInOut(t, 3),
+            Tween.TransitionType.Quart => (t) => Power.EaseInOut(t, 4),
+            Tween.TransitionType.Quint => (t) => Power.EaseInOut(t, 5),
+            Tween.TransitionType.Expo => Expo.EaseInOut,
+            Tween.TransitionType.Elastic => Elastic.EaseInOut,
+            Tween.TransitionType.Circ => Circle.EaseInOut,
+            Tween.TransitionType.Bounce => Bounce.EaseInOut,
+            Tween.TransitionType.Back => Back.EaseInOut,
+            Tween.TransitionType.Spring => Spring.EaseInOut,
+        };
+    }
+
+    public static Func<float, float> GetEaseOutInFunc(Tween.TransitionType type) {
+        return type switch {
+            Tween.TransitionType.Linear => (t) => t,
+            Tween.TransitionType.Sine => Sine.EaseOutIn,
+            Tween.TransitionType.Quad => (t) => Power.EaseOutIn(t, 2),
+            Tween.TransitionType.Cubic => (t) => Power.EaseOutIn(t, 3),
+            Tween.TransitionType.Quart => (t) => Power.EaseOutIn(t, 4),
+            Tween.TransitionType.Quint => (t) => Power.EaseOutIn(t, 5),
+            Tween.TransitionType.Expo => Expo.EaseOutIn,
+            Tween.TransitionType.Elastic => Elastic.EaseOutIn,
+            Tween.TransitionType.Circ => Circle.EaseOutIn,
+            Tween.TransitionType.Bounce => Bounce.EaseOutIn,
+            Tween.TransitionType.Back => Back.EaseOutIn,
+            Tween.TransitionType.Spring => Spring.EaseOutIn,
+        };
+    }
+
+    public static float EaseIn(Tween.TransitionType type, float t) {
+        if (type == Tween.TransitionType.Linear) return t;
+        return GetEaseInFunc(type).Invoke(t);
+    }
+
+    public static float EaseOut(Tween.TransitionType type, float t) {
+        if (type == Tween.TransitionType.Linear) return t;
+        return GetEaseOutFunc(type).Invoke(t);
     }
 
     public static float EaseInOut(Tween.TransitionType type, float t) {
         if (type == Tween.TransitionType.Linear) return t;
-        return t < 0.5f ? EaseIn(type, t * 2) * 0.5f : 0.5f + EaseOut(type, (t - 0.5f) * 2f) * 0.5f;
+        return GetEaseInOutFunc(type).Invoke(t);
     }
 
     public static float EaseOutIn(Tween.TransitionType type, float t) {
         if (type == Tween.TransitionType.Linear) return t;
-        return t < 0.5f ? EaseOut(type, t * 2) * 0.5f : 0.5f + EaseIn(type, (t - 0.5f) * 2f) * 0.5f;
+        return GetEaseOutInFunc(type).Invoke(t);
     }
 
     public static class Sine {
@@ -195,6 +250,15 @@ public static class EasingFunctions {
         }
     }
     
+    public static float Bias(float time, float bias) {
+        return time / ((1.0f / bias - 2.0f) * (1.0f - time) + 1.0f);
+    }
+
+    public static float Gain(float time, float bias, float offset) {
+        if (time < offset)
+            return Bias(time / offset, bias) * offset;
+        return Bias((time - offset) / (1 - offset), 1 - bias) * (1 - offset) + offset;
+    }
     
     /// <summary>
     /// Returns a logistic curve with a S form that can be adjusted
@@ -217,6 +281,36 @@ public static class EasingFunctions {
         var t = (time - offset) / (1 - offset);
         if (t < 0) t = 0;
         return easingFunction(t);
+    }
+
+    public static float GetRect2D(int width, int height, int centerX, int centerY, int x, int y) {
+        var maxDistanceX = Math.Max(centerX, width - 1 - centerX);
+        var maxDistanceY = Math.Max(centerY, height - 1 - centerY);
+        var distanceX = (float)Math.Abs(x - centerX);
+        var distanceY = (float)Math.Abs(y - centerY);
+        var valueX = 1 - distanceX / maxDistanceX;
+        var valueY = 1 - distanceY / maxDistanceY;
+        return Math.Min(valueX, valueY);
+    }
+
+    public static float GetRect2D(int width, int height, int x, int y) {
+        var centerX = width / 2;
+        var centerY = height / 2;
+        var distanceX = (float)Math.Abs(x - centerX);
+        var distanceY = (float)Math.Abs(y - centerY);
+        var valueX = 1 - distanceX / centerX;
+        var valueY = 1 - distanceY / centerY;
+        return Math.Min(valueX, valueY);
+    }
+    
+    // Return a value from 0 to 1, where 1 is when the point x,y is in the center of the ellipse and 0 when it's in the border
+    public static float GetEllipse(int rx, int ry, int x, int y) {
+        return 1 - ((x * x) / (float)(rx * rx) + (y * y) / (float)(ry * ry));
+    }
+
+    // Return a value from 0 to 1, where 1 is when the point x,y is in the center of the circle and 0 when it's in the border
+    public static float GetCircle(int r, int x, int y) {
+        return 1 - ((x * x + y * y) / (float)(r * r));
     }
 
 }

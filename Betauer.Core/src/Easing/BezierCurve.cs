@@ -32,7 +32,7 @@ namespace Betauer.Core.Easing {
     // }
 
 
-    public readonly struct BezierCurve : IEasing {
+    public readonly struct BezierCurve : IInterpolation {
         public readonly float P0X;
         public readonly float P0Y;
         

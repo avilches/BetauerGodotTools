@@ -9,7 +9,7 @@ namespace Betauer.Animation {
         private readonly SequenceAnimation _animation;
 
         internal PropertyStepTweenerOffset(SequenceAnimation animation,
-            Func<Node, IProperty<TProperty>> propertyFactory, IEasing? defaultEasing, bool relativeToFrom) :
+            Func<Node, IProperty<TProperty>> propertyFactory, IInterpolation? defaultEasing, bool relativeToFrom) :
             base(propertyFactory, defaultEasing) {
             _animation = animation;
             RelativeToFrom = relativeToFrom;
@@ -26,12 +26,12 @@ namespace Betauer.Animation {
         }
 
         public PropertyStepTweenerOffset<TProperty> Offset(TProperty offset, float duration,
-            IEasing? easing = null, Action<Node>? callbackNode = null) {
+            IInterpolation? easing = null, Action<Node>? callbackNode = null) {
             return Offset(_ => offset, duration, easing, callbackNode);
         }
 
         public PropertyStepTweenerOffset<TProperty> Offset(Func<Node, TProperty> offset, float duration,
-            IEasing? easing = null, Action<Node>? callbackNode = null) {
+            IInterpolation? easing = null, Action<Node>? callbackNode = null) {
             var animationStepPropertyTweener =
                 new AnimationStepOffset<TProperty>(offset, duration, easing, callbackNode);
             Steps.Add(animationStepPropertyTweener);

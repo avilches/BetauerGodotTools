@@ -9,7 +9,7 @@ namespace Betauer.Animation {
         private readonly KeyframeAnimation _animation;
 
         internal PropertyKeyframeTweenerAbsolute(KeyframeAnimation animation,
-            Func<Node, IProperty<TProperty>> propertyFactory, IEasing? defaultEasing) :
+            Func<Node, IProperty<TProperty>> propertyFactory, IInterpolation? defaultEasing) :
             base(propertyFactory, defaultEasing) {
             _animation = animation;
         }
@@ -25,12 +25,12 @@ namespace Betauer.Animation {
         }
 
         public PropertyKeyframeTweenerAbsolute<TProperty> KeyframeTo(float percentage, TProperty to,
-            IEasing? easing = null, Action<Node>? callbackNode = null) {
+            IInterpolation? easing = null, Action<Node>? callbackNode = null) {
             return KeyframeTo(percentage, _ => to, easing, callbackNode);
         }
 
         public PropertyKeyframeTweenerAbsolute<TProperty> KeyframeTo(float percentage, Func<Node, TProperty> to,
-            IEasing? easing = null, Action<Node>? callbackNode = null) {
+            IInterpolation? easing = null, Action<Node>? callbackNode = null) {
             if (percentage == 0f) {
                 From(to);
             }

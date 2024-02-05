@@ -13,7 +13,7 @@ namespace Betauer.Animation {
     public abstract class PropertyKeyframeTweener<[MustBeVariant] TProperty> : PropertyTweener<TProperty>, IPropertyKeyframeTweener {
         public readonly List<AnimationKeyframe<TProperty>> Keyframes = new List<AnimationKeyframe<TProperty>>();
 
-        protected PropertyKeyframeTweener(Func<Node, IProperty<TProperty>> propertyFactory, IEasing? defaultEasing) :
+        protected PropertyKeyframeTweener(Func<Node, IProperty<TProperty>> propertyFactory, IInterpolation? defaultEasing) :
             base(propertyFactory, defaultEasing) {
         }
 

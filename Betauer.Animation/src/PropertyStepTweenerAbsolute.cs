@@ -8,7 +8,7 @@ namespace Betauer.Animation {
     public class PropertyStepTweenerAbsolute<[MustBeVariant] TProperty> : PropertyStepTweener<TProperty> {
         private readonly SequenceAnimation _animation;
 
-        internal PropertyStepTweenerAbsolute(SequenceAnimation animation, Func<Node, IProperty<TProperty>> propertyFactory, IEasing? defaultEasing) :
+        internal PropertyStepTweenerAbsolute(SequenceAnimation animation, Func<Node, IProperty<TProperty>> propertyFactory, IInterpolation? defaultEasing) :
             base(propertyFactory, defaultEasing) {
             _animation = animation;
         }
@@ -24,17 +24,17 @@ namespace Betauer.Animation {
         }
 
         public PropertyStepTweenerAbsolute<TProperty> To(TProperty to, float duration,
-            IEasing? easing = null, Action<Node>? callbackNode = null) {
+            IInterpolation? easing = null, Action<Node>? callbackNode = null) {
             return To(_ => to, duration, easing, callbackNode);
         }
 
         public PropertyStepTweenerAbsolute<TProperty> To(Func<TProperty> to, float duration,
-            IEasing? easing = null, Action<Node>? callbackNode = null) {
+            IInterpolation? easing = null, Action<Node>? callbackNode = null) {
             return To(_ => to(), duration, easing, callbackNode);
         }
 
         public PropertyStepTweenerAbsolute<TProperty> To(Func<Node, TProperty> to, float duration,
-            IEasing? easing = null, Action<Node>? callbackNode = null) {
+            IInterpolation? easing = null, Action<Node>? callbackNode = null) {
             var animationStepPropertyTweener =
                 new AnimationStepAbsolute<TProperty>(to, duration, easing, callbackNode);
             Steps.Add(animationStepPropertyTweener);

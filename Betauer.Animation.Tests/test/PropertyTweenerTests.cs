@@ -99,12 +99,12 @@ public partial class PropertyTweenerTests : NodeTest {
         var sequence = SequenceAnimation.Create(this)
             .AnimateSteps(Properties.PositionX)
             .SetDebugSteps(steps)
-            .To(120, 0.1f, Easings.BackIn)
+            .To(120, 0.1f, Interpolation.BackIn)
             .To(-90, 0.2f)
             .EndAnimate()
             .AnimateSteps(Properties.PositionY)
             .SetDebugSteps(steps)
-            .To(120, 0.1f, Easings.BackIn)
+            .To(120, 0.1f, Interpolation.BackIn)
             .To(-90, 0.2f)
             .EndAnimate();
 
@@ -123,7 +123,7 @@ public partial class PropertyTweenerTests : NodeTest {
         var sequence = SequenceAnimation.Create()
             .AnimateSteps(Properties.PositionX)
             .SetDebugSteps(steps)
-            .To(120, 0.1f, Easings.BackIn)
+            .To(120, 0.1f, Interpolation.BackIn)
             .To(-90, 0.2f)
             .EndAnimate();
         Assert.That(sequence.DefaultTarget, Is.Null);
@@ -145,7 +145,7 @@ public partial class PropertyTweenerTests : NodeTest {
             .SetDefaultTarget(spriteSequence)
             .AnimateSteps(Properties.PositionX)
             .SetDebugSteps(steps)
-            .To(120, 0.1f, Easings.BackIn)
+            .To(120, 0.1f, Interpolation.BackIn)
             .To(-90, 0.2f)
             .EndAnimate();
 
@@ -166,11 +166,11 @@ public partial class PropertyTweenerTests : NodeTest {
         await SequenceAnimation.Create(sprite)
             .AnimateSteps(Properties.PositionX)
             .SetDebugSteps(steps)
-            .To(120, 0.1f, Easings.BackIn)
+            .To(120, 0.1f, Interpolation.BackIn)
             // Add the same absolute step is allowed, it can be used as pause and as a callback
-            .To(120, 0.1f, Easings.BackIn, (node) => executed1 = true)
+            .To(120, 0.1f, Interpolation.BackIn, (node) => executed1 = true)
             // Add an absolute with no time assign the from value for the next step and execute the callback
-            .To(200, 0f, Easings.BackIn, (node) => executed2 = true)
+            .To(200, 0f, Interpolation.BackIn, (node) => executed2 = true)
             .To(-90, 0.2f)
             .EndAnimate()
             .Play()
@@ -178,9 +178,9 @@ public partial class PropertyTweenerTests : NodeTest {
 
         Assert.That(executed1);
         Assert.That(executed2);
-        AssertStep(steps[0], 100f, 120f, 0f, 0.1f, Easings.BackIn);
+        AssertStep(steps[0], 100f, 120f, 0f, 0.1f, Interpolation.BackIn);
         // There is a gap between 0.1 and 0.2 secs without tweens
-        AssertStep(steps[1], 200f, -90f, 0.2f, 0.2f, Easings.Linear);
+        AssertStep(steps[1], 200f, -90f, 0.2f, 0.2f, Interpolation.Linear);
         Assert.That(steps.Count, Is.EqualTo(2));
 
         Assert.That(sprite.Position.X, Is.EqualTo(-90));
@@ -194,14 +194,14 @@ public partial class PropertyTweenerTests : NodeTest {
             .AnimateSteps(Properties.PositionX)
             .SetDebugSteps(steps)
             .From(80)
-            .To(120, 0.1f, Easings.BackIn)
+            .To(120, 0.1f, Interpolation.BackIn)
             .To(-90, 0.2f)
             .EndAnimate()
             .Play()
             .AwaitFinished();
 
-        AssertStep(steps[0], 80f, 120f, 0f, 0.1f, Easings.BackIn);
-        AssertStep(steps[1], 120f, -90f, 0.1f, 0.2f, Easings.Linear);
+        AssertStep(steps[0], 80f, 120f, 0f, 0.1f, Interpolation.BackIn);
+        AssertStep(steps[1], 120f, -90f, 0.1f, 0.2f, Interpolation.Linear);
         Assert.That(steps.Count, Is.EqualTo(2));
 
         Assert.That(sprite.Position.X, Is.EqualTo(-90));
@@ -215,15 +215,15 @@ public partial class PropertyTweenerTests : NodeTest {
             .AnimateSteps(Properties.PositionX)
             .SetDebugSteps(steps)
             .From(1180)
-            .To(80, 0f, Easings.BackIn)
-            .To(120, 0.1f, Easings.BackIn)
+            .To(80, 0f, Interpolation.BackIn)
+            .To(120, 0.1f, Interpolation.BackIn)
             .To(-90, 0.2f)
             .EndAnimate()
             .Play()
             .AwaitFinished();
 
-        AssertStep(steps[0], 80f, 120f, 0f, 0.1f, Easings.BackIn);
-        AssertStep(steps[1], 120f, -90f, 0.1f, 0.2f, Easings.Linear);
+        AssertStep(steps[0], 80f, 120f, 0f, 0.1f, Interpolation.BackIn);
+        AssertStep(steps[1], 120f, -90f, 0.1f, 0.2f, Interpolation.Linear);
         Assert.That(steps.Count, Is.EqualTo(2));
 
         Assert.That(sprite.Position.X, Is.EqualTo(-90));
@@ -241,12 +241,12 @@ public partial class PropertyTweenerTests : NodeTest {
         await SequenceAnimation.Create(sprite)
             .AnimateStepsBy(Properties.PositionX)
             .SetDebugSteps(steps)
-            .Offset(120, 0.1f, Easings.BackIn)
+            .Offset(120, 0.1f, Interpolation.BackIn)
             // Offset 0 and duration is like a pause with the callback is executed
-            .Offset(0, 0.1f, Easings.BackIn, node => executed1 = true)
+            .Offset(0, 0.1f, Interpolation.BackIn, node => executed1 = true)
             .Offset(-90, 0.2f)
             // Offset 0 and duration 0 is ignored, but the callback is executed
-            .Offset(0, 0f, Easings.BackIn, node => executed2 = true)
+            .Offset(0, 0f, Interpolation.BackIn, node => executed2 = true)
             .EndAnimate()
             .Play()
             .AwaitFinished();
@@ -254,8 +254,8 @@ public partial class PropertyTweenerTests : NodeTest {
 
         Assert.That(executed1);
         Assert.That(executed2);
-        AssertStep(steps[0], 100f, 220f, 0f, 0.1f, Easings.BackIn);
-        AssertStep(steps[1], 220f, 130f, 0.2f, 0.2f, Easings.Linear);
+        AssertStep(steps[0], 100f, 220f, 0f, 0.1f, Interpolation.BackIn);
+        AssertStep(steps[1], 220f, 130f, 0.2f, 0.2f, Interpolation.Linear);
         Assert.That(steps.Count, Is.EqualTo(2));
 
         Assert.That(sprite.Position.X, Is.EqualTo(130));
@@ -269,14 +269,14 @@ public partial class PropertyTweenerTests : NodeTest {
             .AnimateStepsBy(Properties.PositionX)
             .SetDebugSteps(steps)
             .From(80)
-            .Offset(120, 0.1f, Easings.BackIn)
+            .Offset(120, 0.1f, Interpolation.BackIn)
             .Offset(-90, 0.2f)
             .EndAnimate()
             .Play()
             .AwaitFinished();
 
-        AssertStep(steps[0], 80f, 200f, 0f, 0.1f, Easings.BackIn);
-        AssertStep(steps[1], 200f, 110f, 0.1f, 0.2f, Easings.Linear);
+        AssertStep(steps[0], 80f, 200f, 0f, 0.1f, Interpolation.BackIn);
+        AssertStep(steps[1], 200f, 110f, 0.1f, 0.2f, Interpolation.Linear);
         Assert.That(steps.Count, Is.EqualTo(2));
 
         Assert.That(sprite.Position.X, Is.EqualTo(110));
@@ -290,15 +290,15 @@ public partial class PropertyTweenerTests : NodeTest {
             .AnimateStepsBy(Properties.PositionX)
             .SetDebugSteps(steps)
             .From(80)
-            .Offset(-30, 0f, Easings.BackIn)
-            .Offset(120, 0.1f, Easings.BackIn)
+            .Offset(-30, 0f, Interpolation.BackIn)
+            .Offset(120, 0.1f, Interpolation.BackIn)
             .Offset(-90, 0.2f)
             .EndAnimate()
             .Play()
             .AwaitFinished();
 
-        AssertStep(steps[0], 50f, 170, 0f, 0.1f, Easings.BackIn);
-        AssertStep(steps[1], 170f, 80f, 0.1f, 0.2f, Easings.Linear);
+        AssertStep(steps[0], 50f, 170, 0f, 0.1f, Interpolation.BackIn);
+        AssertStep(steps[1], 170f, 80f, 0.1f, 0.2f, Interpolation.Linear);
         Assert.That(steps.Count, Is.EqualTo(2));
 
         Assert.That(sprite.Position.X, Is.EqualTo(80));
@@ -314,14 +314,14 @@ public partial class PropertyTweenerTests : NodeTest {
         await SequenceAnimation.Create(sprite)
             .AnimateRelativeSteps(Properties.PositionX)
             .SetDebugSteps(steps)
-            .Offset(120, 0.1f, Easings.BackIn)
+            .Offset(120, 0.1f, Interpolation.BackIn)
             .Offset(-90, 0.2f)
             .EndAnimate()
             .Play()
             .AwaitFinished();
 
-        AssertStep(steps[0], 100f, 220f, 0f, 0.1f, Easings.BackIn);
-        AssertStep(steps[1], 220f, 10, 0.1f, 0.2f, Easings.Linear);
+        AssertStep(steps[0], 100f, 220f, 0f, 0.1f, Interpolation.BackIn);
+        AssertStep(steps[1], 220f, 10, 0.1f, 0.2f, Interpolation.Linear);
         Assert.That(steps.Count, Is.EqualTo(2));
 
         Assert.That(sprite.Position.X, Is.EqualTo(10));
@@ -335,14 +335,14 @@ public partial class PropertyTweenerTests : NodeTest {
             .AnimateRelativeSteps(Properties.PositionX)
             .SetDebugSteps(steps)
             .From(80)
-            .Offset(120, 0.1f, Easings.BackIn)
+            .Offset(120, 0.1f, Interpolation.BackIn)
             .Offset(-90, 0.2f)
             .EndAnimate()
             .Play()
             .AwaitFinished();
 
-        AssertStep(steps[0], 80f, 200f, 0f, 0.1f, Easings.BackIn);
-        AssertStep(steps[1], 200f, -10, 0.1f, 0.2f, Easings.Linear);
+        AssertStep(steps[0], 80f, 200f, 0f, 0.1f, Interpolation.BackIn);
+        AssertStep(steps[1], 200f, -10, 0.1f, 0.2f, Interpolation.Linear);
         Assert.That(steps.Count, Is.EqualTo(2));
 
         Assert.That(sprite.Position.X, Is.EqualTo(-10));
@@ -359,10 +359,10 @@ public partial class PropertyTweenerTests : NodeTest {
             .AnimateRelativeSteps(Properties.PositionX)
             .SetDebugSteps(steps)
             .From(80)
-            .Offset(120, 0.1f, Easings.BackIn)
+            .Offset(120, 0.1f, Interpolation.BackIn)
             // This value is ignored because same offset means no movement, but it works like a pause
-            .Offset(120, 0.1f, Easings.BackIn, (node => executed1 = true))
-            .Offset(120, 0f, Easings.BackIn, (node => executed2 = true))
+            .Offset(120, 0.1f, Interpolation.BackIn, (node => executed1 = true))
+            .Offset(120, 0f, Interpolation.BackIn, (node => executed2 = true))
             .Offset(-90, 0.2f)
             .EndAnimate()
             .Play()
@@ -370,8 +370,8 @@ public partial class PropertyTweenerTests : NodeTest {
 
         Assert.That(executed1);
         Assert.That(executed2);
-        AssertStep(steps[0], 80f, 200f, 0f, 0.1f, Easings.BackIn);
-        AssertStep(steps[1], 200f, -10, 0.2f, 0.2f, Easings.Linear);
+        AssertStep(steps[0], 80f, 200f, 0f, 0.1f, Interpolation.BackIn);
+        AssertStep(steps[1], 200f, -10, 0.2f, 0.2f, Interpolation.Linear);
         Assert.That(steps.Count, Is.EqualTo(2));
 
         Assert.That(sprite.Position.X, Is.EqualTo(-10));
@@ -388,14 +388,14 @@ public partial class PropertyTweenerTests : NodeTest {
             .SetDuration(2f)
             .AnimateKeys(Properties.PositionX)
             .SetDebugSteps(steps)
-            .KeyframeTo(0.5f, 120, Easings.BackIn)
+            .KeyframeTo(0.5f, 120, Interpolation.BackIn)
             .KeyframeTo(0.8f, -90)
             .EndAnimate()
             .Play()
             .AwaitFinished();
 
-        AssertStep(steps[0], 100f, 120f, 0f, 1f, Easings.BackIn);
-        AssertStep(steps[1], 120f, -90f, 1f, 0.6f, Easings.Linear);
+        AssertStep(steps[0], 100f, 120f, 0f, 1f, Interpolation.BackIn);
+        AssertStep(steps[1], 120f, -90f, 1f, 0.6f, Interpolation.Linear);
 
         Assert.That(sprite.Position.X, Is.EqualTo(-90));
     }
@@ -409,14 +409,14 @@ public partial class PropertyTweenerTests : NodeTest {
             .AnimateKeys(Properties.PositionX)
             .SetDebugSteps(steps)
             .From(20)
-            .KeyframeTo(0.5f, 120, Easings.BackIn)
+            .KeyframeTo(0.5f, 120, Interpolation.BackIn)
             .KeyframeTo(0.8f, -90)
             .EndAnimate()
             .Play()
             .AwaitFinished();
 
-        AssertStep(steps[0], 20f, 120f, 0f, 1f, Easings.BackIn);
-        AssertStep(steps[1], 120f, -90f, 1f, 0.6f, Easings.Linear);
+        AssertStep(steps[0], 20f, 120f, 0f, 1f, Interpolation.BackIn);
+        AssertStep(steps[1], 120f, -90f, 1f, 0.6f, Interpolation.Linear);
 
         Assert.That(sprite.Position.X, Is.EqualTo(-90));
     }
@@ -441,8 +441,8 @@ public partial class PropertyTweenerTests : NodeTest {
             .Play()
             .AwaitFinished();
 
-        AssertStep(steps[0], 0.7f, 0.7f, 0f, 0f, Easings.Linear);
-        AssertStep(steps[1], 0.7f, 1, 0.8f, 0.2f, Easings.Linear);
+        AssertStep(steps[0], 0.7f, 0.7f, 0f, 0f, Interpolation.Linear);
+        AssertStep(steps[1], 0.7f, 1, 0.8f, 0.2f, Interpolation.Linear);
 
         Assert.That(sprite.Position.X, Is.EqualTo(1f));
     }
@@ -456,16 +456,16 @@ public partial class PropertyTweenerTests : NodeTest {
             .AnimateKeys(Properties.PositionX)
             .SetDebugSteps(steps)
             .From(20) // from is overriden with the Keyframe 0
-            .KeyframeTo(0f, 30, Easings.CubicOut) // easing is ignored
-            .KeyframeTo(0.5f, 120, Easings.BackIn)
+            .KeyframeTo(0f, 30, Interpolation.CubicOut) // easing is ignored
+            .KeyframeTo(0.5f, 120, Interpolation.BackIn)
             .KeyframeTo(0.8f, -90)
             .EndAnimate()
             .Play()
             .AwaitFinished();
 
-        AssertStep(steps[0], 30f, 30f, 0f, 0f, Easings.CubicOut);
-        AssertStep(steps[1], 30f, 120f, 0f, 1f, Easings.BackIn);
-        AssertStep(steps[2], 120f, -90f, 1f, 0.6f, Easings.Linear);
+        AssertStep(steps[0], 30f, 30f, 0f, 0f, Interpolation.CubicOut);
+        AssertStep(steps[1], 30f, 120f, 0f, 1f, Interpolation.BackIn);
+        AssertStep(steps[2], 120f, -90f, 1f, 0.6f, Interpolation.Linear);
 
         Assert.That(sprite.Position.X, Is.EqualTo(-90));
     }
@@ -481,15 +481,15 @@ public partial class PropertyTweenerTests : NodeTest {
             .SetDuration(2f)
             .AnimateKeysBy(Properties.PositionX)
             .SetDebugSteps(steps)
-            .KeyframeOffset(0.5f, 120, Easings.BackIn)
+            .KeyframeOffset(0.5f, 120, Interpolation.BackIn)
             .KeyframeOffset(0.8f, -90)
             .EndAnimate()
             .Play()
             .AwaitFinished();
 
         // No From() + no 0% offset means it start from the current value, which is 100
-        AssertStep(steps[0], 100f, 220f, 0f, 1f, Easings.BackIn);
-        AssertStep(steps[1], 220f, 130f, 1f, 0.6f, Easings.Linear);
+        AssertStep(steps[0], 100f, 220f, 0f, 1f, Interpolation.BackIn);
+        AssertStep(steps[1], 220f, 130f, 1f, 0.6f, Interpolation.Linear);
 
         Assert.That(sprite.Position.X, Is.EqualTo(130));
     }
@@ -503,15 +503,15 @@ public partial class PropertyTweenerTests : NodeTest {
             .AnimateKeysBy(Properties.PositionX)
             .SetDebugSteps(steps)
             .From(80)
-            .KeyframeOffset(0.5f, 120, Easings.BackIn)
+            .KeyframeOffset(0.5f, 120, Interpolation.BackIn)
             .KeyframeOffset(0.8f, -90)
             .EndAnimate()
             .Play()
             .AwaitFinished();
 
         // From() + no 0% offset means it start from the from value (80) = 80
-        AssertStep(steps[0], 80, 200, 0f, 1f, Easings.BackIn);
-        AssertStep(steps[1], 200f, 110f, 1f, 0.6f, Easings.Linear);
+        AssertStep(steps[0], 80, 200, 0f, 1f, Interpolation.BackIn);
+        AssertStep(steps[1], 200f, 110f, 1f, 0.6f, Interpolation.Linear);
 
         Assert.That(sprite.Position.X, Is.EqualTo(110));
     }
@@ -525,8 +525,8 @@ public partial class PropertyTweenerTests : NodeTest {
             .AnimateKeysBy(Properties.PositionX)
             .SetDebugSteps(steps)
             .From(30)
-            .KeyframeOffset(0f, 80, Easings.CubicOut) // easing is ignored
-            .KeyframeOffset(0.5f, 120, Easings.BackIn)
+            .KeyframeOffset(0f, 80, Interpolation.CubicOut) // easing is ignored
+            .KeyframeOffset(0.5f, 120, Interpolation.BackIn)
             .KeyframeOffset(0.8f, -90)
             .KeyframeOffset(1f, 0)
             .EndAnimate()
@@ -534,9 +534,9 @@ public partial class PropertyTweenerTests : NodeTest {
             .AwaitFinished();
 
         // From() + 0% offset means it start from the from value (30) + offset (80) = 110
-        AssertStep(steps[0], 110, 110f, 0f, 0f, Easings.CubicOut);
-        AssertStep(steps[1], 110, 230, 0f, 1f, Easings.BackIn);
-        AssertStep(steps[2], 230f, 140f, 1f, 0.6f, Easings.Linear);
+        AssertStep(steps[0], 110, 110f, 0f, 0f, Interpolation.CubicOut);
+        AssertStep(steps[1], 110, 230, 0f, 1f, Interpolation.BackIn);
+        AssertStep(steps[2], 230f, 140f, 1f, 0.6f, Interpolation.Linear);
         Assert.That(sprite.Position.X, Is.EqualTo(140));
 
         Assert.That(steps.Count, Is.EqualTo(3)); // Last keyframe is ignored because the offset 0
@@ -551,8 +551,8 @@ public partial class PropertyTweenerTests : NodeTest {
             .SetDuration(2f)
             .AnimateKeysBy(Properties.PositionX)
             .SetDebugSteps(steps)
-            .KeyframeOffset(0f, 80, Easings.CubicOut) // easing is ignored
-            .KeyframeOffset(0.5f, 120, Easings.BackIn)
+            .KeyframeOffset(0f, 80, Interpolation.CubicOut) // easing is ignored
+            .KeyframeOffset(0.5f, 120, Interpolation.BackIn)
             .KeyframeOffset(0.8f, -90)
             .KeyframeOffset(1f, 0)
             .EndAnimate()
@@ -560,9 +560,9 @@ public partial class PropertyTweenerTests : NodeTest {
             .AwaitFinished();
 
         // No From() + 0% offset means it start from the current value (which is 100) + offset = 180
-        AssertStep(steps[0], 180, 180f, 0f, 0f, Easings.CubicOut);
-        AssertStep(steps[1], 180, 300, 0f, 1f, Easings.BackIn);
-        AssertStep(steps[2], 300f, 210f, 1f, 0.6f, Easings.Linear);
+        AssertStep(steps[0], 180, 180f, 0f, 0f, Interpolation.CubicOut);
+        AssertStep(steps[1], 180, 300, 0f, 1f, Interpolation.BackIn);
+        AssertStep(steps[2], 300f, 210f, 1f, 0.6f, Interpolation.Linear);
         Assert.That(sprite.Position.X, Is.EqualTo(210));
 
         Assert.That(steps.Count, Is.EqualTo(3)); // Last keyframe is ignored because the offset 0
@@ -580,7 +580,7 @@ public partial class PropertyTweenerTests : NodeTest {
             .SetDuration(2f)
             .AnimateRelativeKeys(Properties.PositionX)
             .SetDebugSteps(steps)
-            .KeyframeOffset(0.5f, 120, Easings.BackIn)
+            .KeyframeOffset(0.5f, 120, Interpolation.BackIn)
             .KeyframeOffset(0.8f, -90)
             .KeyframeOffset(1f, 0)
             .EndAnimate()
@@ -588,9 +588,9 @@ public partial class PropertyTweenerTests : NodeTest {
             .AwaitFinished();
 
         // No From() and no 0% offset means it start from the current value (which is 100)
-        AssertStep(steps[0], 100f, 220f, 0f, 1f, Easings.BackIn);
-        AssertStep(steps[1], 220f, 10f, 1f, 0.6f, Easings.Linear);
-        AssertStep(steps[2], 10f, 100f, 1.6f, 0.4f, Easings.Linear);
+        AssertStep(steps[0], 100f, 220f, 0f, 1f, Interpolation.BackIn);
+        AssertStep(steps[1], 220f, 10f, 1f, 0.6f, Interpolation.Linear);
+        AssertStep(steps[2], 10f, 100f, 1.6f, 0.4f, Interpolation.Linear);
 
         Assert.That(sprite.Position.X, Is.EqualTo(100)); // final 0 offset means it returns to the original value
     }
@@ -604,7 +604,7 @@ public partial class PropertyTweenerTests : NodeTest {
             .AnimateRelativeKeys(Properties.PositionX)
             .SetDebugSteps(steps)
             .From(80)
-            .KeyframeOffset(0.5f, 120, Easings.BackIn)
+            .KeyframeOffset(0.5f, 120, Interpolation.BackIn)
             .KeyframeOffset(0.8f, -90)
             .KeyframeOffset(1f, 0)
             .EndAnimate()
@@ -612,9 +612,9 @@ public partial class PropertyTweenerTests : NodeTest {
             .AwaitFinished();
 
         // From() and no 0% offset means it start from the from value (80) = 80
-        AssertStep(steps[0], 80, 200, 0f, 1f, Easings.BackIn);
-        AssertStep(steps[1], 200f, -10f, 1f, 0.6f, Easings.Linear);
-        AssertStep(steps[2], -10f, 80, 1.6f, 0.4f, Easings.Linear);
+        AssertStep(steps[0], 80, 200, 0f, 1f, Interpolation.BackIn);
+        AssertStep(steps[1], 200f, -10f, 1f, 0.6f, Interpolation.Linear);
+        AssertStep(steps[2], -10f, 80, 1.6f, 0.4f, Interpolation.Linear);
 
         Assert.That(sprite.Position.X, Is.EqualTo(80));
     }
@@ -628,8 +628,8 @@ public partial class PropertyTweenerTests : NodeTest {
             .AnimateRelativeKeys(Properties.PositionX)
             .SetDebugSteps(steps)
             .From(20)
-            .KeyframeOffset(0f, 80, Easings.CubicOut) // easing is ignored
-            .KeyframeOffset(0.5f, 120, Easings.BackIn)
+            .KeyframeOffset(0f, 80, Interpolation.CubicOut) // easing is ignored
+            .KeyframeOffset(0.5f, 120, Interpolation.BackIn)
             .KeyframeOffset(0.8f, -90)
             .KeyframeOffset(1f, 0)
             .EndAnimate()
@@ -637,11 +637,11 @@ public partial class PropertyTweenerTests : NodeTest {
             .AwaitFinished();
 
         // From() + 0% offset means it start from the from value (20) + offset (80) = 100
-        AssertStep(steps[0], 100, 100, 0f, 0f, Easings.CubicOut);
+        AssertStep(steps[0], 100, 100, 0f, 0f, Interpolation.CubicOut);
             
-        AssertStep(steps[1], 100, 140, 0f, 1f, Easings.BackIn);
-        AssertStep(steps[2], 140, -70f, 1f, 0.6f, Easings.Linear);
-        AssertStep(steps[3], -70f, 20, 1.6f, 0.4f, Easings.Linear);
+        AssertStep(steps[1], 100, 140, 0f, 1f, Interpolation.BackIn);
+        AssertStep(steps[2], 140, -70f, 1f, 0.6f, Interpolation.Linear);
+        AssertStep(steps[3], -70f, 20, 1.6f, 0.4f, Interpolation.Linear);
 
         Assert.That(sprite.Position.X, Is.EqualTo(20));
     }
@@ -666,11 +666,11 @@ public partial class PropertyTweenerTests : NodeTest {
         Assert.That(sprite.Position.X, Is.EqualTo(-90));
     }
 
-    private static void AssertStep<[MustBeVariant] T>(DebugStep<T> step, T from, T to, float start, float duration, IEasing easing) {
+    private static void AssertStep<[MustBeVariant] T>(DebugStep<T> step, T from, T to, float start, float duration, IInterpolation interpolation) {
         Assert.That(step.From, Is.EqualTo(from).Within(0.0000001f));
         Assert.That(step.To, Is.EqualTo(to).Within(0.0000001f));
         Assert.That(step.Start, Is.EqualTo(start));
         Assert.That(step.Duration, Is.EqualTo(duration).Within(0.0000001f));
-        Assert.That(step.Easing, Is.EqualTo(easing));
+        Assert.That(step.Interpolation, Is.EqualTo(interpolation));
     }
 }

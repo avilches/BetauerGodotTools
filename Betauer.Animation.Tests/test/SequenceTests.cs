@@ -36,8 +36,8 @@ public partial class SequenceTests : NodeTest {
             .OnStart(target => x ++)
             .SetLoops(2)
             .AnimateSteps(Properties.Opacity)
-            .To(12, 0.1f, Easings.BackIn)
-            .To(12, 0.1f, Easings.BackIn)
+            .To(12, 0.1f, Interpolation.BackIn)
+            .To(12, 0.1f, Interpolation.BackIn)
             .EndAnimate()
             .Play(initialDelay: 1f); // No await!
             

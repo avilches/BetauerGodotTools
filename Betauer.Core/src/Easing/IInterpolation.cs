@@ -1,5 +1,5 @@
 namespace Betauer.Core.Easing {
-    public interface IEasing {
+    public interface IInterpolation {
         /// <summary>
         /// t is a number between 0 and 1
         /// </summary>

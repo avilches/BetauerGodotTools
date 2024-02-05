@@ -10,7 +10,7 @@ namespace Betauer.Animation {
     public abstract class AnimationKeyframe<[MustBeVariant] TProperty> : AnimationItem<TProperty> {
         public readonly float Percent;
 
-        internal AnimationKeyframe(float percent, IEasing? easing, Action<Node>? callbackNode) : base(easing, callbackNode) {
+        internal AnimationKeyframe(float percent, IInterpolation? easing, Action<Node>? callbackNode) : base(easing, callbackNode) {
             Percent = percent;
         }
     }
@@ -18,7 +18,7 @@ namespace Betauer.Animation {
     public class AnimationKeyframeAbsolute<[MustBeVariant] TProperty> : AnimationKeyframe<TProperty> {
         public readonly Func<Node, TProperty> To;
 
-        internal AnimationKeyframeAbsolute(float percent, Func<Node, TProperty> to, IEasing? easing, Action<Node>? callbackNode) : base(percent, easing, callbackNode) {
+        internal AnimationKeyframeAbsolute(float percent, Func<Node, TProperty> to, IInterpolation? easing, Action<Node>? callbackNode) : base(percent, easing, callbackNode) {
             To = to;
         }
 
@@ -30,7 +30,7 @@ namespace Betauer.Animation {
     public class AnimationKeyframeOffset<[MustBeVariant] TProperty> : AnimationKeyframe<TProperty> {
         public readonly Func<Node, TProperty> Offset;
 
-        internal AnimationKeyframeOffset(float percent, Func<Node, TProperty> offset, IEasing? easing, Action<Node>? callbackNode) : base(percent, easing, callbackNode) {
+        internal AnimationKeyframeOffset(float percent, Func<Node, TProperty> offset, IInterpolation? easing, Action<Node>? callbackNode) : base(percent, easing, callbackNode) {
             Offset = offset;
         }
 

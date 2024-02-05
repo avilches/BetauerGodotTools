@@ -7,9 +7,9 @@ namespace Betauer.Animation {
     internal static partial class TemplateFactories {
         private const float AttentionSeekerDuration = 0.75f; // Animate.css: 1f
 
-        private static readonly IEasing BounceBezierCurve1 = BezierCurve.Create(0.215f, 0.61f, 0.355f, 1f);
-        private static readonly IEasing BounceBezierCurve2 = BezierCurve.Create(0.755f, 0.05f, 0.855f, 0.06f);
-        private static readonly IEasing BounceBezierCurve3 = BezierCurve.Create(0.215f, 0.61f, 0.355f, 1);
+        private static readonly IInterpolation BounceBezierCurve1 = BezierCurve.Create(0.215f, 0.61f, 0.355f, 1f);
+        private static readonly IInterpolation BounceBezierCurve2 = BezierCurve.Create(0.755f, 0.05f, 0.855f, 0.06f);
+        private static readonly IInterpolation BounceBezierCurve3 = BezierCurve.Create(0.215f, 0.61f, 0.355f, 1);
         
         internal static KeyframeAnimation Bounce() {
             // https://github.com/animate-css/animate.css/blob/main/source/attention_seekers/bounce.css

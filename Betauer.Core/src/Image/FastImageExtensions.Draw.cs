@@ -65,13 +65,13 @@ public static partial class FastImageExtensions {
         Draw.FillEllipse(cx, cy, rx, ry, (x, y) => fast.SetPixel(x, y, color, blend));
     }
 
-    public static void GradientCircle(this FastImage fast, int cx, int cy, int r, Color color, IEasing? easing = null) {
+    public static void GradientCircle(this FastImage fast, int cx, int cy, int r, Color color, IInterpolation? easing = null) {
         Draw.GradientCircle(cx, cy, r, (x, y, g) => {
             fast.SetPixel(x, y, new Color(color, g), true);
         }, easing);
     }
 
-    public static void GradientEllipse(this FastImage fast, int cx, int cy, int rx, int ry, Color color, IEasing? easing = null) {
+    public static void GradientEllipse(this FastImage fast, int cx, int cy, int rx, int ry, Color color, IInterpolation? easing = null) {
         Draw.GradientEllipse(cx, cy, rx, ry, (x, y, g) => {
             fast.SetPixel(x, y, new Color(color, g), true);
         }, easing);

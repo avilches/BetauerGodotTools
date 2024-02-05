@@ -8,15 +8,15 @@ namespace Betauer.Animation {
         public readonly TProperty To;
         public readonly float Start;
         public readonly float Duration;
-        public readonly IEasing Easing;
+        public readonly IInterpolation Interpolation;
 
-        public DebugStep(Node target, TProperty from, TProperty to, float start, float duration, IEasing easing) {
+        public DebugStep(Node target, TProperty from, TProperty to, float start, float duration, IInterpolation interpolation) {
             Target = target;
             From = from;
             To = to;
             Start = start;
             Duration = duration;
-            Easing = easing;
+            Interpolation = interpolation;
         }
     }
 }

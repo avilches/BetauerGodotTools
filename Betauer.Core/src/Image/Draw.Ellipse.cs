@@ -99,11 +99,11 @@ public static partial class Draw {
         }
     }
 
-    public static void GradientEllipse(int cx, int cy, int rx, int ry, Action<int, int, float> onPixel, IEasing? easing = null) {
+    public static void GradientEllipse(int cx, int cy, int rx, int ry, Action<int, int, float> onPixel, IInterpolation? easing = null) {
         FillEllipseNoAccurate(cx, cy, rx, ry, (x, y) => {
-            float dx = x - cx;
-            float dy = y - cy;
-            var pos = 1- ((dx * dx) / (rx * rx) + (dy * dy) / (ry * ry));
+            var dx = x - cx;
+            var dy = y - cy;
+            var pos = Functions.GetEllipse(rx, ry, dx, dy);
             onPixel(x, y, easing?.GetY(pos) ?? pos);
         });
     }

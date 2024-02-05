@@ -6,7 +6,7 @@ using Godot;
 
 namespace Betauer.Animation {
     internal static partial class TemplateFactories {
-        private static readonly IEasing BounceInBezierCurve1 = BezierCurve.Create(0.215f, 0.61f, 0.355f, 1f);
+        private static readonly IInterpolation BounceInBezierCurve1 = BezierCurve.Create(0.215f, 0.61f, 0.355f, 1f);
         private const float BounceInNoDirectionDuration = 0.75f; // Animate.css: 0.75f
         private const float BounceEntranceDuration = 1f; // Animate.css: 1f
 

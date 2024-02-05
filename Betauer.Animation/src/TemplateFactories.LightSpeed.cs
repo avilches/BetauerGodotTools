@@ -24,7 +24,7 @@ namespace Betauer.Animation {
                 .KeyframeTo(0.00f, 1f)
                 .KeyframeTo(0.60f, -0.8f)
                 .KeyframeTo(0.80f, 0.16f)
-                .KeyframeTo(1.00f, 0f, Easings.CircOut)
+                .KeyframeTo(1.00f, 0f, Interpolation.CircOut)
                 .EndAnimate();
         }
 
@@ -45,7 +45,7 @@ namespace Betauer.Animation {
                 .KeyframeTo(0.00f, -1f)
                 .KeyframeTo(0.60f, 0.8f)
                 .KeyframeTo(0.80f, +0.16f)
-                .KeyframeTo(1.00f, 0f, Easings.CircOut)
+                .KeyframeTo(1.00f, 0f, Interpolation.CircOut)
                 .EndAnimate();
         }
 
@@ -62,7 +62,7 @@ namespace Betauer.Animation {
                 .EndAnimate()
                 .AnimateKeys(Properties.Skew2DX)
                 .KeyframeTo(0.00f, 0f)
-                .KeyframeTo(1.00f, -1f, Easings.CircOut)
+                .KeyframeTo(1.00f, -1f, Interpolation.CircOut)
                 .EndAnimate();
         }
 
@@ -79,7 +79,7 @@ namespace Betauer.Animation {
                 .EndAnimate()
                 .AnimateKeys(Properties.Skew2DX)
                 .KeyframeTo(0.00f, 0f)
-                .KeyframeTo(1.00f, 1f, Easings.CircOut)
+                .KeyframeTo(1.00f, 1f, Interpolation.CircOut)
                 .EndAnimate();
         }
     }

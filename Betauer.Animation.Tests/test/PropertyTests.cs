@@ -557,7 +557,7 @@ public partial class PropertyTests : NodeTest {
             .AnimateSteps(property)
             .SetDebugSteps(steps)
             .From(from)
-            .To(to, 0.1f, Easings.BackIn)
+            .To(to, 0.1f, Interpolation.BackIn)
             .EndAnimate();
 
         // With Play()
@@ -565,7 +565,7 @@ public partial class PropertyTests : NodeTest {
         Assert.That(property.GetValue(node), Is.EqualTo(to));
 
         Assert.That(steps.Count, Is.EqualTo(1));
-        AssertStep(steps[0], from, to, 0f, 0.1f, Easings.BackIn);
+        AssertStep(steps[0], from, to, 0f, 0.1f, Interpolation.BackIn);
         Assert.That(property.GetValue(node), Is.EqualTo(to));
     }
 
@@ -577,7 +577,7 @@ public partial class PropertyTests : NodeTest {
             .SetDuration(1f)
             .AnimateKeys(property)
             .From(from)
-            .KeyframeTo(0.1f, to, Easings.BackIn)
+            .KeyframeTo(0.1f, to, Interpolation.BackIn)
             .SetDebugSteps(steps)
             .EndAnimate();
 
@@ -586,14 +586,14 @@ public partial class PropertyTests : NodeTest {
         Assert.That(property.GetValue(node), Is.EqualTo(to));
 
         Assert.That(steps.Count, Is.EqualTo(1));
-        AssertStep(steps[0], from, to, 0f, 0.1f, Easings.BackIn);
+        AssertStep(steps[0], from, to, 0f, 0.1f, Interpolation.BackIn);
         Assert.That(property.GetValue(node), Is.EqualTo(to));
     }
 
     private async Task CreateIncompatibleNodeTweenPropertyVariants<T>(Node node, IProperty<T> property, T from, T to) {
         var seq = SequenceAnimation.Create()
             .AnimateSteps(property)
-            .To(to, 0.1f, Easings.BackIn)
+            .To(to, 0.1f, Interpolation.BackIn)
             .EndAnimate();
         Assert.That(seq.IsCompatibleWith(node), Is.False);
             
@@ -603,7 +603,7 @@ public partial class PropertyTests : NodeTest {
             .SetDuration(1f)
             .AnimateKeys(property)
             .From(from)
-            .KeyframeTo(0.1f, to, Easings.BackIn)
+            .KeyframeTo(0.1f, to, Interpolation.BackIn)
             .EndAnimate();
         Assert.That(keyf.IsCompatibleWith(node), Is.False);
             
@@ -613,7 +613,7 @@ public partial class PropertyTests : NodeTest {
     private async Task CreateIncompatibleNodeTweenPropertyVariants<T>(Node node, Func<Node, IProperty<T>> property, T from, T to) {
         var seq = SequenceAnimation.Create()
             .AnimateSteps(property)
-            .To(to, 0.1f, Easings.BackIn)
+            .To(to, 0.1f, Interpolation.BackIn)
             .EndAnimate();
         Assert.That(seq.IsCompatibleWith(node), Is.False);
 
@@ -623,7 +623,7 @@ public partial class PropertyTests : NodeTest {
             .SetDuration(1f)
             .AnimateKeys(property)
             .From(from)
-            .KeyframeTo(0.1f, to, Easings.BackIn)
+            .KeyframeTo(0.1f, to, Interpolation.BackIn)
             .EndAnimate();
         Assert.That(keyf.IsCompatibleWith(node), Is.False);
             
@@ -654,11 +654,11 @@ public partial class PropertyTests : NodeTest {
         Assert.That(sprite.GlobalPosition, Is.EqualTo(original));
     }
 
-    private static void AssertStep<[MustBeVariant] T>(DebugStep<T> step, T from, T to, float start, float duration, IEasing easing) {
+    private static void AssertStep<[MustBeVariant] T>(DebugStep<T> step, T from, T to, float start, float duration, IInterpolation interpolation) {
         Assert.That(step.From, Is.EqualTo(from).Within(0.0000001f));
         Assert.That(step.To, Is.EqualTo(to).Within(0.0000001f));
         Assert.That(step.Start, Is.EqualTo(start));
         Assert.That(step.Duration, Is.EqualTo(duration).Within(0.0000001f));
-        Assert.That(step.Easing, Is.EqualTo(easing));
+        Assert.That(step.Interpolation, Is.EqualTo(interpolation));
     }
 }
