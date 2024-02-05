@@ -32,7 +32,19 @@ public class FastTexture : FastImage {
     public FastTexture(Sprite2D sprite2D) : this((ImageTexture)EnsureTextureIsImageTexture(sprite2D).Texture) {
     }
 
+    public FastTexture(TextureRect textureRect) : this((ImageTexture)EnsureTextureIsImageTexture(textureRect).Texture) {
+    }
+
     private static Sprite2D EnsureTextureIsImageTexture(Sprite2D sprite2D) {
+        var sprite2DTexture = sprite2D.Texture;
+        if (sprite2DTexture is not ImageTexture) {
+            var image = sprite2DTexture.GetImage();
+            sprite2D.Texture = ImageTexture.CreateFromImage(image);
+        }
+        return sprite2D;
+    }
+
+    private static TextureRect EnsureTextureIsImageTexture(TextureRect sprite2D) {
         var sprite2DTexture = sprite2D.Texture;
         if (sprite2DTexture is not ImageTexture) {
             var image = sprite2DTexture.GetImage();
