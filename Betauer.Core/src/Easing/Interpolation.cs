@@ -71,6 +71,10 @@ public class Interpolation : IInterpolation {
     
     public static IInterpolation Combine(Func<float, float> interpolation) => new InterpolationFunc(interpolation);
 
+    public static IInterpolation Shift(IInterpolation interpolation, float start = 0f, float end = 1f) {
+        return new InterpolationFunc((t) => Functions.Shift(start, end, t, interpolation.GetY));
+    }
+
     public static Interpolation Get(Tween.TransitionType type, Tween.EaseType easeType) {
         return type switch {
             Tween.TransitionType.Linear => Linear,

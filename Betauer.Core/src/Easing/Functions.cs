@@ -1,5 +1,4 @@
 using System;
-using Betauer.Core.Collision;
 using Godot;
 
 namespace Betauer.Core.Easing; 
@@ -268,19 +267,24 @@ public static class Functions {
         return pow / (pow + Mathf.Pow(offset - offset * time, exp));
     }
     
-    
     /// <summary>
-    /// Shift a easing curve to the right
+    /// Shift a easing curve where the start and end are the points where the curve starts and ends. If t &lt; start it returns 0, if t &gt; end it returns 1
     /// </summary>
-    /// <param name="time">A value from 0 to 1 with the time</param>
-    /// <param name="offset">A value from 0 to 1, where 0 means no offset. 0.5 means the first half will be zero and the last half will contain the
-    /// easing function "compressed"</param>
+    /// <param name="start"></param>
+    /// <param name="end"></param>
+    /// <param name="t"></param>
     /// <param name="easingFunction"></param>
     /// <returns></returns>
-    public static float Shift(float time, float offset, Func<float, float> easingFunction) {
-        var t = (time - offset) / (1 - offset);
-        if (t < 0) t = 0;
-        return easingFunction(t);
+    public static float Shift(float start, float end, float t, Func<float, float> easingFunction) {
+        if (start >= end) {
+            (start, end) = (end, start);
+        }
+        if (t <= start) return 0f;
+        if (t >= end) return 1f;
+        // Shift a easing curve where the start and end are the points where the curve starts and ends. If t > start it returns 0, if t < end it returns 1
+        var length = end - start;
+        var tt = (t - start) / length;
+        return easingFunction.Invoke(tt);
     }
 
     public static float GetRect2D(int width, int height, int centerX, int centerY, int x, int y) {
