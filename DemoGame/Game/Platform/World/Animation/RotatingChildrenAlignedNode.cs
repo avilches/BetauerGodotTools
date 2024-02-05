@@ -26,10 +26,10 @@ public partial class RotatingChildrenAlignedNode : Node2D {
     public override void _Ready() {
         _sequence = SequenceAnimation.Create(this)
             .AnimateSteps<float>(RotateAligned)
-            .From(CLOCK_NINE).To(CLOCK_THREE, 1, Easings.QuadInOut)
+            .From(CLOCK_NINE).To(CLOCK_THREE, 1, Interpolation.QuadInOut)
             .EndAnimate()
             .AnimateSteps<float>(RotateAligned)
-            .From(CLOCK_THREE).To(CLOCK_NINE, 1, Easings.QuadInOut)
+            .From(CLOCK_THREE).To(CLOCK_NINE, 1, Interpolation.QuadInOut)
             .EndAnimate()
             .SetInfiniteLoops();
         _sceneTreeTween = _sequence.Play();

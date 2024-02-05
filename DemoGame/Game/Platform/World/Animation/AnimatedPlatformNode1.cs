@@ -28,7 +28,7 @@ public partial class AnimatedPlatformController1 : StaticBody2D {
         // });
 
         _sceneTreeTween = SequenceAnimation.Create()
-            .AnimateStepsBy<Vector2>((newPosition) => Position = _original + newPosition, Easings.CubicInOut)
+            .AnimateStepsBy<Vector2>((newPosition) => Position = _original + newPosition, Interpolation.CubicInOut)
             .Offset(new Vector2(0, -300), 2.5f)
             .Offset(new Vector2(0, 300), 2.5f)
             .EndAnimate()

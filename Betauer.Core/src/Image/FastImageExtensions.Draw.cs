@@ -53,8 +53,12 @@ public static partial class FastImageExtensions {
         Draw.Ellipse(cx, cy, rx, ry, (x, y) => fast.SetPixel(x, y, color, blend));
     }
 
-    public static void DrawEllipse(this FastImage fast, int cx, int cy, int rx, int ry, double rotationAngle, Color color, bool blend = true) {
-        Draw.Ellipse(cx, cy, rx, ry, rotationAngle, (x, y) => fast.SetPixel(x, y, color, blend));
+    public static void DrawEllipseRotated(this FastImage fast, int cx, int cy, int rx, int ry, float rotation, Color color, bool blend = true) {
+        Draw.EllipseRotated(cx, cy, rx, ry, rotation, (x, y) => fast.SetPixel(x, y, color, blend));
+    }
+
+    public static void FillEllipseRotated(this FastImage fast, int cx, int cy, int rx, int ry, float rotation, Color color, bool blend = true) {
+        Draw.FillEllipseRotated(cx, cy, rx, ry, rotation, (x, y) => fast.SetPixel(x, y, color, blend));
     }
 
     public static void FillCircle(this FastImage fast, int cx, int cy, int r, Color color, bool blend = true) {
@@ -75,6 +79,13 @@ public static partial class FastImageExtensions {
         Draw.GradientEllipse(cx, cy, rx, ry, (x, y, g) => {
             fast.SetPixel(x, y, new Color(color, g), true);
         }, easing);
+    }
+
+    public static void GradientEllipseRotated(this FastImage fast, int cx, int cy, int rx, int ry, float rotation, Color color, IInterpolation? easing = null) {
+        Draw.GradientEllipseRotated(cx, cy, rx, ry, rotation, (x, y, g) => {
+            fast.SetPixel(x, y, new Color(color, g), true);
+            fast.SetPixel(x, y, new Color(color, g), true);
+        });
     }
 
 }

@@ -32,7 +32,7 @@ public partial class WorldGenerator {
     public TileMap<BiomeType> TileMap { get; private set; }
     public TileMap GodotTileMap { get; private set; }
     public FastTexture FastFinalMap { get; private set; }
-    public Sprite2D SpriteMap { get; private set; }
+    public TextureRect SpriteMap { get; private set; }
     public Trees TreesInstance;
     private const int CellSize = 16;
 
@@ -52,7 +52,7 @@ public partial class WorldGenerator {
 
     public int Seed { get; set; } = 0;
 
-    public void Configure(TileMap godotTileMap, Sprite2D textureFinalMap) {
+    public void Configure(TileMap godotTileMap, TextureRect textureFinalMap) {
         GodotTileMap = godotTileMap;
         SpriteMap = textureFinalMap;
 
@@ -155,9 +155,9 @@ public partial class WorldGenerator {
         } else if (CurrentViewMode == ViewMode.Height) {
             BiomeGenerator.FillHeight(FastFinalMap);
         } else if (CurrentViewMode == ViewMode.HeightFalloff) {
-            BiomeGenerator.FillFalloff(FastFinalMap);
+            BiomeGenerator.FillFalloffGrid(FastFinalMap);
         } else if (CurrentViewMode == ViewMode.Humidity) {
-            BiomeGenerator.FillHumidity(FastFinalMap);
+            BiomeGenerator.FillHumidityNoise(FastFinalMap);
         } else if (CurrentViewMode == ViewMode.Terrain) {
             TileMap.Execute((t, x, y) => {
                 // canvas.TopLevel = true;

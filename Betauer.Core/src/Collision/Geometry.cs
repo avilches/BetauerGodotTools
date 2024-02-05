@@ -94,6 +94,18 @@ public static class Geometry {
             r1.X, r1.Y, r1.Size.X, r1.Size.Y,
             r2.X, r2.Y, r2.Size.X, r2.Size.Y);
     }
+    
+    public static bool IsPointInsideEllipse(float px, float py, float rx, float ry) {
+        return (px * px) / (rx * rx) + (py * py) / (ry * ry) <= 1f;
+    }
+    
+    public static bool IsPointInsideEllipse(float px, float py, float rx, float ry, double rotation) {
+        var cos = Mathf.Cos(rotation);
+        var sin = Mathf.Sin(rotation);
+        var tdx = cos * px + sin * py;
+        var tdy = sin * px - cos * py;
+        return (tdx * tdx) / (rx * rx) + (tdy * tdy) / (ry * ry) <= 1f;
+    }
 
     public static (int, int) GetPointIntersectingCell(float px, float py, float cellSize) {
         var minCellX = (int)Mathf.Floor(px / cellSize);

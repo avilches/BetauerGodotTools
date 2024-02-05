@@ -1,18 +1,19 @@
 using System;
+using Godot;
 
 namespace Betauer.Core.Easing;
 
 /// <summary>
 /// Returns a value from 0f to 1f based on the (x,y) coords inside a rect where the center of the grid is 1 and it goes to 0 when the coords touch the border
 /// </summary>
-public class InterpolationRect2D  {
-    public int Width { get; set; }
-    public int Height { get; set; }
-    public int CenterX { get; set; }
-    public int CenterY { get; set; }
+public class InterpolationRect2D : IInterpolation2D {
+    public float Width { get; set; }
+    public float Height { get; set; }
+    public float CenterX { get; set; }
+    public float CenterY { get; set; }
     public IInterpolation? Easing { get; set; }
 
-    public InterpolationRect2D(int width, int height, IInterpolation? easing = null) {
+    public InterpolationRect2D(float width, float height, IInterpolation? easing = null) {
         Width = width;
         Height = height;
         CenterX = Width / 2;
@@ -25,25 +26,25 @@ public class InterpolationRect2D  {
     /// </summary>
     /// <param name="centerX"></param>
     /// <param name="centerY"></param>
-    public void SetCenter(float centerX, float centerY) {
-        CenterX = (int)(Math.Clamp(centerX, 0f, 1f) * Width);
-        CenterY = (int)(Math.Clamp(centerY, 0f, 1f) * Height);
+    public void SetRelativeCenter(float centerX, float centerY) {
+        CenterX = Math.Clamp(centerX, 0f, 1f) * Width;
+        CenterY = Math.Clamp(centerY, 0f, 1f) * Height;
     }
 
-    public void SetCenterPosition(int x, int y) {
-        CenterX = Math.Clamp(x, 0, Width - 1);
-        CenterY = Math.Clamp(y, 0, Height - 1);
+    public void SetCenter(float x, float y) {
+        CenterX = Math.Clamp(x, 0, Width);
+        CenterY = Math.Clamp(y, 0, Height);
     }
 
-    public float GetValue(int x, int y) {
+    public float Get(float x, float y) {
         var value = Functions.GetRect2D(Width, Height, CenterX, CenterY, x, y);
-        return Easing?.GetY(value) ?? value;
+        return Easing?.Get(value) ?? value;
     }
 
-    public void Loop(int x, int y, int width, int height, Action<float, int, int> action) {
+    public void Loop(float x, float y, float width, float height, Action<float, float, float> action) {
         for (var xx = x; xx < width - x; xx++) {
             for (var yy = y; yy < height - y; yy++) {
-                action.Invoke(GetValue(xx, yy), xx, yy);
+                action.Invoke(Get(xx, yy), xx, yy);
             }
         }
     }

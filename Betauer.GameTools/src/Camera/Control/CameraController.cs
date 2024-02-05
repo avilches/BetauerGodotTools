@@ -116,7 +116,7 @@ public class CameraController {
         easing ??= Interpolation.Linear;
         var from = Camera2D.GlobalPosition;
         _positionTween.TweenMethod(Callable.From<float>(t => {
-            Camera2D.GlobalPosition = from.Lerp(target(), easing.GetY(t));
+            Camera2D.GlobalPosition = from.Lerp(target(), easing.Get(t));
         }), 0f, 1f, time);
         return _positionTween.AwaitFinished();
     }
@@ -137,9 +137,9 @@ public class CameraController {
             }
             _zoomTween.TweenMethod(Callable.From<float>(t => {
                 if (getZoomPoint != null) {
-                    Camera2D.ZoomTo(from.Lerp(zoom, easing.GetY(t)), getZoomPoint);
+                    Camera2D.ZoomTo(from.Lerp(zoom, easing.Get(t)), getZoomPoint);
                 } else {
-                    Camera2D.Zoom = from.Lerp(zoom, easing.GetY(t));
+                    Camera2D.Zoom = from.Lerp(zoom, easing.Get(t));
                 }
             }), 0f, 1f, time);
         }

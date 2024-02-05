@@ -5,7 +5,6 @@ using Betauer.Application.Monitor;
 using Betauer.Application.Persistent;
 using Betauer.Camera;
 using Betauer.Camera.Control;
-using Betauer.Core;
 using Betauer.Core.Easing;
 using Betauer.Core.Image;
 using Betauer.DI;
@@ -31,8 +30,11 @@ public partial class RtsWorld : Node, IInjectable {
 	// [NodePath("TextureHeight")] private Sprite2D TextureHeight { get; set; }
 	// [NodePath("TextureHumidity")] private Sprite2D TextureHumidity { get; set; }
 	// [NodePath("TexturePoisson")] private Sprite2D TexturePoisson { get; set; }
-	[NodePath("TextureFinalMap")] private Sprite2D TextureFinalMap { get; set; }
-	private FastImage textureFinalMapFastImage;
+	// [NodePath("TextureFinalMap")] private Sprite2D TextureFinalMap { get; set; }
+	[NodePath("TextureRect")] private TextureRect TextureRect { get; set; }
+	
+	[NodePath("FalloffGraph")] private TextureRect FalloffGraph { get; set; }
+	[NodePath("HeightGraph")] private TextureRect HeightGraph { get; set; }
 
 	private CameraController CameraController;
 	private CameraGameObject CameraGameObject;
@@ -66,21 +68,19 @@ public partial class RtsWorld : Node, IInjectable {
 		AddChild(_fsm);
 	}
 	
-	private void Zooming(InputEvent @event) {
+	private async void Zooming(InputEvent @event) {
 		if (@event.IsKeyJustPressed(Key.Q) || @event.IsClickPressed(MouseButton.WheelUp)) {
 			if (CameraController.IsBusy()) return;
-			if (CameraGameObject.ZoomIn()) {
-				Console.WriteLine($"Zooming {CameraGameObject.Zoom}x");
-				CameraController.Zoom(new Vector2(CameraGameObject.Zoom, CameraGameObject.Zoom), RtsConfig.ZoomTime, Easings.Linear, CameraController.Camera2D.GetLocalMousePosition);
-				GetViewport().SetInputAsHandled();
-			}
+			if (!CameraGameObject.ZoomIn()) return;
+			GetViewport().SetInputAsHandled();
+			await CameraController.Zoom(new Vector2(CameraGameObject.Zoom, CameraGameObject.Zoom), RtsConfig.ZoomTime, Interpolation.Linear, CameraController.Camera2D.GetLocalMousePosition);
+			Console.WriteLine($"Zooming {CameraGameObject.Zoom}x Position:{CameraController.Camera2D.Position}");
 		} else if (@event.IsKeyJustPressed(Key.E) || @event.IsClickPressed(MouseButton.WheelDown)) {
 			if (CameraController.IsBusy()) return;
-			if (CameraGameObject.ZoomOut()) {
-				Console.WriteLine($"Zooming {CameraGameObject.Zoom}x");
-				CameraController.Zoom(new Vector2(CameraGameObject.Zoom, CameraGameObject.Zoom), RtsConfig.ZoomTime, Easings.Linear, CameraController.Camera2D.GetLocalMousePosition);
-				GetViewport().SetInputAsHandled();
-			}
+			if (!CameraGameObject.ZoomOut()) return;
+			GetViewport().SetInputAsHandled();
+			await CameraController.Zoom(new Vector2(CameraGameObject.Zoom, CameraGameObject.Zoom), RtsConfig.ZoomTime, Interpolation.Linear, CameraController.Camera2D.GetLocalMousePosition);
+			Console.WriteLine($"Zooming {CameraGameObject.Zoom}x Position:{CameraController.Camera2D.Position}");
 		}
 	}
 
@@ -91,13 +91,13 @@ public partial class RtsWorld : Node, IInjectable {
 
 	public async void StartNewGame() {
 		CameraGameObject = GameObjectRepository.Create<CameraGameObject>("ScreenState", "ScreenState");
-		CameraGameObject.Zoom = 3f;
-		CameraGameObject.Position = new Vector2(1000, 386);
+		CameraGameObject.Zoom = 4f;
+		CameraGameObject.Position = new Vector2(795, 139);
 
 		var s = Stopwatch.StartNew();
 		Init();
 		TerrainTileMap.Clear();
-		WorldGenerator.Configure(TerrainTileMap, TextureFinalMap);
+		WorldGenerator.Configure(TerrainTileMap, TextureRect);
 		WorldGenerator.Generate();
 		WorldGenerator.Draw(WorldGenerator.ViewMode.Terrain);
 		ConfigureDebugOverlay();
@@ -134,11 +134,15 @@ public partial class RtsWorld : Node, IInjectable {
 				WorldGenerator.Seed = seed.ToInt();
 				WorldGenerator.Generate();
 				WorldGenerator.ReDraw();
+				WorldGenerator.BiomeGenerator.GraphFalloff(FalloffGraph);
+				WorldGenerator.BiomeGenerator.GraphHeight(HeightGraph);
 			}, (edit) => edit.SetMinWidth(20))
 			.Edit("Biome", WorldGenerator.BiomeGenerator.BiomeConfig, (value) => {
 				WorldGenerator.BiomeGenerator.ConfigureBiomeMap(value);
 				WorldGenerator.Generate();
 				WorldGenerator.ReDraw();
+				WorldGenerator.BiomeGenerator.GraphFalloff(FalloffGraph);
+				WorldGenerator.BiomeGenerator.GraphHeight(HeightGraph);
 			}, config => {
 				config.SetMultiLine(true).SetMinHeight(300).SetMinWidth(300);
 				config.TextEdit.Theme = DebugConsoleTheme.Get();
@@ -167,21 +171,29 @@ public partial class RtsWorld : Node, IInjectable {
 					WorldGenerator.BiomeGenerator.HeightNoise.Frequency = value;
 					WorldGenerator.Generate();
 					WorldGenerator.ReDraw();
+					WorldGenerator.BiomeGenerator.GraphFalloff(FalloffGraph);
+					WorldGenerator.BiomeGenerator.GraphHeight(HeightGraph);
 				})
 				.ToggleButton("Falloff", () => WorldGenerator.BiomeGenerator.FalloffEnabled, (v) => {
 					WorldGenerator.BiomeGenerator.FalloffEnabled = v;
 					WorldGenerator.Generate();
 					WorldGenerator.ReDraw();
+					WorldGenerator.BiomeGenerator.GraphFalloff(FalloffGraph);
+					WorldGenerator.BiomeGenerator.GraphHeight(HeightGraph);
 				})
 				.Edit("Bias", () => WorldGenerator.BiomeGenerator.MasslandBias, (value) => {
 					WorldGenerator.BiomeGenerator.MasslandBias = value;
 					WorldGenerator.Generate();
 					WorldGenerator.ReDraw();
+					WorldGenerator.BiomeGenerator.GraphFalloff(FalloffGraph);
+					WorldGenerator.BiomeGenerator.GraphHeight(HeightGraph);
 				})
 				.Edit("Offset", () => WorldGenerator.BiomeGenerator.MasslandOffset, (value) => {
 					WorldGenerator.BiomeGenerator.MasslandOffset = value;
 					WorldGenerator.Generate();
 					WorldGenerator.ReDraw();
+					WorldGenerator.BiomeGenerator.GraphFalloff(FalloffGraph);
+					WorldGenerator.BiomeGenerator.GraphHeight(HeightGraph);
 				})
 			)
 			.Label("---------- Humidity -------------")

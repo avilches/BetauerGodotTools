@@ -17,7 +17,7 @@ public class Interpolation : IInterpolation {
         EasingFunction = Functions.GetEaseFunc(transitionType, easeType);
     }
 
-    public float GetY(float t) { 
+    public float Get(float t) { 
         return EasingFunction(t);
     }
         
@@ -69,10 +69,10 @@ public class Interpolation : IInterpolation {
     
     public static IInterpolation Combine(IInterpolation interpolation) => new InterpolationWrapper(interpolation);
     
-    public static IInterpolation Combine(Func<float, float> interpolation) => new InterpolationFunc(interpolation);
+    public static IInterpolation Create(Func<float, float> interpolation) => new InterpolationFunc(interpolation);
 
     public static IInterpolation Shift(IInterpolation interpolation, float start = 0f, float end = 1f) {
-        return new InterpolationFunc((t) => Functions.Shift(start, end, t, interpolation.GetY));
+        return new InterpolationFunc((t) => Functions.Shift(start, end, t, interpolation.Get));
     }
 
     public static Interpolation Get(Tween.TransitionType type, Tween.EaseType easeType) {

@@ -287,34 +287,34 @@ public static class Functions {
         return easingFunction.Invoke(tt);
     }
 
-    public static float GetRect2D(int width, int height, int centerX, int centerY, int x, int y) {
+    public static float GetRect2D(float width, float height, float centerX, float centerY, float x, float y) {
         var maxDistanceX = Math.Max(centerX, width - 1 - centerX);
         var maxDistanceY = Math.Max(centerY, height - 1 - centerY);
-        var distanceX = (float)Math.Abs(x - centerX);
-        var distanceY = (float)Math.Abs(y - centerY);
-        var valueX = 1 - distanceX / maxDistanceX;
-        var valueY = 1 - distanceY / maxDistanceY;
+        var distanceX = Math.Abs(x - centerX);
+        var distanceY = Math.Abs(y - centerY);
+        var valueX = 1f - distanceX / maxDistanceX;
+        var valueY = 1f - distanceY / maxDistanceY;
         return Math.Min(valueX, valueY);
     }
 
-    public static float GetRect2D(int width, int height, int x, int y) {
+    public static float GetRect2D(float width, float height, float x, float y) {
         var centerX = width / 2;
         var centerY = height / 2;
-        var distanceX = (float)Math.Abs(x - centerX);
-        var distanceY = (float)Math.Abs(y - centerY);
-        var valueX = 1 - distanceX / centerX;
-        var valueY = 1 - distanceY / centerY;
+        var distanceX = Math.Abs(x - centerX);
+        var distanceY = Math.Abs(y - centerY);
+        var valueX = 1f - distanceX / centerX;
+        var valueY = 1f - distanceY / centerY;
         return Math.Min(valueX, valueY);
     }
     
     // Return a value from 0 to 1, where 1 is when the point x,y is in the center of the ellipse and 0 when it's in the border
-    public static float GetEllipse(int rx, int ry, int x, int y) {
-        return 1 - ((x * x) / (float)(rx * rx) + (y * y) / (float)(ry * ry));
+    public static float GetEllipse(float rx, float ry, float x, float y) {
+        return Mathf.Clamp(1 - ((x * x) / (rx * rx) + (y * y) / (float)(ry * ry)), 0f, 1f);
     }
 
     // Return a value from 0 to 1, where 1 is when the point x,y is in the center of the circle and 0 when it's in the border
-    public static float GetCircle(int r, int x, int y) {
-        return 1 - ((x * x + y * y) / (float)(r * r));
+    public static float GetCircle(float r, float x, float y) {
+        return Math.Clamp(1 - ((x * x + y * y) / (r * r)), 0f, 1f);
     }
 
 }

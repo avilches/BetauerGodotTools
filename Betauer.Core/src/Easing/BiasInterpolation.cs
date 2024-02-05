@@ -7,5 +7,5 @@ public class BiasInterpolation : IInterpolation {
         Bias = bias;
     }
 
-    public float GetY(float t) => Functions.Bias(t, Bias);
+    public float Get(float t) => Functions.Bias(t, Bias);
 }

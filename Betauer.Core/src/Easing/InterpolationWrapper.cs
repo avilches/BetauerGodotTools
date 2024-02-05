@@ -7,5 +7,5 @@ public class InterpolationWrapper : IInterpolation {
         Interpolation = interpolation;
     }
 
-    public float GetY(float t) => Interpolation.GetY(t);
+    public float Get(float t) => Interpolation.Get(t);
 }

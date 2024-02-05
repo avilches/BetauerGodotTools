@@ -63,7 +63,7 @@ namespace Betauer.Animation {
                 .Parallel()
                 .TweenMethod(Callable.From( 
                     (float linearT) => {
-                        var curveY = bezierCurve.GetY(linearT);
+                        var curveY = bezierCurve.Get(linearT);
                         var value = VariantHelper.LerpVariant(from, to, curveY);
                         // Logger.Debug(
                         // $"\"{context.Target.Name}\" {context.Target.GetType().Name}.{property}:  Bezier({linearT})={curveY} value:{value}");

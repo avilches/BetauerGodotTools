@@ -29,7 +29,7 @@ public partial class RotatingChildrenSpacedNode : Node2D {
         _sequence = SequenceAnimation.Create(this)
             .SetProcessMode(Tween.TweenProcessMode.Physics)
             .AnimateSteps<float>(RotateSpaced)
-            .From(0).To(Mathf.Tau, 4, Easings.Linear)
+            .From(0).To(Mathf.Tau, 4, Interpolation.Linear)
             .EndAnimate()
             .SetInfiniteLoops();
         _sceneTreeTween = _sequence.Play();

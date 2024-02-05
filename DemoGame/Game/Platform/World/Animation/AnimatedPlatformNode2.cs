@@ -19,15 +19,15 @@ public partial class AnimatedPlatformController2 : CharacterBody2D {
         _original = Position;
 
         _sceneTreeTween = SequenceAnimation.Create()
-            .AnimateStepsBy<Vector2>(UpdatePosition, Easings.CubicInOut)
+            .AnimateStepsBy<Vector2>(UpdatePosition, Interpolation.CubicInOut)
             .Offset(new Vector2(250, 0), 2.5f)
             .Offset(new Vector2(-250, 0), 2.5f)
             .EndAnimate()
             .Parallel()
             .AnimateSteps(Properties.Modulate)
-            .To(new Color(1, 0, 0, 1f), 0.25f, Easings.CubicInOut)
+            .To(new Color(1, 0, 0, 1f), 0.25f, Interpolation.CubicInOut)
             .EndAnimate()
-            .AnimateSteps(Properties.Modulate).To(new Color(1, 1, 1, 1), 0.5f, Easings.CubicInOut)
+            .AnimateSteps(Properties.Modulate).To(new Color(1, 1, 1, 1), 0.5f, Interpolation.CubicInOut)
             .EndAnimate()
             .Play(this)
             .SetLoops();

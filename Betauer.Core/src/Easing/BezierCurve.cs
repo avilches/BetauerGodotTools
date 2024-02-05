@@ -77,7 +77,7 @@ namespace Betauer.Core.Easing {
             Ay = ay;
         }
 
-        public float GetY(float t) {
+        public float Get(float t) {
             var square = t * t;
             var cube = square * t;
             return Ay * cube + By * square + Cy * t + P0Y;

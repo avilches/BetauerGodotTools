@@ -54,7 +54,7 @@ public static partial class Draw {
         FillCircle(cx, cy, r, (x, y) => {
             var distanceSquared = Geometry.DistanceSquared(cx, cy, x, y);
             var pos = 1 - (distanceSquared / radii);
-            onPixel(x, y, easing?.GetY(pos) ?? pos);
+            onPixel(x, y, easing?.Get(pos) ?? pos);
         });
     }
 

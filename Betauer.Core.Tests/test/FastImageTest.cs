@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using Betauer.Core.Image;
 using Betauer.TestRunner;
 using Godot;
@@ -83,17 +82,17 @@ public class FastImageTest {
     [TestRunner.Ignore("Just create images")]
     public void TestEllipses() {
         var fast = new FastImage(300, 300);
-        fast.Fill(Colors.White);
+        fast.Fill(Colors.DarkBlue);
         
-        fast.FillEllipse(45,  45, 0, 0, Colors.Green);
-        fast.FillEllipse(48,  45, 1, 2, Colors.Green);
-        fast.FillEllipse(54,  45, 2, 3, Colors.Green);
-        fast.FillEllipse(61,  45, 3, 4, Colors.Green);
-        fast.FillEllipse(70,  45, 4, 5, Colors.Green);
-        fast.FillEllipse(81,  45, 5, 8, Colors.Green);
-        fast.FillEllipse(94,  45, 6, 12, Colors.Green);
-        fast.FillEllipse(110, 45, 7, 6, Colors.Green);
-        fast.FillEllipse(128, 45, 8, 4, Colors.Green);
+        fast.DrawEllipse(45,  45, 0, 0, Colors.Green);
+        fast.DrawEllipse(48,  45, 1, 2, Colors.Green);
+        fast.DrawEllipse(54,  45, 2, 3, Colors.Green);
+        fast.DrawEllipse(61,  45, 3, 4, Colors.Green);
+        fast.DrawEllipse(70,  45, 4, 5, Colors.Green);
+        fast.DrawEllipse(81,  45, 5, 8, Colors.Green);
+        fast.DrawEllipse(94,  45, 6, 12, Colors.Green);
+        fast.DrawEllipse(110, 45, 7, 6, Colors.Green);
+        fast.DrawEllipse(128, 45, 8, 4, Colors.Green);
 
         fast.FillEllipse(145,  45, 0, 0, Colors.Green);
         fast.FillEllipse(148,  45, 1, 2, Colors.Green);
@@ -126,36 +125,56 @@ public class FastImageTest {
         fast.GradientEllipse(228,  75, 8, 4, Colors.Red);
 
         
-        fast.DrawEllipse(45,  105, 0, 0,  0, Colors.Blue);
-        fast.DrawEllipse(48,  105, 1, 2,  0, Colors.Blue);
-        fast.DrawEllipse(54,  105, 2, 3,  0, Colors.Blue);
-        fast.DrawEllipse(61,  105, 3, 4,  0, Colors.Blue);
-        fast.DrawEllipse(70,  105, 4, 5,  0, Colors.Blue);
-        fast.DrawEllipse(81,  105, 5, 8,  0, Colors.Blue);
-        fast.DrawEllipse(94,  105, 6, 12, 0, Colors.Blue);
-        fast.DrawEllipse(110, 105, 7, 6,  0, Colors.Blue);
-        fast.DrawEllipse(128, 105, 8, 4,  0, Colors.Blue);
+        fast.DrawEllipseRotated(45,  105, 0, 0,  0, Colors.Blue);
+        fast.DrawEllipseRotated(48,  105, 1, 2,  0, Colors.Blue);
+        fast.DrawEllipseRotated(54,  105, 2, 3,  0, Colors.Blue);
+        fast.DrawEllipseRotated(61,  105, 3, 4,  0, Colors.Blue);
+        fast.DrawEllipseRotated(70,  105, 4, 5,  0, Colors.Blue);
+        fast.DrawEllipseRotated(81,  105, 5, 8,  0, Colors.Blue);
+        fast.DrawEllipseRotated(94,  105, 6, 12, 0, Colors.Blue);
+        fast.DrawEllipseRotated(110, 105, 7, 6,  0, Colors.Blue);
+        fast.DrawEllipseRotated(128, 105, 8, 4,  0, Colors.Blue);
 
-        fast.DrawEllipse(145+5*0, 105, 0, 0,  Mathf.DegToRad(45f), Colors.Aquamarine);
-        fast.DrawEllipse(148+5*1, 105, 1, 2,  Mathf.DegToRad(45f), Colors.Aquamarine);
-        fast.DrawEllipse(154+5*2, 105, 2, 3,  Mathf.DegToRad(45f), Colors.Aquamarine);
-        fast.DrawEllipse(161+5*3, 105, 3, 4,  Mathf.DegToRad(45f), Colors.Aquamarine);
-        fast.DrawEllipse(170+5*4, 105, 4, 5,  Mathf.DegToRad(45f), Colors.Aquamarine);
-        fast.DrawEllipse(181+5*5, 105, 5, 8,  Mathf.DegToRad(45f), Colors.Aquamarine);
-        fast.DrawEllipse(194+5*6, 105, 6, 12, Mathf.DegToRad(45f), Colors.Aquamarine);
-        fast.DrawEllipse(210+5*7, 105, 7, 6,  Mathf.DegToRad(45f), Colors.Aquamarine);
-        fast.DrawEllipse(228+5*8, 105, 8, 4,  Mathf.DegToRad(45f), Colors.Aquamarine);
+        fast.DrawEllipseRotated(145+5*0, 105, 0, 0,  Mathf.DegToRad(45f), Colors.Aquamarine);
+        fast.DrawEllipseRotated(148+5*1, 105, 1, 2,  Mathf.DegToRad(45f), Colors.Aquamarine);
+        fast.DrawEllipseRotated(154+5*2, 105, 2, 3,  Mathf.DegToRad(45f), Colors.Aquamarine);
+        fast.DrawEllipseRotated(161+5*3, 105, 3, 4,  Mathf.DegToRad(45f), Colors.Aquamarine);
+        fast.DrawEllipseRotated(170+5*4, 105, 4, 5,  Mathf.DegToRad(45f), Colors.Aquamarine);
+        fast.DrawEllipseRotated(181+5*5, 105, 5, 8,  Mathf.DegToRad(45f), Colors.Aquamarine);
+        fast.DrawEllipseRotated(194+5*6, 105, 6, 12, Mathf.DegToRad(45f), Colors.Aquamarine);
+        fast.DrawEllipseRotated(210+5*7, 105, 7, 6,  Mathf.DegToRad(45f), Colors.Aquamarine);
+        fast.DrawEllipseRotated(228+5*8, 105, 8, 4,  Mathf.DegToRad(45f), Colors.Aquamarine);
 
 
-        fast.DrawEllipse( 45+10*0, 140, 0*2,  0*2,  Mathf.DegToRad(45f), Colors.Aquamarine);
-        fast.DrawEllipse( 48+10*1, 140, 1*2,  2*2,  Mathf.DegToRad(45f), Colors.Aquamarine);
-        fast.DrawEllipse( 54+10*2, 140, 2*2,  3*2,  Mathf.DegToRad(45f), Colors.Aquamarine);
-        fast.DrawEllipse( 61+10*3, 140, 3*2,  4*2,  Mathf.DegToRad(45f), Colors.Aquamarine);
-        fast.DrawEllipse( 70+10*4, 140, 4*2,  5*2,  Mathf.DegToRad(45f), Colors.Aquamarine);
-        fast.DrawEllipse( 81+10*5, 140, 5*2,  8*2,  Mathf.DegToRad(45f), Colors.Aquamarine);
-        fast.DrawEllipse( 94+10*6, 140, 6*2, 12*2, Mathf.DegToRad(45f), Colors.Aquamarine);
-        fast.DrawEllipse(110+10*7, 140, 7*2,  6*2,  Mathf.DegToRad(45f), Colors.Aquamarine);
-        fast.DrawEllipse(128+10*8, 140, 8*2,  4*2,  Mathf.DegToRad(45f), Colors.Aquamarine);
+        fast.DrawEllipseRotated( 45+10*0, 140, 0*2,  0*2,  Mathf.DegToRad(45f), Colors.Aquamarine);
+        fast.DrawEllipseRotated( 48+10*1, 140, 1*2,  2*2,  Mathf.DegToRad(45f), Colors.Aquamarine);
+        fast.DrawEllipseRotated( 54+10*2, 140, 2*2,  3*2,  Mathf.DegToRad(45f), Colors.Aquamarine);
+        fast.DrawEllipseRotated( 61+10*3, 140, 3*2,  4*2,  Mathf.DegToRad(45f), Colors.Aquamarine);
+        fast.DrawEllipseRotated( 70+10*4, 140, 4*2,  5*2,  Mathf.DegToRad(45f), Colors.Aquamarine);
+        fast.DrawEllipseRotated( 81+10*5, 140, 5*2,  8*2,  Mathf.DegToRad(45f), Colors.Aquamarine);
+        fast.DrawEllipseRotated( 94+10*6, 140, 6*2, 12*2, Mathf.DegToRad(45f), Colors.Aquamarine);
+        fast.DrawEllipseRotated(110+10*7, 140, 7*2,  6*2,  Mathf.DegToRad(45f), Colors.Aquamarine);
+        fast.DrawEllipseRotated(128+10*8, 140, 8*2,  4*2,  Mathf.DegToRad(45f), Colors.Aquamarine);
+
+        fast.FillEllipseRotated( 45+10*0, 200, 0*2,  0*2,  Mathf.DegToRad(45f), Colors.Salmon);
+        fast.FillEllipseRotated( 48+10*1, 200, 1*2,  2*2,  Mathf.DegToRad(45f), Colors.Salmon);
+        fast.FillEllipseRotated( 54+10*2, 200, 2*2,  3*2,  Mathf.DegToRad(45f), Colors.Salmon);
+        fast.FillEllipseRotated( 61+10*3, 200, 3*2,  4*2,  Mathf.DegToRad(45f), Colors.Salmon);
+        fast.FillEllipseRotated( 70+10*4, 200, 4*2,  5*2,  Mathf.DegToRad(45f), Colors.Salmon);
+        fast.FillEllipseRotated( 81+10*5, 200, 5*2,  8*2,  Mathf.DegToRad(45f), Colors.Salmon);
+        fast.FillEllipseRotated( 94+10*6, 200, 6*2, 12*2, Mathf.DegToRad(45f), Colors.Salmon);
+        fast.FillEllipseRotated(110+10*7, 200, 7*2,  6*2,  Mathf.DegToRad(45f), Colors.Salmon);
+        fast.FillEllipseRotated(128+10*8, 200, 8*2,  4*2,  Mathf.DegToRad(45f), Colors.Salmon);
+
+        fast.GradientEllipseRotated( 45+10*0, 260, 0*2,  0*2,  Mathf.DegToRad(45f), Colors.Lime);
+        fast.GradientEllipseRotated( 48+10*1, 260, 1*2,  2*2,  Mathf.DegToRad(45f), Colors.Lime);
+        fast.GradientEllipseRotated( 54+10*2, 260, 2*2,  3*2,  Mathf.DegToRad(45f), Colors.Lime);
+        fast.GradientEllipseRotated( 61+10*3, 260, 3*2,  4*2,  Mathf.DegToRad(45f), Colors.Lime);
+        fast.GradientEllipseRotated( 70+10*4, 260, 4*2,  5*2,  Mathf.DegToRad(45f), Colors.Lime);
+        fast.GradientEllipseRotated( 81+10*5, 260, 5*2,  8*2,  Mathf.DegToRad(45f), Colors.Lime);
+        fast.GradientEllipseRotated( 94+10*6, 260, 6*2, 12*2, Mathf.DegToRad(45f), Colors.Lime);
+        fast.GradientEllipseRotated(110+10*7, 260, 7*2,  6*2,  Mathf.DegToRad(45f), Colors.Lime);
+        fast.GradientEllipseRotated(128+10*8, 260, 8*2,  4*2,  Mathf.DegToRad(45f), Colors.Lime);
 
         fast.Flush();
         fast.Image.SavePng("test-ellipse.png");

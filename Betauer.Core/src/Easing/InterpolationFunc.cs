@@ -9,5 +9,5 @@ public class InterpolationFunc : IInterpolation {
         Function = function;
     }
 
-    public float GetY(float t) => Function.Invoke(t);
+    public float Get(float t) => Function.Invoke(t);
 }

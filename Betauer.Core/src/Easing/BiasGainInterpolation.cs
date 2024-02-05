@@ -9,5 +9,5 @@ public struct BiasGainInterpolation : IInterpolation {
         Offset = offset;
     }
 
-    public float GetY(float t) => Functions.Gain(t, Bias, Offset);
+    public float Get(float t) => Functions.Gain(t, Bias, Offset);
 }

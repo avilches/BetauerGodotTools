@@ -14,7 +14,7 @@ public partial class TestPlatformNode : Node2D {
     public override void _Ready() {
         KeyframeAnimation.Create(body1)
             .SetDuration(1)
-            .AnimateKeys(Properties.Scale2Dy, Easings.SineInOut)
+            .AnimateKeys(Properties.Scale2Dy, Interpolation.SineInOut)
             .From(1f)
             .KeyframeTo(0.5f, 1.5f)
             .KeyframeTo(1f, 1f)
