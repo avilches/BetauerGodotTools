@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Betauer.Core;
-using Betauer.Core.Collision.Spatial2D;
 using Betauer.Core.Data;
 using Betauer.Core.Easing;
 using Betauer.Core.Image;
@@ -17,7 +16,7 @@ public enum BiomeType {
     Glacier,
     Rock,
 
-    Tundre,
+    FireDesert,
     Desert,
     Plains,
     Forest,
@@ -39,16 +38,11 @@ public class BiomeGenerator {
     // Massland is not normalized
     public float MasslandBias { get; set; }
     public float MasslandOffset { get; set; }
-
-    private IInterpolation2D Falloff;
-    float MasslandFallofStart = 0f;
-    float MasslandFalloffEnd = 1f;
     public Func<float, float, float> RampFunc;
     public DataGrid MassLands { get; private set; }
 
     // This is the noise height, creating mountains and valleys
     public FastNoiseLite HeightNoise { get; } = new();
-    // public NormalizedVirtualDataGrid HeightNoiseNormalizedGrid { get; private set; }
 
     // Final grid with the height + optionally applied the falloff
     public bool FalloffEnabled { get; set; } = true;
@@ -61,6 +55,8 @@ public class BiomeGenerator {
     public FloatGrid<BiomeType> BiomeGrid { get; private set; }
     public BiomeCell[,] BiomeCells { get; private set; }
 
+    private Random _random;
+
     public int Seed {
         set {
             HeightNoise.Seed = value;
@@ -70,32 +66,47 @@ public class BiomeGenerator {
 
     public BiomeGenerator() {
         BiomeConfig = """
-                      :GGGGGGGGGGGGGGGGGGGGG:
-                      :GGGGGGGGrGGGGGGGGGGGG:
-                      :GGGGGGGGrGGGGGGGGGGGG:
-                      :rrrrrrrrGrrrrrrrrrrrr:
-                      :rrrrrrrrGrrrrrrrrrrrr:
-                      :TrTrTTrwr!!!!!rrrrrrr:
-                      :TTTTTTwww!!!!!*******:
-                      :TTTTTTwww!!!!!*******:
-                      :TTTTTTwww!!!!!*******:
-                      :TTTTTTwww!!!!!*******:
-                      :TTTTTTwww!!!!!*******:
-                      :TTTTTTwww!!!!!*******:
-                      :DDDDDDwww!!!!!*******:
-                      :DDDDDDwww!!!*!*******:
-                      :bbbbbbbbbb!bb.bbb*bbb:
-                      :.....................:
-                      :oooo.oooooooooooooooo:
-                      :ooooooooooooooooooooo:
-                      :ooooooooooooooooooooo:
-                      :ooooooooooooooooooooo:
+                      :GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG:
+                      :GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG:
+                      :GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG:
+                      :GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG:
+                      :GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG:
+                      :GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG:
+                      :GGGGGGGGGGGGGGGGrrGGGGGGGGGGGGGGGGGGGGGGGG:
+                      :GGGGGGGGGGGGGGGGrrGGGGGGGGGGGGGGGGGGGGGGGG:
+                      :rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr:
+                      :rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr:
+                      :rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr:
+                      :FFrrFFrrFFFFrrwwrr!!!!!!!!!!rrrrrrrrrrrrrr:
+                      :FFrrFFrrFFFFrrwwrr!!!!!!!!!!rrrrrrrrrrrrrr:
+                      :FFrrFFrrFFFFrrwwrr!!!!!!!!!!rrrrrrrrrrrrrr:
+                      :FFFFFFFFFFFFFFwwww!!!!!!!!!!**************:
+                      :FFFFFFFFFFFFFFwwww!!!!!!!!!!**************:
+                      :FFFFFFFFFFFFFFwwww!!!!!!!!!!**************:
+                      :FFFFFFFFFFFFFFwwww!!!!!!!!!!**************:
+                      :FFFFFFFFFFFFFFwwww!!!!!!!!!!**************:
+                      :FFFFFFFFFFFFFFw!ww!!!w!!!!!!**************:
+                      :FFFFFFFFFFFFFFw!ww!!!w!!!!!!**************:
+                      :FFFFFFFFFFFFFFw!ww!!!w!!!!!!**************:
+                      :FFFFFFFFFFFFFFwwww!!!!!!!!!!******!!***!**:
+                      :FFFFFFFFFFFFFFwwww!!!!!!!!!!******!!***!**:
+                      :DDDDDDDDDDDDDDDDDD!!!!!!!!!!******!!******:
+                      :DDDDDDDDDDDDwwwwww!!!!!!!!!!**************:
+                      :DDDDDDDDDDDDwwwwww!!!!!!**!!**************:
+                      :DDDDDDDDDDDDwbwwww!!!!!!**!!**************:
+                      :bbbbbbbbbbbbb.bbbbbbbbbbbb..bbbbbbDDbbbbbb:
+                      :..........................................:
+                      :..........................................:
+                      :oooooooooooooooo..........................:
+                      :oooooooooooooooooooooooooooo....oooooooooo:
+                      :oooooooooooooooooooooooooooooo..oooooooooo:
+                      :oooooooooo..oooooooooooooooooooooooooooooo:
                       """;
 
         new Biome<BiomeType>[] {
             new() { Char = 'G', Type = BiomeType.Glacier, Color = Colors.White },
             new() { Char = 'r', Type = BiomeType.Rock, Color = Color(112, 112, 110) }, // gris
-            new() { Char = 'T', Type = BiomeType.Tundre, Color = Color(186, 80, 43) }, // rojizo
+            new() { Char = 'T', Type = BiomeType.FireDesert, Color = Color(186, 80, 43) }, // rojizo
             new() { Char = 'D', Type = BiomeType.Desert, Color = Color(231, 164, 84) }, // amarillo mas oscuro
             new() { Char = 'w', Type = BiomeType.Plains, Color = Color(96, 163, 24) }, // verde claro
             new() { Char = '!', Type = BiomeType.Forest, Color = Color(59, 134, 50) }, // verde oscuro
@@ -124,15 +135,13 @@ public class BiomeGenerator {
         MassLands = new DataGrid(width, height, 0f);
         MasslandBias = 0.35f;
         MasslandOffset = 0.99f;
-        MasslandFallofStart = 0.05f;
-        MasslandFalloffEnd = 0.8f;
         const float seaLevel = 0.15f; // The higher, the less lakes inside the massland. The lower, more lakes and (maybe) there is no deep ocean around the massland
         RampFunc = (float h, float f) => (((h + 0.5f) / 2f) + seaLevel) * f;
         HumidityNormalizedGrid = new DataGrid(width, height, 0f);
         HeightFalloffGrid = new DataGrid(width, height, 0f);
 
         HeightNoise.NoiseTypeValue = FastNoiseLite.NoiseType.OpenSimplex2S;
-        HeightNoise.Frequency = 0.013f;
+        HeightNoise.Frequency = 0.012f;
         HeightNoise.FractalTypeValue = FastNoiseLite.FractalType.FBm;
         HeightNoise.FractalOctaves = 5;
         HeightNoise.FractalLacunarity = 2;
@@ -140,7 +149,7 @@ public class BiomeGenerator {
         HeightNoise.FractalWeightedStrength = 0f;
 
         HumidityNoise.NoiseTypeValue = FastNoiseLite.NoiseType.OpenSimplex2S;
-        HumidityNoise.Frequency = 0.015f;
+        HumidityNoise.Frequency = 0.003f;
         HumidityNoise.FractalTypeValue = FastNoiseLite.FractalType.FBm;
         HumidityNoise.FractalOctaves = 5;
         HumidityNoise.FractalLacunarity = 2;
@@ -154,7 +163,7 @@ public class BiomeGenerator {
         BiomeGrid = FloatGrid<BiomeType>.Parse(BiomeConfig, charMapping);
     }
 
-    public Biome<BiomeType> FindBiome(float humidity, float height, float temperature) {
+    public Biome<BiomeType> FindBiome(float humidity, float height) {
         // 1 - height because biomes are configured in the string where the glacier is on top (pos 0) but it's the highest!
         var biomeType = BiomeGrid.Get(humidity, 1 - height);
         return Biomes[biomeType];
@@ -165,111 +174,12 @@ public class BiomeGenerator {
         MaxHeight,
     }
 
-    public void AddIsland(DataGrid Data, int cx, int cy, int rx, int ry, OverlapType overlap, IInterpolation? easing = null, bool up = true) {
-        Draw.GradientEllipse(cx, cy, rx, ry, (x, y, value) => {
-            if (x < 0 || y < 0 || x >= Width || y >= Height) return;
-            var heightValue = value;
-
-            if (up) {
-                if (overlap == OverlapType.Simple) {
-                    Data.Data[x, y] += heightValue;
-                } else if (overlap == OverlapType.MaxHeight) {
-                    Data.Data[x, y] = Math.Max(Data.Data[x, y], heightValue);
-                }
-            } else {
-                if (overlap == OverlapType.Simple) {
-                    Data.Data[x, y] -= heightValue;
-                } else if (overlap == OverlapType.MaxHeight) {
-                    Data.Data[x, y] = Math.Min(Data.Data[x, y], -heightValue);
-                }
-            }
-        }, easing);
-    }
-
-    private int gridWidth = 3;
-    private int gridHeight = 3;
-    private Random random;
-
-    public void GenerateIslandsGrid(bool up, OverlapType overlap) {
-        var cellWidth = Width / gridWidth;
-        var borderWidth = cellWidth / 4;
-        var cellHeight = Height / gridHeight;
-        var borderHeight = cellHeight / 4;
-
-        for (var i = 0; i < gridWidth; i++) {
-            for (var j = 0; j < gridHeight; j++) {
-                var cellXStart = i * cellWidth;
-                var cellYStart = j * cellHeight;
-                // Generate a random position within the cell for the circle's center
-                var cx = random.Next(cellXStart + borderWidth, cellXStart + cellWidth - borderWidth);
-                var cy = random.Next(cellYStart + borderWidth, cellYStart + cellHeight - borderHeight);
-
-                // Calculate the maximum possible radius without going out of the grid
-                var maxRadius = Math.Min(Math.Min(cx, Width - cx), Math.Min(cy, Height - cy));
-                var rx = maxRadius * random.Range(0.8f, 1f);
-                var ry = rx * random.Range(0.35f, 0.85f);
-                AddIsland(MassLands, cx, cy, (int)rx, (int)ry, overlap, new BiasGainInterpolation(MasslandBias, MasslandOffset), up);
-            }
-        }
-    }
-
-    public int islands = 10;
-
-    public void GenerateIslands(bool up, OverlapType overlap) {
-        Random random = new Random(HeightNoise.Seed);
-
-        // Calculate the radius of the first island
-        float rx = Width / 6f;
-
-        var spatialGrid = new SpatialGrid(rx / 2);
-
-        for (int i = 0; i < islands; i++) {
-            bool validPosition = false;
-            int attempts = 0;
-
-            while (!validPosition) {
-                // Generate a random position within the grid for the circle's center
-                int cx = random.Range((int)rx, Width - (int)rx);
-                int cy = random.Range((int)rx, Height - (int)rx);
-
-                // Check if the new island intersects with any existing island
-                if (!spatialGrid.IntersectCircle(cx, cy, rx) || attempts > 10) {
-                    // If it does not intersect, add the island to the MassLands grid and to the spatial grid
-                    var ry = rx * random.Range(0.75f, 1f);
-                    AddIsland(MassLands, cx, cy, (int)rx, (int)ry, overlap, new BiasGainInterpolation(MasslandBias, MasslandOffset), up);
-                    spatialGrid.Add(new Circle { Position = new Vector2(cx, cy), Radius = rx });
-                    validPosition = true;
-                }
-                attempts++;
-            }
-            // Reduce the radius for the next island
-            rx *= 0.8f;
-        }
-    }
-
     public void Generate() {
-        random = new Random(HeightNoise.Seed);
+        _random = new Random(HeightNoise.Seed);
         var sa = Stopwatch.StartNew();
         var s = Stopwatch.StartNew();
-        var overlapType = OverlapType.MaxHeight;
-        var easing = Interpolation.Shift(new BiasGainInterpolation(MasslandBias, MasslandOffset), MasslandFallofStart, MasslandFalloffEnd);
-        // falloff = new InterpolationRect2D(Width, Height, Interpolation.Shift(new BiasGainInterpolation(MasslandBias, MasslandOffset), 0.05f, MasslandOffset));
-        // falloff = new InterpolationCircle(Height / 2, easing);
-        Falloff = new InterpolationEllipse(Width / 2f, Height / 2f, easing);
         MassLands.Fill(0);
-        MassLands.Load((x,y) => Falloff.Get(x, y));
-
         GenerateIslandsGrid(true, OverlapType.MaxHeight);
-        // GenerateIslands(true, OverlapType.MaxHeight);
-        // GenerateIslandsGrid(true, OverlapType.Simple);
-        // GenerateIslands();
-        // AddIsland(MassLands, 100, 50, 90, 80, overlapType, transitionType);
-        // AddIsland(MassLands, 200, 100, 90, 80, overlapType, transitionType);
-        // AddIsland(MassLands, 300, 250, 90, 80, overlapType, transitionType);
-        // AddIsland(MassLands, 400, 320, 90, 80, overlapType, transitionType);
-        // AddIsland(MassLands, Width/2, Height/2, Width/3, Height/3, overlapType, transitionType);
-        // AddIsland(MassLands, Width/6 * 2, Height/4 * 3, Width/8, Height/6, overlapType, transitionType);
-        // AddIsland(MassLands, Width/6 * 4, Height/2 * 1, Width/8, Height/6, overlapType, transitionType);
         Console.WriteLine($"Generate1 masslands:{s.ElapsedMilliseconds}ms");
         s.Restart();
 
@@ -294,14 +204,18 @@ public class BiomeGenerator {
         var list = new List<BiomeCell>();
         for (var y = 0; y < Height; y++) {
             for (var x = 0; x < Width; x++) {
+                var terrainHeight = HeightFalloffGrid.GetValue(x, y);
+                var humidity = HumidityEnabled ? HumidityNormalizedGrid.GetValue(x, y) : 0f;
+                var temp = CalculateTemperature(y, Height, terrainHeight);
+                var biome = FindBiome(humidity, terrainHeight); // 1f - temp);
                 BiomeCell biomeCell = new BiomeCell {
-                    Height = HeightFalloffGrid.GetValue(x, y),
-                    Humidity = HumidityEnabled ? HumidityNormalizedGrid.GetValue(x, y) : 0f,
+                    Height = terrainHeight,
+                    Humidity = humidity,
+                    Temp = temp,
+                    Biome = biome
                 };
-                biomeCell.Temp = CalculateTemperature(y, Height, biomeCell.Height);
                 // Console.Write(cell.Height.ToString("0.0")+ " | ");
                 BiomeCells[y, x] = biomeCell;
-                biomeCell.Biome = FindBiome(biomeCell.Humidity, biomeCell.Height, biomeCell.Temp);
                 list.Add(biomeCell);
             }
             // Console.WriteLine();
@@ -315,14 +229,75 @@ public class BiomeGenerator {
         Console.WriteLine($"Generate Total:{sa.ElapsedMilliseconds}ms");
     }
 
+    private int gridWidth = 3;
+    private int gridHeight = 3;
+
+    // Generate 9 islands in 3x3 cells
+    public void GenerateIslandsGrid(bool up, OverlapType overlap) {
+        var cellWidth = Width / gridWidth;
+        var borderWidth = cellWidth / 4;
+        var cellHeight = Height / gridHeight;
+        var borderHeight = cellHeight / 4;
+
+        for (var i = 0; i < gridWidth; i++) {
+            for (var j = 0; j < gridHeight; j++) {
+                // Generate a random position within the cell for the circle's center
+                var cellXStart = i * cellWidth;
+                var offset = 0;
+                if (i == 0) {
+                    offset = borderWidth;
+                } else if (i == gridWidth - 1) {
+                    offset = -borderWidth;
+                }
+                var cx = _random.Next(cellXStart + offset, cellXStart + cellWidth + offset);
+                
+                var cellYStart = j * cellHeight;
+                if (j == 0) {
+                    offset = borderHeight;
+                } else if (j == gridHeight - 1) {
+                    offset = -borderHeight;
+                } else {
+                    offset = 0;
+                }
+                var cy = _random.Next(cellYStart + offset, cellYStart + cellHeight + offset);
+
+                // Calculate the maximum possible radius without going out of the grid
+                var maxRadius = Math.Min(Math.Min(cx, Width - cx), Math.Min(cy, Height - cy));
+                var rx = maxRadius;
+                var ry = rx * _random.Range(0.6f, 0.9f);
+                var rotation = _random.Range(0, Mathf.Pi * 2);
+                AddIsland(MassLands, cx, cy, rx, (int)ry, rotation, overlap, new BiasGainInterpolation(MasslandBias, MasslandOffset), up);
+            }
+        }
+    }
+
+    public void AddIsland(DataGrid Data, int cx, int cy, int rx, int ry, float rotation, OverlapType overlap, IInterpolation? easing = null, bool up = true) {
+        Draw.GradientEllipseRotated(cx, cy, rx, ry, rotation, (x, y, value) => {
+            if (x < 0 || y < 0 || x >= Width || y >= Height) return;
+            var heightValue = value;
+
+            if (up) {
+                if (overlap == OverlapType.Simple) {
+                    Data.Data[x, y] += heightValue;
+                } else if (overlap == OverlapType.MaxHeight) {
+                    Data.Data[x, y] = Math.Max(Data.Data[x, y], heightValue);
+                }
+            } else {
+                if (overlap == OverlapType.Simple) {
+                    Data.Data[x, y] -= heightValue;
+                } else if (overlap == OverlapType.MaxHeight) {
+                    Data.Data[x, y] = Math.Min(Data.Data[x, y], -heightValue);
+                }
+            }
+        }, easing);
+    }
+
     private float CalculateTemperature(int y, int height, float heightNormalized) {
-        float equatorHeat = 0.5f; // más calor en el ecuador
-        float positionFactor = 1 - Math.Abs(y - height / 2f) / (height / 2f); // de 0 en los polos a 1 en el ecuador
-
+        var equatorHeat = 0.2f; // más calor en el ecuador
+        var positionFactor = 1 - Math.Abs(y - height / 2f) / (height / 2f); // de 0 en los polos a 1 en el ecuador
         // La temperatura disminuye con la altitud
-        float heightFactor = 1 - heightNormalized;
-
-        return positionFactor * equatorHeat + heightFactor * (1 - equatorHeat);
+        var heightFactor = 1 - heightNormalized;
+        return positionFactor * equatorHeat + heightFactor * (1f - equatorHeat);
     }
 
     public void FillMassland(FastImage fastTexture) {
@@ -351,22 +326,45 @@ public class BiomeGenerator {
         fastTexture.Flush();
     }
 
-    private int column = 400 / 2;
+    public void FillTemperature(FastImage fastTexture) {
+        for (var y = 0; y < Height; y++) {
+            for (var x = 0; x < Width; x++) {
+                var val = BiomeCells[y, x].Temp;
+                fastTexture.SetPixel(x, y, new Color(val, val, val), false);
+            }
+        }
+        fastTexture.Flush();
+    }
+
+    public void FillTerrain(FastImage fastTexture) {
+        for (var y = 0; y < Height; y++) {
+            for (var x = 0; x < Width; x++) {
+                var biome = BiomeCells[y, x].Biome;
+                fastTexture.SetPixel(x, y, biome.Color, false);
+            }
+        }
+        fastTexture.Flush();
+    }
+
     public void GraphFalloff(TextureRect textureRect) {
+        var column = Height / 2;
         var f = new FastTexture(textureRect, Width, Height/4);
         f.Fill(Colors.DarkBlue);
+        var ratio = (float)Width/f.Width;
         for (var x = 0; x < f.Width; x++) {
-            var y = 1f - MassLands.GetValue((int)(x * ((float)Width/f.Width)), column);
+            var y = 1f - MassLands.GetValue((int)(x * ratio), column);
             f.SetPixel(x, (int)(y * f.Height), Colors.White);
         }
         f.Flush();
     }
 
     public void GraphHeight(TextureRect textureRect) {
+        var column = Height / 2;
         var f = new FastTexture(textureRect, Width, Height/4);
         f.Fill(Colors.DarkBlue);
+        var ratio = (float)Width/f.Width;
         for (var x = 0; x < f.Width; x++) {
-            var height = 1f - HeightFalloffGrid.GetValue((int)Mathf.Round(x * ((float)Width/f.Width)), column);
+            var height = 1f - HeightFalloffGrid.GetValue((int)Mathf.Round(x * ratio), column);
             f.SetPixel(x, (int)(height * f.Height), Colors.White);
         }
         f.Flush();

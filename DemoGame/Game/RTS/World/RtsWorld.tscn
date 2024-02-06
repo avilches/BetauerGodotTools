@@ -16341,20 +16341,20 @@ layer_1/tile_data = PackedInt32Array(1835023, 589830, 31, 1835024, 589830, 31, 1
 [node name="TextureRect" type="TextureRect" parent="."]
 offset_left = 561.0
 offset_top = 3.0
-offset_right = 1061.0
-offset_bottom = 503.0
+offset_right = 1561.0
+offset_bottom = 1003.0
 texture = ExtResource("2_afn7b")
 
 [node name="FalloffGraph" type="TextureRect" parent="."]
-offset_left = 24.0
-offset_top = 421.0
-offset_right = 152.0
-offset_bottom = 549.0
+offset_left = 4.0
+offset_top = 1003.0
+offset_right = 132.0
+offset_bottom = 1131.0
 texture = ExtResource("2_afn7b")
 
 [node name="HeightGraph" type="TextureRect" parent="."]
-offset_left = 32.0
-offset_top = 596.0
-offset_right = 160.0
-offset_bottom = 724.0
+offset_left = 5.0
+offset_top = 1253.0
+offset_right = 133.0
+offset_bottom = 1381.0
 texture = ExtResource("2_afn7b")

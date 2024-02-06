@@ -11,7 +11,6 @@ using Veronenger.RTS.Assets.Trees;
 using Betauer.Core;
 using Betauer.Nodes;
 using Betauer.Core.Collision.Spatial2D;
-using Betauer.Core.Data;
 using Betauer.Core.Image;
 using Betauer.TileSet.Image;
 using Betauer.TileSet.Terrain;
@@ -37,13 +36,14 @@ public partial class WorldGenerator {
     private const int CellSize = 16;
 
     private const int Layers = 2;
-    private const int Width = 500;
-    private const int Height = 400;
+    private const int Width = 1000;
+    private const int Height = 1000;
     
     public enum ViewMode {
         Massland,
         Height,
         HeightFalloff,
+        Temperature,
         Humidity,
         Terrain,
     }
@@ -158,13 +158,17 @@ public partial class WorldGenerator {
             BiomeGenerator.FillFalloffGrid(FastFinalMap);
         } else if (CurrentViewMode == ViewMode.Humidity) {
             BiomeGenerator.FillHumidityNoise(FastFinalMap);
+        } else if (CurrentViewMode == ViewMode.Temperature) {
+            BiomeGenerator.FillTemperature(FastFinalMap);
         } else if (CurrentViewMode == ViewMode.Terrain) {
+            BiomeGenerator.FillTerrain(FastFinalMap);
+            /*
             TileMap.Execute((t, x, y) => {
                 // canvas.TopLevel = true;
                 var biome = BiomeGenerator.BiomeCells[y, x];
                 FastFinalMap.SetPixel(x, y, biome.Biome.Color, false);
             });
-            FastFinalMap.Flush();
+            */
         }
     }
     

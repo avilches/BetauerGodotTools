@@ -161,6 +161,9 @@ public partial class RtsWorld : Node, IInjectable {
 				.ToggleButton("Humidity", () => WorldGenerator.CurrentViewMode == WorldGenerator.ViewMode.Humidity, (v) => {
 					WorldGenerator.Draw(WorldGenerator.ViewMode.Humidity);
 				}, viewGroup)
+				.ToggleButton("Temp", () => WorldGenerator.CurrentViewMode == WorldGenerator.ViewMode.Temperature, (v) => {
+					WorldGenerator.Draw(WorldGenerator.ViewMode.Temperature);
+				}, viewGroup)
 				.ToggleButton("Terrain", () => WorldGenerator.CurrentViewMode == WorldGenerator.ViewMode.Terrain, (v) => {
 					WorldGenerator.Draw(WorldGenerator.ViewMode.Terrain);
 				}, viewGroup)
