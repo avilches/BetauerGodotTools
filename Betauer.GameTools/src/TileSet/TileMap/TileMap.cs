@@ -33,17 +33,17 @@ public class TileMap<TTerrain> : TileMap where TTerrain : Enum {
     }
 
     public TTerrain GetTerrainEnum(int x, int y) {
-        return TerrainToEnum(TerrainGrid[y, x]);
+        return TerrainToEnum(TerrainGrid[x, y]);
     }
 
     public void SetTerrain(int x, int y, TTerrain terrain) {
-        TerrainGrid[y, x] = EnumToTerrain(terrain);
+        TerrainGrid[x, y] = EnumToTerrain(terrain);
     }
 
     public void SetTerrainGrid(int x, int y, TTerrain[,] grid) {
-        for (var yy = 0; yy < grid.GetLength(0); yy++) {
-            for (var xx = 0; xx < grid.GetLength(1); xx++) {
-                TerrainGrid[y + yy, x + xx] = EnumToTerrain(grid[yy, xx]);
+        for (var xx = 0; xx < grid.GetLength(0); xx++) {
+            for (var yy = 0; yy < grid.GetLength(1); yy++) {
+                TerrainGrid[x + xx, y + yy] = EnumToTerrain(grid[xx, yy]);
             }
         }
     }
@@ -110,19 +110,19 @@ public class TileMap {
         Height = height;
         Layers = layers;
         TileInfoGrid = new TileInfo[layers][,];
-        TerrainGrid = new int[height, width];
-        TileId = new int[height, width];
+        TerrainGrid = new int[width, height];
+        TileId = new int[width, height];
         _defaultTerrain = defaultTerrain;
         
-        for (var yy = 0; yy < height; yy++) {
-            for (var xx = 0; xx < width; xx++) {
-                TerrainGrid[yy, xx] = _defaultTerrain;
-                TileId[yy, xx] = -1;
+        for (var xx = 0; xx < width; xx++) {
+            for (var yy = 0; yy < height; yy++) {
+                TerrainGrid[xx, yy] = _defaultTerrain;
+                TileId[xx, yy] = -1;
             }
         }
 
         for (var layer = 0; layer < Layers; layer++) {
-            TileInfoGrid[layer] = new TileInfo[height, width];
+            TileInfoGrid[layer] = new TileInfo[width, height];
         }
     }
 
@@ -131,7 +131,7 @@ public class TileMap {
     }
     
     public ref TileInfo GetCellInfoRef(int layer, int x, int y) {
-        return ref TileInfoGrid[layer][y, x];
+        return ref TileInfoGrid[layer][x, y];
     }
 
     public void Clear() {
@@ -139,16 +139,16 @@ public class TileMap {
     }
 
     public void Clear(int x, int y, int width, int height) {
-        for (var yy = 0; yy < height; yy++) {
-            for (var xx = 0; xx < width; xx++) {
-                TerrainGrid[yy, xx] = _defaultTerrain;
-                TileId[yy, xx] = -1;
+        for (var xx = 0; xx < width; xx++) {
+            for (var yy = 0; yy < height; yy++) {
+                TerrainGrid[xx, yy] = _defaultTerrain;
+                TileId[xx, yy] = -1;
             }
         }
         for (var layer = 0; layer < Layers; layer++) {
-            for (var yy = 0; yy < height; yy++) {
-                for (var xx = 0; xx < width; xx++) {
-                    ref var currentInfo = ref TileInfoGrid[layer][y + yy, x + xx];
+            for (var xx = 0; xx < width; xx++) {
+                for (var yy = 0; yy < height; yy++) {
+                    ref var currentInfo = ref TileInfoGrid[layer][x + xx, y + yy];
                     currentInfo.Clear();
                 }
             }
@@ -159,33 +159,33 @@ public class TileMap {
         TerrainGrid[y, x] = _defaultTerrain;
         TileId[y, x] = -1;
         for (var layer = 0; layer < Layers; layer++) {
-            ref var currentInfo = ref TileInfoGrid[layer][y, x];
+            ref var currentInfo = ref TileInfoGrid[layer][x, y];
             currentInfo.Clear();
         }
     }
 
     public int GetTerrain(int x, int y) {
-        return TerrainGrid[y, x];
+        return TerrainGrid[x, y];
     }
 
     public bool SetTerrain(int x, int y, int terrain) {
-        if (TerrainGrid[y, x] == terrain) return false;
-        TerrainGrid[y, x] = terrain;
+        if (TerrainGrid[x, y] == terrain) return false;
+        TerrainGrid[x, y] = terrain;
         return true;
     }
 
     public void SetTerrainGrid(int x, int y, int[,] grid) {
-        for (var yy = 0; yy < grid.GetLength(0); yy++) {
-            for (var xx = 0; xx < grid.GetLength(1); xx++) {
-                TerrainGrid[y + yy, x + xx] = grid[yy, xx];
+        for (var xx = 0; xx < grid.GetLength(0); xx++) {
+            for (var yy = 0; yy < grid.GetLength(1); yy++) {
+                TerrainGrid[x + xx, y + yy] = grid[xx, yy];
             }
         }
     }
 
     public void SetTerrainGrid(int x, int y, int width, int height, int terrain) {
-        for (var yy = 0; yy < height; yy++) {
-            for (var xx = 0; xx < width; xx++) {
-                TerrainGrid[y + yy, x + xx] = terrain;
+        for (var xx = 0; xx < width; xx++) {
+            for (var yy = 0; yy < height; yy++) {
+                TerrainGrid[x + xx, y + yy] = terrain;
             }
         }
     }
@@ -205,7 +205,7 @@ public class TileMap {
     }
 
     public bool SetAtlasCoords(int layer, int sourceId, int x, int y, Vector2I? atlasCoords) {
-        ref var currentInfo = ref TileInfoGrid[layer][y, x];
+        ref var currentInfo = ref TileInfoGrid[layer][x, y];
         if (currentInfo.AtlasCoords == atlasCoords && currentInfo.SourceId == sourceId) return false;
         currentInfo.AtlasCoords = atlasCoords;
         currentInfo.SourceId = sourceId;
@@ -213,27 +213,27 @@ public class TileMap {
     }
 
     public int GetTileId(int x, int y) {
-        return TileId[y, x];
+        return TileId[x, y];
     }
 
     public bool SetTileId(int x, int y, int tileId) {
-        if (TileId[y, x] == tileId) return false;
-        TileId[y, x] = tileId;
+        if (TileId[x, y] == tileId) return false;
+        TileId[x, y] = tileId;
         return true;
     }
 
     public void SetTileIdGrid(int layer, int x, int y, int width, int height, int tileId) {
-        for (var yy = 0; yy < height; yy++) {
-            for (var xx = 0; xx < width; xx++) {
-                TileId[y, x] = tileId;
+        for (var xx = 0; xx < width; xx++) {
+            for (var yy = 0; yy < height; yy++) {
+                TileId[x, y] = tileId;
             }
         }
     }
 
     public void SetTileIdGrid(int layer, int x, int y, int[,] tileIdGrid) {
-        for (var yy = 0; yy < tileIdGrid.GetLength(0); yy++) {
-            for (var xx = 0; xx < tileIdGrid.GetLength(1); xx++) {
-                TileId[y, x] = tileIdGrid[yy, xx];
+        for (var xx = 0; xx < tileIdGrid.GetLength(0); xx++) {
+            for (var yy = 0; yy < tileIdGrid.GetLength(1); yy++) {
+                TileId[x, y] = tileIdGrid[xx, yy];
             }
         }
     }
@@ -258,8 +258,8 @@ public class TileMap {
     }
 
     public void Execute(Action<TileMap, int, int> action) {
-        for (var y = 0; y < Height; y++) {
-            for (var x = 0; x < Width; x++) {
+        for (var x = 0; x < Width; x++) {
+            for (var y = 0; y < Height; y++) {
                 action(this, x, y);
             }
         }
@@ -267,8 +267,8 @@ public class TileMap {
 
     public void Execute(Action<TileMap, int, int, int> action) {
         for (var layer = 0; layer < Layers; layer++) {
-            for (var y = 0; y < Height; y++) {
-                for (var x = 0; x < Width; x++) {
+            for (var x = 0; x < Width; x++) {
+                for (var y = 0; y < Height; y++) {
                     action(this, layer, x, y);
                 }
             }
