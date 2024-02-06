@@ -307,12 +307,24 @@ public static class Functions {
         return Math.Min(valueX, valueY);
     }
     
-    // Return a value from 0 to 1, where 1 is when the point x,y is in the center of the ellipse and 0 when it's in the border
+    // Return a value from 0 to 1, where 1 is when the point where x,y is in the center of the ellipse (0,0) and it goes
+    // to 0 gradually when the coords reach the border (radius rx, ry)
     public static float GetEllipse(float rx, float ry, float x, float y) {
-        return Mathf.Clamp(1 - ((x * x) / (rx * rx) + (y * y) / (float)(ry * ry)), 0f, 1f);
+        return Mathf.Clamp(1 - ((x * x) / (rx * rx) + (y * y) / (ry * ry)), 0f, 1f);
     }
+    
+    // Return a value from 0 to 1, where 1 is when the point where x,y is in the center of the ellipse (0,0) and it goes
+    // to 0 gradually when the coords reach the border (radius rx, ry)
+    public static float GetEllipseRotated(float rx, float ry, float rotation, float x, float y) {
+        var cos = Mathf.Cos(rotation);
+        var sin = Mathf.Sin(rotation);
+        var rotatedX = cos * x + sin * y;
+        var rotatedY = -sin * x + cos * y;
+        return GetEllipse(rx, ry, rotatedX, rotatedY);
+    }    
 
-    // Return a value from 0 to 1, where 1 is when the point x,y is in the center of the circle and 0 when it's in the border
+    // Return a value from 0 to 1, where 1 is when the point where x,y is in the center of the circle (0,0) and it goes
+    // to 0 gradually when the coords reach the border (radius rx, ry)
     public static float GetCircle(float r, float x, float y) {
         return Math.Clamp(1 - ((x * x + y * y) / (r * r)), 0f, 1f);
     }
