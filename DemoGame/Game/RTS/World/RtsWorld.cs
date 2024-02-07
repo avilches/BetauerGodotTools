@@ -141,7 +141,10 @@ public partial class RtsWorld : Node, IInjectable {
 	private void Init() {
 		CameraGameObject.Configure(Camera);
 		CameraController.Camera2D.Zoom = new Vector2(CameraGameObject.Zoom, CameraGameObject.Zoom);
-		// CameraController.Camera2D.Position = CameraGameObject.Position;
+		CameraController.Camera2D.Position = CameraGameObject.Position;
+
+		CameraController.Camera2D.Zoom = new Vector2(1f, 1f);
+		CameraController.Camera2D.Position = new Vector2(87, 130);
 		_fsm.Send(RtsTransition.Idle);
 	}
 	

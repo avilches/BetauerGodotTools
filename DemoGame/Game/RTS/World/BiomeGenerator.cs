@@ -38,8 +38,11 @@ public class BiomeGenerator {
     public int Height { get; private set; }
 
     // Massland is not normalized
+    public int LandWidthCount { get; set; }
+    public int LandHeightCount { get; set; }
     public float MasslandBias { get; set; }
     public float MasslandOffset { get; set; }
+    // public float HeightBias { get; set; }
     public Func<float, float, float> RampFunc;
     public DataGrid MassLands { get; private set; }
     public float SeaLevel { get; set; }
@@ -70,45 +73,45 @@ public class BiomeGenerator {
 
     public BiomeGenerator() {
         LandBiomesConfig = """
-                      :GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG:
-                      :GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG:
-                      :GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG:
-                      :GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG:
-                      :GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG:
-                      :GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG:
-                      :GGGGGGGGGGGGGGGGrrGGGGGGGGGGGGGGGGGGGGGGGG:
-                      :GGGGGGGGGGGGGGGGrrGGGGGGGGGGGGGGGGGGGGGGGG:
-                      :rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr:
-                      :rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr:
-                      :rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr:
-                      :FFrrFFrrFFFFrrwwrr!!!!!!!!!!rrrrrrrrrrrrrr:
-                      :FFrrFFrrFFFFrrwwrr!!!!!!!!!!rrrrrrrrrrrrrr:
-                      :FFrrFFrrFFFFrrwwrr!!!!!!!!!!rrrrrrrrrrrrrr:
-                      :FFFFFFFFFFFFFFwwww!!!!!!!!!!**************:
-                      :FFFFFFFFFFFFFFwwww!!!!!!!!!!**************:
-                      :FFFFFFFFFFFFFFwwww!!!!!!!!!!**************:
-                      :FFFFFFFFFFFFFFwwww!!!!!!!!!!**************:
-                      :FFFFFFFFFFFFFFwwww!!!!!!!!!!**************:
-                      :FFFFFFFFFFFFFFw!ww!!!w!!!!!!**************:
-                      :FFFFFFFFFFFFFFw!ww!!!w!!!!!!**************:
-                      :FFFFFFFFFFFFFFw!ww!!!w!!!!!!**************:
-                      :FFFFFFFFFFFFFFwwww!!!!!!!!!!******!!***!**:
-                      :FFFFFFFFFFFFFFwwww!!!!!!!!!!******!!***!**:
-                      :DDDDDDDDDDDDDDDDDD!!!!!!!!!!******!!******:
-                      :DDDDDDDDDDDDwwwwww!!!!!!!!!!**************:
-                      :DDDDDDDDDDDDwwwwww!!!!!!**!!**************:
-                      :DDDDDDDDDDDDwbwwww!!!!!!**!!**************:
-                      :bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb:
-                      """;
+                           :GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG:
+                           :GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG:
+                           :GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG:
+                           :GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG:
+                           :GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG:
+                           :GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG:
+                           :GGGGGGGGGGGGGGGGrrGGGGGGGGGGGGGGGGGGGGGGGG:
+                           :GGGGGGGGGGGGGGGGrrGGGGGGGGGGGGGGGGGGGGGGGG:
+                           :rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr:
+                           :rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr:
+                           :rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr:
+                           :FFrrFFrrFFFFrrwwrr!!!!!!!!!!rrrrrrrrrrrrrr:
+                           :FFrrFFrrFFFFrrwwrr!!!!!!!!!!rrrrrrrrrrrrrr:
+                           :FFrrFFrrFFFFrrwwrr!!!!!!!!!!rrrrrrrrrrrrrr:
+                           :FFFFFFFFFFFFFFwwww!!!!!!!!!!**************:
+                           :FFFFFFFFFFFFFFwwww!!!!!!!!!!**************:
+                           :FFFFFFFFFFFFFFwwww!!!!!!!!!!**************:
+                           :FFFFFFFFFFFFFFwwww!!!!!!!!!!**************:
+                           :FFFFFFFFFFFFFFwwww!!!!!!!!!!**************:
+                           :FFFFFFFFFFFFFFw!ww!!!w!!!!!!**************:
+                           :FFFFFFFFFFFFFFw!ww!!!w!!!!!!**************:
+                           :FFFFFFFFFFFFFFw!ww!!!w!!!!!!**************:
+                           :FFFFFFFFFFFFFFwwww!!!!!!!!!!******!!***!**:
+                           :FFFFFFFFFFFFFFwwww!!!!!!!!!!******!!***!**:
+                           :DDDDDDDDDDDDDDDDDD!!!!!!!!!!******!!******:
+                           :DDDDDDDDDDDDwwwwww!!!!!!!!!!**************:
+                           :DDDDDDDDDDDDwwwwww!!!!!!**!!**************:
+                           :DDDDDDDDDDDDwbwwww!!!!!!**!!**************:
+                           :bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb:
+                           """;
         
         SeaBiomesConfig = """
-                      :..........................................:
-                      :..........................................:
-                      :oooooooooooooooo..........................:
-                      :oooooooooooooooooooooooooooo....oooooooooo:
-                      :oooooooooooooooooooooooooooooo..oooooooooo:
-                      :oooooooooo..oooooooooooooooooooooooooooooo:
-                      """;
+                          :..........................................:
+                          :..........................................:
+                          :oooooooooooooooo..........................:
+                          :oooooooooooooooooooooooooooo....oooooooooo:
+                          :oooooooooooooooooooooooooooooo..oooooooooo:
+                          :oooooooooo..oooooooooooooooooooooooooooooo:
+                          """;
    
         new Biome<BiomeType>[] {
             new() { Char = 'G', Type = BiomeType.Glacier, Color = Colors.White },
@@ -143,7 +146,10 @@ public class BiomeGenerator {
         MassLands = new DataGrid(width, height, 0f);
         MasslandBias = 0.35f;
         MasslandOffset = 0.99f;
-        SeaLevel = 0.15f;
+        LandWidthCount = 8;
+        LandHeightCount = 3;
+        SeaLevel = 0.15f;  // 0.06
+        // HeightBias = 0.5f; // 0.3f
         RampFunc = (float h, float f) => (((h + 0.5f) / 2f) + 0.15f) * f;
         HumidityNormalizedGrid = new DataGrid(width, height, 0f);
         HeightFalloffGrid = new DataGrid(width, height, 0f);
@@ -194,17 +200,12 @@ public class BiomeGenerator {
         }
     }
 
-    public enum OverlapType {
-        Simple,
-        MaxHeight,
-    }
-
     public void Generate() {
         _random = new Random(HeightNoise.Seed);
         var sa = Stopwatch.StartNew();
         var s = Stopwatch.StartNew();
         MassLands.Fill(0);
-        GenerateIslandsGrid(true, OverlapType.MaxHeight);
+        IslandGenerator.GenerateIslandsGrid(MassLands, LandWidthCount, LandHeightCount, _random, true, IslandGenerator.OverlapType.MaxHeight, new BiasGainInterpolation(MasslandBias, MasslandOffset));
         Console.WriteLine($"Generate1 masslands:{s.ElapsedMilliseconds}ms");
         s.Restart();
 
@@ -218,6 +219,7 @@ public class BiomeGenerator {
             }
         });
         HeightFalloffGrid.Normalize();
+        // HeightFalloffGrid.Transform(val=> Functions.Bias(val, HeightBias));
         Console.WriteLine($"Generate2 normalize massland:{s.ElapsedMilliseconds}ms");
         s.Restart();
 
@@ -246,6 +248,10 @@ public class BiomeGenerator {
             }
             // Console.WriteLine();
         }
+        RiverGenerator.FindRiverStartPoints(BiomeCells, 5, 100).ForEach(point => {
+            var cell = BiomeCells[(int)point.X, (int)point.Y];
+            cell.Biome = Biomes[BiomeType.Ocean];
+        });
         Console.WriteLine($"Generate6:{s.ElapsedMilliseconds}ms");
         s.Restart();
 
@@ -253,69 +259,6 @@ public class BiomeGenerator {
             .ToDictionary(g => g.Key, g => g.Count());
         dict.ForEach(pair => Console.WriteLine(pair.Key + ": " + pair.Value));
         Console.WriteLine($"Generate Total:{sa.ElapsedMilliseconds}ms");
-    }
-
-    private int gridWidth = 3;
-    private int gridHeight = 3;
-
-    // Generate 9 islands in 3x3 cells
-    public void GenerateIslandsGrid(bool up, OverlapType overlap) {
-        var cellWidth = Width / gridWidth;
-        var borderWidth = cellWidth / 4;
-        var cellHeight = Height / gridHeight;
-        var borderHeight = cellHeight / 4;
-
-        for (var i = 0; i < gridWidth; i++) {
-            for (var j = 0; j < gridHeight; j++) {
-                // Generate a random position within the cell for the circle's center
-                var cellXStart = i * cellWidth;
-                var offset = 0;
-                if (i == 0) {
-                    offset = borderWidth;
-                } else if (i == gridWidth - 1) {
-                    offset = -borderWidth;
-                }
-                var cx = _random.Next(cellXStart + offset, cellXStart + cellWidth + offset);
-
-                var cellYStart = j * cellHeight;
-                if (j == 0) {
-                    offset = borderHeight;
-                } else if (j == gridHeight - 1) {
-                    offset = -borderHeight;
-                } else {
-                    offset = 0;
-                }
-                var cy = _random.Next(cellYStart + offset, cellYStart + cellHeight + offset);
-
-                // Calculate the maximum possible radius without going out of the grid
-                var maxRadius = Math.Min(Math.Min(cx, Width - cx), Math.Min(cy, Height - cy));
-                var rx = maxRadius;
-                var ry = rx * _random.Range(0.6f, 0.9f);
-                var rotation = _random.Range(0, Mathf.Pi * 2);
-                AddIsland(MassLands, cx, cy, rx, (int)ry, rotation, overlap, new BiasGainInterpolation(MasslandBias, MasslandOffset), up);
-            }
-        }
-    }
-
-    public void AddIsland(DataGrid Data, int cx, int cy, int rx, int ry, float rotation, OverlapType overlap, IInterpolation? easing = null, bool up = true) {
-        Draw.GradientEllipseRotated(cx, cy, rx, ry, rotation, (x, y, value) => {
-            if (x < 0 || y < 0 || x >= Width || y >= Height) return;
-            var heightValue = value;
-
-            if (up) {
-                if (overlap == OverlapType.Simple) {
-                    Data.Data[x, y] += heightValue;
-                } else if (overlap == OverlapType.MaxHeight) {
-                    Data.Data[x, y] = Math.Max(Data.Data[x, y], heightValue);
-                }
-            } else {
-                if (overlap == OverlapType.Simple) {
-                    Data.Data[x, y] -= heightValue;
-                } else if (overlap == OverlapType.MaxHeight) {
-                    Data.Data[x, y] = Math.Min(Data.Data[x, y], -heightValue);
-                }
-            }
-        }, easing);
     }
 
     private float CalculateTemperature(int y, int height, float heightNormalized) {
@@ -397,45 +340,100 @@ public class BiomeGenerator {
     }
 }
 
-public class RiverGenerator {
-    public List<Vector2> FindRiverStartPoints(BiomeCell[,] heightMap, int numberOfPoints, float minDistance) {
-        int width = heightMap.GetLength(0);
-        int height = heightMap.GetLength(1);
-        List<Vector2> startPoints = new List<Vector2>();
+public class IslandGenerator {
+    public enum OverlapType {
+        Simple,
+        MaxHeight,
+    }
 
-        // Lista para almacenar puntos con sus alturas
-        List<KeyValuePair<Vector2, float>> pointsWithHeight = new List<KeyValuePair<Vector2, float>>();
+    public static void GenerateIslandsGrid(DataGrid masslandGrid, int landWidthCount, int landHeightCount, Random random, bool up, OverlapType overlap, IInterpolation easing) {
+        var width = masslandGrid.Width;
+        var height = masslandGrid.Height;
+        var cellWidth = width / landWidthCount;
+        var borderWidth = cellWidth / 4;
+        var cellHeight = height / landHeightCount;
+        var borderHeight = cellHeight / 4;
 
-        // Recorrer el mapa de alturas y almacenar cada punto con su altura
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
-                pointsWithHeight.Add(new KeyValuePair<Vector2, float>(new Vector2(x, y), heightMap[x, y].Height));
+        for (var i = 0; i < landWidthCount; i++) {
+            for (var j = 0; j < landHeightCount; j++) {
+                // Generate a random position within the cell for the circle's center
+                var cellXStart = i * cellWidth;
+                var offset = 0;
+                if (i == 0) {
+                    offset = borderWidth;
+                } else if (i == landWidthCount - 1) {
+                    offset = -borderWidth;
+                }
+                var cx = random.Next(cellXStart + offset, cellXStart + cellWidth + offset);
+
+                var cellYStart = j * cellHeight;
+                if (j == 0) {
+                    offset = borderHeight;
+                } else if (j == landHeightCount - 1) {
+                    offset = -borderHeight;
+                } else {
+                    offset = 0;
+                }
+                var cy = random.Next(cellYStart + offset, cellYStart + cellHeight + offset);
+
+                // Calculate the maximum possible radius without going out of the grid
+                var rx = Math.Min(Math.Min(cx, width - cx), Math.Min(cy, height - cy));
+                var ry = rx * random.Range(0.6f, 0.9f);
+                var rotation = random.Range(0, Mathf.Pi * 2);
+                AddIsland(masslandGrid, cx, cy, rx, (int)ry, rotation, overlap, easing, up);
             }
         }
+    }
 
-        // Ordenar los puntos por altura, de mayor a menor
-        pointsWithHeight.Sort((pair1, pair2) => pair2.Value.CompareTo(pair1.Value));
+    public static void AddIsland(DataGrid data, int cx, int cy, int rx, int ry, float rotation, OverlapType overlap, IInterpolation? easing = null, bool up = true) {
+        Draw.GradientEllipseRotated(cx, cy, rx, ry, rotation, (x, y, value) => {
+            if (x < 0 || y < 0 || x >= data.Width || y >= data.Height) return;
+            var heightValue = value;
 
-        // Seleccionar puntos de inicio asegurando una distancia mínima entre ellos
-        foreach (var point in pointsWithHeight) {
-            if (startPoints.Count < numberOfPoints) {
-                bool isFarEnough = true;
-
-                foreach (var startPoint in startPoints) {
-                    if (startPoint.DistanceTo(point.Key) < minDistance) {
-                        isFarEnough = false;
-                        break;
-                    }
-                }
-
-                if (isFarEnough) {
-                    startPoints.Add(point.Key);
+            if (up) {
+                if (overlap == OverlapType.Simple) {
+                    data.Data[x, y] += heightValue;
+                } else if (overlap == OverlapType.MaxHeight) {
+                    data.Data[x, y] = Math.Max(data.Data[x, y], heightValue);
                 }
             } else {
-                break;
+                if (overlap == OverlapType.Simple) {
+                    data.Data[x, y] -= heightValue;
+                } else if (overlap == OverlapType.MaxHeight) {
+                    data.Data[x, y] = Math.Min(data.Data[x, y], -heightValue);
+                }
+            }
+        }, easing);
+    }
+    
+}
+
+public class RiverGenerator {
+    public static List<Vector2> FindRiverStartPoints(BiomeCell[,] biomeCells, int numberOfPoints, float minDistance) {
+        var width = biomeCells.GetLength(0);
+        var height = biomeCells.GetLength(1);
+        var highestPoints = new List<Vector2>();
+        var pointsWithHeight = new List<KeyValuePair<Vector2, float>>();
+
+        for (var x = 0; x < width; x++) {
+            for (var y = 0; y < height; y++) {
+                if (biomeCells[x, y].Height > 0.6f) {
+                    pointsWithHeight.Add(new KeyValuePair<Vector2, float>(new Vector2(x, y), biomeCells[x, y].Height));
+                }
             }
         }
 
-        return startPoints;
+        // Sort points by height
+        pointsWithHeight.Sort((pair1, pair2) => pair2.Value.CompareTo(pair1.Value));
+
+        // Choose the points with a minimum distance between them
+        foreach (var point in pointsWithHeight) {
+            if (highestPoints.Count >= numberOfPoints) break;
+            if (highestPoints.All(startPoint => startPoint.DistanceTo(point.Key) > minDistance)) {
+                highestPoints.Add(point.Key);
+            }
+        }
+
+        return highestPoints;
     }
 }
