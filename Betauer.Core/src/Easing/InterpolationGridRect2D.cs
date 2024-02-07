@@ -32,8 +32,8 @@ public class InterpolationGridRect2D : IInterpolationGrid2D {
     /// <param name="centerX"></param>
     /// <param name="centerY"></param>
     public void SetRelativeCenter(float centerX, float centerY) {
-        CenterX = (int)Mathf.Round(Math.Clamp(centerX, 0f, 1f) * Width);
-        CenterY = (int)Mathf.Round(Math.Clamp(centerY, 0f, 1f) * Height);
+        CenterX = Mathf.RoundToInt(Math.Clamp(centerX, 0f, 1f) * Width);
+        CenterY = Mathf.RoundToInt(Math.Clamp(centerY, 0f, 1f) * Height);
     }
 
     public void SetCenter(int x, int y) {

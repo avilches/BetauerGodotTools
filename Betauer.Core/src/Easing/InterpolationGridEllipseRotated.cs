@@ -72,15 +72,15 @@ public class InterpolationGridEllipseRotated : IInterpolationGrid2D {
         _radiiX = RadiusX * RadiusX;
         _radiiY = RadiusY * RadiusY;
         // Calculate the bounding box of the rotated ellipse
-        Width = (int)Mathf.Round(RadiusX * Math.Abs(_cos) + RadiusY * Math.Abs(_sin)) * 2;
-        Height = (int)Mathf.Round(RadiusX * Math.Abs(_sin) + RadiusY * Math.Abs(_cos)) * 2;
+        Width = Mathf.RoundToInt(RadiusX * Math.Abs(_cos) + RadiusY * Math.Abs(_sin)) * 2;
+        Height = Mathf.RoundToInt(RadiusX * Math.Abs(_sin) + RadiusY * Math.Abs(_cos)) * 2;
 
         // Calculate the bounding box of the rotated ellipse
         // var a = Math.Pow(RadiusX * _cos, 2) + Math.Pow(RadiusY * _sin, 2);
         // var b = 2 * (RadiusX * RadiusY * _sin * _cos);
         // var c = Math.Pow(RadiusX * _sin, 2) + Math.Pow(RadiusY * _cos, 2);
-        // Width = (int)Math.Round(2 * Math.Sqrt(a + b + c));
-        // Height = (int)Math.Round(2 * Math.Sqrt(a - b + c));
+        // Width = Mathf.RoundToInt(2 * Math.Sqrt(a + b + c));
+        // Height = Mathf.RoundToInt(2 * Math.Sqrt(a - b + c));
     }
 
     public float Get(int x, int y) {

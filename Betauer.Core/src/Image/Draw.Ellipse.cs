@@ -1,6 +1,6 @@
 using System;
 using Betauer.Core.Easing;
-using Godot;
+using static Godot.Mathf;
 
 namespace Betauer.Core.Image;
 
@@ -18,10 +18,10 @@ public static partial class Draw {
         // For region 1
         while (dx < dy) {
             // Print points based on 4-way symmetry
-            onPixel((int)Mathf.Round(x + cx), (int)Mathf.Round(y + cy));
-            onPixel((int)Mathf.Round(-x + cx), (int)Mathf.Round(y + cy));
-            onPixel((int)Mathf.Round(x + cx), (int)Mathf.Round(-y + cy));
-            onPixel((int)Mathf.Round(-x + cx), (int)Mathf.Round(-y + cy));
+            onPixel(RoundToInt(x + cx), RoundToInt(y + cy));
+            onPixel(RoundToInt(-x + cx), RoundToInt(y + cy));
+            onPixel(RoundToInt(x + cx), RoundToInt(-y + cy));
+            onPixel(RoundToInt(-x + cx), RoundToInt(-y + cy));
             // Checking and updating value of
             // decision parameter based on algorithm
             if (d1 < 0) {
@@ -45,10 +45,10 @@ public static partial class Draw {
         // Plotting points of region 2
         while (y >= 0) {
             // printing points based on 4-way symmetry
-            onPixel((int)Mathf.Round(x + cx), (int)Mathf.Round(y + cy));
-            onPixel((int)Mathf.Round(-x + cx), (int)Mathf.Round(y + cy));
-            onPixel((int)Mathf.Round(x + cx), (int)Mathf.Round(-y + cy));
-            onPixel((int)Mathf.Round(-x + cx), (int)Mathf.Round(-y + cy));
+            onPixel(RoundToInt(x + cx), RoundToInt(y + cy));
+            onPixel(RoundToInt(-x + cx), RoundToInt(y + cy));
+            onPixel(RoundToInt(x + cx), RoundToInt(-y + cy));
+            onPixel(RoundToInt(-x + cx), RoundToInt(-y + cy));
 
             // Checking and updating parameter
             // value based on algorithm
@@ -67,25 +67,25 @@ public static partial class Draw {
     }
 
     public static void EllipseRotated(int cx, int cy, int rx, int ry, float rotation, Action<int, int> onPixel) {
-        var cosTheta = Mathf.Cos(rotation);
-        var sinTheta = Mathf.Sin(rotation);
+        var cosTheta = Cos(rotation);
+        var sinTheta = Sin(rotation);
 
         // Calculate the approximate perimeter of the ellipse
-        var perimeter = Mathf.Pi * (3 * (rx + ry) - Mathf.Sqrt((3 * rx + ry) * (rx + 3 * ry)));
+        var perimeter = Pi * (3 * (rx + ry) - Sqrt((3 * rx + ry) * (rx + 3 * ry)));
 
         // Calculate the number of points we want to use to draw the ellipse
         var numPoints = (int)Math.Max(100, perimeter);
 
         for (var i = 0; i < numPoints; i++) {
-            var theta = 2 * Mathf.Pi * i / numPoints;
+            var theta = 2 * Pi * i / numPoints;
 
             // Calculate the point on the ellipse before rotation
-            var x = rx * Mathf.Cos(theta);
-            var y = ry * Mathf.Sin(theta);
+            var x = rx * Cos(theta);
+            var y = ry * Sin(theta);
 
             // Rotate the point
-            var rotatedX = cx + (int)Mathf.Round(x * cosTheta - y * sinTheta);
-            var rotatedY = cy + (int)Mathf.Round(x * sinTheta + y * cosTheta);
+            var rotatedX = cx + RoundToInt(x * cosTheta - y * sinTheta);
+            var rotatedY = cy + RoundToInt(x * sinTheta + y * cosTheta);
 
             onPixel(rotatedX, rotatedY);
         }
@@ -121,10 +121,10 @@ public static partial class Draw {
         // For region 1
         while (dx < dy) {
             // Print points based on 4-way symmetry
-            Line((int)Mathf.Round(x + cx), (int)Mathf.Round(y + cy),
-                (int)Mathf.Round(-x + cx), (int)Mathf.Round(y + cy), 1, onPixel);
-            Line((int)Mathf.Round(x + cx), (int)Mathf.Round(-y + cy),
-                (int)Mathf.Round(-x + cx), (int)Mathf.Round(-y + cy), 1, onPixel);
+            Line(RoundToInt(x + cx), RoundToInt(y + cy),
+                RoundToInt(-x + cx), RoundToInt(y + cy), 1, onPixel);
+            Line(RoundToInt(x + cx), RoundToInt(-y + cy),
+                RoundToInt(-x + cx), RoundToInt(-y + cy), 1, onPixel);
             // Checking and updating value of
             // decision parameter based on algorithm
             if (d1 < 0) {
@@ -148,10 +148,10 @@ public static partial class Draw {
         // Plotting points of region 2
         while (y >= 0) {
             // printing points based on 4-way symmetry
-            Line((int)Mathf.Round(x + cx), (int)Mathf.Round(y + cy),
-                (int)Mathf.Round(-x + cx), (int)Mathf.Round(y + cy), 1, onPixel);
-            Line((int)Mathf.Round(x + cx), (int)Mathf.Round(-y + cy),
-                (int)Mathf.Round(-x + cx), (int)Mathf.Round(-y + cy), 1, onPixel);
+            Line(RoundToInt(x + cx), RoundToInt(y + cy),
+                RoundToInt(-x + cx), RoundToInt(y + cy), 1, onPixel);
+            Line(RoundToInt(x + cx), RoundToInt(-y + cy),
+                RoundToInt(-x + cx), RoundToInt(-y + cy), 1, onPixel);
 
             // Checking and updating parameter
             // value based on algorithm
@@ -175,8 +175,8 @@ public static partial class Draw {
         var radiix = rx * rx;
         var radiiy = ry * ry;
         // Calculate the bounding box of the rotated ellipse
-        var width = (int)Math.Round(rx * Math.Abs(cos) + ry * Math.Abs(sin));
-        var height = (int)Math.Round(rx * Math.Abs(sin) + ry * Math.Abs(cos));
+        var width = RoundToInt(rx * Math.Abs(cos) + ry * Math.Abs(sin));
+        var height = RoundToInt(rx * Math.Abs(sin) + ry * Math.Abs(cos));
 
         // Adjust the loop to iterate over the bounding box
         for (var x = -width; x <= width; x++) {
@@ -194,7 +194,7 @@ public static partial class Draw {
         // Loop the x axis from left to right
         for (var x = -rx; x <= rx; x++) {
             // Calculate the height of the ellipse at this x position
-            var height = (int)Math.Round(Math.Sqrt((1 - (x * x) / (double)(rx * rx)) * ry * ry));
+            var height = RoundToInt(Math.Sqrt((1 - (x * x) / (double)(rx * rx)) * ry * ry));
             // Draw a vertical line from -height to height
             for (var y = -height; y <= height; y++) {
                 var pos = Functions.GetEllipse(rx, ry, x, y);
@@ -210,8 +210,8 @@ public static partial class Draw {
         var radiiy = ry * ry;
 
         // Calculate the bounding box of the rotated ellipse
-        var width = (int)Math.Round(rx * Math.Abs(cos) + ry * Math.Abs(sin));
-        var height = (int)Math.Round(rx * Math.Abs(sin) + ry * Math.Abs(cos));
+        var width = RoundToInt(rx * Math.Abs(cos) + ry * Math.Abs(sin));
+        var height = RoundToInt(rx * Math.Abs(sin) + ry * Math.Abs(cos));
 
         // Adjust the loop to iterate over the bounding box
         for (var x = -width; x <= width; x++) {

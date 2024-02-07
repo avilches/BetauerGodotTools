@@ -6,6 +6,7 @@ using Betauer.Core;
 using Betauer.Core.Data;
 using Betauer.Core.Easing;
 using Betauer.Core.Image;
+using Betauer.TileSet.TileMap;
 using Godot;
 using FastNoiseLite = Betauer.Core.Data.FastNoiseLite;
 
@@ -28,7 +29,8 @@ public enum BiomeType {
 }
 
 public class BiomeGenerator {
-    public string BiomeConfig;
+    public string LandBiomesConfig;
+    public string SeaBiomesConfig;
 
     public readonly Dictionary<BiomeType, Biome<BiomeType>> Biomes = new();
 
@@ -40,6 +42,7 @@ public class BiomeGenerator {
     public float MasslandOffset { get; set; }
     public Func<float, float, float> RampFunc;
     public DataGrid MassLands { get; private set; }
+    public float SeaLevel { get; set; }
 
     // This is the noise height, creating mountains and valleys
     public FastNoiseLite HeightNoise { get; } = new();
@@ -52,7 +55,8 @@ public class BiomeGenerator {
     public FastNoiseLite HumidityNoise { get; } = new();
     public DataGrid HumidityNormalizedGrid { get; private set; }
 
-    public FloatGrid<BiomeType> BiomeGrid { get; private set; }
+    public FloatGrid<BiomeType> LandBiomesGrid { get; private set; }
+    public FloatGrid<BiomeType> SeaBiomesGrid { get; private set; }
     public BiomeCell[,] BiomeCells { get; private set; }
 
     private Random _random;
@@ -65,7 +69,7 @@ public class BiomeGenerator {
     }
 
     public BiomeGenerator() {
-        BiomeConfig = """
+        LandBiomesConfig = """
                       :GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG:
                       :GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG:
                       :GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG:
@@ -94,7 +98,10 @@ public class BiomeGenerator {
                       :DDDDDDDDDDDDwwwwww!!!!!!!!!!**************:
                       :DDDDDDDDDDDDwwwwww!!!!!!**!!**************:
                       :DDDDDDDDDDDDwbwwww!!!!!!**!!**************:
-                      :bbbbbbbbbbbbb.bbbbbbbbbbbb..bbbbbbDDbbbbbb:
+                      :bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb:
+                      """;
+        
+        SeaBiomesConfig = """
                       :..........................................:
                       :..........................................:
                       :oooooooooooooooo..........................:
@@ -102,11 +109,11 @@ public class BiomeGenerator {
                       :oooooooooooooooooooooooooooooo..oooooooooo:
                       :oooooooooo..oooooooooooooooooooooooooooooo:
                       """;
-
+   
         new Biome<BiomeType>[] {
             new() { Char = 'G', Type = BiomeType.Glacier, Color = Colors.White },
             new() { Char = 'r', Type = BiomeType.Rock, Color = Color(112, 112, 110) }, // gris
-            new() { Char = 'T', Type = BiomeType.FireDesert, Color = Color(186, 80, 43) }, // rojizo
+            new() { Char = 'F', Type = BiomeType.FireDesert, Color = Color(186, 80, 43) }, // rojizo
             new() { Char = 'D', Type = BiomeType.Desert, Color = Color(231, 164, 84) }, // amarillo mas oscuro
             new() { Char = 'w', Type = BiomeType.Plains, Color = Color(96, 163, 24) }, // verde claro
             new() { Char = '!', Type = BiomeType.Forest, Color = Color(59, 134, 50) }, // verde oscuro
@@ -128,15 +135,16 @@ public class BiomeGenerator {
         Height = height;
         Seed = seed;
 
-        ConfigureBiomeMap(BiomeConfig);
+        ConfigureLandBiomeMap(LandBiomesConfig);
+        ConfigureSeaBiomeMap(SeaBiomesConfig);
 
         BiomeCells = new BiomeCell[height, width];
 
         MassLands = new DataGrid(width, height, 0f);
         MasslandBias = 0.35f;
         MasslandOffset = 0.99f;
-        const float seaLevel = 0.15f; // The higher, the less lakes inside the massland. The lower, more lakes and (maybe) there is no deep ocean around the massland
-        RampFunc = (float h, float f) => (((h + 0.5f) / 2f) + seaLevel) * f;
+        SeaLevel = 0.15f;
+        RampFunc = (float h, float f) => (((h + 0.5f) / 2f) + 0.15f) * f;
         HumidityNormalizedGrid = new DataGrid(width, height, 0f);
         HeightFalloffGrid = new DataGrid(width, height, 0f);
 
@@ -157,16 +165,33 @@ public class BiomeGenerator {
         HumidityNoise.FractalWeightedStrength = 0f;
     }
 
-    public void ConfigureBiomeMap(string biomeMap) {
-        BiomeConfig = biomeMap;
+    public void ConfigureLandBiomeMap(string biomeMap) {
         var charMapping = Biomes.ToDictionary(pair => pair.Value.Char, pair => pair.Value.Type);
-        BiomeGrid = FloatGrid<BiomeType>.Parse(BiomeConfig, charMapping);
+        LandBiomesGrid = FloatGrid<BiomeType>.Parse(biomeMap, charMapping);
+        LandBiomesConfig = biomeMap;
     }
 
-    public Biome<BiomeType> FindBiome(float humidity, float height) {
-        // 1 - height because biomes are configured in the string where the glacier is on top (pos 0) but it's the highest!
-        var biomeType = BiomeGrid.Get(humidity, 1 - height);
-        return Biomes[biomeType];
+    public void ConfigureSeaBiomeMap(string biomeMap) {
+        var charMapping = Biomes.ToDictionary(pair => pair.Value.Char, pair => pair.Value.Type);
+        SeaBiomesGrid = FloatGrid<BiomeType>.Parse(biomeMap, charMapping);
+        SeaBiomesConfig = biomeMap;
+    }
+
+    public Biome<BiomeType> FindBiome(float humidity, float terrainHeight) {
+        // terrainHeight is a value from 0 to 1f. If biomeSeaLevel is 0.15f, then:
+        // 0.15 -    1f is land
+        // 0    - 0.15f is ocean
+        if (terrainHeight >= SeaLevel) {
+            // Land
+            var landHeight = (terrainHeight - SeaLevel) / (1 - SeaLevel);
+            var biomeType = LandBiomesGrid.Get(humidity, 1 - landHeight); // (1-height) because the highest values (like the glacier) are located in 0 pos
+            return Biomes[biomeType];
+        } else {
+            // Sea
+            var seaHeight = terrainHeight / SeaLevel; // transform the value from 0-0.15f in a 0..1f value
+            var biomeType = SeaBiomesGrid.Get(humidity, 1 - seaHeight); // (1-height) because the highest values (like the glacier) are located in 0 pos
+            return Biomes[biomeType];
+        }
     }
 
     public enum OverlapType {
@@ -208,6 +233,7 @@ public class BiomeGenerator {
                 var humidity = HumidityEnabled ? HumidityNormalizedGrid.GetValue(x, y) : 0f;
                 var temp = CalculateTemperature(y, Height, terrainHeight);
                 var biome = FindBiome(humidity, terrainHeight); // 1f - temp);
+                BiomeCell.SeaLevel = SeaLevel;
                 BiomeCell biomeCell = new BiomeCell {
                     Height = terrainHeight,
                     Humidity = humidity,
@@ -215,7 +241,7 @@ public class BiomeGenerator {
                     Biome = biome
                 };
                 // Console.Write(cell.Height.ToString("0.0")+ " | ");
-                BiomeCells[y, x] = biomeCell;
+                BiomeCells[x, y] = biomeCell;
                 list.Add(biomeCell);
             }
             // Console.WriteLine();
@@ -250,7 +276,7 @@ public class BiomeGenerator {
                     offset = -borderWidth;
                 }
                 var cx = _random.Next(cellXStart + offset, cellXStart + cellWidth + offset);
-                
+
                 var cellYStart = j * cellHeight;
                 if (j == 0) {
                     offset = borderHeight;
@@ -329,7 +355,7 @@ public class BiomeGenerator {
     public void FillTemperature(FastImage fastTexture) {
         for (var y = 0; y < Height; y++) {
             for (var x = 0; x < Width; x++) {
-                var val = BiomeCells[y, x].Temp;
+                var val = BiomeCells[x, y].Temp;
                 fastTexture.SetPixel(x, y, new Color(val, val, val), false);
             }
         }
@@ -339,7 +365,7 @@ public class BiomeGenerator {
     public void FillTerrain(FastImage fastTexture) {
         for (var y = 0; y < Height; y++) {
             for (var x = 0; x < Width; x++) {
-                var biome = BiomeCells[y, x].Biome;
+                var biome = BiomeCells[x, y].Biome;
                 fastTexture.SetPixel(x, y, biome.Color, false);
             }
         }
@@ -348,9 +374,9 @@ public class BiomeGenerator {
 
     public void GraphFalloff(TextureRect textureRect) {
         var column = Height / 2;
-        var f = new FastTexture(textureRect, Width, Height/4);
+        var f = new FastTexture(textureRect, Width, Height / 4);
         f.Fill(Colors.DarkBlue);
-        var ratio = (float)Width/f.Width;
+        var ratio = (float)Width / f.Width;
         for (var x = 0; x < f.Width; x++) {
             var y = 1f - MassLands.GetValue((int)(x * ratio), column);
             f.SetPixel(x, (int)(y * f.Height), Colors.White);
@@ -360,13 +386,56 @@ public class BiomeGenerator {
 
     public void GraphHeight(TextureRect textureRect) {
         var column = Height / 2;
-        var f = new FastTexture(textureRect, Width, Height/4);
+        var f = new FastTexture(textureRect, Width, Height / 4);
         f.Fill(Colors.DarkBlue);
-        var ratio = (float)Width/f.Width;
+        var ratio = (float)Width / f.Width;
         for (var x = 0; x < f.Width; x++) {
-            var height = 1f - HeightFalloffGrid.GetValue((int)Mathf.Round(x * ratio), column);
+            var height = 1f - HeightFalloffGrid.GetValue(Mathf.RoundToInt(x * ratio), column);
             f.SetPixel(x, (int)(height * f.Height), Colors.White);
         }
         f.Flush();
+    }
+}
+
+public class RiverGenerator {
+    public List<Vector2> FindRiverStartPoints(BiomeCell[,] heightMap, int numberOfPoints, float minDistance) {
+        int width = heightMap.GetLength(0);
+        int height = heightMap.GetLength(1);
+        List<Vector2> startPoints = new List<Vector2>();
+
+        // Lista para almacenar puntos con sus alturas
+        List<KeyValuePair<Vector2, float>> pointsWithHeight = new List<KeyValuePair<Vector2, float>>();
+
+        // Recorrer el mapa de alturas y almacenar cada punto con su altura
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                pointsWithHeight.Add(new KeyValuePair<Vector2, float>(new Vector2(x, y), heightMap[x, y].Height));
+            }
+        }
+
+        // Ordenar los puntos por altura, de mayor a menor
+        pointsWithHeight.Sort((pair1, pair2) => pair2.Value.CompareTo(pair1.Value));
+
+        // Seleccionar puntos de inicio asegurando una distancia mínima entre ellos
+        foreach (var point in pointsWithHeight) {
+            if (startPoints.Count < numberOfPoints) {
+                bool isFarEnough = true;
+
+                foreach (var startPoint in startPoints) {
+                    if (startPoint.DistanceTo(point.Key) < minDistance) {
+                        isFarEnough = false;
+                        break;
+                    }
+                }
+
+                if (isFarEnough) {
+                    startPoints.Add(point.Key);
+                }
+            } else {
+                break;
+            }
+        }
+
+        return startPoints;
     }
 }
