@@ -130,6 +130,23 @@ public class DataGrid {
         return this;
     }
 
+    public DataGrid Transform(Func<float, float> action) {
+        MinValue = float.MaxValue;
+        MaxValue = float.MinValue;
+        Transform(0, 0, Width, Height, action);
+        return this;
+    }
+
+    public DataGrid Transform(int x, int y, int width, int height, Func<float, float> action) {
+        for (var xx = x; xx < width - x; xx++) {
+            for (var yy = y; yy < height - y; yy++) {
+                var value = GetValue(xx, yy);
+                SetValue(xx, yy, action(value));
+            }
+        }
+        return this;
+    }
+
     public DataGrid Loop(int x, int y, int width, int height, Action<float, int, int> action) {
         for (var xx = x; xx < width - x; xx++) {
             for (var yy = y; yy < height - y; yy++) {
