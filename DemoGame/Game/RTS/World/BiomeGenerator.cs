@@ -181,7 +181,7 @@ public class BiomeGenerator {
         // terrainHeight is a value from 0 to 1f. If biomeSeaLevel is 0.15f, then:
         // 0.15 -    1f is land
         // 0    - 0.15f is ocean
-        if (terrainHeight >= SeaLevel) {
+        if (terrainHeight > SeaLevel) {
             // Land
             var landHeight = (terrainHeight - SeaLevel) / (1 - SeaLevel);
             var biomeType = LandBiomesGrid.Get(humidity, 1 - landHeight); // (1-height) because the highest values (like the glacier) are located in 0 pos

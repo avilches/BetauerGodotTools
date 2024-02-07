@@ -1,4 +1,4 @@
-[gd_scene load_steps=71 format=3 uid="uid://163eoj5jr80w"]
+[gd_scene load_steps=63 format=3 uid="uid://163eoj5jr80w"]
 
 [ext_resource type="Script" path="res://Game/RTS/World/RtsWorld.cs" id="1_4ci2m"]
 [ext_resource type="Texture2D" uid="uid://c12blmsyum1yw" path="res://icon.png" id="2_afn7b"]
@@ -31,50 +31,6 @@
 [ext_resource type="Texture2D" uid="uid://dcxt0yb05jycu" path="res://RTS/Assets/Textures/asfalt-light.png" id="28_sd5lp"]
 [ext_resource type="Texture2D" uid="uid://dr7b4rmyucp27" path="res://RTS/Assets/Sprout Lands/tilesets/Ground tiles/new tiles/Darker Grass hill tiles v.2-47.png" id="29_1wqcy"]
 [ext_resource type="Texture2D" uid="uid://ddpljnpdmvle0" path="res://RTS/Assets/Trees/trees-tileset-bush.png" id="29_cieyl"]
-
-[sub_resource type="Gradient" id="Gradient_yoi1f"]
-interpolation_mode = 1
-offsets = PackedFloat32Array(0, 0.22973, 0.472973, 0.763514, 1)
-colors = PackedColorArray(0, 0, 0, 1, 0.22973, 0.22973, 0.22973, 1, 0.472973, 0.472973, 0.472973, 1, 0.743243, 0.743243, 0.743243, 1, 1, 1, 1, 1)
-
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_ybdne"]
-noise_type = 5
-seed = 1337
-offset = Vector3(2.08167e-08, 2.08167e-08, 2.08167e-08)
-fractal_gain = 0.8
-
-[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_r3nab"]
-width = 50
-height = 50
-color_ramp = SubResource("Gradient_yoi1f")
-noise = SubResource("FastNoiseLite_ybdne")
-
-[sub_resource type="Gradient" id="Gradient_ijtcc"]
-interpolation_mode = 1
-offsets = PackedFloat32Array(0, 0.319372, 0.649215)
-colors = PackedColorArray(1, 1, 1, 1, 0.596078, 0.596078, 0.596078, 1, 0.101961, 0.101961, 0.101961, 1)
-
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_kwf64"]
-noise_type = 5
-seed = 1339
-frequency = 0.0076
-offset = Vector3(2.08167e-08, 2.08167e-08, 2.08167e-08)
-fractal_gain = 0.8
-
-[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_y5u48"]
-width = 50
-height = 50
-color_ramp = SubResource("Gradient_ijtcc")
-noise = SubResource("FastNoiseLite_kwf64")
-
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_d7t22"]
-seed = 100
-offset = Vector3(2.08167e-08, 2.08167e-08, 2.08167e-08)
-
-[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_kbmwf"]
-width = 500
-height = 500
-noise = SubResource("FastNoiseLite_d7t22")
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_enas3"]
 texture = ExtResource("2_q5woh")
@@ -16302,22 +16258,6 @@ metadata/terrain_autotiler = {
 [node name="Node" type="Node"]
 script = ExtResource("1_4ci2m")
 
-[node name="TextureHeight" type="Sprite2D" parent="."]
-position = Vector2(532, 29)
-texture = SubResource("NoiseTexture2D_r3nab")
-
-[node name="TextureHumidity" type="Sprite2D" parent="."]
-position = Vector2(533, 176)
-texture = SubResource("NoiseTexture2D_y5u48")
-
-[node name="TexturePoisson" type="Sprite2D" parent="."]
-position = Vector2(253, 252)
-texture = SubResource("NoiseTexture2D_kbmwf")
-
-[node name="TextureFinalMap" type="Sprite2D" parent="."]
-position = Vector2(624, 66)
-texture = ExtResource("2_afn7b")
-
 [node name="Sprout2" type="TileMap" parent="."]
 visible = false
 tile_set = SubResource("TileSet_x8sol")
@@ -16339,10 +16279,8 @@ layer_1/name = "Front"
 layer_1/tile_data = PackedInt32Array(1835023, 589830, 31, 1835024, 589830, 31, 1835025, 589830, 31, 1900561, 589830, 31, 1900560, 589830, 31, 1900559, 589830, 31, 1966097, 589830, 31, 1966096, 589830, 31, 1966095, 589830, 31, 1966098, 589830, 31, 2031634, 589830, 31, 2031633, 589830, 31, 1900562, 589830, 31, 2031632, 589830, 31, 1769493, 1179655, 2, 1835029, 1179655, 3, 1835030, 1507335, 1, 1835031, 1245191, 3, 1769495, 1310727, 2, 1769494, 1310727, 2, 1703959, 1245191, 2, 1703958, 1638407, 4, 1703957, 1179655, 1, 1703960, 1245191, 2, 1769496, 1441799, 1, 1835032, 1376263, 3, 1769497, 1376263, 3, 1703961, 1441799, 1, 1638423, 1310727, 2, 1638422, 1638407, 2, 1572886, 1638407, 1, 1572885, 1179655, 3, 1572888, 1507335, 4, 1572889, 1376263, 1, 1638425, 1441799, 4, 1638424, 1245191, 2, 1703962, 1376263, 3, 1638426, 1376263, 1, 1572887, 1310727, 1, 1507349, 1179655, 1, 1507350, 1376263, 1)
 
 [node name="TextureRect" type="TextureRect" parent="."]
-offset_left = 561.0
-offset_top = 3.0
-offset_right = 1561.0
-offset_bottom = 1003.0
+offset_right = 1000.0
+offset_bottom = 1000.0
 texture = ExtResource("2_afn7b")
 
 [node name="FalloffGraph" type="TextureRect" parent="."]
@@ -16358,3 +16296,25 @@ offset_top = 1253.0
 offset_right = 133.0
 offset_bottom = 1381.0
 texture = ExtResource("2_afn7b")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+custom_minimum_size = Vector2(1, 1)
+offset_top = -30.0
+offset_right = 30.0
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="MouseInfo" type="VBoxContainer" parent="CanvasLayer"]
+unique_name_in_owner = true
+offset_left = 45.0
+offset_top = -51.0
+offset_right = 445.0
+offset_bottom = 22.0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/MouseInfo"]
+custom_minimum_size = Vector2(400, 40)
+layout_mode = 2
+
+[node name="MouseText" type="Label" parent="CanvasLayer/MouseInfo/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2

@@ -6,7 +6,7 @@ using Betauer.Application.Persistent;
 using Betauer.Camera;
 using Betauer.Camera.Control;
 using Betauer.Core.Easing;
-using Betauer.Core.Image;
+using Betauer.Core.Nodes.Events;
 using Betauer.DI;
 using Betauer.DI.Attributes;
 using Betauer.FSM.Sync;
@@ -35,6 +35,10 @@ public partial class RtsWorld : Node, IInjectable {
 	
 	[NodePath("FalloffGraph")] private TextureRect FalloffGraph { get; set; }
 	[NodePath("HeightGraph")] private TextureRect HeightGraph { get; set; }
+	
+	[NodePath("ColorRect")] private ColorRect ColorRect { get; set; }
+	[NodePath("%MouseInfo")] private Control MouseInfo { get; set; }
+	[NodePath("%MouseText")] private Label MouseText { get; set; }
 
 	private CameraController CameraController;
 	private CameraGameObject CameraGameObject;
@@ -61,6 +65,7 @@ public partial class RtsWorld : Node, IInjectable {
 		_fsm.State(RtsState.Idle)
 			.Enter(() => { _dragCameraController.Enable(); })
 			.OnInput(Zooming)
+			.Execute(UpdateCursor)
 			.Build();
 
 		_fsm.Execute();
@@ -68,14 +73,30 @@ public partial class RtsWorld : Node, IInjectable {
 		AddChild(_fsm);
 	}
 	
-	private async void Zooming(InputEvent @event) {
-		if (@event.IsKeyJustPressed(Key.Q) || @event.IsClickPressed(MouseButton.WheelUp)) {
+	private Vector2 _lastMousePosition = Vector2.Zero;
+	public void UpdateCursor() {
+		var mousePosition = TextureRect.GetLocalMousePosition();
+		if (mousePosition == _lastMousePosition) return;
+		_lastMousePosition = mousePosition;
+		var x = Mathf.RoundToInt(mousePosition.X);
+		var y = Mathf.RoundToInt(mousePosition.Y);
+		if (x < 0 || x >= WorldGenerator.BiomeGenerator.Width || y < 0 || y >= WorldGenerator.BiomeGenerator.Height) return;
+		Console.WriteLine("Cell:"+x+","+y);
+		var cell = WorldGenerator.BiomeGenerator.BiomeCells[x, y];
+		ColorRect.Color = cell.Biome.Color;
+		MouseInfo.Position = GetViewport().GetMousePosition() + new Vector2I(20, 20);
+		MouseText.Text = $"{cell.HeightMt:0.00}c ({cell.Height:0.00})\n";
+		// MouseText.Text = $"{cell.TempCelsius:0.00}c ({cell.Temp:0.00})\n{cell.HeightMt:0.00}c ({cell.Height:0.00})\n{cell.Humidity:0.00}%\n";
+	}
+	
+	private async void Zooming(InputEvent e) {
+		if (e.IsKeyJustPressed(Key.Q) || e.IsClickPressed(MouseButton.WheelUp)) {
 			if (CameraController.IsBusy()) return;
 			if (!CameraGameObject.ZoomIn()) return;
 			GetViewport().SetInputAsHandled();
 			await CameraController.Zoom(new Vector2(CameraGameObject.Zoom, CameraGameObject.Zoom), RtsConfig.ZoomTime, Interpolation.Linear, CameraController.Camera2D.GetLocalMousePosition);
 			Console.WriteLine($"Zooming {CameraGameObject.Zoom}x Position:{CameraController.Camera2D.Position}");
-		} else if (@event.IsKeyJustPressed(Key.E) || @event.IsClickPressed(MouseButton.WheelDown)) {
+		} else if (e.IsKeyJustPressed(Key.E) || e.IsClickPressed(MouseButton.WheelDown)) {
 			if (CameraController.IsBusy()) return;
 			if (!CameraGameObject.ZoomOut()) return;
 			GetViewport().SetInputAsHandled();
@@ -100,6 +121,8 @@ public partial class RtsWorld : Node, IInjectable {
 		WorldGenerator.Configure(TerrainTileMap, TextureRect);
 		WorldGenerator.Generate();
 		WorldGenerator.Draw(WorldGenerator.ViewMode.Terrain);
+		WorldGenerator.BiomeGenerator.GraphFalloff(FalloffGraph);
+		WorldGenerator.BiomeGenerator.GraphHeight(HeightGraph);
 		ConfigureDebugOverlay();
 		Console.WriteLine($"StartNewGame:{s.ElapsedMilliseconds}ms");
 		// var poissonDemos = new PoissonDemos(TextureTerrainMap, TexturePoisson);
@@ -118,7 +141,7 @@ public partial class RtsWorld : Node, IInjectable {
 	private void Init() {
 		CameraGameObject.Configure(Camera);
 		CameraController.Camera2D.Zoom = new Vector2(CameraGameObject.Zoom, CameraGameObject.Zoom);
-		CameraController.Camera2D.Position = CameraGameObject.Position;
+		// CameraController.Camera2D.Position = CameraGameObject.Position;
 		_fsm.Send(RtsTransition.Idle);
 	}
 	
@@ -137,8 +160,8 @@ public partial class RtsWorld : Node, IInjectable {
 				WorldGenerator.BiomeGenerator.GraphFalloff(FalloffGraph);
 				WorldGenerator.BiomeGenerator.GraphHeight(HeightGraph);
 			}, (edit) => edit.SetMinWidth(20))
-			.Edit("Biome", WorldGenerator.BiomeGenerator.BiomeConfig, (value) => {
-				WorldGenerator.BiomeGenerator.ConfigureBiomeMap(value);
+			.Edit("Biome", WorldGenerator.BiomeGenerator.LandBiomesConfig, (value) => {
+				WorldGenerator.BiomeGenerator.ConfigureLandBiomeMap(value);
 				WorldGenerator.Generate();
 				WorldGenerator.ReDraw();
 				WorldGenerator.BiomeGenerator.GraphFalloff(FalloffGraph);
@@ -211,20 +234,7 @@ public partial class RtsWorld : Node, IInjectable {
 					WorldGenerator.Generate();
 					WorldGenerator.ReDraw();
 				})
-			)
-			// .Builder()
-			// .Button("Generate", (b) => {
-			// 	WorldGenerator.Generate();
-			// }).End()
-			// .Button("Generate", (b) => {
-			// 	WorldGenerator.Generate();
-			// }).End()
-			// .Button("Generate", (b) => {
-			// 	WorldGenerator.Generate();
-			// }).End()
-			//
-			//
-			;
+			);
 	}
 
 }

@@ -9,7 +9,6 @@ using Betauer.DI.Factory;
 using Godot;
 using Veronenger.RTS.Assets.Trees;
 using Betauer.Core;
-using Betauer.Nodes;
 using Betauer.Core.Collision.Spatial2D;
 using Betauer.Core.Image;
 using Betauer.TileSet.Image;
