@@ -1,4 +1,5 @@
 using System;
+using Betauer.Core.Data;
 using Godot;
 
 namespace Betauer.Core.Image;
@@ -9,7 +10,7 @@ namespace Betauer.Core.Image;
 /// possible binary to format to store the noise and get the image as array of bytes. This array of bytes can be used as a cache and allow access to the noise
 /// values directly (no inter-op with Godot), which is faster than using noise.GetNoise2D.
 /// </summary>
-public class FastNoise : INoise2D {
+public class FastNoise {
     private readonly Noise _noise;
 
     private byte[][] _rawImage3D;
@@ -20,6 +21,12 @@ public class FastNoise : INoise2D {
     private readonly bool _normalize;
     private readonly bool _invert;
     private readonly float _seamlessBlendSkirt;
+
+    public FastNoise(Sprite2D sprite2D, int z3dDepth = 1) : this((NoiseTexture2D)sprite2D.Texture, z3dDepth) {
+    }
+
+    public FastNoise(TextureRect sprite2D, int z3dDepth = 1) : this((NoiseTexture2D)sprite2D.Texture, z3dDepth) {
+    }
 
     public FastNoise(Noise noise, int width, int height, int z3dDepth = 1, bool seamless = false, bool normalize = true, bool invert = false,
         float seamlessBlendSkirt = 0.1f) {
@@ -86,9 +93,17 @@ public class FastNoise : INoise2D {
         }
     }
 
+    public float GetNoise(float x) {
+        return GetNoise(Mathf.RoundToInt(x));
+    }
+
     public float GetNoise(int x) {
         x %= _width;
         return _rawImage3D[0][x] / 255.0f;
+    }
+
+    public float GetNoise(float x, float y) {
+        return GetNoise(Mathf.RoundToInt(x), Mathf.RoundToInt(y));
     }
 
     public float GetNoise(int x, int y) {
@@ -96,6 +111,10 @@ public class FastNoise : INoise2D {
         y %= _height;
         var ofs = y * _width + x;
         return _rawImage3D[0][ofs] / 255.0f;
+    }
+
+    public float GetNoise(float x, float y, float z) {
+        return GetNoise(Mathf.RoundToInt(x), Mathf.RoundToInt(y), Mathf.RoundToInt(z));
     }
 
     public float GetNoise(int x, int y, int z) {
@@ -110,7 +129,15 @@ public class FastNoise : INoise2D {
         return GetNoise(pos.X, pos.Y);
     }
 
+    public float GetNoise(Vector2 pos) {
+        return GetNoise(pos.X, pos.Y);
+    }
+
     public float GetNoise(Vector3I pos) {
+        return GetNoise(pos.X, pos.Y, pos.Z);
+    }
+
+    public float GetNoise(Vector3 pos) {
         return GetNoise(pos.X, pos.Y, pos.Z);
     }
 

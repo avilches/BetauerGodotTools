@@ -1,4 +1,5 @@
 using System;
+using Betauer.Core.Data;
 using Godot;
 
 namespace Betauer.Core.Image;
@@ -9,14 +10,14 @@ namespace Betauer.Core.Image;
  * It takes more memory than FastNoise, but it's still as faster as it.
  * It allows to query pixels and return a gradient color position. This allow to generate content based on the noise and it will look exactly the same as the texture.
  */
-public class FastTextureNoiseWithGradient : INoise2D {
+public class FastTextureNoiseWithGradient {
     private readonly Color[]? _colors;
     private readonly FastImage _fastImage;
 
     public int Size => _colors != null ? _colors!.Length : 256;
 
     public FastTextureNoiseWithGradient(NoiseTexture2D texture) {
-        _fastImage = new FastImage(texture.GetImage());
+        _fastImage = new FastImage().Load(texture.GetImage());
         if (texture.ColorRamp != null) {
             if (texture.ColorRamp.InterpolationMode != Gradient.InterpolationModeEnum.Constant) {
                 throw new Exception("A Gradient with InterpolationMode Constant is expected. If you only want to get the noise, use FastTextureNoise instead");
@@ -39,6 +40,10 @@ public class FastTextureNoiseWithGradient : INoise2D {
             return FindColor(pixelColor);
         }
         return (int)(pixelColor.V * 255f);
+    }
+
+    public float GetNoise(float x, float y) {
+        return GetNoise(Mathf.RoundToInt(x), Mathf.RoundToInt(y));
     }
 
     public float GetNoise(int x, int y) {

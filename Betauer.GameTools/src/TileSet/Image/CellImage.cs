@@ -24,10 +24,10 @@ public class CellImage {
         CellSize = cellSize;
         ImageWidth = width * cellSize;
         ImageHeight = height * cellSize;
-        FastImage = new FastImage(ImageWidth, ImageHeight, false, format ?? global::Godot.Image.Format.Rgba8);
+        FastImage = new FastImage().Create(ImageWidth, ImageHeight, false, format ?? global::Godot.Image.Format.Rgba8);
     }
 
-    public CellImage(string resource, int cellSize, global::Godot.Image.Format? format = null) : this(new FastImage(resource, format), cellSize) {
+    public CellImage(string resource, int cellSize, global::Godot.Image.Format? format = null) : this(new FastImage().LoadResource(resource, format), cellSize) {
     }
 
     /// <summary>
@@ -48,7 +48,7 @@ public class CellImage {
         FastImage = fastImage;
     }
     
-    public CellImage(string resource, int width, int height, global::Godot.Image.Format? format = null) : this(new FastImage(resource, format), width, height) {
+    public CellImage(string resource, int width, int height, global::Godot.Image.Format? format = null) : this(new FastImage().LoadResource(resource, format), width, height) {
     }
 
     /// <summary>

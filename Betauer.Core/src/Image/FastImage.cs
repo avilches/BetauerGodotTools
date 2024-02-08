@@ -19,7 +19,22 @@ public class FastImage {
     private Pixel _pixel;
     private bool _dirty = false;
 
-    public FastImage(string resource, Godot.Image.Format? format = null) {
+    public FastImage() {
+    }
+
+    public FastImage Create(int width, int height, bool useMipmaps = false, Godot.Image.Format format = DefaultFormat) {
+        var pixel = Pixel.Get(format);
+        var rawImage = new byte[width * height * pixel.GetBytesPerPixel()];
+        _pixel = pixel;
+        Width = width;
+        Height = height;
+        UseMipmaps = useMipmaps;
+        RawImage = rawImage;
+        Image = Godot.Image.CreateFromData(width, height, useMipmaps, format, rawImage);
+        return this;
+    }
+
+    public FastImage LoadResource(string resource, Godot.Image.Format? format = null) {
         var image = Godot.Image.LoadFromFile(resource);
         if (format.HasValue) {
             var pixel = Pixel.Get(format.Value); // fail fast if the format is not supported
@@ -27,46 +42,32 @@ public class FastImage {
                 image.Convert(pixel.Format);
             }
         }
-        Load(image);
-    }
-
-    public FastImage(Godot.Image image) {
-        Load(image);
-    }
-    
-    public FastImage(int width, int height, bool useMipmaps = false, Godot.Image.Format format = DefaultFormat) {
-        _pixel = Pixel.Get(format);
-        Width = width;
-        Height = height;
-        UseMipmaps = useMipmaps;
-        RawImage = new byte[width * height * _pixel.GetBytesPerPixel()];
-        Image = Godot.Image.CreateFromData(Width, Height, UseMipmaps, Format, RawImage);
-    }
-
-    
-    public void Convert(Godot.Image.Format newFormat) {
-        if (Format == newFormat) return;
-        _pixel = Pixel.Get(newFormat);
-        Image.Convert(newFormat);
-        RawImage = Image.GetData();
-    }
-
-    public void Load(Texture2D texture) {
-        Image = texture.GetImage();
-        Reload();
-    }
-
-    public void Load(Godot.Image image) {
         Image = image;
         Reload();
+        return this;
     }
 
-    public void Reload() {
+    public FastImage Load(Godot.Image image) {
+        Image = image;
+        Reload();
+        return this;
+    }
+
+    public FastImage Reload() {
         _pixel = Pixel.Get(Image.GetFormat());
         Width = Image.GetWidth();
         Height = Image.GetHeight();
         UseMipmaps = Image.HasMipmaps();
         RawImage = Image.GetData();
+        return this;
+    }
+
+    public FastImage Convert(Godot.Image.Format newFormat) {
+        if (Format == newFormat) return this;
+        _pixel = Pixel.Get(newFormat);
+        Image.Convert(newFormat);
+        RawImage = Image.GetData();
+        return this;
     }
 
     public void SetAlpha(int x, int y, float alpha) {

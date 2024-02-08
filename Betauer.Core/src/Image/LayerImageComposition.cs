@@ -41,7 +41,7 @@ public class LayerImageComposition {
     }
 
     public FastImage Export() {
-        var canvas = new FastImage(Width, Height, false, FastImage.DefaultFormat);
+        var canvas = new FastImage().Create(Width, Height, false, FastImage.DefaultFormat);
         for (var layer = 0; layer < Layers; layer++) {
             var layerImage = _images[layer];
             if (layerImage is not { Enabled: true }) continue;
@@ -64,7 +64,7 @@ public class LayerImageComposition {
     public Layer GetLayer(int i) {
         var image = _images[i];
         if (image != null) return image;
-        image = new Layer(new FastImage(Width, Height, false, FastImage.DefaultFormat), false);
+        image = new Layer(new FastImage().Create(Width, Height, false, FastImage.DefaultFormat), false);
         _images[i] = image;
         return image;
     }

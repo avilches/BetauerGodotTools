@@ -24,7 +24,7 @@ public static partial class FastImageExtensions {
     }
 
     public static FastImage Extract(this FastImage me, FastImage? mask, int fromX, int fromY, int width, int height) {
-        var other = new FastImage(width, height, false, me.Format);
+        var other = new FastImage().Create(width, height, false, me.Format);
         CopyTo(me, other, mask, fromX, fromY, width, height, 0, 0, false);
         return other;
     }
@@ -63,7 +63,7 @@ public static partial class FastImageExtensions {
     /// <param name="height"></param>
     /// <returns></returns>
     public static FastImage ExpandTiled(this FastImage source, int width, int height) {
-        var expanded = new FastImage(width, height, false, source.Format);
+        var expanded = new FastImage().Create(width, height, false, source.Format);
         for (var y = 0; y < height; y += source.Height) {
             for (var x = 0; x < width; x += source.Width) {
                 CopyTo(source, expanded, null, 0, 0, source.Width, source.Height, x, y, false);

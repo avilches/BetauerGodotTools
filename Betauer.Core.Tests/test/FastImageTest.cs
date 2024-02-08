@@ -12,7 +12,7 @@ public class FastImageTest {
     [TestRunner.Test]
     [TestRunner.Ignore("Just create images")]
     public void Test1() {
-        var fast = new FastImage(150, 100);
+        var fast = new FastImage().Create(150, 100);
         Assert.That(fast.Format, Is.EqualTo(FastImage.DefaultFormat));
         //
         var yellow = Colors.Yellow;
@@ -33,7 +33,7 @@ public class FastImageTest {
         fast.Fill(Color.FromHtml("22224433"));
         fast.Flush();
         
-        var fastTree = new FastImage("test-resources/trees-16x16.png");
+        var fastTree = new FastImage().LoadResource("test-resources/trees-16x16.png");
         
         fast.BlitRect(fastTree, new Rect2I(16, 32, 16, 16), new Vector2I(50, 60));
         fast.BlendRect(fastTree, new Rect2I(16, 32, 16, 16), new Vector2I(66, 76));
@@ -81,7 +81,7 @@ public class FastImageTest {
     [TestRunner.Test]
     [TestRunner.Ignore("Just create images")]
     public void TestEllipses() {
-        var fast = new FastImage(300, 300);
+        var fast = new FastImage().Create(300, 300);
         fast.Fill(Colors.DarkBlue);
         
         fast.DrawEllipse(45,  45, 0, 0, Colors.Green);
@@ -183,11 +183,11 @@ public class FastImageTest {
     [TestRunner.Test]
     [TestRunner.Ignore("Just create images")]
     public void Test2() {
-        var fast = new FastImage(256, 256, false, Godot.Image.Format.Rgba8);
+        var fast = new FastImage().Create(256, 256, false, Godot.Image.Format.Rgba8);
         fast.Fill(Color.FromHtml("00000033"));
-        var fastTree = new FastImage("test-resources/trees-16x16.png", Godot.Image.Format.Rgba8);
+        var fastTree = new FastImage().LoadResource("test-resources/trees-16x16.png", Godot.Image.Format.Rgba8);
         
-        var newImage = new FastImage(256, 256, false, Godot.Image.Format.Rgba8);
+        var newImage = new FastImage().Create(256, 256, false, Godot.Image.Format.Rgba8);
         newImage.Fill(Colors.White);
         fast.BlitRectMask(newImage, fastTree, new Rect2I(0,0, 100, 100), new Vector2I(0,0 ));
         
@@ -199,7 +199,7 @@ public class FastImageTest {
     public void Test3() {
         var compo = new LayerImageComposition(3, 512, 512);
         
-        var textures = new FastImage("test-resources/GrasslandsTextures.png", Godot.Image.Format.Rgba8);
+        var textures = new FastImage().LoadResource("test-resources/GrasslandsTextures.png", Godot.Image.Format.Rgba8);
         compo.SetLayer(0, textures.Extract( null, 0, 0, 80, 80), true);
         compo.SetLayer(1, textures.Extract( null, 80, 0, 80, 80).ExpandTiled(512, 512), true);
 
