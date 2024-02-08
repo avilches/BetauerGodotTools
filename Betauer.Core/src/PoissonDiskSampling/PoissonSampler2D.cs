@@ -28,10 +28,13 @@ public class PoissonSampler2D {
     /// The higher this value, the higher the coverage of the sampler but an increased runtime cost.
     /// </summary>
     public int RejectionLimit { get; }
+    
+    public Func<Vector2, bool>? PointValidator { get; set; }
 
-    public PoissonSampler2D(float width, float height, int rejectionLimit) {
+    public PoissonSampler2D(float width, float height, Func<Vector2, bool>? pointValidator, int rejectionLimit) {
         Width = width;
         Height = height;
+        PointValidator = pointValidator;
         RejectionLimit = rejectionLimit;
     }
 
@@ -39,7 +42,9 @@ public class PoissonSampler2D {
     /// <summary>
     /// Generate a new random point in the annulus around the provided point.
     /// </summary>
+    /// <param name="random"></param>
     /// <param name="point"></param>
+    /// <param name="radius"></param>
     /// <returns></returns>
     public static Vector2 GenerateRandomPointInAnnulus(Random random, ref Vector2 point, float radius) {
         var min = radius;
@@ -50,4 +55,14 @@ public class PoissonSampler2D {
             point.X + (float)Math.Cos(angle) * distance,
             point.Y + (float)Math.Sin(angle) * distance);
     }
+    
+    /// <summary>
+    /// Is the point within bounds of the sample domain?
+    /// </summary>
+    /// <param name="sample"></param>
+    /// <returns></returns>
+    public bool IsSampleOutOfBounds(ref Vector2 sample) {
+        return sample.X < 0.0f || sample.X > Width || sample.Y < 0.0f || sample.Y > Height || (PointValidator != null && !PointValidator(sample));
+    }
+
 }

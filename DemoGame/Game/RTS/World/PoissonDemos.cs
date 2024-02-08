@@ -46,7 +46,8 @@ public class PoissonDemos {
     public async Task GenerateUniformPoissonDisksExpanded(FastImage fast) {
         var radius = 30;
         var random = new Random(1);
-        var uni = new UniformPoissonSampler2D(fast.Width, fast.Height);
+        var center = new Vector2(fast.Width / 2f, fast.Height / 2f);
+        var uni = new UniformPoissonSampler2D(fast.Width, fast.Height), (v) => Geometry.IsPointInCircle(v.X, v.Y, center.X, center.Y, fast.Height / 2f));
         var points = uni.Generate(30f, random);
         points.ForEach(v => fast.SetPixel((int)v.X, (int)v.Y, Colors.Green));
         points.ForEach(v => { fast.DrawCircle((int)v.X, (int)v.Y, radius / 2, new Color("#AA5555", 0.5f)); });
@@ -64,9 +65,9 @@ public class PoissonDemos {
         fast.Flush();
     }
 
-    private Func<float,float,float> CreateNormalizedFunc(FastNoiseLite fastNoise, int width, int height) {
+    private Func<float, float, float> CreateNormalizedFunc(FastNoiseLite fastNoise, int width, int height) {
         var dataGrid = new DataGrid(width, height, (x, y) => fastNoise.GetNoise(x, y)).Normalize();
-        return (x,y) => dataGrid.GetValue(Math.Clamp(Mathf.RoundToInt(x), 0, width - 1), Math.Clamp(Mathf.RoundToInt(y), 0, height - 1));
+        return (x, y) => dataGrid.GetValue(Math.Clamp(Mathf.RoundToInt(x), 0, width - 1), Math.Clamp(Mathf.RoundToInt(y), 0, height - 1));
     }
 
     public async Task GenerateVariablePoissonDisksWithNoiseExpanded(FastImage fast, FastNoiseLite noise) {

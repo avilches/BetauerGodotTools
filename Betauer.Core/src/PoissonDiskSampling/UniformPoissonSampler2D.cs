@@ -50,8 +50,9 @@ public sealed class UniformPoissonSampler2D : PoissonSampler2D {
     /// <param name="random">The RNG used to generate the random points.</param>
     /// <param name="width">The width of the sampler domain. The maximum x value of a sampled position will be this.</param>
     /// <param name="height">The height of the sampler domain. The maximum y value of a sampled position will be this.</param>
+    /// <param name="pointValidator">If true, the points generated will be contained in the Width x Height rect. If false, the points will be inside a ellipse of radius y=Height/2 x=Width/2</param>
     /// <param name="rejectionLimit">Number of generation attempts before a prospective point is rejected.</param>
-    public UniformPoissonSampler2D(float width, float height, int rejectionLimit = 30) : base(width, height, rejectionLimit) {
+    public UniformPoissonSampler2D(float width, float height, Func<Vector2, bool>? pointValidator = null, int rejectionLimit = 30) : base(width, height, pointValidator, rejectionLimit) {
     }
 
     /// <summary>
@@ -155,15 +156,6 @@ public sealed class UniformPoissonSampler2D : PoissonSampler2D {
         var dx = (int)(sample.X / CellSize);
         var dy = (int)(sample.Y / CellSize);
         return dy * CellsPerX + dx;
-    }
-
-    /// <summary>
-    /// Is the point within bounds of the sample domain?
-    /// </summary>
-    /// <param name="sample"></param>
-    /// <returns></returns>
-    private bool IsSampleOutOfBounds(ref Vector2 sample) {
-        return sample.X < 0.0f || sample.X > Width || sample.Y < 0.0f || sample.Y > Height;
     }
 
     /// <summary>

@@ -23,7 +23,7 @@ public sealed class VariablePoissonSampler2D : PoissonSampler2D {
     /// <param name="width">The width of the sampler domain. The maximum x value of a sampled position will be this.</param>
     /// <param name="height">The height of the sampler domain. The maximum y value of a sampled position will be this.</param>
     /// <param name="rejectionLimit">Number of generation attempts before a prospective point is rejected.</param>
-    public VariablePoissonSampler2D(float width, float height, int rejectionLimit = 30) : base(width, height, rejectionLimit) {
+    public VariablePoissonSampler2D(float width, float height, Func<Vector2, bool>? pointValidator = null, int rejectionLimit = 30) : base(width, height, pointValidator, rejectionLimit) {
     }
 
     /// <summary>
@@ -47,7 +47,7 @@ public sealed class VariablePoissonSampler2D : PoissonSampler2D {
             for (var i = 0; i < RejectionLimit; ++i) {
                 var radius = radiusFunc(currentSample.X, currentSample.Y);
                 var newSample = GenerateRandomPointInAnnulus(random, ref currentSample, radius);
-                if (!Geometry.IsPointInsideRectangle(newSample.X, newSample.Y, 0, 0, Width, Height)) continue;
+                if (IsSampleOutOfBounds(ref newSample)) continue;
                 
                 if (!_pointGrid.Intersects(newSample.X, newSample.Y, radius)) {
                     _pointGrid.Add(newSample.X, newSample.Y);
@@ -77,7 +77,7 @@ public sealed class VariablePoissonSampler2D : PoissonSampler2D {
             for (var i = 0; i < RejectionLimit; ++i) {
                 var radius = radiusFunc(currentSample.X, currentSample.Y);
                 var newSample = GenerateRandomPointInAnnulus(random, ref currentSample, radius);
-                if (!Geometry.IsPointInsideRectangle(newSample.X, newSample.Y, 0, 0, Width, Height)) continue;
+                if (IsSampleOutOfBounds(ref newSample)) continue;
 
                 if (!_pointGrid.Intersects(newSample.X, newSample.Y, radius)) {
                     _pointGrid.Add(newSample.X, newSample.Y);

@@ -12,7 +12,7 @@ public class UniformPoissonDiskTest {
     [TestRunner.Test]
     public void UniformPoissonTest() {
         var random = new Random(0);
-        var u = new UniformPoissonSampler2D(400, 400, 100);
+        var u = new UniformPoissonSampler2D(400, 400, null, 100);
         for (int i = 10; i < 50; i++) {
             var spatial = new SpatialGrid(i);
             var points = u.Generate(i, random);
