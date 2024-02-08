@@ -1,5 +1,4 @@
 using System;
-using Betauer.Core.Collision;
 using Betauer.Core.Easing;
 using Godot;
 using static Godot.Mathf;
@@ -7,6 +6,10 @@ using static Godot.Mathf;
 namespace Betauer.Core.Image;
 
 public static partial class Draw {
+    public static void Ellipse(Vector2I position, Vector2I radius, Action<int, int> onPixel) {
+        Ellipse(position.X, position.Y, radius.X, radius.Y, onPixel);
+    }
+
     public static void Ellipse(int cx, int cy, int rx, int ry, Action<int, int> onPixel) {
         double dx, dy, d1, d2, x, y;
         x = 0;
@@ -68,6 +71,10 @@ public static partial class Draw {
         }
     }
 
+    public static void EllipseRotated(Vector2I position, Vector2I radius, float rotation, Action<int, int> onPixel) {
+        EllipseRotated(position.X, position.Y, radius.X, radius.Y, rotation, onPixel);
+    }
+
     public static void EllipseRotated(int cx, int cy, int rx, int ry, float rotation, Action<int, int> onPixel) {
         var cosTheta = Cos(rotation);
         var sinTheta = Sin(rotation);
@@ -91,6 +98,10 @@ public static partial class Draw {
 
             onPixel(rotatedX, rotatedY);
         }
+    }
+
+    public static void FillEllipse(Vector2I position, Vector2I radius, Action<int, int> onPixel) {
+        FillEllipse(position.X, position.Y, radius.X, radius.Y, onPixel);
     }
 
     /// <summary>
@@ -171,6 +182,10 @@ public static partial class Draw {
         }
     }
 
+    public static void FillEllipseRotated(Vector2I position, Vector2I radius, float rotation, Action<int, int> onPixel) {
+        FillEllipseRotated(position.X, position.Y, radius.X, radius.Y, rotation, onPixel);
+    }
+
     public static void FillEllipseRotated(int cx, int cy, int rx, int ry, float rotation, Action<int, int> onPixel) {
         var cos = Math.Cos(rotation);
         var sin = Math.Sin(rotation);
@@ -192,6 +207,10 @@ public static partial class Draw {
         }
     }
 
+    public static void GradientEllipse(Vector2I position, Vector2I radius, Action<int, int, float> onPixel, IInterpolation? easing = null) {
+        GradientEllipse(position.X, position.Y, radius.X, radius.Y, onPixel, easing);
+    }
+
     public static void GradientEllipse(int cx, int cy, int rx, int ry, Action<int, int, float> onPixel, IInterpolation? easing = null) {
         // Loop the x axis from left to right
         var radiix = rx * rx;
@@ -205,6 +224,10 @@ public static partial class Draw {
                 onPixel(cx + x, cy + y, easing?.Get(pos) ?? pos);
             }
         }
+    }
+
+    public static void GradientEllipseRotated(Vector2I position, Vector2I radius, float rotation, Action<int, int, float> onPixel, IInterpolation? easing = null) {
+        GradientEllipseRotated(position.X, position.Y, radius.X, radius.Y, rotation, onPixel, easing);
     }
 
     public static void GradientEllipseRotated(int cx, int cy, int rx, int ry, float rotation, Action<int, int, float> onPixel, IInterpolation? easing = null) {

@@ -4,6 +4,10 @@ using Godot;
 namespace Betauer.Core.Image;
 
 public static partial class Draw {
+    public static void Line(Vector2I start, Vector2I end, int width, Action<int, int> onPixel) {
+        Line(start.X, start.Y, end.X, end.Y, width, onPixel);
+    }
+
     public static void Line(int x0, int y0, int x1, int y1, int width, Action<int, int> onPixel) {
         if (width == 0) return;
         if (width == 1) {
@@ -34,7 +38,7 @@ public static partial class Draw {
     }
 
     // width 1
-    public static void Line1Width(int x0, int y0, int x1, int y1, Action<int, int> onPixel) {
+    private static void Line1Width(int x0, int y0, int x1, int y1, Action<int, int> onPixel) {
         if (x0 == x1 && y0 == y1) {
             // one point case
             onPixel(x0, y0);
@@ -79,8 +83,11 @@ public static partial class Draw {
         }
     }
     
-    // aliasing with width 1
     // http://members.chello.at/~easyfilter/bresenham.html
+    public static void LineAntialiasing(Vector2I start, Vector2I end, int width, Action<int, int, float> onPixel) {
+        LineAntialiasing(start.X, start.Y, end.X, end.Y, width, onPixel);
+    }
+    
     public static void LineAntialiasing(int x0, int y0, int x1, int y1, int width, Action<int, int, float> onPixel) {
         if (width == 0) return;
         if (width == 1) {
@@ -111,7 +118,7 @@ public static partial class Draw {
     }
     
     // aliasing with width 1
-    public static void LineAntialiasing1Width(int x0, int y0, int x1, int y1, Action<int, int, float> onPixel) {
+    private static void LineAntialiasing1Width(int x0, int y0, int x1, int y1, Action<int, int, float> onPixel) {
         int dx = Math.Abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
         int dy = Math.Abs(y1 - y0), sy = y0 < y1 ? 1 : -1; 
         int err = dx-dy, e2, x2;                       /* error value e_xy */

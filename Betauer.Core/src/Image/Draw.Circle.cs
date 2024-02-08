@@ -1,10 +1,15 @@
 using System;
 using Betauer.Core.Collision;
 using Betauer.Core.Easing;
+using Godot;
 
 namespace Betauer.Core.Image;
 
 public static partial class Draw {
+    public static void Circle(Vector2I position, int radius, Action<int, int> onPixel) {
+        Circle(position.X, position.Y, radius, onPixel);
+    }
+
     public static void Circle(int cx, int cy, int r, Action<int, int> onPixel) {
         if (r <= 0) {
             onPixel(cx, cy);
@@ -49,6 +54,10 @@ public static partial class Draw {
         }
     }
 
+    public static void GradientCircle(Vector2I position, int radius, Action<int, int, float> onPixel, IInterpolation? easing = null) {
+        GradientCircle(position.X, position.Y, radius, onPixel, easing);
+    }
+
     public static void GradientCircle(int cx, int cy, int r, Action<int, int, float> onPixel, IInterpolation? easing = null) {
         float radii = r * r;
         FillCircle(cx, cy, r, (x, y) => {
@@ -58,6 +67,9 @@ public static partial class Draw {
         });
     }
 
+    public static void FillCircle(Vector2I position, int radius, Action<int, int> onPixel) {
+        FillCircle(position.X, position.Y, radius, onPixel);
+    }
 
     public static void FillCircle(int cx, int cy, int r, Action<int, int> onPixel) {
         if (r <= 0) {
