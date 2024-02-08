@@ -99,7 +99,7 @@ public class Rectangle : Shape {
     }
 
     public override bool IntersectPoint(float px, float py) {
-        return Geometry.IsPointInsideRectangle(px, py, this);
+        return Geometry.IsPointInRectangle(px, py, this);
     }
 
     public override (int, int)[] GetIntersectingCells(float cellSize) {

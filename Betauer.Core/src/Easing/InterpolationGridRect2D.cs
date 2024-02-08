@@ -1,4 +1,5 @@
 using System;
+using Betauer.Core.Collision;
 using Godot;
 
 namespace Betauer.Core.Easing;
@@ -42,7 +43,7 @@ public class InterpolationGridRect2D : IInterpolationGrid2D {
     }
 
     public float Get(int x, int y) {
-        var value = Functions.GetRect2D(Width, Height, CenterX, CenterY, x, y);
+        var value = Geometry.LerpRect2D(Width, Height, CenterX, CenterY, x, y);
         return Easing?.Get(value) ?? value;
     }
 

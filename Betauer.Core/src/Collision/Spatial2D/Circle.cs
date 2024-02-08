@@ -77,7 +77,7 @@ public class Circle : Shape {
     }
 
     public override bool IntersectPoint(float px, float py) {
-        return Geometry.IsPointInsideCircle(px, py, Position.X, Position.Y, Radius);
+        return Geometry.IsPointInCircle(px, py, Position.X, Position.Y, Radius);
     }
 
     public override (int, int)[] GetIntersectingCells(float cellSize) {

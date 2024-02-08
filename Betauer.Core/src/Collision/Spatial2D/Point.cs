@@ -43,11 +43,11 @@ public class Point : Shape {
     }
 
     public override bool IntersectCircle(float x, float y, float radius) {
-        return Geometry.IsPointInsideCircle(Position.X, Position.Y, x, y, radius);
+        return Geometry.IsPointInCircle(Position.X, Position.Y, x, y, radius);
     }
 
     public override bool IntersectRectangle(float x, float y, float width, float height) {
-        return Geometry.IsPointInsideRectangle(Position.X, Position.Y, x, y, width, height);
+        return Geometry.IsPointInRectangle(Position.X, Position.Y, x, y, width, height);
     }
 
     public override bool IntersectPoint(float px, float py) {

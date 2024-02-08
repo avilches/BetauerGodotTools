@@ -42,7 +42,7 @@ public static partial class Draw {
         }
         for (var drawY = 0; drawY < height; drawY++) {
             for (var drawX = 0; drawX < width; drawX++) {
-                var pos = Functions.GetRect2D(width, height, centerX, centerY, drawX, drawY);
+                var pos = Geometry.LerpRect2D(width, height, centerX, centerY, drawX, drawY);
                 onPixel(drawX + x, drawY + y, easing?.Get(pos) ?? pos);
             }
         }
@@ -56,7 +56,7 @@ public static partial class Draw {
         }
         for (var drawY = 0; drawY < height; drawY++) {
             for (var drawX = 0; drawX < width; drawX++) {
-                var pos = Functions.GetRect2D(width, height, drawX, drawY);
+                var pos = Geometry.LerpRect2D(width, height, drawX, drawY);
                 onPixel(drawX + x, drawY + y, easing?.Get(pos) ?? pos);
             }
         }

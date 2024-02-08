@@ -1,5 +1,7 @@
 using System;
+using Betauer.Core.Collision;
 using Betauer.Core.Easing;
+using Godot;
 using static Godot.Mathf;
 
 namespace Betauer.Core.Image;
@@ -192,12 +194,14 @@ public static partial class Draw {
 
     public static void GradientEllipse(int cx, int cy, int rx, int ry, Action<int, int, float> onPixel, IInterpolation? easing = null) {
         // Loop the x axis from left to right
+        var radiix = rx * rx;
+        var radiiy = ry * ry;
         for (var x = -rx; x <= rx; x++) {
             // Calculate the height of the ellipse at this x position
             var height = RoundToInt(Math.Sqrt((1 - (x * x) / (double)(rx * rx)) * ry * ry));
             // Draw a vertical line from -height to height
             for (var y = -height; y <= height; y++) {
-                var pos = Functions.GetEllipse(rx, ry, x, y);
+                var pos = Clamp(1f - ((float)x * x / radiix + (float)y * y / radiiy), 0f, 1f);
                 onPixel(cx + x, cy + y, easing?.Get(pos) ?? pos);
             }
         }
