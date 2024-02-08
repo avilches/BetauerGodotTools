@@ -5,8 +5,7 @@ namespace Betauer.Core.Data;
 
 /// <summary>
 /// Find the smallest element in an unsorted array without allocating memory with LINQ or enumerators.
-/// It troes to use the fastest method depending on the number of elements in the array.
-/// The toNumber
+/// It tries to use the fastest method depending on the number of elements in the array.
 /// </summary>
 public static class FastSearch {
     public static T FindMinimumValue<T>(List<T> array, Func<T, int> toNumber) {
