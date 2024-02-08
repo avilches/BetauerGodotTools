@@ -22,9 +22,6 @@ boot_splash/fullsize=false
 boot_splash/use_filter=false
 config/icon="res://icon.png"
 
-[autoload]
-
-
 [debug]
 
 file_logging/enable_file_logging=true

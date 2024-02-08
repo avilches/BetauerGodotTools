@@ -103,7 +103,7 @@ public class BiomeGenerator {
                            :DDDDDDDDDDDDwbwwww!!!!!!**!!**************:
                            :bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb:
                            """;
-        
+
         SeaBiomesConfig = """
                           :..........................................:
                           :..........................................:
@@ -112,7 +112,7 @@ public class BiomeGenerator {
                           :oooooooooooooooooooooooooooooo..oooooooooo:
                           :oooooooooo..oooooooooooooooooooooooooooooo:
                           """;
-   
+
         new Biome<BiomeType>[] {
             new() { Char = 'G', Type = BiomeType.Glacier, Color = Colors.White },
             new() { Char = 'r', Type = BiomeType.Rock, Color = Color(112, 112, 110) }, // gris
@@ -148,7 +148,7 @@ public class BiomeGenerator {
         MasslandOffset = 0.99f;
         LandWidthCount = 8;
         LandHeightCount = 3;
-        SeaLevel = 0.15f;  // 0.06
+        SeaLevel = 0.15f; // 0.06
         // HeightBias = 0.5f; // 0.3f
         RampFunc = (float h, float f) => (((h + 0.5f) / 2f) + 0.15f) * f;
         HumidityNormalizedGrid = new DataGrid(width, height, 0f);
@@ -237,6 +237,7 @@ public class BiomeGenerator {
                 var biome = FindBiome(humidity, terrainHeight); // 1f - temp);
                 BiomeCell.SeaLevel = SeaLevel;
                 BiomeCell biomeCell = new BiomeCell {
+                    Position = new Vector2I(x, y),
                     Height = terrainHeight,
                     Humidity = humidity,
                     Temp = temp,
@@ -248,10 +249,8 @@ public class BiomeGenerator {
             }
             // Console.WriteLine();
         }
-        RiverGenerator.FindRiverStartPoints(BiomeCells, 5, 100).ForEach(point => {
-            var cell = BiomeCells[(int)point.X, (int)point.Y];
-            cell.Biome = Biomes[BiomeType.Ocean];
-        });
+        // RiverGenerator.GenerateRivers(BiomeCells, 30, 100, _random);
+        
         Console.WriteLine($"Generate6:{s.ElapsedMilliseconds}ms");
         s.Restart();
 
@@ -308,8 +307,8 @@ public class BiomeGenerator {
     public void FillTerrain(FastImage fastTexture) {
         for (var y = 0; y < Height; y++) {
             for (var x = 0; x < Width; x++) {
-                var biome = BiomeCells[x, y].Biome;
-                fastTexture.SetPixel(x, y, biome.Color, false);
+                var cell = BiomeCells[x, y];
+                fastTexture.SetPixel(x, y, cell.Color, false);
             }
         }
         fastTexture.Flush();
@@ -317,7 +316,7 @@ public class BiomeGenerator {
 
     public void GraphFalloff(TextureRect textureRect) {
         var column = Height / 2;
-        var f = new FastTexture(textureRect, Width, Height / 4);
+        var f = new FastTexture().Link(textureRect, Width, Height / 4);
         f.Fill(Colors.DarkBlue);
         var ratio = (float)Width / f.Width;
         for (var x = 0; x < f.Width; x++) {
@@ -329,7 +328,7 @@ public class BiomeGenerator {
 
     public void GraphHeight(TextureRect textureRect) {
         var column = Height / 2;
-        var f = new FastTexture(textureRect, Width, Height / 4);
+        var f = new FastTexture().Link(textureRect, Width, Height / 4);
         f.Fill(Colors.DarkBlue);
         var ratio = (float)Width / f.Width;
         for (var x = 0; x < f.Width; x++) {
@@ -405,20 +404,26 @@ public class IslandGenerator {
             }
         }, easing);
     }
-    
 }
 
 public class RiverGenerator {
-    public static List<Vector2> FindRiverStartPoints(BiomeCell[,] biomeCells, int numberOfPoints, float minDistance) {
+    public static void GenerateRivers(BiomeCell[,] biomeCells, int numberOfPoints, float minDistance, Random random) {
+        FindRiverStartPoints(biomeCells, numberOfPoints, minDistance).ForEach((startPoint) => {
+            var cell = biomeCells[startPoint.X, startPoint.Y];
+            SimulateRiverFlow(biomeCells, cell, random);
+        });
+    }
+
+    public static List<Vector2I> FindRiverStartPoints(BiomeCell[,] biomeCells, int numberOfPoints, float minDistance) {
         var width = biomeCells.GetLength(0);
         var height = biomeCells.GetLength(1);
-        var highestPoints = new List<Vector2>();
-        var pointsWithHeight = new List<KeyValuePair<Vector2, float>>();
+        var highestPoints = new List<Vector2I>();
+        var pointsWithHeight = new List<KeyValuePair<Vector2I, float>>();
 
         for (var x = 0; x < width; x++) {
             for (var y = 0; y < height; y++) {
                 if (biomeCells[x, y].Height > 0.6f) {
-                    pointsWithHeight.Add(new KeyValuePair<Vector2, float>(new Vector2(x, y), biomeCells[x, y].Height));
+                    pointsWithHeight.Add(new KeyValuePair<Vector2I, float>(new Vector2I(x, y), biomeCells[x, y].Height));
                 }
             }
         }
@@ -429,11 +434,97 @@ public class RiverGenerator {
         // Choose the points with a minimum distance between them
         foreach (var point in pointsWithHeight) {
             if (highestPoints.Count >= numberOfPoints) break;
-            if (highestPoints.All(startPoint => startPoint.DistanceTo(point.Key) > minDistance)) {
+            if (highestPoints.All(startPoint => ((Vector2)startPoint).DistanceTo(point.Key) > minDistance)) {
                 highestPoints.Add(point.Key);
             }
         }
 
         return highestPoints;
+    }
+
+    private static BiomeCell? FindLowestNeighbour(BiomeCell[,] biomeCells, BiomeCell startCell, IReadOnlySet<Vector2I> river, Random random) {
+        var width = biomeCells.GetLength(0);
+        var height = biomeCells.GetLength(1);
+
+        var lowestCells = new List<BiomeCell>();
+        var searchRadius = 1;
+
+        while (lowestCells.Count == 0 && searchRadius < Math.Max(width, height)) {
+            for (var dx = -searchRadius; dx <= searchRadius; dx++) {
+                for (var dy = -searchRadius; dy <= searchRadius; dy++) {
+                    var x = startCell.Position.X + dx;
+                    var y = startCell.Position.Y + dy;
+
+                    // Ignora las celdas fuera de la cuadrícula, la celda de inicio o en el conjunto river
+                    if (x < 0 || x >= width || y < 0 || y >= height || river.Contains(new Vector2I(x, y)) || (dx == 0 && dy == 0)) {
+                        continue;
+                    }
+
+                    var cell = biomeCells[x, y];
+                    if (lowestCells.Count < 2) {
+                        lowestCells.Add(cell);
+                    } else {
+                        var highestCell = lowestCells.OrderByDescending(c => c.Height).First();
+                        if (cell.Height < highestCell.Height) {
+                            lowestCells.Remove(highestCell);
+                            lowestCells.Add(cell);
+                        }
+                    }
+                }
+            }
+            searchRadius++;
+        }
+
+        return lowestCells.Count > 0 ? lowestCells[random.Next(lowestCells.Count)] : null;
+    }
+
+    private static float initialWater = 1f; 
+    private static float increaseWater = 0.01f; 
+    public static void SimulateRiverFlow(BiomeCell[,] biomeCells, BiomeCell startPoint, Random random) {
+        var waterAmount = initialWater;
+        var currentCell = startPoint;
+        var river = new HashSet<Vector2I>();
+        var riverList = new List<Vector2I>();
+        while (true) {
+            currentCell.Water += waterAmount;
+            river.Add(currentCell.Position);
+            riverList.Add(currentCell.Position);
+            var lowestNeighbour = FindLowestNeighbour(biomeCells, currentCell, river, random);
+            if (lowestNeighbour == null || lowestNeighbour.Sea) {
+                break;
+            }
+            currentCell = lowestNeighbour;
+            waterAmount += increaseWater;
+        }
+
+        var additionalRiverPoints = new HashSet<Vector2I>();
+        foreach (var point in riverList) {
+            var cell = biomeCells[point.X, point.Y];
+            // var searchRadius = Math.Min((int)Math.Floor(cell.Water), max); // Ajusta esto según cómo quieras que el agua afecte al grosor del río
+            var searchRadius = Mathf.RoundToInt(random.NextFloat() * Math.Min(cell.Water, 1f));
+            
+            if (searchRadius == 0) continue;
+
+            for (var dx = -searchRadius; dx <= searchRadius; dx++) {
+                for (var dy = -searchRadius; dy <= searchRadius; dy++) {
+                    var x = cell.Position.X + dx;
+                    var y = cell.Position.Y + dy;
+
+                    // Ignora las celdas fuera de la cuadrícula o ya en el río
+                    if (x < 0 || x >= biomeCells.GetLength(0) || y < 0 || y >= biomeCells.GetLength(1) || river.Contains(new Vector2I(x, y)) || additionalRiverPoints.Contains(new Vector2I(x, y))) {
+                        continue;
+                    }
+
+                    additionalRiverPoints.Add(new Vector2I(x, y));
+                    var newCell = biomeCells[x, y];
+                    newCell.Water = cell.Water / 2;
+                }
+            }
+        }
+
+        // Añade los puntos adicionales al río
+        foreach (var point in additionalRiverPoints) {
+            river.Add(point);
+        }
     }
 }

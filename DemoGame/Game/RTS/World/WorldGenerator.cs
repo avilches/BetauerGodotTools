@@ -26,11 +26,10 @@ public partial class WorldGenerator {
     [Inject] public SceneTree SceneTree { get; set; }
     [Inject] public ResourceHolder<Texture2D> Grasslands { get; set; }
 
-    public BiomeGenerator BiomeGenerator { get; } = new();
+    public BiomeGenerator BiomeGenerator { get; }
     public TileMap<BiomeType> TileMap { get; private set; }
     public TileMap GodotTileMap { get; private set; }
     public FastTexture FastFinalMap { get; private set; }
-    public TextureRect SpriteMap { get; private set; }
     public Trees TreesInstance;
     private const int CellSize = 16;
 
@@ -51,13 +50,17 @@ public partial class WorldGenerator {
 
     public int Seed { get; set; } = 0;
 
-    public void Configure(TileMap godotTileMap, TextureRect textureFinalMap) {
-        GodotTileMap = godotTileMap;
-        SpriteMap = textureFinalMap;
-
+    public WorldGenerator() {
+        BiomeGenerator = new BiomeGenerator();
         BiomeGenerator.Configure(Width, Height, Seed);
+    }
+
+    public void Configure(TileMap godotTileMap, FastTexture fastTexture) {
+        GodotTileMap = godotTileMap;
+
+        
         TileMap = new TileMap<BiomeType>(Layers, Width, Height);
-        FastFinalMap = new FastTexture(SpriteMap, Width, Height, false, Image.Format.Rgba8);
+        FastFinalMap = fastTexture;
         
         GodotTileMap.Draw += () => {
             // Hack needed to draw on top of the tilemap:

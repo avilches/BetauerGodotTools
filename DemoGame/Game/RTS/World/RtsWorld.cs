@@ -6,6 +6,7 @@ using Betauer.Application.Persistent;
 using Betauer.Camera;
 using Betauer.Camera.Control;
 using Betauer.Core.Easing;
+using Betauer.Core.Image;
 using Betauer.Core.Nodes.Events;
 using Betauer.DI;
 using Betauer.DI.Attributes;
@@ -29,9 +30,11 @@ public partial class RtsWorld : Node, IInjectable {
 	[NodePath("TerrainTileMap")] private TileMap TerrainTileMap { get; set; }
 	// [NodePath("TextureHeight")] private Sprite2D TextureHeight { get; set; }
 	// [NodePath("TextureHumidity")] private Sprite2D TextureHumidity { get; set; }
-	// [NodePath("TexturePoisson")] private Sprite2D TexturePoisson { get; set; }
+	[NodePath("TexturePoisson")] private Sprite2D TexturePoisson { get; set; }
 	// [NodePath("TextureFinalMap")] private Sprite2D TextureFinalMap { get; set; }
-	[NodePath("TextureRect")] private TextureRect TextureRect { get; set; }
+	[NodePath("MainTerrainTexture")] private TextureRect MainTerrainTexture { get; set; }
+	private FastTexture MainTexture;
+	private FastTexture MainTextureOverlay;
 	
 	[NodePath("FalloffGraph")] private TextureRect FalloffGraph { get; set; }
 	[NodePath("HeightGraph")] private TextureRect HeightGraph { get; set; }
@@ -71,11 +74,19 @@ public partial class RtsWorld : Node, IInjectable {
 		_fsm.Execute();
 
 		AddChild(_fsm);
+		
+		MainTexture = new FastTexture().Link(MainTerrainTexture, WorldGenerator.BiomeGenerator.Width, WorldGenerator.BiomeGenerator.Height);
+		
+		var other = (TextureRect)MainTerrainTexture.Duplicate();
+		AddChild(other);
+		MainTextureOverlay = new FastTexture().Link(other, WorldGenerator.BiomeGenerator.Width, WorldGenerator.BiomeGenerator.Height);
+		MainTextureOverlay.Fill(new Color(0,0,0,0), false);
+		MainTextureOverlay.Flush();
 	}
-	
+
 	private Vector2 _lastMousePosition = Vector2.Zero;
 	public void UpdateCursor() {
-		var mousePosition = TextureRect.GetLocalMousePosition();
+		var mousePosition = MainTerrainTexture.GetLocalMousePosition();
 		if (mousePosition == _lastMousePosition) return;
 		_lastMousePosition = mousePosition;
 		var x = Mathf.RoundToInt(mousePosition.X);
@@ -118,15 +129,13 @@ public partial class RtsWorld : Node, IInjectable {
 		var s = Stopwatch.StartNew();
 		Init();
 		TerrainTileMap.Clear();
-		WorldGenerator.Configure(TerrainTileMap, TextureRect);
+		WorldGenerator.Configure(TerrainTileMap, MainTexture);
 		WorldGenerator.Generate();
 		WorldGenerator.Draw(WorldGenerator.ViewMode.Terrain);
 		WorldGenerator.BiomeGenerator.GraphFalloff(FalloffGraph);
 		WorldGenerator.BiomeGenerator.GraphHeight(HeightGraph);
 		ConfigureDebugOverlay();
 		Console.WriteLine($"StartNewGame:{s.ElapsedMilliseconds}ms");
-		// var poissonDemos = new PoissonDemos(TextureTerrainMap, TexturePoisson);
-		// AddChild(poissonDemos);
 		// poissonDemos.QueueFree();
 	}
 
@@ -154,7 +163,7 @@ public partial class RtsWorld : Node, IInjectable {
 		DebugOverlayManager.Overlay(TerrainTileMap)
 			.Title("PCG")
 			.OnDestroy(() => viewGroup.Dispose())
-			.SetMinSize(400, 600)
+			.SetMinSize(500, 800)
 			.Children()
 			.Edit("Seed", WorldGenerator.Seed.ToString(), seed => {
 				WorldGenerator.Seed = seed.ToInt();
@@ -170,7 +179,7 @@ public partial class RtsWorld : Node, IInjectable {
 				WorldGenerator.BiomeGenerator.GraphFalloff(FalloffGraph);
 				WorldGenerator.BiomeGenerator.GraphHeight(HeightGraph);
 			}, config => {
-				config.SetMultiLine(true).SetMinHeight(300).SetMinWidth(300);
+				config.SetMultiLine(true).SetMinHeight(500).SetMinWidth(500);
 				config.TextEdit.Theme = DebugConsoleTheme.Get();
 			})
 			.Label("---------- Layer -------------")
@@ -236,6 +245,95 @@ public partial class RtsWorld : Node, IInjectable {
 					WorldGenerator.BiomeGenerator.HumidityNoise.Frequency = value;
 					WorldGenerator.Generate();
 					WorldGenerator.ReDraw();
+				})
+			)
+			.Label("---------- Poisson -------------")
+			.Add<HBoxContainer>(box => box.Children()
+				.Button("Reset", () => {
+					MainTextureOverlay.Fill(new Color(0,0,0,0), false);
+					MainTextureOverlay.Flush();
+
+				})
+				.Button("U", () => {
+					MainTextureOverlay.Fill(new Color(0,0,0,0), false);
+					var poissonDemos = new PoissonDemos();
+					poissonDemos.GenerateUniformPoissonDisks(MainTextureOverlay);
+					MainTextureOverlay.Flush();
+
+				})
+				.Button("U Exp", () => {
+					MainTextureOverlay.Fill(new Color(0,0,0,0), false);
+					var poissonDemos = new PoissonDemos();
+					poissonDemos.GenerateUniformPoissonDisksExpanded(MainTextureOverlay);
+					MainTextureOverlay.Flush();
+				})
+				.Button("U Noise (ht)", () => {
+					MainTextureOverlay.Fill(new Color(0,0,0,0), false);
+					var poissonDemos = new PoissonDemos();
+					poissonDemos.GenerateVariablePoissonDisksWithNoise(MainTextureOverlay, WorldGenerator.BiomeGenerator.HeightNoise);
+					MainTextureOverlay.Flush();
+				})
+				.Button("U Noise (hum)", () => {
+					MainTextureOverlay.Fill(new Color(0,0,0,0), false);
+					var poissonDemos = new PoissonDemos();
+					poissonDemos.GenerateVariablePoissonDisksWithNoise(MainTextureOverlay, WorldGenerator.BiomeGenerator.HumidityNoise);
+					MainTextureOverlay.Flush();
+				})
+				.Button("V Rand", () => {
+					MainTextureOverlay.Fill(new Color(0,0,0,0), false);
+					var poissonDemos = new PoissonDemos();
+					poissonDemos.GenerateVariablePoissonDisksWithRandomRadius(MainTextureOverlay);
+					MainTextureOverlay.Flush();
+				})
+				.Button("V Noise (ht) Exp", () => {
+					MainTextureOverlay.Fill(new Color(0,0,0,0), false);
+					var poissonDemos = new PoissonDemos();
+					poissonDemos.GenerateVariablePoissonDisksWithNoiseExpanded(MainTextureOverlay, WorldGenerator.BiomeGenerator.HeightNoise);
+					MainTextureOverlay.Flush();
+				})
+				.Button("V Noise (hum) Exp", () => {
+					MainTextureOverlay.Fill(new Color(0,0,0,0), false);
+					var poissonDemos = new PoissonDemos();
+					poissonDemos.GenerateVariablePoissonDisksWithNoiseExpanded(MainTextureOverlay, WorldGenerator.BiomeGenerator.HumidityNoise);
+					MainTextureOverlay.Flush();
+				})
+			)
+			.Add<HBoxContainer>(box => box.Children()
+				.Button("V Noise (ht) Exp2", () => {
+					MainTextureOverlay.Fill(new Color(0,0,0,0), false);
+					var poissonDemos = new PoissonDemos();
+					poissonDemos.GenerateVariablePoissonDisksWithNoiseExpanded2(MainTextureOverlay, WorldGenerator.BiomeGenerator.HeightNoise);
+					MainTextureOverlay.Flush();
+				})
+				.Button("V Noise (hum) Exp2", () => {
+					MainTextureOverlay.Fill(new Color(0,0,0,0), false);
+					var poissonDemos = new PoissonDemos();
+					poissonDemos.GenerateVariablePoissonDisksWithNoiseExpanded2(MainTextureOverlay, WorldGenerator.BiomeGenerator.HumidityNoise);
+					MainTextureOverlay.Flush();
+				})
+				.Button("V Rand", () => {
+					MainTextureOverlay.Fill(new Color(0,0,0,0), false);
+					var poissonDemos = new PoissonDemos();
+					poissonDemos.GenerateVariablePoissonDisksWithRandomRadius(MainTextureOverlay);
+					MainTextureOverlay.Flush();
+				})
+				.Button("V Rand 2", () => {
+					MainTextureOverlay.Fill(new Color(0,0,0,0), false);
+					var poissonDemos = new PoissonDemos();
+					poissonDemos.GenerateVariablePoissonDisksWithRandomRadius2(MainTextureOverlay);
+					MainTextureOverlay.Flush();
+				})
+				.Button("V Rand rem", () => {
+					MainTextureOverlay.Fill(new Color(0,0,0,0), false);
+					var poissonDemos = new PoissonDemos();
+					poissonDemos.GenerateVariablePoissonDisksWithRandomRadiusRemovingRandom(MainTextureOverlay);
+					MainTextureOverlay.Flush();
+				})
+				.Button("V Rect rand", () => {
+					MainTextureOverlay.Fill(new Color(0,0,0,0), false);
+					var poissonDemos = new PoissonDemos();
+					poissonDemos.GenerateVariablePoissonDisksWithRectangleRandomRadiusRemovingRandom(MainTextureOverlay);
+					MainTextureOverlay.Flush();
 				})
 			);
 	}

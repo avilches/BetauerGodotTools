@@ -1,4 +1,4 @@
-[gd_scene load_steps=63 format=3 uid="uid://163eoj5jr80w"]
+[gd_scene load_steps=67 format=3 uid="uid://163eoj5jr80w"]
 
 [ext_resource type="Script" path="res://Game/RTS/World/RtsWorld.cs" id="1_4ci2m"]
 [ext_resource type="Texture2D" uid="uid://c12blmsyum1yw" path="res://icon.png" id="2_afn7b"]
@@ -16255,6 +16255,17 @@ metadata/terrain_autotiler = {
 "version": "0.3.0"
 }
 
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_otjlm"]
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_5kqdi"]
+seamless = true
+noise = SubResource("FastNoiseLite_otjlm")
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_jxnns"]
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_6s884"]
+noise = SubResource("FastNoiseLite_jxnns")
+
 [node name="Node" type="Node"]
 script = ExtResource("1_4ci2m")
 
@@ -16278,7 +16289,7 @@ layer_0/tile_data = PackedInt32Array(1376290, 262151, 1, 1441826, 262151, 1, 150
 layer_1/name = "Front"
 layer_1/tile_data = PackedInt32Array(1835023, 589830, 31, 1835024, 589830, 31, 1835025, 589830, 31, 1900561, 589830, 31, 1900560, 589830, 31, 1900559, 589830, 31, 1966097, 589830, 31, 1966096, 589830, 31, 1966095, 589830, 31, 1966098, 589830, 31, 2031634, 589830, 31, 2031633, 589830, 31, 1900562, 589830, 31, 2031632, 589830, 31, 1769493, 1179655, 2, 1835029, 1179655, 3, 1835030, 1507335, 1, 1835031, 1245191, 3, 1769495, 1310727, 2, 1769494, 1310727, 2, 1703959, 1245191, 2, 1703958, 1638407, 4, 1703957, 1179655, 1, 1703960, 1245191, 2, 1769496, 1441799, 1, 1835032, 1376263, 3, 1769497, 1376263, 3, 1703961, 1441799, 1, 1638423, 1310727, 2, 1638422, 1638407, 2, 1572886, 1638407, 1, 1572885, 1179655, 3, 1572888, 1507335, 4, 1572889, 1376263, 1, 1638425, 1441799, 4, 1638424, 1245191, 2, 1703962, 1376263, 3, 1638426, 1376263, 1, 1572887, 1310727, 1, 1507349, 1179655, 1, 1507350, 1376263, 1)
 
-[node name="TextureRect" type="TextureRect" parent="."]
+[node name="MainTerrainTexture" type="TextureRect" parent="."]
 offset_right = 1000.0
 offset_bottom = 1000.0
 texture = ExtResource("2_afn7b")
@@ -16318,3 +16329,14 @@ layout_mode = 2
 [node name="MouseText" type="Label" parent="CanvasLayer/MouseInfo/HBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
+
+[node name="TexturePoisson" type="Sprite2D" parent="."]
+position = Vector2(-291, 274)
+texture = SubResource("NoiseTexture2D_5kqdi")
+
+[node name="TextureRect" type="TextureRect" parent="TexturePoisson"]
+offset_left = -269.0
+offset_top = 297.0
+offset_right = 243.0
+offset_bottom = 809.0
+texture = SubResource("NoiseTexture2D_6s884")
