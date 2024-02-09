@@ -74,8 +74,20 @@ public class FastImage {
         SetChannel(x, y, 3, alpha);
     }
 
+    public void SetAlpha(Vector2I position, float alpha) {
+        SetAlpha(position.X, position.Y, alpha);
+    }
+
+    public float GetAlpha(Vector2I position) {
+        return GetAlpha(position.X, position.Y);
+    }
+
     public float GetAlpha(int x, int y) {
         return GetChannel(x, y, 3);
+    }
+
+    public void SetPixel(Vector2I position, Color color, bool blend = true) {
+        SetPixel(position.X, position.Y, color, blend);
     }
 
     public void SetPixel(int x, int y, Color color, bool blend = true) {
@@ -89,6 +101,10 @@ public class FastImage {
         }
         _pixel.SetPixel(this, x, y, color);
         _dirty = true;
+    }
+
+    public void SetChannel(Vector2I position, int channel, float value) {
+        SetChannel(position.X, position.Y, channel, value);
     }
 
     public void SetChannel(int x, int y, int channel, float value) {
@@ -107,9 +123,17 @@ public class FastImage {
         }
     }
 
+    public Color GetPixel(Vector2I position) {
+        return GetPixel(position.X, position.Y);
+    }
+
     public Color GetPixel(int x, int y) {
         if (x < 0 || y < 0 || x >= Width || y >= Height) throw new Exception($"Coords x:{x} y:{y} out of bounds");
         return _pixel.GetPixel(this, x, y);
+    }
+
+    public float GetChannel(Vector2I position, int channel) {
+        return GetChannel(position.X, position.Y, channel);
     }
 
     public float GetChannel(int x, int y, int channel) {
