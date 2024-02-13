@@ -12,10 +12,10 @@ using System.Linq;
 /// https://mapbox.github.io/delaunator/
 /// </summary>
 
-public struct Edge {
-    public Vector2 P { get; set; }
-    public Vector2 Q { get; set; }
-    public int Index { get; set; }
+public readonly struct Edge {
+    public readonly Vector2 P;
+    public readonly Vector2 Q;
+    public readonly int Index;
 
     public Edge(int e, Vector2 p, Vector2 q) {
         Index = e;
@@ -24,20 +24,20 @@ public struct Edge {
     }
 }
 
-public struct Triangle {
-    public int Index { get; set; }
+public readonly struct Triangle {
+    public readonly int Index;
 
-    public IEnumerable<Vector2> Points { get; set; }
+    public readonly Vector2[] Points;
 
-    public Triangle(int t, IEnumerable<Vector2> points) {
+    public Triangle(int t, Vector2[] points) {
         Points = points;
         Index = t;
     }
 }
 
-public struct VoronoiCell {
-    public Vector2[] Points { get; set; }
-    public int Index { get; set; }
+public readonly struct VoronoiCell {
+    public readonly Vector2[] Points;
+    public readonly int Index;
 
     public VoronoiCell(int triangleIndex, Vector2[] points) {
         Points = points;
@@ -46,7 +46,6 @@ public struct VoronoiCell {
 }
 
 public class Delaunator {
-    private readonly float EPSILON = Mathf.Pow(2, -52);
     private readonly int[] EDGE_STACK = new int[512];
 
     /// <summary>
@@ -57,7 +56,7 @@ public class Delaunator {
     /// <summary>
     /// One value per half-edge, containing the opposite half-edge in the adjacent triangle, or -1 if there is no adjacent triangle
     /// </summary>
-    public int[] Halfedges { get; private set; }
+    public int[] HalfEdges { get; private set; }
 
     /// <summary>
     /// The initial points Delaunator was constructed with.
@@ -102,7 +101,7 @@ public class Delaunator {
 
         Triangles = new int[maxTriangles * 3];
 
-        Halfedges = new int[maxTriangles * 3];
+        HalfEdges = new int[maxTriangles * 3];
         hashSize = (int)Math.Ceiling(Math.Sqrt(n));
 
         hullPrev = new int[n];
@@ -231,7 +230,7 @@ public class Delaunator {
             var y = coords[2 * i + 1];
 
             // skip near-duplicate points
-            if (k > 0 && Math.Abs(x - xp) <= EPSILON && Math.Abs(y - yp) <= EPSILON) continue;
+            if (k > 0 && Math.Abs(x - xp) <= Mathf.Epsilon && Math.Abs(y - yp) <= Mathf.Epsilon) continue;
             xp = x;
             yp = y;
 
@@ -321,7 +320,7 @@ public class Delaunator {
 
         //// trim typed triangle mesh arrays
         Triangles = Triangles.Take(trianglesLen).ToArray();
-        Halfedges = Halfedges.Take(trianglesLen).ToArray();
+        HalfEdges = HalfEdges.Take(trianglesLen).ToArray();
     }
 
     #region CreationLogic
@@ -332,7 +331,7 @@ public class Delaunator {
 
         // recursion eliminated with a fixed-size stack
         while (true) {
-            var b = Halfedges[a];
+            var b = HalfEdges[a];
 
             /* if the pair of triangles doesn't satisfy the Delaunay condition
              * (p1 is inside the circumcircle of [p0, pl, pr]), flip them,
@@ -377,7 +376,7 @@ public class Delaunator {
                 Triangles[a] = p1;
                 Triangles[b] = p0;
 
-                var hbl = Halfedges[bl];
+                var hbl = HalfEdges[bl];
 
                 // edge swapped on the other side of the hull (rare); fix the halfedge reference
                 if (hbl == -1) {
@@ -391,7 +390,7 @@ public class Delaunator {
                     } while (e != hullStart);
                 }
                 Link(a, hbl);
-                Link(b, Halfedges[ar]);
+                Link(b, HalfEdges[ar]);
                 Link(ar, bl);
 
                 var br = b0 + (b + 1) % 3;
@@ -442,8 +441,8 @@ public class Delaunator {
     }
 
     private void Link(int a, int b) {
-        Halfedges[a] = b;
-        if (b != -1) Halfedges[b] = a;
+        HalfEdges[a] = b;
+        if (b != -1) HalfEdges[b] = a;
     }
 
     private int HashKey(float x, float y) => (int)(Math.Floor(PseudoAngle(x - cx, y - cy) * hashSize) % hashSize);
@@ -547,40 +546,40 @@ public class Delaunator {
 
     public IEnumerable<Edge> GetEdges() {
         for (var e = 0; e < Triangles.Length; e++) {
-            if (e > Halfedges[e]) {
+            if (e > HalfEdges[e]) {
                 var p = Points[Triangles[e]];
-                var q = Points[Triangles[NextHalfedge(e)]];
+                var q = Points[Triangles[NextHalfEdge(e)]];
                 yield return new Edge(e, p, q);
             }
         }
     }
+    
+    public enum VoronoiType {
+        Circumcenter,
+        Centroid
+    }
 
-    public IEnumerable<Edge> GetVoronoiEdges(Func<int, Vector2>? triangleVerticeSelector = null) {
-        if (triangleVerticeSelector == null) triangleVerticeSelector = x => GetCentroid(x);
+    public IEnumerable<Edge> GetVoronoiEdges(VoronoiType voronoiType) {
+        Func<int, Vector2> triangleVerticeSelector = voronoiType == VoronoiType.Centroid ? GetCentroid : GetTriangleCircumcenter;
         for (var e = 0; e < Triangles.Length; e++) {
-            if (e < Halfedges[e]) {
+            if (e < HalfEdges[e]) {
                 var p = triangleVerticeSelector(TriangleOfEdge(e));
-                var q = triangleVerticeSelector(TriangleOfEdge(Halfedges[e]));
+                var q = triangleVerticeSelector(TriangleOfEdge(HalfEdges[e]));
                 yield return new Edge(e, p, q);
             }
         }
     }
 
-    public IEnumerable<Edge> GetVoronoiEdgesBasedOnCircumCenter() => GetVoronoiEdges(GetTriangleCircumcenter);
-    public IEnumerable<Edge> GetVoronoiEdgesBasedOnCentroids() => GetVoronoiEdges(GetCentroid);
-
-    public IEnumerable<VoronoiCell> GetVoronoiCells(Func<int, Vector2>? triangleVerticeSelector = null) {
-        if (triangleVerticeSelector == null) triangleVerticeSelector = x => GetCentroid(x);
-
+    public IEnumerable<VoronoiCell> GetVoronoiCells(VoronoiType voronoiType) {
+        Func<int, Vector2> triangleVerticeSelector = voronoiType == VoronoiType.Centroid ? GetCentroid : GetTriangleCircumcenter;
         var seen = new HashSet<int>();
         var vertices = new List<Vector2>(10); // Keep it outside the loop, reuse capacity, less resizes.
 
         for (var e = 0; e < Triangles.Length; e++) {
-            var pointIndex = Triangles[NextHalfedge(e)];
+            var pointIndex = Triangles[NextHalfEdge(e)];
             // True if element was added, If resize the set? O(n) : O(1)
             if (seen.Add(pointIndex)) {
                 foreach (var edge in EdgesAroundPoint(e)) {
-                    // triangleVerticeSelector cant be null, no need to check before invoke (?.).
                     vertices.Add(triangleVerticeSelector.Invoke(TriangleOfEdge(edge)));
                 }
                 yield return new VoronoiCell(pointIndex, vertices.ToArray());
@@ -588,9 +587,6 @@ public class Delaunator {
             }
         }
     }
-
-    public IEnumerable<VoronoiCell> GetVoronoiCellsBasedOnCircumcenters() => GetVoronoiCells(GetTriangleCircumcenter);
-    public IEnumerable<VoronoiCell> GetVoronoiCellsBasedOnCentroids() => GetVoronoiCells(GetCentroid);
 
     public IEnumerable<Edge> GetHullEdges() => CreateHull(GetHullPoints());
 
@@ -604,15 +600,12 @@ public class Delaunator {
         return points.ToArray();
     }
 
-    public Vector2[] GetRellaxedPoints() {
-        var points = new List<Vector2>();
-        foreach (var cell in GetVoronoiCellsBasedOnCircumcenters()) {
-            points.Add(GetCentroid(cell.Points));
-        }
-        return points.ToArray();
+    public IEnumerable<Vector2> GetRelaxedPoints() {
+        return GetVoronoiCells(VoronoiType.Circumcenter).Select(cell => GetCentroid(cell.Points));
     }
 
     public IEnumerable<Edge> GetEdgesOfTriangle(int t) => CreateHull(EdgesOfTriangle(t).Select(p => Points[p]));
+    
     public static IEnumerable<Edge> CreateHull(IEnumerable<Vector2> points) => points.Zip(points.Skip(1).Append(points.FirstOrDefault()), (a, b) => new Edge(0, a, b)).OfType<Edge>();
 
     public Vector2 GetTriangleCircumcenter(int t) {
@@ -662,26 +655,14 @@ public class Delaunator {
         }
     }
 
-    public void ForEachVoronoiEdge(Action<Edge> callback) {
-        foreach (var edge in GetVoronoiEdges()) {
+    public void ForEachVoronoiEdge(Action<Edge> callback, VoronoiType voronoiType) {
+        foreach (var edge in GetVoronoiEdges(voronoiType)) {
             callback?.Invoke(edge);
         }
     }
 
-    public void ForEachVoronoiCellBasedOnCentroids(Action<VoronoiCell> callback) {
-        foreach (var cell in GetVoronoiCellsBasedOnCentroids()) {
-            callback?.Invoke(cell);
-        }
-    }
-
-    public void ForEachVoronoiCellBasedOnCircumcenters(Action<VoronoiCell> callback) {
-        foreach (var cell in GetVoronoiCellsBasedOnCircumcenters()) {
-            callback?.Invoke(cell);
-        }
-    }
-
-    public void ForEachVoronoiCell(Action<VoronoiCell> callback, Func<int, Vector2> triangleVertexSelector = null) {
-        foreach (var cell in GetVoronoiCells(triangleVertexSelector)) {
+    public void ForEachVoronoiCell(Action<VoronoiCell> callback, VoronoiType voronoiType) {
+        foreach (var cell in GetVoronoiCells(voronoiType)) {
             callback?.Invoke(cell);
         }
     }
@@ -693,42 +674,49 @@ public class Delaunator {
     /// <summary>
     /// Returns the half-edges that share a start point with the given half edge, in order.
     /// </summary>
-    public IEnumerable<int> EdgesAroundPoint(int start) {
+    public List<int> EdgesAroundPoint(int start) {
+        var result = new List<int>();
         var incoming = start;
         do {
-            yield return incoming;
-            var outgoing = NextHalfedge(incoming);
-            incoming = Halfedges[outgoing];
+            result.Add(incoming);
+            var outgoing = NextHalfEdge(incoming);
+            incoming = HalfEdges[outgoing];
         } while (incoming != -1 && incoming != start);
+        return result;
     }
 
     /// <summary>
     /// Returns the three point indices of a given triangle id.
     /// </summary>
-    public IEnumerable<int> PointsOfTriangle(int t) {
-        foreach (var edge in EdgesOfTriangle(t)) {
-            yield return Triangles[edge];
+    public int[] PointsOfTriangle(int t) {
+        var pointsOfTriangle = new int[3];
+        var edgesOfTriangle = EdgesOfTriangle(t);
+        for (var idx = 0; idx < edgesOfTriangle.Length; idx++) {
+            var edge = edgesOfTriangle[idx];
+            pointsOfTriangle[idx] = Triangles[edge];
         }
+        return pointsOfTriangle;
     }
 
     /// <summary>
     /// Returns the triangle ids adjacent to the given triangle id.
     /// Will return up to three values.
     /// </summary>
-    public IEnumerable<int> TrianglesAdjacentToTriangle(int t) {
-        var adjacentTriangles = new List<int>();
+    public int[] TrianglesAdjacentToTriangle(int t) {
+        var adjacentTriangles = new List<int>(3);
         var triangleEdges = EdgesOfTriangle(t);
         foreach (var e in triangleEdges) {
-            var opposite = Halfedges[e];
+            var opposite = HalfEdges[e];
             if (opposite >= 0) {
                 adjacentTriangles.Add(TriangleOfEdge(opposite));
             }
         }
-        return adjacentTriangles;
+        return adjacentTriangles.ToArray();
     }
 
-    public static int NextHalfedge(int e) => (e % 3 == 2) ? e - 2 : e + 1;
-    public static int PreviousHalfedge(int e) => (e % 3 == 0) ? e + 2 : e - 1;
+    public static int NextHalfEdge(int e) => (e % 3 == 2) ? e - 2 : e + 1;
+    
+    public static int PreviousHalfEdge(int e) => (e % 3 == 0) ? e + 2 : e - 1;
 
     /// <summary>
     /// Returns the three half-edges of a given triangle id.
@@ -743,4 +731,53 @@ public class Delaunator {
     }
 
     #endregion Methods based on index
+
+    /// <summary>
+    /// Returns the VoronoiCell that surrounds the given point.
+    /// </summary>
+    /// <param name="point"></param>
+    /// <param name="voronoiType"></param>
+    /// <returns></returns>
+    public VoronoiCell? FindVoronoiCell(Vector2 point, VoronoiType voronoiType) {
+        var pointIndex = Array.IndexOf(Points, point);
+        return pointIndex == -1 ? null : FindVoronoiCell(pointIndex, voronoiType);
+    }
+
+    /// <summary>
+    /// Returns the VoronoiCell that surrounds the given point.
+    /// </summary>
+    /// <param name="pointIndex"></param>
+    /// <param name="voronoiType"></param>
+    /// <returns></returns>
+    public VoronoiCell? FindVoronoiCell(int pointIndex, VoronoiType voronoiType) {
+        Func<int, Vector2> triangleVerticeSelector = voronoiType == VoronoiType.Centroid ? GetCentroid : GetTriangleCircumcenter;
+        for (var t = 0; t < Triangles.Length; t++) {
+            var nextPoint = Triangles[NextHalfEdge(t)];
+            if (nextPoint == pointIndex) {
+                var vertices = new List<Vector2>(10);
+                foreach (var edge in EdgesAroundPoint(t)) {
+                    vertices.Add(triangleVerticeSelector.Invoke(TriangleOfEdge(edge)));
+                }
+                return new VoronoiCell(nextPoint, vertices.ToArray());
+            }
+        }
+        return null;
+    }
+
+    /*
+    public Edge? FindClosestEdgeFromPoint(VoronoiCell voronoiCell, Vector2 randomPosition) {
+        var minDistance = float.PositiveInfinity;
+        Edge? closestEdge = null;
+        foreach (var edge in CreateHull(voronoiCell.Points)) {
+            Vector2 v1 = edge.P - randomPosition;
+            Vector2 v2 = edge.Q - randomPosition;
+            var distance = Mathf.Min(v1.Length(), v2.Length());
+            if (distance < minDistance) {
+                minDistance = distance;
+                closestEdge = edge;
+            }
+        }
+        return closestEdge;
+    }
+    */
 }
