@@ -97,7 +97,7 @@ public class CameraController {
 
     public SignalAwaiter MoveTo(Vector2 target, float time, IInterpolation? easing = null) {
         easing ??= Interpolation.Linear;
-        if (easing is not Interpolation godotEasing) return MoveTo(() => target, time, easing);
+        if (easing is not GodotTween godotEasing) return MoveTo(() => target, time, easing);
 
         StopFollowing();
         _positionTween?.Kill();
@@ -125,7 +125,7 @@ public class CameraController {
         _zoomTween?.Kill();
         _zoomTween = Camera2D.GetTree().CreateTween().SetProcessMode(Tween.TweenProcessMode.Physics);
         easing ??= Interpolation.Linear;
-        if (easing is Interpolation godotEasing && getZoomPoint == null) {
+        if (easing is GodotTween godotEasing && getZoomPoint == null) {
             _zoomTween.TweenProperty(Camera2D, "zoom", zoom, time)
                 .FromCurrent()
                 .SetEase(godotEasing.EaseType)

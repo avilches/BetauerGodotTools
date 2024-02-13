@@ -1,81 +1,78 @@
 using System;
 using Godot;
 
-namespace Betauer.Core.Easing; 
+namespace Betauer.Core.Easing;
 
 public class Interpolation : IInterpolation {
-    public readonly Tween.EaseType EaseType;
-    public readonly Tween.TransitionType TransitionType;
-    public readonly Func<float, float> EasingFunction;
+    public readonly Func<float, float> Function;
 
-    public string Name { get; }
-
-    private Interpolation(Tween.TransitionType transitionType, Tween.EaseType easeType) {
-        Name = $"{transitionType}{easeType}";
-        TransitionType = transitionType;
-        EaseType = easeType;
-        EasingFunction = Functions.GetEaseFunc(transitionType, easeType);
+    private Interpolation(Func<float, float> function) {
+        Function = function;
     }
 
     public float Get(float t) { 
-        return EasingFunction(t);
+        return Function(t);
     }
         
-    public static readonly Interpolation Linear = new Interpolation(Tween.TransitionType.Linear, Tween.EaseType.InOut);
+    public static readonly IInterpolation Linear = new GodotTween(Tween.TransitionType.Linear, Tween.EaseType.InOut);
 
-    public static readonly Interpolation SineIn = new Interpolation(Tween.TransitionType.Sine, Tween.EaseType.In);
-    public static readonly Interpolation SineOut = new Interpolation(Tween.TransitionType.Sine, Tween.EaseType.Out);
-    public static readonly Interpolation SineInOut = new Interpolation(Tween.TransitionType.Sine, Tween.EaseType.InOut);
+    public static readonly IInterpolation SineIn = new GodotTween(Tween.TransitionType.Sine, Tween.EaseType.In);
+    public static readonly IInterpolation SineOut = new GodotTween(Tween.TransitionType.Sine, Tween.EaseType.Out);
+    public static readonly IInterpolation SineInOut = new GodotTween(Tween.TransitionType.Sine, Tween.EaseType.InOut);
 
-    public static readonly Interpolation QuintIn = new Interpolation(Tween.TransitionType.Quint, Tween.EaseType.In);
-    public static readonly Interpolation QuintOut = new Interpolation(Tween.TransitionType.Quint, Tween.EaseType.Out);
-    public static readonly Interpolation QuintInOut = new Interpolation(Tween.TransitionType.Quint, Tween.EaseType.InOut);
+    public static readonly IInterpolation QuintIn = new GodotTween(Tween.TransitionType.Quint, Tween.EaseType.In);
+    public static readonly IInterpolation QuintOut = new GodotTween(Tween.TransitionType.Quint, Tween.EaseType.Out);
+    public static readonly IInterpolation QuintInOut = new GodotTween(Tween.TransitionType.Quint, Tween.EaseType.InOut);
 
-    public static readonly Interpolation QuartIn = new Interpolation(Tween.TransitionType.Quart, Tween.EaseType.In);
-    public static readonly Interpolation QuartOut = new Interpolation(Tween.TransitionType.Quart, Tween.EaseType.Out);
-    public static readonly Interpolation QuartInOut = new Interpolation(Tween.TransitionType.Quart, Tween.EaseType.InOut);
+    public static readonly IInterpolation QuartIn = new GodotTween(Tween.TransitionType.Quart, Tween.EaseType.In);
+    public static readonly IInterpolation QuartOut = new GodotTween(Tween.TransitionType.Quart, Tween.EaseType.Out);
+    public static readonly IInterpolation QuartInOut = new GodotTween(Tween.TransitionType.Quart, Tween.EaseType.InOut);
 
-    public static readonly Interpolation QuadIn = new Interpolation(Tween.TransitionType.Quad, Tween.EaseType.In);
-    public static readonly Interpolation QuadOut = new Interpolation(Tween.TransitionType.Quad, Tween.EaseType.Out);
-    public static readonly Interpolation QuadInOut = new Interpolation(Tween.TransitionType.Quad, Tween.EaseType.InOut);
+    public static readonly IInterpolation QuadIn = new GodotTween(Tween.TransitionType.Quad, Tween.EaseType.In);
+    public static readonly IInterpolation QuadOut = new GodotTween(Tween.TransitionType.Quad, Tween.EaseType.Out);
+    public static readonly IInterpolation QuadInOut = new GodotTween(Tween.TransitionType.Quad, Tween.EaseType.InOut);
 
-    public static readonly Interpolation ExpoIn = new Interpolation(Tween.TransitionType.Expo, Tween.EaseType.In);
-    public static readonly Interpolation ExpoOut = new Interpolation(Tween.TransitionType.Expo, Tween.EaseType.Out);
-    public static readonly Interpolation ExpoInOut = new Interpolation(Tween.TransitionType.Expo, Tween.EaseType.InOut);
+    public static readonly IInterpolation ExpoIn = new GodotTween(Tween.TransitionType.Expo, Tween.EaseType.In);
+    public static readonly IInterpolation ExpoOut = new GodotTween(Tween.TransitionType.Expo, Tween.EaseType.Out);
+    public static readonly IInterpolation ExpoInOut = new GodotTween(Tween.TransitionType.Expo, Tween.EaseType.InOut);
 
-    public static readonly Interpolation ElasticIn = new Interpolation(Tween.TransitionType.Elastic, Tween.EaseType.In);
-    public static readonly Interpolation ElasticOut = new Interpolation(Tween.TransitionType.Elastic, Tween.EaseType.Out);
-    public static readonly Interpolation ElasticInOut = new Interpolation(Tween.TransitionType.Elastic, Tween.EaseType.InOut);
+    public static readonly IInterpolation ElasticIn = new GodotTween(Tween.TransitionType.Elastic, Tween.EaseType.In);
+    public static readonly IInterpolation ElasticOut = new GodotTween(Tween.TransitionType.Elastic, Tween.EaseType.Out);
+    public static readonly IInterpolation ElasticInOut = new GodotTween(Tween.TransitionType.Elastic, Tween.EaseType.InOut);
 
-    public static readonly Interpolation CubicIn = new Interpolation(Tween.TransitionType.Cubic, Tween.EaseType.In);
-    public static readonly Interpolation CubicOut = new Interpolation(Tween.TransitionType.Cubic, Tween.EaseType.Out);
-    public static readonly Interpolation CubicInOut = new Interpolation(Tween.TransitionType.Cubic, Tween.EaseType.InOut);
+    public static readonly IInterpolation CubicIn = new GodotTween(Tween.TransitionType.Cubic, Tween.EaseType.In);
+    public static readonly IInterpolation CubicOut = new GodotTween(Tween.TransitionType.Cubic, Tween.EaseType.Out);
+    public static readonly IInterpolation CubicInOut = new GodotTween(Tween.TransitionType.Cubic, Tween.EaseType.InOut);
 
-    public static readonly Interpolation CircIn = new Interpolation(Tween.TransitionType.Circ, Tween.EaseType.In);
-    public static readonly Interpolation CircOut = new Interpolation(Tween.TransitionType.Circ, Tween.EaseType.Out);
-    public static readonly Interpolation CircInOut = new Interpolation(Tween.TransitionType.Circ, Tween.EaseType.InOut);
+    public static readonly IInterpolation CircIn = new GodotTween(Tween.TransitionType.Circ, Tween.EaseType.In);
+    public static readonly IInterpolation CircOut = new GodotTween(Tween.TransitionType.Circ, Tween.EaseType.Out);
+    public static readonly IInterpolation CircInOut = new GodotTween(Tween.TransitionType.Circ, Tween.EaseType.InOut);
 
-    public static readonly Interpolation BounceIn = new Interpolation(Tween.TransitionType.Bounce, Tween.EaseType.In);
-    public static readonly Interpolation BounceOut = new Interpolation(Tween.TransitionType.Bounce, Tween.EaseType.Out);
-    public static readonly Interpolation BounceInOut = new Interpolation(Tween.TransitionType.Bounce, Tween.EaseType.InOut);
+    public static readonly IInterpolation BounceIn = new GodotTween(Tween.TransitionType.Bounce, Tween.EaseType.In);
+    public static readonly IInterpolation BounceOut = new GodotTween(Tween.TransitionType.Bounce, Tween.EaseType.Out);
+    public static readonly IInterpolation BounceInOut = new GodotTween(Tween.TransitionType.Bounce, Tween.EaseType.InOut);
 
-    public static readonly Interpolation BackIn = new Interpolation(Tween.TransitionType.Back, Tween.EaseType.In);
-    public static readonly Interpolation BackOut = new Interpolation(Tween.TransitionType.Back, Tween.EaseType.Out);
-    public static readonly Interpolation BackInOut = new Interpolation(Tween.TransitionType.Back, Tween.EaseType.InOut);
+    public static readonly IInterpolation BackIn = new GodotTween(Tween.TransitionType.Back, Tween.EaseType.In);
+    public static readonly IInterpolation BackOut = new GodotTween(Tween.TransitionType.Back, Tween.EaseType.Out);
+    public static readonly IInterpolation BackInOut = new GodotTween(Tween.TransitionType.Back, Tween.EaseType.InOut);
 
-    public static readonly Interpolation SpringIn = new Interpolation(Tween.TransitionType.Spring, Tween.EaseType.In);
-    public static readonly Interpolation SpringOut = new Interpolation(Tween.TransitionType.Spring, Tween.EaseType.Out);
-    public static readonly Interpolation SpringInOut = new Interpolation(Tween.TransitionType.Spring, Tween.EaseType.InOut);
+    public static readonly IInterpolation SpringIn = new GodotTween(Tween.TransitionType.Spring, Tween.EaseType.In);
+    public static readonly IInterpolation SpringOut = new GodotTween(Tween.TransitionType.Spring, Tween.EaseType.Out);
+    public static readonly IInterpolation SpringInOut = new GodotTween(Tween.TransitionType.Spring, Tween.EaseType.InOut);
+
+    public static IInterpolation Create(Func<float, float> interpolation) => new Interpolation(interpolation);
     
-    public static IInterpolation Combine(IInterpolation interpolation) => new InterpolationWrapper(interpolation);
+    public static IInterpolation Mirror(IInterpolation interpolation) => new Interpolation((t) => Functions.Mirror(t, interpolation));
+
+    public static IInterpolation Bias(float bias) => new Interpolation((t) => Functions.Bias(t, bias));
     
-    public static IInterpolation Create(Func<float, float> interpolation) => new InterpolationFunc(interpolation);
+    public static IInterpolation Gain(float bias, float gain) => new Interpolation((t) => Functions.Gain(t, bias, gain));
 
     public static IInterpolation Shift(IInterpolation interpolation, float start = 0f, float end = 1f) {
-        return new InterpolationFunc((t) => Functions.Shift(start, end, t, interpolation.Get));
+        return new Interpolation((t) => Functions.Shift(start, end, t, interpolation.Get));
     }
 
-    public static Interpolation Get(Tween.TransitionType type, Tween.EaseType easeType) {
+    public static IInterpolation Get(Tween.TransitionType type, Tween.EaseType easeType) {
         return type switch {
             Tween.TransitionType.Linear => Linear,
             Tween.TransitionType.Sine => easeType switch {

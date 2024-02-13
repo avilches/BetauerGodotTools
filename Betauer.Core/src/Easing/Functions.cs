@@ -259,6 +259,10 @@ public static class Functions {
         return Bias((time - offset) / (1 - offset), 1 - bias) * (1 - offset) + offset;
     }
     
+    public static float Mirror(float t, IInterpolation interpolation) {
+        return t < 0.5f ? interpolation.Get(t * 2) : interpolation.Get((1 - t) * 2);
+    }
+
     /// <summary>
     /// Returns a logistic curve with a S form that can be adjusted
     /// </summary>

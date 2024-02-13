@@ -49,15 +49,15 @@ namespace Betauer.Animation {
                     target?.GetType().Name, property, from, to, start, end, duration);
             DebugSteps?.Add(new DebugStep<TProperty>(target, from, to, start, duration, easing));
 
-            return easing is BezierCurve bezierCurve ?
-                RunCurveBezierStep(sceneTreeTween, target, property, from, to, start, duration, bezierCurve) :
-                RunEasingStep(sceneTreeTween, target, property, from, to, start, duration, (Interpolation)easing);
+            return easing is GodotTween godotInterpolation 
+                ? RunGodotEasingStep(sceneTreeTween, target, property, from, to, start, duration, godotInterpolation)
+                : RunInterpolationStep(sceneTreeTween, target, property, from, to, start, duration, easing);
         }
 
-        private static Tweener RunCurveBezierStep(
+        private static Tweener RunInterpolationStep(
             Tween sceneTreeTween,
             Node target, IProperty<TProperty> property,
-            TProperty from, TProperty to, float start, float duration, BezierCurve bezierCurve) {
+            TProperty from, TProperty to, float start, float duration, IInterpolation bezierCurve) {
             // TODO: there are no tests with bezier curves. No need to test the curve, but it needs to test if the value is set
             return sceneTreeTween
                 .Parallel()
@@ -75,17 +75,17 @@ namespace Betauer.Animation {
                 .SetDelay(start);
         }
 
-        private static Tweener RunEasingStep(
+        private static Tweener RunGodotEasingStep(
             Tween sceneTreeTween,
             Node target, IProperty<TProperty> property,
-            TProperty from, TProperty to, float start, float duration, Interpolation interpolation) {
+            TProperty from, TProperty to, float start, float duration, GodotTween tween) {
             if (property is IIndexedProperty indexedProperty) {
                 return sceneTreeTween
                     .Parallel()
                     .TweenProperty(target, indexedProperty.GetIndexedPropertyName(target), Variant.From(to), duration)
                     .From(Variant.From(from))
-                    .SetTrans(interpolation.TransitionType)
-                    .SetEase(interpolation.EaseType)
+                    .SetTrans(tween.TransitionType)
+                    .SetEase(tween.EaseType)
                     .SetDelay(start);
             } else {
                 return sceneTreeTween
@@ -96,8 +96,8 @@ namespace Betauer.Animation {
                             // + " value:" + value+"");
                             property.SetValue(target, value);
                         }), Variant.From(from), Variant.From(to), duration)
-                    .SetTrans(interpolation.TransitionType)
-                    .SetEase(interpolation.EaseType)
+                    .SetTrans(tween.TransitionType)
+                    .SetEase(tween.EaseType)
                     .SetDelay(start);
             }
         }
