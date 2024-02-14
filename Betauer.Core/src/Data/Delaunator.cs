@@ -780,4 +780,18 @@ public class Delaunator {
         return closestEdge;
     }
     */
+
+    public void AddVoronoiEdges(Graph graph, VoronoiType voronoiType) {
+        foreach (var edge in GetVoronoiEdges(voronoiType)) {
+            graph.Connect(edge.P, edge.Q);
+            graph.Connect(edge.Q, edge.P);
+        }
+    }
+
+    public void AddTriangleEdges(Graph graph) {
+        foreach (var edge in GetEdges()) {
+            graph.Connect(edge.P, edge.Q);
+            graph.Connect(edge.Q, edge.P);
+        }
+    }
 }
