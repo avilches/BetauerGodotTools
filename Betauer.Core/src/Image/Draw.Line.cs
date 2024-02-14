@@ -1,5 +1,7 @@
 using System;
+using Betauer.Core.Easing;
 using Godot;
+using FastNoiseLite = Betauer.Core.Data.FastNoiseLite;
 
 namespace Betauer.Core.Image;
 
@@ -139,4 +141,56 @@ public static partial class Draw {
             }
         }
     }
+
+    public static int Seed = 0;
+
+    private static readonly IInterpolation Interpolation = Easing.Interpolation.Mirror(Easing.Interpolation.Bias(0.8f));
+
+    public static void LineNoise(int x0, int y0, int x1, int y1, FastNoiseLite noiseGen, int scale, Action<int, int, float> onPixel, int? seed = null) {
+        LineNoise(new Vector2I(x0, y0), new Vector2I(x1, y1), noiseGen, scale, onPixel, seed);
+    }
+
+    public static void LineNoise(Vector2I start, Vector2I end, FastNoiseLite noiseGen, int scale, Action<int, int, float> onPixel, int? seed = null) {
+        var pixelsPerSegment = scale <= 10 ? 0.5f : 3f / scale;
+        var lineLength = ((Vector2)start).DistanceTo(end);
+        var segments = Mathf.Max(1, Mathf.RoundToInt(lineLength / pixelsPerSegment));
+        var points = 1 + segments;
+        var angle = Mathf.Atan2(end.Y - start.Y, end.X - start.X);
+        var realSeed = seed ?? Seed;
+        if (!seed.HasValue) {
+            Seed = ++Seed % 999999;
+        }
+        var offsetX = JenkinsMix((uint)realSeed, (uint)points, (uint)(angle * 1000));
+        var offsetY = JenkinsMix(offsetX, (uint)points, (uint)angle);
+
+        for (var i = 0; i < points; i++) {
+            var xInterval = pixelsPerSegment * Mathf.Cos(angle);
+            var yInterval = pixelsPerSegment * Mathf.Sin(angle);
+            var x = start.X + xInterval * i;
+            var y = start.Y + yInterval * i;
+            var t = (float)i / (points - 1);
+            // noise is a value from -1 to 1
+            var normalizedNoise = noiseGen.GetNoise(i * pixelsPerSegment + offsetX, i * pixelsPerSegment + offsetY);
+            // fix starts at 0, goes to 1 and ends at 0 again. This ensures the line starts and ends at the same point
+            var fix = Interpolation.Get(t);
+            var offset = normalizedNoise * scale * fix;
+            var xOffset = offset * Mathf.Cos(angle - Mathf.Pi / 2);
+            var yOffset = offset * Mathf.Sin(angle - Mathf.Pi / 2);
+            onPixel(Mathf.RoundToInt(x + xOffset), Mathf.RoundToInt(y + yOffset), 1f);
+        }
+    }
+
+    private static uint JenkinsMix(uint a, uint b, uint c) {
+        a -= b; a -= c; a ^= (c >> 13);
+        b -= c; b -= a; b ^= (a << 8);
+        c -= a; c -= b; c ^= (b >> 13);
+        a -= b; a -= c; a ^= (c >> 12);
+        b -= c; b -= a; b ^= (a << 16);
+        c -= a; c -= b; c ^= (b >> 5);
+        a -= b; a -= c; a ^= (c >> 3);
+        b -= c; b -= a; b ^= (a << 10);
+        c -= a; c -= b; c ^= (b >> 15);
+        return c % 999999;
+    }
+
 }

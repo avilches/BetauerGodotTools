@@ -3,6 +3,7 @@ using Betauer.Core.Image;
 using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
+using FastNoiseLite = Betauer.Core.Data.FastNoiseLite;
 
 namespace Betauer.Core.Tests; 
 
@@ -12,8 +13,9 @@ public class FastImageTest {
     [TestRunner.Test]
     [TestRunner.Ignore("Just create images")]
     public void Test1() {
-        var fast = new FastImage().Create(150, 100);
+        var fast = new FastImage().Create(350, 200);
         Assert.That(fast.Format, Is.EqualTo(FastImage.DefaultFormat));
+        fast.Fill(Colors.White);
         //
         var yellow = Colors.Yellow;
         yellow.A = 0.5f;
@@ -24,7 +26,7 @@ public class FastImageTest {
         fast.DrawCircle(6, 6, 6, Colors.Red);
         fast.DrawCircle(20, 20, 20, Colors.Blue);
         fast.FillCircle(35, 14, 10, Colors.Green);
-        
+
         fast.SetPixel(35, 10, Colors.Azure);
         fast.DrawRect(16, 16, 60, 15, Colors.Red);
         fast.DrawRect(30, 0, 20, 60, yellow);
@@ -32,9 +34,9 @@ public class FastImageTest {
         fast.FillRect(20, 55, 70, 40, green, true);
         fast.Fill(Color.FromHtml("22224433"));
         fast.Flush();
-        
+
         var fastTree = new FastImage().LoadResource("test-resources/trees-16x16.png");
-        
+
         fast.BlitRect(fastTree, new Rect2I(16, 32, 16, 16), new Vector2I(50, 60));
         fast.BlendRect(fastTree, new Rect2I(16, 32, 16, 16), new Vector2I(66, 76));
         fast.DrawLine(10, 0, 10, 100, 1, Colors.Fuchsia);
@@ -42,40 +44,103 @@ public class FastImageTest {
         fast.DrawLine(26, 60, 26, 60, 1, Colors.Fuchsia);
         fast.DrawLine(0, 0, 100, 100, 1, gray);
         fast.DrawLine(1, 0, 101, 100, 1, gray);
-        fast.DrawLine(0, 40, 100, 100,1,  gray);
+        fast.DrawLine(0, 40, 100, 100, 1, gray);
 
         fast.DrawLine(100, 0, 150, 20, 3, Colors.Red, true);
 
-        fast.FillCircle(45,  30, 0, Colors.Green);
-        fast.FillCircle(48,  30, 1, Colors.Green);
-        fast.FillCircle(54,  30, 2, Colors.Green);
-        fast.FillCircle(61,  30, 3, Colors.Green);
-        fast.FillCircle(70,  30, 4, Colors.Green);
-        fast.FillCircle(81,  30, 5, Colors.Green);
-        fast.FillCircle(94,  30, 6, Colors.Green);
+        fast.FillCircle(45, 30, 0, Colors.Green);
+        fast.FillCircle(48, 30, 1, Colors.Green);
+        fast.FillCircle(54, 30, 2, Colors.Green);
+        fast.FillCircle(61, 30, 3, Colors.Green);
+        fast.FillCircle(70, 30, 4, Colors.Green);
+        fast.FillCircle(81, 30, 5, Colors.Green);
+        fast.FillCircle(94, 30, 6, Colors.Green);
         fast.FillCircle(110, 30, 7, Colors.Green);
         fast.FillCircle(128, 30, 8, Colors.Green);
-        
-        fast.DrawCircle(45,  70, 0, Colors.Green);
-        fast.DrawCircle(48,  70, 1, Colors.Green);
-        fast.DrawCircle(54,  70, 2, Colors.Green);
-        fast.DrawCircle(61,  70, 3, Colors.Green);
-        fast.DrawCircle(70,  70, 4, Colors.Green);
-        fast.DrawCircle(81,  70, 5, Colors.Green);
-        fast.DrawCircle(94,  70, 6, Colors.Green);
+
+        fast.DrawCircle(45, 70, 0, Colors.Green);
+        fast.DrawCircle(48, 70, 1, Colors.Green);
+        fast.DrawCircle(54, 70, 2, Colors.Green);
+        fast.DrawCircle(61, 70, 3, Colors.Green);
+        fast.DrawCircle(70, 70, 4, Colors.Green);
+        fast.DrawCircle(81, 70, 5, Colors.Green);
+        fast.DrawCircle(94, 70, 6, Colors.Green);
         fast.DrawCircle(110, 70, 7, Colors.Green);
         fast.DrawCircle(128, 70, 8, Colors.Green);
 
         fast.GradientCircle(30, 30, 10, Colors.Red);
 
-        fast.DrawLineAntialiasing(100, 100, 150, 55, 1, Colors.Wheat);
-        fast.DrawLineAntialiasing(100, 100, 150, 60, 2, Colors.Green);
-        fast.DrawLineAntialiasing(100, 100, 150, 70, 3, Colors.BlueViolet);
-        fast.DrawLineAntialiasing(100, 100, 150, 80, 4, Colors.Fuchsia);
+        fast.DrawLineAntialiasing(100, 100, 105, 55, 1, Colors.Wheat);
+        fast.DrawLineAntialiasing(100, 100, 250, 60, 2, Colors.Green);
+        fast.DrawLineAntialiasing(100, 100, 250, 70, 3, Colors.BlueViolet);
+        fast.DrawLineAntialiasing(100, 100, 250, 80, 4, Colors.Fuchsia);
 
         fast.Flush();
 
         fast.Image.SavePng("test1.png");
+    }
+
+    [TestRunner.Test]
+    [TestRunner.Ignore("Just create images")]
+    public void TestNoiseLines() {
+        var fast = new FastImage().Create(350, 650);
+        fast.Fill(Colors.White);
+        
+        var n = new FastNoiseLite {
+            NoiseTypeValue = FastNoiseLite.NoiseType.OpenSimplex2S,
+            Frequency = 0.012f,
+            FractalTypeValue = FastNoiseLite.FractalType.FBm,
+            FractalOctaves = 5,
+            FractalLacunarity = 2,
+            FractalGain = 0.5f,
+            FractalWeightedStrength = 0f
+        };
+
+        fast.DrawLineNoise(10, 050, 340, 050, n, 1, Colors.RebeccaPurple, true, 16);
+        fast.DrawLineNoise(10, 100, 340, 100, n, 10, Colors.RebeccaPurple, true, 16);
+        fast.DrawLineNoise(10, 150, 340, 150, n, 20, Colors.RebeccaPurple, true, 16);
+        fast.DrawLineNoise(10, 200, 340, 200, n, 40, Colors.RebeccaPurple, true, 16);
+                                                                      
+        fast.DrawLineNoise(10, 250, 140, 250, n, 1, Colors.Red, true, 10);
+        fast.DrawLineNoise(10, 300, 140, 300, n, 10, Colors.Red, true, 10);
+        fast.DrawLineNoise(10, 350, 140, 350, n, 20, Colors.Red, true, 10);
+        fast.DrawLineNoise(10, 400, 140, 400, n, 40, Colors.Red, true, 10);
+                                                                    
+        fast.DrawLineNoise(150, 250, 340, 350, n, 1, Colors.Red);
+        fast.DrawLineNoise(150, 300, 340, 400, n, 10, Colors.Red);
+        fast.DrawLineNoise(150, 350, 340, 450, n, 20, Colors.Red);
+        fast.DrawLineNoise(150, 400, 340, 500, n, 40, Colors.Red);
+
+        fast.DrawLineNoise(10, 450, 40, 450, n, 1, Colors.Blue);
+        fast.DrawLineNoise(10, 500, 40, 500, n, 10, Colors.Blue);
+        fast.DrawLineNoise(10, 550, 40, 550, n, 20, Colors.Blue);
+        fast.DrawLineNoise(10, 600, 40, 600, n, 40, Colors.Blue);
+                                                                   
+        fast.DrawLineNoise(50, 425, 80, 475, n, 1, Colors.Blue);
+        fast.DrawLineNoise(50, 475, 80, 525, n, 10, Colors.Blue);
+        fast.DrawLineNoise(50, 525, 80, 575, n, 20, Colors.Blue);
+        fast.DrawLineNoise(50, 575, 80, 625, n, 40, Colors.Blue);
+
+        var centerX = 180;
+        var centerY = 570;
+        var length = 30f;
+        var offset = 10;
+        var numLines = 18;
+            
+        for (var i = 0; i < numLines; i++) {
+            var angle = i * 2 * Math.PI / numLines;
+            var startX = centerX + (int)(offset * Math.Cos(angle));
+            var startY = centerY + (int)(offset * Math.Sin(angle));
+            var endX = centerX + (int)(length * Math.Cos(angle));
+            var endY = centerY + (int)(length * Math.Sin(angle));
+            fast.DrawLineNoise(startX, startY, endX, endY, n, i*2, Colors.Red);
+            length *= 1.10f;
+        }
+
+        
+        fast.Flush();
+
+        fast.Image.SavePng("test-noise-line.png");
     }
     
     [TestRunner.Test]
@@ -208,7 +273,7 @@ public class FastImageTest {
 
         var step = 0;
         var circleStep = 0;
-        Draw.Line1Width(0, 80, 512, 190, (x, y) => {
+        Draw.Line(0, 80, 512, 190, 1, (x, y) => {
             if (step++ % 30 == 0) {
                 Draw.GradientCircle(x, y, 20 + ((circleStep++ % 5))*2, (x, y, g) => {
                     if (x < 0 || y < 0 || x >= layer1.Width || y >= layer1.Height) return;
@@ -225,5 +290,4 @@ public class FastImageTest {
         
         compo.Export().Image.SavePng("test3.png");
     }
-    
 }
