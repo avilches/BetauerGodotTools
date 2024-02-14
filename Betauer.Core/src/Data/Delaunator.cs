@@ -570,6 +570,19 @@ public class Delaunator {
         }
     }
 
+    public IEnumerable<Vector2> GetVoronoiVertices(VoronoiType voronoiType) {
+        Func<int, Vector2> triangleVerticeSelector = voronoiType == VoronoiType.Centroid ? GetCentroid : GetTriangleCircumcenter;
+        var seen = new HashSet<Vector2>();
+        for (var e = 0; e < Triangles.Length; e++) {
+            if (e < HalfEdges[e]) {
+                var p = triangleVerticeSelector(TriangleOfEdge(e));
+                if (seen.Add(p)) { // True if element was added
+                    yield return p;
+                }
+            }
+        }
+    }
+
     public IEnumerable<VoronoiCell> GetVoronoiCells(VoronoiType voronoiType) {
         Func<int, Vector2> triangleVerticeSelector = voronoiType == VoronoiType.Centroid ? GetCentroid : GetTriangleCircumcenter;
         var seen = new HashSet<int>();
@@ -781,17 +794,4 @@ public class Delaunator {
     }
     */
 
-    public void AddVoronoiEdges(Graph graph, VoronoiType voronoiType) {
-        foreach (var edge in GetVoronoiEdges(voronoiType)) {
-            graph.Connect(edge.P, edge.Q);
-            graph.Connect(edge.Q, edge.P);
-        }
-    }
-
-    public void AddTriangleEdges(Graph graph) {
-        foreach (var edge in GetEdges()) {
-            graph.Connect(edge.P, edge.Q);
-            graph.Connect(edge.Q, edge.P);
-        }
-    }
 }

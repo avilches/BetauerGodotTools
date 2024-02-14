@@ -247,19 +247,55 @@ public partial class RtsWorld : Node, IInjectable {
 					WorldGenerator.ReDraw();
 				})
 			)
-			.Label("---------- Poisson -------------")
+			.Label("---------- Delaunator -------------")
 			.Add<HBoxContainer>(box => box.Children()
-				.Button("Reset", () => {
+				.Button("Clear", () => {
 					MainTextureOverlay.Fill(new Color(0,0,0,0), false);
 					MainTextureOverlay.Flush();
-
 				})
+				.Button("U", () => {
+					MainTextureOverlay.Fill(new Color(0,0,0,0), false);
+					WorldGenerator.BiomeGenerator.FillPoisson(MainTextureOverlay);
+					MainTextureOverlay.Flush();
+				})
+				.Button("Random", () => {
+					MainTextureOverlay.Fill(new Color(0,0,0,0), false);
+					WorldGenerator.BiomeGenerator.FillDelaunatorRandomVoronoiEdge(MainTextureOverlay);
+					MainTextureOverlay.Flush();
+				})
+				.Button("EdgesCo", () => {
+					MainTextureOverlay.Fill(new Color(0,0,0,0), false);
+					WorldGenerator.BiomeGenerator.FillDelaunatorEdgesBasedOnCentroids(MainTextureOverlay);
+					MainTextureOverlay.Flush();
+				})
+				.Button("Points CO", () => {
+					MainTextureOverlay.Fill(new Color(0,0,0,0), false);
+					WorldGenerator.BiomeGenerator.FillDelaunatorPointsBasedOnCentroids(MainTextureOverlay);
+					MainTextureOverlay.Flush();
+				})
+				.Button("EdgesCC", () => {
+					MainTextureOverlay.Fill(new Color(0,0,0,0), false);
+					WorldGenerator.BiomeGenerator.FillDelaunatorEdgesBasedOnCircumCenter(MainTextureOverlay);
+					MainTextureOverlay.Flush();
+				})
+				.Button("Tri", () => {
+					MainTextureOverlay.Fill(new Color(0,0,0,0), false);
+					WorldGenerator.BiomeGenerator.FillDelaunatorTriangles(MainTextureOverlay);
+					MainTextureOverlay.Flush();
+				})
+				.Button("V Path", () => {
+					MainTextureOverlay.Fill(new Color(0,0,0,0), false);
+					WorldGenerator.BiomeGenerator.FillDelaunatorVoronoiPath(MainTextureOverlay);
+					MainTextureOverlay.Flush();
+				})
+			)
+			.Label("---------- Poisson demos  -------------")
+			.Add<HBoxContainer>(box => box.Children()
 				.Button("U", () => {
 					MainTextureOverlay.Fill(new Color(0,0,0,0), false);
 					var poissonDemos = new PoissonDemos();
 					poissonDemos.GenerateUniformPoissonDisks(MainTextureOverlay);
 					MainTextureOverlay.Flush();
-
 				})
 				.Button("U Exp", () => {
 					MainTextureOverlay.Fill(new Color(0,0,0,0), false);

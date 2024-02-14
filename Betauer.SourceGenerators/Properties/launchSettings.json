@@ -1,0 +1,13 @@
+﻿{
+  "$schema": "http://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "DebugRoslynSourceGenerator": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "../Betauer.GameTools.Tests/Betauer.GameTools.Tests.csproj",
+      "targetProjectDD": "../Betauer.SourceGenerators.Tests/Betauer.SourceGenerators.Tests.csproj",
+
+      "targetProjectd": "../Betauer.GameTools/Betauer.GameTools.csproj",
+      "targetProjectdd": "../DemoGame/DemoGame4.csproj"
+    }
+  }
+}

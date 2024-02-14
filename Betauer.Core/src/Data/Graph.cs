@@ -1,22 +1,21 @@
 using System.Collections.Generic;
-using Godot;
 
 namespace Betauer.Core.Data;
 
-public class Graph {
-    private readonly Dictionary<Vector2, List<Vector2>> _adjacencyList = new();
+public class Graph<T> where T : notnull {
+    public Dictionary<T, List<T>> Data { get; } = new();
 
-    public void Connect(Vector2 from, Vector2 to) {
-        if (_adjacencyList.TryGetValue(from, out var list)) {
+    public void Connect(T from, T to) {
+        if (Data.TryGetValue(from, out var list)) {
             if (!list.Contains(to)) {
                 list.Add(to);
             }
         } else {
-            _adjacencyList[from] = new List<Vector2> { to };
+            Data[from] = new List<T> { to };
         }
     }
 
-    public List<Vector2> GetConnections(Vector2 point) {
-        return _adjacencyList.TryGetValue(point, out var points) ? points : new List<Vector2>(0);
+    public List<T> GetConnections(T point) {
+        return Data.TryGetValue(point, out var points) ? points : new List<T>(0);
     }
 }

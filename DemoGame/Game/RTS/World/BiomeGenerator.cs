@@ -6,7 +6,7 @@ using Betauer.Core;
 using Betauer.Core.Data;
 using Betauer.Core.Easing;
 using Betauer.Core.Image;
-using Betauer.TileSet.TileMap;
+using Betauer.Core.PoissonDiskSampling;
 using Godot;
 using FastNoiseLite = Betauer.Core.Data.FastNoiseLite;
 
@@ -150,7 +150,7 @@ public class BiomeGenerator {
         LandHeightCount = 3;
         SeaLevel = 0.15f; // 0.06
         // HeightBias = 0.5f; // 0.3f
-        RampFunc = (float h, float f) => (((h + 0.5f) / 2f) + 0.15f) * f;
+        RampFunc = (float h, float f) => ((h / 2f) + 0.5f) * f;
         HumidityNormalizedGrid = new DataGrid(width, height, 0f);
         HeightFalloffGrid = new DataGrid(width, height, 0f);
 
@@ -205,7 +205,7 @@ public class BiomeGenerator {
         var sa = Stopwatch.StartNew();
         var s = Stopwatch.StartNew();
         MassLands.Fill(0);
-        IslandGenerator.GenerateIslandsGrid(MassLands, LandWidthCount, LandHeightCount, _random, true, IslandGenerator.OverlapType.MaxHeight, new BiasGainInterpolation(MasslandBias, MasslandOffset));
+        IslandGenerator.GenerateIslandsGrid(MassLands, LandWidthCount, LandHeightCount, _random, true, IslandGenerator.OverlapType.MaxHeight, Interpolation.Gain(MasslandBias, MasslandOffset));
         Console.WriteLine($"Generate1 masslands:{s.ElapsedMilliseconds}ms");
         s.Restart();
 
@@ -249,15 +249,39 @@ public class BiomeGenerator {
             }
             // Console.WriteLine();
         }
+        Console.WriteLine($"Generate5:{s.ElapsedMilliseconds}ms");
+        s.Restart();
+        GeneratePoissonPoints();
         // RiverGenerator.GenerateRivers(BiomeCells, 30, 100, _random);
+        // RiverGeneratorPoint.GenerateRivers(PoissonPoints, BiomeCells, 30, 100, _random);
+
+        var graph = new Graph<BiomeCell>();
+        delaunator.GetVoronoiEdges(Delaunator.VoronoiType.Centroid).ForEach((e) => {
+            var from = BiomeCells[(int)e.P.X, (int)e.P.Y];
+            var to = BiomeCells[(int)e.Q.X, (int)e.Q.Y];
+            graph.Connect(from, to);
+            graph.Connect(to, from);
+        });
+
+        RiverGeneratorGraph.GenerateRivers(graph, BiomeCells, 30, 100, _random);
         
         Console.WriteLine($"Generate6:{s.ElapsedMilliseconds}ms");
         s.Restart();
-
-        var dict = list.Select(c => c.Biome.Type).GroupBy(x => x)
-            .ToDictionary(g => g.Key, g => g.Count());
-        dict.ForEach(pair => Console.WriteLine(pair.Key + ": " + pair.Value));
+        
+        // var dict = list.Select(c => c.Biome.Type).GroupBy(x => x)
+            // .ToDictionary(g => g.Key, g => g.Count());
+        // dict.ForEach(pair => Console.WriteLine(pair.Key + ": " + pair.Value));
         Console.WriteLine($"Generate Total:{sa.ElapsedMilliseconds}ms");
+    }
+    
+    public List<BiomeCell> PoissonPoints { get; private set; }
+
+    int radius = 10;
+    private Delaunator delaunator;
+    private void GeneratePoissonPoints() {
+        var uni = new UniformPoissonSampler2D(Width, Height);
+        PoissonPoints = uni.Generate(radius, _random).Select(p => BiomeCells[(int)p.X, (int)p.Y]).ToList();
+        delaunator = new Delaunator(PoissonPoints.Select(p => (Vector2)p.Position).ToArray());
     }
 
     private float CalculateTemperature(int y, int height, float heightNormalized) {
@@ -273,45 +297,123 @@ public class BiomeGenerator {
         fastTexture.Flush();
     }
 
-    public void FillHeight(FastImage fastTexture) {
-        HeightNoise.CreateDataGrid(Width, Height, true).Normalize().Loop((val, x, y) => fastTexture.SetPixel(x, y, new Color(val, val, val), false));
-        fastTexture.Flush();
+    public void FillPoisson(FastImage fastImage) {
+        PoissonPoints.ForEach(v => fastImage.SetPixel(v.Position.X, v.Position.Y, Colors.Black));
+        fastImage.Flush();
     }
 
-    public void FillFalloffGrid(FastImage fastTexture) {
+    public void FillDelaunatorEdgesBasedOnCentroids(FastImage fastImage) {
+        delaunator.GetVoronoiEdges(Delaunator.VoronoiType.Centroid).ForEach(e => {
+            fastImage.DrawLineAntialiasing((Vector2I)e.P, (Vector2I)e.Q, 1, Colors.Blue); 
+        });
+        PoissonPoints.ForEach(v => fastImage.SetPixel(v.Position.X, v.Position.Y, Colors.Black));
+        fastImage.Flush();
+    }
+
+    public void FillDelaunatorPointsBasedOnCentroids(FastImage fastImage) {
+        delaunator.GetVoronoiVertices(Delaunator.VoronoiType.Centroid).ForEach(e => {
+            fastImage.SetPixel((Vector2I)e, Colors.Black);
+        });
+        fastImage.Flush();
+    }
+
+    public void FillDelaunatorEdgesBasedOnCircumCenter(FastImage fastImage) {
+        delaunator.GetVoronoiEdges(Delaunator.VoronoiType.Circumcenter).ForEach(e => {
+            fastImage.DrawLineAntialiasing((Vector2I)e.P, (Vector2I)e.Q, 1, Colors.Blue); 
+        });
+        PoissonPoints.ForEach(v => fastImage.SetPixel(v.Position.X, v.Position.Y, Colors.Black));
+        fastImage.Flush();
+    }
+
+    public void FillDelaunatorTriangles(FastImage fastImage) {
+        delaunator.GetTriangles().ForEach(e => {
+            fastImage.DrawLineAntialiasing((Vector2I)e.Points[0],(Vector2I)e.Points[1], 1, Colors.Red); 
+            fastImage.DrawLineAntialiasing((Vector2I)e.Points[1],(Vector2I)e.Points[2], 1, Colors.Red); 
+            fastImage.DrawLineAntialiasing((Vector2I)e.Points[2],(Vector2I)e.Points[0], 1, Colors.Red); 
+        });
+        PoissonPoints.ForEach(v => fastImage.SetPixel(v.Position.X, v.Position.Y, Colors.Black));
+        fastImage.Flush();
+    }
+
+    private int scale = 5;
+    public void FillDelaunatorRandomVoronoiEdge(FastImage fastImage) {
+        var point = delaunator.Points[_random.Next(delaunator.Points.GetLength(0))];
+        fastImage.DrawCircle((Vector2I)point, 3, Colors.Black);
+
+        var e = delaunator.FindVoronoiCell(point, Delaunator.VoronoiType.Centroid);
+        if (e != null) {
+            Delaunator.CreateHull(e.Value.Points).ForEach(p2 => {
+                fastImage.DrawLine((Vector2I)p2.P, (Vector2I)p2.Q, 1, Colors.Blue);
+            });
+        }        
+        PoissonPoints.ForEach(v => fastImage.SetPixel(v.Position.X, v.Position.Y, Colors.Black));
+        fastImage.Flush();
+    }
+
+    public void FillDelaunatorVoronoiPath(FastImage fastImage) {
+        var _random = new Random(1);
+        var poissonPoint = delaunator.Points[_random.Next(delaunator.Points.GetLength(0))];
+        fastImage.DrawCircle((Vector2I)poissonPoint, 3, Colors.Black);
+        var edgePoint = (Vector2I)delaunator.FindVoronoiCell(poissonPoint, Delaunator.VoronoiType.Centroid).Value.Points[0];
+
+        var set = new HashSet<Vector2I> { edgePoint };
+        var graph = new Graph<Vector2I>();
+        delaunator.GetVoronoiEdges(Delaunator.VoronoiType.Centroid).ForEach(e => {
+            graph.Connect((Vector2I)e.P, (Vector2I)e.Q);
+            graph.Connect((Vector2I)e.Q, (Vector2I)e.P);
+        });
+        
+        var candidates = graph.GetConnections(edgePoint);
+        while (candidates.Count > 0) {
+            var next = candidates[_random.Next(candidates.Count)]; 
+            fastImage.DrawLineNoise((Vector2I)edgePoint, (Vector2I)next, HeightNoise, scale, Colors.Blue);
+            candidates = graph.GetConnections(next);
+            candidates.RemoveAll((p) => set.Contains(p));
+            set.Add(next);
+            edgePoint = next;
+        }
+        fastImage.Flush();
+    }
+
+    public void FillHeight(FastImage fastImage) {
+        HeightNoise.CreateDataGrid(Width, Height, true).Normalize().Loop((val, x, y) => fastImage.SetPixel(x, y, new Color(val, val, val), false));
+        fastImage.Flush();
+    }
+
+    public void FillFalloffGrid(FastImage fastImage) {
         var dataGrid = new DataGrid(Width, Height, (x, y) => {
             var height = HeightNoise.GetNoise(x, y);
             var r = MassLands.GetValue(x, y); // from 0 to 1
             return RampFunc(height, r);
         });
         dataGrid.Normalize();
-        dataGrid.Loop((val, x, y) => fastTexture.SetPixel(x, y, new Color(val, val, val), false));
-        fastTexture.Flush();
+        dataGrid.Loop((val, x, y) => fastImage.SetPixel(x, y, new Color(val, val, val), false));
+        fastImage.Flush();
     }
 
-    public void FillHumidityNoise(FastImage fastTexture) {
-        HumidityNormalizedGrid.Loop((val, x, y) => fastTexture.SetPixel(x, y, new Color(val, val, val), false));
-        fastTexture.Flush();
+    public void FillHumidityNoise(FastImage fastImage) {
+        HumidityNormalizedGrid.Loop((val, x, y) => fastImage.SetPixel(x, y, new Color(val, val, val), false));
+        fastImage.Flush();
     }
 
-    public void FillTemperature(FastImage fastTexture) {
+    public void FillTemperature(FastImage fastImage) {
         for (var y = 0; y < Height; y++) {
             for (var x = 0; x < Width; x++) {
                 var val = BiomeCells[x, y].Temp;
-                fastTexture.SetPixel(x, y, new Color(val, val, val), false);
+                fastImage.SetPixel(x, y, new Color(val, val, val), false);
             }
         }
-        fastTexture.Flush();
+        fastImage.Flush();
     }
 
-    public void FillTerrain(FastImage fastTexture) {
+    public void FillTerrain(FastImage fastImage) {
         for (var y = 0; y < Height; y++) {
             for (var x = 0; x < Width; x++) {
                 var cell = BiomeCells[x, y];
-                fastTexture.SetPixel(x, y, cell.Color, false);
+                fastImage.SetPixel(x, y, cell.Color, false);
             }
         }
-        fastTexture.Flush();
+        fastImage.Flush();
     }
 
     public void GraphFalloff(TextureRect textureRect) {
@@ -403,128 +505,5 @@ public class IslandGenerator {
                 }
             }
         }, easing);
-    }
-}
-
-public class RiverGenerator {
-    public static void GenerateRivers(BiomeCell[,] biomeCells, int numberOfPoints, float minDistance, Random random) {
-        FindRiverStartPoints(biomeCells, numberOfPoints, minDistance).ForEach((startPoint) => {
-            var cell = biomeCells[startPoint.X, startPoint.Y];
-            SimulateRiverFlow(biomeCells, cell, random);
-        });
-    }
-
-    public static List<Vector2I> FindRiverStartPoints(BiomeCell[,] biomeCells, int numberOfPoints, float minDistance) {
-        var width = biomeCells.GetLength(0);
-        var height = biomeCells.GetLength(1);
-        var highestPoints = new List<Vector2I>();
-        var pointsWithHeight = new List<KeyValuePair<Vector2I, float>>();
-
-        for (var x = 0; x < width; x++) {
-            for (var y = 0; y < height; y++) {
-                if (biomeCells[x, y].Height > 0.6f) {
-                    pointsWithHeight.Add(new KeyValuePair<Vector2I, float>(new Vector2I(x, y), biomeCells[x, y].Height));
-                }
-            }
-        }
-
-        // Sort points by height
-        pointsWithHeight.Sort((pair1, pair2) => pair2.Value.CompareTo(pair1.Value));
-
-        // Choose the points with a minimum distance between them
-        foreach (var point in pointsWithHeight) {
-            if (highestPoints.Count >= numberOfPoints) break;
-            if (highestPoints.All(startPoint => ((Vector2)startPoint).DistanceTo(point.Key) > minDistance)) {
-                highestPoints.Add(point.Key);
-            }
-        }
-
-        return highestPoints;
-    }
-
-    private static BiomeCell? FindLowestNeighbour(BiomeCell[,] biomeCells, BiomeCell startCell, IReadOnlySet<Vector2I> river, Random random) {
-        var width = biomeCells.GetLength(0);
-        var height = biomeCells.GetLength(1);
-
-        var lowestCells = new List<BiomeCell>();
-        var searchRadius = 1;
-
-        while (lowestCells.Count == 0 && searchRadius < Math.Max(width, height)) {
-            for (var dx = -searchRadius; dx <= searchRadius; dx++) {
-                for (var dy = -searchRadius; dy <= searchRadius; dy++) {
-                    var x = startCell.Position.X + dx;
-                    var y = startCell.Position.Y + dy;
-
-                    // Ignora las celdas fuera de la cuadrícula, la celda de inicio o en el conjunto river
-                    if (x < 0 || x >= width || y < 0 || y >= height || river.Contains(new Vector2I(x, y)) || (dx == 0 && dy == 0)) {
-                        continue;
-                    }
-
-                    var cell = biomeCells[x, y];
-                    if (lowestCells.Count < 2) {
-                        lowestCells.Add(cell);
-                    } else {
-                        var highestCell = lowestCells.OrderByDescending(c => c.Height).First();
-                        if (cell.Height < highestCell.Height) {
-                            lowestCells.Remove(highestCell);
-                            lowestCells.Add(cell);
-                        }
-                    }
-                }
-            }
-            searchRadius++;
-        }
-
-        return lowestCells.Count > 0 ? lowestCells[random.Next(lowestCells.Count)] : null;
-    }
-
-    private static float initialWater = 1f; 
-    private static float increaseWater = 0.01f; 
-    public static void SimulateRiverFlow(BiomeCell[,] biomeCells, BiomeCell startPoint, Random random) {
-        var waterAmount = initialWater;
-        var currentCell = startPoint;
-        var river = new HashSet<Vector2I>();
-        var riverList = new List<Vector2I>();
-        while (true) {
-            currentCell.Water += waterAmount;
-            river.Add(currentCell.Position);
-            riverList.Add(currentCell.Position);
-            var lowestNeighbour = FindLowestNeighbour(biomeCells, currentCell, river, random);
-            if (lowestNeighbour == null || lowestNeighbour.Sea) {
-                break;
-            }
-            currentCell = lowestNeighbour;
-            waterAmount += increaseWater;
-        }
-
-        var additionalRiverPoints = new HashSet<Vector2I>();
-        foreach (var point in riverList) {
-            var cell = biomeCells[point.X, point.Y];
-            // var searchRadius = Math.Min((int)Math.Floor(cell.Water), max); // Ajusta esto según cómo quieras que el agua afecte al grosor del río
-            var searchRadius = Mathf.RoundToInt(random.NextFloat() * Math.Min(cell.Water, 1f));
-            
-            if (searchRadius == 0) continue;
-
-            for (var dx = -searchRadius; dx <= searchRadius; dx++) {
-                for (var dy = -searchRadius; dy <= searchRadius; dy++) {
-                    var x = cell.Position.X + dx;
-                    var y = cell.Position.Y + dy;
-
-                    // Ignora las celdas fuera de la cuadrícula o ya en el río
-                    if (x < 0 || x >= biomeCells.GetLength(0) || y < 0 || y >= biomeCells.GetLength(1) || river.Contains(new Vector2I(x, y)) || additionalRiverPoints.Contains(new Vector2I(x, y))) {
-                        continue;
-                    }
-
-                    additionalRiverPoints.Add(new Vector2I(x, y));
-                    var newCell = biomeCells[x, y];
-                    newCell.Water = cell.Water / 2;
-                }
-            }
-        }
-
-        // Añade los puntos adicionales al río
-        foreach (var point in additionalRiverPoints) {
-            river.Add(point);
-        }
     }
 }
