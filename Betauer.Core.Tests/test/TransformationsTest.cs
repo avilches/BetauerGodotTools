@@ -196,7 +196,10 @@ public class TransformationsTests {
             { 20, 21, 22 },
             { -1, -1, -1 },
         });
+    }
 
+    [TestRunner.Test]
+    public void CopyGridTests() {
         var original = new[,] {
             {  0,  1,  2,  3,  4 },
             { 10, 11, 12, 13, 14 },
@@ -205,6 +208,11 @@ public class TransformationsTests {
         };
             
         AreEqual(original.GetSubGrid(0, 0, 5, 4), original);
+        AreEqual(original.GetSubGridCenter(0, 0, 3, 4), new[,] {
+            { 4,  4, 4 },
+            { 4,  0, 1 },
+            { 4, 10, 11 },
+        });
         AreEqual(original.GetSubGrid(1, 2, 2, 2), new[,] {
             { 21, 22 },
             { 31, 32 },

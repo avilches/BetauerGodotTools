@@ -10,7 +10,7 @@ public class NormalizedGridTests {
     
     [Betauer.TestRunner.Test]
     public void NormalizedVirtualDataGridTests() {
-        var grid = new NormalizedDataGrid(2, 2, (x, y) => x + y);
+        var grid = new NormalizedDataGrid(2, 2).Load((x, y) => x + y);
         Assert.AreEqual(2, grid.Width);
         Assert.AreEqual(2, grid.Height);
         
