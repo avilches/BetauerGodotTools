@@ -5,23 +5,17 @@ namespace Betauer.Core.Data;
 public class NormalizedDataGrid {
     public int Width { get; private set; }
     public int Height { get; private set; }
-    public float MinValue { get; private set; } = float.MaxValue;
-    public float MaxValue { get; private set; } = float.MinValue;
+    public float MinValue { get; private set; }
+    public float MaxValue { get; private set; }
 
     public float[,] Data { get; private set; }
 
-    public NormalizedDataGrid(int width, int height, Func<int, int, float> valueFunc) {
+    public NormalizedDataGrid(int width, int height) {
         Data = new float[width, height];
         Width = Data.GetLength(0);
         Height = Data.GetLength(1);
-        Load(valueFunc);
-    }
-
-    public NormalizedDataGrid(int width, int height, float defaultValue) {
-        Data = new float[width, height];
-        Width = Data.GetLength(0);
-        Height = Data.GetLength(1);
-        Fill(defaultValue);
+        MinValue = default;
+        MaxValue = default;
     }
 
     public NormalizedDataGrid(float[,] data) {

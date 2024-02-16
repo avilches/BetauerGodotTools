@@ -2439,7 +2439,7 @@ public class FastNoiseLite {
     }
 
     public NormalizedDataGrid CreateNormalizedDataGrid(int width, int height, bool normalize = false) {
-        var dataGrid = new NormalizedDataGrid(width, height, (x,y) => GetNoise(x, y));
+        var dataGrid = new NormalizedDataGrid(width, height).Load((x,y) => GetNoise(x, y));
         if (normalize) dataGrid.Normalize();
         return dataGrid;
     }

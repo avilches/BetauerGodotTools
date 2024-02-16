@@ -192,6 +192,22 @@ public static partial class Transformations {
         return destination;
     }
 
+    public static T[,] GetSubGridCenter<T>(this T[,] source, int centerX, int centerY, int size, T defaultValue = default) {
+        var destination = new T[size, size];
+        var startX = centerX - size / 2;
+        var startY = centerY - size / 2;
+        source.CopyGrid(startX, startY, size, size, destination, value => value, defaultValue);
+        return destination;
+    }
+
+    public static TDest[,] GetSubGridCenter<TSource, TDest>(this TSource[,] source, int centerX, int centerY, int size, Func<TSource, TDest> transformer, TDest defaultValue = default) {
+        var destination = new TDest[size, size];
+        var startX = centerX - size / 2;
+        var startY = centerY - size / 2;
+        source.CopyGrid(startX, startY, size, size, destination, transformer, defaultValue);
+        return destination;
+    }
+
     public static void CopyGrid<T>(this T[,] source, int startX, int startY, int width, int height, T[,] destination, T defaultValue = default) {
         source.CopyGrid(startX, startY, width, height, destination, value => value, defaultValue);
     }
