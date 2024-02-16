@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace Betauer.TileSet.Terrain;
 
 public static class TilePatternRuleSets {
-    public static readonly TemplateTilePatternRuleSet<int> Blob47Rules = new (new List<(int, TilePattern)> {
+    public static readonly TemplateTilePatternRuleSet Blob47Rules = new (new List<(int, TilePattern)> {
         (0, TilePattern.Parse("""
                               ? ! ?
                               ! # !

@@ -1,56 +1,35 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using Betauer.Core;
 
 namespace Betauer.TileSet.Terrain;
 
-public class TilePatternRuleSet<T> : BaseTilePatternRuleSet<T> {
+public class TilePatternRuleSet {
     public int? TemplateTerrain { get; set; }
+    public List<(int, TilePattern)> Rules { get; }
 
-    public TilePatternRuleSet(List<(T, TilePattern)> rules) : base(rules) {
-        if (rules.Exists(tuple => tuple.Item2.IsTemplate)) {
-            throw new Exception("Cannot create a TerrainRuleSet with template rules");
-        }
-    }
-
-    public TilePatternRuleSet(List<(T, TilePattern)> rules, int templateTerrain) : base(rules) {
+    public TilePatternRuleSet(List<(int, TilePattern)> rules, int? templateTerrain = null) {
+        Rules = rules;
         TemplateTerrain = templateTerrain;
     }
     
-    public void Do(TileMap.TileMap tileMap, int x, int y, Action<T> action) {
-        var valueTuples = CollectionsMarshal.AsSpan(Rules);
-        for (var r = 0; r < valueTuples.Length; r++) {
-            var rule = valueTuples[r];
-            if (TemplateTerrain.HasValue) {
-                if (rule.Item2.MatchesTemplate(tileMap, TemplateTerrain.Value, x, y)) action(rule.Item1);
-            } else {
-                if (rule.Item2.Matches(tileMap, x, y)) action(rule.Item1);
-            }
+    public void Do(TileMap.TileMap tileMap, int x, int y, Action<int> action) {
+        foreach (var rule in Rules) {
+            if (rule.Item2.Matches(tileMap.TerrainGrid, x, y, TemplateTerrain)) action(rule.Item1);
         }
     }
 
-    public bool Matches(TileMap.TileMap tileMap, int x, int y) {
-        var valueTuples = CollectionsMarshal.AsSpan(Rules);
-        for (var r = 0; r < valueTuples.Length; r++) {
-            var rule = valueTuples[r];
-            if (TemplateTerrain.HasValue) {
-                if (rule.Item2.MatchesTemplate(tileMap, TemplateTerrain.Value, x, y)) return true;
-            } else {
-                if (rule.Item2.Matches(tileMap, x, y)) return true;
-            }
+    public bool MatchAnyRule(TileMap.TileMap tileMap, int x, int y) {
+        foreach (var rule in Rules) {
+            if (rule.Item2.Matches(tileMap.TerrainGrid, x, y, TemplateTerrain)) return true;
         }
         return false;
     }
 
-    public T FindValue(TileMap.TileMap tileMap, int x, int y, T defaultValue) {
-        var valueTuples = CollectionsMarshal.AsSpan(Rules);
-        for (var r = 0; r < valueTuples.Length; r++) {
-            var rule = valueTuples[r];
-            if (TemplateTerrain.HasValue) {
-                if (rule.Item2.MatchesTemplate(tileMap, TemplateTerrain.Value, x, y)) return rule.Item1;
-            } else {
-                if (rule.Item2.Matches(tileMap, x, y)) return rule.Item1;
-            }
+    public int FindRuleId(TileMap.TileMap tileMap, int x, int y, int defaultValue) {
+        foreach (var rule in Rules) {
+            if (rule.Item2.Matches(tileMap.TerrainGrid, x, y, TemplateTerrain)) return rule.Item1;
         }
         return defaultValue;
     }

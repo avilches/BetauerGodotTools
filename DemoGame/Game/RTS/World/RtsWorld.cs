@@ -288,6 +288,12 @@ public partial class RtsWorld : Node, IInjectable {
 					WorldGenerator.BiomeGenerator.FillDelaunatorVoronoiPath(MainTextureOverlay);
 					MainTextureOverlay.Flush();
 				})
+				.Button("Find coast", () => {
+					MainTextureOverlay.Fill(new Color(0,0,0,0), false);
+					WorldGenerator.BiomeGenerator.FindCoast(MainTextureOverlay);
+					WorldGenerator.Draw(WorldGenerator.ViewMode.Terrain);
+					MainTextureOverlay.Flush();
+				})
 			)
 			.Label("---------- Poisson demos  -------------")
 			.Add<HBoxContainer>(box => box.Children()

@@ -3,14 +3,14 @@ using Betauer.TileSet.Terrain;
 
 namespace Betauer.TileSet.TileMap.Handlers;
 
-public class TilePatternRuleSetFilter<T> : ITileFilter where T : Enum {
-    public TilePatternRuleSet<T> TilePatternRuleSet { get; }
+public class TilePatternRuleSetFilter : ITileFilter {
+    public TilePatternRuleSet TilePatternRuleSet { get; }
 
-    public TilePatternRuleSetFilter(TilePatternRuleSet<T> tilePatternRuleSet) {
+    public TilePatternRuleSetFilter(TilePatternRuleSet tilePatternRuleSet) {
         TilePatternRuleSet = tilePatternRuleSet;
     }
 
     public bool Filter(TileMap tileMap, int x, int y) {
-        return TilePatternRuleSet.Matches(tileMap, x, y);
+        return TilePatternRuleSet.MatchAnyRule(tileMap, x, y);
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Betauer.Core;
 using Betauer.TestRunner;
 using Betauer.TileSet.Image;
@@ -10,22 +11,34 @@ using NUnit.Framework;
 namespace Betauer.GameTools.Tests.TileSet;
 
 internal static class TerrainRuleExtension {
-    public static bool Matches(this TilePattern tilePattern, int value) {
-        var other = TilePattern.Parse(tilePattern.Export());
-        Assert.True(tilePattern.Equals(other));
-        
+    public static bool Matches(this RulesTilePattern tilePattern, int value, int? templateTerrain = null) {
+        Equals(tilePattern);
         var tileMap = new BasicTileMap(1, 1, 1);
         tileMap.SetTerrain(0, 0, value.ToEnum<BasicTileType>());
-        return tilePattern.Matches(tileMap, 0, 0);
+        var matches = tilePattern.Matches(tileMap.TerrainGrid, 0, 0, templateTerrain);
+        var otherMatches = false;
+        var tother = tilePattern;
+        if (templateTerrain.HasValue) {
+            tother = tilePattern.WithTerrain(templateTerrain.Value);
+        }
+        tileMap.NewAction().IfPattern(tother).Do((x, y) => otherMatches = true).Apply();
+        Assert.That(matches, Is.EqualTo(otherMatches));
+        return matches;
     }
-
-    public static bool MatchesTemplate(this TilePattern tilePattern, int templateTerrain, int value) {
-        var other = TilePattern.Parse(tilePattern.Export());
-        Assert.True(tilePattern.Equals(other));
-        
-        var tileMap = new BasicTileMap(1, 1, 1);
-        tileMap.SetTerrain(0, 0, value.ToEnum<BasicTileType>());
-        return tilePattern.MatchesTemplate(tileMap, templateTerrain, 0, 0);
+    
+    public static void Equals(RulesTilePattern a) {
+        var export = a.Export();
+        var b = TilePattern.Parse(export);
+        Assert.That(export, Is.EqualTo(b.Export()));
+        Assert.That(a.GridSize, Is.EqualTo(b.GridSize));
+        Assert.That(a.Rules.Length, Is.EqualTo(b.Rules.Length));
+        a.Rules.ForEach((rule, i) => {
+            var other = b.Rules[i];
+            Assert.That(rule.X, Is.EqualTo(other.X));
+            Assert.That(rule.Y, Is.EqualTo(other.Y));
+            Assert.That(rule.NeighborRule.ConditionType, Is.EqualTo(other.NeighborRule.ConditionType));
+            Assert.That(rule.NeighborRule.ExpectedTerrain, Is.EqualTo(other.NeighborRule.ExpectedTerrain));
+        });
     }
 }
 
@@ -65,31 +78,30 @@ public class TerrainRuleTests : BaseBlobTests {
         Assert.True(TilePattern.Parse("?").Matches(2));
 
         // # means currentTerrain (0 in this case)
-        Assert.False(TilePattern.Parse("#").MatchesTemplate(0, -1));
-        Assert.True(TilePattern.Parse("#").MatchesTemplate(0, 0));
-        Assert.False(TilePattern.Parse("#").MatchesTemplate(0, 1));
-        Assert.False(TilePattern.Parse("#").MatchesTemplate(11, -1));
-        Assert.True(TilePattern.Parse("#").MatchesTemplate(11, 11));
-        Assert.False(TilePattern.Parse("#").MatchesTemplate(11, 12));
+        Assert.False(TilePattern.Parse("#").Matches(0, -1));
+        Assert.True(TilePattern.Parse("#").Matches(0, 0));
+        Assert.False(TilePattern.Parse("#").Matches(0, 1));
+        Assert.False(TilePattern.Parse("#").Matches(11, -1));
+        Assert.True(TilePattern.Parse("#").Matches(11, 11));
+        Assert.False(TilePattern.Parse("#").Matches(11, 12));
         Assert.Throws<Exception>(() => TilePattern.Parse("#").Matches(-1));
 
         
         // ! means not currentTerrain (0 in this case)
-        Assert.True(TilePattern.Parse("!").MatchesTemplate(0,-1));
-        Assert.False(TilePattern.Parse("!").MatchesTemplate(0,0));
-        Assert.True(TilePattern.Parse("!").MatchesTemplate(0,1));
-        Assert.True(TilePattern.Parse("!").MatchesTemplate(11,-1));
-        Assert.False(TilePattern.Parse("!").MatchesTemplate(11,11));
-        Assert.True(TilePattern.Parse("!").MatchesTemplate(11,12));
+        Assert.True(TilePattern.Parse("!").Matches(0,-1));
+        Assert.False(TilePattern.Parse("!").Matches(0,0));
+        Assert.True(TilePattern.Parse("!").Matches(0,1));
+        Assert.True(TilePattern.Parse("!").Matches(11,-1));
+        Assert.False(TilePattern.Parse("!").Matches(11,11));
+        Assert.True(TilePattern.Parse("!").Matches(11,12));
         Assert.Throws<Exception>(() => TilePattern.Parse("!").Matches(0));
         
     }
     
     [Betauer.TestRunner.Test]
     public void ExportParseTest() {
-        foreach (var rule in TilePatternRuleSets.Blob47Rules.Rules) {
-            var other = TilePattern.Parse(rule.Item2.Export());
-            Assert.True(rule.Item2.Equals(other));
+        foreach (var rule in TilePatternRuleSets.Blob47Rules.Rules.Select(p => p.Item2)) {
+            TerrainRuleExtension.Equals((RulesTilePattern)rule);
         }
     }
     
@@ -101,7 +113,7 @@ public class TerrainRuleTests : BaseBlobTests {
 ", 3);
 
         // layer 0, terrain 1 without template
-        tileMap.Execute(new TerrainTileHandler(0, TilePatternRuleSets.Blob47Rules.WithTerrain(1), tileMap.CreateSource(7, TileSetLayouts.Blob47Godot)));
+        tileMap.Loop(new TerrainTileHandler(0, TilePatternRuleSets.Blob47Rules.WithTerrain(1), tileMap.CreateSource(7, TileSetLayouts.Blob47Godot)));
 
         AreEqual(tileMap.TileId, new[,] {
             { 20 , 64, -1 },
@@ -114,7 +126,7 @@ public class TerrainRuleTests : BaseBlobTests {
         
 
         // layer 1, terrain 0 with template
-        tileMap.Execute(new TerrainTileHandler(1, TilePatternRuleSets.Blob47Rules.WithTerrain(0), tileMap.CreateSource(8, TileSetLayouts.Blob47Godot)));
+        tileMap.Loop(new TerrainTileHandler(1, TilePatternRuleSets.Blob47Rules.WithTerrain(0), tileMap.CreateSource(8, TileSetLayouts.Blob47Godot)));
 
         AreEqual(tileMap.TileId, new[,] {
             { 20, 64, -1 },
@@ -135,7 +147,7 @@ public class TerrainRuleTests : BaseBlobTests {
 ", 3);
 
         // layer 2, terrain 2
-        tileMap.Execute(new SetTileIdFromTerrainHandler(TilePatternRuleSets.Blob47Rules.WithTerrain(2)),
+        tileMap.Loop(new SetTileIdFromTerrainHandler(TilePatternRuleSets.Blob47Rules.WithTerrain(2)),
             new SetAtlasCoordsFromTileSetLayoutHandler(2, tileMap.CreateSource(9, TileSetLayouts.Blob47Godot))
         );
 
@@ -156,7 +168,7 @@ public class TerrainRuleTests : BaseBlobTests {
 ", 3);
 
         // layer 2, terrain 2
-        tileMap.If((t, x, y) => true)
+        tileMap.NewAction().If((t, x, y) => true)
             .If((x, y) => true)
             .IfTerrain(2)
             .Do(new SetTileIdFromTerrainHandler(TilePatternRuleSets.Blob47Rules.WithTerrain(2)))
@@ -181,18 +193,17 @@ public class TerrainRuleTests : BaseBlobTests {
 
         var called = false;
 
-        tileMap
-            .IfTerrain(3)
+        ((TileMap)tileMap).NewAction().IfTerrain(3)
             .Do((x, y) => called = true)
             .Apply();
         
         tileMap
-            .IfTerrainEnum(BasicTileType.Type9)
+            .IfTerrain(BasicTileType.Type9)
             .Do((x, y) => called = true)
             .Apply();
         
         tileMap
-            .If((t, x, y) => false)
+            .NewAction().If((t, x, y) => false)
             .Do((x, y) => called = true)
             .Apply();
         

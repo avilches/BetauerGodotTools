@@ -6,12 +6,11 @@ namespace Betauer.Core.Tests;
 using NUnit.Framework;
 
 [Betauer.TestRunner.Test]
-[Only]
 public class NormalizedGridTests {
     
     [Betauer.TestRunner.Test]
     public void NormalizedVirtualDataGridTests() {
-        var grid = new DataGrid(2, 2, (x, y) => x + y);
+        var grid = new NormalizedDataGrid(2, 2, (x, y) => x + y);
         Assert.AreEqual(2, grid.Width);
         Assert.AreEqual(2, grid.Height);
         

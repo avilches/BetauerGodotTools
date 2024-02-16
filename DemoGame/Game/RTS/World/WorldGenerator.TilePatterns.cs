@@ -15,7 +15,7 @@ public enum Biomes {
 }
 
 public enum TilePatterns {
-    None,
+    None = -1,
     TextureGreenWithYellowStone,
     TextureGrassLight,
     TextureGrass,

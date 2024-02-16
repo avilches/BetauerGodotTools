@@ -81,25 +81,25 @@ public partial class WorldGenerator {
         return;
         var biomeGrid = BiomeGenerator.BiomeCells;
 
-        TileMap.Execute((t, x, y) => {
+        TileMap.LoopLayers((t, x, y) => {
             var biomeType = biomeGrid[y, x].Biome.Type;
             TileMap.SetTerrain(x, y, biomeType);
         });
 
         TileMap.Smooth(Seed);
         // TileMap.IfTerrainEnum(BiomeType.Ocean).SetAtlasCoords(0, 6, new Vector2I(19, 13)); // Modern, deep water
-        TileMap.IfTerrainEnum(BiomeType.Glacier).SetAtlasCoords(0, 6, new Vector2I(2, 2)); // Modern, snow
-        TileMap.IfTerrainEnum(BiomeType.Rock).SetAtlasCoords(0, 1, new Vector2I(0, 0)); // Mud
+        TileMap.IfTerrain(BiomeType.Glacier).SetAtlasCoords(0, 6, new Vector2I(2, 2)); // Modern, snow
+        TileMap.IfTerrain(BiomeType.Rock).SetAtlasCoords(0, 1, new Vector2I(0, 0)); // Mud
         
-        TileMap.IfTerrainEnum(BiomeType.Desert).SetAtlasCoords(0, 0, new Vector2I(0, 15)); // Red
-        TileMap.IfTerrainEnum(BiomeType.Plains).SetAtlasCoords(0, 0, new Vector2I(0, 2)); // GreenYellow 
-        TileMap.IfTerrainEnum(BiomeType.Forest).SetAtlasCoords(0, 0, new Vector2I(11, 1)); // 
-        TileMap.IfTerrainEnum(BiomeType.Dirty).SetAtlasCoords(0, 0, new Vector2I(16, 2)); // 
+        TileMap.IfTerrain(BiomeType.Desert).SetAtlasCoords(0, 0, new Vector2I(0, 15)); // Red
+        TileMap.IfTerrain(BiomeType.Plains).SetAtlasCoords(0, 0, new Vector2I(0, 2)); // GreenYellow 
+        TileMap.IfTerrain(BiomeType.Forest).SetAtlasCoords(0, 0, new Vector2I(11, 1)); // 
+        TileMap.IfTerrain(BiomeType.Dirty).SetAtlasCoords(0, 0, new Vector2I(16, 2)); // 
         
         
         // TileMap.IfTerrainEnum(BiomeType.Beach).SetAtlasCoords(0, 3, new Vector2I(0, 0)); // Sand
-        TileMap.IfTerrainEnum(BiomeType.Beach).SetAtlasCoords(0, 7, new Vector2I(18, 4)); // Sand
-        TileMap.IfTerrainEnum(BiomeType.Sea).SetAtlasCoords(0, 6, new Vector2I(20, 13)); // Modern, water
+        TileMap.IfTerrain(BiomeType.Beach).SetAtlasCoords(0, 7, new Vector2I(18, 4)); // Sand
+        TileMap.IfTerrain(BiomeType.Sea).SetAtlasCoords(0, 6, new Vector2I(20, 13)); // Modern, water
 
         // TileMap.IfTerrain(BiomeType.ColdBeach).SetAtlasCoords(0, 3, new Vector2I(0, 0));
         // TileMap.IfTerrain(BiomeType.Glacier).SetAtlasCoords(0, 3, new Vector2I(0, 0));
@@ -125,7 +125,7 @@ public partial class WorldGenerator {
         //     .Apply();
 
         GodotTileMap.Clear();
-        TileMap.Flush();
+        TileMap.Apply();
         TileMap.DumpAtlasCoordsTo(GodotTileMap);
 
         /*
@@ -190,16 +190,14 @@ public partial class WorldGenerator {
             TilePatterns.ModernWater,
             TilePatterns.ModernDeepWater
         };
-        var tileMap = new TileMap<TilePatterns>(Layers, Width, Height, new Dictionary<TilePatterns, int> {
-            { TilePatterns.None, -1 }
-        });
+        var tileMap = new TileMap<TilePatterns>(Layers, Width, Height, TilePatterns.None);
         var sproutDarkerGrass = tileMap.CreateSource(8, TileSetLayouts.Blob47Godot);
 
         // tileMap.Execute((t, x, y) => tileMap.SetTerrain(x, y, tiles[FastNoiseHeight.GetNoiseGradient(x, y)]));
         tileMap.Smooth();
-        tileMap.Execute(new TerrainTileHandler(1, TilePatternRuleSets.Blob47Rules.WithTerrain(tileMap.EnumToTerrain(TilePatterns.ModernDirt)), sproutDarkerGrass));
-        tileMap.Execute(new TerrainTileHandler(1, TilePatternRuleSets.Blob47Rules.WithTerrain(tileMap.EnumToTerrain(TilePatterns.TerrainGreen)), sproutDarkerGrass));
-        tileMap.IfTerrain((int)TilePatterns.ModernDirt)
+        tileMap.Loop(new TerrainTileHandler(1, TilePatternRuleSets.Blob47Rules.WithTerrain(TilePatterns.ModernDirt.ToInt()), sproutDarkerGrass));
+        tileMap.Loop(new TerrainTileHandler(1, TilePatternRuleSets.Blob47Rules.WithTerrain(TilePatterns.TerrainGreen.ToInt()), sproutDarkerGrass));
+        tileMap.NewAction().IfTerrain((int)TilePatterns.ModernDirt)
             .Do((t, x, y) => sproutDarkerGrass.SetAtlasCoords(0, x, y, 255))
             .Apply();
 

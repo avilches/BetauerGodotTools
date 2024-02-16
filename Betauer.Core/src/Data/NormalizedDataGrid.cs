@@ -2,7 +2,7 @@ using System;
 
 namespace Betauer.Core.Data;
 
-public class DataGrid {
+public class NormalizedDataGrid {
     public int Width { get; private set; }
     public int Height { get; private set; }
     public float MinValue { get; private set; } = float.MaxValue;
@@ -10,25 +10,25 @@ public class DataGrid {
 
     public float[,] Data { get; private set; }
 
-    public DataGrid(int width, int height, Func<int, int, float> valueFunc) {
+    public NormalizedDataGrid(int width, int height, Func<int, int, float> valueFunc) {
         Data = new float[width, height];
         Width = Data.GetLength(0);
         Height = Data.GetLength(1);
         Load(valueFunc);
     }
 
-    public DataGrid(int width, int height, float defaultValue) {
+    public NormalizedDataGrid(int width, int height, float defaultValue) {
         Data = new float[width, height];
         Width = Data.GetLength(0);
         Height = Data.GetLength(1);
         Fill(defaultValue);
     }
 
-    public DataGrid(float[,] data) {
+    public NormalizedDataGrid(float[,] data) {
         SetAll(data);
     }
 
-    public DataGrid Fill(float value) {
+    public NormalizedDataGrid Fill(float value) {
         for (var y = 0; y < Height; y++) {
             for (var x = 0; x < Width; x++) {
                 Data[x, y] = value;
@@ -39,7 +39,7 @@ public class DataGrid {
         return this;
     }
 
-    public DataGrid Fill(int x, int y, int width, int height, float value) {
+    public NormalizedDataGrid Fill(int x, int y, int width, int height, float value) {
         for (var xx = x; xx < width - x; xx++) {
             for (var yy = y; yy < height - y; yy++) {
                 Data[xx, yy] = value;
@@ -50,7 +50,7 @@ public class DataGrid {
         return this;
     }
 
-    public DataGrid SetAll(float[,] data) {
+    public NormalizedDataGrid SetAll(float[,] data) {
         MinValue = float.MaxValue;
         MaxValue = float.MinValue;
         Width = data.GetLength(0);
@@ -67,14 +67,14 @@ public class DataGrid {
         return this;
     }
 
-    public DataGrid Load(Func<int, int, float> valueFunc) {
+    public NormalizedDataGrid Load(Func<int, int, float> valueFunc) {
         MinValue = float.MaxValue;
         MaxValue = float.MinValue;
         Load(0, 0, Width, Height, valueFunc);
         return this;
     }
 
-    public DataGrid Load(int x, int y, int width, int height, Func<int, int, float> valueFunc) {
+    public NormalizedDataGrid Load(int x, int y, int width, int height, Func<int, int, float> valueFunc) {
         for (var xx = x; xx < width - x; xx++) {
             for (var yy = y; yy < height - y; yy++) {
                 var value = valueFunc.Invoke(xx, yy);
@@ -86,7 +86,7 @@ public class DataGrid {
         return this;
     }
 
-    public DataGrid UpdateMinMax() {
+    public NormalizedDataGrid UpdateMinMax() {
         MinValue = float.MaxValue;
         MaxValue = float.MinValue;
         for (var y = 0; y < Height; y++) {
@@ -100,7 +100,7 @@ public class DataGrid {
         return this;
     }
 
-    public DataGrid Normalize(float newMin, float newMax) {
+    public NormalizedDataGrid Normalize(float newMin, float newMax) {
         var minMaxRange = MaxValue - MinValue;
         var normalizedRange = newMax - newMin;
         for (var y = 0; y < Height; y++) {
@@ -113,7 +113,7 @@ public class DataGrid {
         return this;
     }
 
-    public DataGrid Normalize() {
+    public NormalizedDataGrid Normalize() {
         var minMaxRange = MaxValue - MinValue;
         for (var y = 0; y < Height; y++) {
             for (var x = 0; x < Width; x++) {
@@ -125,19 +125,19 @@ public class DataGrid {
         return this;
     }
 
-    public DataGrid Loop(Action<float, int, int> action) {
+    public NormalizedDataGrid Loop(Action<float, int, int> action) {
         Loop(0, 0, Width, Height, action);
         return this;
     }
 
-    public DataGrid Transform(Func<float, float> action) {
+    public NormalizedDataGrid Transform(Func<float, float> action) {
         MinValue = float.MaxValue;
         MaxValue = float.MinValue;
         Transform(0, 0, Width, Height, action);
         return this;
     }
 
-    public DataGrid Transform(int x, int y, int width, int height, Func<float, float> action) {
+    public NormalizedDataGrid Transform(int x, int y, int width, int height, Func<float, float> action) {
         for (var xx = x; xx < width - x; xx++) {
             for (var yy = y; yy < height - y; yy++) {
                 var value = GetValue(xx, yy);
@@ -147,7 +147,7 @@ public class DataGrid {
         return this;
     }
 
-    public DataGrid Loop(int x, int y, int width, int height, Action<float, int, int> action) {
+    public NormalizedDataGrid Loop(int x, int y, int width, int height, Action<float, int, int> action) {
         for (var xx = x; xx < width - x; xx++) {
             for (var yy = y; yy < height - y; yy++) {
                 action.Invoke(GetValue(xx, yy), xx, yy);

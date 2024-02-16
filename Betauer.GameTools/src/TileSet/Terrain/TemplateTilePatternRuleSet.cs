@@ -1,12 +1,15 @@
+using System;
 using System.Collections.Generic;
 
 namespace Betauer.TileSet.Terrain;
 
-public class TemplateTilePatternRuleSet<T> : BaseTilePatternRuleSet<T> {
-    public TemplateTilePatternRuleSet(List<(T, TilePattern)> rules) : base(rules) {
+public class TemplateTilePatternRuleSet {
+    public List<(int, TilePattern)> Rules { get; }
+    public TemplateTilePatternRuleSet(List<(int, TilePattern)> rules) {
+        Rules = rules;
     }
 
-    public TilePatternRuleSet<T> WithTerrain(int terrain) {
-        return new TilePatternRuleSet<T>(Rules, terrain);
+    public TilePatternRuleSet WithTerrain(int terrain) {
+        return new TilePatternRuleSet(Rules, terrain);
     }
 }

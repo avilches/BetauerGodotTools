@@ -6,14 +6,14 @@ namespace Betauer.TileSet.TileMap.Handlers;
  * Set the TileId based on the TerrainRuleSet
  */
 public class SetTileIdFromTerrainHandler : ITileHandler {
-    public TilePatternRuleSet<int> TilePatternRuleSet { get; }
+    public TilePatternRuleSet TilePatternRuleSet { get; }
 
-    public SetTileIdFromTerrainHandler(TilePatternRuleSet<int> tilePatternRuleSet) {
+    public SetTileIdFromTerrainHandler(TilePatternRuleSet tilePatternRuleSet) {
         TilePatternRuleSet = tilePatternRuleSet;
     }
 
     public void Apply(TileMap tileMap, int x, int y) {
-        var tileId = TilePatternRuleSet.FindValue(tileMap, x, y, int.MinValue);
+        var tileId = TilePatternRuleSet.FindRuleId(tileMap, x, y, int.MinValue);
         if (tileId != int.MinValue) tileMap.SetTileId(x, y, tileId);
     }
 }

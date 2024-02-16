@@ -1,4 +1,5 @@
 using System;
+using Betauer.Core;
 using Betauer.TileSet.Terrain;
 using Betauer.TileSet.TileMap;
 using Betauer.TileSet.TileMap.Handlers;
@@ -9,7 +10,7 @@ namespace Betauer.GameTools.Tests.TileSet;
 public class BaseBlobTests {
     protected void AssertBlob47(string str, int[,] grid) {
         var tileMap = BasicTileMap.Parse(str);
-        tileMap.Execute(new SetTileIdFromTerrainHandler(TilePatternRuleSets.Blob47Rules.WithTerrain(0)));
+        tileMap.Loop(new SetTileIdFromTerrainHandler(TilePatternRuleSets.Blob47Rules.WithTerrain(0)));
         try {
             AreEqual(tileMap.TileId, grid);
         } catch (Exception e) {
@@ -35,6 +36,7 @@ public class BaseBlobTests {
 
 
     public static bool AreEqual<T>(T[,] array1, T[,] array2) {
+        array2 = array2.FlipDiagonal();
         Assert.AreEqual(array1.GetLength(0), array2.GetLength(0),
             $"Array dimension [{array1.GetLength(0)},{array1.GetLength(1)}] wrong. Expected: [{array2.GetLength(0)},{array2.GetLength(0)}]");
 

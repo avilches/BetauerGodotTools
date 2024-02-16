@@ -14,7 +14,7 @@ public static class TileMapExtensions {
     public static bool SmoothStep(this TileMap tileMap, Random random) {
         var worked = false;
 
-        tileMap.Execute((t, x, y) => {
+        tileMap.LoopLayers((t, x, y) => {
             var type = tileMap.GetTerrain(x, y);
             var left = GetSafeData(x - 1, y, type);
             var right = GetSafeData(x + 1, y, type);

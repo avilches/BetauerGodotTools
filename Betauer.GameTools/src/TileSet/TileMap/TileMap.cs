@@ -11,60 +11,37 @@ using Godot;
 namespace Betauer.TileSet.TileMap;
 
 public class TileMap<TTerrain> : TileMap where TTerrain : Enum {
-    private readonly IReadOnlyDictionary<TTerrain, int>? _enumToTerrainMap;
-    private readonly IReadOnlyDictionary<int, TTerrain>? _terrainToEnumMap;
-
     public TileMap(int layers, int width, int height, TTerrain defaultTerrain = default) : base(layers, width, height, defaultTerrain.ToInt()) {
     }
 
-    public TileMap(int layers, int width, int height, IReadOnlyDictionary<TTerrain, int>? enumToTerrainMap, TTerrain defaultTerrain = default) : base(layers, width,
-        height,
-        enumToTerrainMap != null && enumToTerrainMap.TryGetValue(defaultTerrain, out var terrain) ? terrain : defaultTerrain.ToInt()) {
-        _enumToTerrainMap = enumToTerrainMap;
-        _terrainToEnumMap = enumToTerrainMap?.ToDictionary(kv => kv.Value, kv => kv.Key);
-    }
-
-    public int EnumToTerrain(TTerrain terrainEnum) {
-        return _enumToTerrainMap == null ? terrainEnum.ToInt() : _enumToTerrainMap.TryGetValue(terrainEnum, out var terrain) ? terrain : terrainEnum.ToInt();
-    }
-
-    public TTerrain TerrainToEnum(int terrain) {
-        return _terrainToEnumMap == null ? terrain.ToEnum<TTerrain>() : _terrainToEnumMap.TryGetValue(terrain, out var terrainEnum) ? terrainEnum : terrain.ToEnum<TTerrain>();
-    }
-
     public TTerrain GetTerrainEnum(int x, int y) {
-        return TerrainToEnum(TerrainGrid[x, y]);
+        return GetTerrain(x, y).ToEnum<TTerrain>();
     }
 
     public void SetTerrain(int x, int y, TTerrain terrain) {
-        TerrainGrid[x, y] = EnumToTerrain(terrain);
+        TerrainGrid[x, y] = terrain.ToInt();
     }
 
     public void SetTerrainGrid(int x, int y, TTerrain[,] grid) {
         for (var xx = 0; xx < grid.GetLength(0); xx++) {
             for (var yy = 0; yy < grid.GetLength(1); yy++) {
-                TerrainGrid[x + xx, y + yy] = EnumToTerrain(grid[xx, yy]);
+                TerrainGrid[x + xx, y + yy] = grid[xx, yy].ToInt();
             }
         }
     }
 
     public void SetTerrainGrid(int x, int y, int width, int height, TTerrain terrain) {
-        SetTerrainGrid(x, y, width, height, EnumToTerrain(terrain));
+        SetTerrainGrid(x, y, width, height, terrain.ToInt());
     }
 
-    public TileActionList IfTerrainEnum<T>(T terrain) where T : Enum {
-        return CreateTileActionList().IfTerrain(terrain);
+    public TileActionBuilder IfTerrain<T>(T terrain) where T : Enum {
+        return NewAction().IfTerrain(terrain);
     }
 
-    public TileActionList IfPatternRuleSet<T>(TilePatternRuleSet<T> tilePatternRuleSet) where T : Enum {
-        return CreateTileActionList().IfPatternRuleSet(tilePatternRuleSet);
-    }
-
-    public static TileMap<T> Parse<T>(string value, Dictionary<char, T> charToEnum, int layers = 1, IReadOnlyDictionary<T, int> enumToTerrainMap = null)
-        where T : Enum {
+    public static TileMap<T> Parse<T>(string value, Dictionary<char, T> charToEnum, int layers = 1) where T : Enum {
         var lines = TileMap.Parse(value);
         var maxLength = lines[0].Length; // all lines have the same length
-        var tileMap = new TileMap<T>(layers, maxLength, lines.Count, enumToTerrainMap);
+        var tileMap = new TileMap<T>(layers, maxLength, lines.Count);
         var y = 0;
         foreach (var line in lines) {
             var x = 0;
@@ -93,7 +70,7 @@ public class TileMap {
         }
     }
 
-    private readonly List<TileActionList> _pendingPipelines = new();
+    private readonly List<TileActionBuilder> _pendingPipelines = new();
 
     public int Layers { get; init; }
     public int Width { get; init; }
@@ -156,8 +133,8 @@ public class TileMap {
     }
 
     public void ClearCell(int x, int y) {
-        TerrainGrid[y, x] = _defaultTerrain;
-        TileId[y, x] = -1;
+        TerrainGrid[x, y] = _defaultTerrain;
+        TileId[x, y] = -1;
         for (var layer = 0; layer < Layers; layer++) {
             ref var currentInfo = ref TileInfoGrid[layer][x, y];
             currentInfo.Clear();
@@ -165,7 +142,7 @@ public class TileMap {
     }
 
     public int GetTerrain(int x, int y) {
-        return TerrainGrid[x, y];
+        return x < 0 || x > Width || y < 0 || y > Height ? _defaultTerrain : TerrainGrid[x, y];
     }
 
     public bool SetTerrain(int x, int y, int terrain) {
@@ -225,100 +202,82 @@ public class TileMap {
     public void SetTileIdGrid(int layer, int x, int y, int width, int height, int tileId) {
         for (var xx = 0; xx < width; xx++) {
             for (var yy = 0; yy < height; yy++) {
-                TileId[x, y] = tileId;
+                TileId[xx + x, yy +y] = tileId;
             }
         }
     }
 
     public void SetTileIdGrid(int layer, int x, int y, int[,] tileIdGrid) {
-        for (var xx = 0; xx < tileIdGrid.GetLength(0); xx++) {
-            for (var yy = 0; yy < tileIdGrid.GetLength(1); yy++) {
-                TileId[x, y] = tileIdGrid[xx, yy];
+        var width = tileIdGrid.GetLength(0);
+        var height = tileIdGrid.GetLength(1);
+        for (var xx = 0; xx < width; xx++) {
+            for (var yy = 0; yy < height; yy++) {
+                TileId[xx + x, yy + y] = tileIdGrid[xx, yy];
             }
         }
     }
     
-    public TileActionList CreateTileActionList() {
-        var pipeline = new TileActionList(this);
+    public TileActionBuilder NewAction() {
+        var pipeline = new TileActionBuilder(this);
         _pendingPipelines.Add(pipeline);
         return pipeline;
     }
     
-    public void Flush() {
+    public void Apply() {
         for (var y = 0; y < Height; y++) {
             for (var x = 0; x < Width; x++) {
                 var span = CollectionsMarshal.AsSpan(_pendingPipelines);
                 for (var idx = 0; idx < span.Length; idx++) {
                     var pipeline = span[idx];
-                    pipeline._Apply(this, x, y);
+                    pipeline._Apply(x, y);
                 }
             }
         }
         _pendingPipelines.Clear();
     }
 
-    public void Execute(Action<TileMap, int, int> action) {
+    public void Loop(Action<int, int> action) {
         for (var x = 0; x < Width; x++) {
             for (var y = 0; y < Height; y++) {
-                action(this, x, y);
+                action(x, y);
             }
         }
     }
 
-    public void Execute(Action<TileMap, int, int, int> action) {
+    public void LoopLayers(Action<int, int, int> action) {
         for (var layer = 0; layer < Layers; layer++) {
             for (var x = 0; x < Width; x++) {
                 for (var y = 0; y < Height; y++) {
-                    action(this, layer, x, y);
+                    action(layer, x, y);
                 }
             }
         }
     }
 
-    public void Execute(ITileHandler handler) {
-        Execute(handler.Apply);
+    public void Loop(ITileHandler handler) {
+        for (var x = 0; x < Width; x++) {
+            for (var y = 0; y < Height; y++) {
+                handler.Apply(this, x, y);
+            }
+        }
     }
 
-    public void Execute(params ITileHandler[] handlers) {
-        handlers.ForEach(handler => Execute(handler.Apply));
+    public void Loop(params ITileHandler[] handlers) {
+        handlers.ForEach(Loop);
     }
 
-    public void Execute(IEnumerable<ITileHandler> handlers) {
-        handlers.ForEach(handler => Execute(handler.Apply));
+    public void Loop(IEnumerable<ITileHandler> handlers) {
+        handlers.ForEach(Loop);
     }
 
     public void DumpAtlasCoordsTo(global::Godot.TileMap godotTileMap) {
-        Execute((t, layer, x, y) => {
+        LoopLayers((layer, x, y) => {
             ref var cellInfo = ref GetCellInfoRef(layer, x, y);
             if (!cellInfo.AtlasCoords.HasValue) return;
             godotTileMap.SetCell(layer, new Vector2I(x, y), cellInfo.SourceId, cellInfo.AtlasCoords.Value);
         });
     }
-
-    public TileActionList If(Func<TileMap, int, int, bool> filter) {
-        return CreateTileActionList().If(filter);
-    }
-
-    public TileActionList If(Func<int, int, bool> filter) {
-        return CreateTileActionList().If(filter);
-    }
-
-    public TileActionList If(ITileFilter filter) {
-        return CreateTileActionList().If(filter);
-    }
-
-    public TileActionList IfTerrain(int terrain) {
-        return CreateTileActionList().IfTerrain(terrain);
-    }
-
-    public TileActionList IfTileId(int tileId) {
-        return CreateTileActionList().IfTileId(tileId);
-    }
-
-    public TileActionList IfPattern(TilePattern tilePattern) {
-        return CreateTileActionList().IfPattern(tilePattern);
-    }
-
+    
     public static TileMap Parse(string value, Dictionary<char, int> charToTerrain, int layers = 1) {
         var lines = Parse(value);
         var maxLength = lines[0].Length; // all lines have the same length

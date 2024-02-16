@@ -3,72 +3,66 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using Betauer.TileSet.TileMap.Handlers;
 
 namespace Betauer.TileSet.Terrain;
 
 public enum ConditionType {
     // Values are sorted by priority. Higher value will be evaluated first.
     // The theory behind is, in a random distribution or tiles in the map, "equals" comparision
-    // has a higher chance to be false than "not equals". So, the sooner it fails, the better because it can
-    // be discarded.
+    // has a higher chance to be false than "not equals". So, the sooner it fails, the better because it can be discarded.
     EqualsTo = 5,
     TemplateEqualsTo = 4,
     NotEqualsTo = 3,
-    TemplateNotEqualsTo = 2
+    TemplateNotEqualsTo = 2,
+    UserDefined = 1,
+    UserDefinedPosition = 0,
 }
 
-public partial class TilePattern {
+public abstract partial class TilePattern {
+    public int GridSize { get; init;  }
 
-    public const string NotEqualsToPrefix = "!"; 
-
-    public const string Ignore = "?"; 
-    public const string IsEmpty = "."; 
-    public const string IsNotEmpty = "X"; 
-    public const string TemplateNotEqualsTo = "!"; 
-    public const string TemplateEqualsTo = "#"; 
-
-    private readonly NeighborRule[] _rules;
-    public int GridSize { get; }
-
-    public bool IsTemplate => _rules.Any(rule => rule.IsTemplate);
-
-    public override bool Equals(object? obj) {
-        if (obj is not TilePattern other ||
-            GridSize != other.GridSize ||
-            _rules.Length != other._rules.Length ||
-            IsTemplate != other.IsTemplate) return false;
-        for (var i = 0; i < _rules.Length; i++) {
-            if (!_rules[i].Equals(other._rules[i])) return false;
-        }
-        return true;
+    public bool Matches(int[,] data, int centerX, int centerY, int? templateTerrain = null) {
+        return Matches((x, y) => x < 0 || y < 0 || x >= data.GetLength(0) || y >= data.GetLength(1) ? -1 : data[x, y], centerX, centerY, templateTerrain);
     }
 
-    public override int GetHashCode() {
-        return HashCode.Combine(_rules, GridSize, IsTemplate);
-    }
+    public abstract bool Matches(Func<int, int, int> loader, int centerX, int centerY, int? templateTerrain = null);
+    
+    public static FunctionTilePattern Create(int gridSize, Func<int[,], int, bool> function) => new FunctionTilePattern(gridSize, function);
+    
+    public static FunctionTilePattern Create(int gridSize, Func<int[,], bool> function) => new FunctionTilePattern(gridSize, function);
 
-    public TilePattern(int gridSize, NeighborRule[] rules) {
-        // 3 means 3x3, 5 means 5x5
-        if (gridSize % 2 == 0) {
-            throw new Exception($"Size {gridSize}x{gridSize} is not valid: only odd sizes are allowed: 1x1, 3x3, 5x5...");
-        }
-        GridSize = gridSize;
-        _rules = rules;
-    }
 
-    public static TilePattern Parse(string value) {
+    /// <summary>
+    /// ? = ignore (no rule in this position)
+    /// . = empty (terrain = -1)
+    /// X = not empty (terrain != -1)
+    /// 1 = equals to 1
+    /// 2 = equals to 2
+    /// ...
+    /// !1 = not equals to 1
+    /// !2 = not equals to 2
+    /// ...
+    ///
+    /// using WithTerrain(t)
+    /// ! = not equals to t
+    /// # = equals to t
+    /// </summary>
+    /// <param name="value"></param>
+    /// <param name="extraRules"></param>
+    /// <returns></returns>
+    /// <exception cref="Exception"></exception>
+    public static RulesTilePattern Parse(string value, Dictionary<string, NeighborRule>? extraRules = null) {
         var lines = value.Split('\n')
             .Select(v => v.Trim())
             .Where(v => v.Length > 0)
             .ToArray();
-        
+
         var gridSize = lines.Length;
         if (gridSize % 2 == 0) {
             throw new Exception($"Size {gridSize}x{gridSize} is not valid: only odd sizes are allowed: 1x1, 3x3, 5x5...");
         }
         var y = 0;
-        var rules = new List<NeighborRule>();
+        var rules = new List<NeighborRulePos>();
         foreach (var line in lines) {
             var parts = SplitWords().Split(line);
             if (parts.Length != gridSize) {
@@ -76,39 +70,99 @@ public partial class TilePattern {
             }
             var x = 0;
             foreach (var neighbourRule in parts) {
-                var tileRule = NeighborRule.ParseRule(neighbourRule, x, y);
-                if (tileRule != null) {
-                    rules.Add(tileRule);
+                if (extraRules != null && extraRules.TryGetValue(neighbourRule, out var extraRule)) {
+                    rules.Add(new NeighborRulePos(extraRule, x, y));
+                } else {
+                    var tileRule = NeighborRule.ParseRule(neighbourRule);
+                    if (tileRule != null) {
+                        rules.Add(new NeighborRulePos(tileRule, x, y));
+                    }
                 }
                 x++;
             }
             y++;
         }
-        rules.Sort((a, b) => ((int)b.ConditionType).CompareTo((int)a.ConditionType));
-        var tileMap = new TilePattern(gridSize, rules.ToArray());
-        return tileMap;
+        rules.Sort((a, b) => ((int)b.NeighborRule.ConditionType).CompareTo((int)a.NeighborRule.ConditionType));
+        var tilePattern = new RulesTilePattern(gridSize, rules.ToArray());
+        return tilePattern;
     }
 
-    
+    [GeneratedRegex("\\s+")]
+    private static partial Regex SplitWords();
+
+}
+
+public class FunctionTilePattern : TilePattern {
+    public readonly Func<int[,], int, bool> Function;
+    private int[,] _grid;
+
+    internal FunctionTilePattern(int gridSize, Func<int[,], int, bool> function) {
+        GridSize = gridSize;
+        Function = function;
+        _grid = new int[GridSize, GridSize];
+    }
+
+    internal FunctionTilePattern(int gridSize, Func<int[,], bool> function) {
+        GridSize = gridSize;
+        Function = (grid,_) => function(grid);
+        _grid = new int[GridSize, GridSize];
+    }
+
+
+    public override bool Matches(Func<int, int, int> loader, int centerX, int centerY, int? templateTerrain = null) {
+        var halfSize = GridSize / 2;
+        for (var x = 0; x < GridSize; x++) {
+            for (var y = 0; y < GridSize; y++) {
+                var i = centerX + x - halfSize;
+                var j = centerY + y - halfSize;
+                _grid[x, y] = loader(i, j);
+            }
+        }
+        return Function(_grid, templateTerrain ?? -1);
+    }
+}
+
+public class RulesTilePattern : TilePattern {
+    public const string NotEqualsToPrefix = "!";
+
+    public const string Ignore = "?";
+    public const string IsEmpty = ".";
+    public const string IsNotEmpty = "X";
+    public const string TemplateNotEqualsTo = "!";
+    public const string TemplateEqualsTo = "#";
+
+    public readonly NeighborRulePos[] Rules;
+
+    public bool HasTemplateRules => Rules.Any(rule => rule.NeighborRule.IsTemplate);
+
+    internal RulesTilePattern(int gridSize, NeighborRulePos[] rules) {
+        // 3 means 3x3, 5 means 5x5
+        if (gridSize % 2 == 0) {
+            throw new Exception($"Size {gridSize}x{gridSize} is not valid: only odd sizes are allowed: 1x1, 3x3, 5x5...");
+        }
+        GridSize = gridSize;
+        Rules = rules;
+    }
+
     /// <summary>
     /// Creates a new TilePattern without templates, but with the same rules.
-    /// If the TilePattern is not a template, it returns the same TilePattern.
+    /// If the TilePattern doesn't have any template rules, it returns the same TilePattern.
     /// </summary>
     /// <param name="terrainId"></param>
     /// <returns></returns>
-    public TilePattern WithTerrain(int terrainId) {
-        if (!IsTemplate) return this;
-        var rules = _rules.Select(rule => rule.ConditionType switch {
-            ConditionType.TemplateEqualsTo => new NeighborRule(ConditionType.EqualsTo, terrainId, rule.X, rule.Y),
-            ConditionType.TemplateNotEqualsTo => new NeighborRule(ConditionType.NotEqualsTo, terrainId, rule.X, rule.Y),
+    public RulesTilePattern WithTerrain(int terrainId) {
+        if (!HasTemplateRules) return this;
+        var rules = Rules.Select(rule => rule.NeighborRule.ConditionType switch {
+            ConditionType.TemplateEqualsTo => new NeighborRulePos(NeighborRule.CreateEqualsTo(terrainId), rule.X, rule.Y),
+            ConditionType.TemplateNotEqualsTo => new NeighborRulePos(NeighborRule.CreateNotEqualsTo(terrainId), rule.X, rule.Y),
             _ => rule
         }).ToArray();
-        return new TilePattern(GridSize, rules);
+        return new RulesTilePattern(GridSize, rules);
     }
 
-    public NeighborRule? FindRuleByPosition(int x, int y) {
-        foreach (var rule in _rules) {
-            if (rule.X == x && rule.Y == y) return rule;
+    public NeighborRule? FindRuleAt(int x, int y) {
+        foreach (var rule in Rules) {
+            if (rule.X == x && rule.Y == y) return rule.NeighborRule;
         }
         return null;
     }
@@ -117,7 +171,7 @@ public partial class TilePattern {
         var sb = new StringBuilder(GridSize * 3 * GridSize - 1);
         for (var y = 0; y < GridSize; y++) {
             for (var x = 0; x < GridSize; x++) {
-                var tileRule = FindRuleByPosition(x, y);
+                var tileRule = FindRuleAt(x, y);
                 if (tileRule == null) {
                     sb.Append(' ').Append(Ignore);
                     continue;
@@ -150,31 +204,26 @@ public partial class TilePattern {
         return sb.ToString();
     }
 
-    [GeneratedRegex("\\s+")]
-    private static partial Regex SplitWords();
 
-    public bool Matches(TileMap.TileMap tileMap, int x, int y) {
+    public override bool Matches(Func<int, int, int> loader, int centerX, int centerY, int? templateTerrain = null) {
         var center = GridSize / 2;
-        var span = _rules.AsSpan();
-        for (var idx = 0; idx < span.Length; idx++) {
-            var rule = span[idx];
-            var ruleX = x + rule.X - center;
-            var ruleY = y + rule.Y - center;
-            var terrain = ruleX < 0 || ruleY < 0 || ruleX >= tileMap.Width || ruleY >= tileMap.Height ? -1 : tileMap.GetTerrain(ruleX, ruleY);
-            if (!rule.Matches(terrain)) return false;
-        }
-        return true;
-    }
-    
-    public bool MatchesTemplate(TileMap.TileMap tileMap, int templateTerrain, int x, int y) {
-        var center = GridSize / 2;
-        var span = _rules.AsSpan();
-        for (var idx = 0; idx < span.Length; idx++) {
-            var rule = span[idx];
-            var ruleX = x + rule.X - center;
-            var ruleY = y + rule.Y - center;
-            var terrain = ruleX < 0 || ruleY < 0 || ruleX >= tileMap.Width || ruleY >= tileMap.Height ? -1 : tileMap.GetTerrain(ruleX, ruleY);
-            if (!rule.MatchesTemplate(terrain, templateTerrain)) return false;
+        foreach (var rule in Rules) {
+            var x = centerX + rule.X - center;
+            var y = centerY + rule.Y - center;
+            var terrain = loader(x, y);
+            if (rule.NeighborRule.ConditionType is ConditionType.TemplateEqualsTo or ConditionType.TemplateNotEqualsTo && !templateTerrain.HasValue) {
+                throw new Exception("templateTerrain is needed to evaluate a "+Enum.GetName(rule.NeighborRule.ConditionType)+" condition");
+            }
+            var matches = rule.NeighborRule.ConditionType switch {
+                ConditionType.EqualsTo => terrain == rule.NeighborRule.ExpectedTerrain,
+                ConditionType.NotEqualsTo => terrain != rule.NeighborRule.ExpectedTerrain,
+                ConditionType.TemplateEqualsTo => terrain == templateTerrain,
+                ConditionType.TemplateNotEqualsTo => terrain != templateTerrain,
+                ConditionType.UserDefined => rule.NeighborRule.UserCondition(terrain),
+                ConditionType.UserDefinedPosition => rule.NeighborRule.UserConditionPosition(x, y),
+                _ => throw new Exception($"ConditionType not implemented: {Enum.GetName(rule.NeighborRule.ConditionType)}")
+            };
+            if (!matches) return false; // All rules must match
         }
         return true;
     }

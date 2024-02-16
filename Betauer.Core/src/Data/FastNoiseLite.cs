@@ -2438,8 +2438,8 @@ public class FastNoiseLite {
         zr += vz * warpAmp;
     }
 
-    public DataGrid CreateDataGrid(int width, int height, bool normalize = false) {
-        var dataGrid = new DataGrid(width, height, (x,y) => GetNoise(x, y));
+    public NormalizedDataGrid CreateNormalizedDataGrid(int width, int height, bool normalize = false) {
+        var dataGrid = new NormalizedDataGrid(width, height, (x,y) => GetNoise(x, y));
         if (normalize) dataGrid.Normalize();
         return dataGrid;
     }
