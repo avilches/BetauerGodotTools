@@ -6,10 +6,10 @@ namespace Betauer.Core.Tests;
 using NUnit.Framework;
 
 [Betauer.TestRunner.Test]
-public class NormalizedDataGridTests {
+public class DataGridTests {
     [Betauer.TestRunner.Test]
     public void RegularDataGridTests() {
-        var grid = new NormalizedDataGrid(2, 2).Load((x, y) => x + y);
+        var grid = new DataGrid<int>(2, 2).Load((x, y) => x + y);
         Assert.AreEqual(0, grid.GetValue(0, 0));
         Assert.AreEqual(1, grid.GetValue(1, 0));
         Assert.AreEqual(1, grid.GetValue(0, 1));
@@ -17,7 +17,7 @@ public class NormalizedDataGridTests {
     }
 
     [Betauer.TestRunner.Test]
-    public void NormalizedTests() {
+    public void NormalizedDataGridTests() {
         var grid = new NormalizedDataGrid(2, 2).Load((x, y) => x + y);
         Assert.AreEqual(2, grid.Width);
         Assert.AreEqual(2, grid.Height);
@@ -54,11 +54,11 @@ public class NormalizedDataGridTests {
         Assert.AreEqual(1f, grid.GetValue(1, 1));
     }
 
-    private NormalizedDataGrid _dataGrid;
+    private DataGrid<int> _dataGrid;
 
     [Betauer.TestRunner.SetUp]
     public void SetUp() {
-        _dataGrid = new NormalizedDataGrid(5, 5);
+        _dataGrid = new DataGrid<int>(5, 5);
         var value = 0;
         for (var y = 0; y < _dataGrid.Height; y++) {
             for (var x = 0; x < _dataGrid.Width; x++) {
@@ -97,7 +97,7 @@ public class NormalizedDataGridTests {
 
     [Betauer.TestRunner.Test]
     public void TestSetAll() {
-        var newData = new float[5, 5];
+        var newData = new int[5, 5];
         _dataGrid.SetAll(newData);
         Assert.AreEqual(newData, _dataGrid.Data);
     }
@@ -114,21 +114,21 @@ public class NormalizedDataGridTests {
 
     [Betauer.TestRunner.Test]
     public void TestLoop() {
-        var total = 0f;
+        var total = 0;
         _dataGrid.Loop((value, x, y) => total += value);
-        Assert.AreEqual(total, 300f);
+        Assert.AreEqual(total, 300);
     }
 
     [Betauer.TestRunner.Test]
     public void TestTransform() {
-        var backup = new NormalizedDataGrid(_dataGrid.Data);
+        var backup = new DataGrid<int>(_dataGrid.Data);
         _dataGrid.Transform(value => value + 1);
         _dataGrid.Loop((value, x, y) => Assert.AreEqual(backup[x,y] + 1, value));
     }
 
     [Betauer.TestRunner.Test]
     public void TestCopyRectTo() {
-        var destination = new float[3, 3];
+        var destination = new int[3, 3];
         _dataGrid.CopyRectTo(1, 1, destination);
         for (var y = 0; y < destination.GetLength(1); y++) {
             for (var x = 0; x < destination.GetLength(0); x++) {
@@ -139,16 +139,16 @@ public class NormalizedDataGridTests {
 
     [Betauer.TestRunner.Test]
     public void TestCopyCenterRectTo() {
-        var destination = new float[3, 3];
+        var destination = new int[3, 3];
         _dataGrid.CopyCenterRectTo(2, 2, 0, destination);
-        IsEqualToDiagonal(destination, new float[,] { { 6, 7, 8 }, { 11, 12, 13 }, { 16, 17, 18 } });
+        IsEqualToDiagonal(destination, new int[,] { { 6, 7, 8 }, { 11, 12, 13 }, { 16, 17, 18 } });
     }
     
     [Betauer.TestRunner.Test]
     public void TestCopyCenterRectToOutside() {
-        var destination = new float[3, 3];
+        var destination = new int[3, 3];
         _dataGrid.CopyCenterRectTo(0, 0, -1, destination);
-        IsEqualToDiagonal(destination, new float[,] {
+        IsEqualToDiagonal(destination, new int[,] {
             {  -1, -1, -1 }, 
             {  -1,  0,  1 }, 
             {  -1,  5,  6 }

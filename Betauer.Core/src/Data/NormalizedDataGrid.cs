@@ -159,4 +159,66 @@ public class NormalizedDataGrid {
     public float GetValue(int x, int y) {
         return Data[x, y];
     }
+
+    public float GetValueSafe(int x, int y, float defaultValue = default) {
+        if (x < 0 || y < 0 || x >= Width || y >= Height) return defaultValue;
+        return Data[x, y];
+    }
+
+    public float this[int x, int y] {
+        get => Data[x, y];
+        set => Data[x, y] = value;
+    }
+
+    public float[,] CopyRectTo(int startX, int startY, float[,] destination) {
+        var width = destination.GetLength(0);
+        var height = destination.GetLength(1);
+        for (var y = 0; y < height; y++) {
+            for (var x = 0; x < width; x++) {
+                destination[x, y] = Data[startX + x, startY + y];
+            }
+        }
+        return destination;
+    }
+
+    public TOut[,] CopyRectTo<TOut>(int startX, int startY, TOut[,] destination, Func<float, TOut> transform) {
+        var width = destination.GetLength(0);
+        var height = destination.GetLength(1);
+        for (var y = 0; y < height; y++) {
+            for (var x = 0; x < width; x++) {
+                destination[x, y] = transform(Data[startX + x, startY + y]);
+            }
+        }
+        return destination;
+    }
+
+    public float[,] CopyCenterRectTo(int centerX, int centerY, float defaultValue, float[,] destination) {
+        var width = destination.GetLength(0);
+        var height = destination.GetLength(1);
+        var startX = centerX - width / 2;
+        var startY = centerY - height / 2;
+        for (var x = 0; x < width; x++) {
+            for (var y = 0; y < height; y++) {
+                var xx = startX + x;
+                var yy = startY + y;
+                destination[x, y] = xx < 0 || yy < 0 || xx >= Width || yy >= Height ? defaultValue : Data[xx, yy];
+            }
+        }
+        return destination;
+    }
+
+    public TOut[,] CopyCenterRectTo<TOut>(int centerX, int centerY, TOut defaultValue, TOut[,] destination, Func<float, TOut> transform) {
+        var width = destination.GetLength(0);
+        var height = destination.GetLength(1);
+        var startX = centerX - width / 2;
+        var startY = centerY - height / 2;
+        for (var x = 0; x < width; x++) {
+            for (var y = 0; y < height; y++) {
+                var xx = startX + x;
+                var yy = startY + y;
+                destination[x, y] = xx < 0 || yy < 0 || xx >= Width || yy >= Height ? defaultValue : transform(Data[xx, yy]);
+            }
+        }
+        return destination;
+    }
 }

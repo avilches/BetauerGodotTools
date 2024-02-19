@@ -8,24 +8,10 @@ public class DataGrid<T> {
 
     public T[,] Data { get; private set; }
 
-    public DataGrid(int width, int height, Func<int, int, T> valueFunc) {
-        Data = new T[width, height];
-        Width = Data.GetLength(0);
-        Height = Data.GetLength(1);
-        Load(valueFunc);
-    }
-
     public DataGrid(int width, int height) {
         Data = new T[width, height];
         Width = Data.GetLength(0);
         Height = Data.GetLength(1);
-    }
-
-    public DataGrid(int width, int height, T defaultValue) {
-        Data = new T[width, height];
-        Width = Data.GetLength(0);
-        Height = Data.GetLength(1);
-        Fill(defaultValue);
     }
 
     public DataGrid(T[,] data) {
@@ -123,5 +109,57 @@ public class DataGrid<T> {
     public T this[int x, int y] {
         get => Data[x, y];
         set => Data[x, y] = value;
+    }
+    
+    public T[,] CopyRectTo(int startX, int startY, T[,] destination) {
+        var width = destination.GetLength(0);
+        var height = destination.GetLength(1);
+        for (var y = 0; y < height; y++) {
+            for (var x = 0; x < width; x++) {
+                destination[x, y] = Data[startX + x, startY + y];
+            }
+        }
+        return destination;
+    }
+    
+    public TOut[,] CopyRectTo<TOut>(int startX, int startY, TOut[,] destination, Func<T, TOut> transform) {
+        var width = destination.GetLength(0);
+        var height = destination.GetLength(1);
+        for (var y = 0; y < height; y++) {
+            for (var x = 0; x < width; x++) {
+                destination[x, y] = transform(Data[startX + x, startY + y]);
+            }
+        }
+        return destination;
+    }
+    
+    public T[,] CopyCenterRectTo(int centerX, int centerY, T defaultValue, T[,] destination) {
+        var width = destination.GetLength(0);
+        var height = destination.GetLength(1);
+        var startX = centerX - width / 2;
+        var startY = centerY - height / 2;
+        for (var x = 0; x < width; x++) {
+            for (var y = 0; y < height; y++) {
+                var xx = startX + x;
+                var yy = startY + y;
+                destination[x, y] = xx < 0 || yy < 0 || xx >= Width || yy >= Height ? defaultValue : Data[xx, yy];
+            }
+        }
+        return destination;
+    }
+
+    public TOut[,] CopyCenterRectTo<TOut>(int centerX, int centerY, TOut defaultValue, TOut[,] destination, Func<T, TOut> transform) {
+        var width = destination.GetLength(0);
+        var height = destination.GetLength(1);
+        var startX = centerX - width / 2;
+        var startY = centerY - height / 2;
+        for (var x = 0; x < width; x++) {
+            for (var y = 0; y < height; y++) {
+                var xx = startX + x;
+                var yy = startY + y;
+                destination[x, y] = xx < 0 || yy < 0 || xx >= Width || yy >= Height ? defaultValue :  transform(Data[xx, yy]);
+            }
+        }
+        return destination;
     }
 }
