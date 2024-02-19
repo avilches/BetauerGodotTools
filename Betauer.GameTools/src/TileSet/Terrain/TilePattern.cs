@@ -18,19 +18,8 @@ public enum ConditionType {
     UserDefinedPosition = 0,
 }
 
-public abstract partial class TilePattern {
+public partial class TilePattern {
     public int GridSize { get; init;  }
-
-    public bool Matches(int[,] data, int centerX, int centerY, int? templateTerrain = null) {
-        return Matches((x, y) => x < 0 || y < 0 || x >= data.GetLength(0) || y >= data.GetLength(1) ? -1 : data[x, y], centerX, centerY, templateTerrain);
-    }
-
-    public abstract bool Matches(Func<int, int, int> loader, int centerX, int centerY, int? templateTerrain = null);
-    
-    public static FunctionTilePattern Create(int gridSize, Func<int[,], int, bool> function) => new FunctionTilePattern(gridSize, function);
-    
-    public static FunctionTilePattern Create(int gridSize, Func<int[,], bool> function) => new FunctionTilePattern(gridSize, function);
-
 
     /// <summary>
     /// ? = ignore (no rule in this position)
@@ -51,7 +40,7 @@ public abstract partial class TilePattern {
     /// <param name="extraRules"></param>
     /// <returns></returns>
     /// <exception cref="Exception"></exception>
-    public static RulesTilePattern Parse(string value, Dictionary<string, NeighborRule>? extraRules = null) {
+    public static TilePattern Parse(string value, Dictionary<string, NeighborRule>? extraRules = null) {
         var lines = value.Split('\n')
             .Select(v => v.Trim())
             .Where(v => v.Length > 0)
@@ -83,46 +72,13 @@ public abstract partial class TilePattern {
             y++;
         }
         rules.Sort((a, b) => ((int)b.NeighborRule.ConditionType).CompareTo((int)a.NeighborRule.ConditionType));
-        var tilePattern = new RulesTilePattern(gridSize, rules.ToArray());
+        var tilePattern = new TilePattern(gridSize, rules.ToArray());
         return tilePattern;
     }
 
     [GeneratedRegex("\\s+")]
     private static partial Regex SplitWords();
 
-}
-
-public class FunctionTilePattern : TilePattern {
-    public readonly Func<int[,], int, bool> Function;
-    private int[,] _grid;
-
-    internal FunctionTilePattern(int gridSize, Func<int[,], int, bool> function) {
-        GridSize = gridSize;
-        Function = function;
-        _grid = new int[GridSize, GridSize];
-    }
-
-    internal FunctionTilePattern(int gridSize, Func<int[,], bool> function) {
-        GridSize = gridSize;
-        Function = (grid,_) => function(grid);
-        _grid = new int[GridSize, GridSize];
-    }
-
-
-    public override bool Matches(Func<int, int, int> loader, int centerX, int centerY, int? templateTerrain = null) {
-        var halfSize = GridSize / 2;
-        for (var x = 0; x < GridSize; x++) {
-            for (var y = 0; y < GridSize; y++) {
-                var i = centerX + x - halfSize;
-                var j = centerY + y - halfSize;
-                _grid[x, y] = loader(i, j);
-            }
-        }
-        return Function(_grid, templateTerrain ?? -1);
-    }
-}
-
-public class RulesTilePattern : TilePattern {
     public const string NotEqualsToPrefix = "!";
 
     public const string Ignore = "?";
@@ -135,7 +91,7 @@ public class RulesTilePattern : TilePattern {
 
     public bool HasTemplateRules => Rules.Any(rule => rule.NeighborRule.IsTemplate);
 
-    internal RulesTilePattern(int gridSize, NeighborRulePos[] rules) {
+    internal TilePattern(int gridSize, NeighborRulePos[] rules) {
         // 3 means 3x3, 5 means 5x5
         if (gridSize % 2 == 0) {
             throw new Exception($"Size {gridSize}x{gridSize} is not valid: only odd sizes are allowed: 1x1, 3x3, 5x5...");
@@ -150,14 +106,14 @@ public class RulesTilePattern : TilePattern {
     /// </summary>
     /// <param name="terrainId"></param>
     /// <returns></returns>
-    public RulesTilePattern WithTerrain(int terrainId) {
+    public TilePattern WithTerrain(int terrainId) {
         if (!HasTemplateRules) return this;
         var rules = Rules.Select(rule => rule.NeighborRule.ConditionType switch {
             ConditionType.TemplateEqualsTo => new NeighborRulePos(NeighborRule.CreateEqualsTo(terrainId), rule.X, rule.Y),
             ConditionType.TemplateNotEqualsTo => new NeighborRulePos(NeighborRule.CreateNotEqualsTo(terrainId), rule.X, rule.Y),
             _ => rule
         }).ToArray();
-        return new RulesTilePattern(GridSize, rules);
+        return new TilePattern(GridSize, rules);
     }
 
     public NeighborRule? FindRuleAt(int x, int y) {
@@ -204,13 +160,14 @@ public class RulesTilePattern : TilePattern {
         return sb.ToString();
     }
 
-
-    public override bool Matches(Func<int, int, int> loader, int centerX, int centerY, int? templateTerrain = null) {
-        var center = GridSize / 2;
+    public bool Matches(int[,] data, int? templateTerrain = null) {
+        if (data.GetLength(0) != GridSize || data.GetLength(1) != GridSize) {
+            throw new Exception($"Data size {data.GetLength(0)}x{data.GetLength(1)} doesn't match pattern size {GridSize}x{GridSize}");
+        }
         foreach (var rule in Rules) {
-            var x = centerX + rule.X - center;
-            var y = centerY + rule.Y - center;
-            var terrain = loader(x, y);
+            var x = rule.X;
+            var y = rule.Y;
+            var terrain = data[x, y];
             if (rule.NeighborRule.ConditionType is ConditionType.TemplateEqualsTo or ConditionType.TemplateNotEqualsTo && !templateTerrain.HasValue) {
                 throw new Exception("templateTerrain is needed to evaluate a "+Enum.GetName(rule.NeighborRule.ConditionType)+" condition");
             }

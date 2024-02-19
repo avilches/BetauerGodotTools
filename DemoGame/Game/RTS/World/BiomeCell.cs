@@ -16,7 +16,8 @@ public class BiomeCell {
     public bool Land => Height > SeaLevel;
     public float TempCelsius => HumanTemperature(Temp);
     public float HeightMt => HumanHeight(Height);
-    public Color Color => River ? Colors.Aquamarine : Biome.Color;
+    public Color Color => River ? Colors.Aquamarine : (Coast ? Colors.Black : Biome.Color);
+    public bool Coast { get; set; } = false;
 
     public static float HumanTemperature(float tempNormalized) {
         var temp = Mathf.Lerp(-50, 50, tempNormalized);

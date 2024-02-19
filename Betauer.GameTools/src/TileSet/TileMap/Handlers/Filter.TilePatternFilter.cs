@@ -11,7 +11,9 @@ public class TilePatternFilter : ITileFilter {
     }
 
     public bool Filter(TileMap tileMap, int x, int y) {
-        return TilePattern.Matches(tileMap.TerrainGrid, x, y);
+        var buffer = new int[TilePattern.GridSize, TilePattern.GridSize]; 
+        TilePatternRuleSet.CopyCenterRectTo(tileMap.TerrainGrid, x, y, -1, buffer);
+        return TilePattern.Matches(buffer);
     }
 }
 
@@ -25,6 +27,8 @@ public class TilePatternLoaderFilter : ITileFilter {
     }
 
     public bool Filter(TileMap tileMap, int x, int y) {
-        return TilePattern.Matches(Loader, x, y);
+        var buffer = new int[3, 3]; 
+        TilePatternRuleSet.CopyCenterRectTo(tileMap.TerrainGrid, x, y, -1, buffer);
+        return TilePattern.Matches(buffer);
     }
 }

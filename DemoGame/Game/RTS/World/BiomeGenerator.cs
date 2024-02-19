@@ -62,8 +62,8 @@ public class BiomeGenerator {
 
     public FloatGrid<BiomeType> LandBiomesGrid { get; private set; }
     public FloatGrid<BiomeType> SeaBiomesGrid { get; private set; }
-    public BiomeCell[,] BiomeCells { get; private set; }
-    public Betauer.TileSet.TileMap.TileMap<BiomeType> TileMap { get; private set; }
+    public DataGrid<BiomeCell> BiomeCells { get; private set; }
+    // public Betauer.TileSet.TileMap.TileMap<BiomeType> TileMap { get; private set; }
 
     private Random _random;
 
@@ -144,10 +144,10 @@ public class BiomeGenerator {
         ConfigureLandBiomeMap(LandBiomesConfig);
         ConfigureSeaBiomeMap(SeaBiomesConfig);
 
-        BiomeCells = new BiomeCell[height, width];
-        TileMap = new TileMap<BiomeType>(0, width, height, BiomeType.None);
+        BiomeCells = new DataGrid<BiomeCell>(Width, Height);
+        // TileMap = new TileMap<BiomeType>(0, width, height, BiomeType.None);
 
-        MassLands = new NormalizedDataGrid(width, height, 0f);
+        MassLands = new NormalizedDataGrid(width, height);
         MasslandBias = 0.35f;
         MasslandOffset = 0.99f;
         LandWidthCount = 8;
@@ -155,8 +155,8 @@ public class BiomeGenerator {
         SeaLevel = 0.15f; // 0.06
         // HeightBias = 0.5f; // 0.3f
         RampFunc = (float h, float f) => ((h / 2f) + 0.5f) * f;
-        HumidityNormalizedGrid = new NormalizedDataGrid(width, height, 0f);
-        HeightFalloffGrid = new NormalizedDataGrid(width, height, 0f);
+        HumidityNormalizedGrid = new NormalizedDataGrid(width, height);
+        HeightFalloffGrid = new NormalizedDataGrid(width, height);
 
         HeightNoise.NoiseTypeValue = FastNoiseLite.NoiseType.OpenSimplex2S;
         HeightNoise.Frequency = 0.012f;
@@ -249,12 +249,35 @@ public class BiomeGenerator {
                 };
                 // Console.Write(cell.Height.ToString("0.0")+ " | ");
                 BiomeCells[x, y] = biomeCell;
-                TileMap.SetTerrain(x, y, biome.Type);
+                // TileMap.SetTerrain(x, y, biome.Type);
                 list.Add(biomeCell);
             }
             // Console.WriteLine();
         }
+        
         Console.WriteLine($"Generate5:{s.ElapsedMilliseconds}ms");
+        s.Restart();
+        // Draw the coast line
+        var gridSize = 3;
+        var buffer2 = new BiomeCell[gridSize, gridSize]; 
+        BiomeCells.Loop((cell, x, y) => {
+            var grid = BiomeCells.CopyCenterRectTo(x, y, null, buffer2);
+
+            // If central pixel is not land, it can't be coast
+            var land = grid[gridSize / 2 , gridSize / 2]?.Land ?? false;
+            if (!land) return;
+            
+            for (var i = 0; i < gridSize; i++) {
+                for (var j = 0; j < gridSize; j++) {
+                    if (i == 1 && j == 1) continue;
+                    // If there at least one neighbour which is water, then the central pixel is coast
+                    if (grid[i, j].Sea) {
+                        cell.Coast = true;
+                    }
+                }
+            }
+        });
+        Console.WriteLine($"Generate5 (coast):{s.ElapsedMilliseconds}ms");
         s.Restart();
         GeneratePoissonPoints();
         // RiverGenerator.GenerateRivers(BiomeCells, 30, 100, _random);
@@ -298,7 +321,7 @@ public class BiomeGenerator {
     }
 
     public void FillMassland(FastImage fastTexture) {
-        new NormalizedDataGrid(Width, Height, (x, y) => MassLands.GetValue(x, y)).Normalize().Loop((val, x, y) => fastTexture.SetPixel(x, y, new Color(val, val, val), false));
+        new NormalizedDataGrid(Width, Height).Load((x, y) => MassLands.GetValue(x, y)).Normalize().Loop((val, x, y) => fastTexture.SetPixel(x, y, new Color(val, val, val), false));
         fastTexture.Flush();
     }
 
@@ -386,7 +409,7 @@ public class BiomeGenerator {
     }
 
     public void FillFalloffGrid(FastImage fastImage) {
-        var dataGrid = new NormalizedDataGrid(Width, Height, (x, y) => {
+        var dataGrid = new NormalizedDataGrid(Width, Height).Load((x, y) => {
             var height = HeightNoise.GetNoise(x, y);
             var r = MassLands.GetValue(x, y); // from 0 to 1
             return RampFunc(height, r);
@@ -410,44 +433,24 @@ public class BiomeGenerator {
         }
         fastImage.Flush();
     }
-
+    
     public void FindCoast(FastImage fastImage) {
         var landSeaRules = new Dictionary<string, NeighborRule> {
-            { "s", NeighborRule.CreateByPosition((x, y) => x >= 0 && y >= 0 && x < Width && y < Height && BiomeCells[x, y].Sea) },
-            { "L", NeighborRule.CreateByPosition((x, y) => x >= 0 && y >= 0 && x < Width && y < Height && BiomeCells[x, y].Land) },
+            { "s", NeighborRule.Equals0 },
+            { "L", NeighborRule.Equals1},
         };
         var p = TilePattern.Parse("""
                                   s s s
                                   L L L
                                   L L L
                                   """, landSeaRules);
-
-        const int gridSize = 3;
-        TileMap.NewAction().IfPattern(p).Do((x, y) => fastImage.SetPixel(x, y, Colors.Black, false));
-        TileMap.NewAction().IfPattern(TilePattern.Create(gridSize, (int[,] grid) => {
-                    if (grid[gridSize / 2, gridSize / 2] != 1) {
-                        // If central pixel is not land, it can't be coast
-                        return false;
-                    }
-                    for (var i = 0; i < gridSize; i++) {
-                        for (var j = 0; j < gridSize; j++) {
-                            if (i == 1 && j == 1) continue;
-                            // If there at least one neighbour which is water, then the central pixel is coast
-                            if (grid[i, j] == 0) {
-                                return true;
-                            }
-                        }
-                    }
-                    // No water in any neighbour, so it's not coast
-                    return false;
-                }),
-                (x, y) => x >= 0 && y >= 0 && x < Width && y < Height && BiomeCells[x, y].Sea ? 0 : 1)
-            .Do((x, y) => {
-                TileMap.SetTerrain(x, y, BiomeType.Glacier.ToInt());
-                BiomeCells[x, y].Biome = Biomes[BiomeType.Glacier];
-                // fastImage.SetPixel(x, y, Colors.Black, false);
-            });
-        TileMap.Apply();
+        var buffer1 = new int[3, 3]; 
+        BiomeCells.Loop((cell, x, y) => {
+            var grid = BiomeCells.CopyCenterRectTo(x, y, -1, buffer1, c => c.Land ? 1 : 0);
+            if (p.Matches(grid)) {
+                fastImage.SetPixel(x, y, Colors.Blue, false);
+            }
+        });
     }
 
     public void FillTerrain(FastImage fastImage) {

@@ -12,7 +12,7 @@ public class BaseBlobTests {
         var tileMap = BasicTileMap.Parse(str);
         tileMap.Loop(new SetTileIdFromTerrainHandler(TilePatternRuleSets.Blob47Rules.WithTerrain(0)));
         try {
-            AreEqual(tileMap.TileId, grid);
+            IsEqualToDiagonal(tileMap.TileId, grid);
         } catch (Exception e) {
             Console.WriteLine("Error parsing: ");
             for (var y = 0; y < tileMap.Height; y++) {
@@ -35,7 +35,7 @@ public class BaseBlobTests {
     }
 
 
-    public static bool AreEqual<T>(T[,] array1, T[,] array2) {
+    public static bool IsEqualToDiagonal<T>(T[,] array1, T[,] array2) {
         array2 = array2.FlipDiagonal();
         Assert.AreEqual(array1.GetLength(0), array2.GetLength(0),
             $"Array dimension [{array1.GetLength(0)},{array1.GetLength(1)}] wrong. Expected: [{array2.GetLength(0)},{array2.GetLength(0)}]");

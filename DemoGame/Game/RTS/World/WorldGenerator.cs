@@ -11,10 +11,12 @@ using Veronenger.RTS.Assets.Trees;
 using Betauer.Core;
 using Betauer.Core.Collision.Spatial2D;
 using Betauer.Core.Image;
+using Betauer.Core.PoissonDiskSampling;
 using Betauer.TileSet.Image;
 using Betauer.TileSet.Terrain;
 using Betauer.TileSet.TileMap;
 using Betauer.TileSet.TileMap.Handlers;
+using FastNoiseLite = Betauer.Core.Data.FastNoiseLite;
 using TileMap = Godot.TileMap;
 
 namespace Veronenger.Game.RTS.World;
@@ -27,7 +29,7 @@ public partial class WorldGenerator {
     [Inject] public ResourceHolder<Texture2D> Grasslands { get; set; }
 
     public BiomeGenerator BiomeGenerator { get; }
-    public TileMap<BiomeType> TileMap { get; private set; }
+    // public TileMap<BiomeType> TileMap { get; private set; }
     public TileMap GodotTileMap { get; private set; }
     public FastTexture FastFinalMap { get; private set; }
     public Trees TreesInstance;
@@ -59,7 +61,7 @@ public partial class WorldGenerator {
         GodotTileMap = godotTileMap;
 
         
-        TileMap = new TileMap<BiomeType>(Layers, Width, Height);
+        // TileMap = new TileMap<BiomeType>(Layers, Width, Height);
         FastFinalMap = fastTexture;
         
         GodotTileMap.Draw += () => {
@@ -79,54 +81,48 @@ public partial class WorldGenerator {
         BiomeGenerator.Seed = Seed;
         BiomeGenerator.Generate();
         return;
-        var biomeGrid = BiomeGenerator.BiomeCells;
-
-        TileMap.LoopLayers((t, x, y) => {
-            var biomeType = biomeGrid[y, x].Biome.Type;
-            TileMap.SetTerrain(x, y, biomeType);
+                
+        GenerateOld(GodotTileMap, BiomeGenerator.HeightNoise, BiomeGenerator.HumidityNoise);
+        BiomeGenerator.BiomeCells.Loop((cell, x, y) => {
+            switch (cell.Biome.Type) {
+                case BiomeType.Beach:
+                    GodotTileMap.SetCell(0, new Vector2I(x, y), 7, new Vector2I(18, 4)); // Sand
+                    break;
+                case BiomeType.None:
+                    break;
+                case BiomeType.Glacier:
+                    GodotTileMap.SetCell(0, new Vector2I(x, y), 6, new Vector2I(2, 2)); // Modern, snow
+                    break;
+                case BiomeType.Rock:
+                    GodotTileMap.SetCell(0, new Vector2I(x, y), 1, new Vector2I(0, 0)); // Mud
+                    break;
+                case BiomeType.FireDesert:
+                    break;
+                case BiomeType.Desert:
+                    GodotTileMap.SetCell(0, new Vector2I(x, y), 0, new Vector2I(0, 15)); // Red
+                    break;
+                case BiomeType.Plains:
+                    GodotTileMap.SetCell(0, new Vector2I(x, y), 0, new Vector2I(0, 2)); // GreenYellow 
+                    break;
+                case BiomeType.Forest:
+                    GodotTileMap.SetCell(0, new Vector2I(x, y), 0, new Vector2I(11, 1)); // 
+                    break;
+                case BiomeType.Dirty:
+                    GodotTileMap.SetCell(0, new Vector2I(x, y), 0, new Vector2I(16, 2)); // 
+                    break;
+                case BiomeType.Sea:
+                    GodotTileMap.SetCell(0, new Vector2I(x, y), 6, new Vector2I(20, 13)); // Modern, water
+                    break;
+                case BiomeType.Ocean:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         });
 
-        TileMap.Smooth(Seed);
-        // TileMap.IfTerrainEnum(BiomeType.Ocean).SetAtlasCoords(0, 6, new Vector2I(19, 13)); // Modern, deep water
-        TileMap.IfTerrain(BiomeType.Glacier).SetAtlasCoords(0, 6, new Vector2I(2, 2)); // Modern, snow
-        TileMap.IfTerrain(BiomeType.Rock).SetAtlasCoords(0, 1, new Vector2I(0, 0)); // Mud
-        
-        TileMap.IfTerrain(BiomeType.Desert).SetAtlasCoords(0, 0, new Vector2I(0, 15)); // Red
-        TileMap.IfTerrain(BiomeType.Plains).SetAtlasCoords(0, 0, new Vector2I(0, 2)); // GreenYellow 
-        TileMap.IfTerrain(BiomeType.Forest).SetAtlasCoords(0, 0, new Vector2I(11, 1)); // 
-        TileMap.IfTerrain(BiomeType.Dirty).SetAtlasCoords(0, 0, new Vector2I(16, 2)); // 
-        
-        
-        // TileMap.IfTerrainEnum(BiomeType.Beach).SetAtlasCoords(0, 3, new Vector2I(0, 0)); // Sand
-        TileMap.IfTerrain(BiomeType.Beach).SetAtlasCoords(0, 7, new Vector2I(18, 4)); // Sand
-        TileMap.IfTerrain(BiomeType.Sea).SetAtlasCoords(0, 6, new Vector2I(20, 13)); // Modern, water
-
-        // TileMap.IfTerrain(BiomeType.ColdBeach).SetAtlasCoords(0, 3, new Vector2I(0, 0));
-        // TileMap.IfTerrain(BiomeType.Glacier).SetAtlasCoords(0, 3, new Vector2I(0, 0));
-
-        // TileMap.IfTerrain(Biomes.RockyBeach)
-        //     .Do((t, x, y) => TileMap.SetAtlasCoords(0, 2, x, y, new Vector2I(0, 0)))
-        //     .Apply();
-        //
-        // TileMap.IfTerrain(Biomes.Forest)
-        //     .Do((t, x, y) => TileMap.SetAtlasCoords(0, 0, x, y, new Vector2I(5, 0)))
-        //     .Apply();
-        //
-        // TileMap.IfTerrain(Biomes.Jungle)
-        //     .Do((t, x, y) => TileMap.SetAtlasCoords(0, 0, x, y, new Vector2I(15, 0)))
-        //     .Apply();
-        //
-        // TileMap.IfTerrain(Biomes.Snow)
-        //     .Do((t, x, y) => TileMap.SetAtlasCoords(0, 0, x, y, new Vector2I(15, 5)))
-        //     .Apply();
-        //
-        // TileMap.IfTerrain(Biomes.Rock)
-        //     .Do((t, x, y) => TileMap.SetAtlasCoords(0, 0, x, y, new Vector2I(20, 0)))
-        //     .Apply();
-
-        GodotTileMap.Clear();
-        TileMap.Apply();
-        TileMap.DumpAtlasCoordsTo(GodotTileMap);
+        // GodotTileMap.Clear();
+        // TileMap.Apply();
+        // TileMap.DumpAtlasCoordsTo(GodotTileMap);
 
         /*
         TileMap.Execute((t, x, y) => {
@@ -174,14 +170,14 @@ public partial class WorldGenerator {
         }
     }
     
-    public void GenerateOld(TileMap godotTileMap, NoiseTexture2D noiseHeight, NoiseTexture2D noiseMoisture) {
+    public void GenerateOld(TileMap godotTileMap, FastNoiseLite noiseHeight, FastNoiseLite noiseMoisture) {
         godotTileMap.Clear();
         TreesInstance = TreesFactory.Create();
         TreesInstance.Configure();
 
         // FastNoiseHeight = new FastTextureNoiseWithGradient(noiseHeight);
 
-        Measure("Place objects", () => { PlaceObjects(godotTileMap); });
+        Measure("Place objects", () => { PlaceObjects(godotTileMap, noiseMoisture); });
 
         var tiles = new[] {
             TilePatterns.TerrainGreen,
@@ -205,7 +201,7 @@ public partial class WorldGenerator {
         tileMap.DumpAtlasCoordsTo(godotTileMap);
     }
 
-    private void PlaceObjects(Node parent) {
+    private void PlaceObjects(Node parent, FastNoiseLite FastNoiseHeight) {
         var stumps = new[] {
             WeightValue.Create(Trees.Id.Trunk, 1f),
             WeightValue.Create(Trees.Id.Stump, 2f),
@@ -229,14 +225,13 @@ public partial class WorldGenerator {
         var minRadius = 16;
         var maxRadius = 120;
         //
-        // var points = new VariablePoissonSampler2D(Size, Size)
-        //     .Generate((float x, float y) => {
-        //         var noise = 1f - FastNoiseHeight.GetNoise((int)x / 16, (int)y / 16);
-        //         return Mathf.Lerp(minRadius, maxRadius, noise);
-        //     }, minRadius, maxRadius);
-        //
+        var points = new VariablePoissonSampler2D(Width, Height).Generate((float x, float y) => {
+            var noise = 1f - FastNoiseHeight.GetNoise((int)x / 16, (int)y / 16);
+            return Mathf.Lerp(minRadius, maxRadius, noise);
+        }, minRadius, maxRadius);
+        
         var grid = SpatialGrid.FromAverageDistance(minRadius, maxRadius);
-        // grid.AddPointsAsCircles(points);
+        grid.AddPointsAsCircles(points);
         grid.ExpandAll(1);
         grid.RemoveAll(s => Random.NextBool(0.5));
         grid.FindShapes<Circle>().OrderBy(v => v.Y)

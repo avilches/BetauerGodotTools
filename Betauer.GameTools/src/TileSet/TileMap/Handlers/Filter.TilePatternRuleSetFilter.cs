@@ -11,6 +11,6 @@ public class TilePatternRuleSetFilter : ITileFilter {
     }
 
     public bool Filter(TileMap tileMap, int x, int y) {
-        return TilePatternRuleSet.MatchAnyRule(tileMap, x, y);
+        return TilePatternRuleSet.MatchAnyRule(tileMap.TerrainGrid, x, y);
     }
 }

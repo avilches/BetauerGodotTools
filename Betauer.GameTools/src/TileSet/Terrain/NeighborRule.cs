@@ -105,13 +105,13 @@ public class NeighborRule {
 
     public static NeighborRule? ParseRule(string neighbourRule) {
         switch (neighbourRule) {
-            case RulesTilePattern.Ignore: return null; // ignore
-            case RulesTilePattern.IsEmpty: return Empty; // is empty (terrain = -1)
-            case RulesTilePattern.IsNotEmpty: return NotEmpty; // is not empty (terrain != -1
-            case RulesTilePattern.TemplateNotEqualsTo: return TemplateNotEquals; // equals to something not defined yet
-            case RulesTilePattern.TemplateEqualsTo: return TemplateEquals; // not equals to something not defined yet
+            case TilePattern.Ignore: return null; // ignore
+            case TilePattern.IsEmpty: return Empty; // is empty (terrain = -1)
+            case TilePattern.IsNotEmpty: return NotEmpty; // is not empty (terrain != -1
+            case TilePattern.TemplateNotEqualsTo: return TemplateNotEquals; // equals to something not defined yet
+            case TilePattern.TemplateEqualsTo: return TemplateEquals; // not equals to something not defined yet
         }
-        if (neighbourRule.StartsWith(RulesTilePattern.NotEqualsToPrefix)) {
+        if (neighbourRule.StartsWith(TilePattern.NotEqualsToPrefix)) {
             var terrain = neighbourRule[1..];
             if (!terrain.IsValidInt()) throw new Exception($"Rule not recognized: {neighbourRule}");
             return terrain.ToInt() switch {

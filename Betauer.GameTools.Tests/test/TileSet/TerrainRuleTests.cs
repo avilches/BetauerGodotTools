@@ -11,11 +11,13 @@ using NUnit.Framework;
 namespace Betauer.GameTools.Tests.TileSet;
 
 internal static class TerrainRuleExtension {
-    public static bool Matches(this RulesTilePattern tilePattern, int value, int? templateTerrain = null) {
+    public static bool Matches(this TilePattern tilePattern, int value, int? templateTerrain = null) {
         Equals(tilePattern);
         var tileMap = new BasicTileMap(1, 1, 1);
         tileMap.SetTerrain(0, 0, value.ToEnum<BasicTileType>());
-        var matches = tilePattern.Matches(tileMap.TerrainGrid, 0, 0, templateTerrain);
+        var buffer = new int[1, 1]; 
+        TilePatternRuleSet.CopyCenterRectTo(tileMap.TerrainGrid, 0, 0, -1, buffer);
+        var matches = tilePattern.Matches(buffer, templateTerrain);
         var otherMatches = false;
         var tother = tilePattern;
         if (templateTerrain.HasValue) {
@@ -26,7 +28,7 @@ internal static class TerrainRuleExtension {
         return matches;
     }
     
-    public static void Equals(RulesTilePattern a) {
+    public static void Equals(TilePattern a) {
         var export = a.Export();
         var b = TilePattern.Parse(export);
         Assert.That(export, Is.EqualTo(b.Export()));
@@ -101,7 +103,7 @@ public class TerrainRuleTests : BaseBlobTests {
     [Betauer.TestRunner.Test]
     public void ExportParseTest() {
         foreach (var rule in TilePatternRuleSets.Blob47Rules.Rules.Select(p => p.Item2)) {
-            TerrainRuleExtension.Equals((RulesTilePattern)rule);
+            TerrainRuleExtension.Equals(rule);
         }
     }
     
@@ -115,7 +117,7 @@ public class TerrainRuleTests : BaseBlobTests {
         // layer 0, terrain 1 without template
         tileMap.Loop(new TerrainTileHandler(0, TilePatternRuleSets.Blob47Rules.WithTerrain(1), tileMap.CreateSource(7, TileSetLayouts.Blob47Godot)));
 
-        AreEqual(tileMap.TileId, new[,] {
+        IsEqualToDiagonal(tileMap.TileId, new[,] {
             { 20 , 64, -1 },
             {  1,  -1, -1 },
         });
@@ -128,7 +130,7 @@ public class TerrainRuleTests : BaseBlobTests {
         // layer 1, terrain 0 with template
         tileMap.Loop(new TerrainTileHandler(1, TilePatternRuleSets.Blob47Rules.WithTerrain(0), tileMap.CreateSource(8, TileSetLayouts.Blob47Godot)));
 
-        AreEqual(tileMap.TileId, new[,] {
+        IsEqualToDiagonal(tileMap.TileId, new[,] {
             { 20, 64, -1 },
             {  1,  4, 64 },
         });
@@ -151,7 +153,7 @@ public class TerrainRuleTests : BaseBlobTests {
             new SetAtlasCoordsFromTileSetLayoutHandler(2, tileMap.CreateSource(9, TileSetLayouts.Blob47Godot))
         );
 
-        AreEqual(tileMap.TileId, new[,] {
+        IsEqualToDiagonal(tileMap.TileId, new[,] {
             { -1, -1,  0 },
             { -1, -1, -1 },
         });
@@ -175,7 +177,7 @@ public class TerrainRuleTests : BaseBlobTests {
             .Do(new SetAtlasCoordsFromTileSetLayoutHandler(2, tileMap.CreateSource(9, TileSetLayouts.Blob47Godot)))
             .Apply();
 
-        AreEqual(tileMap.TileId, new[,] {
+        IsEqualToDiagonal(tileMap.TileId, new[,] {
             { -1, -1,  0 },
             { -1, -1, -1 },
         });

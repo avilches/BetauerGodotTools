@@ -13,7 +13,7 @@ public class SetTileIdFromTerrainHandler : ITileHandler {
     }
 
     public void Apply(TileMap tileMap, int x, int y) {
-        var tileId = TilePatternRuleSet.FindRuleId(tileMap, x, y, int.MinValue);
-        if (tileId != int.MinValue) tileMap.SetTileId(x, y, tileId);
+        var tileId = TilePatternRuleSet.FindRuleId(tileMap.TerrainGrid, x, y);
+        if (tileId.HasValue) tileMap.SetTileId(x, y, tileId.Value);
     }
 }

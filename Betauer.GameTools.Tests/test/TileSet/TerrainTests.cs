@@ -12,12 +12,12 @@ public class TerrainTests : BaseBlobTests {
     public void BasicTest() {
         var tileMap = new BasicTileMap(2, 3, 2);
 
-        AreEqual(tileMap.TerrainGrid, new[,] {
+        IsEqualToDiagonal(tileMap.TerrainGrid, new[,] {
             { -1, -1, -1 },
             { -1, -1, -1 },
         });
 
-        AreEqual(tileMap.TileId, new[,] {
+        IsEqualToDiagonal(tileMap.TileId, new[,] {
             { -1, -1, -1 },
             { -1, -1, -1 },
         });
@@ -39,12 +39,12 @@ public class TerrainTests : BaseBlobTests {
         Assert.That(tileMap.GetCellInfoRef(0, 0, 0).AtlasCoords.HasValue, Is.EqualTo(true));
         Assert.That(tileMap.GetCellInfoRef(0, 0, 0).AtlasCoords.Value, Is.EqualTo(Vector2I.Right));
 
-        AreEqual(tileMap.TileId, new[,] {
+        IsEqualToDiagonal(tileMap.TileId, new[,] {
             { 2, -1, -1 },
             { -1, -1, -1 },
         });
         
-        AreEqual(tileMap.TerrainGrid, new[,] {
+        IsEqualToDiagonal(tileMap.TerrainGrid, new[,] {
             {  1, -1, -1 },
             { -1, -1, -1 },
         });
@@ -68,7 +68,7 @@ public class TerrainTests : BaseBlobTests {
 100
  9
 ", 3);
-        AreEqual(tileMap.TerrainGrid, new[,] {
+        IsEqualToDiagonal(tileMap.TerrainGrid, new[,] {
             { 1, 1, 2 },
             { 1, 0, 0 },
             { -1, 9, -1 },
@@ -91,7 +91,7 @@ public class TerrainTests : BaseBlobTests {
             { '*', DemoTerrain.DemoTerrain5 },
         });
         
-        AreEqual(tileMap.TerrainGrid, new[,] {
+        IsEqualToDiagonal(tileMap.TerrainGrid, new[,] {
             { -1,   3,  3,   3, -1 },
             { -1,  -1, -1,  -1, -1 },
             { -1, 124, -1, 124, 17 },

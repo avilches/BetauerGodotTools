@@ -22,7 +22,7 @@ public class TileSetLayoutTests : BaseBlobTests {
         Assert.That(tileSet.Width, Is.EqualTo(2));
         Assert.That(tileSet.Height, Is.EqualTo(2));
         CollectionAssert.AreEquivalent(tileSet.GetTileIds(), new[] { 0, 1, 2, 3 });
-        AreEqual(tileSet.Export().FlipDiagonal(), new [,] { { 0, 1 }, { 2, 3 } });
+        IsEqualToDiagonal(tileSet.Export().FlipDiagonal(), new [,] { { 0, 1 }, { 2, 3 } });
         
     }
 
@@ -36,6 +36,6 @@ public class TileSetLayoutTests : BaseBlobTests {
         tileSet.AddTile(11, 1, 1);
         CollectionAssert.AreEquivalent(tileSet.GetTileIds(), new[] { 0, 10, 1, 11 });
 
-        AreEqual(tileSet.Export().FlipDiagonal(), new [,] { { 0, 10 }, { 1, 11 } });
+        IsEqualToDiagonal(tileSet.Export().FlipDiagonal(), new [,] { { 0, 10 }, { 1, 11 } });
     }
 }

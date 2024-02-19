@@ -1,19 +1,5 @@
 namespace Veronenger.Game.RTS.World;
 
-public enum Biomes {
-    None = -1,
-    Water,
-    
-    Beach,
-    RockyBeach,
-    
-    Forest,
-    Jungle,
-    
-    Rock,
-    Snow,
-}
-
 public enum TilePatterns {
     None = -1,
     TextureGreenWithYellowStone,
