@@ -6,21 +6,17 @@ using NUnit.Framework;
 namespace Betauer.GameTools.Tests.TileSet;
 
 public abstract class BaseBlobTests {
-    private Godot.TileMap _tileMap = new Godot.TileMap();
     protected void AssertBlob47(string str, int[,] grid) {
-        
         var source = DataGrid<int>.Parse(str, new System.Collections.Generic.Dictionary<char, int> {
-            {'#', 0 },
+            {'#',  0},
             {'.', -1}
         });
         
         var tileIds = new int[3, 3];
-        var blob47 = TilePatternRuleSets.Blob47Rules.WithTerrain(0);
-        
         var buffer = new int[3, 3];
         source.Loop((value, x, y) => {
             source.CopyCenterRectTo(x, y, -1, buffer);
-            var tileId = blob47.FindRuleId(buffer, -1);
+            var tileId = TilePatternRuleSets.Blob47.FindTilePatternId(buffer, -1);
             tileIds[x,y] = tileId;
         });
         
