@@ -14,8 +14,6 @@ using Betauer.Core.Image;
 using Betauer.Core.PoissonDiskSampling;
 using Betauer.TileSet.Image;
 using Betauer.TileSet.Terrain;
-using Betauer.TileSet.TileMap;
-using Betauer.TileSet.TileMap.Handlers;
 using FastNoiseLite = Betauer.Core.Data.FastNoiseLite;
 using TileMap = Godot.TileMap;
 
@@ -80,9 +78,9 @@ public partial class WorldGenerator {
     public void Generate() {
         BiomeGenerator.Seed = Seed;
         BiomeGenerator.Generate();
-        return;
                 
         GenerateOld(GodotTileMap, BiomeGenerator.HeightNoise, BiomeGenerator.HumidityNoise);
+        return;
         BiomeGenerator.BiomeCells.Loop((cell, x, y) => {
             switch (cell.Biome.Type) {
                 case BiomeType.Beach:
@@ -119,27 +117,6 @@ public partial class WorldGenerator {
                     throw new ArgumentOutOfRangeException();
             }
         });
-
-        // GodotTileMap.Clear();
-        // TileMap.Apply();
-        // TileMap.DumpAtlasCoordsTo(GodotTileMap);
-
-        /*
-        TileMap.Execute((t, x, y) => {
-            if (x > 100 || y > 100) return;
-            if (TileMap.GetTerrainEnum(x, y) == BiomeType.Beach ||
-                TileMap.GetTerrainEnum(x, y) == BiomeType.ColdBeach ||
-                TileMap.GetTerrainEnum(x, y) == BiomeType.Glacier) {
-                var l = new Label {
-                    Text = biomeGrid[y, x].Height > 0 ? "+" : "-",
-                    Position = godotTileMap.MapToLocal(new Vector2I(x, y))
-                };
-                godotTileMap.AddChild(l);
-            }
-        });
-        */
-        // GodotTileMap.ZIndex = 1;
-        Draw(ViewMode.Height);
     }
 
     public void Draw(ViewMode viewMode) {
@@ -169,13 +146,31 @@ public partial class WorldGenerator {
             */
         }
     }
+
+    public interface ITileMapSource<T> {
+        public int SourceId { get; }
+        public void SetCell(Godot.TileMap godotTileMap, int layer, int x, int y, T tileId);
+    }
+    
+    public class TileMapSource : ITileMapSource<int> {
+        public int SourceId { get; }
+        public ITileSetLayout TileSetLayout { get; }
+
+        public TileMapSource(int sourceId, ITileSetLayout tileSetLayout) {
+            SourceId = sourceId;
+            TileSetLayout = tileSetLayout;
+        }
+
+        public void SetCell(Godot.TileMap godotTileMap, int layer, int x, int y, int tileId) {
+            var coords = TileSetLayouts.Blob47Godot.GetAtlasCoordsByTileId(tileId);
+            godotTileMap.SetCell(0, new Vector2I(x, y), SourceId, coords);
+        } 
+    }
     
     public void GenerateOld(TileMap godotTileMap, FastNoiseLite noiseHeight, FastNoiseLite noiseMoisture) {
         godotTileMap.Clear();
         TreesInstance = TreesFactory.Create();
         TreesInstance.Configure();
-
-        // FastNoiseHeight = new FastTextureNoiseWithGradient(noiseHeight);
 
         Measure("Place objects", () => { PlaceObjects(godotTileMap, noiseMoisture); });
 
@@ -186,19 +181,19 @@ public partial class WorldGenerator {
             TilePatterns.ModernWater,
             TilePatterns.ModernDeepWater
         };
-        var tileMap = new TileMap<TilePatterns>(Layers, Width, Height, TilePatterns.None);
-        var sproutDarkerGrass = tileMap.CreateSource(8, TileSetLayouts.Blob47Godot);
 
-        // tileMap.Execute((t, x, y) => tileMap.SetTerrain(x, y, tiles[FastNoiseHeight.GetNoiseGradient(x, y)]));
-        tileMap.Smooth();
-        tileMap.Loop(new TerrainTileHandler(1, TilePatternRuleSets.Blob47Rules.WithTerrain(TilePatterns.ModernDirt.ToInt()), sproutDarkerGrass));
-        tileMap.Loop(new TerrainTileHandler(1, TilePatternRuleSets.Blob47Rules.WithTerrain(TilePatterns.TerrainGreen.ToInt()), sproutDarkerGrass));
-        tileMap.NewAction().IfTerrain((int)TilePatterns.ModernDirt)
-            .Do((t, x, y) => sproutDarkerGrass.SetAtlasCoords(0, x, y, 255))
-            .Apply();
+        var sproutDarkerGrass = new TileMapSource(8, TileSetLayouts.Blob47Godot);
 
+        var tilePatternRuleSet = TilePatternRuleSets.Blob47Rules.WithTerrain(BiomeType.Plains.ToInt());
+        BiomeGenerator.BiomeCells.Loop((cell, x, y) => {
+            var buffer = new int[3, 3];
+            BiomeGenerator.BiomeCells.CopyCenterRectTo(x, y, -1, buffer, (c) => (int)c.Biome.Type);
+            var tileId = tilePatternRuleSet.FindRuleId(buffer, -1);
+            if (tileId != -1) {
+                sproutDarkerGrass.SetCell(godotTileMap, 0, x, y, tileId);
+            }
+        });
         godotTileMap.ZIndex = 1;
-        tileMap.DumpAtlasCoordsTo(godotTileMap);
     }
 
     private void PlaceObjects(Node parent, FastNoiseLite FastNoiseHeight) {

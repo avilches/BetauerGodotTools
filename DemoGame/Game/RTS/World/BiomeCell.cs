@@ -4,7 +4,7 @@ namespace Veronenger.Game.RTS.World;
 
 public class BiomeCell {
     public Vector2I Position { get; init; }
-    public Biome<BiomeType> Biome { get; set; }
+    public Biome Biome { get; set; }
     public float Humidity { get; set; }
     public float Temp { get; set; }
     public float Height { get; set; }

@@ -8,7 +8,6 @@ using Betauer.Core.Easing;
 using Betauer.Core.Image;
 using Betauer.Core.PoissonDiskSampling;
 using Betauer.TileSet.Terrain;
-using Betauer.TileSet.TileMap;
 using Godot;
 using FastNoiseLite = Betauer.Core.Data.FastNoiseLite;
 
@@ -34,7 +33,7 @@ public class BiomeGenerator {
     public string LandBiomesConfig;
     public string SeaBiomesConfig;
 
-    public readonly Dictionary<BiomeType, Biome<BiomeType>> Biomes = new();
+    public readonly Dictionary<BiomeType, Biome> Biomes = new();
 
     public int Width { get; private set; }
     public int Height { get; private set; }
@@ -116,7 +115,7 @@ public class BiomeGenerator {
                           :oooooooooo..oooooooooooooooooooooooooooooo:
                           """;
 
-        new Biome<BiomeType>[] {
+        new Biome[] {
             new() { Char = 'G', Type = BiomeType.Glacier, Color = Colors.White },
             new() { Char = 'r', Type = BiomeType.Rock, Color = Color(112, 112, 110) }, // gris
             new() { Char = 'F', Type = BiomeType.FireDesert, Color = Color(186, 80, 43) }, // rojizo
@@ -187,7 +186,7 @@ public class BiomeGenerator {
         SeaBiomesConfig = biomeMap;
     }
 
-    public Biome<BiomeType> FindBiome(float humidity, float terrainHeight) {
+    public Biome FindBiome(float humidity, float terrainHeight) {
         // terrainHeight is a value from 0 to 1f. If biomeSeaLevel is 0.15f, then:
         // 0.15 -    1f is land
         // 0    - 0.15f is ocean

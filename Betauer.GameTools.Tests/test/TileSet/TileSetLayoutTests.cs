@@ -1,8 +1,3 @@
-using System;
-using System.IO;
-using System.Linq;
-using Betauer.Core;
-using Betauer.Core.Image;
 using Betauer.TestRunner;
 using Betauer.TileSet.Image;
 using Godot;
@@ -14,7 +9,7 @@ namespace Betauer.GameTools.Tests.TileSet;
 public class TileSetLayoutTests : BaseBlobTests {
     [TestRunner.Test]
     public void BasicTest() {
-        ITileSetLayout tileSet = new TileSetLayout(new int[,] { { 0, 1 }, { 2, 3 } });
+        ITileSetLayout tileSet = new TileSetLayout(new [,] { { 0, 1 }, { 2, 3 } });
         Assert.True(tileSet.HasTile(0));
         Assert.False(tileSet.HasTile(9));
         Assert.That(tileSet.GetTileIdByPosition(1, 1), Is.EqualTo(3));
@@ -22,7 +17,7 @@ public class TileSetLayoutTests : BaseBlobTests {
         Assert.That(tileSet.Width, Is.EqualTo(2));
         Assert.That(tileSet.Height, Is.EqualTo(2));
         CollectionAssert.AreEquivalent(tileSet.GetTileIds(), new[] { 0, 1, 2, 3 });
-        IsEqualToDiagonal(tileSet.Export().FlipDiagonal(), new [,] { { 0, 1 }, { 2, 3 } });
+        ArrayEquals(tileSet.Export(), new [,] { { 0, 1 }, { 2, 3 } });
         
     }
 
@@ -36,6 +31,6 @@ public class TileSetLayoutTests : BaseBlobTests {
         tileSet.AddTile(11, 1, 1);
         CollectionAssert.AreEquivalent(tileSet.GetTileIds(), new[] { 0, 10, 1, 11 });
 
-        IsEqualToDiagonal(tileSet.Export().FlipDiagonal(), new [,] { { 0, 10 }, { 1, 11 } });
+        ArrayEquals(tileSet.Export(), new [,] { { 0, 10 }, { 1, 11 } });
     }
 }

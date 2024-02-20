@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Betauer.Core.Data;
 using Betauer.TestRunner;
 
@@ -7,6 +8,25 @@ using NUnit.Framework;
 
 [Betauer.TestRunner.Test]
 public class DataGridTests {
+    [Betauer.TestRunner.Test]
+    public void ParseTest() {
+        var grid = DataGrid<int>.Parse("""
+                                       ...
+                                       .##
+                                       ..@
+                                       """, new Dictionary<char, int> { { '#', 2 }, { '.', 0 }, { '@', 3 } });
+        
+        Assert.AreEqual(3, grid.Width);
+        Assert.AreEqual(3, grid.Height);
+
+        ArrayEquals(grid.Data, new[,] {
+            { 0, 0, 0 },
+            { 0, 2, 2 },
+            { 0, 0, 3 }
+        }.FlipDiagonal());
+
+    }
+
     [Betauer.TestRunner.Test]
     public void RegularDataGridTests() {
         var grid = new DataGrid<int>(2, 2).Load((x, y) => x + y);
@@ -141,22 +161,25 @@ public class DataGridTests {
     public void TestCopyCenterRectTo() {
         var destination = new int[3, 3];
         _dataGrid.CopyCenterRectTo(2, 2, 0, destination);
-        IsEqualToDiagonal(destination, new int[,] { { 6, 7, 8 }, { 11, 12, 13 }, { 16, 17, 18 } });
+        ArrayEquals(destination, new[,] {
+            {  6,  7,  8 },
+            { 11, 12, 13 },
+            { 16, 17, 18 }
+        }.FlipDiagonal());
     }
     
     [Betauer.TestRunner.Test]
     public void TestCopyCenterRectToOutside() {
         var destination = new int[3, 3];
         _dataGrid.CopyCenterRectTo(0, 0, -1, destination);
-        IsEqualToDiagonal(destination, new int[,] {
+        ArrayEquals(destination, new[,] {
             {  -1, -1, -1 }, 
             {  -1,  0,  1 }, 
             {  -1,  5,  6 }
-        });
+        }.FlipDiagonal());
     }
     
-    public static bool IsEqualToDiagonal<T>(T[,] array1, T[,] array2) {
-        array2 = array2.FlipDiagonal();
+    public static bool ArrayEquals<T>(T[,] array1, T[,] array2) {
         Assert.AreEqual(array1.GetLength(0), array2.GetLength(0),
             $"Array dimension [{array1.GetLength(0)},{array1.GetLength(1)}] wrong. Expected: [{array2.GetLength(0)},{array2.GetLength(0)}]");
 

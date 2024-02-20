@@ -141,22 +141,25 @@ public class NormalizedDataGridTests {
     public void TestCopyCenterRectTo() {
         var destination = new float[3, 3];
         _dataGrid.CopyCenterRectTo(2, 2, 0, destination);
-        IsEqualToDiagonal(destination, new float[,] { { 6, 7, 8 }, { 11, 12, 13 }, { 16, 17, 18 } });
+        ArrayEquals(destination, new float[,] {
+            {  6,  7,  8 }, 
+            { 11, 12, 13 }, 
+            { 16, 17, 18 }
+        }.FlipDiagonal());
     }
     
     [Betauer.TestRunner.Test]
     public void TestCopyCenterRectToOutside() {
         var destination = new float[3, 3];
         _dataGrid.CopyCenterRectTo(0, 0, -1, destination);
-        IsEqualToDiagonal(destination, new float[,] {
+        ArrayEquals(destination, new float[,] {
             {  -1, -1, -1 }, 
             {  -1,  0,  1 }, 
             {  -1,  5,  6 }
-        });
+        }.FlipDiagonal());
     }
     
-    public static bool IsEqualToDiagonal<T>(T[,] array1, T[,] array2) {
-        array2 = array2.FlipDiagonal();
+    public static bool ArrayEquals<T>(T[,] array1, T[,] array2) {
         Assert.AreEqual(array1.GetLength(0), array2.GetLength(0),
             $"Array dimension [{array1.GetLength(0)},{array1.GetLength(1)}] wrong. Expected: [{array2.GetLength(0)},{array2.GetLength(0)}]");
 

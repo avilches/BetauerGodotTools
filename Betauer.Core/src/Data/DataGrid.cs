@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Betauer.Core.Data;
 
@@ -161,5 +163,30 @@ public class DataGrid<T> {
             }
         }
         return destination;
+    }
+    
+    public static DataGrid<TT> Parse<TT>(string template, Dictionary<char, TT> mapping) {
+        var lines = template.Split('\n')
+            .SkipWhile(string.IsNullOrWhiteSpace) // Remove empty lines at beginning
+            .Reverse().SkipWhile(string.IsNullOrWhiteSpace).Reverse() // Remove empty lines at end
+            .Select(l => l.Trim())
+            .ToList();
+        if (lines.Count == 0) throw new Exception("Empty template");
+        var width = lines[0].Length; // all lines have the same length
+        foreach (var l in lines) {
+            if (l.Length != width) throw new Exception($"This line doesn't have a length of {width}: {l}");
+        }
+        var y = 0;
+        var height = lines.Count;
+        var dataGrid = new DataGrid<TT>(width, height);
+        foreach (var line in lines) {
+            var x = 0;
+            foreach (var value in line.Select(c => mapping[c])) {
+                dataGrid.SetValue(x, y, value);
+                x++;
+            }
+            y++;
+        }
+        return dataGrid;
     }
 }
