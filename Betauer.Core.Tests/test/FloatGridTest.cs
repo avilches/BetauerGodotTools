@@ -43,11 +43,11 @@ public class FloatGridTest {
     [TestRunner.Test]
     public void NoRectanglesTest() {
         var floatArray = FloatGrid<string>.Parse("""
-                                                 :AAAAA:
-                                                 :BCCCB:
-                                                 :.....:
-                                                 :...A.:
-                                                 :DDDDD:
+                                                 AAAAA
+                                                 BCCCB
+                                                 .....
+                                                 ...A.
+                                                 DDDDD
                                                  """, new Dictionary<char, string>() {
             { 'A', "A" },
             { 'B', "B" },
@@ -65,9 +65,9 @@ public class FloatGridTest {
     [TestRunner.Test]
     public void RectanglesTest() {
         var floatArray = FloatGrid<string>.Parse("""
-                                                 :AABB:
-                                                 :CCBB:
-                                                 :CCBB:
+                                                 AABB
+                                                 CCBB
+                                                 CCBB
                                                  """, new Dictionary<char, string>() {
             { 'A', "A" },
             { 'B', "B" },
@@ -83,9 +83,9 @@ public class FloatGridTest {
     [TestRunner.Test]
     public void SimpleTest() {
         var floatArray = FloatGrid<string>.Parse("""
-                                                 :ABC:
-                                                 :DEF:
-                                                 :GHI:
+                                                 ABC
+                                                 DEF
+                                                 GHI
                                                  """, new Dictionary<char, string>() {
             { 'A', "A" },
             { 'B', "B" },
@@ -140,42 +140,42 @@ public class FloatGridTest {
         Assert.That(FloatGrid<string>.Parse("AB", mapping).IsValid(), Is.True);
         Assert.That(FloatGrid<string>.Parse("ABBCCC", mapping).IsValid(), Is.True);
         Assert.That(FloatGrid<string>.Parse("""
-                                            :A:
-                                            :A:
+                                            A
+                                            A
                                             """, mapping).IsValid(), Is.True);
         Assert.That(FloatGrid<string>.Parse("""
-                                            :A:
-                                            :B:
+                                            A
+                                            B
                                             """, mapping).IsValid(), Is.True);
         Assert.That(FloatGrid<string>.Parse("""
-                                            :AAA:
-                                            :AAA:
-                                            :AAA:
+                                            AAA
+                                            AAA
+                                            AAA
                                             """, mapping).IsValid(), Is.True);
         Assert.That(FloatGrid<string>.Parse("""
-                                            :AA:
-                                            :BB:
+                                            AA
+                                            BB
                                             """, mapping).IsValid(), Is.True);
         Assert.That(FloatGrid<string>.Parse("""
-                                            :A:
-                                            :B:
-                                            :B:
-                                            :C:
-                                            :C:
-                                            :C:
+                                            A
+                                            B
+                                            B
+                                            C
+                                            C
+                                            C
                                             """, mapping).IsValid(), Is.True);
         Assert.That(FloatGrid<string>.Parse("""
-                                            :AAB:
-                                            :AAC:
-                                            :DDC:
+                                            AAB
+                                            AAC
+                                            DDC
                                             """, mapping).IsValid(), Is.True);
 
         Assert.That(FloatGrid<string>.Parse("""
-                                            :AABBG:
-                                            :AACFF:
-                                            :DDCFF:
-                                            :HIJJK:
-                                            :HLJJM:
+                                            AABBG
+                                            AACFF
+                                            DDCFF
+                                            HIJJK
+                                            HLJJM
                                             """, mapping).IsValid(), Is.True);
 
         
@@ -183,19 +183,19 @@ public class FloatGridTest {
         Assert.That(FloatGrid<string>.Parse("ABA", mapping).IsValid(), Is.False);
         
         Assert.That(FloatGrid<string>.Parse("""
-                                            :AA:
-                                            :AB:
+                                            AA
+                                            AB
                                             """, mapping).IsValid(), Is.False);
 
         Assert.That(FloatGrid<string>.Parse("""
-                                            :ABA:
-                                            :ABC:
+                                            ABA
+                                            ABC
                                             """, mapping).IsValid(), Is.False);
 
         Assert.That(FloatGrid<string>.Parse("""
-                                            :AAA:
-                                            :ABA:
-                                            :AAA:
+                                            AAA
+                                            ABA
+                                            AAA
                                             """, mapping).IsValid(), Is.False);
 
     }

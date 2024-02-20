@@ -75,44 +75,44 @@ public class BiomeGenerator {
 
     public BiomeGenerator() {
         LandBiomesConfig = """
-                           :GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG:
-                           :GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG:
-                           :GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG:
-                           :GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG:
-                           :GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG:
-                           :GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG:
-                           :GGGGGGGGGGGGGGGGrrGGGGGGGGGGGGGGGGGGGGGGGG:
-                           :GGGGGGGGGGGGGGGGrrGGGGGGGGGGGGGGGGGGGGGGGG:
-                           :rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr:
-                           :rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr:
-                           :rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr:
-                           :FFrrFFrrFFFFrrwwrr!!!!!!!!!!rrrrrrrrrrrrrr:
-                           :FFrrFFrrFFFFrrwwrr!!!!!!!!!!rrrrrrrrrrrrrr:
-                           :FFrrFFrrFFFFrrwwrr!!!!!!!!!!rrrrrrrrrrrrrr:
-                           :FFFFFFFFFFFFFFwwww!!!!!!!!!!**************:
-                           :FFFFFFFFFFFFFFwwww!!!!!!!!!!**************:
-                           :FFFFFFFFFFFFFFwwww!!!!!!!!!!**************:
-                           :FFFFFFFFFFFFFFwwww!!!!!!!!!!**************:
-                           :FFFFFFFFFFFFFFwwww!!!!!!!!!!**************:
-                           :FFFFFFFFFFFFFFw!ww!!!w!!!!!!**************:
-                           :FFFFFFFFFFFFFFw!ww!!!w!!!!!!**************:
-                           :FFFFFFFFFFFFFFw!ww!!!w!!!!!!**************:
-                           :FFFFFFFFFFFFFFwwww!!!!!!!!!!******!!***!**:
-                           :FFFFFFFFFFFFFFwwww!!!!!!!!!!******!!***!**:
-                           :DDDDDDDDDDDDDDDDDD!!!!!!!!!!******!!******:
-                           :DDDDDDDDDDDDwwwwww!!!!!!!!!!**************:
-                           :DDDDDDDDDDDDwwwwww!!!!!!**!!**************:
-                           :DDDDDDDDDDDDwbwwww!!!!!!**!!**************:
-                           :bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb:
+                           GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG
+                           GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG
+                           GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG
+                           GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG
+                           GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG
+                           GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG
+                           GGGGGGGGGGGGGGGGrrGGGGGGGGGGGGGGGGGGGGGGGG
+                           GGGGGGGGGGGGGGGGrrGGGGGGGGGGGGGGGGGGGGGGGG
+                           rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr
+                           rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr
+                           rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr
+                           FFrrFFrrFFFFrrwwrr!!!!!!!!!!rrrrrrrrrrrrrr
+                           FFrrFFrrFFFFrrwwrr!!!!!!!!!!rrrrrrrrrrrrrr
+                           FFrrFFrrFFFFrrwwrr!!!!!!!!!!rrrrrrrrrrrrrr
+                           FFFFFFFFFFFFFFwwww!!!!!!!!!!**************
+                           FFFFFFFFFFFFFFwwww!!!!!!!!!!**************
+                           FFFFFFFFFFFFFFwwww!!!!!!!!!!**************
+                           FFFFFFFFFFFFFFwwww!!!!!!!!!!**************
+                           FFFFFFFFFFFFFFwwww!!!!!!!!!!**************
+                           FFFFFFFFFFFFFFw!ww!!!w!!!!!!**************
+                           FFFFFFFFFFFFFFw!ww!!!w!!!!!!**************
+                           FFFFFFFFFFFFFFw!ww!!!w!!!!!!**************
+                           FFFFFFFFFFFFFFwwww!!!!!!!!!!******!!***!**
+                           FFFFFFFFFFFFFFwwww!!!!!!!!!!******!!***!**
+                           DDDDDDDDDDDDDDDDDD!!!!!!!!!!******!!******
+                           DDDDDDDDDDDDwwwwww!!!!!!!!!!**************
+                           DDDDDDDDDDDDwwwwww!!!!!!**!!**************
+                           DDDDDDDDDDDDwbwwww!!!!!!**!!**************
+                           bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
                            """;
 
         SeaBiomesConfig = """
-                          :..........................................:
-                          :..........................................:
-                          :oooooooooooooooo..........................:
-                          :oooooooooooooooooooooooooooo....oooooooooo:
-                          :oooooooooooooooooooooooooooooo..oooooooooo:
-                          :oooooooooo..oooooooooooooooooooooooooooooo:
+                          ..........................................
+                          ..........................................
+                          oooooooooooooooo..........................
+                          oooooooooooooooooooooooooooo....oooooooooo
+                          oooooooooooooooooooooooooooooo..oooooooooo
+                          oooooooooo..oooooooooooooooooooooooooooooo
                           """;
 
         new Biome[] {
