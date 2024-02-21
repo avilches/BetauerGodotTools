@@ -1,13 +1,15 @@
+using System;
 using System.Collections.Generic;
 
 namespace Betauer.TileSet.Terrain;
 
 public static class TilePatternRuleSets {
-    public static Dictionary<string, NeighborRule> TilePatternRules = new() {
-        { "!", NeighborRule.CreateEqualsTo(-1) },
-        { "#", NeighborRule.Equals0 },
+    private static readonly Dictionary<string, Func<int, bool>> TilePatternRules = new() {
+        { "!", (v) => v != 0 },
+        { "#", (v) => v == 0 },
+        { "?", (_) => true },
     };
-    public static readonly TilePatternSet<int> Blob47 = new (new List<(int, TilePattern)> {
+    public static readonly TilePatternSet<int, int> Blob47 = new (new List<(int, TilePattern<int>)> {
         (0, TilePattern.Parse("""
                               ? ! ?
                               ! # !

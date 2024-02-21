@@ -6,12 +6,88 @@ using System.Text.RegularExpressions;
 
 namespace Betauer.TileSet.Terrain;
 
-public partial class TilePattern {
-    public int GridSize { get; init;  }
+public abstract partial class TilePattern {
+    private static readonly Dictionary<string, Func<int, bool>> IntRules = new Dictionary<string, Func<int, bool>>() {
+        { "?", i => true },
+        { "*", i => true },
+        { ".", i => true },
 
-    public const string NotEqualsToPrefix = "!";
-    public const string Ignore = "?";
+        { "-9", i => i == -9 },
+        { "-8", i => i == -8 },
+        { "-7", i => i == -7 },
+        { "-6", i => i == -6 },
+        { "-5", i => i == -5 },
+        { "-4", i => i == -4 },
+        { "-3", i => i == -3 },
+        { "-2", i => i == -2 },
+        { "-1", i => i == -1 },
+        { "-0", i => i == 0 },
+        { "0", i => i == 0 },
+        { "1", i => i == 1 },
+        { "2", i => i == 2 },
+        { "3", i => i == 3 },
+        { "4", i => i == 4 },
+        { "5", i => i == 5 },
+        { "6", i => i == 6 },
+        { "7", i => i == 7 },
+        { "8", i => i == 8 },
+        { "9", i => i == 9 },
 
+        { "-9!", i => i == -9 },
+        { "-8!", i => i == -8 },
+        { "-7!", i => i == -7 },
+        { "-6!", i => i == -6 },
+        { "-5!", i => i == -5 },
+        { "-4!", i => i == -4 },
+        { "-3!", i => i == -3 },
+        { "-2!", i => i == -2 },
+        { "-1!", i => i == -1 },
+        { "-0!", i => i == 0 },
+        { "0!", i => i == 0 },
+        { "1!", i => i == 1 },
+        { "2!", i => i == 2 },
+        { "3!", i => i == 3 },
+        { "4!", i => i == 4 },
+        { "5!", i => i == 5 },
+        { "6!", i => i == 6 },
+        { "7!", i => i == 7 },
+        { "8!", i => i == 8 },
+        { "9!", i => i == 9 },
+
+        { "!-9", i => i != -9 },
+        { "!-8", i => i != -8 },
+        { "!-7", i => i != -7 },
+        { "!-6", i => i != -6 },
+        { "!-5", i => i != -5 },
+        { "!-4", i => i != -4 },
+        { "!-3", i => i != -3 },
+        { "!-2", i => i != -2 },
+        { "!-1", i => i != -1 },
+        { "!-0", i => i != 0 },
+        { "!0", i => i != 0 },
+        { "!1", i => i != 1 },
+        { "!2", i => i != 2 },
+        { "!3", i => i != 3 },
+        { "!4", i => i != 4 },
+        { "!5", i => i != 5 },
+        { "!6", i => i != 6 },
+        { "!7", i => i != 7 },
+        { "!8", i => i != 8 },
+        { "!9", i => i != 9 },
+    };
+
+    /// <summary>
+    /// ? = ignore (no rule in this position)
+    /// . = ignore (no rule in this position)
+    /// * = ignore (no rule in this position)
+    /// Accepts one single digit numbers from -9 to 9
+    /// To negate, use ! after or before the number, like !1 or 1! to match anything but 1. Can be used with negative numbers too, like !-1 or -1!
+    /// </summary>
+    /// <param name="value"></param>
+    /// <param name="rules"></param>
+    /// <returns></returns>
+    /// <exception cref="Exception"></exception>
+    public static TilePattern<int> Parse(string value) => Parse(value, IntRules);
 
     /// <summary>
     /// ? = ignore (no rule in this position)
@@ -24,10 +100,10 @@ public partial class TilePattern {
     /// ...
     /// </summary>
     /// <param name="value"></param>
-    /// <param name="extraRules"></param>
+    /// <param name="rules"></param>
     /// <returns></returns>
     /// <exception cref="Exception"></exception>
-    public static TilePattern Parse(string value, Dictionary<string, NeighborRule>? extraRules = null) {
+    public static TilePattern<T> Parse<T>(string value, Dictionary<string, Func<T, bool>> rules) {
         var lines = value.Split('\n')
             .Select(v => v.Trim())
             .Where(v => v.Length > 0)
@@ -38,82 +114,61 @@ public partial class TilePattern {
             throw new Exception($"Size {gridSize}x{gridSize} is not valid: only odd sizes are allowed: 1x1, 3x3, 5x5...");
         }
         var y = 0;
-        var rules = new List<NeighborRulePos>();
+        var ruleGrid = new (string, Func<T, bool>)[gridSize, gridSize];
         foreach (var line in lines) {
             var parts = SplitWords().Split(line);
             if (parts.Length != gridSize) {
                 throw new Exception($"Line has to be {gridSize} parts instead of {parts.Length}: {line}");
             }
             var x = 0;
-            foreach (var neighbourRule in parts) {
-                if (extraRules != null && extraRules.TryGetValue(neighbourRule, out var extraRule)) {
-                    rules.Add(new NeighborRulePos(extraRule, x, y));
-                } else {
-                    var tileRule = NeighborRule.ParseRule(neighbourRule);
-                    if (tileRule.HasValue) {
-                        rules.Add(new NeighborRulePos(tileRule.Value, x, y));
-                    }
-                }
+            foreach (var part in parts) {
+                ruleGrid[x, y] = (part, rules[part]);
                 x++;
             }
             y++;
         }
-        var tilePattern = new TilePattern(gridSize, rules.ToArray());
+        var tilePattern = new TilePattern<T>(rules, ruleGrid);
         return tilePattern;
     }
 
     [GeneratedRegex("\\s+")]
     private static partial Regex SplitWords();
+}
 
-    public readonly NeighborRulePos[] Rules;
+public class TilePattern<T> : TilePattern {
+    public Dictionary<string, Func<T, bool>> Rules { get; }
+    public (string, Func<T, bool>)[,] RuleGrid { get; }
 
-    internal TilePattern(int gridSize, NeighborRulePos[] rules) {
-        // 3 means 3x3, 5 means 5x5
-        if (gridSize % 2 == 0) {
-            throw new Exception($"Size {gridSize}x{gridSize} is not valid: only odd sizes are allowed: 1x1, 3x3, 5x5...");
-        }
-        GridSize = gridSize;
+    public TilePattern(Dictionary<string, Func<T, bool>> rules, (string, Func<T, bool>)[,] ruleGrid) {
         Rules = rules;
+        RuleGrid = ruleGrid;
     }
-    
 
-    public NeighborRulePos? FindRuleAt(int x, int y) {
-        foreach (var rule in Rules) {
-            if (rule.X == x && rule.Y == y) return rule;
+    public bool Matches(T[,] data) {
+        var gridSize = RuleGrid.GetLength(0);
+        if (data.GetLength(0) != gridSize || data.GetLength(1) != gridSize) {
+            throw new Exception($"Data size {data.GetLength(0)}x{data.GetLength(1)} doesn't match pattern size {gridSize}x{gridSize}");
         }
-        return null;
+        for (var y = 0; y < gridSize; y++) {
+            for (var x = 0; x < gridSize; x++) {
+                var rule = RuleGrid[x, y];
+                if (!rule.Item2.Invoke(data[x, y])) return false;
+            }
+        }
+        return true;
     }
 
     public string Export() {
-        var sb = new StringBuilder(GridSize * 3 * GridSize - 1);
-        for (var y = 0; y < GridSize; y++) {
-            for (var x = 0; x < GridSize; x++) {
-                var tileRule = FindRuleAt(x, y);
-                if (tileRule == null) {
-                    sb.Append(' ').Append(Ignore);
-                    continue;
-                }
-                if (tileRule.EqualsTo) {
-                    sb.Append(' ').Append(tileRule.Value);
-                } else {
-                    sb.Append(NotEqualsToPrefix).Append(tileRule.Value);
-                }
-                if (x < GridSize - 1) sb.Append(' ');
+        var gridSize = RuleGrid.GetLength(0);
+        var sb = new StringBuilder(gridSize * 3 * gridSize - 1);
+        var maxRuleNameLength = Rules.Keys.Max(k => k.Length);
+        for (var y = 0; y < gridSize; y++) {
+            for (var x = 0; x < gridSize; x++) {
+                sb.Append(RuleGrid[x, y].Item1.PadRight(maxRuleNameLength));
+                if (x < gridSize - 1) sb.Append(' ');
             }
-            if (y < GridSize - 1) sb.Append('\n');
+            if (y < gridSize - 1) sb.Append('\n');
         }
         return sb.ToString();
-    }
-
-    public bool Matches(int[,] data) {
-        if (data.GetLength(0) != GridSize || data.GetLength(1) != GridSize) {
-            throw new Exception($"Data size {data.GetLength(0)}x{data.GetLength(1)} doesn't match pattern size {GridSize}x{GridSize}");
-        }
-        foreach (var rule in Rules) {
-            var value = data[rule.X, rule.Y];
-            var matches = rule.EqualsTo ? value == rule.Value : value != rule.Value;
-            if (!matches) return false; // All rules must match
-        }
-        return true;
     }
 }

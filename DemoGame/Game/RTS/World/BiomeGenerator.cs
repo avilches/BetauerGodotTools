@@ -434,18 +434,18 @@ public class BiomeGenerator {
     }
     
     public void FindCoast(FastImage fastImage) {
-        var landSeaRules = new Dictionary<string, NeighborRule> {
-            { "s", NeighborRule.Equals0 },
-            { "L", NeighborRule.Equals1},
+        var landSeaRules = new Dictionary<string, Func<BiomeCell?, bool>> {
+            { "s", cell => cell?.Sea ?? false },
+            { "L", cell => cell?.Land ?? false },
         };
         var p = TilePattern.Parse("""
                                   s s s
                                   L L L
                                   L L L
                                   """, landSeaRules);
-        var buffer1 = new int[3, 3]; 
+        var buffer1 = new BiomeCell[3, 3]; 
         BiomeCells.Loop((cell, x, y) => {
-            var grid = BiomeCells.CopyCenterRectTo(x, y, -1, buffer1, c => c.Land ? 1 : 0);
+            var grid = BiomeCells.CopyCenterRectTo(x, y, null, buffer1);
             if (p.Matches(grid)) {
                 fastImage.SetPixel(x, y, Colors.Blue, false);
             }

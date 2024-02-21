@@ -10,76 +10,127 @@ using NUnit.Framework;
 namespace Betauer.GameTools.Tests.TileSet;
 
 internal static class TerrainRuleExtension {
-    public static bool Matches(this TilePattern tilePattern, int value) {
-        AssertExportParse(tilePattern);
+    public static bool Matches(this TilePattern<int> tilePattern, int value) {
         var grid = new[,] { { value } }; 
         var matches = tilePattern.Matches(grid);
+        var cloned = TilePattern.Parse(tilePattern.Export(), tilePattern.Rules);
+        var matchesCloned = cloned.Matches(grid);
+        Assert.That(matches, Is.EqualTo(matchesCloned));
         return matches;
-    }
-    
-    public static void AssertExportParse(TilePattern a) {
-        var export = a.Export();
-        var b = TilePattern.Parse(export);
-        Assert.That(export, Is.EqualTo(b.Export()));
-        Assert.That(a.GridSize, Is.EqualTo(b.GridSize));
-        Assert.That(a.Rules.Length, Is.EqualTo(b.Rules.Length));
-        a.Rules.ForEach((rule, i) => {
-            var other = b.Rules[i];
-            Assert.That(rule.X, Is.EqualTo(other.X));
-            Assert.That(rule.Y, Is.EqualTo(other.Y));
-            Assert.That(rule.EqualsTo, Is.EqualTo(other.EqualsTo));
-            Assert.That(rule.Value, Is.EqualTo(other.Value));
-        });
     }
 }
 
 [TestRunner.Test]
-[Only]
 public class TilePatternTests : BaseBlobTests {
-    
+
     [TestRunner.Test]
-    public void ParseRulesCheckTest() {
-        // !2 means anything but 2, even empty is ok
-        Assert.True(TilePattern.Parse("!2").Matches(-1));
-        Assert.True(TilePattern.Parse("!2").Matches(0));
-        Assert.True(TilePattern.Parse("!2").Matches(1));
-        Assert.False(TilePattern.Parse("!2").Matches(2));
-
-        // 2 means only 2, empty is not ok
-        Assert.False(TilePattern.Parse("2").Matches(-1));
-        Assert.False(TilePattern.Parse("2").Matches(0));
-        Assert.False(TilePattern.Parse("2").Matches(1));
-        Assert.True(TilePattern.Parse("2").Matches(2));
-
-        // X means not empty
-        var dictionary = new Dictionary<string, NeighborRule> {
-            {"X", NeighborRule.CreateEqualsTo(-1)},
+    public void ParseTilePatternRuleTest() {
+        var dictionary = new Dictionary<string, Func<int, bool>> {
+            {"X", (v) => v == -1 },
         };
         Assert.True(TilePattern.Parse("X", dictionary).Matches(-1));
         Assert.False(TilePattern.Parse("X", dictionary).Matches(0));
         Assert.False(TilePattern.Parse("X", dictionary).Matches(1));
         Assert.False(TilePattern.Parse("X", dictionary).Matches(2));
-
-        // ? means anything, even empty
-        Assert.True(TilePattern.Parse("?").Matches(-1));
-        Assert.True(TilePattern.Parse("?").Matches(0));
-        Assert.True(TilePattern.Parse("?").Matches(1));
-        Assert.True(TilePattern.Parse("?").Matches(2));
-    }
-    
-    [Betauer.TestRunner.Test]
-    public void ExportParseTest() {
-        foreach (var rule in TilePatternRuleSets.Blob47.Patterns.Select(p => p.Item2)) {
-            TerrainRuleExtension.AssertExportParse(rule);
-        }
     }
 
+    [TestRunner.Test]
+    public void ParseTilePatternIntTests() {
+        Assert.True(TilePattern.Parse("-9").Matches(-9));
+        Assert.True(TilePattern.Parse("-8").Matches(-8));
+        Assert.True(TilePattern.Parse("-7").Matches(-7));
+        Assert.True(TilePattern.Parse("-6").Matches(-6));
+        Assert.True(TilePattern.Parse("-5").Matches(-5));
+        Assert.True(TilePattern.Parse("-4").Matches(-4));
+        Assert.True(TilePattern.Parse("-3").Matches(-3));
+        Assert.True(TilePattern.Parse("-2").Matches(-2));
+        Assert.True(TilePattern.Parse("-1").Matches(-1));
+        Assert.True(TilePattern.Parse("-0").Matches(0));
+        Assert.True(TilePattern.Parse("0").Matches(0));
+        Assert.True(TilePattern.Parse("1").Matches(1));
+        Assert.True(TilePattern.Parse("2").Matches(2));
+        Assert.True(TilePattern.Parse("3").Matches(3));
+        Assert.True(TilePattern.Parse("4").Matches(4));
+        Assert.True(TilePattern.Parse("5").Matches(5));
+        Assert.True(TilePattern.Parse("6").Matches(6));
+        Assert.True(TilePattern.Parse("7").Matches(7));
+        Assert.True(TilePattern.Parse("8").Matches(8));
+        Assert.True(TilePattern.Parse("9").Matches(9));
+
+        Assert.False(TilePattern.Parse("-9").Matches(9 + 1));
+        Assert.False(TilePattern.Parse("-8").Matches(-8 + 1));
+        Assert.False(TilePattern.Parse("-7").Matches(-7 + 1));
+        Assert.False(TilePattern.Parse("-6").Matches(-6 + 1));
+        Assert.False(TilePattern.Parse("-5").Matches(-5 + 1));
+        Assert.False(TilePattern.Parse("-4").Matches(-4 + 1));
+        Assert.False(TilePattern.Parse("-3").Matches(-3 + 1));
+        Assert.False(TilePattern.Parse("-2").Matches(-2 + 1));
+        Assert.False(TilePattern.Parse("-1").Matches(-1 + 1));
+        Assert.False(TilePattern.Parse("-0").Matches(-0 + 1));
+        Assert.False(TilePattern.Parse("0").Matches(0 + 1));
+        Assert.False(TilePattern.Parse("1").Matches(1 + 1));
+        Assert.False(TilePattern.Parse("2").Matches(2 + 1));
+        Assert.False(TilePattern.Parse("3").Matches(3 + 1));
+        Assert.False(TilePattern.Parse("4").Matches(4 + 1));
+        Assert.False(TilePattern.Parse("5").Matches(5 + 1));
+        Assert.False(TilePattern.Parse("6").Matches(6 + 1));
+        Assert.False(TilePattern.Parse("7").Matches(7 + 1));
+        Assert.False(TilePattern.Parse("8").Matches(8 + 1));
+        Assert.False(TilePattern.Parse("9").Matches(9 + 1));
+    }
+
+    [TestRunner.Test]
+        public void ParseTilePatternIntNegativeTests() {
+
+        Assert.False(TilePattern.Parse("!-9").Matches(-9));
+        Assert.False(TilePattern.Parse("!-8").Matches(-8));
+        Assert.False(TilePattern.Parse("!-7").Matches(-7));
+        Assert.False(TilePattern.Parse("!-6").Matches(-6));
+        Assert.False(TilePattern.Parse("!-5").Matches(-5));
+        Assert.False(TilePattern.Parse("!-4").Matches(-4));
+        Assert.False(TilePattern.Parse("!-3").Matches(-3));
+        Assert.False(TilePattern.Parse("!-2").Matches(-2));
+        Assert.False(TilePattern.Parse("!-1").Matches(-1));
+        Assert.False(TilePattern.Parse("!-0").Matches(0));
+        Assert.False(TilePattern.Parse("!0").Matches(0));
+        Assert.False(TilePattern.Parse("!1").Matches(1));
+        Assert.False(TilePattern.Parse("!2").Matches(2));
+        Assert.False(TilePattern.Parse("!3").Matches(3));
+        Assert.False(TilePattern.Parse("!4").Matches(4));
+        Assert.False(TilePattern.Parse("!5").Matches(5));
+        Assert.False(TilePattern.Parse("!6").Matches(6));
+        Assert.False(TilePattern.Parse("!7").Matches(7));
+        Assert.False(TilePattern.Parse("!8").Matches(8));
+        Assert.False(TilePattern.Parse("!9").Matches(9));
+
+
+        Assert.False(TilePattern.Parse("!-9").Matches(-9));
+        Assert.False(TilePattern.Parse("!-8").Matches(-8));
+        Assert.False(TilePattern.Parse("!-7").Matches(-7));
+        Assert.False(TilePattern.Parse("!-6").Matches(-6));
+        Assert.False(TilePattern.Parse("!-5").Matches(-5));
+        Assert.False(TilePattern.Parse("!-4").Matches(-4));
+        Assert.False(TilePattern.Parse("!-3").Matches(-3));
+        Assert.False(TilePattern.Parse("!-2").Matches(-2));
+        Assert.False(TilePattern.Parse("!-1").Matches(-1));
+        Assert.False(TilePattern.Parse("!-0").Matches(0));
+        Assert.False(TilePattern.Parse("!0").Matches(0));
+        Assert.False(TilePattern.Parse("!1").Matches(1));
+        Assert.False(TilePattern.Parse("!2").Matches(2));
+        Assert.False(TilePattern.Parse("!3").Matches(3));
+        Assert.False(TilePattern.Parse("!4").Matches(4));
+        Assert.False(TilePattern.Parse("!5").Matches(5));
+        Assert.False(TilePattern.Parse("!6").Matches(6));
+        Assert.False(TilePattern.Parse("!7").Matches(7));
+        Assert.False(TilePattern.Parse("!8").Matches(8));
+        Assert.False(TilePattern.Parse("!9").Matches(9));
+    }
     [Betauer.TestRunner.Test]
     public void Blob47Test() {
         var source = DataGrid<int>.Parse(@"
 ..0
 000
-", new System.Collections.Generic.Dictionary<char, int> {
+", new Dictionary<char, int> {
             {'0',  0},
             {'.', -1}
         });
