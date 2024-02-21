@@ -9,251 +9,252 @@ public static class TilePatternRuleSets {
         { "#", (v) => v == 0 },
         { "?", (_) => true },
     };
-    public static readonly TilePatternSet<int, int> Blob47 = new (new List<(int, TilePattern<int>)> {
-        (0, TilePattern.Parse("""
-                              ? ! ?
-                              ! # !
-                              ? ! ?
-                              """, TilePatternRules)),
-        (1, TilePattern.Parse("""
-                              ? # ?
-                              ! # !
-                              ? ! ?
-                              """, TilePatternRules)),
-        (4, TilePattern.Parse("""
-                              ? ! ?
-                              ! # #
-                              ? ! ?
-                              """, TilePatternRules)),
-        (5, TilePattern.Parse("""
-                              ? # !
-                              ! # #
-                              ? ! ?
-                              """, TilePatternRules)),
-        (7, TilePattern.Parse("""
-                              ? # #
-                              ! # #
-                              ? ! ?
-                              """, TilePatternRules)),
-        (16, TilePattern.Parse("""
-                               ? ! ?
-                               ! # !
-                               ? # ?
-                               """, TilePatternRules)),
-        (17, TilePattern.Parse("""
-                               ? # ?
-                               ! # !
-                               ? # ?
-                               """, TilePatternRules)),
-        (20, TilePattern.Parse("""
-                               ? ! ?
-                               ! # #
-                               ? # !
-                               """, TilePatternRules)),
-        (21, TilePattern.Parse("""
-                               ? # !
-                               ! # #
-                               ? # !
-                               """, TilePatternRules)),
-        (23, TilePattern.Parse("""
-                               ? # #
-                               ! # #
-                               ? # !
-                               """, TilePatternRules)),
-        (28, TilePattern.Parse("""
-                               ? ! ?
-                               ! # #
-                               ? # #
-                               """, TilePatternRules)),
-        (29, TilePattern.Parse("""
-                               ? # !
-                               ! # #
-                               ? # #
-                               """, TilePatternRules)),
-        (31, TilePattern.Parse("""
-                               ? # #
-                               ! # #
-                               ? # #
-                               """, TilePatternRules)),
-        (64, TilePattern.Parse("""
-                               ? ! ?
-                               # # !
-                               ? ! ?
-                               """, TilePatternRules)),
-        (64, TilePattern.Parse("""
-                               ? ! ?
-                               # # !
-                               ? ! ?
-                               """, TilePatternRules)),
-        (65, TilePattern.Parse("""
-                               ! # ?
-                               # # !
-                               ? ! ?
-                               """, TilePatternRules)),
-        (68, TilePattern.Parse("""
-                               ? ! ?
-                               # # #
-                               ? ! ?
-                               """, TilePatternRules)),
-        (69, TilePattern.Parse("""
-                               ! # !
-                               # # #
-                               ? ! ?
-                               """, TilePatternRules)),
-        (71, TilePattern.Parse("""
-                               ! # #
-                               # # #
-                               ? ! ?
-                               """, TilePatternRules)),
-        (80, TilePattern.Parse("""
-                               ? ! ?
-                               # # !
-                               ! # ?
-                               """, TilePatternRules)),
-        (81, TilePattern.Parse("""
-                               ! # ?
-                               # # !
-                               ! # ?
-                               """, TilePatternRules)),
-        (84, TilePattern.Parse("""
-                               ? ! ?
-                               # # #
-                               ! # !
-                               """, TilePatternRules)),
-        (85, TilePattern.Parse("""
-                               ! # !
-                               # # #
-                               ! # !
-                               """, TilePatternRules)),
-        (87, TilePattern.Parse("""
-                               ! # #
-                               # # #
-                               ! # !
-                               """, TilePatternRules)),
-        (92, TilePattern.Parse("""
-                               ? ! ?
-                               # # #
-                               ! # #
-                               """, TilePatternRules)),
-        (93, TilePattern.Parse("""
-                               ! # !
-                               # # #
-                               ! # #
-                               """, TilePatternRules)),
-        (95, TilePattern.Parse("""
-                               ! # #
-                               # # #
-                               ! # #
-                               """, TilePatternRules)),
-        (112, TilePattern.Parse("""
-                                ? ! ?
-                                # # !
-                                # # ?
-                                """, TilePatternRules)),
-        (113, TilePattern.Parse("""
-                                ! # ?
-                                # # !
-                                # # ?
-                                """, TilePatternRules)),
-        (116, TilePattern.Parse("""
-                                ? ! ?
-                                # # #
-                                # # !
-                                """, TilePatternRules)),
-        (117, TilePattern.Parse("""
-                                ! # !
-                                # # #
-                                # # !
-                                """, TilePatternRules)),
-        (119, TilePattern.Parse("""
-                                ! # #
-                                # # #
-                                # # !
-                                """, TilePatternRules)),
-        (124, TilePattern.Parse("""
-                                ? ! ?
-                                # # #
-                                # # #
-                                """, TilePatternRules)),
-        (125, TilePattern.Parse("""
-                                ! # !
-                                # # #
-                                # # #
-                                """, TilePatternRules)),
-        (127, TilePattern.Parse("""
-                                ! # #
-                                # # #
-                                # # #
-                                """, TilePatternRules)),
-        (193, TilePattern.Parse("""
-                                # # ?
-                                # # !
-                                ? ! ?
-                                """, TilePatternRules)),
-        (197, TilePattern.Parse("""
-                                # # !
-                                # # #
-                                ? ! ?
-                                """, TilePatternRules)),
-        (199, TilePattern.Parse("""
-                                # # #
-                                # # #
-                                ? ! ?
-                                """, TilePatternRules)),
-        (209, TilePattern.Parse("""
-                                # # ?
-                                # # !
-                                ! # ?
-                                """, TilePatternRules)),
-        (213, TilePattern.Parse("""
-                                # # !
-                                # # #
-                                ! # !
-                                """, TilePatternRules)),
-        (215, TilePattern.Parse("""
-                                # # #
-                                # # #
-                                ! # !
-                                """, TilePatternRules)),
-        (221, TilePattern.Parse("""
-                                # # !
-                                # # #
-                                ! # #
-                                """, TilePatternRules)),
-        (223, TilePattern.Parse("""
-                                # # #
-                                # # #
-                                ! # #
-                                """, TilePatternRules)),
-        (241, TilePattern.Parse("""
-                                # # ?
-                                # # !
-                                # # ?
-                                """, TilePatternRules)),
-        (241, TilePattern.Parse("""
-                                # # ?
-                                # # !
-                                # # ?
-                                """, TilePatternRules)),
-        (245, TilePattern.Parse("""
-                                # # !
-                                # # #
-                                # # !
-                                """, TilePatternRules)),
-        (247, TilePattern.Parse("""
-                                # # #
-                                # # #
-                                # # !
-                                """, TilePatternRules)),
-        (253, TilePattern.Parse("""
-                                # # !
-                                # # #
-                                # # #
-                                """, TilePatternRules)),
-        (255, TilePattern.Parse("""
-                                # # #
-                                # # #
-                                # # #
-                                """, TilePatternRules)),
-    });
+
+    public static readonly TilePatternSet<int, int> Blob47 =
+        new TilePatternSet<int, int> { DefaultRules = TilePatternRules }
+            .Add(0, """
+                    ? ! ?
+                    ! # !
+                    ? ! ?
+                    """)
+            .Add(1, """
+                    ? # ?
+                    ! # !
+                    ? ! ?
+                    """)
+            .Add(4, """
+                    ? ! ?
+                    ! # #
+                    ? ! ?
+                    """)
+            .Add(5, """
+                    ? # !
+                    ! # #
+                    ? ! ?
+                    """)
+            .Add(7, """
+                    ? # #
+                    ! # #
+                    ? ! ?
+                    """)
+            .Add(16, """
+                     ? ! ?
+                     ! # !
+                     ? # ?
+                     """)
+            .Add(17, """
+                     ? # ?
+                     ! # !
+                     ? # ?
+                     """)
+            .Add(20, """
+                     ? ! ?
+                     ! # #
+                     ? # !
+                     """)
+            .Add(21, """
+                     ? # !
+                     ! # #
+                     ? # !
+                     """)
+            .Add(23, """
+                     ? # #
+                     ! # #
+                     ? # !
+                     """)
+            .Add(28, """
+                     ? ! ?
+                     ! # #
+                     ? # #
+                     """)
+            .Add(29, """
+                     ? # !
+                     ! # #
+                     ? # #
+                     """)
+            .Add(31, """
+                     ? # #
+                     ! # #
+                     ? # #
+                     """)
+            .Add(64, """
+                     ? ! ?
+                     # # !
+                     ? ! ?
+                     """)
+            .Add(64, """
+                     ? ! ?
+                     # # !
+                     ? ! ?
+                     """)
+            .Add(65, """
+                     ! # ?
+                     # # !
+                     ? ! ?
+                     """)
+            .Add(68, """
+                     ? ! ?
+                     # # #
+                     ? ! ?
+                     """)
+            .Add(69, """
+                     ! # !
+                     # # #
+                     ? ! ?
+                     """)
+            .Add(71, """
+                     ! # #
+                     # # #
+                     ? ! ?
+                     """)
+            .Add(80, """
+                     ? ! ?
+                     # # !
+                     ! # ?
+                     """)
+            .Add(81, """
+                     ! # ?
+                     # # !
+                     ! # ?
+                     """)
+            .Add(84, """
+                     ? ! ?
+                     # # #
+                     ! # !
+                     """)
+            .Add(85, """
+                     ! # !
+                     # # #
+                     ! # !
+                     """)
+            .Add(87, """
+                     ! # #
+                     # # #
+                     ! # !
+                     """)
+            .Add(92, """
+                     ? ! ?
+                     # # #
+                     ! # #
+                     """)
+            .Add(93, """
+                     ! # !
+                     # # #
+                     ! # #
+                     """)
+            .Add(95, """
+                     ! # #
+                     # # #
+                     ! # #
+                     """)
+            .Add(112, """
+                      ? ! ?
+                      # # !
+                      # # ?
+                      """)
+            .Add(113, """
+                      ! # ?
+                      # # !
+                      # # ?
+                      """)
+            .Add(116, """
+                      ? ! ?
+                      # # #
+                      # # !
+                      """)
+            .Add(117, """
+                      ! # !
+                      # # #
+                      # # !
+                      """)
+            .Add(119, """
+                      ! # #
+                      # # #
+                      # # !
+                      """)
+            .Add(124, """
+                      ? ! ?
+                      # # #
+                      # # #
+                      """)
+            .Add(125, """
+                      ! # !
+                      # # #
+                      # # #
+                      """)
+            .Add(127, """
+                      ! # #
+                      # # #
+                      # # #
+                      """)
+            .Add(193, """
+                      # # ?
+                      # # !
+                      ? ! ?
+                      """)
+            .Add(197, """
+                      # # !
+                      # # #
+                      ? ! ?
+                      """)
+            .Add(199, """
+                      # # #
+                      # # #
+                      ? ! ?
+                      """)
+            .Add(209, """
+                      # # ?
+                      # # !
+                      ! # ?
+                      """)
+            .Add(213, """
+                      # # !
+                      # # #
+                      ! # !
+                      """)
+            .Add(215, """
+                      # # #
+                      # # #
+                      ! # !
+                      """)
+            .Add(221, """
+                      # # !
+                      # # #
+                      ! # #
+                      """)
+            .Add(223, """
+                      # # #
+                      # # #
+                      ! # #
+                      """)
+            .Add(241, """
+                      # # ?
+                      # # !
+                      # # ?
+                      """)
+            .Add(241, """
+                      # # ?
+                      # # !
+                      # # ?
+                      """)
+            .Add(245, """
+                      # # !
+                      # # #
+                      # # !
+                      """)
+            .Add(247, """
+                      # # #
+                      # # #
+                      # # !
+                      """)
+            .Add(253, """
+                      # # !
+                      # # #
+                      # # #
+                      """)
+            .Add(255, """
+                      # # #
+                      # # #
+                      # # #
+                      """);
 }
