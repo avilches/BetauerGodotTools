@@ -262,14 +262,14 @@ public class YxTransformationsTests {
 
         var buffer = new int[3, 3];
         original.CopyYxCenterRect(0, 0, -1, buffer);
-        AreEqual(buffer, new int[,] {
+        AreEqual(buffer, new[,] {
             { -1, -1, -1 },
             { -1,  0,  1 },
             { -1, 10, 11 },
         });
 
         original.CopyYxCenterRect(1, 2, -1, buffer);
-        AreEqual(buffer, new int[,] {
+        AreEqual(buffer, new[,] {
             { 10, 11, 12 },
             { 20, 21, 22 },
             { 30, 31, 32 },

@@ -9,6 +9,7 @@ using NUnit.Framework;
 namespace Betauer.GameTools.Tests.TileSet;
 
 [TestRunner.Test]
+[Only]
 public class TileSetImageTests {
     [SetUpClass]
     public void SetUp() {

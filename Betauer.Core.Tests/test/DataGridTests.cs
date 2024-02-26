@@ -6,13 +6,12 @@ namespace Betauer.Core.Tests;
 
 using NUnit.Framework;
 
-/*
 [Betauer.TestRunner.Test]
 [Only]
-public class XyDataGridTests {
+public class DataGridTests {
     [Betauer.TestRunner.Test]
     public void ParseTest() {
-        var grid = XyDataGrid<int>.Parse("""
+        var grid = DataGrid<int>.Parse("""
                                        ...#
                                        .###
                                        ..@#
@@ -22,27 +21,27 @@ public class XyDataGridTests {
         Assert.AreEqual(3, grid.Height);
 
         ArrayEquals(grid.Data, new[,] {
-            { 0, 0, 0 },
-            { 0, 2, 0 },
-            { 0, 2, 3 },
-            { 2, 2, 2 },
+            { 0, 0, 0, 2 },
+            { 0, 2, 2, 2 },
+            { 0, 0, 3, 2 }
         });
+
     }
 
     [Betauer.TestRunner.Test]
     public void RegularDataGridTests() {
-        var grid = new XyDataGrid<int>(2, 2).Load((x, y) => x + y);
+        var grid = new DataGrid<int>(2, 2).Load((x, y) => x + y);
         Assert.AreEqual(0, grid.GetValue(0, 0));
         Assert.AreEqual(1, grid.GetValue(1, 0));
         Assert.AreEqual(1, grid.GetValue(0, 1));
         Assert.AreEqual(2, grid.GetValue(1, 1));
     }
 
-    private XyDataGrid<int> _xyDataGrid;
+    private DataGrid<int> _xyDataGrid;
 
     [Betauer.TestRunner.SetUp]
     public void SetUp() {
-        _xyDataGrid = new XyDataGrid<int>(5, 5);
+        _xyDataGrid = new DataGrid<int>(5, 5);
         var value = 0;
         for (var y = 0; y < _xyDataGrid.Height; y++) {
             for (var x = 0; x < _xyDataGrid.Width; x++) {
@@ -105,14 +104,14 @@ public class XyDataGridTests {
 
     [Betauer.TestRunner.Test]
     public void TestTransform() {
-        var backup = new XyDataGrid<int>(_xyDataGrid.Data);
+        var backup = new DataGrid<int>(_xyDataGrid.Data);
         _xyDataGrid.Transform(value => value + 1);
         _xyDataGrid.Loop((value, x, y) => Assert.AreEqual(backup[x,y] + 1, value));
     }
 
     [Betauer.TestRunner.Test]
     public void NormalizeTest() {
-        var grid = new XyDataGrid<float>(2, 2).Load((x, y) => x + y);
+        var grid = new DataGrid<float>(2, 2).Load((x, y) => x + y);
         Assert.AreEqual(2, grid.Width);
         Assert.AreEqual(2, grid.Height);
 
@@ -164,5 +163,3 @@ public class XyDataGridTests {
     }
     
 }
-
-*/

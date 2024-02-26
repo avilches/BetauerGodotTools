@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Betauer.Core.Data;
 
 namespace Betauer.TileSet.Terrain;
 
@@ -17,7 +18,13 @@ public class TilePatternSet<T, TT> {
         return Add(id, TilePattern.Parse(pattern, DefaultRules));
     }
 
-    public T? FindTilePatternId(Func<int, int, TT> data, T? defaultValue = default) { 
+    /// <summary>
+    /// Data must be a grid of the same size as the pattern and indexed by [y,x] (you can use DataGrid<TT>.Data
+    /// </summary>
+    /// <param name="data"></param>
+    /// <param name="defaultValue"></param>
+    /// <returns></returns>
+    public T? FindTilePatternId(TT[,] data, T? defaultValue = default) { 
         foreach (var rule in Patterns) {
             if (rule.Item2.Matches(data)) return rule.Item1;
         }

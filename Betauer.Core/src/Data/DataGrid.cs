@@ -4,23 +4,22 @@ using System.Linq;
 
 namespace Betauer.Core.Data;
 
-public struct YxDataGrid<T> {
+public struct DataGrid<T> {
     public int Width { get; private set; }
     public int Height { get; private set; }
-
     public T[,] Data { get; private set; }
 
-    public YxDataGrid(int width, int height) {
+    public DataGrid(int width, int height) {
         Data = new T[height, width];
         Height = Data.GetLength(0);
         Width = Data.GetLength(1);
     }
 
-    public YxDataGrid(T[,] data) {
+    public DataGrid(T[,] data) {
         SetAll(data);
     }
 
-    public YxDataGrid<T> Fill(T value) {
+    public DataGrid<T> Fill(T value) {
         for (var y = 0; y < Height; y++) {
             for (var x = 0; x < Width; x++) {
                 SetValue(x, y, value);
@@ -29,7 +28,7 @@ public struct YxDataGrid<T> {
         return this;
     }
 
-    public YxDataGrid<T> Fill(int x, int y, int width, int height, T value) {
+    public DataGrid<T> Fill(int x, int y, int width, int height, T value) {
         for (var yy = y; yy < height - y; yy++) {
             for (var xx = x; xx < width - x; xx++) {
                 SetValue(xx, yy, value);
@@ -38,7 +37,7 @@ public struct YxDataGrid<T> {
         return this;
     }
 
-    public YxDataGrid<T> SetAll(T[,] data) {
+    public DataGrid<T> SetAll(T[,] data) {
         Width = data.GetLength(1);
         Height = data.GetLength(0);
         Data = new T[Height, Width];
@@ -51,12 +50,12 @@ public struct YxDataGrid<T> {
         return this;
     }
 
-    public YxDataGrid<T> Load(Func<int, int, T> valueFunc) {
+    public DataGrid<T> Load(Func<int, int, T> valueFunc) {
         Load(0, 0, Width, Height, valueFunc);
         return this;
     }
 
-    public YxDataGrid<T> Load(int x, int y, int width, int height, Func<int, int, T> valueFunc) {
+    public DataGrid<T> Load(int x, int y, int width, int height, Func<int, int, T> valueFunc) {
         for (var yy = y; yy < height - y; yy++) {
             for (var xx = x; xx < width - x; xx++) {
                 var value = valueFunc.Invoke(xx, yy);
@@ -66,17 +65,17 @@ public struct YxDataGrid<T> {
         return this;
     }
 
-    public YxDataGrid<T> Loop(Action<T, int, int> action) {
+    public DataGrid<T> Loop(Action<T, int, int> action) {
         Loop(0, 0, Width, Height, action);
         return this;
     }
 
-    public YxDataGrid<T> Transform(Func<T, T> action) {
+    public DataGrid<T> Transform(Func<T, T> action) {
         Transform(0, 0, Width, Height, action);
         return this;
     }
 
-    public YxDataGrid<T> Transform(int x, int y, int width, int height, Func<T, T> action) {
+    public DataGrid<T> Transform(int x, int y, int width, int height, Func<T, T> action) {
         for (var yy = y; yy < height - y; yy++) {
             for (var xx = x; xx < width - x; xx++) {
                 var value = GetValue(xx, yy);
@@ -87,7 +86,7 @@ public struct YxDataGrid<T> {
         return this;
     }
 
-    public YxDataGrid<T> Loop(int x, int y, int width, int height, Action<T, int, int> action) {
+    public DataGrid<T> Loop(int x, int y, int width, int height, Action<T, int, int> action) {
         for (var yy = y; yy < height - y; yy++) {
             for (var xx = x; xx < width - x; xx++) {
                 var value = GetValue(xx, yy);
@@ -147,15 +146,15 @@ public struct YxDataGrid<T> {
         Data.CopyYxRect(startX, startY, width, height, destination, transformer, defaultValue);
     }
     
-    public T[,] CopyCenterRect(int centerX, int centerY, T defaultValue, T[,] destination) {
-        return Data.CopyYxCenterRect(centerX, centerY, defaultValue, destination);
+    public void CopyCenterRect(int centerX, int centerY, T defaultValue, T[,] destination) {
+        Data.CopyYxCenterRect(centerX, centerY, defaultValue, destination);
     }
 
-    public TOut[,] CopyCenterRect<TOut>(int centerX, int centerY, TOut defaultValue, TOut[,] destination, Func<T, TOut> transform) {
-        return Data.CopyYxCenterRect(centerX, centerY, defaultValue, destination, transform);
+    public void CopyCenterRect<TOut>(int centerX, int centerY, TOut defaultValue, TOut[,] destination, Func<T, TOut> transform) {
+        Data.CopyYxCenterRect(centerX, centerY, defaultValue, destination, transform);
     }
 
-    public static YxDataGrid<TT> Parse<TT>(string template, Dictionary<char, TT> mapping) {
+    public static DataGrid<TT> Parse<TT>(string template, Dictionary<char, TT> mapping) {
         var lines = template.Split('\n')
             .Select(v => v.Trim())
             .Where(v => v.Length > 0)
@@ -167,7 +166,7 @@ public struct YxDataGrid<T> {
         }
         var y = 0;
         var height = lines.Length;
-        var dataGrid = new YxDataGrid<TT>(width, height);
+        var dataGrid = new DataGrid<TT>(width, height);
         foreach (var line in lines) {
             var x = 0;
             foreach (var value in line.Select(c => mapping[c])) {
@@ -177,32 +176,5 @@ public struct YxDataGrid<T> {
             y++;
         }
         return dataGrid;
-    }
-}
-
-public static class YxDataGridExtensions {
-    public static YxDataGrid<float> Normalize(this YxDataGrid<float> grid, float newMin, float newMax) {
-        var min = float.MaxValue;
-        var max = float.MinValue;
-        grid.Loop((value, x, y) => {
-            min = Math.Min(min, value);
-            max = Math.Max(max, value);
-        });
-        var range = max - min;
-        var normalizedRange = newMax - newMin;
-        grid.Transform(value => (value - min) / range * normalizedRange + newMin);
-        return grid;
-    }
-
-    public static YxDataGrid<float> Normalize(this YxDataGrid<float> grid) {
-        var min = float.MaxValue;
-        var max = float.MinValue;
-        grid.Loop((value, x, y) => {
-            min = Math.Min(min, value);
-            max = Math.Max(max, value);
-        });
-        var range = max - min;
-        grid.Transform(value => (value - min) / range);
-        return grid;
     }
 }

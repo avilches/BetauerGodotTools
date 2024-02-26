@@ -185,10 +185,10 @@ public partial class WorldGenerator {
 
         var sproutDarkerGrass = new TileMapSource(8, TileSetLayouts.Blob47Godot);
 
+        var buffer = new int[3, 3];
         BiomeGenerator.BiomeCells.Loop((cell, x, y) => {
-            var buffer2 = new int[3, 3];
-            BiomeGenerator.BiomeCells.CopyCenterRect(x, y, -1, buffer2, (c) => c.Biome.Type == BiomeType.Plains ? 0 : -1);
-            var tileId = TilePatternRuleSets.Blob47.FindTilePatternId((mx, my) => buffer2[my, mx], -1);
+            BiomeGenerator.BiomeCells.CopyCenterRect(x, y, -1, buffer, (c) => c.Biome.Type == BiomeType.Plains ? 0 : -1);
+            var tileId = TilePatternRuleSets.Blob47.FindTilePatternId(buffer, -1);
             sproutDarkerGrass.SetCell(godotTileMap, 0, x, y, tileId);
         });
         godotTileMap.ZIndex = 1;

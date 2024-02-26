@@ -12,11 +12,10 @@ namespace Betauer.GameTools.Tests.TileSet;
 [TestRunner.Test]
 [Only]
 public class TilePatternTests : BaseBlobTests {
-
     [TestRunner.Test]
     public void ParseTilePatternRuleTest() {
         var dictionary = new Dictionary<string, Func<int, bool>> {
-            {"X", (v) => v == -1 },
+            { "X", (v) => v == -1 },
         };
         Assert.True(TilePattern.Parse("X", dictionary).Matches(-1));
         Assert.False(TilePattern.Parse("X", dictionary).Matches(0));
@@ -70,8 +69,7 @@ public class TilePatternTests : BaseBlobTests {
     }
 
     [TestRunner.Test]
-        public void ParseTilePatternIntNegativeTests() {
-
+    public void ParseTilePatternIntNegativeTests() {
         Assert.False(TilePattern.Parse("!-9").Matches(-9));
         Assert.False(TilePattern.Parse("!-8").Matches(-8));
         Assert.False(TilePattern.Parse("!-7").Matches(-7));
@@ -92,7 +90,6 @@ public class TilePatternTests : BaseBlobTests {
         Assert.False(TilePattern.Parse("!7").Matches(7));
         Assert.False(TilePattern.Parse("!8").Matches(8));
         Assert.False(TilePattern.Parse("!9").Matches(9));
-
 
         Assert.False(TilePattern.Parse("!-9").Matches(-9));
         Assert.False(TilePattern.Parse("!-8").Matches(-8));
@@ -115,40 +112,41 @@ public class TilePatternTests : BaseBlobTests {
         Assert.False(TilePattern.Parse("!8").Matches(8));
         Assert.False(TilePattern.Parse("!9").Matches(9));
     }
+
     [Betauer.TestRunner.Test]
     public void Blob47Test() {
-        var source = YxDataGrid<int>.Parse(@"
+        var source = DataGrid<int>.Parse(@"
 ..0
 000
 ", new Dictionary<char, int> {
-            {'0',  0},
-            {'.', -1}
+            { '0', 0 },
+            { '.', -1 }
         });
 
         var tileIds = new int[2, 3];
         var blob47 = TilePatternRuleSets.Blob47;
-        
+
         var buffer = new int[3, 3];
         source.Loop((value, x, y) => {
             source.CopyCenterRect(x, y, -1, buffer, (p) => p);
-            var tileId = blob47.FindTilePatternId((x,y) => buffer[y, x], -1);
+            var tileId = blob47.FindTilePatternId(buffer, -1);
             tileIds[y, x] = tileId;
         });
-        
+
         // put here the tileIds
         ArrayEquals(tileIds, new[,] {
-            { -1,  -1, 16 },
-            {  4,  68, 65 },
+            { -1, -1, 16 },
+            { 4, 68, 65 },
         });
     }
-
 }
 
 internal static class TerrainRuleExtension {
     public static bool Matches(this TilePattern<int> tilePattern, int value) {
-        var matches = tilePattern.Matches((_,_) => value);
+        var grid = new[,] { { value } };
+        var matches = tilePattern.Matches(grid);
         var cloned = TilePattern.Parse(tilePattern.Export(), tilePattern.Rules);
-        var matchesCloned = cloned.Matches((_,_) => value);
+        var matchesCloned = cloned.Matches(grid);
         Assert.That(matches, Is.EqualTo(matchesCloned));
         return matches;
     }

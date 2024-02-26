@@ -40,7 +40,7 @@ public partial class TileScript : SceneTree {
         {  7, 199, 193,  1, 29,  253, 127, 113, 125,  93, 117 },
         {  4,  68, 64,   0,  5,  197,  71,  65,  69,  87, 213 },
         { -1,  -1, -1,  -1, 21,  245,  95,  81,  85,  -1,  -1 }
-    }.Resize(11, 12, -1));
+    }.YxResize(11, 12, -1));
 
     public static ITileSetLayout SproutGround = new TileSetLayout(new [,] {
         { 28, 124, 112, 16, 20,  116,  92,  80,  84, 221,  -1 },
@@ -48,5 +48,5 @@ public partial class TileScript : SceneTree {
         {  7, 199, 193,  1, 29,  253, 127, 113, 125,  93, 117 },
         {  4,  68, 64,   0,  5,  197,  71,  65,  69,  87, 213 },
         { -1,  -1, -1,  -1, 21,  245,  95,  81,  85,  -1,  -1 }
-    }.Resize(11, 7, -1));
+    }.YxResize(11, 7, -1));
 }

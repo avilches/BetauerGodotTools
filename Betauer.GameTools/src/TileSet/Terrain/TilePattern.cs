@@ -145,15 +145,18 @@ public class TilePattern<T> : TilePattern {
     }
 
     /// <summary>
-    /// The data func must be (x, y) => value
+    /// Data must be a grid of the same size as the pattern and indexed by [y,x] (you can use DataGrid<TT>.Data
     /// </summary>
     /// <param name="data"></param>
     /// <returns></returns>
-    public bool Matches(Func<int, int, T> data) {
+    public bool Matches(T[,] data) {
         var gridSize = RuleGrid.GetLength(0);
+        if (data.GetLength(0) != gridSize || data.GetLength(1) != gridSize) {
+            throw new Exception($"Data size {data.GetLength(0)}x{data.GetLength(1)} doesn't match pattern size {gridSize}x{gridSize}");
+        }
         for (var y = 0; y < gridSize; y++) {
             for (var x = 0; x < gridSize; x++) {
-                var value = data.Invoke(x, y);
+                var value = data[y, x];
                 var rule = RuleGrid[y, x].Item2;
                 if (!rule.Invoke(value)) return false;
             }

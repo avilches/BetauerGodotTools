@@ -235,11 +235,11 @@ public static partial class Transformations {
         }
     }
     
-    public static T[,] CopyYxCenterRect<T>(this T[,] source, int centerX, int centerY, T defaultValue, T[,] destination) {
-        return CopyYxCenterRect(source, centerX, centerY, defaultValue, destination, value => value);
+    public static void CopyYxCenterRect<T>(this T[,] source, int centerX, int centerY, T defaultValue, T[,] destination) {
+        CopyYxCenterRect(source, centerX, centerY, defaultValue, destination, value => value);
     }
 
-    public static TOut[,] CopyYxCenterRect<T, TOut>(this T[,] source, int centerX, int centerY, TOut defaultValue, TOut[,] destination, Func<T, TOut> transform) {
+    public static void CopyYxCenterRect<T, TOut>(this T[,] source, int centerX, int centerY, TOut defaultValue, TOut[,] destination, Func<T, TOut> transform) {
         var sourceWidth = source.GetLength(1);
         var sourceHeight = source.GetLength(0);
         var width = destination.GetLength(1);
@@ -253,6 +253,5 @@ public static partial class Transformations {
                 destination[y, x] = xx < 0 || yy < 0 || xx >= sourceWidth || yy >= sourceHeight ? defaultValue : transform(source[yy, xx]);
             }
         }
-        return destination;
     }
 }
