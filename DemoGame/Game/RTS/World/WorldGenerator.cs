@@ -186,8 +186,8 @@ public partial class WorldGenerator {
 
         BiomeGenerator.BiomeCells.Loop((cell, x, y) => {
             var buffer = new int[3, 3];
-            BiomeGenerator.BiomeCells.CopyCenterRectTo(x, y, -1, buffer, (c) => c.Biome.Type == BiomeType.Plains ? 0 : -1);
-            var tileId = TilePatternRuleSets.Blob47.FindTilePatternId(buffer, -1);
+            BiomeGenerator.BiomeCells.Data.CopyXyCenterRect(x, y, -1, buffer, (c) => c.Biome.Type == BiomeType.Plains ? 0 : -1);
+            var tileId = TilePatternRuleSets.Blob47.FindXyTilePatternId(buffer, -1);
             if (tileId != -1) {
                 sproutDarkerGrass.SetCell(godotTileMap, 0, x, y, tileId);
             }

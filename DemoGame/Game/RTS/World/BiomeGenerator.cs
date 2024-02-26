@@ -61,7 +61,7 @@ public class BiomeGenerator {
 
     public FloatGrid<BiomeType> LandBiomesGrid { get; private set; }
     public FloatGrid<BiomeType> SeaBiomesGrid { get; private set; }
-    public DataGrid<BiomeCell> BiomeCells { get; private set; }
+    public XyDataGrid<BiomeCell> BiomeCells { get; private set; }
     // public Betauer.TileSet.TileMap.TileMap<BiomeType> TileMap { get; private set; }
 
     private Random _random;
@@ -143,7 +143,7 @@ public class BiomeGenerator {
         ConfigureLandBiomeMap(LandBiomesConfig);
         ConfigureSeaBiomeMap(SeaBiomesConfig);
 
-        BiomeCells = new DataGrid<BiomeCell>(Width, Height);
+        BiomeCells = new XyDataGrid<BiomeCell>(Width, Height);
         // TileMap = new TileMap<BiomeType>(0, width, height, BiomeType.None);
 
         MassLands = new NormalizedDataGrid(width, height);
@@ -260,7 +260,7 @@ public class BiomeGenerator {
         var gridSize = 3;
         var buffer2 = new BiomeCell[gridSize, gridSize]; 
         BiomeCells.Loop((cell, x, y) => {
-            var grid = BiomeCells.CopyCenterRectTo(x, y, null, buffer2);
+            var grid = BiomeCells.Data.CopyXyCenterRect(x, y, null, buffer2);
 
             // If central pixel is not land, it can't be coast
             var land = grid[gridSize / 2 , gridSize / 2]?.Land ?? false;
@@ -445,8 +445,8 @@ public class BiomeGenerator {
                                   """, landSeaRules);
         var buffer1 = new BiomeCell[3, 3]; 
         BiomeCells.Loop((cell, x, y) => {
-            var grid = BiomeCells.CopyCenterRectTo(x, y, null, buffer1);
-            if (p.Matches(grid)) {
+            var grid = BiomeCells.Data.CopyXyCenterRect(x, y, null, buffer1);
+            if (p.MatchesXy(grid)) {
                 fastImage.SetPixel(x, y, Colors.Blue, false);
             }
         });

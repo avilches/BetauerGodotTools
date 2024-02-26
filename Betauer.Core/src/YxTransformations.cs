@@ -3,7 +3,7 @@ using System;
 namespace Betauer.Core;
 
 public static partial class Transformations {
-    public static T[,] Rotate90<T>(this T[,] source) {
+    public static T[,] YxRotate90<T>(this T[,] source) {
         var height = source.GetLength(0);
         var width = source.GetLength(1);
         var temp = new T[width, height];
@@ -15,7 +15,7 @@ public static partial class Transformations {
         return temp;
     }
 
-    public static T[,] Rotate180<T>(this T[,] source) {
+    public static T[,] YxRotate180<T>(this T[,] source) {
         var height = source.GetLength(0);
         var width = source.GetLength(1);
         var temp = new T[height, width];
@@ -27,7 +27,7 @@ public static partial class Transformations {
         return temp;
     }
 
-    public static T[,] RotateMinus90<T>(this T[,] source) {
+    public static T[,] YxRotateMinus90<T>(this T[,] source) {
         var height = source.GetLength(0);
         var width = source.GetLength(1);
         var temp = new T[width, height];
@@ -39,7 +39,7 @@ public static partial class Transformations {
         return temp;
     }
 
-    public static T[,] FlipH<T>(this T[,] source) {
+    public static T[,] YxFlipH<T>(this T[,] source) {
         var height = source.GetLength(0);
         var width = source.GetLength(1);
         var temp = new T[height, width];
@@ -51,7 +51,7 @@ public static partial class Transformations {
         return temp;
     }
 
-    public static T[,] MirrorLeftToRight<T>(this T[,] source) {
+    public static T[,] YxMirrorLeftToRight<T>(this T[,] source) {
         var height = source.GetLength(0);
         var width = source.GetLength(1);
         var halfWidth = width / 2;
@@ -65,8 +65,8 @@ public static partial class Transformations {
         }
         return temp;
     }
-    
-    public static T[,] MirrorRightToLeft<T>(this T[,] source) {
+
+    public static T[,] YxMirrorRightToLeft<T>(this T[,] source) {
         var height = source.GetLength(0);
         var width = source.GetLength(1);
         var halfWidth = width / 2;
@@ -74,14 +74,14 @@ public static partial class Transformations {
         var temp = new T[height, width];
         for (var y = 0; y < height; y++) {
             for (var x = 0; x < halfWidth; x++) {
-                temp[y, x] = source[y, width - 1 - x]; 
+                temp[y, x] = source[y, width - 1 - x];
                 temp[y, width - 1 - x] = source[y, width - 1 - x];
             }
         }
         return temp;
     }
-    
-    public static T[,] FlipV<T>(this T[,] source) {
+
+    public static T[,] YxFlipV<T>(this T[,] source) {
         var height = source.GetLength(0);
         var width = source.GetLength(1);
         var temp = new T[height, width];
@@ -93,7 +93,7 @@ public static partial class Transformations {
         return temp;
     }
 
-    public static T[,] MirrorTopToBottom<T>(this T[,] source) {
+    public static T[,] YxMirrorTopToBottom<T>(this T[,] source) {
         var height = source.GetLength(0);
         var width = source.GetLength(1);
         var halfHeight = height / 2;
@@ -107,8 +107,8 @@ public static partial class Transformations {
         }
         return temp;
     }
-    
-    public static T[,] MirrorBottomToTop<T>(this T[,] source) {
+
+    public static T[,] YxMirrorBottomToTop<T>(this T[,] source) {
         var height = source.GetLength(0);
         var width = source.GetLength(1);
         var halfHeight = height / 2;
@@ -121,7 +121,7 @@ public static partial class Transformations {
             }
         }
         return temp;
-    }    
+    }
 
     /// <summary>
     /// Rotate by primary diagonal from up,left -> down,right
@@ -129,7 +129,7 @@ public static partial class Transformations {
     /// <param name="source"></param>
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
-    public static T[,] FlipDiagonal<T>(this T[,] source) {
+    public static T[,] YxFlipDiagonal<T>(this T[,] source) {
         var height = source.GetLength(0);
         var width = source.GetLength(1);
         var temp = new T[width, height];
@@ -147,7 +147,7 @@ public static partial class Transformations {
     /// <param name="source"></param>
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
-    public static T[,] FlipDiagonalSecondary<T>(this T[,] source) {
+    public static T[,] YxFlipDiagonalSecondary<T>(this T[,] source) {
         var height = source.GetLength(0);
         var width = source.GetLength(1);
         var temp = new T[width, height];
@@ -158,8 +158,8 @@ public static partial class Transformations {
         }
         return temp;
     }
-    
-    public static T[,] Resize<T>(this T[,] source, int newWidth, int newHeight, T defaultValue = default) {
+
+    public static T[,] YxResize<T>(this T[,] source, int newWidth, int newHeight, T defaultValue = default) {
         var height = source.GetLength(0);
         var width = source.GetLength(1);
         if (newWidth == width && newHeight == height) {
@@ -174,49 +174,49 @@ public static partial class Transformations {
         return newGrid;
     }
 
-    public static T[,] GetSubGrid<T>(this T[,] source, int startX, int startY, int width, int height, T defaultValue = default) {
+    public static T[,] GetYxRect<T>(this T[,] source, int startX, int startY, int width, int height, T defaultValue = default) {
         var destination = new T[height, width];
-        source.CopyGrid(startX, startY, width, height, destination, value => value, defaultValue);
+        source.CopyYxRect(startX, startY, width, height, destination, value => value, defaultValue);
         return destination;
     }
 
-    public static TDest[,] GetSubGrid<TSource, TDest>(this TSource[,] source, int startX, int startY, int width, int height, Func<TSource, TDest> transformer, TDest defaultValue = default) {
+    public static TDest[,] GetYxRect<TSource, TDest>(this TSource[,] source, int startX, int startY, int width, int height, Func<TSource, TDest> transformer, TDest defaultValue = default) {
         var destination = new TDest[height, width];
-        source.CopyGrid(startX, startY, width, height, destination, transformer, defaultValue);
+        source.CopyYxRect(startX, startY, width, height, destination, transformer, defaultValue);
         return destination;
     }
 
-    public static TDest[,] GetGrid<TSource, TDest>(this TSource[,] source, Func<TSource, TDest> transformer, TDest defaultValue = default) {
+    public static TDest[,] GetYxRect<TSource, TDest>(this TSource[,] source, Func<TSource, TDest> transformer, TDest defaultValue = default) {
         var destination = new TDest[source.GetLength(0), source.GetLength(1)];
-        source.CopyGrid(destination, transformer, defaultValue);
+        source.CopyYxRect(destination, transformer, defaultValue);
         return destination;
     }
 
-    public static T[,] GetSubGridCenter<T>(this T[,] source, int centerX, int centerY, int size, T defaultValue = default) {
+    public static T[,] GetYxRectCenter<T>(this T[,] source, int centerX, int centerY, int size, T defaultValue = default) {
         var destination = new T[size, size];
         var startX = centerX - size / 2;
         var startY = centerY - size / 2;
-        source.CopyGrid(startX, startY, size, size, destination, value => value, defaultValue);
+        source.CopyYxRect(startX, startY, size, size, destination, value => value, defaultValue);
         return destination;
     }
 
-    public static TDest[,] GetSubGridCenter<TSource, TDest>(this TSource[,] source, int centerX, int centerY, int size, Func<TSource, TDest> transformer, TDest defaultValue = default) {
+    public static TDest[,] GetYxRectCenter<TSource, TDest>(this TSource[,] source, int centerX, int centerY, int size, Func<TSource, TDest> transformer, TDest defaultValue = default) {
         var destination = new TDest[size, size];
         var startX = centerX - size / 2;
         var startY = centerY - size / 2;
-        source.CopyGrid(startX, startY, size, size, destination, transformer, defaultValue);
+        source.CopyYxRect(startX, startY, size, size, destination, transformer, defaultValue);
         return destination;
     }
 
-    public static void CopyGrid<T>(this T[,] source, int startX, int startY, int width, int height, T[,] destination, T defaultValue = default) {
-        source.CopyGrid(startX, startY, width, height, destination, value => value, defaultValue);
+    public static void CopyYxRect<T>(this T[,] source, int startX, int startY, int width, int height, T[,] destination, T defaultValue = default) {
+        source.CopyYxRect(startX, startY, width, height, destination, value => value, defaultValue);
     }
 
-    public static void CopyGrid<TSource, TDest>(this TSource[,] source, TDest[,] destination, Func<TSource, TDest> transformer, TDest defaultValue = default) {
-        source.CopyGrid(0, 0, destination.GetLength(1), destination.GetLength(0), destination, transformer, defaultValue);
+    public static void CopyYxRect<TSource, TDest>(this TSource[,] source, TDest[,] destination, Func<TSource, TDest> transformer, TDest defaultValue = default) {
+        source.CopyYxRect(0, 0, destination.GetLength(1), destination.GetLength(0), destination, transformer, defaultValue);
     }
 
-    public static void CopyGrid<TSource, TDest>(this TSource[,] source, int startX, int startY, int width, int height, TDest[,] destination, Func<TSource, TDest> transformer, TDest defaultValue = default) {
+    public static void CopyYxRect<TSource, TDest>(this TSource[,] source, int startX, int startY, int width, int height, TDest[,] destination, Func<TSource, TDest> transformer, TDest defaultValue = default) {
         var sourceHeight = source.GetLength(0);
         var sourceWidth = source.GetLength(1);
         height = Math.Min(destination.GetLength(0), height);
@@ -234,4 +234,39 @@ public static partial class Transformations {
             }
         }
     }
+    
+    public static T[,] CopyYxCenterRect<T>(this T[,] source, int centerX, int centerY, T defaultValue, T[,] destination) {
+        var sourceWidth = source.GetLength(1);
+        var sourceHeight = source.GetLength(0);
+        var width = destination.GetLength(1);
+        var height = destination.GetLength(0);
+        var startX = centerX - width / 2;
+        var startY = centerY - height / 2;
+        for (var x = 0; x < width; x++) {
+            for (var y = 0; y < height; y++) {
+                var xx = startX + x;
+                var yy = startY + y;
+                destination[y, x] = xx < 0 || yy < 0 || xx >= sourceWidth || yy >= sourceHeight ? defaultValue : source[yy, xx];
+            }
+        }
+        return destination;
+    }
+
+    public static TOut[,] CopyYxCenterRect<T, TOut>(this T[,] source, int centerX, int centerY, TOut defaultValue, TOut[,] destination, Func<T, TOut> transform) {
+        var sourceWidth = source.GetLength(1);
+        var sourceHeight = source.GetLength(0);
+        var width = destination.GetLength(1);
+        var height = destination.GetLength(0);
+        var startX = centerX - width / 2;
+        var startY = centerY - height / 2;
+        for (var x = 0; x < width; x++) {
+            for (var y = 0; y < height; y++) {
+                var xx = startX + x;
+                var yy = startY + y;
+                destination[y, y] = xx < 0 || yy < 0 || xx >= sourceWidth || yy >= sourceHeight ? defaultValue :  transform(source[yy, xx]);
+            }
+        }
+        return destination;
+    }
+
 }

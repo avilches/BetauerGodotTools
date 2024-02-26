@@ -16,23 +16,17 @@ public class TilePatternSet<T, TT> {
     public TilePatternSet<T, TT> Add(T id, string pattern) {
         return Add(id, TilePattern.Parse(pattern, DefaultRules));
     }
-    
-    public void Do(TT[,] data, Action<T> action) {
+
+    public T? FindXyTilePatternId(TT[,] data, T? defaultValue = default) { 
         foreach (var rule in Patterns) {
-            if (rule.Item2.Matches(data)) action(rule.Item1);
+            if (rule.Item2.MatchesXy(data)) return rule.Item1;
         }
+        return defaultValue;
     }
 
-    public bool MatchAny(TT[,] data) {
+    public T? FindYxTilePatternId(TT[,] data, T? defaultValue = default) { 
         foreach (var rule in Patterns) {
-            if (rule.Item2.Matches(data)) return true;
-        }
-        return false;
-    }
-
-    public T? FindTilePatternId(TT[,] data, T? defaultValue = default) { 
-        foreach (var rule in Patterns) {
-            if (rule.Item2.Matches(data)) return rule.Item1;
+            if (rule.Item2.MatchesYx(data)) return rule.Item1;
         }
         return defaultValue;
     }

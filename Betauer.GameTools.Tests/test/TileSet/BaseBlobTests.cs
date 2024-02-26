@@ -7,7 +7,7 @@ namespace Betauer.GameTools.Tests.TileSet;
 
 public abstract class BaseBlobTests {
     protected void AssertBlob47(string str, int[,] grid) {
-        var source = DataGrid<int>.Parse(str, new System.Collections.Generic.Dictionary<char, int> {
+        var source = XyDataGrid<int>.Parse(str, new System.Collections.Generic.Dictionary<char, int> {
             {'#',  0},
             {'.', -1}
         });
@@ -15,12 +15,12 @@ public abstract class BaseBlobTests {
         var tileIds = new int[3, 3];
         var buffer = new int[3, 3];
         source.Loop((value, x, y) => {
-            source.CopyCenterRectTo(x, y, -1, buffer);
-            var tileId = TilePatternRuleSets.Blob47.FindTilePatternId(buffer, -1);
+            source.Data.CopyXyCenterRect(x, y, -1, buffer);
+            var tileId = TilePatternRuleSets.Blob47.FindXyTilePatternId(buffer, -1);
             tileIds[x,y] = tileId;
         });
         
-        ArrayEquals(tileIds, grid.FlipDiagonal());
+        ArrayEquals(tileIds, grid.YxFlipDiagonal());
     }
 
 

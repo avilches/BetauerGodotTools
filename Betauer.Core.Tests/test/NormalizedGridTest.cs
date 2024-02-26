@@ -145,7 +145,7 @@ public class NormalizedDataGridTests {
             {  6,  7,  8 }, 
             { 11, 12, 13 }, 
             { 16, 17, 18 }
-        }.FlipDiagonal());
+        }.YxFlipDiagonal());
     }
     
     [Betauer.TestRunner.Test]
@@ -156,7 +156,7 @@ public class NormalizedDataGridTests {
             {  -1, -1, -1 }, 
             {  -1,  0,  1 }, 
             {  -1,  5,  6 }
-        }.FlipDiagonal());
+        }.YxFlipDiagonal());
     }
     
     public static bool ArrayEquals<T>(T[,] array1, T[,] array2) {

@@ -144,15 +144,29 @@ public class TilePattern<T> : TilePattern {
         RuleGrid = ruleGrid;
     }
 
-    public bool Matches(T[,] data) {
+    public bool MatchesXy(T[,] data) {
+        var gridSize = RuleGrid.GetLength(0);
+        if (data.GetLength(0) != gridSize || data.GetLength(1) != gridSize) {
+            throw new Exception($"Data size {data.GetLength(0)}x{data.GetLength(1)} doesn't match pattern size {gridSize}x{gridSize}");
+        }
+        for (var x = 0; x < gridSize; x++) {
+            for (var y = 0; y < gridSize; y++) {
+                var rule = RuleGrid[x, y];
+                if (!rule.Item2.Invoke(data[x, y])) return false;
+            }
+        }
+        return true;
+    }
+
+    public bool MatchesYx(T[,] data) {
         var gridSize = RuleGrid.GetLength(0);
         if (data.GetLength(0) != gridSize || data.GetLength(1) != gridSize) {
             throw new Exception($"Data size {data.GetLength(0)}x{data.GetLength(1)} doesn't match pattern size {gridSize}x{gridSize}");
         }
         for (var y = 0; y < gridSize; y++) {
             for (var x = 0; x < gridSize; x++) {
-                var rule = RuleGrid[x, y];
-                if (!rule.Item2.Invoke(data[x, y])) return false;
+                var rule = RuleGrid[y, x];
+                if (!rule.Item2.Invoke(data[y, x])) return false;
             }
         }
         return true;
