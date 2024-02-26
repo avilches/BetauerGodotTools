@@ -36,7 +36,7 @@ public partial class WorldGenerator {
 
     private const int Layers = 2;
     private const int Width = 1000;
-    private const int Height = 1000;
+    private const int Height = 600;
     
     public enum ViewMode {
         Massland,

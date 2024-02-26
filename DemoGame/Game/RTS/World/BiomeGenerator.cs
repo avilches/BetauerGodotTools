@@ -536,15 +536,15 @@ public class IslandGenerator {
 
             if (up) {
                 if (overlap == OverlapType.Simple) {
-                    normalizedData.Data[x, y] += heightValue;
+                    normalizedData.Data[y, x] += heightValue;
                 } else if (overlap == OverlapType.MaxHeight) {
-                    normalizedData.Data[x, y] = Math.Max(normalizedData.Data[x, y], heightValue);
+                    normalizedData.Data[y, x] = Math.Max(normalizedData.Data[y, x], heightValue);
                 }
             } else {
                 if (overlap == OverlapType.Simple) {
-                    normalizedData.Data[x, y] -= heightValue;
+                    normalizedData.Data[y, x] -= heightValue;
                 } else if (overlap == OverlapType.MaxHeight) {
-                    normalizedData.Data[x, y] = Math.Min(normalizedData.Data[x, y], -heightValue);
+                    normalizedData.Data[y, x] = Math.Min(normalizedData.Data[y, x], -heightValue);
                 }
             }
         }, easing);

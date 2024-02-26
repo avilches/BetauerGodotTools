@@ -14,17 +14,17 @@ public class FloatGrid<T> {
     public readonly Dictionary<T, Rect2> Rects = new();
 
     public FloatGrid(int sizeX, int sizeY) {
-        Grid = new T[sizeX, sizeY];
+        Grid = new T[sizeY, sizeX];
     }
 
     public void Set(int x, int y, T value) {
-        Grid[x, y] = value;
+        Grid[y, x] = value;
     }
 
     public void Set(int x, int y, int width, int height, T value) {
         for (var yy = 0; yy < height; yy++) {
             for (var xx = 0; xx < width; xx++) {
-                Grid[x + xx, y + yy] = value;
+                Grid[y + yy, x + xx] = value;
             }
         }
     }
@@ -32,23 +32,23 @@ public class FloatGrid<T> {
     public T Get(float x, float y) {
         var posX = GetPosX(x);
         var posY = GetPosY(y);
-        return Grid[posX, posY];
+        return Grid[posY, posX];
     }
 
     public void Set(float x, float y, T value) {
         var posX = GetPosX(x);
         var posY = GetPosY(y);
-        Grid[posX, posY] = value;
+        Grid[posY, posX] = value;
     }
 
     private int GetPosY(float y) {
-        var maxValue = Grid.GetLength(1) - 1;
+        var maxValue = Grid.GetLength(0) - 1;
         var pos = Mathf.RoundToInt(Mathf.Lerp(0, maxValue, y));
         return Math.Clamp(pos, 0, maxValue);    
     }
 
     private int GetPosX(float x) {
-        var maxValue = Grid.GetLength(0) - 1;
+        var maxValue = Grid.GetLength(1) - 1;
         var pos = Mathf.RoundToInt(Mathf.Lerp(0, maxValue, x));
         return Math.Clamp(pos, 0, maxValue);    
     }
@@ -101,12 +101,12 @@ public class FloatGrid<T> {
     /// </summary>
     /// <exception cref="Exception"></exception>
     public void CreateRectangles() {
-        var width = Grid.GetLength(0);
-        var height = Grid.GetLength(1);
+        var height = Grid.GetLength(0);
+        var width = Grid.GetLength(1);
         var rectPositions = new Dictionary<T, (Vector2I, Vector2I)>();
-        for (var x = 0; x < width; x++) {
-            for (var y = 0; y < height; y++) {
-                T value = Grid[x, y];
+        for (var y = 0; y < height; y++) {
+            for (var x = 0; x < width; x++) {
+                T value = Grid[y, x];
                 if (!rectPositions.ContainsKey(value)) {
                     rectPositions[value] = (new Vector2I(x, y), new Vector2I(x, y));
                 } else {
@@ -124,9 +124,9 @@ public class FloatGrid<T> {
         var rectWidth = 1f / width;
         var rectHeight = 1f / height;
         foreach (var (value, (start, end)) in rectPositions) {
-            for (var x = start.X; x <= end.X; x++) {
-                for (var y = start.Y; y <= end.Y; y++) {
-                    T gridValue = Grid[x, y];
+            for (var y = start.Y; y <= end.Y; y++) {
+                for (var x = start.X; x <= end.X; x++) {
+                    T gridValue = Grid[y, x];
                     if (gridValue.Equals(value)) continue;
                     throw new Exception($"Wrong value {gridValue} in position ({x},{y}). Expected value: {value}");
                 }
