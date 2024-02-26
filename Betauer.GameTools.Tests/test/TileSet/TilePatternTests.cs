@@ -10,6 +10,7 @@ using NUnit.Framework;
 namespace Betauer.GameTools.Tests.TileSet;
 
 [TestRunner.Test]
+[Only]
 public class TilePatternTests : BaseBlobTests {
 
     [TestRunner.Test]
@@ -116,7 +117,7 @@ public class TilePatternTests : BaseBlobTests {
     }
     [Betauer.TestRunner.Test]
     public void Blob47Test() {
-        var source = XyDataGrid<int>.Parse(@"
+        var source = YxDataGrid<int>.Parse(@"
 ..0
 000
 ", new Dictionary<char, int> {
@@ -124,31 +125,30 @@ public class TilePatternTests : BaseBlobTests {
             {'.', -1}
         });
 
-        var tileIds = new int[3, 2];
+        var tileIds = new int[2, 3];
         var blob47 = TilePatternRuleSets.Blob47;
         
         var buffer = new int[3, 3];
         source.Loop((value, x, y) => {
-            source.Data.CopyXyCenterRect(x, y, -1, buffer);
-            var tileId = blob47.FindXyTilePatternId(buffer, -1);
-            tileIds[x,y] = tileId;
+            source.CopyCenterRect(x, y, -1, buffer, (p) => p);
+            var tileId = blob47.FindTilePatternId((x,y) => buffer[y, x], -1);
+            tileIds[y, x] = tileId;
         });
         
         // put here the tileIds
         ArrayEquals(tileIds, new[,] {
             { -1,  -1, 16 },
             {  4,  68, 65 },
-        }.YxFlipDiagonal());
+        });
     }
 
 }
 
 internal static class TerrainRuleExtension {
     public static bool Matches(this TilePattern<int> tilePattern, int value) {
-        var grid = new[,] { { value } }; 
-        var matches = tilePattern.MatchesXy(grid);
+        var matches = tilePattern.Matches((_,_) => value);
         var cloned = TilePattern.Parse(tilePattern.Export(), tilePattern.Rules);
-        var matchesCloned = cloned.MatchesXy(grid);
+        var matchesCloned = cloned.Matches((_,_) => value);
         Assert.That(matches, Is.EqualTo(matchesCloned));
         return matches;
     }

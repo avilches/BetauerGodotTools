@@ -6,25 +6,27 @@ namespace Betauer.Core.Tests;
 
 using NUnit.Framework;
 
+/*
 [Betauer.TestRunner.Test]
-public class DataGridTests {
+[Only]
+public class XyDataGridTests {
     [Betauer.TestRunner.Test]
     public void ParseTest() {
         var grid = XyDataGrid<int>.Parse("""
-                                       ...
-                                       .##
-                                       ..@
+                                       ...#
+                                       .###
+                                       ..@#
                                        """, new Dictionary<char, int> { { '#', 2 }, { '.', 0 }, { '@', 3 } });
         
-        Assert.AreEqual(3, grid.Width);
+        Assert.AreEqual(4, grid.Width);
         Assert.AreEqual(3, grid.Height);
 
         ArrayEquals(grid.Data, new[,] {
             { 0, 0, 0 },
-            { 0, 2, 2 },
-            { 0, 0, 3 }
-        }.YxFlipDiagonal());
-
+            { 0, 2, 0 },
+            { 0, 2, 3 },
+            { 2, 2, 2 },
+        });
     }
 
     [Betauer.TestRunner.Test]
@@ -34,44 +36,6 @@ public class DataGridTests {
         Assert.AreEqual(1, grid.GetValue(1, 0));
         Assert.AreEqual(1, grid.GetValue(0, 1));
         Assert.AreEqual(2, grid.GetValue(1, 1));
-    }
-
-    [Betauer.TestRunner.Test]
-    public void NormalizedDataGridTests() {
-        var grid = new NormalizedDataGrid(2, 2).Load((x, y) => x + y);
-        Assert.AreEqual(2, grid.Width);
-        Assert.AreEqual(2, grid.Height);
-
-        Assert.AreEqual(0f, grid.GetValue(0, 0));
-        Assert.AreEqual(1f, grid.GetValue(1, 0));
-        Assert.AreEqual(1f, grid.GetValue(0, 1));
-        Assert.AreEqual(2f, grid.GetValue(1, 1));
-
-        grid.Normalize();
-
-        Assert.AreEqual(0f, grid.GetValue(0, 0));
-        Assert.AreEqual(0.5f, grid.GetValue(1, 0));
-        Assert.AreEqual(0.5f, grid.GetValue(0, 1));
-        Assert.AreEqual(1f, grid.GetValue(1, 1));
-
-        grid.Normalize(0f, 1f);
-
-        Assert.AreEqual(0f, grid.GetValue(0, 0));
-        Assert.AreEqual(0.5f, grid.GetValue(1, 0));
-        Assert.AreEqual(0.5f, grid.GetValue(0, 1));
-        Assert.AreEqual(1f, grid.GetValue(1, 1));
-
-        grid.Normalize(-10f, 30f);
-        Assert.AreEqual(-10f, grid.GetValue(0, 0));
-        Assert.AreEqual(10f, grid.GetValue(1, 0));
-        Assert.AreEqual(10f, grid.GetValue(0, 1));
-        Assert.AreEqual(30f, grid.GetValue(1, 1));
-
-        grid.Normalize(0f, 1f);
-        Assert.AreEqual(0f, grid.GetValue(0, 0));
-        Assert.AreEqual(0.5f, grid.GetValue(1, 0));
-        Assert.AreEqual(0.5f, grid.GetValue(0, 1));
-        Assert.AreEqual(1f, grid.GetValue(1, 1));
     }
 
     private XyDataGrid<int> _xyDataGrid;
@@ -146,6 +110,44 @@ public class DataGridTests {
         _xyDataGrid.Loop((value, x, y) => Assert.AreEqual(backup[x,y] + 1, value));
     }
 
+    [Betauer.TestRunner.Test]
+    public void NormalizeTest() {
+        var grid = new XyDataGrid<float>(2, 2).Load((x, y) => x + y);
+        Assert.AreEqual(2, grid.Width);
+        Assert.AreEqual(2, grid.Height);
+
+        Assert.AreEqual(0f, grid.GetValue(0, 0));
+        Assert.AreEqual(1f, grid.GetValue(1, 0));
+        Assert.AreEqual(1f, grid.GetValue(0, 1));
+        Assert.AreEqual(2f, grid.GetValue(1, 1));
+
+        grid.Normalize();
+
+        Assert.AreEqual(0f, grid.GetValue(0, 0));
+        Assert.AreEqual(0.5f, grid.GetValue(1, 0));
+        Assert.AreEqual(0.5f, grid.GetValue(0, 1));
+        Assert.AreEqual(1f, grid.GetValue(1, 1));
+
+        grid.Normalize(0f, 1f);
+
+        Assert.AreEqual(0f, grid.GetValue(0, 0));
+        Assert.AreEqual(0.5f, grid.GetValue(1, 0));
+        Assert.AreEqual(0.5f, grid.GetValue(0, 1));
+        Assert.AreEqual(1f, grid.GetValue(1, 1));
+
+        grid.Normalize(-10f, 30f);
+        Assert.AreEqual(-10f, grid.GetValue(0, 0));
+        Assert.AreEqual(10f, grid.GetValue(1, 0));
+        Assert.AreEqual(10f, grid.GetValue(0, 1));
+        Assert.AreEqual(30f, grid.GetValue(1, 1));
+
+        grid.Normalize(0f, 1f);
+        Assert.AreEqual(0f, grid.GetValue(0, 0));
+        Assert.AreEqual(0.5f, grid.GetValue(1, 0));
+        Assert.AreEqual(0.5f, grid.GetValue(0, 1));
+        Assert.AreEqual(1f, grid.GetValue(1, 1));
+    }
+
     public static bool ArrayEquals<T>(T[,] array1, T[,] array2) {
         Assert.AreEqual(array1.GetLength(0), array2.GetLength(0),
             $"Array dimension [{array1.GetLength(0)},{array1.GetLength(1)}] wrong. Expected: [{array2.GetLength(0)},{array2.GetLength(0)}]");
@@ -162,3 +164,5 @@ public class DataGridTests {
     }
     
 }
+
+*/

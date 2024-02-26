@@ -66,7 +66,7 @@ public class PoissonDemos {
     }
 
     private Func<float, float, float> CreateNormalizedFunc(FastNoiseLite fastNoise, int width, int height) {
-        var dataGrid = new NormalizedDataGrid(width, height).Load((x, y) => fastNoise.GetNoise(x, y)).Normalize();
+        var dataGrid = new YxDataGrid<float>(width, height).Load((x, y) => fastNoise.GetNoise(x, y)).Normalize();
         return (x, y) => dataGrid.GetValue(Math.Clamp(Mathf.RoundToInt(x), 0, width - 1), Math.Clamp(Mathf.RoundToInt(y), 0, height - 1));
     }
 

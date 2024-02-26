@@ -122,7 +122,7 @@ public abstract partial class TilePattern {
             }
             var x = 0;
             foreach (var part in parts) {
-                ruleGrid[x, y] = (part, rules[part]);
+                ruleGrid[y, x] = (part, rules[part]);
                 x++;
             }
             y++;
@@ -144,33 +144,23 @@ public class TilePattern<T> : TilePattern {
         RuleGrid = ruleGrid;
     }
 
-    public bool MatchesXy(T[,] data) {
+    /// <summary>
+    /// The data func must be (x, y) => value
+    /// </summary>
+    /// <param name="data"></param>
+    /// <returns></returns>
+    public bool Matches(Func<int, int, T> data) {
         var gridSize = RuleGrid.GetLength(0);
-        if (data.GetLength(0) != gridSize || data.GetLength(1) != gridSize) {
-            throw new Exception($"Data size {data.GetLength(0)}x{data.GetLength(1)} doesn't match pattern size {gridSize}x{gridSize}");
-        }
-        for (var x = 0; x < gridSize; x++) {
-            for (var y = 0; y < gridSize; y++) {
-                var rule = RuleGrid[x, y];
-                if (!rule.Item2.Invoke(data[x, y])) return false;
+        for (var y = 0; y < gridSize; y++) {
+            for (var x = 0; x < gridSize; x++) {
+                var value = data.Invoke(x, y);
+                var rule = RuleGrid[y, x].Item2;
+                if (!rule.Invoke(value)) return false;
             }
         }
         return true;
     }
 
-    public bool MatchesYx(T[,] data) {
-        var gridSize = RuleGrid.GetLength(0);
-        if (data.GetLength(0) != gridSize || data.GetLength(1) != gridSize) {
-            throw new Exception($"Data size {data.GetLength(0)}x{data.GetLength(1)} doesn't match pattern size {gridSize}x{gridSize}");
-        }
-        for (var y = 0; y < gridSize; y++) {
-            for (var x = 0; x < gridSize; x++) {
-                var rule = RuleGrid[y, x];
-                if (!rule.Item2.Invoke(data[y, x])) return false;
-            }
-        }
-        return true;
-    }
 
     public string Export() {
         var gridSize = RuleGrid.GetLength(0);
@@ -178,7 +168,7 @@ public class TilePattern<T> : TilePattern {
         var maxRuleNameLength = Rules.Keys.Max(k => k.Length);
         for (var y = 0; y < gridSize; y++) {
             for (var x = 0; x < gridSize; x++) {
-                sb.Append(RuleGrid[x, y].Item1.PadRight(maxRuleNameLength));
+                sb.Append(RuleGrid[y, x].Item1.PadRight(maxRuleNameLength));
                 if (x < gridSize - 1) sb.Append(' ');
             }
             if (y < gridSize - 1) sb.Append('\n');

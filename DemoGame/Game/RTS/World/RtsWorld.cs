@@ -93,10 +93,11 @@ public partial class RtsWorld : Node, IInjectable {
 		var y = Mathf.RoundToInt(mousePosition.Y);
 		if (x < 0 || x >= WorldGenerator.BiomeGenerator.Width || y < 0 || y >= WorldGenerator.BiomeGenerator.Height) return;
 		Console.WriteLine("Cell:"+x+","+y);
-		var cell = WorldGenerator.BiomeGenerator.BiomeCells[x, y];
+		var cell = WorldGenerator.BiomeGenerator.BiomeCells.GetValue(x, y);
 		ColorRect.Color = cell.Biome.Color;
 		MouseInfo.Position = GetViewport().GetMousePosition() + new Vector2I(20, 20);
 		MouseText.Text = $"{cell.HeightMt:0.00}c ({cell.Height:0.00})\n";
+		MouseText.Text = $"({x},({y})";
 		// MouseText.Text = $"{cell.TempCelsius:0.00}c ({cell.Temp:0.00})\n{cell.HeightMt:0.00}c ({cell.Height:0.00})\n{cell.Humidity:0.00}%\n";
 	}
 	
