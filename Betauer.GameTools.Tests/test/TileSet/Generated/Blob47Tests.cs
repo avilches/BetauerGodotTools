@@ -3,7 +3,6 @@ using Betauer.TestRunner;
 namespace Betauer.GameTools.Tests.TileSet.Generated;
 
 [Test]
-[Only]
 public class Blob47Tests : BaseBlobTests {
     // |  0|   |  2|  8| 10| 32| 34| 40| 42|128|130|136|138|160|162|168|170|
     // |   |   |  #|   |  #|   |  #|   |  #|#  |# #|#  |# #|#  |# #|#  |# #|

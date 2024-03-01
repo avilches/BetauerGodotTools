@@ -4,7 +4,6 @@ using NUnit.Framework;
 namespace Betauer.Core.Tests;
 
 [TestRunner.Test]
-[Only]
 public class YxTransformationsTests {
     
     [TestRunner.Test]

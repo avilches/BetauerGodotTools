@@ -7,7 +7,6 @@ namespace Betauer.Core.Tests;
 using NUnit.Framework;
 
 [Betauer.TestRunner.Test]
-[Only]
 public class DataGridTests {
     [Betauer.TestRunner.Test]
     public void ParseTest() {
