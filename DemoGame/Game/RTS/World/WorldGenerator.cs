@@ -34,9 +34,8 @@ public partial class WorldGenerator {
     public Trees TreesInstance;
     private const int CellSize = 16;
 
-    private const int Layers = 2;
-    private const int Width = 1000;
-    private const int Height = 600;
+    private const int Width = 500;
+    private const int Height = 500;
     
     public enum ViewMode {
         Massland,
@@ -80,8 +79,8 @@ public partial class WorldGenerator {
         BiomeGenerator.Seed = Seed;
         BiomeGenerator.Generate();
                 
-        GenerateOld(GodotTileMap, BiomeGenerator.HeightNoise, BiomeGenerator.HumidityNoise);
         return;
+        GenerateOld(GodotTileMap, BiomeGenerator.HeightNoise, BiomeGenerator.HumidityNoise);
         BiomeGenerator.BiomeCells.Loop((cell, x, y) => {
             switch (cell.Biome.Type) {
                 case BiomeType.Beach:

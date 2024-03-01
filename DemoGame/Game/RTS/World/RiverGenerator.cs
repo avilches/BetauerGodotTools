@@ -212,6 +212,7 @@ public class RiverGeneratorPoint {
 
 /// <summary>
 /// Generate rivers drawing lines between the candidate points from the highest points to the lowest points until reach the sea
+/// The candidate points comes from a graph created with the voronoi edges
 /// </summary>
 public class RiverGeneratorGraph {
     private static float initialWater = 1f;
@@ -249,8 +250,11 @@ public class RiverGeneratorGraph {
             currentCell.Water += waterAmount;
             river.Add(currentCell);
             riverList.Add(currentCell);
+            if (currentCell.Sea) {
+                break;
+            }
             var lowestNeighbour = FindLowestNeighbourPoint(points, currentCell, river, random);
-            if (lowestNeighbour == null || lowestNeighbour.Sea) {
+            if (lowestNeighbour == null) {
                 break;
             }
             currentCell = lowestNeighbour;

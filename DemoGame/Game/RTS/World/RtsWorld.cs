@@ -92,7 +92,6 @@ public partial class RtsWorld : Node, IInjectable {
 		var x = Mathf.RoundToInt(mousePosition.X);
 		var y = Mathf.RoundToInt(mousePosition.Y);
 		if (x < 0 || x >= WorldGenerator.BiomeGenerator.Width || y < 0 || y >= WorldGenerator.BiomeGenerator.Height) return;
-		Console.WriteLine("Cell:"+x+","+y);
 		var cell = WorldGenerator.BiomeGenerator.BiomeCells.GetValue(x, y);
 		ColorRect.Color = cell.Biome.Color;
 		MouseInfo.Position = GetViewport().GetMousePosition() + new Vector2I(20, 20);
@@ -100,20 +99,30 @@ public partial class RtsWorld : Node, IInjectable {
 		MouseText.Text = $"({x},({y})";
 		// MouseText.Text = $"{cell.TempCelsius:0.00}c ({cell.Temp:0.00})\n{cell.HeightMt:0.00}c ({cell.Height:0.00})\n{cell.Humidity:0.00}%\n";
 	}
-	
+
+	private bool zoomingIn = false;
+	private bool zoomingOut = false;
 	private async void Zooming(InputEvent e) {
 		if (e.IsKeyJustPressed(Key.Q) || e.IsClickPressed(MouseButton.WheelUp)) {
-			if (CameraController.IsBusy()) return;
-			if (!CameraGameObject.ZoomIn()) return;
+			if (zoomingIn) return;
+			if (!CameraGameObject.IncreaseZoomLevel()) return;
+			zoomingIn = true;
+			zoomingOut = false;
 			GetViewport().SetInputAsHandled();
+			Console.WriteLine($"Zooming in {CameraGameObject.Zoom}x {zoomingIn} {zoomingOut}"); //Position:{CameraController.Camera2D.Position}");
 			await CameraController.Zoom(new Vector2(CameraGameObject.Zoom, CameraGameObject.Zoom), RtsConfig.ZoomTime, Interpolation.Linear, CameraController.Camera2D.GetLocalMousePosition);
-			Console.WriteLine($"Zooming {CameraGameObject.Zoom}x Position:{CameraController.Camera2D.Position}");
+			zoomingIn = false;
+			Console.WriteLine($"Zooming in {CameraGameObject.Zoom}x {zoomingIn} {zoomingOut}"); //Position:{CameraController.Camera2D.Position}");
 		} else if (e.IsKeyJustPressed(Key.E) || e.IsClickPressed(MouseButton.WheelDown)) {
-			if (CameraController.IsBusy()) return;
-			if (!CameraGameObject.ZoomOut()) return;
+			if (zoomingOut) return;
+			if (!CameraGameObject.DecreaseZoomLevel()) return;
+			zoomingOut = true;
+			zoomingIn = false;
 			GetViewport().SetInputAsHandled();
+			Console.WriteLine($"Zooming out {CameraGameObject.Zoom}x {zoomingIn} {zoomingOut}"); //Position:{CameraController.Camera2D.Position}");
 			await CameraController.Zoom(new Vector2(CameraGameObject.Zoom, CameraGameObject.Zoom), RtsConfig.ZoomTime, Interpolation.Linear, CameraController.Camera2D.GetLocalMousePosition);
-			Console.WriteLine($"Zooming {CameraGameObject.Zoom}x Position:{CameraController.Camera2D.Position}");
+			zoomingOut = false;
+			Console.WriteLine($"Zooming out {CameraGameObject.Zoom}x {zoomingIn} {zoomingOut}"); //Position:{CameraController.Camera2D.Position}");
 		}
 	}
 

@@ -76,6 +76,10 @@ public class CameraController {
         return this;
     }
 
+    public void StopZooming() {
+        _zoomTween?.Kill();
+    }
+
     public CameraController ContinueFollowing() {
         if (_getFollowingPosition != null) {
             NodeManager.MainInstance.OnPhysicsProcess += Refresh;

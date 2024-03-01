@@ -42,7 +42,7 @@ public class CameraGameObject : GameObject {
 
     public override SaveObject CreateSaveObject() => new CameraSaveObject(this);
 
-    public bool ZoomIn() {
+    public bool IncreaseZoomLevel() {
         if (_zoomPosition < RtsConfig.ZoomLevels.Count - 1) {
             _zoomPosition++;
             _zoom = RtsConfig.ZoomLevels[_zoomPosition];
@@ -51,7 +51,7 @@ public class CameraGameObject : GameObject {
         return false;
     }
     
-    public bool ZoomOut() {
+    public bool DecreaseZoomLevel() {
         if (_zoomPosition > 0) {
             _zoomPosition--;
             _zoom = RtsConfig.ZoomLevels[_zoomPosition];
