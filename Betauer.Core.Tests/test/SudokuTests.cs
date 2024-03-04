@@ -10,7 +10,6 @@ using NUnit.Framework;
 namespace Betauer.Core.Tests; 
 
 [Betauer.TestRunner.Test]
-[Only]
 public class SudokuTests {
 
     [Betauer.TestRunner.Test]
