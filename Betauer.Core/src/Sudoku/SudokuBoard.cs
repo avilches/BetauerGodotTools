@@ -266,24 +266,24 @@ public class SudokuBoard {
         Relabel(map);
     }
 
-    public void RemoveCells(int seed, int cells) {
-        var indexes = GetRandomCells(seed, cells);
+    public void RemoveCells(int seed, int hints) {
+        var indexes = new Random(seed).Extract(Enumerable.Range(0, TotalCells).ToArray(), TotalCells - hints);
         foreach (var index in indexes) {
             RemoveCell(index);
         }
     }
 
-    // Get x random numbers from 0 to 80 without repetition 
-    public static int[] GetRandomCells(int seed, int cells) {
-        var rnd = new Random(seed);
-        var result = new int[cells];
-        var list = new List<int>(Enumerable.Range(0, TotalCells));
-        for (var i = 0; i < cells; ++i) {
-            var index = rnd.Next(list.Count);
-            result[i] = list[index];
-            list.RemoveAt(index);
+    public void RemoveCells(string mask) {
+        if (mask.Length > TotalCells) {
+            // remove all non-digits and non-dots
+            mask = new string(mask.Where(c => char.IsDigit(c) || c == '.').ToArray());
         }
-        return result;
+        for (var pos = 0; pos < TotalCells; ++pos) {
+            var (x, y) = (pos % 9, pos / 9);
+            var c = mask[pos];
+            var value = c != '.' && c != '0' ? c - '0' : -1;
+            if (value == -1) RemoveCell(y + 1, x + 1);
+        }
     }
 
     public void Relabel(int[] map) {

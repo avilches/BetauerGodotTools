@@ -130,6 +130,37 @@ public static partial class RandomExtensions {
         var randomIndex = random.Next(0, values.Count);
         return values[randomIndex];
     }
+    
+    public static T[] Extract<T>(this Random random, T[] items, int k) {
+        var selected = new T[k];
+        var selectedCount = 0;
+        double needed = k;
+        double available = items.Length;
+        while (selectedCount < k) {
+            if( random.NextDouble() < needed / available ) {
+                selected[selectedCount++] = items[(int)available - 1];
+                needed--;
+            }
+            available--;
+        }
+        return selected;
+    }
+    
+    public static IList<T> Extract<T>(this Random random, IList<T> items, int k) {
+        var selected = new List<T>(k);
+        var selectedCount = 0;
+        double needed = k;
+        double available = items.Count;
+        while (selectedCount < k) {
+            if( random.NextDouble() < needed / available ) {
+                selected[selectedCount++] = items[(int)available - 1];
+                needed--;
+            }
+            available--;
+        }
+        return selected;
+    }
+    
 
     /// <summary>
     /// Shuffle the array in place using the Fisher-Yates algorithm.
