@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using DlxLib;
 
 namespace Betauer.Core.Sudoku;
 
@@ -26,18 +27,21 @@ public class SudokuBoard {
         public override string ToString() {
             return $"({Column},{Row})={Value}";
         }
-        
+
         /// <summary>
         /// Checks the specified cell has a valid value
         /// </summary>
         public bool IsValidValue() {
             return IsValidValue(Value);
         }
+        
+        public bool IsFilled() => Value > 0;
 
         /// <summary>
         /// Checks the specified cell can accept the specified value.
         /// </summary>
         public bool IsValidValue(int val) {
+            if (val is < 1 or > 9) return false;
             // Check the value whether exists in the 3x3 group.
             if (Sudoku.Cells.Where(c => c.Index != Index && c.GroupNo == GroupNo).Any(c2 => c2.Value == val))
                 return false;
@@ -89,9 +93,7 @@ public class SudokuBoard {
     public SudokuBoard(SudokuBoard other) {
         Cells = new List<Cell>(TotalCells);
         InitializeCells();
-        for (var i = 0; i < TotalCells; ++i) {
-            SetCellValue(other.GetCell(i).Value, i);
-        }
+        Import(other);
     }
 
     public SudokuBoard(string? import = null) {
@@ -107,37 +109,44 @@ public class SudokuBoard {
     }
 
     public Cell GetCell(int row, int column) => GetCell((row - 1) * TotalRows + column - 1);
-
     public Cell GetCell(int cellIndex) => Cells[cellIndex];
-
-    public void SetCellValue(int value, int row, int column) {
-        SetCellValue(value, (row - 1) * TotalRows + column - 1);
-    }
-
-    public void SetCellValue(int value, int cellIndex) {
-        Cells[cellIndex].Value = value == 0 ? -1 : value;
-    }
+    public void SetCellValue(int value, int row, int column) => SetCellValue(value, (row - 1) * TotalRows + column - 1);
+    public void SetCellValue(int value, int cellIndex) => Cells[cellIndex].Value = value < 1 ? -1 : value;
 
     /// <summary>
     /// Checks the board is already filled.
     /// </summary>
-    public bool IsBoardFilled() => Cells.All(cell => cell.Value != -1);
+    public bool IsBoardFilled() => Cells.All(cell => cell.IsFilled());
 
     /// <summary>
     /// Fills the game board with -1 which is the default for the empty state. 
     /// </summary>
-    public void Clear() => Cells.ForEach(cell => SetCellValue(-1, cell.Index));
+    public void Clear() => Cells.ForEach(cell => cell.Value = -1);
 
     /// <summary>
-    /// Check current state of the table is valid.
+    /// Returns true if all cells are valid (or empty).
     /// </summary>
     /// <returns>Returns whether is table is valid or not.</returns>
-    public bool IsValid(bool ignoreEmptyCells = false) =>
-        Cells.All(cell => cell.Value == -1 || cell.IsValidValue()) ;
+    public bool IsValid() => Cells.All(cell => !cell.IsFilled() || cell.IsValidValue());
 
-    public Cell? GetFirstInvalidCell() =>
-        Cells.FirstOrDefault(cell => cell.Value != -1 && !cell.IsValidValue());
+    /// <summary>
+    /// Returns the first filled but invalid cell.
+    /// </summary>
+    /// <returns></returns>
+    public Cell? GetFirstInvalidCell() => Cells.FirstOrDefault(cell => cell.IsFilled() && !cell.IsValidValue());
 
+    /// <summary>
+    /// Returns all the filled but invalid cells.
+    /// </summary>
+    /// <returns></returns>
+    public IEnumerable<Cell> GetInvalidCells() => Cells.Where(cell => cell.IsFilled() && !cell.IsValidValue());
+
+
+    public void Import(SudokuBoard other) {
+        for (var i = 0; i < TotalCells; ++i) {
+            SetCellValue(other.GetCell(i).Value, i);
+        }
+    }
 
     public void Import(int[,] grid) {
         for (var y = 0; y < 9; ++y) {
@@ -160,10 +169,9 @@ public class SudokuBoard {
         }
     }
 
-    public string Export(bool onlyLine = false) {
-        var sb = new StringBuilder();
+    public string Export() {
+        var sb = new StringBuilder(TotalCells);
         for (var y = 0; y < 9; ++y) {
-            if (!onlyLine && y > 0) sb.AppendLine();
             for (var x = 0; x < 9; ++x) {
                 var value = GetCell(y + 1, x + 1).Value;
                 if (value < 1) sb.Append('0');
@@ -174,10 +182,18 @@ public class SudokuBoard {
     }
 
     public bool SolveDancingLinks() {
-        var solver = new DancingLinksSolver(CreateGrid());
-        if (!solver.Solve()) return false;
-        Import(solver.Data);
+        var solver = GetSolutions(1).FirstOrDefault();
+        if (solver == null) return false;
+        Import(solver);
         return true;
+    }
+
+    public IEnumerable<SudokuBoard> GetSolutions(int maxSolutions) {
+        return DlxSudokuSolver.Resolve(this, (_) => --maxSolutions == 0);
+    }
+
+    public IEnumerable<SudokuBoard> GetSolutions(Predicate<SudokuBoard> predicate) {
+        return DlxSudokuSolver.Resolve(this, predicate);
     }
 
     public bool SolveBacktrack(int seed = -1) {

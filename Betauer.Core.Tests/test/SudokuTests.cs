@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using Betauer.Core.Sudoku;
@@ -10,7 +11,7 @@ using NUnit.Framework;
 namespace Betauer.Core.Tests;
 
 [Betauer.TestRunner.Test]
-[Only]
+// [Only]
 public class SudokuTests {
     [Betauer.TestRunner.Test]
     public void DancingLinkTest() {
@@ -19,12 +20,31 @@ public class SudokuTests {
             Assert.That(sudoku.IsBoardFilled(), Is.False);
             Assert.That(sudoku.IsValid(), Is.True);
 
-            Console.WriteLine(sudoku.Export(true));
+            Console.WriteLine(sudoku.Export());
             Assert.That(sudoku.SolveDancingLinks(), Is.True);
 
             Assert.That(sudoku.IsBoardFilled(), Is.True);
             Assert.That(sudoku.IsValid(), Is.True);
         }
+    }
+
+    [Betauer.TestRunner.Test]
+    public void DancingLinkMultipleSolutionTest() {
+            SudokuBoard sudoku = new SudokuBoard(".......2.8.......6.1.2.5...9.54....8.........3....85.1...3.2.8.4.......9.7..6....");
+            Assert.That(sudoku.IsBoardFilled(), Is.False);
+            Assert.That(sudoku.IsValid(), Is.True);
+
+            Console.WriteLine(sudoku.Export());
+            var solutions10 = sudoku.GetSolutions(10).ToList();
+            Assert.That(solutions10.Count, Is.EqualTo(10));
+            var solutions = sudoku.GetSolutions(0).ToList();
+            Assert.That(solutions.Count, Is.EqualTo(1204));
+            
+            solutions.ForEach(s => {
+                Assert.That(s.IsBoardFilled(), Is.True);
+                Assert.That(s.IsValid(), Is.True);
+            });
+
     }
 
     [Betauer.TestRunner.Test(Description = "Generate using backtracking deterministic, no seed, fixed next number")]
@@ -43,11 +63,11 @@ public class SudokuTests {
         Assert.That(sudoku.IsValid(), Is.True);
 
         Assert.That(sudoku.SolveBacktrack());
-        Console.WriteLine(sudoku.Export(true));
+        Console.WriteLine(sudoku.Export());
 
         Assert.That(sudoku.IsBoardFilled(), Is.True);
         Assert.That(sudoku.IsValid(), Is.True);
-        Assert.AreEqual(sudoku.Export(true), "123456789456789123789123456214365897365897214897214365531642978642978531978531642");
+        Assert.AreEqual(sudoku.Export(), "123456789456789123789123456214365897365897214897214365531642978642978531978531642");
     }
 
     [Betauer.TestRunner.Test]
@@ -55,7 +75,7 @@ public class SudokuTests {
         var import = "953187642624539178817462395589713264132654789476928513745296831268341957391875426";
         var sudoku = new SudokuBoard(import);
         var other = new SudokuBoard(sudoku.CreateGrid());
-        Assert.AreEqual(other.Export(true), import);
+        Assert.AreEqual(other.Export(), import);
     }
 
     [Betauer.TestRunner.Test]
@@ -112,8 +132,8 @@ public class SudokuTests {
         var import = "000011111111111111111111111111111111111112222222222222222222222222222222223456789";
         var sudoku = new SudokuBoard(import);
         sudoku.Relabel(new[] { 2, 1, 3, 4, 5, 6, 7, 8, 9 });
-        Console.WriteLine(sudoku.Export(true));
-        Assert.That(sudoku.Export(true), Is.EqualTo("000022222222222222222222222222222222222221111111111111111111111111111111113456789"));
+        Console.WriteLine(sudoku.Export());
+        Assert.That(sudoku.Export(), Is.EqualTo("000022222222222222222222222222222222222221111111111111111111111111111111113456789"));
     }
 
     [Betauer.TestRunner.Test]
@@ -121,8 +141,8 @@ public class SudokuTests {
         var import = "000087642624539178817462395589713264132654789476928513745296831268341957391875426";
         var sudoku = new SudokuBoard(import);
         sudoku.Relabel(new[] { 2, 3, 4, 5, 6, 7, 8, 9, 1 });
-        Console.WriteLine(sudoku.Export(true));
-        Assert.That(sudoku.Export(true), Is.EqualTo("000098753735641289928573416691824375243765891587139624856317942379452168412986537"));
+        Console.WriteLine(sudoku.Export());
+        Assert.That(sudoku.Export(), Is.EqualTo("000098753735641289928573416691824375243765891587139624856317942379452168412986537"));
         Assert.True(sudoku.IsValid());
     }
 
@@ -142,26 +162,27 @@ public class SudokuTests {
         Assert.That(sudoku.IsValid(), Is.True);
 
         Assert.That(sudoku.SolveBacktrack(902));
-        Console.WriteLine(sudoku.Export(true));
+        Console.WriteLine(sudoku.Export());
 
         Assert.That(sudoku.IsBoardFilled(), Is.True);
         Assert.That(sudoku.IsValid(), Is.True);
-        Assert.AreEqual(sudoku.Export(true), "953187642624539178817462395589713264132654789476928513745296831268341957391875426");
+        Assert.AreEqual(sudoku.Export(), "953187642624539178817462395589713264132654789476928513745296831268341957391875426");
     }
 
     [Betauer.TestRunner.Test(Description = "Generate using dancing links deterministic")]
+    [Only]
     public void GenerateDancingLinks() {
-        var import = "000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+        var import = "120000000000000000000000000000000000000000000000000000000000000000000000000000000";
         var sudoku = new SudokuBoard(import);
         Assert.That(sudoku.IsBoardFilled(), Is.False);
         Assert.That(sudoku.IsValid(), Is.True);
 
         sudoku.SolveDancingLinks();
-        Console.WriteLine(sudoku.Export(true));
+        Console.WriteLine(sudoku.Export());
 
         Assert.That(sudoku.IsBoardFilled(), Is.True);
         Assert.That(sudoku.IsValid(), Is.True);
-        Assert.AreEqual(sudoku.Export(true), "126437985435986271897152643742598316358261497619374852561829734284713569973645128");
+        Assert.AreEqual(sudoku.Export(), "123456789789123456456789123312845967697312845845697312231574698968231574574968231");
     }
 
     [Betauer.TestRunner.Test]
@@ -182,10 +203,10 @@ public class SudokuTests {
             Assert.That(sudokuBacktrack.IsValid(), Is.True);
             Console.WriteLine(sudokuString);
             try {
-                Assert.AreEqual(sudokuBacktrack.Export(true), sudokuDancing.Export(true));
+                Assert.AreEqual(sudokuBacktrack.Export(), sudokuDancing.Export());
             } catch (Exception e) {
-                Console.WriteLine("BackTracking: " + sudokuBacktrack.Export(true));
-                Console.WriteLine("DancingLinks: " + sudokuDancing.Export(true));
+                Console.WriteLine("BackTracking: " + sudokuBacktrack.Export());
+                Console.WriteLine("DancingLinks: " + sudokuDancing.Export());
                 Console.WriteLine(e);
                 throw;
             }
@@ -228,9 +249,9 @@ public class SudokuTests {
         Assert.IsTrue(Regex.IsMatch(line, "^[0-9.]+$"));
 
         var sudokuModel = new SudokuBoard(line);
-        Assert.AreEqual(sudokuModel.Export(true), line);
+        Assert.AreEqual(sudokuModel.Export(), line);
 
-        Assert.AreEqual(new SudokuBoard(sudokuModel.Export(true)).Export(true), line);
-        Assert.AreEqual(new SudokuBoard(sudokuModel.Export()).Export(true), line);
+        Assert.AreEqual(new SudokuBoard(sudokuModel.Export()).Export(), line);
+        Assert.AreEqual(new SudokuBoard(sudokuModel.Export()).Export(), line);
     }
 }
