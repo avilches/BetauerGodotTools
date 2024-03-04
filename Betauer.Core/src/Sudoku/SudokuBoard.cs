@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
-using DlxLib;
 
 namespace Betauer.Core.Sudoku;
 
@@ -108,10 +108,34 @@ public class SudokuBoard {
         Import(import);
     }
 
+    /// <summary>
+    /// row and column are 1-based (1 to 9)
+    /// </summary>
     public Cell GetCell(int row, int column) => GetCell((row - 1) * TotalRows + column - 1);
+    /// <summary>
+    /// cellIndex is 0-based (0 to 80)
+    /// </summary>
     public Cell GetCell(int cellIndex) => Cells[cellIndex];
+
+    /// <summary>
+    /// cellIndex is 0-based (0 to 80)
+    /// </summary>
     public void SetCellValue(int value, int row, int column) => SetCellValue(value, (row - 1) * TotalRows + column - 1);
+    
+    /// <summary>
+    /// row and column are 1-based (1 to 9)
+    /// </summary>
     public void SetCellValue(int value, int cellIndex) => Cells[cellIndex].Value = value < 1 ? -1 : value;
+
+    /// <summary>
+    /// cellIndex is 0-based (0 to 80)
+    /// </summary>
+    public void RemoveCell(int row, int column) => SetCellValue(-1, (row - 1) * TotalRows + column - 1);
+    
+    /// <summary>
+    /// row and column are 1-based (1 to 9)
+    /// </summary>
+    public void RemoveCell(int cellIndex) => Cells[cellIndex].Value = -1;
 
     /// <summary>
     /// Checks the board is already filled.
@@ -200,46 +224,66 @@ public class SudokuBoard {
         return new BacktrackSolver(this, seed).Solve();
     }
 
-    private static Func<int[,], int[,]>[] Trans = {
+    private static readonly IList<Func<int[,], int[,]>> Transformations = new Func<int[,], int[,]>[]{
         null, // this is for a random relabel
-        (data) => data.YxFlipDiagonal(),
-        (data) => data.YxFlipDiagonalSecondary(),
-        (data) => data.YxRotate90(),
-        (data) => data.YxRotate180(),
-        (data) => data.YxRotateMinus90(),
-        (data) => data.YxFlipH(),
-        (data) => data.YxFlipV(),
-        (data) => data.YxSwapColumns(0, 1),
-        (data) => data.YxSwapColumns(0, 2),
-        (data) => data.YxSwapColumns(1, 2),
-        (data) => data.YxSwapColumns(3, 4),
-        (data) => data.YxSwapColumns(3, 5),
-        (data) => data.YxSwapColumns(4, 5),
-        (data) => data.YxSwapColumns(6, 7),
-        (data) => data.YxSwapColumns(6, 8),
-        (data) => data.YxSwapColumns(7, 8),
-        (data) => data.YxSwapRows(0, 1),
-        (data) => data.YxSwapRows(0, 2),
-        (data) => data.YxSwapRows(1, 2),
-        (data) => data.YxSwapRows(3, 4),
-        (data) => data.YxSwapRows(3, 5),
-        (data) => data.YxSwapRows(4, 5),
-        (data) => data.YxSwapRows(6, 7),
-        (data) => data.YxSwapRows(6, 8),
-        (data) => data.YxSwapRows(7, 8),
-        (data) => data.YxSwapRows(0, 3, 3),
-        (data) => data.YxSwapRows(0, 6, 3),
-        (data) => data.YxSwapRows(3, 6, 3),
-        (data) => data.YxSwapColumns(0, 3, 3),
-        (data) => data.YxSwapColumns(0, 6, 3),
-        (data) => data.YxSwapColumns(3, 6, 3)
-    };
+        data => data.YxFlipDiagonal(),
+        data => data.YxFlipDiagonalSecondary(),
+        data => data.YxRotate90(),
+        data => data.YxRotate180(),
+        data => data.YxRotateMinus90(),
+        data => data.YxFlipH(),
+        data => data.YxFlipV(),
+        data => data.YxSwapColumns(0, 1),
+        data => data.YxSwapColumns(0, 2),
+        data => data.YxSwapColumns(1, 2),
+        data => data.YxSwapColumns(3, 4),
+        data => data.YxSwapColumns(3, 5),
+        data => data.YxSwapColumns(4, 5),
+        data => data.YxSwapColumns(6, 7),
+        data => data.YxSwapColumns(6, 8),
+        data => data.YxSwapColumns(7, 8),
+        data => data.YxSwapRows(0, 1),
+        data => data.YxSwapRows(0, 2),
+        data => data.YxSwapRows(1, 2),
+        data => data.YxSwapRows(3, 4),
+        data => data.YxSwapRows(3, 5),
+        data => data.YxSwapRows(4, 5),
+        data => data.YxSwapRows(6, 7),
+        data => data.YxSwapRows(6, 8),
+        data => data.YxSwapRows(7, 8),
+        data => data.YxSwapRows(0, 3, 3),
+        data => data.YxSwapRows(0, 6, 3),
+        data => data.YxSwapRows(3, 6, 3),
+        data => data.YxSwapColumns(0, 3, 3),
+        data => data.YxSwapColumns(0, 6, 3),
+        data => data.YxSwapColumns(3, 6, 3)
+    }.ToImmutableList();
 
     public void Relabel(Random rnd) {
         var map = new int[9];
         for (var i = 0; i < 9; ++i) map[i] = i + 1;
         rnd.Shuffle(map);
         Relabel(map);
+    }
+
+    public void RemoveCells(int seed, int cells) {
+        var indexes = GetRandomCells(seed, cells);
+        foreach (var index in indexes) {
+            RemoveCell(index);
+        }
+    }
+
+    // Get x random numbers from 0 to 80 without repetition 
+    public static int[] GetRandomCells(int seed, int cells) {
+        var rnd = new Random(seed);
+        var result = new int[cells];
+        var list = new List<int>(Enumerable.Range(0, TotalCells));
+        for (var i = 0; i < cells; ++i) {
+            var index = rnd.Next(list.Count);
+            result[i] = list[index];
+            list.RemoveAt(index);
+        }
+        return result;
     }
 
     public void Relabel(int[] map) {
@@ -259,7 +303,7 @@ public class SudokuBoard {
         var data = CreateGrid();
         var rnd = new Random(seed);
         for (var i = 0; i < steps; ++i) {
-            var func = rnd.Next(Trans);
+            var func = rnd.Next(Transformations);
             if (func == null) {
                 Import(data);
                 Relabel(rnd);

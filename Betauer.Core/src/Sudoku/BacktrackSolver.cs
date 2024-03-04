@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace Betauer.Core.Sudoku;
@@ -9,7 +10,7 @@ namespace Betauer.Core.Sudoku;
 
 public class BacktrackSolver {
     private readonly SudokuBoard _sudokuBoard;
-    private static readonly int[] Numbers = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+    private static IEnumerable<int> Numbers => Enumerable.Range(1, 9);
 
     /// <summary>
     /// Cell indexes that excludes from backtracking because they already have a initial value (the hints)

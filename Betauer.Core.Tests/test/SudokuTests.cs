@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Betauer.Core.Sudoku;
 using Betauer.TestRunner;
+using Godot;
 using NUnit.Framework;
 
 namespace Betauer.Core.Tests;
@@ -30,21 +31,20 @@ public class SudokuTests {
 
     [Betauer.TestRunner.Test]
     public void DancingLinkMultipleSolutionTest() {
-            SudokuBoard sudoku = new SudokuBoard(".......2.8.......6.1.2.5...9.54....8.........3....85.1...3.2.8.4.......9.7..6....");
-            Assert.That(sudoku.IsBoardFilled(), Is.False);
-            Assert.That(sudoku.IsValid(), Is.True);
+        SudokuBoard sudoku = new SudokuBoard(".......2.8.......6.1.2.5...9.54....8.........3....85.1...3.2.8.4.......9.7..6....");
+        Assert.That(sudoku.IsBoardFilled(), Is.False);
+        Assert.That(sudoku.IsValid(), Is.True);
 
-            Console.WriteLine(sudoku.Export());
-            var solutions10 = sudoku.GetSolutions(10).ToList();
-            Assert.That(solutions10.Count, Is.EqualTo(10));
-            var solutions = sudoku.GetSolutions(0).ToList();
-            Assert.That(solutions.Count, Is.EqualTo(1204));
-            
-            solutions.ForEach(s => {
-                Assert.That(s.IsBoardFilled(), Is.True);
-                Assert.That(s.IsValid(), Is.True);
-            });
-
+        Console.WriteLine(sudoku.Export());
+        var solutions10 = sudoku.GetSolutions(10).ToList();
+        Assert.That(solutions10.Count, Is.EqualTo(10));
+        var solutions = sudoku.GetSolutions(0).ToList();
+        Assert.That(solutions.Count, Is.EqualTo(1204));
+        
+        solutions.ForEach(s => {
+            Assert.That(s.IsBoardFilled(), Is.True);
+            Assert.That(s.IsValid(), Is.True);
+        });
     }
 
     [Betauer.TestRunner.Test(Description = "Generate using backtracking deterministic, no seed, fixed next number")]
@@ -57,7 +57,7 @@ public class SudokuTests {
 
     [Betauer.TestRunner.Test(Description = "Generate using backtracking deterministic, no seed, fixed next number")]
     public void GenerateBacktrackingDeterministicNoSeed() {
-        var import = "000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+        var import = "".PadRight(81,'0');
         var sudoku = new SudokuBoard(import);
         Assert.That(sudoku.IsBoardFilled(), Is.False);
         Assert.That(sudoku.IsValid(), Is.True);
@@ -68,6 +68,11 @@ public class SudokuTests {
         Assert.That(sudoku.IsBoardFilled(), Is.True);
         Assert.That(sudoku.IsValid(), Is.True);
         Assert.AreEqual(sudoku.Export(), "123456789456789123789123456214365897365897214897214365531642978642978531978531642");
+        
+        sudoku.RemoveCells(1331, 30);
+        Console.WriteLine(sudoku.Export());
+        Assert.AreEqual(sudoku.Export(), "003450089406009003089100406210305007365897214807014000001040078642978531078500642");
+        Assert.AreEqual(sudoku.Export().Count("0"), 30);
     }
 
     [Betauer.TestRunner.Test]
@@ -170,7 +175,6 @@ public class SudokuTests {
     }
 
     [Betauer.TestRunner.Test(Description = "Generate using dancing links deterministic")]
-    [Only]
     public void GenerateDancingLinks() {
         var import = "120000000000000000000000000000000000000000000000000000000000000000000000000000000";
         var sudoku = new SudokuBoard(import);
