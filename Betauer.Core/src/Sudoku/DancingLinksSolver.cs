@@ -326,8 +326,8 @@ public class DancingLinksSolver {
         return SolveRecurse(NextCell());
     }
 
-    public DancingLinksSolver(int[,] initialGrid) {
-        Data = new int[9, 9];
+    public DancingLinksSolver(int[,] grid) {
+        Data = grid;
         _cellConstraintMatrix = new Candidate[9, 9];
         _rowConstraintMatrix = new Candidate[9];
         _colConstraintMatrix = new Candidate[9];
@@ -343,7 +343,7 @@ public class DancingLinksSolver {
         for (var row = 0; row < 9; row++) {
             for (var col = 0; col < 9; col++) {
                 // copy grid, and turn on all Candidates for every cell
-                Data[row, col] = initialGrid[row, col];
+                Data[row, col] = grid[row, col];
                 _cellConstraintMatrix[row, col] = new Candidate(9, true);
             }
         }

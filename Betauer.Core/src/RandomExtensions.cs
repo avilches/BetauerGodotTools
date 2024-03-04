@@ -37,7 +37,7 @@ public static partial class RandomExtensions {
         if (start > end) (start, end) = (end, start);
         var diff = (end - start).TotalMilliseconds;
         var rn = random.Next((int)diff + 1000);
-        return start.AddMilliseconds(rn);        
+        return start.AddMilliseconds(rn);
     }
 
     /// <summary>
@@ -130,6 +130,36 @@ public static partial class RandomExtensions {
         var randomIndex = random.Next(0, values.Count);
         return values[randomIndex];
     }
+
+    /// <summary>
+    /// Shuffle the array in place using the Fisher-Yates algorithm.
+    /// https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
+    /// </summary>
+    /// <param name="rng"></param>
+    /// <param name="array"></param>
+    /// <typeparam name="T"></typeparam>
+    public static void Shuffle<T>(this Random rng, T[] array) {
+        var n = array.Length;
+        while (n > 1) {
+            var k = rng.Next(n--);
+            (array[n], array[k]) = (array[k], array[n]);
+        }
+    }
+
+    /// <summary>
+    /// Shuffle the list in place using the Fisher-Yates algorithm.
+    /// https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
+    /// </summary>
+    /// <param name="rng"></param>
+    /// <param name="array"></param>
+    /// <typeparam name="T"></typeparam>
+    public static void Shuffle<T>(this Random rng, IList<T> array) {
+        var n = array.Count;
+        while (n > 1) {
+            var k = rng.Next(n--);
+            (array[n], array[k]) = (array[k], array[n]);
+        }
+    }
 }
 
 public class Producer<T> : IEnumerable<T> {
@@ -147,7 +177,6 @@ public class Producer<T> : IEnumerable<T> {
         while (true) yield return _producer();
     }
 }
-
 
 public static class Distribution {
     public static Dictionary<long, long> DiscreteHistogram(Func<long> producer, int sampleCount) {
@@ -213,4 +242,4 @@ public static class Distribution {
                    .Concatenated()
                + $"Min: {min}, Max: {max}:\n";
     }
-}  
+}

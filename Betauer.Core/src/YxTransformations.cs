@@ -3,6 +3,18 @@ using System;
 namespace Betauer.Core;
 
 public static partial class Transformations {
+    public static T[,] Clone<T>(this T[,] source) {
+        var height = source.GetLength(0);
+        var width = source.GetLength(1);
+        var temp = new T[width, height];
+        for (var y = 0; y < height; y++) {
+            for (var x = 0; x < width; x++) {
+                temp[y, x] = source[y, x];
+            }
+        }
+        return temp;
+    }
+
     public static T[,] YxRotate90<T>(this T[,] source) {
         var height = source.GetLength(0);
         var width = source.GetLength(1);
@@ -254,4 +266,27 @@ public static partial class Transformations {
             }
         }
     }
+    
+    public static int[,] YxSwapColumns(this int[,] source, int sourceColumn, int otherColumn, int size = 1) {
+        if (sourceColumn == otherColumn) return source;
+        var height = source.GetLength(0);
+        for (var s = 0; s < size; ++s) {
+            for (var y = 0; y < height; ++y) {
+                (source[y, sourceColumn + s], source[y, otherColumn + s]) = (source[y, otherColumn + s], source[y, sourceColumn + s]);
+            }
+        }
+        return source;
+    }
+
+    public static int[,] YxSwapRows(this int[,] source, int sourceRow, int otherRow, int size = 1) {
+        if (sourceRow == otherRow) return source;
+        var width = source.GetLength(1);
+        for (var s = 0; s < size; ++s) {
+            for (var x = 0; x < width; ++x) {
+                (source[sourceRow + s, x], source[otherRow + s, x]) = (source[otherRow + s, x], source[sourceRow + s, x]);
+            }
+        }
+        return source;
+    }
+
 }

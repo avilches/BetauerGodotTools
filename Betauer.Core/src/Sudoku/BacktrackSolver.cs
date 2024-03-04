@@ -21,11 +21,11 @@ public class BacktrackSolver {
     /// </summary>
     private readonly List<List<int>> _blackListsCells;
     
-    private readonly Random? random;
+    private readonly Random? _random;
 
     public BacktrackSolver(SudokuBoard sudoku, int seed = -1) {
         _sudokuBoard = sudoku;
-        random = seed == -1 ? null : new Random(seed);
+        _random = seed == -1 ? null : new Random(seed);
         _blackListsCells = new List<List<int>>(SudokuBoard.TotalCells);
         for (var index = 0; index < SudokuBoard.TotalCells; index++) {
             _blackListsCells.Add(new List<int>());
@@ -39,7 +39,7 @@ public class BacktrackSolver {
     /// <param name="seed">Set it to true to see a different result for each solution.</param>
     /// <returns>Returns whether the board solved.</returns>
     public bool Solve() {
-        if (!_sudokuBoard.CheckTableStateIsValid()) return false;
+        if (!_sudokuBoard.IsValid()) return false;
 
         var currentCellIndex = 0;
         while (currentCellIndex < SudokuBoard.TotalCells) {
@@ -97,14 +97,14 @@ public class BacktrackSolver {
         var validNumbers = Numbers.Where(x => !_blackListsCells[cellIndex].Contains(x)).ToArray();
 
         if (validNumbers.Length == 0) return 0;
-        var pos = random?.Next(validNumbers.Length) ?? 0;
+        var pos = _random?.Next(validNumbers.Length) ?? 0;
         var nextValidNumber = validNumbers[pos];
 
         // Try to get valid (random) value for the current cell, if no any valid value break the loop.
         while (nextValidNumber != 0) {
             SudokuBoard.Cell currentCell = _sudokuBoard.GetCell(cellIndex);
 
-            if (_sudokuBoard.IsValidValueForTheCell(nextValidNumber, currentCell)) {
+            if (currentCell.IsValidValue(nextValidNumber)) {
                 // Valid number found!
                 break;
             }
@@ -124,7 +124,7 @@ public class BacktrackSolver {
     /// </summary>
     /// <param name="startCleaningFromThisIndex">Clear the rest of the blacklist starting from the index.</param>
     private void ClearBlackList(int startCleaningFromThisIndex = 0) {
-        for (int index = startCleaningFromThisIndex; index < _blackListsCells.Count; index++)
+        for (var index = startCleaningFromThisIndex; index < _blackListsCells.Count; index++)
             _blackListsCells[index].Clear();
     }
 }
