@@ -36,12 +36,43 @@ public class SudokuBoard {
         }
         
         public bool IsFilled() => Value > 0;
+        
+        private ImmutableList<int>? _candidates;
+        public ImmutableList<int> Candidates => _candidates ??= GenerateCandidates();
+        
+        private ImmutableList<int> GenerateCandidates() {
+            if (Value > 0) return new [] { Value }.ToImmutableList();
+            var grpCells = Sudoku.Cells.Where(c => c.Value > 0 && c.GroupNo == GroupNo).Select(c => c.Value);
+            var colCells = Sudoku.Cells.Where(c => c.Value > 0 && c.Row == Row).Select(c => c.Value);
+            var rowCells = Sudoku.Cells.Where(c => c.Value > 0 && c.Column == Column).Select(c => c.Value);
+            var occupied = grpCells.Concat(colCells).Concat(rowCells).ToHashSet();
+            var all = Enumerable.Range(1, TotalDigits).ToList();
+            all.RemoveAll(occupied.Contains);
+            return all.ToImmutableList();     
+        }
+
+        /// <summary>
+        /// If the cell value changes, then the candidates of the partners should be invalidated too (partners are the cells in the same group, row, and column).
+        /// </summary>
+        internal void InvalidatePartnersCandidates() {
+            var grpPartners = Sudoku.Cells.Where(c => c.Value < 1 && c.GroupNo == GroupNo);
+            var colPartners = Sudoku.Cells.Where(c => c.Value < 1 && c.Row == Row);
+            var rowPartners = Sudoku.Cells.Where(c => c.Value < 1 && c.Column == Column);
+            grpPartners.Concat(colPartners).Concat(rowPartners).ForEach(c => c._candidates = null);
+        }
+
+        /// <summary>
+        /// Remove the candidates of this cell
+        /// </summary>
+        internal void InvalidateCandidates() {
+            _candidates = null;
+        }
 
         /// <summary>
         /// Checks the specified cell can accept the specified value.
         /// </summary>
         public bool IsValidValue(int val) {
-            if (val is < 1 or > 9) return false;
+            if (val is < 1 or > TotalDigits) return false;
             // Check the value whether exists in the 3x3 group.
             if (Sudoku.Cells.Where(c => c.Index != Index && c.GroupNo == GroupNo).Any(c2 => c2.Value == val))
                 return false;
@@ -58,12 +89,12 @@ public class SudokuBoard {
         }
     }
 
-    internal List<Cell> Cells { get; }
+    public ImmutableList<Cell> Cells { get; }
 
     public int[,] CreateGrid() {
-        var data = new int[9, 9];
-        for (var y = 0; y < 9; ++y) {
-            for (var x = 0; x < 9; ++x) {
+        var data = new int[TotalRows, TotalColumns];
+        for (var y = 0; y < TotalRows; ++y) {
+            for (var x = 0; x < TotalColumns; ++x) {
                 var value = GetCell(y + 1, x + 1).Value;
                 data[y, x] = value < 1 ? 0 : value;
             }
@@ -74,11 +105,13 @@ public class SudokuBoard {
     public const int TotalRows = 9;
     public const int TotalColumns = 9;
     public const int TotalCells = 81;
+    public const int TotalDigits = 9;
 
-    private void InitializeCells() {
+    private ImmutableList<Cell> InitializeCells() {
+        var cells = new List<Cell>(TotalCells);
         for (var x = 0; x < TotalRows; x++) {
             for (var y = 0; y < TotalColumns; y++) {
-                Cells.Add(new Cell(
+                cells.Add(new Cell(
                     sudoku: this,
                     value: -1,
                     index: x * TotalRows + y,
@@ -88,23 +121,21 @@ public class SudokuBoard {
                 ));
             }
         }
+        return cells.ToImmutableList();
     }
 
     public SudokuBoard(SudokuBoard other) {
-        Cells = new List<Cell>(TotalCells);
-        InitializeCells();
+        Cells = InitializeCells();
         Import(other);
     }
 
     public SudokuBoard(string? import = null) {
-        Cells = new List<Cell>(TotalCells);
-        InitializeCells();
+        Cells = InitializeCells();
         if (import != null) Import(import);
     }
 
     public SudokuBoard(int[,] import) {
-        Cells = new List<Cell>(TotalCells);
-        InitializeCells();
+        Cells = InitializeCells();
         Import(import);
     }
 
@@ -125,7 +156,11 @@ public class SudokuBoard {
     /// <summary>
     /// row and column are 1-based (1 to 9)
     /// </summary>
-    public void SetCellValue(int value, int cellIndex) => Cells[cellIndex].Value = value < 1 ? -1 : value;
+    public void SetCellValue(int value, int cellIndex) {
+        Cells[cellIndex].Value = value < 1 ? -1 : value;
+        Cells[cellIndex].InvalidatePartnersCandidates();
+        Cells[cellIndex].InvalidateCandidates();
+    }
 
     /// <summary>
     /// cellIndex is 0-based (0 to 80)
@@ -135,7 +170,11 @@ public class SudokuBoard {
     /// <summary>
     /// row and column are 1-based (1 to 9)
     /// </summary>
-    public void RemoveCell(int cellIndex) => Cells[cellIndex].Value = -1;
+    public void RemoveCell(int cellIndex) {
+        Cells[cellIndex].Value = -1;
+        Cells[cellIndex].InvalidatePartnersCandidates();
+        Cells[cellIndex].InvalidateCandidates();
+    }
 
     /// <summary>
     /// Checks the board is already filled.
@@ -145,7 +184,10 @@ public class SudokuBoard {
     /// <summary>
     /// Fills the game board with -1 which is the default for the empty state. 
     /// </summary>
-    public void Clear() => Cells.ForEach(cell => cell.Value = -1);
+    public void Clear() => Cells.ForEach(cell => {
+        cell.Value = -1;
+        cell.InvalidateCandidates();
+    });
 
     /// <summary>
     /// Returns true if all cells are valid (or empty).
@@ -173,8 +215,8 @@ public class SudokuBoard {
     }
 
     public void Import(int[,] grid) {
-        for (var y = 0; y < 9; ++y) {
-            for (var x = 0; x < 9; ++x) {
+        for (var y = 0; y < TotalRows; ++y) {
+            for (var x = 0; x < TotalColumns; ++x) {
                 SetCellValue(grid[y, x], y + 1, x + 1);
             }
         }
@@ -186,7 +228,7 @@ public class SudokuBoard {
             import = new string(import.Where(c => char.IsDigit(c) || c == '.').ToArray());
         }
         for (var pos = 0; pos < TotalCells; ++pos) {
-            var (x, y) = (pos % 9, pos / 9);
+            var (x, y) = (pos % TotalColumns, pos / TotalRows);
             var c = import[pos];
             var value = c != '.' && c != '0' ? c - '0' : -1;
             SetCellValue(value, y + 1, x + 1);
@@ -195,8 +237,8 @@ public class SudokuBoard {
 
     public string Export() {
         var sb = new StringBuilder(TotalCells);
-        for (var y = 0; y < 9; ++y) {
-            for (var x = 0; x < 9; ++x) {
+        for (var y = 0; y < TotalRows; ++y) {
+            for (var x = 0; x < TotalColumns; ++x) {
                 var value = GetCell(y + 1, x + 1).Value;
                 if (value < 1) sb.Append('0');
                 else sb.Append(value);
@@ -205,7 +247,7 @@ public class SudokuBoard {
         return sb.ToString();
     }
 
-    public bool SolveDancingLinks() {
+    public bool Solve() {
         var solver = GetSolutions(1).FirstOrDefault();
         if (solver == null) return false;
         Import(solver);
@@ -220,7 +262,15 @@ public class SudokuBoard {
         return DlxSudokuSolver.Resolve(this, predicate);
     }
 
-    public bool SolveBacktrack(int seed = -1) {
+    public bool HasUniqueSolution() {
+        return GetSolutions(2).Count() == 1;
+    }
+
+    public bool HasSolutions() {
+        return GetSolutions(1).Count() == 1;
+    }
+
+    public bool Generate(int seed = -1) {
         return new BacktrackSolver(this, seed).Solve();
     }
 
@@ -260,8 +310,8 @@ public class SudokuBoard {
     }.ToImmutableList();
 
     public void Relabel(Random rnd) {
-        var map = new int[9];
-        for (var i = 0; i < 9; ++i) map[i] = i + 1;
+        var map = new int[TotalDigits];
+        for (var i = 0; i < TotalDigits; ++i) map[i] = i + 1;
         rnd.Shuffle(map);
         Relabel(map);
     }
@@ -279,7 +329,7 @@ public class SudokuBoard {
             mask = new string(mask.Where(c => char.IsDigit(c) || c == '.').ToArray());
         }
         for (var pos = 0; pos < TotalCells; ++pos) {
-            var (x, y) = (pos % 9, pos / 9);
+            var (x, y) = (pos % TotalColumns, pos / TotalRows);
             var c = mask[pos];
             var value = c != '.' && c != '0' ? c - '0' : -1;
             if (value == -1) RemoveCell(y + 1, x + 1);
@@ -288,7 +338,7 @@ public class SudokuBoard {
 
     public void Relabel(int[] map) {
         // validate d is a permutation of 1..9
-        if (map.Length != 9 || map.Distinct().Count() != 9 || map.Min() != 1 || map.Max() != 9) {
+        if (map.Length != 9 || map.Distinct().Count() != TotalDigits || map.Min() != 1 || map.Max() != TotalDigits) {
             throw new ArgumentException("Invalid permutation");
         }
         for (var index = 0; index < TotalCells; ++index) {

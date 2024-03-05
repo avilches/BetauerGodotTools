@@ -15,11 +15,72 @@ namespace Betauer.Core.Tests;
 // [Only]
 public class SudokuTests {
     [Betauer.TestRunner.Test(Description = "IsValid() tests")]
+    public void NoSolution() {
+        var sudoku = new SudokuBoard("110000000000000000000000000000000000000000000000000000000000000000000000000000000");
+        Assert.False(sudoku.IsValid());
+        Assert.False(sudoku.Solve());
+        Assert.False(sudoku.HasUniqueSolution());
+        Assert.False(sudoku.HasSolutions());
+    }
+
+    [Betauer.TestRunner.Test(Description = "IsValid() tests")]
     public void InvalidTest() {
         Assert.False(new SudokuBoard("110000000000000000000000000000000000000000000000000000000000000000000000000000000").IsValid()); // same row
         Assert.False(new SudokuBoard("100000000000000000000000000000000000000000000000000000000000000000000000100000000").IsValid()); // same col
         Assert.False(new SudokuBoard("100000010000000000000000000000000000000000000000000000000000000000000000000000000").IsValid()); // same group
         Assert.False(new SudokuBoard("113456789456789123789123456214365897365897214897214365531642978642978531978531642").IsValid());
+    }
+
+    [Betauer.TestRunner.Test(Description = "Test the valid values from every cell")]
+    public void BasicValidValuesTest() {
+        // No candidate
+        var sudoku1 = new SudokuBoard("953187642624539178817462395589713264132654789476928513745296831268341957391875426");
+        CollectionAssert.AreEqual(sudoku1.GetCell(0).Candidates, new List<int> { 9 });
+        CollectionAssert.AreEqual(sudoku1.GetCell(10).Candidates, new List<int> { 2 });
+        CollectionAssert.AreEqual(sudoku1.GetCell(80).Candidates, new List<int> { 6 });
+
+        // One candidate
+        var sudoku2 = new SudokuBoard("003187642624539178817462395589713264132654789476928513745296831268341957391875426");
+        CollectionAssert.AreEqual(sudoku2.GetCell(0).Candidates, new List<int> { 9 });
+        CollectionAssert.AreEqual(sudoku2.GetCell(1).Candidates, new List<int> { 5 });
+    }
+
+    [Betauer.TestRunner.Test(Description = "Test the candidates changes after setting a value")]
+    public void ValidValuesTest() {
+        var sudoku = new SudokuBoard(".....7.95.....1...86..2.....2..73..85......6...3..49..3.5...41724................");
+        CollectionAssert.AreEqual(sudoku.GetCell(0).Candidates, new List<int> { 1, 4 });
+        CollectionAssert.AreEqual(sudoku.GetCell(4).Candidates, new List<int> { 3, 4, 6, 8 });
+        CollectionAssert.AreEqual(sudoku.GetCell(9).Candidates, new List<int> { 4, 7, 9 });
+        CollectionAssert.AreEqual(sudoku.GetCell(11).Candidates, new List<int> { 2, 4, 7, 9 });
+
+        // The 4 disappear from the candidates of the same row, col and group
+        sudoku.SetCellValue(4, 0);
+        CollectionAssert.AreEqual(sudoku.GetCell(0).Candidates, new List<int> { 4 });
+        CollectionAssert.AreEqual(sudoku.GetCell(4).Candidates, new List<int> { 3, 6, 8 }); // Same row
+        CollectionAssert.AreEqual(sudoku.GetCell(9).Candidates, new List<int> { 7, 9 }); // Same col
+        CollectionAssert.AreEqual(sudoku.GetCell(11).Candidates, new List<int> { 2, 7, 9 }); // Same grup
+
+        sudoku.RemoveCell(0);
+        CollectionAssert.AreEqual(sudoku.GetCell(0).Candidates, new List<int> { 1, 4 });
+        CollectionAssert.AreEqual(sudoku.GetCell(4).Candidates, new List<int> { 3, 4, 6, 8 });
+        CollectionAssert.AreEqual(sudoku.GetCell(9).Candidates, new List<int> { 4, 7, 9 });
+        CollectionAssert.AreEqual(sudoku.GetCell(11).Candidates, new List<int> { 2, 4, 7, 9 });
+    }
+
+    [Betauer.TestRunner.Test(Description = "Test the solution values match the original candidates")]
+    public void ValidValuesMatchesAfterSolvingTest() {
+        var sudoku = new SudokuBoard(".....7.95.....1...86..2.....2..73..85......6...3..49..3.5...41724................");
+
+        // Validate every candidate is valid
+        sudoku.Cells.ForEach(cell =>
+            cell.Candidates.ForEach(c => Assert.That(cell.IsValidValue(c)))
+        );
+
+        var solved = new SudokuBoard(sudoku);
+        solved.Solve();
+
+        // Test the solution values match the original candidates
+        solved.Cells.ForEach((cell, idx) => Assert.That(sudoku.GetCell(idx).Candidates.Contains(cell.Value)));
     }
 
     [Betauer.TestRunner.Test]
@@ -32,12 +93,12 @@ public class SudokuTests {
 
     [Betauer.TestRunner.Test(Description = "Generate using backtracking deterministic (fixed next number)")]
     public void GenerateBacktrackingDeterministicNoSeed() {
-        var import = "".PadRight(81,'0');
+        var import = "".PadRight(81, '0');
         var sudoku = new SudokuBoard(import);
         Assert.That(sudoku.IsBoardFilled(), Is.False);
         Assert.That(sudoku.IsValid(), Is.True);
 
-        Assert.That(sudoku.SolveBacktrack());
+        Assert.That(sudoku.Generate());
         Console.WriteLine(sudoku.Export());
 
         Assert.That(sudoku.IsBoardFilled(), Is.True);
@@ -52,7 +113,7 @@ public class SudokuTests {
         Assert.That(sudoku.IsBoardFilled(), Is.False);
         Assert.That(sudoku.IsValid(), Is.True);
 
-        Assert.That(sudoku.SolveBacktrack(902));
+        Assert.That(sudoku.Generate(902));
         Console.WriteLine(sudoku.Export());
 
         Assert.That(sudoku.IsBoardFilled(), Is.True);
@@ -68,17 +129,17 @@ public class SudokuTests {
             var sudokuDancing = new SudokuBoard(sudokuString);
             Assert.That(sudokuDancing.IsBoardFilled(), Is.False);
             Assert.That(sudokuDancing.IsValid(), Is.True);
-            Assert.True(sudokuDancing.SolveDancingLinks());
+            Assert.True(sudokuDancing.Solve());
             Assert.That(sudokuDancing.IsBoardFilled(), Is.True);
             Assert.That(sudokuDancing.IsValid(), Is.True);
 
             var sudokuBacktrack = new SudokuBoard(sudokuString);
             Assert.That(sudokuBacktrack.IsBoardFilled(), Is.False);
             Assert.That(sudokuBacktrack.IsValid(), Is.True);
-            Assert.True(sudokuBacktrack.SolveBacktrack());
+            Assert.True(sudokuBacktrack.Generate());
             Assert.That(sudokuBacktrack.IsBoardFilled(), Is.True);
             Assert.That(sudokuBacktrack.IsValid(), Is.True);
-            
+
             Assert.AreEqual(sudokuBacktrack.Export(), sudokuDancing.Export());
         }
     }
@@ -90,7 +151,7 @@ public class SudokuTests {
         Assert.That(sudoku.IsBoardFilled(), Is.False);
         Assert.That(sudoku.IsValid(), Is.True);
 
-        sudoku.SolveDancingLinks();
+        sudoku.Solve();
         Console.WriteLine(sudoku.Export());
 
         Assert.That(sudoku.IsBoardFilled(), Is.True);
@@ -106,7 +167,9 @@ public class SudokuTests {
             Assert.That(sudoku.IsValid(), Is.True);
 
             Console.WriteLine(sudoku.Export());
-            Assert.That(sudoku.SolveDancingLinks(), Is.True);
+            Assert.That(sudoku.HasUniqueSolution(), Is.True);
+            Assert.That(sudoku.HasSolutions(), Is.True);
+            Assert.That(sudoku.Solve(), Is.True);
 
             Assert.That(sudoku.IsBoardFilled(), Is.True);
             Assert.That(sudoku.IsValid(), Is.True);
@@ -119,12 +182,15 @@ public class SudokuTests {
         Assert.That(sudoku.IsBoardFilled(), Is.False);
         Assert.That(sudoku.IsValid(), Is.True);
 
+        Assert.That(sudoku.HasUniqueSolution(), Is.False);
+        Assert.That(sudoku.HasSolutions(), Is.True);
+
         Console.WriteLine(sudoku.Export());
         var solutions10 = sudoku.GetSolutions(10).ToList();
         Assert.That(solutions10.Count, Is.EqualTo(10));
         var solutions = sudoku.GetSolutions(0).ToList();
         Assert.That(solutions.Count, Is.EqualTo(1204));
-        
+
         solutions.ForEach(s => {
             Assert.That(s.IsBoardFilled(), Is.True);
             Assert.That(s.IsValid(), Is.True);
@@ -133,7 +199,7 @@ public class SudokuTests {
 
     [Betauer.TestRunner.Test(Description = "Remove cells by mask")]
     public void RemoveCellsByMaskTest() {
-        var import = "".PadRight(81,'1');
+        var import = "".PadRight(81, '1');
         var sudoku = new SudokuBoard(import);
         sudoku.RemoveCells("""
                            003.2.6..
@@ -152,7 +218,7 @@ public class SudokuTests {
 
     [Betauer.TestRunner.Test(Description = "Remove cells random")]
     public void RemoveCellsRandom() {
-        var import = "".PadRight(81,'1');
+        var import = "".PadRight(81, '1');
         var sudoku = new SudokuBoard(import);
         sudoku.RemoveCells(1331, 51);
         Console.WriteLine(sudoku.Export());
