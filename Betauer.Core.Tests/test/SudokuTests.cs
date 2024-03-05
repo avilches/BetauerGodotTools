@@ -54,13 +54,13 @@ public class SudokuTests {
         CollectionAssert.AreEqual(sudoku.GetCell(11).Candidates(), new List<int> { 2, 4, 7, 9 });
 
         // The 4 disappear from the candidates of the same row, col and group
-        sudoku.SetCellValue(4, 0);
+        sudoku.GetCell(0).Value = 4;
         CollectionAssert.AreEqual(sudoku.GetCell(0).Candidates(), new List<int> { 4 });
         CollectionAssert.AreEqual(sudoku.GetCell(4).Candidates(), new List<int> { 3, 6, 8 }); // Same row
         CollectionAssert.AreEqual(sudoku.GetCell(9).Candidates(), new List<int> { 7, 9 }); // Same col
         CollectionAssert.AreEqual(sudoku.GetCell(11).Candidates(), new List<int> { 2, 7, 9 }); // Same grup
 
-        sudoku.RemoveCell(0);
+        sudoku.GetCell(0).Remove();
         CollectionAssert.AreEqual(sudoku.GetCell(0).Candidates(), new List<int> { 1, 4 });
         CollectionAssert.AreEqual(sudoku.GetCell(4).Candidates(), new List<int> { 3, 4, 6, 8 });
         CollectionAssert.AreEqual(sudoku.GetCell(9).Candidates(), new List<int> { 4, 7, 9 });
@@ -73,7 +73,7 @@ public class SudokuTests {
 
         // Validate every candidate is valid
         sudoku.Cells.ForEach(cell =>
-            cell.Candidates().ForEach(c => Assert.That(cell.IsValidValue(c)))
+            cell.Candidates().ForEach(c => Assert.That(cell.AcceptValue(c)))
         );
 
         var solved = new SudokuBoard(sudoku);
