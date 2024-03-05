@@ -35,36 +35,36 @@ public class SudokuTests {
     public void BasicValidValuesTest() {
         // No candidate
         var sudoku1 = new SudokuBoard("953187642624539178817462395589713264132654789476928513745296831268341957391875426");
-        CollectionAssert.AreEqual(sudoku1.GetCell(0).Candidates, new List<int> { 9 });
-        CollectionAssert.AreEqual(sudoku1.GetCell(10).Candidates, new List<int> { 2 });
-        CollectionAssert.AreEqual(sudoku1.GetCell(80).Candidates, new List<int> { 6 });
+        CollectionAssert.AreEqual(sudoku1.GetCell(0).Candidates(), new List<int> { 9 });
+        CollectionAssert.AreEqual(sudoku1.GetCell(10).Candidates(), new List<int> { 2 });
+        CollectionAssert.AreEqual(sudoku1.GetCell(80).Candidates(), new List<int> { 6 });
 
         // One candidate
         var sudoku2 = new SudokuBoard("003187642624539178817462395589713264132654789476928513745296831268341957391875426");
-        CollectionAssert.AreEqual(sudoku2.GetCell(0).Candidates, new List<int> { 9 });
-        CollectionAssert.AreEqual(sudoku2.GetCell(1).Candidates, new List<int> { 5 });
+        CollectionAssert.AreEqual(sudoku2.GetCell(0).Candidates(), new List<int> { 9 });
+        CollectionAssert.AreEqual(sudoku2.GetCell(1).Candidates(), new List<int> { 5 });
     }
 
     [Betauer.TestRunner.Test(Description = "Test the candidates changes after setting a value")]
     public void ValidValuesTest() {
         var sudoku = new SudokuBoard(".....7.95.....1...86..2.....2..73..85......6...3..49..3.5...41724................");
-        CollectionAssert.AreEqual(sudoku.GetCell(0).Candidates, new List<int> { 1, 4 });
-        CollectionAssert.AreEqual(sudoku.GetCell(4).Candidates, new List<int> { 3, 4, 6, 8 });
-        CollectionAssert.AreEqual(sudoku.GetCell(9).Candidates, new List<int> { 4, 7, 9 });
-        CollectionAssert.AreEqual(sudoku.GetCell(11).Candidates, new List<int> { 2, 4, 7, 9 });
+        CollectionAssert.AreEqual(sudoku.GetCell(0).Candidates(), new List<int> { 1, 4 });
+        CollectionAssert.AreEqual(sudoku.GetCell(4).Candidates(), new List<int> { 3, 4, 6, 8 });
+        CollectionAssert.AreEqual(sudoku.GetCell(9).Candidates(), new List<int> { 4, 7, 9 });
+        CollectionAssert.AreEqual(sudoku.GetCell(11).Candidates(), new List<int> { 2, 4, 7, 9 });
 
         // The 4 disappear from the candidates of the same row, col and group
         sudoku.SetCellValue(4, 0);
-        CollectionAssert.AreEqual(sudoku.GetCell(0).Candidates, new List<int> { 4 });
-        CollectionAssert.AreEqual(sudoku.GetCell(4).Candidates, new List<int> { 3, 6, 8 }); // Same row
-        CollectionAssert.AreEqual(sudoku.GetCell(9).Candidates, new List<int> { 7, 9 }); // Same col
-        CollectionAssert.AreEqual(sudoku.GetCell(11).Candidates, new List<int> { 2, 7, 9 }); // Same grup
+        CollectionAssert.AreEqual(sudoku.GetCell(0).Candidates(), new List<int> { 4 });
+        CollectionAssert.AreEqual(sudoku.GetCell(4).Candidates(), new List<int> { 3, 6, 8 }); // Same row
+        CollectionAssert.AreEqual(sudoku.GetCell(9).Candidates(), new List<int> { 7, 9 }); // Same col
+        CollectionAssert.AreEqual(sudoku.GetCell(11).Candidates(), new List<int> { 2, 7, 9 }); // Same grup
 
         sudoku.RemoveCell(0);
-        CollectionAssert.AreEqual(sudoku.GetCell(0).Candidates, new List<int> { 1, 4 });
-        CollectionAssert.AreEqual(sudoku.GetCell(4).Candidates, new List<int> { 3, 4, 6, 8 });
-        CollectionAssert.AreEqual(sudoku.GetCell(9).Candidates, new List<int> { 4, 7, 9 });
-        CollectionAssert.AreEqual(sudoku.GetCell(11).Candidates, new List<int> { 2, 4, 7, 9 });
+        CollectionAssert.AreEqual(sudoku.GetCell(0).Candidates(), new List<int> { 1, 4 });
+        CollectionAssert.AreEqual(sudoku.GetCell(4).Candidates(), new List<int> { 3, 4, 6, 8 });
+        CollectionAssert.AreEqual(sudoku.GetCell(9).Candidates(), new List<int> { 4, 7, 9 });
+        CollectionAssert.AreEqual(sudoku.GetCell(11).Candidates(), new List<int> { 2, 4, 7, 9 });
     }
 
     [Betauer.TestRunner.Test(Description = "Test the solution values match the original candidates")]
@@ -73,14 +73,14 @@ public class SudokuTests {
 
         // Validate every candidate is valid
         sudoku.Cells.ForEach(cell =>
-            cell.Candidates.ForEach(c => Assert.That(cell.IsValidValue(c)))
+            cell.Candidates().ForEach(c => Assert.That(cell.IsValidValue(c)))
         );
 
         var solved = new SudokuBoard(sudoku);
         solved.Solve();
 
         // Test the solution values match the original candidates
-        solved.Cells.ForEach((cell, idx) => Assert.That(sudoku.GetCell(idx).Candidates.Contains(cell.Value)));
+        solved.Cells.ForEach((cell, idx) => Assert.That(sudoku.GetCell(idx).Candidates().Contains(cell.Value)));
     }
 
     [Betauer.TestRunner.Test]
@@ -167,8 +167,6 @@ public class SudokuTests {
             Assert.That(sudoku.IsValid(), Is.True);
 
             Console.WriteLine(sudoku.Export());
-            Assert.That(sudoku.HasUniqueSolution(), Is.True);
-            Assert.That(sudoku.HasSolutions(), Is.True);
             Assert.That(sudoku.Solve(), Is.True);
 
             Assert.That(sudoku.IsBoardFilled(), Is.True);

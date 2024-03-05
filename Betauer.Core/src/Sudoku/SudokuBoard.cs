@@ -37,10 +37,7 @@ public class SudokuBoard {
         
         public bool IsFilled() => Value > 0;
         
-        private ImmutableList<int>? _candidates;
-        public ImmutableList<int> Candidates => _candidates ??= GenerateCandidates();
-        
-        private ImmutableList<int> GenerateCandidates() {
+        public ImmutableList<int> Candidates() {
             if (Value > 0) return new [] { Value }.ToImmutableList();
             var grpCells = Sudoku.Cells.Where(c => c.Value > 0 && c.GroupNo == GroupNo).Select(c => c.Value);
             var colCells = Sudoku.Cells.Where(c => c.Value > 0 && c.Row == Row).Select(c => c.Value);
@@ -49,23 +46,6 @@ public class SudokuBoard {
             var all = Enumerable.Range(1, TotalDigits).ToList();
             all.RemoveAll(occupied.Contains);
             return all.ToImmutableList();     
-        }
-
-        /// <summary>
-        /// If the cell value changes, then the candidates of the partners should be invalidated too (partners are the cells in the same group, row, and column).
-        /// </summary>
-        internal void InvalidatePartnersCandidates() {
-            var grpPartners = Sudoku.Cells.Where(c => c.Value < 1 && c.GroupNo == GroupNo);
-            var colPartners = Sudoku.Cells.Where(c => c.Value < 1 && c.Row == Row);
-            var rowPartners = Sudoku.Cells.Where(c => c.Value < 1 && c.Column == Column);
-            grpPartners.Concat(colPartners).Concat(rowPartners).ForEach(c => c._candidates = null);
-        }
-
-        /// <summary>
-        /// Remove the candidates of this cell
-        /// </summary>
-        internal void InvalidateCandidates() {
-            _candidates = null;
         }
 
         /// <summary>
@@ -158,8 +138,6 @@ public class SudokuBoard {
     /// </summary>
     public void SetCellValue(int value, int cellIndex) {
         Cells[cellIndex].Value = value < 1 ? -1 : value;
-        Cells[cellIndex].InvalidatePartnersCandidates();
-        Cells[cellIndex].InvalidateCandidates();
     }
 
     /// <summary>
@@ -172,8 +150,6 @@ public class SudokuBoard {
     /// </summary>
     public void RemoveCell(int cellIndex) {
         Cells[cellIndex].Value = -1;
-        Cells[cellIndex].InvalidatePartnersCandidates();
-        Cells[cellIndex].InvalidateCandidates();
     }
 
     /// <summary>
@@ -186,7 +162,6 @@ public class SudokuBoard {
     /// </summary>
     public void Clear() => Cells.ForEach(cell => {
         cell.Value = -1;
-        cell.InvalidateCandidates();
     });
 
     /// <summary>
@@ -212,7 +187,6 @@ public class SudokuBoard {
         for (var i = 0; i < TotalCells; ++i) {
             var cell = GetCell(i);
             cell.Value = other.GetCell(i).Value;
-            cell.InvalidateCandidates();
         }
     }
 
@@ -221,7 +195,6 @@ public class SudokuBoard {
             for (var x = 0; x < TotalColumns; ++x) {
                 var cell = GetCell(y + 1, x + 1);
                 cell.Value = grid[y, x];
-                cell.InvalidateCandidates();
             }
         }
     }
@@ -237,7 +210,6 @@ public class SudokuBoard {
             var value = c != '.' && c != '0' ? c - '0' : -1;
             var cell = GetCell(y + 1, x + 1);
             cell.Value = value;
-            cell.InvalidateCandidates();
         }
     }
 
@@ -277,7 +249,6 @@ public class SudokuBoard {
     }
 
     public bool Generate(int seed = -1) {
-        Cells.ForEach(cell => cell.InvalidateCandidates());
         return new BacktrackSolver(this, seed).Solve();
     }
 
@@ -353,7 +324,6 @@ public class SudokuBoard {
             var value = cell.Value;
             if (value > 0) {
                 cell.Value = map[value - 1];
-                cell.InvalidateCandidates();
             }
         }
     }
