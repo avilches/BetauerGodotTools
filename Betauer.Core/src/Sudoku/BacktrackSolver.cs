@@ -61,7 +61,7 @@ public class BacktrackSolver {
                 currentCellIndex = BacktrackTo(currentCellIndex);
             } else {
                 // Set found valid value to current cell.
-                _sudokuBoard.SetCellValue(nextValidNumber, currentCell.Index);
+                currentCell.Value = nextValidNumber;
                 ++currentCellIndex;
             }
         }

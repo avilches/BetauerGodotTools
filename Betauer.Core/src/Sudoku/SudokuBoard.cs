@@ -210,14 +210,18 @@ public class SudokuBoard {
 
     public void Import(SudokuBoard other) {
         for (var i = 0; i < TotalCells; ++i) {
-            SetCellValue(other.GetCell(i).Value, i);
+            var cell = GetCell(i);
+            cell.Value = other.GetCell(i).Value;
+            cell.InvalidateCandidates();
         }
     }
 
     public void Import(int[,] grid) {
         for (var y = 0; y < TotalRows; ++y) {
             for (var x = 0; x < TotalColumns; ++x) {
-                SetCellValue(grid[y, x], y + 1, x + 1);
+                var cell = GetCell(y + 1, x + 1);
+                cell.Value = grid[y, x];
+                cell.InvalidateCandidates();
             }
         }
     }
@@ -231,7 +235,9 @@ public class SudokuBoard {
             var (x, y) = (pos % TotalColumns, pos / TotalRows);
             var c = import[pos];
             var value = c != '.' && c != '0' ? c - '0' : -1;
-            SetCellValue(value, y + 1, x + 1);
+            var cell = GetCell(y + 1, x + 1);
+            cell.Value = value;
+            cell.InvalidateCandidates();
         }
     }
 
@@ -255,7 +261,7 @@ public class SudokuBoard {
     }
 
     public IEnumerable<SudokuBoard> GetSolutions(int maxSolutions) {
-        return DlxSudokuSolver.Resolve(this, (_) => --maxSolutions == 0);
+        return GetSolutions(_ => --maxSolutions == 0);
     }
 
     public IEnumerable<SudokuBoard> GetSolutions(Predicate<SudokuBoard> predicate) {
@@ -271,10 +277,11 @@ public class SudokuBoard {
     }
 
     public bool Generate(int seed = -1) {
+        Cells.ForEach(cell => cell.InvalidateCandidates());
         return new BacktrackSolver(this, seed).Solve();
     }
 
-    private static readonly IList<Func<int[,], int[,]>> Transformations = new Func<int[,], int[,]>[]{
+    private static readonly ImmutableList<Func<int[,], int[,]>> Transformations = new Func<int[,], int[,]>[]{
         null, // this is for a random relabel
         data => data.YxFlipDiagonal(),
         data => data.YxFlipDiagonalSecondary(),
@@ -342,9 +349,11 @@ public class SudokuBoard {
             throw new ArgumentException("Invalid permutation");
         }
         for (var index = 0; index < TotalCells; ++index) {
-            var value = GetCell(index).Value;
+            var cell = GetCell(index);
+            var value = cell.Value;
             if (value > 0) {
-                SetCellValue(map[value - 1], index);
+                cell.Value = map[value - 1];
+                cell.InvalidateCandidates();
             }
         }
     }
