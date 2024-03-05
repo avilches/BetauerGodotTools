@@ -105,7 +105,7 @@ public class BacktrackSolver {
         while (nextValidNumber != 0) {
             SudokuBoard.Cell currentCell = _sudokuBoard.GetCell(cellIndex);
 
-            if (currentCell.IsValidValue(nextValidNumber)) {
+            if (currentCell.AcceptValue(nextValidNumber)) {
                 // Valid number found!
                 break;
             }
