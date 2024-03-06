@@ -180,9 +180,10 @@ public class SudokuBoard {
         });
     }
 
-    public string Export() {
+    public string Export(bool multiline = false) {
         var sb = new StringBuilder(TotalCells);
         for (var y = 0; y < TotalRows; ++y) {
+            if (multiline && y > 0) sb.AppendLine();
             for (var x = 0; x < TotalColumns; ++x) {
                 var value = GetCell(y + 1, x + 1).Value;
                 if (value < 1) sb.Append('0');
@@ -219,47 +220,6 @@ public class SudokuBoard {
         return new BacktrackSolver(this, seed).Solve();
     }
 
-    private static readonly ImmutableList<Func<int[,], int[,]>> Transformations = new Func<int[,], int[,]>[] {
-        null, // this is for a random relabel
-        data => data.YxFlipDiagonal(),
-        data => data.YxFlipDiagonalSecondary(),
-        data => data.YxRotate90(),
-        data => data.YxRotate180(),
-        data => data.YxRotateMinus90(),
-        data => data.YxFlipH(),
-        data => data.YxFlipV(),
-        data => data.YxSwapColumns(0, 1),
-        data => data.YxSwapColumns(0, 2),
-        data => data.YxSwapColumns(1, 2),
-        data => data.YxSwapColumns(3, 4),
-        data => data.YxSwapColumns(3, 5),
-        data => data.YxSwapColumns(4, 5),
-        data => data.YxSwapColumns(6, 7),
-        data => data.YxSwapColumns(6, 8),
-        data => data.YxSwapColumns(7, 8),
-        data => data.YxSwapRows(0, 1),
-        data => data.YxSwapRows(0, 2),
-        data => data.YxSwapRows(1, 2),
-        data => data.YxSwapRows(3, 4),
-        data => data.YxSwapRows(3, 5),
-        data => data.YxSwapRows(4, 5),
-        data => data.YxSwapRows(6, 7),
-        data => data.YxSwapRows(6, 8),
-        data => data.YxSwapRows(7, 8),
-        data => data.YxSwapRows(0, 3, 3),
-        data => data.YxSwapRows(0, 6, 3),
-        data => data.YxSwapRows(3, 6, 3),
-        data => data.YxSwapColumns(0, 3, 3),
-        data => data.YxSwapColumns(0, 6, 3),
-        data => data.YxSwapColumns(3, 6, 3)
-    }.ToImmutableList();
-
-    public void Relabel(Random rnd) {
-        var map = Enumerable.Range(1, TotalDigits).ToArray();
-        rnd.Shuffle(map);
-        Relabel(map);
-    }
-
     public void RemoveCells(int seed, int hints) {
         var toRemove = TotalCells - hints;
         new Random(seed)
@@ -278,35 +238,5 @@ public class SudokuBoard {
             var value = c != '.' && c != '0' ? c - '0' : -1;
             if (value == -1) GetCell(y + 1, x + 1).Remove();
         });
-    }
-
-    public void Relabel(int[] map) {
-        // validate d is a permutation of 1..9
-        if (map.Length != 9 || map.Distinct().Count() != TotalDigits || map.Min() != 1 || map.Max() != TotalDigits) {
-            throw new ArgumentException("Invalid permutation");
-        }
-        Enumerable.Range(0, TotalCells).ForEach(index => {
-            var cell = GetCell(index);
-            var value = cell.Value;
-            if (value > 0) {
-                cell.Value = map[value - 1];
-            }
-        });
-    }
-
-    public void Shuffle(int seed, int steps = 30) {
-        var data = CreateGrid();
-        var rnd = new Random(seed);
-        for (var i = 0; i < steps; ++i) {
-            var func = rnd.Next(Transformations);
-            if (func == null) {
-                Import(data);
-                Relabel(rnd);
-                data = CreateGrid();
-            } else {
-                func.Invoke(data);
-            }
-        }
-        Import(data);
     }
 }

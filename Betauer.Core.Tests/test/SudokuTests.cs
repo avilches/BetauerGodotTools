@@ -296,8 +296,42 @@ public class SudokuTests {
     public void ShuffleTests() {
         var import = "953187642624539178817462395589713264132654789476928513745296831268341957391875426";
         var sudoku = new SudokuBoard(import);
-        sudoku.Shuffle(123, 100);
-        Assert.True(sudoku.IsValid());
+        for (var seed = 0; seed < 100; seed++) {
+            sudoku.Shuffle(seed);
+            Assert.True(sudoku.IsValid());
+            sudoku.Relabel(seed);
+            Assert.True(sudoku.IsValid());
+        }
+    }
+
+    [Betauer.TestRunner.Test]
+    public void Shuffle1Tests() {
+        // var import = "953187642624539178817462395589713264132654789476928513745296831268341957391875426";
+        // var import = "1111111111111111111111111111111111111112222222222222222222222222222222222222222222";
+        // var import = "1111111112222222223333333334444444445555555555666666666777777777888888888999999999";
+        var sudoku = new SudokuBoard();
+        Enumerable.Range(0, 81).ForEach(x => sudoku.GetCell(x).Value = x);
+
+        
+        for (var y = 0; y < 9; y++) {
+            for (var x = 0; x < 9; x++) {
+                var value = y * 10 + x;
+                sudoku.GetCell(y * 9 + x).Value = value;
+                Console.Write(value.ToString().PadLeft(2, '0') + " ");
+            }
+            Console.WriteLine();
+        }
+        Console.WriteLine("---------------------------");
+
+        sudoku.Shuffle(0);
+        
+        // show the result in lines of 9 length each one
+        for (var y = 0; y < 9; y++) {
+            for (var x = 0; x < 9; x++) {
+                Console.Write(sudoku.GetCell(y * 9 + x).Value.ToString().PadLeft(2, '0') + " ");
+            }
+            Console.WriteLine();
+        }
     }
 
     public static IEnumerable<string> FromFile(string filename) {
