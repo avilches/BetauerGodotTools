@@ -6,7 +6,7 @@ namespace Betauer.SourceGenerators.Tests;
 
 /**
  * Godot version: 4.2-stable (official)
- * Date: 2023-12-30 13:13:02
+ * Date: 2024-03-09 17:41:50
  */
 
 [Test]
