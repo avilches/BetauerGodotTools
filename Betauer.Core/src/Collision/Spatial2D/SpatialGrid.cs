@@ -337,4 +337,47 @@ public class SpatialGrid {
             AddShapeToCell(shape, cell);
         }
     }
+    
+    /// <summary>
+    /// Connects all shapes in the grid using a Minimum Spanning Tree (MST) approach.
+    /// </summary>
+    public List<(Shape, Shape)> GetConnections() {
+        List<(Shape, Shape)> connections = new List<(Shape, Shape)>();
+        HashSet<Shape> connectedShapes = new HashSet<Shape>();
+        List<Shape> unconnectedShapes = new List<Shape>(Shapes);
+
+        // Start with the first shape
+        connectedShapes.Add(unconnectedShapes[0]);
+        unconnectedShapes.RemoveAt(0);
+
+        // Continue until all shapes are connected using a Minimum Spanning Tree approach
+        while (unconnectedShapes.Count > 0) {
+            Shape shapeA = null;
+            Shape shapeB = null;
+            var shortestDistance = float.MaxValue;
+
+            // Find the closest pair of shapes (one connected and one unconnected)
+            foreach (Shape connected in connectedShapes) {
+                foreach (Shape unconnected in unconnectedShapes) {
+                    var distance = Math.Abs((connected.X + connected.Width / 2) - (unconnected.X + unconnected.Width / 2)) +
+                                       Math.Abs((connected.Y + connected.Height / 2) - (unconnected.Y + unconnected.Height / 2));
+
+                    if (distance < shortestDistance) {
+                        shortestDistance = distance;
+                        shapeA = connected;
+                        shapeB = unconnected;
+                    }
+                }
+            }
+
+            // Add the connection to the list
+            if (shapeA != null && shapeB != null) {
+                connections.Add((shapeA, shapeB));
+                connectedShapes.Add(shapeB);
+                unconnectedShapes.Remove(shapeB);
+            }
+        }
+
+        return connections;
+    }    
 }
