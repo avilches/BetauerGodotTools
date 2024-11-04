@@ -13,6 +13,7 @@ public class Rectangle : Shape {
     public override float MaxX => Position.X + Width;
     public override float MinY => Position.Y;
     public override float MaxY => Position.Y + Height;
+    public override Vector2 Center => new (Position.X + Width / 2f, Position.Y + Height / 2f);
 
     public override Vector2 Position {
         get => _position;
@@ -116,6 +117,16 @@ public class Rectangle : Shape {
             }
         });
         return area2D;
+    }
+    
+    public Rect2 ToRect2() => new(Position, Size);
+    
+    public Rect2I ToRect2I() => new((Vector2I)Position, (Vector2I)Size);
+    
+    public override bool Equals(object obj) {
+        if (obj is Rectangle otherRectangle) return Equals(otherRectangle);
+        if (obj is Rect2 otherRect) return Equals(otherRect);
+        return false;
     }
 
     public bool Equals(Rect2 other) => Position.Equals(other.Position) && Size.Equals(other.Size);

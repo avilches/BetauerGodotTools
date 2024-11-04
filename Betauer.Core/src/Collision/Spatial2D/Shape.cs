@@ -8,6 +8,10 @@ public abstract class Shape {
     public abstract Vector2 Position { get; set; }
     public float X => Position.X;
     public float Y => Position.Y;
+    
+    public abstract Vector2 Center { get; }
+    public float CenterX => Position.X;
+    public float CenterY => Position.Y;
 
     public abstract float Width { get; }
     public abstract float Height { get; }

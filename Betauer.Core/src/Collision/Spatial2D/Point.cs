@@ -12,7 +12,8 @@ public class Point : Shape {
     public override float MaxY => Position.Y;
     public override float Width => 0f;
     public override float Height => 0f;
-
+    public override Vector2 Center => Position;
+    
     public override Vector2 Position {
         get => _position;
         set {
@@ -70,6 +71,8 @@ public class Point : Shape {
         });
         return area2D;
     }
+    
+    public override bool Equals(object obj) => obj is Point other && Equals(other);
 
     public bool Equals(Point other) => Position.Equals(other.Position);
 

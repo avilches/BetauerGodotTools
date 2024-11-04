@@ -13,6 +13,7 @@ public class Circle : Shape {
     public override float MaxX => Position.X + Radius;
     public override float MinY => Position.Y - Radius;
     public override float MaxY => Position.Y + Radius;
+    public override Vector2 Center => Position;
 
     public override Vector2 Position {
         get => _position;
@@ -95,6 +96,8 @@ public class Circle : Shape {
         });
         return area2D;
     }
+
+    public override bool Equals(object obj) => obj is Circle other && Equals(other);
 
     public bool Equals(Circle other) => Position.Equals(other.Position) && Radius == other.Radius;
 }
