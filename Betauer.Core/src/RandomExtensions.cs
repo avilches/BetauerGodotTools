@@ -88,7 +88,7 @@ public static partial class RandomExtensions {
 
     /// <summary>Returns a non-negative random integer.</summary>
     /// <returns>A 32-bit signed integer that is greater than or equal to 0 and less than <see cref="int.MaxValue"/>.</returns>
-    public static long NextInt(this Random random) {
+    public static int NextInt(this Random random) {
         return random.Next();
     }
 
