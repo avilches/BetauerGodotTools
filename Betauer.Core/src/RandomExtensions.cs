@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using Godot;
 
 namespace Betauer.Core;
 
@@ -103,8 +104,32 @@ public static partial class RandomExtensions {
         return random.NextSingle();
     }
 
+    /// <summary> Returns a random point inside the Rect2I</summary>
+    public static Vector2I Next(this Random rng, Rect2I rect2I) {
+        return new Vector2I(rng.Range(rect2I.Position.X, rect2I.End.X - 1), rng.Range(rect2I.Position.Y, rect2I.End.Y - 1));
+    }
+
+    /// <summary> Returns a random point inside the Rect2</summary>
+    public static Vector2 Next(this Random rng, Rect2 rect2) {
+        return new Vector2(rng.Range(rect2.Position.X, rect2.End.X), rng.Range(rect2.Position.Y, rect2.End.Y - 1));
+    }
+    
+    /// <summary> Returns a random point inside the circle</summary>
+    public static Vector2 Next(this Random rng, Vector2 center, int radius) {
+        var angle = rng.NextDouble() * 2 * Math.PI; // Angle in radians
+        var distance = Math.Sqrt(rng.NextDouble()) * radius;
+        return center + Vector2.FromAngle((float)angle) * (float)distance;
+    }
+    
+    /// <summary> Returns a random point inside the circle</summary>
+    public static Vector2I Next(this Random rng, Vector2I center, int radius) {
+        var angle = rng.NextDouble() * 2 * Math.PI; // Angle in radians
+        var distance = Math.Sqrt(rng.NextDouble()) * radius;
+        return center + new Vector2I(Mathf.RoundToInt(distance * Math.Cos(angle)), Mathf.RoundToInt(distance * Math.Sin(angle)));
+    }
+
     /// <summary>
-    /// Returns a uniformly random integer representing one of the values 
+    /// Returns a uniformly random integer representing one of the values of the <T> enum 
     /// in the enum.
     /// </summary>
     public static int Next<T>(this Random random) where T : Enum {
@@ -131,37 +156,49 @@ public static partial class RandomExtensions {
         return values[randomIndex];
     }
     
-    public static T[] Extract<T>(this Random random, T[] items, int k) {
-        var selected = new T[k];
+    /// <summary>
+    /// Selects `n` unique random elements from an array `items`.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the array.</typeparam>
+    /// <param name="random">The instance of the `Random` class.</param>
+    /// <param name="items">The array from which elements are to be selected.</param>
+    /// <param name="n">The number of elements to select.</param>
+    /// <returns>An enumerable containing `n` unique random elements from the input array `items`.</returns>
+    public static IEnumerable<T> Extract<T>(this Random random, T[] items, int n) {
         var selectedCount = 0;
-        double needed = k;
+        double needed = n;
         double available = items.Length;
-        while (selectedCount < k) {
+        while (selectedCount < n) {
             if( random.NextDouble() < needed / available ) {
-                selected[selectedCount++] = items[(int)available - 1];
+                yield return items[Mathf.RoundToInt(available) - 1];
+                selectedCount++;
                 needed--;
             }
             available--;
         }
-        return selected;
     }
-    
-    public static IList<T> Extract<T>(this Random random, IList<T> items, int k) {
-        var selected = new List<T>(k);
+    /// <summary>
+    /// Selects `n` unique random elements from an IList `items`.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the list.</typeparam>
+    /// <param name="random">The instance of the `Random` class.</param>
+    /// <param name="items">The list from which elements are to be selected.</param>
+    /// <param name="n">The number of elements to select.</param>
+    /// <returns>An enumerator containing `n` unique random elements from the input list `items`.</returns>
+    public static IEnumerable<T> Extract<T>(this Random random, IList<T> items, int n) {
         var selectedCount = 0;
-        double needed = k;
+        double needed = n;
         double available = items.Count;
-        while (selectedCount < k) {
+        while (selectedCount < n) {
             if( random.NextDouble() < needed / available ) {
-                selected[selectedCount++] = items[(int)available - 1];
+                yield return items[Mathf.RoundToInt(available) - 1];
+                selectedCount++;
                 needed--;
             }
             available--;
         }
-        return selected;
     }
     
-
     /// <summary>
     /// Shuffle the array in place using the Fisher-Yates algorithm.
     /// https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
