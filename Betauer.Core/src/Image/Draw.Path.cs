@@ -47,8 +47,8 @@ public static partial class Draw {
      ...........
     */
     public static void LineTwoTurns(int x0, int y0, int x1, int y1, Action<int, int> onPixel, bool firstHorizontal = true, float firstTurn = 0.5f, float secondTurn = 0.5f) {
-        var midX = Math.Clamp(Mathf.RoundToInt((x0 + x1) * firstTurn), x0, x1);
-        var midY = Math.Clamp(Mathf.RoundToInt((y0 + y1) * secondTurn), y0, y1);
+        var midX = Mathf.RoundToInt(x0 + (x1 - x0) * firstTurn);
+        var midY = Mathf.RoundToInt(y0 + (y1 - y0) * secondTurn);
         if (firstHorizontal) {
             for (; x0 != midX; x0 += (midX > x0) ? 1 : -1) onPixel(x0, y0);
             for (; y0 != midY; y0 += (midY > y0) ? 1 : -1) onPixel(x0, y0);

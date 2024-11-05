@@ -351,6 +351,64 @@ public static class Geometry {
             }
         }
         return connections;
-    }        
+    }
+    
+    public static Rect2I ShrinkRect(Rect2I rect, int maxPadding, Random random) {
+        return ShrinkRect(rect.Position.X, rect.Position.Y, rect.Size.X, rect.Size.Y, maxPadding, random);
+    }
+    
+    public static Rect2I ShrinkRect(int x, int y, int width, int height, int maxPadding, Random random) {
+        var maxAllowedPadding = Math.Min(maxPadding, Math.Min(width / 2-1, height / 2-1));
 
+        var paddingLeft = random.Next(0, maxAllowedPadding + 1);
+        var paddingTop = random.Next(0, maxAllowedPadding + 1);
+        var paddingRight = random.Next(0, maxAllowedPadding + 1);
+        var paddingBottom = random.Next(0, maxAllowedPadding + 1);
+
+        var newX = x + paddingLeft;
+        var newY = y + paddingTop;
+        var newWidth = width - (paddingLeft + paddingRight);
+        var newHeight = height - (paddingTop + paddingBottom);
+
+        return new Rect2I(newX, newY, newWidth, newHeight);
+    }
+
+    public static Rect2I ShrinkRect(Rect2I rect, int by) {
+        return ShrinkRect(rect.Position.X, rect.Position.Y, rect.Size.X, rect.Size.Y, by);
+    }
+    
+    public static Rect2I ShrinkRectProportional(int x, int y, int width, int height, float factor) {
+        if (factor < 0 || factor > 1) {
+            throw new ArgumentOutOfRangeException(nameof(factor), "Factor must be between 0 and 1.");
+        }
+        var newWidth = Mathf.RoundToInt(width * factor);
+        var newHeight = Mathf.RoundToInt(height * factor);
+        var newX = Mathf.RoundToInt(x + (width - newWidth) / 2f);
+        var newY = Mathf.RoundToInt(y + (height - newHeight) / 2f);
+        return new Rect2I(newX, newY, newWidth, newHeight);
+    }
+    
+    public static Rect2I ShrinkRect(int x, int y, int width, int height, int by) {
+        var maxPadding = Math.Min(by, Math.Min(width / 2 - 1, height / 2 - 1));
+        var newX = x + maxPadding;
+        var newY = y + maxPadding;
+        var newWidth = width - maxPadding * 2;
+        var newHeight = height - maxPadding * 2;
+        return new Rect2I(newX, newY, newWidth, newHeight);
+    }
+
+    public static void Main() {
+        Console.WriteLine(ShrinkRect(0, 0, 10, 10, 0));
+        Console.WriteLine(ShrinkRect(0, 0, 10, 10, 1));
+        Console.WriteLine(ShrinkRect(0, 0, 10, 10, 2));
+        Console.WriteLine(ShrinkRect(0, 0, 10, 10, 4));
+        Console.WriteLine(ShrinkRect(0, 0, 10, 10, 5));
+        Console.WriteLine(ShrinkRect(0, 0, 10, 10, 6));
+        Console.WriteLine(ShrinkRect(0, 0, 10, 9, 0));
+        Console.WriteLine(ShrinkRect(0, 0, 10, 9, 1));
+        Console.WriteLine(ShrinkRect(0, 0, 10, 9, 2));
+        Console.WriteLine(ShrinkRect(0, 0, 10, 9, 4));
+        Console.WriteLine(ShrinkRect(0, 0, 10, 9, 5));
+        Console.WriteLine(ShrinkRect(0, 0, 10, 9, 6));
+    }
 }
