@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Betauer.Core.Collision;
+using Betauer.Core.Collision.Spatial2D;
 using Betauer.Core.Image;
 using Godot;
 using FastNoiseLite = Betauer.Core.Data.FastNoiseLite;
@@ -11,6 +13,7 @@ public class BspTreeDemo {
     public static void Main() {
         var random = new Random(4);
         const int padding = 4;
+        const float shrink = 0.5f;
         const int width = 180;
         const int height = 130;
 
@@ -23,7 +26,7 @@ public class BspTreeDemo {
             MaxRatio = 16f / 9,
             CreateRoom = (x, y, width, height) => {
                 // return new Rect2I(x, y, width, height);
-                var newRect = Geometry.ShrinkRectProportional(x, y, width, height, random.Range(0.5f, 1f));
+                var newRect = Geometry.ShrinkRectProportional(x, y, width, height, random.Range(shrink, 1f));
                 var offsetX = width - newRect.Size.X;
                 var offsetY = height - newRect.Size.Y;
                 return new Rect2I(new Vector2I(x + random.Next(0, offsetX + 1), y + random.Next(0, offsetY + 1)), newRect.Size);
@@ -39,25 +42,58 @@ public class BspTreeDemo {
         };
         bsp.Generate();
 
-        var map = CreateMap(width, height);
 
-        CarveRooms(bsp, map);
-        Stats(bsp);
-        CarveCorridors(bsp, map, random);
-        PrintMap(bsp, map);
+        var rooms = bsp.GetRooms();
+        
+        // rooms = ExpandRooms(rooms);
+
+        var map = CreateMap(width, height);
+        CarveRooms(width, height, rooms, map);
+        Stats(rooms, bsp.MaxRatio);
+        CarveCorridors(width, height, rooms, map, random);
+        PrintMap(width, height, map);
     }
 
-    private static void CarveCorridors(BspTree bsp, char[,] map, Random random) {
-        var width = bsp.Width;
-        var height = bsp.Height;
-        var centers = bsp.GetRooms().Select(r => {
+    private static List<Rect2I> ExpandRooms(List<Rect2I> rooms) {
+        // Use this code to expand the rooms using Spatial
+        
+        var sp = new SpatialGrid(10);
+        sp.AddAll(rooms.Select(r => new Rectangle(r)));
+        var rectangles = sp.FindShapes<Rectangle>().Cast<Shape>().ToList();
+        while (rectangles.Count > 0) {
+            // Console.WriteLine("Expanding... "+rectangles.Count);
+            sp.ExpandAll(rectangles, 1f);
+        }
+        return sp.FindShapes<Rectangle>().Select(shape => shape.ToRect2I()).ToList();
+    }
+
+    private static void CarveRooms(int width, int height, IList<Rect2I> rooms, char[,] map, bool showSize = false) {
+        rooms.ForEach(rect => {
+            for (var x = rect.Position.X; x < rect.Position.X + rect.Size.X; x++) {
+                for (var y = rect.Position.Y; y < rect.Position.Y + rect.Size.Y; y++) {
+                    if (x >= 0 && x < width && y >= 0 && y < height)
+                        map[x, y] = ' ';
+                }
+            }
+            if (showSize) {
+                var sizeText = $"{rect.Size.X}/{rect.Size.Y}({((double)Math.Max(rect.Size.X, rect.Size.Y) / Math.Min(rect.Size.X, rect.Size.Y)):0.0})";
+                for (var i = 0; i < sizeText.Length; i++) {
+                    if (rect.Position.X + i >= 0 && rect.Position.X + i < width && rect.Position.Y >= 0 && rect.Position.Y < height)
+                        map[rect.Position.X + i, rect.Position.Y] = sizeText[i];
+                }
+            }
+        });
+    }
+
+    private static void CarveCorridors(int width, int height, IList<Rect2I> rooms, char[,] map, Random random, bool showPaths = false, bool showCenters = false) {
+        var centers = rooms.Select(r => {
             var center = r.GetCenter();
             var rect = new Rect2I(center, Vector2I.Zero).Grow(3);
             return random.Next(rect);
         }).ToList();
 
         var a = Geometry.GetConnections(centers);
-        var cc = 'A';
+        var cc = showPaths ? '*' : ' ';
         var f = new FastNoiseLite();
         a.ForEach((connection, v2) => {
                 var start = connection.Item1;
@@ -83,28 +119,9 @@ public class BspTreeDemo {
                         if (x > 0 && x < width && y > 0 && y < height) map[x, y] = cc;
                     });
                 }
-                cc++;
-            })
-            ;
-        centers.ForEach(v => { map[v.X, v.Y] = '*'; });
-    }
-
-    private static void CarveRooms(BspTree bsp, char[,] map) {
-        var width = bsp.Width;
-        var height = bsp.Height;
-        bsp.GetRooms().ForEach(rect => {
-            for (var x = rect.Position.X; x < rect.Position.X + rect.Size.X; x++) {
-                for (var y = rect.Position.Y; y < rect.Position.Y + rect.Size.Y; y++) {
-                    if (x >= 0 && x < width && y >= 0 && y < height)
-                        map[x, y] = ' ';
-                }
-            }
-            var sizeText = $"{rect.Size.X}/{rect.Size.Y}={(double)Math.Max(rect.Size.X, rect.Size.Y) / Math.Min(rect.Size.X, rect.Size.Y)}";
-            for (var i = 0; i < sizeText.Length; i++) {
-                if (rect.Position.X + i >= 0 && rect.Position.X + i < width && rect.Position.Y >= 0 && rect.Position.Y < height)
-                    map[rect.Position.X + i, rect.Position.Y] = sizeText[i];
-            }
-        });
+                //cc++;
+            });
+        if (showCenters) centers.ForEach(v => { map[v.X, v.Y] = '*'; });
     }
 
     private static char[,] CreateMap(int width, int height) {
@@ -115,17 +132,16 @@ public class BspTreeDemo {
         return map;
     }
 
-    private static void PrintMap(BspTree bsp, char[,] map) {
-        for (var y = 0; y < bsp.Height; y++) {
-            for (var x = 0; x < bsp.Width; x++) {
+    private static void PrintMap(int width, int height, char[,] map) {
+        for (var y = 0; y < height; y++) {
+            for (var x = 0; x < width; x++) {
                 Console.Write(map[x, y]);
             }
             Console.WriteLine();
         }
     }
 
-    private static void Stats(BspTree generator) {
-        var rooms = generator.GetRooms();
+    private static void Stats(IList<Rect2I> rooms, float bspMaxRatio) {
         var ratioSum = 0f;
         var verticals = 0;
         var horizontals = 0;
@@ -152,7 +168,7 @@ public class BspTreeDemo {
             // Console.WriteLine(width + " / " + height + " = " + ratio.ToString("0.00"));
         });
         Console.WriteLine($"Average ratio: {(ratioSum / (verticals + horizontals)):0.00}");
-        Console.WriteLine($"Min/max Ratio: {minRatio:0.00}/{maxRatio:0.00} (ratio limit is {generator.MaxRatio})");
+        Console.WriteLine($"Min/max Ratio: {minRatio:0.00}/{maxRatio:0.00} (ratio limit was {bspMaxRatio})");
         Console.WriteLine("Verticals: " + verticals + "/" + rooms.Count);
         Console.WriteLine("Horizontals: " + horizontals + "/" + rooms.Count);
         Console.WriteLine("Squares: " + (square) + "/" + rooms.Count);

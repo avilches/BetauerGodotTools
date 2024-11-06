@@ -7,6 +7,8 @@ namespace Betauer.Core.Bsp;
 public class BspTree {
     private static readonly Random DefaultRandom = new Random();
 
+    public static bool Debug = false;
+
     public Random Random { get; init; } = DefaultRandom;
 
     public int Width { get; init; } = 80;
@@ -44,7 +46,7 @@ public class BspTree {
         void SplitNode(BspNode node, int depth) {
             if (Stop(node, depth)) {
                 node.CreateRoom(CreateRoom);
-                Console.WriteLine("Stopping at depth " + depth+" Room created: "+node.Rect2I.Value.Size.X+"/"+node.Rect2I.Value.Size.Y);
+                if (Debug) Console.WriteLine("Stopping at depth " + depth+" Room created: "+node.Rect2I.Value.Size.X+"/"+node.Rect2I.Value.Size.Y);
                 return;
             }
             if (node.Split(Retries, Splitter, depth, MinRoomHeight, MinRoomWidth, MaxRatio)) {
@@ -52,7 +54,7 @@ public class BspTree {
                 SplitNode(node.B!, depth + 1);
             } else {
                 node.CreateRoom(CreateRoom);
-                Console.WriteLine("Rejected at " + depth+" Room created: "+node.Rect2I!.Value.Size.X+"/"+node.Rect2I.Value.Size.Y);
+                if (Debug) Console.WriteLine("Rejected at " + depth+" Room created: "+node.Rect2I!.Value.Size.X+"/"+node.Rect2I.Value.Size.Y);
             }
         }
     }

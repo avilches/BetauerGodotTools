@@ -17,17 +17,17 @@ public class BspNode {
     }
 
     public bool Split(int tries, Func<BspNode, int, (bool horizontal, float splitBy)> splitter, int depth, int minRoomHeight, int minRoomWidth, float maxRatio) {
-        Console.WriteLine("[" + depth + "] Splitting node " + X + "/" + Y + " Size:" + Width + "/" + Height);
+        if (BspTree.Debug) Console.WriteLine("[" + depth + "] Splitting node " + X + "/" + Y + " Size:" + Width + "/" + Height);
         while (--tries >= 0) {
             var (splitHorizontally, splitBy) = splitter(this, depth);
             if (splitHorizontally) {
                 var newHeight = Mathf.RoundToInt(Height * splitBy);
-                Console.WriteLine("- Splitting height " + Height + " horizontally by " + splitBy + ". New height: " + newHeight);
+                if (BspTree.Debug) Console.WriteLine("- Splitting height " + Height + " horizontally by " + splitBy + ". New height: " + newHeight);
                 A = new BspNode(X, Y, Width, newHeight);
                 B = new BspNode(X, Y + newHeight, Width, Height - newHeight);
             } else {
                 var newWidth = Mathf.RoundToInt(Width * splitBy);
-                Console.WriteLine("- Splitting width " + Width + " vertically by " + splitBy + ". New width: " + newWidth);
+                if (BspTree.Debug) Console.WriteLine("- Splitting width " + Width + " vertically by " + splitBy + ". New width: " + newWidth);
                 A = new BspNode(X, Y, newWidth, Height);
                 B = new BspNode(X + newWidth, Y, Width - newWidth, Height);
             }
@@ -42,13 +42,13 @@ public class BspNode {
                 if (ratioA <= maxRatio && ratioB <= maxRatio) {
                     return true;
                 } else {
-                    Console.WriteLine("!!! Invalid ratio A: " + ratioA + " B: " + ratioB);
+                    if (BspTree.Debug) Console.WriteLine("!!! Invalid ratio A: " + ratioA + " or B: " + ratioB);
                 }
             } else {
-                Console.WriteLine("!!! Invalid room size less than "+minRoomWidth+"/"+minRoomHeight+". A: " + (A.Width - 1) + "/" + (A.Height - 1) + " B: " + (B.Width - 1) + "/" + (B.Height - 1));
+                if (BspTree.Debug) Console.WriteLine("!!! Invalid room size less than "+minRoomWidth+"/"+minRoomHeight+". A: " + (A.Width - 1) + "/" + (A.Height - 1) + " B: " + (B.Width - 1) + "/" + (B.Height - 1));
             }
         }
-        Console.WriteLine("!!! Impossible to split node " + X + "/" + Y + " Size: " + Width + "/" + Height);
+        if (BspTree.Debug) Console.WriteLine("!!! Impossible to split node " + X + "/" + Y + " Size: " + Width + "/" + Height);
         A = null;
         B = null;
         return false;
