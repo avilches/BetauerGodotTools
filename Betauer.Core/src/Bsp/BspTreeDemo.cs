@@ -43,7 +43,7 @@ public class BspTreeDemo {
         bsp.Generate();
 
 
-        var rooms = bsp.GetRooms();
+        var rooms = bsp.Rooms;
         
         // rooms = ExpandRooms(rooms);
 

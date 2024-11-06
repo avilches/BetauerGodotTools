@@ -18,12 +18,24 @@ public class BspTree {
     public int MinRoomHeight { get; set; } = 3;
     public float MaxRatio { get; set; } = 16f / 9;
 
+    /// <summary>
+    /// Stop function will be called for each node in the BSP tree, if it returns true, the node will be considered a leaf and a room will be created.
+    /// Use this function to stop the BSP tree generation at a specific depth or condition.
+    /// By default, it will only stop if the node creates a room smaller than MinRoomWidth or MinRoomHeight, or the ratio is bigger than MaxRatio.
+    /// An interesting way to use is to stop the generation at a specific depth with a random chance, like: (node, i) => i > 5 && Random.NextDouble() > 0.5
+    /// </summary>
     public Func<BspNode, int, bool> Stop { get; init; } = (_, i) => false;
+    
+    /// <summary>
+    /// CreateRoom function will be called for each leaf node in the BSP tree to create a room.
+    /// Use this function to create a room with a different size or position. Reducing by a random number and move it a bit to the right, for example.
+    /// </summary>
     public Func<int, int, int, int, Rect2I> CreateRoom { get; set; } = (x, y, width, height) => new Rect2I(x, y, width, height);
 
     /// <summary>
-    /// Retries define the number of times the algorithm will try to split a node before giving up.
-    /// Split a node will call to the Splitter function to determine if the split will be horizontal or vertical, and the position of the split (0.0 to 1.0).
+    /// The Splitter function may or may not return a random value for the "splitBy" variable. If using the "splitBy" results in two sections that are too small
+    /// (using MinRoomWidth and MinRoomHeight) or have too large a ratio (using MaxRatio), the algorithm will retry to split the node again in case the random
+    /// value is different. Therefore, this Retries variable defines the maximum number of times this function will be called.
     /// </summary>
     public int Retries { get; init; } = 5;
 
@@ -35,17 +47,22 @@ public class BspTree {
 
     public BspNode Root { get; private set; }
 
+    public List<Rect2I> Rooms { get; private set; } = new();
+
     public void Generate() {
         MaxRatio = Math.Max(1f / MaxRatio, MaxRatio); // Convert ratios like 9:16 to 16:9
         MinRoomWidth = Math.Max(1, MinRoomWidth);
         MinRoomHeight = Math.Max(1, MinRoomHeight);
+        
         Root = new BspNode(0, 0, Width, Height);
+        Rooms.Clear();
         SplitNode(Root, 0);
         return;
 
         void SplitNode(BspNode node, int depth) {
             if (Stop(node, depth)) {
                 node.CreateRoom(CreateRoom);
+                Rooms.Add(node.Rect2I!.Value);
                 if (Debug) Console.WriteLine("Stopping at depth " + depth+" Room created: "+node.Rect2I.Value.Size.X+"/"+node.Rect2I.Value.Size.Y);
                 return;
             }
@@ -54,26 +71,8 @@ public class BspTree {
                 SplitNode(node.B!, depth + 1);
             } else {
                 node.CreateRoom(CreateRoom);
+                Rooms.Add(node.Rect2I!.Value);
                 if (Debug) Console.WriteLine("Rejected at " + depth+" Room created: "+node.Rect2I!.Value.Size.X+"/"+node.Rect2I.Value.Size.Y);
-            }
-        }
-    }
-
-    /// <summary>
-    /// Retrieves a list of all rooms in the BSP tree.
-    /// </summary>
-    /// <returns>A list of Rect2I representing the rooms.</returns>
-    public List<Rect2I> GetRooms() {
-        var rooms = new List<Rect2I>();
-        FillRooms(Root, rooms);
-        return rooms;
-
-        void FillRooms(BspNode node, List<Rect2I> rooms) {
-            if (node.Rect2I != null) {
-                rooms.Add(node.Rect2I.Value);
-            } else {
-                FillRooms(node.A!, rooms);
-                FillRooms(node.B!, rooms);
             }
         }
     }
@@ -81,6 +80,7 @@ public class BspTree {
     /// <summary>
     /// Returns a list of connections between the deepest rooms in the BSP tree.
     /// It traverses the BSP tree, finds the deepest rooms in each node, and adds a connection between them.
+    /// So, for this reason, some rooms could be connected to more than one room.
     /// </summary>
     /// <returns>A list of Rect2I tuples representing all the connections between the rooms.</returns>
     public List<(Rect2I, Rect2I)> GetConnections() {

@@ -33,8 +33,7 @@ public class BspNode {
             }
 
             // If the space for a potential room in both nodes is valid, we can stop the loop and continue the split
-            if (A.Width - 1 >= minRoomWidth &&
-                B.Width - 1 >= minRoomWidth &&
+            if (A.Width - 1 >= minRoomWidth && B.Width - 1 >= minRoomWidth && 
                 A.Height - 1 >= minRoomHeight &&
                 B.Height - 1 >= minRoomHeight) {
                 var ratioA = (float)Math.Max(A.Width - 1, A.Height - 1) / Math.Min(A.Width - 1, A.Height - 1);
