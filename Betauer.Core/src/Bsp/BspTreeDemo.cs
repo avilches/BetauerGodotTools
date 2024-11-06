@@ -14,19 +14,20 @@ public class BspTreeDemo {
         var random = new Random(4);
         const int padding = 4;
         const float shrink = 0.5f;
-        const int width = 180;
+        const int width = 140;
         const int height = 130;
 
         var bsp = new BspTree {
-            Retries = 10,
+            Retries = 30,
             Width = width,
             Height = height,
-            MinRoomWidth = 12,
-            MinRoomHeight = 12,
-            MaxRatio = 16f / 9,
+            MinRoomWidth = 6,
+            MinRoomHeight = 6,
+            MaxRatio = 3f/7,
             CreateRoom = (x, y, width, height) => {
                 // return new Rect2I(x, y, width, height);
-                var newRect = Geometry.ShrinkRectProportional(x, y, width, height, random.Range(shrink, 1f));
+                var r = Geometry.ShrinkRectToEnsureRatio(x, y, width, height, 3f/7);
+                var newRect = Geometry.ShrinkRectProportional(r, random.Range(shrink, 1f));
                 var offsetX = width - newRect.Size.X;
                 var offsetY = height - newRect.Size.Y;
                 return new Rect2I(new Vector2I(x + random.Next(0, offsetX + 1), y + random.Next(0, offsetY + 1)), newRect.Size);
@@ -38,7 +39,7 @@ public class BspTreeDemo {
             Splitter = (node, i) => (
                 horizontal: node.Height == node.Width ? random.NextBool() : node.Height > node.Width, // Split horizontally if height is greater than width.
                 splitBy: random.Range(0.4f, 0.6f)), // Split using a value 40% to 60% of the size.
-            Stop = (node, depth) => depth >= 5 && random.NextDouble() < 0.2 // Stop after 5 divisions with 20% chance
+            Stop = (node, depth) => depth >= 7 && random.NextDouble() < 0.5 // Stop after 5 divisions with 20% chance
         };
         bsp.Generate();
 
@@ -47,12 +48,21 @@ public class BspTreeDemo {
         
         // rooms = ExpandRooms(rooms);
 
+        RemoveBiggerRooms(rooms, 0.2f);
+
+
         var map = CreateMap(width, height);
         CarveRooms(width, height, rooms, map);
-        Stats(rooms, bsp.MaxRatio);
-        CarveCorridors(width, height, rooms, map, random);
+        Stats(rooms, bsp.MaxRatio, bsp.MinRoomWidth, bsp.MinRoomHeight);
+        CarveCorridors(width, height, rooms, map, random, true, true);
         PrintMap(width, height, map);
     }
+
+    private static void RemoveBiggerRooms(List<Rect2I> rooms, float percent) {
+        rooms.Sort((a, b) => a.Area);
+        rooms.RemoveRange(0, Mathf.RoundToInt(rooms.Count * percent));
+    }
+
 
     private static List<Rect2I> ExpandRooms(List<Rect2I> rooms) {
         // Use this code to expand the rooms using Spatial
@@ -88,7 +98,9 @@ public class BspTreeDemo {
     private static void CarveCorridors(int width, int height, IList<Rect2I> rooms, char[,] map, Random random, bool showPaths = false, bool showCenters = false) {
         var centers = rooms.Select(r => {
             var center = r.GetCenter();
-            var rect = new Rect2I(center, Vector2I.Zero).Grow(3);
+            if (r.Size.X <= 3 || r.Size.Y <= 3) return center;
+            if (r.Size.X < 8 || r.Size.Y < 8) return random.Next(r);
+            var rect = new Rect2I(center, Vector2I.Zero).Grow(3); // grow by 3 means a 6x6 square
             return random.Next(rect);
         }).ToList();
 
@@ -121,7 +133,7 @@ public class BspTreeDemo {
                 }
                 //cc++;
             });
-        if (showCenters) centers.ForEach(v => { map[v.X, v.Y] = '*'; });
+        if (showCenters) centers.ForEach(v => { map[v.X, v.Y] = '+'; });
     }
 
     private static char[,] CreateMap(int width, int height) {
@@ -135,13 +147,13 @@ public class BspTreeDemo {
     private static void PrintMap(int width, int height, char[,] map) {
         for (var y = 0; y < height; y++) {
             for (var x = 0; x < width; x++) {
-                Console.Write(map[x, y]);
+                Console.Write(map[x, y]+""+map[x, y]);
             }
             Console.WriteLine();
         }
     }
 
-    private static void Stats(IList<Rect2I> rooms, float bspMaxRatio) {
+    private static void Stats(IList<Rect2I> rooms, float bspMaxRatio, int bspMinWidth, int bspMinHeight) {
         var ratioSum = 0f;
         var verticals = 0;
         var horizontals = 0;
@@ -168,70 +180,9 @@ public class BspTreeDemo {
             // Console.WriteLine(width + " / " + height + " = " + ratio.ToString("0.00"));
         });
         Console.WriteLine($"Average ratio: {(ratioSum / (verticals + horizontals)):0.00}");
-        Console.WriteLine($"Min/max Ratio: {minRatio:0.00}/{maxRatio:0.00} (ratio limit was {bspMaxRatio})");
-        Console.WriteLine("Verticals: " + verticals + "/" + rooms.Count);
-        Console.WriteLine("Horizontals: " + horizontals + "/" + rooms.Count);
-        Console.WriteLine("Squares: " + (square) + "/" + rooms.Count);
-        Console.WriteLine("Min Height: " + minHeight);
-        Console.WriteLine("Min Width: " + minWidth);
-    }
-
-    public static void Main2() {
-        ValidateDivision(5, 4, 0.55, 0.4, 0.6);
-        ValidateDivision(4, 5, 0.45, 0.4, 0.6);
-        ValidateDivision(4, 5, 0.45, 0.1, 0.9);
-        ValidateDivision(4, 5, 0.45, 0.45, 0.55);
-        ValidateDivision(4, 5, 0.45, 0.49, 0.6);
-    }
-
-    public static bool HasRatioOrLess(double width, double height, double maxRatio) {
-        if (width <= 0 || height <= 0)
-            throw new ArgumentException("Width and height must be positive numbers.");
-
-        // Current ratio as long side / short side, it will return 1 or more, like 1.7777 for a 16:9 ratio
-        var ratio = Math.Max(width, height) / Math.Min(width, height);
-
-        // If ratio sent is in the range of 0 to 1, we need to invert it. So, a ratio of 0.33 (1/3) will be 3 (3:1)
-        var ratioLimit = maxRatio < 1 ? 1.0 / maxRatio : maxRatio;
-
-        // True if current ratio is less or equal to the limit ratio
-        return ratio <= ratioLimit;
-    }
-
-    public static bool ValidateDivision(int width, int height, double minRatio, double minRandom, double maxRandom) {
-        // Determina cuál es el lado más largo y el lado más corto del rectángulo
-        var longSide = Math.Max(width, height);
-        var shortSide = Math.Min(width, height);
-
-        var lastSplitPoint = -1;
-        // Recorre el rango aleatorio del 40% al 60% del lado más largo
-        for (var percent = minRandom; percent <= maxRandom; percent += 0.01) {
-            // Calcula la posición de división dentro del rango
-            var splitPoint = (int)(longSide * percent);
-            if (lastSplitPoint != -1 && lastSplitPoint == splitPoint) continue;
-            lastSplitPoint = splitPoint;
-
-            // Calcula las dimensiones de los dos subrectángulos
-            int part1Long = splitPoint;
-            int part2Long = longSide - splitPoint;
-            if (part1Long < 1 || part2Long < 1) continue;
-
-            // Calcula los ratios de ambas partes
-            double ratioPart1 = (double)part1Long / shortSide;
-            double ratioPart2 = (double)part2Long / shortSide;
-
-            Console.WriteLine("Part 1: " + part1Long + "/" + shortSide + " ratio " + ratioPart1 + " HasRatioOrLess " + HasRatioOrLess(part1Long, shortSide, minRatio));
-            Console.WriteLine("Part 2: " + part2Long + "/" + shortSide + " ratio " + ratioPart2 + " HasRatioOrLess " + HasRatioOrLess(part2Long, shortSide, minRatio));
-
-            // Verifica si ambos ratios cumplen con el mínimo requerido
-            if (ratioPart1 >= minRatio && ratioPart2 >= minRatio) {
-                Console.WriteLine(":) Validating division for " + width + "/" + height + " ratio " + minRatio + " random " + minRandom + "-" + maxRandom + " is possible at " + percent);
-                return true;
-            }
-        }
-
-        // Si no encontró una división válida, devuelve false
-        Console.WriteLine("!!!!!!! Validating division for " + width + "/" + height + " ratio " + minRatio + " random " + minRandom + "-" + maxRandom + " is not possible");
-        return false;
+        Console.WriteLine($"Min/max Ratio: {minRatio:0.00}/{maxRatio:0.00} (BPS ratio limit was {bspMaxRatio:0.00})");
+        Console.WriteLine("H/V/square: " + horizontals+"/"+verticals + "/" + square+" (total "+rooms.Count+")");
+        Console.WriteLine("Min Width: " + minWidth+ " (BPS min width was: "+bspMinWidth+")");
+        Console.WriteLine("Min Height: " + minHeight+ " (BPS min height was: "+bspMinHeight+")");
     }
 }

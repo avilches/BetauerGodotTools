@@ -50,7 +50,7 @@ public class BspTree {
     public List<Rect2I> Rooms { get; private set; } = new();
 
     public void Generate() {
-        MaxRatio = Math.Max(1f / MaxRatio, MaxRatio); // Convert ratios like 9:16 to 16:9
+        if (MaxRatio < 1) MaxRatio = 1f / MaxRatio; // Convert ratios like 9:16 to 16:9
         MinRoomWidth = Math.Max(1, MinRoomWidth);
         MinRoomHeight = Math.Max(1, MinRoomHeight);
         
