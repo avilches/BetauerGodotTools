@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using Godot;
 
-namespace Betauer.Core.Math.Collision;
+namespace Betauer.Core.Math.Graph;
 
-public static class PrimMST {
+public static class PrimMst {
 
     /// <summary>
     /// Connects all vectors in the grid using a Minimum Spanning Tree (MST) approach.

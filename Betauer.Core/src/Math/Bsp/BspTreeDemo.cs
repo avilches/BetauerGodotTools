@@ -4,6 +4,7 @@ using System.Linq;
 using Betauer.Core.Image;
 using Betauer.Core.Math.Collision;
 using Betauer.Core.Math.Collision.Spatial2D;
+using Betauer.Core.Math.Graph;
 using Godot;
 using FastNoiseLite = Betauer.Core.Math.Data.FastNoiseLite;
 
@@ -104,7 +105,7 @@ public class BspTreeDemo {
             return random.Next(rect);
         }).ToList();
 
-        var a = PrimMST.GetConnections(centers);
+        var a = PrimMst.GetConnections(centers);
         var cc = showPaths ? '*' : ' ';
         var f = new FastNoiseLite();
         a.ForEach((connection, v2) => {
