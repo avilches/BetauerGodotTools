@@ -1,5 +1,5 @@
 using System.Linq;
-using Betauer.Core.Data;
+using Betauer.Core.Math.Data;
 using Betauer.TestRunner;
 using NUnit.Framework;
 

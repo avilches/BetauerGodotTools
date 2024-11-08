@@ -63,9 +63,9 @@ public class MeleeAi : FsmSync<MeleeAi.State, MeleeAi.Event>, ICharacterAi {
 
         var fleeIsHealthPercentIsLessThan = 0.25f;
 
-        var minDistanceToApproach = 30f + Random.Range(-10, 10);
-        var attacksPerSecondsProbability = Random.Range(1f, 1.3f);
-        var minDistanceToAttack = 40f + Random.Range(-15, 15);
+        var minDistanceToApproach = 30f + Random.Range(-10, 11);
+        var attacksPerSecondsProbability = Random.Range(1f, 1.4f);
+        var minDistanceToAttack = 40f + Random.Range(-15, 16);
 
         GodotStopwatch stateTimer = new(false, true);
 

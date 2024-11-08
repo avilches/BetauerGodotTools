@@ -13,48 +13,31 @@ public static partial class RandomExtensions {
     // https://numerics.mathdotnet.com/Probability.html
     // https://github.com/mathnet/mathnet-numerics
     // https://www.cambiaresearch.com/articles/13/csharp-randomprovider-class
-    /// <summary>
-    /// Returns an int in the range [start, end] (both inclusive)
-    /// </summary>
-    public static int Range(this Random random, int start, int end) {
-        if (start == end) return start;
-        if (start > end) (start, end) = (end, start);
-        return random.Next(start, end + 1);
-    }
-
-    /// <summary>
-    /// Returns a long in the range [start, end] (both inclusive)
-    /// </summary>
-    public static long Range(this Random random, long start, long end) {
-        if (start == end) return start;
-        if (start > end) (start, end) = (end, start);
-        return random.NextInt64(start, end + 1);
-    }
 
     /// <summary>
     /// Returns a DateTime in the range [min, max] (both inclusive, within milliseconds)
     /// </summary>
     public static DateTime Range(this Random random, DateTime start, DateTime end) {
-        if (start > end) (start, end) = (end, start);
-        var diff = (end - start).TotalMilliseconds;
-        var rn = random.Next((int)diff + 1000);
-        return start.AddMilliseconds(rn);
+        if (start >= end) throw new ArgumentException("Start date must be less than end date");
+        var range = end.Ticks - start.Ticks;
+        var randomTicks = (long)(random.NextDouble() * range);
+        return new DateTime(start.Ticks + randomTicks);
     }
 
     /// <summary>
-    /// Returns a TimeSpan in the range [min, max] (both inclusive)
+    /// Returns a TimeSpan in the range [min, max] (max exclusive)
     /// </summary>
     public static TimeSpan Range(this Random random, TimeSpan min, TimeSpan max) {
-        return new TimeSpan(random.Range(min.Ticks, max.Ticks));
+        return new TimeSpan(random.NextInt64(min.Ticks, max.Ticks));
     }
 
 
     /// <summary>
     /// Returns a float (Single) in the range [start, end) (max is excluded)
     /// </summary>
-    public static float Range(this Random random, float start, float endExcluded) {
-        if (start > endExcluded) (start, endExcluded) = (endExcluded, start);
-        var limit = endExcluded - start;
+    public static float Range(this Random random, float start, float end) {
+        if (start >= end) throw new ArgumentException("Start value must be less than end value");
+        var limit = end - start;
         var rn = random.NextDouble() * limit;
         return (float)rn + start;
     }
@@ -62,9 +45,9 @@ public static partial class RandomExtensions {
     /// <summary>
     /// Returns a double in the range [start, end) (end is excluded)
     /// </summary>
-    public static double Range(this Random random, double start, double endExcluded) {
-        if (start > endExcluded) (start, endExcluded) = (endExcluded, start);
-        var limit = endExcluded - start;
+    public static double Range(this Random random, double start, double end) {
+        if (start >= end) throw new ArgumentException("Start value must be less than end value");
+        var limit = end - start;
         var rn = random.NextDouble() * limit;
         return rn + start;
     }
@@ -106,12 +89,12 @@ public static partial class RandomExtensions {
 
     /// <summary> Returns a random point inside the Rect2I</summary>
     public static Vector2I Next(this Random rng, Rect2I rect2I) {
-        return new Vector2I(rng.Range(rect2I.Position.X, rect2I.End.X - 1), rng.Range(rect2I.Position.Y, rect2I.End.Y - 1));
+        return new Vector2I(rng.Next(rect2I.Position.X, rect2I.End.X), rng.Next(rect2I.Position.Y, rect2I.End.Y));
     }
 
     /// <summary> Returns a random point inside the Rect2</summary>
     public static Vector2 Next(this Random rng, Rect2 rect2) {
-        return new Vector2(rng.Range(rect2.Position.X, rect2.End.X), rng.Range(rect2.Position.Y, rect2.End.Y - 1));
+        return new Vector2(rng.Range(rect2.Position.X, rect2.End.X), rng.Range(rect2.Position.Y, rect2.End.Y));
     }
     
     /// <summary> Returns a random point inside the circle</summary>

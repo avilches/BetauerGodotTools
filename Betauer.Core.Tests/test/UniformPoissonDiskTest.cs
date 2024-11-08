@@ -1,6 +1,6 @@
 using System;
-using Betauer.Core.Collision.Spatial2D;
-using Betauer.Core.PoissonDiskSampling;
+using Betauer.Core.Math.Collision.Spatial2D;
+using Betauer.Core.Math.PoissonDiskSampling;
 using Betauer.TestRunner;
 using NUnit.Framework;
 

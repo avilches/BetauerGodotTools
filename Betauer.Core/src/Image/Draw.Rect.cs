@@ -1,6 +1,6 @@
 using System;
-using Betauer.Core.Collision;
 using Betauer.Core.Easing;
+using Betauer.Core.Math.Geometry;
 using Godot;
 
 namespace Betauer.Core.Image;
@@ -68,7 +68,7 @@ public static partial class Draw {
         }
         for (var drawY = 0; drawY < height; drawY++) {
             for (var drawX = 0; drawX < width; drawX++) {
-                var pos = Geometry.LerpRect2D(width, height, centerX, centerY, drawX, drawY);
+                var pos = Lerps.LerpToRectCustomCenter(width, height, centerX, centerY, drawX, drawY);
                 onPixel(drawX + x, drawY + y, easing?.Get(pos) ?? pos);
             }
         }
@@ -90,7 +90,7 @@ public static partial class Draw {
         }
         for (var drawY = 0; drawY < height; drawY++) {
             for (var drawX = 0; drawX < width; drawX++) {
-                var pos = Geometry.LerpRect2D(width, height, drawX, drawY);
+                var pos = Lerps.LerpToRectCenter(width, height, drawX, drawY);
                 onPixel(drawX + x, drawY + y, easing?.Get(pos) ?? pos);
             }
         }

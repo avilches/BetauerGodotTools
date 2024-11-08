@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using Betauer.Core;
 using Betauer.Core.Easing;
+using Betauer.Core.Math.Geometry;
 using Betauer.Core.Nodes.Property;
 using Betauer.Tools.Logging;
 using Godot;
@@ -64,7 +64,7 @@ namespace Betauer.Animation {
                 .TweenMethod(Callable.From( 
                     (float linearT) => {
                         var curveY = bezierCurve.Get(linearT);
-                        var value = VariantHelper.LerpVariant(from, to, curveY);
+                        var value = Lerps.LerpVariant(from, to, curveY);
                         // Logger.Debug(
                         // $"\"{context.Target.Name}\" {context.Target.GetType().Name}.{property}:  Bezier({linearT})={curveY} value:{value}");
                         // Console.WriteLine($"Play  From/To: {from}/{to} | Delta:+{(float)x.ElapsedMilliseconds/1000:0.0000} From/To: 0.00/{duration:0.00} (duration: {duration:0.00} Time:{((float)x2.ElapsedMilliseconds)/1000:0.0000} | t:{linearY:0.0000} y:{curveY:0000} Value: {value}");

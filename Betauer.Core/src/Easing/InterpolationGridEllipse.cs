@@ -1,5 +1,5 @@
 using System;
-using Betauer.Core.Collision;
+using Betauer.Core.Math.Geometry;
 
 namespace Betauer.Core.Easing;
 
@@ -56,7 +56,7 @@ public class InterpolationGridEllipse : IInterpolationGrid2D {
     public float Get(int x, int y) {
         var rectX = x - Width / 2f;
         var rectY = y - Height / 2f;
-        var value = Geometry.LerpEllipse(RadiusX, RadiusY, rectX, rectY);
+        var value = Lerps.LerpToEllipseCenter(RadiusX, RadiusY, rectX, rectY);
         return Easing?.Get(value) ?? value;
     }
     

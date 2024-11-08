@@ -1,6 +1,6 @@
 using System;
-using Betauer.Core.Collision;
 using Betauer.Core.Easing;
+using Betauer.Core.Math.Geometry;
 using Godot;
 
 namespace Betauer.Core.Image;

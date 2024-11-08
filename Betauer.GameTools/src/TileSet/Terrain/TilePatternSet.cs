@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Betauer.Core.Data;
 
 namespace Betauer.TileSet.Terrain;
 

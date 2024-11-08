@@ -9,13 +9,12 @@ using Betauer.DI.Factory;
 using Godot;
 using Veronenger.RTS.Assets.Trees;
 using Betauer.Core;
-using Betauer.Core.Collision.Spatial2D;
-using Betauer.Core.Data;
 using Betauer.Core.Image;
-using Betauer.Core.PoissonDiskSampling;
+using Betauer.Core.Math.Collision.Spatial2D;
+using Betauer.Core.Math.PoissonDiskSampling;
 using Betauer.TileSet.Image;
 using Betauer.TileSet.Terrain;
-using FastNoiseLite = Betauer.Core.Data.FastNoiseLite;
+using FastNoiseLite = Betauer.Core.Math.Data.FastNoiseLite;
 using TileMap = Godot.TileMap;
 
 namespace Veronenger.Game.RTS.World;

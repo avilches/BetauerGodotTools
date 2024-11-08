@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Betauer.Core;
-using Betauer.Core.Data;
 using Betauer.Core.Easing;
 using Betauer.Core.Image;
-using Betauer.Core.PoissonDiskSampling;
+using Betauer.Core.Math.Data;
+using Betauer.Core.Math.Graph;
+using Betauer.Core.Math.PoissonDiskSampling;
 using Betauer.TileSet.Terrain;
 using Godot;
-using FastNoiseLite = Betauer.Core.Data.FastNoiseLite;
+using FastNoiseLite = Betauer.Core.Math.Data.FastNoiseLite;
 
 namespace Veronenger.Game.RTS.World;
 

@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Betauer.Core.Data;
+using Betauer.Core.Math.Data;
 using Betauer.TestRunner;
 
 namespace Betauer.Core.Tests;

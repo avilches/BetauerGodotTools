@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Betauer.TestRunner;
 using NUnit.Framework;
 
 namespace Betauer.Core.Tests;
@@ -22,7 +23,7 @@ public class RandomTests {
         var rnd = new Random(0);
         int min = -3;
         int max = 6;
-        var intHist = Distribution.DiscreteHistogram(() => rnd.Range(min, max), SampleCount);
+        var intHist = Distribution.DiscreteHistogram(() => rnd.Next(min, max + 1), SampleCount);
         Console.WriteLine(Distribution.Show(intHist));
 
         // Both inclusive
@@ -37,7 +38,7 @@ public class RandomTests {
         var rnd = new Random(0);
         long min = -3L;
         long max = 6L;
-        var longHist = Distribution.DiscreteHistogram(() => rnd.Range(min, max), SampleCount);
+        var longHist = Distribution.DiscreteHistogram(() => rnd.NextInt64(min, max + 1), SampleCount);
         Console.WriteLine(Distribution.Show(longHist));
 
         // Both inclusive
@@ -51,7 +52,7 @@ public class RandomTests {
         var rnd = new Random(0);
         var from = new DateTime(2023, 12, 31, 23, 59, 55);
         var to = from.Add(TimeSpan.FromSeconds(20));
-        var longHist = Distribution.DiscreteHistogram(() => rnd.Range(from, to).ToString(), SampleCount);
+        var longHist = Distribution.DiscreteHistogram(() => rnd.Range(from, to.Add(TimeSpan.FromSeconds(1))).ToString(), SampleCount);
         Console.WriteLine(Distribution.Show(longHist));
 
         // Both inclusive
