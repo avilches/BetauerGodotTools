@@ -1,6 +1,5 @@
 using BenchmarkDotNet.Attributes;
 using Betauer.Core;
-using Betauer.Core.PoissonDiskSampling;
 using Godot;
 
 namespace Benchmarks;
