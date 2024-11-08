@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Betauer.Core.DataMath.Collision;
 using Betauer.Core.DataMath.Collision.Spatial2D;
@@ -503,15 +504,37 @@ public class SpatialGridTests : Node2D {
         spatial.Add(shape1);
         spatial.Add(shape2);
 
-        Assert.That(!spatial.IntersectPoint(5, 6));
-        Assert.That(spatial.IntersectPoint(6, 6));
-        Assert.That(spatial.IntersectPoint(10, 10));
-        Assert.That(!spatial.IntersectPoint(11, 10));
 
-        Assert.That(!spatial.IntersectPoint(14, 3));
-        Assert.That(spatial.IntersectPoint(14, 4));
-        Assert.That(spatial.IntersectPoint(14, 8));
-        Assert.That(!spatial.IntersectPoint(14, 9));
+        var s = new StringBuilder();
+        for (int y = 0; y < 16; y++) {
+            for (int x = 0; x < 20; x++) {
+                // Console.Write("y:" + y + "x:" + x + ""+": "+spatial.IntersectPoint(x, y)+" /");
+                var c = spatial.IntersectPoint(x, y) ? "#" : ".";
+                s.Append(c);
+            }
+            s.AppendLine();
+        }
+
+        var expected = """
+                       ....................
+                       ....................
+                       ....................
+                       ....................
+                       ..............#.....
+                       .............###....
+                       ......###########...
+                       ......######.###....
+                       ......######..#.....
+                       ......######........
+                       ......######........
+                       ......######........
+                       ....................
+                       ....................
+                       ....................
+                       ....................
+                       
+                       """;
+        Assert.That(s.ToString(), Is.EqualTo(expected));
 
         var shape3 = new Point(20, 20);
         spatial.Add(shape3);

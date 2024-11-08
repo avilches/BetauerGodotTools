@@ -142,7 +142,7 @@ public class TestRunner {
             GD.Print($"Scanning assembly {assembly}...");
             foreach (Type type in assembly.GetTypes()) {
                 if (GetAttribute<TestAttribute>(type) is { Ignore: false } && !HasAttribute<IgnoreAttribute>(type)) {
-                    GD.Print($"+ Test class {type}");
+                    // GD.Print($"+ Test class {type}");
                     var testClass = CreateTestClass(type);
                     testClasses.Add(testClass);
                     cleanNotOnly = cleanNotOnly || testClass.Only;

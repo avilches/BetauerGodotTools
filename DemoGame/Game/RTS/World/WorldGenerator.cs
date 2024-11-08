@@ -33,7 +33,7 @@ public partial class WorldGenerator {
     public Trees TreesInstance;
     private const int CellSize = 16;
 
-    private const int Width = 500;
+    private const int Width = 800;
     private const int Height = 500;
     
     public enum ViewMode {

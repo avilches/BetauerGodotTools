@@ -46,7 +46,7 @@ public class BiomeGenerator {
     public float MasslandOffset { get; set; }
     // public float HeightBias { get; set; }
     public Func<float, float, float> RampFunc;
-    public DataGrid<float> MassLands { get; private set; }
+    public YxDataGrid<float> MassLands { get; private set; }
     public float SeaLevel { get; set; }
 
     // This is the noise height, creating mountains and valleys
@@ -55,14 +55,14 @@ public class BiomeGenerator {
     // Final grid with the height + optionally applied the falloff
     public bool FalloffEnabled { get; set; } = true;
     public bool HumidityEnabled { get; set; } = true;
-    public DataGrid<float> HeightFalloffGrid { get; private set; }
+    public YxDataGrid<float> HeightFalloffGrid { get; private set; }
 
     public FastNoiseLite HumidityNoise { get; } = new();
-    public DataGrid<float> HumidityNormalizedGrid { get; private set; }
+    public YxDataGrid<float> HumidityNormalizedGrid { get; private set; }
 
     public FloatGrid<BiomeType> LandBiomesGrid { get; private set; }
     public FloatGrid<BiomeType> SeaBiomesGrid { get; private set; }
-    public DataGrid<BiomeCell> BiomeCells { get; private set; }
+    public YxDataGrid<BiomeCell> BiomeCells { get; private set; }
     // public Betauer.TileSet.TileMap.TileMap<BiomeType> TileMap { get; private set; }
 
     private Random _random;
@@ -144,10 +144,10 @@ public class BiomeGenerator {
         ConfigureLandBiomeMap(LandBiomesConfig);
         ConfigureSeaBiomeMap(SeaBiomesConfig);
 
-        BiomeCells = new DataGrid<BiomeCell>(Width, Height);
+        BiomeCells = new YxDataGrid<BiomeCell>(Width, Height);
         // TileMap = new TileMap<BiomeType>(0, width, height, BiomeType.None);
 
-        MassLands = new DataGrid<float>(width, height);
+        MassLands = new YxDataGrid<float>(width, height);
         MasslandBias = 0.35f;
         MasslandOffset = 0.99f;
         LandWidthCount = 8;
@@ -155,8 +155,8 @@ public class BiomeGenerator {
         SeaLevel = 0.15f; // 0.06
         // HeightBias = 0.5f; // 0.3f
         RampFunc = (float h, float f) => ((h / 2f) + 0.5f) * f;
-        HumidityNormalizedGrid = new DataGrid<float>(width, height);
-        HeightFalloffGrid = new DataGrid<float>(width, height);
+        HumidityNormalizedGrid = new YxDataGrid<float>(width, height);
+        HeightFalloffGrid = new YxDataGrid<float>(width, height);
 
         HeightNoise.NoiseTypeValue = FastNoiseLite.NoiseType.OpenSimplex2S;
         HeightNoise.Frequency = 0.012f;
@@ -319,7 +319,7 @@ public class BiomeGenerator {
     }
 
     public void FillMassland(FastImage fastTexture) {
-        new DataGrid<float>(Width, Height).LoadNormalized((x, y) => MassLands.GetValue(x, y)).Loop((val, x, y) => fastTexture.SetPixel(x, y, new Color(val, val, val), false));
+        new YxDataGrid<float>(Width, Height).LoadNormalized((x, y) => MassLands.GetValue(x, y)).Loop((val, x, y) => fastTexture.SetPixel(x, y, new Color(val, val, val), false));
         fastTexture.Flush();
     }
 
@@ -402,12 +402,12 @@ public class BiomeGenerator {
     }
 
     public void FillHeight(FastImage fastImage) {
-        new DataGrid<float>(Width, Height).LoadNormalized((x, y) => HeightNoise.GetNoise(x, y)).Loop((val, x, y) => fastImage.SetPixel(x, y, new Color(val, val, val), false));
+        new YxDataGrid<float>(Width, Height).LoadNormalized((x, y) => HeightNoise.GetNoise(x, y)).Loop((val, x, y) => fastImage.SetPixel(x, y, new Color(val, val, val), false));
         fastImage.Flush();
     }
 
     public void FillFalloffGrid(FastImage fastImage) {
-        var dataGrid = new DataGrid<float>(Width, Height).LoadNormalized((x, y) => {
+        var dataGrid = new YxDataGrid<float>(Width, Height).LoadNormalized((x, y) => {
             var height = HeightNoise.GetNoise(x, y);
             var r = MassLands.GetValue(x, y); // from 0 to 1
             return RampFunc(height, r);
@@ -491,7 +491,7 @@ public class IslandGenerator {
         MaxHeight,
     }
 
-    public static void GenerateIslandsGrid(DataGrid<float> masslandGrid, int landWidthCount, int landHeightCount, Random random, bool up, OverlapType overlap, IInterpolation easing) {
+    public static void GenerateIslandsGrid(YxDataGrid<float> masslandGrid, int landWidthCount, int landHeightCount, Random random, bool up, OverlapType overlap, IInterpolation easing) {
         var width = masslandGrid.Width;
         var height = masslandGrid.Height;
         var cellWidth = width / landWidthCount;
@@ -530,7 +530,7 @@ public class IslandGenerator {
         }
     }
 
-    public static void AddIsland(DataGrid<float> normalizedData, int cx, int cy, int rx, int ry, float rotation, OverlapType overlap, IInterpolation? easing = null, bool up = true) {
+    public static void AddIsland(YxDataGrid<float> normalizedData, int cx, int cy, int rx, int ry, float rotation, OverlapType overlap, IInterpolation? easing = null, bool up = true) {
         Draw.GradientEllipseRotated(cx, cy, rx, ry, rotation, (x, y, value) => {
             if (x < 0 || y < 0 || x >= normalizedData.Width || y >= normalizedData.Height) return;
             var heightValue = value;

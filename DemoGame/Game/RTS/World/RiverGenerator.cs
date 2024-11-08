@@ -219,13 +219,13 @@ public class RiverGeneratorGraph {
     private static float initialWater = 1f;
     private static float increaseWater = 0.01f;
 
-    public static void GenerateRivers(Graph<BiomeCell> points, DataGrid<BiomeCell> biomeCells, int numberOfPoints, float minDistance, Random random) {
+    public static void GenerateRivers(Graph<BiomeCell> points, YxDataGrid<BiomeCell> biomeCells, int numberOfPoints, float minDistance, Random random) {
         FindRiverStartPoints(points, biomeCells, numberOfPoints, minDistance).ForEach((cell) => {
             SimulateRiverFlow(points, biomeCells, cell, random);
         });
     }
 
-    public static List<BiomeCell> FindRiverStartPoints(Graph<BiomeCell> graph, DataGrid<BiomeCell> biomeCells, int numberOfPoints, float minDistance) {
+    public static List<BiomeCell> FindRiverStartPoints(Graph<BiomeCell> graph, YxDataGrid<BiomeCell> biomeCells, int numberOfPoints, float minDistance) {
         var highestPoints = new List<BiomeCell>();
         var points = graph.Data.Keys.ToList(); 
 
@@ -242,7 +242,7 @@ public class RiverGeneratorGraph {
         return highestPoints;
     }
 
-    public static void SimulateRiverFlow(Graph<BiomeCell> points, DataGrid<BiomeCell> biomeCells, BiomeCell startPoint, Random random) {
+    public static void SimulateRiverFlow(Graph<BiomeCell> points, YxDataGrid<BiomeCell> biomeCells, BiomeCell startPoint, Random random) {
         var waterAmount = initialWater;
         var currentCell = startPoint;
         var river = new HashSet<BiomeCell>();
@@ -265,7 +265,7 @@ public class RiverGeneratorGraph {
 
     }
 
-    public static void DrawRiver(List<BiomeCell> points, DataGrid<BiomeCell> biomeCells) {
+    public static void DrawRiver(List<BiomeCell> points, YxDataGrid<BiomeCell> biomeCells) {
         for (var i = 0; i < points.Count - 1; i++) {
             var start = points[i];
             var end = points[i + 1];

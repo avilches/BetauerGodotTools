@@ -6,7 +6,7 @@ namespace Betauer.GameTools.Tests.TileSet;
 
 public abstract class BaseBlobTests {
     protected void AssertBlob47(string str, int[,] grid) {
-        var source = DataGrid<int>.Parse(str, new System.Collections.Generic.Dictionary<char, int> {
+        var source = YxDataGrid<int>.Parse(str, new System.Collections.Generic.Dictionary<char, int> {
             {'#',  0},
             {'.', -1}
         });

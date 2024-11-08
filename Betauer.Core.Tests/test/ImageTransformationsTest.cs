@@ -290,7 +290,6 @@ public class ImageTransformationsTests {
         var data = new int[image.Height, image.Width];
         for (var y = 0; y < data.GetLength(0); y++) {
             for (var x = 0; x < data.GetLength(1); x++) {
-                var value = 1f/data[y, x];
                 data[y,x] = image.GetPixel(x, y).R8;
             }
         }

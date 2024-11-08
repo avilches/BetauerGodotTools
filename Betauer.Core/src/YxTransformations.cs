@@ -3,18 +3,6 @@ using System;
 namespace Betauer.Core;
 
 public static partial class Transformations {
-    public static T[,] Clone<T>(this T[,] source) {
-        var height = source.GetLength(0);
-        var width = source.GetLength(1);
-        var temp = new T[width, height];
-        for (var y = 0; y < height; y++) {
-            for (var x = 0; x < width; x++) {
-                temp[y, x] = source[y, x];
-            }
-        }
-        return temp;
-    }
-
     public static T[,] YxRotate90<T>(this T[,] source) {
         var height = source.GetLength(0);
         var width = source.GetLength(1);
@@ -26,7 +14,7 @@ public static partial class Transformations {
         }
         return temp;
     }
-
+    
     public static T[,] YxRotate180<T>(this T[,] source) {
         var height = source.GetLength(0);
         var width = source.GetLength(1);
@@ -38,7 +26,7 @@ public static partial class Transformations {
         }
         return temp;
     }
-
+    
     public static T[,] YxRotateMinus90<T>(this T[,] source) {
         var height = source.GetLength(0);
         var width = source.GetLength(1);
@@ -50,7 +38,7 @@ public static partial class Transformations {
         }
         return temp;
     }
-
+    
     public static T[,] YxFlipH<T>(this T[,] source) {
         var height = source.GetLength(0);
         var width = source.GetLength(1);
@@ -62,7 +50,7 @@ public static partial class Transformations {
         }
         return temp;
     }
-
+    
     public static T[,] YxMirrorLeftToRight<T>(this T[,] source) {
         var height = source.GetLength(0);
         var width = source.GetLength(1);
@@ -77,7 +65,7 @@ public static partial class Transformations {
         }
         return temp;
     }
-
+    
     public static T[,] YxMirrorRightToLeft<T>(this T[,] source) {
         var height = source.GetLength(0);
         var width = source.GetLength(1);
@@ -104,7 +92,7 @@ public static partial class Transformations {
         }
         return temp;
     }
-
+    
     public static T[,] YxMirrorTopToBottom<T>(this T[,] source) {
         var height = source.GetLength(0);
         var width = source.GetLength(1);
@@ -185,7 +173,7 @@ public static partial class Transformations {
         }
         return newGrid;
     }
-
+    
     public static T[,] GetYxRect<T>(this T[,] source, int startX, int startY, int width, int height, T defaultValue = default) {
         var destination = new T[height, width];
         source.CopyYxRect(startX, startY, width, height, destination, value => value, defaultValue);

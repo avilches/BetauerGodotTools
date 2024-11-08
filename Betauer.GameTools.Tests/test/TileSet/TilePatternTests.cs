@@ -114,7 +114,7 @@ public class TilePatternTests : BaseBlobTests {
 
     [Betauer.TestRunner.Test]
     public void Blob47Test() {
-        var source = DataGrid<int>.Parse(@"
+        var source = YxDataGrid<int>.Parse(@"
 ..0
 000
 ", new Dictionary<char, int> {
