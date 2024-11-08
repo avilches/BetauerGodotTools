@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Betauer.Core;
+using Betauer.Core.DataMath.Data;
+using Betauer.Core.DataMath.Graph;
 using Betauer.Core.Image;
-using Betauer.Core.Math.Data;
-using Betauer.Core.Math.Graph;
 using Godot;
 
 namespace Veronenger.Game.RTS.World;

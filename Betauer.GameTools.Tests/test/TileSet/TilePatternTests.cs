@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Betauer.Core;
-using Betauer.Core.Math.Data;
+using Betauer.Core.DataMath.Data;
 using Betauer.TestRunner;
 using Betauer.TileSet.Terrain;
 using NUnit.Framework;

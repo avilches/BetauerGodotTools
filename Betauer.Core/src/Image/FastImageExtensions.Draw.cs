@@ -1,6 +1,6 @@
 using Betauer.Core.Easing;
 using Godot;
-using FastNoiseLite = Betauer.Core.Math.Data.FastNoiseLite;
+using FastNoiseLite = Betauer.Core.DataMath.Data.FastNoiseLite;
 
 namespace Betauer.Core.Image;
 

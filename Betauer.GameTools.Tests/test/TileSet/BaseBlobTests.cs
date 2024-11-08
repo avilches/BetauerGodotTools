@@ -1,4 +1,4 @@
-using Betauer.Core.Math.Data;
+using Betauer.Core.DataMath.Data;
 using Betauer.TileSet.Terrain;
 using NUnit.Framework;
 

@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Betauer.Core;
+using Betauer.Core.DataMath.Collision.Spatial2D;
+using Betauer.Core.DataMath.Data;
+using Betauer.Core.DataMath.Geometry;
+using Betauer.Core.DataMath.PoissonDiskSampling;
 using Betauer.Core.Image;
-using Betauer.Core.Math.Collision.Spatial2D;
-using Betauer.Core.Math.Data;
-using Betauer.Core.Math.Geometry;
-using Betauer.Core.Math.PoissonDiskSampling;
 using Godot;
-using FastNoiseLite = Betauer.Core.Math.Data.FastNoiseLite;
+using FastNoiseLite = Betauer.Core.DataMath.Data.FastNoiseLite;
 
 namespace Veronenger.Game.RTS.World;
 

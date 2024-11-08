@@ -1,5 +1,5 @@
 using System;
-using Betauer.Core.Math.Geometry;
+using Betauer.Core.DataMath.Geometry;
 
 namespace Betauer.Core.Easing;
 
