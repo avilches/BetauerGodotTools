@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
+using Betauer.Core.DataMath.Geometry;
 using Betauer.Core.Easing;
-using Betauer.Core.Math.Geometry;
 using Betauer.Core.Nodes.Property;
 using Betauer.Tools.Logging;
 using Godot;
