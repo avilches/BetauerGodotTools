@@ -33,7 +33,7 @@ public class MazeDungeon {
     }
 
     public int ExtraConnectorChance => 20;
-    public int WindingPercent => 0;
+    public float WindingPercent = 0.7f; // 0 means straight lines, 1 means winding paths... 0.7f means 70% winding paths, 30% change straight line
 
     public void Fill(TileType tile) {
         for (int y = 0; y < Stage.Height; y++) {
@@ -91,38 +91,29 @@ public class MazeDungeon {
     }
     
     private void GrowMaze(Vector2I start) {
-        var cells = new List<Vector2I>();
+        var cells = new Stack<Vector2I>();
         Vector2I? lastDir = null;
 
-        Carve(start, TileType.Path, LastRegion);
+        Carve(start, TileType.OpenDoor, LastRegion);
 
-        cells.Add(start);
+        cells.Push(start);
         while (cells.Count > 0) {
-            var cell = cells[cells.Count - 1];
-
-            var unmadeCells = new List<Vector2I>();
-            foreach (var dir in Directions) {
-                if (CanCarve(cell, dir)) unmadeCells.Add(dir);
-            }
-
-            if (unmadeCells.Count > 0) {
-                Vector2I dir;
-                if (lastDir.HasValue && unmadeCells.Contains(lastDir.Value) && rng.Next(100) > WindingPercent) {
-                    dir = lastDir.Value;
-                } else {
-                    dir = rng.Next(unmadeCells);
-                }
-
-                Carve(cell + dir, TileType.Path, LastRegion);
-                Carve(cell + dir * 2, TileType.Path, LastRegion);
-
-                cells.Add(cell + dir * 2);
-                lastDir = dir;
-            } else {
-                Carve(cell, TileType.Path, LastRegion);
-                cells.RemoveAt(cells.Count - 1);
+            var cell = cells.Peek();
+            var nextCellsAvailable = Directions.Where(dir => CanCarve(cell, dir)).ToList();
+            if (nextCellsAvailable.Count == 0) {
+                cells.Pop();
                 lastDir = null;
+                Carve(start, TileType.ClosedDoor, LastRegion);
+                continue;
             }
+            Vector2I dir = lastDir.HasValue && nextCellsAvailable.Contains(lastDir.Value) && rng.NextSingle() < WindingPercent
+                ? lastDir.Value // Windy path, keep the same direction
+                : rng.Next(nextCellsAvailable); // Random path
+
+            Carve(cell + dir, TileType.Path, LastRegion);
+            Carve(cell + dir * 2, TileType.Path, LastRegion);
+            cells.Push(cell + dir * 2);
+            lastDir = dir;
         }
     }
 

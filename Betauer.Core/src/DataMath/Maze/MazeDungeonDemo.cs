@@ -83,7 +83,7 @@ public class MazeDungeonDemo {
                     TileType.Floor => ' ',
                     TileType.Path => '.',
                     TileType.OpenDoor => '+',
-                    TileType.ClosedDoor => '+',
+                    TileType.ClosedDoor => '-',
                     _ => ' '
                 };
                 Console.Write(c);

@@ -1,29 +1,59 @@
 using System;
 using Godot;
-using NUnit.Framework;
 
 namespace Betauer.Core.DataMath.Geometry;
 
 public static partial class Geometry {
     /// <summary>
-    /// Creates a random rectangle with a specified aspect ratio and orientation.
+    /// Creates a random rectangle with a specified aspect ratio range.
     /// </summary>
-    /// <param name="ratio">The aspect ratio of the rectangle (width/height).</param>
-    /// <param name="horizontal">If true, the rectangle will be wider than it is tall; otherwise, it will be taller than it is wide.</param>
-    /// <param name="minLong">The minimum length of the longer side of the rectangle.</param>
-    /// <param name="maxLong">The maximum length of the longer side of the rectangle.</param>
+    /// <param name="minRatio">The minimum aspect ratio of the rectangle (width/height).</param>
+    /// <param name="maxRatio">The maximum aspect ratio of the rectangle (width/height).</param>
+    /// <param name="minLong">The minimum length of the specified side of the rectangle.</param>
+    /// <param name="maxLong">The maximum length of the specified side of the rectangle.</param>
+    /// <param name="rectanglePart">Specifies whether the limit applies to Width, Height, or the Longer side.</param>
     /// <param name="random">An instance of the Random class used to generate random values.</param>
     /// <returns>A Rect2I object representing the randomly generated rectangle.</returns>
-    public static Rect2I CreateRandomRect2I(float ratio, bool horizontal, int minLong, int maxLong, Random random) {
+    public static Rect2I CreateRandomRect2I(float minRatio, float maxRatio, int minLong, int maxLong, RectanglePart rectanglePart, Random random) {
+        float ratio = (float)(random.NextDouble() * (maxRatio - minRatio) + minRatio);
+        int length = random.Next(minLong, maxLong + 1);
+
+        return CreateRect2I(ratio, length, rectanglePart);
+    }
+
+    /// <summary>
+    /// Creates a rectangle with a specified aspect ratio and length.
+    /// </summary>
+    /// <param name="ratio">The aspect ratio of the rectangle (width/height).</param>
+    /// <param name="length">The length of the specified side of the rectangle.</param>
+    /// <param name="rectanglePart">Specifies whether the length applies to Width, Height, or the Longer side.</param>
+    /// <returns>A Rect2I object representing the generated rectangle.</returns>
+    public static Rect2I CreateRect2I(float ratio, int length, RectanglePart rectanglePart) {
         int width, height;
-        if (horizontal) {
-            width = random.Next(minLong, maxLong + 1);
-            height = (int)(width / ratio);
-        } else {
-            height = random.Next(minLong, maxLong + 1);
-            width = (int)(height / ratio);
+
+        // Modify limitDimension if it's set to Longer based on the ratio
+        if (rectanglePart == RectanglePart.Longer) {
+            rectanglePart = ratio >= 1 ? RectanglePart.Width : RectanglePart.Height;
         }
+
+        if (rectanglePart == RectanglePart.Width) {
+            width = length;
+            height = (int)(width / ratio);
+        } else { // LimitDimension.Height
+            height = length;
+            width = (int)(height * ratio);
+        }
+
         return new Rect2I(new Vector2I(0, 0), new Vector2I(width, height));
+    }
+
+    /// <summary>
+    /// Enum to specify which dimension should be limited.
+    /// </summary>
+    public enum RectanglePart {
+        Width,
+        Height,
+        Longer
     }
 
     /// <summary>
