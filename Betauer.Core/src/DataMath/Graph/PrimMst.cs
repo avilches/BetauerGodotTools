@@ -3,6 +3,9 @@ using Godot;
 
 namespace Betauer.Core.DataMath.Graph;
 
+/// <summary>
+/// https://www.geeksforgeeks.org/prims-minimum-spanning-tree-mst-greedy-algo-5/
+/// </summary>
 public static class PrimMst {
 
     /// <summary>

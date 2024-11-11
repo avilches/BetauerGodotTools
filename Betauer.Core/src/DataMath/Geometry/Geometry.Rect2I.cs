@@ -1,37 +1,46 @@
 using System;
 using Godot;
+using NUnit.Framework;
 
 namespace Betauer.Core.DataMath.Geometry;
 
 public static partial class Geometry {
-
-    public static Rect2I ShrinkRect(Rect2I rect, int maxPadding, Random random) {
-        return ShrinkRect(rect.Position.X, rect.Position.Y, rect.Size.X, rect.Size.Y, maxPadding, random);
-    }
-    
     /// <summary>
-    /// Creates a smaller version of the rectangle by removing a random padding from every side.
+    /// Creates a random rectangle with a specified aspect ratio and orientation.
     /// </summary>
-    public static Rect2I ShrinkRect(int x, int y, int width, int height, int maxPadding, Random random) {
-        var maxAllowedPadding = System.Math.Min(maxPadding, System.Math.Min(width / 2-1, height / 2-1));
-
-        var paddingLeft = random.Next(0, maxAllowedPadding + 1);
-        var paddingTop = random.Next(0, maxAllowedPadding + 1);
-        var paddingRight = random.Next(0, maxAllowedPadding + 1);
-        var paddingBottom = random.Next(0, maxAllowedPadding + 1);
-
-        var newX = x + paddingLeft;
-        var newY = y + paddingTop;
-        var newWidth = width - (paddingLeft + paddingRight);
-        var newHeight = height - (paddingTop + paddingBottom);
-
-        return new Rect2I(newX, newY, newWidth, newHeight);
+    /// <param name="ratio">The aspect ratio of the rectangle (width/height).</param>
+    /// <param name="horizontal">If true, the rectangle will be wider than it is tall; otherwise, it will be taller than it is wide.</param>
+    /// <param name="minLong">The minimum length of the longer side of the rectangle.</param>
+    /// <param name="maxLong">The maximum length of the longer side of the rectangle.</param>
+    /// <param name="random">An instance of the Random class used to generate random values.</param>
+    /// <returns>A Rect2I object representing the randomly generated rectangle.</returns>
+    public static Rect2I CreateRandomRect2I(float ratio, bool horizontal, int minLong, int maxLong, Random random) {
+        int width, height;
+        if (horizontal) {
+            width = random.Next(minLong, maxLong + 1);
+            height = (int)(width / ratio);
+        } else {
+            height = random.Next(minLong, maxLong + 1);
+            width = (int)(height / ratio);
+        }
+        return new Rect2I(new Vector2I(0, 0), new Vector2I(width, height));
     }
 
-    public static Rect2I ShrinkRect(Rect2I rect, int by) {
-        return ShrinkRect(rect.Position.X, rect.Position.Y, rect.Size.X, rect.Size.Y, by);
+    /// <summary>
+    /// Positions a rectangle randomly within the bounds of another rectangle.
+    /// </summary>
+    /// <param name="bounds">The bounding rectangle within which the rect will be positioned.</param>
+    /// <param name="rect">The rectangle to be positioned randomly within the bounds.</param>
+    /// <param name="random">An instance of the Random class used to generate random values.</param>
+    /// <returns>A Rect2I object representing the randomly positioned rectangle.</returns>
+    public static Rect2I PositionRect2IRandomly(Rect2I bounds, Rect2I rect, Random random) {
+        var maxX = bounds.Size.X - rect.Size.X;
+        var maxY = bounds.Size.Y - rect.Size.Y;
+        var x = random.Next(bounds.Position.X, bounds.Position.X + maxX + 1);
+        var y = random.Next(bounds.Position.Y, bounds.Position.Y + maxY + 1);
+        return new Rect2I(new Vector2I(x, y), rect.Size);
     }
-    
+
     /// <summary>
     /// Returns a Rect2I with the same center as the original one, but with a smaller size (if needed) to ensure the ratio is kept.
     /// It doesn't care about the orientation of the rectangle, it will always try to shrink the longest side to ensure the ratio.
@@ -43,7 +52,7 @@ public static partial class Geometry {
     /// <param name="height"></param>
     /// <param name="ratio"></param>
     /// <returns></returns>
-    public static Rect2I ShrinkRectToEnsureRatio(int x, int y, int width, int height, float ratio) {
+    public static Rect2I ShrinkRect2IToEnsureRatio(int x, int y, int width, int height, float ratio) {
         var landscape = width > height;
         var currentRatio = (float)System.Math.Max(width, height) / System.Math.Min(width, height);
         if (ratio < 1) ratio = 1f / ratio;
@@ -71,85 +80,32 @@ public static partial class Geometry {
             return r;
         }
     }
-    
-    public static Rect2I ShrinkRectProportional(Rect2I rect, float factor) {
-        return ShrinkRectProportional(rect.Position.X, rect.Position.Y, rect.Size.X, rect.Size.Y, factor);
+
+    public static Rect2I ResizeRect2IByFactor(Rect2I rect, float factor) {
+        return ResizeRect2IByFactor(rect.Position.X, rect.Position.Y, rect.Size.X, rect.Size.Y, factor);
     }
-    
-    public static Rect2I ShrinkRectProportional(int x, int y, int width, int height, float factor) {
-        if (factor < 0 || factor > 1) {
-            throw new ArgumentOutOfRangeException(nameof(factor), "Factor must be between 0 and 1.");
+
+    /// <summary>
+    /// Resizes the given rectangle proportionally by a specified factor.
+    /// </summary>
+    /// <param name="x">The x-coordinate of the rectangle.</param>
+    /// <param name="y">The y-coordinate of the rectangle.</param>
+    /// <param name="width">The width of the rectangle.</param>
+    /// <param name="height">The height of the rectangle.</param>
+    /// <param name="factor">The factor by which to shrink the rectangle. Must be between 0 and 1.</param>
+    /// <returns>A Rect2 object representing the shrunken rectangle.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when the factor is 0.</exception>
+    public static Rect2I ResizeRect2IByFactor(int x, int y, int width, int height, float factor) {
+        if (factor <= 0) {
+            throw new ArgumentOutOfRangeException(nameof(factor), "Factor must be greater than 0.");
+        }
+        if (factor == 1f) {
+            return new Rect2I(x, y, width, height);
         }
         var newWidth = Mathf.RoundToInt(width * factor);
         var newHeight = Mathf.RoundToInt(height * factor);
         var newX = Mathf.RoundToInt(x + (width - newWidth) / 2f);
         var newY = Mathf.RoundToInt(y + (height - newHeight) / 2f);
         return new Rect2I(newX, newY, newWidth, newHeight);
-    }
-    
-    public static Rect2I ShrinkRect(int x, int y, int width, int height, int by) {
-        var maxPadding = System.Math.Min(by, System.Math.Min(width / 2 - 1, height / 2 - 1));
-        var newX = x + maxPadding;
-        var newY = y + maxPadding;
-        var newWidth = width - maxPadding * 2;
-        var newHeight = height - maxPadding * 2;
-        return new Rect2I(newX, newY, newWidth, newHeight);
-    }
-
-    public static void Main() {
-        // Console.WriteLine(ShrinkRect(0, 0, 10, 10, 0));
-        // Console.WriteLine(ShrinkRect(0, 0, 10, 10, 1));
-        // Console.WriteLine(ShrinkRect(0, 0, 10, 10, 2));
-        // Console.WriteLine(ShrinkRect(0, 0, 10, 10, 4));
-        // Console.WriteLine(ShrinkRect(0, 0, 10, 10, 5));
-        // Console.WriteLine(ShrinkRect(0, 0, 10, 10, 6));
-        // Console.WriteLine(ShrinkRect(0, 0, 10, 9, 0));
-        // Console.WriteLine(ShrinkRect(0, 0, 10, 9, 1));
-        // Console.WriteLine(ShrinkRect(0, 0, 10, 9, 2));
-        // Console.WriteLine(ShrinkRect(0, 0, 10, 9, 4));
-        // Console.WriteLine(ShrinkRect(0, 0, 10, 9, 5));
-        // Console.WriteLine(ShrinkRect(0, 0, 10, 9, 6));
-        
-        // Reduce width
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 18, 9, 16f/9));
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 17, 9, 16f/9));
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 16, 9, 16f/9));
-
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 18, 9, 9f/16));
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 17, 9, 9f/16));
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 16, 9, 9f/16));
-        
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 9, 18, 16f/9));
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 9, 17, 16f/9));
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 9, 16, 16f/9));
-        
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 9, 18, 9f/16));
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 9, 17, 9f/16));
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 9, 16, 9f/16));
-        
-        
-        
-        // Reduce height
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 17, 9, 16f/9));
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 15, 9, 16f/9));
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 14, 9, 16f/9));
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 13, 9, 16f/9));
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 10, 9, 16f/9));
-
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 17, 9, 9f/16));
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 15, 9, 9f/16));
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 14, 9, 9f/16));
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 13, 9, 9f/16));
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 10, 9, 9f/16));
-
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 9, 17, 16f/9));
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 9, 15, 16f/9));
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 9, 14, 16f/9));
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 9, 13, 16f/9));
-
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 9, 17, 9f/16));
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 9, 15, 9f/16));
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 9, 14, 9f/16));
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 9, 13, 9f/16));
     }
 }

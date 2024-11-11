@@ -26,8 +26,8 @@ public class BspTreeDemo {
             MaxRatio = 3f/7,
             CreateRoom = (x, y, width, height) => {
                 // return new Rect2I(x, y, width, height);
-                var r = Geometry.Geometry.ShrinkRectToEnsureRatio(x, y, width, height, 3f/7);
-                var newRect = Geometry.Geometry.ShrinkRectProportional(r, random.Range(shrink, 1f));
+                var r = Geometry.Geometry.ShrinkRect2IToEnsureRatio(x, y, width, height, 3f/7);
+                var newRect = Geometry.Geometry.ResizeRect2IByFactor(r, random.Range(shrink, 1f));
                 var offsetX = width - newRect.Size.X;
                 var offsetY = height - newRect.Size.Y;
                 return new Rect2I(new Vector2I(x + random.Next(0, offsetX + 1), y + random.Next(0, offsetY + 1)), newRect.Size);

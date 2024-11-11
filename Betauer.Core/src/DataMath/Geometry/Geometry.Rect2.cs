@@ -5,33 +5,42 @@ namespace Betauer.Core.DataMath.Geometry;
 
 public static partial class Geometry {
 
-    public static Rect2 ShrinkRect(Rect2 rect, float maxPadding, Random random) {
-        return ShrinkRect(rect.Position.X, rect.Position.Y, rect.Size.X, rect.Size.Y, maxPadding, random);
+    /// <summary>
+    /// Creates a random rectangle with a specified aspect ratio and orientation.
+    /// </summary>
+    /// <param name="ratio">The aspect ratio of the rectangle (width/height).</param>
+    /// <param name="horizontal">If true, the rectangle will be wider than it is tall; otherwise, it will be taller than it is wide.</param>
+    /// <param name="minLong">The minimum length of the longer side of the rectangle.</param>
+    /// <param name="maxLong">The maximum length of the longer side of the rectangle.</param>
+    /// <param name="random">An instance of the Random class used to generate random values.</param>
+    /// <returns>A Rect2 object representing the randomly generated rectangle.</returns>
+    public static Rect2 CreateRandomRect2(float ratio, bool horizontal, float minLong, float maxLong, Random random) {
+        float width, height;
+        if (horizontal) {
+            width = (float)(random.NextDouble() * (maxLong - minLong) + minLong);
+            height = width / ratio;
+        } else {
+            height = (float)(random.NextDouble() * (maxLong - minLong) + minLong);
+            width = height / ratio;
+        }
+        return new Rect2(new Vector2(0, 0), new Vector2(width, height));
     }
     
     /// <summary>
-    /// Creates a smaller version of the rectangle by removing a random padding from every side.
+    /// Positions a rectangle randomly within the bounds of another rectangle.
     /// </summary>
-    public static Rect2 ShrinkRect(float x, float y, float width, float height, float maxPadding, Random random) {
-        var maxAllowedPadding = System.Math.Min(maxPadding, System.Math.Min(width / 2-1, height / 2-1));
-
-        var paddingLeft = random.NextSingle() * maxAllowedPadding;
-        var paddingTop = random.NextSingle() * maxAllowedPadding;
-        var paddingRight = random.NextSingle() * maxAllowedPadding;
-        var paddingBottom = random.NextSingle() * maxAllowedPadding;
-
-        var newX = x + paddingLeft;
-        var newY = y + paddingTop;
-        var newWidth = width - (paddingLeft + paddingRight);
-        var newHeight = height - (paddingTop + paddingBottom);
-
-        return new Rect2(newX, newY, newWidth, newHeight);
+    /// <param name="bounds">The bounding rectangle within which the rect will be positioned.</param>
+    /// <param name="rect">The rectangle to be positioned randomly within the bounds.</param>
+    /// <param name="random">An instance of the Random class used to generate random values.</param>
+    /// <returns>A Rect2I object representing the randomly positioned rectangle.</returns>
+    public static Rect2 PositionRect2Randomly(Rect2 bounds, Rect2 rect, Random random) {
+        var maxX = bounds.Size.X - rect.Size.X;
+        var maxY = bounds.Size.Y - rect.Size.Y;
+        var x = (float)(random.NextDouble() * (bounds.Position.X + maxX + 1));
+        var y = (float)(random.NextDouble() * (bounds.Position.Y + maxY + 1));
+        return new Rect2(new Vector2(x, y), rect.Size);
     }
 
-    public static Rect2 ShrinkRect(Rect2 rect, float by) {
-        return ShrinkRect(rect.Position.X, rect.Position.Y, rect.Size.X, rect.Size.Y, by);
-    }
-    
     /// <summary>
     /// Returns a Rect2 with the same center as the original one, but with a smaller size (if needed) to ensure the ratio is kept.
     /// It doesn't care about the orientation of the rectangle, it will always try to shrink the longest side to ensure the ratio.
@@ -43,9 +52,9 @@ public static partial class Geometry {
     /// <param name="height"></param>
     /// <param name="ratio"></param>
     /// <returns></returns>
-    public static Rect2 ShrinkRectToEnsureRatio(float x, float y, float width, float height, float ratio) {
+    public static Rect2 ShrinkRect2ToEnsureRatio(float x, float y, float width, float height, float ratio) {
         var landscape = width > height;
-        var currentRatio = (float)System.Math.Max(width, height) / System.Math.Min(width, height);
+        var currentRatio = (float)Math.Max(width, height) / Math.Min(width, height);
         if (ratio < 1) ratio = 1f / ratio;
         if (currentRatio < ratio) {
             // Console.WriteLine($"No need to shring {width}/{height} ({currentRatio:0.00})");
@@ -71,14 +80,27 @@ public static partial class Geometry {
             return r;
         }
     }
-    
-    public static Rect2 ShrinkRectProportional(Rect2 rect, float factor) {
-        return ShrinkRectProportional(rect.Position.X, rect.Position.Y, rect.Size.X, rect.Size.Y, factor);
+
+    public static Rect2 ResizeRect2ByFactor(Rect2 rect, float factor) {
+        return ResizeRect2ByFactor(rect.Position.X, rect.Position.Y, rect.Size.X, rect.Size.Y, factor);
     }
-    
-    public static Rect2 ShrinkRectProportional(float x, float y, float width, float height, float factor) {
-        if (factor < 0 || factor > 1) {
-            throw new ArgumentOutOfRangeException(nameof(factor), "Factor must be between 0 and 1.");
+
+    /// <summary>
+    /// Resizes the given rectangle proportionally by a specified factor.
+    /// </summary>
+    /// <param name="x">The x-coordinate of the rectangle.</param>
+    /// <param name="y">The y-coordinate of the rectangle.</param>
+    /// <param name="width">The width of the rectangle.</param>
+    /// <param name="height">The height of the rectangle.</param>
+    /// <param name="factor">The factor by which to shrink the rectangle. Must be between 0 and 1.</param>
+    /// <returns>A Rect2 object representing the shrunken rectangle.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when the factor is 0.</exception>
+    public static Rect2 ResizeRect2ByFactor(float x, float y, float width, float height, float factor) {
+        if (factor <= 0) {
+            throw new ArgumentOutOfRangeException(nameof(factor), "Factor must be greater than 0.");
+        }
+        if (factor == 1f) {
+            return new Rect2(x, y, width, height);
         }
         var newWidth = width * factor;
         var newHeight = height * factor;
@@ -86,70 +108,6 @@ public static partial class Geometry {
         var newY = y + (height - newHeight) / 2f;
         return new Rect2(newX, newY, newWidth, newHeight);
     }
-    
-    public static Rect2 ShrinkRect(float x, float y, float width, float height, float by) {
-        var maxPadding = System.Math.Min(by, System.Math.Min(width / 2 - 1, height / 2 - 1));
-        var newX = x + maxPadding;
-        var newY = y + maxPadding;
-        var newWidth = width - maxPadding * 2;
-        var newHeight = height - maxPadding * 2;
-        return new Rect2(newX, newY, newWidth, newHeight);
-    }
 
-    public static void Main2() {
-        // Console.WriteLine(ShrinkRect(0, 0, 10, 10, 0));
-        // Console.WriteLine(ShrinkRect(0, 0, 10, 10, 1));
-        // Console.WriteLine(ShrinkRect(0, 0, 10, 10, 2));
-        // Console.WriteLine(ShrinkRect(0, 0, 10, 10, 4));
-        // Console.WriteLine(ShrinkRect(0, 0, 10, 10, 5));
-        // Console.WriteLine(ShrinkRect(0, 0, 10, 10, 6));
-        // Console.WriteLine(ShrinkRect(0, 0, 10, 9, 0));
-        // Console.WriteLine(ShrinkRect(0, 0, 10, 9, 1));
-        // Console.WriteLine(ShrinkRect(0, 0, 10, 9, 2));
-        // Console.WriteLine(ShrinkRect(0, 0, 10, 9, 4));
-        // Console.WriteLine(ShrinkRect(0, 0, 10, 9, 5));
-        // Console.WriteLine(ShrinkRect(0, 0, 10, 9, 6));
-        
-        // Reduce width
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 18, 9, 16f/9));
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 17, 9, 16f/9));
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 16, 9, 16f/9));
 
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 18, 9, 9f/16));
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 17, 9, 9f/16));
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 16, 9, 9f/16));
-        
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 9, 18, 16f/9));
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 9, 17, 16f/9));
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 9, 16, 16f/9));
-        
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 9, 18, 9f/16));
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 9, 17, 9f/16));
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 9, 16, 9f/16));
-        
-        
-        
-        // Reduce height
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 17, 9, 16f/9));
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 15, 9, 16f/9));
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 14, 9, 16f/9));
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 13, 9, 16f/9));
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 10, 9, 16f/9));
-
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 17, 9, 9f/16));
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 15, 9, 9f/16));
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 14, 9, 9f/16));
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 13, 9, 9f/16));
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 10, 9, 9f/16));
-
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 9, 17, 16f/9));
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 9, 15, 16f/9));
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 9, 14, 16f/9));
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 9, 13, 16f/9));
-
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 9, 17, 9f/16));
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 9, 15, 9f/16));
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 9, 14, 9f/16));
-        Console.WriteLine(ShrinkRectToEnsureRatio(0, 0, 9, 13, 9f/16));
-    }
 }

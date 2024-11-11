@@ -5,7 +5,7 @@ using Godot;
 
 namespace Betauer.Core.DataMath.Data;
 
-public struct YxDataGrid<T> {
+public readonly struct YxDataGrid<T> {
     public int Width => Data.GetLength(1);
     public int Height => Data.GetLength(0);
     public T[,] Data { get; }
@@ -104,6 +104,11 @@ public struct YxDataGrid<T> {
     public T this[int x, int y] {
         get => Data[y, x];
         set => Data[y, x] = value;
+    }
+
+    public T this[Vector2I pos] {
+        get => Data[pos.Y, pos.X];
+        set => Data[pos.Y, pos.X] = value;
     }
 
     public T[,] GetRect(int startX, int startY, int width, int height, T defaultValue = default) {
