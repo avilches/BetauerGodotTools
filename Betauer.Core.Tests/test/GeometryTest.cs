@@ -6,7 +6,6 @@ using NUnit.Framework;
 namespace Betauer.Core.Tests;
 
 [TestRunner.Test]
-[Only]
 public class GeometryTest {
     [TestRunner.Test]
     public void ShrinkRect2ToEnsureRatioTest() {
