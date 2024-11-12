@@ -18,10 +18,12 @@ public readonly struct YxDataGrid<T> {
         Data = data;
     }
 
+    public XyDataGrid<T> Transpose() {
+        return new XyDataGrid<T>(Data.YxFlipDiagonal());
+    } 
+
     public YxDataGrid<T> Clone() {
-        var cloned = new YxDataGrid<T>(Width, Width);
-        cloned.CopyRect(Data, v => v);
-        return cloned;
+        return new YxDataGrid<T>(Width, Width).Load(GetValue);
     }
 
     public YxDataGrid<T> Fill(T value) {
@@ -93,7 +95,7 @@ public readonly struct YxDataGrid<T> {
     }
 
     public T GetValue(int x, int y) {
-        return this[x, y];
+        return Data[y, x];
     }
 
     public T? GetValueSafe(int x, int y, T? defaultValue = default) {
