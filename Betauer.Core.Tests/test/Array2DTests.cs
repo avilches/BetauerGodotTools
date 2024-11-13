@@ -86,6 +86,20 @@ public class Array2DTests {
                 Assert.AreEqual(1, _array2D[x, y]);
             }
         }
+        
+        var original = new Array2D<int>(new[,] {
+            {  0,  1,  2,  3,  4 },
+            { 10, 11, 12, 13, 14 },
+            { 20, 21, 22, 23, 24 },
+            { 30, 31, 32, 33, 34 },
+        });
+        original.Fill(2, 1, 3, 2, 8);
+        ArrayEquals(original.Data, new[,] {
+            {  0,  1,  2,  3,  4 },
+            { 10, 11,  8,  8,  8 },
+            { 20, 21,  8,  8,  8 },
+            { 30, 31, 32, 33, 34 },
+        });
     }
 
     [Betauer.TestRunner.Test]
@@ -93,15 +107,17 @@ public class Array2DTests {
         _array2D.SetValue(new Vector2I(1, 2), 123);
         Assert.AreEqual(123, _array2D.GetValue(new Vector2I(1, 2)));
         Assert.AreEqual(123, _array2D[new Vector2I(1, 2)]);
-        Assert.AreEqual(123, _array2D[2, 1]);
+        Assert.AreEqual(123, _array2D[1, 2]);
+        
         _array2D[new Vector2I(1, 2)] = 1234;
         Assert.AreEqual(1234, _array2D.GetValue(new Vector2I(1, 2)));
         Assert.AreEqual(1234, _array2D[new Vector2I(1, 2)]);
-        Assert.AreEqual(1234, _array2D[2, 1]);
+        Assert.AreEqual(1234, _array2D[1, 2]);
+        
         _array2D[1, 2] = 12345;
         Assert.AreEqual(12345, _array2D.GetValue(new Vector2I(1, 2)));
         Assert.AreEqual(12345, _array2D[new Vector2I(1, 2)]);
-        Assert.AreEqual(12345, _array2D[2, 1]);
+        Assert.AreEqual(12345, _array2D[1, 2]);
     }
 
     [Betauer.TestRunner.Test]
@@ -117,6 +133,42 @@ public class Array2DTests {
                 Assert.AreEqual(x + y, _array2D[x, y]);
             }
         }
+        var original = new Array2D<int>(new[,] {
+            {  0,  1,  2,  3,  4 },
+            { 10, 11, 12, 13, 14 },
+            { 20, 21, 22, 23, 24 },
+            { 30, 31, 32, 33, 34 },
+        });
+        original.Load(2, 1, 3, 2, (x,y) => 8);
+        ArrayEquals(original.Data, new[,] {
+            {  0,  1,  2,  3,  4 },
+            { 10, 11,  8,  8,  8 },
+            { 20, 21,  8,  8,  8 },
+            { 30, 31, 32, 33, 34 },
+        });
+
+    }
+
+    [Betauer.TestRunner.Test]
+    public void TestExport() {
+        var exported = _array2D.Export(value => ""+value);
+        for (var y = 0; y < _array2D.Height; y++) {
+            for (var x = 0; x < _array2D.Width; x++) {
+                Assert.AreEqual(""+_array2D[x, y], exported[x, y]);
+            }
+        }
+        var original = new Array2D<int>(new[,] {
+            {  0,  1,  2,  3,  4 },
+            { 10, 11, 12, 13, 14 },
+            { 20, 21, 22, 23, 24 },
+            { 30, 31, 32, 33, 34 },
+        });
+        var exported2 = original.Export(2, 1, 3, 2, value => ""+value);
+        ArrayEquals(exported2.Data, new[,] {
+            {   "12",  "13",  "14" },
+            {   "22",  "23",  "24" },
+        });
+
     }
 
     [Betauer.TestRunner.Test]
@@ -133,11 +185,34 @@ public class Array2DTests {
 
     [Betauer.TestRunner.Test]
     public void TestTransform() {
-        var backup = _array2D.Clone();
-        _array2D.Transform(value => value + 1);
-        foreach (var ((x, y), value) in _array2D) {
-            Assert.AreEqual(backup[x,y] + 1, value);
-        }
+        var original = new Array2D<int>(new[,] {
+            {  0,  1,  2,  3,  4 },
+            { 10, 11, 12, 13, 14 },
+            { 20, 21, 22, 23, 24 },
+            { 30, 31, 32, 33, 34 },
+        });
+        original.Transform(value => value + 1);
+        ArrayEquals(original.Data, new[,] {
+            {  1,  2,  3,  4,  5 },
+            { 11, 12, 13, 14, 15 },
+            { 21, 22, 23, 24, 25 },
+            { 31, 32, 33, 34, 35 },
+        });
+
+        original = new Array2D<int>(new[,] {
+            {  0,  1,  2,  3,  4 },
+            { 10, 11, 12, 13, 14 },
+            { 20, 21, 22, 23, 24 },
+            { 30, 31, 32, 33, 34 },
+        });
+        original.Transform(2, 1, 3, 2, value => value + 1);
+        ArrayEquals(original.Data, new[,] {
+            {  0,  1,  2,  3,  4 },
+            { 10, 11, 13, 14, 15 },
+            { 20, 21, 23, 24, 25 },
+            { 30, 31, 32, 33, 34 },
+        });
+
     }
 
     [Betauer.TestRunner.Test]

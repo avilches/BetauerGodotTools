@@ -46,8 +46,8 @@ public readonly struct Array2D<T> : IEnumerable<DataCell<T>> {
     }
     
     public Array2D<T> Fill(int x, int y, int width, int height, T value) {
-        for (var yy = y; yy < height - y; yy++) {
-            for (var xx = x; xx < width - x; xx++) {
+        for (var yy = y; yy < height + y; yy++) {
+            for (var xx = x; xx < width + x; xx++) {
                 this[xx, yy] = value;
             }
         }
@@ -73,23 +73,37 @@ public readonly struct Array2D<T> : IEnumerable<DataCell<T>> {
     }
     
     public Array2D<T> Load(int x, int y, int width, int height, Func<Vector2I, T> valueFunc) {
-        for (var yy = y; yy < height - y; yy++) {
-            for (var xx = x; xx < width - x; xx++) {
-                var value = valueFunc.Invoke(new Vector2I(xx, yy));
-                this[xx, yy] = value;
-            }
+        foreach (var cell in GetEnumerator(x, y, width, height)) {
+            var value = valueFunc.Invoke(cell.Position);
+            this[cell.Position] = value;
         }
         return this;
     }
         
     public Array2D<T> Load(int x, int y, int width, int height, Func<int, int, T> valueFunc) {
-        for (var yy = y; yy < height - y; yy++) {
-            for (var xx = x; xx < width - x; xx++) {
-                var value = valueFunc.Invoke(xx, yy);
-                this[xx, yy] = value;
-            }
+        foreach (var cell in GetEnumerator(x, y, width, height)) {
+            var value = valueFunc.Invoke(cell.Position.X, cell.Position.Y);
+            this[cell.Position] = value;
         }
         return this;
+    }
+
+    public Array2D<TOut> Export<TOut>(Func<T, TOut> transformer) {
+        return Export(0, 0, Width, Height, transformer);
+    }
+    
+    public Array2D<TOut> Export<TOut>(Rect2I rect, Func<T, TOut> transformer) {
+        return Export(rect.Position.X, rect.Position.Y, rect.End.X, rect.End.Y, transformer);
+    }
+    
+    public Array2D<TOut> Export<TOut>(int x, int y, int width, int height, Func<T, TOut> transformer) {
+        var startPos = new Vector2I(x, y);
+        var array2D = new Array2D<TOut>(width, height);
+        foreach (var cell in GetEnumerator(x, y, width, height)) {
+            var transformed = transformer.Invoke(cell.Value);
+            array2D[cell.Position - startPos] = transformed;
+        }
+        return array2D;
     }
 
     public IEnumerator<DataCell<T>> GetEnumerator() {
@@ -106,8 +120,8 @@ public readonly struct Array2D<T> : IEnumerable<DataCell<T>> {
     }
     
     public IEnumerable<DataCell<T>> GetEnumerator(int x, int y, int width, int height) {
-        for (var yy = y; yy < height - y; yy++) {
-            for (var xx = x; xx < width - x; xx++) {
+        for (var yy = y; yy < height + y; yy++) {
+            for (var xx = x; xx < width + x; xx++) {
                 var value = this[xx, yy];
                 yield return new DataCell<T>(new Vector2I(xx, yy), value);
             }
@@ -130,7 +144,7 @@ public readonly struct Array2D<T> : IEnumerable<DataCell<T>> {
         }
         return this;
     }
-
+    
     public void SetValue(Vector2I pos, T value) {
         Data[pos.Y, pos.X] = value;
     }
