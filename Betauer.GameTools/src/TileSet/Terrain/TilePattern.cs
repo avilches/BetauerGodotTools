@@ -145,7 +145,7 @@ public class TilePattern<T> : TilePattern {
     }
 
     /// <summary>
-    /// Data must be a grid of the same size as the pattern and indexed by [y,x] (you can use DataGrid<TT>.Data
+    /// Data must be a grid of the same size as the pattern and indexed by [y,x] (you can use Array2D<TT>.Data
     /// </summary>
     /// <param name="data"></param>
     /// <returns></returns>

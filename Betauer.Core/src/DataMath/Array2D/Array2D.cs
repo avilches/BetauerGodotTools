@@ -14,7 +14,7 @@ public readonly record struct DataCell<T>(Vector2I Position, T Value) {
 /// <summary>
 /// A bidimensional array (grid) where can be accessed in Column-major order. That means:
 ///
-/// A DataGrid to store an image of 1920x1080 is created with new DataGrid<byte>(1920, 1080)
+/// An Array2D to store an image of 1920x1080 is created with new Array2D<byte>(1920, 1080)
 /// And accesses using (x, y) coordinates instead of new byte[1080, 1920] and accessed using (y, x) which
 /// is how C# stores bidimensional arrays because it's Row-major order.  
 /// 
@@ -126,7 +126,7 @@ public readonly struct Array2D<T> : IEnumerable<DataCell<T>> {
     public Array2D<T> Transform(int x, int y, int width, int height, Func<T, T> action) {
         foreach (var cell in GetEnumerator(x, y, width, height)) {
             var transformed = action(cell.Value);
-            SetValue(cell.Position, transformed);
+            this[cell.Position] = transformed;
         }
         return this;
     }
@@ -166,16 +166,92 @@ public readonly struct Array2D<T> : IEnumerable<DataCell<T>> {
         }
         var y = 0;
         var height = lines.Length;
-        var dataGrid = new Array2D<TT>(width, height);
+        var array2d = new Array2D<TT>(width, height);
         foreach (var line in lines) {
             var x = 0;
             foreach (var value in line.Select(c => mapping[c])) {
-                dataGrid[x, y] = value;
+                array2d.Data[y, x] = value;
                 x++;
             }
             y++;
         }
-        return dataGrid;
+        return array2d;
+    }
+    
+    public T[,] GetRect(int startX, int startY, int width, int height, T defaultValue = default) {
+        var destination = new T[height, width];
+        CopyRect(startX, startY, destination, value => value, defaultValue);
+        return destination;
     }
 
+    public TDest[,] GetRect<TDest>(int startX, int startY, int width, int height, Func<T, TDest> transformer, TDest defaultValue = default) {
+        var destination = new TDest[height, width];
+        CopyRect(startX, startY, destination, transformer, defaultValue);
+        return destination;
+    }
+
+    public TDest[,] GetRect<TDest>(Rect2I rect, Func<T, TDest> transformer, TDest defaultValue = default) {
+        var destination = new TDest[rect.Size.Y, rect.Size.X];
+        CopyRect(rect.Position.X, rect.Position.Y, destination, transformer, defaultValue);
+        return destination;
+    }
+
+    public T[,] GetCenter(int x, int y, int size, T defaultValue = default) {
+        var destination = new T[size, size];
+        var startX = x - size / 2;
+        var startY = y - size / 2;
+        CopyRect(startX, startY,  destination, value => value, defaultValue);
+        return destination;
+    }
+
+    public TDest[,] GetCenter<TDest>(int x, int y, int size, Func<T, TDest> transformer, TDest defaultValue = default) {
+        var destination = new TDest[size, size];
+        var startX = x - size / 2;
+        var startY = y - size / 2;
+        CopyRect(startX, startY, destination, transformer, defaultValue);
+        return destination;
+    }
+
+    public void CopyRect(int startX, int startY, T[,] destination, T defaultValue = default) {
+        CopyRect(startX, startY, destination, value => value, defaultValue);
+    }
+
+    public void CopyRect<TDest>(TDest[,] destination, Func<T, TDest> transformer, TDest defaultValue = default) {
+        CopyRect(0, 0, destination, transformer, defaultValue);
+    }
+
+    public void CopyRect<TDest>(int startX, int startY, TDest[,] destination, Func<T, TDest> transformer, TDest defaultValue = default) {
+        var height = destination.GetLength(0);
+        var width = destination.GetLength(1);
+        for (var y = 0; y < height; y++) {
+            for (var x = 0; x < width; x++) {
+                var sourceX = startX + x;
+                var sourceY = startY + y;
+                if (sourceX >= 0 && sourceX < Width &&
+                    sourceY >= 0 && sourceY < Height) {
+                    destination[y, x] = transformer(Data[sourceY, sourceX]);
+                } else {
+                    destination[y, x] = defaultValue;
+                }
+            }
+        }
+    }
+    
+    public void CopyCenterRect(int centerX, int centerY, T defaultValue, T[,] destination) {
+        CopyCenterRect(centerX, centerY, defaultValue, destination, value => value);
+    }
+
+    public void CopyCenterRect<TOut>(int centerX, int centerY, TOut defaultValue, TOut[,] destination, Func<T, TOut> transform) {
+        var width = destination.GetLength(1);
+        var height = destination.GetLength(0);
+        var startX = centerX - width / 2;
+        var startY = centerY - height / 2;
+        for (var x = 0; x < width; x++) {
+            for (var y = 0; y < height; y++) {
+                var xx = startX + x;
+                var yy = startY + y;
+                destination[y, x] = xx < 0 || yy < 0 || xx >= Width || yy >= Height ? defaultValue : transform(Data[yy, xx]);
+            }
+        }
+    }
 }

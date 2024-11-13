@@ -14,7 +14,7 @@ public abstract class BaseBlobTests {
         var tileIds = new int[3, 3];
         var buffer = new int[3, 3];
         foreach (var cell in source) {
-            source.Data.CopyCenterRect(cell.Position.X, cell.Position.Y, -1, buffer);
+            source.CopyCenterRect(cell.Position.X, cell.Position.Y, -1, buffer);
             var tileId = TilePatternRuleSets.Blob47.FindTilePatternId(buffer, -1);
             tileIds[cell.Position.Y, cell.Position.X] = tileId;
         }

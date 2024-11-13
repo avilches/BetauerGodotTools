@@ -128,7 +128,7 @@ public class TilePatternTests : BaseBlobTests {
 
         var buffer = new int[3, 3];
         foreach (var ((x,y),value) in source) {
-            source.Data.CopyCenterRect(x, y, -1, buffer);
+            source.CopyCenterRect(x, y, -1, buffer);
             var tileId = blob47.FindTilePatternId(buffer, -1);
             tileIds[y, x] = tileId;
         }

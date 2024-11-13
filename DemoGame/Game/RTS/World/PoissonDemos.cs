@@ -67,8 +67,8 @@ public class PoissonDemos {
     }
 
     private Func<float, float, float> CreateNormalizedFunc(FastNoiseLite fastNoise, int width, int height) {
-        var dataGrid = new Array2D<float>(width, height).LoadNormalized((x, y) => fastNoise.GetNoise(x, y));
-        return (x, y) => dataGrid[Math.Clamp(Mathf.RoundToInt(x), 0, width - 1), Math.Clamp(Mathf.RoundToInt(y), 0, height - 1)];
+        var array2D = new Array2D<float>(width, height).LoadNormalized((x, y) => fastNoise.GetNoise(x, y));
+        return (x, y) => array2D[Math.Clamp(Mathf.RoundToInt(x), 0, width - 1), Math.Clamp(Mathf.RoundToInt(y), 0, height - 1)];
     }
 
     public async Task GenerateVariablePoissonDisksWithNoiseExpanded(FastImage fast, FastNoiseLite noise) {

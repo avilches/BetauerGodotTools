@@ -92,10 +92,16 @@ public class Array2DTests {
     public void TestSetValue() {
         _array2D.SetValue(new Vector2I(1, 2), 123);
         Assert.AreEqual(123, _array2D.GetValue(new Vector2I(1, 2)));
+        Assert.AreEqual(123, _array2D[new Vector2I(1, 2)]);
+        Assert.AreEqual(123, _array2D[2, 1]);
         _array2D[new Vector2I(1, 2)] = 1234;
         Assert.AreEqual(1234, _array2D.GetValue(new Vector2I(1, 2)));
+        Assert.AreEqual(1234, _array2D[new Vector2I(1, 2)]);
+        Assert.AreEqual(1234, _array2D[2, 1]);
         _array2D[1, 2] = 12345;
         Assert.AreEqual(12345, _array2D.GetValue(new Vector2I(1, 2)));
+        Assert.AreEqual(12345, _array2D[new Vector2I(1, 2)]);
+        Assert.AreEqual(12345, _array2D[2, 1]);
     }
 
     [Betauer.TestRunner.Test]
@@ -171,6 +177,63 @@ public class Array2DTests {
         Assert.AreEqual(0.5f, grid[0, 1]);
         Assert.AreEqual(1f, grid[1, 1]);
     }
+    
+    [TestRunner.Test]
+    public void CopyGridTests() {
+        var original = new Array2D<int>(new[,] {
+            {  0,  1,  2,  3,  4 },
+            { 10, 11, 12, 13, 14 },
+            { 20, 21, 22, 23, 24 },
+            { 30, 31, 32, 33, 34 },
+        });
+            
+        ArrayEquals(original.GetRect(0, 0, 5, 4), original.Data);
+        ArrayEquals(original.GetCenter(0, 0, 3, 4), new[,] {
+            { 4,  4, 4 },
+            { 4,  0, 1 },
+            { 4, 10, 11 },
+        });
+        ArrayEquals(original.GetRect(1, 2, 2, 2), new[,] {
+            { 21, 22 },
+            { 31, 32 },
+        });
+
+        ArrayEquals(original.GetRect(1, 2, 8, 2, -1), new[,] {
+            { 21, 22, 23, 24, -1, -1, -1, -1 },
+            { 31, 32, 33, 34, -1, -1, -1, -1 },
+        });
+
+        var dest = new int[2, 2];
+        original.CopyRect(0, 0, dest);
+        ArrayEquals(dest, new[,] {
+            {  0,  1, },
+            { 10, 11, },
+        });
+
+        original.CopyRect(1, 2, dest);
+        ArrayEquals(dest, new[,] {
+            { 21, 22, },
+            { 31, 32, },
+        });
+
+        
+        var buffer = new int[3, 3];
+        original.CopyCenterRect(0, 0, -1, buffer);
+        ArrayEquals(buffer, new[,] {
+            { -1, -1, -1 },
+            { -1,  0,  1 },
+            { -1, 10, 11 },
+        });
+
+        original.CopyCenterRect(1, 2, -1, buffer);
+        ArrayEquals(buffer, new[,] {
+            { 10, 11, 12 },
+            { 20, 21, 22 },
+            { 30, 31, 32 },
+        });
+    }
+
+
 
     public static bool ArrayEquals<T>(T[,] array1, T[,] array2) {
         Assert.AreEqual(array1.GetLength(0), array2.GetLength(0),

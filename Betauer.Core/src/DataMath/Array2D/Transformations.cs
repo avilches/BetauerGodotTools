@@ -2,7 +2,7 @@ using System;
 
 namespace Betauer.Core.DataMath.Array2D;
 
-public static partial class Array2DTransformations {
+public static partial class Transformations {
     public static T[,] Clone<T>(this T[,] source) {
         var height = source.GetLength(0);
         var width = source.GetLength(1);
@@ -184,86 +184,5 @@ public static partial class Array2DTransformations {
             }
         }
         return newGrid;
-    }
-    
-    public static T[,] GetRect<T>(this T[,] source, int startX, int startY, int width, int height, T defaultValue = default) {
-        var destination = new T[height, width];
-        source.CopyRect(startX, startY, width, height, destination, value => value, defaultValue);
-        return destination;
-    }
-
-    public static TDest[,] GetRect<TSource, TDest>(this TSource[,] source, int startX, int startY, int width, int height, Func<TSource, TDest> transformer, TDest defaultValue = default) {
-        var destination = new TDest[height, width];
-        source.CopyRect(startX, startY, width, height, destination, transformer, defaultValue);
-        return destination;
-    }
-
-    public static TDest[,] GetRect<TSource, TDest>(this TSource[,] source, Func<TSource, TDest> transformer, TDest defaultValue = default) {
-        var destination = new TDest[source.GetLength(0), source.GetLength(1)];
-        source.CopyRect(destination, transformer, defaultValue);
-        return destination;
-    }
-
-    public static T[,] GetRectCenter<T>(this T[,] source, int centerX, int centerY, int size, T defaultValue = default) {
-        var destination = new T[size, size];
-        var startX = centerX - size / 2;
-        var startY = centerY - size / 2;
-        source.CopyRect(startX, startY, size, size, destination, value => value, defaultValue);
-        return destination;
-    }
-
-    public static TDest[,] GetRectCenter<TSource, TDest>(this TSource[,] source, int centerX, int centerY, int size, Func<TSource, TDest> transformer, TDest defaultValue = default) {
-        var destination = new TDest[size, size];
-        var startX = centerX - size / 2;
-        var startY = centerY - size / 2;
-        source.CopyRect(startX, startY, size, size, destination, transformer, defaultValue);
-        return destination;
-    }
-
-    public static void CopyRect<T>(this T[,] source, int startX, int startY, int width, int height, T[,] destination, T defaultValue = default) {
-        source.CopyRect(startX, startY, width, height, destination, value => value, defaultValue);
-    }
-
-    public static void CopyRect<TSource, TDest>(this TSource[,] source, TDest[,] destination, Func<TSource, TDest> transformer, TDest defaultValue = default) {
-        source.CopyRect(0, 0, destination.GetLength(1), destination.GetLength(0), destination, transformer, defaultValue);
-    }
-
-    public static void CopyRect<TSource, TDest>(this TSource[,] source, int startX, int startY, int width, int height, TDest[,] destination, Func<TSource, TDest> transformer, TDest defaultValue = default) {
-        var sourceHeight = source.GetLength(0);
-        var sourceWidth = source.GetLength(1);
-        height = Math.Min(destination.GetLength(0), height);
-        width = Math.Min(destination.GetLength(1), width);
-        for (var y = 0; y < height; y++) {
-            for (var x = 0; x < width; x++) {
-                var sourceX = startX + x;
-                var sourceY = startY + y;
-                if (sourceX >= 0 && sourceX < sourceWidth &&
-                    sourceY >= 0 && sourceY < sourceHeight) {
-                    destination[y, x] = transformer(source[sourceY, sourceX]);
-                } else {
-                    destination[y, x] = defaultValue;
-                }
-            }
-        }
-    }
-    
-    public static void CopyCenterRect<T>(this T[,] source, int centerX, int centerY, T defaultValue, T[,] destination) {
-        CopyCenterRect(source, centerX, centerY, defaultValue, destination, value => value);
-    }
-
-    public static void CopyCenterRect<T, TOut>(this T[,] source, int centerX, int centerY, TOut defaultValue, TOut[,] destination, Func<T, TOut> transform) {
-        var sourceWidth = source.GetLength(1);
-        var sourceHeight = source.GetLength(0);
-        var width = destination.GetLength(1);
-        var height = destination.GetLength(0);
-        var startX = centerX - width / 2;
-        var startY = centerY - height / 2;
-        for (var x = 0; x < width; x++) {
-            for (var y = 0; y < height; y++) {
-                var xx = startX + x;
-                var yy = startY + y;
-                destination[y, x] = xx < 0 || yy < 0 || xx >= sourceWidth || yy >= sourceHeight ? defaultValue : transform(source[yy, xx]);
-            }
-        }
     }
 }

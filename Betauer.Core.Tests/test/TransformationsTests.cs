@@ -5,7 +5,7 @@ using NUnit.Framework;
 namespace Betauer.Core.Tests;
 
 [TestRunner.Test]
-public class Array2DTransformationsTests {
+public class TransformationsTests {
     
     [TestRunner.Test]
     public void TransformationsRotationsTests() {
@@ -182,103 +182,13 @@ public class Array2DTransformationsTests {
         });
     }
 
-    [TestRunner.Test]
-    public void CopyGridTests() {
-        var original = new[,] {
-            {  0,  1,  2,  3,  4 },
-            { 10, 11, 12, 13, 14 },
-            { 20, 21, 22, 23, 24 },
-            { 30, 31, 32, 33, 34 },
-        };
-            
-        AreEqual(original.GetRect(0, 0, 5, 4), original);
-        AreEqual(original.GetRectCenter(0, 0, 3, 4), new[,] {
-            { 4,  4, 4 },
-            { 4,  0, 1 },
-            { 4, 10, 11 },
-        });
-        AreEqual(original.GetRect(1, 2, 2, 2), new[,] {
-            { 21, 22 },
-            { 31, 32 },
-        });
-
-        AreEqual(original.GetRect(1, 2, 8, 2, -1), new[,] {
-            { 21, 22, 23, 24, -1, -1, -1, -1 },
-            { 31, 32, 33, 34, -1, -1, -1, -1 },
-        });
-
-        var dest = new int[4, 4];
-        original.CopyRect(0, 0, 2, 3, dest);
-        AreEqual(dest, new[,] {
-            {  0,  1, 0, 0 },
-            { 10, 11, 0, 0 },
-            { 20, 21, 0, 0 },
-            {  0,  0, 0, 0 },
-        });
-
-        original.CopyRect(1, 2, 2, 3, dest);
-        AreEqual(dest, new[,] {
-            { 21, 22, 0, 0 },
-            { 31, 32, 0, 0 },
-            {  0,  0, 0, 0 },
-            {  0,  0, 0, 0 },
-        });
-        original.CopyRect(1, 2, 10, 10, dest);
-        AreEqual(dest, new[,] {
-            { 21, 22, 23, 24 },
-            { 31, 32, 33, 34 },
-            {  0,  0,  0,  0 },
-            {  0,  0,  0,  0 },
-        });
-        
-        dest = new int[2, 3];
-        original.CopyRect(3, 2, 1, 1, dest);
-        AreEqual(dest, new[,] {
-            { 23,  0,  0 },
-            { 0 ,  0,  0 },
-        });
-        original.CopyRect(3, 3, 8, 8, dest);
-        AreEqual(dest, new[,] {
-            { 33, 34,  0 },
-            {  0,  0,  0 },
-        });
-        original.CopyRect(0, 0, 8, 8, dest);
-        AreEqual(dest, new[,] {
-            {  0,  1,  2 },
-            { 10, 11, 12 },
-        });
-        original.CopyRect(-1, -1, 8, 8, dest);
-        AreEqual(dest, new[,] {
-            {  0,  0,  0 },
-            {  0,  0,  1 },
-        });
-        
-        AreEqual(original.GetRect(v => v.ToString()), new string[,] {
-            {  "0",  "1",  "2",  "3",  "4" },
-            { "10", "11", "12", "13", "14" },
-            { "20", "21", "22", "23", "24" },
-            { "30", "31", "32", "33", "34" },
-        });
-
-        var buffer = new int[3, 3];
-        original.CopyCenterRect(0, 0, -1, buffer);
-        AreEqual(buffer, new[,] {
-            { -1, -1, -1 },
-            { -1,  0,  1 },
-            { -1, 10, 11 },
-        });
-
-        original.CopyCenterRect(1, 2, -1, buffer);
-        AreEqual(buffer, new[,] {
-            { 10, 11, 12 },
-            { 20, 21, 22 },
-            { 30, 31, 32 },
-        });
-    }
-
     public static bool AreEqual<T>(T[,] array1, T[,] array2) {
-        Assert.AreEqual(array1.GetLength(0), array2.GetLength(0));
-        Assert.AreEqual(array1.GetLength(1), array2.GetLength(1));
+        Assert.AreEqual(array1.GetLength(0), array2.GetLength(0),
+            $"Array dimension [{array1.GetLength(0)},{array1.GetLength(1)}] wrong. Expected: [{array2.GetLength(0)},{array2.GetLength(0)}]");
+
+        Assert.AreEqual(array1.GetLength(1), array2.GetLength(1),
+            $"Array dimension [{array1.GetLength(0)},{array1.GetLength(1)}] wrong. Expected: [{array2.GetLength(0)},{array2.GetLength(0)}]");
+
         for (var i = 0; i < array1.GetLength(0); i++) {
             for (var j = 0; j < array1.GetLength(1); j++) {
                 Assert.That(array1[i, j], Is.EqualTo(array2[i, j]), "Element position: [" + i + "," + j + "]");

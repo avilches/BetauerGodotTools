@@ -257,7 +257,7 @@ public class BiomeGenerator {
         var gridSize = 3;
         var buffer = new BiomeCell[gridSize, gridSize]; 
         foreach (var ((x, y), cell) in BiomeCells) {
-            BiomeCells.Data.CopyCenterRect(x, y, null, buffer);
+            BiomeCells.CopyCenterRect(x, y, null, buffer);
 
             // If central pixel is not land, it can't be coast
             var land = buffer[gridSize / 2 , gridSize / 2]?.Land ?? false;
@@ -409,12 +409,12 @@ public class BiomeGenerator {
     }
 
     public void FillFalloffGrid(FastImage fastImage) {
-        var dataGrid = new Array2D<float>(Width, Height).LoadNormalized((x, y) => {
+        var array2d = new Array2D<float>(Width, Height).LoadNormalized((x, y) => {
             var height = HeightNoise.GetNoise(x, y);
             var r = MassLands[x, y]; // from 0 to 1
             return RampFunc(height, r);
         });
-        foreach (var ((x, y), val) in dataGrid) {
+        foreach (var ((x, y), val) in array2d) {
             fastImage.SetPixel(x, y, new Color(val, val, val), false);
         }
         fastImage.Flush();
@@ -446,7 +446,7 @@ public class BiomeGenerator {
                                   """, landSeaRules);
         var buffer = new BiomeCell[3, 3];
         foreach (var ((x, y), val) in BiomeCells) {
-            BiomeCells.Data.CopyCenterRect(x, y, null, buffer);
+            BiomeCells.CopyCenterRect(x, y, null, buffer);
             if (p.Matches(buffer)) {
                 fastImage.SetPixel(x, y, Colors.Blue, false);
             }
