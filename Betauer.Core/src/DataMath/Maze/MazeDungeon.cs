@@ -4,7 +4,7 @@ using System.Linq;
 using Betauer.Core.DataMath.Data;
 using Godot;
 
-namespace Betauer.Core.DataMath.Bsp.Dart;
+namespace Betauer.Core.DataMath.Maze;
 
 public class MazeDungeon {
     public static IEnumerable<Vector2I> GetEnumerator(Rect2I rect) {
@@ -14,36 +14,33 @@ public class MazeDungeon {
             }
         }
     }
-
     
     private static readonly Vector2I[] Directions = { Vector2I.Up, Vector2I.Down, Vector2I.Right, Vector2I.Left };
     public static Random rng = new Random(0);
 
-    public XyDataGrid<Cell> Stage;
+    public int ExtraConnectorChance => 20;
+    public DataGrid<Cell> Stage;
     public Rect2I Bounds;
 
     public MazeDungeon(int width, int height) {
         if (width % 2 == 0 || height % 2 == 0) {
             throw new ArgumentException("The stage must be odd-sized.");
         }
-        Stage = new XyDataGrid<Cell>(width, height);
+        Stage = new DataGrid<Cell>(width, height);
         Bounds = new Rect2I(0, 0, width, height);
-        Fill(TileType.Wall);
-        LastRegion = 0;
+        Fill(TileType.Wall, -1);
     }
 
-    public int ExtraConnectorChance => 20;
-    public float WindingPercent = 0.7f; // 0 means straight lines, 1 means winding paths... 0.7f means 70% winding paths, 30% change straight line
 
-    public void Fill(TileType tile) {
+    public void Fill(TileType tile, int region) {
         for (int y = 0; y < Stage.Height; y++) {
             for (int x = 0; x < Stage.Width; x++) {
-                Stage[new Vector2I(x, y)] = new Cell(x, y, tile, 0);
+                Stage[x, y] = new Cell(x, y, tile, 0);
             }
         }
     }
 
-    public int LastRegion = -1;
+    // public int LastRegion = -1;
 
     public static List<Rect2I> AddRooms(int numRoomTries, int roomExtraSize, int boundsWidth, int boundsHeight) {
         List<Rect2I> Rooms = new List<Rect2I>();
@@ -78,23 +75,33 @@ public class MazeDungeon {
         return Rooms;
     }
 
-    public void FillMazes() {
+    /// <summary>
+    /// Generate a maze filling the stage with winding paths
+    /// </summary>
+    /// <param name="windyRatio">0 means straight lines, 1 means winding paths... 0.7f means 70% winding paths, 30% change straight line</param>
+    public void FillMazes(float windyRatio, int startRegion = 1) {
         for (int y = 1; y < Stage.Height; y += 2) {
             for (int x = 1; x < Stage.Width; x += 2) {
                 var pos = new Vector2I(x, y);
-                if (Stage[pos].Type != TileType.Wall) continue;
-                LastRegion++;
+                if (Stage[x, y].Type != TileType.Wall) continue;
+                startRegion++;
 
-                GrowMaze(pos);
+                GrowMaze(pos, windyRatio, startRegion);
             }
         }
     }
-    
-    private void GrowMaze(Vector2I start) {
+
+    /// <summary>
+    /// Generate a maze starting from a given position
+    /// </summary>
+    /// <param name="start"></param>
+    /// <param name="windyRatio">0 means straight lines, 1 means winding paths... 0.7f means 70% winding paths, 30% change straight line</param>
+    /// <param name="section">The maze section, just a number to identify the mazo</param>
+    public void GrowMaze(Vector2I start, float windyRatio, int section) {
         var cells = new Stack<Vector2I>();
         Vector2I? lastDir = null;
 
-        Carve(start, TileType.OpenDoor, LastRegion);
+        Carve(start, TileType.OpenDoor, section);
 
         cells.Push(start);
         while (cells.Count > 0) {
@@ -103,21 +110,26 @@ public class MazeDungeon {
             if (nextCellsAvailable.Count == 0) {
                 cells.Pop();
                 lastDir = null;
-                Carve(start, TileType.ClosedDoor, LastRegion);
+                Carve(start, TileType.ClosedDoor, section);
                 continue;
             }
-            Vector2I dir = lastDir.HasValue && nextCellsAvailable.Contains(lastDir.Value) && rng.NextSingle() < WindingPercent
+            Vector2I dir = lastDir.HasValue && nextCellsAvailable.Contains(lastDir.Value) && rng.NextSingle() < windyRatio
                 ? lastDir.Value // Windy path, keep the same direction
                 : rng.Next(nextCellsAvailable); // Random path
 
-            Carve(cell + dir, TileType.Path, LastRegion);
-            Carve(cell + dir * 2, TileType.Path, LastRegion);
+            Carve(cell + dir, TileType.Path, section);
+            Carve(cell + dir * 2, TileType.Path, section);
             cells.Push(cell + dir * 2);
             lastDir = dir;
         }
     }
 
     public void ConnectRegions() {
+        var connectorRegions = DetectConnectorRegions();
+        AttemptToConnectRegions(connectorRegions);
+    }
+
+    private Dictionary<Vector2I, HashSet<int>> DetectConnectorRegions() {
         var connectorRegions = new Dictionary<Vector2I, HashSet<int>>();
         for (int y = 1; y < Stage.Height - 1; y++) {
             for (int x = 1; x < Stage.Width - 1; x++) {
@@ -138,16 +150,19 @@ public class MazeDungeon {
                 connectorRegions[pos] = regionsSet;
             }
         }
+        return connectorRegions;
+    }
 
+    private void AttemptToConnectRegions(Dictionary<Vector2I, HashSet<int>> connectorRegions) {
         var connectors = new List<Vector2I>(connectorRegions.Keys);
         if (connectors.Count == 0) return; // Add this check to prevent out of range exception
 
         var merged = new Dictionary<int, int>();
         var openRegions = new HashSet<int>();
-        for (int i = 0; i <= LastRegion; i++) {
-            merged[i] = i;
-            openRegions.Add(i);
-        }
+        // for (int i = 0; i <= LastRegion; i++) {
+            // merged[i] = i;
+            // openRegions.Add(i);
+        // }
 
         while (openRegions.Count > 1 && connectors.Count > 0) {
             var index = rng.Next(connectors.Count);
@@ -159,11 +174,11 @@ public class MazeDungeon {
             int dest = regions.First();
             var sources = regions.Skip(1).ToList();
 
-            for (int i = 0; i <= LastRegion; i++) {
-                if (sources.Contains(merged[i])) {
-                    merged[i] = dest;
-                }
-            }
+            // for (int i = 0; i <= LastRegion; i++) {
+                // if (sources.Contains(merged[i])) {
+                    // merged[i] = dest;
+                // }
+            // }
 
             openRegions.ExceptWith(sources);
 

@@ -114,7 +114,7 @@ public class TilePatternTests : BaseBlobTests {
 
     [Betauer.TestRunner.Test]
     public void Blob47Test() {
-        var source = YxDataGrid<int>.Parse(@"
+        var source = DataGrid<int>.Parse(@"
 ..0
 000
 ", new Dictionary<char, int> {
@@ -126,11 +126,11 @@ public class TilePatternTests : BaseBlobTests {
         var blob47 = TilePatternRuleSets.Blob47;
 
         var buffer = new int[3, 3];
-        source.Loop((value, x, y) => {
+        foreach (var ((x,y),value) in source) {
             source.CopyCenterRect(x, y, -1, buffer, (p) => p);
             var tileId = blob47.FindTilePatternId(buffer, -1);
             tileIds[y, x] = tileId;
-        });
+        }
 
         // put here the tileIds
         ArrayEquals(tileIds, new[,] {

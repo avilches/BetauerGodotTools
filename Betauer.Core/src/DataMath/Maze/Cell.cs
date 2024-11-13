@@ -1,4 +1,4 @@
-namespace Betauer.Core.DataMath.Bsp.Dart;
+namespace Betauer.Core.DataMath.Maze;
 
 public class Cell {
     public TileType Type;

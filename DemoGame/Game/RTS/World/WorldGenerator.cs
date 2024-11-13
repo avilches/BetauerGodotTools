@@ -78,44 +78,44 @@ public partial class WorldGenerator {
         BiomeGenerator.Seed = Seed;
         BiomeGenerator.Generate();
                 
-        return;
+        // return;
         GenerateOld(GodotTileMap, BiomeGenerator.HeightNoise, BiomeGenerator.HumidityNoise);
-        BiomeGenerator.BiomeCells.Loop((cell, x, y) => {
+        foreach (var (pos, cell) in BiomeGenerator.BiomeCells) {
             switch (cell.Biome.Type) {
                 case BiomeType.Beach:
-                    GodotTileMap.SetCell(0, new Vector2I(x, y), 7, new Vector2I(18, 4)); // Sand
+                    GodotTileMap.SetCell(0, pos, 7, new Vector2I(18, 4)); // Sand
                     break;
                 case BiomeType.None:
                     break;
                 case BiomeType.Glacier:
-                    GodotTileMap.SetCell(0, new Vector2I(x, y), 6, new Vector2I(2, 2)); // Modern, snow
+                    GodotTileMap.SetCell(0, pos, 6, new Vector2I(2, 2)); // Modern, snow
                     break;
                 case BiomeType.Rock:
-                    GodotTileMap.SetCell(0, new Vector2I(x, y), 1, new Vector2I(0, 0)); // Mud
+                    GodotTileMap.SetCell(0, pos, 1, new Vector2I(0, 0)); // Mud
                     break;
                 case BiomeType.FireDesert:
                     break;
                 case BiomeType.Desert:
-                    GodotTileMap.SetCell(0, new Vector2I(x, y), 0, new Vector2I(0, 15)); // Red
+                    GodotTileMap.SetCell(0, pos, 0, new Vector2I(0, 15)); // Red
                     break;
                 case BiomeType.Plains:
-                    GodotTileMap.SetCell(0, new Vector2I(x, y), 0, new Vector2I(0, 2)); // GreenYellow 
+                    GodotTileMap.SetCell(0, pos, 0, new Vector2I(0, 2)); // GreenYellow 
                     break;
                 case BiomeType.Forest:
-                    GodotTileMap.SetCell(0, new Vector2I(x, y), 0, new Vector2I(11, 1)); // 
+                    GodotTileMap.SetCell(0, pos, 0, new Vector2I(11, 1)); // 
                     break;
                 case BiomeType.Dirty:
-                    GodotTileMap.SetCell(0, new Vector2I(x, y), 0, new Vector2I(16, 2)); // 
+                    GodotTileMap.SetCell(0, pos, 0, new Vector2I(16, 2)); // 
                     break;
                 case BiomeType.Sea:
-                    GodotTileMap.SetCell(0, new Vector2I(x, y), 6, new Vector2I(20, 13)); // Modern, water
+                    GodotTileMap.SetCell(0, pos, 6, new Vector2I(20, 13)); // Modern, water
                     break;
                 case BiomeType.Ocean:
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-        });
+        }
     }
 
     public void Draw(ViewMode viewMode) {
@@ -184,11 +184,11 @@ public partial class WorldGenerator {
         var sproutDarkerGrass = new TileMapSource(8, TileSetLayouts.Blob47Godot);
 
         var buffer = new int[3, 3];
-        BiomeGenerator.BiomeCells.Loop((cell, x, y) => {
+        foreach (var ((x, y), cell) in BiomeGenerator.BiomeCells) {
             BiomeGenerator.BiomeCells.CopyCenterRect(x, y, -1, buffer, (c) => c.Biome.Type == BiomeType.Plains ? 0 : -1);
             var tileId = TilePatternRuleSets.Blob47.FindTilePatternId(buffer, -1);
             sproutDarkerGrass.SetCell(godotTileMap, 0, x, y, tileId);
-        });
+        }
         godotTileMap.ZIndex = 1;
     }
 

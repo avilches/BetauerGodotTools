@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Godot;
 
-namespace Betauer.Core.DataMath.Bsp.Dart;
+namespace Betauer.Core.DataMath.Maze;
 
 public class MazeDungeonDemo {
     public static IEnumerable<Vector2I> GetEnumerator(Rect2I rect) {
@@ -17,11 +17,11 @@ public class MazeDungeonDemo {
         var random = new Random(0);
         var dungeon = new MazeDungeon(41, 41);
         
-        // GenerateRandomRoomsNew(random, dungeon);
+        GenerateRandomRoomsNew(random, dungeon);
 
         // GenerateRandomRooms(dungeon);
 
-        dungeon.FillMazes();
+        dungeon.FillMazes(0.7f, 1);
         dungeon.ConnectRegions();
         dungeon.RemoveDeadEnds();
         PrintRegions(dungeon);
@@ -38,7 +38,7 @@ public class MazeDungeonDemo {
             dungeon.Carve(rect, TileType.Floor, lastRegion);
             PrintRegions(dungeon);
         }
-        dungeon.LastRegion = lastRegion;
+        // dungeon.LastRegion = lastRegion;
     }
 
     private static void GenerateRandomRooms(MazeDungeon dungeon) {
@@ -49,7 +49,7 @@ public class MazeDungeonDemo {
             lastRegion++;
             dungeon.Carve(room, TileType.Floor, lastRegion);
         }
-        dungeon.LastRegion = lastRegion;
+        // dungeon.LastRegion = lastRegion;
     }
 
     private static void PrintRegions(MazeDungeon dungeon) {
@@ -72,7 +72,7 @@ public class MazeDungeonDemo {
         var stage = dungeon.Stage;
         for (int y = 0; y < stage.Height; y++) {
             for (int x = 0; x < stage.Width; x++) {
-                var tile = stage[new Vector2I(x, y)];
+                var tile = stage.GetValue(new Vector2I(x, y));
                 char c = tile.Type switch {
                     // TileType.Wall => ' ',
                     // TileType.Floor => '*',

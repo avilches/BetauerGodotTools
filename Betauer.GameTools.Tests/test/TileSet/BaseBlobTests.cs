@@ -6,18 +6,18 @@ namespace Betauer.GameTools.Tests.TileSet;
 
 public abstract class BaseBlobTests {
     protected void AssertBlob47(string str, int[,] grid) {
-        var source = YxDataGrid<int>.Parse(str, new System.Collections.Generic.Dictionary<char, int> {
+        var source = DataGrid<int>.Parse(str, new System.Collections.Generic.Dictionary<char, int> {
             {'#',  0},
             {'.', -1}
         });
         
         var tileIds = new int[3, 3];
         var buffer = new int[3, 3];
-        source.Loop((value, x, y) => {
-            source.CopyCenterRect(x, y, -1, buffer);
+        foreach (var cell in source) {
+            source.CopyCenterRect(cell.Position.X, cell.Position.Y, -1, buffer);
             var tileId = TilePatternRuleSets.Blob47.FindTilePatternId(buffer, -1);
-            tileIds[y, x] = tileId;
-        });
+            tileIds[cell.Position.Y, cell.Position.X] = tileId;
+        }
         
         ArrayEquals(tileIds, grid);
     }
