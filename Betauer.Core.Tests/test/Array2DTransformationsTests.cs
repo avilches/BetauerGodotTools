@@ -1,10 +1,11 @@
+using Betauer.Core.DataMath.Array2D;
 using Betauer.TestRunner;
 using NUnit.Framework;
 
 namespace Betauer.Core.Tests;
 
 [TestRunner.Test]
-public class YxTransformationsTests {
+public class Array2DTransformationsTests {
     
     [TestRunner.Test]
     public void TransformationsRotationsTests() {

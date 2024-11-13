@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Betauer.Core;
+using Betauer.Core.DataMath.Array2D;
 using Betauer.Core.DataMath.Collision.Spatial2D;
 using Betauer.Core.DataMath.Data;
 using Betauer.Core.DataMath.Geometry;
@@ -66,7 +67,7 @@ public class PoissonDemos {
     }
 
     private Func<float, float, float> CreateNormalizedFunc(FastNoiseLite fastNoise, int width, int height) {
-        var dataGrid = new DataGrid<float>(width, height).LoadNormalized((x, y) => fastNoise.GetNoise(x, y));
+        var dataGrid = new Array2D<float>(width, height).LoadNormalized((x, y) => fastNoise.GetNoise(x, y));
         return (x, y) => dataGrid[Math.Clamp(Mathf.RoundToInt(x), 0, width - 1), Math.Clamp(Mathf.RoundToInt(y), 0, height - 1)];
     }
 

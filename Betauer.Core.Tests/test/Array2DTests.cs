@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Betauer.Core.DataMath.Array2D;
 using Betauer.Core.DataMath.Data;
 using Betauer.TestRunner;
 using Godot;
@@ -9,22 +10,22 @@ namespace Betauer.Core.Tests;
 using NUnit.Framework;
 
 [Betauer.TestRunner.Test]
-public class DataGridTests {
-    private DataGrid<int> _dataGrid;
+public class Array2DTests {
+    private Array2D<int> _array2D;
 
     [Betauer.TestRunner.SetUp]
     public void SetUp() {
-        _dataGrid = new DataGrid<int>(5, 4);
+        _array2D = new Array2D<int>(5, 4);
         var value = 0;
-        foreach (var cell in _dataGrid) {
-            _dataGrid.SetValue(cell.Position, value);
+        foreach (var cell in _array2D) {
+            _array2D.SetValue(cell.Position, value);
             value++;
         }
     }
 
     [Betauer.TestRunner.Test]
     public void ParseTest() {
-        var grid = DataGrid<int>.Parse("""
+        var grid = Array2D<int>.Parse("""
                                        ...#
                                        @###
                                        ..#@
@@ -73,41 +74,41 @@ public class DataGridTests {
 
     [Betauer.TestRunner.Test]
     public void TestWidthAndHeight() {
-        Assert.AreEqual(5, _dataGrid.Width);
-        Assert.AreEqual(4, _dataGrid.Height);
+        Assert.AreEqual(5, _array2D.Width);
+        Assert.AreEqual(4, _array2D.Height);
     }
 
     [Betauer.TestRunner.Test]
     public void TestFill() {
-        _dataGrid.Fill(1);
-        for (var y = 0; y < _dataGrid.Height; y++) {
-            for (var x = 0; x < _dataGrid.Width; x++) {
-                Assert.AreEqual(1, _dataGrid[x, y]);
+        _array2D.Fill(1);
+        for (var y = 0; y < _array2D.Height; y++) {
+            for (var x = 0; x < _array2D.Width; x++) {
+                Assert.AreEqual(1, _array2D[x, y]);
             }
         }
     }
 
     [Betauer.TestRunner.Test]
     public void TestSetValue() {
-        _dataGrid.SetValue(new Vector2I(1, 2), 123);
-        Assert.AreEqual(123, _dataGrid.GetValue(new Vector2I(1, 2)));
-        _dataGrid[new Vector2I(1, 2)] = 1234;
-        Assert.AreEqual(1234, _dataGrid.GetValue(new Vector2I(1, 2)));
-        _dataGrid[1, 2] = 12345;
-        Assert.AreEqual(12345, _dataGrid.GetValue(new Vector2I(1, 2)));
+        _array2D.SetValue(new Vector2I(1, 2), 123);
+        Assert.AreEqual(123, _array2D.GetValue(new Vector2I(1, 2)));
+        _array2D[new Vector2I(1, 2)] = 1234;
+        Assert.AreEqual(1234, _array2D.GetValue(new Vector2I(1, 2)));
+        _array2D[1, 2] = 12345;
+        Assert.AreEqual(12345, _array2D.GetValue(new Vector2I(1, 2)));
     }
 
     [Betauer.TestRunner.Test]
     public void TestGetValueSafe() {
-        Assert.AreEqual(default(int), _dataGrid.GetValueSafe(16, 16));
+        Assert.AreEqual(default(int), _array2D.GetValueSafe(16, 16));
     }
 
     [Betauer.TestRunner.Test]
     public void TestLoad() {
-        _dataGrid.Load((x, y) => x + y);
-        for (var y = 0; y < _dataGrid.Height; y++) {
-            for (var x = 0; x < _dataGrid.Width; x++) {
-                Assert.AreEqual(x + y, _dataGrid[x, y]);
+        _array2D.Load((x, y) => x + y);
+        for (var y = 0; y < _array2D.Height; y++) {
+            for (var x = 0; x < _array2D.Width; x++) {
+                Assert.AreEqual(x + y, _array2D[x, y]);
             }
         }
     }
@@ -115,27 +116,27 @@ public class DataGridTests {
     [Betauer.TestRunner.Test]
     public void TestLoop() {
         var total = 0;
-        foreach (var cell in _dataGrid) {
+        foreach (var cell in _array2D) {
             total += cell.Value;
         }
         Assert.AreEqual(total, 190);
 
-        var total2 = _dataGrid.Sum(cell => cell.Value);
+        var total2 = _array2D.Sum(cell => cell.Value);
         Assert.AreEqual(total2, 190);
     }
 
     [Betauer.TestRunner.Test]
     public void TestTransform() {
-        var backup = _dataGrid.Clone();
-        _dataGrid.Transform(value => value + 1);
-        foreach (var ((x, y), value) in _dataGrid) {
+        var backup = _array2D.Clone();
+        _array2D.Transform(value => value + 1);
+        foreach (var ((x, y), value) in _array2D) {
             Assert.AreEqual(backup[x,y] + 1, value);
         }
     }
 
     [Betauer.TestRunner.Test]
     public void NormalizeTest() {
-        var grid = new DataGrid<float>(2, 2).Load((x, y) => x + y);
+        var grid = new Array2D<float>(2, 2).Load((x, y) => x + y);
         Assert.AreEqual(2, grid.Width);
         Assert.AreEqual(2, grid.Height);
 

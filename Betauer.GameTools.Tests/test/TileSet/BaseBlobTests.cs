@@ -1,4 +1,4 @@
-using Betauer.Core.DataMath.Data;
+using Betauer.Core.DataMath.Array2D;
 using Betauer.TileSet.Terrain;
 using NUnit.Framework;
 
@@ -6,7 +6,7 @@ namespace Betauer.GameTools.Tests.TileSet;
 
 public abstract class BaseBlobTests {
     protected void AssertBlob47(string str, int[,] grid) {
-        var source = DataGrid<int>.Parse(str, new System.Collections.Generic.Dictionary<char, int> {
+        var source = Array2D<int>.Parse(str, new System.Collections.Generic.Dictionary<char, int> {
             {'#',  0},
             {'.', -1}
         });
@@ -14,7 +14,7 @@ public abstract class BaseBlobTests {
         var tileIds = new int[3, 3];
         var buffer = new int[3, 3];
         foreach (var cell in source) {
-            source.CopyCenterRect(cell.Position.X, cell.Position.Y, -1, buffer);
+            source.Data.CopyCenterRect(cell.Position.X, cell.Position.Y, -1, buffer);
             var tileId = TilePatternRuleSets.Blob47.FindTilePatternId(buffer, -1);
             tileIds[cell.Position.Y, cell.Position.X] = tileId;
         }

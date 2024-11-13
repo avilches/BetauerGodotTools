@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Betauer.Core.DataMath.Data;
+using Betauer.Core.DataMath.Array2D;
 using Godot;
 
 namespace Betauer.Core.DataMath.Maze;
@@ -19,14 +19,14 @@ public class MazeDungeon {
     public static Random rng = new Random(0);
 
     public int ExtraConnectorChance => 20;
-    public DataGrid<Cell> Stage;
+    public Array2D<Cell> Stage;
     public Rect2I Bounds;
 
     public MazeDungeon(int width, int height) {
         if (width % 2 == 0 || height % 2 == 0) {
             throw new ArgumentException("The stage must be odd-sized.");
         }
-        Stage = new DataGrid<Cell>(width, height);
+        Stage = new Array2D<Cell>(width, height);
         Bounds = new Rect2I(0, 0, width, height);
         Fill(TileType.Wall, -1);
     }

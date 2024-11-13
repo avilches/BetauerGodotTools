@@ -1,8 +1,8 @@
 using System;
 
-namespace Betauer.Core;
+namespace Betauer.Core.DataMath.Array2D;
 
-public static partial class Transformations {
+public static partial class Array2DTransformations {
     public static T[,] Clone<T>(this T[,] source) {
         var height = source.GetLength(0);
         var width = source.GetLength(1);

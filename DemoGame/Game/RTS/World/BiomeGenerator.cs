@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Betauer.Core;
+using Betauer.Core.DataMath.Array2D;
 using Betauer.Core.DataMath.Data;
 using Betauer.Core.DataMath.Graph;
 using Betauer.Core.DataMath.PoissonDiskSampling;
@@ -46,7 +47,7 @@ public class BiomeGenerator {
     public float MasslandOffset { get; set; }
     // public float HeightBias { get; set; }
     public Func<float, float, float> RampFunc;
-    public DataGrid<float> MassLands { get; private set; }
+    public Array2D<float> MassLands { get; private set; }
     public float SeaLevel { get; set; }
 
     // This is the noise height, creating mountains and valleys
@@ -55,14 +56,14 @@ public class BiomeGenerator {
     // Final grid with the height + optionally applied the falloff
     public bool FalloffEnabled { get; set; } = true;
     public bool HumidityEnabled { get; set; } = true;
-    public DataGrid<float> HeightFalloffGrid { get; private set; }
+    public Array2D<float> HeightFalloffGrid { get; private set; }
 
     public FastNoiseLite HumidityNoise { get; } = new();
-    public DataGrid<float> HumidityNormalizedGrid { get; private set; }
+    public Array2D<float> HumidityNormalizedGrid { get; private set; }
 
     public FloatGrid<BiomeType> LandBiomesGrid { get; private set; }
     public FloatGrid<BiomeType> SeaBiomesGrid { get; private set; }
-    public DataGrid<BiomeCell> BiomeCells { get; private set; }
+    public Array2D<BiomeCell> BiomeCells { get; private set; }
     // public Betauer.TileSet.TileMap.TileMap<BiomeType> TileMap { get; private set; }
 
     private Random _random;
@@ -144,10 +145,10 @@ public class BiomeGenerator {
         ConfigureLandBiomeMap(LandBiomesConfig);
         ConfigureSeaBiomeMap(SeaBiomesConfig);
 
-        BiomeCells = new DataGrid<BiomeCell>(Width, Height);
+        BiomeCells = new Array2D<BiomeCell>(Width, Height);
         // TileMap = new TileMap<BiomeType>(0, width, height, BiomeType.None);
 
-        MassLands = new DataGrid<float>(width, height);
+        MassLands = new Array2D<float>(width, height);
         MasslandBias = 0.35f;
         MasslandOffset = 0.99f;
         LandWidthCount = 8;
@@ -155,8 +156,8 @@ public class BiomeGenerator {
         SeaLevel = 0.15f; // 0.06
         // HeightBias = 0.5f; // 0.3f
         RampFunc = (float h, float f) => ((h / 2f) + 0.5f) * f;
-        HumidityNormalizedGrid = new DataGrid<float>(width, height);
-        HeightFalloffGrid = new DataGrid<float>(width, height);
+        HumidityNormalizedGrid = new Array2D<float>(width, height);
+        HeightFalloffGrid = new Array2D<float>(width, height);
 
         HeightNoise.NoiseTypeValue = FastNoiseLite.NoiseType.OpenSimplex2S;
         HeightNoise.Frequency = 0.012f;
@@ -256,7 +257,7 @@ public class BiomeGenerator {
         var gridSize = 3;
         var buffer = new BiomeCell[gridSize, gridSize]; 
         foreach (var ((x, y), cell) in BiomeCells) {
-            BiomeCells.CopyCenterRect(x, y, null, buffer);
+            BiomeCells.Data.CopyCenterRect(x, y, null, buffer);
 
             // If central pixel is not land, it can't be coast
             var land = buffer[gridSize / 2 , gridSize / 2]?.Land ?? false;
@@ -316,7 +317,7 @@ public class BiomeGenerator {
     }
 
     public void FillMassland(FastImage fastTexture) {
-        foreach (var ((x, y), val) in new DataGrid<float>(Width, Height).LoadNormalized((x, y) => MassLands[x, y])) {
+        foreach (var ((x, y), val) in new Array2D<float>(Width, Height).LoadNormalized((x, y) => MassLands[x, y])) {
             fastTexture.SetPixel(x, y, new Color(val, val, val), false);            
         } 
         fastTexture.Flush();
@@ -401,14 +402,14 @@ public class BiomeGenerator {
     }
 
     public void FillHeight(FastImage fastImage) {
-        foreach (var ((x, y), val) in new DataGrid<float>(Width, Height).LoadNormalized((x, y) => HeightNoise.GetNoise(x, y))) {
+        foreach (var ((x, y), val) in new Array2D<float>(Width, Height).LoadNormalized((x, y) => HeightNoise.GetNoise(x, y))) {
             fastImage.SetPixel(x, y, new Color(val, val, val), false);
         }
         fastImage.Flush();
     }
 
     public void FillFalloffGrid(FastImage fastImage) {
-        var dataGrid = new DataGrid<float>(Width, Height).LoadNormalized((x, y) => {
+        var dataGrid = new Array2D<float>(Width, Height).LoadNormalized((x, y) => {
             var height = HeightNoise.GetNoise(x, y);
             var r = MassLands[x, y]; // from 0 to 1
             return RampFunc(height, r);
@@ -445,7 +446,7 @@ public class BiomeGenerator {
                                   """, landSeaRules);
         var buffer = new BiomeCell[3, 3];
         foreach (var ((x, y), val) in BiomeCells) {
-            BiomeCells.CopyCenterRect(x, y, null, buffer);
+            BiomeCells.Data.CopyCenterRect(x, y, null, buffer);
             if (p.Matches(buffer)) {
                 fastImage.SetPixel(x, y, Colors.Blue, false);
             }
@@ -490,7 +491,7 @@ public class IslandGenerator {
         MaxHeight,
     }
 
-    public static void GenerateIslandsGrid(DataGrid<float> masslandGrid, int landWidthCount, int landHeightCount, Random random, bool up, OverlapType overlap, IInterpolation easing) {
+    public static void GenerateIslandsGrid(Array2D<float> masslandGrid, int landWidthCount, int landHeightCount, Random random, bool up, OverlapType overlap, IInterpolation easing) {
         var width = masslandGrid.Width;
         var height = masslandGrid.Height;
         var cellWidth = width / landWidthCount;
@@ -529,7 +530,7 @@ public class IslandGenerator {
         }
     }
 
-    public static void AddIsland(DataGrid<float> normalizedData, int cx, int cy, int rx, int ry, float rotation, OverlapType overlap, IInterpolation? easing = null, bool up = true) {
+    public static void AddIsland(Array2D<float> normalizedData, int cx, int cy, int rx, int ry, float rotation, OverlapType overlap, IInterpolation? easing = null, bool up = true) {
         Draw.GradientEllipseRotated(cx, cy, rx, ry, rotation, (x, y, value) => {
             if (x < 0 || y < 0 || x >= normalizedData.Width || y >= normalizedData.Height) return;
             var heightValue = value;

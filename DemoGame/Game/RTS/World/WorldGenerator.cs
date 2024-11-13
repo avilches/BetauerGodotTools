@@ -9,6 +9,7 @@ using Betauer.DI.Factory;
 using Godot;
 using Veronenger.RTS.Assets.Trees;
 using Betauer.Core;
+using Betauer.Core.DataMath.Array2D;
 using Betauer.Core.DataMath.Collision.Spatial2D;
 using Betauer.Core.DataMath.PoissonDiskSampling;
 using Betauer.Core.Image;
@@ -185,7 +186,7 @@ public partial class WorldGenerator {
 
         var buffer = new int[3, 3];
         foreach (var ((x, y), cell) in BiomeGenerator.BiomeCells) {
-            BiomeGenerator.BiomeCells.CopyCenterRect(x, y, -1, buffer, (c) => c.Biome.Type == BiomeType.Plains ? 0 : -1);
+            BiomeGenerator.BiomeCells.Data.CopyCenterRect(x, y, -1, buffer, (c) => c.Biome.Type == BiomeType.Plains ? 0 : -1);
             var tileId = TilePatternRuleSets.Blob47.FindTilePatternId(buffer, -1);
             sproutDarkerGrass.SetCell(godotTileMap, 0, x, y, tileId);
         }

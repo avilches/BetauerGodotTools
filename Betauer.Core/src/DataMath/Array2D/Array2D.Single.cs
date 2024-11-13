@@ -1,15 +1,15 @@
 using System;
 
-namespace Betauer.Core.DataMath.Data;
+namespace Betauer.Core.DataMath.Array2D;
 
-public static partial class YxDataGridExtensions {
+public static partial class Array2DTransformations {
     
     /// <summary>
     /// Normalizes the values in the given YxDataGrid to a range between 0 and 1.
     /// </summary>
     /// <param name="grid">The YxDataGrid to normalize.</param>
     /// <returns>The normalized YxDataGrid.</returns>
-    public static DataGrid<float> Normalize(this DataGrid<float> grid) {
+    public static Array2D<float> Normalize(this Array2D<float> grid) {
         var min = float.MaxValue;
         var max = float.MinValue;
         foreach (var cell in grid) {
@@ -29,7 +29,7 @@ public static partial class YxDataGridExtensions {
     /// <param name="newMin">The new minimum value of the normalized range.</param>
     /// <param name="newMax">The new maximum value of the normalized range.</param>
     /// <returns>The normalized YxDataGrid.</returns>
-    public static DataGrid<float> Normalize(this DataGrid<float> grid, float newMin, float newMax) {
+    public static Array2D<float> Normalize(this Array2D<float> grid, float newMin, float newMax) {
         var min = float.MaxValue;
         var max = float.MinValue;
         foreach (var cell in grid) {
@@ -50,7 +50,7 @@ public static partial class YxDataGridExtensions {
     /// <param name="newMin">The new minimum value of the normalized range.</param>
     /// <param name="newMax">The new maximum value of the normalized range.</param>
     /// <returns>The loaded and normalized YxDataGrid.</returns>
-    public static DataGrid<float> LoadNormalized(this DataGrid<float> grid, Func<int, int, float> valueFunc, float newMin, float newMax) {
+    public static Array2D<float> LoadNormalized(this Array2D<float> grid, Func<int, int, float> valueFunc, float newMin, float newMax) {
         var min = float.MaxValue;
         var max = float.MinValue;
         foreach (var cell in grid) {
@@ -71,7 +71,7 @@ public static partial class YxDataGridExtensions {
     /// <param name="grid">The YxDataGrid to load and normalize.</param>
     /// <param name="valueFunc">A function that provides values based on grid coordinates.</param>
     /// <returns>The loaded and normalized YxDataGrid.</returns>
-    public static DataGrid<float> LoadNormalized(this DataGrid<float> grid, Func<int, int, float> valueFunc) {
+    public static Array2D<float> LoadNormalized(this Array2D<float> grid, Func<int, int, float> valueFunc) {
         var min = float.MaxValue;
         var max = float.MinValue;
         foreach (var cell in grid) {
