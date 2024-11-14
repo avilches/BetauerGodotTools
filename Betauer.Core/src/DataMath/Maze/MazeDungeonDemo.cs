@@ -15,11 +15,11 @@ public class MazeDungeonDemo {
     
     public static void Main() {
         var random = new Random(0);
-        var dungeon = new MazeDungeon(41, 41);
+        var dungeon = new MazeDungeon(201, 33);
         
-        GenerateRandomRoomsNew(random, dungeon);
+        // GenerateRandomRoomsNew(random, dungeon);
 
-        // GenerateRandomRooms(dungeon);
+        GenerateRandomRooms(dungeon);
 
         dungeon.FillMazes(0.7f, 1);
         dungeon.ConnectRegions();
