@@ -1,7 +1,5 @@
 using System;
-using System.IO;
-using Betauer.Core;
-using Betauer.Core.DataMath.Array2D;
+using Betauer.Core.DataMath;
 using Betauer.TileSet.Godot;
 using Betauer.TileSet.Image;
 using Godot;
