@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Betauer.Core.DataMath.Array2D;
 using Godot;
 
 namespace Betauer.Core.DataMath.Maze;
