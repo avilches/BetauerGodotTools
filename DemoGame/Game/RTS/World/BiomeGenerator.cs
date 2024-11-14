@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Betauer.Core;
-using Betauer.Core.DataMath.Array2D;
+using Betauer.Core.DataMath;
 using Betauer.Core.DataMath.Data;
 using Betauer.Core.DataMath.Graph;
 using Betauer.Core.DataMath.PoissonDiskSampling;
@@ -257,7 +257,7 @@ public class BiomeGenerator {
         var gridSize = 3;
         var buffer = new BiomeCell[gridSize, gridSize]; 
         foreach (var ((x, y), cell) in BiomeCells) {
-            BiomeCells.CopyCenterRect(x, y, null, buffer);
+            BiomeCells.CopyNeighbors(x, y, buffer);
 
             // If central pixel is not land, it can't be coast
             var land = buffer[gridSize / 2 , gridSize / 2]?.Land ?? false;
@@ -446,7 +446,7 @@ public class BiomeGenerator {
                                   """, landSeaRules);
         var buffer = new BiomeCell[3, 3];
         foreach (var ((x, y), val) in BiomeCells) {
-            BiomeCells.CopyCenterRect(x, y, null, buffer);
+            BiomeCells.CopyNeighbors(x, y, buffer);
             if (p.Matches(buffer)) {
                 fastImage.SetPixel(x, y, Colors.Blue, false);
             }

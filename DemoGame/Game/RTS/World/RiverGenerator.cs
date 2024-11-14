@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Betauer.Core;
-using Betauer.Core.DataMath.Array2D;
+using Betauer.Core.DataMath;
 using Betauer.Core.DataMath.Data;
 using Betauer.Core.DataMath.Graph;
 using Betauer.Core.Image;

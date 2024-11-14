@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Betauer.Core;
-using Betauer.Core.DataMath.Array2D;
+using Betauer.Core.DataMath;
 using Betauer.Core.DataMath.Collision.Spatial2D;
 using Betauer.Core.DataMath.Data;
 using Betauer.Core.DataMath.Geometry;

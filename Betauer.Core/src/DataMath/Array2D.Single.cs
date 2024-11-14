@@ -1,8 +1,8 @@
 using System;
 
-namespace Betauer.Core.DataMath.Array2D;
+namespace Betauer.Core.DataMath;
 
-public static partial class Array2DTransformations {
+public static partial class Array2DSingleTransformations {
     
     /// <summary>
     /// Normalizes the values in the given YxDataGrid to a range between 0 and 1.

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using Betauer.Core.DataMath.Array2D;
+using Betauer.Core.DataMath;
 using Betauer.Core.DataMath.Data;
 using Betauer.TestRunner;
 using Godot;
@@ -24,8 +24,22 @@ public class Array2DTests {
     }
 
     [Betauer.TestRunner.Test]
+    public void ParseCharTest() {
+        var grid = Array2D.Parse("""
+                                      ...#
+                                      ..#@
+                                      """);
+
+        ArrayEquals(grid.Data, new[,] {
+            { '.', '.', '.', '#' },
+            { '.', '.', '#', '@' },
+        });
+
+    }
+
+    [Betauer.TestRunner.Test]
     public void ParseTest() {
-        var grid = Array2D<int>.Parse("""
+        var grid = Array2D.Parse("""
                                        ...#
                                        @###
                                        ..#@

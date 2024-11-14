@@ -1,6 +1,6 @@
 using System;
 
-namespace Betauer.Core.DataMath.Array2D;
+namespace Betauer.Core.DataMath;
 
 public static partial class Transformations {
     public static T[,] Clone<T>(this T[,] source) {

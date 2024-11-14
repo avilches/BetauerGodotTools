@@ -1,4 +1,4 @@
-using Betauer.Core.DataMath.Array2D;
+using Betauer.Core.DataMath;
 using Betauer.TileSet.Terrain;
 using NUnit.Framework;
 
@@ -6,7 +6,7 @@ namespace Betauer.GameTools.Tests.TileSet;
 
 public abstract class BaseBlobTests {
     protected void AssertBlob47(string str, int[,] grid) {
-        var source = Array2D<int>.Parse(str, new System.Collections.Generic.Dictionary<char, int> {
+        var source = Array2D.Parse(str, new System.Collections.Generic.Dictionary<char, int> {
             {'#',  0},
             {'.', -1}
         });

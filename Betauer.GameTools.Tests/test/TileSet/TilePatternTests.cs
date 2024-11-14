@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Betauer.Core;
-using Betauer.Core.DataMath.Array2D;
+using Betauer.Core.DataMath;
 using Betauer.Core.DataMath.Data;
 using Betauer.TestRunner;
 using Betauer.TileSet.Terrain;
@@ -115,10 +115,10 @@ public class TilePatternTests : BaseBlobTests {
 
     [Betauer.TestRunner.Test]
     public void Blob47Test() {
-        var source = Array2D<int>.Parse(@"
-..0
-000
-", new Dictionary<char, int> {
+        var source = Array2D.Parse("""
+                                   ..0
+                                   000
+                                   """, new Dictionary<char, int> {
             { '0', 0 },
             { '.', -1 }
         });
@@ -127,7 +127,7 @@ public class TilePatternTests : BaseBlobTests {
         var blob47 = TilePatternRuleSets.Blob47;
 
         var buffer = new int[3, 3];
-        foreach (var ((x,y),value) in source) {
+        foreach (var ((x, y), value) in source) {
             source.CopyNeighbors(x, y, buffer, -1);
             var tileId = blob47.FindTilePatternId(buffer, -1);
             tileIds[y, x] = tileId;

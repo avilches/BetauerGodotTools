@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Godot;
 
-namespace Betauer.Core.DataMath.Array2D;
+namespace Betauer.Core.DataMath;
 
 public readonly record struct DataCell<T>(Vector2I Position, T Value) {
     public readonly Vector2I Position = Position;
@@ -216,6 +216,13 @@ public readonly struct Array2D<T> : IEnumerable<DataCell<T>> {
             }
         }
     }
+}
+
+public static class Array2D {
+
+    public static Array2D<char> Parse(string template) {
+        return Parse<char>(template, null);
+    }
 
     public static Array2D<TT> Parse<TT>(string template, Dictionary<char, TT> mapping) {
         var lines = template.Split('\n')
@@ -232,7 +239,7 @@ public readonly struct Array2D<T> : IEnumerable<DataCell<T>> {
         var array2d = new Array2D<TT>(width, height);
         foreach (var line in lines) {
             var x = 0;
-            foreach (var value in line.Select(c => mapping[c])) {
+            foreach (var value in line.Select(c => mapping == null && typeof(TT) == typeof(char) ? (TT)Convert.ChangeType(c, typeof(TT)): mapping[c])) {
                 array2d.Data[y, x] = value;
                 x++;
             }

@@ -1,4 +1,4 @@
-using Betauer.Core.DataMath.Array2D;
+using Betauer.Core.DataMath;
 using Betauer.TestRunner;
 using NUnit.Framework;
 
