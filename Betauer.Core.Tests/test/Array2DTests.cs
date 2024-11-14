@@ -262,30 +262,14 @@ public class Array2DTests {
             { 30, 31, 32, 33, 34 },
         });
             
-        ArrayEquals(original.GetRect(0, 0, 5, 4), original.Data);
-        ArrayEquals(original.GetCenter(0, 0, 3, 4), new[,] {
-            { 4,  4, 4 },
-            { 4,  0, 1 },
-            { 4, 10, 11 },
-        });
-        ArrayEquals(original.GetRect(1, 2, 2, 2), new[,] {
-            { 21, 22 },
-            { 31, 32 },
-        });
-
-        ArrayEquals(original.GetRect(1, 2, 8, 2, -1), new[,] {
-            { 21, 22, 23, 24, -1, -1, -1, -1 },
-            { 31, 32, 33, 34, -1, -1, -1, -1 },
-        });
-
         var dest = new int[2, 2];
-        original.CopyRect(0, 0, dest);
+        original.CopyTo(0, 0, dest);
         ArrayEquals(dest, new[,] {
             {  0,  1, },
             { 10, 11, },
         });
 
-        original.CopyRect(1, 2, dest);
+        original.CopyTo(1, 2, dest);
         ArrayEquals(dest, new[,] {
             { 21, 22, },
             { 31, 32, },
@@ -293,22 +277,20 @@ public class Array2DTests {
 
         
         var buffer = new int[3, 3];
-        original.CopyCenterRect(0, 0, -1, buffer);
+        original.CopyNeighbors(0, 0, buffer, -1);
         ArrayEquals(buffer, new[,] {
             { -1, -1, -1 },
             { -1,  0,  1 },
             { -1, 10, 11 },
         });
 
-        original.CopyCenterRect(1, 2, -1, buffer);
+        original.CopyNeighbors(1, 2, buffer, -1);
         ArrayEquals(buffer, new[,] {
             { 10, 11, 12 },
             { 20, 21, 22 },
             { 30, 31, 32 },
         });
     }
-
-
 
     public static bool ArrayEquals<T>(T[,] array1, T[,] array2) {
         Assert.AreEqual(array1.GetLength(0), array2.GetLength(0),

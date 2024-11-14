@@ -36,7 +36,7 @@ public readonly struct Array2D<T> : IEnumerable<DataCell<T>> {
     public Array2D<T> Clone() {
         return new Array2D<T>(Width, Height).Load(GetValue);
     }
-    
+
     public Array2D<T> Fill(T value) {
         return Fill(0, 0, Width, Height, value);
     }
@@ -44,7 +44,7 @@ public readonly struct Array2D<T> : IEnumerable<DataCell<T>> {
     public Array2D<T> Fill(Rect2I rect, T value) {
         return Fill(rect.Position.X, rect.Position.Y, rect.End.X, rect.End.Y, value);
     }
-    
+
     public Array2D<T> Fill(int x, int y, int width, int height, T value) {
         for (var yy = y; yy < height + y; yy++) {
             for (var xx = x; xx < width + x; xx++) {
@@ -67,11 +67,11 @@ public readonly struct Array2D<T> : IEnumerable<DataCell<T>> {
     public Array2D<T> Load(Rect2I rect, Func<int, int, T> valueFunc) {
         return Load(rect.Position.X, rect.Position.Y, rect.End.X, rect.End.Y, valueFunc);
     }
-    
+
     public Array2D<T> Load(Rect2I rect, Func<Vector2I, T> valueFunc) {
         return Load(rect.Position.X, rect.Position.Y, rect.End.X, rect.End.Y, valueFunc);
     }
-    
+
     public Array2D<T> Load(int x, int y, int width, int height, Func<Vector2I, T> valueFunc) {
         foreach (var cell in GetEnumerator(x, y, width, height)) {
             var value = valueFunc.Invoke(cell.Position);
@@ -79,7 +79,7 @@ public readonly struct Array2D<T> : IEnumerable<DataCell<T>> {
         }
         return this;
     }
-        
+
     public Array2D<T> Load(int x, int y, int width, int height, Func<int, int, T> valueFunc) {
         foreach (var cell in GetEnumerator(x, y, width, height)) {
             var value = valueFunc.Invoke(cell.Position.X, cell.Position.Y);
@@ -91,11 +91,11 @@ public readonly struct Array2D<T> : IEnumerable<DataCell<T>> {
     public Array2D<TOut> Export<TOut>(Func<T, TOut> transformer) {
         return Export(0, 0, Width, Height, transformer);
     }
-    
+
     public Array2D<TOut> Export<TOut>(Rect2I rect, Func<T, TOut> transformer) {
         return Export(rect.Position.X, rect.Position.Y, rect.End.X, rect.End.Y, transformer);
     }
-    
+
     public Array2D<TOut> Export<TOut>(int x, int y, int width, int height, Func<T, TOut> transformer) {
         var startPos = new Vector2I(x, y);
         var array2D = new Array2D<TOut>(width, height);
@@ -118,7 +118,7 @@ public readonly struct Array2D<T> : IEnumerable<DataCell<T>> {
     public IEnumerable<DataCell<T>> GetEnumerator(Rect2I rect) {
         return GetEnumerator(rect.Position.X, rect.Position.Y, rect.End.X, rect.End.Y);
     }
-    
+
     public IEnumerable<DataCell<T>> GetEnumerator(int x, int y, int width, int height) {
         for (var yy = y; yy < height + y; yy++) {
             for (var xx = x; xx < width + x; xx++) {
@@ -127,7 +127,7 @@ public readonly struct Array2D<T> : IEnumerable<DataCell<T>> {
             }
         }
     }
-    
+
     IEnumerator IEnumerable.GetEnumerator() {
         return GetEnumerator();
     }
@@ -144,11 +144,11 @@ public readonly struct Array2D<T> : IEnumerable<DataCell<T>> {
         }
         return this;
     }
-    
+
     public void SetValue(Vector2I pos, T value) {
         Data[pos.Y, pos.X] = value;
     }
-    
+
     public T GetValue(Vector2I pos) {
         return Data[pos.Y, pos.X];
     }
@@ -166,6 +166,55 @@ public readonly struct Array2D<T> : IEnumerable<DataCell<T>> {
     public T this[Vector2I pos] {
         get => Data[pos.Y, pos.X];
         set => Data[pos.Y, pos.X] = value;
+    }
+
+    public void CopyNeighbors(int centerX, int centerY, T[,] destination, T defaultValue = default) {
+        CopyNeighbors(centerX, centerY, destination, value => value, defaultValue);
+    }
+
+    public void CopyNeighbors<TDest>(int centerX, int centerY, TDest[,] destination, Func<T, TDest> transformer, TDest defaultValue = default) {
+        var width = destination.GetLength(1);
+        var height = destination.GetLength(0);
+        if (width % 2 == 0 || height % 2 == 0) throw new Exception("width and height of destination array must be odd numbers, to ensure a center point");
+        CopyTo(centerX - width / 2, centerY - height / 2, destination, transformer, defaultValue);
+    }
+
+    public void CopyTo(int startX, int startY, T[,] destination, T defaultValue = default) {
+        CopyTo(startX, startY, destination, value => value, defaultValue);
+    }
+
+    /// <summary>
+    /// Copy the values to the destination array to the destination array. Destination array doesn't need to have the same size.
+    /// </summary>
+    /// <param name="destination"></param>
+    /// <param name="transformer"></param>
+    /// <param name="defaultValue"></param>
+    /// <typeparam name="TDest"></typeparam>
+    public void CopyTo<TDest>(TDest[,] destination, Func<T, TDest> transformer, TDest defaultValue = default) {
+        CopyTo(0, 0, destination, transformer, defaultValue);
+    }
+
+    /// <summary>
+    /// Copy the values starting from startX, startY to the destination array. Destination array doesn't need to have the same size.
+    /// </summary>
+    /// <param name="startX"></param>
+    /// <param name="startY"></param>
+    /// <param name="destination"></param>
+    /// <param name="transformer"></param>
+    /// <param name="defaultValue"></param>
+    /// <typeparam name="TDest"></typeparam>
+    public void CopyTo<TDest>(int startX, int startY, TDest[,] destination, Func<T, TDest> transformer, TDest defaultValue = default) {
+        var height = destination.GetLength(0);
+        var width = destination.GetLength(1);
+        for (var destY = 0; destY < height; destY++) {
+            for (var destX = 0; destX < width; destX++) {
+                var sourceX = startX + destX;
+                var sourceY = startY + destY;
+                destination[destY, destX] = sourceX >= 0 && sourceX < Width && sourceY >= 0 && sourceY < Height
+                    ? transformer(Data[sourceY, sourceX])
+                    : defaultValue;
+            }
+        }
     }
 
     public static Array2D<TT> Parse<TT>(string template, Dictionary<char, TT> mapping) {
@@ -190,82 +239,5 @@ public readonly struct Array2D<T> : IEnumerable<DataCell<T>> {
             y++;
         }
         return array2d;
-    }
-    
-    public T[,] GetRect(int startX, int startY, int width, int height, T defaultValue = default) {
-        var destination = new T[height, width];
-        CopyRect(startX, startY, destination, value => value, defaultValue);
-        return destination;
-    }
-
-    public TDest[,] GetRect<TDest>(int startX, int startY, int width, int height, Func<T, TDest> transformer, TDest defaultValue = default) {
-        var destination = new TDest[height, width];
-        CopyRect(startX, startY, destination, transformer, defaultValue);
-        return destination;
-    }
-
-    public TDest[,] GetRect<TDest>(Rect2I rect, Func<T, TDest> transformer, TDest defaultValue = default) {
-        var destination = new TDest[rect.Size.Y, rect.Size.X];
-        CopyRect(rect.Position.X, rect.Position.Y, destination, transformer, defaultValue);
-        return destination;
-    }
-
-    public T[,] GetCenter(int x, int y, int size, T defaultValue = default) {
-        var destination = new T[size, size];
-        var startX = x - size / 2;
-        var startY = y - size / 2;
-        CopyRect(startX, startY,  destination, value => value, defaultValue);
-        return destination;
-    }
-
-    public TDest[,] GetCenter<TDest>(int x, int y, int size, Func<T, TDest> transformer, TDest defaultValue = default) {
-        var destination = new TDest[size, size];
-        var startX = x - size / 2;
-        var startY = y - size / 2;
-        CopyRect(startX, startY, destination, transformer, defaultValue);
-        return destination;
-    }
-
-    public void CopyRect(int startX, int startY, T[,] destination, T defaultValue = default) {
-        CopyRect(startX, startY, destination, value => value, defaultValue);
-    }
-
-    public void CopyRect<TDest>(TDest[,] destination, Func<T, TDest> transformer, TDest defaultValue = default) {
-        CopyRect(0, 0, destination, transformer, defaultValue);
-    }
-
-    public void CopyRect<TDest>(int startX, int startY, TDest[,] destination, Func<T, TDest> transformer, TDest defaultValue = default) {
-        var height = destination.GetLength(0);
-        var width = destination.GetLength(1);
-        for (var y = 0; y < height; y++) {
-            for (var x = 0; x < width; x++) {
-                var sourceX = startX + x;
-                var sourceY = startY + y;
-                if (sourceX >= 0 && sourceX < Width &&
-                    sourceY >= 0 && sourceY < Height) {
-                    destination[y, x] = transformer(Data[sourceY, sourceX]);
-                } else {
-                    destination[y, x] = defaultValue;
-                }
-            }
-        }
-    }
-    
-    public void CopyCenterRect(int centerX, int centerY, T defaultValue, T[,] destination) {
-        CopyCenterRect(centerX, centerY, defaultValue, destination, value => value);
-    }
-
-    public void CopyCenterRect<TOut>(int centerX, int centerY, TOut defaultValue, TOut[,] destination, Func<T, TOut> transform) {
-        var width = destination.GetLength(1);
-        var height = destination.GetLength(0);
-        var startX = centerX - width / 2;
-        var startY = centerY - height / 2;
-        for (var x = 0; x < width; x++) {
-            for (var y = 0; y < height; y++) {
-                var xx = startX + x;
-                var yy = startY + y;
-                destination[y, x] = xx < 0 || yy < 0 || xx >= Width || yy >= Height ? defaultValue : transform(Data[yy, xx]);
-            }
-        }
     }
 }
