@@ -1,28 +1,22 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 
 namespace Betauer.Core.DataMath.Maze;
 
 public class MazeDungeonDemo {
-    public static IEnumerable<Vector2I> GetEnumerator(Rect2I rect) {
-        for (var x = rect.Position.X; x < rect.End.X; x++) {
-            for (var y = rect.Position.Y; y < rect.End.Y; y++) {
-                yield return new Vector2I(x, y);
-            }
-        }
-    }
-    
     public static void Main() {
         var random = new Random(0);
-        var dungeon = new MazeDungeon(201, 33);
+        var dungeon = new MazeDungeon(41, 41);
         
         // GenerateRandomRoomsNew(random, dungeon);
 
-        GenerateRandomRooms(dungeon);
+        var rooms = GenerateRandomRooms(0, dungeon, random);
 
-        dungeon.FillMazes(0.7f, 1);
-        dungeon.ConnectRegions();
+        var region = rooms.Count;
+        region += dungeon.FillMazes( 0.7f, region-1);
+        dungeon.ConnectRegions(region);
         dungeon.RemoveDeadEnds();
         PrintRegions(dungeon);
         PrintStage(dungeon);
@@ -41,15 +35,34 @@ public class MazeDungeonDemo {
         // dungeon.LastRegion = lastRegion;
     }
 
-    private static void GenerateRandomRooms(MazeDungeon dungeon) {
-        var rooms = MazeDungeon.AddRooms(30, 0, dungeon.Stage.Width, dungeon.Stage.Height);
-        var lastRegion = 0;
-
+    private static List<Rect2I> GenerateRandomRooms(int startRegion, MazeDungeon dungeon, Random random) {
+        var rooms = AddRooms(30, 0, dungeon.Stage.Width, dungeon.Stage.Height, random);
         foreach (var room in rooms) {
-            lastRegion++;
-            dungeon.Carve(room, TileType.Floor, lastRegion);
+            dungeon.Carve(room, TileType.Floor, startRegion);
+            startRegion++;
         }
-        // dungeon.LastRegion = lastRegion;
+        return rooms;
+    }
+    
+    public static List<Rect2I> AddRooms(int numRoomTries, int roomExtraSize, int boundsWidth, int boundsHeight, Random rng) {
+        List<Rect2I> rooms = new List<Rect2I>();
+        for (int i = 0; i < numRoomTries; i++) {
+            var size = (rng.Next(1, 3 + roomExtraSize) * 2) + 1;
+            var rectangularity = rng.Next(0, 1 + size / 2) * 2;
+            var width = size;
+            var height = size;
+            if (rng.Next(2) == 0) {
+                width += rectangularity;
+            } else {
+                height += rectangularity;
+            }
+            var x = rng.Next((boundsWidth - width) / 2) * 2 + 1;
+            var y = rng.Next((boundsHeight - height) / 2) * 2 + 1;
+            var room = new Rect2I(x, y, width, height);
+            var overlaps = rooms.Any(other => Geometry.Geometry.IntersectRectangles(other, room));
+            if (!overlaps) rooms.Add(room);
+        }
+        return rooms;
     }
 
     private static void PrintRegions(MazeDungeon dungeon) {
@@ -73,7 +86,7 @@ public class MazeDungeonDemo {
         for (int y = 0; y < stage.Height; y++) {
             for (int x = 0; x < stage.Width; x++) {
                 var tile = stage.GetValue(new Vector2I(x, y));
-                char c = tile.Type switch {
+                var c = tile.Type switch {
                     // TileType.Wall => ' ',
                     // TileType.Floor => '*',
                     // TileType.Path => '#',

@@ -41,53 +41,21 @@ public class MazeDungeon {
 
     // public int LastRegion = -1;
 
-    public static List<Rect2I> AddRooms(int numRoomTries, int roomExtraSize, int boundsWidth, int boundsHeight) {
-        List<Rect2I> Rooms = new List<Rect2I>();
-        for (int i = 0; i < numRoomTries; i++) {
-            int size = (rng.Next(1, 3 + roomExtraSize) * 2) + 1;
-            int rectangularity = rng.Next(0, 1 + size / 2) * 2;
-            int width = size;
-            int height = size;
-            if (rng.Next(2) == 0) {
-                width += rectangularity;
-            } else {
-                height += rectangularity;
-            }
-
-            var x = rng.Next((boundsWidth - width) / 2) * 2 + 1;
-            var y = rng.Next((boundsHeight - height) / 2) * 2 + 1;
-
-            var room = new Rect2I(x, y, width, height);
-
-            bool overlaps = false;
-            foreach (var other in Rooms) {
-                if (Geometry.Geometry.IntersectRectangles(other, room)) {
-                    overlaps = true;
-                    break;
-                }
-            }
-
-            if (overlaps) continue;
-
-            Rooms.Add(room);
-        }
-        return Rooms;
-    }
-
     /// <summary>
     /// Generate a maze filling the stage with winding paths
     /// </summary>
     /// <param name="windyRatio">0 means straight lines, 1 means winding paths... 0.7f means 70% winding paths, 30% change straight line</param>
-    public void FillMazes(float windyRatio, int startRegion = 1) {
-        for (int y = 1; y < Stage.Height; y += 2) {
-            for (int x = 1; x < Stage.Width; x += 2) {
+    public int FillMazes(float windyRatio, int startRegion) {
+        var mazes = 0;
+        for (var y = 1; y < Stage.Height; y += 2) {
+            for (var x = 1; x < Stage.Width; x += 2) {
                 var pos = new Vector2I(x, y);
                 if (Stage[x, y].Type != TileType.Wall) continue;
-                startRegion++;
-
-                GrowMaze(pos, windyRatio, startRegion);
+                GrowMaze(pos, windyRatio, startRegion + mazes);
+                mazes++;
             }
         }
+        return mazes;
     }
 
     /// <summary>
@@ -123,9 +91,9 @@ public class MazeDungeon {
         }
     }
 
-    public void ConnectRegions() {
+    public void ConnectRegions(int totalRegions) {
         var connectorRegions = DetectConnectorRegions();
-        AttemptToConnectRegions(connectorRegions);
+        AttemptToConnectRegions(connectorRegions, totalRegions);
     }
 
     private Dictionary<Vector2I, HashSet<int>> DetectConnectorRegions() {
@@ -152,16 +120,16 @@ public class MazeDungeon {
         return connectorRegions;
     }
 
-    private void AttemptToConnectRegions(Dictionary<Vector2I, HashSet<int>> connectorRegions) {
+    private void AttemptToConnectRegions(Dictionary<Vector2I, HashSet<int>> connectorRegions, int totalRegions) {
         var connectors = new List<Vector2I>(connectorRegions.Keys);
         if (connectors.Count == 0) return; // Add this check to prevent out of range exception
 
         var merged = new Dictionary<int, int>();
         var openRegions = new HashSet<int>();
-        // for (int i = 0; i <= LastRegion; i++) {
-            // merged[i] = i;
-            // openRegions.Add(i);
-        // }
+        for (int i = 0; i <= totalRegions; i++) {
+            merged[i] = i;
+            openRegions.Add(i);
+        }
 
         while (openRegions.Count > 1 && connectors.Count > 0) {
             var index = rng.Next(connectors.Count);
@@ -173,11 +141,11 @@ public class MazeDungeon {
             int dest = regions.First();
             var sources = regions.Skip(1).ToList();
 
-            // for (int i = 0; i <= LastRegion; i++) {
-                // if (sources.Contains(merged[i])) {
-                    // merged[i] = dest;
-                // }
-            // }
+            for (int i = 0; i <= totalRegions; i++) {
+                if (sources.Contains(merged[i])) {
+                    merged[i] = dest;
+                }
+            }
 
             openRegions.ExceptWith(sources);
 
