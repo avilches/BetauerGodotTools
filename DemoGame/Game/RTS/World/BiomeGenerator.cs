@@ -255,20 +255,28 @@ public class BiomeGenerator {
         s.Restart();
         // Draw the coast line
         var gridSize = 3;
+        var centralPos = 1;
         var buffer = new BiomeCell[gridSize, gridSize]; 
         foreach (var ((x, y), cell) in BiomeCells) {
             BiomeCells.CopyNeighbors(x, y, buffer);
 
             // If central pixel is not land, it can't be coast
-            var land = buffer[gridSize / 2 , gridSize / 2]?.Land ?? false;
-            if (!land) return;
+            if (!buffer[centralPos, centralPos].Land) continue;
             
+            foreach (var ss in buffer) {
+                if (s == null) continue;
+                if (s.Sea) {
+                    cell.Coast = true;
+                    break;
+                }
+            }
             for (var i = 0; i < gridSize; i++) {
                 for (var j = 0; j < gridSize; j++) {
-                    if (i == 1 && j == 1) continue;
-                    // If there at least one neighbour which is water, then the central pixel is coast
+                    if (i == centralPos && j == centralPos) continue;
+                    // If there is at least one neighbour which is water, then the central pixel is coast
                     if (buffer[i, j].Sea) {
                         cell.Coast = true;
+                        break;
                     }
                 }
             }
