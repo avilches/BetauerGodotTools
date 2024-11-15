@@ -264,8 +264,8 @@ public class BiomeGenerator {
             if (!buffer[centralPos, centralPos].Land) continue;
             
             foreach (var ss in buffer) {
-                if (s == null) continue;
-                if (s.Sea) {
+                if (ss == null) continue;
+                if (ss.Sea) {
                     cell.Coast = true;
                     break;
                 }

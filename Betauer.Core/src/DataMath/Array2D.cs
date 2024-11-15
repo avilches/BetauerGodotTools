@@ -137,9 +137,22 @@ public readonly struct Array2D<T> : IEnumerable<DataCell<T>> {
         return this;
     }
 
+    public Array2D<T> Transform(Func<int, int, T, T> action) {
+        Transform(0, 0, Width, Height, action);
+        return this;
+    }
+
     public Array2D<T> Transform(int x, int y, int width, int height, Func<T, T> action) {
         foreach (var cell in GetEnumerator(x, y, width, height)) {
             var transformed = action(cell.Value);
+            this[cell.Position] = transformed;
+        }
+        return this;
+    }
+
+    public Array2D<T> Transform(int x, int y, int width, int height, Func<int, int, T, T> action) {
+        foreach (var cell in GetEnumerator(x, y, width, height)) {
+            var transformed = action(cell.Position.X, cell.Position.Y, cell.Value);
             this[cell.Position] = transformed;
         }
         return this;
