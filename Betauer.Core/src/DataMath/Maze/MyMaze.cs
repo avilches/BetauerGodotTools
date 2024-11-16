@@ -86,7 +86,12 @@ public class MyMazeDungeonDemo {
 
         // Carve rooms
         var grid = new Array2D<bool>(width, height).Fill(false);
-        var rooms = AddRooms(30, 0, width, height, random);
+        var rooms = GenerateRandomRoomsNew(30, 2, width, height, random);
+        rooms.ForEach(room => {
+            var ratio = (float)room.Size.X/room.Size.Y;
+            ratio = ratio < 1 ? 1f/ratio : ratio;
+            Console.WriteLine(room.Size+" "+ratio+"");
+        });
         foreach (var pos in rooms.SelectMany(MazeDungeon.GetEnumerator)) {
             grid[pos] = true;
         }
@@ -108,9 +113,8 @@ public class MyMazeDungeonDemo {
             }
         }
         
-        var gc = new GridConnector(grid);
+        var gc = new Array2DRegionConnections(grid);
         PrintRegions(gc.Labels);
-        
         
         foreach (var cell in gc.FindConnectingCells().ConnectingCells.Keys) {
              grid[cell] = true;
@@ -124,23 +128,41 @@ public class MyMazeDungeonDemo {
         }
     }
 
-    private static void GenerateRandomRoomsNew(Random random, MazeDungeon dungeon) {
-        var lastRegion = 0;
-        
-        for (int i = 0; i < 10; i++) {
-            var rect = Geometry.Geometry.CreateRandomRect2I(9f / 16, 16f / 9, 5, 10, Geometry.Geometry.RectanglePart.Longer, random);
-            rect = Geometry.Geometry.PositionRect2IRandomly(new Rect2I(0, 0, dungeon.Stage.Width, dungeon.Stage.Height), rect, random);
-            lastRegion++;
-            dungeon.Carve(rect, TileType.Floor, lastRegion);
-            // PrintRegions(dungeon);
+    private static List<Rect2I> GenerateRandomRoomsNew(int numRoomTries, int roomExtraSize, int boundsWidth, int boundsHeight, Random rng) {
+
+        var rooms = new List<Rect2I>();
+        var bounds = new Rect2I(0, 0, boundsWidth, boundsHeight);
+        for (var i = 0; i < numRoomTries; i++) {
+
+            
+            var room = Geometry.Geometry.CreateRandomRect2I(9f / 16, 16f / 9, 5, 13, Geometry.Geometry.RectanglePart.Longer, rng);
+            room = Geometry.Geometry.PositionRect2IRandomly(bounds, room, rng);
+            Console.WriteLine(room.Size);
+
+            // var size = (rng.Next(1, 3 + roomExtraSize) * 2) + 1;
+            // var rectangularity = rng.Next(0, 1 + size / 2) * 2;
+            // var width = size;
+            // var height = size;
+            // if (rng.Next(2) == 0) {
+            //     width += rectangularity;
+            //     Console.WriteLine(size+" x "+(size+rectangularity)+ " ("+((float)width/size)+")");
+            // } else {
+            //     height += rectangularity;
+            //     Console.WriteLine(size+" x "+(size+rectangularity)+ " ("+((float)height/size)+")");
+            // }
+            // var x = rng.Next((boundsWidth - width) / 2) * 2 + 1;
+            // var y = rng.Next((boundsHeight - height) / 2) * 2 + 1;
+            // var room = new Rect2I(x, y, width, height);
+            var overlaps = rooms.Any(other => Geometry.Geometry.IntersectRectangles(other, room));
+            if (!overlaps) rooms.Add(room);
         }
-        // dungeon.LastRegion = lastRegion;
+        return rooms;
     }
 
     
     public static List<Rect2I> AddRooms(int numRoomTries, int roomExtraSize, int boundsWidth, int boundsHeight, Random rng) {
-        List<Rect2I> rooms = new List<Rect2I>();
-        for (int i = 0; i < numRoomTries; i++) {
+        var rooms = new List<Rect2I>();
+        for (var i = 0; i < numRoomTries; i++) {
             var size = (rng.Next(1, 3 + roomExtraSize) * 2) + 1;
             var rectangularity = rng.Next(0, 1 + size / 2) * 2;
             var width = size;

@@ -38,10 +38,10 @@ public static partial class Geometry {
 
         if (rectanglePart == RectanglePart.Width) {
             width = length;
-            height = (int)(width / ratio);
+            height = Mathf.RoundToInt(width / ratio);
         } else { // LimitDimension.Height
             height = length;
-            width = (int)(height * ratio);
+            width = Mathf.RoundToInt(height * ratio);
         }
 
         return new Rect2I(new Vector2I(0, 0), new Vector2I(width, height));
@@ -84,26 +84,25 @@ public static partial class Geometry {
     /// <returns></returns>
     public static Rect2I ShrinkRect2IToEnsureRatio(int x, int y, int width, int height, float ratio) {
         var landscape = width > height;
-        var currentRatio = (float)System.Math.Max(width, height) / System.Math.Min(width, height);
-        if (ratio < 1) ratio = 1f / ratio;
-        if (currentRatio < ratio) {
-            // Console.WriteLine($"No need to shring {width}/{height} ({currentRatio:0.00})");
+        var currentRatio = (float)Math.Max(width, height) / Math.Min(width, height); // 16/9
+        if (ratio < 1) ratio = 1f / ratio;  // 0.6 -> 16/9
+        if (currentRatio <= ratio) {
+            // Console.WriteLine($"No need to shrink {width}/{height} ({currentRatio:0.00})");
             return new Rect2I(x, y, width, height);
         }
-        if (width > height) {
-            if (!landscape) ratio = 1f / ratio;
+        if (landscape) {
             // El rectángulo es más ancho de lo necesario, reducir el ancho
-            int newWidth = (int)(height * ratio);
-            int deltaX = (width - newWidth) / 2;
+            var newWidth = Mathf.RoundToInt(height * ratio);
+            var deltaX = (width - newWidth) / 2;
             var r = new Rect2I(x + deltaX, y, newWidth, height);
             // var newRatio = (float)Math.Max(r.Size.X, r.Size.Y) / Math.Min(r.Size.X, r.Size.Y);
             // Console.WriteLine($"Shrinked {width}/{height} ({currentRatio:0.00}) to {r.Size.X}/{r.Size.Y} ({newRatio:0.00})");
             return r;
         } else {
-            if (!landscape) ratio = 1f / ratio;
+            ratio = 1f / ratio;
             // El rectángulo es más alto de lo necesario, reducir la altura
-            int newHeight = (int)(width / ratio);
-            int deltaY = (height - newHeight) / 2;
+            var newHeight = Mathf.RoundToInt(width / ratio);
+            var deltaY = (height - newHeight) / 2;
             var r = new Rect2I(x, y + deltaY, width, newHeight);
             // var newRatio = (float)Math.Max(r.Size.X, r.Size.Y) / Math.Min(r.Size.X, r.Size.Y);
             // Console.WriteLine($"Shrinked {width}/{height} ({currentRatio:0.00}) to {r.Size.X}/{r.Size.Y} ({newRatio:0.00})");

@@ -88,12 +88,12 @@ public class GeometryTest {
         Assert.That(Geometry.ShrinkRect2IToEnsureRatio(0, 0, 9, 17, 9f / 16), Is.EqualTo(new Rect2I(0, 0, 9, 16)));
 
         // Portrait: heights are shorter than 16/9 so the sizes don't need to be adjusted, so the rect keeps the same size and position
-        Assert.That(Geometry.ShrinkRect2IToEnsureRatio(0, 0, 16, 9, 16f / 9), Is.EqualTo(new Rect2I(0, 0, 16, 9)));
-        Assert.That(Geometry.ShrinkRect2IToEnsureRatio(0, 0, 15, 9, 16f / 9), Is.EqualTo(new Rect2I(0, 0, 15, 9)));
-        Assert.That(Geometry.ShrinkRect2IToEnsureRatio(0, 0, 14, 9, 16f / 9), Is.EqualTo(new Rect2I(0, 0, 14, 9)));
+        Assert.That(Geometry.ShrinkRect2IToEnsureRatio(0, 0, 9, 16, 16f / 9), Is.EqualTo(new Rect2I(0, 0, 9, 16)));
+        Assert.That(Geometry.ShrinkRect2IToEnsureRatio(0, 0, 9, 15, 16f / 9), Is.EqualTo(new Rect2I(0, 0, 9, 15)));
+        Assert.That(Geometry.ShrinkRect2IToEnsureRatio(0, 0, 9, 14, 16f / 9), Is.EqualTo(new Rect2I(0, 0, 9, 14)));
         // Extra tests with inverted ratio
-        Assert.That(Geometry.ShrinkRect2IToEnsureRatio(0, 0, 16, 9, 9f / 16), Is.EqualTo(new Rect2I(0, 0, 16, 9)));
-        Assert.That(Geometry.ShrinkRect2IToEnsureRatio(0, 0, 15, 9, 9f / 16), Is.EqualTo(new Rect2I(0, 0, 15, 9)));
-        Assert.That(Geometry.ShrinkRect2IToEnsureRatio(0, 0, 14, 9, 9f / 16), Is.EqualTo(new Rect2I(0, 0, 14, 9)));
+        Assert.That(Geometry.ShrinkRect2IToEnsureRatio(0, 0, 9, 16, 9f / 16), Is.EqualTo(new Rect2I(0, 0, 9, 16)));
+        Assert.That(Geometry.ShrinkRect2IToEnsureRatio(0, 0, 9, 15, 9f / 16), Is.EqualTo(new Rect2I(0, 0, 9, 15)));
+        Assert.That(Geometry.ShrinkRect2IToEnsureRatio(0, 0, 9, 14, 9f / 16), Is.EqualTo(new Rect2I(0, 0, 9, 14)));
     }
 }
