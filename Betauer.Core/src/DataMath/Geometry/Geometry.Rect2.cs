@@ -70,7 +70,7 @@ public static partial class Geometry {
             return r;
         } else {
             // El rectángulo es más alto de lo necesario, reducir la altura
-            var newHeight = width / ratio;
+            var newHeight = width * ratio;
             var deltaY = (height - newHeight) / 2;
             var r = new Rect2(x, y + deltaY, width, newHeight);
             // var newRatio = (float)Math.Max(r.Size.X, r.Size.Y) / Math.Min(r.Size.X, r.Size.Y);
