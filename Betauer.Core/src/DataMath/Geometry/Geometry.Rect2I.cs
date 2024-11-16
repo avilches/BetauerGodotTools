@@ -1,28 +1,17 @@
 using System;
+using System.Collections.Generic;
 using Godot;
 
 namespace Betauer.Core.DataMath.Geometry;
 
 public static partial class Geometry {
     /// <summary>
-    /// Creates a random rectangle with a specified aspect ratio range.
-    /// </summary>
-    /// <param name="minRatio">The minimum aspect ratio of the rectangle (width/height).</param>
-    /// <param name="maxRatio">The maximum aspect ratio of the rectangle (width/height).</param>
-    /// <param name="minLong">The minimum length of the specified side of the rectangle.</param>
-    /// <param name="maxLong">The maximum length of the specified side of the rectangle.</param>
-    /// <param name="rectanglePart">Specifies whether the limit applies to Width, Height, or the Longer side.</param>
-    /// <param name="random">An instance of the Random class used to generate random values.</param>
-    /// <returns>A Rect2I object representing the randomly generated rectangle.</returns>
-    public static Rect2I CreateRandomRect2I(float minRatio, float maxRatio, int minLong, int maxLong, RectanglePart rectanglePart, Random random) {
-        float ratio = (float)(random.NextDouble() * (maxRatio - minRatio) + minRatio);
-        int length = random.Next(minLong, maxLong + 1);
-
-        return CreateRect2I(ratio, length, rectanglePart);
-    }
-
-    /// <summary>
     /// Creates a rectangle with a specified aspect ratio and length.
+    /// If RectanglePart.Landscape means, no matter if the ratio is less than 1 or bigger than 1, the rect will be landscape with a width of length.
+    /// If RectanglePart.Portrait means, no matter if the ratio is less than 1 or bigger than 1, the rect will be portrait with a height of length.
+    /// If RectanglePart.Ratio is specified, the rectangle will orient itself based on the ratio using the length for the longer part. So, a ratio bigger
+    /// than 1 means a landscape rectangle, where the longer part is the width, and a ratio smaller than 1 means a portrait rectangle, where the longer part
+    /// is the height.
     /// </summary>
     /// <param name="ratio">The aspect ratio of the rectangle (width/height).</param>
     /// <param name="length">The length of the specified side of the rectangle.</param>
@@ -30,20 +19,17 @@ public static partial class Geometry {
     /// <returns>A Rect2I object representing the generated rectangle.</returns>
     public static Rect2I CreateRect2I(float ratio, int length, RectanglePart rectanglePart) {
         int width, height;
-
         // Modify limitDimension if it's set to Longer based on the ratio
-        if (rectanglePart == RectanglePart.Longer) {
-            rectanglePart = ratio >= 1 ? RectanglePart.Width : RectanglePart.Height;
+        if (rectanglePart == RectanglePart.Ratio) {
+            rectanglePart = ratio >= 1 ? RectanglePart.Landscape : RectanglePart.Portrait;
         }
-
-        if (rectanglePart == RectanglePart.Width) {
+        if (rectanglePart == RectanglePart.Landscape) {
             width = length;
-            height = Mathf.RoundToInt(width / ratio);
+            height = ratio > 1 ? Mathf.RoundToInt(width / ratio) : Mathf.RoundToInt(width * ratio);
         } else { // LimitDimension.Height
             height = length;
-            width = Mathf.RoundToInt(height * ratio);
+            width = ratio > 1 ? Mathf.RoundToInt(height / ratio) : Mathf.RoundToInt(height * ratio);
         }
-
         return new Rect2I(new Vector2I(0, 0), new Vector2I(width, height));
     }
 
@@ -51,19 +37,19 @@ public static partial class Geometry {
     /// Enum to specify which dimension should be limited.
     /// </summary>
     public enum RectanglePart {
-        Width,
-        Height,
-        Longer
+        Landscape,
+        Portrait,
+        Ratio
     }
 
     /// <summary>
     /// Positions a rectangle randomly within the bounds of another rectangle.
     /// </summary>
-    /// <param name="bounds">The bounding rectangle within which the rect will be positioned.</param>
     /// <param name="rect">The rectangle to be positioned randomly within the bounds.</param>
+    /// <param name="bounds">The bounding rectangle within which the rect will be positioned.</param>
     /// <param name="random">An instance of the Random class used to generate random values.</param>
     /// <returns>A Rect2I object representing the randomly positioned rectangle.</returns>
-    public static Rect2I PositionRect2IRandomly(Rect2I bounds, Rect2I rect, Random random) {
+    public static Rect2I PositionRect2IRandomly(Rect2I rect, Rect2I bounds, Random random) {
         var maxX = bounds.Size.X - rect.Size.X;
         var maxY = bounds.Size.Y - rect.Size.Y;
         var x = random.Next(bounds.Position.X, bounds.Position.X + maxX + 1);
@@ -85,7 +71,7 @@ public static partial class Geometry {
     public static Rect2I ShrinkRect2IToEnsureRatio(int x, int y, int width, int height, float ratio) {
         var landscape = width > height;
         var currentRatio = (float)Math.Max(width, height) / Math.Min(width, height); // 16/9
-        if (ratio < 1) ratio = 1f / ratio;  // 0.6 -> 16/9
+        if (ratio < 1) ratio = 1f / ratio; // 0.6 -> 16/9
         if (currentRatio <= ratio) {
             // Console.WriteLine($"No need to shrink {width}/{height} ({currentRatio:0.00})");
             return new Rect2I(x, y, width, height);
@@ -99,9 +85,8 @@ public static partial class Geometry {
             // Console.WriteLine($"Shrinked {width}/{height} ({currentRatio:0.00}) to {r.Size.X}/{r.Size.Y} ({newRatio:0.00})");
             return r;
         } else {
-            ratio = 1f / ratio;
             // El rectángulo es más alto de lo necesario, reducir la altura
-            var newHeight = Mathf.RoundToInt(width / ratio);
+            var newHeight = Mathf.RoundToInt(width * ratio);
             var deltaY = (height - newHeight) / 2;
             var r = new Rect2I(x, y + deltaY, width, newHeight);
             // var newRatio = (float)Math.Max(r.Size.X, r.Size.Y) / Math.Min(r.Size.X, r.Size.Y);
@@ -136,5 +121,13 @@ public static partial class Geometry {
         var newX = Mathf.RoundToInt(x + (width - newWidth) / 2f);
         var newY = Mathf.RoundToInt(y + (height - newHeight) / 2f);
         return new Rect2I(newX, newY, newWidth, newHeight);
+    }
+    
+    public static IEnumerable<Vector2I> GetEnumerator(Rect2I rect) {
+        for (var x = rect.Position.X; x < rect.End.X; x++) {
+            for (var y = rect.Position.Y; y < rect.End.Y; y++) {
+                yield return new Vector2I(x, y);
+            }
+        }
     }
 }

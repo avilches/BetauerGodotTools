@@ -22,19 +22,6 @@ public class MazeDungeonDemo {
         PrintStage(dungeon);
     }
 
-    private static void GenerateRandomRoomsNew(Random random, MazeDungeon dungeon) {
-        var lastRegion = 0;
-        
-        for (int i = 0; i < 10; i++) {
-            var rect = Geometry.Geometry.CreateRandomRect2I(9f / 16, 16f / 9, 5, 10, Geometry.Geometry.RectanglePart.Longer, random);
-            rect = Geometry.Geometry.PositionRect2IRandomly(new Rect2I(0, 0, dungeon.Stage.Width, dungeon.Stage.Height), rect, random);
-            lastRegion++;
-            dungeon.Carve(rect, TileType.Floor, lastRegion);
-            PrintRegions(dungeon);
-        }
-        // dungeon.LastRegion = lastRegion;
-    }
-
     private static List<Rect2I> GenerateRandomRooms(int startRegion, MazeDungeon dungeon, Random random) {
         var rooms = AddRooms(30, 0, dungeon.Stage.Width, dungeon.Stage.Height, random);
         foreach (var room in rooms) {

@@ -8,6 +8,20 @@ namespace Betauer.Core.Tests;
 [TestRunner.Test]
 public class GeometryTest {
     [TestRunner.Test]
+    public void CreateTest() {
+
+        Assert.That(Geometry.CreateRect2I(0.5f, 10, Geometry.RectanglePart.Landscape),Is.EqualTo(new Rect2I(0, 0, 10, 5)));
+        Assert.That(Geometry.CreateRect2I(2f, 10, Geometry.RectanglePart.Landscape),Is.EqualTo(new Rect2I(0, 0, 10, 5)));
+
+        Assert.That(Geometry.CreateRect2I(0.5f, 10, Geometry.RectanglePart.Portrait),Is.EqualTo(new Rect2I(0, 0, 5, 10)));
+        Assert.That(Geometry.CreateRect2I(2f, 10, Geometry.RectanglePart.Portrait),Is.EqualTo(new Rect2I(0, 0, 5, 10)));
+
+        Assert.That(Geometry.CreateRect2I(0.5f, 10, Geometry.RectanglePart.Ratio),Is.EqualTo(new Rect2I(0, 0, 5, 10)));
+        Assert.That(Geometry.CreateRect2I(2f, 10, Geometry.RectanglePart.Ratio),Is.EqualTo(new Rect2I(0, 0, 10, 5)));
+
+    }
+
+    [TestRunner.Test]
     public void ShrinkRect2ToEnsureRatioTest() {
         // Reduce width
 

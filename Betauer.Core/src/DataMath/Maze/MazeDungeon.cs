@@ -6,14 +6,6 @@ using Godot;
 namespace Betauer.Core.DataMath.Maze;
 
 public class MazeDungeon {
-    public static IEnumerable<Vector2I> GetEnumerator(Rect2I rect) {
-        for (var x = rect.Position.X; x < rect.End.X; x++) {
-            for (var y = rect.Position.Y; y < rect.End.Y; y++) {
-                yield return new Vector2I(x, y);
-            }
-        }
-    }
-    
     private static readonly Vector2I[] Directions = { Vector2I.Up, Vector2I.Down, Vector2I.Right, Vector2I.Left };
     public static Random rng = new Random(0);
 
@@ -202,7 +194,7 @@ public class MazeDungeon {
 
     
     public void Carve(Rect2I rect, TileType type, int region) {
-        foreach (var pos in GetEnumerator(rect)) {
+        foreach (var pos in Geometry.Geometry.GetEnumerator(rect)) {
             // start regions from 1, because 0 is reserved for walls (the whole grid is filled with walls in the beginning)
             try {
                 Carve(pos, TileType.Floor, region);

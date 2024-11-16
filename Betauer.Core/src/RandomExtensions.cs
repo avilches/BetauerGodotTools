@@ -112,6 +112,34 @@ public static partial class RandomExtensions {
     }
 
     /// <summary>
+    /// Returns a random ratio in the range [minRatio, maxRatio] (both inclusive)
+    /// So, NextRatio(0.5f, 2f) will return a number between 0.5 and 2 where the chances between 0.5-1 values, and 1-2 will be the same.
+    /// </summary>
+    public static float NextRatio(this Random rng, float minRatio, float maxRatio) {
+        // Ensure minRatio <= maxRatio
+        if (minRatio > maxRatio) {
+            (minRatio, maxRatio) = (maxRatio, minRatio);
+        }
+
+        // Simple case: both ratios are on the same side of 1. Example: minRatio 0.5 and maxRatio 0.8, or minRatio 1.2 and maxRatio 1.5 
+        if ((minRatio >= 1 && maxRatio >= 1) || (minRatio <= 1 && maxRatio <= 1)) {
+            return (float)(rng.NextDouble() * (maxRatio - minRatio) + minRatio);
+        } 
+        // Mix case: minRatio < 1, maxRatio > 1. Example: minRatio 0.5 y maxRatio 1.5 
+        // First, convert min ratio to the other side of 1. That will make a bigger range of values.
+        var invertedMin = 1f / minRatio;
+
+        // Generate a random value in both ranges, with the same probability 
+        var range1 = invertedMin - 1;
+        var range2 = maxRatio - 1;
+        var totalRange = range1 + range2;
+        var randomValue = (float)(rng.NextDouble() * totalRange);
+        return randomValue <= range1
+            ? 1f / (randomValue + 1) // Volver al lado < 1
+            : 1 + randomValue - range1; // Pertenece al lado > 1
+    }
+    
+    /// <summary>
     /// Returns a uniformly random integer representing one of the values of the <T> enum 
     /// in the enum.
     /// </summary>

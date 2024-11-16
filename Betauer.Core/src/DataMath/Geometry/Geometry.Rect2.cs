@@ -4,58 +4,36 @@ using Godot;
 namespace Betauer.Core.DataMath.Geometry;
 
 public static partial class Geometry {
-
-    /// <summary>
-    /// Creates a random rectangle with a specified aspect ratio range.
-    /// </summary>
-    /// <param name="minRatio">The minimum aspect ratio of the rectangle (width/height).</param>
-    /// <param name="maxRatio">The maximum aspect ratio of the rectangle (width/height).</param>
-    /// <param name="minLong">The minimum length of the specified side of the rectangle.</param>
-    /// <param name="maxLong">The maximum length of the specified side of the rectangle.</param>
-    /// <param name="rectanglePart">Specifies whether the limit applies to Width, Height, or the Longer side.</param>
-    /// <param name="random">An instance of the Random class used to generate random values.</param>
-    /// <returns>A Rect2 object representing the randomly generated rectangle.</returns>
-    public static Rect2 CreateRandomRect2(float minRatio, float maxRatio, float minLong, float maxLong, RectanglePart rectanglePart, Random random) {
-        float ratio = (float)(random.NextDouble() * (maxRatio - minRatio) + minRatio);
-        float length = (float)(random.NextDouble() * (maxLong - minLong) + minLong);
-
-        return CreateRect2(ratio, length, rectanglePart);
-    }
-
-    /// <summary>
     /// Creates a rectangle with a specified aspect ratio and length.
-    /// </summary>
-    /// <param name="ratio">The aspect ratio of the rectangle (width/height).</param>
-    /// <param name="length">The length of the specified side of the rectangle.</param>
-    /// <param name="rectanglePart">Specifies whether the length applies to Width, Height, or the Longer side.</param>
-    /// <returns>A Rect2 object representing the generated rectangle.</returns>
+    /// If RectanglePart.Landscape means, no matter if the ratio is less than 1 or bigger than 1, the rect will be landscape with a width of length.
+    /// If RectanglePart.Portrait means, no matter if the ratio is less than 1 or bigger than 1, the rect will be portrait with a height of length.
+    /// If RectanglePart.Ratio is specified, the rectangle will orient itself based on the ratio using the length for the longer part. So, a ratio bigger
+    /// than 1 means a landscape rectangle, where the longer part is the width, and a ratio smaller than 1 means a portrait rectangle, where the longer part
+    /// is the height.
     public static Rect2 CreateRect2(float ratio, float length, RectanglePart rectanglePart) {
         float width, height;
-
         // Modify limitDimension if it's set to Longer based on the ratio
-        if (rectanglePart == RectanglePart.Longer) {
-            rectanglePart = ratio >= 1 ? RectanglePart.Width : RectanglePart.Height;
+        if (rectanglePart == RectanglePart.Ratio) {
+            rectanglePart = ratio >= 1 ? RectanglePart.Landscape : RectanglePart.Portrait;
         }
-
-        if (rectanglePart == RectanglePart.Width) {
+        if (rectanglePart == RectanglePart.Landscape) {
             width = length;
-            height = width / ratio;
+            height = ratio > 1 ? width / ratio : width * ratio;
         } else { // LimitDimension.Height
             height = length;
-            width = height * ratio;
+            width = ratio > 1 ? height / ratio : height * ratio;
         }
-
         return new Rect2(new Vector2(0, 0), new Vector2(width, height));
     }
-    
+
     /// <summary>
     /// Positions a rectangle randomly within the bounds of another rectangle.
     /// </summary>
-    /// <param name="bounds">The bounding rectangle within which the rect will be positioned.</param>
     /// <param name="rect">The rectangle to be positioned randomly within the bounds.</param>
+    /// <param name="bounds">The bounding rectangle within which the rect will be positioned.</param>
     /// <param name="random">An instance of the Random class used to generate random values.</param>
     /// <returns>A Rect2I object representing the randomly positioned rectangle.</returns>
-    public static Rect2 PositionRect2Randomly(Rect2 bounds, Rect2 rect, Random random) {
+    public static Rect2 PositionRect2Randomly(Rect2 rect, Rect2 bounds, Random random) {
         var maxX = bounds.Size.X - rect.Size.X;
         var maxY = bounds.Size.Y - rect.Size.Y;
         var x = (float)(random.NextDouble() * (bounds.Position.X + maxX + 1));
@@ -76,26 +54,24 @@ public static partial class Geometry {
     /// <returns></returns>
     public static Rect2 ShrinkRect2ToEnsureRatio(float x, float y, float width, float height, float ratio) {
         var landscape = width > height;
-        var currentRatio = (float)Math.Max(width, height) / Math.Min(width, height);
+        var currentRatio = Math.Max(width, height) / Math.Min(width, height);
         if (ratio < 1) ratio = 1f / ratio;
         if (currentRatio < ratio) {
-            // Console.WriteLine($"No need to shring {width}/{height} ({currentRatio:0.00})");
+            // Console.WriteLine($"No need to shrink {width}/{height} ({currentRatio:0.00})");
             return new Rect2(x, y, width, height);
         }
-        if (width > height) {
-            if (!landscape) ratio = 1f / ratio;
+        if (landscape) {
             // El rectángulo es más ancho de lo necesario, reducir el ancho
-            float newWidth = height * ratio;
-            float deltaX = (width - newWidth) / 2;
+            var newWidth = height * ratio;
+            var deltaX = (width - newWidth) / 2;
             var r = new Rect2(x + deltaX, y, newWidth, height);
             // var newRatio = (float)Math.Max(r.Size.X, r.Size.Y) / Math.Min(r.Size.X, r.Size.Y);
             // Console.WriteLine($"Shrinked {width}/{height} ({currentRatio:0.00}) to {r.Size.X}/{r.Size.Y} ({newRatio:0.00})");
             return r;
         } else {
-            if (!landscape) ratio = 1f / ratio;
             // El rectángulo es más alto de lo necesario, reducir la altura
-            float newHeight = width / ratio;
-            float deltaY = (height - newHeight) / 2;
+            var newHeight = width / ratio;
+            var deltaY = (height - newHeight) / 2;
             var r = new Rect2(x, y + deltaY, width, newHeight);
             // var newRatio = (float)Math.Max(r.Size.X, r.Size.Y) / Math.Min(r.Size.X, r.Size.Y);
             // Console.WriteLine($"Shrinked {width}/{height} ({currentRatio:0.00}) to {r.Size.X}/{r.Size.Y} ({newRatio:0.00})");
@@ -130,6 +106,4 @@ public static partial class Geometry {
         var newY = y + (height - newHeight) / 2f;
         return new Rect2(newX, newY, newWidth, newHeight);
     }
-
-
 }
