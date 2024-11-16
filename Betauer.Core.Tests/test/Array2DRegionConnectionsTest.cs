@@ -11,7 +11,7 @@ using NUnit.Framework;
 namespace Betauer.Core.Tests;
 
 [TestRunner.Test]
-public class GridConnectorTest {
+public class Array2DRegionConnectionsTest {
     [TestRunner.Test]
     public void Test() {
         var xYGrid = Array2D.Parse("""
@@ -26,15 +26,15 @@ public class GridConnectorTest {
             { '#', true }, { '·', false },
         });
 
-        var connector = new GridConnector(xYGrid);
+        var connector = new Array2DRegionConnections(xYGrid);
         Assert.That(PrintState(connector), Is.EqualTo("""
                                                       1·22222
-                                                      ···22··
-                                                      333····
-                                                      ·33·444
-                                                      33·5··4
-                                                      3·i·ii·
-                                                      ·iiiiii
+                                                      ·+·22++
+                                                      333··++
+                                                      +33·444
+                                                      33·5·+4
+                                                      3+i+ii+
+                                                      +iiiiii
                                                       """));
 
         Assert.That(connector.GetRegions(), Is.EqualTo(5));
@@ -51,42 +51,49 @@ public class GridConnectorTest {
 
         var connectingCells = connector.FindConnectingCells();
 
-        CollectionAssert.AreEquivalent(connectingCells.Isolated, new[] { (2, 5), (4, 5), (5, 5), (1, 6), (2, 6), (3, 6), (4, 6), (5, 6), (6, 6) }.Select(t => new Vector2I(t.Item1, t.Item2)));
-        
-        
-        CollectionAssert.AreEquivalent(connectingCells.ConnectingCells[new Vector2I(1, 0)],new[] {  1, 2 } );
-        CollectionAssert.AreEquivalent(connectingCells.ConnectingCells[new Vector2I(0, 1)],new[] { 1, 3 } );
-        CollectionAssert.AreEquivalent(connectingCells.ConnectingCells[new Vector2I(2, 1)],new[] { 2, 3 } );
-        CollectionAssert.AreEquivalent(connectingCells.ConnectingCells[new Vector2I(3, 2)],new[] { 3, 2 } );
-        CollectionAssert.AreEquivalent(connectingCells.ConnectingCells[new Vector2I(4, 2)],new[] { 2, 4 } );
-        CollectionAssert.AreEquivalent(connectingCells.ConnectingCells[new Vector2I(3, 3)],new[] { 3, 4, 5 } );
-        CollectionAssert.AreEquivalent(connectingCells.ConnectingCells[new Vector2I(2, 4)],new[] { 3, 5 } );
-        CollectionAssert.AreEquivalent(connectingCells.ConnectingCells[new Vector2I(4, 4)],new[] { 5, 4 } );
+        var isolated = connector.GetBorderCellsEnumerator().Where(bc => bc.Regions.Length == 0).ToArray();
+        var oneRegion = connector.GetBorderCellsEnumerator().Where(bc => bc.Regions.Length == 1).ToArray();
+        var threeRegions = connector.GetBorderCellsEnumerator().Where(bc => bc.Regions.Length == 3).ToArray();
 
-        
+        Assert.That(threeRegions.Length, Is.EqualTo(1));
+        Assert.That(threeRegions[0].Position, Is.EqualTo(new Vector2I(3, 3)));
+        CollectionAssert.AreEquivalent(connectingCells.ConnectingCells[new Vector2I(3, 3)], threeRegions[0].Regions);
+
+        CollectionAssert.AreEquivalent(connectingCells.Isolated, new[] { (2, 5), (4, 5), (5, 5), (1, 6), (2, 6), (3, 6), (4, 6), (5, 6), (6, 6) }.Select(t => new Vector2I(t.Item1, t.Item2)));
+        CollectionAssert.AreEquivalent(connectingCells.Isolated, isolated.Select(bc => bc.Position));
+
+        CollectionAssert.AreEquivalent(connectingCells.ConnectingCells[new Vector2I(1, 0)], new[] { 1, 2 });
+        CollectionAssert.AreEquivalent(connectingCells.ConnectingCells[new Vector2I(0, 1)], new[] { 1, 3 });
+        CollectionAssert.AreEquivalent(connectingCells.ConnectingCells[new Vector2I(2, 1)], new[] { 2, 3 });
+        CollectionAssert.AreEquivalent(connectingCells.ConnectingCells[new Vector2I(3, 2)], new[] { 3, 2 });
+        CollectionAssert.AreEquivalent(connectingCells.ConnectingCells[new Vector2I(4, 2)], new[] { 2, 4 });
+        CollectionAssert.AreEquivalent(connectingCells.ConnectingCells[new Vector2I(3, 3)], new[] { 3, 4, 5 });
+        CollectionAssert.AreEquivalent(connectingCells.ConnectingCells[new Vector2I(2, 4)], new[] { 3, 5 });
+        CollectionAssert.AreEquivalent(connectingCells.ConnectingCells[new Vector2I(4, 4)], new[] { 5, 4 });
+
         Console.WriteLine("Marking 0,0, ignore");
         connector.ToggleCell(new Vector2I(0, 0), true);
         Console.WriteLine("Marking 1,1, expand region 3 without change");
         connector.ToggleCell(new Vector2I(1, 1), true);
         Assert.That(PrintState(connector), Is.EqualTo("""
                                                       1·22222
-                                                      ·3·22··
-                                                      333····
-                                                      ·33·444
-                                                      33·5··4
-                                                      3·i·ii·
-                                                      ·iiiiii
+                                                      ·3·22++
+                                                      333··++
+                                                      +33·444
+                                                      33·5·+4
+                                                      3+i+ii+
+                                                      +iiiiii
                                                       """));
         Console.WriteLine("Marking 0,1, join regions 3 and 1");
         connector.ToggleCell(new Vector2I(0, 1), true);
         Assert.That(PrintState(connector), Is.EqualTo("""
                                                       3·22222
-                                                      33·22··
-                                                      333····
-                                                      ·33·444
-                                                      33·5··4
-                                                      3·i·ii·
-                                                      ·iiiiii
+                                                      33·22++
+                                                      333··++
+                                                      +33·444
+                                                      33·5·+4
+                                                      3+i+ii+
+                                                      +iiiiii
                                                       """));
         Console.WriteLine("Marking 1,0, join regions 3 and 2");
         connector.ToggleCell(new Vector2I(1, 0), true);
@@ -95,12 +102,12 @@ public class GridConnectorTest {
 
         Assert.That(PrintState(connector), Is.EqualTo("""
                                                       3333333
-                                                      33·33··
-                                                      333····
-                                                      ·33·444
-                                                      33·5··4
-                                                      3·i·ii·
-                                                      ·iiiiii
+                                                      33+33++
+                                                      333+·++
+                                                      +33·444
+                                                      33·5·+4
+                                                      3+i+ii+
+                                                      +iiiiii
                                                       """));
         Console.WriteLine("Marking 1,6 and 2,6, create an independent region 1, 2");
         connector.ToggleCell(new Vector2I(1, 6), true);
@@ -110,12 +117,12 @@ public class GridConnectorTest {
         CollectionAssert.AreEquivalent(connector.GetRegionsIds(), new[] { 1, 2, 3, 4, 5 });
         Assert.That(PrintState(connector), Is.EqualTo("""
                                                       3333333
-                                                      33·33··
-                                                      333····
-                                                      ·33·444
-                                                      33·5··4
-                                                      3···ii·
-                                                      ·11·i·2
+                                                      33+33++
+                                                      333+·++
+                                                      +33·444
+                                                      33·5·+4
+                                                      3·++ii·
+                                                      ·11+i+2
                                                       """));
 
         Console.WriteLine("Unmark 0,2, unjoin regions");
@@ -123,12 +130,12 @@ public class GridConnectorTest {
 
         Assert.That(PrintState(connector), Is.EqualTo("""
                                                       1111111
-                                                      1··11··
-                                                      111····
-                                                      ·11·222
-                                                      11·3··2
-                                                      1···ii·
-                                                      ·44·i·5
+                                                      1++11++
+                                                      111+·++
+                                                      +11·222
+                                                      11·3·+2
+                                                      1·++ii·
+                                                      ·44+i+5
                                                       """));
 
         connector.ToggleCell(new Vector2I(0, 1), false);
@@ -136,17 +143,16 @@ public class GridConnectorTest {
         connector.ToggleCell(new Vector2I(3, 3), false);
         Assert.That(PrintState(connector), Is.EqualTo("""
                                                       1·22222
-                                                      ···22··
-                                                      333····
-                                                      ·33·444
-                                                      33·5··4
-                                                      3···ii·
-                                                      ·66·i·7
+                                                      ·+·22++
+                                                      333··++
+                                                      +33·444
+                                                      33·5·+4
+                                                      3·++ii·
+                                                      ·66+i+7
                                                       """));
-
     }
 
-    private static string PrintState(GridConnector connector) {
+    private static string PrintState(Array2DRegionConnections connector) {
         var connectingCells = connector.FindConnectingCells();
         Console.WriteLine("Total Regions: " + connector.GetRegions() + ", Ids: " + string.Join(", ", connector.GetRegionsIds()));
 
@@ -159,13 +165,26 @@ public class GridConnectorTest {
         foreach (var (cell, regions) in connectingCells.ConnectingCells) {
             Console.WriteLine($"Cell ({cell.X}, {cell.Y}) connects regions: {string.Join(", ", regions)}");
         }
+        
+        // Loop over connectingCells.Expandable and create a Dictionary where the key is every value and the value is the key
+        var expandable = new Dictionary<Vector2I, int>();
+        foreach (var (key, value) in connectingCells.Expandable) {
+            foreach (var v in value) {
+                expandable[v] = key;
+            }
+        }
+            
         var s = new StringBuilder();
         foreach (var cell in connector.Labels) {
             if (cell.Value == 0) {
                 if (connectingCells.Isolated.Contains(cell.Position)) {
                     s.Append('i');
-                } else {
+                } else if (expandable.ContainsKey(cell.Position)) {
+                    s.Append('+');
+                } else if (connectingCells.ConnectingCells.ContainsKey(cell.Position)) {
                     s.Append('·');
+                } else {
+                    throw new Exception("Unexpected cell");
                 }
             } else {
                 s.Append(cell.Value.ToString("x8").AsSpan(7, 1));

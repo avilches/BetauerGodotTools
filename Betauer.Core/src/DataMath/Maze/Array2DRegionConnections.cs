@@ -12,7 +12,7 @@ public readonly record struct BorderCell(Vector2I Position, int[] Regions) {
     public readonly int[] Regions = Regions;
 }
 
-public class GridConnector {
+public class Array2DRegionConnections {
     public readonly Array2D<bool> Grid;
     public readonly Array2D<int> Labels;
     public int Width => Grid.Width;
@@ -20,7 +20,7 @@ public class GridConnector {
     private readonly Dictionary<int, List<Vector2I>> _regionCells = new();
     private readonly List<Vector2I> _noRegion = new();
 
-    public GridConnector(Array2D<bool> grid) {
+    public Array2DRegionConnections(Array2D<bool> grid) {
         Grid = grid;
         Labels = new Array2D<int>(grid.Width, grid.Height).Fill(0);
         ProcessGrid();
@@ -89,39 +89,43 @@ public class GridConnector {
     }
 
     public class Connections {
-        public Dictionary<Vector2I, HashSet<int>> ConnectingCells = new();
+        public Dictionary<Vector2I, int[]> ConnectingCells = new();
+        public Dictionary<int, List<Vector2I>> Expandable = new();
         public List<Vector2I> Isolated = new();
     }
 
-    // 4) Encontrar celdas vacías que conecten dos regiones distintas
-
-    public IEnumerator<BorderCell> GetBorderCellEnumerator() {
-        foreach (var (position, value) in Grid) {
-            if (value) continue;
-            var adjacentRegions = new HashSet<int>();
-            foreach (var neighbor in GetNeighbors(position)) {
-                if (Grid[neighbor.X, neighbor.Y]) {
-                    adjacentRegions.Add(Labels[neighbor.X, neighbor.Y]);
-                }
-            }
-            yield return new BorderCell(position, adjacentRegions.ToArray());
+    /// <summary>
+    /// Returns all empty cells with the adjacent regions.
+    /// 0 adjacent regions means the cell is isolated. You can toggle the cell and it will create a new region itself alone
+    /// 1 adjacent region means the cell is outside a region, you can toggle the cell and it will join the region, increasing
+    /// the size of it without touching other regions.
+    /// 2 or more adjacent regions means the cell is a border cell between two or three regions. You can toggle the cell and
+    /// it will connect these regions in one region bigger. 
+    /// </summary>
+    /// <returns></returns>
+    public IEnumerable<BorderCell> GetBorderCellsEnumerator() {
+        foreach (var x in _noRegion) {
+            var adjacentRegions = GetNeighbors(x)
+                .Where(n => Grid[n.X, n.Y])
+                .Select(n => Labels[n.X, n.Y])
+                .ToHashSet();
+            yield return new BorderCell(x, adjacentRegions.ToArray());
         }
     }
 
     public Connections FindConnectingCells() {
         var data = new Connections();
-        foreach (var (position, value) in Grid) {
-            if (value) continue;
-            var adjacentRegions = new HashSet<int>();
-            foreach (var neighbor in GetNeighbors(position)) {
-                if (Grid[neighbor.X, neighbor.Y]) {
-                    adjacentRegions.Add(Labels[neighbor.X, neighbor.Y]);
-                }
-            }
-            if (adjacentRegions.Count > 1) {
-                data.ConnectingCells[position] = adjacentRegions;
-            } else if (adjacentRegions.Count == 0) {
+        foreach (var (position, regions) in GetBorderCellsEnumerator()) {
+            if (regions.Length == 0) {
                 data.Isolated.Add(position);
+            } else if (regions.Length == 1) {
+                if (data.Expandable.TryGetValue(regions[0], out var positions)) {
+                    positions.Add(position);
+                } else {
+                    data.Expandable[regions[0]] = new List<Vector2I> { position };
+                }       
+            } else {
+                data.ConnectingCells[position] = regions;      
             }
         }
         return data;
