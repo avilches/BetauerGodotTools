@@ -83,7 +83,7 @@ public class MyMazeDungeonDemo {
         const int width = 141, height = 141;
 
         var grid = new Array2D<bool>(width, height).Fill(false);
-        var ratio = 16 / 9f;
+        const float ratio = 16 / 9f;
         var rooms = CreateRooms(100, 5, 13, ratio, width, height, random);
         rooms.ForEach(room => Geometry.Geometry.GetEnumerator(room).ForEach(pos => grid[pos] = true));
 
@@ -107,8 +107,10 @@ public class MyMazeDungeonDemo {
         var gc = new Array2DRegionConnections(grid);
         PrintRegions(gc.Labels);
 
-        foreach (var cell in gc.FindConnectingCells().ConnectingCells.Keys) {
-            grid[cell] = true;
+        while (gc.GetRegions() > 1) {
+            foreach (var (position, regions) in gc.GetConnectingCells()) {
+                grid[position] = true;
+            }
         }
 
         foreach (var b in grid) {

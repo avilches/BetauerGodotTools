@@ -6,12 +6,6 @@ using System;
 using System.Collections.Generic;
 using Godot;
 
-
-public readonly record struct BorderCell(Vector2I Position, int[] Regions) {
-    public readonly Vector2I Position = Position;
-    public readonly int[] Regions = Regions;
-}
-
 public class Array2DRegionConnections {
     public readonly Array2D<bool> Grid;
     public readonly Array2D<int> Labels;
@@ -88,14 +82,8 @@ public class Array2DRegionConnections {
         return new List<Vector2I>();
     }
 
-    public class Connections {
-        public Dictionary<Vector2I, int[]> ConnectingCells = new();
-        public Dictionary<int, List<Vector2I>> Expandable = new();
-        public List<Vector2I> Isolated = new();
-    }
-
     /// <summary>
-    /// Returns all empty cells with the adjacent regions.
+    /// Returns all empty cells with their adjacent regions.
     /// 0 adjacent regions means the cell is isolated. You can toggle the cell and it will create a new region itself alone
     /// 1 adjacent region means the cell is outside a region, you can toggle the cell and it will join the region, increasing
     /// the size of it without touching other regions.
@@ -103,34 +91,56 @@ public class Array2DRegionConnections {
     /// it will connect these regions in one region bigger. 
     /// </summary>
     /// <returns></returns>
-    public IEnumerable<BorderCell> GetBorderCellsEnumerator() {
+    public IEnumerable<(Vector2I Position, int[] Regions)> GetNoRegionCells() {
         foreach (var x in _noRegion) {
             var adjacentRegions = GetNeighbors(x)
                 .Where(n => Grid[n.X, n.Y])
                 .Select(n => Labels[n.X, n.Y])
                 .ToHashSet();
-            yield return new BorderCell(x, adjacentRegions.ToArray());
+            yield return (x, adjacentRegions.ToArray());
         }
     }
+    
+    public IEnumerable<Vector2I> GetIsolatedCells() {
+        return GetNoRegionCells().Where(b => b.Regions.Length == 0).Select(b => b.Position);
+    }
 
-    public Connections FindConnectingCells() {
-        var data = new Connections();
-        foreach (var (position, regions) in GetBorderCellsEnumerator()) {
-            if (regions.Length == 0) {
-                data.Isolated.Add(position);
-            } else if (regions.Length == 1) {
-                if (data.Expandable.TryGetValue(regions[0], out var positions)) {
-                    positions.Add(position);
-                } else {
-                    data.Expandable[regions[0]] = new List<Vector2I> { position };
-                }       
+    public IEnumerable<(Vector2I Position, int Region)> GetExpandableCells() {
+        return GetNoRegionCells().Where(b => b.Regions.Length == 1).Select(b => (b.Position, b.Regions[0]));
+    }
+    
+    public Dictionary<Vector2I, int> GetExpandableCellsByPosition() {
+        var expandable = new Dictionary<Vector2I, int>();
+        foreach (var (position, region) in GetExpandableCells()) {
+            expandable[position] = region;
+        }
+        return expandable;
+    }
+    
+    public Dictionary<int, List<Vector2I>> GetExpandableCellsByRegion() {
+        var expandable = new Dictionary<int, List<Vector2I>>();
+        foreach (var (position, region) in GetExpandableCells()) {
+            if (expandable.TryGetValue(region, out var positions)) {
+                positions.Add(position);
             } else {
-                data.ConnectingCells[position] = regions;      
-            }
+                expandable[region] = new List<Vector2I> { position };
+            }       
         }
-        return data;
+        return expandable;
     }
 
+    public IEnumerable<(Vector2I Position, int[] Regions)> GetConnectingCells() {
+        return GetNoRegionCells().Where(b => b.Regions.Length >= 2);
+    }
+
+    public Dictionary<Vector2I, int[]> GetConnectingCellsByPosition() {
+        var connectingCells = new Dictionary<Vector2I, int[]>();
+        foreach (var (position, regions) in GetConnectingCells()) {
+            connectingCells[position] = regions;
+        }
+        return connectingCells;
+    }
+    
     public void ToggleCell(Vector2I cell, bool fill) {
         if (fill) {
             if (Grid[cell.X, cell.Y]) return;
