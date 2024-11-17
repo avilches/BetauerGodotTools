@@ -5,7 +5,7 @@ using Godot;
 
 namespace Betauer.Core.DataMath.Maze;
 
-public class MyMazeDungeonDemo {
+public class DungeonDemo {
     public static void Main() {
         var random = new Random(2);
 

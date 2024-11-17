@@ -24,8 +24,7 @@ public abstract class BaseMazeCarver {
             for (var x = 1; x < Width; x += 2) {
                 var pos = new Vector2I(x, y);
                 if (IsCarved(pos)) continue;
-                var size = GrowMaze(pos, windyRatio, startRegion + mazes, rng);
-                Console.WriteLine(size);
+                GrowMaze(pos, windyRatio, startRegion + mazes, rng);
                 mazes++;
             }
         }
