@@ -119,8 +119,8 @@ public sealed class UniformPoissonSampler2D : PoissonSampler2D {
 
     private void Initialize(float sampleRadius) {
         CellSize = sampleRadius / Mathf.Sqrt2;
-        CellsPerX = (int)System.Math.Ceiling(Width / CellSize);
-        CellsPerY = (int)System.Math.Ceiling(Height / CellSize);
+        CellsPerX = (int)Math.Ceiling(Width / CellSize);
+        CellsPerY = (int)Math.Ceiling(Height / CellSize);
 
         var totalCells = CellsPerX * CellsPerY;
 

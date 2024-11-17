@@ -102,7 +102,7 @@ public class Delaunator {
         Triangles = new int[maxTriangles * 3];
 
         HalfEdges = new int[maxTriangles * 3];
-        hashSize = (int)System.Math.Ceiling(System.Math.Sqrt(n));
+        hashSize = (int)Math.Ceiling(Math.Sqrt(n));
 
         hullPrev = new int[n];
         hullNext = new int[n];
@@ -230,7 +230,7 @@ public class Delaunator {
             var y = coords[2 * i + 1];
 
             // skip near-duplicate points
-            if (k > 0 && System.Math.Abs(x - xp) <= Mathf.Epsilon && System.Math.Abs(y - yp) <= Mathf.Epsilon) continue;
+            if (k > 0 && Math.Abs(x - xp) <= Mathf.Epsilon && Math.Abs(y - yp) <= Mathf.Epsilon) continue;
             xp = x;
             yp = y;
 
@@ -445,10 +445,10 @@ public class Delaunator {
         if (b != -1) HalfEdges[b] = a;
     }
 
-    private int HashKey(float x, float y) => (int)(System.Math.Floor(PseudoAngle(x - cx, y - cy) * hashSize) % hashSize);
+    private int HashKey(float x, float y) => (int)(Math.Floor(PseudoAngle(x - cx, y - cy) * hashSize) % hashSize);
 
     private static float PseudoAngle(float dx, float dy) {
-        var p = dx / (System.Math.Abs(dx) + System.Math.Abs(dy));
+        var p = dx / (Math.Abs(dx) + Math.Abs(dy));
         return (dy > 0 ? 3 - p : 1 + p) / 4; // [0..1]
     }
 
@@ -645,7 +645,7 @@ public class Delaunator {
             centerY += (points[i].Y + points[j].Y) * temp;
         }
 
-        if (System.Math.Abs(accumulatedArea) < 1E-7f)
+        if (Math.Abs(accumulatedArea) < 1E-7f)
             return new Vector2();
 
         accumulatedArea *= 3f;

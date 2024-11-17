@@ -45,8 +45,8 @@ public class fts {
 
     private static double GetCubicRoot(double value) {
         return value switch {
-            > 0.0 => System.Math.Pow(value, 1.0 / 3.0),
-            < 0 => -System.Math.Pow(-value, 1.0 / 3.0),
+            > 0.0 => Math.Pow(value, 1.0 / 3.0),
+            < 0 => -Math.Pow(-value, 1.0 / 3.0),
             _ => 0.0
         };
     }
@@ -71,7 +71,7 @@ public class fts {
         } else if (D < 0) {
             return 0;
         } else /* if (D > 0) */ {
-            double sqrt_D = System.Math.Sqrt(D);
+            double sqrt_D = Math.Sqrt(D);
 
             s0 = sqrt_D - p;
             s1 = -sqrt_D - p;
@@ -118,15 +118,15 @@ public class fts {
                 num = 2;
             }
         } else if (D < 0) /* Casus irreducibilis: three real solutions */ {
-            double phi = 1.0 / 3 * System.Math.Acos(-q / System.Math.Sqrt(-cb_p));
-            double t = 2 * System.Math.Sqrt(-p);
+            double phi = 1.0 / 3 * Math.Acos(-q / Math.Sqrt(-cb_p));
+            double t = 2 * Math.Sqrt(-p);
 
-            s0 = t * System.Math.Cos(phi);
-            s1 = -t * System.Math.Cos(phi + System.Math.PI / 3);
-            s2 = -t * System.Math.Cos(phi - System.Math.PI / 3);
+            s0 = t * Math.Cos(phi);
+            s1 = -t * Math.Cos(phi + Math.PI / 3);
+            s2 = -t * Math.Cos(phi - Math.PI / 3);
             num = 3;
         } else /* one real solution */ {
-            double sqrt_D = System.Math.Sqrt(D);
+            double sqrt_D = Math.Sqrt(D);
             double u = GetCubicRoot(sqrt_D - q);
             double v = -GetCubicRoot(sqrt_D + q);
 
@@ -199,14 +199,14 @@ public class fts {
             if (IsZero(u))
                 u = 0;
             else if (u > 0)
-                u = System.Math.Sqrt(u);
+                u = Math.Sqrt(u);
             else
                 return 0;
 
             if (IsZero(v))
                 v = 0;
             else if (v > 0)
-                v = System.Math.Sqrt(v);
+                v = Math.Sqrt(v);
             else
                 return 0;
 

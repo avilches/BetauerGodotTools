@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Godot;
 
@@ -29,7 +30,7 @@ public static class PrimMst {
             // Find the closest pair of shapes (one connected and one unconnected)
             foreach (Vector2I connected in connectedShapes) {
                 foreach (Vector2I unconnected in unconnectedShapes) {
-                    var distance = System.Math.Abs(connected.X - unconnected.X) + System.Math.Abs(connected.Y - unconnected.Y);
+                    var distance = Math.Abs(connected.X - unconnected.X) + Math.Abs(connected.Y - unconnected.Y);
 
                     if (distance < shortestDistance) {
                         shortestDistance = distance;

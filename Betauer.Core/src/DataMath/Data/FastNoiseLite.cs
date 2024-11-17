@@ -1,3 +1,4 @@
+using System;
 using System.Runtime.CompilerServices;
 
 namespace Betauer.Core.DataMath.Data;
@@ -643,7 +644,7 @@ public class FastNoiseLite {
 
     [MethodImpl(INLINE)]
     private static float FastSqrt(float f) {
-        return (float)System.Math.Sqrt(f);
+        return (float)Math.Sqrt(f);
     }
 
     [MethodImpl(INLINE)]

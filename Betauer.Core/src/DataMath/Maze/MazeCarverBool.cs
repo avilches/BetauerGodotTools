@@ -5,7 +5,6 @@ namespace Betauer.Core.DataMath.Maze;
 public class MazeCarverBool : BaseMazeCarver {
     public Array2D<bool> Grid { get; init; }
 
-
     public MazeCarverBool(int width, int height) : this(new Array2D<bool>(width, height)) {
     }
 

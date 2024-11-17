@@ -44,13 +44,13 @@ public class FloatGrid<T> {
     private int GetPosY(float y) {
         var maxValue = Grid.GetLength(0) - 1;
         var pos = Mathf.RoundToInt(Mathf.Lerp(0, maxValue, y));
-        return System.Math.Clamp(pos, 0, maxValue);    
+        return Math.Clamp(pos, 0, maxValue);    
     }
 
     private int GetPosX(float x) {
         var maxValue = Grid.GetLength(1) - 1;
         var pos = Mathf.RoundToInt(Mathf.Lerp(0, maxValue, x));
-        return System.Math.Clamp(pos, 0, maxValue);    
+        return Math.Clamp(pos, 0, maxValue);    
     }
 
 

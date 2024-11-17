@@ -36,8 +36,8 @@ public class BspNode {
             if (A.Width - 1 >= minRoomWidth && B.Width - 1 >= minRoomWidth && 
                 A.Height - 1 >= minRoomHeight &&
                 B.Height - 1 >= minRoomHeight) {
-                var ratioA = (float)System.Math.Max(A.Width - 1, A.Height - 1) / System.Math.Min(A.Width - 1, A.Height - 1);
-                var ratioB = (float)System.Math.Max(B.Width - 1, B.Height - 1) / System.Math.Min(B.Width - 1, B.Height - 1);
+                var ratioA = (float)Math.Max(A.Width - 1, A.Height - 1) / Math.Min(A.Width - 1, A.Height - 1);
+                var ratioB = (float)Math.Max(B.Width - 1, B.Height - 1) / Math.Min(B.Width - 1, B.Height - 1);
                 if (ratioA <= maxRatio && ratioB <= maxRatio) {
                     return true;
                 } else {

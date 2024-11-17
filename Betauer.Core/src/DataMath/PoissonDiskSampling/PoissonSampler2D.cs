@@ -49,8 +49,8 @@ public class PoissonSampler2D {
         var distance = ((float)random.NextDouble() * (max - min)) + min;
         var angle = (float)random.NextDouble() * Mathf.Tau;
         return new Vector2(
-            point.X + (float)System.Math.Cos(angle) * distance,
-            point.Y + (float)System.Math.Sin(angle) * distance);
+            point.X + (float)Math.Cos(angle) * distance,
+            point.Y + (float)Math.Sin(angle) * distance);
     }
     
     /// <summary>

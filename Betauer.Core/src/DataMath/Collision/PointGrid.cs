@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Godot;
 
 namespace Betauer.Core.DataMath.Collision;
@@ -28,8 +29,8 @@ public sealed class PointGrid {
         Width = width;
         Height = height;
         CellSize = (minRadius + maxRadius) * 0.5f / Mathf.Sqrt2;
-        CellsPerX = (int)System.Math.Ceiling(Width / CellSize);
-        CellsPerY = (int)System.Math.Ceiling(Height / CellSize);
+        CellsPerX = (int)Math.Ceiling(Width / CellSize);
+        CellsPerY = (int)Math.Ceiling(Height / CellSize);
         GridCells = new List<Vector2>[CellsPerX * CellsPerY];
         Items = new List<Vector2>();
     }
@@ -81,10 +82,10 @@ public sealed class PointGrid {
     }
 
     public bool Intersects(float x, float y, float radius) {
-        var minCellX = System.Math.Max((int)((x - radius) / CellSize), 0);
-        var maxCellX = System.Math.Min((int)((x + radius) / CellSize), CellsPerX -1);
-        var minCellY = System.Math.Max((int)((y - radius) / CellSize), 0);
-        var maxCellY = System.Math.Min((int)((y + radius) / CellSize), CellsPerY -1);
+        var minCellX = Math.Max((int)((x - radius) / CellSize), 0);
+        var maxCellX = Math.Min((int)((x + radius) / CellSize), CellsPerX -1);
+        var minCellY = Math.Max((int)((y - radius) / CellSize), 0);
+        var maxCellY = Math.Min((int)((y + radius) / CellSize), CellsPerY -1);
         var radii = radius * radius;
         for (var cellX = minCellX; cellX <= maxCellX; cellX++) {
             for (var cellY = minCellY; cellY <= maxCellY; cellY++) {
@@ -110,10 +111,10 @@ public sealed class PointGrid {
     /// <param name="radius"></param>
     /// <returns></returns>
     public IEnumerable<Vector2> GetIntersectingPoints(float x, float y, float radius) {
-        var minCellX = System.Math.Max((int)((x - radius) / CellSize), 0);
-        var maxCellX = System.Math.Min((int)((x + radius) / CellSize), CellsPerX -1);
-        var minCellY = System.Math.Max((int)((y - radius) / CellSize), 0);
-        var maxCellY = System.Math.Min((int)((y + radius) / CellSize), CellsPerY -1);
+        var minCellX = Math.Max((int)((x - radius) / CellSize), 0);
+        var maxCellX = Math.Min((int)((x + radius) / CellSize), CellsPerX -1);
+        var minCellY = Math.Max((int)((y - radius) / CellSize), 0);
+        var maxCellY = Math.Min((int)((y + radius) / CellSize), CellsPerY -1);
         var radii = radius * radius;
         for (var cellX = minCellX; cellX <= maxCellX; cellX++) {
             for (var cellY = minCellY; cellY <= maxCellY; cellY++) {

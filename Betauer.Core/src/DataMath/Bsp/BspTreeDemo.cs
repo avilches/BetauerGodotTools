@@ -86,7 +86,7 @@ public class BspTreeDemo {
                 }
             }
             if (showSize) {
-                var sizeText = $"{rect.Size.X}/{rect.Size.Y}({((double)System.Math.Max(rect.Size.X, rect.Size.Y) / System.Math.Min(rect.Size.X, rect.Size.Y)):0.0})";
+                var sizeText = $"{rect.Size.X}/{rect.Size.Y}({((double)Math.Max(rect.Size.X, rect.Size.Y) / Math.Min(rect.Size.X, rect.Size.Y)):0.0})";
                 for (var i = 0; i < sizeText.Length; i++) {
                     if (rect.Position.X + i >= 0 && rect.Position.X + i < width && rect.Position.Y >= 0 && rect.Position.Y < height)
                         map[rect.Position.X + i, rect.Position.Y] = sizeText[i];
@@ -169,12 +169,12 @@ public class BspTreeDemo {
                 square++;
                 return;
             }
-            var ratio = (float)System.Math.Max(width, height) / System.Math.Min(width, height);
+            var ratio = (float)Math.Max(width, height) / Math.Min(width, height);
             ratioSum += ratio;
-            minRatio = System.Math.Min(minRatio, ratio);
-            maxRatio = System.Math.Max(maxRatio, ratio);
-            minHeight = System.Math.Min(minHeight, System.Math.Min(width, height));
-            minWidth = System.Math.Min(minWidth, System.Math.Max(width, height));
+            minRatio = Math.Min(minRatio, ratio);
+            maxRatio = Math.Max(maxRatio, ratio);
+            minHeight = Math.Min(minHeight, Math.Min(width, height));
+            minWidth = Math.Min(minWidth, Math.Max(width, height));
             if (width < height) verticals++;
             else horizontals++;
             // Console.WriteLine(width + " / " + height + " = " + ratio.ToString("0.00"));

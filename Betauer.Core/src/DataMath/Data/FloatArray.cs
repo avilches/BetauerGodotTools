@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
@@ -28,7 +29,7 @@ public class FloatArray<T> {
     public T Get(float x) {
         var maxValue = Array.Length - 1;
         var pos = Mathf.RoundToInt(Mathf.Lerp(0, maxValue, x));
-        return Array[System.Math.Clamp(pos, 0, maxValue)];    
+        return Array[Math.Clamp(pos, 0, maxValue)];    
     }
 
     public static FloatArray<TT> Parse<TT>(string line, Dictionary<char, TT> mapping) {

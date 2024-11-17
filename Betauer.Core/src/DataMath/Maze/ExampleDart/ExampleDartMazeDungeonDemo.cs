@@ -5,7 +5,7 @@ using Godot;
 
 namespace Betauer.Core.DataMath.Maze.ExampleDart;
 
-public class MazeDungeonDemo {
+public class ExampleDartMazeDungeonDemo {
     public static void Main() {
         var random = new Random(0);
         var dungeon = new MazeDungeon(41, 41);

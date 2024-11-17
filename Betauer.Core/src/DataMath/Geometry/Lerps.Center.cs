@@ -1,3 +1,4 @@
+using System;
 using Godot;
 
 namespace Betauer.Core.DataMath.Geometry;
@@ -37,13 +38,13 @@ public static partial class Lerps {
     /// <param name="y"></param>
     /// <returns></returns>
     public static float LerpToRectCustomCenter(float width, float height, float centerX, float centerY, float x, float y) {
-        var maxDistanceX = System.Math.Max(centerX, width - 1 - centerX);
-        var maxDistanceY = System.Math.Max(centerY, height - 1 - centerY);
-        var distanceX = System.Math.Abs(x - centerX);
-        var distanceY = System.Math.Abs(y - centerY);
+        var maxDistanceX = Math.Max(centerX, width - 1 - centerX);
+        var maxDistanceY = Math.Max(centerY, height - 1 - centerY);
+        var distanceX = Math.Abs(x - centerX);
+        var distanceY = Math.Abs(y - centerY);
         var valueX = 1f - distanceX / maxDistanceX;
         var valueY = 1f - distanceY / maxDistanceY;
-        return System.Math.Min(valueX, valueY);
+        return Math.Min(valueX, valueY);
     }
 
     /// <summary>
@@ -59,11 +60,11 @@ public static partial class Lerps {
     public static float LerpToRectCenter(float width, float height, float x, float y) {
         var centerX = width / 2;
         var centerY = height / 2;
-        var distanceX = System.Math.Abs(x - centerX);
-        var distanceY = System.Math.Abs(y - centerY);
+        var distanceX = Math.Abs(x - centerX);
+        var distanceY = Math.Abs(y - centerY);
         var valueX = 1f - distanceX / centerX;
         var valueY = 1f - distanceY / centerY;
-        return System.Math.Min(valueX, valueY);
+        return Math.Min(valueX, valueY);
     }
     
     /// <summary>
@@ -109,7 +110,7 @@ public static partial class Lerps {
     /// <param name="y"></param>
     /// <returns></returns>
     public static float LerpToCircleCenter(float r, float x, float y) {
-        return System.Math.Clamp(1 - ((x * x + y * y) / (r * r)), 0f, 1f);
+        return Math.Clamp(1 - ((x * x + y * y) / (r * r)), 0f, 1f);
     }
 
 }
