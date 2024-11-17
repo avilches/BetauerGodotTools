@@ -75,6 +75,21 @@ public static partial class RandomExtensions {
         return random.Next();
     }
 
+    /// <summary>Returns a odd random integer between limits</summary>
+    public static int NextOdd(this Random random, int lowerLimit, int upperLimit) {
+        if (lowerLimit % 2 == 0) throw new ArgumentException($"Lower limit is not an odd number: {lowerLimit}");
+        if (upperLimit % 2 == 0) throw new ArgumentException($"Upper limit is not an odd number: {upperLimit}");
+        var range = (upperLimit - lowerLimit) / 2 + 1;
+        return lowerLimit + random.Next(0, range) * 2;
+    }
+
+    public static int NextEven(this Random random, int lowerLimit, int upperLimit) {
+        if (lowerLimit % 2 != 0) throw new ArgumentException($"Lower limit is not an even number: {lowerLimit}");
+        if (upperLimit % 2 != 0) throw new ArgumentException($"Upper limit is not an even number: {upperLimit}");
+        var range = (upperLimit - lowerLimit) / 2 + 1;
+        return lowerLimit + random.Next(0, range) * 2;
+    }
+
     /// <summary>Returns a non-negative random integer.</summary>
     /// <returns>A 64-bit signed integer that is greater than or equal to 0 and less than <see cref="long.MaxValue"/>.</returns>
     public static long NextLong(this Random random) {
@@ -96,14 +111,14 @@ public static partial class RandomExtensions {
     public static Vector2 Next(this Random rng, Rect2 rect2) {
         return new Vector2(rng.Range(rect2.Position.X, rect2.End.X), rng.Range(rect2.Position.Y, rect2.End.Y));
     }
-    
+
     /// <summary> Returns a random point inside the circle</summary>
     public static Vector2 Next(this Random rng, Vector2 center, int radius) {
         var angle = rng.NextDouble() * 2 * Math.PI; // Angle in radians
         var distance = Math.Sqrt(rng.NextDouble()) * radius;
         return center + Vector2.FromAngle((float)angle) * (float)distance;
     }
-    
+
     /// <summary> Returns a random point inside the circle</summary>
     public static Vector2I Next(this Random rng, Vector2I center, int radius) {
         var angle = rng.NextDouble() * 2 * Math.PI; // Angle in radians
@@ -124,7 +139,7 @@ public static partial class RandomExtensions {
         // Simple case: both ratios are on the same side of 1. Example: minRatio 0.5 and maxRatio 0.8, or minRatio 1.2 and maxRatio 1.5 
         if ((minRatio >= 1 && maxRatio >= 1) || (minRatio <= 1 && maxRatio <= 1)) {
             return (float)(rng.NextDouble() * (maxRatio - minRatio) + minRatio);
-        } 
+        }
         // Mix case: minRatio < 1, maxRatio > 1. Example: minRatio 0.5 y maxRatio 1.5 
         // First, convert min ratio to the other side of 1. That will make a bigger range of values.
         var invertedMin = 1f / minRatio;
@@ -138,7 +153,7 @@ public static partial class RandomExtensions {
             ? 1f / (randomValue + 1) // Volver al lado < 1
             : 1 + randomValue - range1; // Pertenece al lado > 1
     }
-    
+
     /// <summary>
     /// Returns a uniformly random integer representing one of the values of the <T> enum 
     /// in the enum.
@@ -166,7 +181,7 @@ public static partial class RandomExtensions {
         var randomIndex = random.Next(0, values.Count);
         return values[randomIndex];
     }
-    
+
     /// <summary>
     /// Selects `n` unique random elements from an array `items`.
     /// </summary>
@@ -180,7 +195,7 @@ public static partial class RandomExtensions {
         double needed = n;
         double available = items.Length;
         while (selectedCount < n) {
-            if( random.NextDouble() < needed / available ) {
+            if (random.NextDouble() < needed / available) {
                 yield return items[Mathf.RoundToInt(available) - 1];
                 selectedCount++;
                 needed--;
@@ -188,6 +203,7 @@ public static partial class RandomExtensions {
             available--;
         }
     }
+
     /// <summary>
     /// Selects `n` unique random elements from an IList `items`.
     /// </summary>
@@ -201,7 +217,7 @@ public static partial class RandomExtensions {
         double needed = n;
         double available = items.Count;
         while (selectedCount < n) {
-            if( random.NextDouble() < needed / available ) {
+            if (random.NextDouble() < needed / available) {
                 yield return items[Mathf.RoundToInt(available) - 1];
                 selectedCount++;
                 needed--;
@@ -209,7 +225,7 @@ public static partial class RandomExtensions {
             available--;
         }
     }
-    
+
     /// <summary>
     /// Shuffle the array in place using the Fisher-Yates algorithm.
     /// https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
