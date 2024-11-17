@@ -1,10 +1,8 @@
-using System.Linq;
-
-namespace Betauer.Core.DataMath.Maze;
-
-using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
+
+namespace Betauer.Core.DataMath;
 
 public class Array2DRegionConnections {
     public readonly Array2D<bool> Grid;
@@ -13,6 +11,9 @@ public class Array2DRegionConnections {
     public int Height => Grid.Height;
     private readonly Dictionary<int, List<Vector2I>> _regionCells = new();
     private readonly List<Vector2I> _noRegion = new();
+
+    public Array2DRegionConnections(int width, int height): this(new Array2D<bool>(width, height)){
+    }
 
     public Array2DRegionConnections(Array2D<bool> grid) {
         Grid = grid;
@@ -62,7 +63,6 @@ public class Array2DRegionConnections {
         }
     }
 
-    // 2) Obtener el número de regiones
     public int GetRegions() {
         return _regionCells.Count;
     }
@@ -71,7 +71,6 @@ public class Array2DRegionConnections {
         return _regionCells.Keys.ToList();
     }
 
-    // 3) Obtener las celdas de una región específica
     public List<Vector2I> GetRegionCells(int region) {
         if (region == 0) {
             return _noRegion;
