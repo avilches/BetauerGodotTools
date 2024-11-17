@@ -122,11 +122,23 @@ public static partial class Geometry {
         var newY = Mathf.RoundToInt(y + (height - newHeight) / 2f);
         return new Rect2I(newX, newY, newWidth, newHeight);
     }
-    
+
     public static IEnumerable<Vector2I> GetEnumerator(Rect2I rect) {
         for (var x = rect.Position.X; x < rect.End.X; x++) {
             for (var y = rect.Position.Y; y < rect.End.Y; y++) {
                 yield return new Vector2I(x, y);
+            }
+        }
+    }
+
+    public static IEnumerable<Vector2I> GetPairsWithinRatio(int min, int max, double minRatio, double maxRatio, int step = 1) {
+        for (var a = min; a <= max; a += step) {
+            for (var b = min; b <= max; b += step) {
+                if (b == 0) continue;
+                var ratio = (double)a / b;
+                if (ratio >= minRatio && ratio <= maxRatio) {
+                    yield return new Vector2I(a, b);
+                }
             }
         }
     }

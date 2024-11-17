@@ -1,3 +1,4 @@
+using System.Linq;
 using Betauer.Core.DataMath.Geometry;
 using Betauer.TestRunner;
 using Godot;
@@ -7,6 +8,13 @@ namespace Betauer.Core.Tests;
 
 [TestRunner.Test]
 public class GeometryTest {
+    [TestRunner.Test]
+    public void GetPairsWithinRatioTest() {
+        CollectionAssert.AreEquivalent(Geometry.GetPairsWithinRatio(3, 5, 1, 16f/9), new []{ (3, 3), (4, 3), (4, 4), (5, 3), (5, 4), (5, 5) }.Select(i=> new Vector2I(i.Item1, i.Item2)));
+        CollectionAssert.AreEquivalent(Geometry.GetPairsWithinRatio(3, 5, 1, 16f/9, 2), new []{ (3, 3), (5, 3), (5, 5) }.Select(i=> new Vector2I(i.Item1, i.Item2)));
+        CollectionAssert.AreEquivalent(Geometry.GetPairsWithinRatio(3, 6, 1, 16f/9, 2), new []{ (3, 3), (5, 3), (5, 5) }.Select(i=> new Vector2I(i.Item1, i.Item2)));
+    }
+
     [TestRunner.Test]
     public void CreateTest() {
 
