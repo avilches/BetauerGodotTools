@@ -2,7 +2,7 @@
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
         <EnableDynamicLoading>true</EnableDynamicLoading>
-        <LangVersion>11.0</LangVersion>
+        <LangVersion>12.0</LangVersion>
         <RootNamespace>Betauer.Core.Tests</RootNamespace>
         <PackageId>Betauer.Core.Tests</PackageId>
         <AssemblyName>Betauer.Core.Tests</AssemblyName>

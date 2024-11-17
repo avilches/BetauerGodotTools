@@ -2,7 +2,7 @@
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
         <EnableDynamicLoading>true</EnableDynamicLoading>
-        <LangVersion>11.0</LangVersion>
+        <LangVersion>12.0</LangVersion>
         <RootNamespace>Generator</RootNamespace>
         <PackageId>Generator</PackageId>
         <AssemblyName>Generator</AssemblyName>

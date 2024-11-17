@@ -2,7 +2,7 @@
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
         <EnableDynamicLoading>true</EnableDynamicLoading>
-        <LangVersion>11.0</LangVersion>
+        <LangVersion>12.0</LangVersion>
         <RootNamespace>Betauer.FSM.Tests</RootNamespace>
         <PackageId>Betauer.FSM.Tests</PackageId>
         <AssemblyName>Betauer.FSM.Tests</AssemblyName>

@@ -2,7 +2,7 @@
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
         <EnableDynamicLoading>true</EnableDynamicLoading>
-        <LangVersion>11.0</LangVersion>
+        <LangVersion>12.0</LangVersion>
         <RootNamespace>Betauer</RootNamespace>
         <PackageId>Betauer.GameTools</PackageId>
         <AssemblyName>Betauer.GameTools</AssemblyName>

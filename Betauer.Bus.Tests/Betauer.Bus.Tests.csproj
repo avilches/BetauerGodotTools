@@ -2,7 +2,7 @@
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
         <EnableDynamicLoading>true</EnableDynamicLoading>
-        <LangVersion>11.0</LangVersion>
+        <LangVersion>12.0</LangVersion>
         <RootNamespace>Betauer.Bus.Tests</RootNamespace>
         <PackageId>Betauer.Bus.Tests</PackageId>
         <AssemblyName>Betauer.Bus.Tests</AssemblyName>

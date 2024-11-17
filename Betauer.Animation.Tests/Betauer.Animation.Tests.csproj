@@ -2,7 +2,7 @@
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
         <EnableDynamicLoading>true</EnableDynamicLoading>
-        <LangVersion>11.0</LangVersion>
+        <LangVersion>12.0</LangVersion>
         <RootNamespace>Betauer.Animation.Tests</RootNamespace>
         <PackageId>Betauer.Animation.Tests</PackageId>
         <AssemblyName>Betauer.Animation.Tests</AssemblyName>
