@@ -9,21 +9,21 @@ public class DungeonDemo {
     public static void Main() {
         var random = new Random(2);
 
-        const int width = 41, height = 41;
+        const int width = 31, height = 11;
 
         var grid = new Array2D<bool>(width, height).Fill(false);
         const float ratio = 16 / 9f;
-        var rooms = CreateRooms(15, 3, 13, ratio, width, height, random);
+        var rooms = CreateRooms(15, 3, 7, ratio, width, height, random);
         rooms.ForEach(room => Geometry.Geometry.GetEnumerator(room).ForEach(pos => grid[pos] = true));
 
-        PrintMaze(grid);
+        // PrintMaze(grid);
 
         var mc = new MazeCarverBool(grid);
         mc.FillMazes(0.7f, rooms.Count, random);
 
-        PrintMaze(grid);
+        // PrintMaze(grid);
 
-        var array2DRegionConnections = new Array2DRegionConnections(grid);
+        var array2DRegionConnections = new RegionConnections(grid);
         // PrintRegions(array2DRegionConnections.Labels);
 
         var regionConnectionsMap = array2DRegionConnections.GetConnectingCellsByRegion();
@@ -43,6 +43,11 @@ public class DungeonDemo {
         });
         mc.RemoveDeadEnds();
 
+        PrintMazeConnections(grid, doors);
+        PrintRegions(array2DRegionConnections);
+    }
+
+    private static void PrintMazeConnections(Array2D<bool> grid, HashSet<Vector2I> doors) {
         foreach (var b in grid) {
             if (b.Value) {
                 if (doors.Contains(b.Position)) {
@@ -68,10 +73,12 @@ public class DungeonDemo {
         }
     }
 
-    private static void PrintRegions(Array2D<int> stage) {
-        for (int y = 0; y < stage.Height; y++) {
-            for (int x = 0; x < stage.Width; x++) {
-                var tile = stage[x, y];
+    private static void PrintRegions(RegionConnections regionConnections) {
+        regionConnections.Update();
+        var labels = regionConnections.Labels;
+        for (var y = 0; y < labels.Height; y++) {
+            for (var x = 0; x < labels.Width; x++) {
+                var tile = labels[x, y];
                 if (tile == 0) {
                     Console.Write(" ");
                 } else {
@@ -119,7 +126,7 @@ public class DungeonDemo {
     /// <param name="random"></param>
     private static void ReduceConnections(Dictionary<string, List<Vector2I>> regionsConnectedMap, int width, int height, Random random) {
         var grid = new Array2D<bool>(width, height);
-        var gridCleaner = new Array2DRegionConnections(grid);
+        var gridCleaner = new RegionConnections(grid);
         regionsConnectedMap.Values.ForEach(connectors => {
             var candidates = new List<Vector2I>();
             gridCleaner.Grid.Fill(false);

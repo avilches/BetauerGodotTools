@@ -11,7 +11,7 @@ using NUnit.Framework;
 namespace Betauer.Core.Tests;
 
 [TestRunner.Test]
-public class Array2DRegionConnectionsTest {
+public class RegionConnectionsTest {
     [TestRunner.Test]
     public void Test() {
         var xYGrid = Array2D.Parse("""
@@ -26,7 +26,7 @@ public class Array2DRegionConnectionsTest {
             { '#', true }, { '·', false },
         });
 
-        var connector = new Array2DRegionConnections(xYGrid);
+        var connector = new RegionConnections(xYGrid);
         Assert.That(PrintState(connector), Is.EqualTo("""
                                                       1·22222
                                                       ·+·22++
@@ -150,7 +150,7 @@ public class Array2DRegionConnectionsTest {
                                                       """));
     }
 
-    private static string PrintState(Array2DRegionConnections connector) {
+    private static string PrintState(RegionConnections connector) {
         Console.WriteLine("Total Regions: " + connector.GetRegions() + ", Ids: " + string.Join(", ", connector.GetRegionsIds()));
 
         foreach (var id in connector.GetRegionsIds()) {

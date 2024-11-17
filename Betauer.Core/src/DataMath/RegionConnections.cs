@@ -4,7 +4,7 @@ using Godot;
 
 namespace Betauer.Core.DataMath;
 
-public class Array2DRegionConnections {
+public class RegionConnections {
     public readonly Array2D<bool> Grid;
     public readonly Array2D<int> Labels;
     public int Width => Grid.Width;
@@ -12,10 +12,10 @@ public class Array2DRegionConnections {
     private readonly Dictionary<int, List<Vector2I>> _regionCells = new();
     private readonly List<Vector2I> _noRegion = new();
 
-    public Array2DRegionConnections(int width, int height): this(new Array2D<bool>(width, height)){
+    public RegionConnections(int width, int height): this(new Array2D<bool>(width, height)){
     }
 
-    public Array2DRegionConnections(Array2D<bool> grid) {
+    public RegionConnections(Array2D<bool> grid) {
         Grid = grid;
         Labels = new Array2D<int>(grid.Width, grid.Height).Fill(0);
         ProcessGrid();

@@ -86,6 +86,17 @@ public abstract class BaseMazeCarver {
                 }
             }
         } while (!done);
+        for (var y = 1; y < Height - 1; y++) {
+            for (var x = 1; x < Width - 1; x++) {
+                var pos = new Vector2I(x, y);
+                if (IsCarved(pos)) {
+                    var exits = Directions.Count(dir => IsCarved(pos + dir));
+                    if (exits == 0) {
+                        UnCarve(pos);
+                    }
+                }
+            }
+        }
     }
 
     public abstract bool IsCarved(Vector2I pos);
