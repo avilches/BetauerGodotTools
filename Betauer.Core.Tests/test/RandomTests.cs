@@ -19,6 +19,29 @@ public class RandomTests {
     public const float NUnitTolerance = Tolerance * 100;
 
     [Betauer.TestRunner.Test]
+    public void RatioTests() {
+        var rnd = new Random(0);
+        var lt1 = 0;
+        var gt1 = 0;
+        var eq = 0;
+        var total = 100000;
+        for (var i = 0; i < total; i++) {
+            var ratio = rnd.NextRatio(0.5f, 2f);
+            if (ratio < 1f) {
+                lt1++;
+            } else if (ratio > 1f) {
+                gt1++;
+            } else {
+                eq++;
+            }
+        }
+        // 1 Percent means, 0.4950 fails, 0.49500000000000003 passes
+        Assert.That((float)lt1/total, Is.EqualTo(0.5f).Within(1).Percent);
+        Assert.That((float)gt1/total, Is.EqualTo(0.5f).Within(1).Percent);
+        
+    }
+
+    [Betauer.TestRunner.Test]
     public void UniformRangeIntTest() {
         var rnd = new Random(0);
         int min = -3;
