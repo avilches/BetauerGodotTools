@@ -1,4 +1,4 @@
-namespace Betauer.Core.DataMath.Maze;
+namespace Betauer.Core.DataMath.Maze.ExampleDart;
 
 public enum TileType {
     Wall,

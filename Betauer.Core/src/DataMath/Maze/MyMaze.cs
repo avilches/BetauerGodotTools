@@ -5,114 +5,61 @@ using Godot;
 
 namespace Betauer.Core.DataMath.Maze;
 
-public class MazeCarver {
-    public Array2D<bool> Stage { get; init; }
-    private static readonly Vector2I[] Directions = { Vector2I.Up, Vector2I.Down, Vector2I.Right, Vector2I.Left };
-
-    public MazeCarver(Array2D<bool> stage) {
-        Stage = stage;
-    }
-
-    public int FillMazes(float windyRatio, int startRegion, Random rng) {
-        var mazes = 0;
-        for (var y = 1; y < Stage.Height; y += 2) {
-            for (var x = 1; x < Stage.Width; x += 2) {
-                var pos = new Vector2I(x, y);
-                if (IsCarved(Stage[x, y])) continue;
-                GrowMaze(pos, windyRatio, startRegion + mazes, rng);
-                mazes++;
-            }
-        }
-        return mazes;
-    }
-
-    private bool IsCarved(bool b) {
-        return b;
-    }
-
-    /// <summary>
-    /// Generate a maze starting from a given position
-    /// </summary>
-    /// <param name="start"></param>
-    /// <param name="windyRatio">0 means straight lines, 1 means winding paths... 0.7f means 70% winding paths, 30% change straight line</param>
-    /// <param name="label">The maze section, just a number to identify the mazo</param>
-    /// <param name="rng">The maze section, just a number to identify the mazo</param>
-    public void GrowMaze(Vector2I start, float windyRatio, int label, Random rng) {
-        var cells = new Stack<Vector2I>();
-        Vector2I? lastDir = null;
-
-        Carve(start, TileType.OpenDoor, label);
-
-        cells.Push(start);
-        while (cells.Count > 0) {
-            var cell = cells.Peek();
-            var nextCellsAvailable = Directions.Where(dir => CanCarve(cell, dir)).ToList();
-            if (nextCellsAvailable.Count == 0) {
-                cells.Pop();
-                lastDir = null;
-                Carve(start, TileType.ClosedDoor, label);
-                continue;
-            }
-            Vector2I dir = lastDir.HasValue && nextCellsAvailable.Contains(lastDir.Value) && rng.NextSingle() < windyRatio
-                ? lastDir.Value // Windy path, keep the same direction
-                : rng.Next(nextCellsAvailable); // Random path
-
-            Carve(cell + dir, TileType.Path, label);
-            Carve(cell + dir * 2, TileType.Path, label);
-            cells.Push(cell + dir * 2);
-            lastDir = dir;
-        }
-    }
-
-    public void Carve(Vector2I pos, TileType type, int region) {
-        var dataCells = Stage;
-        dataCells[pos] = true;
-    }
-
-    private bool CanCarve(Vector2I pos, Vector2I direction) {
-        var vector2I = pos + direction * 3;
-        return Geometry.Geometry.IsPointInRectangle(vector2I.X, vector2I.Y, 0f, 0f, Stage.Width, Stage.Height) &&
-               !IsCarved(Stage[pos + direction * 2]);
-    }
-}
-
 public class MyMazeDungeonDemo {
     public static void Main() {
-        var random = new Random(3);
+        var random = new Random(2);
 
-        const int width = 141, height = 141;
+        const int width = 41, height = 41;
 
         var grid = new Array2D<bool>(width, height).Fill(false);
         const float ratio = 16 / 9f;
-        var rooms = CreateRooms(100, 5, 13, ratio, width, height, random);
+        var rooms = CreateRooms(15, 3, 9, ratio, width, height, random);
         rooms.ForEach(room => Geometry.Geometry.GetEnumerator(room).ForEach(pos => grid[pos] = true));
 
-        foreach (var b in grid) {
-            Console.Write(b.Value ? " " : "#");
-            if (b.Position.X == grid.Width - 1) {
-                Console.WriteLine();
-            }
-        }
+        PrintMaze(grid);
 
         var mc = new MazeCarver(grid);
         mc.FillMazes(0.7f, rooms.Count, random);
 
+        PrintMaze(grid);
+
+        var array2DRegionConnections = new Array2DRegionConnections(grid);
+        // PrintRegions(array2DRegionConnections.Labels);
+
+        var regionConnectionsMap = array2DRegionConnections.GetConnectingCellsByRegion();
+        ReduceConnections(regionConnectionsMap, width, height, random);
+        var candidates = regionConnectionsMap.Values.SelectMany(i=>i).ToList();
+        random.Shuffle(candidates);
+        
+        var unnecessary = new List<Vector2I>();
+        var doors = new HashSet<Vector2I>(); 
+        candidates.ForEach(pos => {
+            if (array2DRegionConnections.GetRegions() > 1) {
+                array2DRegionConnections.ToggleCell(pos, true);
+                doors.Add(pos);
+            } else {
+                unnecessary.Add(pos);
+            }
+        });
+        mc.RemoveDeadEnds();
+
         foreach (var b in grid) {
-            Console.Write(b.Value ? " " : "#");
+            if (b.Value) {
+                if (doors.Contains(b.Position)) {
+                    Console.Write("o");
+                } else {
+                    Console.Write(" ");
+                }
+            } else {
+                Console.Write("#");
+            }
             if (b.Position.X == grid.Width - 1) {
                 Console.WriteLine();
             }
         }
+    }
 
-        var gc = new Array2DRegionConnections(grid);
-        PrintRegions(gc.Labels);
-
-        while (gc.GetRegions() > 1) {
-            foreach (var (position, regions) in gc.GetConnectingCells()) {
-                grid[position] = true;
-            }
-        }
-
+    private static void PrintMaze(Array2D<bool> grid) {
         foreach (var b in grid) {
             Console.Write(b.Value ? " " : "#");
             if (b.Position.X == grid.Width - 1) {
@@ -121,12 +68,78 @@ public class MyMazeDungeonDemo {
         }
     }
 
-    private static List<Rect2I> CreateRooms(int numRoomTries, int min, int max, float ratio, int boundsWidth, int boundsHeight, Random rng) {
+    private static void PrintRegions(Array2D<int> stage) {
+        for (int y = 0; y < stage.Height; y++) {
+            for (int x = 0; x < stage.Width; x++) {
+                var tile = stage[x, y];
+                if (tile == 0) {
+                    Console.Write(" ");
+                } else {
+                    Console.Write(tile.ToString("x8").Substring(7, 1));
+                }
+            }
+            Console.WriteLine();
+        }
+        Console.WriteLine("--------------------");
+    }
+
+    /// <summary>
+    /// Connect the regions by adding a connector between them.
+    /// It receives a dictionary with the regions as keys and the list of connecting cells as values and mutate these lists to reduce the connections.
+    /// These lists contain a lot of adjacent cells, so it will select one randomly. To do that, it generates a new Array2DRegionConnections empty, and put all
+    /// the connections them. Then, it gets the regions and select one cell randomly from each region.
+    /// That will result in a list of cells that will be the connectors, but not adjacent between them.
+    /// 
+    /// For example, in the following map, the regions 1 and 2 have multiple connection cells marked with "·":
+    /// 1111111·2222·111
+    ///       1·2222·1 1
+    ///    55 1·2222·1 1
+    ///  5555 1·2222·1 1
+    ///    55 1        1
+    ///    55 1 11111111
+    /// 
+    /// This method will create a temporal grid like this:
+    ///        ·    ·
+    ///        ·    ·
+    ///        ·    ·
+    ///        ·    ·
+    /// The connection cells will create two regions, this method will select only one cell from each region randomly. In this case, the third of the first
+    /// column and the first of the second column. If this connection are enabled, the regions 1 and 2 will be connected, creating a one single region "1"
+    ///  111111 11111111
+    ///       1 1111 1 1
+    ///    55 111111 1 1
+    ///  5555 1 1111 1 1
+    ///    55 1        1
+    ///    55 1 11111111
+    /// 
+    /// </summary>
+    /// <param name="regionsConnectedMap"></param>
+    /// <param name="width"></param>
+    /// <param name="height"></param>
+    /// <param name="random"></param>
+    private static void ReduceConnections(Dictionary<string, List<Vector2I>> regionsConnectedMap, int width, int height, Random random) {
+        var grid = new Array2D<bool>(width, height);
+        var gridCleaner = new Array2DRegionConnections(grid);
+        regionsConnectedMap.Values.ForEach(connectors => {
+            var candidates = new List<Vector2I>();
+            gridCleaner.Grid.Fill(false);
+            gridCleaner.Update();
+            connectors.ForEach(conn => gridCleaner.ToggleCell(conn, true));
+            gridCleaner.GetRegionsIds().ForEach(id => {
+                candidates.Add(random.Next(gridCleaner.GetRegionCells(id)));
+            });
+            connectors.Clear();
+            connectors.AddRange(candidates);
+        });
+    }
+
+
+    private static List<Rect2I> CreateRooms(int roomCount, int min, int max, float ratio, int boundsWidth, int boundsHeight, Random rng) {
         var rooms = new List<Rect2I>();
         var bounds = new Rect2I(0, 0, boundsWidth, boundsHeight);
 
-        /*
         var landscapes = 0;
+        /*
         var tries = 1000000;
         for (var i = 0; i < tries; i++) {
             var ratio = rng.NextRatio(minRatio, maxRatio);
@@ -136,8 +149,8 @@ public class MyMazeDungeonDemo {
         }
         Console.WriteLine("Landscapes: "+landscapes+" of "+tries+" = "+((float)landscapes*100/tries)+"%");
         */
-
-        for (var i = 0; i < numRoomTries * 10; i++) {
+        var numRoomTries = 0;
+        while (rooms.Count < roomCount || numRoomTries++ > 1000) {
             var randomRatio = rng.NextRatio(1f / ratio, ratio);
             var length = rng.Next(min, max + 1);
             var room = Geometry.Geometry.CreateRect2I(randomRatio, length, Geometry.Geometry.RectanglePart.Ratio);
@@ -163,70 +176,11 @@ public class MyMazeDungeonDemo {
             var overlaps = rooms.Any(other => Geometry.Geometry.IntersectRectangles(other, room));
             if (!overlaps) {
                 rooms.Add(room);
+                landscapes += room.Size.X > room.Size.Y ? 1 : 0;
                 // Console.WriteLine(room.Position + " " + room.Size + " " + (randomRatio < 1 ? 1f / randomRatio : randomRatio));
             }
         }
+        Console.WriteLine("Landscapes: "+landscapes+" of "+rooms.Count+" = "+((float)landscapes*100/rooms.Count)+"%");
         return rooms;
-    }
-
-    private static void PrintRegions(Array2D<int> stage) {
-        for (int y = 0; y < stage.Height; y++) {
-            for (int x = 0; x < stage.Width; x++) {
-                var tile = stage[x, y];
-                if (tile == 0) {
-                    Console.Write(" ");
-                } else {
-                    Console.Write(tile.ToString("x8").Substring(7, 1));
-                }
-            }
-            Console.WriteLine();
-        }
-        Console.WriteLine("--------------------");
-    }
-
-    public static void PrintStage(Array2D<Cell> data) {
-        foreach (var cell in data) {
-            var c = cell.Value.Type switch {
-                // TileType.Wall => ' ',
-                // TileType.Floor => '*',
-                // TileType.Path => '#',
-                // TileType.OpenDoor => '+',
-                // TileType.ClosedDoor => '+',
-                TileType.Wall => '#',
-                TileType.Floor => ' ',
-                TileType.Path => '.',
-                TileType.OpenDoor => '+',
-                TileType.ClosedDoor => '-',
-                _ => ' '
-            };
-            Console.Write(c);
-            if (cell.Position.X == data.Width - 1) {
-                Console.WriteLine();
-            }
-        }
-    }
-
-    public static void PrintStage(MazeDungeon dungeon) {
-        var stage = dungeon.Stage;
-        for (int y = 0; y < stage.Height; y++) {
-            for (int x = 0; x < stage.Width; x++) {
-                var tile = stage.GetValue(new Vector2I(x, y));
-                var c = tile.Type switch {
-                    // TileType.Wall => ' ',
-                    // TileType.Floor => '*',
-                    // TileType.Path => '#',
-                    // TileType.OpenDoor => '+',
-                    // TileType.ClosedDoor => '+',
-                    TileType.Wall => '#',
-                    TileType.Floor => ' ',
-                    TileType.Path => '.',
-                    TileType.OpenDoor => '+',
-                    TileType.ClosedDoor => '-',
-                    _ => ' '
-                };
-                Console.Write(c);
-            }
-            Console.WriteLine();
-        }
     }
 }

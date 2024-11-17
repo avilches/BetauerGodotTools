@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Godot;
 
-namespace Betauer.Core.DataMath.Maze;
+namespace Betauer.Core.DataMath.Maze.ExampleDart;
 
 public class MazeDungeon {
     private static readonly Vector2I[] Directions = { Vector2I.Up, Vector2I.Down, Vector2I.Right, Vector2I.Left };

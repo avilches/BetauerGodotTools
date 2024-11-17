@@ -52,7 +52,7 @@ public class Array2DRegionConnections {
         while (queue.Count > 0) {
             var current = queue.Dequeue();
             foreach (var neighbor in GetNeighbors(current)) {
-                if (Grid[neighbor.X, neighbor.Y] && 
+                if (Grid[neighbor.X, neighbor.Y] &&
                     Labels[neighbor.X, neighbor.Y] == 0) {
                     Labels[neighbor.X, neighbor.Y] = label;
                     cells.Add(neighbor);
@@ -100,7 +100,7 @@ public class Array2DRegionConnections {
             yield return (x, adjacentRegions.ToArray());
         }
     }
-    
+
     public IEnumerable<Vector2I> GetIsolatedCells() {
         return GetNoRegionCells().Where(b => b.Regions.Length == 0).Select(b => b.Position);
     }
@@ -108,7 +108,7 @@ public class Array2DRegionConnections {
     public IEnumerable<(Vector2I Position, int Region)> GetExpandableCells() {
         return GetNoRegionCells().Where(b => b.Regions.Length == 1).Select(b => (b.Position, b.Regions[0]));
     }
-    
+
     public Dictionary<Vector2I, int> GetExpandableCellsByPosition() {
         var expandable = new Dictionary<Vector2I, int>();
         foreach (var (position, region) in GetExpandableCells()) {
@@ -116,7 +116,7 @@ public class Array2DRegionConnections {
         }
         return expandable;
     }
-    
+
     public Dictionary<int, List<Vector2I>> GetExpandableCellsByRegion() {
         var expandable = new Dictionary<int, List<Vector2I>>();
         foreach (var (position, region) in GetExpandableCells()) {
@@ -124,7 +124,7 @@ public class Array2DRegionConnections {
                 positions.Add(position);
             } else {
                 expandable[region] = new List<Vector2I> { position };
-            }       
+            }
         }
         return expandable;
     }
@@ -140,7 +140,26 @@ public class Array2DRegionConnections {
         }
         return connectingCells;
     }
-    
+
+    /// <summary>
+    /// The key is a string with the regions separated by commas like "1,3" or "2,3,5"
+    /// </summary>
+    /// <returns></returns>
+    public Dictionary<string, List<Vector2I>> GetConnectingCellsByRegion() {
+        var regionsConnected = new Dictionary<string, List<Vector2I>>();
+        foreach (var (position, regionArray) in GetConnectingCells()) {
+            var regions = regionArray.ToList();
+            regions.Sort();
+            var r = string.Join(",", regions);
+            if (!regionsConnected.TryGetValue(r, out List<Vector2I>? list)) {
+                regionsConnected[r] = list = new List<Vector2I>();
+            }
+            list.Add(position);
+        }
+        return regionsConnected;
+    }
+
+
     public void ToggleCell(Vector2I cell, bool fill) {
         if (fill) {
             if (Grid[cell.X, cell.Y]) return;
