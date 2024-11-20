@@ -183,28 +183,6 @@ public static partial class RandomExtensions {
     }
 
     /// <summary>
-    /// Selects `n` unique random elements from an array `items`.
-    /// </summary>
-    /// <typeparam name="T">The type of elements in the array.</typeparam>
-    /// <param name="random">The instance of the `Random` class.</param>
-    /// <param name="items">The array from which elements are to be selected.</param>
-    /// <param name="n">The number of elements to select.</param>
-    /// <returns>An enumerable containing `n` unique random elements from the input array `items`.</returns>
-    public static IEnumerable<T> Extract<T>(this Random random, T[] items, int n) {
-        var selectedCount = 0;
-        double needed = n;
-        double available = items.Length;
-        while (selectedCount < n) {
-            if (random.NextDouble() < needed / available) {
-                yield return items[Mathf.RoundToInt(available) - 1];
-                selectedCount++;
-                needed--;
-            }
-            available--;
-        }
-    }
-
-    /// <summary>
     /// Selects `n` unique random elements from an IList `items`.
     /// </summary>
     /// <typeparam name="T">The type of elements in the list.</typeparam>
@@ -212,33 +190,8 @@ public static partial class RandomExtensions {
     /// <param name="items">The list from which elements are to be selected.</param>
     /// <param name="n">The number of elements to select.</param>
     /// <returns>An enumerator containing `n` unique random elements from the input list `items`.</returns>
-    public static IEnumerable<T> Extract<T>(this Random random, IList<T> items, int n) {
-        var selectedCount = 0;
-        double needed = n;
-        double available = items.Count;
-        while (selectedCount < n) {
-            if (random.NextDouble() < needed / available) {
-                yield return items[Mathf.RoundToInt(available) - 1];
-                selectedCount++;
-                needed--;
-            }
-            available--;
-        }
-    }
-
-    /// <summary>
-    /// Shuffle the array in place using the Fisher-Yates algorithm.
-    /// https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
-    /// </summary>
-    /// <param name="rng"></param>
-    /// <param name="array"></param>
-    /// <typeparam name="T"></typeparam>
-    public static void Shuffle<T>(this Random rng, T[] array) {
-        var n = array.Length;
-        while (n > 1) {
-            var k = rng.Next(n--);
-            (array[n], array[k]) = (array[k], array[n]);
-        }
+    public static T[] GetItems<T>(this Random random, IList<T> items, int n) {
+        return random.GetItems(items.ToArray(), n);
     }
 
     /// <summary>
