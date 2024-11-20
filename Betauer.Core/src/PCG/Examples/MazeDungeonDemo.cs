@@ -11,17 +11,17 @@ public class MazeDungeonDemo {
     public static void Main() {
         var random = new Random(2);
 
-        const int width = 31, height = 11;
+        const int width = 81, height = 21;
 
         var grid = new Array2D<bool>(width, height).Fill(false);
         const float ratio = 16 / 9f;
-        var rooms = CreateRooms(15, 3, 7, ratio, width, height, random);
+        var rooms = CreateRooms(10, 3, 9, ratio, width, height, random);
         rooms.ForEach(room => DataMath.Geometry.Geometry.GetEnumerator(room).ForEach(pos => grid[pos] = true));
 
         // PrintMaze(grid);
 
         var mc = new MazeCarverBool(grid);
-        mc.FillMazes(0.7f, rooms.Count, random);
+        mc.FillMazes(0.7f, random);
 
         // PrintMaze(grid);
 
@@ -33,32 +33,38 @@ public class MazeDungeonDemo {
         var candidates = regionConnectionsMap.Values.SelectMany(i => i).ToList();
         random.Shuffle(candidates);
 
-        var unnecessary = new List<Vector2I>();
-        var doors = new HashSet<Vector2I>();
+        // Fill all the connections, creating a unique big region with all the mazes and rooms
         candidates.ForEach(pos => {
+            array2DRegionConnections.ToggleCell(pos, true);
+        });
+        
+        var unnecessary = new List<Vector2I>();
+        // Try to remove every connection to see if the regions are still connected, deleting the unnecessary connections
+        candidates.RemoveAll(pos => {
+            array2DRegionConnections.ToggleCell(pos, false);
             if (array2DRegionConnections.GetRegions() > 1) {
                 array2DRegionConnections.ToggleCell(pos, true);
-                doors.Add(pos);
-            } else {
-                unnecessary.Add(pos);
+                return false;
             }
+            unnecessary.Add(pos);
+            return true;
         });
-        mc.RemoveDeadEnds();
 
-        PrintMazeConnections(grid, doors);
-        PrintRegions(array2DRegionConnections);
+        mc.RemoveDeadEnds();
+        PrintMazeConnections(grid, candidates.ToHashSet());
+        // PrintRegions(array2DRegionConnections);
     }
 
     private static void PrintMazeConnections(Array2D<bool> grid, HashSet<Vector2I> doors) {
         foreach (var b in grid) {
             if (b.Value) {
                 if (doors.Contains(b.Position)) {
-                    Console.Write("o");
+                    Console.Write("d");
                 } else {
                     Console.Write(" ");
                 }
             } else {
-                Console.Write("#");
+                Console.Write("█");
             }
             if (b.Position.X == grid.Width - 1) {
                 Console.WriteLine();
@@ -141,7 +147,6 @@ public class MazeDungeonDemo {
     }
 
 
-
     private static List<Rect2I> CreateRooms(int roomCount, int min, int max, float ratio, int boundsWidth, int boundsHeight, Random rng) {
         var rooms = new List<Rect2I>();
         var bounds = new Rect2I(0, 0, boundsWidth - 1, boundsHeight - 1);
@@ -168,7 +173,7 @@ public class MazeDungeonDemo {
             portraits += room.Size.X < room.Size.Y ? 1 : 0;
             squareRooms += room.Size.X == room.Size.Y ? 1 : 0;
         });
-        // Console.WriteLine($"Rooms: {rooms.Count} = Landscapes: {landscapes} ({(float)landscapes * 100 / rooms.Count:0.00}%) Portraits: {portraits} ({(float)portraits * 100 / rooms.Count:0.00}%) Squares: {squareRooms} ({(float)squareRooms * 100 / rooms.Count:0.00}%)");
+        Console.WriteLine($"Rooms: {rooms.Count} = Landscapes: {landscapes} ({(float)landscapes * 100 / rooms.Count:0.00}%) Portraits: {portraits} ({(float)portraits * 100 / rooms.Count:0.00}%) Squares: {squareRooms} ({(float)squareRooms * 100 / rooms.Count:0.00}%)");
         return rooms;
     }
 
@@ -183,7 +188,7 @@ public class MazeDungeonDemo {
     private static List<Vector2I> GetEvenPairs(int min, int max, float ratio) {
         var pairsWithinRatio = DataMath.Geometry.Geometry.GetPairsWithinRatio(min, max, 1, ratio, 2).ToList();
         pairsWithinRatio.AddRange(pairsWithinRatio
-            .Where(pair=> pair.X != pair.Y) // ignore squares
+            .Where(pair => pair.X != pair.Y) // ignore squares
             .Select(pair => new Vector2I(pair.Y, pair.X)).ToList()); // Rotate
         pairsWithinRatio.ForEach(par => {
             var (x, y) = par;
