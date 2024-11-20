@@ -23,6 +23,20 @@ public static partial class Geometry {
         return IsPointInRectangle(point.X, point.Y, rect.Position.X, rect.Position.Y, rect.Size.X, rect.Size.Y);
     }
 
+    public static bool IsPointInRectangle(Vector2I point, Rect2I rect) {
+        return IsPointInRectangle(point.X, point.Y, rect.Position.X, rect.Position.Y, rect.Size.X, rect.Size.Y);
+    }
+
+    public static bool IsPointInRectangle(int px, int py, int rx, int ry, int width, int height) {
+        if (width == 0 || height == 0) { // No area, no intersection
+            return false;
+        }
+        return px >= rx &&
+               px < rx + width &&
+               py >= ry &&
+               py < ry + height;
+    }
+
     public static bool IsPointInRectangle(float px, float py, float rx, float ry, float width, float height) {
         if (width == 0 || height == 0) { // No area, no intersection
             return false;
