@@ -1,13 +1,22 @@
 using System;
 using System.Collections.Generic;
 
-namespace Betauer.Core; 
+namespace Betauer.Core;
 
 public static class StringTools {
     public static string Concatenated<T>(this IEnumerable<T> items, string e = "") =>
         string.Join(e, items);
 
-    
+
+    public static string PadCenter(this string source, int totalWidth, char paddingChar = ' ') {
+        if (totalWidth <= source.Length) return source;
+
+        var padding = totalWidth - source.Length;
+        var padLeft = padding / 2 + source.Length;
+        return source.PadLeft(padLeft, paddingChar).PadRight(totalWidth, paddingChar);
+    }
+
+
     public static string HumanReadableBytes(this long numBytes) {
         return numBytes < 0
             ? $"-{_PositiveHumanReadableBytes(Math.Abs(numBytes))}"
@@ -62,6 +71,7 @@ public static class StringTools {
     public static string JoinString(string[] data) {
         return JoinString(data, (char)0);
     }
+
     public static string JoinString(string[] data, char sep) {
         var hasSep = sep != (char)0;
         var size = hasSep ? data.Length - 1 : 0;
