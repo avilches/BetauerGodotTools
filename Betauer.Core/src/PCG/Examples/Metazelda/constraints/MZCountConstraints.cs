@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using Betauer.Core.PCG.LockTree.Metazelda.util;
+using Betauer.Core.PCG.Examples.Metazelda.util;
 using Godot;
 
-namespace Betauer.Core.PCG.LockTree.Metazelda.constraints;
+namespace Betauer.Core.PCG.Examples.Metazelda.constraints;
 
 /**
 * Limits the {@link generators.IMZDungeonGenerator} in

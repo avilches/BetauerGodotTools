@@ -1,6 +1,6 @@
 using System;
 
-namespace Betauer.Core.PCG.LockTree.Metazelda;
+namespace Betauer.Core.PCG.Examples.Metazelda;
 
 /**
  * Used to represent {@link MZRoom}s' preconditions.

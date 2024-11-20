@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Godot;
 
-namespace Betauer.Core.PCG.LockTree.Metazelda.constraints;
+namespace Betauer.Core.PCG.Examples.Metazelda.constraints;
 
 /**
 * Implementing classes may specify constraints to be placed on MZDungeon

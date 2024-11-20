@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Godot;
 
-namespace Betauer.Core.PCG.LockTree.Metazelda.constraints;
+namespace Betauer.Core.PCG.Examples.Metazelda.constraints;
 
 /**
 * Constrains the coordinates where MZRooms may be placed to be only those within

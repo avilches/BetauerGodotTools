@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Betauer.Core.PCG.LockTree.Metazelda.constraints;
-using Betauer.Core.PCG.LockTree.Metazelda.generators;
+using Betauer.Core.PCG.Examples.Metazelda;
+using Betauer.Core.PCG.Examples.Metazelda.constraints;
+using Betauer.Core.PCG.Examples.Metazelda.generators;
 using Godot;
 
-namespace Betauer.Core.PCG.LockTree.Metazelda;
+namespace Betauer.Core.PCG.Examples;
 
 /**
 * If you just want to use the Metazelda library, this is the only file you need to modify / replace.
 */
-public class DemoLockKey {
+public class MetazeldaDemo {
     public static int boxWidth = 20;
     public static int boxHeight = 4;
 

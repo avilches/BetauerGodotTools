@@ -1,4 +1,4 @@
-﻿namespace Betauer.Core.PCG.LockTree.Metazelda.util;
+﻿namespace Betauer.Core.PCG.Examples.Metazelda.util;
 
 public class MZRect
 {

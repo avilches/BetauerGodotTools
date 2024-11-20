@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Godot;
 
-namespace Betauer.Core.PCG.LockTree.Metazelda;
+namespace Betauer.Core.PCG.Examples.Metazelda;
 
 /**
 * Represents an individual space within the dungeon.

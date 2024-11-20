@@ -4,7 +4,7 @@ using System.Linq;
 using Betauer.Core.DataMath;
 using Godot;
 
-namespace Betauer.Core.PCG.Maze.ExampleDart;
+namespace Betauer.Core.PCG.Examples.ExampleDart;
 
 public class MazeDungeon {
     private static readonly Vector2I[] Directions = { Vector2I.Up, Vector2I.Down, Vector2I.Right, Vector2I.Left };

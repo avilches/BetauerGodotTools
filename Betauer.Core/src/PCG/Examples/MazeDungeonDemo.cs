@@ -2,11 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Betauer.Core.DataMath;
+using Betauer.Core.PCG.Maze;
 using Godot;
 
-namespace Betauer.Core.PCG.Maze;
+namespace Betauer.Core.PCG.Examples;
 
-public class DungeonDemo {
+public class MazeDungeonDemo {
     public static void Main() {
         var random = new Random(2);
 

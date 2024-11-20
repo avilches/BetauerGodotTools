@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using Betauer.Core.DataMath.Collision.Spatial2D;
 using Betauer.Core.Image;
+using Betauer.Core.PCG.Bsp;
 using Betauer.Core.PCG.Graph;
 using Godot;
 
-namespace Betauer.Core.PCG.Bsp;
+namespace Betauer.Core.PCG.Examples;
 
 public class BspTreeDemo {
     public static void Main() {

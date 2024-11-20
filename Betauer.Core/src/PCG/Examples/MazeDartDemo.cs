@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Betauer.Core.PCG.Examples.ExampleDart;
 using Godot;
 
-namespace Betauer.Core.PCG.Maze.ExampleDart;
+namespace Betauer.Core.PCG.Examples;
 
-public class ExampleDartMazeDungeonDemo {
+public class MazeDartDemo {
     public static void Main() {
         var random = new Random(0);
         var dungeon = new MazeDungeon(41, 41);
