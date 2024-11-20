@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Betauer.Core.DataMath;
 using Godot;
@@ -68,18 +69,18 @@ public class RegionConnections {
         return _regionCells.Count;
     }
 
-    public List<int> GetRegionsIds() {
+    public IList<int> GetRegionsIds() {
         return _regionCells.Keys.ToList();
     }
 
-    public List<Vector2I> GetRegionCells(int region) {
+    public IList<Vector2I> GetRegionCells(int region) {
         if (region == 0) {
             return _noRegion;
         }
         if (_regionCells.TryGetValue(region, out List<Vector2I>? value)) {
             return value;
         }
-        return new List<Vector2I>();
+        return ImmutableList<Vector2I>.Empty;
     }
 
     /// <summary>
