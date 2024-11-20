@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using Betauer.Core.PCG.Examples.Metazelda.constraints;
-using Betauer.Core.PCG.Examples.Metazelda.util;
+using Betauer.Core.PCG.Examples.ThirdPartyCode.Metazelda.constraints;
+using Betauer.Core.PCG.Examples.ThirdPartyCode.Metazelda.util;
 using Godot;
 
-namespace Betauer.Core.PCG.Examples.Metazelda.generators;
+namespace Betauer.Core.PCG.Examples.ThirdPartyCode.Metazelda.generators;
 
 /**
 * The default and reference implementation of an {@link IMZDungeonGenerator}.

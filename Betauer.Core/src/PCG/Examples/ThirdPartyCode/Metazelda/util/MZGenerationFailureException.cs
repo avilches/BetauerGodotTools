@@ -1,6 +1,6 @@
 using System;
 
-namespace Betauer.Core.PCG.Examples.Metazelda.util;
+namespace Betauer.Core.PCG.Examples.ThirdPartyCode.Metazelda.util;
 
 public class MZGenerationFailureException : Exception {
     public MZGenerationFailureException(string message) : base(message) {

@@ -1,4 +1,4 @@
-namespace Betauer.Core.PCG.Examples.Metazelda;
+namespace Betauer.Core.PCG.Examples.ThirdPartyCode.Metazelda;
 
 /**
 * Represents a single key or lock within the lock-and-key puzzle.

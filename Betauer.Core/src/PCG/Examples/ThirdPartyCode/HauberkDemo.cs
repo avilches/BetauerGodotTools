@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Betauer.Core.PCG.Examples.ExampleDart;
+using Betauer.Core.PCG.Examples.ThirdPartyCode.Hauberk;
 using Godot;
 
-namespace Betauer.Core.PCG.Examples;
+namespace Betauer.Core.PCG.Examples.ThirdPartyCode;
 
 public class MazeDartDemo {
     public static void Main() {

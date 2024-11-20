@@ -1,4 +1,4 @@
-namespace Betauer.Core.PCG.Examples.Metazelda;
+namespace Betauer.Core.PCG.Examples.ThirdPartyCode.Metazelda;
 
 /**
 * Links two {@link MZRoom}s.

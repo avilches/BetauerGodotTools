@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Godot;
 
-namespace Betauer.Core.PCG.Examples.Metazelda.constraints;
+namespace Betauer.Core.PCG.Examples.ThirdPartyCode.Metazelda.constraints;
 
 /**
 * Controls which spaces are valid for an

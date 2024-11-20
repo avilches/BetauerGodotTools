@@ -1,4 +1,4 @@
-﻿namespace Betauer.Core.PCG.Examples.Metazelda.util;
+﻿namespace Betauer.Core.PCG.Examples.ThirdPartyCode.Metazelda.util;
 
 public class MZRect
 {

@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Betauer.Core.PCG.Examples.Metazelda;
-using Betauer.Core.PCG.Examples.Metazelda.constraints;
-using Betauer.Core.PCG.Examples.Metazelda.generators;
+using Betauer.Core.PCG.Examples.ThirdPartyCode.Metazelda;
+using Betauer.Core.PCG.Examples.ThirdPartyCode.Metazelda.constraints;
+using Betauer.Core.PCG.Examples.ThirdPartyCode.Metazelda.generators;
 using Godot;
 
-namespace Betauer.Core.PCG.Examples;
+namespace Betauer.Core.PCG.Examples.ThirdPartyCode;
 
 /**
 * If you just want to use the Metazelda library, this is the only file you need to modify / replace.

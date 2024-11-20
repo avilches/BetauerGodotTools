@@ -1,4 +1,4 @@
-namespace Betauer.Core.PCG.Examples.ExampleDart;
+namespace Betauer.Core.PCG.Examples.ThirdPartyCode.Hauberk;
 
 public class Cell {
     public TileType Type;
