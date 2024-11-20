@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Godot;
 
-namespace Betauer.Core.DataMath.Maze.ExampleDart;
+namespace Betauer.Core.PCG.Maze.ExampleDart;
 
 public class ExampleDartMazeDungeonDemo {
     public static void Main() {
@@ -46,7 +46,7 @@ public class ExampleDartMazeDungeonDemo {
             var x = rng.Next((boundsWidth - width) / 2) * 2 + 1;
             var y = rng.Next((boundsHeight - height) / 2) * 2 + 1;
             var room = new Rect2I(x, y, width, height);
-            var overlaps = rooms.Any(other => Geometry.Geometry.IntersectRectangles(other, room));
+            var overlaps = rooms.Any(other => DataMath.Geometry.Geometry.IntersectRectangles(other, room));
             if (!overlaps) rooms.Add(room);
         }
         return rooms;

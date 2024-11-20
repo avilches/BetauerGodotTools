@@ -1,8 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
+using Betauer.Core.DataMath;
 using Godot;
 
-namespace Betauer.Core.DataMath;
+namespace Betauer.Core.PCG;
 
 public class RegionConnections {
     public readonly Array2D<bool> Grid;

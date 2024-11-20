@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Betauer.Core.DataMath;
 using Godot;
 
-namespace Betauer.Core.DataMath.Maze;
+namespace Betauer.Core.PCG.Maze;
 
 public class DungeonDemo {
     public static void Main() {
@@ -14,7 +15,7 @@ public class DungeonDemo {
         var grid = new Array2D<bool>(width, height).Fill(false);
         const float ratio = 16 / 9f;
         var rooms = CreateRooms(15, 3, 7, ratio, width, height, random);
-        rooms.ForEach(room => Geometry.Geometry.GetEnumerator(room).ForEach(pos => grid[pos] = true));
+        rooms.ForEach(room => DataMath.Geometry.Geometry.GetEnumerator(room).ForEach(pos => grid[pos] = true));
 
         // PrintMaze(grid);
 
@@ -151,10 +152,10 @@ public class DungeonDemo {
             var room = new Rect2I(Vector2I.Zero, pair.X, pair.Y);
             var numPositionTries = 0;
             while (numPositionTries++ < 1000) {
-                room = Geometry.Geometry.PositionRect2IRandomly(room, bounds, rng);
+                room = DataMath.Geometry.Geometry.PositionRect2IRandomly(room, bounds, rng);
                 if (room.Position.X % 2 == 0) room = new Rect2I(new Vector2I(room.Position.X + 1, room.Position.Y), room.Size);
                 if (room.Position.Y % 2 == 0) room = new Rect2I(new Vector2I(room.Position.X, room.Position.Y + 1), room.Size);
-                if (!rooms.Any(other => Geometry.Geometry.IntersectRectangles(other, room))) {
+                if (!rooms.Any(other => DataMath.Geometry.Geometry.IntersectRectangles(other, room))) {
                     rooms.Add(room);
                     break;
                 }
@@ -179,7 +180,7 @@ public class DungeonDemo {
     /// <param name="ratio"></param>
     /// <returns></returns>
     private static List<Vector2I> GetEvenPairs(int min, int max, float ratio) {
-        var pairsWithinRatio = Geometry.Geometry.GetPairsWithinRatio(min, max, 1, ratio, 2).ToList();
+        var pairsWithinRatio = DataMath.Geometry.Geometry.GetPairsWithinRatio(min, max, 1, ratio, 2).ToList();
         pairsWithinRatio.AddRange(pairsWithinRatio
             .Where(pair=> pair.X != pair.Y) // ignore squares
             .Select(pair => new Vector2I(pair.Y, pair.X)).ToList()); // Rotate

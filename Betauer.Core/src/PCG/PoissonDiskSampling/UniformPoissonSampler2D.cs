@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Betauer.Core.DataMath.PoissonDiskSampling.Utils;
+using Betauer.Core.PCG.PoissonDiskSampling.Utils;
 using Godot;
 
-namespace Betauer.Core.DataMath.PoissonDiskSampling;
+namespace Betauer.Core.PCG.PoissonDiskSampling;
 
 /*
  * https://www.vertexfragment.com/ramblings/variable-density-poisson-sampler/

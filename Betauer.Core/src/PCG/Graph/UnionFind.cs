@@ -1,7 +1,6 @@
-using System;
 using System.Collections.Generic;
 
-namespace Betauer.Core.DataMath.Graph;
+namespace Betauer.Core.PCG.Graph;
 
 public class UnionFind {
     private int[] parent;

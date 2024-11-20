@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Godot;
 
-namespace Betauer.Core.DataMath.Graph;
+namespace Betauer.Core.PCG.Graph;
 
 /// <summary>
 /// https://www.geeksforgeeks.org/prims-minimum-spanning-tree-mst-greedy-algo-5/

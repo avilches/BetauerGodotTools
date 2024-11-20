@@ -1,4 +1,4 @@
-namespace Betauer.Core.DataMath.Data;
+namespace Betauer.Core.Image;
 
 public class BoxBlur {
     public static float[,] ApplyBoxBlur(float[,] map, int blurSize) {

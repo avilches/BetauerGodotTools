@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Betauer.Core;
 using Betauer.Core.DataMath;
-using Betauer.Core.DataMath.Data;
-using Betauer.Core.DataMath.Graph;
 using Betauer.Core.Image;
+using Betauer.Core.PCG.Graph;
 using Godot;
 
 namespace Veronenger.Game.RTS.World;

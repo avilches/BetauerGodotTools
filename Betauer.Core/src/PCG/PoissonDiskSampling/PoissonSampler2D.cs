@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Godot;
 
-namespace Betauer.Core.DataMath.PoissonDiskSampling; 
+namespace Betauer.Core.PCG.PoissonDiskSampling; 
 
 public class PoissonSampler2D {
     /// <summary>

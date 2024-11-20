@@ -1,7 +1,7 @@
 using System;
 using Godot;
 
-namespace Betauer.Core.DataMath.Bsp;
+namespace Betauer.Core.PCG.Bsp;
 
 public class BspNode {
     public readonly int X, Y, Width, Height;

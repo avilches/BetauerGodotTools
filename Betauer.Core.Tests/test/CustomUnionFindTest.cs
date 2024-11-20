@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Betauer.Core.DataMath.Graph;
+using Betauer.Core.PCG.Graph;
 using Betauer.TestRunner;
 using NUnit.Framework;
 

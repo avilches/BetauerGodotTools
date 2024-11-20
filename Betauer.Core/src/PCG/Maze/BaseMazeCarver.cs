@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Godot;
 
-namespace Betauer.Core.DataMath.Maze;
+namespace Betauer.Core.PCG.Maze;
 
 public enum MazeCarveType { Start, Path, End, Empty }
 

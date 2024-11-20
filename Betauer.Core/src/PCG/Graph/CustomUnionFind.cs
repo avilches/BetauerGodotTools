@@ -1,9 +1,7 @@
+using System.Collections.Generic;
 using System.Linq;
 
-namespace Betauer.Core.DataMath.Graph;
-
-using System;
-using System.Collections.Generic;
+namespace Betauer.Core.PCG.Graph;
 
 public class CustomUnionFind {
     private Dictionary<int, int> parent = new Dictionary<int, int>();

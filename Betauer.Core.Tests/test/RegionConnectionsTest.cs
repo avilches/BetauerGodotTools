@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Betauer.Core.DataMath;
-using Betauer.Core.DataMath.Maze;
+using Betauer.Core.PCG;
 using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;

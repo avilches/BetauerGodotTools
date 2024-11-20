@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Godot;
 
-namespace Betauer.Core.DataMath.Bsp;
+namespace Betauer.Core.PCG.Bsp;
 
 public class BspTree {
     private static readonly Random DefaultRandom = new Random();

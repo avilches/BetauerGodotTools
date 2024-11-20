@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.CompilerServices;
 
-namespace Betauer.Core.DataMath.Data;
+namespace Betauer.Core.PCG;
 
 // MIT License
 //

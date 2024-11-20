@@ -2,12 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Betauer.Core.DataMath.Collision.Spatial2D;
-using Betauer.Core.DataMath.Graph;
 using Betauer.Core.Image;
+using Betauer.Core.PCG.Graph;
 using Godot;
-using FastNoiseLite = Betauer.Core.DataMath.Data.FastNoiseLite;
 
-namespace Betauer.Core.DataMath.Bsp;
+namespace Betauer.Core.PCG.Bsp;
 
 public class BspTreeDemo {
     public static void Main() {
@@ -26,8 +25,8 @@ public class BspTreeDemo {
             MaxRatio = 3f/7,
             CreateRoom = (x, y, width, height) => {
                 // return new Rect2I(x, y, width, height);
-                var r = Geometry.Geometry.ShrinkRect2IToEnsureRatio(x, y, width, height, 3f/7);
-                var newRect = Geometry.Geometry.ResizeRect2IByFactor(r, random.Range(shrink, 1f));
+                var r = DataMath.Geometry.Geometry.ShrinkRect2IToEnsureRatio(x, y, width, height, 3f/7);
+                var newRect = DataMath.Geometry.Geometry.ResizeRect2IByFactor(r, random.Range(shrink, 1f));
                 var offsetX = width - newRect.Size.X;
                 var offsetY = height - newRect.Size.Y;
                 return new Rect2I(new Vector2I(x + random.Next(0, offsetX + 1), y + random.Next(0, offsetY + 1)), newRect.Size);

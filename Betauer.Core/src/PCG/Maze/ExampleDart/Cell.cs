@@ -1,4 +1,4 @@
-namespace Betauer.Core.DataMath.Maze.ExampleDart;
+namespace Betauer.Core.PCG.Maze.ExampleDart;
 
 public class Cell {
     public TileType Type;

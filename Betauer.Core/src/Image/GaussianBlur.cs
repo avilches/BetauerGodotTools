@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using Godot;
 
-namespace Betauer.Core.DataMath.Data;
+namespace Betauer.Core.Image;
 
 public class GaussianBlur {
     public static float[,] ApplyGaussianBlur(float[,] map, int radius) {

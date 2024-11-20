@@ -3,7 +3,7 @@ using Betauer.Core.Image;
 using Betauer.TestRunner;
 using Godot;
 using NUnit.Framework;
-using FastNoiseLite = Betauer.Core.DataMath.Data.FastNoiseLite;
+using FastNoiseLite = Betauer.Core.PCG.FastNoiseLite;
 
 namespace Betauer.Core.Tests; 
 

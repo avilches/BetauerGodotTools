@@ -1,6 +1,7 @@
+using Betauer.Core.DataMath;
 using Godot;
 
-namespace Betauer.Core.DataMath.Maze;
+namespace Betauer.Core.PCG.Maze;
 
 public class MazeCarver : BaseMazeCarver {
     public Array2D<MazeCarveType> Grid { get; init; }
@@ -28,7 +29,7 @@ public class MazeCarver : BaseMazeCarver {
 
     public override bool CanCarve(Vector2I pos, Vector2I direction) {
         var vector2I = pos + direction * 3;
-        return Geometry.Geometry.IsPointInRectangle(vector2I.X, vector2I.Y, 0f, 0f, Grid.Width, Grid.Height) &&
+        return DataMath.Geometry.Geometry.IsPointInRectangle(vector2I.X, vector2I.Y, 0f, 0f, Grid.Width, Grid.Height) &&
                !IsCarved(pos + direction * 2);
     }
 }

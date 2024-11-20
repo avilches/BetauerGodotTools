@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Godot;
 
-namespace Betauer.Core.DataMath.Data;
+namespace Betauer.Core.PCG;
 
 /// <summary>
 /// Code from:

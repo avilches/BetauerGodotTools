@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Betauer.Core.DataMath.Collision.Spatial2D;
 using Godot;
 
-namespace Betauer.Core.DataMath.PoissonDiskSampling; 
+namespace Betauer.Core.PCG.PoissonDiskSampling; 
 
 public static class VariablePoissonSampler2DExtensions {
 

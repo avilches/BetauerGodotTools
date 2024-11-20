@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Betauer.Core.DataMath.PoissonDiskSampling.Utils; 
+namespace Betauer.Core.PCG.PoissonDiskSampling.Utils; 
 
 public static class ListExtensions
 {

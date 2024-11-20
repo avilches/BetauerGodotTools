@@ -6,10 +6,10 @@ using Betauer.Core.DataMath;
 using Betauer.Core.DataMath.Collision.Spatial2D;
 using Betauer.Core.DataMath.Data;
 using Betauer.Core.DataMath.Geometry;
-using Betauer.Core.DataMath.PoissonDiskSampling;
 using Betauer.Core.Image;
+using Betauer.Core.PCG.PoissonDiskSampling;
 using Godot;
-using FastNoiseLite = Betauer.Core.DataMath.Data.FastNoiseLite;
+using FastNoiseLite = Betauer.Core.PCG.FastNoiseLite;
 
 namespace Veronenger.Game.RTS.World;
 

@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Betauer.Core.DataMath;
 using Godot;
 
-namespace Betauer.Core.DataMath.Maze.ExampleDart;
+namespace Betauer.Core.PCG.Maze.ExampleDart;
 
 public class MazeDungeon {
     private static readonly Vector2I[] Directions = { Vector2I.Up, Vector2I.Down, Vector2I.Right, Vector2I.Left };
@@ -178,7 +179,7 @@ public class MazeDungeon {
     }
 
     private bool CanCarve(Vector2I pos, Vector2I direction) {
-        return Geometry.Geometry.IsPointInRectangle(pos + direction * 3, Bounds) && 
+        return DataMath.Geometry.Geometry.IsPointInRectangle(pos + direction * 3, Bounds) && 
                Stage[pos + direction * 2].Type == TileType.Wall;
     }
 
@@ -194,7 +195,7 @@ public class MazeDungeon {
 
     
     public void Carve(Rect2I rect, TileType type, int region) {
-        foreach (var pos in Geometry.Geometry.GetEnumerator(rect)) {
+        foreach (var pos in DataMath.Geometry.Geometry.GetEnumerator(rect)) {
             // start regions from 1, because 0 is reserved for walls (the whole grid is filled with walls in the beginning)
             try {
                 Carve(pos, TileType.Floor, region);

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Betauer.Core.DataMath.Graph;
+namespace Betauer.Core.PCG.Graph;
 
 public class Graph<T> where T : notnull {
     public Dictionary<T, List<T>> Data { get; } = new();
