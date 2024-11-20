@@ -9,13 +9,13 @@ namespace Betauer.Core.PCG.Examples;
 
 public class MazeDemo {
     public static void Main() {
-        var random = new Random(1);
+        var random = new Random(3);
 
         const int width = 11, height = 7;
 
         var grid = new Array2D<bool>(width, height).Fill(false);
 
-        var mc = new MazeCarverBool(grid);
+        var mc = MazeCarver.Create(grid);
         Console.WriteLine("Mazes: "+mc.FillMazes(0.7f, random));
 
         PrintMaze(grid);

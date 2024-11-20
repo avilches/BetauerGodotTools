@@ -20,7 +20,7 @@ public class MazeDungeonDemo {
 
         // PrintMaze(grid);
 
-        var mc = new MazeCarverBool(grid);
+        var mc = MazeCarver.Create(grid);
         mc.FillMazes(0.7f, random);
 
         // PrintMaze(grid);
