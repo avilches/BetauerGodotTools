@@ -22,7 +22,7 @@ public class MazeCarver : BaseMazeCarver {
         dataCells[pos] = MazeCarveType.Empty;
     }
 
-    public override void Carve(Vector2I pos, MazeCarveType type, int region) {
+    public override void Carve(Vector2I pos, MazeCarveType type) {
         var dataCells = Grid;
         dataCells[pos] = type;
     }

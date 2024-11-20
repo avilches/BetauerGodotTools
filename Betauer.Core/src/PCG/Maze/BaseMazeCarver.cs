@@ -18,13 +18,13 @@ public abstract class BaseMazeCarver {
         Height = height;
     }
 
-    public int FillMazes(float windyRatio, int startRegion, Random rng) {
+    public int FillMazes(float windyRatio, Random rng) {
         var mazes = 0;
         for (var y = 1; y < Height; y += 2) {
             for (var x = 1; x < Width; x += 2) {
                 var pos = new Vector2I(x, y);
                 if (IsCarved(pos)) continue;
-                GrowMaze(pos, windyRatio, startRegion + mazes, rng);
+                GrowMaze(pos, windyRatio, mazes, rng);
                 mazes++;
             }
         }
@@ -43,30 +43,36 @@ public abstract class BaseMazeCarver {
         
         var cells = new Stack<Vector2I>();
         Vector2I? lastDir = null;
+        Vector2I lastPos = start;
 
-        Carve(start, MazeCarveType.Start, label);
+        Carve(start, MazeCarveType.Start);
         var size = 1;
 
         cells.Push(start);
-        while (cells.Count > 0) {
+        while (true) {
             var cell = cells.Peek();
             var nextCellsAvailable = Directions.Where(dir => CanCarve(cell, dir)).ToList();
             if (nextCellsAvailable.Count == 0) {
                 cells.Pop();
+                if (cells.Count == 0) {
+                    break;
+                }
                 lastDir = null;
-                Carve(start, MazeCarveType.End, label);
                 continue;
             }
             Vector2I dir = lastDir.HasValue && nextCellsAvailable.Contains(lastDir.Value) && rng.NextSingle() < windyRatio
                 ? lastDir.Value // Windy path, keep the same direction
                 : rng.Next(nextCellsAvailable); // Random path
-
-            Carve(cell + dir, MazeCarveType.Path, label);
-            Carve(cell + dir * 2, MazeCarveType.Path, label);
-            cells.Push(cell + dir * 2);
             lastDir = dir;
+
+            Carve(cell + dir, MazeCarveType.Path);
+            Carve(cell + dir * 2, MazeCarveType.Path);
+            lastPos = cell + dir * 2;
+            cells.Push(lastPos);
             size += 2;
         }
+        Carve(lastPos, MazeCarveType.End);
+        Console.WriteLine(lastPos);
         return size;
     }
 
@@ -103,7 +109,7 @@ public abstract class BaseMazeCarver {
 
     public abstract void UnCarve(Vector2I pos);
 
-    public abstract void Carve(Vector2I pos, MazeCarveType start, int region);
+    public abstract void Carve(Vector2I pos, MazeCarveType start);
 
     public abstract bool CanCarve(Vector2I pos, Vector2I direction);
 }

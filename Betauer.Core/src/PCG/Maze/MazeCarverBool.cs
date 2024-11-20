@@ -22,7 +22,7 @@ public class MazeCarverBool : BaseMazeCarver {
         dataCells[pos] = false;
     }
 
-    public override void Carve(Vector2I pos, MazeCarveType start, int region) {
+    public override void Carve(Vector2I pos, MazeCarveType start) {
         var dataCells = Grid;
         dataCells[pos] = true;
     }
