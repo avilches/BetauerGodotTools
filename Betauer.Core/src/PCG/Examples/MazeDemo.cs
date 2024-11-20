@@ -16,7 +16,7 @@ public class MazeDemo {
         var grid = new Array2D<bool>(width, height).Fill(false);
 
         var mc = MazeCarver.Create(grid);
-        Console.WriteLine("Mazes: "+mc.FillMazes(0.7f, random));
+        Console.WriteLine("Mazes: " + mc.GrowBacktracker(new Vector2I(1, 1), 0.7f, random));
 
         PrintMaze(grid);
     }

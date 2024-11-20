@@ -21,7 +21,16 @@ public class MazeDungeonDemo {
         // PrintMaze(grid);
 
         var mc = MazeCarver.Create(grid);
-        mc.FillMazes(0.7f, random);
+
+        for (var y = 1; y < mc.Height; y += 2) {
+            for (var x = 1; x < mc.Width; x += 2) {
+                var pos = new Vector2I(x, y);
+                if (!mc.IsCarved(pos)) {
+                    // mc.GrowBacktracker(pos, 0.7f, random);
+                    mc.GrowEller(pos, 0.7f, random);
+                }
+            }
+        }
 
         // PrintMaze(grid);
 
