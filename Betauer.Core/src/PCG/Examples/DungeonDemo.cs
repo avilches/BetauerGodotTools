@@ -7,7 +7,7 @@ using Godot;
 
 namespace Betauer.Core.PCG.Examples;
 
-public class MazeDungeonDemo {
+public class DungeonDemo {
     public static void Main() {
         var random = new Random(2);
 
@@ -26,8 +26,9 @@ public class MazeDungeonDemo {
             for (var x = 1; x < mc.Width; x += 2) {
                 var pos = new Vector2I(x, y);
                 if (!mc.IsCarved(pos)) {
-                    // mc.GrowBacktracker(pos, 0.7f, random);
-                    mc.GrowEller(pos, 0.7f, random);
+                    mc.GrowBacktracker(pos, 0.7f, -1, random);
+                    // mc.GrowEller(pos, 0.7f, random);
+                    // mc.GrowBreadthFirst(pos, 0.5f, random);
                 }
             }
         }
@@ -43,10 +44,8 @@ public class MazeDungeonDemo {
         random.Shuffle(candidates);
 
         // Fill all the connections, creating a unique big region with all the mazes and rooms
-        candidates.ForEach(pos => {
-            array2DRegionConnections.ToggleCell(pos, true);
-        });
-        
+        candidates.ForEach(pos => { array2DRegionConnections.ToggleCell(pos, true); });
+
         var unnecessary = new List<Vector2I>();
         // Try to remove every connection to see if the regions are still connected, deleting the unnecessary connections
         candidates.RemoveAll(pos => {
@@ -59,9 +58,41 @@ public class MazeDungeonDemo {
             return true;
         });
 
-        mc.RemoveDeadEnds();
+        RemoveDeadEnds(mc);
         PrintMazeConnections(grid, candidates.ToHashSet());
         // PrintRegions(array2DRegionConnections);
+    }
+
+    // Remove the mazes with dead ends, leaving only the main paths between rooms
+    private static void RemoveDeadEnds(MazeCarver mc) {
+        bool done;
+        do {
+            done = true;
+            for (var y = 1; y < mc.Height - 1; y++) {
+                for (var x = 1; x < mc.Width - 1; x++) {
+                    var pos = new Vector2I(x, y);
+                    if (!mc.IsCarved(pos)) continue;
+                    var exits = MazeCarver.Directions.Count(dir => mc.IsCarved(pos + dir));
+                    if (exits == 1) {
+                        done = false;
+                        mc.UnCarve(pos);
+                    }
+                }
+            }
+        } while (!done);
+
+        // Clean up isolated cells (cells with no exits)
+        for (var y = 1; y < mc.Height - 1; y++) {
+            for (var x = 1; x < mc.Width - 1; x++) {
+                var pos = new Vector2I(x, y);
+                if (mc.IsCarved(pos)) {
+                    var exits = MazeCarver.Directions.Count(dir => mc.IsCarved(pos + dir));
+                    if (exits == 0) {
+                        mc.UnCarve(pos);
+                    }
+                }
+            }
+        }
     }
 
     private static void PrintMazeConnections(Array2D<bool> grid, HashSet<Vector2I> doors) {
