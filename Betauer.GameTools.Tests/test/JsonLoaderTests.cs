@@ -15,13 +15,13 @@ using NUnit.Framework;
 
 namespace Betauer.GameTools.Tests;
 
-[TestRunner.Test]
+[TestFixture]
 public class JsonLoaderTests {
     public string SaveName1 = "a";
     public string SaveName2 = "b";
 
-    [TestRunner.TearDown]
-    [TestRunner.SetUp]
+    [TearDown]
+    [OneTimeSetUp]
     public void TearDown() {
         File.Delete($"{SaveName1}.metadata");
         File.Delete($"{SaveName1}.data");
@@ -32,7 +32,7 @@ public class JsonLoaderTests {
 
     public string key = new Guid().ToString();
 
-    [TestRunner.Test]
+    [Test]
     public async Task ListNoDataTest() {
         var loader = new MyJsonGameLoader();
         var list = await loader.ListMetadatas();
@@ -43,12 +43,12 @@ public class JsonLoaderTests {
         [JsonInclude] public string MyString { get; set; } = "Hello World";
     }
 
-    [TestRunner.Test(Description = "Error, no metadata")]
+    [Test(Description = "Error, no metadata")]
     public async Task LoadMissingMetadataAndDataTest() {
         await ThrowsAsync<FileNotFoundException>(async () => await new MyJsonGameLoader().LoadMetadata(SaveName1));
     }
 
-    [TestRunner.Test(Description = "Error, no data")]
+    [Test(Description = "Error, no data")]
     public async Task LoadMissingDataTest() {
         var loader = new MyJsonGameLoader();
         await loader.Save(SaveName1, new MyMetadata(), new List<SaveObject>());
@@ -56,7 +56,7 @@ public class JsonLoaderTests {
         await ThrowsAsync<FileNotFoundException>(async () => await loader.LoadMetadata(SaveName1));
     }
 
-    [TestRunner.Test(Description = "Reading metadata: key")]
+    [Test(Description = "Reading metadata: key")]
     public async Task LoadMetadataKeyTest() {
         var loader = new MyJsonGameLoader();
         await loader.Save(SaveName1, new MyMetadata() {
@@ -67,7 +67,7 @@ public class JsonLoaderTests {
         Assert.That(savegame.Name, Is.EqualTo(SaveName1));
     }
 
-    [TestRunner.Test(Description = "Reading metadata: no key")]
+    [Test(Description = "Reading metadata: no key")]
     public async Task LoadMetadataNoTest() {
         var loader = new MyJsonGameLoader();
         await loader.Save(SaveName1, new MyMetadata() {
@@ -78,7 +78,7 @@ public class JsonLoaderTests {
         Assert.That(savegame.Name, Is.EqualTo(SaveName1));
     }
 
-    [TestRunner.Test(Description = "Error reading metadata, missing key")]
+    [Test(Description = "Error reading metadata, missing key")]
     public async Task LoadMissingKeyTest() {
         var loader = new MyJsonGameLoader();
         await loader.Save(SaveName1, new MyMetadata(), new List<SaveObject>(), null, key);
@@ -93,14 +93,14 @@ public class JsonLoaderTests {
         }
     }
 
-    [TestRunner.Test(Description = "Error reading metadata, wrong key")]
+    [Test(Description = "Error reading metadata, wrong key")]
     public async Task LoadWrongKeyTest() {
         var loader = new MyJsonGameLoader();
         await loader.Save(SaveName1, new MyMetadata(), new List<SaveObject>(), null, key);
         await ThrowsAsync<CryptographicException>(async () => await loader.LoadMetadata(SaveName1, key + key));
     }
 
-    [TestRunner.Test(Description = "Error reading plain metadata with key")]
+    [Test(Description = "Error reading plain metadata with key")]
     public async Task LoadNoKeyWithKeyTest() {
         var loader = new MyJsonGameLoader();
         await loader.Save(SaveName1, new MyMetadata(), new List<SaveObject>());
@@ -108,7 +108,7 @@ public class JsonLoaderTests {
     }
 
 
-    [TestRunner.Test(Description = "Error reading metadata, corrupted")]
+    [Test(Description = "Error reading metadata, corrupted")]
     public async Task LoadCorruptedDataTest() {
         var loader = new MyJsonGameLoader();
         await loader.Save(SaveName1, new MyMetadata(), new List<SaveObject>(), null, key);
@@ -170,7 +170,7 @@ public class JsonLoaderTests {
         // public override int Hash() => System.HashCode.Combine(MyY);
     }
 
-    [TestRunner.Test(Description = "Read and write twice to ensure the file is not locked")]
+    [Test(Description = "Read and write twice to ensure the file is not locked")]
     public async Task BasicSaveLoadTest() {
         var loader = new MyJsonGameLoader();
         var data = new List<SaveObject> { new WithData() };
@@ -210,14 +210,14 @@ public class JsonLoaderTests {
         Assert.That(compressedCypherSize, Is.InRange(compressedPlainSize, compressedPlainSize + 80)); // 80 bytes for the compression header
     }
 
-    [TestRunner.Test]
+    [Test]
     public async Task NoCompressTests() {
         var loader = new MyJsonGameLoader();
         await loader.Save(SaveName1, new MyMetadata(), new List<SaveObject>(), null, null, false);
         Assert.That(await File.ReadAllTextAsync(SaveName1 + ".data"), Is.EqualTo("[]"));
     }
 
-    [TestRunner.Test]
+    [Test]
     public async Task CypherTests() {
         var loader = new MyJsonGameLoader();
         var seed = "hola";
@@ -229,7 +229,7 @@ public class JsonLoaderTests {
         Assert.That(await stringReader.ReadToEndAsync(), Is.EqualTo("[]"));
     }
 
-    [TestRunner.Test]
+    [Test]
     public async Task CypherCompressedTests() {
         var loader = new MyJsonGameLoader();
         var seed = "hola";
@@ -242,7 +242,7 @@ public class JsonLoaderTests {
         Assert.That(await stringReader.ReadToEndAsync(), Is.EqualTo("[]"));
     }
 
-    [TestRunner.Test]
+    [Test]
     public async Task CompressedTests() {
         var loader = new MyJsonGameLoader();
         await loader.Save(SaveName1, new MyMetadata(), new List<SaveObject>(), null, null, true);
@@ -250,7 +250,7 @@ public class JsonLoaderTests {
         Assert.That(await stringReader.ReadToEndAsync(), Is.EqualTo("[]"));
     }
 
-    [TestRunner.Test]
+    [Test]
     public async Task LoadSaveGameWithMetadataTests() {
         var loader = new MyJsonGameLoader();
         var saveGame = new MyMetadata {
@@ -266,7 +266,7 @@ public class JsonLoaderTests {
         Assert.That(loadGame.GameObjects.Count, Is.EqualTo(0));
     }
 
-    [TestRunner.Test]
+    [Test]
     public async Task PolymorphicSaveAndLoad() {
         var loader = new MyJsonGameLoader();
         var data = new List<SaveObject> {
@@ -318,7 +318,7 @@ public class JsonLoaderTests {
         // public override int Hash() => System.HashCode.Combine(Rect2Value, Vector2Value, Vector3Value, Rect2IValue, Vector2IValue, Vector3IValue, ColorValue);
     }
 
-    [TestRunner.Test]
+    [Test]
     public async Task ConverterTest() {
         var loader = new MyJsonGameLoader();
         var saveGame = new MyMetadata();
@@ -352,7 +352,7 @@ public class JsonLoaderTests {
         Assert.That(wd.ColorValue.ToHtml(true), Is.EqualTo(ld.ColorValue.ToHtml(true)));
     }
 
-    [TestRunner.Test(Description = "List save games with key")]
+    [Test(Description = "List save games with key")]
     public async Task ListSeedOkTest() {
         var loader = new MyJsonGameLoader();
         await loader.Save(SaveName1, new MyMetadata() {
@@ -385,7 +385,7 @@ public class JsonLoaderTests {
         Assert.That(get[0].MyString, Is.EqualTo("yu1"));
     }
 
-    [TestRunner.Test(Description = "List save games with no key")]
+    [Test(Description = "List save games with no key")]
     public async Task ListNoSeedOkTest() {
         var loader = new MyJsonGameLoader();
         await loader.Save(SaveName1, new MyMetadata() {
@@ -413,7 +413,7 @@ public class JsonLoaderTests {
         Assert.That(get[0].MyString, Is.EqualTo("yu1"));
     }
 
-    [TestRunner.Test]
+    [Test]
     public async Task SaveProgressTest() {
         var loader = new MyJsonGameLoader();
         var saveGame = new MyMetadata();
@@ -438,7 +438,7 @@ public class JsonLoaderTests {
         Assert.That(progress[10], Is.EqualTo(1f));
     }
 
-    [TestRunner.Test]
+    [Test]
     public async Task LoadProgressTest() {
         var loader = new MyJsonGameLoader();
         var saveGame = new MyMetadata();

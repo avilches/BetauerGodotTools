@@ -7,11 +7,11 @@ using FastNoiseLite = Betauer.Core.PCG.FastNoiseLite;
 
 namespace Betauer.Core.Tests; 
 
-[TestRunner.Test]
+[TestFixture]
 public class FastImageTest {
 
-    [TestRunner.Test]
-    [TestRunner.Ignore("Just create images")]
+    [Test]
+    [Ignore("Just create images")]
     public void Test1() {
         var fast = new FastImage().Create(350, 200);
         Assert.That(fast.Format, Is.EqualTo(FastImage.DefaultFormat));
@@ -80,8 +80,8 @@ public class FastImageTest {
         fast.Image.SavePng("test1.png");
     }
 
-    [TestRunner.Test]
-    [TestRunner.Ignore("Just create images")]
+    [Test]
+    [Ignore("Just create images")]
     public void TestNoiseLines() {
         var fast = new FastImage().Create(350, 650);
         fast.Fill(Colors.White);
@@ -143,8 +143,8 @@ public class FastImageTest {
         fast.Image.SavePng("test-noise-line.png");
     }
     
-    [TestRunner.Test]
-    [TestRunner.Ignore("Just create images")]
+    [Test]
+    [Ignore("Just create images")]
     public void TestEllipses() {
         var fast = new FastImage().Create(300, 300);
         fast.Fill(Colors.DarkBlue);
@@ -245,8 +245,8 @@ public class FastImageTest {
         fast.Image.SavePng("test-ellipse.png");
     }
     
-    [TestRunner.Test]
-    [TestRunner.Ignore("Just create images")]
+    [Test]
+    [Ignore("Just create images")]
     public void Test2() {
         var fast = new FastImage().Create(256, 256, false, Godot.Image.Format.Rgba8);
         fast.Fill(Color.FromHtml("00000033"));
@@ -259,8 +259,8 @@ public class FastImageTest {
         fast.Image.SavePng("test2.png");
     }
     
-    [TestRunner.Test]
-    [TestRunner.Ignore("Just create images")]
+    [Test]
+    [Ignore("Just create images")]
     public void Test3() {
         var compo = new LayerImageComposition(3, 512, 512);
         

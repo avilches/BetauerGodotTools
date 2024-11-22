@@ -7,10 +7,10 @@ using NUnit.Framework;
 
 namespace Betauer.Core.Tests; 
 
-[TestRunner.Test]
+[TestFixture]
 public partial class RestorerTests : Node {
 
-    [TestRunner.Test]
+    [Test]
     public async Task PropertyNameRestoreTests() {
         var control = new Control();
         var node2D = new Node2D();
@@ -37,7 +37,7 @@ public partial class RestorerTests : Node {
         Assert.That(node2D.Scale, Is.EqualTo(original));
     }
         
-    [TestRunner.Test]
+    [Test]
     public async Task PropertyRestoreTests() {
         var control = new Control();
         var node2D = new Node2D();
@@ -62,7 +62,7 @@ public partial class RestorerTests : Node {
         Assert.That(node2D.Scale, Is.EqualTo(original));
     }
 
-    [TestRunner.Test]
+    [Test]
     public async Task DefaultControlRestoreTests() {
         var control = new Control();
         AddChild(control);
@@ -95,7 +95,7 @@ public partial class RestorerTests : Node {
         Assert.That(control.Rotation, Is.EqualTo(3f));
     }
 
-    [TestRunner.Test]
+    [Test]
     public async Task ControlFocusRestoreTests() {
         var container = new HBoxContainer();
         var b1 = new Button();
@@ -119,7 +119,7 @@ public partial class RestorerTests : Node {
         Assert.That(container.GetViewport().GuiGetFocusOwner(), Is.EqualTo(b1));
     }
 
-    [TestRunner.Test]
+    [Test]
     public async Task PivotSpriteRestoreTests() {
         var sprite = await CreateSprite();
         var original = new Vector2(2f, 3f);
@@ -165,7 +165,7 @@ public partial class RestorerTests : Node {
         Assert.That(sprite.FlipV, Is.True);
     }
 
-    [TestRunner.Test]
+    [Test]
     public async Task Node2DRestoreTests() {
         var sprite = new Node2D();
         AddChild(sprite);

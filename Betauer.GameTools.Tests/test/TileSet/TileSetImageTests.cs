@@ -8,30 +8,30 @@ using NUnit.Framework;
 
 namespace Betauer.GameTools.Tests.TileSet;
 
-[TestRunner.Test]
+[TestFixture]
 public class TileSetImageTests {
-    [SetUpClass]
+    [OneTimeSetUp]
     public void SetUp() {
         if (!Directory.Exists(".tmp")) {
             Directory.CreateDirectory(".tmp");
         }
     }
 
-    [TestRunner.Test]
+    [Test]
     public void CreateBlob47FromWangSubset13() {
         var source = new TileSetImage(new FastImage().LoadResource("test-resources/tileset/wang-subset-13.png"), TileSetLayouts.WangSubset13);
         source.ExportAs(TileSetLayouts.Blob47Godot).SavePng(".tmp/wang-47-export.png");
         source.ExportAs(TileSetLayouts.Blob47Godot, TileSetImage.Blob47Rules).SavePng(".tmp/wang-47-export-rules.png");
     }
 
-    [TestRunner.Test]
+    [Test]
     public void EnsureBlob47RulesOnlyNeedWangSubset13() {
         var dependencies = TileSetImage.Blob47Rules.Select(it => it.Dependencies ?? Array.Empty<int>()).SelectMany(i => i).Distinct().ToList();
         // The dependencies don't use th 255, which is a block solid tile
         CollectionAssert.AreEquivalent(dependencies.Append(255), TileSetLayouts.WangSubset13.GetTileIds());
     }
 
-    [TestRunner.Test]
+    [Test]
     public void CreateWangSubset13TestFromBlob47() {
         var source = new TileSetImage(new FastImage().LoadResource( "test-resources/tileset/godot-full-example.png"), TileSetLayouts.Blob47Godot);
         // source.ExportAs(TileSetLayouts.WangSubset13).SavePng("test-resources/tileset/wang-subset-13.png");

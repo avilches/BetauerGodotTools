@@ -9,7 +9,7 @@ using NullReferenceException = System.NullReferenceException;
 
 namespace Betauer.FSM.Tests; 
 
-[TestRunner.Test]
+[TestFixture]
 public class FsmAsyncTests : Node {
     enum State {
         A,
@@ -43,7 +43,7 @@ public class FsmAsyncTests : Node {
         Video,
         NotFound
     }
-    [TestRunner.Test(Description = "Constructor")]
+    [Test(Description = "Constructor")]
     public void FSMConstructorsEnum() {
         var sm1 = new FsmAsync<State, Event>(State.A, "X");
         Assert.That(sm1.Name, Is.EqualTo("X"));
@@ -55,7 +55,7 @@ public class FsmAsyncTests : Node {
     /*
      * Error cases
      */
-    [TestRunner.Test(Description = "InitialState not found on start")]
+    [Test(Description = "InitialState not found on start")]
     public void WrongStartStates() {
         var sm = new FsmAsync<State, Event>(State.Global);
         sm.State(State.A).Build();
@@ -66,7 +66,7 @@ public class FsmAsyncTests : Node {
         });
     }
         
-    [TestRunner.Test(Description = "IsState")]
+    [Test(Description = "IsState")]
     public void IsStateTests() {
         var sm = new FsmAsync<State, Event>(State.Global);
         sm.State(State.Global).Build();
@@ -76,14 +76,14 @@ public class FsmAsyncTests : Node {
         Assert.That(sm.IsState(State.Settings), Is.False);
     }
         
-    [TestRunner.Test(Description = "Duplicate state")]
+    [Test(Description = "Duplicate state")]
     public async Task DuplicateStateError() {
         var sm = new FsmAsync<State, Event>(State.Audio);
         sm.State(State.Audio).Build();
         Assert.Throws<DuplicateStateException>(() => sm.State(State.Audio).Build());
     }
         
-    [TestRunner.Test(Description = "Event are not allowed before initialize")]
+    [Test(Description = "Event are not allowed before initialize")]
     public async Task WrongStateWithAValidEvent() {
         var sm = new FsmAsync<State, Event>(State.Audio);
         sm.On(Event.Audio).Stay();
@@ -92,7 +92,7 @@ public class FsmAsyncTests : Node {
         Assert.Throws<InvalidStateException>(() => sm.Send(Event.Audio));
     }
         
-    [TestRunner.Test(Description = "Error when a state changes to a not found state")]
+    [Test(Description = "Error when a state changes to a not found state")]
     public async Task WrongStatesUnknownStateThenSet() {
         var sm = new FsmAsync<State, Event>(State.A);
         var thenEvaluated = false;
@@ -106,7 +106,7 @@ public class FsmAsyncTests : Node {
         Assert.That(thenEvaluated, Is.True);
     }
 
-    [TestRunner.Test(Description = "Error when a state changes to a not found state")]
+    [Test(Description = "Error when a state changes to a not found state")]
     public async Task WrongStatesUnknownStateSet() {
         var sm = new FsmAsync<State, Event>(State.A);
         sm.State(State.A).If(() => true).Set(State.Debug).Build();
@@ -115,7 +115,7 @@ public class FsmAsyncTests : Node {
         Assert.ThrowsAsync<StateNotFoundException>(async () => await sm.Execute());
     }
 
-    [TestRunner.Test(Description = "Error not found event")]
+    [Test(Description = "Error not found event")]
     public async Task EventNotFound() {
         var sm = new FsmAsync<State, Event>(State.A);
         sm.State(State.A).Build();
@@ -125,7 +125,7 @@ public class FsmAsyncTests : Node {
         Assert.ThrowsAsync<EventNotFoundException>(async () => await sm.Execute());
     }
 
-    [TestRunner.Test(Description = "Error when a state pop in an empty stack")]
+    [Test(Description = "Error when a state pop in an empty stack")]
     public async Task WrongStatesPopWhenEmptyStack() {
         var sm = new FsmAsync<State, Event>(State.A);
         sm.State(State.A).If(() => true).Then(context => context.Pop()).Build();
@@ -135,7 +135,7 @@ public class FsmAsyncTests : Node {
         Assert.ThrowsAsync<InvalidStateException>(async () => await sm.Execute());
     }
         
-    [TestRunner.Test(Description = "Pop the same state in the stack is allowed")]
+    [Test(Description = "Pop the same state in the stack is allowed")]
     public async Task PopSameStateInTheStackIsAllowed() {
         var sm = new FsmAsync<State, Event>(State.A);
         sm.State(State.A).If(() => true).Then(context => context.Push(State.A)).Build();
@@ -150,7 +150,7 @@ public class FsmAsyncTests : Node {
         Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A, State.A , State.A }));
     }
 
-    [TestRunner.Test(Description = "Set another initial state")]
+    [Test(Description = "Set another initial state")]
     public async Task SetAnotherInitialState() {
         var sm = new FsmAsync<State, Event>(State.A);
         sm.State(State.Debug).Build();
@@ -159,7 +159,7 @@ public class FsmAsyncTests : Node {
         Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Debug));
     }
         
-    [TestRunner.Test(Description = "Multiple if are loaded in order")]
+    [Test(Description = "Multiple if are loaded in order")]
     public async Task Ifs() {
         var sm = new FsmAsync<State, Event>(State.A);
         var x = 0;
@@ -188,7 +188,7 @@ public class FsmAsyncTests : Node {
         Assert.That(x, Is.EqualTo(3));
     }
 
-    [TestRunner.Test(Description = "If().Set()")]
+    [Test(Description = "If().Set()")]
     public async Task IfSetResult() {
         var sm = new FsmAsync<State, Event>(State.A);
         sm.State(State.A).If(() => true).Set(State.Debug).Build();
@@ -199,7 +199,7 @@ public class FsmAsyncTests : Node {
         Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.Debug }));
     }
 
-    [TestRunner.Test(Description = "If() with Push(), PopPush() and Pop() result")]
+    [Test(Description = "If() with Push(), PopPush() and Pop() result")]
     public async Task IfPushPopPushResult() {
         var sm = new FsmAsync<State, Event>(State.A);
         sm.State(State.A).If(() => true).Push(State.Debug).Build();
@@ -215,7 +215,7 @@ public class FsmAsyncTests : Node {
         Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A }));
     }
 
-    [TestRunner.Test(Description = "If().Stay()")]
+    [Test(Description = "If().Stay()")]
     public async Task IfStayResult() {
         var sm = new FsmAsync<State, Event>(State.A);
         sm.State(State.A).If(() => true).Stay().Build();
@@ -225,7 +225,7 @@ public class FsmAsyncTests : Node {
         Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A }));
     }
 
-    [TestRunner.Test(Description = "If().Send()")]
+    [Test(Description = "If().Send()")]
     public async Task IfSendResult() {
         var sm = new FsmAsync<State, Event>(State.A);
         sm.State(State.Debug).Build();
@@ -237,7 +237,7 @@ public class FsmAsyncTests : Node {
         Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.Debug }));
     }
 
-    [TestRunner.Test(Description = "If() multiple Send() chain")]
+    [Test(Description = "If() multiple Send() chain")]
     public async Task IfChainSend() {
         var sm = new FsmAsync<State, Event>(State.A);
         sm.State(State.Debug).Build();
@@ -251,7 +251,7 @@ public class FsmAsyncTests : Node {
         Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.Debug }));
     }
 
-    [TestRunner.Test(Description = "Send() -> On().Set()")]
+    [Test(Description = "Send() -> On().Set()")]
     public async Task SendOnSet() {
         var sm = new FsmAsync<State, Event>(State.A);
         sm.On(Event.Debug).Set(State.Debug);
@@ -264,7 +264,7 @@ public class FsmAsyncTests : Node {
         Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.Debug }));
     }
 
-    [TestRunner.Test(Description = "Send On() -> Push, PopPush and Pop result")]
+    [Test(Description = "Send On() -> Push, PopPush and Pop result")]
     public async Task SendPushPopPushResult() {
         var sm = new FsmAsync<State, Event>(State.A);
         sm.On(Event.Start).Push(State.Debug);
@@ -290,7 +290,7 @@ public class FsmAsyncTests : Node {
         Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A }));
     }
 
-    [TestRunner.Test(Description = "State event have more priority than global transitions. So, override a global with a local Stay will disable it")]
+    [Test(Description = "State event have more priority than global transitions. So, override a global with a local Stay will disable it")]
     public async Task StateEventsPriority() {
         var sm = new FsmAsync<State, Event>(State.Start);
 
@@ -307,7 +307,7 @@ public class FsmAsyncTests : Node {
     /*
      * Working FSM
      */
-    [TestRunner.Test(Description = "Regular changes between root states inside state.Execute()")]
+    [Test(Description = "Regular changes between root states inside state.Execute()")]
     public async Task FSMPlainFlow() {
         var sm = new FsmAsync<State, Event>(State.Idle);
 
@@ -378,7 +378,7 @@ public class FsmAsyncTests : Node {
 
     }
 
-    [TestRunner.Test(Description = "Ignore events with lower weight")]
+    [Test(Description = "Ignore events with lower weight")]
     public async Task SendEventWeight() {
         var sm = new FsmAsync<State, Event>(State.Start);
 
@@ -404,7 +404,7 @@ public class FsmAsyncTests : Node {
         Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Global));
     }
 
-    [TestRunner.Test(Description = "State events have more priority than global events")]
+    [Test(Description = "State events have more priority than global events")]
     public async Task StateEventsVsGlobalEvents() {
         var sm = new FsmAsync<State, Event>(State.Start);
 
@@ -431,7 +431,7 @@ public class FsmAsyncTests : Node {
 
     }
 
-    [TestRunner.Test(Description = "Event calls inside state machine")]
+    [Test(Description = "Event calls inside state machine")]
     public async Task SendEventInsideExecuteIsIgnored() {
         var sm = new FsmAsync<State, Event>(State.Start);
 
@@ -456,7 +456,7 @@ public class FsmAsyncTests : Node {
         Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Settings));
     }
 
-    [TestRunner.Test(Description = "Changes using stateMachine change methods")]
+    [Test(Description = "Changes using stateMachine change methods")]
     public async Task SendEvent() {
         var sm = new FsmAsync<State, Event>(State.Audio);
 
@@ -496,7 +496,7 @@ public class FsmAsyncTests : Node {
         Assert.That(sm.CurrentState.Key, Is.EqualTo(State.MainMenu));
     }
 
-    [TestRunner.Test]
+    [Test]
     public async Task EnterOnPushExitOnPopSuspendAwakeListener() {
         var sm = new FsmAsync<State, Event>(State.Debug);
 
@@ -531,7 +531,7 @@ public class FsmAsyncTests : Node {
             "Debug:awake"));
     }
 
-    [TestRunner.Test]
+    [Test]
     public async Task EnterOnPushExitOnPopSuspendAwakeEventsOrder() {
         var sm = new FsmAsync<State, Event>(State.Debug);
             
@@ -649,7 +649,7 @@ public class FsmAsyncTests : Node {
 
     }
 
-    [TestRunner.Test]
+    [Test]
     public async Task ErrorInEnter() {
         var sm = new FsmAsync<State, Event>(State.Start);
 
@@ -667,7 +667,7 @@ public class FsmAsyncTests : Node {
         Assert.That(steps, Is.EqualTo(1));
     }
         
-    [TestRunner.Test]
+    [Test]
     public async Task ErrorInExecute() {
         var sm = new FsmAsync<State, Event>(State.Start);
 
@@ -687,7 +687,7 @@ public class FsmAsyncTests : Node {
         Assert.That(steps, Is.EqualTo(2));
     }
         
-    [TestRunner.Test]
+    [Test]
     public async Task ErrorInExit() {
         var sm = new FsmAsync<State, Event>(State.Start);
 
@@ -712,7 +712,7 @@ public class FsmAsyncTests : Node {
         Assert.That(steps, Is.EqualTo(3));
     }
         
-    [TestRunner.Test(Description = "If() when the state doesn't change")]
+    [Test(Description = "If() when the state doesn't change")]
     public async Task ConditionalOrderSameState() {
         var sm = new FsmAsync<State, Event>(State.Start);
 
@@ -744,7 +744,7 @@ public class FsmAsyncTests : Node {
 
     }
         
-    [TestRunner.Test(Description = "If() when the state changes every time")]
+    [Test(Description = "If() when the state changes every time")]
     public async Task ConditionalOrderStateChanged() {
         var sm = new FsmAsync<State, Event>(State.Start);
 

@@ -6,9 +6,9 @@ using NUnit.Framework;
 
 namespace Betauer.Core.Tests;
 
-[Betauer.TestRunner.Test]
+[TestFixture]
 public class CustomUnionFindTest {
-    [TestRunner.Test]
+    [Test]
     public void Test() {
         var uf = new CustomUnionFind();
 

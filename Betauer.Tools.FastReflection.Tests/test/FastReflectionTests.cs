@@ -5,7 +5,7 @@ using NUnit.Framework;
 
 namespace Betauer.Tools.FastReflection.Tests; 
 
-[TestRunner.Test]
+[TestFixture]
 public class FastReflectionTests {
 
     [AttributeUsage(AttributeTargets.All | AttributeTargets.Field | AttributeTargets.Property | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
@@ -34,7 +34,7 @@ public class FastReflectionTests {
     }
     
     
-    [TestRunner.Test]
+    [Test]
     public void GetterTests() {
         var getters = typeof(GetterClass).GetGetters<MyAttribute>(MemberTypes.All, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
         Assert.That(getters.Count, Is.EqualTo(4));
@@ -65,7 +65,7 @@ public class FastReflectionTests {
         public void Mx(int x) => throw new Exception(); // No attribute, ignored
     }
     
-    [TestRunner.Test]
+    [Test]
     public void SetterTests() {
         var setters = typeof(SetterClass).GetSetters<MyAttribute>(MemberTypes.All, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
         Assert.That(setters.Count, Is.EqualTo(3));

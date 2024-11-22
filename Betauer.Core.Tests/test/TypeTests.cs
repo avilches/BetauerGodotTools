@@ -6,9 +6,9 @@ using NUnit.Framework;
 
 namespace Betauer.Core.Tests;
 
-[TestRunner.Test]
+[TestFixture]
 public class TypeTests {
-    [TestRunner.Test]
+    [Test]
     public void ImplementsInterfaceTests() {
         // False
         Assert.That(typeof(List<>).ImplementsInterface(typeof(IList<string>)), Is.False);
@@ -39,7 +39,7 @@ public class TypeTests {
         Assert.That(typeof(IDictionary<string, int>).ImplementsInterface(typeof(ICollection<KeyValuePair<string, int>>)), Is.True);
     }
 
-    [TestRunner.Test]
+    [Test]
     public void FindGenericsFromInterfaceDefinitionTests() {
         // Invalid parameter
         Assert.Throws<ArgumentException>(() => typeof(List<>).FindGenericsFromInterfaceDefinition(typeof(List<string>))); // a class
@@ -73,7 +73,7 @@ public class TypeTests {
     }
 
 
-    [TestRunner.Test]
+    [Test]
     public void IsGenericSubclassOfTest() {
         Assert.That(typeof(ChildChild).IsGenericSubclassOf(typeof(Child)), Is.True);
         Assert.That(typeof(ChildChild).IsGenericSubclassOf(typeof(Parent<>)), Is.True); // IsSubClassOf will fail
@@ -94,7 +94,7 @@ public class TypeTests {
         Assert.That(typeof(string).IsGenericSubclassOf(typeof(object)), Is.True);
     }
 
-    [TestRunner.Test]
+    [Test]
     public void FindGenericsFromBaseTypeDefinitionTests() {
         // Invalid parameter
         Assert.Throws<ArgumentException>(() => typeof(ChildChild).FindGenericsFromBaseTypeDefinition(typeof(IList<string>)));  // an interface, but it's not a generic type definition

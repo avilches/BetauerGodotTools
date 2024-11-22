@@ -11,7 +11,7 @@ using Container = Betauer.DI.Container;
 
 namespace Betauer.GameTools.Tests;
 
-[TestRunner.Test]
+[TestFixture]
 public class ResourceLoaderTests {
     [Configuration]
     [Loader("GameLoader")]
@@ -28,7 +28,7 @@ public class ResourceLoaderTests {
     public class MainResources2 {
     }
 
-    [TestRunner.Test]
+    [Test]
     public async Task BasicTests() {
         var c = new Container();
         c.Build(di => {

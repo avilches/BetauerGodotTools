@@ -11,7 +11,7 @@ using NUnit.Framework;
 
 namespace Betauer.GameTools.Tests;
 
-[TestRunner.Test]
+[TestFixture]
 public partial class FsmNodeSyncTests : Node {
     enum State {
         A,
@@ -28,7 +28,7 @@ public partial class FsmNodeSyncTests : Node {
     enum Trans {
     }
 
-    [TestRunner.Test(Description = "Constructor")]
+    [Test(Description = "Constructor")]
     public void FSMNodeConstructors() {
         var sm1 = new FsmNodeSync<State, Trans>(State.A, "X");
         Assert.That(sm1.GetFsmEvents().Name, Is.EqualTo("X"));
@@ -43,7 +43,7 @@ public partial class FsmNodeSyncTests : Node {
         Assert.That(sm3.ProcessInPhysics, Is.False);
     }
 
-    [TestRunner.Test(Description = "FSMNode, BeforeExecute and AfterExecute events with idle frames in the execute")]
+    [Test(Description = "FSMNode, BeforeExecute and AfterExecute events with idle frames in the execute")]
     public async Task AsyncFSMNodeWithIdleFrame() {
         var sm = new FsmNodeSync<State, Trans>(State.Start);
 
@@ -93,7 +93,7 @@ public partial class FsmNodeSyncTests : Node {
 
     }
 
-    [TestRunner.Test]
+    [Test]
     public async Task EnterOnPushExitOnPopSuspendAwakeListener() {
         var sm = new FsmNodeSync<State, Trans>(State.MainMenu);
 
@@ -138,7 +138,7 @@ public partial class FsmNodeSyncTests : Node {
             ":execute.start,Debug:exit,from:Debug-to:End,End:enter,:execute.end"));
     }
 
-    [TestRunner.Test]
+    [Test]
     public async Task OnInput() {
         var sm = new FsmNodeSync<State, Trans>(State.MainMenu);
 

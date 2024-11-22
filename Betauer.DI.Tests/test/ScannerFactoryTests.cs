@@ -9,9 +9,9 @@ using NUnit.Framework;
 
 namespace Betauer.DI.Tests; 
 
-[TestRunner.Test]
+[TestFixture]
 public class ScannerFactoryTests : Node {
-    [SetUpClass]
+    [OneTimeSetUp]
     public void Setup() {
         LoggerFactory.OverrideTraceLevel(TraceLevel.All);
     }
@@ -23,7 +23,7 @@ public class ScannerFactoryTests : Node {
         [Attributes.Factory.Singleton] public Node WrongType => new Node();
 
     }
-    [TestRunner.Test(Description = "[SingletonFactory] should implement ITransient<> (class)")]
+    [Test(Description = "[SingletonFactory] should implement ITransient<> (class)")]
     public void FactoryWrongType1() {
         var c = new Container();
         c.Build(di => {
@@ -31,7 +31,7 @@ public class ScannerFactoryTests : Node {
         });
     }
 
-    [TestRunner.Test(Description = "[SingletonFactory] should implement ITransient<> (configuration)")]
+    [Test(Description = "[SingletonFactory] should implement ITransient<> (configuration)")]
     public void FactoryWrongType2() {
         var c = new Container();
         c.Build(di => {
@@ -39,7 +39,7 @@ public class ScannerFactoryTests : Node {
         });
     }
 
-    [TestRunner.Test(Description = "Not implement ITransient<> fails at runtime")]
+    [Test(Description = "Not implement ITransient<> fails at runtime")]
     public void FactoryWrongType3() {
         var c = new Container();
         c.Build(di => {
@@ -47,7 +47,7 @@ public class ScannerFactoryTests : Node {
         });
     }
 
-    [TestRunner.Test(Description = "Test defining a Transient by type")]
+    [Test(Description = "Test defining a Transient by type")]
     public void TransientProxyTest() {
         TransientD.Instances = 0;
         var c = new Container();
@@ -64,7 +64,7 @@ public class ScannerFactoryTests : Node {
         Assert.That(TransientD.Instances, Is.EqualTo(4));
     }
 
-    [TestRunner.Test(Description = "Test defining a Transient by name")]
+    [Test(Description = "Test defining a Transient by name")]
     public void TransientProxyNameTest() {
         TransientD.Instances = 0;
         var c = new Container();
@@ -107,7 +107,7 @@ public class ScannerFactoryTests : Node {
         [Inject] public ITransient<TransientD> TransientD { get; set; }
     }
 
-    [TestRunner.Test(Description = "Test defining a Transient by name with a Factory")]
+    [Test(Description = "Test defining a Transient by name with a Factory")]
     public void FactoryTransientFromConfiguration() {
         TransientD.Instances = 0;
         var c = new Container();
@@ -131,7 +131,7 @@ public class ScannerFactoryTests : Node {
         Assert.That(client2.TransientD.Create(), Is.Not.EqualTo(client2.TransientD.Create()));
         Assert.That(TransientD.Instances, Is.EqualTo(6));
     }
-    [TestRunner.Test(Description = "Register a Singleton Factory by type")]
+    [Test(Description = "Register a Singleton Factory by type")]
     public void RegisterSingletonAndAddFactoryTest() {
         var c = new Container();
         var x = 0;
@@ -149,7 +149,7 @@ public class ScannerFactoryTests : Node {
         Assert.That(x, Is.EqualTo(1));
     }
 
-    [TestRunner.Test(Description = "Register a Singleton Factory by type lazy")]
+    [Test(Description = "Register a Singleton Factory by type lazy")]
     public void RegisterSingletonAndAddFactoryLazyTest() {
         var c = new Container();
         var x = 0;
@@ -169,7 +169,7 @@ public class ScannerFactoryTests : Node {
 
     
     
-    [TestRunner.Test(Description = "Register a Singleton Factory by name")]
+    [Test(Description = "Register a Singleton Factory by name")]
     public void RegisterSingletonAndAddFactoryByNameTest() {
         var x = 0;
         var c = new Container();
@@ -188,7 +188,7 @@ public class ScannerFactoryTests : Node {
         Assert.That(x, Is.EqualTo(1));
     }
 
-    [TestRunner.Test(Description = "Register a Singleton Factory by name lazy")]
+    [Test(Description = "Register a Singleton Factory by name lazy")]
     public void RegisterSingletonAndAddFactoryByNameLazyTest() {
         var x = 0;
         var c = new Container();
@@ -212,7 +212,7 @@ public class ScannerFactoryTests : Node {
     
     
     
-    [TestRunner.Test(Description = "Register a Transient Factory by type")]
+    [Test(Description = "Register a Transient Factory by type")]
     public void RegisterTransientAndAddFactoryTest() {
         var x = 0;
         var c = new Container();
@@ -231,7 +231,7 @@ public class ScannerFactoryTests : Node {
         Assert.That(x, Is.EqualTo(3));
     }
 
-    [TestRunner.Test(Description = "Register a Transient Factory by name")]
+    [Test(Description = "Register a Transient Factory by name")]
     public void RegisterTransientAndAddFactoryByNameTest() {
         var x = 0;
         var c = new Container();
@@ -335,7 +335,7 @@ public class ScannerFactoryTests : Node {
         [Inject] public MyTransient MyTransient { get; set;  }
     }
 
-    [TestRunner.Test(Description = "Custom service ITransient (in configuration), inject by name and type")]
+    [Test(Description = "Custom service ITransient (in configuration), inject by name and type")]
     public void ServiceFactoryTests() {
         MyServiceFactory.Reset();
         MyTransientFactory.Reset();
@@ -443,7 +443,7 @@ public class ScannerFactoryTests : Node {
         [Inject] public MyTransient MyTransient { get; set;  }
     }
 
-    [TestRunner.Test(Description = "Custom service ITransient (in class), inject by name and type")]
+    [Test(Description = "Custom service ITransient (in class), inject by name and type")]
     public void ServiceFactoryClassTests() {
         MyLazyServiceFactoryClass.Reset();
         MyTransientFactoryClass.Reset();
@@ -534,7 +534,7 @@ public class ScannerFactoryTests : Node {
         [Attributes.Factory.Transient] IFactory<Control> Element4 => new ElementTransientConfigFactory();
     }
 
-    [TestRunner.Test]
+    [Test]
     public void ExposeFactoriesWithDifferentTypeTest() {
         var c = new Container();
         c.Build(di => {

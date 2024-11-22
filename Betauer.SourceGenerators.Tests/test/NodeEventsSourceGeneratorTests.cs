@@ -57,9 +57,9 @@ public partial class InputNotificationProcessClass : Node {
     public override partial void _Notification(int what);
 }
 
-[TestRunner.Test]
+[TestFixture]
 public partial class NodeEventsSourceGeneratorTests : Node {
-    [TestRunner.Test]
+    [Test]
     public async Task ProcessOnNotificationOnlyTest() {
         var nodes = new Node[] { new NotificationClass(), new PloterOuter.MoreOuter.NotificationProcessClass(), new Outer.ProcessClass(), new InputNotificationProcessClass() };
 
@@ -86,7 +86,7 @@ public partial class NodeEventsSourceGeneratorTests : Node {
         }
     }
 
-    [TestRunner.Test]
+    [Test]
     public async Task PhysicsProcessOnNotificationOnlyTest() {
         var nodes = new Node[] { new NotificationClass(), new PloterOuter.MoreOuter.NotificationProcessClass(), new Outer.ProcessClass(), new InputNotificationProcessClass() };
 
@@ -113,7 +113,7 @@ public partial class NodeEventsSourceGeneratorTests : Node {
         }
     }
 
-    [TestRunner.Test]
+    [Test]
     public async Task IsProcessingEnabledTest() {
         var nodes = new Node[] { new NotificationClass(), new PloterOuter.MoreOuter.NotificationProcessClass(), new Outer.ProcessClass() };
 
@@ -131,7 +131,7 @@ public partial class NodeEventsSourceGeneratorTests : Node {
         }
     }
 
-    [TestRunner.Test]
+    [Test]
     public async Task IsPhysicsProcessingEnabledTest() {
         var nodes = new Node[] { new NotificationClass(), new PloterOuter.MoreOuter.NotificationProcessClass(), new Outer.ProcessClass() };
 
@@ -149,7 +149,7 @@ public partial class NodeEventsSourceGeneratorTests : Node {
         }
     }
 
-    [TestRunner.Test]
+    [Test]
     public async Task NotificationTest() {
         var node = new NotificationClass();
         var parentedCalls = 0;
@@ -171,8 +171,8 @@ public partial class NodeEventsSourceGeneratorTests : Node {
         Assert.That(parentedCalls, Is.EqualTo(2));
     }
 
-    [TestRunner.Test]
-    [TestRunner.Ignore("ParseInputEvent is not working in Godot 4.1")]
+    [Test]
+    [Ignore("ParseInputEvent is not working in Godot 4.1")]
     public async Task InputNotificationProcessClass() {
         var node = new InputNotificationProcessClass();
         AddChild(node);

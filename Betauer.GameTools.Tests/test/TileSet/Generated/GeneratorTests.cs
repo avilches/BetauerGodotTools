@@ -12,11 +12,11 @@ using TileMap = Godot.TileMap;
 
 namespace Betauer.GameTools.Tests.TileSet.Generated;
 
-[Betauer.TestRunner.Test]
-[Betauer.TestRunner.Ignore("Only use it to generate the test")]
+[TestFixture]
+[Ignore("Only use it to generate the test")]
 public class GeneratorTests {
 
-    [Betauer.TestRunner.Test(Description = "Ensure the Tilemap.tscn has all the possible values for the minimal 3x3 tileset blob 47")]
+    [Test(Description = "Ensure the Tilemap.tscn has all the possible values for the minimal 3x3 tileset blob 47")]
     public void VerifyTest() {
         var scene = ResourceLoader.Load<PackedScene>("res://test-resources/tileset/Tilemap.tscn");
         var godotTileMap = scene.Instantiate<Godot.TileMap>();
@@ -38,8 +38,8 @@ public class GeneratorTests {
      * 4) Now you can run the Blob47Tests.cs test to verify that all the 256 combinations are correctly mapped to the blob 47
      */
 
-    [Betauer.TestRunner.Test(Description = "Generate a no connected patterns in a Godot Tilemap with all the 256 combinations")]
-    // [Betauer.TestRunner.Ignore(
+    [Test(Description = "Generate a no connected patterns in a Godot Tilemap with all the 256 combinations")]
+    // [Ignore(
     // "This test is only to generate a file that it will need to manually in Godot and save it as Tilemap-256.tscn with all the connections")]
     public void Generate256Combinations() {
 
@@ -79,7 +79,7 @@ public class GeneratorTests {
         ResourceSaver.Save(packedScene, "res://test-resources/tileset/Tilemap-256-no-connected.tscn");
     }
 
-    [Betauer.TestRunner.Test(Description = "Generate Blob47Tests.cs, which tests all the 256 possible combinations")]
+    [Test(Description = "Generate Blob47Tests.cs, which tests all the 256 possible combinations")]
     public void GenerateBlob47Tests() {
         var scene = ResourceLoader.Load<PackedScene>("res://test-resources/tileset/Tilemap-256.tscn");
 

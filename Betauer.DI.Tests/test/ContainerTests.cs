@@ -23,13 +23,13 @@ public class Class1WithInterface : IInterface1 {
 public class Class2WithInterface : IInterface1 {
 }
 
-[TestRunner.Test]
+[TestFixture]
 public class ContainerTests : Node {
 
     public readonly Type[] NotSupportedTypes = new Type[] { typeof(IInterface1), typeof(AbstractClass), typeof(List<>), typeof(void) };
     
-    [TestRunner.Test(Description = "Default ctor types not supported")]
-    // [TestRunner.Ignore("Fails in debugger because the NotSupportedException")]
+    [Test(Description = "Default ctor types not supported")]
+    // [Ignore("Fails in debugger because the NotSupportedException")]
     public void DefaultCtorTypes() {
         NotSupportedTypes.ForEach(type => {
             Assert.Throws<NotSupportedException>(() => new SingletonProvider(type, type, null, null, false, null));
@@ -45,7 +45,7 @@ public class ContainerTests : Node {
         
     }
 
-    [TestRunner.Test(Description = "ResolveOr tests")]
+    [Test(Description = "ResolveOr tests")]
     public void ResolveOrNullTests() {
         var di = new Container();
         var c = new Class1WithInterface();
@@ -54,7 +54,7 @@ public class ContainerTests : Node {
         Assert.That(di.ResolveOr("O", () => "X"), Is.EqualTo("X"));
     }
 
-    [TestRunner.Test(Description = "Container in container, assert Contains and TryGetProvider")]
+    [Test(Description = "Container in container, assert Contains and TryGetProvider")]
     public void Container() {
         var di = new Container();
         Assert.That(di.Resolve<Container>(), Is.EqualTo(di));
@@ -66,7 +66,7 @@ public class ContainerTests : Node {
         Assert.That(provider!.Resolve(new ResolveContext(di)), Is.EqualTo(di));
     }
 
-    [TestRunner.Test(Description = "Resolve not found")]
+    [Test(Description = "Resolve not found")]
     public void NotFoundTests() {
         var di = new Container();
 
@@ -87,7 +87,7 @@ public class ContainerTests : Node {
         Assert.That(di.Contains("X", typeof(IInterface1)), Is.False);
     }
 
-    [TestRunner.Test(Description = "Resolve by name using a wrong type fails because type validation")]
+    [Test(Description = "Resolve by name using a wrong type fails because type validation")]
     public void ResolveByNameWithWrongNameTests() {
         var c = new Container();
         c.Build(di => { di.Register(Provider.Transient<Class1WithInterface>("P")); });
@@ -103,7 +103,7 @@ public class ContainerTests : Node {
         Assert.That(c.TryResolve("P", out var _, typeof(Node)), Is.False);
     }
 
-    [TestRunner.Test(Description = "CreateIfNotFound when Resolve(): if type is not found, create a new instance automatically (like transient)")]
+    [Test(Description = "CreateIfNotFound when Resolve(): if type is not found, create a new instance automatically (like transient)")]
     public void CreateTransientIfNotFoundTest() {
         var di = new Container() {
             CreateIfNotFound = true
@@ -126,7 +126,7 @@ public class ContainerTests : Node {
         [Inject] public Node N2 { get; set; }
     }
     
-    [TestRunner.Test(Description = "CreateIfNotFound when injecting: if type is not found, create a new instance automatically (like transient)")]
+    [Test(Description = "CreateIfNotFound when injecting: if type is not found, create a new instance automatically (like transient)")]
     public void CreateTransientIfNotFoundTestScan() {
         var c = new Container() {
             CreateIfNotFound = true
@@ -139,7 +139,7 @@ public class ContainerTests : Node {
         Assert.That(test, Is.Not.EqualTo(test.N2));
     }
 
-    [TestRunner.Test(Description = "Error creating providers when public type is not assignable from real type")]
+    [Test(Description = "Error creating providers when public type is not assignable from real type")]
     public void ErrorCreatingProviderTest() {
         var c = new Container();
         Assert.Throws<InvalidCastException>(() => c.Build(di => di.Register(Provider.Singleton<Class1WithInterface, IInterface1>())));
@@ -148,7 +148,7 @@ public class ContainerTests : Node {
         Assert.Throws<InvalidCastException>(() => c.Build(di => di.Register(Provider.Static<Class1WithInterface, IInterface1>(new Class1WithInterface()))));
     }
 
-    [TestRunner.Test(Description = "Resolve, TryResolve, Contains, TryGetProvider and GetProvider: type")]
+    [Test(Description = "Resolve, TryResolve, Contains, TryGetProvider and GetProvider: type")]
     public void TypeTest() {
         Action<Container>[] x = {
             (c) => c.Build(di => di.Register(Provider.Static(new Class1WithInterface()))),
@@ -182,7 +182,7 @@ public class ContainerTests : Node {
         }
     }
         
-    [TestRunner.Test(Description = "Resolve, TryResolve, Contains, TryGetProvider and GetProvider: othertype")]
+    [Test(Description = "Resolve, TryResolve, Contains, TryGetProvider and GetProvider: othertype")]
     public void OtherTypeTest() {
         Action<Container>[] x = {
             (c) => c.Build(di => di.Register(Provider.Static<IInterface1, Class1WithInterface>(new Class1WithInterface()))),
@@ -217,7 +217,7 @@ public class ContainerTests : Node {
         }
     }
         
-    [TestRunner.Test(Description = "Resolve, TryResolve, Contains, TryGetProvider and GetProvider: name")]
+    [Test(Description = "Resolve, TryResolve, Contains, TryGetProvider and GetProvider: name")]
     public void NameTest() {
         Action<Container>[] x = {
             (c) => c.Build(di => di.Register(Provider.Static(new Class1WithInterface(), "P"))),
@@ -270,7 +270,7 @@ public class ContainerTests : Node {
         }
     }
 
-    [TestRunner.Test(Description = "Resolve, TryResolve, Contains, TryGetProvider and GetProvider: name other type")]
+    [Test(Description = "Resolve, TryResolve, Contains, TryGetProvider and GetProvider: name other type")]
     public void NameOtherTypeTest() {
         Action<Container>[] x = {
             (c) => c.Build(di => di.Register(Provider.Static<IInterface1, Class1WithInterface>(new Class1WithInterface(), "P"))),
@@ -318,7 +318,7 @@ public class ContainerTests : Node {
         }
     }
 
-    [TestRunner.Test(Description = "GetAllInstances - transients")]
+    [Test(Description = "GetAllInstances - transients")]
     public void GetAllInstancesTransitionTests() {
         var c = new Container();
         c.Build(b => {
@@ -328,7 +328,7 @@ public class ContainerTests : Node {
         Assert.That(c.ResolveAll<Class1WithInterface>(), Has.Count.EqualTo(2));
     }
 
-    [TestRunner.Test(Description = "GetAllInstances - singleton")]
+    [Test(Description = "GetAllInstances - singleton")]
     public void GetAllInstancesSingletonTests() {
         var c = new Container();
         c.Build(b => {
@@ -342,7 +342,7 @@ public class ContainerTests : Node {
         Assert.That(c.ResolveAll<object>().Count, Is.EqualTo(4)); // +1 (Include the container)
     }
 
-    [TestRunner.Test(Description = "GetAllInstances - singleton")]
+    [Test(Description = "GetAllInstances - singleton")]
     public void GetAllInstancesMultipleSingletonTests() {
         var c = new Container();
         c.Build(b => {
@@ -360,7 +360,7 @@ public class ContainerTests : Node {
         Assert.That(c.ResolveAll<object>().Count, Is.EqualTo(7)); // +1 (Include the container)
     }
 
-    [TestRunner.Test(Description = "Static tests")]
+    [Test(Description = "Static tests")]
     public void StaticTests() {
         var n1 = new Class1WithInterface();
         var n2 = new Class1WithInterface();
@@ -384,7 +384,7 @@ public class ContainerTests : Node {
         Assert.That(c.Resolve<IInterface1>("4"), Is.EqualTo(n4));
     }
 
-    [TestRunner.Test(Description = "Singleton tests")]
+    [Test(Description = "Singleton tests")]
     public void SingletonTests() {
         var c = new Container();
         c.Build(b => {
@@ -409,7 +409,7 @@ public class ContainerTests : Node {
         Assert.That(c.Resolve<IInterface1>("4"), Is.EqualTo(n4));
     }
         
-    [TestRunner.Test(Description = "Transient tests")]
+    [Test(Description = "Transient tests")]
     public void TransientTests() {
         var c = new Container();
         c.Build(b => {
@@ -430,7 +430,7 @@ public class ContainerTests : Node {
         Assert.That(n31, Is.Not.EqualTo(n32));
     }
         
-    [TestRunner.Test(Description = "Not allow duplicates by type")]
+    [Test(Description = "Not allow duplicates by type")]
     public void DuplicatedTypeTest() {
         Assert.Throws<DuplicateServiceException>(() => {
             var c = new Container();
@@ -449,7 +449,7 @@ public class ContainerTests : Node {
         });
     }
 
-    [TestRunner.Test(Description = "Not allow duplicates by name")]
+    [Test(Description = "Not allow duplicates by name")]
     public void DuplicatedNameTest() {
         Assert.Throws<DuplicateServiceException>(() => {
             var c = new Container();
@@ -468,7 +468,7 @@ public class ContainerTests : Node {
         });
     }
     
-    [TestRunner.Test(Description = "Lazy tests")]
+    [Test(Description = "Lazy tests")]
     public void LazyTest() {
         var c = new Container();
         c.Build(b => {
@@ -511,7 +511,7 @@ public class ContainerTests : Node {
 
     }
 
-    [TestRunner.Test(Description = "Test OnInstanceCreated singleton")]
+    [Test(Description = "Test OnInstanceCreated singleton")]
     public void OnInstanceCreatedSingletonTest() {
         var calls = 0;
         var c = new Container();
@@ -542,7 +542,7 @@ public class ContainerTests : Node {
         Assert.That(calls, Is.EqualTo(4));
     }
 
-    [TestRunner.Test(Description = "Test OnInstanceCreated transients")]
+    [Test(Description = "Test OnInstanceCreated transients")]
     public void OnInstanceCreatedTransientTest() {
         var calls = 0;
         var c = new Container();
@@ -576,7 +576,7 @@ public class ContainerTests : Node {
         }
     }
 
-    [TestRunner.Test(Description = "Test PostInject static")]
+    [Test(Description = "Test PostInject static")]
     public void PostInjectStatic() {
         StaticPostInject.Calls = 0;
         var c = new Container();

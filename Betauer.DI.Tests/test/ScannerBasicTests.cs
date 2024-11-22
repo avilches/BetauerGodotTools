@@ -11,9 +11,9 @@ using NUnit.Framework;
 
 namespace Betauer.DI.Tests; 
 
-[TestRunner.Test]
+[TestFixture]
 public class ScannerBasicTests : Node {
-    [SetUpClass]
+    [OneTimeSetUp]
     public void Setup() {
         LoggerFactory.OverrideTraceLevel(TraceLevel.All);
     }
@@ -26,7 +26,7 @@ public class ScannerBasicTests : Node {
         [Inject] internal INotTagged notFound { get; set; }
     }
 
-    [TestRunner.Test(Description = "Types not found")]
+    [Test(Description = "Types not found")]
     public void NotFound() {
         Assert.Throws<InjectMemberException>(() => {
             var c = new Container();
@@ -42,7 +42,7 @@ public class ScannerBasicTests : Node {
         [Inject(Nullable = true)] internal INotTagged nullable { get; set; }
     }
 
-    [TestRunner.Test(Description = "Nullable")]
+    [Test(Description = "Nullable")]
     public void Nullable() {
         var c = new Container();
         c.Build(di => {
@@ -92,7 +92,7 @@ public class ScannerBasicTests : Node {
         }
     }
 
-    [TestRunner.Test(Description = "Inject test: properties and method")]
+    [Test(Description = "Inject test: properties and method")]
     public void InjectTest() {
         InjectClass.n1 = new Node();
         InjectClass.n2 = new Node();
@@ -119,7 +119,7 @@ public class ScannerBasicTests : Node {
         Assert.That(i.p1, Is.EqualTo(2));
     }
 
-    [TestRunner.Test(Description = "Inject instance not created by Container")]
+    [Test(Description = "Inject instance not created by Container")]
     public void ManualInjectTest() {
         InjectClass.n1 = new Node();
         InjectClass.n2 = new Node();
@@ -158,7 +158,7 @@ public class ScannerBasicTests : Node {
     public class ExposeServiceClass3 : INotTagged {
     }
 
-    [TestRunner.Test(Description = "Name or type")]    
+    [Test(Description = "Name or type")]    
     public void NameOrTypeClass() {
         var c = new Container();
         c.Build(di => {
@@ -205,14 +205,14 @@ public class ScannerBasicTests : Node {
         [Singleton<I2>] internal ExposeServiceMember4 member42() => new ExposeServiceMember4();
     }
 
-    [TestRunner.Test(Description = "Name or type members in configuration instance")]
+    [Test(Description = "Name or type members in configuration instance")]
     public void NameOrTypeMembersInConfigurationInstance() {
         var c = new Container();
         c.Build(di => { di.ScanConfiguration(new ConfigurationScanned()); });
         AssertNameOrTypeMembers(c);
     }
 
-    [TestRunner.Test(Description = "Name or type members in configuration class")]
+    [Test(Description = "Name or type members in configuration class")]
     public void NameOrTypeMembersInConfigurationClass() {
         var c = new Container();
         c.Build(di => { di.Scan<ConfigurationScanned>(); });
@@ -261,7 +261,7 @@ public class ScannerBasicTests : Node {
         [Inject] internal EmptyTransient NotAllowed { get; set; }
     }
 
-    [TestRunner.Test(Description = "Inject Transient in Singleton is not allowed")]
+    [Test(Description = "Inject Transient in Singleton is not allowed")]
     public void TransientOnSingletonIsNotAllowed() {
         Assert.Throws<InjectMemberException>(() => {
             var c = new Container();
@@ -284,7 +284,7 @@ public class ScannerBasicTests : Node {
         [Inject] internal EmptyTransient et2 { get; set; }
     }
 
-    [TestRunner.Test(Description = "Inject transients in transient")]
+    [Test(Description = "Inject transients in transient")]
     public void TransientInTransient() {
         var c = new Container();
         c.Build(di => {
@@ -333,7 +333,7 @@ public class ScannerBasicTests : Node {
         [Inject(Name = "M3")] internal IMultipleImpByName mul31t { get; set; }
         [Inject(Name = "M3")] internal IMultipleImpByName mul32t { get; set; }
     }
-    [TestRunner.Test(Description = "When an interface has multiple implementations, register by name")]
+    [Test(Description = "When an interface has multiple implementations, register by name")]
     public void InterfaceWithMultipleImplementations() {
         var c = new Container();
         c.Build(di => {
@@ -368,7 +368,7 @@ public class ScannerBasicTests : Node {
         [Inject] internal IMultipleImpByType service { get; set; }
     }
 
-    [TestRunner.Test(Description = "When an interface has multiple implementations, register by one type")]
+    [Test(Description = "When an interface has multiple implementations, register by one type")]
     public void InterfaceWithMultipleImplementationsByType() {
         var c = new Container();
         c.Build(di => {
@@ -391,7 +391,7 @@ public class ScannerBasicTests : Node {
         [Inject] internal AutoTransient1 auto { get; set; }
     }
 
-    [TestRunner.Test(Description = "Create if not found")]
+    [Test(Description = "Create if not found")]
     public void CreateIfNotFound() {
         var c = new Container();
         c.Build(di => { di.Scan<ExposeServiceClass1>(); });
@@ -461,7 +461,7 @@ public class ScannerBasicTests : Node {
         [Inject(Name = "SingletonHold4")] internal Hold h4 { get; set; }
     }
         
-    [TestRunner.Test(Description = "Inject singletons by name exported in a singleton")]
+    [Test(Description = "Inject singletons by name exported in a singleton")]
     public void ExportSingletonFrom() {
         var c = new Container();
         c.Build(di => {
@@ -532,7 +532,7 @@ public class ScannerBasicTests : Node {
         [Inject(Name = "Hold4")] internal Hold h4 { get; set; }
     }
         
-    [TestRunner.Test(Description = "Inject Transients by name exported in a Transient")]
+    [Test(Description = "Inject Transients by name exported in a Transient")]
     public void ExportTransientFrom() {
         var c = new Container();
         c.Build(di => {
@@ -578,7 +578,7 @@ public class ScannerBasicTests : Node {
         [Singleton] private Hold SingletonHold1() => new Hold("2");
     }
 
-    [TestRunner.Test(Description = "Use configuration to export members")]
+    [Test(Description = "Use configuration to export members")]
     public void ExportFromConfiguration() {
         var c = new Container();
         c.Build(di => { di.Scan<ConfigurationService>(); });
@@ -624,7 +624,7 @@ public class ScannerBasicTests : Node {
     internal class ImportedService {
     }
 
-    [TestRunner.Test]
+    [Test]
     public void AddToScanByImportOnlyWorksInConfigurationTest() {
         var c = new Container();
         c.Build(di => { di.Scan<AddToScanByImport>(); });
@@ -632,7 +632,7 @@ public class ScannerBasicTests : Node {
         Assert.That(c.Resolve<ServiceMemberExposing2>("member"), Is.TypeOf<ServiceMemberExposing2>());
     }
 
-    [TestRunner.Test]
+    [Test]
     public void AddToScanByImportConfigurationInstanceTest() {
         var c = new Container();
         c.Build(di => { di.ScanConfiguration(new AddToScanByImport()); });
@@ -660,7 +660,7 @@ public class ScannerBasicTests : Node {
     }
         
         
-    [TestRunner.Test(Description = "Inject transient on transient, test OnCreated")]
+    [Test(Description = "Inject transient on transient, test OnCreated")]
     public void OnCreateTestsTransientOnTransientTes() {
         PostInjectTransient.Created = 0;
         var singletons = new List<object>();

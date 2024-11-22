@@ -12,19 +12,19 @@ using Vector2 = Godot.Vector2;
 
 namespace Betauer.Animation.Tests; 
 
-[TestRunner.Test]
+[TestFixture]
 public partial class PropertyTweenerTests : NodeTest {
-    [SetUpClass]
+    [OneTimeSetUp]
     public void SetUp() {
         Engine.TimeScale = 10;
     }
 
-    [TestRunner.TearDownClass]
+    [OneTimeTearDown]
     public void TearDown() {
         Engine.TimeScale = 1;
     }
 
-    [TestRunner.Test(Description = "A sequence callback can be executed many times")]
+    [Test(Description = "A sequence callback can be executed many times")]
     public async Task CallbackMultipleExecutions() {
         var x = 0;
         var y = 0;
@@ -66,7 +66,7 @@ public partial class PropertyTweenerTests : NodeTest {
         _calls2++;
     }
 
-    [TestRunner.Test(Description = "sequence empty should fail")]
+    [Test(Description = "sequence empty should fail")]
     public async Task SequenceEmptyShouldFail() {
         var sprite = await CreateSprite();
         var e = Assert.Throws<InvalidAnimationException>(() =>
@@ -76,7 +76,7 @@ public partial class PropertyTweenerTests : NodeTest {
         Assert.That(e.Message, Is.EqualTo("Animation without steps"));
     }
 
-    [TestRunner.Test(Description = "Callback with lambda")]
+    [Test(Description = "Callback with lambda")]
     public async Task MethodCallback() {
         int called = 0;
         var sequence = SequenceAnimation.Create(this)
@@ -90,7 +90,7 @@ public partial class PropertyTweenerTests : NodeTest {
     /**
          * DefaultTarget behaviour
          */
-    [TestRunner.Test(Description =
+    [Test(Description =
         "Target defined by sequence. But it uses the target from Play() and the sequence is not changed")]
     public async Task TargetNotDefinedByAnimationOrSequence() {
         var spritePlayer = await CreateSprite();
@@ -114,7 +114,7 @@ public partial class PropertyTweenerTests : NodeTest {
         Assert.That(steps[1].Target, Is.EqualTo(spritePlayer));
     }
 
-    [TestRunner.Test(Description = "Target is defined by Play() only")]
+    [Test(Description = "Target is defined by Play() only")]
     public async Task TargetDefinedByAnimation() {
         var spriteAnimation = await CreateSprite();
         var spritePlayer = await CreateSprite();
@@ -134,7 +134,7 @@ public partial class PropertyTweenerTests : NodeTest {
         Assert.That(steps[0].Target, Is.EqualTo(spritePlayer));
     }
 
-    [TestRunner.Test(Description = "Target is defined by Sequence only")]
+    [Test(Description = "Target is defined by Sequence only")]
     public async Task TargetDefinedBySequence() {
         var spriteAnimation = await CreateSprite();
         var spriteSequence = await CreateSprite();
@@ -157,7 +157,7 @@ public partial class PropertyTweenerTests : NodeTest {
     /**
          * Step animation tests
          */
-    [TestRunner.Test(Description = "step to")]
+    [Test(Description = "step to")]
     public async Task SequenceStepsTo() {
         List<DebugStep<float>> steps = new List<DebugStep<float>>();
         var sprite = await CreateSprite();
@@ -186,7 +186,7 @@ public partial class PropertyTweenerTests : NodeTest {
         Assert.That(sprite.Position.X, Is.EqualTo(-90));
     }
 
-    [TestRunner.Test(Description = "step to with from")]
+    [Test(Description = "step to with from")]
     public async Task SequenceStepsToWithFrom() {
         var sprite = await CreateSprite();
         List<DebugStep<float>> steps = new List<DebugStep<float>>();
@@ -207,7 +207,7 @@ public partial class PropertyTweenerTests : NodeTest {
         Assert.That(sprite.Position.X, Is.EqualTo(-90));
     }
 
-    [TestRunner.Test(Description = "step to with 0 seconds in the first step, it works like the first value was the from")]
+    [Test(Description = "step to with 0 seconds in the first step, it works like the first value was the from")]
     public async Task SequenceStepsToWithFirstStepTo0() {
         var sprite = await CreateSprite();
         List<DebugStep<float>> steps = new List<DebugStep<float>>();
@@ -232,7 +232,7 @@ public partial class PropertyTweenerTests : NodeTest {
     /**
          * Step offset tests
          */
-    [TestRunner.Test(Description = "step offset")]
+    [Test(Description = "step offset")]
     public async Task SequenceStepsOffset() {
         var sprite = await CreateSprite();
         List<DebugStep<float>> steps = new List<DebugStep<float>>();
@@ -261,7 +261,7 @@ public partial class PropertyTweenerTests : NodeTest {
         Assert.That(sprite.Position.X, Is.EqualTo(130));
     }
 
-    [TestRunner.Test(Description = "step offset with from")]
+    [Test(Description = "step offset with from")]
     public async Task SequenceStepsOffsetWithFrom() {
         var sprite = await CreateSprite();
         List<DebugStep<float>> steps = new List<DebugStep<float>>();
@@ -282,7 +282,7 @@ public partial class PropertyTweenerTests : NodeTest {
         Assert.That(sprite.Position.X, Is.EqualTo(110));
     }
 
-    [TestRunner.Test(Description = "step offset with from and a 0s initial offset works like a from")]
+    [Test(Description = "step offset with from and a 0s initial offset works like a from")]
     public async Task SequenceStepsOffsetWithFromAnd0sOffset() {
         var sprite = await CreateSprite();
         List<DebugStep<float>> steps = new List<DebugStep<float>>();
@@ -307,7 +307,7 @@ public partial class PropertyTweenerTests : NodeTest {
     /**
          * Step relative offset tests
          */
-    [TestRunner.Test(Description = "step relative offset")]
+    [Test(Description = "step relative offset")]
     public async Task SequenceStepsZeroOffset() {
         var sprite = await CreateSprite();
         List<DebugStep<float>> steps = new List<DebugStep<float>>();
@@ -327,7 +327,7 @@ public partial class PropertyTweenerTests : NodeTest {
         Assert.That(sprite.Position.X, Is.EqualTo(10));
     }
 
-    [TestRunner.Test(Description = "step relative offset with from")]
+    [Test(Description = "step relative offset with from")]
     public async Task SequenceStepsZeroOffsetWithFrom() {
         var sprite = await CreateSprite();
         List<DebugStep<float>> steps = new List<DebugStep<float>>();
@@ -348,7 +348,7 @@ public partial class PropertyTweenerTests : NodeTest {
         Assert.That(sprite.Position.X, Is.EqualTo(-10));
     }
 
-    [TestRunner.Test(Description = "step relative offset with from and duplicated offset")]
+    [Test(Description = "step relative offset with from and duplicated offset")]
     public async Task SequenceStepsZeroOffsetWithFromAndDuplicateOffset() {
         var sprite = await CreateSprite();
         List<DebugStep<float>> steps = new List<DebugStep<float>>();
@@ -380,7 +380,7 @@ public partial class PropertyTweenerTests : NodeTest {
     /**
          * Keyframe to tests
          */
-    [TestRunner.Test(Description = "keyframe to")]
+    [Test(Description = "keyframe to")]
     public async Task SequenceKeysTo() {
         var sprite = await CreateSprite();
         List<DebugStep<float>> steps = new List<DebugStep<float>>();
@@ -400,7 +400,7 @@ public partial class PropertyTweenerTests : NodeTest {
         Assert.That(sprite.Position.X, Is.EqualTo(-90));
     }
 
-    [TestRunner.Test(Description = "keyframe to with from")]
+    [Test(Description = "keyframe to with from")]
     public async Task SequenceKeysToWithFrom() {
         var sprite = await CreateSprite();
         List<DebugStep<float>> steps = new List<DebugStep<float>>();
@@ -421,7 +421,7 @@ public partial class PropertyTweenerTests : NodeTest {
         Assert.That(sprite.Position.X, Is.EqualTo(-90));
     }
 
-    [TestRunner.Test(Description = "keyframe to with from where the first and second keyframe are equals")]
+    [Test(Description = "keyframe to with from where the first and second keyframe are equals")]
     /*
      * In this case, a frame with 0 duration must be created to ensure the frame 0 has the initial value set
      * at the beginning of the animation
@@ -447,7 +447,7 @@ public partial class PropertyTweenerTests : NodeTest {
         Assert.That(sprite.Position.X, Is.EqualTo(1f));
     }
 
-    [TestRunner.Test(Description = "keyframe to with key 0 (same as from)")]
+    [Test(Description = "keyframe to with key 0 (same as from)")]
     public async Task SequenceKeysToWithKey0() {
         var sprite = await CreateSprite();
         List<DebugStep<float>> steps = new List<DebugStep<float>>();
@@ -473,7 +473,7 @@ public partial class PropertyTweenerTests : NodeTest {
     /**
          * Keyframe offset tests
          */
-    [TestRunner.Test(Description = "keyframe offset")]
+    [Test(Description = "keyframe offset")]
     public async Task SequenceKeysOffset() {
         var sprite = await CreateSprite();
         List<DebugStep<float>> steps = new List<DebugStep<float>>();
@@ -494,7 +494,7 @@ public partial class PropertyTweenerTests : NodeTest {
         Assert.That(sprite.Position.X, Is.EqualTo(130));
     }
 
-    [TestRunner.Test(Description = "keyframe offset with From()")]
+    [Test(Description = "keyframe offset with From()")]
     public async Task SequenceKeysOffsetWithFrom() {
         var sprite = await CreateSprite();
         List<DebugStep<float>> steps = new List<DebugStep<float>>();
@@ -516,7 +516,7 @@ public partial class PropertyTweenerTests : NodeTest {
         Assert.That(sprite.Position.X, Is.EqualTo(110));
     }
 
-    [TestRunner.Test(Description = "keyframe offset with From() + key 0")]
+    [Test(Description = "keyframe offset with From() + key 0")]
     public async Task SequenceKeysOffsetWithFromAndKey0() {
         var sprite = await CreateSprite();
         List<DebugStep<float>> steps = new List<DebugStep<float>>();
@@ -542,7 +542,7 @@ public partial class PropertyTweenerTests : NodeTest {
         Assert.That(steps.Count, Is.EqualTo(3)); // Last keyframe is ignored because the offset 0
     }
 
-    [TestRunner.Test(Description = "keyframe offset with 0% keyframe only")]
+    [Test(Description = "keyframe offset with 0% keyframe only")]
     public async Task SequenceKeysOffsetWithKey0() {
         var sprite = await CreateSprite();
         sprite.Position = new Vector2(100, 100);
@@ -571,7 +571,7 @@ public partial class PropertyTweenerTests : NodeTest {
     /**
          * Keyframe relative offset tests
          */
-    [TestRunner.Test(Description = "keyframe relative offset")]
+    [Test(Description = "keyframe relative offset")]
     public async Task SequenceKeysRelativeOffset() {
         var sprite = await CreateSprite();
         sprite.Position = new Vector2(100, 100);
@@ -595,7 +595,7 @@ public partial class PropertyTweenerTests : NodeTest {
         Assert.That(sprite.Position.X, Is.EqualTo(100)); // final 0 offset means it returns to the original value
     }
 
-    [TestRunner.Test(Description = "keyframe relative offset with From()")]
+    [Test(Description = "keyframe relative offset with From()")]
     public async Task SequenceKeysRelativeOffsetWithFrom() {
         var sprite = await CreateSprite();
         List<DebugStep<float>> steps = new List<DebugStep<float>>();
@@ -619,7 +619,7 @@ public partial class PropertyTweenerTests : NodeTest {
         Assert.That(sprite.Position.X, Is.EqualTo(80));
     }
 
-    [TestRunner.Test(Description = "keyframe relative offset with From() + keyframe 0%")]
+    [Test(Description = "keyframe relative offset with From() + keyframe 0%")]
     public async Task SequenceKeysRelativeOffsetWithKey0() {
         var sprite = await CreateSprite();
         List<DebugStep<float>> steps = new List<DebugStep<float>>();
@@ -649,7 +649,7 @@ public partial class PropertyTweenerTests : NodeTest {
     /**
          * Callbacks
          */
-    [TestRunner.Test(Description = "with bezier curve using the SetVale as a callback tween")]
+    [Test(Description = "with bezier curve using the SetVale as a callback tween")]
     public async Task SequenceStepsToWithBezier() {
         List<DebugStep<float>> steps = new List<DebugStep<float>>();
         var sprite = await CreateSprite();

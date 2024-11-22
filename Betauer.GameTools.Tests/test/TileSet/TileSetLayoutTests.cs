@@ -5,9 +5,9 @@ using NUnit.Framework;
 
 namespace Betauer.GameTools.Tests.TileSet;
 
-[TestRunner.Test]
+[TestFixture]
 public class TileSetLayoutTests : BaseBlobTests {
-    [TestRunner.Test]
+    [Test]
     public void BasicTest() {
         ITileSetLayout tileSet = new TileSetLayout(new [,] { { 0, 1 }, { 2, 3 } });
         Assert.True(tileSet.HasTile(0));
@@ -21,7 +21,7 @@ public class TileSetLayoutTests : BaseBlobTests {
         
     }
 
-    [TestRunner.Test]
+    [Test]
     public void BuilderTest() {
 
         var tileSet = new TileSetLayoutBuilder(2, 2);

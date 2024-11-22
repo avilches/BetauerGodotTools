@@ -6,10 +6,10 @@ using NUnit.Framework;
 
 namespace Betauer.GameTools.Tests; 
 
-[TestRunner.Test]
+[TestFixture]
 public class ResolutionTests {
 
-    [TestRunner.Test]
+    [Test]
     public void AspectRatioEqualityTests() {
         Console.WriteLine("== true");
         var aspectRatio = new AspectRatio(21, 9);
@@ -53,7 +53,7 @@ public class ResolutionTests {
         Assert.That(aspectRatio != new AspectRatio(21, 10));
     }
 
-    [TestRunner.Test]
+    [Test]
     public void ResolutionEqualityTests() {
         var res = new Resolution(2, 3);
         Console.WriteLine("== true");
@@ -91,7 +91,7 @@ public class ResolutionTests {
         Assert.That(new Resolution(21, 9) != new Resolution(21, 10));
 
     }
-    [TestRunner.Test]
+    [Test]
     public void ScaledResolutionEqualityTests() {
         var base1 = new Vector2I(2, 3);
         var size1 = new Vector2I(4, 5);

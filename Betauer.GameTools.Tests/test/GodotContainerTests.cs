@@ -8,7 +8,7 @@ using NUnit.Framework;
 
 namespace Betauer.GameTools.Tests; 
 
-[TestRunner.Test]
+[TestFixture]
 public partial class GodotContainerTests : Node {
 
     [Configuration]
@@ -23,7 +23,7 @@ public partial class GodotContainerTests : Node {
         [Inject] public Node Added { get; set; }
     }
     
-    [TestRunner.Test]
+    [Test]
     public async Task BasicTests() {
         var container = new Container()
             .Build(builder => {

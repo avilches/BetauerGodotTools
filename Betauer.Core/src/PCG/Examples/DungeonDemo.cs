@@ -76,7 +76,6 @@ public class DungeonDemo {
 
     private static void PrintRegions(RegionConnections regionConnections) {
         regionConnections.Update();
-        var labels = regionConnections.Labels;
         Console.WriteLine(regionConnections.Labels.GetString(tile =>
             tile == 0
                 ? " "

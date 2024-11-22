@@ -10,9 +10,9 @@ using NUnit.Framework;
 
 namespace Betauer.GameTools.Tests.TileSet;
 
-[TestRunner.Test]
+[TestFixture]
 public class TilePatternTests : BaseBlobTests {
-    [TestRunner.Test]
+    [Test]
     public void ParseTilePatternRuleTest() {
         var dictionary = new Dictionary<string, Func<int, bool>> {
             { "X", (v) => v == -1 },
@@ -23,7 +23,7 @@ public class TilePatternTests : BaseBlobTests {
         Assert.False(TilePattern.Parse("X", dictionary).Matches(2));
     }
 
-    [TestRunner.Test]
+    [Test]
     public void ParseTilePatternIntTests() {
         Assert.True(TilePattern.Parse("-9").Matches(-9));
         Assert.True(TilePattern.Parse("-8").Matches(-8));
@@ -68,7 +68,7 @@ public class TilePatternTests : BaseBlobTests {
         Assert.False(TilePattern.Parse("9").Matches(9 + 1));
     }
 
-    [TestRunner.Test]
+    [Test]
     public void ParseTilePatternIntNegativeTests() {
         Assert.False(TilePattern.Parse("!-9").Matches(-9));
         Assert.False(TilePattern.Parse("!-8").Matches(-8));
@@ -113,7 +113,7 @@ public class TilePatternTests : BaseBlobTests {
         Assert.False(TilePattern.Parse("!9").Matches(9));
     }
 
-    [Betauer.TestRunner.Test]
+    [Test]
     public void Blob47Test() {
         var source = Array2D.Parse("""
                                    ..0

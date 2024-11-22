@@ -5,10 +5,10 @@ using NUnit.Framework;
 
 namespace Betauer.Core.Tests; 
 
-[TestRunner.Test]
+[TestFixture]
 public class CollisionLayerExtensionTests {
 
-    [TestRunner.Test]
+    [Test]
     public void TileMaskTests() {
 
         var tilemap = new TileMap();
@@ -39,7 +39,7 @@ public class CollisionLayerExtensionTests {
 
     }
     
-    [TestRunner.Test]
+    [Test]
     public void TileLayerTests() {
 
         var tilemap = new TileMap();

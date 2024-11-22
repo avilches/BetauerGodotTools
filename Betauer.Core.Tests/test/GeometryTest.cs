@@ -6,16 +6,16 @@ using NUnit.Framework;
 
 namespace Betauer.Core.Tests;
 
-[TestRunner.Test]
+[TestFixture]
 public class GeometryTest {
-    [TestRunner.Test]
+    [Test]
     public void GetPairsWithinRatioTest() {
         CollectionAssert.AreEquivalent(Geometry.GetPairsWithinRatio(3, 5, 1, 16f/9), new []{ (3, 3), (4, 3), (4, 4), (5, 3), (5, 4), (5, 5) }.Select(i=> new Vector2I(i.Item1, i.Item2)));
         CollectionAssert.AreEquivalent(Geometry.GetPairsWithinRatio(3, 5, 1, 16f/9, 2), new []{ (3, 3), (5, 3), (5, 5) }.Select(i=> new Vector2I(i.Item1, i.Item2)));
         CollectionAssert.AreEquivalent(Geometry.GetPairsWithinRatio(3, 6, 1, 16f/9, 2), new []{ (3, 3), (5, 3), (5, 5) }.Select(i=> new Vector2I(i.Item1, i.Item2)));
     }
 
-    [TestRunner.Test]
+    [Test]
     public void CreateTest() {
 
         Assert.That(Geometry.CreateRect2I(0.5f, 10, Geometry.RectanglePart.Landscape),Is.EqualTo(new Rect2I(0, 0, 10, 5)));
@@ -29,7 +29,7 @@ public class GeometryTest {
 
     }
 
-    [TestRunner.Test]
+    [Test]
     public void ShrinkRect2ToEnsureRatioTest() {
         // Reduce width
 
@@ -74,7 +74,7 @@ public class GeometryTest {
         Assert.That(Geometry.ShrinkRect2ToEnsureRatio(0, 0, 14, 9, 9f / 16), Is.EqualTo(new Rect2(0, 0, 14, 9)));
     }
 
-    [TestRunner.Test]
+    [Test]
     public void ShrinkRect2IToEnsureRatioTest() {
         // Reduce width
 

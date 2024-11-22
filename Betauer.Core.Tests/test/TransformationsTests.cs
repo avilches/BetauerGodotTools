@@ -4,10 +4,10 @@ using NUnit.Framework;
 
 namespace Betauer.Core.Tests;
 
-[TestRunner.Test]
+[TestFixture]
 public class TransformationsTests {
     
-    [TestRunner.Test]
+    [Test]
     public void TransformationsRotationsTests() {
         var original = new[,] {
             {  0,  1,  2,  3 },
@@ -35,7 +35,7 @@ public class TransformationsTests {
         });
     }
 
-    [TestRunner.Test]
+    [Test]
     public void TransformationsFlipTests() {
         AreEqual(new[,] {
             {  0,  1,  2,  3 },
@@ -80,7 +80,7 @@ public class TransformationsTests {
         });
     }
 
-    [TestRunner.Test]
+    [Test]
     public void TransformationsMirrorTests() {
         AreEqual(new[,] {
             {  0,  1,  2,  3,  4 },
@@ -157,7 +157,7 @@ public class TransformationsTests {
         });
     }
 
-    [TestRunner.Test]
+    [Test]
     public void TransformationsResizeTests() {
         AreEqual(new[,] {
             {  0,  1,  2,  3 },

@@ -7,7 +7,7 @@ using NUnit.Framework;
 
 namespace Betauer.DI.Tests;
 
-[TestRunner.Test]
+[TestFixture]
 public class ScannerLazyTests {
     public class DummyClass {
     }
@@ -29,7 +29,7 @@ public class ScannerLazyTests {
         [Singleton(Lazy = true)] private DummyClass lazy => new DummyClass();
     }
 
-    [TestRunner.Test(Description = "Check Lazy attribute")]
+    [Test(Description = "Check Lazy attribute")]
     public void CheckLazyAttribute() {
         var c = new Container();
         c.Build(di => {
@@ -68,7 +68,7 @@ public class ScannerLazyTests {
         }
     }
 
-    [TestRunner.Test(Description = "Test if the [PostInject] methods are invoked + Lazy using a non lazy")]
+    [Test(Description = "Test if the [PostInject] methods are invoked + Lazy using a non lazy")]
     public void PostInjectMethodLazyWithNoLazyTest() {
         var c = new Container();
         c.Build(di => {
@@ -97,7 +97,7 @@ public class ScannerLazyTests {
     class LazyPostInjectedB2 {
     }
 
-    [TestRunner.Test(Description = "Using Lazy singleton as non Lazy fails during initialization")]
+    [Test(Description = "Using Lazy singleton as non Lazy fails during initialization")]
     public void PostInjectMethodTest() {
         var e = Assert.Throws<InvalidOperationException>(() => {
             new Container().Build(di => {
@@ -137,7 +137,7 @@ public class ScannerLazyTests {
         }
     }
 
-    [TestRunner.Test(Description = "Test if the [PostInject] methods are invoked + Lazy using Lazy")]
+    [Test(Description = "Test if the [PostInject] methods are invoked + Lazy using Lazy")]
     public void PostInjectMethodLazyWithLazyTest() {
         var c = new Container();
         c.Build(di => {
@@ -169,7 +169,7 @@ public class ScannerLazyTests {
         [Inject] internal ILazy<LazyPostInjectedD1> D1 { get; set; }
     }
 
-    [TestRunner.Test(Description = "Test if the [PostInject] methods are invoked + Lazy using Lazy and Factory<T>")]
+    [Test(Description = "Test if the [PostInject] methods are invoked + Lazy using Lazy and Factory<T>")]
     public void PostInjectMethodLazyWithLazyTypedAsLazyTest() {
         var c = new Container();
         c.Build(di => {
@@ -215,7 +215,7 @@ public class ScannerLazyTests {
         [Inject] public ILazy<Singleton> Singleton { get; set; }
     }
 
-    [TestRunner.Test(Description = "Simulate a lazy behaviour with a Factory")]
+    [Test(Description = "Simulate a lazy behaviour with a Factory")]
     public void LazySingletonFromConfigurationTest() {
         Singleton.Instances = 0;
         var c = new Container();
@@ -248,7 +248,7 @@ public class ScannerLazyTests {
         [Inject] public Singleton Singleton { get; set; }
     }
 
-    [TestRunner.Test(Description = "Simulate a no lazy behaviour with a Factory")]
+    [Test(Description = "Simulate a no lazy behaviour with a Factory")]
     public void SingletonFromConfigurationTest() {
         Singleton.Instances = 0;
         var c = new Container();

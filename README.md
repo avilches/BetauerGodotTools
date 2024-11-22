@@ -41,10 +41,10 @@ That means you can access to SceneTree and any GodotSharp classes in your tests.
 ```C#
 using Betauer.TestRunner;
 
-[Test]
+[TestFixture]
 public class YourTest {
     // Executed only once before and after all tests in this class
-    [SetUpClass] public void SetUpClass() {}
+    [OneTimeSetUp] public void OneTimeSetUp() {}
     [TearDownClass] public void TearDownClass() {}
 
     // Executed before and after each test in this class
@@ -63,9 +63,9 @@ If your test class inherits from Node, it will be instantiated and added to the 
 ```C#
 using Betauer.TestRunner;
 
-[Test]
+[TestFixture]
 public class YouTest : Node {
-    [SetUpClass]
+    [OneTimeSetUp]
     public void Setup() {
         // This method is called once before all tests in this class
     }

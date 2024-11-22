@@ -10,19 +10,19 @@ using NUnit.Framework;
 
 namespace Betauer.GameTools.Tests.Input; 
 
-[TestRunner.Test]
+[TestFixture]
 public class InputActionContainerTests {
 
     const string SettingsFile = "./action-test-settings.ini";
 
-    [SetUpClass]
-    [TestRunner.TearDown]
+    [OneTimeSetUp]
+    [TearDown]
     public void Clear() {
         System.IO.File.Delete(SettingsFile);
         InputMap.GetActions().ForEach(InputMap.EraseAction);
     }
 
-    [TestRunner.Test]
+    [Test]
     public void InputActionFindByName() {
         var jump = InputAction.Create("Jump").Build();
         var left = InputAction.Create("Left").NegativeAxis(JoyAxis.LeftX).Build();
@@ -51,7 +51,7 @@ public class InputActionContainerTests {
         Assert.That(c.GetInputAction("Left"), Is.EqualTo(left));
     }
 
-    [TestRunner.Test(Description = "Manual binding sets the InputAction.AxisAction and AxisActionName properties")]
+    [Test(Description = "Manual binding sets the InputAction.AxisAction and AxisActionName properties")]
     public void AxisActionManualBinding() {
         var left = InputAction.Create("Left").NegativeAxis(JoyAxis.LeftX).Build();
         var right = InputAction.Create("Right").PositiveAxis(JoyAxis.LeftX).Build();
@@ -72,7 +72,7 @@ public class InputActionContainerTests {
         
     }
 
-    [TestRunner.Test(Description = "AxisAction links positive and negative by name, adding the input actions fist, then the axis action")]
+    [Test(Description = "AxisAction links positive and negative by name, adding the input actions fist, then the axis action")]
     public void AsisActionBindingRightLeftFirst() {
         var left = InputAction.Create("Left").AxisName("Lateral").NegativeAxis(JoyAxis.LeftX).Build();
         var right = InputAction.Create("Right").AxisName("Lateral").PositiveAxis(JoyAxis.LeftX).Build();
@@ -89,7 +89,7 @@ public class InputActionContainerTests {
         Assert.That(lateral.Positive, Is.EqualTo(right));
     }
 
-    [TestRunner.Test(Description = "AxisAction links positive and negative by name, adding the axis action first, then the input actions")]
+    [Test(Description = "AxisAction links positive and negative by name, adding the axis action first, then the input actions")]
     public void AsisActionBindingLateralFirst() {
         var left = InputAction.Create("Left").AxisName("Lateral").NegativeAxis(JoyAxis.LeftX).Build();
         var right = InputAction.Create("Right").AxisName("Lateral").PositiveAxis(JoyAxis.LeftX).Build();
@@ -115,7 +115,7 @@ public class InputActionContainerTests {
         public InputAction Right { get; } = InputAction.Create("Right").AxisName("Lateral").PositiveAxis(JoyAxis.LeftX).Build();
     }
 
-    [TestRunner.Test(Description = "Regular load from instance. No SettingContainer")]
+    [Test(Description = "Regular load from instance. No SettingContainer")]
     public void InputActionLoadInstanceTest() {
         var t = new Test1();
         t.AddActionsFromProperties(t);
@@ -173,7 +173,7 @@ public class InputActionContainerTests {
         public InputAction Right { get; } = InputAction.Create("Right").AxisName("Lateral").PositiveAxis(JoyAxis.LeftX).Build();
     }
 
-    [TestRunner.Test(Description = "With SettingContainer")]
+    [Test(Description = "With SettingContainer")]
     public void InputActionLoadInstanceContainerTest() {
         var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
         var t = new Test2();
@@ -186,7 +186,7 @@ public class InputActionContainerTests {
         Assert.That(iac.SettingsContainer!.Settings.Count, Is.EqualTo(2));
     }
     
-    [TestRunner.Test(Description = "With SettingContainer REVERSE, first configure save settings, then add from instance")]
+    [Test(Description = "With SettingContainer REVERSE, first configure save settings, then add from instance")]
     public void InputActionLoadInstanceContainerReverseTest() {
         var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
         var t = new Test2();
@@ -200,7 +200,7 @@ public class InputActionContainerTests {
     }
 
     
-    [TestRunner.Test(Description = "With SettingContainer, update and save")]
+    [Test(Description = "With SettingContainer, update and save")]
     public void UpdateAndSaveTest() {
         var o = new ConfigFileWrapper(SettingsFile);
         var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));

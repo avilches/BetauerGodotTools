@@ -6,39 +6,39 @@ using Vector3 = Godot.Vector3;
 
 namespace Betauer.Core.Tests; 
 
-[TestRunner.Test]
+[TestFixture]
 public class VariantHelperTests {
-    [TestRunner.Test]
+    [Test]
     public void SumVariantInt() {
         Assert.That(VariantHelper.Add(1, 2).As<int>(), Is.EqualTo(3));
         Assert.That(VariantHelper.Subtract(1, 2).As<int>(), Is.EqualTo(-1));
     }
 
-    [TestRunner.Test]
+    [Test]
     public void SumVariantFloat() {
         Assert.That(VariantHelper.Add(1f, 2f).As<float>(), Is.EqualTo(3f).Within(0.0000001f));
         Assert.That(VariantHelper.Subtract(1f, 2f).As<float>(), Is.EqualTo(-1f).Within(0.0000001f));
     }
 
-    [TestRunner.Test]
+    [Test]
     public void SumVariantDouble() {
         Assert.That(VariantHelper.Add(1d, 2d).As<float>(), Is.EqualTo(3d).Within(0.0000001f));
         Assert.That(VariantHelper.Subtract(1d, 2d).As<float>(), Is.EqualTo(-1d).Within(0.0000001f));
     }
 
-    [TestRunner.Test]
+    [Test]
     public void SumVariantVector2() {
         Assert.That(VariantHelper.Add(Vector2.One, Vector2.One).As<Vector2>(), Is.EqualTo(new Vector2(2f, 2f)));
         Assert.That(VariantHelper.Subtract(Vector2.One, Vector2.One).As<Vector2>(), Is.EqualTo(Vector2.Zero));
     }
 
-    [TestRunner.Test]
+    [Test]
     public void SumVariantVector3() {
         Assert.That(VariantHelper.Add(Vector3.One, Vector3.One).As<Vector3>(), Is.EqualTo(new Vector3(2f, 2f, 2f)));
         Assert.That(VariantHelper.Subtract(Vector3.One, Vector3.One).As<Vector3>(), Is.EqualTo(Vector3.Zero));
     }
 
-    [TestRunner.Test]
+    [Test]
     public void SumVariantColor() {
         Assert.That(VariantHelper.Add(
                 new Color(0.1f, 0.2f, 0.3f, 0.4f), new Color(0.1f, 0.2f, 0.3f, 0.4f)).As<Color>(),
@@ -48,7 +48,7 @@ public class VariantHelperTests {
             Is.EqualTo(new Color(0f, 0f, 0f, 0f)));
     }
 
-    [TestRunner.Test]
+    [Test]
     public void CreateFromAndConvertToTest() {
         AssertVariant(true);
         AssertVariant(false);

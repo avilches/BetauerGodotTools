@@ -12,20 +12,21 @@ using NUnit.Framework;
 
 namespace Betauer.Animation.Tests; 
 
-[TestRunner.Test]
+[TestFixture]
+[Only]
 public partial class SequenceTests : NodeTest {
-    [SetUpClass]
+    [OneTimeSetUp]
     public void SetUp() {
         Engine.TimeScale = 10;
     }
 
-    [TestRunner.TearDownClass]
+    [OneTimeTearDown]
     public void TearDown() {
         Engine.TimeScale = 1;
     }
 
-    [TestRunner.Test(Description = "Test OnAction method is executed immediately even with initialDelay and loops")]
-    [TestRunner.Ignore("It fails, please fix")]
+    [Test(Description = "Test OnAction method is executed immediately even with initialDelay and loops")]
+    [Ignore("It fails, please fix")]
     public async Task OnStart() {
 
         var sprite = await CreateSprite();
@@ -44,7 +45,7 @@ public partial class SequenceTests : NodeTest {
         Assert.That(x, Is.EqualTo(1));
     }
 
-    [TestRunner.Test(Description = "Sequence await works, multiple executions, Loops, no disposed")]
+    [Test(Description = "Sequence await works, multiple executions, Loops, no disposed")]
     public async Task SequenceMultipleExecutions() {
         var x = 0;
 
@@ -74,7 +75,7 @@ public partial class SequenceTests : NodeTest {
 
     }
 
-    [TestRunner.Test(Description = "Error if sequence is empty")]
+    [Test(Description = "Error if sequence is empty")]
     public async Task SequenceEmptyTests() {
         var sprite = await CreateSprite();
         var ke = Assert.ThrowsAsync<InvalidAnimationException>(async () => await KeyframeAnimation.Create(sprite)
@@ -89,7 +90,7 @@ public partial class SequenceTests : NodeTest {
         Assert.That(se.Message, Contains.Substring("Can't start a sequence without animations"));
     }
 
-    [TestRunner.Test(Description = "Error if keyframe animations without keyframes")]
+    [Test(Description = "Error if keyframe animations without keyframes")]
     public async Task KeyframeSequenceWithoutAnimationTests() {
         var sprite = await CreateSprite();
         var kea = Assert.Throws<InvalidAnimationException>(() => KeyframeAnimation.Create(sprite)
@@ -105,7 +106,7 @@ public partial class SequenceTests : NodeTest {
         Assert.That(seao.Message, Contains.Substring("Animation without offset keyframes"));
     }
 
-    [TestRunner.Test(Description = "Error if step animations without steps")]
+    [Test(Description = "Error if step animations without steps")]
     public async Task StepSequenceWithoutAnimationTests() {
         var sprite = await CreateSprite();
         var seaa = Assert.Throws<InvalidAnimationException>(() => SequenceAnimation.Create(sprite)
@@ -119,7 +120,7 @@ public partial class SequenceTests : NodeTest {
         Assert.That(seab.Message, Contains.Substring("Animation without steps"));
     }
 
-    [TestRunner.Test(Description = "Keyframe without duration fails")]
+    [Test(Description = "Keyframe without duration fails")]
     public async Task AnimationKeyMustHaveDurationTests() {
         var sprite = await CreateSprite();
         var e = Assert.ThrowsAsync<InvalidAnimationException>(async () => await KeyframeAnimation.Create(sprite)
@@ -131,7 +132,7 @@ public partial class SequenceTests : NodeTest {
         Assert.That(e.Message, Contains.Substring("Keyframe animation duration should be more than 0"));
     }
 
-    [TestRunner.Test(Description = "Keyframe duration with SetDuration() + parallel")]
+    [Test(Description = "Keyframe duration with SetDuration() + parallel")]
     public async Task KeyframeParallelDurationTests() {
         List<DebugStep<float>> steps1 = new List<DebugStep<float>>();
         List<DebugStep<float>> steps2 = new List<DebugStep<float>>();
@@ -161,7 +162,7 @@ public partial class SequenceTests : NodeTest {
         AssertStepTime(steps2[1], 1f, 1f);
     }
 
-    [TestRunner.Test(Description = "Keyframe duration with Play(). All animations are parallel")]
+    [Test(Description = "Keyframe duration with Play(). All animations are parallel")]
     public async Task KeyframeParallelDurationInPlayAndInitialDelayTests() {
         List<DebugStep<float>> steps1 = new List<DebugStep<float>>();
         List<DebugStep<float>> steps2 = new List<DebugStep<float>>();
@@ -190,7 +191,7 @@ public partial class SequenceTests : NodeTest {
         AssertStepTime(steps2[1], 2f, 1f);
     }
 
-    [TestRunner.Test(Description = "Keyframe multiple nodes")]
+    [Test(Description = "Keyframe multiple nodes")]
     public async Task KeyframeMultipleNodesTests() {
         List<DebugStep<float>> steps1 = new List<DebugStep<float>>();
         var sprite1 = await CreateSprite();
@@ -214,7 +215,7 @@ public partial class SequenceTests : NodeTest {
 
     }
 
-    [TestRunner.Test(Description = "Sequence multiple nodes")]
+    [Test(Description = "Sequence multiple nodes")]
     public async Task SequenceMultipleNodesTests() {
         List<DebugStep<float>> steps1 = new List<DebugStep<float>>();
         var sprite1 = await CreateSprite();
@@ -238,7 +239,7 @@ public partial class SequenceTests : NodeTest {
 
     }
 
-    [TestRunner.Test(Description = "Sequence steps parallel and chain duration with initialDelay")]
+    [Test(Description = "Sequence steps parallel and chain duration with initialDelay")]
     public async Task AnimateStepsChainParallelAndDelay() {
         var steps1 = new List<DebugStep<float>>();
         var steps2a = new List<DebugStep<float>>();

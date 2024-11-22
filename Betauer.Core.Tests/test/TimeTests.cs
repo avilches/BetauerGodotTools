@@ -7,14 +7,14 @@ using NUnit.Framework;
 
 namespace Betauer.Core.Tests;
 
-[TestRunner.Test]
+[TestFixture]
 public partial class TimeTests : Node {
-    [SetUpClass]
+    [OneTimeSetUp]
     public void SetUp() {
         Engine.TimeScale = 1;
     }
 
-    [TestRunner.Test]
+    [Test]
     public async Task GodotSchedulerTests() {
         var steps = 0;
         var godotScheduler = new GodotScheduler(GetTree(), 0.4f, 0.1f, () => steps++);
@@ -43,7 +43,7 @@ public partial class TimeTests : Node {
 
     }
 
-    [TestRunner.Test]
+    [Test]
     public async Task StopwatchAlarmTests() {
         var x = new GodotStopwatch(GetTree()).Start();
         await this.AwaitProcessFrame();
@@ -67,7 +67,7 @@ public partial class TimeTests : Node {
         Assert.That(x.IsAlarm(), Is.False);
     }
 
-    [TestRunner.Test(Description = "Ensure that a GodotStopwatch starts stopped")]
+    [Test(Description = "Ensure that a GodotStopwatch starts stopped")]
     public async Task GodotStopwatchStartsStoppedTests() {
         var x = new GodotStopwatch(GetTree());
         // It starts and stays stopped for 0.5s
@@ -82,7 +82,7 @@ public partial class TimeTests : Node {
         Assert.That(x.IsRunning, Is.True);
     }
 
-    [TestRunner.Test]
+    [Test]
     public async Task GodotStopwatchTests() {
         var x = new GodotStopwatch(GetTree());
         // It starts stopped
@@ -191,7 +191,7 @@ public partial class TimeTests : Node {
         Assert.That(x.IsRunning, Is.False);
     }
 
-    [TestRunner.Test]
+    [Test]
     public async Task GodotTimeoutMultipleExecutionsTests() {
         var timeouts = 0;
         var x = new GodotTimeout(GetTree(), 0.1f, () => timeouts++).Start();
@@ -207,7 +207,7 @@ public partial class TimeTests : Node {
         Assert.That(timeouts, Is.EqualTo(2));
     }
 
-    [TestRunner.Test]
+    [Test]
     public async Task GodotTimeoutTests() {
         var timeout = false;
         var x = new GodotTimeout(GetTree(), 1f, () => timeout = true);

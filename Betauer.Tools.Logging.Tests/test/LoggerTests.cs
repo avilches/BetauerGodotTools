@@ -3,20 +3,20 @@ using NUnit.Framework;
 
 namespace Betauer.Tools.Logging.Tests; 
 
-[TestRunner.Test]
+[TestFixture]
 public class LoggerTests {
-    [TestRunner.SetUp]
+    [SetUp]
     public void Setup() {
         LoggerFactory.Reset();
     }
 
-    [TestRunner.Test]
+    [Test]
     public void TraceLevelDefault() {
         Logger log = LoggerFactory.GetLogger("Pepe");
         Assert.That(log.MaxTraceLevel, Is.EqualTo(TraceLevel.Error));
     }
 
-    [TestRunner.Test]
+    [Test]
     public void LoggersAreCachedCaseInsensitive() {
         Assert.That(LoggerFactory.Loggers.Count, Is.EqualTo(0));
         Logger log = LoggerFactory.GetLogger("Pepe");
@@ -29,7 +29,7 @@ public class LoggerTests {
         Assert.That(LoggerFactory.Loggers.Count, Is.EqualTo(1));
     }
 
-    [TestRunner.Test]
+    [Test]
     public void TraceLevelTests() {
         Assert.That(LoggerFactory.GetLogger("P").MaxTraceLevel, Is.EqualTo(TraceLevel.Error));
         Assert.That(LoggerFactory.GetLogger("PLAYER").MaxTraceLevel, Is.EqualTo(TraceLevel.Error));

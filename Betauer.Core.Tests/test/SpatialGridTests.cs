@@ -11,14 +11,14 @@ using NUnit.Framework;
 
 namespace Betauer.Core.Tests;
 
-[TestRunner.Test]
+[TestFixture]
 public class SpatialGridTests : Node2D {
-    [TestRunner.SetUp]
+    [SetUp]
     public void SetUp() {
         GetChildren().ForEach(n => n.Free());
     }
 
-    [TestRunner.Test]
+    [Test]
     public void TestIdentity() {
         var circle1 = new Circle { Position = new Vector2(5, 5), Radius = 4 };
         var circle2 = new Circle { Position = new Vector2(7, 7), Radius = 4 };
@@ -57,7 +57,7 @@ public class SpatialGridTests : Node2D {
         }
     }
 
-    [TestRunner.Test]
+    [Test]
     public async Task TestCircleCircleIntersect() {
         var circle1 = new Circle { Position = new Vector2(5, 5), Radius = 4 };
         var circle2 = new Circle { Position = new Vector2(7, 7), Radius = 4 };
@@ -95,7 +95,7 @@ public class SpatialGridTests : Node2D {
         }
     }
 
-    [TestRunner.Test]
+    [Test]
     public async Task TestCircleCircleNoIntersect() {
         var circle1 = new Circle { Position = new Vector2(5, 5), Radius = 4 };
         var circle2 = new Circle { Position = new Vector2(17, 17), Radius = 4 };
@@ -116,7 +116,7 @@ public class SpatialGridTests : Node2D {
         }
     }
 
-    [TestRunner.Test]
+    [Test]
     public async Task TestCircleRectangleIntersect() {
         var circle = new Circle { Position = new Vector2(5, 5), Radius = 4 };
         var rectangle = new Rectangle { Position = new Vector2(7, 7), Size = new Vector2(4, 4) };
@@ -153,7 +153,7 @@ public class SpatialGridTests : Node2D {
         }
     }
 
-    [TestRunner.Test]
+    [Test]
     public async Task TestCircleRectangleNoIntersect() {
         var circle = new Circle { Position = new Vector2(5, 5), Radius = 4 };
         var rectangle = new Rectangle { Position = new Vector2(17, 17), Size = new Vector2(4, 4) };
@@ -174,7 +174,7 @@ public class SpatialGridTests : Node2D {
         }
     }
 
-    [TestRunner.Test]
+    [Test]
     public async Task TestRectangleRectangleIntersect() {
         var rectangle1 = new Rectangle { Position = new Vector2(5, 5), Size = new Vector2(4, 4) };
         var rectangle2 = new Rectangle { Position = new Vector2(7, 7), Size = new Vector2(4, 4) };
@@ -210,7 +210,7 @@ public class SpatialGridTests : Node2D {
         }
     }
 
-    [TestRunner.Test]
+    [Test]
     public async Task TestRectangleRectangleNoIntersect() {
         var rectangle1 = new Rectangle { Position = new Vector2(5, 5), Size = new Vector2(4, 4) };
         var rectangle2 = new Rectangle { Position = new Vector2(17, 17), Size = new Vector2(4, 4) };
@@ -233,7 +233,7 @@ public class SpatialGridTests : Node2D {
     }
 
 
-    [TestRunner.Test]
+    [Test]
     public void TestRectangleRemove() {
         var rectangle = new Rectangle { Position = new Vector2(5, 5), Size = new Vector2(4, 4) };
         for (var i = 4; i < 100; i++) {
@@ -246,7 +246,7 @@ public class SpatialGridTests : Node2D {
         }
     }
 
-    [TestRunner.Test]
+    [Test]
     public void TestRectangleCells() {
         // Smaller than 10x10
         AssertRectangleFitCells(10, 0f, 0f, 9.99f, 9.99f, new[] { (0, 0) });
@@ -270,7 +270,7 @@ public class SpatialGridTests : Node2D {
         AssertRectangleFitCells(10, 10.11f, 10.11f, 19.99f, 19.99f, new[] { (1, 1), (1, 2), (1, 3), (2, 1), (2, 2), (2, 3), (3, 1), (3, 2), (3, 3) });
     }
 
-    [TestRunner.Test]
+    [Test]
     public void TestCircleCells() {
         // Smaller than 10x10
         AssertCircleFitCells(10, 5f, 5f, 4.99f, new[] { (0, 0) });
@@ -294,7 +294,7 @@ public class SpatialGridTests : Node2D {
         AssertCircleFitCells(10, 25f, 25f, 7.49f, new[] { (1, 1), (1, 2), (1, 3), (2, 1), (2, 2), (2, 3), (3, 1), (3, 2), (3, 3) });
     }
 
-    [TestRunner.Test]
+    [Test]
     public void AssertPointCell() {
         var spatial = new SpatialGrid(10);
         var shape = new Point(5, 5);
@@ -312,7 +312,7 @@ public class SpatialGridTests : Node2D {
         Assert.That(spatial.Grid[(1, 1)].Contains(shape));
     }
 
-    [TestRunner.Test]
+    [Test]
     public void AssertRectangleMoveSameCell() {
         var spatial = new SpatialGrid(10);
         var shape = new Rectangle(5, 5, 4, 4);
@@ -330,7 +330,7 @@ public class SpatialGridTests : Node2D {
         Assert.That(spatial.Grid[(1, 1)].Contains(shape));
     }
 
-    [TestRunner.Test]
+    [Test]
     public void AssertRectangleResizeSameCell() {
         var spatial = new SpatialGrid(10);
         var shape = new Rectangle(5, 5, 4, 4);
@@ -343,7 +343,7 @@ public class SpatialGridTests : Node2D {
         Assert.That(spatial.Grid[(0, 0)].Contains(shape));
     }
 
-    [TestRunner.Test]
+    [Test]
     public void AssertRectangleMoveOtherCell() {
         var spatial = new SpatialGrid(10);
         var shape = new Rectangle(2, 2, 7, 7);
@@ -360,7 +360,7 @@ public class SpatialGridTests : Node2D {
         Assert.That(spatial.Grid[(1, 1)].Contains(shape));
     }
 
-    [TestRunner.Test]
+    [Test]
     public void AssertRectangleResizeOtherCell() {
         var spatial = new SpatialGrid(10);
         var shape = new Rectangle(2, 2, 7, 7);
@@ -377,7 +377,7 @@ public class SpatialGridTests : Node2D {
         Assert.That(spatial.Grid[(1, 1)].Contains(shape));
     }
 
-    [TestRunner.Test]
+    [Test]
     public void AssertCircleMoveSameCell() {
         var spatial = new SpatialGrid(10);
         var shape = new Circle(5, 5, 3);
@@ -396,7 +396,7 @@ public class SpatialGridTests : Node2D {
         Assert.That(spatial.Grid[(1, 1)].Contains(shape));
     }
 
-    [TestRunner.Test]
+    [Test]
     public void AssertCircleResizeSameCell() {
         var spatial = new SpatialGrid(10);
         var shape = new Circle(5, 5, 3);
@@ -410,7 +410,7 @@ public class SpatialGridTests : Node2D {
         Assert.That(spatial.Grid[(0, 0)].Contains(shape));
     }
 
-    [TestRunner.Test]
+    [Test]
     public void AssertCircleMoveOtherCell() {
         var spatial = new SpatialGrid(10);
         var shape = new Circle(5, 5, 3);
@@ -427,7 +427,7 @@ public class SpatialGridTests : Node2D {
         Assert.That(spatial.Grid[(1, 1)].Contains(shape));
     }
 
-    [TestRunner.Test]
+    [Test]
     public void AssertCircleResizeOtherCell() {
         var spatial = new SpatialGrid(10);
         var shape = new Circle(6, 6, 3);
@@ -444,7 +444,7 @@ public class SpatialGridTests : Node2D {
         Assert.That(spatial.Grid[(1, 1)].Contains(shape));
     }
 
-    [TestRunner.Test]
+    [Test]
     public void AssertCircleTryMove() {
         var spatial = new SpatialGrid(2);
         var shape1 = new Circle(0, 0, 2);
@@ -457,7 +457,7 @@ public class SpatialGridTests : Node2D {
         Assert.That(shape1.Position, Is.EqualTo(new Vector2(7, 6)));
     }
 
-    [TestRunner.Test]
+    [Test]
     public void AssertCircleTryResize() {
         var spatial = new SpatialGrid(2);
         var shape1 = new Circle(6, 6, 1);
@@ -470,7 +470,7 @@ public class SpatialGridTests : Node2D {
         Assert.That(shape1.Radius, Is.EqualTo(5));
     }
 
-    [TestRunner.Test]
+    [Test]
     public void AssertRectangleTryMove() {
         var spatial = new SpatialGrid(2);
         var shape1 = new Rectangle(0, 0, 2, 2);
@@ -483,7 +483,7 @@ public class SpatialGridTests : Node2D {
         Assert.That(shape1.Position, Is.EqualTo(new Vector2(7, 6)));
     }
 
-    [TestRunner.Test]
+    [Test]
     public void AssertRectangleTryResize() {
         var spatial = new SpatialGrid(2);
         var shape1 = new Rectangle(6, 6, 4, 4);
@@ -496,7 +496,7 @@ public class SpatialGridTests : Node2D {
         Assert.That(shape1.Size, Is.EqualTo(new Vector2(5, 3)));
     }
 
-    [TestRunner.Test]
+    [Test]
     public void AssertPointIntersect() {
         var spatial = new SpatialGrid(2);
         var shape1 = new Rectangle(6, 6, 4, 4);
@@ -544,7 +544,7 @@ public class SpatialGridTests : Node2D {
         Assert.That(spatial.IntersectRectangle(20, 20, 1, 1));
     }
 
-    [TestRunner.Test]
+    [Test]
     public void CompareSpatialGridWithPointGridTest() {
         for (int i = 5; i < 20; i++) {
             var random = new Random(0);

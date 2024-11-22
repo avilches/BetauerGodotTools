@@ -9,7 +9,7 @@ using NullReferenceException = System.NullReferenceException;
 
 namespace Betauer.FSM.Tests; 
 
-[TestRunner.Test]
+[TestFixture]
 public class FsmSyncTests {
     enum State {
         A,
@@ -43,7 +43,7 @@ public class FsmSyncTests {
         Video,
         NotFound
     }
-    [TestRunner.Test(Description = "Constructor")]
+    [Test(Description = "Constructor")]
     public void FSMConstructorsEnum() {
         var sm1 = new FsmSync<State, Event>(State.A, "X");
         Assert.That(sm1.Name, Is.EqualTo("X"));
@@ -55,7 +55,7 @@ public class FsmSyncTests {
     /*
      * Error cases
      */
-    [TestRunner.Test(Description = "InitialState not found on start")]
+    [Test(Description = "InitialState not found on start")]
     public void WrongStartStates() {
         var sm = new FsmSync<State, Event>(State.Global);
         sm.State(State.A).Build();
@@ -66,7 +66,7 @@ public class FsmSyncTests {
         });
     }
         
-    [TestRunner.Test(Description = "IsState")]
+    [Test(Description = "IsState")]
     public void IsStateTests() {
         var sm = new FsmSync<State, Event>(State.Global);
         sm.State(State.Global).Build();
@@ -76,14 +76,14 @@ public class FsmSyncTests {
         Assert.That(sm.IsState(State.Settings), Is.False);
     }
         
-    [TestRunner.Test(Description = "Duplicate state")]
+    [Test(Description = "Duplicate state")]
     public void DuplicateStateError() {
         var sm = new FsmSync<State, Event>(State.Audio);
         sm.State(State.Audio).Build();
         Assert.Throws<DuplicateStateException>(() => sm.State(State.Audio).Build());
     }
         
-    [TestRunner.Test(Description = "Event are not allowed before initialize")]
+    [Test(Description = "Event are not allowed before initialize")]
     public void EventsAreNotAllowedBeforeInitialize() {
         var sm = new FsmSync<State, Event>(State.Audio);
         sm.On(Event.Audio).Stay();
@@ -92,7 +92,7 @@ public class FsmSyncTests {
         Assert.Throws<InvalidStateException>(() => sm.Send(Event.Audio));
     }
         
-    [TestRunner.Test(Description = "Error when a state changes to a not found state")]
+    [Test(Description = "Error when a state changes to a not found state")]
     public void WrongStatesUnknownStateThenSet() {
         var sm = new FsmSync<State, Event>(State.A);
         var thenEvaluated = false;
@@ -106,7 +106,7 @@ public class FsmSyncTests {
         Assert.That(thenEvaluated, Is.True);
     }
 
-    [TestRunner.Test(Description = "Error when a state changes to a not found state")]
+    [Test(Description = "Error when a state changes to a not found state")]
     public void WrongStatesUnknownStateSet() {
         var sm = new FsmSync<State, Event>(State.A);
         sm.State(State.A).If(() => true).Set(State.Debug).Build();
@@ -115,7 +115,7 @@ public class FsmSyncTests {
         Assert.Throws<StateNotFoundException>(() => sm.Execute());
     }
 
-    [TestRunner.Test(Description = "Error not found event")]
+    [Test(Description = "Error not found event")]
     public void EventNotFound() {
         var sm = new FsmSync<State, Event>(State.A);
         sm.State(State.A).Build();
@@ -125,7 +125,7 @@ public class FsmSyncTests {
         Assert.Throws<EventNotFoundException>(() => sm.Execute());
     }
 
-    [TestRunner.Test(Description = "Error when a state pop in an empty stack")]
+    [Test(Description = "Error when a state pop in an empty stack")]
     public void WrongStatesPopWhenEmptyStack() {
         var sm = new FsmSync<State, Event>(State.A);
         sm.State(State.A).If(() => true).Then(context => context.Pop()).Build();
@@ -135,7 +135,7 @@ public class FsmSyncTests {
         Assert.Throws<InvalidStateException>(() => sm.Execute());
     }
         
-    [TestRunner.Test(Description = "Pop the same state in the stack is allowed")]
+    [Test(Description = "Pop the same state in the stack is allowed")]
     public void PopSameStateInTheStackIsAllowed() {
         var sm = new FsmSync<State, Event>(State.A);
         sm.State(State.A).If(() => true).Then(context => context.Push(State.A)).Build();
@@ -150,7 +150,7 @@ public class FsmSyncTests {
         Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A, State.A , State.A }));
     }
         
-    [TestRunner.Test(Description = "Set another initial state")]
+    [Test(Description = "Set another initial state")]
     public async Task SetAnotherInitialState() {
         var sm = new FsmSync<State, Event>(State.A);
         sm.State(State.Debug).Build();
@@ -159,7 +159,7 @@ public class FsmSyncTests {
         Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Debug));
     }
         
-    [TestRunner.Test(Description = "Multiple if are loaded in order")]
+    [Test(Description = "Multiple if are loaded in order")]
     public void Ifs() {
         var sm = new FsmSync<State, Event>(State.A);
         var x = 0;
@@ -188,7 +188,7 @@ public class FsmSyncTests {
         Assert.That(x, Is.EqualTo(3));
     }
 
-    [TestRunner.Test(Description = "If().Set()")]
+    [Test(Description = "If().Set()")]
     public void IfSetResult() {
         var sm = new FsmSync<State, Event>(State.A);
         sm.State(State.A).If(() => true).Set(State.Debug).Build();
@@ -199,7 +199,7 @@ public class FsmSyncTests {
         Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.Debug }));
     }
 
-    [TestRunner.Test(Description = "If() with Push(), PopPush() and Pop() result")]
+    [Test(Description = "If() with Push(), PopPush() and Pop() result")]
     public void IfPushPopPushResult() {
         var sm = new FsmSync<State, Event>(State.A);
         sm.State(State.A).If(() => true).Push(State.Debug).Build();
@@ -215,7 +215,7 @@ public class FsmSyncTests {
         Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A }));
     }
 
-    [TestRunner.Test(Description = "If().Stay()")]
+    [Test(Description = "If().Stay()")]
     public void IfStayResult() {
         var sm = new FsmSync<State, Event>(State.A);
         sm.State(State.A).If(() => true).Stay().Build();
@@ -225,7 +225,7 @@ public class FsmSyncTests {
         Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A }));
     }
 
-    [TestRunner.Test(Description = "If().Send()")]
+    [Test(Description = "If().Send()")]
     public void IfSendResult() {
         var sm = new FsmSync<State, Event>(State.A);
         sm.State(State.Debug).Build();
@@ -237,7 +237,7 @@ public class FsmSyncTests {
         Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.Debug }));
     }
 
-    [TestRunner.Test(Description = "If() multiple Send() chain")]
+    [Test(Description = "If() multiple Send() chain")]
     public void IfChainSend() {
         var sm = new FsmSync<State, Event>(State.A);
         sm.State(State.Debug).Build();
@@ -251,7 +251,7 @@ public class FsmSyncTests {
         Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.Debug }));
     }
 
-    [TestRunner.Test(Description = "Send() -> On().Set()")]
+    [Test(Description = "Send() -> On().Set()")]
     public void SendOnSet() {
         var sm = new FsmSync<State, Event>(State.A);
         sm.On(Event.Debug).Set(State.Debug);
@@ -264,7 +264,7 @@ public class FsmSyncTests {
         Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.Debug }));
     }
 
-    [TestRunner.Test(Description = "Send On() -> with Push, PopPush and Pop result")]
+    [Test(Description = "Send On() -> with Push, PopPush and Pop result")]
     public void SendsPushPopPushResult() {
         var sm = new FsmSync<State, Event>(State.A);
         sm.On(Event.Start).Push(State.Debug);
@@ -290,7 +290,7 @@ public class FsmSyncTests {
         Assert.That(sm.GetStack(), Is.EqualTo(new[] { State.A }));
     }
 
-    [TestRunner.Test(Description = "State event have more priority than global transitions. So, override a global with a local Stay will disable it")]
+    [Test(Description = "State event have more priority than global transitions. So, override a global with a local Stay will disable it")]
     public void StateEventsPriority() {
         var sm = new FsmSync<State, Event>(State.Start);
 
@@ -307,7 +307,7 @@ public class FsmSyncTests {
     /*
      * Working FSM
      */
-    [TestRunner.Test(Description = "Regular changes between root states inside state.Execute()")]
+    [Test(Description = "Regular changes between root states inside state.Execute()")]
     public void FSMPlainFlow() {
         var sm = new FsmSync<State, Event>(State.Idle);
 
@@ -378,7 +378,7 @@ public class FsmSyncTests {
 
     }
 
-    [TestRunner.Test(Description = "Ignore events with lower weight")]
+    [Test(Description = "Ignore events with lower weight")]
     public void SendEventWeight() {
         var sm = new FsmSync<State, Event>(State.Start);
 
@@ -404,7 +404,7 @@ public class FsmSyncTests {
         Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Global));
     }
 
-    [TestRunner.Test(Description = "State events have more priority than global events")]
+    [Test(Description = "State events have more priority than global events")]
     public void StateEventsVsGlobalEvents() {
         var sm = new FsmSync<State, Event>(State.Start);
 
@@ -431,7 +431,7 @@ public class FsmSyncTests {
 
     }
 
-    [TestRunner.Test(Description = "Event calls inside state machine")]
+    [Test(Description = "Event calls inside state machine")]
     public void SendEventInsideExecuteIsIgnored() {
         var sm = new FsmSync<State, Event>(State.Start);
 
@@ -456,7 +456,7 @@ public class FsmSyncTests {
         Assert.That(sm.CurrentState.Key, Is.EqualTo(State.Settings));
     }
 
-    [TestRunner.Test(Description = "Changes using stateMachine change methods")]
+    [Test(Description = "Changes using stateMachine change methods")]
     public void SendEvent() {
         var sm = new FsmSync<State, Event>(State.Audio);
 
@@ -496,7 +496,7 @@ public class FsmSyncTests {
         Assert.That(sm.CurrentState.Key, Is.EqualTo(State.MainMenu));
     }
 
-    [TestRunner.Test]
+    [Test]
     public void EnterOnPushExitOnPopSuspendAwakeListener() {
         var sm = new FsmSync<State, Event>(State.Debug);
 
@@ -531,7 +531,7 @@ public class FsmSyncTests {
             "Debug:awake"));
     }
 
-    [TestRunner.Test]
+    [Test]
     public void EnterOnPushExitOnPopSuspendAwakeEventsOrder() {
         var sm = new FsmSync<State, Event>(State.Debug);
             
@@ -649,7 +649,7 @@ public class FsmSyncTests {
 
     }
 
-    [TestRunner.Test]
+    [Test]
     public void ErrorInEnter() {
         var sm = new FsmSync<State, Event>(State.Start);
 
@@ -667,7 +667,7 @@ public class FsmSyncTests {
         Assert.That(steps, Is.EqualTo(1));
     }
         
-    [TestRunner.Test]
+    [Test]
     public void ErrorInExecute() {
         var sm = new FsmSync<State, Event>(State.Start);
 
@@ -687,7 +687,7 @@ public class FsmSyncTests {
         Assert.That(steps, Is.EqualTo(2));
     }
         
-    [TestRunner.Test]
+    [Test]
     public void ErrorInExit() {
         var sm = new FsmSync<State, Event>(State.Start);
 
@@ -712,7 +712,7 @@ public class FsmSyncTests {
         Assert.That(steps, Is.EqualTo(3));
     }
 
-    [TestRunner.Test(Description = "If() are executed twice (at the beginning and at the end) when the state is the same")]
+    [Test(Description = "If() are executed twice (at the beginning and at the end) when the state is the same")]
     public void ConditionalOrderSameState() {
         var sm = new FsmSync<State, Event>(State.Start);
 
@@ -743,7 +743,7 @@ public class FsmSyncTests {
 
     }
         
-    [TestRunner.Test(Description = "If() are only executed once (at the end) when the state change")]
+    [Test(Description = "If() are only executed once (at the end) when the state change")]
     public void ConditionalOrderStateChanged() {
         var sm = new FsmSync<State, Event>(State.Start);
 

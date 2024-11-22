@@ -5,10 +5,10 @@ using NUnit.Framework;
 
 namespace Betauer.Core.Tests; 
 
-[Betauer.TestRunner.Test]
+[TestFixture]
 public class FastSearchTest {
 
-    [Betauer.TestRunner.Test]
+    [Test]
     public void FindMinimumValueTest() {
         Assert.AreEqual(1, FastSearch.FindMinimumValue(new[] { 1 }.ToList(), i => i));
         Assert.AreEqual(1, FastSearch.FindMinimumValue(new[] { 5, 1 }.ToList(), i => i));

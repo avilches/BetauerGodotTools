@@ -4,10 +4,10 @@ using NUnit.Framework;
 
 namespace Betauer.Bus.Tests; 
 
-[TestRunner.Test]
+[TestFixture]
 public class BusMulticastTests {
 
-    [TestRunner.Test]
+    [Test]
     public void BasicTest() {
         var bus = new Multicast<string>();
         var calls1 = 0;
@@ -30,7 +30,7 @@ public class BusMulticastTests {
         Assert.That(calls2, Is.EqualTo(1));
     }
         
-    [TestRunner.Test]
+    [Test]
     public void BasicRemoveTest() {
         var bus = new Multicast<string>();
         var calls = 0;
@@ -48,7 +48,7 @@ public class BusMulticastTests {
         Assert.That(bus.Consumers.Count, Is.EqualTo(0));
     }
         
-    [TestRunner.Test]
+    [Test]
     public void BasicRemoveIfTest() {
         var bus = new Multicast<string>();
         var remove = false;
@@ -67,7 +67,7 @@ public class BusMulticastTests {
         Assert.That(bus.Consumers.Count, Is.EqualTo(0));
     }
         
-    [TestRunner.Test]
+    [Test]
     public void BasicRemoveIfInvalidTest() {
         var bus = new Multicast<string>();
         var o = new Godot.GodotObject();
@@ -97,7 +97,7 @@ public class BusMulticastTests {
     public class Event2 : IEvent {
     }
 
-    [TestRunner.Test]
+    [Test]
     public void AllowSubTypesArgs() {
         var bus = new Multicast<IEvent>();
         var calls = 0;

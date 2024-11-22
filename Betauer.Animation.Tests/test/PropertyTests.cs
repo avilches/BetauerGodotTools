@@ -15,20 +15,20 @@ using Vector2 = Godot.Vector2;
 
 namespace Betauer.Animation.Tests; 
 
-[TestRunner.Test]
+[TestFixture]
 public partial class PropertyTests : NodeTest {
-    [SetUpClass]
+    [OneTimeSetUp]
     public void SetUp() {
         Engine.TimeScale = 10;
         LoggerFactory.OverrideTraceLevel(TraceLevel.All);
     }
 
-    [TestRunner.TearDownClass]
+    [OneTimeTearDown]
     public void TearDown() {
         Engine.TimeScale = 1;
     }
 
-    [TestRunner.Test]
+    [Test]
     public async Task InternalTest_CreateSpriteWithTextureSize() {
         var sprite = await CreateSprite(300);
         Assert.That(sprite.GetSpriteSize().X, Is.EqualTo(300));
@@ -38,7 +38,7 @@ public partial class PropertyTests : NodeTest {
      * Test builder methods with lambdas (Sequence and template)
      */
 
-    [TestRunner.Test(Description = "Lambda with value only property")]
+    [Test(Description = "Lambda with value only property")]
     public async Task LambdaValueProperty() {
         Engine.TimeScale = 1;
         var spritePlayer = await CreateSprite();
@@ -86,7 +86,7 @@ public partial class PropertyTests : NodeTest {
         Assert.That(values1rk.Last(), Is.EqualTo(23));
     }
 
-    [TestRunner.Test(Description = "Lambda with node and value property")]
+    [Test(Description = "Lambda with node and value property")]
     public async Task LambdaNodeValueProperty() {
         Engine.TimeScale = 1;
         var spriteAnimation = await CreateSprite();
@@ -154,7 +154,7 @@ public partial class PropertyTests : NodeTest {
 
     public float _stringProperty = 0;
 
-    [TestRunner.Test(Description = "classic string property tween")]
+    [Test(Description = "classic string property tween")]
     public async Task StringProperty() {
         var spritePlayer = await CreateSprite();
         await SequenceAnimation.Create(this)
@@ -207,7 +207,7 @@ public partial class PropertyTests : NodeTest {
      * Property
      */
 
-    [TestRunner.Test(Description = "Property Rotate")]
+    [Test(Description = "Property Rotate")]
     public async Task TweenPropertyRotate() {
         foreach (var property in new IProperty<float>[] { Properties.Rotate2D, CallbackProperties.Rotate2D }) {
             const float from = 1f;
@@ -223,7 +223,7 @@ public partial class PropertyTests : NodeTest {
         }
     }
 
-    [TestRunner.Test(Description = "Property PositionX, PositionY")]
+    [Test(Description = "Property PositionX, PositionY")]
     public async Task TweenPropertyPositionX_Y() {
         const float from = 90f;
         const float to = 120f;
@@ -242,7 +242,7 @@ public partial class PropertyTests : NodeTest {
         await CreateIncompatibleNodeTweenPropertyVariants(node, Properties.PositionY, from, to);
     }
 
-    [TestRunner.Test(Description = "Property PositionBySizeX, PositionBySizeY")]
+    [Test(Description = "Property PositionBySizeX, PositionBySizeY")]
     public async Task TweenPropertyPositionPercentX_Y() {
         const float percentFrom = 0f;
         const float percentTo = 0.1f;
@@ -336,7 +336,7 @@ public partial class PropertyTests : NodeTest {
         await CreateIncompatibleNodeTweenPropertyVariants(node2D, Properties.PositionBySize2D, Vector2.One, Vector2.Zero);
     }
 
-    [TestRunner.Test(Description = "Property Scale2DX, Scale2DXByCallback, Scale2DY, Scale2DYByCallback")]
+    [Test(Description = "Property Scale2DX, Scale2DXByCallback, Scale2DY, Scale2DYByCallback")]
     public async Task TweenPropertyScaleX_Y() {
         const float from = 0.9f;
         const float to = 1.2f;
@@ -363,7 +363,7 @@ public partial class PropertyTests : NodeTest {
         }
     }
 
-    [TestRunner.Test(Description = "Property SkewX, SkewY")]
+    [Test(Description = "Property SkewX, SkewY")]
     public async Task TweenPropertySkewX_Y() {
         const float from = 0.9f;
         const float to = 1.2f;
@@ -381,7 +381,7 @@ public partial class PropertyTests : NodeTest {
         await CreateIncompatibleNodeTweenPropertyVariants(node, Properties.Skew2DY, from, to);
     }
 
-    [TestRunner.Test(Description = "Property Position2D")]
+    [Test(Description = "Property Position2D")]
     public async Task TweenPropertyPosition2d() {
         var from = Vector2.Zero;
         var to = new Vector2(23f, -12f);
@@ -397,7 +397,7 @@ public partial class PropertyTests : NodeTest {
     }
 
 
-    [TestRunner.Test(Description = "Property Scale2D")]
+    [Test(Description = "Property Scale2D")]
     public async Task TweenPropertyScale2d() {
         foreach (var property in new IProperty<Vector2>[] { Properties.Scale2D, CallbackProperties.Scale2D }) {
             var from = Vector2.One;
@@ -414,7 +414,7 @@ public partial class PropertyTests : NodeTest {
         }
     }
 
-    [TestRunner.Test(Description = "Property modulate")]
+    [Test(Description = "Property modulate")]
     public async Task TweenPropertyColor() {
         var from = new Color(0.1f, 0.1f, 0.1f, 0.1f);
         var fromA = new Color(0.1f, 0.1f, 0.1f, 1f);
@@ -452,7 +452,7 @@ public partial class PropertyTests : NodeTest {
     }
 
 
-    [TestRunner.Test(Description = "IndexedProperty compatibleWith")]
+    [Test(Description = "IndexedProperty compatibleWith")]
     public async Task IndexedPropertyCompatibleWithTests() {
             
         IndexedSingleProperty.Cache.Clear();
@@ -473,7 +473,7 @@ public partial class PropertyTests : NodeTest {
 
     public Vector2 follow;
         
-    [TestRunner.Test(Description = "Custom IndexedProperty + test cache")]
+    [Test(Description = "Custom IndexedProperty + test cache")]
     public async Task IndexedPropertyTests() {
             
         IndexedSingleProperty.Cache.Clear();
@@ -495,7 +495,7 @@ public partial class PropertyTests : NodeTest {
         Assert.That(c1 != c2);
     }
 
-    [TestRunner.Test(Description = "Custom IndexedProperty + test cache")]
+    [Test(Description = "Custom IndexedProperty + test cache")]
     public async Task TweenPropertyBasicPropertyString() {
             
         IndexedSingleProperty.Cache.Clear();
@@ -515,7 +515,7 @@ public partial class PropertyTests : NodeTest {
     /**
          * Callbacks
          */
-    [TestRunner.Test(Description = "non IndexedProperty using the SetVale as a callback tween")]
+    [Test(Description = "non IndexedProperty using the SetVale as a callback tween")]
     public async Task SequenceStepsToWithCallbackProperty() {
         List<DebugStep<float>> steps = new List<DebugStep<float>>();
         var sprite = await CreateSprite();
@@ -630,7 +630,7 @@ public partial class PropertyTests : NodeTest {
         var e2 = Assert.Throws<NodeNotCompatibleWithPropertyException>(() => keyf.Play(node));
     }
 
-    [TestRunner.Test]
+    [Test]
     public async Task PivotSpriteRestoreTests2() {
         var sprite = await CreateSprite();
         var original = new Vector2(2f, 3f);

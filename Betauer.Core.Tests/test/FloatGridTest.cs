@@ -7,9 +7,9 @@ using NUnit.Framework;
 
 namespace Betauer.Core.Tests;
 
-[TestRunner.Test]
+[TestFixture]
 public class FloatGridTest {
-    [TestRunner.Test]
+    [Test]
     public void FloatArrayTest() {
         var mapping = new Dictionary<char, string>() {
             { 'A', "A" },
@@ -40,7 +40,7 @@ public class FloatGridTest {
     }
 
 
-    [TestRunner.Test]
+    [Test]
     public void NoRectanglesTest() {
         var floatArray = FloatGrid<string>.Parse("""
                                                  AAAAA
@@ -62,7 +62,7 @@ public class FloatGridTest {
         Assert.AreEqual(floatArray.Get(1f, 1f), "D");
     }
 
-    [TestRunner.Test]
+    [Test]
     public void RectanglesTest() {
         var floatArray = FloatGrid<string>.Parse("""
                                                  AABB
@@ -80,7 +80,7 @@ public class FloatGridTest {
         Assert.AreEqual(floatArray.GetRect("C"), new Rect2(0f, 1f/3, 1f / 2, 0.666666627f));
     }
 
-    [TestRunner.Test]
+    [Test]
     public void SimpleTest() {
         var floatArray = FloatGrid<string>.Parse("""
                                                  ABC
@@ -118,7 +118,7 @@ public class FloatGridTest {
         Assert.AreEqual("I", floatArray.Get(10f, 10f));
     }
 
-    [TestRunner.Test]
+    [Test]
     public void ValidateRectanglesTest() {
         var mapping = new Dictionary<char, string>() {
             { 'A', "A" },

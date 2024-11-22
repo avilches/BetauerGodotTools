@@ -3,9 +3,9 @@ using NUnit.Framework;
 
 namespace Betauer.Animation.Tests; 
 
-[TestRunner.Test]
+[TestFixture]
 public partial class BezierCurveTests : NodeTest {
-    [TestRunner.Test]
+    [Test]
     public void BezierCurveTest() {
         // Two identical curves, but different instances
         var a = BezierCurve.Create(0f, 1f, 2f, 3f, 4f, 5f, 6f, 7f);

@@ -8,9 +8,9 @@ using NUnit.Framework;
 
 namespace Betauer.GameTools.Tests; 
 
-[TestRunner.Test]
+[TestFixture]
 public partial class NodePathScannerTests : Node {
-    [SetUpClass]
+    [OneTimeSetUp]
     public void Setup() {
         LoggerFactory.OverrideTraceLevel(TraceLevel.All);
     }
@@ -29,7 +29,7 @@ public partial class NodePathScannerTests : Node {
         internal Sprite2D allowNulls;
     }
 
-    [TestRunner.Test(Description = "Fail if not found")]
+    [Test(Description = "Fail if not found")]
     public void FailNotFound() {
         var myArea2D = new MyArea2D();
         NodePathFieldException? e =
@@ -37,7 +37,7 @@ public partial class NodePathScannerTests : Node {
         Assert.That(e!.Message.Contains("null value"));
     }
 
-    [TestRunner.Test(Description = "NodePath working")]
+    [Test(Description = "NodePath working")]
     public void NodePathWorking() {
         var myArea2D = new MyArea2D();
         AddChild(myArea2D);
@@ -59,7 +59,7 @@ public partial class NodePathScannerTests : Node {
         Assert.That(myArea2D.allowNulls, Is.Null);
     }
 
-    [TestRunner.Test(Description = "NodePath fail on wrong type")]
+    [Test(Description = "NodePath fail on wrong type")]
     public void NodePathFailWrongType() {
         var myArea2D = new MyArea2D();
         AddChild(myArea2D);
@@ -90,7 +90,7 @@ public partial class NodePathScannerTests : Node {
         [NodePath("Children")] internal Dictionary<string, Node> dictNodes;
     }
 
-    [TestRunner.Test(Description = "NodePath children")]
+    [Test(Description = "NodePath children")]
     public void ChildrenTests() {
         var nodeWithChildren = new NodeWithChildren();
         AddChild(nodeWithChildren);

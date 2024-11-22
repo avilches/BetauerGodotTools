@@ -5,9 +5,9 @@ using NUnit.Framework;
 
 namespace Betauer.GameTools.Tests; 
 
-[TestRunner.Test]
+[TestFixture]
 public class ArgumentsTest {
-    [TestRunner.Test]
+    [Test]
     public void BasicTest() {
         var a = Arguments.ParseArgs(
             new[] { "--s", "value-s", "-p", "-z", "value-z", "command1", "-x=value-x", "--yyy=value-yyy", "command2", "-", "empty" , "-", "empty" });
@@ -21,7 +21,7 @@ public class ArgumentsTest {
         Assert.That(a.Options[""], Is.EqualTo("empty"));
     }
         
-    [TestRunner.Test]
+    [Test]
     public void WeirdCasesTest() {
         var a = Arguments.ParseArgs(
             new[] { "a=a", "-s==", "--xx=", "-=aaa"});

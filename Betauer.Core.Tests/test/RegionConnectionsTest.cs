@@ -10,9 +10,9 @@ using NUnit.Framework;
 
 namespace Betauer.Core.Tests;
 
-[TestRunner.Test]
+[TestFixture]
 public class RegionConnectionsTest {
-    [TestRunner.Test]
+    [Test]
     public void Test() {
         var xYGrid = Array2D.Parse("""
                                    #·#####

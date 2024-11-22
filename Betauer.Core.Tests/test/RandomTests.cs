@@ -6,7 +6,7 @@ using NUnit.Framework;
 
 namespace Betauer.Core.Tests;
 
-[Betauer.TestRunner.Test]
+[TestFixture]
 public class RandomTests {
     internal enum Pepe {
         A,
@@ -18,7 +18,7 @@ public class RandomTests {
     public const float Tolerance = 0.02f;
     public const float NUnitTolerance = Tolerance * 100;
 
-    [Betauer.TestRunner.Test]
+    [Test]
     public void RatioTests() {
         var rnd = new Random(0);
         var lt1 = 0;
@@ -41,7 +41,7 @@ public class RandomTests {
         
     }
 
-    [Betauer.TestRunner.Test]
+    [Test]
     public void UniformRangeIntTest() {
         var rnd = new Random(0);
         int min = -3;
@@ -55,7 +55,7 @@ public class RandomTests {
         AssertUniform(intHist, Tolerance);
     }
 
-    [Betauer.TestRunner.Test]
+    [Test]
     public void UniformRangeLongTest() {
     // public static void Main() {
         var rnd = new Random(0);
@@ -70,7 +70,7 @@ public class RandomTests {
         AssertUniform(longHist, Tolerance);
     }
 
-    [Betauer.TestRunner.Test]
+    [Test]
     public void UniformRangeDateTimeTest() {
         var rnd = new Random(0);
         var from = new DateTime(2023, 12, 31, 23, 59, 55);
@@ -87,7 +87,7 @@ public class RandomTests {
         AssertUniform(longHist, Tolerance);
     }
     
-    [Betauer.TestRunner.Test]
+    [Test]
     public void UniformEnumTest() {
         var rnd = new Random(0);
         var enumHist = Distribution.DiscreteHistogram(() => rnd.Next<Pepe>(), SampleCount);
@@ -95,7 +95,7 @@ public class RandomTests {
         AssertUniform(enumHist, Tolerance);
     }
 
-    [Betauer.TestRunner.Test]
+    [Test]
     public void UniformArrayTest() {
         var rnd = new Random(0);
         var enumHist = Distribution.DiscreteHistogram(() => rnd.Next(new []{0,1,2,3}), SampleCount);
@@ -103,7 +103,7 @@ public class RandomTests {
         AssertUniform(enumHist, Tolerance);
     }
 
-    [Betauer.TestRunner.Test]
+    [Test]
     public void UniformListTest() {
         var rnd = new Random(0);
         var enumHist = Distribution.DiscreteHistogram(() => rnd.Next(new List<int>{0,1,2,3}), SampleCount);
@@ -111,7 +111,7 @@ public class RandomTests {
         AssertUniform(enumHist, Tolerance);
     }
 
-    [Betauer.TestRunner.Test]
+    [Test]
     public void WeightedPickFloatArrayTest() {
         var rnd = new Random(0);
 
@@ -123,7 +123,7 @@ public class RandomTests {
         Assert.That(positionHist[2], Is.EqualTo(SampleCount * 0.5f).Within(NUnitTolerance).Percent);
     }
     
-    [Betauer.TestRunner.Test]
+    [Test]
     public void WeightedPickIWeightArrayTest() {
         var rnd = new Random(0);
 

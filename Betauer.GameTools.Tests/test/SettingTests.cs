@@ -7,18 +7,17 @@ using NUnit.Framework;
 
 namespace Betauer.GameTools.Tests;
 
-[TestRunner.Test]
+[TestFixture]
 public partial class SettingTests : Node {
 
     const string SettingsFile = "./test-settings.ini";
 
-    [SetUpClass]
-    [TestRunner.SetUp]
+    [SetUp]
     public void Clear() {
         System.IO.File.Delete(SettingsFile);
     }
 
-    [TestRunner.Test]
+    [Test]
     public void FailIfNoContainer() {
         // var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
         var saved = Setting.Create("Section/NoAutoSave", "Default", false);
@@ -32,14 +31,14 @@ public partial class SettingTests : Node {
         Assert.Throws<NullReferenceException>(() => saved.Value = "FAIL");
     }
 
-    [TestRunner.Test]
+    [Test]
     public void DuplicatedSettingTest() {
         var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
         sc.Add(Setting.Create("Section/SavedDisabled", "Default"));
         Assert.Throws<Exception>(() => sc.Add(Setting.Create("Section/SavedDisabled", "Pepe")));
     }
 
-    [TestRunner.Test]
+    [Test]
     public void WorksIfContainer() {
         var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
         var saved = Setting.Create("Section/NoAutoSave", "Default", false);
@@ -49,7 +48,7 @@ public partial class SettingTests : Node {
 
     }
 
-    [TestRunner.Test]
+    [Test]
     public void SectionNameTest() {
         // Property without section
         var noSection = Setting.Create("property", "A");
@@ -70,7 +69,7 @@ public partial class SettingTests : Node {
         Assert.That(cf.GetValue<string>(propWithSlash.SaveAs, "_"), Is.EqualTo("B"));
     }
 
-    [TestRunner.Test]
+    [Test]
     public void SaveNoAutoSaveBeforeEvenUseTest() {
         var saved = Setting.Create("Section/prop", "B", false);
         var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
@@ -82,7 +81,7 @@ public partial class SettingTests : Node {
         Assert.That(cf.GetValue<string>(saved.SaveAs, "_"), Is.EqualTo("B"));
     }
 
-    [TestRunner.Test]
+    [Test]
     public void RegularAutoSaveTest() {
         var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
         var saved = Setting.Create("Section/NoAutoSave", "Default", false);
@@ -102,7 +101,7 @@ public partial class SettingTests : Node {
         Assert.That(cf.GetValue<string>("Section", "NoAutoSave", "_"), Is.EqualTo(changed));
     }
 
-    [TestRunner.Test]
+    [Test]
     public void RegularNoAutoSaveTest() {
         var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
         var saved = Setting.Create("Section/NoAutoSave", "Default", true);
@@ -122,7 +121,7 @@ public partial class SettingTests : Node {
         Assert.That(cf.GetValue<string>("Section", "NoAutoSave", "_"), Is.EqualTo(changed));
     }
 
-    [TestRunner.Test]
+    [Test]
     public void DefaultValueTest() {
         var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
         var saved = Setting.Create("Section/SavedDisabled", "Default");
@@ -136,7 +135,7 @@ public partial class SettingTests : Node {
         public SaveSetting<bool> Saved2 { get; } = Setting.Create("Section/A", true);
     }
 
-    [TestRunner.Test]
+    [Test]
     public void LoadInstanceTest() {
         var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
         var t = new Test1();

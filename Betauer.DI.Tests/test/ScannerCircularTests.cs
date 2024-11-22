@@ -7,7 +7,7 @@ using NUnit.Framework;
 
 namespace Betauer.DI.Tests; 
 
-[TestRunner.Test]
+[TestFixture]
 public class ScannerCircularTests : Node {
     [Singleton]
     public class Singleton {
@@ -16,7 +16,7 @@ public class ScannerCircularTests : Node {
         [Inject] public Singleton s { get; set; }
     }
 
-    [TestRunner.Test(Description = "Singleton includes itself: OK")]
+    [Test(Description = "Singleton includes itself: OK")]
     public void SingletonItSelf() {
         var c = new Container();
         c.Build(di => {
@@ -36,7 +36,7 @@ public class ScannerCircularTests : Node {
         [Inject] public Transient t { get; set; }
     }
 
-    [TestRunner.Test(Description = "Transient includes itself: ERROR")]
+    [Test(Description = "Transient includes itself: ERROR")]
     public void TransientItSelf() {
         var c = new Container();
         c.Build(di => {
@@ -62,7 +62,7 @@ public class ScannerCircularTests : Node {
         [Inject] public ISingletonX s { get; set; }
     }
 
-    [TestRunner.Test(Description = "Singleton includes itself using interface as type: OK")]
+    [Test(Description = "Singleton includes itself using interface as type: OK")]
     public void CircularSingletonTypes() {
         var c = new Container();
         c.Build(di => {
@@ -90,7 +90,7 @@ public class ScannerCircularTests : Node {
         [Inject] public ITransientX t { get; set; }
     }
 
-    [TestRunner.Test(Description = "Transient includes itself using interface as type: ERROR")]
+    [Test(Description = "Transient includes itself using interface as type: ERROR")]
     public void CircularTransientTypes() {
         var c = new Container();
         c.Build(di => {
@@ -125,7 +125,7 @@ public class ScannerCircularTests : Node {
     }
 
 
-    [TestRunner.Test(Description = "Circular dependency between singleton: OK")]
+    [Test(Description = "Circular dependency between singleton: OK")]
     public void CircularSingleton() {
         var c = new Container();
         c.Build(di => {
@@ -177,7 +177,7 @@ public class ScannerCircularTests : Node {
     }
 
 
-    [TestRunner.Test(Description = "Circular dependency between transients: ERROR")]
+    [Test(Description = "Circular dependency between transients: ERROR")]
     public void CircularTransient() {
         var c = new Container();
         c.Build(di => {
@@ -215,7 +215,7 @@ public class ScannerCircularTests : Node {
     internal class A { }
     internal class B { }
 
-    [TestRunner.Test]
+    [Test]
     public void MemberExposing() {
         var c = new Container();
         c.Build(di => {

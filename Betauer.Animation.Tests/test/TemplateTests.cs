@@ -4,9 +4,9 @@ using Betauer.TestRunner;
 
 namespace Betauer.Animation.Tests; 
 
-[TestRunner.Test]
+[TestFixture]
 public partial class TemplateTests : NodeTest {
-    [TestRunner.Test]
+    [Test]
     public void TemplateNamesCheck() {
         Assert.That(Templates.Bounce, Is.EqualTo(Templates.Get<KeyframeAnimation>("bOunce")));
         Assert.That(Templates.Flash, Is.EqualTo(Templates.Get<KeyframeAnimation>("fLash")));

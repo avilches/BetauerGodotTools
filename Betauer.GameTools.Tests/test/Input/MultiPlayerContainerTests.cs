@@ -14,13 +14,13 @@ using NUnit.Framework;
 
 namespace Betauer.GameTools.Tests.Input; 
 
-[TestRunner.Test]
+[TestFixture]
 public class MultiPlayerContainerTests {
 
     const string SettingsFile = "./action-test-settings.ini";
 
-    [SetUpClass]
-    [TestRunner.TearDown]
+    [OneTimeSetUp]
+    [TearDown]
     public void Clear() {
         System.IO.File.Delete(SettingsFile);
         InputMap.GetActions().ForEach(InputMap.EraseAction);
@@ -37,7 +37,7 @@ public class MultiPlayerContainerTests {
     }
 
 
-    [TestRunner.Test(Description = "Test GetPlayerActionsByJoypadId, GetPlayerActionsById")]
+    [Test(Description = "Test GetPlayerActionsByJoypadId, GetPlayerActionsById")]
     public void PlayerActionsContainerFinderTests() {
         var c = new Test3MultiPlayerContainer();
 
@@ -68,7 +68,7 @@ public class MultiPlayerContainerTests {
         Assert.That(c.IsJoypadInUse(1), Is.False);
     }
 
-    [TestRunner.Test(Description = "Test auto incremental player id creation")]
+    [Test(Description = "Test auto incremental player id creation")]
     public void PlayerActionsContainerErrorDuplicateJoypadTest() {
         var c = new Test3MultiPlayerContainer();
         Assert.That(c.GetNextPlayerId(), Is.EqualTo(0));
@@ -95,7 +95,7 @@ public class MultiPlayerContainerTests {
         Assert.That(c.AddPlayerActions(6).PlayerId, Is.EqualTo(4));
     }
 
-    [TestRunner.Test(Description = "Add players and change player id")]
+    [Test(Description = "Add players and change player id")]
     public void PlayerActionsContainerTest() {
         var c = new Test3MultiPlayerContainer();
 
@@ -135,7 +135,7 @@ public class MultiPlayerContainerTests {
         Assert.That(InputMap.HasAction("Left/P"+newPlayerId), Is.False);
     }
 
-    [TestRunner.Test(Description = "ChangeKeyboard")]
+    [Test(Description = "ChangeKeyboard")]
     public void ChangeKeyboard() {
         var mpc = new Test3MultiPlayerContainer();
 
@@ -158,7 +158,7 @@ public class MultiPlayerContainerTests {
         InputIsEquals(mpc.SharedInputActions.Lateral, t1.Lateral);
     }
 
-    [TestRunner.Test(Description = "ChangeJoypad")]
+    [Test(Description = "ChangeJoypad")]
     public void ChangeJoypad() {
         var mpc = new Test3MultiPlayerContainer();
 
@@ -174,7 +174,7 @@ public class MultiPlayerContainerTests {
         Assert.That((InputMap.ActionGetEvents("Left/P0").OfType<InputEventJoypadMotion>().ToList()[0])!.Device, Is.EqualTo(newJoypadId));
     }
 
-    [TestRunner.Test(Description = "SyncActions")]
+    [Test(Description = "SyncActions")]
     public void SyncActionsTest() {
         var mpc = new Test3MultiPlayerContainer();
 
@@ -275,7 +275,7 @@ public class MultiPlayerContainerTests {
         public InputAction Jump { get; } = InputAction.Create("Jump").Buttons(JoyButton.B).Build();
     }
 
-    [TestRunner.Test(Description = "SettingContainer injected, only the Jump and Lateral actions will have a SaveSetting")]
+    [Test(Description = "SettingContainer injected, only the Jump and Lateral actions will have a SaveSetting")]
     public void SharingSettingContainerIntegrationTests() {
         var sc = new SettingsContainer(new ConfigFileWrapper(SettingsFile));
         var c = new Betauer.DI.Container().Build(b => {

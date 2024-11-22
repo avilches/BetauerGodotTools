@@ -5,9 +5,9 @@ using NUnit.Framework;
 
 namespace Betauer.Core.Tests;
 
-[TestRunner.Test]
+[TestFixture]
 public class BitToolsTests {
-    [TestRunner.Test]
+    [Test]
     public void EnableDisableHasTest() {
         for (var i = 1; i < 20; i++) {
             int bit = 0b00000000000000000000;
@@ -38,7 +38,7 @@ public class BitToolsTests {
         return ratio <= ratioLimit;
     }
 
-    [TestRunner.Test]
+    [Test]
     public void TestRectangleValidation() {
         Assert.IsTrue(IsNotTooWide(16, 9, 9f / 16));
         Assert.IsTrue(IsNotTooWide(16, 9, 16f / 9));
@@ -57,7 +57,7 @@ public class BitToolsTests {
         Assert.IsFalse(IsNotTooWide(9, 17, 16f / 9));
     }
     
-     [TestRunner.Test]
+     [Test]
     public void GetDivisionRatio_ValidRatio_ShouldReturnExpectedValue() {
         
         RectangleDivider.GetDivisionRatioLoop(3, 5, 16f / 9);

@@ -6,9 +6,9 @@ namespace Betauer.Core.Tests;
 
 using NUnit.Framework;
 
-[Betauer.TestRunner.Test]
+[TestFixture]
 public class FloatRangeTests {
-    [Betauer.TestRunner.Test]
+    [Test]
     public void Constructor_ShouldThrowException_WhenArraySizesMismatch() {
 
         Assert.Throws<ArgumentException>(() => new FloatRange<string>(new [] { 0.5f, 2f }, new [] { "A", "B" }));
@@ -16,7 +16,7 @@ public class FloatRangeTests {
         Assert.Throws<ArgumentException>(() => new FloatRange<string>(new [] { 0.5f, 2f, 3f }, new [] { "A", "B" }));
     }
 
-    [Betauer.TestRunner.Test]
+    [Test]
     public void GetValue_ShouldReturnCorrectValue() {
         // Arrange
         float[] floats = { /* A */ 0.5f, /* B */ 2f, /* C */ 3f /* D */ };

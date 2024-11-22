@@ -6,17 +6,17 @@ using NUnit.Framework;
 
 namespace Betauer.Core.Tests;
 
-[TestRunner.Test]
+[TestFixture]
 public class ImageTransformationsTests {
     
-    [SetUpClass]
+    [OneTimeSetUp]
     public void SetUp() {
         if (!Directory.Exists(".tmp")) {
             Directory.CreateDirectory(".tmp");
         }
     }
 
-    [TestRunner.Test]
+    [Test]
     public void TransformationsImageTests() {
         var rect = new[,] {
             {  0,  1,  2,  3 },
@@ -127,7 +127,7 @@ public class ImageTransformationsTests {
         });
     }
     
-    [TestRunner.Test]
+    [Test]
     public void GetSetRegionTest() {
         var textures = new FastImage().LoadResource("test-resources/imagen2.png", Godot.Image.Format.Rgba8);
         var region = textures.GetRegion(90, 10, 180, 340);
@@ -136,7 +136,7 @@ public class ImageTransformationsTests {
         textures.Image.SavePng(".tmp/imagen-get-set-region.png");
     }
 
-    [TestRunner.Test]
+    [Test]
     public void Rotate90Test() {
         var textures = new FastImage().LoadResource("test-resources/imagen2.png", Godot.Image.Format.Rgba8);
         textures.Rotate90(90, 10, 180, 340);
@@ -144,7 +144,7 @@ public class ImageTransformationsTests {
         textures.Image.SavePng(".tmp/imagen-Rotate90.png");
     }
 
-    [TestRunner.Test]
+    [Test]
     public void RotateMinus90Test() {
         var textures = new FastImage().LoadResource("test-resources/imagen2.png", Godot.Image.Format.Rgba8);
         textures.RotateMinus90(90, 10, 180, 340);
@@ -152,7 +152,7 @@ public class ImageTransformationsTests {
         textures.Image.SavePng(".tmp/imagen-RotateMinus90.png");
     }
 
-    [TestRunner.Test]
+    [Test]
     public void Rotate180Test() {
         var textures = new FastImage().LoadResource("test-resources/imagen2.png", Godot.Image.Format.Rgba8);
         textures.Rotate180(90, 10, 180, 340);
@@ -160,7 +160,7 @@ public class ImageTransformationsTests {
         textures.Image.SavePng(".tmp/imagen-Rotate180.png");
     }
 
-    [TestRunner.Test]
+    [Test]
     public void FlipHTest() {
         var textures = new FastImage().LoadResource("test-resources/imagen2.png", Godot.Image.Format.Rgba8);
         textures.FlipH(90, 10, 180, 340);
@@ -168,7 +168,7 @@ public class ImageTransformationsTests {
         textures.Image.SavePng(".tmp/imagen-FlipH.png");
     }
 
-    [TestRunner.Test]
+    [Test]
     public void FlipHOddTest() {
         var textures = new FastImage().LoadResource("test-resources/imagen2.png", Godot.Image.Format.Rgba8);
         textures.FlipH(90, 10, 181, 341);
@@ -176,7 +176,7 @@ public class ImageTransformationsTests {
         textures.Image.SavePng(".tmp/imagen-FlipH-odd.png");
     }
 
-    [TestRunner.Test]
+    [Test]
     public void MirrorLeftToRightTest() {
         var textures = new FastImage().LoadResource("test-resources/imagen2.png", Godot.Image.Format.Rgba8);
         textures.MirrorLeftToRight(90, 10, 180, 340);
@@ -184,7 +184,7 @@ public class ImageTransformationsTests {
         textures.Image.SavePng(".tmp/imagen-MirrorLeftToRight.png");
     }
 
-    [TestRunner.Test]
+    [Test]
     public void MirrorLeftToRightOddTest() {
         var textures = new FastImage().LoadResource("test-resources/imagen2.png", Godot.Image.Format.Rgba8);
         textures.MirrorLeftToRight(90, 10, 181, 341);
@@ -192,7 +192,7 @@ public class ImageTransformationsTests {
         textures.Image.SavePng(".tmp/imagen-MirrorLeftToRight-odd.png");
     }
 
-    [TestRunner.Test]
+    [Test]
     public void MirrorRightToLeftTest() {
         var textures = new FastImage().LoadResource("test-resources/imagen2.png", Godot.Image.Format.Rgba8);
         textures.MirrorRightToLeft(90, 10, 180, 340);
@@ -200,7 +200,7 @@ public class ImageTransformationsTests {
         textures.Image.SavePng(".tmp/imagen-MirrorRightToLeft.png");
     }
 
-    [TestRunner.Test]
+    [Test]
     public void MirrorRightToLeftOddTest() {
         var textures = new FastImage().LoadResource("test-resources/imagen2.png", Godot.Image.Format.Rgba8);
         textures.MirrorRightToLeft(90, 10, 181, 341);
@@ -208,7 +208,7 @@ public class ImageTransformationsTests {
         textures.Image.SavePng(".tmp/imagen-MirrorRightToLeft-odd.png");
     }
 
-    [TestRunner.Test]
+    [Test]
     public void FlipVTest() {
         var textures = new FastImage().LoadResource("test-resources/imagen2.png", Godot.Image.Format.Rgba8);
         textures.FlipV(90, 10, 180, 340);
@@ -216,7 +216,7 @@ public class ImageTransformationsTests {
         textures.Image.SavePng(".tmp/imagen-FlipV.png");
     }
 
-    [TestRunner.Test]
+    [Test]
     public void FlipVOddTest() {
         var textures = new FastImage().LoadResource("test-resources/imagen2.png", Godot.Image.Format.Rgba8);
         textures.FlipV(90, 10, 181, 341);
@@ -224,7 +224,7 @@ public class ImageTransformationsTests {
         textures.Image.SavePng(".tmp/imagen-FlipV-odd.png");
     }
 
-    [TestRunner.Test]
+    [Test]
     public void MirrorTopToBottomTest() {
         var textures = new FastImage().LoadResource("test-resources/imagen2.png", Godot.Image.Format.Rgba8);
         textures.MirrorTopToBottom(90, 10, 180, 340);
@@ -232,7 +232,7 @@ public class ImageTransformationsTests {
         textures.Image.SavePng(".tmp/imagen-MirrorTopToBottom.png");
     }
 
-    [TestRunner.Test]
+    [Test]
     public void MirrorTopToBottomOddTest() {
         var textures = new FastImage().LoadResource("test-resources/imagen2.png", Godot.Image.Format.Rgba8);
         textures.MirrorTopToBottom(90, 10, 181, 341);
@@ -240,7 +240,7 @@ public class ImageTransformationsTests {
         textures.Image.SavePng(".tmp/imagen-MirrorTopToBottom-odd.png");
     }
 
-    [TestRunner.Test]
+    [Test]
     public void MirrorBottomToTopTest() {
         var textures = new FastImage().LoadResource("test-resources/imagen2.png", Godot.Image.Format.Rgba8);
         textures.MirrorBottomToTop(90, 10, 180, 340);
@@ -248,7 +248,7 @@ public class ImageTransformationsTests {
         textures.Image.SavePng(".tmp/imagen-MirrorBottomToTop.png");
     }
 
-    [TestRunner.Test]
+    [Test]
     public void MirrorBottomToTopOddTest() {
         var textures = new FastImage().LoadResource("test-resources/imagen2.png", Godot.Image.Format.Rgba8);
         textures.MirrorBottomToTop(90, 10, 181, 341);
@@ -256,7 +256,7 @@ public class ImageTransformationsTests {
         textures.Image.SavePng(".tmp/imagen-MirrorBottomToTop-odd.png");
     }
 
-    [TestRunner.Test]
+    [Test]
     public void FlipDiagonalTest() {
         var textures = new FastImage().LoadResource("test-resources/imagen2.png", Godot.Image.Format.Rgba8);
         textures.FlipDiagonal(90, 50, 300, 260);
@@ -264,7 +264,7 @@ public class ImageTransformationsTests {
         textures.Image.SavePng(".tmp/imagen-FlipDiagonal.png");
     }
 
-    [TestRunner.Test]
+    [Test]
     public void FlipDiagonalSecondaryTest() {
         var textures = new FastImage().LoadResource("test-resources/imagen2.png", Godot.Image.Format.Rgba8);
         textures.FlipDiagonalSecondary(90, 50, 300, 260);

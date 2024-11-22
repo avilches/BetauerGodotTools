@@ -1,6 +1,7 @@
 using Godot;
 using Betauer.Core.Nodes.Events;
 using Betauer.TestRunner;
+using NUnit.Framework;
 
 namespace Betauer.SourceGenerators.Tests; 
 
@@ -9,7 +10,7 @@ namespace Betauer.SourceGenerators.Tests;
  * Date: 2024-03-09 17:41:50
  */
 
-[Test]
+[TestFixture]
 public class NotificationTest {
 
     [Test]

@@ -8,13 +8,13 @@ using NUnit.Framework;
 
 namespace Betauer.GameTools.Tests.Input; 
 
-[TestRunner.Test]
+[TestFixture]
 public class InputActionTests {
 
     const string SettingsFile = "./action-test-settings.ini";
 
-    [SetUpClass]
-    [TestRunner.TearDown]
+    [OneTimeSetUp]
+    [TearDown]
     public void Clear() {
         System.IO.File.Delete(SettingsFile);
         new List<string> { "Jump", "Left", "Right", "Attack" }.ForEach(stringName => {
@@ -24,7 +24,7 @@ public class InputActionTests {
         });
     }
 
-    [TestRunner.Test]
+    [Test]
     public void BuilderMockTests() {
         var empty = InputAction.Create("N").Simulator();
         Assert.That(empty.Name, Is.EqualTo("N"));
@@ -37,7 +37,7 @@ public class InputActionTests {
         Assert.That(InputMap.HasAction("N"), Is.False);
     }
     
-    [TestRunner.Test]
+    [Test]
     public void BuilderTests() {
         var reg = InputAction.Create("N")
             .Keys(Key.A)
@@ -86,7 +86,7 @@ public class InputActionTests {
 
     }
 
-    [TestRunner.Test]
+    [Test]
     public void InputActionGodotInputMap() {
         var attack = InputAction.Create("Attack").Build();
         Assert.That(attack.Enabled, Is.False);
@@ -120,7 +120,7 @@ public class InputActionTests {
         Assert.That(InputMap.HasAction("Left"), Is.False);
     }
 
-    [TestRunner.Test]
+    [Test]
     public void ImportJoypadButtonTest() {
         var reg = InputAction.Create("N").Build();
         Assert.That(reg.Buttons, Is.Empty);
@@ -142,7 +142,7 @@ public class InputActionTests {
         // Assert.That(reg.Export(true, true, true), Is.EqualTo("Button:A"));
     }
 
-    [TestRunner.Test]
+    [Test]
     public void ImportJoypadAxisTest() {
         var reg = InputAction.Create("N").Build();
         Assert.That(reg.Axis, Is.EqualTo(JoyAxis.Invalid));
@@ -216,7 +216,7 @@ public class InputActionTests {
 
     }
 
-    [TestRunner.Test]
+    [Test]
     public void ImportKeysTest() {
         var reg = InputAction.Create("N").Build();
 
@@ -258,7 +258,7 @@ public class InputActionTests {
         Assert.That(reg.Shift, Is.False);
     }
 
-    [TestRunner.Test]
+    [Test]
     public void ImportMouseTest() {
         var reg = InputAction.Create("N").Build();
         Assert.That(reg.MouseButton == MouseButton.None);
@@ -297,7 +297,7 @@ public class InputActionTests {
         Assert.That(reg.Shift, Is.True);
     }
 
-    [TestRunner.Test]
+    [Test]
     public void ImportLateralTest() {
         var lateral = AxisAction.Create("Lateral").Build();
         lateral.Import("Reverse:True", true);
@@ -307,13 +307,13 @@ public class InputActionTests {
         Assert.That(lateral.Reverse, Is.EqualTo(false));
     }
 
-    [TestRunner.Test]
+    [Test]
     public void LateralExportImport() {
         Assert.That(AxisAction.Create("Lateral").ReverseAxis(true).Build().Export(), Is.EqualTo("Reverse:True"));
         Assert.That(AxisAction.Create("Lateral").ReverseAxis(false).Build().Export(), Is.EqualTo("Reverse:False"));
     }
 
-    [TestRunner.Test]
+    [Test]
     public void InputActionExportImport() {
         Assert.That(InputAction.Create("N").Simulator().Export(), Is.EqualTo(""));
 
@@ -375,7 +375,7 @@ public class InputActionTests {
         Assert.That(imported3.Export(), Is.EqualTo("Button:A,JoyAxis:LeftX,Key:A,Mouse:Left"));
     }
     
-    [TestRunner.Test]
+    [Test]
     public void UpdateRollback() {
         var complete = InputAction.Create("N")
             .Keys(Key.A)

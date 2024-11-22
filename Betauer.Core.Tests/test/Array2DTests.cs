@@ -7,11 +7,11 @@ namespace Betauer.Core.Tests;
 
 using NUnit.Framework;
 
-[Betauer.TestRunner.Test]
+[TestFixture]
 public class Array2DTests {
     private Array2D<int> _array2D;
 
-    [Betauer.TestRunner.SetUp]
+    [SetUp]
     public void SetUp() {
         _array2D = new Array2D<int>(5, 4);
         var value = 0;
@@ -21,7 +21,7 @@ public class Array2DTests {
         }
     }
 
-    [Betauer.TestRunner.Test]
+    [Test]
     public void TestParseEdgeCases() {
         // Template vacío
         Assert.Throws<ArgumentException>(() => Array2D.Parse("", c => c));
@@ -44,7 +44,7 @@ public class Array2DTests {
         Assert.AreEqual(1, grid.Height);
     }
 
-    [Betauer.TestRunner.Test]
+    [Test]
     public void TestIntParsing() {
         var template = """
                        123
@@ -75,7 +75,7 @@ public class Array2DTests {
         Assert.AreEqual(2, grid2[0, 2]);
     }
 
-    [Betauer.TestRunner.Test]
+    [Test]
     public void TestBooleanParsing() {
         // Test con un solo char verdadero
         var template1 = """
@@ -105,7 +105,7 @@ public class Array2DTests {
     }
 
 
-    [Betauer.TestRunner.Test]
+    [Test]
     public void ParseCharTest() {
         var grid = Array2D.Parse("""
                                  ...#
@@ -118,7 +118,7 @@ public class Array2DTests {
         });
     }
 
-    [Betauer.TestRunner.Test]
+    [Test]
     public void ParseTest() {
         var dataCells = Array2D.Parse("A", new Dictionary<char, string>(), "PEPE");
         Assert.That(dataCells[0, 0], Is.EqualTo("PEPE"));
@@ -162,13 +162,13 @@ public class Array2DTests {
         Assert.AreEqual(grid[2, 3], 3);
     }
 
-    [Betauer.TestRunner.Test]
+    [Test]
     public void TestWidthAndHeight() {
         Assert.AreEqual(5, _array2D.Width);
         Assert.AreEqual(4, _array2D.Height);
     }
 
-    [Betauer.TestRunner.Test]
+    [Test]
     public void TestFill() {
         _array2D.Fill(1);
         for (var y = 0; y < _array2D.Height; y++) {
@@ -192,7 +192,7 @@ public class Array2DTests {
         });
     }
 
-    [Betauer.TestRunner.Test]
+    [Test]
     public void TestSetValue() {
         _array2D[2, 1] = 1234;
         Assert.AreEqual(1234, _array2D[2, 1]);
@@ -203,12 +203,12 @@ public class Array2DTests {
         Assert.AreEqual(12345, _array2D[2, 1]);
     }
 
-    [Betauer.TestRunner.Test]
+    [Test]
     public void TestGetValueSafe() {
         Assert.AreEqual(default(int), _array2D.GetValueSafe(16, 16));
     }
 
-    [Betauer.TestRunner.Test]
+    [Test]
     public void TestLoad() {
         _array2D.Load((x, y) => x + y);
         for (var y = 0; y < _array2D.Height; y++) {
@@ -231,7 +231,7 @@ public class Array2DTests {
         });
     }
 
-    [Betauer.TestRunner.Test]
+    [Test]
     public void TestExport() {
         var exported = _array2D.Clone(value => "" + value);
         for (var y = 0; y < _array2D.Height; y++) {
@@ -252,7 +252,7 @@ public class Array2DTests {
         });
     }
 
-    [Betauer.TestRunner.Test]
+    [Test]
     public void TestLoop() {
         var total = 0;
         foreach (var cell in _array2D) {
@@ -264,7 +264,7 @@ public class Array2DTests {
         Assert.AreEqual(total2, 190);
     }
 
-    [Betauer.TestRunner.Test]
+    [Test]
     public void TestTransform() {
         var original = new Array2D<int>(new[,] {
             { 0, 1, 2, 3, 4 },
@@ -295,7 +295,7 @@ public class Array2DTests {
         });
     }
 
-    [Betauer.TestRunner.Test]
+    [Test]
     public void NormalizeTest() {
         var grid = new Array2D<float>(2, 2);
         grid.Load((x, y) => x + y);
@@ -334,7 +334,7 @@ public class Array2DTests {
         Assert.AreEqual(1f, grid[1, 1]);
     }
 
-    [TestRunner.Test]
+    [Test]
     public void CopyGridTests() {
         var original = new Array2D<int>(new[,] {
             { 0, 1, 2, 3, 4 },

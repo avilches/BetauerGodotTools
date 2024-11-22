@@ -6,10 +6,10 @@ using NUnit.Framework;
 
 namespace Betauer.Core.Tests;
 
-[TestRunner.Test]
+[TestFixture]
 public class UniformPoissonDiskTest {
 
-    [TestRunner.Test]
+    [Test]
     public void UniformPoissonTest() {
         var random = new Random(0);
         var u = new UniformPoissonSampler2D(400, 400, null, 100);

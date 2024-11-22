@@ -5,10 +5,10 @@ using NUnit.Framework;
 
 namespace Betauer.Core.Tests; 
 
-[TestRunner.Test]
+[TestFixture]
 public class FastNoiseTest {
 
-    [TestRunner.Test]
+    [Test]
     public void Test() {
         var fastNoiseLite = new Godot.FastNoiseLite() {
             Seed = 1

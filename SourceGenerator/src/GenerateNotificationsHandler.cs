@@ -38,7 +38,7 @@ namespace Betauer.SourceGenerators.Tests;
  * Date: {DateTime.Now:yyyy-MM-dd HH:mm:ss}
  */
 
-[Test]
+[TestFixture]
 public class NotificationTest {{
 
     [Test]
