@@ -20,19 +20,8 @@ public class MazeDungeon {
         }
         Stage = new Array2D<Cell>(width, height);
         Bounds = new Rect2I(0, 0, width, height);
-        Fill(TileType.Wall, -1);
+        Stage.Load((x, y) => new Cell(x, y, TileType.Wall, 0));
     }
-
-
-    public void Fill(TileType tile, int region) {
-        for (int y = 0; y < Stage.Height; y++) {
-            for (int x = 0; x < Stage.Width; x++) {
-                Stage[x, y] = new Cell(x, y, tile, 0);
-            }
-        }
-    }
-
-    // public int LastRegion = -1;
 
     /// <summary>
     /// Generate a maze filling the stage with winding paths
@@ -43,7 +32,7 @@ public class MazeDungeon {
         for (var y = 1; y < Stage.Height; y += 2) {
             for (var x = 1; x < Stage.Width; x += 2) {
                 var pos = new Vector2I(x, y);
-                if (Stage[x, y].Type != TileType.Wall) continue;
+                if (Stage[pos].Type != TileType.Wall) continue;
                 GrowMaze(pos, windyRatio, startRegion + mazes);
                 mazes++;
             }
@@ -100,7 +89,7 @@ public class MazeDungeon {
                 foreach (var dir in Directions) {
                     var neighborPos = pos + dir;
                     if (neighborPos.X >= 0 && neighborPos.X < Stage.Width && neighborPos.Y >= 0 && neighborPos.Y < Stage.Height) {
-                        var region = Stage[neighborPos.X, neighborPos.Y].Region;
+                        var region = Stage[neighborPos].Region;
                         if (region != 0) regionsSet.Add(region);
                     }
                 }

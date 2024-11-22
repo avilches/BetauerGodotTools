@@ -218,7 +218,7 @@ public class BiomeGenerator {
         HeightFalloffGrid.LoadNormalized((x, y) => {
             if (FalloffEnabled) {
                 var height = HeightNoise.GetNoise(x, y);
-                var r = MassLands[x, y]; // from 0 to 1
+                var r = MassLands[y, x]; // from 0 to 1
                 return RampFunc(height, r);
             } else {
                 return HeightNoise.GetNoise(x, y);
@@ -247,7 +247,7 @@ public class BiomeGenerator {
                     Biome = biome
                 };
                 // Console.Write(cell.Height.ToString("0.0")+ " | ");
-                BiomeCells.SetValue(position, biomeCell);
+                BiomeCells[position] = biomeCell;
                 // TileMap.SetTerrain(x, y, biome.Type);
                 list.Add(biomeCell);
         }
@@ -290,8 +290,8 @@ public class BiomeGenerator {
 
         var graph = new Graph<BiomeCell>();
         delaunator.GetVoronoiEdges(Delaunator.VoronoiType.Centroid).ForEach((e) => {
-            var from = BiomeCells[(int)e.P.X, (int)e.P.Y];
-            var to = BiomeCells[(int)e.Q.X, (int)e.Q.Y];
+            var from = BiomeCells[(int)e.P.Y, (int)e.P.X];
+            var to = BiomeCells[(int)e.Q.Y, (int)e.Q.X];
             graph.Connect(from, to);
             graph.Connect(to, from);
         });
@@ -313,7 +313,7 @@ public class BiomeGenerator {
     private Delaunator delaunator;
     private void GeneratePoissonPoints() {
         var uni = new UniformPoissonSampler2D(Width, Height);
-        PoissonPoints = uni.Generate(radius, _random).Select(p => BiomeCells[(int)p.X, (int)p.Y]).ToList();
+        PoissonPoints = uni.Generate(radius, _random).Select(p => BiomeCells[(int)p.Y, (int)p.X]).ToList();
         delaunator = new Delaunator(PoissonPoints.Select(p => (Vector2)p.Position).ToArray());
     }
 
@@ -326,7 +326,7 @@ public class BiomeGenerator {
     }
 
     public void FillMassland(FastImage fastTexture) {
-        foreach (var ((x, y), val) in new Array2D<float>(Width, Height).LoadNormalized((x, y) => MassLands[x, y])) {
+        foreach (var ((x, y), val) in new Array2D<float>(Width, Height).LoadNormalized((x, y) => MassLands[y, x])) {
             fastTexture.SetPixel(x, y, new Color(val, val, val), false);            
         } 
         fastTexture.Flush();
@@ -420,7 +420,7 @@ public class BiomeGenerator {
     public void FillFalloffGrid(FastImage fastImage) {
         var array2d = new Array2D<float>(Width, Height).LoadNormalized((x, y) => {
             var height = HeightNoise.GetNoise(x, y);
-            var r = MassLands[x, y]; // from 0 to 1
+            var r = MassLands[y, x]; // from 0 to 1
             return RampFunc(height, r);
         });
         foreach (var ((x, y), val) in array2d) {
@@ -475,7 +475,7 @@ public class BiomeGenerator {
         f.Fill(Colors.DarkBlue);
         var ratio = (float)Width / f.Width;
         for (var x = 0; x < f.Width; x++) {
-            var y = 1f - MassLands[(int)(x * ratio), column];
+            var y = 1f - MassLands[column, (int)(x * ratio)];
             f.SetPixel(x, (int)(y * f.Height), Colors.White);
         }
         f.Flush();
@@ -487,7 +487,7 @@ public class BiomeGenerator {
         f.Fill(Colors.DarkBlue);
         var ratio = (float)Width / f.Width;
         for (var x = 0; x < f.Width; x++) {
-            var height = 1f - HeightFalloffGrid[Mathf.RoundToInt(x * ratio), column];
+            var height = 1f - HeightFalloffGrid[column, Mathf.RoundToInt(x * ratio)];
             f.SetPixel(x, (int)(height * f.Height), Colors.White);
         }
         f.Flush();
@@ -546,15 +546,15 @@ public class IslandGenerator {
 
             if (up) {
                 if (overlap == OverlapType.Simple) {
-                    normalizedData.Data[y, x] += heightValue;
+                    normalizedData[y, x] += heightValue;
                 } else if (overlap == OverlapType.MaxHeight) {
-                    normalizedData.Data[y, x] = Math.Max(normalizedData.Data[y, x], heightValue);
+                    normalizedData[y, x] = Math.Max(normalizedData[y, x], heightValue);
                 }
             } else {
                 if (overlap == OverlapType.Simple) {
-                    normalizedData.Data[y, x] -= heightValue;
+                    normalizedData[y, x] -= heightValue;
                 } else if (overlap == OverlapType.MaxHeight) {
-                    normalizedData.Data[y, x] = Math.Min(normalizedData.Data[y, x], -heightValue);
+                    normalizedData[y, x] = Math.Min(normalizedData[y, x], -heightValue);
                 }
             }
         }, easing);

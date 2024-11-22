@@ -54,42 +54,29 @@ public class MazeDartDemo {
     }
 
     private static void PrintRegions(MazeDungeon dungeon) {
-        var stage = dungeon.Stage;
-        for (int y = 0; y < stage.Height; y++) {
-            for (int x = 0; x < stage.Width; x++) {
-                var tile = stage[x, y];
-                if (tile.Region == 0) {
-                    Console.Write(" ");
-                } else {
-                    Console.Write(tile.Region.ToString("x8").Substring(7, 1));
-                }
-            }
-            Console.WriteLine();
-        }
+        Console.WriteLine(dungeon.Stage.GetString(tile => 
+            tile.Region == 0 
+                ? " " 
+                : tile.Region.ToString("x8").Substring(7, 1)));
         Console.WriteLine("--------------------");
     }
 
     public static void PrintStage(MazeDungeon dungeon) {
-        var stage = dungeon.Stage;
-        for (int y = 0; y < stage.Height; y++) {
-            for (int x = 0; x < stage.Width; x++) {
-                var tile = stage.GetValue(new Vector2I(x, y));
-                var c = tile.Type switch {
-                    // TileType.Wall => ' ',
-                    // TileType.Floor => '*',
-                    // TileType.Path => '#',
-                    // TileType.OpenDoor => '+',
-                    // TileType.ClosedDoor => '+',
-                    TileType.Wall => '#',
-                    TileType.Floor => ' ',
-                    TileType.Path => '.',
-                    TileType.OpenDoor => '+',
-                    TileType.ClosedDoor => '-',
-                    _ => ' '
-                };
-                Console.Write(c);
-            }
-            Console.WriteLine();
-        }
+        Console.WriteLine(dungeon.Stage.GetString(tile => {
+            var c = tile.Type switch {
+                // TileType.Wall => ' ',
+                // TileType.Floor => '*',
+                // TileType.Path => '#',
+                // TileType.OpenDoor => '+',
+                // TileType.ClosedDoor => '+',
+                TileType.Wall => '\u2588',
+                TileType.Floor => ' ',
+                TileType.Path => '·',
+                TileType.OpenDoor => '+',
+                TileType.ClosedDoor => '-',
+                _ => ' '
+            };
+            return c.ToString();
+        }));
     }
 }

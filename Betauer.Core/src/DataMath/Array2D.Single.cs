@@ -55,7 +55,7 @@ public static partial class Array2DSingleTransformations {
         var max = float.MinValue;
         foreach (var cell in grid) {
             var value = valueFunc.Invoke(cell.Position.X, cell.Position.Y);
-            grid.SetValue(cell.Position, value);
+            grid[cell.Position] = value;
             min = Math.Min(min, value);
             max = Math.Max(max, value);
         }
@@ -76,7 +76,7 @@ public static partial class Array2DSingleTransformations {
         var max = float.MinValue;
         foreach (var cell in grid) {
             var value = valueFunc.Invoke(cell.Position.X, cell.Position.Y);
-            grid.SetValue(cell.Position, value);
+            grid[cell.Position] = value;
             min = Math.Min(min, value);
             max = Math.Max(max, value);
         }

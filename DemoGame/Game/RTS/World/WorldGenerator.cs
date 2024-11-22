@@ -146,12 +146,7 @@ public partial class WorldGenerator {
         }
     }
 
-    public interface ITileMapSource<T> {
-        public int SourceId { get; }
-        public void SetCell(Godot.TileMap godotTileMap, int layer, int x, int y, T tileId);
-    }
-    
-    public class TileMapSource : ITileMapSource<int> {
+    public class TileMapSource {
         public int SourceId { get; }
         public ITileSetLayout TileSetLayout { get; }
 

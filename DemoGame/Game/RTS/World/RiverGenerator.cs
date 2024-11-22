@@ -270,7 +270,7 @@ public class RiverGeneratorGraph {
             var start = points[i];
             var end = points[i + 1];
             Draw.Line(start.Position.X, start.Position.Y, end.Position.X, end.Position.Y, 2, (x, y) => {
-                biomeCells[x, y].Water = 1f;
+                biomeCells[y, x].Water = 1f;
             });
         }
     }

@@ -11,9 +11,9 @@ public class DungeonDemo {
     public static void Main() {
         var random = new Random(2);
 
-        const int width = 81, height = 21;
+        const int width = 41, height = 41;
 
-        var grid = new Array2D<bool>(width, height).Fill(false);
+        var grid = new Array2D<bool>(width, height, false);
         const float ratio = 16 / 9f;
         var rooms = CreateRooms(10, 3, 9, ratio, width, height, random);
         rooms.ForEach(room => DataMath.Geometry.Geometry.GetEnumerator(room).ForEach(pos => grid[pos] = true));
@@ -33,10 +33,10 @@ public class DungeonDemo {
             }
         }
 
-        // PrintMaze(grid);
+        PrintMaze(grid);
 
         var array2DRegionConnections = new RegionConnections(grid);
-        // PrintRegions(array2DRegionConnections.Labels);
+        PrintRegions(array2DRegionConnections);
 
         var regionConnectionsMap = array2DRegionConnections.GetConnectingCellsByRegion();
         ReduceConnections(regionConnectionsMap, width, height, random);
@@ -58,83 +58,29 @@ public class DungeonDemo {
             return true;
         });
 
-        RemoveDeadEnds(mc);
+        new DeadEndRemover(grid).RemoveAllDeadEnds();
+        // RemoveDeadEnds(mc);
         PrintMazeConnections(grid, candidates.ToHashSet());
         // PrintRegions(array2DRegionConnections);
     }
 
-    // Remove the mazes with dead ends, leaving only the main paths between rooms
-    private static void RemoveDeadEnds(MazeCarver mc) {
-        bool done;
-        do {
-            done = true;
-            for (var y = 1; y < mc.Height - 1; y++) {
-                for (var x = 1; x < mc.Width - 1; x++) {
-                    var pos = new Vector2I(x, y);
-                    if (!mc.IsCarved(pos)) continue;
-                    var exits = MazeCarver.Directions.Count(dir => mc.IsCarved(pos + dir));
-                    if (exits == 1) {
-                        done = false;
-                        mc.UnCarve(pos);
-                    }
-                }
-            }
-        } while (!done);
-
-        // Clean up isolated cells (cells with no exits)
-        for (var y = 1; y < mc.Height - 1; y++) {
-            for (var x = 1; x < mc.Width - 1; x++) {
-                var pos = new Vector2I(x, y);
-                if (mc.IsCarved(pos)) {
-                    var exits = MazeCarver.Directions.Count(dir => mc.IsCarved(pos + dir));
-                    if (exits == 0) {
-                        mc.UnCarve(pos);
-                    }
-                }
-            }
-        }
-    }
-
     private static void PrintMazeConnections(Array2D<bool> grid, HashSet<Vector2I> doors) {
-        foreach (var b in grid) {
-            if (b.Value) {
-                if (doors.Contains(b.Position)) {
-                    Console.Write("d");
-                } else {
-                    Console.Write(" ");
-                }
-            } else {
-                Console.Write("█");
-            }
-            if (b.Position.X == grid.Width - 1) {
-                Console.WriteLine();
-            }
-        }
+        Console.WriteLine(grid.GetString(b => b.Value 
+            ? doors.Contains(b.Position) ? "d" : " " 
+            : "█"));
     }
 
     private static void PrintMaze(Array2D<bool> grid) {
-        foreach (var b in grid) {
-            Console.Write(b.Value ? " " : "#");
-            if (b.Position.X == grid.Width - 1) {
-                Console.WriteLine();
-            }
-        }
+        Console.WriteLine(grid.GetString((v) => v ? "·" : "█"));
     }
 
     private static void PrintRegions(RegionConnections regionConnections) {
         regionConnections.Update();
         var labels = regionConnections.Labels;
-        for (var y = 0; y < labels.Height; y++) {
-            for (var x = 0; x < labels.Width; x++) {
-                var tile = labels[x, y];
-                if (tile == 0) {
-                    Console.Write(" ");
-                } else {
-                    Console.Write(tile.ToString("x8").Substring(7, 1));
-                }
-            }
-            Console.WriteLine();
-        }
+        Console.WriteLine(regionConnections.Labels.GetString(tile =>
+            tile == 0
+                ? " "
+                : tile.ToString("x8").Substring(7, 1)));
         Console.WriteLine("--------------------");
     }
 

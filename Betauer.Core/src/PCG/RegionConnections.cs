@@ -19,7 +19,7 @@ public class RegionConnections {
 
     public RegionConnections(Array2D<bool> grid) {
         Grid = grid;
-        Labels = new Array2D<int>(grid.Width, grid.Height).Fill(0);
+        Labels = new Array2D<int>(grid.Width, grid.Height, 0);
         ProcessGrid();
     }
 
@@ -32,15 +32,15 @@ public class RegionConnections {
 
     private void ProcessGrid() {
         var label = 1;
-        foreach (var ((x, y), value) in Grid) {
-            if (value && Labels[x, y] == 0) {
+        foreach (var (pos, value) in Grid) {
+            if (value && Labels[pos] == 0) {
                 var cells = new List<Vector2I>();
-                MarkRegion(new Vector2I(x, y), label, cells);
+                MarkRegion(pos, label, cells);
                 _regionCells[label] = cells;
                 label++;
             } else if (!value) {
-                Labels[x, y] = 0;
-                _noRegion.Add(new Vector2I(x, y));
+                Labels[pos] = 0;
+                _noRegion.Add(pos);
             }
         }
     }
@@ -49,15 +49,14 @@ public class RegionConnections {
     private void MarkRegion(Vector2I start, int label, List<Vector2I> cells) {
         var queue = new Queue<Vector2I>();
         queue.Enqueue(start);
-        Labels[start.X, start.Y] = label;
+        Labels[start] = label;
         cells.Add(start);
 
         while (queue.Count > 0) {
             var current = queue.Dequeue();
             foreach (var neighbor in GetNeighbors(current)) {
-                if (Grid[neighbor.X, neighbor.Y] &&
-                    Labels[neighbor.X, neighbor.Y] == 0) {
-                    Labels[neighbor.X, neighbor.Y] = label;
+                if (Grid[neighbor] && Labels[neighbor] == 0) {
+                    Labels[neighbor] = label;
                     cells.Add(neighbor);
                     queue.Enqueue(neighbor);
                 }
@@ -95,8 +94,8 @@ public class RegionConnections {
     public IEnumerable<(Vector2I Position, int[] Regions)> GetNoRegionCells() {
         foreach (var x in _noRegion) {
             var adjacentRegions = GetNeighbors(x)
-                .Where(n => Grid[n.X, n.Y])
-                .Select(n => Labels[n.X, n.Y])
+                .Where(pos => Grid[pos])
+                .Select(pos => Labels[pos])
                 .ToHashSet();
             yield return (x, adjacentRegions.ToArray());
         }
@@ -163,36 +162,36 @@ public class RegionConnections {
 
     public void ToggleCell(Vector2I cell, bool fill) {
         if (fill) {
-            if (Grid[cell.X, cell.Y]) return;
+            if (Grid[cell]) return;
             _noRegion.Remove(cell);
-            Grid[cell.X, cell.Y] = true;
+            Grid[cell] = true;
             UpdateRegionAfterFill(cell);
         } else {
-            if (!Grid[cell.X, cell.Y]) return;
-            Grid[cell.X, cell.Y] = false;
+            if (!Grid[cell]) return;
+            Grid[cell] = false;
             Update();
         }
     }
 
     private void UpdateRegionAfterFill(Vector2I cell) {
         var adjacentRegions = new HashSet<int>();
-        foreach (var (x, y) in GetNeighbors(cell)) {
-            if (Grid[x, y]) {
-                adjacentRegions.Add(Labels[x, y]);
+        foreach (var pos in GetNeighbors(cell)) {
+            if (Grid[pos]) {
+                adjacentRegions.Add(Labels[pos]);
             }
         }
 
         // Si hay regiones adyacentes, une la celda a la primera región encontrada
         if (adjacentRegions.Count > 0) {
             var regionLabel = adjacentRegions.First();
-            Labels[cell.X, cell.Y] = regionLabel;
+            Labels[cell] = regionLabel;
             _regionCells[regionLabel].Add(cell);
 
             // Fusionar otras regiones en la principal
             foreach (var label in adjacentRegions) {
                 if (label != regionLabel) {
                     foreach (var regionCell in _regionCells[label]) {
-                        Labels[regionCell.X, regionCell.Y] = regionLabel;
+                        Labels[regionCell] = regionLabel;
                         _regionCells[regionLabel].Add(regionCell);
                     }
                     _regionCells.Remove(label);
@@ -203,7 +202,7 @@ public class RegionConnections {
             var nums = _regionCells.Keys.ToHashSet();
             var newLabel = Enumerable.Range(1, _regionCells.Keys.Count + 1)
                 .First(n => !nums.Contains(n)); // First unused number
-            Labels[cell.X, cell.Y] = newLabel;
+            Labels[cell] = newLabel;
             _regionCells[newLabel] = new List<Vector2I> { cell };
         }
     }

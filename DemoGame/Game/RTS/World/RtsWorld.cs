@@ -92,7 +92,7 @@ public partial class RtsWorld : Node, IInjectable {
 		var x = Mathf.RoundToInt(mousePosition.X);
 		var y = Mathf.RoundToInt(mousePosition.Y);
 		if (x < 0 || x >= WorldGenerator.BiomeGenerator.Width || y < 0 || y >= WorldGenerator.BiomeGenerator.Height) return;
-		var cell = WorldGenerator.BiomeGenerator.BiomeCells[x, y];
+		var cell = WorldGenerator.BiomeGenerator.BiomeCells[y, x];
 		ColorRect.Color = cell.Biome.Color;
 		MouseInfo.Position = GetViewport().GetMousePosition() + new Vector2I(20, 20);
 		MouseText.Text = $"{cell.HeightMt:0.00}c ({cell.Height:0.00})\n";

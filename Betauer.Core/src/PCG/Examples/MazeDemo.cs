@@ -12,7 +12,7 @@ public class MazeDemo {
 
         const int width = 21, height = 21;
 
-        var grid = new Array2D<bool>(width, height).Fill(false);
+        var grid = new Array2D<bool>(width, height, false);
         
         var mc = MazeCarver.Create(grid);
         var start = new Vector2I(5, 5);
@@ -78,13 +78,6 @@ public class MazeDemo {
     }
 
     private static string PrintMaze(Array2D<bool> grid) {
-        var sb = new StringBuilder();
-        foreach (var b in grid) {
-            sb.Append(b.Value ? " " : "█");
-            if (b.Position.X == grid.Width - 1) {
-                sb.AppendLine();
-            }
-        }
-        return sb.ToString();
+        return grid.GetString((v) => v ? "·" : "█");
     }
 }

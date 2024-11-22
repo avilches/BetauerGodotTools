@@ -1,9 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Betauer.Core.DataMath;
-using Betauer.Core.DataMath.Data;
-using Betauer.TestRunner;
-using Godot;
 
 namespace Betauer.Core.Tests;
 
@@ -18,33 +16,119 @@ public class Array2DTests {
         _array2D = new Array2D<int>(5, 4);
         var value = 0;
         foreach (var cell in _array2D) {
-            _array2D.SetValue(cell.Position, value);
+            _array2D.Data[cell.Position.Y, cell.Position.X] = value;
             value++;
         }
     }
 
     [Betauer.TestRunner.Test]
+    public void TestParseEdgeCases() {
+        // Template vacío
+        Assert.Throws<ArgumentException>(() => Array2D.Parse("", c => c));
+
+        Assert.Throws<ArgumentException>(() => Array2D.ParseAsInt("A"));
+        Assert.Throws<KeyNotFoundException>(() => Array2D.Parse("A", new Dictionary<char, string>()));
+
+        // Template solo con espacios en blanco
+        Assert.Throws<ArgumentException>(() => Array2D.Parse("   \n   ", c => c));
+
+        // Template con líneas de diferente longitud
+        Assert.Throws<ArgumentException>(() => Array2D.Parse("""
+                                                             123
+                                                             12
+                                                             """, c => c));
+
+        // Template de una sola línea
+        var grid = Array2D.Parse("123", c => c);
+        Assert.AreEqual(3, grid.Width);
+        Assert.AreEqual(1, grid.Height);
+    }
+
+    [Betauer.TestRunner.Test]
+    public void TestIntParsing() {
+        var template = """
+                       123
+                       456
+                       789
+                       ABC
+                       """;
+
+        var grid = Array2D.ParseAsInt(template, -1);
+
+        Assert.AreEqual(1, grid[0, 0]);
+        Assert.AreEqual(2, grid[0, 1]);
+        Assert.AreEqual(3, grid[0, 2]);
+        Assert.AreEqual(4, grid[1, 0]);
+        Assert.AreEqual(5, grid[1, 1]);
+        Assert.AreEqual(-1, grid[3, 1]);
+
+        // Test con caracteres no numéricos
+        var template2 = """
+                        1.2
+                        .3.
+                        4.5
+                        """;
+
+        var grid2 = Array2D.ParseAsInt(template2, -1);
+        Assert.AreEqual(1, grid2[0, 0]);
+        Assert.AreEqual(-1, grid2[0, 1]);
+        Assert.AreEqual(2, grid2[0, 2]);
+    }
+
+    [Betauer.TestRunner.Test]
+    public void TestBooleanParsing() {
+        // Test con un solo char verdadero
+        var template1 = """
+                        .#.
+                        #.#
+                        .#.
+                        """;
+
+        var grid1 = Array2D.ParseAsBool(template1, '#');
+        Assert.IsFalse(grid1[0, 0]);
+        Assert.IsTrue(grid1[0, 1]);
+        Assert.IsFalse(grid1[0, 2]);
+        Assert.IsTrue(grid1[1, 0]);
+
+        // Test con múltiples chars verdaderos
+        var template2 = """
+                        .#X
+                        #OX
+                        .#.
+                        """;
+
+        var grid2 = Array2D.ParseAsBool(template2, new[] { '#', 'X', 'O' });
+        Assert.IsFalse(grid2[0, 0]);
+        Assert.IsTrue(grid2[0, 1]);
+        Assert.IsTrue(grid2[0, 2]);
+        Assert.IsTrue(grid2[1, 1]);
+    }
+
+
+    [Betauer.TestRunner.Test]
     public void ParseCharTest() {
         var grid = Array2D.Parse("""
-                                      ...#
-                                      ..#@
-                                      """);
+                                 ...#
+                                 ..#@
+                                 """);
 
         ArrayEquals(grid.Data, new[,] {
             { '.', '.', '.', '#' },
             { '.', '.', '#', '@' },
         });
-
     }
 
     [Betauer.TestRunner.Test]
     public void ParseTest() {
+        var dataCells = Array2D.Parse("A", new Dictionary<char, string>(), "PEPE");
+        Assert.That(dataCells[0, 0], Is.EqualTo("PEPE"));
+
         var grid = Array2D.Parse("""
-                                       ...#
-                                       @###
-                                       ..#@
-                                       """, new Dictionary<char, int> { { '#', 2 }, { '.', 0 }, { '@', 3 } });
-        
+                                 ...#
+                                 @###
+                                 ..#@
+                                 """, new Dictionary<char, int> { { '#', 2 }, { '.', 0 }, { '@', 3 } });
+
         Assert.AreEqual(4, grid.Width);
         Assert.AreEqual(3, grid.Height);
 
@@ -55,35 +139,27 @@ public class Array2DTests {
         });
 
         // Direct access to the array is y, x
-        Assert.AreEqual(grid.Data[0, 0], 0);
-        Assert.AreEqual(grid.Data[0, 1], 0);
-        Assert.AreEqual(grid.Data[0, 2], 0);
-        Assert.AreEqual(grid.Data[0, 3], 2);
-        Assert.AreEqual(grid.Data[1, 0], 3);
-        Assert.AreEqual(grid.Data[2, 3], 3);
-        
-        // Access through the GetValue method is x, y
-        
-        Assert.AreEqual(grid.GetValue(new Vector2I(0, 0)), 0);
-        Assert.AreEqual(grid.GetValue(new Vector2I(1, 0)), 0);
-        Assert.AreEqual(grid.GetValue(new Vector2I(2, 0)), 0);
-        Assert.AreEqual(grid.GetValue(new Vector2I(3, 0)), 2);
-        Assert.AreEqual(grid.GetValue(new Vector2I(0, 1)), 3);
-        Assert.AreEqual(grid.GetValue(new Vector2I(3, 2)), 3);
-        
         Assert.AreEqual(grid[0, 0], 0);
-        Assert.AreEqual(grid[1, 0], 0);
-        Assert.AreEqual(grid[2, 0], 0);
-        Assert.AreEqual(grid[3, 0], 2);
-        Assert.AreEqual(grid[0, 1], 3);
-        Assert.AreEqual(grid[3, 2], 3);
-        
-        Assert.AreEqual(grid[new Vector2I(0, 0)], 0);
-        Assert.AreEqual(grid[new Vector2I(1, 0)], 0);
-        Assert.AreEqual(grid[new Vector2I(2, 0)], 0);
-        Assert.AreEqual(grid[new Vector2I(3, 0)], 2);
-        Assert.AreEqual(grid[new Vector2I(0, 1)], 3);
-        Assert.AreEqual(grid[new Vector2I(3, 2)], 3);
+        Assert.AreEqual(grid[0, 1], 0);
+        Assert.AreEqual(grid[0, 2], 0);
+        Assert.AreEqual(grid[0, 3], 2);
+        Assert.AreEqual(grid[1, 0], 3);
+        Assert.AreEqual(grid[2, 3], 3);
+
+        // Access through the GetValue method is x, y
+        Assert.AreEqual(grid[0, 0], 0);
+        Assert.AreEqual(grid[0, 1], 0);
+        Assert.AreEqual(grid[0, 2], 0);
+        Assert.AreEqual(grid[0, 3], 2);
+        Assert.AreEqual(grid[1, 0], 3);
+        Assert.AreEqual(grid[2, 3], 3);
+
+        Assert.AreEqual(grid[0, 0], 0);
+        Assert.AreEqual(grid[0, 1], 0);
+        Assert.AreEqual(grid[0, 2], 0);
+        Assert.AreEqual(grid[0, 3], 2);
+        Assert.AreEqual(grid[1, 0], 3);
+        Assert.AreEqual(grid[2, 3], 3);
     }
 
     [Betauer.TestRunner.Test]
@@ -97,41 +173,34 @@ public class Array2DTests {
         _array2D.Fill(1);
         for (var y = 0; y < _array2D.Height; y++) {
             for (var x = 0; x < _array2D.Width; x++) {
-                Assert.AreEqual(1, _array2D[x, y]);
+                Assert.AreEqual(1, _array2D[y, x]);
             }
         }
-        
+
         var original = new Array2D<int>(new[,] {
-            {  0,  1,  2,  3,  4 },
+            { 0, 1, 2, 3, 4 },
             { 10, 11, 12, 13, 14 },
             { 20, 21, 22, 23, 24 },
             { 30, 31, 32, 33, 34 },
         });
         original.Fill(2, 1, 3, 2, 8);
         ArrayEquals(original.Data, new[,] {
-            {  0,  1,  2,  3,  4 },
-            { 10, 11,  8,  8,  8 },
-            { 20, 21,  8,  8,  8 },
+            { 0, 1, 2, 3, 4 },
+            { 10, 11, 8, 8, 8 },
+            { 20, 21, 8, 8, 8 },
             { 30, 31, 32, 33, 34 },
         });
     }
 
     [Betauer.TestRunner.Test]
     public void TestSetValue() {
-        _array2D.SetValue(new Vector2I(1, 2), 123);
-        Assert.AreEqual(123, _array2D.GetValue(new Vector2I(1, 2)));
-        Assert.AreEqual(123, _array2D[new Vector2I(1, 2)]);
-        Assert.AreEqual(123, _array2D[1, 2]);
-        
-        _array2D[new Vector2I(1, 2)] = 1234;
-        Assert.AreEqual(1234, _array2D.GetValue(new Vector2I(1, 2)));
-        Assert.AreEqual(1234, _array2D[new Vector2I(1, 2)]);
-        Assert.AreEqual(1234, _array2D[1, 2]);
-        
-        _array2D[1, 2] = 12345;
-        Assert.AreEqual(12345, _array2D.GetValue(new Vector2I(1, 2)));
-        Assert.AreEqual(12345, _array2D[new Vector2I(1, 2)]);
-        Assert.AreEqual(12345, _array2D[1, 2]);
+        _array2D[2, 1] = 1234;
+        Assert.AreEqual(1234, _array2D[2, 1]);
+        Assert.AreEqual(1234, _array2D[2, 1]);
+
+        _array2D[2, 1] = 12345;
+        Assert.AreEqual(12345, _array2D[2, 1]);
+        Assert.AreEqual(12345, _array2D[2, 1]);
     }
 
     [Betauer.TestRunner.Test]
@@ -144,45 +213,43 @@ public class Array2DTests {
         _array2D.Load((x, y) => x + y);
         for (var y = 0; y < _array2D.Height; y++) {
             for (var x = 0; x < _array2D.Width; x++) {
-                Assert.AreEqual(x + y, _array2D[x, y]);
+                Assert.AreEqual(x + y, _array2D[y, x]);
             }
         }
         var original = new Array2D<int>(new[,] {
-            {  0,  1,  2,  3,  4 },
+            { 0, 1, 2, 3, 4 },
             { 10, 11, 12, 13, 14 },
             { 20, 21, 22, 23, 24 },
             { 30, 31, 32, 33, 34 },
         });
-        original.Load(2, 1, 3, 2, (x,y) => 8);
+        original.Load(2, 1, 3, 2, (x, y) => 8);
         ArrayEquals(original.Data, new[,] {
-            {  0,  1,  2,  3,  4 },
-            { 10, 11,  8,  8,  8 },
-            { 20, 21,  8,  8,  8 },
+            { 0, 1, 2, 3, 4 },
+            { 10, 11, 8, 8, 8 },
+            { 20, 21, 8, 8, 8 },
             { 30, 31, 32, 33, 34 },
         });
-
     }
 
     [Betauer.TestRunner.Test]
     public void TestExport() {
-        var exported = _array2D.Export(value => ""+value);
+        var exported = _array2D.Clone(value => "" + value);
         for (var y = 0; y < _array2D.Height; y++) {
             for (var x = 0; x < _array2D.Width; x++) {
-                Assert.AreEqual(""+_array2D[x, y], exported[x, y]);
+                Assert.AreEqual("" + _array2D[y, x], exported[y, x]);
             }
         }
         var original = new Array2D<int>(new[,] {
-            {  0,  1,  2,  3,  4 },
+            { 0, 1, 2, 3, 4 },
             { 10, 11, 12, 13, 14 },
             { 20, 21, 22, 23, 24 },
             { 30, 31, 32, 33, 34 },
         });
-        var exported2 = original.Export(2, 1, 3, 2, value => ""+value);
+        var exported2 = original.Clone(2, 1, 3, 2, value => "" + value);
         ArrayEquals(exported2.Data, new[,] {
-            {   "12",  "13",  "14" },
-            {   "22",  "23",  "24" },
+            { "12", "13", "14" },
+            { "22", "23", "24" },
         });
-
     }
 
     [Betauer.TestRunner.Test]
@@ -200,38 +267,38 @@ public class Array2DTests {
     [Betauer.TestRunner.Test]
     public void TestTransform() {
         var original = new Array2D<int>(new[,] {
-            {  0,  1,  2,  3,  4 },
+            { 0, 1, 2, 3, 4 },
             { 10, 11, 12, 13, 14 },
             { 20, 21, 22, 23, 24 },
             { 30, 31, 32, 33, 34 },
         });
         original.Transform(value => value + 1);
         ArrayEquals(original.Data, new[,] {
-            {  1,  2,  3,  4,  5 },
+            { 1, 2, 3, 4, 5 },
             { 11, 12, 13, 14, 15 },
             { 21, 22, 23, 24, 25 },
             { 31, 32, 33, 34, 35 },
         });
 
         original = new Array2D<int>(new[,] {
-            {  0,  1,  2,  3,  4 },
+            { 0, 1, 2, 3, 4 },
             { 10, 11, 12, 13, 14 },
             { 20, 21, 22, 23, 24 },
             { 30, 31, 32, 33, 34 },
         });
         original.Transform(2, 1, 3, 2, value => value + 1);
         ArrayEquals(original.Data, new[,] {
-            {  0,  1,  2,  3,  4 },
+            { 0, 1, 2, 3, 4 },
             { 10, 11, 13, 14, 15 },
             { 20, 21, 23, 24, 25 },
             { 30, 31, 32, 33, 34 },
         });
-
     }
 
     [Betauer.TestRunner.Test]
     public void NormalizeTest() {
-        var grid = new Array2D<float>(2, 2).Load((x, y) => x + y);
+        var grid = new Array2D<float>(2, 2);
+        grid.Load((x, y) => x + y);
         Assert.AreEqual(2, grid.Width);
         Assert.AreEqual(2, grid.Height);
 
@@ -266,20 +333,20 @@ public class Array2DTests {
         Assert.AreEqual(0.5f, grid[0, 1]);
         Assert.AreEqual(1f, grid[1, 1]);
     }
-    
+
     [TestRunner.Test]
     public void CopyGridTests() {
         var original = new Array2D<int>(new[,] {
-            {  0,  1,  2,  3,  4 },
+            { 0, 1, 2, 3, 4 },
             { 10, 11, 12, 13, 14 },
             { 20, 21, 22, 23, 24 },
             { 30, 31, 32, 33, 34 },
         });
-            
+
         var dest = new int[2, 2];
         original.CopyTo(0, 0, dest);
         ArrayEquals(dest, new[,] {
-            {  0,  1, },
+            { 0, 1, },
             { 10, 11, },
         });
 
@@ -289,12 +356,11 @@ public class Array2DTests {
             { 31, 32, },
         });
 
-        
         var buffer = new int[3, 3];
         original.CopyNeighbors(0, 0, buffer, -1);
         ArrayEquals(buffer, new[,] {
             { -1, -1, -1 },
-            { -1,  0,  1 },
+            { -1, 0, 1 },
             { -1, 10, 11 },
         });
 
@@ -320,5 +386,4 @@ public class Array2DTests {
         }
         return true;
     }
-    
 }

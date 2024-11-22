@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Betauer.Core.DataMath;
 using Betauer.Core.DataMath.Collision.Spatial2D;
 using Betauer.Core.Image;
 using Betauer.Core.PCG.Bsp;
@@ -50,12 +51,13 @@ public class BspTreeDemo {
 
         RemoveBiggerRooms(rooms, 0.2f);
 
-
-        var map = CreateMap(width, height);
+        var map = new Array2D<char>(width, height, '█');
         CarveRooms(width, height, rooms, map);
         Stats(rooms, bsp.MaxRatio, bsp.MinRoomWidth, bsp.MinRoomHeight);
         CarveCorridors(width, height, rooms, map, random, true, true);
-        PrintMap(width, height, map);
+        // PrintMap(width, height, map);
+        Console.WriteLine(map);
+
     }
 
     private static void RemoveBiggerRooms(List<Rect2I> rooms, float percent) {
@@ -77,25 +79,25 @@ public class BspTreeDemo {
         return sp.FindShapes<Rectangle>().Select(shape => shape.ToRect2I()).ToList();
     }
 
-    private static void CarveRooms(int width, int height, IList<Rect2I> rooms, char[,] map, bool showSize = false) {
+    private static void CarveRooms(int width, int height, IList<Rect2I> rooms, Array2D<char> map, bool showSize = false) {
         rooms.ForEach(rect => {
             for (var x = rect.Position.X; x < rect.Position.X + rect.Size.X; x++) {
                 for (var y = rect.Position.Y; y < rect.Position.Y + rect.Size.Y; y++) {
                     if (x >= 0 && x < width && y >= 0 && y < height)
-                        map[x, y] = ' ';
+                        map[y, x] = ' ';
                 }
             }
             if (showSize) {
                 var sizeText = $"{rect.Size.X}/{rect.Size.Y}({((double)Math.Max(rect.Size.X, rect.Size.Y) / Math.Min(rect.Size.X, rect.Size.Y)):0.0})";
                 for (var i = 0; i < sizeText.Length; i++) {
                     if (rect.Position.X + i >= 0 && rect.Position.X + i < width && rect.Position.Y >= 0 && rect.Position.Y < height)
-                        map[rect.Position.X + i, rect.Position.Y] = sizeText[i];
+                        map[rect.Position.Y, rect.Position.X + i] = sizeText[i];
                 }
             }
         });
     }
 
-    private static void CarveCorridors(int width, int height, IList<Rect2I> rooms, char[,] map, Random random, bool showPaths = false, bool showCenters = false) {
+    private static void CarveCorridors(int width, int height, IList<Rect2I> rooms, Array2D<char> map, Random random, bool showPaths = false, bool showCenters = false) {
         var centers = rooms.Select(r => {
             var center = r.GetCenter();
             if (r.Size.X <= 3 || r.Size.Y <= 3) return center;
@@ -105,49 +107,49 @@ public class BspTreeDemo {
         }).ToList();
 
         var a = PrimMst.GetConnections(centers);
-        var cc = showPaths ? '*' : ' ';
+        var cc = showPaths ? '·' : ' ';
         var f = new FastNoiseLite();
         a.ForEach((connection, v2) => {
                 var start = connection.Item1;
                 var end = connection.Item2;
                 var roadType = random.Next(5);
                 if (roadType == 0) {
-                    Draw.Line(start.X, start.Y, end.X, end.Y, 1, (x, y) => map[x, y] = cc);
+                    Draw.Line(start.X, start.Y, end.X, end.Y, 1, (x, y) => map[y, x] = cc);
                 } else if (roadType == 1) {
-                    Draw.LineOneTurn(start.X, start.Y, end.X, end.Y, (x, y) => map[x, y] = cc, random.NextBool());
+                    Draw.LineOneTurn(start.X, start.Y, end.X, end.Y, (x, y) => map[y, x] = cc, random.NextBool());
                 } else if (roadType == 2) {
                     Draw.LineTwoTurns(start.X, start.Y, end.X, end.Y, (x, y) => {
                         try {
-                            map[x, y] = cc;
+                            map[y, x] = cc;
                         } catch (Exception e) {
                             Console.WriteLine(e);
                             throw;
                         }
                     }, random.NextBool());
                 } else if (roadType == 3) {
-                    Draw.LineRandom(start.X, start.Y, end.X, end.Y, (x, y) => map[x, y] = cc, 1, new Random(0));
+                    Draw.LineRandom(start.X, start.Y, end.X, end.Y, (x, y) => map[y, x] = cc, 1, new Random(0));
                 } else if (roadType == 4) {
                     Draw.LineNoise(start.X, start.Y, end.X, end.Y, f, 1, (x, y, f) => {
-                        if (x > 0 && x < width && y > 0 && y < height) map[x, y] = cc;
+                        if (x > 0 && x < width && y > 0 && y < height) map[y, x] = cc;
                     });
                 }
                 //cc++;
             });
-        if (showCenters) centers.ForEach(v => { map[v.X, v.Y] = '+'; });
+        if (showCenters) centers.ForEach(v => { map[v] = '+'; });
     }
 
     private static char[,] CreateMap(int width, int height) {
         var map = new char[width, height];
         for (var x = 0; x < width; x++)
             for (var y = 0; y < height; y++)
-                map[x, y] = '#';
+                map[y, x] = '#';
         return map;
     }
 
     private static void PrintMap(int width, int height, char[,] map) {
         for (var y = 0; y < height; y++) {
             for (var x = 0; x < width; x++) {
-                Console.Write(map[x, y]+""+map[x, y]);
+                Console.Write(map[y, x]+""+map[y, x]);
             }
             Console.WriteLine();
         }
