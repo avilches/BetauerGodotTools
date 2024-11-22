@@ -7,19 +7,17 @@ namespace Betauer.Core.DataMath;
 public class CellularAutomata<T> {
     private readonly EqualityComparer<T> _comparer = EqualityComparer<T>.Default;
     private Func<Array2D<T>, Vector2I, T> _updateRule;
-    public readonly Array2D<T> _state;
-    private readonly Array2D<T> _nextState;
+    private readonly Array2D<T> _state;
+    private Array2D<T>? _nextState;
     
     public T[,] State => _state.Data;
 
     public CellularAutomata(Array2D<T> state) {
         _state = state;
-        _nextState = _state.Clone();
     }
 
     public CellularAutomata(int width, int height, T? defaultValue = default) {
         _state = new Array2D<T>(width, height);
-        _nextState = new Array2D<T>(width, height);
         if (defaultValue != null) {
             _state.Fill(defaultValue);
         }
@@ -56,8 +54,14 @@ public class CellularAutomata<T> {
         return this;
     }
 
-    public int Update(bool copyState = false) {
+    /// <summary>
+    /// Execute the update rule for all cells in the grid. It creates a temporal state, so the changes for every rule will be visible in the next update.
+    /// This is the regular behaviour of a cellular automata.
+    /// </summary>
+    /// <returns></returns>
+    public int Update() {
         var changes = 0;
+        _nextState ??= new Array2D<T>(_state.Width, _state.Height);
         foreach (var cell in _state) {
             var oldValue = cell.Value;
             var newValue = _updateRule.Invoke(_state, cell.Position);
@@ -67,6 +71,24 @@ public class CellularAutomata<T> {
             _nextState[cell.Position] = newValue;
         }
         _nextState.CopyTo(_state.Data);
+        return changes;
+    }
+
+    /// <summary>
+    /// Execute the update rule for all cells in the grid and apply the changes immediately.
+    /// This is useful when you want to update the grid in a single step, like remove dead ends
+    /// </summary>
+    /// <returns></returns>
+    public int SingleUpdate() {
+        var changes = 0;
+        foreach (var cell in _state) {
+            var oldValue = cell.Value;
+            var newValue = _updateRule.Invoke(_state, cell.Position);
+            if (!_comparer.Equals(newValue, oldValue)) {
+                changes++;
+            }
+            _state[cell.Position] = newValue;
+        }
         return changes;
     }
 }

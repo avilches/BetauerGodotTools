@@ -289,8 +289,8 @@ public class Array2D<T> : IEnumerable<DataCell<T>> {
     public string GetString(Func<DataCell<T>, string> transform, char lineSeparator = '\n') {
         var s = new StringBuilder();
         foreach (var cell in this) {
+            if (cell.Position.Y > 0 && cell.Position.X == 0) s.Append(lineSeparator);
             s.Append(transform(cell));
-            if (cell.Position.X == Width - 1) s.Append(lineSeparator);
         }
         return s.ToString();
     }

@@ -13,7 +13,6 @@ using NUnit.Framework;
 namespace Betauer.Animation.Tests; 
 
 [TestFixture]
-[Only]
 public partial class SequenceTests : NodeTest {
     [OneTimeSetUp]
     public void SetUp() {

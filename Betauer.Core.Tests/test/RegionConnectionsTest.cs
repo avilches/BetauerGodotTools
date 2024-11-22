@@ -14,7 +14,7 @@ namespace Betauer.Core.Tests;
 public class RegionConnectionsTest {
     [Test]
     public void Test() {
-        var xYGrid = Array2D.Parse("""
+        var data = Array2D.Parse("""
                                    #·#####
                                    ···##··  
                                    ###····
@@ -26,7 +26,7 @@ public class RegionConnectionsTest {
             { '#', true }, { '·', false },
         });
 
-        var connector = new RegionConnections(xYGrid);
+        var connector = new RegionConnections(data);
         Assert.That(PrintState(connector), Is.EqualTo("""
                                                       1·22222
                                                       ·+·22++
@@ -170,27 +170,21 @@ public class RegionConnectionsTest {
         }
         var isolated = connector.GetIsolatedCells().ToHashSet();
         var connectingCells = connector.GetConnectingCells().Select(t => t.Position).ToHashSet();
-            
-        var s = new StringBuilder();
-        foreach (var cell in connector.Labels) {
+
+        return connector.Labels.GetString(cell => {
             if (cell.Value == 0) {
                 if (isolated.Contains(cell.Position)) {
-                    s.Append('i');
+                    return "i";
                 } else if (expandable.ContainsKey(cell.Position)) {
-                    s.Append('+');
+                    return "+";
                 } else if (connectingCells.Contains(cell.Position)) {
-                    s.Append('·');
+                    return "·";
                 } else {
                     throw new Exception("Unexpected cell");
                 }
             } else {
-                s.Append(cell.Value.ToString("x8").AsSpan(7, 1));
+                return (cell.Value.ToString("x8").AsSpan(7, 1)).ToString();
             }
-            if (cell.Position.X == connector.Width - 1) {
-                s.Append('\n');
-            }
-        }
-        Console.WriteLine(s);
-        return s.ToString().Trim();
+        });
     }
 }
