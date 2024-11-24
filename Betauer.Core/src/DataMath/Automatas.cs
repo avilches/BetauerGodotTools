@@ -1,3 +1,5 @@
+using System;
+
 namespace Betauer.Core.DataMath;
 
 public static class Automatas {
@@ -7,15 +9,23 @@ public static class Automatas {
     }
 
     public static void RemoveAllDeadEnds<T>(Array2D<T> grid, T fill, T empty) {
+        RemoveAllDeadEnds(grid, v => Equals(v, fill), (v, b) => b ? fill : empty, empty);
+    }
+
+    public static void RemoveAllDeadEnds<T>(Array2D<T> grid, Func<T, bool> isEnabled, Func<T, bool, T> update, T defaultValue) {
+        var changes = 1;
         var automata = new CellularAutomata<T>(grid).AddRule((g, pos) => {
             var value = g.GetValueSafe(pos);
-            if (!Equals(value, fill)) return value;
-            var pathNeighbors = grid.CountPathNeighbors(pos, fill);
-            return pathNeighbors > 1 ? value : empty;
+            if (!isEnabled(value)) return value;
+            var pathNeighbors = grid.CountPathNeighbors(pos, isEnabled);
+            value = update(value, pathNeighbors > 1);
+            if (!isEnabled(value)) changes++;
+            return value;
         });
 
-        while (automata.SingleUpdate() > 0) {
-            // Keep updating until no changes
+        while (changes > 0) {
+            changes = 0;
+            automata.SingleUpdate();
         }
     }
 
@@ -24,7 +34,7 @@ public static class Automatas {
     }
 
     public static CellularAutomata<T> CreateGameOfLife<T>(Array2D<T> grid, T alive, T dead) {
-        return new CellularAutomata<T>(grid).AddRule(neighbors => {
+        return new CellularAutomata<T>(grid).AddMooreNeighborhoodRule(neighbors => {
             var centerIsAlive = Equals(neighbors[1, 1], alive); // Centro de la matriz 3x3
             var liveNeighbors = CountMooreNeighborhood(neighbors, alive);
 
@@ -39,30 +49,44 @@ public static class Automatas {
     }
 
     public static int CountMooreNeighborhood<T>(T[,] neighbors, T matching) {
+        return CountMooreNeighborhood(neighbors, v => Equals(v, matching));
+    }
+
+    public static int CountMooreNeighborhood<T>(T[,] neighbors, Func<T, bool> isEnabled) {
         var count = 0;
         for (var y = 0; y < 3; y++) {
             for (var x = 0; x < 3; x++) {
                 if (x == 1 && y == 1) continue; // Skip center
-                if (Equals(neighbors[y, x], matching)) count++;
+                if (isEnabled(neighbors[y, x])) count++;
             }
         }
         return count;
     }
 
     public static CellularAutomata<T> CreateSmoothCorners<T>(Array2D<T> grid, T fill, T empty, int deleteIfLessThan = 5, int addIfMoreThan = 5) {
+        return CreateSmoothCorners(grid, 
+            v => Equals(v, fill), 
+            (v, b) => b ? fill : empty, empty, deleteIfLessThan, addIfMoreThan);
+    }
+
+    public static CellularAutomata<T> CreateSmoothCorners<T>(Array2D<T> grid, Func<T, bool> isEnabled, Func<T, bool, T> set, T defaultValue, int deleteIfLessThan = 5, int addIfMoreThan = 5) {
         return new CellularAutomata<T>(grid)
-            .AddRule(neighbors => {
+            .AddMooreNeighborhoodRule(neighbors => {
                 // Remove cells with less than minNeighborsToKeep neighbors
-                if (Equals(neighbors[1, 1], empty)) return empty; // ignore dead cells
-                var liveNeighbors = CountMooreNeighborhood(neighbors, fill);
-                return liveNeighbors >= deleteIfLessThan ? fill : empty;
-            }, empty)
-            .AddRule(neighbors => {
+                var value = neighbors[1, 1];
+                if (!isEnabled(value)) return value; // ignore dead cells
+                var liveNeighbors = CountMooreNeighborhood(neighbors, isEnabled);
+                value = set(value, liveNeighbors >= deleteIfLessThan);
+                return value;
+            }, defaultValue)
+            .AddMooreNeighborhoodRule(neighbors => {
                 // Add cells with more than minNeighborsToAdd neighbors
-                if (Equals(neighbors[1, 1], fill)) return fill; // ignore alive cells
-                var liveNeighbors = CountMooreNeighborhood(neighbors, fill);
-                return liveNeighbors > addIfMoreThan ? fill : empty;
-            }, empty);
+                var value = neighbors[1, 1];
+                if (isEnabled(value)) return value; // ignore alive cells
+                var liveNeighbors = CountMooreNeighborhood(neighbors, isEnabled);
+                value = set(value, liveNeighbors > addIfMoreThan);
+                return value;
+            }, defaultValue);
     }
 
 

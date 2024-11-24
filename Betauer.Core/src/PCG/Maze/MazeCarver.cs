@@ -25,7 +25,6 @@ public class MazeCarver {
 
     // Delegates for customizable behavior
     public Func<Vector2I, bool>? IsCarvedFunc { get; set; } // Checks if a cell is carved
-    public Action<Vector2I>? UnCarveAction { get; set; } // Removes a cell from the maze
     public Action<Vector2I, MazeCarveType>? CarveAction { get; set; } // Carves a cell with a specific type
     public Func<Vector2I, Vector2I, bool>? CanCarveFunc { get; set; } // Checks if a direction can be carved
 
@@ -130,11 +129,6 @@ public class MazeCarver {
         return IsCarvedFunc!.Invoke(pos);
     }
 
-    public void UnCarve(Vector2I pos) {
-        if (UnCarveAction == null) throw new InvalidOperationException($"{nameof(UnCarveAction)} not set");
-        UnCarveAction!.Invoke(pos);
-    }
-
     public void Carve(Vector2I pos, MazeCarveType type) {
         if (CarveAction == null) throw new InvalidOperationException($"{nameof(CarveAction)} not set");
         CarveAction!.Invoke(pos, type);
@@ -153,7 +147,6 @@ public class MazeCarver {
     public static MazeCarver Create(Array2D<bool> grid) {
         return new MazeCarver(grid.Width, grid.Height) {
             IsCarvedFunc = pos => grid[pos],
-            UnCarveAction = pos => grid[pos] = false,
             CarveAction = (pos, type) => grid[pos] = true,
             CanCarveFunc = (pos, dir) => {
                 var target = pos + dir * 2;
@@ -170,7 +163,6 @@ public class MazeCarver {
     public static MazeCarver Create(Array2D<MazeCarveType> grid) {
         return new MazeCarver(grid.Width, grid.Height) {
             IsCarvedFunc = pos => grid[pos] != MazeCarveType.Empty,
-            UnCarveAction = pos => grid[pos] = MazeCarveType.Empty,
             CarveAction = (pos, type) => grid[pos] = type,
             CanCarveFunc = (pos, dir) => {
                 var target = pos + dir * 2;

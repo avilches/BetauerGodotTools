@@ -1,5 +1,6 @@
 using System;
 using Betauer.Core.DataMath;
+using Betauer.TestRunner;
 using NUnit.Framework;
 
 namespace Betauer.Core.Tests;
@@ -67,6 +68,7 @@ public class AutomatasTests {
     }
 
     [Test]
+    [Only]
     public void SmoothCornersTest() {
         var data = new Array2D<bool>(41, 21);
         data.Fill(false);
@@ -85,7 +87,7 @@ public class AutomatasTests {
         var result = data.GetString((v) => v ? "#" : "·");
         Console.WriteLine(result);
 
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < 1; i++) {
             region = ShapeGenerator.SmoothRegion(
                 region,
                 minNeighborsToKeep: 5,
@@ -98,12 +100,14 @@ public class AutomatasTests {
         Console.WriteLine(result);
 
         var s = Automatas.CreateSmoothCorners(other);
-        s.Update();
-        s.Update();
+        s.Update(1,1,data.Width-2,data.Height-2);
+        // s.Update(1,1,data.Width-2,data.Height-2);
         // s.Update();
-        result = other.GetString((v) => v ? "#" : "·");
+        var result2 = other.GetString((v) => v ? "#" : "·");
         Console.WriteLine("3 iterations automata");
-        Console.WriteLine(result);
+        Console.WriteLine(result2);
+        
+        Assert.That(result, Is.EqualTo(result2));
     }
 }
 

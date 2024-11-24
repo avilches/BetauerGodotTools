@@ -283,7 +283,15 @@ public class Array2D<T> : IEnumerable<DataCell<T>> {
     }
 
     public int CountPathNeighbors(Vector2I pos, T value) {
-        return CountPathNeighbors(pos.X, pos.Y, value);
+        return CountPathNeighbors(pos.X, pos.Y, v => Equals(v, value));
+    }
+
+    public int CountPathNeighbors(int x, int y, T value) {
+        return CountPathNeighbors(x, y, v => Equals(v, value));
+    }
+
+    public int CountPathNeighbors(Vector2I pos, Func<T, bool> predicate) {
+        return CountPathNeighbors(pos.X, pos.Y, predicate);
     }
 
     /// <summary>
@@ -291,13 +299,13 @@ public class Array2D<T> : IEnumerable<DataCell<T>> {
     /// </summary>
     /// <param name="x"></param>
     /// <param name="y"></param>
-    /// <param name="value"></param>
+    /// <param name="predicate"></param>
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
-    public int CountPathNeighbors(int x, int y, T value) {
+    public int CountPathNeighbors(int x, int y, Func<T, bool> predicate) {
         var pathNeighbors = Array2D.Directions.Count(dir => {
             var neighbor = GetValueSafe(x + dir.X, y + dir.Y);
-            return Equals(neighbor, value);
+            return predicate(neighbor);
         });
         return pathNeighbors;
     }
