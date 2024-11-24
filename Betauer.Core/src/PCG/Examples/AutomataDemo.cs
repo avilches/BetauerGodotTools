@@ -44,7 +44,7 @@ public class AutomataDemo {
                                            ···········································································
                                            ···········································································
                                            """, '#');
-            var gol = Automatas.GameOfLife(data);
+            var gol = Automatas.CreateGameOfLife(data);
             for (var n = 0; n < 500; n++) {
                 Console.WriteLine(data.GetString((v) => v ? "#" : "·"));
                 gol.Update();

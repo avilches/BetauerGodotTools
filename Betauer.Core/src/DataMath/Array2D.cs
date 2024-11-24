@@ -24,7 +24,7 @@ public readonly record struct DataCell<T>(Vector2I Position, T Value) {
 public class Array2D<T> : IEnumerable<DataCell<T>> {
     public int Width => Data.GetLength(1);
     public int Height => Data.GetLength(0);
-    public T[,] Data { get; }
+    public T[,] Data { get; set; }
     public Rect2I Bounds => new(0, 0, Width, Height);
 
     public Array2D(T[,] data) {
@@ -282,6 +282,26 @@ public class Array2D<T> : IEnumerable<DataCell<T>> {
         }
     }
 
+    public int CountPathNeighbors(Vector2I pos, T value) {
+        return CountPathNeighbors(pos.X, pos.Y, value);
+    }
+
+    /// <summary>
+    /// Return the amount of the up, down, right and left cells that are equal to the value 
+    /// </summary>
+    /// <param name="x"></param>
+    /// <param name="y"></param>
+    /// <param name="value"></param>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    public int CountPathNeighbors(int x, int y, T value) {
+        var pathNeighbors = Array2D.Directions.Count(dir => {
+            var neighbor = GetValueSafe(x + dir.X, y + dir.Y);
+            return Equals(neighbor, value);
+        });
+        return pathNeighbors;
+    }
+
     public override string ToString() {
         return GetString(cell => cell.Value?.ToString());
     }
@@ -301,6 +321,8 @@ public class Array2D<T> : IEnumerable<DataCell<T>> {
 }
 
 public static class Array2D {
+    public static Vector2I[] Directions = new[] { Vector2I.Up, Vector2I.Right, Vector2I.Down, Vector2I.Left };
+
     public static Array2D<T> Parse<T>(string template, Dictionary<char, T> transform) {
         return Parse(template, c => transform[c]);;
     }
