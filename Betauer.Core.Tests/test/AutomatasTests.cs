@@ -68,7 +68,6 @@ public class AutomatasTests {
     }
 
     [Test]
-    [Only]
     public void SmoothCornersTest() {
         var data = new Array2D<bool>(41, 21);
         data.Fill(false);
