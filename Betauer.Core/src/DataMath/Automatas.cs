@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 
 namespace Betauer.Core.DataMath;
 
@@ -17,7 +18,7 @@ public static class Automatas {
         var automata = new CellularAutomata<T>(grid).AddRule((g, pos) => {
             var value = g.GetValueSafe(pos);
             if (!isEnabled(value)) return value;
-            var pathNeighbors = grid.CountPathNeighbors(pos, isEnabled);
+            var pathNeighbors = grid.GetValidUpDownLeftRightPositions(pos, isEnabled).Count();
             value = update(value, pathNeighbors > 1);
             if (!isEnabled(value)) changes++;
             return value;

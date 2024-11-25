@@ -72,14 +72,14 @@ public class Array2D<T> : IEnumerable<DataCell<T>> {
     }
 
     public void Load(int x, int y, int width, int height, Func<Vector2I, T> valueFunc) {
-        foreach (var cell in GetEnumerator(x, y, width, height)) {
+        foreach (var cell in GetPositions(x, y, width, height)) {
             var value = valueFunc.Invoke(cell.Position);
             this[cell.Position] = value;
         }
     }
 
     public void Load(int x, int y, int width, int height, Func<int, int, T> valueFunc) {
-        foreach (var cell in GetEnumerator(x, y, width, height)) {
+        foreach (var cell in GetPositions(x, y, width, height)) {
             var value = valueFunc.Invoke(cell.Position.X, cell.Position.Y);
             this[cell.Position] = value;
         }
@@ -100,7 +100,7 @@ public class Array2D<T> : IEnumerable<DataCell<T>> {
     public Array2D<TOut> Clone<TOut>(int x, int y, int width, int height, Func<T, TOut> transformer) {
         var startPos = new Vector2I(x, y);
         var array2D = new Array2D<TOut>(width, height);
-        foreach (var cell in GetEnumerator(x, y, width, height)) {
+        foreach (var cell in GetPositions(x, y, width, height)) {
             var transformed = transformer.Invoke(cell.Value);
             array2D[cell.Position - startPos] = transformed;
         }
@@ -116,11 +116,15 @@ public class Array2D<T> : IEnumerable<DataCell<T>> {
         }
     }
 
-    public IEnumerable<DataCell<T>> GetEnumerator(Rect2I rect) {
-        return GetEnumerator(rect.Position.X, rect.Position.Y, rect.End.X, rect.End.Y);
+    public IEnumerable<DataCell<T>> GetPositions() {
+        return GetPositions(0, 0, Width, Height);        
+    }
+    
+    public IEnumerable<DataCell<T>> GetPositions(Rect2I rect) {
+        return GetPositions(rect.Position.X, rect.Position.Y, rect.End.X, rect.End.Y);
     }
 
-    public IEnumerable<DataCell<T>> GetEnumerator(int x, int y, int width, int height) {
+    public IEnumerable<DataCell<T>> GetPositions(int x, int y, int width, int height) {
         for (var yy = y; yy < height + y; yy++) {
             for (var xx = x; xx < width + x; xx++) {
                 var value = Data[yy, xx];
@@ -158,21 +162,21 @@ public class Array2D<T> : IEnumerable<DataCell<T>> {
     }
 
     public void Transform(int x, int y, int width, int height, Func<T, T> action) {
-        foreach (var cell in GetEnumerator(x, y, width, height)) {
+        foreach (var cell in GetPositions(x, y, width, height)) {
             var transformed = action(cell.Value);
             this[cell.Position] = transformed;
         }
     }
 
     public void Transform(int x, int y, int width, int height, Func<Vector2I, T, T> action) {
-        foreach (var cell in GetEnumerator(x, y, width, height)) {
+        foreach (var cell in GetPositions(x, y, width, height)) {
             var transformed = action(cell.Position, cell.Value);
             this[cell.Position] = transformed;
         }
     }
 
     public void Transform(int x, int y, int width, int height, Func<int, int, T, T> action) {
-        foreach (var cell in GetEnumerator(x, y, width, height)) {
+        foreach (var cell in GetPositions(x, y, width, height)) {
             var transformed = action(cell.Position.X, cell.Position.Y, cell.Value);
             this[cell.Position] = transformed;
         }
@@ -281,33 +285,15 @@ public class Array2D<T> : IEnumerable<DataCell<T>> {
             }
         }
     }
-
-    public int CountPathNeighbors(Vector2I pos, T value) {
-        return CountPathNeighbors(pos.X, pos.Y, v => Equals(v, value));
+    
+    public IEnumerable<Vector2I> GetValidUpDownLeftRightPositions(int x, int y, Func<T, bool>? predicate = null) {
+        return GetValidUpDownLeftRightPositions(new Vector2I(x, y));
     }
 
-    public int CountPathNeighbors(int x, int y, T value) {
-        return CountPathNeighbors(x, y, v => Equals(v, value));
-    }
-
-    public int CountPathNeighbors(Vector2I pos, Func<T, bool> predicate) {
-        return CountPathNeighbors(pos.X, pos.Y, predicate);
-    }
-
-    /// <summary>
-    /// Return the amount of the up, down, right and left cells that are equal to the value 
-    /// </summary>
-    /// <param name="x"></param>
-    /// <param name="y"></param>
-    /// <param name="predicate"></param>
-    /// <typeparam name="T"></typeparam>
-    /// <returns></returns>
-    public int CountPathNeighbors(int x, int y, Func<T, bool> predicate) {
-        var pathNeighbors = Array2D.Directions.Count(dir => {
-            var neighbor = GetValueSafe(x + dir.X, y + dir.Y);
-            return predicate(neighbor);
-        });
-        return pathNeighbors;
+    public IEnumerable<Vector2I> GetValidUpDownLeftRightPositions(Vector2I pos, Func<T, bool>? predicate = null) {
+        return Array2D.Directions
+            .Select(dir => pos + dir)
+            .Where(p => IsValidPosition(p) && (predicate == null || predicate.Invoke(this[p])));
     }
 
     public override string ToString() {

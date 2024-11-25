@@ -18,8 +18,6 @@ public enum MazeCarveType {
 }
 
 public class MazeCarver {
-    public static readonly Vector2I[] Directions = [Vector2I.Up, Vector2I.Down, Vector2I.Right, Vector2I.Left];
-
     public int Width { get; }
     public int Height { get; }
 
@@ -92,7 +90,7 @@ public class MazeCarver {
             var currentCell = usedCells[cellIndex];
             // Console.WriteLine("Selecting cell "+currentCell+" from "+string.Join(", ", usedCells));
 
-            var availableDirections = Directions.Where(dir => CanCarve(currentCell, dir)).ToList();
+            var availableDirections = Array2D.Directions.Where(dir => CanCarve(currentCell, dir)).ToList();
             if (availableDirections.Count == 0) {
                 if (--paths == 0) break;
                 usedCells.RemoveAt(cellIndex); // discard the current cell

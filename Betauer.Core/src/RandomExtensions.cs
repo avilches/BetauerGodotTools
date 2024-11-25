@@ -113,17 +113,17 @@ public static partial class RandomExtensions {
     }
 
     /// <summary> Returns a random point inside the circle</summary>
-    public static Vector2 Next(this Random rng, Vector2 center, int radius) {
-        var angle = rng.NextDouble() * 2 * Math.PI; // Angle in radians
-        var distance = Math.Sqrt(rng.NextDouble()) * radius;
-        return center + Vector2.FromAngle((float)angle) * (float)distance;
+    public static Vector2 Next(this Random rng, Vector2 center, float radius) {
+        var angle = rng.NextSingle() * 2 * Mathf.Pi; // Angle in radians
+        var distance = Mathf.Sqrt(rng.NextSingle()) * radius;
+        return center + Vector2.FromAngle(angle) * distance;
     }
 
     /// <summary> Returns a random point inside the circle</summary>
     public static Vector2I Next(this Random rng, Vector2I center, int radius) {
-        var angle = rng.NextDouble() * 2 * Math.PI; // Angle in radians
-        var distance = Math.Sqrt(rng.NextDouble()) * radius;
-        return center + new Vector2I(Mathf.RoundToInt(distance * Math.Cos(angle)), Mathf.RoundToInt(distance * Math.Sin(angle)));
+        var angle = rng.NextSingle() * 2 * Mathf.Pi; // Angle in radians
+        var distance = Mathf.Sqrt(rng.NextSingle()) * radius;
+        return center + new Vector2I(Mathf.RoundToInt(distance * Mathf.Cos(angle)), Mathf.RoundToInt(distance * Mathf.Sin(angle)));
     }
 
     /// <summary>
