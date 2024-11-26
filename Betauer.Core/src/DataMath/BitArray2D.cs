@@ -1,4 +1,5 @@
 using System.Text;
+using Godot;
 
 namespace Betauer.Core.DataMath;
 
@@ -43,6 +44,11 @@ public class BitArray2D {
         }
     }
 
+    public bool this[Vector2I pos] {
+        get => this[pos.Y, pos.X];
+        set => this[pos.Y, pos.X] = value;
+    }
+
     public bool this[int row, int col] {
         get {
             ValidateIndices(row, col);
@@ -59,13 +65,7 @@ public class BitArray2D {
         if (col < 0 || col >= Width) throw new ArgumentOutOfRangeException(nameof(col));
     }
 
-    public void Clear() {
-        for (var i = 0; i < Height; i++) {
-            Rows[i].SetAll(false);
-        }
-    }
-
-    public void SetAll(bool value = true) {
+    public void Fill(bool value) {
         for (var i = 0; i < Height; i++) {
             Rows[i].SetAll(value);
         }

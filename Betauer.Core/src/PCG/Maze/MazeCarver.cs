@@ -7,29 +7,12 @@ using Godot;
 
 namespace Betauer.Core.PCG.Maze;
 
-/// <summary>
-/// Defines the type of cell in the maze
-/// </summary>
-public enum MazeCarveType {
-    Start, // Starting point of the maze
-    Path, // Regular path in the maze
-    End, // End point of the maze
-    Empty // Uncarved cell
-}
+public class MazeCarver(int width, int height, Func<Vector2I, bool>? isCarved, Action<Vector2I> carveAction) {
+    public int Width { get; } = width;
+    public int Height { get; } = height;
 
-public class MazeCarver {
-    public int Width { get; }
-    public int Height { get; }
-
-    // Delegates for customizable behavior
-    public Func<Vector2I, bool>? IsCarvedFunc { get; set; } // Checks if a cell is carved
-    public Action<Vector2I, MazeCarveType>? CarveAction { get; set; } // Carves a cell with a specific type
-    public Func<Vector2I, Vector2I, bool>? CanCarveFunc { get; set; } // Checks if a direction can be carved
-
-    public MazeCarver(int width, int height) {
-        Width = width;
-        Height = height;
-    }
+    public Func<Vector2I, bool>? IsCarved { get; set; } = isCarved;
+    public event Action<Vector2I>? OnCarve = carveAction;
 
     public int GrowBacktracker(Vector2I start, float directionalBias, int paths = -1, Random? rng = null) {
         rng ??= new Random();
@@ -81,7 +64,7 @@ public class MazeCarver {
         Vector2I lastPos = start;
         Vector2I? lastDir = null;
 
-        Carve(start, MazeCarveType.Start);
+        OnCarve(start);
         var size = 1;
 
         usedCells.Add(start);
@@ -90,7 +73,10 @@ public class MazeCarver {
             var currentCell = usedCells[cellIndex];
             // Console.WriteLine("Selecting cell "+currentCell+" from "+string.Join(", ", usedCells));
 
-            var availableDirections = Array2D.Directions.Where(dir => CanCarve(currentCell, dir)).ToList();
+            var availableDirections = Array2D.Directions.Where(dir => {
+                var target = currentCell + dir * 2;
+                return Geometry.IsPointInRectangle(target.X, target.Y, 0, 0, Width, Height) && !IsCarved(target);
+            }).ToList();
             if (availableDirections.Count == 0) {
                 if (--paths == 0) break;
                 usedCells.RemoveAt(cellIndex); // discard the current cell
@@ -98,7 +84,6 @@ public class MazeCarver {
                 continue;
             }
 
-            // Intentamos usar la dirección actual si está disponible
             var validCurrentDir = lastDir.HasValue && availableDirections.Contains(lastDir.Value)
                 ? lastDir
                 : null;
@@ -106,35 +91,19 @@ public class MazeCarver {
             // Console.WriteLine("Available dir: "+string.Join(", ", availableDirections)+ " lastDir: "+lastDir+ " valid last dir");
 
             var nextDir = directionSelector(validCurrentDir, availableDirections);
-            lastDir = nextDir; // Guardamos la dirección que acabamos de elegir
+            lastDir = nextDir;
 
             var nextCell1 = currentCell + nextDir;
             var nextCell2 = currentCell + nextDir * 2;
-            Carve(nextCell1, MazeCarveType.Path);
-            Carve(nextCell2, MazeCarveType.Path);
+            OnCarve(nextCell1);
+            OnCarve(nextCell2);
             lastPos = nextCell2;
             usedCells.Add(nextCell2);
             size += 2;
         }
 
-        Carve(lastPos, MazeCarveType.End);
+        OnCarve(lastPos);
         return size;
-    }
-
-    // Helper methods for cell operations
-    public bool IsCarved(Vector2I pos) {
-        if (IsCarvedFunc == null) throw new InvalidOperationException($"{nameof(IsCarvedFunc)} not set");
-        return IsCarvedFunc!.Invoke(pos);
-    }
-
-    public void Carve(Vector2I pos, MazeCarveType type) {
-        if (CarveAction == null) throw new InvalidOperationException($"{nameof(CarveAction)} not set");
-        CarveAction!.Invoke(pos, type);
-    }
-
-    public bool CanCarve(Vector2I pos, Vector2I direction) {
-        if (CanCarveFunc == null) throw new InvalidOperationException($"{nameof(CanCarveFunc)} not set");
-        return CanCarveFunc!.Invoke(pos, direction);
     }
 
     /// <summary>
@@ -143,29 +112,24 @@ public class MazeCarver {
     /// - false represents uncarved cells
     /// </summary>
     public static MazeCarver Create(Array2D<bool> grid) {
-        return new MazeCarver(grid.Width, grid.Height) {
-            IsCarvedFunc = pos => grid[pos],
-            CarveAction = (pos, type) => grid[pos] = true,
-            CanCarveFunc = (pos, dir) => {
-                var target = pos + dir * 2;
-                return Geometry.IsPointInRectangle(target.X, target.Y, 0, 0, grid.Width, grid.Height) && !grid[target];
-            }
-        };
+        return Create(grid, true, false);
     }
 
     /// <summary>
-    /// Creates a MazeCarver for a MazeCarveType grid.
-    /// - Supports different cell types (Start, Path, End, Empty)
-    /// - Provides more detailed maze representation
+    /// Creates a MazeCarver for a boolean BitArray2D.
+    /// - true represents carved cells
+    /// - false represents uncarved cells
     /// </summary>
-    public static MazeCarver Create(Array2D<MazeCarveType> grid) {
-        return new MazeCarver(grid.Width, grid.Height) {
-            IsCarvedFunc = pos => grid[pos] != MazeCarveType.Empty,
-            CarveAction = (pos, type) => grid[pos] = type,
-            CanCarveFunc = (pos, dir) => {
-                var target = pos + dir * 2;
-                return Geometry.IsPointInRectangle(target.X, target.Y, 0, 0, grid.Width, grid.Height) && grid[target] == MazeCarveType.Empty;
-            }
-        };
+    public static MazeCarver Create(BitArray2D grid) {
+        return new MazeCarver(grid.Width, grid.Height, pos => grid[pos], pos => grid[pos] = true);
+    }
+
+    /// <summary>
+    /// Creates a MazeCarver for a grid of any type.
+    /// - Carves by setting the cell to filled.
+    /// - Only carves in no empty cells.
+    /// </summary>
+    public static MazeCarver Create<T>(Array2D<T> grid, T filled, T empty) {
+        return new MazeCarver(grid.Width, grid.Height, pos => !Equals(grid[pos], empty), pos => grid[pos] = filled);
     }
 }

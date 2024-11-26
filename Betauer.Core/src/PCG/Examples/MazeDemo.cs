@@ -16,9 +16,7 @@ public class MazeDemo {
         
         var mc = MazeCarver.Create(grid);
         var start = new Vector2I(5, 5);
-        var old = mc.CarveAction;
-        mc.CarveAction = (i, type) => {
-            old(i, type);
+        mc.OnCarve += (i) => {
             // PrintMaze(grid);
         };
 

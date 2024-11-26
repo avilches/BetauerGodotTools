@@ -20,8 +20,8 @@ public class InnerBorderDetector<T>(Array2D<T> region, Func<T, bool> isEnabled) 
     }
 
     public BitArray2D DetectBorders() {
-        _borderGrid.Clear();
-        _visited.Clear();
+        _borderGrid.Fill(false);
+        _visited.Fill(false);
 
         for (var y = 0; y < region.Height; y++) {
             for (var x = 0; x < region.Width; x++) {
