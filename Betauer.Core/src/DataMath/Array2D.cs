@@ -71,6 +71,44 @@ public abstract class Array2D {
     }
 }
 
+/*
+public interface IStorage<T> {
+    void Set(int y, int x, T value);
+    T Get(int y, int x);
+    int GetLength(int dimension);
+}
+
+public class ArrayStorage<T>(T[,] data) : IStorage<T> {
+    public T[,] Data { get; set; } = data;
+    public void Set(int y, int x, T value) {
+        Data[y, x] = value;
+    }
+
+    public T Get(int y, int x) {
+        return Data[y, x];
+    }
+
+    public int GetLength(int dimension) {
+        return Data.GetLength(dimension);
+    }
+}
+
+public class BitArrayStorage(BitArray2D data) : IStorage<bool> {
+    public BitArray2D Data { get; set; } = data;
+
+    public void Set(int y, int x, bool value) {
+        Data[y, x] = value;
+    }
+
+    public bool Get(int y, int x) {
+        return Data[y, x];
+    }
+
+    public int GetLength(int dimension) {
+        return dimension == 0 ? Data.Height : Data.Width;
+    }
+}
+*/
 /// <summary>
 /// A bidimensional array (grid) where can be accessed in Column-major order. That means:
 ///
@@ -93,6 +131,26 @@ public class Array2D<T> : Array2D, IEnumerable<DataCell<T>> {
     public Array2D(int width, int height) {
         Data = new T[height, width];
     }
+    
+    /*
+    public IStorage<T> Data { get; set; }
+
+    private static IStorage<T> CreateStorage(int width, int height) {
+        if (typeof(T) == typeof(bool)) {
+            return (IStorage<T>)new BitArrayStorage(new BitArray2D(width, height));
+        }
+        return new ArrayStorage<T>(new T[height, width]);
+    }
+
+    public Array2D(T[,] data) {
+        Data = new ArrayStorage<T>(data);
+    }
+
+    public Array2D(int width, int height) {
+        Data = CreateStorage(width, height);
+    }
+    */
+
 
     public Array2D(int width, int height, T defaultValue) : this(width, height) {
         Fill(defaultValue);
@@ -109,7 +167,7 @@ public class Array2D<T> : Array2D, IEnumerable<DataCell<T>> {
     public void Fill(int x, int y, int width, int height, T value) {
         for (var yy = y; yy < height + y; yy++) {
             for (var xx = x; xx < width + x; xx++) {
-                Data[yy, xx] = value;
+                this[yy, xx] = value;
             }
         }
     }
@@ -169,7 +227,7 @@ public class Array2D<T> : Array2D, IEnumerable<DataCell<T>> {
     public IEnumerator<DataCell<T>> GetEnumerator() {
         for (var yy = 0; yy < Height; yy++) {
             for (var xx = 0; xx < Width; xx++) {
-                var value = Data[yy, xx];
+                var value = this[yy, xx];
                 yield return new DataCell<T>(new Vector2I(xx, yy), value);
             }
         }
@@ -186,7 +244,7 @@ public class Array2D<T> : Array2D, IEnumerable<DataCell<T>> {
     public IEnumerable<DataCell<T>> GetPositions(int x, int y, int width, int height) {
         for (var yy = y; yy < height + y; yy++) {
             for (var xx = x; xx < width + x; xx++) {
-                var value = Data[yy, xx];
+                var value = this[yy, xx];
                 yield return new DataCell<T>(new Vector2I(xx, yy), value);
             }
         }
@@ -255,7 +313,7 @@ public class Array2D<T> : Array2D, IEnumerable<DataCell<T>> {
 
     public T? GetValueSafe(int x, int y, T? defaultValue = default) {
         if (x < 0 || y < 0 || x >= Width || y >= Height) return defaultValue;
-        return Data[y, x];
+        return this[y, x];
     }
 
     public T this[int y, int x] {
@@ -264,8 +322,8 @@ public class Array2D<T> : Array2D, IEnumerable<DataCell<T>> {
     }
     
     public T this[Vector2I pos] {
-        get => Data[pos.Y, pos.X];
-        set => Data[pos.Y, pos.X] = value;
+        get => this[pos.Y, pos.X];
+        set => this[pos.Y, pos.X] = value;
     }
 
     public void CopyNeighbors(Vector2I center, T[,] destination, T defaultValue = default) {
@@ -339,7 +397,7 @@ public class Array2D<T> : Array2D, IEnumerable<DataCell<T>> {
                 var sourceX = startX + destX;
                 var sourceY = startY + destY;
                 destination[destY, destX] = sourceX >= 0 && sourceX < Width && sourceY >= 0 && sourceY < Height
-                    ? transformer(Data[sourceY, sourceX])
+                    ? transformer(this[sourceY, sourceX])
                     : defaultValue;
             }
         }

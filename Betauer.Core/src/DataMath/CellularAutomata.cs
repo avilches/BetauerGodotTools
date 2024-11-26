@@ -9,23 +9,21 @@ public class CellularAutomata<T> {
     public delegate TT Rule<TT>(Array2D<TT> grid, Vector2I pos);
     
     private readonly List<Rule<T>> _rules = [];
-    private readonly Array2D<T> _state;
+    public Array2D<T> State { get; }
     private Array2D<T>? _nextState;
     
-    public T[,] State => _state.Data;
-
     public CellularAutomata(T[,] state) {
-        _state = new Array2D<T>(state);
+        State = new Array2D<T>(state);
     }
 
     public CellularAutomata(Array2D<T> state) {
-        _state = state;
+        State = state;
     }
 
     public CellularAutomata(int width, int height, T? defaultValue = default) {
-        _state = new Array2D<T>(width, height);
+        State = new Array2D<T>(width, height);
         if (defaultValue != null) {
-            _state.Fill(defaultValue);
+            State.Fill(defaultValue);
         }
     }
 
@@ -54,7 +52,7 @@ public class CellularAutomata<T> {
     public CellularAutomata<T> AddNeighborhoodRule(int neighborhoodSize, Func<T[,], T> updateRule, T defaultValue = default) {
         var neighbors = new T[neighborhoodSize, neighborhoodSize];
         _rules.Add((_, pos) => {
-            _state.CopyNeighbors(pos, neighbors, defaultValue);
+            State.CopyNeighbors(pos, neighbors, defaultValue);
             return updateRule.Invoke(neighbors);
         });
         return this;
@@ -76,26 +74,26 @@ public class CellularAutomata<T> {
     /// </summary>
     /// <returns></returns>
     public void Update() {
-        Update(0, 0, _state.Width, _state.Height);
+        Update(0, 0, State.Width, State.Height);
     }
 
     public void Update(int x, int y, int width, int height) {
-        _nextState ??= new Array2D<T>(_state.Width, _state.Height);
+        _nextState ??= new Array2D<T>(State.Width, State.Height);
         foreach (var rule in _rules) {
-            foreach (var (pos, value) in _state) {
+            foreach (var (pos, value) in State) {
                 if (pos.X < x || pos.X >= width + x || pos.Y < y || pos.Y >= height + y) {
                     _nextState[pos] = value;
                 } else {
-                    var newValue = rule(_state, pos);
+                    var newValue = rule(State, pos);
                     _nextState[pos] = newValue;
                 }
             }
-            _nextState.CopyTo(_state.Data);
+            _nextState.CopyTo(State.Data);
         }
     }
 
     public void SingleUpdate() {
-        SingleUpdate(0, 0, _state.Width, _state.Height);
+        SingleUpdate(0, 0, State.Width, State.Height);
     }
     
     /// <summary>
@@ -105,10 +103,10 @@ public class CellularAutomata<T> {
     /// <returns></returns>
     public void SingleUpdate(int x, int y, int width, int height) {
         foreach (var rule in _rules) {
-            foreach (var (pos, value) in _state) {
+            foreach (var (pos, value) in State) {
                 if (pos.X < x || pos.X >= width + x || pos.Y < y || pos.Y >= height + y) continue;
-                var newValue = rule(_state, pos);
-                _state[pos] = newValue;
+                var newValue = rule(State, pos);
+                State[pos] = newValue;
             }
         }
     }

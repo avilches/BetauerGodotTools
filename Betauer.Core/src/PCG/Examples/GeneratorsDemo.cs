@@ -51,7 +51,7 @@ public class GeneratorsDemo {
             Console.WriteLine(data.GetString((v) => v ? "#" : "·"));
 
             var outer = OuterBorderDetector.Create(data).DetectBorders();
-            Console.WriteLine(outer.GetString((v) => v ? "#" : "·"));
+            Console.WriteLine(outer.GetString());
 
             Console.WriteLine(data.GetString((v) => v ? "#" : "·"));
             Console.WriteLine(outer.GetString((v) => v ? "#" : "·"));

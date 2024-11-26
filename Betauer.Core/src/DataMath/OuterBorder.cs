@@ -13,15 +13,15 @@ public abstract class OuterBorderDetector {
 }
 
 public class OuterBorderDetector<T>(Array2D<T> region, Func<T, bool> isEnabled) : OuterBorderDetector {
-    private readonly Array2D<bool> _borderGrid = new(region.Width, region.Height);
-    private readonly Array2D<bool> _visited = new(region.Width, region.Height);
+    private readonly BitArray2D _borderGrid = new(region.Width, region.Height);
+    private readonly BitArray2D _visited = new(region.Width, region.Height);
 
     public OuterBorderDetector(T[,] region, Func<T, bool> isEnabled) : this(new Array2D<T>(region), isEnabled) {
     }
 
-    public Array2D<bool> DetectBorders() {
-        _borderGrid.Fill(false);
-        _visited.Fill(false);
+    public BitArray2D DetectBorders() {
+        _borderGrid.Clear();
+        _visited.Clear();
 
         for (var y = 0; y < region.Height; y++) {
             for (var x = 0; x < region.Width; x++) {
