@@ -8,6 +8,7 @@ public class GeneratorsDemo {
     public static void Main() {
         var data = new Array2D<bool>(50, 31, false);
 
+        /*
         data.Fill(false);
         Generators.EdenGrowth(data, new Vector2I(data.Width / 2, data.Height / 2), 164, 0.7f, new Random(2));
         Console.WriteLine(data.GetString((v) => v ? "#" : "·"));
@@ -19,6 +20,7 @@ public class GeneratorsDemo {
         data.Fill(false);
         Generators.DiffusionLimitedAggregation(data, new Vector2I(data.Width / 2, data.Height / 2),164, 1, 1.5d, new Random(1));
         Console.WriteLine(data.GetString((v) => v ? "#" : "·"));
+        */
         
         // data.Fill(false);
         // Generators.Metaball(data, new Vector2I(data.Width/2, data.Height/2), 5, 3, 13D, 10, 10, new Random(1));
@@ -38,22 +40,50 @@ public class GeneratorsDemo {
             // Console.WriteLine(data.GetString((v) => v ? "#" : "·"));
         }*/
 
+        int size = 130;
         for (var j = 0; j < 1000; j++) {
             data.Fill(false);
             
-            Generators.EdenGrowth(data, new Vector2I(data.Width / 2, data.Height / 2), 10, 0.7f, new Random(j));
+            Generators.EdenGrowth(data, new Vector2I(data.Width / 2, data.Height / 2), 130, 0.7f, new Random(j));
             Console.WriteLine(data.GetString((v) => v ? "#" : "·"));
             
-            DeadEndRemover.RemoveAllDeadEnds(data);
+            DeadEndRemover.Create(data).RemoveAll();
             Console.WriteLine(data.GetString((v) => v ? "#" : "·"));
 
-            data = Array2DTools.OuterBorder4Detector(data);
+            var outer = OuterBorderDetector.Create(data).DetectBorders();
+            Console.WriteLine(outer.GetString((v) => v ? "#" : "·"));
+
+            Console.WriteLine(data.GetString((v) => v ? "#" : "·"));
+            Console.WriteLine(outer.GetString((v) => v ? "#" : "·"));
+            Console.WriteLine(data.GetString((v) => v ? "#" : "·"));
+            Console.WriteLine(outer.GetString((v) => v ? "#" : "·"));
+            Console.WriteLine(data.GetString((v) => v ? "#" : "·"));
+            Console.WriteLine(outer.GetString((v) => v ? "#" : "·"));
+            Console.WriteLine(data.GetString((v) => v ? "#" : "·"));
+            Console.WriteLine(outer.GetString((v) => v ? "#" : "·"));
             Console.WriteLine(data.GetString((v) => v ? "#" : "·"));
 
-            Array2DTools.ConnectBorderDiagonals(data);
+            
+            var inner = InnerBorderDetector.Create(data).DetectBorders();
+            Console.WriteLine(inner.GetString((v) => v ? "#" : "·"));
+
+            Console.WriteLine(data.GetString((v) => v ? "#" : "·"));
+            Console.WriteLine(inner.GetString((v) => v ? "#" : "·"));
+            Console.WriteLine(data.GetString((v) => v ? "#" : "·"));
+            Console.WriteLine(inner.GetString((v) => v ? "#" : "·"));
+            Console.WriteLine(data.GetString((v) => v ? "#" : "·"));
+            Console.WriteLine(inner.GetString((v) => v ? "#" : "·"));
+            Console.WriteLine(data.GetString((v) => v ? "#" : "·"));
+            Console.WriteLine(inner.GetString((v) => v ? "#" : "·"));
+            Console.WriteLine(data.GetString((v) => v ? "#" : "·"));
+            Console.WriteLine(inner.GetString((v) => v ? "#" : "·"));
+
+            
+
+            ConnectDiagonals.ConnectBorderDiagonals(data);
             Console.WriteLine(data.GetString((v) => v ? "#" : "·"));
 
-            DeadEndRemover.RemoveAllDeadEnds(data);
+            DeadEndRemover.Create(data).RemoveAll();
             Console.WriteLine(data.GetString((v) => v ? "#" : "·"));
 
             

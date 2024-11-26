@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Betauer.TileSet.Terrain;
+namespace Betauer.Core.DataMath.Terrain;
 
 public static class TilePatternRuleSets {
     private static readonly Dictionary<string, Func<int, bool>> TilePatternRules = new() {

@@ -1,11 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using Betauer.Core;
 using Betauer.Core.DataMath;
-using Betauer.Core.DataMath.Data;
-using Betauer.TestRunner;
-using Betauer.TileSet.Terrain;
+using Betauer.Core.DataMath.Terrain;
 using NUnit.Framework;
 
 namespace Betauer.GameTools.Tests.TileSet;

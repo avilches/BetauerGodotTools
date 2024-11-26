@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Betauer.TileSet.Terrain;
+namespace Betauer.Core.DataMath.Terrain;
 
 public abstract partial class TilePattern {
     private static readonly Dictionary<string, Func<int, bool>> IntRules = new Dictionary<string, Func<int, bool>>() {

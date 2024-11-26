@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
 
-namespace Betauer.TileSet.Terrain;
+namespace Betauer.Core.DataMath.Terrain;
 
 public class TilePatternSet<T, TT> {
     public List<(T, TilePattern<TT>)> Patterns { get; private set; }
     public Dictionary<string, Func<TT, bool>> DefaultRules { get; init; }
 
     public TilePatternSet<T, TT> Add(T id, TilePattern<TT> pattern) {
-        if (Patterns == null) Patterns = new List<(T, TilePattern<TT>)>();
+        Patterns ??= [];
         Patterns.Add((id, pattern));
         return this;
     }

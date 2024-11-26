@@ -1,5 +1,5 @@
 using Betauer.Core.DataMath;
-using Betauer.TileSet.Terrain;
+using Betauer.Core.DataMath.Terrain;
 using NUnit.Framework;
 
 namespace Betauer.GameTools.Tests.TileSet;

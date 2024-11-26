@@ -14,6 +14,10 @@ public class CellularAutomata<T> {
     
     public T[,] State => _state.Data;
 
+    public CellularAutomata(T[,] state) {
+        _state = new Array2D<T>(state);
+    }
+
     public CellularAutomata(Array2D<T> state) {
         _state = state;
     }

@@ -5,28 +5,12 @@ using Godot;
 namespace Betauer.Core.DataMath;
 
 public abstract class DeadEndRemover {
-    public static DeadEndRemover<TT> Create<TT>(Array2D<TT> grid, TT fill, TT empty) {
-        return new DeadEndRemover<TT>(grid, v => Equals(v, fill), (v, b) => b ? fill : empty, empty);
-    }
-
     public static DeadEndRemover<bool> Create(Array2D<bool> grid) {
         return Create(grid, true, false);
     }
 
-    public static void RemoveAllDeadEnds(Array2D<bool> grid) {
-        Create(grid).RemoveAll();
-    }
-
-    public static void RemoveAllDeadEnds<T>(Array2D<T> grid, T fill, T empty) {
-        Create(grid, fill, empty).RemoveAll();
-    }
-
-    public static void RemoveAllDeadEnds<T>(Array2D<T> grid, Func<T, bool> isEnabled, Func<T, bool, T> update, T defaultValue) {
-        new DeadEndRemover<T>(grid, isEnabled, update, defaultValue).RemoveAll();
-    }
-
-    public static DeadEndRemover<TT> Create<TT>(Array2D<TT> grid, Func<TT, bool> isEnabled, Func<TT, bool, TT> update, TT defaultValue) {
-        return new DeadEndRemover<TT>(grid, isEnabled, update, defaultValue);
+    public static DeadEndRemover<TT> Create<TT>(Array2D<TT> grid, TT fill, TT empty) {
+        return new DeadEndRemover<TT>(grid, v => Equals(v, fill), (v, b) => b ? fill : empty);
     }
 }
 
@@ -49,7 +33,7 @@ public class DeadEndRemover<T> : DeadEndRemover {
     private readonly Func<T, bool> _isEnabled;
     private readonly Func<T, bool, T> _update;
 
-    public DeadEndRemover(Array2D<T> grid, Func<T, bool> isEnabled, Func<T, bool, T> update, T defaultValue) {
+    public DeadEndRemover(Array2D<T> grid, Func<T, bool> isEnabled, Func<T, bool, T> update) {
         _isEnabled = isEnabled;
         _update = update;
         _automata = new CellularAutomata<T>(grid);

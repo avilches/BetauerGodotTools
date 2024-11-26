@@ -3,22 +3,12 @@ using System;
 namespace Betauer.Core.DataMath;
 
 public abstract class SmoothGrid {
-    public static SmoothGrid<TT> Create<TT>(Array2D<TT> grid, Func<TT, bool> isEnabled, Func<TT, bool, TT> setValue, TT defaultValue,
-        int deleteIfLessThan = 5, int addIfMoreThan = 5) {
-        return new SmoothGrid<TT>(grid, isEnabled, setValue, defaultValue, deleteIfLessThan, addIfMoreThan);
-    }
-
-    public static SmoothGrid<TT> Create<TT>(Array2D<TT> grid, TT fill, TT empty,
-        int deleteIfLessThan = 5, int addIfMoreThan = 5) {
-        return new SmoothGrid<TT>(grid,
-            v => Equals(v, fill),
-            (v, b) => b ? fill : empty,
-            empty, deleteIfLessThan, addIfMoreThan);
-    }
-
-    public static SmoothGrid<bool> Create(Array2D<bool> grid,
-        int deleteIfLessThan = 5, int addIfMoreThan = 5) {
+    public static SmoothGrid<bool> Create(Array2D<bool> grid, int deleteIfLessThan = 5, int addIfMoreThan = 5) {
         return Create(grid, true, false, deleteIfLessThan, addIfMoreThan);
+    }
+
+    public static SmoothGrid<TT> Create<TT>(Array2D<TT> grid, TT fill, TT empty, int deleteIfLessThan = 5, int addIfMoreThan = 5) {
+        return new SmoothGrid<TT>(grid, v => Equals(v, fill), (v, b) => b ? fill : empty, empty, deleteIfLessThan, addIfMoreThan);
     }
 }
 
@@ -36,8 +26,11 @@ public class SmoothGrid<T> : SmoothGrid {
     public int RemovedCells { get; private set; }
     public int AddedCells { get; private set; }
 
-    internal SmoothGrid(Array2D<T> grid, Func<T, bool> isEnabled, Func<T, bool, T> setValue, T defaultValue,
-        int deleteIfLessThan, int addIfMoreThan) {
+    public SmoothGrid(T[,] grid, Func<T, bool> isEnabled, Func<T, bool, T> setValue, T defaultValue, int deleteIfLessThan, int addIfMoreThan) :
+        this(new Array2D<T>(grid), isEnabled, setValue, defaultValue, deleteIfLessThan, addIfMoreThan) {
+    }
+
+    public SmoothGrid(Array2D<T> grid, Func<T, bool> isEnabled, Func<T, bool, T> setValue, T defaultValue, int deleteIfLessThan, int addIfMoreThan) {
         _grid = grid;
         _isEnabled = isEnabled;
         _setValue = setValue;
