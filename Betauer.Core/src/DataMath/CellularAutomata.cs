@@ -91,7 +91,7 @@ public class CellularAutomata<T> {
     }
 
     public void SingleUpdate() {
-        Update(0, 0, _state.Width, _state.Height);
+        SingleUpdate(0, 0, _state.Width, _state.Height);
     }
     
     /// <summary>

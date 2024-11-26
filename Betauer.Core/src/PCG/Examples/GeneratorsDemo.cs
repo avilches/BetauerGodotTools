@@ -23,15 +23,45 @@ public class GeneratorsDemo {
         // data.Fill(false);
         // Generators.Metaball(data, new Vector2I(data.Width/2, data.Height/2), 5, 3, 13D, 10, 10, new Random(1));
 
-        /*
-        for (var i = 0; i < 1000; i++) {
+        /*for (var i = 10; i < 1000; i++) {
             data.Fill(false);
-            Generators2.PercolationCluster(data, new Vector2I(data.Width / 2, data.Height / 2), i, 0.3d, 0.5d, new Random(1));
+            Generators.EdenGrowth(data, new Vector2I(data.Width / 2, data.Height / 2), i, 0.7f, new Random(2));
+            Console.WriteLine(data.GetString((v) => v ? "#" : "·"));
+            Automatas.Border4Detector(data);
+            Console.WriteLine(data.GetString((v) => v ? "#" : "·"));
+            Automatas.ConnectBorderDiagonals(data);
+            Console.WriteLine(data.GetString((v) => v ? "#" : "·"));
+            Automatas.RemoveAllDeadEnds(data);
+            Console.WriteLine(data.GetString((v) => v ? "#" : "·"));
+            // Generators.PercolationCluster(data, new Vector2I(data.Width / 2, data.Height / 2), i, 0.3d, 0.5d, new Random(1));
             // Generators2.DiffusionLimitedAggregation(data, new Vector2I(data.Width / 2, data.Height / 2),i, 1, 1.5d, new Random(1));
-            var result = data.GetString((v) => v ? "#" : "·");
-            Console.WriteLine(result);
+            // Console.WriteLine(data.GetString((v) => v ? "#" : "·"));
+        }*/
+
+        for (var j = 0; j < 1000; j++) {
+            data.Fill(false);
+            
+            Generators.EdenGrowth(data, new Vector2I(data.Width / 2, data.Height / 2), 10, 0.7f, new Random(j));
+            Console.WriteLine(data.GetString((v) => v ? "#" : "·"));
+            
+            DeadEndRemover.RemoveAllDeadEnds(data);
+            Console.WriteLine(data.GetString((v) => v ? "#" : "·"));
+
+            data = Array2DTools.OuterBorder4Detector(data);
+            Console.WriteLine(data.GetString((v) => v ? "#" : "·"));
+
+            Array2DTools.ConnectBorderDiagonals(data);
+            Console.WriteLine(data.GetString((v) => v ? "#" : "·"));
+
+            DeadEndRemover.RemoveAllDeadEnds(data);
+            Console.WriteLine(data.GetString((v) => v ? "#" : "·"));
+
+            
+            // Generators.PercolationCluster(data, new Vector2I(data.Width / 2, data.Height / 2), i, 0.3d, 0.5d, new Random(1));
+            // Generators2.DiffusionLimitedAggregation(data, new Vector2I(data.Width / 2, data.Height / 2),i, 1, 1.5d, new Random(1));
+            // Console.WriteLine(data.GetString((v) => v ? "#" : "·"));
         }
-        */
+
 
 
         /*
@@ -46,8 +76,14 @@ public class GeneratorsDemo {
                 Generators.PercolationCluster(data, new Vector2I(data.Width / 2, data.Height / 2), i, 0.3f, 0.5f, new Random(j));
                 // Generators2.DiffusionLimitedAggregation(data, new Vector2I(data.Width / 2, data.Height / 2),34, 1, 1.5d, new Random(1));
             }
-            Console.WriteLine(i);
+            Console.WriteLine(i);var occupiedCells = new Array2D<bool>(5, 5);
+occupiedCells[new Vector2I(0, 0)] = true; // Celda ocupada en la esquina superior izquierda
+
+var generator = new MazeGenerator(occupiedCells);
+var maze = generator.Generate();
+generator.PrintMaze();
         }
     */
     }
+   
 }

@@ -58,7 +58,7 @@ public class DungeonDemo {
             return true;
         });
 
-        Automatas.RemoveAllDeadEnds(grid);
+        DeadEndRemover.RemoveAllDeadEnds(grid);
         // RemoveDeadEnds(mc);
         PrintMazeConnections(grid, candidates.ToHashSet());
         // PrintRegions(array2DRegionConnections);

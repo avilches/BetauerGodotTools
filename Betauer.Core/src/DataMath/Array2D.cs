@@ -12,6 +12,65 @@ public readonly record struct DataCell<T>(Vector2I Position, T Value) {
     public readonly T Value = Value;
 }
 
+public abstract class Array2D {
+
+    public abstract int Width { get; }
+    public abstract int Height { get; }
+    public abstract Rect2I Bounds { get; }
+    
+    public static Vector2I[] Directions = new[] { Vector2I.Up, Vector2I.Right, Vector2I.Down, Vector2I.Left };
+
+    public static Array2D<T> Parse<T>(string template, Dictionary<char, T> transform) {
+        return Parse(template, c => transform[c]);;
+    }
+
+    public static Array2D<T> Parse<T>(string template, Dictionary<char, T> transform, T defaultValue) {
+        return Parse(template, c => transform.GetValueOrDefault(c, defaultValue));
+    }
+
+    public static Array2D<T> Parse<T>(string template, Func<char, T> transform) {
+        var lines = template.Split('\n')
+            .Select(v => v.Trim())
+            .Where(v => v.Length > 0)
+            .ToArray();
+        if (lines.Length == 0) throw new ArgumentException("Empty template");
+        var width = lines[0].Length;
+        if (lines.Any(l => l.Length != width)) {
+            throw new ArgumentException("All lines must have the same length");
+        }
+
+        var array2d = new Array2D<T>(width, lines.Length);
+        for (var y = 0; y < lines.Length; y++) {
+            for (var x = 0; x < width; x++) {
+                array2d[y, x] = transform(lines[y][x]);
+            }
+        }
+        return array2d;
+    }
+
+    public static Array2D<char> Parse(string template) {
+        return Parse(template, c => c);
+    }
+
+    public static Array2D<bool> ParseAsBool(string template, char trueChar) {
+        return Parse(template, c => c == trueChar);
+    }
+
+    public static Array2D<bool> ParseAsBool(string template, params char[] trueChars) {
+        return Parse(template, trueChars.Contains);
+    }
+
+    public static Array2D<int> ParseAsInt(string template, int defaultValue) {
+        return Parse(template, c => char.IsDigit(c) ? c - '0' : defaultValue);
+    }
+
+    public static Array2D<int> ParseAsInt(string template) {
+        return Parse(template, c => char.IsDigit(c) 
+            ? c - '0' 
+            : throw new ArgumentException($"Only digits are allowed: {c}"));
+    }
+}
+
 /// <summary>
 /// A bidimensional array (grid) where can be accessed in Column-major order. That means:
 ///
@@ -21,11 +80,11 @@ public readonly record struct DataCell<T>(Vector2I Position, T Value) {
 /// 
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public class Array2D<T> : IEnumerable<DataCell<T>> {
-    public int Width => Data.GetLength(1);
-    public int Height => Data.GetLength(0);
+public class Array2D<T> : Array2D, IEnumerable<DataCell<T>> {
+    public override int Width => Data.GetLength(1);
+    public override int Height => Data.GetLength(0);
+    public override Rect2I Bounds => new(0, 0, Width, Height);
     public T[,] Data { get; set; }
-    public Rect2I Bounds => new(0, 0, Width, Height);
 
     public Array2D(T[,] data) {
         Data = data;
@@ -291,7 +350,7 @@ public class Array2D<T> : IEnumerable<DataCell<T>> {
     }
 
     public IEnumerable<Vector2I> GetValidUpDownLeftRightPositions(Vector2I pos, Func<T, bool>? predicate = null) {
-        return Array2D.Directions
+        return Directions
             .Select(dir => pos + dir)
             .Where(p => IsValidPosition(p) && (predicate == null || predicate.Invoke(this[p])));
     }
@@ -311,59 +370,5 @@ public class Array2D<T> : IEnumerable<DataCell<T>> {
     
     public string GetString(Func<T, string> transform, char lineSeparator = '\n') {
         return GetString(cell => transform(cell.Value), lineSeparator);
-    }
-}
-
-public static class Array2D {
-    public static Vector2I[] Directions = new[] { Vector2I.Up, Vector2I.Right, Vector2I.Down, Vector2I.Left };
-
-    public static Array2D<T> Parse<T>(string template, Dictionary<char, T> transform) {
-        return Parse(template, c => transform[c]);;
-    }
-
-    public static Array2D<T> Parse<T>(string template, Dictionary<char, T> transform, T defaultValue) {
-        return Parse(template, c => transform.GetValueOrDefault(c, defaultValue));
-    }
-
-    public static Array2D<T> Parse<T>(string template, Func<char, T> transform) {
-        var lines = template.Split('\n')
-            .Select(v => v.Trim())
-            .Where(v => v.Length > 0)
-            .ToArray();
-        if (lines.Length == 0) throw new ArgumentException("Empty template");
-        var width = lines[0].Length;
-        if (lines.Any(l => l.Length != width)) {
-            throw new ArgumentException("All lines must have the same length");
-        }
-
-        var array2d = new Array2D<T>(width, lines.Length);
-        for (var y = 0; y < lines.Length; y++) {
-            for (var x = 0; x < width; x++) {
-                array2d[y, x] = transform(lines[y][x]);
-            }
-        }
-        return array2d;
-    }
-
-    public static Array2D<char> Parse(string template) {
-        return Parse(template, c => c);
-    }
-
-    public static Array2D<bool> ParseAsBool(string template, char trueChar) {
-        return Parse(template, c => c == trueChar);
-    }
-
-    public static Array2D<bool> ParseAsBool(string template, params char[] trueChars) {
-        return Parse(template, trueChars.Contains);
-    }
-
-    public static Array2D<int> ParseAsInt(string template, int defaultValue) {
-        return Parse(template, c => char.IsDigit(c) ? c - '0' : defaultValue);
-    }
-
-    public static Array2D<int> ParseAsInt(string template) {
-        return Parse(template, c => char.IsDigit(c) 
-            ? c - '0' 
-            : throw new ArgumentException($"Only digits are allowed: {c}"));
     }
 }

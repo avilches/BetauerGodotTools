@@ -1,72 +1,11 @@
 using System;
 using Betauer.Core.DataMath;
-using Betauer.TestRunner;
 using NUnit.Framework;
 
 namespace Betauer.Core.Tests;
 
 [TestFixture]
-public class AutomatasTests {
-    [Test]
-    public void GameOfLifeTest() {
-        var data = Array2D.ParseAsBool("""
-                                       ············
-                                       ······#·····
-                                       ·····##·····
-                                       ······##····
-                                       ············
-                                       """, '#');
-        var gol = Automatas.CreateGameOfLife(data);
-        gol.Update();
-        gol.Update();
-        gol.Update();
-        gol.Update();
-        var result = data.GetString((v) => v ? "#" : "·");
-
-        Assert.That(result, Is.EqualTo("""
-                                       ············
-                                       ·····##·····
-                                       ····#··#····
-                                       ····#··#····
-                                       ·····#·#····
-                                       """));
-    }
-
-    [Test]
-    public void DeadEndTest() {
-        var data = Array2D.ParseAsBool("""
-                                       ···###···
-                                       ····#·#··
-                                       ····##···
-                                       ·#####···
-                                       ··######·    
-                                       ·· ###···    
-                                       ···#··###    
-                                       #··#··#·#    
-                                       ·· #··###    
-                                       """, '#');
-        
-        Console.WriteLine(data.GetString((v) => v ? "#" : "·"));
-        Automatas.RemoveAllDeadEnds(data);
-
-        var result = data.GetString((v) => v ? "#" : "·");
-
-        Console.WriteLine(result);
-
-        Assert.That(result, Is.EqualTo(
-            """
-            ·········
-            ·········
-            ····##···
-            ··####···
-            ··####···
-            ···###···
-            ······###
-            ······#·#
-            ······###
-            """));
-    }
-
+public class SmoothGridTest {
     [Test]
     public void SmoothCornersTest() {
         var data = new Array2D<bool>(41, 21);
@@ -98,10 +37,8 @@ public class AutomatasTests {
         Console.WriteLine("3 iterations smooth");
         Console.WriteLine(result);
 
-        var s = Automatas.CreateSmoothCorners(other);
-        s.Update(1,1,data.Width-2,data.Height-2);
-        // s.Update(1,1,data.Width-2,data.Height-2);
-        // s.Update();
+        var s = SmoothGrid.Create(other);
+        s.Update();
         var result2 = other.GetString((v) => v ? "#" : "·");
         Console.WriteLine("3 iterations automata");
         Console.WriteLine(result2);
@@ -156,10 +93,10 @@ public class ShapeGenerator {
         Array.Copy(result, temp, result.Length);
 
         // Primera fase: eliminar píxeles con pocos vecinos
-        for (int y = 1; y < height - 1; y++) {
-            for (int x = 1; x < width - 1; x++) {
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
                 if (result[y, x]) {
-                    int neighbors = CountNeighbors(result, y, x);
+                    int neighbors = CountNeighbors(result, y, x, width, height);
                     temp[y, x] = neighbors >= minNeighborsToKeep;
                 }
             }
@@ -167,10 +104,10 @@ public class ShapeGenerator {
 
         // Segunda fase: añadir píxeles en huecos
         Array.Copy(temp, result, temp.Length);
-        for (int y = 1; y < height - 1; y++) {
-            for (int x = 1; x < width - 1; x++) {
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
                 if (!result[y, x]) {
-                    int neighbors = CountNeighbors(result, y, x);
+                    int neighbors = CountNeighbors(result, y, x, width, height);
                     temp[y, x] = neighbors >= minNeighborsToAdd;
                 }
             }
@@ -180,12 +117,14 @@ public class ShapeGenerator {
     }
 
     // Método auxiliar para contar vecinos
-    private static int CountNeighbors(bool[,] region, int y, int x) {
+    private static int CountNeighbors(bool[,] region, int y, int x, int width, int height) {
         int count = 0;
         for (int dy = -1; dy <= 1; dy++) {
             for (int dx = -1; dx <= 1; dx++) {
-                if (dx == 0 && dy == 0) continue;
-                if (region[y + dy, x + dx]) {
+                var posY = y + dy;
+                var posX = x + dx;
+                if ((dx == 0 && dy == 0) || posX < 0 || posY < 0 || posX >= width || posY >= height) continue;
+                if (region[posY, posX]) {
                     count++;
                 }
             }

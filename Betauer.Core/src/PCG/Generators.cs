@@ -35,8 +35,7 @@ public static class Generators {
         Vector2I start,
         int numPixels,
         double branchingProbability = 0.7,
-        Random? random = null) // Controla qué tan ramificado es
-    {
+        Random? random = null) {
         if (numPixels == 0) return;
         if (numPixels == 1) {
             region[start] = true;
@@ -44,32 +43,68 @@ public static class Generators {
         }
         random ??= new Random();
         var active = new List<Vector2I>();
+        var emptyNeighbors = new HashSet<Vector2I>(); // Mantener track de celdas vacías adyacentes
 
         region[start] = true;
         active.Add(start);
+        // Añadir vecinos vacíos iniciales
+        emptyNeighbors.UnionWith(region.GetValidUpDownLeftRightPositions(start, b => !b));
         var pixelsAdded = 1;
 
-        // This is to ensure the algorithm doesn't run out of cells until reach to the desired number of pixels
-        var min = numPixels / 4 + 1;
+        while (pixelsAdded < numPixels && (active.Count > 0 || emptyNeighbors.Count > 0)) {
+            if (active.Count > 0) {
+                var activeIndex = random.Next(active.Count);
+                var cell = active[activeIndex];
+                var addedNeighbor = false;
 
-        while (pixelsAdded < numPixels && active.Count > 0) {
-            var activeIndex = random.Next(active.Count);
-            var cell = active[activeIndex];
-            var addedNeighbor = false;
-            foreach (var pos in region.GetValidUpDownLeftRightPositions(cell, b => !b)
-                         .OrderBy(_ => random.Next())) {
-                if (random.NextDouble() < branchingProbability) {
-                    addedNeighbor = true;
-                    region[pos] = true;
-                    active.Add(pos);
+                // Intentar expandirse normalmente
+                foreach (var pos in region.GetValidUpDownLeftRightPositions(cell, b => !b)
+                             .OrderBy(_ => random.Next())) {
+                    if (random.NextDouble() < branchingProbability) {
+                        addedNeighbor = true;
+                        region[pos] = true;
+                        active.Add(pos);
+                        emptyNeighbors.Remove(pos);
+                        // Añadir nuevos vecinos vacíos
+                        foreach (var newEmpty in region.GetValidUpDownLeftRightPositions(pos, b => !b)) {
+                            emptyNeighbors.Add(newEmpty);
+                        }
+                        pixelsAdded++;
+                        if (pixelsAdded >= numPixels) break;
+                    }
+                }
+
+                if (!addedNeighbor) {
+                    active.RemoveAt(activeIndex);
+                }
+            } else if (emptyNeighbors.Count > 0 && pixelsAdded < numPixels) {
+                // Llenar huecos cuando no hay células activas
+                var emptyCell = emptyNeighbors.First();
+                region[emptyCell] = true;
+                active.Add(emptyCell);
+                emptyNeighbors.Remove(emptyCell);
+                // Añadir nuevos vecinos vacíos
+                foreach (var newEmpty in region.GetValidUpDownLeftRightPositions(emptyCell, b => !b)) {
+                    emptyNeighbors.Add(newEmpty);
+                }
+                pixelsAdded++;
+            }
+        }
+
+        // Fase final: llenar huecos restantes si aún no alcanzamos numPixels
+        if (pixelsAdded < numPixels) {
+            foreach (var pos in region.GetPositions()) {
+                if (!region[pos.Position] && HasFilledNeighbor(region, pos.Position)) {
+                    region[pos.Position] = true;
                     pixelsAdded++;
                     if (pixelsAdded >= numPixels) break;
                 }
             }
-
-            if (!addedNeighbor && active.Count > min)
-                active.RemoveAt(activeIndex);
         }
+    }
+
+    private static bool HasFilledNeighbor(Array2D<bool> region, Vector2I pos) {
+        return region.GetValidUpDownLeftRightPositions(pos, b => b).Any();
     }
 
     /// <summary>
@@ -299,8 +334,7 @@ public static class Generators {
         double threshold = 1.0,
         double minRadius = 10,
         double maxRadius = 25,
-        Random? random = null)
-    {
+        Random? random = null) {
         if (numPixels == 0) return;
         if (numPixels == 1) {
             region[start] = true;
@@ -321,7 +355,7 @@ public static class Generators {
                 Math.Clamp(x, 0, region.Width - 1),
                 Math.Clamp(y, 0, region.Height - 1)
             );
-        
+
             double radius = random.NextDouble() * (maxRadius - minRadius) + minRadius;
             blobs.Add((pos, radius));
         }
