@@ -50,7 +50,7 @@ public class DeadEndRemoverTest {
                                        """, '#');
         
         Console.WriteLine(data.GetString((v) => v ? "#" : "·"));
-        DeadEndRemover.RemoveAllDeadEnds(data);
+        DeadEndRemover.Create(data).RemoveAll();
 
         var result = data.GetString((v) => v ? "#" : "·");
 

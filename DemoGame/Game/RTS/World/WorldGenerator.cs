@@ -10,10 +10,10 @@ using Godot;
 using Veronenger.RTS.Assets.Trees;
 using Betauer.Core;
 using Betauer.Core.DataMath.Collision.Spatial2D;
+using Betauer.Core.DataMath.Terrain;
 using Betauer.Core.Image;
 using Betauer.Core.PCG.PoissonDiskSampling;
 using Betauer.TileSet.Image;
-using Betauer.TileSet.Terrain;
 using FastNoiseLite = Betauer.Core.PCG.FastNoiseLite;
 using TileMap = Godot.TileMap;
 

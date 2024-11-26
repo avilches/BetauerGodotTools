@@ -5,12 +5,12 @@ using System.Linq;
 using Betauer.Core;
 using Betauer.Core.DataMath;
 using Betauer.Core.DataMath.Data;
+using Betauer.Core.DataMath.Terrain;
 using Betauer.Core.Easing;
 using Betauer.Core.Image;
 using Betauer.Core.PCG;
 using Betauer.Core.PCG.Graph;
 using Betauer.Core.PCG.PoissonDiskSampling;
-using Betauer.TileSet.Terrain;
 using Godot;
 using FastNoiseLite = Betauer.Core.PCG.FastNoiseLite;
 
