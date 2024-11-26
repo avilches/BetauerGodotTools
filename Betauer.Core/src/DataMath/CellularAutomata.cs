@@ -7,10 +7,12 @@ namespace Betauer.Core.DataMath;
 public class CellularAutomata<T> {
 
     public delegate TT Rule<TT>(Array2D<TT> grid, Vector2I pos);
-    
+   
     private readonly List<Rule<T>> _rules = [];
     public Array2D<T> State { get; }
     private Array2D<T>? _nextState;
+    public int Width => State.Width;
+    public int Height => State.Height;
     
     public CellularAutomata(T[,] state) {
         State = new Array2D<T>(state);
@@ -31,39 +33,36 @@ public class CellularAutomata<T> {
     /// Set the rule to update the cell. The rule receives the current grid and the position of the cell to update.
     /// So, the rule must locate the cells in the grid and return the new value for the cell.
     /// </summary>
-    public CellularAutomata<T> AddRule(Rule<T> rule) {
+    public void AddRule(Rule<T> rule) {
         _rules.Add(rule);
-        return this;
     }
 
     /// <summary>
     /// Set the rule to update the cell. The rule receives the current grid and the position of the cell to update.
     /// So, the rule must locate the cells in the grid and return the new value for the cell.
     /// </summary>
-    public CellularAutomata<T> AddRule(Func<Array2D<T>, int, int, T> updateRule) {
+    public void AddRule(Func<Array2D<T>, int, int, T> updateRule) {
         _rules.Add((grid, pos) => updateRule.Invoke(grid, pos.X, pos.Y));
-        return this;
     }
 
     /// <summary>
     /// Set the rule to update the cell. The rule receives a NxN grid with the neighbors of the cell to update.
     /// If the neighbors are out of bounds, the default value is used.
     /// </summary>
-    public CellularAutomata<T> AddNeighborhoodRule(int neighborhoodSize, Func<T[,], T> updateRule, T defaultValue = default) {
+    public void AddNeighborhoodRule(int neighborhoodSize, Func<T[,], T> updateRule, T defaultValue = default) {
         var neighbors = new T[neighborhoodSize, neighborhoodSize];
         _rules.Add((_, pos) => {
             State.CopyNeighbors(pos, neighbors, defaultValue);
             return updateRule.Invoke(neighbors);
         });
-        return this;
     }
-    
+
     /// <summary>
     /// Set the rule to update the cell. The rule receives a 3x3 grid with the neighbors of the cell to update.
     /// If the neighbors are out of bounds, the default value is used.
     /// </summary>
-    public CellularAutomata<T> AddMooreNeighborhoodRule(Func<T[,], T> updateRule, T defaultValue = default) {
-        return AddNeighborhoodRule(3, updateRule, defaultValue);
+    public void AddMooreNeighborhoodRule(Func<T[,], T> updateRule, T defaultValue = default) {
+        AddNeighborhoodRule(3, updateRule, defaultValue);
     }
 
 
@@ -74,7 +73,7 @@ public class CellularAutomata<T> {
     /// </summary>
     /// <returns></returns>
     public void Update() {
-        Update(0, 0, State.Width, State.Height);
+        Update(0, 0, Width, Height);
     }
 
     public void Update(int x, int y, int width, int height) {
@@ -93,9 +92,9 @@ public class CellularAutomata<T> {
     }
 
     public void SingleUpdate() {
-        SingleUpdate(0, 0, State.Width, State.Height);
+        SingleUpdate(0, 0, Width, Height);
     }
-    
+
     /// <summary>
     /// Execute the update rule for all cells in the grid and apply the changes immediately.
     /// This is useful when you want to update the grid in a single step, like remove dead ends

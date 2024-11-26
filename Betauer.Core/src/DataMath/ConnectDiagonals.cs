@@ -6,8 +6,8 @@ namespace Betauer.Core.DataMath;
 
 public static class ConnectDiagonals {
     public static void ConnectBorderDiagonals(Array2D<bool> region) {
-        var automata = new CellularAutomata<bool>(region)
-            .AddNeighborhoodRule(3, neighbors => Diagonals.FindTilePatternId(neighbors));
+        var automata = new CellularAutomata<bool>(region);
+        automata.AddNeighborhoodRule(3, neighbors => Diagonals.FindTilePatternId(neighbors));
         automata.SingleUpdate();
     }
 

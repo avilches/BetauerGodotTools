@@ -10,7 +10,8 @@ public static class Automatas {
     }
 
     public static CellularAutomata<T> CreateGameOfLife<T>(Array2D<T> grid, T alive, T dead) {
-        return new CellularAutomata<T>(grid).AddMooreNeighborhoodRule(neighbors => {
+        var automata = new CellularAutomata<T>(grid);
+        automata.AddMooreNeighborhoodRule(neighbors => {
             var centerIsAlive = Equals(neighbors[1, 1], alive); // Centro de la matriz 3x3
             var liveNeighbors = CountMooreNeighborhood(neighbors, alive);
 
@@ -22,6 +23,7 @@ public static class Automatas {
                     ? alive // Newborn
                     : dead; // Stay dead
         }, dead);
+        return automata;
     }
 
     public static int CountMooreNeighborhood<T>(T[,] neighbors, T matching) {

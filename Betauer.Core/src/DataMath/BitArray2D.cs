@@ -19,6 +19,18 @@ public class BitArray2D {
         }
     }
 
+    public BitArray2D(bool[,] other) {
+        Width = other.GetLength(1);
+        Height = other.GetLength(0);
+        Rows = new BitArray[Height];
+        for (var i = 0; i < Height; i++) {
+            Rows[i] = new BitArray(Width);
+            for (var j = 0; j < Width; j++) {
+                Rows[i][j] = other[i, j];
+            }
+        }
+    }
+
     public BitArray2D(int width, int height) {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(width);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(height);
