@@ -26,10 +26,10 @@ public static class DirectionSelectors {
     /// <param name="directionalBias"></param>
     /// <param name="rng"></param>
     /// <returns></returns>
-    public static Func<Vector2I?, IList<Vector2I>, Vector2I> CreateRandom(float directionalBias, Random? rng = null) {
+    public static Func<Vector2I?, IList<Vector2I>, Vector2I> CreateWindy(float directionalBias, Random? rng = null) {
         rng ??= new Random();
         return (lastDir, available) =>
-            lastDir.HasValue && rng.NextSingle() < directionalBias
+            lastDir.HasValue && rng.NextSingle() <= directionalBias
                 ? lastDir.Value
                 : available[rng.Next(available.Count)];
     }
@@ -45,7 +45,7 @@ public static class DirectionSelectors {
         rng ??= new Random();
         return (_, available) => {
             var horizontal = available.Where(d => d.Y == 0).ToList();
-            return horizontal.Count > 0 && rng.NextSingle() < horizontalBias ? horizontal[rng.Next(horizontal.Count)] : available[rng.Next(available.Count)];
+            return horizontal.Count > 0 && rng.NextSingle() <= horizontalBias ? horizontal[rng.Next(horizontal.Count)] : available[rng.Next(available.Count)];
         };
     }
 
@@ -60,7 +60,7 @@ public static class DirectionSelectors {
         rng ??= new Random();
         return (_, available) => {
             var vertical = available.Where(d => d.X == 0).ToList();
-            return vertical.Count > 0 && rng.NextSingle() < verticalBias ? vertical[rng.Next(vertical.Count)] : available[rng.Next(available.Count)];
+            return vertical.Count > 0 && rng.NextSingle() <= verticalBias ? vertical[rng.Next(vertical.Count)] : available[rng.Next(available.Count)];
         };
     }
 
@@ -76,7 +76,7 @@ public static class DirectionSelectors {
     public static Func<Vector2I?, IList<Vector2I>, Vector2I> CreateClockwiseSelector(float clockwiseBias, Random? rng = null) {
         rng ??= new Random();
         return (lastDir, available) => {
-            if (lastDir.HasValue && rng.NextSingle() < clockwiseBias) {
+            if (lastDir.HasValue && rng.NextSingle() <= clockwiseBias) {
                 var clockwise = lastDir.Value.Clockwise();
                 while (!available.Contains(clockwise)) {
                     clockwise = clockwise.CounterClockwise();
@@ -99,7 +99,7 @@ public static class DirectionSelectors {
     public static Func<Vector2I?, IList<Vector2I>, Vector2I> CreateCounterClockwiseSelector(float counterClockwiseBias, Random? rng = null) {
         rng ??= new Random();
         return (lastDir, available) => {
-            if (lastDir.HasValue && rng.NextSingle() < counterClockwiseBias) {
+            if (lastDir.HasValue && rng.NextSingle() <= counterClockwiseBias) {
                 var clockwise = lastDir.Value.CounterClockwise();
                 while (!available.Contains(clockwise)) {
                     clockwise = clockwise.Clockwise();

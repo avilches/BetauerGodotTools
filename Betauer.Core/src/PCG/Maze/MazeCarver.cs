@@ -10,39 +10,8 @@ namespace Betauer.Core.PCG.Maze;
 public class MazeCarver(int width, int height, Func<Vector2I, bool>? isCarved, Action<Vector2I> carveAction) {
     public int Width { get; } = width;
     public int Height { get; } = height;
-
     public Func<Vector2I, bool>? IsCarved { get; set; } = isCarved;
     public event Action<Vector2I>? OnCarve = carveAction;
-
-    public int GrowBacktracker(Vector2I start, float directionalBias, int maxPaths = -1, int maxTotalCells = -1, int maxCellsPerPath = -1, Random? rng = null) {
-        rng ??= new Random();
-        return Grow(start, DirectionSelectors.CreateRandom(directionalBias, rng), maxPaths, maxTotalCells, maxCellsPerPath);
-    }
-
-    public int GrowVerticalBias(Vector2I start, float verticalBias, int paths = -1, int maxTotalCells = -1, int maxCellsPerPath = -1, Random? rng = null) {
-        rng ??= new Random();
-        return Grow(start, DirectionSelectors.CreateVerticalSelector(verticalBias, rng), paths, maxTotalCells, maxCellsPerPath);
-    }
-
-    public int GrowHorizontalBias(Vector2I start, float horizontalBias, int paths = -1, int maxTotalCells = -1, int maxCellsPerPath = -1, Random? rng = null) {
-        rng ??= new Random();
-        return Grow(start, DirectionSelectors.CreateHorizontalSelector(horizontalBias, rng), paths, maxTotalCells, maxCellsPerPath);
-    }
-
-    public int GrowClockwiseBias(Vector2I start, float bias, int paths = -1, int maxTotalCells = -1, int maxCellsPerPath = -1, Random? rng = null) {
-        rng ??= new Random();
-        return Grow(start, DirectionSelectors.CreateClockwiseSelector(bias, rng), paths, maxTotalCells, maxCellsPerPath);
-    }
-
-    public int GrowCounterClockwiseBias(Vector2I start, float bias, int paths = -1, int maxTotalCells = -1, int maxCellsPerPath = -1, Random? rng = null) {
-        rng ??= new Random();
-        return Grow(start, DirectionSelectors.CreateCounterClockwiseSelector(bias, rng), paths, maxTotalCells, maxCellsPerPath);
-    }
-
-    public int GrowRandom(Vector2I start, int paths = -1, int maxTotalCells = -1, int maxCellsPerPath = -1, Random? rng = null) {
-        rng ??= new Random();
-        return Grow(start, DirectionSelectors.CreateRandom(rng), paths, maxTotalCells, maxCellsPerPath);
-    }
 
     /// <summary>
     /// Generate a maze starting in a specific cell. The directionSelector is used to choose which direction must be carved based on the possible candidates.
@@ -51,12 +20,9 @@ public class MazeCarver(int width, int height, Func<Vector2I, bool>? isCarved, A
     /// and it must return the index of the cell to select. Returning the candidates size - 1 is the default behavior (backtracking): it means it will use
     /// the last cell before the dead to continue the path.  
     /// </summary>
-    /// <param name="start"></param>
-    /// <param name="directionSelector"></param>
-    /// <param name="cellSelector"></param>
-    /// <param name="maxPaths">Number of paths to create in the maze. -1 means create paths until no more maxTotalCells left. N paths = N-1 branches</param>
+    /// <param name="constraints"></param>
     /// <returns></returns>
-    public int Grow(Vector2I start, Func<Vector2I?, IList<Vector2I>, Vector2I> directionSelector, int maxPaths = -1, int maxTotalCells = -1, int maxCellsPerPath = -1) {
+    public int Grow(Vector2I start, MazeConstraints constraints) {
         if (IsCarved(start)) return 0;
 
         var usedCells = new Stack<Vector2I>();
@@ -66,21 +32,22 @@ public class MazeCarver(int width, int height, Func<Vector2I, bool>? isCarved, A
         OnCarve(start);
         var size = 1;
         var cellsPerPath = 1;
+        var maxPaths = constraints.MaxPaths;
 
         usedCells.Push(start);
-        while (usedCells.Count > 0 && (maxTotalCells == -1 || size < maxTotalCells)) {
+        while (usedCells.Count > 0 && (constraints.MaxTotalCells == -1 || size < constraints.MaxTotalCells)) {
             var currentCell = usedCells.Peek();
-            // Console.WriteLine("Selecting cell "+currentCell+" from "+string.Join(", ", usedCells));
 
             var availableDirections = Array2D.Directions.Where(dir => {
                 var target = currentCell + dir * 2;
                 return Geometry.IsPointInRectangle(target.X, target.Y, 0, 0, Width, Height) && !IsCarved(target);
             }).ToList();
-            if (availableDirections.Count == 0 || (maxCellsPerPath > 0 && cellsPerPath >= maxCellsPerPath)) {
+
+            if (availableDirections.Count == 0 || (constraints.MaxCellsPerPath > 0 && cellsPerPath >= constraints.MaxCellsPerPath)) {
                 if (cellsPerPath > 0 && --maxPaths == 0) break;
                 cellsPerPath = 0;
                 usedCells.Pop();
-                lastDir = null; // Reset direction when we hit a dead end
+                lastDir = null;
                 continue;
             }
 
@@ -88,9 +55,7 @@ public class MazeCarver(int width, int height, Func<Vector2I, bool>? isCarved, A
                 ? lastDir
                 : null;
 
-            // Console.WriteLine("Available dir: "+string.Join(", ", availableDirections)+ " lastDir: "+lastDir+ " valid last dir");
-
-            var nextDir = directionSelector(validCurrentDir, availableDirections);
+            var nextDir = constraints.DirectionSelector(validCurrentDir, availableDirections);
             lastDir = nextDir;
 
             var nextCell1 = currentCell + nextDir;

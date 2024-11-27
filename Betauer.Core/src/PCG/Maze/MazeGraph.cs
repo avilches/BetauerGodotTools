@@ -24,7 +24,7 @@ public class MazeNode(Vector2I position) {
 
     public Edge Connect(MazeNode other, Vector2I direction) {
         var edge = new Edge(this, other, direction);
-        
+
         if (direction == Vector2I.Up) {
             Up = edge;
         } else if (direction == Vector2I.Right) {
@@ -97,19 +97,6 @@ public class MazeGraph(int width, int height, Func<Vector2I, bool>? isValid = nu
     }
 
     /// <summary>
-    /// Generates a maze using the backtracker algorithm with directional bias
-    /// </summary>
-    /// <param name="start">Starting position for the maze generation</param>
-    /// <param name="directionalBias">Value between 0 and 1 that determines how likely the algorithm is to continue in the same direction</param>
-    /// <param name="maxPaths">Maximum number of paths to create. If -1, creates as many paths as possible</param>
-    /// <param name="rng">Random number generator to use. If null, creates a new one</param>
-    /// <returns>The number of paths created</returns>
-    public int GrowBacktracker(Vector2I start, float directionalBias, int maxPaths = -1, Random? rng = null) {
-        rng ??= new Random();
-        return Grow(start, DirectionSelectors.CreateRandom(directionalBias, rng), maxPaths);
-    }
-
-    /// <summary>
     /// Grows a maze from a starting position using the specified direction and cell selectors
     /// </summary>
     /// <param name="start">Starting position for the maze generation</param>
@@ -117,31 +104,37 @@ public class MazeGraph(int width, int height, Func<Vector2I, bool>? isValid = nu
     /// <param name="cellSelector">Function that selects which cell to grow from next</param>
     /// <param name="maxPaths">Maximum number of paths to create. If -1, creates as many paths as possible</param>
     /// <returns>The number of paths created</returns>
-    public int Grow(Vector2I start, Func<Vector2I?, IList<Vector2I>, Vector2I> directionSelector, int maxPaths = -1) {
+    public int Grow(Vector2I start, MazeConstraints constraints) {
         if (!IsValid(start)) throw new ArgumentException("Invalid start position");
 
         var pendingPositions = new Stack<Vector2I>();
         var startNode = GetOrCreateNode(start);
         Vector2I? lastDir = null;
         var pathsCreated = 0;
+        var totalNodes = 1;
+        var nodesInCurrentPath = 1;
 
         pendingPositions.Push(start);
 
-        while (pendingPositions.Count > 0) {
+        while (pendingPositions.Count > 0 &&
+               (constraints.MaxTotalCells == -1 || totalNodes < constraints.MaxTotalCells)) {
             var currentPos = pendingPositions.Peek();
             var currentNode = GetNode(currentPos)!;
 
             var availableDirections = Array2D.Directions.Where(dir => {
                 var target = currentPos + dir;
-                return Geometry.IsPointInRectangle(target.X, target.Y, 0, 0, Width, Height) && 
-                       IsValid(target) && 
+                return Geometry.IsPointInRectangle(target.X, target.Y, 0, 0, Width, Height) &&
+                       IsValid(target) &&
                        GetNode(target) == null;
             }).ToList();
 
-            if (availableDirections.Count == 0) {
+            if (availableDirections.Count == 0 ||
+                (constraints.MaxCellsPerPath > 0 && nodesInCurrentPath >= constraints.MaxCellsPerPath)) {
                 pathsCreated++;
+                if (constraints.MaxPaths != -1 && pathsCreated >= constraints.MaxPaths) break;
                 pendingPositions.Pop();
                 lastDir = null;
+                nodesInCurrentPath = 0;
                 continue;
             }
 
@@ -149,14 +142,16 @@ public class MazeGraph(int width, int height, Func<Vector2I, bool>? isValid = nu
                 ? lastDir
                 : null;
 
-            var nextDir = directionSelector(validCurrentDir, availableDirections);
+            var nextDir = constraints.DirectionSelector(validCurrentDir, availableDirections);
             lastDir = nextDir;
 
             var nextPos = currentPos + nextDir;
             var nextNode = GetOrCreateNode(nextPos);
             ConnectNodes(currentNode, nextDir, nextNode);
-            
+
             pendingPositions.Push(nextPos);
+            totalNodes++;
+            nodesInCurrentPath++;
         }
 
         return pathsCreated;
