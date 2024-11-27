@@ -62,10 +62,11 @@ public class MazeCarver {
     public int Grow(Vector2I start, MazeConstraints constraints) {
         ArgumentNullException.ThrowIfNull(constraints);
         if (IsCarved(start)) return 0;
-        var constraintsMaxTotalCells = constraints.MaxTotalCells == -1 ? int.MaxValue : constraints.MaxTotalCells;
-        var constraintsMaxCellsPerPath = constraints.MaxCellsPerPath == -1 ? int.MaxValue : constraints.MaxCellsPerPath;
-        var constraintsMaxPaths = constraints.MaxPaths == -1 ? int.MaxValue : constraints.MaxPaths;
-        if (constraintsMaxTotalCells == 0 || constraintsMaxCellsPerPath == 0 || constraintsMaxPaths == 0) return 0;
+        var maxTotalCells = constraints.MaxTotalCells == -1 ? int.MaxValue : constraints.MaxTotalCells;
+        var maxCellsPerPath = constraints.MaxCellsPerPath == -1 ? int.MaxValue : constraints.MaxCellsPerPath;
+        var maxPaths = constraints.MaxPaths == -1 ? int.MaxValue : constraints.MaxPaths;
+        var constraintsMaxDepth = constraints.MaxDepth == -1 ? int.MaxValue : constraints.MaxDepth;
+        // if (constraintsMaxTotalCells == 0 || constraintsMaxCellsPerPath == 0 || constraintsMaxPaths == 0) return 0;
 
         var carvedCells = new Stack<Vector2I>();
         var pathDepths = new Dictionary<Vector2I, int>(); // Almacena la profundidad de cada punto de inicio de path
@@ -77,40 +78,30 @@ public class MazeCarver {
         var cellsCarvedInCurrentPath = 1;
 
         carvedCells.Push(start);
-        pathDepths[start] = 0; // El path inicial tiene profundidad 0
+        var currentDepth = pathDepths[start] = 0; // El path inicial tiene profundidad 0
+        var backtracking = false;
 
         while (carvedCells.Count > 0 &&
-               totalCellsCarved < constraintsMaxTotalCells &&
-               pathsCreated < constraintsMaxPaths) {
+               totalCellsCarved < maxTotalCells &&
+               pathsCreated < maxPaths) {
             var currentCell = carvedCells.Peek();
             var availableDirections = GetAvailableDirections(currentCell);
 
-            // Si no hay direcciones disponibles o excedimos el límite de celdas por path
-            if (availableDirections.Count == 0 || cellsCarvedInCurrentPath >= constraintsMaxCellsPerPath) {
+            // backtracking
+            if (availableDirections.Count == 0 || cellsCarvedInCurrentPath >= maxCellsPerPath) {
                 carvedCells.Pop();
-
-                // Si no quedan celdas en el stack, terminamos
-                if (carvedCells.Count == 0) continue;
-
-                // Comprobamos si hay direcciones disponibles en la siguiente celda
-                var nextCell = carvedCells.Peek();
-                var nextAvailableDirections = GetAvailableDirections(nextCell);
-
-                // Si no hay direcciones disponibles, seguimos haciendo backtracking
-                if (nextAvailableDirections.Count == 0) {
-                    lastDirection = null;
-                    continue;
-                }
-
-                // Si llegamos aquí es porque hay direcciones disponibles en la siguiente celda,
-                // lo que significa que vamos a empezar un nuevo path
-                var currentDepth = pathDepths[currentCell]; // Usamos currentCell porque sí tenemos su profundidad
-                pathDepths[nextCell] = currentDepth + 1; // Guardamos la profundidad del siguiente punto de inicio
-                Console.WriteLine($"Paths #{pathsCreated} (depth {currentDepth}: Cells: {cellsCarvedInCurrentPath}");
-                pathsCreated++;
+                backtracking = true;
+                cellsCarvedInCurrentPath = 1;
                 lastDirection = null;
-                cellsCarvedInCurrentPath = 1; // Empezamos en 1 porque la celda actual ya está tallada
                 continue;
+            }
+
+            if (backtracking) {
+                backtracking = false;
+                pathsCreated++;
+                Console.WriteLine($"Path #{pathsCreated} finished. Depth: {currentDepth}: Cells: {cellsCarvedInCurrentPath}");
+                if (pathsCreated == maxPaths) break;
+                cellsCarvedInCurrentPath = 1;
             }
 
             var validCurrentDirection = lastDirection.HasValue && availableDirections.Contains(lastDirection.Value)
@@ -127,14 +118,14 @@ public class MazeCarver {
             CarveCell(nextCellToCarve);
 
             carvedCells.Push(nextCellToCarve);
-            pathDepths[nextCellToCarve] = pathDepths[currentCell]; // Guardamos la profundidad de la nueva celda
+            pathDepths[nextCellToCarve] = currentDepth; // Guardamos la profundidad de la nueva celda
             totalCellsCarved += 2;
             cellsCarvedInCurrentPath += 2;
         }
 
         // Obtenemos la profundidad máxima alcanzada
         var maxDepth = pathDepths.Values.Max();
-        Console.WriteLine($"Cells created: {totalCellsCarved} Paths created: {pathsCreated + 1} Max depth: {maxDepth}");
+        Console.WriteLine($"Cells created: {totalCellsCarved} Paths created: {pathsCreated} Max depth: {maxDepth}");
         return totalCellsCarved;
     }
 
