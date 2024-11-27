@@ -26,18 +26,26 @@ public class MazeCarverDemo {
         // 5 cells per path
         template.Fill(false);
         mc.Grow(start, MazeConstraints.CreateWindy(0f, rng)
-            .With(c => c.MaxCellsPerPath = 5));
+            .With(c => c.MaxPaths = 2));
+        Console.WriteLine("--");
         canvas.Write(col * width, row * height, PrintMaze(template));
         canvas.Write(col * width, row * height, "5 cells per path");
-
         // 3 paths only
         col++;
         template.Fill(false);
         mc.Grow(start, MazeConstraints.CreateWindy(0f, rng)
-            .With(c => c.MaxPaths = 3));
+            .With(c => {
+                c.MaxPaths = 6;
+                // c.MaxCellsPerPath = 9;
+                // c.MaxTotalCells = 67;
+            }
+        ));
         canvas.Write(col * width, row * height, PrintMaze(template));
         canvas.Write(col * width, row * height, "3 paths only");
 
+        Console.WriteLine(canvas.ToString());
+
+        return;
         // Windy 0.5
         col++;
         template.Fill(false);
