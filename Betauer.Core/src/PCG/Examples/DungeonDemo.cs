@@ -26,7 +26,7 @@ public class DungeonDemo {
             for (var x = 1; x < mc.Width; x += 2) {
                 var pos = new Vector2I(x, y);
                 if (!mc.IsCarved(pos)) {
-                    mc.GrowBacktracker(pos, 0.7f, -1, random);
+                    mc.GrowBacktracker(pos, 0.7f, -1, -1, -1, random);
                     // mc.GrowEller(pos, 0.7f, random);
                     // mc.GrowBreadthFirst(pos, 0.5f, random);
                 }

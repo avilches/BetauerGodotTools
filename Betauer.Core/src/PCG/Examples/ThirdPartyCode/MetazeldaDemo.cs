@@ -43,7 +43,7 @@ public class MetazeldaDemo {
 
         // PrintRoomChildren(dungeon.FindStart(), 0);
 
-        var str = new TextCanvas(width * boxWidth, height * boxHeight);
+        var str = new TextCanvas();
         for (var y = 0; y < width; y++) {
             for (var x = 0; x < height; x++) {
                 var r = PrintRoom(map.ContainsKey(new Vector2I(x, y)) ? map[new Vector2I(x, y)] : null);
