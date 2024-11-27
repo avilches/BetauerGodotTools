@@ -3,6 +3,9 @@ using Godot;
 namespace Betauer.Core;
 
 public static class Vector2Extensions {
+    public static Vector2 Inverse(this Vector2 from) {
+        return from * -1;
+    }
     /// <summary>
     /// Rotate 180º 
     /// </summary>

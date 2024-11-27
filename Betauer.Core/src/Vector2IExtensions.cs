@@ -3,6 +3,10 @@ using Godot;
 namespace Betauer.Core;
 
 public static class Vector2IExtensions {
+    public static Vector2I Inverse(this Vector2I from) {
+        return from * -1;
+    }
+
     public static Vector2I UpLeftPos(this Vector2I from) {
         return new Vector2I(from.X - 1, from.Y - 1);
     }
