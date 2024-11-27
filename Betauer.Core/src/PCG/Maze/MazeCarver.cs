@@ -52,6 +52,12 @@ public class MazeCarver {
         OnCarve = carveAction ?? throw new ArgumentNullException(nameof(carveAction));
     }
 
+    public class Path {
+        public int Cells;
+        public bool Finished = false;
+        public int Depth = 0;
+    }
+
     /// <summary>
     /// Generates a maze starting from a specific cell, following the given constraints.
     /// </summary>
@@ -69,7 +75,6 @@ public class MazeCarver {
         // if (constraintsMaxTotalCells == 0 || constraintsMaxCellsPerPath == 0 || constraintsMaxPaths == 0) return 0;
 
         var carvedCells = new Stack<Vector2I>();
-        var pathDepths = new Dictionary<Vector2I, int>(); // Almacena la profundidad de cada punto de inicio de path
         Vector2I? lastDirection = null;
 
         CarveCell(start);
@@ -78,7 +83,6 @@ public class MazeCarver {
         var cellsCarvedInCurrentPath = 1;
 
         carvedCells.Push(start);
-        var currentDepth = pathDepths[start] = 0; // El path inicial tiene profundidad 0
         var backtracking = false;
 
         while (carvedCells.Count > 0 &&
@@ -91,7 +95,7 @@ public class MazeCarver {
             if (availableDirections.Count == 0 || cellsCarvedInCurrentPath >= maxCellsPerPath) {
                 carvedCells.Pop();
                 pathsCreated++;
-                Console.WriteLine($"Path #{pathsCreated} finished. Depth: {currentDepth}: Cells: {cellsCarvedInCurrentPath}");
+                Console.WriteLine($"Path #{pathsCreated} finished: Cells: {cellsCarvedInCurrentPath}");
                 backtracking = true;
                 cellsCarvedInCurrentPath = 1;
                 lastDirection = null;
@@ -118,14 +122,12 @@ public class MazeCarver {
             CarveCell(nextCellToCarve);
 
             carvedCells.Push(nextCellToCarve);
-            pathDepths[nextCellToCarve] = currentDepth; // Guardamos la profundidad de la nueva celda
             totalCellsCarved += 2;
             cellsCarvedInCurrentPath += 2;
         }
 
         // Obtenemos la profundidad máxima alcanzada
-        var maxDepth = pathDepths.Values.Max();
-        Console.WriteLine($"Cells created: {totalCellsCarved} Paths created: {pathsCreated} Max depth: {maxDepth}");
+        Console.WriteLine($"Cells created: {totalCellsCarved} Paths created: {pathsCreated}");
         return totalCellsCarved;
     }
 
