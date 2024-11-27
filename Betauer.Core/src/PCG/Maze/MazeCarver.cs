@@ -90,6 +90,8 @@ public class MazeCarver {
             // backtracking
             if (availableDirections.Count == 0 || cellsCarvedInCurrentPath >= maxCellsPerPath) {
                 carvedCells.Pop();
+                pathsCreated++;
+                Console.WriteLine($"Path #{pathsCreated} finished. Depth: {currentDepth}: Cells: {cellsCarvedInCurrentPath}");
                 backtracking = true;
                 cellsCarvedInCurrentPath = 1;
                 lastDirection = null;
@@ -98,8 +100,6 @@ public class MazeCarver {
 
             if (backtracking) {
                 backtracking = false;
-                pathsCreated++;
-                Console.WriteLine($"Path #{pathsCreated} finished. Depth: {currentDepth}: Cells: {cellsCarvedInCurrentPath}");
                 if (pathsCreated == maxPaths) break;
                 cellsCarvedInCurrentPath = 1;
             }

@@ -28,7 +28,7 @@ public class MazeCarverDemo {
         mc.Grow(start, MazeConstraints.CreateWindy(0f, rng)
             .With(c => {
                 // c.MaxDepth = 10;
-                c.MaxTotalCells = 27;
+                c.MaxTotalCells = 25;
                 c.MaxCellsPerPath = 9;
                 c.MaxPaths = 3;
             }));
