@@ -16,7 +16,7 @@ public class MazeCarverDemo {
         var mc = MazeCarver.Create(template);
         var start = new Vector2I(5, 5);
         mc.OnCarve += (i) => {
-            // PrintMaze(grid);
+            Console.WriteLine(PrintMaze(template));
         };
 
         var canvas = new TextCanvas();
@@ -27,10 +27,10 @@ public class MazeCarverDemo {
         template.Fill(false);
         mc.Grow(start, MazeConstraints.CreateWindy(0f, rng)
             .With(c => {
-                // c.MaxDepth = 10;
-                c.MaxTotalCells = 25;
-                c.MaxCellsPerPath = 9;
-                c.MaxPaths = 3;
+                c.MaxDepth = 2;
+                // c.MaxTotalCells = 11;
+                c.MaxCellsPerPath = 5;
+                c.MaxPaths = 13;
             }));
         Console.WriteLine("--");
         canvas.Write(col * width, row * height, PrintMaze(template));
