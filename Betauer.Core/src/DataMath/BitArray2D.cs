@@ -32,7 +32,7 @@ public class BitArray2D {
         }
     }
 
-    public BitArray2D(int width, int height) {
+    public BitArray2D(int width, int height, bool? defaultValue = false) {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(width);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(height);
 
@@ -40,7 +40,7 @@ public class BitArray2D {
         Height = height;
         Rows = new BitArray[height];
         for (var i = 0; i < height; i++) {
-            Rows[i] = new BitArray(width);
+            Rows[i] = new BitArray(width, defaultValue ?? false);
         }
     }
 

@@ -10,19 +10,19 @@ public class MazeGraphDemo {
         var seed = 3;
         var rng = new Random(seed);
 
-        const int width = 11, height = 11;
-        var grid = new Array2D<bool>(width, height, true);
-
-        var mc = MazeGraph.Create(grid);
-        var start = new Vector2I(0, 0);
+        const int width = 41, height = 21;
+        var template = new BitArray2D(width, height, true);
+        var mc = MazeGraph.Create(template);
+        var start = new Vector2I(4, 4);
         mc.OnCreateNode += (i) => {
             // PrintGraph(mc);
         };
 
-        var constraints = MazeConstraints.CreateWindy(0f, rng)
+        var constraints = MazeConstraints.CreateClockwiseBias(1)
             .With(c => {
-                c.MaxPaths = 4;
-                c.MaxTotalCells = 9;
+                // c.MaxTotalCells = 141;
+                c.MaxCellsPerPath = 10;
+                c.MaxPaths = 3;
             });
 
         mc.Grow(start, constraints);

@@ -87,8 +87,8 @@ public class MazeCarver {
             var currentCell = carvedCells.Peek();
             var availableDirections = GetAvailableDirections(currentCell);
 
-            // backtracking
             if (availableDirections.Count == 0 || cellsCarvedInCurrentPath >= maxCellsPerPath || totalCellsCarved == maxTotalCells) {
+                // stop carving, backtracking
                 carvedCells.Pop();
                 if (carvedCells.Count > 0) {
                     var nextCell = carvedCells.Peek();
