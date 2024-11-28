@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Betauer.Core.DataMath;
 using Betauer.Core.DataMath.Geometry;
 using Godot;
@@ -22,8 +23,23 @@ public class MazeNodeEdge(MazeNode from, MazeNode to, Vector2I direction) {
 /// <summary>
 /// Represents a node in the maze graph, containing connections to adjacent nodes.
 /// </summary>
-public class MazeNode(Vector2I position) {
-    public Vector2I Position { get; } = position;
+public class MazeNode {
+    private readonly Vector2I _position;
+
+    /// <summary>
+    /// Represents a node in the maze graph, containing connections to adjacent nodes.
+    /// </summary>
+    internal MazeNode(MazeGraph mazeGraph, int id, Vector2I position) {
+        _position = position;
+        MazeGraph = mazeGraph;
+        Id = id;
+        Position = position;
+    }
+
+    public MazeGraph MazeGraph { get; }
+    public int Id { get; }
+    public Vector2I Position { get; }
+    public MazeNode? Parent { get; set; }
     public MazeNodeEdge? Up { get; private set; }
     public MazeNodeEdge? Right { get; private set; }
     public MazeNodeEdge? Down { get; private set; }
@@ -71,6 +87,14 @@ public class MazeNode(Vector2I position) {
         return false;
     }
 
+    public MazeNodeEdge? GetEdgeTo(MazeNode to) {
+        return GetEdges().FirstOrDefault(edge => edge.To == to);
+    }
+
+    public IEnumerable<MazeNodeEdge> GetEdges() {
+        return new[] { Up, Right, Down, Left }.Where(e => e != null)!;
+    }
+
     /// <summary>
     /// Gets the edge in the specified direction, if it exists.
     /// </summary>
@@ -81,6 +105,54 @@ public class MazeNode(Vector2I position) {
         if (direction == Vector2I.Left) return Left;
         return null;
     }
+
+    /// <summary>
+    /// Returns the four MazeNode around this node (up, down, left, right), no matter if they are connected or not.
+    /// </summary>
+    /// <returns></returns>
+    public IEnumerable<MazeNode> GetNeighbors() {
+        return Array2D.Directions.Select(dir => _position + dir)
+            .Where(pos => MazeGraph.IsValid(pos))
+            .Select(pos => MazeGraph.GetNode(pos))
+            .Where(node => node != null);
+    }
+
+    public void Remove() {
+        MazeGraph.Nodes.Remove(Id);
+        MazeGraph.NodeGrid[Position] = null!;
+        foreach (var node in MazeGraph.Nodes.Values) {
+            var edgeToMe = node.GetEdgeTo(this);
+            if (edgeToMe != null) {
+                node.RemoveEdge(edgeToMe.Direction);
+            }
+            if (node.Parent == this) node.Parent = null;
+        }
+        Parent = null;
+        Up = Right = Down = Left = null;
+    }
+
+    public Vector2I? GetDirectionToParent() {
+        if (Parent == null) return null;
+        return Position - Parent.Position;
+    }
+
+    public IEnumerable<MazeNode> GetChildren() {
+        return MazeGraph.Nodes.Values.Where(n => n.Parent == this);
+    }
+
+    public IEnumerable<MazeNodeEdge> GetEdgesToChildren() {
+        return GetEdges().Where(e => e.To.Parent == this);
+    }
+
+    public List<MazeNode> GetPathToRoot() {
+        var path = new List<MazeNode>();
+        var current = this;
+        while (current != null) {
+            path.Add(current);
+            current = current.Parent;
+        }
+        return path;
+    }
 }
 
 /// <summary>
@@ -89,7 +161,8 @@ public class MazeNode(Vector2I position) {
 public class MazeGraph {
     public int Width { get; }
     public int Height { get; }
-    public Array2D<MazeNode> Nodes { get; }
+    public Array2D<MazeNode> NodeGrid { get; }
+    public Dictionary<int, MazeNode> Nodes { get; } = [];
     public Func<Vector2I, bool> IsValid { get; }
 
     public event Action<MazeNodeEdge>? OnConnect;
@@ -107,18 +180,22 @@ public class MazeGraph {
     public MazeGraph(int width, int height, Func<Vector2I, bool>? isValid = null, Action<MazeNode>? onCreateNode = null, Action<MazeNodeEdge>? onConnect = null) {
         Width = width;
         Height = height;
-        Nodes = new Array2D<MazeNode>(width, height);
+        NodeGrid = new Array2D<MazeNode>(width, height);
         IsValid = isValid ?? (_ => true);
         OnCreateNode = onCreateNode;
         OnConnect = onConnect;
     }
 
-    private MazeNode GetOrCreateNode(Vector2I position) {
-        var node = Nodes[position];
+    private int _lastId = 0;
+
+    public MazeNode GetOrCreateNode(Vector2I position) {
+        if (!IsValid(position)) throw new ArgumentException("Invalid position", nameof(position));
+        var node = NodeGrid[position];
         if (node != null) return node;
 
-        node = new MazeNode(position);
-        Nodes[position] = node;
+        node = new MazeNode(this, _lastId++, position);
+        NodeGrid[position] = node;
+        Nodes[node.Id] = node;
         OnCreateNode?.Invoke(node);
         return node;
     }
@@ -126,7 +203,7 @@ public class MazeGraph {
     /// <summary>
     /// Gets an existing node at the specified position.
     /// </summary>
-    public MazeNode? GetNode(Vector2I position) => Nodes[position];
+    public MazeNode? GetNode(Vector2I position) => NodeGrid[position];
 
     private void ConnectNodes(MazeNode from, Vector2I direction, MazeNode to) {
         var edge = from.Connect(to, direction);
@@ -151,8 +228,7 @@ public class MazeGraph {
 
         var usedNodes = new Stack<Vector2I>();
         Vector2I? lastDirection = null;
-        
-        
+
         var pathsCreated = 0;
         var totalNodesCreated = 1;
         var nodesCreatedInCurrentPath = 1;
@@ -191,13 +267,14 @@ public class MazeGraph {
 
             var nextPos = currentPos + nextDir;
             var nextNode = GetOrCreateNode(nextPos);
+            nextNode.Parent = currentNode;
             ConnectNodes(currentNode, nextDir, nextNode);
 
             usedNodes.Push(nextPos);
             totalNodesCreated++;
             nodesCreatedInCurrentPath++;
         }
-        Console.WriteLine("Cells created: " + totalNodesCreated+" Paths created: "+pathsCreated);
+        Console.WriteLine("Cells created: " + totalNodesCreated + " Paths created: " + pathsCreated);
     }
 
     private readonly List<Vector2I> _availableDirections = new(4);

@@ -31,7 +31,7 @@ public class MazeGraphDemo {
 
     private static void PrintGraph(MazeGraph mc) {
         var canvas = new TextCanvas();
-        foreach (var node in mc.Nodes) {
+        foreach (var node in mc.NodeGrid) {
             if (node.Value == null) continue;
             var nodeCanvas = new TextCanvas();
             nodeCanvas.Write(1, 1, "+");

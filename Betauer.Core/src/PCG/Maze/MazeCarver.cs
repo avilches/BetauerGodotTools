@@ -53,9 +53,9 @@ public class MazeCarver {
     }
 
     public class Path {
-        public int Cells;
         public bool Finished = false;
         public int Depth = 0;
+        public List<Vector2I> Cells = [];
     }
 
     /// <summary>
