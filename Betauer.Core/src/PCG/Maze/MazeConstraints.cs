@@ -10,7 +10,6 @@ public class MazeConstraints(Func<Vector2I?, IList<Vector2I>, Vector2I> directio
     public Func<Vector2I?, IList<Vector2I>, Vector2I> DirectionSelector = directionSelector;
     
     public int MaxPaths { get; set; } = -1;
-    public int MaxDepth { get; set; } = -1;
     public int MaxTotalCells { get; set; } = -1;
     public int MaxCellsPerPath { get; set; } = -1;
 

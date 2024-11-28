@@ -65,16 +65,15 @@ public class MazeCarver {
     /// <param name="constraints">Constraints that control the maze generation process.</param>
     /// <returns>The number of cells carved during maze generation.</returns>
     /// <exception cref="ArgumentNullException">Thrown when constraints is null.</exception>
-    public int Grow(Vector2I start, MazeConstraints constraints) {
+    public void Grow(Vector2I start, MazeConstraints constraints) {
         ArgumentNullException.ThrowIfNull(constraints);
-        if (IsCarved(start)) return 0;
+        if (IsCarved(start)) return;
         var maxTotalCells = constraints.MaxTotalCells == -1 ? int.MaxValue : constraints.MaxTotalCells;
         var maxCellsPerPath = constraints.MaxCellsPerPath == -1 ? int.MaxValue : constraints.MaxCellsPerPath;
         var maxTotalPaths = constraints.MaxPaths == -1 ? int.MaxValue : constraints.MaxPaths;
-        var constraintsMaxDepth = constraints.MaxDepth == -1 ? int.MaxValue : constraints.MaxDepth;
-        // if (constraintsMaxTotalCells == 0 || constraintsMaxCellsPerPath == 0 || constraintsMaxPaths == 0) return 0;
+        if (maxTotalCells == 0 || maxCellsPerPath == 0 || maxTotalPaths == 0) return;
 
-        var carvedCells = new Stack<(int, Vector2I)>();
+        var carvedCells = new Stack<Vector2I>();
         Vector2I? lastDirection = null;
 
         CarveCell(start);
@@ -82,40 +81,27 @@ public class MazeCarver {
         var totalCellsCarved = 1;
         var cellsCarvedInCurrentPath = 1;
 
-        var backtracking = false;
-        var currentDepth = 0;
-        carvedCells.Push((currentDepth, start));
+        carvedCells.Push(start);
 
         while (carvedCells.Count > 0) {
-            var (cellDepth, currentCell) = carvedCells.Peek();
+            var currentCell = carvedCells.Peek();
             var availableDirections = GetAvailableDirections(currentCell);
 
             // backtracking
             if (availableDirections.Count == 0 || cellsCarvedInCurrentPath >= maxCellsPerPath || totalCellsCarved == maxTotalCells) {
                 carvedCells.Pop();
                 if (carvedCells.Count > 0) {
-                    var (nextDepth, nextCell) = carvedCells.Peek();
+                    var nextCell = carvedCells.Peek();
                     if (GetAvailableDirections(nextCell).Count == 0) {
                         continue;
                     }
                 }
                 pathsCreated++;
-                Console.WriteLine($"Path #{pathsCreated} finished: Depth: {currentDepth} Cells: {cellsCarvedInCurrentPath}");
+                Console.WriteLine($"Path #{pathsCreated} finished: Cells: {cellsCarvedInCurrentPath}");
                 if (pathsCreated == maxTotalPaths || totalCellsCarved == maxTotalCells) break;
-                backtracking = true;
                 cellsCarvedInCurrentPath = 1;
                 lastDirection = null;
                 continue;
-            }
-
-            if (backtracking) {
-                if (cellDepth + 1 >= constraintsMaxDepth) {
-                    carvedCells.Pop();
-                    continue;
-                }
-                currentDepth = cellDepth + 1;
-                backtracking = false;
-                cellsCarvedInCurrentPath = 1;
             }
 
             var validCurrentDirection = lastDirection.HasValue && availableDirections.Contains(lastDirection.Value)
@@ -131,14 +117,13 @@ public class MazeCarver {
             CarveCell(intermediateCell);
             CarveCell(nextCellToCarve);
 
-            carvedCells.Push((currentDepth, nextCellToCarve));
+            carvedCells.Push(nextCellToCarve);
             totalCellsCarved += 2;
             cellsCarvedInCurrentPath += 2;
         }
 
         // Obtenemos la profundidad máxima alcanzada
         Console.WriteLine($"Cells created: {totalCellsCarved} Paths created: {pathsCreated}");
-        return totalCellsCarved;
     }
 
     private readonly List<Vector2I> _availableDirections = new(4);

@@ -11,12 +11,12 @@ public class MazeCarverDemo {
         var seed = 3;
         var rng = new Random(seed);
 
-        const int width = 21, height = 21;
+        const int width = 121, height = 21;
         var template = new Array2D<bool>(width, height, false);
         var mc = MazeCarver.Create(template);
         var start = new Vector2I(5, 5);
         mc.OnCarve += (i) => {
-            Console.WriteLine(PrintMaze(template));
+            // Console.WriteLine(PrintMaze(template));
         };
 
         var canvas = new TextCanvas();
@@ -27,9 +27,8 @@ public class MazeCarverDemo {
         template.Fill(false);
         mc.Grow(start, MazeConstraints.CreateWindy(0f, rng)
             .With(c => {
-                c.MaxDepth = 2;
                 // c.MaxTotalCells = 11;
-                c.MaxCellsPerPath = 5;
+                c.MaxCellsPerPath = 15;
                 c.MaxPaths = 13;
             }));
         Console.WriteLine("--");
