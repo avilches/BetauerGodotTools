@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Text;
 using Godot;
 
@@ -84,5 +85,45 @@ public class BitArray2D {
             }
         }
         return s.ToString();
+    }
+
+    public static BitArray2D Parse(string template, char trueChar) {
+        var lines = template.Split('\n')
+            .Select(v => v.Trim())
+            .Where(v => v.Length > 0)
+            .ToArray();
+        if (lines.Length == 0) throw new ArgumentException("Empty template");
+        var width = lines[0].Length;
+        if (lines.Any(l => l.Length != width)) {
+            throw new ArgumentException("All lines must have the same length");
+        }
+
+        var array2d = new BitArray2D(width, lines.Length);
+        for (var y = 0; y < lines.Length; y++) {
+            for (var x = 0; x < width; x++) {
+                array2d[y, x] = lines[y][x] == trueChar;
+            }
+        }
+        return array2d;
+    }
+
+    public static BitArray2D Parse(string template, params char[] trueChars) {
+        var lines = template.Split('\n')
+            .Select(v => v.Trim())
+            .Where(v => v.Length > 0)
+            .ToArray();
+        if (lines.Length == 0) throw new ArgumentException("Empty template");
+        var width = lines[0].Length;
+        if (lines.Any(l => l.Length != width)) {
+            throw new ArgumentException("All lines must have the same length");
+        }
+
+        var array2d = new BitArray2D(width, lines.Length);
+        for (var y = 0; y < lines.Length; y++) {
+            for (var x = 0; x < width; x++) {
+                array2d[y, x] = trueChars.Contains(lines[y][x]);
+            }
+        }
+        return array2d;
     }
 }
