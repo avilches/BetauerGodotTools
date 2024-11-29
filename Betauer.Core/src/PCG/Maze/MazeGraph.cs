@@ -49,12 +49,13 @@ public class MazeNode {
     /// <summary>
     /// Creates a connection between this node and another node in the specified direction.
     /// </summary>
-    /// <param name="other">The node to connect to.</param>
     /// <param name="direction">The direction of the connection.</param>
+    /// <param name="other">The node to connect to.</param>
     /// <returns>The created edge.</returns>
     /// <exception cref="ArgumentNullException">Thrown when other is null.</exception>
-    public MazeNodeEdge Connect(MazeNode other, Vector2I direction) {
+    public MazeNodeEdge SetEdge(Vector2I direction, MazeNode other) {
         ArgumentNullException.ThrowIfNull(other);
+        if (other.Position != Position + direction) throw new ArgumentException("Invalid MazeNode. The position is not in the direction", nameof(other));
 
         var edge = new MazeNodeEdge(this, other, direction);
 
@@ -84,6 +85,14 @@ public class MazeNode {
         if (direction == Vector2I.Right) return Right != null;
         if (direction == Vector2I.Down) return Down != null;
         if (direction == Vector2I.Left) return Left != null;
+        return false;
+    }
+
+    public bool HasEdgeTo(Vector2I direction, MazeNode other) {
+        if (direction == Vector2I.Up) return Up != null && Up.To == other;
+        if (direction == Vector2I.Right) return Right != null && Right.To == other;
+        if (direction == Vector2I.Down) return Down != null && Down.To == other;
+        if (direction == Vector2I.Left) return Left != null && Left.To == other;
         return false;
     }
 
@@ -205,11 +214,24 @@ public class MazeGraph {
     /// </summary>
     public MazeNode? GetNode(Vector2I position) => NodeGrid[position];
 
-    private void ConnectNodes(MazeNode from, Vector2I direction, MazeNode to) {
-        var edge = from.Connect(to, direction);
+    /// <summary>
+    /// Connect a Node to the one (if exists) in the specified direction.
+    /// </summary>
+    /// <param name="from"></param>
+    /// <param name="direction"></param>
+    /// <param name="twoWays"></param>
+    public void ConnectNode(MazeNode from, Vector2I direction, bool twoWays) {
+        var to = GetNode(from.Position + direction);
+        if (to == null) return;
+        _ConnectNode(from, direction, to);
+        if (twoWays) _ConnectNode(to, direction.Inverse(), from);
+        
+    }
+        
+    private void _ConnectNode(MazeNode from, Vector2I direction, MazeNode to) {
+        if (from.HasEdgeTo(direction, to)) return;
+        var edge = from.SetEdge(direction, to);
         OnConnect?.Invoke(edge);
-        var edgeBack = to.Connect(from, direction.Inverse());
-        OnConnect?.Invoke(edgeBack);
     }
 
     /// <summary>
@@ -268,14 +290,14 @@ public class MazeGraph {
             var nextPos = currentPos + nextDir;
             var nextNode = GetOrCreateNode(nextPos);
             nextNode.Parent = currentNode;
-            ConnectNodes(currentNode, nextDir, nextNode);
-
+            ConnectNode(currentNode, nextDir, true);
             usedNodes.Push(nextPos);
             totalNodesCreated++;
             nodesCreatedInCurrentPath++;
         }
         Console.WriteLine("Cells created: " + totalNodesCreated + " Paths created: " + pathsCreated);
     }
+
 
     private readonly List<Vector2I> _availableDirections = new(4);
 

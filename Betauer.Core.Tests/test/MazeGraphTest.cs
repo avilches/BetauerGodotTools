@@ -78,7 +78,7 @@ public class MazeNodeTests {
     [Test]
     public void Connect_CreatesEdge() {
         var other = _graph.GetOrCreateNode(new Vector2I(1, 0));
-        var edge = _node.Connect(other, Vector2I.Up);
+        var edge = _node.SetEdge(Vector2I.Up, other);
 
         Assert.Multiple(() => {
             Assert.That(edge.From, Is.EqualTo(_node));
@@ -91,13 +91,13 @@ public class MazeNodeTests {
     [Test]
     public void Connect_WithNullNode_ThrowsArgumentNullException() {
         Assert.Throws<ArgumentNullException>(() =>
-            _node.Connect(null!, Vector2I.Up));
+            _node.SetEdge(Vector2I.Up, null!));
     }
 
     [Test]
     public void RemoveEdge_RemovesConnection() {
         var other = _graph.GetOrCreateNode(new Vector2I(1, 0));
-        _node.Connect(other, Vector2I.Up);
+        _node.SetEdge(Vector2I.Up, other);
 
         _node.RemoveEdge(Vector2I.Up);
 
@@ -107,7 +107,7 @@ public class MazeNodeTests {
     [Test]
     public void HasEdge_ReturnsCorrectValue() {
         var other = _graph.GetOrCreateNode(new Vector2I(1, 0));
-        _node.Connect(other, Vector2I.Up);
+        _node.SetEdge(Vector2I.Up, other);
 
         Assert.Multiple(() => {
             Assert.That(_node.HasEdge(Vector2I.Up), Is.True);
@@ -118,7 +118,7 @@ public class MazeNodeTests {
     [Test]
     public void GetEdge_ReturnsCorrectEdge() {
         var other = _graph.GetOrCreateNode(new Vector2I(1, 0));
-        var edge = _node.Connect(other, Vector2I.Up);
+        var edge = _node.SetEdge(Vector2I.Up, other);
 
         Assert.That(_node.GetEdge(Vector2I.Up), Is.EqualTo(edge));
     }
@@ -126,7 +126,7 @@ public class MazeNodeTests {
     [Test]
     public void GetEdgeTo_ReturnsCorrectEdge() {
         var other = _graph.GetOrCreateNode(new Vector2I(1, 0));
-        var edge = _node.Connect(other, Vector2I.Up);
+        var edge = _node.SetEdge(Vector2I.Up, other);
 
         Assert.That(_node.GetEdgeTo(other), Is.EqualTo(edge));
     }
@@ -155,8 +155,8 @@ public class MazeNodeTests {
         var up = _graph.GetOrCreateNode(new Vector2I(1, 0));
         var right = _graph.GetOrCreateNode(new Vector2I(2, 1));
 
-        var edgeUp = _node.Connect(up, Vector2I.Up);
-        var edgeRight = _node.Connect(right, Vector2I.Right);
+        var edgeUp = _node.SetEdge(Vector2I.Up, up);
+        var edgeRight = _node.SetEdge(Vector2I.Right, right);
 
         var edges = _node.GetEdges().ToList();
 
@@ -207,9 +207,9 @@ public class MazeNodeTests {
         var right = _graph.GetOrCreateNode(new Vector2I(2, 1));
         var down = _graph.GetOrCreateNode(new Vector2I(1, 2));
 
-        _node.Connect(up, Vector2I.Up);
-        _node.Connect(right, Vector2I.Right);
-        down.Connect(_node, Vector2I.Up);
+        _node.SetEdge(Vector2I.Up, up);
+        _node.SetEdge(Vector2I.Right, right);
+        down.SetEdge(Vector2I.Up, _node);
 
         down.Parent = _node;
 
