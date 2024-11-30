@@ -50,7 +50,7 @@ public class TextCanvas {
 
     public string GetText() => _text ??= string.Join(LineSeparator, _lines);
 
-    public void Write(int column, int row, string text) {
+    public void Write(int column, int row, string? text) {
         if (string.IsNullOrEmpty(text)) return;
         if (text.Contains(LineSeparator)) {
             var parts = text.Split(LineSeparator);

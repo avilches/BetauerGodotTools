@@ -8,30 +8,6 @@ using Godot;
 namespace Betauer.Core.PCG.Examples;
 
 public class MazeGraphDemo {
-    public static Vector2I FindCharInAsciiPattern(string pattern, char target = 'o') {
-        var lines = pattern.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-        for (var y = 0; y < lines.Length; y++) {
-            var line = lines[y];
-            var x = line.IndexOf(target);
-            if (x != -1) {
-                return new Vector2I(x, y);
-            }
-        }
-        throw new Exception($"Character '{target}' not found in pattern");
-    }
-
-    public static IEnumerable<Vector2I> FindAllCharsInAsciiPattern(string pattern, char target = 'o') {
-        var lines = pattern.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-        for (var y = 0; y < lines.Length; y++) {
-            var line = lines[y];
-            var x = 0;
-            while ((x = line.IndexOf(target, x)) != -1) {
-                yield return new Vector2I(x, y);
-                x++; // Avanzamos para buscar la siguiente ocurrencia
-            }
-        }
-    }
-
     public static void Main() {
         var seed = 5;
         var rng = new Random(seed);
@@ -57,10 +33,20 @@ public class MazeGraphDemo {
                     ···##·###·
                     """;
 
-        var template = Array2D.Parse(temp);
-        var mc = new MazeGraph(template.Width, template.Height, pos => template[pos] != '·');
-        var start = FindCharInAsciiPattern(temp);
-        mc.OnCreateNode += (i) => { PrintGraph(mc); };
+        var temp3 = """
+                    ··········
+                    ··######··
+                    ·#########
+                    ·####o####
+                    ·#########
+                    ···##·###·
+                    """;
+
+        var template = Array2D.Parse(temp3);
+        var mc = new MazeGraph(template.Width+20, template.Height+10);
+        // mc.IsValid = pos => template[pos] != '·';
+        var start = template.FirstOrDefault(dataCell => dataCell.Value == 'o')!.Position;
+        // mc.OnCreateNode += (i) => { PrintGraph(mc); };
 
         var constraints = MazeConstraints.CreateRandom(rng)
             .With(c => {
@@ -71,15 +57,21 @@ public class MazeGraphDemo {
 
         mc.Grow(start, constraints);
 
+        // ConnectNodes(template, mc);
+
+        CreateZones(mc, 8);
+
+        PrintGraph(mc);
+    }
+
+    private static void ConnectNodes(Array2D<char> template, MazeGraph mc) {
         template
             .Where(dataCell => dataCell.Value == '<')
             .Select(dataCell => mc.GetNode(dataCell.Position)).Where(node => node != null).Select(node => node!)
-            .ForEach(from => {
-                mc.ConnectNode(from, Vector2I.Left, true);
-            });
+            .ForEach(from => { mc.ConnectNode(from, Vector2I.Left, true); });
 
         template
-            .Where(dataCell => dataCell.Value == '+')
+            .Where(dataCell => dataCell.Value == '+' || dataCell.Value == 'o')
             .Select(dataCell => mc.GetNode(dataCell.Position)).Where(node => node != null).Select(node => node!)
             .ForEach(from => {
                 mc.ConnectNode(from, Vector2I.Left, true);
@@ -87,10 +79,63 @@ public class MazeGraphDemo {
                 mc.ConnectNode(from, Vector2I.Up, true);
                 mc.ConnectNode(from, Vector2I.Down, true);
             });
-
-        PrintGraph(mc);
     }
 
+    public static void CreateZones(MazeGraph mc, int nodesPerZone) {
+        if (mc.NodeRoot == null) return;
+        if (nodesPerZone <= 0) throw new ArgumentException("nodesPerZone must be greater than 0");
+
+        var currentZone = 0;
+        var nodesInCurrentZone = 0;
+        var visited = new HashSet<MazeNode>();
+        var queue = new Queue<MazeNode>();
+
+        // Empieza con el nodo raíz
+        queue.Enqueue(mc.NodeRoot);
+        mc.NodeRoot.Metadata = currentZone;
+        visited.Add(mc.NodeRoot);
+        nodesInCurrentZone = 1;
+
+        while (queue.Count > 0) {
+            var node = queue.Dequeue();
+
+            foreach (var edge in node.GetEdges()) {
+                var neighbor = edge.To;
+                if (visited.Contains(neighbor)) continue;
+
+                // Si llegamos al límite de nodos en la zona actual
+                if (nodesInCurrentZone >= nodesPerZone) {
+                    currentZone++;
+                    nodesInCurrentZone = 0;
+                }
+
+                neighbor.Metadata = currentZone;
+                visited.Add(neighbor);
+                queue.Enqueue(neighbor);
+                nodesInCurrentZone++;
+            }
+        }
+    }
+
+    public static void MarkDoors(MazeGraph mc) {
+        foreach (var node in mc.Nodes.Values) {
+            var nodeZone = (int)node.Metadata!;
+            foreach (var edge in node.GetEdges()) {
+                var neighborZone = (int)edge.To.Metadata!;
+                if (nodeZone != neighborZone) {
+                    // Marca la puerta con el número mayor de zona
+                    var doorNumber = Math.Max(nodeZone, neighborZone);
+                    edge.Metadata = doorNumber;
+                
+                    // Marca también el edge inverso si existe
+                    var reverseEdge = edge.To.GetEdgeTo(node);
+                    if (reverseEdge != null) {
+                        reverseEdge.Metadata = doorNumber;
+                    }
+                }
+            }
+        }
+    }
     public static void MainOld() {
         var seed = 3;
         var rng = new Random(seed);
@@ -115,18 +160,29 @@ public class MazeGraphDemo {
     }
 
     private static void PrintGraph(MazeGraph mc) {
-        var canvas = new TextCanvas();
-        foreach (var node in mc.NodeGrid) {
-            if (node.Value == null) continue;
-            var nodeCanvas = new TextCanvas();
-            nodeCanvas.Write(1, 1, "+");
-            if (node.Value.Up != null) nodeCanvas.Write(1, 0, "|");
-            if (node.Value.Right != null) nodeCanvas.Write(2, 1, "-");
-            if (node.Value.Down != null) nodeCanvas.Write(1, 2, "|");
-            if (node.Value.Left != null) nodeCanvas.Write(0, 1, "-");
+        var allCanvas = new TextCanvas();
+        foreach (var dataCell in mc.NodeGrid) {
+            var node = dataCell.Value;
+            if (node == null) continue;
+            var canvas = new TextCanvas("""
+                                        ███
+                                        ███
+                                        ███
+                                        """);
+            canvas.Write(1, 1, "+"); // node.Metadata?.ToString());
+            if (node.Up != null) canvas.Write(1, 0, "|");
+            if (node.Right != null) canvas.Write(2, 1, "-");
+            if (node.Down != null) canvas.Write(1, 2, "|");
+            if (node.Left != null) canvas.Write(0, 1, "-");
 
-            canvas.Write(node.Position.X * 3, node.Position.Y * 3, nodeCanvas.ToString());
+            canvas.Write(1, 1, " "); // node.Metadata?.ToString());
+            if (node.Up != null) canvas.Write(1, 0, " ");
+            if (node.Right != null) canvas.Write(2, 1, " ");
+            if (node.Down != null) canvas.Write(1, 2, " ");
+            if (node.Left != null) canvas.Write(0, 1, " ");
+
+            allCanvas.Write(dataCell.Position.X * 3, dataCell.Position.Y * 3, canvas.ToString());
         }
-        Console.WriteLine(canvas.ToString());
+        Console.WriteLine(allCanvas.ToString());
     }
 }

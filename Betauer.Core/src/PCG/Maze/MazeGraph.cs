@@ -172,7 +172,8 @@ public class MazeGraph {
     public int Height { get; }
     public Array2D<MazeNode> NodeGrid { get; }
     public Dictionary<int, MazeNode> Nodes { get; } = [];
-    public Func<Vector2I, bool> IsValid { get; }
+    public MazeNode NodeRoot { get; private set; }
+    public Func<Vector2I, bool> IsValid { get; set;  }
 
     public event Action<MazeNodeEdge>? OnConnect;
     public event Action<MazeNode>? OnCreateNode;
@@ -225,55 +226,61 @@ public class MazeGraph {
         if (to == null) return;
         _ConnectNode(from, direction, to);
         if (twoWays) _ConnectNode(to, direction.Inverse(), from);
-        
     }
-        
+
     private void _ConnectNode(MazeNode from, Vector2I direction, MazeNode to) {
         if (from.HasEdgeTo(direction, to)) return;
         var edge = from.SetEdge(direction, to);
         OnConnect?.Invoke(edge);
     }
-
+    
     /// <summary>
     /// Grows a maze from a starting position using the specified constraints.
     /// </summary>
     /// <param name="start">Starting position for the maze generation.</param>
     /// <param name="constraints">Constraints for the maze generation.</param>
+    /// <param name="backtracker">A function to locate the next cell to backtrack. By default, it takes the last one (LIFO)</param>
     /// <returns>The number of paths created.</returns>
-    public void Grow(Vector2I start, MazeConstraints constraints) {
+    public void Grow(Vector2I start, MazeConstraints constraints, Func<List<MazeNode>, MazeNode>? backtracker = null) {
         ArgumentNullException.ThrowIfNull(constraints);
         if (!IsValid(start)) throw new ArgumentException("Invalid start position", nameof(start));
+
+        NodeRoot = null;
+        NodeGrid.Fill(null);
+        Nodes.Clear();
+        _lastId = 0;
+
         var maxTotalCells = constraints.MaxTotalCells == -1 ? int.MaxValue : constraints.MaxTotalCells;
         var maxCellsPerPath = constraints.MaxCellsPerPath == -1 ? int.MaxValue : constraints.MaxCellsPerPath;
         var maxTotalPaths = constraints.MaxPaths == -1 ? int.MaxValue : constraints.MaxPaths;
         if (maxTotalCells == 0 || maxCellsPerPath == 0 || maxTotalPaths == 0) return;
 
-        var usedNodes = new Stack<Vector2I>();
+        // var usedNodes = new Stack<Vector2I>();
+        var usedNodes = new List<MazeNode>();
         Vector2I? lastDirection = null;
 
         var pathsCreated = 0;
         var totalNodesCreated = 1;
         var nodesCreatedInCurrentPath = 1;
 
-        GetOrCreateNode(start);
-        usedNodes.Push(start);
+        var currentNode = NodeRoot = GetOrCreateNode(start);
+        usedNodes.Add(NodeRoot);
         while (usedNodes.Count > 0) {
-            var currentPos = usedNodes.Peek();
-            var currentNode = GetNode(currentPos)!;
 
-            var availableDirections = GetAvailableDirections(currentPos);
-
+            var availableDirections = GetAvailableDirections(currentNode.Position);
+            
             if (availableDirections.Count == 0 || nodesCreatedInCurrentPath >= maxCellsPerPath || totalNodesCreated == maxTotalCells) {
-                // stop carving, backtracking
-                usedNodes.Pop();
+                // path stopped, backtracking
+                usedNodes.Remove(currentNode);
                 if (usedNodes.Count > 0) {
-                    var nextCell = usedNodes.Peek();
-                    if (GetAvailableDirections(nextCell).Count == 0) {
+                    currentNode = backtracker?.Invoke(usedNodes) ?? usedNodes[usedNodes.Count -1];
+                    if (GetAvailableDirections(currentNode.Position).Count == 0) {
                         continue;
                     }
                 }
+                // No more nodes to backtrack (end of the path and the maze) or next node has no available directions (end of the path)
                 pathsCreated++;
-                Console.WriteLine($"Path #{pathsCreated} finished: Cells: {nodesCreatedInCurrentPath}");
+                // Console.WriteLine($"Path #{pathsCreated} finished: Cells: {nodesCreatedInCurrentPath}");
                 if (pathsCreated == maxTotalPaths || totalNodesCreated == maxTotalCells) break;
                 nodesCreatedInCurrentPath = 1;
                 lastDirection = null;
@@ -287,24 +294,25 @@ public class MazeGraph {
             var nextDir = constraints.DirectionSelector(validCurrentDir, availableDirections);
             lastDirection = nextDir;
 
-            var nextPos = currentPos + nextDir;
+            var nextPos = currentNode.Position + nextDir;
             var nextNode = GetOrCreateNode(nextPos);
             nextNode.Parent = currentNode;
             ConnectNode(currentNode, nextDir, true);
-            usedNodes.Push(nextPos);
+            usedNodes.Add(nextNode);
             totalNodesCreated++;
             nodesCreatedInCurrentPath++;
-        }
-        Console.WriteLine("Cells created: " + totalNodesCreated + " Paths created: " + pathsCreated);
-    }
 
+            currentNode = nextNode;
+        }
+        // Console.WriteLine("Cells created: " + totalNodesCreated + " Paths created: " + pathsCreated);
+    }
 
     private readonly List<Vector2I> _availableDirections = new(4);
 
-    private List<Vector2I> GetAvailableDirections(Vector2I currentPos) {
+    private List<Vector2I> GetAvailableDirections(Vector2I pos) {
         _availableDirections.Clear();
         foreach (var dir in Array2D.Directions) {
-            var target = currentPos + dir;
+            var target = pos + dir;
             if (Geometry.IsPointInRectangle(target.X, target.Y, 0, 0, Width, Height) &&
                 IsValid(target) &&
                 GetNode(target) == null) {
