@@ -36,6 +36,8 @@ public class MZDungeonGenerator  {
         bossRoomLocked = GenerateGoal = true;
     }
 
+    public Action OnAdd { get; set; }
+
     public void SetMaxRetries(int maxRetries) {
         this.maxRetries = maxRetries;
     }
@@ -214,7 +216,7 @@ public class MZDungeonGenerator  {
 
             // Find an existing room with a free edge:
             MZRoom parentRoom = null;
-            if (!doLock && random.Next(0, 10) > 0)
+            if (!doLock && random.Next(0, 10) > 0) 
                 parentRoom = ChooseRoomWithFreeEdge(levels.GetRooms(keyLevel),
                     keyLevel);
             if (parentRoom == null) {
@@ -237,6 +239,8 @@ public class MZDungeonGenerator  {
             parentRoom.AddChild(room);
             dungeon.Link(parentRoom, room, doLock ? latestKey : null);
             levels.AddRoom(keyLevel, room);
+            
+            OnAdd?.Invoke();
         }
     }
     
@@ -287,6 +291,7 @@ public class MZDungeonGenerator  {
 
         if (goalRoom != null) goalRoom.SetItem(goalSym);
         bossRoom.SetItem(bossSym);
+        OnAdd?.Invoke();
 
         int oldKeyLevel = bossRoom.GetPrecond().GetKeyLevel(),
             newKeyLevel = Math.Min(levels.KeyCount(), constraints.GetMaxKeys());
@@ -493,6 +498,7 @@ public class MZDungeonGenerator  {
                     // both rooms are at the same keyLevel.
                     if (random.NextDouble() < constraints.EdgeGraphifyProbability(room.id, nextRoom.id)) {
                         dungeon.Link(room, nextRoom);
+                        OnAdd?.Invoke();
                     }
                 } else {
                     MZSymbol difference = room.GetPrecond().SingleSymbolDifference(nextRoom.GetPrecond());
@@ -502,6 +508,7 @@ public class MZDungeonGenerator  {
                         continue;
 
                     dungeon.Link(room, nextRoom, difference);
+                    OnAdd?.Invoke();
                 }
             }
         }
@@ -535,6 +542,7 @@ public class MZDungeonGenerator  {
             foreach (MZRoom room in rooms) {
                 if (room.GetItem() == null && constraints.RoomCanFitItem(room.id, keySym)) {
                     room.SetItem(keySym);
+                    OnAdd?.Invoke();
                     placedKey = true;
                     break;
                 }
@@ -695,17 +703,21 @@ public class MZDungeonGenerator  {
                         }
                     }
                 }
+                OnAdd?.Invoke();
 
                 // Place the boss and goal rooms:
                 PlaceBossGoalRooms(levels);
+                OnAdd?.Invoke();
 
                 // Place switches and the locks that require it:
                 PlaceSwitches();
+                OnAdd?.Invoke();
 
                 ComputeIntensity(levels);
 
                 // Place the keys within the dungeon:
                 PlaceKeys(levels);
+                OnAdd?.Invoke();
 
                 if (levels.KeyCount()-1 != constraints.GetMaxKeys())
                     throw new RetryException();

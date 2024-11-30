@@ -31,31 +31,25 @@ public class MetazeldaDemo {
         constraints.SetMaxSpaces(25);
 
         var generator = new MZDungeonGenerator(5, constraints);
+        generator.OnAdd = () => {
+            PrintMaze(width, height, generator);
+        };
         generator.Generate();
 
+        PrintMaze(width, height, generator);
+    }
+
+    private static void PrintMaze(int width, int height, MZDungeonGenerator generator) {
         var dungeon = generator.GetMZDungeon();
 
         var map = new Dictionary<Vector2I, MZRoom>();
         dungeon.GetRooms().ForEach(room => map[room.GetCenter()] = room);
 
-        var solution = generator.GetSolutionPath();
-        solution.Reverse();
-
-        // PrintRoomChildren(dungeon.FindStart(), 0);
-
         var str = new TextCanvas();
         for (var y = 0; y < width; y++) {
             for (var x = 0; x < height; x++) {
                 var r = PrintRoom(map.ContainsKey(new Vector2I(x, y)) ? map[new Vector2I(x, y)] : null);
-                try {
-                    str.Write(x * boxWidth, y * boxHeight, r);
-                } catch (Exception e) {
-                    Console.WriteLine(e);
-                    Console.WriteLine(str.GetText().Trim());
-                    Console.WriteLine($"Error at {x}, {y}");
-                    Console.WriteLine(r);
-                    throw;
-                }
+                str.Write(x * boxWidth, y * boxHeight, r);
             }
         }
 
@@ -123,7 +117,8 @@ public class MetazeldaDemo {
             }
             str.WriteCentered(boxWidth / 2, 2, c);
         }
-        str.Write(0, 1, room.id.ToString());
+        
+        str.Write(0, 1, room.GetPrecond().GetKeyLevel().ToString());
 
         return str.GetText();
     }
