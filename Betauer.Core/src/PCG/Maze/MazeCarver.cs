@@ -66,7 +66,7 @@ public class MazeCarver {
     /// <param name="backtracker">A function to locate the next cell to backtrack. By default, it takes the last one (LIFO)</param>
     /// <returns>The number of cells carved during maze generation.</returns>
     /// <exception cref="ArgumentNullException">Thrown when constraints is null.</exception>
-    public void Grow(Vector2I start, MazeConstraints constraints, Func<List<Vector2I>, Vector2I>? backtracker = null) {
+    public void Grow(Vector2I start, BacktrackConstraints constraints, Func<List<Vector2I>, Vector2I>? backtracker = null) {
         ArgumentNullException.ThrowIfNull(constraints);
         if (IsCarved(start)) return;
         var maxTotalCells = constraints.MaxTotalCells == -1 ? int.MaxValue : constraints.MaxTotalCells;

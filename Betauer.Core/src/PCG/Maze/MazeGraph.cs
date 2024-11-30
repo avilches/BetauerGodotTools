@@ -241,7 +241,7 @@ public class MazeGraph {
     /// <param name="constraints">Constraints for the maze generation.</param>
     /// <param name="backtracker">A function to locate the next cell to backtrack. By default, it takes the last one (LIFO)</param>
     /// <returns>The number of paths created.</returns>
-    public void Grow(Vector2I start, MazeConstraints constraints, Func<List<MazeNode>, MazeNode>? backtracker = null) {
+    public void Grow(Vector2I start, BacktrackConstraints constraints, Func<List<MazeNode>, MazeNode>? backtracker = null) {
         ArgumentNullException.ThrowIfNull(constraints);
         if (!IsValid(start)) throw new ArgumentException("Invalid start position", nameof(start));
 
@@ -273,7 +273,7 @@ public class MazeGraph {
                 // path stopped, backtracking
                 usedNodes.Remove(currentNode);
                 if (usedNodes.Count > 0) {
-                    currentNode = backtracker?.Invoke(usedNodes) ?? usedNodes[usedNodes.Count -1];
+                    currentNode = backtracker != null ? backtracker.Invoke(usedNodes) : usedNodes[usedNodes.Count -1];
                     if (GetAvailableDirections(currentNode.Position).Count == 0) {
                         continue;
                     }

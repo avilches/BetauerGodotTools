@@ -11,10 +11,10 @@ public class MazeCarverDemo {
         var seed = 3;
         var rng = new Random(seed);
 
-        const int width = 21, height = 21;
+        const int width = 17, height = 17;
         var maze = new Array2D<bool>(width, height, false);
         var mc = MazeCarver.Create(maze);
-        var start = new Vector2I(5, 5);
+        var start = new Vector2I(1, 1);
         mc.OnCarve += (i) => {
             // Console.WriteLine(PrintMaze(template));
         };
@@ -25,7 +25,7 @@ public class MazeCarverDemo {
 
         // 5 cells per path
         maze.Fill(false);
-        mc.Grow(start, MazeConstraints.CreateWindy(0f, rng)
+        mc.Grow(start, BacktrackConstraints.CreateWindy(0f, rng)
             .With(c => {
                 // c.MaxTotalCells = 141;
                 // c.MaxCellsPerPath = 15;
@@ -40,7 +40,7 @@ public class MazeCarverDemo {
         // 3 paths only
         col++;
         maze.Fill(false);
-        mc.Grow(start, MazeConstraints.CreateWindy(0f, rng)
+        mc.Grow(start, BacktrackConstraints.CreateWindy(0f, rng)
             .With(c => {
                 c.MaxPaths = 3;
                 // c.MaxCellsPerPath = 9;
@@ -54,7 +54,7 @@ public class MazeCarverDemo {
         // Windy 0.5
         col++;
         maze.Fill(false);
-        mc.Grow(start, MazeConstraints.CreateWindy(0.5f, rng)
+        mc.Grow(start, BacktrackConstraints.CreateWindy(0.5f, rng)
             .With(c => c.MaxPaths = 3));
         canvas.Write(col * width, row * height, PrintMaze(maze));
         canvas.Write(col * width, row * height, "Windy 0.5");
@@ -62,7 +62,7 @@ public class MazeCarverDemo {
         // Windy 1
         col++;
         maze.Fill(false);
-        mc.Grow(start, MazeConstraints.CreateWindy(1f, rng)
+        mc.Grow(start, BacktrackConstraints.CreateWindy(1f, rng)
             .With(c => c.MaxPaths = 2));
         canvas.Write(col * width, row * height, PrintMaze(maze));
         canvas.Write(col * width, row * height, "Windy 1");
@@ -72,28 +72,28 @@ public class MazeCarverDemo {
 
         // Vertical
         maze.Fill(false);
-        mc.Grow(start, MazeConstraints.CreateVerticalBias(1f, rng));
+        mc.Grow(start, BacktrackConstraints.CreateVerticalBias(1f, rng));
         canvas.Write(col * width, row * height, PrintMaze(maze));
         canvas.Write(col * width, row * height, "Vertical");
 
         // Horizontal
         col++;
         maze.Fill(false);
-        mc.Grow(start, MazeConstraints.CreateHorizontalBias(1f, rng));
+        mc.Grow(start, BacktrackConstraints.CreateHorizontalBias(1f, rng));
         canvas.Write(col * width, row * height, PrintMaze(maze));
         canvas.Write(col * width, row * height, "Horizontal");
 
         // Clockwise
         col++;
         maze.Fill(false);
-        mc.Grow(start, MazeConstraints.CreateClockwiseBias(1f, rng));
+        mc.Grow(start, BacktrackConstraints.CreateClockwiseBias(1f, rng));
         canvas.Write(col * width, row * height, PrintMaze(maze));
         canvas.Write(col * width, row * height, "Clockwise");
 
         // CounterClockwise
         col++;
         maze.Fill(false);
-        mc.Grow(start, MazeConstraints.CreateCounterClockwiseBias(1f, rng));
+        mc.Grow(start, BacktrackConstraints.CreateCounterClockwiseBias(1f, rng));
         canvas.Write(col * width, row * height, PrintMaze(maze));
         canvas.Write(col * width, row * height, "CounterClockwise");
 

@@ -26,7 +26,7 @@ public class DungeonDemo {
             for (var x = 1; x < mc.Width; x += 2) {
                 var pos = new Vector2I(x, y);
                 if (!mc.IsCarved(pos)) {
-                    mc.Grow(pos, MazeConstraints.CreateWindy(0.7f, random).With(c => c.MaxPaths = 1));
+                    mc.Grow(pos, BacktrackConstraints.CreateWindy(0.7f, random).With(c => c.MaxPaths = 1));
                 }
             }
         }
