@@ -37,8 +37,8 @@ public class MazeGraphDungeonDemo {
                     ··········
                     ··######··
                     ·#########
-                    ·####o####
                     ·#########
+                    ·####o####
                     ···##·###·
                     """;
 
@@ -47,15 +47,21 @@ public class MazeGraphDungeonDemo {
             IsValid = pos => template[pos] != '·'
         };
         var start = template.FirstOrDefault(dataCell => dataCell.Value == 'o')!.Position;
-        mc.OnCreateNode += (i) => {
+        mc.OnConnect += (i) => {
             PrintGraph(mc);
         };
 
-        mc.GrowZoned(start, 8,-1, rng); //, list => rng.Next(list));
+        // mc.GrowZoned(start, new MazeZonedConstraints(100, 200).SetNodesPerZones(9), rng);
+        mc.GrowZoned(start, new MazePerZoneConstraints()
+            .Zone(0, 4)
+            .Zone(1, 1)
+            .Zone(2, 2)
+            .Zone(3, 3)
+            .Zone(4, 4)
+            .Zone(5, 5)
+            .Zone(1, 1), rng); 
 
         // ConnectNodes(template, mc);
-
-        CreateZones(mc, 8);
 
         PrintGraph(mc);
     }
@@ -75,42 +81,6 @@ public class MazeGraphDungeonDemo {
                 mc.ConnectNode(from, Vector2I.Up, true);
                 mc.ConnectNode(from, Vector2I.Down, true);
             });
-    }
-
-    public static void CreateZones(MazeGraph mc, int nodesPerZone) {
-        if (mc.NodeGridRoot == null) return;
-        if (nodesPerZone <= 0) throw new ArgumentException("nodesPerZone must be greater than 0");
-
-        var currentZone = 0;
-        var nodesInCurrentZone = 0;
-        var visited = new HashSet<NodeGrid>();
-        var queue = new Queue<NodeGrid>();
-
-        // Empieza con el nodo raíz
-        queue.Enqueue(mc.NodeGridRoot);
-        mc.NodeGridRoot.Metadata = currentZone;
-        visited.Add(mc.NodeGridRoot);
-        nodesInCurrentZone = 1;
-
-        while (queue.Count > 0) {
-            var node = queue.Dequeue();
-
-            foreach (var edge in node.GetEdges()) {
-                var neighbor = edge.To;
-                if (visited.Contains(neighbor)) continue;
-
-                // Si llegamos al límite de nodos en la zona actual
-                if (nodesInCurrentZone >= nodesPerZone) {
-                    currentZone++;
-                    nodesInCurrentZone = 0;
-                }
-
-                neighbor.Metadata = currentZone;
-                visited.Add(neighbor);
-                queue.Enqueue(neighbor);
-                nodesInCurrentZone++;
-            }
-        }
     }
 
     public static void MarkDoors(MazeGraph mc) {
