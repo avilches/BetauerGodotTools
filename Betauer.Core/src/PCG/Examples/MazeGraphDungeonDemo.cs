@@ -43,21 +43,15 @@ public class MazeGraphDungeonDemo {
                     """;
 
         var template = Array2D.Parse(temp3);
-        var mc = new MazeGraph(template.Width+20, template.Height+10);
-        // mc.IsValid = pos => template[pos] != '·';
+        var mc = new MazeGraph(template.Width, template.Height) {
+            IsValid = pos => template[pos] != '·'
+        };
         var start = template.FirstOrDefault(dataCell => dataCell.Value == 'o')!.Position;
         mc.OnCreateNode += (i) => {
             PrintGraph(mc);
         };
 
-        var constraints = BacktrackConstraints.CreateRandom(rng)
-            .With(c => {
-                // c.MaxTotalCells = 25;
-                // c.MaxCellsPerPath = 10;
-                // c.MaxPaths = 3;
-            });
-
-        mc.Grow(start, constraints); //, list => rng.Next(list));
+        mc.GrowZoned(start, 8,-1, rng); //, list => rng.Next(list));
 
         // ConnectNodes(template, mc);
 
@@ -84,18 +78,18 @@ public class MazeGraphDungeonDemo {
     }
 
     public static void CreateZones(MazeGraph mc, int nodesPerZone) {
-        if (mc.NodeRoot == null) return;
+        if (mc.NodeGridRoot == null) return;
         if (nodesPerZone <= 0) throw new ArgumentException("nodesPerZone must be greater than 0");
 
         var currentZone = 0;
         var nodesInCurrentZone = 0;
-        var visited = new HashSet<MazeNode>();
-        var queue = new Queue<MazeNode>();
+        var visited = new HashSet<NodeGrid>();
+        var queue = new Queue<NodeGrid>();
 
         // Empieza con el nodo raíz
-        queue.Enqueue(mc.NodeRoot);
-        mc.NodeRoot.Metadata = currentZone;
-        visited.Add(mc.NodeRoot);
+        queue.Enqueue(mc.NodeGridRoot);
+        mc.NodeGridRoot.Metadata = currentZone;
+        visited.Add(mc.NodeGridRoot);
         nodesInCurrentZone = 1;
 
         while (queue.Count > 0) {
@@ -143,22 +137,12 @@ public class MazeGraphDungeonDemo {
         foreach (var dataCell in mc.NodeGrid) {
             var node = dataCell.Value;
             if (node == null) continue;
-            var canvas = new TextCanvas("""
-                                        ███
-                                        ███
-                                        ███
-                                        """);
-            canvas.Write(1, 1, "+"); // node.Metadata?.ToString());
+            var canvas = new TextCanvas();
+            canvas.Write(1, 1, node.Metadata?.ToString());
             if (node.Up != null) canvas.Write(1, 0, "|");
             if (node.Right != null) canvas.Write(2, 1, "-");
             if (node.Down != null) canvas.Write(1, 2, "|");
             if (node.Left != null) canvas.Write(0, 1, "-");
-
-            canvas.Write(1, 1, " "); // node.Metadata?.ToString());
-            if (node.Up != null) canvas.Write(1, 0, " ");
-            if (node.Right != null) canvas.Write(2, 1, " ");
-            if (node.Down != null) canvas.Write(1, 2, " ");
-            if (node.Left != null) canvas.Write(0, 1, " ");
 
             allCanvas.Write(dataCell.Position.X * 3, dataCell.Position.Y * 3, canvas.ToString());
         }

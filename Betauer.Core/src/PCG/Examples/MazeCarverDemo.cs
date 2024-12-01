@@ -25,17 +25,19 @@ public class MazeCarverDemo {
 
         // 5 cells per path
         maze.Fill(false);
-        mc.Grow(start, BacktrackConstraints.CreateWindy(0f, rng)
-            .With(c => {
-                // c.MaxTotalCells = 141;
-                // c.MaxCellsPerPath = 15;
-                // c.MaxPaths = 1;
-            }));
-        Console.WriteLine("--");
+        mc.GrowRandom(start, -1, rng);
         canvas.Write(col * width, row * height, PrintMaze(maze));
-        // canvas.Write(col * width, row * height, "5 cells per path");
-        Console.WriteLine(canvas.ToString());
-        return;
+        canvas.Write(col * width, row * height, "Random backtrack");
+
+        // 5 cells per path
+        col++;
+        maze.Fill(false);
+        mc.Grow(start, BacktrackConstraints.CreateRandom(rng)
+            .With(c => {
+                c.MaxCellsPerPath = 5;
+            }));
+        canvas.Write(col * width, row * height, PrintMaze(maze));
+        canvas.Write(col * width, row * height, "5 cells per path");
 
         // 3 paths only
         col++;
@@ -67,8 +69,7 @@ public class MazeCarverDemo {
         canvas.Write(col * width, row * height, PrintMaze(maze));
         canvas.Write(col * width, row * height, "Windy 1");
 
-        row++;
-        col = 0;
+        col++;
 
         // Vertical
         maze.Fill(false);
