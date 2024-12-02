@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Betauer.Core.DataMath;
 using Betauer.Core.PCG.Maze;
+using Betauer.Core.PCG.Maze.Zoned;
 using Godot;
 
 namespace Betauer.Core.PCG.Examples;
@@ -38,8 +39,6 @@ public class MazeGraphDungeonDemo {
                     ··######··
                     ·#########
                     ·#########
-                    ·#########
-                    ·#########
                     ·####o####
                     ·#########
                     ·#########
@@ -48,21 +47,37 @@ public class MazeGraphDungeonDemo {
                     """;
 
         var template = Array2D.Parse(temp3);
-        var mc = new MazeGraph(template.Width, template.Height) {
+        var mc = new MazeGraphZoned(template.Width, template.Height) {
             IsValid = pos => template[pos] != '·'
         };
         var start = template.FirstOrDefault(dataCell => dataCell.Value == 'o')!.Position;
         mc.OnConnect += (i) => {
-            PrintGraph(mc);
+            // PrintGraph(mc);
         };
 
-        // mc.GrowZoned(start, new MazeZonedConstraints(100, 200).SetNodesPerZones(9), rng);
-        mc.GrowZoned(start, new MazePerZoneConstraints()
-            .Zone(0, 4, 0, 1)
-            .Zone(1, 4, 1, 3)
-            .Zone(2, 4, 3, 0)
-            , rng); 
+        mc.GrowZoned(start, new MazeZonedConstraints(4, 200)
+            // .SetNodesPerZones(5)
+            .SetRandomNodesPerZone(2, 5, rng)
+            .SetPartsPerZone(2)
+            .SetMaxDoorsOut(2), rng);
+        PrintGraph(mc);
 
+        for (int i = 0; i < 1; i++) {
+            mc.GrowZoned(start, new MazePerZoneConstraints()
+                    .Zone(0, 10)
+                    .Zone(1, 6, 1, 1)
+                    .Zone(2, 2, 1, 0)
+                    .Zone(3, 5, 4)
+                    .Zone(4, 3)
+                    .Zone(5, 4)
+                    .Zone(6, 4, 2)
+                    .Zone(7, 4)
+                    .Zone(8, 3, 2)
+                    .Zone(9, 3, 1, 0)
+                    // .Zone(4, 3, 1, 0)
+                , rng);
+
+        }
         // ConnectNodes(template, mc);
 
         PrintGraph(mc);

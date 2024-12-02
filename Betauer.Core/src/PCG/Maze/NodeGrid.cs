@@ -29,14 +29,14 @@ public class NodeGrid {
     /// <summary>
     /// Represents a node in the maze graph, containing connections to adjacent nodes.
     /// </summary>
-    internal NodeGrid(MazeGraph mazeGraph, int id, Vector2I position) {
+    internal NodeGrid(BaseMazeGraph mazeGraph, int id, Vector2I position) {
         _position = position;
         MazeGraph = mazeGraph;
         Id = id;
         Position = position;
     }
 
-    public MazeGraph MazeGraph { get; }
+    public BaseMazeGraph MazeGraph { get; }
     public int Id { get; }
     public Vector2I Position { get; }
     public NodeGrid? Parent { get; set; }
