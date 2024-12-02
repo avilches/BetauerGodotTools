@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 
 namespace Betauer.Core.PCG.Maze;
@@ -8,7 +9,7 @@ public interface IMazeZonedConstraints {
     int MaxZones { get; }
     int MaxTotalNodes { get; }
     int GetNodesPerZone(int currentZone);
-    int GetMaxDoorsIn(int currentZone);
+    int GetDoorsIn(int currentZone);
     int GetMaxDoorsOut(int currentZone);
 }
 
@@ -29,7 +30,7 @@ public class MazeZonedConstraints(int maxZones) : IMazeZonedConstraints {
         return NodesPerZone[Math.Min(zone, NodesPerZone.Length - 1)];
     }
 
-    public int GetMaxDoorsIn(int zone) {
+    public int GetDoorsIn(int zone) {
         return MaxDoorsIn;
     }
 
@@ -61,15 +62,18 @@ public class MazePerZoneConstraints(int maxTotalNodes = -1) : IMazeZonedConstrai
 
     public int MaxZones => Zones.Count;
 
-    public MazePerZoneConstraints Zone(int zone, int nodes, int maxDoorsIn = 2, int maxDoorsOut = 2) {
-        if (nodes < 1) throw new ArgumentException($"Nodes must be greater than 1: {nodes}");
+    public MazePerZoneConstraints Zone(int zone, int nodes, int doorsIn = 2, int maxDoorsOut = 2) {
+        if (nodes < 1) throw new ArgumentException($"nodes must be greater than 1: {nodes}");
+        if (zone > 0 && doorsIn < 1) throw new ArgumentException($"doorsIn {doorsIn }must be greater than 1 for zones greater than 0");
+        if (zone == 0 && doorsIn != 0) throw new ArgumentException($"doorsIn must be 0 for zone 0: {doorsIn}");
+        if (doorsIn > nodes) throw new ArgumentException($"doorsIn must be less than nodes: {doorsIn}");
         if (zone == Zones.Count) {
-            Zones.Add(new MazeZone(nodes, maxDoorsIn, maxDoorsOut));
+            Zones.Add(new MazeZone(nodes, doorsIn, maxDoorsOut));
         } else if (zone < Zones.Count) {
-            Zones[zone] = new MazeZone(nodes, maxDoorsIn, maxDoorsOut);
+            Zones[zone] = new MazeZone(nodes, doorsIn, maxDoorsOut);
         } else {
             while (Zones.Count <= zone) {
-                Zones.Add(new MazeZone(nodes, maxDoorsIn, maxDoorsOut));
+                Zones.Add(new MazeZone(nodes, doorsIn, maxDoorsOut));
             }
         } 
         return this;
@@ -79,8 +83,8 @@ public class MazePerZoneConstraints(int maxTotalNodes = -1) : IMazeZonedConstrai
         return Zones[zone].Nodes;
     }
 
-    public int GetMaxDoorsIn(int zone) {
-        return Zones[zone].MaxDoorsIn;
+    public int GetDoorsIn(int zone) {
+        return Zones[zone].DoorsIn;
     }
 
     public int GetMaxDoorsOut(int zone) {
@@ -94,9 +98,9 @@ public class MazePerZoneConstraints(int maxTotalNodes = -1) : IMazeZonedConstrai
     
 }
 
-public class MazeZone(int nodes, int maxDoorsIn, int maxDoorsOut) {
+public class MazeZone(int nodes, int doorsIn, int maxDoorsOut) {
     public int Nodes { get; set; } = nodes;
-    public int MaxDoorsIn { get; set; } = maxDoorsIn;
+    public int DoorsIn { get; set; } = doorsIn;
     public int MaxDoorsOut { get; set; } = maxDoorsOut;
 }
 
@@ -206,10 +210,12 @@ public partial class MazeGraph {
     }
 
 
-    private struct Zone(int id) {
+    private class Zone(int id) {
         internal int Id = id;
         internal int Nodes = 0;
         internal List<NodeGrid> PendingNodes = new();
+        internal int DoorsIn = 0;
+        internal int DoorsOut = 0;
 
     }
     public void GrowZoned(Vector2I start, IMazeZonedConstraints constraints, Random? rng = null) {
@@ -225,8 +231,9 @@ public partial class MazeGraph {
         rng ??= new Random();
 
         NodeGridRoot = GetOrCreateNode(start);
-        NodeGridRoot.Metadata = 0;
+        NodeGridRoot.Zone = 0;
 
+        var zones = new List<Zone>();
         var globalZone = new Zone(-1);
         globalZone.PendingNodes.Add(NodeGridRoot);
         globalZone.Nodes = 1;
@@ -234,32 +241,56 @@ public partial class MazeGraph {
         var currentZone = constraints.GetNodesPerZone(0) == 1 
             ? new Zone(1) { Nodes = 0 }
             : new Zone(0) { Nodes = 1, PendingNodes = [NodeGridRoot] };
+        
+        zones.Add(currentZone);
                 
-        while (globalZone.PendingNodes.Count > 0 && globalZone.Nodes < maxTotalNodes && currentZone.Id < constraints.MaxZones) {
+        while (globalZone.Nodes < maxTotalNodes && currentZone.Id < constraints.MaxZones) {
             // Pick a random node from current zone. If the zone has no pending nodes, pick from all pending nodes
-            var currentNode = rng.Next(currentZone.PendingNodes.Count > 0 ? currentZone.PendingNodes : globalZone.PendingNodes);
+            NodeGrid currentNode = null!;
+            var expanding = currentZone.DoorsIn == constraints.GetDoorsIn(currentZone.Id);
+            if (expanding) {
+                if (currentZone.PendingNodes.Count == 0) throw new Exception($"No more free nodes in the zone {currentZone.Id} to expand");
+                currentNode = rng.Next(currentZone.PendingNodes);
+            } else {
+                if (globalZone.PendingNodes.Count == 0) throw new Exception($"No more free nodes in the maze to open new doors to the the zone {currentZone.Id}");
+                currentNode = rng.Next(globalZone.PendingNodes);
+            }
+            
             var availableDirections = GetAvailableDirections(currentNode.Position);
-
+            
             if (availableDirections.Count > 0) {
+                var oldZone = currentNode.Zone;
+                if (oldZone != currentZone.Id) {
+                    // New zone connection
+                    zones[oldZone].DoorsOut++;
+                    currentZone.DoorsIn++;
+                    if (expanding) Console.WriteLine("Mal");
+                } else {
+                    // expanding: same zone connection
+                    if (!expanding) Console.WriteLine("Mal");
+                }
                 var nextDir = rng.Next(availableDirections);
                 var nextPos = currentNode.Position + nextDir;
-                var nextNode = GetOrCreateNode(nextPos);
-                nextNode.Parent = currentNode;
-                nextNode.Metadata = currentZone.Id;
+                var newNode = GetOrCreateNode(nextPos);
+                newNode.Parent = currentNode;
+                newNode.Zone = currentZone.Id;
                 ConnectNode(currentNode, nextDir, true);
-                OnCreateNode?.Invoke(nextNode);
-                globalZone.PendingNodes.Add(nextNode);
+                globalZone.PendingNodes.Add(newNode);
                 globalZone.Nodes++;
-                currentZone.PendingNodes.Add(nextNode);
+                currentZone.PendingNodes.Add(newNode);
                 currentZone.Nodes++;
                 if (currentZone.Nodes >= constraints.GetNodesPerZone(currentZone.Id)) {
                     currentZone = new Zone(currentZone.Id + 1);
+                    zones.Add(currentZone);
                 }
             } else {
                 // invalid node, removing from the zone and from the global pending nodes
                 globalZone.PendingNodes.Remove(currentNode);
                 currentZone.PendingNodes.Remove(currentNode);
             }
+        }
+        foreach (var zone in zones) {
+            Console.WriteLine("Zone "+zone.Id+" Nodes: "+zone.Nodes+" DoorsIn: "+zone.DoorsIn+" DoorsOut: "+zone.DoorsOut);
         }
     }
 }

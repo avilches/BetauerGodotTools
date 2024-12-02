@@ -44,7 +44,8 @@ public class NodeGrid {
     public NodeGridEdge? Right { get; private set; }
     public NodeGridEdge? Down { get; private set; }
     public NodeGridEdge? Left { get; private set; }
-    public object? Metadata { get; set; }
+    public int Zone { get; set; }
+    // public object? Metadata { get; set; }
 
     /// <summary>
     /// Creates a connection between this node and another node in the specified direction.

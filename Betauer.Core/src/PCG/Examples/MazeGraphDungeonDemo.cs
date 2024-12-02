@@ -38,7 +38,12 @@ public class MazeGraphDungeonDemo {
                     ··######··
                     ·#########
                     ·#########
+                    ·#########
+                    ·#########
                     ·####o####
+                    ·#########
+                    ·#########
+                    ·#########
                     ···##·###·
                     """;
 
@@ -53,13 +58,10 @@ public class MazeGraphDungeonDemo {
 
         // mc.GrowZoned(start, new MazeZonedConstraints(100, 200).SetNodesPerZones(9), rng);
         mc.GrowZoned(start, new MazePerZoneConstraints()
-            .Zone(0, 4)
-            .Zone(1, 1)
-            .Zone(2, 2)
-            .Zone(3, 3)
-            .Zone(4, 4)
-            .Zone(5, 5)
-            .Zone(1, 1), rng); 
+            .Zone(0, 2, 0, 1)
+            .Zone(1, 1, 1, 3)
+            .Zone(2, 3, 3, 0)
+            , rng); 
 
         // ConnectNodes(template, mc);
 
@@ -85,9 +87,9 @@ public class MazeGraphDungeonDemo {
 
     public static void MarkDoors(MazeGraph mc) {
         foreach (var node in mc.Nodes.Values) {
-            var nodeZone = (int)node.Metadata!;
+            var nodeZone = node.Zone;
             foreach (var edge in node.GetEdges()) {
-                var neighborZone = (int)edge.To.Metadata!;
+                var neighborZone = edge.To.Zone;
                 if (nodeZone != neighborZone) {
                     // Marca la puerta con el número mayor de zona
                     var doorNumber = Math.Max(nodeZone, neighborZone);
@@ -108,7 +110,7 @@ public class MazeGraphDungeonDemo {
             var node = dataCell.Value;
             if (node == null) continue;
             var canvas = new TextCanvas();
-            canvas.Write(1, 1, node.Metadata?.ToString());
+            canvas.Write(1, 1, node.Zone.ToString());
             if (node.Up != null) canvas.Write(1, 0, "|");
             if (node.Right != null) canvas.Write(2, 1, "-");
             if (node.Down != null) canvas.Write(1, 2, "|");
