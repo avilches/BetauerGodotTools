@@ -1,15 +1,17 @@
 using System;
 using System.Linq;
 
-namespace Betauer.Core.PCG.Maze;
+namespace Betauer.Core.PCG.Maze.Zoned;
 
 public class MazeZonedConstraints(int maxZones) : IMazeZonedConstraints {
     public int MaxZones { get; set; } = maxZones;
     public int MaxTotalNodes { get; set; } = -1;
     public int PartsPerZone { get; set; } = 1;
     public int MaxDoorsOut { get; set; } = int.MaxValue;
+    public bool AutoSplitOnExpand { get; set; } = true;
+    public bool Corridors { get; set; } = true;
     public int[] NodesPerZone { get; set; }
-
+    
     public MazeZonedConstraints(int maxZones, int maxTotalNodes) : this(maxZones) {
         if (maxTotalNodes < maxZones) {
             throw new ArgumentException($"Max total nodes {maxTotalNodes} must be greater than max zones {maxZones}");
@@ -18,17 +20,25 @@ public class MazeZonedConstraints(int maxZones) : IMazeZonedConstraints {
         NodesPerZone = [maxTotalNodes / maxZones];
     }
 
-    public int GetNodesPerZone(int zone) {
+    public int GetNodesPerZone(int zoneId) {
         // The array could have fewer elements than maxZones, so we use the last value for the remaining zones
-        return NodesPerZone[Math.Min(zone, NodesPerZone.Length - 1)];
+        return NodesPerZone[Math.Min(zoneId, NodesPerZone.Length - 1)];
     }
 
-    public int GetParts(int zone) {
-        return zone == 0 ? 1 : PartsPerZone;
+    public int GetParts(int zoneId) {
+        return zoneId == 0 ? 1 : PartsPerZone;
     }
 
-    public int GetMaxDoorsOut(int zone) {
-        return zone == MaxZones - 1 ? 0 : MaxDoorsOut;
+    public int GetMaxDoorsOut(int zoneId) {
+        return zoneId == MaxZones - 1 ? 0 : MaxDoorsOut;
+    }
+
+    public bool IsAutoSplitOnExpand(int zoneId) {
+        return AutoSplitOnExpand;
+    }
+
+    public bool IsCorridor(int zoneId) {
+        return Corridors;
     }
 
     public MazeZonedConstraints SetPartsPerZone(int partsPerZone) {
@@ -47,6 +57,16 @@ public class MazeZonedConstraints(int maxZones) : IMazeZonedConstraints {
             throw new ArgumentException($"Wrong maxDoorsOut value: {maxDoorsOut}, it must be greater or equals than 1");
         }
         MaxDoorsOut = maxDoorsOut;
+        return this;
+    }
+
+    public MazeZonedConstraints SetAutoSplitOnExpand(bool autoSplitOnExpand) {
+        AutoSplitOnExpand = autoSplitOnExpand;
+        return this;
+    }
+
+    public MazeZonedConstraints SetCorridors(bool corridors) {
+        Corridors = corridors;
         return this;
     }
 

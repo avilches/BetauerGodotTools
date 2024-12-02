@@ -4,31 +4,14 @@ using Godot;
 
 namespace Betauer.Core.PCG.Maze.Zoned;
 
-public class MazeZone(int nodes, int parts, int maxDoorsOut) {
-    public int Nodes { get; set; } = nodes;
-    public int Parts { get; set; } = parts;
-    public int MaxDoorsOut { get; set; } = maxDoorsOut;
-}
-
-public class Zone(int id) {
-    public int Id { get; internal set; } = id;
-    public int Nodes { get; internal set; } = 0;
-    public List<NodeGrid> AvailableNodes { get; internal set; } = new();
-    public int Parts { get; internal set; } = 0;
-    public int DoorsOut { get; internal set; } = 0;
-}
-
-
 public class MazeGraphZoned(int width, int height, Func<Vector2I, bool>? isValid = null, Action<NodeGrid>? onCreateNode = null, Action<NodeGridEdge>? onConnect = null)
     : MazeGraph(width, height, isValid, onCreateNode, onConnect) {
-    public List<Zone> GrowZoned(Vector2I start, IMazeZonedConstraints constraints, Random? rng = null) {
+    public List<ZoneCreated> GrowZoned(Vector2I start, IMazeZonedConstraints constraints, Random? rng = null) {
         if (!IsValid(start)) {
             throw new ArgumentException("Invalid start position", nameof(start));
         }
         var maxTotalNodes = constraints.MaxTotalNodes == -1 ? int.MaxValue : constraints.MaxTotalNodes;
         if (maxTotalNodes == 0 || constraints.MaxZones == 0) return [];
-
-        ValidateGrowZonedConstraints(constraints);
 
         NodeGridRoot = null;
         NodeGrid.Fill(null);
@@ -37,12 +20,12 @@ public class MazeGraphZoned(int width, int height, Func<Vector2I, bool>? isValid
 
         rng ??= new Random();
 
-        NodeGridRoot = GetOrCreateNode(start);
+        NodeGridRoot = CreateNode(start);
         NodeGridRoot.Zone = 0;
 
-        var zones = new List<Zone>();
-        var globalZone = new Zone(-1) { Nodes = 1 };
-        var currentZone = new Zone(0) { Nodes = 1, Parts = 1, AvailableNodes = [NodeGridRoot] };
+        var zones = new List<ZoneCreated>();
+        var globalZone = new ZoneCreated(constraints, -1) { Nodes = 1 };
+        var currentZone = new ZoneCreated(constraints, 0) { Nodes = 1, Parts = 1, AvailableNodes = [NodeGridRoot] };
         zones.Add(currentZone);
 
         // Special case: when the first zone has a size of 1, we can start with the next zone
@@ -53,77 +36,67 @@ public class MazeGraphZoned(int width, int height, Func<Vector2I, bool>? isValid
             }
             currentZone.AvailableNodes.Clear();
             globalZone.AvailableNodes.Add(NodeGridRoot);
-            currentZone = new Zone(1) { Nodes = 0 };
+            currentZone = new ZoneCreated(constraints, 1) { Nodes = 0 };
             zones.Add(currentZone);
         }
 
-        /*
-         * The loop has two parts for every zone:
-         * - First it creates the parts of the current zone until it reaches the limit of parts. That means creating new nodes connected to any of the global
-         * available nodes (newDoorAdded). When a zone reaches the limit of doors out, the nodes of this zone are remove from the global available nodes.
-         * - Then it expands the current zone until it reaches the limit of nodes per zone. That means creating new nodes connected to the current zone nodes,
-         * using the current zone available nodes.
-         */
-
         while (true) {
-            NodeGrid currentNode = null!;
-            var newPart = currentZone.Parts < constraints.GetParts(currentZone.Id);
-            if (newPart) {
-                // The current zone still doesn't have all the parts: we pick a node from the global to create a new door to the current zone
-                if (globalZone.AvailableNodes.Count == 0) {
-                    throw new NotAvailableNodeException($"No more available nodes in the maze to open new doors to the the zone {currentZone.Id}");
-                }
-                currentNode = rng.Next(globalZone.AvailableNodes);
-                // currentNode = globalZone.AvailableNodes[^1];
-            } else {
-                // Expanding the current zone: we pick a node from the current zone to make the zone bigger
-                if (currentZone.AvailableNodes.Count == 0) {
-                    throw new NotAvailableNodeException($"No more available nodes in the zone {currentZone.Id} to expand");
-                }
-                currentNode = rng.Next(currentZone.AvailableNodes);
-                // currentNode = currentZone.AvailableNodes[^1];
-            }
+            /*
+             * The loop has two parts for every zone:
+             * 1) First it creates the parts of the current zone until all parts are created. A zone part is a set of one or more nodes that are
+             * not connected to other parts of the same zone. Each part will have only one connection to the previous zone. To create a new part,
+             * it first finds a random node from the global available nodes and connect it to a new node of the current part.
+             * After add it, the current zone will have one more part, and the previous zone will have one more door out. If the previous zone reaches
+             * the limit of doors out, the nodes of this zone are remove from the global available nodes.
+             *
+             * The first time we create a new zone, the previous zone nodes will be added to the global available zones if, and only if, the zone had
+             * more than 0 doors out. This ensures the zone will not have any connection (door out) to a new zone.
+             * 
+             * 2) When all parts of the current zone are created, it expands the parts randomly it until the zone reaches the limit of nodes per zone.
+             * To expand the zone, it finds a random node from the current zone available nodes and connect it to a new node.
+             */
+            var (currentNode, newPart) = FindNextNode(constraints, globalZone, currentZone, rng);
 
             var availableDirections = GetAvailableDirections(currentNode.Position);
 
-            if (availableDirections.Count > 0) {
-                if (newPart) {
-                    var oldZone = zones[currentNode.Zone];
-                    oldZone.DoorsOut++;
-                    if (oldZone.DoorsOut >= constraints.GetMaxDoorsOut(oldZone.Id)) {
-                        // We reach the limit of doors out for this zone: removing the available nodes from the global pending nodes,
-                        // so we will not use the nodes from this zone anymore
-                        globalZone.AvailableNodes.RemoveAll(node => node.Zone == oldZone.Id);
-                    }
-                    currentZone.Parts++;
-                }
-                var nextDir = rng.Next(availableDirections);
-                var nextPos = currentNode.Position + nextDir;
-                var newNode = GetOrCreateNode(nextPos);
-                newNode.Parent = currentNode;
-                newNode.Zone = currentZone.Id;
-                ConnectNode(currentNode, nextDir, true);
-                globalZone.Nodes++;
-                if (globalZone.Nodes == maxTotalNodes) break;
-                currentZone.AvailableNodes.Add(newNode);
-                currentZone.Nodes++;
-                if (currentZone.Nodes >= constraints.GetNodesPerZone(currentZone.Id)) {
-                    // The current zone is full, we need to create a new zone
-                    if (currentZone.Id == constraints.MaxZones - 1) {
-                        // last zone, we can't create more zones
-                        break;
-                    }
-                    if (constraints.GetMaxDoorsOut(currentZone.Id) > 0) {
-                        // Only if the new zone has doors out, we add the available nodes from the current zone to the global pending nodes
-                        globalZone.AvailableNodes.AddRange(currentZone.AvailableNodes);
-                    }
-                    currentZone = new Zone(currentZone.Id + 1);
-                    zones.Add(currentZone);
-                }
-            } else {
+            if (availableDirections.Count == 0) {
                 // invalid node, removing from the zone and from the global pending nodes
                 globalZone.AvailableNodes.Remove(currentNode);
                 currentZone.AvailableNodes.Remove(currentNode);
+                continue;
+            }
+            if (newPart) {
+                var previousZone = zones[currentNode.Zone];
+                previousZone.DoorsOut++;
+                if (previousZone.DoorsOut >= previousZone.MaxDoorsOut) {
+                    // We reach the limit of doors out for this zone: removing the available nodes from the global pending nodes,
+                    // so we will not use the nodes from this zone anymore
+                    globalZone.AvailableNodes.RemoveAll(node => node.Zone == previousZone.Id);
+                }
+                currentZone.Parts++;
+            }
+            var nextDir = rng.Next(availableDirections);
+            var nextPos = currentNode.Position + nextDir;
+            var newNode = CreateNode(nextPos, currentNode);
+            newNode.Parent = currentNode;
+            newNode.Zone = currentZone.Id;
+            ConnectNode(currentNode, nextDir, true);
+            globalZone.Nodes++;
+            if (globalZone.Nodes == maxTotalNodes) break;
+            currentZone.AvailableNodes.Add(newNode);
+            currentZone.Nodes++;
+            if (currentZone.Nodes >= constraints.GetNodesPerZone(currentZone.Id)) {
+                // The current zone is full, we need to create a new zone
+                if (currentZone.Id == constraints.MaxZones - 1) {
+                    // last zone, we can't create more zones
+                    break;
+                }
+                if (currentZone.MaxDoorsOut > 0) { // -1 means no limit
+                    // Only if the new zone has doors out, we add the available nodes from the current zone to the global pending nodes
+                    globalZone.AvailableNodes.AddRange(currentZone.AvailableNodes);
+                }
+                currentZone = new ZoneCreated(constraints, currentZone.Id + 1);
+                zones.Add(currentZone);
             }
             // foreach (var zone in zones) {
                 // Console.WriteLine($"Zone {zone.Id} Nodes: {zone.Nodes} Parts: {zone.Parts} DoorsOut: {zone.DoorsOut}/{constraints.GetMaxDoorsOut(zone.Id)}");
@@ -132,22 +105,34 @@ public class MazeGraphZoned(int width, int height, Func<Vector2I, bool>? isValid
         return zones;
     }
 
-    private static void ValidateGrowZonedConstraints(IMazeZonedConstraints constraints) {
-        int totalParts = 0, totalMaxDoorsOut = 0;
-        for (var zone = 0; zone < constraints.MaxZones; zone++) {
-            totalParts += constraints.GetParts(zone);
-            if (zone == constraints.MaxZones - 1) {
-                if (constraints.GetMaxDoorsOut(zone) != 0) {
-                    throw new ArgumentException($"The max doors out for the last zone must be 0. Please, set it to 0");
-                }
-            } else {
-                totalMaxDoorsOut += constraints.GetMaxDoorsOut(zone);
+    private static (NodeGrid currentNode, bool newPart) FindNextNode(IMazeZonedConstraints constraints, ZoneCreated globalZoneCreated, ZoneCreated currentZoneCreated, Random rng) {
+        var newPart = currentZoneCreated.Id != 0 && currentZoneCreated.Parts < constraints.GetParts(currentZoneCreated.Id);
+        if (newPart) {
+            // The current zone still doesn't have all the parts: we pick a random node from the global to create a new door to the current zone
+            if (globalZoneCreated.AvailableNodes.Count == 0) {
+                throw new NotAvailableNodeException($"No more available nodes in the maze to open new doors to the the zone {currentZoneCreated.Id}. Increasing the nodes and maxDoorOut in previous zone could help to solve this issue.");
             }
+            return (rng.Next(globalZoneCreated.AvailableNodes), true);
         }
-        if (totalMaxDoorsOut < totalParts - 1) {
-            throw new ArgumentException($"The sum of max doors out must be greater than the sum of the parts. Please, increase the max doors out by " + (totalParts - totalMaxDoorsOut - 1) + " in any zone except the last one, which must be 0");
+        
+        // Try to expand the current zone
+        if (currentZoneCreated.AvailableNodes.Count > 0) {
+            // Expanding the current zone is possible: we pick a node from the current zone to make the zone bigger
+            return (currentZoneCreated.PickNextNode(rng), false);
         }
+        // Can't expand the current zone. If AutoSplitOnExpand is true, we are allowed create a new part
+        if (constraints.IsAutoSplitOnExpand(currentZoneCreated.Id)) {
+            // AutoSplitOnExpand is enabled!
+            if (globalZoneCreated.AvailableNodes.Count == 0) {
+                // We are allowed, but we can't because there are not available nodes in the global zone...
+                throw new NotAvailableNodeException($"No more available nodes in the maze to open new doors to the the zone {currentZoneCreated.Id} when splitting because AutoSplitOnExpand was enabled. Increasing the nodes and maxDoorOut in previous could will help to solve this issue.");
+            }
+            // AutoSplitOnExpand is enabled and we have available nodes in the global zone: pick a random one to create a new part
+            return (rng.Next(globalZoneCreated.AvailableNodes), true);
+        }
+        if (globalZoneCreated.AvailableNodes.Count > 0) {
+            throw new NotAvailableNodeException($"No more available nodes in the zone {currentZoneCreated.Id} to expand. There was available nodes to create new parts, consider set AutoSplitOnExpand to true for this zone");
+        }
+        throw new NotAvailableNodeException($"No more available nodes in the zone {currentZoneCreated.Id} to expand");
     }
 }
-
-public class NotAvailableNodeException(string message) : Exception(message);

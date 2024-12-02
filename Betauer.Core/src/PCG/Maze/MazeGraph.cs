@@ -36,7 +36,7 @@ public class MazeGraph(int width, int height, Func<Vector2I, bool>? isValid = nu
         var totalNodesCreated = 1;
         var nodesCreatedInCurrentPath = 1;
 
-        var currentNode = NodeGridRoot = GetOrCreateNode(start);
+        var currentNode = NodeGridRoot = CreateNode(start);
         pendingNodes.Add(NodeGridRoot);
         while (pendingNodes.Count > 0) {
             var availableDirections = GetAvailableDirections(currentNode.Position);
@@ -67,7 +67,7 @@ public class MazeGraph(int width, int height, Func<Vector2I, bool>? isValid = nu
             lastDirection = nextDir;
 
             var nextPos = currentNode.Position + nextDir;
-            var nextNode = GetOrCreateNode(nextPos);
+            var nextNode = CreateNode(nextPos);
             nextNode.Parent = currentNode;
             ConnectNode(currentNode, nextDir, true);
             pendingNodes.Add(nextNode);
@@ -93,7 +93,7 @@ public class MazeGraph(int width, int height, Func<Vector2I, bool>? isValid = nu
         rng ??= new Random();
         var pendingNodes = new List<NodeGrid>();
         var totalNodesCreated = 1;
-        NodeGridRoot = GetOrCreateNode(start);
+        NodeGridRoot = CreateNode(start);
         pendingNodes.Add(NodeGridRoot);
         while (pendingNodes.Count > 0 && totalNodesCreated < maxTotalNodes) {
             var currentNode = rng.Next(pendingNodes);
@@ -105,7 +105,7 @@ public class MazeGraph(int width, int height, Func<Vector2I, bool>? isValid = nu
             } else {
                 var nextDir = rng.Next(availableDirections);
                 var nextPos = currentNode.Position + nextDir;
-                var nextNode = GetOrCreateNode(nextPos);
+                var nextNode = CreateNode(nextPos);
                 nextNode.Parent = currentNode;
                 ConnectNode(currentNode, nextDir, true);
                 pendingNodes.Add(nextNode);

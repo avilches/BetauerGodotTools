@@ -8,7 +8,6 @@ using NUnit.Framework;
 namespace Betauer.Core.Tests;
 
 [TestFixture]
-[Only]
 public class NodeGridTests {
     private MazeGraph _graph = null!;
     private NodeGrid _nodeGrid = null!;
@@ -16,7 +15,7 @@ public class NodeGridTests {
     [SetUp]
     public void Setup() {
         _graph = new MazeGraph(10, 10);
-        _nodeGrid = _graph.GetOrCreateNode(new Vector2I(1, 1));
+        _nodeGrid = _graph.CreateNode(new Vector2I(1, 1));
     }
 
     [Test]
@@ -31,7 +30,7 @@ public class NodeGridTests {
 
     [Test]
     public void Connect_CreatesEdge() {
-        var other = _graph.GetOrCreateNode(new Vector2I(1, 0));
+        var other = _graph.CreateNode(new Vector2I(1, 0));
         var edge = _nodeGrid.SetEdge(Vector2I.Up, other);
 
         Assert.Multiple(() => {
@@ -50,7 +49,7 @@ public class NodeGridTests {
 
     [Test]
     public void RemoveEdge_RemovesConnection() {
-        var other = _graph.GetOrCreateNode(new Vector2I(1, 0));
+        var other = _graph.CreateNode(new Vector2I(1, 0));
         _nodeGrid.SetEdge(Vector2I.Up, other);
 
         _nodeGrid.RemoveEdge(Vector2I.Up);
@@ -60,7 +59,7 @@ public class NodeGridTests {
 
     [Test]
     public void HasEdge_ReturnsCorrectValue() {
-        var other = _graph.GetOrCreateNode(new Vector2I(1, 0));
+        var other = _graph.CreateNode(new Vector2I(1, 0));
         _nodeGrid.SetEdge(Vector2I.Up, other);
 
         Assert.Multiple(() => {
@@ -71,7 +70,7 @@ public class NodeGridTests {
 
     [Test]
     public void GetEdge_ReturnsCorrectEdge() {
-        var other = _graph.GetOrCreateNode(new Vector2I(1, 0));
+        var other = _graph.CreateNode(new Vector2I(1, 0));
         var edge = _nodeGrid.SetEdge(Vector2I.Up, other);
 
         Assert.That(_nodeGrid.GetEdge(Vector2I.Up), Is.EqualTo(edge));
@@ -79,7 +78,7 @@ public class NodeGridTests {
 
     [Test]
     public void GetEdgeTo_ReturnsCorrectEdge() {
-        var other = _graph.GetOrCreateNode(new Vector2I(1, 0));
+        var other = _graph.CreateNode(new Vector2I(1, 0));
         var edge = _nodeGrid.SetEdge(Vector2I.Up, other);
 
         Assert.That(_nodeGrid.GetEdgeTo(other), Is.EqualTo(edge));
@@ -87,9 +86,9 @@ public class NodeGridTests {
 
     [Test]
     public void GetChildren_ReturnsCorrectNodes() {
-        var child1 = _graph.GetOrCreateNode(new Vector2I(1, 0));
-        var child2 = _graph.GetOrCreateNode(new Vector2I(2, 1));
-        var nonChild = _graph.GetOrCreateNode(new Vector2I(0, 1));
+        var child1 = _graph.CreateNode(new Vector2I(1, 0));
+        var child2 = _graph.CreateNode(new Vector2I(2, 1));
+        var nonChild = _graph.CreateNode(new Vector2I(0, 1));
         
         child1.Parent = _nodeGrid;
         child2.Parent = _nodeGrid;
@@ -106,8 +105,8 @@ public class NodeGridTests {
 
     [Test]
     public void GetEdges_ReturnsAllConnectedEdges() {
-        var up = _graph.GetOrCreateNode(new Vector2I(1, 0));
-        var right = _graph.GetOrCreateNode(new Vector2I(2, 1));
+        var up = _graph.CreateNode(new Vector2I(1, 0));
+        var right = _graph.CreateNode(new Vector2I(2, 1));
 
         var edgeUp = _nodeGrid.SetEdge(Vector2I.Up, up);
         var edgeRight = _nodeGrid.SetEdge(Vector2I.Right, right);
@@ -123,7 +122,7 @@ public class NodeGridTests {
 
     [Test]
     public void GetDirectionToParent_ReturnsCorrectDirection() {
-        var parent = _graph.GetOrCreateNode(new Vector2I(1, 0));
+        var parent = _graph.CreateNode(new Vector2I(1, 0));
         _nodeGrid.Parent = parent;
 
         var direction = _nodeGrid.GetDirectionToParent();
@@ -138,9 +137,9 @@ public class NodeGridTests {
 
     [Test]
     public void GetPathToRoot_ReturnsCorrectPath() {
-        var root = _graph.GetOrCreateNode(new Vector2I(0, 0));
-        var middle = _graph.GetOrCreateNode(new Vector2I(1, 0));
-        var leaf = _graph.GetOrCreateNode(new Vector2I(2, 0));
+        var root = _graph.CreateNode(new Vector2I(0, 0));
+        var middle = _graph.CreateNode(new Vector2I(1, 0));
+        var leaf = _graph.CreateNode(new Vector2I(2, 0));
         
         middle.Parent = root;
         leaf.Parent = middle;
@@ -157,9 +156,9 @@ public class NodeGridTests {
 
     [Test]
     public void Remove_CleansUpNodeAndConnections() {
-        var up = _graph.GetOrCreateNode(new Vector2I(1, 0));
-        var right = _graph.GetOrCreateNode(new Vector2I(2, 1));
-        var down = _graph.GetOrCreateNode(new Vector2I(1, 2));
+        var up = _graph.CreateNode(new Vector2I(1, 0));
+        var right = _graph.CreateNode(new Vector2I(2, 1));
+        var down = _graph.CreateNode(new Vector2I(1, 2));
 
         _nodeGrid.SetEdge(Vector2I.Up, up);
         _nodeGrid.SetEdge(Vector2I.Right, right);
@@ -189,13 +188,13 @@ public class NodeGridTests {
     [Test]
     public void GetNeighbors_CenterNode_ReturnsFourNeighbors() {
         // Create center node at (2,2)
-        var center = _graph.GetOrCreateNode(new Vector2I(2, 2));
+        var center = _graph.CreateNode(new Vector2I(2, 2));
     
         // Create all surrounding nodes
-        var up = _graph.GetOrCreateNode(new Vector2I(2, 1));
-        var right = _graph.GetOrCreateNode(new Vector2I(3, 2));
-        var down = _graph.GetOrCreateNode(new Vector2I(2, 3));
-        var left = _graph.GetOrCreateNode(new Vector2I(1, 2));
+        var up = _graph.CreateNode(new Vector2I(2, 1));
+        var right = _graph.CreateNode(new Vector2I(3, 2));
+        var down = _graph.CreateNode(new Vector2I(2, 3));
+        var left = _graph.CreateNode(new Vector2I(1, 2));
     
         var neighbors = center.GetNeighbors().ToList();
     

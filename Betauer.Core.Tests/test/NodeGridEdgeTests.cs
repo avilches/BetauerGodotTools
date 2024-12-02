@@ -14,8 +14,8 @@ public class NodeGridEdgeTests {
     [SetUp]
     public void Setup() {
         _graph = new MazeGraph(10, 10);
-        _nodeGridFrom =_graph.GetOrCreateNode(new Vector2I(0, 0));
-        _nodeGridTo =_graph.GetOrCreateNode(new Vector2I(1, 0));
+        _nodeGridFrom =_graph.CreateNode(new Vector2I(0, 0));
+        _nodeGridTo =_graph.CreateNode(new Vector2I(1, 0));
     }
 
     [Test]

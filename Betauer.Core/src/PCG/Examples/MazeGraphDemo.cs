@@ -15,13 +15,15 @@ public class MazeGraphDemo {
 
         var mc = new MazeGraph(8, 8);
         var start = new Vector2I(0, 0);
-        // mc.OnCreateNode += (i) => { PrintGraph(mc); };
+        mc.OnConnect += (i) => {
+            // PrintGraph(mc);
+        };
 
         var constraints = BacktrackConstraints.CreateRandom(rng)
             .With(c => {
-                // c.MaxTotalCells = 25;
-                // c.MaxCellsPerPath = 2;
-                // c.MaxPaths = 3;
+                c.MaxTotalCells = 25;
+                c.MaxCellsPerPath = 3;
+                c.MaxPaths = 13;
             });
 
         mc.Grow(start, constraints);
@@ -57,13 +59,13 @@ public class MazeGraphDemo {
             var node = dataCell.Value;
             if (node == null) continue;
             var canvas = new TextCanvas();
-            canvas.Write(1, 1, "O"); // node.Metadata?.ToString());
+            canvas.Write(1, 1, node.Id.ToString());
             if (node.Up != null) canvas.Write(1, 0, "|");
-            if (node.Right != null) canvas.Write(2, 1, "-");
+            if (node.Right != null) canvas.Write(2, 1, "--");
             if (node.Down != null) canvas.Write(1, 2, "|");
             if (node.Left != null) canvas.Write(0, 1, "-");
 
-            allCanvas.Write(dataCell.Position.X * 3, dataCell.Position.Y * 3, canvas.ToString());
+            allCanvas.Write(dataCell.Position.X * 4, dataCell.Position.Y * 3, canvas.ToString());
         }
         Console.WriteLine(allCanvas.ToString());
     }

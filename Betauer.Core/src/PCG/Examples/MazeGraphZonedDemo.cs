@@ -35,15 +35,11 @@ public class MazeGraphDungeonDemo {
                     """;
 
         var temp3 = """
-                    ··········
-                    ··######··
-                    ·#########
-                    ·#########
-                    ·####o####
-                    ·#########
-                    ·#########
-                    ·#########
-                    ···##·###·
+                    #########
+                    #########
+                    #########
+                    #########
+                    ####o####
                     """;
 
         var template = Array2D.Parse(temp3);
@@ -51,9 +47,7 @@ public class MazeGraphDungeonDemo {
             IsValid = pos => template[pos] != '·'
         };
         var start = template.FirstOrDefault(dataCell => dataCell.Value == 'o')!.Position;
-        mc.OnConnect += (i) => {
-            // PrintGraph(mc);
-        };
+        mc.OnConnect += (i) => { PrintGraph(mc); };
 
         mc.GrowZoned(start, new MazeZonedConstraints(4, 200)
             // .SetNodesPerZones(5)
@@ -63,20 +57,28 @@ public class MazeGraphDungeonDemo {
         PrintGraph(mc);
 
         for (int i = 0; i < 1; i++) {
-            mc.GrowZoned(start, new MazePerZoneConstraints()
-                    .Zone(0, 10)
-                    .Zone(1, 6, 1, 1)
-                    .Zone(2, 2, 1, 0)
-                    .Zone(3, 5, 4)
-                    .Zone(4, 3)
-                    .Zone(5, 4)
-                    .Zone(6, 4, 2)
-                    .Zone(7, 4)
-                    .Zone(8, 3, 2)
-                    .Zone(9, 3, 1, 0)
-                    // .Zone(4, 3, 1, 0)
-                , rng);
+            var autoSplitOnExpand = true;
+            var corridor = false;
+            var constraints = new MazePerZoneConstraints()
+                    // .Zone(3, 2, 16, false)
+                    // .Zone(9, 1, 5, true)
+                    .Zone(nodes: 10, corridor: true)
+                    .Zone(nodes: 1, maxDoorsOut: 0)
+                    .Zone(nodes: 4, maxDoorsOut: 0, autoSplitOnExpand: false, corridor: true)
+                    .Zone(nodes: 5, parts: 4)
+                    .Zone(nodes: 3)
+                    .Zone(nodes: 4)
+                    .Zone(nodes: 4, parts: 2)
+                    .Zone(nodes: 4)
+                    .Zone(nodes: 3, parts: 2)
+                    .Zone(nodes: 3)
+                ;
 
+            var zones = mc.GrowZoned(start, constraints, rng);
+
+            foreach (var zone in zones) {
+                Console.WriteLine($"Zone {zone.Id} Nodes: {zone.Nodes} Parts: {zone.Parts}/{zone.ConfigParts} DoorsOut: {zone.DoorsOut}/{zone.MaxDoorsOut}");
+            }
         }
         // ConnectNodes(template, mc);
 
@@ -109,7 +111,7 @@ public class MazeGraphDungeonDemo {
                     // Marca la puerta con el número mayor de zona
                     var doorNumber = Math.Max(nodeZone, neighborZone);
                     edge.Metadata = doorNumber;
-                
+
                     // Marca también el edge inverso si existe
                     var reverseEdge = edge.To.GetEdgeTo(node);
                     if (reverseEdge != null) {
@@ -119,6 +121,7 @@ public class MazeGraphDungeonDemo {
             }
         }
     }
+
     private static void PrintGraph(MazeGraph mc) {
         var allCanvas = new TextCanvas();
         foreach (var dataCell in mc.NodeGrid) {

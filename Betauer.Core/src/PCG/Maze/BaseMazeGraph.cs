@@ -46,7 +46,17 @@ public abstract class BaseMazeGraph {
         var node = NodeGrid[position];
         if (node != null) return node;
 
-        node = new NodeGrid(this, LastId++, position);
+        return CreateNode(position, null);
+    }
+
+    public NodeGrid CreateNode(Vector2I position, NodeGrid? parent = null) {
+        if (!IsValid(position)) throw new ArgumentException("Invalid position", nameof(position));
+        var node = NodeGrid[position];
+        if (node != null) throw new ArgumentException($"Node already exists in position {position}", nameof(position));
+
+        node = new NodeGrid(this, LastId++, position) {
+            Parent = parent
+        };
         NodeGrid[position] = node;
         Nodes[node.Id] = node;
         OnCreateNode?.Invoke(node);
