@@ -275,11 +275,12 @@ public partial class MazeGraph {
                 newNode.Parent = currentNode;
                 newNode.Zone = currentZone.Id;
                 ConnectNode(currentNode, nextDir, true);
-                globalZone.PendingNodes.Add(newNode);
                 globalZone.Nodes++;
                 currentZone.PendingNodes.Add(newNode);
                 currentZone.Nodes++;
                 if (currentZone.Nodes >= constraints.GetNodesPerZone(currentZone.Id)) {
+                    globalZone.PendingNodes.AddRange(currentZone.PendingNodes);
+                    currentZone.PendingNodes.Clear();
                     currentZone = new Zone(currentZone.Id + 1);
                     zones.Add(currentZone);
                 }
@@ -288,9 +289,6 @@ public partial class MazeGraph {
                 globalZone.PendingNodes.Remove(currentNode);
                 currentZone.PendingNodes.Remove(currentNode);
             }
-        }
-        foreach (var zone in zones) {
-            Console.WriteLine("Zone "+zone.Id+" Nodes: "+zone.Nodes+" DoorsIn: "+zone.DoorsIn+" DoorsOut: "+zone.DoorsOut);
         }
     }
 }

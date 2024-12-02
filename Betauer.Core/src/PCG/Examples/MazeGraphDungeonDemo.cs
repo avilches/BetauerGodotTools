@@ -58,9 +58,9 @@ public class MazeGraphDungeonDemo {
 
         // mc.GrowZoned(start, new MazeZonedConstraints(100, 200).SetNodesPerZones(9), rng);
         mc.GrowZoned(start, new MazePerZoneConstraints()
-            .Zone(0, 2, 0, 1)
-            .Zone(1, 1, 1, 3)
-            .Zone(2, 3, 3, 0)
+            .Zone(0, 4, 0, 1)
+            .Zone(1, 4, 1, 3)
+            .Zone(2, 4, 3, 0)
             , rng); 
 
         // ConnectNodes(template, mc);
