@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Betauer.Core.DataMath;
+using Betauer.Core.DataMath.Geometry;
 using Godot;
 
 namespace Betauer.Core.PCG.Maze;
 
-public class MazeGraph(int width, int height, Func<Vector2I, bool>? isValidNode = null, Action<NodeGrid>? onCreateNode = null, Action<NodeGridEdge>? onConnect = null)
-    : BaseMazeGraph(width, height, isValidNode, onCreateNode, onConnect) {
+public class MazeGraph(int width, int height, Func<Vector2I, IEnumerable<Vector2I>>? getAdjacentPositions = null)
+    : BaseMazeGraph(width, height, getAdjacentPositions) {
     /// <summary>
     /// Grows a maze from a starting position using the specified constraints.
     /// </summary>
@@ -13,13 +16,13 @@ public class MazeGraph(int width, int height, Func<Vector2I, bool>? isValidNode 
     /// <param name="constraints">Constraints for the maze generation.</param>
     /// <param name="backtracker">A function to locate the next node to backtrack. By default, it takes the last one (LIFO)</param>
     /// <returns>The number of paths created.</returns>
-    public void Grow(Vector2I start, BacktrackConstraints constraints, Func<List<NodeGrid>, NodeGrid>? backtracker = null) {
+    public void Grow(Vector2I start, BacktrackConstraints constraints, Func<List<MazeNode>, MazeNode>? backtracker = null) {
         ArgumentNullException.ThrowIfNull(constraints);
-        if (!IsValidNode(start)) {
+        if (!IsValidPosition(start)) {
             throw new ArgumentException("Invalid start position", nameof(start));
         }
 
-        NodeGridRoot = null;
+        Root = null;
         NodeGrid.Fill(null);
         Nodes.Clear();
         LastId = 0;
@@ -29,24 +32,24 @@ public class MazeGraph(int width, int height, Func<Vector2I, bool>? isValidNode 
         var maxTotalPaths = constraints.MaxPaths == -1 ? int.MaxValue : constraints.MaxPaths;
         if (maxTotalCells == 0 || maxCellsPerPath == 0 || maxTotalPaths == 0) return;
 
-        var pendingNodes = new List<NodeGrid>();
+        var pendingNodes = new List<MazeNode>();
         Vector2I? lastDirection = null;
 
         var pathsCreated = 0;
         var totalNodesCreated = 1;
         var nodesCreatedInCurrentPath = 1;
 
-        var currentNode = NodeGridRoot = CreateNode(start);
-        pendingNodes.Add(NodeGridRoot);
+        var currentNode = Root = CreateNode(start);
+        pendingNodes.Add(Root);
         while (pendingNodes.Count > 0) {
-            var availableDirections = GetAvailableDirections(currentNode.Position);
+            var availableDirections = GetValidFreeAdjacentDirections(currentNode.Position).ToList();
 
             if (availableDirections.Count == 0 || nodesCreatedInCurrentPath >= maxCellsPerPath || totalNodesCreated == maxTotalCells) {
                 // path stopped, backtracking
                 pendingNodes.Remove(currentNode);
                 if (pendingNodes.Count > 0) {
-                    currentNode = backtracker != null ? backtracker.Invoke(pendingNodes) : pendingNodes[pendingNodes.Count - 1];
-                    if (GetAvailableDirections(currentNode.Position).Count == 0) {
+                    currentNode = backtracker != null ? backtracker.Invoke(pendingNodes) : pendingNodes[^1];
+                    if (!GetValidFreeAdjacentDirections(currentNode.Position).Any()) {
                         continue;
                     }
                 }
@@ -69,7 +72,7 @@ public class MazeGraph(int width, int height, Func<Vector2I, bool>? isValidNode 
             var nextPos = currentNode.Position + nextDir;
             var nextNode = CreateNode(nextPos);
             nextNode.Parent = currentNode;
-            ConnectNode(currentNode, nextDir, true);
+            ConnectNode(currentNode, nextNode, true);
             pendingNodes.Add(nextNode);
             totalNodesCreated++;
             nodesCreatedInCurrentPath++;
@@ -81,38 +84,73 @@ public class MazeGraph(int width, int height, Func<Vector2I, bool>? isValidNode 
 
     public void GrowRandom(Vector2I start, int maxTotalNodes = -1, Random? rng = null) {
         if (maxTotalNodes == 0) return;
-        if (!IsValidNode(start)) {
+        if (!IsValidPosition(start)) {
             throw new ArgumentException("Invalid start position", nameof(start));
         }
         maxTotalNodes = maxTotalNodes == -1 ? int.MaxValue : maxTotalNodes;
 
-        NodeGridRoot = null;
+        Root = null;
         NodeGrid.Fill(null);
         Nodes.Clear();
         LastId = 0;
         rng ??= new Random();
-        var pendingNodes = new List<NodeGrid>();
+        var pendingNodes = new List<MazeNode>();
         var totalNodesCreated = 1;
-        NodeGridRoot = CreateNode(start);
-        pendingNodes.Add(NodeGridRoot);
+        Root = CreateNode(start);
+        pendingNodes.Add(Root);
         while (pendingNodes.Count > 0 && totalNodesCreated < maxTotalNodes) {
             var currentNode = rng.Next(pendingNodes);
-            var availableDirections = GetAvailableDirections(currentNode.Position);
+            var adjacentPositions = GetValidFreeAdjacentPositions(currentNode.Position).ToList();
 
-            if (availableDirections.Count == 0) {
+            if (adjacentPositions.Count == 0) {
                 // invalid cell, removing
                 pendingNodes.Remove(currentNode);
             } else {
-                var nextDir = rng.Next(availableDirections);
-                var nextPos = currentNode.Position + nextDir;
+                var nextPos = rng.Next(adjacentPositions);
                 var nextNode = CreateNode(nextPos);
                 nextNode.Parent = currentNode;
-                ConnectNode(currentNode, nextDir, true);
+                ConnectNode(currentNode, nextNode, true);
                 pendingNodes.Add(nextNode);
                 totalNodesCreated++;
             }
         }
     }
+    
+    /// <summary>
+    /// Creates a new MazeGraph with the specified dimensions.
+    /// </summary>
+    public static MazeGraph Create(int width, int height) {
+        return new MazeGraph(width, height);
+    }
 
+    /// <summary>
+    /// Creates a MazeGraph from a boolean template array.
+    /// In the template, true values represent valid positions for nodes. false values are forbidden (invalid)
+    /// </summary>
+    public static MazeGraph Create(bool[,] template) {
+        return new MazeGraph(template.GetLength(1), template.GetLength(0)) {
+            IsValidPosition = pos => template[pos.Y, pos.X]
+        };
+    }
+
+    /// <summary>
+    /// Creates a MazeGraph from a boolean Array2D template.
+    /// In the template, true values represent valid positions for nodes. false values are forbidden (invalid)
+    /// </summary>
+    public static MazeGraph Create(Array2D<bool> template) {
+        return new MazeGraph(template.Width, template.Height) {
+            IsValidPosition = pos => template[pos]
+        };
+    }
+
+    /// <summary>
+    /// Creates a MazeGraph from a BitArray2D template.
+    /// In the template, true values represent valid positions for nodes. false values are forbidden (invalid)
+    /// </summary>
+    public static MazeGraph Create(BitArray2D template) {
+        return new MazeGraph(template.Width, template.Height) {
+            IsValidPosition = pos => template[pos]
+        };
+    }
     
 }

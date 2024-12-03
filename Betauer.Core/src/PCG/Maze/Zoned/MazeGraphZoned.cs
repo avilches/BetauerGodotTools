@@ -1,31 +1,32 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 
 namespace Betauer.Core.PCG.Maze.Zoned;
 
-public class MazeGraphZoned(int width, int height, Func<Vector2I, bool>? isValidNode = null, Action<NodeGrid>? onCreateNode = null, Action<NodeGridEdge>? onConnect = null)
-    : MazeGraph(width, height, isValidNode, onCreateNode, onConnect) {
+public class MazeGraphZoned(int width, int height, Func<Vector2I, IEnumerable<Vector2I>>? getAdjacentPositions = null)
+    : BaseMazeGraph(width, height, getAdjacentPositions) {
     public List<ZoneCreated> GrowZoned(Vector2I start, IMazeZonedConstraints constraints, Random? rng = null) {
-        if (!IsValidNode(start)) {
+        if (!IsValidPosition(start)) {
             throw new ArgumentException("Invalid start position", nameof(start));
         }
         var maxTotalNodes = constraints.MaxTotalNodes == -1 ? int.MaxValue : constraints.MaxTotalNodes;
         if (maxTotalNodes == 0 || constraints.MaxZones == 0) return [];
 
-        NodeGridRoot = null;
+        Root = null;
         NodeGrid.Fill(null);
         Nodes.Clear();
         LastId = 0;
 
         rng ??= new Random();
 
-        NodeGridRoot = CreateNode(start);
-        NodeGridRoot.Zone = 0;
+        Root = CreateNode(start);
+        Root.Zone = 0;
 
         var zones = new List<ZoneCreated>();
         var globalZone = new ZoneCreated(constraints, -1) { Nodes = 1 };
-        var currentZone = new ZoneCreated(constraints, 0) { Nodes = 1, Parts = 1, AvailableNodes = [NodeGridRoot] };
+        var currentZone = new ZoneCreated(constraints, 0) { Nodes = 1, Parts = 1, AvailableNodes = [Root] };
         zones.Add(currentZone);
 
         // Special case: when the first zone has a size of 1, we don't need to expand it,
@@ -36,7 +37,7 @@ public class MazeGraphZoned(int width, int height, Func<Vector2I, bool>? isValid
                 return zones;
             }
             currentZone.AvailableNodes.Clear();
-            globalZone.AvailableNodes.Add(NodeGridRoot);
+            globalZone.AvailableNodes.Add(Root);
             currentZone = new ZoneCreated(constraints, 1) { Nodes = 0 };
             zones.Add(currentZone);
         }
@@ -58,9 +59,9 @@ public class MazeGraphZoned(int width, int height, Func<Vector2I, bool>? isValid
              */
             var (currentNode, newPart) = FindNextNode(constraints, globalZone, currentZone, rng);
 
-            var availableDirections = GetAvailableDirections(currentNode.Position);
+            var availablePositions = GetValidFreeAdjacentPositions(currentNode.Position).ToList();
 
-            if (availableDirections.Count == 0) {
+            if (availablePositions.Count == 0) {
                 // invalid node, removing from the zone and from the global pending nodes
                 globalZone.AvailableNodes.Remove(currentNode);
                 currentZone.AvailableNodes.Remove(currentNode);
@@ -76,12 +77,11 @@ public class MazeGraphZoned(int width, int height, Func<Vector2I, bool>? isValid
                 }
                 currentZone.Parts++;
             }
-            var nextDir = rng.Next(availableDirections);
-            var nextPos = currentNode.Position + nextDir;
+            var nextPos = rng.Next(availablePositions);
             var newNode = CreateNode(nextPos, currentNode);
             newNode.Parent = currentNode;
             newNode.Zone = currentZone.Id;
-            ConnectNode(currentNode, nextDir, true);
+            ConnectNode(currentNode, newNode, true);
             globalZone.Nodes++;
             if (globalZone.Nodes == maxTotalNodes) break;
             currentZone.AvailableNodes.Add(newNode);
@@ -106,7 +106,7 @@ public class MazeGraphZoned(int width, int height, Func<Vector2I, bool>? isValid
         return zones;
     }
 
-    private static (NodeGrid currentNode, bool newPart) FindNextNode(IMazeZonedConstraints constraints, ZoneCreated globalZone, ZoneCreated currentZone, Random rng) {
+    private static (MazeNode currentNode, bool newPart) FindNextNode(IMazeZonedConstraints constraints, ZoneCreated globalZone, ZoneCreated currentZone, Random rng) {
         var newPart = currentZone.Id != 0 && currentZone.Parts < constraints.GetParts(currentZone.Id);
         if (newPart) {
             // The current zone still doesn't have all the parts: we pick a random node from the global to create a new door to the current zone

@@ -6,7 +6,7 @@ namespace Betauer.Core.PCG.Maze.Zoned;
 public class ZoneCreated(IMazeZonedConstraints constraints, int id) {
     public int Id { get; } = id;
     public int Nodes { get; internal set; } = 0;
-    public List<NodeGrid> AvailableNodes { get; internal set; } = new();
+    public List<MazeNode> AvailableNodes { get; internal set; } = new();
     public int Parts { get; internal set; } = 0;
     public int ConfigParts => constraints.GetParts(Id);
     public int DoorsOut { get; internal set; } = 0;
@@ -19,7 +19,7 @@ public class ZoneCreated(IMazeZonedConstraints constraints, int id) {
         }
     }
     
-    public NodeGrid PickNextNode(Random rng) {
+    public MazeNode PickNextNode(Random rng) {
         var index = Corridor ? AvailableNodes.Count - 1 : rng.Next(AvailableNodes.Count);
         return AvailableNodes[index];
     }
