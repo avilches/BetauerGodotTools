@@ -38,6 +38,11 @@ public class MazeNode {
     public MazeNode? Parent { get; set; }
     private readonly List<MazeEdge> _edges = [];
     public int Zone { get; set; }
+    
+    public MazeNode? Up => GetEdgeTo(Vector2I.Up)?.To;
+    public MazeNode? Down => GetEdgeTo(Vector2I.Down)?.To;
+    public MazeNode? Right => GetEdgeTo(Vector2I.Right)?.To;
+    public MazeNode? Left => GetEdgeTo(Vector2I.Left)?.To;
 
     /// <summary>
     /// Creates a connection between this node and another node in the specified direction.
@@ -51,7 +56,7 @@ public class MazeNode {
         _edges.Add(edge);
         return edge;
     }
-
+    
     public MazeEdge? GetEdgeTo(MazeNode to) {
         return _edges.FirstOrDefault(edge => edge.To == to);
     }
@@ -67,6 +72,21 @@ public class MazeNode {
         }
     }
 
+    public MazeEdge? GetEdgeTo(Vector2I direction) {
+        return _edges.FirstOrDefault(edge => edge.Direction == direction);
+    }
+    
+    public bool HasEdgeDirection(Vector2I direction) {
+        return GetEdgeTo(direction) != null;
+    }
+    
+    public void RemoveEdgeDirection(Vector2I direction) {
+        var edge = GetEdgeTo(direction);
+        if (edge != null) {
+            _edges.Remove(edge);
+        }
+    }
+    
     public void RemoveEdge(MazeEdge edge) {
         _edges.Remove(edge);
     }

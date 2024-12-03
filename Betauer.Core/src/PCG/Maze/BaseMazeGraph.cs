@@ -19,8 +19,16 @@ public class BaseMazeGraph {
 
     public Func<Vector2I, IEnumerable<Vector2I>> GetAdjacentPositions { get; set; }
 
-    public Func<Vector2I, bool> IsValidPosition { get; set; } = _ => true;
-    public Func<Vector2I, Vector2I, bool> IsValidEdge { get; set; } = (_, _) => true;
+    /// <summary>
+    /// Called to determine if a position is valid before creating a node, rejecting with an exception if the position is not valid.
+    /// Called to filter the adjacent positions of a node, ignoring invalid positions. 
+    /// </summary>
+    public Func<Vector2I, bool> IsValidPositionFunc { get; set; } = _ => true;
+
+    /// <summary>
+    /// Called to determine if an edge is valid before creating it.
+    /// </summary>
+    public Func<Vector2I, Vector2I, bool> IsValidEdgeFunc { get; set; } = (_, _) => true;
     public event Action<MazeEdge>? OnConnect;
     public event Action<MazeNode>? OnCreateNode;
 
@@ -31,13 +39,16 @@ public class BaseMazeGraph {
     /// </summary>
     /// <param name="width">The width of the maze.</param>
     /// <param name="height">The height of the maze.</param>
-    /// <param name="getAdjacentPositions">Optional function to determine the adjacent positions of every node.
     /// Optional, by default, it uses ortogonal positions up, down, left, right </param>
-    protected BaseMazeGraph(int width, int height, Func<Vector2I, IEnumerable<Vector2I>>? getAdjacentPositions = null) {
+    protected BaseMazeGraph(int width, int height) {
         Width = width;
         Height = height;
-        GetAdjacentPositions = getAdjacentPositions ?? GetOrtogonalPositions;
+        GetAdjacentPositions = GetOrtogonalPositions;
         NodeGrid = new Array2D<MazeNode>(width, height);
+    }
+
+    public bool IsValidPosition(Vector2I position) {
+        return Geometry.IsPointInRectangle(position.X, position.Y, 0, 0, Width, Height) && IsValidPositionFunc(position);
     }
 
     public MazeNode GetOrCreateNode(Vector2I position) {
@@ -84,7 +95,11 @@ public class BaseMazeGraph {
         }
         node.Parent = null;
     }
-
+    
+    public bool IsValidEdge(Vector2I from, Vector2I to) {
+        // No need to validate if the nodes are valid, as the edge is created between valid nodes.
+        return IsValidEdgeFunc(from, to);
+    }
 
     public void ConnectNode(MazeNode from, MazeNode to, bool twoWays) {
         _ConnectNode(from, to);
@@ -92,7 +107,11 @@ public class BaseMazeGraph {
     }
 
     private void _ConnectNode(MazeNode from, MazeNode to) {
-        if (from.HasEdgeTo(to)) return;
+        if (from.HasEdgeTo(to)) {
+            // Just ignore duplicated edges
+            return;
+        }
+        if (!IsValidEdge(from.Position, to.Position)) throw new ArgumentException("Invalid edge: "+from.Position+" -> "+to.Position);
         var edge = from.AddEdgeTo(to);
         OnConnect?.Invoke(edge);
     }

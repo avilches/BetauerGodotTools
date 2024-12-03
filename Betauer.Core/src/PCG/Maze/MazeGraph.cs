@@ -7,8 +7,8 @@ using Godot;
 
 namespace Betauer.Core.PCG.Maze;
 
-public class MazeGraph(int width, int height, Func<Vector2I, IEnumerable<Vector2I>>? getAdjacentPositions = null)
-    : BaseMazeGraph(width, height, getAdjacentPositions) {
+public class MazeGraph(int width, int height)
+    : BaseMazeGraph(width, height) {
     /// <summary>
     /// Grows a maze from a starting position using the specified constraints.
     /// </summary>
@@ -129,7 +129,7 @@ public class MazeGraph(int width, int height, Func<Vector2I, IEnumerable<Vector2
     /// </summary>
     public static MazeGraph Create(bool[,] template) {
         return new MazeGraph(template.GetLength(1), template.GetLength(0)) {
-            IsValidPosition = pos => template[pos.Y, pos.X]
+            IsValidPositionFunc = pos => template[pos.Y, pos.X]
         };
     }
 
@@ -139,7 +139,7 @@ public class MazeGraph(int width, int height, Func<Vector2I, IEnumerable<Vector2
     /// </summary>
     public static MazeGraph Create(Array2D<bool> template) {
         return new MazeGraph(template.Width, template.Height) {
-            IsValidPosition = pos => template[pos]
+            IsValidPositionFunc = pos => template[pos]
         };
     }
 
@@ -149,7 +149,7 @@ public class MazeGraph(int width, int height, Func<Vector2I, IEnumerable<Vector2
     /// </summary>
     public static MazeGraph Create(BitArray2D template) {
         return new MazeGraph(template.Width, template.Height) {
-            IsValidPosition = pos => template[pos]
+            IsValidPositionFunc = pos => template[pos]
         };
     }
     

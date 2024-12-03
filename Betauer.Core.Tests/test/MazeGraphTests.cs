@@ -8,7 +8,6 @@ using NUnit.Framework;
 namespace Betauer.Core.Tests;
 
 [TestFixture]
-[Only]
 public class MazeGraphTests {
     private MazeGraph _graph = null!;
 

@@ -44,7 +44,8 @@ public class MazeGraphDungeonDemo {
 
         var template = Array2D.Parse(temp3);
         var mc = new MazeGraphZoned(template.Width, template.Height) {
-            IsValidPosition = pos => template[pos] != '·'
+            IsValidPositionFunc = pos => template[pos] != '·'
+            
         };
         var start = template.FirstOrDefault(dataCell => dataCell.Value == 'o')!.Position;
         mc.OnConnect += (i) => { PrintGraph(mc); };
@@ -131,10 +132,10 @@ public class MazeGraphDungeonDemo {
             if (node == null) continue;
             var canvas = new TextCanvas();
             canvas.Write(1, 1, node.Zone.ToString());
-            // if (node.Up != null) canvas.Write(1, 0, "|");
-            // if (node.Right != null) canvas.Write(2, 1, "-");
-            // if (node.Down != null) canvas.Write(1, 2, "|");
-            // if (node.Left != null) canvas.Write(0, 1, "-");
+            if (node.Up != null) canvas.Write(1, 0, "|");
+            if (node.Right != null) canvas.Write(2, 1, "-");
+            if (node.Down != null) canvas.Write(1, 2, "|");
+            if (node.Left != null) canvas.Write(0, 1, "-");
 
             allCanvas.Write(dataCell.Position.X * 3, dataCell.Position.Y * 3, canvas.ToString());
         }

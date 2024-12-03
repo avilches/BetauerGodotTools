@@ -60,10 +60,10 @@ public class MazeGraphDemo {
             if (node == null) continue;
             var canvas = new TextCanvas();
             canvas.Write(1, 1, node.Id.ToString());
-            // if (node.Up != null) canvas.Write(1, 0, "|");
-            // if (node.Right != null) canvas.Write(2, 1, "--");
-            // if (node.Down != null) canvas.Write(1, 2, "|");
-            // if (node.Left != null) canvas.Write(0, 1, "-");
+            if (node.Up != null) canvas.Write(1, 0, "|");
+            if (node.Right != null) canvas.Write(2, 1, "--");
+            if (node.Down != null) canvas.Write(1, 2, "|");
+            if (node.Left != null) canvas.Write(0, 1, "-");
 
             allCanvas.Write(dataCell.Position.X * 4, dataCell.Position.Y * 3, canvas.ToString());
         }
@@ -80,8 +80,8 @@ public class MazeGraphDemo {
             var node = dataCell.Value;
             if (node != null) {
                 canvas.Write(1, 1, " "); // node.Metadata?.ToString());
-                // if (node.Up != null) canvas.Write(1, 0, " ");
-                // if (node.Left != null) canvas.Write(0, 1, " ");
+                if (node.Up != null) canvas.Write(1, 0, " ");
+                if (node.Left != null) canvas.Write(0, 1, " ");
             }
             allCanvas.Write(dataCell.Position.X * 2, dataCell.Position.Y * 2, canvas.ToString());
         }
