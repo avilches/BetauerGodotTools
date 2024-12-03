@@ -4,10 +4,10 @@ using Godot;
 
 namespace Betauer.Core.PCG.Maze.Zoned;
 
-public class MazeGraphZoned(int width, int height, Func<Vector2I, bool>? isValid = null, Action<NodeGrid>? onCreateNode = null, Action<NodeGridEdge>? onConnect = null)
-    : MazeGraph(width, height, isValid, onCreateNode, onConnect) {
+public class MazeGraphZoned(int width, int height, Func<Vector2I, bool>? isValidNode = null, Action<NodeGrid>? onCreateNode = null, Action<NodeGridEdge>? onConnect = null)
+    : MazeGraph(width, height, isValidNode, onCreateNode, onConnect) {
     public List<ZoneCreated> GrowZoned(Vector2I start, IMazeZonedConstraints constraints, Random? rng = null) {
-        if (!IsValid(start)) {
+        if (!IsValidNode(start)) {
             throw new ArgumentException("Invalid start position", nameof(start));
         }
         var maxTotalNodes = constraints.MaxTotalNodes == -1 ? int.MaxValue : constraints.MaxTotalNodes;
@@ -28,7 +28,8 @@ public class MazeGraphZoned(int width, int height, Func<Vector2I, bool>? isValid
         var currentZone = new ZoneCreated(constraints, 0) { Nodes = 1, Parts = 1, AvailableNodes = [NodeGridRoot] };
         zones.Add(currentZone);
 
-        // Special case: when the first zone has a size of 1, we can start with the next zone
+        // Special case: when the first zone has a size of 1, we don't need to expand it,
+        // so we can just start with second zone 
         if (constraints.GetNodesPerZone(0) == 1) {
             if (constraints.MaxZones == 1) {
                 // Special case: only one zone with one node
@@ -51,7 +52,7 @@ public class MazeGraphZoned(int width, int height, Func<Vector2I, bool>? isValid
              *
              * The first time we create a new zone, the previous zone nodes will be added to the global available zones if, and only if, the zone had
              * more than 0 doors out. This ensures the zone will not have any connection (door out) to a new zone.
-             * 
+             *
              * 2) When all parts of the current zone are created, it expands the parts randomly it until the zone reaches the limit of nodes per zone.
              * To expand the zone, it finds a random node from the current zone available nodes and connect it to a new node.
              */
@@ -99,40 +100,47 @@ public class MazeGraphZoned(int width, int height, Func<Vector2I, bool>? isValid
                 zones.Add(currentZone);
             }
             // foreach (var zone in zones) {
-                // Console.WriteLine($"Zone {zone.Id} Nodes: {zone.Nodes} Parts: {zone.Parts} DoorsOut: {zone.DoorsOut}/{constraints.GetMaxDoorsOut(zone.Id)}");
+            // Console.WriteLine($"Zone {zone.Id} Nodes: {zone.Nodes} Parts: {zone.Parts} DoorsOut: {zone.DoorsOut}/{constraints.GetMaxDoorsOut(zone.Id)}");
             // }
         }
         return zones;
     }
 
-    private static (NodeGrid currentNode, bool newPart) FindNextNode(IMazeZonedConstraints constraints, ZoneCreated globalZoneCreated, ZoneCreated currentZoneCreated, Random rng) {
-        var newPart = currentZoneCreated.Id != 0 && currentZoneCreated.Parts < constraints.GetParts(currentZoneCreated.Id);
+    private static (NodeGrid currentNode, bool newPart) FindNextNode(IMazeZonedConstraints constraints, ZoneCreated globalZone, ZoneCreated currentZone, Random rng) {
+        var newPart = currentZone.Id != 0 && currentZone.Parts < constraints.GetParts(currentZone.Id);
         if (newPart) {
             // The current zone still doesn't have all the parts: we pick a random node from the global to create a new door to the current zone
-            if (globalZoneCreated.AvailableNodes.Count == 0) {
-                throw new NotAvailableNodeException($"No more available nodes in the maze to open new doors to the the zone {currentZoneCreated.Id}. Increasing the nodes and maxDoorOut in previous zone could help to solve this issue.");
+            if (globalZone.AvailableNodes.Count == 0) {
+                throw new NotAvailableNodeException(
+                    $"No more available nodes in the maze to open new doors to zone {currentZone.Id}. " +
+                    "Consider increasing nodes and maxDoorOut in previous zones.");
             }
-            return (rng.Next(globalZoneCreated.AvailableNodes), true);
+            return (rng.Next(globalZone.AvailableNodes), true);
         }
-        
+
         // Try to expand the current zone
-        if (currentZoneCreated.AvailableNodes.Count > 0) {
+        if (currentZone.AvailableNodes.Count > 0) {
             // Expanding the current zone is possible: we pick a node from the current zone to make the zone bigger
-            return (currentZoneCreated.PickNextNode(rng), false);
+            return (currentZone.PickNextNode(rng), false);
         }
         // Can't expand the current zone. If AutoSplitOnExpand is true, we are allowed create a new part
-        if (constraints.IsAutoSplitOnExpand(currentZoneCreated.Id)) {
+        if (constraints.IsAutoSplitOnExpand(currentZone.Id)) {
             // AutoSplitOnExpand is enabled!
-            if (globalZoneCreated.AvailableNodes.Count == 0) {
+            if (globalZone.AvailableNodes.Count == 0) {
                 // We are allowed, but we can't because there are not available nodes in the global zone...
-                throw new NotAvailableNodeException($"No more available nodes in the maze to open new doors to the the zone {currentZoneCreated.Id} when splitting because AutoSplitOnExpand was enabled. Increasing the nodes and maxDoorOut in previous could will help to solve this issue.");
+                throw new NotAvailableNodeException(
+                    $"No more available nodes to create new parts in zone {currentZone.Id} with AutoSplitOnExpand enabled. " +
+                    "Consider increasing nodes and maxDoorOut in previous zones.");
             }
             // AutoSplitOnExpand is enabled and we have available nodes in the global zone: pick a random one to create a new part
-            return (rng.Next(globalZoneCreated.AvailableNodes), true);
+            return (rng.Next(globalZone.AvailableNodes), true);
         }
-        if (globalZoneCreated.AvailableNodes.Count > 0) {
-            throw new NotAvailableNodeException($"No more available nodes in the zone {currentZoneCreated.Id} to expand. There was available nodes to create new parts, consider set AutoSplitOnExpand to true for this zone");
+        if (globalZone.AvailableNodes.Count > 0) {
+            throw new NotAvailableNodeException(
+                $"No more available nodes in zone {currentZone.Id} to expand. " +
+                "Consider enabling AutoSplitOnExpand for this zone.");
         }
-        throw new NotAvailableNodeException($"No more available nodes in the zone {currentZoneCreated.Id} to expand");
+
+        throw new NotAvailableNodeException($"No more available nodes in zone {currentZone.Id} to expand");
     }
 }

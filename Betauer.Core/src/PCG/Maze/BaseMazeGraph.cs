@@ -15,7 +15,7 @@ public abstract class BaseMazeGraph {
     public Array2D<NodeGrid> NodeGrid { get; }
     public Dictionary<int, NodeGrid> Nodes { get; } = [];
     public NodeGrid NodeGridRoot { get; protected set; }
-    public Func<Vector2I, bool> IsValid { get; set;  }
+    public Func<Vector2I, bool> IsValidNode { get; set;  }
 
     public event Action<NodeGridEdge>? OnConnect;
     public event Action<NodeGrid>? OnCreateNode;
@@ -27,22 +27,22 @@ public abstract class BaseMazeGraph {
     /// </summary>
     /// <param name="width">The width of the maze.</param>
     /// <param name="height">The height of the maze.</param>
-    /// <param name="isValid">Optional function to determine if a position is valid for node creation.</param>
+    /// <param name="isValidNode">Optional function to determine if a position is valid for node creation.</param>
     /// <param name="onCreateNode">Optional action to execute when nodes are created.</param>
     /// <param name="onConnect">Optional action to execute when nodes are connected.</param>
     /// <exception cref="ArgumentException">Thrown when width or height are not positive.</exception>
-    protected BaseMazeGraph(int width, int height, Func<Vector2I, bool>? isValid = null, Action<NodeGrid>? onCreateNode = null, Action<NodeGridEdge>? onConnect = null) {
+    protected BaseMazeGraph(int width, int height, Func<Vector2I, bool>? isValidNode = null, Action<NodeGrid>? onCreateNode = null, Action<NodeGridEdge>? onConnect = null) {
         Width = width;
         Height = height;
         NodeGrid = new Array2D<NodeGrid>(width, height);
-        IsValid = isValid ?? (_ => true);
+        IsValidNode = isValidNode ?? (_ => true);
         OnCreateNode = onCreateNode;
         OnConnect = onConnect;
     }
 
 
     public NodeGrid GetOrCreateNode(Vector2I position) {
-        if (!IsValid(position)) throw new ArgumentException("Invalid position", nameof(position));
+        if (!IsValidNode(position)) throw new ArgumentException("Invalid position", nameof(position));
         var node = NodeGrid[position];
         if (node != null) return node;
 
@@ -50,7 +50,7 @@ public abstract class BaseMazeGraph {
     }
 
     public NodeGrid CreateNode(Vector2I position, NodeGrid? parent = null) {
-        if (!IsValid(position)) throw new ArgumentException("Invalid position", nameof(position));
+        if (!IsValidNode(position)) throw new ArgumentException("Invalid position", nameof(position));
         var node = NodeGrid[position];
         if (node != null) throw new ArgumentException($"Node already exists in position {position}", nameof(position));
 
@@ -94,7 +94,7 @@ public abstract class BaseMazeGraph {
         foreach (var dir in Array2D.Directions) {
             var target = pos + dir;
             if (Geometry.IsPointInRectangle(target.X, target.Y, 0, 0, Width, Height) &&
-                IsValid(target) &&
+                IsValidNode(target) &&
                 GetNode(target) == null) {
                 _availableDirections.Add(dir);
             }

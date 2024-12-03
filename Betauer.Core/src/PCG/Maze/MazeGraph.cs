@@ -4,8 +4,8 @@ using Godot;
 
 namespace Betauer.Core.PCG.Maze;
 
-public class MazeGraph(int width, int height, Func<Vector2I, bool>? isValid = null, Action<NodeGrid>? onCreateNode = null, Action<NodeGridEdge>? onConnect = null)
-    : BaseMazeGraph(width, height, isValid, onCreateNode, onConnect) {
+public class MazeGraph(int width, int height, Func<Vector2I, bool>? isValidNode = null, Action<NodeGrid>? onCreateNode = null, Action<NodeGridEdge>? onConnect = null)
+    : BaseMazeGraph(width, height, isValidNode, onCreateNode, onConnect) {
     /// <summary>
     /// Grows a maze from a starting position using the specified constraints.
     /// </summary>
@@ -15,7 +15,7 @@ public class MazeGraph(int width, int height, Func<Vector2I, bool>? isValid = nu
     /// <returns>The number of paths created.</returns>
     public void Grow(Vector2I start, BacktrackConstraints constraints, Func<List<NodeGrid>, NodeGrid>? backtracker = null) {
         ArgumentNullException.ThrowIfNull(constraints);
-        if (!IsValid(start)) {
+        if (!IsValidNode(start)) {
             throw new ArgumentException("Invalid start position", nameof(start));
         }
 
@@ -81,7 +81,7 @@ public class MazeGraph(int width, int height, Func<Vector2I, bool>? isValid = nu
 
     public void GrowRandom(Vector2I start, int maxTotalNodes = -1, Random? rng = null) {
         if (maxTotalNodes == 0) return;
-        if (!IsValid(start)) {
+        if (!IsValidNode(start)) {
             throw new ArgumentException("Invalid start position", nameof(start));
         }
         maxTotalNodes = maxTotalNodes == -1 ? int.MaxValue : maxTotalNodes;

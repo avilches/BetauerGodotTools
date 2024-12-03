@@ -45,7 +45,7 @@ public class NodeGrid {
     public NodeGridEdge? Down { get; private set; }
     public NodeGridEdge? Left { get; private set; }
     public int Zone { get; set; }
-    // public object? Metadata { get; set; }
+    public object? Metadata { get; set; }
 
     /// <summary>
     /// Creates a connection between this node and another node in the specified direction.
@@ -122,7 +122,7 @@ public class NodeGrid {
     /// <returns></returns>
     public IEnumerable<NodeGrid> GetNeighbors() {
         return Array2D.Directions.Select(dir => _position + dir)
-            .Where(pos => MazeGraph.IsValid(pos))
+            .Where(pos => MazeGraph.IsValidNode(pos))
             .Select(pos => MazeGraph.GetNode(pos))
             .Where(node => node != null);
     }

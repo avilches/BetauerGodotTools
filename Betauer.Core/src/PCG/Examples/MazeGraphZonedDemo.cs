@@ -44,7 +44,7 @@ public class MazeGraphDungeonDemo {
 
         var template = Array2D.Parse(temp3);
         var mc = new MazeGraphZoned(template.Width, template.Height) {
-            IsValid = pos => template[pos] != '·'
+            IsValidNode = pos => template[pos] != '·'
         };
         var start = template.FirstOrDefault(dataCell => dataCell.Value == 'o')!.Position;
         mc.OnConnect += (i) => { PrintGraph(mc); };
