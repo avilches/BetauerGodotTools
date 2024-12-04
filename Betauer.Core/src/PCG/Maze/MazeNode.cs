@@ -97,6 +97,13 @@ public class MazeNode {
         return _edges.ToImmutableList();
     }
 
+    /// <summary>
+    /// Gets the path from the current node to the root by following parent nodes.
+    /// This is an implementation of a simple upward traversal using parent references.
+    /// Time Complexity: O(h) where h is the height of the tree
+    /// Space Complexity: O(h) to store the path
+    /// </summary>
+    /// <returns>A list of nodes representing the path from this node to the root, including both ends.</returns>
     public List<MazeNode> GetPathToRoot() {
         var path = new List<MazeNode>();
         var current = this;
@@ -108,9 +115,17 @@ public class MazeNode {
     }
 
     /// <summary>
-    /// Encuentra el camino hacia otro nodo navegando por los parents hasta encontrar un ancestro común
+    /// Finds a path between two nodes by traversing up to find a common ancestor.
+    /// This is an implementation of a Lowest Common Ancestor (LCA) algorithm.
+    /// The algorithm:
+    /// 1. Gets paths to root for both nodes
+    /// 2. Finds the first common ancestor
+    /// 3. Constructs the path by combining the upward path to ancestor and downward path to target
+    /// Time Complexity: O(h1 * h2) where h1 and h2 are the heights of each node to root
+    /// Space Complexity: O(h1 + h2) to store both paths
     /// </summary>
-    /// <returns>Lista de nodos que forman el camino, o null si no hay camino</returns>
+    /// <param name="target">The target node to find a path to</param>
+    /// <returns>List of nodes forming the path, or null if no path exists</returns>
     public List<MazeNode>? GetPathToNode(MazeNode target) {
         if (target == this) return [this];
 
@@ -155,21 +170,36 @@ public class MazeNode {
     }
 
     /// <summary>
-    /// Calcula la distancia hacia otro nodo usando los parents
+    /// Calculates the distance to another node using parent references.
+    /// Uses the GetPathToNode method internally and counts the steps.
+    /// Time Complexity: Same as GetPathToNode O(h1 * h2)
+    /// Space Complexity: O(h1 + h2)
     /// </summary>
-    /// <returns>La distancia en número de nodos:
-    /// 0 = el target es si mismo
-    /// -1 = no hay camino</returns>
+    /// <param name="target">The target node to calculate distance to</param>
+    /// <returns>
+    /// The distance in number of nodes:
+    /// 0 = the target is itself
+    /// -1 = no path exists
+    /// n = number of nodes in between plus one
+    /// </returns>
     public int GetDistanceToNode(MazeNode target) {
         var path = GetPathToNode(target);
         return path != null ? path.Count - 1 : -1;
     }
 
     /// <summary>
-    /// Encuentra el camino más corto hacia otro nodo usando los edges (BFS)
+    /// Finds the shortest path to another node using edges (Breadth-First Search).
+    /// BFS guarantees the shortest path in terms of number of edges when all edges have equal weight.
+    /// The algorithm:
+    /// 1. Uses a queue for BFS traversal
+    /// 2. Maintains a visited dictionary to track the path
+    /// 3. Reconstructs the path once target is found
+    /// Time Complexity: O(V + E) where V is number of vertices and E is number of edges
+    /// Space Complexity: O(V) for the visited dictionary and queue
     /// </summary>
-    /// <returns>Lista de nodos que forman el camino, o null si no hay camino</returns>
-    public List<MazeNode>? GetPathToNodeByEdges(MazeNode target) {
+    /// <param name="target">The target node to find a path to</param>
+    /// <returns>List of nodes forming the shortest path, or null if no path exists</returns>
+    public List<MazeNode>? FindShortestPath(MazeNode target) {
         if (target == this) return [this];
 
         // Inicializamos el diccionario con todos los nodos alcanzables
@@ -210,17 +240,25 @@ public class MazeNode {
     }
 
     /// <summary>
-    /// Calcula la distancia más corta hacia otro nodo usando los edges
+    /// Calculates the shortest distance to another node using edges.
+    /// Uses FindShortestPath internally and returns the number of steps.
+    /// Time Complexity: Same as FindShortestPath O(V + E)
+    /// Space Complexity: O(V)
     /// </summary>
-    /// <returns>La distancia en número de nodos, o -1 si no hay camino</returns>
+    /// <param name="target">The target node to calculate distance to</param>
+    /// <returns>The distance in number of nodes, or -1 if no path exists</returns>
     public int GetDistanceToNodeByEdges(MazeNode target) {
-        var path = GetPathToNodeByEdges(target);
+        var path = FindShortestPath(target);
         return path != null ? path.Count - 1 : -1;
     }
 
     /// <summary>
-    /// Obtiene todos los nodos alcanzables desde este nodo
+    /// Gets all nodes that can be reached from this node using edges.
+    /// Implements a Breadth-First Search to discover all connected nodes.
+    /// Time Complexity: O(V + E) where V is number of vertices and E is number of edges
+    /// Space Complexity: O(V) for the HashSet and queue
     /// </summary>
+    /// <returns>A HashSet containing all reachable nodes, including the starting node</returns>
     public HashSet<MazeNode> GetReachableNodes() {
         var nodes = new HashSet<MazeNode> { this };
         var queue = new Queue<MazeNode>();
@@ -243,10 +281,50 @@ public class MazeNode {
         Both // Considera tanto los pesos de los nodos como de los edges
     }
 
+    
     /// <summary>
-    /// Encuentra el camino más corto hacia otro nodo considerando diferentes modos de peso
+    /// Finds the shortest path considering node weights using Dijkstra's algorithm.
+    /// Only considers node weights in path calculation.
+    /// Time Complexity: O((V + E) * log V) where V is vertices and E is edges
+    /// Space Complexity: O(V)
     /// </summary>
-    private PathResult? GetShortestPath(MazeNode target, PathWeightMode mode) {
+    /// <param name="target">The target node to find a path to</param>
+    /// <returns>PathResult containing the path and total cost, or null if no path exists</returns>
+    public PathResult? GetShortestPathByNodeWeights(MazeNode target) {
+        return FindWeightedPath(target, PathWeightMode.NodesOnly);
+    }
+
+    /// <summary>
+    /// Finds the shortest path considering edge weights using Dijkstra's algorithm.
+    /// Only considers edge weights in path calculation.
+    /// Time Complexity: O((V + E) * log V) where V is vertices and E is edges
+    /// Space Complexity: O(V)
+    /// </summary>
+    /// <param name="target">The target node to find a path to</param>
+    /// <returns>PathResult containing the path and total cost, or null if no path exists</returns>
+    public PathResult? GetShortestPathByEdgeWeights(MazeNode target) {
+        return FindWeightedPath(target, PathWeightMode.EdgesOnly);
+    }
+
+    /// <summary>
+    /// Finds the shortest path considering both node and edge weights using Dijkstra's algorithm.
+    /// Combines both node and edge weights for total path cost calculation.
+    /// Time Complexity: O((V + E) * log V) where V is vertices and E is edges
+    /// Space Complexity: O(V)
+    /// </summary>
+    /// <param name="target">The target node to find a path to</param>
+    /// <returns>PathResult containing the path and total cost, or null if no path exists</returns>
+    public PathResult? FindWeightedPath(MazeNode target) {
+        return FindWeightedPath(target, PathWeightMode.Both);
+    }
+    
+
+    /// <summary>
+    /// Private helper method that implements Dijkstra's algorithm with different weight modes.
+    /// Time Complexity: O((V + E) * log V) where V is vertices and E is edges
+    /// Space Complexity: O(V)
+    /// </summary>
+    public PathResult? FindWeightedPath(MazeNode target, PathWeightMode mode = PathWeightMode.Both) {
         if (target == this) {
             return new PathResult([this], mode == PathWeightMode.EdgesOnly ? 0 : Weight);
         }
@@ -302,18 +380,6 @@ public class MazeNode {
         }
 
         return null;
-    }
-
-    public PathResult? GetShortestPathByNodeWeights(MazeNode target) {
-        return GetShortestPath(target, PathWeightMode.NodesOnly);
-    }
-
-    public PathResult? GetShortestPathByEdges(MazeNode target) {
-        return GetShortestPath(target, PathWeightMode.EdgesOnly);
-    }
-
-    public PathResult? GetShortestPathByWeights(MazeNode target) {
-        return GetShortestPath(target, PathWeightMode.Both);
     }
 }
 
