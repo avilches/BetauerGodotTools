@@ -7,8 +7,7 @@ using Godot;
 
 namespace Betauer.Core.PCG.Maze;
 
-public class MazeGraph(int width, int height)
-    : BaseMazeGraph(width, height) {
+public class MazeGraph(int width, int height) : BaseMazeGraph(width, height) {
     /// <summary>
     /// Grows a maze from a starting position using the specified constraints.
     /// </summary>

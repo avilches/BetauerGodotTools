@@ -67,7 +67,7 @@ public class BaseMazeGraph {
         }
         var node = NodeGrid[position];
         if (node != null) {
-            throw new InvalidOperationException("Can't create node at "+position+". Invalid position", position);
+            throw new InvalidOperationException("Can't create node at "+position+". Invalid position");
         }
 
         node = new MazeNode(LastId++, position) {

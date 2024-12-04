@@ -5,8 +5,7 @@ using Godot;
 
 namespace Betauer.Core.PCG.Maze.Zoned;
 
-public class MazeGraphZoned(int width, int height)
-    : BaseMazeGraph(width, height) {
+public class MazeGraphZoned(int width, int height) : BaseMazeGraph(width, height) {
     public List<ZoneCreated> GrowZoned(Vector2I start, IMazeZonedConstraints constraints, Random? rng = null) {
         if (!IsValidPosition(start)) {
             throw new ArgumentException("Invalid start position", nameof(start));
