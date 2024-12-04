@@ -76,10 +76,13 @@ public class MazeNode {
         return GetEdgeTo(other) != null;
     }
 
-    public void RemoveEdgeTo(MazeNode node) {
+    public void RemoveEdgeTo(MazeNode node, bool bidirectional = true) {
         var edge = GetEdgeTo(node);
         if (edge != null) {
             _edges.Remove(edge);
+        }
+        if (bidirectional) {
+            node.RemoveEdgeTo(this, false);
         }
     }
 
@@ -102,7 +105,7 @@ public class MazeNode {
         _edges.Remove(edge);
     }
 
-    public IEnumerable<MazeEdge> GetEdges() {
+    public ImmutableList<MazeEdge> GetEdges() {
         return _edges.ToImmutableList();
     }
 
@@ -382,6 +385,10 @@ public class MazeNode {
         }
 
         return null;
+    }
+    
+    public override string ToString() {
+        return $"Id:{Id} {Position}";
     }
 }
 

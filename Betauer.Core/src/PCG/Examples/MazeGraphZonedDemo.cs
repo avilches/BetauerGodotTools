@@ -89,8 +89,7 @@ public class MazeGraphDungeonDemo {
 
         PrintGraph(mc);
 
-        // mc.AddCyclesByDistance(7, 2);
-        mc.AddCyclesByParentDistance(5, 5);
+        mc.AddCyclesByEdgeDistance(7, 1).ForEach(edge => edge.Metadata = "added");
         PrintGraph(mc);
     }
 
@@ -139,10 +138,10 @@ public class MazeGraphDungeonDemo {
             var node = dataCell.Value;
             if (node == null) continue;
             var canvas = new TextCanvas();
-            if (node.Up != null) canvas.Write(1, 0, "|");
-            if (node.Right != null) canvas.Write(2, 1, "-");
-            if (node.Down != null) canvas.Write(1, 2, "|");
-            if (node.Left != null) canvas.Write(0, 1, "-");
+            if (node.Up != null) canvas.Write(1, 0, node.GetEdgeTo(Vector2I.Up)!.Metadata == "added" ? "·": "|");
+            if (node.Right != null) canvas.Write(2, 1, node.GetEdgeTo(Vector2I.Right)!.Metadata == "added" ? "·": "-");
+            if (node.Down != null) canvas.Write(1, 2, node.GetEdgeTo(Vector2I.Down)!.Metadata == "added" ? "·": "|");
+            if (node.Left != null) canvas.Write(0, 1, node.GetEdgeTo(Vector2I.Left)!.Metadata == "added" ? "·": "-");
             canvas.Write(1, 1, node.Zone.ToString());
 
             allCanvas.Write(dataCell.Position.X * 3, dataCell.Position.Y * 3, canvas.ToString());

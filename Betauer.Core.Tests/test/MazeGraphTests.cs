@@ -61,7 +61,7 @@ public class MazeGraphTests {
     public void CreateNode_WithExistingPosition_ThrowsArgumentException() {
         _graph.CreateNode(new Vector2I(1, 1));
         
-        Assert.Throws<ArgumentException>(() => 
+        Assert.Throws<InvalidOperationException>(() => 
             _graph.CreateNode(new Vector2I(1, 1)));
     }
 

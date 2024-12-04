@@ -52,23 +52,36 @@ public class BaseMazeGraph {
         return Geometry.IsPointInRectangle(position.X, position.Y, 0, 0, Width, Height) && IsValidPositionFunc(position);
     }
 
+    public MazeNode GetNode(int id) {
+        return Nodes[id];
+    }
+
+    public IReadOnlyCollection<MazeNode> GetNodes() {
+        return Nodes.Values;
+    }
+
     public MazeNode GetOrCreateNode(Vector2I position) {
-        if (!IsValidPosition(position)) {
-            throw new InvalidNodeException($"Can't get node at {position}. Invalid position", position);
-        }
+        ValidatePosition(position, nameof(GetOrCreateNode));
         var node = NodeGrid[position];
         if (node != null) return node;
 
         return CreateNode(position, null);
     }
 
-    public MazeNode CreateNode(Vector2I position, MazeNode? parent = null) {
-        if (!IsValidPosition(position)) {
-            throw new InvalidNodeException($"Can't create node at {position}. Invalid position", position);
+    private void ValidatePosition(Vector2I position, string message) {
+        if (!Geometry.IsPointInRectangle(position.X, position.Y, 0, 0, Width, Height)) {
+            throw new InvalidNodeException($"Invalid position {position} in {message}: position out of bounds (0, 0, {Width}, {Height})", position);
         }
+        if (!IsValidPositionFunc(position)) {
+            throw new InvalidNodeException($"Invalid position {position} in {message}: {nameof(IsValidPositionFunc)} returned false", position);
+        }
+    }
+
+    public MazeNode CreateNode(Vector2I position, MazeNode? parent = null) {
+        ValidatePosition(position, nameof(CreateNode));
         var node = NodeGrid[position];
         if (node != null) {
-            throw new InvalidOperationException("Can't create node at " + position + ". Invalid position");
+            throw new InvalidOperationException($"Can't create node at {position}: there is already a node there with id {node.Id}");
         }
 
         node = new MazeNode(LastId++, position) {
@@ -81,9 +94,7 @@ public class BaseMazeGraph {
     }
 
     public MazeNode? GetNodeAt(Vector2I position) {
-        if (!IsValidPosition(position)) {
-            throw new InvalidNodeException($"Can't get node at {position}. Invalid position", position);
-        }
+        ValidatePosition(position, nameof(GetNodeAt));
         return NodeGrid[position];
     }
 
@@ -109,39 +120,89 @@ public class BaseMazeGraph {
         return true;
     }
 
-    public void ConnectNodes(MazeNode from, MazeNode to, bool twoWays) {
+    public void DisconnectNodes(int fromId, int toId, bool bidirectional = false) {
+        var from = GetNode(fromId);
+        var to = GetNode(toId);
+        from.RemoveEdgeTo(to, bidirectional);
+    }
+
+    public void DisconnectNodes(Vector2I fromPos, Vector2I toPos, bool bidirectional = false) {
+        var from = GetNodeAt(fromPos)!;
+        var to = GetNodeAt(toPos)!;
+        from.RemoveEdgeTo(to, bidirectional);
+    }
+
+    public void DisconnectNodes(MazeNode from, MazeNode to, bool bidirectional = false) {
+        from.RemoveEdgeTo(to, bidirectional);
+    }
+
+    public List<MazeEdge> ConnectNodes(int fromId, int toId, bool bidirectional = false) {
+        var from = GetNode(fromId);
+        var to = GetNode(toId);
         _ConnectNode(from, to);
-        if (twoWays) _ConnectNode(to, from);
+        return ConnectNodes(from, to, bidirectional);
     }
 
-    public void ConnectNodeTowards(MazeNode from, Vector2I direction, bool twoWays) {
-        ConnectNodeAt(from, from.Position + direction, twoWays);
+    public List<MazeEdge> ConnectNodes(Vector2I fromPos, Vector2I toPos, bool bidirectional = false) {
+        var from = GetNodeAt(fromPos)!;
+        var to = GetNodeAt(toPos)!;
+        return ConnectNodes(from, to, bidirectional);
     }
 
-    public void ConnectNodeAt(MazeNode from, Vector2I target, bool twoWays) {
-        var to = GetNodeAt(target);
-        if (to == null) return;
-        ConnectNodes(from, to, twoWays);
-    }
-
-    private void _ConnectNode(MazeNode from, MazeNode to) {
-        if (to == null || from == null) return;
-        if (from.HasEdgeTo(to)) {
-            // Just ignore duplicated edges
-            return;
+    public List<MazeEdge> ConnectNodes(MazeNode from, MazeNode to, bool bidirectional = false) {
+        var edges = new List<MazeEdge>(2) {
+            _ConnectNode(from, to)
+        };
+        if (bidirectional) {
+            edges.Add(_ConnectNode(to, from));
         }
-        if (!IsValidEdge(from.Position, to.Position)) {
-            throw new InvalidEdgeException(from.Position, to.Position);
+        return edges;
+    }
+
+    public List<MazeEdge> ConnectNodeTowards(int fromId, Vector2I direction, bool bidirectional = false) {
+        var from = GetNode(fromId);
+        return ConnectNodeTowards(from, direction, bidirectional);
+    }
+
+    public List<MazeEdge> ConnectNodeTowards(MazeNode from, Vector2I direction, bool bidirectional = false) {
+        return ConnectNodeTo(from, from.Position + direction, bidirectional);
+    }
+
+    public List<MazeEdge> ConnectNodeTo(int fromId, Vector2I target, bool bidirectional = false) {
+        var from = GetNode(fromId);
+        return ConnectNodeTo(from, target, bidirectional);
+    }
+
+    public List<MazeEdge> ConnectNodeTo(MazeNode from, Vector2I target, bool bidirectional = false) {
+        var to = GetNodeAt(target);
+        return ConnectNodes(from, to, bidirectional);
+    }
+
+    private MazeEdge _ConnectNode(MazeNode from, MazeNode to) {
+        var edgeTo = from.GetEdgeTo(to);
+        if (edgeTo != null) {
+            // Just ignore duplicated edges
+            return edgeTo;
+        }
+        if (IsValidEdgeFunc != null && !IsValidEdgeFunc(from.Position, to.Position)) {
+            throw new InvalidEdgeException($"{nameof(IsValidEdgeFunc)} returned false", from.Position, to.Position);
         }
         var edge = from.AddEdgeTo(to);
         OnNodeConnected?.Invoke(edge);
+        return edge;
     }
 
     public bool IsValidEdge(Vector2I from, Vector2I to) {
-        // No need to validate if the nodes are valid, as the edge is created between valid nodes.
-        return IsValidEdgeFunc(from, to);
+        return (IsValidPositionFunc == null || (IsValidPositionFunc(from) && IsValidPositionFunc(to))) &&
+               (IsValidEdgeFunc == null || IsValidEdgeFunc(from, to));
     }
 
+    /// <summary>
+    /// Returns all the adjacent nodes to the specified node, no matter if they are connected or not, or if one
+    /// is the parent of the other.
+    /// </summary>
+    /// <param name="from"></param>
+    /// <returns></returns>
     public IEnumerable<MazeNode> GetAdjacentNodes(Vector2I from) {
         return GetAdjacentPositions(from)
             .Where(IsValidPosition)
@@ -149,11 +210,23 @@ public class BaseMazeGraph {
             .Where(node => node != null);
     }
 
+    /// <summary>
+    /// Returns the adjacent positions to the specified node that are free (no node in that position) and valid, so a
+    /// new node could be placed there.
+    /// </summary>
+    /// <param name="from"></param>
+    /// <returns></returns>
     public IEnumerable<Vector2I> GetValidFreeAdjacentPositions(Vector2I from) {
         return GetAdjacentPositions(from)
             .Where(adjacentPos => IsValidPosition(adjacentPos) && NodeGrid[adjacentPos] == null);
     }
 
+    /// <summary>
+    /// Returns the directions to the adjacent positions to the specified node that are free (no node in that position)
+    /// and valid, so a new node could be placed there.
+    /// </summary>
+    /// <param name="from"></param>
+    /// <returns></returns>
     public IEnumerable<Vector2I> GetValidFreeAdjacentDirections(Vector2I from) {
         return GetValidFreeAdjacentPositions(from).Select(position => position - from);
     }
@@ -194,82 +267,9 @@ public class BaseMazeGraph {
     /// <param name="useParentDistance">If true, calculates distance following parent relationships.
     /// If false, finds the shortest path using all available connections.</param>
     /// <returns>List of potential connections ordered by distance (longest paths first)</returns>
-    public List<(MazeNode nodeA, MazeNode nodeB, int distance)> FindPotentialCycles(int minDistance = 3, bool useParentDistance = false) {
-        var potentialConnections = new List<(MazeNode nodeA, MazeNode nodeB, int distance)>();
-        var addedConnections = new HashSet<(Vector2I, Vector2I)>();
-
-        foreach (var nodeA in Nodes.Values) {
-            foreach (var nodeB in GetAdjacentNodes(nodeA.Position)) {
-                // Skip if nodes are already connected
-                if (nodeA.HasEdgeTo(nodeB)) continue;
-
-                // Create ordered tuple to avoid duplicates (A->B and B->A are the same connection)
-                var posA = nodeA.Position;
-                var posB = nodeB.Position;
-                var connection = posA.X < posB.X || (posA.X == posB.X && posA.Y < posB.Y)
-                    ? (posA, posB)
-                    : (posB, posA);
-
-                if (addedConnections.Contains(connection)) continue;
-
-                // Calculate distance based on selected mode
-                var distance = useParentDistance
-                    ? nodeA.GetDistanceToNode(nodeB)
-                    : nodeA.GetDistanceToNodeByEdges(nodeB);
-
-                if (distance >= minDistance) {
-                    potentialConnections.Add((nodeA, nodeB, distance));
-                    addedConnections.Add(connection);
-                }
-            }
-        }
-
-        return potentialConnections.OrderByDescending(x => x.distance).ToList();
-    }
-
-    /// <summary>
-    /// Adds cycles to the maze by connecting nodes that are far apart when following parent relationships.
-    /// Since adding cycles doesn't modify parent relationships, all valid connections are found at once
-    /// and the longest ones are selected up to maxCycles.
-    /// 
-    /// Example: Consider a maze structure where solid lines are connections only and arrows
-    /// show parent+connection relationships:
-    ///   A -> B -> C
-    ///   ↓    |    ↓
-    ///   D -> E    F
-    /// 
-    /// For nodes B and E:
-    /// - Parent distance is 4 (B->A->D->E)
-    /// - Edge distance is 1 (B-E directly)
-    /// 
-    /// For nodes C and E:
-    /// - Parent distance is 5 (C->B->A->D->E)
-    /// - Edge distance is 2 (C-B-E)
-    /// 
-    /// When using parent distance, new connections don't affect the parent relationships,
-    /// so all potential cycles can be found at once and we can select the N longest ones
-    /// if maxCycles is specified.
-    /// 
-    /// Usage:
-    /// // Add up to 5 cycles where nodes are at least 4 steps apart through parent relationships
-    /// maze.AddCyclesByParentDistance(maxCycles: 5, minDistance: 4);
-    /// 
-    /// // Add all possible cycles with minimum parent distance of 4
-    /// maze.AddCyclesByParentDistance(minDistance: 4);
-    /// </summary>
-    /// <param name="maxCycles">Maximum number of cycles to add. If null, all valid cycles will be added.</param>
-    /// <param name="minDistance">Minimum parent-path distance required between nodes to consider creating a cycle.</param>
-    public void AddCyclesByParentDistance(int? maxCycles = null, int minDistance = 3) {
-        var connections = FindPotentialCycles(minDistance, useParentDistance: true);
-    
-        // If maxCycles is specified, take only the N longest paths
-        if (maxCycles.HasValue) {
-            connections = connections.Take(maxCycles.Value).ToList();
-        }
-    
-        foreach (var (nodeA, nodeB, _) in connections) {
-            ConnectNodes(nodeA, nodeB, true);
-        }
+    public IEnumerable<(MazeNode nodeA, MazeNode nodeB, int distance)> FindPotentialCycles(int minDistance = 3, bool useParentDistance = false) {
+        var cycles = new PotentialCycles(this, minDistance, useParentDistance);
+        return cycles.UpdateDistanceAndGetCycles();
     }
 
     /// <summary>
@@ -297,15 +297,62 @@ public class BaseMazeGraph {
     /// </summary>
     /// <param name="maxCycles">Maximum number of cycles to add.</param>
     /// <param name="minDistance">Minimum path length required between nodes to consider creating a cycle.</param>
-    public void AddCyclesByEdgeDistance(int maxCycles, int minDistance = 3) {
+    public List<MazeEdge> AddCyclesByEdgeDistance(int maxCycles, int minDistance = 3) {
+        var cycles = new PotentialCycles(this, minDistance, useParentDistance: false);
         var cyclesAdded = 0;
+        var edges = new List<MazeEdge>(maxCycles);
         while (cyclesAdded < maxCycles) {
-            var connections = FindPotentialCycles(minDistance, useParentDistance: false);
-            if (connections.Count == 0) break;
+            var connection = cycles.UpdateDistanceAndGetCycles().FirstOrDefault();
+            if (connection == default) break;
 
-            var (nodeA, nodeB, _) = connections[0];
-            ConnectNodes(nodeA, nodeB, true);
+            edges.AddRange(ConnectNodes(connection.nodeA, connection.nodeB, true));
+            cycles.RemoveCycle(connection.nodeA, connection.nodeB);
             cyclesAdded++;
         }
+        return edges;
+    }
+}
+
+public class PotentialCycles {
+    private readonly int _minDistance;
+    private readonly bool _useParentDistance;
+    private readonly List<(MazeNode nodeA, MazeNode nodeB, (Vector2I, Vector2I) connection)> _potentialConnections;
+
+    public PotentialCycles(BaseMazeGraph graph, int minDistance, bool useParentDistance) {
+        _minDistance = minDistance;
+        _useParentDistance = useParentDistance;
+        // Get all potential cycles once
+        _potentialConnections = graph.Nodes.Values
+            .SelectMany(nodeA =>
+                graph.GetAdjacentNodes(nodeA.Position)
+                    .Where(nodeB => !nodeA.HasEdgeTo(nodeB))
+                    .Select(nodeB => {
+                        var posA = nodeA.Position;
+                        var posB = nodeB.Position;
+                        var connection = posA.X < posB.X || (posA.X == posB.X && posA.Y < posB.Y)
+                            ? (posA, posB)
+                            : (posB, posA);
+                        return (nodeA, nodeB, connection);
+                    }))
+            .DistinctBy(x => x.connection)
+            .ToList();
+    }
+
+    public IEnumerable<(MazeNode nodeA, MazeNode nodeB, int distance)> UpdateDistanceAndGetCycles() {
+        return _potentialConnections
+            .Select(x => {
+                var distance = _useParentDistance
+                    ? x.nodeA.GetDistanceToNode(x.nodeB)
+                    : x.nodeA.GetDistanceToNodeByEdges(x.nodeB);
+                return (x.nodeA, x.nodeB, distance);
+            })
+            .Where(x => x.distance >= _minDistance)
+            .OrderByDescending(x => x.distance);
+    }
+
+    public void RemoveCycle(MazeNode nodeA, MazeNode nodeB) {
+        _potentialConnections.RemoveAll(x =>
+            (x.nodeA == nodeA && x.nodeB == nodeB) ||
+            (x.nodeA == nodeB && x.nodeB == nodeA));
     }
 }
