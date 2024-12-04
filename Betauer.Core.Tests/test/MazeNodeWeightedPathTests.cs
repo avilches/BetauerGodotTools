@@ -19,7 +19,7 @@ public class MazeNodeWeightedPathTests {
     }
 
     [Test]
-    public void GetShortestPathByEdgeWeights_WithWeights_ReturnsShortestPath() {
+    public void FindWeightedPath_WithEdgeWeights_ReturnsShortestPath() {
         var nodeA = _graph.GetOrCreateNode(new Vector2I(0, 0));
         var nodeB = _graph.GetOrCreateNode(new Vector2I(1, 0));
         var nodeC = _graph.GetOrCreateNode(new Vector2I(2, 0));
@@ -40,7 +40,7 @@ public class MazeNodeWeightedPathTests {
         nodeA.AddEdgeTo(nodeD).Weight = 2;
         nodeD.AddEdgeTo(nodeC).Weight = 1;
 
-        var result = nodeA.GetShortestPathByEdgeWeights(nodeC);
+        var result = nodeA.FindWeightedPath(nodeC, PathWeightMode.EdgesOnly);
 
         Assert.Multiple(() => {
             Assert.That(result, Is.Not.Null);
@@ -53,7 +53,7 @@ public class MazeNodeWeightedPathTests {
     }
 
     [Test]
-    public void GetShortestPathByEdgeWeights_WithEqualWeights_BehavesLikeBFS() {
+    public void FindWeightedPath_WithEqualEdgeWeights_BehavesLikeBFS() {
         var nodeA = _graph.CreateNode(new Vector2I(0, 0));
         var nodeB = _graph.CreateNode(new Vector2I(1, 0));
         var nodeC = _graph.CreateNode(new Vector2I(2, 0));
@@ -62,7 +62,7 @@ public class MazeNodeWeightedPathTests {
         nodeA.AddEdgeTo(nodeB).Weight = 1;
         nodeB.AddEdgeTo(nodeC).Weight = 1;
 
-        var result = nodeA.GetShortestPathByEdgeWeights(nodeC);
+        var result = nodeA.FindWeightedPath(nodeC, PathWeightMode.EdgesOnly);
 
         Assert.Multiple(() => {
             Assert.That(result, Is.Not.Null);
@@ -75,20 +75,20 @@ public class MazeNodeWeightedPathTests {
     }
 
     [Test]
-    public void GetShortestPathByEdgeWeights_NoPath_ReturnsNull() {
+    public void FindWeightedPath_NoPath_ReturnsNull() {
         var nodeA = _graph.CreateNode(new Vector2I(0, 0));
         var nodeB = _graph.CreateNode(new Vector2I(1, 0));
 
-        var result = nodeA.GetShortestPathByEdgeWeights(nodeB);
+        var result = nodeA.FindWeightedPath(nodeB, PathWeightMode.EdgesOnly);
 
         Assert.That(result, Is.Null);
     }
 
     [Test]
-    public void GetShortestPathByEdgeWeights_ToSelf_ReturnsZeroCostPath() {
+    public void FindWeightedPath_ToSelf_ReturnsZeroCostPath() {
         var nodeA = _graph.CreateNode(new Vector2I(0, 0));
 
-        var result = nodeA.GetShortestPathByEdgeWeights(nodeA);
+        var result = nodeA.FindWeightedPath(nodeA, PathWeightMode.EdgesOnly);
 
         Assert.Multiple(() => {
             Assert.That(result, Is.Not.Null);
@@ -99,7 +99,7 @@ public class MazeNodeWeightedPathTests {
     }
 
     [Test]
-    public void GetShortestPath_ThreeModesProduceDifferentResults() {
+    public void FindWeightedPath_ThreeModesProduceDifferentResults() {
         var nodeA = _graph.GetOrCreateNode(new Vector2I(0, 0));
         var nodeB = _graph.GetOrCreateNode(new Vector2I(1, 0));
         var nodeC = _graph.GetOrCreateNode(new Vector2I(2, 0));
@@ -120,8 +120,8 @@ public class MazeNodeWeightedPathTests {
         nodeD.Weight = 1;
         nodeD.AddEdgeTo(nodeC).Weight = 2;
 
-        var resultNodesOnly = nodeA.GetShortestPathByNodeWeights(nodeC);
-        var resultEdgesOnly = nodeA.GetShortestPathByEdgeWeights(nodeC);
+        var resultNodesOnly = nodeA.FindWeightedPath(nodeC, PathWeightMode.NodesOnly);
+        var resultEdgesOnly = nodeA.FindWeightedPath(nodeC, PathWeightMode.EdgesOnly);
         var resultBoth = nodeA.FindWeightedPath(nodeC);
 
         Assert.Multiple(() => {
@@ -140,7 +140,7 @@ public class MazeNodeWeightedPathTests {
     }
 
     [Test]
-    public void GetShortestPath_StartNodeWeight_HandlesDifferentlyForEachMode() {
+    public void FindWeightedPath_StartNodeWeight_HandlesDifferentlyForEachMode() {
         var nodeA = _graph.GetOrCreateNode(new Vector2I(0, 0));
         var nodeB = _graph.GetOrCreateNode(new Vector2I(1, 0));
 
@@ -149,8 +149,8 @@ public class MazeNodeWeightedPathTests {
         edge.Weight = 1;
         nodeB.Weight = 1;
 
-        var resultNodesOnly = nodeA.GetShortestPathByNodeWeights(nodeB);
-        var resultEdgesOnly = nodeA.GetShortestPathByEdgeWeights(nodeB);
+        var resultNodesOnly = nodeA.FindWeightedPath(nodeB, PathWeightMode.NodesOnly);
+        var resultEdgesOnly = nodeA.FindWeightedPath(nodeB, PathWeightMode.EdgesOnly);
         var resultBoth = nodeA.FindWeightedPath(nodeB);
 
         Assert.Multiple(() => {
@@ -166,7 +166,7 @@ public class MazeNodeWeightedPathTests {
     }
 
     [Test]
-    public void GetShortestPath_WhenAllWeightsAreZero_PrefersShorterPaths() {
+    public void FindWeightedPath_WhenAllWeightsAreZero_PrefersShorterPaths() {
         var nodeA = _graph.GetOrCreateNode(new Vector2I(0, 0));
         var nodeB = _graph.GetOrCreateNode(new Vector2I(1, 0));
         var nodeC = _graph.GetOrCreateNode(new Vector2I(2, 0));
@@ -182,8 +182,8 @@ public class MazeNodeWeightedPathTests {
         nodeD.AddEdgeTo(nodeE);
         nodeE.AddEdgeTo(nodeC);
 
-        var resultNodesOnly = nodeA.GetShortestPathByNodeWeights(nodeC);
-        var resultEdgesOnly = nodeA.GetShortestPathByEdgeWeights(nodeC);
+        var resultNodesOnly = nodeA.FindWeightedPath(nodeC, PathWeightMode.NodesOnly);
+        var resultEdgesOnly = nodeA.FindWeightedPath(nodeC, PathWeightMode.EdgesOnly);
         var resultBoth = nodeA.FindWeightedPath(nodeC);
 
         Assert.Multiple(() => {
@@ -210,7 +210,7 @@ public class MazeNodeWeightedPathTests {
     }
 
     [Test]
-    public void GetShortestPath_UnweightedEdgesHaveZeroCost() {
+    public void FindWeightedPath_UnweightedEdgesHaveZeroCost() {
         var nodeA = _graph.GetOrCreateNode(new Vector2I(0, 0));
         var nodeB = _graph.GetOrCreateNode(new Vector2I(1, 0));
         var nodeC = _graph.GetOrCreateNode(new Vector2I(2, 0));
@@ -219,7 +219,7 @@ public class MazeNodeWeightedPathTests {
         nodeA.AddEdgeTo(nodeB);
         nodeB.AddEdgeTo(nodeC);
 
-        var result = nodeA.GetShortestPathByEdgeWeights(nodeC);
+        var result = nodeA.FindWeightedPath(nodeC, PathWeightMode.EdgesOnly);
 
         Assert.Multiple(() => {
             Assert.That(result, Is.Not.Null);

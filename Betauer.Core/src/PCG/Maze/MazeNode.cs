@@ -20,6 +20,15 @@ public class MazeEdge(MazeNode from, MazeNode to) {
 }
 
 /// <summary>
+/// Used by the FindWeightedPath method to determine which weights to consider
+/// </summary>
+public enum PathWeightMode {
+    NodesOnly,
+    EdgesOnly,
+    Both 
+}
+
+/// <summary>
 /// Represents a node in the maze graph, containing connections to adjacent nodes.
 /// </summary>
 public class MazeNode {
@@ -275,13 +284,6 @@ public class MazeNode {
         return nodes;
     }
 
-    public enum PathWeightMode {
-        NodesOnly, // Solo considera los pesos de los nodos
-        EdgesOnly, // Solo considera los pesos de los edges
-        Both // Considera tanto los pesos de los nodos como de los edges
-    }
-
-    
     /// <summary>
     /// Finds the shortest path considering node weights using Dijkstra's algorithm.
     /// Only considers node weights in path calculation.
