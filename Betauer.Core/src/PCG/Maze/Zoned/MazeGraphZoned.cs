@@ -81,7 +81,7 @@ public class MazeGraphZoned(int width, int height)
             var newNode = CreateNode(nextPos, currentNode);
             newNode.Parent = currentNode;
             newNode.Zone = currentZone.Id;
-            ConnectNode(currentNode, newNode, true);
+            ConnectNodes(currentNode, newNode, true);
             globalZone.Nodes++;
             if (globalZone.Nodes == maxTotalNodes) break;
             currentZone.AvailableNodes.Add(newNode);
@@ -111,7 +111,7 @@ public class MazeGraphZoned(int width, int height)
         if (newPart) {
             // The current zone still doesn't have all the parts: we pick a random node from the global to create a new door to the current zone
             if (globalZone.AvailableNodes.Count == 0) {
-                throw new NotAvailableNodeException(
+                throw new NoMoreNodesException(
                     $"No more available nodes in the maze to open new doors to zone {currentZone.Id}. " +
                     "Consider increasing nodes and maxDoorOut in previous zones.");
             }
@@ -128,7 +128,7 @@ public class MazeGraphZoned(int width, int height)
             // AutoSplitOnExpand is enabled!
             if (globalZone.AvailableNodes.Count == 0) {
                 // We are allowed, but we can't because there are not available nodes in the global zone...
-                throw new NotAvailableNodeException(
+                throw new NoMoreNodesException(
                     $"No more available nodes to create new parts in zone {currentZone.Id} with AutoSplitOnExpand enabled. " +
                     "Consider increasing nodes and maxDoorOut in previous zones.");
             }
@@ -136,11 +136,11 @@ public class MazeGraphZoned(int width, int height)
             return (rng.Next(globalZone.AvailableNodes), true);
         }
         if (globalZone.AvailableNodes.Count > 0) {
-            throw new NotAvailableNodeException(
+            throw new NoMoreNodesException(
                 $"No more available nodes in zone {currentZone.Id} to expand. " +
                 "Consider enabling AutoSplitOnExpand for this zone.");
         }
 
-        throw new NotAvailableNodeException($"No more available nodes in zone {currentZone.Id} to expand");
+        throw new NoMoreNodesException($"No more available nodes in zone {currentZone.Id} to expand");
     }
 }

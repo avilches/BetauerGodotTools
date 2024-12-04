@@ -35,11 +35,12 @@ public class MazeGraphDungeonDemo {
                     """;
 
         var temp3 = """
-                    #########
-                    #########
-                    #########
-                    ####·####
-                    ####o####
+                    ·#########
+                    ##·#######
+                    ##·####·##
+                    ####·##·##
+                    ####o##<<#
+                    <#######x#
                     """;
 
         var template = Array2D.Parse(temp3);
@@ -57,7 +58,7 @@ public class MazeGraphDungeonDemo {
             .SetMaxDoorsOut(2), rng);
         PrintGraph(mc);
 
-        for (int i = 0; i < 1; i++) {
+        for (var i = 0; i < 1; i++) {
             var autoSplitOnExpand = true;
             var corridor = false;
             var constraints = new MazePerZoneConstraints()
@@ -73,6 +74,9 @@ public class MazeGraphDungeonDemo {
                     .Zone(nodes: 4)
                     .Zone(nodes: 3, parts: 2)
                     .Zone(nodes: 3)
+                    .Zone(nodes: 3)
+                    .Zone(nodes: 3)
+                    .Zone(nodes: 3)
                 ;
 
             var zones = mc.GrowZoned(start, constraints, rng);
@@ -86,20 +90,20 @@ public class MazeGraphDungeonDemo {
         PrintGraph(mc);
     }
 
-    private static void ConnectNodes(Array2D<char> template, MazeGraph mc) {
+    private static void ConnectNodes(Array2D<char> template, MazeGraphZoned mc) {
         template
             .Where(dataCell => dataCell.Value == '<')
-            .Select(dataCell => mc.GetNode(dataCell.Position)).Where(node => node != null).Select(node => node!)
-            .ForEach(from => mc.ConnectNode(from, mc.GetNode(from.Position + Vector2I.Left)!, true));
+            .Select(dataCell => mc.GetNodeAt(dataCell.Position)).Where(node => node != null).Select(node => node!)
+            .ForEach(from => mc.ConnectNodes(from, mc.GetNodeAt(from.Position + Vector2I.Left)!, true));
 
         template
             .Where(dataCell => dataCell.Value == '+' || dataCell.Value == 'o')
-            .Select(dataCell => mc.GetNode(dataCell.Position)).Where(node => node != null).Select(node => node!)
+            .Select(dataCell => mc.GetNodeAt(dataCell.Position)).Where(node => node != null).Select(node => node!)
             .ForEach(from => {
-                mc.ConnectNode(from,  mc.GetNode(from.Position + Vector2I.Left)!, true);
-                mc.ConnectNode(from,  mc.GetNode(from.Position + Vector2I.Right)!, true);
-                mc.ConnectNode(from,  mc.GetNode(from.Position + Vector2I.Up)!, true);
-                mc.ConnectNode(from,  mc.GetNode(from.Position + Vector2I.Down)!, true);
+                mc.ConnectNodeTowards(from,  Vector2I.Left, true);
+                mc.ConnectNodeTowards(from,  Vector2I.Right, true);
+                mc.ConnectNodeTowards(from,  Vector2I.Up, true);
+                mc.ConnectNodeTowards(from,  Vector2I.Down, true);
             });
     }
 
@@ -131,11 +135,11 @@ public class MazeGraphDungeonDemo {
             var node = dataCell.Value;
             if (node == null) continue;
             var canvas = new TextCanvas();
-            canvas.Write(1, 1, node.Zone.ToString());
             if (node.Up != null) canvas.Write(1, 0, "|");
             if (node.Right != null) canvas.Write(2, 1, "-");
             if (node.Down != null) canvas.Write(1, 2, "|");
             if (node.Left != null) canvas.Write(0, 1, "-");
+            canvas.Write(1, 1, node.Zone.ToString());
 
             allCanvas.Write(dataCell.Position.X * 3, dataCell.Position.Y * 3, canvas.ToString());
         }

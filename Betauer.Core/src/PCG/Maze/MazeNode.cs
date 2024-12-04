@@ -16,23 +16,21 @@ public class MazeEdge(MazeNode from, MazeNode to) {
     public MazeNode From { get; } = from ?? throw new ArgumentNullException(nameof(from));
     public MazeNode To { get; } = to ?? throw new ArgumentNullException(nameof(to));
     public Vector2I Direction => To.Position - From.Position;
+    public object Metadata { get; set; }
 }
 
 /// <summary>
 /// Represents a node in the maze graph, containing connections to adjacent nodes.
 /// </summary>
 public class MazeNode {
-
     /// <summary>
     /// Represents a node in the maze graph, containing connections to adjacent nodes.
     /// </summary>
-    internal MazeNode(BaseMazeGraph mazeGraph, int id, Vector2I position) {
-        MazeGraph = mazeGraph;
+    internal MazeNode(int id, Vector2I position) {
         Id = id;
         Position = position;
     }
 
-    public BaseMazeGraph MazeGraph { get; }
     public int Id { get; }
     public Vector2I Position { get; }
     public MazeNode? Parent { get; set; }
@@ -43,6 +41,8 @@ public class MazeNode {
     public MazeNode? Down => GetEdgeTo(Vector2I.Down)?.To;
     public MazeNode? Right => GetEdgeTo(Vector2I.Right)?.To;
     public MazeNode? Left => GetEdgeTo(Vector2I.Left)?.To;
+
+    public object Metadata { get; set; }
 
     /// <summary>
     /// Creates a connection between this node and another node in the specified direction.
@@ -94,20 +94,7 @@ public class MazeNode {
     public IEnumerable<MazeEdge> GetEdges() {
         return _edges.ToImmutableList();
     }
-
-    public Vector2I? GetDirectionToParent() {
-        if (Parent == null) return null;
-        return Position - Parent.Position;
-    }
-
-    public IEnumerable<MazeNode> GetChildren() {
-        return MazeGraph.Nodes.Values.Where(n => n.Parent == this);
-    }
-
-    public IEnumerable<MazeEdge> GetEdgesToChildren() {
-        return _edges.Where(e => e.To.Parent == this);
-    }
-
+    
     public List<MazeNode> GetPathToRoot() {
         var path = new List<MazeNode>();
         var current = this;

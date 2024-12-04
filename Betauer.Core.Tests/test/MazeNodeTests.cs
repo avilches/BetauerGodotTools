@@ -22,7 +22,6 @@ public class MazeNodeTests {
         Assert.Multiple(() => {
             Assert.That(_node.Id, Is.EqualTo(0));
             Assert.That(_node.Position, Is.EqualTo(new Vector2I(1, 1)));
-            Assert.That(_node.MazeGraph, Is.EqualTo(_graph));
             Assert.That(_node.Parent, Is.Null);
             Assert.That(_node.Zone, Is.EqualTo(0));
         });
@@ -77,20 +76,7 @@ public class MazeNodeTests {
             Assert.That(edges, Contains.Item(edgeRight));
         });
     }
-
-    [Test]
-    public void GetDirectionToParent_ReturnsCorrectDirection() {
-        var parent = _graph.CreateNode(new Vector2I(1, 0));
-        _node.Parent = parent;
-
-        Assert.That(_node.GetDirectionToParent(), Is.EqualTo(new Vector2I(0, 1)));
-    }
-
-    [Test]
-    public void GetDirectionToParent_WithNoParent_ReturnsNull() {
-        Assert.That(_node.GetDirectionToParent(), Is.Null);
-    }
-
+    
     [Test]
     public void GetChildren_ReturnsCorrectNodes() {
         var child1 = _graph.CreateNode(new Vector2I(1, 0));
@@ -100,36 +86,13 @@ public class MazeNodeTests {
         child1.Parent = _node;
         child2.Parent = _node;
 
-        var children = _node.GetChildren().ToList();
+        var children = _graph.GetChildren(_node).ToList();
 
         Assert.Multiple(() => {
             Assert.That(children, Has.Count.EqualTo(2));
             Assert.That(children, Contains.Item(child1));
             Assert.That(children, Contains.Item(child2));
             Assert.That(children, Does.Not.Contain(nonChild));
-        });
-    }
-
-    [Test]
-    public void GetEdgesToChildren_ReturnsCorrectEdges() {
-        var child1 = _graph.CreateNode(new Vector2I(1, 0));
-        var child2 = _graph.CreateNode(new Vector2I(2, 1));
-        var nonChild = _graph.CreateNode(new Vector2I(0, 1));
-        
-        child1.Parent = _node;
-        child2.Parent = _node;
-        
-        var edge1 = _node.AddEdgeTo(child1);
-        var edge2 = _node.AddEdgeTo(child2);
-        var edge3 = _node.AddEdgeTo(nonChild);
-
-        var childEdges = _node.GetEdgesToChildren().ToList();
-
-        Assert.Multiple(() => {
-            Assert.That(childEdges, Has.Count.EqualTo(2));
-            Assert.That(childEdges, Contains.Item(edge1));
-            Assert.That(childEdges, Contains.Item(edge2));
-            Assert.That(childEdges, Does.Not.Contain(edge3));
         });
     }
 

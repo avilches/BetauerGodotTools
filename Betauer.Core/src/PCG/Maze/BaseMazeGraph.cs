@@ -52,7 +52,9 @@ public class BaseMazeGraph {
     }
 
     public MazeNode GetOrCreateNode(Vector2I position) {
-        if (!IsValidPosition(position)) throw new ArgumentException("Invalid position", nameof(position));
+        if (!IsValidPosition(position)) {
+            throw new InvalidNodeException($"Can't get node at {position}. Invalid position", position);
+        }
         var node = NodeGrid[position];
         if (node != null) return node;
 
@@ -60,11 +62,15 @@ public class BaseMazeGraph {
     }
 
     public MazeNode CreateNode(Vector2I position, MazeNode? parent = null) {
-        if (!IsValidPosition(position)) throw new ArgumentException("Invalid position", nameof(position));
+        if (!IsValidPosition(position)) {
+            throw new InvalidNodeException($"Can't create node at {position}. Invalid position", position);
+        }
         var node = NodeGrid[position];
-        if (node != null) throw new ArgumentException($"Node already exists in position {position}", nameof(position));
+        if (node != null) {
+            throw new InvalidOperationException("Can't create node at "+position+". Invalid position", position);
+        }
 
-        node = new MazeNode(this, LastId++, position) {
+        node = new MazeNode(LastId++, position) {
             Parent = parent
         };
         NodeGrid[position] = node;
@@ -73,52 +79,71 @@ public class BaseMazeGraph {
         return node;
     }
 
-    public MazeNode? GetNode(Vector2I position) => NodeGrid[position];
-
-    public void RemoveNode(int id) {
-        if (!Nodes.TryGetValue(id, out var node)) return;
-        RemoveNode(node);
+    public MazeNode? GetNodeAt(Vector2I position) {
+        if (!IsValidPosition(position)) {
+            throw new InvalidNodeException($"Can't get node at {position}. Invalid position", position);
+        }
+        return NodeGrid[position];
     }
 
-    public void RemoveNode(Vector2I position) {
-        var node = GetNode(position);
-        if (node == null) return;
-        RemoveNode(node);
+    public bool RemoveNode(int id) {
+        if (!Nodes.TryGetValue(id, out var node)) return false;
+        return RemoveNode(node);
     }
 
-    public void RemoveNode(MazeNode node) {
-        Nodes.Remove(node.Id);
+    public bool RemoveNodeAt(Vector2I position) {
+        var node = GetNodeAt(position);
+        if (node == null) return false;
+        return RemoveNode(node);
+    }
+
+    public bool RemoveNode(MazeNode node) {
+        if (!Nodes.Remove(node.Id)) return false;
         NodeGrid[node.Position] = null!;
         foreach (var other in Nodes.Values) {
             other.RemoveEdgeTo(other);
             if (other.Parent == node) other.Parent = null;
         }
         node.Parent = null;
+        return true;
     }
-    
+
+    public void ConnectNodes(MazeNode from, MazeNode to, bool twoWays) {
+        _ConnectNode(from, to);
+        if (twoWays) _ConnectNode(to, from);
+    }
+
+    public void ConnectNodeTowards(MazeNode from, Vector2I direction, bool twoWays) {
+        ConnectNodeAt(from, from.Position + direction, twoWays);
+    }
+
+    public void ConnectNodeAt(MazeNode from, Vector2I target, bool twoWays) {
+        var to = GetNodeAt(target);
+        if (to == null) return;
+        ConnectNodes(from, to, twoWays);
+    }
+
+    private void _ConnectNode(MazeNode from, MazeNode to) {
+        if (to == null || from == null) return;
+        if (from.HasEdgeTo(to)) {
+            // Just ignore duplicated edges
+            return;
+        }
+        if (!IsValidEdge(from.Position, to.Position)) {
+            throw new InvalidEdgeException(from.Position, to.Position);
+        }
+        var edge = from.AddEdgeTo(to);
+        OnConnect?.Invoke(edge);
+    }
+
     public bool IsValidEdge(Vector2I from, Vector2I to) {
         // No need to validate if the nodes are valid, as the edge is created between valid nodes.
         return IsValidEdgeFunc(from, to);
     }
 
-    public void ConnectNode(MazeNode from, MazeNode to, bool twoWays) {
-        _ConnectNode(from, to);
-        if (twoWays) _ConnectNode(to, from);
-    }
-
-    private void _ConnectNode(MazeNode from, MazeNode to) {
-        if (from.HasEdgeTo(to)) {
-            // Just ignore duplicated edges
-            return;
-        }
-        if (!IsValidEdge(from.Position, to.Position)) throw new ArgumentException("Invalid edge: "+from.Position+" -> "+to.Position);
-        var edge = from.AddEdgeTo(to);
-        OnConnect?.Invoke(edge);
-    }
-
     public IEnumerable<Vector2I> GetValidFreeAdjacentPositions(Vector2I from) {
         return GetAdjacentPositions(from)
-            .Where(adjacentPos => GetNode(adjacentPos) == null && IsValidPosition(adjacentPos));
+            .Where(adjacentPos => IsValidPosition(adjacentPos) && NodeGrid[adjacentPos] == null);
     }
 
     public IEnumerable<Vector2I> GetValidFreeAdjacentDirections(Vector2I from) {
@@ -131,5 +156,8 @@ public class BaseMazeGraph {
                 Geometry.IsPointInRectangle(adjacentPos.X, adjacentPos.Y, 0, 0, Width, Height));
     }
 
+    public IEnumerable<MazeNode> GetChildren(MazeNode parent) {
+        return Nodes.Values.Where(n => n.Parent == parent);
+    }
 
 }
