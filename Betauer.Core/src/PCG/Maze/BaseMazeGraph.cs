@@ -29,8 +29,8 @@ public class BaseMazeGraph {
     /// Called to determine if an edge is valid before creating it.
     /// </summary>
     public Func<Vector2I, Vector2I, bool> IsValidEdgeFunc { get; set; } = (_, _) => true;
-    public event Action<MazeEdge>? OnConnect;
-    public event Action<MazeNode>? OnCreateNode;
+    public event Action<MazeEdge>? NodeConnected;
+    public event Action<MazeNode>? NodeCreated;
 
     protected int LastId = 0;
 
@@ -75,7 +75,7 @@ public class BaseMazeGraph {
         };
         NodeGrid[position] = node;
         Nodes[node.Id] = node;
-        OnCreateNode?.Invoke(node);
+        NodeCreated?.Invoke(node);
         return node;
     }
 
@@ -101,7 +101,7 @@ public class BaseMazeGraph {
         if (!Nodes.Remove(node.Id)) return false;
         NodeGrid[node.Position] = null!;
         foreach (var other in Nodes.Values) {
-            other.RemoveEdgeTo(other);
+            other.RemoveEdgeTo(node);
             if (other.Parent == node) other.Parent = null;
         }
         node.Parent = null;
@@ -133,7 +133,7 @@ public class BaseMazeGraph {
             throw new InvalidEdgeException(from.Position, to.Position);
         }
         var edge = from.AddEdgeTo(to);
-        OnConnect?.Invoke(edge);
+        NodeConnected?.Invoke(edge);
     }
 
     public bool IsValidEdge(Vector2I from, Vector2I to) {

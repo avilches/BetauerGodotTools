@@ -15,7 +15,7 @@ public class MazeGraphDemo {
 
         var mc = new MazeGraph(8, 8);
         var start = new Vector2I(0, 0);
-        mc.OnConnect += (i) => {
+        mc.NodeConnected += (i) => {
             // PrintGraph(mc);
         };
 
@@ -38,7 +38,7 @@ public class MazeGraphDemo {
         var template = new BitArray2D(width, height, true);
         var mc = MazeGraph.Create(template);
         var start = new Vector2I(4, 4);
-        mc.OnCreateNode += (i) => {
+        mc.NodeCreated += (i) => {
             // PrintGraphAsCarved(mc);
         };
 
