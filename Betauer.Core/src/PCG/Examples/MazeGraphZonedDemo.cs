@@ -49,7 +49,7 @@ public class MazeGraphDungeonDemo {
             
         };
         var start = template.FirstOrDefault(dataCell => dataCell.Value == 'o')!.Position;
-        mc.NodeConnected += (i) => { PrintGraph(mc); };
+        // mc.OnNodeConnected += (i) => { PrintGraph(mc); };
 
         mc.GrowZoned(start, new MazeZonedConstraints(4, 200)
             // .SetNodesPerZones(5)
@@ -87,6 +87,10 @@ public class MazeGraphDungeonDemo {
         }
         // ConnectNodes(template, mc);
 
+        PrintGraph(mc);
+
+        // mc.AddCyclesByDistance(7, 2);
+        mc.AddCyclesByParentDistance(5, 5);
         PrintGraph(mc);
     }
 

@@ -25,7 +25,7 @@ public class MazeEdge(MazeNode from, MazeNode to) {
 public enum PathWeightMode {
     NodesOnly,
     EdgesOnly,
-    Both 
+    Both
 }
 
 /// <summary>
@@ -145,7 +145,46 @@ public class MazeNode {
     /// <param name="target">The target node</param>
     /// <returns>List of nodes forming the path, or null if no path exists</returns>
     public List<MazeNode>? GetPathToNode(MazeNode target) {
-        // ... implementation ...
+        if (target == this) return [this];
+
+        // Obtener el camino hasta la raíz para ambos nodos
+        var thisPath = GetPathToRoot();
+        var targetPath = target.GetPathToRoot();
+
+        // Encontrar el ancestro común
+        MazeNode? commonAncestor = null;
+        int thisIndex = 0, targetIndex = 0;
+
+        // Buscar el ancestro común buscando en todos los nodos del path
+        for (var i = 0; i < thisPath.Count; i++) {
+            var nodeInThisPath = thisPath[i];
+            for (var j = 0; j < targetPath.Count; j++) {
+                if (nodeInThisPath == targetPath[j]) {
+                    commonAncestor = nodeInThisPath;
+                    thisIndex = i;
+                    targetIndex = j;
+                    goto CommonAncestorFound; // Salir de ambos loops cuando encontremos el primer ancestro común
+                }
+            }
+        }
+
+        CommonAncestorFound:
+
+        if (commonAncestor == null) return null;
+
+        // Construir el camino: subir desde this hasta el ancestro común y bajar hasta target
+        var path = new List<MazeNode>();
+
+        // Añadir el camino desde this hasta el ancestro común (en orden inverso)
+        for (var i = 0; i <= thisIndex; i++) {
+            path.Add(thisPath[i]);
+        }
+
+        // Añadir el camino desde el ancestro común hasta target (en orden normal)
+        for (var i = targetIndex - 1; i >= 0; i--) {
+            path.Add(targetPath[i]);
+        }
+        return path;
     }
 
     /// <summary>
@@ -183,7 +222,43 @@ public class MazeNode {
     /// <param name="target">The target node</param>
     /// <returns>List of nodes forming the shortest path, or null if no path exists</returns>
     public List<MazeNode>? FindShortestPath(MazeNode target) {
-        // ... implementation ...
+        if (target == this) return [this];
+
+        // Inicializamos el diccionario con todos los nodos alcanzables
+        var visited = GetReachableNodes()
+            .ToDictionary(node => node, _ => (MazeNode?)null);
+
+        var queue = new Queue<MazeNode>();
+        queue.Enqueue(this);
+
+        while (queue.Count > 0) {
+            var current = queue.Dequeue();
+
+            if (current == target) {
+                // Reconstruir el camino
+                var path = new List<MazeNode>();
+                var node = current;
+
+                while (node != null) {
+                    path.Add(node);
+                    node = visited[node];
+                }
+
+                path.Reverse();
+                return path;
+            }
+
+            // Explorar todos los nodos conectados por edges
+            foreach (var edge in current.GetEdges()) {
+                var next = edge.To;
+                if (visited[next] == null && next != this) {
+                    visited[next] = current;
+                    queue.Enqueue(next);
+                }
+            }
+        }
+
+        return null;
     }
 
     /// <summary>

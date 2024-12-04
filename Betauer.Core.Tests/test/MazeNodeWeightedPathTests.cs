@@ -7,7 +7,6 @@ using NUnit.Framework;
 namespace Betauer.Core.Tests;
 
 [TestFixture]
-[Only]
 public class MazeNodeWeightedPathTests {
     private MazeGraph _graph = null!;
     private MazeNode _node = null!;
