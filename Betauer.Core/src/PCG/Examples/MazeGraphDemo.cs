@@ -15,7 +15,7 @@ public class MazeGraphDemo {
 
         var mc = new MazeGraph<object>(8, 8);
         var start = new Vector2I(0, 0);
-        mc.OnNodeConnected += (i) => {
+        mc.OnEdgeCreated += (i) => {
             // PrintGraph(mc);
         };
 

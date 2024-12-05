@@ -7,9 +7,11 @@ namespace Betauer.Core.PCG.Maze;
 
 public class PotentialCycles<T> {
     private readonly bool _useParentDistance;
+    private readonly BaseMazeGraph<T> _graph; 
     private readonly List<(MazeNode<T> nodeA, MazeNode<T> nodeB, (Vector2I, Vector2I) connection)> _potentialConnections;
 
     public PotentialCycles(BaseMazeGraph<T> graph, bool useParentDistance) {
+        _graph = graph;
         _useParentDistance = useParentDistance;
         // Get all potential cycles once
         _potentialConnections = graph.GetNodes()
@@ -37,6 +39,7 @@ public class PotentialCycles<T> {
         Func<int, bool> filter,
         bool descending = true) {
         var query = _potentialConnections
+            .Where(x=> _graph.IsValidEdge(x.nodeA.Position, x.nodeB.Position))
             .Select(x => {
                 var distance = _useParentDistance
                     ? x.nodeA.GetDistanceToNode(x.nodeB)

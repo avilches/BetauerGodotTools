@@ -9,14 +9,13 @@ namespace Betauer.Core.PCG.Maze;
 /// <summary>
 /// Represents an edge in the maze graph, connecting two nodes
 /// </summary>
-/// <param name="from">The source node of the edge.</param>
-/// <param name="to">The destination node of the edge.</param>
-public class MazeEdge<T>(MazeNode<T> from, MazeNode<T> to, float weight = 0f) {
+public class MazeEdge<T>(MazeNode<T> from, MazeNode<T> to, T? metadata = default, float weight = 0f) {
     public MazeNode<T> From { get; } = from ?? throw new ArgumentNullException(nameof(from));
     public MazeNode<T> To { get; } = to ?? throw new ArgumentNullException(nameof(to));
-    public Vector2I Direction => To.Position - From.Position;
-    public T Metadata { get; set; }
+    public T? Metadata { get; set; } = metadata;
     public float Weight { get; set; } = weight;
+    
+    public Vector2I Direction => To.Position - From.Position;
 }
 
 /// <summary>
@@ -35,10 +34,13 @@ public class MazeNode<T> {
     /// <summary>
     /// Represents a node in the maze graph, containing connections to adjacent nodes.
     /// </summary>
-    internal MazeNode(int id, Vector2I position) {
+    internal MazeNode(BaseMazeGraph<T> mazeGraph, int id, Vector2I position) {
+        _mazeGraph = mazeGraph;
         Id = id;
         Position = position;
     }
+
+    private readonly BaseMazeGraph<T> _mazeGraph;
 
     public int Id { get; }
     public Vector2I Position { get; }
@@ -54,23 +56,6 @@ public class MazeNode<T> {
     public T Metadata { get; set; }
 
     public float Weight { get; set; } = 0f;
-
-    /// <summary>
-    /// Creates a connection between this node and another node in the specified direction.
-    /// </summary>
-    /// <param name="node">The node to connect to.</param>
-    /// <param name="weight">The weigth.</param>
-    /// <returns>The created edge.</returns>
-    public MazeEdge<T> AddEdgeTo(MazeNode<T> node, float weight = 0f) {
-        var edge = GetEdgeTo(node);
-        if (edge != null) {
-            edge.Weight = weight;
-            return edge;
-        }
-        edge = new MazeEdge<T>(this, node, weight);
-        _edges.Add(edge);
-        return edge;
-    }
 
     public MazeEdge<T>? GetEdgeTo(MazeNode<T> to) {
         return _edges.FirstOrDefault(edge => edge.To == to);
@@ -92,6 +77,13 @@ public class MazeNode<T> {
         var edge = GetEdgeTo(node);
         if (edge != null) {
             _edges.Remove(edge);
+            _mazeGraph.InvokeOnEdgeRemoved(edge);
+        }
+    }
+
+    public void RemoveEdge(MazeEdge<T> edge) {
+        if (_edges.Remove(edge)) {
+            _mazeGraph.InvokeOnEdgeRemoved(edge);
         }
     }
 
@@ -99,15 +91,58 @@ public class MazeNode<T> {
         var edge = GetEdgeTowards(direction);
         if (edge != null) {
             _edges.Remove(edge);
+            _mazeGraph.InvokeOnEdgeRemoved(edge);
         }
-    }
-
-    public void RemoveEdge(MazeEdge<T> edge) {
-        _edges.Remove(edge);
     }
 
     public ImmutableList<MazeEdge<T>> GetEdges() {
         return _edges.ToImmutableList();
+    }
+    
+    public bool RemoveNode() {
+        if (!_mazeGraph.InternalRemoveNode(this)) return false;
+        
+        // Desconectar de todos los otros nodos
+        foreach (var otherNode in _mazeGraph.GetNodes()) {
+            otherNode.RemoveEdgeTo(this);
+            if (otherNode.Parent == this) otherNode.Parent = null;
+        }
+        Parent = null;
+        return true;
+    }
+
+    public MazeEdge<T> ConnectTo(int id, T? metadata = default, float weight = 0f) {
+        var targetNode = _mazeGraph.GetNode(id);
+        return ConnectTo(targetNode, metadata, weight);
+    }
+
+    public MazeEdge<T> ConnectTo(Vector2I targetPos, T? metadata = default, float weight = 0f) {
+        var targetNode = _mazeGraph.GetNodeAt(targetPos);
+        return ConnectTo(targetNode, metadata, weight);
+    }
+
+    public MazeEdge<T> ConnectTowards(Vector2I direction, T? metadata = default, float weight = 0f) {
+        var targetPos = Position + direction;
+        var targetNode = _mazeGraph.GetNodeAt(targetPos);
+        return ConnectTo(targetNode, metadata, weight);
+    }
+
+    public MazeEdge<T> ConnectTo(MazeNode<T> to, T? metadata = default, float weight = 0f) {
+        if (!_mazeGraph.IsValidEdge(Position, to.Position)) {
+            throw new InvalidEdgeException($"Invalid edge between {Position} and {to.Position}", Position, to.Position);
+        }
+
+        var edge = GetEdgeTo(to);
+        if (edge != null) {
+            edge.Weight = weight;
+            edge.Metadata = metadata;
+            return edge;
+        }
+
+        edge = new MazeEdge<T>(this, to, metadata, weight);
+        _edges.Add(edge);
+        _mazeGraph.InvokeOnEdgeCreated(edge);
+        return edge;
     }
 
     /// <summary>

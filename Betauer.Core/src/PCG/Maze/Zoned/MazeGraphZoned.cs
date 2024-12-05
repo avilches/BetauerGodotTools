@@ -6,6 +6,7 @@ using Godot;
 namespace Betauer.Core.PCG.Maze.Zoned;
 
 public class MazeGraphZoned<T>(int width, int height) : BaseMazeGraph<T>(width, height) {
+
     public List<ZoneCreated<T>> GrowZoned(Vector2I start, IMazeZonedConstraints constraints, Random? rng = null) {
         if (!IsValidPosition(start)) {
             throw new ArgumentException("Invalid start position", nameof(start));
@@ -73,10 +74,9 @@ public class MazeGraphZoned<T>(int width, int height) : BaseMazeGraph<T>(width, 
             }
             var nextPos = rng.Next(availablePositions);
             var newNode = CreateNode(nextPos, currentNode);
-            newNode.Parent = currentNode;
             newNode.Zone = currentZone.Id;
-            ConnectNodes(currentNode, newNode);
-            ConnectNodes(newNode, currentNode);
+            currentNode.ConnectTo(newNode);
+            newNode.ConnectTo(currentNode);
             globalZone.Nodes++;
             if (globalZone.Nodes == maxTotalNodes) break;
             currentZone.AvailableNodes.Add(newNode);

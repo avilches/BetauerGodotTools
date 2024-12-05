@@ -73,7 +73,7 @@ public class MazeGraphTests {
         _graph.ConnectNodes(other, node);
         other.Parent = node;
 
-        _graph.RemoveNode(node);
+        node.RemoveNode();
 
         Assert.Multiple(() => {
             Assert.That(_graph.GetNodeAtOrNull(node.Position), Is.Null);

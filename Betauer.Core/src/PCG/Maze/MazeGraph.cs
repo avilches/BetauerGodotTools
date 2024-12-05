@@ -66,15 +66,14 @@ public class MazeGraph<T>(int width, int height) : BaseMazeGraph<T>(width, heigh
             lastDirection = nextDir;
 
             var nextPos = currentNode.Position + nextDir;
-            var nextNode = CreateNode(nextPos);
-            nextNode.Parent = currentNode;
-            ConnectNodes(currentNode, nextNode);
-            ConnectNodes(nextNode, currentNode);
-            pendingNodes.Add(nextNode);
+            var newNode = CreateNode(nextPos, currentNode);
+            currentNode.ConnectTo(newNode);
+            newNode.ConnectTo(currentNode);
+            pendingNodes.Add(newNode);
             totalNodesCreated++;
             nodesCreatedInCurrentPath++;
 
-            currentNode = nextNode;
+            currentNode = newNode;
         }
         // Console.WriteLine("Cells created: " + totalNodesCreated + " Paths created: " + pathsCreated);
     }
@@ -100,11 +99,10 @@ public class MazeGraph<T>(int width, int height) : BaseMazeGraph<T>(width, heigh
                 pendingNodes.Remove(currentNode);
             } else {
                 var nextPos = rng.Next(adjacentPositions);
-                var nextNode = CreateNode(nextPos);
-                nextNode.Parent = currentNode;
-                ConnectNodes(currentNode, nextNode);
-                ConnectNodes(nextNode, currentNode);
-                pendingNodes.Add(nextNode);
+                var newNode = CreateNode(nextPos, currentNode);
+                currentNode.ConnectTo(newNode);
+                newNode.ConnectTo(currentNode);
+                pendingNodes.Add(newNode);
                 totalNodesCreated++;
             }
         }

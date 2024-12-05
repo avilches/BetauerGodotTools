@@ -41,8 +41,8 @@ public class MazeNodeCyclesTests {
             for (int x = 0; x < 3; x++) {
                 var from = maze.GetNodeAt(new Vector2I(x, y));
                 var to = maze.GetNodeAt(new Vector2I(x + 1, y));
-                maze.ConnectNodes(from, to);
-                maze.ConnectNodes(to, from);
+                from.ConnectTo(to);
+                to.ConnectTo(from);
                 to.Parent = from;
             }
         }
@@ -51,8 +51,8 @@ public class MazeNodeCyclesTests {
         for (int y = 0; y < 3; y++) {
             var from = maze.GetNodeAt(new Vector2I(0, y));
             var to = maze.GetNodeAt(new Vector2I(0, y + 1));
-            maze.ConnectNodes(from, to);
-            maze.ConnectNodes(to, from);
+            from.ConnectTo(to);
+            to.ConnectTo(from);
             to.Parent = from;
         }
 

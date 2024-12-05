@@ -32,12 +32,12 @@ public class MazeNodeWeightedPathTests {
         //      D(2)---+(1)
 
         // Ruta larga con peso total 6
-        nodeA.AddEdgeTo(nodeB).Weight = 5;
-        nodeB.AddEdgeTo(nodeC).Weight = 1;
+        nodeA.ConnectTo(nodeB).Weight = 5;
+        nodeB.ConnectTo(nodeC).Weight = 1;
 
         // Ruta corta con peso total 3
-        nodeA.AddEdgeTo(nodeD).Weight = 2;
-        nodeD.AddEdgeTo(nodeC).Weight = 1;
+        nodeA.ConnectTo(nodeD).Weight = 2;
+        nodeD.ConnectTo(nodeC).Weight = 1;
 
         var result = nodeA.FindWeightedPath(nodeC, PathWeightMode.EdgesOnly);
 
@@ -58,8 +58,8 @@ public class MazeNodeWeightedPathTests {
         var nodeC = _graph.CreateNode(new Vector2I(2, 0));
 
         // Todos los edges tienen peso 1 (explícitamente)
-        nodeA.AddEdgeTo(nodeB).Weight = 1;
-        nodeB.AddEdgeTo(nodeC).Weight = 1;
+        nodeA.ConnectTo(nodeB).Weight = 1;
+        nodeB.ConnectTo(nodeC).Weight = 1;
 
         var result = nodeA.FindWeightedPath(nodeC, PathWeightMode.EdgesOnly);
 
@@ -110,14 +110,14 @@ public class MazeNodeWeightedPathTests {
         // Ruta inferior: A -> D -> C
         // - Edge AD = 2, D.Weight = 1, Edge DC = 2, C.Weight = 1
 
-        nodeA.AddEdgeTo(nodeB).Weight = 1;
+        nodeA.ConnectTo(nodeB).Weight = 1;
         nodeB.Weight = 5;
-        nodeB.AddEdgeTo(nodeC).Weight = 1;
+        nodeB.ConnectTo(nodeC).Weight = 1;
         nodeC.Weight = 1;
 
-        nodeA.AddEdgeTo(nodeD).Weight = 2;
+        nodeA.ConnectTo(nodeD).Weight = 2;
         nodeD.Weight = 1;
-        nodeD.AddEdgeTo(nodeC).Weight = 2;
+        nodeD.ConnectTo(nodeC).Weight = 2;
 
         var resultNodesOnly = nodeA.FindWeightedPath(nodeC, PathWeightMode.NodesOnly);
         var resultEdgesOnly = nodeA.FindWeightedPath(nodeC, PathWeightMode.EdgesOnly);
@@ -144,7 +144,7 @@ public class MazeNodeWeightedPathTests {
         var nodeB = _graph.GetOrCreateNode(new Vector2I(1, 0));
 
         nodeA.Weight = 5;
-        var edge = nodeA.AddEdgeTo(nodeB);
+        var edge = nodeA.ConnectTo(nodeB);
         edge.Weight = 1;
         nodeB.Weight = 1;
 
@@ -173,13 +173,13 @@ public class MazeNodeWeightedPathTests {
         var nodeE = _graph.GetOrCreateNode(new Vector2I(1, 2));
 
         // Ruta corta: A -> B -> C
-        nodeA.AddEdgeTo(nodeB);
-        nodeB.AddEdgeTo(nodeC);
+        nodeA.ConnectTo(nodeB);
+        nodeB.ConnectTo(nodeC);
 
         // Ruta larga: A -> D -> E -> C
-        nodeA.AddEdgeTo(nodeD);
-        nodeD.AddEdgeTo(nodeE);
-        nodeE.AddEdgeTo(nodeC);
+        nodeA.ConnectTo(nodeD);
+        nodeD.ConnectTo(nodeE);
+        nodeE.ConnectTo(nodeC);
 
         var resultNodesOnly = nodeA.FindWeightedPath(nodeC, PathWeightMode.NodesOnly);
         var resultEdgesOnly = nodeA.FindWeightedPath(nodeC, PathWeightMode.EdgesOnly);
@@ -203,7 +203,7 @@ public class MazeNodeWeightedPathTests {
         var nodeA = _graph.GetOrCreateNode(new Vector2I(0, 0));
         var nodeB = _graph.GetOrCreateNode(new Vector2I(1, 0));
     
-        var edge = nodeA.AddEdgeTo(nodeB);
+        var edge = nodeA.ConnectTo(nodeB);
     
         Assert.That(edge.Weight, Is.EqualTo(0f));
     }
@@ -215,8 +215,8 @@ public class MazeNodeWeightedPathTests {
         var nodeC = _graph.GetOrCreateNode(new Vector2I(2, 0));
 
         // No establecemos pesos explícitamente
-        nodeA.AddEdgeTo(nodeB);
-        nodeB.AddEdgeTo(nodeC);
+        nodeA.ConnectTo(nodeB);
+        nodeB.ConnectTo(nodeC);
 
         var result = nodeA.FindWeightedPath(nodeC, PathWeightMode.EdgesOnly);
 

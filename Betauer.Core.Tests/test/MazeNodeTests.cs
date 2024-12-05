@@ -30,7 +30,7 @@ public class MazeNodeTests {
     [Test]
     public void AddEdgeTo_CreatesBidirectionalConnection() {
         var other = _graph.CreateNode(new Vector2I(1, 0));
-        var edge = _node.AddEdgeTo(other);
+        var edge = _node.ConnectTo(other);
 
         Assert.Multiple(() => {
             Assert.That(edge.From, Is.EqualTo(_node));
@@ -42,8 +42,8 @@ public class MazeNodeTests {
     [Test]
     public void AddEdgeTo_WhenEdgeExists_ReturnsSameEdge() {
         var other = _graph.CreateNode(new Vector2I(1, 0));
-        var edge1 = _node.AddEdgeTo(other);
-        var edge2 = _node.AddEdgeTo(other);
+        var edge1 = _node.ConnectTo(other);
+        var edge2 = _node.ConnectTo(other);
 
         Assert.That(edge1, Is.EqualTo(edge2));
     }
@@ -51,7 +51,7 @@ public class MazeNodeTests {
     [Test]
     public void RemoveEdgeTo_RemovesConnection() {
         var other = _graph.CreateNode(new Vector2I(1, 0));
-        var edge = _node.AddEdgeTo(other);
+        var edge = _node.ConnectTo(other);
 
         _node.RemoveEdgeTo(other);
 
@@ -65,8 +65,8 @@ public class MazeNodeTests {
     public void GetEdges_ReturnsAllEdges() {
         var up = _graph.CreateNode(new Vector2I(1, 0));
         var right = _graph.CreateNode(new Vector2I(2, 1));
-        var edgeUp = _node.AddEdgeTo(up);
-        var edgeRight = _node.AddEdgeTo(right);
+        var edgeUp = _node.ConnectTo(up);
+        var edgeRight = _node.ConnectTo(right);
 
         var edges = _node.GetEdges().ToList();
 
@@ -221,7 +221,7 @@ public class MazeNodeTests {
         var nodeA = _graph.CreateNode(new Vector2I(0, 0));
         var nodeB = _graph.CreateNode(new Vector2I(1, 0));
 
-        nodeA.AddEdgeTo(nodeB);
+        nodeA.ConnectTo(nodeB);
 
         var path = nodeA.FindShortestPath(nodeB);
 
@@ -241,10 +241,10 @@ public class MazeNodeTests {
         var nodeD = _graph.GetOrCreateNode(new Vector2I(1, 1));
 
         // Create a diamond shape: A -> B -> C and A -> D -> C
-        nodeA.AddEdgeTo(nodeB);
-        nodeB.AddEdgeTo(nodeC);
-        nodeA.AddEdgeTo(nodeD);
-        nodeD.AddEdgeTo(nodeC);
+        nodeA.ConnectTo(nodeB);
+        nodeB.ConnectTo(nodeC);
+        nodeA.ConnectTo(nodeD);
+        nodeD.ConnectTo(nodeC);
 
         var path = nodeA.FindShortestPath(nodeC);
 
@@ -274,8 +274,8 @@ public class MazeNodeTests {
         var nodeB = _graph.CreateNode(new Vector2I(1, 0));
         var nodeC = _graph.CreateNode(new Vector2I(2, 0));
 
-        nodeA.AddEdgeTo(nodeB);
-        nodeB.AddEdgeTo(nodeC);
+        nodeA.ConnectTo(nodeB);
+        nodeB.ConnectTo(nodeC);
 
         Assert.Multiple(() => {
             Assert.That(nodeA.GetDistanceToNodeByEdges(nodeC), Is.EqualTo(2));
@@ -298,8 +298,8 @@ public class MazeNodeTests {
         var nodeB = _graph.CreateNode(new Vector2I(1, 0));
 
         // Create bidirectional connection
-        nodeA.AddEdgeTo(nodeB);
-        nodeB.AddEdgeTo(nodeA);
+        nodeA.ConnectTo(nodeB);
+        nodeB.ConnectTo(nodeA);
 
         Assert.Multiple(() => {
             Assert.That(nodeA.GetDistanceToNodeByEdges(nodeB), Is.EqualTo(1));

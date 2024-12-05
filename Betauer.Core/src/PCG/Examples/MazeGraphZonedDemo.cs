@@ -82,12 +82,31 @@ public class MazeGraphDungeonDemo {
                     .Zone(nodes: 3, parts: 2)
                 ;
 
+            
+                        
+            // PENDIENTE DE HACER
+            // 2 hacer que la 2 zona del boss no tenga nunca puertas
+            // meterlo en IsValidEdgeFunc y que el potential cycles lo tenga en cuenta (deberia fallar si no
+            // lo tiene en cuenta, para ello, provocar un maze)  ¿o quiza una colecion de conexiones o nodos
+            // que no se pueden conectar?
+            // 3 mas formas, no solo corridor ¿es posible? como cuales?
+            // 4 colocar llaves, a ser posible, despues de ver la puerta
+            // calcular linearidad: una IA que coja todas las llaves y llegue al boss, que mire a ver
+            // cuantas veces pasa por cada nodo, y si se deja nodos sin pasar
+            // calcular dificultad segun cercania al boss?
+
             mc.Clear();
             var zones = mc.GrowZoned(start, constraints, rng);
-
+            
             foreach (var zone in zones) {
                 Console.WriteLine($"Zone {zone.Id} Nodes: {zone.Nodes} Parts: {zone.Parts}/{zone.ConfigParts} DoorsOut: {zone.DoorsOut}/{zone.MaxDoorsOut}");
             }
+
+            var neverConnect = mc.GetNodes().Where(n => n.Zone == 2).Select(node => node.Position).ToList();
+            mc.IsValidEdgeFunc = (from, to) => {
+                if (neverConnect.Contains(from) || neverConnect.Contains(to)) return false;
+                return true;
+            };
             
             ConnectNodes(template, mc);
 
@@ -95,7 +114,7 @@ public class MazeGraphDungeonDemo {
 
             foreach (var zone in zones) {
                 ConnectZone(mc, zone.Id);
-            };
+            }
             AddLongestCycles(mc, 5);
             AddShortestCycles(mc, 3);
             PrintGraph(mc);
@@ -110,8 +129,8 @@ public class MazeGraphDungeonDemo {
             .FirstOrDefault(c => c.nodeA.Zone == c.nodeB.Zone && c.nodeA.Zone == zone);
         if (connection == default) return;
 
-        mc.ConnectNodes(connection.nodeA, connection.nodeB).Metadata = new Metadata(true);
-        mc.ConnectNodes(connection.nodeB, connection.nodeA).Metadata = new Metadata(true);
+        connection.nodeA.ConnectTo(connection.nodeB, new Metadata(true));
+        connection.nodeB.ConnectTo(connection.nodeA, new Metadata(true));
     }
 
     private static void AddLongestCycles(MazeGraphZoned<Metadata> mc, int maxCycles) {
@@ -123,8 +142,8 @@ public class MazeGraphDungeonDemo {
                 .FirstOrDefault(c => c.nodeA.Zone != c.nodeB.Zone);
             if (connection == default) break;
 
-            mc.ConnectNodes(connection.nodeA, connection.nodeB).Metadata = new Metadata(true);
-            mc.ConnectNodes(connection.nodeB, connection.nodeA).Metadata = new Metadata(true);
+            connection.nodeA.ConnectTo(connection.nodeB, new Metadata(true));
+            connection.nodeB.ConnectTo(connection.nodeA, new Metadata(true));
             cyclesAdded++;
             cycles.RemoveCycle(connection.nodeA, connection.nodeB);
         }
@@ -139,8 +158,8 @@ public class MazeGraphDungeonDemo {
                 .FirstOrDefault(c => c.nodeA.Zone != c.nodeB.Zone);
             if (connection == default) break;
 
-            mc.ConnectNodes(connection.nodeA, connection.nodeB).Metadata = new Metadata(true);
-            mc.ConnectNodes(connection.nodeB, connection.nodeA).Metadata = new Metadata(true);
+            connection.nodeA.ConnectTo(connection.nodeB, new Metadata(true));
+            connection.nodeB.ConnectTo(connection.nodeA, new Metadata(true));
             cyclesAdded++;
             cycles.RemoveCycle(connection.nodeA, connection.nodeB);
         }
@@ -149,34 +168,28 @@ public class MazeGraphDungeonDemo {
     private static void ConnectNodes(Array2D<char> template, MazeGraphZoned<Metadata> mc) {
         template
             .Where(dataCell => dataCell.Value == '<')
-            .Select(dataCell => mc.GetNodeAtOrNull(dataCell.Position)!).Where(node => node != null!)
+            .Select(dataCell => mc.GetNodeAtOrNull(dataCell.Position)!)
+            .Where(node => node != null! && mc.IsValidEdge(node.Position, node.Position + Vector2I.Left))
             .ForEach(from => {
                 var to = mc.GetNodeAtOrNull(from.Position + Vector2I.Left);
                 if (to != null) {
-                    mc.ConnectNodes(from, to).Metadata = new Metadata(true);;
-                    mc.ConnectNodes(to, from).Metadata = new Metadata(true);;
+                    from.ConnectTo(to, new Metadata(true));
+                    to.ConnectTo(from, new Metadata(true));
                 }
                 
             });
 
         template
             .Where(dataCell => dataCell.Value == '+' || dataCell.Value == 'o')
-            .Select(dataCell => mc.GetNodeAt(dataCell.Position)).Where(node => node != null).Select(node => node!)
+            .Select(dataCell => mc.GetNodeAt(dataCell.Position))
+            .Where(node => node != null!)
             .ForEach(from => {
-                var left = mc.GetNodeAtOrNull(from.Position + Vector2I.Left);
-                var right = mc.GetNodeAtOrNull(from.Position + Vector2I.Right);
-                var up = mc.GetNodeAtOrNull(from.Position + Vector2I.Up);
-                var down = mc.GetNodeAtOrNull(from.Position + Vector2I.Down);
-                
-                if (left != null) mc.ConnectNodes(from, left).Metadata = new Metadata(true);;
-                if (right != null) mc.ConnectNodes(from, right).Metadata = new Metadata(true);;
-                if (up != null) mc.ConnectNodes(from, up).Metadata = new Metadata(true);;
-                if (down != null) mc.ConnectNodes(from, down).Metadata = new Metadata(true);;
-                
-                if (left != null) mc.ConnectNodes(left, from).Metadata = new Metadata(true);;
-                if (right != null) mc.ConnectNodes(right, from).Metadata = new Metadata(true);;
-                if (up != null) mc.ConnectNodes(up, from).Metadata = new Metadata(true);;
-                if (down != null) mc.ConnectNodes(down, from).Metadata = new Metadata(true);;
+                mc.GetOrtogonalPositions(from.Position).Select(mc.GetNodeAtOrNull)
+                    .Where(node => node != null && mc.IsValidEdge(node.Position, from.Position))
+                    .ForEach(to => {
+                        from.ConnectTo(to, new Metadata(true));
+                        to.ConnectTo(from, new Metadata(true));
+                    });
             });
     }
 

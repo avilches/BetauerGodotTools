@@ -30,8 +30,10 @@ public class BaseMazeGraph<T> {
     /// </summary>
     public Func<Vector2I, Vector2I, bool> IsValidEdgeFunc { get; set; } = (_, _) => true;
 
-    public event Action<MazeEdge<T>>? OnNodeConnected;
+    public event Action<MazeEdge<T>>? OnEdgeCreated;
+    public event Action<MazeEdge<T>>? OnEdgeRemoved;
     public event Action<MazeNode<T>>? OnNodeCreated;
+    public event Action<MazeNode<T>>? OnNodeRemoved;
 
     protected int LastId = 0;
 
@@ -62,6 +64,10 @@ public class BaseMazeGraph<T> {
         return Nodes[id];
     }
 
+    public MazeNode<T>? GetNodeOrNull(int id) {
+        return Nodes.GetValueOrDefault(id);
+    }
+
     public IReadOnlyCollection<MazeNode<T>> GetNodes() {
         return Nodes.Values;
     }
@@ -82,14 +88,16 @@ public class BaseMazeGraph<T> {
         }
     }
 
-    public MazeNode<T> CreateNode(Vector2I position, MazeNode<T>? parent = null) {
+    public MazeNode<T> CreateNode(Vector2I position, MazeNode<T>? parent = null, T? metadata = default, float weight = 0f) {
         ValidatePosition(position, nameof(CreateNode));
         if (NodeGrid.TryGetValue(position, out var node)) {
             throw new InvalidOperationException($"Can't create node at {position}: there is already a node there with id {node.Id}");
         }
 
-        node = new MazeNode<T>(LastId++, position) {
-            Parent = parent
+        node = new MazeNode<T>(this, LastId++, position) {
+            Parent = parent,
+            Metadata = metadata!,
+            Weight = weight
         };
         NodeGrid[position] = node;
         Nodes[node.Id] = node;
@@ -115,93 +123,67 @@ public class BaseMazeGraph<T> {
             !IsValidPositionFunc(position)) return null;
         return NodeGrid.GetValueOrDefault(position);
     }
-
-    public bool RemoveNode(int id) {
-        if (!Nodes.TryGetValue(id, out var node)) return false;
-        return RemoveNode(node);
-    }
-
-    public bool RemoveNodeAt(Vector2I position) {
-        var node = GetNodeAt(position);
-        if (node == null) return false;
-        return RemoveNode(node);
-    }
-
-    public bool RemoveNode(MazeNode<T> node) {
+    
+    internal bool InternalRemoveNode(MazeNode<T> node) {
         if (!Nodes.Remove(node.Id)) return false;
         NodeGrid.Remove(node.Position);
-        foreach (var other in Nodes.Values) {
-            other.RemoveEdgeTo(node);
-            if (other.Parent == node) other.Parent = null;
-        }
-        node.Parent = null;
         return true;
     }
 
+    public bool RemoveNode(int id) {
+        if (!Nodes.TryGetValue(id, out var node)) return false;
+        return node.RemoveNode();
+    }
+    
+    public bool RemoveNodeAt(Vector2I position) {
+        var node = GetNodeAt(position);
+        if (node == null) return false;
+        return node.RemoveNode();
+    }
+    
+    
     public void DisconnectNodes(int fromId, int toId) {
         var from = GetNode(fromId);
         var to = GetNode(toId);
         from.RemoveEdgeTo(to);
     }
-
+    
     public void DisconnectNodes(Vector2I fromPos, Vector2I toPos) {
         var from = GetNodeAt(fromPos)!;
         var to = GetNodeAt(toPos)!;
         from.RemoveEdgeTo(to);
     }
-
-    public void DisconnectNodes(MazeNode<T> from, MazeNode<T> to) {
-        from.RemoveEdgeTo(to);
-    }
-
-    public MazeEdge<T> ConnectNodeTo(int fromId, Vector2I target) {
-        var from = GetNode(fromId);
-        return ConnectNodeTo(from, target);
-    }
-
-    public MazeEdge<T> ConnectNodeTo(Vector2I fromPosition, Vector2I target) {
-        var from = GetNodeAt(fromPosition);
-        return ConnectNodeTo(from, target);
-    }
-
-    public MazeEdge<T> ConnectNodeTo(MazeNode<T> from, Vector2I target) {
-        var to = GetNodeAt(target);
-        return ConnectNodes(from, to);
-    }
-
-    public MazeEdge<T> ConnectNodeTowards(int fromId, Vector2I direction) {
-        var from = GetNode(fromId);
-        return ConnectNodeTowards(from, direction);
-    }
-
-    public MazeEdge<T> ConnectNodeTowards(Vector2I fromPosition, Vector2I direction) {
-        var from = GetNodeAt(fromPosition);
-        return ConnectNodeTowards(from, direction);
-    }
-
-    public MazeEdge<T> ConnectNodeTowards(MazeNode<T> from, Vector2I direction) {
-        return ConnectNodeTo(from, from.Position + direction);
-    }
-
-    public MazeEdge<T> ConnectNodes(int fromId, int toId) {
+    
+    public MazeEdge<T> ConnectNodes(int fromId, int toId, T? metadata = default, float weight = 0f) {
         var from = GetNode(fromId);
         var to = GetNode(toId);
-        return ConnectNodes(from, to);
+        return from.ConnectTo(to, metadata, weight);
     }
-
-    public MazeEdge<T> ConnectNodes(Vector2I fromPosition, Vector2I toPosition) {
+    
+    public MazeEdge<T> ConnectNodes(Vector2I fromPosition, Vector2I toPosition, T? metadata = default, float weight = 0f) {
         var from = GetNodeAt(fromPosition)!;
         var to = GetNodeAt(toPosition)!;
-        return ConnectNodes(from, to);
+        return from.ConnectTo(to, metadata, weight);
+    }
+    
+    public MazeEdge<T> ConnectNodes(MazeNode<T> from, MazeNode<T> to, T? metadata = default, float weight = 0f) {
+        return from.ConnectTo(to, metadata, weight);
+    }
+    
+    internal void InvokeOnEdgeCreated(MazeEdge<T> edge) {
+        OnEdgeCreated?.Invoke(edge);
     }
 
-    public MazeEdge<T> ConnectNodes(MazeNode<T> from, MazeNode<T> to, float weight = 0f) {
-        if (IsValidEdgeFunc != null && !IsValidEdgeFunc(from.Position, to.Position)) {
-            throw new InvalidEdgeException($"{nameof(IsValidEdgeFunc)} returned false", from.Position, to.Position);
-        }
-        var edge = from.AddEdgeTo(to, weight);
-        OnNodeConnected?.Invoke(edge);
-        return edge;
+    internal void InvokeOnEdgeRemoved(MazeEdge<T> edge) {
+        OnEdgeRemoved?.Invoke(edge);
+    }
+
+    internal void InvokeOnNodeCreated(MazeNode<T> node) {
+        OnNodeCreated?.Invoke(node);
+    }
+    
+    internal void InvokeOnNodeRemoved(MazeNode<T> node) {
+        OnNodeRemoved?.Invoke(node);
     }
     
     public bool IsValidEdge(Vector2I from, Vector2I to) {
