@@ -59,6 +59,23 @@ public static partial class RandomExtensions {
     public static bool NextBool(this Random random) {
         return random.Next(0, 2) == 0;
     }
+    
+    /// <summary>
+    /// Returns an index from 0 to size-1 with exponential distribution preference for lower indices.
+    /// The factor controls how strong the preference is:
+    /// - Lower factors (0.1-0.3) = Almost uniform distribution
+    /// - Medium factors (0.5-1.0) = Moderate preference for first elements
+    /// - Higher factors (2.0+) = Strong preference for first elements where last element is very rare
+    /// </summary>
+    public static int NextIndexExponential(this Random random, int size, float factor = 1.0f) {
+        if (size <= 0) throw new ArgumentException("Size must be greater than 0");
+        if (factor <= 0) throw new ArgumentException("Factor must be greater than 0");
+    
+        var lambda = factor / size;
+        var maxValue = 1 - Math.Exp(-lambda * (size - 1));
+        var u = random.NextDouble() * maxValue;
+        return (int)(-Math.Log(1 - u) / lambda);
+    }
 
     /// <summary>
     /// Returns true with a specific chance. So, NextBool(0.7f) will be true the 70% 
@@ -290,4 +307,31 @@ public static class Distribution {
                    .Concatenated()
                + $"Min: {min}, Max: {max}:\n";
     }
+    
+    public static void Main() {
+        var samples = 1000000;
+        var size = 10;
+        var factors = new[] { 0.01f, 0.5, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 10f, 20f };
+        var random = new Random();
+
+        foreach (var factor in factors) {
+            var counts = new int[size];
+            for (var i = 0; i < samples; i++) {
+                var index = random.NextIndexExponential(size, (float)factor);
+                counts[index]++;
+            }
+        
+            Console.WriteLine($"\nFactor {factor:F1} ({samples} muestras):");
+            // Console.WriteLine("Índice: [0][1][2][3][4][5][6][7][8][9]");
+            // Console.WriteLine("Veces:   " + string.Join(" ", counts.Select(c => c.ToString().PadLeft(3))));
+            // Console.WriteLine("       " + string.Join(" ", counts.Select(c => $"{(c * 100.0 / samples):F1}%")));
+        
+            Console.WriteLine("\nVisualización (cada # = 2%):");
+            for (var i = 0; i < size; i++) {
+                var percentage = (counts[i] * 100.0 / samples);
+                Console.WriteLine($"[{i}] {new string('#', (int)(percentage/2))} ({percentage:F1}%)");
+            }
+        }
+    }
+    
 }
