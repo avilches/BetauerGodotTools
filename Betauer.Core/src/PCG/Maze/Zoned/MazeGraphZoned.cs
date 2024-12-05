@@ -80,7 +80,8 @@ public class MazeGraphZoned(int width, int height) : BaseMazeGraph(width, height
             var newNode = CreateNode(nextPos, currentNode);
             newNode.Parent = currentNode;
             newNode.Zone = currentZone.Id;
-            ConnectNodes(currentNode, newNode, true);
+            ConnectNodes(currentNode, newNode);
+            ConnectNodes(newNode, currentNode);
             globalZone.Nodes++;
             if (globalZone.Nodes == maxTotalNodes) break;
             currentZone.AvailableNodes.Add(newNode);

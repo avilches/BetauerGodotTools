@@ -11,12 +11,12 @@ namespace Betauer.Core.PCG.Maze;
 /// </summary>
 /// <param name="from">The source node of the edge.</param>
 /// <param name="to">The destination node of the edge.</param>
-public class MazeEdge(MazeNode from, MazeNode to) {
+public class MazeEdge(MazeNode from, MazeNode to, float weight = 0f) {
     public MazeNode From { get; } = from ?? throw new ArgumentNullException(nameof(from));
     public MazeNode To { get; } = to ?? throw new ArgumentNullException(nameof(to));
     public Vector2I Direction => To.Position - From.Position;
     public object Metadata { get; set; }
-    public float Weight { get; set; } = 0f;
+    public float Weight { get; set; } = weight;
 }
 
 /// <summary>
@@ -46,10 +46,10 @@ public class MazeNode {
     private readonly List<MazeEdge> _edges = [];
     public int Zone { get; set; }
 
-    public MazeNode? Up => GetEdgeTo(Vector2I.Up)?.To;
-    public MazeNode? Down => GetEdgeTo(Vector2I.Down)?.To;
-    public MazeNode? Right => GetEdgeTo(Vector2I.Right)?.To;
-    public MazeNode? Left => GetEdgeTo(Vector2I.Left)?.To;
+    public MazeNode? Up => GetEdgeTowards(Vector2I.Up)?.To;
+    public MazeNode? Down => GetEdgeTowards(Vector2I.Down)?.To;
+    public MazeNode? Right => GetEdgeTowards(Vector2I.Right)?.To;
+    public MazeNode? Left => GetEdgeTowards(Vector2I.Left)?.To;
 
     public object Metadata { get; set; }
 
@@ -59,11 +59,15 @@ public class MazeNode {
     /// Creates a connection between this node and another node in the specified direction.
     /// </summary>
     /// <param name="node">The node to connect to.</param>
+    /// <param name="weight">The weigth.</param>
     /// <returns>The created edge.</returns>
-    public MazeEdge AddEdgeTo(MazeNode node) {
+    public MazeEdge AddEdgeTo(MazeNode node, float weight = 0f) {
         var edge = GetEdgeTo(node);
-        if (edge != null) return edge;
-        edge = new MazeEdge(this, node);
+        if (edge != null) {
+            edge.Weight = weight;
+            return edge;
+        }
+        edge = new MazeEdge(this, node, weight);
         _edges.Add(edge);
         return edge;
     }
@@ -76,26 +80,23 @@ public class MazeNode {
         return GetEdgeTo(other) != null;
     }
 
-    public void RemoveEdgeTo(MazeNode node, bool bidirectional = true) {
+    public MazeEdge? GetEdgeTowards(Vector2I direction) {
+        return _edges.FirstOrDefault(edge => edge.Direction == direction);
+    }
+
+    public bool HasEdgeTowards(Vector2I direction) {
+        return GetEdgeTowards(direction) != null;
+    }
+
+    public void RemoveEdgeTo(MazeNode node) {
         var edge = GetEdgeTo(node);
         if (edge != null) {
             _edges.Remove(edge);
         }
-        if (bidirectional) {
-            node.RemoveEdgeTo(this, false);
-        }
     }
 
-    public MazeEdge? GetEdgeTo(Vector2I direction) {
-        return _edges.FirstOrDefault(edge => edge.Direction == direction);
-    }
-
-    public bool HasEdgeDirection(Vector2I direction) {
-        return GetEdgeTo(direction) != null;
-    }
-
-    public void RemoveEdgeDirection(Vector2I direction) {
-        var edge = GetEdgeTo(direction);
+    public void RemoveEdgeTowards(Vector2I direction) {
+        var edge = GetEdgeTowards(direction);
         if (edge != null) {
             _edges.Remove(edge);
         }

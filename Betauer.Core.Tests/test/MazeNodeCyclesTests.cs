@@ -41,7 +41,8 @@ public class MazeNodeCyclesTests {
             for (int x = 0; x < 3; x++) {
                 var from = maze.GetNodeAt(new Vector2I(x, y));
                 var to = maze.GetNodeAt(new Vector2I(x + 1, y));
-                maze.ConnectNodes(from, to, true);
+                maze.ConnectNodes(from, to);
+                maze.ConnectNodes(to, from);
                 to.Parent = from;
             }
         }
@@ -50,7 +51,8 @@ public class MazeNodeCyclesTests {
         for (int y = 0; y < 3; y++) {
             var from = maze.GetNodeAt(new Vector2I(0, y));
             var to = maze.GetNodeAt(new Vector2I(0, y + 1));
-            maze.ConnectNodes(from, to, true);
+            maze.ConnectNodes(from, to);
+            maze.ConnectNodes(to, from);
             to.Parent = from;
         }
 
@@ -66,15 +68,17 @@ public class MazeNodeCyclesTests {
            |     |
            12-13-14-15
          */
-        maze.DisconnectNodes(9, 10, true);
-        maze.ConnectNodes(10, 14, true);
+        maze.DisconnectNodes(9, 10);
+        maze.DisconnectNodes(10, 9);
+        maze.ConnectNodes(10, 14);
+        maze.ConnectNodes(14, 10);
         maze.GetNode(10).Parent = maze.GetNode(14);
 
     }
 
     [Test]
     public void FindPotentialCycles_WithMinDistance3_ReturnsCorrectPairs() {
-        var cycles = maze.FindPotentialCycles(minDistance: 3, useParentDistance: true).ToList();
+        var cycles = maze.GetPotentialCycles(useParentDistance: true).GetCyclesGreaterThan(3);
 
         Assert.That(cycles, Is.Not.Empty);
 
@@ -96,9 +100,10 @@ public class MazeNodeCyclesTests {
         
         Assert.That(initialEdgeCount, Is.EqualTo(30));
 
-        maze.FindPotentialCycles(minDistance: 4).ForEach(cycle => {
+        maze.GetPotentialCycles(useParentDistance: true).GetCyclesGreaterThan(4).ForEach(cycle => {
             Console.WriteLine($"Cycle: {cycle.nodeA.Position} - {cycle.nodeB.Position} ({cycle.distance})");
-            maze.ConnectNodes(cycle.nodeA, cycle.nodeB, true);
+            maze.ConnectNodes(cycle.nodeA, cycle.nodeB);
+            maze.ConnectNodes(cycle.nodeB, cycle.nodeA);
         });
         PrintGraphEdges(maze);
 
@@ -120,7 +125,8 @@ public class MazeNodeCyclesTests {
         Assert.That(edgeDistanceBefore, Is.EqualTo(5));
 
         // Add the new connection
-        maze.ConnectNodes(nodeA, nodeB, true);
+        maze.ConnectNodes(nodeA, nodeB);
+        maze.ConnectNodes(nodeB, nodeA);
 
         // Calculate distances after connection
         var parentDistanceAfter = nodeA.GetDistanceToNode(nodeB);
@@ -133,7 +139,7 @@ public class MazeNodeCyclesTests {
 
     [Test]
     public void FindPotentialCycles_WithHighMinDistance_ReturnsNoResults() {
-        var cycles = maze.FindPotentialCycles(minDistance: 20, useParentDistance: true).ToList();
+        var cycles = maze.GetPotentialCycles(useParentDistance: true).GetCyclesGreaterThan(20).ToList();
         Assert.That(cycles, Is.Empty);
     }
 

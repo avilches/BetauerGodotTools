@@ -69,7 +69,8 @@ public class MazeGraphTests {
     public void RemoveNode_RemovesNodeAndConnections() {
         var node = _graph.CreateNode(new Vector2I(1, 1));
         var other = _graph.CreateNode(new Vector2I(1, 0));
-        _graph.ConnectNodes(node, other, true);
+        _graph.ConnectNodes(node, other);
+        _graph.ConnectNodes(other, node);
         other.Parent = node;
 
         _graph.RemoveNode(node);
@@ -86,7 +87,8 @@ public class MazeGraphTests {
         var node1 = _graph.CreateNode(new Vector2I(0, 0));
         var node2 = _graph.CreateNode(new Vector2I(1, 0));
         
-        _graph.ConnectNodes(node1, node2, true);
+        _graph.ConnectNodes(node1, node2);
+        _graph.ConnectNodes(node2, node1);
 
         Assert.Multiple(() => {
             Assert.That(node1.HasEdgeTo(node2), Is.True);

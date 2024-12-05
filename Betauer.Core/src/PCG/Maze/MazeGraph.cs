@@ -71,7 +71,8 @@ public class MazeGraph(int width, int height) : BaseMazeGraph(width, height) {
             var nextPos = currentNode.Position + nextDir;
             var nextNode = CreateNode(nextPos);
             nextNode.Parent = currentNode;
-            ConnectNodes(currentNode, nextNode, true);
+            ConnectNodes(currentNode, nextNode);
+            ConnectNodes(nextNode, currentNode);
             pendingNodes.Add(nextNode);
             totalNodesCreated++;
             nodesCreatedInCurrentPath++;
@@ -108,7 +109,8 @@ public class MazeGraph(int width, int height) : BaseMazeGraph(width, height) {
                 var nextPos = rng.Next(adjacentPositions);
                 var nextNode = CreateNode(nextPos);
                 nextNode.Parent = currentNode;
-                ConnectNodes(currentNode, nextNode, true);
+                ConnectNodes(currentNode, nextNode);
+                ConnectNodes(nextNode, currentNode);
                 pendingNodes.Add(nextNode);
                 totalNodesCreated++;
             }
