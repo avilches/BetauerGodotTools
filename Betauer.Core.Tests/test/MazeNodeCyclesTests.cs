@@ -9,12 +9,12 @@ namespace Betauer.Core.Tests;
 
 [TestFixture]
 public class MazeNodeCyclesTests {
-    private MazeGraph maze;
+    private MazeGraph<object> maze;
 
     [SetUp]
     public void Setup() {
         // Create a 4x4 maze for testing
-        maze = new MazeGraph(4, 4);
+        maze = new MazeGraph<object>(4, 4);
 
         /* Create a maze structure like this, parent and edges are the same
            0--1--2--3
@@ -144,13 +144,12 @@ public class MazeNodeCyclesTests {
     }
 
     private int CountEdges() {
-        return maze.Nodes.Values.Sum(node => node.GetEdges().Count());
+        return maze.GetNodes().Sum(node => node.GetEdges().Count());
     }
 
-    private static void PrintGraphEdges(MazeGraph mc) {
+    private static void PrintGraphEdges(MazeGraph<object> mc) {
         var allCanvas = new TextCanvas();
-        foreach (var dataCell in mc.NodeGrid) {
-            var node = dataCell.Value;
+        foreach (var node in mc.GetNodes()) {
             if (node == null) continue;
             var canvas = new TextCanvas();
             if (node.Up != null) canvas.Write(1, 0, "|");
@@ -159,15 +158,14 @@ public class MazeNodeCyclesTests {
             if (node.Left != null) canvas.Write(0, 1, "-");
             canvas.Write(1, 1, node.Id.ToString());
 
-            allCanvas.Write(dataCell.Position.X * 3, dataCell.Position.Y * 3, canvas.ToString());
+            allCanvas.Write(node.Position.X * 3, node.Position.Y * 3, canvas.ToString());
         }
         Console.WriteLine(allCanvas.ToString());
     }
 
-    private static void PrintGraphParent(MazeGraph mc) {
+    private static void PrintGraphParent(MazeGraph<object> mc) {
         var allCanvas = new TextCanvas();
-        foreach (var dataCell in mc.NodeGrid) {
-            var node = dataCell.Value;
+        foreach (var node in mc.GetNodes()) {
             if (node == null) continue;
             var canvas = new TextCanvas();
             if (node.Up != null && node.Up == node.Parent) canvas.Write(1, 0, "p");
@@ -176,7 +174,7 @@ public class MazeNodeCyclesTests {
             if (node.Left != null && node.Left == node.Parent) canvas.Write(0, 1, "p");
             canvas.Write(1, 1, node.Id.ToString());
 
-            allCanvas.Write(dataCell.Position.X * 3, dataCell.Position.Y * 3, canvas.ToString());
+            allCanvas.Write(node.Position.X * 3, node.Position.Y * 3, canvas.ToString());
         }
         Console.WriteLine(allCanvas.ToString());
     }

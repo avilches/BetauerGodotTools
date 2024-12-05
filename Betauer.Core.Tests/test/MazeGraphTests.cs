@@ -9,11 +9,11 @@ namespace Betauer.Core.Tests;
 
 [TestFixture]
 public class MazeGraphTests {
-    private MazeGraph _graph = null!;
+    private MazeGraph<object> _graph = null!;
 
     [SetUp]
     public void Setup() {
-        _graph = new MazeGraph(10, 10);
+        _graph = new MazeGraph<object>(10, 10);
     }
 
     [Test]
@@ -21,8 +21,7 @@ public class MazeGraphTests {
         Assert.Multiple(() => {
             Assert.That(_graph.Width, Is.EqualTo(10));
             Assert.That(_graph.Height, Is.EqualTo(10));
-            Assert.That(_graph.NodeGrid, Is.Not.Null);
-            Assert.That(_graph.Nodes, Is.Empty);
+            Assert.That(_graph.GetNodes(), Is.Empty);
             Assert.That(_graph.Root, Is.Null);
         });
     }
@@ -33,8 +32,9 @@ public class MazeGraphTests {
         
         Assert.Multiple(() => {
             Assert.That(node, Is.Not.Null);
-            Assert.That(_graph.NodeGrid[new Vector2I(1, 1)], Is.EqualTo(node));
-            Assert.That(_graph.Nodes.ContainsKey(node.Id), Is.True);
+            Assert.That(_graph.GetNodeAt(new Vector2I(1, 1)), Is.EqualTo(node));
+            Assert.That(_graph.HasNodeAt(new Vector2I(1, 1)), Is.True);
+            Assert.That(_graph.HasNode(node.Id), Is.True);
         });
     }
 
@@ -52,8 +52,8 @@ public class MazeGraphTests {
 
         Assert.Multiple(() => {
             Assert.That(node.Position, Is.EqualTo(new Vector2I(1, 1)));
-            Assert.That(_graph.NodeGrid[node.Position], Is.EqualTo(node));
-            Assert.That(_graph.Nodes[node.Id], Is.EqualTo(node));
+            Assert.That(_graph.GetNodeAt(node.Position), Is.EqualTo(node));
+            Assert.That(_graph.GetNode(node.Id), Is.EqualTo(node));
         });
     }
 
@@ -76,8 +76,9 @@ public class MazeGraphTests {
         _graph.RemoveNode(node);
 
         Assert.Multiple(() => {
-            Assert.That(_graph.NodeGrid[node.Position], Is.Null);
-            Assert.That(_graph.Nodes.ContainsKey(node.Id), Is.False);
+            Assert.That(_graph.GetNodeAtOrNull(node.Position), Is.Null);
+            Assert.That(_graph.HasNodeAt(node.Position), Is.False);
+            Assert.That(_graph.HasNode(node.Id), Is.False);
             Assert.That(other.Parent, Is.Null);
         });
     }
@@ -118,7 +119,7 @@ public class MazeGraphTests {
             {false, true, false}
         };
 
-        var graph = MazeGraph.Create(template);
+        var graph = MazeGraph.Create<object>(template);
         
         Assert.Multiple(() => {
             Assert.That(graph.Width, Is.EqualTo(3));
@@ -140,8 +141,8 @@ public class MazeGraphTests {
 
         Assert.Multiple(() => {
             Assert.That(_graph.Root, Is.Not.Null);
-            Assert.That(_graph.Nodes, Is.Not.Empty);
-            Assert.That(_graph.Nodes.Count, Is.LessThanOrEqualTo(10));
+            Assert.That(_graph.GetNodes(), Is.Not.Empty);
+            Assert.That(_graph.GetNodes().Count, Is.LessThanOrEqualTo(10));
         });
     }
 
@@ -151,8 +152,8 @@ public class MazeGraphTests {
 
         Assert.Multiple(() => {
             Assert.That(_graph.Root, Is.Not.Null);
-            Assert.That(_graph.Nodes, Is.Not.Empty);
-            Assert.That(_graph.Nodes.Count, Is.LessThanOrEqualTo(10));
+            Assert.That(_graph.GetNodes(), Is.Not.Empty);
+            Assert.That(_graph.GetNodes().Count, Is.LessThanOrEqualTo(10));
         });
     }
 }

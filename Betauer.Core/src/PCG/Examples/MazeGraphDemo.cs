@@ -13,7 +13,7 @@ public class MazeGraphDemo {
         var rng = new Random(seed);
 
 
-        var mc = new MazeGraph(8, 8);
+        var mc = new MazeGraph<object>(8, 8);
         var start = new Vector2I(0, 0);
         mc.OnNodeConnected += (i) => {
             // PrintGraph(mc);
@@ -36,7 +36,7 @@ public class MazeGraphDemo {
 
         const int width = 41, height = 21;
         var template = new BitArray2D(width, height, true);
-        var mc = MazeGraph.Create(template);
+        var mc = MazeGraph.Create<object>(template);
         var start = new Vector2I(4, 4);
         mc.OnNodeCreated += (i) => {
             // PrintGraphAsCarved(mc);
@@ -53,10 +53,9 @@ public class MazeGraphDemo {
         PrintGraphAsCarved(mc);
     }
 
-    private static void PrintGraph(MazeGraph mc) {
+    private static void PrintGraph<T>(MazeGraph<T> mc) {
         var allCanvas = new TextCanvas();
-        foreach (var dataCell in mc.NodeGrid) {
-            var node = dataCell.Value;
+        foreach (var node in mc.GetNodes()) {
             if (node == null) continue;
             var canvas = new TextCanvas();
             canvas.Write(1, 1, node.Id.ToString());
@@ -65,25 +64,24 @@ public class MazeGraphDemo {
             if (node.Down != null) canvas.Write(1, 2, "|");
             if (node.Left != null) canvas.Write(0, 1, "-");
 
-            allCanvas.Write(dataCell.Position.X * 4, dataCell.Position.Y * 3, canvas.ToString());
+            allCanvas.Write(node.Position.X * 4, node.Position.Y * 3, canvas.ToString());
         }
         Console.WriteLine(allCanvas.ToString());
     }
 
-    private static void PrintGraphAsCarved(MazeGraph mc) {
+    private static void PrintGraphAsCarved<T>(MazeGraph<T> mc) {
         var allCanvas = new TextCanvas();
-        foreach (var dataCell in mc.NodeGrid) {
+        foreach (var node in mc.GetNodes()) {
             var canvas = new TextCanvas("""
                                         ██
                                         ██
                                         """);
-            var node = dataCell.Value;
             if (node != null) {
                 canvas.Write(1, 1, " "); // node.Metadata?.ToString());
                 if (node.Up != null) canvas.Write(1, 0, " ");
                 if (node.Left != null) canvas.Write(0, 1, " ");
             }
-            allCanvas.Write(dataCell.Position.X * 2, dataCell.Position.Y * 2, canvas.ToString());
+            allCanvas.Write(node.Position.X * 2, node.Position.Y * 2, canvas.ToString());
         }
         Console.WriteLine(allCanvas.ToString());
     }

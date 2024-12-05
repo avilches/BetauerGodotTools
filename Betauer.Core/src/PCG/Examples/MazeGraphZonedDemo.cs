@@ -8,6 +8,14 @@ using Godot;
 
 namespace Betauer.Core.PCG.Examples;
 
+public class Metadata {
+    public bool added = false;
+
+    public Metadata(bool added) {
+        this.added = added;
+    }
+}
+
 public class MazeGraphDungeonDemo {
     public static void Main() {
         var seed = 5;
@@ -44,7 +52,7 @@ public class MazeGraphDungeonDemo {
                     """;
 
         var template = Array2D.Parse(temp3);
-        var mc = new MazeGraphZoned(template.Width, template.Height) {
+        var mc = new MazeGraphZoned<Metadata>(template.Width, template.Height) {
             IsValidPositionFunc = pos => template[pos] != '·'
         };
         var start = template.FirstOrDefault(dataCell => dataCell.Value == 'o')!.Position;
@@ -74,6 +82,7 @@ public class MazeGraphDungeonDemo {
                     .Zone(nodes: 3, parts: 2)
                 ;
 
+            mc.Clear();
             var zones = mc.GrowZoned(start, constraints, rng);
 
             foreach (var zone in zones) {
@@ -94,18 +103,18 @@ public class MazeGraphDungeonDemo {
         }
     }
 
-    private static void ConnectZone(MazeGraphZoned mc, int zone) {
+    private static void ConnectZone(MazeGraphZoned<Metadata> mc, int zone) {
         var cycles = mc.GetPotentialCycles();
         var connection = cycles
             .GetCyclesGreaterThan(0)
             .FirstOrDefault(c => c.nodeA.Zone == c.nodeB.Zone && c.nodeA.Zone == zone);
         if (connection == default) return;
 
-        mc.ConnectNodes(connection.nodeA, connection.nodeB).Metadata = "added";
-        mc.ConnectNodes(connection.nodeB, connection.nodeA).Metadata = "added";
+        mc.ConnectNodes(connection.nodeA, connection.nodeB).Metadata = new Metadata(true);
+        mc.ConnectNodes(connection.nodeB, connection.nodeA).Metadata = new Metadata(true);
     }
 
-    private static void AddLongestCycles(MazeGraphZoned mc, int maxCycles) {
+    private static void AddLongestCycles(MazeGraphZoned<Metadata> mc, int maxCycles) {
         var cycles = mc.GetPotentialCycles();
         var cyclesAdded = 0;
         while (cyclesAdded < maxCycles) {
@@ -114,14 +123,14 @@ public class MazeGraphDungeonDemo {
                 .FirstOrDefault(c => c.nodeA.Zone != c.nodeB.Zone);
             if (connection == default) break;
 
-            mc.ConnectNodes(connection.nodeA, connection.nodeB).Metadata = "added";
-            mc.ConnectNodes(connection.nodeB, connection.nodeA).Metadata = "added";
+            mc.ConnectNodes(connection.nodeA, connection.nodeB).Metadata = new Metadata(true);
+            mc.ConnectNodes(connection.nodeB, connection.nodeA).Metadata = new Metadata(true);
             cyclesAdded++;
             cycles.RemoveCycle(connection.nodeA, connection.nodeB);
         }
     }
 
-    private static void AddShortestCycles(MazeGraphZoned mc, int maxCycles) {
+    private static void AddShortestCycles(MazeGraphZoned<Metadata> mc, int maxCycles) {
         var cycles = mc.GetPotentialCycles();
         var cyclesAdded = 0;
         while (cyclesAdded < maxCycles) {
@@ -130,22 +139,22 @@ public class MazeGraphDungeonDemo {
                 .FirstOrDefault(c => c.nodeA.Zone != c.nodeB.Zone);
             if (connection == default) break;
 
-            mc.ConnectNodes(connection.nodeA, connection.nodeB).Metadata = "added";
-            mc.ConnectNodes(connection.nodeB, connection.nodeA).Metadata = "added";
+            mc.ConnectNodes(connection.nodeA, connection.nodeB).Metadata = new Metadata(true);
+            mc.ConnectNodes(connection.nodeB, connection.nodeA).Metadata = new Metadata(true);
             cyclesAdded++;
             cycles.RemoveCycle(connection.nodeA, connection.nodeB);
         }
     }
 
-    private static void ConnectNodes(Array2D<char> template, MazeGraphZoned mc) {
+    private static void ConnectNodes(Array2D<char> template, MazeGraphZoned<Metadata> mc) {
         template
             .Where(dataCell => dataCell.Value == '<')
-            .Select(dataCell => mc.GetNodeAt(dataCell.Position)).Where(node => node != null).Select(node => node!)
+            .Select(dataCell => mc.GetNodeAtOrNull(dataCell.Position)!).Where(node => node != null!)
             .ForEach(from => {
-                var to = mc.GetNodeAtOrNull(from.Position + Vector2I.Left)!;
+                var to = mc.GetNodeAtOrNull(from.Position + Vector2I.Left);
                 if (to != null) {
-                    mc.ConnectNodes(from, to).Metadata = "added";
-                    mc.ConnectNodes(to, from).Metadata = "added";
+                    mc.ConnectNodes(from, to).Metadata = new Metadata(true);;
+                    mc.ConnectNodes(to, from).Metadata = new Metadata(true);;
                 }
                 
             });
@@ -159,15 +168,15 @@ public class MazeGraphDungeonDemo {
                 var up = mc.GetNodeAtOrNull(from.Position + Vector2I.Up);
                 var down = mc.GetNodeAtOrNull(from.Position + Vector2I.Down);
                 
-                if (left != null) mc.ConnectNodes(from, left).Metadata = "added";
-                if (right != null) mc.ConnectNodes(from, right).Metadata = "added";
-                if (up != null) mc.ConnectNodes(from, up).Metadata = "added";
-                if (down != null) mc.ConnectNodes(from, down).Metadata = "added";
+                if (left != null) mc.ConnectNodes(from, left).Metadata = new Metadata(true);;
+                if (right != null) mc.ConnectNodes(from, right).Metadata = new Metadata(true);;
+                if (up != null) mc.ConnectNodes(from, up).Metadata = new Metadata(true);;
+                if (down != null) mc.ConnectNodes(from, down).Metadata = new Metadata(true);;
                 
-                if (left != null) mc.ConnectNodes(left, from).Metadata = "added";
-                if (right != null) mc.ConnectNodes(right, from).Metadata = "added";
-                if (up != null) mc.ConnectNodes(up, from).Metadata = "added";
-                if (down != null) mc.ConnectNodes(down, from).Metadata = "added";
+                if (left != null) mc.ConnectNodes(left, from).Metadata = new Metadata(true);;
+                if (right != null) mc.ConnectNodes(right, from).Metadata = new Metadata(true);;
+                if (up != null) mc.ConnectNodes(up, from).Metadata = new Metadata(true);;
+                if (down != null) mc.ConnectNodes(down, from).Metadata = new Metadata(true);;
             });
     }
 
@@ -193,19 +202,18 @@ public class MazeGraphDungeonDemo {
     }
     */
 
-    private static void PrintGraph(MazeGraphZoned mc) {
+    private static void PrintGraph(MazeGraphZoned<Metadata> mc) {
         var allCanvas = new TextCanvas();
-        foreach (var dataCell in mc.NodeGrid) {
-            var node = dataCell.Value;
+        foreach (var node in mc.GetNodes()) {
             if (node == null) continue;
             var canvas = new TextCanvas();
-            if (node.Up != null) canvas.Write(1, 0, node.GetEdgeTowards(Vector2I.Up)!.Metadata == "added" ? "·" : "|");
-            if (node.Right != null) canvas.Write(2, 1, node.GetEdgeTowards(Vector2I.Right)!.Metadata == "added" ? "·" : "-");
-            if (node.Down != null) canvas.Write(1, 2, node.GetEdgeTowards(Vector2I.Down)!.Metadata == "added" ? "·" : "|");
-            if (node.Left != null) canvas.Write(0, 1, node.GetEdgeTowards(Vector2I.Left)!.Metadata == "added" ? "·" : "-");
+            if (node.Up != null) canvas.Write(1, 0, node.GetEdgeTowards(Vector2I.Up)!.Metadata?.added ?? false ? "·" : "|");
+            if (node.Right != null) canvas.Write(2, 1, node.GetEdgeTowards(Vector2I.Right)!.Metadata?.added ?? false ? "·" : "-");
+            if (node.Down != null) canvas.Write(1, 2, node.GetEdgeTowards(Vector2I.Down)!.Metadata?.added ?? false ? "·" : "|");
+            if (node.Left != null) canvas.Write(0, 1, node.GetEdgeTowards(Vector2I.Left)!.Metadata?.added ?? false ? "·" : "-");
             canvas.Write(1, 1, node.Zone.ToString());
 
-            allCanvas.Write(dataCell.Position.X * 3, dataCell.Position.Y * 3, canvas.ToString());
+            allCanvas.Write(node.Position.X * 3, node.Position.Y * 3, canvas.ToString());
         }
         Console.WriteLine(allCanvas.ToString());
     }

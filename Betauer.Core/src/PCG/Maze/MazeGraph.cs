@@ -7,7 +7,7 @@ using Godot;
 
 namespace Betauer.Core.PCG.Maze;
 
-public class MazeGraph(int width, int height) : BaseMazeGraph(width, height) {
+public class MazeGraph<T>(int width, int height) : BaseMazeGraph<T>(width, height) {
     /// <summary>
     /// Grows a maze from a starting position using the specified constraints.
     /// </summary>
@@ -15,23 +15,20 @@ public class MazeGraph(int width, int height) : BaseMazeGraph(width, height) {
     /// <param name="constraints">Constraints for the maze generation.</param>
     /// <param name="backtracker">A function to locate the next node to backtrack. By default, it takes the last one (LIFO)</param>
     /// <returns>The number of paths created.</returns>
-    public void Grow(Vector2I start, BacktrackConstraints constraints, Func<List<MazeNode>, MazeNode>? backtracker = null) {
+    public void Grow(Vector2I start, BacktrackConstraints constraints, Func<List<MazeNode<T>>, MazeNode<T>>? backtracker = null) {
         ArgumentNullException.ThrowIfNull(constraints);
         if (!IsValidPosition(start)) {
             throw new ArgumentException("Invalid start position", nameof(start));
         }
 
-        Root = null;
-        NodeGrid.Fill(null);
-        Nodes.Clear();
-        LastId = 0;
+        Clear();
 
         var maxTotalCells = constraints.MaxTotalCells == -1 ? int.MaxValue : constraints.MaxTotalCells;
         var maxCellsPerPath = constraints.MaxCellsPerPath == -1 ? int.MaxValue : constraints.MaxCellsPerPath;
         var maxTotalPaths = constraints.MaxPaths == -1 ? int.MaxValue : constraints.MaxPaths;
         if (maxTotalCells == 0 || maxCellsPerPath == 0 || maxTotalPaths == 0) return;
 
-        var pendingNodes = new List<MazeNode>();
+        var pendingNodes = new List<MazeNode<T>>();
         Vector2I? lastDirection = null;
 
         var pathsCreated = 0;
@@ -89,12 +86,8 @@ public class MazeGraph(int width, int height) : BaseMazeGraph(width, height) {
         }
         maxTotalNodes = maxTotalNodes == -1 ? int.MaxValue : maxTotalNodes;
 
-        Root = null;
-        NodeGrid.Fill(null);
-        Nodes.Clear();
-        LastId = 0;
         rng ??= new Random();
-        var pendingNodes = new List<MazeNode>();
+        var pendingNodes = new List<MazeNode<T>>();
         var totalNodesCreated = 1;
         Root = CreateNode(start);
         pendingNodes.Add(Root);
@@ -116,20 +109,23 @@ public class MazeGraph(int width, int height) : BaseMazeGraph(width, height) {
             }
         }
     }
-    
+}
+
+public static class MazeGraph {
+
     /// <summary>
     /// Creates a new MazeGraph with the specified dimensions.
     /// </summary>
-    public static MazeGraph Create(int width, int height) {
-        return new MazeGraph(width, height);
+    public static MazeGraph<T> Create<T>(int width, int height) {
+        return new MazeGraph<T>(width, height);
     }
 
     /// <summary>
     /// Creates a MazeGraph from a boolean template array.
     /// In the template, true values represent valid positions for nodes. false values are forbidden (invalid)
     /// </summary>
-    public static MazeGraph Create(bool[,] template) {
-        return new MazeGraph(template.GetLength(1), template.GetLength(0)) {
+    public static MazeGraph<T> Create<T>(bool[,] template) {
+        return new MazeGraph<T>(template.GetLength(1), template.GetLength(0)) {
             IsValidPositionFunc = pos => template[pos.Y, pos.X]
         };
     }
@@ -138,8 +134,8 @@ public class MazeGraph(int width, int height) : BaseMazeGraph(width, height) {
     /// Creates a MazeGraph from a boolean Array2D template.
     /// In the template, true values represent valid positions for nodes. false values are forbidden (invalid)
     /// </summary>
-    public static MazeGraph Create(Array2D<bool> template) {
-        return new MazeGraph(template.Width, template.Height) {
+    public static MazeGraph<T> Create<T>(Array2D<bool> template) {
+        return new MazeGraph<T>(template.Width, template.Height) {
             IsValidPositionFunc = pos => template[pos]
         };
     }
@@ -148,8 +144,8 @@ public class MazeGraph(int width, int height) : BaseMazeGraph(width, height) {
     /// Creates a MazeGraph from a BitArray2D template.
     /// In the template, true values represent valid positions for nodes. false values are forbidden (invalid)
     /// </summary>
-    public static MazeGraph Create(BitArray2D template) {
-        return new MazeGraph(template.Width, template.Height) {
+    public static MazeGraph<T> Create<T>(BitArray2D template) {
+        return new MazeGraph<T>(template.Width, template.Height) {
             IsValidPositionFunc = pos => template[pos]
         };
     }

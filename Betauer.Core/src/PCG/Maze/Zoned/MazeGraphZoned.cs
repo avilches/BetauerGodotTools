@@ -5,27 +5,22 @@ using Godot;
 
 namespace Betauer.Core.PCG.Maze.Zoned;
 
-public class MazeGraphZoned(int width, int height) : BaseMazeGraph(width, height) {
-    public List<ZoneCreated> GrowZoned(Vector2I start, IMazeZonedConstraints constraints, Random? rng = null) {
+public class MazeGraphZoned<T>(int width, int height) : BaseMazeGraph<T>(width, height) {
+    public List<ZoneCreated<T>> GrowZoned(Vector2I start, IMazeZonedConstraints constraints, Random? rng = null) {
         if (!IsValidPosition(start)) {
             throw new ArgumentException("Invalid start position", nameof(start));
         }
         var maxTotalNodes = constraints.MaxTotalNodes == -1 ? int.MaxValue : constraints.MaxTotalNodes;
         if (maxTotalNodes == 0 || constraints.MaxZones == 0) return [];
 
-        Root = null;
-        NodeGrid.Fill(null);
-        Nodes.Clear();
-        LastId = 0;
-
         rng ??= new Random();
 
         Root = CreateNode(start);
         Root.Zone = 0;
 
-        var zones = new List<ZoneCreated>();
-        var globalZone = new ZoneCreated(constraints, -1) { Nodes = 1 };
-        var currentZone = new ZoneCreated(constraints, 0) { Nodes = 1, Parts = 1, AvailableNodes = [Root] };
+        var zones = new List<ZoneCreated<T>>();
+        var globalZone = new ZoneCreated<T>(constraints, -1) { Nodes = 1 };
+        var currentZone = new ZoneCreated<T>(constraints, 0) { Nodes = 1, Parts = 1, AvailableNodes = [Root] };
         zones.Add(currentZone);
 
         // Special case: when the first zone has a size of 1, we don't need to expand it,
@@ -37,7 +32,7 @@ public class MazeGraphZoned(int width, int height) : BaseMazeGraph(width, height
             }
             currentZone.AvailableNodes.Clear();
             globalZone.AvailableNodes.Add(Root);
-            currentZone = new ZoneCreated(constraints, 1) { Nodes = 0 };
+            currentZone = new ZoneCreated<T>(constraints, 1) { Nodes = 0 };
             zones.Add(currentZone);
         }
 
@@ -96,7 +91,7 @@ public class MazeGraphZoned(int width, int height) : BaseMazeGraph(width, height
                     // Only if the new zone has doors out, we add the available nodes from the current zone to the global pending nodes
                     globalZone.AvailableNodes.AddRange(currentZone.AvailableNodes);
                 }
-                currentZone = new ZoneCreated(constraints, currentZone.Id + 1);
+                currentZone = new ZoneCreated<T>(constraints, currentZone.Id + 1);
                 zones.Add(currentZone);
             }
             // foreach (var zone in zones) {
@@ -106,7 +101,7 @@ public class MazeGraphZoned(int width, int height) : BaseMazeGraph(width, height
         return zones;
     }
 
-    private static (MazeNode currentNode, bool newPart) FindNextNode(IMazeZonedConstraints constraints, ZoneCreated globalZone, ZoneCreated currentZone, Random rng) {
+    private static (MazeNode<T> currentNode, bool newPart) FindNextNode(IMazeZonedConstraints constraints, ZoneCreated<T> globalZone, ZoneCreated<T> currentZone, Random rng) {
         var newPart = currentZone.Id != 0 && currentZone.Parts < constraints.GetParts(currentZone.Id);
         if (newPart) {
             // The current zone still doesn't have all the parts: we pick a random node from the global to create a new door to the current zone

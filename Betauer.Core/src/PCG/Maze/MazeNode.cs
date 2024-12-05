@@ -11,11 +11,11 @@ namespace Betauer.Core.PCG.Maze;
 /// </summary>
 /// <param name="from">The source node of the edge.</param>
 /// <param name="to">The destination node of the edge.</param>
-public class MazeEdge(MazeNode from, MazeNode to, float weight = 0f) {
-    public MazeNode From { get; } = from ?? throw new ArgumentNullException(nameof(from));
-    public MazeNode To { get; } = to ?? throw new ArgumentNullException(nameof(to));
+public class MazeEdge<T>(MazeNode<T> from, MazeNode<T> to, float weight = 0f) {
+    public MazeNode<T> From { get; } = from ?? throw new ArgumentNullException(nameof(from));
+    public MazeNode<T> To { get; } = to ?? throw new ArgumentNullException(nameof(to));
     public Vector2I Direction => To.Position - From.Position;
-    public object Metadata { get; set; }
+    public T Metadata { get; set; }
     public float Weight { get; set; } = weight;
 }
 
@@ -31,7 +31,7 @@ public enum PathWeightMode {
 /// <summary>
 /// Represents a node in the maze graph, containing connections to adjacent nodes.
 /// </summary>
-public class MazeNode {
+public class MazeNode<T> {
     /// <summary>
     /// Represents a node in the maze graph, containing connections to adjacent nodes.
     /// </summary>
@@ -42,16 +42,16 @@ public class MazeNode {
 
     public int Id { get; }
     public Vector2I Position { get; }
-    public MazeNode? Parent { get; set; }
-    private readonly List<MazeEdge> _edges = [];
+    public MazeNode<T>? Parent { get; set; }
+    private readonly List<MazeEdge<T>> _edges = [];
     public int Zone { get; set; }
 
-    public MazeNode? Up => GetEdgeTowards(Vector2I.Up)?.To;
-    public MazeNode? Down => GetEdgeTowards(Vector2I.Down)?.To;
-    public MazeNode? Right => GetEdgeTowards(Vector2I.Right)?.To;
-    public MazeNode? Left => GetEdgeTowards(Vector2I.Left)?.To;
+    public MazeNode<T>? Up => GetEdgeTowards(Vector2I.Up)?.To;
+    public MazeNode<T>? Down => GetEdgeTowards(Vector2I.Down)?.To;
+    public MazeNode<T>? Right => GetEdgeTowards(Vector2I.Right)?.To;
+    public MazeNode<T>? Left => GetEdgeTowards(Vector2I.Left)?.To;
 
-    public object Metadata { get; set; }
+    public T Metadata { get; set; }
 
     public float Weight { get; set; } = 0f;
 
@@ -61,26 +61,26 @@ public class MazeNode {
     /// <param name="node">The node to connect to.</param>
     /// <param name="weight">The weigth.</param>
     /// <returns>The created edge.</returns>
-    public MazeEdge AddEdgeTo(MazeNode node, float weight = 0f) {
+    public MazeEdge<T> AddEdgeTo(MazeNode<T> node, float weight = 0f) {
         var edge = GetEdgeTo(node);
         if (edge != null) {
             edge.Weight = weight;
             return edge;
         }
-        edge = new MazeEdge(this, node, weight);
+        edge = new MazeEdge<T>(this, node, weight);
         _edges.Add(edge);
         return edge;
     }
 
-    public MazeEdge? GetEdgeTo(MazeNode to) {
+    public MazeEdge<T>? GetEdgeTo(MazeNode<T> to) {
         return _edges.FirstOrDefault(edge => edge.To == to);
     }
 
-    public bool HasEdgeTo(MazeNode other) {
+    public bool HasEdgeTo(MazeNode<T> other) {
         return GetEdgeTo(other) != null;
     }
 
-    public MazeEdge? GetEdgeTowards(Vector2I direction) {
+    public MazeEdge<T>? GetEdgeTowards(Vector2I direction) {
         return _edges.FirstOrDefault(edge => edge.Direction == direction);
     }
 
@@ -88,7 +88,7 @@ public class MazeNode {
         return GetEdgeTowards(direction) != null;
     }
 
-    public void RemoveEdgeTo(MazeNode node) {
+    public void RemoveEdgeTo(MazeNode<T> node) {
         var edge = GetEdgeTo(node);
         if (edge != null) {
             _edges.Remove(edge);
@@ -102,11 +102,11 @@ public class MazeNode {
         }
     }
 
-    public void RemoveEdge(MazeEdge edge) {
+    public void RemoveEdge(MazeEdge<T> edge) {
         _edges.Remove(edge);
     }
 
-    public ImmutableList<MazeEdge> GetEdges() {
+    public ImmutableList<MazeEdge<T>> GetEdges() {
         return _edges.ToImmutableList();
     }
 
@@ -122,8 +122,8 @@ public class MazeNode {
     /// // path contains [currentNode, parentNode, grandparentNode, ..., rootNode]
     /// </summary>
     /// <returns>List of nodes from current to root, including both endpoints.</returns>
-    public List<MazeNode> GetPathToRoot() {
-        var path = new List<MazeNode>();
+    public List<MazeNode<T>> GetPathToRoot() {
+        var path = new List<MazeNode<T>>();
         var current = this;
         while (current != null) {
             path.Add(current);
@@ -148,7 +148,7 @@ public class MazeNode {
     /// </summary>
     /// <param name="target">The target node</param>
     /// <returns>List of nodes forming the path, or null if no path exists</returns>
-    public List<MazeNode>? GetPathToNode(MazeNode target) {
+    public List<MazeNode<T>>? GetPathToNode(MazeNode<T> target) {
         if (target == this) return [this];
 
         // Obtener el camino hasta la raíz para ambos nodos
@@ -156,7 +156,7 @@ public class MazeNode {
         var targetPath = target.GetPathToRoot();
 
         // Encontrar el ancestro común
-        MazeNode? commonAncestor = null;
+        MazeNode<T>? commonAncestor = null;
         int thisIndex = 0, targetIndex = 0;
 
         // Buscar el ancestro común buscando en todos los nodos del path
@@ -177,7 +177,7 @@ public class MazeNode {
         if (commonAncestor == null) return null;
 
         // Construir el camino: subir desde this hasta el ancestro común y bajar hasta target
-        var path = new List<MazeNode>();
+        var path = new List<MazeNode<T>>();
 
         // Añadir el camino desde this hasta el ancestro común (en orden inverso)
         for (var i = 0; i <= thisIndex; i++) {
@@ -204,7 +204,7 @@ public class MazeNode {
     /// </summary>
     /// <param name="target">The target node</param>
     /// <returns>Distance in number of nodes or -1 if no path exists</returns>
-    public int GetDistanceToNode(MazeNode target) {
+    public int GetDistanceToNode(MazeNode<T> target) {
         var path = GetPathToNode(target);
         return path != null ? path.Count - 1 : -1;
     }
@@ -225,14 +225,14 @@ public class MazeNode {
     /// </summary>
     /// <param name="target">The target node</param>
     /// <returns>List of nodes forming the shortest path, or null if no path exists</returns>
-    public List<MazeNode>? FindShortestPath(MazeNode target) {
+    public List<MazeNode<T>>? FindShortestPath(MazeNode<T> target) {
         if (target == this) return [this];
 
         // Inicializamos el diccionario con todos los nodos alcanzables
         var visited = GetReachableNodes()
-            .ToDictionary(node => node, _ => (MazeNode?)null);
+            .ToDictionary(node => node, _ => (MazeNode<T>?)null);
 
-        var queue = new Queue<MazeNode>();
+        var queue = new Queue<MazeNode<T>>();
         queue.Enqueue(this);
 
         while (queue.Count > 0) {
@@ -240,7 +240,7 @@ public class MazeNode {
 
             if (current == target) {
                 // Reconstruir el camino
-                var path = new List<MazeNode>();
+                var path = new List<MazeNode<T>>();
                 var node = current;
 
                 while (node != null) {
@@ -279,7 +279,7 @@ public class MazeNode {
     /// </summary>
     /// <param name="target">The target node</param>
     /// <returns>Distance in number of connections or -1 if no path exists</returns>
-    public int GetDistanceToNodeByEdges(MazeNode target) {
+    public int GetDistanceToNodeByEdges(MazeNode<T> target) {
         var path = FindShortestPath(target);
         return path != null ? path.Count - 1 : -1;
     }
@@ -296,9 +296,9 @@ public class MazeNode {
     /// // reachable contains all nodes that can be reached
     /// </summary>
     /// <returns>Set of all reachable nodes, including the starting node</returns>
-    public HashSet<MazeNode> GetReachableNodes() {
-        var nodes = new HashSet<MazeNode> { this };
-        var queue = new Queue<MazeNode>();
+    public HashSet<MazeNode<T>> GetReachableNodes() {
+        var nodes = new HashSet<MazeNode<T>> { this };
+        var queue = new Queue<MazeNode<T>>();
         queue.Enqueue(this);
 
         while (queue.Count > 0) {
@@ -330,15 +330,15 @@ public class MazeNode {
     /// <param name="target">Destination node</param>
     /// <param name="mode">Weight calculation mode: nodes only, edges only, or both</param>
     /// <returns>Result containing the path and its total cost, or null if no path exists</returns>
-    public PathResult? FindWeightedPath(MazeNode target, PathWeightMode mode = PathWeightMode.Both) {
+    public PathResult<T>? FindWeightedPath(MazeNode<T> target, PathWeightMode mode = PathWeightMode.Both) {
         if (target == this) {
-            return new PathResult([this], mode == PathWeightMode.EdgesOnly ? 0 : Weight);
+            return new PathResult<T>([this], mode == PathWeightMode.EdgesOnly ? 0 : Weight);
         }
 
         var nodes = GetReachableNodes();
         var distances = nodes.ToDictionary(node => node, _ => float.MaxValue);
-        var previous = new Dictionary<MazeNode, MazeNode>();
-        var unvisited = new PriorityQueue<MazeNode, float>();
+        var previous = new Dictionary<MazeNode<T>, MazeNode<T>>();
+        var unvisited = new PriorityQueue<MazeNode<T>, float>();
 
         distances[this] = mode == PathWeightMode.EdgesOnly ? 0 : Weight;
         unvisited.Enqueue(this, distances[this]);
@@ -347,7 +347,7 @@ public class MazeNode {
             var current = unvisited.Dequeue();
 
             if (current == target) {
-                var path = new List<MazeNode>();
+                var path = new List<MazeNode<T>>();
                 var node = current;
 
                 while (previous.ContainsKey(node)) {
@@ -357,7 +357,7 @@ public class MazeNode {
                 path.Add(this);
                 path.Reverse();
 
-                return new PathResult(path, distances[target]);
+                return new PathResult<T>(path, distances[target]);
             }
 
             foreach (var edge in current.GetEdges()) {
@@ -393,8 +393,8 @@ public class MazeNode {
     }
 }
 
-public class PathResult(List<MazeNode> path, float totalCost) {
-    public List<MazeNode> Path { get; } = path;
+public class PathResult<T>(List<MazeNode<T>> path, float totalCost) {
+    public List<MazeNode<T>> Path { get; } = path;
     public float TotalCost { get; } = totalCost;
 
     // Helper method to calculate only the edges cost

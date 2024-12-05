@@ -10,12 +10,12 @@ namespace Betauer.Core.PCG.Maze;
 /// <summary>
 /// Represents a maze as a graph structure with nodes and edges in a 2d grid.
 /// </summary>
-public class BaseMazeGraph {
+public class BaseMazeGraph<T> {
     public int Width { get; }
     public int Height { get; }
-    public Array2D<MazeNode> NodeGrid { get; }
-    public Dictionary<int, MazeNode> Nodes { get; } = [];
-    public MazeNode Root { get; protected set; }
+    protected readonly Dictionary<Vector2I, MazeNode<T>> NodeGrid  = [];
+    protected readonly Dictionary<int, MazeNode<T>> Nodes  = [];
+    public MazeNode<T> Root { get; protected set; }
 
     public Func<Vector2I, IEnumerable<Vector2I>> GetAdjacentPositions { get; set; }
 
@@ -30,8 +30,8 @@ public class BaseMazeGraph {
     /// </summary>
     public Func<Vector2I, Vector2I, bool> IsValidEdgeFunc { get; set; } = (_, _) => true;
 
-    public event Action<MazeEdge>? OnNodeConnected;
-    public event Action<MazeNode>? OnNodeCreated;
+    public event Action<MazeEdge<T>>? OnNodeConnected;
+    public event Action<MazeNode<T>>? OnNodeCreated;
 
     protected int LastId = 0;
 
@@ -45,27 +45,32 @@ public class BaseMazeGraph {
         Width = width;
         Height = height;
         GetAdjacentPositions = GetOrtogonalPositions;
-        NodeGrid = new Array2D<MazeNode>(width, height);
+    }
+
+    public void Clear() {
+        Root = null;
+        NodeGrid.Clear();
+        Nodes.Clear();
+        LastId = 0;
     }
 
     public bool IsValidPosition(Vector2I position) {
         return Geometry.IsPointInRectangle(position.X, position.Y, 0, 0, Width, Height) && IsValidPositionFunc(position);
     }
 
-    public MazeNode GetNode(int id) {
+    public MazeNode<T> GetNode(int id) {
         return Nodes[id];
     }
 
-    public IReadOnlyCollection<MazeNode> GetNodes() {
+    public IReadOnlyCollection<MazeNode<T>> GetNodes() {
         return Nodes.Values;
     }
 
-    public MazeNode GetOrCreateNode(Vector2I position) {
+    public MazeNode<T> GetOrCreateNode(Vector2I position) {
         ValidatePosition(position, nameof(GetOrCreateNode));
-        var node = NodeGrid[position];
-        if (node != null) return node;
-
-        return CreateNode(position, null);
+        return NodeGrid.TryGetValue(position, out var node) 
+            ? node 
+            : CreateNode(position);
     }
 
     private void ValidatePosition(Vector2I position, string message) {
@@ -77,14 +82,13 @@ public class BaseMazeGraph {
         }
     }
 
-    public MazeNode CreateNode(Vector2I position, MazeNode? parent = null) {
+    public MazeNode<T> CreateNode(Vector2I position, MazeNode<T>? parent = null) {
         ValidatePosition(position, nameof(CreateNode));
-        var node = NodeGrid[position];
-        if (node != null) {
+        if (NodeGrid.TryGetValue(position, out var node)) {
             throw new InvalidOperationException($"Can't create node at {position}: there is already a node there with id {node.Id}");
         }
 
-        node = new MazeNode(LastId++, position) {
+        node = new MazeNode<T>(LastId++, position) {
             Parent = parent
         };
         NodeGrid[position] = node;
@@ -93,15 +97,23 @@ public class BaseMazeGraph {
         return node;
     }
 
-    public MazeNode? GetNodeAt(Vector2I position) {
+    public MazeNode<T> GetNodeAt(Vector2I position) {
         ValidatePosition(position, nameof(GetNodeAt));
         return NodeGrid[position];
     }
 
-    public MazeNode? GetNodeAtOrNull(Vector2I position) {
+    public bool HasNodeAt(Vector2I position) {
+        return NodeGrid.ContainsKey(position);
+    }
+
+    public bool HasNode(int id) {
+        return Nodes.ContainsKey(id);
+    }
+
+    public MazeNode<T>? GetNodeAtOrNull(Vector2I position) {
         if (!Geometry.IsPointInRectangle(position.X, position.Y, 0, 0, Width, Height) ||
             !IsValidPositionFunc(position)) return null;
-        return NodeGrid[position];
+        return NodeGrid.GetValueOrDefault(position);
     }
 
     public bool RemoveNode(int id) {
@@ -115,9 +127,9 @@ public class BaseMazeGraph {
         return RemoveNode(node);
     }
 
-    public bool RemoveNode(MazeNode node) {
+    public bool RemoveNode(MazeNode<T> node) {
         if (!Nodes.Remove(node.Id)) return false;
-        NodeGrid[node.Position] = null!;
+        NodeGrid.Remove(node.Position);
         foreach (var other in Nodes.Values) {
             other.RemoveEdgeTo(node);
             if (other.Parent == node) other.Parent = null;
@@ -138,52 +150,52 @@ public class BaseMazeGraph {
         from.RemoveEdgeTo(to);
     }
 
-    public void DisconnectNodes(MazeNode from, MazeNode to) {
+    public void DisconnectNodes(MazeNode<T> from, MazeNode<T> to) {
         from.RemoveEdgeTo(to);
     }
 
-    public MazeEdge ConnectNodeTo(int fromId, Vector2I target) {
+    public MazeEdge<T> ConnectNodeTo(int fromId, Vector2I target) {
         var from = GetNode(fromId);
         return ConnectNodeTo(from, target);
     }
 
-    public MazeEdge ConnectNodeTo(Vector2I fromPosition, Vector2I target) {
+    public MazeEdge<T> ConnectNodeTo(Vector2I fromPosition, Vector2I target) {
         var from = GetNodeAt(fromPosition);
         return ConnectNodeTo(from, target);
     }
 
-    public MazeEdge ConnectNodeTo(MazeNode from, Vector2I target) {
+    public MazeEdge<T> ConnectNodeTo(MazeNode<T> from, Vector2I target) {
         var to = GetNodeAt(target);
         return ConnectNodes(from, to);
     }
 
-    public MazeEdge ConnectNodeTowards(int fromId, Vector2I direction) {
+    public MazeEdge<T> ConnectNodeTowards(int fromId, Vector2I direction) {
         var from = GetNode(fromId);
         return ConnectNodeTowards(from, direction);
     }
 
-    public MazeEdge ConnectNodeTowards(Vector2I fromPosition, Vector2I direction) {
+    public MazeEdge<T> ConnectNodeTowards(Vector2I fromPosition, Vector2I direction) {
         var from = GetNodeAt(fromPosition);
         return ConnectNodeTowards(from, direction);
     }
 
-    public MazeEdge ConnectNodeTowards(MazeNode from, Vector2I direction) {
+    public MazeEdge<T> ConnectNodeTowards(MazeNode<T> from, Vector2I direction) {
         return ConnectNodeTo(from, from.Position + direction);
     }
 
-    public MazeEdge ConnectNodes(int fromId, int toId) {
+    public MazeEdge<T> ConnectNodes(int fromId, int toId) {
         var from = GetNode(fromId);
         var to = GetNode(toId);
         return ConnectNodes(from, to);
     }
 
-    public MazeEdge ConnectNodes(Vector2I fromPosition, Vector2I toPosition) {
+    public MazeEdge<T> ConnectNodes(Vector2I fromPosition, Vector2I toPosition) {
         var from = GetNodeAt(fromPosition)!;
         var to = GetNodeAt(toPosition)!;
         return ConnectNodes(from, to);
     }
 
-    public MazeEdge ConnectNodes(MazeNode from, MazeNode to, float weight = 0f) {
+    public MazeEdge<T> ConnectNodes(MazeNode<T> from, MazeNode<T> to, float weight = 0f) {
         if (IsValidEdgeFunc != null && !IsValidEdgeFunc(from.Position, to.Position)) {
             throw new InvalidEdgeException($"{nameof(IsValidEdgeFunc)} returned false", from.Position, to.Position);
         }
@@ -203,11 +215,11 @@ public class BaseMazeGraph {
     /// </summary>
     /// <param name="from"></param>
     /// <returns></returns>
-    public IEnumerable<MazeNode> GetAdjacentNodes(Vector2I from) {
+    public IEnumerable<MazeNode<T>> GetAdjacentNodes(Vector2I from) {
         return GetAdjacentPositions(from)
             .Where(IsValidPosition)
-            .Select(pos => NodeGrid[pos])
-            .Where(node => node != null);
+            .Select(pos => NodeGrid.GetValueOrDefault(pos)!)
+            .Where(node => node != null!);
     }
 
     /// <summary>
@@ -218,7 +230,7 @@ public class BaseMazeGraph {
     /// <returns></returns>
     public IEnumerable<Vector2I> GetValidFreeAdjacentPositions(Vector2I from) {
         return GetAdjacentPositions(from)
-            .Where(adjacentPos => IsValidPosition(adjacentPos) && NodeGrid[adjacentPos] == null);
+            .Where(adjacentPos => IsValidPosition(adjacentPos) && !NodeGrid.ContainsKey(adjacentPos));
     }
 
     /// <summary>
@@ -237,7 +249,7 @@ public class BaseMazeGraph {
                 Geometry.IsPointInRectangle(adjacentPos.X, adjacentPos.Y, 0, 0, Width, Height));
     }
 
-    public IEnumerable<MazeNode> GetChildren(MazeNode parent) {
+    public IEnumerable<MazeNode<T>> GetChildren(MazeNode<T> parent) {
         return Nodes.Values.Where(n => n.Parent == parent);
     }
 
@@ -266,7 +278,7 @@ public class BaseMazeGraph {
     /// <param name="useParentDistance">If true, calculates distance following parent relationships.
     /// If false, finds the shortest path using all available connections.</param>
     /// <returns>List of potential connections ordered by distance (longest paths first)</returns>
-    public PotentialCycles GetPotentialCycles(bool useParentDistance = false) {
-        return new PotentialCycles(this, useParentDistance);
+    public PotentialCycles<T> GetPotentialCycles(bool useParentDistance = false) {
+        return new PotentialCycles<T>(this, useParentDistance);
     }
 }
