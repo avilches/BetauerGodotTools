@@ -9,11 +9,13 @@ using Godot;
 namespace Betauer.Core.PCG.Examples;
 
 public class Metadata {
-    public bool added = false;
+    public bool Added = false;
+    public int Key = -1;
 
     public Metadata(bool added) {
-        this.added = added;
+        Added = added;
     }
+    
 }
 
 public class MazeGraphDungeonDemo {
@@ -76,22 +78,23 @@ public class MazeGraphDungeonDemo {
         var start = template.FirstOrDefault(dataCell => dataCell.Value == 'o')!.Position;
         mc.OnNodeCreated += (i) => { PrintGraph(mc); };
 
-        /*mc.GrowZoned(start, new MazeZonedConstraints(4, 200)
+        mc.GrowZoned(start, new MazeZonedConstraints(4, 200)
             // .SetNodesPerZones(5)
-            .SetRandomNodesPerZone(2, 5, rng)
+            .SetRandomNodesPerZone(4, 10, rng)
             .SetPartsPerZone(2)
             .SetMaxDoorsOut(2), rng);
-        PrintGraph(mc);*/
+        PrintGraph(mc);
 
         for (var i = 0; i < 1; i++) {
             var autoSplitOnExpand = true;
             var corridor = false;
             var constraints = new MazePerZoneConstraints()
-                    .Zone(nodes: 1, corridor: false)
-                    // .Zone(nodes: 2, parts: 1, maxDoorsOut: 0, corridor: true)
-                    .Zone(nodes: 5, parts: 2, corridor: false)
-                    .Zone(nodes: 5, parts: 2, corridor: false)
-                    .Zone(nodes: 5, parts: 2, corridor: false)
+                    .Zone(nodes: 15, corridor: false)
+                    .Zone(nodes: 20, parts: 1, corridor: true)
+                    .Zone(nodes: 2, parts: 1, maxDoorsOut: 0, corridor: true)
+                    .Zone(nodes: 15, parts: 3, corridor: false)
+                    .Zone(nodes: 15, parts: 3, corridor: false)
+                    .Zone(nodes: 1, parts: 1, corridor: false)
                 ;
 
             // PENDIENTE DE HACER
@@ -102,8 +105,11 @@ public class MazeGraphDungeonDemo {
 
             mc.Clear();
             var zones = mc.GrowZoned(start, constraints, rng);
-
+            
             PrintGraph(mc);
+            
+            
+            
             foreach (var zone in zones) {
                 Console.WriteLine($"Zone {zone.ZoneId} Nodes: {zone.Nodes} Parts: {zone.Parts.Count}/{zone.ConfigParts} DoorsOut: {zone.DoorsOut}/{zone.MaxDoorsOut}");
             }
@@ -111,7 +117,7 @@ public class MazeGraphDungeonDemo {
             NeverConnectZone(mc, 2);
 
             mc.OnEdgeCreated += (i) => {
-                PrintGraph(mc);
+                // PrintGraph(mc);
             };
             
             Console.WriteLine("Connecting nodes with symbols");
@@ -127,9 +133,29 @@ public class MazeGraphDungeonDemo {
             AddLongestCycles(mc, 5);
             Console.WriteLine("Shortest cycles");
             AddShortestCycles(mc, 3);
-            PrintGraph(mc);
+            
+            AssignKeyLocations(zones);
+            AssignTreasures(zones, 0.7f);
+            PrintGraph(mc, zones);
+            return;
+
+
         }
     }
+    
+    public static void AssignKeyLocations(List<ZoneCreated<Metadata>> zones) {
+        // Empezamos desde la zona 1 (la 0 no necesita llave)
+        for (var i = 0; i < zones.Count; i++) {
+            zones[i].SelectKeyLocation();
+        }
+    }
+    
+    public static void AssignTreasures(List<ZoneCreated<Metadata>> zones, float treasurePercentage) {
+        foreach (var zone in zones) {
+            zone.SelectTreasureLocations(treasurePercentage);
+        }
+    }
+
 
     private static void NeverConnectZone(MazeGraphZoned<Metadata> mc, int zone) {
         var neverConnect = mc.GetNodes().Where(n => n.Zone == zone).Select(node => node.Position).ToList();
@@ -233,30 +259,63 @@ public class MazeGraphDungeonDemo {
     }
     */
 
-    private static void PrintGraph(MazeGraphZoned<Metadata> mc) {
+    private static void PrintGraph(MazeGraphZoned<Metadata> mc, List<ZoneCreated<Metadata>>? zones = null) {
         var allCanvas = new TextCanvas();
+        var offset = 0;
         foreach (var node in mc.GetNodes()) {
             if (node == null) continue;
             var canvas = new TextCanvas();
-            if (node.Up != null) canvas.Write(1, 0, node.GetEdgeTowards(Vector2I.Up)!.Metadata?.added ?? false ? "·" : "|");
-            if (node.Right != null) canvas.Write(2, 1, node.GetEdgeTowards(Vector2I.Right)!.Metadata?.added ?? false ? "·" : "-");
-            if (node.Down != null) canvas.Write(1, 2, node.GetEdgeTowards(Vector2I.Down)!.Metadata?.added ?? false ? "·" : "|");
-            if (node.Left != null) canvas.Write(0, 1, node.GetEdgeTowards(Vector2I.Left)!.Metadata?.added ?? false ? "·" : "-");
+            if (node.Up != null) canvas.Write(1, 0, node.GetEdgeTowards(Vector2I.Up)!.Metadata?.Added ?? false ? "·" : "|");
+            if (node.Right != null) canvas.Write(2, 1, node.GetEdgeTowards(Vector2I.Right)!.Metadata?.Added ?? false ? "·" : "-");
+            if (node.Down != null) canvas.Write(1, 2, node.GetEdgeTowards(Vector2I.Down)!.Metadata?.Added ?? false ? "·" : "|");
+            if (node.Left != null) canvas.Write(0, 1, node.GetEdgeTowards(Vector2I.Left)!.Metadata?.Added ?? false ? "·" : "-");
             canvas.Write(1, 1, node.Zone.ToString());
 
-            allCanvas.Write(node.Position.X * 3, node.Position.Y * 3, canvas.ToString());
+            allCanvas.Write(offset + node.Position.X * 3, node.Position.Y * 3, canvas.ToString());
         }
+        offset += (mc.Width * 3 + 5);
         foreach (var node in mc.GetNodes()) {
             if (node == null) continue;
             var canvas = new TextCanvas();
-            if (node.Up != null) canvas.Write(1, 0, node.GetEdgeTowards(Vector2I.Up)!.Metadata?.added ?? false ? "·" : "|");
-            if (node.Right != null) canvas.Write(2, 1, node.GetEdgeTowards(Vector2I.Right)!.Metadata?.added ?? false ? "·" : "-");
-            if (node.Down != null) canvas.Write(1, 2, node.GetEdgeTowards(Vector2I.Down)!.Metadata?.added ?? false ? "·" : "|");
-            if (node.Left != null) canvas.Write(0, 1, node.GetEdgeTowards(Vector2I.Left)!.Metadata?.added ?? false ? "·" : "-");
+            if (node.Up != null) canvas.Write(1, 0, node.GetEdgeTowards(Vector2I.Up)!.Metadata?.Added ?? false ? "·" : "|");
+            if (node.Right != null) canvas.Write(2, 1, node.GetEdgeTowards(Vector2I.Right)!.Metadata?.Added ?? false ? "·" : "-");
+            if (node.Down != null) canvas.Write(1, 2, node.GetEdgeTowards(Vector2I.Down)!.Metadata?.Added ?? false ? "·" : "|");
+            if (node.Left != null) canvas.Write(0, 1, node.GetEdgeTowards(Vector2I.Left)!.Metadata?.Added ?? false ? "·" : "-");
             canvas.Write(1, 1, node.Id.ToString());
 
-            allCanvas.Write((mc.Width * 3 + 5)+ node.Position.X * 3, node.Position.Y * 3, canvas.ToString());
+            allCanvas.Write(offset + node.Position.X * 3, node.Position.Y * 3, canvas.ToString());
         }
+
+        if (zones != null) {
+            offset += (mc.Width * 3 + 5);
+            foreach (var node in mc.GetNodes()) {
+                if (node == null) continue;
+                var canvas = new TextCanvas();
+                if (node.Up != null) canvas.Write(1, 0, node.GetEdgeTowards(Vector2I.Up)!.Metadata?.Added ?? false ? "·" : "|");
+                if (node.Right != null) canvas.Write(2, 1, node.GetEdgeTowards(Vector2I.Right)!.Metadata?.Added ?? false ? "····" : "----");
+                if (node.Down != null) canvas.Write(1, 2, node.GetEdgeTowards(Vector2I.Down)!.Metadata?.Added ?? false ? "·" : "|");
+                if (node.Left != null) canvas.Write(0, 1, node.GetEdgeTowards(Vector2I.Left)!.Metadata?.Added ?? false ? "·" : "-");
+
+                var zone = zones[node.Zone];
+                // var score = Mathf.RoundToInt(zone.NodeScores[node].GetKeyScore() * 100);
+                var score = Mathf.RoundToInt(zone.NodeScores[node].ExitDistanceScore * 100);
+                var loot = zone.TreasureLocations.Contains(node);
+                /*if (zone.KeyLocation == node && loot) {
+                    canvas.Write(1, 1, "!" + score);
+                } else if (zone.KeyLocation == node) {
+                    canvas.Write(1, 1, "*"+score);
+                } else */if (loot) {
+                    canvas.Write(1, 1, "$"+score);
+                } else {
+                    canvas.Write(1, 1, ""+score);
+                }
+                
+                
+
+                allCanvas.Write(offset + node.Position.X * 6, node.Position.Y * 3, canvas.ToString());
+            }
+        }
+    
         Console.WriteLine(allCanvas.ToString());
     }
 

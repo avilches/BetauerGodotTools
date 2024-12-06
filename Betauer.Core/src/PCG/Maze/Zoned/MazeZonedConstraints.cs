@@ -8,8 +8,8 @@ public class MazeZonedConstraints(int maxZones) : IMazeZonedConstraints {
     public int MaxTotalNodes { get; set; } = -1;
     public int PartsPerZone { get; set; } = 1;
     public int MaxDoorsOut { get; set; } = int.MaxValue;
-    public bool AutoSplitOnExpand { get; set; } = true;
-    public bool Corridors { get; set; } = true;
+    public bool CreateMorePartsIfNotSpaceToExpand { get; set; } = true;
+    public bool Corridors { get; set; } = false;
     public int[] NodesPerZone { get; set; }
     
     public MazeZonedConstraints(int maxZones, int maxTotalNodes) : this(maxZones) {
@@ -34,7 +34,7 @@ public class MazeZonedConstraints(int maxZones) : IMazeZonedConstraints {
     }
 
     public bool IsAutoSplitOnExpand(int zoneId) {
-        return AutoSplitOnExpand;
+        return CreateMorePartsIfNotSpaceToExpand;
     }
 
     public bool IsCorridor(int zoneId) {
@@ -49,6 +49,7 @@ public class MazeZonedConstraints(int maxZones) : IMazeZonedConstraints {
         if (partsPerZone > minimumNodesPerZone) {
             throw new ArgumentException($"Wrong partsPerZone value: {partsPerZone}, it must be greater or equals than the minimum nodes per zone {minimumNodesPerZone}");
         }
+        PartsPerZone = partsPerZone;
         return this;
     }
 
@@ -61,7 +62,7 @@ public class MazeZonedConstraints(int maxZones) : IMazeZonedConstraints {
     }
 
     public MazeZonedConstraints SetAutoSplitOnExpand(bool autoSplitOnExpand) {
-        AutoSplitOnExpand = autoSplitOnExpand;
+        CreateMorePartsIfNotSpaceToExpand = autoSplitOnExpand;
         return this;
     }
 
