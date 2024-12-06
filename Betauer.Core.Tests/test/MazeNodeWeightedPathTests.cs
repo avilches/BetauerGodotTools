@@ -226,4 +226,28 @@ public class MazeNodeWeightedPathTests {
             Assert.That(result.GetEdgesCost(), Is.EqualTo(0));
         });
     }
+    
+    [Test]
+    public void FindWeightedPath_DirectionalEdges_RespectsEdgeDirection() {
+        var nodeA = _graph.CreateNode(new Vector2I(0, 0));
+        var nodeB = _graph.CreateNode(new Vector2I(1, 0));
+        var nodeC = _graph.CreateNode(new Vector2I(2, 0));
+
+        // Crear un camino direccional con pesos: A -> B -> C
+        nodeA.ConnectTo(nodeB, weight: 1);
+        nodeB.ConnectTo(nodeC, weight: 2);
+
+        var forwardPath = nodeA.FindWeightedPath(nodeC, PathWeightMode.EdgesOnly);
+        var backwardPath = nodeC.FindWeightedPath(nodeA, PathWeightMode.EdgesOnly);
+
+        Assert.Multiple(() => {
+            // Camino hacia adelante debe existir y tener coste 3
+            Assert.That(forwardPath, Is.Not.Null);
+            Assert.That(forwardPath!.Path, Has.Count.EqualTo(3));
+            Assert.That(forwardPath.TotalCost, Is.EqualTo(3));
+
+            // Camino hacia atrás no debe existir
+            Assert.That(backwardPath, Is.Null);
+        });
+    }
 }
