@@ -20,7 +20,8 @@ public class MazeGraphZoned<T>(int width, int height) : BaseMazeGraph<T>(width, 
 
         var zones = new List<ZoneCreated<T>>();
         var globalZone = new ZoneCreated<T>(constraints, -1) { Nodes = 1 };
-        var currentZone = new ZoneCreated<T>(constraints, 0) { Nodes = 1, Parts = 1, AvailableNodes = [Root] };
+        var currentZone = new ZoneCreated<T>(constraints, 0) { Nodes = 1, AvailableNodes = [Root] };
+        currentZone.CreateNewPart(Root);
         zones.Add(currentZone);
 
         // Special case: when the first zone has a size of 1, we don't need to expand it,
@@ -61,28 +62,32 @@ public class MazeGraphZoned<T>(int width, int height) : BaseMazeGraph<T>(width, 
                 currentZone.AvailableNodes.Remove(currentNode);
                 continue;
             }
+            var nextPos = rng.Next(availablePositions);
+            var newNode = CreateNode(nextPos, currentNode);
+            newNode.Zone = currentZone.ZoneId;
+            currentNode.ConnectTo(newNode);
+            newNode.ConnectTo(currentNode);
+            globalZone.Nodes++;
+
             if (newDoorOut) {
                 var previousZone = zones[currentNode.Zone];
                 previousZone.DoorsOut++;
                 if (previousZone.DoorsOut >= previousZone.MaxDoorsOut) {
                     // We reach the limit of doors out for this zone: removing the available nodes from the global pending nodes,
                     // so we will not use the nodes from this zone anymore
-                    globalZone.AvailableNodes.RemoveAll(node => node.Zone == previousZone.Id);
+                    globalZone.AvailableNodes.RemoveAll(node => node.Zone == previousZone.ZoneId);
                 }
-                currentZone.Parts++;
+                currentZone.CreateNewPart(newNode);
+            } else {
+                currentZone.FindPart(currentNode).AddNode(newNode);
             }
-            var nextPos = rng.Next(availablePositions);
-            var newNode = CreateNode(nextPos, currentNode);
-            newNode.Zone = currentZone.Id;
-            currentNode.ConnectTo(newNode);
-            newNode.ConnectTo(currentNode);
-            globalZone.Nodes++;
+
             if (globalZone.Nodes == maxTotalNodes) break;
             currentZone.AvailableNodes.Add(newNode);
             currentZone.Nodes++;
-            if (currentZone.Nodes >= constraints.GetNodesPerZone(currentZone.Id)) {
+            if (currentZone.Nodes >= constraints.GetNodesPerZone(currentZone.ZoneId)) {
                 // The current zone is full, we need to create a new zone
-                if (currentZone.Id == constraints.MaxZones - 1) {
+                if (currentZone.ZoneId == constraints.MaxZones - 1) {
                     // last zone, we can't create more zones
                     break;
                 }
@@ -90,18 +95,21 @@ public class MazeGraphZoned<T>(int width, int height) : BaseMazeGraph<T>(width, 
                     // Only if the new zone has doors out, we add the available nodes from the current zone to the global pending nodes
                     globalZone.AvailableNodes.AddRange(currentZone.AvailableNodes);
                 }
-                currentZone = new ZoneCreated<T>(constraints, currentZone.Id + 1);
+                currentZone = new ZoneCreated<T>(constraints, currentZone.ZoneId + 1);
                 zones.Add(currentZone);
             }
             // foreach (var zone in zones) {
             // Console.WriteLine($"Zone {zone.Id} Nodes: {zone.Nodes} Parts: {zone.Parts} DoorsOut: {zone.DoorsOut}/{constraints.GetMaxDoorsOut(zone.Id)}");
             // }
         }
+        // Remove nodes without free adjacent positions
+        foreach (var zone in zones) {
+            zone.AvailableNodes.RemoveAll(node => !GetValidFreeAdjacentPositions(node.Position).Any());
+        }
         return zones;
     }
 
     private static (MazeNode<T> currentNode, bool newDoorOut) PickNextNode(IMazeZonedConstraints constraints, ZoneCreated<T> globalZone, ZoneCreated<T> currentZone, Random rng) {
-
         // The algorithm will try to
         // create as many parts as free doors out are in still available in the previous zones.
         // But if there are no more doors out, or there are, but there are no more free nodes to
@@ -111,8 +119,8 @@ public class MazeGraphZoned<T>(int width, int height) : BaseMazeGraph<T>(width, 
         // no more free nodes available to connect, the algorithm could create more parts (if there are
         // doors out available and there are free nodes to connect them). In this case, the zone will
         // have more parts than expected.
-        
-        var newDoorOut = currentZone.Id > 0 && currentZone.Parts < constraints.GetParts(currentZone.Id);
+
+        var newDoorOut = currentZone.ZoneId > 0 && currentZone.Parts.Count < constraints.GetParts(currentZone.ZoneId);
 
         if (newDoorOut) {
             // The current zone still doesn't have all the parts: pick a random node from the global to create a new door in the maze to the current zone
@@ -120,7 +128,7 @@ public class MazeGraphZoned<T>(int width, int height) : BaseMazeGraph<T>(width, 
             // No more available nodes in the global zone! WORKAROUND: expand the current zone (it means the zone will not have all the parts)
             if (currentZone.AvailableNodes.Count > 0) return PickNodeToExpand(currentZone, rng);
             throw new NoMoreNodesException(
-                $"No more available nodes to create new parts in zone {currentZone.Id} (and the current zone can't be expanded neither). " +
+                $"No more available nodes to create new parts in zone {currentZone.ZoneId} (and the current zone can't be expanded neither). " +
                 "Consider increasing nodes and maxDoorOut in previous zones.");
         }
 
@@ -129,7 +137,7 @@ public class MazeGraphZoned<T>(int width, int height) : BaseMazeGraph<T>(width, 
         // Can't expand the current zone. WORKAROUND: create a new part
         if (globalZone.AvailableNodes.Count > 0) return PickDoorOutNode(globalZone, rng);
         throw new NoMoreNodesException(
-            $"No more available nodes to expand zone {currentZone.Id} (and there are not available nodes to create new parts) " +
+            $"No more available nodes to expand zone {currentZone.ZoneId} (and there are not available nodes to create new parts) " +
             "Consider increasing nodes and maxDoorOut in previous zones.");
     }
 
@@ -156,7 +164,7 @@ public class MazeGraphZoned<T>(int width, int height) : BaseMazeGraph<T>(width, 
          [7] # (3.4%)
          [8] # (2.5%)
          [9]  (0.0%)
-         
+
          So, most probable to get nodes from the beginning of the list (closer to the start of the maze)
          */
         var index = rng.NextIndexExponential(globalZone.AvailableNodes.Count, 3.0f);

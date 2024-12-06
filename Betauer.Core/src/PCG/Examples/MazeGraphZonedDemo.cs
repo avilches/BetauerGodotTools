@@ -51,7 +51,25 @@ public class MazeGraphDungeonDemo {
                     <<<<<<<<<<<
                     """;
 
-        var template = Array2D.Parse(temp3);
+        var temp4 = """
+                    ###############
+                    ###############
+                    ###############
+                    ###############
+                    ###############
+                    ###############
+                    ###############
+                    ###############
+                    ###############
+                    ###############
+                    ###############
+                    ###############
+                    ###############
+                    ###############
+                    #######o#######
+                    """;
+
+        var template = Array2D.Parse(temp4);
         var mc = new MazeGraphZoned<Metadata>(template.Width, template.Height) {
             IsValidPositionFunc = pos => template[pos] != '·'
         };
@@ -69,19 +87,11 @@ public class MazeGraphDungeonDemo {
             var autoSplitOnExpand = true;
             var corridor = false;
             var constraints = new MazePerZoneConstraints()
-                    // .Zone(3, 2, 16, false)
-                    // .Zone(9, 1, 5, true)
-                    .Zone(nodes: 10, corridor: true)
-                    .Zone(nodes: 12, parts: 3, maxDoorsOut: 1, corridor: true)
-                    .Zone(nodes: 37, parts: 1, maxDoorsOut: 0)
-                // .Zone(nodes: 5, parts: 4)
-                // .Zone(nodes: 3)
-                // .Zone(nodes: 4)
-                // .Zone(nodes: 4, parts: 2)
-                // .Zone(nodes: 4)
-                // .Zone(nodes: 3, parts: 2)
-                // .Zone(nodes: 3, parts: 2)
-                // .Zone(nodes: 10, parts: 2)
+                    .Zone(nodes: 1, corridor: false)
+                    // .Zone(nodes: 2, parts: 1, maxDoorsOut: 0, corridor: true)
+                    .Zone(nodes: 5, parts: 2, corridor: false)
+                    .Zone(nodes: 5, parts: 2, corridor: false)
+                    .Zone(nodes: 5, parts: 2, corridor: false)
                 ;
 
             // PENDIENTE DE HACER
@@ -93,27 +103,40 @@ public class MazeGraphDungeonDemo {
             mc.Clear();
             var zones = mc.GrowZoned(start, constraints, rng);
 
+            PrintGraph(mc);
             foreach (var zone in zones) {
-                Console.WriteLine($"Zone {zone.Id} Nodes: {zone.Nodes} Parts: {zone.Parts}/{zone.MaxParts} DoorsOut: {zone.DoorsOut}/{zone.MaxDoorsOut}");
+                Console.WriteLine($"Zone {zone.ZoneId} Nodes: {zone.Nodes} Parts: {zone.Parts.Count}/{zone.ConfigParts} DoorsOut: {zone.DoorsOut}/{zone.MaxDoorsOut}");
             }
 
-            var neverConnect = mc.GetNodes().Where(n => n.Zone == 2).Select(node => node.Position).ToList();
-            mc.IsValidEdgeFunc = (from, to) => {
-                if (neverConnect.Contains(from) || neverConnect.Contains(to)) return false;
-                return true;
+            NeverConnectZone(mc, 2);
+
+            mc.OnEdgeCreated += (i) => {
+                PrintGraph(mc);
             };
-
+            
+            Console.WriteLine("Connecting nodes with symbols");
             ConnectNodes(template, mc);
-
+            
             // PrintGraph(mc);
-
+            
             foreach (var zone in zones) {
-                ConnectZone(mc, zone.Id);
+                Console.WriteLine("Connection zone " + zone.ZoneId);
+                ConnectZone(mc, zone.ZoneId);
             }
+            Console.WriteLine("Longest cycles");
             AddLongestCycles(mc, 5);
+            Console.WriteLine("Shortest cycles");
             AddShortestCycles(mc, 3);
             PrintGraph(mc);
         }
+    }
+
+    private static void NeverConnectZone(MazeGraphZoned<Metadata> mc, int zone) {
+        var neverConnect = mc.GetNodes().Where(n => n.Zone == zone).Select(node => node.Position).ToList();
+        mc.IsValidEdgeFunc = (from, to) => {
+            if (neverConnect.Contains(from) || neverConnect.Contains(to)) return false;
+            return true;
+        };
     }
 
     private static void ConnectZone(MazeGraphZoned<Metadata> mc, int zone) {
