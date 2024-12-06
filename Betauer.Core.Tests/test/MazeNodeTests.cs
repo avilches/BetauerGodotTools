@@ -24,11 +24,14 @@ public class MazeNodeTests {
             Assert.That(_node.Position, Is.EqualTo(new Vector2I(1, 1)));
             Assert.That(_node.Parent, Is.Null);
             Assert.That(_node.Zone, Is.EqualTo(0));
+            Assert.That(_node.OutDegree, Is.EqualTo(0));
+            Assert.That(_node.InDegree, Is.EqualTo(0));
+            Assert.That(_node.Degree, Is.EqualTo(0));
         });
     }
 
     [Test]
-    public void AddEdgeTo_CreatesBidirectionalConnection() {
+    public void ConnectTo_CreatesOneDirectionalConnection() {
         var other = _graph.CreateNode(new Vector2I(1, 0));
         var edge = _node.ConnectTo(other);
 
@@ -36,11 +39,18 @@ public class MazeNodeTests {
             Assert.That(edge.From, Is.EqualTo(_node));
             Assert.That(edge.To, Is.EqualTo(other));
             Assert.That(_node.HasEdgeTo(other), Is.True);
+            Assert.That(other.HasEdgeFrom(_node), Is.True);
+            Assert.That(other.HasEdgeTo(_node), Is.False);
+            Assert.That(_node.HasEdgeFrom(other), Is.False);
+            Assert.That(_node.OutDegree, Is.EqualTo(1));
+            Assert.That(_node.InDegree, Is.EqualTo(0));
+            Assert.That(other.OutDegree, Is.EqualTo(0));
+            Assert.That(other.InDegree, Is.EqualTo(1));
         });
     }
 
     [Test]
-    public void AddEdgeTo_WhenEdgeExists_ReturnsSameEdge() {
+    public void ConnectTo_WhenEdgeExists_ReturnsSameEdge() {
         var other = _graph.CreateNode(new Vector2I(1, 0));
         var edge1 = _node.ConnectTo(other);
         var edge2 = _node.ConnectTo(other);
@@ -49,31 +59,115 @@ public class MazeNodeTests {
     }
 
     [Test]
-    public void RemoveEdgeTo_RemovesConnection() {
+    public void RemoveEdge_RemovesBothConnections() {
         var other = _graph.CreateNode(new Vector2I(1, 0));
         var edge = _node.ConnectTo(other);
 
-        _node.RemoveEdgeTo(other);
+        _node.RemoveEdge(edge);
 
         Assert.Multiple(() => {
             Assert.That(_node.HasEdgeTo(other), Is.False);
-            Assert.That(_node.GetEdges(), Does.Not.Contain(edge));
+            Assert.That(other.HasEdgeFrom(_node), Is.False);
+            Assert.That(_node.OutDegree, Is.EqualTo(0));
+            Assert.That(other.InDegree, Is.EqualTo(0));
         });
     }
 
     [Test]
-    public void GetEdges_ReturnsAllEdges() {
+    public void GetEdges_ReturnsOutgoingEdges() {
         var up = _graph.CreateNode(new Vector2I(1, 0));
         var right = _graph.CreateNode(new Vector2I(2, 1));
         var edgeUp = _node.ConnectTo(up);
         var edgeRight = _node.ConnectTo(right);
 
-        var edges = _node.GetEdges().ToList();
+        var edges = _node.GetOutEdges().ToList();
 
         Assert.Multiple(() => {
             Assert.That(edges, Has.Count.EqualTo(2));
             Assert.That(edges, Contains.Item(edgeUp));
             Assert.That(edges, Contains.Item(edgeRight));
+        });
+    }
+
+    [Test]
+    public void GetInEdges_ReturnsIncomingEdges() {
+        var up = _graph.CreateNode(new Vector2I(1, 0));
+        var right = _graph.CreateNode(new Vector2I(2, 1));
+        up.ConnectTo(_node);
+        right.ConnectTo(_node);
+
+        var edges = _node.GetInEdges().ToList();
+
+        Assert.Multiple(() => {
+            Assert.That(edges, Has.Count.EqualTo(2));
+            Assert.That(edges.All(e => e.To == _node), Is.True);
+            Assert.That(edges.Select(e => e.From), Contains.Item(up));
+            Assert.That(edges.Select(e => e.From), Contains.Item(right));
+        });
+    }
+
+    [Test]
+    public void GetAllEdges_ReturnsAllConnections() {
+        var other = _graph.CreateNode(new Vector2I(1, 0));
+        var third = _graph.CreateNode(new Vector2I(2, 1));
+        
+        // _node -> other, third -> _node
+        var outEdge = _node.ConnectTo(other);
+        var inEdge = third.ConnectTo(_node);
+
+        var allEdges = _node.GetAllEdges().ToList();
+
+        Assert.Multiple(() => {
+            Assert.That(allEdges, Has.Count.EqualTo(2));
+            Assert.That(allEdges, Contains.Item(outEdge));
+            Assert.That(allEdges, Contains.Item(inEdge));
+            Assert.That(_node.Degree, Is.EqualTo(2));
+        });
+    }
+
+    [Test]
+    public void Degree_ReturnsSumOfInAndOutDegrees() {
+        var node1 = _graph.CreateNode(new Vector2I(1, 0));
+        var node2 = _graph.CreateNode(new Vector2I(2, 0));
+        var node3 = _graph.CreateNode(new Vector2I(0, 1));
+        
+        // Dos conexiones salientes y una entrante
+        _node.ConnectTo(node1);
+        _node.ConnectTo(node2);
+        node3.ConnectTo(_node);
+
+        Assert.Multiple(() => {
+            Assert.That(_node.OutDegree, Is.EqualTo(2));
+            Assert.That(_node.InDegree, Is.EqualTo(1));
+            Assert.That(_node.Degree, Is.EqualTo(3));
+        });
+    }
+
+    [Test]
+    public void GetEdgeFrom_ReturnsCorrectEdge() {
+        var other = _graph.CreateNode(new Vector2I(1, 0));
+        var edge = other.ConnectTo(_node);
+
+        var foundEdge = _node.GetEdgeFrom(other);
+
+        Assert.Multiple(() => {
+            Assert.That(foundEdge, Is.Not.Null);
+            Assert.That(foundEdge, Is.EqualTo(edge));
+            Assert.That(foundEdge!.From, Is.EqualTo(other));
+            Assert.That(foundEdge.To, Is.EqualTo(_node));
+        });
+    }
+
+    [Test]
+    public void HasEdgeFromDirection_ReturnsCorrectResult() {
+        var up = _graph.CreateNode(new Vector2I(1, 0));
+        up.ConnectTo(_node); // Conecta desde arriba hacia el nodo
+
+        Assert.Multiple(() => {
+            Assert.That(_node.HasEdgeFromDirection(Vector2I.Up), Is.True);
+            Assert.That(_node.HasEdgeFromDirection(Vector2I.Down), Is.False);
+            Assert.That(_node.HasEdgeFromDirection(Vector2I.Left), Is.False);
+            Assert.That(_node.HasEdgeFromDirection(Vector2I.Right), Is.False);
         });
     }
 
@@ -206,105 +300,71 @@ public class MazeNodeTests {
     }
 
     [Test]
-    public void FindShortestPath_WhenSameNode_ReturnsSingleNodePath() {
-        var path = _node.FindShortestPath(_node);
-
-        Assert.Multiple(() => {
-            Assert.That(path, Is.Not.Null);
-            Assert.That(path, Has.Count.EqualTo(1));
-            Assert.That(path![0], Is.EqualTo(_node));
-        });
-    }
-
-    [Test]
-    public void FindShortestPath_DirectConnection_ReturnsCorrectPath() {
-        var nodeA = _graph.CreateNode(new Vector2I(0, 0));
-        var nodeB = _graph.CreateNode(new Vector2I(1, 0));
-
-        nodeA.ConnectTo(nodeB);
-
-        var path = nodeA.FindShortestPath(nodeB);
-
-        Assert.Multiple(() => {
-            Assert.That(path, Is.Not.Null);
-            Assert.That(path, Has.Count.EqualTo(2));
-            Assert.That(path![0], Is.EqualTo(nodeA));
-            Assert.That(path![1], Is.EqualTo(nodeB));
-        });
-    }
-
-    [Test]
-    public void FindShortestPath_ComplexPath_ReturnsShortestPath() {
-        var nodeA = _graph.GetOrCreateNode(new Vector2I(0, 0));
-        var nodeB = _graph.GetOrCreateNode(new Vector2I(1, 0));
-        var nodeC = _graph.GetOrCreateNode(new Vector2I(2, 0));
-        var nodeD = _graph.GetOrCreateNode(new Vector2I(1, 1));
-
-        // Create a diamond shape: A -> B -> C and A -> D -> C
-        nodeA.ConnectTo(nodeB);
-        nodeB.ConnectTo(nodeC);
-        nodeA.ConnectTo(nodeD);
-        nodeD.ConnectTo(nodeC);
-
-        var path = nodeA.FindShortestPath(nodeC);
-
-        Assert.Multiple(() => {
-            Assert.That(path, Is.Not.Null);
-            Assert.That(path, Has.Count.EqualTo(3));
-            Assert.That(path![0], Is.EqualTo(nodeA));
-            // No importa qué camino tome (por B o por D) mientras la longitud sea 3
-            Assert.That(path![2], Is.EqualTo(nodeC));
-        });
-    }
-
-    [Test]
-    public void FindShortestPath_NoPath_ReturnsNull() {
-        var nodeA = _graph.CreateNode(new Vector2I(0, 0));
-        var nodeB = _graph.CreateNode(new Vector2I(1, 0));
-
-        // No edges between nodes
-        var path = nodeA.FindShortestPath(nodeB);
-
-        Assert.That(path, Is.Null);
-    }
-
-    [Test]
-    public void GetDistanceToNodeByEdges_ValidPaths_ReturnsCorrectDistance() {
+    public void FindShortestPath_DirectionalEdges_RespectsEdgeDirection() {
         var nodeA = _graph.CreateNode(new Vector2I(0, 0));
         var nodeB = _graph.CreateNode(new Vector2I(1, 0));
         var nodeC = _graph.CreateNode(new Vector2I(2, 0));
 
+        // Crear un camino direccional: A -> B -> C
         nodeA.ConnectTo(nodeB);
         nodeB.ConnectTo(nodeC);
 
         Assert.Multiple(() => {
-            Assert.That(nodeA.GetDistanceToNodeByEdges(nodeC), Is.EqualTo(2));
-            Assert.That(nodeA.GetDistanceToNodeByEdges(nodeB), Is.EqualTo(1));
-            Assert.That(nodeA.GetDistanceToNodeByEdges(nodeA), Is.EqualTo(0));
+            // Camino hacia adelante debe existir
+            var forwardPath = nodeA.FindShortestPath(nodeC);
+            Assert.That(forwardPath, Is.Not.Null);
+            Assert.That(forwardPath, Has.Count.EqualTo(3));
+
+            // Camino hacia atrás no debe existir
+            var backwardPath = nodeC.FindShortestPath(nodeA);
+            Assert.That(backwardPath, Is.Null);
         });
     }
 
     [Test]
-    public void GetDistanceToNodeByEdges_NoPath_ReturnsMinusOne() {
+    public void GetDistanceToNodeByEdges_DirectionalEdges_RespectsEdgeDirection() {
         var nodeA = _graph.CreateNode(new Vector2I(0, 0));
         var nodeB = _graph.CreateNode(new Vector2I(1, 0));
+        var nodeC = _graph.CreateNode(new Vector2I(2, 0));
 
-        Assert.That(nodeA.GetDistanceToNodeByEdges(nodeB), Is.EqualTo(-1));
-    }
-
-    [Test]
-    public void GetDistanceToNodeByEdges_BidirectionalPath_SameDistanceBothWays() {
-        var nodeA = _graph.CreateNode(new Vector2I(0, 0));
-        var nodeB = _graph.CreateNode(new Vector2I(1, 0));
-
-        // Create bidirectional connection
+        // Crear un camino direccional: A -> B -> C
         nodeA.ConnectTo(nodeB);
-        nodeB.ConnectTo(nodeA);
+        nodeB.ConnectTo(nodeC);
 
         Assert.Multiple(() => {
-            Assert.That(nodeA.GetDistanceToNodeByEdges(nodeB), Is.EqualTo(1));
-            Assert.That(nodeB.GetDistanceToNodeByEdges(nodeA), Is.EqualTo(1));
+            // Distancia hacia adelante debe ser 2
+            Assert.That(nodeA.GetDistanceToNodeByEdges(nodeC), Is.EqualTo(2));
+            
+            // Distancia hacia atrás debe ser -1 (no hay camino)
+            Assert.That(nodeC.GetDistanceToNodeByEdges(nodeA), Is.EqualTo(-1));
         });
     }
+
+    [Test]
+    public void GetReachableNodes_DirectionalEdges_RespectsEdgeDirection() {
+        var nodeA = _graph.CreateNode(new Vector2I(0, 0));
+        var nodeB = _graph.CreateNode(new Vector2I(1, 0));
+        var nodeC = _graph.CreateNode(new Vector2I(2, 0));
+
+        // Crear un camino direccional: A -> B -> C
+        nodeA.ConnectTo(nodeB);
+        nodeB.ConnectTo(nodeC);
+
+        var reachableFromA = nodeA.GetReachableNodes();
+        var reachableFromC = nodeC.GetReachableNodes();
+
+        Assert.Multiple(() => {
+            // Desde A se pueden alcanzar todos los nodos
+            Assert.That(reachableFromA, Has.Count.EqualTo(3));
+            Assert.That(reachableFromA, Contains.Item(nodeA));
+            Assert.That(reachableFromA, Contains.Item(nodeB));
+            Assert.That(reachableFromA, Contains.Item(nodeC));
+
+            // Desde C solo se puede alcanzar C
+            Assert.That(reachableFromC, Has.Count.EqualTo(1));
+            Assert.That(reachableFromC, Contains.Item(nodeC));
+        });
+    }
+
 
 }

@@ -1,22 +1,9 @@
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Godot;
 
 namespace Betauer.Core.PCG.Maze;
-
-/// <summary>
-/// Represents an edge in the maze graph, connecting two nodes
-/// </summary>
-public class MazeEdge<T>(MazeNode<T> from, MazeNode<T> to, T? metadata = default, float weight = 0f) {
-    public MazeNode<T> From { get; } = from ?? throw new ArgumentNullException(nameof(from));
-    public MazeNode<T> To { get; } = to ?? throw new ArgumentNullException(nameof(to));
-    public T? Metadata { get; set; } = metadata;
-    public float Weight { get; set; } = weight;
-    
-    public Vector2I Direction => To.Position - From.Position;
-}
 
 /// <summary>
 /// Used by the FindWeightedPath method to determine which weights to consider
@@ -45,59 +32,107 @@ public class MazeNode<T> {
     public int Id { get; }
     public Vector2I Position { get; }
     public MazeNode<T>? Parent { get; set; }
-    private readonly List<MazeEdge<T>> _edges = [];
+    private readonly List<MazeEdge<T>> _outEdges = [];
+    private readonly List<MazeEdge<T>> _inEdges = [];
     public int Zone { get; set; }
 
     public MazeNode<T>? Up => GetEdgeTowards(Vector2I.Up)?.To;
     public MazeNode<T>? Down => GetEdgeTowards(Vector2I.Down)?.To;
     public MazeNode<T>? Right => GetEdgeTowards(Vector2I.Right)?.To;
     public MazeNode<T>? Left => GetEdgeTowards(Vector2I.Left)?.To;
+    
+    public int OutDegree => _outEdges.Count;
 
+    public int InDegree => _inEdges.Count;
+    
+    public int Degree => OutDegree + InDegree;
+    
     public T Metadata { get; set; }
 
     public float Weight { get; set; } = 0f;
 
-    public MazeEdge<T>? GetEdgeTo(MazeNode<T> to) {
-        return _edges.FirstOrDefault(edge => edge.To == to);
+    public MazeEdge<T>? GetEdgeTo(int id) => _outEdges.FirstOrDefault(edge => edge.To.Id == id);
+    public MazeEdge<T>? GetEdgeTo(Vector2I position) => _outEdges.FirstOrDefault(edge => edge.To.Position == position);
+    public MazeEdge<T>? GetEdgeTo(MazeNode<T> to) => _outEdges.FirstOrDefault(edge => edge.To == to);
+    public bool HasEdgeTo(int id) => GetEdgeTo(id) != null;
+    public bool HasEdgeTo(Vector2I position) => GetEdgeTo(position) != null;
+    public bool HasEdgeTo(MazeNode<T> to) => GetEdgeTo(to) != null;
+
+    public MazeEdge<T>? GetEdgeFrom(int id) => _inEdges.FirstOrDefault(edge => edge.From.Id == id);
+    public MazeEdge<T>? GetEdgeFrom(Vector2I position) => _inEdges.FirstOrDefault(edge => edge.From.Position == position);
+    public MazeEdge<T>? GetEdgeFrom(MazeNode<T> from) => _inEdges.FirstOrDefault(edge => edge.From == from);
+    public bool HasEdgeFrom(int id) => GetEdgeFrom(id) != null;
+    public bool HasEdgeFrom(Vector2I position) => GetEdgeFrom(position) != null;
+    public bool HasEdgeFrom(MazeNode<T> other) => GetEdgeFrom(other) != null;
+
+    public MazeEdge<T>? GetEdgeTowards(Vector2I direction) => _outEdges.FirstOrDefault(edge => edge.Direction == direction);
+    public bool HasEdgeTowards(Vector2I direction) => GetEdgeTowards(direction) != null;
+
+    public MazeEdge<T>? GetEdgeFromDirection(Vector2I direction) => _inEdges.FirstOrDefault(edge => edge.Direction == -direction);
+    public bool HasEdgeFromDirection(Vector2I direction) => GetEdgeFromDirection(direction) != null;
+
+    public bool RemoveEdgeTo(int id) {
+        var edge = GetEdgeTo(id);
+        return edge != null && RemoveEdge(edge);
     }
 
-    public bool HasEdgeTo(MazeNode<T> other) {
-        return GetEdgeTo(other) != null;
+    public bool RemoveEdgeTo(Vector2I position) {
+        var edge = GetEdgeTo(position);
+        return edge != null && RemoveEdge(edge);
     }
 
-    public MazeEdge<T>? GetEdgeTowards(Vector2I direction) {
-        return _edges.FirstOrDefault(edge => edge.Direction == direction);
-    }
-
-    public bool HasEdgeTowards(Vector2I direction) {
-        return GetEdgeTowards(direction) != null;
-    }
-
-    public void RemoveEdgeTo(MazeNode<T> node) {
+    public bool RemoveEdgeTo(MazeNode<T> node) {
         var edge = GetEdgeTo(node);
-        if (edge != null) {
-            _edges.Remove(edge);
-            _mazeGraph.InvokeOnEdgeRemoved(edge);
-        }
+        return edge != null && RemoveEdge(edge);
     }
 
-    public void RemoveEdge(MazeEdge<T> edge) {
-        if (_edges.Remove(edge)) {
-            _mazeGraph.InvokeOnEdgeRemoved(edge);
-        }
+    public bool RemoveEdgeFrom(int id) {
+        var edge = GetEdgeFrom(id);
+        return edge != null && RemoveEdge(edge);
     }
 
-    public void RemoveEdgeTowards(Vector2I direction) {
+    public bool RemoveEdgeFrom(Vector2I position) {
+        var edge = GetEdgeFrom(position);
+        return edge != null && RemoveEdge(edge);
+    }
+
+    public bool RemoveEdgeFrom(MazeNode<T> node) {
+        var edge = GetEdgeTo(node);
+        return edge != null && RemoveEdge(edge);
+    }
+
+    public bool RemoveEdgeTowards(Vector2I direction) {
         var edge = GetEdgeTowards(direction);
-        if (edge != null) {
-            _edges.Remove(edge);
-            _mazeGraph.InvokeOnEdgeRemoved(edge);
-        }
+        return edge != null && RemoveEdge(edge);
     }
 
-    public ImmutableList<MazeEdge<T>> GetEdges() {
-        return _edges.ToImmutableList();
+    public bool RemoveEdgeFromDirection(Vector2I direction) {
+        var edge = GetEdgeFromDirection(direction);
+        return edge != null && RemoveEdge(edge);
     }
+
+    public bool RemoveEdge(MazeEdge<T> edge) {
+        if (edge.From == this) {
+            if (!_outEdges.Remove(edge)) return false;
+            edge.To._inEdges.Remove(edge);
+            _mazeGraph.InvokeOnEdgeRemoved(edge);
+            return true;
+        } 
+        if (edge.To == this) {
+            if (!_inEdges.Remove(edge)) return false;
+            edge.From._outEdges.Remove(edge);
+            _mazeGraph.InvokeOnEdgeRemoved(edge);
+            return true;
+        }  
+        return false;
+    }
+
+    public ImmutableList<MazeEdge<T>> GetOutEdges() => _outEdges.ToImmutableList();
+    
+    public ImmutableList<MazeEdge<T>> GetInEdges() => _inEdges.ToImmutableList();
+
+    public ImmutableList<MazeEdge<T>> GetAllEdges() => _outEdges.Concat(_inEdges).ToImmutableList();
+        
     
     public bool RemoveNode() {
         if (!_mazeGraph.InternalRemoveNode(this)) return false;
@@ -107,6 +142,8 @@ public class MazeNode<T> {
             otherNode.RemoveEdgeTo(this);
             if (otherNode.Parent == this) otherNode.Parent = null;
         }
+        _outEdges.Clear();
+        _inEdges.Clear();
         Parent = null;
         return true;
     }
@@ -128,6 +165,12 @@ public class MazeNode<T> {
     }
 
     public MazeEdge<T> ConnectTo(MazeNode<T> to, T? metadata = default, float weight = 0f) {
+        if (to._mazeGraph != _mazeGraph) {
+            throw new InvalidEdgeException("Cannot connect nodes from different graphs", Position, to.Position);
+        }
+        if (to == this) {
+            throw new InvalidEdgeException("Cannot connect node to itself", Position, to.Position);
+        }
         if (!_mazeGraph.IsValidEdge(Position, to.Position)) {
             throw new InvalidEdgeException($"Invalid edge between {Position} and {to.Position}", Position, to.Position);
         }
@@ -140,7 +183,8 @@ public class MazeNode<T> {
         }
 
         edge = new MazeEdge<T>(this, to, metadata, weight);
-        _edges.Add(edge);
+        _outEdges.Add(edge);
+        to._inEdges.Add(edge);
         _mazeGraph.InvokeOnEdgeCreated(edge);
         return edge;
     }
@@ -288,7 +332,7 @@ public class MazeNode<T> {
             }
 
             // Explorar todos los nodos conectados por edges
-            foreach (var edge in current.GetEdges()) {
+            foreach (var edge in current.GetOutEdges()) {
                 var next = edge.To;
                 if (visited[next] == null && next != this) {
                     visited[next] = current;
@@ -338,7 +382,7 @@ public class MazeNode<T> {
 
         while (queue.Count > 0) {
             var current = queue.Dequeue();
-            foreach (var edge in current.GetEdges()) {
+            foreach (var edge in current.GetOutEdges()) {
                 if (nodes.Add(edge.To)) {
                     queue.Enqueue(edge.To);
                 }
@@ -395,7 +439,7 @@ public class MazeNode<T> {
                 return new PathResult<T>(path, distances[target]);
             }
 
-            foreach (var edge in current.GetEdges()) {
+            foreach (var edge in current.GetOutEdges()) {
                 var neighbor = edge.To;
                 var distance = distances[current];
 

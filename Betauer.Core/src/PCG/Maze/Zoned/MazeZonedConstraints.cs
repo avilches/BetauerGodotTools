@@ -25,7 +25,7 @@ public class MazeZonedConstraints(int maxZones) : IMazeZonedConstraints {
         return NodesPerZone[Math.Min(zoneId, NodesPerZone.Length - 1)];
     }
 
-    public int GetParts(int zoneId) {
+    public int GetMaxParts(int zoneId) {
         return zoneId == 0 ? 1 : PartsPerZone;
     }
 

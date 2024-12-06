@@ -23,12 +23,12 @@ public class BaseMazeGraph<T> {
     /// Called to determine if a position is valid before creating a node, rejecting with an exception if the position is not valid.
     /// Called to filter the adjacent positions of a node, ignoring invalid positions. 
     /// </summary>
-    public Func<Vector2I, bool> IsValidPositionFunc { get; set; } = _ => true;
+    public Func<Vector2I, bool>? IsValidPositionFunc { get; set; } = _ => true;
 
     /// <summary>
     /// Called to determine if an edge is valid before creating it.
     /// </summary>
-    public Func<Vector2I, Vector2I, bool> IsValidEdgeFunc { get; set; } = (_, _) => true;
+    public Func<Vector2I, Vector2I, bool>? IsValidEdgeFunc { get; set; } = (_, _) => true;
 
     public event Action<MazeEdge<T>>? OnEdgeCreated;
     public event Action<MazeEdge<T>>? OnEdgeRemoved;
@@ -57,7 +57,8 @@ public class BaseMazeGraph<T> {
     }
 
     public bool IsValidPosition(Vector2I position) {
-        return Geometry.IsPointInRectangle(position.X, position.Y, 0, 0, Width, Height) && IsValidPositionFunc(position);
+        return Geometry.IsPointInRectangle(position.X, position.Y, 0, 0, Width, Height) && 
+               (IsValidPositionFunc == null || IsValidPositionFunc(position));
     }
 
     public MazeNode<T> GetNode(int id) {
@@ -83,7 +84,7 @@ public class BaseMazeGraph<T> {
         if (!Geometry.IsPointInRectangle(position.X, position.Y, 0, 0, Width, Height)) {
             throw new InvalidNodeException($"Invalid position {position} in {message}: position out of bounds (0, 0, {Width}, {Height})", position);
         }
-        if (!IsValidPositionFunc(position)) {
+        if (IsValidPositionFunc != null && !IsValidPositionFunc(position)) {
             throw new InvalidNodeException($"Invalid position {position} in {message}: {nameof(IsValidPositionFunc)} returned false", position);
         }
     }
@@ -120,7 +121,7 @@ public class BaseMazeGraph<T> {
 
     public MazeNode<T>? GetNodeAtOrNull(Vector2I position) {
         if (!Geometry.IsPointInRectangle(position.X, position.Y, 0, 0, Width, Height) ||
-            !IsValidPositionFunc(position)) return null;
+            (IsValidPositionFunc != null && !IsValidPositionFunc(position))) return null;
         return NodeGrid.GetValueOrDefault(position);
     }
     
@@ -187,7 +188,7 @@ public class BaseMazeGraph<T> {
     }
     
     public bool IsValidEdge(Vector2I from, Vector2I to) {
-        return (IsValidPositionFunc == null || (IsValidPositionFunc(from) && IsValidPositionFunc(to))) &&
+        return IsValidPosition(from) && IsValidPosition(to) &&
                (IsValidEdgeFunc == null || IsValidEdgeFunc(from, to));
     }
 

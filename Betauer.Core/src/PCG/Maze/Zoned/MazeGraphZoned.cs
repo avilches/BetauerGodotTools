@@ -6,7 +6,6 @@ using Godot;
 namespace Betauer.Core.PCG.Maze.Zoned;
 
 public class MazeGraphZoned<T>(int width, int height) : BaseMazeGraph<T>(width, height) {
-
     public List<ZoneCreated<T>> GrowZoned(Vector2I start, IMazeZonedConstraints constraints, Random? rng = null) {
         if (!IsValidPosition(start)) {
             throw new ArgumentException("Invalid start position", nameof(start));
@@ -52,7 +51,7 @@ public class MazeGraphZoned<T>(int width, int height) : BaseMazeGraph<T>(width, 
              * 2) When all parts of the current zone are created, it expands the parts randomly it until the zone reaches the limit of nodes per zone.
              * To expand the zone, it finds a random node from the current zone available nodes and connect it to a new node.
              */
-            var (currentNode, newPart) = FindNextNode(constraints, globalZone, currentZone, rng);
+            var (currentNode, newDoorOut) = PickNextNode(constraints, globalZone, currentZone, rng);
 
             var availablePositions = GetValidFreeAdjacentPositions(currentNode.Position).ToList();
 
@@ -62,7 +61,7 @@ public class MazeGraphZoned<T>(int width, int height) : BaseMazeGraph<T>(width, 
                 currentZone.AvailableNodes.Remove(currentNode);
                 continue;
             }
-            if (newPart) {
+            if (newDoorOut) {
                 var previousZone = zones[currentNode.Zone];
                 previousZone.DoorsOut++;
                 if (previousZone.DoorsOut >= previousZone.MaxDoorsOut) {
@@ -101,41 +100,55 @@ public class MazeGraphZoned<T>(int width, int height) : BaseMazeGraph<T>(width, 
         return zones;
     }
 
-    private static (MazeNode<T> currentNode, bool newPart) FindNextNode(IMazeZonedConstraints constraints, ZoneCreated<T> globalZone, ZoneCreated<T> currentZone, Random rng) {
-        var newPart = currentZone.Id != 0 && currentZone.Parts < constraints.GetParts(currentZone.Id);
-        if (newPart) {
-            // The current zone still doesn't have all the parts: we pick a random node from the global to create a new door to the current zone
-            if (globalZone.AvailableNodes.Count == 0) {
-                throw new NoMoreNodesException(
-                    $"No more available nodes in the maze to open new doors to zone {currentZone.Id}. " +
-                    "Consider increasing nodes and maxDoorOut in previous zones.");
-            }
-            return (rng.Next(globalZone.AvailableNodes), true);
-        }
+    private static (MazeNode<T> currentNode, bool newDoorOut) PickNextNode(IMazeZonedConstraints constraints, ZoneCreated<T> globalZone, ZoneCreated<T> currentZone, Random rng) {
+        var newDoorOut = currentZone.Id > 0 && currentZone.Parts < constraints.GetMaxParts(currentZone.Id);
 
-        // Try to expand the current zone
-        if (currentZone.AvailableNodes.Count > 0) {
-            // Expanding the current zone is possible: we pick a node from the current zone to make the zone bigger
-            return (currentZone.PickNextNode(rng), false);
-        }
-        // Can't expand the current zone. If AutoSplitOnExpand is true, we are allowed create a new part
-        if (constraints.IsAutoSplitOnExpand(currentZone.Id)) {
-            // AutoSplitOnExpand is enabled!
-            if (globalZone.AvailableNodes.Count == 0) {
-                // We are allowed, but we can't because there are not available nodes in the global zone...
-                throw new NoMoreNodesException(
-                    $"No more available nodes to create new parts in zone {currentZone.Id} with AutoSplitOnExpand enabled. " +
-                    "Consider increasing nodes and maxDoorOut in previous zones.");
-            }
-            // AutoSplitOnExpand is enabled and we have available nodes in the global zone: pick a random one to create a new part
-            return (rng.Next(globalZone.AvailableNodes), true);
-        }
-        if (globalZone.AvailableNodes.Count > 0) {
+        if (newDoorOut) {
+            // The current zone still doesn't have all the parts: pick a random node from the global to create a new door in the maze to the current zone
+            if (globalZone.AvailableNodes.Count > 0) return PickDoorOutNode(globalZone, rng);
+            // No more available nodes in the global zone! WORKAROUND: expand the current zone (it means the zone will not have all the parts)
+            if (currentZone.AvailableNodes.Count > 0) return PickNodeToExpand(currentZone, rng);
             throw new NoMoreNodesException(
-                $"No more available nodes in zone {currentZone.Id} to expand. " +
-                "Consider enabling AutoSplitOnExpand for this zone.");
+                $"No more available nodes to create new parts in zone {currentZone.Id} (and the current zone can't be expanded neither). " +
+                "Consider increasing nodes and maxDoorOut in previous zones.");
         }
 
-        throw new NoMoreNodesException($"No more available nodes in zone {currentZone.Id} to expand");
+        // Expanding the current zone
+        if (currentZone.AvailableNodes.Count > 0) return PickNodeToExpand(currentZone, rng);
+        // Can't expand the current zone. WORKAROUND: create a new part
+        if (globalZone.AvailableNodes.Count > 0) return PickDoorOutNode(globalZone, rng);
+        throw new NoMoreNodesException(
+            $"No more available nodes to expand zone {currentZone.Id} (and there are not available nodes to create new parts) " +
+            "Consider increasing nodes and maxDoorOut in previous zones.");
+    }
+
+    private static (MazeNode<T> currentNode, bool newDoorOut) PickNodeToExpand(ZoneCreated<T> currentZone, Random rng) {
+        if (currentZone.Corridor) {
+            // Corridors always try to expand a last node of every part
+            var candidates = currentZone.AvailableNodes.Where(node => node.OutDegree == 1).ToList();
+            var expansionNode = rng.Next(candidates.Count > 0 ? candidates : currentZone.AvailableNodes);
+            return (expansionNode, false);
+        }
+        return (rng.Next(currentZone.AvailableNodes), false); // No corridors pick a random node to expand
+    }
+
+    private static (MazeNode<T> currentNode, bool newDoorOut) PickDoorOutNode(ZoneCreated<T> globalZone, Random rng) {
+        /*
+         Factor means this distribution:
+         [0] ############# (27.9%)
+         [1] ########## (20.5%)
+         [2] ####### (15.2%)
+         [3] ##### (11.3%)
+         [4] #### (8.3%)
+         [5] ### (6.2%)
+         [6] ## (4.6%)
+         [7] # (3.4%)
+         [8] # (2.5%)
+         [9]  (0.0%)
+         
+         So, most probable to get nodes from the beginning of the list (closer to the start of the maze)
+         */
+        var index = rng.NextIndexExponential(globalZone.AvailableNodes.Count, 3.0f);
+        return (globalZone.AvailableNodes[index], true);
     }
 }

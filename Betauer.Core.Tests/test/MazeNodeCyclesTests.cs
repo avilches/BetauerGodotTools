@@ -144,7 +144,7 @@ public class MazeNodeCyclesTests {
     }
 
     private int CountEdges() {
-        return maze.GetNodes().Sum(node => node.GetEdges().Count());
+        return maze.GetNodes().Sum(node => node.GetOutEdges().Count());
     }
 
     private static void PrintGraphEdges(MazeGraph<object> mc) {

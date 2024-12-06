@@ -8,7 +8,7 @@ public class ZoneCreated<T>(IMazeZonedConstraints constraints, int id) {
     public int Nodes { get; internal set; } = 0;
     public List<MazeNode<T>> AvailableNodes { get; internal set; } = new();
     public int Parts { get; internal set; } = 0;
-    public int ConfigParts => constraints.GetParts(Id);
+    public int MaxParts => constraints.GetMaxParts(Id);
     public int DoorsOut { get; internal set; } = 0;
     public bool Corridor => constraints.IsCorridor(Id);
     
@@ -17,10 +17,5 @@ public class ZoneCreated<T>(IMazeZonedConstraints constraints, int id) {
             var maxDoorsOut = constraints.GetMaxDoorsOut(Id);
             return maxDoorsOut == -1 ? Nodes * Nodes : maxDoorsOut;
         }
-    }
-    
-    public MazeNode<T> PickNextNode(Random rng) {
-        var index = Corridor ? AvailableNodes.Count - 1 : rng.Next(AvailableNodes.Count);
-        return AvailableNodes[index];
     }
 }

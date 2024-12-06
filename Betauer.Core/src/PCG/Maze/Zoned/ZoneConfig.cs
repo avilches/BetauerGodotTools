@@ -3,35 +3,31 @@ using System;
 namespace Betauer.Core.PCG.Maze.Zoned;
 
 public class ZoneConfig {
-    public ZoneConfig(int nodes, int parts, int maxDoorsOut, bool autoSplitOnExpand, bool corridor) {
+    public ZoneConfig(int nodes, int maxParts, int maxDoorsOut, bool corridor) {
         if (nodes < 1) {
             throw new ArgumentException($"Value {nodes} for nodes is wrong, it must be at least 1", nameof(nodes));
         }
-        if (parts < 1) {
-            throw new ArgumentException($"Value {parts} for parts is wrong, it must be at least 1", nameof(parts));
+        if (maxParts < 1) {
+            throw new ArgumentException($"Value {maxParts} for parts is wrong, it must be at least 1", nameof(maxParts));
         }
-        if (parts > nodes) {
-            throw new ArgumentException($"Parts must be equals or greater than nodes. Parts: {parts}, Nodes: {nodes}", nameof(parts));
+        if (maxParts > nodes) {
+            throw new ArgumentException($"Parts must be equals or greater than nodes. Parts: {maxParts}, Nodes: {nodes}", nameof(maxParts));
         }
         
         Nodes = nodes;
-        Parts = parts;
+        MaxParts = maxParts;
         MaxDoorsOut = maxDoorsOut;
-        AutoSplitOnExpand = autoSplitOnExpand;
         Corridor = corridor;
     }
 
     public int Nodes { get; set; }
-    public int Parts { get; set; }
-    public int MaxDoorsOut { get; set; }
     
     /// <summary>
-    /// Allows the zone to create more parts if there are no more available nodes to expand, creating more parts than initial defined in the Parts field
-    /// Imagine there only 3 nodes to left to fill the space, and these nodes are not adjacent to any part of the current zone. If AutoSplitOnExpand is true,
-    /// a new part of the zone will be created to fill the space. 
+    /// The algorithm will try to split the zone in this number of parts, if it's possible.
     /// </summary>
-    public bool AutoSplitOnExpand { get; set; }
-
+    public int MaxParts { get; set; }
+    public int MaxDoorsOut { get; set; }
+    
     public bool Corridor { get; set; } = false;
 
 }

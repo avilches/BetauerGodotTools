@@ -56,14 +56,14 @@ public class MazeGraphDungeonDemo {
             IsValidPositionFunc = pos => template[pos] != '·'
         };
         var start = template.FirstOrDefault(dataCell => dataCell.Value == 'o')!.Position;
-        // mc.OnNodeConnected += (i) => { PrintGraph(mc); };
+        mc.OnNodeCreated += (i) => { PrintGraph(mc); };
 
-        mc.GrowZoned(start, new MazeZonedConstraints(4, 200)
+        /*mc.GrowZoned(start, new MazeZonedConstraints(4, 200)
             // .SetNodesPerZones(5)
             .SetRandomNodesPerZone(2, 5, rng)
             .SetPartsPerZone(2)
             .SetMaxDoorsOut(2), rng);
-        PrintGraph(mc);
+        PrintGraph(mc);*/
 
         for (var i = 0; i < 1; i++) {
             var autoSplitOnExpand = true;
@@ -71,25 +71,20 @@ public class MazeGraphDungeonDemo {
             var constraints = new MazePerZoneConstraints()
                     // .Zone(3, 2, 16, false)
                     // .Zone(9, 1, 5, true)
-                    .Zone(nodes: 10, corridor: false)
-                    .Zone(nodes: 10, maxDoorsOut: 0)
-                    .Zone(nodes: 4, maxDoorsOut: 0, autoSplitOnExpand: false, corridor: true)
-                    .Zone(nodes: 5, parts: 4)
-                    .Zone(nodes: 3)
-                    .Zone(nodes: 4)
-                    .Zone(nodes: 4, parts: 2)
-                    .Zone(nodes: 4)
-                    .Zone(nodes: 3, parts: 2)
+                    .Zone(nodes: 10, corridor: true)
+                    .Zone(nodes: 12, parts: 3, maxDoorsOut: 1, corridor: true)
+                    .Zone(nodes: 37, parts: 1, maxDoorsOut: 0)
+                // .Zone(nodes: 5, parts: 4)
+                // .Zone(nodes: 3)
+                // .Zone(nodes: 4)
+                // .Zone(nodes: 4, parts: 2)
+                // .Zone(nodes: 4)
+                // .Zone(nodes: 3, parts: 2)
+                // .Zone(nodes: 3, parts: 2)
+                // .Zone(nodes: 10, parts: 2)
                 ;
 
-            
-                        
             // PENDIENTE DE HACER
-            // 2 hacer que la 2 zona del boss no tenga nunca puertas
-            // meterlo en IsValidEdgeFunc y que el potential cycles lo tenga en cuenta (deberia fallar si no
-            // lo tiene en cuenta, para ello, provocar un maze)  ¿o quiza una colecion de conexiones o nodos
-            // que no se pueden conectar?
-            // 3 mas formas, no solo corridor ¿es posible? como cuales?
             // 4 colocar llaves, a ser posible, despues de ver la puerta
             // calcular linearidad: una IA que coja todas las llaves y llegue al boss, que mire a ver
             // cuantas veces pasa por cada nodo, y si se deja nodos sin pasar
@@ -97,9 +92,9 @@ public class MazeGraphDungeonDemo {
 
             mc.Clear();
             var zones = mc.GrowZoned(start, constraints, rng);
-            
+
             foreach (var zone in zones) {
-                Console.WriteLine($"Zone {zone.Id} Nodes: {zone.Nodes} Parts: {zone.Parts}/{zone.ConfigParts} DoorsOut: {zone.DoorsOut}/{zone.MaxDoorsOut}");
+                Console.WriteLine($"Zone {zone.Id} Nodes: {zone.Nodes} Parts: {zone.Parts}/{zone.MaxParts} DoorsOut: {zone.DoorsOut}/{zone.MaxDoorsOut}");
             }
 
             var neverConnect = mc.GetNodes().Where(n => n.Zone == 2).Select(node => node.Position).ToList();
@@ -107,10 +102,10 @@ public class MazeGraphDungeonDemo {
                 if (neverConnect.Contains(from) || neverConnect.Contains(to)) return false;
                 return true;
             };
-            
+
             ConnectNodes(template, mc);
 
-            PrintGraph(mc);
+            // PrintGraph(mc);
 
             foreach (var zone in zones) {
                 ConnectZone(mc, zone.Id);
@@ -118,7 +113,6 @@ public class MazeGraphDungeonDemo {
             AddLongestCycles(mc, 5);
             AddShortestCycles(mc, 3);
             PrintGraph(mc);
-
         }
     }
 
@@ -172,11 +166,10 @@ public class MazeGraphDungeonDemo {
             .Where(node => node != null! && mc.IsValidEdge(node.Position, node.Position + Vector2I.Left))
             .ForEach(from => {
                 var to = mc.GetNodeAtOrNull(from.Position + Vector2I.Left);
-                if (to != null) {
+                if (to != null && !from.HasEdgeTo(to)) {
                     from.ConnectTo(to, new Metadata(true));
                     to.ConnectTo(from, new Metadata(true));
                 }
-                
             });
 
         template
@@ -187,8 +180,10 @@ public class MazeGraphDungeonDemo {
                 mc.GetOrtogonalPositions(from.Position).Select(mc.GetNodeAtOrNull)
                     .Where(node => node != null && mc.IsValidEdge(node.Position, from.Position))
                     .ForEach(to => {
-                        from.ConnectTo(to, new Metadata(true));
-                        to.ConnectTo(from, new Metadata(true));
+                        if (!from.HasEdgeTo(to)) {
+                            from.ConnectTo(to, new Metadata(true));
+                            to.ConnectTo(from, new Metadata(true));
+                        }
                     });
             });
     }
@@ -230,4 +225,6 @@ public class MazeGraphDungeonDemo {
         }
         Console.WriteLine(allCanvas.ToString());
     }
+
+
 }
