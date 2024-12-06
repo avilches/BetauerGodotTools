@@ -28,8 +28,8 @@ public class MazePerZoneConstraints(int maxTotalNodes = -1) : IMazeZonedConstrai
         return Zones[zoneId].Nodes;
     }
 
-    public int GetMaxParts(int zoneId) {
-        return Zones[zoneId].MaxParts;
+    public int GetParts(int zoneId) {
+        return Zones[zoneId].Parts;
     }
 
     public int GetMaxDoorsOut(int zoneId) {

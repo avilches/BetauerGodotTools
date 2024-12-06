@@ -179,14 +179,6 @@ public class BaseMazeGraph<T> {
         OnEdgeRemoved?.Invoke(edge);
     }
 
-    internal void InvokeOnNodeCreated(MazeNode<T> node) {
-        OnNodeCreated?.Invoke(node);
-    }
-    
-    internal void InvokeOnNodeRemoved(MazeNode<T> node) {
-        OnNodeRemoved?.Invoke(node);
-    }
-    
     public bool IsValidEdge(Vector2I from, Vector2I to) {
         return IsValidPosition(from) && IsValidPosition(to) &&
                (IsValidEdgeFunc == null || IsValidEdgeFunc(from, to));

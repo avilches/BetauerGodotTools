@@ -3,19 +3,19 @@ using System;
 namespace Betauer.Core.PCG.Maze.Zoned;
 
 public class ZoneConfig {
-    public ZoneConfig(int nodes, int maxParts, int maxDoorsOut, bool corridor) {
+    public ZoneConfig(int nodes, int parts, int maxDoorsOut, bool corridor) {
         if (nodes < 1) {
             throw new ArgumentException($"Value {nodes} for nodes is wrong, it must be at least 1", nameof(nodes));
         }
-        if (maxParts < 1) {
-            throw new ArgumentException($"Value {maxParts} for parts is wrong, it must be at least 1", nameof(maxParts));
+        if (parts < 1) {
+            throw new ArgumentException($"Value {parts} for parts is wrong, it must be at least 1", nameof(parts));
         }
-        if (maxParts > nodes) {
-            throw new ArgumentException($"Parts must be equals or greater than nodes. Parts: {maxParts}, Nodes: {nodes}", nameof(maxParts));
+        if (parts > nodes) {
+            throw new ArgumentException($"Parts must be equals or greater than nodes. Parts: {parts}, Nodes: {nodes}", nameof(parts));
         }
         
         Nodes = nodes;
-        MaxParts = maxParts;
+        Parts = parts;
         MaxDoorsOut = maxDoorsOut;
         Corridor = corridor;
     }
@@ -25,7 +25,11 @@ public class ZoneConfig {
     /// <summary>
     /// The algorithm will try to split the zone in this number of parts, if it's possible.
     /// </summary>
-    public int MaxParts { get; set; }
+    public int Parts { get; set; }
+
+    /// <summary>
+    /// The maximum number of doors out for the zone. -1 means no limit.
+    /// </summary>
     public int MaxDoorsOut { get; set; }
     
     public bool Corridor { get; set; } = false;

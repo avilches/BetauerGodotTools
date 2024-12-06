@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 
 namespace Betauer.Core.PCG.Maze.Zoned;
@@ -8,7 +7,7 @@ public class ZoneCreated<T>(IMazeZonedConstraints constraints, int id) {
     public int Nodes { get; internal set; } = 0;
     public List<MazeNode<T>> AvailableNodes { get; internal set; } = new();
     public int Parts { get; internal set; } = 0;
-    public int MaxParts => constraints.GetMaxParts(Id);
+    public int ConfigParts => constraints.GetParts(Id);
     public int DoorsOut { get; internal set; } = 0;
     public bool Corridor => constraints.IsCorridor(Id);
     

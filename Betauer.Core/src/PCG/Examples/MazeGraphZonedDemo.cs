@@ -223,6 +223,17 @@ public class MazeGraphDungeonDemo {
 
             allCanvas.Write(node.Position.X * 3, node.Position.Y * 3, canvas.ToString());
         }
+        foreach (var node in mc.GetNodes()) {
+            if (node == null) continue;
+            var canvas = new TextCanvas();
+            if (node.Up != null) canvas.Write(1, 0, node.GetEdgeTowards(Vector2I.Up)!.Metadata?.added ?? false ? "·" : "|");
+            if (node.Right != null) canvas.Write(2, 1, node.GetEdgeTowards(Vector2I.Right)!.Metadata?.added ?? false ? "·" : "-");
+            if (node.Down != null) canvas.Write(1, 2, node.GetEdgeTowards(Vector2I.Down)!.Metadata?.added ?? false ? "·" : "|");
+            if (node.Left != null) canvas.Write(0, 1, node.GetEdgeTowards(Vector2I.Left)!.Metadata?.added ?? false ? "·" : "-");
+            canvas.Write(1, 1, node.Id.ToString());
+
+            allCanvas.Write((mc.Width * 3 + 5)+ node.Position.X * 3, node.Position.Y * 3, canvas.ToString());
+        }
         Console.WriteLine(allCanvas.ToString());
     }
 

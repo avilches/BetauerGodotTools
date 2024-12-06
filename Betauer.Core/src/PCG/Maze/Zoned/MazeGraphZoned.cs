@@ -101,7 +101,18 @@ public class MazeGraphZoned<T>(int width, int height) : BaseMazeGraph<T>(width, 
     }
 
     private static (MazeNode<T> currentNode, bool newDoorOut) PickNextNode(IMazeZonedConstraints constraints, ZoneCreated<T> globalZone, ZoneCreated<T> currentZone, Random rng) {
-        var newDoorOut = currentZone.Id > 0 && currentZone.Parts < constraints.GetMaxParts(currentZone.Id);
+
+        // The algorithm will try to
+        // create as many parts as free doors out are in still available in the previous zones.
+        // But if there are no more doors out, or there are, but there are no more free nodes to
+        // connect them, then the zone will have fewer parts than expected.
+        //
+        // On the other hand, if all the parts were created and the zone is expanding, but there are
+        // no more free nodes available to connect, the algorithm could create more parts (if there are
+        // doors out available and there are free nodes to connect them). In this case, the zone will
+        // have more parts than expected.
+        
+        var newDoorOut = currentZone.Id > 0 && currentZone.Parts < constraints.GetParts(currentZone.Id);
 
         if (newDoorOut) {
             // The current zone still doesn't have all the parts: pick a random node from the global to create a new door in the maze to the current zone
@@ -134,7 +145,7 @@ public class MazeGraphZoned<T>(int width, int height) : BaseMazeGraph<T>(width, 
 
     private static (MazeNode<T> currentNode, bool newDoorOut) PickDoorOutNode(ZoneCreated<T> globalZone, Random rng) {
         /*
-         Factor means this distribution:
+         Factor 3 means this distribution:
          [0] ############# (27.9%)
          [1] ########## (20.5%)
          [2] ####### (15.2%)

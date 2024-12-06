@@ -6,18 +6,11 @@ using Godot;
 namespace Betauer.Core.PCG.Maze;
 
 /// <summary>
-/// Used by the FindWeightedPath method to determine which weights to consider
-/// </summary>
-public enum PathWeightMode {
-    NodesOnly,
-    EdgesOnly,
-    Both
-}
-
-/// <summary>
 /// Represents a node in the maze graph, containing connections to adjacent nodes.
 /// </summary>
 public class MazeNode<T> {
+    private static readonly PathFinder<T> PathFinder = new();
+
     /// <summary>
     /// Represents a node in the maze graph, containing connections to adjacent nodes.
     /// </summary>
@@ -40,13 +33,13 @@ public class MazeNode<T> {
     public MazeNode<T>? Down => GetEdgeTowards(Vector2I.Down)?.To;
     public MazeNode<T>? Right => GetEdgeTowards(Vector2I.Right)?.To;
     public MazeNode<T>? Left => GetEdgeTowards(Vector2I.Left)?.To;
-    
+
     public int OutDegree => _outEdges.Count;
 
     public int InDegree => _inEdges.Count;
-    
+
     public int Degree => OutDegree + InDegree;
-    
+
     public T Metadata { get; set; }
 
     public float Weight { get; set; } = 0f;
@@ -117,26 +110,26 @@ public class MazeNode<T> {
             edge.To._inEdges.Remove(edge);
             _mazeGraph.InvokeOnEdgeRemoved(edge);
             return true;
-        } 
+        }
         if (edge.To == this) {
             if (!_inEdges.Remove(edge)) return false;
             edge.From._outEdges.Remove(edge);
             _mazeGraph.InvokeOnEdgeRemoved(edge);
             return true;
-        }  
+        }
         return false;
     }
 
     public ImmutableList<MazeEdge<T>> GetOutEdges() => _outEdges.ToImmutableList();
-    
+
     public ImmutableList<MazeEdge<T>> GetInEdges() => _inEdges.ToImmutableList();
 
     public ImmutableList<MazeEdge<T>> GetAllEdges() => _outEdges.Concat(_inEdges).ToImmutableList();
-        
-    
+
+
     public bool RemoveNode() {
         if (!_mazeGraph.InternalRemoveNode(this)) return false;
-        
+
         // Desconectar de todos los otros nodos
         foreach (var otherNode in _mazeGraph.GetNodes()) {
             otherNode.RemoveEdgeTo(this);
@@ -227,48 +220,8 @@ public class MazeNode<T> {
     /// </summary>
     /// <param name="target">The target node</param>
     /// <returns>List of nodes forming the path, or null if no path exists</returns>
-    public List<MazeNode<T>>? GetPathToNode(MazeNode<T> target) {
-        if (target == this) return [this];
-
-        // Obtener el camino hasta la raíz para ambos nodos
-        var thisPath = GetPathToRoot();
-        var targetPath = target.GetPathToRoot();
-
-        // Encontrar el ancestro común
-        MazeNode<T>? commonAncestor = null;
-        int thisIndex = 0, targetIndex = 0;
-
-        // Buscar el ancestro común buscando en todos los nodos del path
-        for (var i = 0; i < thisPath.Count; i++) {
-            var nodeInThisPath = thisPath[i];
-            for (var j = 0; j < targetPath.Count; j++) {
-                if (nodeInThisPath == targetPath[j]) {
-                    commonAncestor = nodeInThisPath;
-                    thisIndex = i;
-                    targetIndex = j;
-                    goto CommonAncestorFound; // Salir de ambos loops cuando encontremos el primer ancestro común
-                }
-            }
-        }
-
-        CommonAncestorFound:
-
-        if (commonAncestor == null) return null;
-
-        // Construir el camino: subir desde this hasta el ancestro común y bajar hasta target
-        var path = new List<MazeNode<T>>();
-
-        // Añadir el camino desde this hasta el ancestro común (en orden inverso)
-        for (var i = 0; i <= thisIndex; i++) {
-            path.Add(thisPath[i]);
-        }
-
-        // Añadir el camino desde el ancestro común hasta target (en orden normal)
-        for (var i = targetIndex - 1; i >= 0; i--) {
-            path.Add(targetPath[i]);
-        }
-        return path;
-    }
+    public List<MazeNode<T>>? GetPathToNode(MazeNode<T> target)
+        => PathFinder.GetPathToNode(this, target);
 
     /// <summary>
     /// Calculates the distance to another node using parent references.
@@ -304,45 +257,8 @@ public class MazeNode<T> {
     /// </summary>
     /// <param name="target">The target node</param>
     /// <returns>List of nodes forming the shortest path, or null if no path exists</returns>
-    public List<MazeNode<T>>? FindShortestPath(MazeNode<T> target) {
-        if (target == this) return [this];
-
-        // Inicializamos el diccionario con todos los nodos alcanzables
-        var visited = GetReachableNodes()
-            .ToDictionary(node => node, _ => (MazeNode<T>?)null);
-
-        var queue = new Queue<MazeNode<T>>();
-        queue.Enqueue(this);
-
-        while (queue.Count > 0) {
-            var current = queue.Dequeue();
-
-            if (current == target) {
-                // Reconstruir el camino
-                var path = new List<MazeNode<T>>();
-                var node = current;
-
-                while (node != null) {
-                    path.Add(node);
-                    node = visited[node];
-                }
-
-                path.Reverse();
-                return path;
-            }
-
-            // Explorar todos los nodos conectados por edges
-            foreach (var edge in current.GetOutEdges()) {
-                var next = edge.To;
-                if (visited[next] == null && next != this) {
-                    visited[next] = current;
-                    queue.Enqueue(next);
-                }
-            }
-        }
-
-        return null;
-    }
+    public List<MazeNode<T>>? FindShortestPath(MazeNode<T> target)
+        => PathFinder.FindShortestPath(this, target);
 
     /// <summary>
     /// Calculates the shortest distance to another node using direct connections.
@@ -375,21 +291,8 @@ public class MazeNode<T> {
     /// // reachable contains all nodes that can be reached
     /// </summary>
     /// <returns>Set of all reachable nodes, including the starting node</returns>
-    public HashSet<MazeNode<T>> GetReachableNodes() {
-        var nodes = new HashSet<MazeNode<T>> { this };
-        var queue = new Queue<MazeNode<T>>();
-        queue.Enqueue(this);
-
-        while (queue.Count > 0) {
-            var current = queue.Dequeue();
-            foreach (var edge in current.GetOutEdges()) {
-                if (nodes.Add(edge.To)) {
-                    queue.Enqueue(edge.To);
-                }
-            }
-        }
-        return nodes;
-    }
+    public HashSet<MazeNode<T>> GetReachableNodes()
+        => PathFinder.GetReachableNodes(this);
 
     /// <summary>
     /// Finds the most efficient path considering node and/or connection weights.
@@ -409,64 +312,9 @@ public class MazeNode<T> {
     /// <param name="target">Destination node</param>
     /// <param name="mode">Weight calculation mode: nodes only, edges only, or both</param>
     /// <returns>Result containing the path and its total cost, or null if no path exists</returns>
-    public PathResult<T>? FindWeightedPath(MazeNode<T> target, PathWeightMode mode = PathWeightMode.Both) {
-        if (target == this) {
-            return new PathResult<T>([this], mode == PathWeightMode.EdgesOnly ? 0 : Weight);
-        }
+    public PathResult<T>? FindWeightedPath(MazeNode<T> target, PathWeightMode mode = PathWeightMode.Both)
+        => PathFinder.FindWeightedPath(this, target, mode);
 
-        var nodes = GetReachableNodes();
-        var distances = nodes.ToDictionary(node => node, _ => float.MaxValue);
-        var previous = new Dictionary<MazeNode<T>, MazeNode<T>>();
-        var unvisited = new PriorityQueue<MazeNode<T>, float>();
-
-        distances[this] = mode == PathWeightMode.EdgesOnly ? 0 : Weight;
-        unvisited.Enqueue(this, distances[this]);
-
-        while (unvisited.Count > 0) {
-            var current = unvisited.Dequeue();
-
-            if (current == target) {
-                var path = new List<MazeNode<T>>();
-                var node = current;
-
-                while (previous.ContainsKey(node)) {
-                    path.Add(node);
-                    node = previous[node];
-                }
-                path.Add(this);
-                path.Reverse();
-
-                return new PathResult<T>(path, distances[target]);
-            }
-
-            foreach (var edge in current.GetOutEdges()) {
-                var neighbor = edge.To;
-                var distance = distances[current];
-
-                // Añadir coste según el modo
-                switch (mode) {
-                    case PathWeightMode.NodesOnly:
-                        distance += neighbor.Weight;
-                        break;
-                    case PathWeightMode.EdgesOnly:
-                        distance += edge.Weight;
-                        break;
-                    case PathWeightMode.Both:
-                        distance += edge.Weight + neighbor.Weight;
-                        break;
-                }
-
-                if (distance < distances[neighbor]) {
-                    distances[neighbor] = distance;
-                    previous[neighbor] = current;
-                    unvisited.Enqueue(neighbor, distance);
-                }
-            }
-        }
-
-        return null;
-    }
-    
     public override string ToString() {
         return $"Id:{Id} {Position}";
     }
