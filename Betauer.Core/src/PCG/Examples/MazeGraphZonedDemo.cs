@@ -90,7 +90,7 @@ public class MazeGraphDungeonDemo {
             var corridor = false;
             var constraints = new MazePerZoneConstraints()
                     .Zone(nodes: 15, corridor: false)
-                    .Zone(nodes: 20, parts: 1, corridor: true)
+                    .Zone(nodes: 20, parts: 3, corridor: true)
                     .Zone(nodes: 2, parts: 1, maxDoorsOut: 0, corridor: true)
                     // .Zone(nodes: 15, parts: 3, corridor: false)
                     // .Zone(nodes: 15, parts: 3, corridor: false)
@@ -111,7 +111,7 @@ public class MazeGraphDungeonDemo {
             
             
             foreach (var zone in zones.Zones) {
-                Console.WriteLine($"Zone {zone.ZoneId} Nodes: {zone.NodeCount} Parts: {zone.Parts.Count}/{zone.ConfigParts} DoorsOut: {zone.DoorsOut}/{zone.MaxDoorsOut}");
+                Console.WriteLine($"Zone {zone.ZoneId} Nodes: {zone.NodeCount} Parts: {zone.Parts.Count}/{constraints.GetParts(zone.ZoneId)} DoorsOut: {zone.GetDoorOutNodes().Count()}/{constraints.GetMaxDoorsOut(zone.ZoneId)}");
             }
 
             NeverConnectZone(mc, 2);
@@ -255,6 +255,7 @@ public class MazeGraphDungeonDemo {
             if (node.Down != null) canvas.Write(1, 2, node.GetEdgeTowards(Vector2I.Down)!.Metadata?.Added ?? false ? "·" : "|");
             if (node.Left != null) canvas.Write(0, 1, node.GetEdgeTowards(Vector2I.Left)!.Metadata?.Added ?? false ? "·" : "-");
             canvas.Write(1, 1, node.ZoneId.ToString());
+            // canvas.Write(1, 1, node.ZoneId.ToString()+node.PartId.ToString());
 
             allCanvas.Write(offset + node.Position.X * 3, node.Position.Y * 3, canvas.ToString());
         }
