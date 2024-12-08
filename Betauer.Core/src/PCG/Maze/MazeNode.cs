@@ -27,7 +27,8 @@ public class MazeNode<T> {
     public MazeNode<T>? Parent { get; set; }
     private readonly List<MazeEdge<T>> _outEdges = [];
     private readonly List<MazeEdge<T>> _inEdges = [];
-    public int Zone { get; set; }
+    public int ZoneId { get; set; }
+    public int PartId { get; set; }
 
     public MazeNode<T>? Up => GetEdgeTowards(Vector2I.Up)?.To;
     public MazeNode<T>? Down => GetEdgeTowards(Vector2I.Down)?.To;

@@ -61,14 +61,14 @@ public class MazeGraphDungeonDemo {
                     ###############
                     ###############
                     ###############
-                    ###############
-                    ###############
-                    ###############
-                    ###############
-                    ###############
-                    ###############
-                    ###############
                     #######o#######
+                    ###############
+                    ###############
+                    ###############
+                    ###############
+                    ###############
+                    ###############
+                    ###############
                     """;
 
         var template = Array2D.Parse(temp4);
@@ -92,9 +92,9 @@ public class MazeGraphDungeonDemo {
                     .Zone(nodes: 15, corridor: false)
                     .Zone(nodes: 20, parts: 1, corridor: true)
                     .Zone(nodes: 2, parts: 1, maxDoorsOut: 0, corridor: true)
-                    .Zone(nodes: 15, parts: 3, corridor: false)
-                    .Zone(nodes: 15, parts: 3, corridor: false)
-                    .Zone(nodes: 1, parts: 1, corridor: false)
+                    // .Zone(nodes: 15, parts: 3, corridor: false)
+                    // .Zone(nodes: 15, parts: 3, corridor: false)
+                    // .Zone(nodes: 1, parts: 1, corridor: false)
                 ;
 
             // PENDIENTE DE HACER
@@ -110,8 +110,8 @@ public class MazeGraphDungeonDemo {
             
             
             
-            foreach (var zone in zones) {
-                Console.WriteLine($"Zone {zone.ZoneId} Nodes: {zone.Nodes} Parts: {zone.Parts.Count}/{zone.ConfigParts} DoorsOut: {zone.DoorsOut}/{zone.MaxDoorsOut}");
+            foreach (var zone in zones.Zones) {
+                Console.WriteLine($"Zone {zone.ZoneId} Nodes: {zone.NodeCount} Parts: {zone.Parts.Count}/{zone.ConfigParts} DoorsOut: {zone.DoorsOut}/{zone.MaxDoorsOut}");
             }
 
             NeverConnectZone(mc, 2);
@@ -125,7 +125,7 @@ public class MazeGraphDungeonDemo {
             
             // PrintGraph(mc);
             
-            foreach (var zone in zones) {
+            foreach (var zone in zones.Zones) {
                 Console.WriteLine("Connection zone " + zone.ZoneId);
                 ConnectZone(mc, zone.ZoneId);
             }
@@ -134,8 +134,7 @@ public class MazeGraphDungeonDemo {
             Console.WriteLine("Shortest cycles");
             AddShortestCycles(mc, 3);
             
-            AssignKeyLocations(zones);
-            AssignTreasures(zones, 0.7f);
+            zones.CalculateNodeScores();
             PrintGraph(mc, zones);
             return;
 
@@ -143,22 +142,8 @@ public class MazeGraphDungeonDemo {
         }
     }
     
-    public static void AssignKeyLocations(List<ZoneCreated<Metadata>> zones) {
-        // Empezamos desde la zona 1 (la 0 no necesita llave)
-        for (var i = 0; i < zones.Count; i++) {
-            zones[i].SelectKeyLocation();
-        }
-    }
-    
-    public static void AssignTreasures(List<ZoneCreated<Metadata>> zones, float treasurePercentage) {
-        foreach (var zone in zones) {
-            zone.SelectTreasureLocations(treasurePercentage);
-        }
-    }
-
-
     private static void NeverConnectZone(MazeGraphZoned<Metadata> mc, int zone) {
-        var neverConnect = mc.GetNodes().Where(n => n.Zone == zone).Select(node => node.Position).ToList();
+        var neverConnect = mc.GetNodes().Where(n => n.ZoneId == zone).Select(node => node.Position).ToList();
         mc.IsValidEdgeFunc = (from, to) => {
             if (neverConnect.Contains(from) || neverConnect.Contains(to)) return false;
             return true;
@@ -169,7 +154,7 @@ public class MazeGraphDungeonDemo {
         var cycles = mc.GetPotentialCycles();
         var connection = cycles
             .GetCyclesGreaterThan(0)
-            .FirstOrDefault(c => c.nodeA.Zone == c.nodeB.Zone && c.nodeA.Zone == zone);
+            .FirstOrDefault(c => c.nodeA.ZoneId == c.nodeB.ZoneId && c.nodeA.ZoneId == zone);
         if (connection == default) return;
 
         connection.nodeA.ConnectTo(connection.nodeB, new Metadata(true));
@@ -182,7 +167,7 @@ public class MazeGraphDungeonDemo {
         while (cyclesAdded < maxCycles) {
             var connection = cycles
                 .GetAllCycles()
-                .FirstOrDefault(c => c.nodeA.Zone != c.nodeB.Zone);
+                .FirstOrDefault(c => c.nodeA.ZoneId != c.nodeB.ZoneId);
             if (connection == default) break;
 
             connection.nodeA.ConnectTo(connection.nodeB, new Metadata(true));
@@ -198,7 +183,7 @@ public class MazeGraphDungeonDemo {
         while (cyclesAdded < maxCycles) {
             var connection = cycles
                 .GetAllCycles(false)
-                .FirstOrDefault(c => c.nodeA.Zone != c.nodeB.Zone);
+                .FirstOrDefault(c => c.nodeA.ZoneId != c.nodeB.ZoneId);
             if (connection == default) break;
 
             connection.nodeA.ConnectTo(connection.nodeB, new Metadata(true));
@@ -259,7 +244,7 @@ public class MazeGraphDungeonDemo {
     }
     */
 
-    private static void PrintGraph(MazeGraphZoned<Metadata> mc, List<ZoneCreated<Metadata>>? zones = null) {
+    private static void PrintGraph(MazeGraphZoned<Metadata> mc, MazeZones<Metadata> zones = null) {
         var allCanvas = new TextCanvas();
         var offset = 0;
         foreach (var node in mc.GetNodes()) {
@@ -269,7 +254,7 @@ public class MazeGraphDungeonDemo {
             if (node.Right != null) canvas.Write(2, 1, node.GetEdgeTowards(Vector2I.Right)!.Metadata?.Added ?? false ? "·" : "-");
             if (node.Down != null) canvas.Write(1, 2, node.GetEdgeTowards(Vector2I.Down)!.Metadata?.Added ?? false ? "·" : "|");
             if (node.Left != null) canvas.Write(0, 1, node.GetEdgeTowards(Vector2I.Left)!.Metadata?.Added ?? false ? "·" : "-");
-            canvas.Write(1, 1, node.Zone.ToString());
+            canvas.Write(1, 1, node.ZoneId.ToString());
 
             allCanvas.Write(offset + node.Position.X * 3, node.Position.Y * 3, canvas.ToString());
         }
@@ -287,7 +272,10 @@ public class MazeGraphDungeonDemo {
         }
 
         if (zones != null) {
-            offset += (mc.Width * 3 + 5);
+            var keys = zones.GetBestLocationsByZone(KeyFormula);
+            var loot = zones.SpreadLocationsByZone(0.3f, LootFormula);
+            
+            offset += mc.Width * 3 + 5;
             foreach (var node in mc.GetNodes()) {
                 if (node == null) continue;
                 var canvas = new TextCanvas();
@@ -296,28 +284,39 @@ public class MazeGraphDungeonDemo {
                 if (node.Down != null) canvas.Write(1, 2, node.GetEdgeTowards(Vector2I.Down)!.Metadata?.Added ?? false ? "·" : "|");
                 if (node.Left != null) canvas.Write(0, 1, node.GetEdgeTowards(Vector2I.Left)!.Metadata?.Added ?? false ? "·" : "-");
 
-                var zone = zones[node.Zone];
-                // var score = Mathf.RoundToInt(zone.NodeScores[node].GetKeyScore() * 100);
-                var score = Mathf.RoundToInt(zone.NodeScores[node].ExitDistanceScore * 100);
-                var loot = zone.TreasureLocations.Contains(node);
-                /*if (zone.KeyLocation == node && loot) {
-                    canvas.Write(1, 1, "!" + score);
-                } else if (zone.KeyLocation == node) {
-                    canvas.Write(1, 1, "*"+score);
-                } else */if (loot) {
-                    canvas.Write(1, 1, "$"+score);
+                var zone = zones.Zones[node.ZoneId];
+
+                var nodeScore = zones.GetScore(node);
+                var keyScore = Mathf.RoundToInt(KeyFormula(nodeScore) * 100);
+                var lootScore = Mathf.RoundToInt(LootFormula(nodeScore) * 100);
+                var nodeWithKeyInZone = keys[zone.ZoneId];
+                var isKey = nodeWithKeyInZone == node;
+                    
+                // var score = Mathf.RoundToInt(zone.NodeScores[node].DeadEndScore * 100);
+                var isLoot = loot[node.ZoneId].Contains(node);
+                
+                if (isLoot) {
+                    canvas.Write(1, 1, ""+lootScore+"$");
                 } else {
-                    canvas.Write(1, 1, ""+score);
+                    canvas.Write(1, 1, ""+lootScore);
                 }
                 
-                
-
+                /*
+                 if (isKey) {
+                    canvas.Write(1, 1, $"{keyScore*1:0}k");
+                } else {
+                    canvas.Write(1, 1, $"{keyScore*1:0}");
+                }
+                */
                 allCanvas.Write(offset + node.Position.X * 6, node.Position.Y * 3, canvas.ToString());
             }
         }
     
         Console.WriteLine(allCanvas.ToString());
     }
+
+    public static float KeyFormula(NodeScore<Metadata> score) => score.DeadEndScore * 0.4f + score.EntryDistanceScore * 0.3f + score.ExitDistanceScore * 0.3f;
+    public static float LootFormula(NodeScore<Metadata> score) => score.DeadEndScore * 0.6f + score.EntryDistanceScore * 0.4f;
 
 
 }

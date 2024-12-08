@@ -23,7 +23,7 @@ public class MazeNodeTests {
             Assert.That(_node.Id, Is.EqualTo(0));
             Assert.That(_node.Position, Is.EqualTo(new Vector2I(1, 1)));
             Assert.That(_node.Parent, Is.Null);
-            Assert.That(_node.Zone, Is.EqualTo(0));
+            Assert.That(_node.ZoneId, Is.EqualTo(0));
             Assert.That(_node.OutDegree, Is.EqualTo(0));
             Assert.That(_node.InDegree, Is.EqualTo(0));
             Assert.That(_node.Degree, Is.EqualTo(0));
