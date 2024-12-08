@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using Godot;
 
 namespace Betauer.Core.PCG.Maze.Zoned;
 
@@ -28,4 +30,56 @@ public class ZonePart<T>(Zone<T> zone, int partId, MazeNode<T> startNode, List<M
     public IEnumerable<MazeNode<T>> GetDoorOutNodes() {
         return Nodes.Where(n => n.GetOutEdges().Any(edge => edge.To.ZoneId > Zone.ZoneId));
     }
+    
+    /// <summary>
+    /// Returns all node scores within a specific part of a zone.
+    /// </summary>
+    public IEnumerable<NodeScore<T>> GetScores() {
+        return Zone.MazeZones.Scores.Values.Where(score => score.Node.ZoneId == Zone.ZoneId && score.Node.PartId == PartId);
+    }
+
+        /// <summary>
+    /// Returns the node with the highest score within a specific zone based on the provided scoring function.
+    /// 
+    /// Example usage:
+    /// ```
+    /// // Get the node furthest from exits in zone 1
+    /// var bestNode = GetBestLocationInZone(1, score => score.ExitDistanceScore);
+    /// ```
+    /// </summary>
+    public MazeNode<T> GetBestLocation(Func<NodeScore<T>, float> scoreCalculator) {
+        return GetScores().OrderByDescending(scoreCalculator).First().Node;
+    }
+
+    /// <summary>
+    /// Spreads a proportional number of locations within the part based on the part's size and the provided ratio.
+    /// 
+    /// Example usage:
+    /// ```
+    /// // Select 30% of the nodes, prioritizing nodes far from exits
+    /// var locations = SpreadLocations(0.3f, score => score.ExitDistanceScore);
+    /// ```
+    /// </summary>
+    public List<MazeNode<T>> SpreadLocations(float ratio, Func<NodeScore<T>, float> scoreCalculator) {
+        var total = Mathf.RoundToInt(Nodes.Count * ratio);
+        return SpreadLocations(total, scoreCalculator);
+    }
+
+    /// <summary>
+    /// Spreads a specific number of locations within the part, trying to maintain
+    /// even distribution across zone parts.
+    /// 
+    /// Example usage:
+    /// ```
+    /// // Place 5 items, where the nodes far from entrances has the highest chance
+    /// var locations = SpreadLocations(5, score => score.EntryDistanceScore);
+    /// ```
+    /// </summary>
+    /// <param name="desired">The total number of locations to place</param>
+    /// <param name="scoreCalculator">The function used to score potential locations</param>
+    public List<MazeNode<T>> SpreadLocations(int desired, Func<NodeScore<T>, float> scoreCalculator) {
+        return SpreadLocationsAlgorithm.GetLocations(GetScores().ToList(), desired, scoreCalculator);
+    }
+
+
 }

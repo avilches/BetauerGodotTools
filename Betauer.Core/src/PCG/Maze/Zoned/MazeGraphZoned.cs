@@ -30,7 +30,7 @@ public class MazeGraphZoned<T>(int width, int height) : BaseMazeGraph<T>(width, 
         if (constraints.GetNodesPerZone(0) == 1) {
             if (constraints.MaxZones == 1) {
                 // Special case: only one zone with one node
-                return new MazeZones<T>(this, zones.Select(zone=>zone.ToZone()).ToList());
+                return CreateMazeZones(zones);
             }
             currentZone.AvailableNodes.Clear();
             globalZone.AvailableNodes.Add(Root);
@@ -101,12 +101,21 @@ public class MazeGraphZoned<T>(int width, int height) : BaseMazeGraph<T>(width, 
                 zones.Add(currentZone);
             }
             // foreach (var zone in zones) {
-            // Console.WriteLine($"Zone {zone.Id} Nodes: {zone.Nodes} Parts: {zone.Parts} DoorsOut: {zone.DoorsOut}/{constraints.GetMaxDoorsOut(zone.Id)}");
+            //     Console.WriteLine($"Zone {zone.Id} Nodes: {zone.Nodes} Parts: {zone.Parts} DoorsOut: {zone.DoorsOut}/{constraints.GetMaxDoorsOut(zone.Id)}");
             // }
         }
-        return new MazeZones<T>(this, zones.Select(z => z.ToZone()).ToList());
+        return CreateMazeZones(zones);
     }
-    
+
+    private MazeZones<T> CreateMazeZones(List<ZoneGeneration<T>> zones) {
+        var list = zones.Select(zone => zone.ToZone()).ToList();
+        var mazeZones = new MazeZones<T>(this, list);
+        foreach (var zone in list) {
+            zone.MazeZones = mazeZones;
+        }
+        return mazeZones;
+    }
+
     private static (MazeNode<T> currentNode, bool newDoorOut) PickNextNode(IMazeZonedConstraints constraints, ZoneGeneration<T> globalZone, ZoneGeneration<T> currentZone, Random rng) {
         // The algorithm will try to
         // create as many parts as free doors out are in still available in the previous zones.

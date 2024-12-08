@@ -14,44 +14,27 @@ public class MazeZones<T>(MazeGraphZoned<T> graphZoned, List<Zone<T>> zones) {
     public MazeGraphZoned<T> GraphZoned { get; } = graphZoned;
     public IReadOnlyList<Zone<T>> Zones => zones;
 
-    private readonly Dictionary<int, NodeScore<T>> _scores = [];
+    internal readonly Dictionary<int, NodeScore<T>> Scores = [];
 
     /// <summary>
     /// Returns all calculated node scores in the maze.
     /// </summary>
     public List<NodeScore<T>> GetScores() {
-        return _scores.Values.ToList();
+        return Scores.Values.ToList();
     }
 
     /// <summary>
     /// Gets the score for a specific node.
     /// </summary>
     public NodeScore<T> GetScore(MazeNode<T> node) {
-        return _scores[node.Id];
+        return Scores[node.Id];
     }
 
     /// <summary>
     /// Gets the score for a node by its ID.
     /// </summary>
     public NodeScore<T> GetScore(int id) {
-        return _scores[id];
-    }
-
-    /// <summary>
-    /// Returns all node scores within a specific zone.
-    /// </summary>
-    /// <param name="zoneId">The ID of the zone</param>
-    public IEnumerable<NodeScore<T>> GetZoneScores(int zoneId) {
-        return _scores.Values.Where(score => score.Node.ZoneId == zoneId);
-    }
-
-    /// <summary>
-    /// Returns all node scores within a specific part of a zone.
-    /// </summary>
-    /// <param name="zoneId">The ID of the zone</param>
-    /// <param name="partId">The ID of the part within the zone</param>
-    public IEnumerable<NodeScore<T>> GetPartScores(int zoneId, int partId) {
-        return _scores.Values.Where(score => score.Node.ZoneId == zoneId && score.Node.PartId == partId);
+        return Scores[id];
     }
 
     /// <summary>
@@ -61,7 +44,7 @@ public class MazeZones<T>(MazeGraphZoned<T> graphZoned, List<Zone<T>> zones) {
     /// 3. Exit distance score: How far the node is from zone exits
     /// </summary>
     public void CalculateNodeScores() {
-        _scores.Clear();
+        Scores.Clear();
 
         // Find the maximum number of edges any node has in the graph
         // Example: In a grid maze, a center node might have 4 edges, while a corner node has 2
@@ -72,7 +55,7 @@ public class MazeZones<T>(MazeGraphZoned<T> graphZoned, List<Zone<T>> zones) {
             var entryDistanceScore = CalculateEntryDistanceScore(node);
             var exitDistanceScore = CalculateExitDistanceScore(node);
 
-            _scores[node.Id] = new NodeScore<T>(node, graphEndScore, entryDistanceScore, exitDistanceScore);
+            Scores[node.Id] = new NodeScore<T>(node, graphEndScore, entryDistanceScore, exitDistanceScore);
         }
     }
 
@@ -117,7 +100,7 @@ public class MazeZones<T>(MazeGraphZoned<T> graphZoned, List<Zone<T>> zones) {
         if (entryNodes.Count == 0) return 1.0f; // If no entrances (zone 0), any position is valid
 
         var minDistance = entryNodes.Select(node.GetDistanceToNodeByEdges).Min();
-        return (float)minDistance / zone.NodeCount;
+        return minDistance / zone.NodeCount;
     }
 
     /// <summary>
@@ -138,7 +121,7 @@ public class MazeZones<T>(MazeGraphZoned<T> graphZoned, List<Zone<T>> zones) {
         if (exitNodes.Count == 0) return 1.0f; // No exits, any position is good
 
         var minDistance = exitNodes.Select(node.GetDistanceToNodeByEdges).Min();
-        return (float)minDistance / zone.NodeCount;
+        return minDistance / zone.NodeCount;
     }
 
     /// <summary>
@@ -151,20 +134,7 @@ public class MazeZones<T>(MazeGraphZoned<T> graphZoned, List<Zone<T>> zones) {
     /// ```
     /// </summary>
     public MazeNode<T> GetBestLocation(Func<NodeScore<T>, float> scoreCalculator) {
-        return _scores.Values.OrderByDescending(scoreCalculator).First().Node;
-    }
-
-    /// <summary>
-    /// Returns the node with the highest score within a specific zone based on the provided scoring function.
-    /// 
-    /// Example usage:
-    /// ```
-    /// // Get the node furthest from exits in zone 1
-    /// var bestNode = GetBestLocationInZone(1, score => score.ExitDistanceScore);
-    /// ```
-    /// </summary>
-    public MazeNode<T> GetBestLocationInZone(int zoneId, Func<NodeScore<T>, float> scoreCalculator) {
-        return _scores.Values.Where(score => score.Node.ZoneId == zoneId).OrderByDescending(scoreCalculator).First().Node;
+        return Scores.Values.OrderByDescending(scoreCalculator).First().Node;
     }
 
     /// <summary>
@@ -177,7 +147,7 @@ public class MazeZones<T>(MazeGraphZoned<T> graphZoned, List<Zone<T>> zones) {
     /// ```
     /// </summary>
     public MazeNode<T> GetBestLocationInZonePart(int zoneId, int partId, Func<NodeScore<T>, float> scoreCalculator) {
-        return _scores.Values.Where(score => score.Node.ZoneId == zoneId && score.Node.PartId == partId).OrderByDescending(scoreCalculator).First().Node;
+        return Scores.Values.Where(score => score.Node.ZoneId == zoneId && score.Node.PartId == partId).OrderByDescending(scoreCalculator).First().Node;
     }
 
     /// <summary>
@@ -191,8 +161,8 @@ public class MazeZones<T>(MazeGraphZoned<T> graphZoned, List<Zone<T>> zones) {
     /// </summary>
     public Dictionary<int, MazeNode<T>> GetBestLocationsByZone(Func<NodeScore<T>, float> scoreCalculator) {
         var bestLocationsPerZone = new Dictionary<int, MazeNode<T>>();
-        for (var zoneId = 0; zoneId < Zones.Count; zoneId++) {
-            bestLocationsPerZone[zoneId] = GetBestLocationInZone(zoneId, scoreCalculator);
+        foreach (var zone in Zones) {
+            bestLocationsPerZone[zone.ZoneId] = zone.GetBestLocation(scoreCalculator);
         }
         return bestLocationsPerZone;
     }
@@ -210,26 +180,35 @@ public class MazeZones<T>(MazeGraphZoned<T> graphZoned, List<Zone<T>> zones) {
     /// <param name="scoreCalculator">The function used to score nodes</param>
     public Dictionary<int, List<MazeNode<T>>> SpreadLocationsByZone(float ratio, Func<NodeScore<T>, float> scoreCalculator) {
         var spreadLocationsByZone = new Dictionary<int, List<MazeNode<T>>>();
-        for (var zoneId = 0; zoneId < Zones.Count; zoneId++) {
-            spreadLocationsByZone[zoneId] = SpreadLocationsInZone(zoneId, ratio, scoreCalculator);
+        foreach (var zone in Zones) {
+            spreadLocationsByZone[zone.ZoneId] = zone.SpreadLocations(ratio, scoreCalculator);
         }
         return spreadLocationsByZone;
     }
 
+    public List<MazeNode<T>> SpreadLocations(float ratio, Func<NodeScore<T>, float> scoreCalculator) {
+        var total = Mathf.RoundToInt(Scores.Count * ratio);
+        return SpreadLocations(total, scoreCalculator);
+    }
+
     /// <summary>
-    /// Spreads a proportional number of locations within a zone based on the zone's size and the provided ratio.
+    /// Spreads a specific number of locations, trying to maintain even distribution across zone parts.
     /// 
     /// Example usage:
     /// ```
-    /// // Select 30% of the nodes in zone 1, prioritizing nodes far from exits
-    /// var locations = SpreadLocationsInZone(1, 0.3f, score => score.ExitDistanceScore);
+    /// // Place 5 items in zone 2, where the nodes far from entrances has the highest chance
+    /// var locations = SpreadLocationsInZone(2, 5, score => score.EntryDistanceScore);
     /// ```
     /// </summary>
-    public List<MazeNode<T>> SpreadLocationsInZone(int zoneId, float ratio, Func<NodeScore<T>, float> scoreCalculator) {
-        var zone = Zones[zoneId];
-        var total = Mathf.RoundToInt(zone.NodeCount * ratio);
-        return SpreadLocationsInZone(zoneId, total, scoreCalculator);
+    /// <param name="total">The total number of locations to place</param>
+    /// <param name="scoreCalculator">The function used to score potential locations</param>
+    public List<MazeNode<T>> SpreadLocations(int total, Func<NodeScore<T>, float> scoreCalculator) {
+        return SpreadLocationsAlgorithm.GetLocations(GetScores().ToList(), total, scoreCalculator);
     }
+    
+}
+
+public static class SpreadLocationsAlgorithm {
 
     /// <summary>
     /// Spreads a specific number of locations within a zone, trying to maintain
@@ -241,41 +220,30 @@ public class MazeZones<T>(MazeGraphZoned<T> graphZoned, List<Zone<T>> zones) {
     /// var locations = SpreadLocationsInZone(2, 5, score => score.EntryDistanceScore);
     /// ```
     /// </summary>
-    /// <param name="zoneId">The zone to place locations in</param>
-    /// <param name="total">The total number of locations to place</param>
+    /// <param name="scores">The total number of locations to place</param>
+    /// <param name="desired">The total number of locations to place</param>
     /// <param name="scoreCalculator">The function used to score potential locations</param>
-    public List<MazeNode<T>> SpreadLocationsInZone(int zoneId, int total, Func<NodeScore<T>, float> scoreCalculator) {
-        var zone = Zones[zoneId];
+    public static List<MazeNode<T>> GetLocations<T>(List<NodeScore<T>> scores, int desired, Func<NodeScore<T>, float> scoreCalculator) {
         var locations = new List<MazeNode<T>>();
-        Console.WriteLine($"Zone {zone.ZoneId} intentando colocar {total} tesoros en sus {zone.NodeCount} nodos");
-        if (total == 0) return locations;
-
-        foreach (var part in zone.Parts) {
-            var partSize = part.Nodes.Count;
-            var scoreNodesInPart = GetPartScores(zoneId, part.PartId).ToList();
-            // Calculate how many locations should go in this part based on its size relative to the zone
-            var desired = Math.Max(1, Mathf.RoundToInt(total * ((float)partSize / zone.NodeCount)));
-            var minDistance = Mathf.RoundToInt((float)partSize / desired) + 1;
-            while (minDistance >= 1) {
-                var locationsInPart = TrySpreadLocations(scoreNodesInPart, scoreCalculator, desired, minDistance);
-                Console.WriteLine($"  Zone {zone.ZoneId} Part {part.PartId} Distancia: {minDistance}. Treasures colocados {locationsInPart.Count} de {desired}");
-                if (locationsInPart.Count < desired) {
-                    locations.AddRange(locationsInPart);
-                    break;
-                }
-                minDistance--;
+        if (desired == 0) return locations;
+        var minDistance = Mathf.RoundToInt((float)scores.Count / desired) + 1;
+        while (minDistance >= 1) {
+            var locationsInPart = TrySpreadLocations(scores, scoreCalculator, desired, minDistance);
+            if (locationsInPart.Count < desired) {
+                locations.AddRange(locationsInPart);
+                break;
             }
-
-            Console.WriteLine($"Zone {zone.ZoneId} Part {part.PartId} treasures: {locations.Count(t => part.Nodes.Contains(t))}/{desired}");
+            minDistance--;
         }
-
-        Console.WriteLine($"Zone {zone.ZoneId} total treasures: {locations.Count}/{total}");
         return locations;
     }
 
     /// <summary>
     /// Attempts to place a specific number of locations while maintaining a minimum distance between them.
     /// Uses the scoring function to prioritize optimal locations.
+    ///
+    /// The result could be fewer locations than desired if the minimum distance can't be maintained. So, calling again with a lower minimum distance
+    /// could yield more locations until the desired number is reached.
     /// 
     /// Example usage:
     /// ```
@@ -287,7 +255,7 @@ public class MazeZones<T>(MazeGraphZoned<T> graphZoned, List<Zone<T>> zones) {
     /// <param name="scoreCalculator">The function used to score locations</param>
     /// <param name="desired">The number of locations to place</param>
     /// <param name="minDistance">The minimum distance required between locations</param>
-    public static List<MazeNode<T>> TrySpreadLocations(List<NodeScore<T>> scores, Func<NodeScore<T>, float> scoreCalculator, int desired, int minDistance) {
+    public static List<MazeNode<T>> TrySpreadLocations<T>(List<NodeScore<T>> scores, Func<NodeScore<T>, float> scoreCalculator, int desired, int minDistance) {
         var locations = new List<MazeNode<T>>();
         var partCandidates = scores
             .OrderByDescending(scoreCalculator)

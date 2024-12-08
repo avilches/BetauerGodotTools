@@ -1,10 +1,12 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using Godot;
 
 namespace Betauer.Core.PCG.Maze.Zoned;
 
-public class Zone<T>(MazeGraphZoned<T> graphZoned, int zoneId) {
-    public MazeGraphZoned<T> GraphZoned { get; } = graphZoned;
+public class Zone<T>(int zoneId) {
+    public MazeZones<T> MazeZones { get; internal set; }
     public int ZoneId { get; } = zoneId;
 
     public List<ZonePart<T>> Parts { get; } = [];
@@ -32,4 +34,71 @@ public class Zone<T>(MazeGraphZoned<T> graphZoned, int zoneId) {
     public IEnumerable<MazeNode<T>> GetDoorOutNodes() {
         return Parts.SelectMany(p => p.GetDoorOutNodes());
     }
+    
+    /// <summary>
+    /// Returns all node scores within a specific zone.
+    /// </summary>
+    public IEnumerable<NodeScore<T>> GetScores() {
+        return MazeZones.Scores.Values.Where(score => score.Node.ZoneId == zoneId);
+    }
+
+    
+    /// <summary>
+    /// Returns the node with the highest score within a specific zone based on the provided scoring function.
+    /// 
+    /// Example usage:
+    /// ```
+    /// // Get the node furthest from exits in zone 1
+    /// var bestNode = GetBestLocationInZone(1, score => score.ExitDistanceScore);
+    /// ```
+    /// </summary>
+    public MazeNode<T> GetBestLocation(Func<NodeScore<T>, float> scoreCalculator) {
+        return GetScores().OrderByDescending(scoreCalculator).First().Node;
+    }
+
+    /// <summary>
+    /// Spreads a proportional number of locations within a zone based on the zone's size and the provided ratio.
+    /// 
+    /// Example usage:
+    /// ```
+    /// // Select 30% of the nodes in zone 1, prioritizing nodes far from exits
+    /// var locations = SpreadLocationsInZone(1, 0.3f, score => score.ExitDistanceScore);
+    /// ```
+    /// </summary>
+    public List<MazeNode<T>> SpreadLocations(float ratio, Func<NodeScore<T>, float> scoreCalculator) {
+        var total = Mathf.RoundToInt(NodeCount * ratio);
+        return SpreadLocations(total, scoreCalculator);
+    }
+
+    /// <summary>
+    /// Spreads a specific number of locations within a zone, trying to maintain
+    /// even distribution across zone parts.
+    /// 
+    /// Example usage:
+    /// ```
+    /// // Place 5 items in zone 2, where the nodes far from entrances has the highest chance
+    /// var locations = SpreadLocationsInZone(2, 5, score => score.EntryDistanceScore);
+    /// ```
+    /// </summary>
+    /// <param name="total">The total number of locations to place</param>
+    /// <param name="scoreCalculator">The function used to score potential locations</param>
+    public List<MazeNode<T>> SpreadLocations(int total, Func<NodeScore<T>, float> scoreCalculator) {
+        var locations = new List<MazeNode<T>>();
+        Console.WriteLine($"Zone {ZoneId} intentando colocar {total} tesoros en sus {NodeCount} nodos");
+        if (total == 0) return locations;
+
+        foreach (var part in Parts) {
+            var partSize = part.Nodes.Count;
+            var scoreNodesInPart = part.GetScores().ToList();
+            // Calculate how many locations should go in this part based on its size relative to the zone
+            var desired = Math.Max(1, Mathf.RoundToInt(total * (partSize / NodeCount)));
+            SpreadLocationsAlgorithm.GetLocations(scoreNodesInPart, desired, scoreCalculator).ForEach(locations.Add);
+
+            Console.WriteLine($"Zone {ZoneId} Part {part.PartId} treasures: {locations.Count(t => part.Nodes.Contains(t))}/{desired}");
+        }
+
+        Console.WriteLine($"Zone {ZoneId} total treasures: {locations.Count}/{total}");
+        return locations;
+    }
+    
 }
