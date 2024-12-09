@@ -13,7 +13,7 @@ public enum PathWeightMode {
 }
 
 
-public class PathFinder<T> {
+public class PathFinder {
     /// <summary>
     /// Finds the most efficient path considering node and/or connection weights.
     /// Useful when different paths have varying costs or difficulties.
@@ -22,15 +22,15 @@ public class PathFinder<T> {
     /// <param name="target">Destination node</param>
     /// <param name="mode">Weight calculation mode: nodes only, edges only, or both</param>
     /// <returns>Result containing the path and its total cost, or null if no path exists</returns>
-    public PathResult<T>? FindWeightedPath(MazeNode<T> start, MazeNode<T> target, PathWeightMode mode = PathWeightMode.Both) {
+    public PathResult? FindWeightedPath(MazeNode start, MazeNode target, PathWeightMode mode = PathWeightMode.Both) {
         if (start == target) {
-            return new PathResult<T>([start], mode == PathWeightMode.EdgesOnly ? 0 : start.Weight);
+            return new PathResult([start], mode == PathWeightMode.EdgesOnly ? 0 : start.Weight);
         }
 
         var nodes = GetReachableNodes(start);
         var distances = nodes.ToDictionary(node => node, _ => float.MaxValue);
-        var previous = new Dictionary<MazeNode<T>, MazeNode<T>>();
-        var unvisited = new PriorityQueue<MazeNode<T>, float>();
+        var previous = new Dictionary<MazeNode, MazeNode>();
+        var unvisited = new PriorityQueue<MazeNode, float>();
 
         distances[start] = mode == PathWeightMode.EdgesOnly ? 0 : start.Weight;
         unvisited.Enqueue(start, distances[start]);
@@ -39,7 +39,7 @@ public class PathFinder<T> {
             var current = unvisited.Dequeue();
 
             if (current == target) {
-                var path = new List<MazeNode<T>>();
+                var path = new List<MazeNode>();
                 var node = current;
 
                 while (previous.ContainsKey(node)) {
@@ -49,7 +49,7 @@ public class PathFinder<T> {
                 path.Add(start);
                 path.Reverse();
 
-                return new PathResult<T>(path, distances[target]);
+                return new PathResult(path, distances[target]);
             }
 
             foreach (var edge in current.GetOutEdges()) {
@@ -57,17 +57,11 @@ public class PathFinder<T> {
                 var distance = distances[current];
 
                 // Añadir coste según el modo
-                switch (mode) {
-                    case PathWeightMode.NodesOnly:
-                        distance += neighbor.Weight;
-                        break;
-                    case PathWeightMode.EdgesOnly:
-                        distance += edge.Weight;
-                        break;
-                    case PathWeightMode.Both:
-                        distance += edge.Weight + neighbor.Weight;
-                        break;
-                }
+                if (mode == PathWeightMode.NodesOnly)
+                    distance += neighbor.Weight;
+                else if (mode == PathWeightMode.EdgesOnly)
+                    distance += edge.Weight;
+                else if (mode == PathWeightMode.Both) distance += edge.Weight + neighbor.Weight;
 
                 if (distance < distances[neighbor]) {
                     distances[neighbor] = distance;
@@ -88,14 +82,14 @@ public class PathFinder<T> {
     /// <param name="start">Starting node</param>
     /// <param name="target">Target node</param>
     /// <returns>List of nodes forming the shortest path, or null if no path exists</returns>
-    public List<MazeNode<T>>? FindShortestPath(MazeNode<T> start, MazeNode<T> target) {
+    public List<MazeNode>? FindShortestPath(MazeNode start, MazeNode target) {
         if (start == target) return [start];
 
         // Inicializamos el diccionario con todos los nodos alcanzables
         var visited = GetReachableNodes(start)
-            .ToDictionary(node => node, MazeNode<T>? (_) => null);
+            .ToDictionary(node => node, MazeNode? (_) => null);
 
-        var queue = new Queue<MazeNode<T>>();
+        var queue = new Queue<MazeNode>();
         queue.Enqueue(start);
 
         while (queue.Count > 0) {
@@ -103,7 +97,7 @@ public class PathFinder<T> {
 
             if (current == target) {
                 // Reconstruir el camino
-                var path = new List<MazeNode<T>>();
+                var path = new List<MazeNode>();
                 var node = current;
 
                 while (node != null) {
@@ -133,9 +127,9 @@ public class PathFinder<T> {
     /// </summary>
     /// <param name="start">Starting node</param>
     /// <returns>Set of all reachable nodes, including the starting node</returns>
-    public HashSet<MazeNode<T>> GetReachableNodes(MazeNode<T> start) {
-        var nodes = new HashSet<MazeNode<T>> { start };
-        var queue = new Queue<MazeNode<T>>();
+    public HashSet<MazeNode> GetReachableNodes(MazeNode start) {
+        var nodes = new HashSet<MazeNode> { start };
+        var queue = new Queue<MazeNode>();
         queue.Enqueue(start);
 
         while (queue.Count > 0) {
@@ -155,7 +149,7 @@ public class PathFinder<T> {
     /// <param name="start">Starting node</param>
     /// <param name="target">Target node</param>
     /// <returns>List of nodes forming the path, or null if no path exists</returns>
-    public List<MazeNode<T>>? GetPathToNode(MazeNode<T> start, MazeNode<T> target) {
+    public List<MazeNode>? GetPathToNode(MazeNode start, MazeNode target) {
         if (start == target) return [start];
 
         // Obtener el camino hasta la raíz para ambos nodos
@@ -163,7 +157,7 @@ public class PathFinder<T> {
         var targetPath = target.GetPathToRoot();
 
         // Encontrar el ancestro común
-        MazeNode<T>? commonAncestor = null;
+        MazeNode? commonAncestor = null;
         int startIndex = 0, targetIndex = 0;
 
         // Buscar el ancestro común buscando en todos los nodos del path
@@ -184,7 +178,7 @@ public class PathFinder<T> {
         if (commonAncestor == null) return null;
 
         // Construir el camino: subir desde start hasta el ancestro común y bajar hasta target
-        var path = new List<MazeNode<T>>();
+        var path = new List<MazeNode>();
 
         // Añadir el camino desde start hasta el ancestro común (en orden)
         for (var i = 0; i <= startIndex; i++) {

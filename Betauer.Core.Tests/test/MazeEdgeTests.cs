@@ -8,17 +8,17 @@ namespace Betauer.Core.Tests;
 
 [TestFixture]
 public class MazeEdgeTests {
-    private MazeGraph<object> _graph = null!;
-    private MazeNode<object> _nodeFrom = null!;
-    private MazeNode<object> _nodeTo = null!;
-    private MazeEdge<object> _edge = null!;
+    private MazeGraph _graph = null!;
+    private MazeNode _nodeFrom = null!;
+    private MazeNode _nodeTo = null!;
+    private MazeEdge _edge = null!;
 
     [SetUp]
     public void Setup() {
-        _graph = new MazeGraph<object>(10, 10);
+        _graph = new MazeGraph(10, 10);
         _nodeFrom = _graph.CreateNode(new Vector2I(0, 0));
         _nodeTo = _graph.CreateNode(new Vector2I(1, 0));
-        _edge = new MazeEdge<object>(_nodeFrom, _nodeTo);
+        _edge = new MazeEdge(_nodeFrom, _nodeTo);
     }
 
     [Test]
@@ -32,17 +32,17 @@ public class MazeEdgeTests {
 
     [Test]
     public void Constructor_WithNullFrom_ThrowsArgumentNullException() {
-        Assert.Throws<ArgumentNullException>(() => new MazeEdge<object>(null!, _nodeTo));
+        Assert.Throws<ArgumentNullException>(() => new MazeEdge(null!, _nodeTo));
     }
 
     [Test]
     public void Constructor_WithNullTo_ThrowsArgumentNullException() {
-        Assert.Throws<ArgumentNullException>(() => new MazeEdge<object>(_nodeFrom, null!));
+        Assert.Throws<ArgumentNullException>(() => new MazeEdge(_nodeFrom, null!));
     }
 
     [Test]
     public void Edge_WeightAndMetadata_CanBeModified() {
-        var edge = new MazeEdge<object>(_nodeFrom, _nodeTo, "metadata", 1.5f);
+        var edge = new MazeEdge(_nodeFrom, _nodeTo, "metadata", 1.5f);
         
         Assert.Multiple(() => {
             Assert.That(edge.Weight, Is.EqualTo(1.5f));
@@ -89,7 +89,7 @@ public class MazeEdgeTests {
 
     [Test]
     public void Edge_CannotBeAdded_BetweenNodesFromDifferentGraphs() {
-        var otherGraph = new MazeGraph<object>(10, 10);
+        var otherGraph = new MazeGraph(10, 10);
         var otherNode = otherGraph.CreateNode(new Vector2I(2, 0));
 
         Assert.Throws<InvalidEdgeException>(() => _nodeFrom.ConnectTo(otherNode));

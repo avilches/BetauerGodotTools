@@ -9,12 +9,12 @@ namespace Betauer.Core.Tests;
 
 [TestFixture]
 public class MazeNodeCyclesTests {
-    private MazeGraph<object> maze;
+    private MazeGraph maze;
 
     [SetUp]
     public void Setup() {
         // Create a 4x4 maze for testing
-        maze = new MazeGraph<object>(4, 4);
+        maze = new MazeGraph(4, 4);
 
         /* Create a maze structure like this, parent and edges are the same
            0--1--2--3
@@ -147,7 +147,7 @@ public class MazeNodeCyclesTests {
         return maze.GetNodes().Sum(node => node.GetOutEdges().Count());
     }
 
-    private static void PrintGraphEdges(MazeGraph<object> mc) {
+    private static void PrintGraphEdges(MazeGraph mc) {
         var allCanvas = new TextCanvas();
         foreach (var node in mc.GetNodes()) {
             if (node == null) continue;
@@ -163,7 +163,7 @@ public class MazeNodeCyclesTests {
         Console.WriteLine(allCanvas.ToString());
     }
 
-    private static void PrintGraphParent(MazeGraph<object> mc) {
+    private static void PrintGraphParent(MazeGraph mc) {
         var allCanvas = new TextCanvas();
         foreach (var node in mc.GetNodes()) {
             if (node == null) continue;

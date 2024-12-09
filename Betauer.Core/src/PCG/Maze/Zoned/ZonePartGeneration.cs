@@ -2,8 +2,8 @@ using System.Collections.Generic;
 
 namespace Betauer.Core.PCG.Maze.Zoned;
 
-internal class ZonePartGeneration<T>(int partId, MazeNode<T> startNode) {
+internal class ZonePartGeneration(int partId, MazeNode startNode) {
     internal int PartId { get; } = partId;
-    internal MazeNode<T> StartNode { get; } = startNode;
-    internal List<MazeNode<T>> Nodes { get; } = [startNode];
+    internal MazeNode StartNode { get; } = startNode;
+    internal List<MazeNode> Nodes { get; } = [startNode];
 }

@@ -13,7 +13,7 @@ public class MazeGraphDemo {
         var rng = new Random(seed);
 
 
-        var mc = new MazeGraph<object>(8, 8);
+        var mc = new MazeGraph(8, 8);
         var start = new Vector2I(0, 0);
         mc.OnEdgeCreated += (i) => {
             // PrintGraph(mc);
@@ -36,7 +36,7 @@ public class MazeGraphDemo {
 
         const int width = 41, height = 21;
         var template = new BitArray2D(width, height, true);
-        var mc = MazeGraph.Create<object>(template);
+        var mc = MazeGraph.Create(template);
         var start = new Vector2I(4, 4);
         mc.OnNodeCreated += (i) => {
             // PrintGraphAsCarved(mc);
@@ -53,7 +53,7 @@ public class MazeGraphDemo {
         PrintGraphAsCarved(mc);
     }
 
-    private static void PrintGraph<T>(MazeGraph<T> mc) {
+    private static void PrintGraph(MazeGraph mc) {
         var allCanvas = new TextCanvas();
         foreach (var node in mc.GetNodes()) {
             if (node == null) continue;
@@ -69,7 +69,7 @@ public class MazeGraphDemo {
         Console.WriteLine(allCanvas.ToString());
     }
 
-    private static void PrintGraphAsCarved<T>(MazeGraph<T> mc) {
+    private static void PrintGraphAsCarved(MazeGraph mc) {
         var allCanvas = new TextCanvas();
         foreach (var node in mc.GetNodes()) {
             var canvas = new TextCanvas("""

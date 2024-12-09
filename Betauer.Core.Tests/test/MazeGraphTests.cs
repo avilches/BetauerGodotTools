@@ -9,11 +9,11 @@ namespace Betauer.Core.Tests;
 
 [TestFixture]
 public class MazeGraphTests {
-    private MazeGraph<object> _graph = null!;
+    private MazeGraph _graph = null!;
 
     [SetUp]
     public void Setup() {
-        _graph = new MazeGraph<object>(10, 10);
+        _graph = new MazeGraph(10, 10);
     }
 
     [Test]
@@ -119,7 +119,7 @@ public class MazeGraphTests {
             {false, true, false}
         };
 
-        var graph = MazeGraph.Create<object>(template);
+        var graph = MazeGraph.Create(template);
         
         Assert.Multiple(() => {
             Assert.That(graph.Width, Is.EqualTo(3));

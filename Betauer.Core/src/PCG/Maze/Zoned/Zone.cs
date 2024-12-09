@@ -5,15 +5,15 @@ using Godot;
 
 namespace Betauer.Core.PCG.Maze.Zoned;
 
-public class Zone<T>(int zoneId) {
-    public MazeZones<T> MazeZones { get; internal set; }
+public class Zone(int zoneId) {
+    public MazeZones MazeZones { get; internal set; }
     public int ZoneId { get; } = zoneId;
 
-    public List<ZonePart<T>> Parts { get; } = [];
+    public List<ZonePart> Parts { get; } = [];
     
-    public float NodeCount => Parts.Sum(p => p.Nodes.Count);
+    public int NodeCount => Parts.Sum(p => p.Nodes.Count);
 
-    public IEnumerable<MazeNode<T>> GetNodes() => Parts.SelectMany(part => part.Nodes);
+    public IEnumerable<MazeNode> GetNodes() => Parts.SelectMany(part => part.Nodes);
     
     /// <summary>
     /// A doors in node is a node that has an edge to a node from the previous zone. The GrowZoned method only creates one door in
@@ -21,7 +21,7 @@ public class Zone<T>(int zoneId) {
     /// from other zones (not only the previous one), so this method will return all possible doors in.
     /// </summary>
     /// <returns></returns>
-    public IEnumerable<MazeNode<T>> GetDoorInNodes() {
+    public IEnumerable<MazeNode> GetDoorInNodes() {
         return Parts.SelectMany(p => p.GetDoorInNodes());
     }
 
@@ -31,14 +31,14 @@ public class Zone<T>(int zoneId) {
     /// But it could be possible to create more connections before, so this method will return all possible doors out.
     /// </summary>
     /// <returns></returns>
-    public IEnumerable<MazeNode<T>> GetDoorOutNodes() {
+    public IEnumerable<MazeNode> GetDoorOutNodes() {
         return Parts.SelectMany(p => p.GetDoorOutNodes());
     }
     
     /// <summary>
     /// Returns all node scores within a specific zone.
     /// </summary>
-    public IEnumerable<NodeScore<T>> GetScores() {
+    public IEnumerable<NodeScore> GetScores() {
         return MazeZones.Scores.Values.Where(score => score.Node.ZoneId == zoneId);
     }
 
@@ -52,7 +52,7 @@ public class Zone<T>(int zoneId) {
     /// var bestNode = GetBestLocationInZone(1, score => score.ExitDistanceScore);
     /// ```
     /// </summary>
-    public MazeNode<T> GetBestLocation(Func<NodeScore<T>, float> scoreCalculator) {
+    public MazeNode GetBestLocation(Func<NodeScore, float> scoreCalculator) {
         return GetScores().OrderByDescending(scoreCalculator).First().Node;
     }
 
@@ -65,7 +65,7 @@ public class Zone<T>(int zoneId) {
     /// var locations = SpreadLocationsInZone(1, 0.3f, score => score.ExitDistanceScore);
     /// ```
     /// </summary>
-    public List<MazeNode<T>> SpreadLocations(float ratio, Func<NodeScore<T>, float> scoreCalculator) {
+    public List<MazeNode> SpreadLocations(float ratio, Func<NodeScore, float> scoreCalculator) {
         var total = Mathf.RoundToInt(NodeCount * ratio);
         return SpreadLocations(total, scoreCalculator);
     }
@@ -82,17 +82,16 @@ public class Zone<T>(int zoneId) {
     /// </summary>
     /// <param name="total">The total number of locations to place</param>
     /// <param name="scoreCalculator">The function used to score potential locations</param>
-    public List<MazeNode<T>> SpreadLocations(int total, Func<NodeScore<T>, float> scoreCalculator) {
-        var locations = new List<MazeNode<T>>();
+    public List<MazeNode> SpreadLocations(int total, Func<NodeScore, float> scoreCalculator) {
+        var locations = new List<MazeNode>();
         Console.WriteLine($"Zone {ZoneId} intentando colocar {total} tesoros en sus {NodeCount} nodos");
         if (total == 0) return locations;
 
         foreach (var part in Parts) {
             var partSize = part.Nodes.Count;
-            var scoreNodesInPart = part.GetScores().ToList();
             // Calculate how many locations should go in this part based on its size relative to the zone
-            var desired = Math.Max(1, Mathf.RoundToInt(total * (partSize / NodeCount)));
-            SpreadLocationsAlgorithm.GetLocations(scoreNodesInPart, desired, scoreCalculator).ForEach(locations.Add);
+            var desired = Math.Max(1, Mathf.RoundToInt(total * (partSize / (float)NodeCount)));
+            locations.AddRange(part.SpreadLocations(desired, scoreCalculator));
 
             Console.WriteLine($"Zone {ZoneId} Part {part.PartId} treasures: {locations.Count(t => part.Nodes.Contains(t))}/{desired}");
         }

@@ -1,7 +1,7 @@
 namespace Betauer.Core.PCG.Maze.Zoned;
 
-public class NodeScore<T>(MazeNode<T> node, float deadEndScore, float entryDistanceScore, float exitDistanceScore = 0) {
-    public MazeNode<T> Node { get; } = node;
+public class NodeScore(MazeNode node, float deadEndScore, float entryDistanceScore, float exitDistanceScore = 0) {
+    public MazeNode Node { get; } = node;
     
     /// <summary>
     /// 1 means the node is a dead end (only one connection)

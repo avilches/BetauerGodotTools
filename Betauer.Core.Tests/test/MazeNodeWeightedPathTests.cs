@@ -8,12 +8,12 @@ namespace Betauer.Core.Tests;
 
 [TestFixture]
 public class MazeNodeWeightedPathTests {
-    private MazeGraph<object> _graph = null!;
-    private MazeNode<object> _node = null!;
+    private MazeGraph _graph = null!;
+    private MazeNode _node = null!;
 
     [SetUp]
     public void Setup() {
-        _graph = new MazeGraph<object>(10, 10);
+        _graph = new MazeGraph(10, 10);
         _node = _graph.CreateNode(new Vector2I(1, 1));
     }
 

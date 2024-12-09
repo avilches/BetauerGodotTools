@@ -7,145 +7,253 @@ using Godot;
 
 namespace Betauer.Core.PCG.Maze;
 
-public class MazeGraph<T>(int width, int height) : BaseMazeGraph<T>(width, height) {
-    /// <summary>
-    /// Grows a maze from a starting position using the specified constraints.
-    /// </summary>
-    /// <param name="start">Starting position for the maze generation.</param>
-    /// <param name="constraints">Constraints for the maze generation.</param>
-    /// <param name="backtracker">A function to locate the next node to backtrack. By default, it takes the last one (LIFO)</param>
-    /// <returns>The number of paths created.</returns>
-    public void Grow(Vector2I start, BacktrackConstraints constraints, Func<List<MazeNode<T>>, MazeNode<T>>? backtracker = null) {
-        ArgumentNullException.ThrowIfNull(constraints);
-        if (!IsValidPosition(start)) {
-            throw new ArgumentException("Invalid start position", nameof(start));
-        }
+/// <summary>
+/// Represents a maze as a graph structure with nodes and edges in a 2d grid.
+/// </summary>
+public partial class MazeGraph {
+    public int Width { get; }
+    public int Height { get; }
+    protected readonly Dictionary<Vector2I, MazeNode> NodeGrid  = [];
+    protected readonly Dictionary<int, MazeNode> Nodes  = [];
+    public MazeNode Root { get; protected set; }
 
-        Clear();
-
-        var maxTotalCells = constraints.MaxTotalCells == -1 ? int.MaxValue : constraints.MaxTotalCells;
-        var maxCellsPerPath = constraints.MaxCellsPerPath == -1 ? int.MaxValue : constraints.MaxCellsPerPath;
-        var maxTotalPaths = constraints.MaxPaths == -1 ? int.MaxValue : constraints.MaxPaths;
-        if (maxTotalCells == 0 || maxCellsPerPath == 0 || maxTotalPaths == 0) return;
-
-        var pendingNodes = new List<MazeNode<T>>();
-        Vector2I? lastDirection = null;
-
-        var pathsCreated = 0;
-        var totalNodesCreated = 1;
-        var nodesCreatedInCurrentPath = 1;
-
-        var currentNode = Root = CreateNode(start);
-        pendingNodes.Add(Root);
-        while (pendingNodes.Count > 0) {
-            var availableDirections = GetValidFreeAdjacentDirections(currentNode.Position).ToList();
-
-            if (availableDirections.Count == 0 || nodesCreatedInCurrentPath >= maxCellsPerPath || totalNodesCreated == maxTotalCells) {
-                // path stopped, backtracking
-                pendingNodes.Remove(currentNode);
-                if (pendingNodes.Count > 0) {
-                    currentNode = backtracker != null ? backtracker.Invoke(pendingNodes) : pendingNodes[^1];
-                    if (!GetValidFreeAdjacentDirections(currentNode.Position).Any()) {
-                        continue;
-                    }
-                }
-                // No more nodes to backtrack (end of the path and the maze) or next node has no available directions (end of the path)
-                pathsCreated++;
-                // Console.WriteLine($"Path #{pathsCreated} finished: Cells: {nodesCreatedInCurrentPath}");
-                if (pathsCreated == maxTotalPaths || totalNodesCreated == maxTotalCells) break;
-                nodesCreatedInCurrentPath = 1;
-                lastDirection = null;
-                continue;
-            }
-
-            var validCurrentDir = lastDirection.HasValue && availableDirections.Contains(lastDirection.Value)
-                ? lastDirection
-                : null;
-
-            var nextDir = constraints.DirectionSelector(validCurrentDir, availableDirections);
-            lastDirection = nextDir;
-
-            var nextPos = currentNode.Position + nextDir;
-            var newNode = CreateNode(nextPos, currentNode);
-            currentNode.ConnectTo(newNode);
-            newNode.ConnectTo(currentNode);
-            pendingNodes.Add(newNode);
-            totalNodesCreated++;
-            nodesCreatedInCurrentPath++;
-
-            currentNode = newNode;
-        }
-        // Console.WriteLine("Cells created: " + totalNodesCreated + " Paths created: " + pathsCreated);
-    }
-
-    public void GrowRandom(Vector2I start, int maxTotalNodes = -1, Random? rng = null) {
-        if (maxTotalNodes == 0) return;
-        if (!IsValidPosition(start)) {
-            throw new ArgumentException("Invalid start position", nameof(start));
-        }
-        maxTotalNodes = maxTotalNodes == -1 ? int.MaxValue : maxTotalNodes;
-
-        rng ??= new Random();
-        var pendingNodes = new List<MazeNode<T>>();
-        var totalNodesCreated = 1;
-        Root = CreateNode(start);
-        pendingNodes.Add(Root);
-        while (pendingNodes.Count > 0 && totalNodesCreated < maxTotalNodes) {
-            var currentNode = rng.Next(pendingNodes);
-            var adjacentPositions = GetValidFreeAdjacentPositions(currentNode.Position).ToList();
-
-            if (adjacentPositions.Count == 0) {
-                // invalid cell, removing
-                pendingNodes.Remove(currentNode);
-            } else {
-                var nextPos = rng.Next(adjacentPositions);
-                var newNode = CreateNode(nextPos, currentNode);
-                currentNode.ConnectTo(newNode);
-                newNode.ConnectTo(currentNode);
-                pendingNodes.Add(newNode);
-                totalNodesCreated++;
-            }
-        }
-    }
-}
-
-public static class MazeGraph {
+    public Func<Vector2I, IEnumerable<Vector2I>> GetAdjacentPositions { get; set; }
 
     /// <summary>
-    /// Creates a new MazeGraph with the specified dimensions.
+    /// Called to determine if a position is valid before creating a node, rejecting with an exception if the position is not valid.
+    /// Called to filter the adjacent positions of a node, ignoring invalid positions. 
     /// </summary>
-    public static MazeGraph<T> Create<T>(int width, int height) {
-        return new MazeGraph<T>(width, height);
-    }
+    public Func<Vector2I, bool>? IsValidPositionFunc { get; set; } = _ => true;
 
     /// <summary>
-    /// Creates a MazeGraph from a boolean template array.
-    /// In the template, true values represent valid positions for nodes. false values are forbidden (invalid)
+    /// Called to determine if an edge is valid before creating it.
     /// </summary>
-    public static MazeGraph<T> Create<T>(bool[,] template) {
-        return new MazeGraph<T>(template.GetLength(1), template.GetLength(0)) {
-            IsValidPositionFunc = pos => template[pos.Y, pos.X]
+    public Func<Vector2I, Vector2I, bool>? IsValidEdgeFunc { get; set; } = (_, _) => true;
+
+    public event Action<MazeEdge>? OnEdgeCreated;
+    public event Action<MazeEdge>? OnEdgeRemoved;
+    public event Action<MazeNode>? OnNodeCreated;
+    public event Action<MazeNode>? OnNodeRemoved;
+
+    protected int LastId = 0;
+
+    /// <summary>
+    /// Initializes a new instance of the MazeGraph class.
+    /// </summary>
+    /// <param name="width">The width of the maze.</param>
+    /// <param name="height">The height of the maze.</param>
+    /// Optional, by default, it uses ortogonal positions up, down, left, right </param>
+    public MazeGraph(int width, int height) {
+        Width = width;
+        Height = height;
+        GetAdjacentPositions = GetOrtogonalPositions;
+    }
+
+    public void Clear() {
+        Root = null;
+        NodeGrid.Clear();
+        Nodes.Clear();
+        LastId = 0;
+    }
+
+    public bool IsValidPosition(Vector2I position) {
+        return Geometry.IsPointInRectangle(position.X, position.Y, 0, 0, Width, Height) && 
+               (IsValidPositionFunc == null || IsValidPositionFunc(position));
+    }
+
+    public MazeNode GetNode(int id) {
+        return Nodes[id];
+    }
+
+    public MazeNode? GetNodeOrNull(int id) {
+        return Nodes.GetValueOrDefault(id);
+    }
+
+    public IReadOnlyCollection<MazeNode> GetNodes() {
+        return Nodes.Values;
+    }
+
+    public MazeNode GetOrCreateNode(Vector2I position) {
+        ValidatePosition(position, nameof(GetOrCreateNode));
+        return NodeGrid.TryGetValue(position, out var node) 
+            ? node 
+            : CreateNode(position);
+    }
+
+    private void ValidatePosition(Vector2I position, string message) {
+        if (!Geometry.IsPointInRectangle(position.X, position.Y, 0, 0, Width, Height)) {
+            throw new InvalidNodeException($"Invalid position {position} in {message}: position out of bounds (0, 0, {Width}, {Height})", position);
+        }
+        if (IsValidPositionFunc != null && !IsValidPositionFunc(position)) {
+            throw new InvalidNodeException($"Invalid position {position} in {message}: {nameof(IsValidPositionFunc)} returned false", position);
+        }
+    }
+
+    public MazeNode CreateNode(Vector2I position, MazeNode? parent = null, object metadata = default, float weight = 0f) {
+        ValidatePosition(position, nameof(CreateNode));
+        if (NodeGrid.TryGetValue(position, out var node)) {
+            throw new InvalidOperationException($"Can't create node at {position}: there is already a node there with id {node.Id}");
+        }
+
+        node = new MazeNode(this, LastId++, position) {
+            Parent = parent,
+            Metadata = metadata!,
+            Weight = weight
         };
+        NodeGrid[position] = node;
+        Nodes[node.Id] = node;
+        OnNodeCreated?.Invoke(node);
+        return node;
     }
 
-    /// <summary>
-    /// Creates a MazeGraph from a boolean Array2D template.
-    /// In the template, true values represent valid positions for nodes. false values are forbidden (invalid)
-    /// </summary>
-    public static MazeGraph<T> Create<T>(Array2D<bool> template) {
-        return new MazeGraph<T>(template.Width, template.Height) {
-            IsValidPositionFunc = pos => template[pos]
-        };
+    public MazeNode GetNodeAt(Vector2I position) {
+        ValidatePosition(position, nameof(GetNodeAt));
+        return NodeGrid[position];
     }
 
-    /// <summary>
-    /// Creates a MazeGraph from a BitArray2D template.
-    /// In the template, true values represent valid positions for nodes. false values are forbidden (invalid)
-    /// </summary>
-    public static MazeGraph<T> Create<T>(BitArray2D template) {
-        return new MazeGraph<T>(template.Width, template.Height) {
-            IsValidPositionFunc = pos => template[pos]
-        };
+    public bool HasNodeAt(Vector2I position) {
+        return NodeGrid.ContainsKey(position);
+    }
+
+    public bool HasNode(int id) {
+        return Nodes.ContainsKey(id);
+    }
+
+    public MazeNode? GetNodeAtOrNull(Vector2I position) {
+        if (!Geometry.IsPointInRectangle(position.X, position.Y, 0, 0, Width, Height) ||
+            (IsValidPositionFunc != null && !IsValidPositionFunc(position))) return null;
+        return NodeGrid.GetValueOrDefault(position);
     }
     
+    internal bool InternalRemoveNode(MazeNode node) {
+        if (!Nodes.Remove(node.Id)) return false;
+        NodeGrid.Remove(node.Position);
+        return true;
+    }
+
+    public bool RemoveNode(int id) {
+        if (!Nodes.TryGetValue(id, out var node)) return false;
+        return node.RemoveNode();
+    }
+    
+    public bool RemoveNodeAt(Vector2I position) {
+        var node = GetNodeAt(position);
+        if (node == null) return false;
+        return node.RemoveNode();
+    }
+    
+    
+    public void DisconnectNodes(int fromId, int toId) {
+        var from = GetNode(fromId);
+        var to = GetNode(toId);
+        from.RemoveEdgeTo(to);
+    }
+    
+    public void DisconnectNodes(Vector2I fromPos, Vector2I toPos) {
+        var from = GetNodeAt(fromPos)!;
+        var to = GetNodeAt(toPos)!;
+        from.RemoveEdgeTo(to);
+    }
+    
+    public MazeEdge ConnectNodes(int fromId, int toId, object metadata = default, float weight = 0f) {
+        var from = GetNode(fromId);
+        var to = GetNode(toId);
+        return from.ConnectTo(to, metadata, weight);
+    }
+    
+    public MazeEdge ConnectNodes(Vector2I fromPosition, Vector2I toPosition, object metadata = default, float weight = 0f) {
+        var from = GetNodeAt(fromPosition)!;
+        var to = GetNodeAt(toPosition)!;
+        return from.ConnectTo(to, metadata, weight);
+    }
+    
+    public MazeEdge ConnectNodes(MazeNode from, MazeNode to, object metadata = default, float weight = 0f) {
+        return from.ConnectTo(to, metadata, weight);
+    }
+    
+    internal void InvokeOnEdgeCreated(MazeEdge edge) {
+        OnEdgeCreated?.Invoke(edge);
+    }
+
+    internal void InvokeOnEdgeRemoved(MazeEdge edge) {
+        OnEdgeRemoved?.Invoke(edge);
+    }
+
+    public bool IsValidEdge(Vector2I from, Vector2I to) {
+        return IsValidPosition(from) && IsValidPosition(to) &&
+               (IsValidEdgeFunc == null || IsValidEdgeFunc(from, to));
+    }
+
+    /// <summary>
+    /// Returns all the adjacent nodes to the specified node, no matter if they are connected or not, or if one
+    /// is the parent of the other.
+    /// </summary>
+    /// <param name="from"></param>
+    /// <returns></returns>
+    public IEnumerable<MazeNode> GetAdjacentNodes(Vector2I from) {
+        return GetAdjacentPositions(from)
+            .Where(IsValidPosition)
+            .Select(pos => NodeGrid.GetValueOrDefault(pos)!)
+            .Where(node => node != null!);
+    }
+
+    /// <summary>
+    /// Returns the adjacent positions to the specified node that are free (no node in that position) and valid, so a
+    /// new node could be placed there.
+    /// </summary>
+    /// <param name="from"></param>
+    /// <returns></returns>
+    public IEnumerable<Vector2I> GetValidFreeAdjacentPositions(Vector2I from) {
+        return GetAdjacentPositions(from)
+            .Where(adjacentPos => IsValidPosition(adjacentPos) && !NodeGrid.ContainsKey(adjacentPos));
+    }
+
+    /// <summary>
+    /// Returns the directions to the adjacent positions to the specified node that are free (no node in that position)
+    /// and valid, so a new node could be placed there.
+    /// </summary>
+    /// <param name="from"></param>
+    /// <returns></returns>
+    public IEnumerable<Vector2I> GetValidFreeAdjacentDirections(Vector2I from) {
+        return GetValidFreeAdjacentPositions(from).Select(position => position - from);
+    }
+
+    public IEnumerable<Vector2I> GetOrtogonalPositions(Vector2I from) {
+        return Array2D.Directions.Select(dir => from + dir)
+            .Where(adjacentPos =>
+                Geometry.IsPointInRectangle(adjacentPos.X, adjacentPos.Y, 0, 0, Width, Height));
+    }
+
+    public IEnumerable<MazeNode> GetChildren(MazeNode parent) {
+        return Nodes.Values.Where(n => n.Parent == parent);
+    }
+
+    /// <summary>
+    /// Finds all potential cycle connections between adjacent nodes that are not directly connected,
+    /// calculating distances either through parent relationships or shortest path through edges.
+    /// 
+    /// Example: Consider a maze structure where solid lines are connections only and arrows
+    /// show parent+connection relationships:
+    ///   A -> B -> C
+    ///   ↓    |    ↓
+    ///   D -> E    F
+    /// 
+    /// For nodes B and E:
+    /// - Parent distance is 4 (B->A->D->E)
+    /// - Edge distance is 1 (B-E directly)
+    /// 
+    /// For nodes C and E:
+    /// - Parent distance is 5 (C->B->A->D->E)
+    /// - Edge distance is 2 (C-B-E)
+    /// 
+    /// Usage:
+    /// var cycles = maze.FindPotentialCycles(minDistance: 3, useParentDistance: true);
+    /// // Returns list of tuples: (nodeA, nodeB, distance)
+    /// </summary>
+    /// <param name="useParentDistance">If true, calculates distance following parent relationships.
+    /// If false, finds the shortest path using all available connections.</param>
+    /// <returns>List of potential connections ordered by distance (longest paths first)</returns>
+    public PotentialCycles GetPotentialCycles(bool useParentDistance = false) {
+        return new PotentialCycles(this, useParentDistance);
+    }
 }

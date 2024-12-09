@@ -8,14 +8,13 @@ using Godot;
 
 namespace Betauer.Core.PCG.Examples;
 
-public class Metadata {
+public class Metadata() {
     public bool Added = false;
     public int Key = -1;
 
-    public Metadata(bool added) {
+    public Metadata(bool added) : this() {
         Added = added;
     }
-    
 }
 
 public class MazeGraphDungeonDemo {
@@ -72,7 +71,7 @@ public class MazeGraphDungeonDemo {
                     """;
 
         var template = Array2D.Parse(temp4);
-        var mc = new MazeGraphZoned<Metadata>(template.Width, template.Height) {
+        var mc = new MazeGraph(template.Width, template.Height) {
             IsValidPositionFunc = pos => template[pos] != '·'
         };
         var start = template.FirstOrDefault(dataCell => dataCell.Value == 'o')!.Position;
@@ -142,7 +141,7 @@ public class MazeGraphDungeonDemo {
         }
     }
     
-    private static void NeverConnectZone(MazeGraphZoned<Metadata> mc, int zone) {
+    private static void NeverConnectZone(MazeGraph mc, int zone) {
         var neverConnect = mc.GetNodes().Where(n => n.ZoneId == zone).Select(node => node.Position).ToList();
         mc.IsValidEdgeFunc = (from, to) => {
             if (neverConnect.Contains(from) || neverConnect.Contains(to)) return false;
@@ -150,7 +149,7 @@ public class MazeGraphDungeonDemo {
         };
     }
 
-    private static void ConnectZone(MazeGraphZoned<Metadata> mc, int zone) {
+    private static void ConnectZone(MazeGraph mc, int zone) {
         var cycles = mc.GetPotentialCycles();
         var connection = cycles
             .GetCyclesGreaterThan(0)
@@ -161,7 +160,7 @@ public class MazeGraphDungeonDemo {
         connection.nodeB.ConnectTo(connection.nodeA, new Metadata(true));
     }
 
-    private static void AddLongestCycles(MazeGraphZoned<Metadata> mc, int maxCycles) {
+    private static void AddLongestCycles(MazeGraph mc, int maxCycles) {
         var cycles = mc.GetPotentialCycles();
         var cyclesAdded = 0;
         while (cyclesAdded < maxCycles) {
@@ -177,7 +176,7 @@ public class MazeGraphDungeonDemo {
         }
     }
 
-    private static void AddShortestCycles(MazeGraphZoned<Metadata> mc, int maxCycles) {
+    private static void AddShortestCycles(MazeGraph mc, int maxCycles) {
         var cycles = mc.GetPotentialCycles();
         var cyclesAdded = 0;
         while (cyclesAdded < maxCycles) {
@@ -193,7 +192,7 @@ public class MazeGraphDungeonDemo {
         }
     }
 
-    private static void ConnectNodes(Array2D<char> template, MazeGraphZoned<Metadata> mc) {
+    private static void ConnectNodes(Array2D<char> template, MazeGraph mc) {
         template
             .Where(dataCell => dataCell.Value == '<')
             .Select(dataCell => mc.GetNodeAtOrNull(dataCell.Position)!)
@@ -244,16 +243,16 @@ public class MazeGraphDungeonDemo {
     }
     */
 
-    private static void PrintGraph(MazeGraphZoned<Metadata> mc, MazeZones<Metadata> zones = null) {
+    private static void PrintGraph(MazeGraph mc, MazeZones zones = null) {
         var allCanvas = new TextCanvas();
         var offset = 0;
         foreach (var node in mc.GetNodes()) {
             if (node == null) continue;
             var canvas = new TextCanvas();
-            if (node.Up != null) canvas.Write(1, 0, node.GetEdgeTowards(Vector2I.Up)!.Metadata?.Added ?? false ? "·" : "|");
-            if (node.Right != null) canvas.Write(2, 1, node.GetEdgeTowards(Vector2I.Right)!.Metadata?.Added ?? false ? "·" : "-");
-            if (node.Down != null) canvas.Write(1, 2, node.GetEdgeTowards(Vector2I.Down)!.Metadata?.Added ?? false ? "·" : "|");
-            if (node.Left != null) canvas.Write(0, 1, node.GetEdgeTowards(Vector2I.Left)!.Metadata?.Added ?? false ? "·" : "-");
+            if (node.Up != null) canvas.Write(1, 0, node.GetEdgeTowards(Vector2I.Up)!.GetMetadataOrNew<Metadata>().Added ? "·" : "|");
+            if (node.Right != null) canvas.Write(2, 1, node.GetEdgeTowards(Vector2I.Right)!.GetMetadataOrNew<Metadata>().Added ? "·" : "-");
+            if (node.Down != null) canvas.Write(1, 2, node.GetEdgeTowards(Vector2I.Down)!.GetMetadataOrNew<Metadata>().Added ? "·" : "|");
+            if (node.Left != null) canvas.Write(0, 1, node.GetEdgeTowards(Vector2I.Left)!.GetMetadataOrNew<Metadata>().Added ? "·" : "-");
             canvas.Write(1, 1, node.ZoneId.ToString());
             // canvas.Write(1, 1, node.ZoneId.ToString()+node.PartId.ToString());
 
@@ -263,10 +262,10 @@ public class MazeGraphDungeonDemo {
         foreach (var node in mc.GetNodes()) {
             if (node == null) continue;
             var canvas = new TextCanvas();
-            if (node.Up != null) canvas.Write(1, 0, node.GetEdgeTowards(Vector2I.Up)!.Metadata?.Added ?? false ? "·" : "|");
-            if (node.Right != null) canvas.Write(2, 1, node.GetEdgeTowards(Vector2I.Right)!.Metadata?.Added ?? false ? "·" : "-");
-            if (node.Down != null) canvas.Write(1, 2, node.GetEdgeTowards(Vector2I.Down)!.Metadata?.Added ?? false ? "·" : "|");
-            if (node.Left != null) canvas.Write(0, 1, node.GetEdgeTowards(Vector2I.Left)!.Metadata?.Added ?? false ? "·" : "-");
+            if (node.Up != null) canvas.Write(1, 0, node.GetEdgeTowards(Vector2I.Up)!.GetMetadataOrNew<Metadata>().Added ? "·" : "|");
+            if (node.Right != null) canvas.Write(2, 1, node.GetEdgeTowards(Vector2I.Right)!.GetMetadataOrNew<Metadata>().Added ? "·" : "-");
+            if (node.Down != null) canvas.Write(1, 2, node.GetEdgeTowards(Vector2I.Down)!.GetMetadataOrNew<Metadata>().Added ? "·" : "|");
+            if (node.Left != null) canvas.Write(0, 1, node.GetEdgeTowards(Vector2I.Left)!.GetMetadataOrNew<Metadata>().Added ? "·" : "-");
             canvas.Write(1, 1, node.Id.ToString());
 
             allCanvas.Write(offset + node.Position.X * 3, node.Position.Y * 3, canvas.ToString());
@@ -280,10 +279,10 @@ public class MazeGraphDungeonDemo {
             foreach (var node in mc.GetNodes()) {
                 if (node == null) continue;
                 var canvas = new TextCanvas();
-                if (node.Up != null) canvas.Write(1, 0, node.GetEdgeTowards(Vector2I.Up)!.Metadata?.Added ?? false ? "·" : "|");
-                if (node.Right != null) canvas.Write(2, 1, node.GetEdgeTowards(Vector2I.Right)!.Metadata?.Added ?? false ? "····" : "----");
-                if (node.Down != null) canvas.Write(1, 2, node.GetEdgeTowards(Vector2I.Down)!.Metadata?.Added ?? false ? "·" : "|");
-                if (node.Left != null) canvas.Write(0, 1, node.GetEdgeTowards(Vector2I.Left)!.Metadata?.Added ?? false ? "·" : "-");
+                if (node.Up != null) canvas.Write(1, 0, node.GetEdgeTowards(Vector2I.Up)!.GetMetadataOrNew<Metadata>().Added ? "·" : "|");
+                if (node.Right != null) canvas.Write(2, 1, node.GetEdgeTowards(Vector2I.Right)!.GetMetadataOrNew<Metadata>().Added ? "····" : "----");
+                if (node.Down != null) canvas.Write(1, 2, node.GetEdgeTowards(Vector2I.Down)!.GetMetadataOrNew<Metadata>().Added ? "·" : "|");
+                if (node.Left != null) canvas.Write(0, 1, node.GetEdgeTowards(Vector2I.Left)!.GetMetadataOrNew<Metadata>().Added ? "·" : "-");
 
                 var zone = zones.Zones[node.ZoneId];
 
@@ -316,8 +315,8 @@ public class MazeGraphDungeonDemo {
         Console.WriteLine(allCanvas.ToString());
     }
 
-    public static float KeyFormula(NodeScore<Metadata> score) => score.DeadEndScore * 0.4f + score.EntryDistanceScore * 0.3f + score.ExitDistanceScore * 0.3f;
-    public static float LootFormula(NodeScore<Metadata> score) => score.DeadEndScore * 0.6f + score.EntryDistanceScore * 0.4f;
+    public static float KeyFormula(NodeScore score) => score.DeadEndScore * 0.4f + score.EntryDistanceScore * 0.3f + score.ExitDistanceScore * 0.3f;
+    public static float LootFormula(NodeScore score) => score.DeadEndScore * 0.6f + score.EntryDistanceScore * 0.4f;
 
 
 }
