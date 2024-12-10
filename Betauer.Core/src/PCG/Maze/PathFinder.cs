@@ -82,7 +82,7 @@ public class PathFinder {
     /// <param name="start">Starting node</param>
     /// <param name="target">Target node</param>
     /// <returns>List of nodes forming the shortest path, or null if no path exists</returns>
-    public List<MazeNode>? FindShortestPath(MazeNode start, MazeNode target) {
+    public List<MazeNode> FindShortestPath(MazeNode start, MazeNode target) {
         if (start == target) return [start];
 
         // Inicializamos el diccionario con todos los nodos alcanzables
@@ -119,7 +119,7 @@ public class PathFinder {
             }
         }
 
-        return null;
+        return [];
     }
 
     /// <summary>
@@ -149,12 +149,12 @@ public class PathFinder {
     /// <param name="start">Starting node</param>
     /// <param name="target">Target node</param>
     /// <returns>List of nodes forming the path, or null if no path exists</returns>
-    public List<MazeNode>? GetPathToNode(MazeNode start, MazeNode target) {
+    public List<MazeNode> GetPathToNode(MazeNode start, MazeNode target) {
         if (start == target) return [start];
 
         // Obtener el camino hasta la raíz para ambos nodos
-        var startPath = start.GetPathToRoot();
-        var targetPath = target.GetPathToRoot();
+        var startPath = start.FindTreePathToRoot();
+        var targetPath = target.FindTreePathToRoot();
 
         // Encontrar el ancestro común
         MazeNode? commonAncestor = null;
@@ -175,7 +175,7 @@ public class PathFinder {
 
         CommonAncestorFound:
 
-        if (commonAncestor == null) return null;
+        if (commonAncestor == null) return [];
 
         // Construir el camino: subir desde start hasta el ancestro común y bajar hasta target
         var path = new List<MazeNode>();

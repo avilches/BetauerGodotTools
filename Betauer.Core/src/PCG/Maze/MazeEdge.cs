@@ -13,7 +13,7 @@ public class MazeEdge(MazeNode from, MazeNode to, object metadata = default, flo
 
     public Vector2I Direction => To.Position - From.Position;
 
-    public object Metadata { get; set; }
+    public object Metadata { get; set; } = metadata;
     public void SetMetadata<T>(T value) => Metadata = value;
     public T GetMetadataOrDefault<T>() => Metadata is T value ? value : default;
     public T GetMetadataOrNew<T>() where T : new() => Metadata is T value ? value : new T();

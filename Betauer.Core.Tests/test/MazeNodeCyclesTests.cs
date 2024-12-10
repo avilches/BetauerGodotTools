@@ -118,8 +118,8 @@ public class MazeNodeCyclesTests {
         var nodeB = maze.GetNodeAt(new Vector2I(2, 1));
 
         // Calculate distances before connection
-        var parentDistanceBefore = nodeA.GetDistanceToNode(nodeB);
-        var edgeDistanceBefore = nodeA.GetDistanceToNodeByEdges(nodeB);
+        var parentDistanceBefore = nodeA.GetTreeDistanceToNode(nodeB);
+        var edgeDistanceBefore = nodeA.GetGraphDistanceToNode(nodeB);
 
         Assert.That(parentDistanceBefore, Is.EqualTo(5));
         Assert.That(edgeDistanceBefore, Is.EqualTo(5));
@@ -129,8 +129,8 @@ public class MazeNodeCyclesTests {
         maze.ConnectNodes(nodeB, nodeA);
 
         // Calculate distances after connection
-        var parentDistanceAfter = nodeA.GetDistanceToNode(nodeB);
-        var edgeDistanceAfter = nodeA.GetDistanceToNodeByEdges(nodeB);
+        var parentDistanceAfter = nodeA.GetTreeDistanceToNode(nodeB);
+        var edgeDistanceAfter = nodeA.GetGraphDistanceToNode(nodeB);
 
         Assert.That(parentDistanceAfter, Is.EqualTo(5));
         Assert.That(edgeDistanceAfter, Is.EqualTo(1));

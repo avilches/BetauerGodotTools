@@ -10,27 +10,70 @@ public class ZonePart(Zone zone, int partId, MazeNode startNode, List<MazeNode> 
     public int PartId { get; } = partId;
     public MazeNode StartNode { get; } = startNode;
     public List<MazeNode> Nodes { get; } = nodes;
+    public int NodeCount => Nodes.Count;
 
     /// <summary>
-    /// A door in node is a node that has an edge to a node from the previous zone. The GrowZoned method only creates one door in
-    /// to every zone, stored in the StartNode field in MazeNodePart. But it could be possible to create more connections before, even
-    /// from other zones (not only the previous one), so this method will return all possible doors in the part.
+    /// Contains all the shortest path between every entry and every exit node in the part.
+    /// It doesn't contain all possible paths between entry and exit nodes, only the shortest ones.
     /// </summary>
-    /// <returns></returns>
-    public IEnumerable<MazeNode> GetDoorInNodes() {
+    public List<List<MazeNode>> EntryExitPaths = [];
+    
+    /// <summary>
+    /// Contains all the nodes that are part of the shortest path between every entry and every exit node in the part.
+    /// It's useful to know if a node is part of a path between entry and exit nodes.
+    /// </summary>
+    public HashSet<MazeNode> EntryExitPathNodes = [];
+    
+    public void CalculateAllEntryToExitPaths() {
+        var entryNodes = GetEntryNodesFromPreviousZone().ToList();
+        var exitNodes = GetExitNodesToNextZone().ToList();
+        EntryExitPaths.Clear();
+        EntryExitPathNodes.Clear();
+        foreach (var entryNode in entryNodes) {
+            foreach (var exitNode in exitNodes) {
+                var shortestPath = entryNode.FindShortestPath(exitNode);
+                EntryExitPathNodes.UnionWith(shortestPath);
+                if (shortestPath.Count > 1) { // 0 = no path, 1 = entry and exit are the same node
+                    EntryExitPaths.Add(shortestPath);
+                }
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Entry nodes are nodes with an edge from a node in a zone with a zoneId lower than the current one.
+    /// This method returns all possible entry nodes in the part from a zone with a lower zoneId.
+    /// </summary>
+    public IEnumerable<MazeNode> GetAllEntryNodes() {
+        // The zone 0 or an isolated zone doesn't have entry nodes from previous zones, so we add the start node
         return Nodes.Where(n => n.GetInEdges().Any(edge => edge.From.ZoneId < Zone.ZoneId) || n == StartNode);
     }
 
+    public IEnumerable<MazeNode> GetEntryNodesFromPreviousZone() {
+        // The zone 0 or an isolated zone doesn't have entry nodes from previous zones, so we add the start node
+        return Nodes.Where(n => n.GetInEdges().Any(edge => edge.From.ZoneId == Zone.ZoneId - 1) || n == StartNode);
+    }
+
+    public IEnumerable<MazeNode> GetEntryNodesFrom(int zoneId) {
+        return Nodes.Where(n => n.GetInEdges().Any(edge => edge.From.ZoneId == zoneId));
+    }
+
     /// <summary>
-    /// A doors out node is a node that has an edge to a node to next zone. The GrowZoned method only creates as many doors out
-    /// as the MaxDoorsOut property of the zone, and store the number of doors out created in the DoorsOut field.
-    /// But it could be possible to create more connections before, so this method will return all possible doors out.
+    /// Exit nodes are nodes with an edge to a node in a zone with a zoneId higher than the current one.
+    /// This method returns all possible exit nodes in the part to a zone with a higher zoneId.
     /// </summary>
-    /// <returns></returns>
-    public IEnumerable<MazeNode> GetDoorOutNodes() {
+    public IEnumerable<MazeNode> GetAllExitNodes() {
         return Nodes.Where(n => n.GetOutEdges().Any(edge => edge.To.ZoneId > Zone.ZoneId));
     }
     
+    public IEnumerable<MazeNode> GetExitNodesToNextZone() {
+        return Nodes.Where(n => n.GetOutEdges().Any(edge => edge.To.ZoneId == Zone.ZoneId + 1));
+    }
+
+    public IEnumerable<MazeNode> GetExitNodesTo(int zoneId) {
+        return Nodes.Where(n => n.GetOutEdges().Any(edge => edge.To.ZoneId == zoneId));
+    }
+
     /// <summary>
     /// Returns all node scores within a specific part of a zone.
     /// </summary>
@@ -80,6 +123,7 @@ public class ZonePart(Zone zone, int partId, MazeNode startNode, List<MazeNode> 
     public List<MazeNode> SpreadLocations(int desired, Func<NodeScore, float> scoreCalculator) {
         return SpreadLocationsAlgorithm.GetLocations(GetScores().ToList(), desired, scoreCalculator);
     }
+
 
 
 }

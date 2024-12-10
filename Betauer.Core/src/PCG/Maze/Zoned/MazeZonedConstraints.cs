@@ -7,7 +7,7 @@ public class MazeZonedConstraints(int maxZones) : IMazeZonedConstraints {
     public int MaxZones { get; set; } = maxZones;
     public int MaxTotalNodes { get; set; } = -1;
     public int PartsPerZone { get; set; } = 1;
-    public int MaxDoorsOut { get; set; } = int.MaxValue;
+    public int MaxExitNodes { get; set; } = int.MaxValue;
     public bool CreateMorePartsIfNotSpaceToExpand { get; set; } = true;
     public bool Corridors { get; set; } = false;
     public int[] NodesPerZone { get; set; }
@@ -29,8 +29,8 @@ public class MazeZonedConstraints(int maxZones) : IMazeZonedConstraints {
         return zoneId == 0 ? 1 : PartsPerZone;
     }
 
-    public int GetMaxDoorsOut(int zoneId) {
-        return zoneId == MaxZones - 1 ? 0 : MaxDoorsOut;
+    public int GetMaxExitNodes(int zoneId) {
+        return zoneId == MaxZones - 1 ? 0 : MaxExitNodes;
     }
 
     public bool IsAutoSplitOnExpand(int zoneId) {
@@ -53,11 +53,11 @@ public class MazeZonedConstraints(int maxZones) : IMazeZonedConstraints {
         return this;
     }
 
-    public MazeZonedConstraints SetMaxDoorsOut(int maxDoorsOut) {
-        if (maxDoorsOut < 1) {
-            throw new ArgumentException($"Wrong maxDoorsOut value: {maxDoorsOut}, it must be greater or equals than 1");
+    public MazeZonedConstraints SetMaxExitNodes(int maxExitNodes) {
+        if (maxExitNodes < 1) {
+            throw new ArgumentException($"Wrong maxExitNodes value: {maxExitNodes}, it must be greater or equals than 1");
         }
-        MaxDoorsOut = maxDoorsOut;
+        MaxExitNodes = maxExitNodes;
         return this;
     }
 

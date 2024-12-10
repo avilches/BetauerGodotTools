@@ -199,7 +199,7 @@ public class MazeNodeTests {
         middle.Parent = root;
         leaf.Parent = middle;
 
-        var path = leaf.GetPathToRoot();
+        var path = leaf.FindTreePathToRoot();
 
         Assert.Multiple(() => {
             Assert.That(path, Has.Count.EqualTo(3));
@@ -211,7 +211,7 @@ public class MazeNodeTests {
 
     [Test]
     public void GetPathToNode_WhenSameNode_ReturnsSingleNodePath() {
-        var path = _node.GetPathToNode(_node);
+        var path = _node.FindTreePathToNode(_node);
 
         Assert.Multiple(() => {
             Assert.That(path, Is.Not.Null);
@@ -225,8 +225,8 @@ public class MazeNodeTests {
         var child = _graph.CreateNode(new Vector2I(2, 1));
         child.Parent = _node;
 
-        var pathToChild = _node.GetPathToNode(child);
-        var pathFromChild = child.GetPathToNode(_node);
+        var pathToChild = _node.FindTreePathToNode(child);
+        var pathFromChild = child.FindTreePathToNode(_node);
 
         Assert.Multiple(() => {
             // Path from parent to child
@@ -253,7 +253,7 @@ public class MazeNodeTests {
         nodeA.Parent = root;
         nodeB.Parent = nodeA;
 
-        var path = nodeB.GetPathToNode(root);
+        var path = nodeB.FindTreePathToNode(root);
 
         Assert.Multiple(() => {
             Assert.That(path, Is.Not.Null);
@@ -270,7 +270,7 @@ public class MazeNodeTests {
         var nodeB = _graph.CreateNode(new Vector2I(1, 0));
 
         // Nodes without common ancestor
-        var path = nodeA.GetPathToNode(nodeB);
+        var path = nodeA.FindTreePathToNode(nodeB);
 
         Assert.That(path, Is.Null);
     }
@@ -285,9 +285,9 @@ public class MazeNodeTests {
         nodeB.Parent = nodeA;
 
         Assert.Multiple(() => {
-            Assert.That(nodeB.GetDistanceToNode(root), Is.EqualTo(2));
-            Assert.That(nodeB.GetDistanceToNode(nodeA), Is.EqualTo(1));
-            Assert.That(nodeB.GetDistanceToNode(nodeB), Is.EqualTo(0));
+            Assert.That(nodeB.GetTreeDistanceToNode(root), Is.EqualTo(2));
+            Assert.That(nodeB.GetTreeDistanceToNode(nodeA), Is.EqualTo(1));
+            Assert.That(nodeB.GetTreeDistanceToNode(nodeB), Is.EqualTo(0));
         });
     }
 
@@ -296,7 +296,7 @@ public class MazeNodeTests {
         var nodeA = _graph.CreateNode(new Vector2I(0, 0));
         var nodeB = _graph.CreateNode(new Vector2I(1, 0));
 
-        Assert.That(nodeA.GetDistanceToNode(nodeB), Is.EqualTo(-1));
+        Assert.That(nodeA.GetTreeDistanceToNode(nodeB), Is.EqualTo(-1));
     }
 
     [Test]
@@ -333,10 +333,10 @@ public class MazeNodeTests {
 
         Assert.Multiple(() => {
             // Distancia hacia adelante debe ser 2
-            Assert.That(nodeA.GetDistanceToNodeByEdges(nodeC), Is.EqualTo(2));
+            Assert.That(nodeA.GetGraphDistanceToNode(nodeC), Is.EqualTo(2));
             
             // Distancia hacia atrás debe ser -1 (no hay camino)
-            Assert.That(nodeC.GetDistanceToNodeByEdges(nodeA), Is.EqualTo(-1));
+            Assert.That(nodeC.GetGraphDistanceToNode(nodeA), Is.EqualTo(-1));
         });
     }
 

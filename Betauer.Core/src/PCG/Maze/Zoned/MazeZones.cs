@@ -14,6 +14,10 @@ public class MazeZones(MazeGraph graphZoned, List<Zone> zones) {
     public MazeGraph GraphZoned { get; } = graphZoned;
     public IReadOnlyList<Zone> Zones => zones;
 
+    public IReadOnlyCollection<MazeNode> GetNodes() => GraphZoned.GetNodes();
+
+    public int NodeCount => GraphZoned.GetNodes().Count;
+
     internal readonly Dictionary<int, NodeScore> Scores = [];
 
     /// <summary>
@@ -49,13 +53,19 @@ public class MazeZones(MazeGraph graphZoned, List<Zone> zones) {
         // Find the maximum number of edges any node has in the graph
         // Example: In a grid maze, a center node might have 4 edges, while a corner node has 2
         var maxGraphEdges = GraphZoned.GetNodes().Max(n => n.GetOutEdges().Count);
+        
+        foreach (var zone in Zones) {
+            foreach (var part in zone.Parts) {
+                part.CalculateAllEntryToExitPaths();
+            }
+        }
 
         foreach (var node in GraphZoned.GetNodes()) {
             var graphEndScore = CalculateDeadEndScore(node, maxGraphEdges);
-            var entryDistanceScore = CalculateEntryDistanceScore(node);
-            var exitDistanceScore = CalculateExitDistanceScore(node);
+            var (belongsToPathToEntry, entryDistanceScore) = CalculateEntryDistanceScore(node);
+            var (belongsToPathToExit, exitDistanceScore) = CalculateExitDistanceScore(node);
 
-            Scores[node.Id] = new NodeScore(node, graphEndScore, entryDistanceScore, exitDistanceScore);
+            Scores[node.Id] = new NodeScore(node, graphEndScore, belongsToPathToEntry, entryDistanceScore, belongsToPathToExit, exitDistanceScore);
         }
     }
 
@@ -93,14 +103,17 @@ public class MazeZones(MazeGraph graphZoned, List<Zone> zones) {
     /// - A node 8 steps away scores 0.8
     /// - The entrance node itself scores 0.0
     /// </summary>
-    private float CalculateEntryDistanceScore(MazeNode node) {
-        var zone = Zones[node.ZoneId];
-        var entryNodes = zone.GetDoorInNodes().ToList();
+    private (bool belongsToEntryPath, float score) CalculateEntryDistanceScore(MazeNode node) {
+        var part = Zones[node.ZoneId].Parts[node.PartId];
+        var entryNodes = part.GetEntryNodesFromPreviousZone().ToList();
 
-        if (entryNodes.Count == 0) return 1.0f; // If no entrances (zone 0), any position is valid
-
-        var minDistance = entryNodes.Select(node.GetDistanceToNodeByEdges).Min();
-        return minDistance / zone.NodeCount;
+        if (entryNodes.Count == 0) return (false, 1.0f); // If no entrances (zone 0), any position is valid
+        if (entryNodes.Contains(node)) return (true, 0.0f); // The node is an entrance
+        
+        var minDistance = entryNodes.Select(node.GetGraphDistanceToNode).Min();
+        var score = (float)minDistance / part.NodeCount;
+        var belongsToPath = part.EntryExitPathNodes.Contains(node);
+        return (belongsToPath, score);
     }
 
     /// <summary>
@@ -114,14 +127,17 @@ public class MazeZones(MazeGraph graphZoned, List<Zone> zones) {
     /// - A node 7 steps away scores 0.7
     /// - The exit node itself scores 0.0
     /// </summary>
-    public float CalculateExitDistanceScore(MazeNode node) {
-        var zone = Zones[node.ZoneId];
-        var exitNodes = zone.GetDoorOutNodes().ToList();
+    private  (bool belongsToExitPath, float score) CalculateExitDistanceScore(MazeNode node) {
+        var part = Zones[node.ZoneId].Parts[node.PartId];
+        var exitNodes = part.GetExitNodesToNextZone().ToList();
 
-        if (exitNodes.Count == 0) return 1.0f; // No exits, any position is good
+        if (exitNodes.Count == 0) return (false, 1.0f); // If no entrances (zone 0), any position is valid
+        if (exitNodes.Contains(node)) return (true, 0.0f); // The node is an exit
 
-        var minDistance = exitNodes.Select(node.GetDistanceToNodeByEdges).Min();
-        return minDistance / zone.NodeCount;
+        var belongsToPath = part.EntryExitPathNodes.Contains(node);
+        var minDistance = exitNodes.Select(node.GetGraphDistanceToNode).Min();
+        var score = (float)minDistance / part.NodeCount;
+        return (belongsToPath, score);
     }
 
     /// <summary>
@@ -272,7 +288,7 @@ public static class SpreadLocationsAlgorithm {
         while (pendingTreasures > 0 && partCandidates.Count != 0) {
             var bestScore = partCandidates.First();
             if (locations.Count == 0 ||
-                locations.All(existing => existing.GetDistanceToNodeByEdges(bestScore.Node) >= minDistance)) {
+                locations.All(existing => existing.GetGraphDistanceToNode(bestScore.Node) >= minDistance)) {
                 locations.Add(bestScore.Node);
                 pendingTreasures--;
             }

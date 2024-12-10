@@ -205,7 +205,7 @@ public class MazeNode {
     /// // path contains [currentNode, parentNode, grandparentNode, ..., rootNode]
     /// </summary>
     /// <returns>List of nodes from current to root, including both endpoints.</returns>
-    public List<MazeNode> GetPathToRoot() {
+    public List<MazeNode> FindTreePathToRoot() {
         var path = new List<MazeNode>();
         var current = this;
         while (current != null) {
@@ -231,7 +231,7 @@ public class MazeNode {
     /// </summary>
     /// <param name="target">The target node</param>
     /// <returns>List of nodes forming the path, or null if no path exists</returns>
-    public List<MazeNode>? GetPathToNode(MazeNode target)
+    public List<MazeNode> FindTreePathToNode(MazeNode target)
         => PathFinder.GetPathToNode(this, target);
 
     /// <summary>
@@ -247,9 +247,9 @@ public class MazeNode {
     /// </summary>
     /// <param name="target">The target node</param>
     /// <returns>Distance in number of nodes or -1 if no path exists</returns>
-    public int GetDistanceToNode(MazeNode target) {
-        var path = GetPathToNode(target);
-        return path != null ? path.Count - 1 : -1;
+    public int GetTreeDistanceToNode(MazeNode target) {
+        var path = FindTreePathToNode(target);
+        return path.Count - 1; // -1 if no path because the path contains the start node. If no path, the list is empty, so -1
     }
 
     /// <summary>
@@ -268,7 +268,7 @@ public class MazeNode {
     /// </summary>
     /// <param name="target">The target node</param>
     /// <returns>List of nodes forming the shortest path, or null if no path exists</returns>
-    public List<MazeNode>? FindShortestPath(MazeNode target)
+    public List<MazeNode> FindShortestPath(MazeNode target)
         => PathFinder.FindShortestPath(this, target);
 
     /// <summary>
@@ -285,9 +285,9 @@ public class MazeNode {
     /// </summary>
     /// <param name="target">The target node</param>
     /// <returns>Distance in number of connections or -1 if no path exists</returns>
-    public int GetDistanceToNodeByEdges(MazeNode target) {
+    public int GetGraphDistanceToNode(MazeNode target) {
         var path = FindShortestPath(target);
-        return path != null ? path.Count - 1 : -1;
+        return path.Count - 1; // -1 if no path because the path contains the start node. If no path, the list is empty, so -1
     }
 
     /// <summary>

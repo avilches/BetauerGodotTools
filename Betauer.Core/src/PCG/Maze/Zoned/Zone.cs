@@ -16,23 +16,35 @@ public class Zone(int zoneId) {
     public IEnumerable<MazeNode> GetNodes() => Parts.SelectMany(part => part.Nodes);
     
     /// <summary>
-    /// A doors in node is a node that has an edge to a node from the previous zone. The GrowZoned method only creates one door in
-    /// to every zone, stored in the StartNode field in MazeNodePart. But it could be possible to create more connections before, even
-    /// from other zones (not only the previous one), so this method will return all possible doors in.
+    /// Entry nodes are nodes with an edge from a node in a zone with a zoneId lower than the current one.
+    /// This method returns all possible entry nodes in the part from a zone with a lower zoneId.
     /// </summary>
-    /// <returns></returns>
-    public IEnumerable<MazeNode> GetDoorInNodes() {
-        return Parts.SelectMany(p => p.GetDoorInNodes());
+    public IEnumerable<MazeNode> GetAllEntryNodes() {
+        return Parts.SelectMany(p => p.GetAllEntryNodes());
     }
 
+    public IEnumerable<MazeNode> GetEntryNodesFromPreviousZone() {
+        return Parts.SelectMany(p => p.GetEntryNodesFromPreviousZone());
+    }
+    
+    public IEnumerable<MazeNode> GetEntryNodesFrom(int zoneId) {
+        return Parts.SelectMany(p => p.GetEntryNodesFrom(zoneId));
+    }
+    
     /// <summary>
-    /// A doors out node is a node that has an edge to a node to next zone. The GrowZoned method only creates as many doors out
-    /// as the MaxDoorsOut property of the zone, and store the number of doors out created in the DoorsOut field.
-    /// But it could be possible to create more connections before, so this method will return all possible doors out.
+    /// Exit nodes are nodes with an edge to a node in a zone with a zoneId higher than the current one.
+    /// This method returns all possible exit nodes in the part to a zone with a higher zoneId.
     /// </summary>
-    /// <returns></returns>
-    public IEnumerable<MazeNode> GetDoorOutNodes() {
-        return Parts.SelectMany(p => p.GetDoorOutNodes());
+    public IEnumerable<MazeNode> GetAllExitNodes() {
+        return Parts.SelectMany(p => p.GetAllExitNodes());
+    }
+    
+    public IEnumerable<MazeNode> GetAllExitNodesToNextZone() {
+        return Parts.SelectMany(p => p.GetExitNodesToNextZone());
+    }
+    
+    public IEnumerable<MazeNode> GetAllExitNodes(int zoneId) {
+        return Parts.SelectMany(p => p.GetExitNodesTo(zoneId));
     }
     
     /// <summary>

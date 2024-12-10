@@ -42,8 +42,8 @@ public class PotentialCycles {
             .Where(x=> _graph.IsValidEdge(x.nodeA.Position, x.nodeB.Position))
             .Select(x => {
                 var distance = _useParentDistance
-                    ? x.nodeA.GetDistanceToNode(x.nodeB)
-                    : x.nodeA.GetDistanceToNodeByEdges(x.nodeB);
+                    ? x.nodeA.GetTreeDistanceToNode(x.nodeB)
+                    : x.nodeA.GetGraphDistanceToNode(x.nodeB);
                 return (x.nodeA, x.nodeB, distance);
             })
             .Where(x => filter(x.distance));

@@ -3,7 +3,7 @@ using System;
 namespace Betauer.Core.PCG.Maze.Zoned;
 
 public class ZoneConfig {
-    public ZoneConfig(int nodes, int parts, int maxDoorsOut, bool corridor) {
+    public ZoneConfig(int nodes, int parts, int maxExitNodes, bool corridor) {
         if (nodes < 1) {
             throw new ArgumentException($"Value {nodes} for nodes is wrong, it must be at least 1", nameof(nodes));
         }
@@ -16,7 +16,7 @@ public class ZoneConfig {
         
         Nodes = nodes;
         Parts = parts;
-        MaxDoorsOut = maxDoorsOut;
+        MaxExitNodes = maxExitNodes;
         Corridor = corridor;
     }
 
@@ -28,9 +28,9 @@ public class ZoneConfig {
     public int Parts { get; set; }
 
     /// <summary>
-    /// The maximum number of doors out for the zone. -1 means no limit.
+    /// The maximum number of exit nodes for the zone. -1 means no limit.
     /// </summary>
-    public int MaxDoorsOut { get; set; }
+    public int MaxExitNodes { get; set; }
     
     public bool Corridor { get; set; } = false;
 

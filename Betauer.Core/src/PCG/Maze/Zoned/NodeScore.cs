@@ -1,8 +1,8 @@
 namespace Betauer.Core.PCG.Maze.Zoned;
 
-public class NodeScore(MazeNode node, float deadEndScore, float entryDistanceScore, float exitDistanceScore = 0) {
-    public MazeNode Node { get; } = node;
-    
+public class NodeScore(MazeNode mazeNode, float graphEndScore, bool belongsToPathToEntry, float entryDistanceScore, bool belongsToPathToExit, float exitDistanceScore) {
+    public MazeNode Node { get; } = mazeNode;
+
     /// <summary>
     /// 1 means the node is a dead end (only one connection)
     /// 0 means the node has the maximum number of connection.
@@ -13,30 +13,33 @@ public class NodeScore(MazeNode node, float deadEndScore, float entryDistanceSco
     ///    0.5 if it has 1 connection
     ///    0 if it has 2 connection (like the maximum node)
     /// </summary>
-    public float DeadEndScore { get; } = deadEndScore;
+    public float DeadEndScore { get; } = graphEndScore;
 
     /// <summary>
     /// Returns a score between 0 and 1.
-    /// A door in is a connection from a zone with a lower id than the current one.
+    /// A entry node is a connection from a zone with a lower id than the current one.
     /// 
-    /// 1 means the node is the farthest from any door in,
-    /// 0 means the node is the closest to any door in.
+    /// 1 means the node is the farthest from any entry node,
+    /// 0 means the node is the closest to any entry node.
     ///
     /// The bigger, the more distance to walk to from the entrance (compared with other nodes in the same zone).
     /// </summary>
     /// <returns></returns>
     public float EntryDistanceScore { get; } = entryDistanceScore;
-    
-    
+
+
     /// <summary>
     /// Returns a score between 0 and 1.
-    /// A door out is a connection to a zone with a higher id than the current one.
+    /// A exit node is a connection to a zone with a higher id than the current one.
     /// 
-    /// 1 means the node is the farthest from any door out,
-    /// 0 means the node is the closest to any door out.
+    /// 1 means the node is the farthest from any exit node,
+    /// 0 means the node is the closest to any exit node.
     ///
     /// The bigger, the more distance to walk to reach the exit (compared with other nodes in the same zone).
     /// </summary>
     /// <returns></returns>
     public float ExitDistanceScore { get; } = exitDistanceScore;
+
+    public bool BelongsToPathToExit { get; set; } = belongsToPathToExit;
+    public bool BelongsToPathToEntry { get; set; } = belongsToPathToEntry;
 }

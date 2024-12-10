@@ -19,8 +19,8 @@ public class MazePerZoneConstraints(int maxTotalNodes = -1) : IMazeZonedConstrai
         return this;
     }
 
-    public MazePerZoneConstraints Zone(int nodes, int parts = 1, int maxDoorsOut = -1, bool corridor = false) {
-        Zone(new ZoneConfig(nodes, parts, maxDoorsOut, corridor));
+    public MazePerZoneConstraints Zone(int nodes, int parts = 1, int maxExitNodes = -1, bool corridor = false) {
+        Zone(new ZoneConfig(nodes, parts, maxExitNodes, corridor));
         return this;
     }
 
@@ -32,8 +32,8 @@ public class MazePerZoneConstraints(int maxTotalNodes = -1) : IMazeZonedConstrai
         return Zones[zoneId].Parts;
     }
 
-    public int GetMaxDoorsOut(int zoneId) {
-        return Zones[zoneId].MaxDoorsOut;
+    public int GetMaxExitNodes(int zoneId) {
+        return Zones[zoneId].MaxExitNodes;
     }
 
     public bool IsCorridor(int zoneId) {
