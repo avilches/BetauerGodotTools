@@ -53,26 +53,26 @@ public partial class MazeGraph {
              * 2) When all parts of the current zone are created, it expands the parts randomly it until the zone reaches the limit of nodes per zone.
              * To expand the zone, it finds a random node from the current zone available nodes and connect it to a new node.
              */
-            var (currentNode, newDoorOut) = PickNextNode(constraints, globalZone, currentZone, rng);
+            var (parentNode, newEntryNode) = PickNextNodeParent(constraints, globalZone, currentZone, rng);
 
-            var availablePositions = GetValidFreeAdjacentPositions(currentNode.Position).ToList();
+            var availablePositions = GetValidFreeAdjacentPositions(parentNode.Position).ToList();
 
             if (availablePositions.Count == 0) {
                 // invalid node, removing from the zone and from the global pending nodes
-                globalZone.AvailableNodes.Remove(currentNode);
-                currentZone.AvailableNodes.Remove(currentNode);
+                globalZone.AvailableNodes.Remove(parentNode);
+                currentZone.AvailableNodes.Remove(parentNode);
                 continue;
             }
             var nextPos = rng.Next(availablePositions);
-            var newNode = CreateNode(nextPos, currentNode);
+            var newNode = CreateNode(nextPos, parentNode);
             newNode.ZoneId = currentZone.ZoneId;
-            currentNode.ConnectTo(newNode);
-            newNode.ConnectTo(currentNode);
+            parentNode.ConnectTo(newNode);
+            newNode.ConnectTo(parentNode);
             // OnNodeCreated(newNode);
             globalZone.NodesCreated++;
 
-            if (newDoorOut) {
-                var previousZone = zones[currentNode.ZoneId];
+            if (newEntryNode) {
+                var previousZone = zones[parentNode.ZoneId];
                 previousZone.ExitNodesCreated++;
                 if (previousZone.ExitNodesCreated >= previousZone.MaxExitNodes) {
                     // We reach the limit of exit nodes for this zone: removing the available nodes from the global pending nodes,
@@ -81,7 +81,7 @@ public partial class MazeGraph {
                 }
                 currentZone.CreateNewPart(newNode);
             } else {
-                currentZone.AddNodeToSamePart(currentNode, newNode);
+                currentZone.AddNodeToSamePart(parentNode, newNode);
             }
 
             if (globalZone.NodesCreated == maxTotalNodes) {
@@ -118,7 +118,7 @@ public partial class MazeGraph {
         return mazeZones;
     }
 
-    private static (MazeNode currentNode, bool newDoorOut) PickNextNode(IMazeZonedConstraints constraints, ZoneGeneration globalZone, ZoneGeneration currentZone, Random rng) {
+    private static (MazeNode currentNode, bool newEntry) PickNextNodeParent(IMazeZonedConstraints constraints, ZoneGeneration globalZone, ZoneGeneration currentZone, Random rng) {
         // The algorithm will try to
         // create as many parts as free exit nodes are in still available in the previous zones.
         // But if there are no more exit nodes, or there are, but there are no more free nodes to
@@ -129,28 +129,28 @@ public partial class MazeGraph {
         // exit nodes available and there are free nodes to connect them). In this case, the zone will
         // have more parts than expected.
 
-        var newDoorOut = currentZone.ZoneId > 0 && currentZone.Parts.Count < constraints.GetParts(currentZone.ZoneId);
+        var newEntry = currentZone.ZoneId > 0 && currentZone.Parts.Count < constraints.GetParts(currentZone.ZoneId);
 
-        if (newDoorOut) {
+        if (newEntry) {
             // The current zone still doesn't have all the parts: pick a random node from the global to create a new entry node the maze to the current zone
-            if (globalZone.AvailableNodes.Count > 0) return PickDoorOutNode(globalZone, rng);
+            if (globalZone.AvailableNodes.Count > 0) return PickNewEntryNode(globalZone, rng);
             // No more available nodes in the global zone! WORKAROUND: expand the current zone (it means the zone will not have all the parts)
             if (currentZone.AvailableNodes.Count > 0) return PickNodeToExpand(currentZone, rng);
             throw new NoMoreNodesException(
                 $"No more available nodes to create new parts in zone {currentZone.ZoneId} (and the current zone can't be expanded neither). " +
-                "Consider increasing nodes and maxDoorOut in previous zones.");
+                "Consider increasing nodes and MaxExitNodes in previous zones.");
         }
 
         // Expanding the current zone
         if (currentZone.AvailableNodes.Count > 0) return PickNodeToExpand(currentZone, rng);
         // Can't expand the current zone. WORKAROUND: create a new part
-        if (globalZone.AvailableNodes.Count > 0) return PickDoorOutNode(globalZone, rng);
+        if (globalZone.AvailableNodes.Count > 0) return PickNewEntryNode(globalZone, rng);
         throw new NoMoreNodesException(
             $"No more available nodes to expand zone {currentZone.ZoneId} (and there are not available nodes to create new parts) " +
-            "Consider increasing nodes and maxDoorOut in previous zones.");
+            "Consider increasing nodes and MaxExitNodes in previous zones.");
     }
 
-    private static (MazeNode currentNode, bool newDoorOut) PickNodeToExpand(ZoneGeneration currentZone, Random rng) {
+    private static (MazeNode currentNode, bool newEntry) PickNodeToExpand(ZoneGeneration currentZone, Random rng) {
         if (currentZone.IsCorridor) {
             // Corridors always try to expand a last node of every part
             var candidates = currentZone.AvailableNodes.Where(node => node.OutDegree == 1).ToList();
@@ -160,7 +160,7 @@ public partial class MazeGraph {
         return (rng.Next(currentZone.AvailableNodes), false); // No corridors pick a random node to expand
     }
 
-    private static (MazeNode currentNode, bool newDoorOut) PickDoorOutNode(ZoneGeneration globalZone, Random rng) {
+    private static (MazeNode currentNode, bool newEntry) PickNewEntryNode(ZoneGeneration globalZone, Random rng) {
         /*
          Factor 3 means this distribution:
          [0] ############# (27.9%)
