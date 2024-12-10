@@ -21,10 +21,10 @@ internal class ZoneGeneration(MazeGraph graphZoned, IMazeZonedConstraints constr
         }
     }
 
-    internal void AddNodeToSamePart(MazeNode currentNode, MazeNode newNode) {
-        var part = Parts.First(p => p.Nodes.Contains(currentNode));
+    internal void AddNode(int partId, MazeNode newNode) {
+        var part = Parts[partId];
         part.Nodes.Add(newNode);
-        newNode.PartId = part.PartId;
+        newNode.PartId = partId;
     }
 
     internal ZonePartGeneration CreateNewPart(MazeNode startNode) {

@@ -53,25 +53,10 @@ public partial class MazeGraph {
              * 2) When all parts of the current zone are created, it expands the parts randomly it until the zone reaches the limit of nodes per zone.
              * To expand the zone, it finds a random node from the current zone available nodes and connect it to a new node.
              */
-            var (parentNode, newEntryNode) = PickNextNodeParent(constraints, globalZone, currentZone, rng);
+            var (parentNode, newNode) = CreateNextNode(constraints, globalZone, currentZone, rng);
 
-            var availablePositions = GetValidFreeAdjacentPositions(parentNode.Position).ToList();
-
-            if (availablePositions.Count == 0) {
-                // invalid node, removing from the zone and from the global pending nodes
-                globalZone.AvailableNodes.Remove(parentNode);
-                currentZone.AvailableNodes.Remove(parentNode);
-                continue;
-            }
-            var nextPos = rng.Next(availablePositions);
-            var newNode = CreateNode(nextPos, parentNode);
-            newNode.ZoneId = currentZone.ZoneId;
-            parentNode.ConnectTo(newNode);
-            newNode.ConnectTo(parentNode);
-            // OnNodeCreated(newNode);
-            globalZone.NodesCreated++;
-
-            if (newEntryNode) {
+            if (newNode.ZoneId != parentNode.ZoneId) {
+                // New part created! newNode is the start of the new part. parentNode is an exit node from the previous zone
                 var previousZone = zones[parentNode.ZoneId];
                 previousZone.ExitNodesCreated++;
                 if (previousZone.ExitNodesCreated >= previousZone.MaxExitNodes) {
@@ -81,7 +66,8 @@ public partial class MazeGraph {
                 }
                 currentZone.CreateNewPart(newNode);
             } else {
-                currentZone.AddNodeToSamePart(parentNode, newNode);
+                // The new node belongs to the same zone and part as the parent node
+                currentZone.AddNode(parentNode.PartId, newNode);
             }
 
             if (globalZone.NodesCreated == maxTotalNodes) {
@@ -118,49 +104,68 @@ public partial class MazeGraph {
         return mazeZones;
     }
 
-    private static (MazeNode currentNode, bool newEntry) PickNextNodeParent(IMazeZonedConstraints constraints, ZoneGeneration globalZone, ZoneGeneration currentZone, Random rng) {
-        // The algorithm will try to
-        // create as many parts as free exit nodes are in still available in the previous zones.
-        // But if there are no more exit nodes, or there are, but there are no more free nodes to
-        // connect them, then the zone will have fewer parts than expected.
-        //
-        // On the other hand, if all the parts were created and the zone is expanding, but there are
-        // no more free nodes available to connect, the algorithm could create more parts (if there are
-        // exit nodes available and there are free nodes to connect them). In this case, the zone will
-        // have more parts than expected.
+    // The algorithm try to create as many parts as free exit nodes are in still available in the previous zones.
+    // Every new part create is just a new node connected to a random node from the previous zone. This random node is the 
+    // exit node of the other zone part.
+    private (MazeNode parentNode, MazeNode newNode) CreateNextNode(IMazeZonedConstraints constraints, ZoneGeneration globalZone, ZoneGeneration currentZone, Random rng) {
 
+        var parentNode = PickParentNode(constraints, globalZone, currentZone, rng);
+        var availablePositions = GetValidFreeAdjacentPositions(parentNode.Position).ToList();
+        while (availablePositions.Count == 0) {
+                // invalid node, removing from the zone and from the global pending nodes
+            globalZone.AvailableNodes.Remove(parentNode);
+            currentZone.AvailableNodes.Remove(parentNode);
+            parentNode = PickParentNode(constraints, globalZone, currentZone, rng);
+            availablePositions = GetValidFreeAdjacentPositions(parentNode.Position).ToList();
+        }
+        var nextPos = rng.Next(availablePositions);
+        var newNode = CreateNode(nextPos, parentNode);
+        newNode.ZoneId = currentZone.ZoneId;
+        parentNode.ConnectTo(newNode);
+        newNode.ConnectTo(parentNode);
+        // OnNodeCreated(newNode);
+        globalZone.NodesCreated++;
+        return (parentNode, newNode);
+    }
+
+    private static MazeNode PickParentNode(IMazeZonedConstraints constraints, ZoneGeneration globalZone, ZoneGeneration currentZone, Random rng) {
+        // newPart = we have to create new part in the current zone
         var newEntry = currentZone.ZoneId > 0 && currentZone.Parts.Count < constraints.GetParts(currentZone.ZoneId);
 
         if (newEntry) {
-            // The current zone still doesn't have all the parts: pick a random node from the global to create a new entry node the maze to the current zone
+            // The current zone still doesn't have all the parts:
+            // Then pick a random node from the global to create a new entry node the maze to the current zone
             if (globalZone.AvailableNodes.Count > 0) return PickNewEntryNode(globalZone, rng);
-            // No more available nodes in the global zone! WORKAROUND: expand the current zone (it means the zone will not have all the parts)
+            
+            // No more available nodes in the global zone!
+            // WORKAROUND: expand the current zone picking up a node in the currentZone. That means the zone will not have
+            // all the parts, but at least it will have all the nodes needed for the zone.
             if (currentZone.AvailableNodes.Count > 0) return PickNodeToExpand(currentZone, rng);
             throw new NoMoreNodesException(
                 $"No more available nodes to create new parts in zone {currentZone.ZoneId} (and the current zone can't be expanded neither). " +
                 "Consider increasing nodes and MaxExitNodes in previous zones.");
         }
 
-        // Expanding the current zone
+        // The current zone has all the parts needed: expanding the current zone: picking up a random node in the currentZone
         if (currentZone.AvailableNodes.Count > 0) return PickNodeToExpand(currentZone, rng);
-        // Can't expand the current zone. WORKAROUND: create a new part
+        // Can't expand the current zone? WORKAROUND: create a new part (if it's possible)
         if (globalZone.AvailableNodes.Count > 0) return PickNewEntryNode(globalZone, rng);
         throw new NoMoreNodesException(
             $"No more available nodes to expand zone {currentZone.ZoneId} (and there are not available nodes to create new parts) " +
             "Consider increasing nodes and MaxExitNodes in previous zones.");
     }
 
-    private static (MazeNode currentNode, bool newEntry) PickNodeToExpand(ZoneGeneration currentZone, Random rng) {
+    private static MazeNode PickNodeToExpand(ZoneGeneration currentZone, Random rng) {
         if (currentZone.IsCorridor) {
             // Corridors always try to expand a last node of every part
             var candidates = currentZone.AvailableNodes.Where(node => node.OutDegree == 1).ToList();
             var expansionNode = rng.Next(candidates.Count > 0 ? candidates : currentZone.AvailableNodes);
-            return (expansionNode, false);
+            return expansionNode;
         }
-        return (rng.Next(currentZone.AvailableNodes), false); // No corridors pick a random node to expand
+        return rng.Next(currentZone.AvailableNodes); // No corridors pick a random node to expand
     }
 
-    private static (MazeNode currentNode, bool newEntry) PickNewEntryNode(ZoneGeneration globalZone, Random rng) {
+    private static MazeNode PickNewEntryNode(ZoneGeneration globalZone, Random rng) {
         /*
          Factor 3 means this distribution:
          [0] ############# (27.9%)
@@ -177,6 +182,6 @@ public partial class MazeGraph {
          So, most probable to get nodes from the beginning of the list (closer to the start of the maze)
          */
         var index = rng.NextIndexExponential(globalZone.AvailableNodes.Count, 3.0f);
-        return (globalZone.AvailableNodes[index], true);
+        return globalZone.AvailableNodes[index];
     }
 }
