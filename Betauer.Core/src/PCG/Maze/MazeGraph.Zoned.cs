@@ -89,7 +89,8 @@ public partial class MazeGraph {
                 zones.Add(currentZone);
             }
             foreach (var zone in zones) {
-               Console.WriteLine($"Zone {zone.ZoneId} Nodes: {zone.NodesCreated} Parts: {zone.Parts} Exits: {zone.ExitNodesCreated}/{constraints.GetMaxExitNodes(zone.ZoneId)}");
+                var maxExitNodes = constraints.GetMaxExitNodes(zone.ZoneId);
+                Console.WriteLine($"Zone {zone.ZoneId} Nodes: {zone.NodesCreated} Parts: {zone.Parts.Count}/{constraints.GetParts(zone.ZoneId)} Exits: {zone.ExitNodesCreated}/{(maxExitNodes == -1 ? "∞" : maxExitNodes)}");
             }
         }
         return CreateMazeZones(zones);
@@ -108,11 +109,10 @@ public partial class MazeGraph {
     // Every new part create is just a new node connected to a random node from the previous zone. This random node is the 
     // exit node of the other zone part.
     private (MazeNode parentNode, MazeNode newNode) CreateNextNode(IMazeZonedConstraints constraints, ZoneGeneration globalZone, ZoneGeneration currentZone, Random rng) {
-
         var parentNode = PickParentNode(constraints, globalZone, currentZone, rng);
         var availablePositions = GetValidFreeAdjacentPositions(parentNode.Position).ToList();
         while (availablePositions.Count == 0) {
-                // invalid node, removing from the zone and from the global pending nodes
+            // invalid node, removing from the zone and from the global pending nodes
             globalZone.AvailableNodes.Remove(parentNode);
             currentZone.AvailableNodes.Remove(parentNode);
             parentNode = PickParentNode(constraints, globalZone, currentZone, rng);
@@ -136,28 +136,43 @@ public partial class MazeGraph {
             // The current zone still doesn't have all the parts:
             // Then pick a random node from the global to create a new entry node the maze to the current zone
             if (globalZone.AvailableNodes.Count > 0) return PickNewEntryNode(globalZone, rng);
-            
             // No more available nodes in the global zone!
-            // WORKAROUND: expand the current zone picking up a node in the currentZone. That means the zone will not have
+            // IsFlexibleParts is true: expand the current zone picking up a node in the currentZone. That means the zone will not have
             // all the parts, but at least it will have all the nodes needed for the zone.
-            if (currentZone.AvailableNodes.Count > 0) return PickNodeToExpand(currentZone, rng);
+            if (constraints.IsFlexibleParts(currentZone.ZoneId)) {
+                if (currentZone.AvailableNodes.Count == 0)
+                    throw new NoMoreNodesException(
+                        $"No more available nodes to create new parts in zone {currentZone.ZoneId} (IsFlexibleParts is true but the current zone can't be expanded neither). " +
+                        "Consider increasing nodes and MaxExitNodes in previous zones.");
+                return PickNodeToExpand(currentZone, rng);
+            }
+            // IsFlexibleParts is false, throw an exception
             throw new NoMoreNodesException(
-                $"No more available nodes to create new parts in zone {currentZone.ZoneId} (and the current zone can't be expanded neither). " +
-                "Consider increasing nodes and MaxExitNodes in previous zones.");
+                $"No more available nodes to create new parts in zone {currentZone.ZoneId}. " +
+                "Consider increasing nodes and/or MaxExitNodes in previous zones, or enable IsFlexibleParts.");
         }
 
         // The current zone has all the parts needed: expanding the current zone: picking up a random node in the currentZone
         if (currentZone.AvailableNodes.Count > 0) return PickNodeToExpand(currentZone, rng);
-        // Can't expand the current zone? WORKAROUND: create a new part (if it's possible)
-        if (globalZone.AvailableNodes.Count > 0) return PickNewEntryNode(globalZone, rng);
+
+        // Can't expand the current zone? Check FlexibleParts flag is enabled, so we can create new parts
+        if (constraints.IsFlexibleParts(currentZone.ZoneId)) {
+            if (globalZone.AvailableNodes.Count == 0)
+                throw new NoMoreNodesException(
+                    $"No more available nodes to expand zone {currentZone.ZoneId} (IsFlexibleParts is true but there are not available nodes to create new parts) " +
+                    "Consider increasing nodes and MaxExitNodes in previous zones.");
+            return PickNewEntryNode(globalZone, rng);
+        }
+
+        // create a new part (if it's possible)
         throw new NoMoreNodesException(
-            $"No more available nodes to expand zone {currentZone.ZoneId} (and there are not available nodes to create new parts) " +
-            "Consider increasing nodes and MaxExitNodes in previous zones.");
+            $"No more available nodes to expand zone {currentZone.ZoneId}. " +
+            "Consider enabling FlexibleParts to create new parts when expansion is not possible.");
     }
 
     private static MazeNode PickNodeToExpand(ZoneGeneration currentZone, Random rng) {
         if (currentZone.IsCorridor) {
-            // Corridors always try to expand a last node of every part
+            // Corridors always try to expand the last node of every part
             var candidates = currentZone.AvailableNodes.Where(node => node.OutDegree == 1).ToList();
             var expansionNode = rng.Next(candidates.Count > 0 ? candidates : currentZone.AvailableNodes);
             return expansionNode;

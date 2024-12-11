@@ -28,4 +28,11 @@ public interface IMazeZonedConstraints {
     int GetMaxExitNodes(int zoneId);
 
     bool IsCorridor(int zoneId);
+    
+    /// <summary>
+    /// If true, the algorithm could create more parts if there are no more free adjacent nodes in the zone to expand.
+    /// </summary>
+    /// <param name="zoneId"></param>
+    /// <returns></returns>
+    bool IsFlexibleParts(int zoneId);
 }

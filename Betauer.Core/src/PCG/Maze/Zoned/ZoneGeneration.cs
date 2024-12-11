@@ -17,7 +17,7 @@ internal class ZoneGeneration(MazeGraph graphZoned, IMazeZonedConstraints constr
     internal int MaxExitNodes {
         get {
             var maxExitNodes = constraints.GetMaxExitNodes(ZoneId);
-            return maxExitNodes == -1 ? NodesCreated * NodesCreated : maxExitNodes;
+            return maxExitNodes == -1 ? int.MaxValue : maxExitNodes;
         }
     }
 

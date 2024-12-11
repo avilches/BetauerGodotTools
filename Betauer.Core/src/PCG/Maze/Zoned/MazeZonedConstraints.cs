@@ -8,7 +8,7 @@ public class MazeZonedConstraints(int maxZones) : IMazeZonedConstraints {
     public int MaxTotalNodes { get; set; } = -1;
     public int PartsPerZone { get; set; } = 1;
     public int MaxExitNodes { get; set; } = int.MaxValue;
-    public bool CreateMorePartsIfNotSpaceToExpand { get; set; } = true;
+    public bool FlexibleParts { get; set; } = true;
     public bool Corridors { get; set; } = false;
     public int[] NodesPerZone { get; set; }
     
@@ -33,8 +33,14 @@ public class MazeZonedConstraints(int maxZones) : IMazeZonedConstraints {
         return zoneId == MaxZones - 1 ? 0 : MaxExitNodes;
     }
 
-    public bool IsAutoSplitOnExpand(int zoneId) {
-        return CreateMorePartsIfNotSpaceToExpand;
+    /// <summary>
+    /// If true, the algorithm will expand the zone instead of create more part if there are no more exit nodes in the previous zones.
+    /// In this case, the zone will have less parts, but at least it will have all the nodes needed for the zone.
+    /// </summary>
+    /// <param name="zoneId"></param>
+    /// <returns></returns>
+    public bool IsFlexibleParts(int zoneId) {
+        return FlexibleParts;
     }
 
     public bool IsCorridor(int zoneId) {
@@ -61,11 +67,11 @@ public class MazeZonedConstraints(int maxZones) : IMazeZonedConstraints {
         return this;
     }
 
-    public MazeZonedConstraints SetAutoSplitOnExpand(bool autoSplitOnExpand) {
-        CreateMorePartsIfNotSpaceToExpand = autoSplitOnExpand;
+    public MazeZonedConstraints SetFlexibleParts(bool flexibleParts) {
+        FlexibleParts = flexibleParts;
         return this;
     }
-
+    
     public MazeZonedConstraints SetCorridors(bool corridors) {
         Corridors = corridors;
         return this;
