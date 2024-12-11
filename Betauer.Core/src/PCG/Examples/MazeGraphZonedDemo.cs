@@ -82,17 +82,18 @@ public class MazeGraphDungeonDemo {
             .SetRandomNodesPerZone(4, 10, rng)
             .SetPartsPerZone(2)
             .SetMaxExitNodes(2), rng);
-        PrintGraph(mc);
+        // PrintGraph(mc);
 
         for (var i = 0; i < 1; i++) {
             var corridor = false;
             var constraints = new MazePerZoneConstraints()
-                    .Zone(nodes: 3, corridor: false, flexibleParts: false)
-                    .Zone(nodes: 18, parts: 9, corridor: true, flexibleParts: true)
-                    // .Zone(nodes: 12, parts: 1, maxExitNodes: 0, corridor: true, flexibleParts: false)
-                    // .Zone(nodes: 18, parts: 3, corridor: false, flexibleParts: false)
-                    // .Zone(nodes: 18, parts: 3, corridor: false, flexibleParts: false)
-                // .Zone(nodes: 1, parts: 1, corridor: false)
+                    .Zone(nodes: 18, corridor: false)
+                    .Zone(nodes: 8, parts: 3, corridor: true)
+                    .Zone(nodes: 2, parts: 1, maxExitNodes: 0, corridor: true, flexibleParts: false)
+                    .Zone(nodes: 8, parts: 3, corridor: true)
+                    .Zone(nodes: 8, parts: 3, corridor: false)
+                    .Zone(nodes: 2, parts: 1, maxExitNodes: 0, corridor: true, flexibleParts: false)
+                    // .Zone(nodes: 1, parts: 1, corridor: false)
                 ;
 
             // PENDIENTE DE HACER
@@ -102,14 +103,43 @@ public class MazeGraphDungeonDemo {
             // calcular dificultad segun cercania al boss?
 
             mc.OnNodeCreated += (i) => {
-                // PrintGraph(mc);
+                PrintGraph(mc);
             };
 
             mc.Clear();
             var zones = mc.GrowZoned(start, constraints, rng);
+            
             PrintGraph(mc);
-        }
+            
+            foreach (var zone in zones.Zones) {
+                Console.WriteLine($"Zone {zone.ZoneId} Nodes: {zone.NodeCount} Parts: {zone.Parts.Count}/{constraints.GetParts(zone.ZoneId)} Exits: {zone.GetAllExitNodes().Count()}/{constraints.GetMaxExitNodes(zone.ZoneId)}");
+            }
 
+            // PrintGraph(mc);
+            
+            // NeverConnectZone(mc, 2);
+            // Console.WriteLine("Connecting nodes with symbols");
+               // ConnectNodes(template, mc);
+               
+            foreach (var zone in zones.Zones) {
+                Enumerable.Range(0, zone.Parts.Count).ForEach(_ => {
+                    var (nodeA, nodeB, distance) = ConnectZone(mc, zone.ZoneId);
+                    if (distance > 0) {
+                        Console.WriteLine($"Zone {zone.ZoneId}: Connected {nodeA.Id} to {nodeB.Id} with distance {distance}");
+                    }
+                });
+            }
+            Console.WriteLine("Longest cycles");
+            AddLongestCycles(mc, zones.Zones.Count);
+            // Console.WriteLine("Shortest cycles");
+            // AddShortestCycles(mc, 3);
+            
+            zones.CalculateNodeScores();
+            PrintGraph(mc, zones);
+            
+          
+            return;
+        }
     }
     
     private static void NeverConnectZone(MazeGraph mc, int zone) {
@@ -120,15 +150,15 @@ public class MazeGraphDungeonDemo {
         };
     }
 
-    private static void ConnectZone(MazeGraph mc, int zone) {
+    private static (MazeNode nodeA, MazeNode nodeB, int distance) ConnectZone(MazeGraph mc, int zone) {
         var cycles = mc.GetPotentialCycles();
         var connection = cycles
             .GetCyclesGreaterThan(0)
             .FirstOrDefault(c => c.nodeA.ZoneId == c.nodeB.ZoneId && c.nodeA.ZoneId == zone);
-        if (connection == default) return;
-
+        if (connection == default) return (null, null, 0);
         connection.nodeA.ConnectTo(connection.nodeB, new Metadata(true));
         connection.nodeB.ConnectTo(connection.nodeA, new Metadata(true));
+        return connection;
     }
 
     private static void AddLongestCycles(MazeGraph mc, int maxCycles) {

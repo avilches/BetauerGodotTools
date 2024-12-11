@@ -7,6 +7,24 @@ using Godot;
 namespace Betauer.Core.PCG.Maze;
 
 public partial class MazeGraph {
+
+    /*
+     Factor 3 means this distribution:
+     [0] ############# (27.9%)
+     [1] ########## (20.5%)
+     [2] ####### (15.2%)
+     [3] ##### (11.3%)
+     [4] #### (8.3%)
+     [5] ### (6.2%)
+     [6] ## (4.6%)
+     [7] # (3.4%)
+     [8] # (2.5%)
+     [9]  (0.0%)
+
+     So, most probable to get nodes from the beginning of the list (closer to the start of the maze)
+     */
+    public float EntryNodeFactor { get; set; } = 3.0f;
+
     public MazeZones GrowZoned(Vector2I start, IMazeZonedConstraints constraints, Random? rng = null) {
         if (!IsValidPosition(start)) {
             throw new ArgumentException("Invalid start position", nameof(start));
@@ -128,14 +146,14 @@ public partial class MazeGraph {
         return (parentNode, newNode);
     }
 
-    private static MazeNode PickParentNode(IMazeZonedConstraints constraints, ZoneGeneration globalZone, ZoneGeneration currentZone, Random rng) {
+    private MazeNode PickParentNode(IMazeZonedConstraints constraints, ZoneGeneration globalZone, ZoneGeneration currentZone, Random rng) {
         // newPart = we have to create new part in the current zone
         var newEntry = currentZone.ZoneId > 0 && currentZone.Parts.Count < constraints.GetParts(currentZone.ZoneId);
 
         if (newEntry) {
             // The current zone still doesn't have all the parts:
             // Then pick a random node from the global to create a new entry node the maze to the current zone
-            if (globalZone.AvailableNodes.Count > 0) return PickNewEntryNode(globalZone, rng);
+            if (globalZone.AvailableNodes.Count > 0) return PickNewEntryNode(currentZone, globalZone, rng);
             // No more available nodes in the global zone!
             // IsFlexibleParts is true: expand the current zone picking up a node in the currentZone. That means the zone will not have
             // all the parts, but at least it will have all the nodes needed for the zone.
@@ -161,7 +179,7 @@ public partial class MazeGraph {
                 throw new NoMoreNodesException(
                     $"No more available nodes to expand zone {currentZone.ZoneId} (IsFlexibleParts is true but there are not available nodes to create new parts) " +
                     "Consider increasing nodes and MaxExitNodes in previous zones.");
-            return PickNewEntryNode(globalZone, rng);
+            return PickNewEntryNode(currentZone, globalZone, rng);
         }
 
         // create a new part (if it's possible)
@@ -170,7 +188,7 @@ public partial class MazeGraph {
             "Consider enabling FlexibleParts to create new parts when expansion is not possible.");
     }
 
-    private static MazeNode PickNodeToExpand(ZoneGeneration currentZone, Random rng) {
+    private MazeNode PickNodeToExpand(ZoneGeneration currentZone, Random rng) {
         if (currentZone.IsCorridor) {
             // Corridors always try to expand the last node of every part
             var candidates = currentZone.AvailableNodes.Where(node => node.OutDegree == 1).ToList();
@@ -180,23 +198,20 @@ public partial class MazeGraph {
         return rng.Next(currentZone.AvailableNodes); // No corridors pick a random node to expand
     }
 
-    private static MazeNode PickNewEntryNode(ZoneGeneration globalZone, Random rng) {
-        /*
-         Factor 3 means this distribution:
-         [0] ############# (27.9%)
-         [1] ########## (20.5%)
-         [2] ####### (15.2%)
-         [3] ##### (11.3%)
-         [4] #### (8.3%)
-         [5] ### (6.2%)
-         [6] ## (4.6%)
-         [7] # (3.4%)
-         [8] # (2.5%)
-         [9]  (0.0%)
-
-         So, most probable to get nodes from the beginning of the list (closer to the start of the maze)
-         */
-        var index = rng.NextIndexExponential(globalZone.AvailableNodes.Count, 3.0f);
-        return globalZone.AvailableNodes[index];
+    private MazeNode PickNewEntryNode(ZoneGeneration currentZone, ZoneGeneration globalZone, Random rng) {
+        
+        // The zone 0 doesn't have any previous zone.
+        // The zone 1 has the zone 0 has previous zone, so there is no need to filter by "previous zone only" because all globalZone.AvailableNodes are from 
+        // the zone 0. We only filter by "previos zone only" in the zone 2 and above.
+        if (currentZone.ZoneId >= 2 && currentZone.Parts.Count == 0) {
+            // First part of the zone, pick a random node only from the previous zone
+            var candidates = globalZone.AvailableNodes
+                .Where(node => node.ZoneId == currentZone.ZoneId - 1)
+                .OrderBy(node => node.Depth)
+                .ToList();
+            if (candidates.Count > 0) return rng.NextExponential(candidates, EntryNodeFactor);
+        }
+        // Not the first part of the zone, pick a random node from the global zone (it could be any lower node than the current zone)
+        return rng.NextExponential(globalZone.AvailableNodes.OrderBy(node => node.Depth).ToList(), EntryNodeFactor);
     }
 }
