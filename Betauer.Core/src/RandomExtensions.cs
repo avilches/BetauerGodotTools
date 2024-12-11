@@ -59,15 +59,25 @@ public static partial class RandomExtensions {
     public static bool NextBool(this Random random) {
         return random.Next(0, 2) == 0;
     }
-    
+
     /// <summary>
     /// Returns an index from 0 to size-1 with exponential distribution preference for lower indices.
     /// The factor controls how strong the preference is:
     /// - Lower factors (0.1-0.3) = Almost uniform distribution
     /// - Medium factors (0.5-1.0) = Moderate preference for first elements
     /// - Higher factors (2.0+) = Strong preference for first elements where last element is very rare
+    /// Factor 3 in a size of 10, means this distribution of indices returned:
+    ///  0) ############# (27.9%)
+    ///  1) ########## (20.5%)
+    ///  2) ####### (15.2%)
+    ///  3) ##### (11.3%)
+    ///  4) #### (8.3%)
+    ///  5) ### (6.2%)
+    ///  6) ## (4.6%)
+    ///  7) # (3.4%)
+    ///  8) # (2.5%)
     /// </summary>
-    public static int NextIndexExponential(this Random random, int size, float factor = 1.0f) {
+    public static int NextIndexExponential(this Random random, int size, float factor) {
         if (size <= 0) throw new ArgumentException("Size must be greater than 0");
         if (factor <= 0) throw new ArgumentException("Factor must be greater than 0");
     
@@ -189,6 +199,73 @@ public static partial class RandomExtensions {
         var randomIndex = random.Next(0, values.Length);
         return values[randomIndex];
     }
+    
+    /// <summary>
+    /// Returns an element of the list specified with exponential distribution preference for elements in the firsts positions.
+    /// The factor controls how strong the preference is:
+    /// - Lower factors (0.1-0.3) = Almost uniform distribution
+    /// - Medium factors (0.5-1.0) = Moderate preference for first elements
+    /// - Higher factors (2.0+) = Strong preference for first elements where last element is very rare
+    /// Factor 3 in a list of 10 elements, means this distribution of element indices returned:
+    ///  0) ############# (27.9%)
+    ///  1) ########## (20.5%)
+    ///  2) ####### (15.2%)
+    ///  3) ##### (11.3%)
+    ///  4) #### (8.3%)
+    ///  5) ### (6.2%)
+    ///  6) ## (4.6%)
+    ///  7) # (3.4%)
+    ///  8) # (2.5%)
+    /// </summary>
+    public static T NextExponential<T>(this Random random, IList<T> list, float factor) {
+        var index = random.NextIndexExponential(list.Count, factor);
+        return list[index];
+    }
+    
+    /// <summary>
+    /// Returns an element of the span specified with exponential distribution preference for elements in the firsts positions.
+    /// The factor controls how strong the preference is:
+    /// - Lower factors (0.1-0.3) = Almost uniform distribution
+    /// - Medium factors (0.5-1.0) = Moderate preference for first elements
+    /// - Higher factors (2.0+) = Strong preference for first elements where last element is very rare
+    /// Factor 3 in a span of 10 elements, means this distribution of element indices returned:
+    ///  0) ############# (27.9%)
+    ///  1) ########## (20.5%)
+    ///  2) ####### (15.2%)
+    ///  3) ##### (11.3%)
+    ///  4) #### (8.3%)
+    ///  5) ### (6.2%)
+    ///  6) ## (4.6%)
+    ///  7) # (3.4%)
+    ///  8) # (2.5%)
+    /// </summary>
+    public static T NextExponential<T>(this Random random, ReadOnlySpan<T> list, float factor) {
+        var index = random.NextIndexExponential(list.Length, factor);
+        return list[index];
+    }
+    
+    /// <summary>
+    /// Returns an element of the array specified with exponential distribution preference for elements in the firsts positions.
+    /// The factor controls how strong the preference is:
+    /// - Lower factors (0.1-0.3) = Almost uniform distribution
+    /// - Medium factors (0.5-1.0) = Moderate preference for first elements
+    /// - Higher factors (2.0+) = Strong preference for first elements where last element is very rare
+    /// Factor 3 in a array of 10 elements, means this distribution of element indices returned:
+    ///  0) ############# (27.9%)
+    ///  1) ########## (20.5%)
+    ///  2) ####### (15.2%)
+    ///  3) ##### (11.3%)
+    ///  4) #### (8.3%)
+    ///  5) ### (6.2%)
+    ///  6) ## (4.6%)
+    ///  7) # (3.4%)
+    ///  8) # (2.5%)
+    /// </summary>
+    public static T NextExponential<T>(this Random random, T[] list, float factor) {
+        var index = random.NextIndexExponential(list.Length, factor);
+        return list[index];
+    }
+    
 
     /// <summary>
     /// Returns a uniformly random element from the list
