@@ -25,9 +25,71 @@ public class MazeNode {
 
     public int Id { get; }
     public Vector2I Position { get; }
-    public MazeNode? Parent { get; set; }
+
+    private int? _cachedDepth;
+    private MazeNode? _parent;
+    public MazeNode? Parent {
+        get => _parent;
+        set {
+            if (_parent == value) return;
+            // Check for circular reference before setting the parent
+            if (value != null && WouldCreateCircularReference(value)) {
+                throw new InvalidOperationException($"Can't set parent: would create circular reference. Node {Id} -> New Parent {value.Id}");
+            }            _parent = value;
+            InvalidateDepthCache();
+        }
+    }
+    
+    /// <summary>
+    /// Checks if setting the specified node as parent would create a circular reference.
+    /// A circular reference occurs when the new parent is one of the node's descendants.
+    /// </summary>
+    /// <param name="newParent">The node to check</param>
+    /// <returns>True if setting this parent would create a circular reference</returns>
+    private bool WouldCreateCircularReference(MazeNode newParent) {
+        var current = newParent;
+        while (current != null) {
+            if (current == this) return true;
+            current = current.Parent;
+        }
+        return false;
+    }
+    
+    /// <summary>
+    /// Invalidates the depth cache for this node and all its descendants
+    /// </summary>
+    private void InvalidateDepthCache() {
+        _cachedDepth = null;
+        foreach (var child in GetChildren()) {
+            child.InvalidateDepthCache();
+        }
+    }
+    /// <summary>
+    /// Gets the depth of this node in the tree hierarchy.
+    /// The root node has depth 0, its children have depth 1, and so on.
+    /// </summary>
+    public int Depth => _cachedDepth ??= CalculateDepth();
+    
+    /// <summary>
+    /// Calculates the depth by counting parents up to the root
+    /// </summary>
+    private int CalculateDepth() {
+        var depth = 0;
+        var current = this;
+        while (current.Parent != null) {
+            depth++;
+            current = current.Parent;
+        }
+        return depth;
+    }
+    
+    public IEnumerable<MazeNode> GetChildren() {
+        return _mazeGraph.GetNodes().Where(n => n.Parent == this);
+    }
+
     private readonly List<MazeEdge> _outEdges = [];
     private readonly List<MazeEdge> _inEdges = [];
+
     public int ZoneId { get; set; }
     public int PartId { get; set; }
 

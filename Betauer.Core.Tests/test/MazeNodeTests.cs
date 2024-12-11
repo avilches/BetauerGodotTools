@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Betauer.Core.PCG.Maze;
 using Betauer.TestRunner;
@@ -110,7 +111,7 @@ public class MazeNodeTests {
     public void GetAllEdges_ReturnsAllConnections() {
         var other = _graph.CreateNode(new Vector2I(1, 0));
         var third = _graph.CreateNode(new Vector2I(2, 1));
-        
+
         // _node -> other, third -> _node
         var outEdge = _node.ConnectTo(other);
         var inEdge = third.ConnectTo(_node);
@@ -130,7 +131,7 @@ public class MazeNodeTests {
         var node1 = _graph.CreateNode(new Vector2I(1, 0));
         var node2 = _graph.CreateNode(new Vector2I(2, 0));
         var node3 = _graph.CreateNode(new Vector2I(0, 1));
-        
+
         // Dos conexiones salientes y una entrante
         _node.ConnectTo(node1);
         _node.ConnectTo(node2);
@@ -180,7 +181,7 @@ public class MazeNodeTests {
         child1.Parent = _node;
         child2.Parent = _node;
 
-        var children = _graph.GetChildren(_node).ToList();
+        var children = _node.GetChildren().ToList();
 
         Assert.Multiple(() => {
             Assert.That(children, Has.Count.EqualTo(2));
@@ -272,7 +273,130 @@ public class MazeNodeTests {
         // Nodes without common ancestor
         var path = nodeA.FindTreePathToNode(nodeB);
 
-        Assert.That(path, Is.Null);
+        Assert.That(path, Is.Empty);
+    }
+
+    [Test]
+    public void Depth_RootNode_ReturnsZero() {
+        // Root node should have depth 0
+        Assert.That(_node.Depth, Is.EqualTo(0));
+    }
+
+    [Test]
+    public void Depth_ChildNode_ReturnsOne() {
+        var child = _graph.CreateNode(new Vector2I(2, 1));
+        child.Parent = _node;
+
+        Assert.That(child.Depth, Is.EqualTo(1));
+    }
+
+    [Test]
+    public void Depth_GrandchildNode_ReturnsTwo() {
+        var child = _graph.CreateNode(new Vector2I(2, 1));
+        var grandchild = _graph.CreateNode(new Vector2I(3, 1));
+        child.Parent = _node;
+        grandchild.Parent = child;
+
+        Assert.Multiple(() => {
+            Assert.That(_node.Depth, Is.EqualTo(0));
+            Assert.That(child.Depth, Is.EqualTo(1));
+            Assert.That(grandchild.Depth, Is.EqualTo(2));
+        });
+    }
+
+    [Test]
+    public void Depth_ChangingParent_UpdatesDepth() {
+        var nodeA = _graph.CreateNode(new Vector2I(2, 1));
+        var nodeB = _graph.CreateNode(new Vector2I(3, 1));
+        var nodeC = _graph.CreateNode(new Vector2I(4, 1));
+
+        // Create initial structure:
+        // _node -> nodeA -> nodeB -> nodeC (depths: 0, 1, 2, 3)
+        nodeA.Parent = _node;
+        nodeB.Parent = nodeA;
+        nodeC.Parent = nodeB;
+
+        Assert.Multiple(() => {
+            Assert.That(nodeA.Depth, Is.EqualTo(1));
+            Assert.That(nodeB.Depth, Is.EqualTo(2));
+            Assert.That(nodeC.Depth, Is.EqualTo(3));
+        });
+
+        // Change structure to:
+        // _node -> nodeB -> nodeC
+        //      \-> nodeA
+        // (depths: 0, 1, 2, 1)
+        nodeB.Parent = _node;
+
+        Assert.Multiple(() => {
+            Assert.That(nodeA.Depth, Is.EqualTo(1));
+            Assert.That(nodeB.Depth, Is.EqualTo(1));
+            Assert.That(nodeC.Depth, Is.EqualTo(2));
+        });
+    }
+
+    [Test]
+    public void Depth_CacheInvalidation_UpdatesDescendants() {
+        var nodeA = _graph.CreateNode(new Vector2I(2, 1));
+        var nodeB = _graph.CreateNode(new Vector2I(3, 1));
+        var nodeC = _graph.CreateNode(new Vector2I(4, 1));
+
+        // Initial structure: _node -> nodeA -> nodeB -> nodeC
+        nodeA.Parent = _node;
+        nodeB.Parent = nodeA;
+        nodeC.Parent = nodeB;
+
+        // Force cache calculation
+        var originalDepths = new[] {
+            nodeA.Depth,
+            nodeB.Depth,
+            nodeC.Depth
+        };
+
+        // Change nodeA's parent to null, making it a root
+        nodeA.Parent = null;
+
+        // Verify all descendants' depths have been updated
+        Assert.Multiple(() => {
+            Assert.That(nodeA.Depth, Is.EqualTo(0));
+            Assert.That(nodeB.Depth, Is.EqualTo(1));
+            Assert.That(nodeC.Depth, Is.EqualTo(2));
+            // Verify depths have actually changed from original values
+            Assert.That(nodeA.Depth, Is.Not.EqualTo(originalDepths[0]));
+            Assert.That(nodeB.Depth, Is.Not.EqualTo(originalDepths[1]));
+            Assert.That(nodeC.Depth, Is.Not.EqualTo(originalDepths[2]));
+        });
+    }
+
+    [Test]
+    public void Depth_RemovingNode_UpdatesDepths() {
+        var nodeA = _graph.CreateNode(new Vector2I(2, 1));
+        var nodeB = _graph.CreateNode(new Vector2I(3, 1));
+
+        // Initial structure: _node -> nodeA -> nodeB
+        nodeA.Parent = _node;
+        nodeB.Parent = nodeA;
+
+        // Force cache calculation
+        Assert.That(nodeB.Depth, Is.EqualTo(2));
+
+        // Remove nodeA
+        nodeA.Parent = null;
+
+        // Check nodeB's depth is updated
+        Assert.That(nodeB.Depth, Is.EqualTo(1));
+    }
+
+    [Test]
+    public void Depth_CircularReference_ThrowsException() {
+        var nodeA = _graph.CreateNode(new Vector2I(2, 1));
+        var nodeB = _graph.CreateNode(new Vector2I(3, 1));
+
+        nodeA.Parent = _node;
+        nodeB.Parent = nodeA;
+
+        // Try to create a circular reference
+        Assert.Throws<InvalidOperationException>(() => _node.Parent = nodeB);
     }
 
     [Test]
@@ -317,7 +441,7 @@ public class MazeNodeTests {
 
             // Camino hacia atrás no debe existir
             var backwardPath = nodeC.FindShortestPath(nodeA);
-            Assert.That(backwardPath, Is.Null);
+            Assert.That(backwardPath, Is.Empty);
         });
     }
 
@@ -334,7 +458,7 @@ public class MazeNodeTests {
         Assert.Multiple(() => {
             // Distancia hacia adelante debe ser 2
             Assert.That(nodeA.GetGraphDistanceToNode(nodeC), Is.EqualTo(2));
-            
+
             // Distancia hacia atrás debe ser -1 (no hay camino)
             Assert.That(nodeC.GetGraphDistanceToNode(nodeA), Is.EqualTo(-1));
         });
@@ -365,6 +489,4 @@ public class MazeNodeTests {
             Assert.That(reachableFromC, Contains.Item(nodeC));
         });
     }
-
-
 }

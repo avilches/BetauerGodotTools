@@ -224,10 +224,6 @@ public partial class MazeGraph {
                 Geometry.IsPointInRectangle(adjacentPos.X, adjacentPos.Y, 0, 0, Width, Height));
     }
 
-    public IEnumerable<MazeNode> GetChildren(MazeNode parent) {
-        return Nodes.Values.Where(n => n.Parent == parent);
-    }
-
     /// <summary>
     /// Finds all potential cycle connections between adjacent nodes that are not directly connected,
     /// calculating distances either through parent relationships or shortest path through edges.
