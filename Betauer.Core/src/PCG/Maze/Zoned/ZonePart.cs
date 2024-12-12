@@ -123,7 +123,4 @@ public class ZonePart(Zone zone, int partId, MazeNode startNode, List<MazeNode> 
     public List<MazeNode> SpreadLocations(int desired, Func<NodeScore, float> scoreCalculator) {
         return SpreadLocationsAlgorithm.GetLocations(GetScores().ToList(), desired, scoreCalculator);
     }
-
-
-
 }

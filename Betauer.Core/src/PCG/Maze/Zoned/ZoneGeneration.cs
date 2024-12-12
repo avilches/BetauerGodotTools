@@ -13,6 +13,7 @@ internal class ZoneGeneration(MazeGraph graphZoned, IMazeZonedConstraints constr
 
     // These are the nodes with free adjacent positions after the GrowZoned method has finished
     internal List<MazeNode> AvailableNodes { get; set; } = [];
+    internal List<MazeNode> TemporarilyDiscardedNodes { get; set; } = [];
 
     internal int MaxExitNodes {
         get {
@@ -40,5 +41,10 @@ internal class ZoneGeneration(MazeGraph graphZoned, IMazeZonedConstraints constr
             zone.Parts.Add(new ZonePart(zone, part.PartId, part.StartNode, part.Nodes));
         }
         return zone;
+    }
+
+    public void RecoverTemporarilyDiscardedNodes() {
+        AvailableNodes.AddRange(TemporarilyDiscardedNodes);
+        TemporarilyDiscardedNodes.Clear();
     }
 }

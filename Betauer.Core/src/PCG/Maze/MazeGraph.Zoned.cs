@@ -7,7 +7,6 @@ using Godot;
 namespace Betauer.Core.PCG.Maze;
 
 public partial class MazeGraph {
-
     /*
      Factor 3 means this distribution:
      [0] ############# (27.9%)
@@ -100,16 +99,22 @@ public partial class MazeGraph {
                     break;
                 }
                 if (currentZone.MaxExitNodes > 0) { // -1 means no limit
-                    // Only if the new zone has exit nodes, we add the available nodes from the current zone to the global pending nodes
+                    // Only if the new zone has still exit nodes without using it, we add the available nodes from the current zone
+                    // to the global pending nodes, so they can be used to create more parts in other zones
                     globalZone.AvailableNodes.AddRange(currentZone.AvailableNodes);
                 }
+                // Recover temporarily discarded nodes. They were removed because the part was FlexibleParts disabled and the nodes, even if they
+                // were valid, they will have adjacent nodes without free positions to grow. We recover them because they could be used in future zones
+                // currentZone.RecoverTemporarilyDiscardedNodes();
+                globalZone.RecoverTemporarilyDiscardedNodes();
+                currentZone.AvailableNodes.Clear(); // We don't need the nodes anymore, clean them
                 currentZone = new ZoneGeneration(this, constraints, currentZone.ZoneId + 1);
                 zones.Add(currentZone);
             }
-            foreach (var zone in zones) {
-                var maxExitNodes = constraints.GetMaxExitNodes(zone.ZoneId);
-                Console.WriteLine($"Zone {zone.ZoneId} Nodes: {zone.NodesCreated} Parts: {zone.Parts.Count}/{constraints.GetParts(zone.ZoneId)} Exits: {zone.ExitNodesCreated}/{(maxExitNodes == -1 ? "∞" : maxExitNodes)}");
-            }
+            // foreach (var zone in zones) {
+            //     var maxExitNodes = constraints.GetMaxExitNodes(zone.ZoneId);
+            //     Console.WriteLine($"Zone {zone.ZoneId} Nodes: {zone.NodesCreated} Parts: {zone.Parts.Count}/{constraints.GetParts(zone.ZoneId)} Exits: {zone.ExitNodesCreated}/{(maxExitNodes == -1 ? "∞" : maxExitNodes)}");
+            // }
         }
         return CreateMazeZones(zones);
     }
@@ -129,7 +134,37 @@ public partial class MazeGraph {
     private (MazeNode parentNode, MazeNode newNode) CreateNextNode(IMazeZonedConstraints constraints, ZoneGeneration globalZone, ZoneGeneration currentZone, Random rng) {
         var parentNode = PickParentNode(constraints, globalZone, currentZone, rng);
         var availablePositions = GetValidFreeAdjacentPositions(parentNode.Position).ToList();
-        while (availablePositions.Count == 0) {
+
+        while (true) {
+            // 1) Discard the invalid nodes with 0 adjacent free positions
+            // 2) Discard bad candidates too: nodes with free adjacent positions, but these adjacent positions
+            // are surrounded by other nodes, so they can't grow anymore:
+            //  a-a-a-a
+            //  |     |
+            //  a-1 · a
+            //  |     |
+            //  a · a-a
+            //  |   | |
+            //  a-a-a-a
+            // The node 1 has two free adjacent positions (right and down), but these positions are surrounded
+            // by other nodes, so the node 1 can't grow anymore. This is a bad candidate.
+            // This is only for zones with FlexibleParts false. If FlexiblePart is true, then this is not a problem because they can't grow
+            // anymore, a new zone could be created.
+            if (availablePositions.Count > 0) {
+                if (constraints.IsFlexibleParts(currentZone.ZoneId)) {
+                    // If the part is flexible, we can use all the available positions even if some of them are bad candidates :)
+                    break;
+                }
+                // Removing the available positions without free adjacent positions 
+                availablePositions.RemoveAll(pos => !GetValidFreeAdjacentPositions(pos).Any());
+                if (availablePositions.Count > 0) {
+                    // If after the removal the list is not empty, we can use it
+                    break;
+                }
+                // The parent node is a bad candidate, remove it from the available nodes temporarily
+                if (globalZone.AvailableNodes.Contains(parentNode)) globalZone.TemporarilyDiscardedNodes.Add(parentNode);
+            }
+
             // invalid node, removing from the zone and from the global pending nodes
             globalZone.AvailableNodes.Remove(parentNode);
             currentZone.AvailableNodes.Remove(parentNode);
@@ -199,7 +234,6 @@ public partial class MazeGraph {
     }
 
     private MazeNode PickNewEntryNode(ZoneGeneration currentZone, ZoneGeneration globalZone, Random rng) {
-        
         // The zone 0 doesn't have any previous zone.
         // The zone 1 has the zone 0 has previous zone, so there is no need to filter by "previous zone only" because all globalZone.AvailableNodes are from 
         // the zone 0. We only filter by "previos zone only" in the zone 2 and above.

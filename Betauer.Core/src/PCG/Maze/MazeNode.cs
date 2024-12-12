@@ -324,12 +324,12 @@ public class MazeNode {
     /// 
     /// Usage:
     /// var path = room1.FindShortestPath(room2);
-    /// if (path != null) {
+    /// if (path.Count > 0) {
     ///     // path contains the sequence of rooms to reach the destination
     /// }
     /// </summary>
     /// <param name="target">The target node</param>
-    /// <returns>List of nodes forming the shortest path, or null if no path exists</returns>
+    /// <returns>List of nodes forming the shortest path, or an empty list if no path exists. The path the start and the end node.</returns>
     public List<MazeNode> FindShortestPath(MazeNode target)
         => PathFinder.FindShortestPath(this, target);
 
@@ -346,7 +346,7 @@ public class MazeNode {
     /// // steps: -1 if no path exists, or the number of moves needed
     /// </summary>
     /// <param name="target">The target node</param>
-    /// <returns>Distance in number of connections or -1 if no path exists</returns>
+    /// <returns>Distance in number of connections or -1 if no path exists. 1 means start node and target node are the same.</returns>
     public int GetGraphDistanceToNode(MazeNode target) {
         var path = FindShortestPath(target);
         return path.Count - 1; // -1 if no path because the path contains the start node. If no path, the list is empty, so -1
@@ -363,7 +363,7 @@ public class MazeNode {
     /// var reachable = currentPosition.GetReachableNodes();
     /// // reachable contains all nodes that can be reached
     /// </summary>
-    /// <returns>Set of all reachable nodes, including the starting node</returns>
+    /// <returns>Set of all reachable nodes, including the starting node.</returns>
     public HashSet<MazeNode> GetReachableNodes()
         => PathFinder.GetReachableNodes(this);
 

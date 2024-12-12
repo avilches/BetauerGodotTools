@@ -81,7 +81,7 @@ public class PathFinder {
     /// </summary>
     /// <param name="start">Starting node</param>
     /// <param name="target">Target node</param>
-    /// <returns>List of nodes forming the shortest path, or null if no path exists</returns>
+    /// <returns>List of nodes forming the shortest path, or empty list if no path exists</returns>
     public List<MazeNode> FindShortestPath(MazeNode start, MazeNode target) {
         if (start == target) return [start];
 

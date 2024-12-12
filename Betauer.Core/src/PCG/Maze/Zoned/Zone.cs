@@ -96,7 +96,7 @@ public class Zone(int zoneId) {
     /// <param name="scoreCalculator">The function used to score potential locations</param>
     public List<MazeNode> SpreadLocations(int total, Func<NodeScore, float> scoreCalculator) {
         var locations = new List<MazeNode>();
-        Console.WriteLine($"Zone {ZoneId} intentando colocar {total} tesoros en sus {NodeCount} nodos");
+        // Console.WriteLine($"Zone {ZoneId} intentando colocar {total} tesoros en sus {NodeCount} nodos");
         if (total == 0) return locations;
 
         foreach (var part in Parts) {
@@ -105,10 +105,9 @@ public class Zone(int zoneId) {
             var desired = Math.Max(1, Mathf.RoundToInt(total * (partSize / (float)NodeCount)));
             locations.AddRange(part.SpreadLocations(desired, scoreCalculator));
 
-            Console.WriteLine($"Zone {ZoneId} Part {part.PartId} treasures: {locations.Count(t => part.Nodes.Contains(t))}/{desired}");
+            // Console.WriteLine($"Zone {ZoneId} Part {part.PartId} treasures: {locations.Count(t => part.Nodes.Contains(t))}/{desired}");
         }
-
-        Console.WriteLine($"Zone {ZoneId} total treasures: {locations.Count}/{total}");
+        // Console.WriteLine($"Zone {ZoneId} total treasures: {locations.Count}/{total}");
         return locations;
     }
     

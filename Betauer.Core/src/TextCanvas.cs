@@ -21,7 +21,6 @@ public class TextCanvas {
     }
 
     public TextCanvas(char lineSeparator = '\n') : this([""], lineSeparator) {
-        
     }
 
     public TextCanvas(string initialContent, char lineSeparator = '\n') :
@@ -33,7 +32,7 @@ public class TextCanvas {
             ? throw new ArgumentException("Initial content cannot be empty")
             : initialContent.Split(lineSeparator);
     }
-
+    
     public TextCanvas(string[] lines, char lineSeparator = '\n') {
         _lines = [..lines];
         LineSeparator = lineSeparator;
@@ -41,11 +40,10 @@ public class TextCanvas {
         EnsureSize(width, _lines.Count);
     }
 
-    private void Update() {
-        for (var i = 0; i < _lines.Count; i++) {
-            if (_lines[i].Length < Width) _lines[i] = _lines[i].PadRight(Width);
-        }
-        Height = _lines.Count;
+    public void Clear() {
+        _lines.Clear();
+        Width = 0;
+        Height = 1;
     }
 
     public string GetText() => _text ??= string.Join(LineSeparator, _lines);
