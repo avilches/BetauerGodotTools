@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Betauer.Core.PCG.Maze;
 using Betauer.TestRunner;
@@ -249,5 +250,51 @@ public class MazeNodeWeightedPathTests {
             // Camino hacia atrás no debe existir
             Assert.That(backwardPath, Is.Null);
         });
+    }
+    
+    [Test]
+    public void FindWeightedPath_WithPredicate_RespectsPredicateAndWeights() {
+        var nodeA = _graph.GetOrCreateNode(new Vector2I(0, 0));
+        var nodeB = _graph.GetOrCreateNode(new Vector2I(1, 0));
+        var nodeC = _graph.GetOrCreateNode(new Vector2I(2, 0));
+        var nodeD = _graph.GetOrCreateNode(new Vector2I(1, 1));
+
+        // Ruta superior con peso total 2: A -> B -> C
+        nodeA.ConnectTo(nodeB).Weight = 1;
+        nodeB.ConnectTo(nodeC).Weight = 1;
+
+        // Ruta inferior con peso total 4: A -> D -> C
+        nodeA.ConnectTo(nodeD).Weight = 2;
+        nodeD.ConnectTo(nodeC).Weight = 2;
+
+        // Crear un predicado que no permite pasar por B
+        var predicate = new Func<MazeNode, bool>(node => node != nodeB);
+        var result = nodeA.FindWeightedPath(nodeC, PathWeightMode.EdgesOnly, predicate);
+
+        Assert.Multiple(() => {
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result!.Path, Has.Count.EqualTo(3));
+            Assert.That(result.Path[0], Is.EqualTo(nodeA));
+            Assert.That(result.Path[1], Is.EqualTo(nodeD)); // Debe usar el camino alternativo aunque sea más costoso
+            Assert.That(result.Path[2], Is.EqualTo(nodeC));
+            Assert.That(result.TotalCost, Is.EqualTo(4)); // Coste total de la ruta alternativa
+        });
+    }
+
+    [Test]
+    public void FindWeightedPath_WithPredicateBlockingAllPaths_ReturnsNull() {
+        var nodeA = _graph.GetOrCreateNode(new Vector2I(0, 0));
+        var nodeB = _graph.GetOrCreateNode(new Vector2I(1, 0));
+        var nodeC = _graph.GetOrCreateNode(new Vector2I(2, 0));
+
+        // Crear camino: A -> B -> C
+        nodeA.ConnectTo(nodeB);
+        nodeB.ConnectTo(nodeC);
+
+        // Crear un predicado que no permite pasar por B
+        var predicate = new Func<MazeNode, bool>(node => node != nodeB);
+        var result = nodeA.FindWeightedPath(nodeC, PathWeightMode.EdgesOnly, predicate);
+
+        Assert.That(result, Is.Null);
     }
 }

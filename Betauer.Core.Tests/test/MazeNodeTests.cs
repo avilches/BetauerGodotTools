@@ -92,6 +92,7 @@ public class MazeNodeTests {
 
     [Test]
     public void GetInEdges_ReturnsIncomingEdges() {
+        _graph.Clear();
         var up = _graph.CreateNode(new Vector2I(1, 0));
         var right = _graph.CreateNode(new Vector2I(2, 1));
         up.ConnectTo(_node);
@@ -487,6 +488,56 @@ public class MazeNodeTests {
             // Desde C solo se puede alcanzar C
             Assert.That(reachableFromC, Has.Count.EqualTo(1));
             Assert.That(reachableFromC, Contains.Item(nodeC));
+        });
+    }
+
+    [Test]
+    public void FindShortestPath_WithPredicate_RespectsPredicateConditions() {
+        _graph.Clear();
+        var nodeA = _graph.CreateNode(new Vector2I(0, 0));
+        var nodeB = _graph.CreateNode(new Vector2I(1, 0));
+        var nodeC = _graph.CreateNode(new Vector2I(2, 0));
+        var nodeD = _graph.CreateNode(new Vector2I(1, 1));
+
+        // Crear camino: A -> B -> C
+        nodeA.ConnectTo(nodeB);
+        nodeB.ConnectTo(nodeC);
+
+        // Camino alternativo: A -> D -> C
+        nodeA.ConnectTo(nodeD);
+        nodeD.ConnectTo(nodeC);
+
+        // Crear un predicado que no permite pasar por B
+        var predicate = new Func<MazeNode, bool>(node => node != nodeB);
+        var path = nodeA.FindShortestPath(nodeC, predicate);
+
+        Assert.Multiple(() => {
+            Assert.That(path, Has.Count.EqualTo(3));
+            Assert.That(path[0], Is.EqualTo(nodeA));
+            Assert.That(path[1], Is.EqualTo(nodeD)); // Debe usar el camino alternativo
+            Assert.That(path[2], Is.EqualTo(nodeC));
+        });
+    }
+
+    [Test]
+    public void GetReachableNodes_WithPredicate_OnlyReturnsValidNodes() {
+        var nodeA = _graph.CreateNode(new Vector2I(0, 0));
+        var nodeB = _graph.CreateNode(new Vector2I(1, 0));
+        var nodeC = _graph.CreateNode(new Vector2I(2, 0));
+
+        // Crear camino: A -> B -> C
+        nodeA.ConnectTo(nodeB);
+        nodeB.ConnectTo(nodeC);
+
+        // Solo permitir nodos con coordenada x < 2
+        var predicate = new Func<MazeNode, bool>(node => node.Position.X < 2);
+        var reachableNodes = nodeA.GetReachableNodes(predicate);
+
+        Assert.Multiple(() => {
+            Assert.That(reachableNodes, Has.Count.EqualTo(2));
+            Assert.That(reachableNodes, Contains.Item(nodeA));
+            Assert.That(reachableNodes, Contains.Item(nodeB));
+            Assert.That(reachableNodes, Does.Not.Contain(nodeC));
         });
     }
 }

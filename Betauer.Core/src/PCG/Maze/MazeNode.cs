@@ -10,7 +10,6 @@ namespace Betauer.Core.PCG.Maze;
 /// Represents a node in the maze graph, containing connections to adjacent nodes.
 /// </summary>
 public class MazeNode {
-    private static readonly PathFinder PathFinder = new();
 
     /// <summary>
     /// Represents a node in the maze graph, containing connections to adjacent nodes.
@@ -330,8 +329,9 @@ public class MazeNode {
     /// </summary>
     /// <param name="target">The target node</param>
     /// <returns>List of nodes forming the shortest path, or an empty list if no path exists. The path the start and the end node.</returns>
-    public List<MazeNode> FindShortestPath(MazeNode target)
-        => PathFinder.FindShortestPath(this, target);
+    /// <param name="canTraverse">Optional predicate that determines if a node can be traversed</param>
+    public List<MazeNode> FindShortestPath(MazeNode target, Func<MazeNode, bool>? canTraverse = null)
+        => PathFinder.FindShortestPath(this, target, canTraverse);
 
     /// <summary>
     /// Calculates the shortest distance to another node using direct connections.
@@ -347,8 +347,9 @@ public class MazeNode {
     /// </summary>
     /// <param name="target">The target node</param>
     /// <returns>Distance in number of connections or -1 if no path exists. 1 means start node and target node are the same.</returns>
-    public int GetGraphDistanceToNode(MazeNode target) {
-        var path = FindShortestPath(target);
+    /// <param name="canTraverse">Optional predicate that determines if a node can be traversed</param>
+    public int GetGraphDistanceToNode(MazeNode target, Func<MazeNode, bool>? canTraverse = null) {
+        var path = FindShortestPath(target, canTraverse);
         return path.Count - 1; // -1 if no path because the path contains the start node. If no path, the list is empty, so -1
     }
 
@@ -363,9 +364,10 @@ public class MazeNode {
     /// var reachable = currentPosition.GetReachableNodes();
     /// // reachable contains all nodes that can be reached
     /// </summary>
-    /// <returns>Set of all reachable nodes, including the starting node.</returns>
-    public HashSet<MazeNode> GetReachableNodes()
-        => PathFinder.GetReachableNodes(this);
+    /// <param name="canTraverse">Optional predicate that determines if a node can be traversed</param>
+    /// <returns>Set of all reachable nodes, including the current node</returns>
+    public HashSet<MazeNode> GetReachableNodes(Func<MazeNode, bool>? canTraverse = null)
+        => PathFinder.GetReachableNodes(this, canTraverse);
 
     /// <summary>
     /// Finds the most efficient path considering node and/or connection weights.
@@ -384,9 +386,10 @@ public class MazeNode {
     /// </summary>
     /// <param name="target">Destination node</param>
     /// <param name="mode">Weight calculation mode: nodes only, edges only, or both</param>
+    /// <param name="canTraverse">Optional predicate that determines if a node can be traversed</param>
     /// <returns>Result containing the path and its total cost, or null if no path exists</returns>
-    public PathResult? FindWeightedPath(MazeNode target, PathWeightMode mode = PathWeightMode.Both)
-        => PathFinder.FindWeightedPath(this, target, mode);
+    public PathResult? FindWeightedPath(MazeNode target, PathWeightMode mode = PathWeightMode.Both, Func<MazeNode, bool>? canTraverse = null)
+        => PathFinder.FindWeightedPath(this, target, mode, canTraverse);
 
     public override string ToString() {
         return $"Id:{Id} {Position}";

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -12,8 +13,7 @@ public enum PathWeightMode {
     Both
 }
 
-
-public class PathFinder {
+public static class PathFinder {
     /// <summary>
     /// Finds the most efficient path considering node and/or connection weights.
     /// Useful when different paths have varying costs or difficulties.
@@ -21,13 +21,15 @@ public class PathFinder {
     /// <param name="start">Starting node</param>
     /// <param name="target">Destination node</param>
     /// <param name="mode">Weight calculation mode: nodes only, edges only, or both</param>
+    /// <param name="canTraverse">Optional predicate that determines if a node can be traversed</param>
     /// <returns>Result containing the path and its total cost, or null if no path exists</returns>
-    public PathResult? FindWeightedPath(MazeNode start, MazeNode target, PathWeightMode mode = PathWeightMode.Both) {
+    public static PathResult? FindWeightedPath(MazeNode start, MazeNode target, PathWeightMode mode = PathWeightMode.Both, Func<MazeNode, bool>? canTraverse = null) {
         if (start == target) {
             return new PathResult([start], mode == PathWeightMode.EdgesOnly ? 0 : start.Weight);
         }
+        if (canTraverse != null && (!canTraverse(start) || !canTraverse(target))) return null;
 
-        var nodes = GetReachableNodes(start);
+        var nodes = GetReachableNodes(start, canTraverse);
         var distances = nodes.ToDictionary(node => node, _ => float.MaxValue);
         var previous = new Dictionary<MazeNode, MazeNode>();
         var unvisited = new PriorityQueue<MazeNode, float>();
@@ -54,6 +56,8 @@ public class PathFinder {
 
             foreach (var edge in current.GetOutEdges()) {
                 var neighbor = edge.To;
+                if (canTraverse != null && !canTraverse(neighbor)) continue;
+
                 var distance = distances[current];
 
                 // Añadir coste según el modo
@@ -61,7 +65,8 @@ public class PathFinder {
                     distance += neighbor.Weight;
                 else if (mode == PathWeightMode.EdgesOnly)
                     distance += edge.Weight;
-                else if (mode == PathWeightMode.Both) distance += edge.Weight + neighbor.Weight;
+                else if (mode == PathWeightMode.Both)
+                    distance += edge.Weight + neighbor.Weight;
 
                 if (distance < distances[neighbor]) {
                     distances[neighbor] = distance;
@@ -76,19 +81,17 @@ public class PathFinder {
 
     /// <summary>
     /// Finds the shortest path to another node using direct connections (edges).
-    /// Unlike GetPathToNode, this considers all available connections,
-    /// not just the parent-child hierarchy.
+    /// If a predicate is provided, only nodes that satisfy the predicate will be considered.
     /// </summary>
     /// <param name="start">Starting node</param>
     /// <param name="target">Target node</param>
+    /// <param name="canTraverse">Optional predicate that determines if a node can be traversed</param>
     /// <returns>List of nodes forming the shortest path, or empty list if no path exists</returns>
-    public List<MazeNode> FindShortestPath(MazeNode start, MazeNode target) {
+    public static List<MazeNode> FindShortestPath(MazeNode start, MazeNode target, Func<MazeNode, bool>? canTraverse = null) {
         if (start == target) return [start];
+        if (canTraverse != null && (!canTraverse(start) || !canTraverse(target))) return [];
 
-        // Inicializamos el diccionario con todos los nodos alcanzables
-        var visited = GetReachableNodes(start)
-            .ToDictionary(node => node, MazeNode? (_) => null);
-
+        var previous = new Dictionary<MazeNode, MazeNode>();
         var queue = new Queue<MazeNode>();
         queue.Enqueue(start);
 
@@ -96,25 +99,24 @@ public class PathFinder {
             var current = queue.Dequeue();
 
             if (current == target) {
-                // Reconstruir el camino
                 var path = new List<MazeNode>();
                 var node = current;
 
-                while (node != null) {
+                while (previous.ContainsKey(node)) {
                     path.Add(node);
-                    node = visited[node];
+                    node = previous[node];
                 }
-
+                path.Add(start);
                 path.Reverse();
                 return path;
             }
 
-            // Explorar todos los nodos conectados por edges
             foreach (var edge in current.GetOutEdges()) {
-                var next = edge.To;
-                if (visited[next] == null && next != start) {
-                    visited[next] = current;
-                    queue.Enqueue(next);
+                var neighbor = edge.To;
+                if (canTraverse != null && !canTraverse(neighbor)) continue;
+
+                if (previous.TryAdd(neighbor, current)) {
+                    queue.Enqueue(neighbor);
                 }
             }
         }
@@ -126,8 +128,9 @@ public class PathFinder {
     /// Gets all nodes that can be reached from the start node using available connections.
     /// </summary>
     /// <param name="start">Starting node</param>
+    /// <param name="canTraverse">Optional predicate that determines if a node can be traversed</param>
     /// <returns>Set of all reachable nodes, including the starting node</returns>
-    public HashSet<MazeNode> GetReachableNodes(MazeNode start) {
+    public static HashSet<MazeNode> GetReachableNodes(MazeNode start, Func<MazeNode, bool>? canTraverse = null) {
         var nodes = new HashSet<MazeNode> { start };
         var queue = new Queue<MazeNode>();
         queue.Enqueue(start);
@@ -135,8 +138,11 @@ public class PathFinder {
         while (queue.Count > 0) {
             var current = queue.Dequeue();
             foreach (var edge in current.GetOutEdges()) {
-                if (nodes.Add(edge.To)) {
-                    queue.Enqueue(edge.To);
+                var neighbor = edge.To;
+                if (canTraverse != null && !canTraverse(neighbor)) continue;
+
+                if (nodes.Add(neighbor)) {
+                    queue.Enqueue(neighbor);
                 }
             }
         }
@@ -149,7 +155,7 @@ public class PathFinder {
     /// <param name="start">Starting node</param>
     /// <param name="target">Target node</param>
     /// <returns>List of nodes forming the path, or null if no path exists</returns>
-    public List<MazeNode> GetPathToNode(MazeNode start, MazeNode target) {
+    public static List<MazeNode> GetPathToNode(MazeNode start, MazeNode target) {
         if (start == target) return [start];
 
         // Obtener el camino hasta la raíz para ambos nodos
