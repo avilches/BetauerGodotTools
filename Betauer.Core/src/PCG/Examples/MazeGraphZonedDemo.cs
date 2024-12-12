@@ -85,7 +85,7 @@ public class MazeGraphDungeonDemo {
         // PrintGraph(mc);
         */
 
-        for (var i = 0; i < 2000; i++) {
+        for (var i = 0; i < 1; i++) {
             var mc = new MazeGraph(template.Width, template.Height) {
                 // IsValidPositionFunc = true // pos => template[pos] != '·'
             };
@@ -100,7 +100,7 @@ public class MazeGraphDungeonDemo {
                     .Zone(nodes: 8, parts: 2, corridor: false)
                     .Zone(nodes: 8, parts: 2, corridor: false)
                     .Zone(nodes: 2, parts: 1, maxExitNodes: 0, corridor: true, flexibleParts: false)
-                    // .Zone(nodes: 1, parts: 1, corridor: false)
+                // .Zone(nodes: 1, parts: 1, corridor: false)
                 ;
 
             // PENDIENTE DE HACER
@@ -116,19 +116,19 @@ public class MazeGraphDungeonDemo {
 
             // Console.WriteLine(i);
             var zones = mc.GrowZoned(start, constraints, rng);
-            
+
             // PrintGraph(mc);
-            
+
             // foreach (var zone in zones.Zones) {
             //     Console.WriteLine($"Zone {zone.ZoneId} Nodes: {zone.NodeCount} Parts: {zone.Parts.Count}/{constraints.GetParts(zone.ZoneId)} Exits: {zone.GetAllExitNodes().Count()}/{constraints.GetMaxExitNodes(zone.ZoneId)}");
             // }
 
             // PrintGraph(mc);
-            
+
             // NeverConnectZone(mc, 2);
             // Console.WriteLine("Connecting nodes with symbols");
-               // ConnectNodes(template, mc);
-               
+            // ConnectNodes(template, mc);
+
             foreach (var zone in zones.Zones) {
                 Enumerable.Range(0, zone.Parts.Count).ForEach(_ => {
                     var (nodeA, nodeB, distance) = ConnectZone(mc, zone.ZoneId);
@@ -141,12 +141,12 @@ public class MazeGraphDungeonDemo {
             AddLongestCycles(mc, zones.Zones.Count);
             // Console.WriteLine("Shortest cycles");
             // AddShortestCycles(mc, 3);
-            
+
             zones.CalculateNodeScores();
             PrintGraph(mc, zones);
         }
     }
-    
+
     private static void NeverConnectZone(MazeGraph mc, int zone) {
         var neverConnect = mc.GetNodes().Where(n => n.ZoneId == zone).Select(node => node.Position).ToList();
         mc.IsValidEdgeFunc = (from, to) => {
@@ -265,11 +265,11 @@ public class MazeGraphDungeonDemo {
                 var zone = zones.Zones[node.ZoneId];
                 var nodeWithKeyInZone = keys[zone.ZoneId];
                 var isKey = nodeWithKeyInZone == node;
-                canvas.Write(1, 1, node.ZoneId.ToString()+(isKey?"!":""));
+                canvas.Write(1, 1, node.ZoneId.ToString() + (isKey ? "!" : ""));
                 // canvas.Write(1, 1, node.ZoneId.ToString()+node.PartId.ToString());
             } else {
                 canvas.Write(1, 1, node.ZoneId.ToString());
-                // canvas.Write(1, 1, node.ZoneId.ToString()+node.PartId.ToString());
+                // canvas.Write(1, 1, node.ZoneId.ToStri/**/ng()+node.PartId.ToString());
             }
             allCanvas.Write(offset + node.Position.X * 3, node.Position.Y * 3, canvas.ToString());
         }
@@ -292,7 +292,12 @@ public class MazeGraphDungeonDemo {
                 route.Add(keys[zone.ZoneId]);
             }
 
-            MazeLinearity.LinearityResult linearity = MazeLinearity.CalculateLinearity(route);
+            zones.CalculateSolution(KeyFormula);
+            // zones.CalculateSolution(KeyFormula, [1, 2, 3, 4, 5, 6, 7]);
+            zones.CalculateSolution(KeyFormula, [0, 1, 2, 3, 4, 5, 6, 7]);
+            // zones.CalculateSolution(KeyFormula, [1, 3, 4, 5, 6, 7, 2]);
+            // zones.CalculateSolution(KeyFormula, [1, 4, 6, 5, 3, 7, 2]); // This fail if you don't take into account the key usage
+            // zones.CalculateSolution(KeyFormula, [(0, 6), (6, 2), (2, 1), (1, 3), (3, 4), (4, 5), (5, 7), (7, 2)]);
 
             offset += mc.Width * 3 + 5;
             foreach (var node in mc.GetNodes()) {
@@ -305,18 +310,18 @@ public class MazeGraphDungeonDemo {
 
                 var zone = zones.Zones[node.ZoneId];
 
-                var nodeScore = zones.GetScore(node);
+                var nodeScore = zones.Scores[node];
                 // var score = Mathf.RoundToInt(KeyFormula(nodeScore) * 100);
                 // var score = nodeScore.ExitDistanceScore * 100;
-                var score = linearity.GetTraversals(node);
-                
+                var score = nodeScore.SolutionTraversals;
+
                 var lootScore = Mathf.RoundToInt(LootFormula(nodeScore) * 100);
                 var nodeWithKeyInZone = keys[zone.ZoneId];
                 var isKey = nodeWithKeyInZone == node;
-                    
+
                 // var score = Mathf.RoundToInt(zone.NodeScores[node].DeadEndScore * 100);
                 var isLoot = loot[node.ZoneId].Contains(node);
-                
+
                 /*
                 if (isLoot) {
                     canvas.Write(1, 1, ""+lootScore+"$");
@@ -325,7 +330,7 @@ public class MazeGraphDungeonDemo {
                 }
                 */
 
-                var isPartOfMainPath = linearity.ShortestPath.Contains(node);
+                var isPartOfMainPath = zones.Scoring.SolutionPath.Contains(node);
                 if (isLoot && isPartOfMainPath) {
                     canvas.Write(1, 1, $"{score:0}$");
                 } else if (isLoot) {
@@ -337,17 +342,14 @@ public class MazeGraphDungeonDemo {
                 }
                 allCanvas.Write(offset + node.Position.X * 6, node.Position.Y * 3, canvas.ToString());
             }
-            // Console.WriteLine(allCanvas.ToString());
-                
-            Console.WriteLine(mc.GetNodes().Count+" nodes, non linearity "+linearity.NonLinearityScore);
-            if (linearity.NonLinearityScore == 12) {
-                Console.WriteLine(allCanvas.ToString());
-            }
+            Console.WriteLine(allCanvas.ToString());
+
+            Console.WriteLine(mc.GetNodes().Count + " nodes, non linearity " + zones.Scoring.LinearityScore);
         } else {
-            // Console.WriteLine(allCanvas.ToString());
+            Console.WriteLine(allCanvas.ToString());
         }
     }
 
-    public static float KeyFormula(NodeScore score) => (score.DeadEndScore * 0.4f + score.EntryDistanceScore * 0.3f + score.ExitDistanceScore * 0.3f) * 0.5f +(score.BelongsToPathToExit ? 0.0f : 0.5f);
+    public static float KeyFormula(NodeScore score) => (score.DeadEndScore * 0.4f + score.EntryDistanceScore * 0.3f + score.ExitDistanceScore * 0.3f) * 0.5f + (score.BelongsToPathToExit ? 0.0f : 0.5f);
     public static float LootFormula(NodeScore score) => score.DeadEndScore * 0.6f + score.EntryDistanceScore * 0.4f;
 }

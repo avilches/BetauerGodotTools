@@ -42,4 +42,6 @@ public class NodeScore(MazeNode mazeNode, float graphEndScore, bool belongsToPat
 
     public bool BelongsToPathToExit { get; set; } = belongsToPathToExit;
     public bool BelongsToPathToEntry { get; set; } = belongsToPathToEntry;
+
+    public int SolutionTraversals { get; set; } = 0;
 }

@@ -93,7 +93,10 @@ public static class PathFinder {
 
         var previous = new Dictionary<MazeNode, MazeNode>();
         var queue = new Queue<MazeNode>();
+        var visited = new HashSet<MazeNode>(); // Añadimos un HashSet para track de nodos visitados
+
         queue.Enqueue(start);
+        visited.Add(start); // Marcamos el nodo inicial como visitado
 
         while (queue.Count > 0) {
             var current = queue.Dequeue();
@@ -102,7 +105,8 @@ public static class PathFinder {
                 var path = new List<MazeNode>();
                 var node = current;
 
-                while (previous.ContainsKey(node)) {
+                // Reconstruir el camino desde el target hasta el start
+                while (node != start) { // Cambiamos la condición del while
                     path.Add(node);
                     node = previous[node];
                 }
@@ -115,7 +119,8 @@ public static class PathFinder {
                 var neighbor = edge.To;
                 if (canTraverse != null && !canTraverse(neighbor)) continue;
 
-                if (previous.TryAdd(neighbor, current)) {
+                if (visited.Add(neighbor)) { // Usamos visited en vez de previous
+                    previous[neighbor] = current;
                     queue.Enqueue(neighbor);
                 }
             }
