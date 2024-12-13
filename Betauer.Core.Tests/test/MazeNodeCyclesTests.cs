@@ -14,7 +14,7 @@ public class MazeNodeCyclesTests {
     [SetUp]
     public void Setup() {
         // Create a 4x4 maze for testing
-        maze = new MazeGraph(4, 4);
+        maze = MazeGraph.Create(4, 4);
 
         /* Create a maze structure like this, parent and edges are the same
            0--1--2--3

@@ -15,7 +15,7 @@ public class MazeEdgeTests {
 
     [SetUp]
     public void Setup() {
-        _graph = new MazeGraph(10, 10);
+        _graph = MazeGraph.Create(10, 10);
         _nodeFrom = _graph.CreateNode(new Vector2I(0, 0));
         _nodeTo = _graph.CreateNode(new Vector2I(1, 0));
         _edge = new MazeEdge(_nodeFrom, _nodeTo);
@@ -89,7 +89,7 @@ public class MazeEdgeTests {
 
     [Test]
     public void Edge_CannotBeAdded_BetweenNodesFromDifferentGraphs() {
-        var otherGraph = new MazeGraph(10, 10);
+        var otherGraph = MazeGraph.Create(10, 10);
         var otherNode = otherGraph.CreateNode(new Vector2I(2, 0));
 
         Assert.Throws<InvalidEdgeException>(() => _nodeFrom.ConnectTo(otherNode));

@@ -14,7 +14,7 @@ public class MazeNodeWeightedPathTests {
 
     [SetUp]
     public void Setup() {
-        _graph = new MazeGraph(10, 10);
+        _graph = MazeGraph.Create(10, 10);
         _node = _graph.CreateNode(new Vector2I(1, 1));
     }
 

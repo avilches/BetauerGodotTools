@@ -13,14 +13,12 @@ public class MazeGraphTests {
 
     [SetUp]
     public void Setup() {
-        _graph = new MazeGraph(10, 10);
+        _graph = MazeGraph.Create(10, 10);
     }
 
     [Test]
     public void Constructor_InitializesCorrectly() {
         Assert.Multiple(() => {
-            Assert.That(_graph.Width, Is.EqualTo(10));
-            Assert.That(_graph.Height, Is.EqualTo(10));
             Assert.That(_graph.GetNodes(), Is.Empty);
             Assert.That(_graph.Root, Is.Null);
         });
@@ -100,7 +98,7 @@ public class MazeGraphTests {
     [Test]
     public void GetValidFreeAdjacentPositions_ReturnsCorrectPositions() {
         var node = _graph.CreateNode(new Vector2I(1, 1));
-        var positions = _graph.GetValidFreeAdjacentPositions(node.Position).ToList();
+        var positions = _graph.GetAvailableAdjacentPositions(node.Position).ToList();
 
         Assert.Multiple(() => {
             Assert.That(positions, Has.Count.EqualTo(4));
@@ -122,8 +120,6 @@ public class MazeGraphTests {
         var graph = MazeGraph.Create(template);
         
         Assert.Multiple(() => {
-            Assert.That(graph.Width, Is.EqualTo(3));
-            Assert.That(graph.Height, Is.EqualTo(3));
             Assert.That(graph.IsValidPosition(new Vector2I(0, 0)), Is.True);
             Assert.That(graph.IsValidPosition(new Vector2I(1, 0)), Is.False);
             Assert.That(graph.IsValidPosition(new Vector2I(2, 2)), Is.False);
