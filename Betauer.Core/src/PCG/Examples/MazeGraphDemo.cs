@@ -13,7 +13,7 @@ public class MazeGraphDemo {
         var rng = new Random(seed);
 
 
-        var mc = new MazeGraph(8, 8);
+        var mc = MazeGraph.Create(8, 8);
         var start = new Vector2I(0, 0);
         mc.OnEdgeCreated += (i) => {
             // PrintGraph(mc);

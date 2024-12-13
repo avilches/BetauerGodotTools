@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Betauer.Core.DataMath;
+using Betauer.Core.DataMath.Geometry;
 using Godot;
 
 namespace Betauer.Core.PCG.Maze;
@@ -89,7 +90,7 @@ public partial class MazeGraph {
         pendingNodes.Add(Root);
         while (pendingNodes.Count > 0 && totalNodesCreated < maxTotalNodes) {
             var currentNode = rng.Next(pendingNodes);
-            var adjacentPositions = GetValidFreeAdjacentPositions(currentNode.Position).ToList();
+            var adjacentPositions = GetAvailableAdjacentPositions(currentNode.Position).ToList();
 
             if (adjacentPositions.Count == 0) {
                 // invalid cell, removing
@@ -109,7 +110,9 @@ public partial class MazeGraph {
     /// Creates a new MazeGraph with the specified dimensions.
     /// </summary>
     public static MazeGraph Create(int width, int height) {
-        return new MazeGraph(width, height);
+        return new MazeGraph {
+            IsValidPositionFunc = pos => Geometry.IsPointInRectangle(pos.X, pos.Y, 0, 0, width, height)
+        };
     }
 
     /// <summary>
@@ -117,8 +120,10 @@ public partial class MazeGraph {
     /// In the template, true values represent valid positions for nodes. false values are forbidden (invalid)
     /// </summary>
     public static MazeGraph Create(bool[,] template) {
-        return new MazeGraph(template.GetLength(1), template.GetLength(0)) {
-            IsValidPositionFunc = pos => template[pos.Y, pos.X]
+        return new MazeGraph {
+            IsValidPositionFunc = pos =>
+                Geometry.IsPointInRectangle(pos.X, pos.Y, 0, 0, template.GetLength(1), template.GetLength(0))
+                && template[pos.Y, pos.X]
         };
     }
 
@@ -127,8 +132,10 @@ public partial class MazeGraph {
     /// In the template, true values represent valid positions for nodes. false values are forbidden (invalid)
     /// </summary>
     public static MazeGraph Create(Array2D<bool> template) {
-        return new MazeGraph(template.Width, template.Height) {
-            IsValidPositionFunc = pos => template[pos]
+        return new MazeGraph {
+            IsValidPositionFunc = pos =>
+                Geometry.IsPointInRectangle(pos.X, pos.Y, 0, 0, template.Width, template.Height)
+                && template[pos]
         };
     }
 
@@ -137,9 +144,10 @@ public partial class MazeGraph {
     /// In the template, true values represent valid positions for nodes. false values are forbidden (invalid)
     /// </summary>
     public static MazeGraph Create(BitArray2D template) {
-        return new MazeGraph(template.Width, template.Height) {
-            IsValidPositionFunc = pos => template[pos]
+        return new MazeGraph { //(template.Width, template.Height) {
+            IsValidPositionFunc = pos =>
+                Geometry.IsPointInRectangle(pos.X, pos.Y, 0, 0, template.Width, template.Height)
+                && template[pos]
         };
     }
-    
 }

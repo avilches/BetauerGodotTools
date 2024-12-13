@@ -11,8 +11,6 @@ namespace Betauer.Core.PCG.Maze;
 /// Represents a maze as a graph structure with nodes and edges in a 2d grid.
 /// </summary>
 public partial class MazeGraph {
-    public int Width { get; }
-    public int Height { get; }
     protected readonly Dictionary<Vector2I, MazeNode> NodeGrid  = [];
     protected readonly Dictionary<int, MazeNode> Nodes  = [];
     public MazeNode Root { get; protected set; }
@@ -43,9 +41,7 @@ public partial class MazeGraph {
     /// <param name="width">The width of the maze.</param>
     /// <param name="height">The height of the maze.</param>
     /// Optional, by default, it uses ortogonal positions up, down, left, right </param>
-    public MazeGraph(int width, int height) {
-        Width = width;
-        Height = height;
+    public MazeGraph() {
         GetAdjacentPositions = GetOrtogonalPositions;
     }
 
@@ -57,8 +53,7 @@ public partial class MazeGraph {
     }
 
     public bool IsValidPosition(Vector2I position) {
-        return Geometry.IsPointInRectangle(position.X, position.Y, 0, 0, Width, Height) && 
-               (IsValidPositionFunc == null || IsValidPositionFunc(position));
+        return IsValidPositionFunc == null || IsValidPositionFunc(position);
     }
 
     public MazeNode GetNode(int id) {
@@ -81,9 +76,6 @@ public partial class MazeGraph {
     }
 
     private void ValidatePosition(Vector2I position, string message) {
-        if (!Geometry.IsPointInRectangle(position.X, position.Y, 0, 0, Width, Height)) {
-            throw new InvalidNodeException($"Invalid position {position} in {message}: position out of bounds (0, 0, {Width}, {Height})", position);
-        }
         if (IsValidPositionFunc != null && !IsValidPositionFunc(position)) {
             throw new InvalidNodeException($"Invalid position {position} in {message}: {nameof(IsValidPositionFunc)} returned false", position);
         }
@@ -120,14 +112,14 @@ public partial class MazeGraph {
     }
 
     public MazeNode? GetNodeAtOrNull(Vector2I position) {
-        if (!Geometry.IsPointInRectangle(position.X, position.Y, 0, 0, Width, Height) ||
-            (IsValidPositionFunc != null && !IsValidPositionFunc(position))) return null;
+        if (IsValidPositionFunc != null && !IsValidPositionFunc(position)) return null;
         return NodeGrid.GetValueOrDefault(position);
     }
     
     internal bool InternalRemoveNode(MazeNode node) {
         if (!Nodes.Remove(node.Id)) return false;
         NodeGrid.Remove(node.Position);
+        OnNodeRemoved?.Invoke(node);
         return true;
     }
 
@@ -137,9 +129,8 @@ public partial class MazeGraph {
     }
     
     public bool RemoveNodeAt(Vector2I position) {
-        var node = GetNodeAt(position);
-        if (node == null) return false;
-        return node.RemoveNode();
+        var node = GetNodeAtOrNull(position);
+        return node != null && node.RemoveNode();
     }
     
     
@@ -203,7 +194,7 @@ public partial class MazeGraph {
     /// </summary>
     /// <param name="from"></param>
     /// <returns></returns>
-    public IEnumerable<Vector2I> GetValidFreeAdjacentPositions(Vector2I from) {
+    public IEnumerable<Vector2I> GetAvailableAdjacentPositions(Vector2I from) {
         return GetAdjacentPositions(from)
             .Where(adjacentPos => IsValidPosition(adjacentPos) && !NodeGrid.ContainsKey(adjacentPos));
     }
@@ -215,13 +206,11 @@ public partial class MazeGraph {
     /// <param name="from"></param>
     /// <returns></returns>
     public IEnumerable<Vector2I> GetValidFreeAdjacentDirections(Vector2I from) {
-        return GetValidFreeAdjacentPositions(from).Select(position => position - from);
+        return GetAvailableAdjacentPositions(from).Select(position => position - from);
     }
 
     public IEnumerable<Vector2I> GetOrtogonalPositions(Vector2I from) {
-        return Array2D.Directions.Select(dir => from + dir)
-            .Where(adjacentPos =>
-                Geometry.IsPointInRectangle(adjacentPos.X, adjacentPos.Y, 0, 0, Width, Height));
+        return Array2D.Directions.Select(dir => from + dir);
     }
 
     /// <summary>
@@ -251,5 +240,14 @@ public partial class MazeGraph {
     /// <returns>List of potential connections ordered by distance (longest paths first)</returns>
     public PotentialCycles GetPotentialCycles(bool useParentDistance = false) {
         return new PotentialCycles(this, useParentDistance);
+    }
+
+    public Vector2I GetOffset() {
+        return new Vector2I(GetNodes().Min(v => v.Position.X), GetNodes().Min(v => v.Position.Y));
+    }
+    public Vector2I GetSize() {
+        return new Vector2I(
+            GetNodes().Max(v => v.Position.X) - GetNodes().Min(v => v.Position.X), 
+            GetNodes().Max(v => v.Position.Y) - GetNodes().Min(v => v.Position.Y));
     }
 }

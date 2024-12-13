@@ -133,7 +133,7 @@ public partial class MazeGraph {
     // exit node of the other zone part.
     private (MazeNode parentNode, MazeNode newNode) CreateNextNode(IMazeZonedConstraints constraints, ZoneGeneration globalZone, ZoneGeneration currentZone, Random rng) {
         var parentNode = PickParentNode(constraints, globalZone, currentZone, rng);
-        var availablePositions = GetValidFreeAdjacentPositions(parentNode.Position).ToList();
+        var availablePositions = GetAvailableAdjacentPositions(parentNode.Position).ToList();
 
         while (true) {
             // 1) Discard the invalid nodes with 0 adjacent free positions
@@ -156,7 +156,7 @@ public partial class MazeGraph {
                     break;
                 }
                 // Removing the available positions without free adjacent positions 
-                availablePositions.RemoveAll(pos => !GetValidFreeAdjacentPositions(pos).Any());
+                availablePositions.RemoveAll(pos => !GetAvailableAdjacentPositions(pos).Any());
                 if (availablePositions.Count > 0) {
                     // If after the removal the list is not empty, we can use it
                     break;
@@ -169,7 +169,7 @@ public partial class MazeGraph {
             globalZone.AvailableNodes.Remove(parentNode);
             currentZone.AvailableNodes.Remove(parentNode);
             parentNode = PickParentNode(constraints, globalZone, currentZone, rng);
-            availablePositions = GetValidFreeAdjacentPositions(parentNode.Position).ToList();
+            availablePositions = GetAvailableAdjacentPositions(parentNode.Position).ToList();
         }
         var nextPos = rng.Next(availablePositions);
         var newNode = CreateNode(nextPos, parentNode);

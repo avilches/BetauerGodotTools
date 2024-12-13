@@ -86,7 +86,7 @@ public class MazeGraphDungeonDemo {
         */
 
         for (var i = 0; i < 20; i++) {
-            var mc = new MazeGraph(template.Width, template.Height) {
+            var mc = new MazeGraph() {
                 // IsValidPositionFunc = true // pos => template[pos] != '·'
             };
             var start = template.FirstOrDefault(dataCell => dataCell.Value == 'o')!.Position;
@@ -124,7 +124,7 @@ public class MazeGraphDungeonDemo {
             };
 
             // Console.WriteLine(i);
-            var zones = mc.GrowZoned(start, constraints, rng);
+            var zones = mc.GrowZoned(new Vector2I(0, 0), constraints, rng);
 
             // PrintGraph(mc);
 
@@ -263,6 +263,8 @@ public class MazeGraphDungeonDemo {
         var offset = 0;
         var keys = zones?.GetBestLocationsByZone(KeyFormula);
         var loot = zones?.SpreadLocationsByZone(0.3f, LootFormula);
+        var mazeOffset = mc.GetOffset();
+        var width = mc.GetSize().X;
         foreach (var node in mc.GetNodes()) {
             if (node == null) continue;
             var canvas = new TextCanvas();
@@ -280,9 +282,9 @@ public class MazeGraphDungeonDemo {
                 canvas.Write(1, 1, node.ZoneId.ToString());
                 // canvas.Write(1, 1, node.ZoneId.ToStri/**/ng()+node.PartId.ToString());
             }
-            allCanvas.Write(offset + node.Position.X * 3, node.Position.Y * 3, canvas.ToString());
+            allCanvas.Write(offset + (node.Position.X - mazeOffset.X) * 3, (node.Position.Y - mazeOffset.Y) * 3, canvas.ToString());
         }
-        offset += (mc.Width * 3 + 5);
+        offset += (width * 3 + 5);
         foreach (var node in mc.GetNodes()) {
             if (node == null) continue;
             var canvas = new TextCanvas();
@@ -292,7 +294,7 @@ public class MazeGraphDungeonDemo {
             if (node.Left != null) canvas.Write(0, 1, node.GetEdgeTowards(Vector2I.Left)!.GetMetadataOrNew<Metadata>().Added ? "·" : "-");
             canvas.Write(1, 1, node.Id.ToString());
 
-            allCanvas.Write(offset + node.Position.X * 3, node.Position.Y * 3, canvas.ToString());
+            allCanvas.Write(offset + (node.Position.X - mazeOffset.X) * 3, (node.Position.Y - mazeOffset.Y) * 3, canvas.ToString());
         }
 
         if (zones != null) {
@@ -307,7 +309,7 @@ public class MazeGraphDungeonDemo {
             // zones.CalculateSolution(KeyFormula, [0, 1, 3, 4, 5, 6, 7, 2]);
             // zones.CalculateSolution(KeyFormula, [1, 4, 6, 5, 3, 7, 2]); // This fail if you don't take into account the key usage
 
-            offset += mc.Width * 3 + 5;
+            offset += width * 3 + 5;
             foreach (var node in mc.GetNodes()) {
                 if (node == null) continue;
                 var canvas = new TextCanvas();
@@ -348,15 +350,15 @@ public class MazeGraphDungeonDemo {
                 } else {
                     canvas.Write(1, 1, $"+");
                 }
-                allCanvas.Write(offset + node.Position.X * 6, node.Position.Y * 3, canvas.ToString());
+                allCanvas.Write(offset + (node.Position.X - mazeOffset.X) * 3, (node.Position.Y - mazeOffset.Y) * 3, canvas.ToString());
             }
             Console.WriteLine(allCanvas.ToString());
-            
+
             zones.Scoring.VisitDistribution.ForEach((kv) => {
                 // Console.WriteLine($"{kv.Key}: {kv.Value*100:00.0}%");
             });
 
-            Console.WriteLine($"{mc.GetNodes().Count} nodes, solution path: {zones.Scoring.SolutionPath.Count} goal path: {zones.Scoring.GoalPath.Count}, redundancy: {zones.Scoring.Redundancy*100:0}% gini {zones.Scoring.ConcentrationIndex*100:0}%. {zones.Scoring.VisitDistribution.GetValueOrDefault(0, 0)*100:0}% isolated from solution");
+            Console.WriteLine($"{mc.GetNodes().Count} nodes, solution path: {zones.Scoring.SolutionPath.Count} goal path: {zones.Scoring.GoalPath.Count}, redundancy: {zones.Scoring.Redundancy * 100:0}% gini {zones.Scoring.ConcentrationIndex * 100:0}%. {zones.Scoring.VisitDistribution.GetValueOrDefault(0, 0) * 100:0}% isolated from solution");
         } else {
             Console.WriteLine(allCanvas.ToString());
         }

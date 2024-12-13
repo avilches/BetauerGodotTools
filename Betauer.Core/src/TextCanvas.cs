@@ -65,8 +65,8 @@ public class TextCanvas {
     }
 
     private void _Write(int column, int row, string text) {
-        if (column < 0) throw new ArgumentException("Column is out of canvas bounds: " + row);
-        if (row < 0) throw new ArgumentException("Row is out of canvas bounds: " + row);
+        if (column < 0) throw new ArgumentException($"Column is out of canvas bounds: {column}");
+        if (row < 0) throw new ArgumentException($"Row is out of canvas bounds: {row}");
         text ??= "";
         EnsureSize(column + text.Length, row + 1);
         var line = _lines[row];
