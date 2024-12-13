@@ -110,9 +110,9 @@ public partial class MazeGraph {
     /// Creates a new MazeGraph with the specified dimensions.
     /// </summary>
     public static MazeGraph Create(int width, int height) {
-        return new MazeGraph {
-            IsValidPositionFunc = pos => Geometry.IsPointInRectangle(pos.X, pos.Y, 0, 0, width, height)
-        };
+        var mazeGraph = new MazeGraph();
+        mazeGraph.AddPositionValidator(pos => Geometry.IsPointInRectangle(pos.X, pos.Y, 0, 0, width, height));
+        return mazeGraph;
     }
 
     /// <summary>
@@ -120,11 +120,9 @@ public partial class MazeGraph {
     /// In the template, true values represent valid positions for nodes. false values are forbidden (invalid)
     /// </summary>
     public static MazeGraph Create(bool[,] template) {
-        return new MazeGraph {
-            IsValidPositionFunc = pos =>
-                Geometry.IsPointInRectangle(pos.X, pos.Y, 0, 0, template.GetLength(1), template.GetLength(0))
-                && template[pos.Y, pos.X]
-        };
+        var mazeGraph = new MazeGraph();
+        mazeGraph.AddPositionValidator(pos => Geometry.IsPointInRectangle(pos.X, pos.Y, 0, 0, template.GetLength(1), template.GetLength(0)) && template[pos.Y, pos.X]);
+        return mazeGraph;
     }
 
     /// <summary>
@@ -132,11 +130,9 @@ public partial class MazeGraph {
     /// In the template, true values represent valid positions for nodes. false values are forbidden (invalid)
     /// </summary>
     public static MazeGraph Create(Array2D<bool> template) {
-        return new MazeGraph {
-            IsValidPositionFunc = pos =>
-                Geometry.IsPointInRectangle(pos.X, pos.Y, 0, 0, template.Width, template.Height)
-                && template[pos]
-        };
+        var mazeGraph = new MazeGraph();
+        mazeGraph.AddPositionValidator(pos => Geometry.IsPointInRectangle(pos.X, pos.Y, 0, 0, template.Width, template.Height) && template[pos.Y, pos.X]);
+        return mazeGraph;
     }
 
     /// <summary>
@@ -144,10 +140,8 @@ public partial class MazeGraph {
     /// In the template, true values represent valid positions for nodes. false values are forbidden (invalid)
     /// </summary>
     public static MazeGraph Create(BitArray2D template) {
-        return new MazeGraph { //(template.Width, template.Height) {
-            IsValidPositionFunc = pos =>
-                Geometry.IsPointInRectangle(pos.X, pos.Y, 0, 0, template.Width, template.Height)
-                && template[pos]
-        };
+        var mazeGraph = new MazeGraph();
+        mazeGraph.AddPositionValidator(pos => Geometry.IsPointInRectangle(pos.X, pos.Y, 0, 0, template.Width, template.Height) && template[pos.Y, pos.X]);
+        return mazeGraph;
     }
 }

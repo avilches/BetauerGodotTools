@@ -39,7 +39,7 @@ public class PotentialCycles {
         Func<int, bool> filter,
         bool descending = true) {
         var query = _potentialConnections
-            .Where(x=> _graph.IsValidEdge(x.nodeA.Position, x.nodeB.Position))
+            .Where(x=> _graph.CanConnect(x.nodeA, x.nodeB))
             .Select(x => {
                 var distance = _useParentDistance
                     ? x.nodeA.GetTreeDistanceToNode(x.nodeB)

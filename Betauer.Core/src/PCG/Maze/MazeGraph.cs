@@ -11,22 +11,23 @@ namespace Betauer.Core.PCG.Maze;
 /// Represents a maze as a graph structure with nodes and edges in a 2d grid.
 /// </summary>
 public partial class MazeGraph {
-    protected readonly Dictionary<Vector2I, MazeNode> NodeGrid  = [];
-    protected readonly Dictionary<int, MazeNode> Nodes  = [];
+    protected readonly Dictionary<Vector2I, MazeNode> NodeGrid = [];
+    protected readonly Dictionary<int, MazeNode> Nodes = [];
     public MazeNode Root { get; protected set; }
 
     public Func<Vector2I, IEnumerable<Vector2I>> GetAdjacentPositions { get; set; }
 
-    /// <summary>
-    /// Called to determine if a position is valid before creating a node, rejecting with an exception if the position is not valid.
-    /// Called to filter the adjacent positions of a node, ignoring invalid positions. 
-    /// </summary>
-    public Func<Vector2I, bool>? IsValidPositionFunc { get; set; } = _ => true;
+    private readonly List<Func<Vector2I, bool>> _positionValidators = [];
+    private readonly List<Func<MazeNode, MazeNode, bool>> _edgeValidators = [];
 
-    /// <summary>
-    /// Called to determine if an edge is valid before creating it.
-    /// </summary>
-    public Func<Vector2I, Vector2I, bool>? IsValidEdgeFunc { get; set; } = (_, _) => true;
+    public void AddPositionValidator(Func<Vector2I, bool> validator) => _positionValidators.Add(validator);
+    public void RemovePositionValidator(Func<Vector2I, bool> validator) => _positionValidators.Remove(validator);
+    public void AddEdgeValidator(Func<MazeNode, MazeNode, bool> validator) => _edgeValidators.Add(validator);
+    public void RemoveEdgeValidator(Func<MazeNode, MazeNode, bool> validator) => _edgeValidators.Remove(validator);
+    public bool IsValidPosition(Vector2I position) => _positionValidators.Count == 0 || _positionValidators.All(validator => validator(position));
+    public bool CanConnect(MazeNode from, MazeNode to) => _edgeValidators.Count == 0 || _edgeValidators.All(validator => validator(from, to));
+    public void ClearPositionValidators() => _positionValidators.Clear();
+    public void ClearEdgeValidators() => _edgeValidators.Clear();
 
     public event Action<MazeEdge>? OnEdgeCreated;
     public event Action<MazeEdge>? OnEdgeRemoved;
@@ -38,8 +39,6 @@ public partial class MazeGraph {
     /// <summary>
     /// Initializes a new instance of the MazeGraph class.
     /// </summary>
-    /// <param name="width">The width of the maze.</param>
-    /// <param name="height">The height of the maze.</param>
     /// Optional, by default, it uses ortogonal positions up, down, left, right </param>
     public MazeGraph() {
         GetAdjacentPositions = GetOrtogonalPositions;
@@ -50,10 +49,6 @@ public partial class MazeGraph {
         NodeGrid.Clear();
         Nodes.Clear();
         LastId = 0;
-    }
-
-    public bool IsValidPosition(Vector2I position) {
-        return IsValidPositionFunc == null || IsValidPositionFunc(position);
     }
 
     public MazeNode GetNode(int id) {
@@ -70,14 +65,14 @@ public partial class MazeGraph {
 
     public MazeNode GetOrCreateNode(Vector2I position) {
         ValidatePosition(position, nameof(GetOrCreateNode));
-        return NodeGrid.TryGetValue(position, out var node) 
-            ? node 
+        return NodeGrid.TryGetValue(position, out var node)
+            ? node
             : CreateNode(position);
     }
 
     private void ValidatePosition(Vector2I position, string message) {
-        if (IsValidPositionFunc != null && !IsValidPositionFunc(position)) {
-            throw new InvalidNodeException($"Invalid position {position} in {message}: {nameof(IsValidPositionFunc)} returned false", position);
+        if (!IsValidPosition(position)) {
+            throw new InvalidNodeException($"Invalid position {position} in {message}", position);
         }
     }
 
@@ -112,10 +107,9 @@ public partial class MazeGraph {
     }
 
     public MazeNode? GetNodeAtOrNull(Vector2I position) {
-        if (IsValidPositionFunc != null && !IsValidPositionFunc(position)) return null;
-        return NodeGrid.GetValueOrDefault(position);
+        return IsValidPosition(position) ? NodeGrid.GetValueOrDefault(position) : null;
     }
-    
+
     internal bool InternalRemoveNode(MazeNode node) {
         if (!Nodes.Remove(node.Id)) return false;
         NodeGrid.Remove(node.Position);
@@ -124,55 +118,49 @@ public partial class MazeGraph {
     }
 
     public bool RemoveNode(int id) {
-        if (!Nodes.TryGetValue(id, out var node)) return false;
-        return node.RemoveNode();
+        return Nodes.TryGetValue(id, out var node) && node.RemoveNode();
     }
-    
+
     public bool RemoveNodeAt(Vector2I position) {
         var node = GetNodeAtOrNull(position);
         return node != null && node.RemoveNode();
     }
-    
-    
+
+
     public void DisconnectNodes(int fromId, int toId) {
         var from = GetNode(fromId);
         var to = GetNode(toId);
         from.RemoveEdgeTo(to);
     }
-    
+
     public void DisconnectNodes(Vector2I fromPos, Vector2I toPos) {
         var from = GetNodeAt(fromPos)!;
         var to = GetNodeAt(toPos)!;
         from.RemoveEdgeTo(to);
     }
-    
+
     public MazeEdge ConnectNodes(int fromId, int toId, object metadata = default, float weight = 0f) {
         var from = GetNode(fromId);
         var to = GetNode(toId);
         return from.ConnectTo(to, metadata, weight);
     }
-    
+
     public MazeEdge ConnectNodes(Vector2I fromPosition, Vector2I toPosition, object metadata = default, float weight = 0f) {
         var from = GetNodeAt(fromPosition)!;
         var to = GetNodeAt(toPosition)!;
         return from.ConnectTo(to, metadata, weight);
     }
-    
+
     public MazeEdge ConnectNodes(MazeNode from, MazeNode to, object metadata = default, float weight = 0f) {
         return from.ConnectTo(to, metadata, weight);
     }
-    
+
     internal void InvokeOnEdgeCreated(MazeEdge edge) {
         OnEdgeCreated?.Invoke(edge);
     }
 
     internal void InvokeOnEdgeRemoved(MazeEdge edge) {
         OnEdgeRemoved?.Invoke(edge);
-    }
-
-    public bool IsValidEdge(Vector2I from, Vector2I to) {
-        return IsValidPosition(from) && IsValidPosition(to) &&
-               (IsValidEdgeFunc == null || IsValidEdgeFunc(from, to));
     }
 
     /// <summary>
@@ -245,9 +233,10 @@ public partial class MazeGraph {
     public Vector2I GetOffset() {
         return new Vector2I(GetNodes().Min(v => v.Position.X), GetNodes().Min(v => v.Position.Y));
     }
+
     public Vector2I GetSize() {
         return new Vector2I(
-            GetNodes().Max(v => v.Position.X) - GetNodes().Min(v => v.Position.X), 
+            GetNodes().Max(v => v.Position.X) - GetNodes().Min(v => v.Position.X),
             GetNodes().Max(v => v.Position.Y) - GetNodes().Min(v => v.Position.Y));
     }
 }

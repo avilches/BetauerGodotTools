@@ -236,7 +236,7 @@ public class MazeNode {
         if (to == this) {
             throw new InvalidEdgeException("Cannot connect node to itself", Position, to.Position);
         }
-        if (!_mazeGraph.IsValidEdge(Position, to.Position)) {
+        if (!_mazeGraph.CanConnect(this, to)) {
             throw new InvalidEdgeException($"Invalid edge between {Position} and {to.Position}", Position, to.Position);
         }
 

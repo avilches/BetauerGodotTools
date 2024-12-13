@@ -9,13 +9,14 @@ namespace Betauer.Core.PCG.Maze.Zoned;
 /// Manages scoring and analysis of zones within a maze. Used to find optimal locations and analyze 
 /// node characteristics within different zones of the maze.
 /// </summary>
-public class MazeZones(MazeGraph graphZoned, List<Zone> zones) {
-    public MazeGraph GraphZoned { get; } = graphZoned;
+public class MazeZones(MazeGraph mazeGraph, IMazeZonedConstraints constraints, List<Zone> zones) {
+    public IMazeZonedConstraints Constraints { get; } = constraints;
+    public MazeGraph MazeGraph { get; } = mazeGraph;
     public IReadOnlyList<Zone> Zones => zones;
 
-    public IReadOnlyCollection<MazeNode> GetNodes() => GraphZoned.GetNodes();
+    public IReadOnlyCollection<MazeNode> GetNodes() => MazeGraph.GetNodes();
 
-    public int NodeCount => GraphZoned.GetNodes().Count;
+    public int NodeCount => MazeGraph.GetNodes().Count;
 
     internal readonly Dictionary<MazeNode, NodeScore> Scores = [];
 
@@ -37,7 +38,7 @@ public class MazeZones(MazeGraph graphZoned, List<Zone> zones) {
 
         // Find the maximum number of edges any node has in the graph
         // Example: In a grid maze, a center node might have 4 edges, while a corner node has 2
-        var maxGraphEdges = GraphZoned.GetNodes().Max(n => n.GetOutEdges().Count);
+        var maxGraphEdges = MazeGraph.GetNodes().Max(n => n.GetOutEdges().Count);
 
         foreach (var zone in Zones) {
             foreach (var part in zone.Parts) {
@@ -45,7 +46,7 @@ public class MazeZones(MazeGraph graphZoned, List<Zone> zones) {
             }
         }
 
-        foreach (var node in GraphZoned.GetNodes()) {
+        foreach (var node in MazeGraph.GetNodes()) {
             var graphEndScore = CalculateDeadEndScore(node, maxGraphEdges);
             var (belongsToPathToEntry, entryDistanceScore) = CalculateEntryDistanceScore(node);
             var (belongsToPathToExit, exitDistanceScore) = CalculateExitDistanceScore(node);
@@ -112,7 +113,7 @@ public class MazeZones(MazeGraph graphZoned, List<Zone> zones) {
         // The first path starts from the node root and goes to the first key in the zone 0 (best location in 0)
         // because the first key in the zone 0 opens the next zone in the zoneOrder
         var keys = new HashSet<int> { 0 /* The key 0 is always available */ };
-        stops.Add(GraphZoned.Root);
+        stops.Add(MazeGraph.Root);
         foreach (var zoneId in zoneOrder) {
             keys.Add(zoneId);
             var pathStart = stops.Last();
@@ -138,7 +139,7 @@ public class MazeZones(MazeGraph graphZoned, List<Zone> zones) {
 
         // Calcular non-linearity: suma de todas las visitas adicionales
         // (cada habitación que se visita más de una vez suma sus visitas extras)
-        var goalPath = graphZoned.Root.FindShortestPath(keyLocations[zoneOrder.Last()]);
+        var goalPath = mazeGraph.Root.FindShortestPath(keyLocations[zoneOrder.Last()]);
 
         Scoring = new MazeSolutionScoring(Scores, keyLocations, zoneOrder, goalPath, solutionPath);
     }

@@ -17,101 +17,11 @@ public class Metadata() {
     }
 }
 
-public class MazeGraphDungeonDemo {
+public class MazeGraphZonedDemo {
     public static void Main() {
-        var seed = 5;
+        var seed = 1;
         var rng = new Random(seed);
-
-        var temp = """
-                   ···#####········
-                   ··######········
-                   ·#########······
-                   ###······+#####·
-                   ###<<<<<<+####··
-                   ###·····########
-                   ###<<+<<<##·····
-                   #####+#####·····
-                   ···##o##·····###
-                   ···##·##·····###
-                   """;
-        var temp2 = """
-                    ··········
-                    ··######··
-                    ·#########
-                    ·###···###
-                    ·####o####
-                    ···##·###·
-                    """;
-
-        var temp3 = """
-                    ·#########·
-                    ###########
-                    ##·##·##·##
-                    ###########
-                    ##·##o##·##
-                    <<<<<<<<<<<
-                    """;
-
-        var temp4 = """
-                    ###############
-                    ###############
-                    ###############
-                    ###############
-                    ###############
-                    ###############
-                    ###############
-                    #######o#######
-                    ###############
-                    ###############
-                    ###############
-                    ###############
-                    ###############
-                    ###############
-                    ###############
-                    """;
-
-        var template = Array2D.Parse(temp4);
-
-        /*
-        var mc = new MazeGraph(template.Width, template.Height) {
-               IsValidPositionFunc = pos => template[pos] != '·'
-           };
-           var start = template.FirstOrDefault(dataCell => dataCell.Value == 'o')!.Position;
-        mc.GrowZoned(start, new MazeZonedConstraints(4, 200)
-            // .SetNodesPerZones(5)
-            .SetRandomNodesPerZone(4, 10, rng)
-            .SetPartsPerZone(2)
-            .SetMaxExitNodes(2), rng);
-        // PrintGraph(mc);
-        */
-
         for (var i = 0; i < 20; i++) {
-            var mc = new MazeGraph() {
-                // IsValidPositionFunc = true // pos => template[pos] != '·'
-            };
-            var start = template.FirstOrDefault(dataCell => dataCell.Value == 'o')!.Position;
-            var corridor = false;
-            var constraints = new MazePerZoneConstraints()
-                    .Zone(nodes: 18, corridor: false)
-                    .Zone(nodes: 8, parts: 2, corridor: true)
-                    .Zone(nodes: 2, parts: 1, maxExitNodes: 0, corridor: true, flexibleParts: false)
-                    .Zone(nodes: 8, parts: 2, corridor: true)
-                    .Zone(nodes: 8, parts: 2, corridor: false)
-                    .Zone(nodes: 8, parts: 2, corridor: false)
-                    .Zone(nodes: 8, parts: 2, corridor: false)
-                    .Zone(nodes: 2, parts: 1, maxExitNodes: 0, corridor: true, flexibleParts: false)
-                ;
-            /*
-            var constraints = new MazePerZoneConstraints()
-                    .Zone(nodes: 5)
-                    .Zone(nodes: 6, parts: 1, maxExitNodes: 0, corridor: true)
-                    .Zone(nodes: 6, parts: 1, maxExitNodes: 0, corridor: true)
-                    .Zone(nodes: 6, parts: 1, maxExitNodes: 0, corridor: true)
-                    .Zone(nodes: 6, parts: 1, maxExitNodes: 0, corridor: true)
-                    // .Zone(nodes: 6, parts: 1, maxExitNodes: 0, corridor: true)
-                ;
-                */
-
             // PENDIENTE DE HACER
             // 4 colocar objeto llave donde toca, el ultimo es la salida o el jefe
             // calcular linearidad: calcular las llaves en orden y calcular la ruta entre ellas
@@ -119,121 +29,22 @@ public class MazeGraphDungeonDemo {
             // cuantas veces pasa por cada nodo, y si se deja nodos sin pasar
             // calcular dificultad segun cercania al boss?
 
-            mc.OnNodeCreated += (node) => {
-                // PrintGraph(mc);
-            };
-
             // Console.WriteLine(i);
-            var zones = mc.GrowZoned(new Vector2I(0, 0), constraints, rng);
-
-            // PrintGraph(mc);
-
-            // foreach (var zone in zones.Zones) {
-            //     Console.WriteLine($"Zone {zone.ZoneId} Nodes: {zone.NodeCount} Parts: {zone.Parts.Count}/{constraints.GetParts(zone.ZoneId)} Exits: {zone.GetAllExitNodes().Count()}/{constraints.GetMaxExitNodes(zone.ZoneId)}");
-            // }
-
-            // PrintGraph(mc);
-
-            // NeverConnectZone(mc, 2);
-            // Console.WriteLine("Connecting nodes with symbols");
-            // ConnectNodes(template, mc);
+            var zones = MazeGraphCatalog.Labyrinth(rng, mc => {
+                mc.OnNodeCreated += (node) => {
+                    // PrintGraph(mc);
+                };
+            });
+            
+            PrintGraph(zones.MazeGraph);
 
             foreach (var zone in zones.Zones) {
-                Enumerable.Range(0, zone.Parts.Count).ForEach(_ => {
-                    var (nodeA, nodeB, distance) = ConnectZone(mc, zone.ZoneId);
-                    if (distance > 0) {
-                        // Console.WriteLine($"Zone {zone.ZoneId}: Connected {nodeA.Id} to {nodeB.Id} with distance {distance}");
-                    }
-                });
+                Console.WriteLine($"Zone {zone.ZoneId} Nodes: {zone.NodeCount} Parts: {zone.Parts.Count}/{zones.Constraints.GetParts(zone.ZoneId)} Exits: {zone.GetAllExitNodes().Count()}/{zones.Constraints.GetMaxExitNodes(zone.ZoneId)}");
             }
-            // Console.WriteLine("Longest cycles");
-            AddLongestCycles(mc, zones.Zones.Count);
-            // Console.WriteLine("Shortest cycles");
-            // AddShortestCycles(mc, 3);
 
             zones.CalculateNodeScores();
-            PrintGraph(mc, zones);
+            PrintGraph(zones.MazeGraph, zones);
         }
-    }
-
-    private static void NeverConnectZone(MazeGraph mc, int zone) {
-        var neverConnect = mc.GetNodes().Where(n => n.ZoneId == zone).Select(node => node.Position).ToList();
-        mc.IsValidEdgeFunc = (from, to) => {
-            if (neverConnect.Contains(from) || neverConnect.Contains(to)) return false;
-            return true;
-        };
-    }
-
-    private static (MazeNode nodeA, MazeNode nodeB, int distance) ConnectZone(MazeGraph mc, int zone) {
-        var cycles = mc.GetPotentialCycles();
-        var connection = cycles
-            .GetCyclesGreaterThan(0)
-            .FirstOrDefault(c => c.nodeA.ZoneId == c.nodeB.ZoneId && c.nodeA.ZoneId == zone);
-        if (connection == default) return (null, null, 0);
-        connection.nodeA.ConnectTo(connection.nodeB, new Metadata(true));
-        connection.nodeB.ConnectTo(connection.nodeA, new Metadata(true));
-        return connection;
-    }
-
-    private static void AddLongestCycles(MazeGraph mc, int maxCycles) {
-        var cycles = mc.GetPotentialCycles();
-        var cyclesAdded = 0;
-        while (cyclesAdded < maxCycles) {
-            var connection = cycles
-                .GetAllCycles()
-                .FirstOrDefault(c => c.nodeA.ZoneId != c.nodeB.ZoneId);
-            if (connection == default) break;
-
-            connection.nodeA.ConnectTo(connection.nodeB, new Metadata(true));
-            connection.nodeB.ConnectTo(connection.nodeA, new Metadata(true));
-            cyclesAdded++;
-            cycles.RemoveCycle(connection.nodeA, connection.nodeB);
-        }
-    }
-
-    private static void AddShortestCycles(MazeGraph mc, int maxCycles) {
-        var cycles = mc.GetPotentialCycles();
-        var cyclesAdded = 0;
-        while (cyclesAdded < maxCycles) {
-            var connection = cycles
-                .GetAllCycles(false)
-                .FirstOrDefault(c => c.nodeA.ZoneId != c.nodeB.ZoneId);
-            if (connection == default) break;
-
-            connection.nodeA.ConnectTo(connection.nodeB, new Metadata(true));
-            connection.nodeB.ConnectTo(connection.nodeA, new Metadata(true));
-            cyclesAdded++;
-            cycles.RemoveCycle(connection.nodeA, connection.nodeB);
-        }
-    }
-
-    private static void ConnectNodes(Array2D<char> template, MazeGraph mc) {
-        template
-            .Where(dataCell => dataCell.Value == '<')
-            .Select(dataCell => mc.GetNodeAtOrNull(dataCell.Position)!)
-            .Where(node => node != null! && mc.IsValidEdge(node.Position, node.Position + Vector2I.Left))
-            .ForEach(from => {
-                var to = mc.GetNodeAtOrNull(from.Position + Vector2I.Left);
-                if (to != null && !from.HasEdgeTo(to)) {
-                    from.ConnectTo(to, new Metadata(true));
-                    to.ConnectTo(from, new Metadata(true));
-                }
-            });
-
-        template
-            .Where(dataCell => dataCell.Value == '+' || dataCell.Value == 'o')
-            .Select(dataCell => mc.GetNodeAt(dataCell.Position))
-            .Where(node => node != null!)
-            .ForEach(from => {
-                mc.GetOrtogonalPositions(from.Position).Select(mc.GetNodeAtOrNull)
-                    .Where(node => node != null && mc.IsValidEdge(node.Position, from.Position))
-                    .ForEach(to => {
-                        if (!from.HasEdgeTo(to)) {
-                            from.ConnectTo(to, new Metadata(true));
-                            to.ConnectTo(from, new Metadata(true));
-                        }
-                    });
-            });
     }
 
     /*
@@ -269,7 +80,7 @@ public class MazeGraphDungeonDemo {
             if (node == null) continue;
             var canvas = new TextCanvas();
             if (node.Up != null) canvas.Write(1, 0, node.GetEdgeTowards(Vector2I.Up)!.GetMetadataOrNew<Metadata>().Added ? "·" : "|");
-            if (node.Right != null) canvas.Write(2, 1, node.GetEdgeTowards(Vector2I.Right)!.GetMetadataOrNew<Metadata>().Added ? "·" : "-");
+            if (node.Right != null) canvas.Write(2, 1, node.GetEdgeTowards(Vector2I.Right)!.GetMetadataOrNew<Metadata>().Added ? "····" : "----");
             if (node.Down != null) canvas.Write(1, 2, node.GetEdgeTowards(Vector2I.Down)!.GetMetadataOrNew<Metadata>().Added ? "·" : "|");
             if (node.Left != null) canvas.Write(0, 1, node.GetEdgeTowards(Vector2I.Left)!.GetMetadataOrNew<Metadata>().Added ? "·" : "-");
             if (zones != null) {
@@ -282,19 +93,19 @@ public class MazeGraphDungeonDemo {
                 canvas.Write(1, 1, node.ZoneId.ToString());
                 // canvas.Write(1, 1, node.ZoneId.ToStri/**/ng()+node.PartId.ToString());
             }
-            allCanvas.Write(offset + (node.Position.X - mazeOffset.X) * 3, (node.Position.Y - mazeOffset.Y) * 3, canvas.ToString());
+            allCanvas.Write(offset + (node.Position.X - mazeOffset.X) * 6, (node.Position.Y - mazeOffset.Y) * 3, canvas.ToString());
         }
-        offset += (width * 3 + 5);
+        offset += (width * 6 + 5);
         foreach (var node in mc.GetNodes()) {
             if (node == null) continue;
             var canvas = new TextCanvas();
             if (node.Up != null) canvas.Write(1, 0, node.GetEdgeTowards(Vector2I.Up)!.GetMetadataOrNew<Metadata>().Added ? "·" : "|");
-            if (node.Right != null) canvas.Write(2, 1, node.GetEdgeTowards(Vector2I.Right)!.GetMetadataOrNew<Metadata>().Added ? "·" : "-");
+            if (node.Right != null) canvas.Write(2, 1, node.GetEdgeTowards(Vector2I.Right)!.GetMetadataOrNew<Metadata>().Added ? "····" : "----");
             if (node.Down != null) canvas.Write(1, 2, node.GetEdgeTowards(Vector2I.Down)!.GetMetadataOrNew<Metadata>().Added ? "·" : "|");
             if (node.Left != null) canvas.Write(0, 1, node.GetEdgeTowards(Vector2I.Left)!.GetMetadataOrNew<Metadata>().Added ? "·" : "-");
             canvas.Write(1, 1, node.Id.ToString());
 
-            allCanvas.Write(offset + (node.Position.X - mazeOffset.X) * 3, (node.Position.Y - mazeOffset.Y) * 3, canvas.ToString());
+            allCanvas.Write(offset + (node.Position.X - mazeOffset.X) * 6, (node.Position.Y - mazeOffset.Y) * 3, canvas.ToString());
         }
 
         if (zones != null) {
@@ -309,7 +120,7 @@ public class MazeGraphDungeonDemo {
             // zones.CalculateSolution(KeyFormula, [0, 1, 3, 4, 5, 6, 7, 2]);
             // zones.CalculateSolution(KeyFormula, [1, 4, 6, 5, 3, 7, 2]); // This fail if you don't take into account the key usage
 
-            offset += width * 3 + 5;
+            offset += width * 6 + 5;
             foreach (var node in mc.GetNodes()) {
                 if (node == null) continue;
                 var canvas = new TextCanvas();
@@ -350,7 +161,7 @@ public class MazeGraphDungeonDemo {
                 } else {
                     canvas.Write(1, 1, $"+");
                 }
-                allCanvas.Write(offset + (node.Position.X - mazeOffset.X) * 3, (node.Position.Y - mazeOffset.Y) * 3, canvas.ToString());
+                allCanvas.Write(offset + (node.Position.X - mazeOffset.X) * 6, (node.Position.Y - mazeOffset.Y) * 3, canvas.ToString());
             }
             Console.WriteLine(allCanvas.ToString());
 

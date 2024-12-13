@@ -29,7 +29,7 @@ public partial class MazeGraph {
             throw new ArgumentException("Invalid start position", nameof(start));
         }
         var maxTotalNodes = constraints.MaxTotalNodes == -1 ? int.MaxValue : constraints.MaxTotalNodes;
-        if (maxTotalNodes == 0 || constraints.MaxZones == 0) return new MazeZones(this, []);
+        if (maxTotalNodes == 0 || constraints.MaxZones == 0) return new MazeZones(this, constraints, []);
 
         rng ??= new Random();
         var zones = new List<ZoneGeneration>();
@@ -47,7 +47,7 @@ public partial class MazeGraph {
         if (constraints.GetNodesPerZone(0) == 1) {
             if (constraints.MaxZones == 1) {
                 // Special case: only one zone with one node
-                return CreateMazeZones(zones);
+                return CreateMazeZones(constraints, zones);
             }
             currentZone.AvailableNodes.Clear();
             globalZone.AvailableNodes.Add(Root);
@@ -116,12 +116,12 @@ public partial class MazeGraph {
             //     Console.WriteLine($"Zone {zone.ZoneId} Nodes: {zone.NodesCreated} Parts: {zone.Parts.Count}/{constraints.GetParts(zone.ZoneId)} Exits: {zone.ExitNodesCreated}/{(maxExitNodes == -1 ? "∞" : maxExitNodes)}");
             // }
         }
-        return CreateMazeZones(zones);
+        return CreateMazeZones(constraints, zones);
     }
 
-    private MazeZones CreateMazeZones(List<ZoneGeneration> zones) {
+    private MazeZones CreateMazeZones(IMazeZonedConstraints constraints, List<ZoneGeneration> zones) {
         var list = zones.Select(zone => zone.ToZone()).ToList();
-        var mazeZones = new MazeZones(this, list);
+        var mazeZones = new MazeZones(this, constraints, list);
         foreach (var zone in list) {
             zone.MazeZones = mazeZones;
         }
