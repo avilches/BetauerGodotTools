@@ -101,11 +101,11 @@ public class MazeZones(MazeGraph graphZoned, List<Zone> zones) {
             Scores.Values.ForEach(score => score.SolutionTraversals = 0);
         }
 
-        var keyLocations = GetBestLocationsByZone(scoreCalculator);
+        Dictionary<int, MazeNode> keyLocations = GetBestLocationsByZone(scoreCalculator);
         List<MazeNode> stops = [];
         List<List<MazeNode>> paths = [];
         List<MazeNode> solutionPath = [];
-        zoneOrder ??= Enumerable.Range(0, Zones.Count - 1).ToList();
+        zoneOrder ??= Enumerable.Range(0, Zones.Count).ToList();
         if (zoneOrder[0] != 0) {
             zoneOrder = (List<int>) [0, ..zoneOrder];
         }
@@ -139,20 +139,12 @@ public class MazeZones(MazeGraph graphZoned, List<Zone> zones) {
 
         // Calcular non-linearity: suma de todas las visitas adicionales
         // (cada habitación que se visita más de una vez suma sus visitas extras)
-        var linearityScore = Scores.Values.Sum(kv => kv.SolutionTraversals > 1 ? kv.SolutionTraversals - 1 : 0);
+        var goalPath = graphZoned.Root.FindShortestPath(keyLocations[zoneOrder.Last()]);
 
-        Scoring = new SolutionScoring {
-            LinearityScore = linearityScore,
-            SolutionPath = solutionPath,
-        };
+        Scoring = new MazeSolutionScoring(Scores, keyLocations, zoneOrder, goalPath, solutionPath);
     }
 
-    public SolutionScoring Scoring;
-
-    public class SolutionScoring {
-        public int LinearityScore { get; init; }
-        public List<MazeNode> SolutionPath { get; init; }
-    }
+    public MazeSolutionScoring Scoring;
 
     /// <summary>
     /// Calculates how much a node resembles a dead-end. 

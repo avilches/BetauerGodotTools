@@ -85,7 +85,7 @@ public class MazeGraphDungeonDemo {
         // PrintGraph(mc);
         */
 
-        for (var i = 0; i < 1; i++) {
+        for (var i = 0; i < 20; i++) {
             var mc = new MazeGraph(template.Width, template.Height) {
                 // IsValidPositionFunc = true // pos => template[pos] != '·'
             };
@@ -100,8 +100,17 @@ public class MazeGraphDungeonDemo {
                     .Zone(nodes: 8, parts: 2, corridor: false)
                     .Zone(nodes: 8, parts: 2, corridor: false)
                     .Zone(nodes: 2, parts: 1, maxExitNodes: 0, corridor: true, flexibleParts: false)
-                // .Zone(nodes: 1, parts: 1, corridor: false)
                 ;
+            /*
+            var constraints = new MazePerZoneConstraints()
+                    .Zone(nodes: 5)
+                    .Zone(nodes: 6, parts: 1, maxExitNodes: 0, corridor: true)
+                    .Zone(nodes: 6, parts: 1, maxExitNodes: 0, corridor: true)
+                    .Zone(nodes: 6, parts: 1, maxExitNodes: 0, corridor: true)
+                    .Zone(nodes: 6, parts: 1, maxExitNodes: 0, corridor: true)
+                    // .Zone(nodes: 6, parts: 1, maxExitNodes: 0, corridor: true)
+                ;
+                */
 
             // PENDIENTE DE HACER
             // 4 colocar objeto llave donde toca, el ultimo es la salida o el jefe
@@ -294,10 +303,9 @@ public class MazeGraphDungeonDemo {
 
             zones.CalculateSolution(KeyFormula);
             // zones.CalculateSolution(KeyFormula, [1, 2, 3, 4, 5, 6, 7]);
-            zones.CalculateSolution(KeyFormula, [0, 1, 2, 3, 4, 5, 6, 7]);
-            // zones.CalculateSolution(KeyFormula, [1, 3, 4, 5, 6, 7, 2]);
+            // zones.CalculateSolution(KeyFormula, [0, 1, 2, 3, 4, 5, 6, 7]);
+            // zones.CalculateSolution(KeyFormula, [0, 1, 3, 4, 5, 6, 7, 2]);
             // zones.CalculateSolution(KeyFormula, [1, 4, 6, 5, 3, 7, 2]); // This fail if you don't take into account the key usage
-            // zones.CalculateSolution(KeyFormula, [(0, 6), (6, 2), (2, 1), (1, 3), (3, 4), (4, 5), (5, 7), (7, 2)]);
 
             offset += mc.Width * 3 + 5;
             foreach (var node in mc.GetNodes()) {
@@ -343,8 +351,12 @@ public class MazeGraphDungeonDemo {
                 allCanvas.Write(offset + node.Position.X * 6, node.Position.Y * 3, canvas.ToString());
             }
             Console.WriteLine(allCanvas.ToString());
+            
+            zones.Scoring.VisitDistribution.ForEach((kv) => {
+                // Console.WriteLine($"{kv.Key}: {kv.Value*100:00.0}%");
+            });
 
-            Console.WriteLine(mc.GetNodes().Count + " nodes, non linearity " + zones.Scoring.LinearityScore);
+            Console.WriteLine($"{mc.GetNodes().Count} nodes, solution path: {zones.Scoring.SolutionPath.Count} goal path: {zones.Scoring.GoalPath.Count}, redundancy: {zones.Scoring.Redundancy*100:0}% gini {zones.Scoring.ConcentrationIndex*100:0}%. {zones.Scoring.VisitDistribution.GetValueOrDefault(0, 0)*100:0}% isolated from solution");
         } else {
             Console.WriteLine(allCanvas.ToString());
         }
