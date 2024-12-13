@@ -225,10 +225,12 @@ public partial class MazeGraph {
 
     private MazeNode PickNodeToExpand(ZoneGeneration currentZone, Random rng) {
         if (currentZone.IsCorridor) {
-            // Corridors always try to expand the last node of every part
-            var candidates = currentZone.AvailableNodes.Where(node => node.OutDegree == 1).ToList();
-            var expansionNode = rng.Next(candidates.Count > 0 ? candidates : currentZone.AvailableNodes);
-            return expansionNode;
+            // Corridors always try to expand the last node of one of the parts
+            var candidates = currentZone.AvailableNodes
+                .GroupBy(node => node.PartId)
+                .Select(group => group.Last())
+                .ToList();
+            return rng.Next(candidates);
         }
         return rng.Next(currentZone.AvailableNodes); // No corridors pick a random node to expand
     }
@@ -238,7 +240,7 @@ public partial class MazeGraph {
         // The zone 1 has the zone 0 has previous zone, so there is no need to filter by "previous zone only" because all globalZone.AvailableNodes are from 
         // the zone 0. We only filter by "previos zone only" in the zone 2 and above.
         if (currentZone.ZoneId >= 2 && currentZone.Parts.Count == 0) {
-            // First part of the zone, pick a random node only from the previous zone
+            // First part of the zone, pick a random node only from the previous zone. Example: ensure the zone 2 has an entry from the zone 1.
             var candidates = globalZone.AvailableNodes
                 .Where(node => node.ZoneId == currentZone.ZoneId - 1)
                 .OrderBy(node => node.Depth)
@@ -246,6 +248,7 @@ public partial class MazeGraph {
             if (candidates.Count > 0) return rng.NextExponential(candidates, EntryNodeFactor);
         }
         // Not the first part of the zone, pick a random node from the global zone (it could be any lower node than the current zone)
+        // Example: the zone 3 could have entries from the zone 0, 1 or 2
         return rng.NextExponential(globalZone.AvailableNodes.OrderBy(node => node.Depth).ToList(), EntryNodeFactor);
     }
 }
