@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Betauer.Core.DataMath;
-using Betauer.Core.DataMath.Geometry;
 using Godot;
 
 namespace Betauer.Core.PCG.Maze;

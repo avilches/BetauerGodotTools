@@ -250,6 +250,19 @@ public class MazeNode {
         return ConnectTo(targetNode, metadata, weight);
     }
 
+    /// <summary>
+    /// Safe method to connect the node to the node in the direction, if it exists and it's allowed 
+    /// </summary>
+    /// <param name="direction"></param>
+    /// <param name="metadata"></param>
+    /// <param name="weight"></param>
+    /// <returns></returns>
+    public MazeEdge? TryConnectTowards(Vector2I direction, object metadata = default, float weight = 0f) {
+        var targetPos = Position + direction;
+        var targetNode = Graph.GetNodeAtOrNull(targetPos);
+        return targetNode != null ? ConnectTo(targetNode, metadata, weight) : null;
+    }
+
     public MazeEdge ConnectTowards(Vector2I direction, object metadata = default, float weight = 0f) {
         var targetPos = Position + direction;
         var targetNode = Graph.GetNodeAt(targetPos);
