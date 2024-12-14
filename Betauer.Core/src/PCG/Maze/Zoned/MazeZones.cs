@@ -125,7 +125,7 @@ public class MazeZones(MazeGraph mazeGraph, IMazeZonedConstraints constraints, L
 
             var path = pathStart.FindShortestPath(pathEnd, node => keys.Contains(node.ZoneId));
             if (path.Count == 0) {
-                throw new InvalidOperationException($"Cannot reach zone {zoneId} from zone {pathStart.ZoneId}: no valid path exists with current keys: {string.Join(", ", keys)}");
+                throw new InvalidOperationException($"Cannot reach zone {zoneId} (node id {pathEnd.Id}) from zone {pathStart.ZoneId} (node id {pathStart.Id}) : no valid path exists with current keys: {string.Join(", ", keys)}");
             }
             // Every path starts in the same node than the previous zone ends, so the first needs to be ignored to avoid duplicates
             var skip = zoneId == 0 ? 0 : 1;
@@ -306,6 +306,39 @@ public class MazeZones(MazeGraph mazeGraph, IMazeZonedConstraints constraints, L
     /// <param name="scoreCalculator">The function used to score potential locations</param>
     public List<MazeNode> SpreadLocations(int total, Func<NodeScore, float> scoreCalculator) {
         return SpreadLocationsAlgorithm.GetLocations(GetScores().ToList(), total, scoreCalculator);
+    }
+
+    /// <summary>
+    /// Change the parts and nodes from one zone to another.
+    /// </summary>
+    /// <param name="zone1Id"></param>
+    /// <param name="zone2Id"></param>
+    /// <exception cref="ArgumentException"></exception>
+    public void SwapZoneParts(int zone1Id, int zone2Id) {
+        if (zone1Id < 0 || zone1Id >= Zones.Count) throw new ArgumentException("Invalid zone1Id", nameof(zone1Id));
+        if (zone2Id < 0 || zone2Id >= Zones.Count) throw new ArgumentException("Invalid zone2Id", nameof(zone2Id));
+        if (zone1Id == zone2Id) return;
+
+        var zone1 = Zones[zone1Id];
+        var zone2 = Zones[zone2Id];
+
+        var zone1Parts = zone1.Parts.ToList();
+        var zone2Parts = zone2.Parts.ToList();
+
+        zone1.Parts.Clear();
+        zone1.Parts.AddRange(zone2Parts);
+        zone1.Parts.ForEach(p => {
+            p.Nodes.ForEach(n => n.ZoneId = zone1Id);
+            p.Zone = zone1;
+        });
+        zone2.Parts.Clear();
+        zone2.Parts.AddRange(zone1Parts);
+        zone2.Parts.ForEach(p => {
+            p.Nodes.ForEach(n => n.ZoneId = zone2Id);
+            p.Zone = zone2;
+        });
+
+        // Swap zones in the list
     }
 }
 

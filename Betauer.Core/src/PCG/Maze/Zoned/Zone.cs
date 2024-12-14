@@ -7,7 +7,7 @@ namespace Betauer.Core.PCG.Maze.Zoned;
 
 public class Zone(int zoneId) {
     public MazeZones MazeZones { get; internal set; }
-    public int ZoneId { get; } = zoneId;
+    public int ZoneId { get; internal set; } = zoneId;
 
     public List<ZonePart> Parts { get; } = [];
     
@@ -43,7 +43,7 @@ public class Zone(int zoneId) {
         return Parts.SelectMany(p => p.GetExitNodesToNextZone());
     }
     
-    public IEnumerable<MazeNode> GetAllExitNodes(int zoneId) {
+    public IEnumerable<MazeNode> GetExitNodesTo(int zoneId) {
         return Parts.SelectMany(p => p.GetExitNodesTo(zoneId));
     }
     

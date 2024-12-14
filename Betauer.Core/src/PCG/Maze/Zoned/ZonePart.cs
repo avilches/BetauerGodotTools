@@ -6,7 +6,7 @@ using Godot;
 namespace Betauer.Core.PCG.Maze.Zoned;
 
 public class ZonePart(Zone zone, int partId, MazeNode startNode, List<MazeNode> nodes) {
-    public Zone Zone { get; } = zone;
+    public Zone Zone { get; internal set; } = zone;
     public int PartId { get; } = partId;
     public MazeNode StartNode { get; } = startNode;
     public List<MazeNode> Nodes { get; } = nodes;
