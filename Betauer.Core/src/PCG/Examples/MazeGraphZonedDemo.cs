@@ -79,10 +79,10 @@ public class MazeGraphZonedDemo {
         foreach (var node in mc.GetNodes()) {
             if (node == null) continue;
             var canvas = new TextCanvas();
-            if (node.Up != null) canvas.Write(1, 0, node.GetEdgeTowards(Vector2I.Up)!.GetMetadataOrNew<Metadata>().Added ? "·" : "|");
-            if (node.Right != null) canvas.Write(2, 1, node.GetEdgeTowards(Vector2I.Right)!.GetMetadataOrNew<Metadata>().Added ? "····" : "----");
-            if (node.Down != null) canvas.Write(1, 2, node.GetEdgeTowards(Vector2I.Down)!.GetMetadataOrNew<Metadata>().Added ? "·" : "|");
-            if (node.Left != null) canvas.Write(0, 1, node.GetEdgeTowards(Vector2I.Left)!.GetMetadataOrNew<Metadata>().Added ? "·" : "-");
+            if (node.Up != null) canvas.Write(1, 0, node.GetEdgeTowards(Vector2I.Up)!.HasAttribute("cycle") ? "·" : "|");
+            if (node.Right != null) canvas.Write(2, 1, node.GetEdgeTowards(Vector2I.Right)!.HasAttribute("cycle") ? "····" : "----");
+            if (node.Down != null) canvas.Write(1, 2, node.GetEdgeTowards(Vector2I.Down)!.HasAttribute("cycle") ? "·" : "|");
+            if (node.Left != null) canvas.Write(0, 1, node.GetEdgeTowards(Vector2I.Left)!.HasAttribute("cycle") ? "·" : "-");
             if (zones != null) {
                 var zone = zones.Zones[node.ZoneId];
                 var nodeWithKeyInZone = keys[zone.ZoneId];
@@ -99,10 +99,10 @@ public class MazeGraphZonedDemo {
         foreach (var node in mc.GetNodes()) {
             if (node == null) continue;
             var canvas = new TextCanvas();
-            if (node.Up != null) canvas.Write(1, 0, node.GetEdgeTowards(Vector2I.Up)!.GetMetadataOrNew<Metadata>().Added ? "·" : "|");
-            if (node.Right != null) canvas.Write(2, 1, node.GetEdgeTowards(Vector2I.Right)!.GetMetadataOrNew<Metadata>().Added ? "····" : "----");
-            if (node.Down != null) canvas.Write(1, 2, node.GetEdgeTowards(Vector2I.Down)!.GetMetadataOrNew<Metadata>().Added ? "·" : "|");
-            if (node.Left != null) canvas.Write(0, 1, node.GetEdgeTowards(Vector2I.Left)!.GetMetadataOrNew<Metadata>().Added ? "·" : "-");
+            if (node.Up != null) canvas.Write(1, 0, node.GetEdgeTowards(Vector2I.Up)!.HasAttribute("cycle") ? "·" : "|");
+            if (node.Right != null) canvas.Write(2, 1, node.GetEdgeTowards(Vector2I.Right)!.HasAttribute("cycle") ? "····" : "----");
+            if (node.Down != null) canvas.Write(1, 2, node.GetEdgeTowards(Vector2I.Down)!.HasAttribute("cycle") ? "·" : "|");
+            if (node.Left != null) canvas.Write(0, 1, node.GetEdgeTowards(Vector2I.Left)!.HasAttribute("cycle") ? "·" : "-");
             canvas.Write(1, 1, node.Id.ToString());
 
             allCanvas.Write(offset + (node.Position.X - mazeOffset.X) * 6, (node.Position.Y - mazeOffset.Y) * 3, canvas.ToString());
@@ -124,10 +124,10 @@ public class MazeGraphZonedDemo {
             foreach (var node in mc.GetNodes()) {
                 if (node == null) continue;
                 var canvas = new TextCanvas();
-                if (node.Up != null) canvas.Write(1, 0, node.GetEdgeTowards(Vector2I.Up)!.GetMetadataOrNew<Metadata>().Added ? "·" : "|");
-                if (node.Right != null) canvas.Write(2, 1, node.GetEdgeTowards(Vector2I.Right)!.GetMetadataOrNew<Metadata>().Added ? "····" : "----");
-                if (node.Down != null) canvas.Write(1, 2, node.GetEdgeTowards(Vector2I.Down)!.GetMetadataOrNew<Metadata>().Added ? "·" : "|");
-                if (node.Left != null) canvas.Write(0, 1, node.GetEdgeTowards(Vector2I.Left)!.GetMetadataOrNew<Metadata>().Added ? "·" : "-");
+                if (node.Up != null) canvas.Write(1, 0, node.GetEdgeTowards(Vector2I.Up)!.HasAttribute("cycle") ? "·" : "|");
+                if (node.Right != null) canvas.Write(2, 1, node.GetEdgeTowards(Vector2I.Right)!.HasAttribute("cycle") ? "····" : "----");
+                if (node.Down != null) canvas.Write(1, 2, node.GetEdgeTowards(Vector2I.Down)!.HasAttribute("cycle") ? "·" : "|");
+                if (node.Left != null) canvas.Write(0, 1, node.GetEdgeTowards(Vector2I.Left)!.HasAttribute("cycle") ? "·" : "-");
 
                 var zone = zones.Zones[node.ZoneId];
 

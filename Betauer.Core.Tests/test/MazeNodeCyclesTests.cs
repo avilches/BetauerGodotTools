@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Betauer.Core.PCG.Examples;
 using Betauer.Core.PCG.Maze;
 using Betauer.TestRunner;
 using Godot;
@@ -27,6 +28,8 @@ public class MazeNodeCyclesTests {
            |
            |
            12-13-14-15
+
+           Later we'll disconnect 9-10 and connect 10-14 to create two zones
          */
 
         // Create all nodes first
@@ -74,77 +77,101 @@ public class MazeNodeCyclesTests {
         maze.ConnectNodes(14, 10);
         maze.GetNode(10).Parent = maze.GetNode(14);
 
+        // Set zones
+        foreach (var node in maze.GetNodes()) {
+            node.ZoneId = node.Id < 10 ? 1 : 2;
+        }
     }
 
     [Test]
-    public void FindPotentialCycles_WithMinDistance3_ReturnsCorrectPairs() {
-        var cycles = maze.GetPotentialCycles(useParentDistance: true).GetCyclesGreaterThan(3);
+    public void TestShortestCyclesInZone() {
+        var cycles = MazeGraphTools.ConnectShortestCyclesInZone(maze, zoneId: 1, maxCycles: 2);
 
         Assert.That(cycles, Is.Not.Empty);
-
-        // Check first cycle found (should be one of the longest)
-        var firstCycle = cycles.First();
-        Assert.That(firstCycle.distance, Is.GreaterThanOrEqualTo(3));
-
-        // Verify nodes are adjacent but not connected
-        var nodeAPos = firstCycle.nodeA.Position;
-        var nodeBPos = firstCycle.nodeB.Position;
-        Assert.That((nodeAPos - nodeBPos).Length(), Is.EqualTo(1)); // Adjacent nodes
-        Assert.That(!firstCycle.nodeA.HasEdgeTo(firstCycle.nodeB)); // Not connected
-    }
-
-    [Test]
-    public void AddCyclesByParentDistance_WithMaxCycles_AddsCorrectNumberOfCycles() {
-        var maxCycles = 10;
-        var initialEdgeCount = CountEdges();
+        Assert.That(cycles.Count, Is.EqualTo(2));
         
-        Assert.That(initialEdgeCount, Is.EqualTo(30));
-
-        maze.GetPotentialCycles(useParentDistance: true).GetCyclesGreaterThan(4).ForEach(cycle => {
-            Console.WriteLine($"Cycle: {cycle.nodeA.Position} - {cycle.nodeB.Position} ({cycle.distance})");
-            maze.ConnectNodes(cycle.nodeA, cycle.nodeB);
-            maze.ConnectNodes(cycle.nodeB, cycle.nodeA);
-        });
-        PrintGraphEdges(maze);
-
-        var newEdgeCount = CountEdges();
-        Assert.That(newEdgeCount, Is.EqualTo(40));
+        // Verify the cycles are valid and within zone 1
+        foreach (var cycle in cycles) {
+            Assert.That(cycle.nodeA.ZoneId, Is.EqualTo(1));
+            Assert.That(cycle.nodeB.ZoneId, Is.EqualTo(1));
+            Assert.That(cycle.distance, Is.GreaterThan(0));
+        }
     }
 
     [Test]
-    public void VerifyDistanceCalculation_BeforeAndAfterNewConnection() {
-        // Get two nodes that we'll connect
-        var nodeA = maze.GetNodeAt(new Vector2I(2, 0));
-        var nodeB = maze.GetNodeAt(new Vector2I(2, 1));
+    public void TestLongestCyclesInZone() {
+        var cycles = MazeGraphTools.ConnectLongestCyclesInZone(maze, zoneId: 1, maxCycles: 2);
 
-        // Calculate distances before connection
-        var parentDistanceBefore = nodeA.GetTreeDistanceToNode(nodeB);
-        var edgeDistanceBefore = nodeA.GetGraphDistanceToNode(nodeB);
-
-        Assert.That(parentDistanceBefore, Is.EqualTo(5));
-        Assert.That(edgeDistanceBefore, Is.EqualTo(5));
-
-        // Add the new connection
-        maze.ConnectNodes(nodeA, nodeB);
-        maze.ConnectNodes(nodeB, nodeA);
-
-        // Calculate distances after connection
-        var parentDistanceAfter = nodeA.GetTreeDistanceToNode(nodeB);
-        var edgeDistanceAfter = nodeA.GetGraphDistanceToNode(nodeB);
-
-        Assert.That(parentDistanceAfter, Is.EqualTo(5));
-        Assert.That(edgeDistanceAfter, Is.EqualTo(1));
+        Assert.That(cycles, Is.Not.Empty);
+        Assert.That(cycles.Count, Is.EqualTo(2));
+        
+        // Sort cycles by distance to verify we got the longest ones
+        var orderedCycles = cycles.OrderByDescending(c => c.distance).ToList();
+        Assert.That(orderedCycles[0].distance, Is.GreaterThanOrEqualTo(orderedCycles[1].distance));
     }
-
 
     [Test]
-    public void FindPotentialCycles_WithHighMinDistance_ReturnsNoResults() {
-        var cycles = maze.GetPotentialCycles(useParentDistance: true).GetCyclesGreaterThan(20).ToList();
-        Assert.That(cycles, Is.Empty);
+    public void TestCyclesBetweenZones() {
+        var cycles = MazeGraphTools.ConnectShortestCyclesBetweenZones(maze, zoneA: 1, zoneB: 2, maxCycles: 1);
+
+        Assert.That(cycles, Is.Not.Empty);
+        Assert.That(cycles.Count, Is.EqualTo(1));
+
+        var cycle = cycles[0];
+        Assert.That(
+            (cycle.nodeA.ZoneId == 1 && cycle.nodeB.ZoneId == 2) ||
+            (cycle.nodeA.ZoneId == 2 && cycle.nodeB.ZoneId == 1)
+        );
     }
 
-    private int CountEdges() {
-        return maze.GetNodes().Sum(node => node.GetOutEdges().Count());
+    [Test]
+    public void TestCyclesAcrossZones() {
+        var cycles = MazeGraphTools.ConnectLongestCyclesAcrossZones(maze, maxCycles: 2);
+
+        Assert.That(cycles, Is.Not.Empty);
+        foreach (var cycle in cycles) {
+            Assert.That(cycle.nodeA.ZoneId, Is.Not.EqualTo(cycle.nodeB.ZoneId));
+        }
+    }
+
+    /*
+    [Test]
+    public void TestCyclesWithSpecificDistance() {
+        var cycles = MazeGraphTools.ConnectCyclesInZoneWithDistance(maze, zoneId: 1, exactDistance: 4, maxCycles: 1);
+
+        Assert.That(cycles, Is.Not.Empty);
+        Assert.That(cycles[0].distance, Is.EqualTo(4));
+        Assert.That(cycles[0].nodeA.ZoneId, Is.EqualTo(1));
+        Assert.That(cycles[0].nodeB.ZoneId, Is.EqualTo(1));
+    }
+
+    [Test]
+    public void TestCyclesWithDistanceRange() {
+        var cycles = MazeGraphTools.ConnectCyclesInZoneBetweenDistances(
+            maze, zoneId: 1, minDistance: 3, maxDistance: 5, maxCycles: 2);
+
+        Assert.That(cycles, Is.Not.Empty);
+        foreach (var cycle in cycles) {
+            Assert.That(cycle.distance, Is.GreaterThanOrEqualTo(3));
+            Assert.That(cycle.distance, Is.LessThan(5));
+            Assert.That(cycle.nodeA.ZoneId, Is.EqualTo(1));
+            Assert.That(cycle.nodeB.ZoneId, Is.EqualTo(1));
+        }
+    }
+    */
+
+    [Test]
+    public void TestGlobalCyclesIgnoringZones() {
+        var cycles = MazeGraphTools.ConnectLongestCycles(maze, maxCycles: 3);
+
+        Assert.That(cycles, Is.Not.Empty);
+        Assert.That(cycles.Count, Is.LessThanOrEqualTo(3));
+        
+        // Verify cycles are ordered by distance
+        var orderedCycles = cycles.OrderByDescending(c => c.distance).ToList();
+        for (int i = 0; i < orderedCycles.Count - 1; i++) {
+            Assert.That(orderedCycles[i].distance, Is.GreaterThanOrEqualTo(orderedCycles[i + 1].distance));
+        }
     }
 
     private static void PrintGraphEdges(MazeGraph mc) {

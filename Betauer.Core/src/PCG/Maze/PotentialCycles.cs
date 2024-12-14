@@ -7,7 +7,7 @@ namespace Betauer.Core.PCG.Maze;
 
 public class PotentialCycles {
     private readonly bool _useParentDistance;
-    private readonly MazeGraph _graph; 
+    private readonly MazeGraph _graph;
     private readonly List<(MazeNode nodeA, MazeNode nodeB, (Vector2I, Vector2I) connection)> _potentialConnections;
 
     public PotentialCycles(MazeGraph graph, bool useParentDistance) {
@@ -30,85 +30,115 @@ public class PotentialCycles {
             .ToList();
     }
 
-    /// <summary>
-    /// Base method that applies filtering and ordering to potential cycles
-    /// </summary>
-    /// <param name="filter">Function to filter cycles based on distance</param>
-    /// <param name="descending">If true, orders cycles from longest to shortest distance. If false, shortest to longest.</param>
-    private IEnumerable<(MazeNode nodeA, MazeNode nodeB, int distance)> GetCyclesWithFilter(
-        Func<int, bool> filter,
-        bool descending = true) {
-        var query = _potentialConnections
-            .Where(x=> _graph.CanConnect(x.nodeA, x.nodeB))
-            .Select(x => {
-                var distance = _useParentDistance
-                    ? x.nodeA.GetTreeDistanceToNode(x.nodeB)
-                    : x.nodeA.GetGraphDistanceToNode(x.nodeB);
-                return (x.nodeA, x.nodeB, distance);
-            })
-            .Where(x => filter(x.distance));
+    public PotentialCyclesQuery Query() => new(this);
 
-        return descending ? query.OrderByDescending(x => x.distance) : query.OrderBy(x => x.distance);
-    }
-
-    public IEnumerable<(MazeNode nodeA, MazeNode nodeB, int distance)> GetAllCycles(bool descending = true) {
-        return GetCyclesWithFilter(_ => true, descending);
-    }
-
-    /// <summary>
-    /// Returns potential cycles with distance greater than or equal to the specified minimum,
-    /// ordered by distance.
-    /// </summary>
-    /// <param name="min">Minimum distance (inclusive)</param>
-    /// <param name="descending">If true (default), orders from longest to shortest. If false, shortest to longest.</param>
-    /// <returns>Sequence of potential cycles matching the criteria</returns>
-    public IEnumerable<(MazeNode nodeA, MazeNode nodeB, int distance)> GetCyclesGreaterThan(int min, bool descending = true) {
-        return GetCyclesWithFilter(distance => distance >= min, descending);
-    }
-
-    /// <summary>
-    /// Returns potential cycles with distance less than the specified maximum,
-    /// ordered by distance.
-    /// </summary>
-    /// <param name="max">Maximum distance (exclusive)</param>
-    /// <param name="descending">If true (default), orders from longest to shortest. If false, shortest to longest.</param>
-    /// <returns>Sequence of potential cycles matching the criteria</returns>
-    public IEnumerable<(MazeNode nodeA, MazeNode nodeB, int distance)> GetCyclesLessThan(int max, bool descending = true) {
-        return GetCyclesWithFilter(distance => distance <= max, descending);
-    }
-
-    /// <summary>
-    /// Returns potential cycles with distance within the specified range,
-    /// ordered by distance.
-    /// </summary>
-    /// <param name="min">Minimum distance (inclusive)</param>
-    /// <param name="max">Maximum distance (exclusive)</param>
-    /// <param name="descending">If true (default), orders from longest to shortest. If false, shortest to longest.</param>
-    /// <returns>Sequence of potential cycles matching the criteria</returns>
-    public IEnumerable<(MazeNode nodeA, MazeNode nodeB, int distance)> GetCyclesBetween(int min, int max, bool descending = true) {
-        return GetCyclesWithFilter(distance => distance >= min && distance < max, descending);
-    }
-
-    /// <summary>
-    /// Returns potential cycles with exactly the specified distance,
-    /// ordered by node positions.
-    /// </summary>
-    /// <param name="distance">The exact distance to match</param>
-    /// <param name="descending">If true (default), orders from longest to shortest. If false, shortest to longest.</param>
-    /// <returns>Sequence of potential cycles matching the criteria</returns>
-    public IEnumerable<(MazeNode nodeA, MazeNode nodeB, int distance)> GetCyclesEquals(int distance, bool descending = true) {
-        return GetCyclesWithFilter(d => d == distance, descending);
-    }
-
-    /// <summary>
-    /// Removes a specific cycle from the potential cycles collection.
-    /// This is useful when you've used a cycle and want to prevent it from appearing in future queries.
-    /// </summary>
-    /// <param name="nodeA">First node of the cycle</param>
-    /// <param name="nodeB">Second node of the cycle</param>
     public void RemoveCycle(MazeNode nodeA, MazeNode nodeB) {
         _potentialConnections.RemoveAll(x =>
             (x.nodeA == nodeA && x.nodeB == nodeB) ||
             (x.nodeA == nodeB && x.nodeB == nodeA));
+    }
+
+    public class PotentialCyclesQuery {
+        private readonly PotentialCycles _cycles;
+        private readonly List<Func<MazeNode, MazeNode, int, bool>> _filters = new();
+        private bool _orderByDescending = true;
+
+        internal PotentialCyclesQuery(PotentialCycles cycles) {
+            _cycles = cycles;
+        }
+
+        public PotentialCyclesQuery WhereNodesInSameZone() {
+            _filters.Add((nodeA, nodeB, _) => nodeA.ZoneId == nodeB.ZoneId);
+            return this;
+        }
+
+        public PotentialCyclesQuery WhereNodesInZone(int zoneId) {
+            _filters.Add((nodeA, nodeB, _) => nodeA.ZoneId == zoneId && nodeB.ZoneId == zoneId);
+            return this;
+        }
+
+        public PotentialCyclesQuery WhereNodesInZones(int zoneIdA, int zoneIdB) {
+            _filters.Add((nodeA, nodeB, _) =>
+                (nodeA.ZoneId == zoneIdA && nodeB.ZoneId == zoneIdB) ||
+                (nodeA.ZoneId == zoneIdB && nodeB.ZoneId == zoneIdA));
+            return this;
+        }
+
+        public PotentialCyclesQuery WhereNodesInDifferentZones() {
+            _filters.Add((nodeA, nodeB, _) => nodeA.ZoneId != nodeB.ZoneId);
+            return this;
+        }
+
+        public PotentialCyclesQuery WhereCyclesEquals(int distance) {
+            _filters.Add((_, _, dist) => dist == distance);
+            return this;
+        }
+
+        public PotentialCyclesQuery WhereCyclesLongerThan(int min) {
+            _filters.Add((_, _, dist) => dist >= min);
+            return this;
+        }
+
+        public PotentialCyclesQuery WhereCyclesShorterThan(int max) {
+            _filters.Add((_, _, dist) => dist <= max);
+            return this;
+        }
+
+        public PotentialCyclesQuery WhereCyclesBetween(int min, int max) {
+            _filters.Add((_, _, dist) => dist >= min && dist < max);
+            return this;
+        }
+
+        public PotentialCyclesQuery OrderByLongestDistance() {
+            _orderByDescending = true;
+            return this;
+        }
+
+        public PotentialCyclesQuery OrderByShortestDistance() {
+            _orderByDescending = false;
+            return this;
+        }
+
+        public IEnumerable<(MazeNode nodeA, MazeNode nodeB, int distance)> Execute() {
+            var query = _cycles._potentialConnections
+                .Where(x => _cycles._graph.CanConnect(x.nodeA, x.nodeB))
+                .Select(x => {
+                    var distance = _cycles._useParentDistance
+                        ? x.nodeA.GetTreeDistanceToNode(x.nodeB)
+                        : x.nodeA.GetGraphDistanceToNode(x.nodeB);
+                    return (x.nodeA, x.nodeB, distance);
+                });
+
+            // Apply all filters
+            foreach (var filter in _filters) {
+                query = query.Where(x => filter(x.nodeA, x.nodeB, x.distance));
+            }
+
+            // Apply ordering
+            return _orderByDescending
+                ? query.OrderByDescending(x => x.distance)
+                : query.OrderBy(x => x.distance);
+        }
+
+        /// <summary>
+        /// Execute the query and connect the nodes that match the criteria, up to maxCycles connections.
+        /// The query is re-executed after each connection since distances between nodes might change.
+        /// </summary>
+        public List<(MazeNode nodeA, MazeNode nodeB, int distance)> Connect(int maxCycles = 1) {
+            List<(MazeNode nodeA, MazeNode nodeB, int distance)> cyclesAdded = [];
+
+            while (cyclesAdded.Count < maxCycles) {
+                // Re-execute query each time to get fresh distances
+                var nextCycle = Execute().FirstOrDefault();
+
+                // If no more potential cycles found, break
+                if (nextCycle == default) break;
+
+                nextCycle.nodeA.ConnectTo(nextCycle.nodeB);
+                nextCycle.nodeB.ConnectTo(nextCycle.nodeA);
+                cyclesAdded.Add(nextCycle);
+            }
+            return cyclesAdded;
+        }
     }
 }

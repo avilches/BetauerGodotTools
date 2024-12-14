@@ -15,12 +15,12 @@ public class MazeNode {
     /// Represents a node in the maze graph, containing connections to adjacent nodes.
     /// </summary>
     internal MazeNode(MazeGraph mazeGraph, int id, Vector2I position) {
-        _mazeGraph = mazeGraph;
+        Graph = mazeGraph;
         Id = id;
         Position = position;
     }
 
-    private readonly MazeGraph _mazeGraph;
+    public MazeGraph Graph { get; }
 
     public int Id { get; }
     public Vector2I Position { get; }
@@ -83,7 +83,7 @@ public class MazeNode {
     }
     
     public IEnumerable<MazeNode> GetChildren() {
-        return _mazeGraph.GetNodes().Where(n => n.Parent == this);
+        return Graph.GetNodes().Where(n => n.Parent == this);
     }
 
     private readonly List<MazeEdge> _outEdges = [];
@@ -105,6 +105,7 @@ public class MazeNode {
 
     public float Weight { get; set; } = 0f;
 
+    // Metadata object
     public object Metadata { get; set; }
     public void SetMetadata<T>(T value) => Metadata = value;
     public T GetMetadataOrDefault<T>() => Metadata is T value ? value : default;
@@ -115,7 +116,33 @@ public class MazeNode {
     public bool HasAnyMetadata => Metadata != null;
     public void ClearMetadata() => Metadata = null;
 
-    
+    // Attributes
+    private Dictionary<string, object>? _attributes;
+    public void SetAttribute(string key, object value) => (_attributes ??= new Dictionary<string, object>())[key] = value;
+    public object? GetAttribute(string key) => _attributes?.TryGetValue(key, out var value) == true ? value : default;
+    public object GetAttributeOr(string key, object defaultValue) => _attributes?.TryGetValue(key, out var value) == true ? value : defaultValue;
+    public T? GetAttributeAs<T>(string key) => _attributes?.TryGetValue(key, out var value) == true && value is T typedValue ? typedValue : default;
+    public T GetAttributeAsOrDefault<T>(string key, T defaultValue) => _attributes?.TryGetValue(key, out var value) == true && value is T typedValue ? typedValue : defaultValue;
+    public T GetAttributeAsOrNew<T>(string key) where T : new() => _attributes?.TryGetValue(key, out var value) == true && value is T typedValue ? typedValue : new T();
+    public T GetAttributeAsOr<T>(string key, Func<T> factory) => _attributes?.TryGetValue(key, out var value) == true && value is T typedValue ? typedValue : factory();
+    public bool RemoveAttribute(string key) {
+        if (_attributes == null) return false;
+        var deleted = _attributes.Remove(key);
+        if (_attributes.Count == 0) _attributes = null;
+        return deleted;
+    }
+    public bool HasAttribute(string key) => _attributes?.ContainsKey(key) == true;
+    public bool HasAttributeWithValue(string key, object value) => _attributes?.TryGetValue(key, out var existingValue) == true && Equals(existingValue, value);
+    public bool HasAttributeOfType<T>(string key) => _attributes?.TryGetValue(key, out var value) == true && value is T;
+    public IReadOnlyDictionary<string, object>? GetAttributes() => _attributes;
+    public void ClearAttributes() {
+        _attributes?.Clear();
+        _attributes = null;
+    }
+    public int AttributeCount => _attributes?.Count ?? 0;
+    public bool HasAnyAttribute => _attributes != null && _attributes.Count > 0;
+
+    // Edges
     public MazeEdge? GetEdgeTo(int id) => _outEdges.FirstOrDefault(edge => edge.To.Id == id);
     public MazeEdge? GetEdgeTo(Vector2I position) => _outEdges.FirstOrDefault(edge => edge.To.Position == position);
     public MazeEdge? GetEdgeTo(MazeNode to) => _outEdges.FirstOrDefault(edge => edge.To == to);
@@ -180,13 +207,13 @@ public class MazeNode {
         if (edge.From == this) {
             if (!_outEdges.Remove(edge)) return false;
             edge.To._inEdges.Remove(edge);
-            _mazeGraph.InvokeOnEdgeRemoved(edge);
+            Graph.InvokeOnEdgeRemoved(edge);
             return true;
         }
         if (edge.To == this) {
             if (!_inEdges.Remove(edge)) return false;
             edge.From._outEdges.Remove(edge);
-            _mazeGraph.InvokeOnEdgeRemoved(edge);
+            Graph.InvokeOnEdgeRemoved(edge);
             return true;
         }
         return false;
@@ -200,10 +227,10 @@ public class MazeNode {
 
 
     public bool RemoveNode() {
-        if (!_mazeGraph.InternalRemoveNode(this)) return false;
+        if (!Graph.InternalRemoveNode(this)) return false;
 
         // Desconectar de todos los otros nodos
-        foreach (var otherNode in _mazeGraph.GetNodes()) {
+        foreach (var otherNode in Graph.GetNodes()) {
             otherNode.RemoveEdgeTo(this);
             if (otherNode.Parent == this) otherNode.Parent = null;
         }
@@ -214,29 +241,29 @@ public class MazeNode {
     }
 
     public MazeEdge ConnectTo(int id, object metadata = default, float weight = 0f) {
-        var targetNode = _mazeGraph.GetNode(id);
+        var targetNode = Graph.GetNode(id);
         return ConnectTo(targetNode, metadata, weight);
     }
 
     public MazeEdge ConnectTo(Vector2I targetPos, object metadata = default, float weight = 0f) {
-        var targetNode = _mazeGraph.GetNodeAt(targetPos);
+        var targetNode = Graph.GetNodeAt(targetPos);
         return ConnectTo(targetNode, metadata, weight);
     }
 
     public MazeEdge ConnectTowards(Vector2I direction, object metadata = default, float weight = 0f) {
         var targetPos = Position + direction;
-        var targetNode = _mazeGraph.GetNodeAt(targetPos);
+        var targetNode = Graph.GetNodeAt(targetPos);
         return ConnectTo(targetNode, metadata, weight);
     }
 
     public MazeEdge ConnectTo(MazeNode to, object metadata = default, float weight = 0f) {
-        if (to._mazeGraph != _mazeGraph) {
+        if (to.Graph != Graph) {
             throw new InvalidEdgeException("Cannot connect nodes from different graphs", Position, to.Position);
         }
         if (to == this) {
             throw new InvalidEdgeException("Cannot connect node to itself", Position, to.Position);
         }
-        if (!_mazeGraph.CanConnect(this, to)) {
+        if (!Graph.CanConnect(this, to)) {
             throw new InvalidEdgeException($"Invalid edge between {Position} and {to.Position}", Position, to.Position);
         }
 
@@ -250,7 +277,7 @@ public class MazeNode {
         edge = new MazeEdge(this, to, metadata, weight);
         _outEdges.Add(edge);
         to._inEdges.Add(edge);
-        _mazeGraph.InvokeOnEdgeCreated(edge);
+        Graph.InvokeOnEdgeCreated(edge);
         return edge;
     }
 
