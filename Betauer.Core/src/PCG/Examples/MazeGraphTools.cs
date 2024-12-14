@@ -10,7 +10,7 @@ public static class MazeGraphTools {
     /// <summary>
     /// Connects nodes within the same zone using the shortest possible cycles
     /// </summary>
-    public static List<(MazeNode nodeA, MazeNode nodeB, int distance)> ConnectShortestCyclesInZone(MazeGraph maze, int zoneId, int maxCycles = 1) {
+    public static List<(MazeNode nodeA, MazeNode nodeB, int distance)> ConnectShortestCyclesInZone(this MazeGraph maze, int zoneId, int maxCycles = 1) {
         return maze.GetPotentialCycles().Query()
             .WhereNodesInZone(zoneId)
             .OrderByShortestDistance()
@@ -20,7 +20,7 @@ public static class MazeGraphTools {
     /// <summary>
     /// Connects nodes within the same zone using the longest possible cycles
     /// </summary>
-    public static List<(MazeNode nodeA, MazeNode nodeB, int distance)> ConnectLongestCyclesInZone(MazeGraph maze, int zoneId, int maxCycles = 1) {
+    public static List<(MazeNode nodeA, MazeNode nodeB, int distance)> ConnectLongestCyclesInZone(this MazeGraph maze, int zoneId, int maxCycles = 1) {
         return maze.GetPotentialCycles().Query()
             .WhereNodesInZone(zoneId)
             .OrderByLongestDistance()
@@ -30,7 +30,7 @@ public static class MazeGraphTools {
     /// <summary>
     /// Connects nodes between two different zones using the shortest possible cycles
     /// </summary>
-    public static List<(MazeNode nodeA, MazeNode nodeB, int distance)> ConnectShortestCyclesBetweenZones(MazeGraph maze, int zoneA, int zoneB, int maxCycles = 1) {
+    public static List<(MazeNode nodeA, MazeNode nodeB, int distance)> ConnectShortestCyclesBetweenZones(this MazeGraph maze, int zoneA, int zoneB, int maxCycles = 1) {
         return maze.GetPotentialCycles().Query()
             .WhereNodesInZones(zoneA, zoneB)
             .OrderByShortestDistance()
@@ -40,7 +40,7 @@ public static class MazeGraphTools {
     /// <summary>
     /// Connects nodes between two different zones using the longest possible cycles
     /// </summary>
-    public static List<(MazeNode nodeA, MazeNode nodeB, int distance)> ConnectLongestCyclesBetweenZones(MazeGraph maze, int zoneA, int zoneB, int maxCycles = 1) {
+    public static List<(MazeNode nodeA, MazeNode nodeB, int distance)> ConnectLongestCyclesBetweenZones(this MazeGraph maze, int zoneA, int zoneB, int maxCycles = 1) {
         return maze.GetPotentialCycles().Query()
             .WhereNodesInZones(zoneA, zoneB)
             .OrderByLongestDistance()
@@ -50,7 +50,7 @@ public static class MazeGraphTools {
     /// <summary>
     /// Connects nodes that are in different zones (any zones) using the shortest possible cycles
     /// </summary>
-    public static List<(MazeNode nodeA, MazeNode nodeB, int distance)> ConnectShortestCyclesAcrossZones(MazeGraph maze, int maxCycles = 1) {
+    public static List<(MazeNode nodeA, MazeNode nodeB, int distance)> ConnectShortestCyclesAcrossZones(this MazeGraph maze, int maxCycles = 1) {
         return maze.GetPotentialCycles().Query()
             .WhereNodesInDifferentZones()
             .OrderByShortestDistance()
@@ -60,7 +60,7 @@ public static class MazeGraphTools {
     /// <summary>
     /// Connects nodes that are in different zones (any zones) using the longest possible cycles
     /// </summary>
-    public static List<(MazeNode nodeA, MazeNode nodeB, int distance)> ConnectLongestCyclesAcrossZones(MazeGraph maze, int maxCycles = 1) {
+    public static List<(MazeNode nodeA, MazeNode nodeB, int distance)> ConnectLongestCyclesAcrossZones(this MazeGraph maze, int maxCycles = 1) {
         return maze.GetPotentialCycles().Query()
             .WhereNodesInDifferentZones()
             .OrderByLongestDistance()
@@ -70,7 +70,7 @@ public static class MazeGraphTools {
     /// <summary>
     /// Connects nodes globally (ignoring zones) using the shortest possible cycles
     /// </summary>
-    public static List<(MazeNode nodeA, MazeNode nodeB, int distance)> ConnectShortestCycles(MazeGraph maze, int maxCycles = 1) {
+    public static List<(MazeNode nodeA, MazeNode nodeB, int distance)> ConnectShortestCycles(this MazeGraph maze, int maxCycles = 1) {
         return maze.GetPotentialCycles().Query()
             .OrderByShortestDistance()
             .Connect(maxCycles);
@@ -79,7 +79,7 @@ public static class MazeGraphTools {
     /// <summary>
     /// Connects nodes globally (ignoring zones) using the longest possible cycles
     /// </summary>
-    public static List<(MazeNode nodeA, MazeNode nodeB, int distance)> ConnectLongestCycles(MazeGraph maze, int maxCycles = 1) {
+    public static List<(MazeNode nodeA, MazeNode nodeB, int distance)> ConnectLongestCycles(this MazeGraph maze, int maxCycles = 1) {
         return maze.GetPotentialCycles().Query()
             .OrderByLongestDistance()
             .Connect(maxCycles);
@@ -114,7 +114,7 @@ public static class MazeGraphTools {
     /// <summary>
     /// Prevents any connections to or from the specified zone
     /// </summary>
-    public static void NeverConnectZone(MazeGraph maze, int zoneId) {
+    public static void NeverConnectZone(this MazeGraph maze, int zoneId) {
         maze.AddEdgeValidator((from, to) => from.ZoneId != zoneId && to.ZoneId != zoneId);
     }
 }

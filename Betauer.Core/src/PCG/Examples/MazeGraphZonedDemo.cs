@@ -21,30 +21,65 @@ public class MazeGraphZonedDemo {
     public static void Main() {
         var seed = 1;
         var rng = new Random(seed);
-        for (var i = 0; i < 20; i++) {
-            // PENDIENTE DE HACER
-            // 4 colocar objeto llave donde toca, el ultimo es la salida o el jefe
-            // calcular linearidad: calcular las llaves en orden y calcular la ruta entre ellas
-            // [salida, llave1, llave2, llave3, jefe]
-            // cuantas veces pasa por cada nodo, y si se deja nodos sin pasar
-            // calcular dificultad segun cercania al boss?
+        // PENDIENTE DE HACER
+        // 4 colocar objeto llave donde toca, el ultimo es la salida o el jefe
+        // calcular linearidad: calcular las llaves en orden y calcular la ruta entre ellas
+        // [salida, llave1, llave2, llave3, jefe]
+        // cuantas veces pasa por cada nodo, y si se deja nodos sin pasar
+        // calcular dificultad segun cercania al boss?
 
-            // Console.WriteLine(i);
-            var zones = MazeGraphCatalog.Labyrinth(rng, mc => {
-                mc.OnNodeCreated += (node) => {
-                    // PrintGraph(mc);
-                };
-            });
-            
-            PrintGraph(zones.MazeGraph);
+        // Console.WriteLine(i);
+        var zones = ValidateMaze(() => MazeGraphCatalog.CogmindLong(rng, mc => {
+            // mc.OnNodeCreated += (node) => PrintGraph(mc);
+        }));
+        zones.CalculateNodeScores();
+        PrintGraph(zones.MazeGraph, zones);
+    }
 
-            foreach (var zone in zones.Zones) {
-                Console.WriteLine($"Zone {zone.ZoneId} Nodes: {zone.NodeCount} Parts: {zone.Parts.Count}/{zones.Constraints.GetParts(zone.ZoneId)} Exits: {zone.GetAllExitNodes().Count()}/{zones.Constraints.GetMaxExitNodes(zone.ZoneId)}");
+    private static MazeZones ValidateMaze(Func<MazeZones> func) {
+        var totalNodes = 0;
+        var totalSolutionPaths = 0;
+        var totalGoalPaths = 0;
+        var totalRedundancy = 0f;
+        var totalConcentrationIndex = 0f;
+        var totalIsolated = 0f;
+        var exceptions = 0;
+        var validMazes = 0;
+        MazeZones lastValidMaze = null;
+        const int tries = 40;
+
+        for (var i = 0; i < tries; i++) {
+            try {
+                var zones = func();
+                // PrintGraph(zones.MazeGraph);
+                zones.CalculateSolution(MazeGraphCatalog.KeyFormula);
+                Console.WriteLine($"{zones.GetNodes().Count:00} nodes, solution path: {zones.Scoring.SolutionPath.Count:00} goal path: {zones.Scoring.GoalPath.Count:00}, redundancy: {zones.Scoring.Redundancy * 100:00}% gini {zones.Scoring.ConcentrationIndex * 100:00}%. {zones.Scoring.VisitDistribution.GetValueOrDefault(0, 0) * 100:00}% isolated from solution");
+                PrintGraph(zones.MazeGraph, zones);
+
+                lastValidMaze = zones;
+                validMazes++;
+                totalNodes += zones.MazeGraph.GetNodes().Count;
+                totalSolutionPaths += zones.Scoring.SolutionPath.Count;
+                totalGoalPaths += zones.Scoring.GoalPath.Count;
+                totalRedundancy += zones.Scoring.Redundancy;
+                totalConcentrationIndex += zones.Scoring.ConcentrationIndex;
+                totalIsolated += zones.Scoring.VisitDistribution.GetValueOrDefault(0, 0);
+            } catch (NoMoreNodesException e) {
+                Console.WriteLine(e.Message);
+                exceptions++;
             }
-
-            zones.CalculateNodeScores();
-            PrintGraph(zones.MazeGraph, zones);
         }
+
+        if (validMazes > 0) {
+            Console.WriteLine($"Valid mazes: {validMazes}/{tries} ({exceptions} exceptions)");
+            Console.WriteLine($"-----------------------------------------------------------------------------------------------");
+            Console.WriteLine($"{totalNodes / validMazes:00} nodes, solution path: {totalSolutionPaths / validMazes:00} goal path: {totalGoalPaths / validMazes:00}, redundancy: {(totalRedundancy / validMazes) * 100:00}% gini {(totalConcentrationIndex / validMazes) * 100:00}%. {(totalIsolated / validMazes) * 100:00}% isolated from solution");
+            Console.WriteLine($"-----------------------------------------------------------------------------------------------");
+        } else {
+            Console.WriteLine("No valid mazes generated");
+        }
+
+        return lastValidMaze;
     }
 
     /*
@@ -72,8 +107,8 @@ public class MazeGraphZonedDemo {
     private static void PrintGraph(MazeGraph mc, MazeZones zones = null) {
         var allCanvas = new TextCanvas();
         var offset = 0;
-        var keys = zones?.GetBestLocationsByZone(KeyFormula);
-        var loot = zones?.SpreadLocationsByZone(0.3f, LootFormula);
+        var keys = zones?.GetBestLocationsByZone(MazeGraphCatalog.KeyFormula);
+        var loot = zones?.SpreadLocationsByZone(0.3f, MazeGraphCatalog.LootFormula);
         var mazeOffset = mc.GetOffset();
         var width = mc.GetSize().X;
         foreach (var node in mc.GetNodes()) {
@@ -87,7 +122,8 @@ public class MazeGraphZonedDemo {
                 var zone = zones.Zones[node.ZoneId];
                 var nodeWithKeyInZone = keys[zone.ZoneId];
                 var isKey = nodeWithKeyInZone == node;
-                canvas.Write(1, 1, node.ZoneId.ToString() + (isKey ? "!" : ""));
+                var isLoot = loot[node.ZoneId].Contains(node);
+                canvas.Write(1, 1, node.ZoneId.ToString() + (isKey && isLoot ? "&" : isKey ? "!" : isLoot ? "$" : ""));
                 // canvas.Write(1, 1, node.ZoneId.ToString()+node.PartId.ToString());
             } else {
                 canvas.Write(1, 1, node.ZoneId.ToString());
@@ -95,7 +131,7 @@ public class MazeGraphZonedDemo {
             }
             allCanvas.Write(offset + (node.Position.X - mazeOffset.X) * 6, (node.Position.Y - mazeOffset.Y) * 3, canvas.ToString());
         }
-        offset += (width * 6 + 5);
+        offset += (width * 6 + 8);
         foreach (var node in mc.GetNodes()) {
             if (node == null) continue;
             var canvas = new TextCanvas();
@@ -114,13 +150,12 @@ public class MazeGraphZonedDemo {
                 route.Add(keys[zone.ZoneId]);
             }
 
-            zones.CalculateSolution(KeyFormula);
             // zones.CalculateSolution(KeyFormula, [1, 2, 3, 4, 5, 6, 7]);
             // zones.CalculateSolution(KeyFormula, [0, 1, 2, 3, 4, 5, 6, 7]);
             // zones.CalculateSolution(KeyFormula, [0, 1, 3, 4, 5, 6, 7, 2]);
             // zones.CalculateSolution(KeyFormula, [1, 4, 6, 5, 3, 7, 2]); // This fail if you don't take into account the key usage
 
-            offset += width * 6 + 5;
+            offset += width * 6 + 8;
             foreach (var node in mc.GetNodes()) {
                 if (node == null) continue;
                 var canvas = new TextCanvas();
@@ -136,7 +171,7 @@ public class MazeGraphZonedDemo {
                 // var score = nodeScore.ExitDistanceScore * 100;
                 var score = nodeScore.SolutionTraversals;
 
-                var lootScore = Mathf.RoundToInt(LootFormula(nodeScore) * 100);
+                var lootScore = Mathf.RoundToInt(MazeGraphCatalog.LootFormula(nodeScore) * 100);
                 var nodeWithKeyInZone = keys[zone.ZoneId];
                 var isKey = nodeWithKeyInZone == node;
 
@@ -153,11 +188,11 @@ public class MazeGraphZonedDemo {
 
                 var isPartOfMainPath = zones.Scoring.SolutionPath.Contains(node);
                 if (isLoot && isPartOfMainPath) {
-                    canvas.Write(1, 1, $"{score:0}$");
+                    canvas.Write(1, 1, $"*");
                 } else if (isLoot) {
-                    canvas.Write(1, 1, $"{score:0}*");
+                    canvas.Write(1, 1, $"{score:0}$");
                 } else if (isPartOfMainPath) {
-                    canvas.Write(1, 1, $"{score:0}");
+                    canvas.Write(1, 1, $"*");
                 } else {
                     canvas.Write(1, 1, $"+");
                 }
@@ -165,16 +200,16 @@ public class MazeGraphZonedDemo {
             }
             Console.WriteLine(allCanvas.ToString());
 
+            // foreach (var zone in zones.Zones) {
+            // Console.WriteLine($"Zone {zone.ZoneId} Nodes: {zone.NodeCount} Parts: {zone.Parts.Count}/{zones.Constraints.GetParts(zone.ZoneId)} Exits: {zone.GetAllExitNodes().Count()}/{zones.Constraints.GetMaxExitNodes(zone.ZoneId)}");
+            // }
+
             zones.Scoring.VisitDistribution.ForEach((kv) => {
                 // Console.WriteLine($"{kv.Key}: {kv.Value*100:00.0}%");
             });
 
-            Console.WriteLine($"{mc.GetNodes().Count} nodes, solution path: {zones.Scoring.SolutionPath.Count} goal path: {zones.Scoring.GoalPath.Count}, redundancy: {zones.Scoring.Redundancy * 100:0}% gini {zones.Scoring.ConcentrationIndex * 100:0}%. {zones.Scoring.VisitDistribution.GetValueOrDefault(0, 0) * 100:0}% isolated from solution");
         } else {
             Console.WriteLine(allCanvas.ToString());
         }
     }
-
-    public static float KeyFormula(NodeScore score) => (score.DeadEndScore * 0.4f + score.EntryDistanceScore * 0.3f + score.ExitDistanceScore * 0.3f) * 0.5f + (score.BelongsToPathToExit ? 0.0f : 0.5f);
-    public static float LootFormula(NodeScore score) => score.DeadEndScore * 0.6f + score.EntryDistanceScore * 0.4f;
 }
