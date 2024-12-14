@@ -17,9 +17,13 @@ public class MazeZonedConstraints(int maxZones) : IMazeZonedConstraints {
             throw new ArgumentException($"Max total nodes {maxTotalNodes} must be greater than max zones {maxZones}");
         }
         MaxTotalNodes = maxTotalNodes;
-        NodesPerZone = [maxTotalNodes / maxZones];
+        var baseNodesPerZone = maxTotalNodes / maxZones;
+        var remaining = maxTotalNodes % maxZones;
+        NodesPerZone = new int[maxZones];
+        for (var i = 0; i < maxZones; i++) {
+            NodesPerZone[i] = baseNodesPerZone + (i < remaining ? 1 : 0);
+        }
     }
-
     public int GetNodesPerZone(int zoneId) {
         // The array could have fewer elements than maxZones, so we use the last value for the remaining zones
         return NodesPerZone[Math.Min(zoneId, NodesPerZone.Length - 1)];
