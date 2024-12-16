@@ -1,0 +1,108 @@
+MazePattern.cs contiene un sistema para cargar y gestionar patrones de celdas para generar laberintos visuales. Las celdas pueden tener conexiones en las cuatro direcciones cardinales (Norte, Este, Sur, Oeste) y el sistema permite definir diferentes variantes visuales para cada configuración de conexiones.
+
+Clases principales:
+
+1. PatternDirection [Enum]
+   - Enum [Flags] que representa las 4 direcciones cardinales posibles
+   - Mapa de bits (7 bits, pero solo usamos 4 posiciones):
+     * Norte = bit 0 (1 << 0 = 1)    // 00000001
+     * Este  = bit 2 (1 << 2 = 4)    // 00000100
+     * Sur   = bit 4 (1 << 4 = 16)   // 00010000
+     * Oeste = bit 6 (1 << 6 = 64)   // 01000000
+   - Permite combinaciones usando operadores de bits
+     Ejemplos:
+     * Norte + Este = 5   (00000101)  // Conexiones al norte y este
+     * Norte + Sur  = 17  (00010001)  // Conexiones al norte y sur
+     * Todas = 85        (01010101)  // Conexiones en todas las direcciones
+
+2. PatternId
+   - Encapsula un ID que representa las conexiones de una celda más sus flags
+   - El formato es: "número/flag1/flag2/...", por ejemplo:
+     * "1/basic" - conexión Norte con flag "basic"
+     * "5/fancy/stone" - conexiones Norte+Este con flags "fancy" y "stone"
+   - El número representa las conexiones (suma de los bits activos)
+   - Los flags son opcionales y sirven para categorizar variantes
+   - Proporciona métodos para comprobar conexiones específicas
+   - Incluye un método factory FromNode para crear un PatternId desde un nodo del laberinto
+
+3. PatternDefinition
+   - Agrupa todas las variantes visuales para un PatternId específico
+   - Mantiene una lista de patrones para el mismo ID
+   - Puede heredar y transformar patrones de otro PatternDefinition usando FromPattern
+   - La herencia solo es válida entre patrones con el mismo número de conexiones
+
+4. MazePattern
+   - Clase principal que gestiona la carga y selección de patrones
+   - Mantiene un diccionario de PatternDefinition indexado por PatternId
+   - Proporciona métodos para cargar patrones desde archivos
+   - Permite obtener patrones aleatorios que cumplan con flags específicos
+
+5. MazePatternLoader
+   - Carga patrones desde archivos de texto con un formato específico
+   - Formato del archivo:
+     @ID=número/flag1/flag2/...   (número en decimal + flags opcionales)
+     Ejemplos:
+     @ID=1/basic       // Solo conexión Norte con flag "basic"
+     @ID=5/fancy       // Conexiones Norte y Este con flag "fancy"
+     @ID=17/stone      // Conexiones Norte y Sur con flag "stone"
+     @ID=85/basic      // Todas las conexiones con flag "basic"
+     @FROM=número/flag1/flag2/...  (hereda y rota desde otro patrón)
+     <patrón visual en ASCII>
+   - Maneja la herencia y transformación de patrones
+   - Puede transformar patrones base mediante rotaciones
+   - La herencia (@FROM) permite reutilizar patrones base y aplicarles rotaciones
+     automáticamente para generar nuevas variantes
+   - Solo se puede heredar entre patrones con el mismo número de conexiones
+
+6. MazeGraphToArray2D
+   - Convierte un grafo de laberinto en una representación visual 2D
+   - Usa MazePattern para obtener los patrones visuales adecuados para cada nodo
+   - Combina los patrones para crear la representación completa del laberinto
+
+Ejemplo de uso:
+1. Crear una instancia de MazePattern con un tamaño de celda
+   var patterns = new MazePattern(cellSize: 5);
+
+2. Cargar patrones desde archivos
+   patterns.LoadPatterns("basic_patterns.txt");
+   patterns.LoadPatterns("fancy_patterns.txt");
+
+3. Para cada nodo del laberinto:
+   - El sistema identifica automáticamente las conexiones del nodo
+   - Crea un PatternId basado en esas conexiones
+   - Obtiene un patrón visual aleatorio que coincida con los flags requeridos
+   var pattern = patterns.GetPattern(node, "basic");  // o "fancy" para variantes decorativas
+
+4. El sistema combina todos los patrones para crear el laberinto visual completo
+   var array2D = MazeGraphToArray2D.Convert(graph, patterns);
+
+Ejemplo de archivo de patrones con herencia:
+
+# Patrón base con solo conexión norte
+@ID=1/basic          # Norte = 1
+####
+#  #
+#  #
+#  #
+
+# Patrón este que hereda del norte
+@ID=4/basic          # Este = 4
+@FROM=1/basic        # Hereda y rota 90° del patrón norte
+
+# Patrón con norte y este
+@ID=5/basic          # Norte (1) + Este (4) = 5
+#####
+#   #
+#   #
+#####
+
+Reglas de herencia:
+- Solo se puede heredar entre patrones con el mismo número de conexiones
+- Al heredar, el patrón se rota automáticamente para coincidir con la nueva orientación
+- Los flags del patrón heredado se mantienen en el nuevo patrón
+- Ejemplos de herencias válidas:
+  * 4/basic (Este) puede heredar de 1/basic (Norte)
+  * 20/basic (Este+Sur) puede heredar de 5/basic (Norte+Este)
+  * 84/basic (Este+Sur+Oeste) puede heredar de 21/basic (Norte+Este+Sur)
+
+Los patrones se definen en archivos de texto donde cada celda puede tener múltiples variantes visuales y pueden heredar y transformar patrones de otras celdas, permitiendo una gran flexibilidad en el diseño visual del laberinto.

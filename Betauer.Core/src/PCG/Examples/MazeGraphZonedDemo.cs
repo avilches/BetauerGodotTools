@@ -1,39 +1,33 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Betauer.Core.DataMath;
 using Betauer.Core.PCG.Maze;
 using Betauer.Core.PCG.Maze.Zoned;
 using Godot;
 
 namespace Betauer.Core.PCG.Examples;
 
-public class Metadata() {
-    public bool Added = false;
-    public int Key = -1;
-
-    public Metadata(bool added) : this() {
-        Added = added;
-    }
-}
-
 public class MazeGraphZonedDemo {
-    public static void Main() {
+    public static void MainValidate() {
         var seed = 1;
         var rng = new Random(seed);
-        // PENDIENTE DE HACER
-        // 4 colocar objeto llave donde toca, el ultimo es la salida o el jefe
-        // calcular linearidad: calcular las llaves en orden y calcular la ruta entre ellas
-        // [salida, llave1, llave2, llave3, jefe]
-        // cuantas veces pasa por cada nodo, y si se deja nodos sin pasar
-        // calcular dificultad segun cercania al boss?
-
-        // Console.WriteLine(i);
         var zones = ValidateMaze(() => MazeGraphCatalog.CogmindLong(rng, mc => {
             // mc.OnNodeCreated += (node) => PrintGraph(mc);
         }));
-        zones.CalculateNodeScores();
+        zones.CalculateSolution(MazeGraphCatalog.KeyFormula);
         PrintGraph(zones.MazeGraph, zones);
+    }
+
+    public static void MainGenerate() {
+        var seed = 1;
+        var rng = new Random(seed);
+        var zones = MazeGraphCatalog.CogmindLong(rng, mc => {
+            // mc.OnNodeCreated += (node) => PrintGraph(mc);
+        });
+        zones.CalculateSolution(MazeGraphCatalog.KeyFormula);
+        PrintGraph(zones.MazeGraph, zones);
+        // var array2D = MazeGraphToArray2D.Convert(zones.MazeGraph, cellSize: 12, seed: 12345, expandProbability:0.3f);
+        // Console.WriteLine(array2D.ToString());
     }
 
     private static MazeZones ValidateMaze(Func<MazeZones> func) {
@@ -207,7 +201,6 @@ public class MazeGraphZonedDemo {
             zones.Scoring.VisitDistribution.ForEach((kv) => {
                 // Console.WriteLine($"{kv.Key}: {kv.Value*100:00.0}%");
             });
-
         } else {
             Console.WriteLine(allCanvas.ToString());
         }

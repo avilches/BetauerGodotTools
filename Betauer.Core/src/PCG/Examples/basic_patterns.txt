@@ -1,0 +1,87 @@
+# 0: Sin conexiones (00000000 = 0)
+@ID=0/basic
+.....
+.###.
+.#·#.
+.###.
+.....
+
+# 1: Solo Norte (00000001 = 1) - PATRÓN BASE para una conexión
+@ID=1/basic
+.....
+..#..
+..·..
+.###.
+.....
+
+# 4: Solo Este (00000100 = 4) - Hereda y rota de Norte
+@ID=4/basic
+@FROM=1/basic
+
+# 16: Solo Sur (00010000 = 16) - Hereda y rota de Norte
+@ID=16/basic
+@FROM=1/basic
+
+# 64: Solo Oeste (01000000 = 64) - Hereda y rota de Norte
+@ID=64/basic
+@FROM=1/basic
+
+# 5: Norte + Este (00000101 = 5) - PATRÓN BASE para dos conexiones en L
+@ID=5/basic
+.....
+..#..
+...·.
+.###.
+.....
+
+# 20: Este + Sur (00010100 = 20) - Hereda y rota de Norte + Este
+@ID=20/basic
+@FROM=5/basic
+
+# 80: Sur + Oeste (01010000 = 80) - Hereda y rota de Norte + Este
+@ID=80/basic
+@FROM=5/basic
+
+# 65: Norte + Oeste (01000001 = 65) - Hereda y rota de Norte + Este
+@ID=65/basic
+@FROM=5/basic
+
+# 17: Norte + Sur (00010001 = 17) - PATRÓN BASE para dos conexiones opuestas
+@ID=17/basic
+.....
+..#..
+..·..
+..#..
+.....
+
+# 68: Este + Oeste (01000100 = 68) - Hereda y rota de Norte + Sur
+@ID=68/basic
+@FROM=17/basic
+
+# 21: Norte + Este + Sur (00010101 = 21) - PATRÓN BASE para tres conexiones
+@ID=21/basic
+.....
+..#..
+...·.
+..#..
+.....
+
+# 69: Norte + Este + Oeste (01000101 = 69) - Hereda y rota de Norte + Este + Sur
+@ID=69/basic
+@FROM=21/basic
+
+# 81: Norte + Sur + Oeste (01010001 = 81) - Hereda y rota de Norte + Este + Sur
+@ID=81/basic
+@FROM=21/basic
+
+# 84: Este + Sur + Oeste (01010100 = 84) - Hereda y rota de Norte + Este + Sur
+@ID=84/basic
+@FROM=21/basic
+
+# 85: Todas las direcciones (01010101 = 85)
+@ID=85/basic
+.....
+..#..
+.·.·.
+..#..
+.....
