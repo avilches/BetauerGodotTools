@@ -78,6 +78,15 @@ Ejemplo de uso:
    - El sistema identifica automáticamente las conexiones del nodo
    - Obtiene un patrón visual aleatorio que coincida con los flags requeridos
    var pattern = patterns.GetPattern(node, "basic");  // o "fancy" para variantes decorativas
+   - Lista los patrones disponibles:
+     var allPatterns = patterns.FindPatterns(node);  // Todos los patrones disponibles
+     var basicPatterns = patterns.FindPatterns(node, new[] { "basic" });  // Patrones con flag "basic"
+     var fancyPatterns = patterns.FindPatterns(node, new[] { "fancy" }, new[] { "stone" });  // Patrones con flag "fancy" y opcionalmente "stone"
+   - O obtiene un patrón exacto:
+     var pattern = patterns.GetPattern(value, new[] { "basic", "stone" });  // Debe tener exactamente estos flags
+     
+     Ejemplo de uso:
+
 
 4. El sistema combina todos los patrones para crear el laberinto visual completo
    var array2D = MazeGraphToArray2D.Convert(graph, patterns);

@@ -28,7 +28,7 @@ public class MazeGraphToArray2D {
         // Para cada nodo en el grafo
         foreach (var node in graph.GetNodes()) {
             // Obtener el patrón apropiado según las conexiones del nodo
-            var pattern = patterns.GetPattern(node, flags);
+            var pattern = patterns.FindPatterns(node, flags)[0];
 
             // Calcular la posición donde colocar el patrón
             var pos = (node.Position - offset) * cellSize;
@@ -53,41 +53,36 @@ public class MazeGraphToArray2D {
 }
 
 public class PatternDefinition {
-    public byte Value { get; }
+    public PatternId Id { get; }
     public Array2D<char> Pattern { get; private set; }
     public PatternId? FromPattern { get; set; }
-    public HashSet<string> Flags { get; }
 
-    public PatternDefinition(byte value, IEnumerable<string> flags) {
-        Value = value;
-        Flags = new HashSet<string>(flags);
+    public PatternDefinition(PatternId id) {
+        Id = id;
     }
 
     public void SetPattern(Array2D<char> pattern) {
         Pattern = pattern;
     }
 
-    public bool HasAnyFlag(string[] requiredFlags) {
-        return requiredFlags.Length == 0 || requiredFlags.Any(flag => Flags.Contains(flag));
+    public bool HasExactFlags(string[] requiredFlags) {
+        return Id.Flags.SetEquals(new HashSet<string>(requiredFlags));
+    }
+
+    public override string ToString() {
+        return Id.ToString();
     }
 }
 
-public class MazePattern {
-    private readonly Dictionary<byte, List<PatternDefinition>> _patterns;
-    private readonly Random _random;
+public class MazePattern(int cellSize) {
+    private readonly Dictionary<byte, List<PatternDefinition>> _patterns = new();
 
-    public int CellSize { get; }
-
-    public MazePattern(int cellSize, Random? random = null) {
-        CellSize = cellSize;
-        _random = random ?? new Random();
-        _patterns = new Dictionary<byte, List<PatternDefinition>>();
-    }
+    public int CellSize { get; } = cellSize;
 
     public void LoadPatterns(string patternsFile) {
         var newPatterns = MazePatternLoader.LoadFromFile(patternsFile);
         foreach (var pattern in newPatterns) {
-            var value = pattern.Key; // Ahora pattern.Key es directamente el byte
+            var value = pattern.Key;
             if (!_patterns.ContainsKey(value)) {
                 _patterns[value] = new List<PatternDefinition>();
             }
@@ -95,55 +90,98 @@ public class MazePattern {
         }
     }
 
-    public Array2D<char> GetPattern(MazeNode node) {
-        return FindPattern(PatternId.FromNode(node));
+    // Encuentra todos los patrones que coincidan con el nodo
+    public List<Array2D<char>> FindPatterns(MazeNode node) {
+        return FindPatterns(PatternId.FromNode(node));
     }
 
-    public Array2D<char> GetPattern(MazeNode node, params string[] requiredFlags) {
-        return FindPattern(PatternId.FromNode(node), requiredFlags);
+    // Encuentra todos los patrones que coincidan con el nodo y los flags
+    public List<Array2D<char>> FindPatterns(MazeNode node, string[] requiredFlags, string[]? optionalFlags = null) {
+        return FindPatterns(PatternId.FromNode(node), requiredFlags, optionalFlags);
     }
 
-    // Encuentra todos los patrones que coincidan con el valor y los flags
-    public Array2D<char> FindPattern(byte value, params string[] requiredFlags) {
-        var matchingDefinitions = GetMatchingDefinitions(value, requiredFlags);
-        return matchingDefinitions[_random.Next(matchingDefinitions.Count)].Pattern;
+    // Encuentra todos los patrones para el valor dado
+    public List<Array2D<char>> FindPatterns(byte value) {
+        return GetPatternDefinitions(value).Select(d => d.Pattern).ToList();
     }
 
-    public Array2D<char> GetPattern(byte value, params string[] requiredFlags) {
-        var matchingDefinitions = GetMatchingDefinitions(value, requiredFlags);
+    // Encuentra todos los patrones que coincidan con los flags requeridos y opcionales
+    public List<Array2D<char>> FindPatterns(byte value, string[] requiredFlags, string[]? optionalFlags = null) {
+        return GetPatternDefinitions(value, requiredFlags, optionalFlags).Select(d => d.Pattern).ToList();
+    }
+
+    // Obtiene un único patrón que coincida exactamente con los flags requeridos
+    public Array2D<char> GetPattern(byte value, string[] requiredFlags) {
+        var matchingDefinitions = GetPatternDefinitionsWithExactFlags(value, requiredFlags);
         if (matchingDefinitions.Count > 1) {
-            throw new ArgumentException($"Multiple patterns found for value {value} with flags: {string.Join(", ", requiredFlags)}");
+            throw new ArgumentException(
+                $"Multiple patterns found for value {PatternId.ByteToDirectionsString(value)} ({value}) " +
+                $"with flags: {string.Join(", ", requiredFlags)}");
         }
         return matchingDefinitions[0].Pattern;
     }
 
-    private List<PatternDefinition> GetMatchingDefinitions(byte value, string[] requiredFlags) {
+    private List<PatternDefinition> GetPatternDefinitions(byte value) {
         if (!_patterns.TryGetValue(value, out var definitions)) {
-            var directions = GetDirectionsDescription(value);
             throw new ArgumentException(
-                $"No pattern found for value {value} " +
-                $"(bits: {Convert.ToString(value, 2).PadLeft(8, '0')}, " +
-                $"connections: {directions})");
+                $"No pattern found for value {PatternId.ByteToDirectionsString(value)} ({value})");
+        }
+        return definitions;
+    }
+
+    private List<PatternDefinition> GetPatternDefinitions(byte value, string[] requiredFlags, string[]? optionalFlags = null) {
+        if (!_patterns.TryGetValue(value, out var definitions)) {
+            throw new ArgumentException(
+                $"No pattern found for value {PatternId.ByteToDirectionsString(value)} ({value})");
         }
 
-        var matchingDefinitions = requiredFlags.Length == 0
-            ? definitions
-            : definitions.Where(d => d.HasAnyFlag(requiredFlags)).ToList();
+        // Primero filtramos por flags requeridos
+        var matchingDefinitions = definitions
+            .Where(d => HasRequiredFlags(d, requiredFlags))
+            .ToList();
 
         if (!matchingDefinitions.Any()) {
-            throw new ArgumentException($"No pattern found for value {value} with specified flags: {string.Join(", ", requiredFlags)}");
+            throw new ArgumentException(
+                $"No pattern found for value {PatternId.ByteToDirectionsString(value)} ({value}) " +
+                $"with required flags: {string.Join(", ", requiredFlags)}");
+        }
+
+        // Si hay flags opcionales, ordenamos por cantidad de coincidencias
+        if (optionalFlags != null && optionalFlags.Length > 0) {
+            matchingDefinitions = matchingDefinitions
+                .OrderByDescending(d => CountMatchingOptionalFlags(d, optionalFlags))
+                .ThenBy(d => d.Id.Flags.Count) // Preferimos patrones con menos flags adicionales
+                .ToList();
         }
 
         return matchingDefinitions;
     }
 
-    private static string GetDirectionsDescription(byte value) {
-        var directions = new List<string>();
-        if ((value & (byte)PatternDirection.North) != 0) directions.Add("North");
-        if ((value & (byte)PatternDirection.East) != 0) directions.Add("East");
-        if ((value & (byte)PatternDirection.South) != 0) directions.Add("South");
-        if ((value & (byte)PatternDirection.West) != 0) directions.Add("West");
-        return directions.Any() ? string.Join("+", directions) : "None";
+    private List<PatternDefinition> GetPatternDefinitionsWithExactFlags(byte value, string[] requiredFlags) {
+        if (!_patterns.TryGetValue(value, out var definitions)) {
+            throw new ArgumentException(
+                $"No pattern found for value {PatternId.ByteToDirectionsString(value)} ({value})");
+        }
+
+        var matchingDefinitions = definitions
+            .Where(d => d.HasExactFlags(requiredFlags))
+            .ToList();
+
+        if (!matchingDefinitions.Any()) {
+            throw new ArgumentException(
+                $"No pattern found for value {PatternId.ByteToDirectionsString(value)} ({value}) " +
+                $"with exact flags: {string.Join(", ", requiredFlags)}");
+        }
+
+        return matchingDefinitions;
+    }
+
+    private bool HasRequiredFlags(PatternDefinition pattern, string[] requiredFlags) {
+        return requiredFlags.All(flag => pattern.Id.Flags.Contains(flag));
+    }
+
+    private int CountMatchingOptionalFlags(PatternDefinition pattern, string[] optionalFlags) {
+        return optionalFlags.Count(flag => pattern.Id.Flags.Contains(flag));
     }
 }
 
@@ -177,6 +215,15 @@ public class PatternId {
         var value = ParseDirections(parts[0]);
         var flags = parts.Length > 1 ? parts[1..] : Array.Empty<string>();
         return new PatternId(value, flags);
+    }
+
+    public static string ByteToDirectionsString(byte value) {
+        var directions = new List<string>();
+        if ((value & (byte)PatternDirection.North) != 0) directions.Add("N");
+        if ((value & (byte)PatternDirection.East) != 0) directions.Add("E");
+        if ((value & (byte)PatternDirection.South) != 0) directions.Add("S");
+        if ((value & (byte)PatternDirection.West) != 0) directions.Add("W");
+        return string.Join("", directions);
     }
 
     private static byte ParseDirections(string directions) {
@@ -213,7 +260,7 @@ public class PatternId {
     }
 
     public override string ToString() {
-        var baseString = Value.ToString();
+        var baseString = ByteToDirectionsString(Value);
         if (Flags.Count == 0) return baseString;
         return baseString + "/" + string.Join("/", Flags);
     }
@@ -252,30 +299,29 @@ public class MazePatternLoader {
 
         void ProcessCurrentPattern() {
             if (current == null) return;
-            Console.WriteLine("Processing pattern " + current.Value+ " with flags: " + string.Join(", ", current.Flags));
+            Console.WriteLine($"Processing pattern {current}");
 
             // Primero comprobamos si ya existe un patrón con el mismo value y flags
-            if (patterns.TryGetValue(current.Value, out var existingPatterns)) {
+            if (patterns.TryGetValue(current.Id.Value, out var existingPatterns)) {
                 var duplicatePattern = existingPatterns.FirstOrDefault(p =>
-                    p.Flags.SetEquals(current.Flags));
+                    p.HasExactFlags(current.Id.Flags.ToArray()));
 
                 if (duplicatePattern != null) {
                     throw new ArgumentException(
-                        $"Duplicate pattern found for value {current.Value} " +
-                        $"with flags: {string.Join(", ", current.Flags)}");
+                        $"Duplicate pattern found: {current}");
                 }
             } else {
-                patterns[current.Value] = new List<PatternDefinition>();
+                patterns[current.Id.Value] = new List<PatternDefinition>();
             }
 
             if (current.FromPattern != null) {
-                var baseArray2D = GetPatternFromDictionary(patterns, current.FromPattern.Value, current.FromPattern.Flags.ToArray());
-                current.SetPattern(TransformPattern(baseArray2D, current.FromPattern.Value, current.Value));
+                var baseArray2D = GetPatternFromDictionary(patterns, current.FromPattern);
+                current.SetPattern(TransformPattern(baseArray2D, current.FromPattern.Value, current.Id.Value));
             } else if (currentPattern.Count > 0) {
                 current.SetPattern(ParsePattern(currentPattern));
             }
 
-            patterns[current.Value].Add(current);
+            patterns[current.Id.Value].Add(current);
             currentPattern.Clear();
             current = null;
         }
@@ -303,7 +349,7 @@ public class MazePatternLoader {
                 var parts = withoutComments[IdPrefix.Length..].Split(new[] { "from" }, StringSplitOptions.TrimEntries);
 
                 var id = PatternId.Parse(parts[0]);
-                current = new PatternDefinition(id.Value, id.Flags);
+                current = new PatternDefinition(id);
 
                 if (parts.Length > 1) {
                     current.FromPattern = PatternId.Parse(parts[1]);
@@ -317,19 +363,19 @@ public class MazePatternLoader {
         return patterns;
     }
 
-    private static Array2D<char> GetPatternFromDictionary(Dictionary<byte, List<PatternDefinition>> patterns, byte value, string[] flags) {
-        if (!patterns.TryGetValue(value, out var definitions)) {
-            throw new ArgumentException($"Base pattern with value {value} not found");
+    private static Array2D<char> GetPatternFromDictionary(Dictionary<byte, List<PatternDefinition>> patterns, PatternId patternId) {
+        if (!patterns.TryGetValue(patternId.Value, out var definitions)) {
+            throw new ArgumentException($"Base pattern not found: {patternId}");
         }
 
-        var matchingDefinitions = definitions.Where(d => d.HasAnyFlag(flags)).ToList();
+        var matchingDefinitions = definitions.Where(d => d.HasExactFlags(patternId.Flags.ToArray())).ToList();
 
         if (!matchingDefinitions.Any()) {
-            throw new ArgumentException($"No base pattern found with value {value} and flags: {string.Join(", ", flags)}");
+            throw new ArgumentException($"No base pattern found: {patternId}");
         }
 
         if (matchingDefinitions.Count > 1) {
-            throw new ArgumentException($"Multiple base patterns found with value {value} and flags: {string.Join(", ", flags)}. Base pattern must be unique.");
+            throw new ArgumentException($"Multiple base patterns found: {patternId}. Base pattern must be unique.");
         }
 
         return matchingDefinitions[0].Pattern;

@@ -12,7 +12,7 @@
 .....
 .....
 
-@ID=N/basic2/a
+@ID=N/basic2/b
 ..N..
 ..N..
 ..N..
@@ -27,9 +27,9 @@
 .....
 
 
-@ID=4/basic from N/basic2/b
-@ID=S/basic from N/a
-@ID=W/basic from N/a
+@ID=E/basic from N/basic2/b
+@ID=S/basic from N/basic
+@ID=W/basic from N/basic
 
 @ID=NE/basic
 ..#..
