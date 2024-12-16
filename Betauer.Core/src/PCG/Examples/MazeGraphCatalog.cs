@@ -72,6 +72,24 @@ public class MazeGraphCatalog {
         return zones;
     }
 
+
+    public static MazeZones Mini(Random rng, Action<MazeGraph>? config = null) {
+        var constraints = new MazePerZoneConstraints()
+            .Zone(nodes: 3)
+            .Zone(nodes: 8, parts: 8)
+            .Zone(nodes: 8, parts: 8);
+
+        var maze = new MazeGraph();
+        config?.Invoke(maze);
+        var zones = maze.GrowZoned(Vector2I.Zero, constraints, rng);
+
+        MazeGraphTools.ConnectLongestCyclesInAllZones(zones).ForEach(c => {
+            c.nodeA.GetEdgeTo(c.nodeB)!.SetAttribute("cycle", true);
+            c.nodeB.GetEdgeTo(c.nodeA)!.SetAttribute("cycle", true);
+        });
+        return zones;
+    }
+
     /// <summary>
     /// Medium start node and a lot of corridors 
     /// </summary>

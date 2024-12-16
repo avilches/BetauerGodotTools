@@ -1,3 +1,6 @@
+Sí, necesitamos actualizar el prompt.txt para reflejar los cambios realizados. Aquí está la versión actualizada:
+
+```txt
 MazePattern.cs contiene un sistema para cargar y gestionar patrones de celdas para generar laberintos visuales. Las celdas pueden tener conexiones en las cuatro direcciones cardinales (Norte, Este, Sur, Oeste) y el sistema permite definir diferentes variantes visuales para cada configuración de conexiones.
 
 Clases principales:
@@ -17,40 +20,44 @@ Clases principales:
 
 2. PatternId
    - Encapsula un ID que representa las conexiones de una celda más sus flags
-   - El formato es: "número/flag1/flag2/...", por ejemplo:
-     * "1/basic" - conexión Norte con flag "basic"
-     * "5/fancy/stone" - conexiones Norte+Este con flags "fancy" y "stone"
-   - El número representa las conexiones (suma de los bits activos)
+   - El formato es: "direcciones/flag1/flag2/...", por ejemplo:
+     * "N/basic" - conexión Norte con flag "basic"
+     * "NE/fancy/stone" - conexiones Norte+Este con flags "fancy" y "stone"
+   - Las direcciones pueden especificarse con letras (N, E, S, W) o números
    - Los flags son opcionales y sirven para categorizar variantes
    - Proporciona métodos para comprobar conexiones específicas
-   - Incluye un método factory FromNode para crear un PatternId desde un nodo del laberinto
+   - Incluye un método factory FromNode para crear un byte value directo desde un nodo del laberinto
 
 3. PatternDefinition
-   - Agrupa todas las variantes visuales para un PatternId específico
-   - Mantiene una lista de patrones para el mismo ID
+   - Agrupa todas las variantes visuales para un valor específico de conexiones
+   - Mantiene una lista de patrones y sus flags asociados
    - Puede heredar y transformar patrones de otro PatternDefinition usando FromPattern
    - La herencia solo es válida entre patrones con el mismo número de conexiones
 
 4. MazePattern
    - Clase principal que gestiona la carga y selección de patrones
-   - Mantiene un diccionario de PatternDefinition indexado por PatternId
+   - Mantiene un diccionario de List<PatternDefinition> indexado por byte value
    - Proporciona métodos para cargar patrones desde archivos
-   - Permite obtener patrones aleatorios que cumplan con flags específicos
+   - Métodos principales:
+     * GetPattern(MazeNode): Obtiene un patrón aleatorio sin flags
+     * GetPattern(MazeNode, string[]): Obtiene un patrón aleatorio con flags
+     * FindPattern(byte, string[]): Obtiene un patrón aleatorio entre los que coincidan
+     * GetPattern(byte, string[]): Obtiene un único patrón o lanza excepción si hay más de uno
 
 5. MazePatternLoader
    - Carga patrones desde archivos de texto con un formato específico
    - Formato del archivo:
-     @ID=número/flag1/flag2/...   (número en decimal + flags opcionales)
+     @ID=direcciones/flag1/flag2/... [from direcciones/flag1/flag2/...] # comentario
      Ejemplos:
-     @ID=1/basic       // Solo conexión Norte con flag "basic"
-     @ID=5/fancy       // Conexiones Norte y Este con flag "fancy"
-     @ID=17/stone      // Conexiones Norte y Sur con flag "stone"
-     @ID=85/basic      // Todas las conexiones con flag "basic"
-     @FROM=número/flag1/flag2/...  (hereda y rota desde otro patrón)
+     @ID=N/basic       # Solo conexión Norte con flag "basic"
+     @ID=NE/fancy      # Conexiones Norte y Este con flag "fancy"
+     @ID=NS/stone      # Conexiones Norte y Sur con flag "stone"
+     @ID=NESW/basic    # Todas las conexiones con flag "basic"
+     @ID=E/basic from N/basic    # Este hereda y rota desde Norte
      <patrón visual en ASCII>
    - Maneja la herencia y transformación de patrones
    - Puede transformar patrones base mediante rotaciones
-   - La herencia (@FROM) permite reutilizar patrones base y aplicarles rotaciones
+   - La herencia permite reutilizar patrones base y aplicarles rotaciones
      automáticamente para generar nuevas variantes
    - Solo se puede heredar entre patrones con el mismo número de conexiones
 
@@ -69,7 +76,6 @@ Ejemplo de uso:
 
 3. Para cada nodo del laberinto:
    - El sistema identifica automáticamente las conexiones del nodo
-   - Crea un PatternId basado en esas conexiones
    - Obtiene un patrón visual aleatorio que coincida con los flags requeridos
    var pattern = patterns.GetPattern(node, "basic");  // o "fancy" para variantes decorativas
 
@@ -79,18 +85,17 @@ Ejemplo de uso:
 Ejemplo de archivo de patrones con herencia:
 
 # Patrón base con solo conexión norte
-@ID=1/basic          # Norte = 1
+@ID=N/basic          # Norte
 ####
 #  #
 #  #
 #  #
 
 # Patrón este que hereda del norte
-@ID=4/basic          # Este = 4
-@FROM=1/basic        # Hereda y rota 90° del patrón norte
+@ID=E/basic from N/basic  # Este hereda y rota 90° del patrón norte
 
 # Patrón con norte y este
-@ID=5/basic          # Norte (1) + Este (4) = 5
+@ID=NE/basic        # Norte + Este
 #####
 #   #
 #   #
@@ -101,8 +106,16 @@ Reglas de herencia:
 - Al heredar, el patrón se rota automáticamente para coincidir con la nueva orientación
 - Los flags del patrón heredado se mantienen en el nuevo patrón
 - Ejemplos de herencias válidas:
-  * 4/basic (Este) puede heredar de 1/basic (Norte)
-  * 20/basic (Este+Sur) puede heredar de 5/basic (Norte+Este)
-  * 84/basic (Este+Sur+Oeste) puede heredar de 21/basic (Norte+Este+Sur)
+  * E/basic (Este) puede heredar de N/basic (Norte)
+  * ES/basic (Este+Sur) puede heredar de NE/basic (Norte+Este)
+  * ESW/basic (Este+Sur+Oeste) puede heredar de NES/basic (Norte+Este+Sur)
 
 Los patrones se definen en archivos de texto donde cada celda puede tener múltiples variantes visuales y pueden heredar y transformar patrones de otras celdas, permitiendo una gran flexibilidad en el diseño visual del laberinto.
+```
+
+Los cambios principales en el prompt.txt son:
+1. Actualización del formato de los IDs para usar letras (N, E, S, W)
+2. Actualización de la estructura de MazePattern con los nuevos métodos
+3. Simplificación del formato de archivo para incluir herencia en la misma línea
+4. Actualización de los ejemplos para usar el nuevo formato de direcciones
+5. Clarificación de la estructura del diccionario basado en byte value

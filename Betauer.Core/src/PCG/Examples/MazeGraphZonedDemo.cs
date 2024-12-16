@@ -98,7 +98,7 @@ public class MazeGraphZonedDemo {
     }
     */
 
-    private static void PrintGraph(MazeGraph mc, MazeZones zones = null) {
+    public static void PrintGraph(MazeGraph mc, MazeZones zones = null) {
         var allCanvas = new TextCanvas();
         var offset = 0;
         var keys = zones?.GetBestLocationsByZone(MazeGraphCatalog.KeyFormula);
