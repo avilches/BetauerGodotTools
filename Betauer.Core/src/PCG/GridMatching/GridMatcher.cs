@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Betauer.Core.DataMath.Terrain;
+namespace Betauer.Core.PCG.GridMatching;
 
-public abstract partial class TilePattern {
+public abstract partial class GridMatcher {
     private static readonly Dictionary<string, Func<int, bool>> IntRules = new Dictionary<string, Func<int, bool>>() {
         { "?", i => true },
         { "*", i => true },
@@ -87,7 +87,7 @@ public abstract partial class TilePattern {
     /// <param name="rules"></param>
     /// <returns></returns>
     /// <exception cref="Exception"></exception>
-    public static TilePattern<int> Parse(string value) => Parse(value, IntRules);
+    public static GridMatcher<int> Parse(string value) => Parse(value, IntRules);
 
     /// <summary>
     /// ? = ignore (no rule in this position)
@@ -103,7 +103,7 @@ public abstract partial class TilePattern {
     /// <param name="rules"></param>
     /// <returns></returns>
     /// <exception cref="Exception"></exception>
-    public static TilePattern<T> Parse<T>(string value, Dictionary<string, Func<T, bool>> rules) {
+    public static GridMatcher<T> Parse<T>(string value, Dictionary<string, Func<T, bool>> rules) {
         var lines = value.Split('\n')
             .Select(v => v.Trim())
             .Where(v => v.Length > 0)
@@ -127,7 +127,7 @@ public abstract partial class TilePattern {
             }
             y++;
         }
-        var tilePattern = new TilePattern<T>(rules, ruleGrid);
+        var tilePattern = new GridMatcher<T>(rules, ruleGrid);
         return tilePattern;
     }
 
@@ -135,14 +135,9 @@ public abstract partial class TilePattern {
     private static partial Regex SplitWords();
 }
 
-public class TilePattern<T> : TilePattern {
-    public Dictionary<string, Func<T, bool>> Rules { get; }
-    public (string, Func<T, bool>)[,] RuleGrid { get; }
-
-    public TilePattern(Dictionary<string, Func<T, bool>> rules, (string, Func<T, bool>)[,] ruleGrid) {
-        Rules = rules;
-        RuleGrid = ruleGrid;
-    }
+public class GridMatcher<T>(Dictionary<string, Func<T, bool>> rules, (string, Func<T, bool>)[,] ruleGrid) : GridMatcher {
+    public Dictionary<string, Func<T, bool>> Rules { get; } = rules;
+    public (string, Func<T, bool>)[,] RuleGrid { get; } = ruleGrid;
 
     /// <summary>
     /// Data must be a grid of the same size as the pattern and indexed by [y,x] (you can use Array2D<TT>.Data

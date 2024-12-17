@@ -1,8 +1,9 @@
 using System;
 using System.Linq;
+using Betauer.Core.DataMath;
 using Godot;
 
-namespace Betauer.Core.DataMath;
+namespace Betauer.Core.PCG.GridTools;
 
 public abstract class DeadEndRemover {
     public static DeadEndRemover<bool> Create(Array2D<bool> grid) {

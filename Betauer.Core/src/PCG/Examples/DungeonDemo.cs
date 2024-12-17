@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Betauer.Core.DataMath;
+using Betauer.Core.PCG.GridTools;
 using Betauer.Core.PCG.Maze;
 using Godot;
 

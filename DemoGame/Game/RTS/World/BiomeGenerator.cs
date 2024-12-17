@@ -5,11 +5,11 @@ using System.Linq;
 using Betauer.Core;
 using Betauer.Core.DataMath;
 using Betauer.Core.DataMath.Data;
-using Betauer.Core.DataMath.Terrain;
 using Betauer.Core.Easing;
 using Betauer.Core.Image;
 using Betauer.Core.PCG;
 using Betauer.Core.PCG.Graph;
+using Betauer.Core.PCG.GridMatching;
 using Betauer.Core.PCG.PoissonDiskSampling;
 using Godot;
 using FastNoiseLite = Betauer.Core.PCG.FastNoiseLite;
@@ -448,7 +448,7 @@ public class BiomeGenerator {
             { "s", cell => cell?.Sea ?? false },
             { "L", cell => cell?.Land ?? false },
         };
-        var p = TilePattern.Parse("""
+        var p = GridMatcher.Parse("""
                                   s s s
                                   L L L
                                   L L L

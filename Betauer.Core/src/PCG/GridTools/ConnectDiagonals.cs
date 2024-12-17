@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
-using Betauer.Core.DataMath.Terrain;
+using Betauer.Core.DataMath;
+using Betauer.Core.PCG.GridMatching;
 
-namespace Betauer.Core.DataMath;
+namespace Betauer.Core.PCG.GridTools;
 
 public static class ConnectDiagonals {
     public static void ConnectBorderDiagonals(Array2D<bool> region) {
@@ -17,8 +18,8 @@ public static class ConnectDiagonals {
         { "?", (_) => true },
     };
 
-    public static readonly TilePatternSet<bool, bool> Diagonals =
-        new TilePatternSet<bool, bool> { DefaultRules = DiagonalRules }
+    public static readonly GridMatcherSet<bool, bool> Diagonals =
+        new GridMatcherSet<bool, bool> { DefaultRules = DiagonalRules }
             .Add(true, """
                        ? ? ?
                        ? # ?

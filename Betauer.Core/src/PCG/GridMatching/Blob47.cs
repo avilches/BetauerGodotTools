@@ -1,17 +1,17 @@
 using System;
 using System.Collections.Generic;
 
-namespace Betauer.Core.DataMath.Terrain;
+namespace Betauer.Core.PCG.GridMatching;
 
-public static class TilePatternRuleSets {
+public static class Blob47 {
     private static readonly Dictionary<string, Func<int, bool>> TilePatternRules = new() {
         { "!", (v) => v != 0 },
         { "#", (v) => v == 0 },
         { "?", (_) => true },
     };
 
-    public static readonly TilePatternSet<int, int> Blob47 =
-        new TilePatternSet<int, int> { DefaultRules = TilePatternRules }
+    public static readonly GridMatcherSet<int, int> Rules =
+        new GridMatcherSet<int, int> { DefaultRules = TilePatternRules }
             .Add(0, """
                     ? ! ?
                     ! # !
@@ -25,7 +25,7 @@ public static class TilePatternRuleSets {
             .Add(4, """
                     ? ! ?
                     ! # #
-                    ? ! ?
+                    ? ! ?mi
                     """)
             .Add(5, """
                     ? # !

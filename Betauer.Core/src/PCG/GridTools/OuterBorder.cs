@@ -1,6 +1,7 @@
 using System;
+using Betauer.Core.DataMath;
 
-namespace Betauer.Core.DataMath;
+namespace Betauer.Core.PCG.GridTools;
 
 public abstract class OuterBorderDetector {
     public static OuterBorderDetector<bool> Create(Array2D<bool> grid) {

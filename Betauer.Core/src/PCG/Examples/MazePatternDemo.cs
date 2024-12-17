@@ -1,7 +1,7 @@
 using System;
+using System.IO;
 using Betauer.Core.DataMath;
-using Betauer.Core.PCG.Maze;
-using Godot;
+using Betauer.Core.PCG.GridTemplate;
 
 namespace Betauer.Core.PCG.Examples;
 
@@ -13,12 +13,13 @@ public class MazePatternDemo {
             // mc.OnNodeCreated += (node) => PrintGraph(mc);
         });
         zones.CalculateSolution(MazeGraphCatalog.KeyFormula);
-        
+
         // Crear el gestor de patrones con un tamaño de celda de 5x5
-        var patterns = new MazePattern(cellSize: 5);
+        var patterns = new TemplateSet(cellSize: 5);
 
         // Cargar patrones de diferentes archivos
-        patterns.LoadPatterns("/Users/avilches/Library/Mobile Documents/com~apple~CloudDocs/Shared/Godot/Betauer4/Betauer.Core/src/PCG/Examples/basic_patterns.txt");
+        var content = File.ReadAllText("/Users/avilches/Library/Mobile Documents/com~apple~CloudDocs/Shared/Godot/Betauer4/Betauer.Core/src/PCG/GridTemplate/basic_patterns.txt");
+        patterns.LoadTemplates(content);
 
         // El resto del código permanece igual
 
@@ -34,6 +35,5 @@ public class MazePatternDemo {
             }
             Console.WriteLine();
         }
-        
     }
 }

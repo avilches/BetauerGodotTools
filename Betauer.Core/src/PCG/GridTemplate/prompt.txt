@@ -1,6 +1,3 @@
-Sí, necesitamos actualizar el prompt.txt para reflejar los cambios realizados. Aquí está la versión actualizada:
-
-```txt
 MazePattern.cs contiene un sistema para cargar y gestionar patrones de celdas para generar laberintos visuales. Las celdas pueden tener conexiones en las cuatro direcciones cardinales (Norte, Este, Sur, Oeste) y el sistema permite definir diferentes variantes visuales para cada configuración de conexiones.
 
 Clases principales:
@@ -16,7 +13,7 @@ Clases principales:
      Ejemplos:
      * Norte + Este = 5   (00000101)  // Conexiones al norte y este
      * Norte + Sur  = 17  (00010001)  // Conexiones al norte y sur
-     * Todas = 85        (01010101)  // Conexiones en todas las direcciones
+     * Todas = 85         (01010101)  // Conexiones en todas las direcciones
 
 2. PatternId
    - Encapsula un ID que representa las conexiones de una celda más sus flags
@@ -26,17 +23,23 @@ Clases principales:
    - Las direcciones pueden especificarse con letras (N, E, S, W) o números
    - Los flags son opcionales y sirven para categorizar variantes
    - Proporciona métodos para comprobar conexiones específicas
-   - Incluye un método factory FromNode para crear un byte value directo desde un nodo del laberinto
+   - Incluye un método factory FromNode para crear un byte type directo desde un nodo del laberinto
 
-3. PatternDefinition
-   - Agrupa todas las variantes visuales para un valor específico de conexiones
-   - Mantiene una lista de patrones y sus flags asociados
-   - Puede heredar y transformar patrones de otro PatternDefinition usando FromPattern
-   - La herencia solo es válida entre patrones con el mismo número de conexiones
-
+3. PatternId
+   - Encapsula un ID que representa las conexiones de una celda más sus flags
+   - El formato es: "direcciones/flag1/flag2/...", por ejemplo:
+     * "N/basic" - conexión Norte con flag "basic"
+     * "NE/fancy/stone" - conexiones Norte+Este con flags "fancy" y "stone"
+   - Las direcciones pueden especificarse con letras (N, E, S, W) o números
+   - Los flags son opcionales y sirven para categorizar variantes
+   - Proporciona métodos para comprobar conexiones específicas
+   - Incluye un método factory FromNode para crear un byte type directo desde un nodo del laberinto
+   - En la herencia, puede incluir una transformación usando ':transform'
+     * "N/basic from E/basic:90" - hereda de E/basic y rota 90 grados
+     
 4. MazePattern
    - Clase principal que gestiona la carga y selección de patrones
-   - Mantiene un diccionario de List<PatternDefinition> indexado por byte value
+   - Mantiene un diccionario de List<PatternDefinition> indexado por byte type
    - Proporciona métodos para cargar patrones desde archivos
    - Métodos principales:
      * GetPattern(MazeNode): Obtiene un patrón aleatorio sin flags
@@ -45,20 +48,26 @@ Clases principales:
      * GetPattern(byte, string[]): Obtiene un único patrón o lanza excepción si hay más de uno
 
 5. MazePatternLoader
-   - Carga patrones desde archivos de texto con un formato específico
+   - Carga patrones desde texto o archivos de texto con un formato específico
    - Formato del archivo:
-     @ID=direcciones/flag1/flag2/... [from direcciones/flag1/flag2/...] # comentario
+     @ID=direcciones/flag1/flag2/... [from direcciones/flag1/flag2/...:transform] # comentario
+     - La parte 'from' es opcional y permite heredar de otro patrón
+     - La parte ':transform' es opcional y permite transformar el patrón heredado
      Ejemplos:
      @ID=N/basic       # Solo conexión Norte con flag "basic"
+     @ID=E/basic from N/basic:90    # Este hereda de Norte y rota 90°
+     @ID=W/basic from N/basic:FlipH # Oeste hereda de Norte y voltea horizontal
      @ID=NE/fancy      # Conexiones Norte y Este con flag "fancy"
      @ID=NS/stone      # Conexiones Norte y Sur con flag "stone"
      @ID=NESW/basic    # Todas las conexiones con flag "basic"
-     @ID=E/basic from N/basic    # Este hereda y rota desde Norte
      <patrón visual en ASCII>
    - Maneja la herencia y transformación de patrones
-   - Puede transformar patrones base mediante rotaciones
-   - La herencia permite reutilizar patrones base y aplicarles rotaciones
-     automáticamente para generar nuevas variantes
+   - Transformaciones disponibles:
+     * 90, 180, -90: Rotaciones en grados
+     * FlipH, FlipV: Volteo horizontal o vertical
+     * MirrorLR, MirrorRL: Espejo izquierda-derecha o derecha-izquierda
+     * MirrorTB, MirrorBT: Espejo arriba-abajo o abajo-arriba
+   - La herencia permite reutilizar patrones base y transformarlos
    - Solo se puede heredar entre patrones con el mismo número de conexiones
 
 6. MazeGraphToArray2D
@@ -83,7 +92,7 @@ Ejemplo de uso:
      var basicPatterns = patterns.FindPatterns(node, new[] { "basic" });  // Patrones con flag "basic"
      var fancyPatterns = patterns.FindPatterns(node, new[] { "fancy" }, new[] { "stone" });  // Patrones con flag "fancy" y opcionalmente "stone"
    - O obtiene un patrón exacto:
-     var pattern = patterns.GetPattern(value, new[] { "basic", "stone" });  // Debe tener exactamente estos flags
+     var pattern = patterns.GetPattern(type, new[] { "basic", "stone" });  // Debe tener exactamente estos flags
      
      Ejemplo de uso:
 
@@ -101,18 +110,10 @@ Ejemplo de archivo de patrones con herencia:
 #  #
 
 # Patrón este que hereda del norte
-@ID=E/basic from N/basic  # Este hereda y rota 90° del patrón norte
-
-# Patrón con norte y este
-@ID=NE/basic        # Norte + Este
-#####
-#   #
-#   #
-#####
+@ID=E/basic from N/basic:90  # Este hereda y rota 90° del patrón norte
 
 Reglas de herencia:
 - Solo se puede heredar entre patrones con el mismo número de conexiones
-- Al heredar, el patrón se rota automáticamente para coincidir con la nueva orientación
 - Los flags del patrón heredado se mantienen en el nuevo patrón
 - Ejemplos de herencias válidas:
   * E/basic (Este) puede heredar de N/basic (Norte)
@@ -120,11 +121,3 @@ Reglas de herencia:
   * ESW/basic (Este+Sur+Oeste) puede heredar de NES/basic (Norte+Este+Sur)
 
 Los patrones se definen en archivos de texto donde cada celda puede tener múltiples variantes visuales y pueden heredar y transformar patrones de otras celdas, permitiendo una gran flexibilidad en el diseño visual del laberinto.
-```
-
-Los cambios principales en el prompt.txt son:
-1. Actualización del formato de los IDs para usar letras (N, E, S, W)
-2. Actualización de la estructura de MazePattern con los nuevos métodos
-3. Simplificación del formato de archivo para incluir herencia en la misma línea
-4. Actualización de los ejemplos para usar el nuevo formato de direcciones
-5. Clarificación de la estructura del diccionario basado en byte value

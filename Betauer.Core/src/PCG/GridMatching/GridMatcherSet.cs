@@ -1,20 +1,20 @@
 using System;
 using System.Collections.Generic;
 
-namespace Betauer.Core.DataMath.Terrain;
+namespace Betauer.Core.PCG.GridMatching;
 
-public class TilePatternSet<T, TT> {
-    public List<(T, TilePattern<TT>)> Patterns { get; private set; }
+public class GridMatcherSet<T, TT> {
+    public List<(T, GridMatcher<TT>)> Patterns { get; private set; }
     public Dictionary<string, Func<TT, bool>> DefaultRules { get; init; }
 
-    public TilePatternSet<T, TT> Add(T id, TilePattern<TT> pattern) {
+    public GridMatcherSet<T, TT> Add(T id, GridMatcher<TT> pattern) {
         Patterns ??= [];
         Patterns.Add((id, pattern));
         return this;
     }
     
-    public TilePatternSet<T, TT> Add(T id, string pattern) {
-        return Add(id, TilePattern.Parse(pattern, DefaultRules));
+    public GridMatcherSet<T, TT> Add(T id, string pattern) {
+        return Add(id, GridMatcher.Parse(pattern, DefaultRules));
     }
 
     /// <summary>

@@ -1,6 +1,7 @@
 using System;
+using Betauer.Core.DataMath;
 
-namespace Betauer.Core.DataMath;
+namespace Betauer.Core.PCG.GridTools;
 
 public abstract class SmoothGrid {
     public static SmoothGrid<bool> Create(Array2D<bool> grid, int deleteIfLessThan = 5, int addIfMoreThan = 5) {
