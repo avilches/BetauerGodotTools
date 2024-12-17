@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Betauer.Core.DataMath;
 
@@ -29,17 +28,15 @@ public class TemplateLoader {
         _cellSize = cellSize;
     }
 
-    public Dictionary<byte, List<Template>> LoadFromString(string content) {
-        var templates = new Dictionary<byte, List<Template>>();
+    public Dictionary<int, List<Template>> LoadFromString(string content) {
+        var templates = new Dictionary<int, List<Template>>();
         var lines = content.Split('\n');
         var currentTemplate = new List<string>();
         Template? current = null;
 
         void ProcessCurrentTemplate() {
             if (current == null) return;
-            // Console.WriteLine($"Processing template {current}");
 
-            // Primero comprobamos si ya existe un patrón con el mismo type y flags
             if (templates.TryGetValue(current.Id.Type, out var existingTemplates)) {
                 var duplicateTemplate = existingTemplates.FirstOrDefault(p =>
                     p.HasExactFlags(current.Id.Flags.ToArray()));
@@ -52,7 +49,7 @@ public class TemplateLoader {
             }
 
             if (current.TemplateBase != null) {
-                var parentTemplate = GetTemplateFromDictionary(templates, current.TemplateBase);
+                var parentTemplate = current.TemplateBase.Data;
                 if (current.TransformBase != null) {
                     parentTemplate = TransformTemplate(parentTemplate, current.TransformBase);
                 }
@@ -70,30 +67,40 @@ public class TemplateLoader {
         foreach (var line in lines) {
             var trimmed = line.Trim();
 
-            // Siempre ignorar líneas en blanco
             if (string.IsNullOrEmpty(trimmed)) {
                 continue;
             }
 
             if (trimmed.StartsWith(IdPrefix)) {
-                // Si teníamos un patrón en proceso, lo procesamos antes de empezar uno nuevo
                 if (current != null) {
                     ProcessCurrentTemplate();
                 }
 
-                // Eliminar comentarios al final de la línea del @ID
                 var withoutComments = trimmed.Split('#')[0].Trim();
-
-                // Parsear la línea completa
-                var parts = withoutComments[IdPrefix.Length..].Split(new[] { "from" }, StringSplitOptions.TrimEntries);
+                var parts = withoutComments[IdPrefix.Length..].Split(["from"], StringSplitOptions.TrimEntries);
 
                 var id = TemplateId.Parse(parts[0]);
                 current = new Template(id);
 
                 if (parts.Length > 1) {
-                    var (fromId, transform) = TemplateId.ParseFromString(parts[1]);
-                    current.TemplateBase = fromId;
-                    current.TransformBase = transform;
+                    var originalFromPart = parts[1].Trim();
+                    var (baseIdString, fromId, transform) = TemplateId.ParseFromString(parts[1]);
+
+                    // Validación temprana y asignación directa del template base
+                    if (templates.TryGetValue(fromId.Type, out var existingTemplates)) {
+                        var baseTemplate = existingTemplates.FirstOrDefault(p =>
+                            p.HasExactFlags(fromId.Flags.ToArray()));
+                        if (baseTemplate == null) {
+                            throw new ArgumentException(
+                                $"Error in template '{current.Id}': Reference to base template '{baseIdString}' not found");
+                        }
+                        current.TemplateBase = baseTemplate;
+                        current.TransformBase = transform;
+                    } else {
+                        throw new ArgumentException(
+                            $"Error in template '{current.Id}': Reference to base template '{baseIdString}' not found " +
+                            $"(no templates exist for type {TemplateId.TypeToDirectionsString(fromId.Type)})");
+                    }
                 }
             } else if (current != null) {
                 // Si estamos dentro de un patrón, añadimos la línea
@@ -104,8 +111,7 @@ public class TemplateLoader {
                     ProcessCurrentTemplate();
                 } else if (currentTemplate.Count > _cellSize) {
                     throw new ArgumentException(
-                        $"Too many lines in template {current.Id}. " +
-                        $"Expected {_cellSize} but got more.");
+                        $"Too many lines in template {current.Id}. Expected {_cellSize} but got more.");
                 }
             }
             // Si no estamos en un patrón y la línea no es @ID, la ignoramos
@@ -157,6 +163,7 @@ public class TemplateLoader {
         return template;
     }
 
+
     private static Array2D<char> TransformTemplate(Array2D<char> template, string transform) {
         if (!Transformations.TryGetValue(transform, out var transformation)) {
             throw new ArgumentException($"Invalid transform: {transform}");
@@ -169,17 +176,13 @@ public class TemplateLoader {
         return Transformations.ContainsKey(transform);
     }
 
-    private static Array2D<char> GetTemplateFromDictionary(Dictionary<byte, List<Template>> templates, TemplateId templateId) {
-        if (!templates.TryGetValue(templateId.Type, out var definitions)) {
-            throw new ArgumentException($"Base template not found: {templateId}");
-        }
-        var matchingDefinitions = definitions.Where(d => d.HasExactFlags(templateId.Flags.ToArray())).ToList();
-        if (matchingDefinitions.Count == 0) {
-            throw new ArgumentException($"Base template not found {templateId}");
-        }
-        if (matchingDefinitions.Count > 1) {
-            throw new ArgumentException($"Multiple base templates found: {templateId}. Base template must be unique.");
-        }
-        return matchingDefinitions[0].Data;
+    private static Array2D<char> GetTemplateFromDictionary(
+        Dictionary<int, List<Template>> templates,
+        TemplateId baseTemplateId,
+        Template currentTemplate) {
+        // Ya no necesitamos validar porque se validó en LoadFromString
+        var definitions = templates[baseTemplateId.Type];
+        var template = definitions.First(d => d.HasExactFlags(baseTemplateId.Flags.ToArray()));
+        return template.Data;
     }
 }

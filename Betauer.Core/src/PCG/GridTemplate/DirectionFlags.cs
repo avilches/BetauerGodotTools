@@ -4,12 +4,13 @@ namespace Betauer.Core.PCG.GridTemplate;
 
 [Flags]
 public enum DirectionFlags {
-    None = 0,
-    North = 1 << 0, // 00000001
-    East = 1 << 2, // 00000100
-    South = 1 << 4, // 00010000
-    West = 1 << 6, // 10000000
-
-    // Máscara útil
-    All = North | East | South | West // 1111
+    None      = 0,
+    Up        = 1 << 0, // 00000001
+    UpRight   = 1 << 1, // 00000010
+    Right     = 1 << 2, // 00000100
+    DownRight = 1 << 3, // 00001000
+    Down      = 1 << 4, // 00010000
+    DownLeft  = 1 << 5, // 00100000
+    Left      = 1 << 6, // 01000000
+    UpLeft    = 1 << 7, // 10000000
 }

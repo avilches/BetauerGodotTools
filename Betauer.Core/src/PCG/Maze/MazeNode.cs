@@ -93,7 +93,11 @@ public class MazeNode {
     public int PartId { get; set; }
 
     public MazeNode? Up => GetEdgeTowards(Vector2I.Up)?.To;
+    public MazeNode? UpRight => GetEdgeTowards(Vector2I.Up + Vector2I.Right)?.To;
+    public MazeNode? UpLeft => GetEdgeTowards(Vector2I.Up + Vector2I.Left)?.To;
     public MazeNode? Down => GetEdgeTowards(Vector2I.Down)?.To;
+    public MazeNode? DownRight => GetEdgeTowards(Vector2I.Down + Vector2I.Right)?.To;
+    public MazeNode? DownLeft => GetEdgeTowards(Vector2I.Down + Vector2I.Left)?.To;
     public MazeNode? Right => GetEdgeTowards(Vector2I.Right)?.To;
     public MazeNode? Left => GetEdgeTowards(Vector2I.Left)?.To;
 

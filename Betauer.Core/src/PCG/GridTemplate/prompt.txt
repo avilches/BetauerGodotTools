@@ -23,7 +23,7 @@ Clases principales:
    - Las direcciones pueden especificarse con letras (N, E, S, W) o números
    - Los flags son opcionales y sirven para categorizar variantes
    - Proporciona métodos para comprobar conexiones específicas
-   - Incluye un método factory FromNode para crear un byte type directo desde un nodo del laberinto
+   - Incluye un método factory FromNode para crear un type directo desde un nodo del laberinto
 
 3. PatternId
    - Encapsula un ID que representa las conexiones de una celda más sus flags
@@ -33,19 +33,19 @@ Clases principales:
    - Las direcciones pueden especificarse con letras (N, E, S, W) o números
    - Los flags son opcionales y sirven para categorizar variantes
    - Proporciona métodos para comprobar conexiones específicas
-   - Incluye un método factory FromNode para crear un byte type directo desde un nodo del laberinto
+   - Incluye un método factory FromNode para crear un type directo desde un nodo del laberinto
    - En la herencia, puede incluir una transformación usando ':transform'
      * "N/basic from E/basic:90" - hereda de E/basic y rota 90 grados
      
 4. MazePattern
    - Clase principal que gestiona la carga y selección de patrones
-   - Mantiene un diccionario de List<PatternDefinition> indexado por byte type
+   - Mantiene un diccionario de List<PatternDefinition> indexado por type
    - Proporciona métodos para cargar patrones desde archivos
    - Métodos principales:
      * GetPattern(MazeNode): Obtiene un patrón aleatorio sin flags
      * GetPattern(MazeNode, string[]): Obtiene un patrón aleatorio con flags
-     * FindPattern(byte, string[]): Obtiene un patrón aleatorio entre los que coincidan
-     * GetPattern(byte, string[]): Obtiene un único patrón o lanza excepción si hay más de uno
+     * FindPattern(type, string[]): Obtiene un patrón aleatorio entre los que coincidan
+     * GetPattern(type, string[]): Obtiene un único patrón o lanza excepción si hay más de uno
 
 5. MazePatternLoader
    - Carga patrones desde texto o archivos de texto con un formato específico

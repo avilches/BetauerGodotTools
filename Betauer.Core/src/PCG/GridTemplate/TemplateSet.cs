@@ -2,12 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Betauer.Core.DataMath;
-using Betauer.Core.PCG.Maze;
 
 namespace Betauer.Core.PCG.GridTemplate;
 
 public class TemplateSet(int cellSize) {
-    private readonly Dictionary<byte, List<Template>> _templates = new();
+    private readonly Dictionary<int, List<Template>> _templates = new();
 
     public int CellSize { get; } = cellSize;
 
@@ -22,28 +21,18 @@ public class TemplateSet(int cellSize) {
         }
     }
 
-    // Encuentra todos los patrones que coincidan con el nodo
-    public List<Array2D<char>> FindTemplates(MazeNode node) {
-        return FindTemplates(TemplateId.FromNode(node));
-    }
-
-    // Encuentra todos los patrones que coincidan con el nodo y los flags
-    public List<Array2D<char>> FindTemplates(MazeNode node, string[] requiredFlags, string[]? optionalFlags = null) {
-        return FindTemplates(TemplateId.FromNode(node), requiredFlags, optionalFlags);
-    }
-
     // Encuentra todos los patrones para el valor dado
-    public List<Array2D<char>> FindTemplates(byte type) {
+    public List<Array2D<char>> FindTemplates(int type) {
         return GetTemplateDefinitions(type).Select(d => d.Data).ToList();
     }
 
     // Encuentra todos los patrones que coincidan con los flags requeridos y opcionales
-    public List<Array2D<char>> FindTemplates(byte type, string[] requiredFlags, string[]? optionalFlags = null) {
+    public List<Array2D<char>> FindTemplates(int type, string[] requiredFlags, string[]? optionalFlags = null) {
         return GetTemplateDefinitions(type, requiredFlags, optionalFlags).Select(d => d.Data).ToList();
     }
 
     // Obtiene un único patrón que coincida exactamente con los flags requeridos
-    public Array2D<char> GetTemplate(byte type, string[] requiredFlags) {
+    public Array2D<char> GetTemplate(int type, string[] requiredFlags) {
         var matchingDefinitions = FindTemplatesWithExactFlags(type, requiredFlags);
         if (matchingDefinitions.Count > 1) {
             throw new ArgumentException(
@@ -53,7 +42,7 @@ public class TemplateSet(int cellSize) {
         return matchingDefinitions[0].Data;
     }
 
-    private List<Template> GetTemplateDefinitions(byte type) {
+    private List<Template> GetTemplateDefinitions(int type) {
         if (!_templates.TryGetValue(type, out var definitions)) {
             throw new ArgumentException(
                 $"No template found for type {TemplateId.TypeToDirectionsString(type)} ({type})");
@@ -61,7 +50,7 @@ public class TemplateSet(int cellSize) {
         return definitions;
     }
 
-    private List<Template> GetTemplateDefinitions(byte type, string[] requiredFlags, string[]? optionalFlags = null) {
+    private List<Template> GetTemplateDefinitions(int type, string[] requiredFlags, string[]? optionalFlags = null) {
         if (!_templates.TryGetValue(type, out var definitions)) {
             throw new ArgumentException(
                 $"No template found for type {TemplateId.TypeToDirectionsString(type)} ({type})");
@@ -89,7 +78,7 @@ public class TemplateSet(int cellSize) {
         return matchingDefinitions;
     }
 
-    private List<Template> FindTemplatesWithExactFlags(byte type, string[] requiredFlags) {
+    private List<Template> FindTemplatesWithExactFlags(int type, string[] requiredFlags) {
         if (!_templates.TryGetValue(type, out var definitions)) {
             throw new ArgumentException(
                 $"No template found for type {TemplateId.TypeToDirectionsString(type)} ({type})");

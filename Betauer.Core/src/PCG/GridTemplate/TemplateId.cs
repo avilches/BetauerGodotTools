@@ -1,16 +1,67 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Betauer.Core.PCG.Maze;
 
 namespace Betauer.Core.PCG.GridTemplate;
 
 public class TemplateId {
-    public readonly byte Type;
-    public readonly HashSet<string> Flags;
-    public readonly string? Transform; // Nueva propiedad
+    
+    // Mapa inverso para la representación canónica de cada DirectionFlags
+    private static readonly Dictionary<DirectionFlags, string> CanonicalDirectionMap = new() {
+        { DirectionFlags.Up, "U" },
+        { DirectionFlags.Right, "R" },
+        { DirectionFlags.Down, "D" },
+        { DirectionFlags.Left, "L" },
+        { DirectionFlags.UpRight, "UR" },
+        { DirectionFlags.DownRight, "DR" },
+        { DirectionFlags.DownLeft, "DL" },
+        { DirectionFlags.UpLeft, "UL" }
+    };
+    
+    // Dictionary para mapear strings a DirectionFlags
+    private static readonly Dictionary<string, DirectionFlags> DirectionMap = new() {
+        // Direcciones cardinales con todas sus variantes
+        { "U", DirectionFlags.Up },    // Up
+        { "N", DirectionFlags.Up },    // North
+        { "T", DirectionFlags.Up },    // Top
+        
+        { "R", DirectionFlags.Right }, // Right
+        { "E", DirectionFlags.Right }, // East
+        
+        { "D", DirectionFlags.Down },  // Down
+        { "S", DirectionFlags.Down },  // South
+        { "B", DirectionFlags.Down },  // Bottom
+        
+        { "L", DirectionFlags.Left },  // Left
+        { "W", DirectionFlags.Left },  // West
+        
+        // Direcciones diagonales
+        { "NE", DirectionFlags.UpRight },    // North-East
+        { "SE", DirectionFlags.DownRight },  // South-East
+        { "SW", DirectionFlags.DownLeft },   // South-West
+        { "NW", DirectionFlags.UpLeft },     // North-West
+        
+        // Variantes de diagonales usando los alias
+        { "TR", DirectionFlags.UpRight },    // Top-Right
+        { "BR", DirectionFlags.DownRight },  // Bottom-Right
+        { "BL", DirectionFlags.DownLeft },   // Bottom-Left
+        { "TL", DirectionFlags.UpLeft },     // Top-Left
+        
+        { "UR", DirectionFlags.UpRight },    // Up-Right
+        { "DR", DirectionFlags.DownRight },  // Down-Right
+        { "DL", DirectionFlags.DownLeft },   // Down-Left
+        { "UL", DirectionFlags.UpLeft },     // Up-Left
+    };
+    
+    // Dictionary para alias de combinaciones
+    private static readonly Dictionary<string, DirectionFlags> AliasMap = [];
 
-    internal TemplateId(byte type, IEnumerable<string> flags, string? transform = null) {
+
+    public readonly int Type;
+    public readonly HashSet<string> Flags;
+    public readonly string? Transform;
+
+    internal TemplateId(int type, IEnumerable<string> flags, string? transform = null) {
         Type = type;
         Flags = [..flags];
         Transform = transform;
@@ -28,7 +79,7 @@ public class TemplateId {
     }
 
     // Nuevo método para parsear desde un ID con transformación
-    public static (TemplateId baseId, string? transform) ParseFromString(string fromString) {
+    public static (string originalId, TemplateId baseId, string? transform) ParseFromString(string fromString) {
         var parts = fromString.Split(':');
         var baseIdString = parts[0];
         var transform = parts.Length > 1 ? parts[1] : null;
@@ -38,49 +89,62 @@ public class TemplateId {
             throw new ArgumentException($"Invalid transform: {transform}");
         }
 
-        return (Parse(baseIdString), transform);
+        return (baseIdString, Parse(baseIdString), transform);
     }
 
-    public static string TypeToDirectionsString(byte type) {
+    public static string TypeToDirectionsString(int type) {
         var directions = new List<string>();
-        if ((type & (byte)DirectionFlags.North) != 0) directions.Add("N");
-        if ((type & (byte)DirectionFlags.East) != 0) directions.Add("E");
-        if ((type & (byte)DirectionFlags.South) != 0) directions.Add("S");
-        if ((type & (byte)DirectionFlags.West) != 0) directions.Add("W");
-        return string.Join("", directions);
+        
+        // Solo usamos el mapa canónico para la salida
+        foreach (var kvp in CanonicalDirectionMap) {
+            if ((type & (int)kvp.Key) != 0) {
+                directions.Add(kvp.Value);
+            }
+        }
+        
+        return string.Join("-", directions.OrderBy(d => d)); // Ordenamos para consistencia
     }
 
-    private static byte ParseDirections(string directions) {
-        byte type = 0;
+
+    private static int ParseDirections(string directions) {
+        int type = 0;
         directions = directions.Trim().ToUpper();
 
         // Si es un número, lo parseamos directamente
-        if (byte.TryParse(directions, out var numericValue)) {
+        if (int.TryParse(directions, out var numericValue)) {
             return numericValue;
         }
 
-        // Si no, lo interpretamos como combinación de letras
-        foreach (var c in directions) {
-            type |= c switch {
-                'N' => (byte)DirectionFlags.North, // 1
-                'E' => (byte)DirectionFlags.East, // 4
-                'S' => (byte)DirectionFlags.South, // 16
-                'W' => (byte)DirectionFlags.West, // 64
-                _ => throw new ArgumentException($"Invalid direction character: {c}")
-            };
+        // Si es un alias, lo devolvemos directamente
+        if (AliasMap.TryGetValue(directions, out var aliasValue)) {
+            return (int)aliasValue;
         }
+
+        // Separamos por guiones y procesamos cada parte
+        var parts = directions.Split('-');
+        
+        foreach (var part in parts) {
+            // Primero intentamos como alias
+            if (AliasMap.TryGetValue(part, out var partAliasValue)) {
+                type |= (int)partAliasValue;
+                continue;
+            }
+            
+            // Luego buscamos en el mapa de direcciones
+            if (DirectionMap.TryGetValue(part, out var directionValue)) {
+                type |= (int)directionValue;
+                continue;
+            }
+            
+            throw new ArgumentException($"Invalid direction or alias: {part}");
+        }
+        
         return type;
     }
-
-    public static byte FromNode(MazeNode node) {
-        byte directions = 0;
-
-        if (node.Up != null) directions |= (byte)DirectionFlags.North;
-        if (node.Right != null) directions |= (byte)DirectionFlags.East;
-        if (node.Down != null) directions |= (byte)DirectionFlags.South;
-        if (node.Left != null) directions |= (byte)DirectionFlags.West;
-
-        return directions;
+    
+    // Método público para registrar nuevos alias (útil para testing o extensibilidad)
+    public static void RegisterAlias(string alias, DirectionFlags value) {
+        AliasMap[alias.ToUpper()] = value;
     }
 
     public override string ToString() {

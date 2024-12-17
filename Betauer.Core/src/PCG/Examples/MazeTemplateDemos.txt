@@ -1,0 +1,57 @@
+@ID=0/basic
+.....
+.###.
+.#·#.
+.###.
+.....
+
+@ID=N/basic
+..N..
+..N..
+..*..
+.....
+.....
+
+
+@ID=E/basic from N/basic:90
+@ID=S/basic from N/basic:180
+@ID=W/basic from N/basic:-90
+
+@ID=N-E/basic
+..n..
+..n..
+..*ee
+.....
+.....
+
+@ID=E-S/basic from N-E/basic:90
+@ID=S-W/basic from N-E/basic:180
+@ID=N-W/basic from N-E/basic:-90
+
+@ID=N-S/basic
+..|..
+..|..
+..X..
+..:..
+..:..
+
+@ID=E-W/basic from N-S/basic:90
+
+@ID=N-E-S/basic
+..#..
+..#..
+..@##
+..#..
+..#..
+
+@ID=E-S-W/basic from N-E-S/basic:90
+@ID=N-S-W/basic from N-E-S/basic:180
+@ID=N-E-W/basic from N-E-S/basic:-90
+
+
+@ID=N-S-E-W/basic
+..#..
+..#..
+##o##
+..#..
+..#..
