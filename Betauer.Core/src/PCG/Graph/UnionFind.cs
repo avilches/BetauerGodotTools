@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace Betauer.Core.PCG.Graph;
@@ -8,6 +9,8 @@ public class UnionFind {
     private int _numSets;
 
     public UnionFind(int n) {
+        if (n < 0) throw new ArgumentException("Count must be positive", nameof(n));
+        
         _parent = new int[n];
         _size = new int[n];
         _numSets = n;
@@ -20,26 +23,40 @@ public class UnionFind {
 
     // Encuentra el líder del conjunto aplicando compresión de camino
     public int Find(int x) {
+        if (x < 0 || x >= _parent.Length) {
+            throw new ArgumentOutOfRangeException(nameof(x), "Index out of bounds");
+        }
         if (_parent[x] != x) {
             _parent[x] = Find(_parent[x]);
         }
         return _parent[x];
     }
 
+    public bool Connected(int x, int y) {
+        return Find(x) == Find(y);
+    }
+
     // Une dos regiones y actualiza el tamaño y número de conjuntos
     public void Union(int x, int y) {
-        int rootX = Find(x);
-        int rootY = Find(y);
+        if (x < 0 || x >= _parent.Length) {
+            throw new ArgumentOutOfRangeException(nameof(x), "Index out of bounds");
+        }
+        if (y < 0 || y >= _parent.Length) {
+            throw new ArgumentOutOfRangeException(nameof(y), "Index out of bounds");
+        }
+
+        var rootX = Find(x);
+        var rootY = Find(y);
 
         if (rootX != rootY) {
-            if (rootX < rootY) {
-                _parent[rootY] = rootX;
-                _size[rootX] += _size[rootY];
-            } else {
+            if (_size[rootX] < _size[rootY]) {
                 _parent[rootX] = rootY;
                 _size[rootY] += _size[rootX];
+            } else {
+                _parent[rootY] = rootX;
+                _size[rootX] += _size[rootY];
             }
-            _numSets--; // Reducimos el número de conjuntos
+            _numSets--;
         }
     }
 
@@ -47,7 +64,7 @@ public class UnionFind {
     public int GetNumSets() {
         return _numSets;
     }
-
+    
     // Devuelve el tamaño del conjunto de una región específica
     public int GetSetSize(int x) {
         return _size[Find(x)];
@@ -55,10 +72,10 @@ public class UnionFind {
 
     // Devuelve todas las regiones conectadas a la región especificada
     public List<int> GetConnectedRegions(int x) {
-        int root = Find(x);
+        var root = Find(x);
         var connectedRegions = new List<int>();
 
-        for (int i = 0; i < _parent.Length; i++) {
+        for (var i = 0; i < _parent.Length; i++) {
             if (Find(i) == root) {
                 connectedRegions.Add(i);
             }
@@ -70,12 +87,13 @@ public class UnionFind {
     public List<List<int>> GetFinalRegions() {
         var regions = new Dictionary<int, List<int>>();
 
-        for (int i = 0; i < _parent.Length; i++) {
-            int root = Find(i);
-            if (!regions.ContainsKey(root)) {
-                regions[root] = new List<int>();
+        for (var i = 0; i < _parent.Length; i++) {
+            var root = Find(i);
+            if (!regions.TryGetValue(root, out List<int>? value)) {
+                regions[root] = value = [];
             }
-            regions[root].Add(i);
+
+            value.Add(i);
         }
 
         // Convertir a una lista de listas para mantener la estructura de array
@@ -91,7 +109,7 @@ public class UnionFind {
     public bool AreAllConnected() {
         if (_parent.Length == 0) return true; // Si no hay regiones, están "conectadas"
 
-        int root = Find(0); // Tomamos el líder de la primera región
+        var root = Find(0); // Tomamos el líder de la primera región
         for (int i = 1; i < _parent.Length; i++) {
             if (Find(i) != root) {
                 return false; // Si encontramos una región con un líder diferente, no están todas conectadas
@@ -100,4 +118,3 @@ public class UnionFind {
         return true;
     }
 }
-
