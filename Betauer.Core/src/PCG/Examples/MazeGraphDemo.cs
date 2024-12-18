@@ -22,12 +22,13 @@ public class MazeGraphDemo {
         var constraints = BacktrackConstraints.CreateRandom(rng)
             .With(c => {
                 c.MaxTotalCells = 25;
-                c.MaxCellsPerPath = 3;
-                c.MaxPaths = 13;
+                c.MaxCellsPerPath = 5;
+                c.MaxPaths = 3;
             });
 
         mc.Grow(start, constraints);
-        PrintGraph(mc);
+        Console.WriteLine(mc.Draw());
+        Console.WriteLine(mc.Print());
     }
 
     public static void MainOld() {
@@ -50,39 +51,7 @@ public class MazeGraphDemo {
             });
 
         mc.Grow(start, constraints);
-        PrintGraphAsCarved(mc);
-    }
-
-    private static void PrintGraph(MazeGraph mc) {
-        var allCanvas = new TextCanvas();
-        foreach (var node in mc.GetNodes()) {
-            if (node == null) continue;
-            var canvas = new TextCanvas();
-            canvas.Write(1, 1, node.Id.ToString());
-            if (node.Up != null) canvas.Write(1, 0, "|");
-            if (node.Right != null) canvas.Write(2, 1, "--");
-            if (node.Down != null) canvas.Write(1, 2, "|");
-            if (node.Left != null) canvas.Write(0, 1, "-");
-
-            allCanvas.Write(node.Position.X * 4, node.Position.Y * 3, canvas.ToString());
-        }
-        Console.WriteLine(allCanvas.ToString());
-    }
-
-    private static void PrintGraphAsCarved(MazeGraph mc) {
-        var allCanvas = new TextCanvas();
-        foreach (var node in mc.GetNodes()) {
-            var canvas = new TextCanvas("""
-                                        ██
-                                        ██
-                                        """);
-            if (node != null) {
-                canvas.Write(1, 1, " "); // node.Metadata?.ToString());
-                if (node.Up != null) canvas.Write(1, 0, " ");
-                if (node.Left != null) canvas.Write(0, 1, " ");
-            }
-            allCanvas.Write(node.Position.X * 2, node.Position.Y * 2, canvas.ToString());
-        }
-        Console.WriteLine(allCanvas.ToString());
+        Console.WriteLine(mc.Draw());
+        Console.WriteLine(mc.Print());
     }
 }

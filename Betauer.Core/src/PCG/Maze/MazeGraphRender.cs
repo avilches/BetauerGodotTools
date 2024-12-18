@@ -6,8 +6,8 @@ using Betauer.Core.PCG.GridTemplate;
 
 namespace Betauer.Core.PCG.Maze;
 
-public static class MazeGraphTemplate {
-    public static Array2D<char> Convert(this MazeGraph graph, TemplateSet templateSet, Random? random = null, string[]? requiredFlags = null, string[]? optionalFlags = null) {
+public static class MazeGraphRender {
+    public static Array2D<char> Render(this MazeGraph graph, TemplateSet templateSet, Random? random = null, string[]? requiredFlags = null, string[]? optionalFlags = null) {
         var offset = graph.GetOffset();
         var size = graph.GetSize();
         var cellSize = templateSet.CellSize;

@@ -27,7 +27,7 @@ public class MazeGraphTests {
     [Test]
     public void GetOrCreateNode_CreatesNewNode() {
         var node = _graph.GetOrCreateNode(new Vector2I(1, 1));
-        
+
         Assert.Multiple(() => {
             Assert.That(node, Is.Not.Null);
             Assert.That(_graph.GetNodeAt(new Vector2I(1, 1)), Is.EqualTo(node));
@@ -40,10 +40,10 @@ public class MazeGraphTests {
     public void GetOrCreateNode_ReturnsExistingNode() {
         var node1 = _graph.GetOrCreateNode(new Vector2I(1, 1));
         var node2 = _graph.GetOrCreateNode(new Vector2I(1, 1));
-        
+
         Assert.That(node1, Is.EqualTo(node2));
     }
-    
+
     [Test]
     public void CreateNode_CreatesNewNode() {
         var node = _graph.CreateNode(new Vector2I(1, 1));
@@ -58,8 +58,8 @@ public class MazeGraphTests {
     [Test]
     public void CreateNode_WithExistingPosition_ThrowsArgumentException() {
         _graph.CreateNode(new Vector2I(1, 1));
-        
-        Assert.Throws<InvalidOperationException>(() => 
+
+        Assert.Throws<InvalidOperationException>(() =>
             _graph.CreateNode(new Vector2I(1, 1)));
     }
 
@@ -85,7 +85,7 @@ public class MazeGraphTests {
     public void ConnectNode_CreatesBidirectionalConnection() {
         var node1 = _graph.CreateNode(new Vector2I(0, 0));
         var node2 = _graph.CreateNode(new Vector2I(1, 0));
-        
+
         _graph.ConnectNodes(node1, node2);
         _graph.ConnectNodes(node2, node1);
 
@@ -112,13 +112,13 @@ public class MazeGraphTests {
     [Test]
     public void Create_FromBooleanTemplate_CreatesValidGraph() {
         var template = new bool[3, 3] {
-            {true, false, true},
-            {true, true, true},
-            {false, true, false}
+            { true, false, true },
+            { true, true, true },
+            { false, true, false }
         };
 
         var graph = MazeGraph.Create(template);
-        
+
         Assert.Multiple(() => {
             Assert.That(graph.IsValidPosition(new Vector2I(0, 0)), Is.True);
             Assert.That(graph.IsValidPosition(new Vector2I(1, 0)), Is.False);

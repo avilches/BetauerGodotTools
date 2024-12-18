@@ -300,8 +300,8 @@ public class MazeNodeWeightedPathTests {
     }
 
     [Test]
-    // [Ignore("Used to benchmark BFS vs A* performance")]
-    [Only]
+    [Ignore("Used to benchmark BFS vs A* performance")]
+    // [Only]
     public void ComparePerformance_BFSvsAStar_DifferentSizes() {
         var sizes = new[] { 10, 100, 1000, 10000 };
         foreach (var size in sizes) {

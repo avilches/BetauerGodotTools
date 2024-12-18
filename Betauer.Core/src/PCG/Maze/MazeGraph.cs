@@ -238,4 +238,30 @@ public partial class MazeGraph {
             GetNodes().Max(v => v.Position.X) - GetNodes().Min(v => v.Position.X),
             GetNodes().Max(v => v.Position.Y) - GetNodes().Min(v => v.Position.Y));
     }
+    
+    public string Draw() {
+        var allCanvas = new TextCanvas();
+        foreach (var node in GetNodes()) {
+            var canvas = new TextCanvas();
+            canvas.Write(1, 1, node.Id.ToString());
+            if (node.Up != null) canvas.Write(1, 0, "|");
+            if (node.Right != null) canvas.Write(2, 1, "--");
+            if (node.Down != null) canvas.Write(1, 2, "|");
+            if (node.Left != null) canvas.Write(0, 1, "-");
+            allCanvas.Write(node.Position.X * 4, node.Position.Y * 3, canvas.ToString());
+        }
+        return allCanvas.ToString();
+    }
+    
+    public string Print(char c = '\u2588') {
+        var allCanvas = new TextCanvas();
+        foreach (var node in GetNodes()) {
+            var canvas = new TextCanvas();
+            canvas.Write(1, 1, "\u2588");
+            if (node.Up != null) canvas.Write(1, 0, "\u2588");
+            if (node.Left != null) canvas.Write(0, 1, "\u2588");
+            allCanvas.Write(node.Position.X * 2, node.Position.Y * 2, canvas.ToString());
+        }
+        return allCanvas.ToString();
+    }
 }
