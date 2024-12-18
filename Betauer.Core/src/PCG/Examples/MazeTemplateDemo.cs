@@ -26,7 +26,7 @@ public class MazeTemplateDemo {
 
             // El resto del código permanece igual
 
-            var array2D = zones.MazeGraph.Convert(patterns);
+            var array2D = zones.MazeGraph.Convert(patterns, new Random(1));
             MazeGraphZonedDemo.PrintGraph(zones.MazeGraph, zones);
             PrintArray2D(array2D);
         } catch (FileNotFoundException e) {
