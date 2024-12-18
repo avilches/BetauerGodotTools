@@ -1,7 +1,7 @@
 using System;
-using System.Linq;
+using Betauer.Core.DataMath;
 
-namespace Betauer.Core.DataMath;
+namespace Betauer.Core.PCG.Automata;
 
 public static class Automatas {
 

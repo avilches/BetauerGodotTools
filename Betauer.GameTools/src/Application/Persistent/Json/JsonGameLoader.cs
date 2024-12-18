@@ -69,7 +69,7 @@ public class JsonGameLoader<TMetadata> : GameObjectLoader
             var info = Directory.CreateDirectory(saveGameFolder);
             if (!info.Exists) throw new Exception($"Unable to create save game folder: {saveGameFolder}");
         }
-        return new FileInfo(Path.Combine(saveGameFolder, Path.GetFileName($"{saveName}.{type}")));
+        return new FileInfo(System.IO.Path.Combine(saveGameFolder, System.IO.Path.GetFileName($"{saveName}.{type}")));
     }
 
     public async Task<List<TMetadata>> GetMetadatas(string? seed, params string[] saveNames) {
@@ -92,7 +92,7 @@ public class JsonGameLoader<TMetadata> : GameObjectLoader
         if (!Directory.Exists(saveGameFolder)) return saveGames;
         var files = Directory.GetFiles(saveGameFolder, "*." + MetadataExtension);
         foreach (var file in files) {
-            var saveName = Path.GetFileNameWithoutExtension(file);
+            var saveName = System.IO.Path.GetFileNameWithoutExtension(file);
             try {
                 var metadata = await LoadMetadata(saveName, seed);
                 saveGames.Add(metadata);

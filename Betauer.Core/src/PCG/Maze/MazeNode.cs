@@ -337,7 +337,7 @@ public class MazeNode {
     /// <param name="target">The target node</param>
     /// <returns>List of nodes forming the path, or null if no path exists</returns>
     public List<MazeNode> FindTreePathToNode(MazeNode target)
-        => PathFinder.GetPathToNode(this, target);
+        => MazePathFinder.GetPathToNode(this, target);
 
     /// <summary>
     /// Calculates the distance to another node using parent references.
@@ -375,7 +375,7 @@ public class MazeNode {
     /// <returns>List of nodes forming the shortest path, or an empty list if no path exists. The path the start and the end node.</returns>
     /// <param name="canTraverse">Optional predicate that determines if a node can be traversed</param>
     public List<MazeNode> FindShortestPath(MazeNode target, Func<MazeNode, bool>? canTraverse = null)
-        => PathFinder.FindShortestPath(this, target, canTraverse);
+        => MazePathFinder.FindBfsPath(this, target, canTraverse);
 
     /// <summary>
     /// Calculates the shortest distance to another node using direct connections.
@@ -411,7 +411,7 @@ public class MazeNode {
     /// <param name="canTraverse">Optional predicate that determines if a node can be traversed</param>
     /// <returns>Set of all reachable nodes, including the current node</returns>
     public HashSet<MazeNode> GetReachableNodes(Func<MazeNode, bool>? canTraverse = null)
-        => PathFinder.GetReachableNodes(this, canTraverse);
+        => MazePathFinder.GetReachableNodes(this, canTraverse);
 
     /// <summary>
     /// Finds the most efficient path considering node and/or connection weights.
@@ -433,7 +433,7 @@ public class MazeNode {
     /// <param name="canTraverse">Optional predicate that determines if a node can be traversed</param>
     /// <returns>Result containing the path and its total cost, or null if no path exists</returns>
     public PathResult? FindWeightedPath(MazeNode target, PathWeightMode mode = PathWeightMode.Both, Func<MazeNode, bool>? canTraverse = null)
-        => PathFinder.FindWeightedPath(this, target, mode, canTraverse);
+        => MazePathFinder.FindShortestPath(this, target, mode, canTraverse);
 
     public override string ToString() {
         return $"Id:{Id} {Position}";

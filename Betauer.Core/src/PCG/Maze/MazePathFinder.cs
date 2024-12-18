@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Betauer.Core.Algorithms;
 
 namespace Betauer.Core.PCG.Maze;
 
@@ -8,12 +9,21 @@ namespace Betauer.Core.PCG.Maze;
 /// Used by the FindWeightedPath method to determine which weights to consider
 /// </summary>
 public enum PathWeightMode {
+    None,
     NodesOnly,
     EdgesOnly,
     Both
 }
 
-public static class PathFinder {
+public static class MazePathFinder {
+    public delegate float HeuristicFunction(MazeNode node, MazeNode target);
+
+    private static float ManhattanDistance(MazeNode node, MazeNode target) {
+        var dx = Math.Abs(node.Position.X - target.Position.X);
+        var dy = Math.Abs(node.Position.Y - target.Position.Y);
+        return dx + dy;
+    }
+
     /// <summary>
     /// Finds the most efficient path considering node and/or connection weights.
     /// Useful when different paths have varying costs or difficulties.
@@ -22,20 +32,23 @@ public static class PathFinder {
     /// <param name="target">Destination node</param>
     /// <param name="mode">Weight calculation mode: nodes only, edges only, or both</param>
     /// <param name="canTraverse">Optional predicate that determines if a node can be traversed</param>
+    /// <param name="heuristic">Optional heuristic function for A* algorithm</param>
     /// <returns>Result containing the path and its total cost, or null if no path exists</returns>
-    public static PathResult? FindWeightedPath(MazeNode start, MazeNode target, PathWeightMode mode = PathWeightMode.Both, Func<MazeNode, bool>? canTraverse = null) {
+    public static PathResult? FindShortestPath(MazeNode start, MazeNode target, PathWeightMode mode = PathWeightMode.Both, Func<MazeNode, bool>? canTraverse = null, HeuristicFunction? heuristic = null) {
         if (start == target) {
             return new PathResult([start], mode == PathWeightMode.EdgesOnly ? 0 : start.Weight);
         }
         if (canTraverse != null && (!canTraverse(start) || !canTraverse(target))) return null;
 
-        var nodes = GetReachableNodes(start, canTraverse);
-        var distances = nodes.ToDictionary(node => node, _ => float.MaxValue);
+        heuristic ??= ManhattanDistance;
+
+        var distances = new Dictionary<MazeNode, float>();
         var previous = new Dictionary<MazeNode, MazeNode>();
         var unvisited = new PriorityQueue<MazeNode, float>();
 
         distances[start] = mode == PathWeightMode.EdgesOnly ? 0 : start.Weight;
-        unvisited.Enqueue(start, distances[start]);
+        var initialCost = distances[start] + (heuristic?.Invoke(start, target) ?? 0);
+        unvisited.Enqueue(start, initialCost);
 
         while (unvisited.Count > 0) {
             var current = unvisited.Dequeue();
@@ -43,14 +56,12 @@ public static class PathFinder {
             if (current == target) {
                 var path = new List<MazeNode>();
                 var node = current;
-
                 while (previous.ContainsKey(node)) {
                     path.Add(node);
                     node = previous[node];
                 }
                 path.Add(start);
                 path.Reverse();
-
                 return new PathResult(path, distances[target]);
             }
 
@@ -58,20 +69,25 @@ public static class PathFinder {
                 var neighbor = edge.To;
                 if (canTraverse != null && !canTraverse(neighbor)) continue;
 
-                var distance = distances[current];
+                var g_score = distances[current];
 
-                // Añadir coste según el modo
-                if (mode == PathWeightMode.NodesOnly)
-                    distance += neighbor.Weight;
-                else if (mode == PathWeightMode.EdgesOnly)
-                    distance += edge.Weight;
-                else if (mode == PathWeightMode.Both)
-                    distance += edge.Weight + neighbor.Weight;
+                switch (mode) {
+                    case PathWeightMode.NodesOnly:
+                        g_score += neighbor.Weight;
+                        break;
+                    case PathWeightMode.EdgesOnly:
+                        g_score += edge.Weight;
+                        break;
+                    case PathWeightMode.Both:
+                        g_score += edge.Weight + neighbor.Weight;
+                        break;
+                }
 
-                if (distance < distances[neighbor]) {
-                    distances[neighbor] = distance;
+                if (!distances.ContainsKey(neighbor) || g_score < distances[neighbor]) {
+                    distances[neighbor] = g_score;
                     previous[neighbor] = current;
-                    unvisited.Enqueue(neighbor, distance);
+                    var f_score = g_score + (heuristic?.Invoke(neighbor, target) ?? 0);
+                    unvisited.Enqueue(neighbor, f_score);
                 }
             }
         }
@@ -87,7 +103,7 @@ public static class PathFinder {
     /// <param name="target">Target node</param>
     /// <param name="canTraverse">Optional predicate that determines if a node can be traversed</param>
     /// <returns>List of nodes forming the shortest path, or empty list if no path exists</returns>
-    public static List<MazeNode> FindShortestPath(MazeNode start, MazeNode target, Func<MazeNode, bool>? canTraverse = null) {
+    public static List<MazeNode> FindBfsPath(MazeNode start, MazeNode target, Func<MazeNode, bool>? canTraverse = null) {
         if (start == target) return [start];
         if (canTraverse != null && (!canTraverse(start) || !canTraverse(target))) return [];
 

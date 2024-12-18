@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Betauer.Core.DataMath;
+using Betauer.Core.PCG.Automata;
 using Betauer.Core.PCG.GridMatching;
 
 namespace Betauer.Core.PCG.GridTools;

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Betauer.Core.PCG.Maze;
 using Betauer.TestRunner;
@@ -198,14 +199,14 @@ public class MazeNodeWeightedPathTests {
             Assert.That(resultBoth.TotalCost, Is.EqualTo(0));
         });
     }
-    
+
     [Test]
     public void EdgeWeight_DefaultIsZero() {
         var nodeA = _graph.GetOrCreateNode(new Vector2I(0, 0));
         var nodeB = _graph.GetOrCreateNode(new Vector2I(1, 0));
-    
+
         var edge = nodeA.ConnectTo(nodeB);
-    
+
         Assert.That(edge.Weight, Is.EqualTo(0f));
     }
 
@@ -227,7 +228,7 @@ public class MazeNodeWeightedPathTests {
             Assert.That(result.GetEdgesCost(), Is.EqualTo(0));
         });
     }
-    
+
     [Test]
     public void FindWeightedPath_DirectionalEdges_RespectsEdgeDirection() {
         var nodeA = _graph.CreateNode(new Vector2I(0, 0));
@@ -251,7 +252,7 @@ public class MazeNodeWeightedPathTests {
             Assert.That(backwardPath, Is.Null);
         });
     }
-    
+
     [Test]
     public void FindWeightedPath_WithPredicate_RespectsPredicateAndWeights() {
         var nodeA = _graph.GetOrCreateNode(new Vector2I(0, 0));
@@ -296,5 +297,124 @@ public class MazeNodeWeightedPathTests {
         var result = nodeA.FindWeightedPath(nodeC, PathWeightMode.EdgesOnly, predicate);
 
         Assert.That(result, Is.Null);
+    }
+
+    [Test]
+    // [Ignore("Used to benchmark BFS vs A* performance")]
+    [Only]
+    public void ComparePerformance_BFSvsAStar_DifferentSizes() {
+        var sizes = new[] { 10, 100, 1000, 10000 };
+        foreach (var size in sizes) {
+            // Force aggressive garbage collection before each test
+            for (int i = 0; i < 3; i++) {
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                GC.Collect();
+            }
+            var memoryBefore = GC.GetTotalMemory(true);
+
+            var squareSize = (int)Math.Sqrt(size);
+            Console.WriteLine($"\n=== Grid {squareSize}x{squareSize} ({size} nodes) ===");
+
+            // Create a grid maze
+            var graph = new MazeGraph();
+            var nodes = new MazeNode[squareSize, squareSize];
+
+            // Create nodes
+            for (var y = 0; y < squareSize; y++) {
+                for (var x = 0; x < squareSize; x++) {
+                    nodes[y, x] = graph.CreateNode(new Vector2I(x, y));
+                }
+            }
+
+            // Connect nodes (4-way connectivity)
+            for (var y = 0; y < squareSize; y++) {
+                for (var x = 0; x < squareSize; x++) {
+                    if (x < squareSize - 1) graph.ConnectNodes(nodes[y, x], nodes[y, x + 1]);
+                    if (y < squareSize - 1) graph.ConnectNodes(nodes[y, x], nodes[y + 1, x]);
+                }
+            }
+
+            var start = nodes[0, 0];
+            var end = nodes[squareSize - 1, squareSize - 1];
+
+            // Run each test multiple times to get more stable results
+            const int iterations = 5;
+            var bfsTimes = new List<long>();
+            var astarTimes = new List<long>();
+            PathResult? bfsResult = null;
+            PathResult? astarResult = null;
+
+            for (var i = 0; i < iterations; i++) {
+                var sw = new System.Diagnostics.Stopwatch();
+
+                // Test BFS
+                sw.Start();
+                var findBfsPath = MazePathFinder.FindBfsPath(start, end);
+                bfsResult = new PathResult(findBfsPath, findBfsPath.Count - 1);
+                sw.Stop();
+                bfsTimes.Add(sw.ElapsedTicks);
+
+                // Test A* with Manhattan distance
+                sw.Restart();
+                astarResult = MazePathFinder.FindShortestPath(start, end, PathWeightMode.None,
+                    heuristic: (node, target) => {
+                        var dx = Math.Abs(node.Position.X - target.Position.X);
+                        var dy = Math.Abs(node.Position.Y - target.Position.Y);
+                        return dx + dy;
+                    });
+                sw.Stop();
+                astarTimes.Add(sw.ElapsedTicks);
+
+                // Clear the graph after each iteration except the last
+                if (i < iterations - 1) {
+                    graph.Clear();
+                    // Force garbage collection after clearing
+                    GC.Collect();
+                    GC.WaitForPendingFinalizers();
+                    GC.Collect();
+
+                    // Recreate the graph for next iteration...
+                    for (var y = 0; y < squareSize; y++) {
+                        for (var x = 0; x < squareSize; x++) {
+                            nodes[y, x] = graph.CreateNode(new Vector2I(x, y));
+                        }
+                    }
+                    for (var y = 0; y < squareSize; y++) {
+                        for (var x = 0; x < squareSize; x++) {
+                            if (x < squareSize - 1) graph.ConnectNodes(nodes[y, x], nodes[y, x + 1]);
+                            if (y < squareSize - 1) graph.ConnectNodes(nodes[y, x], nodes[y + 1, x]);
+                        }
+                    }
+                    start = nodes[0, 0];
+                    end = nodes[squareSize - 1, squareSize - 1];
+                }
+            }
+
+            // Force garbage collection before measuring final memory
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+            var memoryAfter = GC.GetTotalMemory(true);
+            var memoryUsed = memoryAfter - memoryBefore;
+
+            // Calculate and print average times (converting ticks to microseconds)
+            var ticksToMicroseconds = 1_000_000.0 / System.Diagnostics.Stopwatch.Frequency;
+            var avgBfsTime = bfsTimes.Average() * ticksToMicroseconds;
+            var avgAstarTime = astarTimes.Average() * ticksToMicroseconds;
+            var minBfsTime = bfsTimes.Min() * ticksToMicroseconds;
+            var minAstarTime = astarTimes.Min() * ticksToMicroseconds;
+
+            Assert.That(bfsResult?.Path.Count, Is.EqualTo(astarResult?.Path.Count),
+                "Both should find paths of the same length");
+
+            Console.WriteLine($"Path length: {bfsResult?.Path.Count} nodes");
+            Console.WriteLine($"BFS Time: {avgBfsTime:F2}µs (Min: {minBfsTime:F2}µs)");
+            Console.WriteLine($"A* Time: {avgAstarTime:F2}µs (Min: {minAstarTime:F2}µs)");
+            if (avgAstarTime > 0) {
+                Console.WriteLine($"Ratio: A* is {avgBfsTime / avgAstarTime:F2}x faster");
+            }
+            Console.WriteLine($"Memory used: {memoryUsed / 1024.0:F2}KB");
+        }
     }
 }

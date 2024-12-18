@@ -1,4 +1,5 @@
 using Betauer.Core.DataMath;
+using Betauer.Core.PCG.Automata;
 using NUnit.Framework;
 
 namespace Betauer.Core.Tests;

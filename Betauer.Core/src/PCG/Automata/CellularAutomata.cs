@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
+using Betauer.Core.DataMath;
 using Godot;
 
-namespace Betauer.Core.DataMath;
+namespace Betauer.Core.PCG.Automata;
 
 public class CellularAutomata<T> {
 
