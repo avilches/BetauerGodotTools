@@ -39,7 +39,7 @@ public class Array2DAStar<T> {
         Reset();
 
         _goal = goal;
-        _heuristic = heuristic ?? Heuristics.Manhattan;
+        _heuristic = heuristic ?? Heuristics.Euclidean;
 
         // Initialize start
         _gScore[start] = 0;
