@@ -6,16 +6,10 @@ using Godot;
 namespace Betauer.Core.DataMath.Collision.Spatial2D;
 
 
-public class SpatialGrid {
-    public float CellSize { get; }
-    public Dictionary<(int, int), List<Shape>> Grid { get; }
-    protected List<Shape> Shapes { get; }
-
-    public SpatialGrid(float cellSize) {
-        CellSize = cellSize;
-        Grid = new Dictionary<(int, int), List<Shape>>();
-        Shapes = new List<Shape>();
-    }
+public class SpatialGrid(float cellSize) {
+    public float CellSize { get; } = cellSize;
+    public Dictionary<(int, int), List<Shape>> Grid { get; } = new();
+    protected List<Shape> Shapes { get; } = [];
 
     public List<Shape> FindShapes() => Shapes.ToList();
     public List<Shape> FindShapes(Func<Shape, bool> match) => Shapes.Where(match).ToList();
@@ -101,7 +95,7 @@ public class SpatialGrid {
         if (Grid.TryGetValue(cell, out var shapesInCell)) {
             shapesInCell.Add(shape);
         } else {
-            Grid[cell] = new List<Shape> { shape };
+            Grid[cell] = [shape];
         }
     }
 
