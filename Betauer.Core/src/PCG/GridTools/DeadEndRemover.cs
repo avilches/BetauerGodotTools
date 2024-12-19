@@ -46,7 +46,7 @@ public class DeadEndRemover<T> : DeadEndRemover {
     private T UpdateRule(Array2D<T> grid, Vector2I pos) {
         var value = grid.GetValueSafe(pos);
         if (!_isEnabled(value)) return value;
-        var pathNeighbors = grid.GetOrtogonalPositions(pos, _isEnabled).Count();
+        var pathNeighbors = grid.GetOrtogonalPositions(pos, p =>_isEnabled(grid[p])).Count();
         value = _update(value, pathNeighbors > 1);
         if (!_isEnabled(value)) _changes++;
         return value;

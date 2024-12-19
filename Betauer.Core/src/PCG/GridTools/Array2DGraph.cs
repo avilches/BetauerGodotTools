@@ -23,8 +23,8 @@ public readonly record struct Array2DEdge(Vector2I From, Vector2I To, float Weig
 /// </summary>
 public class Array2DGraph<T> {
     public Array2D<T> Array2D { get; }
-    private readonly Func<T, bool> _isWalkable;
-    private readonly Func<T, float> _getWeight;
+    public Func<Vector2I, float>? GetWeightFunc { get; set; }
+    public Func<Vector2I, bool>? IsWalkablePositionFunc { get; set; }
     
     public int Width => Array2D.Width;
     public int Height => Array2D.Height;
@@ -33,15 +33,12 @@ public class Array2DGraph<T> {
     /// Constructs a grid graph from an Array2D with walkability and weight functions
     /// </summary>
     /// <param name="array2D">The grid that defines the graph structure</param>
-    /// <param name="isWalkable">Function that determines if a cell is walkable</param>
-    /// <param name="getWeight">Function that determines the movement cost for a cell (must be >= 1)</param>
-    public Array2DGraph(Array2D<T> array2D, Func<T, bool> isWalkable, Func<T, float> getWeight) {
-        ArgumentNullException.ThrowIfNull(isWalkable);
-        ArgumentNullException.ThrowIfNull(getWeight);
-
+    /// <param name="getWeightFunc">Function that determines the movement cost for a cell (must be >= 1). If null, all weights will be 1</param>
+    /// <param name="isWalkablePositionFunc">Function that determines if a cell is walkable based on its position. If null, all cells will be walkable</param>
+    public Array2DGraph(Array2D<T> array2D, Func<Vector2I, float>? getWeightFunc = null, Func<Vector2I, bool>? isWalkablePositionFunc = null) {
         Array2D = array2D ?? throw new ArgumentNullException(nameof(array2D));
-        _isWalkable = isWalkable;
-        _getWeight = getWeight;
+        GetWeightFunc = getWeightFunc;
+        IsWalkablePositionFunc = isWalkablePositionFunc ?? (_ => true);
     }
 
     /// <summary>
@@ -56,12 +53,24 @@ public class Array2DGraph<T> {
         foreach (var neighbor in Array2D.GetOrtogonalPositions(vertex)) {
             if (IsWalkablePosition(neighbor)) {
                 // El peso de moverse a una celda es el peso de la celda destino
-                var weight = _getWeight(Array2D[neighbor]);
+                var weight = GetWeight(neighbor);
                 yield return new Array2DEdge(vertex, neighbor, weight);
             }
         }
     }
 
+    public float GetWeight(Vector2I neighbor) {
+        return GetWeightFunc?.Invoke(neighbor) ?? 1f;
+    }
+
+    /// <summary>
+    /// Returns whether the specified position is valid and walkable in the grid
+    /// </summary>
+    /// <param name="pos">The position to check</param>
+    /// <returns>True if the position is valid and walkable, false otherwise</returns>
+    public bool IsWalkablePosition(Vector2I pos) {
+        return Array2D.IsValidPosition(pos) && (IsWalkablePositionFunc == null || IsWalkablePositionFunc(pos));
+    }
 
     /// <summary>
     /// Returns an IEnumerable of all directed edges in the edge-weighted grid graph
@@ -88,24 +97,12 @@ public class Array2DGraph<T> {
     /// <param name="vertex">The vertex to find the out-degree of</param>
     /// <returns>The number of directed edges incident from the specified vertex</returns>
     public int OutDegree(Vector2I vertex) {
-        return IsWalkablePosition(vertex)
-            ? Array2D.GetOrtogonalPositions(vertex).Count(IsWalkablePosition)
-            : 0;
+        return IsWalkablePosition(vertex) ? Array2D.GetOrtogonalPositions(vertex).Count(IsWalkablePosition) : 0;
     }
 
-    /// <summary>
-    /// Returns whether the specified position is valid and walkable in the grid
-    /// </summary>
-    /// <param name="pos">The position to check</param>
-    /// <returns>True if the position is valid and walkable, false otherwise</returns>
-    public bool IsWalkablePosition(Vector2I pos) {
-        return Array2D.IsValidPosition(pos) && _isWalkable(Array2D[pos]);
-        
-    }
-    
     public List<Vector2I> FindPath(Vector2I start, Vector2I end,
         Func<Vector2I, Vector2I, float>? heuristic = null, Action<Vector2I>? onNodeVisited = null) {
-        if (!IsWalkablePosition(start) || !IsWalkablePosition(end)) return null;
+        if (!IsWalkablePosition(start) || !IsWalkablePosition(end)) return [];
         return Array2DAStar<T>.FindPath(this, start, end, heuristic, onNodeVisited);
     }
 

@@ -48,7 +48,7 @@ public static class Generators {
         region[start] = true;
         active.Add(start);
         // Añadir vecinos vacíos iniciales
-        emptyNeighbors.UnionWith(region.GetOrtogonalPositions(start, b => !b));
+        emptyNeighbors.UnionWith(region.GetOrtogonalPositions(start, b => !region[b]));
         var pixelsAdded = 1;
 
         while (pixelsAdded < numPixels && (active.Count > 0 || emptyNeighbors.Count > 0)) {
@@ -58,7 +58,7 @@ public static class Generators {
                 var addedNeighbor = false;
 
                 // Intentar expandirse normalmente
-                foreach (var pos in region.GetOrtogonalPositions(cell, b => !b)
+                foreach (var pos in region.GetOrtogonalPositions(cell, b => !region[b])
                              .OrderBy(_ => random.Next())) {
                     if (random.NextDouble() < branchingProbability) {
                         addedNeighbor = true;
@@ -66,7 +66,7 @@ public static class Generators {
                         active.Add(pos);
                         emptyNeighbors.Remove(pos);
                         // Añadir nuevos vecinos vacíos
-                        foreach (var newEmpty in region.GetOrtogonalPositions(pos, b => !b)) {
+                        foreach (var newEmpty in region.GetOrtogonalPositions(pos, b => !region[b])) {
                             emptyNeighbors.Add(newEmpty);
                         }
                         pixelsAdded++;
@@ -84,7 +84,7 @@ public static class Generators {
                 active.Add(emptyCell);
                 emptyNeighbors.Remove(emptyCell);
                 // Añadir nuevos vecinos vacíos
-                foreach (var newEmpty in region.GetOrtogonalPositions(emptyCell, b => !b)) {
+                foreach (var newEmpty in region.GetOrtogonalPositions(emptyCell, b => !region[b])) {
                     emptyNeighbors.Add(newEmpty);
                 }
                 pixelsAdded++;
@@ -104,7 +104,7 @@ public static class Generators {
     }
 
     private static bool HasFilledNeighbor(Array2D<bool> region, Vector2I pos) {
-        return region.GetOrtogonalPositions(pos, b => b).Any();
+        return region.GetOrtogonalPositions(pos, b => region[b]).Any();
     }
 
     /// <summary>
@@ -161,7 +161,7 @@ public static class Generators {
             if (candidates.Count == 0) {
                 // Si no hay candidatos pero tenemos puntos activos, generamos nuevos candidatos
                 candidates.UnionWith(active
-                    .SelectMany(p => region.GetOrtogonalPositions(p, b => !b))
+                    .SelectMany(p => region.GetOrtogonalPositions(p, b => !region[b]))
                     .Where(pos => !filled.Contains(pos)));
                 if (candidates.Count == 0) break; // Si aún no hay candidatos, terminamos
             }
@@ -170,7 +170,7 @@ public static class Generators {
             var idx = random.Next(candidateArray.Length);
             var cell = candidateArray[idx];
             candidates.Remove(cell);
-            var neighbors = region.GetOrtogonalPositions(cell, b => b).Count();
+            var neighbors = region.GetOrtogonalPositions(cell, b => region[b]).Count();
             var prob = stickingProbability + (neighbors * smoothingFactor / 8.0);
             if (random.NextDouble() < prob) {
                 region[cell] = true;
@@ -179,7 +179,7 @@ public static class Generators {
                 active.Add(cell);
 
                 candidates.UnionWith(region
-                    .GetOrtogonalPositions(cell, b => !b)
+                    .GetOrtogonalPositions(cell, b => !region[b])
                     .Where(pos => !filled.Contains(pos)));
             } else if (active.Count < min) {
                 // Si tenemos pocos puntos activos, devolvemos el candidato a la lista
@@ -302,7 +302,7 @@ public static class Generators {
                     if (active.Count > min) {
                         var pointsToRemove = new List<Vector2I>();
                         foreach (var point in active) {
-                            if (region.GetOrtogonalPositions(point, b => !b).Count() == 0) {
+                            if (!region.GetOrtogonalPositions(point, b => !region[b]).Any()) {
                                 pointsToRemove.Add(point);
                             }
                         }

@@ -403,14 +403,14 @@ public class Array2D<T> : Array2D, IEnumerable<DataCell<T>> {
         }
     }
     
-    public IEnumerable<Vector2I> GetOrtogonalPositions(int x, int y, Func<T, bool>? predicate = null) {
-        return GetOrtogonalPositions(new Vector2I(x, y));
+    public IEnumerable<Vector2I> GetOrtogonalPositions(int x, int y, Func<Vector2I, bool>? predicate = null) {
+        return GetOrtogonalPositions(new Vector2I(x, y), predicate);
     }
 
-    public IEnumerable<Vector2I> GetOrtogonalPositions(Vector2I pos, Func<T, bool>? predicate = null) {
+    public IEnumerable<Vector2I> GetOrtogonalPositions(Vector2I pos, Func<Vector2I, bool>? predicate = null) {
         return Directions
             .Select(dir => pos + dir)
-            .Where(p => IsValidPosition(p) && (predicate == null || predicate.Invoke(this[p])));
+            .Where(p => IsValidPosition(p) && (predicate == null || predicate.Invoke(p)));
     }
 
     public override string ToString() {
