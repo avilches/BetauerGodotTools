@@ -85,7 +85,7 @@ public class ConsoleTestRunner {
     }
 
     private static string GetTestMethodLine(TestReport testReport, TestRunner.TestMethod testMethod) {
-        var line = $"Test {testMethod.Id}/{testReport.TestsTotal}: {testMethod.TestClass.Type.Name}.{testMethod.Name}";
+        var line = $"Test {testMethod.Id}/{testReport.TestsTotal}: {testMethod.TestClass.Type.Name} {testMethod.Name}";
         if (testMethod.Description != null) {
             line += " \"" + testMethod.Description + "\"";
         }
