@@ -35,10 +35,14 @@ public abstract class Array2D {
             .ToArray();
         if (lines.Length == 0) throw new ArgumentException("Empty template");
         var width = lines[0].Length;
-        if (lines.Any(l => l.Length != width)) {
-            throw new ArgumentException("All lines must have the same length");
+        // Modified validation with detailed error message
+        for (var i = 0; i < lines.Length; i++) {
+            var line = lines[i];
+            if (line.Length != width) {
+                throw new ArgumentException(
+                    $"Line {i + 1} has incorrect length: {line.Length} (expected {width}). Line content: '{line}'");
+            }
         }
-
         var array2d = new Array2D<T>(width, lines.Length);
         for (var y = 0; y < lines.Length; y++) {
             for (var x = 0; x < width; x++) {
