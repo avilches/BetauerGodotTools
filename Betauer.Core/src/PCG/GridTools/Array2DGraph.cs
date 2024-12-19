@@ -25,7 +25,7 @@ public class Array2DGraph<T> {
     public Array2D<T> Array2D { get; }
     public Func<Vector2I, float>? GetWeightFunc { get; set; }
     public Func<Vector2I, bool>? IsWalkablePositionFunc { get; set; }
-    
+
     public int Width => Array2D.Width;
     public int Height => Array2D.Height;
 
@@ -49,7 +49,7 @@ public class Array2DGraph<T> {
     /// <returns>IEnumerable of the Array2DEdges incident from the specified vertex</returns>
     public IEnumerable<Array2DEdge> Adjacent(Vector2I vertex) {
         if (!IsWalkablePosition(vertex)) yield break;
-        
+
         foreach (var neighbor in Array2D.GetOrtogonalPositions(vertex)) {
             if (IsWalkablePosition(neighbor)) {
                 // El peso de moverse a una celda es el peso de la celda destino
@@ -258,8 +258,89 @@ public class Array2DGraph<T> {
 
         return shortestPath ?? Array.Empty<Vector2I>();
     }
-    
-    
+
+    /// <summary>
+    /// Returns all connected nodes that can be reached from the starting position,
+    /// expanding in a circular pattern up to a maximum number of nodes.
+    /// 
+    /// The search uses a breadth-first approach, which means it will find all nodes
+    /// at distance 1 before moving to distance 2, and so on, creating a circular-like expansion pattern.
+    /// 
+    /// If maxNodes is reached, the method will return only the nodes found so far.
+    /// A value of -1 for maxNodes means no limit.
+    /// 
+    /// Note: The starting position is included in the result if it's walkable.
+    /// </summary>
+    /// <param name="start">The starting position for the search</param>
+    /// <param name="maxNodes">Maximum number of nodes to return. Use -1 for unlimited</param>
+    /// <returns>A HashSet containing all reachable positions within the limit</returns>
+    public HashSet<Vector2I> GetReachableZone(Vector2I start, int maxNodes = -1) {
+        var visited = new HashSet<Vector2I>();
+        if (!IsWalkablePosition(start)) return visited;
+
+        var queue = new Queue<Vector2I>();
+        queue.Enqueue(start);
+        visited.Add(start);
+
+        while (queue.Count > 0 && (maxNodes == -1 || visited.Count < maxNodes)) {
+            var current = queue.Dequeue();
+
+            foreach (var edge in Adjacent(current)) {
+                var neighbor = edge.To;
+                if (visited.Add(neighbor)) {
+                    queue.Enqueue(neighbor);
+
+                    // Check limit after adding each node
+                    if (maxNodes != -1 && visited.Count >= maxNodes) {
+                        return visited;
+                    }
+                }
+            }
+        }
+
+        return visited;
+    }
+
+    /// <summary>
+    /// Returns all connected nodes that can be reached from the starting position within a specific distance.
+    /// The distance is measured in steps (grid movements) from the starting position.
+    /// 
+    /// The search uses a breadth-first approach, which means it will find all nodes
+    /// at distance 1 before moving to distance 2, and so on, creating a circular-like expansion pattern.
+    /// 
+    /// Note: The starting position is included in the result if it's walkable.
+    /// </summary>
+    /// <param name="start">The starting position for the search</param>
+    /// <param name="maxDistance">Maximum distance (in steps) from the starting position</param>
+    /// <returns>A HashSet containing all reachable positions within the distance limit</returns>
+    public HashSet<Vector2I> GetReachableZoneInRange(Vector2I start, int maxDistance) {
+        if (maxDistance < 0) throw new ArgumentException("maxDistance must be non-negative", nameof(maxDistance));
+
+        var visited = new HashSet<Vector2I>();
+        if (!IsWalkablePosition(start)) return visited;
+
+        var queue = new Queue<(Vector2I pos, int distance)>();
+        queue.Enqueue((start, 0));
+        visited.Add(start);
+
+        while (queue.Count > 0) {
+            var (current, distance) = queue.Dequeue();
+
+            // If we're at max distance, don't explore neighbors
+            if (distance >= maxDistance) continue;
+
+            foreach (var edge in Adjacent(current)) {
+                var neighbor = edge.To;
+                if (visited.Add(neighbor)) {
+                    queue.Enqueue((neighbor, distance + 1));
+                }
+            }
+        }
+
+        return visited;
+    }
+
+
     /// <summary>
     /// Returns a string that represents the current edge-weighted grid graph
     /// </summary>

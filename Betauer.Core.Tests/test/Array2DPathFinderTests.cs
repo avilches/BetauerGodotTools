@@ -259,4 +259,207 @@ public class Array2DPathFinderTests {
 
         Assert.IsEmpty(path);
     }
+
+    [Test]
+    public void GetReachableZone_EmptyGrid_ReturnsAllNodes() {
+        // 3x3 grid, all walkable
+        var grid = new Array2D<bool>(3, 3, true);
+        var graph = new Array2DGraph<bool>(
+            grid,
+            _ => 1f,
+            cell => grid[cell]
+        );
+
+        var nodes = graph.GetReachableZone(new Vector2I(1, 1));
+
+        // Should return all 9 nodes
+        Assert.That(nodes, Has.Count.EqualTo(9));
+        // Verify all positions are included
+        for (var y = 0; y < 3; y++) {
+            for (var x = 0; x < 3; x++) {
+                Assert.That(nodes, Contains.Item(new Vector2I(x, y)));
+            }
+        }
+    }
+
+    [Test]
+    public void GetReachableZone_StartNotWalkable_ReturnsEmpty() {
+        var grid = new Array2D<bool>(3, 3, true);
+        grid[1, 1] = false; // Center not walkable
+        var graph = new Array2DGraph<bool>(
+            grid,
+            _ => 1f,
+            cell => grid[cell]
+        );
+
+        var nodes = graph.GetReachableZone(new Vector2I(1, 1));
+
+        Assert.That(nodes, Is.Empty);
+    }
+
+    [Test]
+    public void GetReachableZone_WithObstacles_ReturnsReachableNodes() {
+        // Create a grid with a wall in the middle
+        // [ ][ ][ ]
+        // [ ][X][ ]
+        // [ ][ ][ ]
+        var grid = new Array2D<bool>(3, 3, true);
+        grid[1, 1] = false; // Center is blocked
+        var graph = new Array2DGraph<bool>(
+            grid,
+            _ => 1f,
+            cell => grid[cell]
+        );
+
+        var nodes = graph.GetReachableZone(new Vector2I(0, 0));
+
+        Assert.That(nodes, Has.Count.EqualTo(8)); // All except the center
+        Assert.That(nodes, Does.Not.Contain(new Vector2I(1, 1))); // Center should not be included
+    }
+
+    [Test]
+    public void GetReachableZone_WithMaxNodes_LimitsResults() {
+        var grid = new Array2D<bool>(3, 3, true);
+        var graph = new Array2DGraph<bool>(
+            grid,
+            _ => 1f,
+            cell => grid[cell]
+        );
+
+        var nodes = graph.GetReachableZone(new Vector2I(1, 1), 4);
+
+        Assert.That(nodes, Has.Count.EqualTo(4));
+        // Center should be included as it's the start
+        Assert.That(nodes, Contains.Item(new Vector2I(1, 1)));
+    }
+
+    [Test]
+    public void GetReachableZone_IsolatedAreas_ReturnsOnlyReachableNodes() {
+        // Create a grid with two isolated areas
+        // [ ][ ][X][ ]
+        // [ ][X][X][ ]
+        // [X][X][X][ ]
+        // [ ][ ][ ][ ]
+        var grid = new Array2D<bool>(4, 4, true);
+        grid[0, 2] = false;
+        grid[1, 1] = false;
+        grid[1, 2] = false;
+        grid[2, 0] = false;
+        grid[2, 1] = false;
+        grid[2, 2] = false;
+
+        var graph = new Array2DGraph<bool>(
+            grid,
+            _ => 1f,
+            cell => grid[cell]
+        );
+
+        // Start from top-left area
+        var nodesTopLeft = graph.GetReachableZone(new Vector2I(0, 0));
+        // Start from bottom-right area
+        var nodesBottomRight = graph.GetReachableZone(new Vector2I(3, 3));
+
+        Assert.That(nodesTopLeft, Has.Count.EqualTo(3)); // [0,0], [1,0], and [0,1] are reachable
+        Assert.That(nodesBottomRight, Has.Count.EqualTo(7)); // Toda la columna derecha y la fila inferior
+
+        // Verificar explícitamente las posiciones alcanzables desde la esquina superior izquierda
+        Assert.That(nodesTopLeft, Contains.Item(new Vector2I(0, 0))); // Posición inicial
+        Assert.That(nodesTopLeft, Contains.Item(new Vector2I(1, 0))); // Derecha
+        Assert.That(nodesTopLeft, Contains.Item(new Vector2I(0, 1))); // Abajo
+
+        // Verificar que las posiciones bloqueadas no son alcanzables
+        Assert.That(nodesTopLeft, Does.Not.Contain(new Vector2I(2, 0))); // Bloqueado por pared
+        Assert.That(nodesTopLeft, Does.Not.Contain(new Vector2I(1, 1))); // Pared
+
+        // Verificar las posiciones alcanzables desde la esquina inferior derecha
+        var expectedBottomRight = new[] {
+            new Vector2I(3, 3), // Posición inicial
+            new Vector2I(2, 3), // Fila inferior
+            new Vector2I(1, 3),
+            new Vector2I(0, 3),
+            new Vector2I(3, 2), // Columna derecha
+            new Vector2I(3, 1),
+            new Vector2I(3, 0)
+        };
+
+        foreach (var pos in expectedBottomRight) {
+            Assert.That(nodesBottomRight, Contains.Item(pos),
+                $"La posición {pos} debería ser alcanzable desde (3,3)");
+        }
+    }
+
+    [Test]
+    public void GetReachableZoneInRange_VerifyCircularExpansion() {
+        var grid = new Array2D<bool>(5, 5, true);
+        var graph = new Array2DGraph<bool>(
+            grid,
+            _ => 1f,
+            cell => grid[cell]
+        );
+
+        // Test with different ranges
+        var range1 = graph.GetReachableZoneInRange(new Vector2I(2, 2), 1);
+        var range2 = graph.GetReachableZoneInRange(new Vector2I(2, 2), 2);
+
+        // Range 1 should include center + 4 adjacent = 5 nodes
+        Assert.That(range1, Has.Count.EqualTo(5));
+        // Verify the shape: should include only direct neighbors
+        Assert.That(range1, Contains.Item(new Vector2I(2, 2))); // Center
+        Assert.That(range1, Contains.Item(new Vector2I(1, 2))); // Left
+        Assert.That(range1, Contains.Item(new Vector2I(3, 2))); // Right
+        Assert.That(range1, Contains.Item(new Vector2I(2, 1))); // Up
+        Assert.That(range1, Contains.Item(new Vector2I(2, 3))); // Down
+
+        // Range 2 should include more nodes in a diamond pattern
+        Assert.That(range2, Has.Count.EqualTo(13));
+    }
+
+    [Test]
+    public void GetReachableZoneInRange_WithObstacles_RespectsWalls() {
+        // Create a grid with a L-shaped wall
+        // [ ][ ][ ][ ]
+        // [ ][X][X][ ]
+        // [ ][X][ ][ ]
+        // [ ][ ][ ][ ]
+        var grid = new Array2D<bool>(4, 4, true);
+        grid[1, 1] = false;
+        grid[1, 2] = false;
+        grid[2, 1] = false;
+
+        var graph = new Array2DGraph<bool>(
+            grid,
+            _ => 1f,
+            cell => grid[cell]
+        );
+
+        var nodes = graph.GetReachableZoneInRange(new Vector2I(0, 0), 2);
+
+        // Verify nodes behind the wall are not included
+        Assert.That(nodes, Does.Not.Contain(new Vector2I(2, 2)));
+        // Verify nodes that are within range but blocked by wall are not included
+        Assert.That(nodes, Does.Not.Contain(new Vector2I(1, 1)));
+        Assert.That(nodes, Does.Not.Contain(new Vector2I(1, 2)));
+        Assert.That(nodes, Does.Not.Contain(new Vector2I(2, 1)));
+    }
+
+    [Test]
+    public void GetReachableZoneInRange_EdgeCases() {
+        var grid = new Array2D<bool>(3, 3, true);
+        var graph = new Array2DGraph<bool>(
+            grid,
+            _ => 1f,
+            cell => grid[cell]
+        );
+
+        // Test range 0
+        var range0 = graph.GetReachableZoneInRange(new Vector2I(1, 1), 0);
+        Assert.That(range0, Has.Count.EqualTo(1)); // Only start position
+
+        // Test negative range (should throw)
+        Assert.Throws<ArgumentException>(() => { graph.GetReachableZoneInRange(new Vector2I(1, 1), -1); });
+
+        // Test range larger than grid
+        var rangeLarge = graph.GetReachableZoneInRange(new Vector2I(1, 1), 10);
+        Assert.That(rangeLarge, Has.Count.EqualTo(9)); // Should include all walkable cells
+    }
 }
