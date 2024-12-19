@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Godot;
 
 namespace Betauer.Core.PCG.GridTools;
@@ -27,15 +28,16 @@ public class Array2DAStar<T> {
         _pq.Clear();
     }
 
-    public List<Vector2I> FindPath(Vector2I start, Vector2I goal, 
+    public IReadOnlyList<Vector2I> FindPath(Vector2I start, Vector2I goal,
         Func<Vector2I, Vector2I, float>? heuristic = null,
         Action<Vector2I>? onNodeVisited = null) {
-        
-        if (!_graph.IsWalkablePosition(start)) throw new ArgumentException("Start position is not walkable", nameof(start));
-        if (!_graph.IsWalkablePosition(goal)) throw new ArgumentException("Goal position is not walkable", nameof(goal));
-        
+
+        if (!_graph.IsWalkablePosition(start) || !_graph.IsWalkablePosition(goal)) {
+            return ImmutableList<Vector2I>.Empty;
+        }
+
         Reset();
-        
+
         _goal = goal;
         _heuristic = heuristic ?? Heuristics.Manhattan;
 
@@ -47,11 +49,11 @@ public class Array2DAStar<T> {
         while (!_pq.IsEmpty()) {
             var index = _pq.DeleteMin();
             var current = ToVector2I(index);
-            
+
             onNodeVisited?.Invoke(current);
-            
+
             if (current == goal) break;
-            
+
             foreach (var edge in _graph.Adjacent(current)) {
                 Relax(edge);
             }
@@ -84,7 +86,7 @@ public class Array2DAStar<T> {
         if (!_gScore.ContainsKey(to) || newGScore < GetGScore(to)) {
             _gScore[to] = newGScore;
             _edgeTo[to] = edge;
-            
+
             var fScore = newGScore + GetHScore(to);
             if (_pq.Contains(toIndex)) {
                 _pq.DecreaseKey(toIndex, fScore);
@@ -94,8 +96,8 @@ public class Array2DAStar<T> {
         }
     }
 
-    private List<Vector2I> GetPath() {
-        if (!_edgeTo.ContainsKey(_goal)) return [];
+    private IReadOnlyList<Vector2I> GetPath() {
+        if (!_edgeTo.ContainsKey(_goal)) return ImmutableList<Vector2I>.Empty;
 
         var path = new List<Vector2I>();
         var current = _goal;
@@ -111,14 +113,4 @@ public class Array2DAStar<T> {
     }
 
     public float GetPathCost() => GetGScore(_goal);
-
-    /// <summary>
-    /// Static method to find a path between two positions in a grid using the specified heuristic.
-    /// This method creates a new instance of Array2DAStar for compatibility with existing code.
-    /// For better performance when doing multiple path searches, create an instance and reuse it.
-    /// </summary>
-    public static List<Vector2I> FindPath(Array2DGraph<T> graph, Vector2I start, Vector2I goal, 
-        Func<Vector2I, Vector2I, float>? heuristic = null, Action<Vector2I>? onNodeVisited = null) {
-        return new Array2DAStar<T>(graph).FindPath(start, goal, heuristic, onNodeVisited);
-    }
 }

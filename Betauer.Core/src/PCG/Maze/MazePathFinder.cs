@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace Betauer.Core.PCG.Maze;
 
@@ -32,11 +33,11 @@ public static class MazePathFinder {
     /// <param name="canTraverse">Optional predicate that determines if a node can be traversed</param>
     /// <param name="heuristic">Optional heuristic function for A* algorithm</param>
     /// <returns>Result containing the path and its total cost, or null if no path exists</returns>
-    public static PathResult? FindShortestPath(MazeNode start, MazeNode target, PathWeightMode mode = PathWeightMode.Both, Func<MazeNode, bool>? canTraverse = null, HeuristicFunction? heuristic = null) {
+    public static PathResult FindShortestPath(MazeNode start, MazeNode target, PathWeightMode mode = PathWeightMode.Both, Func<MazeNode, bool>? canTraverse = null, HeuristicFunction? heuristic = null) {
         if (start == target) {
-            return new PathResult([start], mode == PathWeightMode.EdgesOnly ? 0 : start.Weight);
+            return new PathResult([start], mode is PathWeightMode.None or PathWeightMode.EdgesOnly ? 0 : start.Weight);
         }
-        if (canTraverse != null && (!canTraverse(start) || !canTraverse(target))) return null;
+        if (canTraverse != null && (!canTraverse(start) || !canTraverse(target))) return new PathResult(ImmutableList<MazeNode>.Empty, -1);
 
         heuristic ??= ManhattanDistance;
 
@@ -44,7 +45,7 @@ public static class MazePathFinder {
         var previous = new Dictionary<MazeNode, MazeNode>();
         var unvisited = new PriorityQueue<MazeNode, float>();
 
-        distances[start] = mode == PathWeightMode.EdgesOnly ? 0 : start.Weight;
+        distances[start] = mode is PathWeightMode.None or PathWeightMode.EdgesOnly ? 0 : start.Weight;
         var initialCost = distances[start] + (heuristic?.Invoke(start, target) ?? 0);
         unvisited.Enqueue(start, initialCost);
 
@@ -70,6 +71,9 @@ public static class MazePathFinder {
                 var g_score = distances[current];
 
                 switch (mode) {
+                    case PathWeightMode.None:
+                        g_score += 1; // Incrementa 1 por cada paso
+                        break;
                     case PathWeightMode.NodesOnly:
                         g_score += neighbor.Weight;
                         break;
@@ -89,8 +93,7 @@ public static class MazePathFinder {
                 }
             }
         }
-
-        return null;
+        return new PathResult(ImmutableList<MazeNode>.Empty, -1);
     }
 
     /// <summary>
@@ -101,9 +104,9 @@ public static class MazePathFinder {
     /// <param name="target">Target node</param>
     /// <param name="canTraverse">Optional predicate that determines if a node can be traversed</param>
     /// <returns>List of nodes forming the shortest path, or empty list if no path exists</returns>
-    public static List<MazeNode> FindBfsPath(MazeNode start, MazeNode target, Func<MazeNode, bool>? canTraverse = null) {
+    public static IReadOnlyList<MazeNode> FindBfsPath(MazeNode start, MazeNode target, Func<MazeNode, bool>? canTraverse = null) {
         if (start == target) return [start];
-        if (canTraverse != null && (!canTraverse(start) || !canTraverse(target))) return [];
+        if (canTraverse != null && (!canTraverse(start) || !canTraverse(target))) return ImmutableList<MazeNode>.Empty;
 
         var previous = new Dictionary<MazeNode, MazeNode>();
         var queue = new Queue<MazeNode>();
@@ -140,7 +143,7 @@ public static class MazePathFinder {
             }
         }
 
-        return [];
+        return ImmutableList<MazeNode>.Empty;
     }
 
     /// <summary>
@@ -174,7 +177,7 @@ public static class MazePathFinder {
     /// <param name="start">Starting node</param>
     /// <param name="target">Target node</param>
     /// <returns>List of nodes forming the path, or null if no path exists</returns>
-    public static List<MazeNode> GetPathToNode(MazeNode start, MazeNode target) {
+    public static IReadOnlyList<MazeNode> GetPathToNode(MazeNode start, MazeNode target) {
         if (start == target) return [start];
 
         // Obtener el camino hasta la raíz para ambos nodos
@@ -200,7 +203,7 @@ public static class MazePathFinder {
 
         CommonAncestorFound:
 
-        if (commonAncestor == null) return [];
+        if (commonAncestor == null) return ImmutableList<MazeNode>.Empty;
 
         // Construir el camino: subir desde start hasta el ancestro común y bajar hasta target
         var path = new List<MazeNode>();

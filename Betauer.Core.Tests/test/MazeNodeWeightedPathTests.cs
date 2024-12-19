@@ -82,7 +82,8 @@ public class MazeNodeWeightedPathTests {
 
         var result = nodeA.FindWeightedPath(nodeB, PathWeightMode.EdgesOnly);
 
-        Assert.That(result, Is.Null);
+        Assert.That(result.Path, Is.Empty);
+        Assert.That(result.TotalCost, Is.EqualTo(-1));
     }
 
     [Test]
@@ -249,7 +250,8 @@ public class MazeNodeWeightedPathTests {
             Assert.That(forwardPath.TotalCost, Is.EqualTo(3));
 
             // Camino hacia atrás no debe existir
-            Assert.That(backwardPath, Is.Null);
+            Assert.That(backwardPath.Path, Is.Empty);
+            Assert.That(backwardPath.TotalCost, Is.EqualTo(-1));
         });
     }
 
@@ -296,12 +298,12 @@ public class MazeNodeWeightedPathTests {
         var predicate = new Func<MazeNode, bool>(node => node != nodeB);
         var result = nodeA.FindWeightedPath(nodeC, PathWeightMode.EdgesOnly, predicate);
 
-        Assert.That(result, Is.Null);
+        Assert.That(result.Path, Is.Empty);
+        Assert.That(result.TotalCost, Is.EqualTo(-1));
     }
 
     [Test]
     [Ignore("Used to benchmark BFS vs A* performance")]
-    // [Only]
     public void ComparePerformance_BFSvsAStar_DifferentSizes() {
         var sizes = new[] { 10, 100, 1000, 10000 };
         foreach (var size in sizes) {

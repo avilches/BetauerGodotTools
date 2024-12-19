@@ -103,7 +103,7 @@ public class MazeZones(MazeGraph mazeGraph, IMazeZonedConstraints constraints, L
 
         Dictionary<int, MazeNode> keyLocations = GetBestLocationsByZone(scoreCalculator);
         List<MazeNode> stops = [];
-        List<List<MazeNode>> paths = [];
+        List<IReadOnlyList<MazeNode>> paths = [];
         List<MazeNode> solutionPath = [];
         zoneOrder ??= Enumerable.Range(0, Zones.Count).ToList();
         if (zoneOrder[0] != 0) {

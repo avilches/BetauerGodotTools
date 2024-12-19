@@ -15,7 +15,7 @@ public class MazeSolutionScoring {
     /// The complete path taken through the maze, including all nodes visited and revisited in order.
     /// For example: if a path goes A->B->C->B->D, SolutionPath will contain [A,B,C,B,D]
     /// </summary>
-    public List<MazeNode> SolutionPath { get; }
+    public IReadOnlyList<MazeNode> SolutionPath { get; }
 
     /// <summary>
     /// The order in which zones must be visited to collect keys.
@@ -24,7 +24,7 @@ public class MazeSolutionScoring {
     /// - Then get key for zone 3 (in zone 1)
     /// - Finally get key for zone 2 (in zone 3)
     /// </summary>
-    public List<int> ZoneOrder { get; }
+    public IReadOnlyList<int> ZoneOrder { get; }
 
     /// <summary>
     /// The shortest possible path to the final destination, ignoring zone restrictions.
@@ -32,7 +32,7 @@ public class MazeSolutionScoring {
     /// Example: if SolutionPath is [A,B,C,B,D] and GoalPath is [A,B,D], 
     /// it shows that revisiting B and visiting C were necessary due to zone constraints.
     /// </summary>
-    public List<MazeNode> GoalPath { get; }
+    public IReadOnlyList<MazeNode> GoalPath { get; }
 
     /// <summary>
     /// Groups nodes by how many times they were visited during solution traversal.
@@ -44,7 +44,7 @@ public class MazeSolutionScoring {
     ///
     /// The [0] key is used for nodes that were never visited, so they are not part of the solution path.
     /// </summary>
-    public Dictionary<int, List<NodeScore>> NodesByVisit { get; }
+    public IReadOnlyDictionary<int, List<NodeScore>> NodesByVisit { get; }
 
     /// <summary>
     /// Percentage of nodes that have each visit count, relative to total maze nodes.
@@ -54,7 +54,7 @@ public class MazeSolutionScoring {
     /// - VisitDistribution[1] = 0.5 // 50% of nodes were visited once
     /// - VisitDistribution[2] = 0.1 // 10% of nodes were visited twice
     /// </summary>
-    public Dictionary<int, float> VisitDistribution { get; }
+    public IReadOnlyDictionary<int, float> VisitDistribution { get; }
 
     /// <summary>
     /// Measures how evenly distributed the visits are across nodes using the Gini coefficient.
@@ -89,7 +89,7 @@ public class MazeSolutionScoring {
     /// </summary>
     public float Redundancy { get; }
     
-    public MazeSolutionScoring(Dictionary<MazeNode, NodeScore> scores, Dictionary<int, MazeNode> keyLocations, List<int> zoneOrder, List<MazeNode> goalPath, List<MazeNode> solutionPath) {
+    public MazeSolutionScoring(Dictionary<MazeNode, NodeScore> scores, Dictionary<int, MazeNode> keyLocations, List<int> zoneOrder, IReadOnlyList<MazeNode> goalPath, List<MazeNode> solutionPath) {
         KeyLocations = keyLocations;
         SolutionPath = solutionPath;
         ZoneOrder = zoneOrder;

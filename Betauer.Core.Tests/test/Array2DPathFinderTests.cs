@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Betauer.Core.DataMath;
 using Betauer.Core.PCG.Graph;
 using Betauer.Core.PCG.GridTools;
@@ -16,9 +17,9 @@ public class Array2DPathFinderTests {
         // Create a 3x3 grid where all cells are walkable
         var grid = new Array2D<bool>(3, 3, true);
         var graph = new Array2DGraph<bool>(
-            grid, 
-            cell => cell, // isWalkable
-            _ => 1f // Uniform cost
+            grid,
+            _ => 1f, // Uniform cost
+            cell => grid[cell] // isWalkable
         );
 
         // Find path from top-left to bottom-right
@@ -46,9 +47,9 @@ public class Array2DPathFinderTests {
         var grid = new Array2D<bool>(3, 3, true);
         grid[1, 1] = false; // Center cell is blocked
         var graph = new Array2DGraph<bool>(
-            grid, 
-            cell => cell,
-            _ => 1f
+            grid,
+            _ => 1f, // Uniform cost
+            cell => grid[cell] // isWalkable
         );
 
         var path = graph.FindPath(new Vector2I(0, 0), new Vector2I(2, 2));
@@ -66,14 +67,14 @@ public class Array2DPathFinderTests {
         grid[1, 1] = false;
         grid[2, 1] = false;
         var graph = new Array2DGraph<bool>(
-            grid, 
-            cell => cell,
-            _ => 1f
+            grid,
+            _ => 1f, // Uniform cost
+            cell => grid[cell] // isWalkable
         );
 
         var path = graph.FindPath(new Vector2I(0, 0), new Vector2I(2, 2));
 
-        Assert.Null(path, "Path should be null when there is no possible route");
+        Assert.IsEmpty(path, "Path should be null when there is no possible route");
     }
 
     [Test]
@@ -84,11 +85,11 @@ public class Array2DPathFinderTests {
         // 1  1  1
         var grid = new Array2D<int>(3, 3, 1); // All cells cost 1
         grid[0, 1] = 10; // grid[y, x] para la posición (1,0)
-    
+
         var graph = new Array2DGraph<int>(
             grid,
-            _ => true, // All cells walkable
-            cell => cell // Cost equals cell value
+            cell => grid[cell], // Cost equals cell value
+            _ => true // All cells walkable
         );
 
         var path = graph.FindPath(new Vector2I(0, 0), new Vector2I(2, 0), Heuristics.Manhattan);
@@ -98,10 +99,10 @@ public class Array2DPathFinderTests {
         foreach (var pos in path) {
             Console.WriteLine($"Position: {pos}, Weight: {grid[pos.Y, pos.X]}");
         }
-    
+
         Assert.That(path, Has.Count.EqualTo(5)); // Longer but cheaper path
         Assert.That(path, Has.None.EqualTo(new Vector2I(1, 0))); // Should avoid the expensive cell
-    
+
         // Verify the exact path
         CollectionAssert.AreEqual(new[] {
             new Vector2I(0, 0),
@@ -111,13 +112,13 @@ public class Array2DPathFinderTests {
             new Vector2I(2, 0)
         }, path);
     }
-    
+
     [Test]
     public void FindPath_VerifyHeuristicEfficiency() {
         // Create a larger grid to make the difference more obvious
         var grid = new Array2D<bool>(5, 5, true);
         var visitedNodes = new List<Vector2I>();
-    
+
         // Una función que registra los nodos visitados en orden
         void TrackVisitedNode(Vector2I pos) {
             visitedNodes.Add(pos);
@@ -125,8 +126,8 @@ public class Array2DPathFinderTests {
 
         var graph = new Array2DGraph<bool>(
             grid,
-            _ => true,
-            _ => 1f
+            _ => 1f,
+            _ => true
         );
 
         // Test con diferentes heurísticas
@@ -134,7 +135,7 @@ public class Array2DPathFinderTests {
             visitedNodes.Clear();
 
             var path = graph.FindPath(new Vector2I(0, 0), new Vector2I(4, 4), heuristic, TrackVisitedNode);
-        
+
             Console.WriteLine($"\nHeuristic: {name}");
             Console.WriteLine($"Nodes explored: {visitedNodes.Count}");
             Console.WriteLine("Exploration order:");
@@ -152,9 +153,9 @@ public class Array2DPathFinderTests {
         var manhattanCount = visitedNodes.Count;
 
         // La heurística Manhattan debería explorar menos nodos que Dijkstra
-        Assert.That(manhattanCount, Is.LessThan(dijkstraCount), 
+        Assert.That(manhattanCount, Is.LessThan(dijkstraCount),
             "A* with Manhattan heuristic should explore fewer nodes than Dijkstra");
-    }    
+    }
 
     [Test]
     public void FindPath_WithDifferentHeuristics() {
@@ -162,9 +163,9 @@ public class Array2DPathFinderTests {
         grid[1, 1] = false; // Obstacle in the middle
 
         var graph = new Array2DGraph<bool>(
-            grid, 
-            cell => cell,
-            _ => 1f
+            grid,
+            _ => 1f, // Uniform cost
+            cell => grid[cell] // isWalkable
         );
 
         // Find paths with different heuristics
@@ -185,14 +186,14 @@ public class Array2DPathFinderTests {
     [Test]
     public void FindPath_WithCustomHeuristic() {
         var grid = new Array2D<bool>(3, 3, true);
-        
+
         // Custom heuristic that always returns 0 (will make A* behave like Dijkstra)
         float ZeroHeuristic(Vector2I a, Vector2I b) => 0f;
-        
+
         var graph = new Array2DGraph<bool>(
-            grid, 
-            cell => cell,
-            _ => 1f
+            grid,
+            _ => 1f, // Uniform cost
+            cell => grid[cell] // isWalkable
         );
 
         var path = graph.FindPath(new Vector2I(0, 0), new Vector2I(2, 2), ZeroHeuristic);
@@ -205,28 +206,28 @@ public class Array2DPathFinderTests {
     public void FindPath_InvalidStartPosition_ReturnsNull() {
         var grid = new Array2D<bool>(3, 3, true);
         var graph = new Array2DGraph<bool>(
-            grid, 
-            cell => cell,
-            _ => 1f
+            grid,
+            _ => 1f, // Uniform cost
+            cell => grid[cell] // isWalkable
         );
 
         var path = graph.FindPath(new Vector2I(-1, 0), new Vector2I(2, 2));
 
-        Assert.Null(path);
+        Assert.IsEmpty(path);
     }
 
     [Test]
     public void FindPath_InvalidEndPosition_ReturnsNull() {
         var grid = new Array2D<bool>(3, 3, true);
         var graph = new Array2DGraph<bool>(
-            grid, 
-            cell => cell,
-            _ => 1f
+            grid,
+            _ => 1f, // Uniform cost
+            cell => grid[cell] // isWalkable
         );
 
         var path = graph.FindPath(new Vector2I(0, 0), new Vector2I(3, 3));
 
-        Assert.Null(path);
+        Assert.IsEmpty(path);
     }
 
     [Test]
@@ -234,14 +235,14 @@ public class Array2DPathFinderTests {
         var grid = new Array2D<bool>(3, 3, true);
         grid[0, 0] = false;
         var graph = new Array2DGraph<bool>(
-            grid, 
-            cell => cell,
-            _ => 1f
+            grid,
+            _ => 1f, // Uniform cost
+            cell => grid[cell] // isWalkable
         );
 
         var path = graph.FindPath(new Vector2I(0, 0), new Vector2I(2, 2));
 
-        Assert.Null(path);
+        Assert.IsEmpty(path);
     }
 
     [Test]
@@ -249,13 +250,13 @@ public class Array2DPathFinderTests {
         var grid = new Array2D<bool>(3, 3, true);
         grid[2, 2] = false;
         var graph = new Array2DGraph<bool>(
-            grid, 
-            cell => cell,
-            _ => 1f
+            grid,
+            _ => 1f, // Uniform cost
+            cell => grid[cell] // isWalkable
         );
 
         var path = graph.FindPath(new Vector2I(0, 0), new Vector2I(2, 2));
 
-        Assert.Null(path);
+        Assert.IsEmpty(path);
     }
 }

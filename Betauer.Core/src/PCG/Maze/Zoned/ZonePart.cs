@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Godot;
 
@@ -9,14 +10,14 @@ public class ZonePart(Zone zone, int partId, MazeNode startNode, List<MazeNode> 
     public Zone Zone { get; internal set; } = zone;
     public int PartId { get; } = partId;
     public MazeNode StartNode { get; } = startNode;
-    public List<MazeNode> Nodes { get; } = nodes;
+    public IReadOnlyList<MazeNode> Nodes { get; } = nodes.ToImmutableList();
     public int NodeCount => Nodes.Count;
 
     /// <summary>
     /// Contains all the shortest path between every entry and every exit node in the part.
     /// It doesn't contain all possible paths between entry and exit nodes, only the shortest ones.
     /// </summary>
-    public List<List<MazeNode>> EntryExitPaths = [];
+    public List<IReadOnlyList<MazeNode>> EntryExitPaths = [];
     
     /// <summary>
     /// Contains all the nodes that are part of the shortest path between every entry and every exit node in the part.

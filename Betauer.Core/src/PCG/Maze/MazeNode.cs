@@ -336,7 +336,7 @@ public class MazeNode {
     /// </summary>
     /// <param name="target">The target node</param>
     /// <returns>List of nodes forming the path, or null if no path exists</returns>
-    public List<MazeNode> FindTreePathToNode(MazeNode target)
+    public IReadOnlyList<MazeNode> FindTreePathToNode(MazeNode target)
         => MazePathFinder.GetPathToNode(this, target);
 
     /// <summary>
@@ -374,8 +374,8 @@ public class MazeNode {
     /// <param name="target">The target node</param>
     /// <returns>List of nodes forming the shortest path, or an empty list if no path exists. The path the start and the end node.</returns>
     /// <param name="canTraverse">Optional predicate that determines if a node can be traversed</param>
-    public List<MazeNode> FindShortestPath(MazeNode target, Func<MazeNode, bool>? canTraverse = null)
-        => MazePathFinder.FindBfsPath(this, target, canTraverse);
+    public IReadOnlyList<MazeNode> FindShortestPath(MazeNode target, Func<MazeNode, bool>? canTraverse = null)
+        => MazePathFinder.FindShortestPath(this, target, PathWeightMode.None, canTraverse).Path;
 
     /// <summary>
     /// Calculates the shortest distance to another node using direct connections.
@@ -432,7 +432,7 @@ public class MazeNode {
     /// <param name="mode">Weight calculation mode: nodes only, edges only, or both</param>
     /// <param name="canTraverse">Optional predicate that determines if a node can be traversed</param>
     /// <returns>Result containing the path and its total cost, or null if no path exists</returns>
-    public PathResult? FindWeightedPath(MazeNode target, PathWeightMode mode = PathWeightMode.Both, Func<MazeNode, bool>? canTraverse = null)
+    public PathResult FindWeightedPath(MazeNode target, PathWeightMode mode = PathWeightMode.Both, Func<MazeNode, bool>? canTraverse = null)
         => MazePathFinder.FindShortestPath(this, target, mode, canTraverse);
 
     public override string ToString() {

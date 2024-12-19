@@ -100,10 +100,11 @@ public class Array2DGraph<T> {
         return IsWalkablePosition(vertex) ? Array2D.GetOrtogonalPositions(vertex).Count(IsWalkablePosition) : 0;
     }
 
-    public List<Vector2I> FindPath(Vector2I start, Vector2I end,
+    public IReadOnlyList<Vector2I> FindPath(
+        Vector2I start, Vector2I end,
         Func<Vector2I, Vector2I, float>? heuristic = null, Action<Vector2I>? onNodeVisited = null) {
-        if (!IsWalkablePosition(start) || !IsWalkablePosition(end)) return [];
-        return Array2DAStar<T>.FindPath(this, start, end, heuristic, onNodeVisited);
+        return new Array2DAStar<T>(this)
+            .FindPath(start, end, heuristic, onNodeVisited);
     }
 
 

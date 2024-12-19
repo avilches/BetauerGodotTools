@@ -45,7 +45,7 @@ public static class MazeGraphRender {
         string[] Merge(object? flags1, object? flags2) {
             // Helper method to convert an object to string[]
             string[] ConvertToStringArray(object? obj) {
-                if (obj == null) return [];
+                if (obj == null) return Array.Empty<string>();
                 return obj switch {
                     string[] array => array,
                     IList<string> list => list.ToArray(),
@@ -60,7 +60,7 @@ public static class MazeGraphRender {
             var array2 = ConvertToStringArray(flags2);
 
             // If both are empty, return empty array
-            if (array1.Length == 0 && array2.Length == 0) return [];
+            if (array1.Length == 0 && array2.Length == 0) return Array.Empty<string>();
     
             // If one is empty, return the other
             if (array1.Length == 0) return array2;
