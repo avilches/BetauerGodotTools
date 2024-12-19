@@ -1,5 +1,4 @@
 using NUnit.Framework;
-using System;
 using Betauer.TestRunner;
 
 namespace Betauer.Core.Tests;
@@ -158,4 +157,36 @@ public class IndexMinPriorityQueueTests {
         
         Assert.That(_queue.IsEmpty(), Is.True);
     }
+    
+    [Test]
+    public void Clear_EmptiesQueue() {
+        // Insert multiple elements
+        _queue.Insert(0, 3);
+        _queue.Insert(1, 1);
+        _queue.Insert(2, 4);
+        _queue.Insert(3, 2);
+    
+        Assert.That(_queue.Size, Is.EqualTo(4));
+        Assert.That(_queue.Contains(0), Is.True);
+        Assert.That(_queue.Contains(1), Is.True);
+        Assert.That(_queue.Contains(2), Is.True);
+        Assert.That(_queue.Contains(3), Is.True);
+    
+        // Clear the queue
+        _queue.Clear();
+    
+        // Verify queue is empty
+        Assert.That(_queue.IsEmpty(), Is.True);
+        Assert.That(_queue.Size, Is.EqualTo(0));
+        Assert.That(_queue.Contains(0), Is.False);
+        Assert.That(_queue.Contains(1), Is.False);
+        Assert.That(_queue.Contains(2), Is.False);
+        Assert.That(_queue.Contains(3), Is.False);
+    
+        // Verify we can insert new elements after clearing
+        _queue.Insert(0, 5);
+        Assert.That(_queue.Size, Is.EqualTo(1));
+        Assert.That(_queue.Contains(0), Is.True);
+        Assert.That(_queue.KeyAt(0), Is.EqualTo(5));
+    }    
 }

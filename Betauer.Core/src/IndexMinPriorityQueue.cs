@@ -194,6 +194,18 @@ public class IndexMinPriorityQueue<T> where T : IComparable<T> {
         _keys[index] = default(T);
         _qp[index] = -1;
     }
+    
+    /// <summary>
+    /// Removes all items from the priority queue
+    /// </summary>
+    public void Clear() {
+        Size = 0;
+        for (var i = 0; i < _qp.Length; i++) {
+            _qp[i] = -1;
+            _pq[i] = -1;
+            _keys[i] = default;
+        }
+    }
 
     private bool Greater(int i, int j) {
         return _keys[_pq[i]].CompareTo(_keys[_pq[j]]) > 0;
