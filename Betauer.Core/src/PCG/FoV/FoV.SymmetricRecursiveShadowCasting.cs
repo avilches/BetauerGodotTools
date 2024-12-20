@@ -24,7 +24,7 @@ public class SymmetricRecursiveShadowCasting : IFovScanner {
         }
     }
 
-    private void _Scan(Vector2I origin, int y, double start, double end, Transform transform, int radius, bool lightWalls, Action<Vector2I> reveal, Func<Vector2I, bool> isOpaqueFunc) {
+    private static void _Scan(Vector2I origin, int y, double start, double end, Transform transform, int radius, bool lightWalls, Action<Vector2I> reveal, Func<Vector2I, bool> isOpaqueFunc) {
         // Early exit conditions
         if (start >= end || y > radius) return;
 

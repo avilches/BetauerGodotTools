@@ -38,11 +38,14 @@ public class FovDemo {
 ###########################             #",
             @"
 ### Corner peeking 40 ###
-Player only can peek 5 cells        Symmetric: the monster only can
-in each direction and see M      see the player in the same 5 tiles
-─432101234──────────────────────────432101234─∙└────432101234──────
-∙MM∙∙∙∙∙MM∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙o∙∙∙∙∙∙∙∙∙#∙#∙∙∙∙o∙∙∙∙∙∙∙∙∙∙∙∙∙
-──┬┬─o┌┬─────────────────────────────┬┬─.┌┬──────────┬┬─.┌┬────────
+ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+Player only can peek 7 cells        Symmetric: the monster only can
+in each direction and see M      see the player in the same 7 tiles
+ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+###################################################################
+──3210123───────────────────┐┌──────3210123──∙└─────3210123────────
+∙∙∙∙∙∙∙∙M∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙∙││∙∙∙∙∙o∙∙∙∙∙∙∙∙∙#∙#∙∙∙∙o∙∙∙∙∙∙∙∙∙∙∙∙∙∙
+──┬┬─o┌┬────────────────────┴┴──────┬┬─.┌┬──────────┬┬─.┌┬─────────
 ∙∙├┘∙∙└┤∙∙∙########################∙∙├┘∙∙└┤∙∙∙#######├┘∙∙└┤########
 ∙┌┘∙∙│∙└┐∙∙########################∙┌┘∙∙│∙└┐∙∙######┌┘∙∙│∙└┐#######  
 ###################################################################",

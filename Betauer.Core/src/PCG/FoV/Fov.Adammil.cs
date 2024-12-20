@@ -33,7 +33,7 @@ public class FovAdammil : IFovScanner {
         public readonly uint X = x, Y = y;
     }
 
-    private void _Scan(uint octant, Vector2I origin, int radius, uint x, Slope top, Slope bottom, Action<Vector2I> reveal, Func<Vector2I, bool> isOpaqueFunc) {
+    private static void _Scan(uint octant, Vector2I origin, int radius, uint x, Slope top, Slope bottom, Action<Vector2I> reveal, Func<Vector2I, bool> isOpaqueFunc) {
         // throughout this function there are references to various parts of tiles. a tile's coordinates refer to its
         // center, and the following diagram shows the parts of the tile and the vectors from the origin that pass through
         // those parts. given a part of a tile with vector u, a vector v passes above it if v > u and below it if v < u
