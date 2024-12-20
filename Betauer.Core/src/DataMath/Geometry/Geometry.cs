@@ -4,13 +4,28 @@ namespace Betauer.Core.DataMath.Geometry;
 
 public static partial class Geometry {
 
+    public static float Distance(Vector2 point1, Vector2 point2) {
+        return Distance(point1.X, point1.Y, point2.X, point2.Y);
+    }
+
+    public static float Distance(Vector2I point1, Vector2I point2) {
+        return Distance(point1.X, point1.Y, point2.X, point2.Y);
+    }
+
+    public static float DistanceSquared(Vector2 point1, Vector2 point2) {
+        return DistanceSquared(point1.X, point1.Y, point2.X, point2.Y);
+    }
+
+    public static float DistanceSquared(Vector2I point1, Vector2I point2) {
+        return DistanceSquared(point1.X, point1.Y, point2.X, point2.Y);
+    }
+
     public static float Distance(float x1, float y1, float x2, float y2) {
         return Mathf.Sqrt(DistanceSquared(x1, y1, x2, y2));
     }
 
-    // Overloaded version using Vector2
-    public static float Distance(Vector2 point1, Vector2 point2) {
-        return Distance(point1.X, point1.Y, point2.X, point2.Y);
+    public static float Distance(int x1, int y1, int x2, int y2) {
+        return Mathf.Sqrt(DistanceSquared(x1, y1, x2, y2));
     }
 
     public static float DistanceSquared(float x1, float y1, float x2, float y2) {
@@ -19,9 +34,10 @@ public static partial class Geometry {
         return dx * dx + dy * dy;
     }
 
-    // Overloaded version using Vector2
-    public static float DistanceSquared(Vector2 point1, Vector2 point2) {
-        return DistanceSquared(point1.X, point1.Y, point2.X, point2.Y);
+    public static int DistanceSquared(int x1, int y1, int x2, int y2) {
+        var dx = x1 - x2;
+        var dy = y1 - y2;
+        return dx * dx + dy * dy;
     }
 
     /// <summary>

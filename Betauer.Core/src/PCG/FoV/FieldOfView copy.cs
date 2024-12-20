@@ -6,13 +6,17 @@ using Godot;
 namespace Betauer.Core.PCG.FoV;
 
 /// <summary>
-/// Field of View calculator using Recursive Shadowcasting algorithm
+/// Field of View calculator
 /// </summary>
-public class FoV<T>(FovAlgorithm alg, Func<Vector2I, bool>? isOpaqueFunc) {
+public class LightZone(FovAlgorithm alg, Func<Vector2I, bool> isOpaqueFunc) {
+    private readonly List<(Vector2I origin, int radius)> _lightSources = new();
     public static readonly Dictionary<FovAlgorithm, IFovScanner> Scanners = new() {
         { FovAlgorithm.SymmetricRecursiveShadowCasting, new SymmetricRecursiveShadowCasting() },
         { FovAlgorithm.Adammil, new FovAdammil() }
     };
+    
+    public static LightZone Adammil(Func<Vector2I, bool> isOpaqueFunc) => new(FovAlgorithm.Adammil, isOpaqueFunc);
+    public static LightZone SymmetricRecursiveShadowCasting(Func<Vector2I, bool> isOpaqueFunc) => new(FovAlgorithm.SymmetricRecursiveShadowCasting, isOpaqueFunc);
 
     private readonly IFovScanner _algorithm = Scanners[alg];
     public HashSet<Vector2I> Fov { get; } = [];
@@ -41,5 +45,9 @@ public class FoV<T>(FovAlgorithm alg, Func<Vector2I, bool>? isOpaqueFunc) {
 
     public bool IsOpaque(Vector2I pos) {
         return IsOpaqueFunc.Invoke(pos);
+    }
+
+    public bool IsTransparent(Vector2I pos) {
+        return !IsOpaque(pos);
     }
 }

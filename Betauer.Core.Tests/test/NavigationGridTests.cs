@@ -29,7 +29,7 @@ public class NavigationGridTests {
                 }
                 if (targets != null && targets.Contains(pos)) {
                     sb.Append("G"); // Target
-                } else if (!navigationGrid.Graph.IsWalkablePosition(pos)) {
+                } else if (navigationGrid.Graph.IsBlocked(pos)) {
                     sb.Append("#"); // Obstáculo
                 } else {
                     sb.Append("·"); // Espacio libre

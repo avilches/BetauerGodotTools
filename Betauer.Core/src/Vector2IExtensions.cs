@@ -1,3 +1,4 @@
+using Betauer.Core.DataMath.Geometry;
 using Godot;
 
 namespace Betauer.Core;
@@ -49,5 +50,9 @@ public static class Vector2IExtensions {
         return dir == Vector2I.Down ? Vector2I.Right :
             dir == Vector2I.Right ? Vector2I.Up :
             dir == Vector2I.Up ? Vector2I.Left : Vector2I.Down;
+    }
+    
+    public static float DistanceTo(this Vector2I from, Vector2I to) {
+        return Geometry.Distance(from, to);
     }
 }

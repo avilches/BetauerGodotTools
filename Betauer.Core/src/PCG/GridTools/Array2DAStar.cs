@@ -32,7 +32,7 @@ public class Array2DAStar<T> {
         Func<Vector2I, Vector2I, float>? heuristic = null,
         Action<Vector2I>? onNodeVisited = null) {
 
-        if (!_graph.IsWalkablePosition(start) || !_graph.IsWalkablePosition(goal)) {
+        if (_graph.IsBlocked(start) || _graph.IsBlocked(goal)) {
             return ImmutableList<Vector2I>.Empty;
         }
 

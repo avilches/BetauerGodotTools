@@ -24,7 +24,7 @@ public readonly record struct Array2DEdge(Vector2I From, Vector2I To, float Weig
 public class Array2DGraph<T> {
     public Array2D<T> Array2D { get; }
     public Func<Vector2I, float>? GetWeightFunc { get; set; }
-    public Func<Vector2I, bool>? IsWalkablePositionFunc { get; set; }
+    public Func<Vector2I, bool>? IsBlockedFunc { get; set; }
 
     public int Width => Array2D.Width;
     public int Height => Array2D.Height;
@@ -34,11 +34,11 @@ public class Array2DGraph<T> {
     /// </summary>
     /// <param name="array2D">The grid that defines the graph structure</param>
     /// <param name="getWeightFunc">Function that determines the movement cost for a cell (must be >= 1). If null, all weights will be 1</param>
-    /// <param name="isWalkablePositionFunc">Function that determines if a cell is walkable based on its position. If null, all cells will be walkable</param>
-    public Array2DGraph(Array2D<T> array2D, Func<Vector2I, float>? getWeightFunc = null, Func<Vector2I, bool>? isWalkablePositionFunc = null) {
+    /// <param name="isBlockedFunc">Function that determines if a cell is not accesible based on its position. If null, all cells will be accesible</param>
+    public Array2DGraph(Array2D<T> array2D, Func<Vector2I, float>? getWeightFunc = null, Func<Vector2I, bool>? isBlockedFunc = null) {
         Array2D = array2D ?? throw new ArgumentNullException(nameof(array2D));
         GetWeightFunc = getWeightFunc;
-        IsWalkablePositionFunc = isWalkablePositionFunc ?? (_ => true);
+        IsBlockedFunc = isBlockedFunc;
     }
 
     /// <summary>
@@ -48,10 +48,10 @@ public class Array2DGraph<T> {
     /// <param name="vertex">The vertex to find incident Array2DEdges from</param>
     /// <returns>IEnumerable of the Array2DEdges incident from the specified vertex</returns>
     public IEnumerable<Array2DEdge> Adjacent(Vector2I vertex) {
-        if (!IsWalkablePosition(vertex)) yield break;
+        if (IsBlocked(vertex)) yield break;
 
         foreach (var neighbor in Array2D.GetOrtogonalPositions(vertex)) {
-            if (IsWalkablePosition(neighbor)) {
+            if (IsAccesible(neighbor)) {
                 // El peso de moverse a una celda es el peso de la celda destino
                 var weight = GetWeight(neighbor);
                 yield return new Array2DEdge(vertex, neighbor, weight);
@@ -68,8 +68,17 @@ public class Array2DGraph<T> {
     /// </summary>
     /// <param name="pos">The position to check</param>
     /// <returns>True if the position is valid and walkable, false otherwise</returns>
-    public bool IsWalkablePosition(Vector2I pos) {
-        return Array2D.IsValidPosition(pos) && (IsWalkablePositionFunc == null || IsWalkablePositionFunc(pos));
+    public bool IsAccesible(Vector2I pos) {
+        return !IsBlocked(pos);
+    }
+    
+    /// <summary>
+    /// Returns whether the specified position is blocked or invalid in the grid, so paths can't use it
+    /// </summary>
+    /// <param name="pos">The position to check</param>
+    /// <returns>True if the position is blocked or not value, false otherwise</returns>
+    public bool IsBlocked(Vector2I pos) {
+        return !Array2D.IsValidPosition(pos) || (IsBlockedFunc != null && IsBlockedFunc(pos));
     }
 
     /// <summary>
@@ -81,7 +90,7 @@ public class Array2DGraph<T> {
         for (var y = 0; y < Array2D.Height; y++) {
             for (var x = 0; x < Array2D.Width; x++) {
                 var pos = new Vector2I(x, y);
-                if (IsWalkablePosition(pos)) {
+                if (IsAccesible(pos)) {
                     foreach (var edge in Adjacent(pos)) {
                         yield return edge;
                     }
@@ -97,7 +106,7 @@ public class Array2DGraph<T> {
     /// <param name="vertex">The vertex to find the out-degree of</param>
     /// <returns>The number of directed edges incident from the specified vertex</returns>
     public int OutDegree(Vector2I vertex) {
-        return IsWalkablePosition(vertex) ? Array2D.GetOrtogonalPositions(vertex).Count(IsWalkablePosition) : 0;
+        return IsAccesible(vertex) ? Array2D.GetOrtogonalPositions(vertex).Count(IsAccesible) : 0;
     }
 
     /// <summary>
@@ -276,7 +285,7 @@ public class Array2DGraph<T> {
     /// <returns>A HashSet containing all reachable positions within the limit</returns>
     public HashSet<Vector2I> GetReachableZone(Vector2I start, int maxNodes = -1) {
         var visited = new HashSet<Vector2I>();
-        if (!IsWalkablePosition(start)) return visited;
+        if (IsBlocked(start)) return visited;
 
         var queue = new Queue<Vector2I>();
         queue.Enqueue(start);
@@ -317,7 +326,7 @@ public class Array2DGraph<T> {
         if (maxDistance < 0) throw new ArgumentException("maxDistance must be non-negative", nameof(maxDistance));
 
         var visited = new HashSet<Vector2I>();
-        if (!IsWalkablePosition(start)) return visited;
+        if (IsBlocked(start)) return visited;
 
         var queue = new Queue<(Vector2I pos, int distance)>();
         queue.Enqueue((start, 0));
@@ -354,7 +363,7 @@ public class Array2DGraph<T> {
         for (var y = 0; y < Array2D.Height; y++) {
             for (var x = 0; x < Array2D.Width; x++) {
                 var pos = new Vector2I(x, y);
-                if (IsWalkablePosition(pos)) {
+                if (IsAccesible(pos)) {
                     formattedString.Append($"{pos}:");
                     foreach (var edge in Adjacent(pos)) {
                         formattedString.Append($" {edge.To}");

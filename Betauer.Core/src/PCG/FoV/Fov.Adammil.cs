@@ -1,9 +1,16 @@
 using System;
+using System.Collections.Generic;
 using Godot;
 
 namespace Betauer.Core.PCG.FoV;
 
 public interface IFovScanner {
+    public IReadOnlySet<Vector2I> ComputeFov(Vector2I origin, int radius, Func<Vector2I, bool> isOpaqueFunc) {
+        var fov = new HashSet<Vector2I>();
+        Scan(origin, radius, pos => fov.Add(pos), isOpaqueFunc);
+        return fov;
+    }
+    
     void Scan(Vector2I origin, int radius, Action<Vector2I> reveal, Func<Vector2I, bool> isOpaqueFunc);
 }
 

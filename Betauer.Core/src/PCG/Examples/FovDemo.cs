@@ -114,8 +114,8 @@ ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
         // }
 
         foreach (var alg in Enum.GetValues<FovAlgorithm>()) {
-            var fov = new FoV<char>(alg, p => !graph.IsWalkablePosition(p));
-            Console.WriteLine("Alg: " + alg.ToString());
+            var fov = new FieldOfView(alg, graph.IsBlocked);
+            Console.WriteLine("Alg: " + alg);
             foreach (var source in lightSources) {
                 fov.AppendFov(source, radius);
             }
