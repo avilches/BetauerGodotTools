@@ -19,7 +19,7 @@ public class Array2DPathFinderTests {
         var graph = new Array2DGraph<bool>(
             grid,
             _ => 1f, // Uniform cost
-            cell => grid[cell] // isWalkable
+            cell => !grid[cell] // isBlocked
         );
 
         // Find path from top-left to bottom-right
@@ -49,7 +49,7 @@ public class Array2DPathFinderTests {
         var graph = new Array2DGraph<bool>(
             grid,
             _ => 1f, // Uniform cost
-            cell => grid[cell] // isWalkable
+            cell => !grid[cell] // isBlocked
         );
 
         var path = graph.FindPath(new Vector2I(0, 0), new Vector2I(2, 2));
@@ -69,7 +69,7 @@ public class Array2DPathFinderTests {
         var graph = new Array2DGraph<bool>(
             grid,
             _ => 1f, // Uniform cost
-            cell => grid[cell] // isWalkable
+            cell => !grid[cell] // isBlocked
         );
 
         var path = graph.FindPath(new Vector2I(0, 0), new Vector2I(2, 2));
@@ -89,7 +89,7 @@ public class Array2DPathFinderTests {
         var graph = new Array2DGraph<int>(
             grid,
             cell => grid[cell], // Cost equals cell value
-            _ => true // All cells walkable
+            _ => false // All cells walkable
         );
 
         var path = graph.FindPath(new Vector2I(0, 0), new Vector2I(2, 0), Heuristics.Manhattan);
@@ -127,7 +127,7 @@ public class Array2DPathFinderTests {
         var graph = new Array2DGraph<bool>(
             grid,
             _ => 1f,
-            _ => true
+            _ => false  // All cells walkable
         );
 
         // Test con diferentes heurísticas
@@ -165,7 +165,7 @@ public class Array2DPathFinderTests {
         var graph = new Array2DGraph<bool>(
             grid,
             _ => 1f, // Uniform cost
-            cell => grid[cell] // isWalkable
+            cell => !grid[cell] // isBlocked
         );
 
         // Find paths with different heuristics
@@ -193,7 +193,7 @@ public class Array2DPathFinderTests {
         var graph = new Array2DGraph<bool>(
             grid,
             _ => 1f, // Uniform cost
-            cell => grid[cell] // isWalkable
+            cell => !grid[cell] // isBlocked
         );
 
         var path = graph.FindPath(new Vector2I(0, 0), new Vector2I(2, 2), ZeroHeuristic);
@@ -208,7 +208,7 @@ public class Array2DPathFinderTests {
         var graph = new Array2DGraph<bool>(
             grid,
             _ => 1f, // Uniform cost
-            cell => grid[cell] // isWalkable
+            cell => !grid[cell] // isBlocked
         );
 
         var path = graph.FindPath(new Vector2I(-1, 0), new Vector2I(2, 2));
@@ -222,7 +222,7 @@ public class Array2DPathFinderTests {
         var graph = new Array2DGraph<bool>(
             grid,
             _ => 1f, // Uniform cost
-            cell => grid[cell] // isWalkable
+            cell => !grid[cell] // isBlocked
         );
 
         var path = graph.FindPath(new Vector2I(0, 0), new Vector2I(3, 3));
@@ -237,7 +237,7 @@ public class Array2DPathFinderTests {
         var graph = new Array2DGraph<bool>(
             grid,
             _ => 1f, // Uniform cost
-            cell => grid[cell] // isWalkable
+            cell => !grid[cell] // isBlocked
         );
 
         var path = graph.FindPath(new Vector2I(0, 0), new Vector2I(2, 2));
@@ -252,7 +252,7 @@ public class Array2DPathFinderTests {
         var graph = new Array2DGraph<bool>(
             grid,
             _ => 1f, // Uniform cost
-            cell => grid[cell] // isWalkable
+            cell => !grid[cell] // isBlocked
         );
 
         var path = graph.FindPath(new Vector2I(0, 0), new Vector2I(2, 2));
@@ -267,7 +267,7 @@ public class Array2DPathFinderTests {
         var graph = new Array2DGraph<bool>(
             grid,
             _ => 1f,
-            cell => grid[cell]
+            cell => !grid[cell] // isBlocked
         );
 
         var nodes = graph.GetReachableZone(new Vector2I(1, 1));
@@ -289,7 +289,7 @@ public class Array2DPathFinderTests {
         var graph = new Array2DGraph<bool>(
             grid,
             _ => 1f,
-            cell => grid[cell]
+            cell => !grid[cell] // isBlocked
         );
 
         var nodes = graph.GetReachableZone(new Vector2I(1, 1));
@@ -308,7 +308,7 @@ public class Array2DPathFinderTests {
         var graph = new Array2DGraph<bool>(
             grid,
             _ => 1f,
-            cell => grid[cell]
+            cell => !grid[cell] // isBlocked
         );
 
         var nodes = graph.GetReachableZone(new Vector2I(0, 0));
@@ -323,7 +323,7 @@ public class Array2DPathFinderTests {
         var graph = new Array2DGraph<bool>(
             grid,
             _ => 1f,
-            cell => grid[cell]
+            cell => !grid[cell] // isBlocked
         );
 
         var nodes = graph.GetReachableZone(new Vector2I(1, 1), 4);
@@ -351,7 +351,7 @@ public class Array2DPathFinderTests {
         var graph = new Array2DGraph<bool>(
             grid,
             _ => 1f,
-            cell => grid[cell]
+            cell => !grid[cell] // isBlocked
         );
 
         // Start from top-left area
@@ -394,7 +394,7 @@ public class Array2DPathFinderTests {
         var graph = new Array2DGraph<bool>(
             grid,
             _ => 1f,
-            cell => grid[cell]
+            cell => !grid[cell] // isBlocked
         );
 
         // Test with different ranges
@@ -429,7 +429,7 @@ public class Array2DPathFinderTests {
         var graph = new Array2DGraph<bool>(
             grid,
             _ => 1f,
-            cell => grid[cell]
+            cell => !grid[cell] // isBlocked
         );
 
         var nodes = graph.GetReachableZoneInRange(new Vector2I(0, 0), 2);
@@ -448,7 +448,7 @@ public class Array2DPathFinderTests {
         var graph = new Array2DGraph<bool>(
             grid,
             _ => 1f,
-            cell => grid[cell]
+            cell => !grid[cell] // isBlocked
         );
 
         // Test range 0

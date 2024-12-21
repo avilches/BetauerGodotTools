@@ -28,16 +28,16 @@ public class NavigationGrid<T> {
     /// <param name="grid">The 2D grid that defines the space</param>
     /// <param name="getWeight">Optional function to determine the weight/cost of moving through each cell.
     /// If null, all walkable cells have equal weight</param>
-    /// <param name="isWalkablePositionFunc">Optional function to determine if a cell is walkable based on its position.</param>
+    /// <param name="isBlockedFunc">Optional function to determine if a cell is walkable based on its position.</param>
     /// <param name="spatialCellSize">The width/height size of the cell to determine the collision for the obstacles</param>
-    public NavigationGrid(Array2D<T> grid, Func<Vector2I, float>? getWeight = null, Func<Vector2I, bool>? isWalkablePositionFunc = null, int spatialCellSize = 5) {
+    public NavigationGrid(Array2D<T> grid, Func<Vector2I, float>? getWeight = null, Func<Vector2I, bool>? isBlockedFunc = null, int spatialCellSize = 5) {
         BlockZones = new SpatialGrid(spatialCellSize);
         Graph = new Array2DGraph<T>(
             grid,
             getWeight,
             pos => 
-                (isWalkablePositionFunc == null || isWalkablePositionFunc.Invoke(pos))
-                && !BlockZones.IntersectPoint(pos.X, pos.Y)
+                (isBlockedFunc != null && isBlockedFunc.Invoke(pos)) || 
+                BlockZones.IntersectPoint(pos.X, pos.Y)
         );
     }
 

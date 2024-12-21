@@ -25,7 +25,7 @@ public static class Blob47 {
             .Add(4, """
                     ? ! ?
                     ! # #
-                    ? ! ?mi
+                    ? ! ?
                     """)
             .Add(5, """
                     ? # !

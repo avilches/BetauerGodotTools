@@ -95,7 +95,7 @@ ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
         // Crear el mapa usando Array2D.Parse
         var map = Array2D.Parse(mapString);
-        var graph = new Array2DGraph<char>(map, null, pos => map[pos] == '.' || map[pos] == '\u2219');
+        var graph = new Array2DGraph<char>(map, null, pos => map[pos] != '.' && map[pos] != '\u2219');
 
         var lightSources = new List<Vector2I>();
         for (var y = 0; y < map.Height; y++) {
