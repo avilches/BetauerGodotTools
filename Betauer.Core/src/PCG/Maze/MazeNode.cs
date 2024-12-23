@@ -10,7 +10,6 @@ namespace Betauer.Core.PCG.Maze;
 /// Represents a node in the maze graph, containing connections to adjacent nodes.
 /// </summary>
 public class MazeNode {
-
     /// <summary>
     /// Represents a node in the maze graph, containing connections to adjacent nodes.
     /// </summary>
@@ -27,18 +26,25 @@ public class MazeNode {
 
     private int? _cachedDepth;
     private MazeNode? _parent;
+
     public MazeNode? Parent {
         get => _parent;
         set {
             if (_parent == value) return;
             // Check for circular reference before setting the parent
-            if (value != null && WouldCreateCircularReference(value)) {
-                throw new InvalidOperationException($"Can't set parent: would create circular reference. Node {Id} -> New Parent {value.Id}");
-            }            _parent = value;
+            if (value != null) {
+                if (Graph != value.Graph) {
+                    throw new InvalidOperationException($"Parent node belongs to another graph");
+                }
+                if (WouldCreateCircularReference(value)) {
+                    throw new InvalidOperationException($"Can't set parent: would create circular reference. Node {Id} -> New Parent {value.Id}");
+                }
+            }
+            _parent = value;
             InvalidateDepthCache();
         }
     }
-    
+
     /// <summary>
     /// Checks if setting the specified node as parent would create a circular reference.
     /// A circular reference occurs when the new parent is one of the node's descendants.
@@ -53,7 +59,7 @@ public class MazeNode {
         }
         return false;
     }
-    
+
     /// <summary>
     /// Invalidates the depth cache for this node and all its descendants
     /// </summary>
@@ -63,12 +69,13 @@ public class MazeNode {
             child.InvalidateDepthCache();
         }
     }
+
     /// <summary>
     /// Gets the depth of this node in the tree hierarchy.
     /// The root node has depth 0, its children have depth 1, and so on.
     /// </summary>
     public int Depth => _cachedDepth ??= CalculateDepth();
-    
+
     /// <summary>
     /// Calculates the depth by counting parents up to the root
     /// </summary>
@@ -81,7 +88,7 @@ public class MazeNode {
         }
         return depth;
     }
-    
+
     public IEnumerable<MazeNode> GetChildren() {
         return Graph.GetNodes().Where(n => n.Parent == this);
     }
@@ -129,20 +136,24 @@ public class MazeNode {
     public T GetAttributeAsOrDefault<T>(string key, T defaultValue) => _attributes?.TryGetValue(key, out var value) == true && value is T typedValue ? typedValue : defaultValue;
     public T GetAttributeAsOrNew<T>(string key) where T : new() => _attributes?.TryGetValue(key, out var value) == true && value is T typedValue ? typedValue : new T();
     public T GetAttributeAsOr<T>(string key, Func<T> factory) => _attributes?.TryGetValue(key, out var value) == true && value is T typedValue ? typedValue : factory();
+
     public bool RemoveAttribute(string key) {
         if (_attributes == null) return false;
         var deleted = _attributes.Remove(key);
         if (_attributes.Count == 0) _attributes = null;
         return deleted;
     }
+
     public bool HasAttribute(string key) => _attributes?.ContainsKey(key) == true;
     public bool HasAttributeWithValue(string key, object value) => _attributes?.TryGetValue(key, out var existingValue) == true && Equals(existingValue, value);
     public bool HasAttributeOfType<T>(string key) => _attributes?.TryGetValue(key, out var value) == true && value is T;
     public IReadOnlyDictionary<string, object>? GetAttributes() => _attributes;
+
     public void ClearAttributes() {
         _attributes?.Clear();
         _attributes = null;
     }
+
     public int AttributeCount => _attributes?.Count ?? 0;
     public bool HasAnyAttribute => _attributes != null && _attributes.Count > 0;
 

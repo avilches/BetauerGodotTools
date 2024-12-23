@@ -29,17 +29,17 @@ public partial class MazeGraph {
             throw new ArgumentException("Invalid start position", nameof(start));
         }
         var maxTotalNodes = constraints.MaxTotalNodes == -1 ? int.MaxValue : constraints.MaxTotalNodes;
-        if (maxTotalNodes == 0 || constraints.MaxZones == 0) return new MazeZones(this, constraints, []);
+        if (maxTotalNodes == 0 || constraints.MaxZones == 0) return new MazeZones(this, null, constraints, []);
 
         rng ??= new Random();
         var zones = new List<ZoneGeneration>();
 
-        Root = CreateNode(start);
-        Root.ZoneId = 0;
-        Root.PartId = 0;
+        var root = CreateNode(start);
+        root.ZoneId = 0;
+        root.PartId = 0;
         var globalZone = new ZoneGeneration(this, constraints, -1) { NodesCreated = 1 };
-        var currentZone = new ZoneGeneration(this, constraints, 0) { NodesCreated = 1, AvailableNodes = [Root] };
-        currentZone.CreateNewPart(Root);
+        var currentZone = new ZoneGeneration(this, constraints, 0) { NodesCreated = 1, AvailableNodes = [root] };
+        currentZone.CreateNewPart(root);
         zones.Add(currentZone);
 
         // Special case: when the first zone has a size of 1, we don't need to expand it,
@@ -47,10 +47,10 @@ public partial class MazeGraph {
         if (constraints.GetNodesPerZone(0) == 1) {
             if (constraints.MaxZones == 1) {
                 // Special case: only one zone with one node
-                return CreateMazeZones(constraints, zones);
+                return CreateMazeZones(constraints, root, zones);
             }
             currentZone.AvailableNodes.Clear();
-            globalZone.AvailableNodes.Add(Root);
+            globalZone.AvailableNodes.Add(root);
             currentZone = new ZoneGeneration(this, constraints, 1) { NodesCreated = 0 };
             zones.Add(currentZone);
         }
@@ -116,12 +116,12 @@ public partial class MazeGraph {
             //     Console.WriteLine($"Zone {zone.ZoneId} Nodes: {zone.NodesCreated} Parts: {zone.Parts.Count}/{constraints.GetParts(zone.ZoneId)} Exits: {zone.ExitNodesCreated}/{(maxExitNodes == -1 ? "∞" : maxExitNodes)}");
             // }
         }
-        return CreateMazeZones(constraints, zones);
+        return CreateMazeZones(constraints, root, zones);
     }
 
-    private MazeZones CreateMazeZones(IMazeZonedConstraints constraints, List<ZoneGeneration> zones) {
+    private MazeZones CreateMazeZones(IMazeZonedConstraints constraints, MazeNode startNode, List<ZoneGeneration> zones) {
         var list = zones.Select(zone => zone.ToZone()).ToList();
-        var mazeZones = new MazeZones(this, constraints, list);
+        var mazeZones = new MazeZones(this, startNode, constraints, list);
         foreach (var zone in list) {
             zone.MazeZones = mazeZones;
         }
@@ -188,7 +188,7 @@ public partial class MazeGraph {
         if (newEntry) {
             // The current zone still doesn't have all the parts:
             // Then pick a random node from the global to create a new entry node the maze to the current zone
-            if (globalZone.AvailableNodes.Count > 0) return PickNewEntryNode(currentZone, globalZone, rng);
+            if (globalZone.AvailableNodes.Count > 0) return PickNewEntryNode(currentZone, globalZone, rng, EntryNodeFactor);
             // No more available nodes in the global zone!
             // IsFlexibleParts is true: expand the current zone picking up a node in the currentZone. That means the zone will not have
             // all the parts, but at least it will have all the nodes needed for the zone.
@@ -214,7 +214,7 @@ public partial class MazeGraph {
                 throw new NoMoreNodesException(
                     $"No more available nodes to expand zone {currentZone.ZoneId} (IsFlexibleParts is true but there are not available nodes to create new parts) " +
                     "Consider increasing nodes and MaxExitNodes in previous zones.");
-            return PickNewEntryNode(currentZone, globalZone, rng);
+            return PickNewEntryNode(currentZone, globalZone, rng, EntryNodeFactor);
         }
 
         // create a new part (if it's possible)
@@ -223,7 +223,7 @@ public partial class MazeGraph {
             "Consider enabling FlexibleParts to create new parts when expansion is not possible.");
     }
 
-    private MazeNode PickNodeToExpand(ZoneGeneration currentZone, Random rng) {
+    private static MazeNode PickNodeToExpand(ZoneGeneration currentZone, Random rng) {
         if (currentZone.IsCorridor) {
             // Corridors always try to expand the last node of one of the parts
             var candidates = currentZone.AvailableNodes
@@ -235,7 +235,7 @@ public partial class MazeGraph {
         return rng.Next(currentZone.AvailableNodes); // No corridors pick a random node to expand
     }
 
-    private MazeNode PickNewEntryNode(ZoneGeneration currentZone, ZoneGeneration globalZone, Random rng) {
+    private MazeNode PickNewEntryNode(ZoneGeneration currentZone, ZoneGeneration globalZone, Random rng, float entryNodeFactor) {
         // The zone 0 doesn't have any previous zone.
         // The zone 1 has the zone 0 has previous zone, so there is no need to filter by "previous zone only" because all globalZone.AvailableNodes are from 
         // the zone 0. We only filter by "previos zone only" in the zone 2 and above.
@@ -245,10 +245,10 @@ public partial class MazeGraph {
                 .Where(node => node.ZoneId == currentZone.ZoneId - 1)
                 .OrderBy(node => node.Depth)
                 .ToList();
-            if (candidates.Count > 0) return rng.NextExponential(candidates, EntryNodeFactor);
+            if (candidates.Count > 0) return rng.NextExponential(candidates, entryNodeFactor);
         }
         // Not the first part of the zone, pick a random node from the global zone (it could be any lower node than the current zone)
         // Example: the zone 3 could have entries from the zone 0, 1 or 2
-        return rng.NextExponential(globalZone.AvailableNodes.OrderBy(node => node.Depth).ToList(), EntryNodeFactor);
+        return rng.NextExponential(globalZone.AvailableNodes.OrderBy(node => node.Depth).ToList(), entryNodeFactor);
     }
 }

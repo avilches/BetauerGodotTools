@@ -20,7 +20,6 @@ public class MazeGraphTests {
     public void Constructor_InitializesCorrectly() {
         Assert.Multiple(() => {
             Assert.That(_graph.GetNodes(), Is.Empty);
-            Assert.That(_graph.Root, Is.Null);
         });
     }
 
@@ -136,7 +135,7 @@ public class MazeGraphTests {
         _graph.Grow(new Vector2I(0, 0), constraints);
 
         Assert.Multiple(() => {
-            Assert.That(_graph.Root, Is.Not.Null);
+            Assert.That(_graph.GetRoots().Count(), Is.EqualTo(1));
             Assert.That(_graph.GetNodes(), Is.Not.Empty);
             Assert.That(_graph.GetNodes().Count, Is.LessThanOrEqualTo(10));
         });
@@ -147,7 +146,7 @@ public class MazeGraphTests {
         _graph.GrowRandom(new Vector2I(0, 0), 10);
 
         Assert.Multiple(() => {
-            Assert.That(_graph.Root, Is.Not.Null);
+            Assert.That(_graph.GetRoots().Count(), Is.EqualTo(1));
             Assert.That(_graph.GetNodes(), Is.Not.Empty);
             Assert.That(_graph.GetNodes().Count, Is.LessThanOrEqualTo(10));
         });

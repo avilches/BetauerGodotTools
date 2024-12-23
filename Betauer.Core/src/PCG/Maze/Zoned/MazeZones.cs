@@ -9,9 +9,10 @@ namespace Betauer.Core.PCG.Maze.Zoned;
 /// Manages scoring and analysis of zones within a maze. Used to find optimal locations and analyze 
 /// node characteristics within different zones of the maze.
 /// </summary>
-public class MazeZones(MazeGraph mazeGraph, IMazeZonedConstraints constraints, List<Zone> zones) {
-    public IMazeZonedConstraints Constraints { get; } = constraints;
+public class MazeZones(MazeGraph mazeGraph, MazeNode start, IMazeZonedConstraints constraints, List<Zone> zones) {
     public MazeGraph MazeGraph { get; } = mazeGraph;
+    public MazeNode Start { get; } = start;
+    public IMazeZonedConstraints Constraints { get; } = constraints;
     public IReadOnlyList<Zone> Zones => zones;
 
     public IReadOnlyCollection<MazeNode> GetNodes() => MazeGraph.GetNodes();
@@ -92,9 +93,11 @@ public class MazeZones(MazeGraph mazeGraph, IMazeZonedConstraints constraints, L
     /// The method calculates the linearity of the final route using MazeLinearity.CalculateLinearity.
     /// </summary>
     /// <param name="scoreCalculator">Function used to calculate scores for finding the best location in each zone</param>
+    /// <param name="start">Optional. Node to start. If null, it will use the start node from the constructor.</param>
     /// <param name="zoneOrder">Optional. List defining which key is obtained in each zone's best location. If null, zones are visited sequentially</param>
     /// <exception cref="InvalidOperationException">Thrown when no valid path exists with the current keys</exception>
-    public void CalculateSolution(Func<NodeScore, float> scoreCalculator, List<int>? zoneOrder = null) {
+    public void CalculateSolution(Func<NodeScore, float> scoreCalculator, MazeNode? start = null, List<int>? zoneOrder = null) {
+        start ??= Start;
         if (GetScores().Count == 0) {
             CalculateNodeScores();
         } else {
@@ -113,7 +116,7 @@ public class MazeZones(MazeGraph mazeGraph, IMazeZonedConstraints constraints, L
         // The first path starts from the node root and goes to the first key in the zone 0 (best location in 0)
         // because the first key in the zone 0 opens the next zone in the zoneOrder
         var keys = new HashSet<int> { 0 /* The key 0 is always available */ };
-        stops.Add(MazeGraph.Root);
+        stops.Add(start);
         foreach (var zoneId in zoneOrder) {
             keys.Add(zoneId);
             var pathStart = stops.Last();
@@ -139,7 +142,7 @@ public class MazeZones(MazeGraph mazeGraph, IMazeZonedConstraints constraints, L
 
         // Calcular non-linearity: suma de todas las visitas adicionales
         // (cada habitación que se visita más de una vez suma sus visitas extras)
-        var goalPath = mazeGraph.Root.FindShortestPath(keyLocations[zoneOrder.Last()]);
+        var goalPath = start.FindShortestPath(keyLocations[zoneOrder.Last()]);
 
         Scoring = new MazeSolutionScoring(Scores, keyLocations, zoneOrder, goalPath, solutionPath);
     }

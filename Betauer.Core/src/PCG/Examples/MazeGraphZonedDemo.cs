@@ -139,7 +139,7 @@ public class MazeGraphZonedDemo {
         }
 
         if (zones != null) {
-            List<MazeNode> route = [mc.Root];
+            List<MazeNode> route = [zones.Start];
             foreach (var zone in zones.Zones) {
                 route.Add(keys[zone.ZoneId]);
             }

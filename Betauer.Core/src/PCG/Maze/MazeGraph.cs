@@ -12,7 +12,6 @@ namespace Betauer.Core.PCG.Maze;
 public partial class MazeGraph {
     protected readonly Dictionary<Vector2I, MazeNode> NodeGrid = [];
     protected readonly Dictionary<int, MazeNode> Nodes = [];
-    public MazeNode Root { get; protected set; }
 
     public Func<Vector2I, IEnumerable<Vector2I>> GetAdjacentPositions { get; set; }
 
@@ -44,7 +43,6 @@ public partial class MazeGraph {
     }
 
     public void Clear() {
-        Root = null;
         NodeGrid.Clear();
         Nodes.Clear();
         LastId = 0;
@@ -263,5 +261,13 @@ public partial class MazeGraph {
             allCanvas.Write(node.Position.X * 2, node.Position.Y * 2, canvas.ToString());
         }
         return allCanvas.ToString();
+    }
+
+    /// <summary>
+    /// Returns all the nodes without Parent
+    /// </summary>
+    /// <returns></returns>
+    public IEnumerable<MazeNode> GetRoots() {
+        return GetNodes().Where(n => n.Parent == null);
     }
 }

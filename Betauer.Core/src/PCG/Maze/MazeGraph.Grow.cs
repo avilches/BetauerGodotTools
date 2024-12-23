@@ -33,8 +33,8 @@ public partial class MazeGraph {
         var totalNodesCreated = 1;
         var nodesCreatedInCurrentPath = 1;
 
-        var currentNode = Root = CreateNode(start);
-        pendingNodes.Add(Root);
+        var currentNode = CreateNode(start);
+        pendingNodes.Add(currentNode);
         while (pendingNodes.Count > 0) {
             var availableDirections = GetValidFreeAdjacentDirections(currentNode.Position).ToList();
 
@@ -86,8 +86,8 @@ public partial class MazeGraph {
         rng ??= new Random();
         var pendingNodes = new List<MazeNode>();
         var totalNodesCreated = 1;
-        Root = CreateNode(start);
-        pendingNodes.Add(Root);
+        var root = CreateNode(start);
+        pendingNodes.Add(root);
         while (pendingNodes.Count > 0 && totalNodesCreated < maxTotalNodes) {
             var currentNode = rng.Next(pendingNodes);
             var adjacentPositions = GetAvailableAdjacentPositions(currentNode.Position).ToList();

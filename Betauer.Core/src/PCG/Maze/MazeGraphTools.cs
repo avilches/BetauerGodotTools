@@ -1,10 +1,7 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using Betauer.Core.PCG.Maze;
 using Betauer.Core.PCG.Maze.Zoned;
 
-namespace Betauer.Core.PCG.Examples;
+namespace Betauer.Core.PCG.Maze;
 
 public static class MazeGraphTools {
     /// <summary>
