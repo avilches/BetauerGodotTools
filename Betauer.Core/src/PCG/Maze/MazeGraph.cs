@@ -339,21 +339,39 @@ public partial class MazeGraph {
             .Min(l => l.TakeWhile(c => c == ' ').Count());
         lines = lines.Select(line => line.Length >= minPadding ? line[minPadding..] : line).ToArray();
 
-        // Create nodes first
+        // Keep track of positions marked with '#'
+        var hashPositions = new List<Vector2I>();
+
+        // First pass: Create nodes with IDs and collect '#' positions
         for (var y = 0; y < lines.Length; y += 2) { // Only odd lines can have nodes
-            var line = lines[y].PadRight(lines.Max(l => l.Length));
+            var line = lines[y];
             for (var x = 0; x < line.Length; x += 2) { // Only odd columns can have nodes
-                if (line[x] == '#') {
-                    maze.CreateNode(new Vector2I(x / 2, y / 2));
+                var c = line[x];
+                var position = new Vector2I(x / 2, y / 2);
+                if (char.IsDigit(c)) {
+                    maze.CreateNode(position, id: c - '0');
+                } else if (char.IsLetter(c)) {
+                    maze.CreateNode(position, id: (int)c);
+                } else if (c == '#') {
+                    hashPositions.Add(position);
                 }
             }
+        }
+
+        // Create nodes for remaining '#' positions that don't have a node yet
+        foreach (var position in hashPositions) {
+            maze.CreateNode(position);
         }
 
         // Create horizontal connections
         for (var y = 0; y < lines.Length; y += 2) { // Only odd lines can have nodes and horizontal connections
             var line = lines[y];
             for (var x = 0; x < line.Length - 2; x += 2) {
-                if (line[x] == '#' && line[x + 1] == '-' && line[x + 2] == '#') {
+                var fromChar = line[x];
+                var toChar = line[x + 2];
+                if ((fromChar == '#' || char.IsLetterOrDigit(fromChar)) &&
+                    line[x + 1] == '-' &&
+                    (toChar == '#' || char.IsLetterOrDigit(toChar))) {
                     var fromNode = maze.GetNodeAt(new Vector2I(x / 2, y / 2));
                     var toNode = maze.GetNodeAt(new Vector2I((x + 2) / 2, y / 2));
                     fromNode.ConnectTo(toNode);
@@ -376,7 +394,7 @@ public partial class MazeGraph {
         return maze;
     }
 
-    public string Export(char lineSeparator = '\n') {
+    public string Export(bool showIds = false, char lineSeparator = '\n') {
         if (GetNodes().Count == 0) return "";
 
         var offset = GetOffset();
@@ -397,7 +415,22 @@ public partial class MazeGraph {
         foreach (var node in GetNodes()) {
             var x = (node.Position.X - offset.X) * 2;
             var y = (node.Position.Y - offset.Y) * 2;
-            grid[y][x] = '#';
+            if (showIds) {
+                // Si es un número del 0-9, usar el caracter directamente
+                if (node.Id >= 0 && node.Id <= 9) {
+                    grid[y][x] = (char)('0' + node.Id);
+                }
+                // Si es un caracter ASCII (65-90 = A-Z, 97-122 = a-z), usar el caracter
+                else if ((node.Id >= 65 && node.Id <= 90) || (node.Id >= 97 && node.Id <= 122)) {
+                    grid[y][x] = (char)node.Id;
+                }
+                // Para cualquier otro ID, usar #
+                else {
+                    grid[y][x] = '#';
+                }
+            } else {
+                grid[y][x] = '#';
+            }
         }
 
         // Place horizontal connections

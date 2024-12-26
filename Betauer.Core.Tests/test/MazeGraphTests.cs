@@ -100,7 +100,7 @@ public class MazeGraphTests {
             Assert.That(_graph.GetNodes().Count, Is.EqualTo(3));
         });
     }
-    
+
     [Test]
     public void CreateNode_WithCustomIdLessThanLastId_Works() {
         var node1 = _graph.CreateNode(new Vector2I(0, 0)); // Auto ID: 0, LastId = 1
@@ -238,25 +238,56 @@ public class MazeGraphTests {
     public void ParseAndExportComplexMaze() {
         var input =
             """
-                                   #
+                                   A
                                    |
-                               #-#-#   #
+                               1-#-2   B
                                | |     |
-                               #-#-#-#-#
+                               #-3-4-5-C
                                  |   | |
-                               #-#   # #
+                               0-#   6 D
             """;
         var maze = MazeGraph.Parse(input);
 
-        // Verify node count
-        Assert.That(maze.GetNodes().Count, Is.EqualTo(14));
+        // Verify export matches input
+        var output = maze.Export(true);
+        Assert.That(NormalizeMazeString(output), Is.EqualTo(NormalizeMazeString(input)));
+
+        Assert.That(output, Is.EqualTo("""
+                                           A    
+                                           |    
+                                       1-E-2   B
+                                       | |     |
+                                       F-3-4-5-C
+                                         |   | |
+                                       0-G   6 D
+                                       """
+        ));
+    }
+
+    [Test]
+    public void ParseAndExportWithCustomIds() {
+        var input = """
+                    A-B-C
+                    |   |
+                    1-2-3
+                    """;
+        var maze = MazeGraph.Parse(input);
+
+        // Verify nodes by position and their IDs
+        Assert.Multiple(() => {
+            // Letters (ASCII values)
+            Assert.That(maze.GetNodeAt(new Vector2I(0, 0)).Id, Is.EqualTo(65)); // 'A'
+            Assert.That(maze.GetNodeAt(new Vector2I(1, 0)).Id, Is.EqualTo(66)); // 'B'
+            Assert.That(maze.GetNodeAt(new Vector2I(2, 0)).Id, Is.EqualTo(67)); // 'C'
+
+            // Numbers
+            Assert.That(maze.GetNodeAt(new Vector2I(0, 1)).Id, Is.EqualTo(1)); // '1'
+            Assert.That(maze.GetNodeAt(new Vector2I(1, 1)).Id, Is.EqualTo(2)); // '2'
+            Assert.That(maze.GetNodeAt(new Vector2I(2, 1)).Id, Is.EqualTo(3)); // '3'
+        });
 
         // Verify export matches input
         var output = maze.Export();
-        Console.WriteLine(input);
-        Console.WriteLine(NormalizeMazeString(input));
-        Console.WriteLine(output);
-        Console.WriteLine(NormalizeMazeString(output));
         Assert.That(NormalizeMazeString(output), Is.EqualTo(NormalizeMazeString(input)));
     }
 
@@ -270,6 +301,7 @@ public class MazeGraphTests {
         Assert.That(maze2.Export(), Is.EqualTo(""));
     }
 
+    // Removes the left margin and replace letters and numbers with '#'
     private static string NormalizeMazeString(string input) {
         var lines = input.Split('\n');
 
@@ -280,6 +312,14 @@ public class MazeGraphTests {
         // Remove minimum common left padding
         var minPadding = lines.Where(l => !string.IsNullOrWhiteSpace(l))
             .Min(l => l.TakeWhile(c => c == ' ').Count());
-        return string.Join('\n', lines.Select(line => (line.Length >= minPadding ? line[minPadding..] : line).TrimEnd()));
+
+        // Convert each line, replacing letters and numbers with '#'
+        return string.Join('\n', lines
+            .Select(line => {
+                if (line.Length < minPadding) return line;
+                var processedLine = line[minPadding..].TrimEnd();
+                return string.Concat(processedLine.Select(c =>
+                    (c == '#' || char.IsLetterOrDigit(c)) ? '#' : c));
+            }));
     }
 }
