@@ -128,35 +128,22 @@ public class MazeNode {
     public void ClearMetadata() => Metadata = null;
 
     // Attributes
-    private Dictionary<string, object>? _attributes;
-    public void SetAttribute(string key, object value) => (_attributes ??= new Dictionary<string, object>())[key] = value;
-    public object? GetAttribute(string key) => _attributes?.TryGetValue(key, out var value) == true ? value : default;
-    public object GetAttributeOr(string key, object defaultValue) => _attributes?.TryGetValue(key, out var value) == true ? value : defaultValue;
-    public T? GetAttributeAs<T>(string key) => _attributes?.TryGetValue(key, out var value) == true && value is T typedValue ? typedValue : default;
-    public T GetAttributeAsOrDefault<T>(string key, T defaultValue) => _attributes?.TryGetValue(key, out var value) == true && value is T typedValue ? typedValue : defaultValue;
-    public T GetAttributeAsOrNew<T>(string key) where T : new() => _attributes?.TryGetValue(key, out var value) == true && value is T typedValue ? typedValue : new T();
-    public T GetAttributeAsOr<T>(string key, Func<T> factory) => _attributes?.TryGetValue(key, out var value) == true && value is T typedValue ? typedValue : factory();
-
-    public bool RemoveAttribute(string key) {
-        if (_attributes == null) return false;
-        var deleted = _attributes.Remove(key);
-        if (_attributes.Count == 0) _attributes = null;
-        return deleted;
-    }
-
-    public bool HasAttribute(string key) => _attributes?.ContainsKey(key) == true;
-    public bool HasAttributeWithValue(string key, object value) => _attributes?.TryGetValue(key, out var existingValue) == true && Equals(existingValue, value);
-    public bool HasAttributeOfType<T>(string key) => _attributes?.TryGetValue(key, out var value) == true && value is T;
-    public IReadOnlyDictionary<string, object>? GetAttributes() => _attributes;
-
-    public void ClearAttributes() {
-        _attributes?.Clear();
-        _attributes = null;
-    }
-
-    public int AttributeCount => _attributes?.Count ?? 0;
-    public bool HasAnyAttribute => _attributes != null && _attributes.Count > 0;
-
+    public void SetAttribute(string key, object value) => Graph.SetAttribute(this, key, value);
+    public object? GetAttribute(string key) => Graph.GetAttribute(this, key);
+    public object GetAttributeOr(string key, object defaultValue) => Graph.GetAttributeOr(this, key, defaultValue);
+    public T? GetAttributeAs<T>(string key) => Graph.GetAttributeAs<T>(this, key);
+    public T GetAttributeAsOrDefault<T>(string key, T defaultValue) => Graph.GetAttributeAsOrDefault(this, key, defaultValue);
+    public T GetAttributeAsOrNew<T>(string key) where T : new() => Graph.GetAttributeAsOrNew<T>(this, key);
+    public T GetAttributeAsOr<T>(string key, Func<T> factory) => Graph.GetAttributeAsOr(this, key, factory);
+    public bool RemoveAttribute(string key) => Graph.RemoveAttribute(this, key);
+    public bool HasAttribute(string key) => Graph.HasAttribute(this, key);
+    public bool HasAttributeWithValue(string key, object value) => Graph.HasAttributeWithValue(this, key, value);
+    public bool HasAttributeOfType<T>(string key) => Graph.HasAttributeOfType<T>(this, key);
+    public IEnumerable<KeyValuePair<string, object>> GetAttributes() => Graph.GetAttributes(this);
+    public int AttributeCount => Graph.GetAttributeCount(this);
+    public bool HasAnyAttribute => Graph.HasAnyAttribute(this);
+    public void ClearAttributes() => Graph.ClearAttributes(this);
+    
     // Edges
     public MazeEdge? GetEdgeTo(int id) => _outEdges.FirstOrDefault(edge => edge.To.Id == id);
     public MazeEdge? GetEdgeTo(Vector2I position) => _outEdges.FirstOrDefault(edge => edge.To.Position == position);
@@ -222,12 +209,14 @@ public class MazeNode {
         if (edge.From == this) {
             if (!_outEdges.Remove(edge)) return false;
             edge.To._inEdges.Remove(edge);
+            Graph.ClearAttributes(edge);
             Graph.InvokeOnEdgeRemoved(edge);
             return true;
         }
         if (edge.To == this) {
             if (!_inEdges.Remove(edge)) return false;
             edge.From._outEdges.Remove(edge);
+            Graph.ClearAttributes(edge);
             Graph.InvokeOnEdgeRemoved(edge);
             return true;
         }
@@ -252,6 +241,7 @@ public class MazeNode {
         _outEdges.Clear();
         _inEdges.Clear();
         Parent = null;
+        Graph.ClearAttributes(this);
         return true;
     }
 

@@ -42,12 +42,43 @@ public partial class MazeGraph {
         GetAdjacentPositions = GetOrtogonalPositions;
     }
 
+    public readonly record struct AttributeKey(object Instance, string Key);
+    
+    private readonly Dictionary<AttributeKey, object> _attributes = [];
+    
+    internal void SetAttribute(object instance, string key, object value) => _attributes[new(instance, key)] = value;
+    internal object? GetAttribute(object instance, string key) => _attributes.GetValueOrDefault(new(instance, key));
+    internal object GetAttributeOr(object instance, string key, object defaultValue) => _attributes.GetValueOrDefault(new(instance, key), defaultValue);
+    internal T? GetAttributeAs<T>(object instance, string key) => _attributes.TryGetValue(new(instance, key), out var value) && value is T typedValue ? typedValue : default;
+    internal T GetAttributeAsOrDefault<T>(object instance, string key, T defaultValue) => _attributes.TryGetValue(new(instance, key), out var value) && value is T typedValue ? typedValue : defaultValue;
+    internal T GetAttributeAsOrNew<T>(object instance, string key) where T : new() => _attributes.TryGetValue(new(instance, key), out var value) && value is T typedValue ? typedValue : new T();
+    internal T GetAttributeAsOr<T>(object instance, string key, Func<T> factory) => _attributes.TryGetValue(new(instance, key), out var value) && value is T typedValue ? typedValue : factory();
+    internal bool RemoveAttribute(object instance, string key) => _attributes.Remove(new(instance, key));
+    internal bool HasAttribute(object instance, string key) => _attributes.ContainsKey(new(instance, key));
+    internal bool HasAttributeWithValue(object instance, string key, object value) => _attributes.TryGetValue(new(instance, key), out var existingValue) && Equals(existingValue, value);
+    internal bool HasAttributeOfType<T>(object instance, string key) => _attributes.TryGetValue(new(instance, key), out var value) && value is T;
+    internal IEnumerable<KeyValuePair<string, object>> GetAttributes(object instance) {
+        return _attributes
+            .Where(kv => kv.Key.Instance == instance)
+            .Select(kv => new KeyValuePair<string, object>(kv.Key.Key, kv.Value));
+    }
+    internal int GetAttributeCount(object instance) => _attributes.Count(kv => kv.Key.Instance == instance);
+    internal bool HasAnyAttribute(object instance) => _attributes.Keys.Any(k => k.Instance == instance);
+    
+    internal void ClearAttributes(object instance) {
+        var keys = _attributes.Keys.Where(k => k.Instance == instance).ToList();
+        foreach (var key in keys) {
+            _attributes.Remove(key);
+        }
+    }
+
     public void Clear() {
         NodeGrid.Clear();
         Nodes.Clear();
+        _attributes.Clear();
         LastId = 0;
     }
-
+    
     public MazeNode GetNode(int id) {
         return Nodes[id];
     }
@@ -271,3 +302,5 @@ public partial class MazeGraph {
         return GetNodes().Where(n => n.Parent == null);
     }
 }
+
+

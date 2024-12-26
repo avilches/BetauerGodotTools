@@ -26,28 +26,19 @@ public class MazeEdge(MazeNode from, MazeNode to, object metadata = default, flo
     public void ClearMetadata() => Metadata = null;
 
     // Attributes
-    private Dictionary<string, object>? _attributes;
-    public void SetAttribute(string key, object value) => (_attributes ??= new Dictionary<string, object>())[key] = value;
-    public object? GetAttribute(string key) => _attributes?.TryGetValue(key, out var value) == true ? value : default;
-    public object GetAttributeOr(string key, object defaultValue) => _attributes?.TryGetValue(key, out var value) == true ? value : defaultValue;
-    public T? GetAttributeAs<T>(string key) => _attributes?.TryGetValue(key, out var value) == true && value is T typedValue ? typedValue : default;
-    public T GetAttributeAsOrDefault<T>(string key, T defaultValue) => _attributes?.TryGetValue(key, out var value) == true && value is T typedValue ? typedValue : defaultValue;
-    public T GetAttributeAsOrNew<T>(string key) where T : new() => _attributes?.TryGetValue(key, out var value) == true && value is T typedValue ? typedValue : new T();
-    public T GetAttributeAsOr<T>(string key, Func<T> factory) => _attributes?.TryGetValue(key, out var value) == true && value is T typedValue ? typedValue : factory();
-    public bool RemoveAttribute(string key) {
-        if (_attributes == null) return false;
-        var deleted = _attributes.Remove(key);
-        if (_attributes.Count == 0) _attributes = null;
-        return deleted;
-    }
-    public bool HasAttribute(string key) => _attributes?.ContainsKey(key) == true;
-    public bool HasAttributeWithValue(string key, object value) => _attributes?.TryGetValue(key, out var existingValue) == true && Equals(existingValue, value);
-    public bool HasAttributeOfType<T>(string key) => _attributes?.TryGetValue(key, out var value) == true && value is T;
-    public IReadOnlyDictionary<string, object>? GetAttributes() => _attributes;
-    public void ClearAttributes() {
-        _attributes?.Clear();
-        _attributes = null;
-    }
-    public int AttributeCount => _attributes?.Count ?? 0;
-    public bool HasAnyAttribute => _attributes != null && _attributes.Count > 0;
+    public void SetAttribute(string key, object value) => From.Graph.SetAttribute(this, key, value);
+    public object? GetAttribute(string key) => From.Graph.GetAttribute(this, key);
+    public object GetAttributeOr(string key, object defaultValue) => From.Graph.GetAttributeOr(this, key, defaultValue);
+    public T? GetAttributeAs<T>(string key) => From.Graph.GetAttributeAs<T>(this, key);
+    public T GetAttributeAsOrDefault<T>(string key, T defaultValue) => From.Graph.GetAttributeAsOrDefault(this, key, defaultValue);
+    public T GetAttributeAsOrNew<T>(string key) where T : new() => From.Graph.GetAttributeAsOrNew<T>(this, key);
+    public T GetAttributeAsOr<T>(string key, Func<T> factory) => From.Graph.GetAttributeAsOr(this, key, factory);
+    public bool RemoveAttribute(string key) => From.Graph.RemoveAttribute(this, key);
+    public bool HasAttribute(string key) => From.Graph.HasAttribute(this, key);
+    public bool HasAttributeWithValue(string key, object value) => From.Graph.HasAttributeWithValue(this, key, value);
+    public bool HasAttributeOfType<T>(string key) => From.Graph.HasAttributeOfType<T>(this, key);
+    public IEnumerable<KeyValuePair<string, object>> GetAttributes() => From.Graph.GetAttributes(this);
+    public int AttributeCount => From.Graph.GetAttributeCount(this);
+    public bool HasAnyAttribute => From.Graph.HasAnyAttribute(this);
+    public void ClearAttributes() => From.Graph.ClearAttributes(this);
 }
