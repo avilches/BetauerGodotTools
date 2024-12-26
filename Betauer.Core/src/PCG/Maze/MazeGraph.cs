@@ -43,9 +43,9 @@ public partial class MazeGraph {
     }
 
     public readonly record struct AttributeKey(object Instance, string Key);
-    
+
     private readonly Dictionary<AttributeKey, object> _attributes = [];
-    
+
     internal void SetAttribute(object instance, string key, object value) => _attributes[new(instance, key)] = value;
     internal object? GetAttribute(object instance, string key) => _attributes.GetValueOrDefault(new(instance, key));
     internal object GetAttributeOr(object instance, string key, object defaultValue) => _attributes.GetValueOrDefault(new(instance, key), defaultValue);
@@ -57,14 +57,16 @@ public partial class MazeGraph {
     internal bool HasAttribute(object instance, string key) => _attributes.ContainsKey(new(instance, key));
     internal bool HasAttributeWithValue(object instance, string key, object value) => _attributes.TryGetValue(new(instance, key), out var existingValue) && Equals(existingValue, value);
     internal bool HasAttributeOfType<T>(object instance, string key) => _attributes.TryGetValue(new(instance, key), out var value) && value is T;
+
     internal IEnumerable<KeyValuePair<string, object>> GetAttributes(object instance) {
         return _attributes
             .Where(kv => kv.Key.Instance == instance)
             .Select(kv => new KeyValuePair<string, object>(kv.Key.Key, kv.Value));
     }
+
     internal int GetAttributeCount(object instance) => _attributes.Count(kv => kv.Key.Instance == instance);
     internal bool HasAnyAttribute(object instance) => _attributes.Keys.Any(k => k.Instance == instance);
-    
+
     internal void ClearAttributes(object instance) {
         var keys = _attributes.Keys.Where(k => k.Instance == instance).ToList();
         foreach (var key in keys) {
@@ -78,7 +80,7 @@ public partial class MazeGraph {
         _attributes.Clear();
         LastId = 0;
     }
-    
+
     public MazeNode GetNode(int id) {
         return Nodes[id];
     }
@@ -267,7 +269,7 @@ public partial class MazeGraph {
             GetNodes().Max(v => v.Position.X) - GetNodes().Min(v => v.Position.X),
             GetNodes().Max(v => v.Position.Y) - GetNodes().Min(v => v.Position.Y));
     }
-    
+
     public string Draw() {
         var allCanvas = new TextCanvas();
         foreach (var node in GetNodes()) {
@@ -281,7 +283,7 @@ public partial class MazeGraph {
         }
         return allCanvas.ToString();
     }
-    
+
     public string Print(char c = '\u2588') {
         var allCanvas = new TextCanvas();
         foreach (var node in GetNodes()) {
@@ -301,6 +303,100 @@ public partial class MazeGraph {
     public IEnumerable<MazeNode> GetRoots() {
         return GetNodes().Where(n => n.Parent == null);
     }
+
+     public static MazeGraph Parse(string text, char lineSeparator = '\n') {
+        var maze = new MazeGraph();
+        if (text == null || text.Trim().Length == 0) return maze;
+        var lines = text.Split(lineSeparator);
+        
+        // Remove empty lines at start and end
+        while (lines.Length > 0 && string.IsNullOrWhiteSpace(lines[0])) lines = lines.Skip(1).ToArray();
+        while (lines.Length > 0 && string.IsNullOrWhiteSpace(lines[^1])) lines = lines.SkipLast(1).ToArray();
+        
+        // Remove minimum common left padding
+        var minPadding = lines.Where(l => !string.IsNullOrWhiteSpace(l))
+            .Min(l => l.TakeWhile(c => c == ' ').Count());
+        lines = lines.Select(line => line.Length >= minPadding ? line[minPadding..] : line).ToArray();
+        
+        // Create nodes first
+        for (var y = 0; y < lines.Length; y += 2) { // Only odd lines can have nodes
+            var line = lines[y].PadRight(lines.Max(l => l.Length));
+            for (var x = 0; x < line.Length; x += 2) { // Only odd columns can have nodes
+                if (line[x] == '#') {
+                    maze.CreateNode(new Vector2I(x/2, y/2));
+                }
+            }
+        }
+
+        // Create horizontal connections
+        for (var y = 0; y < lines.Length; y += 2) { // Only odd lines can have nodes and horizontal connections
+            var line = lines[y];
+            for (var x = 0; x < line.Length - 2; x += 2) {
+                if (line[x] == '#' && line[x + 1] == '-' && line[x + 2] == '#') {
+                    var fromNode = maze.GetNodeAt(new Vector2I(x/2, y/2));
+                    var toNode = maze.GetNodeAt(new Vector2I((x+2)/2, y/2));
+                    fromNode.ConnectTo(toNode);
+                }
+            }
+        }
+
+        // Create vertical connections
+        for (var y = 1; y < lines.Length; y += 2) { // Even lines can only have vertical connections
+            var line = lines[y];
+            for (var x = 0; x < line.Length; x += 2) {
+                if (line[x] == '|') {
+                    var fromNode = maze.GetNodeAt(new Vector2I(x/2, (y-1)/2));
+                    var toNode = maze.GetNodeAt(new Vector2I(x/2, (y+1)/2));
+                    fromNode.ConnectTo(toNode);
+                }
+            }
+        }
+
+        return maze;
+    }
+
+    public string Export(char lineSeparator = '\n') {
+        if (GetNodes().Count == 0) return "";
+
+        var offset = GetOffset();
+        var size = GetSize();
+        var width = (size.X + 1) * 2 - 1;
+        var height = (size.Y + 1) * 2 - 1;
+
+        // Create empty grid
+        var grid = new char[height][];
+        for (var y = 0; y < height; y++) {
+            grid[y] = new char[width];
+            for (var x = 0; x < width; x++) {
+                grid[y][x] = ' ';
+            }
+        }
+
+        // Place nodes
+        foreach (var node in GetNodes()) {
+            var x = (node.Position.X - offset.X) * 2;
+            var y = (node.Position.Y - offset.Y) * 2;
+            grid[y][x] = '#';
+        }
+
+        // Place horizontal connections
+        foreach (var node in GetNodes()) {
+            var x = (node.Position.X - offset.X) * 2;
+            var y = (node.Position.Y - offset.Y) * 2;
+            if (node.Right != null) {
+                grid[y][x + 1] = '-';
+            }
+        }
+
+        // Place vertical connections
+        foreach (var node in GetNodes()) {
+            var x = (node.Position.X - offset.X) * 2;
+            var y = (node.Position.Y - offset.Y) * 2;
+            if (node.Down != null) {
+                grid[y + 1][x] = '|';
+            }
+        }
+
+        return string.Join(lineSeparator, grid.Select(row => new string(row)));
+    }
 }
-
-

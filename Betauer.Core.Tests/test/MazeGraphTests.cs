@@ -151,4 +151,81 @@ public class MazeGraphTests {
             Assert.That(_graph.GetNodes().Count, Is.LessThanOrEqualTo(10));
         });
     }
+
+    [Test]
+    public void ParseAndExportSimpleMaze() {
+        var input = """
+                    #-#
+                    | |
+                    #-#
+                    """;
+        var maze = MazeGraph.Parse(input);
+
+        // Verify nodes
+        Assert.That(maze.GetNodes().Count, Is.EqualTo(4));
+
+        // Verify connections
+        var topLeft = maze.GetNodeAt(new Vector2I(0, 0));
+        var topRight = maze.GetNodeAt(new Vector2I(1, 0));
+        var bottomLeft = maze.GetNodeAt(new Vector2I(0, 1));
+        var bottomRight = maze.GetNodeAt(new Vector2I(1, 1));
+
+        Assert.That(topLeft.Right, Is.EqualTo(topRight));
+        Assert.That(topLeft.Down, Is.EqualTo(bottomLeft));
+        Assert.That(topRight.Down, Is.EqualTo(bottomRight));
+        Assert.That(bottomLeft.Right, Is.EqualTo(bottomRight));
+
+        // Verify export matches input
+        var output = maze.Export();
+        Assert.That(NormalizeMazeString(output), Is.EqualTo(NormalizeMazeString(input)));
+    }
+
+    [Test]
+    public void ParseAndExportComplexMaze() {
+        var input =
+            """
+                                   #
+                                   |
+                               #-#-#   #
+                               | |     |
+                               #-#-#-#-#
+                                 |   | |
+                               #-#   # #
+            """;
+        var maze = MazeGraph.Parse(input);
+
+        // Verify node count
+        Assert.That(maze.GetNodes().Count, Is.EqualTo(14));
+
+        // Verify export matches input
+        var output = maze.Export();
+        Console.WriteLine(input);
+        Console.WriteLine(NormalizeMazeString(input));
+        Console.WriteLine(output);
+        Console.WriteLine(NormalizeMazeString(output));
+        Assert.That(NormalizeMazeString(output), Is.EqualTo(NormalizeMazeString(input)));
+    }
+
+    [Test]
+    public void ParseEmptyMaze() {
+        var maze = MazeGraph.Parse("   \n ");
+        Assert.That(maze.GetNodes().Count, Is.EqualTo(0));
+        Assert.That(maze.Export(), Is.EqualTo(""));
+        var maze2 = MazeGraph.Parse(null);
+        Assert.That(maze2.GetNodes().Count, Is.EqualTo(0));
+        Assert.That(maze2.Export(), Is.EqualTo(""));
+    }
+
+    private static string NormalizeMazeString(string input) {
+        var lines = input.Split('\n');
+
+        // Remove empty lines at start and end
+        while (lines.Length > 0 && string.IsNullOrWhiteSpace(lines[0])) lines = lines.Skip(1).ToArray();
+        while (lines.Length > 0 && string.IsNullOrWhiteSpace(lines[^1])) lines = lines.SkipLast(1).ToArray();
+
+        // Remove minimum common left padding
+        var minPadding = lines.Where(l => !string.IsNullOrWhiteSpace(l))
+            .Min(l => l.TakeWhile(c => c == ' ').Count());
+        return string.Join('\n', lines.Select(line => (line.Length >= minPadding ? line[minPadding..] : line).TrimEnd()));
+    }
 }
