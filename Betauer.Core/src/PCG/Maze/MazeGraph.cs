@@ -106,13 +106,21 @@ public partial class MazeGraph {
         }
     }
 
-    public MazeNode CreateNode(Vector2I position, MazeNode? parent = null, object metadata = default, float weight = 0f) {
+    public MazeNode CreateNode(Vector2I position, MazeNode? parent = null, object metadata = default, float weight = 0f, int? id = null) {
         ValidatePosition(position, nameof(CreateNode));
-        if (NodeGrid.TryGetValue(position, out var node)) {
-            throw new InvalidOperationException($"Can't create node at {position}: there is already a node there with id {node.Id}");
+        if (NodeGrid.TryGetValue(position, out var existingNode)) {
+            throw new InvalidOperationException($"Can't create node at {position}: there is already a node there with id {existingNode.Id}");
+        }
+        if (id.HasValue && Nodes.ContainsKey(id.Value)) {
+            throw new InvalidOperationException($"Can't create node: id {id.Value} already exists");
         }
 
-        node = new MazeNode(this, LastId++, position) {
+        var nodeId = id ?? LastId;
+        if (!id.HasValue || id.Value >= LastId) {
+            LastId = nodeId + 1;
+        }
+
+        var node = new MazeNode(this, nodeId, position) {
             Parent = parent,
             Metadata = metadata!,
             Weight = weight
@@ -304,26 +312,39 @@ public partial class MazeGraph {
         return GetNodes().Where(n => n.Parent == null);
     }
 
-     public static MazeGraph Parse(string text, char lineSeparator = '\n') {
+    /// <summary>
+    /// Parse a string with a maze representation into a MazeGraph where "#" are nodes and "-" and "|" are double connections. Example:
+    ///     #
+    ///     |
+    /// #-#-#   #
+    /// | |     |
+    /// #-#-#-#-#
+    ///   |   | |
+    /// #-#   # #
+    /// </summary>
+    /// <param name="text"></param>
+    /// <param name="lineSeparator"></param>
+    /// <returns></returns>
+    public static MazeGraph Parse(string text, char lineSeparator = '\n') {
         var maze = new MazeGraph();
         if (text == null || text.Trim().Length == 0) return maze;
         var lines = text.Split(lineSeparator);
-        
+
         // Remove empty lines at start and end
         while (lines.Length > 0 && string.IsNullOrWhiteSpace(lines[0])) lines = lines.Skip(1).ToArray();
         while (lines.Length > 0 && string.IsNullOrWhiteSpace(lines[^1])) lines = lines.SkipLast(1).ToArray();
-        
+
         // Remove minimum common left padding
         var minPadding = lines.Where(l => !string.IsNullOrWhiteSpace(l))
             .Min(l => l.TakeWhile(c => c == ' ').Count());
         lines = lines.Select(line => line.Length >= minPadding ? line[minPadding..] : line).ToArray();
-        
+
         // Create nodes first
         for (var y = 0; y < lines.Length; y += 2) { // Only odd lines can have nodes
             var line = lines[y].PadRight(lines.Max(l => l.Length));
             for (var x = 0; x < line.Length; x += 2) { // Only odd columns can have nodes
                 if (line[x] == '#') {
-                    maze.CreateNode(new Vector2I(x/2, y/2));
+                    maze.CreateNode(new Vector2I(x / 2, y / 2));
                 }
             }
         }
@@ -333,8 +354,8 @@ public partial class MazeGraph {
             var line = lines[y];
             for (var x = 0; x < line.Length - 2; x += 2) {
                 if (line[x] == '#' && line[x + 1] == '-' && line[x + 2] == '#') {
-                    var fromNode = maze.GetNodeAt(new Vector2I(x/2, y/2));
-                    var toNode = maze.GetNodeAt(new Vector2I((x+2)/2, y/2));
+                    var fromNode = maze.GetNodeAt(new Vector2I(x / 2, y / 2));
+                    var toNode = maze.GetNodeAt(new Vector2I((x + 2) / 2, y / 2));
                     fromNode.ConnectTo(toNode);
                 }
             }
@@ -345,8 +366,8 @@ public partial class MazeGraph {
             var line = lines[y];
             for (var x = 0; x < line.Length; x += 2) {
                 if (line[x] == '|') {
-                    var fromNode = maze.GetNodeAt(new Vector2I(x/2, (y-1)/2));
-                    var toNode = maze.GetNodeAt(new Vector2I(x/2, (y+1)/2));
+                    var fromNode = maze.GetNodeAt(new Vector2I(x / 2, (y - 1) / 2));
+                    var toNode = maze.GetNodeAt(new Vector2I(x / 2, (y + 1) / 2));
                     fromNode.ConnectTo(toNode);
                 }
             }

@@ -18,9 +18,7 @@ public class MazeGraphTests {
 
     [Test]
     public void Constructor_InitializesCorrectly() {
-        Assert.Multiple(() => {
-            Assert.That(_graph.GetNodes(), Is.Empty);
-        });
+        Assert.Multiple(() => { Assert.That(_graph.GetNodes(), Is.Empty); });
     }
 
     [Test]
@@ -60,6 +58,62 @@ public class MazeGraphTests {
 
         Assert.Throws<InvalidOperationException>(() =>
             _graph.CreateNode(new Vector2I(1, 1)));
+    }
+
+    [Test]
+    public void CreateNode_WithCustomId_CreatesNodeWithSpecifiedId() {
+        var node = _graph.CreateNode(new Vector2I(1, 1), id: 42);
+
+        Assert.Multiple(() => {
+            Assert.That(node.Id, Is.EqualTo(42));
+            Assert.That(_graph.GetNode(42), Is.EqualTo(node));
+            Assert.That(_graph.HasNode(42), Is.True);
+        });
+    }
+
+    [Test]
+    public void CreateNode_WithDuplicateId_ThrowsInvalidOperationException() {
+        _graph.CreateNode(new Vector2I(1, 1), id: 42);
+
+        Assert.Throws<InvalidOperationException>(() =>
+            _graph.CreateNode(new Vector2I(2, 2), id: 42));
+    }
+
+    [Test]
+    public void CreateNode_WithCustomId_UpdatesLastId() {
+        _graph.CreateNode(new Vector2I(1, 1), id: 42);
+        var nextNode = _graph.CreateNode(new Vector2I(2, 2)); // Auto-generated ID
+
+        Assert.That(nextNode.Id, Is.EqualTo(43));
+    }
+
+    [Test]
+    public void CreateNode_MixingCustomAndAutoIds_MaintainsUniqueSequence() {
+        var node1 = _graph.CreateNode(new Vector2I(0, 0)); // Auto ID: 0
+        var node2 = _graph.CreateNode(new Vector2I(1, 0), id: 5);
+        var node3 = _graph.CreateNode(new Vector2I(2, 0)); // Should get ID: 6
+
+        Assert.Multiple(() => {
+            Assert.That(node1.Id, Is.EqualTo(0));
+            Assert.That(node2.Id, Is.EqualTo(5));
+            Assert.That(node3.Id, Is.EqualTo(6));
+            Assert.That(_graph.GetNodes().Count, Is.EqualTo(3));
+        });
+    }
+    
+    [Test]
+    public void CreateNode_WithCustomIdLessThanLastId_Works() {
+        var node1 = _graph.CreateNode(new Vector2I(0, 0)); // Auto ID: 0, LastId = 1
+        var node2 = _graph.CreateNode(new Vector2I(1, 0)); // Auto ID: 1, LastId = 2
+        node2.RemoveNode();
+        var node3 = _graph.CreateNode(new Vector2I(2, 0)); // Auto ID: 2, LastId = 3
+        var node4 = _graph.CreateNode(new Vector2I(1, 0), id: 1); // Should work with old id
+        Assert.Multiple(() => {
+            Assert.That(node1.Id, Is.EqualTo(0));
+            Assert.That(node2.Id, Is.EqualTo(1));
+            Assert.That(node3.Id, Is.EqualTo(2));
+            Assert.That(node4.Id, Is.EqualTo(1));
+        });
     }
 
     [Test]
