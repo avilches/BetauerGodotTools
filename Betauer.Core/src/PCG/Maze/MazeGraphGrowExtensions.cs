@@ -1,23 +1,22 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Betauer.Core.DataMath;
-using Betauer.Core.DataMath.Geometry;
 using Godot;
 
 namespace Betauer.Core.PCG.Maze;
 
-public partial class MazeGraph {
+public static class MazeGraphGrowExtensions {
     /// <summary>
     /// Grows a maze from a starting position using the specified constraints.
     /// </summary>
+    /// <param name="maze">The MazeGraph instance</param>
     /// <param name="start">Starting position for the maze generation.</param>
     /// <param name="constraints">Constraints for the maze generation.</param>
     /// <param name="backtracker">A function to locate the next node to backtrack. By default, it takes the last one (LIFO)</param>
     /// <returns>The number of paths created.</returns>
-    public void Grow(Vector2I start, BacktrackConstraints constraints, Func<List<MazeNode>, MazeNode>? backtracker = null) {
+    public static void Grow(this MazeGraph maze, Vector2I start, BacktrackConstraints constraints, Func<List<MazeNode>, MazeNode>? backtracker = null) {
         ArgumentNullException.ThrowIfNull(constraints);
-        if (!IsValidPosition(start)) {
+        if (!maze.IsValidPosition(start)) {
             throw new ArgumentException("Invalid start position", nameof(start));
         }
 
@@ -33,17 +32,17 @@ public partial class MazeGraph {
         var totalNodesCreated = 1;
         var nodesCreatedInCurrentPath = 1;
 
-        var currentNode = CreateNode(start);
+        var currentNode = maze.CreateNode(start);
         pendingNodes.Add(currentNode);
         while (pendingNodes.Count > 0) {
-            var availableDirections = GetValidFreeAdjacentDirections(currentNode.Position).ToList();
+            var availableDirections = maze.GetValidFreeAdjacentDirections(currentNode.Position).ToList();
 
             if (availableDirections.Count == 0 || nodesCreatedInCurrentPath >= maxCellsPerPath || totalNodesCreated == maxTotalCells) {
                 // path stopped, backtracking
                 pendingNodes.Remove(currentNode);
                 if (pendingNodes.Count > 0) {
                     currentNode = backtracker != null ? backtracker.Invoke(pendingNodes) : pendingNodes[^1];
-                    if (!GetValidFreeAdjacentDirections(currentNode.Position).Any()) {
+                    if (!maze.GetValidFreeAdjacentDirections(currentNode.Position).Any()) {
                         continue;
                     }
                 }
@@ -64,7 +63,7 @@ public partial class MazeGraph {
             lastDirection = nextDir;
 
             var nextPos = currentNode.Position + nextDir;
-            var newNode = CreateNode(nextPos, currentNode);
+            var newNode = maze.CreateNode(nextPos, currentNode);
             currentNode.ConnectTo(newNode);
             newNode.ConnectTo(currentNode);
             pendingNodes.Add(newNode);
@@ -76,9 +75,9 @@ public partial class MazeGraph {
         // Console.WriteLine("Cells created: " + totalNodesCreated + " Paths created: " + pathsCreated);
     }
 
-    public void GrowRandom(Vector2I start, int maxTotalNodes = -1, Random? rng = null) {
+    public static void GrowRandom(this MazeGraph maze, Vector2I start, int maxTotalNodes = -1, Random? rng = null) {
         if (maxTotalNodes == 0) return;
-        if (!IsValidPosition(start)) {
+        if (!maze.IsValidPosition(start)) {
             throw new ArgumentException("Invalid start position", nameof(start));
         }
         maxTotalNodes = maxTotalNodes == -1 ? int.MaxValue : maxTotalNodes;
@@ -86,62 +85,23 @@ public partial class MazeGraph {
         rng ??= new Random();
         var pendingNodes = new List<MazeNode>();
         var totalNodesCreated = 1;
-        var root = CreateNode(start);
+        var root = maze.CreateNode(start);
         pendingNodes.Add(root);
         while (pendingNodes.Count > 0 && totalNodesCreated < maxTotalNodes) {
             var currentNode = rng.Next(pendingNodes);
-            var adjacentPositions = GetAvailableAdjacentPositions(currentNode.Position).ToList();
+            var adjacentPositions = maze.GetAvailableAdjacentPositions(currentNode.Position).ToList();
 
             if (adjacentPositions.Count == 0) {
                 // invalid cell, removing
                 pendingNodes.Remove(currentNode);
             } else {
                 var nextPos = rng.Next(adjacentPositions);
-                var newNode = CreateNode(nextPos, currentNode);
+                var newNode = maze.CreateNode(nextPos, currentNode);
                 currentNode.ConnectTo(newNode);
                 newNode.ConnectTo(currentNode);
                 pendingNodes.Add(newNode);
                 totalNodesCreated++;
             }
         }
-    }
-
-    /// <summary>
-    /// Creates a new MazeGraph with the specified dimensions.
-    /// </summary>
-    public static MazeGraph Create(int width, int height) {
-        var mazeGraph = new MazeGraph();
-        mazeGraph.AddPositionValidator(pos => Geometry.IsPointInRectangle(pos.X, pos.Y, 0, 0, width, height));
-        return mazeGraph;
-    }
-
-    /// <summary>
-    /// Creates a MazeGraph from a boolean template array.
-    /// In the template, true values represent valid positions for nodes. false values are forbidden (invalid)
-    /// </summary>
-    public static MazeGraph Create(bool[,] template) {
-        var mazeGraph = new MazeGraph();
-        mazeGraph.AddPositionValidator(pos => Geometry.IsPointInRectangle(pos.X, pos.Y, 0, 0, template.GetLength(1), template.GetLength(0)) && template[pos.Y, pos.X]);
-        return mazeGraph;
-    }
-
-    /// <summary>
-    /// Creates a MazeGraph from a boolean Array2D template.
-    /// In the template, true values represent valid positions for nodes. false values are forbidden (invalid)
-    /// </summary>
-    public static MazeGraph Create(Array2D<bool> template) {
-        var mazeGraph = new MazeGraph();
-        mazeGraph.AddPositionValidator(pos => Geometry.IsPointInRectangle(pos.X, pos.Y, 0, 0, template.Width, template.Height) && template[pos.Y, pos.X]);
-        return mazeGraph;
-    }
-
-    /// <summary>
-    /// Creates a MazeGraph from a BitArray2D template.
-    /// In the template, true values represent valid positions for nodes. false values are forbidden (invalid)
-    /// </summary>
-    public static MazeGraph Create(BitArray2D template) {
-        var mazeGraph = new MazeGraph();
-        mazeGraph.AddPositionValidator(pos => Geometry.IsPointInRectangle(pos.X, pos.Y, 0, 0, template.Width, template.Height) && template[pos.Y, pos.X]);
-        return mazeGraph;
     }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Betauer.Core.DataMath;
+using Betauer.Core.DataMath.Geometry;
 using Godot;
 
 namespace Betauer.Core.PCG.Maze;
@@ -9,7 +10,7 @@ namespace Betauer.Core.PCG.Maze;
 /// <summary>
 /// Represents a maze as a graph structure with nodes and edges in a 2d grid.
 /// </summary>
-public partial class MazeGraph {
+public class MazeGraph {
     protected readonly Dictionary<Vector2I, MazeNode> NodeGrid = [];
     protected readonly Dictionary<int, MazeNode> Nodes = [];
 
@@ -452,5 +453,44 @@ public partial class MazeGraph {
         }
 
         return string.Join(lineSeparator, grid.Select(row => new string(row)));
+    }
+
+    /// <summary>
+    /// Creates a new MazeGraph with the specified dimensions.
+    /// </summary>
+    public static MazeGraph Create(int width, int height) {
+        var mazeGraph = new MazeGraph();
+        mazeGraph.AddPositionValidator(pos => Geometry.IsPointInRectangle(pos.X, pos.Y, 0, 0, width, height));
+        return mazeGraph;
+    }
+
+    /// <summary>
+    /// Creates a MazeGraph from a boolean template array.
+    /// In the template, true values represent valid positions for nodes. false values are forbidden (invalid)
+    /// </summary>
+    public static MazeGraph Create(bool[,] template) {
+        var mazeGraph = new MazeGraph();
+        mazeGraph.AddPositionValidator(pos => Geometry.IsPointInRectangle(pos.X, pos.Y, 0, 0, template.GetLength(1), template.GetLength(0)) && template[pos.Y, pos.X]);
+        return mazeGraph;
+    }
+
+    /// <summary>
+    /// Creates a MazeGraph from a boolean Array2D template.
+    /// In the template, true values represent valid positions for nodes. false values are forbidden (invalid)
+    /// </summary>
+    public static MazeGraph Create(Array2D<bool> template) {
+        var mazeGraph = new MazeGraph();
+        mazeGraph.AddPositionValidator(pos => Geometry.IsPointInRectangle(pos.X, pos.Y, 0, 0, template.Width, template.Height) && template[pos.Y, pos.X]);
+        return mazeGraph;
+    }
+
+    /// <summary>
+    /// Creates a MazeGraph from a BitArray2D template.
+    /// In the template, true values represent valid positions for nodes. false values are forbidden (invalid)
+    /// </summary>
+    public static MazeGraph Create(BitArray2D template) {
+        var mazeGraph = new MazeGraph();
+        mazeGraph.AddPositionValidator(pos => Geometry.IsPointInRectangle(pos.X, pos.Y, 0, 0, template.Width, template.Height) && template[pos.Y, pos.X]);
+        return mazeGraph;
     }
 }

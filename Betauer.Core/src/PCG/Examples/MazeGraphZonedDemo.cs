@@ -48,7 +48,7 @@ public class MazeGraphZonedDemo {
                 // PrintGraph(zones.MazeGraph);
                 zones.CalculateSolution(MazeGraphCatalog.KeyFormula);
                 Console.WriteLine($"{zones.GetNodes().Count:00} nodes, solution path: {zones.Scoring.SolutionPath.Count:00} goal path: {zones.Scoring.GoalPath.Count:00}, redundancy: {zones.Scoring.Redundancy * 100:00}% gini {zones.Scoring.ConcentrationIndex * 100:00}%. {zones.Scoring.VisitDistribution.GetValueOrDefault(0, 0) * 100:00}% isolated from solution");
-                PrintGraph(zones.MazeGraph, zones);
+                // PrintGraph(zones.MazeGraph, zones);
 
                 lastValidMaze = zones;
                 validMazes++;

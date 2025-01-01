@@ -12,7 +12,7 @@ namespace Betauer.Core.PCG.Maze;
 /// This class creates mazes by carving paths through a grid, starting from a given position
 /// and following configurable constraints and direction selection strategies.
 /// </summary>
-public partial class MazeCarver {
+public class MazeCarver {
     /// <summary>
     /// Gets the width of the maze grid.
     /// </summary>
@@ -54,7 +54,7 @@ public partial class MazeCarver {
     
     private readonly List<Vector2I> _availableDirections = new(4);
 
-    private List<Vector2I> GetAvailableDirections(Vector2I currentCell) {
+    public List<Vector2I> GetAvailableDirections(Vector2I currentCell) {
         _availableDirections.Clear();
         foreach (var dir in Array2D.Directions) {
             var target = currentCell + dir * 2;
@@ -65,11 +65,11 @@ public partial class MazeCarver {
         return _availableDirections;
     }
 
-    private bool IsValidPosition(Vector2I position) {
+    public bool IsValidPosition(Vector2I position) {
         return Geometry.IsPointInRectangle(position.X, position.Y, 0, 0, Width, Height);
     }
 
-    private void CarveCell(Vector2I position) {
+    public void CarveCell(Vector2I position) {
         OnCarve?.Invoke(position);
     }
 
