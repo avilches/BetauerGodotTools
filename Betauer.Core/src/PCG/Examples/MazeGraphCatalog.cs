@@ -23,8 +23,8 @@ public class MazeGraphCatalog {
                                      ··####·####··
                                      ···#######···
                                      """);
-        var limit = template.Count(d => d.Value != '·');
-        var start = template.FirstOrDefault(dataCell => dataCell.Value == 'o')!.Position;
+        var limit = template.Count(c => c != '·');
+        var start = template.GetIndexedValues().FirstOrDefault(dataCell => dataCell.Value == 'o')!.Position;
         var constraints = new MazeZonedConstraints(4, limit)
             .SetCorridors(false)
             .SetPartsPerZone(3);
@@ -173,6 +173,7 @@ public class MazeGraphCatalog {
 
     private static void ConnectNodes(Array2D<char> template, MazeGraph mc) {
         template
+            .GetIndexedValues()
             .Where(dataCell => dataCell.Value == '-')
             .Select(dataCell => mc.GetNodeAtOrNull(dataCell.Position)!)
             .Where(node => node != null!)
@@ -184,6 +185,7 @@ public class MazeGraphCatalog {
             });
 
         template
+            .GetIndexedValues()
             .Where(dataCell => dataCell.Value == '|')
             .Select(dataCell => mc.GetNodeAtOrNull(dataCell.Position)!)
             .Where(node => node != null!)
@@ -195,6 +197,7 @@ public class MazeGraphCatalog {
             });
 
         template
+            .GetIndexedValues()
             .Where(dataCell => dataCell.Value == '+' || dataCell.Value == 'o')
             .Select(dataCell => mc.GetNodeAt(dataCell.Position))
             .Where(node => node != null!)

@@ -13,8 +13,8 @@ public static partial class Array2DSingleTransformations {
         var min = float.MaxValue;
         var max = float.MinValue;
         foreach (var cell in grid) {
-            min = Math.Min(min, cell.Value);
-            max = Math.Max(max, cell.Value);
+            min = Math.Min(min, cell);
+            max = Math.Max(max, cell);
         }
         var range = max - min;
         grid.Transform(value => (value - min) / range);
@@ -33,8 +33,8 @@ public static partial class Array2DSingleTransformations {
         var min = float.MaxValue;
         var max = float.MinValue;
         foreach (var cell in grid) {
-            min = Math.Min(min, cell.Value);
-            max = Math.Max(max, cell.Value);
+            min = Math.Min(min, cell);
+            max = Math.Max(max, cell);
         }
         var range = max - min;
         var normalizedRange = newMax - newMin;
@@ -53,9 +53,9 @@ public static partial class Array2DSingleTransformations {
     public static Array2D<float> LoadNormalized(this Array2D<float> grid, Func<int, int, float> valueFunc, float newMin, float newMax) {
         var min = float.MaxValue;
         var max = float.MinValue;
-        foreach (var cell in grid) {
-            var value = valueFunc.Invoke(cell.Position.X, cell.Position.Y);
-            grid[cell.Position] = value;
+        foreach (var pos in grid.GetPositions()) {
+            var value = valueFunc.Invoke(pos.X, pos.Y);
+            grid[pos] = value;
             min = Math.Min(min, value);
             max = Math.Max(max, value);
         }
@@ -74,9 +74,9 @@ public static partial class Array2DSingleTransformations {
     public static Array2D<float> LoadNormalized(this Array2D<float> grid, Func<int, int, float> valueFunc) {
         var min = float.MaxValue;
         var max = float.MinValue;
-        foreach (var cell in grid) {
-            var value = valueFunc.Invoke(cell.Position.X, cell.Position.Y);
-            grid[cell.Position] = value;
+        foreach (var pos in grid.GetPositions()) {
+            var value = valueFunc.Invoke(pos.X, pos.Y);
+            grid[pos] = value;
             min = Math.Min(min, value);
             max = Math.Max(max, value);
         }

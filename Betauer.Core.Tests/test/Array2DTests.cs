@@ -15,7 +15,7 @@ public class Array2DTests {
     public void SetUp() {
         _array2D = new Array2D<int>(5, 4);
         var value = 0;
-        foreach (var cell in _array2D) {
+        foreach (var cell in _array2D.GetIndexedValues()) {
             _array2D.Data[cell.Position.Y, cell.Position.X] = value;
             value++;
         }
@@ -255,12 +255,12 @@ public class Array2DTests {
     [Test]
     public void TestLoop() {
         var total = 0;
-        foreach (var cell in _array2D) {
+        foreach (var cell in _array2D.GetIndexedValues()) {
             total += cell.Value;
         }
         Assert.AreEqual(total, 190);
 
-        var total2 = _array2D.Sum(cell => cell.Value);
+        var total2 = _array2D.GetIndexedValues().Sum(cell => cell.Value);
         Assert.AreEqual(total2, 190);
     }
 

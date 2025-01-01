@@ -32,7 +32,7 @@ public class RegionConnections {
 
     private void ProcessGrid() {
         var label = 1;
-        foreach (var (pos, value) in Grid) {
+        foreach (var (pos, value) in Grid.GetIndexedValues()) {
             if (value && Labels[pos] == 0) {
                 var cells = new List<Vector2I>();
                 MarkRegion(pos, label, cells);

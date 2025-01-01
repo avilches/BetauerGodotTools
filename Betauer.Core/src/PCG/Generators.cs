@@ -94,8 +94,8 @@ public static class Generators {
         // Fase final: llenar huecos restantes si aún no alcanzamos numPixels
         if (pixelsAdded < numPixels) {
             foreach (var pos in region.GetPositions()) {
-                if (!region[pos.Position] && HasFilledNeighbor(region, pos.Position)) {
-                    region[pos.Position] = true;
+                if (!region[pos] && HasFilledNeighbor(region, pos)) {
+                    region[pos] = true;
                     pixelsAdded++;
                     if (pixelsAdded >= numPixels) break;
                 }
@@ -361,7 +361,7 @@ public static class Generators {
         }
 
         // Calcular campo de influencia usando LINQ
-        var positions = region.GetPositions().Select(cell => cell.Position)
+        var positions = region.GetIndexedValues().Select(cell => cell.Position)
             .Where(pos => blobs.Sum(blob => {
                 var distance = (pos - blob.pos).Length();
                 return Math.Pow(blob.radius / distance, 2);

@@ -417,11 +417,11 @@ public partial class MazeGraph {
             var y = (node.Position.Y - offset.Y) * 2;
             if (showIds) {
                 // Si es un número del 0-9, usar el caracter directamente
-                if (node.Id >= 0 && node.Id <= 9) {
+                if (node.Id is >= 0 and <= 9) {
                     grid[y][x] = (char)('0' + node.Id);
                 }
                 // Si es un caracter ASCII (65-90 = A-Z, 97-122 = a-z), usar el caracter
-                else if ((node.Id >= 65 && node.Id <= 90) || (node.Id >= 97 && node.Id <= 122)) {
+                else if (node.Id is >= 65 and <= 90 || node.Id is >= 97 and <= 122) {
                     grid[y][x] = (char)node.Id;
                 }
                 // Para cualquier otro ID, usar #

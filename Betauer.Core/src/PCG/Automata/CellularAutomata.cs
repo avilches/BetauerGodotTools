@@ -80,7 +80,7 @@ public class CellularAutomata<T> {
     public void Update(int x, int y, int width, int height) {
         _nextState ??= new Array2D<T>(State.Width, State.Height);
         foreach (var rule in _rules) {
-            foreach (var (pos, value) in State) {
+            foreach (var (pos, value) in State.GetIndexedValues()) {
                 if (pos.X < x || pos.X >= width + x || pos.Y < y || pos.Y >= height + y) {
                     _nextState[pos] = value;
                 } else {
@@ -103,7 +103,7 @@ public class CellularAutomata<T> {
     /// <returns></returns>
     public void SingleUpdate(int x, int y, int width, int height) {
         foreach (var rule in _rules) {
-            foreach (var (pos, value) in State) {
+            foreach (var pos in State.GetPositions()) {
                 if (pos.X < x || pos.X >= width + x || pos.Y < y || pos.Y >= height + y) continue;
                 var newValue = rule(State, pos);
                 State[pos] = newValue;

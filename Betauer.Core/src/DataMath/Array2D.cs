@@ -7,18 +7,13 @@ using Godot;
 
 namespace Betauer.Core.DataMath;
 
-public readonly record struct DataCell<T>(Vector2I Position, T Value) {
-    public readonly Vector2I Position = Position;
-    public readonly T Value = Value;
-}
-
 public abstract class Array2D {
 
     public abstract int Width { get; }
     public abstract int Height { get; }
     public abstract Rect2I Bounds { get; }
     
-    public static Vector2I[] Directions = new[] { Vector2I.Up, Vector2I.Right, Vector2I.Down, Vector2I.Left };
+    public static Vector2I[] Directions = [Vector2I.Up, Vector2I.Right, Vector2I.Down, Vector2I.Left];
 
     public static Array2D<T> Parse<T>(string template, Dictionary<char, T> transform) {
         return Parse(template, c => transform[c]);;
@@ -122,7 +117,7 @@ public class BitArrayStorage(BitArray2D data) : IStorage<bool> {
 /// 
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public class Array2D<T> : Array2D, IEnumerable<DataCell<T>> {
+public class Array2D<T> : Array2D, IEnumerable<T> {
     public override int Width => Data.GetLength(1);
     public override int Height => Data.GetLength(0);
     public override Rect2I Bounds => new(0, 0, Width, Height);
@@ -193,14 +188,14 @@ public class Array2D<T> : Array2D, IEnumerable<DataCell<T>> {
     }
 
     public void Load(int x, int y, int width, int height, Func<Vector2I, T> valueFunc) {
-        foreach (var cell in GetPositions(x, y, width, height)) {
+        foreach (var cell in GetIndexedValues(x, y, width, height)) {
             var value = valueFunc.Invoke(cell.Position);
             this[cell.Position] = value;
         }
     }
 
     public void Load(int x, int y, int width, int height, Func<int, int, T> valueFunc) {
-        foreach (var cell in GetPositions(x, y, width, height)) {
+        foreach (var cell in GetIndexedValues(x, y, width, height)) {
             var value = valueFunc.Invoke(cell.Position.X, cell.Position.Y);
             this[cell.Position] = value;
         }
@@ -221,35 +216,50 @@ public class Array2D<T> : Array2D, IEnumerable<DataCell<T>> {
     public Array2D<TOut> Clone<TOut>(int x, int y, int width, int height, Func<T, TOut> transformer) {
         var startPos = new Vector2I(x, y);
         var array2D = new Array2D<TOut>(width, height);
-        foreach (var cell in GetPositions(x, y, width, height)) {
+        foreach (var cell in GetIndexedValues(x, y, width, height)) {
             var transformed = transformer.Invoke(cell.Value);
             array2D[cell.Position - startPos] = transformed;
         }
         return array2D;
     }
 
-    public IEnumerator<DataCell<T>> GetEnumerator() {
-        for (var yy = 0; yy < Height; yy++) {
-            for (var xx = 0; xx < Width; xx++) {
-                var value = this[yy, xx];
-                yield return new DataCell<T>(new Vector2I(xx, yy), value);
+    public IEnumerator<T> GetEnumerator() {
+        for (var y = 0; y < Height; y++) {
+            for (var x = 0; x < Width; x++) {
+                yield return this[y, x];
             }
         }
     }
 
-    public IEnumerable<DataCell<T>> GetPositions() {
-        return GetPositions(0, 0, Width, Height);        
+    public IEnumerable<Vector2I> GetPositions() {
+        return GetPositions(0, 0, Width, Height);
     }
-    
-    public IEnumerable<DataCell<T>> GetPositions(Rect2I rect) {
+
+    public IEnumerable<Vector2I> GetPositions(Rect2I rect) {
         return GetPositions(rect.Position.X, rect.Position.Y, rect.End.X, rect.End.Y);
     }
 
-    public IEnumerable<DataCell<T>> GetPositions(int x, int y, int width, int height) {
+    public IEnumerable<Vector2I> GetPositions(int x, int y, int width, int height) {
         for (var yy = y; yy < height + y; yy++) {
             for (var xx = x; xx < width + x; xx++) {
-                var value = this[yy, xx];
-                yield return new DataCell<T>(new Vector2I(xx, yy), value);
+                yield return new Vector2I(xx, yy);
+            }
+        }
+    }
+    
+    public IEnumerable<(Vector2I Position, T Value)> GetIndexedValues() {
+        return GetIndexedValues(0, 0, Width, Height);
+    }
+
+    public IEnumerable<(Vector2I Position, T Value)> GetIndexedValues(Rect2I rect) {
+        return GetIndexedValues(rect.Position.X, rect.Position.Y, rect.End.X, rect.End.Y);
+    }
+
+    public IEnumerable<(Vector2I Position, T Value)> GetIndexedValues(int x, int y, int width, int height) {
+        for (var yy = y; yy < height + y; yy++) {
+            for (var xx = x; xx < width + x; xx++) {
+                var pos = new Vector2I(xx, yy);
+                yield return (Position: pos, Value: this[yy, xx]);
             }
         }
     }
@@ -283,21 +293,21 @@ public class Array2D<T> : Array2D, IEnumerable<DataCell<T>> {
     }
 
     public void Transform(int x, int y, int width, int height, Func<T, T> action) {
-        foreach (var cell in GetPositions(x, y, width, height)) {
+        foreach (var cell in GetIndexedValues(x, y, width, height)) {
             var transformed = action(cell.Value);
             this[cell.Position] = transformed;
         }
     }
 
     public void Transform(int x, int y, int width, int height, Func<Vector2I, T, T> action) {
-        foreach (var cell in GetPositions(x, y, width, height)) {
+        foreach (var cell in GetIndexedValues(x, y, width, height)) {
             var transformed = action(cell.Position, cell.Value);
             this[cell.Position] = transformed;
         }
     }
 
     public void Transform(int x, int y, int width, int height, Func<int, int, T, T> action) {
-        foreach (var cell in GetPositions(x, y, width, height)) {
+        foreach (var cell in GetIndexedValues(x, y, width, height)) {
             var transformed = action(cell.Position.X, cell.Position.Y, cell.Value);
             this[cell.Position] = transformed;
         }
@@ -418,19 +428,19 @@ public class Array2D<T> : Array2D, IEnumerable<DataCell<T>> {
     }
 
     public override string ToString() {
-        return GetString(cell => cell.Value?.ToString());
+        return GetString(value => value?.ToString());
     }
 
-    public string GetString(Func<DataCell<T>, string> transform, char lineSeparator = '\n') {
+    public string GetString(Func<(Vector2I Position, T Value), string> transform, char lineSeparator = '\n') {
         var s = new StringBuilder();
-        foreach (var cell in this) {
-            if (cell.Position.Y > 0 && cell.Position.X == 0) s.Append(lineSeparator);
-            s.Append(transform(cell));
+        foreach (var item in GetIndexedValues()) {
+            if (item.Position.Y > 0 && item.Position.X == 0) s.Append(lineSeparator);
+            s.Append(transform(item));
         }
         return s.ToString();
     }
-    
+
     public string GetString(Func<T, string> transform, char lineSeparator = '\n') {
-        return GetString(cell => transform(cell.Value), lineSeparator);
+        return GetString(item => transform(item.Value), lineSeparator);
     }
 }

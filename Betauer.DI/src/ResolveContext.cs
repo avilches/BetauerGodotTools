@@ -4,16 +4,12 @@ using Betauer.DI.ServiceProvider;
 
 namespace Betauer.DI;
 
-public class ResolveContext {
+public class ResolveContext(Container container) {
     private readonly Dictionary<Provider, InstanceCreatedEvent> _newSingletonsCreated = new();
-    private readonly List<InstanceCreatedEvent> _newTransientsCreated = new();
+    private readonly List<InstanceCreatedEvent> _newTransientsCreated = [];
     private readonly Stack<TransientProvider> _transientStack = new();
 
-    internal Container Container { get; }
-
-    public ResolveContext(Container container) {
-        Container = container;
-    }
+    internal Container Container { get; } = container;
 
     internal bool TryGetSingletonFromCache(Provider provider, out object? instanceFound) {
         if (_newSingletonsCreated.TryGetValue(provider, out var resolved)) {
