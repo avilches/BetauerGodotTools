@@ -17,16 +17,16 @@ public class MazeTemplateDemo {
         zones.CalculateSolution(MazeGraphCatalog.KeyFormula);
 
         // Crear el gestor de patrones con un tamaño de celda de 5x5
-         var patterns = new TemplateSet(cellSize: 7);
+         var templateSet = new TemplateSet(cellSize: 7);
 
         // Cargar patrones de diferentes archivos
         try {
             var content = File.ReadAllText(TemplatePath);
-            patterns.LoadTemplates(content);
+            templateSet.LoadTemplates(content);
 
             // El resto del código permanece igual
 
-            var array2D = zones.MazeGraph.Render(patterns, new Random(1));
+            var array2D = zones.MazeGraph.Render(TemplateSelector.Create(templateSet));
             MazeGraphZonedDemo.PrintGraph(zones.MazeGraph, zones);
             PrintArray2D(array2D);
         } catch (FileNotFoundException e) {
