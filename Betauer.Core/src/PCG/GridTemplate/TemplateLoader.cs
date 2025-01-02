@@ -134,7 +134,7 @@ public class TemplateLoader {
         var width = lines[0].Length;
 
         // Validar que todas las líneas tengan la misma anchura
-        for (int y = 1; y < height; y++) {
+        for (var y = 1; y < height; y++) {
             if (lines[y].Length != width) {
                 throw new ArgumentException(
                     $"Inconsistent width in template {templateId}: " +
@@ -151,7 +151,7 @@ public class TemplateLoader {
         if (width != _cellSize || height != _cellSize) {
             throw new ArgumentException(
                 $"Template {templateId} has wrong dimensions: {width}x{height}. " +
-                $"Expected {_cellSize}x{_cellSize}");
+                $"Expected {_cellSize}x{_cellSize}:\n{string.Join("\n", lines)}");
         }
 
         var template = new Array2D<char>(width, height);

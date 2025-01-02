@@ -17,7 +17,7 @@ public class MazeTemplateDemo {
         zones.CalculateSolution(MazeGraphCatalog.KeyFormula);
 
         // Crear el gestor de patrones con un tamaño de celda de 5x5
-        var patterns = new TemplateSet(cellSize: 5);
+         var patterns = new TemplateSet(cellSize: 7);
 
         // Cargar patrones de diferentes archivos
         try {

@@ -36,9 +36,13 @@ public static class MazeGraphRender {
         int FromNode(MazeNode node) {
             var directions = 0;
             if (node.Up != null) directions |= (int)DirectionFlags.Up;
+            if (node.UpRight != null) directions |= (int)DirectionFlags.UpRight;
             if (node.Right != null) directions |= (int)DirectionFlags.Right;
+            if (node.DownRight != null) directions |= (int)DirectionFlags.DownRight;
             if (node.Down != null) directions |= (int)DirectionFlags.Down;
+            if (node.DownLeft != null) directions |= (int)DirectionFlags.DownLeft;
             if (node.Left != null) directions |= (int)DirectionFlags.Left;
+            if (node.UpLeft != null) directions |= (int)DirectionFlags.UpLeft;
             return directions;
         }
         

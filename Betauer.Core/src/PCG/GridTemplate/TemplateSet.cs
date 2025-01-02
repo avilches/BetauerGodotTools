@@ -61,7 +61,7 @@ public class TemplateSet(int cellSize) {
             .Where(d => HasRequiredFlags(d, requiredFlags))
             .ToList();
 
-        if (!matchingDefinitions.Any()) {
+        if (matchingDefinitions.Count == 0) {
             throw new ArgumentException(
                 $"No template found for type {TemplateId.TypeToDirectionsString(type)} ({type}) " +
                 $"with required flags: {string.Join(", ", requiredFlags)}");
