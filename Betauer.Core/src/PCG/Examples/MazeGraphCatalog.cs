@@ -91,7 +91,7 @@ public class MazeGraphCatalog {
     }
 
     /// <summary>
-    /// Medium start node and a lot of corridors 
+    /// 4 zone of one single corridor, all of them start in the zone 0 
     /// </summary>
     /// <param name="rng"></param>
     /// <param name="config"></param>

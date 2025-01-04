@@ -4,6 +4,38 @@ using Betauer.Core.PCG.Maze.Zoned;
 namespace Betauer.Core.PCG.Maze;
 
 public static class MazeGraphTools {
+
+    
+    /// <summary>
+    /// Finds all potential cycle connections between adjacent nodes that are not directly connected,
+    /// calculating distances either through parent relationships or shortest path through edges.
+    /// 
+    /// Example: Consider a maze structure where solid lines are connections only and arrows
+    /// show parent+connection relationships:
+    ///   A -> B -> C
+    ///   ↓    |    ↓
+    ///   D -> E    F
+    /// 
+    /// For nodes B and E:
+    /// - Parent distance is 4 (B->A->D->E)
+    /// - Edge distance is 1 (B-E directly)
+    /// 
+    /// For nodes C and E:
+    /// - Parent distance is 5 (C->B->A->D->E)
+    /// - Edge distance is 2 (C-B-E)
+    /// 
+    /// Usage:
+    /// var cycles = maze.FindPotentialCycles(minDistance: 3, useParentDistance: true);
+    /// // Returns list of tuples: (nodeA, nodeB, distance)
+    /// </summary>
+    /// <param name="useParentDistance">If true, calculates distance following parent relationships.
+    /// If false, finds the shortest path using all available connections.</param>
+    /// <returns>List of potential connections ordered by distance (longest paths first)</returns>
+    public static PotentialCycles GetPotentialCycles(this MazeGraph maze, bool useParentDistance = false) {
+        return new PotentialCycles(maze, useParentDistance);
+    }
+
+    
     /// <summary>
     /// Connects nodes within the same zone using the shortest possible cycles
     /// </summary>
