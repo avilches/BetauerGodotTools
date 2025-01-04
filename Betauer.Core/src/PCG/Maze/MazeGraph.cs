@@ -56,8 +56,8 @@ public class MazeGraph {
     internal T GetAttributeAsOr<T>(object instance, string key, Func<T> factory) => _attributes.TryGetValue(new(instance, key), out var value) && value is T typedValue ? typedValue : factory();
     internal bool RemoveAttribute(object instance, string key) => _attributes.Remove(new(instance, key));
     internal bool HasAttribute(object instance, string key) => _attributes.ContainsKey(new(instance, key));
-    internal bool HasAttributeWithValue(object instance, string key, object value) => _attributes.TryGetValue(new(instance, key), out var existingValue) && Equals(existingValue, value);
-    internal bool HasAttributeOfType<T>(object instance, string key) => _attributes.TryGetValue(new(instance, key), out var value) && value is T;
+    internal bool HasAttributeWithValue<T>(object instance, string key, T value) => _attributes.TryGetValue(new(instance, key), out var existingValue) && existingValue is T && Equals(existingValue, value);
+    internal bool HasAttributeOfType<T>(object instance, string key) => _attributes.TryGetValue(new(instance, key), out var existingValue) && existingValue is T;
 
     internal IEnumerable<KeyValuePair<string, object>> GetAttributes(object instance) {
         return _attributes

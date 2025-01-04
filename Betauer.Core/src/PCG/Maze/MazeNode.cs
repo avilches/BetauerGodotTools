@@ -137,7 +137,7 @@ public class MazeNode {
     public T GetAttributeAsOr<T>(string key, Func<T> factory) => Graph.GetAttributeAsOr(this, key, factory);
     public bool RemoveAttribute(string key) => Graph.RemoveAttribute(this, key);
     public bool HasAttribute(string key) => Graph.HasAttribute(this, key);
-    public bool HasAttributeWithValue(string key, object value) => Graph.HasAttributeWithValue(this, key, value);
+    public bool HasAttributeWithValue<T>(string key, T value) => Graph.HasAttributeWithValue(this, key, value);
     public bool HasAttributeOfType<T>(string key) => Graph.HasAttributeOfType<T>(this, key);
     public IEnumerable<KeyValuePair<string, object>> GetAttributes() => Graph.GetAttributes(this);
     public int AttributeCount => Graph.GetAttributeCount(this);
@@ -224,11 +224,11 @@ public class MazeNode {
     }
 
     public ImmutableList<MazeEdge> GetOutEdges() => _outEdges.ToImmutableList();
-
     public ImmutableList<MazeEdge> GetInEdges() => _inEdges.ToImmutableList();
-
     public ImmutableList<MazeEdge> GetAllEdges() => _outEdges.Concat(_inEdges).ToImmutableList();
 
+    public int OutEdgesCount => _outEdges.Count;
+    public int InEdgesCount => _inEdges.Count;
 
     public bool RemoveNode() {
         if (!Graph.InternalRemoveNode(this)) return false;
