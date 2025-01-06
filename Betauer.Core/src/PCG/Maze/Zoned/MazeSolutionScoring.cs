@@ -7,7 +7,8 @@ namespace Betauer.Core.PCG.Maze.Zoned;
 public class MazeSolutionScoring {
     /// <summary>
     /// Location of keys in the maze, indexed by zone ID.
-    /// For example, if KeyLocations[2] = NodeX, it means the key for zone 2 is located in NodeX.
+    /// - KeyLocations[0] = the node in the zone 0 with the key to open the zone 1.
+    /// - KeyLocations[lastZone] = the "goal"
     /// </summary>
     public Dictionary<int, MazeNode> KeyLocations { get; }
 
@@ -18,19 +19,11 @@ public class MazeSolutionScoring {
     public IReadOnlyList<MazeNode> SolutionPath { get; }
 
     /// <summary>
-    /// The order in which zones must be visited to collect keys.
-    /// Example: [1,3,2] means:
-    /// - First get key for zone 1 (in zone 0)
-    /// - Then get key for zone 3 (in zone 1)
-    /// - Finally get key for zone 2 (in zone 3)
-    /// </summary>
-    public IReadOnlyList<int> ZoneOrder { get; }
-
-    /// <summary>
-    /// The shortest possible path to the final destination, ignoring zone restrictions.
+    /// The shortest possible path to the final destination, ignoring zone restrictions and keys. It's the path the player would take if the player had all the
+    /// keys to open all the zones since the beginning.
     /// Useful for comparing with SolutionPath to evaluate path efficiency.
     /// Example: if SolutionPath is [A,B,C,B,D] and GoalPath is [A,B,D], 
-    /// it shows that revisiting B and visiting C were necessary due to zone constraints.
+    /// it shows that revisiting B and visiting C were necessary due to zone constraints (the player needs to pick every key in order)
     /// </summary>
     public IReadOnlyList<MazeNode> GoalPath { get; }
 
@@ -89,10 +82,9 @@ public class MazeSolutionScoring {
     /// </summary>
     public float Redundancy { get; }
     
-    public MazeSolutionScoring(Dictionary<MazeNode, NodeScore> scores, Dictionary<int, MazeNode> keyLocations, List<int> zoneOrder, IReadOnlyList<MazeNode> goalPath, List<MazeNode> solutionPath) {
+    public MazeSolutionScoring(Dictionary<MazeNode, NodeScore> scores, Dictionary<int, MazeNode> keyLocations, IReadOnlyList<MazeNode> goalPath, List<MazeNode> solutionPath) {
         KeyLocations = keyLocations;
         SolutionPath = solutionPath;
-        ZoneOrder = zoneOrder;
         GoalPath = goalPath;
 
         NodesByVisit = scores.Values.GroupBy(i => i.SolutionTraversals).OrderBy(i => i.Key).ToDictionary(

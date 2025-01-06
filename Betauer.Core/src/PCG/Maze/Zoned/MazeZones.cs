@@ -24,8 +24,11 @@ public class MazeZones(MazeGraph mazeGraph, MazeNode start, IMazeZonedConstraint
     /// <summary>
     /// Returns all calculated node scores in the maze.
     /// </summary>
-    public List<NodeScore> GetScores() {
-        return Scores.Values.ToList();
+    public IReadOnlyCollection<NodeScore> GetScores() {
+        if (Scores.Count == 0 && NodeCount > 0) {
+            CalculateNodeScores();
+        }
+        return Scores.Values;
     }
 
     /// <summary>
@@ -49,75 +52,61 @@ public class MazeZones(MazeGraph mazeGraph, MazeNode start, IMazeZonedConstraint
 
         foreach (var node in MazeGraph.GetNodes()) {
             var graphEndScore = CalculateDeadEndScore(node, maxGraphEdges);
-            var (belongsToPathToEntry, entryDistanceScore) = CalculateEntryDistanceScore(node);
-            var (belongsToPathToExit, exitDistanceScore) = CalculateExitDistanceScore(node);
+            var entryDistanceScore = CalculateEntryDistanceScore(node);
+            var exitDistanceScore = CalculateExitDistanceScore(node);
 
-            Scores[node] = new NodeScore(node, graphEndScore, belongsToPathToEntry, entryDistanceScore, belongsToPathToExit, exitDistanceScore);
+            var belongsToEntryExitPath = Zones[node.ZoneId].Parts[node.PartId].EntryExitPathNodes.Contains(node);
+
+            Scores[node] = new NodeScore(node, graphEndScore, belongsToEntryExitPath, entryDistanceScore, exitDistanceScore);
         }
     }
 
     /// <summary>
-    /// Creates a route in the maze starting from the Root and visiting the best location in several zones, calculating the linearity of the path.
-    /// There are two modes of operation:
+    /// Returns the solution to solve the maze, generating two paths: SolutionPath and GoalPath.
+    /// - SolutionPath is created visiting all the key locations in every zone.
+    /// - GoalPath is the path from the start to the goal, which is the key location of the last zone.
     ///
-    /// 1. Sequential order (zoneOrder is null):
-    /// - Starts at Root
-    /// - Visits best location of zone 0, then zone 1, then zone 2, etc
-    /// - No key validation is performed
-    /// 
-    /// 2. Custom order with key validation (zoneOrder is provided):
-    /// The zoneOrder list defines which key you get in each zone's best location. For example, zoneOrder=[1,3,2] means:
-    /// - Start at Root and go to zone 0's best location to get key for zone 1
-    /// - Then go to zone 1's best location to get key for zone 3
-    /// - Finally go to zone 3's best location to get key for zone 2
+    /// SolutionPath:
+    /// First, it uses the keyScoreCalculator function to get the best location of every zone (which is the node where the key to open the next zone is located).
+    /// Example: best location in zone 0 has the key to open zone 1, best location in zone 1 has the key to open the zone 2, and so on. The best location in the
+    /// last zone is just the "goal" and the maze is solved. The solution path is the concatenation of all these paths: from the start to the key in
+    /// zone 0 + from the key in zone 0 to the key in zone 1...
     ///
-    /// Example with zoneOrder=[1,3,2]:
-    /// 1. First path: Root -> zone 0 best location
-    ///    - Start with key 0 (always available)
-    ///    - Can only traverse zone 0
-    ///    - Get key 1 at destination in zone 0 best location
+    /// GoalPath:
+    /// The path if the player had all the keys to open all the zones since the beginning.
     ///
-    /// 2. Second path: zone 0 best location -> zone 1 best location
-    ///    - Have keys [0,1]
-    ///    - Can traverse zones 0 and 1
-    ///    - Get key 3 at destination in zone 1 best location
-    ///
-    /// 3. Third path: zone 1 best location -> zone 3 best location
-    ///    - Have keys [0,1,3]
-    ///    - Can traverse zones 0, 1, and 3
-    ///    - Get key 2 at destination in zone 3 best location
-    ///
-    /// At each step, FindShortestPath is used with a predicate that only allows traversing zones for which we have keys.
-    /// If no valid path exists (because we're missing a required key), an InvalidOperationException is thrown.
-    ///
-    /// The method calculates the linearity of the final route using MazeLinearity.CalculateLinearity.
+    /// Check the MazeSolutionScoring class for more information about the results.
     /// </summary>
-    /// <param name="scoreCalculator">Function used to calculate scores for finding the best location in each zone</param>
-    /// <param name="start">Optional. Node to start. If null, it will use the start node from the constructor.</param>
-    /// <param name="zoneOrder">Optional. List defining which key is obtained in each zone's best location. If null, zones are visited sequentially</param>
+    /// <param name="keyScoreCalculator">Function used to calculate scores for finding the best location in each zone</param>
+    /// <param name="start">Optional. Node to start. If null, it will use the start node from the constructor. The start node needs to be located in zone 0</param>
     /// <exception cref="InvalidOperationException">Thrown when no valid path exists with the current keys</exception>
-    public void CalculateSolution(Func<NodeScore, float> scoreCalculator, MazeNode? start = null, List<int>? zoneOrder = null) {
+    public MazeSolutionScoring CalculateSolution(Func<NodeScore, float> keyScoreCalculator, MazeNode? start = null) {
         start ??= Start;
+        
+        if (start == null) {
+            throw new InvalidOperationException("A not null Start node must be provided");
+        }
+        
+        if (start.ZoneId != 0) {
+            throw new InvalidOperationException("The start node must be in zone 0");
+        }
+        
         if (GetScores().Count == 0) {
             CalculateNodeScores();
         } else {
             Scores.Values.ForEach(score => score.SolutionTraversals = 0);
         }
 
-        Dictionary<int, MazeNode> keyLocations = GetBestLocationsByZone(scoreCalculator);
+        Dictionary<int, MazeNode> keyLocations = GetBestLocationsByZone(keyScoreCalculator);
         List<MazeNode> stops = [];
         List<IReadOnlyList<MazeNode>> paths = [];
         List<MazeNode> solutionPath = [];
-        zoneOrder ??= Enumerable.Range(0, Zones.Count).ToList();
-        if (zoneOrder[0] != 0) {
-            zoneOrder = (List<int>) [0, ..zoneOrder];
-        }
 
         // The first path starts from the node root and goes to the first key in the zone 0 (best location in 0)
         // because the first key in the zone 0 opens the next zone in the zoneOrder
         var keys = new HashSet<int> { 0 /* The key 0 is always available */ };
         stops.Add(start);
-        foreach (var zoneId in zoneOrder) {
+        foreach (var zoneId in Enumerable.Range(0, Zones.Count)) {
             keys.Add(zoneId);
             var pathStart = stops.Last();
             var pathEnd = keyLocations[zoneId];
@@ -128,6 +117,8 @@ public class MazeZones(MazeGraph mazeGraph, MazeNode start, IMazeZonedConstraint
 
             var path = pathStart.FindShortestPath(pathEnd, node => keys.Contains(node.ZoneId));
             if (path.Count == 0) {
+                // This is impossible because keys are visited in order, and the maze is created with the zones in order. But, if this happens,
+                // it means the maze is not solvable with the current keys because the zones are not connected (e.g. zone 1 is not connected to zone 0).
                 throw new InvalidOperationException($"Cannot reach zone {zoneId} (node id {pathEnd.Id}) from zone {pathStart.ZoneId} (node id {pathStart.Id}) : no valid path exists with current keys: {string.Join(", ", keys)}");
             }
             // Every path starts in the same node than the previous zone ends, so the first needs to be ignored to avoid duplicates
@@ -142,12 +133,10 @@ public class MazeZones(MazeGraph mazeGraph, MazeNode start, IMazeZonedConstraint
 
         // Calcular non-linearity: suma de todas las visitas adicionales
         // (cada habitación que se visita más de una vez suma sus visitas extras)
-        var goalPath = start.FindShortestPath(keyLocations[zoneOrder.Last()]);
+        var goalPath = start.FindShortestPath(keyLocations[Zones.Count - 1], node => true);
 
-        Scoring = new MazeSolutionScoring(Scores, keyLocations, zoneOrder, goalPath, solutionPath);
+        return new MazeSolutionScoring(Scores, keyLocations, goalPath, solutionPath);
     }
-
-    public MazeSolutionScoring Scoring;
 
     /// <summary>
     /// Calculates how much a node resembles a dead-end. 
@@ -183,17 +172,16 @@ public class MazeZones(MazeGraph mazeGraph, MazeNode start, IMazeZonedConstraint
     /// - A node 8 steps away scores 0.8
     /// - The entrance node itself scores 0.0
     /// </summary>
-    private (bool belongsToEntryPath, float score) CalculateEntryDistanceScore(MazeNode node) {
+    private float CalculateEntryDistanceScore(MazeNode node) {
         var part = Zones[node.ZoneId].Parts[node.PartId];
         var entryNodes = part.GetEntryNodesFromPreviousZone().ToList();
 
-        if (entryNodes.Count == 0) return (false, 1.0f); // If no entrances (zone 0), any position is valid
-        if (entryNodes.Contains(node)) return (true, 0.0f); // The node is an entrance
+        if (entryNodes.Count == 0) return 1.0f; // If no entrances (zone 0), any position is valid
+        if (entryNodes.Contains(node)) return 0.0f; // The node is an entrance
 
         var minDistance = entryNodes.Select(entry => node.GetGraphDistanceToNode(entry)).Min();
         var score = (float)minDistance / part.NodeCount;
-        var belongsToPath = part.EntryExitPathNodes.Contains(node);
-        return (belongsToPath, score);
+        return score;
     }
 
     /// <summary>
@@ -207,17 +195,16 @@ public class MazeZones(MazeGraph mazeGraph, MazeNode start, IMazeZonedConstraint
     /// - A node 7 steps away scores 0.7
     /// - The exit node itself scores 0.0
     /// </summary>
-    private (bool belongsToExitPath, float score) CalculateExitDistanceScore(MazeNode node) {
+    private float CalculateExitDistanceScore(MazeNode node) {
         var part = Zones[node.ZoneId].Parts[node.PartId];
         var exitNodes = part.GetExitNodesToNextZone().ToList();
 
-        if (exitNodes.Count == 0) return (false, 1.0f); // If no entrances (zone 0), any position is valid
-        if (exitNodes.Contains(node)) return (true, 0.0f); // The node is an exit
+        if (exitNodes.Count == 0) return 1.0f; // If no entrances (zone 0), any position is valid
+        if (exitNodes.Contains(node)) return 0.0f; // The node is an exit
 
-        var belongsToPath = part.EntryExitPathNodes.Contains(node);
         var minDistance = exitNodes.Select(exit => node.GetGraphDistanceToNode(exit)).Min();
         var score = (float)minDistance / part.NodeCount;
-        return (belongsToPath, score);
+        return score;
     }
 
     /// <summary>
@@ -407,7 +394,6 @@ public static class SpreadLocationsAlgorithm {
             }
             partCandidates.Remove(bestScore);
         }
-
         return locations;
     }
 }

@@ -1,6 +1,6 @@
 namespace Betauer.Core.PCG.Maze.Zoned;
 
-public class NodeScore(MazeNode mazeNode, float graphEndScore, bool belongsToPathToEntry, float entryDistanceScore, bool belongsToPathToExit, float exitDistanceScore) {
+public class NodeScore(MazeNode mazeNode, float graphEndScore, bool belongsToEntryExitPath, float entryDistanceScore, float exitDistanceScore) {
     public MazeNode Node { get; } = mazeNode;
 
     /// <summary>
@@ -40,8 +40,7 @@ public class NodeScore(MazeNode mazeNode, float graphEndScore, bool belongsToPat
     /// <returns></returns>
     public float ExitDistanceScore { get; } = exitDistanceScore;
 
-    public bool BelongsToPathToExit { get; set; } = belongsToPathToExit;
-    public bool BelongsToPathToEntry { get; set; } = belongsToPathToEntry;
+    public bool BelongsToEntryExitPath { get; set; } = belongsToEntryExitPath;
 
     public int SolutionTraversals { get; set; } = 0;
 }

@@ -8,7 +8,8 @@ using Godot;
 namespace Betauer.Core.PCG.Examples;
 
 public class MazeGraphCatalog {
-    public static float KeyFormula(NodeScore score) => (score.DeadEndScore * 0.4f + score.EntryDistanceScore * 0.3f + score.ExitDistanceScore * 0.3f) * 0.5f + (score.BelongsToPathToExit ? 0.0f : 0.5f);
+    public static float KeyFormula(NodeScore score) => (score.DeadEndScore * 0.4f + score.EntryDistanceScore * 0.3f + score.ExitDistanceScore * 0.3f) * 0.5f + 
+                                                       (score.BelongsToEntryExitPath ? 0.0f : 0.5f);
     public static float LootFormula(NodeScore score) => score.DeadEndScore * 0.6f + score.EntryDistanceScore * 0.4f;
 
     public static MazeZones BigCycle(Random rng, Action<MazeGraph>? config = null) {
@@ -59,7 +60,9 @@ public class MazeGraphCatalog {
         config?.Invoke(maze);
         var zones = maze.GrowZoned(Vector2I.Zero, constraints, rng);
 
-        // Zone 1 is the goal, so we shift the zone 2 until the last one. The goal is the last zone now, but it's still close to the zone 0
+        // Zone 1 is the goal, so we shift the zone 2 with the next one until the zone 2 becomes the last zone.
+        // After this change, the goal (the zone 1) is the last zone now, but it's still reached from the zone 0. So, the player will see the entry of
+        // the goal zone when it enters the zone 0.
         for (var i = 1; i < zones.Zones.Count - 1; i++) {
             zones.SwapZoneParts(i, i + 1);
         }
@@ -171,6 +174,13 @@ public class MazeGraphCatalog {
         return zones;
     }
 
+    /*
+     * Matches every node position with a char in the template.
+     * If the template has:
+     * "-" = connects the node with the right and left nodes (if they exist)
+     * "|" = connects the node with the up and down nodes (if they exist)
+     * "+" = connects the node with the right, left, up and down nodes (if they exist)
+     */
     private static void ConnectNodes(Array2D<char> template, MazeGraph mc) {
         template
             .GetIndexedValues()
