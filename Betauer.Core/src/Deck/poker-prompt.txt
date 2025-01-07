@@ -1,0 +1,102 @@
+# Solitaire Poker Game Implementation
+
+## Descripción General
+Un juego de poker solitario donde el jugador recibe 7 cartas y debe formar las mejores manos de poker posibles en 4 rondas.
+El jugador puede descartar hasta 5 cartas, 4 veces durante el juego.
+
+## Reglas del Juego
+- Se juegan 4 manos en total
+- Cada mano comienza con 7 cartas
+- 4 oportunidades de descarte (máximo 5 cartas cada vez)
+- La puntuación se calcula: suma de los valores de las cartas × multiplicador de la mano
+- Si no se puede formar ninguna mano, se cuenta la carta más alta
+
+## Estructura de Clases
+
+### Card
+- Representa una carta con `rank` (2-14) y `suit` (S,H,D,C)
+- Rank usa int para facilitar comparaciones (14=As)
+- Implementa IComparable para ordenación
+
+### Deck
+- Baraja estándar de 52 cartas
+- Métodos: Shuffle, Draw, ReturnCards
+- Mantiene seguimiento de cartas restantes
+
+### PokerHand (Abstract)
+- Base para todas las manos de poker
+- Propiedades: Name, Multiplier, Cards
+- Calcula Score: suma de ranks × multiplicador
+- Implementaciones específicas:
+  - HighCardHand (×1)
+  - PairHand (×2)
+  - TwoPairHand (×3)
+  - ThreeOfAKindHand (×4)
+  - StraightHand (×5)
+  - FlushHand (×6)
+  - FullHouseHand (×7)
+  - FourOfAKindHand (×8)
+  - StraightFlushHand (×9)
+  - RoyalFlushHand (×10)
+
+### HandIdentifier
+- Identifica todas las posibles manos en un conjunto de cartas
+- Usa sistema de checkers y creators para cada tipo de mano
+- Mantiene jerarquía de manos
+- Siempre incluye HighCard como fallback
+
+### GameHistory
+- Registra todas las acciones del juego
+- Tipos de acciones: PLAY y DISCARD
+- Almacena detalles de cada acción:
+  - Cartas jugadas/descartadas
+  - Mano formada (si es PLAY)
+  - Puntuación obtenida (si es PLAY)
+
+### SolitairePokerGame
+- Clase principal que gestiona el juego
+- Constantes:
+  - MAX_DISCARDS = 4
+  - MAX_DISCARD_CARDS = 5
+  - HAND_SIZE = 7
+  - MAX_HANDS = 4
+- Funcionalidad:
+  - Muestra estado actual del juego
+  - Lista manos posibles
+  - Procesa jugadas y descartes
+  - Mantiene puntuación total
+  - Muestra historial
+
+## Características Implementadas
+1. Sistema completo de cartas y baraja
+2. Identificación de todas las manos posibles de poker
+3. Sistema de puntuación basado en ranks y multiplicadores
+4. Historial de jugadas
+5. Interfaz de consola básica
+6. Sistema de descartes
+
+## Pendiente de Implementar
+1. Calculador de probabilidades para descartes
+2. Sugerencias de mejores descartes posibles
+3. Análisis de probabilidades para cada mano potencial
+
+## Notas de Diseño
+- El código evita validaciones en jugadas manuales (decisión de diseño)
+- Uso extensivo de LINQ para manipulación de colecciones
+- Separación clara entre lógica de juego y presentación
+- Sistema flexible que permite añadir nuevos tipos de manos
+- Los comentarios se mantienen al mínimo, solo para explicar reglas de negocio complejas
+
+## Uso del Programa
+1. El juego muestra la mano actual
+2. Lista todas las manos posibles
+3. Opciones disponibles:
+   - P: Jugar una mano
+   - D: Descartar cartas
+   - Q: Salir del juego
+4. Al jugar:
+   - Muestra manos disponibles numeradas
+   - Usuario elige número de mano
+5. Al descartar:
+   - Usuario introduce índices (1-7) de cartas a descartar
+   - Sistema repone cartas automáticamente
