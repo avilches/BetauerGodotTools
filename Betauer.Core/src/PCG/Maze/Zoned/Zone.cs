@@ -51,7 +51,7 @@ public class Zone(int zoneId) {
     /// Returns all node scores within a specific zone.
     /// </summary>
     public IEnumerable<NodeScore> GetScores() {
-        return MazeZones.Scores.Values.Where(score => score.Node.ZoneId == zoneId);
+        return MazeZones.GetScores().Where(score => score.Node.ZoneId == zoneId);
     }
 
     

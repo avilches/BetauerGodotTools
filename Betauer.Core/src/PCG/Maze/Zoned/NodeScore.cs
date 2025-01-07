@@ -16,31 +16,32 @@ public class NodeScore(MazeNode mazeNode, float graphEndScore, bool belongsToEnt
     public float DeadEndScore { get; } = graphEndScore;
 
     /// <summary>
-    /// Returns a score between 0 and 1.
-    /// A entry node is a connection from a zone with a lower id than the current one.
+    /// Calculates how far a node is from the closest in its zone.
+    /// - A score of 1.0 means it's the furthest possible the closest entry
+    /// - A score of 0.0 means it's directly at an entry
     /// 
-    /// 1 means the node is the farthest from any entry node,
-    /// 0 means the node is the closest to any entry node.
-    ///
-    /// The bigger, the more distance to walk to from the entrance (compared with other nodes in the same zone).
+    /// Example:
+    /// In a zone with 10 nodes and one entry:
+    /// - A node 5 steps away from the entry scores 0.5
+    /// - A node 8 steps away scores 0.8
+    /// - The entry node itself scores 0.0
     /// </summary>
-    /// <returns></returns>
     public float EntryDistanceScore { get; } = entryDistanceScore;
 
 
     /// <summary>
-    /// Returns a score between 0 and 1.
-    /// A exit node is a connection to a zone with a higher id than the current one.
+    /// Calculates how far a node is from the closest in its zone.
+    /// - A score of 1.0 means it's the furthest possible the closest exit
+    /// - A score of 0.0 means it's directly at an exit
     /// 
-    /// 1 means the node is the farthest from any exit node,
-    /// 0 means the node is the closest to any exit node.
-    ///
-    /// The bigger, the more distance to walk to reach the exit (compared with other nodes in the same zone).
+    /// Example:
+    /// In a zone with 10 nodes and one exit:
+    /// - A node 5 steps away from the exit scores 0.5
+    /// - A node 8 steps away scores 0.8
+    /// - The exit node itself scores 0.0
     /// </summary>
-    /// <returns></returns>
     public float ExitDistanceScore { get; } = exitDistanceScore;
 
     public bool BelongsToEntryExitPath { get; set; } = belongsToEntryExitPath;
 
-    public int SolutionTraversals { get; set; } = 0;
 }

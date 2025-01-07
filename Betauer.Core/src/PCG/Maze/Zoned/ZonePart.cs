@@ -79,7 +79,7 @@ public class ZonePart(Zone zone, int partId, MazeNode startNode, List<MazeNode> 
     /// Returns all node scores within a specific part of a zone.
     /// </summary>
     public IEnumerable<NodeScore> GetScores() {
-        return Zone.MazeZones.Scores.Values.Where(score => score.Node.ZoneId == Zone.ZoneId && score.Node.PartId == PartId);
+        return Zone.MazeZones.GetScores().Where(score => score.Node.ZoneId == Zone.ZoneId && score.Node.PartId == PartId);
     }
 
         /// <summary>

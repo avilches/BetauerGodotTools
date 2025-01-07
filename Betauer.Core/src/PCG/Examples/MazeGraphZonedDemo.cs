@@ -46,18 +46,18 @@ public class MazeGraphZonedDemo {
             try {
                 var zones = func();
                 // PrintGraph(zones.MazeGraph);
-                zones.CalculateSolution(MazeGraphCatalog.KeyFormula);
-                Console.WriteLine($"{zones.GetNodes().Count:00} nodes, solution path: {zones.Scoring.SolutionPath.Count:00} goal path: {zones.Scoring.GoalPath.Count:00}, redundancy: {zones.Scoring.Redundancy * 100:00}% gini {zones.Scoring.ConcentrationIndex * 100:00}%. {zones.Scoring.VisitDistribution.GetValueOrDefault(0, 0) * 100:00}% isolated from solution");
+                var solution = zones.CalculateSolution(MazeGraphCatalog.KeyFormula);
+                Console.WriteLine($"{zones.GetNodes().Count:00} nodes, solution path: {solution.SolutionPath.Count:00} goal path: {solution.GoalPath.Count:00}, redundancy: {solution.Redundancy * 100:00}% gini {solution.ConcentrationIndex * 100:00}%. {solution.VisitDistribution.GetValueOrDefault(0, 0) * 100:00}% isolated from solution");
                 // PrintGraph(zones.MazeGraph, zones);
 
                 lastValidMaze = zones;
                 validMazes++;
                 totalNodes += zones.MazeGraph.GetNodes().Count;
-                totalSolutionPaths += zones.Scoring.SolutionPath.Count;
-                totalGoalPaths += zones.Scoring.GoalPath.Count;
-                totalRedundancy += zones.Scoring.Redundancy;
-                totalConcentrationIndex += zones.Scoring.ConcentrationIndex;
-                totalIsolated += zones.Scoring.VisitDistribution.GetValueOrDefault(0, 0);
+                totalSolutionPaths += solution.SolutionPath.Count;
+                totalGoalPaths += solution.GoalPath.Count;
+                totalRedundancy += solution.Redundancy;
+                totalConcentrationIndex += solution.ConcentrationIndex;
+                totalIsolated += solution.VisitDistribution.GetValueOrDefault(0, 0);
             } catch (NoMoreNodesException e) {
                 Console.WriteLine(e.Message);
                 exceptions++;
@@ -98,11 +98,12 @@ public class MazeGraphZonedDemo {
     }
     */
 
-    public static void PrintGraph(MazeGraph mc, MazeZones zones = null) {
+    public static void PrintGraph(MazeGraph mc, MazeZones zones) {
         var allCanvas = new TextCanvas();
         var offset = 0;
-        var keys = zones?.GetBestLocationsByZone(MazeGraphCatalog.KeyFormula);
-        var loot = zones?.SpreadLocationsByZone(0.3f, MazeGraphCatalog.LootFormula);
+        var solution = zones.CalculateSolution(MazeGraphCatalog.KeyFormula);
+        var keys = solution.KeyLocations;
+        var loot = zones.SpreadLocationsByZone(0.3f, MazeGraphCatalog.LootFormula);
         var mazeOffset = mc.GetOffset();
         var width = mc.GetSize().X;
         foreach (var node in mc.GetNodes()) {
@@ -160,10 +161,10 @@ public class MazeGraphZonedDemo {
 
                 var zone = zones.Zones[node.ZoneId];
 
-                var nodeScore = zones.Scores[node];
+                var nodeScore = zones.GetScore(node);
                 // var score = Mathf.RoundToInt(KeyFormula(nodeScore) * 100);
                 // var score = nodeScore.ExitDistanceScore * 100;
-                var score = nodeScore.SolutionTraversals;
+                var score = solution.GetTraversalCount(node);
 
                 var lootScore = Mathf.RoundToInt(MazeGraphCatalog.LootFormula(nodeScore) * 100);
                 var nodeWithKeyInZone = keys[zone.ZoneId];
@@ -180,7 +181,7 @@ public class MazeGraphZonedDemo {
                 }
                 */
 
-                var isPartOfMainPath = zones.Scoring.SolutionPath.Contains(node);
+                var isPartOfMainPath = solution.SolutionPath.Contains(node);
                 if (isLoot && isPartOfMainPath) {
                     canvas.Write(1, 1, $"*");
                 } else if (isLoot) {
@@ -198,7 +199,7 @@ public class MazeGraphZonedDemo {
             // Console.WriteLine($"Zone {zone.ZoneId} Nodes: {zone.NodeCount} Parts: {zone.Parts.Count}/{zones.Constraints.GetParts(zone.ZoneId)} Exits: {zone.GetAllExitNodes().Count()}/{zones.Constraints.GetMaxExitNodes(zone.ZoneId)}");
             // }
 
-            zones.Scoring.VisitDistribution.ForEach((kv) => {
+            solution.VisitDistribution.ForEach((kv) => {
                 // Console.WriteLine($"{kv.Key}: {kv.Value*100:00.0}%");
             });
         } else {

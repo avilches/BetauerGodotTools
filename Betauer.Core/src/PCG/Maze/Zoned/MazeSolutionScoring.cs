@@ -10,7 +10,7 @@ public class MazeSolutionScoring {
     /// - KeyLocations[0] = the node in the zone 0 with the key to open the zone 1.
     /// - KeyLocations[lastZone] = the "goal"
     /// </summary>
-    public Dictionary<int, MazeNode> KeyLocations { get; }
+    public IReadOnlyList<MazeNode> KeyLocations { get; }
 
     /// <summary>
     /// The complete path taken through the maze, including all nodes visited and revisited in order.
@@ -31,13 +31,13 @@ public class MazeSolutionScoring {
     /// Groups nodes by how many times they were visited during solution traversal.
     /// Key: number of visits, Value: list of nodes with that visit count.
     /// Example:
-    /// - NodesByRevisit[0] = [Node1, Node2] // Nodes never visited
-    /// - NodesByRevisit[1] = [Node3, Node4] // Nodes visited once
-    /// - NodesByRevisit[2] = [Node5] // Node visited twice
+    /// - NodesByRevisit[0] = Nodes never visited (0 visits, not part of the solution path)
+    /// - NodesByRevisit[1] = Nodes visited once
+    /// - NodesByRevisit[2] = Nodes visited twice
     ///
     /// The [0] key is used for nodes that were never visited, so they are not part of the solution path.
     /// </summary>
-    public IReadOnlyDictionary<int, List<NodeScore>> NodesByVisit { get; }
+    public IReadOnlyDictionary<int, List<MazeNode>> NodesByVisit { get; }
 
     /// <summary>
     /// Percentage of nodes that have each visit count, relative to total maze nodes.
@@ -60,7 +60,7 @@ public class MazeSolutionScoring {
     /// - [1,1,1,10] ≈ 0.75 (high concentration)
     /// </summary>
     public float ConcentrationIndex { get; }
-        
+
     /// <summary>
     /// Measures the efficiency of the solution path in terms of node reuse.
     /// Calculated as: (number of nodes in solution) / (total path length)
@@ -81,30 +81,72 @@ public class MazeSolutionScoring {
     /// Always check ConcentrationIndex to understand how the revisits are distributed.
     /// </summary>
     public float Redundancy { get; }
-    
-    public MazeSolutionScoring(Dictionary<MazeNode, NodeScore> scores, Dictionary<int, MazeNode> keyLocations, IReadOnlyList<MazeNode> goalPath, List<MazeNode> solutionPath) {
-        KeyLocations = keyLocations;
-        SolutionPath = solutionPath;
-        GoalPath = goalPath;
 
-        NodesByVisit = scores.Values.GroupBy(i => i.SolutionTraversals).OrderBy(i => i.Key).ToDictionary(
-            grouping => grouping.Key, // número de visitas
-            grouping => grouping.ToList()
-        );
-        VisitDistribution = NodesByVisit
+    /// <summary>
+    /// Tracks how many times each node was traversed in the solution path
+    /// </summary>
+    private readonly Dictionary<MazeNode, int> _traversalCount = new();
+    
+    public int GetTraversalCount(MazeNode node) => _traversalCount.GetValueOrDefault(node, 0);
+
+    public MazeSolutionScoring(IReadOnlyCollection<MazeNode> nodes, IReadOnlyList<MazeNode> keyLocations, MazeNode start) {
+        KeyLocations = keyLocations;
+
+        // The first path starts from the node root and goes to the first key in the zone 0 (best location in 0)
+        // because the first key in the zone 0 opens the next zone in the zoneOrder
+        var keys = new HashSet<int> { 0 /* The key 0 is always available */ };
+        var stops = new List<MazeNode> { start };
+        var paths = new List<IReadOnlyList<MazeNode>>();
+        var solutionPath = new List<MazeNode>();
+
+        foreach (var zoneId in Enumerable.Range(0, keyLocations.Count)) {
+            keys.Add(zoneId);
+            var pathStart = stops.Last();
+            var pathEnd = keyLocations[zoneId];
+
+            var path = pathStart.FindShortestPath(pathEnd, node => keys.Contains(node.ZoneId));
+            if (path.Count == 0) {
+                // This is impossible because keys are visited in order, and the maze is created with the zones in order. But, if this happens,
+                // it means the maze is not solvable with the current keys because the zones are not connected (e.g. zone 1 is not connected to zone 0).
+                throw new InvalidOperationException($"Cannot reach zone {zoneId} (node id {pathEnd.Id}) from zone {pathStart.ZoneId} (node id {pathStart.Id}) : no valid path exists with current keys: {string.Join(", ", keys)}");
+            }
+            // Every path starts in the same node than the previous zone ends, so the first needs to be ignored to avoid duplicates
+            var skip = zoneId == 0 ? 0 : 1;
+            paths.Add(path);
+            stops.Add(pathEnd);
+            solutionPath.AddRange(path.Skip(skip));
+            foreach (var node in path.Skip(skip)) {
+                _traversalCount.TryAdd(node, 0);
+                _traversalCount[node]++;
+            }
+        }
+
+        SolutionPath = solutionPath;
+        // Calcular non-linearity: suma de todas las visitas adicionales
+        // (cada habitación que se visita más de una vez suma sus visitas extras)
+        GoalPath = start.FindShortestPath(keyLocations[keyLocations.Count - 1], node => true);
+
+        NodesByVisit = nodes.GroupBy(node => _traversalCount.GetValueOrDefault(node, 0))
+            .OrderBy(i => i.Key)
             .ToDictionary(
-                kv => kv.Key, // número de visitas
-                kv => (float)kv.Value.Count / scores.Count // porcentaje de nodos
+                grouping => grouping.Key,
+                grouping => grouping.ToList()
             );
 
-        var uniqueNodesInSolution = scores.Values.Where(score => score.SolutionTraversals > 0).ToList();
-            
+        VisitDistribution = NodesByVisit
+            .ToDictionary(
+                kv => kv.Key,
+                kv => (float)kv.Value.Count / nodes.Count
+            );
+
+        var uniqueNodesInSolution = nodes.Where(node => _traversalCount.GetValueOrDefault(node, 0) > 0).ToList();
+
         Redundancy = (float)uniqueNodesInSolution.Count / SolutionPath.Count;
 
         // Índice de concentración usando coeficiente Gini
         // 0.0 = distribución perfectamente uniforme (todos los nodos tienen el mismo número de visitas)
         // 1.0 = concentración máxima (todas las visitas están en un solo nodo)
-        var visits = uniqueNodesInSolution.Select(s => s.SolutionTraversals).OrderBy(x => x).ToList();
+        var visits = uniqueNodesInSolution.Select(node => _traversalCount[node]).OrderBy(x => x).ToList();
         var n = visits.Count;
         if (n > 0) {
             var absoluteDifferencesSum = visits.SelectMany(x => visits.Select(y => Math.Abs(x - y))).Sum();
@@ -113,6 +155,4 @@ public class MazeSolutionScoring {
             ConcentrationIndex = 0f; // Si no hay nodos en la solución
         }
     }
-
-
 }

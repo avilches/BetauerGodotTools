@@ -36,7 +36,7 @@ public class MazeTemplateDemo {
 
     public static void AddFlags(MazeZones zones) {
         foreach (var node in zones.GetNodes()) {
-            var score = zones.Scores[node];
+            var score = zones.GetScore(node);
             // if (score.) {
                 // node.AddOptionalFlag("corridor");
             // }
