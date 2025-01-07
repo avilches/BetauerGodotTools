@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace Betauer.Core.Deck;
 
-public abstract class PokerHand(string name, int multiplier, List<Card> cards) {
-    public List<Card> Cards { get; } = cards;
+public abstract class PokerHand(string name, int multiplier, IReadOnlyList<Card> cards) {
+    public IImmutableList<Card> Cards { get; } = cards.ToImmutableList();
     public string Name { get; set; } = name;
     public int Multiplier { get; } = multiplier;
 
@@ -13,7 +14,7 @@ public abstract class PokerHand(string name, int multiplier, List<Card> cards) {
 
     // Método abstracto que cada mano debe implementar para encontrar todas las posibles
     // combinaciones de este tipo de mano en las cartas dadas
-    public abstract List<PokerHand> FindAll(List<Card> cards);
+    public abstract List<PokerHand> FindAll(IReadOnlyList<Card> cards);
 
     public override string ToString() {
         var cardsStr = string.Join(" ", Cards);
@@ -21,8 +22,8 @@ public abstract class PokerHand(string name, int multiplier, List<Card> cards) {
     }
 }
 
-public class HighCardHand(List<Card> cards) : PokerHand("High Card", 1, cards) {
-    public override List<PokerHand> FindAll(List<Card> cards) {
+public class HighCardHand(IReadOnlyList<Card> cards) : PokerHand("High Card", 1, cards) {
+    public override List<PokerHand> FindAll(IReadOnlyList<Card> cards) {
         return cards.OrderByDescending(c => c.Rank)
             .Select(c => new HighCardHand(new List<Card> { c }))
             .Cast<PokerHand>()
@@ -30,8 +31,8 @@ public class HighCardHand(List<Card> cards) : PokerHand("High Card", 1, cards) {
     }
 }
 
-public class PairHand(List<Card> cards) : PokerHand("Pair", 2, cards) {
-    public override List<PokerHand> FindAll(List<Card> cards) {
+public class PairHand(IReadOnlyList<Card> cards) : PokerHand("Pair", 2, cards) {
+    public override List<PokerHand> FindAll(IReadOnlyList<Card> cards) {
         return cards.GroupBy(c => c.Rank)
             .Where(g => g.Count() >= 2)
             .SelectMany(g => g.Combinations(2))
@@ -41,8 +42,8 @@ public class PairHand(List<Card> cards) : PokerHand("Pair", 2, cards) {
     }
 }
 
-public class TwoPairHand(List<Card> cards) : PokerHand("Two Pair", 3, cards) {
-    public override List<PokerHand> FindAll(List<Card> cards) {
+public class TwoPairHand(IReadOnlyList<Card> cards) : PokerHand("Two Pair", 3, cards) {
+    public override List<PokerHand> FindAll(IReadOnlyList<Card> cards) {
         var pairs = cards.GroupBy(c => c.Rank)
             .Where(g => g.Count() >= 2)
             .OrderByDescending(g => g.Key)
@@ -65,8 +66,8 @@ public class TwoPairHand(List<Card> cards) : PokerHand("Two Pair", 3, cards) {
     }
 }
 
-public class ThreeOfAKindHand(List<Card> cards) : PokerHand("Three of a Kind", 4, cards) {
-    public override List<PokerHand> FindAll(List<Card> cards) {
+public class ThreeOfAKindHand(IReadOnlyList<Card> cards) : PokerHand("Three of a Kind", 4, cards) {
+    public override List<PokerHand> FindAll(IReadOnlyList<Card> cards) {
         return cards.GroupBy(c => c.Rank)
             .Where(g => g.Count() >= 3)
             .SelectMany(g => g.Combinations(3))
@@ -76,8 +77,8 @@ public class ThreeOfAKindHand(List<Card> cards) : PokerHand("Three of a Kind", 4
     }
 }
 
-public class StraightHand(List<Card> cards) : PokerHand("Straight", 5, cards) {
-    public override List<PokerHand> FindAll(List<Card> cards) {
+public class StraightHand(IReadOnlyList<Card> cards) : PokerHand("Straight", 5, cards) {
+    public override List<PokerHand> FindAll(IReadOnlyList<Card> cards) {
         return cards.FindStraights()
             .Select(straightCards => new StraightHand(straightCards))
             .Cast<PokerHand>()
@@ -85,8 +86,8 @@ public class StraightHand(List<Card> cards) : PokerHand("Straight", 5, cards) {
     }
 }
 
-public class FlushHand(List<Card> cards) : PokerHand("Flush", 6, cards) {
-    public override List<PokerHand> FindAll(List<Card> cards) {
+public class FlushHand(IReadOnlyList<Card> cards) : PokerHand("Flush", 6, cards) {
+    public override List<PokerHand> FindAll(IReadOnlyList<Card> cards) {
         return cards.FindFlushes()
             .Select(flushCards => new FlushHand(flushCards))
             .Cast<PokerHand>()
@@ -94,8 +95,8 @@ public class FlushHand(List<Card> cards) : PokerHand("Flush", 6, cards) {
     }
 }
 
-public class FullHouseHand(List<Card> cards) : PokerHand("Full House", 7, cards) {
-    public override List<PokerHand> FindAll(List<Card> cards) {
+public class FullHouseHand(IReadOnlyList<Card> cards) : PokerHand("Full House", 7, cards) {
+    public override List<PokerHand> FindAll(IReadOnlyList<Card> cards) {
         var groups = cards.GroupBy(c => c.Rank)
             .OrderByDescending(g => g.Count())
             .ThenByDescending(g => g.Key)
@@ -126,8 +127,8 @@ public class FullHouseHand(List<Card> cards) : PokerHand("Full House", 7, cards)
     }
 }
 
-public class FourOfAKindHand(List<Card> cards) : PokerHand("Four of a Kind", 8, cards) {
-    public override List<PokerHand> FindAll(List<Card> cards) {
+public class FourOfAKindHand(IReadOnlyList<Card> cards) : PokerHand("Four of a Kind", 8, cards) {
+    public override List<PokerHand> FindAll(IReadOnlyList<Card> cards) {
         return cards.GroupBy(c => c.Rank)
             .Where(g => g.Count() >= 4)
             .SelectMany(g => g.Combinations(4))
@@ -137,8 +138,8 @@ public class FourOfAKindHand(List<Card> cards) : PokerHand("Four of a Kind", 8, 
     }
 }
 
-public class StraightFlushHand(List<Card> cards) : PokerHand("Straight Flush", 9, cards) {
-    public override List<PokerHand> FindAll(List<Card> cards) {
+public class StraightFlushHand(IReadOnlyList<Card> cards) : PokerHand("Straight Flush", 9, cards) {
+    public override List<PokerHand> FindAll(IReadOnlyList<Card> cards) {
         return cards.GroupBy(c => c.Suit)
             .Where(g => g.Count() >= 5)
             .SelectMany(g => g.ToList().FindStraights())
@@ -148,8 +149,8 @@ public class StraightFlushHand(List<Card> cards) : PokerHand("Straight Flush", 9
     }
 }
 
-public class RoyalFlushHand(List<Card> cards) : PokerHand("Royal Flush", 10, cards) {
-    public override List<PokerHand> FindAll(List<Card> cards) {
+public class RoyalFlushHand(IReadOnlyList<Card> cards) : PokerHand("Royal Flush", 10, cards) {
+    public override List<PokerHand> FindAll(IReadOnlyList<Card> cards) {
         return cards.GroupBy(c => c.Suit)
             .Where(g => g.Count() >= 5)
             .SelectMany(g => g.ToList().FindStraights())
@@ -180,7 +181,7 @@ public class HandIdentifier {
         };
     }
 
-    public List<PokerHand> IdentifyAllHands(List<Card> cards) {
+    public List<PokerHand> IdentifyAllHands(IReadOnlyList<Card> cards) {
         var allHands = handPrototypes
             .SelectMany(prototype => prototype.FindAll(cards))
             .OrderByDescending(hand => hand.Multiplier)

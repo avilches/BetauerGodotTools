@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Betauer.Core.Deck;
 
-public class Card : IComparable<Card> {
+public readonly struct Card : IComparable<Card> {
     public int Rank { get; }
     public char Suit { get; }
 
@@ -51,57 +51,83 @@ public class Card : IComparable<Card> {
 }
 
 public class Deck {
-    private readonly List<Card> cards = new();
+    private readonly List<Card> _cards = new();
     private readonly Random random = new();
 
     public Deck() {
         foreach (char suit in "SHDC") {
             for (int rank = 2; rank <= 14; rank++) {
-                cards.Add(new Card(rank, suit));
+                _cards.Add(new Card(rank, suit));
             }
         }
     }
 
     public void Shuffle() {
-        int n = cards.Count;
+        int n = _cards.Count;
         while (n > 1) {
             n--;
             int k = random.Next(n + 1);
-            (cards[k], cards[n]) = (cards[n], cards[k]);
+            (_cards[k], _cards[n]) = (_cards[n], _cards[k]);
         }
     }
 
-    public List<Card> Draw(int count) {
-        if (count > cards.Count) throw new InvalidOperationException("Not enough cards in deck");
-        var drawn = cards.Take(count).ToList();
-        cards.RemoveRange(0, count);
+    public IReadOnlyList<Card> Draw(int count) {
+        if (count > _cards.Count) throw new InvalidOperationException("Not enough cards in deck");
+        var drawn = _cards.Take(count).ToList();
+        _cards.RemoveRange(0, count);
         return drawn;
     }
 
-    public void ReturnCards(List<Card> returnedCards) {
-        cards.AddRange(returnedCards);
+    public void ReturnCards(IReadOnlyList<Card> returnedCards) {
+        _cards.AddRange(returnedCards);
     }
 
-    public int RemainingCards => cards.Count;
+    public int RemainingCards => _cards.Count;
+    
+    public Deck Clone() {
+        var newDeck = new Deck();
+        newDeck._cards.Clear();
+        newDeck._cards.AddRange(_cards);
+        return newDeck;
+    }
 }
 
 public class GameHistory {
-    public record GameAction(
-        string Type, // "PLAY" or "DISCARD"
-        List<Card> Cards, // Cards played or discarded
-        PokerHand PlayedHand = null, // If Type is "PLAY"
-        int Score = 0 // Score earned if Type is "PLAY"
-    );
-
     private readonly List<GameAction> actions = new();
+
+    public class GameAction {
+        public string Type { get; }
+        public IReadOnlyList<Card> Cards { get; }
+        public PokerHand? PlayedHand { get; }
+        public int Score { get; }
+
+        public GameAction(string type, IReadOnlyList<Card> cards, PokerHand? playedHand = null, int score = 0) {
+            Type = type;
+            Cards = cards;
+            PlayedHand = playedHand;
+            Score = score;
+        }
+    }
 
     public void AddPlay(PokerHand hand) {
         actions.Add(new GameAction("PLAY", hand.Cards, hand, hand.Score));
     }
 
-    public void AddDiscard(List<Card> cards) {
+    public void AddDiscard(IReadOnlyList<Card> cards) {
         actions.Add(new GameAction("DISCARD", cards));
     }
 
-    public List<GameAction> GetHistory() => actions.ToList();
+    public IReadOnlyList<GameAction> GetHistory() => actions.AsReadOnly();
+
+    public GameHistory Clone() {
+        var newHistory = new GameHistory();
+        foreach (var action in actions) {
+            if (action.Type == "PLAY") {
+                newHistory.AddPlay(action.PlayedHand!);
+            } else {
+                newHistory.AddDiscard(new List<Card>(action.Cards));
+            }
+        }
+        return newHistory;
+    }
 }
