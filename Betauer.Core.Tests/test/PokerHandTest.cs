@@ -11,7 +11,7 @@ public class PokerHandTestBase {
 
     [SetUp]
     public void Setup() {
-        handIdentifier = new HandIdentifier();
+        handIdentifier = new HandIdentifier(new PokerHandScoring());
     }
 
     protected List<Card> CreateCards(params string[] cardStrs) {

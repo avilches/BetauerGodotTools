@@ -5,179 +5,149 @@ using System.Linq;
 namespace Betauer.Core.Deck;
 
 public class GameState {
-    public readonly Deck Deck;
-    public readonly IReadOnlyList<Card> CurrentHand;
-    public readonly int RemainingDiscards;
-    public readonly int TotalScore;
-    public readonly int HandsPlayed;
-    public readonly GameHistory History;
+    private readonly PokerGameConfig config;
+    private readonly PokerHandScoring scoring;
+    
+    public int HandsPlayed { get; }
+    public int TotalScore { get; }
+    public int RemainingDiscards { get; }
+    public IReadOnlyList<Card> CurrentHand { get; }
+    public GameHistory History { get; }
 
-    // Constants moved from SolitairePokerGame to be accessible anywhere
-    public const int MAX_DISCARDS = 4;
-    public const int MAX_DISCARD_CARDS = 5;
-    public const int HAND_SIZE = 7;
-    public const int MAX_HANDS = 4;
-
-    // Constructor for initial state
-    public GameState() {
-        Deck = new Deck();
-        Deck.Shuffle();
-        CurrentHand = Deck.Draw(HAND_SIZE);
-        RemainingDiscards = MAX_DISCARDS;
-        TotalScore = 0;
-        HandsPlayed = 0;
-        History = new GameHistory();
-    }
-
-    // Private constructor for creating new states
-    private GameState(Deck deck, IReadOnlyList<Card> currentHand, int remainingDiscards, int totalScore, int handsPlayed, GameHistory history) {
-        Deck = deck;
-        CurrentHand = currentHand;
-        RemainingDiscards = remainingDiscards;
-        TotalScore = totalScore;
-        HandsPlayed = handsPlayed;
-        History = history;
-    }
-
-    // Creates a new state with updated values
-    public GameState With(
-        Deck? deck = null,
+    public GameState(
+        PokerGameConfig config,
+        PokerHandScoring scoring,
+        int handsPlayed = 0,
+        int totalScore = 0,
+        int remainingDiscards = -1,
         IReadOnlyList<Card>? currentHand = null,
-        int? remainingDiscards = null,
-        int? totalScore = null,
-        int? handsPlayed = null,
         GameHistory? history = null
     ) {
-        return new GameState(
-            deck ?? Deck,
-            currentHand ?? CurrentHand,
-            remainingDiscards ?? RemainingDiscards,
-            totalScore ?? TotalScore,
-            handsPlayed ?? HandsPlayed,
-            history ?? History
-        );
+        this.config = config;
+        this.scoring = scoring;
+        HandsPlayed = handsPlayed;
+        TotalScore = totalScore;
+        RemainingDiscards = remainingDiscards == -1 ? config.MaxDiscards : remainingDiscards;
+        CurrentHand = currentHand ?? new List<Card>();
+        History = history ?? new GameHistory();
     }
 
-    public bool IsGameOver() => HandsPlayed >= MAX_HANDS;
+    public bool IsGameOver() => HandsPlayed >= config.MaxHands;
 
     public bool CanDiscard() => RemainingDiscards > 0 && !IsGameOver();
-}
 
-// Action result class to handle the result of game actions
-public class ActionResult {
-    public bool Success { get; }
-    public string Message { get; }
-    public GameState State { get; }
-
-    private ActionResult(bool success, string message, GameState state) {
-        Success = success;
-        Message = message;
-        State = state;
+    public GameState Clone() {
+        return new GameState(
+            config.Clone(),
+            scoring.Clone(),
+            HandsPlayed,
+            TotalScore,
+            RemainingDiscards,
+            new List<Card>(CurrentHand),
+            History.Clone()
+        );
     }
-
-    public static ActionResult Ok(GameState state, string message = "") => 
-        new ActionResult(true, message, state);
-
-    public static ActionResult Error(GameState state, string message) => 
-        new ActionResult(false, message, state);
 }
 
 public class SolitairePokerGame {
-    public readonly HandIdentifier HandIdentifier;
     private GameState state;
+    private Deck deck;
+    public HandIdentifier HandIdentifier { get; }
+    public PokerGameConfig Config;
+    public PokerHandScoring Scoring;
 
-    public SolitairePokerGame() {
-        HandIdentifier = new HandIdentifier();
-        state = new GameState();
-    }
-
-    // Constructor for testing or loading saved games
-    public SolitairePokerGame(GameState initialState) {
-        HandIdentifier = new HandIdentifier();
-        state = initialState;
-    }
-
-    public GameState GetState() => state;
-
-    public List<PokerHand> GetPossibleHands() => 
-        HandIdentifier.IdentifyAllHands(state.CurrentHand);
-
-    public ActionResult PlayHand(PokerHand selectedHand) {
-        if (state.IsGameOver()) {
-            return ActionResult.Error(state, "Game is already over");
-        }
-
-        if (!state.CurrentHand.ContainsAll(selectedHand.Cards)) {
-            return ActionResult.Error(state, "Selected hand contains invalid cards");
-        }
-
-        var remainingCards = state.CurrentHand
-            .Where(c => !selectedHand.Cards.Contains(c))
-            .ToList();
-
-        var newDeck = state.Deck.Clone();
-        IReadOnlyList<Card> newHand;
-
-        if (state.HandsPlayed + 1 < GameState.MAX_HANDS) {
-            var newCards = newDeck.Draw(GameState.HAND_SIZE - remainingCards.Count);
-            newHand = remainingCards.Concat(newCards).ToList();
-        } else {
-            newHand = new List<Card>();
-        }
-
-        var newHistory = state.History.Clone();
-        newHistory.AddPlay(selectedHand);
-
-        state = state.With(
-            deck: newDeck,
-            currentHand: newHand,
-            totalScore: state.TotalScore + selectedHand.Score,
-            handsPlayed: state.HandsPlayed + 1,
-            history: newHistory
+    public SolitairePokerGame(PokerGameConfig? config = null, PokerHandScoring? scoring = null) {
+        this.Config = config ?? new PokerGameConfig();
+        this.Scoring = scoring ?? new PokerHandScoring();
+        this.deck = new Deck();
+        this.HandIdentifier = new HandIdentifier(this.Scoring);
+        this.deck.Shuffle();
+        this.state = new GameState(
+            this.Config,
+            this.Scoring,
+            currentHand: this.deck.Draw(this.Config.HandSize)
         );
-
-        return ActionResult.Ok(state);
     }
 
-    public ActionResult Discard(IReadOnlyList<Card> cardsToDiscard) {
-        if (!state.CanDiscard()) {
-            return ActionResult.Error(state, "No discards remaining or game is over");
+    public GameState GetState() => state.Clone();
+
+    public (bool Success, string? Message, GameState State) PlayHand(PokerHand hand) {
+        if (state.IsGameOver()) {
+            return (false, "Game is already over", state);
         }
 
-        if (cardsToDiscard.Count == 0 || cardsToDiscard.Count > GameState.MAX_DISCARD_CARDS) {
-            return ActionResult.Error(state, 
-                $"Must discard between 1 and {GameState.MAX_DISCARD_CARDS} cards");
+        if (!hand.Cards.All(c => state.CurrentHand.Contains(c))) {
+            return (false, "Invalid hand: contains cards not in current hand", state);
         }
 
-        if (!state.CurrentHand.ContainsAll(cardsToDiscard)) {
-            return ActionResult.Error(state, "Trying to discard cards not in hand");
+        // Return played cards to deck
+        deck.ReturnCards(state.CurrentHand);
+
+        var score = Scoring.CalculateScore(hand);
+        var newHand = state.HandsPlayed + 1 < Config.MaxHands 
+            ? deck.Draw(Config.HandSize) 
+            : new List<Card>();
+
+        state = new GameState(
+            Config,
+            Scoring,
+            handsPlayed: state.HandsPlayed + 1,
+            totalScore: state.TotalScore + score,
+            remainingDiscards: state.RemainingDiscards,
+            currentHand: newHand,
+            history: state.History
+        );
+        // Aquí pasamos el score calculado
+        state.History.AddPlay(hand, score);
+
+        return (true, null, state);
+    }
+
+    public (bool Success, string? Message, GameState State) Discard(IReadOnlyList<Card> cards) {
+        if (state.IsGameOver()) {
+            return (false, "No discards remaining or game is over", state);
         }
 
+        if (state.RemainingDiscards <= 0) {
+            return (false, "No discards remaining or game is over", state);
+        }
+
+        if (cards.Count < 1 || cards.Count > Config.MaxDiscardCards) {
+            return (false, $"Must discard between 1 and {Config.MaxDiscardCards} cards", state);
+        }
+
+        if (!cards.All(c => state.CurrentHand.Contains(c))) {
+            return (false, "Invalid discard: contains cards not in current hand", state);
+        }
+
+        // Return discarded cards to deck
+        deck.ReturnCards(cards);
+
+        // Remove discarded cards and draw new ones
         var remainingCards = state.CurrentHand
-            .Except(cardsToDiscard)
+            .Where(c => !cards.Contains(c))
             .ToList();
-
-        var newDeck = state.Deck.Clone();
-        newDeck.ReturnCards(cardsToDiscard);
-        newDeck.Shuffle();
-        
-        var newCards = newDeck.Draw(cardsToDiscard.Count);
+        var newCards = deck.Draw(cards.Count);
         var newHand = remainingCards.Concat(newCards).ToList();
 
-        var newHistory = state.History.Clone();
-        newHistory.AddDiscard(cardsToDiscard);
-
-        state = state.With(
-            deck: newDeck,
-            currentHand: newHand,
+        state = new GameState(
+            Config,
+            Scoring,
+            handsPlayed: state.HandsPlayed,
+            totalScore: state.TotalScore,
             remainingDiscards: state.RemainingDiscards - 1,
-            history: newHistory
+            currentHand: newHand,
+            history: state.History
         );
+        state.History.AddDiscard(cards);
 
-        return ActionResult.Ok(state);
+        return (true, null, state);
+    }
+
+    public List<PokerHand> GetPossibleHands() {
+        return HandIdentifier.IdentifyAllHands(state.CurrentHand);
     }
 }
-
 // Extension method helper
 public static class ListExtensions {
     public static bool ContainsAll<T>(this IReadOnlyList<T> list, IReadOnlyList<T> items) {
@@ -315,8 +285,8 @@ public class SolitaireConsoleUI {
             .Where(n => n >= 0 && n < state.CurrentHand.Count)
             .ToList();
 
-        if (indices == null || indices.Count == 0 || indices.Count > GameState.MAX_DISCARD_CARDS) {
-            Console.WriteLine($"Please select between 1 and {GameState.MAX_DISCARD_CARDS} valid cards!");
+        if (indices == null || indices.Count == 0 || indices.Count > _game.Config.MaxDiscardCards) {
+            Console.WriteLine($"Please select between 1 and {_game.Config.MaxDiscardCards} valid cards!");
             return;
         }
 

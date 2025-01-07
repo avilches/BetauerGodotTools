@@ -1,3 +1,32 @@
+# Solitaire Poker Game
+
+## Reglas del Juego
+- Juego de poker solitario donde el jugador recibe 7 cartas e intenta formar la mejor mano posible
+- Se juegan exactamente 4 rondas
+- En cada ronda, el jugador puede:
+  * Jugar una mano de poker válida con las cartas disponibles
+  * Descartar hasta 5 cartas (máximo 4 descartes en todo el juego)
+- La puntuación se calcula: suma de los valores de las cartas × multiplicador de la mano
+
+## Multiplicadores de Mano
+- Carta Alta: ×1
+- Par: ×2
+- Doble Par: ×3
+- Trío: ×4
+- Escalera: ×5
+- Color: ×6
+- Full House: ×7
+- Póker: ×8
+- Escalera de Color: ×9
+- Escalera Real: ×10
+
+## Valores de las Cartas
+- As: 14
+- Rey: 13
+- Reina: 12
+- Jota: 11
+- Resto: valor nominal
+
 # Solitaire Poker Game Implementation
 
 ## Descripción General
@@ -13,21 +42,25 @@ El jugador puede descartar hasta 5 cartas, 4 veces durante el juego.
 
 ## Estructura de Clases
 
-### Card
-- Representa una carta con `rank` (2-14) y `suit` (S,H,D,C)
+### Card (struct inmutable)
+- Representa una carta con `Rank` (2-14) y `Suit` (S,H,D,C)
 - Rank usa int para facilitar comparaciones (14=As)
 - Implementa IComparable para ordenación
+- Método Parse para crear cartas desde string ("AS", "KH", etc.)
+- ToString para representación en texto
 
 ### Deck
 - Baraja estándar de 52 cartas
-- Métodos: Shuffle, Draw, ReturnCards
+- Métodos: Shuffle, Draw, ReturnCards, Clone
 - Mantiene seguimiento de cartas restantes
+- Cloneable para mantener inmutabilidad del estado
 
 ### PokerHand (Abstract)
 - Base para todas las manos de poker
-- Propiedades: Name, Multiplier, Cards
+- Propiedades: Name, Multiplier, Cards (inmutable)
 - Calcula Score: suma de ranks × multiplicador
-- Implementaciones específicas:
+- Método FindAll: encuentra todas las posibles combinaciones de este tipo
+- Implementaciones específicas con multiplicadores:
   - HighCardHand (×1)
   - PairHand (×2)
   - TwoPairHand (×3)
@@ -41,31 +74,90 @@ El jugador puede descartar hasta 5 cartas, 4 veces durante el juego.
 
 ### HandIdentifier
 - Identifica todas las posibles manos en un conjunto de cartas
-- Usa sistema de checkers y creators para cada tipo de mano
+- Devuelve las manos ordenadas por multiplicador y puntuación
+- Añade identificadores únicos para manos del mismo tipo
 - Mantiene jerarquía de manos
 - Siempre incluye HighCard como fallback
 
-### GameHistory
+### GameState (Inmutable)
+- Contiene todo el estado del juego:
+  - Deck actual
+  - Mano actual
+  - Descartes restantes
+  - Puntuación total
+  - Manos jugadas
+  - Historial
+- Constantes del juego:
+  - MAX_DISCARDS = 4
+  - MAX_DISCARD_CARDS = 5
+  - HAND_SIZE = 7
+  - MAX_HANDS = 4
+- Métodos:
+  - With(): crea nuevo estado con cambios
+  - IsGameOver(): verifica fin del juego
+  - CanDiscard(): verifica si puede descartar
+
+### GameHistory (Cloneable)
 - Registra todas las acciones del juego
 - Tipos de acciones: PLAY y DISCARD
 - Almacena detalles de cada acción:
   - Cartas jugadas/descartadas
   - Mano formada (si es PLAY)
   - Puntuación obtenida (si es PLAY)
+- Cloneable para mantener inmutabilidad del estado
+
+### ActionResult
+- Representa el resultado de una acción del juego
+- Propiedades:
+  - Success: éxito/fallo de la acción
+  - Message: mensaje de error o éxito
+  - State: nuevo estado del juego
+- Métodos factory:
+  - Ok(): para acciones exitosas
+  - Error(): para acciones fallidas
 
 ### SolitairePokerGame
-- Clase principal que gestiona el juego
-- Constantes:
-  - MAX_DISCARDS = 4
-  - MAX_DISCARD_CARDS = 5
-  - HAND_SIZE = 7
-  - MAX_HANDS = 4
-- Funcionalidad:
-  - Muestra estado actual del juego
-  - Lista manos posibles
-  - Procesa jugadas y descartes
-  - Mantiene puntuación total
-  - Muestra historial
+- Clase principal que gestiona la lógica del juego
+- Estado inmutable mediante GameState
+- Métodos principales:
+  - GetState(): obtiene estado actual
+  - GetPossibleHands(): lista manos posibles
+  - PlayHand(): juega una mano
+  - Discard(): descarta cartas
+- Toda acción devuelve ActionResult
+
+### SolitaireConsoleUI
+- Interfaz de usuario en consola
+- Métodos:
+  - DisplayGameState(): muestra estado actual
+  - DisplayCards(): muestra cartas agrupadas por palo
+  - DisplayPossibleHands(): lista manos jugables
+  - ProcessUserInput(): maneja entrada del usuario
+  - ProcessManualHand(): permite selección manual de cartas
+  - ProcessDiscard(): maneja descarte de cartas
+  - DisplayEndGame(): muestra resumen final
+
+### Utilidades
+- CardExtensions:
+  - FindStraights(): encuentra escaleras posibles
+  - FindFlushes(): encuentra colores posibles
+- EnumerableExtensions:
+  - Combinations(): genera combinaciones de n elementos
+- ListExtensions:
+  - ContainsAll(): verifica si una lista contiene todos los elementos
+
+## Tests
+Se incluyen tests unitarios completos:
+- SolitairePokerGameTests: prueba la lógica del juego
+- PokerHandTests: prueba identificación de manos
+- Cobertura de:
+  - Estado inicial
+  - Jugadas válidas e inválidas
+  - Límites de juego
+  - Descartes
+  - Inmutabilidad
+  - Puntuación
+  - Historial
 
 ## Características Implementadas
 1. Sistema completo de cartas y baraja
@@ -74,29 +166,22 @@ El jugador puede descartar hasta 5 cartas, 4 veces durante el juego.
 4. Historial de jugadas
 5. Interfaz de consola básica
 6. Sistema de descartes
-
-## Pendiente de Implementar
-1. Calculador de probabilidades para descartes
-2. Sugerencias de mejores descartes posibles
-3. Análisis de probabilidades para cada mano potencial
+7. Inmutabilidad completa del estado
+8. Pruebas unitarias extensivas
+9. Separación clara entre lógica y UI
 
 ## Notas de Diseño
-- El código evita validaciones en jugadas manuales (decisión de diseño)
+- Inmutabilidad en todas las clases de estado
+- Uso de structs para tipos de valor (Card)
+- Patrón Builder para GameState
 - Uso extensivo de LINQ para manipulación de colecciones
 - Separación clara entre lógica de juego y presentación
 - Sistema flexible que permite añadir nuevos tipos de manos
 - Los comentarios se mantienen al mínimo, solo para explicar reglas de negocio complejas
+- Uso de tipos genéricos para utilidades como Combinations
 
 ## Uso del Programa
-1. El juego muestra la mano actual
-2. Lista todas las manos posibles
-3. Opciones disponibles:
-   - P: Jugar una mano
-   - D: Descartar cartas
-   - Q: Salir del juego
-4. Al jugar:
-   - Muestra manos disponibles numeradas
-   - Usuario elige número de mano
-5. Al descartar:
-   - Usuario introduce índices (1-7) de cartas a descartar
-   - Sistema repone cartas automáticamente
+1. Modo Consola:
+   ```csharp
+   var ui = new SolitaireConsoleUI();
+   ui.Play();

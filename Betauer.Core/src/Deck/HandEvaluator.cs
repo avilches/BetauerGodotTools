@@ -8,9 +8,6 @@ namespace Betauer.Core.Deck;
 public abstract class PokerHand(string name, int multiplier, IReadOnlyList<Card> cards) {
     public IImmutableList<Card> Cards { get; } = cards.ToImmutableList();
     public string Name { get; set; } = name;
-    public int Multiplier { get; } = multiplier;
-
-    public int Score => Cards.Sum(c => c.Rank) * Multiplier;
 
     // Método abstracto que cada mano debe implementar para encontrar todas las posibles
     // combinaciones de este tipo de mano en las cartas dadas
@@ -18,7 +15,7 @@ public abstract class PokerHand(string name, int multiplier, IReadOnlyList<Card>
 
     public override string ToString() {
         var cardsStr = string.Join(" ", Cards);
-        return $"{Name} ({cardsStr}) - Score: {Score}";
+        return $"{Name} ({cardsStr})";
     }
 }
 
@@ -165,8 +162,10 @@ public class RoyalFlushHand(IReadOnlyList<Card> cards) : PokerHand("Royal Flush"
 // Actualización del HandIdentifier
 public class HandIdentifier {
     private readonly List<PokerHand> handPrototypes;
+    private readonly PokerHandScoring scoring;
 
-    public HandIdentifier() {
+    public HandIdentifier(PokerHandScoring scoring) {
+        this.scoring = scoring;
         handPrototypes = new List<PokerHand> {
             new HighCardHand([]),
             new PairHand([]),
@@ -184,8 +183,8 @@ public class HandIdentifier {
     public List<PokerHand> IdentifyAllHands(IReadOnlyList<Card> cards) {
         var allHands = handPrototypes
             .SelectMany(prototype => prototype.FindAll(cards))
-            .OrderByDescending(hand => hand.Multiplier)
-            .ThenByDescending(hand => hand.Score)
+            .OrderByDescending(hand => scoring.GetMultiplier(hand.GetType()))
+            .ThenByDescending(hand => scoring.CalculateScore(hand))
             .ToList();
 
         // Añadir un identificador único para manos del mismo tipo
@@ -199,5 +198,46 @@ public class HandIdentifier {
         }
 
         return allHands;
+    }
+}
+public class PokerHandScoring {
+    private readonly Dictionary<Type, int> handMultipliers;
+    
+    public PokerHandScoring() {
+        handMultipliers = new Dictionary<Type, int> {
+            { typeof(HighCardHand), 1 },
+            { typeof(PairHand), 2 },
+            { typeof(TwoPairHand), 3 },
+            { typeof(ThreeOfAKindHand), 4 },
+            { typeof(StraightHand), 5 },
+            { typeof(FlushHand), 6 },
+            { typeof(FullHouseHand), 7 },
+            { typeof(FourOfAKindHand), 8 },
+            { typeof(StraightFlushHand), 9 },
+            { typeof(RoyalFlushHand), 10 }
+        };
+    }
+    
+    public void SetMultiplier(Type handType, int multiplier) {
+        if (!handMultipliers.ContainsKey(handType)) {
+            throw new ArgumentException($"Invalid hand type: {handType}");
+        }
+        handMultipliers[handType] = multiplier;
+    }
+    
+    public int GetMultiplier(Type handType) {
+        return handMultipliers[handType];
+    }
+    
+    public int CalculateScore(PokerHand hand) {
+        return hand.Cards.Sum(c => c.Rank) * handMultipliers[hand.GetType()];
+    }
+    
+    public PokerHandScoring Clone() {
+        var clone = new PokerHandScoring();
+        foreach (var pair in handMultipliers) {
+            clone.handMultipliers[pair.Key] = pair.Value;
+        }
+        return clone;
     }
 }

@@ -4,16 +4,9 @@ using System.Linq;
 
 namespace Betauer.Core.Deck;
 
-public readonly struct Card : IComparable<Card> {
-    public int Rank { get; }
-    public char Suit { get; }
-
-    public Card(int rank, char suit) {
-        if (rank < 2 || rank > 14) throw new ArgumentException("Rank must be between 2 and 14");
-        if (!"SHDC".Contains(suit)) throw new ArgumentException("Suit must be S, H, D or C");
-        Rank = rank;
-        Suit = suit;
-    }
+public readonly struct Card(int rank, char suit) : IComparable<Card> {
+    public int Rank { get; } = rank;
+    public char Suit { get; } = suit;
 
     public override string ToString() {
         var rankStr = Rank switch {
@@ -53,6 +46,7 @@ public readonly struct Card : IComparable<Card> {
 public class Deck {
     private readonly List<Card> _cards = new();
     private readonly Random random = new();
+    private readonly PokerGameConfig config;
 
     public Deck() {
         foreach (char suit in "SHDC") {
@@ -92,6 +86,28 @@ public class Deck {
     }
 }
 
+public class PokerGameConfig {
+    public int HandSize { get; set; } = 7;
+    public int MaxHands { get; set; } = 4;
+    public int MaxDiscards { get; set; } = 3;
+    public int MaxDiscardCards { get; set; } = 3;
+    public int MinRank { get; set; } = 2;
+    public int MaxRank { get; set; } = 14;
+    public string ValidSuits { get; set; } = "SHDC";
+    
+    public PokerGameConfig Clone() {
+        return new PokerGameConfig {
+            HandSize = HandSize,
+            MaxHands = MaxHands,
+            MaxDiscards = MaxDiscards,
+            MaxDiscardCards = MaxDiscardCards,
+            MinRank = MinRank,
+            MaxRank = MaxRank,
+            ValidSuits = ValidSuits
+        };
+    }
+}
+
 public class GameHistory {
     private readonly List<GameAction> actions = new();
 
@@ -109,8 +125,8 @@ public class GameHistory {
         }
     }
 
-    public void AddPlay(PokerHand hand) {
-        actions.Add(new GameAction("PLAY", hand.Cards, hand, hand.Score));
+    public void AddPlay(PokerHand hand, int score) {
+        actions.Add(new GameAction("PLAY", hand.Cards, hand, score));
     }
 
     public void AddDiscard(IReadOnlyList<Card> cards) {
@@ -123,7 +139,7 @@ public class GameHistory {
         var newHistory = new GameHistory();
         foreach (var action in actions) {
             if (action.Type == "PLAY") {
-                newHistory.AddPlay(action.PlayedHand!);
+                newHistory.AddPlay(action.PlayedHand!, action.Score);
             } else {
                 newHistory.AddDiscard(new List<Card>(action.Cards));
             }
