@@ -304,19 +304,13 @@ public static partial class RandomExtensions {
     }
 }
 
-public class Producer<T> : IEnumerable<T> {
-    private readonly Func<T> _producer;
-
-    public Producer(Func<T> producer) {
-        _producer = producer;
-    }
-
+public class Producer<T>(Func<T> producer) : IEnumerable<T> {
     IEnumerator IEnumerable.GetEnumerator() {
         return GetEnumerator();
     }
 
     public IEnumerator<T> GetEnumerator() {
-        while (true) yield return _producer();
+        while (true) yield return producer();
     }
 }
 

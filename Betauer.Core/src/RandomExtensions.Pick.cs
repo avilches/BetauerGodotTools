@@ -105,15 +105,4 @@ public interface IWeight {
     public float Weight { get; } 
 }
 
-public sealed class WeightValue {
-    public static WeightValue<T> Create<T>(T value, float weight) => new(value, weight);    
-}
-
-public struct WeightValue<T> : IWeight {
-    public float Weight { get; }
-    public T Value { get; }
-    public WeightValue(T value, float weight) {
-        Value = value;
-        Weight = weight;
-    }
-}
+public readonly record struct WeightValue<T>(T Value, float Weight) : IWeight;
