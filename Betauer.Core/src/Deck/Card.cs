@@ -2,7 +2,7 @@ using System;
 
 namespace Betauer.Core.Deck;
 
-public readonly struct Card(int rank, char suit) : IComparable<Card> {
+public class Card(int rank, char suit) : IComparable<Card> {
     public int Rank { get; } = rank;
     public char Suit { get; } = suit;
 
@@ -22,5 +22,14 @@ public readonly struct Card(int rank, char suit) : IComparable<Card> {
             _ => Rank.ToString()
         };
         return $"{rankStr}{Suit}";
+    }
+    
+    public override bool Equals(object? obj) {
+        if (obj is not Card other) return false;
+        return Rank == other.Rank && Suit == other.Suit;
+    }
+
+    public override int GetHashCode() {
+        return HashCode.Combine(Rank, Suit);
     }
 }

@@ -6,80 +6,91 @@ using Betauer.Core.Deck.Hands;
 namespace Betauer.Core.Deck;
 
 public class SolitairePokerGame {
+    public class PlayResult(PokerHand hand, int score) {
+        public int Score { get; } = score;
+        public PokerHand Hand { get; } = hand;
+    }
+
+    public class DiscardResult(IReadOnlyList<Card> discardedCards) {
+        public IReadOnlyList<Card> DiscardedCards { get; } = discardedCards;
+    }
+
     public GameState State = new();
     public PokerHands Hands { get; } = new();
     public PokerGameConfig Config;
+    public Random Random;
 
-    public SolitairePokerGame(PokerGameConfig config) {
+    public SolitairePokerGame(Random random, PokerGameConfig config) {
+        Random = random;
         Config = config;
-
         State.BuildPokerDeck(config.ValidSuits, config.MinRank, config.MaxRank);
     }
 
     public void DrawCards() {
         if (!DrawPending()) {
-            throw new InvalidOperationException("Cannot draw cards with current hand");
+            throw new SolitairePokerGameException("Cannot draw cards: hand already full");
         }
         if (IsGameOver()) {
-            throw new InvalidOperationException("Cannot draw cards: no more hands to play");
+            throw new SolitairePokerGameException("Cannot draw cards: no more hands to play");
         }
 
-        State.CurrentHand = State.Draw(Math.Min(Config.HandSize, State.RemainingCards));
+        State.Shuffle(Random);
+        var pendingCardsToDraw = Config.HandSize - State.CurrentHand.Count;
+        var newCards = State.Draw(pendingCardsToDraw);
+        State.CurrentHand = [..State.CurrentHand, ..newCards];
     }
 
     public bool IsGameOver() => State.HandsPlayed >= Config.MaxHands;
-    public bool DrawPending() => !IsGameOver() && State.CurrentHand.Count == 0;
+    public bool DrawPending() => !IsGameOver() && State.CurrentHand.Count < Config.HandSize;
     public bool CanDiscard() => !IsGameOver() && State.Discards < Config.MaxDiscards;
 
-
-    public (bool Success, string? Message, int score) PlayHand(PokerHand hand) {
+    public PlayResult PlayHand(PokerHand hand) {
         if (IsGameOver()) {
-            return (false, "Game is already over", 0);
+            throw new SolitairePokerGameException("Game is already over");
         }
         if (DrawPending()) {
-            return (false, "Cannot play hands yet. Draw cards first.", 0);
+            throw new SolitairePokerGameException("Cannot play hands yet. Draw cards first.");
         }
         if (!hand.Cards.All(c => State.CurrentHand.Contains(c))) {
-            return (false, "Invalid hand: contains cards not in current hand", 0);
+            throw new SolitairePokerGameException("Invalid hand: contains cards not in current hand");
         }
 
         State.HandsPlayed++;
 
         var score = Hands.CalculateScore(hand);
         State.TotalScore += score;
-
-        State.CurrentHand = [];
-
-        State.PlayCards(hand.Cards);
-        State.History.AddPlay(hand, score);
-        return (true, null, score);
+        // Remove played cards from current hand first
+        State.CurrentHand = State.CurrentHand.Where(c => !hand.Cards.Contains(c)).ToList();
+        // Then add to played cards
+        State.AddToPlayedCards(hand.Cards);
+        State.History.AddPlayAction(hand, score);
+        return new PlayResult(hand, score);
     }
 
-    public (bool Success, string? Message) Discard(IReadOnlyList<Card> cards) {
+    public DiscardResult Discard(IReadOnlyList<Card> cards) {
         if (IsGameOver()) {
-            return (false, "No discards remaining or game is over");
+            throw new SolitairePokerGameException("No discards remaining or game is over");
         }
         if (DrawPending()) {
-            return (false, "Cannot discard hands yet. Draw cards first.");
+            throw new SolitairePokerGameException("Cannot discard hands yet. Draw cards first.");
         }
         if (!CanDiscard()) {
-            return (false, "No discards remaining or game is over");
+            throw new SolitairePokerGameException("No discards remaining or game is over");
         }
         if (cards.Count < 1 || cards.Count > Config.MaxDiscardCards) {
-            return (false, $"Must discard between 1 and {Config.MaxDiscardCards} cards");
+            throw new SolitairePokerGameException($"Must discard between 1 and {Config.MaxDiscardCards} cards");
         }
-
         if (!cards.All(c => State.CurrentHand.Contains(c))) {
-            return (false, "Invalid discard: contains cards not in current hand");
+            throw new SolitairePokerGameException("Invalid discard: contains cards not in current hand");
         }
 
         State.Discards++;
-
-        State.CurrentHand = [];
-
-        State.DiscardCards(cards);
-        State.History.AddDiscard(cards);
-        return (true, null);
+        // Remove discarded cards from current hand first
+        State.CurrentHand = State.CurrentHand.Where(c => !cards.Contains(c)).ToList();
+        // Then add to discarded pile
+        State.AddToDiscardedCards(cards);
+        State.History.AddDiscardAction(cards);
+        return new DiscardResult(cards);
     }
 
     public List<PokerHand> GetPossibleHands() {

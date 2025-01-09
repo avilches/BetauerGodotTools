@@ -42,11 +42,13 @@ public class GameState {
         return drawn;
     }
 
-    public void DiscardCards(IReadOnlyList<Card> returnedCards) {
+    public void AddToDiscardedCards(IReadOnlyList<Card> returnedCards) {
+        // Clone each card before adding to discarded pile
         _discardedCards.AddRange(returnedCards.Select(card => card.Clone()));
     }
 
-    public void PlayCards(IReadOnlyList<Card> playedCards) {
+    public void AddToPlayedCards(IReadOnlyList<Card> playedCards) {
+        // Clone each card before adding to played pile
         _playedCards.AddRange(playedCards.Select(card => card.Clone()));
     }
 }

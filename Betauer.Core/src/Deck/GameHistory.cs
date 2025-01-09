@@ -20,11 +20,11 @@ public class GameHistory {
         public int Score { get; } = score;
     }
 
-    public void AddPlay(PokerHand hand, int score) {
+    public void AddPlayAction(PokerHand hand, int score) {
         _actions.Add(new GameAction(GameActionType.Play, hand.Cards, hand, score));
     }
 
-    public void AddDiscard(IReadOnlyList<Card> cards) {
+    public void AddDiscardAction(IReadOnlyList<Card> cards) {
         _actions.Add(new GameAction(GameActionType.Discard, cards));
     }
 

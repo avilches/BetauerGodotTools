@@ -32,6 +32,7 @@ public class PokerHands {
         if (_handConfigs.Count == 0) {
             throw new InvalidOperationException("No hands registered");
         }
+        if (cards.Count == 0) return [];
         
         var allHands = _handConfigs
             .SelectMany(config => config.Prototype.FindAll(cards))
