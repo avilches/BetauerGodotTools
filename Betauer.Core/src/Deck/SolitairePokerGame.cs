@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Betauer.Core.Deck.Hands;
@@ -96,4 +97,12 @@ public class SolitairePokerGame {
     public List<PokerHand> GetPossibleHands() {
         return Hands.IdentifyAllHands(State.CurrentHand);
     }
+
+    public List<DiscardOption> GetDiscardOptions() {
+        return Hands.GetDiscardOptions(
+            State.CurrentHand,
+            State.AvailableCards,
+            Config.MaxDiscardCards);
+    }
+
 }

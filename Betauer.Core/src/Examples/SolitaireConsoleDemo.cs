@@ -16,7 +16,7 @@ public class SolitaireConsoleDemo(Random random) {
     public void Play() {
         Console.WriteLine("Welcome to Solitaire Poker!");
         
-        Game = new(random, new PokerGameConfig());
+        Game = new SolitairePokerGame(random, new PokerGameConfig());
         Game.Hands.RegisterBasicPokerHands();
 
         Game.DrawCards();
@@ -24,6 +24,7 @@ public class SolitaireConsoleDemo(Random random) {
             DisplayGameState();
             var possibleHands = Game.GetPossibleHands();
             DisplayPossibleHands(possibleHands);
+            DisplayPotentialHands();
             ProcessUserInput(possibleHands);
         }
 
@@ -61,6 +62,28 @@ public class SolitaireConsoleDemo(Random random) {
         Console.WriteLine();
         Console.Write("By rank: ");
         Console.WriteLine($"{string.Join(" ", cards.OrderByDescending(c => c.Rank))}");
+    }
+
+    private void DisplayPotentialHands() {
+        var discardOptions = Game.GetDiscardOptions();
+
+        Console.WriteLine("\nTop 5 potential discard combinations:");
+    
+        var i = 1;
+        foreach (var option in discardOptions) {
+            Console.WriteLine($"\n{i}. If discarding: {string.Join(", ", option.CardsToDiscard)}");
+            Console.WriteLine($"   Total potential score: {option.TotalScore:F2}");
+            Console.WriteLine("   Possible hands:");
+        
+            foreach (var improvement in option.PossibleImprovements) {
+                Console.WriteLine($"   - {improvement.TargetHand}");
+                Console.WriteLine($"     Score: {improvement.TargetHand.CalculateScore()}, " +
+                                  $"Prob: {improvement.Probability:P2}, " +
+                                  $"Potential Score: {improvement.Score:F2}");
+                Console.WriteLine($"     Keeping: {string.Join(", ", improvement.CardsToKeep)}");
+            }
+            i++;
+        }
     }
 
     private void DisplayPossibleHands(List<PokerHand> hands) {

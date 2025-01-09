@@ -18,7 +18,7 @@ public class GameState {
 
     public IReadOnlyList<Card> DiscardedCards => _discardedCards.AsReadOnly();
     public IReadOnlyList<Card> PlayedCards => _playedCards.AsReadOnly();
-    public IReadOnlyList<Card> AvailableCards => _cards;
+    public IReadOnlyList<Card> AvailableCards => _cards.AsReadOnly();
     
     public void BuildPokerDeck(string suits, int minRank, int maxRank) {
         if (minRank > maxRank) throw new ArgumentException("minRank cannot be greater than maxRank");

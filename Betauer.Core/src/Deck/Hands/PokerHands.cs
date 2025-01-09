@@ -4,20 +4,22 @@ using System.Linq;
 
 namespace Betauer.Core.Deck.Hands;
 
+public record PokerHandConfig(PokerHand Prototype, int Multiplier);
+
+
 public class PokerHands {
     private readonly List<PokerHandConfig> _handConfigs = [];
 
     public void RegisterBasicPokerHands() {
-        RegisterHand(new HighCardHand([]), 1);
-        RegisterHand(new PairHand([]), 2);
-        RegisterHand(new TwoPairHand([]), 3);
-        RegisterHand(new ThreeOfAKindHand([]), 4);
-        RegisterHand(new StraightHand([]), 5);
-        RegisterHand(new FlushHand([]), 6);
-        RegisterHand(new FullHouseHand([]), 7);
-        RegisterHand(new FourOfAKindHand([]), 8);
-        RegisterHand(new StraightFlushHand([]), 9);
-        RegisterHand(new RoyalFlushHand([]), 10);
+        RegisterHand(new HighCardHand(this, []), 1);
+        RegisterHand(new PairHand(this, []), 2);
+        RegisterHand(new TwoPairHand(this, []), 3);
+        RegisterHand(new ThreeOfAKindHand(this, []), 4);
+        RegisterHand(new StraightHand(this, []), 5);
+        RegisterHand(new FlushHand(this, []), 6);
+        RegisterHand(new FullHouseHand(this, []), 7);
+        RegisterHand(new FourOfAKindHand(this, []), 8);
+        RegisterHand(new StraightFlushHand(this, []), 9);
     }
 
     public void RegisterHand(PokerHand prototype, int multiplier) {
@@ -33,7 +35,7 @@ public class PokerHands {
             throw new InvalidOperationException("No hands registered");
         }
         if (cards.Count == 0) return [];
-        
+
         var allHands = _handConfigs
             .SelectMany(config => config.Prototype.FindAll(cards))
             .OrderByDescending(CalculateScore)
@@ -50,6 +52,38 @@ public class PokerHands {
         }
 
         return allHands;
+    }
+
+    public List<DiscardOption> GetDiscardOptions(IReadOnlyList<Card> currentHand, IReadOnlyList<Card> availableCards, int maxDiscardCards) {
+        var improvements = new List<HandImprovement>();
+
+        foreach (var config in _handConfigs) {
+            var handImprovements = config.Prototype.FindPossibleImprovements(
+                currentHand, 
+                availableCards, 
+                maxDiscardCards);
+            improvements.AddRange(handImprovements);
+        }
+
+        return improvements
+            .GroupBy(i => i.CardsToDiscard, new CardListEqualityComparer())
+            .Select(group => new DiscardOption(group.Key, group.ToList()))
+            .OrderByDescending(option => option.TotalScore)
+            .Take(5)
+            .ToList();
+    }
+    
+
+    // Helper class para comparar listas de cartas
+    private class CardListEqualityComparer : IEqualityComparer<List<Card>> {
+        public bool Equals(List<Card> x, List<Card> y) {
+            if (x == null || y == null) return x == y;
+            return x.Count == y.Count && x.All(y.Contains);
+        }
+
+        public int GetHashCode(List<Card> obj) {
+            return obj.Aggregate(0, (current, card) => current ^ card.GetHashCode());
+        }
     }
 
     public int GetMultiplier(PokerHand hand) {

@@ -8,7 +8,7 @@ using Betauer.TestRunner;
 namespace Betauer.Core.Tests;
 
 [TestFixture]
-public class PokerHandTestBase {
+public class PokerHandTest {
     protected PokerHands Hands;
 
     [SetUp]
@@ -152,21 +152,6 @@ public class PokerHandTestBase {
         var lowestRanks = straightFlushes.Select(h => h.Cards.Min(c => c.Rank)).OrderBy(r => r).ToList();
         Assert.That(lowestRanks[0], Is.EqualTo(6)); // Primera escalera empieza en 6
         Assert.That(lowestRanks[1], Is.EqualTo(7)); // Segunda escalera empieza en 7
-    }
-
-    [Test]
-    public void RoyalFlush_WithExtraCards_ShouldFindOneCombination() {
-        // Incluso con cartas extra del mismo palo, solo debería haber un royal flush
-        var cards = CreateCards("AS", "KS", "QS", "JS", "TS", "9S");
-        var hands = Hands.IdentifyAllHands(cards);
-        var royalFlushes = hands.Where(h => h is RoyalFlushHand).ToList();
-
-        Assert.That(royalFlushes.Count, Is.EqualTo(1));
-
-        // Verificar que contiene las cartas correctas
-        var royalFlush = royalFlushes[0];
-        Assert.That(royalFlush.Cards.Select(c => c.Rank).OrderBy(r => r),
-            Is.EquivalentTo(new[] { 10, 11, 12, 13, 14 }));
     }
 
     [Test]

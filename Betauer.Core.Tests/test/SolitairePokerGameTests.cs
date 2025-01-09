@@ -263,7 +263,7 @@ public class SolitairePokerGameTests {
         Assert.That(game.GetPossibleHands(), Is.Not.Empty); // Puede haber manos posibles con las cartas que quedaron
 
         // Try to play another hand
-        var exception = Assert.Throws<SolitairePokerGameException>(() => game.PlayHand(new PairHand(game.State.CurrentHand)));
+        var exception = Assert.Throws<SolitairePokerGameException>(() => game.PlayHand(new PairHand(game.Hands, game.State.CurrentHand)));
         Assert.That(exception.Message, Is.EqualTo("Game is already over"));
         Assert.Throws<SolitairePokerGameException>(() => game.DrawCards());
     }

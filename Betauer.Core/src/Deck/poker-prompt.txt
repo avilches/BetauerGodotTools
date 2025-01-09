@@ -1,187 +1,131 @@
-# Solitaire Poker Game
+# Solitaire Poker Game Implementation Guide
 
-## Reglas del Juego
-- Juego de poker solitario donde el jugador recibe 7 cartas e intenta formar la mejor mano posible
-- Se juegan exactamente 4 rondas
-- En cada ronda, el jugador puede:
-  * Jugar una mano de poker válida con las cartas disponibles
-  * Descartar hasta 5 cartas (máximo 4 descartes en todo el juego)
-- La puntuación se calcula: suma de los valores de las cartas × multiplicador de la mano
+## Core Game Mechanics
+- 7-card hands
+- 4 rounds per game
+- Actions per round: play a hand or discard up to 5 cards
+- Maximum 4 discards per game
+- Score: sum of card ranks × hand multiplier
 
-## Multiplicadores de Mano
-- Carta Alta: ×1
-- Par: ×2
-- Doble Par: ×3
-- Trío: ×4
-- Escalera: ×5
-- Color: ×6
-- Full House: ×7
-- Póker: ×8
-- Escalera de Color: ×9
-- Escalera Real: ×10
+## Scoring Multipliers
+High Card (×1) -> Pair (×2) -> Two Pair (×3) -> Three of a Kind (×4) -> 
+Straight (×5) -> Flush (×6) -> Full House (×7) -> Four of a Kind (×8) -> 
+Straight Flush (×9)
 
-## Valores de las Cartas
-- As: 14
-- Rey: 13
-- Reina: 12
-- Jota: 11
-- Resto: valor nominal
+Card ranks: Ace=14, King=13, Queen=12, Jack=11, Others=face value
 
-# Solitaire Poker Game Implementation
+## Class Architecture
 
-## Descripción General
-Un juego de poker solitario donde el jugador recibe 7 cartas y debe formar las mejores manos de poker posibles en 4 rondas.
-El jugador puede descartar hasta 5 cartas, 4 veces durante el juego.
+### Card and Deck System
+Card:
+- Properties: Rank (2-14), Suit (S,H,D,C)
+- Used for both deck and hand representation
+- ToString format: "AS" (Ace of Spades), "KH" (King of Hearts)
 
-## Reglas del Juego
-- Se juegan 4 manos en total
-- Cada mano comienza con 7 cartas
-- 4 oportunidades de descarte (máximo 5 cartas cada vez)
-- La puntuación se calcula: suma de los valores de las cartas × multiplicador de la mano
-- Si no se puede formar ninguna mano, se cuenta la carta más alta
+Deck:
+- Manages 52-card standard deck
+- Core operations: Shuffle, Draw, ReturnCards
+- Tracks available and played cards
 
-## Estructura de Clases
+### Hand Evaluation System
 
-### Card (struct inmutable)
-- Representa una carta con `Rank` (2-14) y `Suit` (S,H,D,C)
-- Rank usa int para facilitar comparaciones (14=As)
-- Implementa IComparable para ordenación
-- Método Parse para crear cartas desde string ("AS", "KH", etc.)
-- ToString para representación en texto
+PokerHand (abstract):
+- Properties: Cards, Name, PokerHands reference
+- Core methods:
+  * CalculateScore(): Computes hand value
+  * FindAll(): Identifies all possible hands of this type
+  * FindPossibleImprovements(): Analyzes future possibilities
+- Each implementation handles specific hand type logic
 
-### Deck
-- Baraja estándar de 52 cartas
-- Métodos: Shuffle, Draw, ReturnCards, Clone
-- Mantiene seguimiento de cartas restantes
-- Cloneable para mantener inmutabilidad del estado
+Implementations follow hand hierarchy (ordered by multiplier):
+HighCardHand -> PairHand -> TwoPairHand -> ThreeOfAKindHand -> 
+StraightHand -> FlushHand -> FullHouseHand -> FourOfAKindHand -> 
+StraightFlushHand
 
-### PokerHand (Abstract)
-- Base para todas las manos de poker
-- Propiedades: Name, Multiplier, Cards (inmutable)
-- Calcula Score: suma de ranks × multiplicador
-- Método FindAll: encuentra todas las posibles combinaciones de este tipo
-- Implementaciones específicas con multiplicadores:
-  - HighCardHand (×1)
-  - PairHand (×2)
-  - TwoPairHand (×3)
-  - ThreeOfAKindHand (×4)
-  - StraightHand (×5)
-  - FlushHand (×6)
-  - FullHouseHand (×7)
-  - FourOfAKindHand (×8)
-  - StraightFlushHand (×9)
-  - RoyalFlushHand (×10)
+### Hand Improvement Analysis
 
-### HandIdentifier
-- Identifica todas las posibles manos en un conjunto de cartas
-- Devuelve las manos ordenadas por multiplicador y puntuación
-- Añade identificadores únicos para manos del mismo tipo
-- Mantiene jerarquía de manos
-- Siempre incluye HighCard como fallback
+HandImprovement:
+- Represents a single possible hand improvement
+- Properties:
+  * CardsToKeep: Cards to retain from current hand
+  * CardsToDiscard: Cards to remove
+  * TargetHand: Complete poker hand we aim to achieve
+  * Probability: Chance of achieving target hand
+  * Score: HandScore × Probability
 
-### GameState (Inmutable)
-- Contiene todo el estado del juego:
-  - Deck actual
-  - Mano actual
-  - Descartes restantes
-  - Puntuación total
-  - Manos jugadas
-  - Historial
-- Constantes del juego:
-  - MAX_DISCARDS = 4
-  - MAX_DISCARD_CARDS = 5
-  - HAND_SIZE = 7
-  - MAX_HANDS = 4
-- Métodos:
-  - With(): crea nuevo estado con cambios
-  - IsGameOver(): verifica fin del juego
-  - CanDiscard(): verifica si puede descartar
+DiscardOption:
+- Groups related improvements for same discard action
+- Properties:
+  * CardsToDiscard: Specific cards to discard
+  * PossibleImprovements: All possible improvements from this discard
+  * TotalScore: Sum of all improvement scores
 
-### GameHistory (Cloneable)
-- Registra todas las acciones del juego
-- Tipos de acciones: PLAY y DISCARD
-- Almacena detalles de cada acción:
-  - Cartas jugadas/descartadas
-  - Mano formada (si es PLAY)
-  - Puntuación obtenida (si es PLAY)
-- Cloneable para mantener inmutabilidad del estado
+### Game State Management
 
-### ActionResult
-- Representa el resultado de una acción del juego
-- Propiedades:
-  - Success: éxito/fallo de la acción
-  - Message: mensaje de error o éxito
-  - State: nuevo estado del juego
-- Métodos factory:
-  - Ok(): para acciones exitosas
-  - Error(): para acciones fallidas
+GameState:
+- Properties:
+  * CurrentHand: Active cards
+  * Discards: Used discard actions
+  * HandsPlayed: Completed rounds
+  * TotalScore: Accumulated points
+  * History: Record of all actions
 
-### SolitairePokerGame
-- Clase principal que gestiona la lógica del juego
-- Estado inmutable mediante GameState
-- Métodos principales:
-  - GetState(): obtiene estado actual
-  - GetPossibleHands(): lista manos posibles
-  - PlayHand(): juega una mano
-  - Discard(): descarta cartas
-- Toda acción devuelve ActionResult
+GameHistory:
+- Tracks PLAY and DISCARD actions
+- Records cards and scores
+- Maintains game progression
 
-### SolitaireConsoleUI
-- Interfaz de usuario en consola
-- Métodos:
-  - DisplayGameState(): muestra estado actual
-  - DisplayCards(): muestra cartas agrupadas por palo
-  - DisplayPossibleHands(): lista manos jugables
-  - ProcessUserInput(): maneja entrada del usuario
-  - ProcessManualHand(): permite selección manual de cartas
-  - ProcessDiscard(): maneja descarte de cartas
-  - DisplayEndGame(): muestra resumen final
+## Implementation Patterns
 
-### Utilidades
-- CardExtensions:
-  - FindStraights(): encuentra escaleras posibles
-  - FindFlushes(): encuentra colores posibles
-- EnumerableExtensions:
-  - Combinations(): genera combinaciones de n elementos
-- ListExtensions:
-  - ContainsAll(): verifica si una lista contiene todos los elementos
+### FindPossibleImprovements Pattern
+Each PokerHand implementation:
+1. Analyzes current hand for potential improvements
+2. Identifies needed cards from available pool
+3. Calculates probability for each improvement
+4. Creates HandImprovement instances with:
+   - Cards to keep and discard
+   - Target hand configuration
+   - Probability and potential score
 
-## Tests
-Se incluyen tests unitarios completos:
-- SolitairePokerGameTests: prueba la lógica del juego
-- PokerHandTests: prueba identificación de manos
-- Cobertura de:
-  - Estado inicial
-  - Jugadas válidas e inválidas
-  - Límites de juego
-  - Descartes
-  - Inmutabilidad
-  - Puntuación
-  - Historial
+### Probability Calculations
+Varies by hand type:
+- Single card: matchingCards/remainingCards
+- Multiple cards: Uses combination probability
+- Suit requirements: Factors suit restrictions
+- Sequential needs: Considers valid ranges
 
-## Características Implementadas
-1. Sistema completo de cartas y baraja
-2. Identificación de todas las manos posibles de poker
-3. Sistema de puntuación basado en ranks y multiplicadores
-4. Historial de jugadas
-5. Interfaz de consola básica
-6. Sistema de descartes
-7. Inmutabilidad completa del estado
-8. Pruebas unitarias extensivas
-9. Separación clara entre lógica y UI
+### Core System Rules
+1. Each hand type handles its own improvement analysis
+2. Probabilities reflect real chances of improvement
+3. Scores combine hand value and probability
+4. All valid discard combinations are considered
+5. Improvements are grouped by discard action
 
-## Notas de Diseño
-- Inmutabilidad en todas las clases de estado
-- Uso de structs para tipos de valor (Card)
-- Patrón Builder para GameState
-- Uso extensivo de LINQ para manipulación de colecciones
-- Separación clara entre lógica de juego y presentación
-- Sistema flexible que permite añadir nuevos tipos de manos
-- Los comentarios se mantienen al mínimo, solo para explicar reglas de negocio complejas
-- Uso de tipos genéricos para utilidades como Combinations
+### Analysis Flow
+1. Each hand type identifies possible improvements
+2. Improvements are grouped by discard action
+3. Groups are sorted by total potential score
+4. Top 5 discard options are presented
+5. Each option shows all possible improvements
 
-## Uso del Programa
-1. Modo Consola:
-   ```csharp
-   var ui = new SolitaireConsoleUI();
-   ui.Play();
+## Utility Support
+- Combinations(): Generates card combinations
+- FindStraights(): Identifies sequential cards
+- Card comparison and equality operations
+- Probability calculation helpers
+- CardListEqualityComparer for comparing card sets
+
+## Key Concepts
+- Encapsulated improvement logic per hand type
+- Accurate probability calculations
+- Clear separation of responsibilities
+- Efficient hand analysis and scoring
+- Complete tracking through game history
+
+## Testing Strategy
+- Use reduced deck for probability verification
+- Test each hand type's improvement logic
+- Verify probability calculations
+- Check all possible improvement paths
+- Validate discard combinations
+- Ensure accurate scoring
