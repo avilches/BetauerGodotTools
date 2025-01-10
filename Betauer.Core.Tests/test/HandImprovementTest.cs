@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Betauer.Core.Deck;
 using Betauer.Core.Deck.Hands;
+using Betauer.TestRunner;
 using NUnit.Framework;
 
 namespace Betauer.Core.Tests;
@@ -22,235 +24,515 @@ public class HandImprovementTest {
     }
 
     [Test]
-    public void PairHand_WithHighCard_ShouldFindPotentialPair() {
-        var currentHand = CreateCards("AS", "KH", "QD");
-        var availableCards = CreateCards("AH", "3H", "4H", "5H", "6H", "7H"); // Más cartas para simular una baraja real
+    public void HighCardHand_SuggestDiscards_ShouldReturnEmpty() {
+        var currentHand = CreateCards("AS", "KH", "QD", "JC", "TD");
+        var hand = new HighCardHand(Hands, []);
+        var discards = hand.SuggestDiscards(currentHand, 3);
 
+        Assert.That(discards, Is.Empty, "High card hand should not suggest any discards");
+    }
+
+    [Test]
+    public void PairHand_SuggestDiscards_ShouldKeepPairAndDiscardLowest() {
+        var currentHand = CreateCards("AS", "AH", "KD", "QC", "TD");
         var hand = new PairHand(Hands, []);
-        var improvements = hand.FindPossibleImprovements(currentHand, availableCards, 2);
+        var discards = hand.SuggestDiscards(currentHand, 1)[0];
 
         Assert.Multiple(() => {
-            Assert.That(improvements.Count, Is.EqualTo(2)); // 2 formas de descartar (KH o QD)
-            var bestImprovement = improvements.OrderByDescending(i => i.Score).First();
-            Assert.That(bestImprovement.CardsToKeep.Single().ToString(), Is.EqualTo("AS"));
-            Assert.That(bestImprovement.Probability, Is.EqualTo(1.0 / 6)); // 1 as de 6 cartas
-            Assert.That(bestImprovement.TargetHand.Cards.Count, Is.EqualTo(2));
-            Assert.That(bestImprovement.TargetHand.Cards.All(c => c.Rank == 14), Is.True);
+            Assert.That(discards, Has.Count.EqualTo(1), "Should discard the lowest card");
+            Assert.That(discards, Does.Not.Contain(currentHand[0]), "Should not discard AS because it's a pair");
+            Assert.That(discards, Does.Not.Contain(currentHand[1]), "Should not discard AH because it's a pair");
+            Assert.That(discards, Does.Not.Contain(currentHand[2]), "Should not discard KD because it's not the lowest");
+            Assert.That(discards, Does.Not.Contain(currentHand[3]), "Should not discard QC because it's not the lowest");
+            Assert.That(discards, Does.Contain(currentHand[4]), "Should discard TD as lowest");
         });
     }
 
     [Test]
-    public void PairHand_WithNoMatchingCardsAvailable_ShouldReturnEmpty() {
-        var currentHand = CreateCards("AS", "KH", "QD");
-        var availableCards = CreateCards("JH", "TD", "9H", "8H", "7H", "6H"); // No hay cartas que coincidan
-
+    public void PairHand_SuggestDiscards_ShouldKeepPairAndDiscardAll() {
+        var currentHand = CreateCards("AS", "AH", "KD", "QC", "TD");
         var hand = new PairHand(Hands, []);
-        var improvements = hand.FindPossibleImprovements(currentHand, availableCards, 2);
+        var discards = hand.SuggestDiscards(currentHand, 3)[0];
 
-        Assert.That(improvements, Is.Empty);
+        Assert.Multiple(() => {
+            Assert.That(discards, Has.Count.EqualTo(3), "Should discard 3 non-pair cards");
+            Assert.That(discards, Does.Not.Contain(currentHand[0]), "Should not discard AS");
+            Assert.That(discards, Does.Not.Contain(currentHand[1]), "Should not discard AH");
+            Assert.That(discards, Does.Contain(currentHand[2]), "Should discard KD");
+            Assert.That(discards, Does.Contain(currentHand[3]), "Should discard QC");
+            Assert.That(discards, Does.Contain(currentHand[4]), "Should discard TD");
+        });
     }
 
     [Test]
-    public void PairHand_WithMaxDiscardsExceeded_ShouldLimitOptions() {
-        var currentHand = CreateCards("AS", "KH", "QD", "JD", "TD");
-        var availableCards = CreateCards("AH", "AD", "3H", "4H", "5H", "6H");
+    public void PairHand_SuggestDiscards_ShouldKeepThreeOfAKindAndDiscardLowest() {
+        var currentHand = CreateCards("AS", "AH", "AD", "QC", "TD");
+        var hand = new PairHand(Hands, []);
+        var discards = hand.SuggestDiscards(currentHand, 3)[0];
+
+        Assert.Multiple(() => {
+            Assert.That(discards, Has.Count.EqualTo(2), "Should discard 3 non-pair cards");
+            Assert.That(discards, Does.Not.Contain(currentHand[0]), "Should not discard AS");
+            Assert.That(discards, Does.Not.Contain(currentHand[1]), "Should not discard AH");
+            Assert.That(discards, Does.Not.Contain(currentHand[2]), "Should not discard AD");
+            Assert.That(discards, Does.Contain(currentHand[3]), "Should discard QC");
+            Assert.That(discards, Does.Contain(currentHand[4]), "Should discard TD");
+        });
+    }
+
+
+    [Test]
+    public void TwoPairHand_SuggestDiscards_ShouldKeepBothPairs() {
+        var currentHand = CreateCards("AS", "AH", "KD", "KC", "TD");
+        var hand = new TwoPairHand(Hands, []);
+        var discards = hand.SuggestDiscards(currentHand, 1)[0];
+
+        Assert.Multiple(() => {
+            Assert.That(discards, Has.Count.EqualTo(1), "Should discard 1 non-pair card");
+            Assert.That(discards, Does.Contain(currentHand[4]), "Should discard TD");
+            Assert.That(discards, Does.Not.Contain(currentHand[0]), "Should not discard AS");
+            Assert.That(discards, Does.Not.Contain(currentHand[1]), "Should not discard AH");
+            Assert.That(discards, Does.Not.Contain(currentHand[2]), "Should not discard KD");
+            Assert.That(discards, Does.Not.Contain(currentHand[3]), "Should not discard KC");
+        });
+    }
+
+    [Test]
+    public void ThreeOfAKind_SuggestDiscards_ShouldKeepTrioOnly() {
+        var currentHand = CreateCards("AS", "AH", "AD", "KC", "TD");
+        var hand = new ThreeOfAKindHand(Hands, []);
+        var discards = hand.SuggestDiscards(currentHand, 2)[0];
+
+        Assert.Multiple(() => {
+            Assert.That(discards, Has.Count.EqualTo(2), "Should discard 2 non-trio cards");
+            Assert.That(discards, Does.Contain(currentHand[3]), "Should discard KC");
+            Assert.That(discards, Does.Contain(currentHand[4]), "Should discard TD");
+        });
+    }
+
+    [Test]
+    public void StraightHand_SuggestDiscards_ShouldKeepConnectedCards() {
+        var currentHand = CreateCards("TD", "JH", "QC", "KD", "2S");
+        var hand = new StraightHand(Hands, []);
+        var discards = hand.SuggestDiscards(currentHand, 1)[0];
+
+        Assert.Multiple(() => {
+            Assert.That(discards, Has.Count.EqualTo(1), "Should discard 1 non-connected card");
+            Assert.That(discards, Does.Contain(currentHand[4]), "Should discard 2S");
+        });
+    }
+
+    [Test]
+    public void FlushHand_SuggestDiscards_ShouldKeepSameSuitCards() {
+        // 4 hearts and 1 spade
+        var currentHand = CreateCards("AH", "KH", "QH", "JH", "2S");
+        var hand = new FlushHand(Hands, []);
+        var discards = hand.SuggestDiscards(currentHand, 1)[0];
+
+        Assert.Multiple(() => {
+            Assert.That(discards, Has.Count.EqualTo(1), "Should discard 1 off-suit card");
+            Assert.That(discards, Does.Contain(currentHand[4]), "Should discard 2S");
+            Assert.That(discards.All(c => c.Suit != 'H'), "Should not discard any hearts");
+        });
+    }
+
+    [Test]
+    public void FullHouseHand_SuggestDiscards_ShouldKeepTrioAndPair() {
+        var currentHand = CreateCards("AS", "AH", "AD", "KH", "KC");
+        var hand = new FullHouseHand(Hands, []);
+        var discards = hand.SuggestDiscards(currentHand, 2)[0];
+
+        Assert.That(discards, Is.Empty, "Should not discard any cards from a full house");
+    }
+
+    [Test]
+    public void FourOfAKind_SuggestDiscards_ShouldKeepFourCards() {
+        var currentHand = CreateCards("AS", "AH", "AD", "AC", "KH");
+        var hand = new FourOfAKindHand(Hands, []);
+        var discards = hand.SuggestDiscards(currentHand, 1)[0];
+
+        Assert.Multiple(() => {
+            Assert.That(discards, Has.Count.EqualTo(1), "Should discard 1 non-quad card");
+            Assert.That(discards, Does.Contain(currentHand[4]), "Should discard KH");
+            Assert.That(discards.All(c => c.Rank != 14), "Should not discard any Aces");
+        });
+    }
+
+    [Test]
+    public void StraightFlushHand_SuggestDiscards_KeepConnectedSameSuit() {
+        // 4 connected hearts and 1 spade
+        var currentHand = CreateCards("TH", "JH", "QH", "KH", "2S");
+        var hand = new StraightFlushHand(Hands, []);
+        var discards = hand.SuggestDiscards(currentHand, 1)[0];
+
+        Assert.Multiple(() => {
+            Assert.That(discards, Has.Count.EqualTo(1), "Should discard 1 card");
+            Assert.That(discards, Does.Contain(currentHand[4]), "Should discard 2S");
+            Assert.That(discards.All(c => c.Suit != 'H'), "Should not discard any hearts");
+        });
+    }
+
+    [Test]
+    public void SuggestDiscards_ShouldRespectMaxDiscardLimit() {
+        var currentHand = CreateCards("2H", "3D", "4C", "5S", "6H", "7D", "8C");
         var maxDiscards = 2;
 
-        var hand = new PairHand(Hands, []);
-        var improvements = hand.FindPossibleImprovements(currentHand, availableCards, maxDiscards);
+        foreach (var handConfig in GetAllHandTypes()) {
+            var discards = handConfig.SuggestDiscards(currentHand, maxDiscards);
 
-        Assert.That(improvements.All(i => i.CardsToDiscard.Count <= maxDiscards), Is.True);
+            foreach (var discard in discards) {
+                Assert.That(discard, Has.Count.LessThanOrEqualTo(maxDiscards),
+                    $"{handConfig.GetType().Name} suggested more discards than allowed");
+            }
+        }
+    }
+
+    private IEnumerable<PokerHand> GetAllHandTypes() {
+        yield return new HighCardHand(Hands, []);
+        yield return new PairHand(Hands, []);
+        yield return new TwoPairHand(Hands, []);
+        yield return new ThreeOfAKindHand(Hands, []);
+        yield return new StraightHand(Hands, []);
+        yield return new FlushHand(Hands, []);
+        yield return new FullHouseHand(Hands, []);
+        yield return new FourOfAKindHand(Hands, []);
+        yield return new StraightFlushHand(Hands, []);
     }
 
     [Test]
-    public void TwoPairHand_FromPair_WithMultipleOptions_ShouldFindAllPossibilities() {
-        var currentHand = CreateCards("AS", "AH", "KH", "QD", "JD");
-        var availableCards = CreateCards("KS", "KD", "QS", "QH", "3H", "4H", "5H", "6H");
-
-        var hand = new TwoPairHand(Hands, []);
-        var improvements = hand.FindPossibleImprovements(currentHand, availableCards, 2);
-
-        // Debería encontrar mejoras tanto para K como para Q
-        var kImprovements = improvements.Where(i => i.TargetHand.Cards.Count(c => c.Rank == 13) == 2);
-        var qImprovements = improvements.Where(i => i.TargetHand.Cards.Count(c => c.Rank == 12) == 2);
+    public void HandUtils_FindRepeatedCards_Test() {
+        var cards = CreateCards("AS", "AH", "AD", "KH", "KC");
+        var groups = HandUtils.FindRepeatedCards(cards);
 
         Assert.Multiple(() => {
-            Assert.That(kImprovements, Is.Not.Empty, "Should find K pair improvements");
-            Assert.That(qImprovements, Is.Not.Empty, "Should find Q pair improvements");
-            Assert.That(improvements.First().CardsToKeep.Count(c => c.Rank == 14), Is.EqualTo(2), "Should keep the A pair");
-
-            // Con 8 cartas disponibles y 2 reyes entre ellas
-            Assert.That(kImprovements.First().Probability, Is.EqualTo(2.0 / 8), "Should calculate correct probability for K pair");
-            // Con 8 cartas disponibles y 2 reinas entre ellas
-            Assert.That(qImprovements.First().Probability, Is.EqualTo(2.0 / 8), "Should calculate correct probability for Q pair");
+            Assert.That(groups, Has.Count.EqualTo(2), "Should find 2 groups");
+            Assert.That(groups.First().Count(), Is.EqualTo(3), "First group should have 3 Aces");
+            Assert.That(groups.Last().Count(), Is.EqualTo(2), "Second group should have 2 Kings");
         });
     }
 
     [Test]
-    public void ThreeOfAKind_WithPair_DifferentProbabilities() {
-        var currentHand = CreateCards("AS", "AH", "KH", "QD"); // Par de ases
-        var availableCards = CreateCards("AD", "KS", "KD", "3H", "4H", "5H"); // Un as y dos reyes entre 6 cartas
-
-        var hand = new ThreeOfAKindHand(Hands, []);
-        var improvements = hand.FindPossibleImprovements(currentHand, availableCards, 2);
-
-        var aceImprovements = improvements.Where(i => i.TargetHand.Cards.All(c => c.Rank == 14));
-        var kingImprovements = improvements.Where(i => i.TargetHand.Cards.All(c => c.Rank == 13));
+    public void HandUtils_FindLargestSuitGroup_Test() {
+        var cards = CreateCards("AH", "KH", "QH", "JD", "TD");
+        var group = HandUtils.FindLargestSuitGroup(cards);
 
         Assert.Multiple(() => {
-            Assert.That(improvements, Is.Not.Empty, "Should find some improvements");
-
-            // Para el trío de ases (1 as de 6 cartas disponibles)
-            Assert.That(aceImprovements.First().Probability, Is.EqualTo(1.0 / 6),
-                "Probability for Aces should be 1/6 (one ace in six available cards)");
-
-            // Para el trío de reyes (2 reyes de 6 cartas disponibles)
-            Assert.That(kingImprovements.First().Probability, Is.EqualTo(2.0 / 6),
-                "Probability for Kings should be 2/6 (two kings in six available cards)");
+            Assert.That(group, Has.Count.EqualTo(3), "Should find 3 hearts");
+            Assert.That(group.All(c => c.Suit == 'H'), "All cards should be hearts");
         });
     }
 
     [Test]
-    public void StraightHand_WithConnectedCards_MultiplePossibilities() {
-        // Tenemos 4 cartas conectadas: T-J-Q-K
-        var currentHand = CreateCards("TH", "JH", "QH", "KH", "2S");
-        // Dos opciones para completar la escalera: 9 para T-K o A para T-A, más otras cartas
-        var availableCards = CreateCards("9H", "AH", "3H", "4H", "5H", "6H", "7H", "8D");
+    public void HandUtils_FindStraightSequences_CompleteStraight() {
+        var cards = CreateCards("9H", "TH", "JH", "QH", "KH");
+        var sequences = HandUtils.FindStraightSequences(cards);
 
+        Assert.Multiple(() => {
+            Assert.That(sequences, Has.Count.EqualTo(1), "Should find exactly one sequence");
+            Assert.That(sequences[0], Has.Count.EqualTo(5), "Sequence should have 5 cards");
+            Assert.That(sequences[0].Select(c => c.Rank),
+                Is.EqualTo(new[] { 9, 10, 11, 12, 13 }), "Should be 9-K sequence");
+        });
+    }
+
+    [Test]
+    public void HandUtils_FindStraightSequences_FourConnected() {
+        var cards = CreateCards("9H", "TH", "JH", "QH", "2S");
+        var sequences = HandUtils.FindStraightSequences(cards);
+        var mainSequence = sequences[0];
+
+        Assert.Multiple(() => {
+            Assert.That(mainSequence, Has.Count.EqualTo(4), "Should find 4 connected cards");
+            Assert.That(mainSequence.Select(c => c.Rank),
+                Is.EqualTo(new[] { 9, 10, 11, 12 }), "Should be 9-Q sequence");
+        });
+    }
+
+
+    [Test]
+    public void HandUtils_FindStraightSequences_LowAceStraight() {
+        var cards = CreateCards("AH", "2H", "3H", "4H", "5D", "KS");
+        var sequences = HandUtils.FindStraightSequences(cards);
+        var mainSequence = sequences[0];
+
+        Assert.Multiple(() => {
+            Assert.That(mainSequence, Has.Count.EqualTo(5), "Should find A-5 straight");
+            // Convertimos explícitamente el As a 1 y materializamos la secuencia en un array
+            var ranks = mainSequence.Select(c => c.Rank == 14 ? 1 : c.Rank)
+                .OrderBy(r => r)
+                .ToArray();
+            Assert.That(ranks, Is.EqualTo(new[] { 1, 2, 3, 4, 5 }),
+                "Should be A-5 sequence with Ace as 1");
+        });
+    }
+
+    [Test]
+    public void HandUtils_FindStraightSequences_HighAceStraight() {
+        var cards = CreateCards("AH", "KH", "QH", "JH", "TD", "2S");
+        var sequences = HandUtils.FindStraightSequences(cards);
+        var mainSequence = sequences[0];
+
+        Assert.Multiple(() => {
+            Assert.That(mainSequence, Has.Count.EqualTo(5), "Should find T-A straight");
+            Assert.That(mainSequence.Select(c => c.Rank).OrderBy(r => r),
+                Is.EqualTo(new[] { 10, 11, 12, 13, 14 }), "Should be T-A sequence with Ace as 14");
+        });
+    }
+
+    [Test]
+    public void HandUtils_FindStraightSequences_WithGap() {
+        var cards = CreateCards("8H", "9H", "JH", "QH", "KD", "2S");
+        var sequences = HandUtils.FindStraightSequences(cards);
+        var mainSequence = sequences[0];
+
+        Assert.Multiple(() => {
+            Assert.That(mainSequence, Has.Count.EqualTo(5), "Should find 8-K sequence with gap");
+            Assert.That(mainSequence.Select(c => c.Rank).OrderBy(r => r),
+                Is.EqualTo(new[] { 8, 9, 11, 12, 13 }), "Should be 8-K sequence with gap at 10");
+        });
+    }
+
+    [Test]
+    public void HandUtils_FindStraightSequences_MultipleSequences() {
+        var cards = CreateCards("7H", "8H", "9H", "TH", "JD", "QS", "KH");
+        var sequences = HandUtils.FindStraightSequences(cards);
+
+        Assert.Multiple(() => {
+            Assert.That(sequences, Has.Count.GreaterThan(1), "Should find multiple sequences");
+            // Debería encontrar 7-J, 8-Q, y 9-K
+            Assert.That(sequences[0].Count, Is.EqualTo(5), "First sequence should have 5 cards");
+            Assert.That(sequences[0].Select(c => c.Rank).OrderBy(r => r),
+                Is.EqualTo(new[] { 9, 10, 11, 12, 13 }), "Should prioritize highest straight 9-K");
+        });
+    }
+
+    [Test]
+    public void HandUtils_FindStraightSequences_SevenCardHand() {
+        var cards = CreateCards("5H", "6H", "7H", "8H", "9D", "TS", "JH");
+        var sequences = HandUtils.FindStraightSequences(cards);
+
+        Assert.Multiple(() => {
+            Assert.That(sequences, Has.Count.GreaterThan(1), "Should find multiple potential sequences");
+            Assert.That(sequences[0].Count, Is.EqualTo(5), "Best sequence should have 5 cards");
+            Assert.That(sequences[0].Select(c => c.Rank).OrderBy(r => r),
+                Is.EqualTo(new[] { 7, 8, 9, 10, 11 }), "Should prioritize highest straight 7-J");
+        });
+    }
+
+    [Test]
+    public void StraightHand_SuggestDiscards_WithSevenCards() {
+        var currentHand = CreateCards("5H", "6H", "7H", "8H", "9D", "TS", "JH");
         var hand = new StraightHand(Hands, []);
-        var improvements = hand.FindPossibleImprovements(currentHand, availableCards, 1);
+        var discards = hand.SuggestDiscards(currentHand, 2)[0];
 
         Assert.Multiple(() => {
-            Assert.That(improvements.Count, Is.EqualTo(2), "Should find two possible improvements");
-
-            // Verificar que guardamos las 4 cartas conectadas
-            Assert.That(improvements.All(i => i.CardsToKeep.Count == 4), "Should keep 4 connected cards");
-            Assert.That(improvements.All(i => i.CardsToKeep.Contains(currentHand[0])), "Should keep Ten");
-            Assert.That(improvements.All(i => i.CardsToKeep.Contains(currentHand[1])), "Should keep Jack");
-            Assert.That(improvements.All(i => i.CardsToKeep.Contains(currentHand[2])), "Should keep Queen");
-            Assert.That(improvements.All(i => i.CardsToKeep.Contains(currentHand[3])), "Should keep King");
-
-            // Verificar que descartamos el 2S
-            Assert.That(improvements.All(i => i.CardsToDiscard.Single().ToString() == "2S"), "Should discard 2S");
-
-            // Verificar las dos posibles escaleras
-            var targetHands = improvements.Select(i => i.TargetHand.Cards.ToList()).ToList();
-            Assert.That(targetHands.Count, Is.EqualTo(2), "Should have two different target hands");
-
-            // Una escalera debería ser 9-T-J-Q-K
-            var firstStraight = targetHands.Any(h => h.Select(c => c.Rank).OrderBy(r => r)
-                .SequenceEqual(new[] { 9, 10, 11, 12, 13 }));
-
-            // La otra escalera debería ser T-J-Q-K-A
-            var secondStraight = targetHands.Any(h => h.Select(c => c.Rank).OrderBy(r => r)
-                .SequenceEqual(new[] { 10, 11, 12, 13, 14 }));
-
-            Assert.That(firstStraight, Is.True, "Should find 9-K straight");
-            Assert.That(secondStraight, Is.True, "Should find T-A straight");
-
-            // Verificar probabilidades (1 carta de 8 disponibles para cada mejora)
-            Assert.That(improvements.All(i => i.Probability == 1.0 / 8), "Each improvement should have 1/8 probability");
+            Assert.That(discards, Has.Count.EqualTo(2), "Should discard 2 cards");
+            var remainingCards = currentHand.Except(discards).ToList();
+            Assert.That(HandUtils.FindStraightSequences(remainingCards)[0],
+                Has.Count.GreaterThanOrEqualTo(4),
+                "Should keep at least 4 connected cards");
         });
     }
 
     [Test]
-    public void FlushHand_WithFourOfSuit_SingleOption() {
-        // Tenemos 4 corazones y queremos hacer color
-        var currentHand = CreateCards("AH", "KH", "QH", "JH", "2S");
-        // Solo hay un corazón disponible entre varias cartas
-        var availableCards = CreateCards("TH", "3D", "4D", "5D", "6D", "7D", "8D", "9D");
-
-        var hand = new FlushHand(Hands, []);
-        var improvements = hand.FindPossibleImprovements(currentHand, availableCards, 1);
+    public void StraightHand_SuggestDiscards_WithGap() {
+        var currentHand = CreateCards("8H", "9H", "JH", "QH", "KD", "2S", "3D");
+        var hand = new StraightHand(Hands, []);
+        var discards = hand.SuggestDiscards(currentHand, 2)[0];
 
         Assert.Multiple(() => {
-            Assert.That(improvements.Count, Is.EqualTo(1), "Should find exactly one improvement");
-            var improvement = improvements[0];
-            // Verificamos que guardamos los 4 corazones
-            Assert.That(improvement.CardsToKeep.Count, Is.EqualTo(4), "Should keep 4 hearts");
-            Assert.That(improvement.CardsToKeep.All(c => c.Suit == 'H'), "Should keep only hearts");
-            // Verificamos que descartamos el 2S
-            Assert.That(improvement.CardsToDiscard.Single().ToString(), Is.EqualTo("2S"));
-            // Una carta favorable de 8 disponibles
-            Assert.That(improvement.Probability, Is.EqualTo(1.0 / 8), "Probability should be 1/8 (one heart in eight available cards)");
-            // La mano objetivo debe tener 5 cartas del mismo palo
-            Assert.That(improvement.TargetHand.Cards.Count, Is.EqualTo(5), "Target hand should have 5 cards");
-            Assert.That(improvement.TargetHand.Cards.All(c => c.Suit == 'H'), "Target hand should be all hearts");
+            Assert.That(discards, Has.Count.EqualTo(2), "Should discard 2 cards");
+            var remainingCards = currentHand.Except(discards).ToList();
+            var sequences = HandUtils.FindStraightSequences(remainingCards);
+            Assert.That(sequences, Is.Not.Empty, "Should find at least one sequence");
+            Assert.That(sequences[0], Has.Count.GreaterThanOrEqualTo(4),
+                "Should keep at least 4 connected cards");
+            Assert.That(sequences[0].Max(c => c.Rank), Is.GreaterThanOrEqualTo(10),
+                "Should keep high value cards in sequence");
+            // Verificar que descarta las cartas bajas
+            Assert.That(discards, Does.Contain(currentHand.First(c => c.Rank == 2)),
+                "Should discard 2");
+            Assert.That(discards, Does.Contain(currentHand.First(c => c.Rank == 3)),
+                "Should discard 3");
         });
     }
 
     [Test]
-    public void FullHouse_FromThreeOfAKind_MultiplePairOptions() {
-        var currentHand = CreateCards("AS", "AH", "AD", "KH", "QD");
-        var availableCards = CreateCards("KS", "KD", "QS", "QH", "3H", "4H", "5H", "6H");
-
-        var hand = new FullHouseHand(Hands, []);
-        var improvements = hand.FindPossibleImprovements(currentHand, availableCards, 2);
-
-        var kPairImprovements = improvements.Where(i => i.TargetHand.Cards.Count(c => c.Rank == 13) == 2);
-        var qPairImprovements = improvements.Where(i => i.TargetHand.Cards.Count(c => c.Rank == 12) == 2);
+    public void StraightHand_SuggestDiscards_WithLowAce() {
+        var currentHand = CreateCards("AH", "2H", "3H", "4D", "5S", "KH", "QD");
+        var hand = new StraightHand(Hands, []);
+        var discards = hand.SuggestDiscards(currentHand, 2)[0];
 
         Assert.Multiple(() => {
-            Assert.That(kPairImprovements, Is.Not.Empty, "Should find K pair improvements");
-            Assert.That(qPairImprovements, Is.Not.Empty, "Should find Q pair improvements");
-            Assert.That(improvements.All(i => i.TargetHand.Cards.Count(c => c.Rank == 14) == 3),
-                "Should keep three Aces");
+            Assert.That(discards, Has.Count.EqualTo(2), "Should discard 2 cards");
+            var remainingCards = currentHand.Except(discards).ToList();
+            var sequences = HandUtils.FindStraightSequences(remainingCards);
 
-            // 2 reyes entre 8 cartas disponibles para completar el par
-            Assert.That(kPairImprovements.First().Probability, Is.EqualTo(1.0 / 8 * 1.0 / 7).Within(0.0001),
-                "Probability for K pair should be (2/8)*(1/7)");
-            // 2 reinas entre 8 cartas disponibles para completar el par
-            Assert.That(qPairImprovements.First().Probability, Is.EqualTo(1.0 / 8 * 1.0 / 7).Within(0.0001),
-                "Probability for Q pair should be (2/8)*(1/7)");
+            Assert.That(sequences, Is.Not.Empty, "Should find at least one sequence");
+            Assert.That(sequences[0], Has.Count.EqualTo(5), "Should keep complete A-5 straight");
+
+            // Verificar que tenemos todas las cartas necesarias para A-5
+            var ranks = sequences[0].Select(c => c.Rank == 14 ? 1 : c.Rank).OrderBy(r => r).ToList();
+            Assert.That(ranks, Is.EqualTo(new[] { 1, 2, 3, 4, 5 }), "Should have A-5 sequence");
+
+            // Verificar que descartamos K,Q
+            Assert.That(discards, Does.Contain(currentHand.First(c => c.Rank == 13)), "Should discard King");
+            Assert.That(discards, Does.Contain(currentHand.First(c => c.Rank == 12)), "Should discard Queen");
         });
     }
 
     [Test]
-    public void FullHouse_FromTwoPairs_ShouldFindImprovements() {
-        var currentHand = CreateCards("AS", "AH", "KS", "KH", "QD");
-        var availableCards = CreateCards("AD", "KD", "3H", "4H", "5H", "6H", "7H", "8H");
-
-        var hand = new FullHouseHand(Hands, []);
-        var improvements = hand.FindPossibleImprovements(currentHand, availableCards, 1);
-
-        var aceImprovements = improvements.Where(i => i.TargetHand.Cards.Count(c => c.Rank == 14) == 3);
-        var kingImprovements = improvements.Where(i => i.TargetHand.Cards.Count(c => c.Rank == 13) == 3);
+    public void StraightHand_SuggestDiscards_WithHighAce() {
+        var currentHand = CreateCards("AH", "KH", "QH", "JD", "TS", "2H", "3D");
+        var hand = new StraightHand(Hands, []);
+        var discards = hand.SuggestDiscards(currentHand, 2)[0];
 
         Assert.Multiple(() => {
-            Assert.That(aceImprovements, Is.Not.Empty, "Should find Ace improvements");
-            Assert.That(kingImprovements, Is.Not.Empty, "Should find King improvements");
-
-            // 1 as entre 8 cartas disponibles
-            Assert.That(aceImprovements.First().Probability, Is.EqualTo(1.0 / 8),
-                "Probability for Ace should be 1/8");
-            // 1 rey entre 8 cartas disponibles
-            Assert.That(kingImprovements.First().Probability, Is.EqualTo(1.0 / 8),
-                "Probability for King should be 1/8");
+            Assert.That(discards, Has.Count.EqualTo(2), "Should discard 2 cards");
+            var remainingCards = currentHand.Except(discards).ToList();
+            var sequences = HandUtils.FindStraightSequences(remainingCards);
+            Assert.That(sequences[0], Has.Count.EqualTo(5),
+                "Should keep complete T-A straight");
+            Assert.That(sequences[0].Select(c => c.Rank).Max(), Is.EqualTo(14),
+                "Should keep Ace as highest card");
         });
     }
 
     [Test]
-    public void StraightFlushHand_WithFourConnected_SameSuit() {
-        var currentHand = CreateCards("9H", "TH", "JH", "QH", "2S");
-        var availableCards = CreateCards("8H", "3D", "4D", "5D", "6D", "7D", "KD", "AD");
-
-        var hand = new StraightFlushHand(Hands, []);
-        var improvements = hand.FindPossibleImprovements(currentHand, availableCards, 1);
+    public void StraightHand_SuggestDiscards_MaxDiscardsRespected() {
+        var currentHand = CreateCards("2H", "3H", "7H", "8D", "9S", "TH", "JD", "QD", "KD");
+        var maxDiscards = 5;
+        var hand = new StraightHand(Hands, []);
+        var discards = hand.SuggestDiscards(currentHand, maxDiscards)[0];
 
         Assert.Multiple(() => {
-            Assert.That(improvements.Count, Is.EqualTo(1));
-            var improvement = improvements[0];
-            Assert.That(improvement.CardsToKeep.All(c => c.Suit == 'H'), Is.True);
-            Assert.That(improvement.CardsToDiscard.Single().ToString(), Is.EqualTo("2S"));
-            Assert.That(improvement.TargetHand.Cards.All(c => c.Suit == 'H'), Is.True);
-            Assert.That(IsValidStraight(improvement.TargetHand.Cards), Is.True);
-            // Un 8 de corazones entre 8 cartas disponibles
-            Assert.That(improvement.Probability, Is.EqualTo(1.0 / 8), "Probability should be 1/8");
+            Assert.That(discards, Has.Count.LessThanOrEqualTo(maxDiscards),
+                "Should respect maxDiscards limit");
+            var remainingCards = currentHand.Except(discards).ToList();
+            var sequences = HandUtils.FindStraightSequences(remainingCards);
+            Assert.That(sequences[0], Has.Count.GreaterThanOrEqualTo(4),
+                "Should keep at least 4 connected cards");
+            Assert.That(remainingCards.Count, Is.GreaterThanOrEqualTo(5),
+                "Should keep enough cards for a straight");
         });
     }
 
-    private bool IsValidStraight(IReadOnlyList<Card> cards) {
-        var ranks = cards.Select(c => c.Rank).OrderBy(r => r).ToList();
-        return ranks.Count == 5 && ranks[4] - ranks[0] == 4;
+    [Test]
+    public void SuggestDiscards_WhenHandAlreadyExists_ShouldReturnEmpty() {
+        foreach (var handType in GetAllHandTypes()) {
+            TestHandTypeNoDiscard(handType);
+        }
+    }
+
+    private void TestHandTypeNoDiscard(PokerHand prototype) {
+        // Preparamos una mano que coincida con el tipo
+        var currentHand = GetSampleHandForType(prototype);
+        // Si la mano existe, GetBestDiscards debe devolver vacío
+        var discards = prototype.GetBestDiscards(currentHand, 3);
+
+        Assert.That(discards, Is.Empty,
+            $"{prototype.GetType().Name} should not suggest discards when hand already exists");
+    }
+
+    private List<Card> GetSampleHandForType(PokerHand prototype) {
+        // Devuelve una mano de ejemplo para cada tipo
+        return prototype switch {
+            HighCardHand => CreateCards("AS", "KH", "QD", "JC", "TD"),
+            PairHand => CreateCards("AS", "AH", "KD", "QC", "TD"),
+            TwoPairHand => CreateCards("AS", "AH", "KS", "KH", "TD"),
+            ThreeOfAKindHand => CreateCards("AS", "AH", "AD", "KH", "TD"),
+            StraightHand => CreateCards("9H", "TH", "JH", "QH", "KH"),
+            FlushHand => CreateCards("AH", "KH", "QH", "JH", "TH"),
+            FullHouseHand => CreateCards("AS", "AH", "AD", "KS", "KH"),
+            FourOfAKindHand => CreateCards("AS", "AH", "AD", "AC", "KH"),
+            StraightFlushHand => CreateCards("9H", "TH", "JH", "QH", "KH"),
+            _ => throw new ArgumentException($"Unknown hand type: {prototype.GetType().Name}")
+        };
+    }
+
+    [Test]
+    public void GetBestDiscards_WhenHandDoesNotExist_ShouldSuggestDiscards() {
+        // Test para todas las manos
+        foreach (var handType in GetAllHandTypes()) {
+            TestHandTypeSuggestsDiscards(handType);
+        }
+    }
+
+    private void TestHandTypeSuggestsDiscards(PokerHand prototype) {
+        // Preparamos una mano que NO coincida con el tipo pero tenga potencial
+        var currentHand = GetPotentialHandForType(prototype);
+        if (currentHand == null) return; // Saltamos tipos que no necesitan test (como HighCard)
+
+        var discards = prototype.GetBestDiscards(currentHand, 3);
+
+        Assert.That(discards, Is.Not.Empty,
+            $"{prototype.GetType().Name} should suggest discards when hand can be improved");
+    }
+
+    private List<Card> GetPotentialHandForType(PokerHand prototype) {
+        // Devuelve una mano con potencial para cada tipo
+        return prototype switch {
+            HighCardHand => null, // HighCard no necesita test de mejora
+            PairHand => CreateCards("AS", "KH", "QD", "JC", "TD"), // Potencial par de ases
+            TwoPairHand => CreateCards("AS", "AH", "KD", "QC", "TD"), // Ya tiene un par
+            ThreeOfAKindHand => CreateCards("AS", "AH", "KD", "QC", "TD"), // Tiene un par
+            StraightHand => CreateCards("9H", "TH", "JH", "QH", "2S"), // 4 conectadas
+            FlushHand => CreateCards("AH", "KH", "QH", "JH", "2S"), // 4 corazones
+            FullHouseHand => CreateCards("AS", "AH", "AD", "QC", "TD"), // Tiene trío
+            FourOfAKindHand => CreateCards("AS", "AH", "AD", "QC", "TD"), // Tiene trío
+            StraightFlushHand => CreateCards("9H", "TH", "JH", "QH", "2S"), // 4 conectadas de corazones
+            _ => throw new ArgumentException($"Unknown hand type: {prototype.GetType().Name}")
+        };
+    }
+    
+    [Test]
+    public void GetDiscardOptions_WithEmptyHand_ReturnsEmptyList() {
+        var currentHand = new List<Card>();
+        var availableCards = CreateCards("2H", "3H", "4H", "5H", "6H");
+        var result = Hands.GetDiscardOptions(currentHand, [], availableCards, 3);
+        
+        Assert.That(result.DiscardOptions, Is.Empty);
+    }
+
+    [Test]
+    public void GetDiscardOptions_WithNegativeMaxDiscards_ThrowsException() {
+        var currentHand = CreateCards("2H", "3H", "4H");
+        var availableCards = CreateCards("5H", "6H");
+        
+        Assert.Throws<ArgumentException>(() => 
+            Hands.GetDiscardOptions(currentHand, [], availableCards, -1));
+    }
+
+    [Test]
+    public void GetDiscardOptions_WithNoAvailableCards_ReturnsEmptyList() {
+        var currentHand = CreateCards("2H", "3H", "4H");
+        var availableCards = new List<Card>();
+        var result = Hands.GetDiscardOptions(currentHand, [], availableCards, 3);
+        
+        Assert.That(result.DiscardOptions, Is.Empty);
+    }
+
+    [Test]
+    public void GetDiscardOptions_NoDiscard_ReturnsEmptyList() {
+        var currentHand = CreateCards("2H", "2S", "3D");
+        var availableCards = CreateCards("2H", "3H", "4H", "5H", "6H");
+        var result = Hands.GetDiscardOptions(currentHand, CreateCards("2H", "2S", "3D"), availableCards, 3);
+        
+        Assert.That(result.DiscardOptions, Is.Empty);
+    }
+
+    [Test]
+    public void HandUtils_FindStraightSequences_WithDuplicateRanks() {
+        var cards = CreateCards("8H", "8D", "9H", "TH", "JH");
+        var sequences = HandUtils.FindStraightSequences(cards);
+        var mainSequence = sequences[0];
+        
+        Assert.Multiple(() => {
+            Assert.That(mainSequence, Has.Count.EqualTo(4), 
+                "Should find 4-card sequence ignoring duplicate rank");
+            Assert.That(mainSequence.Select(c => c.Rank).Distinct().Count(), 
+                Is.EqualTo(mainSequence.Count), 
+                "Sequence should not contain duplicate ranks");
+        });
     }
 }

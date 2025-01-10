@@ -98,11 +98,17 @@ public class SolitairePokerGame {
         return Hands.IdentifyAllHands(State.CurrentHand);
     }
 
-    public List<DiscardOption> GetDiscardOptions() {
-        return Hands.GetDiscardOptions(
-            State.CurrentHand,
-            State.AvailableCards,
-            Config.MaxDiscardCards);
+    public DiscardOptionsResult GetDiscardOptions(IReadOnlyList<Card> neverDiscard) {
+        return Hands.GetDiscardOptions(State.CurrentHand, neverDiscard, State.AvailableCards, Config.MaxDiscardCards);
     }
+}
 
+public record DiscardOptionsResult(
+    List<DiscardOption> DiscardOptions,
+    TimeSpan ElapsedTime,
+    int TotalSimulations,
+    int TotalCombinations) {
+    public IOrderedEnumerable<DiscardOption> GetBestDiscards(float risk) {
+        return DiscardOptions.OrderByDescending(option => option.GetBestPotentialScore(risk));
+    }
 }
