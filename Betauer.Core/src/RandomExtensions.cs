@@ -302,6 +302,7 @@ public static partial class RandomExtensions {
             (array[n], array[k]) = (array[k], array[n]);
         }
     }
+
 }
 
 public class Producer<T>(Func<T> producer) : IEnumerable<T> {
