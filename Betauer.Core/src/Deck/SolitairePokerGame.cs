@@ -41,7 +41,8 @@ public class SolitairePokerGame {
         State.CurrentHand = [..State.CurrentHand, ..newCards];
     }
 
-    public bool IsGameOver() => State.HandsPlayed >= Config.MaxHands;
+    public bool IsWon() => State.TotalScore > 0 && State.Score >= State.TotalScore;
+    public bool IsGameOver() => IsWon() || State.HandsPlayed >= Config.MaxHands;
     public bool DrawPending() => !IsGameOver() && State.CurrentHand.Count < Config.HandSize;
     public bool CanDiscard() => !IsGameOver() && State.Discards < Config.MaxDiscards;
 
@@ -59,12 +60,12 @@ public class SolitairePokerGame {
         State.HandsPlayed++;
 
         var score = Hands.CalculateScore(hand);
-        State.TotalScore += score;
+        State.Score += score;
         // Remove played cards from current hand first
         State.CurrentHand = State.CurrentHand.Where(c => !hand.Cards.Contains(c)).ToList();
         // Then add to played cards
         State.AddToPlayedCards(hand.Cards);
-        State.History.AddPlayAction(hand, score);
+        State.History.AddPlayAction(hand, score, State.Score, State.TotalScore);
         return new PlayResult(hand, score);
     }
 
@@ -90,7 +91,7 @@ public class SolitairePokerGame {
         State.CurrentHand = State.CurrentHand.Where(c => !cards.Contains(c)).ToList();
         // Then add to discarded pile
         State.AddToDiscardedCards(cards);
-        State.History.AddDiscardAction(cards);
+        State.History.AddDiscardAction(cards, State.Score, State.TotalScore);
         return new DiscardResult(cards);
     }
 

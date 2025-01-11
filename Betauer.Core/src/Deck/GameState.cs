@@ -5,8 +5,11 @@ using System.Linq;
 namespace Betauer.Core.Deck;
 
 public class GameState {
-    public int HandsPlayed { get; set; } = 0;
+    public int Score { get; set; } = 0;
     public int TotalScore { get; set; } = 0;
+    public int Level { get; set; } = 0;
+
+    public int HandsPlayed { get; set; } = 0;
     public int Discards { get; set; } = 0;
     public IReadOnlyList<Card> CurrentHand { get; set; } = [];
     public GameHistory History { get; } = new();
@@ -19,10 +22,10 @@ public class GameState {
     public IReadOnlyList<Card> DiscardedCards => _discardedCards.AsReadOnly();
     public IReadOnlyList<Card> PlayedCards => _playedCards.AsReadOnly();
     public IReadOnlyList<Card> AvailableCards => _cards.AsReadOnly();
-    
+
     public void BuildPokerDeck(string suits, int minRank, int maxRank) {
         if (minRank > maxRank) throw new ArgumentException("minRank cannot be greater than maxRank");
-        
+
         _cards.Clear();
         foreach (var suit in suits) {
             for (var rank = minRank; rank <= maxRank; rank++) {

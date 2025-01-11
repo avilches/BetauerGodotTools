@@ -92,8 +92,8 @@ public class PokerHands {
         const double MinSimulationPercentage = 0.10;
         
         var watch = System.Diagnostics.Stopwatch.StartNew();
-        int totalSimulations = 0;
-        int totalCombinations = 0;
+        var totalSimulations = 0;
+        var totalCombinations = 0;
 
         // Get all possible discard combinations from all hand types
         var suggestedDiscards = _handConfigs

@@ -92,14 +92,14 @@ public class SolitairePokerGameTests {
 
         var finalState = game.State;
         Assert.Multiple(() => {
-            Assert.That(finalState.TotalScore, Is.EqualTo(totalScore));
+            Assert.That(finalState.Score, Is.EqualTo(totalScore));
             Assert.That(game.IsGameOver(), Is.True);
 
             // Verify history matches our played hands
             var history = finalState.History.GetHistory().Where(a => a.Type == GameHistory.GameActionType.Play).ToList();
             Assert.That(history.Count, Is.EqualTo(config.MaxHands));
             for (int i = 0; i < handScores.Count; i++) {
-                Assert.That(history[i].Score, Is.EqualTo(handScores[i]));
+                Assert.That(history[i].HandScore, Is.EqualTo(handScores[i]));
             }
         });
     }
@@ -234,7 +234,7 @@ public class SolitairePokerGameTests {
         Assert.Multiple(() => {
             Assert.That(result.Score, Is.EqualTo(game.Hands.CalculateScore(playedHand)));
             Assert.That(game.State.HandsPlayed, Is.EqualTo(1));
-            Assert.That(game.State.TotalScore, Is.EqualTo(result.Score));
+            Assert.That(game.State.Score, Is.EqualTo(result.Score));
             // Las cartas jugadas deben contener las cartas de la mano jugada (no ser igual)
             Assert.That(game.State.PlayedCards.Intersect(playedHand.Cards), Is.EquivalentTo(playedHand.Cards));
             Assert.That(game.State.DiscardedCards, Is.Empty);
@@ -286,5 +286,117 @@ public class SolitairePokerGameTests {
             Assert.That(game.State.PlayedCards, Is.Empty);
             Assert.That(game.State.History.GetHistory().Count, Is.EqualTo(1));
         });
+    }
+
+    [Test]
+    public void PlayHand_ShouldUpdateGameHistoryActionScores() {
+        // Establecer un objetivo total
+        game.State.TotalScore = 300;
+        game.DrawCards();
+
+        // Jugar dos manos para verificar la acumulación del score
+        var firstHand = game.GetPossibleHands()[0];
+        var firstResult = game.PlayHand(firstHand);
+        game.DrawCards();
+
+        var secondHand = game.GetPossibleHands()[0];
+        var secondResult = game.PlayHand(secondHand);
+
+        // Obtener las acciones del historial
+        var history = game.State.History.GetHistory()
+            .Where(a => a.Type == GameHistory.GameActionType.Play)
+            .ToList();
+
+        Assert.Multiple(() => {
+            // Verificar primera acción
+            Assert.That(history[0].HandScore, Is.EqualTo(firstResult.Score));
+            Assert.That(history[0].GameScore, Is.EqualTo(firstResult.Score));
+            Assert.That(history[0].TotalScore, Is.EqualTo(300));
+
+            // Verificar segunda acción
+            Assert.That(history[1].HandScore, Is.EqualTo(secondResult.Score));
+            Assert.That(history[1].GameScore, Is.EqualTo(firstResult.Score + secondResult.Score));
+            Assert.That(history[1].TotalScore, Is.EqualTo(300));
+        });
+    }
+
+    [Test]
+    public void GameState_ShouldTrackScoreProgress() {
+        // Establecer un objetivo total
+        game.State.TotalScore = 300;
+        game.DrawCards();
+
+        // Jugar tres manos y verificar la acumulación del score
+        var firstHand = game.GetPossibleHands()[0];
+        var firstResult = game.PlayHand(firstHand);
+        game.DrawCards();
+
+        var secondHand = game.GetPossibleHands()[0];
+        var secondResult = game.PlayHand(secondHand);
+        game.DrawCards();
+
+        var thirdHand = game.GetPossibleHands()[0];
+        var thirdResult = game.PlayHand(thirdHand);
+
+        Assert.Multiple(() => {
+            // Verificar el score final
+            var expectedTotalScore = firstResult.Score + secondResult.Score + thirdResult.Score;
+            Assert.That(game.State.Score, Is.EqualTo(expectedTotalScore));
+            Assert.That(game.State.TotalScore, Is.EqualTo(300));
+        });
+    }
+
+    [Test]
+    public void IsWon_ShouldDependOnTotalScore() {
+        // Caso 1: Score bajo, no debería ganar
+        game.State.TotalScore = 1000;
+        game.DrawCards();
+        var hand = game.GetPossibleHands()[0];
+        game.PlayHand(hand);
+        Assert.That(game.IsWon(), Is.False, "Game should not be won with low score");
+
+        // Caso 2: Score suficiente, debería ganar
+        game = new SolitairePokerGame(new Random(1), config);
+        game.Hands.RegisterBasicPokerHands();
+        game.State.TotalScore = 10; // Un valor bajo que seguro se puede alcanzar con una mano
+        game.DrawCards();
+        hand = game.GetPossibleHands()[0];
+        game.PlayHand(hand);
+        Assert.That(game.IsWon(), Is.True, "Game should be won when score >= totalScore");
+    }
+
+    [Test]
+    public void GameProgression_ShouldHandleMultipleLevels() {
+        // Simular progresión a través de múltiples niveles
+        int[] levels = { 1, 2, 3 };
+
+        foreach (var targetScore in levels) {
+            game.State.TotalScore = targetScore;
+
+            while (!game.IsWon() && !game.IsGameOver()) {
+                game.DrawCards();
+                var bestHand = game.GetPossibleHands()[0];
+                game.PlayHand(bestHand);
+            }
+
+            Assert.Multiple(() => {
+                Assert.That(game.State.Score, Is.GreaterThanOrEqualTo(game.State.TotalScore),
+                    $"Score should reach or exceed target {targetScore}");
+
+                // Verificar que el historial refleja correctamente la progresión
+                var history = game.State.History.GetHistory()
+                    .Where(a => a.Type == GameHistory.GameActionType.Play);
+                foreach (var action in history) {
+                    Assert.That(action.TotalScore, Is.EqualTo(targetScore),
+                        "Each history action should have correct target score");
+                    Assert.That(action.GameScore, Is.LessThanOrEqualTo(game.State.Score),
+                        "Accumulated score in history should not exceed final score");
+                }
+            });
+
+            // Reiniciar para el siguiente nivel
+            game = new SolitairePokerGame(new Random(1), config);
+            game.Hands.RegisterBasicPokerHands();
+        }
     }
 }
