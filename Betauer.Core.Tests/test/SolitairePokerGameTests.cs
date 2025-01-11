@@ -399,4 +399,45 @@ public class SolitairePokerGameTests {
             game.Hands.RegisterBasicPokerHands();
         }
     }
+
+    [Test]
+    public void CalculateScore_ShouldUseInitialScoreAndMultiplier() {
+        game.DrawCards();
+        var possibleHands = game.GetPossibleHands();
+        Assert.That(possibleHands, Is.Not.Empty, "Should have at least one possible hand");
+
+        var hand = possibleHands[0];
+        var config = game.Hands.GetPokerHandConfig(hand);
+
+        var result = game.PlayHand(hand);
+
+        var expectedScore = (config.InitialScore + hand.Cards.Sum(c => c.Rank)) * config.Multiplier;
+        Assert.That(result.Score, Is.EqualTo(expectedScore),
+            $"Score calculation should be (InitialScore({config.InitialScore}) + Sum of Ranks({hand.Cards.Sum(c => c.Rank)})) * Multiplier({config.Multiplier})");
+    }
+
+    [Test]
+    public void RegisterHand_ShouldStoreInitialScoreCorrectly() {
+        // Clear existing hands and register a test hand
+        game.Hands.ClearHands();
+        var testHand = new HighCardHand(game.Hands, []);
+        game.Hands.RegisterHand(testHand, 42, 2);
+
+        var config = game.Hands.GetPokerHandConfig(testHand);
+        Assert.Multiple(() => {
+            Assert.That(config.InitialScore, Is.EqualTo(42));
+            Assert.That(config.Multiplier, Is.EqualTo(2));
+        });
+    
+        // Crear una mano real con cartas específicas
+        var card1 = new Card( 10, 'S');    // Rank 10
+        var card2 = new Card( 12, 'S');    // Rank 12
+        var hand = new HighCardHand(game.Hands, [card1, card2]);
+
+        var score = game.Hands.CalculateScore(hand);
+        var expectedScore = (42 + card1.Rank + card2.Rank) * 2; // (42 + 10 + 12) * 2 = 128
+        Assert.That(score, Is.EqualTo(expectedScore),
+            $"Score calculation should be (InitialScore({config.InitialScore}) + Sum of Ranks({card1.Rank + card2.Rank})) * Multiplier({config.Multiplier}) = {expectedScore}");
+    }
+
 }

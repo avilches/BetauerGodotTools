@@ -4,21 +4,21 @@ using System.Linq;
 
 namespace Betauer.Core.Deck.Hands;
 
-public record PokerHandConfig(PokerHand Prototype, int Multiplier);
+public record PokerHandConfig(PokerHand Prototype, int InitialScore, int Multiplier);
 
 public class PokerHands {
     private readonly List<PokerHandConfig> _handConfigs = [];
 
     public void RegisterBasicPokerHands() {
-        RegisterHand(new HighCardHand(this, []), 1);
-        RegisterHand(new PairHand(this, []), 2);
-        RegisterHand(new TwoPairHand(this, []), 3);
-        RegisterHand(new ThreeOfAKindHand(this, []), 4);
-        RegisterHand(new StraightHand(this, []), 5);
-        RegisterHand(new FlushHand(this, []), 6);
-        RegisterHand(new FullHouseHand(this, []), 7);
-        RegisterHand(new FourOfAKindHand(this, []), 8);
-        RegisterHand(new StraightFlushHand(this, []), 9);
+        RegisterHand(new HighCardHand(this, []), 5, 1);
+        RegisterHand(new PairHand(this, []), 10, 2);
+        RegisterHand(new TwoPairHand(this, []), 20, 2);
+        RegisterHand(new ThreeOfAKindHand(this, []), 30, 3);
+        RegisterHand(new StraightHand(this, []), 30, 4);
+        RegisterHand(new FlushHand(this, []), 35, 4);
+        RegisterHand(new FullHouseHand(this, []), 40, 4);
+        RegisterHand(new FourOfAKindHand(this, []), 60, 7);
+        RegisterHand(new StraightFlushHand(this, []), 100, 8);
     }
 
     /// <summary>
@@ -26,13 +26,15 @@ public class PokerHands {
     /// If a hand of the same type already exists, it will be replaced.
     /// Hand configs are kept sorted by multiplier in descending order.
     /// </summary>
-    public void RegisterHand(PokerHand prototype, int multiplier) {
+    public void RegisterHand(PokerHand prototype, int initialScore, int multiplier) {
         // Remove any existing config for this hand type if it exists
         _handConfigs.RemoveAll(config => config.Prototype.GetType() == prototype.GetType());
-        _handConfigs.Add(new PokerHandConfig(prototype, multiplier));
+        _handConfigs.Add(new PokerHandConfig(prototype, initialScore, multiplier));
         // Re-sort configs by multiplier in descending order
         _handConfigs.Sort((a, b) => b.Multiplier.CompareTo(a.Multiplier));
     }
+    
+    public void ClearHands() => _handConfigs.Clear();
 
     /// <summary>
     /// Identifies all possible poker hands in the given cards.
@@ -192,6 +194,7 @@ public class PokerHands {
     }
 
     public int CalculateScore(PokerHand hand) {
-        return hand.Cards.Sum(c => c.Rank) * GetPokerHandConfig(hand).Multiplier;
+        var config = GetPokerHandConfig(hand);
+        return (config.InitialScore + hand.Cards.Sum(c => c.Rank)) * config.Multiplier;
     }
 }

@@ -45,16 +45,25 @@ public class SolitairePokerGame {
     public bool IsGameOver() => IsWon() || State.HandsPlayed >= Config.MaxHands;
     public bool DrawPending() => !IsGameOver() && State.CurrentHand.Count < Config.HandSize;
     public bool CanDiscard() => !IsGameOver() && State.Discards < Config.MaxDiscards;
+    
+    public int RemainingScoreToWin => State.TotalScore - State.Score;
+    public int RemainingHands => Config.MaxHands - State.HandsPlayed;
+    public int RemainingDiscards => Config.MaxHands - State.Discards;
 
     public PlayResult PlayHand(PokerHand hand) {
+        if (IsWon()) {
+            throw new SolitairePokerGameException("PlayHand error: game won");
+        }
         if (IsGameOver()) {
-            throw new SolitairePokerGameException("Game is already over");
+            throw new SolitairePokerGameException("PlayHand error: game is over");
         }
         if (DrawPending()) {
-            throw new SolitairePokerGameException("Cannot play hands yet. Draw cards first.");
+            throw new SolitairePokerGameException("PlayHand error: cannot play hands yet, draw cards first.");
         }
-        if (!hand.Cards.All(c => State.CurrentHand.Contains(c))) {
-            throw new SolitairePokerGameException("Invalid hand: contains cards not in current hand");
+        var invalidCards = hand.Cards.Except(State.CurrentHand).ToList();
+        if (invalidCards.Count != 0) {
+            var invalidCardsString = string.Join(", ", invalidCards);
+            throw new SolitairePokerGameException($"PlayHand error: hand to play contains cards not in current hand ({invalidCardsString})");
         }
 
         State.HandsPlayed++;
@@ -70,20 +79,25 @@ public class SolitairePokerGame {
     }
 
     public DiscardResult Discard(IReadOnlyList<Card> cards) {
+        if (IsWon()) {
+            throw new SolitairePokerGameException("Discard error: game won");
+        }
         if (IsGameOver()) {
-            throw new SolitairePokerGameException("No discards remaining or game is over");
+            throw new SolitairePokerGameException("Discard error: game is over");
         }
         if (DrawPending()) {
-            throw new SolitairePokerGameException("Cannot discard hands yet. Draw cards first.");
+            throw new SolitairePokerGameException("Discard error: cannot discard hands yet, draw cards first.");
         }
         if (!CanDiscard()) {
-            throw new SolitairePokerGameException("No discards remaining or game is over");
+            throw new SolitairePokerGameException($"Discard error: no discards remaining {State.Discards} of {Config.MaxDiscards}");
         }
         if (cards.Count < 1 || cards.Count > Config.MaxDiscardCards) {
-            throw new SolitairePokerGameException($"Must discard between 1 and {Config.MaxDiscardCards} cards");
+            throw new SolitairePokerGameException($"Discard error: discard between 1 and {Config.MaxDiscardCards} cards: {cards.Count}");
         }
-        if (!cards.All(c => State.CurrentHand.Contains(c))) {
-            throw new SolitairePokerGameException("Invalid discard: contains cards not in current hand");
+        var invalidCards = cards.Except(State.CurrentHand).ToList();
+        if (invalidCards.Count != 0) {
+            var invalidCardsString = string.Join(", ", invalidCards);
+            throw new SolitairePokerGameException($"Discard error: contains cards not in current hand ({invalidCardsString})");
         }
 
         State.Discards++;

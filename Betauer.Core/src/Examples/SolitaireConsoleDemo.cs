@@ -7,57 +7,74 @@ using Betauer.Core.Deck.Hands;
 
 namespace Betauer.Core.Examples;
 
-public class GameRun {
-    public DateTime StartTime { get; }
-    public List<GameState> GameStates { get; }
-
-    public GameRun() {
-        StartTime = DateTime.Now;
-        GameStates = new List<GameState>();
-    }
-
-    public void AddGameState(GameState state) {
-        GameStates.Add(state);
-    }
-
-    public override string ToString() {
-        var lastState = GameStates.LastOrDefault();
-        return lastState != null
-            ? $"{StartTime:yyyy-MM-dd HH:mm:ss} - Max level {lastState.Level + 1} - Score {lastState.Score}/{lastState.TotalScore}"
-            : $"{StartTime:yyyy-MM-dd HH:mm:ss} - No games played";
-    }
-}
-
 public class SolitaireConsoleDemo {
-    private readonly Random random;
-    private readonly int[] scoreThresholds = { 300, 500, 800, 1200, 2000 };
-    private bool autoPlay;
-    private readonly List<GameRun> gameRuns = new();
-    private GameRun currentRun;
-    public SolitairePokerGame Game;
+    public readonly Random Random;
 
-    public SolitaireConsoleDemo(Random random, bool autoPlay = false) {
-        this.random = random;
-        this.autoPlay = autoPlay;
+    public readonly int[] BaseLevel = [
+        300,
+        800,
+        2000,
+        5000,
+        11000,
+        20000,
+        35000,
+        50000,
+        110000,
+        560000,
+        7200000,
+        300000000
+        // 47000000000
+    ];
+    
+    public int MaxLevel => (BaseLevel.Length * 3) - 1; // level starts in 0
+
+    private int GetScoreFromLevel(int level) {
+        var baseScoreIndex = level / 3;  // Cada 3 niveles cambiamos de score base
+        var multiplierIndex = level % 3;  // 0 = x1, 1 = x1.5, 2 = x2
+                      
+        if (baseScoreIndex >= BaseLevel.Length) {
+            throw new ArgumentException($"Level {level} too high. Max level is {MaxLevel}");
+        }
+    
+        var baseScore = BaseLevel[baseScoreIndex];
+        var multiplier = multiplierIndex switch {
+            0 => 1.0f,
+            1 => 1.5f,
+            2 => 2.0f,
+            _ => throw new ArgumentException($"Invalid multiplier index {multiplierIndex}")
+        };
+    
+        return (int)(baseScore * multiplier);
+    }
+
+
+    public readonly bool _autoPlay;
+    public readonly List<GameRun> GameRuns = new();
+    public GameRun CurrentRun;
+    public SolitairePokerGame Game;
+    private readonly AutoPlayer autoPlayer = new AutoPlayer();
+    private AutoPlayer.AutoPlayDecision? currentDecision;
+
+    public SolitaireConsoleDemo(bool autoPlay = false) {
+        _autoPlay = autoPlay;
     }
 
     public static void Main() {
         Console.WriteLine("Auto-play mode? (Y/N)");
         var autoPlay = Console.ReadLine()?.ToUpper() == "Y";
-        new SolitaireConsoleDemo(new Random(1), autoPlay).Play();
+        new SolitaireConsoleDemo(autoPlay).Play();
     }
 
     public void Play() {
         InitializeCurrentRun();
 
-        while (Game.State.Level < scoreThresholds.Length) {
+        while (Game.State.Level < MaxLevel) {
             while (!Game.IsGameOver()) {
+                currentDecision = autoPlayer.GetNextAction(Game);
                 DisplayGameState();
 
-                if (autoPlay) {
-                    var possibleHands = Game.GetPossibleHands();
-                    var discardOptions = Game.GetDiscardOptions(possibleHands[0].Cards);
-                    ProcessAutoPlay(possibleHands, discardOptions);
+                if (_autoPlay) {
+                    ProcessAutoPlay();
                     // System.Threading.Thread.Sleep(1000);
                 } else {
                     if (ProcessUserInput() == true) {
@@ -67,17 +84,17 @@ public class SolitaireConsoleDemo {
             }
 
             // Guardamos el estado del juego actual
-            currentRun.AddGameState(Game.State);
+            CurrentRun.AddGameState(Game.State);
 
             if (Game.IsWon()) {
                 DisplayWinScreen();
 
-                if (Game.State.Level + 1 < scoreThresholds.Length) {
+                if (Game.State.Level + 1 < MaxLevel) {
                     // Preparamos el siguiente nivel
                     InitializeGame(Game.State.Level + 1);
 
                     Console.WriteLine($"\nAdvancing to level {Game.State.Level + 1}! New target: {Game.State.TotalScore}");
-                    if (!autoPlay) {
+                    if (!_autoPlay) {
                         Console.WriteLine("Press any key to continue...");
                         Console.ReadKey();
                     }
@@ -85,7 +102,7 @@ public class SolitaireConsoleDemo {
             } else {
                 // El juego terminó sin alcanzar la puntuación
                 DisplayGameOverScreen();
-                if (!autoPlay && !PlayAgain()) {
+                if (!_autoPlay && !PlayAgain()) {
                     return;
                 }
                 InitializeCurrentRun();
@@ -96,17 +113,17 @@ public class SolitaireConsoleDemo {
     }
 
     private void InitializeCurrentRun() {
-        currentRun = new GameRun();
-        gameRuns.Add(currentRun);
+        CurrentRun = new GameRun();
+        GameRuns.Add(CurrentRun);
         InitializeGame(0);
     }
 
     private void InitializeGame(int level) {
-        Game = new SolitairePokerGame(random, new PokerGameConfig());
+        Game = new SolitairePokerGame(Random, new PokerGameConfig());
         Game.Hands.RegisterBasicPokerHands();
         Game.DrawCards();
         Game.State.Level = level;
-        Game.State.TotalScore = scoreThresholds[level];
+        Game.State.TotalScore = GetScoreFromLevel(level);
     }
 
     private void DisplayGameState() {
@@ -114,10 +131,10 @@ public class SolitaireConsoleDemo {
         Console.Clear();
 
         // Display runs history
-        if (gameRuns.Count > 0) {
+        if (GameRuns.Count > 0) {
             Console.WriteLine("=== Previous Runs ===");
             // foreach (var run in gameRuns.OrderByDescending(r => r.StartTime)) {
-            foreach (var run in gameRuns) {
+            foreach (var run in GameRuns) {
                 Console.WriteLine(run);
                 foreach (var gameState in run.GameStates) {
                     Console.Write($"  Level {gameState.Level + 1}:");
@@ -174,7 +191,7 @@ public class SolitaireConsoleDemo {
     }
 
     private bool PlayAgain() {
-        if (autoPlay) return true;
+        if (_autoPlay) return true;
         Console.WriteLine("\nPlay again? (Y/N)");
         return Console.ReadLine()?.ToUpper() == "Y";
     }
@@ -195,57 +212,49 @@ public class SolitaireConsoleDemo {
         Console.WriteLine($"{string.Join(" ", cards.OrderByDescending(c => c.Rank))}");
     }
 
-    private void DisplayPotentialHands(int i, PokerHand currentBestHand, DiscardOptionsResult discardOptions) {
-        var options = discardOptions.GetBestDiscards(0);
-
-        Console.WriteLine("\nPotential discard options:");
-        Console.WriteLine($"Analysis time: {discardOptions.ElapsedTime.TotalSeconds:F3} seconds");
-        Console.WriteLine($"Total simulations: {discardOptions.TotalSimulations:N0}/{discardOptions.TotalCombinations:N0} ({(float)discardOptions.TotalSimulations / discardOptions.TotalCombinations:0%})");
-
+    private void DisplayPotentialHands() {
+        Console.WriteLine("\nPossible hands you can play:");
+        int i = 0;
+        for (; i < currentDecision.PossibleHands.Count; i++) {
+            Console.WriteLine($"{i + 1}: {currentDecision.PossibleHands[i]}: " + currentDecision.PossibleHands[i].CalculateScore());
+        }
+        var currentBestHand = currentDecision.PossibleHands[0];
+        var options = currentDecision.DiscardOptions.GetBestDiscards(Risk);
         foreach (var option in options.Where(option => option.GetBestPotentialScore(Risk) > Risk)) {
+            i++;
             var discardBestHand = option.GetBestHand(Risk)!;
-            Console.WriteLine($"\n{i}. Discarding {option.CardsToDiscard.Count}: {string.Join(" ", option.CardsToDiscard)}, keeping: {string.Join(" ", option.CardsToKeep)}  Score: {discardBestHand.PotentialScore:F2}");
+            Console.WriteLine($"{i}. Discarding {option.CardsToDiscard.Count}: {string.Join(" ", option.CardsToDiscard)}, keeping: {string.Join(" ", option.CardsToKeep)}  Score: {discardBestHand.PotentialScore:F2}");
             var handsByScore = option.HandOccurrences
                 .OrderByDescending(kv => kv.Value.PotentialScore);
 
             foreach (var (handType, stats) in handsByScore) {
                 Console.WriteLine($"   - {handType.Name,-20} {stats.AvgScore:0000} x {stats.Probability:00.00%} = {stats.PotentialScore:000.00} {(stats.Probability < Risk ? "[!]" : "[ ]")} {(handType == currentBestHand.GetType() ? "redundant" : "")}");
             }
-            i++;
         }
         foreach (var option in options.Where(option => option.GetBestPotentialScore(Risk) <= Risk)) {
+            i++;
             var discardBestHand = option.GetBestHand(0)!;
-            Console.WriteLine($"\n{i}. Discarding {option.CardsToDiscard.Count}: {string.Join(" ", option.CardsToDiscard)}, keeping: {string.Join(" ", option.CardsToKeep)}  Score: {discardBestHand.PotentialScore:F2}");
+            Console.WriteLine($"{i}. Discarding {option.CardsToDiscard.Count}: {string.Join(" ", option.CardsToDiscard)}, keeping: {string.Join(" ", option.CardsToKeep)}  Score: {discardBestHand.PotentialScore:F2}");
             var handsByScore = option.HandOccurrences
                 .OrderByDescending(kv => kv.Value.PotentialScore);
 
             foreach (var (handType, stats) in handsByScore) {
                 Console.WriteLine($"   - {handType.Name,-20} {stats.AvgScore:0000} x {stats.Probability:00.00%} = {stats.PotentialScore:000.00} {(stats.Probability < Risk ? "[!]" : "[ ]")} {(handType == currentBestHand.GetType() ? "redundant" : "")}");
             }
-            i++;
         }
-    }
-
-    private void DisplayPossibleHands(List<PokerHand> hands) {
-        Console.WriteLine("\nPossible hands you can play:");
-        for (int i = 0; i < hands.Count; i++) {
-            Console.WriteLine($"{i + 1}: {hands[i]}: " + hands[i].CalculateScore());
-        }
+        Console.WriteLine($"Analysis time: {currentDecision.DiscardOptions.ElapsedTime.TotalSeconds:F3} seconds");
+        Console.WriteLine($"Total simulations: {currentDecision.DiscardOptions.TotalSimulations:N0}/{currentDecision.DiscardOptions.TotalCombinations:N0} ({(float)currentDecision.DiscardOptions.TotalSimulations / currentDecision.DiscardOptions.TotalCombinations:0%})");
     }
 
     private bool ProcessUserInput() {
-        var possibleHands = Game.GetPossibleHands();
-
-        // Autoplay: los descartes nunca se descartan de las cartas de la mejor mano actual
-        var discardOptions = Game.GetDiscardOptions(possibleHands[0].Cards);
-        DisplayPossibleHands(possibleHands);
-        DisplayPotentialHands(possibleHands.Count + 1, possibleHands[0], discardOptions);
+        currentDecision = autoPlayer.GetNextAction(Game);
+        DisplayPotentialHands();
 
         Console.WriteLine("\nOptions:");
         Console.WriteLine("1-N: Play hand/discard from the list");
         Console.WriteLine("M: Make your own hand by selecting cards");
         Console.WriteLine("D: Discard cards");
-        Console.WriteLine("A: Auto play: " + GetAutoPlay(possibleHands, discardOptions));
+        Console.WriteLine("A: Auto play: " + GetAutoPlay());
         Console.WriteLine("Q: Quit game");
 
         var option = Console.ReadLine()?.ToUpper();
@@ -255,7 +264,7 @@ public class SolitaireConsoleDemo {
         }
 
         if (option == "A") {
-            ProcessAutoPlay(possibleHands, discardOptions);
+            ProcessAutoPlay();
         } else if (option == "M") {
             ProcessManualHand();
         } else if (option == "D") {
@@ -264,12 +273,12 @@ public class SolitaireConsoleDemo {
             else
                 Console.WriteLine("No discards remaining!");
         } else if (int.TryParse(option, out int choice) && choice > 0) {
-            if (choice <= possibleHands.Count) {
-                var hand = possibleHands[choice - 1];
+            if (choice <= currentDecision.PossibleHands.Count) {
+                var hand = currentDecision.PossibleHands[choice - 1];
                 ProcessHand(hand);
             } else {
-                choice -= possibleHands.Count;
-                var cardsToDiscard = discardOptions.DiscardOptions[choice - 1].CardsToDiscard;
+                choice -= currentDecision.PossibleHands.Count;
+                var cardsToDiscard = currentDecision.DiscardOptions.DiscardOptions[choice - 1].CardsToDiscard;
                 ProcessDiscard(cardsToDiscard);
             }
         } else {
@@ -279,38 +288,20 @@ public class SolitaireConsoleDemo {
         return false;
     }
 
-    private string GetAutoPlay(List<PokerHand> possibleHands, DiscardOptionsResult discardOptions) {
-        // Si no podemos descartarnos más, jugamos la mejor mano disponible
-        if (!Game.CanDiscard()) {
-            return "No more discards. Play best hand " + possibleHands[0];
-        }
-
-        var bestHand = possibleHands[0];
-        var bestDiscardOption = discardOptions.GetBestDiscards(Risk).FirstOrDefault();
-
-        var bestDiscardHandScore = bestDiscardOption?.GetBestPotentialScore(Risk) ?? 0;
-        if (bestHand.CalculateScore() >= bestDiscardHandScore) {
-            return $"Best hand ({possibleHands[0]} scores {bestHand.CalculateScore():0} >= potential discard ({string.Join(", ", bestDiscardOption?.CardsToDiscard ?? [])}) score {bestDiscardHandScore:0})";
-        } else {
-            return $"Best discard ({possibleHands[0]} scores {bestHand.CalculateScore():0} < potential discard ({string.Join(", ", bestDiscardOption?.CardsToDiscard ?? [])}) score {bestDiscardHandScore:0})";
-        }
+    private string GetAutoPlay() {
+        if (currentDecision == null) throw new InvalidOperationException("currentDecision is null");
+        var stats = currentDecision.DiscardOption?.GetBestHand(0);
+        return $"{currentDecision.Reason} | " + (currentDecision.ShouldPlay
+            ? $"Play {currentDecision.HandToPlay!}"
+            : $"Score {stats.AvgScore:0} x {stats.Probability:0.0%} = {stats.PotentialScore:0.0}");
     }
 
-    private void ProcessAutoPlay(List<PokerHand> possibleHands, DiscardOptionsResult discardOptions) {
-        // Si no podemos descartarnos más, jugamos la mejor mano disponible
-        if (!Game.CanDiscard()) {
-            ProcessHand(possibleHands[0]);
-            return;
-        }
-
-        var bestHand = possibleHands[0];
-        var bestDiscardOption = discardOptions.GetBestDiscards(Risk).FirstOrDefault();
-
-        var bestDiscardHandScore = bestDiscardOption?.GetBestPotentialScore(Risk) ?? 0;
-        if (bestHand.CalculateScore() >= bestDiscardHandScore) {
-            ProcessHand(bestHand);
+    private void ProcessAutoPlay() {
+        if (currentDecision == null) throw new InvalidOperationException("currentDecision is null");
+        if (currentDecision.ShouldPlay) {
+            ProcessHand(currentDecision.HandToPlay!);
         } else {
-            ProcessDiscard(bestDiscardOption!.CardsToDiscard);
+            ProcessDiscard(currentDecision.DiscardOption!.CardsToDiscard);
         }
     }
 
@@ -361,7 +352,7 @@ public class SolitaireConsoleDemo {
             Game.DrawCards();
             Console.WriteLine($"* New hand: {string.Join(", ", Game.State.CurrentHand)}");
         }
-        if (!autoPlay) {
+        if (!_autoPlay) {
             Console.WriteLine("(press any key to continue)");
             Console.ReadKey();
         }
@@ -404,7 +395,7 @@ public class SolitaireConsoleDemo {
         Game.DrawCards();
         Console.WriteLine($"* Cards discarded. Remaining discards: {Game.Config.MaxDiscards - Game.State.Discards}");
         Console.WriteLine($"* New hand: {string.Join(", ", Game.State.CurrentHand)}");
-        if (!autoPlay) {
+        if (!_autoPlay) {
             Console.WriteLine("(press any key to continue)");
             Console.ReadKey();
         }
