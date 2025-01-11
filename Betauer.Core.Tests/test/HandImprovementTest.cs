@@ -10,12 +10,12 @@ namespace Betauer.Core.Tests;
 
 [TestFixture]
 public class HandImprovementTest {
-    protected PokerHands Hands;
+    protected PokerHandsManager HandsManager;
 
     [SetUp]
     public void Setup() {
-        Hands = new PokerHands();
-        Hands.RegisterBasicPokerHands();
+        HandsManager = new PokerHandsManager();
+        HandsManager.RegisterBasicPokerHands();
     }
 
     protected List<Card> CreateCards(params string[] cards) {
@@ -26,7 +26,7 @@ public class HandImprovementTest {
     [Test]
     public void HighCardHand_SuggestDiscards_ShouldReturnEmpty() {
         var currentHand = CreateCards("AS", "KH", "QD", "JC", "TD");
-        var hand = new HighCardHand(Hands, []);
+        var hand = new HighCardHand(HandsManager, []);
         var discards = hand.SuggestDiscards(currentHand, 3);
 
         Assert.That(discards, Is.Empty, "High card hand should not suggest any discards");
@@ -35,7 +35,7 @@ public class HandImprovementTest {
     [Test]
     public void PairHand_SuggestDiscards_ShouldKeepPairAndDiscardLowest() {
         var currentHand = CreateCards("AS", "AH", "KD", "QC", "TD");
-        var hand = new PairHand(Hands, []);
+        var hand = new PairHand(HandsManager, []);
         var discards = hand.SuggestDiscards(currentHand, 1)[0];
 
         Assert.Multiple(() => {
@@ -51,7 +51,7 @@ public class HandImprovementTest {
     [Test]
     public void PairHand_SuggestDiscards_ShouldKeepPairAndDiscardAll() {
         var currentHand = CreateCards("AS", "AH", "KD", "QC", "TD");
-        var hand = new PairHand(Hands, []);
+        var hand = new PairHand(HandsManager, []);
         var discards = hand.SuggestDiscards(currentHand, 3)[0];
 
         Assert.Multiple(() => {
@@ -67,7 +67,7 @@ public class HandImprovementTest {
     [Test]
     public void PairHand_SuggestDiscards_ShouldKeepThreeOfAKindAndDiscardLowest() {
         var currentHand = CreateCards("AS", "AH", "AD", "QC", "TD");
-        var hand = new PairHand(Hands, []);
+        var hand = new PairHand(HandsManager, []);
         var discards = hand.SuggestDiscards(currentHand, 3)[0];
 
         Assert.Multiple(() => {
@@ -84,7 +84,7 @@ public class HandImprovementTest {
     [Test]
     public void TwoPairHand_SuggestDiscards_ShouldKeepBothPairs() {
         var currentHand = CreateCards("AS", "AH", "KD", "KC", "TD");
-        var hand = new TwoPairHand(Hands, []);
+        var hand = new TwoPairHand(HandsManager, []);
         var discards = hand.SuggestDiscards(currentHand, 1)[0];
 
         Assert.Multiple(() => {
@@ -100,7 +100,7 @@ public class HandImprovementTest {
     [Test]
     public void ThreeOfAKind_SuggestDiscards_ShouldKeepTrioOnly() {
         var currentHand = CreateCards("AS", "AH", "AD", "KC", "TD");
-        var hand = new ThreeOfAKindHand(Hands, []);
+        var hand = new ThreeOfAKindHand(HandsManager, []);
         var discards = hand.SuggestDiscards(currentHand, 2)[0];
 
         Assert.Multiple(() => {
@@ -113,7 +113,7 @@ public class HandImprovementTest {
     [Test]
     public void StraightHand_SuggestDiscards_ShouldKeepConnectedCards() {
         var currentHand = CreateCards("TD", "JH", "QC", "KD", "2S");
-        var hand = new StraightHand(Hands, []);
+        var hand = new StraightHand(HandsManager, []);
         var discards = hand.SuggestDiscards(currentHand, 1)[0];
 
         Assert.Multiple(() => {
@@ -126,7 +126,7 @@ public class HandImprovementTest {
     public void FlushHand_SuggestDiscards_ShouldKeepSameSuitCards() {
         // 4 hearts and 1 spade
         var currentHand = CreateCards("AH", "KH", "QH", "JH", "2S");
-        var hand = new FlushHand(Hands, []);
+        var hand = new FlushHand(HandsManager, []);
         var discards = hand.SuggestDiscards(currentHand, 1)[0];
 
         Assert.Multiple(() => {
@@ -139,7 +139,7 @@ public class HandImprovementTest {
     [Test]
     public void FullHouseHand_SuggestDiscards_ShouldKeepTrioAndPair() {
         var currentHand = CreateCards("AS", "AH", "AD", "KH", "KC");
-        var hand = new FullHouseHand(Hands, []);
+        var hand = new FullHouseHand(HandsManager, []);
         var discards = hand.SuggestDiscards(currentHand, 2)[0];
 
         Assert.That(discards, Is.Empty, "Should not discard any cards from a full house");
@@ -148,7 +148,7 @@ public class HandImprovementTest {
     [Test]
     public void FourOfAKind_SuggestDiscards_ShouldKeepFourCards() {
         var currentHand = CreateCards("AS", "AH", "AD", "AC", "KH");
-        var hand = new FourOfAKindHand(Hands, []);
+        var hand = new FourOfAKindHand(HandsManager, []);
         var discards = hand.SuggestDiscards(currentHand, 1)[0];
 
         Assert.Multiple(() => {
@@ -162,7 +162,7 @@ public class HandImprovementTest {
     public void StraightFlushHand_SuggestDiscards_KeepConnectedSameSuit() {
         // 4 connected hearts and 1 spade
         var currentHand = CreateCards("TH", "JH", "QH", "KH", "2S");
-        var hand = new StraightFlushHand(Hands, []);
+        var hand = new StraightFlushHand(HandsManager, []);
         var discards = hand.SuggestDiscards(currentHand, 1)[0];
 
         Assert.Multiple(() => {
@@ -188,15 +188,15 @@ public class HandImprovementTest {
     }
 
     private IEnumerable<PokerHand> GetAllHandTypes() {
-        yield return new HighCardHand(Hands, []);
-        yield return new PairHand(Hands, []);
-        yield return new TwoPairHand(Hands, []);
-        yield return new ThreeOfAKindHand(Hands, []);
-        yield return new StraightHand(Hands, []);
-        yield return new FlushHand(Hands, []);
-        yield return new FullHouseHand(Hands, []);
-        yield return new FourOfAKindHand(Hands, []);
-        yield return new StraightFlushHand(Hands, []);
+        yield return new HighCardHand(HandsManager, []);
+        yield return new PairHand(HandsManager, []);
+        yield return new TwoPairHand(HandsManager, []);
+        yield return new ThreeOfAKindHand(HandsManager, []);
+        yield return new StraightHand(HandsManager, []);
+        yield return new FlushHand(HandsManager, []);
+        yield return new FullHouseHand(HandsManager, []);
+        yield return new FourOfAKindHand(HandsManager, []);
+        yield return new StraightFlushHand(HandsManager, []);
     }
 
     [Test]
@@ -322,7 +322,7 @@ public class HandImprovementTest {
     [Test]
     public void StraightHand_SuggestDiscards_WithSevenCards() {
         var currentHand = CreateCards("5H", "6H", "7H", "8H", "9D", "TS", "JH");
-        var hand = new StraightHand(Hands, []);
+        var hand = new StraightHand(HandsManager, []);
         var discards = hand.SuggestDiscards(currentHand, 2)[0];
 
         Assert.Multiple(() => {
@@ -337,7 +337,7 @@ public class HandImprovementTest {
     [Test]
     public void StraightHand_SuggestDiscards_WithGap() {
         var currentHand = CreateCards("8H", "9H", "JH", "QH", "KD", "2S", "3D");
-        var hand = new StraightHand(Hands, []);
+        var hand = new StraightHand(HandsManager, []);
         var discards = hand.SuggestDiscards(currentHand, 2)[0];
 
         Assert.Multiple(() => {
@@ -360,7 +360,7 @@ public class HandImprovementTest {
     [Test]
     public void StraightHand_SuggestDiscards_WithLowAce() {
         var currentHand = CreateCards("AH", "2H", "3H", "4D", "5S", "KH", "QD");
-        var hand = new StraightHand(Hands, []);
+        var hand = new StraightHand(HandsManager, []);
         var discards = hand.SuggestDiscards(currentHand, 2)[0];
 
         Assert.Multiple(() => {
@@ -384,7 +384,7 @@ public class HandImprovementTest {
     [Test]
     public void StraightHand_SuggestDiscards_WithHighAce() {
         var currentHand = CreateCards("AH", "KH", "QH", "JD", "TS", "2H", "3D");
-        var hand = new StraightHand(Hands, []);
+        var hand = new StraightHand(HandsManager, []);
         var discards = hand.SuggestDiscards(currentHand, 2)[0];
 
         Assert.Multiple(() => {
@@ -402,7 +402,7 @@ public class HandImprovementTest {
     public void StraightHand_SuggestDiscards_MaxDiscardsRespected() {
         var currentHand = CreateCards("2H", "3H", "7H", "8D", "9S", "TH", "JD", "QD", "KD");
         var maxDiscards = 5;
-        var hand = new StraightHand(Hands, []);
+        var hand = new StraightHand(HandsManager, []);
         var discards = hand.SuggestDiscards(currentHand, maxDiscards)[0];
 
         Assert.Multiple(() => {
@@ -489,7 +489,7 @@ public class HandImprovementTest {
     public void GetDiscardOptions_WithEmptyHand_ReturnsEmptyList() {
         var currentHand = new List<Card>();
         var availableCards = CreateCards("2H", "3H", "4H", "5H", "6H");
-        var result = Hands.GetDiscardOptions(currentHand, [], availableCards, 3);
+        var result = HandsManager.GetDiscardOptions(currentHand, availableCards, 3);
         
         Assert.That(result.DiscardOptions, Is.Empty);
     }
@@ -500,23 +500,14 @@ public class HandImprovementTest {
         var availableCards = CreateCards("5H", "6H");
         
         Assert.Throws<ArgumentException>(() => 
-            Hands.GetDiscardOptions(currentHand, [], availableCards, -1));
+            HandsManager.GetDiscardOptions(currentHand, availableCards, -1));
     }
 
     [Test]
     public void GetDiscardOptions_WithNoAvailableCards_ReturnsEmptyList() {
         var currentHand = CreateCards("2H", "3H", "4H");
         var availableCards = new List<Card>();
-        var result = Hands.GetDiscardOptions(currentHand, [], availableCards, 3);
-        
-        Assert.That(result.DiscardOptions, Is.Empty);
-    }
-
-    [Test]
-    public void GetDiscardOptions_NoDiscard_ReturnsEmptyList() {
-        var currentHand = CreateCards("2H", "2S", "3D");
-        var availableCards = CreateCards("2H", "3H", "4H", "5H", "6H");
-        var result = Hands.GetDiscardOptions(currentHand, CreateCards("2H", "2S", "3D"), availableCards, 3);
+        var result = HandsManager.GetDiscardOptions(currentHand,  availableCards, 3);
         
         Assert.That(result.DiscardOptions, Is.Empty);
     }

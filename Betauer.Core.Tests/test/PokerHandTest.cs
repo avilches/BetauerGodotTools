@@ -9,12 +9,12 @@ namespace Betauer.Core.Tests;
 
 [TestFixture]
 public class PokerHandTest {
-    protected PokerHands Hands;
+    protected PokerHandsManager HandsManager;
 
     [SetUp]
     public void Setup() {
-        Hands = new PokerHands();
-        Hands.RegisterBasicPokerHands();
+        HandsManager = new PokerHandsManager();
+        HandsManager.RegisterBasicPokerHands();
     }
 
     protected List<Card> CreateCards(params string[] cards) {
@@ -25,7 +25,7 @@ public class PokerHandTest {
     [Test]
     public void PairFromThreeOfAKind_ShouldFindAllPossiblePairs() {
         var cards = CreateCards("AS", "AH", "AD", "KH", "QD", "JC", "2C");
-        var hands = Hands.IdentifyAllHands(cards);
+        var hands = HandsManager.IdentifyAllHands(cards);
 
         var pairs = hands.Where(h => h is PairHand).ToList();
         Assert.That(pairs.Count, Is.EqualTo(3)); // Tres posibles combinaciones de par de Ases
@@ -36,7 +36,7 @@ public class PokerHandTest {
     [Test]
     public void PairFromFourOfAKind_ShouldFindAllPossiblePairs() {
         var cards = CreateCards("AS", "AH", "AD", "AC", "KH", "QD", "JC");
-        var hands = Hands.IdentifyAllHands(cards);
+        var hands = HandsManager.IdentifyAllHands(cards);
 
         var pairs = hands.Where(h => h is PairHand).ToList();
         Assert.That(pairs.Count, Is.EqualTo(6)); // Seis posibles combinaciones de par de Ases
@@ -47,7 +47,7 @@ public class PokerHandTest {
     [Test]
     public void TwoPair_WithThreePairs_ShouldFindAllCombinations() {
         var cards = CreateCards("AS", "AH", "KD", "KC", "QH", "QD", "2C");
-        var hands = Hands.IdentifyAllHands(cards);
+        var hands = HandsManager.IdentifyAllHands(cards);
 
         var twoPairs = hands.Where(h => h is TwoPairHand).ToList();
         Assert.That(twoPairs.Count, Is.EqualTo(3)); // A-K, A-Q, K-Q
@@ -63,7 +63,7 @@ public class PokerHandTest {
     [Test]
     public void ThreeOfAKind_FromFourOfAKind_ShouldFindAllCombinations() {
         var cards = CreateCards("AS", "AH", "AD", "AC", "KH", "QD", "JC");
-        var hands = Hands.IdentifyAllHands(cards);
+        var hands = HandsManager.IdentifyAllHands(cards);
 
         var threeOfKinds = hands.Where(h => h is ThreeOfAKindHand).ToList();
         Assert.That(threeOfKinds.Count, Is.EqualTo(4)); // Cuatro posibles tríos de Ases
@@ -75,7 +75,7 @@ public class PokerHandTest {
     public void Flush_WithMoreThanFiveCards_ShouldFindAllCombinations() {
         // 6 cartas de corazones, debería generar 6 posibles colores diferentes
         var cards = CreateCards("AH", "KH", "QH", "JH", "TH", "9H", "2D");
-        var hands = Hands.IdentifyAllHands(cards);
+        var hands = HandsManager.IdentifyAllHands(cards);
         var flushes = hands.Where(h => h is FlushHand).ToList();
 
         // Deberíamos tener 6 combinaciones (6C5 = 6)
@@ -92,7 +92,7 @@ public class PokerHandTest {
     public void Straight_WithMoreThanFiveCards_ShouldFindAllCombinations() {
         // 6,7,8,9,10,J - debería generar 2 escaleras diferentes
         var cards = CreateCards("6H", "7H", "8H", "9H", "TH", "JH");
-        var hands = Hands.IdentifyAllHands(cards);
+        var hands = HandsManager.IdentifyAllHands(cards);
         var straights = hands.Where(h => h is StraightHand).ToList();
 
         // Deberíamos tener 2 escaleras: 6-10 y 7-J
@@ -112,7 +112,7 @@ public class PokerHandTest {
         //   * Total: 4 * 6 = 24 combinaciones
         // Total final: 48 combinaciones diferentes
         var cards = CreateCards("AS", "AH", "AD", "AC", "KS", "KH", "KD", "KC");
-        var hands = Hands.IdentifyAllHands(cards);
+        var hands = HandsManager.IdentifyAllHands(cards);
         var fullHouses = hands.Where(h => h is FullHouseHand).ToList();
     
         Assert.That(fullHouses.Count, Is.EqualTo(48));
@@ -132,7 +132,7 @@ public class PokerHandTest {
     [Test]
     public void FourOfKind_WithAllSameSuit_ShouldFindOneHand() {
         var cards = CreateCards("AS", "AH", "AD", "AC", "KH");
-        var hands = Hands.IdentifyAllHands(cards);
+        var hands = HandsManager.IdentifyAllHands(cards);
         var fourOfKinds = hands.Where(h => h is FourOfAKindHand).ToList();
 
         // Solo debería haber una combinación de póker
@@ -143,7 +143,7 @@ public class PokerHandTest {
     public void StraightFlush_WithSixCards_ShouldFindTwoCombinations() {
         // 6♠,7♠,8♠,9♠,10♠,J♠ debería generar 2 escaleras de color: 6-10 y 7-J
         var cards = CreateCards("6S", "7S", "8S", "9S", "TS", "JS");
-        var hands = Hands.IdentifyAllHands(cards);
+        var hands = HandsManager.IdentifyAllHands(cards);
         var straightFlushes = hands.Where(h => h is StraightFlushHand).ToList();
 
         Assert.That(straightFlushes.Count, Is.EqualTo(2));
@@ -158,7 +158,7 @@ public class PokerHandTest {
     public void TwoPair_WithThreePairsAndExtra_ShouldFindAllCombinations() {
         // Con tres pares (A,A,K,K,Q,Q) y una carta extra, debería encontrar 3 dobles parejas diferentes
         var cards = CreateCards("AS", "AH", "KS", "KH", "QS", "QH", "2C");
-        var hands = Hands.IdentifyAllHands(cards);
+        var hands = HandsManager.IdentifyAllHands(cards);
         var twoPairs = hands.Where(h => h is TwoPairHand).ToList();
 
         Assert.That(twoPairs.Count, Is.EqualTo(3));
@@ -179,7 +179,7 @@ public class PokerHandTest {
     [Test]
     public void FullHouse_WithMultipleOptions_ShouldFindAllCombinations() {
         var cards = CreateCards("AS", "AH", "AD", "KS", "KH", "QS", "QH");
-        var hands = Hands.IdentifyAllHands(cards);
+        var hands = HandsManager.IdentifyAllHands(cards);
 
         var fullHouses = hands.Where(h => h is FullHouseHand).ToList();
         Assert.That(fullHouses.Count, Is.EqualTo(2)); // AAA-KK y AAA-QQ
@@ -199,7 +199,7 @@ public class PokerHandTest {
     [Test]
     public void FullHouse_WithFourOfAKind_ShouldFindAllCombinations() {
         var cards = CreateCards("AS", "AH", "AD", "AC", "KS", "KH", "2C");
-        var hands = Hands.IdentifyAllHands(cards);
+        var hands = HandsManager.IdentifyAllHands(cards);
 
         var fullHouses = hands.Where(h => h is FullHouseHand).ToList();
         Assert.That(fullHouses.Count, Is.EqualTo(4)); // Cuatro posibles AAA-KK
@@ -214,7 +214,7 @@ public class PokerHandTest {
     [Test]
     public void HandIdentifier_WithFourOfAKind_ShouldFindAllSubsets() {
         var cards = CreateCards("AS", "AH", "AD", "AC", "KH", "QD", "JC");
-        var hands = Hands.IdentifyAllHands(cards);
+        var hands = HandsManager.IdentifyAllHands(cards);
 
         // Verificar todas las manos posibles
         Assert.That(hands.Count(h => h is FourOfAKindHand), Is.EqualTo(1));
@@ -228,7 +228,7 @@ public class PokerHandTest {
     [Test]
     public void HandIdentifier_WithFullHouse_ShouldFindAllSubsets() {
         var cards = CreateCards("AS", "AH", "AD", "KS", "KH", "QD", "JC");
-        var hands = Hands.IdentifyAllHands(cards);
+        var hands = HandsManager.IdentifyAllHands(cards);
 
         // Verificar todas las manos posibles
         Assert.That(hands.Count(h => h is FullHouseHand), Is.EqualTo(1));
@@ -243,7 +243,7 @@ public class PokerHandTest {
     [Test]
     public void HandIdentifier_WithThreePairs_ShouldRankCorrectly() {
         var cards = CreateCards("AS", "AH", "KS", "KH", "QS", "QH", "JC");
-        var hands = Hands.IdentifyAllHands(cards);
+        var hands = HandsManager.IdentifyAllHands(cards);
 
         var twoPairs = hands.Where(h => h is TwoPairHand).ToList();
         Assert.That(twoPairs.Count, Is.EqualTo(3));

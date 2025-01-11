@@ -6,7 +6,7 @@ namespace Betauer.Core.Deck.Hands;
 
 public record PokerHandConfig(PokerHand Prototype, int InitialScore, int Multiplier);
 
-public class PokerHands {
+public class PokerHandsManager {
     private readonly List<PokerHandConfig> _handConfigs = [];
 
     public void RegisterBasicPokerHands() {
@@ -83,11 +83,10 @@ public class PokerHands {
     /// 4. Return options ordered by potential score
     /// </summary>
     /// <param name="currentHand">Current cards in hand</param>
-    /// <param name="neverDiscard">Cards in hand that can't be discarded</param>
     /// <param name="availableCards">Cards available to draw</param>
     /// <param name="maxDiscardCards">Maximum number of cards that can be discarded</param>
     /// <returns>Analysis results with discard options and statistics</returns>
-    public DiscardOptionsResult GetDiscardOptions(IReadOnlyList<Card> currentHand, IReadOnlyList<Card> neverDiscard, IReadOnlyList<Card> availableCards, int maxDiscardCards) {
+    public DiscardOptionsResult GetDiscardOptions(IReadOnlyList<Card> currentHand, IReadOnlyList<Card> availableCards, int maxDiscardCards) {
         if (maxDiscardCards < 0) throw new ArgumentException("maxDiscardCards cannot be negative");
 
         const int MaxSimulations = 10000;
@@ -100,8 +99,7 @@ public class PokerHands {
         // Get all possible discard combinations from all hand types
         var suggestedDiscards = _handConfigs
             .SelectMany(config => config.Prototype.GetBestDiscards(currentHand, maxDiscardCards))
-            .Where(cardsToDiscard => cardsToDiscard != null && cardsToDiscard.Count > 0)
-            .Where(cardsToDiscard => !cardsToDiscard.Any(neverDiscard.Contains))
+            .Where(cardsToDiscard => cardsToDiscard.Count > 0)
             .Distinct(new CardListEqualityComparer())
             .ToList();
 
@@ -145,7 +143,7 @@ public class PokerHands {
                     var handType = bestHand.GetType();
                     var score = bestHand.CalculateScore();
                     if (!handTypeOccurrences.TryGetValue(handType, out HandTypeStats? value)) {
-                        handTypeOccurrences[handType] = new HandTypeStats(score);
+                        handTypeOccurrences[handType] = new HandTypeStats(handType, score);
                     } else {
                         value.AddScore(score);
                     }

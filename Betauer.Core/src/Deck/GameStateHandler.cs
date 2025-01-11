@@ -6,7 +6,7 @@ using Betauer.Core.Deck.Hands;
 
 namespace Betauer.Core.Deck;
 
-public class SolitairePokerGame {
+public class GameStateHandler {
     public class PlayResult(PokerHand hand, int score) {
         public int Score { get; } = score;
         public PokerHand Hand { get; } = hand;
@@ -16,30 +16,10 @@ public class SolitairePokerGame {
         public IReadOnlyList<Card> DiscardedCards { get; } = discardedCards;
     }
 
-    public GameState State = new();
-    public PokerHands Hands { get; } = new();
-    public PokerGameConfig Config;
-    public Random Random;
-
-    public SolitairePokerGame(Random random, PokerGameConfig config) {
-        Random = random;
-        Config = config;
-        State.BuildPokerDeck(config.ValidSuits, config.MinRank, config.MaxRank);
-    }
-
-    public void DrawCards() {
-        if (!DrawPending()) {
-            throw new SolitairePokerGameException("Cannot draw cards: hand already full");
-        }
-        if (IsGameOver()) {
-            throw new SolitairePokerGameException("Cannot draw cards: no more hands to play");
-        }
-
-        State.Shuffle(Random);
-        var pendingCardsToDraw = Config.HandSize - State.CurrentHand.Count;
-        var newCards = State.Draw(pendingCardsToDraw);
-        State.CurrentHand = [..State.CurrentHand, ..newCards];
-    }
+    public PokerHandsManager PokerHandsManager { get; }
+    public PokerGameConfig Config { get; }
+    public GameState State { get; }
+    public Random Random { get; }
 
     public bool IsWon() => State.TotalScore > 0 && State.Score >= State.TotalScore;
     public bool IsGameOver() => IsWon() || State.HandsPlayed >= Config.MaxHands;
@@ -49,6 +29,32 @@ public class SolitairePokerGame {
     public int RemainingScoreToWin => State.TotalScore - State.Score;
     public int RemainingHands => Config.MaxHands - State.HandsPlayed;
     public int RemainingDiscards => Config.MaxHands - State.Discards;
+    public int RemainingCards => State.AvailableCards.Count;
+
+    public GameStateHandler(int seed, PokerGameConfig config) {
+        Random = new Random(seed);
+        Config = config;
+        PokerHandsManager = new PokerHandsManager();
+        State = new GameState(seed);
+        State.BuildPokerDeck(config.ValidSuits, config.MinRank, config.MaxRank);
+    }
+
+    public void DrawCards() {
+        if (IsWon()) {
+            throw new SolitairePokerGameException("PlayHand error: game won");
+        }
+        if (IsGameOver()) {
+            throw new SolitairePokerGameException("DrawCards errors: game is over");
+        }
+        if (!DrawPending()) {
+            throw new SolitairePokerGameException("DrawCards error: hand already full");
+        }
+
+        State.Shuffle(Random);
+        var pendingCardsToDraw = Config.HandSize - State.CurrentHand.Count;
+        var newCards = State.Draw(pendingCardsToDraw);
+        State.SetCurrentHand([..State.CurrentHand, ..newCards]);
+    }
 
     public PlayResult PlayHand(PokerHand hand) {
         if (IsWon()) {
@@ -68,10 +74,10 @@ public class SolitairePokerGame {
 
         State.HandsPlayed++;
 
-        var score = Hands.CalculateScore(hand);
+        var score = PokerHandsManager.CalculateScore(hand);
         State.Score += score;
         // Remove played cards from current hand first
-        State.CurrentHand = State.CurrentHand.Where(c => !hand.Cards.Contains(c)).ToList();
+        State.SetCurrentHand(State.CurrentHand.Where(c => !hand.Cards.Contains(c)).ToList());
         // Then add to played cards
         State.AddToPlayedCards(hand.Cards);
         State.History.AddPlayAction(hand, score, State.Score, State.TotalScore);
@@ -102,7 +108,7 @@ public class SolitairePokerGame {
 
         State.Discards++;
         // Remove discarded cards from current hand first
-        State.CurrentHand = State.CurrentHand.Where(c => !cards.Contains(c)).ToList();
+        State.SetCurrentHand(State.CurrentHand.Where(c => !cards.Contains(c)).ToList());
         // Then add to discarded pile
         State.AddToDiscardedCards(cards);
         State.History.AddDiscardAction(cards, State.Score, State.TotalScore);
@@ -110,20 +116,10 @@ public class SolitairePokerGame {
     }
 
     public List<PokerHand> GetPossibleHands() {
-        return Hands.IdentifyAllHands(State.CurrentHand);
+        return PokerHandsManager.IdentifyAllHands(State.CurrentHand);
     }
 
-    public DiscardOptionsResult GetDiscardOptions(IReadOnlyList<Card> neverDiscard) {
-        return Hands.GetDiscardOptions(State.CurrentHand, neverDiscard, State.AvailableCards, Config.MaxDiscardCards);
-    }
-}
-
-public record DiscardOptionsResult(
-    List<DiscardOption> DiscardOptions,
-    TimeSpan ElapsedTime,
-    int TotalSimulations,
-    int TotalCombinations) {
-    public IOrderedEnumerable<DiscardOption> GetBestDiscards(float risk) {
-        return DiscardOptions.OrderByDescending(option => option.GetBestPotentialScore(risk));
+    public DiscardOptionsResult GetDiscardOptions() {
+        return PokerHandsManager.GetDiscardOptions(State.CurrentHand, State.AvailableCards, Config.MaxDiscardCards);
     }
 }

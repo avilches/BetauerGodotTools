@@ -4,13 +4,10 @@ using System.Linq;
 
 namespace Betauer.Core.Deck;
 
-public class GameRun {
-    public DateTime StartTime { get; }
+public class GameRun(int id) {
+    public int Id { get; } = id;
+    public DateTime StartTime { get; } = DateTime.Now;
     public List<GameState> GameStates { get; } = [];
-
-    public GameRun(Random random) {
-        StartTime = DateTime.Now;
-    }
 
     public void AddGameState(GameState state) {
         GameStates.Add(state);

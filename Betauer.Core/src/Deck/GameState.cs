@@ -8,20 +8,30 @@ public class GameState {
     public int Score { get; set; } = 0;
     public int TotalScore { get; set; } = 0;
     public int Level { get; set; } = 0;
+    public int Seed { get; }
 
     public int HandsPlayed { get; set; } = 0;
     public int Discards { get; set; } = 0;
-    public IReadOnlyList<Card> CurrentHand { get; set; } = [];
-    public GameHistory History { get; } = new();
+    public IReadOnlyList<Card> CurrentHand { get; private set; } = [];
+    public PlayHistory History { get; } = new();
 
-    private readonly List<Card> _cards = [];
-    private readonly List<Card> _discardedCards = [];
-    private readonly List<Card> _playedCards = [];
-    public int RemainingCards => _cards.Count;
+    private readonly List<Card> _cards;
+    private readonly List<Card> _discardedCards;
+    private readonly List<Card> _playedCards;
 
-    public IReadOnlyList<Card> DiscardedCards => _discardedCards.AsReadOnly();
-    public IReadOnlyList<Card> PlayedCards => _playedCards.AsReadOnly();
-    public IReadOnlyList<Card> AvailableCards => _cards.AsReadOnly();
+    public IReadOnlyList<Card> DiscardedCards { get; }
+    public IReadOnlyList<Card> PlayedCards { get; }
+    public IReadOnlyList<Card> AvailableCards { get; }
+
+    public GameState(int seed) {
+        Seed = seed;
+        _cards = [];
+        _discardedCards = [];
+        _playedCards = [];
+        DiscardedCards = _discardedCards.AsReadOnly();
+        PlayedCards = _playedCards.AsReadOnly();
+        AvailableCards = _cards.AsReadOnly();
+    }
 
     public void BuildPokerDeck(string suits, int minRank, int maxRank) {
         if (minRank > maxRank) throw new ArgumentException("minRank cannot be greater than maxRank");
@@ -43,6 +53,10 @@ public class GameState {
         var drawn = _cards.Take(count).ToList();
         _cards.RemoveRange(0, count);
         return drawn;
+    }
+
+    public void SetCurrentHand(List<Card> hand) {
+        CurrentHand = hand;
     }
 
     public void AddToDiscardedCards(IReadOnlyList<Card> returnedCards) {
