@@ -20,7 +20,7 @@ public class GameStateHandlerTests {
         _gameStateHandler.PokerHandsManager.RegisterBasicPokerHands();
     }
 
- [Test]
+    [Test]
     public void TestLevelProgression() {
         var state = _gameStateHandler.State;
 
@@ -75,10 +75,10 @@ public class GameStateHandlerTests {
             while (!_gameStateHandler.IsWon() && !_gameStateHandler.IsGameOver()) {
                 _gameStateHandler.DrawCards();
                 var bestHand = _gameStateHandler.GetPossibleHands()[0];
-                
+
                 // Establecer el nivel específico para este tipo de mano
                 _gameStateHandler.State.SetPokerHandLevel(bestHand, level);
-                
+
                 var result = _gameStateHandler.PlayHand(bestHand.Cards);
 
                 // Verify that score increases with level
@@ -94,7 +94,7 @@ public class GameStateHandlerTests {
             }
         }
     }
-    
+
     [Test]
     public void CompleteGame_ShouldAccumulateScore() {
         var totalScore = 0;

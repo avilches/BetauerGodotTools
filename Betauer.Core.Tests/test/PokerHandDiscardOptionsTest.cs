@@ -15,9 +15,9 @@ public class HandImprovementTest {
 
     [SetUp]
     public void Setup() {
+        Handler = new GameStateHandler(1, new PokerGameConfig());
         HandsManager = new PokerHandsManager();
         HandsManager.RegisterBasicPokerHands();
-        Handler = new GameStateHandler(1, new PokerGameConfig());
     }
 
     protected List<Card> CreateCards(params string[] cards) {
@@ -486,13 +486,12 @@ public class HandImprovementTest {
             _ => throw new ArgumentException($"Unknown hand type: {prototype.GetType().Name}")
         };
     }
-    
+
     [Test]
     public void GetDiscardOptions_WithEmptyHand_ReturnsEmptyList() {
-        var currentHand = new List<Card>();
         var availableCards = CreateCards("2H", "3H", "4H", "5H", "6H");
-        var result = HandsManager.GetDiscardOptions(Handler, currentHand, availableCards, 3);
-        
+        var result = HandsManager.GetDiscardOptions(Handler, [], availableCards, 3);
+
         Assert.That(result.Discards, Is.Empty);
     }
 
@@ -500,17 +499,14 @@ public class HandImprovementTest {
     public void GetDiscardOptions_WithNegativeMaxDiscards_ThrowsException() {
         var currentHand = CreateCards("2H", "3H", "4H");
         var availableCards = CreateCards("5H", "6H");
-        
-        Assert.Throws<ArgumentException>(() => 
-            HandsManager.GetDiscardOptions(Handler, currentHand, availableCards, -1));
+
+        Assert.Throws<ArgumentException>(() => HandsManager.GetDiscardOptions(Handler, currentHand, availableCards, -1));
     }
 
     [Test]
     public void GetDiscardOptions_WithNoAvailableCards_ReturnsEmptyList() {
         var currentHand = CreateCards("2H", "3H", "4H");
-        var availableCards = new List<Card>();
-        var result = HandsManager.GetDiscardOptions(Handler, currentHand,  availableCards, 3);
-        
+        var result = HandsManager.GetDiscardOptions(Handler, currentHand, [], 3);
         Assert.That(result.Discards, Is.Empty);
     }
 
@@ -519,12 +515,12 @@ public class HandImprovementTest {
         var cards = CreateCards("8H", "8D", "9H", "TH", "JH");
         var sequences = HandUtils.FindStraightSequences(cards);
         var mainSequence = sequences[0];
-        
+
         Assert.Multiple(() => {
-            Assert.That(mainSequence, Has.Count.EqualTo(4), 
+            Assert.That(mainSequence, Has.Count.EqualTo(4),
                 "Should find 4-card sequence ignoring duplicate rank");
-            Assert.That(mainSequence.Select(c => c.Rank).Distinct().Count(), 
-                Is.EqualTo(mainSequence.Count), 
+            Assert.That(mainSequence.Select(c => c.Rank).Distinct().Count(),
+                Is.EqualTo(mainSequence.Count),
                 "Sequence should not contain duplicate ranks");
         });
     }

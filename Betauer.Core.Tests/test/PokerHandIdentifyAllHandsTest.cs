@@ -1,3 +1,4 @@
+using System;
 using Betauer.Core.Deck;
 using NUnit.Framework;
 using System.Collections.Generic;
@@ -8,7 +9,7 @@ using Betauer.TestRunner;
 namespace Betauer.Core.Tests;
 
 [TestFixture]
-public class PokerHandTest {
+public class PokerHandIdentifyAllHandsTest {
     protected PokerHandsManager HandsManager => Handler.PokerHandsManager;
     protected GameStateHandler Handler;
 
@@ -213,7 +214,7 @@ public class PokerHandTest {
     }
 
     [Test]
-    public void HandIdentifier_WithFourOfAKind_ShouldFindAllSubsets() {
+    public void IdentifyAllHands_WithFourOfAKind_ShouldFindAllSubsets() {
         var cards = CreateCards("AS", "AH", "AD", "AC", "KH", "QD", "JC");
         var hands = HandsManager.IdentifyAllHands(Handler, cards);
 
@@ -227,7 +228,7 @@ public class PokerHandTest {
     }
 
     [Test]
-    public void HandIdentifier_WithFullHouse_ShouldFindAllSubsets() {
+    public void IdentifyAllHands_WithFullHouse_ShouldFindAllSubsets() {
         var cards = CreateCards("AS", "AH", "AD", "KS", "KH", "QD", "JC");
         var hands = HandsManager.IdentifyAllHands(Handler, cards);
 
@@ -242,7 +243,7 @@ public class PokerHandTest {
     }
 
     [Test]
-    public void HandIdentifier_WithThreePairs_ShouldRankCorrectly() {
+    public void IdentifyAllHands_WithThreePairs_ShouldRankCorrectly() {
         var cards = CreateCards("AS", "AH", "KS", "KH", "QS", "QH", "JC");
         var hands = HandsManager.IdentifyAllHands(Handler, cards);
 
@@ -255,4 +256,5 @@ public class PokerHandTest {
         Assert.That(ranks[0], Is.EqualTo(14)); // As
         Assert.That(ranks[2], Is.EqualTo(13)); // Rey
     }
+   
 }
