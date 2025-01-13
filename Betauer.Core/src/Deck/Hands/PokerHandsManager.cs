@@ -162,7 +162,7 @@ public class PokerHandsManager {
 
         watch.Stop();
         return new DiscardOptionsResult(
-            options,
+            options.OrderByDescending(option => option.GetBestHand().PotentialScore).ToList(),
             watch.Elapsed,
             totalSimulations,
             totalCombinations

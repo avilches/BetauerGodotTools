@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Linq;
 
 [TestFixture]
-[Only]
 public class RandomExtensionsTests {
     [Test]
     public void Take_ShouldReturnUniqueNumbers() {

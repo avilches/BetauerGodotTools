@@ -3,7 +3,8 @@ using System;
 namespace Betauer.Core.Deck;
 
 public class PokerGameConfig {
-    public int HandSize { get; set; } = 7;
+    public int MaxHandSizeToPlay { get; set; } = 5;
+    public int HandSize { get; set; } = 8;
     public int MaxHands { get; set; } = 4;
     public int MaxDiscards { get; set; } = 4;
     public int MaxDiscardCards { get; set; } = 5;

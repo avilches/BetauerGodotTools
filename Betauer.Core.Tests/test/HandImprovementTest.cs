@@ -491,7 +491,7 @@ public class HandImprovementTest {
         var availableCards = CreateCards("2H", "3H", "4H", "5H", "6H");
         var result = HandsManager.GetDiscardOptions(currentHand, availableCards, 3);
         
-        Assert.That(result.DiscardOptions, Is.Empty);
+        Assert.That(result.Discards, Is.Empty);
     }
 
     [Test]
@@ -509,7 +509,7 @@ public class HandImprovementTest {
         var availableCards = new List<Card>();
         var result = HandsManager.GetDiscardOptions(currentHand,  availableCards, 3);
         
-        Assert.That(result.DiscardOptions, Is.Empty);
+        Assert.That(result.Discards, Is.Empty);
     }
 
     [Test]

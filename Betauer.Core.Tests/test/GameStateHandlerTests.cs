@@ -52,31 +52,6 @@ public class GameStateHandlerTests {
     }
 
     [Test]
-    public void Discard_TooManyCards_ShouldThrowGameException() {
-        _gameStateHandler.DrawCards();
-        var cardsToDiscard = _gameStateHandler.State.CurrentHand.Take(config.MaxDiscardCards + 1).ToList();
-        var exception = Assert.Throws<SolitairePokerGameException>(() => _gameStateHandler.Discard(cardsToDiscard));
-        Assert.That(exception.Message, Is.EqualTo($"Discard error: discard between 1 and {config.MaxDiscardCards} cards: {cardsToDiscard.Count}"));
-        Assert.That(_gameStateHandler.State.Discards, Is.EqualTo(0));
-    }
-
-    [Test]
-    public void Discard_AfterMaxDiscards_ShouldThrowGameException() {
-        // Use all discards
-        for (int i = 0; i < config.MaxDiscards; i++) {
-            _gameStateHandler.DrawCards();
-            var oneCard = _gameStateHandler.State.CurrentHand.Take(1).ToList();
-            _ = _gameStateHandler.Discard(oneCard);
-        }
-
-        // Try one more discard
-        _gameStateHandler.DrawCards();
-        var moreCard = _gameStateHandler.State.CurrentHand.Take(1).ToList();
-        var exception = Assert.Throws<SolitairePokerGameException>(() => _gameStateHandler.Discard(moreCard));
-        Assert.That(exception.Message, Is.EqualTo($"Discard error: no discards remaining {_gameStateHandler.State.Discards} of {config.MaxDiscards}"));
-    }
-
-    [Test]
     public void CompleteGame_ShouldAccumulateScore() {
         var totalScore = 0;
         List<int> handScores = new();
@@ -85,7 +60,7 @@ public class GameStateHandlerTests {
         for (int i = 0; i < config.MaxHands; i++) {
             _gameStateHandler.DrawCards();
             var hand = _gameStateHandler.GetPossibleHands()[0]; // Always play best hand
-            var result = _gameStateHandler.PlayHand(hand);
+            var result = _gameStateHandler.PlayHand(hand.Cards);
             handScores.Add(result.Score);
             totalScore += result.Score;
         }
@@ -147,7 +122,7 @@ public class GameStateHandlerTests {
         var unusedCards = initialHand.Except(pairCards).ToList();
 
         // Play the pair
-        _gameStateHandler.PlayHand(pairHand);
+        _gameStateHandler.PlayHand(pairHand.Cards);
 
         // Draw new cards
         _gameStateHandler.DrawCards();
@@ -178,7 +153,7 @@ public class GameStateHandlerTests {
         var unusedCards = initialHand.Except(usedCards).ToList();
 
         // Play the hand
-        _gameStateHandler.PlayHand(fiveCardHand);
+        _gameStateHandler.PlayHand(fiveCardHand.Cards);
 
         // Draw new cards
         _gameStateHandler.DrawCards();
@@ -224,13 +199,33 @@ public class GameStateHandlerTests {
     }
 
     [Test]
+    public void DrawCards_WhenGameOver_ShouldThrowGameException() {
+        for (int i = 0; i < config.MaxHands; i++) {
+            _gameStateHandler.DrawCards();
+            var hand = _gameStateHandler.GetPossibleHands()[0];
+            _gameStateHandler.PlayHand(hand.Cards);
+        }
+
+        var exception = Assert.Throws<SolitairePokerGameException>(() => _gameStateHandler.DrawCards());
+        Assert.That(exception.Message, Is.EqualTo("DrawCards errors: game is over"));
+    }
+
+    [Test]
+    public void DrawCards_WhenHandAlreadyFull_ShouldThrowGameException() {
+        _gameStateHandler.DrawCards(); // Fill the hand
+
+        var exception = Assert.Throws<SolitairePokerGameException>(() => _gameStateHandler.DrawCards());
+        Assert.That(exception.Message, Is.EqualTo("DrawCards error: hand already full"));
+    }
+
+    [Test]
     public void PlayHand_WithValidHand_ShouldUpdateState() {
         _gameStateHandler.DrawCards();
         var possibleHands = _gameStateHandler.GetPossibleHands();
         Assert.That(possibleHands, Is.Not.Empty, "Should have at least one possible hand");
 
         var playedHand = possibleHands[0];
-        var result = _gameStateHandler.PlayHand(playedHand);
+        var result = _gameStateHandler.PlayHand(playedHand.Cards);
         Assert.Multiple(() => {
             Assert.That(result.Score, Is.EqualTo(_gameStateHandler.PokerHandsManager.CalculateScore(playedHand)));
             Assert.That(_gameStateHandler.State.HandsPlayed, Is.EqualTo(1));
@@ -247,12 +242,12 @@ public class GameStateHandlerTests {
     public void PlayHand_AfterMaxHands_ShouldThrowGameException() {
         for (int i = 0; i < config.MaxHands - 1; i++) {
             _gameStateHandler.DrawCards();
-            _ = _gameStateHandler.PlayHand(_gameStateHandler.GetPossibleHands()[0]);
+            _ = _gameStateHandler.PlayHand(_gameStateHandler.GetPossibleHands()[0].Cards);
         }
 
         // Play final hand
         _gameStateHandler.DrawCards();
-        _ = _gameStateHandler.PlayHand(_gameStateHandler.GetPossibleHands()[0]);
+        _ = _gameStateHandler.PlayHand(_gameStateHandler.GetPossibleHands()[0].Cards);
         Assert.Multiple(() => {
             Assert.That(_gameStateHandler.IsGameOver(), Is.True);
             // CurrentHand debe tener las cartas que quedaron sin usar de la última mano
@@ -263,29 +258,36 @@ public class GameStateHandlerTests {
         Assert.That(_gameStateHandler.GetPossibleHands(), Is.Not.Empty); // Puede haber manos posibles con las cartas que quedaron
 
         // Try to play another hand
-        var exception = Assert.Throws<SolitairePokerGameException>(() => _gameStateHandler.PlayHand(new PairHand(_gameStateHandler.PokerHandsManager, _gameStateHandler.State.CurrentHand)));
+        var exception = Assert.Throws<SolitairePokerGameException>(() => _gameStateHandler.PlayHand(_gameStateHandler.State.CurrentHand));
         Assert.That(exception.Message, Is.EqualTo("PlayHand error: game is over"));
         Assert.Throws<SolitairePokerGameException>(() => _gameStateHandler.DrawCards());
     }
 
     [Test]
-    public void Discard_ValidCards_ShouldUpdateHandAndDecrementDiscards() {
+    public void PlayHand_WhenGameWon_ShouldThrowGameException() {
+        _gameStateHandler.State.TotalScore = 1; // Set a low score to make it winnable
         _gameStateHandler.DrawCards();
-        var initialState = _gameStateHandler.State;
-        var cardsToDiscard = initialState.CurrentHand.Take(3).ToList();
+        var hand = _gameStateHandler.GetPossibleHands()[0];
+        _gameStateHandler.PlayHand(hand.Cards); // This should make us win the game
 
-        var result = _gameStateHandler.Discard(cardsToDiscard);
+        // Try to play another hand
+        var exception = Assert.Throws<SolitairePokerGameException>(() =>
+            _gameStateHandler.PlayHand([]));
+        Assert.That(exception.Message, Is.EqualTo("PlayHand error: game won"));
+    }
 
-        Assert.Multiple(() => {
-            Assert.That(result.DiscardedCards, Is.EquivalentTo(cardsToDiscard));
-            Assert.That(_gameStateHandler.State.Discards, Is.EqualTo(1));
-            Assert.That(_gameStateHandler.State.CurrentHand.Count, Is.EqualTo(_gameStateHandler.Config.HandSize - cardsToDiscard.Count));
-            Assert.That(_gameStateHandler.State.CurrentHand.Intersect(cardsToDiscard), Is.Empty);
-            // Las cartas descartadas deben contener las cartas que acabamos de descartar (no ser igual)
-            Assert.That(_gameStateHandler.State.DiscardedCards.Intersect(cardsToDiscard), Is.EquivalentTo(cardsToDiscard));
-            Assert.That(_gameStateHandler.State.PlayedCards, Is.Empty);
-            Assert.That(_gameStateHandler.State.History.GetHistory().Count, Is.EqualTo(1));
-        });
+    [Test]
+    public void PlayHand_WithoutDrawingCards_ShouldThrowGameException() {
+        var exception = Assert.Throws<SolitairePokerGameException>(() => _gameStateHandler.PlayHand([]));
+        Assert.That(exception.Message, Is.EqualTo("PlayHand error: cannot play hands yet, draw cards first."));
+    }
+
+    [Test]
+    public void PlayHand_WithInvalidCards_ShouldThrowGameException() {
+        _gameStateHandler.DrawCards();
+        var exception = Assert.Throws<SolitairePokerGameException>(() =>
+            _gameStateHandler.PlayHand(_gameStateHandler.State.AvailableCards.Take(1).ToList()));
+        Assert.That(exception.Message, Does.Contain("PlayHand error: hand to play contains cards not in current hand"));
     }
 
     [Test]
@@ -296,11 +298,11 @@ public class GameStateHandlerTests {
 
         // Jugar dos manos para verificar la acumulación del score
         var firstHand = _gameStateHandler.GetPossibleHands()[0];
-        var firstResult = _gameStateHandler.PlayHand(firstHand);
+        var firstResult = _gameStateHandler.PlayHand(firstHand.Cards);
         _gameStateHandler.DrawCards();
 
         var secondHand = _gameStateHandler.GetPossibleHands()[0];
-        var secondResult = _gameStateHandler.PlayHand(secondHand);
+        var secondResult = _gameStateHandler.PlayHand(secondHand.Cards);
 
         // Obtener las acciones del historial
         var history = _gameStateHandler.State.History.GetHistory()
@@ -321,28 +323,89 @@ public class GameStateHandlerTests {
     }
 
     [Test]
+    public void PlayHand_ShouldMoveCardsToPlayedPile() {
+        _gameStateHandler.DrawCards();
+        var hand = _gameStateHandler.GetPossibleHands()[0];
+
+        _gameStateHandler.PlayHand(hand.Cards);
+
+        Assert.Multiple(() => {
+            // Las cartas jugadas no deberían estar en la mano actual
+            Assert.That(_gameStateHandler.State.CurrentHand.Intersect(hand.Cards), Is.Empty);
+            // Las cartas jugadas deberían estar en la pila de jugadas
+            Assert.That(_gameStateHandler.State.PlayedCards.Intersect(hand.Cards), Is.EquivalentTo(hand.Cards));
+            // Las cartas jugadas no deberían estar disponibles
+            Assert.That(_gameStateHandler.State.AvailableCards.Intersect(hand.Cards), Is.Empty);
+        });
+    }
+
+    [Test]
+    public void PlayHand_WithEmptyHand_ShouldReturnZeroScore() {
+        _gameStateHandler.DrawCards();
+
+        var result = _gameStateHandler.PlayHand([]);
+
+        Assert.Multiple(() => {
+            Assert.That(result.Score, Is.EqualTo(0));
+            Assert.That(result.Hand, Is.Null);
+        });
+    }
+
+    [Test]
+    public void PlayHand_WithDiscardedCards_ShouldThrowGameException() {
+        _gameStateHandler.DrawCards();
+
+        // Primero descartamos algunas cartas
+        var cardsToDiscard = _gameStateHandler.State.CurrentHand.Take(2).ToList();
+        _gameStateHandler.Discard(cardsToDiscard);
+
+        // Robamos nuevas cartas para completar la mano
+        _gameStateHandler.DrawCards();
+
+        // Intentamos jugar las cartas que fueron descartadas anteriormente
+        var exception = Assert.Throws<SolitairePokerGameException>(() =>
+            _gameStateHandler.PlayHand(cardsToDiscard));
+        Assert.That(exception.Message, Does.Contain("PlayHand error: hand to play contains cards not in current hand"));
+    }
+
+    [Test]
+    public void PlayHand_ShouldUpdateHistory() {
+        _gameStateHandler.DrawCards();
+        var hand = _gameStateHandler.GetPossibleHands()[0];
+        var result = _gameStateHandler.PlayHand(hand.Cards);
+
+        var lastHistoryAction = _gameStateHandler.State.History.GetHistory().Last();
+        Assert.Multiple(() => {
+            Assert.That(lastHistoryAction.Type, Is.EqualTo(PlayHistory.PlayedActionType.Play));
+            Assert.That(lastHistoryAction.HandScore, Is.EqualTo(result.Score));
+            Assert.That(lastHistoryAction.GameScore, Is.EqualTo(result.Score));
+            Assert.That(lastHistoryAction.Cards, Is.EquivalentTo(hand.Cards));
+        });
+    }
+
+    [Test]
     public void GameState_ShouldTrackScoreProgress() {
         // Establecer un objetivo total
-        _gameStateHandler.State.TotalScore = 300;
+        _gameStateHandler.State.TotalScore = 300000;
         _gameStateHandler.DrawCards();
 
         // Jugar tres manos y verificar la acumulación del score
         var firstHand = _gameStateHandler.GetPossibleHands()[0];
-        var firstResult = _gameStateHandler.PlayHand(firstHand);
+        var firstResult = _gameStateHandler.PlayHand(firstHand.Cards);
         _gameStateHandler.DrawCards();
 
         var secondHand = _gameStateHandler.GetPossibleHands()[0];
-        var secondResult = _gameStateHandler.PlayHand(secondHand);
+        var secondResult = _gameStateHandler.PlayHand(secondHand.Cards);
         _gameStateHandler.DrawCards();
 
         var thirdHand = _gameStateHandler.GetPossibleHands()[0];
-        var thirdResult = _gameStateHandler.PlayHand(thirdHand);
+        var thirdResult = _gameStateHandler.PlayHand(thirdHand.Cards);
 
         Assert.Multiple(() => {
             // Verificar el score final
             var expectedTotalScore = firstResult.Score + secondResult.Score + thirdResult.Score;
             Assert.That(_gameStateHandler.State.Score, Is.EqualTo(expectedTotalScore));
-            Assert.That(_gameStateHandler.State.TotalScore, Is.EqualTo(300));
+            Assert.That(_gameStateHandler.State.TotalScore, Is.EqualTo(300000));
         });
     }
 
@@ -352,7 +415,7 @@ public class GameStateHandlerTests {
         _gameStateHandler.State.TotalScore = 1000;
         _gameStateHandler.DrawCards();
         var hand = _gameStateHandler.GetPossibleHands()[0];
-        _gameStateHandler.PlayHand(hand);
+        _gameStateHandler.PlayHand(hand.Cards);
         Assert.That(_gameStateHandler.IsWon(), Is.False, "Game should not be won with low score");
 
         // Caso 2: Score suficiente, debería ganar
@@ -361,7 +424,7 @@ public class GameStateHandlerTests {
         _gameStateHandler.State.TotalScore = 10; // Un valor bajo que seguro se puede alcanzar con una mano
         _gameStateHandler.DrawCards();
         hand = _gameStateHandler.GetPossibleHands()[0];
-        _gameStateHandler.PlayHand(hand);
+        _gameStateHandler.PlayHand(hand.Cards);
         Assert.That(_gameStateHandler.IsWon(), Is.True, "Game should be won when score >= totalScore");
     }
 
@@ -376,7 +439,7 @@ public class GameStateHandlerTests {
             while (!_gameStateHandler.IsWon() && !_gameStateHandler.IsGameOver()) {
                 _gameStateHandler.DrawCards();
                 var bestHand = _gameStateHandler.GetPossibleHands()[0];
-                _gameStateHandler.PlayHand(bestHand);
+                _gameStateHandler.PlayHand(bestHand.Cards);
             }
 
             Assert.Multiple(() => {
@@ -409,7 +472,7 @@ public class GameStateHandlerTests {
         var hand = possibleHands[0];
         var config = _gameStateHandler.PokerHandsManager.GetPokerHandConfig(hand);
 
-        var result = _gameStateHandler.PlayHand(hand);
+        var result = _gameStateHandler.PlayHand(hand.Cards);
 
         var expectedScore = (config.InitialScore + hand.Cards.Sum(c => c.Rank)) * config.Multiplier;
         Assert.That(result.Score, Is.EqualTo(expectedScore),
@@ -441,52 +504,48 @@ public class GameStateHandlerTests {
     }
 
     [Test]
-    public void PlayHand_WhenGameWon_ShouldThrowGameException() {
-        _gameStateHandler.State.TotalScore = 10; // Set a low score to make it winnable
+    public void Discard_ValidCards_ShouldUpdateHandAndDecrementDiscards() {
         _gameStateHandler.DrawCards();
-        var hand = _gameStateHandler.GetPossibleHands()[0];
-        _gameStateHandler.PlayHand(hand); // This should make us win the game
+        var initialState = _gameStateHandler.State;
+        var cardsToDiscard = initialState.CurrentHand.Take(3).ToList();
 
-        // Try to play another hand
-        var exception = Assert.Throws<SolitairePokerGameException>(() =>
-            _gameStateHandler.PlayHand(new PairHand(_gameStateHandler.PokerHandsManager, _gameStateHandler.State.CurrentHand)));
-        Assert.That(exception.Message, Is.EqualTo("PlayHand error: game won"));
+        var result = _gameStateHandler.Discard(cardsToDiscard);
+
+        Assert.Multiple(() => {
+            Assert.That(result.DiscardedCards, Is.EquivalentTo(cardsToDiscard));
+            Assert.That(_gameStateHandler.State.Discards, Is.EqualTo(1));
+            Assert.That(_gameStateHandler.State.CurrentHand.Count, Is.EqualTo(_gameStateHandler.Config.HandSize - cardsToDiscard.Count));
+            Assert.That(_gameStateHandler.State.CurrentHand.Intersect(cardsToDiscard), Is.Empty);
+            // Las cartas descartadas deben contener las cartas que acabamos de descartar (no ser igual)
+            Assert.That(_gameStateHandler.State.DiscardedCards.Intersect(cardsToDiscard), Is.EquivalentTo(cardsToDiscard));
+            Assert.That(_gameStateHandler.State.PlayedCards, Is.Empty);
+            Assert.That(_gameStateHandler.State.History.GetHistory().Count, Is.EqualTo(1));
+        });
     }
 
     [Test]
-    public void PlayHand_WithoutDrawingCards_ShouldThrowGameException() {
-        var exception = Assert.Throws<SolitairePokerGameException>(() =>
-            _gameStateHandler.PlayHand(new PairHand(_gameStateHandler.PokerHandsManager, [])));
-        Assert.That(exception.Message, Is.EqualTo("PlayHand error: cannot play hands yet, draw cards first."));
-    }
-
-    [Test]
-    public void PlayHand_WithInvalidCards_ShouldThrowGameException() {
+    public void Discard_TooManyCards_ShouldThrowGameException() {
         _gameStateHandler.DrawCards();
-        var invalidCards = new List<Card> { new(14, 'S') }; // Ace of Spades
-        var exception = Assert.Throws<SolitairePokerGameException>(() =>
-            _gameStateHandler.PlayHand(new PairHand(_gameStateHandler.PokerHandsManager, invalidCards)));
-        Assert.That(exception.Message, Does.Contain("PlayHand error: hand to play contains cards not in current hand"));
+        var cardsToDiscard = _gameStateHandler.State.CurrentHand.Take(config.MaxDiscardCards + 1).ToList();
+        var exception = Assert.Throws<SolitairePokerGameException>(() => _gameStateHandler.Discard(cardsToDiscard));
+        Assert.That(exception.Message, Is.EqualTo($"Discard error: discard between 1 and {config.MaxDiscardCards} cards: {cardsToDiscard.Count}"));
+        Assert.That(_gameStateHandler.State.Discards, Is.EqualTo(0));
     }
 
     [Test]
-    public void DrawCards_WhenGameOver_ShouldThrowGameException() {
-        for (int i = 0; i < config.MaxHands; i++) {
+    public void Discard_AfterMaxDiscards_ShouldThrowGameException() {
+        // Use all discards
+        for (int i = 0; i < config.MaxDiscards; i++) {
             _gameStateHandler.DrawCards();
-            var hand = _gameStateHandler.GetPossibleHands()[0];
-            _gameStateHandler.PlayHand(hand);
+            var oneCard = _gameStateHandler.State.CurrentHand.Take(1).ToList();
+            _ = _gameStateHandler.Discard(oneCard);
         }
 
-        var exception = Assert.Throws<SolitairePokerGameException>(() => _gameStateHandler.DrawCards());
-        Assert.That(exception.Message, Is.EqualTo("DrawCards errors: game is over"));
-    }
-
-    [Test]
-    public void DrawCards_WhenHandAlreadyFull_ShouldThrowGameException() {
-        _gameStateHandler.DrawCards(); // Fill the hand
-
-        var exception = Assert.Throws<SolitairePokerGameException>(() => _gameStateHandler.DrawCards());
-        Assert.That(exception.Message, Is.EqualTo("DrawCards error: hand already full"));
+        // Try one more discard
+        _gameStateHandler.DrawCards();
+        var moreCard = _gameStateHandler.State.CurrentHand.Take(1).ToList();
+        var exception = Assert.Throws<SolitairePokerGameException>(() => _gameStateHandler.Discard(moreCard));
+        Assert.That(exception.Message, Is.EqualTo($"Discard error: no discards remaining {_gameStateHandler.State.Discards} of {config.MaxDiscards}"));
     }
 
     [Test]
@@ -494,7 +553,7 @@ public class GameStateHandlerTests {
         _gameStateHandler.State.TotalScore = 10; // Set a low score to make it winnable
         _gameStateHandler.DrawCards();
         var hand = _gameStateHandler.GetPossibleHands()[0];
-        _gameStateHandler.PlayHand(hand); // This should make us win the game
+        _gameStateHandler.PlayHand(hand.Cards); // This should make us win the game
 
         // Try to discard
         var exception = Assert.Throws<SolitairePokerGameException>(() =>
@@ -512,9 +571,241 @@ public class GameStateHandlerTests {
     [Test]
     public void Discard_WithInvalidCards_ShouldThrowGameException() {
         _gameStateHandler.DrawCards();
-        var invalidCards = new List<Card> { new(14, 'S') }; // Ace of Spades (not in current hand)
         var exception = Assert.Throws<SolitairePokerGameException>(() =>
-            _gameStateHandler.Discard(invalidCards));
+            _gameStateHandler.Discard(_gameStateHandler.State.AvailableCards.Take(1).ToList()));
         Assert.That(exception.Message, Does.Contain("Discard error: contains cards not in current hand"));
+    }
+
+    [Test]
+    public void DrawCards_WithSpecificCards_ShouldDrawCorrectly() {
+        _gameStateHandler.DrawCards();
+
+        // Jugar una mano para tener espacio para robar más cartas
+        var hand = _gameStateHandler.GetPossibleHands()[0];
+        _gameStateHandler.PlayHand(hand.Cards);
+
+        // Seleccionar cartas específicas para robar
+        var availableCards = _gameStateHandler.State.AvailableCards.Take(hand.Cards.Count).ToList();
+        _gameStateHandler.DrawCards(availableCards);
+
+        Assert.Multiple(() => {
+            // Verificar que las cartas específicas están en la mano actual
+            Assert.That(_gameStateHandler.State.CurrentHand.Intersect(availableCards), Is.EquivalentTo(availableCards));
+            // Verificar que las cartas ya no están disponibles
+            Assert.That(_gameStateHandler.State.AvailableCards.Intersect(availableCards), Is.Empty);
+        });
+    }
+
+    [Test]
+    public void DrawCards_WithInvalidCards_ShouldThrowGameException() {
+        _gameStateHandler.DrawCards();
+        var hand = _gameStateHandler.GetPossibleHands()[0];
+        _gameStateHandler.PlayHand(hand.Cards);
+
+        // Primero jugamos una mano para tener espacio para robar
+        var playedCard = hand.Cards[0]; // Guardamos una carta que ya ha sido jugada
+
+        // Intentar robar la carta que ya fue jugada (ahora está en PlayedCards, no en AvailableCards)
+        var exception = Assert.Throws<SolitairePokerGameException>(() =>
+            _gameStateHandler.DrawCards([playedCard]));
+        Assert.That(exception.Message, Does.Contain("DrawCards error: cards to draw not found in available pile"));
+    }
+
+    [Test]
+    public void DrawCards_WithTooManyCards_ShouldThrowGameException() {
+        _gameStateHandler.DrawCards();
+        var hand = _gameStateHandler.GetPossibleHands()[0];
+        _gameStateHandler.PlayHand(hand.Cards);
+
+        // Intentar robar más cartas de las necesarias
+        var tooManyCards = _gameStateHandler.State.AvailableCards.Take(hand.Cards.Count + 1).ToList();
+        var exception = Assert.Throws<SolitairePokerGameException>(() =>
+            _gameStateHandler.DrawCards(tooManyCards));
+        Assert.That(exception.Message, Does.Contain("DrawCards error: cannot draw more cards"));
+    }
+
+    [Test]
+    public void Recover_FromPlayedPile_ShouldMoveCardToAvailablePile() {
+        // Arrange: Prepare a card in played pile
+        _gameStateHandler.DrawCards();
+        var hand = _gameStateHandler.GetPossibleHands()[0];
+        _gameStateHandler.PlayHand(hand.Cards);
+        var cardToRecover = hand.Cards[0];
+
+        // Act
+        _gameStateHandler.Recover([cardToRecover]);
+
+        // Assert
+        Assert.Multiple(() => {
+            Assert.That(_gameStateHandler.State.PlayedCards, Does.Not.Contain(cardToRecover));
+            Assert.That(_gameStateHandler.State.AvailableCards, Does.Contain(cardToRecover));
+        });
+    }
+
+    [Test]
+    public void Recover_FromDiscardedPile_ShouldMoveCardToAvailablePile() {
+        // Arrange: Prepare a card in discarded pile
+        _gameStateHandler.DrawCards();
+        var cardToDiscard = _gameStateHandler.State.CurrentHand.First();
+        _gameStateHandler.Discard([cardToDiscard]);
+
+        // Act
+        _gameStateHandler.Recover([cardToDiscard]);
+
+        // Assert
+        Assert.Multiple(() => {
+            Assert.That(_gameStateHandler.State.DiscardedCards, Does.Not.Contain(cardToDiscard));
+            Assert.That(_gameStateHandler.State.AvailableCards, Does.Contain(cardToDiscard));
+        });
+    }
+
+    [Test]
+    public void Recover_RandomCardsFromBothPiles_ShouldMoveCardsToAvailablePile() {
+        // Prepare some cards in played pile
+        _gameStateHandler.DrawCards();
+        var hand = _gameStateHandler.GetPossibleHands()[0];
+        _gameStateHandler.PlayHand(hand.Cards);
+
+        // Prepare some cards in discarded pile
+        _gameStateHandler.DrawCards();
+        var cardToDiscard = _gameStateHandler.State.CurrentHand.First();
+        _gameStateHandler.Discard([cardToDiscard]);
+
+        var initialPlayedCount = _gameStateHandler.State.PlayedCards.Count;
+        var initialDiscardedCount = _gameStateHandler.State.DiscardedCards.Count;
+        var initialAvailableCount = _gameStateHandler.State.AvailableCards.Count;
+        var cardsToRecover = 2;
+
+        // Act
+        _gameStateHandler.Recover(cardsToRecover);
+
+        // Assert
+        Assert.Multiple(() => {
+            Assert.That(_gameStateHandler.State.AvailableCards.Count,
+                Is.EqualTo(initialAvailableCount + cardsToRecover));
+            Assert.That(_gameStateHandler.State.PlayedCards.Count + _gameStateHandler.State.DiscardedCards.Count,
+                Is.EqualTo(initialPlayedCount + initialDiscardedCount - cardsToRecover));
+        });
+    }
+
+    [Test]
+    public void Recover_WithCardsFromBothPiles_ShouldMoveSpecificCardsToAvailablePile() {
+        // Prepare a card in played pile
+        _gameStateHandler.DrawCards();
+        var hand = _gameStateHandler.GetPossibleHands()[0];
+        _gameStateHandler.PlayHand(hand.Cards);
+        var playedCard = hand.Cards[0];
+
+        // Prepare a card in discarded pile
+        _gameStateHandler.DrawCards();
+        var cardToDiscard = _gameStateHandler.State.CurrentHand.First();
+        _gameStateHandler.Discard([cardToDiscard]);
+
+        var cardsToRecover = new List<Card> { playedCard, cardToDiscard };
+
+        // Act
+        _gameStateHandler.Recover(cardsToRecover);
+
+        // Assert
+        Assert.Multiple(() => {
+            Assert.That(_gameStateHandler.State.PlayedCards, Does.Not.Contain(playedCard));
+            Assert.That(_gameStateHandler.State.DiscardedCards, Does.Not.Contain(cardToDiscard));
+            Assert.That(_gameStateHandler.State.AvailableCards.Intersect(cardsToRecover),
+                Is.EquivalentTo(cardsToRecover));
+        });
+    }
+
+    [Test]
+    public void Recover_FromDestroyedPile_ShouldMoveCardToAvailablePile() {
+        _gameStateHandler.DrawCards();
+        var cardToDestroy = _gameStateHandler.State.CurrentHand.First();
+        _gameStateHandler.Discard([cardToDestroy]);
+
+        _gameStateHandler.Recover([cardToDestroy]);
+
+        Assert.Multiple(() => {
+            Assert.That(_gameStateHandler.State.DestroyedCards, Does.Not.Contain(cardToDestroy));
+            Assert.That(_gameStateHandler.State.AvailableCards, Does.Contain(cardToDestroy));
+        });
+    }
+
+    [Test]
+    public void Destroy_FromCurrentHand_ShouldMoveCardToDestroyedPile() {
+        _gameStateHandler.DrawCards();
+        var cardToDestroy = _gameStateHandler.State.CurrentHand.First();
+
+        _gameStateHandler.Destroy([cardToDestroy]);
+
+        Assert.Multiple(() => {
+            Assert.That(_gameStateHandler.State.DestroyedCards, Does.Contain(cardToDestroy));
+            Assert.That(_gameStateHandler.State.CurrentHand, Does.Not.Contain(cardToDestroy));
+        });
+    }
+
+    [Test]
+    public void Destroy_FromAvailablePile_ShouldMoveCardToDestroyedPile() {
+        var cardToDestroy = _gameStateHandler.State.AvailableCards.First();
+
+        _gameStateHandler.Destroy([cardToDestroy]);
+
+        Assert.Multiple(() => {
+            Assert.That(_gameStateHandler.State.DestroyedCards, Does.Contain(cardToDestroy));
+            Assert.That(_gameStateHandler.State.AvailableCards, Does.Not.Contain(cardToDestroy));
+        });
+    }
+
+    [Test]
+    public void Destroy_FromDiscardedPile_ShouldMoveCardToDestroyedPile() {
+        _gameStateHandler.DrawCards();
+        var cardToDiscard = _gameStateHandler.State.CurrentHand.First();
+        _gameStateHandler.Discard([cardToDiscard]);
+
+        _gameStateHandler.Destroy([cardToDiscard]);
+
+        Assert.Multiple(() => {
+            Assert.That(_gameStateHandler.State.DestroyedCards, Does.Contain(cardToDiscard));
+            Assert.That(_gameStateHandler.State.DiscardedCards, Does.Not.Contain(cardToDiscard));
+        });
+    }
+
+    [Test]
+    public void Destroy_FromPlayedPile_ShouldMoveCardToDestroyedPile() {
+        _gameStateHandler.DrawCards();
+        var hand = _gameStateHandler.GetPossibleHands()[0];
+        _gameStateHandler.PlayHand(hand.Cards);
+        var cardsToDestroy = hand.Cards;
+
+        _gameStateHandler.Destroy(cardsToDestroy);
+
+        Assert.Multiple(() => {
+            // Verificar que todas las cartas están en la pila de destruidas
+            Assert.That(_gameStateHandler.State.DestroyedCards, Is.EquivalentTo(cardsToDestroy));
+            // Verificar que ninguna carta está en la pila de jugadas
+            Assert.That(_gameStateHandler.State.PlayedCards.Intersect(cardsToDestroy), Is.Empty);
+        });
+    }
+
+    [Test]
+    public void Destroy_NonExistentCard_ShouldThrowGameException() {
+        var nonExistentCard = new Card(25, 'S'); // 25 of Spades que no existe en ninguna pila
+
+        var exception = Assert.Throws<SolitairePokerGameException>(() =>
+            _gameStateHandler.Destroy([nonExistentCard]));
+        Assert.That(exception.Message, Does.Contain("Destroy error: card not found in any pile"));
+    }
+
+    [Test]
+    public void Destroy_MultipleTimes_ShouldOnlyDestroyOnce() {
+        _gameStateHandler.DrawCards();
+        var cardToDestroy = _gameStateHandler.State.CurrentHand.First();
+
+        _gameStateHandler.Destroy([cardToDestroy]);
+        var exception = Assert.Throws<SolitairePokerGameException>(() =>
+            _gameStateHandler.Destroy([cardToDestroy]));
+
+        Assert.Multiple(() => {
+            Assert.That(exception.Message, Does.Contain("Destroy error: card not found in any pile"));
+            Assert.That(_gameStateHandler.State.DestroyedCards.Count(c => c == cardToDestroy), Is.EqualTo(1));
+        });
     }
 }

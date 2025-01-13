@@ -58,7 +58,7 @@ public class AutoPlayer {
         
         
         
-        var bestDiscard = discardOptions.DiscardOptions.FirstOrDefault(o => o.GetBestHand().HandType != bestCurrentHand.GetType());
+        var bestDiscard = discardOptions.Discards.FirstOrDefault(o => o.GetBestHand().HandType != bestCurrentHand.GetType());
 
         // Si es la última mano y no ganamos, pero tenemos descartes, descartar para ver si tenemos mas suerte la proxima
         if (gameStateHandler.RemainingHands == 1 && currentScore < gameStateHandler.RemainingScoreToWin) {

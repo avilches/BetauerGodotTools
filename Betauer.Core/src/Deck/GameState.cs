@@ -12,60 +12,114 @@ public class GameState {
 
     public int HandsPlayed { get; set; } = 0;
     public int Discards { get; set; } = 0;
-    public IReadOnlyList<Card> CurrentHand { get; private set; } = [];
     public PlayHistory History { get; } = new();
 
-    private readonly List<Card> _cards;
-    private readonly List<Card> _discardedCards;
-    private readonly List<Card> _playedCards;
+    private readonly List<Card> _availableCards = [];
+    private readonly List<Card> _currentHand = [];
+    private readonly List<Card> _discardedCards = [];
+    private readonly List<Card> _playedCards = [];
+    private readonly List<Card> _destroyedCards = [];
 
+    public IReadOnlyList<Card> AvailableCards { get; }
+    public IReadOnlyList<Card> CurrentHand { get; }
     public IReadOnlyList<Card> DiscardedCards { get; }
     public IReadOnlyList<Card> PlayedCards { get; }
-    public IReadOnlyList<Card> AvailableCards { get; }
+    public IReadOnlyList<Card> DestroyedCards { get; }
 
     public GameState(int seed) {
         Seed = seed;
-        _cards = [];
-        _discardedCards = [];
-        _playedCards = [];
+        AvailableCards = _availableCards.AsReadOnly();
+        CurrentHand = _currentHand.AsReadOnly();
         DiscardedCards = _discardedCards.AsReadOnly();
         PlayedCards = _playedCards.AsReadOnly();
-        AvailableCards = _cards.AsReadOnly();
+        DestroyedCards = _destroyedCards.AsReadOnly();
+    }
+
+    public void Clear() {
+        _availableCards.Clear();
+        _currentHand.Clear();
+        _discardedCards.Clear();
+        _playedCards.Clear();
+        _destroyedCards.Clear();
     }
 
     public void BuildPokerDeck(string suits, int minRank, int maxRank) {
         if (minRank > maxRank) throw new ArgumentException("minRank cannot be greater than maxRank");
 
-        _cards.Clear();
+        _availableCards.Clear();
         foreach (var suit in suits) {
             for (var rank = minRank; rank <= maxRank; rank++) {
-                _cards.Add(new Card(rank, suit));
+                _availableCards.Add(new Card(rank, suit));
             }
         }
     }
 
-    public void Shuffle(Random random) {
-        random.Shuffle(_cards);
+    public void ShuffleAvailable(Random random) {
+        random.Shuffle(_availableCards);
     }
 
-    public List<Card> Draw(int count) {
-        if (count > _cards.Count) throw new InvalidOperationException("Not enough cards in deck");
-        var drawn = _cards.Take(count).ToList();
-        _cards.RemoveRange(0, count);
-        return drawn;
+    /// <summary>
+    /// Move a card from the available pile to hand
+    /// </summary>
+    public bool Draw(Card card) {
+        if (!_availableCards.Remove(card)) return false;
+        _currentHand.Add(card);
+        return true;
     }
 
-    public void SetCurrentHand(List<Card> hand) {
-        CurrentHand = hand;
+    /// <summary>
+    /// Move a card from the hand to the discard pile
+    /// </summary>
+    public bool Discard(Card card) {
+        if (!_currentHand.Remove(card)) return false;
+        _discardedCards.Add(card);
+        return true;
     }
 
-    public void AddToDiscardedCards(IReadOnlyList<Card> returnedCards) {
-        // Clone each card before adding to discarded pile
-        _discardedCards.AddRange(returnedCards.Select(card => card.Clone()));
+    /// <summary>
+    /// Move a card from the hand to the played pile
+    /// </summary>
+    public bool Play(Card card) {
+        if (!_currentHand.Remove(card)) return false;
+        _playedCards.Add(card);
+        return true;
     }
 
-    public void AddToPlayedCards(IReadOnlyList<Card> playedCards) {
-        // Clone each card before adding to played pile
-        _playedCards.AddRange(playedCards.Select(card => card.Clone()));
+    /// <summary>
+    /// Move a card from played to the available pile
+    /// </summary>
+    public bool Recover(Card card) {
+        if (_playedCards.Remove(card)) {
+            _availableCards.Add(card);
+            return true;
+        }
+        if (_discardedCards.Remove(card)) {
+            _availableCards.Add(card);
+            return true;
+        }
+        return false;
+    }
+    
+    /// <summary>
+    /// Move a card from any pile to destroyed pile
+    /// </summary>
+    public bool Destroy(Card card) {
+        if (_currentHand.Remove(card)) {
+            _destroyedCards.Add(card);
+            return true;
+        }
+        if (_availableCards.Remove(card)) {
+            _destroyedCards.Add(card);
+            return true;
+        }
+        if (_discardedCards.Remove(card)) {
+            _destroyedCards.Add(card);
+            return true;
+        }
+        if (_playedCards.Remove(card)) {
+            _destroyedCards.Add(card);
+            return true;
+        }
+        return false;
     }
 }

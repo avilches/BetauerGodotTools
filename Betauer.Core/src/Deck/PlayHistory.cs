@@ -24,9 +24,9 @@ public class PlayHistory {
     }
 
 
-    public void AddPlayAction(PokerHand hand, int handScore, int score, int totalScore) {
+    public void AddPlayAction(PokerHand hand, IReadOnlyList<Card> cards, int handScore, int score, int totalScore) {
         var count = _actions.Count(ga => ga.Type == PlayedActionType.Play);
-        _actions.Add(new PlayedAction(count, PlayedActionType.Play, hand.Cards, hand, handScore, score, totalScore));
+        _actions.Add(new PlayedAction(count, PlayedActionType.Play, cards, hand, handScore, score, totalScore));
     }
 
     public void AddDiscardAction(IReadOnlyList<Card> cards, int score, int totalScore) {
