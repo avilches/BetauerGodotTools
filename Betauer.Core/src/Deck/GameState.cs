@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Betauer.Core.Deck.Hands;
 
 namespace Betauer.Core.Deck;
 
@@ -9,6 +10,7 @@ public class GameState {
     public int TotalScore { get; set; } = 0;
     public int Level { get; set; } = 0;
     public int Seed { get; }
+    public readonly Dictionary<Type, int> _handLevels = new();
 
     public int HandsPlayed { get; set; } = 0;
     public int Discards { get; set; } = 0;
@@ -52,6 +54,14 @@ public class GameState {
                 _availableCards.Add(new Card(rank, suit));
             }
         }
+    }
+    
+    public int GetPokerHandLevel(PokerHand hand) {
+        return _handLevels.GetValueOrDefault(hand.GetType(), 0);
+    }
+
+    public void SetPokerHandLevel(PokerHand hand, int level) {
+        _handLevels[hand.GetType()] = level;
     }
 
     public void ShuffleAvailable(Random random) {

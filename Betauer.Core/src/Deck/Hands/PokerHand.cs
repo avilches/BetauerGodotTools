@@ -14,11 +14,6 @@ public abstract class PokerHand(PokerHandsManager pokerHandsManager, string name
     public IReadOnlyList<Card> Cards { get; } = cards;
     public string Name { get; set; } = name;
 
-    public int CalculateScore() {
-        if (PokerHandsManager == null) throw new InvalidOperationException("PokerHand not initialized with PokerHands");
-        return PokerHandsManager.CalculateScore(this);
-    }
-
     /// <summary>
     /// Identifies all possible hands of this type in the given cards.
     /// Must be implemented by each specific hand type.

@@ -16,8 +16,8 @@ public class AutoPlayer {
         DiscardOptionsResult DiscardOptions
     );
 
-    public AutoPlayDecision GetNextAction(GameStateHandler gameStateHandler) {
-        var currentHands = gameStateHandler.GetPossibleHands();
+    public AutoPlayDecision GetNextAction(GameStateHandler handler) {
+        var currentHands = handler.GetPossibleHands();
 
         // Keep only the 
         var bestHighCard = currentHands.FirstOrDefault(p => p.GetType() == typeof(HighCardHand));
@@ -25,13 +25,13 @@ public class AutoPlayer {
         
         
         var bestCurrentHand = currentHands[0];
-        var currentScore = bestCurrentHand.CalculateScore();
-        var discardOptions = gameStateHandler.GetDiscardOptions();
+        var currentScore = handler.CalculateScore(bestCurrentHand);
+        var discardOptions = handler.GetDiscardOptions();
 
-        var loosing = gameStateHandler.RemainingHands == 1 && currentScore < gameStateHandler.RemainingScoreToWin;
+        var loosing = handler.RemainingHands == 1 && currentScore < handler.RemainingScoreToWin;
 
         // Con esta mano ganamos? jugar!
-        if (currentScore >= gameStateHandler.RemainingScoreToWin) {
+        if (currentScore >= handler.RemainingScoreToWin) {
             return new AutoPlayDecision(
                 true,
                 ":-) Play to win!",
@@ -43,7 +43,7 @@ public class AutoPlayer {
         }
 
         // Si no quedan descartes, no queda mas remedio que jugar
-        if (!gameStateHandler.CanDiscard()) {
+        if (!handler.CanDiscard()) {
             return new AutoPlayDecision(
                 true,
                 (loosing ? ":-o Losing": ":(")+" No discards remaining, must play current hand",
@@ -61,11 +61,11 @@ public class AutoPlayer {
         var bestDiscard = discardOptions.Discards.FirstOrDefault(o => o.GetBestHand().HandType != bestCurrentHand.GetType());
 
         // Si es la última mano y no ganamos, pero tenemos descartes, descartar para ver si tenemos mas suerte la proxima
-        if (gameStateHandler.RemainingHands == 1 && currentScore < gameStateHandler.RemainingScoreToWin) {
+        if (handler.RemainingHands == 1 && currentScore < handler.RemainingScoreToWin) {
             if (bestDiscard != null) {
                 return new AutoPlayDecision(
                     false,
-                    $":-/ Current hand score {currentScore} too low to win the last hand. We need {gameStateHandler.RemainingScoreToWin} to win",
+                    $":-/ Current hand score {currentScore} too low to win the last hand. We need {handler.RemainingScoreToWin} to win",
                     HandToPlay: null,
                     DiscardOption: bestDiscard,
                     PossibleHands: currentHands,
@@ -76,7 +76,7 @@ public class AutoPlayer {
 
         // No ganamos si jugamos, no es la última mano y quedan descartes
         
-        var minimumScoreNeeded = CalculateMinimumScoreNeeded(gameStateHandler);
+        var minimumScoreNeeded = CalculateMinimumScoreNeeded(handler);
         
         // Si la mano actual es muy mala, descartamos sin importar el riesgo
         if (currentScore < minimumScoreNeeded / 2) {
@@ -103,7 +103,7 @@ public class AutoPlayer {
         }
 
         // La mano actual vale entre [minimumScoreNeeded/2 y minimumScoreNeeded]
-        var risk = CalculateDynamicRisk(gameStateHandler);
+        var risk = CalculateDynamicRisk(handler);
 
         if (bestDiscard != null) {
             var bestHand = bestDiscard.GetBestHand();

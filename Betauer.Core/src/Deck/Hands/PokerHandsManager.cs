@@ -4,21 +4,26 @@ using System.Linq;
 
 namespace Betauer.Core.Deck.Hands;
 
-public record PokerHandConfig(PokerHand Prototype, int InitialScore, int Multiplier);
+public record PokerHandConfig(
+    PokerHand Prototype, 
+    int InitialScore, 
+    int InitialMultiplier, 
+    int ScorePerLevel, 
+    int MultiplierPerLevel);
 
 public class PokerHandsManager {
     private readonly List<PokerHandConfig> _handConfigs = [];
 
     public void RegisterBasicPokerHands() {
-        RegisterHand(new HighCardHand(this, []), 5, 1);
-        RegisterHand(new PairHand(this, []), 10, 2);
-        RegisterHand(new TwoPairHand(this, []), 20, 2);
-        RegisterHand(new ThreeOfAKindHand(this, []), 30, 3);
-        RegisterHand(new StraightHand(this, []), 30, 4);
-        RegisterHand(new FlushHand(this, []), 35, 4);
-        RegisterHand(new FullHouseHand(this, []), 40, 4);
-        RegisterHand(new FourOfAKindHand(this, []), 60, 7);
-        RegisterHand(new StraightFlushHand(this, []), 100, 8);
+        RegisterHand(new HighCardHand(this, []), 5, 1, 15, 1);
+        RegisterHand(new PairHand(this, []), 10, 2, 15, 1);
+        RegisterHand(new TwoPairHand(this, []), 20, 2, 20, 1);
+        RegisterHand(new ThreeOfAKindHand(this, []), 30, 3, 20, 2);
+        RegisterHand(new StraightHand(this, []), 30, 4, 30, 3);
+        RegisterHand(new FlushHand(this, []), 35, 4, 15, 2);
+        RegisterHand(new FullHouseHand(this, []), 40, 4, 25, 2);
+        RegisterHand(new FourOfAKindHand(this, []), 60, 7, 30, 3);
+        RegisterHand(new StraightFlushHand(this, []), 100, 8, 40, 4);
     }
 
     /// <summary>
@@ -26,12 +31,9 @@ public class PokerHandsManager {
     /// If a hand of the same type already exists, it will be replaced.
     /// Hand configs are kept sorted by multiplier in descending order.
     /// </summary>
-    public void RegisterHand(PokerHand prototype, int initialScore, int multiplier) {
-        // Remove any existing config for this hand type if it exists
+    public void RegisterHand(PokerHand prototype, int initialScore, int initialMultiplier, int scorePerLevel, int multiplierPerLevel) {
         _handConfigs.RemoveAll(config => config.Prototype.GetType() == prototype.GetType());
-        _handConfigs.Add(new PokerHandConfig(prototype, initialScore, multiplier));
-        // Re-sort configs by multiplier in descending order
-        _handConfigs.Sort((a, b) => b.Multiplier.CompareTo(a.Multiplier));
+        _handConfigs.Add(new PokerHandConfig(prototype, initialScore, initialMultiplier, scorePerLevel, multiplierPerLevel));
     }
     
     public void ClearHands() => _handConfigs.Clear();
@@ -43,7 +45,7 @@ public class PokerHandsManager {
     /// </summary>
     /// <param name="cards">Cards to analyze</param>
     /// <returns>List of identified poker hands, ordered by score</returns>
-    public List<PokerHand> IdentifyAllHands(IReadOnlyList<Card> cards) {
+    public List<PokerHand> IdentifyAllHands(GameStateHandler handler, IReadOnlyList<Card> cards) {
         if (_handConfigs.Count == 0) {
             throw new InvalidOperationException("No hands registered");
         }
@@ -51,7 +53,7 @@ public class PokerHandsManager {
 
         var allHands = _handConfigs
             .SelectMany(config => config.Prototype.IdentifyHands(cards))
-            .OrderByDescending(CalculateScore)
+            .OrderByDescending(handler.CalculateScore)
             .ToList();
 
         // Add unique identifier for hands of the same type
@@ -86,7 +88,7 @@ public class PokerHandsManager {
     /// <param name="availableCards">Cards available to draw</param>
     /// <param name="maxDiscardCards">Maximum number of cards that can be discarded</param>
     /// <returns>Analysis results with discard options and statistics</returns>
-    public DiscardOptionsResult GetDiscardOptions(IReadOnlyList<Card> currentHand, IReadOnlyList<Card> availableCards, int maxDiscardCards) {
+    public DiscardOptionsResult GetDiscardOptions(GameStateHandler handler, IReadOnlyList<Card> currentHand, IReadOnlyList<Card> availableCards, int maxDiscardCards) {
         if (maxDiscardCards < 0) throw new ArgumentException("maxDiscardCards cannot be negative");
 
         const int MaxSimulations = 10000;
@@ -138,10 +140,10 @@ public class PokerHandsManager {
                 var newHand = new List<Card>(cardsToKeep);
                 newHand.AddRange(draw);
 
-                var bestHand = IdentifyAllHands(newHand).MaxBy(h => h.CalculateScore());
+                var bestHand = IdentifyAllHands(handler, newHand).MaxBy(handler.CalculateScore);
                 if (bestHand != null) {
                     var handType = bestHand.GetType();
-                    var score = bestHand.CalculateScore();
+                    var score = handler.CalculateScore(bestHand);
                     if (!handTypeOccurrences.TryGetValue(handType, out HandTypeStats? value)) {
                         handTypeOccurrences[handType] = new HandTypeStats(handType, score);
                     } else {
@@ -189,10 +191,5 @@ public class PokerHandsManager {
             throw new ArgumentException($"No configuration found for hand type: {hand.GetType()}");
         }
         return config;
-    }
-
-    public int CalculateScore(PokerHand hand) {
-        var config = GetPokerHandConfig(hand);
-        return (config.InitialScore + hand.Cards.Sum(c => c.Rank)) * config.Multiplier;
     }
 }

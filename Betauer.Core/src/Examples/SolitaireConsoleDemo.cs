@@ -158,7 +158,7 @@ public class SolitaireConsoleDemo {
         if (GameRuns.Count > 0) {
             Console.WriteLine("=== Previous Runs ===");
             // foreach (var run in gameRuns.OrderByDescending(r => r.StartTime)) {
-            foreach (var run in GameRuns) {
+            /*foreach (var run in GameRuns) {
                 Console.WriteLine(run);
                 foreach (var gameState in run.GameStates) {
                     Console.Write($"  Level {gameState.Level + 1} (seed {gameState.Seed}) | ");
@@ -171,7 +171,7 @@ public class SolitaireConsoleDemo {
                     Console.WriteLine();
                 }
                 Console.WriteLine();
-            }
+            }*/
             if (GameRuns.Count >= 2) {
                 var gameRunsWithoutLast = GameRuns.Take(GameRuns.Count - 1);
                 var runsWithStates = gameRunsWithoutLast.Where(run => run.GameStates.Count > 0).ToList();
@@ -179,14 +179,25 @@ public class SolitaireConsoleDemo {
                 if (runsWithStates.Any()) {
                     var minLevelWon = runsWithStates.Min(run => run.GameStates.Last().Level);
                     var maxLevelWon = runsWithStates.Max(run => run.GameStates.Last().Level);
-        
+
                     // Encontrar los runs que tienen el nivel mínimo y máximo para obtener sus seeds
                     var runWithMinLevel = runsWithStates.First(run => run.GameStates.Last().Level == minLevelWon);
                     var runWithMaxLevel = runsWithStates.First(run => run.GameStates.Last().Level == maxLevelWon);
                     var minLevelState = runWithMinLevel.GameStates.Last();
                     var maxLevelState = runWithMaxLevel.GameStates.Last();
-        
+
                     Console.WriteLine($"=== Min level won: {(minLevelWon + 1)} (seed {minLevelState.Seed}) | Max level won: {(maxLevelWon + 1)} (seed {maxLevelState.Seed})]");
+    
+                    // Añadimos el resumen de runs por nivel
+                    var runsByLevel = runsWithStates
+                        .GroupBy(run => run.GameStates.Last().Level)
+                        .OrderBy(group => group.Key)
+                        .ToDictionary(group => group.Key, group => group.Count());
+    
+                    Console.WriteLine("=== Runs distribution by level ===");
+                    foreach (var (level, count) in runsByLevel) {
+                        Console.WriteLine($"Level {level + 1}: {count} run{(count > 1 ? "s" : "")}");
+                    }
                 }
             }
         }
@@ -247,7 +258,7 @@ public class SolitaireConsoleDemo {
         Console.WriteLine("\nPossible hands you can play:");
         int i = 0;
         for (; i < currentDecision.PossibleHands.Count; i++) {
-            Console.WriteLine($"{i + 1}: {currentDecision.PossibleHands[i]}: +{currentDecision.PossibleHands[i].CalculateScore()}");
+            Console.WriteLine($"{i + 1}: {currentDecision.PossibleHands[i]}: +{GameStateHandler.CalculateScore(currentDecision.PossibleHands[i])}");
         }
         var currentBestHand = currentDecision.PossibleHands[0];
 
@@ -317,7 +328,7 @@ public class SolitaireConsoleDemo {
         if (currentDecision == null) throw new InvalidOperationException("currentDecision is null");
         var bestHandIfDiscard = currentDecision.DiscardOption?.GetBestHand();
         if (currentDecision.HandToPlay != null && currentDecision.ShouldPlay) {
-            return $"[Play {currentDecision.HandToPlay}] +{currentDecision.HandToPlay.CalculateScore()} | Reason: {currentDecision.Reason}";
+            return $"[Play {currentDecision.HandToPlay}] +{GameStateHandler.CalculateScore(currentDecision.HandToPlay)} | Reason: {currentDecision.Reason}";
         } else {
             return $"[Discard {string.Join(", ", currentDecision.DiscardOption!.CardsToDiscard)}] score {bestHandIfDiscard!.AvgScore:0} x {bestHandIfDiscard!.Probability:0.0%} = {bestHandIfDiscard!.PotentialScore:0.0} | Reason: {currentDecision.Reason}";
         }
@@ -366,7 +377,7 @@ public class SolitaireConsoleDemo {
             }
 
             var selectedCards = selectedIndices.Select(i => state.CurrentHand[i]).ToList();
-            var possibleHands = GameStateHandler.PokerHandsManager.IdentifyAllHands(selectedCards);
+            var possibleHands = GameStateHandler.PokerHandsManager.IdentifyAllHands(GameStateHandler, selectedCards);
 
             if (possibleHands.Count == 0) {
                 Console.WriteLine("No valid poker hand can be formed with these cards!");

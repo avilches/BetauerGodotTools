@@ -112,8 +112,8 @@ public class GameStateHandler {
 
         State.HandsPlayed++;
 
-        var hand = PokerHandsManager.IdentifyAllHands(cards).FirstOrDefault();
-        var score = hand != null ? PokerHandsManager.CalculateScore(hand) : 0;
+        var hand = PokerHandsManager.IdentifyAllHands(this, cards).FirstOrDefault();
+        var score = hand != null ? CalculateScore(hand) : 0;
         State.Score += score;
         cards.ForEach(card => State.Play(card));
         State.History.AddPlayAction(hand, cards, score, State.Score, State.TotalScore);
@@ -198,7 +198,7 @@ public class GameStateHandler {
             }
         }
     }
-    
+
     public void Destroy(IReadOnlyList<Card> cards) {
         foreach (var card in cards) {
             if (!State.Destroy(card)) {
@@ -208,10 +208,20 @@ public class GameStateHandler {
     }
 
     public List<PokerHand> GetPossibleHands() {
-        return PokerHandsManager.IdentifyAllHands(State.CurrentHand);
+        return PokerHandsManager.IdentifyAllHands(this, State.CurrentHand);
     }
 
     public DiscardOptionsResult GetDiscardOptions() {
-        return PokerHandsManager.GetDiscardOptions(State.CurrentHand, State.AvailableCards, Config.MaxDiscardCards);
+        return PokerHandsManager.GetDiscardOptions(this, State.CurrentHand, State.AvailableCards, Config.MaxDiscardCards);
+    }
+
+    public int CalculateScore(PokerHand hand) {
+        var config = PokerHandsManager.GetPokerHandConfig(hand);
+        var level = State.GetPokerHandLevel(hand);
+
+        var score = config.InitialScore + level * config.ScorePerLevel;
+        var multiplier = config.InitialMultiplier + level * config.MultiplierPerLevel;
+
+        return (score + hand.Cards.Sum(c => c.Rank)) * multiplier;
     }
 }

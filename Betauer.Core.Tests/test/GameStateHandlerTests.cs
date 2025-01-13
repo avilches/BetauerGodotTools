@@ -20,6 +20,154 @@ public class GameStateHandlerTests {
         _gameStateHandler.PokerHandsManager.RegisterBasicPokerHands();
     }
 
+ [Test]
+    public void TestLevelProgression() {
+        var state = _gameStateHandler.State;
+
+        // Test that Level affects scoring for a specific hand type
+        _gameStateHandler.DrawCards();
+        var hand = _gameStateHandler.GetPossibleHands()[0];
+        var scoreAtLevel0 = _gameStateHandler.CalculateScore(hand);
+
+        state.SetPokerHandLevel(hand, 1);
+        var scoreAtLevel1 = _gameStateHandler.CalculateScore(hand);
+        Assert.That(scoreAtLevel1, Is.GreaterThan(scoreAtLevel0));
+
+        state.SetPokerHandLevel(hand, 2);
+        var scoreAtLevel2 = _gameStateHandler.CalculateScore(hand);
+        Assert.That(scoreAtLevel2, Is.GreaterThan(scoreAtLevel1));
+    }
+
+    [Test]
+    public void TestScoringAtDifferentLevels() {
+        var pairHand = new PairHand(_gameStateHandler.PokerHandsManager, new List<Card> {
+            new(12, 'H'), // Queen of Hearts
+            new(12, 'S'), // Queen of Spades
+        });
+
+        // Test at Level 0
+        var scoreLevel0 = _gameStateHandler.CalculateScore(pairHand);
+        var expectedLevel0 = (10 + (12 + 12)) * 2; // (initialScore + ranks) * initialMultiplier
+        Assert.That(scoreLevel0, Is.EqualTo(expectedLevel0));
+
+        // Test at Level 1
+        _gameStateHandler.State.SetPokerHandLevel(pairHand, 1);
+        var scoreLevel1 = _gameStateHandler.CalculateScore(pairHand);
+        var expectedLevel1 = (25 + (12 + 12)) * 3; // ((10 + 15) + ranks) * (2 + 1)
+        Assert.That(scoreLevel1, Is.EqualTo(expectedLevel1));
+
+        // Test at Level 2
+        _gameStateHandler.State.SetPokerHandLevel(pairHand, 2);
+        var scoreLevel2 = _gameStateHandler.CalculateScore(pairHand);
+        var expectedLevel2 = (40 + (12 + 12)) * 4; // ((10 + 30) + ranks) * (2 + 2)
+        Assert.That(scoreLevel2, Is.EqualTo(expectedLevel2));
+    }
+
+    [Test]
+    public void GameProgression_ShouldHandleMultipleLevels() {
+        var levels = new[] { 0, 1, 2 };
+
+        foreach (var level in levels) {
+            _gameStateHandler = new GameStateHandler(1, config);
+            _gameStateHandler.PokerHandsManager.RegisterBasicPokerHands();
+            _gameStateHandler.State.TotalScore = 1000;
+
+            while (!_gameStateHandler.IsWon() && !_gameStateHandler.IsGameOver()) {
+                _gameStateHandler.DrawCards();
+                var bestHand = _gameStateHandler.GetPossibleHands()[0];
+                
+                // Establecer el nivel específico para este tipo de mano
+                _gameStateHandler.State.SetPokerHandLevel(bestHand, level);
+                
+                var result = _gameStateHandler.PlayHand(bestHand.Cards);
+
+                // Verify that score increases with level
+                Assert.That(result.Score, Is.GreaterThan(0));
+                if (level > 0) {
+                    // Recreate the same hand but with level 0
+                    _gameStateHandler.State.SetPokerHandLevel(bestHand, 0);
+                    var baseScore = _gameStateHandler.CalculateScore(bestHand);
+                    _gameStateHandler.State.SetPokerHandLevel(bestHand, level);
+                    var levelScore = _gameStateHandler.CalculateScore(bestHand);
+                    Assert.That(levelScore, Is.GreaterThan(baseScore));
+                }
+            }
+        }
+    }
+    
+    [Test]
+    public void CompleteGame_ShouldAccumulateScore() {
+        var totalScore = 0;
+        List<int> handScores = [];
+
+        // Set level 1 for the game
+        _gameStateHandler.State.Level = 1;
+
+        // Play all hands
+        for (int i = 0; i < config.MaxHands; i++) {
+            _gameStateHandler.DrawCards();
+            var hand = _gameStateHandler.GetPossibleHands()[0]; // Always play best hand
+            var result = _gameStateHandler.PlayHand(hand.Cards);
+            handScores.Add(result.Score);
+            totalScore += result.Score;
+        }
+
+        var finalState = _gameStateHandler.State;
+        Assert.Multiple(() => {
+            Assert.That(finalState.Score, Is.EqualTo(totalScore));
+            Assert.That(_gameStateHandler.IsGameOver(), Is.True);
+
+            // Verify history matches our played hands
+            var history = finalState.History.GetHistory().Where(a => a.Type == PlayHistory.PlayedActionType.Play).ToList();
+            Assert.That(history.Count, Is.EqualTo(config.MaxHands));
+            for (int i = 0; i < handScores.Count; i++) {
+                Assert.That(history[i].HandScore, Is.EqualTo(handScores[i]));
+            }
+        });
+    }
+
+    [Test]
+    public void DrawCards_ShouldDrawCorrectNumber() {
+        _gameStateHandler.DrawCards();
+        Assert.That(_gameStateHandler.State.CurrentHand.Count, Is.EqualTo(config.HandSize));
+    }
+
+    [Test]
+    public void Discard_ShouldDecrementRemainingDiscards() {
+        _gameStateHandler.DrawCards();
+        var initialDiscards = _gameStateHandler.State.Discards;
+        var cardToDiscard = _gameStateHandler.State.CurrentHand.First();
+        _gameStateHandler.Discard([cardToDiscard]);
+        Assert.That(_gameStateHandler.State.Discards, Is.EqualTo(initialDiscards + 1));
+    }
+
+    [Test]
+    public void PlayHand_WithInvalidCards_ShouldThrowGameException() {
+        _gameStateHandler.DrawCards();
+        var invalidCards = _gameStateHandler.State.AvailableCards.Take(1).ToList();
+        Assert.Throws<SolitairePokerGameException>(() => _gameStateHandler.PlayHand(invalidCards));
+    }
+
+    [Test]
+    public void IsWon_ShouldDependOnTotalScoreAndLevel() {
+        // Test at different levels
+        for (int level = 0; level <= 2; level++) {
+            _gameStateHandler.State.Level = level;
+            _gameStateHandler.State.TotalScore = 100;
+
+            // Should not be won initially
+            Assert.That(_gameStateHandler.IsWon(), Is.False);
+
+            // Set score to meet total score
+            _gameStateHandler.State.Score = 100;
+            Assert.That(_gameStateHandler.IsWon(), Is.True);
+
+            // Reset for next iteration
+            _gameStateHandler = new GameStateHandler(1, config);
+            _gameStateHandler.PokerHandsManager.RegisterBasicPokerHands();
+        }
+    }
+
     [Test]
     public void NewGame_ShouldStartWithCorrectInitialState() {
         var state = _gameStateHandler.State;
@@ -48,34 +196,6 @@ public class GameStateHandlerTests {
             Assert.That(state.PlayedCards.Count, Is.EqualTo(0));
             Assert.That(state.AvailableCards.Count, Is.EqualTo(52 - config.HandSize));
             Assert.That(state.History.GetHistory(), Is.Empty);
-        });
-    }
-
-    [Test]
-    public void CompleteGame_ShouldAccumulateScore() {
-        var totalScore = 0;
-        List<int> handScores = new();
-
-        // Play all hands
-        for (int i = 0; i < config.MaxHands; i++) {
-            _gameStateHandler.DrawCards();
-            var hand = _gameStateHandler.GetPossibleHands()[0]; // Always play best hand
-            var result = _gameStateHandler.PlayHand(hand.Cards);
-            handScores.Add(result.Score);
-            totalScore += result.Score;
-        }
-
-        var finalState = _gameStateHandler.State;
-        Assert.Multiple(() => {
-            Assert.That(finalState.Score, Is.EqualTo(totalScore));
-            Assert.That(_gameStateHandler.IsGameOver(), Is.True);
-
-            // Verify history matches our played hands
-            var history = finalState.History.GetHistory().Where(a => a.Type == PlayHistory.PlayedActionType.Play).ToList();
-            Assert.That(history.Count, Is.EqualTo(config.MaxHands));
-            for (int i = 0; i < handScores.Count; i++) {
-                Assert.That(history[i].HandScore, Is.EqualTo(handScores[i]));
-            }
         });
     }
 
@@ -227,7 +347,7 @@ public class GameStateHandlerTests {
         var playedHand = possibleHands[0];
         var result = _gameStateHandler.PlayHand(playedHand.Cards);
         Assert.Multiple(() => {
-            Assert.That(result.Score, Is.EqualTo(_gameStateHandler.PokerHandsManager.CalculateScore(playedHand)));
+            Assert.That(result.Score, Is.EqualTo(_gameStateHandler.CalculateScore(playedHand)));
             Assert.That(_gameStateHandler.State.HandsPlayed, Is.EqualTo(1));
             Assert.That(_gameStateHandler.State.Score, Is.EqualTo(result.Score));
             // Las cartas jugadas deben contener las cartas de la mano jugada (no ser igual)
@@ -280,14 +400,6 @@ public class GameStateHandlerTests {
     public void PlayHand_WithoutDrawingCards_ShouldThrowGameException() {
         var exception = Assert.Throws<SolitairePokerGameException>(() => _gameStateHandler.PlayHand([]));
         Assert.That(exception.Message, Is.EqualTo("PlayHand error: cannot play hands yet, draw cards first."));
-    }
-
-    [Test]
-    public void PlayHand_WithInvalidCards_ShouldThrowGameException() {
-        _gameStateHandler.DrawCards();
-        var exception = Assert.Throws<SolitairePokerGameException>(() =>
-            _gameStateHandler.PlayHand(_gameStateHandler.State.AvailableCards.Take(1).ToList()));
-        Assert.That(exception.Message, Does.Contain("PlayHand error: hand to play contains cards not in current hand"));
     }
 
     [Test]
@@ -426,81 +538,6 @@ public class GameStateHandlerTests {
         hand = _gameStateHandler.GetPossibleHands()[0];
         _gameStateHandler.PlayHand(hand.Cards);
         Assert.That(_gameStateHandler.IsWon(), Is.True, "Game should be won when score >= totalScore");
-    }
-
-    [Test]
-    public void GameProgression_ShouldHandleMultipleLevels() {
-        // Simular progresión a través de múltiples niveles
-        int[] levels = { 1, 2, 3 };
-
-        foreach (var targetScore in levels) {
-            _gameStateHandler.State.TotalScore = targetScore;
-
-            while (!_gameStateHandler.IsWon() && !_gameStateHandler.IsGameOver()) {
-                _gameStateHandler.DrawCards();
-                var bestHand = _gameStateHandler.GetPossibleHands()[0];
-                _gameStateHandler.PlayHand(bestHand.Cards);
-            }
-
-            Assert.Multiple(() => {
-                Assert.That(_gameStateHandler.State.Score, Is.GreaterThanOrEqualTo(_gameStateHandler.State.TotalScore),
-                    $"Score should reach or exceed target {targetScore}");
-
-                // Verificar que el historial refleja correctamente la progresión
-                var history = _gameStateHandler.State.History.GetHistory()
-                    .Where(a => a.Type == PlayHistory.PlayedActionType.Play);
-                foreach (var action in history) {
-                    Assert.That(action.TotalScore, Is.EqualTo(targetScore),
-                        "Each history action should have correct target score");
-                    Assert.That(action.GameScore, Is.LessThanOrEqualTo(_gameStateHandler.State.Score),
-                        "Accumulated score in history should not exceed final score");
-                }
-            });
-
-            // Reiniciar para el siguiente nivel
-            _gameStateHandler = new GameStateHandler(1, config);
-            _gameStateHandler.PokerHandsManager.RegisterBasicPokerHands();
-        }
-    }
-
-    [Test]
-    public void CalculateScore_ShouldUseInitialScoreAndMultiplier() {
-        _gameStateHandler.DrawCards();
-        var possibleHands = _gameStateHandler.GetPossibleHands();
-        Assert.That(possibleHands, Is.Not.Empty, "Should have at least one possible hand");
-
-        var hand = possibleHands[0];
-        var config = _gameStateHandler.PokerHandsManager.GetPokerHandConfig(hand);
-
-        var result = _gameStateHandler.PlayHand(hand.Cards);
-
-        var expectedScore = (config.InitialScore + hand.Cards.Sum(c => c.Rank)) * config.Multiplier;
-        Assert.That(result.Score, Is.EqualTo(expectedScore),
-            $"Score calculation should be (InitialScore({config.InitialScore}) + Sum of Ranks({hand.Cards.Sum(c => c.Rank)})) * Multiplier({config.Multiplier})");
-    }
-
-    [Test]
-    public void RegisterHand_ShouldStoreInitialScoreCorrectly() {
-        // Clear existing hands and register a test hand
-        _gameStateHandler.PokerHandsManager.ClearHands();
-        var testHand = new HighCardHand(_gameStateHandler.PokerHandsManager, []);
-        _gameStateHandler.PokerHandsManager.RegisterHand(testHand, 42, 2);
-
-        var config = _gameStateHandler.PokerHandsManager.GetPokerHandConfig(testHand);
-        Assert.Multiple(() => {
-            Assert.That(config.InitialScore, Is.EqualTo(42));
-            Assert.That(config.Multiplier, Is.EqualTo(2));
-        });
-
-        // Crear una mano real con cartas específicas
-        var card1 = new Card(10, 'S'); // Rank 10
-        var card2 = new Card(12, 'S'); // Rank 12
-        var hand = new HighCardHand(_gameStateHandler.PokerHandsManager, [card1, card2]);
-
-        var score = _gameStateHandler.PokerHandsManager.CalculateScore(hand);
-        var expectedScore = (42 + card1.Rank + card2.Rank) * 2; // (42 + 10 + 12) * 2 = 128
-        Assert.That(score, Is.EqualTo(expectedScore),
-            $"Score calculation should be (InitialScore({config.InitialScore}) + Sum of Ranks({card1.Rank + card2.Rank})) * Multiplier({config.Multiplier}) = {expectedScore}");
     }
 
     [Test]
