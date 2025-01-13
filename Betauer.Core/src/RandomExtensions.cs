@@ -80,7 +80,7 @@ public static partial class RandomExtensions {
     public static int NextIndexExponential(this Random random, int size, float factor) {
         if (size <= 0) throw new ArgumentException("Size must be greater than 0");
         if (factor <= 0) throw new ArgumentException("Factor must be greater than 0");
-    
+
         var lambda = factor / size;
         var maxValue = 1 - Math.Exp(-lambda * (size - 1));
         var u = random.NextDouble() * maxValue;
@@ -199,7 +199,7 @@ public static partial class RandomExtensions {
         var randomIndex = random.Next(0, values.Length);
         return values[randomIndex];
     }
-    
+
     /// <summary>
     /// Returns an element of the list specified with exponential distribution preference for elements in the firsts positions.
     /// The factor controls how strong the preference is:
@@ -221,7 +221,7 @@ public static partial class RandomExtensions {
         var index = random.NextIndexExponential(list.Count, factor);
         return list[index];
     }
-    
+
     /// <summary>
     /// Returns an element of the span specified with exponential distribution preference for elements in the firsts positions.
     /// The factor controls how strong the preference is:
@@ -243,7 +243,7 @@ public static partial class RandomExtensions {
         var index = random.NextIndexExponential(list.Length, factor);
         return list[index];
     }
-    
+
     /// <summary>
     /// Returns an element of the array specified with exponential distribution preference for elements in the firsts positions.
     /// The factor controls how strong the preference is:
@@ -265,7 +265,7 @@ public static partial class RandomExtensions {
         var index = random.NextIndexExponential(list.Length, factor);
         return list[index];
     }
-    
+
 
     /// <summary>
     /// Returns a uniformly random element from the list
@@ -277,15 +277,105 @@ public static partial class RandomExtensions {
     }
 
     /// <summary>
-    /// Selects `n` unique random elements from an IList `items`.
+    /// Returns a lazy iterator that generates n unique random numbers between 0 (inclusive) and maxExclusive (exclusive).
+    /// </summary>
+    /// <param name="random">The Random instance to use.</param>
+    /// <param name="maxExclusive">The exclusive upper bound of the random number returned.</param>
+    /// <param name="count">The number of unique random numbers to generate.</param>
+    /// <returns>An iterator that generates unique random numbers.</returns>
+    /// <exception cref="ArgumentException">
+    /// Thrown when:
+    /// - count is negative
+    /// - maxExclusive is not positive
+    /// - count is greater than maxExclusive
+    /// </exception>
+    public static IEnumerator<int> Take(this Random random, int maxExclusive, int count) {
+        if (count < 0) throw new ArgumentException("Count cannot be negative", nameof(count));
+        if (maxExclusive <= 0) throw new ArgumentException("MaxExclusive must be positive", nameof(maxExclusive));
+        if (count > maxExclusive) throw new ArgumentException("Count cannot be greater than maxExclusive", nameof(count));
+
+        // Store just the necessary indexes we'll need
+        var numbers = new int[maxExclusive];
+        for (var i = 0; i < maxExclusive; i++) {
+            numbers[i] = i;
+        }
+
+        // Fisher-Yates shuffle algorithm (partial)
+        for (var i = 0; i < count; i++) {
+            var j = random.Next(i, maxExclusive);
+            if (i != j) {
+                // Swap numbers[i] and numbers[j]
+                (numbers[i], numbers[j]) = (numbers[j], numbers[i]);
+            }
+            yield return numbers[i];
+        }
+    }
+
+    /// <summary>
+    /// Returns an enumerable that generates n random unique items from the source array.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the array.</typeparam>
+    /// <param name="random">The Random instance to use.</param>
+    /// <param name="items">The source array to take items from.</param>
+    /// <param name="n">The number of items to take.</param>
+    /// <returns>An enumerable that generates n random unique items from the source array.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when items is null.</exception>
+    /// <exception cref="ArgumentException">
+    /// Thrown when:
+    /// - n is negative
+    /// - n is greater than the number of items
+    /// </exception>
+    public static IEnumerable<T> Take<T>(this Random random, T[] items, int n) {
+        if (items == null) throw new ArgumentNullException(nameof(items));
+        if (n < 0) throw new ArgumentException("Count cannot be negative", nameof(n));
+        if (n > items.Length) throw new ArgumentException("Count cannot be greater than the number of items", nameof(n));
+
+        if (n == 0) yield break;
+
+        var enumerator = random.Take(items.Length, n);
+        while (enumerator.MoveNext()) {
+            yield return items[enumerator.Current];
+        }
+    }
+
+    /// <summary>
+    /// Returns an enumerable that generates n random unique items from the source list.
     /// </summary>
     /// <typeparam name="T">The type of elements in the list.</typeparam>
-    /// <param name="random">The instance of the `Random` class.</param>
-    /// <param name="items">The list from which elements are to be selected.</param>
-    /// <param name="n">The number of elements to select.</param>
-    /// <returns>An enumerator containing `n` unique random elements from the input list `items`.</returns>
-    public static T[] GetItems<T>(this Random random, IList<T> items, int n) {
-        return random.GetItems(items.ToArray(), n);
+    /// <param name="random">The Random instance to use.</param>
+    /// <param name="items">The source list to take items from.</param>
+    /// <param name="n">The number of items to take.</param>
+    /// <returns>An enumerable that generates n random unique items from the source list.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when items is null.</exception>
+    /// <exception cref="ArgumentException">
+    /// Thrown when:
+    /// - n is negative
+    /// - n is greater than the number of items
+    /// </exception>
+    public static IEnumerable<T> Take<T>(this Random random, IList<T> items, int n) {
+        if (items == null) throw new ArgumentNullException(nameof(items));
+        if (n < 0) throw new ArgumentException("Count cannot be negative", nameof(n));
+        if (n > items.Count) throw new ArgumentException("Count cannot be greater than the number of items", nameof(n));
+
+        if (n == 0) yield break;
+
+        var enumerator = random.Take(items.Count, n);
+        while (enumerator.MoveNext()) {
+            yield return items[enumerator.Current];
+        }
+    }
+
+    public static IEnumerable<T> Take<T>(this Random random, IReadOnlyList<T> items, int n) {
+        if (items == null) throw new ArgumentNullException(nameof(items));
+        if (n < 0) throw new ArgumentException("Count cannot be negative", nameof(n));
+        if (n > items.Count) throw new ArgumentException("Count cannot be greater than the number of items", nameof(n));
+
+        if (n == 0) yield break;
+
+        var enumerator = random.Take(items.Count, n);
+        while (enumerator.MoveNext()) {
+            yield return items[enumerator.Current];
+        }
     }
 
     /// <summary>
@@ -302,7 +392,6 @@ public static partial class RandomExtensions {
             (array[n], array[k]) = (array[k], array[n]);
         }
     }
-
 }
 
 public class Producer<T>(Func<T> producer) : IEnumerable<T> {
@@ -379,7 +468,7 @@ public static class Distribution {
                    .Concatenated()
                + $"Min: {min}, Max: {max}:\n";
     }
-    
+
     public static void Main() {
         var samples = 1000000;
         var size = 10;
@@ -392,18 +481,17 @@ public static class Distribution {
                 var index = random.NextIndexExponential(size, (float)factor);
                 counts[index]++;
             }
-        
+
             Console.WriteLine($"\nFactor {factor:F1} ({samples} muestras):");
             // Console.WriteLine("Índice: [0][1][2][3][4][5][6][7][8][9]");
             // Console.WriteLine("Veces:   " + string.Join(" ", counts.Select(c => c.ToString().PadLeft(3))));
             // Console.WriteLine("       " + string.Join(" ", counts.Select(c => $"{(c * 100.0 / samples):F1}%")));
-        
+
             Console.WriteLine("\nVisualización (cada # = 2%):");
             for (var i = 0; i < size; i++) {
                 var percentage = (counts[i] * 100.0 / samples);
-                Console.WriteLine($"[{i}] {new string('#', (int)(percentage/2))} ({percentage:F1}%)");
+                Console.WriteLine($"[{i}] {new string('#', (int)(percentage / 2))} ({percentage:F1}%)");
             }
         }
     }
-    
 }
