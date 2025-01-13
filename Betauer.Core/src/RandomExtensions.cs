@@ -192,10 +192,19 @@ public static partial class RandomExtensions {
     }
 
     /// <summary>
-    /// Returns a uniformly random element from the array 
+    /// Returns a uniformly random element from the list 
     /// in the enum.
     /// </summary>
-    public static T Next<T>(this Random random, T[] values) {
+    public static T Next<T>(this Random random, IList<T> values) {
+        var randomIndex = random.Next(0, values.Count);
+        return values[randomIndex];
+    }
+
+    /// <summary>
+    /// Returns a uniformly random element from the list 
+    /// in the enum.
+    /// </summary>
+    public static T Next<T>(this Random random, ReadOnlySpan<T> values) {
         var randomIndex = random.Next(0, values.Length);
         return values[randomIndex];
     }
@@ -245,39 +254,25 @@ public static partial class RandomExtensions {
     }
 
     /// <summary>
-    /// Returns an element of the array specified with exponential distribution preference for elements in the firsts positions.
-    /// The factor controls how strong the preference is:
-    /// - Lower factors (0.1-0.3) = Almost uniform distribution
-    /// - Medium factors (0.5-1.0) = Moderate preference for first elements
-    /// - Higher factors (2.0+) = Strong preference for first elements where last element is very rare
-    /// Factor 3 in a array of 10 elements, means this distribution of element indices returned:
-    ///  0) ############# (27.9%)
-    ///  1) ########## (20.5%)
-    ///  2) ####### (15.2%)
-    ///  3) ##### (11.3%)
-    ///  4) #### (8.3%)
-    ///  5) ### (6.2%)
-    ///  6) ## (4.6%)
-    ///  7) # (3.4%)
-    ///  8) # (2.5%)
-    /// </summary>
-    public static T NextExponential<T>(this Random random, T[] list, float factor) {
-        var index = random.NextIndexExponential(list.Length, factor);
-        return list[index];
-    }
-
-
-    /// <summary>
-    /// Returns a uniformly random element from the list
-    /// in the enum.
-    /// </summary>
-    public static T Next<T>(this Random random, IList<T> values) {
-        var randomIndex = random.Next(0, values.Count);
-        return values[randomIndex];
-    }
-
-    /// <summary>
-    /// Returns a lazy iterator that generates n unique random numbers between 0 (inclusive) and maxExclusive (exclusive).
+    /// Returns an array with n unique random numbers between 0 (inclusive) and maxExclusive (exclusive).
+    /// This implementation uses Knuth's Algorithm S (Reservoir Sampling) which is memory efficient as it only stores
+    /// 'count' numbers at any time.
+    /// 
+    /// The algorithm works in two phases:
+    /// 1. First phase: Takes the first 'count' numbers (0 to count-1) directly
+    /// 2. Second phase: For each number i from count to maxExclusive-1:
+    ///    - Generates a random number j in range [0,i]
+    ///    - If j is less than count, replaces the number at position j with i
+    /// 
+    /// This ensures that:
+    /// - Each number has an equal probability of being selected
+    /// - Only 'count' numbers are stored in memory at any time
+    /// - Numbers are generated lazily (one at a time)
+    /// - The distribution is uniform
+    /// 
+    /// - Memory complexity is O(count) as it only stores the reservoir array
+    /// - Time complexity is O(1) per element in the first phase and O(count/i) per element i in the second phase
+    ///
     /// </summary>
     /// <param name="random">The Random instance to use.</param>
     /// <param name="maxExclusive">The exclusive upper bound of the random number returned.</param>
@@ -289,54 +284,31 @@ public static partial class RandomExtensions {
     /// - maxExclusive is not positive
     /// - count is greater than maxExclusive
     /// </exception>
-    public static IEnumerator<int> Take(this Random random, int maxExclusive, int count) {
+    public static int[] Take(this Random random, int maxExclusive, int count) {
         if (count < 0) throw new ArgumentException("Count cannot be negative", nameof(count));
         if (maxExclusive <= 0) throw new ArgumentException("MaxExclusive must be positive", nameof(maxExclusive));
         if (count > maxExclusive) throw new ArgumentException("Count cannot be greater than maxExclusive", nameof(count));
 
-        // Store just the necessary indexes we'll need
-        var numbers = new int[maxExclusive];
-        for (var i = 0; i < maxExclusive; i++) {
-            numbers[i] = i;
-        }
+        if (count == 0) return Array.Empty<int>();
 
-        // Fisher-Yates shuffle algorithm (partial)
+        var reservoir = new int[count];
+
+        // Fill the reservoir array
         for (var i = 0; i < count; i++) {
-            var j = random.Next(i, maxExclusive);
-            if (i != j) {
-                // Swap numbers[i] and numbers[j]
-                (numbers[i], numbers[j]) = (numbers[j], numbers[i]);
+            reservoir[i] = i;
+        }
+
+        // Replace elements with gradually decreasing probability
+        for (var i = count; i < maxExclusive; i++) {
+            var j = random.Next(i + 1);
+            if (j < count) {
+                reservoir[j] = i;
             }
-            yield return numbers[i];
         }
+
+        return reservoir;
     }
 
-    /// <summary>
-    /// Returns an enumerable that generates n random unique items from the source array.
-    /// </summary>
-    /// <typeparam name="T">The type of elements in the array.</typeparam>
-    /// <param name="random">The Random instance to use.</param>
-    /// <param name="items">The source array to take items from.</param>
-    /// <param name="n">The number of items to take.</param>
-    /// <returns>An enumerable that generates n random unique items from the source array.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when items is null.</exception>
-    /// <exception cref="ArgumentException">
-    /// Thrown when:
-    /// - n is negative
-    /// - n is greater than the number of items
-    /// </exception>
-    public static IEnumerable<T> Take<T>(this Random random, T[] items, int n) {
-        if (items == null) throw new ArgumentNullException(nameof(items));
-        if (n < 0) throw new ArgumentException("Count cannot be negative", nameof(n));
-        if (n > items.Length) throw new ArgumentException("Count cannot be greater than the number of items", nameof(n));
-
-        if (n == 0) yield break;
-
-        var enumerator = random.Take(items.Length, n);
-        while (enumerator.MoveNext()) {
-            yield return items[enumerator.Current];
-        }
-    }
 
     /// <summary>
     /// Returns an enumerable that generates n random unique items from the source list.
@@ -352,30 +324,29 @@ public static partial class RandomExtensions {
     /// - n is negative
     /// - n is greater than the number of items
     /// </exception>
-    public static IEnumerable<T> Take<T>(this Random random, IList<T> items, int n) {
+    public static T[] Take<T>(this Random random, IList<T> items, int count) {
         if (items == null) throw new ArgumentNullException(nameof(items));
-        if (n < 0) throw new ArgumentException("Count cannot be negative", nameof(n));
-        if (n > items.Count) throw new ArgumentException("Count cannot be greater than the number of items", nameof(n));
+        if (count < 0) throw new ArgumentException("Count cannot be negative", nameof(count));
+        if (count > items.Count) throw new ArgumentException("Count cannot be greater than the number of items", nameof(count));
 
-        if (n == 0) yield break;
+        if (count == 0) return Array.Empty<T>();
 
-        var enumerator = random.Take(items.Count, n);
-        while (enumerator.MoveNext()) {
-            yield return items[enumerator.Current];
+        var result = new T[count];
+
+        // Fill the reservoir array
+        for (var i = 0; i < count; i++) {
+            result[i] = items[i];
         }
-    }
 
-    public static IEnumerable<T> Take<T>(this Random random, IReadOnlyList<T> items, int n) {
-        if (items == null) throw new ArgumentNullException(nameof(items));
-        if (n < 0) throw new ArgumentException("Count cannot be negative", nameof(n));
-        if (n > items.Count) throw new ArgumentException("Count cannot be greater than the number of items", nameof(n));
-
-        if (n == 0) yield break;
-
-        var enumerator = random.Take(items.Count, n);
-        while (enumerator.MoveNext()) {
-            yield return items[enumerator.Current];
+        // Replace elements with gradually decreasing probability
+        for (var i = count; i < items.Count; i++) {
+            var j = random.Next(i + 1);
+            if (j < count) {
+                result[j] = items[i];
+            }
         }
+
+        return result;
     }
 
     /// <summary>

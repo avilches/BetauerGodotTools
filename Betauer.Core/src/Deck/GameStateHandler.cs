@@ -66,7 +66,7 @@ public class GameStateHandler {
             throw new SolitairePokerGameException($"DrawCards error: cannot draw more cards ({n}) than remaining to fulfill the current hand ({RemainingCardsToDraw})");
         }
 
-        var cards = DrawCardsRandom.Take(State.AvailableCards, n).ToList();
+        var cards = DrawCardsRandom.Take(State.AvailableCards as IList<Card>, n).ToList();
         cards.ForEach(card => State.Draw(card));
     }
 
@@ -186,15 +186,14 @@ public class GameStateHandler {
             throw new SolitairePokerGameException($"Recover error: cannot recover more cards ({n}) than available in played and discarded piles ({totalCards})");
         }
 
-        var enumerator = RecoverCardsRandom.Take(totalCards, n);
-        while (enumerator.MoveNext()) {
-            var index = enumerator.Current;
+        var indices = RecoverCardsRandom.Take(totalCards, n);
+        foreach (var index in indices) {
             if (index < playedCount) {
                 // El índice corresponde a una carta de PlayedCards
                 State.Recover(State.PlayedCards[index]);
             } else {
-                // El índice corresponde a una carta de DiscardedCards
-                // Restamos playedCount para obtener el índice correcto en DiscardedCards
+                // El índice corresponde a una carta de DiscardedCards, asi que
+                // restamos playedCount para obtener el índice correcto en DiscardedCards
                 State.Recover(State.DiscardedCards[index - playedCount]);
             }
         }

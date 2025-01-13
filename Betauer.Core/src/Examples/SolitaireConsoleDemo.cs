@@ -76,7 +76,7 @@ public class SolitaireConsoleDemo {
 
                 if (_autoPlay) {
                     ProcessAutoPlay();
-                    // System.Threading.Thread.Sleep(1000);
+                    //Thread.Sleep(1000);
                 } else {
                     if (ProcessUserInput() == true) {
                         return; // El usuario quiere salir
@@ -174,10 +174,20 @@ public class SolitaireConsoleDemo {
             }
             if (GameRuns.Count >= 2) {
                 var gameRunsWithoutLast = GameRuns.Take(GameRuns.Count - 1);
-                var minLevelWon = gameRunsWithoutLast
-                    .Where(run => run.GameStates.Count > 0)
-                    .Min(run => run.GameStates.Last().Level);
-                Console.WriteLine($"[Min level won: {(minLevelWon + 1)}]");
+                var runsWithStates = gameRunsWithoutLast.Where(run => run.GameStates.Count > 0).ToList();
+    
+                if (runsWithStates.Any()) {
+                    var minLevelWon = runsWithStates.Min(run => run.GameStates.Last().Level);
+                    var maxLevelWon = runsWithStates.Max(run => run.GameStates.Last().Level);
+        
+                    // Encontrar los runs que tienen el nivel mínimo y máximo para obtener sus seeds
+                    var runWithMinLevel = runsWithStates.First(run => run.GameStates.Last().Level == minLevelWon);
+                    var runWithMaxLevel = runsWithStates.First(run => run.GameStates.Last().Level == maxLevelWon);
+                    var minLevelState = runWithMinLevel.GameStates.Last();
+                    var maxLevelState = runWithMaxLevel.GameStates.Last();
+        
+                    Console.WriteLine($"=== Min level won: {(minLevelWon + 1)} (seed {minLevelState.Seed}) | Max level won: {(maxLevelWon + 1)} (seed {maxLevelState.Seed})]");
+                }
             }
         }
         Console.WriteLine($"=== Solitaire Poker - Seed: {state.Seed} - Level {state.Level + 1} ===");

@@ -15,22 +15,15 @@ public class RandomExtensionsTests {
         var random = new Random(42); // Fixed seed for reproducibility
         var maxExclusive = 10;
         var count = 5;
-        var hashSet = new HashSet<int>();
 
         // Act
-        var enumerator = random.Take(maxExclusive, count);
-        while (enumerator.MoveNext()) {
-            var number = enumerator.Current;
-            // Assert each number is within range
-            Assert.That(number, Is.GreaterThanOrEqualTo(0).And.LessThan(maxExclusive),
-                $"Number {number} is out of range");
-            // Assert each number is unique
-            Assert.That(hashSet.Add(number), Is.True,
-                $"Number {number} was already generated");
-        }
+        var numbers = random.Take(maxExclusive, count);
+        var hashSet = new HashSet<int>(numbers);
 
-        // Assert we got exactly the requested amount of numbers
-        Assert.That(hashSet.Count, Is.EqualTo(count));
+        // Assert
+        Assert.That(numbers.Length, Is.EqualTo(count), "Should return exactly 'count' numbers");
+        Assert.That(hashSet.Count, Is.EqualTo(count), "All numbers should be unique");
+        Assert.That(numbers, Is.All.InRange(0, maxExclusive - 1), "All numbers should be within range");
     }
 
     [Test]
@@ -39,13 +32,10 @@ public class RandomExtensionsTests {
         var random = new Random(42);
         var maxExclusive = 5;
         var count = 5;
-        var hashSet = new HashSet<int>();
 
         // Act
-        var enumerator = random.Take(maxExclusive, count);
-        while (enumerator.MoveNext()) {
-            hashSet.Add(enumerator.Current);
-        }
+        var numbers = random.Take(maxExclusive, count);
+        var hashSet = new HashSet<int>(numbers);
 
         // Assert
         Assert.That(hashSet.Count, Is.EqualTo(count));
@@ -60,19 +50,10 @@ public class RandomExtensionsTests {
         var random = new Random(42);
         var maxExclusive = 10;
         var count = 5;
-        var firstRun = new List<int>();
-        var secondRun = new List<int>();
 
         // Act
-        var enumerator1 = random.Take(maxExclusive, count);
-        while (enumerator1.MoveNext()) {
-            firstRun.Add(enumerator1.Current);
-        }
-
-        var enumerator2 = random.Take(maxExclusive, count);
-        while (enumerator2.MoveNext()) {
-            secondRun.Add(enumerator2.Current);
-        }
+        var firstRun = random.Take(maxExclusive, count);
+        var secondRun = random.Take(maxExclusive, count);
 
         // Assert
         Assert.That(firstRun, Is.Not.EqualTo(secondRun), "Sequences should be different");
@@ -90,44 +71,89 @@ public class RandomExtensionsTests {
 
         // Act & Assert
         for (int i = 0; i < iterations; i++) {
-            var hashSet = new HashSet<int>();
-            var enumerator = random.Take(maxExclusive, count);
-            while (enumerator.MoveNext()) {
-                var number = enumerator.Current;
-                Assert.That(number, Is.GreaterThanOrEqualTo(0).And.LessThan(maxExclusive),
-                    $"Number {number} is out of range in iteration {i}");
-                Assert.That(hashSet.Add(number), Is.True,
-                    $"Duplicate number {number} found in iteration {i}");
-            }
-            Assert.That(hashSet.Count, Is.EqualTo(count));
+            var numbers = random.Take(maxExclusive, count);
+            var hashSet = new HashSet<int>(numbers);
+
+            Assert.That(numbers.Length, Is.EqualTo(count), "Should return exactly 'count' numbers");
+            Assert.That(hashSet.Count, Is.EqualTo(count), "All numbers should be unique");
+            Assert.That(numbers, Is.All.InRange(0, maxExclusive - 1), "All numbers should be within range");
         }
     }
 
     [Test]
+    public void Take_WithArray_ShouldReturnExactNumberOfItems() {
+        // Arrange
+        var random = new Random(42);
+        var array = new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+        var count = 3;
+
+        // Act
+        var result = random.Take(array, count);
+
+        // Assert
+        Assert.That(result.Length, Is.EqualTo(count), "Should return exactly 'count' items");
+        Assert.That(result, Is.Unique, "All items should be unique");
+        Assert.That(result, Is.SubsetOf(array), "All items should be from the original array");
+    }
+
+    [Test]
+    public void Take_WithArray_MultipleCalls_ShouldReturnDifferentSequences() {
+        // Arrange
+        var random = new Random(42);
+        var array = new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+        var count = 3;
+
+        // Act
+        var firstRun = random.Take(array, count);
+        var secondRun = random.Take(array, count);
+
+        // Assert
+        Assert.That(firstRun.Length, Is.EqualTo(count));
+        Assert.That(secondRun.Length, Is.EqualTo(count));
+        Assert.That(firstRun, Is.Not.EqualTo(secondRun), "Different runs should return different sequences");
+    }
+
+    [Test]
+    public void Take_WithArray_ShouldNotModifyOriginalArray() {
+        // Arrange
+        var random = new Random(42);
+        var array = new[] { 1, 2, 3, 4, 5 };
+        var originalArray = array.ToArray(); // Make a copy
+        var count = 3;
+
+        // Act
+        var result = random.Take(array, count);
+
+        // Assert
+        Assert.That(array, Is.EqualTo(originalArray), "Original array should not be modified");
+    }
+
+
+    [Test]
     public void Take_WithNegativeCount_ShouldThrowArgumentException() {
         var random = new Random(42);
-        var ex = Assert.Throws<ArgumentException>(() => random.Take(10, -1).MoveNext());
+        var ex = Assert.Throws<ArgumentException>(() => random.Take(10, -1).ToList());
         Assert.That(ex.Message, Does.Contain("Count cannot be negative"));
     }
 
     [Test]
     public void Take_WithNegativeMaxExclusive_ShouldThrowArgumentException() {
         var random = new Random(42);
-        var ex = Assert.Throws<ArgumentException>(() => random.Take(-1, 5).MoveNext());
+        var ex = Assert.Throws<ArgumentException>(() => random.Take(-1, 5).ToList());
         Assert.That(ex.Message, Does.Contain("MaxExclusive must be positive"));
     }
 
     [Test]
     public void Take_WithCountGreaterThanMaxExclusive_ShouldThrowArgumentException() {
         var random = new Random(42);
-        var ex = Assert.Throws<ArgumentException>(() => random.Take(5, 10).MoveNext());
+        var ex = Assert.Throws<ArgumentException>(() => random.Take(5, 10).ToList());
         Assert.That(ex.Message, Does.Contain("Count cannot be greater than maxExclusive"));
     }
 
     [Test]
     public void Take_WithMaxExclusiveZero_ShouldThrowArgumentException() {
         var random = new Random(42);
-        var ex = Assert.Throws<ArgumentException>(() => random.Take(0, 0).MoveNext());
+        var ex = Assert.Throws<ArgumentException>(() => random.Take(0, 0).ToList());
         Assert.That(ex.Message, Does.Contain("MaxExclusive must be positive"));
     }
 
