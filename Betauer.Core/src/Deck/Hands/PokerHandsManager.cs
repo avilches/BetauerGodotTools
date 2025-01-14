@@ -9,7 +9,8 @@ public record PokerHandConfig(
     int InitialScore, 
     int InitialMultiplier, 
     int ScorePerLevel, 
-    int MultiplierPerLevel);
+    int MultiplierPerLevel,
+    bool Enabled);
 
 public class PokerHandsManager {
     private readonly List<PokerHandConfig> _handConfigs = [];
@@ -24,6 +25,11 @@ public class PokerHandsManager {
         RegisterHand(new FullHouseHand(this, []), 40, 4, 25, 2);
         RegisterHand(new FourOfAKindHand(this, []), 60, 7, 30, 3);
         RegisterHand(new StraightFlushHand(this, []), 100, 8, 40, 4);
+        
+        // Añadir las nuevas manos
+        // RegisterHand(new FiveOfAKindHand(this, []), 120, 12, 40, 4);
+        // RegisterHand(new FlushHouseHand(this, []), 140, 14, 40, 4);
+        // RegisterHand(new FlushFiveHand(this, []), 160, 16, 40, 4);
     }
 
     /// <summary>
@@ -31,9 +37,9 @@ public class PokerHandsManager {
     /// If a hand of the same type already exists, it will be replaced.
     /// Hand configs are kept sorted by multiplier in descending order.
     /// </summary>
-    public void RegisterHand(PokerHand prototype, int initialScore, int initialMultiplier, int scorePerLevel, int multiplierPerLevel) {
+    public void RegisterHand(PokerHand prototype, int initialScore, int initialMultiplier, int scorePerLevel, int multiplierPerLevel, bool enabled = true) {
         _handConfigs.RemoveAll(config => config.Prototype.GetType() == prototype.GetType());
-        _handConfigs.Add(new PokerHandConfig(prototype, initialScore, initialMultiplier, scorePerLevel, multiplierPerLevel));
+        _handConfigs.Add(new PokerHandConfig(prototype, initialScore, initialMultiplier, scorePerLevel, multiplierPerLevel, enabled));
     }
     
     public void ClearHands() => _handConfigs.Clear();
@@ -52,6 +58,7 @@ public class PokerHandsManager {
         if (cards.Count == 0) return [];
 
         var allHands = _handConfigs
+            .Where(config => config.Enabled)
             .SelectMany(config => config.Prototype.IdentifyHands(cards))
             .OrderByDescending(handler.CalculateScore)
             .ToList();
@@ -100,6 +107,7 @@ public class PokerHandsManager {
 
         // Get all possible discard combinations from all hand types
         var suggestedDiscards = _handConfigs
+            .Where(config => config.Enabled)
             .SelectMany(config => config.Prototype.GetBestDiscards(currentHand, maxDiscardCards))
             .Where(cardsToDiscard => cardsToDiscard.Count > 0)
             .Distinct(new CardListEqualityComparer())

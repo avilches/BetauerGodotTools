@@ -9,14 +9,13 @@ using NUnit.Framework;
 namespace Betauer.Core.Tests;
 
 [TestFixture]
-public class HandImprovementTest {
-    protected PokerHandsManager HandsManager;
+public class DiscardOptionsTests {
+    protected PokerHandsManager HandsManager => Handler.PokerHandsManager;
     protected GameStateHandler Handler;
 
     [SetUp]
     public void Setup() {
         Handler = new GameStateHandler(1, new PokerGameConfig());
-        HandsManager = new PokerHandsManager();
         HandsManager.RegisterBasicPokerHands();
     }
 
@@ -523,5 +522,66 @@ public class HandImprovementTest {
                 Is.EqualTo(mainSequence.Count),
                 "Sequence should not contain duplicate ranks");
         });
+    }
+
+    [Test]
+    public void FiveOfAKind_SuggestDiscards_ShouldKeepFiveCards() {
+        var currentHand = CreateCards("AS", "AH", "AD", "AC", "AH", "KH");
+        var hand = new FiveOfAKindHand(HandsManager, []);
+        var discards = hand.SuggestDiscards(currentHand, 1)[0];
+
+        Assert.Multiple(() => {
+            Assert.That(discards, Has.Count.EqualTo(1), "Should discard 1 non-five card");
+            Assert.That(discards, Does.Contain(currentHand[5]), "Should discard KH");
+            Assert.That(discards.All(c => c.Rank != 14), "Should not discard any Aces");
+        });
+    }
+
+    [Test]
+    public void FlushHouse_SuggestDiscards_ShouldKeepSameSuitAndRanks() {
+        var currentHand = CreateCards("AH", "AH", "AH", "KH", "KH", "2S");
+        var hand = new FlushHouseHand(HandsManager, []);
+        var discards = hand.SuggestDiscards(currentHand, 1)[0];
+
+        Assert.Multiple(() => {
+            Assert.That(discards, Has.Count.EqualTo(1), "Should discard 1 card");
+            Assert.That(discards, Does.Contain(currentHand[5]), "Should discard 2S");
+            Assert.That(discards.All(c => c.Suit != 'H'), "Should not discard any hearts");
+        });
+    }
+
+    [Test]
+    public void FlushFive_WhenComplete_ShouldNotSuggestDiscards() {
+        var currentHand = CreateCards("AH", "AH", "AH", "AH", "AH");
+        var hand = new FlushFiveHand(HandsManager, []);
+        var discards = hand.SuggestDiscards(currentHand, 1);
+
+        Assert.That(discards, Is.Empty, "Should not suggest discards when FlushFive is complete");
+    }
+
+    [Test]
+    public void FlushFive_WhenIncomplete_ShouldSuggestDiscards() {
+        var currentHand = CreateCards("AH", "AH", "AH", "AH", "AS", "KH");
+        var hand = new FlushFiveHand(HandsManager, []);
+        var discards = hand.SuggestDiscards(currentHand, 2)[0];
+
+        Assert.Multiple(() => {
+            Assert.That(discards, Has.Count.EqualTo(2), "Should discard 2 cards");
+            Assert.That(discards, Does.Contain(currentHand[4]), "Should discard AS");
+            Assert.That(discards, Does.Contain(currentHand[5]), "Should discard KH");
+            Assert.That(discards.All(c => c.Rank != 14 || c.Suit != 'H'), 
+                "Should not discard AH");
+        });
+    }
+
+    [Test]
+    public void DisabledHand_ShouldNotBeIdentified() {
+        var currentHand = CreateCards("AS", "AH", "AD", "AC", "AH");
+        HandsManager.RegisterHand(new FiveOfAKindHand(HandsManager, []), 120, 12, 40, 4, false);
+
+        var hands = HandsManager.IdentifyAllHands(Handler, currentHand);
+
+        Assert.That(hands.Count == 0 || !hands.Any(h => h is FiveOfAKindHand),
+            "Should not identify disabled hand type");
     }
 }
