@@ -343,11 +343,6 @@ public class PokerHandsTest {
             Assert.That(hands2[1].Cards.Count, Is.EqualTo(5), "Second hand should have 5 cards");
             Assert.That(hands2[1].Cards.All(c => c.Rank == 13), "Second hand should be all Kings");
 
-            // Imprimir las manos para debugging
-            Console.WriteLine("Five of a Kind hands:");
-            foreach (var hand in hands2) {
-                Console.WriteLine(string.Join(", ", hand.Cards));
-            }
         });
     }
 
@@ -419,11 +414,6 @@ public class PokerHandsTest {
                 .Select(h => string.Join(",", h.Cards.Select(c => c.ToString()).OrderBy(s => s)))
                 .Distinct()
                 .ToList();
-
-            Console.WriteLine("Unique combinations:");
-            foreach (var hand in uniqueHandStrings) {
-                Console.WriteLine(hand);
-            }
 
             Assert.That(uniqueHandStrings.Count, Is.EqualTo(1), "Should have 1 unique combination");
         });

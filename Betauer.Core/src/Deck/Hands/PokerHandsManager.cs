@@ -27,9 +27,9 @@ public class PokerHandsManager {
         RegisterHand(new StraightFlushHand(this, []), 100, 8, 40, 4);
         
         // Añadir las nuevas manos
-        // RegisterHand(new FiveOfAKindHand(this, []), 120, 12, 40, 4);
-        // RegisterHand(new FlushHouseHand(this, []), 140, 14, 40, 4);
-        // RegisterHand(new FlushFiveHand(this, []), 160, 16, 40, 4);
+        RegisterHand(new FiveOfAKindHand(this, []), 120, 12, 40, 4);
+        RegisterHand(new FlushHouseHand(this, []), 140, 14, 40, 4);
+        RegisterHand(new FlushFiveHand(this, []), 160, 16, 40, 4);
     }
 
     /// <summary>
