@@ -8,45 +8,6 @@ namespace Betauer.Core.Deck.Hands;
 /// Utility class providing helper methods for poker hand analysis and manipulation.
 /// </summary>
 public static class HandUtils {
-
-    /// <summary>
-    /// Finds all possible straight sequences in a set of cards.
-    /// Handles Ace as both high (14) and low (1) when appropriate.
-    /// 
-    /// Algorithm:
-    /// 1. Get unique ranks, adding Ace as 1 if Ace (14) exists
-    /// 2. Look for 5-card sequences in order
-    /// 3. For each sequence found:
-    ///    - Map ranks back to actual cards
-    ///    - Handle Ace properly (use 14 when rank is 1)
-    /// </summary>
-    public static IEnumerable<List<Card>> FindStraights(IReadOnlyList<Card> cards) {
-        var uniqueRanks = cards.Select(c => c.Rank)
-            .Distinct()
-            .OrderBy(r => r)
-            .ToList();
-
-        // Add Ace as 1 if Ace (14) exists
-        if (uniqueRanks.Contains(14)) {
-            uniqueRanks.Insert(0, 1);
-        }
-
-        // Look for 5-card sequences
-        for (var i = 0; i <= uniqueRanks.Count - 5; i++) {
-            var sequence = uniqueRanks.Skip(i).Take(5).ToList();
-            if (sequence.Zip(sequence.Skip(1)).All(p => p.Second - p.First == 1)) {
-                // For each rank in the straight, find matching card
-                var straightCards = sequence.Select(rank =>
-                    rank == 1
-                        ? cards.First(c => c.Rank == 14) // Use Ace (14) when rank is 1
-                        : cards.First(c => c.Rank == rank)
-                ).ToList();
-
-                yield return straightCards;
-            }
-        }
-    }    
-    
     /// <summary>
     /// Gets cards to discard based on which cards to keep.
     /// Respects maxDiscardCards limit.
@@ -93,107 +54,99 @@ public static class HandUtils {
     }
 
     /// <summary>
-    /// Finds potential straight sequences in cards. Returns list ordered by priority:
-    /// 1. Complete straight (if exists, only returns this)
-    /// 2. Groups of 4 consecutive with a gap and possible extra card
-    /// 3. Groups of 3 or more consecutive
-    /// 4. Groups of 2 consecutive with one gap between them
+    /// Finds straight sequences, prioritizing same-suit sequences (straight flushes).
+    /// First attempts to find sequences within each suit, and if no complete straight flush
+    /// is found, then looks for regular straights.
     /// </summary>
-    public static List<List<Card>> FindStraightSequences(IReadOnlyList<Card> cards) {
-        var sequences = new List<List<Card>>();
-        var cardsByRank = cards.OrderBy(c => c.Rank).ToList();
-        var ranks = cardsByRank.Select(c => c.Rank).Distinct().OrderBy(r => r).ToList();
+    public static (List<List<Card>> complete, List<List<Card>> oneGap, List<List<Card>> twoGaps)
+        FindStraightSequences(IReadOnlyList<Card> cards) {
+        var complete = new List<List<Card>>();
+        var oneGap = new List<List<Card>>();
+        var twoGaps = new List<List<Card>>();
 
-        // Si tenemos un As (14), añadimos el 1 al principio
-        var hasAce = ranks.Contains(14);
-        if (hasAce) {
-            ranks.Insert(0, 1);
-        }
-
-        // Buscar escaleras completas primero (sin huecos)
-        for (int i = 0; i <= ranks.Count - 5; i++) {
-            var window = ranks.Skip(i).Take(5).ToList();
-            if (window.Zip(window.Skip(1)).All(p => p.Second - p.First == 1)) {
-                sequences.Add(ConvertRanksToCards(cards, window));
+        // Primero intentamos encontrar escaleras de color
+        foreach (var suit in cards.Select(c => c.Suit).Distinct()) {
+            var suitCards = cards.Where(c => c.Suit == suit).ToList();
+            if (suitCards.Count >= 4) { // Necesitamos al menos 4 cartas del mismo palo
+                var suitSequences = FindSequences(suitCards);
+                complete.AddRange(suitSequences.complete);
+                oneGap.AddRange(suitSequences.oneGap);
+                twoGaps.AddRange(suitSequences.twoGaps);
             }
         }
 
-        // Si no hay escaleras completas, buscar secuencias con un hueco
-        if (sequences.Count == 0) {
-            for (int i = 0; i <= ranks.Count - 5; i++) {
-                var window = ranks.Skip(i).Take(6).ToList(); // Tomamos 6 para poder tener un hueco
-                if (window.Count >= 5) {
-                    // Probar cada posible posición del hueco
-                    for (int gapPos = 0; gapPos < window.Count - 1; gapPos++) {
-                        var sequence = new List<int>();
-                        var hasGap = false;
-
-                        for (int j = 0; j < window.Count - 1; j++) {
-                            if (sequence.Count == 0) {
-                                sequence.Add(window[j]);
-                            }
-
-                            var diff = window[j + 1] - window[j];
-                            if (diff == 1) {
-                                sequence.Add(window[j + 1]);
-                            } else if (diff == 2 && !hasGap) {
-                                // Encontramos un hueco válido
-                                hasGap = true;
-                                sequence.Add(window[j + 1]);
-                            }
-                        }
-
-                        if (sequence.Count >= 5) {
-                            sequences.Add(ConvertRanksToCards(cards, sequence.Take(5).ToList()));
-                        }
-                    }
-                }
-            }
+        // Si no encontramos escaleras de color completas, buscamos escaleras normales
+        if (complete.Count == 0) {
+            var regularSequences = FindSequences(cards);
+            complete.AddRange(regularSequences.complete);
+            // Solo añadimos oneGap y twoGaps si no encontramos ninguna secuencia de color
+            if (oneGap.Count == 0) oneGap.AddRange(regularSequences.oneGap);
+            if (twoGaps.Count == 0) twoGaps.AddRange(regularSequences.twoGaps);
         }
 
-        // Si aún no hay secuencias, buscar secuencias de 4 cartas
-        if (sequences.Count == 0) {
-            for (int i = 0; i <= ranks.Count - 4; i++) {
-                var window = ranks.Skip(i).Take(4).ToList();
-                if (window.Zip(window.Skip(1)).All(p => p.Second - p.First == 1)) {
-                    sequences.Add(ConvertRanksToCards(cards, window));
-                }
-            }
-        }
-
-        return sequences
-            .OrderByDescending(seq => seq.Count)
-            .ThenByDescending(seq => {
-                if (seq.Any(c => c.Rank == 14) &&
-                    seq.Select(c => c.Rank == 14 ? 1 : c.Rank)
-                        .OrderBy(r => r)
-                        .SequenceEqual([1, 2, 3, 4, 5])) {
-                    return 5;
-                }
-                return seq.Sum(c => c.Rank);
-            })
-            .ToList();
-    }
-
-    private static List<Card> ConvertRanksToCards(IReadOnlyList<Card> cards, List<int> ranks) {
-        return ranks.Select(rank => {
-            if (rank == 1) {
-                return cards.First(c => c.Rank == 14);
-            }
-            return cards.First(c => c.Rank == rank);
-        }).ToList();
+        return (
+            complete.OrderBySequenceValue().ToList(),
+            oneGap.OrderBySequenceValue().ToList(),
+            twoGaps.OrderBySequenceValue().ToList()
+        );
     }
 
     /// <summary>
-    /// Returns the largest group of cards of the same suit
+    /// Internal method that finds sequences in a given set of cards.
     /// </summary>
-    public static List<Card> FindLargestSuitGroup(IReadOnlyList<Card> cards) {
-        return cards.Count == 0
-            ? []
-            : cards.GroupBy(c => c.Suit)
-                .OrderByDescending(g => g.Count())
-                .ThenByDescending(g => g.Max(c => c.Rank))
-                .First()
+    private static (List<List<Card>> complete, List<List<Card>> oneGap, List<List<Card>> twoGaps)
+        FindSequences(IReadOnlyList<Card> cards) {
+        var complete = new List<List<Card>>();
+        var oneGap = new List<List<Card>>();
+        var twoGaps = new List<List<Card>>();
+
+        // Convertir las cartas a un HashSet de ranks para búsqueda rápida
+        var rankSet = cards.Select(c => c.Rank).ToHashSet();
+        var ranks = rankSet.OrderBy(r => r).ToList();
+
+        // Si tenemos un As, añadirlo también como 1
+        if (rankSet.Contains(14)) {
+            ranks.Insert(0, 1);
+        }
+
+        // Para cada rank inicial posible
+        foreach (var startRank in ranks) {
+            var neededRanks = new[] { startRank, startRank + 1, startRank + 2, startRank + 3, startRank + 4 };
+
+            // Si algún rank es mayor que 14, ignoramos esta secuencia
+            if (neededRanks.Any(r => r > 14)) continue;
+
+            // Contar cuántas cartas faltan
+            var missingCount = neededRanks.Count(r => !rankSet.Contains(r == 1 ? 14 : r));
+
+            // Obtener las cartas que sí tenemos en esta secuencia
+            var sequence = cards.Where(c => neededRanks.Contains(c.Rank) ||
+                                            (c.Rank == 14 && neededRanks.Contains(1)))
                 .ToList();
+
+            if (missingCount == 0) {
+                complete.Add(sequence);
+            } else if (missingCount == 1) {
+                oneGap.Add(sequence);
+            } else if (missingCount == 2) {
+                twoGaps.Add(sequence);
+            }
+        }
+
+        return (complete, oneGap, twoGaps);
+    }
+
+
+    private static IOrderedEnumerable<List<Card>> OrderBySequenceValue(this List<List<Card>> sequences) {
+        return sequences.OrderByDescending(seq => {
+            // Primero por cantidad de cartas
+            if (seq.Any(c => c.Rank == 14) &&
+                seq.Select(c => c.Rank == 14 ? 1 : c.Rank)
+                    .OrderBy(r => r)
+                    .SequenceEqual([1, 2, 3, 4, 5])) {
+                return 5;
+            }
+            return seq.Sum(c => c.Rank);
+        });
     }
 }

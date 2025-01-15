@@ -18,25 +18,14 @@ public abstract class PokerHand(PokerHandsManager pokerHandsManager, string name
     /// Identifies all possible hands of this type in the given cards.
     /// Must be implemented by each specific hand type.
     /// </summary>
-    public abstract List<PokerHand> IdentifyHands(IReadOnlyList<Card> cards);
-
-    /// <summary>
-    /// Public method to get discard suggestions. First checks if the hand already exists.
-    /// If it does, returns empty list (no discards needed).
-    /// If it doesn't, calls the specific hand type's SuggestDiscards method.
-    /// </summary>
-    public List<List<Card>> GetBestDiscards(IReadOnlyList<Card> currentHand, int maxDiscardCards) {
-        return IdentifyHands(currentHand).Count > 0 
-            ? [] // If this hand type already exists, no discards needed
-            : SuggestDiscards(currentHand, maxDiscardCards); // If not, delegate to specific implementation
-    }
+    public abstract List<PokerHand> IdentifyHands(PokerHandAnalysis analysis);
 
     /// <summary>
     /// Protected method that each hand type must implement to suggest discards.
     /// Called only when the hand doesn't already exist in the current cards.
     /// Should return list of cards to discard to potentially achieve this hand type.
     /// </summary>
-    public abstract List<List<Card>> SuggestDiscards(IReadOnlyList<Card> currentHand, int maxDiscardCards);
+    public abstract List<List<Card>> SuggestDiscards(PokerHandAnalysis analysis, int maxDiscardCards);
 
     public override string ToString() {
         var cardsStr = string.Join(" ", Cards);
@@ -59,335 +48,311 @@ public abstract class PokerHand(PokerHandsManager pokerHandsManager, string name
     }
 }
 
-public class HighCardHand(PokerHandsManager pokerHandsManager, IReadOnlyList<Card> cards) : PokerHand(pokerHandsManager, "High Card", cards) {
-    public override List<PokerHand> IdentifyHands(IReadOnlyList<Card> cards) {
-        return cards.OrderByDescending(c => c.Rank)
-            .Select(c => new HighCardHand(pokerHandsManager, new List<Card> { c }))
+public class HighCardHand : PokerHand {
+    public HighCardHand(PokerHandsManager pokerHandsManager, IReadOnlyList<Card> cards) 
+        : base(pokerHandsManager, "High Card", cards) { }
+
+    public override List<PokerHand> IdentifyHands(PokerHandAnalysis analysis) {
+        return analysis.Cards
+            .OrderByDescending(c => c.Rank)
+            .Select(c => new HighCardHand(PokerHandsManager, new List<Card> { c }))
             .Cast<PokerHand>()
             .ToList();
     }
 
-    public override List<List<Card>> SuggestDiscards(IReadOnlyList<Card> currentHand, int maxDiscardCards) {
-        // Strategy: No discards for high card
-        return [];
+    public override List<List<Card>> SuggestDiscards(PokerHandAnalysis analysis, int maxDiscardCards) {
+        return []; // No hay estrategia de descarte para high card
     }
 }
 
-public class PairHand(PokerHandsManager pokerHandsManager, IReadOnlyList<Card> cards) : PokerHand(pokerHandsManager, "Pair", cards) {
-    public override List<PokerHand> IdentifyHands(IReadOnlyList<Card> cards) {
-        var hands = new List<PokerHand>();
-    
-        // Agrupar por rank y obtener todos los grupos que tengan 2 o más cartas
-        var groups = cards.GroupBy(c => c.Rank)
-            .Where(g => g.Count() >= 2);
-    
-        foreach (var group in groups) {
-            // Tomar las primeras 2 cartas de cada grupo
-            var twoCards = group.Take(2).ToList();
-            hands.Add(new PairHand(PokerHandsManager, twoCards));
-        }
+public class PairHand : PokerHand {
+    public PairHand(PokerHandsManager pokerHandsManager, IReadOnlyList<Card> cards) 
+        : base(pokerHandsManager, "Pair", cards) { }
 
-        return hands;
-    }
+    public override List<PokerHand> IdentifyHands(PokerHandAnalysis analysis) {
+        // Si hay tríos o mejor, no devolver pares de ese rank
+        var excludedRanks = analysis.ThreeOfAKind
+            .Concat(analysis.FourOfAKind)
+            .Concat(analysis.FiveOfAKind)
+            .Select(g => g.rank)
+            .ToHashSet();
 
-    public override List<List<Card>> SuggestDiscards(IReadOnlyList<Card> currentHand, int maxDiscardCards) {
-        return [HandUtils.TryDiscardNonDuplicates(currentHand, maxDiscardCards)];
-    }
-}
-
-public class TwoPairHand(PokerHandsManager pokerHandsManager, IReadOnlyList<Card> cards) : PokerHand(pokerHandsManager, "Two Pair", cards) {
-    public override List<PokerHand> IdentifyHands(IReadOnlyList<Card> cards) {
-        var pairs = cards.GroupBy(c => c.Rank)
-            .Where(g => g.Count() >= 2)
-            .OrderByDescending(g => g.Key)
-            .ToList();
-
-        if (pairs.Count < 2) return new List<PokerHand>();
-
-        var result = new List<PokerHand>();
-
-        // Para cada par más alto, combina con todos los pares más bajos
-        for (int i = 0; i < pairs.Count - 1; i++) {
-            var highPair = pairs[i].Take(2).ToList();
-            for (int j = i + 1; j < pairs.Count; j++) {
-                var lowPair = pairs[j].Take(2).ToList();
-                result.Add(new TwoPairHand(PokerHandsManager, highPair.Concat(lowPair).ToList()));
-            }
-        }
-
-        return result;
-    }
-
-    public override List<List<Card>> SuggestDiscards(IReadOnlyList<Card> currentHand, int maxDiscardCards) {
-        return [HandUtils.TryDiscardNonDuplicates(currentHand, maxDiscardCards)];
-    }
-}
-
-public class ThreeOfAKindHand(PokerHandsManager pokerHandsManager, IReadOnlyList<Card> cards) : PokerHand(pokerHandsManager, "Three of a Kind", cards) {
-    public override List<PokerHand> IdentifyHands(IReadOnlyList<Card> cards) {
-        var hands = new List<PokerHand>();
-    
-        // Agrupar por rank y obtener todos los grupos que tengan 3 o más cartas
-        var groups = cards.GroupBy(c => c.Rank)
-            .Where(g => g.Count() >= 3);
-    
-        foreach (var group in groups) {
-            // Tomar las primeras 3 cartas de cada grupo
-            var threeCards = group.Take(3).ToList();
-            hands.Add(new ThreeOfAKindHand(PokerHandsManager, threeCards));
-        }
-
-        return hands;
-    }
-
-    public override List<List<Card>> SuggestDiscards(IReadOnlyList<Card> currentHand, int maxDiscardCards) {
-        return [HandUtils.TryDiscardNonDuplicates(currentHand, maxDiscardCards)];
-    }
-}
-
-// Escalera
-public class StraightHand(PokerHandsManager pokerHandsManager, IReadOnlyList<Card> cards) : PokerHand(pokerHandsManager, "Straight", cards) {
-    public override List<PokerHand> IdentifyHands(IReadOnlyList<Card> cards) {
-        return HandUtils.FindStraights(cards)
-            .Select(straightCards => new StraightHand(PokerHandsManager, straightCards))
+        return analysis.Pairs
+            .Where(pair => !excludedRanks.Contains(pair.rank))
+            .Select(pair => new PairHand(PokerHandsManager, pair.cards))
             .Cast<PokerHand>()
             .ToList();
     }
 
-    public override List<List<Card>> SuggestDiscards(IReadOnlyList<Card> currentHand, int maxDiscardCards) {
-        var sequences = HandUtils.FindStraightSequences(currentHand);
-        if (sequences.Count == 0) return [];
-
-        var bestSequence = sequences[0];
-        var cardsToKeep = bestSequence;
-        return [HandUtils.GetDiscardsByKeeping(cardsToKeep, currentHand, maxDiscardCards)];
-    }
-}
-
-// Color
-public class FlushHand(PokerHandsManager pokerHandsManager, IReadOnlyList<Card> cards) : PokerHand(pokerHandsManager, "Flush", cards) {
-    public override List<PokerHand> IdentifyHands(IReadOnlyList<Card> cards) {
-        var hands = new List<PokerHand>();
-        foreach (var suit in cards.Select(c => c.Suit).Distinct()) {
-            var suitCards = cards.Where(c => c.Suit == suit).ToList();
-            if (suitCards.Count >= 5) {
-                // Tomar las primeras 5 cartas del mismo palo
-                hands.Add(new FlushHand(PokerHandsManager, suitCards.Take(5).ToList()));
-            }
-        }
-        return hands;
-    }
-
-    public override List<List<Card>> SuggestDiscards(IReadOnlyList<Card> currentHand, int maxDiscardCards) {
-        var largestGroup = HandUtils.FindLargestSuitGroup(currentHand);
-        return [HandUtils.GetDiscardsByKeeping(largestGroup, currentHand, maxDiscardCards)];
-    }
-}
-
-// Full (trio y pareja)
-public class FullHouseHand(PokerHandsManager pokerHandsManager, IReadOnlyList<Card> cards) : PokerHand(pokerHandsManager, "Full House", cards) {
-    public override List<PokerHand> IdentifyHands(IReadOnlyList<Card> cards) {
-        var hands = new List<PokerHand>();
-        var groups = cards.GroupBy(c => c.Rank)
-            .Where(g => g.Count() >= 2)
-            .OrderByDescending(g => g.Key)
-            .ToList();
-
-        foreach (var threeGroup in groups.Where(g => g.Count() >= 3)) {
-            // Generar todas las combinaciones posibles de 3 cartas para el trío
-            foreach (var threeCombination in threeGroup.ToList().Combinations(3)) {
-                foreach (var twoGroup in groups.Where(g => g.Key != threeGroup.Key && g.Count() >= 2)) {
-                    // Generar todas las combinaciones posibles de 2 cartas para el par
-                    foreach (var twoCombination in twoGroup.ToList().Combinations(2)) {
-                        var fullHouseCards = threeCombination.Concat(twoCombination).ToList();
-                        hands.Add(new FullHouseHand(PokerHandsManager, fullHouseCards));
-                    }
-                }
-            }
-        }
-        return hands;
-    }
-
-    public override List<List<Card>> SuggestDiscards(IReadOnlyList<Card> currentHand, int maxDiscardCards) {
-        return [HandUtils.TryDiscardNonDuplicates(currentHand, maxDiscardCards)];
-    }
-}
-
-// Poker
-public class FourOfAKindHand(PokerHandsManager pokerHandsManager, IReadOnlyList<Card> cards) : PokerHand(pokerHandsManager, "Four of a Kind", cards) {
-    public override List<PokerHand> IdentifyHands(IReadOnlyList<Card> cards) {
-        var hands = new List<PokerHand>();
-    
-        // Agrupar por rank y obtener todos los grupos que tengan 4 o más cartas
-        var groups = cards.GroupBy(c => c.Rank)
-            .Where(g => g.Count() >= 4);
-    
-        foreach (var group in groups) {
-            // Tomar las primeras 4 cartas de cada grupo
-            var fourCards = group.Take(4).ToList();
-            hands.Add(new FourOfAKindHand(PokerHandsManager, fourCards));
+    public override List<List<Card>> SuggestDiscards(PokerHandAnalysis analysis, int maxDiscardCards) {
+        // Si ya tenemos un par o mejor (trío, póker), no sugerimos descartes
+        if (analysis.Pairs.Count > 0 || analysis.ThreeOfAKind.Count > 0 || 
+            analysis.FourOfAKind.Count > 0 || analysis.FiveOfAKind.Count > 0) {
+            return [];
         }
 
-        return hands;
-    }
-
-    public override List<List<Card>> SuggestDiscards(IReadOnlyList<Card> currentHand, int maxDiscardCards) {
-        return [HandUtils.TryDiscardNonDuplicates(currentHand, maxDiscardCards)];
+        // Si no tenemos ningún grupo de cartas iguales, descartamos las cartas más bajas
+        return [HandUtils.TryDiscardNonDuplicates(analysis.Cards, maxDiscardCards)];
     }
 }
 
-// Escalera de color
-public class StraightFlushHand(PokerHandsManager pokerHandsManager, IReadOnlyList<Card> cards) : PokerHand(pokerHandsManager, "Straight Flush", cards) {
-    public override List<PokerHand> IdentifyHands(IReadOnlyList<Card> cards) {
-        return cards.GroupBy(c => c.Suit)
-            .Where(g => g.Count() >= 5)
-            .SelectMany(g => HandUtils.FindStraights(g.ToList()))
-            .Select(straightFlushCards => new StraightFlushHand(PokerHandsManager, straightFlushCards))
+public class TwoPairHand : PokerHand {
+    public TwoPairHand(PokerHandsManager pokerHandsManager, IReadOnlyList<Card> cards) 
+        : base(pokerHandsManager, "Two Pair", cards) { }
+
+    public override List<PokerHand> IdentifyHands(PokerHandAnalysis analysis) {
+        // Ya que analysis.TwoPairs viene ordenado por rank, el primero es el mejor
+        var bestTwoPair = analysis.TwoPairs.FirstOrDefault();
+        return bestTwoPair == default 
+            ? [] 
+            : [new TwoPairHand(PokerHandsManager, 
+                bestTwoPair.firstPair.Concat(bestTwoPair.secondPair).ToList())];
+    }
+
+    public override List<List<Card>> SuggestDiscards(PokerHandAnalysis analysis, int maxDiscardCards) {
+        // Si ya tenemos dos pares o mejor, no sugerimos descartes
+        if (analysis.TwoPairs.Count > 0 || analysis.ThreeOfAKind.Count > 0 || 
+            analysis.FourOfAKind.Count > 0 || analysis.FiveOfAKind.Count > 0) {
+            return [];
+        }
+        
+        return [HandUtils.TryDiscardNonDuplicates(analysis.Cards, maxDiscardCards)];
+    }
+}
+
+public class ThreeOfAKindHand : PokerHand {
+    public ThreeOfAKindHand(PokerHandsManager pokerHandsManager, IReadOnlyList<Card> cards) 
+        : base(pokerHandsManager, "Three of a Kind", cards) { }
+
+    public override List<PokerHand> IdentifyHands(PokerHandAnalysis analysis) {
+        // Ya que analysis.ThreeOfAKind viene ordenado por rank, el primero es el mejor
+        var highestThree = analysis.ThreeOfAKind.FirstOrDefault();
+        return highestThree == default 
+            ? [] 
+            : [new ThreeOfAKindHand(PokerHandsManager, highestThree.cards)];
+    }
+
+    public override List<List<Card>> SuggestDiscards(PokerHandAnalysis analysis, int maxDiscardCards) {
+        // Si ya tenemos un trío o mejor, no sugerimos descartes
+        if (analysis.ThreeOfAKind.Count > 0 || analysis.FourOfAKind.Count > 0 || 
+            analysis.FiveOfAKind.Count > 0) {
+            return [];
+        }
+
+        return [HandUtils.TryDiscardNonDuplicates(analysis.Cards, maxDiscardCards)];
+    }
+}
+
+public class FullHouseHand : PokerHand {
+    public FullHouseHand(PokerHandsManager pokerHandsManager, IReadOnlyList<Card> cards) 
+        : base(pokerHandsManager, "Full House", cards) { }
+
+    public override List<PokerHand> IdentifyHands(PokerHandAnalysis analysis) {
+        // Ya que analysis.FullHouses viene ordenado por rank, el primero es el mejor
+        var bestFullHouse = analysis.FullHouses.FirstOrDefault();
+        return bestFullHouse == default 
+            ? [] 
+            : [new FullHouseHand(PokerHandsManager, 
+                bestFullHouse.threeCards.Concat(bestFullHouse.pair).ToList())];
+    }
+
+    public override List<List<Card>> SuggestDiscards(PokerHandAnalysis analysis, int maxDiscardCards) {
+        return []; // No hay estrategia de descarte para full house
+    }
+}
+
+public class FourOfAKindHand : PokerHand {
+    public FourOfAKindHand(PokerHandsManager pokerHandsManager, IReadOnlyList<Card> cards) 
+        : base(pokerHandsManager, "Four of a Kind", cards) { }
+
+    public override List<PokerHand> IdentifyHands(PokerHandAnalysis analysis) {
+        // Ya que analysis.FourOfAKind viene ordenado por rank, el primero es el mejor
+        var highestFour = analysis.FourOfAKind.FirstOrDefault();
+        return highestFour == default 
+            ? [] 
+            : [new FourOfAKindHand(PokerHandsManager, highestFour.cards)];
+    }
+
+    public override List<List<Card>> SuggestDiscards(PokerHandAnalysis analysis, int maxDiscardCards) {
+        // Si ya tenemos un póker o mejor, no sugerimos descartes
+        if (analysis.FourOfAKind.Count > 0 || analysis.FiveOfAKind.Count > 0) {
+            return [];
+        }
+
+        return [HandUtils.TryDiscardNonDuplicates(analysis.Cards, maxDiscardCards)];
+    }
+}
+
+public class FiveOfAKindHand : PokerHand {
+    public FiveOfAKindHand(PokerHandsManager pokerHandsManager, IReadOnlyList<Card> cards) 
+        : base(pokerHandsManager, "Five of a Kind", cards) { }
+
+    public override List<PokerHand> IdentifyHands(PokerHandAnalysis analysis) {
+        // Ya que analysis.FiveOfAKind viene ordenado por rank, el primero es el mejor
+        var highestFive = analysis.FiveOfAKind.FirstOrDefault();
+        return highestFive == default 
+            ? [] 
+            : [new FiveOfAKindHand(PokerHandsManager, highestFive.cards)];
+    }
+
+    public override List<List<Card>> SuggestDiscards(PokerHandAnalysis analysis, int maxDiscardCards) {
+        // Si ya tenemos un repóker, no sugerimos descartes
+        if (analysis.FiveOfAKind.Count > 0) {
+            return [];
+        }
+
+        return [HandUtils.TryDiscardNonDuplicates(analysis.Cards, maxDiscardCards)];
+    }
+}
+
+public class FlushHouseHand : PokerHand {
+    public FlushHouseHand(PokerHandsManager pokerHandsManager, IReadOnlyList<Card> cards) 
+        : base(pokerHandsManager, "Flush House", cards) { }
+
+    public override List<PokerHand> IdentifyHands(PokerHandAnalysis analysis) {
+        return analysis.FlushHouses
+            .Select(flushHouse => new FlushHouseHand(PokerHandsManager, 
+                flushHouse.threeCards.Concat(flushHouse.pair).ToList()))
             .Cast<PokerHand>()
             .ToList();
     }
 
-
-    public override List<List<Card>> SuggestDiscards(IReadOnlyList<Card> currentHand, int maxDiscardCards) {
+    public override List<List<Card>> SuggestDiscards(PokerHandAnalysis analysis, int maxDiscardCards) {
         var keeps = new List<List<Card>>();
-        foreach (var suitGroup in currentHand.GroupBy(c => c.Suit)) {
-            var suitCards = suitGroup.ToList();
-            if (suitCards.Count >= 3) {
-                var sequences = HandUtils.FindStraightSequences(suitCards);
-                keeps.AddRange(sequences.Select(seq =>
-                    HandUtils.GetDiscardsByKeeping(seq, currentHand, maxDiscardCards)));
+        foreach (var flush in analysis.PotentialFlushes) {
+            var flushAnalysis = new PokerHandAnalysis(flush);
+            if (flushAnalysis.ThreeOfAKind.Count > 0) {
+                keeps.Add(HandUtils.GetDiscardsByKeeping(flushAnalysis.ThreeOfAKind[0].cards, analysis.Cards, maxDiscardCards));
             }
         }
         return keeps;
     }
 }
 
-// NEW
+public class StraightHand : PokerHand {
+    public StraightHand(PokerHandsManager pokerHandsManager, IReadOnlyList<Card> cards) 
+        : base(pokerHandsManager, "Straight", cards) { }
 
-// Full (trio y pareja) del mismo color
-public class FlushHouseHand(PokerHandsManager pokerHandsManager, IReadOnlyList<Card> cards) 
-    : PokerHand(pokerHandsManager, "Flush House", cards) {
-    public override List<PokerHand> IdentifyHands(IReadOnlyList<Card> cards) {
-        var hands = new List<PokerHand>();
-        
-        foreach (var suit in cards.Select(c => c.Suit).Distinct()) {
-            var suitCards = cards.Where(c => c.Suit == suit).ToList();
-            if (suitCards.Count >= 5) {
-                var groups = suitCards.GroupBy(c => c.Rank)
-                    .Where(g => g.Count() >= 2)
-                    .OrderByDescending(g => g.Key)
-                    .ToList();
-
-                // Si no hay al menos dos grupos, continuamos
-                if (groups.Count < 2) continue;
-
-                // Encontrar grupos que pueden formar el trío (3 o más cartas)
-                var potentialThrees = groups.Where(g => g.Count() >= 3).ToList();
-                if (!potentialThrees.Any()) continue;
-
-                foreach (var firstGroup in potentialThrees) {
-                    var threeCards = firstGroup.Take(3).ToList();
-                    
-                    // Buscar grupos para el par, excluyendo el grupo usado para el trío
-                    var secondGroups = groups.Where(g => g.Key != firstGroup.Key).ToList();
-                    foreach (var secondGroup in secondGroups) {
-                        var twoCards = secondGroup.Take(2).ToList();
-                        
-                        // Si el primer grupo tiene exactamente 3 y el segundo exactamente 2,
-                        // o si ambos grupos tienen 3 o más cartas, generamos las manos correspondientes
-                        if ((firstGroup.Count() == 3 && secondGroup.Count() == 2) ||
-                            (firstGroup.Count() >= 3 && secondGroup.Count() >= 3)) {
-                            
-                            // Añadir la primera combinación
-                            hands.Add(new FlushHouseHand(PokerHandsManager, threeCards.Concat(twoCards).ToList()));
-                            
-                            // Si ambos grupos tienen 3 o más cartas, añadir la combinación invertida
-                            if (secondGroup.Count() >= 3) {
-                                var otherThreeCards = secondGroup.Take(3).ToList();
-                                var otherTwoCards = firstGroup.Take(2).ToList();
-                                hands.Add(new FlushHouseHand(PokerHandsManager, otherThreeCards.Concat(otherTwoCards).ToList()));
-                            }
-                            
-                            // Una vez que hemos generado las manos para estos dos grupos, podemos romper el bucle interno
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-        return hands.Distinct().ToList();
-    }
-
-    public override List<List<Card>> SuggestDiscards(IReadOnlyList<Card> currentHand, int maxDiscardCards) {
-        return [HandUtils.TryDiscardNonDuplicates(currentHand, maxDiscardCards)];
-    }
-}
-
-
-// Cinco cartas del mismo rank (poker de 5 cartas)
-public class FiveOfAKindHand(PokerHandsManager pokerHandsManager, IReadOnlyList<Card> cards) 
-    : PokerHand(pokerHandsManager, "Five of a Kind", cards) {
-    public override List<PokerHand> IdentifyHands(IReadOnlyList<Card> cards) {
-        var hands = new List<PokerHand>();
-    
-        // Agrupar por rank y obtener todos los grupos que tengan 5 o más cartas
-        var groups = cards.GroupBy(c => c.Rank)
-            .Where(g => g.Count() >= 5);
-    
-        foreach (var group in groups) {
-            // Tomar las primeras 5 cartas de cada grupo
-            var fiveCards = group.Take(5).ToList();
-            hands.Add(new FiveOfAKindHand(PokerHandsManager, fiveCards));
-        }
-
-        return hands;
-    }
-
-    public override List<List<Card>> SuggestDiscards(IReadOnlyList<Card> currentHand, int maxDiscardCards) {
-        // Agrupar por rank y ordenar por tamaño del grupo
-        var groups = currentHand
-            .GroupBy(c => c.Rank)
-            .OrderByDescending(g => g.Count())
-            .ToList();
-
-        if (groups.Count == 0) return [];
-
-        // Encontrar el grupo más grande
-        var largestGroup = groups[0].ToList();
-        
-        // Mantener las cartas del grupo más grande, descartar el resto
-        return [HandUtils.GetDiscardsByKeeping(largestGroup, currentHand, maxDiscardCards)];
-    }
-}
-
-
-// Cinco cartas idénticas (mismo palo y color)
-// NUEVO
-public class FlushFiveHand(PokerHandsManager pokerHandsManager, IReadOnlyList<Card> cards) 
-    : PokerHand(pokerHandsManager, "Flush Five", cards) {
-    public override List<PokerHand> IdentifyHands(IReadOnlyList<Card> cards) {
-        return cards
-            .GroupBy(c => (c.Rank, c.Suit))
-            .Where(g => g.Count() >= 5)
-            .Select(g => new FlushFiveHand(PokerHandsManager, g.Take(5).ToList()))
+    public override List<PokerHand> IdentifyHands(PokerHandAnalysis analysis) {
+        return analysis.CompleteStraights
+            .Select(straight => new StraightHand(PokerHandsManager, straight))
             .Cast<PokerHand>()
             .ToList();
     }
 
-    public override List<List<Card>> SuggestDiscards(IReadOnlyList<Card> currentHand, int maxDiscardCards) {
-        // Agrupar por rango Y palo al mismo tiempo
-        var groups = currentHand
-            .GroupBy(c => (c.Rank, c.Suit))
-            .OrderByDescending(g => g.Count())
+    public override List<List<Card>> SuggestDiscards(PokerHandAnalysis analysis, int maxDiscardCards) {
+        // Si ya tenemos una escalera completa, no sugerimos descartes
+        if (analysis.CompleteStraights.Count > 0) return [];
+    
+        // Solo sugerimos descartes si hay escaleras potenciales
+        if (analysis.PotentialStraights.Count == 0) return [];
+    
+        // Elegimos la mejor secuencia (la primera, que ya viene ordenada por valor)
+        var bestSequence = analysis.PotentialStraights[0];
+    
+        // Calculamos los descartes basándonos en la mejor secuencia
+        var discards = analysis.Cards
+            .Where(c => !bestSequence.Contains(c))
+            .OrderByDescending(c => c.Rank)
+            .Take(maxDiscardCards)
             .ToList();
-
-        // Si no hay grupos o el grupo más grande ya tiene 5 o más cartas, no sugerir descartes
-        if (!groups.Any() || groups[0].Count() >= 5) return [];
-
-        // Encontrar el grupo más grande de cartas idénticas
-        var largestGroup = groups[0].ToList();
         
-        // Descartar todas las cartas que no sean del grupo más grande
-        return [HandUtils.GetDiscardsByKeeping(largestGroup, currentHand, maxDiscardCards)];
+        // Solo devolvemos una lista con la mejor opción de descarte
+        return discards.Count > 0 ? [discards] : [];
+    }
+}
+
+public class StraightFlushHand : PokerHand {
+    public StraightFlushHand(PokerHandsManager pokerHandsManager, IReadOnlyList<Card> cards) 
+        : base(pokerHandsManager, "Straight Flush", cards) { }
+
+    public override List<PokerHand> IdentifyHands(PokerHandAnalysis analysis) {
+        return analysis.CompleteStraights
+            .Where(straight => straight.All(card => card.Suit == straight[0].Suit))
+            .Select(straight => new StraightFlushHand(PokerHandsManager, straight))
+            .Cast<PokerHand>()
+            .ToList();
+    }
+
+    public override List<List<Card>> SuggestDiscards(PokerHandAnalysis analysis, int maxDiscardCards) {
+        // Buscar el palo con más cartas potenciales para escalera
+        var bestSuit = ' ';
+        List<Card> bestPotentialStraight = null;
+        
+        foreach (var suitGroup in analysis.Cards.GroupBy(c => c.Suit)) {
+            if (suitGroup.Count() < 4) continue; // Necesitamos al menos 4 cartas del mismo palo
+            
+            // Analizar solo las cartas de este palo
+            var suitCards = suitGroup.ToList();
+            var sequences = HandUtils.FindStraightSequences(suitCards);
+            
+            // Si encontramos una secuencia potencial en este palo
+            if (sequences.oneGap.Count > 0 || sequences.twoGaps.Count > 0) {
+                var potentialStraight = sequences.oneGap.FirstOrDefault() ?? sequences.twoGaps.FirstOrDefault();
+                if (potentialStraight != null && (bestPotentialStraight == null || 
+                                                  potentialStraight.Count > bestPotentialStraight.Count)) {
+                    bestSuit = suitGroup.Key;
+                    bestPotentialStraight = potentialStraight;
+                }
+            }
+        }
+        
+        if (bestPotentialStraight == null) return [];
+        
+        // Descartar todas las cartas que no sean del palo seleccionado
+        var discards = analysis.Cards
+            .Where(c => c.Suit != bestSuit)
+            .OrderBy(c => c.Rank) // Ordenamos por rank para tomar las más bajas primero
+            .Take(maxDiscardCards) // Tomamos solo hasta el máximo permitido
+            .ToList();
+        
+        return discards.Count > 0 ? [discards] : [];
+    }
+}
+
+public class FlushHand : PokerHand {
+    public FlushHand(PokerHandsManager pokerHandsManager, IReadOnlyList<Card> cards) 
+        : base(pokerHandsManager, "Flush", cards) { }
+
+    public override List<PokerHand> IdentifyHands(PokerHandAnalysis analysis) {
+        return analysis.CompleteFlushes
+            .Select(flush => new FlushHand(PokerHandsManager, 
+                flush.OrderByDescending(c => c.Rank).Take(5).ToList()))
+            .Cast<PokerHand>()
+            .ToList();
+    }
+
+    public override List<List<Card>> SuggestDiscards(PokerHandAnalysis analysis, int maxDiscardCards) {
+        if (analysis.PotentialFlushes.Count == 0) return [];
+        var bestFlush = analysis.PotentialFlushes[0];
+        return [HandUtils.GetDiscardsByKeeping(bestFlush, analysis.Cards, maxDiscardCards)];
+    }
+}
+
+// Cinco cartas idénticas (mismo palo y color)
+// NUEVO
+public class FlushFiveHand : PokerHand {
+    public FlushFiveHand(PokerHandsManager pokerHandsManager, IReadOnlyList<Card> cards) 
+        : base(pokerHandsManager, "Flush Five", cards) { }
+
+    public override List<PokerHand> IdentifyHands(PokerHandAnalysis analysis) {
+        // Como esto es un caso especial, necesitaremos agrupar por rank Y palo al mismo tiempo
+        // Todos los FlushFive estarán dentro de cada grupo de CompleteFlushes
+        var flushFives = new List<PokerHand>();
+        foreach (var flush in analysis.CompleteFlushes) {
+            var groupsByRank = flush
+                .GroupBy(c => c.Rank)
+                .Where(g => g.Count() >= 5)
+                .OrderByDescending(g => g.Key);
+            
+            foreach (var group in groupsByRank) {
+                flushFives.Add(new FlushFiveHand(PokerHandsManager, group.Take(5).ToList()));
+            }
+        }
+        return flushFives;
+    }
+
+    public override List<List<Card>> SuggestDiscards(PokerHandAnalysis analysis, int maxDiscardCards) {
+        return [];
     }
 }

@@ -56,10 +56,12 @@ public class PokerHandsManager {
             throw new InvalidOperationException("No hands registered");
         }
         if (cards.Count == 0) return [];
+        
+        var analysis = new PokerHandAnalysis(cards);
 
         var allHands = _handConfigs
             .Where(config => config.Enabled)
-            .SelectMany(config => config.Prototype.IdentifyHands(cards))
+            .SelectMany(config => config.Prototype.IdentifyHands(analysis))
             .OrderByDescending(handler.CalculateScore)
             .ToList();
 
@@ -91,11 +93,11 @@ public class PokerHandsManager {
     /// 3. Calculate probabilities and potential scores
     /// 4. Return options ordered by potential score
     /// </summary>
-    /// <param name="currentHand">Current cards in hand</param>
+    /// <param name="cards">Current cards in hand</param>
     /// <param name="availableCards">Cards available to draw</param>
     /// <param name="maxDiscardCards">Maximum number of cards that can be discarded</param>
     /// <returns>Analysis results with discard options and statistics</returns>
-    public DiscardOptionsResult GetDiscardOptions(GameStateHandler handler, IReadOnlyList<Card> currentHand, IReadOnlyList<Card> availableCards, int maxDiscardCards) {
+    public DiscardOptionsResult GetDiscardOptions(GameStateHandler handler, IReadOnlyList<Card> cards, IReadOnlyList<Card> availableCards, int maxDiscardCards) {
         if (maxDiscardCards < 0) throw new ArgumentException("maxDiscardCards cannot be negative");
 
         const int MaxSimulations = 10000;
@@ -104,11 +106,13 @@ public class PokerHandsManager {
         var watch = System.Diagnostics.Stopwatch.StartNew();
         var totalSimulations = 0;
         var totalCombinations = 0;
+        
+        var analysis = new PokerHandAnalysis(cards);
 
         // Get all possible discard combinations from all hand types
         var suggestedDiscards = _handConfigs
             .Where(config => config.Enabled)
-            .SelectMany(config => config.Prototype.GetBestDiscards(currentHand, maxDiscardCards))
+            .SelectMany(config => config.Prototype.SuggestDiscards(analysis, maxDiscardCards))
             .Where(cardsToDiscard => cardsToDiscard.Count > 0)
             .Distinct(new CardListEqualityComparer())
             .ToList();
@@ -119,7 +123,7 @@ public class PokerHandsManager {
 
         // Analyze each discard combination
         foreach (var cardsToDiscard in suggestedDiscards) {
-            var cardsToKeep = currentHand.Except(cardsToDiscard).ToList();
+            var cardsToKeep = cards.Except(cardsToDiscard).ToList();
             var handTypeOccurrences = new Dictionary<Type, HandTypeStats>();
             
             // Calculate total possible combinations
@@ -160,7 +164,7 @@ public class PokerHandsManager {
                 }
             }
 
-            if (handTypeOccurrences.Any()) {
+            if (handTypeOccurrences.Count != 0) {
                 options.Add(new DiscardOption(
                     cardsToKeep,
                     cardsToDiscard,
