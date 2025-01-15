@@ -70,15 +70,7 @@ public class PairHand : PokerHand {
         : base(pokerHandsManager, "Pair", cards) { }
 
     public override List<PokerHand> IdentifyHands(PokerHandAnalysis analysis) {
-        // Si hay tríos o mejor, no devolver pares de ese rank
-        var excludedRanks = analysis.ThreeOfAKind
-            .Concat(analysis.FourOfAKind)
-            .Concat(analysis.FiveOfAKind)
-            .Select(g => g.rank)
-            .ToHashSet();
-
         return analysis.Pairs
-            .Where(pair => !excludedRanks.Contains(pair.rank))
             .Select(pair => new PairHand(PokerHandsManager, pair.cards))
             .Cast<PokerHand>()
             .ToList();
@@ -218,14 +210,12 @@ public class FlushHouseHand : PokerHand {
     }
 
     public override List<List<Card>> SuggestDiscards(PokerHandAnalysis analysis, int maxDiscardCards) {
-        var keeps = new List<List<Card>>();
-        foreach (var flush in analysis.PotentialFlushes) {
-            var flushAnalysis = new PokerHandAnalysis(flush);
-            if (flushAnalysis.ThreeOfAKind.Count > 0) {
-                keeps.Add(HandUtils.GetDiscardsByKeeping(flushAnalysis.ThreeOfAKind[0].cards, analysis.Cards, maxDiscardCards));
-            }
+        // Si ya tenemos un flush house, no sugerimos descartes
+        if (analysis.FlushHouses.Count > 0) {
+            return [];
         }
-        return keeps;
+
+        return [HandUtils.TryDiscardNonDuplicates(analysis.Cards, maxDiscardCards)];
     }
 }
 
@@ -234,30 +224,28 @@ public class StraightHand : PokerHand {
         : base(pokerHandsManager, "Straight", cards) { }
 
     public override List<PokerHand> IdentifyHands(PokerHandAnalysis analysis) {
-        return analysis.CompleteStraights
-            .Select(straight => new StraightHand(PokerHandsManager, straight))
-            .Cast<PokerHand>()
-            .ToList();
+        return analysis.HasCompleteStraight
+            ? [new StraightHand(PokerHandsManager, analysis.Straights[0].Cards)]
+            : [];
     }
 
     public override List<List<Card>> SuggestDiscards(PokerHandAnalysis analysis, int maxDiscardCards) {
         // Si ya tenemos una escalera completa, no sugerimos descartes
-        if (analysis.CompleteStraights.Count > 0) return [];
+        if (analysis.HasCompleteStraight) return [];
     
         // Solo sugerimos descartes si hay escaleras potenciales
-        if (analysis.PotentialStraights.Count == 0) return [];
+        if (analysis.Straights.Count == 0) return [];
     
-        // Elegimos la mejor secuencia (la primera, que ya viene ordenada por valor)
-        var bestSequence = analysis.PotentialStraights[0];
+        // Elegimos la mejor secuencia (la primera, que ya viene ordenada)
+        var bestSequence = analysis.Straights[0];
     
         // Calculamos los descartes basándonos en la mejor secuencia
         var discards = analysis.Cards
-            .Where(c => !bestSequence.Contains(c))
+            .Where(c => !bestSequence.Cards.Contains(c))
             .OrderByDescending(c => c.Rank)
             .Take(maxDiscardCards)
             .ToList();
         
-        // Solo devolvemos una lista con la mejor opción de descarte
         return discards.Count > 0 ? [discards] : [];
     }
 }
@@ -267,64 +255,57 @@ public class StraightFlushHand : PokerHand {
         : base(pokerHandsManager, "Straight Flush", cards) { }
 
     public override List<PokerHand> IdentifyHands(PokerHandAnalysis analysis) {
-        return analysis.CompleteStraights
-            .Where(straight => straight.All(card => card.Suit == straight[0].Suit))
-            .Select(straight => new StraightFlushHand(PokerHandsManager, straight))
-            .Cast<PokerHand>()
-            .ToList();
+        return analysis.HasCompleteStraight && analysis.Straights[0].IsFlush
+            ? [new StraightFlushHand(PokerHandsManager, analysis.Straights[0].Cards)]
+            : [];
     }
 
     public override List<List<Card>> SuggestDiscards(PokerHandAnalysis analysis, int maxDiscardCards) {
-        // Buscar el palo con más cartas potenciales para escalera
-        var bestSuit = ' ';
-        List<Card> bestPotentialStraight = null;
-        
-        foreach (var suitGroup in analysis.Cards.GroupBy(c => c.Suit)) {
-            if (suitGroup.Count() < 4) continue; // Necesitamos al menos 4 cartas del mismo palo
-            
-            // Analizar solo las cartas de este palo
-            var suitCards = suitGroup.ToList();
-            var sequences = HandUtils.FindStraightSequences(suitCards);
-            
-            // Si encontramos una secuencia potencial en este palo
-            if (sequences.oneGap.Count > 0 || sequences.twoGaps.Count > 0) {
-                var potentialStraight = sequences.oneGap.FirstOrDefault() ?? sequences.twoGaps.FirstOrDefault();
-                if (potentialStraight != null && (bestPotentialStraight == null || 
-                                                  potentialStraight.Count > bestPotentialStraight.Count)) {
-                    bestSuit = suitGroup.Key;
-                    bestPotentialStraight = potentialStraight;
-                }
-            }
+        // Si hay una escalera completa flush, no descartamos nada
+        if (analysis.HasCompleteStraight && analysis.Straights[0].IsFlush) {
+            return [];
         }
-        
-        if (bestPotentialStraight == null) return [];
-        
-        // Descartar todas las cartas que no sean del palo seleccionado
+
+        // Buscar la mejor escalera potencial flush
+        var bestFlushStraight = analysis.Straights
+            .FirstOrDefault(s => s.IsFlush);
+
+        if (bestFlushStraight == null) {
+            return [];
+        }
+
+        // Descartamos todas las cartas que no forman parte de la mejor escalera potencial
         var discards = analysis.Cards
-            .Where(c => c.Suit != bestSuit)
-            .OrderBy(c => c.Rank) // Ordenamos por rank para tomar las más bajas primero
-            .Take(maxDiscardCards) // Tomamos solo hasta el máximo permitido
+            .Where(c => !bestFlushStraight.Cards.Contains(c))
+            .OrderBy(c => c.Rank)
+            .Take(maxDiscardCards)
             .ToList();
-        
+
         return discards.Count > 0 ? [discards] : [];
     }
 }
-
 public class FlushHand : PokerHand {
     public FlushHand(PokerHandsManager pokerHandsManager, IReadOnlyList<Card> cards) 
         : base(pokerHandsManager, "Flush", cards) { }
 
     public override List<PokerHand> IdentifyHands(PokerHandAnalysis analysis) {
-        return analysis.CompleteFlushes
-            .Select(flush => new FlushHand(PokerHandsManager, 
-                flush.OrderByDescending(c => c.Rank).Take(5).ToList()))
-            .Cast<PokerHand>()
-            .ToList();
+        if (!analysis.HasCompleteFlush) return [];
+        
+        return [new FlushHand(PokerHandsManager, 
+            analysis.Flushes[0]
+                .OrderByDescending(c => c.Rank)
+                .Take(5)
+                .ToList())];
     }
 
     public override List<List<Card>> SuggestDiscards(PokerHandAnalysis analysis, int maxDiscardCards) {
-        if (analysis.PotentialFlushes.Count == 0) return [];
-        var bestFlush = analysis.PotentialFlushes[0];
+        // Si ya tenemos un color completo, no sugerimos descartes
+        if (analysis.HasCompleteFlush) return [];
+    
+        // Solo sugerimos descartes si hay colores potenciales
+        if (analysis.Flushes.Count == 0) return [];
+    
+        var bestFlush = analysis.Flushes[0];
         return [HandUtils.GetDiscardsByKeeping(bestFlush, analysis.Cards, maxDiscardCards)];
     }
 }
@@ -336,10 +317,8 @@ public class FlushFiveHand : PokerHand {
         : base(pokerHandsManager, "Flush Five", cards) { }
 
     public override List<PokerHand> IdentifyHands(PokerHandAnalysis analysis) {
-        // Como esto es un caso especial, necesitaremos agrupar por rank Y palo al mismo tiempo
-        // Todos los FlushFive estarán dentro de cada grupo de CompleteFlushes
         var flushFives = new List<PokerHand>();
-        foreach (var flush in analysis.CompleteFlushes) {
+        foreach (var flush in analysis.Flushes) {
             var groupsByRank = flush
                 .GroupBy(c => c.Rank)
                 .Where(g => g.Count() >= 5)

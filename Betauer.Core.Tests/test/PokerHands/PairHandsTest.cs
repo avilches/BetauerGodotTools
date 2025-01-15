@@ -2,9 +2,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Betauer.Core.Deck;
 using Betauer.Core.Deck.Hands;
+using Betauer.TestRunner;
 using NUnit.Framework;
 
-namespace Betauer.Core.Tests;
+namespace Betauer.Core.Tests.PokerHands;
 
 [TestFixture]
 public class PairHandsTest : PokerHandsTestBase {
@@ -32,19 +33,29 @@ public class PairHandsTest : PokerHandsTestBase {
     }
 
     [Test]
-    public void WithMultiplePairs_ShouldIdentifyHighestPairOnly() {
-        // Tenemos par de Ases y par de Reyes, solo debe identificar el par de Ases
+    public void WithMultiplePairs_ShouldIdentifyAllOfThem() {
+        // Tenemos par de Ases y par de Reyes
         var cards = CreateCards("AS", "AH", "KS", "KH", "QD");
         var hands = HandsManager.IdentifyAllHands(Handler, cards);
 
-        var pairs = hands.Where(h => h is PairHand).ToList();
+        var pairs = hands.Where(h => h is PairHand)
+            .OrderByDescending(h => h.Cards.First().Rank)
+            .ToList();
+        
         Assert.Multiple(() => {
-            Assert.That(pairs.Count, Is.EqualTo(1), "Should have exactly 1 pair");
-            Assert.That(pairs[0].Cards.Count, Is.EqualTo(2), "Pair should have 2 cards");
-            Assert.That(pairs[0].Cards.All(c => c.Rank == 14), Is.True, "Should be pair of Aces");
+            // Verificamos que hay exactamente 2 parejas
+            Assert.That(pairs.Count, Is.EqualTo(2), "Should have exactly 2 pairs");
+        
+            // Verificamos la primera pareja (Ases)
+            Assert.That(pairs[0].Cards.Count, Is.EqualTo(2), "First pair should have 2 cards");
+            Assert.That(pairs[0].Cards.All(c => c.Rank == 14), Is.True, "First pair should be Aces");
+        
+            // Verificamos la segunda pareja (Reyes)
+            Assert.That(pairs[1].Cards.Count, Is.EqualTo(2), "Second pair should have 2 cards");
+            Assert.That(pairs[1].Cards.All(c => c.Rank == 13), Is.True, "Second pair should be Kings");
         });
     }
-
+    
     // Tests de sugerencia de descartes
     [Test]
     public void SuggestDiscards_WithoutPair_ShouldSuggestDiscardingLowestCards() {

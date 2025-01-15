@@ -2,13 +2,11 @@ using System.Collections.Generic;
 using System.Linq;
 using Betauer.Core.Deck;
 using Betauer.Core.Deck.Hands;
-using Betauer.TestRunner;
 using NUnit.Framework;
 
-namespace Betauer.Core.Tests;
+namespace Betauer.Core.Tests.PokerHands;
 
 [TestFixture]
-[Only]
 public class ThreeOfAKindHandsTest : PokerHandsTestBase {
     [Test]
     public void BasicThreeOfAKind_ShouldBeIdentified() {

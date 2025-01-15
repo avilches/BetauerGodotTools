@@ -4,7 +4,7 @@ using Betauer.Core.Deck;
 using Betauer.Core.Deck.Hands;
 using NUnit.Framework;
 
-namespace Betauer.Core.Tests;
+namespace Betauer.Core.Tests.PokerHands;
 
 [TestFixture]
 public class FourOfAKindHandsTest : PokerHandsTestBase {

@@ -16,13 +16,13 @@ public class PokerHandAnalysis {
     public IReadOnlyList<(int rank, List<Card> cards)> FourOfAKind { get; }
     public IReadOnlyList<(int rank, List<Card> cards)> FiveOfAKind { get; }
     
-    // Secuencias
-    public IReadOnlyList<List<Card>> PotentialStraights { get; }
-    public IReadOnlyList<List<Card>> CompleteStraights { get; }
+    // Escaleras
+    public IReadOnlyList<Straight> Straights { get; }
+    public bool HasCompleteStraight => Straights.Count > 0 && !Straights[0].Incomplete;
     
     // Flushes
-    public IReadOnlyList<List<Card>> PotentialFlushes { get; }
-    public IReadOnlyList<List<Card>> CompleteFlushes { get; }
+    public IReadOnlyList<List<Card>> Flushes { get; }
+    public bool HasCompleteFlush => Flushes.Count > 0 && Flushes[0].Count >= 5;
     
     // Combinaciones especiales
     public IReadOnlyList<(List<Card> firstPair, List<Card> secondPair)> TwoPairs { get; }
@@ -44,14 +44,10 @@ public class PokerHandAnalysis {
         FiveOfAKind = groupsBySize.GetValueOrDefault(5, []);
         
         // Análisis de secuencias
-        var straightAnalysis = AnalyzeStraights(cards);
-        PotentialStraights = straightAnalysis.potential;
-        CompleteStraights = straightAnalysis.complete;
+        Straights = HandUtils.FindStraightSequences(cards); 
         
         // Análisis de flushes
-        var flushAnalysis = AnalyzeFlushes(CardsBySuit);
-        PotentialFlushes = flushAnalysis.potential;
-        CompleteFlushes = flushAnalysis.complete;
+        Flushes = AnalyzeFlushes(CardsBySuit);
         
         // Análisis de combinaciones especiales
         TwoPairs = AnalyzeTwoPairs(Pairs);
@@ -59,19 +55,19 @@ public class PokerHandAnalysis {
         FlushHouses = AnalyzeFlushHouses(CardsBySuit);
     }
 
-    private Dictionary<int, List<Card>> AnalyzeByRank(IReadOnlyList<Card> cards) {
+    private static Dictionary<int, List<Card>> AnalyzeByRank(IReadOnlyList<Card> cards) {
         return cards
             .GroupBy(c => c.Rank)
             .ToDictionary(g => g.Key, g => g.ToList());
     }
 
-    private Dictionary<char, List<Card>> AnalyzeBySuit(IReadOnlyList<Card> cards) {
+    private static Dictionary<char, List<Card>> AnalyzeBySuit(IReadOnlyList<Card> cards) {
         return cards
             .GroupBy(c => c.Suit)
             .ToDictionary(g => g.Key, g => g.ToList());
     }
 
-    private Dictionary<int, List<(int rank, List<Card> cards)>> AnalyzeGroups(IReadOnlyDictionary<int, List<Card>> cardsByRank) {
+    private static Dictionary<int, List<(int rank, List<Card> cards)>> AnalyzeGroups(IReadOnlyDictionary<int, List<Card>> cardsByRank) {
         var groups = new Dictionary<int, List<(int rank, List<Card> cards)>>();
     
         foreach (var (rank, cards) in cardsByRank) {
@@ -81,7 +77,15 @@ public class PokerHandAnalysis {
                     if (!groups.ContainsKey(size)) {
                         groups[size] = [];
                     }
-                    groups[size].Add((rank, cards.Take(size).ToList()));
+                    // Se ordena por suit para que si hay dos cartas con el mismo suit, se queden juntas
+                    // y además las cartas con suits más frecuentes aparezcan primero
+                    var group = cards
+                        .GroupBy(c => c.Suit)
+                        .OrderByDescending(g => g.Count())
+                        .SelectMany(g => g)
+                        .Take(size)
+                        .ToList();                    
+                    groups[size].Add((rank, group));
                 }
             }
         }
@@ -94,33 +98,13 @@ public class PokerHandAnalysis {
         return groups;
     }
 
-    private (List<List<Card>> potential, List<List<Card>> complete) AnalyzeStraights(IReadOnlyList<Card> cards) {
-        var (complete, oneGap, twoGaps) = HandUtils.FindStraightSequences(cards);
-        // Primero intentamos las secuencias con un hueco
-        var potential = oneGap;
-        // Si no hay secuencias con un hueco, usamos las de dos huecos
-        if (potential.Count == 0) {
-            potential = twoGaps;
-        }
-        return (potential, complete);
+    private static List<List<Card>> AnalyzeFlushes(IReadOnlyDictionary<char, List<Card>> cardsBySuit) {
+        return cardsBySuit.Values
+            .Where(suitGroup => suitGroup.Count >= 3)
+            .OrderByDescending(suitGroup => suitGroup, new FlushComparer())
+            .ToList();
     }
-
-    private (List<List<Card>> potential, List<List<Card>> complete) AnalyzeFlushes(IReadOnlyDictionary<char, List<Card>> cardsBySuit) {
-        var potential = new List<List<Card>>();
-        var complete = new List<List<Card>>();
-        
-        foreach (var suitGroup in cardsBySuit.Values) {
-            if (suitGroup.Count >= 3) {
-                potential.Add(suitGroup);
-            }
-            if (suitGroup.Count >= 5) {
-                complete.Add(suitGroup.ToList());
-            }
-        }
-        
-        return (potential, complete);
-    }
-
+    
     private List<(List<Card> firstPair, List<Card> secondPair)> AnalyzeTwoPairs(IReadOnlyList<(int rank, List<Card> cards)> pairs) {
         var result = new List<(List<Card>, List<Card>)>();
         
@@ -133,46 +117,50 @@ public class PokerHandAnalysis {
         return result;
     }
 
-    private List<(List<Card> threeCards, List<Card> pair)> AnalyzeFullHouses(
+    private static List<(List<Card> threeCards, List<Card> pair)> AnalyzeFullHouses(
+        IReadOnlyList<(int rank, List<Card> cards)> threes,
+        IReadOnlyList<(int rank, List<Card> cards)> pairs) {
+        return AnalyzeHouseVariants(threes, pairs);
+    }
+
+    private static List<(List<Card> threeCards, List<Card> pair)> AnalyzeFlushHouses(
+        IReadOnlyDictionary<char, List<Card>> cardsBySuit) {
+        var result = new List<(List<Card>, List<Card>)>();
+
+        foreach (var suitGroup in cardsBySuit.Values) {
+            if (suitGroup.Count >= 5) {
+                // Primero agrupamos por rank y verificamos si hay grupos suficientes
+                var rankGroups = suitGroup
+                    .GroupBy(c => c.Rank)
+                    .Where(g => g.Count() >= 2)  // Solo nos interesan grupos de 2 o más
+                    .OrderByDescending(g => g.Count())
+                    .ToList();
+
+                // Si no hay al menos 2 grupos, o el grupo más grande tiene menos de 3 cartas,
+                // no es posible formar un flush house
+                if (rankGroups.Count >= 2 && rankGroups[0].Count() >= 3) {
+                    var cardsByRank = rankGroups.ToDictionary(g => g.Key, g => g.ToList());
+                    var groups = AnalyzeGroups(cardsByRank);
+                    var threes = groups.GetValueOrDefault(3, []);
+                    var pairs = groups.GetValueOrDefault(2, []);
+                
+                    result.AddRange(AnalyzeHouseVariants(threes, pairs));
+                }
+            }
+        }
+    
+        return result;
+    }
+
+    private static List<(List<Card> threeCards, List<Card> pair)> AnalyzeHouseVariants(
         IReadOnlyList<(int rank, List<Card> cards)> threes,
         IReadOnlyList<(int rank, List<Card> cards)> pairs) {
         var result = new List<(List<Card>, List<Card>)>();
-        
+    
         foreach (var three in threes) {
             foreach (var pair in pairs) {
                 if (three.rank != pair.rank) {
                     result.Add((three.cards, pair.cards));
-                }
-            }
-        }
-        
-        return result;
-    }
-
-    private List<(List<Card> threeCards, List<Card> pair)> AnalyzeFlushHouses(IReadOnlyDictionary<char, List<Card>> cardsBySuit) {
-        var result = new List<(List<Card>, List<Card>)>();
-    
-        foreach (var suitGroup in cardsBySuit.Values) {
-            if (suitGroup.Count >= 5) {
-                var groupsByRank = suitGroup
-                    .GroupBy(c => c.Rank)
-                    .Where(g => g.Count() >= 2)
-                    .OrderByDescending(g => g.Count())
-                    .ThenByDescending(g => g.Key)
-                    .ToList();
-
-                if (groupsByRank.Count >= 2) {
-                    var firstGroup = groupsByRank[0].ToList();
-                    var secondGroup = groupsByRank[1].ToList();
-                
-                    if (firstGroup.Count >= 3 && secondGroup.Count >= 2) {
-                        result.Add((firstGroup.Take(3).ToList(), secondGroup.Take(2).ToList()));
-                    }
-                
-                    // Si el segundo grupo también tiene 3 o más, probar la combinación inversa
-                    if (firstGroup.Count >= 2 && secondGroup.Count >= 3) {
-                        result.Add((secondGroup.Take(3).ToList(), firstGroup.Take(2).ToList()));
-                    }
                 }
             }
         }

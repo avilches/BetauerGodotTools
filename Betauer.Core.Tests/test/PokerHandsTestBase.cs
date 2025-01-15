@@ -49,26 +49,3 @@ public class PokerHandsTest : PokerHandsTestBase {
         Assert.That(handsDisabled, Is.Empty, "Should not identify disabled FiveOfAKind");
     }
 }
-
-[TestFixture]
-public class FlushHandsTest : PokerHandsTestBase {
-    [Test]
-    public void Flush_WithMoreThanFiveCards_ShouldFindAllCombinations() {
-        // 6 cartas de corazones, debería generar un color con las primeras 5
-        var cards = CreateCards("AH", "KH", "QH", "JH", "TH", "9H", "2D");
-        var hands = HandsManager.IdentifyAllHands(Handler, cards);
-        var flushes = hands.Where(h => h is FlushHand).ToList();
-
-        Assert.Multiple(() => {
-            // Debería haber solo un color
-            Assert.That(flushes.Count, Is.EqualTo(1), "Should have exactly 1 flush");
-            Assert.That(flushes[0].Cards.Count, Is.EqualTo(5), "Flush should have exactly 5 cards");
-            Assert.That(flushes[0].Cards.All(c => c.Suit == 'H'), "All cards should be hearts");
-
-            // Verificar que tenemos las cartas más altas (A,K,Q,J,10)
-            var ranks = flushes[0].Cards.Select(c => c.Rank).OrderByDescending(r => r).ToList();
-            Assert.That(ranks, Is.EqualTo(new[] { 14, 13, 12, 11, 10 }),
-                "Should have Ace, King, Queen, Jack, Ten of hearts");
-        });
-    }
-}
