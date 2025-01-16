@@ -33,18 +33,18 @@ public abstract class PokerHand(string name, IReadOnlyList<Card> cards, PokerHan
 
     private static Dictionary<PokerHandType, PokerHand> CreateDict() {
         var dict = new Dictionary<PokerHandType, PokerHand> {
-            { PokerHandType.HighCard, new HighCardHand([]) },
-            { PokerHandType.Pair, new PairHand([]) },
-            { PokerHandType.TwoPair, new TwoPairHand([]) },
-            { PokerHandType.ThreeOfAKind, new ThreeOfAKindHand([]) },
-            { PokerHandType.Straight, new StraightHand([]) },
-            { PokerHandType.Flush, new FlushHand([]) },
-            { PokerHandType.FullHouse, new FullHouseHand([]) },
-            { PokerHandType.FourOfAKind, new FourOfAKindHand([]) },
-            { PokerHandType.StraightFlush, new StraightFlushHand([]) },
-            { PokerHandType.FiveOfAKind, new FiveOfAKindHand([]) },
-            { PokerHandType.FlushHouse, new FlushHouseHand([]) },
-            { PokerHandType.FlushFive, new FlushFiveHand([]) }
+            { PokerHandType.HighCard, new HighCardHand(null!) },
+            { PokerHandType.Pair, new PairHand(null!) },
+            { PokerHandType.TwoPair, new TwoPairHand(null!) },
+            { PokerHandType.ThreeOfAKind, new ThreeOfAKindHand(null!) },
+            { PokerHandType.Straight, new StraightHand(null!) },
+            { PokerHandType.Flush, new FlushHand(null!) },
+            { PokerHandType.FullHouse, new FullHouseHand(null!) },
+            { PokerHandType.FourOfAKind, new FourOfAKindHand(null!) },
+            { PokerHandType.StraightFlush, new StraightFlushHand(null!) },
+            { PokerHandType.FiveOfAKind, new FiveOfAKindHand(null!) },
+            { PokerHandType.FlushHouse, new FlushHouseHand(null!) },
+            { PokerHandType.FlushFive, new FlushFiveHand(null!) }
         };
         
         // Validate all enum values are present in dictionary

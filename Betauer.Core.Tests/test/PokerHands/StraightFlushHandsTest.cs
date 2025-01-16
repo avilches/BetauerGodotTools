@@ -289,7 +289,7 @@ public class StraightFlushHandsTest : PokerHandsTestBase {
     public void SuggestDiscards_WithMultipleSuits() {
         // 7♥,8♥,9♥,J♥,Q♥,2♣,3♣,4♦,5♦
         var cards = CreateCards("7H", "8H", "9H", "JH", "QH", "2C", "3C", "4D", "5D");
-        var hand = PokerHand.Prototypes[PokerHandType.StraightFlush];
+        var hand = new StraightFlushHand([]);
         var analysis = new PokerHandAnalysis(Handler.Config, cards);
 
         Assert.Multiple(() => {
@@ -309,7 +309,7 @@ public class StraightFlushHandsTest : PokerHandsTestBase {
     public void SuggestDiscards_WithLowAce_Complete() {
         // A,2,3,4,5 todos de picas
         var cards = CreateCards("AS", "2S", "3S", "4S", "5S");
-        var hand = PokerHand.Prototypes[PokerHandType.StraightFlush];
+        var hand = new StraightFlushHand([]);
         var analysis = new PokerHandAnalysis(Handler.Config, cards);
         Assert.Multiple(() => {
             Assert.That(analysis.HasCompleteStraight, Is.True);
@@ -323,7 +323,7 @@ public class StraightFlushHandsTest : PokerHandsTestBase {
     public void SuggestDiscards_WithHighAce_Complete() {
         // 10,J,Q,K,A todos de corazones
         var cards = CreateCards("TH", "JH", "QH", "KH", "AH");
-        var hand = PokerHand.Prototypes[PokerHandType.StraightFlush];
+        var hand = new StraightFlushHand([]);
         var analysis = new PokerHandAnalysis(Handler.Config, cards);
         Assert.Multiple(() => {
             Assert.That(analysis.HasCompleteStraight, Is.True);
@@ -337,7 +337,7 @@ public class StraightFlushHandsTest : PokerHandsTestBase {
     public void SuggestDiscards_WithLowAce_OneGap() {
         // A♥,2♥,4♥,5♥,6♥ (falta 3♥)
         var cards = CreateCards("AH", "2H", "4H", "5H", "6H");
-        var hand = PokerHand.Prototypes[PokerHandType.StraightFlush];
+        var hand = new StraightFlushHand([]);
         var analysis = new PokerHandAnalysis(Handler.Config, cards);
         Assert.Multiple(() => {
             Assert.That(analysis.HasCompleteStraight, Is.False);
@@ -353,7 +353,7 @@ public class StraightFlushHandsTest : PokerHandsTestBase {
     public void SuggestDiscards_WithHighAce_OneGap() {
         // J♥,Q♥,K♥,A♥,3♥ (falta T para escalera alta)
         var cards = CreateCards("JH", "QH", "KH", "AH", "3H");
-        var hand = PokerHand.Prototypes[PokerHandType.StraightFlush];
+        var hand = new StraightFlushHand([]);
         var analysis = new PokerHandAnalysis(Handler.Config, cards);
         Assert.Multiple(() => {
             var discards = hand.SuggestDiscards(analysis, 2);
@@ -366,7 +366,7 @@ public class StraightFlushHandsTest : PokerHandsTestBase {
 
     [Test]
     public void EmptyHand_ShouldReturnNoStraightFlush() {
-        var straightFlushes = PokerHand.Prototypes[PokerHandType.StraightFlush].IdentifyHands(new PokerHandAnalysis(Handler.Config, []));
+        var straightFlushes = new StraightFlushHand([]).IdentifyHands(new PokerHandAnalysis(Handler.Config, []));
         Assert.That(straightFlushes, Is.Empty);
     }
 }

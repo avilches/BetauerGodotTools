@@ -31,44 +31,6 @@ public class FlushComparer : IComparer<IReadOnlyList<Card>> {
     }
 }
 
-public class Straight {
-    public List<Card> Cards { get; }
-    public int MinRank { get; }
-    public int MaxRank { get; }
-    public int MissingCards { get; }
-    public bool HasAce => Cards.Any(c => c.Rank == 14);
-    public bool IsFlush { get; }
-    public bool IsComplete => MissingCards == 0;
-
-    public Straight(List<Card> cards, int minRank, int maxRank) {
-        Cards = cards.OrderBy(c => c.Rank).ToList();
-        MinRank = minRank;
-        MaxRank = maxRank;
-        // Contar las cartas que faltan comparando las cartas que tenemos con el rango total
-        MissingCards = MaxRank - MinRank + 1 - Cards.Count;
-        IsFlush = Cards.Count > 0 && Cards.All(c => c.Suit == Cards[0].Suit);
-    }
-
-    public bool IsHigherThan(Straight other) {
-        // Primero comparamos por número de huecos (menos huecos es mejor)
-        if (MissingCards != other.MissingCards) return MissingCards < other.MissingCards;
-        // Si tienen los mismos huecos, comparamos por el rango máximo
-        return MaxRank > other.MaxRank;
-    }
-
-    public bool IsEquivalent(Straight other) {
-        if (other == null) return false;
-        if (MinRank != other.MinRank || MaxRank != other.MaxRank || MissingCards != other.MissingCards || Cards.Count != other.Cards.Count) return false;
-
-        // Comparamos los rangos de las cartas
-        return Cards.Select(c => c.Rank).SequenceEqual(other.Cards.Select(c => c.Rank));
-    }
-
-    public override string ToString() {
-        return $"Straight [{MinRank}-{MaxRank}] MissingCards={MissingCards} Cards=[{string.Join(",", Cards)}]";
-    }
-}
-
 /// <summary>
 /// Utility class providing helper methods for poker hand analysis and manipulation.
 /// </summary>
@@ -157,14 +119,14 @@ public static class HandUtils {
             var neededRanks = Enumerable.Range(startRank, size);
             var sequence = neededRanks
                 .Select(rank =>
-                    cards.FirstOrDefault(c => 
+                    cards.FirstOrDefault(c =>
                         // Check both normal rank and Ace as 1 for rank 1
                         c.Rank == rank || (rank == 1 && c.Rank == 14)))
                 .Where(c => c != null).ToList();
             var missingCount = size - sequence.Count;
 
             if (missingCount <= 2) {
-                var straight = new Straight(sequence, startRank, startRank + 4);
+                var straight = new Straight(sequence, startRank, size);
                 if (!HasEquivalentStraight(allSequences, straight)) {
                     allSequences.Add(straight);
                 }
