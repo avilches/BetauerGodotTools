@@ -6,8 +6,14 @@ using Betauer.Core.Deck.Hands;
 namespace Betauer.Core.Deck;
 
 public class GameRunState {
-    public readonly Dictionary<Type, int> _handLevels = new();
 
+    private readonly Dictionary<Type, int> _handLevels = new();
+
+    public int Discards { get; set; } = 0;
+    public int HandsPlayed { get; set; } = 0;
+    public int CardsPlayed { get; set; } = 0;
+    public int CardsDiscarded { get; set; } = 0;
+    
     public int GetPokerHandLevel(PokerHand hand) {
         return _handLevels.GetValueOrDefault(hand.GetType(), 0);
     }

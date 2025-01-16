@@ -44,7 +44,7 @@ public class GameHandlerTests {
 
     [Test]
     public void TestScoringAtDifferentLevels() {
-        var pairHand = new PairHand(Handler.PokerHandsManager, new List<Card> {
+        var pairHand = new PairHand(new List<Card> {
             new(12, 'H'), // Queen of Hearts
             new(12, 'S'), // Queen of Spades
         });
@@ -838,6 +838,89 @@ public class GameHandlerTests {
         Assert.Multiple(() => {
             Assert.That(exception.Message, Does.Contain("Destroy error: card not found in any pile"));
             Assert.That(Handler.State.DestroyedCards.Count(c => c == cardToDestroy), Is.EqualTo(1));
+        });
+    }
+
+    [Test]
+    public void Recover_NonExistentCard_ShouldThrowGameException() {
+        var nonExistentCard = new Card(25, 'S'); // 25 of Spades no existe
+
+        var exception = Assert.Throws<SolitairePokerGameException>(() =>
+            Handler.Recover([nonExistentCard]));
+        Assert.That(exception.Message, Does.Contain("Recover error: cards to recover not found in played or discarded piles"));
+    }
+
+    [Test]
+    public void Recover_CardAlreadyInAvailablePile_ShouldThrowGameException() {
+        var availableCard = Handler.State.AvailableCards.First();
+
+        var exception = Assert.Throws<SolitairePokerGameException>(() =>
+            Handler.Recover([availableCard]));
+        Assert.That(exception.Message, Does.Contain("Recover error: cards to recover not found in played or discarded piles"));
+    }
+
+    [Test]
+    public void Recover_MoreCardsThanAvailable_ShouldThrowGameException() {
+        // Jugamos una mano para tener cartas en PlayedCards
+        Handler.DrawCards();
+        var hand = Handler.GetPossibleHands()[0];
+        Handler.PlayHand(hand.Cards);
+
+        // Intentamos recuperar más cartas de las que hay
+        var totalPlayedAndDiscarded = Handler.State.PlayedCards.Count + Handler.State.DiscardedCards.Count;
+
+        var exception = Assert.Throws<SolitairePokerGameException>(() =>
+            Handler.Recover(totalPlayedAndDiscarded + 1));
+        Assert.That(exception.Message, Does.Contain($"Recover error: cannot recover more cards"));
+    }
+
+    [Test]
+    public void PlayHand_WithDestroyedCards_ShouldThrowGameException() {
+        // Primer draw para obtener cartas
+        Handler.DrawCards();
+        var cardToDestroy = Handler.State.CurrentHand.First();
+        Handler.Destroy([cardToDestroy]);
+
+        // Necesitamos hacer otro draw después de destruir para tener una mano válida
+        Handler.DrawCards();
+    
+        var exception = Assert.Throws<SolitairePokerGameException>(() =>
+            Handler.PlayHand([cardToDestroy]));
+        Assert.That(exception.Message, Does.Contain("PlayHand error: hand to play contains cards not in current hand"));
+    }
+
+    [Test]
+    public void Discard_WithDestroyedCards_ShouldThrowGameException() {
+        // Primer draw para obtener cartas
+        Handler.DrawCards();
+        var cardToDestroy = Handler.State.CurrentHand.First();
+        Handler.Destroy([cardToDestroy]);
+    
+        // Necesitamos hacer otro draw después de destruir para tener una mano válida
+        Handler.DrawCards();
+    
+        var exception = Assert.Throws<SolitairePokerGameException>(() =>
+            Handler.Discard([cardToDestroy]));
+        Assert.That(exception.Message, Does.Contain("Discard error: contains cards not in current hand"));
+    }
+
+    [Test]
+    public void Destroy_AfterRecover_ShouldWork() {
+        // Preparar una carta en played pile
+        Handler.DrawCards();
+        var hand = Handler.GetPossibleHands()[0];
+        Handler.PlayHand(hand.Cards);
+        var playedCard = hand.Cards[0];
+
+        // Recuperar la carta
+        Handler.Recover([playedCard]);
+
+        // Debería poder destruirla
+        Handler.Destroy([playedCard]);
+
+        Assert.Multiple(() => {
+            Assert.That(Handler.State.DestroyedCards, Does.Contain(playedCard));
+            Assert.That(Handler.State.AvailableCards, Does.Not.Contain(playedCard));
         });
     }
 }

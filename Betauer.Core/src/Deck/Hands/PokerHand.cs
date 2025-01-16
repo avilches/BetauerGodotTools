@@ -4,15 +4,68 @@ using System.Linq;
 
 namespace Betauer.Core.Deck.Hands;
 
+public enum PokerHandType {
+    HighCard,
+    Pair,
+    TwoPair,
+    ThreeOfAKind,
+    Straight,
+    Flush,
+    FullHouse,
+    FourOfAKind,
+    StraightFlush,
+    FiveOfAKind,
+    FlushHouse,
+    FlushFive
+}
+
 /// <summary>
 /// Base class for poker hands. Each specific hand type inherits from this.
 /// Provides common functionality and defines the contract for hand identification
 /// and improvement suggestions.
 /// </summary>
-public abstract class PokerHand(PokerHandsManager pokerHandsManager, string name, IReadOnlyList<Card> cards) {
-    public PokerHandsManager PokerHandsManager { get; } = pokerHandsManager;
+public abstract class PokerHand(string name, IReadOnlyList<Card> cards, PokerHandType handType) {
     public IReadOnlyList<Card> Cards { get; } = cards;
     public string Name { get; set; } = name;
+    public PokerHandType HandType { get; } = handType;
+
+    public static Dictionary<PokerHandType, PokerHand> Prototypes = CreateDict();
+
+    private static Dictionary<PokerHandType, PokerHand> CreateDict() {
+        var dict = new Dictionary<PokerHandType, PokerHand> {
+            { PokerHandType.HighCard, new HighCardHand([]) },
+            { PokerHandType.Pair, new PairHand([]) },
+            { PokerHandType.TwoPair, new TwoPairHand([]) },
+            { PokerHandType.ThreeOfAKind, new ThreeOfAKindHand([]) },
+            { PokerHandType.Straight, new StraightHand([]) },
+            { PokerHandType.Flush, new FlushHand([]) },
+            { PokerHandType.FullHouse, new FullHouseHand([]) },
+            { PokerHandType.FourOfAKind, new FourOfAKindHand([]) },
+            { PokerHandType.StraightFlush, new StraightFlushHand([]) },
+            { PokerHandType.FiveOfAKind, new FiveOfAKindHand([]) },
+            { PokerHandType.FlushHouse, new FlushHouseHand([]) },
+            { PokerHandType.FlushFive, new FlushFiveHand([]) }
+        };
+        
+        // Validate all enum values are present in dictionary
+        var enumValues = Enum.GetValues(typeof(PokerHandType));
+        foreach (PokerHandType handType in enumValues) {
+            if (!dict.ContainsKey(handType)) {
+                throw new InvalidOperationException($"Missing PokerHandType {handType} in dictionary");
+            }
+        }
+        var enumCount = enumValues.Length;
+        if (dict.Count != enumCount) {
+            throw new InvalidOperationException($"Dictionary count ({dict.Count}) does not match enum count ({enumCount})");
+        }
+
+        // Validate HandType matches dictionary key for each entry
+        foreach (var kvp in dict.Where(kvp => kvp.Key != kvp.Value.HandType)) {
+            throw new InvalidOperationException($"HandType mismatch for {kvp.Key}: dictionary key is {kvp.Key} but hand type is {kvp.Value.HandType}");
+        }
+        
+        return dict;
+    }
 
     /// <summary>
     /// Identifies all possible hands of this type in the given cards.
@@ -47,11 +100,11 @@ public abstract class PokerHand(PokerHandsManager pokerHandsManager, string name
     }
 }
 
-public class HighCardHand(PokerHandsManager pokerHandsManager, IReadOnlyList<Card> cards) : PokerHand(pokerHandsManager, "High Card", cards) {
+public class HighCardHand(IReadOnlyList<Card> cards) : PokerHand("High Card", cards, PokerHandType.HighCard) {
     public override List<PokerHand> IdentifyHands(PokerHandAnalysis analysis) {
         return analysis.Cards
             .OrderByDescending(c => c.Rank)
-            .Select(card => new HighCardHand(PokerHandsManager, [card]))
+            .Select(card => new HighCardHand([card]))
             .Cast<PokerHand>()
             .ToList();
     }
@@ -61,10 +114,10 @@ public class HighCardHand(PokerHandsManager pokerHandsManager, IReadOnlyList<Car
     }
 }
 
-public class PairHand(PokerHandsManager pokerHandsManager, IReadOnlyList<Card> cards) : PokerHand(pokerHandsManager, "Pair", cards) {
+public class PairHand(IReadOnlyList<Card> cards) : PokerHand("Pair", cards, PokerHandType.Pair) {
     public override List<PokerHand> IdentifyHands(PokerHandAnalysis analysis) {
         return analysis.Pairs
-            .Select(group => new PairHand(PokerHandsManager, group.Cards))
+            .Select(group => new PairHand(group.Cards))
             .Cast<PokerHand>()
             .ToList();
     }
@@ -83,10 +136,10 @@ public class PairHand(PokerHandsManager pokerHandsManager, IReadOnlyList<Card> c
     }
 }
 
-public class TwoPairHand(PokerHandsManager pokerHandsManager, IReadOnlyList<Card> cards) : PokerHand(pokerHandsManager, "Two Pair", cards) {
+public class TwoPairHand(IReadOnlyList<Card> cards) : PokerHand("Two Pair", cards, PokerHandType.TwoPair) {
     public override List<PokerHand> IdentifyHands(PokerHandAnalysis analysis) {
         return analysis.TwoPairs
-            .Select(group => new TwoPairHand(PokerHandsManager, [..group.FirstPair, ..group.SecondPair]))
+            .Select(group => new TwoPairHand([..group.FirstPair, ..group.SecondPair]))
             .Cast<PokerHand>()
             .ToList();
     }
@@ -104,10 +157,10 @@ public class TwoPairHand(PokerHandsManager pokerHandsManager, IReadOnlyList<Card
     }
 }
 
-public class ThreeOfAKindHand(PokerHandsManager pokerHandsManager, IReadOnlyList<Card> cards) : PokerHand(pokerHandsManager, "Three of a Kind", cards) {
+public class ThreeOfAKindHand(IReadOnlyList<Card> cards) : PokerHand("Three of a Kind", cards, PokerHandType.ThreeOfAKind) {
     public override List<PokerHand> IdentifyHands(PokerHandAnalysis analysis) {
         return analysis.ThreeOfAKind
-            .Select(group => new ThreeOfAKindHand(PokerHandsManager, group.Cards))
+            .Select(group => new ThreeOfAKindHand(group.Cards))
             .Cast<PokerHand>()
             .ToList();
     }
@@ -123,10 +176,10 @@ public class ThreeOfAKindHand(PokerHandsManager pokerHandsManager, IReadOnlyList
     }
 }
 
-public class FullHouseHand(PokerHandsManager pokerHandsManager, IReadOnlyList<Card> cards) : PokerHand(pokerHandsManager, "Full House", cards) {
+public class FullHouseHand(IReadOnlyList<Card> cards) : PokerHand("Full House", cards, PokerHandType.FullHouse) {
     public override List<PokerHand> IdentifyHands(PokerHandAnalysis analysis) {
         return analysis.FullHouses
-            .Select(group => new FullHouseHand(PokerHandsManager, [..group.ThreeCards, ..group.Pair]))
+            .Select(group => new FullHouseHand([..group.ThreeCards, ..group.Pair]))
             .Cast<PokerHand>()
             .ToList();
     }
@@ -136,11 +189,11 @@ public class FullHouseHand(PokerHandsManager pokerHandsManager, IReadOnlyList<Ca
     }
 }
 
-public class FourOfAKindHand(PokerHandsManager pokerHandsManager, IReadOnlyList<Card> cards) : PokerHand(pokerHandsManager, "Four of a Kind", cards) {
+public class FourOfAKindHand(IReadOnlyList<Card> cards) : PokerHand("Four of a Kind", cards, PokerHandType.FourOfAKind) {
     public override List<PokerHand> IdentifyHands(PokerHandAnalysis analysis) {
         // Ya que analysis.FourOfAKind viene ordenado por rank, el primero es el mejor
         return analysis.FourOfAKind
-            .Select(group => new FourOfAKindHand(PokerHandsManager, group.Cards))
+            .Select(group => new FourOfAKindHand(group.Cards))
             .Cast<PokerHand>()
             .ToList();
     }
@@ -155,11 +208,11 @@ public class FourOfAKindHand(PokerHandsManager pokerHandsManager, IReadOnlyList<
     }
 }
 
-public class FiveOfAKindHand(PokerHandsManager pokerHandsManager, IReadOnlyList<Card> cards) : PokerHand(pokerHandsManager, "Five of a Kind", cards) {
+public class FiveOfAKindHand(IReadOnlyList<Card> cards) : PokerHand("Five of a Kind", cards, PokerHandType.FiveOfAKind) {
     public override List<PokerHand> IdentifyHands(PokerHandAnalysis analysis) {
         // Ya que analysis.FiveOfAKind viene ordenado por rank, el primero es el mejor
         return analysis.FiveOfAKind
-            .Select(group => new FiveOfAKindHand(PokerHandsManager, group.Cards))
+            .Select(group => new FiveOfAKindHand(group.Cards))
             .Cast<PokerHand>()
             .ToList();
     }
@@ -174,12 +227,11 @@ public class FiveOfAKindHand(PokerHandsManager pokerHandsManager, IReadOnlyList<
     }
 }
 
-public class FlushHouseHand(PokerHandsManager pokerHandsManager, IReadOnlyList<Card> cards) : PokerHand(pokerHandsManager, "Flush House", cards) {
+public class FlushHouseHand(IReadOnlyList<Card> cards) : PokerHand("Flush House", cards, PokerHandType.FlushHouse) {
     public override List<PokerHand> IdentifyHands(PokerHandAnalysis analysis) {
         // Ya que analysis.FlushHouses viene ordenado por rank, el primero es el mejor
         return analysis.FlushHouses
-            .Select(flushHouse => new FlushHouseHand(PokerHandsManager,
-                flushHouse.ThreeCards.Concat(flushHouse.Pair).ToList()))
+            .Select(flushHouse => new FlushHouseHand(flushHouse.ThreeCards.Concat(flushHouse.Pair).ToList()))
             .Cast<PokerHand>()
             .ToList();
     }
@@ -194,13 +246,13 @@ public class FlushHouseHand(PokerHandsManager pokerHandsManager, IReadOnlyList<C
     }
 }
 
-public class StraightHand(PokerHandsManager pokerHandsManager, IReadOnlyList<Card> cards) : PokerHand(pokerHandsManager, "Straight", cards) {
+public class StraightHand(IReadOnlyList<Card> cards) : PokerHand("Straight", cards, PokerHandType.Straight) {
     public override List<PokerHand> IdentifyHands(PokerHandAnalysis analysis) {
         // Ya que analysis.Straights viene ordenado por rank, el primero es el mejor
         return analysis.Straights
             .Where(straight => straight.IsComplete && !straight.IsFlush)
             // Straight ya vienen todas con el tamaño maximo
-            .Select(straight => new StraightHand(PokerHandsManager, straight.Cards))
+            .Select(straight => new StraightHand(straight.Cards))
             .Cast<PokerHand>()
             .ToList();
     }
@@ -226,13 +278,13 @@ public class StraightHand(PokerHandsManager pokerHandsManager, IReadOnlyList<Car
     }
 }
 
-public class StraightFlushHand(PokerHandsManager pokerHandsManager, IReadOnlyList<Card> cards) : PokerHand(pokerHandsManager, "Straight Flush", cards) {
+public class StraightFlushHand(IReadOnlyList<Card> cards) : PokerHand("Straight Flush", cards, PokerHandType.StraightFlush) {
     public override List<PokerHand> IdentifyHands(PokerHandAnalysis analysis) {
         // Ya que analysis.Straights viene ordenado por rank, el primero es el mejor
         return analysis.Straights
             .Where(straight => straight.IsComplete && straight.IsFlush)
             // Straight ya vienen todas con el tamaño maximo
-            .Select(straight => new StraightFlushHand(PokerHandsManager, straight.Cards))
+            .Select(straight => new StraightFlushHand(straight.Cards))
             .Cast<PokerHand>()
             .ToList();
     }
@@ -262,14 +314,13 @@ public class StraightFlushHand(PokerHandsManager pokerHandsManager, IReadOnlyLis
     }
 }
 
-public class FlushHand(PokerHandsManager pokerHandsManager, IReadOnlyList<Card> cards) : PokerHand(pokerHandsManager, "Flush", cards) {
+public class FlushHand(IReadOnlyList<Card> cards) : PokerHand("Flush", cards, PokerHandType.Flush) {
     public override List<PokerHand> IdentifyHands(PokerHandAnalysis analysis) {
         // Los flush ya tiene limitado el tamaño al maximo necesario, pero pueden tener menos de los esperados
         // Ya que analysis.Flushes viene ordenado por rank, el primero es el mejor
         return analysis.Flushes
             .Where(cards => cards.Count >= analysis.Config.FlushSize)
-            .Select(cards => new FlushHand(PokerHandsManager,
-                cards.OrderByDescending(c => c.Rank)
+            .Select(cards => new FlushHand(cards.OrderByDescending(c => c.Rank)
                     .Take(analysis.Config.FlushSize)
                     .ToList()))
             .Cast<PokerHand>()
@@ -290,11 +341,11 @@ public class FlushHand(PokerHandsManager pokerHandsManager, IReadOnlyList<Card> 
 
 // Cinco cartas idénticas (mismo palo y color)
 // NUEVO
-public class FlushFiveHand(PokerHandsManager pokerHandsManager, IReadOnlyList<Card> cards) : PokerHand(pokerHandsManager, "Flush Five", cards) {
+public class FlushFiveHand(IReadOnlyList<Card> cards) : PokerHand("Flush Five", cards, PokerHandType.FlushFive) {
     public override List<PokerHand> IdentifyHands(PokerHandAnalysis analysis) {
         // Ya que analysis.FlushFives viene ordenado por rank, el primero es el mejor
         return analysis.FlushFives
-            .Select(cards => new FlushFiveHand(PokerHandsManager, cards))
+            .Select(cards => new FlushFiveHand(cards))
             .Cast<PokerHand>()
             .ToList();
     }

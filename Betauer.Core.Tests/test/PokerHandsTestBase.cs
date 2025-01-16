@@ -4,6 +4,7 @@ using NUnit.Framework;
 using System.Collections.Generic;
 using System.Linq;
 using Betauer.Core.Deck.Hands;
+using Betauer.TestRunner;
 
 namespace Betauer.Core.Tests;
 
@@ -35,7 +36,7 @@ public class PokerHandsTest : PokerHandsTestBase {
     [Test]
     public void DisabledHand_ShouldNotBeIdentified() {
         var currentHand = CreateCards("AS", "AH", "AD", "AC", "AH");
-        var config = HandsManager.GetPokerHandConfig(new FiveOfAKindHand(HandsManager, []));
+        var config = HandsManager.GetPokerHandConfig(PokerHand.Prototypes[PokerHandType.FiveOfAKind]);
 
         // Verificar que la mano se detecta cuando está habilitada
         var handsEnabled = HandsManager.IdentifyAllHands(Handler, currentHand)
@@ -44,7 +45,7 @@ public class PokerHandsTest : PokerHandsTestBase {
         Assert.That(handsEnabled, Is.Not.Empty, "Should identify FiveOfAKind when enabled");
 
         // Deshabilitar la mano
-        HandsManager.RegisterHand(new FiveOfAKindHand(HandsManager, []),
+        HandsManager.RegisterHand(PokerHandType.FiveOfAKind,
             config.InitialScore, config.InitialMultiplier, config.ScorePerLevel,
             config.MultiplierPerLevel, 1, false);
 

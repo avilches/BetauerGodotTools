@@ -14,7 +14,7 @@ public class FlushFiveHandsTest : PokerHandsTestBase {
     public void BasicFlushFive_ShouldBeIdentified() {
         // Cinco Ases de corazones
         var cards = CreateCards("AH", "AH", "AH", "AH", "AH");
-        var flushFives = new FlushFiveHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var flushFives = PokerHand.Prototypes[PokerHandType.FlushFive].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.Multiple(() => {
             Assert.That(flushFives.Count, Is.EqualTo(1), "Should identify exactly one flush five");
@@ -28,7 +28,7 @@ public class FlushFiveHandsTest : PokerHandsTestBase {
     public void WithMoreThanFiveCards_ShouldSelectExactlyFive() {
         // Seis Ases de corazones
         var cards = CreateCards("AH", "AH", "AH", "AH", "AH", "AH");
-        var flushFives = new FlushFiveHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var flushFives = PokerHand.Prototypes[PokerHandType.FlushFive].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.Multiple(() => {
             Assert.That(flushFives.Count, Is.EqualTo(1), "Should identify exactly one flush five");
@@ -42,7 +42,7 @@ public class FlushFiveHandsTest : PokerHandsTestBase {
     public void WithDifferentSuits_ShouldNotIdentifyFlushFive() {
         // Cinco Ases de diferentes palos
         var cards = CreateCards("AH", "AS", "AD", "AC", "AH");
-        var flushFives = new FlushFiveHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var flushFives = PokerHand.Prototypes[PokerHandType.FlushFive].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.That(flushFives, Is.Empty, 
             "Should not identify flush five with different suits");
@@ -52,7 +52,7 @@ public class FlushFiveHandsTest : PokerHandsTestBase {
     public void WithDifferentRanks_ShouldNotIdentifyFlushFive() {
         // Cinco cartas del mismo palo pero diferente rango
         var cards = CreateCards("AH", "KH", "QH", "JH", "TH");
-        var flushFives = new FlushFiveHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var flushFives = PokerHand.Prototypes[PokerHandType.FlushFive].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.That(flushFives, Is.Empty, 
             "Should not identify flush five with different ranks");
@@ -64,7 +64,7 @@ public class FlushFiveHandsTest : PokerHandsTestBase {
         var cards = CreateCards(
             "AH", "AH", "AH", "AH", "AH",  // Cinco Ases de corazones
             "KH", "KH", "KH", "KH", "KH"); // Cinco Reyes de corazones
-        var flushFives = new FlushFiveHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var flushFives = PokerHand.Prototypes[PokerHandType.FlushFive].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.Multiple(() => {
             Assert.That(flushFives.Count, Is.EqualTo(2), "Should identify two flush fives");
@@ -94,7 +94,7 @@ public class FlushFiveHandsTest : PokerHandsTestBase {
             "TH", "TH", "TH", "TH", "TH",  // Diez
             "7H", "7H", "7H", "7H", "7H"); // Siete
 
-        var flushFives = new FlushFiveHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var flushFives = PokerHand.Prototypes[PokerHandType.FlushFive].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.Multiple(() => {
             Assert.That(flushFives.Count, Is.EqualTo(6), "Should identify six flush fives");
@@ -119,7 +119,7 @@ public class FlushFiveHandsTest : PokerHandsTestBase {
     public void WithFourOfSameSuitAndRank_ShouldNotIdentifyFlushFive() {
         // Cuatro Ases de corazones (no es suficiente)
         var cards = CreateCards("AH", "AH", "AH", "AH");
-        var flushFives = new FlushFiveHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var flushFives = PokerHand.Prototypes[PokerHandType.FlushFive].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.That(flushFives, Is.Empty, 
             "Should not identify flush five with only four cards");
@@ -131,7 +131,7 @@ public class FlushFiveHandsTest : PokerHandsTestBase {
         var cards = CreateCards(
             "AH", "AH", "AH", "AH", "AH",  // Cinco Ases de corazones
             "AS", "AS", "AS", "AS", "AS"); // Cinco Ases de picas
-        var flushFives = new FlushFiveHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var flushFives = PokerHand.Prototypes[PokerHandType.FlushFive].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.Multiple(() => {
             Assert.That(flushFives.Count, Is.EqualTo(2), "Should identify two flush fives");
@@ -148,7 +148,7 @@ public class FlushFiveHandsTest : PokerHandsTestBase {
     public void SuggestDiscards_ShouldReturnEmpty() {
         // Las sugerencias de descarte no aplican para FlushFive
         var cards = CreateCards("AH", "AH", "AH", "AS", "AD");
-        var hand = new FlushFiveHand(HandsManager, []);
+        var hand = PokerHand.Prototypes[PokerHandType.FlushFive];
         var analysis = new PokerHandAnalysis(Handler.Config, cards);
 
         Assert.That(hand.SuggestDiscards(analysis, 2), Is.Empty,
@@ -162,7 +162,7 @@ public class FlushFiveHandsTest : PokerHandsTestBase {
             "KH", "KH", "KH", "KH", "KH",  // Cinco Reyes de corazones
             "AH", "AH", "AH", "AH", "AH",  // Cinco Ases de corazones
             "QH", "QH", "QH", "QH", "QH"); // Cinco Reinas de corazones
-        var flushFives = new FlushFiveHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var flushFives = PokerHand.Prototypes[PokerHandType.FlushFive].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.Multiple(() => {
             Assert.That(flushFives.Count, Is.EqualTo(3), "Should identify three flush fives");
@@ -180,7 +180,7 @@ public class FlushFiveHandsTest : PokerHandsTestBase {
         var cards = CreateCards(
             "TH", "TH", "TS", "TH", "TH", "TH",  // Cinco 10 de corazones
             "KH", "KH", "KS", "KH", "KH", "KH");  // Cinco Reyes de corazones
-        var flushFives = new FlushFiveHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var flushFives = PokerHand.Prototypes[PokerHandType.FlushFive].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
         
         Assert.Multiple(() => {
             Assert.That(flushFives.Count, Is.EqualTo(2), "Should identify two flush fives");
@@ -197,7 +197,7 @@ public class FlushFiveHandsTest : PokerHandsTestBase {
 
     [Test]
     public void EmptyHand_ShouldReturnNoFlushFive() {
-        var flushFives = new FlushFiveHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, []));
+        var flushFives = PokerHand.Prototypes[PokerHandType.FlushFive].IdentifyHands(new PokerHandAnalysis(Handler.Config, []));
         Assert.That(flushFives, Is.Empty);
     }
 }

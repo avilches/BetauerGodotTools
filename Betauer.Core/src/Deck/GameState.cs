@@ -13,9 +13,13 @@ public class GameState {
     public int Level { get; } = 0;
     public long LevelScore { get; set; } = 0;
     public long Score { get; set; } = 0;
+
     public int HandsPlayed { get; set; } = 0;
     public int Discards { get; set; } = 0;
+    public int CardsPlayed { get; set; } = 0;
+    public int CardsDiscarded { get; set; } = 0;
 
+    
     public PlayHistory History { get; } = new();
 
     private readonly List<Card> _availableCards = [];

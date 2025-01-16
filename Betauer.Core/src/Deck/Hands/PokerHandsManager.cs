@@ -5,10 +5,10 @@ using System.Linq;
 namespace Betauer.Core.Deck.Hands;
 
 public record PokerHandConfig(
-    PokerHand Prototype, 
-    long InitialScore, 
-    long InitialMultiplier, 
-    long ScorePerLevel, 
+    PokerHand Prototype,
+    long InitialScore,
+    long InitialMultiplier,
+    long ScorePerLevel,
     long MultiplierPerLevel,
     int Order,
     bool Enabled);
@@ -17,18 +17,18 @@ public class PokerHandsManager {
     private readonly List<PokerHandConfig> _handConfigs = [];
 
     public void RegisterBasicPokerHands() {
-        RegisterHand(new HighCardHand(this, []), 5, 1, 15, 1, order: 1);
-        RegisterHand(new PairHand(this, []), 10, 2, 15, 1, order: 2);
-        RegisterHand(new TwoPairHand(this, []), 20, 2, 20, 1, order: 3);
-        RegisterHand(new ThreeOfAKindHand(this, []), 30, 3, 20, 2, order: 4);
-        RegisterHand(new StraightHand(this, []), 30, 4, 30, 3, order: 5);
-        RegisterHand(new FlushHand(this, []), 35, 4, 15, 2, order: 6);
-        RegisterHand(new FullHouseHand(this, []), 40, 4, 25, 2, order: 7);
-        RegisterHand(new FourOfAKindHand(this, []), 60, 7, 30, 3, order: 8);
-        RegisterHand(new StraightFlushHand(this, []), 100, 8, 40, 4, order: 9);
-        RegisterHand(new FiveOfAKindHand(this, []), 120, 12, 40, 4, order: 10);
-        RegisterHand(new FlushHouseHand(this, []), 140, 14, 40, 4, order: 11);
-        RegisterHand(new FlushFiveHand(this, []), 160, 16, 40, 4, order: 12);
+        RegisterHand(PokerHandType.HighCard, 5, 1, 15, 1, order: 1);
+        RegisterHand(PokerHandType.Pair, 10, 2, 15, 1, order: 2);
+        RegisterHand(PokerHandType.TwoPair, 20, 2, 20, 1, order: 3);
+        RegisterHand(PokerHandType.ThreeOfAKind, 30, 3, 20, 2, order: 4);
+        RegisterHand(PokerHandType.Straight, 30, 4, 30, 3, order: 5);
+        RegisterHand(PokerHandType.Flush, 35, 4, 15, 2, order: 6);
+        RegisterHand(PokerHandType.FullHouse, 40, 4, 25, 2, order: 7);
+        RegisterHand(PokerHandType.FourOfAKind, 60, 7, 30, 3, order: 8);
+        RegisterHand(PokerHandType.StraightFlush, 100, 8, 40, 4, order: 9);
+        RegisterHand(PokerHandType.FiveOfAKind, 120, 12, 40, 4, order: 10);
+        RegisterHand(PokerHandType.FlushHouse, 140, 14, 40, 4, order: 11);
+        RegisterHand(PokerHandType.FlushFive, 160, 16, 40, 4, order: 12);
     }
 
     /// <summary>
@@ -36,13 +36,15 @@ public class PokerHandsManager {
     /// If a hand of the same type already exists, it will be replaced.
     /// Hand configs are kept sorted by multiplier in descending order.
     /// </summary>
-    public void RegisterHand(PokerHand prototype, long initialScore, long initialMultiplier, long scorePerLevel, long multiplierPerLevel, int order, bool enabled = true) {
-        _handConfigs.RemoveAll(config => config.Prototype.GetType() == prototype.GetType());
-        _handConfigs.Add(new PokerHandConfig(prototype, initialScore, initialMultiplier, scorePerLevel, multiplierPerLevel, order, enabled));
+    public void RegisterHand(PokerHandType handType, long initialScore, long initialMultiplier, long scorePerLevel, long multiplierPerLevel, int order, bool enabled = true) {
+        var pokerHand = PokerHand.Prototypes[handType];
+        _handConfigs.RemoveAll(config => config.Prototype.HandType == handType);
+        _handConfigs.Add(new PokerHandConfig(pokerHand, initialScore, initialMultiplier, scorePerLevel, multiplierPerLevel, order, enabled));
         var ordered = _handConfigs.OrderByDescending(c => c.Order).ToList();
         _handConfigs.Clear();
         _handConfigs.AddRange(ordered);
-    }    
+    }
+
     public void ClearHands() => _handConfigs.Clear();
 
     /// <summary>
@@ -58,11 +60,12 @@ public class PokerHandsManager {
             throw new InvalidOperationException("No hands registered");
         }
         if (cards.Count == 0) return [];
-        
+
         var analysis = new PokerHandAnalysis(handler.Config, cards);
 
-        var allHands = _handConfigs
-            .Where(config => config.Enabled)
+        var pokerHandConfigs = _handConfigs
+            .Where(config => config.Enabled).ToList();
+        var allHands = pokerHandConfigs
             .SelectMany(config => config.Prototype.IdentifyHands(analysis))
             .OrderByDescending(handler.CalculateScore)
             .ToList();
@@ -79,7 +82,7 @@ public class PokerHandsManager {
 
         return allHands;
     }
-    
+
     /// <summary>
     /// Identifies the best poker hand by checking hand types in descending order.
     /// Returns the best hand of the highest-ranking type found.
@@ -98,7 +101,7 @@ public class PokerHandsManager {
         // Iterate through configs in descending order
         foreach (var config in _handConfigs) {
             if (!config.Enabled) continue;
-        
+
             var hands = config.Prototype.IdentifyHands(analysis);
             if (hands.Count > 0) {
                 // Return the best hand of this type
@@ -134,11 +137,11 @@ public class PokerHandsManager {
 
         const int MaxSimulations = 10000;
         const double MinSimulationPercentage = 0.10;
-        
+
         var watch = System.Diagnostics.Stopwatch.StartNew();
         var totalSimulations = 0;
         var totalCombinations = 0;
-        
+
         var analysis = new PokerHandAnalysis(handler.Config, cards);
 
         // Get all possible discard combinations from all hand types
@@ -149,7 +152,6 @@ public class PokerHandsManager {
             .Distinct(new CardListEqualityComparer())
             .ToList();
 
-
         var options = new List<DiscardOption>();
         var random = new Random();
 
@@ -157,7 +159,7 @@ public class PokerHandsManager {
         foreach (var cardsToDiscard in suggestedDiscards) {
             var cardsToKeep = cards.Except(cardsToDiscard).ToList();
             var handTypeOccurrences = new Dictionary<Type, HandTypeStats>();
-            
+
             // Calculate total possible combinations
             int combinations = CombinationTools.Calculate(availableCards.Count, cardsToDiscard.Count);
             if (combinations == 0) continue;
@@ -214,7 +216,7 @@ public class PokerHandsManager {
             totalCombinations
         );
     }
-    
+
     private class CardListEqualityComparer : IEqualityComparer<List<Card>> {
         public bool Equals(List<Card>? x, List<Card>? y) {
             if (x == null || y == null) return x == y;

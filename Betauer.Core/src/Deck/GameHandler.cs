@@ -115,6 +115,9 @@ public class GameHandler {
         }
 
         State.HandsPlayed++;
+        GameRunState.HandsPlayed++;
+        State.CardsPlayed += cards.Count;
+        GameRunState.CardsPlayed += cards.Count;
 
         var hand = PokerHandsManager.IdentifyBestHand(this, cards);
         var score = hand != null ? CalculateScore(hand) : 0;
@@ -147,6 +150,9 @@ public class GameHandler {
         }
 
         State.Discards++;
+        GameRunState.Discards++;
+        State.CardsDiscarded += cards.Count;
+        GameRunState.CardsDiscarded += cards.Count;
 
         cards.ForEach(card => State.Discard(card));
         State.History.AddDiscardAction(cards, State.Score, State.LevelScore);
