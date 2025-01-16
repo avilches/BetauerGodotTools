@@ -6,9 +6,10 @@ using Betauer.Core.Deck.Hands;
 namespace Betauer.Core.Deck;
 
 public class GameState {
-    public int Score { get; set; } = 0;
-    public int TotalScore { get; set; } = 0;
-    public int Level { get; set; } = 0;
+    public PokerGameConfig Config { get; }
+    public long Score { get; set; } = 0;
+    public long LevelScore { get; set; } = 0;
+    public int Level { get; } = 0;
     public int Seed { get; }
     public readonly Dictionary<Type, int> _handLevels = new();
 
@@ -28,7 +29,21 @@ public class GameState {
     public IReadOnlyList<Card> PlayedCards { get; }
     public IReadOnlyList<Card> DestroyedCards { get; }
 
-    public GameState(int seed) {
+    public bool IsWon() => LevelScore > 0 && Score >= LevelScore;
+    public bool IsGameOver() => IsWon() || HandsPlayed >= Config.MaxHands;
+    public bool IsDrawPending() => !IsGameOver() && CurrentHand.Count < Config.HandSize;
+    public bool CanDiscard() => !IsGameOver() && Discards < Config.MaxDiscards;
+    
+    public long RemainingScoreToWin => LevelScore - Score;
+    public int RemainingHands => Config.MaxHands - HandsPlayed;
+    public int RemainingDiscards => Config.MaxHands - Discards;
+    public int RemainingCards => AvailableCards.Count;
+    public int RemainingCardsToDraw => Config.HandSize - CurrentHand.Count;
+    
+    public GameState(PokerGameConfig config, int level, int seed) {
+        Config = config;
+        Level = level;
+        LevelScore = config.GetLevelScore(level);
         Seed = seed;
         AvailableCards = _availableCards.AsReadOnly();
         CurrentHand = _currentHand.AsReadOnly();

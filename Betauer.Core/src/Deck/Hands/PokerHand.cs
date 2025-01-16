@@ -38,8 +38,7 @@ public abstract class PokerHand(PokerHandsManager pokerHandsManager, string name
         if (GetType() != obj.GetType()) return false;
 
         // Compare cards regardless of order
-        return Cards.Count == other.Cards.Count &&
-               Cards.All(other.Cards.Contains);
+        return Cards.Count == other.Cards.Count && Cards.All(other.Cards.Contains);
     }
 
     public override int GetHashCode() {

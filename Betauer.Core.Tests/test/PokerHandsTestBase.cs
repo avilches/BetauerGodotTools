@@ -9,14 +9,18 @@ namespace Betauer.Core.Tests;
 
 [TestFixture]
 public class PokerHandsTestBase {
-    protected PokerHandsManager HandsManager => Handler.PokerHandsManager;
-    protected GameHandler Handler;
+    public GameHandler Handler;
+    public PokerGameConfig Config;
+    public PokerHandsManager HandsManager;
 
     [SetUp]
     public void Setup() {
-        Handler = new GameHandler(0, new PokerGameConfig());
+        Config = new PokerGameConfig();
+        HandsManager = new PokerHandsManager();
         HandsManager.RegisterBasicPokerHands();
+        Handler = new GameHandler(Config, HandsManager, 0, 0);
     }
+
 
     protected List<Card> CreateCards(params string[] cards) {
         var parse = new PokerGameConfig().Parse;

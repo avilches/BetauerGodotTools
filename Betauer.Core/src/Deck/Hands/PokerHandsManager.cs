@@ -6,10 +6,10 @@ namespace Betauer.Core.Deck.Hands;
 
 public record PokerHandConfig(
     PokerHand Prototype, 
-    int InitialScore, 
-    int InitialMultiplier, 
-    int ScorePerLevel, 
-    int MultiplierPerLevel,
+    long InitialScore, 
+    long InitialMultiplier, 
+    long ScorePerLevel, 
+    long MultiplierPerLevel,
     int Order,
     bool Enabled);
 
@@ -36,7 +36,7 @@ public class PokerHandsManager {
     /// If a hand of the same type already exists, it will be replaced.
     /// Hand configs are kept sorted by multiplier in descending order.
     /// </summary>
-    public void RegisterHand(PokerHand prototype, int initialScore, int initialMultiplier, int scorePerLevel, int multiplierPerLevel, int order, bool enabled = true) {
+    public void RegisterHand(PokerHand prototype, long initialScore, long initialMultiplier, long scorePerLevel, long multiplierPerLevel, int order, bool enabled = true) {
         _handConfigs.RemoveAll(config => config.Prototype.GetType() == prototype.GetType());
         _handConfigs.Add(new PokerHandConfig(prototype, initialScore, initialMultiplier, scorePerLevel, multiplierPerLevel, order, enabled));
         var ordered = _handConfigs.OrderByDescending(c => c.Order).ToList();
@@ -50,6 +50,7 @@ public class PokerHandsManager {
     /// Returns hands ordered by score in descending order.
     /// For multiple hands of the same type, they are numbered (#1, #2, etc.).
     /// </summary>
+    /// <param name="handler">GameHandler is needed to get the score, which is a value calculated using the GameState and the PokerGameConfig</param>
     /// <param name="cards">Cards to analyze</param>
     /// <returns>List of identified poker hands, ordered by score</returns>
     public List<PokerHand> IdentifyAllHands(GameHandler handler, IReadOnlyList<Card> cards) {
@@ -83,7 +84,7 @@ public class PokerHandsManager {
     /// Identifies the best poker hand by checking hand types in descending order.
     /// Returns the best hand of the highest-ranking type found.
     /// </summary>
-    /// <param name="handler">Game state handler</param>
+    /// <param name="handler">GameHandler is needed to get the score, which is a value calculated using the GameState and the PokerGameConfig</param>
     /// <param name="cards">Cards to analyze</param>
     /// <returns>Best poker hand found, or null if no valid hands exist</returns>
     public PokerHand? IdentifyBestHand(GameHandler handler, IReadOnlyList<Card> cards) {
@@ -123,6 +124,7 @@ public class PokerHandsManager {
     /// 3. Calculate probabilities and potential scores
     /// 4. Return options ordered by potential score
     /// </summary>
+    /// <param name="handler">GameHandler is needed to get the score, which is a value calculated using the GameState and the PokerGameConfig</param>
     /// <param name="cards">Current cards in hand</param>
     /// <param name="availableCards">Cards available to draw</param>
     /// <param name="maxDiscardCards">Maximum number of cards that can be discarded</param>

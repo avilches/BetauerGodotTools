@@ -193,7 +193,7 @@ public class AutoPlayer {
 
     public static int CalculateMinimumScoreNeeded(GameHandler gameHandler) {
         if (gameHandler.RemainingHands == 0) return 0;
-        var remainingScore = gameHandler.State.TotalScore - gameHandler.State.Score;
+        var remainingScore = gameHandler.State.LevelScore - gameHandler.State.Score;
         return Mathf.RoundToInt((float)remainingScore / gameHandler.RemainingHands);
     }
 }

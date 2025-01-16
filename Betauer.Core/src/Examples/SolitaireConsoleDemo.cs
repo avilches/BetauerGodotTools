@@ -10,48 +10,13 @@ using static System.Int32;
 namespace Betauer.Core.Examples;
 
 public class SolitaireConsoleDemo {
-    public readonly int[] BaseLevel = [
-        300,
-        800,
-        2000,
-        5000,
-        11000,
-        20000,
-        35000,
-        50000,
-        110000,
-        560000,
-        7200000,
-        300000000
-        // 47000000000
-    ];
-
-    public int MaxLevel => (BaseLevel.Length * 3) - 1; // level starts in 0
-
-    private int GetScoreFromLevel(int level) {
-        var baseScoreIndex = level / 3; // Cada 3 niveles cambiamos de score base
-        var multiplierIndex = level % 3; // 0 = x1, 1 = x1.5, 2 = x2
-
-        if (baseScoreIndex >= BaseLevel.Length) {
-            throw new ArgumentException($"Level {level} too high. Max level is {MaxLevel}");
-        }
-
-        var baseScore = BaseLevel[baseScoreIndex];
-        var multiplier = multiplierIndex switch {
-            0 => 1.0f,
-            1 => 1.5f,
-            2 => 2.0f,
-            _ => throw new ArgumentException($"Invalid multiplier index {multiplierIndex}")
-        };
-
-        return (int)(baseScore * multiplier);
-    }
-
 
     public readonly bool _autoPlay;
     public readonly List<GameRun> GameRuns = new();
     public GameRun CurrentRun;
     public GameHandler GameHandler;
+    public PokerGameConfig Config;
+    public PokerHandsManager PokerHandsManager;
     private readonly AutoPlayer autoPlayer = new AutoPlayer();
     private AutoPlayer.AutoPlayDecision? currentDecision;
 
@@ -66,10 +31,9 @@ public class SolitaireConsoleDemo {
     }
 
     public void Play() {
-        InitializeCurrentRun();
-        InitializeGame(0);
+        InitializeFirstRun();
 
-        while (GameHandler.State.Level < MaxLevel) {
+        while (GameHandler.State.Level < GameHandler.Config.MaxLevel) {
             while (!GameHandler.IsGameOver()) {
                 currentDecision = autoPlayer.GetNextAction(GameHandler);
                 DisplayGameState();
@@ -87,11 +51,11 @@ public class SolitaireConsoleDemo {
             if (GameHandler.IsWon()) {
                 DisplayWinScreen();
 
-                if (GameHandler.State.Level + 1 < MaxLevel) {
+                if (GameHandler.State.Level + 1 < GameHandler.Config.MaxLevel) {
                     // Preparamos el siguiente nivel
                     InitializeGame(GameHandler.State.Level + 1);
 
-                    Console.WriteLine($"\nAdvancing to level {GameHandler.State.Level + 1}! New target: {GameHandler.State.TotalScore}");
+                    Console.WriteLine($"\nAdvancing to level {GameHandler.State.Level + 1}! New target: {GameHandler.State.LevelScore}");
                     if (!_autoPlay) {
                         Console.WriteLine("Press any key to continue...");
                         Console.ReadKey();
@@ -103,51 +67,54 @@ public class SolitaireConsoleDemo {
                 if (!_autoPlay && !PlayAgain()) {
                     return;
                 }
-                InitializeCurrentRun();
-                InitializeGame(0);
+                InitializeNextRun();
             }
         }
 
         DisplayFinalVictoryScreen();
     }
 
-    private void InitializeCurrentRun() {
-        CurrentRun = new GameRun(GameRuns.Count);
-        GameRuns.Add(CurrentRun);
-    }
-
-    private void InitializeGame(int level) {
-        var seed = CurrentRun.Id * 100000 + level; // Keep deterministic seed for autoPlay
-        var totalScore = GetScoreFromLevel(level);
-
-        if (!_autoPlay && level == 0) {
-            Console.WriteLine("Enter a seed number (or press Enter for random seed):");
+    private void InitializeFirstRun() {
+        Config = new PokerGameConfig();
+        PokerHandsManager = new PokerHandsManager();
+        PokerHandsManager.RegisterBasicPokerHands();
+        var seed = 0;
+        var level = 0;
+        if (!_autoPlay) {
+            Console.WriteLine("Enter a base seed number (or press Enter for random seed):");
             var input = Console.ReadLine();
             if (string.IsNullOrEmpty(input)) {
                 seed = new Random().Next();
             } else if (TryParse(input, out seed)) {
-                level = seed % 100000;
-                totalScore = GetScoreFromLevel(level);
+                
             } else {
                 seed = input.GetHashCode(); // Use string hash as seed if not a number
             }
             Console.WriteLine($"Seed: {seed}");
 
-            Console.WriteLine($"TotalScore (press Enter to use default {totalScore}):");
+            Console.WriteLine($"Level (press Enter to start from 0):");
             input = Console.ReadLine();
-            if (TryParse(input, out var userTotalScore)) {
-                totalScore = userTotalScore;
+            if (TryParse(input, out level)) {
             }
-            Console.WriteLine($"Using total score: {totalScore}");
+            Console.WriteLine($"Level: {level}");
             Thread.Sleep(600);
         }
+        
+        CurrentRun = new GameRun(0, Config, PokerHandsManager, seed);
+        GameRuns.Add(CurrentRun);
+        InitializeGame(level);
+    }
 
-        GameHandler = new GameHandler(seed, new PokerGameConfig());
-        GameHandler.PokerHandsManager.RegisterBasicPokerHands();
+    private void InitializeNextRun() {
+        var nextId = CurrentRun.Id + 1;
+        CurrentRun = new GameRun(nextId, Config, PokerHandsManager, nextId);
+        GameRuns.Add(CurrentRun);
+        InitializeGame(0);
+    }
+
+    private void InitializeGame(int level) {
+        GameHandler = CurrentRun.CreateGameHandler(level);
         GameHandler.DrawCards();
-        GameHandler.State.Level = level;
-        GameHandler.State.TotalScore = totalScore;
-        CurrentRun.AddGameState(GameHandler.State);
     }
 
     private void DisplayGameState() {
@@ -158,10 +125,10 @@ public class SolitaireConsoleDemo {
         if (GameRuns.Count > 0) {
             Console.WriteLine("=== Previous Runs ===");
             // foreach (var run in gameRuns.OrderByDescending(r => r.StartTime)) {
-            /*foreach (var run in GameRuns) {
+            foreach (var run in GameRuns) {
                 Console.WriteLine(run);
                 foreach (var gameState in run.GameStates) {
-                    Console.Write($"  Level {gameState.Level + 1} (seed {gameState.Seed}) | ");
+                    Console.Write($"  Level {gameState.Level + 1} | ");
                     foreach (var action in gameState.History.GetHistory()) {
                         if (action.Type == PlayHistory.PlayedActionType.Play)
                             Console.Write($"Play #{action.Id + 1}: {action.PlayedHand?.Name} ({string.Join(", ", action.Cards)}) (Score +{action.HandScore}: {action.GameScore}/{action.TotalScore}) | ");
@@ -171,7 +138,8 @@ public class SolitaireConsoleDemo {
                     Console.WriteLine();
                 }
                 Console.WriteLine();
-            }*/
+            }
+            Console.WriteLine("=== Stats ===");
             if (GameRuns.Count >= 2) {
                 var gameRunsWithoutLast = GameRuns.Take(GameRuns.Count - 1);
                 var runsWithStates = gameRunsWithoutLast.Where(run => run.GameStates.Count > 0).ToList();
@@ -186,7 +154,7 @@ public class SolitaireConsoleDemo {
                     var minLevelState = runWithMinLevel.GameStates.Last();
                     var maxLevelState = runWithMaxLevel.GameStates.Last();
 
-                    Console.WriteLine($"=== Min level won: {(minLevelWon + 1)} (seed {minLevelState.Seed}) | Max level won: {(maxLevelWon + 1)} (seed {maxLevelState.Seed})]");
+                    Console.WriteLine($"- Min level won: {(minLevelWon + 1)} (seed {minLevelState.Seed}) | Max level won: {(maxLevelWon + 1)} (seed {maxLevelState.Seed})]");
     
                     // Añadimos el resumen de runs por nivel
                     var runsByLevel = runsWithStates
@@ -202,7 +170,7 @@ public class SolitaireConsoleDemo {
             }
         }
         Console.WriteLine($"=== Solitaire Poker - Seed: {state.Seed} - Level {state.Level + 1} ===");
-        Console.WriteLine($"Score: {state.Score}/{state.TotalScore} | Hand {state.HandsPlayed + 1}/{GameHandler.Config.MaxHands} | Discards: {state.Discards}/{GameHandler.Config.MaxDiscards}");
+        Console.WriteLine($"Score: {state.Score}/{state.LevelScore} | Hand {state.HandsPlayed + 1}/{GameHandler.Config.MaxHands} | Discards: {state.Discards}/{GameHandler.Config.MaxDiscards}");
         DisplayYourHand();
     }
 
@@ -211,7 +179,7 @@ public class SolitaireConsoleDemo {
         Console.Clear();
         Console.WriteLine("=== WINNER! ===");
         Console.WriteLine($"Congratulations! You've reached {GameHandler.State.Score} points!");
-        Console.WriteLine($"Target was: {GameHandler.State.TotalScore}");
+        Console.WriteLine($"Target was: {GameHandler.State.LevelScore}");
     }
 
     private void DisplayGameOverScreen() {
@@ -219,8 +187,8 @@ public class SolitaireConsoleDemo {
         Console.Clear();
         Console.WriteLine("=== GAME OVER ===");
         Console.WriteLine($"Final Score: {GameHandler.State.Score}");
-        Console.WriteLine($"Target Score: {GameHandler.State.TotalScore}");
-        Console.WriteLine($"You needed {GameHandler.State.TotalScore - GameHandler.State.Score} more points to win");
+        Console.WriteLine($"Target Score: {GameHandler.State.LevelScore}");
+        Console.WriteLine($"You needed {GameHandler.State.LevelScore - GameHandler.State.Score} more points to win");
     }
 
     private void DisplayFinalVictoryScreen() {
@@ -393,7 +361,7 @@ public class SolitaireConsoleDemo {
     private void ProcessHand(IReadOnlyList<Card> hand) {
         var result = GameHandler.PlayHand(hand);
 
-        Console.WriteLine($"Played {result.Hand?.Name}: {string.Join(", ", hand)}. Scored: +{result.Score} ({GameHandler.State.Score}/{GameHandler.State.TotalScore})");
+        Console.WriteLine($"Played {result.Hand?.Name}: {string.Join(", ", hand)}. Scored: +{result.Score} ({GameHandler.State.Score}/{GameHandler.State.LevelScore})");
 
         if (GameHandler.IsDrawPending()) {
             GameHandler.DrawCards();

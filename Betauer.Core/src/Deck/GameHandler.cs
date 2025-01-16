@@ -7,8 +7,8 @@ using Betauer.Core.Deck.Hands;
 namespace Betauer.Core.Deck;
 
 public class GameHandler {
-    public class PlayResult(PokerHand hand, int score) {
-        public int Score { get; } = score;
+    public class PlayResult(PokerHand hand, long score) {
+        public long Score { get; } = score;
         public PokerHand? Hand { get; } = hand;
     }
 
@@ -19,27 +19,29 @@ public class GameHandler {
     public PokerHandsManager PokerHandsManager { get; }
     public PokerGameConfig Config { get; }
     public GameState State { get; }
-    public Random DrawCardsRandom { get; }
-    public Random RecoverCardsRandom { get; }
+    
+    public bool IsWon() => State.IsWon();
+    public bool IsGameOver() => State.IsGameOver();
+    public bool IsDrawPending() => State.IsDrawPending();
+    public bool CanDiscard() => State.CanDiscard();
 
-    public bool IsWon() => State.TotalScore > 0 && State.Score >= State.TotalScore;
-    public bool IsGameOver() => IsWon() || State.HandsPlayed >= Config.MaxHands;
-    public bool IsDrawPending() => !IsGameOver() && State.CurrentHand.Count < Config.HandSize;
-    public bool CanDiscard() => !IsGameOver() && State.Discards < Config.MaxDiscards;
+    public long RemainingScoreToWin => State.RemainingScoreToWin;
+    public int RemainingHands => State.RemainingHands;
+    public int RemainingDiscards => State.RemainingDiscards;
+    public int RemainingCards => State.RemainingCards;
+    public int RemainingCardsToDraw => State.RemainingCardsToDraw;
 
-    public int RemainingScoreToWin => State.TotalScore - State.Score;
-    public int RemainingHands => Config.MaxHands - State.HandsPlayed;
-    public int RemainingDiscards => Config.MaxHands - State.Discards;
-    public int RemainingCards => State.AvailableCards.Count;
-    public int RemainingCardsToDraw => Config.HandSize - State.CurrentHand.Count;
+    private readonly Random _drawCardsRandom;
+    private readonly Random _recoverCardsRandom;
 
-    public GameHandler(int seed, PokerGameConfig config) {
-        DrawCardsRandom = new Random(seed);
-        RecoverCardsRandom = new Random(seed);
+    public GameHandler(PokerGameConfig config, PokerHandsManager pokerHandsManager, int level, int seed) {
         Config = config;
-        PokerHandsManager = new PokerHandsManager();
-        State = new GameState(seed);
+        PokerHandsManager = pokerHandsManager;
+        State = new GameState(config, level, seed);
         State.BuildPokerDeck(config.ValidSuits, config.MinRank, config.MaxRank);
+
+        _drawCardsRandom = new Random(seed * 100 + level);
+        _recoverCardsRandom = new Random(seed * 100 + level);
     }
 
     public void DrawCards() {
@@ -66,7 +68,7 @@ public class GameHandler {
             throw new SolitairePokerGameException($"DrawCards error: cannot draw more cards ({n}) than remaining to fulfill the current hand ({RemainingCardsToDraw})");
         }
 
-        var cards = DrawCardsRandom.Take(State.AvailableCards as IList<Card>, n).ToList();
+        var cards = _drawCardsRandom.Take(State.AvailableCards as IList<Card>, n).ToList();
         cards.ForEach(card => State.Draw(card));
     }
 
@@ -116,7 +118,7 @@ public class GameHandler {
         var score = hand != null ? CalculateScore(hand) : 0;
         State.Score += score;
         cards.ForEach(card => State.Play(card));
-        State.History.AddPlayAction(hand, cards, score, State.Score, State.TotalScore);
+        State.History.AddPlayAction(hand, cards, score, State.Score, State.LevelScore);
         return new PlayResult(hand, score);
     }
 
@@ -145,7 +147,8 @@ public class GameHandler {
         State.Discards++;
 
         cards.ForEach(card => State.Discard(card));
-        State.History.AddDiscardAction(cards, State.Score, State.TotalScore);
+        State.History.AddDiscardAction(cards, State.Score, State.LevelScore);
+        
         return new DiscardResult(cards);
     }
 
@@ -186,7 +189,7 @@ public class GameHandler {
             throw new SolitairePokerGameException($"Recover error: cannot recover more cards ({n}) than available in played and discarded piles ({totalCards})");
         }
 
-        var indices = RecoverCardsRandom.Take(totalCards, n);
+        var indices = _recoverCardsRandom.Take(totalCards, n);
         foreach (var index in indices) {
             if (index < playedCount) {
                 // El índice corresponde a una carta de PlayedCards
@@ -211,11 +214,15 @@ public class GameHandler {
         return PokerHandsManager.IdentifyAllHands(this, State.CurrentHand);
     }
 
+    public PokerHand GetBestHand() {
+        return PokerHandsManager.IdentifyBestHand(this, State.CurrentHand)!;
+    }
+
     public DiscardOptionsResult GetDiscardOptions() {
         return PokerHandsManager.GetDiscardOptions(this, State.CurrentHand, State.AvailableCards, Config.MaxDiscardCards);
     }
 
-    public int CalculateScore(PokerHand hand) {
+    public long CalculateScore(PokerHand hand) {
         var config = PokerHandsManager.GetPokerHandConfig(hand);
         var level = State.GetPokerHandLevel(hand);
 
