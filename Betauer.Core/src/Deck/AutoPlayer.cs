@@ -16,7 +16,7 @@ public class AutoPlayer {
         DiscardOptionsResult DiscardOptions
     );
 
-    public AutoPlayDecision GetNextAction(GameStateHandler handler) {
+    public AutoPlayDecision GetNextAction(GameHandler handler) {
         var currentHands = handler.GetPossibleHands();
 
         // Keep only the 
@@ -142,8 +142,8 @@ public class AutoPlayer {
 
     }
 
-    private float CalculateDynamicRisk(GameStateHandler gameStateHandler) {
-        return CalculateDynamicRisk(gameStateHandler.RemainingHands, gameStateHandler.RemainingDiscards);
+    private float CalculateDynamicRisk(GameHandler gameHandler) {
+        return CalculateDynamicRisk(gameHandler.RemainingHands, gameHandler.RemainingDiscards);
     }
 
     public static void Main() {
@@ -191,9 +191,9 @@ public class AutoPlayer {
         return risk;
     }
 
-    public static int CalculateMinimumScoreNeeded(GameStateHandler gameStateHandler) {
-        if (gameStateHandler.RemainingHands == 0) return 0;
-        var remainingScore = gameStateHandler.State.TotalScore - gameStateHandler.State.Score;
-        return Mathf.RoundToInt((float)remainingScore / gameStateHandler.RemainingHands);
+    public static int CalculateMinimumScoreNeeded(GameHandler gameHandler) {
+        if (gameHandler.RemainingHands == 0) return 0;
+        var remainingScore = gameHandler.State.TotalScore - gameHandler.State.Score;
+        return Mathf.RoundToInt((float)remainingScore / gameHandler.RemainingHands);
     }
 }

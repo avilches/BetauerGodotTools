@@ -13,8 +13,7 @@ public class StraightFlushHandsTest : PokerHandsTestBase {
     public void BasicStraightFlush_ShouldBeIdentified() {
         // 10,J,Q,K,A todos de corazones
         var cards = CreateCards("TH", "JH", "QH", "KH", "AH");
-        var hands = HandsManager.IdentifyAllHands(Handler, cards);
-        var straightFlushes = hands.Where(h => h is StraightFlushHand).ToList();
+        var straightFlushes = new StraightFlushHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.Multiple(() => {
             Assert.That(straightFlushes.Count, Is.EqualTo(1), "Should identify exactly one straight flush");
@@ -35,8 +34,7 @@ public class StraightFlushHandsTest : PokerHandsTestBase {
     public void LowStraightFlush_WithAceAsOne_ShouldBeIdentified() {
         // A,2,3,4,5 todos de picas
         var cards = CreateCards("AS", "2S", "3S", "4S", "5S");
-        var hands = HandsManager.IdentifyAllHands(Handler, cards);
-        var straightFlushes = hands.Where(h => h is StraightFlushHand).ToList();
+        var straightFlushes = new StraightFlushHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.Multiple(() => {
             Assert.That(straightFlushes.Count, Is.EqualTo(1), "Should identify exactly one straight flush");
@@ -56,8 +54,7 @@ public class StraightFlushHandsTest : PokerHandsTestBase {
     public void WithDuplicateRanks_ShouldIdentifyStraightFlush() {
         // A♥,2♥,2♣,3♥,4♥,5♥ (2 duplicado pero en diferente palo)
         var cards = CreateCards("AH", "2H", "2C", "3H", "4H", "5H");
-        var hands = HandsManager.IdentifyAllHands(Handler, cards);
-        var straightFlushes = hands.Where(h => h is StraightFlushHand).ToList();
+        var straightFlushes = new StraightFlushHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.That(straightFlushes.Count, Is.EqualTo(1),
             "Should identify straight flush even with duplicate ranks in different suit");
@@ -67,7 +64,7 @@ public class StraightFlushHandsTest : PokerHandsTestBase {
     public void WithTenCards_ShouldFindMultipleStraightFlushPossibilities() {
         // 6,7,8,9,10,J,Q,K,A todos de corazones + 5 de corazones
         var cards = CreateCards("5H", "6H", "7H", "8H", "9H", "TH", "JH", "QH", "KH", "AH");
-        var analysis = new PokerHandAnalysis(cards);
+        var analysis = new PokerHandAnalysis(Handler.Config, cards);
 
         Assert.Multiple(() => {
             Assert.That(analysis.Straights.Count, Is.GreaterThan(1),
@@ -101,7 +98,7 @@ public class StraightFlushHandsTest : PokerHandsTestBase {
     public void WithSevenConsecutiveCards_ShouldFindMultipleStraightPossibilities() {
         // 5♥,6♥,7♥,8♥,9♥,T♥,J♥
         var cards = CreateCards("5H", "6H", "7H", "8H", "9H", "TH", "JH");
-        var analysis = new PokerHandAnalysis(cards);
+        var analysis = new PokerHandAnalysis(Handler.Config, cards);
 
         Assert.Multiple(() => {
             Assert.That(analysis.Straights.Count, Is.GreaterThan(1),
@@ -133,8 +130,7 @@ public class StraightFlushHandsTest : PokerHandsTestBase {
     public void WithSameColorButNoStraight_ShouldNotIdentifyStraightFlush() {
         // 2,3,4,6,7 todos de tréboles (falta el 5)
         var cards = CreateCards("2C", "3C", "4C", "6C", "7C");
-        var hands = HandsManager.IdentifyAllHands(Handler, cards);
-        var straightFlushes = hands.Where(h => h is StraightFlushHand).ToList();
+        var straightFlushes = new StraightFlushHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.That(straightFlushes, Is.Empty,
             "Should not identify straight flush when there's a gap");
@@ -144,8 +140,7 @@ public class StraightFlushHandsTest : PokerHandsTestBase {
     public void WithStraightButDifferentColors_ShouldNotIdentifyStraightFlush() {
         // 2,3,4,5,6 de diferentes palos
         var cards = CreateCards("2H", "3S", "4D", "5C", "6H");
-        var hands = HandsManager.IdentifyAllHands(Handler, cards);
-        var straightFlushes = hands.Where(h => h is StraightFlushHand).ToList();
+        var straightFlushes = new StraightFlushHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.That(straightFlushes, Is.Empty,
             "Should not identify straight flush when cards are different suits");
@@ -156,7 +151,7 @@ public class StraightFlushHandsTest : PokerHandsTestBase {
         // 8♥,9♥,J♥,Q♥,K♣ (falta 10♥)
         var cards = CreateCards("8H", "9H", "JH", "QH", "KC");
         var hand = new StraightFlushHand(HandsManager, []);
-        var analysis = new PokerHandAnalysis(cards);
+        var analysis = new PokerHandAnalysis(Handler.Config, cards);
 
         Assert.Multiple(() => {
             var discards = hand.SuggestDiscards(analysis, 2);
@@ -172,7 +167,7 @@ public class StraightFlushHandsTest : PokerHandsTestBase {
         // 7♥,8♥,T♥,J♥,K♥ (faltan 9,Q)
         var cards = CreateCards("7H", "8H", "TH", "JH", "KH");
         var hand = new StraightFlushHand(HandsManager, []);
-        var analysis = new PokerHandAnalysis(cards);
+        var analysis = new PokerHandAnalysis(Handler.Config, cards);
 
         Assert.Multiple(() => {
             var discards = hand.SuggestDiscards(analysis, 2);
@@ -189,7 +184,7 @@ public class StraightFlushHandsTest : PokerHandsTestBase {
         // 7♥,8♥,9♥,J♥,Q♥,2♣,3♣ (dos posibilidades en corazones)
         var cards = CreateCards("7H", "8H", "9H", "JH", "QH", "2C", "3C");
         var hand = new StraightFlushHand(HandsManager, []);
-        var analysis = new PokerHandAnalysis(cards);
+        var analysis = new PokerHandAnalysis(Handler.Config, cards);
 
         Assert.Multiple(() => {
             Assert.That(analysis.Straights.Count(s => s.IsFlush), Is.GreaterThan(0));
@@ -210,7 +205,7 @@ public class StraightFlushHandsTest : PokerHandsTestBase {
         // 7♥,8♥,9♥,J♥,Q♥,2♣,3♣,4♣ (tres tréboles, pero solo podemos descartar 2)
         var cards = CreateCards("7H", "8H", "9H", "JH", "QH", "2C", "3C", "4C");
         var hand = new StraightFlushHand(HandsManager, []);
-        var analysis = new PokerHandAnalysis(cards);
+        var analysis = new PokerHandAnalysis(Handler.Config, cards);
 
         Assert.Multiple(() => {
             var discards = hand.SuggestDiscards(analysis, 2);
@@ -229,7 +224,7 @@ public class StraightFlushHandsTest : PokerHandsTestBase {
         // 7♥,8♥,9♥,J♥,Q♥,2♣,3♣,4♦,5♦
         var cards = CreateCards("7H", "8H", "9H", "JH", "QH", "2C", "3C", "4D", "5D");
         var hand = new StraightFlushHand(HandsManager, []);
-        var analysis = new PokerHandAnalysis(cards);
+        var analysis = new PokerHandAnalysis(Handler.Config, cards);
 
         Assert.Multiple(() => {
             var discards = hand.SuggestDiscards(analysis, 3);
@@ -249,7 +244,7 @@ public class StraightFlushHandsTest : PokerHandsTestBase {
         // A,2,3,4,5 todos de picas
         var cards = CreateCards("AS", "2S", "3S", "4S", "5S");
         var hand = new StraightFlushHand(HandsManager, []);
-        var analysis = new PokerHandAnalysis(cards);
+        var analysis = new PokerHandAnalysis(Handler.Config, cards);
         Assert.Multiple(() => {
             Assert.That(analysis.HasCompleteStraight, Is.True);
             Assert.That(analysis.Straights[0].IsFlush, Is.True);
@@ -263,7 +258,7 @@ public class StraightFlushHandsTest : PokerHandsTestBase {
         // 10,J,Q,K,A todos de corazones
         var cards = CreateCards("TH", "JH", "QH", "KH", "AH");
         var hand = new StraightFlushHand(HandsManager, []);
-        var analysis = new PokerHandAnalysis(cards);
+        var analysis = new PokerHandAnalysis(Handler.Config, cards);
         Assert.Multiple(() => {
             Assert.That(analysis.HasCompleteStraight, Is.True);
             Assert.That(analysis.Straights[0].IsFlush, Is.True);
@@ -277,7 +272,7 @@ public class StraightFlushHandsTest : PokerHandsTestBase {
         // A♥,2♥,4♥,5♥,6♥ (falta 3♥)
         var cards = CreateCards("AH", "2H", "4H", "5H", "6H");
         var hand = new StraightFlushHand(HandsManager, []);
-        var analysis = new PokerHandAnalysis(cards);
+        var analysis = new PokerHandAnalysis(Handler.Config, cards);
         Assert.Multiple(() => {
             Assert.That(analysis.HasCompleteStraight, Is.False);
             var discards = hand.SuggestDiscards(analysis, 2);
@@ -293,7 +288,7 @@ public class StraightFlushHandsTest : PokerHandsTestBase {
         // J♥,Q♥,K♥,A♥,3♥ (falta T para escalera alta)
         var cards = CreateCards("JH", "QH", "KH", "AH", "3H");
         var hand = new StraightFlushHand(HandsManager, []);
-        var analysis = new PokerHandAnalysis(cards);
+        var analysis = new PokerHandAnalysis(Handler.Config, cards);
         Assert.Multiple(() => {
             var discards = hand.SuggestDiscards(analysis, 2);
             Assert.That(discards.Count, Is.EqualTo(1), "Should suggest one discard option");
@@ -305,9 +300,7 @@ public class StraightFlushHandsTest : PokerHandsTestBase {
 
     [Test]
     public void EmptyHand_ShouldReturnNoStraightFlush() {
-        var cards = new List<Card>();
-        var hands = HandsManager.IdentifyAllHands(Handler, cards);
-        var straightFlushes = hands.Where(h => h is StraightFlushHand).ToList();
+        var straightFlushes = new StraightFlushHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, []));
         Assert.That(straightFlushes, Is.Empty);
     }
 }

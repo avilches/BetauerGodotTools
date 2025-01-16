@@ -12,6 +12,10 @@ public class PokerGameConfig {
     public int MaxRank { get; set; } = 14;
     public string ValidSuits { get; set; } = "SHDC";
 
+    public int StraightSize { get; set; } = 5;
+    public int FlushSize { get; set; } = 5;
+    public int AnalysisMinFlushSize { get; set; } = 3;
+
     public Card Parse(string str) {
         if (string.IsNullOrEmpty(str) || str.Length != 2)
             throw new ArgumentException("Card string must be 2 characters");

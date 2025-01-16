@@ -6,7 +6,7 @@ using Betauer.Core.Deck.Hands;
 
 namespace Betauer.Core.Deck;
 
-public class GameStateHandler {
+public class GameHandler {
     public class PlayResult(PokerHand hand, int score) {
         public int Score { get; } = score;
         public PokerHand? Hand { get; } = hand;
@@ -33,7 +33,7 @@ public class GameStateHandler {
     public int RemainingCards => State.AvailableCards.Count;
     public int RemainingCardsToDraw => Config.HandSize - State.CurrentHand.Count;
 
-    public GameStateHandler(int seed, PokerGameConfig config) {
+    public GameHandler(int seed, PokerGameConfig config) {
         DrawCardsRandom = new Random(seed);
         RecoverCardsRandom = new Random(seed);
         Config = config;
@@ -112,7 +112,7 @@ public class GameStateHandler {
 
         State.HandsPlayed++;
 
-        var hand = PokerHandsManager.IdentifyAllHands(this, cards).FirstOrDefault();
+        var hand = PokerHandsManager.IdentifyBestHand(this, cards);
         var score = hand != null ? CalculateScore(hand) : 0;
         State.Score += score;
         cards.ForEach(card => State.Play(card));

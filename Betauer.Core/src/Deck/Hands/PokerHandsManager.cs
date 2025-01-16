@@ -10,26 +10,25 @@ public record PokerHandConfig(
     int InitialMultiplier, 
     int ScorePerLevel, 
     int MultiplierPerLevel,
+    int Order,
     bool Enabled);
 
 public class PokerHandsManager {
     private readonly List<PokerHandConfig> _handConfigs = [];
 
     public void RegisterBasicPokerHands() {
-        RegisterHand(new HighCardHand(this, []), 5, 1, 15, 1);
-        RegisterHand(new PairHand(this, []), 10, 2, 15, 1);
-        RegisterHand(new TwoPairHand(this, []), 20, 2, 20, 1);
-        RegisterHand(new ThreeOfAKindHand(this, []), 30, 3, 20, 2);
-        RegisterHand(new StraightHand(this, []), 30, 4, 30, 3);
-        RegisterHand(new FlushHand(this, []), 35, 4, 15, 2);
-        RegisterHand(new FullHouseHand(this, []), 40, 4, 25, 2);
-        RegisterHand(new FourOfAKindHand(this, []), 60, 7, 30, 3);
-        RegisterHand(new StraightFlushHand(this, []), 100, 8, 40, 4);
-        
-        // Añadir las nuevas manos
-        RegisterHand(new FiveOfAKindHand(this, []), 120, 12, 40, 4);
-        RegisterHand(new FlushHouseHand(this, []), 140, 14, 40, 4);
-        RegisterHand(new FlushFiveHand(this, []), 160, 16, 40, 4);
+        RegisterHand(new HighCardHand(this, []), 5, 1, 15, 1, order: 1);
+        RegisterHand(new PairHand(this, []), 10, 2, 15, 1, order: 2);
+        RegisterHand(new TwoPairHand(this, []), 20, 2, 20, 1, order: 3);
+        RegisterHand(new ThreeOfAKindHand(this, []), 30, 3, 20, 2, order: 4);
+        RegisterHand(new StraightHand(this, []), 30, 4, 30, 3, order: 5);
+        RegisterHand(new FlushHand(this, []), 35, 4, 15, 2, order: 6);
+        RegisterHand(new FullHouseHand(this, []), 40, 4, 25, 2, order: 7);
+        RegisterHand(new FourOfAKindHand(this, []), 60, 7, 30, 3, order: 8);
+        RegisterHand(new StraightFlushHand(this, []), 100, 8, 40, 4, order: 9);
+        RegisterHand(new FiveOfAKindHand(this, []), 120, 12, 40, 4, order: 10);
+        RegisterHand(new FlushHouseHand(this, []), 140, 14, 40, 4, order: 11);
+        RegisterHand(new FlushFiveHand(this, []), 160, 16, 40, 4, order: 12);
     }
 
     /// <summary>
@@ -37,11 +36,13 @@ public class PokerHandsManager {
     /// If a hand of the same type already exists, it will be replaced.
     /// Hand configs are kept sorted by multiplier in descending order.
     /// </summary>
-    public void RegisterHand(PokerHand prototype, int initialScore, int initialMultiplier, int scorePerLevel, int multiplierPerLevel, bool enabled = true) {
+    public void RegisterHand(PokerHand prototype, int initialScore, int initialMultiplier, int scorePerLevel, int multiplierPerLevel, int order, bool enabled = true) {
         _handConfigs.RemoveAll(config => config.Prototype.GetType() == prototype.GetType());
-        _handConfigs.Add(new PokerHandConfig(prototype, initialScore, initialMultiplier, scorePerLevel, multiplierPerLevel, enabled));
-    }
-    
+        _handConfigs.Add(new PokerHandConfig(prototype, initialScore, initialMultiplier, scorePerLevel, multiplierPerLevel, order, enabled));
+        var ordered = _handConfigs.OrderByDescending(c => c.Order).ToList();
+        _handConfigs.Clear();
+        _handConfigs.AddRange(ordered);
+    }    
     public void ClearHands() => _handConfigs.Clear();
 
     /// <summary>
@@ -51,13 +52,13 @@ public class PokerHandsManager {
     /// </summary>
     /// <param name="cards">Cards to analyze</param>
     /// <returns>List of identified poker hands, ordered by score</returns>
-    public List<PokerHand> IdentifyAllHands(GameStateHandler handler, IReadOnlyList<Card> cards) {
+    public List<PokerHand> IdentifyAllHands(GameHandler handler, IReadOnlyList<Card> cards) {
         if (_handConfigs.Count == 0) {
             throw new InvalidOperationException("No hands registered");
         }
         if (cards.Count == 0) return [];
         
-        var analysis = new PokerHandAnalysis(cards);
+        var analysis = new PokerHandAnalysis(handler.Config, cards);
 
         var allHands = _handConfigs
             .Where(config => config.Enabled)
@@ -76,6 +77,35 @@ public class PokerHandsManager {
         }
 
         return allHands;
+    }
+    
+    /// <summary>
+    /// Identifies the best poker hand by checking hand types in descending order.
+    /// Returns the best hand of the highest-ranking type found.
+    /// </summary>
+    /// <param name="handler">Game state handler</param>
+    /// <param name="cards">Cards to analyze</param>
+    /// <returns>Best poker hand found, or null if no valid hands exist</returns>
+    public PokerHand? IdentifyBestHand(GameHandler handler, IReadOnlyList<Card> cards) {
+        if (_handConfigs.Count == 0) {
+            throw new InvalidOperationException("No hands registered");
+        }
+        if (cards.Count == 0) return null;
+
+        var analysis = new PokerHandAnalysis(handler.Config, cards);
+
+        // Iterate through configs in descending order
+        foreach (var config in _handConfigs) {
+            if (!config.Enabled) continue;
+        
+            var hands = config.Prototype.IdentifyHands(analysis);
+            if (hands.Count > 0) {
+                // Return the best hand of this type
+                return hands.MaxBy(handler.CalculateScore);
+            }
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -97,7 +127,7 @@ public class PokerHandsManager {
     /// <param name="availableCards">Cards available to draw</param>
     /// <param name="maxDiscardCards">Maximum number of cards that can be discarded</param>
     /// <returns>Analysis results with discard options and statistics</returns>
-    public DiscardOptionsResult GetDiscardOptions(GameStateHandler handler, IReadOnlyList<Card> cards, IReadOnlyList<Card> availableCards, int maxDiscardCards) {
+    public DiscardOptionsResult GetDiscardOptions(GameHandler handler, IReadOnlyList<Card> cards, IReadOnlyList<Card> availableCards, int maxDiscardCards) {
         if (maxDiscardCards < 0) throw new ArgumentException("maxDiscardCards cannot be negative");
 
         const int MaxSimulations = 10000;
@@ -107,7 +137,7 @@ public class PokerHandsManager {
         var totalSimulations = 0;
         var totalCombinations = 0;
         
-        var analysis = new PokerHandAnalysis(cards);
+        var analysis = new PokerHandAnalysis(handler.Config, cards);
 
         // Get all possible discard combinations from all hand types
         var suggestedDiscards = _handConfigs

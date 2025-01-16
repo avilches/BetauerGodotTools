@@ -11,8 +11,7 @@ public class HighCardHandsTest : PokerHandsTestBase {
     public void IdentifyHighCards_ShouldIdentifyAllCards() {
         // Cinco cartas diferentes
         var cards = CreateCards("AH", "KS", "QD", "JC", "TH");
-        var hands = HandsManager.IdentifyAllHands(Handler, cards);
-        var highCards = hands.Where(h => h is HighCardHand).ToList();
+        var highCards = new HighCardHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.Multiple(() => {
             Assert.That(highCards.Count, Is.EqualTo(5), "Should identify each card as a high card");
@@ -28,8 +27,7 @@ public class HighCardHandsTest : PokerHandsTestBase {
     public void WithDuplicateRanks_ShouldIdentifyAllCards() {
         // Cartas con rangos duplicados
         var cards = CreateCards("AH", "AS", "KD", "KH", "QC");
-        var hands = HandsManager.IdentifyAllHands(Handler, cards);
-        var highCards = hands.Where(h => h is HighCardHand).ToList();
+        var highCards = new HighCardHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.Multiple(() => {
             Assert.That(highCards.Count, Is.EqualTo(5), "Should identify each card as a high card");
@@ -46,8 +44,7 @@ public class HighCardHandsTest : PokerHandsTestBase {
     public void WithNumericCards_ShouldIdentifyAllCards() {
         // Cartas numéricas (sin figuras)
         var cards = CreateCards("2H", "5S", "7D", "8C", "TH");
-        var hands = HandsManager.IdentifyAllHands(Handler, cards);
-        var highCards = hands.Where(h => h is HighCardHand).ToList();
+        var highCards = new HighCardHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.Multiple(() => {
             Assert.That(highCards.Count, Is.EqualTo(5), "Should identify each card as a high card");
@@ -63,8 +60,7 @@ public class HighCardHandsTest : PokerHandsTestBase {
     public void WithSingleCard_ShouldIdentifyOneHighCard() {
         // Una sola carta
         var cards = CreateCards("AH");
-        var hands = HandsManager.IdentifyAllHands(Handler, cards);
-        var highCards = hands.Where(h => h is HighCardHand).ToList();
+        var highCards = new HighCardHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.Multiple(() => {
             Assert.That(highCards.Count, Is.EqualTo(1), "Should identify one high card");
@@ -77,8 +73,7 @@ public class HighCardHandsTest : PokerHandsTestBase {
     public void WithAllSuitsSameRank_ShouldIdentifyAllCards() {
         // Los cuatro palos del mismo rango
         var cards = CreateCards("AH", "AS", "AD", "AC");
-        var hands = HandsManager.IdentifyAllHands(Handler, cards);
-        var highCards = hands.Where(h => h is HighCardHand).ToList();
+        var highCards = new HighCardHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.Multiple(() => {
             Assert.That(highCards.Count, Is.EqualTo(4), "Should identify all four Aces");
@@ -98,7 +93,7 @@ public class HighCardHandsTest : PokerHandsTestBase {
         // Cualquier combinación de cartas
         var cards = CreateCards("AH", "KS", "QD", "JC", "TH");
         var hand = new HighCardHand(HandsManager, []);
-        var analysis = new PokerHandAnalysis(cards);
+        var analysis = new PokerHandAnalysis(Handler.Config, cards);
 
         Assert.That(hand.SuggestDiscards(analysis, 2), Is.Empty,
             "High card hand should not suggest any discards");
@@ -106,8 +101,7 @@ public class HighCardHandsTest : PokerHandsTestBase {
 
     [Test]
     public void EmptyHand_ShouldReturnNoHighCards() {
-        var hands = HandsManager.IdentifyAllHands(Handler, []);
-        var highCards = hands.Where(h => h is HighCardHand).ToList();
+        var highCards = new HighCardHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, []));
         Assert.That(highCards, Is.Empty);
     }
 }

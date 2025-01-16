@@ -10,11 +10,11 @@ namespace Betauer.Core.Tests;
 [TestFixture]
 public class PokerHandsTestBase {
     protected PokerHandsManager HandsManager => Handler.PokerHandsManager;
-    protected GameStateHandler Handler;
+    protected GameHandler Handler;
 
     [SetUp]
     public void Setup() {
-        Handler = new GameStateHandler(0, new PokerGameConfig());
+        Handler = new GameHandler(0, new PokerGameConfig());
         HandsManager.RegisterBasicPokerHands();
     }
 
@@ -40,7 +40,7 @@ public class PokerHandsTest : PokerHandsTestBase {
         // Deshabilitar la mano
         HandsManager.RegisterHand(new FiveOfAKindHand(HandsManager, []),
             config.InitialScore, config.InitialMultiplier, config.ScorePerLevel,
-            config.MultiplierPerLevel, false);
+            config.MultiplierPerLevel, 1, false);
 
         // Verificar que la mano no se detecta cuando está deshabilitada
         var handsDisabled = HandsManager.IdentifyAllHands(Handler, currentHand)

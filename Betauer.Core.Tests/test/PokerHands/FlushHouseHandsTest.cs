@@ -10,8 +10,7 @@ public class FlushHouseHandsTest : PokerHandsTestBase {
     public void BasicFlushHouse_ShouldBeIdentified() {
         // Caso básico: exactamente 3 Ases y 2 Reyes del mismo palo
         var cards = CreateCards("AH", "AH", "AH", "KH", "KH");
-        var hands = HandsManager.IdentifyAllHands(Handler, cards);
-        var flushHouses = hands.Where(h => h is FlushHouseHand).ToList();
+        var flushHouses = new FlushHouseHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.Multiple(() => {
             Assert.That(flushHouses.Count, Is.EqualTo(1), "Should identify exactly one flush house");
@@ -35,8 +34,7 @@ public class FlushHouseHandsTest : PokerHandsTestBase {
     public void WithMultiplePossibilities_ShouldIdentifyAllCombinations() {
         // 3 Ases y 3 Reyes del mismo palo - debe generar dos combinaciones
         var cards = CreateCards("AH", "AH", "AH", "KH", "KH", "KH");
-        var hands = HandsManager.IdentifyAllHands(Handler, cards);
-        var flushHouses = hands.Where(h => h is FlushHouseHand).ToList();
+        var flushHouses = new FlushHouseHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.Multiple(() => {
             Assert.That(flushHouses.Count, Is.EqualTo(2), "Should identify two flush houses");
@@ -63,10 +61,7 @@ public class FlushHouseHandsTest : PokerHandsTestBase {
     public void WithExtraCards_ShouldIdentifyFlushHouses() {
         // Caso con cartas extra: 4 Ases, 3 Reyes y 2 Reinas de corazones
         var cards = CreateCards("AH", "AH", "AH", "AH", "KH", "KH", "KH", "QH", "QH");
-        var hands = HandsManager.IdentifyAllHands(Handler, cards);
-        var flushHouses = hands.Where(h => h is FlushHouseHand)
-            .OrderByDescending(h => h.Cards.Average(c => c.Rank))
-            .ToList();
+        var flushHouses = new FlushHouseHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.Multiple(() => {
             // Debería encontrar cuatro combinaciones: AAA-KK, AAA-QQ, KKK-AA, KKK-QQ
@@ -92,14 +87,12 @@ public class FlushHouseHandsTest : PokerHandsTestBase {
         Assert.Multiple(() => {
             // Caso 1: Solo tres cartas del mismo palo
             var cards1 = CreateCards("AH", "AH", "AH");
-            var hands1 = HandsManager.IdentifyAllHands(Handler, cards1);
-            var flushHouses1 = hands1.Where(h => h is FlushHouseHand).ToList();
+            var flushHouses1 = new FlushHouseHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards1));
             Assert.That(flushHouses1, Is.Empty, "Should not identify flush house with only three cards");
 
             // Caso 2: Cuatro cartas del mismo palo pero sin la estructura correcta
             var cards2 = CreateCards("AH", "AH", "KH", "QH");
-            var hands2 = HandsManager.IdentifyAllHands(Handler, cards2);
-            var flushHouses2 = hands2.Where(h => h is FlushHouseHand).ToList();
+            var flushHouses2 = new FlushHouseHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards2));
             Assert.That(flushHouses2, Is.Empty, "Should not identify flush house with only four cards");
         });
     }
@@ -108,8 +101,7 @@ public class FlushHouseHandsTest : PokerHandsTestBase {
     public void DifferentSuits_ShouldNotIdentifyFlushHouse() {
         // Full house normal (diferentes palos) no debería identificarse como flush house
         var cards = CreateCards("AS", "AH", "AD", "KS", "KH");
-        var hands = HandsManager.IdentifyAllHands(Handler, cards);
-        var flushHouses = hands.Where(h => h is FlushHouseHand).ToList();
+        var flushHouses = new FlushHouseHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
         
         Assert.That(flushHouses, Is.Empty, "Should not identify flush house with different suits");
     }
@@ -118,8 +110,7 @@ public class FlushHouseHandsTest : PokerHandsTestBase {
     public void SameRankFlush_ShouldNotIdentifyFlushHouse() {
         // 5 Ases del mismo palo no deberían formar un flush house
         var cards = CreateCards("AH", "AH", "AH", "AH", "AH");
-        var hands = HandsManager.IdentifyAllHands(Handler, cards);
-        var flushHouses = hands.Where(h => h is FlushHouseHand).ToList();
+        var flushHouses = new FlushHouseHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
         
         Assert.That(flushHouses, Is.Empty, "Should not identify flush house with five cards of same rank");
     }
@@ -129,15 +120,15 @@ public class FlushHouseHandsTest : PokerHandsTestBase {
         Assert.Multiple(() => {
             // Caso 1: cinco cartas del mismo palo pero sin grupos válidos
             var cards1 = CreateCards("AH", "KH", "QH", "JH", "TH");
-            var hands1 = HandsManager.IdentifyAllHands(Handler, cards1);
-            var flushHouses1 = hands1.Where(h => h is FlushHouseHand).ToList();
+            var flushHouses1 = new FlushHouseHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards1));
+
             Assert.That(flushHouses1, Is.Empty, 
                 "Should not identify flush house with no valid groups");
 
             // Caso 2: par y tres cartas sueltas del mismo palo
             var cards2 = CreateCards("AH", "AH", "KH", "QH", "JH");
-            var hands2 = HandsManager.IdentifyAllHands(Handler, cards2);
-            var flushHouses2 = hands2.Where(h => h is FlushHouseHand).ToList();
+            var flushHouses2 = new FlushHouseHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards2));
+
             Assert.That(flushHouses2, Is.Empty, 
                 "Should not identify flush house with only one pair");
         });
@@ -148,7 +139,7 @@ public class FlushHouseHandsTest : PokerHandsTestBase {
         // Tenemos una pareja de Ases de corazones y un K de corazones y cartas sueltas
         var cards = CreateCards("AH", "AH", "KH", "KS", "QD");
         var hand = new FlushHouseHand(HandsManager, []);
-        var analysis = new PokerHandAnalysis(cards);
+        var analysis = new PokerHandAnalysis(Handler.Config, cards);
 
         Assert.Multiple(() => {
             var discards = hand.SuggestDiscards(analysis, 2);
@@ -168,7 +159,7 @@ public class FlushHouseHandsTest : PokerHandsTestBase {
         // Caso con flush house completo (no debería sugerir descartes)
         var cards = CreateCards("AH", "AH", "AH", "KH", "KH");
         var hand = new FlushHouseHand(HandsManager, []);
-        var analysis = new PokerHandAnalysis(cards);
+        var analysis = new PokerHandAnalysis(Handler.Config, cards);
 
         Assert.That(hand.SuggestDiscards(analysis, 2), Is.Empty,
             "Should not suggest discards with complete flush house");
@@ -176,8 +167,7 @@ public class FlushHouseHandsTest : PokerHandsTestBase {
 
     [Test]
     public void EmptyHand_ShouldReturnNoFlushHouse() {
-        var hands = HandsManager.IdentifyAllHands(Handler, []);
-        var flushHouses = hands.Where(h => h is FlushHouseHand).ToList();
+        var flushHouses = new FlushHouseHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, []));
         Assert.That(flushHouses, Is.Empty, "Should not identify any flush house in empty hand");
     }
 }

@@ -1,6 +1,4 @@
-using System.Collections.Generic;
 using System.Linq;
-using Betauer.Core.Deck;
 using Betauer.Core.Deck.Hands;
 using NUnit.Framework;
 
@@ -11,8 +9,7 @@ public class FiveOfAKindHandsTest : PokerHandsTestBase {
     [Test]
     public void BasicFiveOfAKind_ShouldBeIdentified() {
         var cards = CreateCards("AS", "AH", "AD", "AC", "AH");
-        var hands = HandsManager.IdentifyAllHands(Handler, cards);
-        var fiveOfKinds = hands.Where(h => h is FiveOfAKindHand).ToList();
+        var fiveOfKinds = new FiveOfAKindHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.Multiple(() => {
             Assert.That(fiveOfKinds.Count, Is.EqualTo(1), "Should identify exactly one five of a kind");
@@ -24,14 +21,11 @@ public class FiveOfAKindHandsTest : PokerHandsTestBase {
     [Test]
     public void WithTwoFiveOfAKind_ShouldIdentifyHighestOnly() {
         // Con AAAAA KKKKK, debería identificar solo AAAAA
-        var cards = CreateCards("AS", "AH", "AD", "AC", "AH", 
-            "KS", "KH", "KD", "KC", "KH");
-        var hands = HandsManager.IdentifyAllHands(Handler, cards);
-        var fiveOfKinds = hands.Where(h => h is FiveOfAKindHand).ToList();
+        var cards = CreateCards("AS", "AH", "AD", "AC", "AH", "KS", "KH", "KD", "KC", "KH");
+        var fiveOfKinds = new FiveOfAKindHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.Multiple(() => {
             Assert.That(fiveOfKinds.Count, Is.EqualTo(1), "Should identify exactly one five of a kind");
-            Assert.That(fiveOfKinds[0].Cards.Count, Is.EqualTo(5), "Five of a kind should have 5 cards");
             Assert.That(fiveOfKinds[0].Cards.All(c => c.Rank == 14), Is.True, "Should be five Aces (highest rank)");
         });
     }
@@ -40,8 +34,7 @@ public class FiveOfAKindHandsTest : PokerHandsTestBase {
     public void WithSixOfSameRank_ShouldIdentifyFiveOfAKind() {
         // Con 6 Ases, debería identificar un FiveOfAKind
         var cards = CreateCards("AS", "AH", "AD", "AC", "AH", "AS");
-        var hands = HandsManager.IdentifyAllHands(Handler, cards);
-        var fiveOfKinds = hands.Where(h => h is FiveOfAKindHand).ToList();
+        var fiveOfKinds = new FiveOfAKindHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.Multiple(() => {
             Assert.That(fiveOfKinds.Count, Is.EqualTo(1), "Should identify exactly one five of a kind");
@@ -53,34 +46,37 @@ public class FiveOfAKindHandsTest : PokerHandsTestBase {
     [Test]
     public void FourOfAKind_ShouldNotIdentifyFiveOfAKind() {
         var cards = CreateCards("AS", "AH", "AD", "AC", "KH");
-        var hands = HandsManager.IdentifyAllHands(Handler, cards);
-        var fiveOfKinds = hands.Where(h => h is FiveOfAKindHand).ToList();
+        var fiveOfKinds = new FiveOfAKindHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
         
         Assert.That(fiveOfKinds, Is.Empty, "Should not identify five of a kind with only four of a kind");
     }
 
     [Test]
-    public void FullHouse_ShouldNotIdentifyFiveOfAKind() {
-        var cards = CreateCards("AS", "AH", "AD", "KS", "KH");
-        var hands = HandsManager.IdentifyAllHands(Handler, cards);
-        var fiveOfKinds = hands.Where(h => h is FiveOfAKindHand).ToList();
+    public void ThreeOfAKind_ShouldNotIdentifyFiveOfAKind() {
+        var cards = CreateCards("AS", "AH", "AD", "KH", "QD");
+        var fiveOfKinds = new FiveOfAKindHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
         
-        Assert.That(fiveOfKinds, Is.Empty, "Should not identify five of a kind with only full house");
+        Assert.That(fiveOfKinds, Is.Empty, "Should not identify five of a kind with only three of a kind");
     }
 
     [Test]
-    public void EmptyHand_ShouldReturnNoFiveOfAKind() {
-        var cards = new List<Card>();
-        var hands = HandsManager.IdentifyAllHands(Handler, cards);
-        var fiveOfKinds = hands.Where(h => h is FiveOfAKindHand).ToList();
-        Assert.That(fiveOfKinds, Is.Empty);
+    public void SixOfSameRank_ShouldIdentifyOneFiveOfAKind() {
+        // Con 6 Ases, debería identificar un cinco de kind con los primeros 5
+        var cards = CreateCards("AS", "AH", "AD", "AC", "AH", "AS");
+        var fiveOfKinds = new FiveOfAKindHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+
+        Assert.Multiple(() => {
+            Assert.That(fiveOfKinds.Count, Is.EqualTo(1), "Should identify exactly one five of a kind");
+            Assert.That(fiveOfKinds[0].Cards.Count, Is.EqualTo(5), "Should have exactly 5 cards");
+            Assert.That(fiveOfKinds[0].Cards.All(c => c.Rank == 14), Is.True, "Should be Aces");
+        });
     }
 
     [Test]
     public void SuggestDiscards_WithoutFiveOfAKind_ShouldSuggestDiscardingLowestCards() {
         var cards = CreateCards("AS", "AH", "AD", "AC", "KH");
         var hand = new FiveOfAKindHand(HandsManager, []);
-        var discards = hand.SuggestDiscards(new PokerHandAnalysis(cards), 2);
+        var discards = hand.SuggestDiscards(new PokerHandAnalysis(Handler.Config, cards), 2);
         
         Assert.That(discards.Count, Is.EqualTo(1), "Should suggest one discard option");
         var cardsToDiscard = discards[0];
@@ -93,8 +89,14 @@ public class FiveOfAKindHandsTest : PokerHandsTestBase {
     public void SuggestDiscards_WithFiveOfAKind_ShouldNotSuggestDiscards() {
         var cards = CreateCards("AS", "AH", "AD", "AC", "AH");
         var hand = new FiveOfAKindHand(HandsManager, []);
-        var discards = hand.SuggestDiscards(new PokerHandAnalysis(cards), 3);
+        var discards = hand.SuggestDiscards(new PokerHandAnalysis(Handler.Config, cards), 3);
         
         Assert.That(discards, Is.Empty, "Should not suggest discards when five of a kind exists");
+    }
+
+    [Test]
+    public void EmptyHand_ShouldReturnNoFiveOfAKind() {
+        var fiveOfKinds = new FiveOfAKindHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, []));
+        Assert.That(fiveOfKinds, Is.Empty, "Should not identify five of a kind in empty hand");
     }
 }

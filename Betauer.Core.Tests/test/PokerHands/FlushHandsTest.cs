@@ -11,8 +11,7 @@ public class FlushHandsTest : PokerHandsTestBase {
     public void BasicFlush_ShouldBeIdentified() {
         // 5 cartas del mismo palo, no consecutivas
         var cards = CreateCards("2H", "5H", "7H", "JH", "KH");
-        var hands = HandsManager.IdentifyAllHands(Handler, cards);
-        var flushes = hands.Where(h => h is FlushHand).ToList();
+        var flushes = new FlushHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.Multiple(() => {
             Assert.That(flushes.Count, Is.EqualTo(1), "Should identify exactly one flush");
@@ -30,8 +29,7 @@ public class FlushHandsTest : PokerHandsTestBase {
     public void WithMoreThanFiveCards_ShouldSelectHighestFive() {
         // 7 cartas del mismo palo
         var cards = CreateCards("2H", "5H", "7H", "9H", "JH", "QH", "KH");
-        var hands = HandsManager.IdentifyAllHands(Handler, cards);
-        var flushes = hands.Where(h => h is FlushHand).ToList();
+        var flushes = new FlushHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.Multiple(() => {
             Assert.That(flushes.Count, Is.EqualTo(1), "Should identify exactly one flush");
@@ -48,8 +46,7 @@ public class FlushHandsTest : PokerHandsTestBase {
     public void WithMultipleSuits_ShouldSelectHighestFlush() {
         // Dos flushes posibles: 5 corazones y 5 picas
         var cards = CreateCards("2H", "5H", "7H", "JH", "KH", "3S", "6S", "8S", "TS", "QS");
-        var hands = HandsManager.IdentifyAllHands(Handler, cards);
-        var flushes = hands.Where(h => h is FlushHand).ToList();
+        var flushes = new FlushHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.Multiple(() => {
             Assert.That(flushes.Count, Is.EqualTo(1), "Should identify only the highest flush");
@@ -64,8 +61,7 @@ public class FlushHandsTest : PokerHandsTestBase {
     [Test]
     public void WithFourCardsOfSameSuit_ShouldNotIdentifyFlush() {
         var cards = CreateCards("2H", "5H", "7H", "JH", "KC");
-        var hands = HandsManager.IdentifyAllHands(Handler, cards);
-        var flushes = hands.Where(h => h is FlushHand).ToList();
+        var flushes = new FlushHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.That(flushes, Is.Empty, "Should not identify flush with only 4 cards of same suit");
     }
@@ -89,7 +85,7 @@ public class FlushHandsTest : PokerHandsTestBase {
         // 4 corazones y una carta diferente
         var cards = CreateCards("7H", "9H", "JH", "KH", "4C");
         var hand = new FlushHand(HandsManager, []);
-        var analysis = new PokerHandAnalysis(cards);
+        var analysis = new PokerHandAnalysis(Handler.Config, cards);
 
         Assert.Multiple(() => {
             var discards = hand.SuggestDiscards(analysis, 2);
@@ -105,7 +101,7 @@ public class FlushHandsTest : PokerHandsTestBase {
         // 3 corazones y dos cartas diferentes
         var cards = CreateCards("7H", "JH", "KH", "4C", "8D");
         var hand = new FlushHand(HandsManager, []);
-        var analysis = new PokerHandAnalysis(cards);
+        var analysis = new PokerHandAnalysis(Handler.Config, cards);
 
         Assert.Multiple(() => {
             var discards = hand.SuggestDiscards(analysis, 2);
@@ -123,7 +119,7 @@ public class FlushHandsTest : PokerHandsTestBase {
         // Flush completo
         var cards = CreateCards("2H", "5H", "7H", "JH", "KH");
         var hand = new FlushHand(HandsManager, []);
-        var analysis = new PokerHandAnalysis(cards);
+        var analysis = new PokerHandAnalysis(Handler.Config, cards);
 
         var discards = hand.SuggestDiscards(analysis, 2);
         Assert.That(discards.Count, Is.EqualTo(0),
@@ -135,7 +131,7 @@ public class FlushHandsTest : PokerHandsTestBase {
         // Todas las cartas de diferente palo
         var cards = CreateCards("2H", "5S", "7D", "JC", "KH");
         var hand = new FlushHand(HandsManager, []);
-        var analysis = new PokerHandAnalysis(cards);
+        var analysis = new PokerHandAnalysis(Handler.Config, cards);
 
         var discards = hand.SuggestDiscards(analysis, 2);
         Assert.That(discards.Count, Is.EqualTo(0),
@@ -147,7 +143,7 @@ public class FlushHandsTest : PokerHandsTestBase {
         // 3 corazones y 3 picas
         var cards = CreateCards("7H", "JH", "KH", "8S", "TS", "QS");
         var hand = new FlushHand(HandsManager, []);
-        var analysis = new PokerHandAnalysis(cards);
+        var analysis = new PokerHandAnalysis(Handler.Config, cards);
 
         Assert.Multiple(() => {
             var discards = hand.SuggestDiscards(analysis, 3);
@@ -159,13 +155,6 @@ public class FlushHandsTest : PokerHandsTestBase {
     }
 
     [Test]
-    public void EmptyHand_ShouldReturnNoFlush() {
-        var hands = HandsManager.IdentifyAllHands(Handler, []);
-        var flushes = hands.Where(h => h is FlushHand).ToList();
-        Assert.That(flushes, Is.Empty);
-    }
-
-    [Test]
     public void WithEqualNumberOfCards_ShouldOrderByHighestCard() {
         // Dos flushes con el mismo número de cartas pero diferentes valores altos
         var cards = CreateCards(
@@ -174,8 +163,7 @@ public class FlushHandsTest : PokerHandsTestBase {
             // Flush de picas con Q alta
             "3S", "6S", "8S", "JS", "QS"
         );
-        var hands = HandsManager.IdentifyAllHands(Handler, cards);
-        var flushes = hands.Where(h => h is FlushHand).ToList();
+        var flushes = new FlushHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.Multiple(() => {
             Assert.That(flushes.Count, Is.EqualTo(1), "Should identify only the highest flush");
@@ -193,8 +181,7 @@ public class FlushHandsTest : PokerHandsTestBase {
             // Flush de picas: K, J, 8, 6, 3
             "3S", "6S", "8S", "JS", "KS"
         );
-        var hands = HandsManager.IdentifyAllHands(Handler, cards);
-        var flushes = hands.Where(h => h is FlushHand).ToList();
+        var flushes = new FlushHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.Multiple(() => {
             Assert.That(flushes.Count, Is.EqualTo(1), "Should identify only the highest flush");
@@ -216,8 +203,7 @@ public class FlushHandsTest : PokerHandsTestBase {
             "2H", "5H", "7H", "JH", "KH",
             "2S", "5S", "7S", "JS", "KS"
         );
-        var hands = HandsManager.IdentifyAllHands(Handler, cards);
-        var flushes = hands.Where(h => h is FlushHand).ToList();
+        var flushes = new FlushHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.Multiple(() => {
             Assert.That(flushes.Count, Is.EqualTo(1), "Should identify only one flush");
@@ -230,5 +216,11 @@ public class FlushHandsTest : PokerHandsTestBase {
             Assert.That(ranks, Is.EqualTo(new[] { 13, 11, 7, 5, 2 }),
                 "Should have correct ranks regardless of suit");
         });
+    }
+
+    [Test]
+    public void EmptyHand_ShouldReturnNoFlush() {
+        var flushes = new FlushHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, []));
+        Assert.That(flushes, Is.Empty);
     }
 }

@@ -28,7 +28,7 @@ public class DiscardOptionsTests {
     public void HighCardHand_SuggestDiscards_ShouldReturnEmpty() {
         var currentHand = CreateCards("AS", "KH", "QD", "JC", "TD");
         var hand = new HighCardHand(HandsManager, []);
-        var discards = hand.SuggestDiscards(new PokerHandAnalysis(currentHand), 3);
+        var discards = hand.SuggestDiscards(new PokerHandAnalysis(Handler.Config, currentHand), 3);
 
         Assert.That(discards, Is.Empty, "High card hand should not suggest any discards");
     }
@@ -38,7 +38,7 @@ public class DiscardOptionsTests {
     public void PairHand_SuggestDiscards_WithNoPair_ShouldDiscardLowest() {
         var currentHand = CreateCards("AH", "KH", "QD", "JC", "TD");
         var hand = new PairHand(HandsManager, []);
-        var discards = hand.SuggestDiscards(new PokerHandAnalysis(currentHand), 2)[0];
+        var discards = hand.SuggestDiscards(new PokerHandAnalysis(Handler.Config, currentHand), 2)[0];
 
         Assert.Multiple(() => {
             Assert.That(discards, Has.Count.EqualTo(2), "Should discard 2 lowest cards");
@@ -54,7 +54,7 @@ public class DiscardOptionsTests {
     public void StraightHand_SuggestDiscards_ShouldKeepConnectedCards() {
         var currentHand = CreateCards("TD", "JH", "QC", "KD", "2S");
         var hand = new StraightHand(HandsManager, []);
-        var discards = hand.SuggestDiscards(new PokerHandAnalysis(currentHand), 1)[0];
+        var discards = hand.SuggestDiscards(new PokerHandAnalysis(Handler.Config, currentHand), 1)[0];
 
         Assert.Multiple(() => {
             Assert.That(discards, Has.Count.EqualTo(1), "Should discard 1 non-connected card");
@@ -67,7 +67,7 @@ public class DiscardOptionsTests {
         // 4 hearts and 1 spade
         var currentHand = CreateCards("AH", "KH", "QH", "JH", "2S");
         var hand = new FlushHand(HandsManager, []);
-        var discards = hand.SuggestDiscards(new PokerHandAnalysis(currentHand), 1)[0];
+        var discards = hand.SuggestDiscards(new PokerHandAnalysis(Handler.Config, currentHand), 1)[0];
 
         Assert.Multiple(() => {
             Assert.That(discards, Has.Count.EqualTo(1), "Should discard 1 off-suit card");
@@ -80,7 +80,7 @@ public class DiscardOptionsTests {
     public void FullHouseHand_SuggestDiscards_ShouldKeepTrioAndPair() {
         var currentHand = CreateCards("AS", "AH", "AD", "KH", "KC");
         var hand = new FullHouseHand(HandsManager, []);
-        var discards = hand.SuggestDiscards(new PokerHandAnalysis(currentHand), 2);
+        var discards = hand.SuggestDiscards(new PokerHandAnalysis(Handler.Config, currentHand), 2);
 
         Assert.That(discards, Is.Empty, "Should not discard any cards from a full house");
     }
@@ -90,7 +90,7 @@ public class DiscardOptionsTests {
         // 4 connected hearts and 1 spade
         var currentHand = CreateCards("TH", "JH", "QH", "KH", "2S");
         var hand = new StraightFlushHand(HandsManager, []);
-        var discards = hand.SuggestDiscards(new PokerHandAnalysis(currentHand), 1)[0];
+        var discards = hand.SuggestDiscards(new PokerHandAnalysis(Handler.Config, currentHand), 1)[0];
 
         Assert.Multiple(() => {
             Assert.That(discards, Has.Count.EqualTo(1), "Should discard 1 card");
@@ -105,7 +105,7 @@ public class DiscardOptionsTests {
         var maxDiscards = 2;
 
         foreach (var handConfig in GetAllHandTypes()) {
-            var discards = handConfig.SuggestDiscards(new PokerHandAnalysis(currentHand), maxDiscards);
+            var discards = handConfig.SuggestDiscards(new PokerHandAnalysis(Handler.Config, currentHand), maxDiscards);
 
             foreach (var discard in discards) {
                 Assert.That(discard, Has.Count.LessThanOrEqualTo(maxDiscards),
@@ -250,7 +250,7 @@ public class DiscardOptionsTests {
     public void StraightHand_SuggestDiscards_WithSevenCards() {
         var currentHand = CreateCards("5H", "6H", "7H", "8H", "9D", "TS", "JH");
         var hand = new StraightHand(HandsManager, []);
-        var discards = hand.SuggestDiscards(new PokerHandAnalysis(currentHand), 2)[0];
+        var discards = hand.SuggestDiscards(new PokerHandAnalysis(Handler.Config, currentHand), 2)[0];
 
         Assert.Multiple(() => {
             Assert.That(discards, Has.Count.EqualTo(2), "Should discard 2 cards");
@@ -265,7 +265,7 @@ public class DiscardOptionsTests {
     public void StraightHand_SuggestDiscards_WithGap() {
         var currentHand = CreateCards("8H", "9H", "JH", "QH", "KD", "2S", "3D");
         var hand = new StraightHand(HandsManager, []);
-        var discards = hand.SuggestDiscards(new PokerHandAnalysis(currentHand), 2)[0];
+        var discards = hand.SuggestDiscards(new PokerHandAnalysis(Handler.Config, currentHand), 2)[0];
 
         Assert.Multiple(() => {
             Assert.That(discards, Has.Count.EqualTo(2), "Should discard 2 cards");
@@ -288,7 +288,7 @@ public class DiscardOptionsTests {
     public void StraightHand_SuggestDiscards_WithLowAce() {
         var currentHand = CreateCards("AH", "2H", "3H", "4D", "5S", "KH", "QD");
         var hand = new StraightHand(HandsManager, []);
-        var discards = hand.SuggestDiscards(new PokerHandAnalysis(currentHand), 2)[0];
+        var discards = hand.SuggestDiscards(new PokerHandAnalysis(Handler.Config, currentHand), 2)[0];
 
         Assert.Multiple(() => {
             Assert.That(discards, Has.Count.EqualTo(2), "Should discard 2 cards");
@@ -312,7 +312,7 @@ public class DiscardOptionsTests {
     public void StraightHand_SuggestDiscards_WithHighAce() {
         var currentHand = CreateCards("AH", "KH", "QH", "JD", "TS", "2H", "3D");
         var hand = new StraightHand(HandsManager, []);
-        var discards = hand.SuggestDiscards(new PokerHandAnalysis(currentHand), 2)[0];
+        var discards = hand.SuggestDiscards(new PokerHandAnalysis(Handler.Config, currentHand), 2)[0];
 
         Assert.Multiple(() => {
             Assert.That(discards, Has.Count.EqualTo(2), "Should discard 2 cards");
@@ -330,7 +330,7 @@ public class DiscardOptionsTests {
         var currentHand = CreateCards("2H", "3H", "7H", "8D", "9S", "TH", "JD", "QD", "KD");
         var maxDiscards = 5;
         var hand = new StraightHand(HandsManager, []);
-        var discards = hand.SuggestDiscards(new PokerHandAnalysis(currentHand), maxDiscards)[0];
+        var discards = hand.SuggestDiscards(new PokerHandAnalysis(Handler.Config, currentHand), maxDiscards)[0];
 
         Assert.Multiple(() => {
             Assert.That(discards, Has.Count.LessThanOrEqualTo(maxDiscards),
@@ -406,7 +406,7 @@ public class DiscardOptionsTests {
     public void FlushHouse_SuggestDiscards_ShouldKeepSameSuitAndRanks() {
         var currentHand = CreateCards("AH", "AH", "AH", "KH", "KH", "2S");
         var hand = new FlushHouseHand(HandsManager, []);
-        var discards = hand.SuggestDiscards(new PokerHandAnalysis(currentHand), 1)[0];
+        var discards = hand.SuggestDiscards(new PokerHandAnalysis(Handler.Config, currentHand), 1)[0];
 
         Assert.Multiple(() => {
             Assert.That(discards, Has.Count.EqualTo(1), "Should discard 1 card");
@@ -419,7 +419,7 @@ public class DiscardOptionsTests {
     public void FlushFive_WhenComplete_ShouldNotSuggestDiscards() {
         var currentHand = CreateCards("AH", "AH", "AH", "AH", "AH");
         var hand = new FlushFiveHand(HandsManager, []);
-        var discards = hand.SuggestDiscards(new PokerHandAnalysis(currentHand), 1);
+        var discards = hand.SuggestDiscards(new PokerHandAnalysis(Handler.Config, currentHand), 1);
 
         Assert.That(discards, Is.Empty, "Should not suggest discards when FlushFive is complete");
     }
@@ -441,22 +441,22 @@ public class DiscardOptionsTests {
         // Test con par
         var pairHand = CreateCards("AS", "AH", "QD", "JC", "TD");
         var withPair = new PairHand(HandsManager, []);
-        Assert.That(withPair.SuggestDiscards(new PokerHandAnalysis(pairHand), 3), Is.Empty,
+        Assert.That(withPair.SuggestDiscards(new PokerHandAnalysis(Handler.Config, pairHand), 3), Is.Empty,
             "Should not suggest discards when we already have a pair");
 
         // Test con trío
         var threeKind = CreateCards("AS", "AH", "AD", "JC", "TD");
-        Assert.That(withPair.SuggestDiscards(new PokerHandAnalysis(threeKind), 3), Is.Empty,
+        Assert.That(withPair.SuggestDiscards(new PokerHandAnalysis(Handler.Config, threeKind), 3), Is.Empty,
             "Should not suggest discards when we already have three of a kind");
 
         // Test con póker
         var fourKind = CreateCards("AS", "AH", "AD", "AC", "TD");
-        Assert.That(withPair.SuggestDiscards(new PokerHandAnalysis(fourKind), 3), Is.Empty,
+        Assert.That(withPair.SuggestDiscards(new PokerHandAnalysis(Handler.Config, fourKind), 3), Is.Empty,
             "Should not suggest discards when we already have four of a kind");
 
         // Test con repóker
         var fiveKind = CreateCards("AS", "AH", "AD", "AC", "AH");
-        Assert.That(withPair.SuggestDiscards(new PokerHandAnalysis(fiveKind), 3), Is.Empty,
+        Assert.That(withPair.SuggestDiscards(new PokerHandAnalysis(Handler.Config, fiveKind), 3), Is.Empty,
             "Should not suggest discards when we already have five of a kind");
     }
 
@@ -465,17 +465,17 @@ public class DiscardOptionsTests {
         // Test con doble pareja
         var twoPairHand = CreateCards("AS", "AH", "KS", "KH", "TD");
         var withTwoPair = new TwoPairHand(HandsManager, []);
-        Assert.That(withTwoPair.SuggestDiscards(new PokerHandAnalysis(twoPairHand), 3), Is.Empty,
+        Assert.That(withTwoPair.SuggestDiscards(new PokerHandAnalysis(Handler.Config, twoPairHand), 3), Is.Empty,
             "Should not suggest discards when we already have two pair");
 
         // Test con trío
         var threeKind = CreateCards("AS", "AH", "AD", "JC", "TD");
-        Assert.That(withTwoPair.SuggestDiscards(new PokerHandAnalysis(threeKind), 3), Is.Empty,
+        Assert.That(withTwoPair.SuggestDiscards(new PokerHandAnalysis(Handler.Config, threeKind), 3), Is.Empty,
             "Should not suggest discards when we already have three of a kind");
 
         // Test con póker
         var fourKind = CreateCards("AS", "AH", "AD", "AC", "TD");
-        Assert.That(withTwoPair.SuggestDiscards(new PokerHandAnalysis(fourKind), 3), Is.Empty,
+        Assert.That(withTwoPair.SuggestDiscards(new PokerHandAnalysis(Handler.Config, fourKind), 3), Is.Empty,
             "Should not suggest discards when we already have four of a kind");
     }
 
@@ -484,17 +484,17 @@ public class DiscardOptionsTests {
         // Test con trío
         var threeKindHand = CreateCards("AS", "AH", "AD", "JC", "TD");
         var withThree = new ThreeOfAKindHand(HandsManager, []);
-        Assert.That(withThree.SuggestDiscards(new PokerHandAnalysis(threeKindHand), 3), Is.Empty,
+        Assert.That(withThree.SuggestDiscards(new PokerHandAnalysis(Handler.Config, threeKindHand), 3), Is.Empty,
             "Should not suggest discards when we already have three of a kind");
 
         // Test con póker
         var fourKind = CreateCards("AS", "AH", "AD", "AC", "TD");
-        Assert.That(withThree.SuggestDiscards(new PokerHandAnalysis(fourKind), 3), Is.Empty,
+        Assert.That(withThree.SuggestDiscards(new PokerHandAnalysis(Handler.Config, fourKind), 3), Is.Empty,
             "Should not suggest discards when we already have four of a kind");
 
         // Test con repóker
         var fiveKind = CreateCards("AS", "AH", "AD", "AC", "AH");
-        Assert.That(withThree.SuggestDiscards(new PokerHandAnalysis(fiveKind), 3), Is.Empty,
+        Assert.That(withThree.SuggestDiscards(new PokerHandAnalysis(Handler.Config, fiveKind), 3), Is.Empty,
             "Should not suggest discards when we already have five of a kind");
     }
 
@@ -503,12 +503,12 @@ public class DiscardOptionsTests {
         // Test con póker
         var fourKindHand = CreateCards("AS", "AH", "AD", "AC", "TD");
         var withFour = new FourOfAKindHand(HandsManager, []);
-        Assert.That(withFour.SuggestDiscards(new PokerHandAnalysis(fourKindHand), 3), Is.Empty,
+        Assert.That(withFour.SuggestDiscards(new PokerHandAnalysis(Handler.Config, fourKindHand), 3), Is.Empty,
             "Should not suggest discards when we already have four of a kind");
 
         // Test con repóker
         var fiveKind = CreateCards("AS", "AH", "AD", "AC", "AH");
-        Assert.That(withFour.SuggestDiscards(new PokerHandAnalysis(fiveKind), 3), Is.Empty,
+        Assert.That(withFour.SuggestDiscards(new PokerHandAnalysis(Handler.Config, fiveKind), 3), Is.Empty,
             "Should not suggest discards when we already have five of a kind");
     }
 
@@ -516,7 +516,7 @@ public class DiscardOptionsTests {
     public void FiveOfAKindHand_SuggestDiscards_WithFiveOfAKind_ShouldNotSuggestDiscards() {
         var fiveKindHand = CreateCards("AS", "AH", "AD", "AC", "AH");
         var withFive = new FiveOfAKindHand(HandsManager, []);
-        Assert.That(withFive.SuggestDiscards(new PokerHandAnalysis(fiveKindHand), 3), Is.Empty,
+        Assert.That(withFive.SuggestDiscards(new PokerHandAnalysis(Handler.Config, fiveKindHand), 3), Is.Empty,
             "Should not suggest discards when we already have five of a kind");
     }
 
@@ -524,7 +524,7 @@ public class DiscardOptionsTests {
     public void PairHand_SuggestDiscards_WithNoPair_ShouldDiscardNonDuplicates() {
         var currentHand = CreateCards("AH", "KH", "QD", "JC", "TD");
         var hand = new PairHand(HandsManager, []);
-        var discards = hand.SuggestDiscards(new PokerHandAnalysis(currentHand), 2)[0];
+        var discards = hand.SuggestDiscards(new PokerHandAnalysis(Handler.Config, currentHand), 2)[0];
 
         Assert.Multiple(() => {
             Assert.That(discards, Has.Count.EqualTo(2), "Should discard 2 lowest cards");

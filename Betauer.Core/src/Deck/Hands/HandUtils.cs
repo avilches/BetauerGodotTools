@@ -15,18 +15,18 @@ public class FlushComparer : IComparer<IReadOnlyList<Card>> {
     public int Compare(IReadOnlyList<Card>? x, IReadOnlyList<Card>? y) {
         if (x == null || y == null) return 0;
         if (x.Count != y.Count) return x.Count.CompareTo(y.Count);
-        
+
         // Eliminamos las cartas con mismo rank en ambas manos
         var xRanks = x.Select(c => c.Rank).OrderByDescending(r => r).ToList();
         var yRanks = y.Select(c => c.Rank).OrderByDescending(r => r).ToList();
-        
+
         // Comparamos rank a rank (ya ordenados de mayor a menor)
         for (var i = 0; i < Math.Min(xRanks.Count, yRanks.Count); i++) {
             if (xRanks[i] != yRanks[i]) {
                 return xRanks[i].CompareTo(yRanks[i]);
             }
         }
-        
+
         return 0; // Son iguales
     }
 }
@@ -123,21 +123,21 @@ public static class HandUtils {
     /// First attempts to find sequences within each suit, and if no complete straight flush
     /// is found, then looks for regular straights.
     /// </summary>
-    public static List<Straight> FindStraightSequences(IReadOnlyList<Card> cards) {
+    public static List<Straight> FindStraightSequences(int size, IReadOnlyList<Card> cards) {
         var allStraights = new List<Straight>();
 
         // Primero intentamos encontrar escaleras de color
         foreach (var suit in cards.Select(c => c.Suit).Distinct()) {
             var suitCards = cards.Where(c => c.Suit == suit).ToList();
             if (suitCards.Count >= 3) {
-                allStraights.AddRange(FindSequences(suitCards));
+                allStraights.AddRange(FindSequences(size, suitCards));
             }
         }
 
         // Si no encontramos escaleras de color completas (la primera será completa si existe)
         if (allStraights.Count == 0 || allStraights[0].Incomplete) {
-            var regularSequences = FindSequences(cards);
-            
+            var regularSequences = FindSequences(size, cards);
+
             // Añadir solo las escaleras que no son equivalentes a las que ya tenemos
             foreach (var straight in regularSequences) {
                 if (!HasEquivalentStraight(allStraights, straight)) {
@@ -146,33 +146,20 @@ public static class HandUtils {
             }
         }
 
-        return allStraights.OrderByDescending(s => s, new StraightComparer()).ToList();
+        return allStraights.OrderByDescending(s => s, PokerHandAnalysis.StraightComparer).ToList();
     }
 
-    private static List<Straight> FindSequences(IReadOnlyList<Card> cards) {
+    private static List<Straight> FindSequences(int size, IReadOnlyList<Card> cards) {
         var allSequences = new List<Straight>();
-        var rankSet = cards.Select(c => c.Rank).ToHashSet();
 
-        // Si tenemos un As, añadirlo también como 1 para escaleras bajas
-        if (rankSet.Contains(14)) {
-            // Comprobar escalera baja con As (A,2,3,4,5)
-            var neededRanks = new[] { 1, 2, 3, 4, 5 };
-            var sequence = cards.Where(c =>
-                    neededRanks.Contains(c.Rank == 14 ? 1 : c.Rank))
-                .ToList();
-            var missingCount = neededRanks.Count(r =>
-                !rankSet.Contains(r) && (r != 1 || !rankSet.Contains(14)));
-
-            if (missingCount <= 2) {
-                allSequences.Add(new Straight(sequence, 1, 5));
-            }
-        }
-
-        // Probar todas las posibles posiciones de inicio de escalera (de 2 a 10)
-        for (int startRank = 2; startRank <= 10; startRank++) {
-            var neededRanks = new[] { startRank, startRank + 1, startRank + 2, startRank + 3, startRank + 4 };
-            var sequence = cards.Where(c => neededRanks.Contains(c.Rank)).ToList();
-            var missingCount = neededRanks.Count(r => !rankSet.Contains(r));
+        // Probar todas las posibles posiciones de inicio de escalera (de 1 a 10)
+        for (var startRank = 1; startRank <= 10; startRank++) {
+            var neededRanks = Enumerable.Range(startRank, size);
+            var sequence = neededRanks
+                .Select(rank =>
+                    cards.FirstOrDefault(c => c.Rank == (rank == 1 ? 14 : rank)))
+                .Where(c => c != null).ToList();
+            var missingCount = size - sequence.Count;
 
             if (missingCount <= 2) {
                 var straight = new Straight(sequence, startRank, startRank + 4);

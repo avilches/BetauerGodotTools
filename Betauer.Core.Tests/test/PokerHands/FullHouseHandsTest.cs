@@ -11,8 +11,7 @@ public class FullHouseHandsTest : PokerHandsTestBase {
     [Test]
     public void BasicFullHouse_ShouldBeIdentified() {
         var cards = CreateCards("AS", "AH", "AD", "KS", "KH");
-        var hands = HandsManager.IdentifyAllHands(Handler, cards);
-        var fullHouses = hands.Where(h => h is FullHouseHand).ToList();
+        var fullHouses = new FullHouseHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.Multiple(() => {
             Assert.That(fullHouses.Count, Is.EqualTo(1), "Should identify exactly one full house");
@@ -35,10 +34,9 @@ public class FullHouseHandsTest : PokerHandsTestBase {
 
     [Test]
     public void WithMultipleOptions_ShouldIdentifyBestFullHouse() {
-        // Con AAAKKK, debería identificar AAA-KK, no KKK-AA
-        var cards = CreateCards("AS", "AH", "AD", "KS", "KH", "KD");
-        var hands = HandsManager.IdentifyAllHands(Handler, cards);
-        var fullHouses = hands.Where(h => h is FullHouseHand).ToList();
+        // Con AAA KKK, debería identificar AAA-KK, no KKK-AA
+        var cards = CreateCards("KS", "KH", "KD", "AS", "AH", "AD");
+        var fullHouses = new FullHouseHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.Multiple(() => {
             Assert.That(fullHouses.Count, Is.EqualTo(1), "Should identify exactly one full house");
@@ -58,8 +56,7 @@ public class FullHouseHandsTest : PokerHandsTestBase {
     public void WithFourOfAKind_ShouldIdentifyFullHouse() {
         // Con AAAA-KK, debería poder formar full house AAA-KK
         var cards = CreateCards("AS", "AH", "AD", "AC", "KS", "KH");
-        var hands = HandsManager.IdentifyAllHands(Handler, cards);
-        var fullHouses = hands.Where(h => h is FullHouseHand).ToList();
+        var fullHouses = new FullHouseHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.Multiple(() => {
             Assert.That(fullHouses.Count, Is.EqualTo(1), "Should identify exactly one full house");
@@ -78,8 +75,7 @@ public class FullHouseHandsTest : PokerHandsTestBase {
     [Test]
     public void ThreeOfAKind_ShouldNotIdentifyFullHouse() {
         var cards = CreateCards("AS", "AH", "AD", "KS", "QH");
-        var hands = HandsManager.IdentifyAllHands(Handler, cards);
-        var fullHouses = hands.Where(h => h is FullHouseHand).ToList();
+        var fullHouses = new FullHouseHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
         
         Assert.That(fullHouses, Is.Empty, "Should not identify full house with only three of a kind");
     }
@@ -87,27 +83,24 @@ public class FullHouseHandsTest : PokerHandsTestBase {
     [Test]
     public void TwoPair_ShouldNotIdentifyFullHouse() {
         var cards = CreateCards("AS", "AH", "KS", "KH", "QD");
-        var hands = HandsManager.IdentifyAllHands(Handler, cards);
-        var fullHouses = hands.Where(h => h is FullHouseHand).ToList();
+        var fullHouses = new FullHouseHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
         
         Assert.That(fullHouses, Is.Empty, "Should not identify full house with only two pair");
-    }
-
-    [Test]
-    public void EmptyHand_ShouldReturnNoFullHouse() {
-        var cards = new List<Card>();
-        var hands = HandsManager.IdentifyAllHands(Handler, cards);
-        var fullHouses = hands.Where(h => h is FullHouseHand).ToList();
-        Assert.That(fullHouses, Is.Empty);
     }
 
     [Test]
     public void SuggestDiscards_WithoutFullHouse_ShouldReturnEmpty() {
         var cards = CreateCards("AS", "AH", "KH", "QD", "JC");
         var hand = new FullHouseHand(HandsManager, []);
-        var discards = hand.SuggestDiscards(new PokerHandAnalysis(cards), 3);
+        var discards = hand.SuggestDiscards(new PokerHandAnalysis(Handler.Config, cards), 3);
         
         // Full house no sugiere descartes porque es una mano compleja de formar
         Assert.That(discards, Is.Empty, "Full house should not suggest discards");
+    }
+
+    [Test]
+    public void EmptyHand_ShouldReturnNoFullHouse() {
+        var fullHouses = new FullHouseHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, []));
+        Assert.That(fullHouses, Is.Empty);
     }
 }
