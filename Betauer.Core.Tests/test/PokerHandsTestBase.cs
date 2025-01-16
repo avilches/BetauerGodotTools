@@ -9,6 +9,7 @@ namespace Betauer.Core.Tests;
 
 [TestFixture]
 public class PokerHandsTestBase {
+    public GameRun GameRun;
     public GameHandler Handler;
     public PokerGameConfig Config;
     public PokerHandsManager HandsManager;
@@ -18,7 +19,8 @@ public class PokerHandsTestBase {
         Config = new PokerGameConfig();
         HandsManager = new PokerHandsManager();
         HandsManager.RegisterBasicPokerHands();
-        Handler = new GameHandler(Config, HandsManager, 0, 0);
+        GameRun = new GameRun(0, Config, HandsManager, 0);
+        Handler = GameRun.CreateGameHandler(0);
     }
 
 

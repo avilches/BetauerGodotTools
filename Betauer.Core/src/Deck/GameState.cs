@@ -7,14 +7,15 @@ namespace Betauer.Core.Deck;
 
 public class GameState {
     public PokerGameConfig Config { get; }
-    public long Score { get; set; } = 0;
-    public long LevelScore { get; set; } = 0;
-    public int Level { get; } = 0;
+    
     public int Seed { get; }
-    public readonly Dictionary<Type, int> _handLevels = new();
 
+    public int Level { get; } = 0;
+    public long LevelScore { get; set; } = 0;
+    public long Score { get; set; } = 0;
     public int HandsPlayed { get; set; } = 0;
     public int Discards { get; set; } = 0;
+
     public PlayHistory History { get; } = new();
 
     private readonly List<Card> _availableCards = [];
@@ -71,14 +72,6 @@ public class GameState {
         }
     }
     
-    public int GetPokerHandLevel(PokerHand hand) {
-        return _handLevels.GetValueOrDefault(hand.GetType(), 0);
-    }
-
-    public void SetPokerHandLevel(PokerHand hand, int level) {
-        _handLevels[hand.GetType()] = level;
-    }
-
     public void ShuffleAvailable(Random random) {
         random.Shuffle(_availableCards);
     }

@@ -10,6 +10,7 @@ namespace Betauer.Core.Tests;
 
 [TestFixture]
 public class GameHandlerTests {
+    public GameRun GameRun;
     public GameHandler Handler;
     public PokerGameConfig Config;
     public PokerHandsManager HandsManager;
@@ -19,7 +20,8 @@ public class GameHandlerTests {
         Config = new PokerGameConfig();
         HandsManager = new PokerHandsManager();
         HandsManager.RegisterBasicPokerHands();
-        Handler = new GameHandler(Config, HandsManager, 0, 0);
+        GameRun = new GameRun(0, Config, HandsManager, 0);
+        Handler = GameRun.CreateGameHandler(0);
     }
 
     [Test]
@@ -31,11 +33,11 @@ public class GameHandlerTests {
         var hand = Handler.GetPossibleHands()[0];
         var scoreAtLevel0 = Handler.CalculateScore(hand);
 
-        state.SetPokerHandLevel(hand, 1);
+        GameRun.State.SetPokerHandLevel(hand, 1);
         var scoreAtLevel1 = Handler.CalculateScore(hand);
         Assert.That(scoreAtLevel1, Is.GreaterThan(scoreAtLevel0));
 
-        state.SetPokerHandLevel(hand, 2);
+        GameRun.State.SetPokerHandLevel(hand, 2);
         var scoreAtLevel2 = Handler.CalculateScore(hand);
         Assert.That(scoreAtLevel2, Is.GreaterThan(scoreAtLevel1));
     }
@@ -53,13 +55,13 @@ public class GameHandlerTests {
         Assert.That(scoreLevel0, Is.EqualTo(expectedLevel0));
 
         // Test at Level 1
-        Handler.State.SetPokerHandLevel(pairHand, 1);
+        GameRun.State.SetPokerHandLevel(pairHand, 1);
         var scoreLevel1 = Handler.CalculateScore(pairHand);
         var expectedLevel1 = (25 + (12 + 12)) * 3; // ((10 + 15) + ranks) * (2 + 1)
         Assert.That(scoreLevel1, Is.EqualTo(expectedLevel1));
 
         // Test at Level 2
-        Handler.State.SetPokerHandLevel(pairHand, 2);
+        GameRun.State.SetPokerHandLevel(pairHand, 2);
         var scoreLevel2 = Handler.CalculateScore(pairHand);
         var expectedLevel2 = (40 + (12 + 12)) * 4; // ((10 + 30) + ranks) * (2 + 2)
         Assert.That(scoreLevel2, Is.EqualTo(expectedLevel2));
@@ -70,14 +72,14 @@ public class GameHandlerTests {
         var levels = new[] { 0, 1, 2 };
 
         foreach (var level in levels) {
-            var gameHandler = new GameHandler(Config, HandsManager, 10, 0);
+            var gameHandler = GameRun.CreateGameHandler(10);
 
             while (!gameHandler.IsWon() && !gameHandler.IsGameOver()) {
                 gameHandler.DrawCards();
                 var bestHand = gameHandler.GetPossibleHands()[0];
 
                 // Establecer el nivel específico para este tipo de mano
-                gameHandler.State.SetPokerHandLevel(bestHand, level);
+                GameRun.State.SetPokerHandLevel(bestHand, level);
 
                 var result = gameHandler.PlayHand(bestHand.Cards);
 
@@ -85,9 +87,9 @@ public class GameHandlerTests {
                 Assert.That(result.Score, Is.GreaterThan(0));
                 if (level > 0) {
                     // Recreate the same hand but with level 0
-                    gameHandler.State.SetPokerHandLevel(bestHand, 0);
+                    GameRun.State.SetPokerHandLevel(bestHand, 0);
                     var baseScore = gameHandler.CalculateScore(bestHand);
-                    gameHandler.State.SetPokerHandLevel(bestHand, level);
+                    GameRun.State.SetPokerHandLevel(bestHand, level);
                     var levelScore = gameHandler.CalculateScore(bestHand);
                     Assert.That(levelScore, Is.GreaterThan(baseScore));
                 }
@@ -148,8 +150,6 @@ public class GameHandlerTests {
 
     [Test]
     public void IsWon_ShouldDependOnTotalScore() {
-        Handler = new GameHandler(Config, HandsManager, 0, 0);
-
         // Should not be won initially
         Assert.That(Handler.IsWon(), Is.False);
 
@@ -195,7 +195,8 @@ public class GameHandlerTests {
 
     private GameHandler CreateGameWithInitialHand<T>(int maxAttempts = 1000) where T : PokerHand {
         for (int seed = 1; seed <= maxAttempts; seed++) {
-            var testGame = new GameHandler(Config, HandsManager, 0, seed);
+            var gameRun = new GameRun(0, Config, HandsManager, seed);
+            var testGame = gameRun.CreateGameHandler(0);
             testGame.DrawCards();
             var possibleHands = testGame.GetPossibleHands().OfType<T>().ToList();
             if (possibleHands.Count > 0) {
@@ -207,7 +208,8 @@ public class GameHandlerTests {
 
     private GameHandler CreateGameWithInitialHandSize(int cardCount, int maxAttempts = 1000) {
         for (int seed = 1; seed <= maxAttempts; seed++) {
-            var testGame = new GameHandler(Config, HandsManager, 0, seed);
+            var gameRun = new GameRun(0, Config, HandsManager, seed);
+            var testGame = gameRun.CreateGameHandler(0);
             testGame.DrawCards();
             var possibleHands = testGame.GetPossibleHands()
                 .Where(h => h.Cards.Count == cardCount)
@@ -525,7 +527,7 @@ public class GameHandlerTests {
         Assert.That(Handler.IsWon(), Is.False, "Game should not be won with low score");
 
         // Caso 2: Score suficiente, debería ganar
-        Handler = new GameHandler(Config, HandsManager, 0, 0);
+        Handler = GameRun.CreateGameHandler(0);
         Handler.State.LevelScore = 10; // Un valor bajo que seguro se puede alcanzar con una mano
         Handler.DrawCards();
         hand = Handler.GetPossibleHands()[0];

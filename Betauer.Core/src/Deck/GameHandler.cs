@@ -19,6 +19,7 @@ public class GameHandler {
     public PokerHandsManager PokerHandsManager { get; }
     public PokerGameConfig Config { get; }
     public GameState State { get; }
+    public GameRunState GameRunState { get; }
     
     public bool IsWon() => State.IsWon();
     public bool IsGameOver() => State.IsGameOver();
@@ -34,7 +35,8 @@ public class GameHandler {
     private readonly Random _drawCardsRandom;
     private readonly Random _recoverCardsRandom;
 
-    public GameHandler(PokerGameConfig config, PokerHandsManager pokerHandsManager, int level, int seed) {
+    public GameHandler(GameRunState gameRunState, PokerGameConfig config, PokerHandsManager pokerHandsManager, int level, int seed) {
+        GameRunState = gameRunState;
         Config = config;
         PokerHandsManager = pokerHandsManager;
         State = new GameState(config, level, seed);
@@ -224,7 +226,7 @@ public class GameHandler {
 
     public long CalculateScore(PokerHand hand) {
         var config = PokerHandsManager.GetPokerHandConfig(hand);
-        var level = State.GetPokerHandLevel(hand);
+        var level = GameRunState.GetPokerHandLevel(hand);
 
         var score = config.InitialScore + level * config.ScorePerLevel;
         var multiplier = config.InitialMultiplier + level * config.MultiplierPerLevel;

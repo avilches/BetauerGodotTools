@@ -5,18 +5,39 @@ using Betauer.Core.Deck.Hands;
 
 namespace Betauer.Core.Deck;
 
-public class GameRun(int id, PokerGameConfig config, PokerHandsManager pokerHandsManager, int seed) {
-    public int Id { get; } = id;
-    public PokerGameConfig Config { get; } = config;
-    public PokerHandsManager PokerHandsManager { get; } = pokerHandsManager;
-    public int Seed { get; } = seed;
-    
+public class GameRunState {
+    public readonly Dictionary<Type, int> _handLevels = new();
+
+    public int GetPokerHandLevel(PokerHand hand) {
+        return _handLevels.GetValueOrDefault(hand.GetType(), 0);
+    }
+
+    public void SetPokerHandLevel(PokerHand hand, int level) {
+        _handLevels[hand.GetType()] = level;
+    }
+}
+
+public class GameRun {
+    public GameRunState State { get; }
+
+    public int Id { get; }
+    public PokerGameConfig Config { get; }
+    public PokerHandsManager PokerHandsManager { get; }
+    public int Seed { get; }
+
     public DateTime StartTime { get; } = DateTime.Now;
-    
     public List<GameState> GameStates { get; } = [];
 
+    public GameRun(int id, PokerGameConfig config, PokerHandsManager pokerHandsManager, int seed) {
+        Id = id;
+        Config = config;
+        PokerHandsManager = pokerHandsManager;
+        Seed = seed;
+        State = new GameRunState();
+    }
+
     public GameHandler CreateGameHandler(int level) {
-        var gameHandler = new GameHandler(Config, PokerHandsManager, level, Seed);
+        var gameHandler = new GameHandler(State, Config, PokerHandsManager, level, Seed);
         GameStates.Add(gameHandler.State);
         return gameHandler;
     }
