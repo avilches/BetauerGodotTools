@@ -38,7 +38,7 @@ public class Straight {
     public int MissingCards { get; }
     public bool HasAce => Cards.Any(c => c.Rank == 14);
     public bool IsFlush { get; }
-    public bool Incomplete => MissingCards > 0;
+    public bool IsComplete => MissingCards == 0;
 
     public Straight(List<Card> cards, int minRank, int maxRank) {
         Cards = cards.OrderBy(c => c.Rank).ToList();
@@ -134,8 +134,8 @@ public static class HandUtils {
             }
         }
 
-        // Si no encontramos escaleras de color completas (la primera será completa si existe)
-        if (allStraights.Count == 0 || allStraights[0].Incomplete) {
+        // Si no encontramos escaleras de color completas (no hay, o hay pero la primera esta incompleta)
+        if (allStraights.Count == 0 || !allStraights[0].IsComplete) {
             var regularSequences = FindSequences(size, cards);
 
             // Añadir solo las escaleras que no son equivalentes a las que ya tenemos
@@ -157,7 +157,9 @@ public static class HandUtils {
             var neededRanks = Enumerable.Range(startRank, size);
             var sequence = neededRanks
                 .Select(rank =>
-                    cards.FirstOrDefault(c => c.Rank == (rank == 1 ? 14 : rank)))
+                    cards.FirstOrDefault(c => 
+                        // Check both normal rank and Ace as 1 for rank 1
+                        c.Rank == rank || (rank == 1 && c.Rank == 14)))
                 .Where(c => c != null).ToList();
             var missingCount = size - sequence.Count;
 

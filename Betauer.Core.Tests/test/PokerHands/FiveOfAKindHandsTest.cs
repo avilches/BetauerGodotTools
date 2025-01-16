@@ -1,10 +1,12 @@
 using System.Linq;
 using Betauer.Core.Deck.Hands;
+using Betauer.TestRunner;
 using NUnit.Framework;
 
 namespace Betauer.Core.Tests.PokerHands;
 
 [TestFixture]
+
 public class FiveOfAKindHandsTest : PokerHandsTestBase {
     [Test]
     public void BasicFiveOfAKind_ShouldBeIdentified() {
@@ -19,14 +21,25 @@ public class FiveOfAKindHandsTest : PokerHandsTestBase {
     }
 
     [Test]
-    public void WithTwoFiveOfAKind_ShouldIdentifyHighestOnly() {
-        // Con AAAAA KKKKK, debería identificar solo AAAAA
+    public void WithTwoFiveOfAKind_ShouldIdentifyBothOrderedByRank() {
+        // First test case: AAAAA KKKKK
         var cards = CreateCards("AS", "AH", "AD", "AC", "AH", "KS", "KH", "KD", "KC", "KH");
         var fiveOfKinds = new FiveOfAKindHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.Multiple(() => {
-            Assert.That(fiveOfKinds.Count, Is.EqualTo(1), "Should identify exactly one five of a kind");
-            Assert.That(fiveOfKinds[0].Cards.All(c => c.Rank == 14), Is.True, "Should be five Aces (highest rank)");
+            Assert.That(fiveOfKinds.Count, Is.EqualTo(2), "Should identify two five of a kind");
+            Assert.That(fiveOfKinds[0].Cards.All(c => c.Rank == 14), Is.True, "First should be five Aces");
+            Assert.That(fiveOfKinds[1].Cards.All(c => c.Rank == 13), Is.True, "Second should be five Kings");
+        });
+
+        // Second test case: KKKKK AAAAA (reverse order input)
+        cards = CreateCards("KS", "KH", "KD", "KC", "KH", "AS", "AH", "AD", "AC", "AH");
+        fiveOfKinds = new FiveOfAKindHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+
+        Assert.Multiple(() => {
+            Assert.That(fiveOfKinds.Count, Is.EqualTo(2), "Should identify two five of a kind");
+            Assert.That(fiveOfKinds[0].Cards.All(c => c.Rank == 14), Is.True, "First should be five Aces");
+            Assert.That(fiveOfKinds[1].Cards.All(c => c.Rank == 13), Is.True, "Second should be five Kings");
         });
     }
 

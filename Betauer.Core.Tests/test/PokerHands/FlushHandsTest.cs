@@ -6,6 +6,7 @@ using NUnit.Framework;
 namespace Betauer.Core.Tests.PokerHands;
 
 [TestFixture]
+
 public class FlushHandsTest : PokerHandsTestBase {
     [Test]
     public void BasicFlush_ShouldBeIdentified() {
@@ -43,22 +44,6 @@ public class FlushHandsTest : PokerHandsTestBase {
     }
 
     [Test]
-    public void WithMultipleSuits_ShouldSelectHighestFlush() {
-        // Dos flushes posibles: 5 corazones y 5 picas
-        var cards = CreateCards("2H", "5H", "7H", "JH", "KH", "3S", "6S", "8S", "TS", "QS");
-        var flushes = new FlushHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
-
-        Assert.Multiple(() => {
-            Assert.That(flushes.Count, Is.EqualTo(1), "Should identify only the highest flush");
-            Assert.That(flushes[0].Cards.All(c => c.Suit == 'H'),
-                "Should select hearts as they contain the King");
-            var ranks = flushes[0].Cards.Select(c => c.Rank).OrderByDescending(r => r).ToList();
-            Assert.That(ranks, Is.EquivalentTo(new[] { 13, 11, 7, 5, 2 }),
-                "Should have correct ranks for heart flush");
-        });
-    }
-
-    [Test]
     public void WithFourCardsOfSameSuit_ShouldNotIdentifyFlush() {
         var cards = CreateCards("2H", "5H", "7H", "JH", "KC");
         var flushes = new FlushHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
@@ -77,6 +62,32 @@ public class FlushHandsTest : PokerHandsTestBase {
 
             var flushes = hands.Where(h => h is FlushHand).ToList();
             Assert.That(flushes.Count, Is.EqualTo(1), "Should also identify as flush");
+        });
+    }
+    
+    [Test]
+    public void WithIdenticalRanks_ShouldReturnBothFlushes() {
+        // Dos flushes con exactamente los mismos rangos
+        var cards = CreateCards(
+            "2H", "5H", "7H", "JH", "KH",
+            "2S", "5S", "7S", "JS", "KS"
+        );
+        var flushes = new FlushHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+
+        Assert.Multiple(() => {
+            Assert.That(flushes.Count, Is.EqualTo(2), "Should identify both identical flushes");
+        
+            // Verificar que ambos flushes tienen los mismos rangos
+            var heartsRanks = flushes[0].Cards.Select(c => c.Rank).OrderByDescending(r => r).ToList();
+            var spadesRanks = flushes[1].Cards.Select(c => c.Rank).OrderByDescending(r => r).ToList();
+        
+            Assert.That(heartsRanks, Is.EqualTo(new[] { 13, 11, 7, 5, 2 }),
+                "First flush should have correct ranks");
+            Assert.That(spadesRanks, Is.EqualTo(new[] { 13, 11, 7, 5, 2 }),
+                "Second flush should have same ranks as first");
+        
+            Assert.That(heartsRanks, Is.EqualTo(spadesRanks),
+                "Both flushes should have identical ranks");
         });
     }
 
@@ -166,9 +177,12 @@ public class FlushHandsTest : PokerHandsTestBase {
         var flushes = new FlushHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.Multiple(() => {
-            Assert.That(flushes.Count, Is.EqualTo(1), "Should identify only the highest flush");
+            Assert.That(flushes.Count, Is.EqualTo(2), "Should identify both flushes");
+            // El flush más alto (corazones) debe estar primero
             Assert.That(flushes[0].Cards.All(c => c.Suit == 'H'),
-                "Should select hearts as they contain the King");
+                "First flush should be hearts as they contain the King");
+            Assert.That(flushes[1].Cards.All(c => c.Suit == 'S'),
+                "Second flush should be spades with Queen high");
         });
     }
 
@@ -184,37 +198,51 @@ public class FlushHandsTest : PokerHandsTestBase {
         var flushes = new FlushHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.Multiple(() => {
-            Assert.That(flushes.Count, Is.EqualTo(1), "Should identify only the highest flush");
+            Assert.That(flushes.Count, Is.EqualTo(2), "Should identify both flushes");
+            // El flush con K,Q debe estar antes que el flush con K,J
             Assert.That(flushes[0].Cards.All(c => c.Suit == 'H'),
-                "Should select hearts as they contain K,Q vs K,J");
-            var secondHighestCard = flushes[0].Cards
+                "First flush should be hearts (K,Q)");
+            Assert.That(flushes[1].Cards.All(c => c.Suit == 'S'),
+                "Second flush should be spades (K,J)");
+        
+            var firstHighCards = flushes[0].Cards
                 .OrderByDescending(c => c.Rank)
-                .Skip(1)
-                .First();
-            Assert.That(secondHighestCard.Rank, Is.EqualTo(12),
-                "Second highest card should be Queen");
+                .Take(2)
+                .Select(c => c.Rank)
+                .ToList();
+            Assert.That(firstHighCards, Is.EqualTo(new[] { 13, 12 }),
+                "First flush should have King, Queen as highest cards");
+        
+            var secondHighCards = flushes[1].Cards
+                .OrderByDescending(c => c.Rank)
+                .Take(2)
+                .Select(c => c.Rank)
+                .ToList();
+            Assert.That(secondHighCards, Is.EqualTo(new[] { 13, 11 }),
+                "Second flush should have King, Jack as highest cards");
         });
     }
-
+    
     [Test]
-    public void WithIdenticalRanks_ShouldSelectFirst() {
-        // Dos flushes con exactamente los mismos rangos
-        var cards = CreateCards(
-            "2H", "5H", "7H", "JH", "KH",
-            "2S", "5S", "7S", "JS", "KS"
-        );
+    public void WithMultipleSuits_ShouldOrderFlushes() {
+        // Dos flushes posibles: 5 corazones y 5 picas
+        var cards = CreateCards("2H", "5H", "7H", "JH", "KH", "3S", "6S", "8S", "TS", "QS");
         var flushes = new FlushHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.Multiple(() => {
-            Assert.That(flushes.Count, Is.EqualTo(1), "Should identify only one flush");
-            // En este caso, cualquiera de los dos flushes es válido,
-            // pero solo debe seleccionar uno
-            var ranks = flushes[0].Cards
-                .Select(c => c.Rank)
-                .OrderByDescending(r => r)
-                .ToList();
-            Assert.That(ranks, Is.EqualTo(new[] { 13, 11, 7, 5, 2 }),
-                "Should have correct ranks regardless of suit");
+            Assert.That(flushes.Count, Is.EqualTo(2), "Should identify both flushes");
+            Assert.That(flushes[0].Cards.All(c => c.Suit == 'H'),
+                "First flush should be hearts as they contain the King");
+            Assert.That(flushes[1].Cards.All(c => c.Suit == 'S'),
+                "Second flush should be spades with Queen high");
+        
+            var heartsRanks = flushes[0].Cards.Select(c => c.Rank).OrderByDescending(r => r).ToList();
+            Assert.That(heartsRanks, Is.EqualTo(new[] { 13, 11, 7, 5, 2 }),
+                "Hearts flush should have correct ranks");
+        
+            var spadesRanks = flushes[1].Cards.Select(c => c.Rank).OrderByDescending(r => r).ToList();
+            Assert.That(spadesRanks, Is.EqualTo(new[] { 12, 10, 8, 6, 3 }),
+                "Spades flush should have correct ranks");
         });
     }
 

@@ -13,7 +13,7 @@ public class StraightFlushHandsTest : PokerHandsTestBase {
     public void BasicStraightFlush_ShouldBeIdentified() {
         // 10,J,Q,K,A todos de corazones
         var cards = CreateCards("TH", "JH", "QH", "KH", "AH");
-        var straightFlushes = new StraightFlushHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var straightFlushes = new StraightFlushHand(HandsManager, []).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.Multiple(() => {
             Assert.That(straightFlushes.Count, Is.EqualTo(1), "Should identify exactly one straight flush");
@@ -34,7 +34,7 @@ public class StraightFlushHandsTest : PokerHandsTestBase {
     public void LowStraightFlush_WithAceAsOne_ShouldBeIdentified() {
         // A,2,3,4,5 todos de picas
         var cards = CreateCards("AS", "2S", "3S", "4S", "5S");
-        var straightFlushes = new StraightFlushHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var straightFlushes = new StraightFlushHand(HandsManager, []).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.Multiple(() => {
             Assert.That(straightFlushes.Count, Is.EqualTo(1), "Should identify exactly one straight flush");
@@ -54,7 +54,7 @@ public class StraightFlushHandsTest : PokerHandsTestBase {
     public void WithDuplicateRanks_ShouldIdentifyStraightFlush() {
         // A♥,2♥,2♣,3♥,4♥,5♥ (2 duplicado pero en diferente palo)
         var cards = CreateCards("AH", "2H", "2C", "3H", "4H", "5H");
-        var straightFlushes = new StraightFlushHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var straightFlushes = new StraightFlushHand(HandsManager, []).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.That(straightFlushes.Count, Is.EqualTo(1),
             "Should identify straight flush even with duplicate ranks in different suit");
@@ -64,33 +64,52 @@ public class StraightFlushHandsTest : PokerHandsTestBase {
     public void WithTenCards_ShouldFindMultipleStraightFlushPossibilities() {
         // 6,7,8,9,10,J,Q,K,A todos de corazones + 5 de corazones
         var cards = CreateCards("5H", "6H", "7H", "8H", "9H", "TH", "JH", "QH", "KH", "AH");
-        var analysis = new PokerHandAnalysis(Handler.Config, cards);
+        var straightFlushes = new StraightFlushHand(HandsManager, []).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.Multiple(() => {
-            Assert.That(analysis.Straights.Count, Is.GreaterThan(1),
-                "Should find multiple straight possibilities");
-            Assert.That(analysis.Straights.All(sf => sf.Cards.All(c => c.Suit == 'H')),
-                "All straights should be hearts");
+            Assert.That(straightFlushes.Count, Is.GreaterThan(1),
+                "Should find multiple straight flush possibilities");
 
-            // Verificar que encontramos la escalera más alta (10-A)
-            var highestStraight = analysis.Straights
-                .FirstOrDefault(sf => !sf.Incomplete && 
-                                    sf.Cards
-                                        .Select(c => c.Rank)
-                                        .OrderBy(r => r)
-                                        .SequenceEqual(new[] { 10, 11, 12, 13, 14 }));
+            // Verificar que todas son del mismo palo
+            Assert.That(straightFlushes.All(sf => sf.Cards.All(c => c.Suit == 'H')),
+                "All straight flushes should be hearts");
+
+            // Verificar la escalera más alta (10-A)
+            var highestStraight = straightFlushes
+                .FirstOrDefault(sf => {
+                    var orderedRanks = sf.Cards
+                        .Select(c => c.Rank)
+                        .OrderBy(r => r)
+                        .ToList();
+                    return orderedRanks.SequenceEqual(new[] { 10, 11, 12, 13, 14 });
+                });
             Assert.That(highestStraight, Is.Not.Null,
                 "Should find 10-A straight flush");
 
-            // Verificar que encontramos una escalera baja (5-9)
-            var lowestStraight = analysis.Straights
-                .FirstOrDefault(sf => !sf.Incomplete && 
-                                    sf.Cards
-                                        .Select(c => c.Rank)
-                                        .OrderBy(r => r)
-                                        .SequenceEqual(new[] { 5, 6, 7, 8, 9 }));
+            // Verificar la escalera más baja (5-9)
+            var lowestStraight = straightFlushes
+                .FirstOrDefault(sf => {
+                    var orderedRanks = sf.Cards
+                        .Select(c => c.Rank)
+                        .OrderBy(r => r)
+                        .ToList();
+                    return orderedRanks.SequenceEqual(new[] { 5, 6, 7, 8, 9 });
+                });
             Assert.That(lowestStraight, Is.Not.Null,
                 "Should find 5-9 straight flush");
+
+            // Verificar que las straight flushes están ordenadas por la carta más alta
+            var firstRanks = straightFlushes[0].Cards
+                .Select(c => c.Rank)
+                .OrderBy(r => r)
+                .ToList();
+            var lastRanks = straightFlushes[^1].Cards
+                .Select(c => c.Rank)
+                .OrderBy(r => r)
+                .ToList();
+
+            Assert.That(firstRanks[^1], Is.GreaterThan(lastRanks[^1]),
+                "First straight flush should have higher top card than last one");
         });
     }
 
@@ -98,31 +117,78 @@ public class StraightFlushHandsTest : PokerHandsTestBase {
     public void WithSevenConsecutiveCards_ShouldFindMultipleStraightPossibilities() {
         // 5♥,6♥,7♥,8♥,9♥,T♥,J♥
         var cards = CreateCards("5H", "6H", "7H", "8H", "9H", "TH", "JH");
-        var analysis = new PokerHandAnalysis(Handler.Config, cards);
+        var hand = new StraightFlushHand(HandsManager, []);
+        var straightFlushes = hand.IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.Multiple(() => {
-            Assert.That(analysis.Straights.Count, Is.GreaterThan(1),
-                "Should find multiple straight possibilities");
-
-            // Verificar la escalera más baja (5-9)
-            var lowestStraight = analysis.Straights
-                .FirstOrDefault(sf => !sf.Incomplete && 
-                                    sf.Cards
-                                        .Select(c => c.Rank)
-                                        .OrderBy(r => r)
-                                        .SequenceEqual(new[] { 5, 6, 7, 8, 9 }));
-            Assert.That(lowestStraight, Is.Not.Null,
-                "Should find 5-9 straight flush");
+            Assert.That(straightFlushes.Count, Is.GreaterThan(1),
+                "Should find multiple straight flush possibilities");
 
             // Verificar la escalera más alta (7-J)
-            var highestStraight = analysis.Straights
-                .FirstOrDefault(sf => !sf.Incomplete && 
-                                    sf.Cards
-                                        .Select(c => c.Rank)
-                                        .OrderBy(r => r)
-                                        .SequenceEqual(new[] { 7, 8, 9, 10, 11 }));
-            Assert.That(highestStraight, Is.Not.Null,
-                "Should find 7-J straight flush");
+            var highestStraight = straightFlushes[0];
+            var highestRanks = highestStraight.Cards
+                .Select(c => c.Rank)
+                .OrderBy(r => r)
+                .ToList();
+            Assert.That(highestRanks, Is.EqualTo(new[] { 7, 8, 9, 10, 11 }),
+                "First straight flush should be 7-J (highest possible)");
+
+            // Verificar que la siguiente es 6-10
+            var middleStraight = straightFlushes[1];
+            var middleRanks = middleStraight.Cards
+                .Select(c => c.Rank)
+                .OrderBy(r => r)
+                .ToList();
+            Assert.That(middleRanks, Is.EqualTo(new[] { 6, 7, 8, 9, 10 }),
+                "Second straight flush should be 6-10");
+
+            // Verificar que la última es 5-9
+            var lowestStraight = straightFlushes[2];
+            var lowestRanks = lowestStraight.Cards
+                .Select(c => c.Rank)
+                .OrderBy(r => r)
+                .ToList();
+            Assert.That(lowestRanks, Is.EqualTo(new[] { 5, 6, 7, 8, 9 }),
+                "Third straight flush should be 5-9 (lowest possible)");
+
+            // Verificar que todas son del mismo palo
+            Assert.That(straightFlushes.All(sf => sf.Cards.All(c => c.Suit == 'H')),
+                "All straight flushes should be hearts");
+        });
+    }
+
+    [Test]
+    public void WithMultipleStraightFlushes_ShouldBeOrderedByHighestCard() {
+        // Dos straight flushes: T-A de corazones y 9-K de picas
+        var cards = CreateCards(
+            "TH", "JH", "QH", "KH", "AH", // T-A hearts
+            "9S", "TS", "JS", "QS", "KS" // 9-K spades
+        );
+        var straightFlushes = new StraightFlushHand(HandsManager, []).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+
+        Assert.Multiple(() => {
+            Assert.That(straightFlushes.Count, Is.EqualTo(2),
+                "Should identify both straight flushes");
+
+            // Verificar la primera straight flush (T-A de corazones)
+            var highestRanks = straightFlushes[0].Cards
+                .Select(c => c.Rank)
+                .OrderBy(r => r)
+                .ToList();
+            Assert.That(highestRanks, Is.EqualTo(new[] { 10, 11, 12, 13, 14 }),
+                "First should be 10-A in hearts (highest possible)");
+            Assert.That(straightFlushes[0].Cards.All(c => c.Suit == 'H'),
+                "First straight flush should be hearts");
+
+            // Verificar la segunda straight flush (9-K de picas)
+            var lowestRanks = straightFlushes[1].Cards
+                .Select(c => c.Rank)
+                .OrderBy(r => r)
+                .ToList();
+            Assert.That(lowestRanks, Is.EqualTo(new[] { 9, 10, 11, 12, 13 }),
+                "Second should be 9-K in spades");
+            Assert.That(straightFlushes[1].Cards.All(c => c.Suit == 'S'),
+                "Second straight flush should be spades");
         });
     }
 
@@ -130,7 +196,7 @@ public class StraightFlushHandsTest : PokerHandsTestBase {
     public void WithSameColorButNoStraight_ShouldNotIdentifyStraightFlush() {
         // 2,3,4,6,7 todos de tréboles (falta el 5)
         var cards = CreateCards("2C", "3C", "4C", "6C", "7C");
-        var straightFlushes = new StraightFlushHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var straightFlushes = new StraightFlushHand(HandsManager, []).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.That(straightFlushes, Is.Empty,
             "Should not identify straight flush when there's a gap");
@@ -140,7 +206,7 @@ public class StraightFlushHandsTest : PokerHandsTestBase {
     public void WithStraightButDifferentColors_ShouldNotIdentifyStraightFlush() {
         // 2,3,4,5,6 de diferentes palos
         var cards = CreateCards("2H", "3S", "4D", "5C", "6H");
-        var straightFlushes = new StraightFlushHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var straightFlushes = new StraightFlushHand(HandsManager, []).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.That(straightFlushes, Is.Empty,
             "Should not identify straight flush when cards are different suits");
@@ -173,7 +239,7 @@ public class StraightFlushHandsTest : PokerHandsTestBase {
             var discards = hand.SuggestDiscards(analysis, 2);
             Assert.That(discards.Count, Is.EqualTo(1), "Should suggest one discard option");
             Assert.That(discards[0].Count, Is.EqualTo(1), "Should suggest discarding 1 card");
-            Assert.That(discards[0].Select(c => c.Rank).ToList(), 
+            Assert.That(discards[0].Select(c => c.Rank).ToList(),
                 Is.EquivalentTo(new[] { 13 }),
                 "Should discard K as it's less likely to complete a straight flush");
         });
@@ -300,7 +366,7 @@ public class StraightFlushHandsTest : PokerHandsTestBase {
 
     [Test]
     public void EmptyHand_ShouldReturnNoStraightFlush() {
-        var straightFlushes = new StraightFlushHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, []));
+        var straightFlushes = new StraightFlushHand(HandsManager, []).IdentifyHands(new PokerHandAnalysis(Handler.Config, []));
         Assert.That(straightFlushes, Is.Empty);
     }
 }

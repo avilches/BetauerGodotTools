@@ -8,6 +8,7 @@ using NUnit.Framework;
 namespace Betauer.Core.Tests.PokerHands;
 
 [TestFixture]
+
 public class FlushFiveHandsTest : PokerHandsTestBase {
     [Test]
     public void BasicFlushFive_ShouldBeIdentified() {
@@ -67,18 +68,50 @@ public class FlushFiveHandsTest : PokerHandsTestBase {
 
         Assert.Multiple(() => {
             Assert.That(flushFives.Count, Is.EqualTo(2), "Should identify two flush fives");
-            
-            // Verificar el grupo de Ases
+        
+            // Verificar el primer grupo (Aces, mayor rank)
             Assert.That(flushFives[0].Cards.All(c => c.Rank == 14), 
-                "First group should be all Aces");
+                "First group should be all Aces (highest rank)");
             Assert.That(flushFives[0].Cards.All(c => c.Suit == 'H'), 
                 "First group should be all hearts");
-            
-            // Verificar el grupo de Reyes
+        
+            // Verificar el segundo grupo (Kings, menor rank)
             Assert.That(flushFives[1].Cards.All(c => c.Rank == 13), 
-                "Second group should be all Kings");
+                "Second group should be all Kings (second highest rank)");
             Assert.That(flushFives[1].Cards.All(c => c.Suit == 'H'), 
                 "Second group should be all hearts");
+        });
+    }
+    
+    [Test]
+    public void WithAllRanks_ShouldBeOrderedFromHighestToLowest() {
+        // Creamos FlushFives de todos los rangos posibles (en orden aleatorio)
+        var cards = CreateCards(
+            "2H", "2H", "2H", "2H", "2H",  // Dos
+            "KH", "KH", "KH", "KH", "KH",  // Rey
+            "5H", "5H", "5H", "5H", "5H",  // Cinco
+            "AH", "AH", "AH", "AH", "AH",  // As
+            "TH", "TH", "TH", "TH", "TH",  // Diez
+            "7H", "7H", "7H", "7H", "7H"); // Siete
+
+        var flushFives = new FlushFiveHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+
+        Assert.Multiple(() => {
+            Assert.That(flushFives.Count, Is.EqualTo(6), "Should identify six flush fives");
+
+            // Verificar que están ordenados de mayor a menor rank
+            var ranks = flushFives.Select(h => h.Cards[0].Rank).ToList();
+            var expectedRanks = new[] { 14, 13, 10, 7, 5, 2 }; // A, K, T, 7, 5, 2
+            Assert.That(ranks, Is.EqualTo(expectedRanks), 
+                "Hands should be ordered by rank from highest to lowest");
+
+            // Verificar que cada grupo tiene el mismo rank y suit
+            foreach (var hand in flushFives) {
+                Assert.That(hand.Cards.All(c => c.Rank == hand.Cards[0].Rank), 
+                    "All cards in a hand should have the same rank");
+                Assert.That(hand.Cards.All(c => c.Suit == 'H'), 
+                    "All cards should be hearts");
+            }
         });
     }
 
@@ -145,8 +178,8 @@ public class FlushFiveHandsTest : PokerHandsTestBase {
     public void IdentifyHands_WithTwoFlushFives_ShouldBeOrderedByRank() {
         // Ten y King de corazones, mezclados en el orden de entrada
         var cards = CreateCards(
-            "TH", "TH", "TH", "TH", "TH",  // Cinco 10 de corazones
-            "KH", "KH", "KH", "KH", "KH");  // Cinco Reyes de corazones
+            "TH", "TH", "TS", "TH", "TH", "TH",  // Cinco 10 de corazones
+            "KH", "KH", "KS", "KH", "KH", "KH");  // Cinco Reyes de corazones
         var flushFives = new FlushFiveHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
         
         Assert.Multiple(() => {

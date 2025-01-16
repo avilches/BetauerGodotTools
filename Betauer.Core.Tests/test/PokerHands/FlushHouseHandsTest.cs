@@ -1,10 +1,12 @@
 using System.Linq;
 using Betauer.Core.Deck.Hands;
+using Betauer.TestRunner;
 using NUnit.Framework;
 
 namespace Betauer.Core.Tests.PokerHands;
 
 [TestFixture]
+
 public class FlushHouseHandsTest : PokerHandsTestBase {
     [Test]
     public void BasicFlushHouse_ShouldBeIdentified() {

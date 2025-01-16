@@ -8,6 +8,7 @@ using NUnit.Framework;
 namespace Betauer.Core.Tests.PokerHands;
 
 [TestFixture]
+
 public class PairHandsTest : PokerHandsTestBase {
     // Tests básicos de identificación de pares
     [Test]

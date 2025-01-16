@@ -35,15 +35,25 @@ public class StraightHandsTest : PokerHandsTestBase {
         var straights = new StraightHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.Multiple(() => {
-            Assert.That(straights.Count, Is.EqualTo(1), "Should identify exactly one straight");
-            Assert.That(straights[0].Cards.Count, Is.EqualTo(5), "Straight should have 5 cards");
+            Assert.That(straights.Count, Is.EqualTo(2), "Should identify exactly two straights");
+            Assert.That(straights[0].Cards.Count, Is.EqualTo(5), "First straight should have 5 cards");
+            Assert.That(straights[1].Cards.Count, Is.EqualTo(5), "Second straight should have 5 cards");
 
-            var ranks = straights[0].Cards
+            // Verificar la primera escalera (5-9, la más alta)
+            var firstStraightRanks = straights[0].Cards
                 .Select(c => c.Rank)
                 .OrderBy(r => r)
                 .ToList();
-            Assert.That(ranks, Is.EqualTo(new[] { 5, 6, 7, 8, 9 }),
-                "Should be 10,J,Q,K,A in order");
+            Assert.That(firstStraightRanks, Is.EqualTo(new[] { 5, 6, 7, 8, 9 }),
+                "First straight should be 5-9 (highest)");
+
+            // Verificar la segunda escalera (4-8)
+            var secondStraightRanks = straights[1].Cards
+                .Select(c => c.Rank)
+                .OrderBy(r => r)
+                .ToList();
+            Assert.That(secondStraightRanks, Is.EqualTo(new[] { 4, 5, 6, 7, 8 }),
+                "Second straight should be 4-8");
         });
     }
 
@@ -68,7 +78,7 @@ public class StraightHandsTest : PokerHandsTestBase {
     [Test]
     public void WithDuplicateRanks_ShouldIdentifyStraight() {
         // A♥,2♥,2♣,3♥,4♥,5♥ (2 duplicado)
-        var cards = CreateCards("AH", "2H", "2C", "3H", "4H", "5H");
+        var cards = CreateCards("AH", "2H", "2C", "3C", "4H", "5H");
         var straights = new StraightHand(HandsManager,[]).IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.That(straights.Count, Is.EqualTo(1),
@@ -87,7 +97,7 @@ public class StraightHandsTest : PokerHandsTestBase {
 
             // Verificar que encontramos la escalera más alta (10-A)
             var highestStraight = analysis.Straights
-                .FirstOrDefault(sf => !sf.Incomplete &&
+                .FirstOrDefault(sf => sf.IsComplete &&
                                       sf.Cards
                                           .Select(c => c.Rank)
                                           .OrderBy(r => r)
@@ -97,7 +107,7 @@ public class StraightHandsTest : PokerHandsTestBase {
 
             // Verificar que encontramos una escalera baja (5-9)
             var lowestStraight = analysis.Straights
-                .FirstOrDefault(sf => !sf.Incomplete &&
+                .FirstOrDefault(sf => sf.IsComplete &&
                                       sf.Cards
                                           .Select(c => c.Rank)
                                           .OrderBy(r => r)
@@ -119,7 +129,7 @@ public class StraightHandsTest : PokerHandsTestBase {
 
             // Verificar la escalera más baja (5-9)
             var lowestStraight = analysis.Straights
-                .FirstOrDefault(sf => !sf.Incomplete &&
+                .FirstOrDefault(sf => sf.IsComplete &&
                                       sf.Cards
                                           .Select(c => c.Rank)
                                           .OrderBy(r => r)
@@ -129,7 +139,7 @@ public class StraightHandsTest : PokerHandsTestBase {
 
             // Verificar la escalera más alta (7-J)
             var highestStraight = analysis.Straights
-                .FirstOrDefault(sf => !sf.Incomplete &&
+                .FirstOrDefault(sf => sf.IsComplete &&
                                       sf.Cards
                                           .Select(c => c.Rank)
                                           .OrderBy(r => r)
