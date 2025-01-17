@@ -85,7 +85,7 @@ public class GameHandler {
             throw new SolitairePokerGameException("DrawCards error: hand already full");
         }
         var invalidCards = cards.Except(State.AvailableCards).ToList();
-        if (invalidCards.Count != 0) {
+        if (invalidCards.Count > 0) {
             var invalidCardsString = string.Join(", ", invalidCards);
             throw new SolitairePokerGameException($"DrawCards error: cards to draw not found in available pile ({invalidCardsString})");
         }
@@ -109,21 +109,20 @@ public class GameHandler {
             throw new SolitairePokerGameException("PlayHand error: cannot play hands yet, draw cards first.");
         }
         var invalidCards = cards.Except(State.CurrentHand).ToList();
-        if (invalidCards.Count != 0) {
+        if (invalidCards.Count > 0) {
             var invalidCardsString = string.Join(", ", invalidCards);
             throw new SolitairePokerGameException($"PlayHand error: hand to play contains cards not in current hand ({invalidCardsString})");
         }
 
         State.HandsPlayed++;
-        GameRunState.HandsPlayed++;
         State.CardsPlayed += cards.Count;
-        GameRunState.CardsPlayed += cards.Count;
 
         var hand = PokerHandsManager.IdentifyBestHand(this, cards);
         var score = hand != null ? CalculateScore(hand) : 0;
         State.Score += score;
         cards.ForEach(card => State.Play(card));
         State.History.AddPlayAction(hand, cards, score, State.Score, State.LevelScore);
+        GameRunState.AddPlayAction(hand, cards);
         return new PlayResult(hand, score);
     }
 
@@ -144,19 +143,17 @@ public class GameHandler {
             throw new SolitairePokerGameException($"Discard error: discard between 1 and {Config.MaxDiscardCards} cards: {cards.Count}");
         }
         var invalidCards = cards.Except(State.CurrentHand).ToList();
-        if (invalidCards.Count != 0) {
+        if (invalidCards.Count > 0) {
             var invalidCardsString = string.Join(", ", invalidCards);
             throw new SolitairePokerGameException($"Discard error: contains cards not in current hand ({invalidCardsString})");
         }
 
         State.Discards++;
-        GameRunState.Discards++;
         State.CardsDiscarded += cards.Count;
-        GameRunState.CardsDiscarded += cards.Count;
 
         cards.ForEach(card => State.Discard(card));
         State.History.AddDiscardAction(cards, State.Score, State.LevelScore);
-        
+        GameRunState.AddDiscardAction(cards);
         return new DiscardResult(cards);
     }
 
@@ -226,8 +223,8 @@ public class GameHandler {
         return PokerHandsManager.IdentifyBestHand(this, State.CurrentHand)!;
     }
 
-    public DiscardOptionsResult GetDiscardOptions() {
-        return PokerHandsManager.GetDiscardOptions(this, State.CurrentHand, State.AvailableCards, Config.MaxDiscardCards);
+    public DiscardOptionsResult GetDiscardOptions(int maxSimulations, float simulationPercentage) {
+        return PokerHandsManager.GetDiscardOptions(this, State.CurrentHand, State.AvailableCards, Config.MaxDiscardCards, maxSimulations, simulationPercentage);
     }
 
     public long CalculateScore(PokerHand hand) {

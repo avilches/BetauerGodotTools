@@ -5,24 +5,6 @@ using Betauer.Core.Deck.Hands;
 
 namespace Betauer.Core.Deck;
 
-public class GameRunState {
-
-    private readonly Dictionary<PokerHandType, int> _handLevels = new();
-
-    public int Discards { get; set; } = 0;
-    public int HandsPlayed { get; set; } = 0;
-    public int CardsPlayed { get; set; } = 0;
-    public int CardsDiscarded { get; set; } = 0;
-    
-    public int GetPokerHandLevel(PokerHandType hand) {
-        return _handLevels.GetValueOrDefault(hand, 0);
-    }
-
-    public void SetPokerHandLevel(PokerHandType hand, int level) {
-        _handLevels[hand] = level;
-    }
-}
-
 public class GameRun {
     public GameRunState State { get; }
 
@@ -47,15 +29,21 @@ public class GameRun {
     }
 
     public override string ToString() {
-        var state = GameStates.LastOrDefault();
-        return state != null
-            ? $"{StartTime:yyyy-MM-dd HH:mm:ss} - Seed: {Seed} - Level {state.Level + 1}/{Config.MaxLevel} | Score: {state.Score}/{state.LevelScore} | Hand {state.HandsPlayed + 1}/{Config.MaxHands} | Discards: {state.Discards}/{Config.MaxDiscards}"
-            : $"{StartTime:yyyy-MM-dd HH:mm:ss} - No games played";
+        var last = GameStates.LastOrDefault();
+        var state = RunIsWon() ? "[Won]": RunIsGameOver() ? "[Lost]" : $"Hand {last.HandsPlayed + 1}/{Config.MaxHands} | Discards: {last.Discards}/{Config.MaxDiscards}";
+        return last != null
+            ? $"{StartTime:yyyy-MM-dd HH:mm:ss} | Seed: {Seed} | Level {last.Level + 1}/{Config.MaxLevel + 1} | Score: {last.Score}/{last.LevelScore} | {state}"
+            : $"{StartTime:yyyy-MM-dd HH:mm:ss} | Seed: {Seed} | {state}";
     }
 
     public bool RunIsWon() {
         var lastState = GameStates.LastOrDefault();
         return lastState != null && lastState.IsWon() && lastState.Level == Config.MaxLevel;
+    }
+
+    public bool RunIsLost() {
+        var lastState = GameStates.LastOrDefault();
+        return lastState != null && lastState.IsGameOver() && lastState.Level < Config.MaxLevel;
     }
 
     public bool RunIsGameOver() {

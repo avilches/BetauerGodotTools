@@ -6,32 +6,37 @@ using Godot;
 
 namespace Betauer.Core.Deck;
 
-public class AutoPlayer {
-    public record AutoPlayDecision(
-        bool ShouldPlay,
-        string Reason,
-        PokerHand? HandToPlay,
-        DiscardOption? DiscardOption,
-        List<PokerHand> PossibleHands,
-        DiscardOptionsResult DiscardOptions
-    );
+public record AssistantDecision(
+    bool ShouldPlay,
+    string Reason,
+    PokerHand? HandToPlay,
+    DiscardOption? DiscardOption,
+    List<PokerHand> PossibleHands,
+    DiscardOptionsResult DiscardOptions
+);
 
-    public AutoPlayDecision GetNextAction(GameHandler handler) {
+
+public class PlayAssistant(int maxSimulations, float simulationPercentage) {
+    public AssistantDecision GetNextAction(GameHandler handler) {
+        if (handler.IsDrawPending()) {
+            throw new Exception("Please, draw cards before call to the assistant");
+        }
+        
         var currentHands = handler.GetPossibleHands();
 
-        // Keep only the 
+        // Keep only one high card 
         var bestHighCard = currentHands.FirstOrDefault(p => p.HandType == PokerHandType.HighCard);
         currentHands.RemoveAll(p => p.HandType == PokerHandType.HighCard && p != bestHighCard);
         
         var bestCurrentHand = currentHands[0];
         var currentScore = handler.CalculateScore(bestCurrentHand);
-        var discardOptions = handler.GetDiscardOptions();
+        var discardOptions = handler.GetDiscardOptions(maxSimulations, simulationPercentage);
 
         var loosing = handler.RemainingHands == 1 && currentScore < handler.RemainingScoreToWin;
 
         // Con esta mano ganamos? jugar!
         if (currentScore >= handler.RemainingScoreToWin) {
-            return new AutoPlayDecision(
+            return new AssistantDecision(
                 true,
                 ":-) Play to win!",
                 HandToPlay: bestCurrentHand,
@@ -43,7 +48,7 @@ public class AutoPlayer {
 
         // Si no quedan descartes, no queda mas remedio que jugar
         if (!handler.CanDiscard()) {
-            return new AutoPlayDecision(
+            return new AssistantDecision(
                 true,
                 (loosing ? ":-o Losing": ":(")+" No discards remaining, must play current hand",
                 HandToPlay: bestCurrentHand,
@@ -59,7 +64,7 @@ public class AutoPlayer {
         // Si es la última mano y no ganamos, pero tenemos descartes, descartar para ver si tenemos mas suerte la proxima
         if (handler.RemainingHands == 1 && currentScore < handler.RemainingScoreToWin) {
             if (bestDiscard != null) {
-                return new AutoPlayDecision(
+                return new AssistantDecision(
                     false,
                     $":-/ Current hand score {currentScore} too low to win the last hand. We need {handler.RemainingScoreToWin} to win",
                     HandToPlay: null,
@@ -77,7 +82,7 @@ public class AutoPlayer {
         // Si la mano actual es muy mala, descartamos sin importar el riesgo
         if (currentScore < minimumScoreNeeded / 2) {
             if (bestDiscard != null) {
-                return new AutoPlayDecision(
+                return new AssistantDecision(
                     false,
                     $":-( Current hand score {currentScore} is too low. Every hand should score: {minimumScoreNeeded}",
                     HandToPlay: null,
@@ -88,7 +93,7 @@ public class AutoPlayer {
             }
         } else if (currentScore >= minimumScoreNeeded) {
             // Si la mano actual es suficientemente buena como para ganar la parte que toca del juego actual, la jugamos
-            return new AutoPlayDecision(
+            return new AssistantDecision(
                 true,
                 $":-) Current hand score {currentScore} meets requirements. Every hand should score: {minimumScoreNeeded}",
                 HandToPlay: bestCurrentHand,
@@ -104,7 +109,7 @@ public class AutoPlayer {
         if (bestDiscard != null) {
             var bestHand = bestDiscard.GetBestHand();
             if (bestHand.PotentialScore >= currentScore * 1.3f) {
-                return new AutoPlayDecision(
+                return new AssistantDecision(
                     false,
                     $"Better discard score {bestHand.PotentialScore} 30% bigger than your current hand {currentScore}. Risk: {risk:0.00}",
                     HandToPlay: null,
@@ -114,7 +119,7 @@ public class AutoPlayer {
                 );
             } else {
                 // Si no hay mejor opción, jugamos la mano actual
-                return new AutoPlayDecision(
+                return new AssistantDecision(
                     true,
                     $"No better discard available. Best discard score {bestHand?.PotentialScore ?? 0} is not 30% bigger than your current hand {currentScore}. Risk: {risk:0.00}",
                     HandToPlay: bestCurrentHand,
@@ -125,7 +130,7 @@ public class AutoPlayer {
             }
         } else {
             // Si no hay mejor opción, jugamos la mano actual
-            return new AutoPlayDecision(
+            return new AssistantDecision(
                 true,
                 $"No discard available. Risk: {risk:0.00}",
                 HandToPlay: bestCurrentHand,

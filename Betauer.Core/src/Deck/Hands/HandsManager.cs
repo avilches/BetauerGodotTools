@@ -145,12 +145,11 @@ public class PokerHandsManager {
     /// <param name="cards">Current cards in hand</param>
     /// <param name="availableCards">Cards available to draw</param>
     /// <param name="maxDiscardCards">Maximum number of cards that can be discarded</param>
+    /// <param name="maxSimulations">Maximum number of cards that can be discarded</param>
+    /// <param name="simulationPercentage">Maximum number of cards that can be discarded</param>
     /// <returns>Analysis results with discard options and statistics</returns>
-    public DiscardOptionsResult GetDiscardOptions(GameHandler handler, IReadOnlyList<Card> cards, IReadOnlyList<Card> availableCards, int maxDiscardCards) {
+    public DiscardOptionsResult GetDiscardOptions(GameHandler handler, IReadOnlyList<Card> cards, IReadOnlyList<Card> availableCards, int maxDiscardCards, int maxSimulations, float simulationPercentage) {
         if (maxDiscardCards < 0) throw new ArgumentException("maxDiscardCards cannot be negative");
-
-        const int MaxSimulations = 10000;
-        const double MinSimulationPercentage = 0.10;
 
         var watch = System.Diagnostics.Stopwatch.StartNew();
         var totalSimulations = 0;
@@ -175,25 +174,18 @@ public class PokerHandsManager {
             var handTypeOccurrences = new Dictionary<PokerHandType, HandTypeStats>();
 
             // Calculate total possible combinations
-            int combinations = CombinationTools.Calculate(availableCards.Count, cardsToDiscard.Count);
+            var combinations = CombinationTools.Calculate(availableCards.Count, cardsToDiscard.Count);
             if (combinations == 0) continue;
             totalCombinations += combinations;
 
             // Determine number of simulations
-            var simulations = Math.Min(
-                MaxSimulations,
-                Math.Max(
-                    (int)(combinations * MinSimulationPercentage),
-                    combinations
-                )
-            );
+            var simulations = Math.Min(maxSimulations, Math.Max((int)(combinations * simulationPercentage), combinations));
             totalSimulations += simulations;
 
             var availableCardsList = availableCards.ToList();
             // Generate and analyze random combinations
             var draws = simulations == combinations
-                ? availableCardsList.Combinations(cardsToDiscard.Count)
-                    .Select(combo => combo.ToList())
+                ? availableCardsList.Combinations(cardsToDiscard.Count).Select(combo => combo.ToList())
                 : availableCardsList.RandomCombinations(cardsToDiscard.Count, simulations, random);
 
             foreach (var draw in draws) {
@@ -212,13 +204,8 @@ public class PokerHandsManager {
                 }
             }
 
-            if (handTypeOccurrences.Count != 0) {
-                options.Add(new DiscardOption(
-                    cardsToKeep,
-                    cardsToDiscard,
-                    handTypeOccurrences,
-                    simulations,
-                    combinations));
+            if (handTypeOccurrences.Count > 0) {
+                options.Add(new DiscardOption(cardsToKeep, cardsToDiscard, handTypeOccurrences, simulations, combinations));
             }
         }
 
