@@ -14,7 +14,7 @@ public class PairHandsTest : PokerHandsTestBase {
     [Test]
     public void SinglePair_ShouldBeIdentified() {
         var cards = CreateCards("AS", "AH", "KH", "QD", "JC");
-        var pairs = PokerHand.Prototypes[PokerHandType.Pair].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var pairs = PokerHandDefinition.Prototypes[PokerHandType.Pair].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
         Assert.That(pairs.Count, Is.EqualTo(1));
         Assert.That(pairs[0].Cards.Count, Is.EqualTo(2));
         Assert.That(pairs[0].Cards.All(c => c.Rank == 14), Is.True); // Todos son Ases
@@ -23,7 +23,7 @@ public class PairHandsTest : PokerHandsTestBase {
     [Test]
     public void Pair_WithThreeOfSameRank_ShouldIdentifyOnePair() {
         var cards = CreateCards("AS", "AH", "AD", "KH", "QD", "JC", "2C");
-        var pairs = PokerHand.Prototypes[PokerHandType.Pair].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var pairs = PokerHandDefinition.Prototypes[PokerHandType.Pair].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
         Assert.That(pairs.Count, Is.EqualTo(1));
         Assert.That(pairs.All(h => h.Cards.Count == 2), Is.True);
         Assert.That(pairs.All(h => h.Cards.All(c => c.Rank == 14)), Is.True); // Todos son Ases
@@ -33,7 +33,7 @@ public class PairHandsTest : PokerHandsTestBase {
     public void WithMultiplePairs_ShouldIdentifyAllOfThem() {
         // Tenemos par de Ases y par de Reyes
         var cards = CreateCards("AS", "AH", "KS", "KH", "QD");
-        var pairs = PokerHand.Prototypes[PokerHandType.Pair].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var pairs = PokerHandDefinition.Prototypes[PokerHandType.Pair].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.Multiple(() => {
             // Verificamos que hay exactamente 2 parejas
@@ -53,9 +53,9 @@ public class PairHandsTest : PokerHandsTestBase {
     [Test]
     public void SuggestDiscards_WithoutPair_ShouldSuggestDiscardingLowestCards() {
         var cards = CreateCards("KS", "QH", "JD", "TC", "9H");
-        var pairs = PokerHand.Prototypes[PokerHandType.Pair].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var pairs = PokerHandDefinition.Prototypes[PokerHandType.Pair].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
         
-        var pair = PokerHand.Prototypes[PokerHandType.Pair];
+        var pair = PokerHandDefinition.Prototypes[PokerHandType.Pair];
         var discards = pair.SuggestDiscards(new PokerHandAnalysis(Handler.Config, cards), 2);
         
         Assert.That(discards.Count, Is.EqualTo(1), "Should suggest one discard option");
@@ -67,9 +67,9 @@ public class PairHandsTest : PokerHandsTestBase {
     [Test]
     public void SuggestDiscards_WithExistingPair_ShouldNotSuggestDiscards() {
         var cards = CreateCards("AS", "AH", "KH", "QD", "JC");
-        var pairs = PokerHand.Prototypes[PokerHandType.Pair].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var pairs = PokerHandDefinition.Prototypes[PokerHandType.Pair].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
         
-        var pair = PokerHand.Prototypes[PokerHandType.Pair];
+        var pair = PokerHandDefinition.Prototypes[PokerHandType.Pair];
         var discards = pair.SuggestDiscards(new PokerHandAnalysis(Handler.Config, cards), 3);
         
         Assert.That(discards, Is.Empty, "Should not suggest discards when pair exists");
@@ -78,13 +78,13 @@ public class PairHandsTest : PokerHandsTestBase {
     [Test]
     public void SingleCard_ShouldReturnNoPairs() {
         var cards = CreateCards("AS");
-        var pairs = PokerHand.Prototypes[PokerHandType.Pair].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var pairs = PokerHandDefinition.Prototypes[PokerHandType.Pair].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
         Assert.That(pairs, Is.Empty);
     }
 
     [Test]
     public void EmptyHand_ShouldReturnNoPairs() {
-        var pairs = PokerHand.Prototypes[PokerHandType.Pair].IdentifyHands(new PokerHandAnalysis(Handler.Config, []));
+        var pairs = PokerHandDefinition.Prototypes[PokerHandType.Pair].IdentifyHands(new PokerHandAnalysis(Handler.Config, []));
         Assert.That(pairs, Is.Empty);
     }
 }

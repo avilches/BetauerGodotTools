@@ -5,7 +5,7 @@ using System.Linq;
 namespace Betauer.Core.Deck.Hands;
 
 public record PokerHandConfig(
-    PokerHand Prototype,
+    PokerHandDefinition Prototype,
     long InitialScore,
     long InitialMultiplier,
     long ScorePerLevel,
@@ -37,7 +37,7 @@ public class PokerHandsManager {
     /// Hand configs are kept sorted by multiplier in descending order.
     /// </summary>
     public void RegisterHand(PokerHandType handType, long initialScore, long initialMultiplier, long scorePerLevel, long multiplierPerLevel, int order, bool enabled = true) {
-        var pokerHand = PokerHand.Prototypes[handType];
+        var pokerHand = PokerHandDefinition.Prototypes[handType];
         _handConfigs.RemoveAll(config => config.Prototype.HandType == handType);
         _handConfigs.Add(new PokerHandConfig(pokerHand, initialScore, initialMultiplier, scorePerLevel, multiplierPerLevel, order, enabled));
         var ordered = _handConfigs.OrderByDescending(c => c.Order).ToList();
@@ -172,7 +172,7 @@ public class PokerHandsManager {
         // Analyze each discard combination
         foreach (var cardsToDiscard in suggestedDiscards) {
             var cardsToKeep = cards.Except(cardsToDiscard).ToList();
-            var handTypeOccurrences = new Dictionary<Type, HandTypeStats>();
+            var handTypeOccurrences = new Dictionary<PokerHandType, HandTypeStats>();
 
             // Calculate total possible combinations
             int combinations = CombinationTools.Calculate(availableCards.Count, cardsToDiscard.Count);
@@ -202,7 +202,7 @@ public class PokerHandsManager {
 
                 var bestHand = IdentifyAllHands(handler, newHand).MaxBy(handler.CalculateScore);
                 if (bestHand != null) {
-                    var handType = bestHand.GetType();
+                    var handType = bestHand.HandType;
                     var score = handler.CalculateScore(bestHand);
                     if (!handTypeOccurrences.TryGetValue(handType, out HandTypeStats? value)) {
                         handTypeOccurrences[handType] = new HandTypeStats(handType, score);

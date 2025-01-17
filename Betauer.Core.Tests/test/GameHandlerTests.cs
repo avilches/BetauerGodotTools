@@ -44,7 +44,7 @@ public class GameHandlerTests {
 
     [Test]
     public void TestScoringAtDifferentLevels() {
-        var pairHand = new PairHand(new List<Card> {
+        var pairHand = new PokerHand(PokerHandType.Pair, new List<Card> {
             new(12, 'H'), // Queen of Hearts
             new(12, 'S'), // Queen of Spades
         });
@@ -193,17 +193,17 @@ public class GameHandlerTests {
         });
     }
 
-    private GameHandler CreateGameWithInitialHand<T>(int maxAttempts = 1000) where T : PokerHand {
+    private GameHandler CreateGameWithInitialHand(PokerHandType type, int maxAttempts = 1000) {
         for (int seed = 1; seed <= maxAttempts; seed++) {
             var gameRun = new GameRun(Config, HandsManager, seed);
             var testGame = gameRun.CreateGameHandler(0);
             testGame.DrawCards();
-            var possibleHands = testGame.GetPossibleHands().OfType<T>().ToList();
+            var possibleHands = testGame.GetPossibleHands().Where(h => h.HandType == type).ToList();
             if (possibleHands.Count > 0) {
                 return testGame;
             }
         }
-        throw new InvalidOperationException($"Could not find a game with a {typeof(T).Name} in the initial hand after {maxAttempts} attempts");
+        throw new InvalidOperationException($"Could not find a game with a {type} in the initial hand after {maxAttempts} attempts");
     }
 
     private GameHandler CreateGameWithInitialHandSize(int cardCount, int maxAttempts = 1000) {
@@ -224,13 +224,13 @@ public class GameHandlerTests {
     [Test]
     public void DrawCards_AfterPlayingPair_ShouldOnlyDrawUsedCards() {
         // Get a game that has a pair in the initial hand
-        Handler = CreateGameWithInitialHand<PairHand>();
+        Handler = CreateGameWithInitialHand(PokerHandType.Pair);
         var initialHand = new List<Card>(Handler.State.CurrentHand);
 
         // Find the pair
-        var pairHand = Handler.GetPossibleHands()
-            .OfType<PairHand>()
-            .First(); // We know it exists because CreateGameWithInitialHand succeeded
+        var pairHand = Handler
+            .GetPossibleHands()
+            .First(h => h.HandType == PokerHandType.Pair); // We know it exists because CreateGameWithInitialHand succeeded
 
         var pairCards = pairHand.Cards.ToList();
         var unusedCards = initialHand.Except(pairCards).ToList();

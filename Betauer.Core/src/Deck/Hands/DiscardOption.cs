@@ -12,14 +12,14 @@ namespace Betauer.Core.Deck.Hands;
 public class DiscardOption {
     public List<Card> CardsToKeep { get; }
     public List<Card> CardsToDiscard { get; }
-    public ReadOnlyDictionary<Type, HandTypeStats> HandOccurrences { get; }
+    public ReadOnlyDictionary<PokerHandType, HandTypeStats> HandOccurrences { get; }
     public int TotalSimulations { get; }
     public int TotalCombinations { get; }
 
     public DiscardOption(
         List<Card> cardsToKeep,
         List<Card> cardsToDiscard,
-        Dictionary<Type, HandTypeStats> handOccurrences,
+        Dictionary<PokerHandType, HandTypeStats> handOccurrences,
         int totalSimulations,
         int totalCombinations
     ) {
@@ -53,7 +53,7 @@ public class DiscardOption {
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
-    public HandTypeStats? GetBestHand<T>() where T : PokerHand {
-        return HandOccurrences.GetValueOrDefault(typeof(T), null);
+    public HandTypeStats? GetBestHand(PokerHandType type) {
+        return HandOccurrences.GetValueOrDefault(type, null);
     }
 }

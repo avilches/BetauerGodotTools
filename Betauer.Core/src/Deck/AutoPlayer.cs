@@ -20,9 +20,8 @@ public class AutoPlayer {
         var currentHands = handler.GetPossibleHands();
 
         // Keep only the 
-        var bestHighCard = currentHands.FirstOrDefault(p => p.GetType() == typeof(HighCardHand));
-        currentHands.RemoveAll(p => p.GetType() == typeof(HighCardHand) && p != bestHighCard);
-        
+        var bestHighCard = currentHands.FirstOrDefault(p => p.HandType == PokerHandType.HighCard);
+        currentHands.RemoveAll(p => p.HandType == PokerHandType.HighCard && p != bestHighCard);
         
         var bestCurrentHand = currentHands[0];
         var currentScore = handler.CalculateScore(bestCurrentHand);
@@ -55,10 +54,7 @@ public class AutoPlayer {
         }
 
         // Remove a discard that the best hand is the same hand
-        
-        
-        
-        var bestDiscard = discardOptions.Discards.FirstOrDefault(o => o.GetBestHand().HandType != bestCurrentHand.GetType());
+        var bestDiscard = discardOptions.Discards.FirstOrDefault(o => o.GetBestHand().HandType != bestCurrentHand.HandType);
 
         // Si es la última mano y no ganamos, pero tenemos descartes, descartar para ver si tenemos mas suerte la proxima
         if (handler.RemainingHands == 1 && currentScore < handler.RemainingScoreToWin) {

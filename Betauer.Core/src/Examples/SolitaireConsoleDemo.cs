@@ -187,7 +187,7 @@ public class SolitaireConsoleDemo {
         Console.WriteLine("\nPossible hands you can play:");
         int i = 0;
         for (; i < currentDecision.PossibleHands.Count; i++) {
-            Console.WriteLine($"{i + 1}: {currentDecision.PossibleHands[i]}: +{GameHandler.CalculateScore(currentDecision.PossibleHands[i])}");
+            Console.WriteLine($"{i + 1}: {currentDecision.PossibleHands[i].Name}: +{GameHandler.CalculateScore(currentDecision.PossibleHands[i])}");
         }
         var currentBestHand = currentDecision.PossibleHands[0];
 
@@ -204,7 +204,7 @@ public class SolitaireConsoleDemo {
                 .OrderByDescending(kv => kv.Value.PotentialScore);
 
             foreach (var (handType, stats) in handsByScore) {
-                Console.WriteLine($"   - {handType.Name,-20} {stats.AvgScore:0000} x {stats.Probability:00.00%} = {stats.PotentialScore:000.00} {(stats.Probability < Risk ? "[!]" : "[ ]")} {(handType == currentBestHand.GetType() ? "same as your hand" : "")}");
+                Console.WriteLine($"   - {handType,-20} {stats.AvgScore:0000} x {stats.Probability:00.00%} = {stats.PotentialScore:000.00} {(stats.Probability < Risk ? "[!]" : "[ ]")} {(handType == currentBestHand.HandType ? "same as your hand" : "")}");
             }
         }
         Console.WriteLine($"Analysis time: {currentDecision.DiscardOptions.ElapsedTime.TotalSeconds:F3} seconds");
@@ -212,7 +212,6 @@ public class SolitaireConsoleDemo {
     }
 
     private void ProcessUserInput() {
-        currentDecision = autoPlayer.GetNextAction(GameHandler);
         DisplayPotentialHands();
 
         Console.WriteLine("\nOptions:");

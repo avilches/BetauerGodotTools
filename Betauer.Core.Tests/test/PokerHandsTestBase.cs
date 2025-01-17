@@ -40,7 +40,7 @@ public class PokerHandsTest : PokerHandsTestBase {
 
         // Verificar que la mano se detecta cuando está habilitada
         var handsEnabled = HandsManager.IdentifyAllHands(Handler, currentHand)
-            .Where(h => h is FiveOfAKindHand)
+            .Where(h => h.HandType == PokerHandType.FiveOfAKind)
             .ToList();
         Assert.That(handsEnabled, Is.Not.Empty, "Should identify FiveOfAKind when enabled");
 
@@ -51,7 +51,7 @@ public class PokerHandsTest : PokerHandsTestBase {
 
         // Verificar que la mano no se detecta cuando está deshabilitada
         var handsDisabled = HandsManager.IdentifyAllHands(Handler, currentHand)
-            .Where(h => h is FiveOfAKindHand)
+            .Where(h => h.HandType == PokerHandType.FiveOfAKind)
             .ToList();
         Assert.That(handsDisabled, Is.Empty, "Should not identify disabled FiveOfAKind");
     }

@@ -8,8 +8,8 @@ namespace Betauer.Core.Deck.Hands;
 /// Tracks statistics for a specific hand type, including occurrences, scores, and probabilities.
 /// Used in Monte Carlo simulations to evaluate potential hand improvements.
 /// </summary>
-public class HandTypeStats(Type type, long score) {
-    public Type HandType { get; } = type;
+public class HandTypeStats(PokerHandType type, long score) {
+    public PokerHandType HandType { get; } = type;
     public int Count { get; private set; } = 1;
     public long MaxScore { get; private set; } = score;
     public long MinScore { get; private set; } = score;

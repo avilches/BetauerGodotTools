@@ -12,7 +12,7 @@ public class FlushHandsTest : PokerHandsTestBase {
     public void BasicFlush_ShouldBeIdentified() {
         // 5 cartas del mismo palo, no consecutivas
         var cards = CreateCards("2H", "5H", "7H", "JH", "KH");
-        var flushes = PokerHand.Prototypes[PokerHandType.Flush].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var flushes = PokerHandDefinition.Prototypes[PokerHandType.Flush].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.Multiple(() => {
             Assert.That(flushes.Count, Is.EqualTo(1), "Should identify exactly one flush");
@@ -30,7 +30,7 @@ public class FlushHandsTest : PokerHandsTestBase {
     public void WithMoreThanFiveCards_ShouldSelectHighestFive() {
         // 7 cartas del mismo palo
         var cards = CreateCards("2H", "5H", "7H", "9H", "JH", "QH", "KH");
-        var flushes = PokerHand.Prototypes[PokerHandType.Flush].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var flushes = PokerHandDefinition.Prototypes[PokerHandType.Flush].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.Multiple(() => {
             Assert.That(flushes.Count, Is.EqualTo(1), "Should identify exactly one flush");
@@ -46,7 +46,7 @@ public class FlushHandsTest : PokerHandsTestBase {
     [Test]
     public void WithFourCardsOfSameSuit_ShouldNotIdentifyFlush() {
         var cards = CreateCards("2H", "5H", "7H", "JH", "KC");
-        var flushes = PokerHand.Prototypes[PokerHandType.Flush].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var flushes = PokerHandDefinition.Prototypes[PokerHandType.Flush].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.That(flushes, Is.Empty, "Should not identify flush with only 4 cards of same suit");
     }
@@ -57,10 +57,10 @@ public class FlushHandsTest : PokerHandsTestBase {
         var hands = HandsManager.IdentifyAllHands(Handler, cards);
 
         Assert.Multiple(() => {
-            var straightFlushes = hands.Where(h => h is StraightFlushHand).ToList();
+            var straightFlushes = hands.Where(h => h.HandType == PokerHandType.StraightFlush).ToList();
             Assert.That(straightFlushes.Count, Is.EqualTo(1), "Should identify straight flush");
 
-            var flushes = hands.Where(h => h is FlushHand).ToList();
+            var flushes = hands.Where(h => h.HandType == PokerHandType.Flush).ToList();
             Assert.That(flushes.Count, Is.EqualTo(1), "Should also identify as flush");
         });
     }
@@ -72,7 +72,7 @@ public class FlushHandsTest : PokerHandsTestBase {
             "2H", "5H", "7H", "JH", "KH",
             "2S", "5S", "7S", "JS", "KS"
         );
-        var flushes = PokerHand.Prototypes[PokerHandType.Flush].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var flushes = PokerHandDefinition.Prototypes[PokerHandType.Flush].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.Multiple(() => {
             Assert.That(flushes.Count, Is.EqualTo(2), "Should identify both identical flushes");
@@ -95,7 +95,7 @@ public class FlushHandsTest : PokerHandsTestBase {
     public void SuggestDiscards_WithFourOfSameSuit() {
         // 4 corazones y una carta diferente
         var cards = CreateCards("7H", "9H", "JH", "KH", "4C");
-        var hand = PokerHand.Prototypes[PokerHandType.Flush];
+        var hand = PokerHandDefinition.Prototypes[PokerHandType.Flush];
         var analysis = new PokerHandAnalysis(Handler.Config, cards);
 
         Assert.Multiple(() => {
@@ -111,7 +111,7 @@ public class FlushHandsTest : PokerHandsTestBase {
     public void SuggestDiscards_WithThreeOfSameSuit() {
         // 3 corazones y dos cartas diferentes
         var cards = CreateCards("7H", "JH", "KH", "4C", "8D");
-        var hand = PokerHand.Prototypes[PokerHandType.Flush];
+        var hand = PokerHandDefinition.Prototypes[PokerHandType.Flush];
         var analysis = new PokerHandAnalysis(Handler.Config, cards);
 
         Assert.Multiple(() => {
@@ -129,7 +129,7 @@ public class FlushHandsTest : PokerHandsTestBase {
     public void SuggestDiscards_WithCompleteFlush() {
         // Flush completo
         var cards = CreateCards("2H", "5H", "7H", "JH", "KH");
-        var hand = PokerHand.Prototypes[PokerHandType.Flush];
+        var hand = PokerHandDefinition.Prototypes[PokerHandType.Flush];
         var analysis = new PokerHandAnalysis(Handler.Config, cards);
 
         var discards = hand.SuggestDiscards(analysis, 2);
@@ -141,7 +141,7 @@ public class FlushHandsTest : PokerHandsTestBase {
     public void SuggestDiscards_WithNoFlushPossibility() {
         // Todas las cartas de diferente palo
         var cards = CreateCards("2H", "5S", "7D", "JC", "KH");
-        var hand = PokerHand.Prototypes[PokerHandType.Flush];
+        var hand = PokerHandDefinition.Prototypes[PokerHandType.Flush];
         var analysis = new PokerHandAnalysis(Handler.Config, cards);
 
         var discards = hand.SuggestDiscards(analysis, 2);
@@ -153,7 +153,7 @@ public class FlushHandsTest : PokerHandsTestBase {
     public void SuggestDiscards_WithMultipleFlushPossibilities() {
         // 3 corazones y 3 picas
         var cards = CreateCards("7H", "JH", "KH", "8S", "TS", "QS");
-        var hand = PokerHand.Prototypes[PokerHandType.Flush];
+        var hand = PokerHandDefinition.Prototypes[PokerHandType.Flush];
         var analysis = new PokerHandAnalysis(Handler.Config, cards);
 
         Assert.Multiple(() => {
@@ -174,7 +174,7 @@ public class FlushHandsTest : PokerHandsTestBase {
             // Flush de picas con Q alta
             "3S", "6S", "8S", "JS", "QS"
         );
-        var flushes = PokerHand.Prototypes[PokerHandType.Flush].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var flushes = PokerHandDefinition.Prototypes[PokerHandType.Flush].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.Multiple(() => {
             Assert.That(flushes.Count, Is.EqualTo(2), "Should identify both flushes");
@@ -195,7 +195,7 @@ public class FlushHandsTest : PokerHandsTestBase {
             // Flush de picas: K, J, 8, 6, 3
             "3S", "6S", "8S", "JS", "KS"
         );
-        var flushes = PokerHand.Prototypes[PokerHandType.Flush].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var flushes = PokerHandDefinition.Prototypes[PokerHandType.Flush].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.Multiple(() => {
             Assert.That(flushes.Count, Is.EqualTo(2), "Should identify both flushes");
@@ -227,7 +227,7 @@ public class FlushHandsTest : PokerHandsTestBase {
     public void WithMultipleSuits_ShouldOrderFlushes() {
         // Dos flushes posibles: 5 corazones y 5 picas
         var cards = CreateCards("2H", "5H", "7H", "JH", "KH", "3S", "6S", "8S", "TS", "QS");
-        var flushes = PokerHand.Prototypes[PokerHandType.Flush].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var flushes = PokerHandDefinition.Prototypes[PokerHandType.Flush].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
 
         Assert.Multiple(() => {
             Assert.That(flushes.Count, Is.EqualTo(2), "Should identify both flushes");
@@ -248,7 +248,7 @@ public class FlushHandsTest : PokerHandsTestBase {
 
     [Test]
     public void EmptyHand_ShouldReturnNoFlush() {
-        var flushes = PokerHand.Prototypes[PokerHandType.Flush].IdentifyHands(new PokerHandAnalysis(Handler.Config, []));
+        var flushes = PokerHandDefinition.Prototypes[PokerHandType.Flush].IdentifyHands(new PokerHandAnalysis(Handler.Config, []));
         Assert.That(flushes, Is.Empty);
     }
 }
