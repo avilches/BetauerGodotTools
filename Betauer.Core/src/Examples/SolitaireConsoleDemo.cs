@@ -10,10 +10,9 @@ using static System.Int32;
 namespace Betauer.Core.Examples;
 
 public class SolitaireConsoleDemo {
-
     public readonly bool _autoPlay;
-    public readonly List<GameRun> GameRuns = new();
-    public GameRun CurrentRun;
+    public GameRun GameRun;
+    public Random GameRunRandom;
     public GameHandler GameHandler;
     public PokerGameConfig Config;
     public PokerHandsManager PokerHandsManager;
@@ -25,60 +24,53 @@ public class SolitaireConsoleDemo {
     }
 
     public static void Main() {
-        Console.WriteLine("Auto-play mode? (Y/N)");
-        var autoPlay = Console.ReadLine()?.ToUpper() == "Y";
-        new SolitaireConsoleDemo(autoPlay).Play();
+        new SolitaireConsoleDemo(false).ConsoleRun();
     }
 
-    public void Play() {
-        InitializeFirstRun();
-
-        while (GameHandler.State.Level < GameHandler.Config.MaxLevel) {
-            while (!GameHandler.IsGameOver()) {
-                currentDecision = autoPlayer.GetNextAction(GameHandler);
-                DisplayGameState();
-
-                if (_autoPlay) {
-                    ProcessAutoPlay();
-                    //Thread.Sleep(1000);
-                } else {
-                    if (ProcessUserInput() == true) {
-                        return; // El usuario quiere salir
-                    }
-                }
+    private void ConsoleRun() {
+        while (true) {
+            Run(0, DisplayGameState);
+            Console.WriteLine("\nPlay again? (Y/N)");
+            if (Console.ReadLine()?.ToUpper() != "Y") {
+                break;
             }
+        }
+    }
 
-            if (GameHandler.IsWon()) {
-                DisplayWinScreen();
+    public void Run(int gameId, Action action) {
+        InitializeRun(gameId);
+        while (!GameRun.RunIsGameOver()) {
+            GameLevelLoop(action);
 
-                if (GameHandler.State.Level + 1 < GameHandler.Config.MaxLevel) {
-                    // Preparamos el siguiente nivel
-                    InitializeGame(GameHandler.State.Level + 1);
-
-                    Console.WriteLine($"\nAdvancing to level {GameHandler.State.Level + 1}! New target: {GameHandler.State.LevelScore}");
-                    if (!_autoPlay) {
-                        Console.WriteLine("Press any key to continue...");
-                        Console.ReadKey();
-                    }
-                }
-            } else {
-                // El juego terminó sin alcanzar la puntuación
-                DisplayGameOverScreen();
-                if (!_autoPlay && !PlayAgain()) {
-                    return;
-                }
-                InitializeNextRun();
+            if (GameHandler.IsWon() && !GameRun.RunIsWon()) {
+                GameWon();
+                DisplayGameLevelWin();
+                InitializeGame(GameHandler.State.Level + 1);
             }
         }
 
-        DisplayFinalVictoryScreen();
+        if (GameRun.RunIsWon()) {
+            DisplayFinalVictoryScreen();
+        } else {
+            DisplayGameOverScreen();
+        }
     }
 
-    private void InitializeFirstRun() {
-        Config = new PokerGameConfig();
-        PokerHandsManager = new PokerHandsManager();
-        PokerHandsManager.RegisterBasicPokerHands();
-        var seed = 0;
+    private void GameLevelLoop(Action action) {
+        while (!GameHandler.IsGameOver()) {
+            currentDecision = autoPlayer.GetNextAction(GameHandler);
+            action();
+
+            if (_autoPlay) {
+                ProcessAutoPlay();
+                //Thread.Sleep(1000);
+            } else {
+                ProcessUserInput();
+            }
+        }
+    }
+
+    private void InitializeRun(int seed) {
         var level = 0;
         if (!_autoPlay) {
             Console.WriteLine("Enter a base seed number (or press Enter for random seed):");
@@ -86,7 +78,6 @@ public class SolitaireConsoleDemo {
             if (string.IsNullOrEmpty(input)) {
                 seed = new Random().Next();
             } else if (TryParse(input, out seed)) {
-                
             } else {
                 seed = input.GetHashCode(); // Use string hash as seed if not a number
             }
@@ -94,92 +85,68 @@ public class SolitaireConsoleDemo {
 
             Console.WriteLine($"Level (press Enter to start from 0):");
             input = Console.ReadLine();
-            if (TryParse(input, out level)) {
-            }
+            _ = TryParse(input, out level);
             Console.WriteLine($"Level: {level}");
             Thread.Sleep(600);
         }
-        
-        CurrentRun = new GameRun(0, Config, PokerHandsManager, seed);
-        GameRuns.Add(CurrentRun);
+
+        Config = new PokerGameConfig();
+        PokerHandsManager = new PokerHandsManager();
+        PokerHandsManager.RegisterBasicPokerHands();
+        GameRun = new GameRun(Config, PokerHandsManager, seed);
+        GameRunRandom = new Random(seed);
         InitializeGame(level);
     }
 
-    private void InitializeNextRun() {
-        var nextId = CurrentRun.Id + 1;
-        CurrentRun = new GameRun(nextId, Config, PokerHandsManager, nextId);
-        GameRuns.Add(CurrentRun);
-        InitializeGame(0);
-    }
-
     private void InitializeGame(int level) {
-        GameHandler = CurrentRun.CreateGameHandler(level);
+        GameHandler = GameRun.CreateGameHandler(level);
         GameHandler.DrawCards();
     }
 
-    private void DisplayGameState() {
-        var state = GameHandler.State;
+    public void DisplayGameState() {
         Console.Clear();
-
-        // Display runs history
-        if (GameRuns.Count > 0) {
-            Console.WriteLine("=== Previous Runs ===");
-            // foreach (var run in gameRuns.OrderByDescending(r => r.StartTime)) {
-            foreach (var run in GameRuns) {
-                Console.WriteLine(run);
-                foreach (var gameState in run.GameStates) {
-                    Console.Write($"  Level {gameState.Level + 1} | ");
-                    foreach (var action in gameState.History.GetHistory()) {
-                        if (action.Type == PlayHistory.PlayedActionType.Play)
-                            Console.Write($"Play #{action.Id + 1}: {action.PlayedHand?.Name} ({string.Join(", ", action.Cards)}) (Score +{action.HandScore}: {action.GameScore}/{action.TotalScore}) | ");
-                        else
-                            Console.Write($"Discard #{action.Id + 1}: {string.Join(" ", action.Cards)} | ");
-                    }
-                    Console.WriteLine();
-                }
-                Console.WriteLine();
-            }
-            Console.WriteLine("=== Stats ===");
-            if (GameRuns.Count >= 2) {
-                var gameRunsWithoutLast = GameRuns.Take(GameRuns.Count - 1);
-                var runsWithStates = gameRunsWithoutLast.Where(run => run.GameStates.Count > 0).ToList();
-    
-                if (runsWithStates.Any()) {
-                    var minLevelWon = runsWithStates.Min(run => run.GameStates.Last().Level);
-                    var maxLevelWon = runsWithStates.Max(run => run.GameStates.Last().Level);
-
-                    // Encontrar los runs que tienen el nivel mínimo y máximo para obtener sus seeds
-                    var runWithMinLevel = runsWithStates.First(run => run.GameStates.Last().Level == minLevelWon);
-                    var runWithMaxLevel = runsWithStates.First(run => run.GameStates.Last().Level == maxLevelWon);
-                    var minLevelState = runWithMinLevel.GameStates.Last();
-                    var maxLevelState = runWithMaxLevel.GameStates.Last();
-
-                    Console.WriteLine($"- Min level won: {(minLevelWon + 1)} (seed {minLevelState.Seed}) | Max level won: {(maxLevelWon + 1)} (seed {maxLevelState.Seed})]");
-    
-                    // Añadimos el resumen de runs por nivel
-                    var runsByLevel = runsWithStates
-                        .GroupBy(run => run.GameStates.Last().Level)
-                        .OrderBy(group => group.Key)
-                        .ToDictionary(group => group.Key, group => group.Count());
-    
-                    Console.WriteLine("=== Runs distribution by level ===");
-                    foreach (var (level, count) in runsByLevel) {
-                        Console.WriteLine($"Level {level + 1}: {count} run{(count > 1 ? "s" : "")}");
-                    }
-                }
-            }
-        }
-        Console.WriteLine($"=== Solitaire Poker - Seed: {state.Seed} - Level {state.Level + 1} ===");
-        Console.WriteLine($"Score: {state.Score}/{state.LevelScore} | Hand {state.HandsPlayed + 1}/{GameHandler.Config.MaxHands} | Discards: {state.Discards}/{GameHandler.Config.MaxDiscards}");
+        Console.WriteLine($"=== {GameRun}");
+        DisplayHistory();
+        Console.WriteLine($"=== Your hand ===");
         DisplayYourHand();
     }
 
-    private void DisplayWinScreen() {
+    public void DisplayHistory() {
+        foreach (var gameState in GameRun.GameStates) {
+            Console.Write($"  Level {gameState.Level + 1} | ");
+            foreach (var action in gameState.History.GetHistory()) {
+                if (action.Type == PlayHistory.PlayedActionType.Play)
+                    Console.Write($"Play #{action.Id + 1}: {action.PlayedHand?.Name} ({string.Join(", ", action.Cards)}) (Score +{action.HandScore}: {action.GameScore}/{action.TotalScore}) | ");
+                else
+                    Console.Write($"Discard #{action.Id + 1}: {string.Join(" ", action.Cards)} | ");
+            }
+            if (gameState.IsWon()) {
+                Console.WriteLine("Won!");
+            } else if (gameState.IsGameOver()) {
+                Console.WriteLine("Game Over!");
+            } else {
+                Console.WriteLine("...");
+            }
+        }
+    }
+
+    private void GameWon() {
+        var randomPokerHand = GameRunRandom.Next(GameRun.PokerHandsManager.ListHandTypes().ToList());
+        GameRun.State.SetPokerHandLevel(randomPokerHand, GameRun.State.GetPokerHandLevel(randomPokerHand) + 1);
+    }
+
+    private void DisplayGameLevelWin() {
         if (_autoPlay) return;
         Console.Clear();
         Console.WriteLine("=== WINNER! ===");
         Console.WriteLine($"Congratulations! You've reached {GameHandler.State.Score} points!");
         Console.WriteLine($"Target was: {GameHandler.State.LevelScore}");
+
+        if (!GameRun.RunIsWon()) {
+            Console.WriteLine($"\nAdvancing to level {GameHandler.State.Level + 1}! New target: {GameHandler.State.LevelScore}");
+            Console.WriteLine("Press any key to continue...");
+            Console.ReadKey();
+        }
     }
 
     private void DisplayGameOverScreen() {
@@ -198,12 +165,6 @@ public class SolitaireConsoleDemo {
         Console.WriteLine("You've completed all levels!");
         Console.WriteLine("\nPress any key to exit...");
         Console.ReadKey();
-    }
-
-    private bool PlayAgain() {
-        if (_autoPlay) return true;
-        Console.WriteLine("\nPlay again? (Y/N)");
-        return Console.ReadLine()?.ToUpper() == "Y";
     }
 
     private void DisplayYourHand() {
@@ -250,7 +211,7 @@ public class SolitaireConsoleDemo {
         Console.WriteLine($"Total simulations: {currentDecision.DiscardOptions.TotalSimulations:N0}/{currentDecision.DiscardOptions.TotalCombinations:N0} ({(float)currentDecision.DiscardOptions.TotalSimulations / currentDecision.DiscardOptions.TotalCombinations:0%})");
     }
 
-    private bool ProcessUserInput() {
+    private void ProcessUserInput() {
         currentDecision = autoPlayer.GetNextAction(GameHandler);
         DisplayPotentialHands();
 
@@ -259,13 +220,9 @@ public class SolitaireConsoleDemo {
         Console.WriteLine("M: Make your own hand by selecting cards");
         Console.WriteLine("D: Discard cards");
         Console.WriteLine("A: Auto play: " + GetAutoPlay());
-        Console.WriteLine("Q: Quit game");
+        Console.WriteLine("CTRL+C: Quit game");
 
         var option = Console.ReadLine()?.ToUpper();
-
-        if (option == "Q") {
-            return true;
-        }
 
         if (option == "A") {
             ProcessAutoPlay();
@@ -286,10 +243,9 @@ public class SolitaireConsoleDemo {
                 ProcessDiscard(cardsToDiscard);
             }
         } else {
-            Console.WriteLine("Invalid option! (press any key to continue)");
-            Console.ReadKey();
+            Console.WriteLine("Invalid option!");
+            Thread.Sleep(300);
         }
-        return false;
     }
 
     private string GetAutoPlay() {

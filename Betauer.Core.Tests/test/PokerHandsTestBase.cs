@@ -20,7 +20,7 @@ public class PokerHandsTestBase {
         Config = new PokerGameConfig();
         HandsManager = new PokerHandsManager();
         HandsManager.RegisterBasicPokerHands();
-        GameRun = new GameRun(0, Config, HandsManager, 0);
+        GameRun = new GameRun(Config, HandsManager, 0);
         Handler = GameRun.CreateGameHandler(0);
     }
 
@@ -36,7 +36,7 @@ public class PokerHandsTest : PokerHandsTestBase {
     [Test]
     public void DisabledHand_ShouldNotBeIdentified() {
         var currentHand = CreateCards("AS", "AH", "AD", "AC", "AH");
-        var config = HandsManager.GetPokerHandConfig(PokerHand.Prototypes[PokerHandType.FiveOfAKind]);
+        var config = HandsManager.GetPokerHandConfig(PokerHandType.FiveOfAKind);
 
         // Verificar que la mano se detecta cuando está habilitada
         var handsEnabled = HandsManager.IdentifyAllHands(Handler, currentHand)

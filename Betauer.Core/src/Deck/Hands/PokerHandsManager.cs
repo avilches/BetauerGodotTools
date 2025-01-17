@@ -45,7 +45,24 @@ public class PokerHandsManager {
         _handConfigs.AddRange(ordered);
     }
 
-    public void ClearHands() => _handConfigs.Clear();
+    public void UnregisterHand(PokerHandType handType) => _handConfigs.RemoveAll(c => c.Prototype.HandType == handType);
+    
+    public void UnregisterAllHands() => _handConfigs.Clear();
+
+    /// <summary>
+    /// Returns PokerHandConfig, ordered by order (highest value hand first)
+    /// </summary>
+    public IEnumerable<PokerHandConfig> ListPokerHandConfigs() => _handConfigs.Where(c => c.Enabled);
+
+    public IEnumerable<PokerHandType> ListHandTypes() => ListPokerHandConfigs().Select(c => c.Prototype.HandType);
+
+    public PokerHandConfig GetPokerHandConfig(PokerHandType hand) {
+        if (_handConfigs.Count == 0) {
+            throw new InvalidOperationException("No hands registered");
+        }
+        return _handConfigs.First(c => c.Prototype.HandType == hand);
+    }
+
 
     /// <summary>
     /// Identifies all possible poker hands in the given cards.
@@ -63,9 +80,7 @@ public class PokerHandsManager {
 
         var analysis = new PokerHandAnalysis(handler.Config, cards);
 
-        var pokerHandConfigs = _handConfigs
-            .Where(config => config.Enabled).ToList();
-        var allHands = pokerHandConfigs
+        var allHands = ListPokerHandConfigs()
             .SelectMany(config => config.Prototype.IdentifyHands(analysis))
             .OrderByDescending(handler.CalculateScore)
             .ToList();
@@ -99,8 +114,7 @@ public class PokerHandsManager {
         var analysis = new PokerHandAnalysis(handler.Config, cards);
 
         // Iterate through configs in descending order
-        foreach (var config in _handConfigs) {
-            if (!config.Enabled) continue;
+        foreach (var config in _handConfigs.Where(config => config.Enabled)) {
 
             var hands = config.Prototype.IdentifyHands(analysis);
             if (hands.Count > 0) {
@@ -228,14 +242,4 @@ public class PokerHandsManager {
         }
     }
 
-    public PokerHandConfig GetPokerHandConfig(PokerHand hand) {
-        if (_handConfigs.Count == 0) {
-            throw new InvalidOperationException("No hands registered");
-        }
-        var config = _handConfigs.Find(c => c.Prototype.GetType() == hand.GetType());
-        if (config == null) {
-            throw new ArgumentException($"No configuration found for hand type: {hand.GetType()}");
-        }
-        return config;
-    }
 }

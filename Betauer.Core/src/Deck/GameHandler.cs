@@ -231,8 +231,8 @@ public class GameHandler {
     }
 
     public long CalculateScore(PokerHand hand) {
-        var config = PokerHandsManager.GetPokerHandConfig(hand);
-        var level = GameRunState.GetPokerHandLevel(hand);
+        var config = PokerHandsManager.GetPokerHandConfig(hand.HandType);
+        var level = GameRunState.GetPokerHandLevel(hand.HandType);
 
         var score = config.InitialScore + level * config.ScorePerLevel;
         var multiplier = config.InitialMultiplier + level * config.MultiplierPerLevel;
