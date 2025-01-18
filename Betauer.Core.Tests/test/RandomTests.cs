@@ -127,8 +127,8 @@ public class RandomTests {
     public void WeightedPickIWeightArrayTest() {
         var rnd = new Random(0);
 
-        var weightHist = Distribution.DiscreteHistogram(() =>
-            rnd.PickPosition(new IWeight[] { WeightValue.Create("A", 1f), WeightValue.Create("B", 2f), WeightValue.Create("C", 3f) }), SampleCount);
+        WeightValue<string>[] val = [new("A", 1f), new("B", 2f), new("C", 3f)];
+        var weightHist = Distribution.DiscreteHistogram(() => rnd.PickPosition(val), SampleCount);
         Console.WriteLine("16%/33%/50%");
         Console.WriteLine(Distribution.Show(weightHist));
         Assert.That(weightHist[0], Is.EqualTo(SampleCount * 0.16666f).Within(NUnitTolerance).Percent);

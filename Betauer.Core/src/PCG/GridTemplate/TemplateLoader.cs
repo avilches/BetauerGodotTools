@@ -81,18 +81,16 @@ public class TemplateLoader {
 
                 var id = TemplateId.Parse(parts[0]);
                 current = new Template(id);
+                
+                var from = parts.Length > 1 ? parts[1].Trim() : null;
+                if (from != null) {
+                    var (baseIdString, fromId, transform) = TemplateId.ParseFromString(from);
 
-                if (parts.Length > 1) {
-                    var originalFromPart = parts[1].Trim();
-                    var (baseIdString, fromId, transform) = TemplateId.ParseFromString(parts[1]);
-
-                    // Validación temprana y asignación directa del template base
                     if (templates.TryGetValue(fromId.Type, out var existingTemplates)) {
                         var baseTemplate = existingTemplates.FirstOrDefault(p =>
                             p.HasExactFlags(fromId.Flags.ToArray()));
                         if (baseTemplate == null) {
-                            throw new ArgumentException(
-                                $"Error in template '{current.Id}': Reference to base template '{baseIdString}' not found");
+                            throw new ArgumentException($"Error in template '{current.Id}': Reference to base template '{baseIdString}' not found");
                         }
                         current.TemplateBase = baseTemplate;
                         current.TransformBase = transform;

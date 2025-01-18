@@ -80,7 +80,7 @@ public partial class WorldGenerator {
                 
         // return;
         GenerateOld(GodotTileMap, BiomeGenerator.HeightNoise, BiomeGenerator.HumidityNoise);
-        foreach (var (pos, cell) in BiomeGenerator.BiomeCells) {
+        foreach (var (pos, cell) in BiomeGenerator.BiomeCells.GetIndexedValues()) {
             switch (cell.Biome.Type) {
                 case BiomeType.Beach:
                     GodotTileMap.SetCell(0, pos, 7, new Vector2I(18, 4)); // Sand
@@ -179,7 +179,7 @@ public partial class WorldGenerator {
         var sproutDarkerGrass = new TileMapSource(8, TileSetLayouts.Blob47Godot);
 
         var buffer = new int[3, 3];
-        foreach (var ((x, y), cell) in BiomeGenerator.BiomeCells) {
+        foreach (var ((x, y), cell) in BiomeGenerator.BiomeCells.GetIndexedValues()) {
             BiomeGenerator.BiomeCells.CopyTo(x, y, buffer, (c) => c.Biome.Type == BiomeType.Plains ? 0 : -1, -1);
             var tileId = Blob47.Rules.FindTilePatternId(buffer, -1);
             sproutDarkerGrass.SetCell(godotTileMap, 0, x, y, tileId);
@@ -188,24 +188,24 @@ public partial class WorldGenerator {
     }
 
     private void PlaceObjects(Node parent, FastNoiseLite FastNoiseHeight) {
-        var stumps = new[] {
-            WeightValue.Create(Trees.Id.Trunk, 1f),
-            WeightValue.Create(Trees.Id.Stump, 2f),
-            WeightValue.Create(Trees.Id.MiniStump, 4f),
-        };
+        WeightValue<Trees.Id>[] stumps = [
+            new (Trees.Id.Trunk, 1f),
+            new (Trees.Id.Stump, 2f),
+            new (Trees.Id.MiniStump, 4f),
+        ];
 
-        var bigTrees = new[] {
-            WeightValue.Create(Trees.Id.BigTree1, 5f),
-            WeightValue.Create(Trees.Id.BigTree2, 5f),
-        };
-        var smallTrees = new[] {
-            WeightValue.Create(Trees.Id.SmallTree1, 5f),
-            WeightValue.Create(Trees.Id.SmallTree2, 5f),
-            WeightValue.Create(Trees.Id.SmallTree5, 3f),
-            WeightValue.Create(Trees.Id.SmallTree6, 1f),
-            WeightValue.Create(Trees.Id.SmallTree9, 5f),
-            WeightValue.Create(Trees.Id.SmallTree10, 6f),
-        };
+        WeightValue<Trees.Id>[] bigTrees = [
+            new(Trees.Id.BigTree1, 5f),
+            new(Trees.Id.BigTree2, 5f),
+        ];
+        WeightValue<Trees.Id>[] smallTrees = [
+            new(Trees.Id.SmallTree1, 5f),
+            new(Trees.Id.SmallTree2, 5f),
+            new(Trees.Id.SmallTree5, 3f),
+            new(Trees.Id.SmallTree6, 1f),
+            new(Trees.Id.SmallTree9, 5f),
+            new(Trees.Id.SmallTree10, 6f),
+        ];
 
         var miniForestRadius = CellSize;
         var minRadius = 16;

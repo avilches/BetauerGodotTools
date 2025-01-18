@@ -233,7 +233,7 @@ public class BiomeGenerator {
         s.Restart();
 
         var list = new List<BiomeCell>();
-        foreach (var (position, _) in BiomeCells) {
+        foreach (var (position, value) in BiomeCells.GetIndexedValues()) {
                 var terrainHeight = HeightFalloffGrid[position];
                 var humidity = HumidityEnabled ? HumidityNormalizedGrid[position] : 0f;
                 var temp = CalculateTemperature(position.Y, Height, terrainHeight);
@@ -258,7 +258,7 @@ public class BiomeGenerator {
         var gridSize = 3;
         var centralPos = 1;
         var buffer = new BiomeCell[gridSize, gridSize]; 
-        foreach (var ((x, y), cell) in BiomeCells) {
+        foreach (var ((x, y), cell) in BiomeCells.GetIndexedValues()) {
             BiomeCells.CopyNeighbors(x, y, buffer);
 
             // If central pixel is not land, it can't be coast
@@ -326,7 +326,7 @@ public class BiomeGenerator {
     }
 
     public void FillMassland(FastImage fastTexture) {
-        foreach (var ((x, y), val) in new Array2D<float>(Width, Height).LoadNormalized((x, y) => MassLands[y, x])) {
+        foreach (var ((x, y), val) in new Array2D<float>(Width, Height).LoadNormalized((x, y) => MassLands[y, x]).GetIndexedValues()) {
             fastTexture.SetPixel(x, y, new Color(val, val, val), false);            
         } 
         fastTexture.Flush();
@@ -411,7 +411,7 @@ public class BiomeGenerator {
     }
 
     public void FillHeight(FastImage fastImage) {
-        foreach (var ((x, y), val) in new Array2D<float>(Width, Height).LoadNormalized((x, y) => HeightNoise.GetNoise(x, y))) {
+        foreach (var ((x, y), val) in new Array2D<float>(Width, Height).LoadNormalized((x, y) => HeightNoise.GetNoise(x, y)).GetIndexedValues()) {
             fastImage.SetPixel(x, y, new Color(val, val, val), false);
         }
         fastImage.Flush();
@@ -423,21 +423,21 @@ public class BiomeGenerator {
             var r = MassLands[y, x]; // from 0 to 1
             return RampFunc(height, r);
         });
-        foreach (var ((x, y), val) in array2d) {
+        foreach (var ((x, y), val) in array2d.GetIndexedValues()) {
             fastImage.SetPixel(x, y, new Color(val, val, val), false);
         }
         fastImage.Flush();
     }
 
     public void FillHumidityNoise(FastImage fastImage) {
-        foreach (var ((x, y), val) in HumidityNormalizedGrid) {
+        foreach (var ((x, y), val) in HumidityNormalizedGrid.GetIndexedValues()) {
             fastImage.SetPixel(x, y, new Color(val, val, val), false);
         }
         fastImage.Flush();
     }
 
     public void FillTemperature(FastImage fastImage) {
-        foreach (var ((x, y), val) in BiomeCells) {
+        foreach (var ((x, y), val) in BiomeCells.GetIndexedValues()) {
             fastImage.SetPixel(x, y, new Color(val.Temp, val.Temp, val.Temp), false);
         }
         fastImage.Flush();
@@ -454,7 +454,7 @@ public class BiomeGenerator {
                                   L L L
                                   """, landSeaRules);
         var buffer = new BiomeCell[3, 3];
-        foreach (var ((x, y), val) in BiomeCells) {
+        foreach (var ((x, y), val) in BiomeCells.GetIndexedValues()) {
             BiomeCells.CopyNeighbors(x, y, buffer);
             if (p.Matches(buffer)) {
                 fastImage.SetPixel(x, y, Colors.Blue, false);
@@ -463,7 +463,7 @@ public class BiomeGenerator {
     }
 
     public void FillTerrain(FastImage fastImage) {
-        foreach (var ((x, y), cell) in BiomeCells) {
+        foreach (var ((x, y), cell) in BiomeCells.GetIndexedValues()) {
             fastImage.SetPixel(x, y, cell.Color, false);
         }
         fastImage.Flush();

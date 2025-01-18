@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using Betauer.Core.PCG.Examples;
 using Betauer.Core.PCG.Maze;
 using Betauer.TestRunner;
 using Godot;
