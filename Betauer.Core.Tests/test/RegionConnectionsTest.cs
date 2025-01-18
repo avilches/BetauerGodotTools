@@ -15,14 +15,14 @@ public class RegionConnectionsTest {
     [Test]
     public void Test() {
         var data = Array2D.Parse("""
-                                   #·#####
-                                   ···##··  
-                                   ###····
-                                   ·##·###
-                                   ##·#··#
-                                   #······
-                                   ·······    
-                                   """, new Dictionary<char, bool> {
+                                 #·#####
+                                 ···##··  
+                                 ###····
+                                 ·##·###
+                                 ##·#··#
+                                 #······
+                                 ·······    
+                                 """, new Dictionary<char, bool> {
             { '#', true }, { '·', false },
         });
 
@@ -35,7 +35,7 @@ public class RegionConnectionsTest {
                                                       33·5·+4
                                                       3+i+ii+
                                                       +iiiiii
-                                                      """));
+                                                      """.Replace("\r\n", "\n")));
 
         Assert.That(connector.GetRegions(), Is.EqualTo(5));
         CollectionAssert.AreEquivalent(connector.GetRegionsIds(), new[] { 1, 2, 3, 4, 5 });
@@ -81,7 +81,7 @@ public class RegionConnectionsTest {
                                                       33·5·+4
                                                       3+i+ii+
                                                       +iiiiii
-                                                      """));
+                                                      """.Replace("\r\n", "\n"));
         Console.WriteLine("Marking 0,1, join regions 3 and 1");
         connector.ToggleCell(new Vector2I(0, 1), true);
         Assert.That(PrintState(connector), Is.EqualTo("""
@@ -92,7 +92,7 @@ public class RegionConnectionsTest {
                                                       33·5·+4
                                                       3+i+ii+
                                                       +iiiiii
-                                                      """));
+                                                      """.Replace("\r\n", "\n")));
         Console.WriteLine("Marking 1,0, join regions 3 and 2");
         connector.ToggleCell(new Vector2I(1, 0), true);
         Assert.That(connector.GetRegions(), Is.EqualTo(3));
@@ -106,7 +106,7 @@ public class RegionConnectionsTest {
                                                       33·5·+4
                                                       3+i+ii+
                                                       +iiiiii
-                                                      """));
+                                                      """.Replace("\r\n", "\n")));
         Console.WriteLine("Marking 1,6 and 2,6, create an independent region 1, 2");
         connector.ToggleCell(new Vector2I(1, 6), true);
         connector.ToggleCell(new Vector2I(2, 6), true);
@@ -121,7 +121,7 @@ public class RegionConnectionsTest {
                                                       33·5·+4
                                                       3·++ii·
                                                       ·11+i+2
-                                                      """));
+                                                      """.Replace("\r\n", "\n")));
 
         Console.WriteLine("Unmark 0,2, unjoin regions");
         connector.ToggleCell(new Vector2I(1, 1), false);
@@ -134,7 +134,7 @@ public class RegionConnectionsTest {
                                                       11·3·+2
                                                       1·++ii·
                                                       ·44+i+5
-                                                      """));
+                                                      """.Replace("\r\n", "\n")));
 
         connector.ToggleCell(new Vector2I(0, 1), false);
         connector.ToggleCell(new Vector2I(1, 0), false);
@@ -147,7 +147,7 @@ public class RegionConnectionsTest {
                                                       33·5·+4
                                                       3·++ii·
                                                       ·66+i+7
-                                                      """));
+                                                      """.Replace("\r\n", "\n")));
     }
 
     private static string PrintState(RegionConnections connector) {
@@ -162,7 +162,7 @@ public class RegionConnectionsTest {
         foreach (var (cell, regions) in connector.GetConnectingCells()) {
             Console.WriteLine($"Cell ({cell.X}, {cell.Y}) connects regions: {string.Join(", ", regions)}");
         }
-        
+
         // Loop over connectingCells.Expandable and create a Dictionary where the key is every value and the value is the key
         var expandable = new Dictionary<Vector2I, int>();
         foreach (var (position, region) in connector.GetExpandableCells()) {
