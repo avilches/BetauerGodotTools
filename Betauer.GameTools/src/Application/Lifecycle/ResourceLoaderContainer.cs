@@ -13,7 +13,7 @@ namespace Betauer.Application.Lifecycle;
 public class ResourceLoaderContainer {
     private static readonly Logger Logger = LoggerFactory.GetLogger<ResourceLoaderContainer>();
 
-    public List<ResourceLoad> ResourceFactories { get; } = new();
+    public List<ResourceLoad> ResourceFactories { get; } = [];
 
     public Func<Task>? Awaiter { get; private set; }
     public event Action<ResourceProgress>? OnLoadResourceProgress;
@@ -31,11 +31,11 @@ public class ResourceLoaderContainer {
     }
                   
     public Task<TimeSpan> LoadResources(Action<ResourceProgress>? progressAction = null) {
-        return LoadResources(new [] { ResourceLoad.DefaultTag }, progressAction);
+        return LoadResources([ResourceLoad.DefaultTag], progressAction);
     }
 
     public Task<TimeSpan> LoadResources(string tag, Action<ResourceProgress>? progressAction = null) {
-        return LoadResources(new [] { tag }, progressAction);
+        return LoadResources([tag], progressAction);
     }
 
     public async Task<TimeSpan> LoadResources(string[] tags, Action<ResourceProgress>? progressAction = null) {

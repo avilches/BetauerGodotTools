@@ -81,7 +81,7 @@ public class RegionConnectionsTest {
                                                       33·5·+4
                                                       3+i+ii+
                                                       +iiiiii
-                                                      """.Replace("\r\n", "\n"));
+                                                      """.Replace("\r\n", "\n")));
         Console.WriteLine("Marking 0,1, join regions 3 and 1");
         connector.ToggleCell(new Vector2I(0, 1), true);
         Assert.That(PrintState(connector), Is.EqualTo("""
