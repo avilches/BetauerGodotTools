@@ -13,19 +13,21 @@ using Veronenger.RTS.Assets.Trees;
 namespace Veronenger.Game.RTS;
 
 [Configuration]
-[Loader("GameLoader", Tag = "main")]
+[Loader("GameLoader", Tag = MainResources.GameLoaderTag)]
 [Scene.Transient<RtsGameView>(Name = "RtsGameView")]
 public class RtsMainResources {
 }
 
 [Configuration]
-[Loader("GameLoader", Tag = "rts")]
+[Loader("GameLoader", Tag = GameLoaderTag)]
 [Scene.Transient<Trees>(Name = "TreesFactory")]
 [Scene.Transient<RtsWorld>(Name = "RtsWorldFactory")]
 [Scene.Transient<RtsPlayerHud>(Name = "RtsPlayerHud")]
 [Resource<Texture2D>("Grasslands", "res://RTS/Assets/Textures/GrasslandsTextures.png")]
 public class RtsGameResources {
 	[Transient<RtsHud>] RtsHud RtsHudFactory => new RtsHud();
+
+	public const string GameLoaderTag = "rts";
 }
 
 

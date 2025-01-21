@@ -1,6 +1,6 @@
 [gd_scene load_steps=67 format=3 uid="uid://163eoj5jr80w"]
 
-[ext_resource type="Script" path="res://Game/RTS/World/RtsWorld.cs" id="1_4ci2m"]
+[ext_resource type="Script" uid="uid://bxa2ve60e8m4v" path="res://Game/RTS/World/RtsWorld.cs" id="1_4ci2m"]
 [ext_resource type="Texture2D" uid="uid://c12blmsyum1yw" path="res://icon.png" id="2_afn7b"]
 [ext_resource type="Texture2D" uid="uid://dlyg3lxl0c8kh" path="res://RTS/Assets/Sprout Lands/tilesets/Ground tiles/new tiles/Soil ground tiles.png" id="2_q5woh"]
 [ext_resource type="Texture2D" uid="uid://ddllk40brysqn" path="res://RTS/Assets/Sprout Lands/tilesets/Ground tiles/new tiles/Darker Soil ground tiles.png" id="3_g5v04"]

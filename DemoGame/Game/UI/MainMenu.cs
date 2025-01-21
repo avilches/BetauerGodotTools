@@ -70,6 +70,7 @@ public partial class MainMenu : CanvasFaderLayer {
 
 		var mainMenu = new MenuContainer(_menuBase);
 		var startMenu = mainMenu.GetRootMenu();
+		startMenu.AddButton("Start Rogue", "Rogue").Pressed += () => MainBus.Publish(MainEvent.TriggerStartGameRogue);
 		startMenu.AddButton("Start RTS", "RTS").Pressed += () => MainBus.Publish(MainEvent.TriggerStartGameRts);
 		startMenu.AddButton("Start Plat", "Platform").Pressed += () => MainBus.Publish(MainEvent.TriggerStartGamePlatform);
 		startMenu.AddButton("Settings", "Settings").Pressed += () => MainBus.Publish(MainEvent.TriggerOpenSettingsMenu);

@@ -56,7 +56,7 @@ public class Settings : IInjectable {
 }
 
 [Configuration]
-[Loader("GameLoader", Tag = "main")]
+[Loader("GameLoader", Tag = GameLoaderTag)]
 [Preload<Texture2D>("Icon", "res://icon.png")]
 [Resource<Theme>("MyTheme", "res://Game/UI/my_theme2.tres")]
 [Resource<Theme>("DebugConsoleTheme", "res://Game/UI/DebugConsole.tres")]
@@ -71,6 +71,7 @@ public class Settings : IInjectable {
 [Scene.Singleton<SettingsMenu>(Name = "SettingsMenuLazy", Flags = "Autoload")]
 [Scene.Singleton<ProgressScreen>(Name = "ProgressScreenLazy", Flags = "Autoload")]
 public class MainResources {
+	public const string GameLoaderTag = "main";
 }
 
 [Singleton]

@@ -125,12 +125,15 @@ public partial class Container {
     private void AddToRegistry(Provider provider) {
         var name = provider.Name;
         if (name != null) {
-            if (_providersByName.TryGetValue(name, out var found)) throw new DuplicateServiceException(found.PublicType, name);
+            if (_providersByName.TryGetValue(name, out var found)) {
+                throw new DuplicateServiceException(found.PublicType, name);
+            }
             _providersByName[name] = provider;
             Logger.Debug("Registered {0}:{1} | Name: {2}", provider.Lifetime, provider.RealType.GetTypeName(), name);
         } else {
-            if (_providersByPublicType.ContainsKey(provider.PublicType)) throw new DuplicateServiceException(provider.PublicType);
-            _providersByPublicType[provider.PublicType] = provider;
+            if (!_providersByPublicType.TryAdd(provider.PublicType, provider)) {
+                throw new DuplicateServiceException(provider.PublicType);
+            }
             Logger.Debug("Registered {0}:{1} | Type: {2}", provider.Lifetime, provider.RealType.GetTypeName(),
                 provider.PublicType.GetTypeName());
         }

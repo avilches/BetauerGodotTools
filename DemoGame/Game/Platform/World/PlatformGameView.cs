@@ -73,7 +73,7 @@ public partial class PlatformGameView : Control, IGameView {
 			CurrentMetadata = new PlatformSaveGameMetadata();
 		}
 
-		await GameLoader.LoadPlatformGameResources();
+		await GameLoader.Load(PlatformGameResources.GameLoaderTag);
 		
 		Configure();
 		if (saveGame != null) {
@@ -222,7 +222,7 @@ public partial class PlatformGameView : Control, IGameView {
 		if (unload) {
 			// If you comment this line, the objects in the pool will be used in the next game
 			Container.ResolveAll<INodePool>().ForEach(p => p.FreeAll());
-			GameLoader.UnloadPlatformGameResources();
+			GameLoader.UnloadResources(PlatformGameResources.GameLoaderTag);
 		}
 		Free();
 		DebugOverlayManager.Overlay("Pool").Free();

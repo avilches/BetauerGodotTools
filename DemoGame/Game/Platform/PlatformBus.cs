@@ -8,12 +8,8 @@ using Veronenger.Game.Platform.Items;
 namespace Veronenger.Game.Platform;
 
 [Singleton]
-public class PlatformBus : GodotBus<IMulticastEvent> {
-}
-
-public interface IMulticastEvent {
-}
-
+public class PlatformBus : GodotBus<IMulticastEvent>;
+public interface IMulticastEvent;
 
 public enum PlatformCommandType { SpawnZombie }
 public record struct PlatformCommand(PlatformCommandType Type) : IMulticastEvent;

@@ -19,13 +19,13 @@ using Veronenger.Game.Platform.World;
 namespace Veronenger.Game.Platform;
 
 [Configuration]
-[Loader("GameLoader", Tag = "main")]
+[Loader("GameLoader", Tag = MainResources.GameLoaderTag)]
 [Scene.Transient<PlatformGameView>(Name = "PlatformGameView")]
 public class PlatformMainResources {
 }
 
 [Configuration]
-[Loader("GameLoader", Tag = "platform")]
+[Loader("GameLoader", GameLoaderTag)]
 [Resource<Texture2D>("Pickups", "res://Game/Platform/Items/Assets/pickups.png")]
 [Resource<Texture2D>("Pickups2", "res://Game/Platform/Items/Assets/pickups2.png")]
 [Resource<Texture2D>("LeonKnifeAnimationSprite", "res://Game/Platform/Character/Player/Assets/Leon-knife.png")]
@@ -40,6 +40,8 @@ public class PlatformMainResources {
 [Scene.NodePool<ZombieNode>(Name = "ZombiePool")]
 public class PlatformGameResources {
 	[Transient<PlatformHud>(Name = "PlatformHudFactory")] PlatformHud PlatformHud => new PlatformHud();
+    public const string GameLoaderTag = "platform";
+
 }
 
 public interface IPlatformSaveObject : ISaveObject {

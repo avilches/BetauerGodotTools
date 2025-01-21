@@ -11,17 +11,11 @@ public class GameLoader : ResourceLoaderContainer {
     [Inject] private ILazy<BottomBar> BottomBarLazy { get; set; }
     [Inject] private ILazy<ProgressScreen> ProgressScreenLazy { get; set; }
 	
-    public Task LoadMainResources(Action<ResourceProgress>? progressAction = null) => LoadResources("main", progressAction);
+    public Task LoadMainResources(Action<ResourceProgress>? progressAction = null) => LoadResources(MainResources.GameLoaderTag, progressAction);
 
-    public async Task LoadPlatformGameResources() {
+    public async Task Load(string tag) {
         LoadStart();
-        await LoadResources("platform");
-        LoadEnd();
-    }
-
-    public async Task LoadRtsGameResources() {
-        LoadStart();
-        await LoadResources("rts");
+        await LoadResources(tag);
         LoadEnd();
     }
 
@@ -33,7 +27,4 @@ public class GameLoader : ResourceLoaderContainer {
         BottomBarLazy.Get().Visible = true;
         ProgressScreenLazy.Get().Hide();
     }
-
-    public void UnloadPlatformGameResources() => UnloadResources("platform");
-    public void UnloadRtsGameResources() => UnloadResources("rts");
 }

@@ -68,7 +68,7 @@ public partial class RtsGameView : Control, IGameView {
 			CurrentMetadata = new RtsSaveGameMetadata();
 		}
 
-		await GameLoader.LoadRtsGameResources();
+		await GameLoader.Load(RtsGameResources.GameLoaderTag);
 		
 		Configure();
 		if (saveGame != null) {
@@ -163,7 +163,7 @@ public partial class RtsGameView : Control, IGameView {
 		if (unload) {
 			// If you comment this line, the objects in the pool will be used in the next game
 			Container.ResolveAll<INodePool>().ForEach(p => p.FreeAll());
-			GameLoader.UnloadRtsGameResources();
+			GameLoader.UnloadResources(RtsGameResources.GameLoaderTag);
 		}
 		Free();
 		DebugOverlayManager.Overlay("Pool").Free();

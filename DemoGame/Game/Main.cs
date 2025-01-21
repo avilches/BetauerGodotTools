@@ -10,6 +10,7 @@ using Betauer.FSM.Async;
 using Betauer.Input;
 using Betauer.Nodes;
 using Godot;
+using Veronenger.Game.Dungeon;
 using Veronenger.Game.Platform.World;
 using Veronenger.Game.RTS.World;
 using Veronenger.Game.UI;
@@ -28,6 +29,7 @@ public enum MainEvent {
     TriggerOpenSettingsMenu,
     TriggerCloseSettingsMenu,
     
+    TriggerStartGameRogue,
     TriggerStartGameRts,
     TriggerStartGamePlatform,
     
@@ -49,6 +51,7 @@ public enum MainState {
     SettingsMenu,
     StartingGamePlatform,
     StartingGameRts,
+    StartingGameRogue,
     Gaming,
     PauseMenu,
     SavingGame,
@@ -84,6 +87,7 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IInjectable {
 
     [Inject] private ITransient<PlatformGameView> PlatformGameView { get; set; }
     [Inject] private ITransient<RtsGameView> RtsGameView { get; set; }
+    [Inject] private ITransient<DungeonGameView> DungeonGameView { get; set; }
 
     [Inject] private ScreenSettingsManager ScreenSettingsManager { get; set; }
     [Inject] private SceneTree SceneTree { get; set; }
@@ -128,9 +132,10 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IInjectable {
         On(MainEvent.TriggerOpenModalBoxQuitGame).Push(MainState.ModalQuitGame);
 
         State(MainState.MainMenu)
-            .OnInput(e => MainMenuScene.OnInput(e))
+            .OnInput(MainMenuScene.OnInput)
             .On(MainEvent.TriggerStartGamePlatform).Set(MainState.StartingGamePlatform)
             .On(MainEvent.TriggerStartGameRts).Set(MainState.StartingGameRts)
+            .On(MainEvent.TriggerStartGameRogue).Set(MainState.StartingGameRogue)
             .On(MainEvent.TriggerOpenSettingsMenu).Push(MainState.SettingsMenu)
             .Suspend(() => MainMenuScene.DisableMenus())
             .Awake(() => MainMenuScene.EnableMenus())
@@ -138,7 +143,7 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IInjectable {
             .Build();
 
         State(MainState.SettingsMenu)
-            .OnInput(e => SettingsMenuScene.OnInput(e))
+            .OnInput(SettingsMenuScene.OnInput)
             .On(MainEvent.TriggerCloseSettingsMenu).Pop()
             .Enter(() => SettingsMenuScene.ShowSettingsMenu())
             .Exit(() => SettingsMenuScene.HideSettingsMenu())
@@ -156,6 +161,14 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IInjectable {
         State(MainState.StartingGameRts).Enter(async () => {
                 await MainMenuScene.HideMainMenu();
                 gameView = RtsGameView.Create();
+                await gameView.StartNewGame();
+            })
+            .If(() => true).Set(MainState.Gaming)
+            .Build();
+
+        State(MainState.StartingGameRogue).Enter(async () => {
+                await MainMenuScene.HideMainMenu();
+                gameView = DungeonGameView.Create();
                 await gameView.StartNewGame();
             })
             .If(() => true).Set(MainState.Gaming)
@@ -207,7 +220,7 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IInjectable {
             .Build();
             
         State(MainState.PauseMenu)
-            .OnInput((e) => PauseMenuScene.OnInput(e))
+            .OnInput(PauseMenuScene.OnInput)
             .On(MainEvent.TriggerClosePauseMenu).Pop()
             .On(MainEvent.TriggerOpenSettingsMenu).Push(MainState.SettingsMenu)
             .Suspend(() => PauseMenuScene.DisableMenus())

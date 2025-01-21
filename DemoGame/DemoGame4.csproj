@@ -1,4 +1,4 @@
-<Project Sdk="Godot.NET.Sdk/4.2.0">
+<Project Sdk="Godot.NET.Sdk/4.4.0-beta.1">
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
         <EnableDynamicLoading>true</EnableDynamicLoading>
@@ -19,7 +19,6 @@
         <Content Include="*" Exclude="mono_crash*"/>
         <Compile Include="Game/**/*.cs"/>
         <Compile Include="RTS/**/*.cs"/>
-        <Content Include="Docs/**"/>
         <Content Include="export/**"/>
         <Content Include="Game/**"/>
         <Content Include="Tests/**"/>
