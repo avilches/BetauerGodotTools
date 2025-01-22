@@ -22,17 +22,17 @@ public static class LoggerFactory {
     public static string DefaultDateFormat  { get; private set; } = "yyyy-mm-dd hh:mm:ss.mmm";
     public static bool IncludeTimestamp  { get; private set; } = true;
     public static bool AutoFlush { get; private set; } = false;
-    public static ITextWriter? DefaultWriter  { get; private set; } = GDPrintWriter.Instance;
+    public static ITextWriter? DefaultWriter  { get; private set; } = GodotGdPrintWriter.Instance;
 
     public static void Reset() {
-        Writers = Array.Empty<ITextWriter>();
+        Writers = [];
         Loggers.Clear();
 
         DefaultTraceLevelConfig = TraceLevel.Error;
         DefaultDateFormat = "yyyy-mm-dd hh:mm:ss.mmm";
         IncludeTimestamp = true;
         AutoFlush = false;
-        DefaultWriter = GDPrintWriter.Instance; 
+        DefaultWriter = GodotGdPrintWriter.Instance; 
     }
 
     /// <summary>

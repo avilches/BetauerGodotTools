@@ -79,7 +79,7 @@ public class ScreenController {
     public void DoFullscreen(bool fs) {
         if (fs == IsFullscreen()) return;
         if (fs) {
-            if (Project.FeatureFlags.IsMacOs()) {
+            if (Project.FeatureFlags.IsMacos()) {
                 DisplayServer.WindowSetFlag(DisplayServer.WindowFlags.Borderless, false);
             }
             DisplayServer.WindowSetMode(DisplayServer.WindowMode.Fullscreen);

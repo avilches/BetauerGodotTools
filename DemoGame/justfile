@@ -37,21 +37,22 @@ clean:
     rm -rf "{{root_folder}}/.godot/mono"
     dotnet clean {{solution}}.sln
 
-# Importa recursos
+# Reimporta recursos
 import:
     rm -rf "{{root_folder}}/.import"
     rm -rf "{{root_folder}}/.godot/imported"
+    {{godot_executable}} --path "{{root_folder}}" --editor --headless --verbose --quit
+
+# Build command using Godot --build-solutions
+build:
     {{godot_executable}} --path "{{root_folder}}" --build-solutions --editor --headless --verbose --quit
 
-# Build commands
-build-debug:
-    mkdir -p "{{root_folder}}/.godot/mono/build_logs/Debug"
-    dotnet build "{{root_folder}}/{{solution}}.sln" -c Debug -v normal "-l:GodotTools.BuildLogger.GodotBuildLogger,{{godot_app}}/Contents/Resources/GodotSharp/Tools/GodotTools.BuildLogger.dll;{{root_folder}}/.godot/mono/build_logs/Debug" -p:GodotTargetPlatform=macos
-
+# dotnet build ExportDebug
 build-export-debug:
     mkdir -p "{{root_folder}}/.godot/mono/build_logs/ExportDebug"
     dotnet build "{{root_folder}}/{{solution}}.sln" -c ExportDebug -v normal -p:GodotTargetPlatform={{target_platform}} "-l:GodotTools.BuildLogger.GodotBuildLogger,{{godot_app}}/Contents/Resources/GodotSharp/Tools/GodotTools.BuildLogger.dll;{{root_folder}}/.godot/mono/build_logs/ExportDebug" -p:GodotTargetPlatform=macos
 
+# dotnet build ExportRelease
 build-export-release:
     mkdir -p "{{root_folder}}/.godot/mono/build_logs/ExportRelease"
     dotnet build "{{root_folder}}/{{solution}}.sln" -c ExportRelease -v normal -p:GodotTargetPlatform={{target_platform}} "-l:GodotTools.BuildLogger.GodotBuildLogger,{{godot_app}}/Contents/Resources/GodotSharp/Tools/GodotTools.BuildLogger.dll;{{root_folder}}/.godot/mono/build_logs/ExportRelease" -p:GodotTargetPlatform=macos
@@ -76,7 +77,7 @@ check-version:
     echo "application.properties version: ${VERSION}"
     if [ "{{current-version}}" != "${VERSION}" ]; then
         echo "Current project.godot version != new version"
-        just build-debug
+        just build
         just release
     else
         echo "Version matches, exporting..."
@@ -105,7 +106,7 @@ export-linux: check-version
     {{godot_executable}} --path "{{root_folder}}" --headless -v --export-release "Linux/X11" "{{export_path}}/linux/${NAME}.x86_64" 2>&1 | tee "{{export_path}}/linux.log"
 
 # Export all platforms
-export-all: clean build-debug release export-win export-osx export-linux
+export-all: clean build release export-win export-osx export-linux
 
 # Genera los sprites desde Aseprite
 sprites:

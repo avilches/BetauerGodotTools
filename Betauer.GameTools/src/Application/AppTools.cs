@@ -9,8 +9,13 @@ namespace Betauer.Application;
 public static partial class AppTools {
     
     private static readonly Logger Logger = LoggerFactory.GetLogger(typeof(AppTools));
-    
-    public static string GetUserFolder() => Project.FeatureFlags.IsExported()
+
+    /// <summary>
+    /// Returns the user data dir (like user://) or the current directory if in debug mode.
+    /// This make easier to spot the files during the development
+    /// </summary>
+    /// <returns></returns>
+    public static string GetUserFolder() => OS.IsDebugBuild()
         ? OS.GetUserDataDir()
         : System.IO.Directory.GetCurrentDirectory();
 
