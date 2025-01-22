@@ -84,7 +84,7 @@ public partial class SplashScreen : CanvasLayer {
 			.SetInfiniteLoops()
 			.Play();
 
-		await GameLoader.LoadMainResources(); // (ResourceProgress rp) => { Logger.Info($"{rp.ResourcePercent:P} {rp.Resource}"); });
+		await GameLoader.LoadResources(MainResources.GameLoaderTag); // (ResourceProgress rp) => { Logger.Info($"{rp.ResourcePercent:P} {rp.Resource}"); });
 		Logger.Info($"Bootstrap time: {Project.Uptime.TotalMilliseconds} ms");
 		tween.Kill();
 		

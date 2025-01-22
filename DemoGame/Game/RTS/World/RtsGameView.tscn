@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://cdyhbgqkwlf35"]
 
-[ext_resource type="Script" path="res://Game/RTS/World/RtsGameView.cs" id="1_pkncm"]
+[ext_resource type="Script" uid="uid://drq0qi1wytdlv" path="res://Game/RTS/World/RtsGameView.cs" id="1_pkncm"]
 
 [node name="Game" type="Control"]
 layout_mode = 3

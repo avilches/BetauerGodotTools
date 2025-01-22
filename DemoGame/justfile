@@ -1,0 +1,112 @@
+# Core variables
+godot_app := "/Applications/Godot.app"
+godot_executable := godot_app + "/Contents/MacOS/Godot"
+aseprite_executable := "/Applications/Aseprite.app/Contents/MacOS/aseprite"
+root_folder := justfile_directory()
+target_platform := "macos"                   
+delay_import := "15"
+
+# Load properties from application.properties
+set dotenv-load := true
+# This will load NAME, ID, DESCRIPTION, AUTHOR, VERSION from application.properties
+
+# Read current version from project.godot
+current-version := `cat project.godot | grep "config/version" | cut -d'=' -f2 | tr -d '"'`
+solution := `cat project.godot | grep "config/name" | cut -d'=' -f2 | tr -d '"'`
+
+# Export paths with timestamp
+timestamp := `date "+%Y-%m-%d_%H.%M.%S"`
+export_path := root_folder + "/export/releases/" + env_var('VERSION') + "/" + timestamp
+
+# Lista todos los comandos disponibles
+default:
+    @just --list
+    @echo "\nproject.godot:"
+    @echo "    config/version=\"{{current-version}}\""
+    @echo "    config/name=\"{{solution}}\""
+    @echo "\napplication.properties:"
+    @echo "    NAME            ${NAME}"
+    @echo "    ID             ${ID}"
+    @echo "    DESCRIPTION    ${DESCRIPTION}"
+    @echo "    AUTHOR         ${AUTHOR}"
+    @echo "    VERSION        ${VERSION}"
+
+# Limpia directorios de caché y assemblies
+clean:
+    rm -rf "{{root_folder}}/.mono"
+    rm -rf "{{root_folder}}/.godot/mono"
+    dotnet clean {{solution}}.sln
+
+# Importa recursos
+import:
+    rm -rf "{{root_folder}}/.import"
+    rm -rf "{{root_folder}}/.godot/imported"
+    {{godot_executable}} --path "{{root_folder}}" --build-solutions --editor --headless --verbose --quit
+
+# Build commands
+build-debug:
+    dotnet build "{{root_folder}}/{{solution}}.sln" -c Debug -v normal -p:GodotTargetPlatform={{target_platform}} -l:GodotTools.BuildLogger.GodotBuildLogger,{{godot_app}}/Contents/Resources/GodotSharp/Tools/GodotTools.BuildLogger.dll;"{{root_folder}}/.godot/mono/build_logs/Debug"
+
+build-export-debug:
+    dotnet build "{{root_folder}}/{{solution}}.sln" -c ExportDebug -v normal -p:GodotTargetPlatform={{target_platform}} -l:GodotTools.BuildLogger.GodotBuildLogger,{{godot_app}}/Contents/Resources/GodotSharp/Tools/GodotTools.BuildLogger.dll;"{{root_folder}}/.godot/mono/build_logs/ExportDebug"
+
+build-export-release:
+    dotnet build "{{root_folder}}/{{solution}}.sln" -c ExportRelease -v normal -p:GodotTargetPlatform={{target_platform}} -l:GodotTools.BuildLogger.GodotBuildLogger,{{godot_app}}/Contents/Resources/GodotSharp/Tools/GodotTools.BuildLogger.dll;"{{root_folder}}/.godot/mono/build_logs/ExportRelease"
+
+# Ejecuta los tests
+test:
+    {{godot_executable}} --path "{{root_folder}}" -s "{{root_folder}}/Tests/RunTests.cs" --headless --verbose
+
+# Ejecuta el juego
+run:
+    {{godot_executable}} --path "{{root_folder}}" --verbose
+
+# Abre el editor
+editor:
+    {{godot_executable}} --path "{{root_folder}}" --editor --verbose
+
+# Check version before export
+check-version:
+    #!/usr/bin/env bash
+    echo "Checking version..."
+    echo "project.godot version: {{current-version}}"
+    echo "application.properties version: ${VERSION}"
+    if [ "{{current-version}}" != "${VERSION}" ]; then
+        echo "Current project.godot version != new version"
+        just build-debug
+        just release
+    else
+        echo "Version matches, exporting..."
+    fi
+
+# Release command
+release:
+    @echo "Update project.godot and exports_presets.cfg?"
+    @echo "(CTRL+C to stop)"
+    @read -p ""
+    {{godot_executable}} --path "{{root_folder}}" -s "{{root_folder}}/export/Release.cs" --headless
+
+# Export commands
+export-osx: check-version
+    mkdir -p "{{export_path}}/osx"
+    {{godot_executable}} --path "{{root_folder}}" --headless -v --export-release "Mac OSX" "{{export_path}}/osx/${NAME}-${VERSION}.zip" 2>&1 | tee "{{export_path}}/osx.log"
+    unzip "{{export_path}}/osx/${NAME}-${VERSION}.zip" -d "{{export_path}}/osx"
+    open "{{export_path}}/osx"
+
+export-win: check-version
+    mkdir -p "{{export_path}}/win"
+    {{godot_executable}} --path "{{root_folder}}" --headless -v --export-release "Windows Desktop" "{{export_path}}/win/${NAME}.exe" 2>&1 | tee "{{export_path}}/win.log"
+
+export-linux: check-version
+    mkdir -p "{{export_path}}/linux"
+    {{godot_executable}} --path "{{root_folder}}" --headless -v --export-release "Linux/X11" "{{export_path}}/linux/${NAME}.x86_64" 2>&1 | tee "{{export_path}}/linux.log"
+
+# Export all platforms
+export-all: clean build-debug release export-win export-osx export-linux
+
+# Genera los sprites desde Aseprite
+sprites:
+    {{aseprite_executable}} -b --layer "Body" --layer "Body/effects" "{{root_folder}}/Character/Player/Assets/Leon.ase" --sheet-type horizontal --sheet "{{root_folder}}/Character/Player/Assets/Leon.png"
+    {{aseprite_executable}} -b --layer "Metalbar" --layer "Metalbar/effects" "{{root_folder}}/Character/Player/Assets/Leon.ase" --sheet-type horizontal --sheet "{{root_folder}}/Character/Player/Assets/Leon-metalbar.png"
+    {{aseprite_executable}} -b --layer "Knife" --layer "Knife/effects" "{{root_folder}}/Character/Player/Assets/Leon.ase" --sheet-type horizontal --sheet "{{root_folder}}/Character/Player/Assets/Leon-knife.png"
+    {{aseprite_executable}} -b --layer "Gun1" --layer "Gun1/effects" "{{root_folder}}/Character/Player/Assets/Leon.ase" --sheet-type horizontal --sheet "{{root_folder}}/Character/Player/Assets/Leon-gun1.png"

@@ -132,7 +132,7 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IInjectable {
         On(MainEvent.TriggerOpenModalBoxQuitGame).Push(MainState.ModalQuitGame);
 
         State(MainState.MainMenu)
-            .OnInput(MainMenuScene.OnInput)
+            .OnInput(e => MainMenuScene.OnInput(e))
             .On(MainEvent.TriggerStartGamePlatform).Set(MainState.StartingGamePlatform)
             .On(MainEvent.TriggerStartGameRts).Set(MainState.StartingGameRts)
             .On(MainEvent.TriggerStartGameRogue).Set(MainState.StartingGameRogue)
@@ -143,7 +143,7 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IInjectable {
             .Build();
 
         State(MainState.SettingsMenu)
-            .OnInput(SettingsMenuScene.OnInput)
+            .OnInput(e => SettingsMenuScene.OnInput(e))
             .On(MainEvent.TriggerCloseSettingsMenu).Pop()
             .Enter(() => SettingsMenuScene.ShowSettingsMenu())
             .Exit(() => SettingsMenuScene.HideSettingsMenu())
@@ -220,7 +220,7 @@ public partial class Main : FsmNodeAsync<MainState, MainEvent>, IInjectable {
             .Build();
             
         State(MainState.PauseMenu)
-            .OnInput(PauseMenuScene.OnInput)
+            .OnInput(e => PauseMenuScene.OnInput(e))
             .On(MainEvent.TriggerClosePauseMenu).Pop()
             .On(MainEvent.TriggerOpenSettingsMenu).Push(MainState.SettingsMenu)
             .Suspend(() => PauseMenuScene.DisableMenus())
