@@ -12,7 +12,7 @@ public class SceneFactory<T> : ResourceLoad, IFactory<T> where T : Node {
     private static readonly Logger Logger = LoggerFactory.GetLogger<ResourceLoaderContainer>();
 
     public event Action<T>? OnInstantiate;
-    
+
     public SceneFactory(string? path = null, string? tag = null) : base(ExtractScenePathFromScriptPathIfNull(path), tag) {
     }
 
@@ -26,7 +26,7 @@ public class SceneFactory<T> : ResourceLoad, IFactory<T> where T : Node {
             OnInstantiate?.Invoke(instance);
             return instance;
         } catch (Exception e) {
-            Logger.Error("Error instantiating scene {0} Tag {1}:",Path, Tag, e.Message);
+            Logger.Error("Error instantiating scene {0} Tag {1}:", Path, Tag, e.Message);
             throw;
         }
     }
@@ -38,7 +38,7 @@ public class SceneFactory<T> : ResourceLoad, IFactory<T> where T : Node {
             throw new Exception($"Can get path from {typeof(T).GetTypeName()} scene with");
         }
         path = attribute.Path.Replace(".cs", ".tscn");
-        if (!FileAccess.FileExists(path)) {
+        if (!ResourceLoader.Exists(path)) {
             throw new Exception($"Scene from {typeof(T).GetTypeName()} class doesn't exist: {path}");
         }
         return path;

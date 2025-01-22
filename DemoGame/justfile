@@ -6,13 +6,13 @@ root_folder := justfile_directory()
 target_platform := "macos"                   
 delay_import := "15"
 
-# Load properties from application.properties
+# This will load NAME, ID, DESCRIPTION, AUTHOR, VERSION from .env file
 set dotenv-load := true
-# This will load NAME, ID, DESCRIPTION, AUTHOR, VERSION from application.properties
 
 # Read current version from project.godot
 current-version := `cat project.godot | grep "config/version" | cut -d'=' -f2 | tr -d '"'`
 solution := `cat project.godot | grep "config/name" | cut -d'=' -f2 | tr -d '"'`
+csproj := `cat project.godot | grep "config/assembly_name" | cut -d'=' -f2 | tr -d '"'`
 
 # Export paths with timestamp
 timestamp := `date "+%Y-%m-%d_%H.%M.%S"`
@@ -45,13 +45,16 @@ import:
 
 # Build commands
 build-debug:
-    dotnet build "{{root_folder}}/{{solution}}.sln" -c Debug -v normal -p:GodotTargetPlatform={{target_platform}} -l:GodotTools.BuildLogger.GodotBuildLogger,{{godot_app}}/Contents/Resources/GodotSharp/Tools/GodotTools.BuildLogger.dll;"{{root_folder}}/.godot/mono/build_logs/Debug"
+    mkdir -p "{{root_folder}}/.godot/mono/build_logs/Debug"
+    dotnet build "{{root_folder}}/{{solution}}.sln" -c Debug -v normal "-l:GodotTools.BuildLogger.GodotBuildLogger,{{godot_app}}/Contents/Resources/GodotSharp/Tools/GodotTools.BuildLogger.dll;{{root_folder}}/.godot/mono/build_logs/Debug" -p:GodotTargetPlatform=macos
 
 build-export-debug:
-    dotnet build "{{root_folder}}/{{solution}}.sln" -c ExportDebug -v normal -p:GodotTargetPlatform={{target_platform}} -l:GodotTools.BuildLogger.GodotBuildLogger,{{godot_app}}/Contents/Resources/GodotSharp/Tools/GodotTools.BuildLogger.dll;"{{root_folder}}/.godot/mono/build_logs/ExportDebug"
+    mkdir -p "{{root_folder}}/.godot/mono/build_logs/ExportDebug"
+    dotnet build "{{root_folder}}/{{solution}}.sln" -c ExportDebug -v normal -p:GodotTargetPlatform={{target_platform}} "-l:GodotTools.BuildLogger.GodotBuildLogger,{{godot_app}}/Contents/Resources/GodotSharp/Tools/GodotTools.BuildLogger.dll;{{root_folder}}/.godot/mono/build_logs/ExportDebug" -p:GodotTargetPlatform=macos
 
 build-export-release:
-    dotnet build "{{root_folder}}/{{solution}}.sln" -c ExportRelease -v normal -p:GodotTargetPlatform={{target_platform}} -l:GodotTools.BuildLogger.GodotBuildLogger,{{godot_app}}/Contents/Resources/GodotSharp/Tools/GodotTools.BuildLogger.dll;"{{root_folder}}/.godot/mono/build_logs/ExportRelease"
+    mkdir -p "{{root_folder}}/.godot/mono/build_logs/ExportRelease"
+    dotnet build "{{root_folder}}/{{solution}}.sln" -c ExportRelease -v normal -p:GodotTargetPlatform={{target_platform}} "-l:GodotTools.BuildLogger.GodotBuildLogger,{{godot_app}}/Contents/Resources/GodotSharp/Tools/GodotTools.BuildLogger.dll;{{root_folder}}/.godot/mono/build_logs/ExportRelease" -p:GodotTargetPlatform=macos
 
 # Ejecuta los tests
 test:
@@ -89,7 +92,7 @@ release:
 # Export commands
 export-osx: check-version
     mkdir -p "{{export_path}}/osx"
-    {{godot_executable}} --path "{{root_folder}}" --headless -v --export-release "Mac OSX" "{{export_path}}/osx/${NAME}-${VERSION}.zip" 2>&1 | tee "{{export_path}}/osx.log"
+    {{godot_executable}} --path "{{root_folder}}" --headless -v --export-release "macOS" "{{export_path}}/osx/${NAME}-${VERSION}.zip" 2>&1 | tee "{{export_path}}/osx.log"
     unzip "{{export_path}}/osx/${NAME}-${VERSION}.zip" -d "{{export_path}}/osx"
     open "{{export_path}}/osx"
 

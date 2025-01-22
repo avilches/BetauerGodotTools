@@ -24,10 +24,9 @@ config/icon="res://icon.png"
 
 [debug]
 
-file_logging/enable_file_logging=true
-file_logging/enable_file_logging.pc=false
 file_logging/log_path="user://logs/dev.log"
 file_logging/log_path.release="user://logs/game.log"
+file_logging/log_path.standalone="user://logs/game.log"
 
 [display]
 
@@ -69,6 +68,7 @@ texture={
 [rendering]
 
 textures/canvas_textures/default_texture_filter=0
+textures/vram_compression/import_etc2_astc=true
 environment/defaults/default_clear_color=Color(0, 0, 0, 1)
 2d/snap/snap_2d_transforms_to_pixel=true
 quality/2d/use_nvidia_rect_flicker_workaround=true

@@ -10,7 +10,7 @@ public partial class Release : MainLoop {
     private static readonly string[] ExcludeFilter = { "export/*", "Tests/*" };
         
     public override void _Initialize() {
-        var release = ReadProperties("application.properties");
+        var release = ReadProperties(".env");
             
         var version = release["VERSION"];
         var author = release["AUTHOR"];
