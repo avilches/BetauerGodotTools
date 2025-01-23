@@ -24,12 +24,9 @@ default:
     @echo "\nproject.godot:"
     @echo "    config/version=\"{{current-version}}\""
     @echo "    config/name=\"{{solution}}\""
-    @echo "\napplication.properties:"
-    @echo "    NAME            ${NAME}"
-    @echo "    ID             ${ID}"
-    @echo "    DESCRIPTION    ${DESCRIPTION}"
-    @echo "    AUTHOR         ${AUTHOR}"
-    @echo "    VERSION        ${VERSION}"
+    @echo "    config/assembly_name=\"{{csproj}}\""
+    @echo "\n.env:"
+    @echo "    version=${VERSION}"
 
 # Limpia directorios de caché y assemblies
 clean:
@@ -93,17 +90,17 @@ release:
 # Export commands
 export-osx: check-version
     mkdir -p "{{export_path}}/osx"
-    {{godot_executable}} --path "{{root_folder}}" --headless -v --export-release "macOS" "{{export_path}}/osx/${NAME}-${VERSION}.zip" 2>&1 | tee "{{export_path}}/osx.log"
-    unzip "{{export_path}}/osx/${NAME}-${VERSION}.zip" -d "{{export_path}}/osx"
+    {{godot_executable}} --path "{{root_folder}}" --headless -v --export-release "macOS" "{{export_path}}/osx/{{solution}}-${VERSION}.zip" 2>&1 | tee "{{export_path}}/osx.log"
+    unzip "{{export_path}}/osx/{{solution}}-${VERSION}.zip" -d "{{export_path}}/osx"
     open "{{export_path}}/osx"
 
 export-win: check-version
     mkdir -p "{{export_path}}/win"
-    {{godot_executable}} --path "{{root_folder}}" --headless -v --export-release "Windows Desktop" "{{export_path}}/win/${NAME}.exe" 2>&1 | tee "{{export_path}}/win.log"
+    {{godot_executable}} --path "{{root_folder}}" --headless -v --export-release "Windows Desktop" "{{export_path}}/win/{{solution}}.exe" 2>&1 | tee "{{export_path}}/win.log"
 
 export-linux: check-version
     mkdir -p "{{export_path}}/linux"
-    {{godot_executable}} --path "{{root_folder}}" --headless -v --export-release "Linux/X11" "{{export_path}}/linux/${NAME}.x86_64" 2>&1 | tee "{{export_path}}/linux.log"
+    {{godot_executable}} --path "{{root_folder}}" --headless -v --export-release "Linux/X11" "{{export_path}}/linux/{{solution}}.x86_64" 2>&1 | tee "{{export_path}}/linux.log"
 
 # Export all platforms
 export-all: clean build release export-win export-osx export-linux

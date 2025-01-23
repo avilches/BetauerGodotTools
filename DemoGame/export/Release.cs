@@ -7,21 +7,17 @@ using File = System.IO.File;
 namespace Veronenger.Main; 
 
 public partial class Release : MainLoop {
-    private static readonly string[] ExcludeFilter = { "export/*", "Tests/*" };
+    private static readonly string[] ExcludeFilter = ["export/*", "Tests/*"];
         
     public override void _Initialize() {
         var release = ReadProperties(".env");
             
         var version = release["VERSION"];
-        var author = release["AUTHOR"];
-        var name = release["NAME"];
-        var id = release["ID"];
-        var description = release["DESCRIPTION"];
-            
+
         FixProjectGodot();
-        SerVersion(version);
+        SetVersion(version);
         FixPresetsExcludeFilter();
-        FixPresetsVersion(name, author, version, id, description);
+        FixPresetsVersion(version);
     }
 
     /// <summary>
@@ -45,7 +41,7 @@ public partial class Release : MainLoop {
     /// Update the project.godot property "application/config/version" with the specified version
     /// </summary>
     /// <param name="version"></param>
-    private static void SerVersion(string version) {
+    private static void SetVersion(string version) {
         ProjectSettings.SetSetting("application/config/version", version);
         Console.WriteLine("Adding [application] config/version="+version);
         ProjectSettings.Save();
@@ -69,7 +65,7 @@ public partial class Release : MainLoop {
         Console.WriteLine($"export_presets.cfg updated");
     }
 
-    private static void FixPresetsVersion(string name, string author, string version, string id, string description) {
+    private static void FixPresetsVersion(string version) {
         var cf = new ConfigFile();
         cf.Load("res://export_presets.cfg");
             
@@ -83,28 +79,18 @@ public partial class Release : MainLoop {
             cf.SetValue(preset, key, value);
         }
             
-        var osx = FindPreset("Mac OSX") + ".options";
-        Console.WriteLine("Mac OSX");
-        SetValue(osx, "application/identifier", id);
-        SetValue(osx, "application/name", name);
-        SetValue(osx, "application/info", description);
+        var osx = FindPreset("macOS") + ".options";
+        Console.WriteLine("macOS");
         SetValue(osx, "application/short_version", version);
-        SetValue(osx, "application/copyright", author);
         SetValue(osx, "application/version", version);
 
         var win = FindPreset("Windows Desktop") + ".options";
         Console.WriteLine("Windows Desktop");
-        SetValue(win, "application/product_name", name);
-        SetValue(win, "application/file_description", description);
-        SetValue(win, "application/company_name", author);
-        SetValue(win, "application/copyright", author);
         SetValue(win, "application/file_version", version);
         SetValue(win, "application/product_version", version);
             
         // var linux = FindPreset("Linux/X11");
-        // SetValue(linux + ".options", "application/file_version", version);
-        // SetValue(linux + ".options", "application/product_version", version);
-            
+
         cf.Save("res://export_presets.cfg");
         Console.WriteLine($"export_presets.cfg updated");
     }
@@ -134,6 +120,9 @@ public partial class Release : MainLoop {
             Console.WriteLine(row);
             var key = row.Split('=')[0].Trim();
             var value = row.Split('=')[1].Trim();
+            if (value.StartsWith('"') && value.EndsWith('"')) {
+                value = value.Substring(1, value.Length - 2);
+            }
             data.Add(key, value);
         }
         return data;
