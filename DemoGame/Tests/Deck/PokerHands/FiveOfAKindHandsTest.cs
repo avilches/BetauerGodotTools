@@ -9,7 +9,7 @@ public class FiveOfAKindHandsTest : PokerHandsTestBase {
     [Test]
     public void BasicFiveOfAKind_ShouldBeIdentified() {
         var cards = CreateCards("AS", "AH", "AD", "AC", "AH");
-        var fiveOfKinds = PokerHandDefinition.Prototypes[PokerHandType.FiveOfAKind].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var fiveOfKinds = PokerHandDefinition.Prototypes[PokerHandType.FiveOfAKind].IdentifyHands(new PokerHandAnalysis(new PokerHandConfig(), cards));
 
         Assert.Multiple(() => {
             Assert.That(fiveOfKinds.Count, Is.EqualTo(1), "Should identify exactly one five of a kind");
@@ -22,7 +22,7 @@ public class FiveOfAKindHandsTest : PokerHandsTestBase {
     public void WithTwoFiveOfAKind_ShouldIdentifyBothOrderedByRank() {
         // First test case: AAAAA KKKKK
         var cards = CreateCards("AS", "AH", "AD", "AC", "AH", "KS", "KH", "KD", "KC", "KH");
-        var fiveOfKinds = PokerHandDefinition.Prototypes[PokerHandType.FiveOfAKind].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var fiveOfKinds = PokerHandDefinition.Prototypes[PokerHandType.FiveOfAKind].IdentifyHands(new PokerHandAnalysis(new PokerHandConfig(), cards));
 
         Assert.Multiple(() => {
             Assert.That(fiveOfKinds.Count, Is.EqualTo(2), "Should identify two five of a kind");
@@ -32,7 +32,7 @@ public class FiveOfAKindHandsTest : PokerHandsTestBase {
 
         // Second test case: KKKKK AAAAA (reverse order input)
         cards = CreateCards("KS", "KH", "KD", "KC", "KH", "AS", "AH", "AD", "AC", "AH");
-        fiveOfKinds = PokerHandDefinition.Prototypes[PokerHandType.FiveOfAKind].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        fiveOfKinds = PokerHandDefinition.Prototypes[PokerHandType.FiveOfAKind].IdentifyHands(new PokerHandAnalysis(new PokerHandConfig(), cards));
 
         Assert.Multiple(() => {
             Assert.That(fiveOfKinds.Count, Is.EqualTo(2), "Should identify two five of a kind");
@@ -45,7 +45,7 @@ public class FiveOfAKindHandsTest : PokerHandsTestBase {
     public void WithSixOfSameRank_ShouldIdentifyFiveOfAKind() {
         // Con 6 Ases, debería identificar un FiveOfAKind
         var cards = CreateCards("AS", "AH", "AD", "AC", "AH", "AS");
-        var fiveOfKinds = PokerHandDefinition.Prototypes[PokerHandType.FiveOfAKind].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var fiveOfKinds = PokerHandDefinition.Prototypes[PokerHandType.FiveOfAKind].IdentifyHands(new PokerHandAnalysis(new PokerHandConfig(), cards));
 
         Assert.Multiple(() => {
             Assert.That(fiveOfKinds.Count, Is.EqualTo(1), "Should identify exactly one five of a kind");
@@ -57,7 +57,7 @@ public class FiveOfAKindHandsTest : PokerHandsTestBase {
     [Test]
     public void FourOfAKind_ShouldNotIdentifyFiveOfAKind() {
         var cards = CreateCards("AS", "AH", "AD", "AC", "KH");
-        var fiveOfKinds = PokerHandDefinition.Prototypes[PokerHandType.FiveOfAKind].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var fiveOfKinds = PokerHandDefinition.Prototypes[PokerHandType.FiveOfAKind].IdentifyHands(new PokerHandAnalysis(new PokerHandConfig(), cards));
 
         Assert.That(fiveOfKinds, Is.Empty, "Should not identify five of a kind with only four of a kind");
     }
@@ -65,7 +65,7 @@ public class FiveOfAKindHandsTest : PokerHandsTestBase {
     [Test]
     public void ThreeOfAKind_ShouldNotIdentifyFiveOfAKind() {
         var cards = CreateCards("AS", "AH", "AD", "KH", "QD");
-        var fiveOfKinds = PokerHandDefinition.Prototypes[PokerHandType.FiveOfAKind].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var fiveOfKinds = PokerHandDefinition.Prototypes[PokerHandType.FiveOfAKind].IdentifyHands(new PokerHandAnalysis(new PokerHandConfig(), cards));
 
         Assert.That(fiveOfKinds, Is.Empty, "Should not identify five of a kind with only three of a kind");
     }
@@ -74,7 +74,7 @@ public class FiveOfAKindHandsTest : PokerHandsTestBase {
     public void SixOfSameRank_ShouldIdentifyOneFiveOfAKind() {
         // Con 6 Ases, debería identificar un cinco de kind con los primeros 5
         var cards = CreateCards("AS", "AH", "AD", "AC", "AH", "AS");
-        var fiveOfKinds = PokerHandDefinition.Prototypes[PokerHandType.FiveOfAKind].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var fiveOfKinds = PokerHandDefinition.Prototypes[PokerHandType.FiveOfAKind].IdentifyHands(new PokerHandAnalysis(new PokerHandConfig(), cards));
 
         Assert.Multiple(() => {
             Assert.That(fiveOfKinds.Count, Is.EqualTo(1), "Should identify exactly one five of a kind");
@@ -86,7 +86,7 @@ public class FiveOfAKindHandsTest : PokerHandsTestBase {
     [Test]
     public void SuggestDiscards_WithoutFiveOfAKind_ShouldSuggestDiscardingLowestCards() {
         var cards = CreateCards("AS", "AH", "AD", "AC", "KH");
-        var discards = PokerHandDefinition.Prototypes[PokerHandType.FiveOfAKind].SuggestDiscards(new PokerHandAnalysis(Handler.Config, cards), 2);
+        var discards = PokerHandDefinition.Prototypes[PokerHandType.FiveOfAKind].SuggestDiscards(new PokerHandAnalysis(new PokerHandConfig(), cards), 2);
 
         Assert.That(discards.Count, Is.EqualTo(1), "Should suggest one discard option");
         var cardsToDiscard = discards[0];
@@ -98,14 +98,14 @@ public class FiveOfAKindHandsTest : PokerHandsTestBase {
     [Test]
     public void SuggestDiscards_WithFiveOfAKind_ShouldNotSuggestDiscards() {
         var cards = CreateCards("AS", "AH", "AD", "AC", "AH");
-        var discards = PokerHandDefinition.Prototypes[PokerHandType.FiveOfAKind].SuggestDiscards(new PokerHandAnalysis(Handler.Config, cards), 3);
+        var discards = PokerHandDefinition.Prototypes[PokerHandType.FiveOfAKind].SuggestDiscards(new PokerHandAnalysis(new PokerHandConfig(), cards), 3);
 
         Assert.That(discards, Is.Empty, "Should not suggest discards when five of a kind exists");
     }
 
     [Test]
     public void EmptyHand_ShouldReturnNoFiveOfAKind() {
-        var fiveOfKinds = PokerHandDefinition.Prototypes[PokerHandType.FiveOfAKind].IdentifyHands(new PokerHandAnalysis(Handler.Config, []));
+        var fiveOfKinds = PokerHandDefinition.Prototypes[PokerHandType.FiveOfAKind].IdentifyHands(new PokerHandAnalysis(new PokerHandConfig(), []));
         Assert.That(fiveOfKinds, Is.Empty, "Should not identify five of a kind in empty hand");
     }
 }

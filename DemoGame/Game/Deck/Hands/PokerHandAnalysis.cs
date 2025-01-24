@@ -4,8 +4,14 @@ using Betauer.Core;
 
 namespace Veronenger.Game.Deck.Hands;
 
+public class PokerHandConfig {
+    public int FlushSize { get; set; } = 5;
+    public int StraightSize { get; set; } = 5;
+    public int MaxRank { get; set; } = 14;
+}
+
 public class PokerHandAnalysis {
-    public PokerGameConfig Config { get; }
+    public PokerHandConfig Config { get; }
     public IReadOnlyList<Card> Cards { get; }
 
     // Grupos básicos
@@ -39,7 +45,9 @@ public class PokerHandAnalysis {
     public List<(List<Card> ThreeCards, List<Card> Pair)> FullHouses { get; }
     public List<(List<Card> ThreeCards, List<Card> Pair)> FlushHouses { get; }
 
-    public PokerHandAnalysis(PokerGameConfig config, IReadOnlyList<Card> cards) {
+    private const int AnalysisMinFlushSize = 3; // cuantas cartas del mismo palo deberian haber para empezar a analizar si hay flush o no?
+
+    public PokerHandAnalysis(PokerHandConfig config, IReadOnlyList<Card> cards) {
         Config = config;
         Cards = cards;
 
@@ -56,16 +64,17 @@ public class PokerHandAnalysis {
 
         // Análisis de combinaciones especiales
         FullHouses = AnalyzeFullHouses(ThreeOfAKind, Pairs);  // ordenado por rank de trio y luego por rank de pair
-        FlushHouses = AnalyzeFlushHouses(CardsBySuit);
         TwoPairs = AnalyzeTwoPairs(Pairs);
 
         // Análisis de escaleras color y normal, ordenadas, primero reales completas, luego no reales, y luego incompletas
-        Straights = HandUtils.FindStraightSequences(config.StraightSize, cards);
+        Straights = HandUtils.FindStraightSequences(config, cards);
 
         // Análisis de flushes, ordenados
-        var flushesNoLimit = AnalyzeFlushesAnySize(config.AnalysisMinFlushSize, CardsBySuit);
+        var flushesNoLimit = AnalyzeFlushesAnySize(CardsBySuit);
         Flushes = AnalyzeFlushes(Config.FlushSize, flushesNoLimit);
+
         FlushFives = AnalyzeFlushFives(flushesNoLimit);
+        FlushHouses = AnalyzeFlushHouses(CardsBySuit);
 
     }
 
@@ -139,9 +148,9 @@ public class PokerHandAnalysis {
         return groups;
     }
 
-    private static List<List<Card>> AnalyzeFlushesAnySize(int minSize, IReadOnlyDictionary<char, List<Card>> cardsBySuit) {
+    private static List<List<Card>> AnalyzeFlushesAnySize(IReadOnlyDictionary<char, List<Card>> cardsBySuit) {
         return cardsBySuit.Values
-            .Where(suitGroup => suitGroup.Count >= minSize)
+            .Where(suitGroup => suitGroup.Count >= AnalysisMinFlushSize)
             .OrderByDescending(suitGroup => suitGroup, FlushComparer)
             .ToList();
     }

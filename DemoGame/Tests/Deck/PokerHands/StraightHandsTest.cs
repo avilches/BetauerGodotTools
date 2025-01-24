@@ -10,7 +10,7 @@ public class StraightHandsTest : PokerHandsTestBase {
     public void BasicStraight_ShouldBeIdentified() {
         // 10,J,Q,K,A de diferentes palos
         var cards = CreateCards("TC", "JH", "QD", "KS", "AC");
-        var straights = PokerHandDefinition.Prototypes[PokerHandType.Straight].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var straights = PokerHandDefinition.Prototypes[PokerHandType.Straight].IdentifyHands(new PokerHandAnalysis(new PokerHandConfig(), cards));
 
         Assert.Multiple(() => {
             Assert.That(straights.Count, Is.EqualTo(1), "Should identify exactly one straight");
@@ -28,7 +28,7 @@ public class StraightHandsTest : PokerHandsTestBase {
     [Test]
     public void BasicStraight_ShouldBeIdentified_WhenDuplicatedCardAppear() {
         var cards = CreateCards("KH", "9D", "9H", "8C", "6D", "5H", "5S", "4C", "7S", "4S");
-        var straights = PokerHandDefinition.Prototypes[PokerHandType.Straight].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var straights = PokerHandDefinition.Prototypes[PokerHandType.Straight].IdentifyHands(new PokerHandAnalysis(new PokerHandConfig(), cards));
 
         Assert.Multiple(() => {
             Assert.That(straights.Count, Is.EqualTo(2), "Should identify exactly two straights");
@@ -57,7 +57,7 @@ public class StraightHandsTest : PokerHandsTestBase {
     public void LowStraight_WithAceAsOne_ShouldBeIdentified() {
         // A,2,3,4,5 de diferentes palos
         var cards = CreateCards("AC", "2H", "3D", "4S", "5C");
-        var straights = PokerHandDefinition.Prototypes[PokerHandType.Straight].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var straights = PokerHandDefinition.Prototypes[PokerHandType.Straight].IdentifyHands(new PokerHandAnalysis(new PokerHandConfig(), cards));
 
         Assert.Multiple(() => {
             Assert.That(straights.Count, Is.EqualTo(1), "Should identify exactly one straight");
@@ -75,7 +75,7 @@ public class StraightHandsTest : PokerHandsTestBase {
     public void WithDuplicateRanks_ShouldIdentifyStraight() {
         // A♥,2♥,2♣,3♥,4♥,5♥ (2 duplicado)
         var cards = CreateCards("AH", "2H", "2C", "3C", "4H", "5H");
-        var straights = PokerHandDefinition.Prototypes[PokerHandType.Straight].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var straights = PokerHandDefinition.Prototypes[PokerHandType.Straight].IdentifyHands(new PokerHandAnalysis(new PokerHandConfig(), cards));
 
         Assert.That(straights.Count, Is.EqualTo(1),
             "Should identify straight even with duplicate ranks");
@@ -85,7 +85,7 @@ public class StraightHandsTest : PokerHandsTestBase {
     public void WithTenCards_ShouldFindMultipleStraightPossibilities() {
         // 6,7,8,9,10,J,Q,K,A de diferentes palos + 5
         var cards = CreateCards("5C", "6H", "7D", "8S", "9C", "TC", "JH", "QD", "KS", "AC");
-        var analysis = new PokerHandAnalysis(Handler.Config, cards);
+        var analysis = new PokerHandAnalysis(new PokerHandConfig(), cards);
 
         Assert.Multiple(() => {
             Assert.That(analysis.Straights.Count, Is.GreaterThan(1),
@@ -117,7 +117,7 @@ public class StraightHandsTest : PokerHandsTestBase {
     public void WithSevenConsecutiveCards_ShouldFindMultipleStraightPossibilities() {
         // 5,6,7,8,9,10,J de diferentes palos
         var cards = CreateCards("5C", "6H", "7D", "8S", "9C", "TC", "JH");
-        var analysis = new PokerHandAnalysis(Handler.Config, cards);
+        var analysis = new PokerHandAnalysis(new PokerHandConfig(), cards);
 
         Assert.Multiple(() => {
             Assert.That(analysis.Straights.Count, Is.GreaterThan(1),
@@ -149,7 +149,7 @@ public class StraightHandsTest : PokerHandsTestBase {
     public void WithGap_ShouldNotIdentifyStraight() {
         // 2,3,4,6,7 (falta el 5)
         var cards = CreateCards("2C", "3H", "4D", "6S", "7C");
-        var straights = PokerHandDefinition.Prototypes[PokerHandType.Straight].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var straights = PokerHandDefinition.Prototypes[PokerHandType.Straight].IdentifyHands(new PokerHandAnalysis(new PokerHandConfig(), cards));
 
         Assert.That(straights, Is.Empty,
             "Should not identify straight when there's a gap");
@@ -160,7 +160,7 @@ public class StraightHandsTest : PokerHandsTestBase {
         // 8,9,J,Q,K (falta 10)
         var cards = CreateCards("8H", "9C", "JD", "QS", "KC");
         var hand = PokerHandDefinition.Prototypes[PokerHandType.Straight];
-        var analysis = new PokerHandAnalysis(Handler.Config, cards);
+        var analysis = new PokerHandAnalysis(new PokerHandConfig(), cards);
 
         Assert.Multiple(() => {
             var discards = hand.SuggestDiscards(analysis, 2);
@@ -176,7 +176,7 @@ public class StraightHandsTest : PokerHandsTestBase {
         // 7,8,10,J,K (faltan 9,Q)
         var cards = CreateCards("7H", "8C", "TD", "JS", "KC");
         var hand = PokerHandDefinition.Prototypes[PokerHandType.Straight];
-        var analysis = new PokerHandAnalysis(Handler.Config, cards);
+        var analysis = new PokerHandAnalysis(new PokerHandConfig(), cards);
 
         Assert.Multiple(() => {
             var discards = hand.SuggestDiscards(analysis, 2);
@@ -195,7 +195,7 @@ public class StraightHandsTest : PokerHandsTestBase {
         // 7,8,9,J,Q,2,3 (dos posibilidades de escalera)
         var cards = CreateCards("7H", "8C", "9D", "JH", "QC", "2S", "3D");
         var hand = PokerHandDefinition.Prototypes[PokerHandType.Straight];
-        var analysis = new PokerHandAnalysis(Handler.Config, cards);
+        var analysis = new PokerHandAnalysis(new PokerHandConfig(), cards);
 
         Assert.Multiple(() => {
             var discards = hand.SuggestDiscards(analysis, 3);
@@ -215,7 +215,7 @@ public class StraightHandsTest : PokerHandsTestBase {
         // 7,8,9,J,Q,2,3,4 - El código prioriza la escalera más alta posible
         var cards = CreateCards("7H", "8C", "9D", "JH", "QC", "2S", "3D", "4H");
         var hand = PokerHandDefinition.Prototypes[PokerHandType.Straight];
-        var analysis = new PokerHandAnalysis(Handler.Config, cards);
+        var analysis = new PokerHandAnalysis(new PokerHandConfig(), cards);
 
         Assert.Multiple(() => {
             var discards = hand.SuggestDiscards(analysis, 2);
@@ -233,7 +233,7 @@ public class StraightHandsTest : PokerHandsTestBase {
         // A,2,3,4,5 de diferentes palos
         var cards = CreateCards("AC", "2H", "3D", "4S", "5C");
         var hand = PokerHandDefinition.Prototypes[PokerHandType.Straight];
-        var analysis = new PokerHandAnalysis(Handler.Config, cards);
+        var analysis = new PokerHandAnalysis(new PokerHandConfig(), cards);
         Assert.Multiple(() => {
             Assert.That(analysis.HasCompleteStraight, Is.True);
             var discards = hand.SuggestDiscards(analysis, 2);
@@ -246,7 +246,7 @@ public class StraightHandsTest : PokerHandsTestBase {
         // 10,J,Q,K,A de diferentes palos
         var cards = CreateCards("TC", "JH", "QD", "KS", "AC");
         var hand = PokerHandDefinition.Prototypes[PokerHandType.Straight];
-        var analysis = new PokerHandAnalysis(Handler.Config, cards);
+        var analysis = new PokerHandAnalysis(new PokerHandConfig(), cards);
         Assert.Multiple(() => {
             Assert.That(analysis.HasCompleteStraight, Is.True);
             var discards = hand.SuggestDiscards(analysis, 2);
@@ -259,7 +259,7 @@ public class StraightHandsTest : PokerHandsTestBase {
         // A,2,4,5,6 (falta 3)
         var cards = CreateCards("AC", "2H", "4D", "5S", "6C");
         var hand = PokerHandDefinition.Prototypes[PokerHandType.Straight];
-        var analysis = new PokerHandAnalysis(Handler.Config, cards);
+        var analysis = new PokerHandAnalysis(new PokerHandConfig(), cards);
         Assert.Multiple(() => {
             Assert.That(analysis.HasCompleteStraight, Is.False);
             var discards = hand.SuggestDiscards(analysis, 2);
@@ -275,7 +275,7 @@ public class StraightHandsTest : PokerHandsTestBase {
         // J,Q,K,A,3 (falta 10 para escalera alta)
         var cards = CreateCards("JC", "QH", "KD", "AC", "3S");
         var hand = PokerHandDefinition.Prototypes[PokerHandType.Straight];
-        var analysis = new PokerHandAnalysis(Handler.Config, cards);
+        var analysis = new PokerHandAnalysis(new PokerHandConfig(), cards);
         Assert.Multiple(() => {
             var discards = hand.SuggestDiscards(analysis, 2);
             Assert.That(discards.Count, Is.EqualTo(1), "Should suggest one discard option");
@@ -287,7 +287,7 @@ public class StraightHandsTest : PokerHandsTestBase {
 
     [Test]
     public void EmptyHand_ShouldReturnNoStraight() {
-        var straights = PokerHandDefinition.Prototypes[PokerHandType.Straight].IdentifyHands(new PokerHandAnalysis(Handler.Config, []));
+        var straights = PokerHandDefinition.Prototypes[PokerHandType.Straight].IdentifyHands(new PokerHandAnalysis(new PokerHandConfig(), []));
         Assert.That(straights, Is.Empty);
     }
 }

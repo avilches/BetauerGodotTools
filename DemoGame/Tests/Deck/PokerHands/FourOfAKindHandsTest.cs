@@ -11,7 +11,7 @@ public class FourOfAKindHandsTest : PokerHandsTestBase {
     [Test]
     public void BasicFourOfAKind_ShouldBeIdentified() {
         var cards = CreateCards("AS", "AH", "AD", "AC", "KH");
-        var fourOfKinds = PokerHandDefinition.Prototypes[PokerHandType.FourOfAKind].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var fourOfKinds = PokerHandDefinition.Prototypes[PokerHandType.FourOfAKind].IdentifyHands(new PokerHandAnalysis(new PokerHandConfig(), cards));
 
         Assert.Multiple(() => {
             Assert.That(fourOfKinds.Count, Is.EqualTo(1), "Should identify exactly one four of a kind");
@@ -24,7 +24,7 @@ public class FourOfAKindHandsTest : PokerHandsTestBase {
     public void WithTwoFourOfAKind_ShouldIdentifyBothOrdered() {
         // Con AAAA KKKK, debería identificar ambos, ordenados de mayor a menor
         var cards = CreateCards("AS", "AH", "AD", "AC", "KS", "KH", "KD", "KC");
-        var fourOfKinds = PokerHandDefinition.Prototypes[PokerHandType.FourOfAKind].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var fourOfKinds = PokerHandDefinition.Prototypes[PokerHandType.FourOfAKind].IdentifyHands(new PokerHandAnalysis(new PokerHandConfig(), cards));
 
         Assert.Multiple(() => {
             Assert.That(fourOfKinds.Count, Is.EqualTo(2), "Should identify both four of a kinds");
@@ -45,7 +45,7 @@ public class FourOfAKindHandsTest : PokerHandsTestBase {
         var cards = CreateCards("AS", "AH", "AD", "AC",
             "KS", "KH", "KD", "KC",
             "QS", "QH", "QD", "QC");
-        var fourOfKinds = PokerHandDefinition.Prototypes[PokerHandType.FourOfAKind].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var fourOfKinds = PokerHandDefinition.Prototypes[PokerHandType.FourOfAKind].IdentifyHands(new PokerHandAnalysis(new PokerHandConfig(), cards));
 
         Assert.Multiple(() => {
             Assert.That(fourOfKinds.Count, Is.EqualTo(3), "Should identify all three four of a kinds");
@@ -69,7 +69,7 @@ public class FourOfAKindHandsTest : PokerHandsTestBase {
     public void FourOfAKind_WithFiveOfAKind_ShouldBeIdentified() {
         // Con AAAAA, debería poder identificar AAAA
         var cards = CreateCards("AS", "AH", "AD", "AC", "AH");
-        var fourOfKinds = PokerHandDefinition.Prototypes[PokerHandType.FourOfAKind].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var fourOfKinds = PokerHandDefinition.Prototypes[PokerHandType.FourOfAKind].IdentifyHands(new PokerHandAnalysis(new PokerHandConfig(), cards));
 
         Assert.Multiple(() => {
             Assert.That(fourOfKinds.Count, Is.EqualTo(1), "Should identify exactly one four of a kind");
@@ -81,7 +81,7 @@ public class FourOfAKindHandsTest : PokerHandsTestBase {
     [Test]
     public void ThreeOfAKind_ShouldNotIdentifyFourOfAKind() {
         var cards = CreateCards("AS", "AH", "AD", "KH", "QD");
-        var fourOfKinds = PokerHandDefinition.Prototypes[PokerHandType.FourOfAKind].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var fourOfKinds = PokerHandDefinition.Prototypes[PokerHandType.FourOfAKind].IdentifyHands(new PokerHandAnalysis(new PokerHandConfig(), cards));
 
         Assert.That(fourOfKinds, Is.Empty, "Should not identify four of a kind with only three of a kind");
     }
@@ -89,7 +89,7 @@ public class FourOfAKindHandsTest : PokerHandsTestBase {
     [Test]
     public void FullHouse_ShouldNotIdentifyFourOfAKind() {
         var cards = CreateCards("AS", "AH", "AD", "KS", "KH");
-        var fourOfKinds = PokerHandDefinition.Prototypes[PokerHandType.FourOfAKind].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var fourOfKinds = PokerHandDefinition.Prototypes[PokerHandType.FourOfAKind].IdentifyHands(new PokerHandAnalysis(new PokerHandConfig(), cards));
 
         Assert.That(fourOfKinds, Is.Empty, "Should not identify four of a kind with only full house");
     }
@@ -98,7 +98,7 @@ public class FourOfAKindHandsTest : PokerHandsTestBase {
     public void SuggestDiscards_WithoutFourOfAKind_ShouldSuggestDiscardingLowestCards() {
         var cards = CreateCards("AS", "AH", "AD", "KH", "QD");
         var hand = PokerHandDefinition.Prototypes[PokerHandType.FourOfAKind];
-        var discards = hand.SuggestDiscards(new PokerHandAnalysis(Handler.Config, cards), 2);
+        var discards = hand.SuggestDiscards(new PokerHandAnalysis(new PokerHandConfig(), cards), 2);
 
         Assert.That(discards.Count, Is.EqualTo(1), "Should suggest one discard option");
         var cardsToDiscard = discards[0];
@@ -111,7 +111,7 @@ public class FourOfAKindHandsTest : PokerHandsTestBase {
     public void SuggestDiscards_WithFourOfAKind_ShouldNotSuggestDiscards() {
         var cards = CreateCards("AS", "AH", "AD", "AC", "KH");
         var hand = PokerHandDefinition.Prototypes[PokerHandType.FourOfAKind];
-        var discards = hand.SuggestDiscards(new PokerHandAnalysis(Handler.Config, cards), 3);
+        var discards = hand.SuggestDiscards(new PokerHandAnalysis(new PokerHandConfig(), cards), 3);
 
         Assert.That(discards, Is.Empty, "Should not suggest discards when four of a kind exists");
     }
@@ -119,7 +119,7 @@ public class FourOfAKindHandsTest : PokerHandsTestBase {
     [Test]
     public void EmptyHand_ShouldReturnNoFourOfAKind() {
         var cards = new List<Card>();
-        var fourOfKinds = PokerHandDefinition.Prototypes[PokerHandType.FourOfAKind].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var fourOfKinds = PokerHandDefinition.Prototypes[PokerHandType.FourOfAKind].IdentifyHands(new PokerHandAnalysis(new PokerHandConfig(), cards));
         Assert.That(fourOfKinds, Is.Empty);
     }
 }

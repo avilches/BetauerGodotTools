@@ -56,6 +56,10 @@ public class GameState {
         DestroyedCards = _destroyedCards.AsReadOnly();
     }
 
+    public void AddCard(Card card) {
+        _availableCards.Add(card);
+    }
+
     public void Clear() {
         _availableCards.Clear();
         _currentHand.Clear();
@@ -64,17 +68,6 @@ public class GameState {
         _destroyedCards.Clear();
     }
 
-    public void BuildPokerDeck(string suits, int minRank, int maxRank) {
-        if (minRank > maxRank) throw new ArgumentException("minRank cannot be greater than maxRank");
-
-        _availableCards.Clear();
-        foreach (var suit in suits) {
-            for (var rank = minRank; rank <= maxRank; rank++) {
-                _availableCards.Add(new Card(rank, suit));
-            }
-        }
-    }
-    
     public void ShuffleAvailable(Random random) {
         random.Shuffle(_availableCards);
     }

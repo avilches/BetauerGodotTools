@@ -9,7 +9,7 @@ public class ThreeOfAKindHandsTest : PokerHandsTestBase {
     [Test]
     public void BasicThreeOfAKind_ShouldBeIdentified() {
         var cards = CreateCards("AS", "AH", "AD", "KH", "QD");
-        var threeOfKinds = PokerHandDefinition.Prototypes[PokerHandType.ThreeOfAKind].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var threeOfKinds = PokerHandDefinition.Prototypes[PokerHandType.ThreeOfAKind].IdentifyHands(new PokerHandAnalysis(new PokerHandConfig(), cards));
 
         Assert.Multiple(() => {
             Assert.That(threeOfKinds.Count, Is.EqualTo(1), "Should identify exactly one three of a kind");
@@ -22,7 +22,7 @@ public class ThreeOfAKindHandsTest : PokerHandsTestBase {
     public void WithTwoThreeOfKinds_ShouldIdentifyBothOrdered() {
         // Con KKK AAA, debería identificar solo AAA
         var cards = CreateCards("KS", "KH", "KD", "AS", "AH", "AD", "2C");
-        var threeOfKinds = PokerHandDefinition.Prototypes[PokerHandType.ThreeOfAKind].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var threeOfKinds = PokerHandDefinition.Prototypes[PokerHandType.ThreeOfAKind].IdentifyHands(new PokerHandAnalysis(new PokerHandConfig(), cards));
 
         Assert.Multiple(() => {
             Assert.That(threeOfKinds.Count, Is.EqualTo(2), "Should identify both three of a kinds");
@@ -47,7 +47,7 @@ public class ThreeOfAKindHandsTest : PokerHandsTestBase {
             "KS", "KH", "KD",
             "QS", "QH", "QD"
         );
-        var threeOfKinds = PokerHandDefinition.Prototypes[PokerHandType.ThreeOfAKind].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var threeOfKinds = PokerHandDefinition.Prototypes[PokerHandType.ThreeOfAKind].IdentifyHands(new PokerHandAnalysis(new PokerHandConfig(), cards));
 
         Assert.Multiple(() => {
             Assert.That(threeOfKinds.Count, Is.EqualTo(3), "Should identify all three combinations");
@@ -71,7 +71,7 @@ public class ThreeOfAKindHandsTest : PokerHandsTestBase {
     public void ThreeOfAKind_WithFourOfAKind_ShouldBeIdentified() {
         // Con póker de Ases (AAAA), debería poder identificar el trío
         var cards = CreateCards("AS", "AH", "AD", "AC", "KH");
-        var threeOfKinds = PokerHandDefinition.Prototypes[PokerHandType.ThreeOfAKind].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var threeOfKinds = PokerHandDefinition.Prototypes[PokerHandType.ThreeOfAKind].IdentifyHands(new PokerHandAnalysis(new PokerHandConfig(), cards));
 
         Assert.Multiple(() => {
             Assert.That(threeOfKinds.Count, Is.EqualTo(1), "Should identify exactly one three of a kind");
@@ -84,7 +84,7 @@ public class ThreeOfAKindHandsTest : PokerHandsTestBase {
     public void ThreeOfAKind_WithFullHouse_ShouldBeIdentified() {
         // Con AAA KK, debería poder identificar el trío
         var cards = CreateCards("AS", "AH", "AD", "KS", "KH");
-        var threeOfKinds = PokerHandDefinition.Prototypes[PokerHandType.ThreeOfAKind].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var threeOfKinds = PokerHandDefinition.Prototypes[PokerHandType.ThreeOfAKind].IdentifyHands(new PokerHandAnalysis(new PokerHandConfig(), cards));
 
         Assert.Multiple(() => {
             Assert.That(threeOfKinds.Count, Is.EqualTo(1), "Should identify exactly one three of a kind");
@@ -96,7 +96,7 @@ public class ThreeOfAKindHandsTest : PokerHandsTestBase {
     [Test]
     public void TwoPair_ShouldNotIdentifyThreeOfAKind() {
         var cards = CreateCards("AS", "AH", "KS", "KH", "QD");
-        var threeOfKinds = PokerHandDefinition.Prototypes[PokerHandType.ThreeOfAKind].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var threeOfKinds = PokerHandDefinition.Prototypes[PokerHandType.ThreeOfAKind].IdentifyHands(new PokerHandAnalysis(new PokerHandConfig(), cards));
 
         Assert.That(threeOfKinds, Is.Empty, "Should not identify three of a kind with only pairs");
     }
@@ -105,7 +105,7 @@ public class ThreeOfAKindHandsTest : PokerHandsTestBase {
     public void SuggestDiscards_WithoutThreeOfAKind_ShouldSuggestDiscardingLowestCards() {
         var cards = CreateCards("AS", "AH", "KH", "QD", "JC");
         var hand = PokerHandDefinition.Prototypes[PokerHandType.ThreeOfAKind];
-        var discards = hand.SuggestDiscards(new PokerHandAnalysis(Handler.Config, cards), 3);
+        var discards = hand.SuggestDiscards(new PokerHandAnalysis(new PokerHandConfig(), cards), 3);
 
         Assert.That(discards.Count, Is.EqualTo(1), "Should suggest one discard option");
         var cardsToDiscard = discards[0];
@@ -116,14 +116,14 @@ public class ThreeOfAKindHandsTest : PokerHandsTestBase {
     public void SuggestDiscards_WithExistingThreeOfAKind_ShouldNotSuggestDiscards() {
         var cards = CreateCards("AS", "AH", "AD", "KH", "QD");
         var hand = PokerHandDefinition.Prototypes[PokerHandType.ThreeOfAKind];
-        var discards = hand.SuggestDiscards(new PokerHandAnalysis(Handler.Config, cards), 3);
+        var discards = hand.SuggestDiscards(new PokerHandAnalysis(new PokerHandConfig(), cards), 3);
 
         Assert.That(discards, Is.Empty, "Should not suggest discards when three of a kind exists");
     }
 
     [Test]
     public void EmptyHand_ShouldReturnNoThreeOfAKind() {
-        var threeOfKinds = PokerHandDefinition.Prototypes[PokerHandType.ThreeOfAKind].IdentifyHands(new PokerHandAnalysis(Handler.Config, []));
+        var threeOfKinds = PokerHandDefinition.Prototypes[PokerHandType.ThreeOfAKind].IdentifyHands(new PokerHandAnalysis(new PokerHandConfig(), []));
         Assert.That(threeOfKinds, Is.Empty);
     }
 }

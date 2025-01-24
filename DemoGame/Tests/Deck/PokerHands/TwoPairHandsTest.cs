@@ -9,7 +9,7 @@ public class TwoPairHandsTest : PokerHandsTestBase {
     [Test]
     public void BasicTwoPair_ShouldBeIdentified() {
         var cards = CreateCards("AS", "AH", "KS", "KH", "QD");
-        var twoPairs = PokerHandDefinition.Prototypes[PokerHandType.TwoPair].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var twoPairs = PokerHandDefinition.Prototypes[PokerHandType.TwoPair].IdentifyHands(new PokerHandAnalysis(new PokerHandConfig(), cards));
 
         Assert.Multiple(() => {
             Assert.That(twoPairs.Count, Is.EqualTo(1), "Should identify exactly one two pair hand");
@@ -29,7 +29,7 @@ public class TwoPairHandsTest : PokerHandsTestBase {
     public void WithThreePairs_ShouldIdentifyAllOrdered() {
         // Con tres pares (A,A,K,K,Q,Q), debería identificar las tres combinaciones ordenadas
         var cards = CreateCards("AS", "AH", "KS", "KH", "QS", "QH", "2C");
-        var twoPairs = PokerHandDefinition.Prototypes[PokerHandType.TwoPair].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var twoPairs = PokerHandDefinition.Prototypes[PokerHandType.TwoPair].IdentifyHands(new PokerHandAnalysis(new PokerHandConfig(), cards));
 
         Assert.Multiple(() => {
             Assert.That(twoPairs.Count, Is.EqualTo(3), "Should identify three possible two pair combinations");
@@ -71,7 +71,7 @@ public class TwoPairHandsTest : PokerHandsTestBase {
     public void TwoPair_WithFullHouse_ShouldIdentifyOnePair() {
         // Con full house (AAA KK), debería identificar solo una doble pareja AA KK
         var cards = CreateCards("AS", "AH", "AD", "KS", "KH");
-        var twoPairs = PokerHandDefinition.Prototypes[PokerHandType.TwoPair].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var twoPairs = PokerHandDefinition.Prototypes[PokerHandType.TwoPair].IdentifyHands(new PokerHandAnalysis(new PokerHandConfig(), cards));
 
         Assert.Multiple(() => {
             Assert.That(twoPairs.Count, Is.EqualTo(1), "Should identify exactly one two pair hand");
@@ -98,7 +98,7 @@ public class TwoPairHandsTest : PokerHandsTestBase {
     [Test]
     public void SinglePair_ShouldNotIdentifyTwoPair() {
         var cards = CreateCards("AS", "AH", "KS", "QH", "JD");
-        var twoPairs = PokerHandDefinition.Prototypes[PokerHandType.TwoPair].IdentifyHands(new PokerHandAnalysis(Handler.Config, cards));
+        var twoPairs = PokerHandDefinition.Prototypes[PokerHandType.TwoPair].IdentifyHands(new PokerHandAnalysis(new PokerHandConfig(), cards));
 
         Assert.That(twoPairs, Is.Empty, "Should not identify two pair with only one pair");
     }
@@ -107,7 +107,7 @@ public class TwoPairHandsTest : PokerHandsTestBase {
     public void SuggestDiscards_WithoutTwoPair_ShouldSuggestDiscardingLowestCards() {
         var cards = CreateCards("AS", "KH", "QD", "JC", "TH");
         var hand = PokerHandDefinition.Prototypes[PokerHandType.TwoPair];
-        var discards = hand.SuggestDiscards(new PokerHandAnalysis(Handler.Config, cards), 2);
+        var discards = hand.SuggestDiscards(new PokerHandAnalysis(new PokerHandConfig(), cards), 2);
 
         Assert.That(discards.Count, Is.EqualTo(1), "Should suggest one discard option");
         var cardsToDiscard = discards[0];
@@ -118,14 +118,14 @@ public class TwoPairHandsTest : PokerHandsTestBase {
     public void SuggestDiscards_WithExistingTwoPair_ShouldNotSuggestDiscards() {
         var cards = CreateCards("AS", "AH", "KS", "KH", "QD");
         var hand = PokerHandDefinition.Prototypes[PokerHandType.TwoPair];
-        var discards = hand.SuggestDiscards(new PokerHandAnalysis(Handler.Config, cards), 3);
+        var discards = hand.SuggestDiscards(new PokerHandAnalysis(new PokerHandConfig(), cards), 3);
 
         Assert.That(discards, Is.Empty, "Should not suggest discards when two pair exists");
     }
 
     [Test]
     public void EmptyHand_ShouldReturnNoTwoPairs() {
-        var twoPairs = PokerHandDefinition.Prototypes[PokerHandType.TwoPair].IdentifyHands(new PokerHandAnalysis(Handler.Config, []));
+        var twoPairs = PokerHandDefinition.Prototypes[PokerHandType.TwoPair].IdentifyHands(new PokerHandAnalysis(new PokerHandConfig(), []));
         Assert.That(twoPairs, Is.Empty);
     }
 }

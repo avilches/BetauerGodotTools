@@ -85,20 +85,20 @@ public static class HandUtils {
     /// First attempts to find sequences within each suit, and if no complete straight flush
     /// is found, then looks for regular straights.
     /// </summary>
-    public static List<Straight> FindStraightSequences(int size, IReadOnlyList<Card> cards) {
+    public static List<Straight> FindStraightSequences(PokerHandConfig config, IReadOnlyList<Card> cards) {
         var allStraights = new List<Straight>();
 
         // Primero intentamos encontrar escaleras de color
         foreach (var suit in cards.Select(c => c.Suit).Distinct()) {
             var suitCards = cards.Where(c => c.Suit == suit).ToList();
             if (suitCards.Count >= 3) {
-                allStraights.AddRange(FindSequences(size, suitCards));
+                allStraights.AddRange(FindSequences(config, suitCards));
             }
         }
 
         // Si no encontramos escaleras de color completas (no hay, o hay pero la primera esta incompleta)
         if (allStraights.Count == 0 || !allStraights[0].IsComplete) {
-            var regularSequences = FindSequences(size, cards);
+            var regularSequences = FindSequences(config, cards);
 
             // Añadir solo las escaleras que no son equivalentes a las que ya tenemos
             foreach (var straight in regularSequences) {
@@ -111,22 +111,22 @@ public static class HandUtils {
         return allStraights.OrderByDescending(s => s, PokerHandAnalysis.StraightComparer).ToList();
     }
 
-    private static List<Straight> FindSequences(int size, IReadOnlyList<Card> cards) {
+    private static List<Straight> FindSequences(PokerHandConfig config, IReadOnlyList<Card> cards) {
         var allSequences = new List<Straight>();
 
         // Probar todas las posibles posiciones de inicio de escalera (de 1 a 10)
         for (var startRank = 1; startRank <= 10; startRank++) {
-            var neededRanks = Enumerable.Range(startRank, size);
+            var neededRanks = Enumerable.Range(startRank, config.StraightSize);
             var sequence = neededRanks
                 .Select(rank =>
                     cards.FirstOrDefault(c =>
                         // Check both normal rank and Ace as 1 for rank 1
-                        c.Rank == rank || (rank == 1 && c.Rank == 14)))
+                        c.Rank == rank || (rank == 1 && c.Rank == config.MaxRank)))
                 .Where(c => c != null).ToList();
-            var missingCount = size - sequence.Count;
+            var missingCount = config.StraightSize - sequence.Count;
 
             if (missingCount <= 2) {
-                var straight = new Straight(sequence, startRank, size);
+                var straight = new Straight(config, sequence, startRank);
                 if (!HasEquivalentStraight(allSequences, straight)) {
                     allSequences.Add(straight);
                 }
@@ -138,19 +138,5 @@ public static class HandUtils {
 
     private static bool HasEquivalentStraight(List<Straight> straights, Straight newStraight) {
         return straights.Any(s => s.IsEquivalent(newStraight));
-    }
-
-
-    private static IOrderedEnumerable<List<Card>> OrderBySequenceValue(this List<List<Card>> sequences) {
-        return sequences.OrderByDescending(seq => {
-            // Primero por cantidad de cartas
-            if (seq.Any(c => c.Rank == 14) &&
-                seq.Select(c => c.Rank == 14 ? 1 : c.Rank)
-                    .OrderBy(r => r)
-                    .SequenceEqual([1, 2, 3, 4, 5])) {
-                return 5;
-            }
-            return seq.Sum(c => c.Rank);
-        });
     }
 }

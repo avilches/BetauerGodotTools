@@ -5,7 +5,7 @@ using Betauer.Core;
 
 namespace Veronenger.Game.Deck.Hands;
 
-public record PokerHandConfig(
+public record PokerHandLevelConfig(
     PokerHandDefinition Prototype,
     long InitialScore,
     long InitialMultiplier,
@@ -14,8 +14,8 @@ public record PokerHandConfig(
     int Order,
     bool Enabled);
 
-public class PokerHandsManager {
-    private readonly List<PokerHandConfig> _handConfigs = [];
+public class PokerHandsManager(PokerHandConfig config) {
+    private readonly List<PokerHandLevelConfig> _handConfigs = [];
 
     public void RegisterBasicPokerHands() {
         RegisterHand(PokerHandType.HighCard, 5, 1, 15, 1, order: 1);
@@ -40,7 +40,7 @@ public class PokerHandsManager {
     public void RegisterHand(PokerHandType handType, long initialScore, long initialMultiplier, long scorePerLevel, long multiplierPerLevel, int order, bool enabled = true) {
         var pokerHand = PokerHandDefinition.Prototypes[handType];
         _handConfigs.RemoveAll(config => config.Prototype.HandType == handType);
-        _handConfigs.Add(new PokerHandConfig(pokerHand, initialScore, initialMultiplier, scorePerLevel, multiplierPerLevel, order, enabled));
+        _handConfigs.Add(new PokerHandLevelConfig(pokerHand, initialScore, initialMultiplier, scorePerLevel, multiplierPerLevel, order, enabled));
         var ordered = _handConfigs.OrderByDescending(c => c.Order).ToList();
         _handConfigs.Clear();
         _handConfigs.AddRange(ordered);
@@ -53,11 +53,11 @@ public class PokerHandsManager {
     /// <summary>
     /// Returns PokerHandConfig, ordered by order (highest value hand first)
     /// </summary>
-    public IEnumerable<PokerHandConfig> ListPokerHandConfigs() => _handConfigs.Where(c => c.Enabled);
+    public IEnumerable<PokerHandLevelConfig> ListPokerHandConfigs() => _handConfigs.Where(c => c.Enabled);
 
     public IEnumerable<PokerHandType> ListHandTypes() => ListPokerHandConfigs().Select(c => c.Prototype.HandType);
 
-    public PokerHandConfig GetPokerHandConfig(PokerHandType hand) {
+    public PokerHandLevelConfig GetPokerHandConfig(PokerHandType hand) {
         if (_handConfigs.Count == 0) {
             throw new InvalidOperationException("No hands registered");
         }
@@ -79,7 +79,7 @@ public class PokerHandsManager {
         }
         if (cards.Count == 0) return [];
 
-        var analysis = new PokerHandAnalysis(handler.Config, cards);
+        var analysis = new PokerHandAnalysis(config, cards);
 
         var allHands = ListPokerHandConfigs()
             .SelectMany(config => config.Prototype.IdentifyHands(analysis))
@@ -112,7 +112,7 @@ public class PokerHandsManager {
         }
         if (cards.Count == 0) return null;
 
-        var analysis = new PokerHandAnalysis(handler.Config, cards);
+        var analysis = new PokerHandAnalysis(config, cards);
 
         // Iterate through configs in descending order
         foreach (var config in _handConfigs.Where(config => config.Enabled)) {
@@ -156,7 +156,7 @@ public class PokerHandsManager {
         var totalSimulations = 0;
         var totalCombinations = 0;
 
-        var analysis = new PokerHandAnalysis(handler.Config, cards);
+        var analysis = new PokerHandAnalysis(config, cards);
 
         // Get all possible discard combinations from all hand types
         var suggestedDiscards = _handConfigs

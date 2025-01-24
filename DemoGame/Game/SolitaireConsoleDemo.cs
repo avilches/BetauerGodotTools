@@ -87,7 +87,7 @@ public class SolitaireConsoleDemo(bool autoPlay, int maxSimulations, float simul
         }
 
         var config = new PokerGameConfig();
-        var handsManager = new PokerHandsManager();
+        var handsManager = new PokerHandsManager(new PokerHandConfig());
         handsManager.RegisterBasicPokerHands();
         GameRun = new GameRun(config, handsManager, seed);
         GameRunRandom = new Random(seed);
@@ -95,7 +95,7 @@ public class SolitaireConsoleDemo(bool autoPlay, int maxSimulations, float simul
     }
 
     private void InitializeGame(int level) {
-        GameHandler = GameRun.CreateGameHandler(level);
+        GameHandler = GameRun.CreateGameHandler(level, DeckBuilder.ClassicPokerDeck());
         GameHandler.DrawCards();
     }
 

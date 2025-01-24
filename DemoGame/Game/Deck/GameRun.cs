@@ -1,29 +1,24 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Betauer.Core;
 using Veronenger.Game.Deck.Hands;
 
 namespace Veronenger.Game.Deck;
 
-public class GameRun {
-    public GameRunState State { get; }
+public class GameRun(PokerGameConfig config, PokerHandsManager pokerHandsManager, int seed) {
+    public GameRunState State { get; } = new();
 
-    public PokerGameConfig Config { get; }
-    public PokerHandsManager PokerHandsManager { get; }
-    public int Seed { get; }
+    public PokerGameConfig Config { get; } = config;
+    public PokerHandsManager PokerHandsManager { get; } = pokerHandsManager;
+    public int Seed { get; } = seed;
 
     public DateTime StartTime { get; } = DateTime.Now;
     public List<GameState> GameStates { get; } = [];
 
-    public GameRun(PokerGameConfig config, PokerHandsManager pokerHandsManager, int seed) {
-        Config = config;
-        PokerHandsManager = pokerHandsManager;
-        Seed = seed;
-        State = new GameRunState();
-    }
-
-    public GameHandler CreateGameHandler(int level) {
+    public GameHandler CreateGameHandler(int level, IEnumerable<Card> cards) {
         var gameHandler = new GameHandler(State, Config, PokerHandsManager, level, Seed);
+        cards.ForEach(gameHandler.State.AddCard);
         GameStates.Add(gameHandler.State);
         return gameHandler;
     }

@@ -16,16 +16,15 @@ public class PokerHandsTestBase {
     [SetUp]
     public void Setup() {
         Config = new PokerGameConfig();
-        HandsManager = new PokerHandsManager();
+        HandsManager = new PokerHandsManager(new PokerHandConfig());
         HandsManager.RegisterBasicPokerHands();
         GameRun = new GameRun(Config, HandsManager, 0);
-        Handler = GameRun.CreateGameHandler(0);
+        Handler = GameRun.CreateGameHandler(0, DeckBuilder.ClassicPokerDeck());
     }
 
 
     protected List<Card> CreateCards(params string[] cards) {
-        var parse = new PokerGameConfig().Parse;
-        return cards.Select(parse).ToList();
+        return cards.Select(Card.Parse).ToList();
     }
 }
 

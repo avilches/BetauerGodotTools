@@ -6,7 +6,7 @@ using Veronenger.Game.Deck.Hands;
 
 namespace Veronenger.Game.Deck;
 
-public class GameHandler {
+public class GameHandler(GameRunState gameRunState, PokerGameConfig config, PokerHandsManager pokerHandsManager, int level, int seed) {
     public class PlayResult(PokerHand hand, long score) {
         public long Score { get; } = score;
         public PokerHand? Hand { get; } = hand;
@@ -16,11 +16,11 @@ public class GameHandler {
         public IReadOnlyList<Card> DiscardedCards { get; } = discardedCards;
     }
 
-    public PokerHandsManager PokerHandsManager { get; }
-    public PokerGameConfig Config { get; }
-    public GameState State { get; }
-    public GameRunState GameRunState { get; }
-    
+    public PokerHandsManager PokerHandsManager { get; } = pokerHandsManager;
+    public PokerGameConfig Config { get; } = config;
+    public GameState State { get; } = new(config, level, seed);
+    public GameRunState GameRunState { get; } = gameRunState;
+
     public bool IsWon() => State.IsWon();
     public bool IsGameOver() => State.IsGameOver();
     public bool IsDrawPending() => State.IsDrawPending();
@@ -32,22 +32,15 @@ public class GameHandler {
     public int RemainingCards => State.RemainingCards;
     public int RemainingCardsToDraw => State.RemainingCardsToDraw;
 
-    private readonly Random _drawCardsRandom;
-    private readonly Random _recoverCardsRandom;
-
-    public GameHandler(GameRunState gameRunState, PokerGameConfig config, PokerHandsManager pokerHandsManager, int level, int seed) {
-        GameRunState = gameRunState;
-        Config = config;
-        PokerHandsManager = pokerHandsManager;
-        State = new GameState(config, level, seed);
-        State.BuildPokerDeck(config.ValidSuits, config.MinRank, config.MaxRank);
-
-        _drawCardsRandom = new Random(seed * 100 + level);
-        _recoverCardsRandom = new Random(seed * 100 + level);
-    }
+    private readonly Random _drawCardsRandom = new(seed * 100 + level);
+    private readonly Random _recoverCardsRandom = new(seed * 100 + level);
 
     public void DrawCards() {
         DrawCards(RemainingCardsToDraw);
+    }
+
+    public void AddCards(IEnumerable<Card> cards) {
+        cards.ForEach(card => State.AddCard(card));
     }
 
     public void DrawCards(int n) {

@@ -9,23 +9,56 @@ namespace Veronenger.Game;
 public class SolitaireAnalyzer {
     public record HandStats(PokerHandType HandType, int Count, double Percentage);
 
-    public static void Main() {
+    public static IList<PokerHandType> Duplicated = [
+        PokerHandType.Pair, PokerHandType.TwoPair, PokerHandType.ThreeOfAKind, PokerHandType.FourOfAKind, PokerHandType.FiveOfAKind, PokerHandType.FullHouse
+    ];
+
+    public static IList<PokerHandType> Straights = [
+        PokerHandType.Straight, PokerHandType.StraightFlush
+    ];
+
+    public static IList<PokerHandType> Flushes = [
+        PokerHandType.FlushHouse, PokerHandType.Flush, PokerHandType.FlushFive
+    ];
+
+
+    public const int Montecarlo = 1000;
+    public static  IList<PokerHandType> Filter = [..Duplicated, ..Flushes, ..Straights];
+
+    public static void MainBalatro() {
         const int MIN_HAND = 5;
-        const int MAX_HAND = 11;
-        AnalyzeHands(MIN_HAND, MAX_HAND);
+        const int MAX_HAND = 10;
+        Console.WriteLine($"=== Classic poker deck ===");
+        AnalyzeHands(MIN_HAND, MAX_HAND, DeckBuilder.Cards("SHDC", 2, 14));
+        Console.WriteLine($"=== 2 to 10 ===");
+        AnalyzeHands(MIN_HAND, MAX_HAND, DeckBuilder.Cards("SHDC", 2, 10));
     }
 
-    public static void AnalyzeHands(int minHand, int maxHand) {
+    public static void Main() {
+        const int MIN_HAND = 3;
+        const int MAX_HAND = 5;
+        Console.WriteLine($"=== Classic poker deck ===");
+        AnalyzeHands(MIN_HAND, MAX_HAND, DeckBuilder.Cards("SHDC", 2, 14));
+        Console.WriteLine($"=== 2 to 10 ===");
+        // AnalyzeHands(MIN_HAND, MAX_HAND, DeckBuilder.Cards("SHDC", 2, 10));
+        // Console.WriteLine($"=== 2 to 6 ===");
+        // AnalyzeHands(MIN_HAND, MAX_HAND, DeckBuilder.Cards("SHDC", 2, 6));
+        // Console.WriteLine($"=== 2 to 6 ===");
+        // AnalyzeHands(MIN_HAND, MAX_HAND, DeckBuilder.Cards("SH", 2, 10));
+        // Console.WriteLine($"=== 2 suits ===");
+        // AnalyzeHands(MIN_HAND, MAX_HAND, DeckBuilder.Cards("SH", 2, 14));
+    }
+
+    public static void AnalyzeHands(int minHand, int maxHand, IEnumerable<Card> cards) {
         var handSizes = maxHand - minHand + 1;
         var allStats = new List<HandStats>[handSizes];
-        Console.WriteLine($"=== Analyzing hands from {minHand} to {maxHand} cards ===");
 
         // Get stats for each hand size
-        for (int i = 0; i < handSizes; i++) {
+        for (var i = 0; i < handSizes; i++) {
             var handSize = i + minHand;
-            Console.WriteLine($"Analyzing {handSize} card hands...");
-            allStats[i] = Stats(handSize);
+            allStats[i] = Stats(handSize, cards);
         }
+        Console.Write("\r                                         \r");
 
         // Get all unique hand types across all stats
         var allHandTypes = new HashSet<PokerHandType>();
@@ -38,7 +71,7 @@ public class SolitaireAnalyzer {
         var colSize = 5;
 
         // Print header
-        Console.WriteLine("\n=== Hand Statistics Comparison ===");
+        // Console.WriteLine();
         Console.Write($"{"Hand Type",-20} |");
         for (int size = minHand; size <= maxHand; size++) {
             Console.Write($" {(size + "").PadLeft(colSize)} |");
@@ -58,41 +91,38 @@ public class SolitaireAnalyzer {
             Console.Write($"{handType,-20} |");
             foreach (var statsList in allStats) {
                 var stat = statsList.FirstOrDefault(s => s.HandType == handType);
-                var value = stat != null ? (Math.Round(stat.Percentage)).ToString() : "0";
+                var value = stat != null ? Math.Round(stat.Percentage).ToString() : "0";
                 Console.Write($" {value.PadLeft(colSize)} |");
             }
             Console.WriteLine();
         }
     }
 
-    public static List<HandStats> Stats(int handSize) {
-        var times = 1000;
+    public static List<HandStats> Stats(int handSize, IEnumerable<Card> cards) {
         var random = new Random(0);
         // Initialize game components
         var config = new PokerGameConfig();
-        var handsManager = new PokerHandsManager();
+        var handsManager = new PokerHandsManager(new PokerHandConfig());
         handsManager.RegisterBasicPokerHands();
         var gameRun = new GameRun(config, handsManager, 0);
-        var handler = gameRun.CreateGameHandler(0);
+        var handler = gameRun.CreateGameHandler(0, cards);
         handler.State.ShuffleAvailable(random);
 
         handler.State.Config.MaxDiscardCards = handSize;
         handler.State.Config.HandSize = handSize;
-        handler.State.Config.MaxDiscards = times;
+        handler.State.Config.MaxDiscards = Montecarlo;
 
         var stats = new Dictionary<PokerHandType, int>();
-        var progressInterval = times / 10; // Show progress every 10%
 
-        for (int i = 0; i < times; i++) {
-            if (i % progressInterval == 0) {
-                Console.Write($"\rProgress: {i * 100 / times}%");
-            }
+        for (int i = 0; i < Montecarlo; i++) {
+            Console.Write($"\rAnalyzing {handSize} card hands: {i * 100 / Montecarlo}%");
 
             handler.DrawCards();
 
             var handTypes = handler.GetPossibleHands().GroupBy(h => h.HandType).Select(g => g.Key);
+            var filter = Filter.ToHashSet();
 
-            foreach (var handType in handTypes) {
+            foreach (var handType in handTypes.Where(h => filter.Contains(h))) {
                 stats.TryAdd(handType, 0);
                 stats[handType]++;
             }
@@ -100,13 +130,13 @@ public class SolitaireAnalyzer {
             handler.Discard([..handler.State.CurrentHand]);
             handler.Recover([..handler.State.DiscardedCards]);
         }
-        Console.WriteLine($"\rProgress: 100%");
+        Console.Write($"\rAnalyzing {handSize} card hands: 100%");
 
         return stats
             .Select(entry => new HandStats(
                 entry.Key,
                 entry.Value,
-                (entry.Value * 100.0) / times))
+                (entry.Value * 100.0) / Montecarlo))
             .OrderByDescending(x => x.Percentage)
             .ToList();
     }

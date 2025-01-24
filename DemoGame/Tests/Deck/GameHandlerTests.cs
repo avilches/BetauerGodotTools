@@ -18,10 +18,10 @@ public class GameHandlerTests {
     [SetUp]
     public void Setup() {
         Config = new PokerGameConfig();
-        HandsManager = new PokerHandsManager();
+        HandsManager = new PokerHandsManager(new PokerHandConfig());
         HandsManager.RegisterBasicPokerHands();
         GameRun = new GameRun(Config, HandsManager, 0);
-        Handler = GameRun.CreateGameHandler(0);
+        Handler = GameRun.CreateGameHandler(0, DeckBuilder.ClassicPokerDeck());
     }
 
     [Test]
@@ -72,7 +72,7 @@ public class GameHandlerTests {
         var levels = new[] { 0, 1, 2 };
 
         foreach (var level in levels) {
-            var gameHandler = GameRun.CreateGameHandler(10);
+            var gameHandler = GameRun.CreateGameHandler(10, DeckBuilder.ClassicPokerDeck());
 
             while (!gameHandler.IsWon() && !gameHandler.IsGameOver()) {
                 gameHandler.DrawCards();
@@ -196,7 +196,7 @@ public class GameHandlerTests {
     private GameHandler CreateGameWithInitialHand(PokerHandType type, int maxAttempts = 1000) {
         for (int seed = 1; seed <= maxAttempts; seed++) {
             var gameRun = new GameRun(Config, HandsManager, seed);
-            var testGame = gameRun.CreateGameHandler(0);
+            var testGame = gameRun.CreateGameHandler(0, DeckBuilder.ClassicPokerDeck());
             testGame.DrawCards();
             var possibleHands = testGame.GetPossibleHands().Where(h => h.HandType == type).ToList();
             if (possibleHands.Count > 0) {
@@ -209,7 +209,7 @@ public class GameHandlerTests {
     private GameHandler CreateGameWithInitialHandSize(int cardCount, int maxAttempts = 1000) {
         for (int seed = 1; seed <= maxAttempts; seed++) {
             var gameRun = new GameRun(Config, HandsManager, seed);
-            var testGame = gameRun.CreateGameHandler(0);
+            var testGame = gameRun.CreateGameHandler(0, DeckBuilder.ClassicPokerDeck());
             testGame.DrawCards();
             var possibleHands = testGame.GetPossibleHands()
                 .Where(h => h.Cards.Count == cardCount)
@@ -521,7 +521,7 @@ public class GameHandlerTests {
         Assert.That(Handler.IsWon(), Is.False, "Game should not be won with low score");
 
         // Caso 2: Score suficiente, debería ganar
-        Handler = GameRun.CreateGameHandler(0);
+        Handler = GameRun.CreateGameHandler(0, DeckBuilder.ClassicPokerDeck());
         Handler.State.LevelScore = 10; // Un valor bajo que seguro se puede alcanzar con una mano
         Handler.DrawCards();
         hand = Handler.GetPossibleHands()[0];
