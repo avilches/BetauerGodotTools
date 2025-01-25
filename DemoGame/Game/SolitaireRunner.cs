@@ -26,7 +26,6 @@ public class SolitaireMultiRunner {
             });
         }
         DisplayGameState();
-        DisplayGameState();
     }
 
     private void DisplayGameState() {

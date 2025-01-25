@@ -87,7 +87,7 @@ public class SolitaireConsoleDemo(bool autoPlay, int maxSimulations, float simul
         }
 
         var config = new PokerGameConfig();
-        var handsManager = new PokerHandsManager(new PokerHandConfig());
+        var handsManager = new PokerHandsManager(new Random(seed), new PokerHandConfig());
         handsManager.RegisterBasicPokerHands();
         GameRun = new GameRun(config, handsManager, seed);
         GameRunRandom = new Random(seed);
@@ -164,6 +164,7 @@ public class SolitaireConsoleDemo(bool autoPlay, int maxSimulations, float simul
     }
 
     private void DisplayYourHand() {
+        if (autoPlay) return;
         var cards = GameHandler.State.CurrentHand;
         var groupedCards = cards
             .GroupBy(c => c.Suit)
@@ -312,7 +313,9 @@ public class SolitaireConsoleDemo(bool autoPlay, int maxSimulations, float simul
     private void ProcessHand(IReadOnlyList<Card> hand) {
         var result = GameHandler.PlayHand(hand);
 
-        Console.WriteLine($"Played {result.Hand?.Name}: {string.Join(", ", hand)}. Scored: +{result.Score} ({GameHandler.State.Score}/{GameHandler.State.LevelScore})");
+        if (!autoPlay) {
+            Console.WriteLine($"Played {result.Hand?.Name}: {string.Join(", ", hand)}. Scored: +{result.Score} ({GameHandler.State.Score}/{GameHandler.State.LevelScore})");
+        }
 
         if (GameHandler.IsDrawPending()) {
             GameHandler.DrawCards();
@@ -356,9 +359,11 @@ public class SolitaireConsoleDemo(bool autoPlay, int maxSimulations, float simul
     }
 
     private void ProcessDiscard(List<Card> cardsToDiscard) {
-        Console.WriteLine($"Discarded: {string.Join(", ", cardsToDiscard)}");
         var result = GameHandler.Discard(cardsToDiscard);
-        Console.WriteLine($"* Cards discarded. Remaining discards: {GameHandler.Config.MaxDiscards - GameHandler.State.Discards}");
+        if (!autoPlay) {
+            Console.WriteLine($"Discarded: {string.Join(", ", cardsToDiscard)}");
+            Console.WriteLine($"* Cards discarded. Remaining discards: {GameHandler.Config.MaxDiscards - GameHandler.State.Discards}");
+        }
         GameHandler.DrawCards();
         DisplayYourHand();
         if (!autoPlay) {

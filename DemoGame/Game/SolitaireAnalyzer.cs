@@ -99,10 +99,11 @@ public class SolitaireAnalyzer {
     }
 
     public static List<HandStats> Stats(int handSize, IEnumerable<Card> cards) {
-        var random = new Random(0);
+        var seed = 0;
+        var random = new Random(seed);
         // Initialize game components
         var config = new PokerGameConfig();
-        var handsManager = new PokerHandsManager(new PokerHandConfig());
+        var handsManager = new PokerHandsManager(new Random(seed), new PokerHandConfig());
         handsManager.RegisterBasicPokerHands();
         var gameRun = new GameRun(config, handsManager, 0);
         var handler = gameRun.CreateGameHandler(0, cards);

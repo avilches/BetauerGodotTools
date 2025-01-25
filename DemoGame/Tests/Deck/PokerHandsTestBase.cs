@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
@@ -16,7 +17,7 @@ public class PokerHandsTestBase {
     [SetUp]
     public void Setup() {
         Config = new PokerGameConfig();
-        HandsManager = new PokerHandsManager(new PokerHandConfig());
+        HandsManager = new PokerHandsManager(new Random(0), new PokerHandConfig());
         HandsManager.RegisterBasicPokerHands();
         GameRun = new GameRun(Config, HandsManager, 0);
         Handler = GameRun.CreateGameHandler(0, DeckBuilder.ClassicPokerDeck());

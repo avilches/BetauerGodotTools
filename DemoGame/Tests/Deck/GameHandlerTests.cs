@@ -18,7 +18,7 @@ public class GameHandlerTests {
     [SetUp]
     public void Setup() {
         Config = new PokerGameConfig();
-        HandsManager = new PokerHandsManager(new PokerHandConfig());
+        HandsManager = new PokerHandsManager(new Random(0), new PokerHandConfig());
         HandsManager.RegisterBasicPokerHands();
         GameRun = new GameRun(Config, HandsManager, 0);
         Handler = GameRun.CreateGameHandler(0, DeckBuilder.ClassicPokerDeck());
