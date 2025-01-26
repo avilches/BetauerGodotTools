@@ -34,15 +34,16 @@ public class GameState {
     public IReadOnlyList<Card> DestroyedCards { get; }
 
     public bool IsWon() => LevelScore > 0 && Score >= LevelScore;
-    public bool IsGameOver() => IsWon() || HandsPlayed >= Config.MaxHands;
-    public bool IsDrawPending() => !IsGameOver() && CurrentHand.Count < Config.HandSize;
+    public bool IsGameOver() => IsWon() || HandsPlayed >= Config.MaxHands || (AvailableCards.Count == 0 && CurrentHand.Count == 0);
+
+    public bool IsDrawPending() => !IsGameOver() && RemainingCardsToDraw > 0;
     public bool CanDiscard() => !IsGameOver() && Discards < Config.MaxDiscards;
     
     public long RemainingScoreToWin => LevelScore - Score;
     public int RemainingHands => Config.MaxHands - HandsPlayed;
     public int RemainingDiscards => Config.MaxHands - Discards;
     public int RemainingCards => AvailableCards.Count;
-    public int RemainingCardsToDraw => Config.HandSize - CurrentHand.Count;
+    public int RemainingCardsToDraw => Math.Min(Config.HandSize - CurrentHand.Count, AvailableCards.Count);
     
     public GameState(PokerGameConfig config, int level, int seed) {
         Config = config;

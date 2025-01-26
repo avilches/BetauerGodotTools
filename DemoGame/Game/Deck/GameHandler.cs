@@ -40,7 +40,7 @@ public class GameHandler(GameRunState gameRunState, PokerGameConfig config, Poke
     }
 
     public void AddCards(IEnumerable<Card> cards) {
-        cards.ForEach(card => State.AddCard(card));
+        cards.ToArray().ForEach(card => State.AddCard(card));
     }
 
     public void DrawCards(int n) {
@@ -64,7 +64,7 @@ public class GameHandler(GameRunState gameRunState, PokerGameConfig config, Poke
         }
 
         var cards = _drawCardsRandom.Take(State.AvailableCards as IList<Card>, n).ToList();
-        cards.ForEach(card => State.Draw(card));
+        cards.ToArray().ForEach(card => State.Draw(card));
     }
 
     public void DrawCards(IReadOnlyList<Card> cards) {
@@ -91,7 +91,7 @@ public class GameHandler(GameRunState gameRunState, PokerGameConfig config, Poke
         if (cards.Count > RemainingCardsToDraw) {
             throw new SolitairePokerGameException($"DrawCards error: cannot draw more cards ({cards.Count}) than remaining to fulfill the current hand ({RemainingCardsToDraw})");
         }
-        cards.ForEach(card => State.Draw(card));
+        cards.ToArray().ForEach(card => State.Draw(card));
     }
 
     public PlayResult PlayHand(IReadOnlyList<Card> cards) {
@@ -119,7 +119,7 @@ public class GameHandler(GameRunState gameRunState, PokerGameConfig config, Poke
         var hand = PokerHandsManager.IdentifyBestHand(this, cards);
         var score = hand != null ? CalculateScore(hand) : 0;
         State.Score += score;
-        cards.ForEach(card => State.Play(card));
+        cards.ToArray().ForEach(card => State.Play(card));
         State.History.AddPlayAction(hand, cards, score, State.Score, State.LevelScore);
         GameRunState.AddPlayAction(hand, cards);
         return new PlayResult(hand, score);
@@ -153,7 +153,7 @@ public class GameHandler(GameRunState gameRunState, PokerGameConfig config, Poke
         State.Discards++;
         State.CardsDiscarded += cards.Count;
 
-        cards.ForEach(card => State.Discard(card));
+        cards.ToArray().ForEach(card => State.Discard(card));
         State.History.AddDiscardAction(cards, State.Score, State.LevelScore);
         GameRunState.AddDiscardAction(cards);
         return new DiscardResult(cards);
@@ -177,7 +177,7 @@ public class GameHandler(GameRunState gameRunState, PokerGameConfig config, Poke
             }
         }
 
-        cards.ForEach(card => State.Recover(card));
+        cards.ToArray().ForEach(card => State.Recover(card));
     }
 
     public void Recover(int n) {

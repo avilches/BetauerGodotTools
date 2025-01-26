@@ -27,7 +27,7 @@ public class GameRun(PokerGameConfig config, PokerHandsManager pokerHandsManager
         var last = GameStates.LastOrDefault();
         var state = RunIsWon() ? "[Won]": RunIsGameOver() ? "[Lost]" : $"Hand {last.HandsPlayed + 1}/{Config.MaxHands} | Discards: {last.Discards}/{Config.MaxDiscards}";
         return last != null
-            ? $"{StartTime:yyyy-MM-dd HH:mm:ss} | Seed: {Seed} | Level {last.Level + 1}/{Config.MaxLevel + 1} | Score: {last.Score}/{last.LevelScore} | {state}"
+            ? $"{StartTime:yyyy-MM-dd HH:mm:ss} | Seed: {Seed} | Level {last.Level + 1}/{Config.MaxLevel + 1} | Score: {last.Score}/{last.LevelScore} | Deck: {last.RemainingCards} | {state}"
             : $"{StartTime:yyyy-MM-dd HH:mm:ss} | Seed: {Seed} | {state}";
     }
 

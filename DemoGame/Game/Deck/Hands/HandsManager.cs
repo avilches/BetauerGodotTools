@@ -15,6 +15,7 @@ public record PokerHandLevelConfig(
     bool Enabled);
 
 public class PokerHandsManager(Random discardRandom, PokerHandConfig config) {
+    public PokerHandConfig Config { get; } = config;
     private readonly List<PokerHandLevelConfig> _handConfigs = [];
 
     public void RegisterBasicPokerHands() {
@@ -79,7 +80,7 @@ public class PokerHandsManager(Random discardRandom, PokerHandConfig config) {
         }
         if (cards.Count == 0) return [];
 
-        var analysis = new PokerHandAnalysis(config, cards);
+        var analysis = new PokerHandAnalysis(Config, cards);
 
         var allHands = ListPokerHandConfigs()
             .SelectMany(config => config.Prototype.IdentifyHands(analysis))
@@ -112,7 +113,7 @@ public class PokerHandsManager(Random discardRandom, PokerHandConfig config) {
         }
         if (cards.Count == 0) return null;
 
-        var analysis = new PokerHandAnalysis(config, cards);
+        var analysis = new PokerHandAnalysis(Config, cards);
 
         // Iterate through configs in descending order
         foreach (var config in _handConfigs.Where(config => config.Enabled)) {
@@ -156,7 +157,7 @@ public class PokerHandsManager(Random discardRandom, PokerHandConfig config) {
         var totalSimulations = 0;
         var totalCombinations = 0;
 
-        var analysis = new PokerHandAnalysis(config, cards);
+        var analysis = new PokerHandAnalysis(Config, cards);
 
         // Get all possible discard combinations from all hand types
         var suggestedDiscards = _handConfigs

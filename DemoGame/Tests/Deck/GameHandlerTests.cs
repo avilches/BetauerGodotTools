@@ -2,7 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Betauer.TestRunner;
-using NUnit.Framework;using Veronenger.Game.Deck.Hands;
+using NUnit.Framework;
+using Veronenger.Game.Deck.Hands;
 using Veronenger.Game.Deck;
 using Veronenger.Game.Deck.Hands;
 
@@ -156,6 +157,158 @@ public class GameHandlerTests {
         // Set score to meet total score
         Handler.State.Score = Handler.State.LevelScore;
         Assert.That(Handler.IsWon(), Is.True);
+    }
+
+    [Test]
+    public void IsGameOver_WithNoAvailableCardsAndEmptyHand_ShouldBeTrue() {
+        // Arrange: Draw cards and destroy all available cards
+        Handler.DrawCards();
+        Handler.PlayHand(Handler.State.CurrentHand);
+        Handler.Destroy(Handler.State.AvailableCards.ToList());
+
+        Assert.Multiple(() => {
+            Assert.That(Handler.State.AvailableCards.Count, Is.EqualTo(0), "Should have no available cards");
+            Assert.That(Handler.State.CurrentHand.Count, Is.EqualTo(0), "Should have no cards in hand");
+            Assert.That(Handler.IsGameOver(), Is.True, "Game should be over when no cards available and hand is empty");
+            Assert.That(Handler.IsWon(), Is.False, "Game should not be won");
+        });
+    }
+
+    [Test]
+    public void IsGameOver_WithNoAvailableCardsButPlayableHand_ShouldBeFalse() {
+        // Arrange: Draw cards and destroy all available cards, but keep a playable hand
+        Handler.DrawCards();
+        Handler.Destroy(Handler.State.AvailableCards.ToList());
+
+        Assert.Multiple(() => {
+            Assert.That(Handler.State.AvailableCards.Count, Is.EqualTo(0), "Should have no available cards");
+            Assert.That(Handler.State.CurrentHand.Count, Is.GreaterThan(0), "Should have cards in hand");
+            Assert.That(Handler.IsGameOver(), Is.False, "Game should not be over when hand is still playable");
+        });
+    }
+
+    [Test]
+    public void IsGameOver_WithNoAvailableCardsButWinnableHand_ShouldAllowWinning() {
+        // Arrange: Set a low score to win and prepare a hand that can win
+        Handler.State.LevelScore = 10; // Set a low score that should be achievable with one hand
+        Handler.DrawCards();
+
+        // Destroy all available cards but keep the current hand
+        Handler.Destroy(Handler.State.AvailableCards.ToList());
+
+        // Act: Play a hand that should win
+        var winningHand = Handler.GetPossibleHands()[0];
+        Handler.PlayHand(winningHand.Cards);
+
+        Assert.Multiple(() => {
+            Assert.That(Handler.State.AvailableCards.Count, Is.EqualTo(0), "Should have no available cards");
+            Assert.That(Handler.IsWon(), Is.True, "Should be able to win with last hand");
+            Assert.That(Handler.IsGameOver(), Is.True, "Game should be over after winning");
+        });
+    }
+
+    [Test]
+    public void IsGameOver_WithSingleCardInHand_ShouldBeFalse() {
+        // Arrange: Create a situation with just one card in hand
+        Handler.DrawCards();
+        Handler.PlayHand(Handler.State.CurrentHand);
+
+        // Keep just one card in available and draw it
+        var cardsToDestroy = Handler.State.AvailableCards.Skip(1).ToList();
+        Handler.Destroy(cardsToDestroy);
+        Handler.DrawCards(); // Draw the last remaining card
+
+        Assert.Multiple(() => {
+            Assert.That(Handler.State.AvailableCards.Count, Is.EqualTo(0), "Should have no available cards");
+            Assert.That(Handler.State.CurrentHand.Count, Is.EqualTo(1), "Should have exactly 1 card in hand");
+            Assert.That(Handler.IsGameOver(), Is.False, "Game should be over with a single card and no available cards");
+        });
+    }
+
+    [Test]
+    public void IsGameOver_AfterPlayingLastCard_ShouldBeTrue() {
+        // Arrange: Create a situation with just one card and play it
+        Handler.DrawCards();
+        var hand = Handler.GetPossibleHands()[0];
+        Handler.PlayHand(hand.Cards);
+
+        // Keep just one card in available and draw it
+        var cardsToDestroy = Handler.State.AvailableCards.Skip(1).ToList();
+        Handler.Destroy(cardsToDestroy);
+        Handler.DrawCards(); // Draw the last remaining card
+
+        // Play the last card
+        var lastHand = Handler.GetPossibleHands()[0];
+        Handler.PlayHand(Handler.State.CurrentHand);
+
+        Assert.Multiple(() => {
+            Assert.That(Handler.State.AvailableCards.Count, Is.EqualTo(0), "Should have no available cards");
+            Assert.That(Handler.State.CurrentHand.Count, Is.EqualTo(0), "Should have no cards in hand");
+            Assert.That(Handler.IsGameOver(), Is.True, "Game should be over after playing last card with no available cards");
+        });
+    }
+
+    [Test]
+    public void IsDrawPending_WithNoAvailableCards_ShouldBeFalse() {
+        // Arrange: Draw initial hand and destroy all remaining cards
+        Handler.DrawCards();
+        var hand = Handler.GetPossibleHands()[0];
+        Handler.PlayHand(hand.Cards);
+        Handler.Destroy(Handler.State.AvailableCards.ToList());
+
+        Assert.Multiple(() => {
+            Assert.That(Handler.State.AvailableCards.Count, Is.EqualTo(0), "Should have no available cards");
+            Assert.That(Handler.State.CurrentHand.Count, Is.LessThan(Handler.Config.HandSize), "Should have space in hand");
+            Assert.That(Handler.IsDrawPending(), Is.False, "Should not have pending draw when no cards available");
+            Assert.That(Handler.RemainingCardsToDraw, Is.EqualTo(0), "Should have no cards to draw");
+        });
+    }
+
+    [Test]
+    public void IsDrawPending_WithInsufficientAvailableCards_ShouldBeFalse() {
+        // Arrange: Draw initial hand and destroy all but one card
+        Handler.DrawCards();
+        var hand = Handler.GetPossibleHands()[0];
+        Handler.PlayHand(hand.Cards);
+
+        // Leave only 1 card available when we need more
+        var cardsToDestroy = Handler.State.AvailableCards.Skip(1).ToList();
+        Handler.Destroy(cardsToDestroy);
+
+        var spaceInHand = Handler.Config.HandSize - Handler.State.CurrentHand.Count;
+        Assert.Multiple(() => {
+            Assert.That(Handler.State.AvailableCards.Count, Is.EqualTo(1), "Should have exactly 1 card available");
+            Assert.That(spaceInHand, Is.GreaterThan(1), "Should need more than 1 card");
+            Assert.That(Handler.RemainingCardsToDraw, Is.EqualTo(1), "Should only have 1 card to draw");
+            Assert.That(Handler.IsDrawPending(), Is.True, "Should have pending draw when at least one card is available");
+        });
+    }
+
+    [Test]
+    public void IsDrawPending_WithSufficientAvailableCards_ShouldBeTrue() {
+        // Arrange: Draw initial hand and play it
+        Handler.DrawCards();
+        var hand = Handler.GetPossibleHands()[0];
+        Handler.PlayHand(hand.Cards);
+
+        var spaceInHand = Handler.Config.HandSize - Handler.State.CurrentHand.Count;
+        Assert.Multiple(() => {
+            Assert.That(Handler.State.AvailableCards.Count, Is.GreaterThanOrEqualTo(spaceInHand), "Should have enough cards available");
+            Assert.That(Handler.RemainingCardsToDraw, Is.EqualTo(spaceInHand), "Should have correct number of cards to draw");
+            Assert.That(Handler.IsDrawPending(), Is.True, "Should have pending draw when sufficient cards available");
+        });
+    }
+
+    [Test]
+    public void IsDrawPending_WithFullHand_ShouldBeFalse() {
+        // Arrange: Draw initial hand but don't play anything
+        Handler.DrawCards();
+
+        Assert.Multiple(() => {
+            Assert.That(Handler.State.CurrentHand.Count, Is.EqualTo(Handler.Config.HandSize), "Should have full hand");
+            Assert.That(Handler.RemainingCardsToDraw, Is.EqualTo(0), "Should have no cards to draw");
+            Assert.That(Handler.IsDrawPending(), Is.False, "Should not have pending draw when hand is full");
+        });
     }
 
     [Test]
@@ -603,6 +756,76 @@ public class GameHandlerTests {
     }
 
     [Test]
+    public void RemainingCardsToDraw_ShouldBeLimitedByAvailableCards() {
+        // Arrange: Preparar una situación con pocas cartas disponibles
+        Handler.DrawCards();
+        var hand = Handler.GetPossibleHands()[0];
+        Handler.PlayHand(hand.Cards);
+
+        // Destruir todas las cartas menos 2 del mazo disponible
+        var cardsToDestroy = Handler.State.AvailableCards.Skip(2).ToList();
+        Handler.Destroy(cardsToDestroy);
+
+        // Act & Assert: Ahora solo quedan 2 cartas disponibles
+        Assert.Multiple(() => {
+            Assert.That(Handler.State.AvailableCards.Count, Is.EqualTo(2), "Should have exactly 2 cards available");
+            Assert.That(Handler.RemainingCardsToDraw, Is.EqualTo(2), "RemainingCardsToDraw should be limited to available cards");
+            // Verificar que es menor que el espacio real en la mano
+            Assert.That(Handler.Config.HandSize - Handler.State.CurrentHand.Count, Is.GreaterThan(2), "Should need more cards than available");
+        });
+    }
+
+    [Test]
+    public void DrawCards_WithLimitedAvailableCards_ShouldDrawAllRemaining() {
+        // Arrange: Similar setup to previous test
+        Handler.DrawCards();
+        var hand = Handler.GetPossibleHands()[0];
+        Handler.PlayHand(hand.Cards);
+
+        // Leave only 2 cards available
+        var cardsToDestroy = Handler.State.AvailableCards.Skip(2).ToList();
+        Handler.Destroy(cardsToDestroy);
+
+        // Act: Try to draw cards
+        Handler.DrawCards(); // This should draw only the remaining 2 cards
+
+        Assert.Multiple(() => {
+            Assert.That(Handler.State.AvailableCards.Count, Is.EqualTo(0), "Should have used all available cards");
+            Assert.That(Handler.RemainingCardsToDraw, Is.EqualTo(0), "Should have no more cards to draw");
+            Assert.That(Handler.State.CurrentHand.Count, Is.LessThan(Handler.Config.HandSize), "Hand should not be full");
+        });
+    }
+
+    [Test]
+    public void RemainingCardsToDraw_WithNoAvailableCards_ShouldBeZero() {
+        // Arrange: Setup a game and destroy all available cards
+        Handler.DrawCards();
+        var hand = Handler.GetPossibleHands()[0];
+        Handler.PlayHand(hand.Cards);
+        Handler.Destroy(Handler.State.AvailableCards.ToList());
+
+        Assert.Multiple(() => {
+            Assert.That(Handler.State.AvailableCards.Count, Is.EqualTo(0), "Should have no available cards");
+            Assert.That(Handler.RemainingCardsToDraw, Is.EqualTo(0), "RemainingCardsToDraw should be zero when no cards available");
+        });
+    }
+
+    [Test]
+    public void RemainingCardsToDraw_WithSufficientCards_ShouldReturnNeededCards() {
+        // Arrange: Play a hand to create space in current hand
+        Handler.DrawCards();
+        var hand = Handler.GetPossibleHands()[0];
+        var handSize = hand.Cards.Count;
+        Handler.PlayHand(hand.Cards);
+
+        // Act & Assert
+        Assert.Multiple(() => {
+            Assert.That(Handler.State.AvailableCards.Count, Is.GreaterThanOrEqualTo(handSize), "Should have enough available cards");
+            Assert.That(Handler.RemainingCardsToDraw, Is.EqualTo(handSize), "RemainingCardsToDraw should equal the number of cards played");
+        });
+    }
+
+    [Test]
     public void Discard_WithNoCards_ShouldThrowGameException() {
         Handler.DrawCards();
 
@@ -901,7 +1124,7 @@ public class GameHandlerTests {
 
         // Necesitamos hacer otro draw después de destruir para tener una mano válida
         Handler.DrawCards();
-    
+
         var exception = Assert.Throws<SolitairePokerGameException>(() =>
             Handler.PlayHand([cardToDestroy]));
         Assert.That(exception.Message, Does.Contain("PlayHand error: hand to play contains cards not in current hand"));
@@ -913,10 +1136,10 @@ public class GameHandlerTests {
         Handler.DrawCards();
         var cardToDestroy = Handler.State.CurrentHand.First();
         Handler.Destroy([cardToDestroy]);
-    
+
         // Necesitamos hacer otro draw después de destruir para tener una mano válida
         Handler.DrawCards();
-    
+
         var exception = Assert.Throws<SolitairePokerGameException>(() =>
             Handler.Discard([cardToDestroy]));
         Assert.That(exception.Message, Does.Contain("Discard error: contains cards not in current hand"));

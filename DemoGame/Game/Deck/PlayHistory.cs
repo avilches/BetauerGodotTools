@@ -20,6 +20,10 @@ public class PlayHistory {
         public long HandScore { get; } = handScore;
         public long GameScore { get; } = gameGameScore;
         public long TotalScore { get; } = totalScore;
+
+        public override string ToString() {
+            return $"{(Type == PlayedActionType.Play ? PlayedHand?.Name:"Discard")} ({string.Join(", ", Cards)}) +{HandScore} ({GameScore}/{TotalScore})";
+        }
     }
 
 
