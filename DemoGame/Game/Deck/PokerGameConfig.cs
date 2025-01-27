@@ -24,8 +24,8 @@ public class PokerGameConfig {
 
     public int MaxHands { get; set; } = 4;
     public int MaxDiscards { get; set; } = 4;
-    public int MaxDiscardCards { get; set; } = 5;
-
+    public int MaxCardsToDiscard { get; set; } = 5;
+    public bool AutoRecover { get; set; } = false;
 
     public int MaxLevel => BaseLevel.Length * 3 - 1; // level starts in 0
 

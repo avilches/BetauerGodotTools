@@ -47,19 +47,22 @@ public class GameState {
 
     public Status GetStatus() {
         if (IsWon()) return Status.Won;
-        if (IsGameOver()) return HandsPlayed >= Config.MaxHands ? Status.RunOutOfHands : Status.RunOutOfCards;
+        if (IsGameOver()) {
+            return HandsPlayed >= Config.MaxHands ? Status.RunOutOfHands : Status.RunOutOfCards;
+        }
         return IsDrawPending() ? Status.DrawPending : Status.ReadyToPlay;
     }
 
-    public bool IsDrawPending() => !IsGameOver() && RemainingCardsToDraw > 0;
+    public bool IsDrawPending() => !IsGameOver() && CardsToDraw > 0;
     public bool CanDiscard() => !IsGameOver() && Discards < Config.MaxDiscards;
     
     public long RemainingScoreToWin => LevelScore - Score;
     public int RemainingHands => Config.MaxHands - HandsPlayed;
     public int RemainingDiscards => Config.MaxHands - Discards;
     public int RemainingCards => AvailableCards.Count;
-    public int RemainingCardsToDraw => Math.Min(Config.HandSize - CurrentHand.Count, AvailableCards.Count);
-    
+    public int RealCardsToDraw => Config.HandSize - CurrentHand.Count;
+    public int CardsToDraw => Math.Min(Config.HandSize - CurrentHand.Count, AvailableCards.Count);
+
     public GameState(PokerGameConfig config, int level, int seed) {
         Config = config;
         Level = level;
@@ -82,10 +85,6 @@ public class GameState {
         _discardedCards.Clear();
         _playedCards.Clear();
         _destroyedCards.Clear();
-    }
-
-    public void ShuffleAvailable(Random random) {
-        random.Shuffle(_availableCards);
     }
 
     /// <summary>

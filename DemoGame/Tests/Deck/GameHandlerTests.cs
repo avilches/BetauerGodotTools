@@ -157,6 +157,7 @@ public class GameHandlerTests {
         // Set score to meet total score
         Handler.State.Score = Handler.State.LevelScore;
         Assert.That(Handler.IsWon(), Is.True);
+        Assert.That(Handler.State.GetStatus(), Is.EqualTo(GameState.Status.Won), "Game status should be Won");
     }
 
     [Test]
@@ -170,6 +171,7 @@ public class GameHandlerTests {
             Assert.That(Handler.State.AvailableCards.Count, Is.EqualTo(0), "Should have no available cards");
             Assert.That(Handler.State.CurrentHand.Count, Is.EqualTo(0), "Should have no cards in hand");
             Assert.That(Handler.IsGameOver(), Is.True, "Game should be over when no cards available and hand is empty");
+            Assert.That(Handler.State.GetStatus(), Is.EqualTo(GameState.Status.RunOutOfCards), "Game status Should be out of hands");
             Assert.That(Handler.IsWon(), Is.False, "Game should not be won");
         });
     }
@@ -204,6 +206,7 @@ public class GameHandlerTests {
             Assert.That(Handler.State.AvailableCards.Count, Is.EqualTo(0), "Should have no available cards");
             Assert.That(Handler.IsWon(), Is.True, "Should be able to win with last hand");
             Assert.That(Handler.IsGameOver(), Is.True, "Game should be over after winning");
+            Assert.That(Handler.State.GetStatus(), Is.EqualTo(GameState.Status.Won), "Game status should be Won");
         });
     }
 
@@ -226,25 +229,42 @@ public class GameHandlerTests {
     }
 
     [Test]
-    public void IsGameOver_AfterPlayingLastCard_ShouldBeTrue() {
-        // Arrange: Create a situation with just one card and play it
-        Handler.DrawCards();
-        var hand = Handler.GetPossibleHands()[0];
-        Handler.PlayHand(hand.Cards);
+    public void IsGameOver_ShouldLoseWhenScoreNotReachedAfterMaxHands() {
+        // Configure un objetivo alto que sea imposible de alcanzar
+        Handler.State.LevelScore = 1000000;
+        Config.MaxHands = 4;  // Aseguramos que solo se pueden jugar 4 manos
 
-        // Keep just one card in available and draw it
-        var cardsToDestroy = Handler.State.AvailableCards.Skip(1).ToList();
-        Handler.Destroy(cardsToDestroy);
-        Handler.DrawCards(); // Draw the last remaining card
+        long totalScore = 0;
+        var handsPlayed = 0;
 
-        // Play the last card
-        var lastHand = Handler.GetPossibleHands()[0];
-        Handler.PlayHand(Handler.State.CurrentHand);
+        // Jugamos todas las manos disponibles
+        while (!Handler.IsGameOver()) {
+            Handler.DrawCards();
+            var hand = Handler.GetBestHand(); // Siempre jugamos la mejor mano
+            var result = Handler.PlayHand(hand.Cards);
+            totalScore += result.Score;
+            handsPlayed++;
+        }
 
         Assert.Multiple(() => {
-            Assert.That(Handler.State.AvailableCards.Count, Is.EqualTo(0), "Should have no available cards");
-            Assert.That(Handler.State.CurrentHand.Count, Is.EqualTo(0), "Should have no cards in hand");
-            Assert.That(Handler.IsGameOver(), Is.True, "Game should be over after playing last card with no available cards");
+            // Verificar que se jugaron todas las manos permitidas
+            Assert.That(handsPlayed, Is.EqualTo(Config.MaxHands), "Should have played exactly MaxHands");
+            Assert.That(Handler.State.HandsPlayed, Is.EqualTo(Config.MaxHands), "State should record MaxHands played");
+
+            // Verificar que no se alcanzó el objetivo
+            Assert.That(Handler.State.Score, Is.EqualTo(totalScore), "Final score should match sum of all hands");
+            Assert.That(Handler.State.Score, Is.LessThan(Handler.State.LevelScore), "Score should be less than objective");
+
+            // Verificar el estado final del juego
+            Assert.That(Handler.IsGameOver(), Is.True, "Game should be over");
+            Assert.That(Handler.IsWon(), Is.False, "Game should not be won");
+            Assert.That(Handler.State.GetStatus(), Is.EqualTo(GameState.Status.RunOutOfHands), "Game status should be RunOutOfHands");
+
+            // Verificar el historial
+            var history = Handler.State.History.GetHistory()
+                .Where(a => a.Type == PlayHistory.PlayedActionType.Play)
+                .ToList();
+            Assert.That(history.Count, Is.EqualTo(Config.MaxHands), "History should contain MaxHands played actions");
         });
     }
 
@@ -260,7 +280,7 @@ public class GameHandlerTests {
             Assert.That(Handler.State.AvailableCards.Count, Is.EqualTo(0), "Should have no available cards");
             Assert.That(Handler.State.CurrentHand.Count, Is.LessThan(Handler.Config.HandSize), "Should have space in hand");
             Assert.That(Handler.IsDrawPending(), Is.False, "Should not have pending draw when no cards available");
-            Assert.That(Handler.RemainingCardsToDraw, Is.EqualTo(0), "Should have no cards to draw");
+            Assert.That(Handler.CardsToDraw, Is.EqualTo(0), "Should have no cards to draw");
         });
     }
 
@@ -279,7 +299,7 @@ public class GameHandlerTests {
         Assert.Multiple(() => {
             Assert.That(Handler.State.AvailableCards.Count, Is.EqualTo(1), "Should have exactly 1 card available");
             Assert.That(spaceInHand, Is.GreaterThan(1), "Should need more than 1 card");
-            Assert.That(Handler.RemainingCardsToDraw, Is.EqualTo(1), "Should only have 1 card to draw");
+            Assert.That(Handler.CardsToDraw, Is.EqualTo(1), "Should only have 1 card to draw");
             Assert.That(Handler.IsDrawPending(), Is.True, "Should have pending draw when at least one card is available");
         });
     }
@@ -294,7 +314,7 @@ public class GameHandlerTests {
         var spaceInHand = Handler.Config.HandSize - Handler.State.CurrentHand.Count;
         Assert.Multiple(() => {
             Assert.That(Handler.State.AvailableCards.Count, Is.GreaterThanOrEqualTo(spaceInHand), "Should have enough cards available");
-            Assert.That(Handler.RemainingCardsToDraw, Is.EqualTo(spaceInHand), "Should have correct number of cards to draw");
+            Assert.That(Handler.CardsToDraw, Is.EqualTo(spaceInHand), "Should have correct number of cards to draw");
             Assert.That(Handler.IsDrawPending(), Is.True, "Should have pending draw when sufficient cards available");
         });
     }
@@ -306,7 +326,7 @@ public class GameHandlerTests {
 
         Assert.Multiple(() => {
             Assert.That(Handler.State.CurrentHand.Count, Is.EqualTo(Handler.Config.HandSize), "Should have full hand");
-            Assert.That(Handler.RemainingCardsToDraw, Is.EqualTo(0), "Should have no cards to draw");
+            Assert.That(Handler.CardsToDraw, Is.EqualTo(0), "Should have no cards to draw");
             Assert.That(Handler.IsDrawPending(), Is.False, "Should not have pending draw when hand is full");
         });
     }
@@ -479,11 +499,12 @@ public class GameHandlerTests {
     }
 
     [Test]
-    public void DrawCards_WhenHandAlreadyFull_ShouldThrowGameException() {
+    public void DrawCards_WhenHandAlreadyFull_DoesNothing() {
+        Assert.That(Handler.State.CurrentHand.Count, Is.EqualTo(0));
         Handler.DrawCards(); // Fill the hand
-
-        var exception = Assert.Throws<SolitairePokerGameException>(() => Handler.DrawCards());
-        Assert.That(exception.Message, Is.EqualTo("DrawCards error: hand already full"));
+        Assert.That(Handler.State.CurrentHand.Count, Is.EqualTo(Handler.Config.HandSize));
+        Handler.DrawCards(); // Fill the hand
+        Assert.That(Handler.State.CurrentHand.Count, Is.EqualTo(Handler.Config.HandSize));
     }
 
     [Test]
@@ -680,6 +701,7 @@ public class GameHandlerTests {
         hand = Handler.GetPossibleHands()[0];
         Handler.PlayHand(hand.Cards);
         Assert.That(Handler.IsWon(), Is.True, "Game should be won when score >= totalScore");
+        Assert.That(Handler.State.GetStatus(), Is.EqualTo(GameState.Status.Won), "Game status should be Won");
     }
 
     [Test]
@@ -705,9 +727,9 @@ public class GameHandlerTests {
     [Test]
     public void Discard_TooManyCards_ShouldThrowGameException() {
         Handler.DrawCards();
-        var cardsToDiscard = Handler.State.CurrentHand.Take(Config.MaxDiscardCards + 1).ToList();
+        var cardsToDiscard = Handler.State.CurrentHand.Take(Config.MaxCardsToDiscard + 1).ToList();
         var exception = Assert.Throws<SolitairePokerGameException>(() => Handler.Discard(cardsToDiscard));
-        Assert.That(exception.Message, Is.EqualTo($"Discard error: discard between 1 and {Config.MaxDiscardCards} cards: {cardsToDiscard.Count}"));
+        Assert.That(exception.Message, Is.EqualTo($"Discard error: discard between 1 and {Config.MaxCardsToDiscard} cards: {cardsToDiscard.Count}"));
         Assert.That(Handler.State.Discards, Is.EqualTo(0));
     }
 
@@ -769,7 +791,7 @@ public class GameHandlerTests {
         // Act & Assert: Ahora solo quedan 2 cartas disponibles
         Assert.Multiple(() => {
             Assert.That(Handler.State.AvailableCards.Count, Is.EqualTo(2), "Should have exactly 2 cards available");
-            Assert.That(Handler.RemainingCardsToDraw, Is.EqualTo(2), "RemainingCardsToDraw should be limited to available cards");
+            Assert.That(Handler.CardsToDraw, Is.EqualTo(2), "RemainingCardsToDraw should be limited to available cards");
             // Verificar que es menor que el espacio real en la mano
             Assert.That(Handler.Config.HandSize - Handler.State.CurrentHand.Count, Is.GreaterThan(2), "Should need more cards than available");
         });
@@ -791,7 +813,7 @@ public class GameHandlerTests {
 
         Assert.Multiple(() => {
             Assert.That(Handler.State.AvailableCards.Count, Is.EqualTo(0), "Should have used all available cards");
-            Assert.That(Handler.RemainingCardsToDraw, Is.EqualTo(0), "Should have no more cards to draw");
+            Assert.That(Handler.CardsToDraw, Is.EqualTo(0), "Should have no more cards to draw");
             Assert.That(Handler.State.CurrentHand.Count, Is.LessThan(Handler.Config.HandSize), "Hand should not be full");
         });
     }
@@ -806,7 +828,7 @@ public class GameHandlerTests {
 
         Assert.Multiple(() => {
             Assert.That(Handler.State.AvailableCards.Count, Is.EqualTo(0), "Should have no available cards");
-            Assert.That(Handler.RemainingCardsToDraw, Is.EqualTo(0), "RemainingCardsToDraw should be zero when no cards available");
+            Assert.That(Handler.CardsToDraw, Is.EqualTo(0), "RemainingCardsToDraw should be zero when no cards available");
         });
     }
 
@@ -821,7 +843,7 @@ public class GameHandlerTests {
         // Act & Assert
         Assert.Multiple(() => {
             Assert.That(Handler.State.AvailableCards.Count, Is.GreaterThanOrEqualTo(handSize), "Should have enough available cards");
-            Assert.That(Handler.RemainingCardsToDraw, Is.EqualTo(handSize), "RemainingCardsToDraw should equal the number of cards played");
+            Assert.That(Handler.CardsToDraw, Is.EqualTo(handSize), "RemainingCardsToDraw should equal the number of cards played");
         });
     }
 
@@ -879,6 +901,96 @@ public class GameHandlerTests {
         var exception = Assert.Throws<SolitairePokerGameException>(() =>
             Handler.DrawCards(tooManyCards));
         Assert.That(exception.Message, Does.Contain("DrawCards error: cannot draw more cards"));
+    }
+
+    [Test]
+    public void DrawCards_WithAutoRecover_ShouldRecoverCardsWhenNeeded() {
+        // Configure AutoRecover
+        Config.AutoRecover = true;
+        Config.MaxHands = 1000;
+        Handler.State.LevelScore = 100000;
+
+        // Play until we run out of cards
+        while (Handler.State.AvailableCards.Count > 0) {
+            Handler.DrawCards();
+            var hand = Handler.GetPossibleHands()[0];
+            Handler.PlayHand(hand.Cards);
+        }
+
+        // Now we should have less available cards than needed
+        var initialAvailableCards = Handler.State.AvailableCards.Count;
+        Assert.That(initialAvailableCards, Is.LessThan(Config.HandSize));
+
+        // This draw should trigger AutoRecover
+        Handler.DrawCards();
+
+        Assert.Multiple(() => {
+            // Verify that cards were recovered and we got a full hand
+            Assert.That(Handler.State.CurrentHand.Count, Is.EqualTo(Config.HandSize));
+            // Verify that played cards were moved to available
+            Assert.That(Handler.State.PlayedCards.Count, Is.EqualTo(0));
+            // Verify we have more available cards now
+            Assert.That(Handler.State.AvailableCards.Count, Is.GreaterThan(initialAvailableCards));
+        });
+    }
+
+    [Test]
+    public void DrawCards_WithoutAutoRecover_ShouldNotRecoverCards() {
+        // Ensure AutoRecover is disabled
+        Config.AutoRecover = false;
+        Config.MaxDiscards = 1000;
+        Config.HandSize = 5;
+        Handler.State.LevelScore = 100000;
+
+        // Play until we run out of cards
+        while (Handler.State.AvailableCards.Count > 0) {
+            Handler.DrawCards();
+            Handler.Discard(Handler.State.CurrentHand);
+        }
+
+        Assert.Multiple(() => {
+            Assert.That(Handler.IsGameOver(), Is.True);
+            Assert.That(Handler.State.GetStatus(), Is.EqualTo(GameState.Status.RunOutOfCards));
+            Assert.That(Handler.State.CurrentHand.Count, Is.EqualTo(0));
+            // Verify that played cards stayed in played pile
+            Assert.That(Handler.State.AvailableCards.Count, Is.EqualTo(0));
+        });
+    }
+
+    [Test]
+    public void DrawCards_WithAutoRecover_ShouldRecoverCardsFromBothPiles() {
+        // Configure AutoRecover
+        Config.AutoRecover = true;
+        Config.MaxHands = 1000;
+        Handler.State.LevelScore = 100000;
+
+        // First, discard some cards
+        Handler.DrawCards();
+        var cardsToDiscard = Handler.State.CurrentHand.Take(2).ToList();
+        Handler.Discard(cardsToDiscard);
+
+        // Then play until we run out of cards
+        while (Handler.State.AvailableCards.Count >= Config.HandSize) {
+            Handler.DrawCards();
+            var hand = Handler.GetPossibleHands()[0];
+            Handler.PlayHand(hand.Cards);
+        }
+
+        var initialAvailableCards = Handler.State.AvailableCards.Count;
+        Assert.That(initialAvailableCards, Is.LessThan(Config.HandSize));
+
+        // This draw should trigger AutoRecover
+        Handler.DrawCards();
+
+        Assert.Multiple(() => {
+            // Verify that we got a full hand
+            Assert.That(Handler.State.CurrentHand.Count, Is.EqualTo(Config.HandSize));
+            // Verify that both played and discarded cards were recovered
+            Assert.That(Handler.State.PlayedCards.Count, Is.EqualTo(0));
+            Assert.That(Handler.State.DiscardedCards.Count, Is.EqualTo(0));
+            // Verify we have more available cards now
+            Assert.That(Handler.State.AvailableCards.Count, Is.GreaterThan(initialAvailableCards));
+        });
     }
 
     [Test]

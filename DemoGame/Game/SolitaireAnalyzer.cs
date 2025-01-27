@@ -107,9 +107,8 @@ public class SolitaireAnalyzer {
         handsManager.RegisterBasicPokerHands();
         var gameRun = new GameRun(config, handsManager, 0);
         var handler = gameRun.CreateGameHandler(0, cards);
-        handler.State.ShuffleAvailable(random);
 
-        handler.State.Config.MaxDiscardCards = handSize;
+        handler.State.Config.MaxCardsToDiscard = handSize;
         handler.State.Config.HandSize = handSize;
         handler.State.Config.MaxDiscards = Montecarlo;
 

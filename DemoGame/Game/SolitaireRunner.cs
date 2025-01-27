@@ -29,51 +29,80 @@ public class SolitaireMultiRunner {
         for (var i = 0; i < iterations; i++) {
             var demo = new SolitaireConsoleDemo(true, MaxSimulations, SimulationPercentage);
             Demos.Add(demo);
-            demo.Run(i,
-                handler => {
-                    Card[] cards = [
-                    ..DeckBuilder.Cards('S', 2, 6),
-                    ..DeckBuilder.Cards('C', 2, 6),
-                    ..DeckBuilder.Cards('D', 2, 6),
-                    ..DeckBuilder.Cards('H', 2, 6),
-                    ];
-                    // var cards = DeckBuilder.ClassicPokerDeck();
-                    cards.ForEach(handler.State.AddCard);
-                    handler.Config.HandSize = 6;
-                },
-                DisplayGameState, () => {
-                    demo.IncreaseRandomPokerHandLevel();
-                    demo.IncreaseRandomPokerHandLevel();
-                });
+            MiniGame(demo, i);
         }
-        DisplayGameState();
+        DisplayGameState(true);
     }
 
-    private void DisplayGameState() {
-        Console.Clear();
-        Console.WriteLine("=== Now playing ===");
-        Console.WriteLine(Demos.Last().GameRun);
-        Console.WriteLine(string.Join(", ", Demos.Last().GameRun.GameStates.Last().History.GetHistory()));
+    private void Complete(SolitaireConsoleDemo demo, int i) {
+        demo.Run(i,
+            handler => {
+                var cards = DeckBuilder.ClassicPokerDeck();
+                cards.ForEach(handler.State.AddCard);
+                handler.Config.HandSize = 8;
+                handler.PokerHandsManager.Config.FlushSize = 5;
+                handler.PokerHandsManager.Config.StraightSize = 5;
+                handler.PokerHandsManager.Config.MinPotentialFlushSize = 3;
+                handler.PokerHandsManager.Config.MinPotentialStraightSize = 3;
+            },
+            () => {
+                DisplayGameState();
+            }, () => {
+                // demo.IncreaseRandomPokerHandLevel();
+                // demo.IncreaseRandomPokerHandLevel();
+            });
+    }
+
+    private void MiniGame(SolitaireConsoleDemo demo, int i) {
+        demo.Run(i,
+            handler => {
+                Card[] cards = [
+                    ..DeckBuilder.Cards('S', 2, 9),
+                    // ..DeckBuilder.Cards('C', 2, 9),
+                    // ..DeckBuilder.Cards('D', 2, 9),
+                    // ..DeckBuilder.Cards('H', 2, 9),
+                ];
+                // var cards = DeckBuilder.ClassicPokerDeck();
+                cards.ForEach(handler.State.AddCard);
+                handler.Config.HandSize = 6;
+                handler.PokerHandsManager.Config.FlushSize = 4;
+                handler.PokerHandsManager.Config.StraightSize = 4;
+                handler.PokerHandsManager.Config.MinPotentialFlushSize = 2;
+                handler.PokerHandsManager.Config.MinPotentialStraightSize = 2;
+            },
+            () => {
+                DisplayGameState();
+            }, () => {
+                // demo.IncreaseRandomPokerHandLevel();
+                // demo.IncreaseRandomPokerHandLevel();
+            });
+    }
+
+    private void DisplayGameState(bool final = false) {
         var runs = Demos
             .Where(demo => demo.GameRun.RunIsGameOver())
             .Select(run => run.GameRun).ToList();
 
-        Console.WriteLine($"=== {Runs} Runs ===");
-        var runsToDisplay = runs.Count > ShowLastRuns ? runs.Skip(runs.Count - ShowLastRuns) : runs;
-        var startIndex = (runs.Count > ShowLastRuns ? runs.Count - ShowLastRuns : 0) + 1;
-        foreach (var (demo, index) in runsToDisplay.Select((demo, i) => (demo, startIndex + i))) {
-            Console.WriteLine($"{index}/{Runs}: {demo}");
+        Console.Clear();
+        if (!final) {
+            Console.WriteLine("=== Now playing ===");
+            Console.WriteLine(Demos.Last().GameRun);
+            Console.WriteLine(string.Join(", ", Demos.Last().GameRun.GameStates.Last().History.GetHistory()));
+            Console.WriteLine($"=== {Runs} Runs ===");
+            var runsToDisplay = runs.Count > ShowLastRuns ? runs.Skip(runs.Count - ShowLastRuns) : runs;
+            var startIndex = (runs.Count > ShowLastRuns ? runs.Count - ShowLastRuns : 0) + 1;
+            foreach (var (demo, index) in runsToDisplay.Select((demo, i) => (demo, startIndex + i))) {
+                Console.WriteLine($"{index}/{Runs}: {demo}");
+            }
         }
-        Console.WriteLine("=== Stats ===");
-        Console.WriteLine($"- Simulating {SimulationPercentage:0%} (capped to {MaxSimulations})");
+        Console.WriteLine($"=== Runs: {Runs} ===");
+        // Console.WriteLine($"- Simulating {SimulationPercentage:0%} (capped to {MaxSimulations})");
 
         if (runs.Count > 0) {
             DisplayWinLostStats(runs);
             DisplayRunDistribution(runs);
             DisplayMostPlayedHands(runs);
         }
-        Console.WriteLine();
-        Console.WriteLine("=== Current game ... ===");
     }
 
     private static void DisplayMostPlayedHands(List<GameRun> runs) {
@@ -90,7 +119,7 @@ public class SolitaireMultiRunner {
         foreach (var (handType, count) in handStats.OrderByDescending(x => x.Value)) {
             var percentage = (float)count / totalPlays;
             var bar = new string('#', (int)(percentage * PercentBarSize)) + new string('.', PercentBarSize - (int)(percentage * PercentBarSize));
-            Console.WriteLine($"- {handType,-15}: {bar} {percentage:00.0%} ({count})");
+            Console.WriteLine($"- {handType,-15}: {bar} {percentage:00.0%} | {count}");
         }
     }
 
@@ -100,11 +129,11 @@ public class SolitaireMultiRunner {
             .OrderBy(group => group.Key)
             .ToDictionary(group => group.Key, group => group.Count());
 
-        Console.WriteLine("=== Runs distribution by level ===");
+        Console.WriteLine("=== Levels ===");
         foreach (var (level, count) in runsByLevel) {
             var percentage = (float)count / runs.Count;
             var bar = new string('#', (int)(percentage * PercentBarSize)) + new string('.', PercentBarSize - (int)(percentage * PercentBarSize));
-            Console.WriteLine($"- Level {level + 1,2}: {bar} {percentage:00.0%} ({count})");
+            Console.WriteLine($"- Level {level + 1,2}: {bar} {percentage:00.0%} | {count}");
         }
     }
 
@@ -119,6 +148,6 @@ public class SolitaireMultiRunner {
         var minLevelState = runWithMinLevel?.GameStates.Last();
         var maxLevelState = runWithMaxLevel?.GameStates.Last();
 
-        Console.WriteLine($"- Wins: {gamesWon}/{runs.Count} Lost: {gamesLost}/{runs.Count} - Min level lost: {minLevelLost + 1} (seed {minLevelState?.Seed}) | Max level lost: {maxLevelLost + 1} (seed {maxLevelState?.Seed})]");
+        Console.WriteLine($"- Wins: {gamesWon}/{runs.Count} Lost: {gamesLost}/{runs.Count} - Min level lost: {minLevelLost + 1} (seed {minLevelState?.Seed}) | Max level lost: {maxLevelLost + 1} (seed {maxLevelState?.Seed})");
     }
 }

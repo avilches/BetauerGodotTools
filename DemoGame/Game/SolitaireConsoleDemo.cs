@@ -69,15 +69,19 @@ public class SolitaireConsoleDemo(bool autoPlay, int maxSimulations, float simul
     }
 
     private void GameLevelLoop(Action onHand) {
+        GameHandler.DrawCards();
+        DisplayGameState();
         while (!GameHandler.IsGameOver()) {
             CurrentDecision = PlayAssistant.GetNextAction(GameHandler);
-            onHand();
             if (autoPlay) {
                 ProcessAutoPlay();
                 //Thread.Sleep(1000);
             } else {
                 ProcessUserInput();
             }
+            onHand();
+            if (GameHandler.IsDrawPending()) GameHandler.DrawCards();
+            DisplayGameState();
         }
     }
 
@@ -112,10 +116,10 @@ public class SolitaireConsoleDemo(bool autoPlay, int maxSimulations, float simul
     private void InitializeGame(int level, Action<GameHandler> onCreateLevel) {
         GameHandler = GameRun.CreateGameHandler(level);
         onCreateLevel(GameHandler);
-        GameHandler.DrawCards();
     }
 
     public void DisplayGameState() {
+        if (autoPlay) return;
         Console.Clear();
         Console.WriteLine($"=== {GameRun}");
         DisplayHistory();
@@ -328,10 +332,6 @@ public class SolitaireConsoleDemo(bool autoPlay, int maxSimulations, float simul
             Console.WriteLine($"Played {result.Hand?.Name}: {string.Join(", ", hand)}. Scored: +{result.Score} ({GameHandler.State.Score}/{GameHandler.State.LevelScore})");
         }
 
-        if (GameHandler.IsDrawPending()) {
-            GameHandler.DrawCards();
-            DisplayYourHand();
-        }
         if (!autoPlay) {
             Console.WriteLine("(press any key to continue)");
             Console.ReadKey();
@@ -358,8 +358,8 @@ public class SolitaireConsoleDemo(bool autoPlay, int maxSimulations, float simul
                 .Where(n => n >= 0 && n < state.CurrentHand.Count)
                 .ToList();
 
-            if (indices == null || indices.Count == 0 || indices.Count > GameHandler.Config.MaxDiscardCards) {
-                Console.WriteLine($"Error. Please select between 1 and {GameHandler.Config.MaxDiscardCards} valid cards!");
+            if (indices == null || indices.Count == 0 || indices.Count > GameHandler.Config.MaxCardsToDiscard) {
+                Console.WriteLine($"Error. Please select between 1 and {GameHandler.Config.MaxCardsToDiscard} valid cards!");
                 continue;
             }
 
@@ -375,8 +375,6 @@ public class SolitaireConsoleDemo(bool autoPlay, int maxSimulations, float simul
             Console.WriteLine($"Discarded: {string.Join(", ", cardsToDiscard)}");
             Console.WriteLine($"* Cards discarded. Remaining discards: {GameHandler.Config.MaxDiscards - GameHandler.State.Discards}");
         }
-        GameHandler.DrawCards();
-        DisplayYourHand();
         if (!autoPlay) {
             Console.WriteLine("(press any key to continue)");
             Console.ReadKey();

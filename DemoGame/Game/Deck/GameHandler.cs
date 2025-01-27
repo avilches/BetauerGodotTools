@@ -30,13 +30,19 @@ public class GameHandler(GameRunState gameRunState, PokerGameConfig config, Poke
     public int RemainingHands => State.RemainingHands;
     public int RemainingDiscards => State.RemainingDiscards;
     public int RemainingCards => State.RemainingCards;
-    public int RemainingCardsToDraw => State.RemainingCardsToDraw;
+    public int RealCardsToDraw => State.RealCardsToDraw;
+    public int CardsToDraw => State.CardsToDraw;
 
     private readonly Random _drawCardsRandom = new(seed * 100 + level);
     private readonly Random _recoverCardsRandom = new(seed * 100 + level);
 
     public void DrawCards() {
-        DrawCards(RemainingCardsToDraw);
+        DrawCards(CardsToDraw); // First consume all the cards from the available pile
+        if (config.AutoRecover && RealCardsToDraw > 0) {
+            // Then add them all back to the available pile
+            RecoverAll();
+            DrawCards(CardsToDraw);
+        }
     }
 
     public void AddCards(IEnumerable<Card> cards) {
@@ -50,6 +56,9 @@ public class GameHandler(GameRunState gameRunState, PokerGameConfig config, Poke
         if (IsGameOver()) {
             throw new SolitairePokerGameException("DrawCards errors: game is over");
         }
+        if (n == 0) {
+            return;
+        }
         if (!IsDrawPending()) {
             throw new SolitairePokerGameException("DrawCards error: hand already full");
         }
@@ -59,8 +68,8 @@ public class GameHandler(GameRunState gameRunState, PokerGameConfig config, Poke
         if (n > RemainingCards) {
             throw new SolitairePokerGameException($"DrawCards error: cannot draw more cards ({n}) than available ({RemainingCards}). Recover ({n - RemainingCards}) cards first.");
         }
-        if (n > RemainingCardsToDraw) {
-            throw new SolitairePokerGameException($"DrawCards error: cannot draw more cards ({n}) than remaining to fulfill the current hand ({RemainingCardsToDraw})");
+        if (n > CardsToDraw) {
+            throw new SolitairePokerGameException($"DrawCards error: cannot draw more cards ({n}) than remaining to fulfill the current hand ({CardsToDraw})");
         }
 
         var cards = _drawCardsRandom.Take(State.AvailableCards as IList<Card>, n).ToList();
@@ -88,8 +97,8 @@ public class GameHandler(GameRunState gameRunState, PokerGameConfig config, Poke
         if (cards.Count > RemainingCards) {
             throw new SolitairePokerGameException($"DrawCards error: cannot draw more cards ({cards.Count}) than available ({RemainingCards}). Recover ({cards.Count - RemainingCards}) cards first.");
         }
-        if (cards.Count > RemainingCardsToDraw) {
-            throw new SolitairePokerGameException($"DrawCards error: cannot draw more cards ({cards.Count}) than remaining to fulfill the current hand ({RemainingCardsToDraw})");
+        if (cards.Count > CardsToDraw) {
+            throw new SolitairePokerGameException($"DrawCards error: cannot draw more cards ({cards.Count}) than remaining to fulfill the current hand ({CardsToDraw})");
         }
         cards.ToArray().ForEach(card => State.Draw(card));
     }
@@ -141,8 +150,8 @@ public class GameHandler(GameRunState gameRunState, PokerGameConfig config, Poke
         if (!CanDiscard()) {
             throw new SolitairePokerGameException($"Discard error: no discards remaining {State.Discards} of {Config.MaxDiscards}");
         }
-        if (cards.Count < 1 || cards.Count > Config.MaxDiscardCards) {
-            throw new SolitairePokerGameException($"Discard error: discard between 1 and {Config.MaxDiscardCards} cards: {cards.Count}");
+        if (cards.Count < 1 || cards.Count > Config.MaxCardsToDiscard) {
+            throw new SolitairePokerGameException($"Discard error: discard between 1 and {Config.MaxCardsToDiscard} cards: {cards.Count}");
         }
         var invalidCards = cards.Except(State.CurrentHand).ToList();
         if (invalidCards.Count > 0) {
@@ -180,6 +189,17 @@ public class GameHandler(GameRunState gameRunState, PokerGameConfig config, Poke
         cards.ToArray().ForEach(card => State.Recover(card));
     }
 
+    public void RecoverAll() {
+        if (IsWon()) {
+            throw new SolitairePokerGameException("Recover error: game won");
+        }
+        if (IsGameOver()) {
+            throw new SolitairePokerGameException("Recover error: game is over");
+        }
+        State.DiscardedCards.ToArray().ForEach(card => State.Recover(card));
+        State.PlayedCards.ToArray().ForEach(card => State.Recover(card));
+    }
+
     public void Recover(int n) {
         if (IsWon()) {
             throw new SolitairePokerGameException("Recover error: game won");
@@ -200,16 +220,18 @@ public class GameHandler(GameRunState gameRunState, PokerGameConfig config, Poke
         }
 
         var indices = _recoverCardsRandom.Take(totalCards, n);
+        var cardsToRecover = new List<Card>();
         foreach (var index in indices) {
             if (index < playedCount) {
                 // El índice corresponde a una carta de PlayedCards
-                State.Recover(State.PlayedCards[index]);
+                cardsToRecover.Add(State.PlayedCards[index]);
             } else {
                 // El índice corresponde a una carta de DiscardedCards, asi que
                 // restamos playedCount para obtener el índice correcto en DiscardedCards
-                State.Recover(State.DiscardedCards[index - playedCount]);
+                cardsToRecover.Add(State.DiscardedCards[index - playedCount]);
             }
         }
+        cardsToRecover.ForEach(card => State.Recover(card));
     }
 
     public void Destroy(IReadOnlyList<Card> cards) {
@@ -232,7 +254,7 @@ public class GameHandler(GameRunState gameRunState, PokerGameConfig config, Poke
     }
 
     public DiscardOptionsResult GetDiscardOptions(int maxSimulations, float simulationPercentage) {
-        return PokerHandsManager.GetDiscardOptions(this, State.CurrentHand, State.AvailableCards, Config.MaxDiscardCards, maxSimulations, simulationPercentage);
+        return PokerHandsManager.GetDiscardOptions(this, State.CurrentHand, State.AvailableCards, Config.MaxCardsToDiscard, maxSimulations, simulationPercentage);
     }
 
     public long CalculateScore(PokerHand hand) {

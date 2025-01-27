@@ -114,8 +114,11 @@ public static class HandUtils {
     private static List<Straight> FindSequences(PokerHandConfig config, IReadOnlyList<Card> cards) {
         var allSequences = new List<Straight>();
 
-        // Probar todas las posibles posiciones de inicio de escalera (de 1 a 10)
-        for (var startRank = 1; startRank <= 10; startRank++) {
+        // Probar todas las posibles posiciones de inicio de escalera.
+        // maxRank es el min rank de la escalera más alta que podemos formar. Si el max rank es de 14 (poker normal, de 2 a 10 + 4 JQKA = 14) y la escalera son 5
+        // entonces la escalera mas grande empieza en 10 = 10,J,Q,K,A
+        var minRankHighestStraight = config.MaxRank - config.StraightSize + 1;
+        for (var startRank = 1; startRank <= minRankHighestStraight ; startRank++) {
             var neededRanks = Enumerable.Range(startRank, config.StraightSize);
             var sequence = neededRanks
                 .Select(rank =>
@@ -125,7 +128,7 @@ public static class HandUtils {
                 .Where(c => c != null).ToList();
             var missingCount = config.StraightSize - sequence.Count;
 
-            if (missingCount <= 2) {
+            if (sequence.Count >= config.MinPotentialStraightSize) {
                 var straight = new Straight(config, sequence, startRank);
                 if (!HasEquivalentStraight(allSequences, straight)) {
                     allSequences.Add(straight);

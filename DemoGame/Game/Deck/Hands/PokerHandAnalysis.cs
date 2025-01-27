@@ -7,7 +7,12 @@ namespace Veronenger.Game.Deck.Hands;
 public class PokerHandConfig {
     public int FlushSize { get; set; } = 5;
     public int StraightSize { get; set; } = 5;
-    public int MaxRank { get; set; } = 14;
+    public int MaxRank { get; set; } = 14; // Este es el rank del As
+
+    // cuantas cartas del mismo palo para tener un flush potencial?
+    public int MinPotentialFlushSize { get; set; } = 3;
+    // tamaño de una escalera potencia
+    public int MinPotentialStraightSize { get; set; } = 3;
 }
 
 public class PokerHandAnalysis {
@@ -45,7 +50,6 @@ public class PokerHandAnalysis {
     public List<(List<Card> ThreeCards, List<Card> Pair)> FullHouses { get; }
     public List<(List<Card> ThreeCards, List<Card> Pair)> FlushHouses { get; }
 
-    private const int AnalysisMinFlushSize = 3; // cuantas cartas del mismo palo deberian haber para empezar a analizar si hay flush o no?
 
     public PokerHandAnalysis(PokerHandConfig config, IReadOnlyList<Card> cards) {
         Config = config;
@@ -63,19 +67,18 @@ public class PokerHandAnalysis {
         FiveOfAKind = groupsBySize.GetValueOrDefault(5, []); // ordenado por rank
 
         // Análisis de combinaciones especiales
-        FullHouses = AnalyzeFullHouses(ThreeOfAKind, Pairs);  // ordenado por rank de trio y luego por rank de pair
+        FullHouses = AnalyzeFullHouses(ThreeOfAKind, Pairs); // ordenado por rank de trio y luego por rank de pair
         TwoPairs = AnalyzeTwoPairs(Pairs);
 
         // Análisis de escaleras color y normal, ordenadas, primero reales completas, luego no reales, y luego incompletas
         Straights = HandUtils.FindStraightSequences(config, cards);
 
         // Análisis de flushes, ordenados
-        var flushesNoLimit = AnalyzeFlushesAnySize(CardsBySuit);
+        var flushesNoLimit = AnalyzeFlushesAnySize(config, CardsBySuit);
         Flushes = AnalyzeFlushes(Config.FlushSize, flushesNoLimit);
 
         FlushFives = AnalyzeFlushFives(flushesNoLimit);
         FlushHouses = AnalyzeFlushHouses(CardsBySuit);
-
     }
 
     private static List<List<Card>> AnalyzeFlushes(int size, List<List<Card>> flushesNoLimit) {
@@ -102,7 +105,7 @@ public class PokerHandAnalysis {
             }
         }
         // ordenamos por rank
-        return flushFives.OrderByDescending(cards => cards[0].Rank).ToList();        
+        return flushFives.OrderByDescending(cards => cards[0].Rank).ToList();
     }
 
     private static Dictionary<int, List<Card>> AnalyzeByRank(IReadOnlyList<Card> cards) {
@@ -148,9 +151,9 @@ public class PokerHandAnalysis {
         return groups;
     }
 
-    private static List<List<Card>> AnalyzeFlushesAnySize(IReadOnlyDictionary<char, List<Card>> cardsBySuit) {
+    private static List<List<Card>> AnalyzeFlushesAnySize(PokerHandConfig config, IReadOnlyDictionary<char, List<Card>> cardsBySuit) {
         return cardsBySuit.Values
-            .Where(suitGroup => suitGroup.Count >= AnalysisMinFlushSize)
+            .Where(suitGroup => suitGroup.Count >= config.MinPotentialFlushSize)
             .OrderByDescending(suitGroup => suitGroup, FlushComparer)
             .ToList();
     }
@@ -163,8 +166,8 @@ public class PokerHandAnalysis {
                 var parts = twoPair.ToList();
                 var first = parts[0];
                 var second = parts[1];
-                return first[0].Rank >= second[0].Rank 
-                    ? (FirstPair: first, SecondPair: second) 
+                return first[0].Rank >= second[0].Rank
+                    ? (FirstPair: first, SecondPair: second)
                     : (FirstPair: second, SecondPair: first);
             })
             .OrderByDescending(twoPair => twoPair.FirstPair[0].Rank)
@@ -196,7 +199,7 @@ public class PokerHandAnalysis {
                 if (rankGroups.Count >= 2 && rankGroups[0].Count() >= 3) {
                     var cardsByRank = rankGroups
                         .ToDictionary(g => g.Key, g => g.ToList());
-                    
+
                     // Cartas iguales, agrupadas por cantidad, cada grupo ya viene ordenado por rank descendente
                     var groups = AnalyzeGroups(cardsByRank);
                     var threes = groups.GetValueOrDefault(3, []); // ordenador por rank
