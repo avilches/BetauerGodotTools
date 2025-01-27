@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Betauer.Application.Monitor;
 using Betauer.Application.Persistent;
 using Betauer.Application.Persistent.Json;
+using Betauer.Camera.Control;
 using Betauer.Core.Pool;
 using Betauer.DI.Attributes;
 using Betauer.DI.Factory;
@@ -26,9 +27,11 @@ public partial class DungeonGameView : IGameView {
 	// [Inject] private UiActions UiActions { get; set; }
 	
 	[Inject] private ITransient<DungeonMap> DungeonMapFactory { get; set; }
+	[Inject] public CameraContainer CameraContainer { get; private set; }
 
 	public DungeonMap DungeonMap;
 
+	private CameraController _cameraController;
 
 	private bool _initialized = false;
 
@@ -43,12 +46,16 @@ public partial class DungeonGameView : IGameView {
 		GameObjectRepository.Initialize(); // Singleton, so it must be initialized every time this class is created
 
 		DungeonMap = DungeonMapFactory.Create();
-		SceneTree.Root.AddChild(DungeonMap);
+		var camera = new Camera2D();
+		camera.Enabled = true;
+		DungeonMap.AddChild(camera);
+		_cameraController = CameraContainer.Camera(camera);
+		DungeonMap.Configure(_cameraController);
 
+		SceneTree.Root.AddChild(DungeonMap); // last step (it calls to all the _Ready method/events)
 	}
 
 	public async Task End(bool unload) {
-		// PlatformMultiPlayerContainer.Stop();
 		if (unload) {
 			// If you comment this line, the objects in the pool will be used in the next game
 			Container.ResolveAll<INodePool>().ForEach(p => p.FreeAll());
@@ -58,6 +65,5 @@ public partial class DungeonGameView : IGameView {
 		// DebugOverlayManager.Overlay("Pool").Free();
 		GC.GetTotalMemory(true);
 		DungeonMap.PrintOrphanNodes();
-		// PlatformBus.VerifyNoConsumers();
 	}
 }
