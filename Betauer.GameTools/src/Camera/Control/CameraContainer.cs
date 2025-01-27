@@ -4,8 +4,8 @@ using Godot;
 namespace Betauer.Camera.Control;
 
 public class CameraContainer {
-    public Dictionary<Camera2D, CameraController> Registry = new();
-    public List<CameraController> Cameras = new();
+    public readonly Dictionary<Camera2D, CameraController> Registry = new();
+    public readonly List<CameraController> Cameras = new();
     
     public CameraController Camera(Camera2D camera) {
         if (Registry.TryGetValue(camera, out var control)) return control;

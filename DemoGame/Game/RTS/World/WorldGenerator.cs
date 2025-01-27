@@ -24,7 +24,6 @@ public partial class WorldGenerator {
     [Inject] public Random Random { get; set; }
     [Inject] public ITransient<Trees> TreesFactory { get; set; }
     [Inject] public SceneTree SceneTree { get; set; }
-    [Inject] public ResourceHolder<Texture2D> Grasslands { get; set; }
 
     public BiomeGenerator BiomeGenerator { get; }
     // public TileMap<BiomeType> TileMap { get; private set; }

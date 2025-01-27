@@ -23,7 +23,6 @@ public class RtsMainResources {
 [Scene.Transient<Trees>(Name = "TreesFactory")]
 [Scene.Transient<RtsWorld>(Name = "RtsWorldFactory")]
 [Scene.Transient<RtsPlayerHud>(Name = "RtsPlayerHud")]
-[Resource<Texture2D>("Grasslands", "res://RTS/Assets/Textures/GrasslandsTextures.png")]
 public class RtsGameResources {
 	[Transient<RtsHud>] RtsHud RtsHudFactory => new RtsHud();
 

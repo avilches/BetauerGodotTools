@@ -68,7 +68,7 @@ public class ScannerLazyTests {
         }
     }
 
-    [Test(Description = "Test if the [PostInject] methods are invoked + Lazy using a non lazy")]
+    [Test(Description = "Test if the IInjectable.PostInject() methods are invoked + Lazy using a non lazy")]
     public void PostInjectMethodLazyWithNoLazyTest() {
         var c = new Container();
         c.Build(di => {
@@ -137,7 +137,7 @@ public class ScannerLazyTests {
         }
     }
 
-    [Test(Description = "Test if the [PostInject] methods are invoked + Lazy using Lazy")]
+    [Test(Description = "Test if the IInjectable.PostInject() methods are invoked + Lazy using Lazy")]
     public void PostInjectMethodLazyWithLazyTest() {
         var c = new Container();
         c.Build(di => {
@@ -169,7 +169,7 @@ public class ScannerLazyTests {
         [Inject] internal ILazy<LazyPostInjectedD1> D1 { get; set; }
     }
 
-    [Test(Description = "Test if the [PostInject] methods are invoked + Lazy using Lazy and Factory<T>")]
+    [Test(Description = "Test if the IInjectable.PostInject() methods are invoked + Lazy using Lazy and Factory<T>")]
     public void PostInjectMethodLazyWithLazyTypedAsLazyTest() {
         var c = new Container();
         c.Build(di => {
