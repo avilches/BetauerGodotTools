@@ -5,6 +5,15 @@ using Betauer.Core;
 namespace Veronenger.Game.Deck;
 
 public class GameState {
+
+    public enum Status {
+        DrawPending,
+        ReadyToPlay,
+        Won,
+        RunOutOfHands,
+        RunOutOfCards
+    }
+
     public PokerGameConfig Config { get; }
     
     public int Seed { get; }
@@ -35,6 +44,12 @@ public class GameState {
 
     public bool IsWon() => LevelScore > 0 && Score >= LevelScore;
     public bool IsGameOver() => IsWon() || HandsPlayed >= Config.MaxHands || (AvailableCards.Count == 0 && CurrentHand.Count == 0);
+
+    public Status GetStatus() {
+        if (IsWon()) return Status.Won;
+        if (IsGameOver()) return HandsPlayed >= Config.MaxHands ? Status.RunOutOfHands : Status.RunOutOfCards;
+        return IsDrawPending() ? Status.DrawPending : Status.ReadyToPlay;
+    }
 
     public bool IsDrawPending() => !IsGameOver() && RemainingCardsToDraw > 0;
     public bool CanDiscard() => !IsGameOver() && Discards < Config.MaxDiscards;

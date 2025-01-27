@@ -17,16 +17,31 @@ public class SolitaireConsoleDemo(bool autoPlay, int maxSimulations, float simul
     public GameHandler GameHandler;
     public AssistantDecision? CurrentDecision;
 
+    // Simulation values
+    private const int MaxSimulations = 1000;
+    private const float SimulationPercentage = 1f;
+
     public static void Main() {
-        new SolitaireConsoleDemo(false, 1000, 0.2f).ConsoleRun();
+        var demo = new SolitaireConsoleDemo(false, MaxSimulations, SimulationPercentage);
+        demo.ConsoleRun(handler => {
+                // Card[] cards = [
+                    // ..DeckBuilder.Cards('S', 2, 6),
+                    // ..DeckBuilder.Cards('C', 2, 6),
+                    // ..DeckBuilder.Cards('H', 2, 6),
+                // ];
+                var poker = DeckBuilder.ClassicPokerDeck();
+                poker.ForEach(handler.State.AddCard);
+            },
+            () => {
+                // demo.IncreaseRandomPokerHandLevel();
+                // demo.IncreaseRandomPokerHandLevel();
+            }
+        );
     }
 
-    private void ConsoleRun() {
+    private void ConsoleRun(Action<GameHandler> onCreateLevel, Action onLevelWon) {
         while (true) {
-            Run(0, DisplayGameState, () => {
-                IncreaseRandomPokerHandLevel();
-                IncreaseRandomPokerHandLevel();
-            });
+            Run(0, onCreateLevel, DisplayGameState, onLevelWon);
             Console.WriteLine("\nPlay again? (Y/N)");
             if (Console.ReadLine()?.ToUpper() != "Y") {
                 break;
@@ -34,15 +49,15 @@ public class SolitaireConsoleDemo(bool autoPlay, int maxSimulations, float simul
         }
     }
 
-    public void Run(int gameId, Action onHand, Action onLevelWon) {
-        InitializeRun(gameId);
+    public void Run(int gameId, Action<GameHandler> onCreateLevel, Action onHand, Action onLevelWon) {
+        InitializeRun(gameId, onCreateLevel);
         while (!GameRun.RunIsGameOver()) {
             GameLevelLoop(onHand);
 
             if (GameHandler.IsWon() && !GameRun.RunIsWon()) {
                 onLevelWon();
                 DisplayGameLevelWin();
-                InitializeGame(GameHandler.State.Level + 1);
+                InitializeGame(GameHandler.State.Level + 1, onCreateLevel);
             }
         }
 
@@ -66,7 +81,7 @@ public class SolitaireConsoleDemo(bool autoPlay, int maxSimulations, float simul
         }
     }
 
-    private void InitializeRun(int seed) {
+    private void InitializeRun(int seed, Action<GameHandler> onCreateLevel) {
         var level = 0;
         if (!autoPlay) {
             Console.WriteLine("Enter a base seed number (or press Enter for random seed):");
@@ -91,11 +106,12 @@ public class SolitaireConsoleDemo(bool autoPlay, int maxSimulations, float simul
         handsManager.RegisterBasicPokerHands();
         GameRun = new GameRun(config, handsManager, seed);
         GameRunRandom = new Random(seed);
-        InitializeGame(level);
+        InitializeGame(level, onCreateLevel);
     }
 
-    private void InitializeGame(int level) {
-        GameHandler = GameRun.CreateGameHandler(level, DeckBuilder.ClassicPokerDeck());
+    private void InitializeGame(int level, Action<GameHandler> onCreateLevel) {
+        GameHandler = GameRun.CreateGameHandler(level);
+        onCreateLevel(GameHandler);
         GameHandler.DrawCards();
     }
 
@@ -116,13 +132,7 @@ public class SolitaireConsoleDemo(bool autoPlay, int maxSimulations, float simul
                 else
                     Console.Write($"Discard #{action.Id + 1}: {string.Join(" ", action.Cards)} | ");
             }
-            if (gameState.IsWon()) {
-                Console.WriteLine("Won!");
-            } else if (gameState.IsGameOver()) {
-                Console.WriteLine("Game Over!");
-            } else {
-                Console.WriteLine("...");
-            }
+            Console.WriteLine($"[{gameState.GetStatus()}]");
         }
     }
 
@@ -184,7 +194,8 @@ public class SolitaireConsoleDemo(bool autoPlay, int maxSimulations, float simul
         Console.WriteLine("\nPossible hands you can play:");
         int i = 0;
         for (; i < CurrentDecision.PossibleHands.Count; i++) {
-            Console.WriteLine($"{i + 1}: {CurrentDecision.PossibleHands[i].Name}: +{GameHandler.CalculateScore(CurrentDecision.PossibleHands[i])}");
+            var hand = CurrentDecision.PossibleHands[i];
+            Console.WriteLine($"{i + 1}: {hand.Name}: [{string.Join(", ", hand.Cards)}] +{GameHandler.CalculateScore(hand)}");
         }
         var currentBestHand = CurrentDecision.PossibleHands[0];
 
@@ -196,7 +207,7 @@ public class SolitaireConsoleDemo(bool autoPlay, int maxSimulations, float simul
 
             var breaksYouHand = discards.CardsToDiscard.Any(bestHandCards.Contains);
 
-            Console.WriteLine($"{i}. Discarding {discards.CardsToDiscard.Count}: {string.Join(" ", discards.CardsToDiscard)}, keeping: {string.Join(" ", discards.CardsToKeep)} | Score: {discardBestHand.PotentialScore:F2}{(breaksYouHand ? " | Breaks your current hand!" : "")}");
+            Console.WriteLine($"{i}. Discarding {discards.CardsToDiscard.Count}: [{string.Join(" ", discards.CardsToDiscard)}], keeping: {string.Join(" ", discards.CardsToKeep)} | Score: {discardBestHand.PotentialScore:F2}{(breaksYouHand ? " | Breaks your current hand!" : "")}");
             var handsByScore = discards.HandOccurrences
                 .OrderByDescending(kv => kv.Value.PotentialScore);
 

@@ -3,7 +3,7 @@ using System;
 namespace Veronenger.Game.Deck;
 
 public class PokerGameConfig {
-    public readonly long[] BaseLevel = [
+    public long[] BaseLevel { get; set; }= [
         300,
         800,
         2000,
@@ -18,6 +18,14 @@ public class PokerGameConfig {
         300000000,
         47000000000
     ];
+
+    public int MaxHandSizeToPlay { get; set; } = 5;
+    public int HandSize { get; set; } = 8;
+
+    public int MaxHands { get; set; } = 4;
+    public int MaxDiscards { get; set; } = 4;
+    public int MaxDiscardCards { get; set; } = 5;
+
 
     public int MaxLevel => BaseLevel.Length * 3 - 1; // level starts in 0
 
@@ -39,12 +47,5 @@ public class PokerGameConfig {
 
         return (int)(baseScore * multiplier);
     }
-
-    public int MaxHandSizeToPlay { get; set; } = 5;
-    public int HandSize { get; set; } = 8;
-
-    public int MaxHands { get; set; } = 4;
-    public int MaxDiscards { get; set; } = 4;
-    public int MaxDiscardCards { get; set; } = 5;
 
 }

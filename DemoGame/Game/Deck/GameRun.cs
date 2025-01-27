@@ -16,19 +16,18 @@ public class GameRun(PokerGameConfig config, PokerHandsManager pokerHandsManager
     public DateTime StartTime { get; } = DateTime.Now;
     public List<GameState> GameStates { get; } = [];
 
-    public GameHandler CreateGameHandler(int level, IEnumerable<Card> cards) {
+    public GameHandler CreateGameHandler(int level, IEnumerable<Card>? cards = null) {
         var gameHandler = new GameHandler(State, Config, PokerHandsManager, level, Seed);
-        cards.ForEach(gameHandler.State.AddCard);
         GameStates.Add(gameHandler.State);
+        cards?.ForEach(gameHandler.State.AddCard);
         return gameHandler;
     }
 
     public override string ToString() {
         var last = GameStates.LastOrDefault();
-        var state = RunIsWon() ? "[Won]": RunIsGameOver() ? "[Lost]" : $"Hand {last.HandsPlayed + 1}/{Config.MaxHands} | Discards: {last.Discards}/{Config.MaxDiscards}";
         return last != null
-            ? $"{StartTime:yyyy-MM-dd HH:mm:ss} | Seed: {Seed} | Level {last.Level + 1}/{Config.MaxLevel + 1} | Score: {last.Score}/{last.LevelScore} | Deck: {last.RemainingCards} | {state}"
-            : $"{StartTime:yyyy-MM-dd HH:mm:ss} | Seed: {Seed} | {state}";
+            ? $"{StartTime:yyyy-MM-dd HH:mm:ss} | Seed: {Seed} | Level {last.Level + 1}/{Config.MaxLevel + 1} | Score: {last.Score}/{last.LevelScore} | Deck: {last.RemainingCards} | Hand {last.HandsPlayed + (RunIsGameOver() ? 0 : 1)}/{Config.MaxHands} | Discards: {last.Discards}/{Config.MaxDiscards} [{last.GetStatus()}]"
+            : $"{StartTime:yyyy-MM-dd HH:mm:ss} | Seed: {Seed}";
     }
 
     public bool RunIsWon() {
