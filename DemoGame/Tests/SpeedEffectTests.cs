@@ -23,8 +23,8 @@ public class SpeedEffectTests {
     [Test]
     public async Task SingleSpeedEffect_LastsTwoTurns() {
         // Add effect that lasts 2 turns (20 ticks)
-        var speedEffect = StatusEffect.Turns("Speed Boost", 1.5f, 2);
-        _walker.SpeedEffects.Add(speedEffect);
+        var speedEffect = MultiplierEffect.Turns("Speed Boost", 1.5f, 2);
+        _walker.AddSpeedEffect(speedEffect);
 
         // Initial speed should be affected by the multiplier
         Assert.That(_walker.GetCurrentSpeed(), Is.EqualTo(150), "Initial speed should be multiplied by 1.5");
@@ -48,11 +48,11 @@ public class SpeedEffectTests {
         // Add two effects:
         // - effect1: doubles speed for 2 turns (20 ticks)
         // - effect2: adds 50% speed for 5 ticks
-        var effect1 = StatusEffect.Turns("Double Speed", 2.0f, 2);
-        var effect2 = StatusEffect.Ticks("Speed Boost", 1.5f, 5);
+        var effect1 = MultiplierEffect.Turns("Double Speed", 2.0f, 2);
+        var effect2 = MultiplierEffect.Ticks("Speed Boost", 1.5f, 5);
 
-        _walker.SpeedEffects.Add(effect1);
-        _walker.SpeedEffects.Add(effect2);
+        _walker.AddSpeedEffect(effect1);
+        _walker.AddSpeedEffect(effect2);
 
         // Initial speed should be affected by both multipliers (2.0 * 1.5 = 3.0)
         Assert.That(_walker.GetCurrentSpeed(), Is.EqualTo(300), "Initial speed should be multiplied by both effects");
