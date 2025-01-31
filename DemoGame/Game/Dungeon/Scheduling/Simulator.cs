@@ -10,7 +10,6 @@ public class Simulator {
     private bool _running = true;
 
     public static void Main() {
-
         TaskScheduler.UnobservedTaskException += (sender, e) => {
             Console.WriteLine($"Unobserved Task Exception: {e.Exception}");
             e.SetObserved(); // Marca la excepción como observada
@@ -21,12 +20,11 @@ public class Simulator {
         ActionConfig.RegisterAction(ActionType.Run, 2000);
 
         var game = new Simulator();
-        var player = new EntityAsync("Player", new EntityStats {
-        BaseSpeed = 100,
-        });
-        // var player = new Dummy(ActionType.Walk,"Player", new EntityStats {
-            // BaseSpeed = 100,
-        // });
+        var player = new EntityAsync(new Entity("Player", new EntityStats {
+            BaseSpeed = 100,
+        }));
+        Task.Run(() => game.HandlePlayerInput(player));
+
         var goblin = new Dummy(ActionType.Walk, "Goblin", new EntityStats {
             BaseSpeed = 80,
         });
@@ -34,14 +32,13 @@ public class Simulator {
             BaseSpeed = 120,
         });
 
-        game.TurnSystem.AddEntity(player);
+        game.TurnSystem.AddEntity(player.Entity);
         game.TurnSystem.AddEntity(goblin);
         game.TurnSystem.AddEntity(quickRat);
         game.RunGameLoop(100);
     }
 
     public void RunGameLoop(int turns) {
-        Task.Run(HandlePlayerInput);
 
         var ticks = turns * TurnSystem.TicksPerTurn;
         var turnSystenProcess = new TurnSystemProcess(TurnSystem);
@@ -81,7 +78,7 @@ public class Simulator {
         Console.WriteLine("\n=========================");
     }
 
-    private static EntityAction HandleMenuInput(EntityAsync player) {
+    private static EntityAction HandleMenuInput(Entity player) {
         while (true) {
             Console.WriteLine("\nSeleccione una acción:");
             Console.Write("1) Walk 2) Attack: ");
@@ -101,15 +98,13 @@ public class Simulator {
         }
     }
 
-    private void HandlePlayerInput() {
+    private void HandlePlayerInput(EntityAsync player) {
         while (_running) {
-            foreach (var player in TurnSystem.Entities.OfType<EntityAsync>()) {
-                if (player.IsWaiting) {
-                    var action = HandleMenuInput(player);
-                    player.SetResult(action);
-                }
+            if (player.IsWaiting) {
+                var action = HandleMenuInput(player.Entity);
+                player.SetResult(action);
             }
-            Thread.Sleep(100); // Prevent tight loop
+            Thread.Sleep(10); // Prevent tight loop
         }
     }
 }

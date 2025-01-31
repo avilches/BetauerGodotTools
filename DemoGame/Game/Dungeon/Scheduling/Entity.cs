@@ -154,6 +154,7 @@ public class ActionConfig {
 }
 
 public enum ActionType {
+    Wait,
     Walk,
     Run,
     Attack,
@@ -218,26 +219,40 @@ public struct EntityStats {
 /// <summary>
 /// Clase base para todas las entidades del juego
 /// </summary>
-public abstract class Entity(string name, EntityStats stats) {
-    public string Name { get; } = name;
-    public EntityStats BaseStats { get; } = stats;
+public class Entity {
+    public string Name { get; }
+    public EntityStats BaseStats { get; }
     public int CurrentEnergy { get; protected set; } = 0;
     public List<StatusEffect> SpeedEffects { get; } = [];
     public List<EntityAction> History { get; } = [];
+
+    public Func<TurnContext, Task<EntityAction>> OnDecideAction { get; set; }
+    public Func<TurnContext, bool> OnCanAct { get; set; } = _ => true;
+
+    public event Action<TurnContext, EntityAction>? OnExecute;
+    public event Action<TurnContext>? OnTickEnd;
+
+    public Entity(string name, EntityStats stats) {
+        Name = name;
+        BaseStats = stats;
+        OnDecideAction = _ => Task.FromResult(new EntityAction(ActionType.Wait, this));
+    }
 
     public int GetCurrentSpeed() {
         var multiplier = SpeedEffects.Aggregate(1f, (current, effect) => current * effect.Multiplier);
         return Mathf.RoundToInt(BaseStats.BaseSpeed * multiplier);
     }
 
-    public void PostTick() {
+    public void TickEnd(TurnContext context) {
         var currentSpeed = GetCurrentSpeed();
         CurrentEnergy += currentSpeed;
         Console.WriteLine($"{Name} +{currentSpeed} = " + CurrentEnergy);
         RemoveExpiredEffects();
+
+        OnTickEnd?.Invoke(context);
     }
 
-    public void RemoveExpiredEffects() {
+    private void RemoveExpiredEffects() {
         for (var i = SpeedEffects.Count - 1; i >= 0; i--) {
             var effect = SpeedEffects[i];
             effect.RemainingTicks--;
@@ -247,26 +262,30 @@ public abstract class Entity(string name, EntityStats stats) {
         }
     }
 
-    public bool DoCanAct() {
-        return CurrentEnergy >= 0;
+    public bool CanAct(TurnContext context) => CurrentEnergy >= 0 && OnCanAct.Invoke(context);
+
+    public Task<EntityAction> DecideAction(TurnContext context) {
+        return OnDecideAction(context);
     }
 
-    public virtual bool CanAct() => true;
-
-    public abstract Task<EntityAction> DecideAction(TurnContext context);
-
-    public abstract Task Execute(TurnContext context, EntityAction action);
-
-    public Task DoExecute(TurnContext context, EntityAction action) {
+    public void Execute(TurnContext context, EntityAction action) {
         CurrentEnergy -= action.EnergyCost;
-        Console.WriteLine($"{Name} -{action.EnergyCost} = " + CurrentEnergy + " (action: " + action.Config.Type + ")");
-        return Execute(context, action).ContinueWith(task => { History.Add(action); });
+        Console.WriteLine($"{Name} -{action.EnergyCost} = {CurrentEnergy} (action: {action.Config.Type})");
+        OnExecute?.Invoke(context, action);
+        History.Add(action);
     }
 }
 
-public class EntityAsync(string name, EntityStats stats) : Entity(name, stats) {
+public class EntityAsync {
     private TaskCompletionSource<EntityAction>? _promise;
     private readonly Queue<EntityAction> _queue = [];
+
+    public Entity Entity { get; }
+
+    public EntityAsync(Entity entity) {
+        Entity = entity;
+        entity.OnDecideAction = DecideAction;
+    }
 
     public bool IsWaiting => _promise != null;
 
@@ -286,7 +305,7 @@ public class EntityAsync(string name, EntityStats stats) : Entity(name, stats) {
         _queue.Enqueue(nextAction);
     }
 
-    public override Task<EntityAction> DecideAction(TurnContext context) {
+    public Task<EntityAction> DecideAction(TurnContext context) {
         if (_queue.Count > 0) {
             var action = _queue.Dequeue();
             return Task.FromResult(action);
@@ -294,18 +313,10 @@ public class EntityAsync(string name, EntityStats stats) : Entity(name, stats) {
         _promise ??= new TaskCompletionSource<EntityAction>();
         return _promise.Task;
     }
-
-    public override Task Execute(TurnContext context, EntityAction action) {
-        return Task.Delay(action.AnimationDurationMillis);
-    }
 }
 
-public class Dummy(ActionType type, string name, EntityStats stats) : Entity(name, stats) {
-    public override Task<EntityAction> DecideAction(TurnContext context) {
-        return Task.FromResult(new EntityAction(type, this));
-    }
-
-    public override Task Execute(TurnContext context, EntityAction action) {
-        return Task.Delay(action.AnimationDurationMillis);
+public class Dummy : Entity {
+    public Dummy(ActionType type, string name, EntityStats stats) : base(name, stats) {
+        OnDecideAction = _ => Task.FromResult(new EntityAction(type, this));
     }
 }

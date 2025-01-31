@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Betauer.Core;
-using Godot;
 
 namespace Veronenger.Game.Dungeon.Scheduling;
 
@@ -36,15 +34,13 @@ public class TurnSystem {
 
 
         // ToArray() to avoid concurrent modification
-        var actingEntities = Entities.Where(e => e.DoCanAct()).ToArray();
-        var tasks = new Task[actingEntities.Length];
-        for (var i = 0; i < actingEntities.Length; i++) {
-            var action = await actingEntities[i].DecideAction(Context);
-            tasks[i] = action.Actor.DoExecute(Context, action);
+        var actingEntities = Entities.Where(e => e.CanAct(Context)).ToArray();
+        foreach (var entity in actingEntities) {
+            var action = await entity.DecideAction(Context);
+            action.Actor.Execute(Context, action);
         }
-        await Task.WhenAll(tasks);
 
-        Entities.ForEach(p => p.PostTick());
+        Entities.ForEach(p => p.TickEnd(Context));
     }
 }
 

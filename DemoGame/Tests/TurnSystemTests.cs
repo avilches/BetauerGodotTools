@@ -20,9 +20,9 @@ public class TurnSystemTests {
         _turnSystem = new TurnSystem();
 
         // Create player with default speed (100)
-        _player = new EntityAsync("Player", new EntityStats {
+        _player = new EntityAsync(new Entity("Player", new EntityStats {
             BaseSpeed = 100,
-        });
+        }));
 
         // Create monsters with different speeds
         _fastWalker = new Dummy(ActionType.Walk, "FastMonster", new EntityStats {
@@ -34,7 +34,7 @@ public class TurnSystemTests {
         });
 
         // Add entities to the system
-        _turnSystem.AddEntity(_player);
+        _turnSystem.AddEntity(_player.Entity);
         _turnSystem.AddEntity(_fastWalker);
         _turnSystem.AddEntity(_slowAttacker);
 
@@ -45,10 +45,10 @@ public class TurnSystemTests {
 
     [Test]
     public async Task ProcessTicks_CorrectEnergy() {
-        _player.ScheduleNextAction(new EntityAction(ActionType.Walk, _player) { AnimationDurationMillis = 1 });
+        _player.ScheduleNextAction(new EntityAction(ActionType.Walk, _player.Entity) { AnimationDurationMillis = 1 });
         await _turnSystem.ProcessTickAsync();
         // 1 tick -> - (1*ActionCost) +(1*BaseEnergy)
-        Assert.That(_player.CurrentEnergy, Is.EqualTo(-1000 + 100));
+        Assert.That(_player.Entity.CurrentEnergy, Is.EqualTo(-1000 + 100));
         Assert.That(_fastWalker.CurrentEnergy, Is.EqualTo(-1000 + 120));
         Assert.That(_slowAttacker.CurrentEnergy, Is.EqualTo(-1200 + 80));
     }
@@ -59,7 +59,7 @@ public class TurnSystemTests {
         // Process enough ticks to let entities act
         // We'll process 20 ticks which should be 2 full turns
         for (var i = 0; i < ticks; i++) {
-            _player.ScheduleNextAction(new EntityAction(ActionType.Run, _player) { AnimationDurationMillis = 1 });
+            _player.ScheduleNextAction(new EntityAction(ActionType.Run, _player.Entity) { AnimationDurationMillis = 1 });
             await _turnSystem.ProcessTickAsync();
         }
 
@@ -74,14 +74,14 @@ public class TurnSystemTests {
         // Process enough ticks to let entities act
         // We'll process 100 ticks which should be 10 full turns
         for (var i = 0; i < ticks; i++) {
-            _player.ScheduleNextAction(new EntityAction(ActionType.Walk, _player) { AnimationDurationMillis = 1 });
+            _player.ScheduleNextAction(new EntityAction(ActionType.Walk, _player.Entity) { AnimationDurationMillis = 1 });
             await _turnSystem.ProcessTickAsync();
         }
 
         // Player always Walks (1000) and speed is 100
         // FastWalker walks too, speed is 120
 
-        Assert.That(_player.History.Count, Is.EqualTo(10));
+        Assert.That(_player.Entity.History.Count, Is.EqualTo(10));
         Assert.That(_fastWalker.History.Count, Is.EqualTo(12));
         Assert.That(_slowAttacker.History.Count, Is.EqualTo(7));
     }
