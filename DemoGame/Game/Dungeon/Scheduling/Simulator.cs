@@ -36,7 +36,6 @@ public class Simulator {
     public readonly TurnSystem TurnSystem = new();
     public Array2D<char> Array2D;
 
-
     private void CreateMap(int seed) {
         var rng = new Random(seed);
         var zones = MazeGraphCatalog.BigCycle(rng, mc => {
@@ -77,14 +76,21 @@ public class Simulator {
     }
 
     private void CreateEntities() {
-        var goblin = new Dummy(ActionType.Walk, "Goblin", new EntityStats { BaseSpeed = 80 });
-        var quickRat = new Dummy(ActionType.Walk, "Quick Rat", new EntityStats { BaseSpeed = 120 });
+        var goblin = EntityBuilder.Create("Goblin", new EntityStats { BaseSpeed = 80 })
+            .DecideAction(ActionType.Walk)
+            .Build();
+
+        var quickRat = EntityBuilder.Create("Goblin", new EntityStats { BaseSpeed = 80 })
+            .DecideAction(ActionType.Walk)
+            .Build();
+
         TurnSystem.AddEntity(goblin);
         TurnSystem.AddEntity(quickRat);
     }
 
     private void CreatePlayer() {
-        var player = new EntityAsync(new Entity("Player", new EntityStats { BaseSpeed = 100 }));
+        var player = EntityBuilder.Create("Player", new EntityStats { BaseSpeed = 100 })
+            .BuildAsync();
         TurnSystem.AddEntity(player.Entity);
         Task.Run(() => HandlePlayerInput(player));
     }

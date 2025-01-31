@@ -27,7 +27,7 @@ public class TurnSystem {
     public async Task ProcessTickAsync() {
         if (CurrentTick % TicksPerTurn == 0) {
             CurrentTurn++;
-            Console.WriteLine($"# Turn: {CurrentTurn}");
+            // Console.WriteLine($"# Turn: {CurrentTurn}");
         }
         CurrentTick++;
 
