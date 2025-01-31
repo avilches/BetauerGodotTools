@@ -216,6 +216,8 @@ public struct EntityStats {
     public int BaseSpeed { get; set; } // Velocidad base (energía ganada por tick)
 }
 
+public interface IComponent;
+
 /// <summary>
 /// Clase base para todas las entidades del juego
 /// </summary>
@@ -230,7 +232,29 @@ public class Entity {
     public Func<TurnContext, bool> OnCanAct { get; set; } = _ => true;
 
     public event Action<TurnContext, EntityAction>? OnExecute;
+    public event Action<TurnContext>? OnTickStart;
     public event Action<TurnContext>? OnTickEnd;
+
+    public Dictionary<Type, IComponent> Components { get; } = new();
+
+    public void AddComponent<T>(T component) where T : IComponent {
+        Components[typeof(T)] = component;
+    }
+
+    public IEnumerable<T> GetComponents<T>() where T : IComponent {
+        return Components.Values.OfType<T>();
+    }
+
+    public T GetComponent<T>() where T : IComponent {
+        return (T)Components[typeof(T)];
+    }
+
+    public T? GetComponentOrNull<T>() where T : IComponent {
+        return Components.TryGetValue(typeof(T), out var component)
+            ? (T)component
+            : default;
+    }
+
 
     public Entity(string name, EntityStats stats) {
         Name = name;
@@ -243,13 +267,8 @@ public class Entity {
         return Mathf.RoundToInt(BaseStats.BaseSpeed * multiplier);
     }
 
-    public void TickEnd(TurnContext context) {
-        var currentSpeed = GetCurrentSpeed();
-        CurrentEnergy += currentSpeed;
-        Console.WriteLine($"{Name} +{currentSpeed} = " + CurrentEnergy);
-        RemoveExpiredEffects();
-
-        OnTickEnd?.Invoke(context);
+    public void TickStart(TurnContext context) {
+        OnTickStart?.Invoke(context);
     }
 
     private void RemoveExpiredEffects() {
@@ -270,9 +289,18 @@ public class Entity {
 
     public void Execute(TurnContext context, EntityAction action) {
         CurrentEnergy -= action.EnergyCost;
-        Console.WriteLine($"{Name} -{action.EnergyCost} = {CurrentEnergy} (action: {action.Config.Type})");
+        // Console.WriteLine($"{Name} -{action.EnergyCost} = {CurrentEnergy} (action: {action.Config.Type})");
         OnExecute?.Invoke(context, action);
         History.Add(action);
+    }
+
+    public void TickEnd(TurnContext context) {
+        var currentSpeed = GetCurrentSpeed();
+        CurrentEnergy += currentSpeed;
+        // Console.WriteLine($"{Name} +{currentSpeed} = " + CurrentEnergy);
+        RemoveExpiredEffects();
+
+        OnTickEnd?.Invoke(context);
     }
 }
 

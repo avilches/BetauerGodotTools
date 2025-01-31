@@ -8,7 +8,6 @@ namespace Veronenger.Game.Dungeon.Scheduling;
 public class TurnContext;
 
 public class TurnSystem {
-
     public static int TicksPerTurn = 10;
 
     public List<Entity> Entities { get; } = [];
@@ -32,15 +31,15 @@ public class TurnSystem {
         }
         CurrentTick++;
 
-
         // ToArray() to avoid concurrent modification
-        var actingEntities = Entities.Where(e => e.CanAct(Context)).ToArray();
-        foreach (var entity in actingEntities) {
-            var action = await entity.DecideAction(Context);
-            action.Actor.Execute(Context, action);
+        foreach (var entity in Entities.ToArray()) {
+            entity.TickStart(Context);
+            if (entity.CanAct(Context)) {
+                var action = await entity.DecideAction(Context);
+                entity.Execute(Context, action);
+            }
+            entity.TickEnd(Context);
         }
-
-        Entities.ForEach(p => p.TickEnd(Context));
     }
 }
 
@@ -65,6 +64,4 @@ public class TurnSystemProcess(TurnSystem turnSystem) {
             Busy = false;
         });
     }
-
 }
-

@@ -1,13 +1,18 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Betauer.Core.DataMath;
+using Betauer.Core.Examples;
+using Betauer.Core.PCG.GridTemplate;
+using Betauer.Core.PCG.Maze;
 
 namespace Veronenger.Game.Dungeon.Scheduling;
 
 public class Simulator {
-    private readonly TurnSystem TurnSystem = new();
     private bool _running = true;
+    const string TemplatePath = "/Users/avilches/Library/Mobile Documents/com~apple~CloudDocs/Shared/Godot/Betauer4/DemoGame/Game/Dungeon/MazeTemplateDemos.txt";
 
     public static void Main() {
         TaskScheduler.UnobservedTaskException += (sender, e) => {
@@ -19,34 +24,78 @@ public class Simulator {
         ActionConfig.RegisterAction(ActionType.Attack, 1200);
         ActionConfig.RegisterAction(ActionType.Run, 2000);
 
+        var seed = 1;
         var game = new Simulator();
-        var player = new EntityAsync(new Entity("Player", new EntityStats {
-            BaseSpeed = 100,
-        }));
-        Task.Run(() => game.HandlePlayerInput(player));
-
-        var goblin = new Dummy(ActionType.Walk, "Goblin", new EntityStats {
-            BaseSpeed = 80,
-        });
-        var quickRat = new Dummy(ActionType.Walk, "Quick Rat", new EntityStats {
-            BaseSpeed = 120,
-        });
-
-        game.TurnSystem.AddEntity(player.Entity);
-        game.TurnSystem.AddEntity(goblin);
-        game.TurnSystem.AddEntity(quickRat);
+        game.CreateMap(seed);
+        game.CreatePlayer();
+        game.CreateEntities();
         game.RunGameLoop(100);
     }
 
-    public void RunGameLoop(int turns) {
 
+    public readonly TurnSystem TurnSystem = new();
+    public Array2D<char> Array2D;
+
+
+    private void CreateMap(int seed) {
+        var rng = new Random(seed);
+        var zones = MazeGraphCatalog.BigCycle(rng, mc => {
+            // mc.OnNodeCreated += (node) => PrintGraph(mc);
+        });
+        zones.CalculateSolution(MazeGraphCatalog.KeyFormula);
+
+        // AddFlags(zones);
+
+        var templateSet = new TemplateSet(cellSize: 7);
+
+        // Cargar patrones de diferentes archivos
+        try {
+            var content = File.ReadAllText(TemplatePath);
+            templateSet.LoadTemplates(content);
+
+            Array2D = zones.MazeGraph.Render(TemplateSelector.Create(templateSet));
+
+            /*
+            var array2D = zones.MazeGraph.Render(node => {
+                var type = TemplateSelector.GetNodeType(node);
+                List<object> requiredFlags = [];
+                if (node.IsCorridor()) {
+                    node.SetAttribute();
+                    // Corridor
+                    return templateSet.FindTemplates(type, new[] { "deadend" })[0];
+                }
+
+
+            });
+            */
+            MazeGraphZonedDemo.PrintGraph(zones.MazeGraph, zones);
+        } catch (FileNotFoundException e) {
+            Console.WriteLine(e.Message);
+            Console.WriteLine($"{nameof(TemplatePath)} is '{TemplatePath}'");
+            Console.WriteLine("Ensure the working directory is the root of the project");
+        }
+    }
+
+    private void CreateEntities() {
+        var goblin = new Dummy(ActionType.Walk, "Goblin", new EntityStats { BaseSpeed = 80 });
+        var quickRat = new Dummy(ActionType.Walk, "Quick Rat", new EntityStats { BaseSpeed = 120 });
+        TurnSystem.AddEntity(goblin);
+        TurnSystem.AddEntity(quickRat);
+    }
+
+    private void CreatePlayer() {
+        var player = new EntityAsync(new Entity("Player", new EntityStats { BaseSpeed = 100 }));
+        TurnSystem.AddEntity(player.Entity);
+        Task.Run(() => HandlePlayerInput(player));
+    }
+
+    public void RunGameLoop(int turns) {
         var ticks = turns * TurnSystem.TicksPerTurn;
-        var turnSystenProcess = new TurnSystemProcess(TurnSystem);
+        var turnSystemProcess = new TurnSystemProcess(TurnSystem);
         while (_running && TurnSystem.CurrentTick < ticks) {
-            turnSystenProcess._Process();
+            turnSystemProcess._Process();
         }
         _running = false;
-
         PrintStatistics(turns);
     }
 
@@ -58,7 +107,7 @@ public class Simulator {
         foreach (var entity in TurnSystem.Entities) {
             var executionCount = entity.History.Count;
             var executionsPerTurn = (float)executionCount / totalTurns;
-            var percentage = (executionsPerTurn * 100);
+            var percentage = executionsPerTurn * 100;
 
             // Calculamos el coste total de energía de todas las acciones
             var totalEnergyCost = entity.History.Sum(action => action.EnergyCost);
@@ -78,8 +127,20 @@ public class Simulator {
         Console.WriteLine("\n=========================");
     }
 
-    private static EntityAction HandleMenuInput(Entity player) {
+    private void HandlePlayerInput(EntityAsync player) {
+        while (_running) {
+            if (player.IsWaiting) {
+                var action = HandleMenuInput(player.Entity);
+                player.SetResult(action);
+            }
+            Thread.Sleep(100); // Prevent tight loop
+        }
+    }
+
+    private EntityAction HandleMenuInput(Entity player) {
         while (true) {
+            Console.Clear();
+            PrintArray2D(Array2D);
             Console.WriteLine("\nSeleccione una acción:");
             Console.Write("1) Walk 2) Attack: ");
             if (int.TryParse(Console.ReadLine(), out var choice)) {
@@ -98,13 +159,14 @@ public class Simulator {
         }
     }
 
-    private void HandlePlayerInput(EntityAsync player) {
-        while (_running) {
-            if (player.IsWaiting) {
-                var action = HandleMenuInput(player.Entity);
-                player.SetResult(action);
+    private static void PrintArray2D(Array2D<char> array2D) {
+        for (var y = 0; y < array2D.Height; y++) {
+            for (var x = 0; x < array2D.Width; x++) {
+                var value = array2D[y, x];
+                if (value == '.') value = ' ';
+                Console.Write(value);
             }
-            Thread.Sleep(10); // Prevent tight loop
+            Console.WriteLine();
         }
     }
 }
