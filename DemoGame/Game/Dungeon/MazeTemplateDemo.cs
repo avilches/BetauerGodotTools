@@ -33,7 +33,7 @@ public static class MazeNodeExtension {
 }
 
 public class MazeTemplateDemo {
-    const string TemplatePath = "Game/Dungeon/MazeTemplateDemos.txt";
+    const string TemplatePath = "/Users/avilches/Library/Mobile Documents/com~apple~CloudDocs/Shared/Godot/Betauer4/DemoGame/Game/Dungeon/MazeTemplateDemos.txt";
 
     public static void AddFlags(MazeZones zones) {
         foreach (var node in zones.GetNodes()) {
