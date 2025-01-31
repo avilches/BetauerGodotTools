@@ -13,7 +13,7 @@ public static class TaskExtensions {
     public static Task OnFaulted(this Task task, Action<Task> action) => task.ContinueWith(action, TaskContinuationOptions.OnlyOnFaulted);
     public static Task OnException(this Task task, Action<Exception> action) =>
         task.OnFaulted(t => {
-            var ex = t.Exception?.InnerException;
+            var ex = t.Exception?.GetBaseException();
             if (ex != null) action(ex);
         });        
 
