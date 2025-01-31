@@ -12,11 +12,11 @@ public class SpeedEffectTests {
 
     [SetUp]
     public void Setup() {
-        _turnSystem = new TurnSystem();
+        _turnSystem = new TurnSystem(new TurnContext());
         _walker = new Dummy(ActionType.Walk, "Walker", new EntityStats {
             BaseSpeed = 100,
         });
-        _turnSystem.AddEntity(_walker);
+        _turnSystem.Context.AddEntity(_walker);
         ActionConfig.RegisterAction(ActionType.Walk, 1000);
     }
 

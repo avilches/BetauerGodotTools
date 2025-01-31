@@ -33,7 +33,7 @@ public class Simulator {
     }
 
 
-    public readonly TurnSystem TurnSystem = new();
+    public readonly TurnSystem TurnSystem = new(new TurnContext());
     public Array2D<char> Array2D;
 
     private void CreateMap(int seed) {
@@ -84,21 +84,21 @@ public class Simulator {
             .DecideAction(ActionType.Walk)
             .Build();
 
-        TurnSystem.AddEntity(goblin);
-        TurnSystem.AddEntity(quickRat);
+        TurnSystem.Context.AddEntity(goblin);
+        TurnSystem.Context.AddEntity(quickRat);
     }
 
     private void CreatePlayer() {
         var player = EntityBuilder.Create("Player", new EntityStats { BaseSpeed = 100 })
             .BuildAsync();
-        TurnSystem.AddEntity(player.Entity);
+        TurnSystem.Context.AddEntity(player.Entity);
         Task.Run(() => HandlePlayerInput(player));
     }
 
     public void RunGameLoop(int turns) {
-        var ticks = turns * TurnSystem.TicksPerTurn;
+        var ticks = turns * TurnContext.TicksPerTurn;
         var turnSystemProcess = new TurnSystemProcess(TurnSystem);
-        while (_running && TurnSystem.CurrentTick < ticks) {
+        while (_running && TurnSystem.Context.CurrentTick < ticks) {
             turnSystemProcess._Process();
         }
         _running = false;
@@ -108,9 +108,9 @@ public class Simulator {
     private void PrintStatistics(int totalTurns) {
         Console.WriteLine("\n=== Execution Statistics ===");
         Console.WriteLine($"Total Turns: {totalTurns}");
-        Console.WriteLine($"Total Ticks: {TurnSystem.CurrentTick}");
+        Console.WriteLine($"Total Ticks: {TurnSystem.Context.CurrentTick}");
 
-        foreach (var entity in TurnSystem.Entities) {
+        foreach (var entity in TurnSystem.Context.Entities) {
             var executionCount = entity.History.Count;
             var executionsPerTurn = (float)executionCount / totalTurns;
             var percentage = executionsPerTurn * 100;
@@ -119,7 +119,7 @@ public class Simulator {
             var totalEnergyCost = entity.History.Sum(action => action.EnergyCost);
 
             // Calculamos la energía total recargada (velocidad base * número de ticks)
-            var totalEnergyRecharged = entity.BaseStats.BaseSpeed * TurnSystem.CurrentTick;
+            var totalEnergyRecharged = entity.BaseStats.BaseSpeed * TurnSystem.Context.CurrentTick;
 
             Console.WriteLine($"\n{entity.Name}:");
             Console.WriteLine($"- Total executions: {executionCount}");

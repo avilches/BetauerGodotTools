@@ -18,7 +18,7 @@ public class TurnSystemTests {
 
     [SetUp]
     public void Setup() {
-        _turnSystem = new TurnSystem();
+        _turnSystem = new TurnSystem(new TurnContext());
 
         // Create player with default speed (100)
         _player = EntityBuilder.Create("Player", new EntityStats { BaseSpeed = 100 })
@@ -34,9 +34,9 @@ public class TurnSystemTests {
             .Build();
 
         // Add entities to the system
-        _turnSystem.AddEntity(_player.Entity);
-        _turnSystem.AddEntity(_fastWalker);
-        _turnSystem.AddEntity(_slowAttacker);
+        _turnSystem.Context.AddEntity(_player.Entity);
+        _turnSystem.Context.AddEntity(_fastWalker);
+        _turnSystem.Context.AddEntity(_slowAttacker);
 
         ActionConfig.RegisterAction(ActionType.Walk, 1000);
         ActionConfig.RegisterAction(ActionType.Attack, 1200);
@@ -65,8 +65,8 @@ public class TurnSystemTests {
         }
 
         // Verify turn and tick counts
-        Assert.That(_turnSystem.CurrentTick, Is.EqualTo(ticks));
-        Assert.That(_turnSystem.CurrentTurn, Is.EqualTo(ticks / TurnSystem.TicksPerTurn));
+        Assert.That(_turnSystem.Context.CurrentTick, Is.EqualTo(ticks));
+        Assert.That(_turnSystem.Context.CurrentTurn, Is.EqualTo(ticks / TurnContext.TicksPerTurn));
     }
 
     [Test]
@@ -100,7 +100,7 @@ public class EntityEventsTests {
 
     [SetUp]
     public void Setup() {
-        _turnSystem = new TurnSystem();
+        _turnSystem = new TurnSystem(new TurnContext());
         ActionConfig.RegisterAction(ActionType.Walk, 1000);
         ActionConfig.RegisterAction(ActionType.Attack, 1200);
         ActionConfig.RegisterAction(ActionType.Run, 2000);
@@ -145,7 +145,7 @@ public class EntityEventsTests {
             })
             .Build();
 
-        _turnSystem.AddEntity(_entity);
+        _turnSystem.Context.AddEntity(_entity);
 
         // Process one tick
         await _turnSystem.ProcessTickAsync();
@@ -193,7 +193,7 @@ public class EntityEventsTests {
             })
             .Build();
 
-        _turnSystem.AddEntity(_entity);
+        _turnSystem.Context.AddEntity(_entity);
 
         await _turnSystem.ProcessTickAsync();
 
@@ -239,7 +239,7 @@ public class EntityEventsTests {
             })
             .Build();
 
-        _turnSystem.AddEntity(_entity);
+        _turnSystem.Context.AddEntity(_entity);
 
         // First tick: entity acts normally
         await _turnSystem.ProcessTickAsync();
@@ -276,7 +276,7 @@ public class EntityEventsTests {
             .DecideAction(ActionType.Walk) // Always walk
             .Build();
 
-        _turnSystem.AddEntity(_entity);
+        _turnSystem.Context.AddEntity(_entity);
 
         // First tick
         await _turnSystem.ProcessTickAsync();
@@ -296,7 +296,7 @@ public class EntityEventsTests {
         var asyncEntity = EntityBuilder.Create("AsyncEntity", new EntityStats { BaseSpeed = 100 })
             .BuildAsync();
 
-        _turnSystem.AddEntity(asyncEntity.Entity);
+        _turnSystem.Context.AddEntity(asyncEntity.Entity);
 
         // Schedule three actions
         asyncEntity.ScheduleNextAction(new EntityAction(ActionType.Walk, asyncEntity.Entity) { AnimationDurationMillis = 1 });
@@ -319,7 +319,7 @@ public class EntityEventsTests {
         // Calculate expected energy
         // Actions cost: Walk (-1000) + Attack (-1200) + Run (-2000) = -4200
         // Energy gained: +100 * 50 = 5000
-        var expectedEnergy = -4200 + (100 * _turnSystem.CurrentTick);
+        var expectedEnergy = -4200 + (100 * _turnSystem.Context.CurrentTick);
         Assert.That(asyncEntity.Entity.CurrentEnergy, Is.EqualTo(expectedEnergy),
             "Final energy should reflect all actions and energy gains");
     }

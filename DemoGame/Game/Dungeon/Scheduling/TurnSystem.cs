@@ -5,9 +5,7 @@ using System.Threading.Tasks;
 
 namespace Veronenger.Game.Dungeon.Scheduling;
 
-public class TurnContext;
-
-public class TurnSystem {
+public class TurnContext {
     public static int TicksPerTurn = 10;
 
     public List<Entity> Entities { get; } = [];
@@ -24,15 +22,22 @@ public class TurnSystem {
         return Entities.Remove(entity);
     }
 
-    public async Task ProcessTickAsync() {
+    public void NextTick() {
         if (CurrentTick % TicksPerTurn == 0) {
             CurrentTurn++;
             // Console.WriteLine($"# Turn: {CurrentTurn}");
         }
         CurrentTick++;
+    }
+}
+
+public class TurnSystem(TurnContext context) {
+    public TurnContext Context { get; set; } = context;
+    public async Task ProcessTickAsync() {
+        Context.NextTick();
 
         // ToArray() to avoid concurrent modification
-        foreach (var entity in Entities.ToArray()) {
+        foreach (var entity in Context.Entities.ToArray()) {
             entity.TickStart(Context);
             if (entity.CanAct(Context)) {
                 var action = await entity.DecideAction(Context);
