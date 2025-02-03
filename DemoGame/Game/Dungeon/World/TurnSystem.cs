@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using Betauer.Core.DataMath;
+using Godot;
 
 namespace Veronenger.Game.Dungeon.World;
 
@@ -10,6 +13,7 @@ public class TurnWorld {
 
     private readonly List<Entity> _entities = [];
     private readonly Dictionary<string, Entity> _entitiesByName = [];
+
     public IReadOnlyList<Entity> Entities { get; }
     public int CurrentTick { get; private set; } = 0;
     public int CurrentTurn { get; private set; } = 0;
@@ -18,16 +22,23 @@ public class TurnWorld {
     public event Action<Entity>? OnEntityRemoved;
     public event Action<int>? OnTick;
 
-    public TurnWorld() {
+    public Array2D<WorldCell> Cells { get; }
+
+    public TurnWorld(int width, int height) {
+        Cells = new Array2D<WorldCell>(width, height);
+        Cells.Load(_ => new WorldCell());
+        for (var y = 0; y < height; y++) {
+            for (var x = 0; x < width; x++) {
+                Cells[x, y] = new WorldCell();
+            }
+        }
         Entities = _entities.AsReadOnly();
     }
 
+    public TurnWorld() : this(10, 10) { }
+
     public void AddEntity(Entity entity) {
-        if (!Entities.Contains(entity)) {
-            _entities.Add(entity);
-            _entitiesByName[entity.Name] = entity;
-            OnEntityAdded?.Invoke(entity);
-        }
+        AddEntity(entity, Vector2I.Zero);
     }
 
     public Entity GetEntity(string name) {
@@ -38,12 +49,46 @@ public class TurnWorld {
         return _entitiesByName[name] as T;
     }
 
+    public void AddEntity(Entity entity, Vector2I position) {
+        if (Entities.Contains(entity)) {
+            throw new InvalidOperationException($"Entity already added to world: {entity}");
+        }
+        if (!Cells.IsValidPosition(position)) {
+            throw new InvalidOperationException($"Invalid position: {position}");
+        }
+
+        // Update the data
+        entity.World = this;
+        entity.Location = new Location(this, entity, position);
+
+        _entities.Add(entity);
+        _entitiesByName[entity.Name] = entity;
+        Cells[entity.Location.Position].AddEntity(entity);
+
+        // Trigger events
+        entity.InvokeOnWorldAdded();
+        OnEntityAdded?.Invoke(entity);
+    }
+
     public bool RemoveEntity(Entity entity) {
-        if (!_entities.Remove(entity)) return false;
-        entity.Destroy();
-        _entitiesByName.Remove(entity.Name);
+        if (!_entities.Contains(entity)) return false;
+
+        // Trigger events where the data is still valid
+        entity.InvokeOnWorldRemoved();
         OnEntityRemoved?.Invoke(entity);
+
+        // Remove the data
+        _entities.Remove(entity);
+        _entitiesByName.Remove(entity.Name);
+        Cells[entity.Location.Position].RemoveEntity(entity);
+        entity.World = null;
+        entity.Location = null;
         return true;
+    }
+
+    internal void UpdatedEntityPosition(Entity entity, Vector2I oldPosition) {
+        Cells[oldPosition].RemoveEntity(entity);
+        Cells[entity.Location.Position].AddEntity(entity);
     }
 
     public void NextTick() {
@@ -55,8 +100,8 @@ public class TurnWorld {
         OnTick?.Invoke(CurrentTick);
     }
 
-    public IEnumerable<Entity> GetEntities() {
-        return Entities;
+    public bool IsValidPosition(Vector2I position) {
+        return Cells.IsValidPosition(position);
     }
 }
 
@@ -67,7 +112,7 @@ public class TurnSystem(TurnWorld world) {
         World.NextTick();
 
         // ToArray() to avoid concurrent modification
-        foreach (var entity in World.GetEntities().ToArray()) {
+        foreach (var entity in World.Entities.ToArray()) {
             entity.TickStart();
             if (entity.CanAct()) {
                 var action = await entity.DecideAction();

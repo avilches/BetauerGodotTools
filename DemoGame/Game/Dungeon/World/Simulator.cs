@@ -155,22 +155,34 @@ public class Simulator {
 
     private EntityAction HandleMenuInput(Entity player) {
         while (true) {
-            Console.Clear();
-            PrintArray2D(Array2D);
+            // Console.Clear();
+            // PrintArray2D(Array2D);
             Console.WriteLine("\nSeleccione una acción:");
-            Console.Write("1) Walk 2) Attack: ");
-            if (int.TryParse(Console.ReadLine(), out var choice)) {
-                switch (choice) {
-                    case 1:
-                        return new EntityAction(ActionType.Walk, player);
-                    case 2:
-                        return new EntityAction(ActionType.Attack, player);
-                    default:
-                        Console.WriteLine("Opción no válida");
-                        break;
-                }
-            } else {
-                Console.WriteLine("Por favor, introduce un número");
+            Console.Write("1) Walk 2) Attacks1: ");
+            var keyInfo = Console.ReadKey(true);
+            switch (keyInfo.Key) {
+                case ConsoleKey.UpArrow:
+
+                    Console.WriteLine("Flecha arriba presionada.");
+                    break;
+                case ConsoleKey.DownArrow:
+                    Console.WriteLine("Flecha abajo presionada.");
+                    break;
+                case ConsoleKey.LeftArrow:
+                    Console.WriteLine("Flecha izquierda presionada.");
+                    break;
+                case ConsoleKey.RightArrow:
+                    Console.WriteLine("Flecha derecha presionada.");
+                    break;
+                case ConsoleKey.Spacebar:
+                    Console.WriteLine("Espacio presionado.");
+                    break;
+                case ConsoleKey.Enter:
+                    Console.WriteLine("Enter presionado.");
+                    break;
+                default:
+                    Console.WriteLine($"Tecla presionada: {keyInfo.KeyChar}");
+                    break;
             }
         }
     }
