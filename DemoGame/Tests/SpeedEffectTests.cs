@@ -1,22 +1,22 @@
 using System.Threading.Tasks;
 using Betauer.TestRunner;
 using NUnit.Framework;
-using Veronenger.Game.Dungeon.Scheduling;
+using Veronenger.Game.Dungeon.World;
 
 namespace Veronenger.Tests;
 
 [TestFixture]
 public class SpeedEffectTests {
     private TurnSystem _turnSystem;
-    private Dummy _walker;
+    private Entity _walker;
+    private TurnWorld _world;
 
     [SetUp]
     public void Setup() {
-        _turnSystem = new TurnSystem(new TurnContext());
-        _walker = new Dummy(ActionType.Walk, "Walker", new EntityStats {
-            BaseSpeed = 100,
-        });
-        _turnSystem.Context.AddEntity(_walker);
+        _world = new TurnWorld();
+        _turnSystem = new TurnSystem(_world);
+        _walker = EntityBuilder.Create("Walker", new EntityStats { BaseSpeed = 100 }).DecideAction(ActionType.Walk).Build();
+        _world.AddEntity(_walker);
         ActionConfig.RegisterAction(ActionType.Walk, 1000);
     }
 

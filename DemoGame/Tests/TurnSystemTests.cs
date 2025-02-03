@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Betauer.TestRunner;
-using Veronenger.Game.Dungeon.Scheduling;
+using Veronenger.Game.Dungeon.World;
 
 namespace Veronenger.Tests;
 
@@ -12,13 +12,15 @@ using System.Linq;
 [TestFixture]
 public class TurnSystemTests {
     private TurnSystem _turnSystem;
-    private EntityAsync _player;
+    private EntityBlocking _player;
     private Entity _fastWalker;
     private Entity _slowAttacker;
+    private TurnWorld _world;
 
     [SetUp]
     public void Setup() {
-        _turnSystem = new TurnSystem(new TurnContext());
+        _world = new TurnWorld();
+        _turnSystem = new TurnSystem(_world);
 
         // Create player with default speed (100)
         _player = EntityBuilder.Create("Player", new EntityStats { BaseSpeed = 100 })
@@ -34,9 +36,9 @@ public class TurnSystemTests {
             .Build();
 
         // Add entities to the system
-        _turnSystem.Context.AddEntity(_player.Entity);
-        _turnSystem.Context.AddEntity(_fastWalker);
-        _turnSystem.Context.AddEntity(_slowAttacker);
+        _world.AddEntity(_player.Entity);
+        _world.AddEntity(_fastWalker);
+        _world.AddEntity(_slowAttacker);
 
         ActionConfig.RegisterAction(ActionType.Walk, 1000);
         ActionConfig.RegisterAction(ActionType.Attack, 1200);
@@ -65,8 +67,8 @@ public class TurnSystemTests {
         }
 
         // Verify turn and tick counts
-        Assert.That(_turnSystem.Context.CurrentTick, Is.EqualTo(ticks));
-        Assert.That(_turnSystem.Context.CurrentTurn, Is.EqualTo(ticks / TurnContext.TicksPerTurn));
+        Assert.That(_world.CurrentTick, Is.EqualTo(ticks));
+        Assert.That(_world.CurrentTurn, Is.EqualTo(ticks / TurnWorld.TicksPerTurn));
     }
 
     [Test]
@@ -90,6 +92,7 @@ public class TurnSystemTests {
 
 [TestFixture]
 public class EntityEventsTests {
+    private TurnWorld _world;
     private TurnSystem _turnSystem;
     private Entity _entity;
     private int _tickStartCount;
@@ -100,7 +103,8 @@ public class EntityEventsTests {
 
     [SetUp]
     public void Setup() {
-        _turnSystem = new TurnSystem(new TurnContext());
+        _world = new TurnWorld();
+        _turnSystem = new TurnSystem(_world);
         ActionConfig.RegisterAction(ActionType.Walk, 1000);
         ActionConfig.RegisterAction(ActionType.Attack, 1200);
         ActionConfig.RegisterAction(ActionType.Run, 2000);
@@ -121,31 +125,31 @@ public class EntityEventsTests {
         var actualOrder = new List<string>();
 
         _entity = EntityBuilder.Create("TestEntity", new EntityStats { BaseSpeed = 100 })
-            .OnTickStart(context => {
+            .OnTickStart(() => {
                 actualOrder.Add("TickStart");
                 _tickStartCount++;
             })
-            .OnTickEnd(context => {
+            .OnTickEnd(() => {
                 actualOrder.Add("TickEnd");
                 _tickEndCount++;
             })
-            .Execute((context, action) => {
+            .Execute((action) => {
                 actualOrder.Add("Execute");
                 _executeCount++;
             })
-            .DecideAction(context => {
+            .DecideAction(() => {
                 actualOrder.Add("DecideAction");
                 _decideActionCount++;
                 return new EntityAction(ActionType.Walk, _entity);
             })
-            .CanAct(context => {
+            .CanAct(() => {
                 actualOrder.Add("CanAct");
                 _canActCount++;
                 return true;
             })
             .Build();
 
-        _turnSystem.Context.AddEntity(_entity);
+        _world.AddEntity(_entity);
 
         // Process one tick
         await _turnSystem.ProcessTickAsync();
@@ -169,31 +173,31 @@ public class EntityEventsTests {
         var actualOrder = new List<string>();
 
         _entity = EntityBuilder.Create("TestEntity", new EntityStats { BaseSpeed = 100 })
-            .OnTickStart(context => {
+            .OnTickStart(() => {
                 actualOrder.Add("TickStart");
                 _tickStartCount++;
             })
-            .OnTickEnd(context => {
+            .OnTickEnd(() => {
                 actualOrder.Add("TickEnd");
                 _tickEndCount++;
             })
-            .Execute((context, action) => {
+            .Execute((action) => {
                 actualOrder.Add("Execute");
                 _executeCount++;
             })
-            .DecideAction(context => {
+            .DecideAction(() => {
                 actualOrder.Add("DecideAction");
                 _decideActionCount++;
                 return new EntityAction(ActionType.Walk, _entity);
             })
-            .CanAct(context => {
+            .CanAct(() => {
                 actualOrder.Add("CanAct");
                 _canActCount++;
                 return false; // Entity cannot act
             })
             .Build();
 
-        _turnSystem.Context.AddEntity(_entity);
+        _world.AddEntity(_entity);
 
         await _turnSystem.ProcessTickAsync();
 
@@ -215,31 +219,31 @@ public class EntityEventsTests {
         var actualOrder = new List<string>();
 
         _entity = EntityBuilder.Create("TestEntity", new EntityStats { BaseSpeed = 100 })
-            .OnTickStart(context => {
+            .OnTickStart(() => {
                 actualOrder.Add("TickStart");
                 _tickStartCount++;
             })
-            .OnTickEnd(context => {
+            .OnTickEnd(() => {
                 actualOrder.Add("TickEnd");
                 _tickEndCount++;
             })
-            .Execute((context, action) => {
+            .Execute((action) => {
                 actualOrder.Add("Execute");
                 _executeCount++;
             })
-            .DecideAction(context => {
+            .DecideAction(() => {
                 actualOrder.Add("DecideAction");
                 _decideActionCount++;
                 return new EntityAction(ActionType.Walk, _entity);
             })
-            .CanAct(context => {
+            .CanAct(() => {
                 actualOrder.Add("CanAct");
                 _canActCount++;
                 return true;
             })
             .Build();
 
-        _turnSystem.Context.AddEntity(_entity);
+        _world.AddEntity(_entity);
 
         // First tick: entity acts normally
         await _turnSystem.ProcessTickAsync();
@@ -276,7 +280,7 @@ public class EntityEventsTests {
             .DecideAction(ActionType.Walk) // Always walk
             .Build();
 
-        _turnSystem.Context.AddEntity(_entity);
+        _world.AddEntity(_entity);
 
         // First tick
         await _turnSystem.ProcessTickAsync();
@@ -296,7 +300,7 @@ public class EntityEventsTests {
         var asyncEntity = EntityBuilder.Create("AsyncEntity", new EntityStats { BaseSpeed = 100 })
             .BuildAsync();
 
-        _turnSystem.Context.AddEntity(asyncEntity.Entity);
+        _world.AddEntity(asyncEntity.Entity);
 
         // Schedule three actions
         asyncEntity.ScheduleNextAction(new EntityAction(ActionType.Walk, asyncEntity.Entity) { AnimationDurationMillis = 1 });
@@ -319,7 +323,7 @@ public class EntityEventsTests {
         // Calculate expected energy
         // Actions cost: Walk (-1000) + Attack (-1200) + Run (-2000) = -4200
         // Energy gained: +100 * 50 = 5000
-        var expectedEnergy = -4200 + (100 * _turnSystem.Context.CurrentTick);
+        var expectedEnergy = -4200 + (100 * _world.CurrentTick);
         Assert.That(asyncEntity.Entity.CurrentEnergy, Is.EqualTo(expectedEnergy),
             "Final energy should reflect all actions and energy gains");
     }

@@ -8,7 +8,7 @@ using Betauer.Core.Examples;
 using Betauer.Core.PCG.GridTemplate;
 using Betauer.Core.PCG.Maze;
 
-namespace Veronenger.Game.Dungeon.Scheduling;
+namespace Veronenger.Game.Dungeon.World;
 
 public class Simulator {
     private bool _running = true;
@@ -32,8 +32,9 @@ public class Simulator {
         game.RunGameLoop(100);
     }
 
-
-    public readonly TurnSystem TurnSystem = new(new TurnContext());
+    public readonly TurnSystem TurnSystem = new(new TurnWorld());
+    public TurnWorld World => TurnSystem.World;
+    public GameWorld GameWorld = new GameWorld();
     public Array2D<char> Array2D;
 
     private void CreateMap(int seed) {
@@ -77,28 +78,37 @@ public class Simulator {
 
     private void CreateEntities() {
         var goblin = EntityBuilder.Create("Goblin", new EntityStats { BaseSpeed = 80 })
-            .DecideAction(ActionType.Walk)
             .Build();
+
+        goblin.OnDecideAction = async () => {
+            var player = GameWorld.CurrentPlayer;
+            var distance = GameWorld.GetDistance(player, goblin);
+            if (distance > 1) {
+                return new EntityAction(ActionType.Walk, player);
+            }
+            return new EntityAction(ActionType.Attack, player);
+        };
 
         var quickRat = EntityBuilder.Create("Goblin", new EntityStats { BaseSpeed = 80 })
             .DecideAction(ActionType.Walk)
             .Build();
 
-        TurnSystem.Context.AddEntity(goblin);
-        TurnSystem.Context.AddEntity(quickRat);
+        World.AddEntity(goblin);
+        World.AddEntity(quickRat);
     }
 
+
     private void CreatePlayer() {
-        var player = EntityBuilder.Create("Player", new EntityStats { BaseSpeed = 100 })
-            .BuildAsync();
-        TurnSystem.Context.AddEntity(player.Entity);
-        Task.Run(() => HandlePlayerInput(player));
+        var player = new Entity("Player", new EntityStats { BaseSpeed = 100 });
+        World.AddEntity(player);
+        GameWorld.CurrentPlayer = player;
+        Task.Run(() => HandlePlayerInput(new EntityBlocking(player)));
     }
 
     public void RunGameLoop(int turns) {
-        var ticks = turns * TurnContext.TicksPerTurn;
+        var ticks = turns * TurnWorld.TicksPerTurn;
         var turnSystemProcess = new TurnSystemProcess(TurnSystem);
-        while (_running && TurnSystem.Context.CurrentTick < ticks) {
+        while (_running && World.CurrentTick < ticks) {
             turnSystemProcess._Process();
         }
         _running = false;
@@ -108,9 +118,9 @@ public class Simulator {
     private void PrintStatistics(int totalTurns) {
         Console.WriteLine("\n=== Execution Statistics ===");
         Console.WriteLine($"Total Turns: {totalTurns}");
-        Console.WriteLine($"Total Ticks: {TurnSystem.Context.CurrentTick}");
+        Console.WriteLine($"Total Ticks: {World.CurrentTick}");
 
-        foreach (var entity in TurnSystem.Context.Entities) {
+        foreach (var entity in World.Entities) {
             var executionCount = entity.History.Count;
             var executionsPerTurn = (float)executionCount / totalTurns;
             var percentage = executionsPerTurn * 100;
@@ -119,7 +129,7 @@ public class Simulator {
             var totalEnergyCost = entity.History.Sum(action => action.EnergyCost);
 
             // Calculamos la energía total recargada (velocidad base * número de ticks)
-            var totalEnergyRecharged = entity.BaseStats.BaseSpeed * TurnSystem.Context.CurrentTick;
+            var totalEnergyRecharged = entity.BaseStats.BaseSpeed * World.CurrentTick;
 
             Console.WriteLine($"\n{entity.Name}:");
             Console.WriteLine($"- Total executions: {executionCount}");
@@ -133,7 +143,7 @@ public class Simulator {
         Console.WriteLine("\n=========================");
     }
 
-    private void HandlePlayerInput(EntityAsync player) {
+    private void HandlePlayerInput(EntityBlocking player) {
         while (_running) {
             if (player.IsWaiting) {
                 var action = HandleMenuInput(player.Entity);
@@ -174,5 +184,17 @@ public class Simulator {
             }
             Console.WriteLine();
         }
+    }
+}
+
+public class GameWorld {
+    public Entity CurrentPlayer { get; set; }
+    public Array2D<Entity> EntityGrid { get; set; }
+
+    public static float GetDistance(Entity player, Entity goblin) {
+        // var playerPosition = player.GetComponent<PositionComponent>().Position;
+        // var goblinPosition = goblin.GetComponent<PositionComponent>().Position;
+        // return Heuristics.Euclidean(playerPosition, goblinPosition);
+        return 0f;
     }
 }

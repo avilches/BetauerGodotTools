@@ -1,14 +1,10 @@
-using System.Threading.Tasks;
-using Betauer.DI;
-using Betauer.DI.Attributes;
-using Betauer.FSM.Async;
-using Godot;
-
-namespace Veronenger.Game.Dungeon.Scheduling;
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using Godot;
+
+namespace Veronenger.Game.Dungeon.World;
 
 /*
 
@@ -131,93 +127,6 @@ Speed
    The Devour order corruption grants a temporary 1d100 speed boost every time the PC eats the corpse of a lawful monster.
  */
 
-public class ActionConfig {
-    private static readonly Dictionary<ActionType, ActionConfig> Actions = new();
-
-    public ActionType Type { get; }
-    public int EnergyCost { get; }
-
-    private ActionConfig(ActionType type, int energyCost) {
-        Type = type;
-        EnergyCost = energyCost;
-    }
-
-    public static void RegisterAction(ActionType type, int energyCost) {
-        Actions[type] = new ActionConfig(type, energyCost);
-    }
-
-    public static ActionConfig Get(ActionType type) {
-        return Actions.TryGetValue(type, out var action)
-            ? action
-            : throw new Exception($"Action type {type} not registered!");
-    }
-}
-
-public enum ActionType {
-    Wait,
-    Walk,
-    Run,
-    Attack,
-}
-
-/// <summary>
-/// Representa una acción realizada por una entidad
-/// </summary>
-public class EntityAction {
-    public ActionConfig Config { get; }
-    public Entity Actor { get; }
-    public Entity Target { get; }
-    public int EnergyCost { get; private set; }
-    public int AnimationDurationMillis { get; set; } = 1;
-
-    public EntityAction(ActionType type, Entity actor, Entity target = null) {
-        Config = ActionConfig.Get(type);
-        Actor = actor;
-        Target = target;
-        EnergyCost = Config.EnergyCost;
-    }
-
-    // Modificadores pueden alterar el coste de energía
-    public void ModifyEnergyCost(float multiplier) {
-        EnergyCost = (int)(EnergyCost * multiplier);
-    }
-}
-
-/// <summary>
-/// Efectos de estado que pueden afectar a una entidad
-/// </summary>
-public class MultiplierEffect {
-    /// <summary>
-    /// Efectos de estado que pueden afectar a una entidad
-    /// </summary>
-    private MultiplierEffect(string name, float multiplier, int ticks) {
-        Name = name;
-        Multiplier = multiplier;
-        RemainingTicks = ticks;
-    }
-
-    public string Name { get; }
-    public float Multiplier { get; }
-    public int RemainingTicks { get; set; }
-
-    public static MultiplierEffect Ticks(string name, float multiplier, int ticks) {
-        return new MultiplierEffect(name, multiplier, ticks);
-    }
-
-    public static MultiplierEffect Turns(string name, float multiplier, int turns) {
-        return new MultiplierEffect(name, multiplier, turns * TurnContext.TicksPerTurn);
-    }
-}
-
-/// <summary>
-/// Estadísticas base de una entidad
-/// </summary>
-public struct EntityStats {
-    public int BaseSpeed { get; set; } // Velocidad base (energía ganada por tick)
-}
-
-public interface IComponent;
-
 /// <summary>
 /// Clase base para todas las entidades del juego
 /// </summary>
@@ -228,43 +137,35 @@ public class Entity {
     public List<MultiplierEffect>? SpeedEffects { get; private set; } = null;
     public List<EntityAction> History { get; } = [];
 
-    public Func<TurnContext, Task<EntityAction>> OnDecideAction { get; set; }
-    public Func<TurnContext, bool> OnCanAct { get; set; } = _ => true;
+    public Func<Task<EntityAction>> OnDecideAction { get; set; }
+    public Func<bool> OnCanAct { get; set; } = () => true;
 
-    public event Action<TurnContext, EntityAction>? OnExecute;
-    public event Action<TurnContext>? OnTickStart;
-    public event Action<TurnContext>? OnTickEnd;
+    public event Action<EntityAction>? OnExecute;
+    public event Action? OnTickStart;
+    public event Action? OnTickEnd;
+    public event Action? OnDestroy;
 
-    public Dictionary<Type, IComponent> Components { get; } = new();
-
-    public void AddComponent<T>(T component) where T : IComponent {
-        Components[typeof(T)] = component;
+    public Entity(EntityStats stats) : this(Guid.NewGuid().ToString(), stats) {
     }
-
-    public IEnumerable<T> GetComponents<T>() where T : IComponent {
-        return Components.Values.OfType<T>();
-    }
-
-    public T GetComponent<T>() where T : IComponent {
-        return (T)Components[typeof(T)];
-    }
-
-    public T? GetComponentOrNull<T>() where T : IComponent {
-        return Components.TryGetValue(typeof(T), out var component)
-            ? (T)component
-            : default;
-    }
-
 
     public Entity(string name, EntityStats stats) {
         Name = name;
         BaseStats = stats;
-        OnDecideAction = _ => Task.FromResult(new EntityAction(ActionType.Wait, this));
+        OnDecideAction = () => Task.FromResult(new EntityAction(ActionType.Wait, this));
+    }
+
+    public Entity Configure(Action<Entity> config) {
+        config(this);
+        return this;
     }
 
     public void AddSpeedEffect(MultiplierEffect effect) {
         SpeedEffects ??= [];
         SpeedEffects.Add(effect);
+    }
+
+    public void Destroy() {
+        OnDestroy?.Invoke();
     }
 
     public int GetCurrentSpeed() {
@@ -275,30 +176,30 @@ public class Entity {
         return Mathf.RoundToInt(BaseStats.BaseSpeed * multiplier);
     }
 
-    public void TickStart(TurnContext context) {
-        OnTickStart?.Invoke(context);
+    public void TickStart() {
+        OnTickStart?.Invoke();
     }
 
-    public bool CanAct(TurnContext context) => CurrentEnergy >= 0 && OnCanAct.Invoke(context);
+    public bool CanAct() => CurrentEnergy >= 0 && OnCanAct.Invoke();
 
-    public Task<EntityAction> DecideAction(TurnContext context) {
-        return OnDecideAction(context);
+    public Task<EntityAction> DecideAction() {
+        return OnDecideAction();
     }
 
-    public void Execute(TurnContext context, EntityAction action) {
+    public void Execute(EntityAction action) {
         CurrentEnergy -= action.EnergyCost;
         // Console.WriteLine($"{Name} -{action.EnergyCost} = {CurrentEnergy} (action: {action.Config.Type})");
-        OnExecute?.Invoke(context, action);
+        OnExecute?.Invoke(action);
         History.Add(action);
     }
 
-    public void TickEnd(TurnContext context) {
+    public void TickEnd() {
         var currentSpeed = GetCurrentSpeed();
         CurrentEnergy += currentSpeed;
         // Console.WriteLine($"{Name} +{currentSpeed} = " + CurrentEnergy);
         RemoveExpiredEffects();
 
-        OnTickEnd?.Invoke(context);
+        OnTickEnd?.Invoke();
     }
 
     private void RemoveExpiredEffects() {
@@ -310,50 +211,5 @@ public class Entity {
                 SpeedEffects.RemoveAt(i);
             }
         }
-    }
-}
-
-public class EntityAsync {
-    private TaskCompletionSource<EntityAction>? _promise;
-    public Queue<EntityAction> Queue { get; } = [];
-
-    public Entity Entity { get; }
-
-    public EntityAsync(Entity entity) {
-        Entity = entity;
-        entity.OnDecideAction = DecideAction;
-    }
-
-    public bool IsWaiting => _promise != null;
-
-    public void SetResult(EntityAction action) {
-        var promise = _promise;
-        if (promise == null) {
-            throw new Exception("No action to resolve");
-        }
-        if (promise.Task.IsCompleted) {
-            throw new Exception("Player action already set");
-        }
-        _promise = null;
-        promise.TrySetResult(action);
-    }
-
-    public void ScheduleNextAction(EntityAction nextAction) {
-        Queue.Enqueue(nextAction);
-    }
-
-    public Task<EntityAction> DecideAction(TurnContext context) {
-        if (Queue.Count > 0) {
-            var action = Queue.Dequeue();
-            return Task.FromResult(action);
-        }
-        _promise ??= new TaskCompletionSource<EntityAction>();
-        return _promise.Task;
-    }
-}
-
-public class Dummy : Entity {
-    public Dummy(ActionType type, string name, EntityStats stats) : base(name, stats) {
-        OnDecideAction = _ => Task.FromResult(new EntityAction(type, this));
     }
 }
