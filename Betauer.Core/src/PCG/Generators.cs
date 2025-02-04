@@ -293,7 +293,7 @@ public static class Generators {
                 }
 
                 if (hasNeighbor) {
-                    region[particle.Y, particle.X] = true; // Acceso al array con [Y,X]
+                    region[particle] = true;
                     active.Add(particle);
                     pixelsAdded++;
                     stuck = true;

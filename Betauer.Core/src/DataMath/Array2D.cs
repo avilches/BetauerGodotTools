@@ -166,7 +166,7 @@ public class Array2D<T> : Array2D, IEnumerable<T> {
     public void Fill(int x, int y, int width, int height, T value) {
         for (var yy = y; yy < height + y; yy++) {
             for (var xx = x; xx < width + x; xx++) {
-                this[yy, xx] = value;
+                Data[yy, xx] = value;
             }
         }
     }
@@ -226,7 +226,7 @@ public class Array2D<T> : Array2D, IEnumerable<T> {
     public IEnumerator<T> GetEnumerator() {
         for (var y = 0; y < Height; y++) {
             for (var x = 0; x < Width; x++) {
-                yield return this[y, x];
+                yield return Data[y, x];
             }
         }
     }
@@ -259,7 +259,7 @@ public class Array2D<T> : Array2D, IEnumerable<T> {
         for (var yy = y; yy < height + y; yy++) {
             for (var xx = x; xx < width + x; xx++) {
                 var pos = new Vector2I(xx, yy);
-                yield return (Position: pos, Value: this[yy, xx]);
+                yield return (Position: pos, Value: Data[yy, xx]);
             }
         }
     }
@@ -325,9 +325,33 @@ public class Array2D<T> : Array2D, IEnumerable<T> {
         return GetValueSafe(pos.X, pos.Y, defaultValue);
     }
 
+    public T GetOrSet(Vector2I pos, Func<T> create) {
+        var value = this[pos];
+        if (value != null) return value;
+        return this[pos] = create();
+    }
+
+    public T GetOrSet(Vector2I pos, Func<Vector2I, T> create) {
+        var value = this[pos];
+        if (value != null) return value;
+        return this[pos] = create(pos);
+    }
+
+    private T GetOrSet(int x, int y, Func<T> create) {
+        var value = Data[y, x];
+        if (value != null) return value;
+        return Data[y, x] = create();
+    }
+
+    private T GetOrSet(int x, int y, Func<int, int, T> create) {
+        var value = Data[y, x];
+        if (value != null) return value;
+        return Data[y, x] = create(x, y);
+    }
+
     public T? GetValueSafe(int x, int y, T? defaultValue = default) {
         if (x < 0 || y < 0 || x >= Width || y >= Height) return defaultValue;
-        return this[y, x];
+        return Data[y, x];
     }
 
     public T this[int y, int x] {
@@ -336,8 +360,8 @@ public class Array2D<T> : Array2D, IEnumerable<T> {
     }
     
     public T this[Vector2I pos] {
-        get => this[pos.Y, pos.X];
-        set => this[pos.Y, pos.X] = value;
+        get => Data[pos.Y, pos.X];
+        set => Data[pos.Y, pos.X] = value;
     }
 
     public void CopyNeighbors(Vector2I center, T[,] destination, T defaultValue = default) {
@@ -411,7 +435,7 @@ public class Array2D<T> : Array2D, IEnumerable<T> {
                 var sourceX = startX + destX;
                 var sourceY = startY + destY;
                 destination[destY, destX] = sourceX >= 0 && sourceX < Width && sourceY >= 0 && sourceY < Height
-                    ? transformer(this[sourceY, sourceX])
+                    ? transformer(Data[sourceY, sourceX])
                     : defaultValue;
             }
         }
