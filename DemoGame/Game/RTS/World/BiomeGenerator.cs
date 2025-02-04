@@ -259,7 +259,7 @@ public class BiomeGenerator {
         var centralPos = 1;
         var buffer = new BiomeCell[gridSize, gridSize]; 
         foreach (var ((x, y), cell) in BiomeCells.GetIndexedValues()) {
-            BiomeCells.CopyNeighbors(x, y, buffer);
+            BiomeCells.CopyChebyshevRegion(x, y, buffer);
 
             // If central pixel is not land, it can't be coast
             if (!buffer[centralPos, centralPos].Land) continue;
@@ -455,7 +455,7 @@ public class BiomeGenerator {
                                   """, landSeaRules);
         var buffer = new BiomeCell[3, 3];
         foreach (var ((x, y), val) in BiomeCells.GetIndexedValues()) {
-            BiomeCells.CopyNeighbors(x, y, buffer);
+            BiomeCells.CopyChebyshevRegion(x, y, buffer);
             if (p.Matches(buffer)) {
                 fastImage.SetPixel(x, y, Colors.Blue, false);
             }

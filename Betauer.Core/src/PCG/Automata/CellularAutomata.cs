@@ -53,7 +53,7 @@ public class CellularAutomata<T> {
     public void AddNeighborhoodRule(int neighborhoodSize, Func<T[,], T> updateRule, T defaultValue = default) {
         var neighbors = new T[neighborhoodSize, neighborhoodSize];
         _rules.Add((_, pos) => {
-            State.CopyNeighbors(pos, neighbors, defaultValue);
+            State.CopyChebyshevRegion(pos, neighbors, defaultValue);
             return updateRule.Invoke(neighbors);
         });
     }

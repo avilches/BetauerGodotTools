@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using Godot;
@@ -8,15 +9,23 @@ using Godot;
 namespace Betauer.Core.DataMath;
 
 public abstract class Array2D {
-
     public abstract int Width { get; }
     public abstract int Height { get; }
     public abstract Rect2I Bounds { get; }
-    
-    public static Vector2I[] Directions = [Vector2I.Up, Vector2I.Right, Vector2I.Down, Vector2I.Left];
+
+    public static readonly ImmutableArray<Vector2I> VonNeumannDirections = ImmutableArray.Create(
+        Vector2I.Up, Vector2I.Right, Vector2I.Down, Vector2I.Left
+    );
+
+    public static readonly ImmutableArray<Vector2I> MooreDirections = ImmutableArray.Create(
+        Vector2I.Up, Vector2I.Up + Vector2I.Right,
+        Vector2I.Right, Vector2I.Down + Vector2I.Right,
+        Vector2I.Down, Vector2I.Down + Vector2I.Left,
+        Vector2I.Left, Vector2I.Up + Vector2I.Left
+    );
 
     public static Array2D<T> Parse<T>(string template, Dictionary<char, T> transform) {
-        return Parse(template, c => transform[c]);;
+        return Parse(template, c => transform[c]);
     }
 
     public static Array2D<T> Parse<T>(string template, Dictionary<char, T> transform, T defaultValue) {
@@ -64,8 +73,8 @@ public abstract class Array2D {
     }
 
     public static Array2D<int> ParseAsInt(string template) {
-        return Parse(template, c => char.IsDigit(c) 
-            ? c - '0' 
+        return Parse(template, c => char.IsDigit(c)
+            ? c - '0'
             : throw new ArgumentException($"Only digits are allowed: {c}"));
     }
 }
@@ -130,7 +139,7 @@ public class Array2D<T> : Array2D, IEnumerable<T> {
     public Array2D(int width, int height) {
         Data = new T[height, width];
     }
-    
+
     /*
     public IStorage<T> Data { get; set; }
 
@@ -246,7 +255,7 @@ public class Array2D<T> : Array2D, IEnumerable<T> {
             }
         }
     }
-    
+
     public IEnumerable<(Vector2I Position, T Value)> GetIndexedValues() {
         return GetIndexedValues(0, 0, Width, Height);
     }
@@ -358,25 +367,25 @@ public class Array2D<T> : Array2D, IEnumerable<T> {
         get => Data[y, x];
         set => Data[y, x] = value;
     }
-    
+
     public T this[Vector2I pos] {
         get => Data[pos.Y, pos.X];
         set => Data[pos.Y, pos.X] = value;
     }
 
-    public void CopyNeighbors(Vector2I center, T[,] destination, T defaultValue = default) {
-        CopyNeighbors(center.X, center.Y, destination, value => value, defaultValue);
+    public void CopyChebyshevRegion(Vector2I center, T[,] destination, T defaultValue = default) {
+        CopyChebyshevRegion(center.X, center.Y, destination, value => value, defaultValue);
     }
 
-    public void CopyNeighbors(int centerX, int centerY, T[,] destination, T defaultValue = default) {
-        CopyNeighbors(centerX, centerY, destination, value => value, defaultValue);
+    public void CopyChebyshevRegion(int centerX, int centerY, T[,] destination, T defaultValue = default) {
+        CopyChebyshevRegion(centerX, centerY, destination, value => value, defaultValue);
     }
 
-    public void CopyNeighbors<TDest>(Vector2I center, TDest[,] destination, Func<T, TDest> transformer, TDest defaultValue = default) {
-        CopyNeighbors(center.X, center.Y, destination, transformer, defaultValue);
+    public void CopyChebyshevRegion<TDest>(Vector2I center, TDest[,] destination, Func<T, TDest> transformer, TDest defaultValue = default) {
+        CopyChebyshevRegion(center.X, center.Y, destination, transformer, defaultValue);
     }
 
-    public void CopyNeighbors<TDest>(int centerX, int centerY, TDest[,] destination, Func<T, TDest> transformer, TDest defaultValue = default) {
+    public void CopyChebyshevRegion<TDest>(int centerX, int centerY, TDest[,] destination, Func<T, TDest> transformer, TDest defaultValue = default) {
         var width = destination.GetLength(1);
         var height = destination.GetLength(0);
         if (width % 2 == 0 || height % 2 == 0) throw new Exception("width and height of destination array must be odd numbers, to ensure a center point");
@@ -440,15 +449,47 @@ public class Array2D<T> : Array2D, IEnumerable<T> {
             }
         }
     }
-    
-    public IEnumerable<Vector2I> GetOrtogonalPositions(int x, int y, Func<Vector2I, bool>? predicate = null) {
-        return GetOrtogonalPositions(new Vector2I(x, y), predicate);
+
+    /// <summary>
+    /// Returns the 4 positions around the center (up, down, left and right)
+    /// if they exist and the (optional) predicate returns tru
+    /// </summary>
+    /// <param name="pos"></param>
+    /// <returns></returns>
+    public IEnumerable<Vector2I> GetVonNeumannPositions(Vector2I pos) {
+        return VonNeumannDirections
+            .Select(dir => pos + dir)
+            .Where(IsValidPosition);
     }
 
-    public IEnumerable<Vector2I> GetOrtogonalPositions(Vector2I pos, Func<Vector2I, bool>? predicate = null) {
-        return Directions
+    /// <summary>
+    /// Returns the 4 positions around the center (up, down, left and right)
+    /// if they exist
+    /// </summary>
+    /// <returns></returns>
+    public IEnumerable<Vector2I> GetVonNeumannPositions(int x, int y) {
+        return GetVonNeumannPositions(new Vector2I(x, y));
+    }
+
+    /// <summary>
+    /// Returns the 8 positions around the center (up, up-right, up-left, down, down-right, down-left, left and right)
+    /// if they exist
+    /// </summary>
+    /// <param name="pos"></param>
+    /// <returns></returns>
+    public IEnumerable<Vector2I> GetMoorePositions(Vector2I pos) {
+        return MooreDirections
             .Select(dir => pos + dir)
-            .Where(p => IsValidPosition(p) && (predicate == null || predicate.Invoke(p)));
+            .Where(IsValidPosition);
+    }
+
+    /// <summary>
+    /// Returns the 8 positions around the center (up, up-right, up-left, down, down-right, down-left, left and right)
+    /// if they exist
+    /// </summary>
+    /// <returns></returns>
+    public IEnumerable<Vector2I> GetMoorePositions(int x, int y) {
+        return GetMoorePositions(new Vector2I(x, y));
     }
 
     public override string ToString() {

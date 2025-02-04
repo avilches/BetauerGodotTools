@@ -50,7 +50,7 @@ public class Array2DGraph<T> {
     public IEnumerable<Array2DEdge> Adjacent(Vector2I vertex) {
         if (IsBlocked(vertex)) yield break;
 
-        foreach (var neighbor in Array2D.GetOrtogonalPositions(vertex)) {
+        foreach (var neighbor in Array2D.GetVonNeumannPositions(vertex)) {
             if (IsAccesible(neighbor)) {
                 // El peso de moverse a una celda es el peso de la celda destino
                 var weight = GetWeight(neighbor);
@@ -106,7 +106,7 @@ public class Array2DGraph<T> {
     /// <param name="vertex">The vertex to find the out-degree of</param>
     /// <returns>The number of directed edges incident from the specified vertex</returns>
     public int OutDegree(Vector2I vertex) {
-        return IsAccesible(vertex) ? Array2D.GetOrtogonalPositions(vertex).Count(IsAccesible) : 0;
+        return IsAccesible(vertex) ? Array2D.GetVonNeumannPositions(vertex).Count(IsAccesible) : 0;
     }
 
     /// <summary>

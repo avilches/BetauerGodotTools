@@ -357,14 +357,14 @@ public class Array2DTests {
         });
 
         var buffer = new int[3, 3];
-        original.CopyNeighbors(0, 0, buffer, -1);
+        original.CopyChebyshevRegion(0, 0, buffer, -1);
         ArrayEquals(buffer, new[,] {
             { -1, -1, -1 },
             { -1, 0, 1 },
             { -1, 10, 11 },
         });
 
-        original.CopyNeighbors(1, 2, buffer, -1);
+        original.CopyChebyshevRegion(1, 2, buffer, -1);
         ArrayEquals(buffer, new[,] {
             { 10, 11, 12 },
             { 20, 21, 22 },

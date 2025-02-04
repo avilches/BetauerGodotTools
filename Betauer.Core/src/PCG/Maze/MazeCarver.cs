@@ -56,7 +56,7 @@ public class MazeCarver {
 
     public List<Vector2I> GetAvailableDirections(Vector2I currentCell) {
         _availableDirections.Clear();
-        foreach (var dir in Array2D.Directions) {
+        foreach (var dir in Array2D.VonNeumannDirections) {
             var target = currentCell + dir * 2;
             if (IsValidPosition(target) && !IsCarved(target)) {
                 _availableDirections.Add(dir);

@@ -124,7 +124,7 @@ public class GridMatcherTests : BaseBlobTests {
 
         var buffer = new int[3, 3];
         foreach (var ((x, y), value) in source.GetIndexedValues()) {
-            source.CopyNeighbors(x, y, buffer, -1);
+            source.CopyChebyshevRegion(x, y, buffer, -1);
             var tileId = blob47.FindTilePatternId(buffer, -1);
             tileIds[y, x] = tileId;
         }

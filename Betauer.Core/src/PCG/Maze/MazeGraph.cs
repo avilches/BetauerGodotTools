@@ -14,7 +14,11 @@ public class MazeGraph {
     protected readonly Dictionary<Vector2I, MazeNode> NodeGrid = [];
     protected readonly Dictionary<int, MazeNode> Nodes = [];
 
-    public Func<Vector2I, IEnumerable<Vector2I>> GetAdjacentPositions { get; set; }
+    /// <summary>
+    /// By default, up, right, down and left directions are considered as adjacent.
+    /// Change to use a different set of directions, like Array2D.MooreDirections for diagonal connections.
+    /// </summary>
+    public IEnumerable<Vector2I> AdjacentDirections { get; set; } = Array2D.VonNeumannDirections;
 
     private readonly List<Func<Vector2I, bool>> _positionValidators = [];
     private readonly List<Func<MazeNode, MazeNode, bool>> _edgeValidators = [];
@@ -34,14 +38,6 @@ public class MazeGraph {
     public event Action<MazeNode>? OnNodeRemoved;
 
     protected int LastId = 0;
-
-    /// <summary>
-    /// Initializes a new instance of the MazeGraph class.
-    /// </summary>
-    /// Optional, by default, it uses ortogonal positions up, down, left, right </param>
-    public MazeGraph() {
-        GetAdjacentPositions = GetOrtogonalPositions;
-    }
 
     public readonly record struct AttributeKey(object Instance, string Key);
 
@@ -236,8 +232,8 @@ public class MazeGraph {
         return GetAvailableAdjacentPositions(from).Select(position => position - from);
     }
 
-    public static IEnumerable<Vector2I> GetOrtogonalPositions(Vector2I from) {
-        return Array2D.Directions.Select(dir => from + dir);
+    public IEnumerable<Vector2I> GetAdjacentPositions(Vector2I from) {
+        return AdjacentDirections.Select(dir => from + dir);
     }
 
     public Vector2I GetOffset() {
