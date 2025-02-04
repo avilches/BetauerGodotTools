@@ -1,24 +1,26 @@
+using Godot;
+
 namespace Veronenger.Game.Dungeon.World;
 
 /// <summary>
 /// Representa una acción realizada por una entidad
 /// </summary>
 public class EntityAction {
-    public ActionConfig Config { get; }
+    public ActionType Type { get; }
+    public ActionTypeConfig Config => ActionTypeConfig.Get(Type);
     public Entity Actor { get; }
-    public Entity Target { get; }
-    public int EnergyCost { get; private set; }
-    public int AnimationDurationMillis { get; set; } = 1;
+    public Entity? Target { get; }
 
-    public EntityAction(ActionType type, Entity actor, Entity target = null) {
-        Config = ActionConfig.Get(type);
+    public int EnergyCost { get; set; }
+
+    public EntityAction(ActionType type, Entity actor, Entity? target = null) {
+        Type = type;
         Actor = actor;
         Target = target;
         EnergyCost = Config.EnergyCost;
     }
 
-    // Modificadores pueden alterar el coste de energía
     public void ModifyEnergyCost(float multiplier) {
-        EnergyCost = (int)(EnergyCost * multiplier);
+        EnergyCost = Mathf.RoundToInt(multiplier * EnergyCost);
     }
 }

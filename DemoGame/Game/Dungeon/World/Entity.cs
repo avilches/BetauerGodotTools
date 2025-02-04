@@ -14,7 +14,6 @@ public class Entity {
     public EntityStats BaseStats { get; }
     public int CurrentEnergy { get; protected set; } = 0;
     public List<MultiplierEffect>? SpeedEffects { get; private set; } = null;
-    public List<EntityAction> History { get; } = [];
 
     public Func<Task<EntityAction>> OnDecideAction { get; set; }
     public Func<bool> OnCanAct { get; set; } = () => true;
@@ -24,8 +23,10 @@ public class Entity {
     public event Action? OnTickEnd;
     public event Action? OnWorldRemoved;
     public event Action? OnWorldAdded;
+    public event Action<Vector2I, Vector2I>? OnMoved;
 
-    public TurnWorld World { get; internal set; }
+    public TurnWorld World => Location?.World;
+    public WorldCell Cell => Location?.Cell;
     public Location Location { get; internal set; }
 
     public Entity(EntityStats stats) : this(Guid.NewGuid().ToString(), stats) {
@@ -42,6 +43,12 @@ public class Entity {
         return this;
     }
 
+    public MultiplierEffect AddSpeedEffect(string name, float multiplier, int turns) {
+        var effect = MultiplierEffect.Ticks(name, multiplier, turns * World.TicksPerTurn);
+        AddSpeedEffect(effect);
+        return effect;
+    }
+
     public void AddSpeedEffect(MultiplierEffect effect) {
         SpeedEffects ??= [];
         SpeedEffects.Add(effect);
@@ -53,6 +60,10 @@ public class Entity {
 
     internal void InvokeOnWorldRemoved() {
         OnWorldRemoved?.Invoke();
+    }
+
+    internal void InvokeOnMoved(Vector2I from, Vector2I to) {
+        OnMoved?.Invoke(from, to);
     }
 
     public int GetCurrentSpeed() {
@@ -77,7 +88,6 @@ public class Entity {
         CurrentEnergy -= action.EnergyCost;
         // Console.WriteLine($"{Name} -{action.EnergyCost} = {CurrentEnergy} (action: {action.Config.Type})");
         OnExecute?.Invoke(action);
-        History.Add(action);
     }
 
     public void TickEnd() {

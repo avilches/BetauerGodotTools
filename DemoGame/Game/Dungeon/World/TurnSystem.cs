@@ -9,11 +9,13 @@ using Godot;
 namespace Veronenger.Game.Dungeon.World;
 
 public class TurnWorld {
-    public static int TicksPerTurn = 10;
-
     private readonly List<Entity> _entities = [];
     private readonly Dictionary<string, Entity> _entitiesByName = [];
+    private readonly Array2D<WorldCell?> _cells;
 
+    public CellType DefaultCellType { get; set; } = CellType.Floor;
+
+    public int TicksPerTurn { get; set; } = 10;
     public int CurrentTick { get; private set; } = 0;
     public int CurrentTurn { get; private set; } = 0;
 
@@ -22,7 +24,6 @@ public class TurnWorld {
     public event Action<int>? OnTick;
 
     public IReadOnlyList<Entity> Entities { get; }
-    private readonly Array2D<WorldCell?> _cells;
     public int Width => _cells.Width;
     public int Height => _cells.Height;
     public Rect2I Bounds => _cells.Bounds;
@@ -33,8 +34,21 @@ public class TurnWorld {
     }
 
     public WorldCell? this[Vector2I position] => _cells[position];
+
     public WorldCell? this[int y, int x] => _cells[y, x];
-    public WorldCell GetOrCreate(Vector2I position) => _cells.GetOrSet(position, () => new WorldCell(position))!;
+
+    public WorldCell GetOrCreate(Vector2I position) =>
+        _cells.GetOrSet(position, () => new WorldCell(DefaultCellType, position))!;
+
+    public bool IsCellType(Vector2I position, CellType type) =>
+        _cells[position] != null && _cells[position]!.Type == type;
+
+    public bool HasCellEntity(Vector2I position, Entity entity) =>
+        _cells[position] != null && _cells[position]!.Entities.Contains(entity);
+
+    public bool IsValidPosition(Vector2I position) {
+        return _cells.IsValidPosition(position);
+    }
 
     public void AddEntity(Entity entity) {
         AddEntity(entity, Vector2I.Zero);
@@ -57,8 +71,7 @@ public class TurnWorld {
         }
 
         // Update the data
-        entity.World = this;
-        entity.Location = new Location(this, entity, position);
+        entity.Location = new Location(entity, this, position);
 
         _entities.Add(entity);
         _entitiesByName[entity.Name] = entity;
@@ -80,14 +93,14 @@ public class TurnWorld {
         _entities.Remove(entity);
         _entitiesByName.Remove(entity.Name);
         GetOrCreate(entity.Location.Position).RemoveEntity(entity);
-        entity.World = null;
         entity.Location = null;
         return true;
     }
 
-    internal void UpdatedEntityPosition(Entity entity, Vector2I oldPosition) {
-        GetOrCreate(oldPosition).RemoveEntity(entity);
-        GetOrCreate(entity.Location.Position).AddEntity(entity);
+    internal void MoveEntity(Entity entity, Vector2I origin, Vector2I to) {
+        this[origin]!.RemoveEntity(entity);
+        GetOrCreate(to).AddEntity(entity);
+        entity.InvokeOnMoved(origin, to);
     }
 
     public void NextTick() {
@@ -98,20 +111,14 @@ public class TurnWorld {
         CurrentTick++;
         OnTick?.Invoke(CurrentTick);
     }
-
-    public bool IsValidPosition(Vector2I position) {
-        return _cells.IsValidPosition(position);
-    }
 }
 
 public class TurnSystem(TurnWorld world) {
-    public TurnWorld World { get; set; } = world;
-
     public async Task ProcessTickAsync() {
-        World.NextTick();
+        world.NextTick();
 
         // ToArray() to avoid concurrent modification
-        foreach (var entity in World.Entities.ToArray()) {
+        foreach (var entity in world.Entities.ToArray()) {
             entity.TickStart();
             if (entity.CanAct()) {
                 var action = await entity.DecideAction();
@@ -124,7 +131,6 @@ public class TurnSystem(TurnWorld world) {
 
 public class TurnSystemProcess(TurnSystem turnSystem) {
     public bool Busy { get; private set; } = false;
-    private TurnSystem TurnSystem { get; } = turnSystem;
 
     private Exception? _exception = null;
 
@@ -136,7 +142,7 @@ public class TurnSystemProcess(TurnSystem turnSystem) {
         }
         if (Busy) return;
         Busy = true;
-        TurnSystem.ProcessTickAsync().ContinueWith(t => {
+        turnSystem.ProcessTickAsync().ContinueWith(t => {
             if (t.IsFaulted) {
                 _exception = t.Exception?.GetBaseException() ?? t.Exception;
             }

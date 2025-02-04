@@ -8,12 +8,13 @@ public enum CellType : byte { // 1 byte = 256 cell types; short = 2 bytes = 6553
     Floor,
 }
 
-public class CellConfig {
-    private static readonly Dictionary<CellType, CellConfig> Cells = new();
+public class CellTypeConfig {
+
+    private static readonly Dictionary<CellType, CellTypeConfig> Cells = new();
 
     public CellType Type { get; }
 
-    public CellConfig(CellType type) {
+    public CellTypeConfig(CellType type) {
         Type = type;
         if (Cells.ContainsKey(type)) {
             throw new Exception($"Cell type {type} already registered!");
@@ -37,9 +38,7 @@ public class CellConfig {
         }
     }
 
-
-
-    public static CellConfig Get(CellType type) {
+    public static CellTypeConfig Get(CellType type) {
         return Cells.TryGetValue(type, out var cell)
             ? cell
             : throw new Exception($"Cell type {type} not registered!");

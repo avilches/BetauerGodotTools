@@ -21,28 +21,36 @@ public class Simulator {
             e.SetObserved(); // Marca la excepción como observada
         };
 
-        TurnWorld.TicksPerTurn = 10;
-
-        _ = new ActionConfig(ActionType.Wait) { EnergyCost = 1000 };
-        _ = new ActionConfig(ActionType.Walk) { EnergyCost = 1000 };
-        _ = new ActionConfig(ActionType.Attack) { EnergyCost = 1000 };
-        _ = new ActionConfig(ActionType.Run) { EnergyCost = 500 };
-        ActionConfig.Verify();
-
-        _ = new CellConfig(CellType.Floor);
-        _ = new CellConfig(CellType.Wall);
-        CellConfig.Verify();
-
-        var seed = 1;
-        var game = new Simulator();
-        game.CreateMap(seed);
-        game.CreatePlayer();
-        game.CreateEntities();
-        game.RunGameLoop(100);
+        var simulator = new Simulator();
+        simulator.Configure();
+        simulator.RunGameLoop(100);
     }
 
     public TurnWorld World;
     public GameWorld GameWorld;
+
+    private void Configure() {
+        World = new TurnWorld(100, 100) {
+            TicksPerTurn = 10,
+            DefaultCellType = CellType.Floor
+        };
+        GameWorld = new GameWorld();
+
+        _ = new ActionTypeConfig(ActionType.Wait) { EnergyCost = 1000 };
+        _ = new ActionTypeConfig(ActionType.Walk) { EnergyCost = 1000 };
+        _ = new ActionTypeConfig(ActionType.Attack) { EnergyCost = 1000 };
+        _ = new ActionTypeConfig(ActionType.Run) { EnergyCost = 500 };
+        ActionTypeConfig.Verify();
+
+        _ = new CellTypeConfig(CellType.Floor);
+        _ = new CellTypeConfig(CellType.Wall);
+        CellTypeConfig.Verify();
+
+        var seed = 1;
+        CreateMap(seed);
+        CreatePlayer();
+        CreateEntities();
+    }
 
     private void CreateMap(int seed) {
         var rng = new Random(seed);
@@ -50,10 +58,6 @@ public class Simulator {
             // mc.OnNodeCreated += (node) => PrintGraph(mc);
         });
         zones.CalculateSolution(MazeGraphCatalog.KeyFormula);
-
-        World = new TurnWorld(100, 100);
-        GameWorld = new GameWorld();
-
         // AddFlags(zones);
 
         var templateSet = new TemplateSet(cellSize: 7);
@@ -116,41 +120,12 @@ public class Simulator {
     }
 
     public void RunGameLoop(int turns) {
-        var ticks = turns * TurnWorld.TicksPerTurn;
+        var ticks = turns * World.TicksPerTurn;
         var turnSystemProcess = new TurnSystemProcess(new TurnSystem(World));
         while (_running && World.CurrentTick < ticks) {
             turnSystemProcess._Process();
         }
         _running = false;
-        PrintStatistics(turns);
-    }
-
-    private void PrintStatistics(int totalTurns) {
-        Console.WriteLine("\n=== Execution Statistics ===");
-        Console.WriteLine($"Total Turns: {totalTurns}");
-        Console.WriteLine($"Total Ticks: {World.CurrentTick}");
-
-        foreach (var entity in World.Entities) {
-            var executionCount = entity.History.Count;
-            var executionsPerTurn = (float)executionCount / totalTurns;
-            var percentage = executionsPerTurn * 100;
-
-            // Calculamos el coste total de energía de todas las acciones
-            var totalEnergyCost = entity.History.Sum(action => action.EnergyCost);
-
-            // Calculamos la energía total recargada (velocidad base * número de ticks)
-            var totalEnergyRecharged = entity.BaseStats.BaseSpeed * World.CurrentTick;
-
-            Console.WriteLine($"\n{entity.Name}:");
-            Console.WriteLine($"- Total executions: {executionCount}");
-            Console.WriteLine($"- Executions per turn: {executionsPerTurn:F2}");
-            Console.WriteLine($"- Percentage per turn: {percentage:F1}%");
-            Console.WriteLine($"- Base Speed: {entity.BaseStats.BaseSpeed}");
-            Console.WriteLine($"- Total Energy Cost: {totalEnergyCost}");
-            Console.WriteLine($"- Total Energy Recharged: {totalEnergyRecharged}");
-            Console.WriteLine($"- Energy Balance: {totalEnergyRecharged - totalEnergyCost}");
-        }
-        Console.WriteLine("\n=========================");
     }
 
     private void HandlePlayerInput(EntityBlocking player) {
@@ -165,14 +140,13 @@ public class Simulator {
 
     private EntityAction HandleMenuInput(Entity player) {
         while (true) {
-            Console.Clear();
-            Console.WriteLine(PrintArray2D());
-            Console.WriteLine("\nSeleccione una acción:");
+            // Console.Clear();
+            // Console.WriteLine(PrintArray2D());
+            // Console.WriteLine("\nSeleccione una acción:");
             Console.Write("1) Walk 2) Attacks1: ");
             var keyInfo = Console.ReadKey(true);
             switch (keyInfo.Key) {
                 case ConsoleKey.UpArrow:
-
                     Console.WriteLine("Flecha arriba presionada.");
                     break;
                 case ConsoleKey.DownArrow:
@@ -229,7 +203,6 @@ public class Simulator {
 
 public class GameWorld {
     public Entity CurrentPlayer { get; set; }
-    public Array2D<Entity> EntityGrid { get; set; }
 
     public static float GetDistance(Entity player, Entity goblin) {
         // var playerPosition = player.GetComponent<PositionComponent>().Position;

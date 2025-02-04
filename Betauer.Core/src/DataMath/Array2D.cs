@@ -79,44 +79,6 @@ public abstract class Array2D {
     }
 }
 
-/*
-public interface IStorage<T> {
-    void Set(int y, int x, T value);
-    T Get(int y, int x);
-    int GetLength(int dimension);
-}
-
-public class ArrayStorage<T>(T[,] data) : IStorage<T> {
-    public T[,] Data { get; set; } = data;
-    public void Set(int y, int x, T value) {
-        Data[y, x] = value;
-    }
-
-    public T Get(int y, int x) {
-        return Data[y, x];
-    }
-
-    public int GetLength(int dimension) {
-        return Data.GetLength(dimension);
-    }
-}
-
-public class BitArrayStorage(BitArray2D data) : IStorage<bool> {
-    public BitArray2D Data { get; set; } = data;
-
-    public void Set(int y, int x, bool value) {
-        Data[y, x] = value;
-    }
-
-    public bool Get(int y, int x) {
-        return Data[y, x];
-    }
-
-    public int GetLength(int dimension) {
-        return dimension == 0 ? Data.Height : Data.Width;
-    }
-}
-*/
 /// <summary>
 /// A bidimensional array (grid) where can be accessed in Column-major order. That means:
 ///

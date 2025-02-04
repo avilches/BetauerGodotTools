@@ -20,8 +20,4 @@ public class MultiplierEffect {
     public static MultiplierEffect Ticks(string name, float multiplier, int ticks) {
         return new MultiplierEffect(name, multiplier, ticks);
     }
-
-    public static MultiplierEffect Turns(string name, float multiplier, int turns) {
-        return new MultiplierEffect(name, multiplier, turns * TurnWorld.TicksPerTurn);
-    }
 }

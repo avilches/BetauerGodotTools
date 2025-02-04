@@ -111,7 +111,7 @@ public class TurnWorldEventTests {
         newCell.OnEntityAdded += (entity) => _cellEntityAddedCount++;
 
         // Subscribe to location events
-        _entity.Location.OnMoved += (oldPos, newPos) => {
+        _entity.OnMoved += (oldPos, newPos) => {
             _lastOldPosition = oldPos;
             _lastNewPosition = newPos;
         };
@@ -125,8 +125,8 @@ public class TurnWorldEventTests {
             Assert.That(_cellEntityAddedCount, Is.EqualTo(1), "New cell OnEntityAdded should be called once");
             Assert.That(_lastOldPosition, Is.EqualTo(startPosition), "Old position should be correct");
             Assert.That(_lastNewPosition, Is.EqualTo(endPosition), "New position should be correct");
-            Assert.That(_world[startPosition].Entities, Is.Empty, "Old cell should be empty");
-            Assert.That(_world[endPosition].Entities, Contains.Item(_entity), "New cell should contain entity");
+            Assert.That(_world[startPosition]!.Entities, Is.Empty, "Old cell should be empty");
+            Assert.That(_world[endPosition]!.Entities, Contains.Item(_entity), "New cell should contain entity");
         });
     }
 

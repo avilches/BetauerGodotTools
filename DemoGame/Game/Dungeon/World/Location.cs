@@ -3,26 +3,12 @@ using Godot;
 
 namespace Veronenger.Game.Dungeon.World;
 
-public class Location(TurnWorld world, Entity entity, Vector2I position) {
+public class Location(Entity entity, TurnWorld world, Vector2I position) {
     private Vector2I _position = position;
 
-    public TurnWorld World { get; } = world;
     public Entity Entity { get; } = entity;
-
-    public Func<Vector2I, bool> CanMove { get; set; } = (_) => true;
-    public event Action<Vector2I, Vector2I>? OnMoved;
-
-    public Location(TurnWorld world, Entity entity, int x, int y) : this(world, entity, new Vector2I(x, y)) {}
-
-    public bool TryMove(Vector2I offset) {
-        if (!CanMove.Invoke(_position + offset)) return false;
-        Move(offset);
-        return true;
-    }
-
-    public void Move(Vector2I offset) {
-        Position += offset;
-    }
+    public TurnWorld World { get; } = world;
+    public WorldCell Cell => World != null ? World[Position] : null;
 
     public Vector2I Position {
         get => _position;
@@ -30,8 +16,7 @@ public class Location(TurnWorld world, Entity entity, Vector2I position) {
             if (_position == value) return;
             var oldPosition = _position;
             _position = value;
-            OnMoved?.Invoke(oldPosition, _position);
-            World.UpdatedEntityPosition(Entity, oldPosition);
+            World.MoveEntity(Entity, oldPosition, _position);
         }
     }
 
@@ -43,5 +28,9 @@ public class Location(TurnWorld world, Entity entity, Vector2I position) {
     public int Y {
         get => _position.Y;
         set => Position = new Vector2I(_position.X, value);
+    }
+
+    public void Move(Vector2I offset) {
+        Position += offset;
     }
 }

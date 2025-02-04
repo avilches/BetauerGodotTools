@@ -4,15 +4,19 @@ using Godot;
 
 namespace Veronenger.Game.Dungeon.World;
 
-public class WorldCell(Vector2I position) {
+public class WorldCell(CellType type, Vector2I position) {
     private static readonly IReadOnlyList<Entity> EmptyList = Array.Empty<Entity>().AsReadOnly();
 
     private List<Entity>? _entities;
     private IReadOnlyList<Entity>? _readOnlyEntities;
 
     public Vector2I Position { get; } = position;
+    public CellType Type { get; set; } = type;
+    public CellTypeConfig Config => CellTypeConfig.Get(Type);
+
     public event Action<Entity>? OnEntityAdded;
     public event Action<Entity>? OnEntityRemoved;
+
     public IReadOnlyList<Entity> Entities => _entities == null
         ? EmptyList
         : _readOnlyEntities ??= _entities.AsReadOnly();

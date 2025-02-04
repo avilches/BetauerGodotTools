@@ -12,7 +12,6 @@ using Betauer.DI.Attributes;
 using Betauer.Input;
 using Betauer.Nodes;
 using Godot;
-using Pcg;
 using Veronenger.Game.Platform;
 using Veronenger.Game.Platform.Character.InputActions;
 using Veronenger.Game.UI;
@@ -32,7 +31,6 @@ public class ApplicationConfig {
 
 	[Singleton(Flags = "Autoload")] public DebugOverlayManager DebugOverlayManager => new();
 
-	[Singleton] public Random Random => new PcgRandom();
 	[Singleton] public GameObjectRepository GameObjectRepository => new();
 	[Singleton] public GameLoader GameLoader => new();
 	[Singleton] public CameraContainer CameraContainer => new();

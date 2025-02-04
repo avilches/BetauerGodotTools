@@ -40,16 +40,16 @@ public class TurnSystemTests {
         _world.AddEntity(_fastWalker);
         _world.AddEntity(_slowAttacker);
 
-        ActionConfig.RemoveAll();
-        _ = new ActionConfig(ActionType.Wait) { EnergyCost = 500 };
-        _ = new ActionConfig(ActionType.Walk) { EnergyCost = 1000 };
-        _ = new ActionConfig(ActionType.Attack) { EnergyCost = 1200 };
-        _ = new ActionConfig(ActionType.Run) { EnergyCost = 2000 };
+        ActionTypeConfig.RemoveAll();
+        _ = new ActionTypeConfig(ActionType.Wait) { EnergyCost = 500 };
+        _ = new ActionTypeConfig(ActionType.Walk) { EnergyCost = 1000 };
+        _ = new ActionTypeConfig(ActionType.Attack) { EnergyCost = 1200 };
+        _ = new ActionTypeConfig(ActionType.Run) { EnergyCost = 2000 };
     }
 
     [Test]
     public async Task ProcessTicks_CorrectEnergy() {
-        _player.ScheduleNextAction(new EntityAction(ActionType.Walk, _player.Entity) { AnimationDurationMillis = 1 });
+        _player.ScheduleNextAction(new EntityAction(ActionType.Walk, _player.Entity));
         await _turnSystem.ProcessTickAsync();
         // 1 tick -> - (1*ActionCost) +(1*BaseEnergy)
         Assert.That(_player.Entity.CurrentEnergy, Is.EqualTo(-1000 + 100));
@@ -63,13 +63,13 @@ public class TurnSystemTests {
         // Process enough ticks to let entities act
         // We'll process 20 ticks which should be 2 full turns
         for (var i = 0; i < ticks; i++) {
-            _player.ScheduleNextAction(new EntityAction(ActionType.Run, _player.Entity) { AnimationDurationMillis = 1 });
+            _player.ScheduleNextAction(new EntityAction(ActionType.Run, _player.Entity));
             await _turnSystem.ProcessTickAsync();
         }
 
         // Verify turn and tick counts
         Assert.That(_world.CurrentTick, Is.EqualTo(ticks));
-        Assert.That(_world.CurrentTurn, Is.EqualTo(ticks / TurnWorld.TicksPerTurn));
+        Assert.That(_world.CurrentTurn, Is.EqualTo(ticks / _world.TicksPerTurn));
     }
 
     [Test]
@@ -77,17 +77,24 @@ public class TurnSystemTests {
         var ticks = 100;
         // Process enough ticks to let entities act
         // We'll process 100 ticks which should be 10 full turns
+        var playerHistory =  new List<EntityAction>();
+        var fastWalkerHistory =  new List<EntityAction>();
+        var slowAttackerHistory =  new List<EntityAction>();
+
+        _player.Entity.OnExecute += (action) => playerHistory.Add(action);
+        _fastWalker.OnExecute += (action) => fastWalkerHistory.Add(action);
+        _slowAttacker.OnExecute += (action) => slowAttackerHistory.Add(action);
         for (var i = 0; i < ticks; i++) {
-            _player.ScheduleNextAction(new EntityAction(ActionType.Walk, _player.Entity) { AnimationDurationMillis = 1 });
+            _player.ScheduleNextAction(new EntityAction(ActionType.Walk, _player.Entity));
             await _turnSystem.ProcessTickAsync();
         }
 
         // Player always Walks (1000) and speed is 100
         // FastWalker walks too, speed is 120
 
-        Assert.That(_player.Entity.History.Count, Is.EqualTo(10));
-        Assert.That(_fastWalker.History.Count, Is.EqualTo(12));
-        Assert.That(_slowAttacker.History.Count, Is.EqualTo(7));
+        Assert.That(playerHistory.Count, Is.EqualTo(10));
+        Assert.That(fastWalkerHistory.Count, Is.EqualTo(12));
+        Assert.That(slowAttackerHistory.Count, Is.EqualTo(7));
     }
 }
 
@@ -106,11 +113,11 @@ public class EntityEventsTests {
     public void Setup() {
         _world = new TurnWorld(1, 1);
         _turnSystem = new TurnSystem(_world);
-        ActionConfig.RemoveAll();
-        _ = new ActionConfig(ActionType.Wait) { EnergyCost = 500 };
-        _ = new ActionConfig(ActionType.Walk) { EnergyCost = 1000 };
-        _ = new ActionConfig(ActionType.Attack) { EnergyCost = 1200 };
-        _ = new ActionConfig(ActionType.Run) { EnergyCost = 2000 };
+        ActionTypeConfig.RemoveAll();
+        _ = new ActionTypeConfig(ActionType.Wait) { EnergyCost = 500 };
+        _ = new ActionTypeConfig(ActionType.Walk) { EnergyCost = 1000 };
+        _ = new ActionTypeConfig(ActionType.Attack) { EnergyCost = 1200 };
+        _ = new ActionTypeConfig(ActionType.Run) { EnergyCost = 2000 };
 
         ResetCounters();
     }
@@ -303,12 +310,18 @@ public class EntityEventsTests {
         var asyncEntity = EntityBuilder.Create("AsyncEntity", new EntityStats { BaseSpeed = 100 })
             .BuildAsync();
 
+        var history = new List<EntityAction>();
+        asyncEntity.Entity.OnExecute += (action) => {
+            // Execute action immediately
+            history.Add(action);
+        };
+
         _world.AddEntity(asyncEntity.Entity);
 
         // Schedule three actions
-        asyncEntity.ScheduleNextAction(new EntityAction(ActionType.Walk, asyncEntity.Entity) { AnimationDurationMillis = 1 });
-        asyncEntity.ScheduleNextAction(new EntityAction(ActionType.Attack, asyncEntity.Entity) { AnimationDurationMillis = 1 });
-        asyncEntity.ScheduleNextAction(new EntityAction(ActionType.Run, asyncEntity.Entity) { AnimationDurationMillis = 1 });
+        asyncEntity.ScheduleNextAction(new EntityAction(ActionType.Walk, asyncEntity.Entity));
+        asyncEntity.ScheduleNextAction(new EntityAction(ActionType.Attack, asyncEntity.Entity));
+        asyncEntity.ScheduleNextAction(new EntityAction(ActionType.Run, asyncEntity.Entity));
 
         // Process three ticks
         while (asyncEntity.Queue.Count > 0) {
@@ -316,11 +329,11 @@ public class EntityEventsTests {
         }
 
         // Verify actions were executed in order
-        Assert.That(asyncEntity.Entity.History.Count, Is.EqualTo(3));
+        Assert.That(history.Count, Is.EqualTo(3));
         Assert.Multiple(() => {
-            Assert.That(asyncEntity.Entity.History[0].Config.Type, Is.EqualTo(ActionType.Walk));
-            Assert.That(asyncEntity.Entity.History[1].Config.Type, Is.EqualTo(ActionType.Attack));
-            Assert.That(asyncEntity.Entity.History[2].Config.Type, Is.EqualTo(ActionType.Run));
+            Assert.That(history[0].Type, Is.EqualTo(ActionType.Walk));
+            Assert.That(history[1].Type, Is.EqualTo(ActionType.Attack));
+            Assert.That(history[2].Type, Is.EqualTo(ActionType.Run));
         });
 
         // Calculate expected energy

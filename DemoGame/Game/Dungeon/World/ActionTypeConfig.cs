@@ -10,13 +10,13 @@ public enum ActionType  : byte { // 1 byte = 256 values; short = 2 bytes = 65536
     Attack,
 }
 
-public class ActionConfig {
-    private static readonly Dictionary<ActionType, ActionConfig> Actions = new();
+public class ActionTypeConfig {
+    private static readonly Dictionary<ActionType, ActionTypeConfig> Actions = new();
 
     public ActionType Type { get; init; }
     public required int EnergyCost { get; init;  }
 
-    public ActionConfig(ActionType type) {
+    public ActionTypeConfig(ActionType type) {
         Type = type;
         if (Actions.ContainsKey(type)) {
             throw new Exception($"Action type {type} already registered!");
@@ -40,7 +40,7 @@ public class ActionConfig {
         }
     }
 
-    public static ActionConfig Get(ActionType type) {
+    public static ActionTypeConfig Get(ActionType type) {
         return Actions.TryGetValue(type, out var action)
             ? action
             : throw new Exception($"Action type {type} not registered!");
