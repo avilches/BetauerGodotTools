@@ -22,18 +22,19 @@ public class TurnWorld {
     public event Action<int>? OnTick;
 
     public IReadOnlyList<Entity> Entities { get; }
-    private readonly Array2D<WorldCell> _cells;
+    private readonly Array2D<WorldCell?> _cells;
     public int Width => _cells.Width;
     public int Height => _cells.Height;
     public Rect2I Bounds => _cells.Bounds;
 
     public TurnWorld(int width, int height) {
-        _cells = new Array2D<WorldCell>(width, height);
+        _cells = new Array2D<WorldCell?>(width, height);
         Entities = _entities.AsReadOnly();
     }
 
-    public WorldCell this[Vector2I position] => _cells[position];
-    public WorldCell GetOrCreate(Vector2I position) => _cells.GetOrSet(position, () => new WorldCell(position));
+    public WorldCell? this[Vector2I position] => _cells[position];
+    public WorldCell? this[int y, int x] => _cells[y, x];
+    public WorldCell GetOrCreate(Vector2I position) => _cells.GetOrSet(position, () => new WorldCell(position))!;
 
     public void AddEntity(Entity entity) {
         AddEntity(entity, Vector2I.Zero);

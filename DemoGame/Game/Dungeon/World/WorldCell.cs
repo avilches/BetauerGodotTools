@@ -17,7 +17,6 @@ public class WorldCell(Vector2I position) {
         ? EmptyList
         : _readOnlyEntities ??= _entities.AsReadOnly();
 
-
     internal void AddEntity(Entity entity) {
         _entities ??= [];
         if (_entities.Contains(entity)) return;

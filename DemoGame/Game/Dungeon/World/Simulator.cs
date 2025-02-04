@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Betauer.Core.DataMath;
@@ -164,8 +165,8 @@ public class Simulator {
 
     private EntityAction HandleMenuInput(Entity player) {
         while (true) {
-            // Console.Clear();
-            // PrintArray2D(World);
+            Console.Clear();
+            Console.WriteLine(PrintArray2D());
             Console.WriteLine("\nSeleccione una acción:");
             Console.Write("1) Walk 2) Attacks1: ");
             var keyInfo = Console.ReadKey(true);
@@ -196,15 +197,33 @@ public class Simulator {
         }
     }
 
-    private static void PrintArray2D(Array2D<WorldCell> array2D) {
-        for (var y = 0; y < array2D.Height; y++) {
-            for (var x = 0; x < array2D.Width; x++) {
-                var value = array2D[y, x];
-                // if (value == '.') value = ' ';
-                Console.Write(value);
+    private string PrintArray2D() {
+        var stringBuilder = new StringBuilder((World.Width + 1) * World.Height);
+        for (var y = 0; y < World.Height; y++) {
+            for (var x = 0; x < World.Width; x++) {
+                var cell = World[y, x];
+                stringBuilder.Append(Glyph(cell));
             }
-            Console.WriteLine();
+            stringBuilder.Append('\n');
         }
+        return stringBuilder.ToString();
+    }
+
+    private static char Glyph(WorldCell? cell) {
+        if (cell == null) return ' ';
+        return cell.Entities.Count switch {
+            0 => '.',
+            1 => '1',
+            2 => '2',
+            3 => '3',
+            4 => '4',
+            5 => '5',
+            6 => '6',
+            7 => '7',
+            8 => '8',
+            9 => '9',
+            _ => 'X',
+        };
     }
 }
 
