@@ -28,8 +28,11 @@ public class TurnWorld {
     public int Height => _cells.Height;
     public Rect2I Bounds => _cells.Bounds;
 
-    public TurnWorld(int width, int height) {
-        _cells = new Array2D<WorldCell?>(width, height);
+    public TurnWorld(int width, int height) : this(new Array2D<WorldCell?>(width, height)) {
+    }
+
+    public TurnWorld(Array2D<WorldCell?> cells) {
+        _cells = cells;
         Entities = _entities.AsReadOnly();
     }
 

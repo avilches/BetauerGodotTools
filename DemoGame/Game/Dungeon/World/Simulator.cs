@@ -8,6 +8,7 @@ using Betauer.Core.DataMath;
 using Betauer.Core.Examples;
 using Betauer.Core.PCG.GridTemplate;
 using Betauer.Core.PCG.Maze;
+using Godot;
 
 namespace Veronenger.Game.Dungeon.World;
 
@@ -30,12 +31,6 @@ public class Simulator {
     public GameWorld GameWorld;
 
     private void Configure() {
-        World = new TurnWorld(100, 100) {
-            TicksPerTurn = 10,
-            DefaultCellType = CellType.Floor
-        };
-        GameWorld = new GameWorld();
-
         _ = new ActionTypeConfig(ActionType.Wait) { EnergyCost = 1000 };
         _ = new ActionTypeConfig(ActionType.Walk) { EnergyCost = 1000 };
         _ = new ActionTypeConfig(ActionType.Attack) { EnergyCost = 1000 };
@@ -47,12 +42,16 @@ public class Simulator {
         CellTypeConfig.Verify();
 
         var seed = 1;
-        CreateMap(seed);
+        World = new TurnWorld(CreateMap(seed)) {
+            TicksPerTurn = 10,
+            DefaultCellType = CellType.Floor
+        };
+        GameWorld = new GameWorld();
         CreatePlayer();
         CreateEntities();
     }
 
-    private void CreateMap(int seed) {
+    private Array2D<WorldCell> CreateMap(int seed) {
         var rng = new Random(seed);
         var zones = MazeGraphCatalog.BigCycle(rng, mc => {
             // mc.OnNodeCreated += (node) => PrintGraph(mc);
@@ -67,7 +66,7 @@ public class Simulator {
             var content = File.ReadAllText(TemplatePath);
             templateSet.LoadTemplates(content);
 
-            var array2D = zones.MazeGraph.Render(TemplateSelector.Create(templateSet));
+            var array2D = zones.MazeGraph.Render(TemplateSelector.Create(templateSet), WorldCellTypeConverter);
 
             /*
             var array2D = zones.MazeGraph.Render(node => {
@@ -82,12 +81,23 @@ public class Simulator {
 
             });
             */
-            MazeGraphZonedDemo.PrintGraph(zones.MazeGraph, zones);
+            // MazeGraphZonedDemo.PrintGraph(zones.MazeGraph, zones);
+            return array2D;
         } catch (FileNotFoundException e) {
             Console.WriteLine(e.Message);
             Console.WriteLine($"{nameof(TemplatePath)} is '{TemplatePath}'");
             Console.WriteLine("Ensure the working directory is the root of the project");
+            throw;
         }
+    }
+
+    private static WorldCell? WorldCellTypeConverter(Vector2I position, char c) {
+        return c switch {
+            '.' => null,
+            '·' => new WorldCell(CellType.Floor, position),
+            '#' => new WorldCell(CellType.Wall, position),
+            _ => throw new ArgumentOutOfRangeException(nameof(c), c, "Invalid character")
+        };
     }
 
     private void CreateEntities() {
@@ -131,17 +141,23 @@ public class Simulator {
     private void HandlePlayerInput(EntityBlocking player) {
         while (_running) {
             if (player.IsWaiting) {
-                var action = HandleMenuInput(player.Entity);
-                player.SetResult(action);
+                try {
+                    var action = HandleMenuInput(player.Entity);
+                    player.SetResult(action);
+                } catch (Exception e) {
+                    Console.WriteLine(e);
+                    player.SetResult(null);
+                } finally {
+                }
+                Thread.Sleep(100); // Prevent tight loop
             }
-            Thread.Sleep(100); // Prevent tight loop
         }
     }
 
     private EntityAction HandleMenuInput(Entity player) {
         while (true) {
             // Console.Clear();
-            // Console.WriteLine(PrintArray2D());
+            Console.WriteLine(PrintArray2D());
             // Console.WriteLine("\nSeleccione una acción:");
             Console.Write("1) Walk 2) Attacks1: ");
             var keyInfo = Console.ReadKey(true);
@@ -172,10 +188,13 @@ public class Simulator {
     }
 
     private string PrintArray2D() {
-        var stringBuilder = new StringBuilder((World.Width + 1) * World.Height);
+        var stringBuilder = new StringBuilder();
+        Console.WriteLine(World.Width);
+        Console.WriteLine(World.Height);
         for (var y = 0; y < World.Height; y++) {
             for (var x = 0; x < World.Width; x++) {
                 var cell = World[y, x];
+                // Console.WriteLine($"Glyph: {y},{x} : {cell?.Type}");
                 stringBuilder.Append(Glyph(cell));
             }
             stringBuilder.Append('\n');
@@ -185,19 +204,23 @@ public class Simulator {
 
     private static char Glyph(WorldCell? cell) {
         if (cell == null) return ' ';
-        return cell.Entities.Count switch {
-            0 => '.',
-            1 => '1',
-            2 => '2',
-            3 => '3',
-            4 => '4',
-            5 => '5',
-            6 => '6',
-            7 => '7',
-            8 => '8',
-            9 => '9',
-            _ => 'X',
-        };
+        if (cell.Type == CellType.Wall) return '#';
+        if (cell.Type == CellType.Floor) {
+            return cell.Entities.Count switch {
+                0 => '·',
+                1 => '1',
+                2 => '2',
+                3 => '3',
+                4 => '4',
+                5 => '5',
+                6 => '6',
+                7 => '7',
+                8 => '8',
+                9 => '9',
+                _ => 'X',
+            };
+        }
+        return '-';
     }
 }
 

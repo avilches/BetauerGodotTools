@@ -19,7 +19,7 @@ public static class TemplateSelector {
     public static Func<MazeNode, Array2D<char>> Create(TemplateSet templateSet, TemplateSelectorOptions? options = null) {
         var random = options?.Random ?? new Random();
 
-        return node => {
+        return (node) => {
             var nodeRequiredFlags = node.GetAttribute("requiredFlags");
             var nodeOptionalFlags = node.GetAttribute("optionalFlags");
 
