@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Veronenger.Game.Dungeon.World;
 
-public enum ActionType {
+public enum ActionType  : byte { // 1 byte = 256 values; short = 2 bytes = 65536 values
     Wait,
     Walk,
     Run,
@@ -13,16 +13,31 @@ public enum ActionType {
 public class ActionConfig {
     private static readonly Dictionary<ActionType, ActionConfig> Actions = new();
 
-    public ActionType Type { get; }
-    public int EnergyCost { get; }
+    public ActionType Type { get; init; }
+    public required int EnergyCost { get; init;  }
 
-    private ActionConfig(ActionType type, int energyCost) {
+    public ActionConfig(ActionType type) {
         Type = type;
-        EnergyCost = energyCost;
+        if (Actions.ContainsKey(type)) {
+            throw new Exception($"Action type {type} already registered!");
+        }
+        Actions[type] = this;
     }
 
-    public static void RegisterAction(ActionType type, int energyCost) {
-        Actions[type] = new ActionConfig(type, energyCost);
+    public static void Remove(ActionType type) {
+        Actions.Remove(type);
+    }
+
+    public static void RemoveAll() {
+        Actions.Clear();
+    }
+
+    public static void Verify() {
+        foreach (var type in Enum.GetValues<ActionType>()) {
+            if (!Actions.ContainsKey(type)) {
+                throw new Exception($"Action type {type} not registered!");
+            }
+        }
     }
 
     public static ActionConfig Get(ActionType type) {

@@ -14,7 +14,6 @@ public class TurnWorld {
     private readonly List<Entity> _entities = [];
     private readonly Dictionary<string, Entity> _entitiesByName = [];
 
-    public IReadOnlyList<Entity> Entities { get; }
     public int CurrentTick { get; private set; } = 0;
     public int CurrentTurn { get; private set; } = 0;
 
@@ -22,20 +21,19 @@ public class TurnWorld {
     public event Action<Entity>? OnEntityRemoved;
     public event Action<int>? OnTick;
 
-    public Array2D<WorldCell> Cells { get; }
+    public IReadOnlyList<Entity> Entities { get; }
+    private readonly Array2D<WorldCell> _cells;
+    public int Width => _cells.Width;
+    public int Height => _cells.Height;
+    public Rect2I Bounds => _cells.Bounds;
 
     public TurnWorld(int width, int height) {
-        Cells = new Array2D<WorldCell>(width, height);
-        Cells.Load(_ => new WorldCell());
-        for (var y = 0; y < height; y++) {
-            for (var x = 0; x < width; x++) {
-                Cells[x, y] = new WorldCell();
-            }
-        }
+        _cells = new Array2D<WorldCell>(width, height);
         Entities = _entities.AsReadOnly();
     }
 
-    public TurnWorld() : this(10, 10) { }
+    public WorldCell this[Vector2I position] => _cells[position];
+    public WorldCell GetOrCreate(Vector2I position) => _cells.GetOrSet(position, () => new WorldCell(position));
 
     public void AddEntity(Entity entity) {
         AddEntity(entity, Vector2I.Zero);
@@ -53,7 +51,7 @@ public class TurnWorld {
         if (Entities.Contains(entity)) {
             throw new InvalidOperationException($"Entity already added to world: {entity}");
         }
-        if (!Cells.IsValidPosition(position)) {
+        if (!_cells.IsValidPosition(position)) {
             throw new InvalidOperationException($"Invalid position: {position}");
         }
 
@@ -63,7 +61,7 @@ public class TurnWorld {
 
         _entities.Add(entity);
         _entitiesByName[entity.Name] = entity;
-        Cells[entity.Location.Position].AddEntity(entity);
+        GetOrCreate(entity.Location.Position).AddEntity(entity);
 
         // Trigger events
         entity.InvokeOnWorldAdded();
@@ -80,15 +78,15 @@ public class TurnWorld {
         // Remove the data
         _entities.Remove(entity);
         _entitiesByName.Remove(entity.Name);
-        Cells[entity.Location.Position].RemoveEntity(entity);
+        GetOrCreate(entity.Location.Position).RemoveEntity(entity);
         entity.World = null;
         entity.Location = null;
         return true;
     }
 
     internal void UpdatedEntityPosition(Entity entity, Vector2I oldPosition) {
-        Cells[oldPosition].RemoveEntity(entity);
-        Cells[entity.Location.Position].AddEntity(entity);
+        GetOrCreate(oldPosition).RemoveEntity(entity);
+        GetOrCreate(entity.Location.Position).AddEntity(entity);
     }
 
     public void NextTick() {
@@ -101,7 +99,7 @@ public class TurnWorld {
     }
 
     public bool IsValidPosition(Vector2I position) {
-        return Cells.IsValidPosition(position);
+        return _cells.IsValidPosition(position);
     }
 }
 

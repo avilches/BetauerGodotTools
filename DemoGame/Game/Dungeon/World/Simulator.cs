@@ -20,9 +20,17 @@ public class Simulator {
             e.SetObserved(); // Marca la excepción como observada
         };
 
-        ActionConfig.RegisterAction(ActionType.Walk, 1000);
-        ActionConfig.RegisterAction(ActionType.Attack, 1200);
-        ActionConfig.RegisterAction(ActionType.Run, 2000);
+        TurnWorld.TicksPerTurn = 10;
+
+        _ = new ActionConfig(ActionType.Wait) { EnergyCost = 1000 };
+        _ = new ActionConfig(ActionType.Walk) { EnergyCost = 1000 };
+        _ = new ActionConfig(ActionType.Attack) { EnergyCost = 1000 };
+        _ = new ActionConfig(ActionType.Run) { EnergyCost = 500 };
+        ActionConfig.Verify();
+
+        _ = new CellConfig(CellType.Floor);
+        _ = new CellConfig(CellType.Wall);
+        CellConfig.Verify();
 
         var seed = 1;
         var game = new Simulator();
@@ -32,10 +40,8 @@ public class Simulator {
         game.RunGameLoop(100);
     }
 
-    public readonly TurnSystem TurnSystem = new(new TurnWorld());
-    public TurnWorld World => TurnSystem.World;
-    public GameWorld GameWorld = new GameWorld();
-    public Array2D<char> Array2D;
+    public TurnWorld World;
+    public GameWorld GameWorld;
 
     private void CreateMap(int seed) {
         var rng = new Random(seed);
@@ -43,6 +49,9 @@ public class Simulator {
             // mc.OnNodeCreated += (node) => PrintGraph(mc);
         });
         zones.CalculateSolution(MazeGraphCatalog.KeyFormula);
+
+        World = new TurnWorld(100, 100);
+        GameWorld = new GameWorld();
 
         // AddFlags(zones);
 
@@ -53,7 +62,7 @@ public class Simulator {
             var content = File.ReadAllText(TemplatePath);
             templateSet.LoadTemplates(content);
 
-            Array2D = zones.MazeGraph.Render(TemplateSelector.Create(templateSet));
+            var array2D = zones.MazeGraph.Render(TemplateSelector.Create(templateSet));
 
             /*
             var array2D = zones.MazeGraph.Render(node => {
@@ -107,7 +116,7 @@ public class Simulator {
 
     public void RunGameLoop(int turns) {
         var ticks = turns * TurnWorld.TicksPerTurn;
-        var turnSystemProcess = new TurnSystemProcess(TurnSystem);
+        var turnSystemProcess = new TurnSystemProcess(new TurnSystem(World));
         while (_running && World.CurrentTick < ticks) {
             turnSystemProcess._Process();
         }
@@ -156,7 +165,7 @@ public class Simulator {
     private EntityAction HandleMenuInput(Entity player) {
         while (true) {
             // Console.Clear();
-            // PrintArray2D(Array2D);
+            // PrintArray2D(World);
             Console.WriteLine("\nSeleccione una acción:");
             Console.Write("1) Walk 2) Attacks1: ");
             var keyInfo = Console.ReadKey(true);
@@ -187,11 +196,11 @@ public class Simulator {
         }
     }
 
-    private static void PrintArray2D(Array2D<char> array2D) {
+    private static void PrintArray2D(Array2D<WorldCell> array2D) {
         for (var y = 0; y < array2D.Height; y++) {
             for (var x = 0; x < array2D.Width; x++) {
                 var value = array2D[y, x];
-                if (value == '.') value = ' ';
+                // if (value == '.') value = ' ';
                 Console.Write(value);
             }
             Console.WriteLine();

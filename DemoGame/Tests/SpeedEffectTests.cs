@@ -13,11 +13,12 @@ public class SpeedEffectTests {
 
     [SetUp]
     public void Setup() {
-        _world = new TurnWorld();
+        _world = new TurnWorld(1, 1);
         _turnSystem = new TurnSystem(_world);
         _walker = EntityBuilder.Create("Walker", new EntityStats { BaseSpeed = 100 }).DecideAction(ActionType.Walk).Build();
         _world.AddEntity(_walker);
-        ActionConfig.RegisterAction(ActionType.Walk, 1000);
+        ActionConfig.RemoveAll();
+        _ = new ActionConfig(ActionType.Walk) { EnergyCost = 1000 };
     }
 
     [Test]

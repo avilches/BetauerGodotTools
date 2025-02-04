@@ -19,7 +19,7 @@ public class TurnSystemTests {
 
     [SetUp]
     public void Setup() {
-        _world = new TurnWorld();
+        _world = new TurnWorld(1, 1);
         _turnSystem = new TurnSystem(_world);
 
         // Create player with default speed (100)
@@ -40,10 +40,11 @@ public class TurnSystemTests {
         _world.AddEntity(_fastWalker);
         _world.AddEntity(_slowAttacker);
 
-        ActionConfig.RegisterAction(ActionType.Walk, 1000);
-        ActionConfig.RegisterAction(ActionType.Attack, 1200);
-        ActionConfig.RegisterAction(ActionType.Run, 2000);
-        ActionConfig.RegisterAction(ActionType.Wait, 500);
+        ActionConfig.RemoveAll();
+        _ = new ActionConfig(ActionType.Wait) { EnergyCost = 500 };
+        _ = new ActionConfig(ActionType.Walk) { EnergyCost = 1000 };
+        _ = new ActionConfig(ActionType.Attack) { EnergyCost = 1200 };
+        _ = new ActionConfig(ActionType.Run) { EnergyCost = 2000 };
     }
 
     [Test]
@@ -103,11 +104,13 @@ public class EntityEventsTests {
 
     [SetUp]
     public void Setup() {
-        _world = new TurnWorld();
+        _world = new TurnWorld(1, 1);
         _turnSystem = new TurnSystem(_world);
-        ActionConfig.RegisterAction(ActionType.Walk, 1000);
-        ActionConfig.RegisterAction(ActionType.Attack, 1200);
-        ActionConfig.RegisterAction(ActionType.Run, 2000);
+        ActionConfig.RemoveAll();
+        _ = new ActionConfig(ActionType.Wait) { EnergyCost = 500 };
+        _ = new ActionConfig(ActionType.Walk) { EnergyCost = 1000 };
+        _ = new ActionConfig(ActionType.Attack) { EnergyCost = 1200 };
+        _ = new ActionConfig(ActionType.Run) { EnergyCost = 2000 };
 
         ResetCounters();
     }

@@ -49,7 +49,7 @@ public class TurnWorldEventTests {
     [Test]
     public void AddEntity_ShouldTriggerCorrectEvents() {
         var position = new Vector2I(2, 2);
-        var cell = _world.Cells[position];
+        var cell = _world.GetOrCreate(position);
 
         // Subscribe to cell events
         cell.OnEntityAdded += (entity) => _cellEntityAddedCount++;
@@ -63,7 +63,7 @@ public class TurnWorldEventTests {
             Assert.That(_worldEntityAddedCount, Is.EqualTo(1), "World OnEntityAdded should be called once");
             Assert.That(_cellEntityAddedCount, Is.EqualTo(1), "Cell OnEntityAdded should be called once");
             Assert.That(_entityWorldAddedCount, Is.EqualTo(1), "Entity OnWorldAdded should be called once");
-            Assert.That(_world.Cells[position].Entities, Contains.Item(_entity), "Entity should be in the cell");
+            Assert.That(_world[position].Entities, Contains.Item(_entity), "Entity should be in the cell");
             Assert.That(_entity.Location.Position, Is.EqualTo(position), "Entity should be at the correct position");
         });
     }
@@ -71,7 +71,7 @@ public class TurnWorldEventTests {
     [Test]
     public void RemoveEntity_ShouldTriggerCorrectEvents() {
         var position = new Vector2I(2, 2);
-        var cell = _world.Cells[position];
+        var cell = _world.GetOrCreate(position);
 
         // Add entity first
         _world.AddEntity(_entity, position);
@@ -90,7 +90,7 @@ public class TurnWorldEventTests {
             Assert.That(_worldEntityRemovedCount, Is.EqualTo(1), "World OnEntityRemoved should be called once");
             Assert.That(_cellEntityRemovedCount, Is.EqualTo(1), "Cell OnEntityRemoved should be called once");
             Assert.That(_entityWorldRemovedCount, Is.EqualTo(1), "Entity OnWorldRemoved should be called once");
-            Assert.That(_world.Cells[position].Entities, Is.Empty, "Cell should be empty");
+            Assert.That(_world[position].Entities, Is.Empty, "Cell should be empty");
             Assert.That(_entity.World, Is.Null, "Entity World reference should be null");
             Assert.That(_entity.Location, Is.Null, "Entity Location should be null");
         });
@@ -103,8 +103,8 @@ public class TurnWorldEventTests {
 
         _world.AddEntity(_entity, startPosition);
 
-        var oldCell = _world.Cells[startPosition];
-        var newCell = _world.Cells[endPosition];
+        var oldCell = _world.GetOrCreate(startPosition);
+        var newCell = _world.GetOrCreate(endPosition);
 
         // Subscribe to cell events
         oldCell.OnEntityRemoved += (entity) => _cellEntityRemovedCount++;
@@ -125,8 +125,8 @@ public class TurnWorldEventTests {
             Assert.That(_cellEntityAddedCount, Is.EqualTo(1), "New cell OnEntityAdded should be called once");
             Assert.That(_lastOldPosition, Is.EqualTo(startPosition), "Old position should be correct");
             Assert.That(_lastNewPosition, Is.EqualTo(endPosition), "New position should be correct");
-            Assert.That(_world.Cells[startPosition].Entities, Is.Empty, "Old cell should be empty");
-            Assert.That(_world.Cells[endPosition].Entities, Contains.Item(_entity), "New cell should contain entity");
+            Assert.That(_world[startPosition].Entities, Is.Empty, "Old cell should be empty");
+            Assert.That(_world[endPosition].Entities, Contains.Item(_entity), "New cell should contain entity");
         });
     }
 
