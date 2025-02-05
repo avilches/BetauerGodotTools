@@ -8,7 +8,7 @@
 .......
 
 @ID=N/basic
-.#···#.
+.##·##.
 .#···#.
 ##···##
 #·····#
@@ -16,8 +16,8 @@
 #·····#
 #######
 
-@ID=N/basic2
-.#···#.
+@ID=N/basic
+.##·##.
 .#···#.
 ##···##
 #·····#
@@ -25,25 +25,15 @@
 #··#...
 ####...
 
-@ID=N/basic3
+@ID=N/basic
 ..#·#..
-..#··##
+.##·###
 ##····#
 #··####
 #··#··#
 #·····#
 #######
 
-
-@ID=E/basic  from N/basic:90
-@ID=E/basic2 from N/basic2:90
-@ID=E/basic3 from N/basic3:90
-@ID=S/basic  from N/basic:180
-@ID=S/basic2 from N/basic2:180
-@ID=S/basic3 from N/basic3:180
-@ID=W/basic  from N/basic:-90
-@ID=W/basic2 from N/basic2:-90
-@ID=W/basic3 from N/basic3:-90
 
 @ID=N-E/basic
 ##···##
@@ -53,10 +43,6 @@
 #······
 #·····#
 #######
-
-@ID=E-S/basic from N-E/basic:90
-@ID=S-W/basic from N-E/basic:180
-@ID=N-W/basic from N-E/basic:-90
 
 @ID=N-S/basic
 ##···##
@@ -76,9 +62,6 @@
 ##···##
 ##···##
 
-@ID=E-W/basic  from N-S/basic:90
-@ID=E-W/narrow from N-S/narrow:90
-
 @ID=N-E-S/basic
 ##···##
 #·····#
@@ -87,11 +70,6 @@
 #······
 #·····#
 ##···##
-
-@ID=E-S-W/basic from N-E-S/basic:90
-@ID=N-S-W/basic from N-E-S/basic:180
-@ID=N-E-W/basic from N-E-S/basic:-90
-
 
 @ID=N-S-E-W/basic
 ##···##

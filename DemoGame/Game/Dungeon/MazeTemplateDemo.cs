@@ -62,7 +62,7 @@ public class MazeTemplateDemo {
         // Cargar patrones de diferentes archivos
         try {
             var content = File.ReadAllText(TemplatePath);
-            templateSet.LoadTemplates(content);
+            templateSet.LoadFromString(content);
 
             var array2D = zones.MazeGraph.Render(TemplateSelector.Create(templateSet));
 

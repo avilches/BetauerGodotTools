@@ -53,7 +53,7 @@ public class Simulator {
 
     private Array2D<WorldCell> CreateMap(int seed) {
         var rng = new Random(seed);
-        var zones = MazeGraphCatalog.BigCycle(rng, mc => {
+        var zones = MazeGraphCatalog.Mini(rng, mc => {
             // mc.OnNodeCreated += (node) => PrintGraph(mc);
         });
         zones.CalculateSolution(MazeGraphCatalog.KeyFormula);
@@ -64,9 +64,11 @@ public class Simulator {
         // Cargar patrones de diferentes archivos
         try {
             var content = File.ReadAllText(TemplatePath);
-            templateSet.LoadTemplates(content);
+            templateSet.LoadFromString(content);
+            templateSet.P();
 
-            var array2D = zones.MazeGraph.Render(TemplateSelector.Create(templateSet), WorldCellTypeConverter);
+            var templateSelector = TemplateSelector.Create(templateSet, null, rng);
+            var array2D = zones.MazeGraph.Render(templateSelector, WorldCellTypeConverter);
 
             /*
             var array2D = zones.MazeGraph.Render(node => {
