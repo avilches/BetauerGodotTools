@@ -59,13 +59,18 @@ public class Simulator {
         zones.CalculateSolution(MazeGraphCatalog.KeyFormula);
         // AddFlags(zones);
 
-        var templateSet = new TemplateSet(cellSize: 7);
+        var templateSet = new TemplateSet(cellSize: 9);
 
         // Cargar patrones de diferentes archivos
         try {
             var content = File.ReadAllText(TemplatePath);
             templateSet.LoadFromString(content);
-            templateSet.P();
+            var templates = templateSet.FindTemplates();
+            foreach (var template in templates) {
+                templateSet.AddTemplate(template.Transform(Transformations.Type.Rotate90));
+                templateSet.AddTemplate(template.Transform(Transformations.Type.Rotate180));
+                templateSet.AddTemplate(template.Transform(Transformations.Type.RotateMinus90));
+            }
 
             var templateSelector = TemplateSelector.Create(templateSet, null, rng);
             var array2D = zones.MazeGraph.Render(templateSelector, WorldCellTypeConverter);

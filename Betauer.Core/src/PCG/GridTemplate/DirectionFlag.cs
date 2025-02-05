@@ -3,7 +3,7 @@ using System;
 namespace Betauer.Core.PCG.GridTemplate;
 
 [Flags]
-public enum DirectionFlags {
+public enum DirectionFlag {
     None      = 0,
     Up        = 1 << 0, // 00000001
     UpRight   = 1 << 1, // 00000010

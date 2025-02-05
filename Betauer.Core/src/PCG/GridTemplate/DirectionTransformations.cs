@@ -19,62 +19,62 @@ public static class DirectionTransformations {
         };
     }
 
-    public static DirectionFlags Rotate90(DirectionFlags flag) {
+    public static DirectionFlag Rotate90(DirectionFlag flag) {
         return flag switch {
-            DirectionFlags.Up => DirectionFlags.Right,
-            DirectionFlags.Right => DirectionFlags.Down,
-            DirectionFlags.Down => DirectionFlags.Left,
-            DirectionFlags.Left => DirectionFlags.Up,
-            DirectionFlags.UpRight => DirectionFlags.DownRight,
-            DirectionFlags.DownRight => DirectionFlags.DownLeft,
-            DirectionFlags.DownLeft => DirectionFlags.UpLeft,
-            DirectionFlags.UpLeft => DirectionFlags.UpRight,
-            _ => DirectionFlags.None
+            DirectionFlag.Up => DirectionFlag.Right,
+            DirectionFlag.Right => DirectionFlag.Down,
+            DirectionFlag.Down => DirectionFlag.Left,
+            DirectionFlag.Left => DirectionFlag.Up,
+            DirectionFlag.UpRight => DirectionFlag.DownRight,
+            DirectionFlag.DownRight => DirectionFlag.DownLeft,
+            DirectionFlag.DownLeft => DirectionFlag.UpLeft,
+            DirectionFlag.UpLeft => DirectionFlag.UpRight,
+            _ => DirectionFlag.None
         };
     }
 
-    public static DirectionFlags Rotate180(DirectionFlags flag) {
+    public static DirectionFlag Rotate180(DirectionFlag flag) {
         return Rotate90(Rotate90(flag));
     }
 
-    public static DirectionFlags RotateMinus90(DirectionFlags flag) {
+    public static DirectionFlag RotateMinus90(DirectionFlag flag) {
         return Rotate90(Rotate90(Rotate90(flag)));
     }
 
-    public static DirectionFlags FlipH(DirectionFlags flag) {
+    public static DirectionFlag FlipH(DirectionFlag flag) {
         return flag switch {
-            DirectionFlags.Right => DirectionFlags.Left,
-            DirectionFlags.Left => DirectionFlags.Right,
-            DirectionFlags.UpRight => DirectionFlags.UpLeft,
-            DirectionFlags.UpLeft => DirectionFlags.UpRight,
-            DirectionFlags.DownRight => DirectionFlags.DownLeft,
-            DirectionFlags.DownLeft => DirectionFlags.DownRight,
+            DirectionFlag.Right => DirectionFlag.Left,
+            DirectionFlag.Left => DirectionFlag.Right,
+            DirectionFlag.UpRight => DirectionFlag.UpLeft,
+            DirectionFlag.UpLeft => DirectionFlag.UpRight,
+            DirectionFlag.DownRight => DirectionFlag.DownLeft,
+            DirectionFlag.DownLeft => DirectionFlag.DownRight,
             // Up and Down remain the same
-            DirectionFlags.Up => DirectionFlags.Up,
-            DirectionFlags.Down => DirectionFlags.Down,
-            _ => DirectionFlags.None
+            DirectionFlag.Up => DirectionFlag.Up,
+            DirectionFlag.Down => DirectionFlag.Down,
+            _ => DirectionFlag.None
         };
     }
 
-    public static DirectionFlags FlipV(DirectionFlags flag) {
+    public static DirectionFlag FlipV(DirectionFlag flag) {
         return flag switch {
-            DirectionFlags.Up => DirectionFlags.Down,
-            DirectionFlags.Down => DirectionFlags.Up,
-            DirectionFlags.UpRight => DirectionFlags.DownRight,
-            DirectionFlags.DownRight => DirectionFlags.UpRight,
-            DirectionFlags.UpLeft => DirectionFlags.DownLeft,
-            DirectionFlags.DownLeft => DirectionFlags.UpLeft,
+            DirectionFlag.Up => DirectionFlag.Down,
+            DirectionFlag.Down => DirectionFlag.Up,
+            DirectionFlag.UpRight => DirectionFlag.DownRight,
+            DirectionFlag.DownRight => DirectionFlag.UpRight,
+            DirectionFlag.UpLeft => DirectionFlag.DownLeft,
+            DirectionFlag.DownLeft => DirectionFlag.UpLeft,
             // Left and Right remain the same
-            DirectionFlags.Left => DirectionFlags.Left,
-            DirectionFlags.Right => DirectionFlags.Right,
-            _ => DirectionFlags.None
+            DirectionFlag.Left => DirectionFlag.Left,
+            DirectionFlag.Right => DirectionFlag.Right,
+            _ => DirectionFlag.None
         };
     }
 
     public static int Rotate90(int flags) {
         var newType = 0;
-        foreach (DirectionFlags flag in Enum.GetValues(typeof(DirectionFlags))) {
-            if (flag == DirectionFlags.None) continue;
+        foreach (DirectionFlag flag in Enum.GetValues(typeof(DirectionFlag))) {
+            if (flag == DirectionFlag.None) continue;
             if ((flags & (int)flag) != 0) {
                 newType |= (int)Rotate90(flag);
             }
@@ -84,8 +84,8 @@ public static class DirectionTransformations {
 
     public static int FlipH(int flags) {
         var newType = 0;
-        foreach (DirectionFlags flag in Enum.GetValues(typeof(DirectionFlags))) {
-            if (flag == DirectionFlags.None) continue;
+        foreach (DirectionFlag flag in Enum.GetValues(typeof(DirectionFlag))) {
+            if (flag == DirectionFlag.None) continue;
             if ((flags & (int)flag) != 0) {
                 newType |= (int)FlipH(flag);
             }
@@ -95,8 +95,8 @@ public static class DirectionTransformations {
 
     public static int FlipV(int flags) {
         var newType = 0;
-        foreach (DirectionFlags flag in Enum.GetValues(typeof(DirectionFlags))) {
-            if (flag == DirectionFlags.None) continue;
+        foreach (DirectionFlag flag in Enum.GetValues(typeof(DirectionFlag))) {
+            if (flag == DirectionFlag.None) continue;
             if ((flags & (int)flag) != 0) {
                 newType |= (int)FlipV(flag);
             }
@@ -107,12 +107,12 @@ public static class DirectionTransformations {
     public static int MirrorLR(int flags) {
         var newType = flags;
         // Primero limpiamos el lado derecho
-        newType &= ~((int)(DirectionFlags.Right | DirectionFlags.UpRight | DirectionFlags.DownRight));
+        newType &= ~((int)(DirectionFlag.Right | DirectionFlag.UpRight | DirectionFlag.DownRight));
 
         // Copiamos el lado izquierdo al derecho
-        if ((flags & (int)DirectionFlags.Left) != 0) newType |= (int)DirectionFlags.Right;
-        if ((flags & (int)DirectionFlags.UpLeft) != 0) newType |= (int)DirectionFlags.UpRight;
-        if ((flags & (int)DirectionFlags.DownLeft) != 0) newType |= (int)DirectionFlags.DownRight;
+        if ((flags & (int)DirectionFlag.Left) != 0) newType |= (int)DirectionFlag.Right;
+        if ((flags & (int)DirectionFlag.UpLeft) != 0) newType |= (int)DirectionFlag.UpRight;
+        if ((flags & (int)DirectionFlag.DownLeft) != 0) newType |= (int)DirectionFlag.DownRight;
 
         return newType;
     }
@@ -120,12 +120,12 @@ public static class DirectionTransformations {
     public static int MirrorRL(int flags) {
         var newType = flags;
         // Primero limpiamos el lado izquierdo
-        newType &= ~((int)(DirectionFlags.Left | DirectionFlags.UpLeft | DirectionFlags.DownLeft));
+        newType &= ~((int)(DirectionFlag.Left | DirectionFlag.UpLeft | DirectionFlag.DownLeft));
 
         // Copiamos el lado derecho al izquierdo
-        if ((flags & (int)DirectionFlags.Right) != 0) newType |= (int)DirectionFlags.Left;
-        if ((flags & (int)DirectionFlags.UpRight) != 0) newType |= (int)DirectionFlags.UpLeft;
-        if ((flags & (int)DirectionFlags.DownRight) != 0) newType |= (int)DirectionFlags.DownLeft;
+        if ((flags & (int)DirectionFlag.Right) != 0) newType |= (int)DirectionFlag.Left;
+        if ((flags & (int)DirectionFlag.UpRight) != 0) newType |= (int)DirectionFlag.UpLeft;
+        if ((flags & (int)DirectionFlag.DownRight) != 0) newType |= (int)DirectionFlag.DownLeft;
 
         return newType;
     }
@@ -133,12 +133,12 @@ public static class DirectionTransformations {
     public static int MirrorTB(int flags) {
         var newType = flags;
         // Primero limpiamos el lado inferior
-        newType &= ~((int)(DirectionFlags.Down | DirectionFlags.DownLeft | DirectionFlags.DownRight));
+        newType &= ~((int)(DirectionFlag.Down | DirectionFlag.DownLeft | DirectionFlag.DownRight));
 
         // Copiamos el lado superior al inferior
-        if ((flags & (int)DirectionFlags.Up) != 0) newType |= (int)DirectionFlags.Down;
-        if ((flags & (int)DirectionFlags.UpLeft) != 0) newType |= (int)DirectionFlags.DownLeft;
-        if ((flags & (int)DirectionFlags.UpRight) != 0) newType |= (int)DirectionFlags.DownRight;
+        if ((flags & (int)DirectionFlag.Up) != 0) newType |= (int)DirectionFlag.Down;
+        if ((flags & (int)DirectionFlag.UpLeft) != 0) newType |= (int)DirectionFlag.DownLeft;
+        if ((flags & (int)DirectionFlag.UpRight) != 0) newType |= (int)DirectionFlag.DownRight;
 
         return newType;
     }
@@ -146,12 +146,12 @@ public static class DirectionTransformations {
     public static int MirrorBT(int flags) {
         var newType = flags;
         // Primero limpiamos el lado superior
-        newType &= ~((int)(DirectionFlags.Up | DirectionFlags.UpLeft | DirectionFlags.UpRight));
+        newType &= ~((int)(DirectionFlag.Up | DirectionFlag.UpLeft | DirectionFlag.UpRight));
 
         // Copiamos el lado inferior al superior
-        if ((flags & (int)DirectionFlags.Down) != 0) newType |= (int)DirectionFlags.Up;
-        if ((flags & (int)DirectionFlags.DownLeft) != 0) newType |= (int)DirectionFlags.UpLeft;
-        if ((flags & (int)DirectionFlags.DownRight) != 0) newType |= (int)DirectionFlags.UpRight;
+        if ((flags & (int)DirectionFlag.Down) != 0) newType |= (int)DirectionFlag.Up;
+        if ((flags & (int)DirectionFlag.DownLeft) != 0) newType |= (int)DirectionFlag.UpLeft;
+        if ((flags & (int)DirectionFlag.DownRight) != 0) newType |= (int)DirectionFlag.UpRight;
 
         return newType;
     }

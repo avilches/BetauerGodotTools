@@ -4,39 +4,42 @@ using Betauer.Core.DataMath;
 
 namespace Betauer.Core.PCG.GridTemplate;
 
-public class Template(TemplateHeader header) {
-    public TemplateHeader Header { get; } = header;
+public class Template {
+    public int DirectionFlags { get; set; }= 0;
+    public HashSet<string> Tags { get; set; } = [];
     public Array2D<char> Body { get; set; }
 
-    public bool HasExactFlags(IEnumerable<string> requiredFlags) {
-        return Header.Flags.SetEquals(new HashSet<string>(requiredFlags));
+    public bool HasExactTags(IEnumerable<string> tags) {
+        return Tags.SetEquals(new HashSet<string>(tags));
     }
 
-    public bool HasAllFlags(IEnumerable<string> requiredFlags) {
-        return requiredFlags.All(flag => Header.Flags.Contains(flag));
+    public bool HasAllTags(IEnumerable<string> tags) {
+        return tags.All(tag => Tags.Contains(tag));
     }
 
-    public bool HasFlag(string flag) {
-        return Header.Flags.Contains(flag);
+    public bool HasTag(string tag) {
+        return Tags.Contains(tag);
     }
 
-    public bool HasAnyFlags(IEnumerable<string> requiredFlags) {
-        return requiredFlags.Any(flag => Header.Flags.Contains(flag));
+    public bool HasAnyTag(IEnumerable<string> tags) {
+        return tags.Any(tag => Tags.Contains(tag));
     }
 
-    public IEnumerable<string> MatchingFlags(string[] flags) {
-        return flags.Where(flag => Header.Flags.Contains(flag));
+    public IEnumerable<string> MatchingTags(string[] tags) {
+        return tags.Where(tag => Tags.Contains(tag));
     }
 
     public override string ToString() {
-        return Header.ToString();
+        var baseString = DirectionFlagTools.FlagsToString(DirectionFlags);
+        if (Tags.Count == 0) return baseString;
+        return baseString + "/" + string.Join("/", Tags);
     }
 
     public Template Transform(Transformations.Type type) {
-        var newData = new Array2D<char>(Body.Data.Transform(type));
-        var newType = DirectionTransformations.TransformDirections(Header.Type, type);
-        return new Template(new TemplateHeader(newType, Header.Flags)) {
-            Body = newData
+        return new Template {
+            DirectionFlags = DirectionTransformations.TransformDirections(DirectionFlags, type),
+            Tags = [..Tags],
+            Body = new Array2D<char>(Body.Data.Transform(type))
         };
     }
 }

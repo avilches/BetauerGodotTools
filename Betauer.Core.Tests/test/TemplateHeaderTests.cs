@@ -11,113 +11,101 @@ public class TemplateHeaderTests {
     [SetUp]
     public void Setup() {
         // Registrar alias para los tests
-        TemplateHeader.RegisterAlias("CROSS", DirectionFlags.Up | DirectionFlags.Down |
-                                        DirectionFlags.Right | DirectionFlags.Left);
-        TemplateHeader.RegisterAlias("ALL", DirectionFlags.Up | DirectionFlags.Down |
-                                      DirectionFlags.Right | DirectionFlags.Left);
-        TemplateHeader.RegisterAlias("UD", DirectionFlags.Up | DirectionFlags.Down);
-        TemplateHeader.RegisterAlias("TLBR", DirectionFlags.UpLeft | DirectionFlags.DownRight);
+        DirectionFlagTools.RegisterAlias("CROSS", DirectionFlag.Up | DirectionFlag.Down |
+                                        DirectionFlag.Right | DirectionFlag.Left);
+        DirectionFlagTools.RegisterAlias("ALL", DirectionFlag.Up | DirectionFlag.Down |
+                                                DirectionFlag.Right | DirectionFlag.Left);
+        DirectionFlagTools.RegisterAlias("UD", DirectionFlag.Up | DirectionFlag.Down);
+        DirectionFlagTools.RegisterAlias("TLBR", DirectionFlag.UpLeft | DirectionFlag.DownRight);
     }
 
     [Test]
     public void TestTemplateIdTypeToDirectionsString() {
         // Basic cardinal directions
-        Assert.That(TemplateHeader.TypeToDirectionsString((int)DirectionFlags.Up), Is.EqualTo("U"));
-        Assert.That(TemplateHeader.TypeToDirectionsString((int)DirectionFlags.Right), Is.EqualTo("R"));
-        Assert.That(TemplateHeader.TypeToDirectionsString((int)DirectionFlags.Down), Is.EqualTo("D"));
-        Assert.That(TemplateHeader.TypeToDirectionsString((int)DirectionFlags.Left), Is.EqualTo("L"));
+        Assert.That(DirectionFlagTools.FlagsToString((int)DirectionFlag.Up), Is.EqualTo("U"));
+        Assert.That(DirectionFlagTools.FlagsToString((int)DirectionFlag.Right), Is.EqualTo("R"));
+        Assert.That(DirectionFlagTools.FlagsToString((int)DirectionFlag.Down), Is.EqualTo("D"));
+        Assert.That(DirectionFlagTools.FlagsToString((int)DirectionFlag.Left), Is.EqualTo("L"));
 
         // Basic diagonal directions
-        Assert.That(TemplateHeader.TypeToDirectionsString((int)DirectionFlags.UpRight), Is.EqualTo("UR"));
-        Assert.That(TemplateHeader.TypeToDirectionsString((int)DirectionFlags.DownRight), Is.EqualTo("DR"));
-        Assert.That(TemplateHeader.TypeToDirectionsString((int)DirectionFlags.DownLeft), Is.EqualTo("DL"));
-        Assert.That(TemplateHeader.TypeToDirectionsString((int)DirectionFlags.UpLeft), Is.EqualTo("UL"));
+        Assert.That(DirectionFlagTools.FlagsToString((int)DirectionFlag.UpRight), Is.EqualTo("UR"));
+        Assert.That(DirectionFlagTools.FlagsToString((int)DirectionFlag.DownRight), Is.EqualTo("DR"));
+        Assert.That(DirectionFlagTools.FlagsToString((int)DirectionFlag.DownLeft), Is.EqualTo("DL"));
+        Assert.That(DirectionFlagTools.FlagsToString((int)DirectionFlag.UpLeft), Is.EqualTo("UL"));
 
         // Combined cardinal directions
-        Assert.That(TemplateHeader.TypeToDirectionsString((int)(DirectionFlags.Up | DirectionFlags.Down)), Is.EqualTo("D-U"));
-        Assert.That(TemplateHeader.TypeToDirectionsString((int)(DirectionFlags.Right | DirectionFlags.Left)), Is.EqualTo("L-R"));
-        Assert.That(TemplateHeader.TypeToDirectionsString((int)(DirectionFlags.Up | DirectionFlags.Right)), Is.EqualTo("R-U"));
+        Assert.That(DirectionFlagTools.FlagsToString((int)(DirectionFlag.Up | DirectionFlag.Down)), Is.EqualTo("D-U"));
+        Assert.That(DirectionFlagTools.FlagsToString((int)(DirectionFlag.Right | DirectionFlag.Left)), Is.EqualTo("L-R"));
+        Assert.That(DirectionFlagTools.FlagsToString((int)(DirectionFlag.Up | DirectionFlag.Right)), Is.EqualTo("R-U"));
 
         // Combined diagonal directions
-        Assert.That(TemplateHeader.TypeToDirectionsString((int)(DirectionFlags.UpRight | DirectionFlags.DownLeft)), Is.EqualTo("DL-UR"));
-        Assert.That(TemplateHeader.TypeToDirectionsString((int)(DirectionFlags.DownRight | DirectionFlags.UpLeft)), Is.EqualTo("DR-UL"));
+        Assert.That(DirectionFlagTools.FlagsToString((int)(DirectionFlag.UpRight | DirectionFlag.DownLeft)), Is.EqualTo("DL-UR"));
+        Assert.That(DirectionFlagTools.FlagsToString((int)(DirectionFlag.DownRight | DirectionFlag.UpLeft)), Is.EqualTo("DR-UL"));
 
         // Mix of cardinal and diagonal
-        Assert.That(TemplateHeader.TypeToDirectionsString((int)(DirectionFlags.Up | DirectionFlags.DownRight)), Is.EqualTo("DR-U"));
-        Assert.That(TemplateHeader.TypeToDirectionsString((int)(DirectionFlags.Left | DirectionFlags.UpRight)), Is.EqualTo("L-UR"));
+        Assert.That(DirectionFlagTools.FlagsToString((int)(DirectionFlag.Up | DirectionFlag.DownRight)), Is.EqualTo("DR-U"));
+        Assert.That(DirectionFlagTools.FlagsToString((int)(DirectionFlag.Left | DirectionFlag.UpRight)), Is.EqualTo("L-UR"));
     }
 
     [Test]
     public void TestParseDirections() {
         // Basic cardinal directions
-        Assert.That(TemplateHeader.Parse("N").Type, Is.EqualTo((int)DirectionFlags.Up));
-        Assert.That(TemplateHeader.Parse("E").Type, Is.EqualTo((int)DirectionFlags.Right));
-        Assert.That(TemplateHeader.Parse("S").Type, Is.EqualTo((int)DirectionFlags.Down));
-        Assert.That(TemplateHeader.Parse("W").Type, Is.EqualTo((int)DirectionFlags.Left));
+        Assert.That(DirectionFlagTools.StringToFlags("N"), Is.EqualTo((int)DirectionFlag.Up));
+        Assert.That(DirectionFlagTools.StringToFlags("E"), Is.EqualTo((int)DirectionFlag.Right));
+        Assert.That(DirectionFlagTools.StringToFlags("S"), Is.EqualTo((int)DirectionFlag.Down));
+        Assert.That(DirectionFlagTools.StringToFlags("W"), Is.EqualTo((int)DirectionFlag.Left));
 
         // Basic diagonal directions
-        Assert.That(TemplateHeader.Parse("NE").Type, Is.EqualTo((int)DirectionFlags.UpRight));
-        Assert.That(TemplateHeader.Parse("SE").Type, Is.EqualTo((int)DirectionFlags.DownRight));
-        Assert.That(TemplateHeader.Parse("SW").Type, Is.EqualTo((int)DirectionFlags.DownLeft));
-        Assert.That(TemplateHeader.Parse("NW").Type, Is.EqualTo((int)DirectionFlags.UpLeft));
+        Assert.That(DirectionFlagTools.StringToFlags("NE"), Is.EqualTo((int)DirectionFlag.UpRight));
+        Assert.That(DirectionFlagTools.StringToFlags("SE"), Is.EqualTo((int)DirectionFlag.DownRight));
+        Assert.That(DirectionFlagTools.StringToFlags("SW"), Is.EqualTo((int)DirectionFlag.DownLeft));
+        Assert.That(DirectionFlagTools.StringToFlags("NW"), Is.EqualTo((int)DirectionFlag.UpLeft));
 
         // Combined cardinal directions
-        Assert.That(TemplateHeader.Parse("N-S").Type, Is.EqualTo((int)(DirectionFlags.Up | DirectionFlags.Down)));
-        Assert.That(TemplateHeader.Parse("E-W").Type, Is.EqualTo((int)(DirectionFlags.Right | DirectionFlags.Left)));
-        Assert.That(TemplateHeader.Parse("N-E").Type, Is.EqualTo((int)(DirectionFlags.Up | DirectionFlags.Right)));
+        Assert.That(DirectionFlagTools.StringToFlags("N-S"), Is.EqualTo((int)(DirectionFlag.Up | DirectionFlag.Down)));
+        Assert.That(DirectionFlagTools.StringToFlags("E-W"), Is.EqualTo((int)(DirectionFlag.Right | DirectionFlag.Left)));
+        Assert.That(DirectionFlagTools.StringToFlags("N-E"), Is.EqualTo((int)(DirectionFlag.Up | DirectionFlag.Right)));
     }
 
     [Test]
     public void TestDirectionAliases() {
         // Test cardinal direction aliases
-        Assert.That(TemplateHeader.Parse("U").Type, Is.EqualTo((int)DirectionFlags.Up));
-        Assert.That(TemplateHeader.Parse("T").Type, Is.EqualTo((int)DirectionFlags.Up));
-        Assert.That(TemplateHeader.Parse("R").Type, Is.EqualTo((int)DirectionFlags.Right));
-        Assert.That(TemplateHeader.Parse("D").Type, Is.EqualTo((int)DirectionFlags.Down));
-        Assert.That(TemplateHeader.Parse("B").Type, Is.EqualTo((int)DirectionFlags.Down));
-        Assert.That(TemplateHeader.Parse("L").Type, Is.EqualTo((int)DirectionFlags.Left));
+        Assert.That(DirectionFlagTools.StringToFlags("U"), Is.EqualTo((int)DirectionFlag.Up));
+        Assert.That(DirectionFlagTools.StringToFlags("T"), Is.EqualTo((int)DirectionFlag.Up));
+        Assert.That(DirectionFlagTools.StringToFlags("R"), Is.EqualTo((int)DirectionFlag.Right));
+        Assert.That(DirectionFlagTools.StringToFlags("D"), Is.EqualTo((int)DirectionFlag.Down));
+        Assert.That(DirectionFlagTools.StringToFlags("B"), Is.EqualTo((int)DirectionFlag.Down));
+        Assert.That(DirectionFlagTools.StringToFlags("L"), Is.EqualTo((int)DirectionFlag.Left));
 
         // Test diagonal aliases
-        Assert.That(TemplateHeader.Parse("TR").Type, Is.EqualTo((int)DirectionFlags.UpRight));
-        Assert.That(TemplateHeader.Parse("BR").Type, Is.EqualTo((int)DirectionFlags.DownRight));
-        Assert.That(TemplateHeader.Parse("BL").Type, Is.EqualTo((int)DirectionFlags.DownLeft));
-        Assert.That(TemplateHeader.Parse("TL").Type, Is.EqualTo((int)DirectionFlags.UpLeft));
+        Assert.That(DirectionFlagTools.StringToFlags("TR"), Is.EqualTo((int)DirectionFlag.UpRight));
+        Assert.That(DirectionFlagTools.StringToFlags("BR"), Is.EqualTo((int)DirectionFlag.DownRight));
+        Assert.That(DirectionFlagTools.StringToFlags("BL"), Is.EqualTo((int)DirectionFlag.DownLeft));
+        Assert.That(DirectionFlagTools.StringToFlags("TL"), Is.EqualTo((int)DirectionFlag.UpLeft));
 
-        Assert.That(TemplateHeader.Parse("UR").Type, Is.EqualTo((int)DirectionFlags.UpRight));
-        Assert.That(TemplateHeader.Parse("DR").Type, Is.EqualTo((int)DirectionFlags.DownRight));
-        Assert.That(TemplateHeader.Parse("DL").Type, Is.EqualTo((int)DirectionFlags.DownLeft));
-        Assert.That(TemplateHeader.Parse("UL").Type, Is.EqualTo((int)DirectionFlags.UpLeft));
-    }
-
-    [Test]
-    public void TestParseWithFlags() {
-        // Test parsing with flags
-        var template = TemplateHeader.Parse("N-SE/flag1/flag2");
-        Assert.That(template.Type, Is.EqualTo((int)(DirectionFlags.Up | DirectionFlags.DownRight)));
-        Assert.That(template.Flags, Is.EquivalentTo(new[] { "flag1", "flag2" }));
-
-        template = TemplateHeader.Parse("NE-SW/special");
-        Assert.That(template.Type, Is.EqualTo((int)(DirectionFlags.UpRight | DirectionFlags.DownLeft)));
-        Assert.That(template.Flags, Is.EquivalentTo(new[] { "special" }));
+        Assert.That(DirectionFlagTools.StringToFlags("UR"), Is.EqualTo((int)DirectionFlag.UpRight));
+        Assert.That(DirectionFlagTools.StringToFlags("DR"), Is.EqualTo((int)DirectionFlag.DownRight));
+        Assert.That(DirectionFlagTools.StringToFlags("DL"), Is.EqualTo((int)DirectionFlag.DownLeft));
+        Assert.That(DirectionFlagTools.StringToFlags("UL"), Is.EqualTo((int)DirectionFlag.UpLeft));
     }
 
     [Test]
     public void TestNumericParsing() {
         // Test parsing numeric values
-        Assert.That(TemplateHeader.Parse("1").Type, Is.EqualTo((int)DirectionFlags.Up));            // 1 = North (1)
-        Assert.That(TemplateHeader.Parse("3").Type, Is.EqualTo((int)(DirectionFlags.Up |
-                                                                 DirectionFlags.UpRight)));        // 3 = North (1) + NorthEast (2)
-        Assert.That(TemplateHeader.Parse("15").Type, Is.EqualTo((int)(DirectionFlags.Up |          // 15 = North (1) +
-                                                                  DirectionFlags.UpRight |        //      NorthEast (2) +
-                                                                  DirectionFlags.Right |             //      East (4) +
-                                                                  DirectionFlags.DownRight)));      //      SouthEast (8)
+        Assert.That(DirectionFlagTools.StringToFlags("1"), Is.EqualTo((int)DirectionFlag.Up));            // 1 = North (1)
+        Assert.That(DirectionFlagTools.StringToFlags("3"), Is.EqualTo((int)(DirectionFlag.Up |
+                                                                 DirectionFlag.UpRight)));        // 3 = North (1) + NorthEast (2)
+        Assert.That(DirectionFlagTools.StringToFlags("15"), Is.EqualTo((int)(DirectionFlag.Up |          // 15 = North (1) +
+                                                                  DirectionFlag.UpRight |        //      NorthEast (2) +
+                                                                  DirectionFlag.Right |             //      East (4) +
+                                                                  DirectionFlag.DownRight)));      //      SouthEast (8)
     }
     [Test]
     public void TestInvalidInput() {
         // Test invalid inputs
-        Assert.Throws<ArgumentException>(() => TemplateHeader.Parse("X"));
-        Assert.Throws<ArgumentException>(() => TemplateHeader.Parse("NSX"));
-        Assert.Throws<ArgumentException>(() => TemplateHeader.Parse("N-X"));
+        Assert.Throws<ArgumentException>(() => DirectionFlagTools.StringToFlags("X"));
+        Assert.Throws<ArgumentException>(() => DirectionFlagTools.StringToFlags("NSX"));
+        Assert.Throws<ArgumentException>(() => DirectionFlagTools.StringToFlags("N-X"));
     }
 
     [Test]
@@ -133,8 +121,8 @@ public class TemplateHeaderTests {
         };
 
         foreach (var testCase in cases) {
-            var template = TemplateHeader.Parse(testCase);
-            var roundTrip = TemplateHeader.TypeToDirectionsString(template.Type);
+            var template = DirectionFlagTools.StringToFlags(testCase);
+            var roundTrip = DirectionFlagTools.FlagsToString(template);
             Assert.That(roundTrip, Is.EqualTo(testCase),
                 $"Round trip failed for {testCase}. Got {roundTrip}");
         }
@@ -143,27 +131,27 @@ public class TemplateHeaderTests {
     [Test]
     public void TestRegisterCustomAlias() {
         // Register a custom alias
-        TemplateHeader.RegisterAlias("CROSS", DirectionFlags.Up | DirectionFlags.Down |
-                                        DirectionFlags.Right | DirectionFlags.Left);
+        DirectionFlagTools.RegisterAlias("CROSS", DirectionFlag.Up | DirectionFlag.Down |
+                                        DirectionFlag.Right | DirectionFlag.Left);
 
         // Test the custom alias
-        Assert.That(TemplateHeader.Parse("CROSS").Type,
-            Is.EqualTo((int)(DirectionFlags.Up | DirectionFlags.Down |
-                            DirectionFlags.Right | DirectionFlags.Left)));
+        Assert.That(DirectionFlagTools.StringToFlags("CROSS"),
+            Is.EqualTo((int)(DirectionFlag.Up | DirectionFlag.Down |
+                            DirectionFlag.Right | DirectionFlag.Left)));
 
         // Test combining custom alias with regular directions
-        Assert.That(TemplateHeader.Parse("CROSS-NE").Type,
-            Is.EqualTo((int)(DirectionFlags.Up | DirectionFlags.Down |
-                            DirectionFlags.Right | DirectionFlags.Left | DirectionFlags.UpRight)));
+        Assert.That(DirectionFlagTools.StringToFlags("CROSS-NE"),
+            Is.EqualTo((int)(DirectionFlag.Up | DirectionFlag.Down |
+                            DirectionFlag.Right | DirectionFlag.Left | DirectionFlag.UpRight)));
     }
 
     [Test]
     public void TestConsistentStringOutput() {
         // Registrar alias necesarios para el test
-        TemplateHeader.RegisterAlias("TLBR", DirectionFlags.UpLeft | DirectionFlags.DownRight);
-        TemplateHeader.RegisterAlias("UD", DirectionFlags.Up | DirectionFlags.Down);
-        TemplateHeader.RegisterAlias("ALL", DirectionFlags.Up | DirectionFlags.Down |
-                                      DirectionFlags.Right | DirectionFlags.Left);
+        DirectionFlagTools.RegisterAlias("TLBR", DirectionFlag.UpLeft | DirectionFlag.DownRight);
+        DirectionFlagTools.RegisterAlias("UD", DirectionFlag.Up | DirectionFlag.Down);
+        DirectionFlagTools.RegisterAlias("ALL", DirectionFlag.Up | DirectionFlag.Down |
+                                      DirectionFlag.Right | DirectionFlag.Left);
 
         // Test that different input combinations produce consistent output
         var cases = new Dictionary<string, string> {
@@ -176,8 +164,8 @@ public class TemplateHeaderTests {
         };
 
         foreach (var (input, expected) in cases) {
-            var template = TemplateHeader.Parse(input);
-            var output = TemplateHeader.TypeToDirectionsString(template.Type);
+            var template = DirectionFlagTools.StringToFlags(input);
+            var output = DirectionFlagTools.FlagsToString(template);
             Assert.That(output, Is.EqualTo(expected),
                 $"Input '{input}' should produce '{expected}' but got '{output}'");
         }

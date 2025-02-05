@@ -6,7 +6,6 @@ using NUnit.Framework;
 namespace Betauer.Core.Tests;
 
 [TestFixture]
-[Only]
 public class TemplateSetTests {
     private TemplateSet _templateSet;
 
@@ -23,11 +22,11 @@ public class TemplateSetTests {
     [Test]
     public void LoadFromString_BasicTemplates_Success() {
         var content = @"
-            @ID=15
+            @Template=15
             abc
             def
             ghi
-            @ID=15/special
+            @Template=15/special
             xyz
             uvw
             rst
@@ -39,11 +38,11 @@ public class TemplateSetTests {
     [Test]
     public void FindTemplates_ByType_ReturnsAllMatchingTemplates() {
         var content = @"
-            @ID=15
+            @Template=15
             abc
             def
             ghi
-            @ID=15/special
+            @Template=15/special
             xyz
             uvw
             rst
@@ -58,11 +57,11 @@ public class TemplateSetTests {
     [Test]
     public void FindTemplates_WithRequiredFlags_ReturnsMatchingTemplates() {
         var content = @"
-            @ID=15
+            @Template=15
             abc
             def
             ghi
-            @ID=15/special/extra
+            @Template=15/special/extra
             xyz
             uvw
             rst
@@ -77,15 +76,15 @@ public class TemplateSetTests {
     [Test]
     public void FindTemplates_WithRequiredAndOptionalFlags_ReturnsOrderedTemplates() {
         var content = @"
-            @ID=15/flag1
+            @Template=15/flag1
             abc
             def
             ghi
-            @ID=15/flag1/flag2
+            @Template=15/flag1/flag2
             xyz
             uvw
             rst
-            @ID=15/flag1/flag2/flag3
+            @Template=15/flag1/flag2/flag3
             123
             456
             789
@@ -100,7 +99,7 @@ public class TemplateSetTests {
     [Test]
     public void GetTemplate_WithExactFlags_ReturnsUniqueTemplate() {
         var content = @"
-            @ID=15/flag1/flag2
+            @Template=15/flag1/flag2
             abc
             def
             ghi
@@ -120,7 +119,7 @@ public class TemplateSetTests {
     [Test]
     public void FindTemplates_WithNonExistentFlags_ThrowsException() {
         var content = @"
-            @ID=15
+            @Template=15
             abc
             def
             ghi

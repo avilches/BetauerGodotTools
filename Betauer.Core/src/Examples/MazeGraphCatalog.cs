@@ -79,8 +79,8 @@ public class MazeGraphCatalog {
     public static MazeZones Mini(Random rng, Action<MazeGraph>? config = null) {
         var constraints = new MazePerZoneConstraints()
             .Zone(nodes: 3)
-            .Zone(nodes: 8, parts: 8)
-            .Zone(nodes: 8, parts: 8);
+            .Zone(nodes: 8, parts: 4)
+            .Zone(nodes: 8, parts: 4);
 
         var maze = new MazeGraph();
         config?.Invoke(maze);

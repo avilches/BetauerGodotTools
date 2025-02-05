@@ -50,16 +50,16 @@ Clases principales:
 5. MazePatternLoader
    - Carga patrones desde texto o archivos de texto con un formato específico
    - Formato del archivo:
-     @ID=direcciones/flag1/flag2/... [from direcciones/flag1/flag2/...:transform] # comentario
+     @Template=direcciones/flag1/flag2/... [from direcciones/flag1/flag2/...:transform] # comentario
      - La parte 'from' es opcional y permite heredar de otro patrón
      - La parte ':transform' es opcional y permite transformar el patrón heredado
      Ejemplos:
-     @ID=N/basic       # Solo conexión Norte con flag "basic"
-     @ID=E/basic from N/basic:90    # Este hereda de Norte y rota 90°
-     @ID=W/basic from N/basic:FlipH # Oeste hereda de Norte y voltea horizontal
-     @ID=NE/fancy      # Conexiones Norte y Este con flag "fancy"
-     @ID=NS/stone      # Conexiones Norte y Sur con flag "stone"
-     @ID=NESW/basic    # Todas las conexiones con flag "basic"
+     @Template=N/basic       # Solo conexión Norte con flag "basic"
+     @Template=E/basic from N/basic:90    # Este hereda de Norte y rota 90°
+     @Template=W/basic from N/basic:FlipH # Oeste hereda de Norte y voltea horizontal
+     @Template=NE/fancy      # Conexiones Norte y Este con flag "fancy"
+     @Template=NS/stone      # Conexiones Norte y Sur con flag "stone"
+     @Template=NESW/basic    # Todas las conexiones con flag "basic"
      <patrón visual en ASCII>
    - Maneja la herencia y transformación de patrones
    - Transformaciones disponibles:
@@ -103,14 +103,14 @@ Ejemplo de uso:
 Ejemplo de archivo de patrones con herencia:
 
 # Patrón base con solo conexión norte
-@ID=N/basic          # Norte
+@Template=N/basic          # Norte
 ####
 #  #
 #  #
 #  #
 
 # Patrón este que hereda del norte
-@ID=E/basic from N/basic:90  # Este hereda y rota 90° del patrón norte
+@Template=E/basic from N/basic:90  # Este hereda y rota 90° del patrón norte
 
 Reglas de herencia:
 - Solo se puede heredar entre patrones con el mismo número de conexiones
