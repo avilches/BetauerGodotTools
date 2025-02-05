@@ -4,8 +4,11 @@ using System.Linq;
 
 namespace Betauer.Core.PCG.GridTemplate;
 
-public class TemplateId {
-    
+public class TemplateHeader(int type, IEnumerable<string> flags) {
+
+    public readonly int Type = type;
+    public readonly HashSet<string> Flags = [..flags];
+
     // Mapa inverso para la representación canónica de cada DirectionFlags
     private static readonly Dictionary<DirectionFlags, string> CanonicalDirectionMap = new() {
         { DirectionFlags.Up, "U" },
@@ -56,18 +59,7 @@ public class TemplateId {
     // Dictionary para alias de combinaciones
     private static readonly Dictionary<string, DirectionFlags> AliasMap = [];
 
-
-    public readonly int Type;
-    public readonly HashSet<string> Flags;
-    public readonly string? Transform;
-
-    internal TemplateId(int type, IEnumerable<string> flags, string? transform = null) {
-        Type = type;
-        Flags = [..flags];
-        Transform = transform;
-    }
-
-    public static TemplateId Parse(string idString) {
+    public static TemplateHeader Parse(string idString) {
         var parts = idString.Split('/');
         if (parts.Length < 1) {
             throw new ArgumentException("Invalid template ID format. Expected 'directions/flag1/flag2...'");
@@ -75,23 +67,15 @@ public class TemplateId {
 
         var type = ParseDirections(parts[0]);
         var flags = parts.Length > 1 ? parts[1..] : [];
-        return new TemplateId(type, flags);
+        return new TemplateHeader(type, flags);
     }
 
-    // Nuevo método para parsear desde un ID con transformación
-    public static (string originalId, TemplateId baseId, string? transform) ParseFromString(string fromString) {
-        var parts = fromString.Split(':');
-        var baseIdString = parts[0];
-        var transform = parts.Length > 1 ? parts[1] : null;
-
-        // Validar transformación
-        if (transform != null && !TemplateLoader.IsValidTransform(transform)) {
-            throw new ArgumentException($"Invalid transform: {transform}");
-        }
-
-        return (baseIdString, Parse(baseIdString), transform);
-    }
-
+    /// <summary>
+    /// Returns a string with the directions in the canonical order.
+    /// TypeToDirectionsString(DirectionFlags.Up | DirectionFlags.Down) returns "D-U"
+    /// </summary>
+    /// <param name="type"></param>
+    /// <returns></returns>
     public static string TypeToDirectionsString(int type) {
         var directions = new List<string>();
         
@@ -105,7 +89,12 @@ public class TemplateId {
         return string.Join("-", directions.OrderBy(d => d)); // Ordenamos para consistencia
     }
 
-
+    /// <summary>
+    /// Returns a type id from a string: "U-R" returns DirectionFlags.Up | DirectionFlags.Right
+    /// </summary>
+    /// <param name="directions"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentException"></exception>
     private static int ParseDirections(string directions) {
         int type = 0;
         directions = directions.Trim().ToUpper();
@@ -154,7 +143,7 @@ public class TemplateId {
     }
 
     public override bool Equals(object? obj) {
-        if (obj is not TemplateId other) return false;
+        if (obj is not TemplateHeader other) return false;
         return Type == other.Type && Flags.SetEquals(other.Flags);
     }
 

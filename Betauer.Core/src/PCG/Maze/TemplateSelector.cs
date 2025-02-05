@@ -6,29 +6,24 @@ using Betauer.Core.PCG.GridTemplate;
 
 namespace Betauer.Core.PCG.Maze;
 
-public class TemplateSelectorOptions {
-    public string[]? RequiredFlags { get; init; }
-    public string[]? OptionalFlags { get; init; }
-    public Random? Random { get; init; }
-}
-
 public static class TemplateSelector {
     /// <summary>
     /// Creates a template selector function from a TemplateSet.
     /// </summary>
-    public static Func<MazeNode, Array2D<char>> Create(TemplateSet templateSet, TemplateSelectorOptions? options = null) {
-        var random = options?.Random ?? new Random();
+    public static Func<MazeNode, Array2D<char>> Create(TemplateSet templateSet, string[]? flags = null, Random? random = null) {
+        random ??= new Random();
 
         return (node) => {
             var nodeRequiredFlags = node.GetAttribute("requiredFlags");
-            var nodeOptionalFlags = node.GetAttribute("optionalFlags");
 
             var type = GetNodeType(node);
-            var requiredFlags = MergeFlags(options?.RequiredFlags, nodeRequiredFlags);
-            var optionalFlags = MergeFlags(options?.OptionalFlags, nodeOptionalFlags);
-            var templates = templateSet.FindTemplates(type, requiredFlags, optionalFlags);
+            flags = MergeFlags(flags, nodeRequiredFlags);
+            var templates = templateSet.FindTemplates(type, flags);
+            if (templates.Count == 0) {
+                throw new ArgumentException($"No templates found for node type {TemplateHeader.TypeToDirectionsString(type)} with required flags {string.Join(", ", flags)}");
+            }
 
-            return templates[random.Next(templates.Count)];
+            return templates.Select(t=>t.Body).ToArray()[random.Next(templates.Count)];
         };
     }
 

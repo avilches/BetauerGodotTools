@@ -6,102 +6,145 @@ using Betauer.Core.DataMath;
 namespace Betauer.Core.PCG.GridTemplate;
 
 public class TemplateSet(int cellSize) {
-    private readonly Dictionary<int, List<Template>> _templates = new();
+    private readonly List<Template> _templates = [];
+    public string ParserIdPrefix { get; set; } = "@ID=";
 
     public int CellSize { get; } = cellSize;
 
-    public void LoadTemplates(string content) {
-        var loader = new TemplateLoader(CellSize);
-        var newTemplates = loader.LoadFromString(content);
-        foreach (var (id, templates) in newTemplates) {
-            if (!_templates.TryGetValue(id, out List<Template>? listTemplate)) {
-                _templates[id] = listTemplate = [];
+    public void P() {
+        var templates = FindTemplates();
+        foreach (var template in templates) {
+            AddTemplate(template.Transform(Transformations.Type.Rotate90));
+            AddTemplate(template.Transform(Transformations.Type.Rotate180));
+            AddTemplate(template.Transform(Transformations.Type.RotateMinus90));
+        }
+    }
+
+    public void AddTemplate(Template template) {
+        _templates.Add(template);
+    }
+
+
+    /// <summary>
+    /// Finds templates that match the specified criteria. When searching by flags,
+    /// templates must have ALL the specified flags to be included in the results.
+    /// </summary>
+    /// <param name="type">Optional. If specified, only templates of this type will be returned.</param>
+    /// <param name="flags">Optional. If specified, only templates that have ALL of these flags will be returned.</param>
+    /// <returns>A list of Template objects that match the specified criteria.</returns>
+    /// <example>
+    /// // Find all templates
+    /// var allTemplates = FindTemplates();
+    ///
+    /// // Find templates of type 1
+    /// var typeTemplates = FindTemplates(type: 1);
+    ///
+    /// // Find templates with ALL these flags
+    /// var templates = FindTemplates(flags: new[] {"wall", "stone"}); // Must have BOTH flags
+    ///
+    /// // Find templates with ANY of these flags
+    /// var anyFlagTemplates = FindTemplatesWithAnyFlag(new[] {"decorated", "damaged"}); // Must have at least one
+    ///
+    /// // Find templates with EXACT flags
+    /// var exactTemplates = FindTemplatesWithExactFlags(new[] {"wall", "stone"}); // Must have exactly these flags
+    ///
+    /// // Find templates excluding specific flags
+    /// var excludingTemplates = FindTemplatesExcluding(new[] {"damaged"}); // Must not have these flags
+    /// </example>
+    public List<Template> FindTemplates(int? type = null, string[]? flags = null) {
+        var query = _templates.AsEnumerable();
+
+        if (type.HasValue) {
+            query = query.Where(t => t.Header.Type == type.Value);
+        }
+
+        if (flags != null && flags.Length > 0) {
+            query = query.Where(t => t.HasAllFlags(flags));
+        }
+
+        return query.ToList();
+    }
+
+    /// <summary>
+    /// Returns the first template with the type and the flags
+    /// </summary>
+    /// <param name="type"></param>
+    /// <param name="flags"></param>
+    /// <returns></returns>
+    public Template? GetTemplate(int type, string[] flags) => _templates.FirstOrDefault(t => t.Header.Type == type && t.HasExactFlags(flags));
+
+    public void LoadFromString(string content, char lineSeparator = '\n') {
+        var buffer = new List<string>();
+        Template? current = null;
+
+        foreach (var line in content.Split(lineSeparator)
+                     .Select(l => l.Trim())
+                     .Where(v => v.Length > 0)) {
+            if (line.StartsWith(ParserIdPrefix)) {
+                ProcessPreviousTemplate();
+                var headerString = line.Remove(0, ParserIdPrefix.Length).Split('#', StringSplitOptions.TrimEntries)[0];
+                var header = TemplateHeader.Parse(headerString);
+                current = new Template(header);
+            } else if (current != null) {
+                buffer.Add(line);
+
+                if (buffer.Count == CellSize) {
+                    ProcessPreviousTemplate();
+                } else if (buffer.Count > CellSize) {
+                    throw new ArgumentException($"Too many lines in template {current.Header}. Expected {CellSize} but got more.");
+                }
             }
-            listTemplate.AddRange(templates);
+        }
+        ProcessPreviousTemplate();
+        return;
+
+        void ProcessPreviousTemplate() {
+            if (current == null) return;
+            if (buffer.Count > 0) {
+                var template = ParseTemplateBody(buffer, current.Header);
+                current.Body = template;
+            }
+            AddTemplate(current);
+            buffer.Clear();
+            current = null;
         }
     }
 
-    // Encuentra todos los patrones para el valor dado
-    public List<Array2D<char>> FindTemplates(int type) {
-        return GetTemplateDefinitions(type).Select(d => d.Data).ToList();
-    }
+    private Array2D<char> ParseTemplateBody(List<string> lines, TemplateHeader templateHeader) {
+        if (lines.Count == 0) {
+            throw new ArgumentException($"Empty template for {templateHeader}");
+        }
 
-    // Encuentra todos los patrones que coincidan con los flags requeridos y opcionales
-    public List<Array2D<char>> FindTemplates(int type, string[] requiredFlags, string[]? optionalFlags = null) {
-        return GetTemplateDefinitions(type, requiredFlags, optionalFlags).Select(d => d.Data).ToList();
-    }
+        var height = lines.Count;
+        var width = lines[0].Length;
 
-    // Obtiene un único patrón que coincida exactamente con los flags requeridos
-    public Array2D<char> GetTemplate(int type, string[] requiredFlags) {
-        var matchingDefinitions = FindTemplatesWithExactFlags(type, requiredFlags);
-        if (matchingDefinitions.Count > 1) {
+        // Validar que todas las líneas tengan la misma anchura
+        for (var y = 1; y < height; y++) {
+            if (lines[y].Length != width) {
+                throw new ArgumentException(
+                    $"Inconsistent width in template {templateHeader}: " +
+                    $"line 0 has width {width} but line {y} has width {lines[y].Length}");
+            }
+        }
+
+        // Validar que el patrón no esté vacío
+        if (width == 0 || height == 0) {
+            throw new ArgumentException($"Template {templateHeader} has invalid dimensions: {width}x{height}");
+        }
+
+        // Validar que las dimensiones coincidan con el tamaño esperado
+        if (width != CellSize || height != CellSize) {
             throw new ArgumentException(
-                $"Multiple templates found for type {TemplateId.TypeToDirectionsString(type)} ({type}) " +
-                $"with flags: {string.Join(", ", requiredFlags)}");
-        }
-        return matchingDefinitions[0].Data;
-    }
-
-    private List<Template> GetTemplateDefinitions(int type) {
-        if (!_templates.TryGetValue(type, out var definitions)) {
-            throw new ArgumentException(
-                $"No template found for type {TemplateId.TypeToDirectionsString(type)} ({type})");
-        }
-        return definitions;
-    }
-
-    private List<Template> GetTemplateDefinitions(int type, string[] requiredFlags, string[]? optionalFlags = null) {
-        if (!_templates.TryGetValue(type, out var definitions)) {
-            throw new ArgumentException(
-                $"No template found for type {TemplateId.TypeToDirectionsString(type)} ({type})");
+                $"Template {templateHeader} has wrong dimensions: {width}x{height}. " +
+                $"Expected {CellSize}x{CellSize}:\n{string.Join("\n", lines)}");
         }
 
-        // Primero filtramos por flags requeridos
-        var matchingDefinitions = definitions
-            .Where(d => HasRequiredFlags(d, requiredFlags))
-            .ToList();
-
-        if (matchingDefinitions.Count == 0) {
-            throw new ArgumentException(
-                $"No template found for type {TemplateId.TypeToDirectionsString(type)} ({type}) " +
-                $"with required flags: {string.Join(", ", requiredFlags)}");
+        var template = new Array2D<char>(width, height);
+        for (var y = 0; y < height; y++) {
+            for (var x = 0; x < width; x++) {
+                template[y, x] = lines[y][x];
+            }
         }
-
-        // Si hay flags opcionales, ordenamos por cantidad de coincidencias
-        if (optionalFlags != null && optionalFlags.Length > 0) {
-            matchingDefinitions = matchingDefinitions
-                .OrderByDescending(d => CountMatchingOptionalFlags(d, optionalFlags))
-                .ThenBy(d => d.Id.Flags.Count) // Preferimos patrones con menos flags adicionales
-                .ToList();
-        }
-
-        return matchingDefinitions;
-    }
-
-    private List<Template> FindTemplatesWithExactFlags(int type, string[] requiredFlags) {
-        if (!_templates.TryGetValue(type, out var definitions)) {
-            throw new ArgumentException(
-                $"No template found for type {TemplateId.TypeToDirectionsString(type)} ({type})");
-        }
-
-        var matchingDefinitions = definitions
-            .Where(d => d.HasExactFlags(requiredFlags))
-            .ToList();
-
-        if (matchingDefinitions.Count == 0) {
-            throw new ArgumentException(
-                $"No template found for type {TemplateId.TypeToDirectionsString(type)} ({type}) " +
-                $"with exact flags: {string.Join(", ", requiredFlags)}");
-        }
-
-        return matchingDefinitions;
-    }
-
-    private static bool HasRequiredFlags(Template template, string[] requiredFlags) {
-        return requiredFlags.All(flag => template.Id.Flags.Contains(flag));
-    }
-
-    private static int CountMatchingOptionalFlags(Template template, string[] optionalFlags) {
-        return optionalFlags.Count(flag => template.Id.Flags.Contains(flag));
+        return template;
     }
 }

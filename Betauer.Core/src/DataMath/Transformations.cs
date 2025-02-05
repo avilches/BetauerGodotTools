@@ -3,6 +3,34 @@ using System;
 namespace Betauer.Core.DataMath;
 
 public static partial class Transformations {
+
+    public enum Type {
+        Rotate90,
+        Rotate180,
+        RotateMinus90,
+        FlipH,
+        FlipV,
+        MirrorLR,
+        MirrorRL,
+        MirrorTB,
+        MirrorBT
+    }
+
+    public static T[,] Transform<T>(this T[,] source, Type type) {
+        return type switch {
+            Type.Rotate90 => source.Rotate90(),
+            Type.Rotate180 => source.Rotate180(),
+            Type.RotateMinus90 => source.RotateMinus90(),
+            Type.FlipH => source.FlipH(),
+            Type.FlipV => source.FlipV(),
+            Type.MirrorLR => source.MirrorLeftToRight(),
+            Type.MirrorRL => source.MirrorRightToLeft(),
+            Type.MirrorTB => source.MirrorTopToBottom(),
+            Type.MirrorBT => source.MirrorBottomToTop(),
+        };
+    }
+
+
     public static T[,] Clone<T>(this T[,] source) {
         var height = source.GetLength(0);
         var width = source.GetLength(1);

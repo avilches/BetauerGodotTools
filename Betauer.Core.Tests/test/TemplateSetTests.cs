@@ -6,6 +6,7 @@ using NUnit.Framework;
 namespace Betauer.Core.Tests;
 
 [TestFixture]
+[Only]
 public class TemplateSetTests {
     private TemplateSet _templateSet;
 
@@ -20,7 +21,7 @@ public class TemplateSetTests {
     }
 
     [Test]
-    public void LoadTemplates_BasicTemplates_Success() {
+    public void LoadFromString_BasicTemplates_Success() {
         var content = @"
             @ID=15
             abc
@@ -32,7 +33,7 @@ public class TemplateSetTests {
             rst
         ";
         
-        Assert.DoesNotThrow(() => _templateSet.LoadTemplates(content));
+        Assert.DoesNotThrow(() => _templateSet.LoadFromString(content));
     }
 
     [Test]
@@ -48,7 +49,7 @@ public class TemplateSetTests {
             rst
         ";
         
-        _templateSet.LoadTemplates(content);
+        _templateSet.LoadFromString(content);
         var templates = _templateSet.FindTemplates(15);
         
         Assert.That(templates, Has.Count.EqualTo(2));
@@ -67,7 +68,7 @@ public class TemplateSetTests {
             rst
         ";
         
-        _templateSet.LoadTemplates(content);
+        _templateSet.LoadFromString(content);
         var templates = _templateSet.FindTemplates(15, new[] { "special" });
         
         Assert.That(templates, Has.Count.EqualTo(1));
@@ -90,16 +91,10 @@ public class TemplateSetTests {
             789
         ";
         
-        _templateSet.LoadTemplates(content);
-        var templates = _templateSet.FindTemplates(15, 
-            new[] { "flag1" }, 
-            new[] { "flag2", "flag3" });
-        
+        _templateSet.LoadFromString(content);
+        var templates = _templateSet.FindTemplates(15, new[] { "flag1" });
+
         Assert.That(templates, Has.Count.EqualTo(3));
-        // Should be ordered by number of matching optional flags
-        Assert.That(templates[0].ToString(), Contains.Substring("123")); // Has both optional flags
-        Assert.That(templates[1].ToString(), Contains.Substring("xyz")); // Has one optional flag
-        Assert.That(templates[2].ToString(), Contains.Substring("abc")); // Has no optional flags
     }
 
     [Test]
@@ -111,33 +106,15 @@ public class TemplateSetTests {
             ghi
         ";
         
-        _templateSet.LoadTemplates(content);
+        _templateSet.LoadFromString(content);
         var template = _templateSet.GetTemplate(15, new[] { "flag1", "flag2" });
         
         Assert.That(template, Is.Not.Null);
     }
 
     [Test]
-    public void GetTemplate_WithMultipleMatches_ThrowsException() {
-        var content = @"
-            @ID=15/flag1/flag3
-            abc
-            def
-            ghi
-            @ID=15/flag1/flag2
-            xyz
-            uvw
-            rst
-        ";
-        
-        _templateSet.LoadTemplates(content);
-        Assert.Throws<ArgumentException>(() => 
-            _templateSet.GetTemplate(15, new[] { "flag1" }));
-    }
-
-    [Test]
     public void FindTemplates_WithNonExistentType_ThrowsException() {
-        Assert.Throws<ArgumentException>(() => _templateSet.FindTemplates(99));
+        Assert.That(_templateSet.FindTemplates(99), Is.Empty);
     }
 
     [Test]
@@ -149,8 +126,7 @@ public class TemplateSetTests {
             ghi
         ";
         
-        _templateSet.LoadTemplates(content);
-        Assert.Throws<ArgumentException>(() => 
-            _templateSet.FindTemplates(15, new[] { "nonexistent" }));
+        _templateSet.LoadFromString(content);
+        Assert.That(_templateSet.FindTemplates(15, new[] { "nonexistent" }), Is.Empty);
     }
 }
