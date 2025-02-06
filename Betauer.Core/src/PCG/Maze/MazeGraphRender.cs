@@ -23,7 +23,7 @@ public static class MazeGraphRender {
     public static Array2D<TCell> ToArray2D<TCell>(this MazeGraph graph, Func<Vector2I, MazeNode, TCell> nodeRenderer) {
         var graphOffset = graph.GetOffset();
         var array2D = new Array2D<TCell>(graph.GetSize());
-        foreach (var node in graph.GetNodes()) {
+        foreach (var node in graph.GetNodes().OrderBy(n => n.Position.Y).ThenBy(n => n.Position.X)) {
             var pos = node.Position - graphOffset;
             array2D[pos] = nodeRenderer(pos, node);;
         }
@@ -64,7 +64,7 @@ public static class MazeGraphRender {
         var firstTemplate = nodeRenderer(firstNodePosition, firstNode);
 
         if (firstTemplate.Width != firstTemplate.Height) {
-            throw new ArgumentException($"All templates must have the same size and must be squared (width == height). First template size is wrong: {firstTemplate.Width}x{firstTemplate.Height}");
+            throw new ArgumentException($"All templates must have the same size and must be squared (width == height). Template with wrong size found: {firstTemplate.Width}x{firstTemplate.Height}");
         }
 
         var array2D = new Array2D<TCell>(graph.GetSize() * firstTemplate.Width);
@@ -105,15 +105,15 @@ public static class MazeGraphRender {
         var firstTemplate = nodeRenderer(firstNodePosition, firstNode);
 
         if (firstTemplate.Width != firstTemplate.Height) {
-            throw new ArgumentException($"All templates must have the same size and must be squared (width == height). First template size is wrong: {firstTemplate.Width}x{firstTemplate.Height}");
+            throw new ArgumentException($"All templates must have the same size and must be squared (width == height). Template with wrong size found: {firstTemplate.Width}x{firstTemplate.Height}");
         }
 
         var size = firstTemplate.Width;
-        foreach (var node in graph.GetNodes()) {
+        foreach (var node in graph.GetNodes().OrderBy(n => n.Position.Y).ThenBy(n => n.Position.X)) {
             var nodePosition = node.Position - graphOffset;
             var template = nodeRenderer(nodePosition, node);
             if (template.Width != size || template.Height != size) {
-                throw new ArgumentException($"All templates must have the same size. First template size: {size}x{size}. Current template size: {template.Width}x{template.Height}");
+                throw new ArgumentException($"All templates must be {size}x{size}. Template with wrong size found: {template.Width}x{template.Height}");
             }
 
             var offset = nodePosition * size;

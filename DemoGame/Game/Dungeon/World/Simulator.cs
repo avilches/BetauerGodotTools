@@ -76,8 +76,6 @@ public class Simulator {
 
             // this array2D contains the valid templates for each node
             Array2D<List<Template>> templateArray = zones.MazeGraph.ToArray2D((pos, node) => {
-                node.AppendAttribute("a", "b");
-                node.AppendAttribute("a", "b");
                 return templateSet.FindTemplates(node);
             });
 
