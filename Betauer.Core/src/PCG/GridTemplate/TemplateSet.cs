@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Betauer.Core.DataMath;
+using Betauer.Core.PCG.Maze;
 
 namespace Betauer.Core.PCG.GridTemplate;
 
@@ -54,6 +55,10 @@ public class TemplateSet(int cellSize) {
         }
 
         return query.ToList();
+    }
+
+    public List<Template> FindTemplates(MazeNode node, string[]? tags = null) {
+        return FindTemplates(DirectionFlagTools.GetDirectionFlags(node), tags);
     }
 
     /// <summary>

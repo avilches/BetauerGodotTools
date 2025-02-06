@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Betauer.Core;
 using Betauer.Core.DataMath;
 using Betauer.Core.Examples;
 using Betauer.Core.PCG.GridTemplate;
@@ -65,31 +67,26 @@ public class Simulator {
         try {
             var content = File.ReadAllText(TemplatePath);
             templateSet.LoadFromString(content);
-            var templates = templateSet.FindTemplates();
-            foreach (var template in templates) {
+            var templateList = templateSet.FindTemplates();
+            foreach (var template in templateList) {
                 templateSet.AddTemplate(template.Transform(Transformations.Type.Rotate90));
                 templateSet.AddTemplate(template.Transform(Transformations.Type.Rotate180));
                 templateSet.AddTemplate(template.Transform(Transformations.Type.RotateMinus90));
             }
 
-            var templateSelector = TemplateSelector.Create(templateSet, null, rng);
-            var array2D = zones.MazeGraph.Render(templateSelector, WorldCellTypeConverter);
-
-            /*
-            var array2D = zones.MazeGraph.Render(node => {
-                var type = TemplateSelector.GetNodeType(node);
-                List<object> requiredFlags = [];
-                if (node.IsCorridor()) {
-                    node.SetAttribute();
-                    // Corridor
-                    return templateSet.FindTemplates(type, new[] { "deadend" })[0];
-                }
-
-
+            // this array2D contains the valid templates for each node
+            Array2D<List<Template>> templateArray = zones.MazeGraph.ToArray2D((pos, node) => {
+                node.AppendAttribute("a", "b");
+                node.AppendAttribute("a", "b");
+                return templateSet.FindTemplates(node);
             });
-            */
-            // MazeGraphZonedDemo.PrintGraph(zones.MazeGraph, zones);
-            return array2D;
+
+            var templateNodes = zones.MazeGraph.Render((pos, node) => {
+                return rng.Next(templateArray[pos]).Body;
+            }, WorldCellTypeConverter);
+
+            MazeGraphZonedDemo.PrintGraph(zones.MazeGraph, zones);
+            return templateNodes;
         } catch (FileNotFoundException e) {
             Console.WriteLine(e.Message);
             Console.WriteLine($"{nameof(TemplatePath)} is '{TemplatePath}'");

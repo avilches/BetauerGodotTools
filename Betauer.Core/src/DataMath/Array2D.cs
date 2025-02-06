@@ -88,39 +88,20 @@ public abstract class Array2D {
 /// 
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public class Array2D<T> : Array2D, IEnumerable<T> {
+public class Array2D<T>(T[,] data) : Array2D, IEnumerable<T> {
     public override int Width => Data.GetLength(1);
     public override int Height => Data.GetLength(0);
     public override Rect2I Bounds => new(0, 0, Width, Height);
-    public T[,] Data { get; set; }
+    public T[,] Data { get; set; } = data;
 
-    public Array2D(T[,] data) {
-        Data = data;
+    public Array2D(Vector2I size) : this(size.X, size.Y) {
     }
 
-    public Array2D(int width, int height) {
-        Data = new T[height, width];
+    public Array2D(Vector2I size, T defaultValue) : this(size.X, size.Y, defaultValue) {
     }
 
-    /*
-    public IStorage<T> Data { get; set; }
-
-    private static IStorage<T> CreateStorage(int width, int height) {
-        if (typeof(T) == typeof(bool)) {
-            return (IStorage<T>)new BitArrayStorage(new BitArray2D(width, height));
-        }
-        return new ArrayStorage<T>(new T[height, width]);
+    public Array2D(int width, int height) : this(new T[height, width]) {
     }
-
-    public Array2D(T[,] data) {
-        Data = new ArrayStorage<T>(data);
-    }
-
-    public Array2D(int width, int height) {
-        Data = CreateStorage(width, height);
-    }
-    */
-
 
     public Array2D(int width, int height, T defaultValue) : this(width, height) {
         Fill(defaultValue);

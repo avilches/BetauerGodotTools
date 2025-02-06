@@ -242,8 +242,8 @@ public class MazeGraph {
 
     public Vector2I GetSize() {
         return new Vector2I(
-            GetNodes().Max(v => v.Position.X) - GetNodes().Min(v => v.Position.X),
-            GetNodes().Max(v => v.Position.Y) - GetNodes().Min(v => v.Position.Y));
+            GetNodes().Max(v => v.Position.X) - GetNodes().Min(v => v.Position.X) + 1,
+            GetNodes().Max(v => v.Position.Y) - GetNodes().Min(v => v.Position.Y) + 1);
     }
 
     public string Draw() {

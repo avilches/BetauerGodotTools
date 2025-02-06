@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Betauer.Core.DataMath;
 using Betauer.Core.Examples;
+using Betauer.Core;
 using Betauer.Core.PCG.GridTemplate;
 using Betauer.Core.PCG.Maze;
 using Betauer.Core.PCG.Maze.Zoned;
@@ -14,22 +15,6 @@ public static class MazeNodeExtension {
     public static bool IsCorridor(this MazeNode node) => node.OutEdgesCount == 2;
     public static bool IsFork(this MazeNode node) => node.OutEdgesCount == 3;
     public static bool IsCrossroad(this MazeNode node) => node.OutEdgesCount == 4;
-    
-    public static void AddOptionalFlag(this MazeNode node, string flag) {
-        if (!node.HasAttributeOfType<List<string>>("optionalFlags")) {
-            node.SetAttribute("optionalFlags", new List<string>());
-        }
-        var flags = node.GetAttributeAs<List<string>>("optionalFlags");
-        flags.Add(flag);
-    }
-
-    public static void AddRequiredFlags(this MazeNode node, string flag) {
-        if (!node.HasAttributeOfType<List<string>>("requiredFlags")) {
-            node.SetAttribute("requiredFlags", new List<string>());
-        }
-        var flags = node.GetAttributeAs<List<string>>("requiredFlags");
-        flags.Add(flag);
-    }
 }
 
 public class MazeTemplateDemo {
@@ -57,14 +42,22 @@ public class MazeTemplateDemo {
         AddFlags(zones);
 
         // Crear el gestor de patrones con un tamaño de celda de 5x5
-        var templateSet = new TemplateSet(cellSize: 7);
+        var templateSet = new TemplateSet(cellSize: 9);
 
         // Cargar patrones de diferentes archivos
         try {
             var content = File.ReadAllText(TemplatePath);
             templateSet.LoadFromString(content);
+            foreach (var template in templateSet.FindTemplates()) {
+                templateSet.AddTemplate(template.Transform(Transformations.Type.Rotate90));
+                templateSet.AddTemplate(template.Transform(Transformations.Type.Rotate180));
+                templateSet.AddTemplate(template.Transform(Transformations.Type.RotateMinus90));
+            }
 
-            var array2D = zones.MazeGraph.Render(TemplateSelector.Create(templateSet));
+            var array2D = zones.MazeGraph.Render((pos, node) => {
+                var templates = templateSet.FindTemplates(node);
+                return rng.Next(templates).Body;
+            });
 
             /*
             var array2D = zones.MazeGraph.Render(node => {

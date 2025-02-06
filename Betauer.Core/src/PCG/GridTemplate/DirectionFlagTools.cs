@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Betauer.Core.PCG.Maze;
 
 namespace Betauer.Core.PCG.GridTemplate;
 
@@ -55,6 +56,9 @@ public static class DirectionFlagTools {
 
     // Dictionary para alias de combinaciones
     private static readonly Dictionary<string, DirectionFlag> AliasMap = [];
+    public static void RegisterAlias(string alias, DirectionFlag value) {
+        AliasMap[alias.ToUpper()] = value;
+    }
 
     /// <summary>
     /// Returns a string with the directions in the canonical order.
@@ -118,8 +122,18 @@ public static class DirectionFlagTools {
         return flags;
     }
 
-    // Método público para registrar nuevos alias (útil para testing o extensibilidad)
-    public static void RegisterAlias(string alias, DirectionFlag value) {
-        AliasMap[alias.ToUpper()] = value;
+    public static int GetDirectionFlags(MazeNode node) {
+        var directions = 0;
+        if (node.Up != null) directions |= (int)DirectionFlag.Up;
+        if (node.UpRight != null) directions |= (int)DirectionFlag.UpRight;
+        if (node.Right != null) directions |= (int)DirectionFlag.Right;
+        if (node.DownRight != null) directions |= (int)DirectionFlag.DownRight;
+        if (node.Down != null) directions |= (int)DirectionFlag.Down;
+        if (node.DownLeft != null) directions |= (int)DirectionFlag.DownLeft;
+        if (node.Left != null) directions |= (int)DirectionFlag.Left;
+        if (node.UpLeft != null) directions |= (int)DirectionFlag.UpLeft;
+        return directions;
     }
+
+
 }
