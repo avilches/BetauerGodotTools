@@ -1,4 +1,4 @@
-@ Template=N N=3
+@ Template=N dir:N=3
 @ rotate:90 rotate:180 rotate:-90
 ..#···#..
 ..#···#..
@@ -11,7 +11,7 @@
 .........
 
 
-@ Template=N n=1
+@ Template=N dir:N=1
 @ rotate:90 rotate:180 rotate:-90
 ..##·##..
 ..##·##..
@@ -23,7 +23,7 @@
 .#######.
 .........
 
-@ Template=N n=1 disabled
+@ Template=N dir:N=1 disabled
 @ rotate:90 rotate:180 rotate:-90
 ..##·##..
 ..##·##..
@@ -35,7 +35,7 @@
 .####....
 .........
 
-@ Template=N n=1 disabled
+@ Template=N dir:N=1 disabled
 @ rotate:90 rotate:180 rotate:-90
 ...#·#...
 ...#·#...
@@ -48,7 +48,7 @@
 .........
 
 
-@ Template=N-E n=1 e=1
+@ Template=N-E dir:N=1 dir:E=1
 @ rotate:90 rotate:180 rotate:-90
 ...#·#...
 .###·###.
@@ -60,7 +60,7 @@
 ..######.
 .........
 
-@ Template=N-S n=1 s=1
+@ Template=N-S dir:N=1 dir:S=1
 @ rotate:90 rotate:180 rotate:-90
 ...#·#...
 ...#·#...
@@ -73,7 +73,7 @@
 ...#·#...
 
 
-@ Template=N-E-S n=1 e=1 s=1
+@ Template=N-E-S dir:N=1 dir:E=1 dir:S=1
 @ rotate:90 rotate:180 rotate:-90
 ...#·#...
 ...#·#...
@@ -85,7 +85,7 @@
 ...#·#...
 ...#·#...
 
-@ Template=N-S-E-W n=1 s=1 e=1 w=1
+@ Template=N-S-E-W dir:N=1 dir:S=1 dir:E=1 dir:W=1
 @ rotate:90 rotate:180 rotate:-90
 ...#·#...
 ...#·#...

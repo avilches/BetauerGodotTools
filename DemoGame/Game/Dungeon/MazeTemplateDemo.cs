@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Betauer.Core.DataMath;
 using Betauer.Core.Examples;
 using Betauer.Core;
@@ -49,26 +50,12 @@ public class MazeTemplateDemo {
             var content = File.ReadAllText(TemplatePath);
             templateSet.LoadFromString(content);
             templateSet.ApplyTransformations();
-            templateSet.ApplyTransformations();
 
             var array2D = zones.MazeGraph.Render((pos, node) => {
-                var templates = templateSet.FindTemplates(node);
+                var templates = templateSet.FindTemplates(node.GetDirectionFlags()).ToArray();
                 return rng.Next(templates).Body;
             });
 
-            /*
-            var array2D = zones.MazeGraph.Render(node => {
-                var type = TemplateSelector.GetNodeType(node);
-                List<object> requiredFlags = [];
-                if (node.IsCorridor()) {
-                    node.SetAttribute();
-                    // Corridor
-                    return templateSet.FindTemplates(type, new[] { "deadend" })[0];
-                }
-                
-                
-            });
-            */
             MazeGraphZonedDemo.PrintGraph(zones.MazeGraph, zones);
             PrintArray2D(array2D);
         } catch (FileNotFoundException e) {

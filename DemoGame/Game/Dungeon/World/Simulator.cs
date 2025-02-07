@@ -67,17 +67,37 @@ public class Simulator {
         try {
             var content = File.ReadAllText(TemplatePath);
             templateSet.LoadFromString(content);
-            templateSet.FindTemplates(tags: ["disabled"]).ForEach(t => templateSet.RemoveTemplate(t));
+            templateSet.FindTemplates(tags: ["disabled"]).ToArray().ForEach(t => templateSet.RemoveTemplate(t));
             templateSet.ApplyTransformations();
 
-            // this array2D contains the valid templates for each node
-            Array2D<List<Template>> templateArray = zones.MazeGraph.ToArray2D((pos, node) => {
-                return templateSet.FindTemplates(node);
-            });
+            // Creates an empty array2D of templates. This will be used in the Render method to track the template used for
+            // each node during the selection the next one. The first one will be random, but the next one should try to match the
+            // previous: the down side of the top template should match to the up side, the some for the node at the left: the right side of it
+            // should match the left side of the current node.
+            var templateArray = zones.MazeGraph.ToArray2D(Template (pos, node) => null!);
 
+            var rngMap = new Random(seed);
             var templateNodes = zones.MazeGraph.Render((pos, node) => {
-                return templateArray[pos].First().Body;
-                // return rng.Next(templateArray[pos]).Body;
+                var upNodeTemplate = templateArray.GetValueSafe(pos + Vector2I.Up);
+                var leftNodeTemplate = templateArray.GetValueSafe(pos + Vector2I.Left);
+                var matchingTemplates = templateSet.FindTemplates(node.GetDirectionFlags()).Where(t => {
+                    if (upNodeTemplate != null && !Equals(upNodeTemplate.GetAttribute(DirectionFlag.Down), t.GetAttribute(DirectionFlag.Up))) {
+                        return false;
+                    }
+                    if (leftNodeTemplate != null && !Equals(leftNodeTemplate.GetAttribute(DirectionFlag.Right), t.GetAttribute(DirectionFlag.Left))) {
+                        return false;
+                    }
+                    return true;
+                }).ToArray();
+                if (matchingTemplates.Length == 0) {
+                    Console.WriteLine($"Warning: no matching template for {node} at {pos}!");
+                    var template = rngMap.Next(templateSet.FindTemplates(node.GetDirectionFlags()).ToArray());
+                    return template.Body;
+                } else {
+                    var template = rngMap.Next(matchingTemplates);
+                    templateArray[pos] = template;
+                    return template.Body;
+                }
             }, WorldCellTypeConverter);
 
             MazeGraphZonedDemo.PrintGraph(zones.MazeGraph, zones);
