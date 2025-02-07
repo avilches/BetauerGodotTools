@@ -15,7 +15,6 @@ using Godot;
 namespace Veronenger.Game.Dungeon.World;
 
 public class Simulator {
-    private bool _running = true;
     const string TemplatePath = "/Users/avilches/Library/Mobile Documents/com~apple~CloudDocs/Shared/Godot/Betauer4/DemoGame/Game/Dungeon/MazeTemplateDemos.txt";
 
     public static void Main() {
@@ -29,6 +28,7 @@ public class Simulator {
         simulator.RunGameLoop(100);
     }
 
+    private bool _running = true;
     public TurnWorld World;
     public GameWorld GameWorld;
 
@@ -67,12 +67,8 @@ public class Simulator {
         try {
             var content = File.ReadAllText(TemplatePath);
             templateSet.LoadFromString(content);
-            var templateList = templateSet.FindTemplates();
-            foreach (var template in templateList) {
-                templateSet.AddTemplate(template.Transform(Transformations.Type.Rotate90));
-                templateSet.AddTemplate(template.Transform(Transformations.Type.Rotate180));
-                templateSet.AddTemplate(template.Transform(Transformations.Type.RotateMinus90));
-            }
+            templateSet.FindTemplates(tags: ["disabled"]).ForEach(t => templateSet.RemoveTemplate(t));
+            templateSet.ApplyTransformations();
 
             // this array2D contains the valid templates for each node
             Array2D<List<Template>> templateArray = zones.MazeGraph.ToArray2D((pos, node) => {
@@ -80,7 +76,8 @@ public class Simulator {
             });
 
             var templateNodes = zones.MazeGraph.Render((pos, node) => {
-                return rng.Next(templateArray[pos]).Body;
+                return templateArray[pos].First().Body;
+                // return rng.Next(templateArray[pos]).Body;
             }, WorldCellTypeConverter);
 
             MazeGraphZonedDemo.PrintGraph(zones.MazeGraph, zones);

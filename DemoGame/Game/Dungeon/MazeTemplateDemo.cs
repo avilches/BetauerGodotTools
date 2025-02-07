@@ -48,11 +48,8 @@ public class MazeTemplateDemo {
         try {
             var content = File.ReadAllText(TemplatePath);
             templateSet.LoadFromString(content);
-            foreach (var template in templateSet.FindTemplates()) {
-                templateSet.AddTemplate(template.Transform(Transformations.Type.Rotate90));
-                templateSet.AddTemplate(template.Transform(Transformations.Type.Rotate180));
-                templateSet.AddTemplate(template.Transform(Transformations.Type.RotateMinus90));
-            }
+            templateSet.ApplyTransformations();
+            templateSet.ApplyTransformations();
 
             var array2D = zones.MazeGraph.Render((pos, node) => {
                 var templates = templateSet.FindTemplates(node);

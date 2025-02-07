@@ -367,8 +367,8 @@ public class MazeGraph {
 
         var offset = GetOffset();
         var size = GetSize();
-        var width = (size.X + 1) * 2 - 1;
-        var height = (size.Y + 1) * 2 - 1;
+        var width = size.X * 2 - 1;
+        var height = size.Y * 2 - 1;
 
         // Create empty grid
         var grid = new char[height][];

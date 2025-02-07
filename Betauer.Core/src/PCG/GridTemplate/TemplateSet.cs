@@ -8,12 +8,16 @@ namespace Betauer.Core.PCG.GridTemplate;
 
 public class TemplateSet(int cellSize) {
     private readonly List<Template> _templates = [];
-    public string ParserIdPrefix { get; set; } = "@Template=";
+    public string TemplateId { get; set; } = "Template";
 
     public int CellSize { get; } = cellSize;
 
     public void AddTemplate(Template template) {
         _templates.Add(template);
+    }
+
+    public void RemoveTemplate(Template template) {
+        _templates.Remove(template);
     }
 
 
@@ -43,7 +47,7 @@ public class TemplateSet(int cellSize) {
     /// // Find templates excluding specific tags
     /// var excludingTemplates = FindTemplatesExcluding(new[] {"damaged"}); // Must not have these tags
     /// </example>
-    public List<Template> FindTemplates(int? directionFlags = null, string[]? tags = null) {
+    public List<Template> FindTemplates(byte? directionFlags = null, string[]? tags = null) {
         var query = _templates.AsEnumerable();
 
         if (directionFlags.HasValue) {
@@ -67,32 +71,50 @@ public class TemplateSet(int cellSize) {
     /// <param name="directionFlags"></param>
     /// <param name="tags"></param>
     /// <returns></returns>
-    public Template? GetTemplate(int directionFlags, string[] tags) => _templates.FirstOrDefault(t => t.DirectionFlags == directionFlags && t.HasExactTags(tags));
+    public Template? GetTemplate(byte directionFlags, string[] tags) => _templates.FirstOrDefault(t => t.DirectionFlags == directionFlags && t.HasExactTags(tags));
 
     public void LoadFromString(string content, char lineSeparator = '\n') {
         var buffer = new List<string>();
         string headerString = null;
         Template? current = null;
 
+        var lineNumber = 0;
         foreach (var line in content.Split(lineSeparator)
-                     .Select(l => l.Trim())
-                     .Where(v => v.Length > 0)) {
-            if (line.StartsWith(ParserIdPrefix)) {
+                     .Select(l => l.Trim())) {
+
+            lineNumber++;
+            if (line.Length == 0 || line.StartsWith("# ", StringComparison.Ordinal) || line.StartsWith("// ", StringComparison.Ordinal)) {
+                continue;
+            }
+
+            if (line.StartsWith("@ ", StringComparison.Ordinal)) {
                 ProcessPreviousTemplate();
-                headerString = line.Remove(0, ParserIdPrefix.Length).Split('#', StringSplitOptions.TrimEntries)[0];
-                var parts = headerString.Split(['/', ',', ' '], StringSplitOptions.RemoveEmptyEntries);
-                var directionFlags = DirectionFlagTools.StringToFlags(parts[0]);
-                current = new Template {
-                    DirectionFlags = directionFlags,
-                    Tags = parts.Length > 1 ? parts[1..].ToHashSet() : []
-                };
+                // Parseamos toda la línea como un conjunto de atributos y tags
+                var parseResult = AttributeParser.Parse(line[1..]);
+                headerString = line;
+
+                if (parseResult.Attributes.TryGetValue(TemplateId, out var templateValue)) {
+                    var directionFlags = templateValue switch {
+                        string directionFlagString => DirectionFlagTools.StringToFlags(directionFlagString),
+                        int directionFlagByte => (byte)directionFlagByte,
+                        _ => throw new ArgumentException($"Error in line #{lineNumber}. Invalid direction flags in template {line}")
+                    };
+                    current = new Template { DirectionFlags = directionFlags };
+                    parseResult.Attributes.Remove(TemplateId);
+                }
+                if (current == null) {
+                    throw new ArgumentException($"Error in line #{lineNumber}. First define {TemplateId}: {line}");
+                }
+                foreach (var tag in parseResult.Tags) current.AddTag(tag);
+                foreach (var (key, value) in parseResult.Attributes) current.SetAttribute(key, value);
+
             } else if (current != null) {
                 buffer.Add(line);
 
                 if (buffer.Count == CellSize) {
                     ProcessPreviousTemplate();
                 } else if (buffer.Count > CellSize) {
-                    throw new ArgumentException($"Too many lines in template {current}. Expected {CellSize} but got more.");
+                    throw new ArgumentException($"Error in line #{lineNumber}. Too many lines in template {current}. Expected {CellSize} but got more.");
                 }
             }
         }
@@ -100,11 +122,9 @@ public class TemplateSet(int cellSize) {
         return;
 
         void ProcessPreviousTemplate() {
-            if (current == null) return;
-            if (buffer.Count > 0) {
-                var template = ParseTemplateBody(buffer, headerString);
-                current.Body = template;
-            }
+            if (current == null || buffer.Count == 0) return;
+            var template = ParseTemplateBody(buffer, headerString);
+            current.Body = template;
             AddTemplate(current);
             buffer.Clear();
             current = null;
@@ -147,5 +167,38 @@ public class TemplateSet(int cellSize) {
             }
         }
         return template;
+    }
+
+    public void ApplyTransformations() {
+        foreach (var template in FindTemplates()) {
+            if (template.HasAnyTag("#rotate:90", "rotate90")) {
+                AddTemplate(template.Transform(Transformations.Type.Rotate90));
+            }
+            if (template.HasAnyTag("#rotate:180", "#rotate180")) {
+                AddTemplate(template.Transform(Transformations.Type.Rotate180));
+            }
+            if (template.HasAnyTag("#rotate:-90", "#rotate-90", "#rotate:minus90")) {
+                AddTemplate(template.Transform(Transformations.Type.Rotate180));
+            }
+            if (template.HasAnyTag("#flip:h", "#fliph", "#flip:horizontal")) {
+                AddTemplate(template.Transform(Transformations.Type.FlipH));
+            }
+            if (template.HasAnyTag("#flip:v", "#flipv", "#flip:vertical")) {
+                AddTemplate(template.Transform(Transformations.Type.FlipV));
+            }
+            if (template.HasAnyTag("#mirror:lr", "#mirror:we", "#mirror:leftright", "#mirror:westeast", "#mirror:left-right", "#mirror:west-east")) {
+                AddTemplate(template.Transform(Transformations.Type.MirrorLR));
+            }
+            if (template.HasAnyTag("#mirror:rl", "#mirror:ew", "#mirror:rightleft", "#mirror:eastwest", "#mirror:right-left", "#mirror:east-west")) {
+                AddTemplate(template.Transform(Transformations.Type.MirrorRL));
+            }
+            if (template.HasAnyTag("#mirror:tb", "#mirror:ud", "#mirror:ns", "#mirror:topbottom", "#mirror:updown", "#mirror:northsouth", "#mirror:top-bottom", "#mirror:up-down", "#mirror:north-south")) {
+                AddTemplate(template.Transform(Transformations.Type.MirrorTB));
+            }
+            if (template.HasAnyTag("#mirror:bt", "#mirror:du", "#mirror:sn", "#mirror:bottomtop", "#mirror:downup", "#mirror:southnorth", "#mirror:bottom-top", "#mirror:down-up", "#mirror:south-north")) {
+                AddTemplate(template.Transform(Transformations.Type.MirrorBT));
+            }
+        }
+
     }
 }

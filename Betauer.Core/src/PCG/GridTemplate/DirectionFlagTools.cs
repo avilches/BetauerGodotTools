@@ -61,17 +61,17 @@ public static class DirectionFlagTools {
     }
 
     /// <summary>
-    /// Returns a string with the directions in the canonical order.
-    /// TypeToDirectionsString(DirectionFlags.Up | DirectionFlags.Down) returns "D-U"
+    /// Returns a string with the directions in the canonical order from a combination of flags.
+    /// TypeToDirectionsString(DirectionFlags.Up) returns "D-U"
     /// </summary>
     /// <param name="flags"></param>
     /// <returns></returns>
-    public static string FlagsToString(int flags) {
+    public static string FlagsToString(byte flags) {
         var directions = new List<string>();
 
         // Solo usamos el mapa canónico para la salida
         foreach (var kvp in CanonicalDirectionMap) {
-            if ((flags & (int)kvp.Key) != 0) {
+            if ((flags & (byte)kvp.Key) != 0) {
                 directions.Add(kvp.Value);
             }
         }
@@ -80,60 +80,114 @@ public static class DirectionFlagTools {
     }
 
     /// <summary>
-    /// Returns the flags from a string: "U-R" returns DirectionFlags.Up | DirectionFlags.Right
+    /// Returns a string with the directions in the canonical order from a single flag
+    /// TypeToDirectionsString(DirectionFlags.Up) returns "U"
+    /// If the flag is not found, returns an empty string
+    /// </summary>
+    /// <param name="flag"></param>
+    /// <returns></returns>
+    public static string DirectionFlagToString(DirectionFlag flag) {
+        // Solo usamos el mapa canónico para la salida
+        foreach (var kvp in CanonicalDirectionMap) {
+            if (((byte)flag & (byte)kvp.Key) != 0) {
+                return kvp.Value;
+            }
+        }
+        return "";
+    }
+
+    /// <summary>
+    /// Returns the canonical representation of a key: "t" and "N" returns "U"
+    /// If the direction is not valid, it will return the original string
+    /// </summary>
+    /// <param name="direction"></param>
+    /// <returns></returns>
+    public static string NormalizeFlag(string direction) {
+        var flags = StringToDirectionFlag(direction);
+        return flags == DirectionFlag.None ? direction : DirectionFlagToString(flags);
+    }
+
+    /// <summary>
+    /// Returns the canonical representation of a key: "U-R" and "e-n" returns "R-U"
+    /// If the string doesn't contain any valid direction, it will return the original string
+    /// </summary>
+    /// <param name="directions"></param>
+    /// <returns></returns>
+    public static string NormalizeFlags(string directions) {
+        var flags = StringToFlags(directions);
+        return flags == 0 ? directions : FlagsToString(flags);
+    }
+
+
+    /// <summary>
+    /// Returns the flags from a string: "U-R" and "e-n" returns DirectionFlags.Up | DirectionFlags.Right
+    /// It also works with 0-7 numbers, so "1-3" returns DirectionFlags.Up | DirectionFlags.Right
     /// </summary>
     /// <param name="directions"></param>
     /// <param name="separator"></param>
     /// <returns></returns>
     /// <exception cref="ArgumentException"></exception>
-    public static int StringToFlags(string directions, string separator = "-") {
-        var flags = 0;
+    public static byte StringToFlags(string directions, string separator = "-") {
+        byte flags = 0;
         directions = directions.Trim().ToUpper();
 
         // Si es un número, lo parseamos directamente
-        if (int.TryParse(directions, out var numericValue)) {
+        if (byte.TryParse(directions, out var numericValue)) {
             return numericValue;
-        }
-
-        // Si es un alias, lo devolvemos directamente
-        if (AliasMap.TryGetValue(directions, out var aliasValue)) {
-            return (int)aliasValue;
         }
 
         // Separamos por guiones y procesamos cada parte
         var parts = directions.Split(separator);
 
         foreach (var part in parts) {
-            // Primero intentamos como alias
             if (AliasMap.TryGetValue(part, out var partAliasValue)) {
-                flags |= (int)partAliasValue;
-                continue;
+                // Primero intentamos como alias
+                flags |= (byte)partAliasValue;
+            } else if (DirectionMap.TryGetValue(part, out var directionValue)) {
+                // Luego buscamos en el mapa de direcciones
+                flags |= (byte)directionValue;
             }
-
-            // Luego buscamos en el mapa de direcciones
-            if (DirectionMap.TryGetValue(part, out var directionValue)) {
-                flags |= (int)directionValue;
-                continue;
-            }
-
-            throw new ArgumentException($"Invalid direction or alias: {part}");
         }
 
         return flags;
     }
 
-    public static int GetDirectionFlags(MazeNode node) {
-        var directions = 0;
-        if (node.Up != null) directions |= (int)DirectionFlag.Up;
-        if (node.UpRight != null) directions |= (int)DirectionFlag.UpRight;
-        if (node.Right != null) directions |= (int)DirectionFlag.Right;
-        if (node.DownRight != null) directions |= (int)DirectionFlag.DownRight;
-        if (node.Down != null) directions |= (int)DirectionFlag.Down;
-        if (node.DownLeft != null) directions |= (int)DirectionFlag.DownLeft;
-        if (node.Left != null) directions |= (int)DirectionFlag.Left;
-        if (node.UpLeft != null) directions |= (int)DirectionFlag.UpLeft;
-        return directions;
+    /// <summary>
+    /// Returns the flag from a string: "U" returns DirectionFlags.Up
+    /// It also works with 0-7 numbers, so "1" returns DirectionFlags.Up
+    /// </summary>
+    /// <param name="direction"></param>
+    /// <returns></returns>
+    public static DirectionFlag StringToDirectionFlag(string direction) {
+        direction = direction.Trim().ToUpper();
+
+        // Si es un número, lo parseamos directamente
+        if (byte.TryParse(direction, out var numericValue)) {
+            return (DirectionFlag)numericValue;
+        }
+
+        if (AliasMap.TryGetValue(direction, out var partAliasValue)) {
+            // Primero intentamos como alias
+            return partAliasValue;
+        }
+
+        if (DirectionMap.TryGetValue(direction, out var directionValue)) {
+            // Luego buscamos en el mapa de direcciones
+            return directionValue;
+        }
+        return DirectionFlag.None;
     }
 
-
+    public static byte GetDirectionFlags(MazeNode node) {
+        byte directions = 0;
+        if (node.Up != null) directions |= (byte)DirectionFlag.Up;
+        if (node.UpRight != null) directions |= (byte)DirectionFlag.UpRight;
+        if (node.Right != null) directions |= (byte)DirectionFlag.Right;
+        if (node.DownRight != null) directions |= (byte)DirectionFlag.DownRight;
+        if (node.Down != null) directions |= (byte)DirectionFlag.Down;
+        if (node.DownLeft != null) directions |= (byte)DirectionFlag.DownLeft;
+        if (node.Left != null) directions |= (byte)DirectionFlag.Left;
+        if (node.UpLeft != null) directions |= (byte)DirectionFlag.UpLeft;
+        return directions;
+    }
 }

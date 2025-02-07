@@ -1,16 +1,30 @@
+@ Template=N N=3
+@ #rotate:90 #rotate:180 #rotate:-90
+..#···#..
+..#···#..
+..#···#..
+.##···##.
+.#·····#.
+.#·###·#.
+.#·····#.
+.#######.
+.........
 
-@Template=N n1
+
+@ Template=N n=1
+@ #rotate:90 #rotate:180 #rotate:-90
 ..##·##..
 ..##·##..
 ..#···#..
 .##···##.
 .#·····#.
-.#·····#.
+.#··#··#.
 .#·····#.
 .#######.
 .........
 
-@Template=N n:1
+@ Template=N n=1 disabled
+@ #rotate:90 #rotate:180 #rotate:-90
 ..##·##..
 ..##·##..
 ..#···#..
@@ -21,7 +35,8 @@
 .####....
 .........
 
-@Template=N n:1
+@ Template=N n=1 disabled
+@ #rotate:90 #rotate:180 #rotate:-90
 ...#·#...
 ...#·#...
 ..##·###.
@@ -33,7 +48,8 @@
 .........
 
 
-@Template=N-E n:1,e:1
+@ Template=N-E n=1 e=1
+@ #rotate:90 #rotate:180 #rotate:-90
 ...#·#...
 .###·###.
 .#·····#.
@@ -44,7 +60,8 @@
 ..######.
 .........
 
-@Template=N-S n:1,s:1
+@ Template=N-S n=1 s=1
+@ #rotate:90 #rotate:180 #rotate:-90
 ...#·#...
 ...#·#...
 ...#·#...
@@ -56,7 +73,8 @@
 ...#·#...
 
 
-@Template=N-E-S n1,e1,s1
+@ Template=N-E-S n=1 e=1 s=1
+@ #rotate:90 #rotate:180 #rotate:-90
 ...#·#...
 ...#·#...
 ...#·#...
@@ -67,7 +85,8 @@
 ...#·#...
 ...#·#...
 
-@Template=N-S-E-W n1,s1,e1,w1
+@ Template=N-S-E-W n=1 s=1 e=1 w=1
+@ #rotate:90 #rotate:180 #rotate:-90
 ...#·#...
 ...#·#...
 ...#·#...

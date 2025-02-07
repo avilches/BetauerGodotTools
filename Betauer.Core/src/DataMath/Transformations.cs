@@ -5,11 +5,14 @@ namespace Betauer.Core.DataMath;
 public static partial class Transformations {
 
     public enum Type {
+        // Non destructive
         Rotate90,
         Rotate180,
         RotateMinus90,
         FlipH,
         FlipV,
+
+        // Destructive
         MirrorLR,
         MirrorRL,
         MirrorTB,
