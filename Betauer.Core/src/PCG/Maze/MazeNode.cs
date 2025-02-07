@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Betauer.Core.PCG.GridTemplate;
 using Godot;
 
 namespace Betauer.Core.PCG.Maze;
@@ -100,13 +101,27 @@ public class MazeNode {
     public int PartId { get; set; }
 
     public MazeNode? Up => GetEdgeTowards(Vector2I.Up)?.To;
-    public MazeNode? UpRight => GetEdgeTowards(Vector2I.Up + Vector2I.Right)?.To;
-    public MazeNode? UpLeft => GetEdgeTowards(Vector2I.Up + Vector2I.Left)?.To;
+    public MazeNode? UpRight => GetEdgeTowards(new Vector2I(1, -1))?.To;
+    public MazeNode? UpLeft => GetEdgeTowards(new Vector2I(-1, -1))?.To;
     public MazeNode? Down => GetEdgeTowards(Vector2I.Down)?.To;
-    public MazeNode? DownRight => GetEdgeTowards(Vector2I.Down + Vector2I.Right)?.To;
-    public MazeNode? DownLeft => GetEdgeTowards(Vector2I.Down + Vector2I.Left)?.To;
+    public MazeNode? DownRight => GetEdgeTowards(new Vector2I(1, 1))?.To;
+    public MazeNode? DownLeft => GetEdgeTowards(new Vector2I(-1, 1))?.To;
     public MazeNode? Right => GetEdgeTowards(Vector2I.Right)?.To;
     public MazeNode? Left => GetEdgeTowards(Vector2I.Left)?.To;
+
+    public byte GetDirectionFlags() {
+        byte directions = 0;
+        if (Up != null) directions |= (byte)DirectionFlag.Up;
+        if (UpRight != null) directions |= (byte)DirectionFlag.UpRight;
+        if (Right != null) directions |= (byte)DirectionFlag.Right;
+        if (DownRight != null) directions |= (byte)DirectionFlag.DownRight;
+        if (Down != null) directions |= (byte)DirectionFlag.Down;
+        if (DownLeft != null) directions |= (byte)DirectionFlag.DownLeft;
+        if (Left != null) directions |= (byte)DirectionFlag.Left;
+        if (UpLeft != null) directions |= (byte)DirectionFlag.UpLeft;
+        return directions;
+    }
+
 
     public int OutDegree => _outEdges.Count;
 

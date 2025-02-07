@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Betauer.Core.PCG.Maze;
+using Godot;
 
 namespace Betauer.Core.PCG.GridTemplate;
 
@@ -58,6 +59,32 @@ public static class DirectionFlagTools {
     private static readonly Dictionary<string, DirectionFlag> AliasMap = [];
     public static void RegisterAlias(string alias, DirectionFlag value) {
         AliasMap[alias.ToUpper()] = value;
+    }
+
+    public static Vector2I DirectionFlagToVector2I(DirectionFlag flag) {
+        return flag switch {
+            DirectionFlag.Up => Vector2I.Up,
+            DirectionFlag.UpRight => new Vector2I(1, -1),
+            DirectionFlag.Right => Vector2I.Right,
+            DirectionFlag.DownRight => new Vector2I(1, 1),
+            DirectionFlag.Down => Vector2I.Down,
+            DirectionFlag.DownLeft => new Vector2I(-1, 1),
+            DirectionFlag.Left => Vector2I.Left,
+            DirectionFlag.UpLeft => new Vector2I(-1, -1),
+            _ => throw new ArgumentOutOfRangeException(nameof(flag), flag, "Invalid direction flag")
+        };
+    }
+
+    public static DirectionFlag Vector2IToDirectionFlag(Vector2I vector) {
+        if (vector == Vector2I.Up) return DirectionFlag.Up;
+        if (vector == Vector2I.Right) return DirectionFlag.Right;
+        if (vector == Vector2I.Down) return DirectionFlag.Down;
+        if (vector == Vector2I.Left) return DirectionFlag.Left;
+        if (vector == new Vector2I(1, -1)) return DirectionFlag.UpRight;
+        if (vector == new Vector2I(1, 1)) return DirectionFlag.DownRight;
+        if (vector == new Vector2I(-1, 1)) return DirectionFlag.DownLeft;
+        if (vector == new Vector2I(-1, -1)) return DirectionFlag.UpLeft;
+        throw new ArgumentOutOfRangeException(nameof(vector), vector, "Invalid vector direction");
     }
 
     /// <summary>
@@ -176,18 +203,5 @@ public static class DirectionFlagTools {
             return directionValue;
         }
         return DirectionFlag.None;
-    }
-
-    public static byte GetDirectionFlags(MazeNode node) {
-        byte directions = 0;
-        if (node.Up != null) directions |= (byte)DirectionFlag.Up;
-        if (node.UpRight != null) directions |= (byte)DirectionFlag.UpRight;
-        if (node.Right != null) directions |= (byte)DirectionFlag.Right;
-        if (node.DownRight != null) directions |= (byte)DirectionFlag.DownRight;
-        if (node.Down != null) directions |= (byte)DirectionFlag.Down;
-        if (node.DownLeft != null) directions |= (byte)DirectionFlag.DownLeft;
-        if (node.Left != null) directions |= (byte)DirectionFlag.Left;
-        if (node.UpLeft != null) directions |= (byte)DirectionFlag.UpLeft;
-        return directions;
     }
 }

@@ -6,7 +6,6 @@ using NUnit.Framework;
 namespace Betauer.Core.Tests.GridTemplate;
 
 [TestFixture]
-[Only]
 public class DirectionTransformationsTests {
     [Test]
     public void TestRotate90() {

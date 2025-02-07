@@ -14,18 +14,18 @@ public class TemplateTest {
         template.SetAttribute("normal", "value");
 
         // Left-Right flags
-        template.SetAttribute("L", "left");
-        template.SetAttribute("R", "right");
+        template.SetAttribute(DirectionFlag.Left, "left");
+        template.SetAttribute(DirectionFlag.Right, "right");
 
         // Up-Down flags
-        template.SetAttribute("N", "up"); // THIS IS UP WITH ALIAS
-        template.SetAttribute("S", "down"); // THIS IS DOWN WITH ALIAS
+        template.SetAttribute(DirectionFlag.Up, "up");
+        template.SetAttribute(DirectionFlag.Down, "down");
 
         // Diagonal flags
-        template.SetAttribute("128", "upleft"); // 128 is the flag for up+left
-        template.SetAttribute("UR", "upright");
-        template.SetAttribute("BL", "bottomleft");
-        template.SetAttribute("BR", "bottomright");
+        template.SetAttribute(DirectionFlag.UpLeft, "upleft");
+        template.SetAttribute(DirectionFlag.UpRight, "upright");
+        template.SetAttribute(DirectionFlag.DownLeft, "bottomleft");
+        template.SetAttribute(DirectionFlag.DownRight, "bottomright");
 
         return template;
     }
@@ -36,13 +36,11 @@ public class TemplateTest {
         var template = new Template();
 
         // Act
-        template.SetAttribute("U", "up");
-        Assert.That(template.GetAttribute("N"), Is.EqualTo("up"));
-        Assert.That(template.GetAttribute("u"), Is.EqualTo("up"));
-        Assert.That(template.GetAttribute("n"), Is.EqualTo("up"));
-        Assert.That(template.GetAttribute("T"), Is.EqualTo("up"));
-        Assert.That(template.GetAttribute("t"), Is.EqualTo("up"));
+        template.SetAttribute("dir:U", "up");
         Assert.That(template.GetAttribute(DirectionFlag.Up), Is.EqualTo("up"));
+
+        template.SetAttribute(DirectionFlag.Down, "down");
+        Assert.That(template.GetAttribute("dir:D"), Is.EqualTo("down"));
 
     }
 
@@ -143,16 +141,16 @@ public class TemplateTest {
             Assert.That(transformed.GetAttribute("normal"), Is.EqualTo("value"));
 
             // Flags are rotated 90 degrees clockwise
-            Assert.That(transformed.GetAttribute("U"), Is.EqualTo("left")); // Up becomes Left
-            Assert.That(transformed.GetAttribute("R"), Is.EqualTo("up")); // Right becomes Up
-            Assert.That(transformed.GetAttribute("D"), Is.EqualTo("right")); // Down becomes Right
-            Assert.That(transformed.GetAttribute("L"), Is.EqualTo("down")); // Left becomes Down
+            Assert.That(transformed.GetAttribute("dir:U"), Is.EqualTo("left")); // Up becomes Left
+            Assert.That(transformed.GetAttribute("dir:R"), Is.EqualTo("up")); // Right becomes Up
+            Assert.That(transformed.GetAttribute("dir:D"), Is.EqualTo("right")); // Down becomes Right
+            Assert.That(transformed.GetAttribute("dir:L"), Is.EqualTo("down")); // Left becomes Down
 
             // Diagonal flags are also rotated
-            Assert.That(transformed.GetAttribute("UL"), Is.EqualTo("bottomleft")); // UpLeft becomes BottomLeft
-            Assert.That(transformed.GetAttribute("UR"), Is.EqualTo("upleft")); // UpRight becomes UpLeft
-            Assert.That(transformed.GetAttribute("BR"), Is.EqualTo("upright")); // BottomRight becomes UpRight
-            Assert.That(transformed.GetAttribute("BL"), Is.EqualTo("bottomright")); // BottomLeft becomes BottomRight
+            Assert.That(transformed.GetAttribute("dir:UL"), Is.EqualTo("bottomleft")); // UpLeft becomes BottomLeft
+            Assert.That(transformed.GetAttribute("dir:UR"), Is.EqualTo("upleft")); // UpRight becomes UpLeft
+            Assert.That(transformed.GetAttribute("dir:DR"), Is.EqualTo("upright")); // BottomRight becomes UpRight
+            Assert.That(transformed.GetAttribute("dir:DL"), Is.EqualTo("bottomright")); // BottomLeft becomes BottomRight
         });
     }
 
@@ -170,16 +168,16 @@ public class TemplateTest {
             Assert.That(transformed.GetAttribute("normal"), Is.EqualTo("value"));
 
             // Flags are rotated 180 degrees
-            Assert.That(transformed.GetAttribute("U"), Is.EqualTo("down")); // Up becomes Down
-            Assert.That(transformed.GetAttribute("R"), Is.EqualTo("left")); // Right becomes Left
-            Assert.That(transformed.GetAttribute("D"), Is.EqualTo("up")); // Down becomes Up
-            Assert.That(transformed.GetAttribute("L"), Is.EqualTo("right")); // Left becomes Right
+            Assert.That(transformed.GetAttribute("dir:U"), Is.EqualTo("down")); // Up becomes Down
+            Assert.That(transformed.GetAttribute("dir:R"), Is.EqualTo("left")); // Right becomes Left
+            Assert.That(transformed.GetAttribute("dir:D"), Is.EqualTo("up")); // Down becomes Up
+            Assert.That(transformed.GetAttribute("dir:L"), Is.EqualTo("right")); // Left becomes Right
 
             // Diagonal flags are also rotated
-            Assert.That(transformed.GetAttribute("UL"), Is.EqualTo("bottomright")); // UpLeft becomes BottomRight
-            Assert.That(transformed.GetAttribute("UR"), Is.EqualTo("bottomleft")); // UpRight becomes BottomLeft
-            Assert.That(transformed.GetAttribute("BR"), Is.EqualTo("upleft")); // BottomRight becomes UpLeft
-            Assert.That(transformed.GetAttribute("BL"), Is.EqualTo("upright")); // BottomLeft becomes UpRight
+            Assert.That(transformed.GetAttribute("dir:UL"), Is.EqualTo("bottomright")); // UpLeft becomes BottomRight
+            Assert.That(transformed.GetAttribute("dir:UR"), Is.EqualTo("bottomleft")); // UpRight becomes BottomLeft
+            Assert.That(transformed.GetAttribute("dir:DR"), Is.EqualTo("upleft")); // BottomRight becomes UpLeft
+            Assert.That(transformed.GetAttribute("dir:DL"), Is.EqualTo("upright")); // BottomLeft becomes UpRight
         });
     }
 
@@ -197,16 +195,16 @@ public class TemplateTest {
             Assert.That(transformed.GetAttribute("normal"), Is.EqualTo("value"));
 
             // Flags are rotated 90 degrees counter-clockwise
-            Assert.That(transformed.GetAttribute("U"), Is.EqualTo("right")); // Up becomes Right
-            Assert.That(transformed.GetAttribute("R"), Is.EqualTo("down")); // Right becomes Down
-            Assert.That(transformed.GetAttribute("D"), Is.EqualTo("left")); // Down becomes Left
-            Assert.That(transformed.GetAttribute("L"), Is.EqualTo("up")); // Left becomes Up
+            Assert.That(transformed.GetAttribute("dir:U"), Is.EqualTo("right")); // Up becomes Right
+            Assert.That(transformed.GetAttribute("dir:R"), Is.EqualTo("down")); // Right becomes Down
+            Assert.That(transformed.GetAttribute("dir:D"), Is.EqualTo("left")); // Down becomes Left
+            Assert.That(transformed.GetAttribute("dir:L"), Is.EqualTo("up")); // Left becomes Up
 
             // Diagonal flags are also rotated
-            Assert.That(transformed.GetAttribute("UL"), Is.EqualTo("upright")); // UpLeft becomes UpRight
-            Assert.That(transformed.GetAttribute("UR"), Is.EqualTo("bottomright")); // UpRight becomes BottomRight
-            Assert.That(transformed.GetAttribute("BR"), Is.EqualTo("bottomleft")); // BottomRight becomes BottomLeft
-            Assert.That(transformed.GetAttribute("BL"), Is.EqualTo("upleft")); // BottomLeft becomes UpLeft
+            Assert.That(transformed.GetAttribute("dir:UL"), Is.EqualTo("upright")); // UpLeft becomes UpRight
+            Assert.That(transformed.GetAttribute("dir:UR"), Is.EqualTo("bottomright")); // UpRight becomes BottomRight
+            Assert.That(transformed.GetAttribute("dir:DR"), Is.EqualTo("bottomleft")); // BottomRight becomes BottomLeft
+            Assert.That(transformed.GetAttribute("dir:DL"), Is.EqualTo("upleft")); // BottomLeft becomes UpLeft
         });
     }
 
@@ -224,18 +222,18 @@ public class TemplateTest {
             Assert.That(transformed.GetAttribute("normal"), Is.EqualTo("value"));
 
             // Vertical flags remain unchanged
-            Assert.That(transformed.GetAttribute("U"), Is.EqualTo("up"));
-            Assert.That(transformed.GetAttribute("D"), Is.EqualTo("down"));
+            Assert.That(transformed.GetAttribute("dir:U"), Is.EqualTo("up"));
+            Assert.That(transformed.GetAttribute("dir:D"), Is.EqualTo("down"));
 
             // Horizontal flags are flipped
-            Assert.That(transformed.GetAttribute("R"), Is.EqualTo("left")); // Right becomes Left
-            Assert.That(transformed.GetAttribute("L"), Is.EqualTo("right")); // Left becomes Right
+            Assert.That(transformed.GetAttribute("dir:R"), Is.EqualTo("left")); // Right becomes Left
+            Assert.That(transformed.GetAttribute("dir:L"), Is.EqualTo("right")); // Left becomes Right
 
             // Diagonal flags are flipped horizontally
-            Assert.That(transformed.GetAttribute("UL"), Is.EqualTo("upright")); // UpLeft becomes UpRight
-            Assert.That(transformed.GetAttribute("UR"), Is.EqualTo("upleft")); // UpRight becomes UpLeft
-            Assert.That(transformed.GetAttribute("BR"), Is.EqualTo("bottomleft")); // BottomRight becomes BottomLeft
-            Assert.That(transformed.GetAttribute("BL"), Is.EqualTo("bottomright")); // BottomLeft becomes BottomRight
+            Assert.That(transformed.GetAttribute("dir:UL"), Is.EqualTo("upright")); // UpLeft becomes UpRight
+            Assert.That(transformed.GetAttribute("dir:UR"), Is.EqualTo("upleft")); // UpRight becomes UpLeft
+            Assert.That(transformed.GetAttribute("dir:DR"), Is.EqualTo("bottomleft")); // BottomRight becomes BottomLeft
+            Assert.That(transformed.GetAttribute("dir:DL"), Is.EqualTo("bottomright")); // BottomLeft becomes BottomRight
         });
     }
 
@@ -253,18 +251,18 @@ public class TemplateTest {
             Assert.That(transformed.GetAttribute("normal"), Is.EqualTo("value"));
 
             // Horizontal flags remain unchanged
-            Assert.That(transformed.GetAttribute("L"), Is.EqualTo("left"));
-            Assert.That(transformed.GetAttribute("R"), Is.EqualTo("right"));
+            Assert.That(transformed.GetAttribute("dir:L"), Is.EqualTo("left"));
+            Assert.That(transformed.GetAttribute("dir:R"), Is.EqualTo("right"));
 
             // Vertical flags are flipped
-            Assert.That(transformed.GetAttribute("U"), Is.EqualTo("down")); // Up becomes Down
-            Assert.That(transformed.GetAttribute("D"), Is.EqualTo("up")); // Down becomes Up
+            Assert.That(transformed.GetAttribute("dir:U"), Is.EqualTo("down")); // Up becomes Down
+            Assert.That(transformed.GetAttribute("dir:D"), Is.EqualTo("up")); // Down becomes Up
 
             // Diagonal flags are flipped vertically
-            Assert.That(transformed.GetAttribute("UL"), Is.EqualTo("bottomleft")); // UpLeft becomes BottomLeft
-            Assert.That(transformed.GetAttribute("UR"), Is.EqualTo("bottomright")); // UpRight becomes BottomRight
-            Assert.That(transformed.GetAttribute("BR"), Is.EqualTo("upright")); // BottomRight becomes UpRight
-            Assert.That(transformed.GetAttribute("BL"), Is.EqualTo("upleft")); // BottomLeft becomes UpLeft
+            Assert.That(transformed.GetAttribute("dir:UL"), Is.EqualTo("bottomleft")); // UpLeft becomes BottomLeft
+            Assert.That(transformed.GetAttribute("dir:UR"), Is.EqualTo("bottomright")); // UpRight becomes BottomRight
+            Assert.That(transformed.GetAttribute("dir:DR"), Is.EqualTo("upright")); // BottomRight becomes UpRight
+            Assert.That(transformed.GetAttribute("dir:DL"), Is.EqualTo("upleft")); // BottomLeft becomes UpLeft
         });
     }
 
@@ -282,16 +280,16 @@ public class TemplateTest {
             Assert.That(transformed.GetAttribute("normal"), Is.EqualTo("value"));
 
             // Vertical flags remain unchanged
-            Assert.That(transformed.GetAttribute("U"), Is.EqualTo("up"));
-            Assert.That(transformed.GetAttribute("D"), Is.EqualTo("down"));
+            Assert.That(transformed.GetAttribute("dir:U"), Is.EqualTo("up"));
+            Assert.That(transformed.GetAttribute("dir:D"), Is.EqualTo("down"));
 
             // Left flags are kept and copied to right
-            Assert.That(transformed.GetAttribute("L"), Is.EqualTo("left"));
-            Assert.That(transformed.GetAttribute("R"), Is.EqualTo("left"));
-            Assert.That(transformed.GetAttribute("UL"), Is.EqualTo("upleft"));
-            Assert.That(transformed.GetAttribute("UR"), Is.EqualTo("upleft"));
-            Assert.That(transformed.GetAttribute("BL"), Is.EqualTo("bottomleft"));
-            Assert.That(transformed.GetAttribute("BR"), Is.EqualTo("bottomleft"));
+            Assert.That(transformed.GetAttribute("dir:L"), Is.EqualTo("left"));
+            Assert.That(transformed.GetAttribute("dir:R"), Is.EqualTo("left"));
+            Assert.That(transformed.GetAttribute("dir:UL"), Is.EqualTo("upleft"));
+            Assert.That(transformed.GetAttribute("dir:UR"), Is.EqualTo("upleft"));
+            Assert.That(transformed.GetAttribute("dir:DL"), Is.EqualTo("bottomleft"));
+            Assert.That(transformed.GetAttribute("dir:DR"), Is.EqualTo("bottomleft"));
         });
     }
 
@@ -309,16 +307,16 @@ public class TemplateTest {
             Assert.That(transformed.GetAttribute("normal"), Is.EqualTo("value"));
 
             // Vertical flags remain unchanged
-            Assert.That(transformed.GetAttribute("U"), Is.EqualTo("up"));
-            Assert.That(transformed.GetAttribute("D"), Is.EqualTo("down"));
+            Assert.That(transformed.GetAttribute("dir:U"), Is.EqualTo("up"));
+            Assert.That(transformed.GetAttribute("dir:D"), Is.EqualTo("down"));
 
             // Right flags are kept and copied to left
-            Assert.That(transformed.GetAttribute("R"), Is.EqualTo("right"));
-            Assert.That(transformed.GetAttribute("L"), Is.EqualTo("right"));
-            Assert.That(transformed.GetAttribute("UR"), Is.EqualTo("upright"));
-            Assert.That(transformed.GetAttribute("UL"), Is.EqualTo("upright"));
-            Assert.That(transformed.GetAttribute("BR"), Is.EqualTo("bottomright"));
-            Assert.That(transformed.GetAttribute("BL"), Is.EqualTo("bottomright"));
+            Assert.That(transformed.GetAttribute("dir:R"), Is.EqualTo("right"));
+            Assert.That(transformed.GetAttribute("dir:L"), Is.EqualTo("right"));
+            Assert.That(transformed.GetAttribute("dir:UR"), Is.EqualTo("upright"));
+            Assert.That(transformed.GetAttribute("dir:UL"), Is.EqualTo("upright"));
+            Assert.That(transformed.GetAttribute("dir:DR"), Is.EqualTo("bottomright"));
+            Assert.That(transformed.GetAttribute("dir:DL"), Is.EqualTo("bottomright"));
         });
     }
 
@@ -336,16 +334,16 @@ public class TemplateTest {
             Assert.That(transformed.GetAttribute("normal"), Is.EqualTo("value"));
 
             // Horizontal flags remain unchanged
-            Assert.That(transformed.GetAttribute("L"), Is.EqualTo("left"));
-            Assert.That(transformed.GetAttribute("R"), Is.EqualTo("right"));
+            Assert.That(transformed.GetAttribute("dir:L"), Is.EqualTo("left"));
+            Assert.That(transformed.GetAttribute("dir:R"), Is.EqualTo("right"));
 
             // Top flags are kept and copied to bottom
-            Assert.That(transformed.GetAttribute("U"), Is.EqualTo("up"));
-            Assert.That(transformed.GetAttribute("D"), Is.EqualTo("up"));
-            Assert.That(transformed.GetAttribute("UL"), Is.EqualTo("upleft"));
-            Assert.That(transformed.GetAttribute("BL"), Is.EqualTo("upleft"));
-            Assert.That(transformed.GetAttribute("UR"), Is.EqualTo("upright"));
-            Assert.That(transformed.GetAttribute("BR"), Is.EqualTo("upright"));
+            Assert.That(transformed.GetAttribute("dir:U"), Is.EqualTo("up"));
+            Assert.That(transformed.GetAttribute("dir:D"), Is.EqualTo("up"));
+            Assert.That(transformed.GetAttribute("dir:UL"), Is.EqualTo("upleft"));
+            Assert.That(transformed.GetAttribute("dir:DL"), Is.EqualTo("upleft"));
+            Assert.That(transformed.GetAttribute("dir:UR"), Is.EqualTo("upright"));
+            Assert.That(transformed.GetAttribute("dir:DR"), Is.EqualTo("upright"));
         });
     }
 
@@ -363,16 +361,15 @@ public class TemplateTest {
             Assert.That(transformed.GetAttribute("normal"), Is.EqualTo("value"));
 
             // Horizontal flags remain unchanged
-            Assert.That(transformed.GetAttribute("L"), Is.EqualTo("left"));
-            Assert.That(transformed.GetAttribute("R"), Is.EqualTo("right"));
+            Assert.That(transformed.GetAttribute("dir:L"), Is.EqualTo("left"));
+            Assert.That(transformed.GetAttribute("dir:R"), Is.EqualTo("right"));
 
             // Bottom flags are kept and copied to top
-            Assert.That(transformed.GetAttribute("D"), Is.EqualTo("down"));
-            Assert.That(transformed.GetAttribute("U"), Is.EqualTo("down"));
-            Assert.That(transformed.GetAttribute("BL"), Is.EqualTo("bottomleft"));
-            Assert.That(transformed.GetAttribute("UL"), Is.EqualTo("bottomleft"));
-            Assert.That(transformed.GetAttribute("BR"), Is.EqualTo("bottomright"));
-            Assert.That(transformed.GetAttribute("UR"), Is.EqualTo("bottomright"));
+            Assert.That(transformed.GetAttribute("dir:D"), Is.EqualTo("down"));
+            Assert.That(transformed.GetAttribute("dir:DL"), Is.EqualTo("bottomleft"));
+            Assert.That(transformed.GetAttribute("dir:UL"), Is.EqualTo("bottomleft"));
+            Assert.That(transformed.GetAttribute("dir:DR"), Is.EqualTo("bottomright"));
+            Assert.That(transformed.GetAttribute("dir:UR"), Is.EqualTo("bottomright"));
         });
     }
 

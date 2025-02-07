@@ -1,3 +1,4 @@
+using System.Linq;
 using Betauer.Core.PCG.GridTemplate;
 using Betauer.TestRunner;
 using NUnit.Framework;
@@ -38,10 +39,10 @@ public class TemplateSetTests {
         """;
 
         _templateSet.LoadFromString(content);
-        Assert.That(_templateSet.FindTemplates(17), Has.Count.EqualTo(3));
-        Assert.That(_templateSet.FindTemplates(DirectionFlagTools.StringToFlags("U-D")), Has.Count.EqualTo(3));
-        Assert.That(_templateSet.FindTemplates(DirectionFlagTools.StringToFlags("s-T")), Has.Count.EqualTo(3));
-        Assert.That(_templateSet.FindTemplates((byte)(DirectionFlag.Up | DirectionFlag.Down)), Has.Count.EqualTo(3));
+        Assert.That(_templateSet.FindTemplates(17).ToArray(), Has.Length.EqualTo(3));
+        Assert.That(_templateSet.FindTemplates(DirectionFlagTools.StringToFlags("U-D")).ToArray(), Has.Length.EqualTo(3));
+        Assert.That(_templateSet.FindTemplates(DirectionFlagTools.StringToFlags("s-T")).ToArray(), Has.Length.EqualTo(3));
+        Assert.That(_templateSet.FindTemplates((byte)(DirectionFlag.Up | DirectionFlag.Down)).ToArray(), Has.Length.EqualTo(3));
     }
 
     [Test]
@@ -54,7 +55,7 @@ public class TemplateSetTests {
         """;
         
         _templateSet.LoadFromString(content);
-        var template = _templateSet.FindTemplates(15)[0];
+        var template = _templateSet.FindTemplates(15).ToArray()[0];
 
         Assert.That(template.Tags, Is.EquivalentTo(new[] { "tag1", "tag2", "tag3", "tag4" }));
 
@@ -63,22 +64,23 @@ public class TemplateSetTests {
     [Test]
     public void LoadFromString_Attributes() {
         var content = """
-            @ Template=15 tag1 tag2 tag3,tag4 pepe=1 juan="2" N=tres
+            @ Template=15 tag1 tag2 tag3,tag4 pepe=1 juan="2" dir:N=tres
             abc
             def
             ghi
         """;
 
         _templateSet.LoadFromString(content);
-        var template = _templateSet.FindTemplates(15)[0];
+        var template = _templateSet.FindTemplates(15).ToArray()[0];
 
         Assert.That(template.Tags, Is.EquivalentTo(new[] { "tag1", "tag2", "tag3", "tag4" }));
         Assert.That(template.GetAttribute("pepe"), Is.EqualTo(1));
         Assert.That(template.GetAttribute("juan"), Is.EqualTo("2"));
 
-        Assert.That(template.GetAttribute("N"), Is.EqualTo("tres"));
+        // N (north) is normalized to U (up)
+        Assert.That(template.GetAttribute("dir:U"), Is.EqualTo("tres"));
         Assert.That(template.GetAttribute(DirectionFlag.Up), Is.EqualTo("tres"));
-        Assert.That(template.GetAttribute("t"), Is.EqualTo("tres"));
+        Assert.That(template.GetAttribute("dir:"+DirectionFlagTools.NormalizeFlag("t")), Is.EqualTo("tres"));
 
     }
 
@@ -96,9 +98,9 @@ public class TemplateSetTests {
         """;
 
         _templateSet.LoadFromString(content);
-        var templates = _templateSet.FindTemplates(15, new[] { "special" });
+        var templates = _templateSet.FindTemplates(15, new[] { "special" }).ToArray();
 
-        Assert.That(templates, Has.Count.EqualTo(1));
+        Assert.That(templates, Has.Length.EqualTo(1));
     }
 
     [Test]
@@ -119,9 +121,9 @@ public class TemplateSetTests {
         """;
 
         _templateSet.LoadFromString(content);
-        var templates = _templateSet.FindTemplates(15, new[] { "flag1" });
+        var templates = _templateSet.FindTemplates(15, new[] { "flag1" }).ToArray();
 
-        Assert.That(templates, Has.Count.EqualTo(3));
+        Assert.That(templates, Has.Length.EqualTo(3));
     }
 
     [Test]
@@ -141,7 +143,7 @@ public class TemplateSetTests {
 
     [Test]
     public void FindTemplates_WithNonExistentType_ThrowsException() {
-        Assert.That(_templateSet.FindTemplates(99), Is.Empty);
+        Assert.That(_templateSet.FindTemplates(99).ToArray(), Is.Empty);
     }
 
     [Test]
@@ -154,6 +156,6 @@ public class TemplateSetTests {
         """;
 
         _templateSet.LoadFromString(content);
-        Assert.That(_templateSet.FindTemplates(15, new[] { "nonexistent" }), Is.Empty);
+        Assert.That(_templateSet.FindTemplates(15, new[] { "nonexistent" }).ToArray(), Is.Empty);
     }
 }

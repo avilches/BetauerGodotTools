@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Betauer.Core.DataMath;
 using Betauer.Core.PCG.Maze;
@@ -47,7 +48,7 @@ public class TemplateSet(int cellSize) {
     /// // Find templates excluding specific tags
     /// var excludingTemplates = FindTemplatesExcluding(new[] {"damaged"}); // Must not have these tags
     /// </example>
-    public List<Template> FindTemplates(byte? directionFlags = null, string[]? tags = null) {
+    public IEnumerable<Template> FindTemplates(byte? directionFlags = null, string[]? tags = null) {
         var query = _templates.AsEnumerable();
 
         if (directionFlags.HasValue) {
@@ -58,11 +59,7 @@ public class TemplateSet(int cellSize) {
             query = query.Where(t => t.HasAllTags(tags));
         }
 
-        return query.ToList();
-    }
-
-    public List<Template> FindTemplates(MazeNode node, string[]? tags = null) {
-        return FindTemplates(DirectionFlagTools.GetDirectionFlags(node), tags);
+        return query;
     }
 
     /// <summary>
@@ -105,7 +102,20 @@ public class TemplateSet(int cellSize) {
                     throw new ArgumentException($"Error in line #{lineNumber}. First define {TemplateId}: {line}");
                 }
                 foreach (var tag in parseResult.Tags) current.AddTag(tag);
-                foreach (var (key, value) in parseResult.Attributes) current.SetAttribute(key, value);
+                foreach (var (k, value) in parseResult.Attributes) {
+                    if (k.StartsWith("dir:")) {
+                        var key = k[4..];
+                        // If the user wrote "dir:N" (north) or "dir:t" (top) instead of "U", we normalize it and write it as "U" (up)
+                        var dir = DirectionFlagTools.StringToDirectionFlag(key);
+                        if (dir != DirectionFlag.None) {
+                            current.SetAttribute(dir, value);
+                        } else {
+                            current.SetAttribute(key, value);
+                        }
+                    } else {
+                        current.SetAttribute(k, value);
+                    }
+                }
 
             } else if (current != null) {
                 buffer.Add(line);
@@ -169,7 +179,7 @@ public class TemplateSet(int cellSize) {
     }
 
     public void ApplyTransformations() {
-        foreach (var template in FindTemplates()) {
+        foreach (var template in FindTemplates().ToArray()) {
             if (template.HasAnyTag("rotate:90", "rotate90")) {
                 AddTemplate(template.Transform(Transformations.Type.Rotate90));
             }
@@ -177,7 +187,7 @@ public class TemplateSet(int cellSize) {
                 AddTemplate(template.Transform(Transformations.Type.Rotate180));
             }
             if (template.HasAnyTag("rotate:-90", "rotate-90", "rotate:minus90")) {
-                AddTemplate(template.Transform(Transformations.Type.Rotate180));
+                AddTemplate(template.Transform(Transformations.Type.RotateMinus90));
             }
             if (template.HasAnyTag("flip:h", "fliph", "flip:horizontal")) {
                 AddTemplate(template.Transform(Transformations.Type.FlipH));
