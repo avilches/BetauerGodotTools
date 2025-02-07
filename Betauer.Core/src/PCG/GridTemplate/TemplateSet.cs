@@ -79,8 +79,7 @@ public class TemplateSet(int cellSize) {
         Template? current = null;
 
         var lineNumber = 0;
-        foreach (var line in content.Split(lineSeparator)
-                     .Select(l => l.Trim())) {
+        foreach (var line in content.Split(lineSeparator).Select(l => l.Trim())) {
 
             lineNumber++;
             if (line.Length == 0 || line.StartsWith("# ", StringComparison.Ordinal) || line.StartsWith("// ", StringComparison.Ordinal)) {
@@ -171,31 +170,31 @@ public class TemplateSet(int cellSize) {
 
     public void ApplyTransformations() {
         foreach (var template in FindTemplates()) {
-            if (template.HasAnyTag("#rotate:90", "rotate90")) {
+            if (template.HasAnyTag("rotate:90", "rotate90")) {
                 AddTemplate(template.Transform(Transformations.Type.Rotate90));
             }
-            if (template.HasAnyTag("#rotate:180", "#rotate180")) {
+            if (template.HasAnyTag("rotate:180", "rotate180")) {
                 AddTemplate(template.Transform(Transformations.Type.Rotate180));
             }
-            if (template.HasAnyTag("#rotate:-90", "#rotate-90", "#rotate:minus90")) {
+            if (template.HasAnyTag("rotate:-90", "rotate-90", "rotate:minus90")) {
                 AddTemplate(template.Transform(Transformations.Type.Rotate180));
             }
-            if (template.HasAnyTag("#flip:h", "#fliph", "#flip:horizontal")) {
+            if (template.HasAnyTag("flip:h", "fliph", "flip:horizontal")) {
                 AddTemplate(template.Transform(Transformations.Type.FlipH));
             }
-            if (template.HasAnyTag("#flip:v", "#flipv", "#flip:vertical")) {
+            if (template.HasAnyTag("flip:v", "flipv", "flip:vertical")) {
                 AddTemplate(template.Transform(Transformations.Type.FlipV));
             }
-            if (template.HasAnyTag("#mirror:lr", "#mirror:we", "#mirror:leftright", "#mirror:westeast", "#mirror:left-right", "#mirror:west-east")) {
+            if (template.HasAnyTag("mirror:lr", "mirror:we", "mirror:leftright", "mirror:westeast", "mirror:left-right", "mirror:west-east")) {
                 AddTemplate(template.Transform(Transformations.Type.MirrorLR));
             }
-            if (template.HasAnyTag("#mirror:rl", "#mirror:ew", "#mirror:rightleft", "#mirror:eastwest", "#mirror:right-left", "#mirror:east-west")) {
+            if (template.HasAnyTag("mirror:rl", "mirror:ew", "mirror:rightleft", "mirror:eastwest", "mirror:right-left", "mirror:east-west")) {
                 AddTemplate(template.Transform(Transformations.Type.MirrorRL));
             }
-            if (template.HasAnyTag("#mirror:tb", "#mirror:ud", "#mirror:ns", "#mirror:topbottom", "#mirror:updown", "#mirror:northsouth", "#mirror:top-bottom", "#mirror:up-down", "#mirror:north-south")) {
+            if (template.HasAnyTag("mirror:tb", "mirror:ud", "mirror:ns", "mirror:topbottom", "mirror:updown", "mirror:northsouth", "mirror:top-bottom", "mirror:up-down", "mirror:north-south")) {
                 AddTemplate(template.Transform(Transformations.Type.MirrorTB));
             }
-            if (template.HasAnyTag("#mirror:bt", "#mirror:du", "#mirror:sn", "#mirror:bottomtop", "#mirror:downup", "#mirror:southnorth", "#mirror:bottom-top", "#mirror:down-up", "#mirror:south-north")) {
+            if (template.HasAnyTag("mirror:bt", "mirror:du", "mirror:sn", "mirror:bottomtop", "mirror:downup", "mirror:southnorth", "mirror:bottom-top", "mirror:down-up", "mirror:south-north")) {
                 AddTemplate(template.Transform(Transformations.Type.MirrorBT));
             }
         }

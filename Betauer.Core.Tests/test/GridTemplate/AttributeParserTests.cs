@@ -6,7 +6,6 @@ using NUnit.Framework;
 namespace Betauer.Core.Tests.GridTemplate;
 
 [TestFixture]
-[Only]
 public class AttributeParserTests {
     [Test]
     public void Parse_ValidNames_StartingWithLetters() {
@@ -30,6 +29,51 @@ public class AttributeParserTests {
         Assert.That(result.Tags, Is.EquivalentTo(new[] { "1tag", "2-tag", "3_tag", "42tag" }));
         Assert.That(result.Attributes["1name"], Is.EqualTo("John"));
         Assert.That(result.Attributes["2.version"], Is.EqualTo(3));
+    }
+
+    [Test]
+    public void Parse_AllowTagDuplicates() {
+        var input = "tag1 tag1,Tag1,tag1 Tag1";
+        var result = AttributeParser.Parse(input);
+
+        Assert.That(result.Tags, Is.EquivalentTo(new[] { "tag1", "Tag1" }));
+    }
+
+    [Test]
+    public void Parse_Fail_Attribute_Duplicates() {
+        var input = "att1=1 att1=2";
+        Assert.Throws<AttributeParser.ParseException>(() => AttributeParser.Parse(input),
+            "Should throw when duplicate attributes are present");
+    }
+
+    [Test]
+    public void Parse_Fail_Attribute_Duplicates_IgnoreCase() {
+        var input = "att=1 ATT=2";
+
+        var result = AttributeParser.Parse(input);
+        Assert.That(result.Attributes["att"], Is.EqualTo(1));
+        Assert.That(result.Attributes["ATT"], Is.EqualTo(2));
+
+
+        Assert.Throws<AttributeParser.ParseException>(() => AttributeParser.Parse(input, true),
+            "Should throw when duplicate attributes are present");
+    }
+
+    [Test]
+    public void Parse_Fail_Attribute_Duplicates_IgnoreCase_Lowercase() {
+        var input = "att=1 ATT=2";
+
+        Assert.Throws<AttributeParser.ParseException>(() => AttributeParser.Parse(input, true),
+            "Should throw when duplicate attributes are present");
+    }
+
+    [Test]
+    public void Parse_All_Lowercase() {
+        var input = "TAG pePE=1";
+        var result = AttributeParser.Parse(input, true);
+
+        Assert.That(result.Tags, Is.EquivalentTo(new[] { "tag" }));
+        Assert.That(result.Attributes["pepe"], Is.EqualTo(1));
     }
 
     [Test]
@@ -66,6 +110,20 @@ public class AttributeParserTests {
     }
 
     [Test]
+    public void Parse_Numbers() {
+        var input = "int1=1 int2=+2 int3=-3 float1=1.1 float2=+2.1 float3=-3.1 string=2.3.3";
+        var result = AttributeParser.Parse(input);
+
+        Assert.That(result.Attributes["int1"], Is.EqualTo(1));
+        Assert.That(result.Attributes["int2"], Is.EqualTo(2));
+        Assert.That(result.Attributes["int3"], Is.EqualTo(-3));
+        Assert.That(result.Attributes["float1"], Is.EqualTo(1.1f));
+        Assert.That(result.Attributes["float2"], Is.EqualTo(2.1f));
+        Assert.That(result.Attributes["float3"], Is.EqualTo(-3.1f));
+        Assert.That(result.Attributes["string"], Is.EqualTo("2.3.3"));
+    }
+
+    [Test]
     public void Parse_ValidNames_ComplexCombinations() {
         var input = "@user.name #tag.1 &version.2.0 @first.name=\"John\" #version.1=3.14 path/to/file";
         var result = AttributeParser.Parse(input);
@@ -86,8 +144,18 @@ public class AttributeParserTests {
     }
 
     [Test]
-    public void Parse_InvalidNames_EmptyOrWhitespace() {
+    public void Parse_InvalidNames_EmptyOrWhitespace_Comma_SingleQuote_DoubleQuote() {
         var invalidInputs = new[] {
+            "=",
+            "==",
+            "'",
+            "''",
+            "'''",
+            "' '",
+            "\"",
+            "\"\"",
+            "\" \"",
+            "\"\"\"",
             "=\"John\"", // Nombre vacío
             " =\"John\"", // Solo espacio
             "\t=\"John\"", // Solo tab
@@ -102,12 +170,13 @@ public class AttributeParserTests {
     }
 
     [Test]
-    public void Parse_ComplexExample() {
-        var input = "@player/1 enemy# enemy## enemy#boss.1 user.name=\"John Doe\" hit-points=100 is_active=true #special.tag &custom@tag path//to/file.txt version.1.0 +tag _tag";
+    public void Parse_AcceptAnySymbolExceptComma_SingleQuote_DoubleQuote_Equals() {
+        var input = "@player/1 / enemy# enemy## enemy#boss.1 .=Sigma  #=Sigma user.name=\"John Doe\" hit-points=100 is_active=true #special.tag &custom@tag path//to/file.txt version.1.0 +tag _tag";
         var result = AttributeParser.Parse(input);
 
         Assert.That(result.Tags, Is.EquivalentTo(new[] {
             "@player/1",
+            "/",
             "enemy#",
             "enemy##",
             "enemy#boss.1",
@@ -120,6 +189,8 @@ public class AttributeParserTests {
         }));
 
         Assert.That(result.Attributes["user.name"], Is.EqualTo("John Doe"));
+        Assert.That(result.Attributes["."], Is.EqualTo("Sigma"));
+        Assert.That(result.Attributes["#"], Is.EqualTo("Sigma"));
         Assert.That(result.Attributes["hit-points"], Is.EqualTo(100));
         Assert.That(result.Attributes["is_active"], Is.EqualTo(true));
     }

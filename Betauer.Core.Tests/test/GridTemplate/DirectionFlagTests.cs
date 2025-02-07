@@ -7,7 +7,6 @@ using NUnit.Framework;
 namespace Betauer.Core.Tests.GridTemplate;
 
 [TestFixture]
-[Only]
 public class DirectionFlagTests {
     [SetUp]
     public void Setup() {

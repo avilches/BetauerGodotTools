@@ -6,7 +6,6 @@ using NUnit.Framework;
 namespace Betauer.Core.Tests.GridTemplate;
 
 [TestFixture]
-[Only]
 public class TemplateTest {
     private Template CreateTemplateWithAllFlags() {
         var template = new Template() { Body = new Array2D<char>(2, 2) };

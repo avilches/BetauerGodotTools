@@ -6,6 +6,15 @@ using System.Text.RegularExpressions;
 
 namespace Betauer.Core.PCG.GridTemplate;
 
+/// <summary>
+/// Reads a line like this
+///
+/// tag1 tag2 tag3,tag4 intnumber=12 floatnumber= 2.3 str1="string with spaces" attribute3=string att4=true
+///
+/// and returns a ParseResult with a HashSet of tags and the attributes as a Dictionary<string, object>
+/// Tags are strings
+/// Attributes could be bool, string, int, float
+/// </summary>
 public static partial class AttributeParser {
     // Permite números, letras y "_-+@#&/" al inicio y en el medio, y también puntos en el medio
     private static readonly Regex ValidNamePattern = MyRegex();
@@ -25,7 +34,7 @@ public static partial class AttributeParser {
         return !string.IsNullOrEmpty(name) && ValidNamePattern.IsMatch(name);
     }
 
-    public static ParseResult Parse(string input) {
+    public static ParseResult Parse(string input, bool allLowerCase = false) {
         var result = new ParseResult();
         var currentIndex = 0;
 
@@ -97,10 +106,11 @@ public static partial class AttributeParser {
 
             // If token contains '=', it's an attribute, otherwise it's a tag
             if (token.Contains('=')) {
-                ParseAttribute(token, result.Attributes);
+                ParseAttribute(token, result.Attributes, allLowerCase);
             } else {
                 var tags = token.Split(',');
-                foreach (var tag in tags.Select(t => t.Trim()).Where(t => !string.IsNullOrEmpty(t))) {
+                foreach (var t in tags.Select(t => t.Trim()).Where(t => !string.IsNullOrEmpty(t))) {
+                    var tag = allLowerCase ? t.ToLowerInvariant() : t;
                     if (!IsValidName(tag)) {
                         throw new ParseException($"Invalid tag name: '{tag}'. Forbidden chars are {ForbiddenChars}");
                     }
@@ -114,13 +124,14 @@ public static partial class AttributeParser {
         return result;
     }
 
-    private static void ParseAttribute(string token, Dictionary<string, object> attributes) {
+    private static void ParseAttribute(string token, Dictionary<string, object> attributes, bool allLowerCase) {
         var separatorIndex = token.IndexOf('=');
         if (separatorIndex <= 0) {
             throw new ParseException($"Invalid attribute format: '{token}'. Expected 'name=value'");
         }
 
         var key = token[..separatorIndex].Trim();
+        key = allLowerCase ? key.ToLowerInvariant() : key;
         if (!IsValidName(key)) {
             throw new ParseException($"Invalid attribute name: '{key}'. Forbidden chars are {ForbiddenChars}");
         }
@@ -132,11 +143,11 @@ public static partial class AttributeParser {
 
         // Try parse as boolean
         if (valueStr.Equals("true", StringComparison.OrdinalIgnoreCase)) {
-            attributes[key] = true;
+            SetAttribute(attributes, key, true);
             return;
         }
         if (valueStr.Equals("false", StringComparison.OrdinalIgnoreCase)) {
-            attributes[key] = false;
+            SetAttribute(attributes, key, false);
             return;
         }
 
@@ -144,13 +155,13 @@ public static partial class AttributeParser {
         if (!valueStr.StartsWith('"') && !valueStr.StartsWith('\'')) {
             // Try parse as integer
             if (int.TryParse(valueStr, NumberStyles.Integer, CultureInfo.InvariantCulture, out var intValue)) {
-                attributes[key] = intValue;
+                SetAttribute(attributes, key, intValue);
                 return;
             }
 
             // Try parse as float
             if (float.TryParse(valueStr, NumberStyles.Float, CultureInfo.InvariantCulture, out var floatValue)) {
-                attributes[key] = floatValue;
+                SetAttribute(attributes, key, floatValue);
                 return;
             }
         }
@@ -160,7 +171,7 @@ public static partial class AttributeParser {
             if (!valueStr.EndsWith('"')) {
                 throw new ParseException($"Unclosed double quote in attribute value: '{key}'");
             }
-            attributes[key] = UnescapeString(valueStr[1..^1]);
+            SetAttribute(attributes, key,  UnescapeString(valueStr[1..^1]));
             return;
         }
 
@@ -168,19 +179,25 @@ public static partial class AttributeParser {
             if (!valueStr.EndsWith('\'')) {
                 throw new ParseException($"Unclosed single quote in attribute value: '{key}'");
             }
-            attributes[key] = UnescapeString(valueStr[1..^1]);
+            SetAttribute(attributes, key, UnescapeString(valueStr[1..^1]));
             return;
         }
 
         // If no quotes, treat as plain string
-        attributes[key] = valueStr;
+        SetAttribute(attributes, key, valueStr);
+    }
+
+    private static void SetAttribute(Dictionary<string,object> attributes, string key, object value) {
+        if (!attributes.TryAdd(key, value)) {
+            throw new ParseException($"Duplicate attribute: '{key}'");
+        }
     }
 
     private static string UnescapeString(string str) {
         return str
             .Replace("\\\"", "\"")
             .Replace("\\'", "'")
-            .Replace("\\\\", "\\")
+            .Replace(@"\\", "\\")
             .Replace("\\n", "\n")
             .Replace("\\r", "\r")
             .Replace("\\t", "\t");

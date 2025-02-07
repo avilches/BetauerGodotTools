@@ -5,7 +5,6 @@ using NUnit.Framework;
 namespace Betauer.Core.Tests.GridTemplate;
 
 [TestFixture]
-[Only]
 public class TemplateSetTests {
     private TemplateSet _templateSet;
 
@@ -22,17 +21,17 @@ public class TemplateSetTests {
     [Test]
     public void LoadFromString_DirectionFlags() {
         var content = """
-            @Template=17
+            @ Template=17
             abc
             def
             ghi
 
-            @Template="U-D"
+            @ Template="U-D"
             xyz
             uvw
             rst
 
-            @Template="T-s"
+            @ Template="T-s"
             xyz
             uvw
             rst
@@ -48,7 +47,7 @@ public class TemplateSetTests {
     [Test]
     public void LoadFromString_Tags() {
         var content = """
-            @Template=15 tag1 tag2 tag3,tag4
+            @ Template=15 tag1 tag2 tag3,tag4
             abc
             def
             ghi
@@ -62,10 +61,9 @@ public class TemplateSetTests {
     }
 
     [Test]
-    [Only]
     public void LoadFromString_Attributes() {
         var content = """
-            @Template=15 tag1 tag2 tag3,tag4 pepe=1 juan="2" N=tres
+            @ Template=15 tag1 tag2 tag3,tag4 pepe=1 juan="2" N=tres
             abc
             def
             ghi
@@ -87,11 +85,11 @@ public class TemplateSetTests {
     [Test]
     public void FindTemplates_WithRequiredFlags_ReturnsMatchingTemplates() {
         var content = """
-            @Template=15
+            @ Template=15
             abc
             def
             ghi
-            @Template=15 special,extra
+            @ Template=15 special,extra
             xyz
             uvw
             rst
@@ -106,15 +104,15 @@ public class TemplateSetTests {
     [Test]
     public void FindTemplates_WithRequiredAndOptionalFlags_ReturnsOrderedTemplates() {
         var content = """
-            @Template=15 flag1
+            @ Template=15 flag1
             abc
             def
             ghi
-            @Template=15 flag1,flag2
+            @ Template=15 flag1,flag2
             xyz
             uvw
             rst
-            @Template=15 flag1,flag2,flag3
+            @ Template=15 flag1,flag2,flag3
             123
             456
             789
@@ -129,7 +127,7 @@ public class TemplateSetTests {
     [Test]
     public void GetTemplate_WithExactFlags_ReturnsUniqueTemplate() {
         var content = """
-            @Template=15 flag1,flag2
+            @ Template=15 flag1,flag2
             abc
             def
             ghi
@@ -149,7 +147,7 @@ public class TemplateSetTests {
     [Test]
     public void FindTemplates_WithNonExistentFlags_ThrowsException() {
         var content = """
-            @Template=15
+            @ Template=15
             abc
             def
             ghi
