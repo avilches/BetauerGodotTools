@@ -20,12 +20,105 @@ public static partial class AttributeParser {
     private static readonly Regex ValidNamePattern = MyRegex();
 
     public static string ForbiddenChars => ", ' \" =";
+
     [GeneratedRegex("^[^,'\"=]+$", RegexOptions.Compiled)]
     private static partial Regex MyRegex();
 
-    public class ParseResult(StringComparer comparer) {
-        public HashSet<string> Tags { get; } = new (comparer);
+    public class ParseResult(StringComparer comparer) : IEquatable<ParseResult> {
+        public HashSet<string> Tags { get; } = new(comparer);
         public Dictionary<string, object> Attributes { get; } = new(comparer);
+
+        public override bool Equals(object obj) {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != GetType()) return false;
+            return Equals((ParseResult)obj);
+        }
+
+        public bool Equals(ParseResult other) {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+
+            if (!Tags.SetEquals(other.Tags)) return false;
+            if (Attributes.Count != other.Attributes.Count) return false;
+
+            foreach (var pair in Attributes) {
+                if (!other.Attributes.TryGetValue(pair.Key, out var otherValue)) return false;
+                if (pair.Value == null && otherValue == null) continue;
+                if (pair.Value == null || otherValue == null) return false;
+
+                // Comparación especial para strings si estamos usando StringComparer
+                if (pair.Value is string s1 && otherValue is string s2) {
+                    if (!comparer.Equals(s1, s2)) return false;
+                }
+                // Para otros tipos, usar Equals normal
+                else if (!pair.Value.Equals(otherValue)) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public override int GetHashCode() {
+            unchecked {
+                var hashCode = Tags.Count;
+                foreach (var tag in Tags.OrderBy(t => t, comparer)) {
+                    hashCode = (hashCode * 397) ^ comparer.GetHashCode(tag);
+                }
+                foreach (var pair in Attributes.OrderBy(p => p.Key, comparer)) {
+                    hashCode = (hashCode * 397) ^ comparer.GetHashCode(pair.Key);
+                    hashCode = (hashCode * 397) ^ (pair.Value?.GetHashCode() ?? 0);
+                }
+                return hashCode;
+            }
+        }
+
+        public override string ToString() {
+            return $"{string.Join(",", Tags.OrderBy(s => s))} {string.Join(" ", Attributes.Select(pair => pair.Key + "=" + Print(pair.Value)).OrderBy(t => t))}".Trim();
+        }
+
+        private static string Print(object pairValue) {
+            return pairValue switch {
+                bool b => b.ToString().ToLowerInvariant(),
+                int i => i.ToString(CultureInfo.InvariantCulture),
+                float f => f.ToString("0.0###########", CultureInfo.InvariantCulture),
+                string s => FormatString(s),
+                _ => pairValue.ToString() ?? string.Empty
+            };
+        }
+
+        private static bool NeedsQuotes(string s) {
+            return s.Any(c => char.IsWhiteSpace(c) || c == '"' || c == '\'' || c == '\\' || c == '\n' || c == '\r' || c == '\t');
+        }
+
+        private static string FormatString(string s) {
+            if (!NeedsQuotes(s)) return s;
+
+            var singleQuotes = s.Count(c => c == '\'');
+            var doubleQuotes = s.Count(c => c == '"');
+
+            // Si no hay comillas en el string, usar comillas dobles por defecto
+            if (singleQuotes == 0 && doubleQuotes == 0) {
+                return $"\"{EscapeSpecialChars(s)}\"";
+            }
+
+            // Si hay comillas dobles y no hay simples, usar comillas simples
+            if (doubleQuotes > 0 && singleQuotes == 0) {
+                return $"'{EscapeSpecialChars(s)}'";
+            }
+
+            // Si solo hay comillas simples o hay ambos tipos, usar comillas dobles y escapar las dobles
+            return $"\"{EscapeSpecialChars(s).Replace("\"", "\\\"")}\"";
+        }
+
+        private static string EscapeSpecialChars(string s) {
+            return s
+                .Replace("\\", "\\\\")
+                .Replace("\n", "\\n")
+                .Replace("\r", "\\r")
+                .Replace("\t", "\\t");
+        }
     }
 
     public class ParseException(string message) : Exception(message);
@@ -169,7 +262,7 @@ public static partial class AttributeParser {
             if (!valueStr.EndsWith('"')) {
                 throw new ParseException($"Unclosed double quote in attribute value: '{key}'");
             }
-            SetAttribute(attributes, key,  UnescapeString(valueStr[1..^1]));
+            SetAttribute(attributes, key, UnescapeString(valueStr[1..^1]));
             return;
         }
 
@@ -185,7 +278,7 @@ public static partial class AttributeParser {
         SetAttribute(attributes, key, valueStr);
     }
 
-    private static void SetAttribute(Dictionary<string,object> attributes, string key, object value) {
+    private static void SetAttribute(Dictionary<string, object> attributes, string key, object value) {
         if (!attributes.TryAdd(key, value)) {
             throw new ParseException($"Duplicate attribute: '{key}'");
         }
