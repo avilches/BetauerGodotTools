@@ -41,7 +41,6 @@ public class TemplateTest {
 
         template.SetAttribute(DirectionFlag.Down, "down");
         Assert.That(template.GetAttribute("dir:D"), Is.EqualTo("down"));
-
     }
 
     [Test]
@@ -546,6 +545,138 @@ public class TemplateTest {
             var expected = new[,] {
                 { '3', '4' },
                 { '1', '2' }
+            };
+
+            Assert.That(transformed.Body.Width, Is.EqualTo(2));
+            Assert.That(transformed.Body.Height, Is.EqualTo(2));
+            for (var y = 0; y < transformed.Body.Height; y++) {
+                for (var x = 0; x < transformed.Body.Width; x++) {
+                    Assert.That(transformed.Body[y, x], Is.EqualTo(expected[y, x]), $"Cell at [{y}, {x}] is incorrect");
+                }
+            }
+        });
+    }
+
+    [Test]
+    public void Transform_FlipDiagonalSecondary_ShouldFlipBySecondaryDiagonal() {
+        // Arrange
+        var template = CreateTemplateWithAllFlags();
+
+        // Act
+        var transformed = template.Transform(Transformations.Type.FlipDiagonalSecondary);
+
+        // Assert
+        Assert.Multiple(() => {
+            // Non-directional attributes remain unchanged
+            Assert.That(transformed.GetAttribute("normal"), Is.EqualTo("value"));
+
+            // Cardinal flags are rotated along the secondary diagonal (up-right to down-left)
+            Assert.That(transformed.GetAttribute("dir:U"), Is.EqualTo("right")); // Up becomes Right
+            Assert.That(transformed.GetAttribute("dir:R"), Is.EqualTo("up")); // Right becomes Up
+            Assert.That(transformed.GetAttribute("dir:D"), Is.EqualTo("left")); // Down becomes Left
+            Assert.That(transformed.GetAttribute("dir:L"), Is.EqualTo("down")); // Left becomes Down
+
+            // Diagonal flags: UpRight and DownLeft stay the same (they're on the diagonal)
+            Assert.That(transformed.GetAttribute("dir:UR"), Is.EqualTo("upright")); // UpRight stays
+            Assert.That(transformed.GetAttribute("dir:DL"), Is.EqualTo("bottomleft")); // DownLeft stays
+
+            // Other diagonal flags are swapped
+            Assert.That(transformed.GetAttribute("dir:UL"), Is.EqualTo("bottomright")); // UpLeft becomes DownRight
+            Assert.That(transformed.GetAttribute("dir:DR"), Is.EqualTo("upleft")); // DownRight becomes UpLeft
+        });
+    }
+
+    [Test]
+    public void Transform_FlipDiagonal_ShouldFlipByMainDiagonal() {
+        // Arrange
+        var template = CreateTemplateWithAllFlags();
+
+        // Act
+        var transformed = template.Transform(Transformations.Type.FlipDiagonal);
+
+        // Assert
+        Assert.Multiple(() => {
+            // Non-directional attributes remain unchanged
+            Assert.That(transformed.GetAttribute("normal"), Is.EqualTo("value"));
+
+            // Cardinal flags are rotated by primary diagonal (the line from the up,left corner -> down,right corner). That means the "up side" is moved to the "left side"
+            Assert.That(transformed.GetAttribute("dir:U"), Is.EqualTo("left")); // Up becomes Left
+            Assert.That(transformed.GetAttribute("dir:L"), Is.EqualTo("up")); // Left becomes Up
+            Assert.That(transformed.GetAttribute("dir:D"), Is.EqualTo("right")); // Down becomes Right
+            Assert.That(transformed.GetAttribute("dir:R"), Is.EqualTo("down")); // Right becomes Down
+
+            // Diagonal flags: UpLeft and DownRight stay the same (they're on the diagonal)
+            Assert.That(transformed.GetAttribute("dir:UL"), Is.EqualTo("upleft")); // UpLeft stays
+            Assert.That(transformed.GetAttribute("dir:DR"), Is.EqualTo("bottomright")); // DownRight stays
+
+            // Other diagonal flags are swapped
+            Assert.That(transformed.GetAttribute("dir:UR"), Is.EqualTo("bottomleft")); // UpRight becomes DownLeft
+            Assert.That(transformed.GetAttribute("dir:DL"), Is.EqualTo("upright")); // DownLeft becomes UpRight
+        });
+    }
+
+    [Test]
+    public void Transform_FlipDiagonal_ShouldTransformDirectionFlagsAndBody() {
+        // Arrange
+        var template = new Template {
+            DirectionFlags = (byte)(DirectionFlag.Up | DirectionFlag.Right | DirectionFlag.UpRight),
+            Body = new Array2D<char>(new[,] {
+                { '1', '2' },
+                { '3', '4' }
+            })
+        };
+
+        // Act
+        var transformed = template.Transform(Transformations.Type.FlipDiagonal);
+
+        // Assert
+        Assert.Multiple(() => {
+            // DirectionFlags: Up|Right|UpRight -> Left|Down|DownLeft
+            Assert.That(transformed.DirectionFlags, Is.EqualTo((byte)(DirectionFlag.Left | DirectionFlag.Down | DirectionFlag.DownLeft)));
+
+            // Body should be flipped by main diagonal (top-left to bottom-right):
+            // [1 2]    [1 3]
+            // [3 4] -> [2 4]
+            var expected = new[,] {
+                { '1', '3' },
+                { '2', '4' }
+            };
+
+            Assert.That(transformed.Body.Width, Is.EqualTo(2));
+            Assert.That(transformed.Body.Height, Is.EqualTo(2));
+            for (var y = 0; y < transformed.Body.Height; y++) {
+                for (var x = 0; x < transformed.Body.Width; x++) {
+                    Assert.That(transformed.Body[y, x], Is.EqualTo(expected[y, x]), $"Cell at [{y}, {x}] is incorrect");
+                }
+            }
+        });
+    }
+
+    [Test]
+    public void Transform_FlipDiagonalSecondary_ShouldTransformDirectionFlagsAndBody() {
+        // Arrange
+        var template = new Template {
+            DirectionFlags = (byte)(DirectionFlag.Up | DirectionFlag.Right | DirectionFlag.UpRight),
+            Body = new Array2D<char>(new[,] {
+                { '1', '2' },
+                { '3', '4' }
+            })
+        };
+
+        // Act
+        var transformed = template.Transform(Transformations.Type.FlipDiagonalSecondary);
+
+        // Assert
+        Assert.Multiple(() => {
+            // DirectionFlags: Up|Right|UpRight -> Right|Up|UpRight (UpRight stays the same as it's on the diagonal)
+            Assert.That(transformed.DirectionFlags, Is.EqualTo((byte)(DirectionFlag.Right | DirectionFlag.Up | DirectionFlag.UpRight)));
+
+            // Body should be flipped by secondary diagonal (top-right to bottom-left):
+            // [1 2]    [4 2]
+            // [3 4] -> [3 1]
+            var expected = new[,] {
+                { '4', '2' },
+                { '3', '1' }
             };
 
             Assert.That(transformed.Body.Width, Is.EqualTo(2));

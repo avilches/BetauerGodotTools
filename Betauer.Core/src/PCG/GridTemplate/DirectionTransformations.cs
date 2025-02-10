@@ -13,6 +13,8 @@ public static class DirectionTransformations {
             Transformations.Type.RotateMinus90 => RotateMinus90(flag),
             Transformations.Type.FlipH => FlipH(flag),
             Transformations.Type.FlipV => FlipV(flag),
+            Transformations.Type.FlipDiagonal => FlipDiagonal(flag), // Rotate by primary diagonal (the line from the up,left corner -> down,right corner). That means the "up side" is moved to the "left side".
+            Transformations.Type.FlipDiagonalSecondary => FlipDiagonalSecondary(flag),
             Transformations.Type.MirrorLR => MirrorLR(flag),
             Transformations.Type.MirrorRL => MirrorRL(flag),
             Transformations.Type.MirrorTB => MirrorTB(flag),
@@ -98,6 +100,42 @@ public static class DirectionTransformations {
         };
     }
 
+    /// <summary>
+    /// Rotate by primary diagonal (the line from the up,left corner -> down,right corner). That means the "up side" is moved to the "left side".
+    /// </summary>
+    /// <param name="flag"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentException"></exception>
+    public static DirectionFlag FlipDiagonal(DirectionFlag flag) {
+        return flag switch {
+            DirectionFlag.Up => DirectionFlag.Left,
+            DirectionFlag.Left => DirectionFlag.Up,
+            DirectionFlag.Down => DirectionFlag.Right,
+            DirectionFlag.Right => DirectionFlag.Down,
+            DirectionFlag.UpLeft => DirectionFlag.UpLeft,
+            DirectionFlag.DownRight => DirectionFlag.DownRight,
+            DirectionFlag.UpRight => DirectionFlag.DownLeft,
+            DirectionFlag.DownLeft => DirectionFlag.UpRight,
+            DirectionFlag.None => DirectionFlag.None,
+            _ => throw new ArgumentException($"Invalid flag: {flag}")
+        };
+    }
+
+    public static DirectionFlag FlipDiagonalSecondary(DirectionFlag flag) {
+        return flag switch {
+            DirectionFlag.Up => DirectionFlag.Right,
+            DirectionFlag.Right => DirectionFlag.Up,
+            DirectionFlag.Down => DirectionFlag.Left,
+            DirectionFlag.Left => DirectionFlag.Down,
+            DirectionFlag.UpRight => DirectionFlag.UpRight,
+            DirectionFlag.DownLeft => DirectionFlag.DownLeft,
+            DirectionFlag.UpLeft => DirectionFlag.DownRight,
+            DirectionFlag.DownRight => DirectionFlag.UpLeft,
+            DirectionFlag.None => DirectionFlag.None,
+            _ => throw new ArgumentException($"Invalid flag: {flag}")
+        };
+    }
+
     public static DirectionFlag MirrorLR(DirectionFlag flag) {
         return flag switch {
             // Mirror Left to Right
@@ -177,6 +215,8 @@ public static class DirectionTransformations {
             Transformations.Type.RotateMinus90 => RotateMinus90(flags),
             Transformations.Type.FlipH => FlipH(flags),
             Transformations.Type.FlipV => FlipV(flags),
+            Transformations.Type.FlipDiagonal => FlipDiagonal(flags), // Rotate by primary diagonal (the line from the up,left corner -> down,right corner). That means the "up side" is moved to the "left side".
+            Transformations.Type.FlipDiagonalSecondary => FlipDiagonalSecondary(flags),
             Transformations.Type.MirrorLR => MirrorLR(flags),
             Transformations.Type.MirrorRL => MirrorRL(flags),
             Transformations.Type.MirrorTB => MirrorTB(flags),
@@ -235,6 +275,34 @@ public static class DirectionTransformations {
             if (flag == DirectionFlag.None) continue;
             if ((flags & (byte)flag) != 0) {
                 newType |= (byte)FlipV(flag);
+            }
+        }
+        return newType;
+    }
+
+
+    /// <summary>
+    /// Rotate by primary diagonal (the line from the up,left corner -> down,right corner). That means the "up side" is moved to the "left side".
+    /// </summary>
+    /// <param name="flags"></param>
+    /// <returns></returns>
+    public static byte FlipDiagonal(byte flags) {
+        byte newType = 0;
+        foreach (DirectionFlag flag in Enum.GetValues(typeof(DirectionFlag))) {
+            if (flag == DirectionFlag.None) continue;
+            if ((flags & (byte)flag) != 0) {
+                newType |= (byte)FlipDiagonal(flag);
+            }
+        }
+        return newType;
+    }
+
+    public static byte FlipDiagonalSecondary(byte flags) {
+        byte newType = 0;
+        foreach (DirectionFlag flag in Enum.GetValues(typeof(DirectionFlag))) {
+            if (flag == DirectionFlag.None) continue;
+            if ((flags & (byte)flag) != 0) {
+                newType |= (byte)FlipDiagonalSecondary(flag);
             }
         }
         return newType;

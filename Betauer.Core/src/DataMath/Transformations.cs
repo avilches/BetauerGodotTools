@@ -11,6 +11,8 @@ public static partial class Transformations {
         RotateMinus90,
         FlipH,
         FlipV,
+        FlipDiagonal, // Rotate by primary diagonal (the line from the up,left corner -> down,right corner). That means the "up side" is moved to the "left side".
+        FlipDiagonalSecondary,
 
         // Destructive
         MirrorLR,
@@ -26,6 +28,10 @@ public static partial class Transformations {
             Type.RotateMinus90 => source.RotateMinus90(),
             Type.FlipH => source.FlipH(),
             Type.FlipV => source.FlipV(),
+            Type.FlipDiagonal => source.FlipDiagonal(),
+            Type.FlipDiagonalSecondary => source.FlipDiagonalSecondary(),
+
+            // Destructive
             Type.MirrorLR => source.MirrorLeftToRight(),
             Type.MirrorRL => source.MirrorRightToLeft(),
             Type.MirrorTB => source.MirrorTopToBottom(),
@@ -93,36 +99,6 @@ public static partial class Transformations {
         }
         return temp;
     }
-    
-    public static T[,] MirrorLeftToRight<T>(this T[,] source) {
-        var height = source.GetLength(0);
-        var width = source.GetLength(1);
-        var halfWidth = width / 2;
-        if (width % 2 != 0) halfWidth++;
-        var temp = new T[height, width];
-        for (var y = 0; y < height; y++) {
-            for (var x = 0; x < halfWidth; x++) {
-                temp[y, x] = source[y, x];
-                temp[y, width - 1 - x] = source[y, x];
-            }
-        }
-        return temp;
-    }
-    
-    public static T[,] MirrorRightToLeft<T>(this T[,] source) {
-        var height = source.GetLength(0);
-        var width = source.GetLength(1);
-        var halfWidth = width / 2;
-        if (width % 2 != 0) halfWidth++;
-        var temp = new T[height, width];
-        for (var y = 0; y < height; y++) {
-            for (var x = 0; x < halfWidth; x++) {
-                temp[y, x] = source[y, width - 1 - x];
-                temp[y, width - 1 - x] = source[y, width - 1 - x];
-            }
-        }
-        return temp;
-    }
 
     public static T[,] FlipV<T>(this T[,] source) {
         var height = source.GetLength(0);
@@ -135,39 +111,9 @@ public static partial class Transformations {
         }
         return temp;
     }
-    
-    public static T[,] MirrorTopToBottom<T>(this T[,] source) {
-        var height = source.GetLength(0);
-        var width = source.GetLength(1);
-        var halfHeight = height / 2;
-        if (height % 2 != 0) halfHeight++;
-        var temp = new T[height, width];
-        for (var y = 0; y < halfHeight; y++) {
-            for (var x = 0; x < width; x++) {
-                temp[y, x] = source[y, x];
-                temp[height - 1 - y, x] = source[y, x];
-            }
-        }
-        return temp;
-    }
-
-    public static T[,] MirrorBottomToTop<T>(this T[,] source) {
-        var height = source.GetLength(0);
-        var width = source.GetLength(1);
-        var halfHeight = height / 2;
-        if (height % 2 != 0) halfHeight++;
-        var temp = new T[height, width];
-        for (var y = 0; y < halfHeight; y++) {
-            for (var x = 0; x < width; x++) {
-                temp[y, x] = source[height - 1 - y, x];
-                temp[height - 1 - y, x] = source[height - 1 - y, x];
-            }
-        }
-        return temp;
-    }
 
     /// <summary>
-    /// Rotate by primary diagonal from up,left -> down,right
+    /// Rotate by primary diagonal (the line from the up,left corner -> down,right corner). That means the "up side" is moved to the "left side".
     /// </summary>
     /// <param name="source"></param>
     /// <typeparam name="T"></typeparam>
@@ -197,6 +143,90 @@ public static partial class Transformations {
         for (var y = 0; y < height; y++) {
             for (var x = 0; x < width; x++) {
                 temp[width - 1 - x, height - 1 - y] = source[y, x];
+            }
+        }
+        return temp;
+    }
+
+    /// <summary>
+    /// Copy left side to right side (destructive)
+    /// </summary>
+    /// <param name="source"></param>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    public static T[,] MirrorLeftToRight<T>(this T[,] source) {
+        var height = source.GetLength(0);
+        var width = source.GetLength(1);
+        var halfWidth = width / 2;
+        if (width % 2 != 0) halfWidth++;
+        var temp = new T[height, width];
+        for (var y = 0; y < height; y++) {
+            for (var x = 0; x < halfWidth; x++) {
+                temp[y, x] = source[y, x];
+                temp[y, width - 1 - x] = source[y, x];
+            }
+        }
+        return temp;
+    }
+
+    /// <summary>
+    /// Copy right side to left side (destructive)
+    /// </summary>
+    /// <param name="source"></param>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    public static T[,] MirrorRightToLeft<T>(this T[,] source) {
+        var height = source.GetLength(0);
+        var width = source.GetLength(1);
+        var halfWidth = width / 2;
+        if (width % 2 != 0) halfWidth++;
+        var temp = new T[height, width];
+        for (var y = 0; y < height; y++) {
+            for (var x = 0; x < halfWidth; x++) {
+                temp[y, x] = source[y, width - 1 - x];
+                temp[y, width - 1 - x] = source[y, width - 1 - x];
+            }
+        }
+        return temp;
+    }
+
+    /// <summary>
+    /// Copy top side to bottom side (destructive)
+    /// </summary>
+    /// <param name="source"></param>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    public static T[,] MirrorTopToBottom<T>(this T[,] source) {
+        var height = source.GetLength(0);
+        var width = source.GetLength(1);
+        var halfHeight = height / 2;
+        if (height % 2 != 0) halfHeight++;
+        var temp = new T[height, width];
+        for (var y = 0; y < halfHeight; y++) {
+            for (var x = 0; x < width; x++) {
+                temp[y, x] = source[y, x];
+                temp[height - 1 - y, x] = source[y, x];
+            }
+        }
+        return temp;
+    }
+
+    /// <summary>
+    /// Copy bottom side to top side (destructive)
+    /// </summary>
+    /// <param name="source"></param>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    public static T[,] MirrorBottomToTop<T>(this T[,] source) {
+        var height = source.GetLength(0);
+        var width = source.GetLength(1);
+        var halfHeight = height / 2;
+        if (height % 2 != 0) halfHeight++;
+        var temp = new T[height, width];
+        for (var y = 0; y < halfHeight; y++) {
+            for (var x = 0; x < width; x++) {
+                temp[y, x] = source[height - 1 - y, x];
+                temp[height - 1 - y, x] = source[height - 1 - y, x];
             }
         }
         return temp;
