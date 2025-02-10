@@ -29,17 +29,17 @@ public class Template {
     public bool HasAttributeWithValue<T>(string key, T value) => Attributes.TryGetValue(key, out var existingValue) && existingValue is T && Equals(existingValue, value);
     public bool HasAttributeOfType<T>(string key) => Attributes.TryGetValue(key, out var existingValue) && existingValue is T;
 
-    public void SetAttribute(DirectionFlag flag, object value) => Attributes["dir:"+DirectionFlagTools.DirectionFlagToString(flag)] = value;
-    public object? GetAttribute(DirectionFlag flag) => Attributes.GetValueOrDefault("dir:"+DirectionFlagTools.DirectionFlagToString(flag));
-    public object GetAttributeOr(DirectionFlag flag, object defaultValue) => Attributes.GetValueOrDefault("dir:"+DirectionFlagTools.DirectionFlagToString(flag), defaultValue);
-    public T? GetAttributeAs<T>(DirectionFlag flag) => Attributes.TryGetValue("dir:"+DirectionFlagTools.DirectionFlagToString(flag), out var value) && value is T typedValue ? typedValue : default;
-    public T GetAttributeAsOrDefault<T>(DirectionFlag flag, T defaultValue) => Attributes.TryGetValue("dir:"+DirectionFlagTools.DirectionFlagToString(flag), out var value) && value is T typedValue ? typedValue : defaultValue;
-    public T GetAttributeAsOrNew<T>(DirectionFlag flag) where T : new() => Attributes.TryGetValue("dir:"+DirectionFlagTools.DirectionFlagToString(flag), out var value) && value is T typedValue ? typedValue : new T();
-    public T GetAttributeAsOr<T>(DirectionFlag flag, Func<T> factory) => Attributes.TryGetValue("dir:"+DirectionFlagTools.DirectionFlagToString(flag), out var value) && value is T typedValue ? typedValue : factory();
-    public bool RemoveAttribute(DirectionFlag flag) => Attributes.Remove("dir:"+DirectionFlagTools.DirectionFlagToString(flag));
-    public bool HasAttribute(DirectionFlag flag) => Attributes.ContainsKey("dir:"+DirectionFlagTools.DirectionFlagToString(flag));
-    public bool HasAttributeWithValue<T>(DirectionFlag flag, T value) => Attributes.TryGetValue("dir:"+DirectionFlagTools.DirectionFlagToString(flag), out var existingValue) && existingValue is T && Equals(existingValue, value);
-    public bool HasAttributeOfType<T>(DirectionFlag flag) => Attributes.TryGetValue("dir:"+DirectionFlagTools.DirectionFlagToString(flag), out var existingValue) && existingValue is T;
+    public void SetAttribute(DirectionFlag flag, object value) => Attributes["dir:" + DirectionFlagTools.DirectionFlagToString(flag)] = value;
+    public object? GetAttribute(DirectionFlag flag) => Attributes.GetValueOrDefault("dir:" + DirectionFlagTools.DirectionFlagToString(flag));
+    public object GetAttributeOr(DirectionFlag flag, object defaultValue) => Attributes.GetValueOrDefault("dir:" + DirectionFlagTools.DirectionFlagToString(flag), defaultValue);
+    public T? GetAttributeAs<T>(DirectionFlag flag) => Attributes.TryGetValue("dir:" + DirectionFlagTools.DirectionFlagToString(flag), out var value) && value is T typedValue ? typedValue : default;
+    public T GetAttributeAsOrDefault<T>(DirectionFlag flag, T defaultValue) => Attributes.TryGetValue("dir:" + DirectionFlagTools.DirectionFlagToString(flag), out var value) && value is T typedValue ? typedValue : defaultValue;
+    public T GetAttributeAsOrNew<T>(DirectionFlag flag) where T : new() => Attributes.TryGetValue("dir:" + DirectionFlagTools.DirectionFlagToString(flag), out var value) && value is T typedValue ? typedValue : new T();
+    public T GetAttributeAsOr<T>(DirectionFlag flag, Func<T> factory) => Attributes.TryGetValue("dir:" + DirectionFlagTools.DirectionFlagToString(flag), out var value) && value is T typedValue ? typedValue : factory();
+    public bool RemoveAttribute(DirectionFlag flag) => Attributes.Remove("dir:" + DirectionFlagTools.DirectionFlagToString(flag));
+    public bool HasAttribute(DirectionFlag flag) => Attributes.ContainsKey("dir:" + DirectionFlagTools.DirectionFlagToString(flag));
+    public bool HasAttributeWithValue<T>(DirectionFlag flag, T value) => Attributes.TryGetValue("dir:" + DirectionFlagTools.DirectionFlagToString(flag), out var existingValue) && existingValue is T && Equals(existingValue, value);
+    public bool HasAttributeOfType<T>(DirectionFlag flag) => Attributes.TryGetValue("dir:" + DirectionFlagTools.DirectionFlagToString(flag), out var existingValue) && existingValue is T;
 
     public void AddTag(string tag) => Tags.Add(tag);
     public bool AddTags(params string[] tags) => tags.All(tag => Tags.Add(tag));
@@ -48,22 +48,35 @@ public class Template {
     public bool HasTag(string tag) => Tags.Contains(tag);
     public bool HasExactTags(params string[] tags) => Tags.SetEquals(new HashSet<string>(tags));
     public bool HasAllTags(params string[] tags) => tags.All(tag => Tags.Contains(tag));
-    public bool HasAnyTag(params string[] tags) => tags.Any(tag => Tags.Contains(tag));    public IEnumerable<string> MatchingTags(string[] tags) => tags.Where(tag => Tags.Contains(tag));
-
+    public bool HasAnyTag(params string[] tags) => tags.Any(tag => Tags.Contains(tag));
+    public IEnumerable<string> MatchingTags(string[] tags) => tags.Where(tag => Tags.Contains(tag));
 
     public override string ToString() {
-        var baseString = DirectionFlagTools.FlagsToString(DirectionFlags);
-        if (Tags.Count == 0) return baseString;
-        return baseString + "/" + string.Join("/", Tags) + " " + string.Join(" ", Attributes.Select(pair => pair.Key + "=" + pair.Value));
+        return $"DirectionFlags: {DirectionFlagTools.FlagsToString(DirectionFlags)} Tags:{string.Join(",", Tags).OrderBy(s => s)} Attributes {Attributes.Count}: {string.Join(" ", Attributes.Select(pair => pair.Key + "=" + pair.Value).OrderBy(t => t))}";
     }
 
     public Template Transform(Transformations.Type type) {
-        var attributes = DirectionTransformations.TransformAttributes(Attributes, type);
         return new Template {
             DirectionFlags = DirectionTransformations.TransformFlags(DirectionFlags, type),
             Tags = [..Tags],
-            Attributes = attributes,
+            Attributes = DirectionTransformations.TransformAttributes(Attributes, type),
             Body = new Array2D<char>(Body.Data.Transform(type))
+        };
+    }
+
+    /// <summary>
+    /// Returns null if the transformation does not change the template body.
+    /// </summary>
+    /// <param name="type"></param>
+    /// <returns></returns>
+    public Template? TryTransform(Transformations.Type type) {
+        var body = new Array2D<char>(Body.Data.Transform(type));
+        if (body.Equals(Body)) return null;
+        return new Template {
+            DirectionFlags = DirectionTransformations.TransformFlags(DirectionFlags, type),
+            Tags = [..Tags],
+            Attributes = DirectionTransformations.TransformAttributes(Attributes, type),
+            Body = body
         };
     }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Betauer.Core.DataMath;
 using Betauer.Core.PCG.Maze;
 
@@ -77,7 +78,6 @@ public class TemplateSet(int cellSize) {
 
         var lineNumber = 0;
         foreach (var line in content.Split(lineSeparator).Select(l => l.Trim())) {
-
             lineNumber++;
             if (line.Length == 0 || line.StartsWith("# ", StringComparison.Ordinal) || line.StartsWith("// ", StringComparison.Ordinal)) {
                 continue;
@@ -86,7 +86,7 @@ public class TemplateSet(int cellSize) {
             if (line.StartsWith("@ ", StringComparison.Ordinal)) {
                 ProcessPreviousTemplate();
                 // Parseamos toda la línea como un conjunto de atributos y tags
-                var parseResult = AttributeParser.Parse(line[1..]);
+                var parseResult = AttributeParser.Parse(line[1..], true);
                 headerString = line;
 
                 if (parseResult.Attributes.TryGetValue(TemplateId, out var templateValue)) {
@@ -116,7 +116,6 @@ public class TemplateSet(int cellSize) {
                         current.SetAttribute(k, value);
                     }
                 }
-
             } else if (current != null) {
                 buffer.Add(line);
 
@@ -178,36 +177,87 @@ public class TemplateSet(int cellSize) {
         return template;
     }
 
+    public static readonly (string[], Transformations.Type Transform)[] Transformations = [
+        (["rotate:90", "rotate90"], DataMath.Transformations.Type.Rotate90),
+        (["rotate:180", "rotate180"], DataMath.Transformations.Type.Rotate180),
+        (["rotate:-90", "rotate-90", "rotate:minus90"], DataMath.Transformations.Type.RotateMinus90),
+        (["flip:h", "fliph", "flip:horizontal"], DataMath.Transformations.Type.FlipH),
+        (["flip:v", "flipv", "flip:vertical"], DataMath.Transformations.Type.FlipV),
+        (["flip:diagonal", "flipdiagonal"], DataMath.Transformations.Type.FlipDiagonal),
+        (["flip:secondary", "flip:diagonalsecondary", "flipdiagonalsecondary"], DataMath.Transformations.Type.FlipDiagonalSecondary),
+        (["mirror:lr", "mirror:we", "mirror:leftright", "mirror:westeast", "mirror:left-right", "mirror:west-east"], DataMath.Transformations.Type.MirrorLR),
+        (["mirror:rl", "mirror:ew", "mirror:rightleft", "mirror:eastwest", "mirror:right-left", "mirror:east-west"], DataMath.Transformations.Type.MirrorRL),
+        (["mirror:tb", "mirror:ud", "mirror:ns", "mirror:topbottom", "mirror:updown", "mirror:northsouth", "mirror:top-bottom", "mirror:up-down", "mirror:north-south"], DataMath.Transformations.Type.MirrorTB),
+        (["mirror:bt", "mirror:du", "mirror:sn", "mirror:bottomtop", "mirror:downup", "mirror:southnorth", "mirror:bottom-top", "mirror:down-up", "mirror:south-north"], DataMath.Transformations.Type.MirrorBT)
+    ];
+
+    private static readonly (string Type, Transformations.Type[] Transforms)[] TransformGroups = [
+        ("rotate:all", [
+            DataMath.Transformations.Type.Rotate90,
+            DataMath.Transformations.Type.Rotate180,
+            DataMath.Transformations.Type.RotateMinus90
+        ]),
+        ("flip:all", [
+            DataMath.Transformations.Type.FlipH,
+            DataMath.Transformations.Type.FlipV,
+            DataMath.Transformations.Type.FlipDiagonal,
+            DataMath.Transformations.Type.FlipDiagonalSecondary
+        ]),
+        ("mirror:all", [
+            DataMath.Transformations.Type.MirrorLR,
+            DataMath.Transformations.Type.MirrorRL,
+            DataMath.Transformations.Type.MirrorTB,
+            DataMath.Transformations.Type.MirrorBT
+        ])
+    ];
+
+    /// <summary>
+    /// Reads the tags of every template and try to apply the transformations. "Try" means if the transformations results in an identical body, it will not be added.
+    /// </summary>
     public void ApplyTransformations() {
         foreach (var template in FindTemplates().ToArray()) {
-            if (template.HasAnyTag("rotate:90", "rotate90")) {
-                AddTemplate(template.Transform(Transformations.Type.Rotate90));
-            }
-            if (template.HasAnyTag("rotate:180", "rotate180")) {
-                AddTemplate(template.Transform(Transformations.Type.Rotate180));
-            }
-            if (template.HasAnyTag("rotate:-90", "rotate-90", "rotate:minus90")) {
-                AddTemplate(template.Transform(Transformations.Type.RotateMinus90));
-            }
-            if (template.HasAnyTag("flip:h", "fliph", "flip:horizontal")) {
-                AddTemplate(template.Transform(Transformations.Type.FlipH));
-            }
-            if (template.HasAnyTag("flip:v", "flipv", "flip:vertical")) {
-                AddTemplate(template.Transform(Transformations.Type.FlipV));
-            }
-            if (template.HasAnyTag("mirror:lr", "mirror:we", "mirror:leftright", "mirror:westeast", "mirror:left-right", "mirror:west-east")) {
-                AddTemplate(template.Transform(Transformations.Type.MirrorLR));
-            }
-            if (template.HasAnyTag("mirror:rl", "mirror:ew", "mirror:rightleft", "mirror:eastwest", "mirror:right-left", "mirror:east-west")) {
-                AddTemplate(template.Transform(Transformations.Type.MirrorRL));
-            }
-            if (template.HasAnyTag("mirror:tb", "mirror:ud", "mirror:ns", "mirror:topbottom", "mirror:updown", "mirror:northsouth", "mirror:top-bottom", "mirror:up-down", "mirror:north-south")) {
-                AddTemplate(template.Transform(Transformations.Type.MirrorTB));
-            }
-            if (template.HasAnyTag("mirror:bt", "mirror:du", "mirror:sn", "mirror:bottomtop", "mirror:downup", "mirror:southnorth", "mirror:bottom-top", "mirror:down-up", "mirror:south-north")) {
-                AddTemplate(template.Transform(Transformations.Type.MirrorBT));
+            if (template.HasTag("transform:all")) {
+                ApplyTransformations(template, Enum.GetValues<DataMath.Transformations.Type>());
+            } else {
+                var transformsToApply = new HashSet<Transformations.Type>();
+                // Check group tags (rotate:all, flip:all, mirror:all)
+                foreach (var (tag, transforms) in TransformGroups) {
+                    if (template.HasTag(tag)) transformsToApply.UnionWith(transforms);
+                }
+                // Check individual transformation tags
+                foreach (var (tags, transform) in Transformations) {
+                    if (template.HasAnyTag(tags)) transformsToApply.Add(transform);
+                }
+                ApplyTransformations(template, transformsToApply);
             }
         }
+    }
 
+    private const string SharedId = "shared.id";
+
+    /// <summary>
+    /// Returns true if the templates share the same origin. That means, if they are equals, or one of them was generated through a transformation from the other
+    /// </summary>
+    /// <param name="one"></param>
+    /// <param name="other"></param>
+    /// <returns></returns>
+    public static bool ShareOrigin(Template one, Template other) {
+        if (Equals(one, other)) return true;
+        var oneId = one.GetAttributeAs<int>(SharedId);
+        var otherId = other.GetAttributeAs<int>(SharedId);
+        return oneId == otherId;
+    }
+
+    private void ApplyTransformations(Template template, IEnumerable<Transformations.Type> transformsToApply) {
+        // Apply all collected transformations
+        foreach (var transform in transformsToApply) {
+            var transformed = template.TryTransform(transform);
+            if (transformed == null) continue;
+            transformed.SetAttribute("transformed.type", transform.ToString());
+            var id = RuntimeHelpers.GetHashCode(template);
+            transformed.SetAttribute(SharedId, id);
+            template.SetAttribute(SharedId, id);
+            AddTemplate(transformed);
+        }
     }
 }
