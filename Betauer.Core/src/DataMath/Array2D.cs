@@ -451,4 +451,36 @@ public class Array2D<T>(T[,] data) : Array2D, IEnumerable<T> {
     public string GetString(Func<T, string> transform, char lineSeparator = '\n') {
         return GetString(item => transform(item.Value), lineSeparator);
     }
+
+    public bool Equals(Array2D<T>? other) {
+        if (ReferenceEquals(null, other)) return false;
+        if (ReferenceEquals(this, other)) return true;
+
+        // Check dimensions
+        if (Width != other.Width || Height != other.Height) return false;
+
+        // Compare cell by cell
+        for (var y = 0; y < Height; y++) {
+            for (var x = 0; x < Width; x++) {
+                if (!EqualityComparer<T>.Default.Equals(this[y, x], other[y, x])) return false;
+            }
+        }
+        return true;
+    }
+
+    public bool Equals(Array2D<T>? other, IEqualityComparer<T> comparer) {
+        if (ReferenceEquals(null, other)) return false;
+        if (ReferenceEquals(this, other)) return true;
+
+        // Check dimensions
+        if (Width != other.Width || Height != other.Height) return false;
+
+        // Compare cell by cell using the provided comparer
+        for (var y = 0; y < Height; y++) {
+            for (var x = 0; x < Width; x++) {
+                if (!comparer.Equals(this[y, x], other[y, x])) return false;
+            }
+        }
+        return true;
+    }
 }
