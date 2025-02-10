@@ -6,8 +6,33 @@ using NUnit.Framework;
 namespace Betauer.Core.Tests.GridTemplate;
 
 [TestFixture]
-[Only]
 public class AttributeParserTests {
+
+    [Test]
+    public void Parse_And_Print_Symmetry() {
+        var inputs = new[] {
+            "tag1 v=1 f=2.0 ff=2.344127 t=a s=true d=false",
+            "name='Simple string'",
+            "name=\"Simple string\"",
+            "name=\"String with 'quotes'\"",
+            "name='String with \"quotes\"'",
+            "name=\"String with 'both' kind of \\\"quotes\\\"\"",
+            "name=\"String with \\\\backslashes\\\\\"",
+            "name=\"String with \\\"escaped quotes\\\"\"",
+            "name=\"String with \\n newline\"",
+            "name=\"String with tabs\\t and\\r returns\"",
+            "tag1 my-tag user_name name1=\"Jo'hn\" age-group=30 counter_1=42 name2='Ju\\'anito \"@banana' name3=Hermoso tag4 name4=\"\\\"\""
+        };
+
+        foreach (var input in inputs) {
+            var result = AttributeParser.Parse(input);
+            var printed = result.ToString();
+            var reparsed = AttributeParser.Parse(printed);
+            Assert.That(reparsed, Is.EqualTo(result),
+                $"Failed symmetry test.\nOriginal: {input}\nPrinted: {printed}");
+        }
+    }
+
     [Test]
     public void Parse_ValidNames_StartingWithLetters() {
         var input = "tag1 my-tag user_name name1=\"Jo'hn\" age-group=30 counter_1=42 name2='Ju\\'anito \"@banana' name3=Hermoso tag4 name4=\"\\\"\"";
@@ -26,6 +51,8 @@ public class AttributeParserTests {
     public void Parse_ValidNames_StartingWithNumbers() {
         var input = "1tag 2-tag 3_tag 42tag 1name=\"John\" 2.version=3";
         var result = AttributeParser.Parse(input);
+
+        Assert.That(result, Is.EqualTo(AttributeParser.Parse(result.ToString())));
 
         Assert.That(result.Tags, Is.EquivalentTo(new[] { "1tag", "2-tag", "3_tag", "42tag" }));
         Assert.That(result.Attributes["1name"], Is.EqualTo("John"));

@@ -11,6 +11,8 @@ namespace Betauer.Core.PCG.GridTemplate;
 public class TemplateSet(int cellSize) {
     private readonly List<Template> _templates = [];
     public string TemplateId { get; set; } = "Template";
+    public string DefaultToken { get; set; } = "default";
+    public string DefineId { get; set; } = "Define";
 
     public int CellSize { get; } = cellSize;
 
@@ -71,10 +73,17 @@ public class TemplateSet(int cellSize) {
     /// <returns></returns>
     public Template? GetTemplate(byte directionFlags, string[] tags) => _templates.FirstOrDefault(t => t.DirectionFlags == directionFlags && t.HasExactTags(tags));
 
+    public Template? GetTemplateById(string id) => _templates.FirstOrDefault(t => t.Id == id);
+
+    public Template? GetTemplate(byte directionFlags) => _templates.FirstOrDefault(t => t.DirectionFlags == directionFlags);
+
     public void LoadFromString(string content, char lineSeparator = '\n') {
         var buffer = new List<string>();
-        string headerString = null;
         Template? current = null;
+        AttributeParser.ParseResult? currentParseResult = null;
+        var defines = new Dictionary<string, AttributeParser.ParseResult>(StringComparer.OrdinalIgnoreCase) {
+            [DefaultToken] = new(StringComparer.OrdinalIgnoreCase)
+        };
 
         var lineNumber = 0;
         foreach (var line in content.Split(lineSeparator).Select(l => l.Trim())) {
@@ -83,47 +92,54 @@ public class TemplateSet(int cellSize) {
                 continue;
             }
 
-            if (line.StartsWith("@ ", StringComparison.Ordinal)) {
-                ProcessPreviousTemplate();
+            if (line.StartsWith("@ ", StringComparison.Ordinal) || line.StartsWith("@\t", StringComparison.Ordinal)) {
                 // Parseamos toda la línea como un conjunto de atributos y tags
-                var parseResult = AttributeParser.Parse(line[1..], true);
-                headerString = line;
+                var lineParserResult = AttributeParser.Parse(line[1..], true);
 
-                if (parseResult.Attributes.TryGetValue(TemplateId, out var templateValue)) {
-                    var directionFlags = templateValue switch {
-                        string directionFlagString => DirectionFlagTools.StringToFlags(directionFlagString),
-                        int directionFlagByte => (byte)directionFlagByte,
-                        _ => throw new ArgumentException($"Error in line #{lineNumber}. Invalid direction flags in template {line}")
-                    };
-                    current = new Template { DirectionFlags = directionFlags };
-                    parseResult.Attributes.Remove(TemplateId);
+                // Define template
+                if (lineParserResult.Attributes.Remove(DefineId, out var defineName)) {
+                    if (defines.TryGetValue(defineName.ToString()!, out var previous)) {
+                        foreach (var tag in lineParserResult.Tags) previous.Tags.Add(tag);
+                        foreach (var (k, value) in lineParserResult.Attributes) previous.Attributes[k] = value;
+                    } else {
+                        defines[defineName.ToString()!] = lineParserResult;
+                    }
+                    continue;
                 }
-                if (current == null) {
-                    throw new ArgumentException($"Error in line #{lineNumber}. First define {TemplateId}: {line}");
+
+                if (current == null || currentParseResult == null) {
+                    current = new Template();
+                    currentParseResult = new AttributeParser.ParseResult(StringComparer.OrdinalIgnoreCase);
                 }
-                foreach (var tag in parseResult.Tags) current.AddTag(tag);
-                foreach (var (k, value) in parseResult.Attributes) {
-                    if (k.StartsWith("dir:")) {
-                        var key = k[4..];
-                        // If the user wrote "dir:N" (north) or "dir:t" (top) instead of "U", we normalize it and write it as "U" (up)
-                        var dir = DirectionFlagTools.StringToDirectionFlag(key);
-                        if (dir != DirectionFlag.None) {
-                            current.SetAttribute(dir, value);
-                        } else {
-                            current.SetAttribute(key, value);
+
+                // Use a template
+                if (lineParserResult.Attributes.TryGetValue(TemplateId, out var templateName)) {
+                    if (currentParseResult.Attributes.TryGetValue(TemplateId, out var previousTemplateName)) {
+                        throw new ArgumentException($"Error in line #{lineNumber}: {line}\nCan't set template {templateName}, it already has the template {previousTemplateName}: {currentParseResult}");
+                    }
+                    if (defines.TryGetValue(templateName.ToString()!, out var templateParseResult)) {
+                        foreach (var tag in templateParseResult.Tags) currentParseResult.Tags.Add(tag);
+                        foreach (var (k, value) in templateParseResult.Attributes) {
+                            currentParseResult.Attributes.TryAdd(k, value);
                         }
                     } else {
-                        current.SetAttribute(k, value);
+                        throw new ArgumentException($"Error in line #{lineNumber}: {line}\nCan't find template {templateName}");
                     }
+                }
+
+                // Add the current parse result to the current template
+                foreach (var tag in lineParserResult.Tags) currentParseResult.Tags.Add(tag);
+                foreach (var (k, value) in lineParserResult.Attributes) {
+                    currentParseResult.Attributes[k] = value;
                 }
             } else if (current != null) {
                 buffer.Add(line);
 
                 if (buffer.Count == CellSize) {
                     ProcessPreviousTemplate();
-                } else if (buffer.Count > CellSize) {
-                    throw new ArgumentException($"Error in line #{lineNumber}. Too many lines in template {current}. Expected {CellSize} but got more.");
                 }
+            } else {
+                throw new ArgumentException($"Error in line #{lineNumber}. Too many lines in template {current}. Expected {CellSize} but got more.");
             }
         }
         ProcessPreviousTemplate();
@@ -131,17 +147,47 @@ public class TemplateSet(int cellSize) {
 
         void ProcessPreviousTemplate() {
             if (current == null || buffer.Count == 0) return;
-            var template = ParseTemplateBody(buffer, headerString);
+            var template = ParseTemplateBody(buffer, currentParseResult);
             current.Body = template;
+
+            foreach (var tag in currentParseResult.Tags) current.AddTag(tag);
+            foreach (var (k, value) in currentParseResult.Attributes) {
+                if (k.StartsWith("dir:", StringComparison.OrdinalIgnoreCase)) {
+                    var key = k[4..];
+                    // If the user wrote "dir:N" (north) or "dir:t" (top) instead of "U", we normalize it and write it as "U" (up)
+                    var dir = DirectionFlagTools.StringToDirectionFlag(key);
+                    if (dir != DirectionFlag.None) {
+                        current.SetAttribute(dir, value);
+                    } else {
+                        current.SetAttribute(key, value);
+                    }
+                } else if (k.Equals("dir", StringComparison.OrdinalIgnoreCase)) {
+                    var directionFlags = value switch {
+                        string directionFlagString => DirectionFlagTools.StringToFlags(directionFlagString),
+                        int directionFlagByte => (byte)directionFlagByte,
+                        _ => throw new ArgumentException($"Invalid direction flags dir={value} in template: {currentParseResult}")
+                    };
+                    current.DirectionFlags = directionFlags;
+                } else if (k.Equals("id", StringComparison.OrdinalIgnoreCase)) {
+                    current.Id = value.ToString()!;
+                } else {
+                    current.SetAttribute(k, value);
+                }
+            }
+            if (current.DirectionFlags == 0) {
+                throw new ArgumentException($"No direction flags in template: {currentParseResult}");
+            }
+
             AddTemplate(current);
             buffer.Clear();
             current = null;
+            currentParseResult = null;
         }
     }
 
-    private Array2D<char> ParseTemplateBody(List<string> lines, string templateHeader) {
+    private Array2D<char> ParseTemplateBody(List<string> lines, AttributeParser.ParseResult currentParseResult) {
         if (lines.Count == 0) {
-            throw new ArgumentException($"Empty template for {templateHeader}");
+            throw new ArgumentException($"Empty template for: {currentParseResult}");
         }
 
         var height = lines.Count;
@@ -151,20 +197,14 @@ public class TemplateSet(int cellSize) {
         for (var y = 1; y < height; y++) {
             if (lines[y].Length != width) {
                 throw new ArgumentException(
-                    $"Inconsistent width in template {templateHeader}: " +
-                    $"line 0 has width {width} but line {y} has width {lines[y].Length}");
+                    $"Inconsistent dimensions in template: {currentParseResult}\n" +
+                    $"Line {y} has width {lines[y].Length}, expected with was {width}:\n{string.Join("\n", lines)}");
             }
         }
-
-        // Validar que el patrón no esté vacío
-        if (width == 0 || height == 0) {
-            throw new ArgumentException($"Template {templateHeader} has invalid dimensions: {width}x{height}");
-        }
-
         // Validar que las dimensiones coincidan con el tamaño esperado
         if (width != CellSize || height != CellSize) {
             throw new ArgumentException(
-                $"Template {templateHeader} has wrong dimensions: {width}x{height}. " +
+                $"Invalid dimensions {width}x{height} in template: {currentParseResult}\n" +
                 $"Expected {CellSize}x{CellSize}:\n{string.Join("\n", lines)}");
         }
 
@@ -178,59 +218,95 @@ public class TemplateSet(int cellSize) {
     }
 
     public static readonly (string[], Transformations.Type Transform)[] Transformations = [
-        (["rotate:90", "rotate90"], DataMath.Transformations.Type.Rotate90),
-        (["rotate:180", "rotate180"], DataMath.Transformations.Type.Rotate180),
-        (["rotate:-90", "rotate-90", "rotate:minus90"], DataMath.Transformations.Type.RotateMinus90),
-        (["flip:h", "fliph", "flip:horizontal"], DataMath.Transformations.Type.FlipH),
-        (["flip:v", "flipv", "flip:vertical"], DataMath.Transformations.Type.FlipV),
-        (["flip:diagonal", "flipdiagonal"], DataMath.Transformations.Type.FlipDiagonal),
-        (["flip:secondary", "flip:diagonalsecondary", "flipdiagonalsecondary"], DataMath.Transformations.Type.FlipDiagonalSecondary),
-        (["mirror:lr", "mirror:we", "mirror:leftright", "mirror:westeast", "mirror:left-right", "mirror:west-east"], DataMath.Transformations.Type.MirrorLR),
-        (["mirror:rl", "mirror:ew", "mirror:rightleft", "mirror:eastwest", "mirror:right-left", "mirror:east-west"], DataMath.Transformations.Type.MirrorRL),
-        (["mirror:tb", "mirror:ud", "mirror:ns", "mirror:topbottom", "mirror:updown", "mirror:northsouth", "mirror:top-bottom", "mirror:up-down", "mirror:north-south"], DataMath.Transformations.Type.MirrorTB),
-        (["mirror:bt", "mirror:du", "mirror:sn", "mirror:bottomtop", "mirror:downup", "mirror:southnorth", "mirror:bottom-top", "mirror:down-up", "mirror:south-north"], DataMath.Transformations.Type.MirrorBT)
+        (["rotate:90", "rotate:right", "rotate:clockwise"], DataMath.Transformations.Type.Rotate90),
+        (["rotate:180", "rotate:twice"], DataMath.Transformations.Type.Rotate180),
+        (["rotate:-90", "rotate:left", "rotate:270", "rotate:counterclockwise", "rotate:anticlockwise", "rotate:minus90"], DataMath.Transformations.Type.RotateMinus90),
+        (["flip:h", "flip:x", "flip:horizontal"], DataMath.Transformations.Type.FlipH),
+        (["flip:v", "flip:y", "flip:vertical"], DataMath.Transformations.Type.FlipV),
+        (["flip:d", "flip:diagonal"], DataMath.Transformations.Type.FlipDiagonal),
+        (["flip:ds", "flip:secondary", "flip:diagonalsecondary", "flip:diagonal-secondary"], DataMath.Transformations.Type.FlipDiagonalSecondary),
+        (["mirror:lr", "mirror:we", "mirror:l-r", "mirror:w-e", "mirror:leftright", "mirror:westeast", "mirror:left-right", "mirror:west-east"], DataMath.Transformations.Type.MirrorLR),
+        (["mirror:rl", "mirror:ew", "mirror:r-l", "mirror:e-w", "mirror:rightleft", "mirror:eastwest", "mirror:right-left", "mirror:east-west"], DataMath.Transformations.Type.MirrorRL),
+        (["mirror:tb", "mirror:ud", "mirror:ns", "mirror:t-b", "mirror:u-d", "mirror:n-s", "mirror:topbottom", "mirror:updown", "mirror:northsouth", "mirror:top-bottom", "mirror:up-down", "mirror:north-south"], DataMath.Transformations.Type.MirrorTB),
+        (["mirror:bt", "mirror:du", "mirror:sn", "mirror:b-t", "mirror:d-u", "mirror:s-n", "mirror:bottomtop", "mirror:downup", "mirror:southnorth", "mirror:bottom-top", "mirror:down-up", "mirror:south-north"], DataMath.Transformations.Type.MirrorBT)
     ];
 
-    private static readonly (string Type, Transformations.Type[] Transforms)[] TransformGroups = [
-        ("rotate:all", [
+    private static readonly Dictionary<string, Transformations.Type[]> TransformGroups = new() {
+        ["rotate:all"] = [
             DataMath.Transformations.Type.Rotate90,
             DataMath.Transformations.Type.Rotate180,
             DataMath.Transformations.Type.RotateMinus90
-        ]),
-        ("flip:all", [
+        ],
+        ["flip:all"] = [
             DataMath.Transformations.Type.FlipH,
             DataMath.Transformations.Type.FlipV,
             DataMath.Transformations.Type.FlipDiagonal,
             DataMath.Transformations.Type.FlipDiagonalSecondary
-        ]),
-        ("mirror:all", [
+        ],
+        ["mirror:all"] = [
             DataMath.Transformations.Type.MirrorLR,
             DataMath.Transformations.Type.MirrorRL,
             DataMath.Transformations.Type.MirrorTB,
             DataMath.Transformations.Type.MirrorBT
-        ])
-    ];
+        ]
+    };
 
     /// <summary>
     /// Reads the tags of every template and try to apply the transformations. "Try" means if the transformations results in an identical body, it will not be added.
     /// </summary>
     public void ApplyTransformations() {
-        foreach (var template in FindTemplates().ToArray()) {
+        foreach (var template in FindTemplates().ToArray() /* Clone to allow adding templates during the loop*/) {
             if (template.HasTag("transform:all")) {
                 ApplyTransformations(template, Enum.GetValues<DataMath.Transformations.Type>());
-            } else {
-                var transformsToApply = new HashSet<Transformations.Type>();
+                continue;
+            }
+
+            var transformsToApply = new HashSet<Transformations.Type>();
+            foreach (var tag in template.Tags
+                         .Where(t => t.Contains(':'))
+                         .Select(t => t.ToLowerInvariant())) {
                 // Check group tags (rotate:all, flip:all, mirror:all)
-                foreach (var (tag, transforms) in TransformGroups) {
-                    if (template.HasTag(tag)) transformsToApply.UnionWith(transforms);
+                if (TransformGroups.TryGetValue(tag, out var groupTransforms)) {
+                    transformsToApply.UnionWith(groupTransforms);
+                    continue;
                 }
-                // Check individual transformation tags
-                foreach (var (tags, transform) in Transformations) {
-                    if (template.HasAnyTag(tags)) transformsToApply.Add(transform);
+
+                // Check if tag starts with any transformation prefix
+                var prefix =
+                    tag.StartsWith("rotate:") ? "rotate:" :
+                    tag.StartsWith("flip:") ? "flip:" :
+                    tag.StartsWith("mirror:") ? "mirror:" : null;
+
+                if (prefix != null) {
+                    var found = false;
+                    foreach (var (tags, transform) in Transformations) {
+                        if (tags.Contains(tag)) {
+                            transformsToApply.Add(transform);
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) ThrowUnknownTransformationError(prefix, tag);
                 }
+            }
+
+            if (transformsToApply.Count > 0) {
                 ApplyTransformations(template, transformsToApply);
             }
         }
+    }
+
+    private static void ThrowUnknownTransformationError(string prefix, string tag) {
+        var validValues = Transformations
+            .SelectMany(t => t.Item1)
+            .Where(t => t.StartsWith(prefix))
+            .Concat(TransformGroups.Keys.Where(k => k.StartsWith(prefix)))
+            .OrderBy(t => t)
+            .ToList();
+
+        throw new ArgumentException(
+            $"Invalid transformation tag '{tag}'. " +
+            $"Valid values for prefix '{prefix}' are: {string.Join(", ", validValues)}");
     }
 
     private const string SharedId = "shared.id";

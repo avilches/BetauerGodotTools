@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Betauer.Core.DataMath;
 
 namespace Betauer.Core.PCG.GridTemplate;
@@ -10,6 +11,11 @@ public class Template {
     public HashSet<string> Tags { get; set; } = new(StringComparer.OrdinalIgnoreCase);
     public Dictionary<string, object> Attributes { get; set; } = [];
     public Array2D<char> Body { get; set; }
+    public string Id { get; set; }
+
+    public Template() {
+        Id = RuntimeHelpers.GetHashCode(this).ToString();
+    }
 
     public void AddDirectionFlag(DirectionFlag flag) => DirectionFlags |= (byte)flag;
     public void RemoveDirectionFlag(DirectionFlag flag) => DirectionFlags &= (byte)~flag;
@@ -52,7 +58,7 @@ public class Template {
     public IEnumerable<string> MatchingTags(string[] tags) => tags.Where(tag => Tags.Contains(tag));
 
     public override string ToString() {
-        return $"DirectionFlags: {DirectionFlagTools.FlagsToString(DirectionFlags)} Tags:{string.Join(",", Tags).OrderBy(s => s)} Attributes {Attributes.Count}: {string.Join(" ", Attributes.Select(pair => pair.Key + "=" + pair.Value).OrderBy(t => t))}";
+        return $"DirectionFlags: {DirectionFlagTools.FlagsToString(DirectionFlags)} Tags:{string.Join(",", Tags.OrderBy(s => s))} Attributes {Attributes.Count}: {string.Join(" ", Attributes.Select(pair => pair.Key + "=" + pair.Value).OrderBy(t => t))}";
     }
 
     public Template Transform(Transformations.Type type) {
@@ -71,7 +77,7 @@ public class Template {
     /// <returns></returns>
     public Template? TryTransform(Transformations.Type type) {
         var body = new Array2D<char>(Body.Data.Transform(type));
-        if (body.Equals(Body)) return null;
+        if (DataEquals(body, Body)) return null;
         return new Template {
             DirectionFlags = DirectionTransformations.TransformFlags(DirectionFlags, type),
             Tags = [..Tags],
@@ -79,4 +85,20 @@ public class Template {
             Body = body
         };
     }
+
+    private static bool DataEquals(Array2D<char> one, Array2D<char> other) {
+        if (ReferenceEquals(one, other)) return true;
+
+        // Check dimensions
+        if (one.Width != other.Width || one.Height != other.Height) return false;
+
+        // Compare cell by cell using the provided comparer
+        for (var y = 0; y < one.Height; y++) {
+            for (var x = 0; x < one.Width; x++) {
+                if (one[y, x] != other[y, x]) return false;
+            }
+        }
+        return true;
+    }
+
 }
