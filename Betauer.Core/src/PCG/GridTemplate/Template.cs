@@ -7,7 +7,7 @@ namespace Betauer.Core.PCG.GridTemplate;
 
 public class Template {
     public byte DirectionFlags { get; set; } = 0;
-    public HashSet<string> Tags { get; set; } = [];
+    public HashSet<string> Tags { get; set; } = new(StringComparer.OrdinalIgnoreCase);
     public Dictionary<string, object> Attributes { get; set; } = [];
     public Array2D<char> Body { get; set; }
 

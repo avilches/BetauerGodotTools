@@ -48,7 +48,7 @@ public class TemplateSetTests {
     [Test]
     public void LoadFromString_Tags() {
         var content = """
-            @ Template=15 tag1 tag2 tag3,tag4
+            @ Template=15 tag1 tag2 tag3,tag4,Tag4
             abc
             def
             ghi

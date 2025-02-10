@@ -23,9 +23,9 @@ public static partial class AttributeParser {
     [GeneratedRegex("^[^,'\"=]+$", RegexOptions.Compiled)]
     private static partial Regex MyRegex();
 
-    public class ParseResult {
-        public HashSet<string> Tags { get; } = [];
-        public Dictionary<string, object> Attributes { get; } = [];
+    public class ParseResult(StringComparer comparer) {
+        public HashSet<string> Tags { get; } = new (comparer);
+        public Dictionary<string, object> Attributes { get; } = new(comparer);
     }
 
     public class ParseException(string message) : Exception(message);
@@ -34,8 +34,8 @@ public static partial class AttributeParser {
         return !string.IsNullOrEmpty(name) && ValidNamePattern.IsMatch(name);
     }
 
-    public static ParseResult Parse(string input, bool allLowerCase = false) {
-        var result = new ParseResult();
+    public static ParseResult Parse(string input, bool ignoreCase = false) {
+        var result = new ParseResult(ignoreCase ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
         var currentIndex = 0;
 
         while (currentIndex < input.Length) {
@@ -106,11 +106,10 @@ public static partial class AttributeParser {
 
             // If token contains '=', it's an attribute, otherwise it's a tag
             if (token.Contains('=')) {
-                ParseAttribute(token, result.Attributes, allLowerCase);
+                ParseAttribute(token, result.Attributes);
             } else {
                 var tags = token.Split(',');
-                foreach (var t in tags.Select(t => t.Trim()).Where(t => !string.IsNullOrEmpty(t))) {
-                    var tag = allLowerCase ? t.ToLowerInvariant() : t;
+                foreach (var tag in tags.Select(t => t.Trim()).Where(t => !string.IsNullOrEmpty(t))) {
                     if (!IsValidName(tag)) {
                         throw new ParseException($"Invalid tag name: '{tag}'. Forbidden chars are {ForbiddenChars}");
                     }
@@ -124,14 +123,13 @@ public static partial class AttributeParser {
         return result;
     }
 
-    private static void ParseAttribute(string token, Dictionary<string, object> attributes, bool allLowerCase) {
+    private static void ParseAttribute(string token, Dictionary<string, object> attributes) {
         var separatorIndex = token.IndexOf('=');
         if (separatorIndex <= 0) {
             throw new ParseException($"Invalid attribute format: '{token}'. Expected 'name=value'");
         }
 
         var key = token[..separatorIndex].Trim();
-        key = allLowerCase ? key.ToLowerInvariant() : key;
         if (!IsValidName(key)) {
             throw new ParseException($"Invalid attribute name: '{key}'. Forbidden chars are {ForbiddenChars}");
         }

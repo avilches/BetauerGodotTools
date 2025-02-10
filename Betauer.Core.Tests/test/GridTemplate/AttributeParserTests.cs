@@ -6,6 +6,7 @@ using NUnit.Framework;
 namespace Betauer.Core.Tests.GridTemplate;
 
 [TestFixture]
+[Only]
 public class AttributeParserTests {
     [Test]
     public void Parse_ValidNames_StartingWithLetters() {
@@ -32,11 +33,11 @@ public class AttributeParserTests {
     }
 
     [Test]
-    public void Parse_AllowTagDuplicates() {
-        var input = "tag1 tag1,Tag1,tag1 Tag1";
-        var result = AttributeParser.Parse(input);
+    public void Parse_AllowTagDuplicates_IgnoreCase() {
+        var input = "tag1 tag1,Tag1,tag1 Tag1 TAG1";
+        var result = AttributeParser.Parse(input, true);
 
-        Assert.That(result.Tags, Is.EquivalentTo(new[] { "tag1", "Tag1" }));
+        Assert.That(result.Tags, Is.EquivalentTo(new[] { "tag1" }));
     }
 
     [Test]
@@ -72,7 +73,10 @@ public class AttributeParserTests {
         var input = "TAG pePE=1";
         var result = AttributeParser.Parse(input, true);
 
-        Assert.That(result.Tags, Is.EquivalentTo(new[] { "tag" }));
+        Assert.That(result.Tags, Is.EquivalentTo(new[] { "TAG" }));
+        Assert.That(result.Tags.Contains("tag"), Is.True);
+        Assert.That(result.Tags.Contains("TAG"), Is.True);
+        Assert.That(result.Attributes["PEPE"], Is.EqualTo(1));
         Assert.That(result.Attributes["pepe"], Is.EqualTo(1));
     }
 
