@@ -1,21 +1,20 @@
+using System;
 using System.Linq;
 using Betauer.Core;
 using Betauer.Core.PCG.GridTemplate;
+using Betauer.Core.PCG.Maze.Zoned;
 
 namespace Veronenger.Game.Dungeon.World.Generation;
 
-public enum MapType  : byte { // 1 byte = 256 values; short = 2 bytes = 65536 values
-    Wait,
+public enum MapType : byte {
+    OfficeEasy,
 }
 
-public record MapTypeConfig(MapType Type) : EnumConfig<MapType, MapTypeConfig>(Type) {
-    public TemplateSet TemplateSet { get; private set; }
+public record MapTypeConfig(MapType Type, TemplateSet TemplateSet, Func<int, MazeZones> Factory) : EnumConfig<MapType, MapTypeConfig>(Type) {
 
-    public MapTypeConfig LoadFromString(int cellSize, string templateContent) {
-        TemplateSet = new TemplateSet(cellSize);
-        TemplateSet.LoadFromString(templateContent);
-        TemplateSet.FindTemplates(tags: ["disabled"]).ToArray().ForEach(t => TemplateSet.RemoveTemplate(t));
-        TemplateSet.ApplyTransformations();
-        return this;
+    public MapTypeConfig(MapType Type, TemplateSetType templateSetType, Func<int, MazeZones> Factory) :
+        this(Type, TemplateSetTypeConfig.Get(templateSetType).TemplateSet, Factory) {
     }
+
+    public MazeZones Create(int seed) => Factory(seed);
 }

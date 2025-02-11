@@ -49,15 +49,25 @@ public class Simulator {
             new CellTypeConfig(CellType.Door)
         );
 
-        MapTypeConfig.RegisterAll(
-            new MapTypeConfig(MapType.Wait).LoadFromString(9, LoadTemplateContent(TemplatePath))
+        TemplateSetTypeConfig.RegisterAll(
+            new TemplateSetTypeConfig(TemplateSetType.Office).LoadFromString(9, LoadTemplateContent(TemplatePath))
         );
+
+        MapTypeConfig.RegisterAll(
+            new MapTypeConfig(MapType.OfficeEasy, TemplateSetType.Office,  (seed) => MazeGraphCatalog.CogmindLong(new Random(seed)))
+        );
+
+        CellDefinitionConfig.InitializeDefaults();
+
+        MapGenerator.Validate();
     }
 
     private void CreateMap() {
         var seed = 1;
-        var result = MapGenerator.CreateMap(MapType.Wait, seed);
-        World = new TurnWorld(result.Map) {
+        var result = MapGenerator.CreateMap(MapType.OfficeEasy, seed);
+
+
+        World = new TurnWorld(result.WorldCellMap) {
             TicksPerTurn = 10,
             DefaultCellType = CellType.Floor
         };
@@ -124,7 +134,6 @@ public class Simulator {
                 } catch (Exception e) {
                     Console.WriteLine(e);
                     player.SetResult(null);
-                } finally {
                 }
                 Thread.Sleep(100); // Prevent tight loop
             }

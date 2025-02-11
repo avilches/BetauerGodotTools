@@ -7,89 +7,117 @@ using Betauer.Core.DataMath;
 using Betauer.Core.Examples;
 using Betauer.Core.PCG.GridTemplate;
 using Betauer.Core.PCG.Maze;
+using Betauer.Core.PCG.Maze.Zoned;
 using Godot;
 
 namespace Veronenger.Game.Dungeon.World.Generation;
 
-public record MapGenerationResult(List<SpawnInfo> Spawn, Array2D<Template?> TemplateArray, Array2D<WorldCell?> Map);
+public enum CellDefinitionType : byte {
+    Empty,
+    Wall,
 
-public struct SpawnInfo {
-    public Vector2I Position;
-    public SpawnType Type;
-    public int Zone;
+    Floor,
+    Door,
+    Loot,
+    Key
 }
 
-public enum SpawnType {
-    Loot,
-    Key,
+/// <summary>
+/// Cell definition comes from the template. It tries to explain the behaviour expected from the cell.
+/// For instance, the definition could be "loot", but the cell will be a Floor with, or without a loot.
+/// </summary>
+/// <param name="Type"></param>
+public record CellDefinitionConfig(CellDefinitionType Type) : EnumConfig<CellDefinitionType, CellDefinitionConfig>(Type) {
+    public required char TemplateCharacter { get; init; }
+    public required Func<Vector2I, WorldCell?> Factory { get; init; }
+
+    public static HashSet<char> AllChars { get; private set; }
+
+    public static void InitializeDefaults() {
+        RegisterAll(
+            new CellDefinitionConfig(CellDefinitionType.Empty) { TemplateCharacter = '.', Factory = (_) => null },
+            new CellDefinitionConfig(CellDefinitionType.Wall) { TemplateCharacter = '#', Factory = (pos) => new WorldCell(CellType.Wall, pos) },
+            new CellDefinitionConfig(CellDefinitionType.Floor) { TemplateCharacter = '·', Factory = (pos) => new WorldCell(CellType.Floor, pos) },
+            new CellDefinitionConfig(CellDefinitionType.Door) { TemplateCharacter = 'd', Factory = (pos) => new WorldCell(CellType.Door, pos) },
+            new CellDefinitionConfig(CellDefinitionType.Loot) { TemplateCharacter = '$', Factory = (pos) => new WorldCell(CellType.Floor, pos) },
+            new CellDefinitionConfig(CellDefinitionType.Key) { TemplateCharacter = 'k', Factory = (pos) => new WorldCell(CellType.Floor, pos) }
+        );
+
+        // Avoid duplicated characters
+        HashSet<char> used = [];
+        foreach (var config in All) {
+            if (!used.Add(config.TemplateCharacter)) {
+                throw new InvalidDataException($"Character {config.TemplateCharacter} is duplicated in the CellDefinitionConfig");
+            }
+        }
+
+        AllChars = All.Select(c => c.TemplateCharacter).ToHashSet();
+    }
+
+    public static CellDefinitionType Find(char cell) {
+        return All.First(config => config.TemplateCharacter == cell).Type;
+    }
+
+    public static bool IsValid(char c) => AllChars.Contains(c);
+
+    public static WorldCell? CreateCell(char c, Vector2I pos) {
+        var cellDef = All.First(config => config.TemplateCharacter == c);
+        var worldCell = cellDef.Factory(pos);
+        if (worldCell != null) {
+            worldCell.CellDefinitionConfig = cellDef;
+        }
+        return worldCell;
+    }
+}
+
+public static class MazeNodeExtensions {
+    public static void SetTemplate(this MazeNode node, Template template) => node.SetAttribute("template", template);
+    public static Template GetTemplate(this MazeNode node) => node.GetAttributeAs<Template>("template")!;
+
+    public static void AddWorldCell(this MazeNode node, WorldCell cells) => node.GetCells().Add(cells);
+    public static List<WorldCell?> GetCells(this MazeNode node) => node.GetAttributeOrCreate<List<WorldCell?>>("worldcells", () => []);
 }
 
 public class MapGenerator {
-    public const char DefinitionLoot = 'l';
-    public const char DefinitionDoor = 'd';
-    public const char DefinitionWall = '#';
-    public const char DefinitionFloor = '·';
-    public const char DefinitionEmpty = '.';
+    // The MazeNode contains two attributes
+    public record MapGenerationResult(MazeZones Zones, Array2D<WorldCell?> WorldCellMap);
 
     public static MapGenerationResult CreateMap(MapType mapType, int seed) {
-        var rng = new Random(seed);
-        var zones = MazeGraphCatalog.CogmindLong(rng, mc => {
-            // mc.OnNodeCreated += (node) => PrintGraph(mc);
-        });
-        var solution = zones.CalculateSolution(MazeGraphCatalog.KeyFormula);
-        var keys = solution.KeyLocations;
-        var loot = zones.SpreadLocationsByZone(0.3f, MazeGraphCatalog.LootFormula);
-
-        var spawn = new List<SpawnInfo>();
-
-        var templateSet = MapTypeConfig.Get(mapType).TemplateSet;
-
+        var mapTypeConfig = MapTypeConfig.Get(mapType);
+        var zones = mapTypeConfig.Create(seed);
+        var templateSet = mapTypeConfig.TemplateSet;
 
         // Creates an empty array2D of templates. This will be used in the Render method to track the template used for
         // each node during the selection the next one. The first one will be random, but the next one should try to match the
         // previous: the down side of the top template should match to the up side, the some for the node at the left: the right side of it
         // should match the left side of the current node.
         var templateArray = zones.MazeGraph.ToArray2D(Template? (_, _) => null);
-
         var rngMap = new Random(seed);
 
-        var nodeShouldHaveLoot = false;
-        var nodeShouldHaveKey = false;
-        var nodeLootAdded = false;
-        var nodeKeyAdded = false;
-        var templateNodes = zones.MazeGraph.Render((nodePos, node) => {
-                if (nodeShouldHaveKey && !nodeKeyAdded) {
-                    // throw new InvalidOperationException($"Node {node} should have a key but it was not added");
-                }
-                if (nodeShouldHaveLoot && !nodeLootAdded) {
-                    // throw new InvalidOperationException($"Node {node} should have a key but it was not added");
-                }
-                nodeLootAdded = false;
-                nodeKeyAdded = false;
-                var zone = zones.Zones[node.ZoneId];
-                var nodeWithKeyInZone = keys[zone.ZoneId];
-                nodeShouldHaveKey = nodeWithKeyInZone == node;
-                return NodeRenderer(rngMap, templateArray, templateSet, nodePos, node);
+        Template lastTemplate = null!;
+        Array2D<WorldCell?> worldCellMap = zones.MazeGraph.Render((nodePos, node) => {
+                lastTemplate = GetTemplate(rngMap, templateArray, templateSet, nodePos, node);
+                node.SetTemplate(lastTemplate);
+                return lastTemplate.Body;
             },
-            (nodePos, node, cellPosition, cell) => {
-                if (cell == DefinitionLoot) {
-                    if (nodeShouldHaveLoot) {
-                        if (!nodeLootAdded) {
-                            nodeLootAdded = true;
-                            spawn.Add(new SpawnInfo { Position = cellPosition, Type = SpawnType.Loot, Zone = node.ZoneId });
-                        }
-                    } else if (nodeShouldHaveKey) {
-                        nodeLootAdded = true;
-                        spawn.Add(new SpawnInfo { Position = cellPosition, Type = SpawnType.Key, Zone = node.ZoneId });
-                    }
+            (nodePos, node, cellPosition, cellChar) => {
+                var worldCell = CellDefinitionConfig.CreateCell(cellChar, cellPosition);
+                if (worldCell != null) {
+                    node.AddWorldCell(worldCell);
                 }
-                return WorldCellTypeConverter(cellPosition, cell);
+                return worldCell;
             });
 
         MazeGraphZonedDemo.PrintGraph(zones.MazeGraph, zones);
         // PrintTemplates(templateSet.FindTemplates().ToList());
 
-        return new MapGenerationResult(spawn, templateArray, templateNodes);
+        return new MapGenerationResult(zones, worldCellMap);
+    }
+
+    public static void Spawn(MapType mapType, MazeZones zones, Array2D<WorldCell?> worldCellMap) {
+        var solution = zones.CalculateSolution(MazeGraphCatalog.KeyFormula);
+        var keys = solution.KeyLocations;
+        var loot = zones.SpreadLocationsByZone(0.3f, MazeGraphCatalog.LootFormula);
     }
 
     private static void PrintTemplates(List<Template> templates) {
@@ -99,7 +127,8 @@ public class MapGenerator {
         }
     }
 
-    private static Array2D<char> NodeRenderer(Random rngMap, Array2D<Template?> templateArray, TemplateSet templateSet, Vector2I pos, MazeNode node) {
+    // Returns the template
+    private static Template GetTemplate(Random rngMap, Array2D<Template?> templateArray, TemplateSet templateSet, Vector2I pos, MazeNode node) {
         var upNodeTemplate = templateArray.GetValueSafe(pos + Vector2I.Up);
         var leftNodeTemplate = templateArray.GetValueSafe(pos + Vector2I.Left);
         var allTemplates = templateSet.FindTemplates(node.GetDirectionFlags()).ToList();
@@ -118,7 +147,7 @@ public class MapGenerator {
             template = rngMap.Next(candidates);
         }
         templateArray[pos] = template;
-        return template.Body;
+        return template;
 
         static bool MatchesNodeUpDown(Template? upNodeTemplate, Template? downNodeTemplate) {
             return upNodeTemplate == null || downNodeTemplate == null ||
@@ -144,14 +173,23 @@ public class MapGenerator {
     }
 
 
-    private static WorldCell? WorldCellTypeConverter(Vector2I position, char c) {
-        return c switch {
-            DefinitionEmpty => null,
-            DefinitionWall => new WorldCell(CellType.Wall, position),
-            DefinitionFloor or
-                DefinitionLoot => new WorldCell(CellType.Floor, position),
-            DefinitionDoor => new WorldCell(CellType.Door, position),
-            _ => throw new ArgumentOutOfRangeException(nameof(c), c, "Invalid character")
-        };
+    public static void Validate() {
+        HashSet<char> lootOrKeys = [
+            CellDefinitionConfig.Get(CellDefinitionType.Key).TemplateCharacter,
+            CellDefinitionConfig.Get(CellDefinitionType.Loot).TemplateCharacter
+        ];
+
+        TemplateSetTypeConfig.All.ForEach(mapConfig => {
+            mapConfig.TemplateSet.FindTemplates().ForEach(t => {
+                var hasLootOrKey = t.Body.GetValues().Any(c => lootOrKeys.Contains(c));
+                if (!hasLootOrKey) {
+                    throw new InvalidDataException($"Template: {t}\n does not have a loot definition: {string.Join(",", lootOrKeys.Select(l => $"'{l}'"))}\n{t.Body}");
+                }
+                var found = t.Body.GetValues().FirstOrDefault((c) => !CellDefinitionConfig.IsValid(c), '\0');
+                if (found != '\0') {
+                    throw new InvalidDataException($"Template: {t}\n invalid character '{found}'. Valid characters are: {string.Join(",", CellDefinitionConfig.AllChars.Select(l => $"'{l}'"))}\n{t.Body}");
+                }
+            });
+        });
     }
 }

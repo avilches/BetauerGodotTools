@@ -1,24 +1,32 @@
 using System;
 using System.Collections.Generic;
 using Godot;
+using Veronenger.Game.Dungeon.World.Generation;
 
 namespace Veronenger.Game.Dungeon.World;
 
-public class WorldCell(CellType type, Vector2I position) {
-    private static readonly IReadOnlyList<Entity> EmptyList = Array.Empty<Entity>().AsReadOnly();
+public class WorldCell {
+    private static readonly IReadOnlyList<Entity> EmptyEntitiesList = Array.Empty<Entity>().AsReadOnly();
 
     private List<Entity>? _entities;
     private IReadOnlyList<Entity>? _readOnlyEntities;
 
-    public Vector2I Position { get; } = position;
-    public CellType Type { get; set; } = type;
-    public CellTypeConfig Config => CellTypeConfig.Get(Type);
+    public Vector2I Position { get; }
+    public CellType Type { get; set; }
+    public CellTypeConfig Config { get; private set; }
+    public CellDefinitionConfig CellDefinitionConfig { get; set; }
 
     public event Action<Entity>? OnEntityAdded;
     public event Action<Entity>? OnEntityRemoved;
 
+    public WorldCell(CellType type, Vector2I position) {
+        Position = position;
+        Type = type;
+        Config = CellTypeConfig.Get(Type);
+    }
+
     public IReadOnlyList<Entity> Entities => _entities == null
-        ? EmptyList
+        ? EmptyEntitiesList
         : _readOnlyEntities ??= _entities.AsReadOnly();
 
     internal void AddEntity(Entity entity) {

@@ -8,6 +8,8 @@ public abstract record EnumConfig<TEnum, TConfig>(TEnum Type) where TEnum : stru
 
     private static readonly Dictionary<TEnum, TConfig> Configs = new();
 
+    public static IEnumerable<TConfig> All => Configs.Values;
+
     // Método protegido para registrar configuraciones, solo accesible desde las clases derivadas
     public static void Register(TConfig config) {
         var type = config.Type;
