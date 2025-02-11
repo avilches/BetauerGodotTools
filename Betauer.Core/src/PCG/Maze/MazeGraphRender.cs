@@ -25,7 +25,6 @@ public static class MazeGraphRender {
         foreach (var node in graph.GetNodes().OrderBy(n => n.Position.Y).ThenBy(n => n.Position.X)) {
             var pos = node.Position - graphOffset;
             array2D[pos] = nodeRenderer(pos, node);
-            ;
         }
         return array2D;
     }

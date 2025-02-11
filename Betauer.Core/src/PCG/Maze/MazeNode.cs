@@ -145,15 +145,11 @@ public class MazeNode {
     // Attributes
     public void SetAttribute(string key, object value) => Graph.SetAttribute(this, key, value);
     public object? GetAttribute(string key) => Graph.GetAttribute(this, key);
-    public object GetAttributeOr(string key, object defaultValue) => Graph.GetAttributeOr(this, key, defaultValue);
     public T? GetAttributeAs<T>(string key) => Graph.GetAttributeAs<T>(this, key);
-    public T GetAttributeAsOrDefault<T>(string key, T defaultValue) => Graph.GetAttributeAsOrDefault(this, key, defaultValue);
-    public T GetAttributeAsOrNew<T>(string key) where T : new() => Graph.GetAttributeAsOrNew<T>(this, key);
-    public T GetAttributeAsOr<T>(string key, Func<T> factory) => Graph.GetAttributeAsOr(this, key, factory);
+    public T GetAttributeOrDefault<T>(string key, T defaultValue) => Graph.GetAttributeOrDefault(this, key, defaultValue);
+    public T GetAttributeOrCreate<T>(string key, Func<T> factory) => Graph.GetAttributeOrCreate(this, key, factory);
     public bool RemoveAttribute(string key) => Graph.RemoveAttribute(this, key);
     public bool HasAttribute(string key) => Graph.HasAttribute(this, key);
-    public bool HasAttributeWithValue<T>(string key, T value) => Graph.HasAttributeWithValue(this, key, value);
-    public bool HasAttributeOfType<T>(string key) => Graph.HasAttributeOfType<T>(this, key);
     public IEnumerable<KeyValuePair<string, object>> GetAttributes() => Graph.GetAttributes(this);
     public int AttributeCount => Graph.GetAttributeCount(this);
     public bool HasAnyAttribute => Graph.HasAnyAttribute(this);

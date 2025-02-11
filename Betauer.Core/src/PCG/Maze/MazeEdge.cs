@@ -18,9 +18,13 @@ public class MazeEdge(MazeNode from, MazeNode to, object metadata = default, flo
     public object Metadata { get; set; } = metadata;
     public void SetMetadata<T>(T value) => Metadata = value;
     public T GetMetadataOrDefault<T>() => Metadata is T value ? value : default;
-    public T GetMetadataOrNew<T>() where T : new() => Metadata is T value ? value : new T();
     public T GetMetadataOr<T>(T defaultValue) => Metadata is T value ? value : defaultValue;
-    public T GetMetadataOr<T>(Func<T> factory) => Metadata is T value ? value : factory();
+    public T GetMetadataOr<T>(Func<T> factory) {
+        if (Metadata is T value) return value;
+        value = factory();
+        Metadata = value;
+        return value;
+    }
     public bool HasMetadata<T>() => Metadata is T;
     public bool HasAnyMetadata => Metadata != null;
     public void ClearMetadata() => Metadata = null;
@@ -28,11 +32,9 @@ public class MazeEdge(MazeNode from, MazeNode to, object metadata = default, flo
     // Attributes
     public void SetAttribute(string key, object value) => From.Graph.SetAttribute(this, key, value);
     public object? GetAttribute(string key) => From.Graph.GetAttribute(this, key);
-    public object GetAttributeOr(string key, object defaultValue) => From.Graph.GetAttributeOr(this, key, defaultValue);
     public T? GetAttributeAs<T>(string key) => From.Graph.GetAttributeAs<T>(this, key);
-    public T GetAttributeAsOrDefault<T>(string key, T defaultValue) => From.Graph.GetAttributeAsOrDefault(this, key, defaultValue);
-    public T GetAttributeAsOrNew<T>(string key) where T : new() => From.Graph.GetAttributeAsOrNew<T>(this, key);
-    public T GetAttributeAsOr<T>(string key, Func<T> factory) => From.Graph.GetAttributeAsOr(this, key, factory);
+    public T GetAttributeOrDefault<T>(string key, T defaultValue) => From.Graph.GetAttributeOrDefault(this, key, defaultValue);
+    public T GetAttributeOrCreate<T>(string key, Func<T> factory) => From.Graph.GetAttributeOrCreate(this, key, factory);
     public bool RemoveAttribute(string key) => From.Graph.RemoveAttribute(this, key);
     public bool HasAttribute(string key) => From.Graph.HasAttribute(this, key);
     public bool HasAttributeWithValue<T>(string key, T value) => From.Graph.HasAttributeWithValue(this, key, value);

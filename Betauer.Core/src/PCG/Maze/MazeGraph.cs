@@ -43,17 +43,25 @@ public class MazeGraph {
 
     private readonly Dictionary<AttributeKey, object> _attributes = [];
 
-    internal void SetAttribute(object instance, string key, object value) => _attributes[new(instance, key)] = value;
-    internal object? GetAttribute(object instance, string key) => _attributes.GetValueOrDefault(new(instance, key));
-    internal object GetAttributeOr(object instance, string key, object defaultValue) => _attributes.GetValueOrDefault(new(instance, key), defaultValue);
-    internal T? GetAttributeAs<T>(object instance, string key) => _attributes.TryGetValue(new(instance, key), out var value) && value is T typedValue ? typedValue : default;
-    internal T GetAttributeAsOrDefault<T>(object instance, string key, T defaultValue) => _attributes.TryGetValue(new(instance, key), out var value) && value is T typedValue ? typedValue : defaultValue;
-    internal T GetAttributeAsOrNew<T>(object instance, string key) where T : new() => _attributes.TryGetValue(new(instance, key), out var value) && value is T typedValue ? typedValue : new T();
-    internal T GetAttributeAsOr<T>(object instance, string key, Func<T> factory) => _attributes.TryGetValue(new(instance, key), out var value) && value is T typedValue ? typedValue : factory();
-    internal bool RemoveAttribute(object instance, string key) => _attributes.Remove(new(instance, key));
-    internal bool HasAttribute(object instance, string key) => _attributes.ContainsKey(new(instance, key));
-    internal bool HasAttributeWithValue<T>(object instance, string key, T value) => _attributes.TryGetValue(new(instance, key), out var existingValue) && existingValue is T && Equals(existingValue, value);
-    internal bool HasAttributeOfType<T>(object instance, string key) => _attributes.TryGetValue(new(instance, key), out var existingValue) && existingValue is T;
+    internal void SetAttribute(object instance, string key, object value) => _attributes[new AttributeKey(instance, key)] = value;
+    internal object? GetAttribute(object instance, string key) => _attributes.GetValueOrDefault(new AttributeKey(instance, key));
+    internal T? GetAttributeAs<T>(object instance, string key) => _attributes.TryGetValue(new AttributeKey(instance, key), out var value) && value is T typedValue ? typedValue : default;
+    internal T GetAttributeOrDefault<T>(object instance, string key, T defaultValue) => _attributes.TryGetValue(new AttributeKey(instance, key), out var value) && value is T typedValue ? typedValue : defaultValue;
+
+    internal T GetAttributeOrCreate<T>(object instance, string key, Func<T> factory) {
+        var attributeKey = new AttributeKey(instance, key);
+        if (_attributes.TryGetValue(attributeKey, out var value) && value is T typedValue) {
+            return typedValue;
+        }
+        var newValue = factory();
+        _attributes[attributeKey] = newValue;
+        return newValue;
+    }
+
+    internal bool RemoveAttribute(object instance, string key) => _attributes.Remove(new AttributeKey(instance, key));
+    internal bool HasAttribute(object instance, string key) => _attributes.ContainsKey(new AttributeKey(instance, key));
+    internal bool HasAttributeWithValue<T>(object instance, string key, T value) => _attributes.TryGetValue(new AttributeKey(instance, key), out var existingValue) && existingValue is T && Equals(existingValue, value);
+    internal bool HasAttributeOfType<T>(object instance, string key) => _attributes.TryGetValue(new AttributeKey(instance, key), out var existingValue) && existingValue is T;
 
     internal IEnumerable<KeyValuePair<string, object>> GetAttributes(object instance) {
         return _attributes

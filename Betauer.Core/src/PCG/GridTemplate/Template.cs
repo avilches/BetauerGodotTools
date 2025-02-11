@@ -25,27 +25,32 @@ public class Template {
 
     public void SetAttribute(string key, object value) => Attributes[key] = value;
     public object? GetAttribute(string key) => Attributes.GetValueOrDefault(key);
-    public object GetAttributeOr(string key, object defaultValue) => Attributes.GetValueOrDefault(key, defaultValue);
     public T? GetAttributeAs<T>(string key) => Attributes.TryGetValue(key, out var value) && value is T typedValue ? typedValue : default;
-    public T GetAttributeAsOrDefault<T>(string key, T defaultValue) => Attributes.TryGetValue(key, out var value) && value is T typedValue ? typedValue : defaultValue;
-    public T GetAttributeAsOrNew<T>(string key) where T : new() => Attributes.TryGetValue(key, out var value) && value is T typedValue ? typedValue : new T();
-    public T GetAttributeAsOr<T>(string key, Func<T> factory) => Attributes.TryGetValue(key, out var value) && value is T typedValue ? typedValue : factory();
+    public T GetAttributeOrDefault<T>(string key, T defaultValue) => Attributes.TryGetValue(key, out var value) && value is T typedValue ? typedValue : defaultValue;
+    public T GetAttributeOrCreate<T>(string key, Func<T> factory) {
+        if (Attributes.TryGetValue(key, out var value) && value is T typedValue) {
+            return typedValue;
+        }
+        var result = factory();
+        Attributes[key] = result;
+        return result;
+    }
     public bool RemoveAttribute(string key) => Attributes.Remove(key);
     public bool HasAttribute(string key) => Attributes.ContainsKey(key);
     public bool HasAttributeWithValue<T>(string key, T value) => Attributes.TryGetValue(key, out var existingValue) && existingValue is T && Equals(existingValue, value);
     public bool HasAttributeOfType<T>(string key) => Attributes.TryGetValue(key, out var existingValue) && existingValue is T;
 
-    public void SetAttribute(DirectionFlag flag, object value) => Attributes["dir:" + DirectionFlagTools.DirectionFlagToString(flag)] = value;
-    public object? GetAttribute(DirectionFlag flag) => Attributes.GetValueOrDefault("dir:" + DirectionFlagTools.DirectionFlagToString(flag));
-    public object GetAttributeOr(DirectionFlag flag, object defaultValue) => Attributes.GetValueOrDefault("dir:" + DirectionFlagTools.DirectionFlagToString(flag), defaultValue);
-    public T? GetAttributeAs<T>(DirectionFlag flag) => Attributes.TryGetValue("dir:" + DirectionFlagTools.DirectionFlagToString(flag), out var value) && value is T typedValue ? typedValue : default;
-    public T GetAttributeAsOrDefault<T>(DirectionFlag flag, T defaultValue) => Attributes.TryGetValue("dir:" + DirectionFlagTools.DirectionFlagToString(flag), out var value) && value is T typedValue ? typedValue : defaultValue;
-    public T GetAttributeAsOrNew<T>(DirectionFlag flag) where T : new() => Attributes.TryGetValue("dir:" + DirectionFlagTools.DirectionFlagToString(flag), out var value) && value is T typedValue ? typedValue : new T();
-    public T GetAttributeAsOr<T>(DirectionFlag flag, Func<T> factory) => Attributes.TryGetValue("dir:" + DirectionFlagTools.DirectionFlagToString(flag), out var value) && value is T typedValue ? typedValue : factory();
-    public bool RemoveAttribute(DirectionFlag flag) => Attributes.Remove("dir:" + DirectionFlagTools.DirectionFlagToString(flag));
-    public bool HasAttribute(DirectionFlag flag) => Attributes.ContainsKey("dir:" + DirectionFlagTools.DirectionFlagToString(flag));
-    public bool HasAttributeWithValue<T>(DirectionFlag flag, T value) => Attributes.TryGetValue("dir:" + DirectionFlagTools.DirectionFlagToString(flag), out var existingValue) && existingValue is T && Equals(existingValue, value);
-    public bool HasAttributeOfType<T>(DirectionFlag flag) => Attributes.TryGetValue("dir:" + DirectionFlagTools.DirectionFlagToString(flag), out var existingValue) && existingValue is T;
+    public void SetAttribute(DirectionFlag flag, object value) => SetAttribute(Key(flag), value);
+    public object? GetAttribute(DirectionFlag flag) => GetAttribute(Key(flag));
+    public T? GetAttributeAs<T>(DirectionFlag flag) => GetAttributeAs<T>(Key(flag));
+    public T GetAttributeOrDefault<T>(DirectionFlag flag, T defaultValue) => GetAttributeOrDefault(Key(flag), defaultValue);
+    public T GetAttributeOrCreate<T>(DirectionFlag flag, Func<T> factory) => GetAttributeOrCreate(Key(flag), factory);
+    public bool RemoveAttribute(DirectionFlag flag) => RemoveAttribute(Key(flag));
+    public bool HasAttribute(DirectionFlag flag) => HasAttribute(Key(flag));
+    public bool HasAttributeWithValue<T>(DirectionFlag flag, T value) => HasAttributeWithValue(Key(flag), value);
+    public bool HasAttributeOfType<T>(DirectionFlag flag) => HasAttributeOfType<T>(Key(flag));
+
+    private static string Key(DirectionFlag flag) => "dir:" + DirectionFlagTools.DirectionFlagToString(flag);
 
     public void AddTag(string tag) => Tags.Add(tag);
     public bool AddTags(params string[] tags) => tags.All(tag => Tags.Add(tag));
