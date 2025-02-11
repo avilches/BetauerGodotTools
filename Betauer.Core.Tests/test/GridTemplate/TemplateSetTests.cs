@@ -62,6 +62,22 @@ public class TemplateSetTests {
     }
 
     [Test]
+    public void LoadFromString_Id_NoDuplicates() {
+        var content = """
+            @ ID=23 dir=17
+            abc
+            def
+            ghi
+            @ ID=23 dir=17
+            abc
+            def
+            ghi
+        """;
+
+        Assert.Throws<ArgumentException>(() => _templateSet.LoadFromString(content));
+    }
+
+    [Test]
     public void LoadFromString_AutoId() {
         var content = """
             @ dir=17

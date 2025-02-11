@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,6 +32,7 @@ public class Simulator {
     private bool _running = true;
     public TurnWorld World;
     public GameWorld GameWorld;
+    public Array2D<Template?> TemplateArray;
 
     private void Configure() {
         _ = new ActionTypeConfig(ActionType.Wait) { EnergyCost = 1000 };
@@ -41,6 +43,7 @@ public class Simulator {
 
         _ = new CellTypeConfig(CellType.Floor);
         _ = new CellTypeConfig(CellType.Wall);
+        _ = new CellTypeConfig(CellType.Door);
         CellTypeConfig.Verify();
 
         var seed = 1;
@@ -53,13 +56,21 @@ public class Simulator {
         CreateEntities();
     }
 
-    private Array2D<WorldCell> CreateMap(int seed) {
+
+    public const char DefinitionLoot = 'l';
+    public const char DefinitionDoor = 'd';
+    public const char DefinitionWall = '#';
+    public const char DefinitionFloor = '·';
+    public const char DefinitionEmpty = '.';
+
+    private Array2D<WorldCell?> CreateMap(int seed) {
         var rng = new Random(seed);
-        var zones = MazeGraphCatalog.Mini(rng, mc => {
+        var zones = MazeGraphCatalog.CogmindLong(rng, mc => {
             // mc.OnNodeCreated += (node) => PrintGraph(mc);
         });
-        zones.CalculateSolution(MazeGraphCatalog.KeyFormula);
-        // AddFlags(zones);
+        var solution = zones.CalculateSolution(MazeGraphCatalog.KeyFormula);
+        var keys = solution.KeyLocations;
+        var loot = zones.SpreadLocationsByZone(0.3f, MazeGraphCatalog.LootFormula);
 
         var templateSet = new TemplateSet(cellSize: 9);
 
@@ -74,33 +85,32 @@ public class Simulator {
             // each node during the selection the next one. The first one will be random, but the next one should try to match the
             // previous: the down side of the top template should match to the up side, the some for the node at the left: the right side of it
             // should match the left side of the current node.
-            var templateArray = zones.MazeGraph.ToArray2D(Template (pos, node) => null!);
+            TemplateArray = zones.MazeGraph.ToArray2D(Template? (_, _) => null);
 
             var rngMap = new Random(seed);
-            var templateNodes = zones.MazeGraph.Render((pos, node) => {
-                var upNodeTemplate = templateArray.GetValueSafe(pos + Vector2I.Up);
-                var leftNodeTemplate = templateArray.GetValueSafe(pos + Vector2I.Left);
-                var matchingTemplates = templateSet.FindTemplates(node.GetDirectionFlags()).Where(t => {
-                    if (upNodeTemplate != null && !Equals(upNodeTemplate.GetAttribute(DirectionFlag.Down), t.GetAttribute(DirectionFlag.Up))) {
-                        return false;
+
+            var nodeLootAdded = false;
+            var templateNodes = zones.MazeGraph.Render((nodePos, node) => {
+                    nodeLootAdded = false;
+                    return NodeRenderer(rngMap, TemplateArray, templateSet, nodePos, node);
+                },
+                (nodePos, node, cellPosition, cell) => {
+                var hasLoot = loot[node.ZoneId].Contains(node);
+                if (cell == DefinitionLoot) {
+                    var worldCell = WorldCellTypeConverter(cellPosition, DefinitionFloor);
+                    if (hasLoot) {
+                        nodeLootAdded = true;
+                        worldCell.Entities.Add(new Entity("Loot", new EntityStats { BaseSpeed = 0 }));
+
                     }
-                    if (leftNodeTemplate != null && !Equals(leftNodeTemplate.GetAttribute(DirectionFlag.Right), t.GetAttribute(DirectionFlag.Left))) {
-                        return false;
-                    }
-                    return true;
-                }).ToArray();
-                if (matchingTemplates.Length == 0) {
-                    Console.WriteLine($"Warning: no matching template for {node} at {pos}!");
-                    var template = rngMap.Next(templateSet.FindTemplates(node.GetDirectionFlags()).ToArray());
-                    return template.Body;
-                } else {
-                    var template = rngMap.Next(matchingTemplates);
-                    templateArray[pos] = template;
-                    return template.Body;
+                    return worldCell;
                 }
-            }, WorldCellTypeConverter);
+                return WorldCellTypeConverter(cellPosition, cell);
+            });
 
             MazeGraphZonedDemo.PrintGraph(zones.MazeGraph, zones);
+            // PrintTemplates(templateSet.FindTemplates().ToList());
+
             return templateNodes;
         } catch (FileNotFoundException e) {
             Console.WriteLine(e.Message);
@@ -110,11 +120,65 @@ public class Simulator {
         }
     }
 
+    private static void PrintTemplates(List<Template> templates) {
+        foreach (var template in templates.OrderBy(t => t.Attributes["Template"]).ThenBy(t => t.Attributes.GetValueOrDefault("shared.id"))) {
+            Console.WriteLine(template);
+            Console.WriteLine(template.Body);
+        }
+    }
+
+    private static Array2D<char> NodeRenderer(Random rngMap, Array2D<Template?> templateArray, TemplateSet templateSet, Vector2I pos, MazeNode node) {
+        var upNodeTemplate = templateArray.GetValueSafe(pos + Vector2I.Up);
+        var leftNodeTemplate = templateArray.GetValueSafe(pos + Vector2I.Left);
+        var allTemplates = templateSet.FindTemplates(node.GetDirectionFlags()).ToList();
+        var candidates = allTemplates
+            .Where(t => MatchesNodeUpDown(upNodeTemplate, t) && MatchesNodeLeftRight(leftNodeTemplate, t))
+            .ToList();
+        var x = candidates.Count;
+
+        RemoveSimilarCandidates(candidates, templateArray);
+        Console.WriteLine($"Candidates before: {x} - after: {candidates.Count} = {x - candidates.Count} delted");
+        Template template = null!;
+        if (candidates.Count == 0) {
+            Console.WriteLine($"Warning: no matching template for node {node} at position {pos}. Direction: {DirectionFlagTools.FlagsToString(node.GetDirectionFlags())} ");
+            template = rngMap.Next(allTemplates.ToArray());
+        } else {
+            template = rngMap.Next(candidates);
+        }
+        templateArray[pos] = template;
+        return template.Body;
+
+        static bool MatchesNodeUpDown(Template? upNodeTemplate, Template? downNodeTemplate) {
+            return upNodeTemplate == null || downNodeTemplate == null ||
+                   Equals(upNodeTemplate.GetAttribute(DirectionFlag.Down), downNodeTemplate.GetAttribute(DirectionFlag.Up));
+        }
+
+        static bool MatchesNodeLeftRight(Template? leftNodeTemplate, Template? rightNodeTemplate) {
+            return leftNodeTemplate == null || rightNodeTemplate == null ||
+                   Equals(leftNodeTemplate.GetAttribute(DirectionFlag.Right), rightNodeTemplate.GetAttribute(DirectionFlag.Left));
+        }
+
+        // Removes all templates from the templateArray array that are similar to the check template
+        // the matchingTemplates will end up with at least one element (we don't want to delete all the templates!)
+        static void RemoveSimilarCandidates(List<Template> matchingTemplates, Array2D<Template?> templateArray) {
+            foreach (var check in templateArray.GetIndexedValues()
+                         .Select(tuple => tuple.Value)
+                         .Where(t => t != null).Cast<Template>().Reverse()) {
+                foreach (var similar in matchingTemplates.Where(t => TemplateSet.ShareOrigin(t, check)).ToArray()) {
+                    if (matchingTemplates.Remove(similar) && matchingTemplates.Count == 1) return;
+                }
+            }
+        }
+    }
+
+
     private static WorldCell? WorldCellTypeConverter(Vector2I position, char c) {
         return c switch {
             '.' => null,
             '·' => new WorldCell(CellType.Floor, position),
             '#' => new WorldCell(CellType.Wall, position),
+            'l' => new WorldCell(CellType.Wall, position),
+            'd' => new WorldCell(CellType.Door, position),
             _ => throw new ArgumentOutOfRangeException(nameof(c), c, "Invalid character")
         };
     }
@@ -208,8 +272,6 @@ public class Simulator {
 
     private string PrintArray2D() {
         var stringBuilder = new StringBuilder();
-        Console.WriteLine(World.Width);
-        Console.WriteLine(World.Height);
         for (var y = 0; y < World.Height; y++) {
             for (var x = 0; x < World.Width; x++) {
                 var cell = World[y, x];

@@ -17,6 +17,9 @@ public class TemplateSet(int cellSize) {
     public int CellSize { get; } = cellSize;
 
     public void AddTemplate(Template template) {
+        if (GetTemplateById(template.Id) != null) {
+            throw new ArgumentException($"Template with id {template.Id} already exists");
+        }
         _templates.Add(template);
     }
 
@@ -328,11 +331,18 @@ public class TemplateSet(int cellSize) {
         // Apply all collected transformations
         foreach (var transform in transformsToApply) {
             var transformed = template.TryTransform(transform);
-            if (transformed == null) continue;
-            transformed.SetAttribute("transformed.type", transform.ToString());
+            if (transformed == null || _templates
+                    .Where(t => t != template)
+                    .Any(other => Template.BodyIsEquals(other.Body, transformed.Body))) {
+                // TryTransform returns null if the transformation does not change the template body
+                // or the transformed template is already in the set (same body)
+                continue;
+            }
+            // transformed.SetAttribute("transformed.type", transform.ToString());
             var id = RuntimeHelpers.GetHashCode(template);
             transformed.SetAttribute(SharedId, id);
             template.SetAttribute(SharedId, id);
+
             AddTemplate(transformed);
         }
     }

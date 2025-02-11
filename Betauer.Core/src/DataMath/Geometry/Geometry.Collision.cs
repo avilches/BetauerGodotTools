@@ -86,7 +86,7 @@ public static partial class Geometry {
     }
 
     /// <summary>
-    /// Returns true if the point px, py is inside a rectangle located at rx, ry with width and height
+    /// Returns true if the circle circleX, circleY with the specified radius is inside a rectangle located at rx, ry with width and height
     /// </summary>
     public static bool IntersectCircleRectangle(float circleX, float circleY, float radius, float rectX, float rectY, float width, float height) {
         if (width == 0 || height == 0 || radius == 0) { // No area, no intersection

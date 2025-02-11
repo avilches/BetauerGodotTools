@@ -10,7 +10,6 @@ namespace Betauer.Core.PCG.Maze;
 /// Each node in the maze is rendered using a template, and each cell in the template can be further transformed.
 /// </summary>
 public static class MazeGraphRender {
-
     /// <summary>
     /// Creates an Array2D by directly mapping each node to a single cell.
     /// This is the simplest form of rendering where each node corresponds to exactly one cell.
@@ -25,7 +24,8 @@ public static class MazeGraphRender {
         var array2D = new Array2D<TCell>(graph.GetSize());
         foreach (var node in graph.GetNodes().OrderBy(n => n.Position.Y).ThenBy(n => n.Position.X)) {
             var pos = node.Position - graphOffset;
-            array2D[pos] = nodeRenderer(pos, node);;
+            array2D[pos] = nodeRenderer(pos, node);
+            ;
         }
         return array2D;
     }
@@ -41,7 +41,7 @@ public static class MazeGraphRender {
     /// <returns>A 2D array containing the rendered maze where each node is represented by its template</returns>
     /// <exception cref="ArgumentException">Thrown when templates returned by nodeRenderer have inconsistent dimensions</exception>
     public static Array2D<TCell> Render<TCell>(this MazeGraph graph, Func<Vector2I, MazeNode, Array2D<TCell>> nodeRenderer) {
-        return Render(graph, nodeRenderer, (_, c) => c);
+        return Render(graph, nodeRenderer, (_, _, _, c) => c);
     }
 
     /// <summary>
@@ -56,7 +56,7 @@ public static class MazeGraphRender {
     /// Receives the cell position and the template cell value</param>
     /// <returns>A 2D array containing the rendered maze where each node is represented by its transformed template</returns>
     /// <exception cref="ArgumentException">Thrown when templates returned by nodeRenderer have inconsistent dimensions</exception>
-    public static Array2D<TCell> Render<TNode, TCell>(this MazeGraph graph, Func<Vector2I, MazeNode, Array2D<TNode>> nodeRenderer, Func<Vector2I, TNode, TCell> cellRenderer) {
+    public static Array2D<TCell> Render<TNode, TCell>(this MazeGraph graph, Func<Vector2I, MazeNode, Array2D<TNode>> nodeRenderer, Func<Vector2I, MazeNode, Vector2I, TNode, TCell> cellRenderer) {
         // We need to find the template size, we call to the renderer with the first node, only to get the size and create the array2D
         var graphOffset = graph.GetOffset();
         var firstNode = graph.GetNodes().First();
@@ -82,7 +82,7 @@ public static class MazeGraphRender {
     /// All templates must have the same dimensions</param>
     /// <exception cref="ArgumentException">Thrown when templates returned by nodeRenderer have inconsistent dimensions</exception>
     public static void RenderTo<TCell>(this MazeGraph graph, Array2D<TCell> array2D, Func<Vector2I, MazeNode, Array2D<TCell>> nodeRenderer) {
-        RenderTo(graph, array2D, nodeRenderer, (_, c) => c);
+        RenderTo(graph, array2D, nodeRenderer, (_, _, _, c) => c);
     }
 
     /// <summary>
@@ -97,7 +97,7 @@ public static class MazeGraphRender {
     /// <param name="cellRenderer">A function that transforms each template cell into the final cell type.
     /// Receives the cell position and the template cell value</param>
     /// <exception cref="ArgumentException">Thrown when templates returned by nodeRenderer have inconsistent dimensions</exception>
-    public static void RenderTo<TNode, TCell>(this MazeGraph graph, Array2D<TCell> array2D, Func<Vector2I, MazeNode, Array2D<TNode>> nodeRenderer, Func<Vector2I, TNode, TCell> cellRenderer) {
+    public static void RenderTo<TNode, TCell>(this MazeGraph graph, Array2D<TCell> array2D, Func<Vector2I, MazeNode, Array2D<TNode>> nodeRenderer, Func<Vector2I, MazeNode, Vector2I, TNode, TCell> cellRenderer) {
         // We need to find the template size and use it to validate the rest of the templates
         var graphOffset = graph.GetOffset();
         var firstNode = graph.GetNodes().First();
@@ -109,9 +109,9 @@ public static class MazeGraphRender {
         }
 
         var size = firstTemplate.Width;
-        foreach (var node in graph.GetNodes().OrderBy(n => n.Position.Y).ThenBy(n => n.Position.X)) {
-            var nodePosition = node.Position - graphOffset;
-            var template = nodeRenderer(nodePosition, node);
+        foreach (var mazeNode in graph.GetNodes().OrderBy(n => n.Position.Y).ThenBy(n => n.Position.X)) {
+            var nodePosition = mazeNode.Position - graphOffset;
+            var template = nodeRenderer(nodePosition, mazeNode);
             if (template.Width != size || template.Height != size) {
                 throw new ArgumentException($"All templates must be {size}x{size}. Template with wrong size found: {template.Width}x{template.Height}");
             }
@@ -119,8 +119,8 @@ public static class MazeGraphRender {
             var offset = nodePosition * size;
             for (var y = 0; y < template.Height; y++) {
                 for (var x = 0; x < template.Width; x++) {
-                    var pos = new Vector2I(offset.X + x, offset.Y + y);
-                    array2D[pos] = cellRenderer(pos, template[y, x]);
+                    var cellPosition = new Vector2I(offset.X + x, offset.Y + y);
+                    array2D[cellPosition] = cellRenderer(nodePosition, mazeNode, cellPosition, template[y, x]);
                 }
             }
         }

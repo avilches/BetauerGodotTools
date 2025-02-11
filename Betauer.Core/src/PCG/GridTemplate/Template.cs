@@ -58,7 +58,7 @@ public class Template {
     public IEnumerable<string> MatchingTags(string[] tags) => tags.Where(tag => Tags.Contains(tag));
 
     public override string ToString() {
-        return $"DirectionFlags: {DirectionFlagTools.FlagsToString(DirectionFlags)} Tags:{string.Join(",", Tags.OrderBy(s => s))} Attributes {Attributes.Count}: {string.Join(" ", Attributes.Select(pair => pair.Key + "=" + pair.Value).OrderBy(t => t))}";
+        return $"Id: {Id} DirectionFlags: {DirectionFlagTools.FlagsToString(DirectionFlags)} Tags:{string.Join(",", Tags.OrderBy(s => s))} {Attributes.Count} Attributes:\n{string.Join("\n", Attributes.Select(pair => pair.Key + "=" + pair.Value).OrderBy(t => t))}";
     }
 
     public Template Transform(Transformations.Type type) {
@@ -77,16 +77,17 @@ public class Template {
     /// <returns></returns>
     public Template? TryTransform(Transformations.Type type) {
         var body = new Array2D<char>(Body.Data.Transform(type));
-        if (DataEquals(body, Body)) return null;
+        if (BodyIsEquals(body, Body)) return null;
         return new Template {
             DirectionFlags = DirectionTransformations.TransformFlags(DirectionFlags, type),
             Tags = [..Tags],
             Attributes = DirectionTransformations.TransformAttributes(Attributes, type),
-            Body = body
+            Body = body,
+            Id = $"{Id}-{type}"
         };
     }
 
-    private static bool DataEquals(Array2D<char> one, Array2D<char> other) {
+    public static bool BodyIsEquals(Array2D<char> one, Array2D<char> other) {
         if (ReferenceEquals(one, other)) return true;
 
         // Check dimensions
