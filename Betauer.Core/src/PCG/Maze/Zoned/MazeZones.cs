@@ -265,15 +265,29 @@ public class MazeZones(MazeGraph mazeGraph, MazeNode start, IMazeZonedConstraint
     /// ```
     /// // Select 20% of the nodes in each zone, prioritizing dead-ends
     /// var spreadLocations = SpreadLocationsByZone(0.2f, score => score.DeadEndScore);
-    /// spreadLocations[0] // The 6 nodes in zone 0
+    /// spreadLocations[0] // If the zone had 30 nodes, this list will have 6 nodes (20% of the 30 nodes in zone 0)
     /// ```
     /// </summary>
-    /// <param name="total">The number of locations</param>
+    /// <param name="ratio">The % of locations per zone</param>
     /// <param name="scoreCalculator">The function used to score nodes</param>
+    /// <returns>A list of zones where every element is a list of the nodes.</returns>
     public List<List<MazeNode>> SpreadLocationsByZone(float ratio, Func<NodeScore, float> scoreCalculator) {
         return Zones.Select(zone => zone.SpreadLocations(ratio, scoreCalculator)).ToList();
     }
 
+    /// <summary>
+    /// Spreads a specific percent of locations, trying to maintain even distribution across zone parts.
+    /// It returns a list of the selected nodes.
+    ///
+    /// Example usage:
+    /// ```
+    /// // Select 20% of the nodes , prioritizing dead-ends
+    /// var nodes = SpreadLocations(0.2f, score => score.DeadEndScore);
+    /// ```
+    /// </summary>
+    /// <param name="ratio">The % of locations per zone</param>
+    /// <param name="scoreCalculator">The function used to score nodes</param>
+    /// <returns>A list of zones where every element is a list of the nodes.</returns>
     public List<MazeNode> SpreadLocations(float ratio, Func<NodeScore, float> scoreCalculator) {
         var total = Mathf.RoundToInt(_scores.Count * ratio);
         return SpreadLocations(total, scoreCalculator);
@@ -284,8 +298,8 @@ public class MazeZones(MazeGraph mazeGraph, MazeNode start, IMazeZonedConstraint
     /// 
     /// Example usage:
     /// ```
-    /// // Place 5 items in zone 2, where the nodes far from entrances has the highest chance
-    /// var locations = SpreadLocationsInZone(2, 5, score => score.EntryDistanceScore);
+    /// // Place 5 items where the nodes far from entrances has the highest chance
+    /// var nodes = SpreadLocations(5, score => score.EntryDistanceScore);
     /// ```
     /// </summary>
     /// <param name="total">The total number of locations to place</param>

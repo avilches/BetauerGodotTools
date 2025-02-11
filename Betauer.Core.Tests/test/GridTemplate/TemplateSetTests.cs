@@ -48,6 +48,29 @@ public class TemplateSetTests {
     }
 
     [Test]
+    public void LoadFromString_Filter() {
+        var content = """
+            @ dir=17
+            abc
+            def
+            ghi
+
+            @ DIR=17
+            xyz
+            uvw
+            rst
+
+            @ Dir=17 nope
+            xyz
+            uvw
+            rst
+        """;
+
+        _templateSet.LoadFromString(content, template => !template.Tags.Contains("nope"));
+        Assert.That(_templateSet.FindTemplates(17).ToArray(), Has.Length.EqualTo(2));
+    }
+
+    [Test]
     public void LoadFromString_Id() {
         var content = """
             @ ID=23 dir=17

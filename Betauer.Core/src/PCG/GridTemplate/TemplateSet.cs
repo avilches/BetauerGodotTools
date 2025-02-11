@@ -81,8 +81,12 @@ public class TemplateSet(int cellSize) {
     public Template? GetTemplate(byte directionFlags) => _templates.FirstOrDefault(t => t.DirectionFlags == directionFlags);
 
     public void LoadFromString(string content, char lineSeparator = '\n') {
+        LoadFromString(content, _ => true, lineSeparator);
+    }
+
+    public void LoadFromString(string content, Func<Template, bool> filter, char lineSeparator = '\n') {
         var buffer = new List<string>();
-        Template? current = null;
+        Template? template = null;
         AttributeParser.ParseResult? currentParseResult = null;
         var defines = new Dictionary<string, AttributeParser.ParseResult>(StringComparer.OrdinalIgnoreCase) {
             [DefaultToken] = new(StringComparer.OrdinalIgnoreCase)
@@ -110,8 +114,8 @@ public class TemplateSet(int cellSize) {
                     continue;
                 }
 
-                if (current == null || currentParseResult == null) {
-                    current = new Template();
+                if (template == null || currentParseResult == null) {
+                    template = new Template();
                     currentParseResult = new AttributeParser.ParseResult(StringComparer.OrdinalIgnoreCase);
                 }
 
@@ -135,34 +139,36 @@ public class TemplateSet(int cellSize) {
                 foreach (var (k, value) in lineParserResult.Attributes) {
                     currentParseResult.Attributes[k] = value;
                 }
-            } else if (current != null) {
+            } else if (template != null) {
                 buffer.Add(line);
 
                 if (buffer.Count == CellSize) {
                     ProcessPreviousTemplate();
                 }
             } else {
-                throw new ArgumentException($"Error in line #{lineNumber}. Too many lines in template {current}. Expected {CellSize} but got more.");
+                throw new ArgumentException($"Error in line #{lineNumber}. Too many lines in template {template}. Expected {CellSize} but got more.");
             }
         }
         ProcessPreviousTemplate();
         return;
 
         void ProcessPreviousTemplate() {
-            if (current == null || buffer.Count == 0) return;
-            var template = ParseTemplateBody(buffer, currentParseResult);
-            current.Body = template;
+            if (template == null || buffer.Count == 0) {
+                return;
+            }
+            var body = ParseTemplateBody(buffer, currentParseResult);
+            template.Body = body;
 
-            foreach (var tag in currentParseResult.Tags) current.AddTag(tag);
+            foreach (var tag in currentParseResult.Tags) template.AddTag(tag);
             foreach (var (k, value) in currentParseResult.Attributes) {
                 if (k.StartsWith("dir:", StringComparison.OrdinalIgnoreCase)) {
                     var key = k[4..];
                     // If the user wrote "dir:N" (north) or "dir:t" (top) instead of "U", we normalize it and write it as "U" (up)
                     var dir = DirectionFlagTools.StringToDirectionFlag(key);
                     if (dir != DirectionFlag.None) {
-                        current.SetAttribute(dir, value);
+                        template.SetAttribute(dir, value);
                     } else {
-                        current.SetAttribute(key, value);
+                        template.SetAttribute(key, value);
                     }
                 } else if (k.Equals("dir", StringComparison.OrdinalIgnoreCase)) {
                     var directionFlags = value switch {
@@ -170,20 +176,22 @@ public class TemplateSet(int cellSize) {
                         int directionFlagByte => (byte)directionFlagByte,
                         _ => throw new ArgumentException($"Invalid direction flags dir={value} in template: {currentParseResult}")
                     };
-                    current.DirectionFlags = directionFlags;
+                    template.DirectionFlags = directionFlags;
                 } else if (k.Equals("id", StringComparison.OrdinalIgnoreCase)) {
-                    current.Id = value.ToString()!;
+                    template.Id = value.ToString()!;
                 } else {
-                    current.SetAttribute(k, value);
+                    template.SetAttribute(k, value);
                 }
             }
-            if (current.DirectionFlags == 0) {
+            if (template.DirectionFlags == 0) {
                 throw new ArgumentException($"No direction flags in template: {currentParseResult}");
             }
 
-            AddTemplate(current);
+            if (filter.Invoke(template)) {
+                AddTemplate(template);
+            }
             buffer.Clear();
-            current = null;
+            template = null;
             currentParseResult = null;
         }
     }
