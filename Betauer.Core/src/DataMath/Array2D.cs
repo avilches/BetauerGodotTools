@@ -216,6 +216,22 @@ public class Array2D<T>(T[,] data) : Array2D, IEnumerable<T> {
         }
     }
 
+    public IEnumerable<T> GetValues() {
+        return GetValues(0, 0, Width, Height);
+    }
+
+    public IEnumerable<T> GetValues(Rect2I rect) {
+        return GetValues(rect.Position.X, rect.Position.Y, rect.End.X, rect.End.Y);
+    }
+
+    public IEnumerable<T> GetValues(int x, int y, int width, int height) {
+        for (var yy = y; yy < height + y; yy++) {
+            for (var xx = x; xx < width + x; xx++) {
+                yield return Data[yy, xx];
+            }
+        }
+    }
+
     IEnumerator IEnumerable.GetEnumerator() {
         return GetEnumerator();
     }
