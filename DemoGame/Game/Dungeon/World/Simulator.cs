@@ -27,28 +27,36 @@ public class Simulator {
 
         var simulator = new Simulator();
         simulator.Configure();
+        simulator.CreateMap();
         simulator.RunGameLoop(100);
     }
 
     private bool _running = true;
     public TurnWorld World;
     public GameWorld GameWorld;
-    public Array2D<Template?> TemplateArray;
 
     private void Configure() {
-        _ = new ActionTypeConfig(ActionType.Wait) { EnergyCost = 1000 };
-        _ = new ActionTypeConfig(ActionType.Walk) { EnergyCost = 1000 };
-        _ = new ActionTypeConfig(ActionType.Attack) { EnergyCost = 1000 };
-        _ = new ActionTypeConfig(ActionType.Run) { EnergyCost = 500 };
-        ActionTypeConfig.Verify();
+        ActionTypeConfig.RegisterAll(
+            new ActionTypeConfig(ActionType.Wait) { EnergyCost = 1000 },
+            new ActionTypeConfig(ActionType.Walk) { EnergyCost = 1000 },
+            new ActionTypeConfig(ActionType.Attack) { EnergyCost = 1000 },
+            new ActionTypeConfig(ActionType.Run) { EnergyCost = 500 }
+        );
 
-        _ = new CellTypeConfig(CellType.Floor);
-        _ = new CellTypeConfig(CellType.Wall);
-        _ = new CellTypeConfig(CellType.Door);
-        CellTypeConfig.Verify();
+        CellTypeConfig.RegisterAll(
+            new CellTypeConfig(CellType.Floor),
+            new CellTypeConfig(CellType.Wall),
+            new CellTypeConfig(CellType.Door)
+        );
 
+        MapTypeConfig.RegisterAll(
+            new MapTypeConfig(MapType.Wait).LoadFromString(9, LoadTemplateContent(TemplatePath))
+        );
+    }
+
+    private void CreateMap() {
         var seed = 1;
-        var result = MapGenerator.CreateMap(TemplatePath, seed);
+        var result = MapGenerator.CreateMap(MapType.Wait, seed);
         World = new TurnWorld(result.Map) {
             TicksPerTurn = 10,
             DefaultCellType = CellType.Floor
@@ -56,6 +64,17 @@ public class Simulator {
         GameWorld = new GameWorld();
         CreatePlayer();
         CreateEntities();
+    }
+
+    public static string LoadTemplateContent(string templatePath) {
+        try {
+            return File.ReadAllText(templatePath);
+        } catch (FileNotFoundException e) {
+            Console.WriteLine(e.Message);
+            Console.WriteLine($"{nameof(templatePath)} is '{templatePath}'");
+            Console.WriteLine("Ensure the working directory is the root of the project");
+            throw;
+        }
     }
 
     private void CreateEntities() {

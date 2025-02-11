@@ -24,14 +24,14 @@ public enum SpawnType {
     Key,
 }
 
-public static class MapGenerator {
+public class MapGenerator {
     public const char DefinitionLoot = 'l';
     public const char DefinitionDoor = 'd';
     public const char DefinitionWall = '#';
     public const char DefinitionFloor = '·';
     public const char DefinitionEmpty = '.';
 
-    public static MapGenerationResult CreateMap(string templatePath, int seed) {
+    public static MapGenerationResult CreateMap(MapType mapType, int seed) {
         var rng = new Random(seed);
         var zones = MazeGraphCatalog.CogmindLong(rng, mc => {
             // mc.OnNodeCreated += (node) => PrintGraph(mc);
@@ -40,11 +40,10 @@ public static class MapGenerator {
         var keys = solution.KeyLocations;
         var loot = zones.SpreadLocationsByZone(0.3f, MazeGraphCatalog.LootFormula);
 
-        var templateSet = new TemplateSet(cellSize: 9);
         var spawn = new List<SpawnInfo>();
 
-        // Cargar patrones de diferentes archivos
-        LoadTemplates(templatePath, templateSet);
+        var templateSet = MapTypeConfig.Get(mapType).TemplateSet;
+
 
         // Creates an empty array2D of templates. This will be used in the Render method to track the template used for
         // each node during the selection the next one. The first one will be random, but the next one should try to match the
@@ -91,20 +90,6 @@ public static class MapGenerator {
         // PrintTemplates(templateSet.FindTemplates().ToList());
 
         return new MapGenerationResult(spawn, templateArray, templateNodes);
-    }
-
-    private static void LoadTemplates(string templatePath, TemplateSet templateSet) {
-        try {
-            var content = File.ReadAllText(templatePath);
-            templateSet.LoadFromString(content);
-            templateSet.FindTemplates(tags: ["disabled"]).ToArray().ForEach(t => templateSet.RemoveTemplate(t));
-            templateSet.ApplyTransformations();
-        } catch (FileNotFoundException e) {
-            Console.WriteLine(e.Message);
-            Console.WriteLine($"{nameof(templatePath)} is '{templatePath}'");
-            Console.WriteLine("Ensure the working directory is the root of the project");
-            throw;
-        }
     }
 
     private static void PrintTemplates(List<Template> templates) {

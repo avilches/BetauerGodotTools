@@ -40,11 +40,12 @@ public class TurnSystemTests {
         _world.AddEntity(_fastWalker);
         _world.AddEntity(_slowAttacker);
 
-        ActionTypeConfig.RemoveAll();
-        _ = new ActionTypeConfig(ActionType.Wait) { EnergyCost = 500 };
-        _ = new ActionTypeConfig(ActionType.Walk) { EnergyCost = 1000 };
-        _ = new ActionTypeConfig(ActionType.Attack) { EnergyCost = 1200 };
-        _ = new ActionTypeConfig(ActionType.Run) { EnergyCost = 2000 };
+        ActionTypeConfig.RegisterAll(
+            new ActionTypeConfig(ActionType.Wait) { EnergyCost = 500 },
+            new ActionTypeConfig(ActionType.Walk) { EnergyCost = 1000 },
+            new ActionTypeConfig(ActionType.Attack) { EnergyCost = 1200 },
+            new ActionTypeConfig(ActionType.Run) { EnergyCost = 2000 }
+        );
     }
 
     [Test]
@@ -77,9 +78,9 @@ public class TurnSystemTests {
         var ticks = 100;
         // Process enough ticks to let entities act
         // We'll process 100 ticks which should be 10 full turns
-        var playerHistory =  new List<EntityAction>();
-        var fastWalkerHistory =  new List<EntityAction>();
-        var slowAttackerHistory =  new List<EntityAction>();
+        var playerHistory = new List<EntityAction>();
+        var fastWalkerHistory = new List<EntityAction>();
+        var slowAttackerHistory = new List<EntityAction>();
 
         _player.Entity.OnExecute += (action) => playerHistory.Add(action);
         _fastWalker.OnExecute += (action) => fastWalkerHistory.Add(action);
@@ -113,11 +114,12 @@ public class EntityEventsTests {
     public void Setup() {
         _world = new TurnWorld(1, 1);
         _turnSystem = new TurnSystem(_world);
-        ActionTypeConfig.RemoveAll();
-        _ = new ActionTypeConfig(ActionType.Wait) { EnergyCost = 500 };
-        _ = new ActionTypeConfig(ActionType.Walk) { EnergyCost = 1000 };
-        _ = new ActionTypeConfig(ActionType.Attack) { EnergyCost = 1200 };
-        _ = new ActionTypeConfig(ActionType.Run) { EnergyCost = 2000 };
+        ActionTypeConfig.RegisterAll(
+            new ActionTypeConfig(ActionType.Wait) { EnergyCost = 500 },
+            new ActionTypeConfig(ActionType.Walk) { EnergyCost = 1000 },
+            new ActionTypeConfig(ActionType.Attack) { EnergyCost = 1200 },
+            new ActionTypeConfig(ActionType.Run) { EnergyCost = 2000 }
+        );
 
         ResetCounters();
     }
