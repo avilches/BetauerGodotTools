@@ -19,7 +19,7 @@ public static partial class AttributeParser {
     // Permite números, letras y "_-+@#&/" al inicio y en el medio, y también puntos en el medio
     private static readonly Regex ValidNamePattern = MyRegex();
 
-    public static string ForbiddenChars => ", ' \" =";
+    public static string ForbiddenChars = ", ' \" =";
 
     [GeneratedRegex("^[^,'\"=]+$", RegexOptions.Compiled)]
     private static partial Regex MyRegex();
@@ -78,11 +78,13 @@ public static partial class AttributeParser {
             return $"{string.Join(",", Tags.OrderBy(s => s))} {string.Join(" ", Attributes.Select(pair => pair.Key + "=" + Print(pair.Value)).OrderBy(t => t))}".Trim();
         }
 
-        private static string Print(object pairValue) {
+        public static string Print(object pairValue) {
             return pairValue switch {
                 bool b => b.ToString().ToLowerInvariant(),
-                int i => i.ToString(CultureInfo.InvariantCulture),
-                float f => f.ToString("0.0###########", CultureInfo.InvariantCulture),
+                byte or sbyte or short or ushort or int or uint or long or ulong =>
+                    ((IFormattable)pairValue).ToString(null, CultureInfo.InvariantCulture),
+                float f1 => f1.ToString("0.0###########", CultureInfo.InvariantCulture),
+                double d1 => d1.ToString("0.0###########", CultureInfo.InvariantCulture),
                 string s => FormatString(s),
                 _ => pairValue.ToString() ?? string.Empty
             };
@@ -93,7 +95,7 @@ public static partial class AttributeParser {
         }
 
         private static string FormatString(string s) {
-            if (!NeedsQuotes(s)) return s;
+            if (!NeedsQuotes(s)) return '"'+s+'"';
 
             var singleQuotes = s.Count(c => c == '\'');
             var doubleQuotes = s.Count(c => c == '"');

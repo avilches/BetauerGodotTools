@@ -63,7 +63,7 @@ public class Template {
     public IEnumerable<string> MatchingTags(string[] tags) => tags.Where(tag => Tags.Contains(tag));
 
     public override string ToString() {
-        return $"Id: {Id} DirectionFlags: {DirectionFlagTools.FlagsToString(DirectionFlags)} Tags:{string.Join(",", Tags.OrderBy(s => s))} {Attributes.Count} Attributes:\n{string.Join("\n", Attributes.Select(pair => pair.Key + "=" + pair.Value).OrderBy(t => t))}";
+        return $"Id: {AttributeParser.ParseResult.Print(Id)} DirectionFlags: \"{DirectionFlagTools.FlagsToString(DirectionFlags)}\" ({DirectionFlags}) Tags: {string.Join(",", Tags.OrderBy(s => s))} {Attributes.Count} Attributes: {string.Join(" ", Attributes.Select(pair => pair.Key + "=" + AttributeParser.ParseResult.Print(pair.Value)).OrderBy(t => t))}".Trim();
     }
 
     public Template Transform(Transformations.Type type) {
@@ -106,5 +106,4 @@ public class Template {
         }
         return true;
     }
-
 }
