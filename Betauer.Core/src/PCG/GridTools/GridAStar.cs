@@ -5,17 +5,17 @@ using Godot;
 
 namespace Betauer.Core.PCG.GridTools;
 
-public class Array2DAStar<T> {
+public class GridAStar {
     private readonly Dictionary<Vector2I, float> _gScore = new();
     private readonly Dictionary<Vector2I, Array2DEdge?> _edgeTo = new();
     private readonly IndexMinPriorityQueue<float> _pq;
-    private readonly Array2DGraph<T> _graph;
+    private readonly GridGraph _graph;
     private readonly int _width;
 
     private Vector2I _goal;
-    private Func<Vector2I, Vector2I, float> _heuristic;
+    private Func<Vector2I, Vector2I, float> _heuristic = Heuristics.Euclidean;
 
-    public Array2DAStar(Array2DGraph<T> graph) {
+    public GridAStar(GridGraph graph) {
         ArgumentNullException.ThrowIfNull(graph);
         _graph = graph;
         _width = graph.Width;
@@ -39,7 +39,7 @@ public class Array2DAStar<T> {
         Reset();
 
         _goal = goal;
-        _heuristic = heuristic ?? Heuristics.Euclidean;
+        if (heuristic != null) _heuristic = heuristic;
 
         // Initialize start
         _gScore[start] = 0;

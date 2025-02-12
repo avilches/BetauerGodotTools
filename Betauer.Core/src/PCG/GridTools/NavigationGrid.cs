@@ -18,26 +18,26 @@ namespace Betauer.Core.PCG.GridTools;
 /// - Custom node weights for path calculations
 /// </summary>
 /// <typeparam name="T">The type of data stored in each grid cell</typeparam>
-public class NavigationGrid<T> {
-    public Array2DGraph<T> Graph { get; }
+public class NavigationGrid {
+    public GridGraph Graph { get; }
     private SpatialGrid BlockZones { get; }
 
     /// <summary>
     /// Creates a new AiGrid with the specified grid and optional weight function
     /// </summary>
-    /// <param name="grid">The 2D grid that defines the space</param>
-    /// <param name="getWeight">Optional function to determine the weight/cost of moving through each cell.
-    /// If null, all walkable cells have equal weight</param>
-    /// <param name="isBlockedFunc">Optional function to determine if a cell is walkable based on its position.</param>
+    /// <param name="width"></param>
+    /// <param name="height"></param>
+    /// <param name="isBlockedFunc">A function to determine if a cell is walkable based on its position.</param>
+    /// <param name="getWeightFunc">Optional function to determine the weight/cost of moving through each cell.
+    ///     If null, all walkable cells have equal weight</param>
     /// <param name="spatialCellSize">The width/height size of the cell to determine the collision for the obstacles</param>
-    public NavigationGrid(Array2D<T> grid, Func<Vector2I, float>? getWeight = null, Func<Vector2I, bool>? isBlockedFunc = null, int spatialCellSize = 5) {
+    public NavigationGrid(int width, int height, Func<Vector2I, bool> isBlockedFunc, Func<Vector2I, float>? getWeightFunc = null, int spatialCellSize = 5) {
         BlockZones = new SpatialGrid(spatialCellSize);
-        Graph = new Array2DGraph<T>(
-            grid,
-            getWeight,
-            pos => 
-                (isBlockedFunc != null && isBlockedFunc.Invoke(pos)) || 
-                BlockZones.IntersectPoint(pos.X, pos.Y)
+        Graph = new GridGraph(
+            width,
+            height,
+            pos => (isBlockedFunc?.Invoke(pos) ?? false) || BlockZones.IntersectPoint(pos.X, pos.Y),
+            getWeightFunc
         );
     }
 

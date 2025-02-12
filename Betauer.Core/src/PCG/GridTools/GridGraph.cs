@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Betauer.Core.DataMath;
+using Betauer.Core.DataMath.Geometry;
 using Godot;
 
 namespace Betauer.Core.PCG.GridTools;
@@ -21,8 +22,7 @@ public readonly record struct Array2DEdge(Vector2I From, Vector2I To, float Weig
 /// The graph structure is implicit in the grid, where each cell can be connected to its orthogonal neighbors if they are walkable.
 /// Edge weights are determined by the cost function provided.
 /// </summary>
-public class Array2DGraph<T> {
-    public Array2D<T> Array2D { get; }
+public class GridGraph {
     public Func<Vector2I, float>? GetWeightFunc { get; set; }
     public Func<Vector2I, bool>? IsBlockedFunc { get; set; }
 
@@ -34,17 +34,19 @@ public class Array2DGraph<T> {
     /// </summary>
     public float DiagonalWeight { get; private set; } = -1;
 
-    public int Width => Array2D.Width;
-    public int Height => Array2D.Height;
+    public int Width { get; init; }
+    public int Height { get; init; }
 
     /// <summary>
-    /// Constructs a grid graph from an Array2D with walkability and weight functions
+    /// Constructs a grid graph of with x height with walkability and weight functions
     /// </summary>
-    /// <param name="array2D">The grid that defines the graph structure</param>
-    /// <param name="getWeightFunc">Function that determines the movement cost for a cell (must be >= 1). If null, all weights will be 1</param>
-    /// <param name="isBlockedFunc">Function that determines if a cell is not accesible based on its position. If null, all cells will be accesible</param>
-    public Array2DGraph(Array2D<T> array2D, Func<Vector2I, float>? getWeightFunc = null, Func<Vector2I, bool>? isBlockedFunc = null) {
-        Array2D = array2D ?? throw new ArgumentNullException(nameof(array2D));
+    /// <param name="width"></param>
+    /// <param name="height"></param>
+    /// <param name="isBlockedFunc">A function that determines if a cell is not accesible based on its position. If null, all cells will be accesible</param>
+    /// <param name="getWeightFunc">Optional function that determines the movement cost for a cell (must be >= 1). If null, all weights will be 1</param>
+    public GridGraph(int width, int height, Func<Vector2I, bool> isBlockedFunc, Func<Vector2I, float>? getWeightFunc = null) {
+        Width = width;
+        Height = height;
         GetWeightFunc = getWeightFunc;
         IsBlockedFunc = isBlockedFunc;
     }
@@ -67,11 +69,14 @@ public class Array2DGraph<T> {
     }
 
     /// <summary>
-    /// Enables diagonal movement with a custom weight
-    /// Higher weights make diagonal movement more expensive
+    /// Sets the weight for diagonal movement.
+    /// Note: Due to path optimization, a significantly high weight (> 2.0) might be
+    /// needed to consistently prefer orthogonal paths over diagonal ones.
+    /// For example, with a weight of 2.0, some diagonal paths might still be preferred
+    /// as they involve fewer total moves.
     /// </summary>
-    /// <param name="weight">The weight for diagonal movement. Must be >= 1.0</param>
-    /// <exception cref="ArgumentException">If weight is less than 1.0</exception>
+    /// <param name="weight">The weight for diagonal movement. Must be >= 1.0.
+    /// Values around 15.0 or higher will consistently prefer orthogonal paths.</param>
     public void SetDiagonalMovementWeight(float weight) {
         if (weight < 1.0f) throw new ArgumentException("Diagonal weight must be >= 1.0", nameof(weight));
         DiagonalWeight = weight;
@@ -103,7 +108,7 @@ public class Array2DGraph<T> {
         if (IsBlocked(vertex)) yield break;
 
         // Orthogonal movements
-        foreach (var neighbor in Array2D.GetVonNeumannPositions(vertex)) {
+        foreach (var neighbor in Array2D.VonNeumannDirections.Select(pos => vertex + pos).Where(IsValidPosition)) {
             if (IsAccesible(neighbor)) {
                 var weight = GetWeight(neighbor);
                 yield return new Array2DEdge(vertex, neighbor, weight);
@@ -112,7 +117,7 @@ public class Array2DGraph<T> {
 
         // Diagonal movements
         if (IsDiagonalMovementEnabled()) {
-            foreach (var neighbor in Array2D.GetDiagonalPositions(vertex)) {
+            foreach (var neighbor in Array2D.DiagonalDirections.Select(pos => vertex + pos).Where(IsValidPosition)) {
                 if (IsAccesible(neighbor)) {
                     var cellWeight = GetWeight(neighbor);
                     var finalWeight = cellWeight * DiagonalWeight;
@@ -120,6 +125,10 @@ public class Array2DGraph<T> {
                 }
             }
         }
+    }
+
+    private bool IsValidPosition(Vector2I arg) {
+        return Geometry.IsPointInRectangle(arg.X, arg.Y, 0, 0, Width, Height);
     }
 
     public float GetWeight(Vector2I neighbor) {
@@ -134,43 +143,16 @@ public class Array2DGraph<T> {
     public bool IsAccesible(Vector2I pos) {
         return !IsBlocked(pos);
     }
-    
+
     /// <summary>
     /// Returns whether the specified position is blocked or invalid in the grid, so paths can't use it
     /// </summary>
     /// <param name="pos">The position to check</param>
     /// <returns>True if the position is blocked or not value, false otherwise</returns>
     public bool IsBlocked(Vector2I pos) {
-        return !Array2D.IsValidPosition(pos) || (IsBlockedFunc != null && IsBlockedFunc(pos));
+        return !IsValidPosition(pos) || (IsBlockedFunc != null && IsBlockedFunc(pos));
     }
 
-    /// <summary>
-    /// Returns an IEnumerable of all directed edges in the edge-weighted grid graph
-    /// The edges are computed on-demand based on the walkable cells and their walkable neighbors
-    /// </summary>
-    /// <returns>IEnumerable of all directed edges in the edge-weighted grid graph</returns>
-    public IEnumerable<Array2DEdge> Edges() {
-        for (var y = 0; y < Array2D.Height; y++) {
-            for (var x = 0; x < Array2D.Width; x++) {
-                var pos = new Vector2I(x, y);
-                if (IsAccesible(pos)) {
-                    foreach (var edge in Adjacent(pos)) {
-                        yield return edge;
-                    }
-                }
-            }
-        }
-    }
-
-    /// <summary>
-    /// Returns the number of directed edges incident from the specified vertex
-    /// This is known as the out-degree of the vertex
-    /// </summary>
-    /// <param name="vertex">The vertex to find the out-degree of</param>
-    /// <returns>The number of directed edges incident from the specified vertex</returns>
-    public int OutDegree(Vector2I vertex) {
-        return IsAccesible(vertex) ? Array2D.GetVonNeumannPositions(vertex).Count(IsAccesible) : 0;
-    }
 
     /// <summary>
     /// Finds a path from start to end position using A* algorithm (Euclidean heuristic by default)
@@ -183,7 +165,7 @@ public class Array2DGraph<T> {
     public IReadOnlyList<Vector2I> FindPath(
         Vector2I start, Vector2I target,
         Func<Vector2I, Vector2I, float>? heuristic = null, Action<Vector2I>? onNodeVisited = null) {
-        return new Array2DAStar<T>(this).FindPath(start, target, heuristic, onNodeVisited);
+        return new GridAStar(this).FindPath(start, target, heuristic, onNodeVisited);
     }
 
     /// <summary>
@@ -265,7 +247,7 @@ public class Array2DGraph<T> {
         IReadOnlyList<Vector2I>? shortestPath = null;
         var shortestPathLength = float.MaxValue;
 
-        var astar = new Array2DAStar<T>(this);
+        var astar = new GridAStar(this);
 
         // Find paths to all targets and keep the shortest one
         foreach (var targetPos in targets) {
@@ -308,7 +290,7 @@ public class Array2DGraph<T> {
         var shortestPathLength = float.MaxValue;
         var bestTargetWeight = 0f;
 
-        var astar = new Array2DAStar<T>(this);
+        var astar = new GridAStar(this);
 
         // Find paths to all targets and keep the shortest one
         foreach (var (targetPos, weight) in targets) {
@@ -421,10 +403,10 @@ public class Array2DGraph<T> {
     /// </returns>
     public override string ToString() {
         var formattedString = new StringBuilder();
-        formattedString.AppendLine($"Grid size: {Array2D.Width}x{Array2D.Height}");
+        formattedString.AppendLine($"Grid size: {Width}x{Height}");
 
-        for (var y = 0; y < Array2D.Height; y++) {
-            for (var x = 0; x < Array2D.Width; x++) {
+        for (var y = 0; y < Height; y++) {
+            for (var x = 0; x < Width; x++) {
                 var pos = new Vector2I(x, y);
                 if (IsAccesible(pos)) {
                     formattedString.Append($"{pos}:");

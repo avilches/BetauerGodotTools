@@ -148,7 +148,7 @@ public class Template {
         if (count <= 1) return true; // 0 or 1 exit is always valid
 
         // Create graph where only floor tiles are walkable
-        var graph = new Array2DGraph<char>(Body, null, isBlocked);
+        var graph = new GridGraph(Body.Width, Body.Height, isBlocked);
 
         // Get all exit positions (central position for each border)
         var center = Body.Width / 2; // Template is square and odd size

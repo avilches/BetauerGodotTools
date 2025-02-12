@@ -11,17 +11,17 @@ using NUnit.Framework;
 namespace Betauer.Core.Tests;
 
 [TestFixture]
-public class Array2DPathFinderTests {
-
+public class GridPathFinderTests {
     [TestCase(false, 5)]
     [TestCase(true, 3)]
     public void FindPath_EmptyGrid_ReturnsCorrectPath(bool diagonal, int expectedLength) {
         // Create a 3x3 grid where all cells are walkable
         var grid = new Array2D<bool>(3, 3, true);
-        var graph = new Array2DGraph<bool>(
-            grid,
-            _ => 1f, // Uniform cost
-            cell => !grid[cell] // isBlocked
+        var graph = new GridGraph(
+            grid.Width,
+            grid.Height,
+            cell => !grid[cell], // isBlocked
+            _ => 1f // Uniform cost
         );
 
         graph.EnableDiagonalMovement(diagonal);
@@ -52,10 +52,11 @@ public class Array2DPathFinderTests {
         // Create a 3x3 grid with an obstacle in the middle
         var grid = new Array2D<bool>(3, 3, true);
         grid[1, 1] = false; // Center cell is blocked
-        var graph = new Array2DGraph<bool>(
-            grid,
-            _ => 1f, // Uniform cost
-            cell => !grid[cell] // isBlocked
+        var graph = new GridGraph(
+            grid.Width,
+            grid.Height,
+            cell => !grid[cell], // isBlocked
+            _ => 1f // Uniform cost
         );
 
         var path = graph.FindPath(new Vector2I(0, 0), new Vector2I(2, 2));
@@ -72,10 +73,11 @@ public class Array2DPathFinderTests {
         grid[0, 1] = false;
         grid[1, 1] = false;
         grid[2, 1] = false;
-        var graph = new Array2DGraph<bool>(
-            grid,
-            _ => 1f, // Uniform cost
-            cell => !grid[cell] // isBlocked
+        var graph = new GridGraph(
+            grid.Width,
+            grid.Height,
+            cell => !grid[cell], // isBlocked
+            _ => 1f // Uniform cost
         );
 
         var path = graph.FindPath(new Vector2I(0, 0), new Vector2I(2, 2));
@@ -92,10 +94,11 @@ public class Array2DPathFinderTests {
         var grid = new Array2D<int>(3, 3, 1); // All cells cost 1
         grid[0, 1] = 10; // grid[y, x] para la posición (1,0)
 
-        var graph = new Array2DGraph<int>(
-            grid,
-            cell => grid[cell], // Cost equals cell value
-            _ => false // All cells walkable
+        var graph = new GridGraph(
+            grid.Width,
+            grid.Height,
+            _ => false, // All cells walkable
+            cell => grid[cell] // Cost equals cell value
         );
 
         var path = graph.FindPath(new Vector2I(0, 0), new Vector2I(2, 0), Heuristics.Manhattan);
@@ -130,10 +133,11 @@ public class Array2DPathFinderTests {
             visitedNodes.Add(pos);
         }
 
-        var graph = new Array2DGraph<bool>(
-            grid,
-            _ => 1f,
-            _ => false // All cells walkable
+        var graph = new GridGraph(
+            grid.Width,
+            grid.Height,
+            _ => false, // All cells walkable
+            _ => 1f
         );
 
         // Test con diferentes heurísticas
@@ -168,10 +172,11 @@ public class Array2DPathFinderTests {
         var grid = new Array2D<bool>(3, 3, true);
         grid[1, 1] = false; // Obstacle in the middle
 
-        var graph = new Array2DGraph<bool>(
-            grid,
-            _ => 1f, // Uniform cost
-            cell => !grid[cell] // isBlocked
+        var graph = new GridGraph(
+            grid.Width,
+            grid.Height,
+            cell => !grid[cell], // isBlocked
+            _ => 1f // Uniform cost
         );
 
         // Find paths with different heuristics
@@ -196,10 +201,11 @@ public class Array2DPathFinderTests {
         // Custom heuristic that always returns 0 (will make A* behave like Dijkstra)
         float ZeroHeuristic(Vector2I a, Vector2I b) => 0f;
 
-        var graph = new Array2DGraph<bool>(
-            grid,
-            _ => 1f, // Uniform cost
-            cell => !grid[cell] // isBlocked
+        var graph = new GridGraph(
+            grid.Width,
+            grid.Height,
+            cell => !grid[cell], // isBlocked
+            _ => 1f // Uniform cost
         );
 
         var path = graph.FindPath(new Vector2I(0, 0), new Vector2I(2, 2), ZeroHeuristic);
@@ -211,10 +217,11 @@ public class Array2DPathFinderTests {
     [Test]
     public void FindPath_InvalidStartPosition_ReturnsNull() {
         var grid = new Array2D<bool>(3, 3, true);
-        var graph = new Array2DGraph<bool>(
-            grid,
-            _ => 1f, // Uniform cost
-            cell => !grid[cell] // isBlocked
+        var graph = new GridGraph(
+            grid.Width,
+            grid.Height,
+            cell => !grid[cell], // isBlocked
+            _ => 1f // Uniform cost
         );
 
         var path = graph.FindPath(new Vector2I(-1, 0), new Vector2I(2, 2));
@@ -225,10 +232,11 @@ public class Array2DPathFinderTests {
     [Test]
     public void FindPath_InvalidEndPosition_ReturnsNull() {
         var grid = new Array2D<bool>(3, 3, true);
-        var graph = new Array2DGraph<bool>(
-            grid,
-            _ => 1f, // Uniform cost
-            cell => !grid[cell] // isBlocked
+        var graph = new GridGraph(
+            grid.Width,
+            grid.Height,
+            cell => !grid[cell], // isBlocked
+            _ => 1f // Uniform cost
         );
 
         var path = graph.FindPath(new Vector2I(0, 0), new Vector2I(3, 3));
@@ -240,10 +248,11 @@ public class Array2DPathFinderTests {
     public void FindPath_StartPositionNotWalkable_ReturnsNull() {
         var grid = new Array2D<bool>(3, 3, true);
         grid[0, 0] = false;
-        var graph = new Array2DGraph<bool>(
-            grid,
-            _ => 1f, // Uniform cost
-            cell => !grid[cell] // isBlocked
+        var graph = new GridGraph(
+            grid.Width,
+            grid.Height,
+            cell => !grid[cell], // isBlocked
+            _ => 1f // Uniform cost
         );
 
         var path = graph.FindPath(new Vector2I(0, 0), new Vector2I(2, 2));
@@ -255,10 +264,11 @@ public class Array2DPathFinderTests {
     public void FindPath_EndPositionNotWalkable_ReturnsNull() {
         var grid = new Array2D<bool>(3, 3, true);
         grid[2, 2] = false;
-        var graph = new Array2DGraph<bool>(
-            grid,
-            _ => 1f, // Uniform cost
-            cell => !grid[cell] // isBlocked
+        var graph = new GridGraph(
+            grid.Width,
+            grid.Height,
+            cell => !grid[cell], // isBlocked
+            _ => 1f // Uniform cost
         );
 
         var path = graph.FindPath(new Vector2I(0, 0), new Vector2I(2, 2));
@@ -270,10 +280,11 @@ public class Array2DPathFinderTests {
     public void GetReachableZone_EmptyGrid_ReturnsAllNodes() {
         // 3x3 grid, all walkable
         var grid = new Array2D<bool>(3, 3, true);
-        var graph = new Array2DGraph<bool>(
-            grid,
-            _ => 1f,
-            cell => !grid[cell] // isBlocked
+        var graph = new GridGraph(
+            grid.Width,
+            grid.Height,
+            cell => !grid[cell], // isBlocked
+            _ => 1f
         );
 
         var nodes = graph.GetReachableZone(new Vector2I(1, 1));
@@ -292,10 +303,11 @@ public class Array2DPathFinderTests {
     public void GetReachableZone_StartNotWalkable_ReturnsEmpty() {
         var grid = new Array2D<bool>(3, 3, true);
         grid[1, 1] = false; // Center not walkable
-        var graph = new Array2DGraph<bool>(
-            grid,
-            _ => 1f,
-            cell => !grid[cell] // isBlocked
+        var graph = new GridGraph(
+            grid.Width,
+            grid.Height,
+            cell => !grid[cell], // isBlocked
+            _ => 1f
         );
 
         var nodes = graph.GetReachableZone(new Vector2I(1, 1));
@@ -311,10 +323,11 @@ public class Array2DPathFinderTests {
         // [ ][ ][ ]
         var grid = new Array2D<bool>(3, 3, true);
         grid[1, 1] = false; // Center is blocked
-        var graph = new Array2DGraph<bool>(
-            grid,
-            _ => 1f,
-            cell => !grid[cell] // isBlocked
+        var graph = new GridGraph(
+            grid.Width,
+            grid.Height,
+            cell => !grid[cell], // isBlocked
+            _ => 1f
         );
 
         var nodes = graph.GetReachableZone(new Vector2I(0, 0));
@@ -326,10 +339,11 @@ public class Array2DPathFinderTests {
     [Test]
     public void GetReachableZone_WithMaxNodes_LimitsResults() {
         var grid = new Array2D<bool>(3, 3, true);
-        var graph = new Array2DGraph<bool>(
-            grid,
-            _ => 1f,
-            cell => !grid[cell] // isBlocked
+        var graph = new GridGraph(
+            grid.Width,
+            grid.Height,
+            cell => !grid[cell], // isBlocked
+            _ => 1f
         );
 
         var nodes = graph.GetReachableZone(new Vector2I(1, 1), 4);
@@ -354,10 +368,11 @@ public class Array2DPathFinderTests {
         grid[2, 1] = false;
         grid[2, 2] = false;
 
-        var graph = new Array2DGraph<bool>(
-            grid,
-            _ => 1f,
-            cell => !grid[cell] // isBlocked
+        var graph = new GridGraph(
+            grid.Width,
+            grid.Height,
+            cell => !grid[cell], // isBlocked
+            _ => 1f
         );
 
         // Start from top-left area
@@ -397,10 +412,11 @@ public class Array2DPathFinderTests {
     [Test]
     public void GetReachableZoneInRange_VerifyCircularExpansion() {
         var grid = new Array2D<bool>(5, 5, true);
-        var graph = new Array2DGraph<bool>(
-            grid,
-            _ => 1f,
-            cell => !grid[cell] // isBlocked
+        var graph = new GridGraph(
+            grid.Width,
+            grid.Height,
+            cell => !grid[cell], // isBlocked
+            _ => 1f
         );
 
         // Test with different ranges
@@ -432,10 +448,11 @@ public class Array2DPathFinderTests {
         grid[1, 2] = false;
         grid[2, 1] = false;
 
-        var graph = new Array2DGraph<bool>(
-            grid,
-            _ => 1f,
-            cell => !grid[cell] // isBlocked
+        var graph = new GridGraph(
+            grid.Width,
+            grid.Height,
+            cell => !grid[cell], // isBlocked
+            _ => 1f
         );
 
         var nodes = graph.GetReachableZoneInRange(new Vector2I(0, 0), 2);
@@ -451,10 +468,11 @@ public class Array2DPathFinderTests {
     [Test]
     public void GetReachableZoneInRange_EdgeCases() {
         var grid = new Array2D<bool>(3, 3, true);
-        var graph = new Array2DGraph<bool>(
-            grid,
-            _ => 1f,
-            cell => !grid[cell] // isBlocked
+        var graph = new GridGraph(
+            grid.Width,
+            grid.Height,
+            cell => !grid[cell], // isBlocked
+            _ => 1f
         );
 
         // Test range 0
@@ -472,10 +490,11 @@ public class Array2DPathFinderTests {
     [Test]
     public void TestDiagonalMovementModes() {
         var grid = new Array2D<bool>(5, 5, true);
-        var graph = new Array2DGraph<bool>(
-            grid,
-            _ => 1f, // Uniform cost
-            _ => false // All cells walkable
+        var graph = new GridGraph(
+            grid.Width,
+            grid.Height,
+            _ => false, // All cells walkable
+            _ => 1f // Uniform cost
         );
 
         var start = new Vector2I(0, 0);
@@ -492,12 +511,11 @@ public class Array2DPathFinderTests {
             Console.WriteLine($"Position: {pos}");
         }
 
-
         // Debug: Imprimir las diferencias entre posiciones consecutivas
         Console.WriteLine("\nMoves:");
         for (var i = 1; i < pathNodiagonal.Count; i++) {
             var diff = pathNodiagonal[i] - pathNodiagonal[i - 1];
-            Console.WriteLine($"Move from {pathNodiagonal[i-1]} to {pathNodiagonal[i]}: diff=({diff.X},{diff.Y})");
+            Console.WriteLine($"Move from {pathNodiagonal[i - 1]} to {pathNodiagonal[i]}: diff=({diff.X},{diff.Y})");
             // Si abs(X) + abs(Y) = 2, es un movimiento diagonal
             if (Math.Abs(diff.X) + Math.Abs(diff.Y) > 1) {
                 Console.WriteLine("WARNING: This is a diagonal move!");
@@ -517,14 +535,14 @@ public class Array2DPathFinderTests {
         for (var i = 1; i < pathNodiagonal.Count; i++) {
             var diff = pathNodiagonal[i] - pathNodiagonal[i - 1];
             Assert.That(Math.Abs(diff.X) + Math.Abs(diff.Y), Is.EqualTo(1),
-                $"Each move should be orthogonal, but move from {pathNodiagonal[i-1]} to {pathNodiagonal[i]} isn't");
+                $"Each move should be orthogonal, but move from {pathNodiagonal[i - 1]} to {pathNodiagonal[i]} isn't");
         }
 
         // Debug: Imprimir las diferencias entre posiciones consecutivas
         Console.WriteLine("\nMoves:");
         for (var i = 1; i < pathNodiagonal.Count; i++) {
             var diff = pathNodiagonal[i] - pathNodiagonal[i - 1];
-            Console.WriteLine($"Move from {pathNodiagonal[i-1]} to {pathNodiagonal[i]}: diff=({diff.X},{diff.Y})");
+            Console.WriteLine($"Move from {pathNodiagonal[i - 1]} to {pathNodiagonal[i]}: diff=({diff.X},{diff.Y})");
             // Si abs(X) + abs(Y) = 2, es un movimiento diagonal
             if (Math.Abs(diff.X) + Math.Abs(diff.Y) > 1) {
                 Console.WriteLine("WARNING: This is a diagonal move!");
@@ -544,10 +562,8 @@ public class Array2DPathFinderTests {
                 "Each move should be to an adjacent cell");
         }
 
-
         Assert.That(pathNodiagonal.Count, Is.EqualTo(9),
             $"Expected 9 positions but got {pathNodiagonal.Count}. Path: {string.Join(" -> ", pathNodiagonal)}");
-
 
         // Test with equal cost diagonals
         graph.EnableDiagonalMovement();
@@ -598,10 +614,11 @@ public class Array2DPathFinderTests {
         grid[1, 1] = false; // Obstacles
         grid[2, 2] = false;
 
-        var graph = new Array2DGraph<bool>(
-            grid,
-            _ => 1f,
-            cell => !grid[cell]
+        var graph = new GridGraph(
+            grid.Width,
+            grid.Height,
+            cell => !grid[cell],
+            _ => 1f
         );
 
         var start = new Vector2I(0, 0);
@@ -632,7 +649,7 @@ public class Array2DPathFinderTests {
     [Test]
     public void TestInvalidDiagonalWeight() {
         var grid = new Array2D<bool>(3, 3, true);
-        var graph = new Array2DGraph<bool>(grid);
+        var graph = new GridGraph(grid.Width, grid.Height, _ => false);
 
         // Should throw for weights less than 1.0
         Assert.Throws<ArgumentException>(() => graph.SetDiagonalMovementWeight(0.5f));
@@ -642,5 +659,196 @@ public class Array2DPathFinderTests {
         // Should not throw for weights >= 1.0
         Assert.DoesNotThrow(() => graph.SetDiagonalMovementWeight(1.0f));
         Assert.DoesNotThrow(() => graph.SetDiagonalMovementWeight(1.5f));
+    }
+
+    [Test]
+    public void TestDiagonalWeightOptimization() {
+        // Create a 5x5 grid where all cells are walkable
+        var grid = new Array2D<bool>(5, 5, true);
+        var graph = new GridGraph(
+            grid.Width,
+            grid.Height,
+            _ => false, // No blocked cells
+            _ => 1f // Uniform cost
+        );
+
+        var start = new Vector2I(0, 0);
+        var end = new Vector2I(4, 4);
+
+        // Test with equal cost diagonals
+        graph.EnableDiagonalMovement();
+        var pathDiagonal = graph.FindPath(start, end);
+        Console.WriteLine($"\nDiagonal path count: {pathDiagonal.Count}");
+        Console.WriteLine("Diagonal path positions:");
+        foreach (var pos in pathDiagonal) {
+            Console.WriteLine($"Position: {pos}");
+        }
+
+        Assert.That(pathDiagonal.Count, Is.EqualTo(5),
+            $"Expected 5 positions but got {pathDiagonal.Count}. Path: {string.Join(" -> ", pathDiagonal)}");
+
+        // Verify the exact diagonal path
+        CollectionAssert.AreEqual(new[] {
+            new Vector2I(0, 0),
+            new Vector2I(1, 1),
+            new Vector2I(2, 2),
+            new Vector2I(3, 3),
+            new Vector2I(4, 4)
+        }, pathDiagonal);
+
+        // Test with physical (√2) cost diagonals
+        graph.EnablePhysicalDiagonalMovement();
+        var pathPhysical = graph.FindPath(start, end);
+        Assert.That(pathPhysical, Has.Count.EqualTo(5)); // Still diagonal, as √2 < 2
+        CollectionAssert.AreEqual(pathDiagonal, pathPhysical); // Should be the same path
+
+        // Test with expensive diagonals
+        graph.SetDiagonalMovementWeight(15f);
+        var pathExpensive = graph.FindPath(start, end);
+        Assert.That(pathExpensive, Has.Count.EqualTo(9)); // Should prefer orthogonal movement
+
+        // Test disabling diagonals
+        graph.DisableDiagonalMovement();
+        var pathDisabled = graph.FindPath(start, end);
+        Assert.That(pathDisabled, Has.Count.EqualTo(9)); // Back to orthogonal only
+    }
+
+    [Test]
+    public void TestDiagonalCornerCutting() {
+        // Create a 3x3 grid with obstacles in corners
+        // [S][ ][·]
+        // [ ][#][·]
+        // [·][·][E]
+        var grid = new Array2D<bool>(3, 3, true);
+        grid[1, 1] = false; // Center obstacle
+        var graph = new GridGraph(
+            grid.Width,
+            grid.Height,
+            cell => !grid[cell],
+            _ => 1f
+        );
+
+        graph.EnableDiagonalMovement();
+        var start = new Vector2I(0, 0);
+        var end = new Vector2I(2, 2);
+
+        var path = graph.FindPath(start, end);
+
+        Console.WriteLine($"Path found: {string.Join(" -> ", path)}");
+
+        // Verificar que el camino existe y no pasa por el obstáculo
+        Assert.That(path, Is.Not.Empty, "Should find a path");
+        Assert.That(path[0], Is.EqualTo(start), "Path should start at start position");
+        Assert.That(path[^1], Is.EqualTo(end), "Path should end at end position");
+        Assert.That(path, Has.None.EqualTo(new Vector2I(1, 1)), "Path should not go through the obstacle");
+
+        // Verificar que todos los movimientos son válidos (no corta esquinas)
+        for (var i = 1; i < path.Count; i++) {
+            var current = path[i];
+            var previous = path[i - 1];
+            var diff = current - previous;
+
+            // Si es un movimiento diagonal, verificar que las casillas adyacentes no son obstáculos
+            if (Math.Abs(diff.X) + Math.Abs(diff.Y) == 2) {
+                var adjacentPos1 = new Vector2I(previous.X + diff.X, previous.Y);
+                var adjacentPos2 = new Vector2I(previous.X, previous.Y + diff.Y);
+
+                Assert.That(graph.IsAccesible(adjacentPos1) || graph.IsAccesible(adjacentPos2),
+                    $"Diagonal move from {previous} to {current} cuts through obstacles");
+            }
+        }
+    }
+
+    [Test]
+    public void TestGetReachableZoneWithDiagonals() {
+        var grid = new Array2D<bool>(5, 5, true);
+        var graph = new GridGraph(
+            grid.Width,
+            grid.Height,
+            _ => false,
+            _ => 1f
+        );
+
+        var center = new Vector2I(2, 2);
+
+        // Test without diagonals
+        graph.DisableDiagonalMovement();
+        var zoneNodiagonal = graph.GetReachableZoneInRange(center, 1);
+        Assert.That(zoneNodiagonal.Count, Is.EqualTo(5)); // Center + 4 orthogonal neighbors
+
+        // Verify orthogonal neighbors
+        Assert.That(zoneNodiagonal, Contains.Item(center));
+        Assert.That(zoneNodiagonal, Contains.Item(new Vector2I(1, 2))); // Left
+        Assert.That(zoneNodiagonal, Contains.Item(new Vector2I(3, 2))); // Right
+        Assert.That(zoneNodiagonal, Contains.Item(new Vector2I(2, 1))); // Up
+        Assert.That(zoneNodiagonal, Contains.Item(new Vector2I(2, 3))); // Down
+
+        // Test with diagonals
+        graph.EnableDiagonalMovement();
+        var zoneWithDiagonal = graph.GetReachableZoneInRange(center, 1);
+        Assert.That(zoneWithDiagonal.Count, Is.EqualTo(9)); // Center + 4 orthogonal + 4 diagonal
+
+        // Verify diagonal neighbors
+        Assert.That(zoneWithDiagonal, Contains.Item(new Vector2I(1, 1))); // Up-Left
+        Assert.That(zoneWithDiagonal, Contains.Item(new Vector2I(3, 1))); // Up-Right
+        Assert.That(zoneWithDiagonal, Contains.Item(new Vector2I(1, 3))); // Down-Left
+        Assert.That(zoneWithDiagonal, Contains.Item(new Vector2I(3, 3))); // Down-Right
+    }
+
+    [Test]
+    public void TestDiagonalEdgeCases() {
+        var grid = new Array2D<bool>(4, 4, true);
+        var graph = new GridGraph(
+            grid.Width,
+            grid.Height,
+            _ => false,
+            _ => 1f
+        );
+
+        graph.EnableDiagonalMovement();
+
+        // Test diagonal movement from corners
+        var cornerStart = new Vector2I(0, 0);
+        var cornerEnd = new Vector2I(3, 3);
+        var cornerPath = graph.FindPath(cornerStart, cornerEnd);
+        Assert.That(cornerPath.Count, Is.EqualTo(4)); // Should be a straight diagonal line
+
+        // Test diagonal movement along edges
+        var edgeStart = new Vector2I(0, 0);
+        var edgeEnd = new Vector2I(3, 0);
+        var edgePath = graph.FindPath(edgeStart, edgeEnd);
+        Assert.That(edgePath.Count, Is.EqualTo(4)); // Should be a straight horizontal line
+
+        // Test with equal cost diagonals (weight = 1)
+        var pathWithWeight1 = graph.FindPath(cornerStart, cornerEnd);
+        Console.WriteLine($"Path with weight 1: {string.Join(" -> ", pathWithWeight1)}");
+        Assert.That(pathWithWeight1, Has.Count.EqualTo(4)); // Diagonal path
+        // Verify it's a pure diagonal path
+        for (var i = 0; i < pathWithWeight1.Count; i++) {
+            Assert.That(pathWithWeight1[i], Is.EqualTo(new Vector2I(i, i)));
+        }
+
+        // With high diagonal weight, should prefer orthogonal moves
+        graph.SetDiagonalMovementWeight(15f); // Using a much higher weight to force orthogonal path
+        var pathWithHighWeight = graph.FindPath(cornerStart, cornerEnd);
+        Console.WriteLine($"Path with high weight: {string.Join(" -> ", pathWithHighWeight)}");
+        Assert.That(pathWithHighWeight, Has.Count.EqualTo(7)); // Should be longer, using orthogonal moves
+        // Verify only orthogonal moves
+        for (var i = 1; i < pathWithHighWeight.Count; i++) {
+            var diff = pathWithHighWeight[i] - pathWithHighWeight[i - 1];
+            Assert.That(Math.Abs(diff.X) + Math.Abs(diff.Y), Is.EqualTo(1),
+                "Path should only use orthogonal moves when diagonal weight is high");
+        }
+
+        // Test with diagonal movement disabled
+        graph.DisableDiagonalMovement();
+        var nodiagonalPath = graph.FindPath(cornerStart, cornerEnd);
+        Assert.That(nodiagonalPath.Count, Is.EqualTo(7)); // Should use only orthogonal moves
+        // Verify no diagonal moves
+        for (var i = 1; i < nodiagonalPath.Count; i++) {
+            var diff = nodiagonalPath[i] - nodiagonalPath[i - 1];
+            Assert.That(Math.Abs(diff.X) + Math.Abs(diff.Y), Is.EqualTo(1),
+                "Path should only use orthogonal moves when diagonals are disabled");
+        }
     }
 }
