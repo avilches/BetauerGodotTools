@@ -104,13 +104,7 @@ public class TemplateSet(int cellSize) {
                 var lineParserResult = AttributeParser.Parse(line[1..], true);
 
                 // Define template
-                if (lineParserResult.Attributes.Remove(DefineId, out var defineName)) {
-                    if (defines.TryGetValue(defineName.ToString()!, out var previous)) {
-                        foreach (var tag in lineParserResult.Tags) previous.Tags.Add(tag);
-                        foreach (var (k, value) in lineParserResult.Attributes) previous.Attributes[k] = value;
-                    } else {
-                        defines[defineName.ToString()!] = lineParserResult;
-                    }
+                if (IsTemplateDefinition(lineParserResult, defines)) {
                     continue;
                 }
 
@@ -120,25 +114,16 @@ public class TemplateSet(int cellSize) {
                 }
 
                 // Use a template
-                if (lineParserResult.Attributes.TryGetValue(TemplateId, out var templateName)) {
-                    if (currentParseResult.Attributes.TryGetValue(TemplateId, out var previousTemplateName)) {
-                        throw new ArgumentException($"Error in line #{lineNumber}: {line}\nCan't set template {templateName}, it already has the template {previousTemplateName}: {currentParseResult}");
-                    }
-                    if (defines.TryGetValue(templateName.ToString()!, out var templateParseResult)) {
-                        foreach (var tag in templateParseResult.Tags) currentParseResult.Tags.Add(tag);
-                        foreach (var (k, value) in templateParseResult.Attributes) {
-                            currentParseResult.Attributes.TryAdd(k, value);
-                        }
-                    } else {
-                        throw new ArgumentException($"Error in line #{lineNumber}: {line}\nCan't find template {templateName}");
-                    }
-                }
+                UseTemplateDefinition(lineParserResult, currentParseResult, lineNumber, line, defines);
 
                 // Add the current parse result to the current template
-                foreach (var tag in lineParserResult.Tags) currentParseResult.Tags.Add(tag);
+                foreach (var tag in lineParserResult.Tags) {
+                    currentParseResult.Tags.Add(tag);
+                }
                 foreach (var (k, value) in lineParserResult.Attributes) {
                     currentParseResult.Attributes[k] = value;
                 }
+
             } else if (template != null) {
                 buffer.Add(line);
 
@@ -193,6 +178,35 @@ public class TemplateSet(int cellSize) {
             buffer.Clear();
             template = null;
             currentParseResult = null;
+        }
+    }
+
+    private bool IsTemplateDefinition(AttributeParser.ParseResult lineParserResult, Dictionary<string, AttributeParser.ParseResult> defines) {
+        if (lineParserResult.Attributes.Remove(DefineId, out var defineName)) {
+            if (defines.TryGetValue(defineName.ToString()!, out var previous)) {
+                foreach (var tag in lineParserResult.Tags) previous.Tags.Add(tag);
+                foreach (var (k, value) in lineParserResult.Attributes) previous.Attributes[k] = value;
+            } else {
+                defines[defineName.ToString()!] = lineParserResult;
+            }
+            return true;
+        }
+        return false;
+    }
+
+    private void UseTemplateDefinition(AttributeParser.ParseResult lineParserResult, AttributeParser.ParseResult currentParseResult, int lineNumber, string line, Dictionary<string, AttributeParser.ParseResult> defines) {
+        if (lineParserResult.Attributes.TryGetValue(TemplateId, out var templateName)) {
+            if (currentParseResult.Attributes.TryGetValue(TemplateId, out var previousTemplateName)) {
+                throw new ArgumentException($"Error in line #{lineNumber}: {line}\nCan't use template definition \"{templateName}\", it already has a template \"{previousTemplateName}\": {currentParseResult}");
+            }
+            if (defines.TryGetValue(templateName.ToString()!, out var templateParseResult)) {
+                foreach (var tag in templateParseResult.Tags) currentParseResult.Tags.Add(tag);
+                foreach (var (k, value) in templateParseResult.Attributes) {
+                    currentParseResult.Attributes.TryAdd(k, value);
+                }
+            } else {
+                throw new ArgumentException($"Error in line #{lineNumber}: {line}\nCan't find template \"{templateName}\"");
+            }
         }
     }
 
