@@ -12,8 +12,10 @@ namespace Betauer.Core.Tests;
 
 [TestFixture]
 public class Array2DPathFinderTests {
-    [Test]
-    public void FindPath_EmptyGrid_ReturnsCorrectPath() {
+
+    [TestCase(false, 5)]
+    [TestCase(true, 3)]
+    public void FindPath_EmptyGrid_ReturnsCorrectPath(bool diagonal, int expectedLength) {
         // Create a 3x3 grid where all cells are walkable
         var grid = new Array2D<bool>(3, 3, true);
         var graph = new Array2DGraph<bool>(
@@ -22,22 +24,26 @@ public class Array2DPathFinderTests {
             cell => !grid[cell] // isBlocked
         );
 
+        graph.EnableDiagonalMovement(diagonal);
+
         // Find path from top-left to bottom-right
         var path = graph.FindPath(new Vector2I(0, 0), new Vector2I(2, 2));
 
         // Assert path exists and has correct length
         Assert.NotNull(path);
-        Assert.That(path, Has.Count.EqualTo(5)); // Start + 3 moves + end = 5 positions
+        Assert.That(path, Has.Count.EqualTo(expectedLength)); // Start + 3 moves + end = 5 positions
 
         // Verify start and end positions
         Assert.That(path[0], Is.EqualTo(new Vector2I(0, 0)));
         Assert.That(path[^1], Is.EqualTo(new Vector2I(2, 2)));
 
-        // Verify each move is adjacent to the previous one
-        for (var i = 1; i < path.Count; i++) {
-            var diff = path[i] - path[i - 1];
-            Assert.That(Math.Abs(diff.X) + Math.Abs(diff.Y), Is.EqualTo(1),
-                "Each move should be to an adjacent cell");
+        if (!diagonal) {
+            // Verify each move is adjacent to the previous one
+            for (var i = 1; i < path.Count; i++) {
+                var diff = path[i] - path[i - 1];
+                Assert.That(Math.Abs(diff.X) + Math.Abs(diff.Y), Is.EqualTo(1),
+                    "Each move should be to an adjacent cell");
+            }
         }
     }
 

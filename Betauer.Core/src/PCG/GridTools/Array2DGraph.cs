@@ -53,8 +53,8 @@ public class Array2DGraph<T> {
     /// Enables diagonal movement with same cost as orthogonal movement (weight = 1.0)
     /// This means moving diagonally will cost the same as moving horizontally or vertically
     /// </summary>
-    public void EnableDiagonalMovement() {
-        DiagonalWeight = 1.0f;
+    public void EnableDiagonalMovement(bool enabled = true) {
+        DiagonalWeight = enabled ? 1f : -1f;
     }
 
     /// <summary>

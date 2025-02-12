@@ -26,10 +26,12 @@ public class TestRunner {
     public event Action<TestReport, TestMethod>? OnStart = null;
     public event Action<TestReport, TestMethod>? OnResult = null;
 
+    public static readonly object[] EmptyParameters = Array.Empty<object>();
+
     public async Task<TestReport> Run(SceneTree sceneTree) {
         TestExtensions.SceneTree = sceneTree;
         SceneTree = sceneTree;
-        TestReport testReport = new () {
+        TestReport testReport = new() {
             TestsTotal = _testClasses.SelectMany(testClass => testClass.Methods).Count()
         };
         GD.Print($"Running {testReport.TestsTotal} tests");
@@ -49,7 +51,7 @@ public class TestRunner {
         public TestClass(Type type) {
             Type = type;
         }
-        
+
         public async Task Execute(TestRunner testRunner, TestReport testReport) {
             var testClassInstance = Activator.CreateInstance(Type);
             Node? node = testClassInstance as Node;
@@ -57,7 +59,9 @@ public class TestRunner {
                 testRunner.SceneTree.Root.AddChild(node);
                 await TestExtensions.AwaitProcessFrame();
             }
-            if (OneTimeSetUp != null) foreach (var methodInfo in OneTimeSetUp) methodInfo.Invoke(testClassInstance, Array.Empty<object>());
+            if (OneTimeSetUp != null)
+                foreach (var methodInfo in OneTimeSetUp)
+                    methodInfo.Invoke(testClassInstance, EmptyParameters);
 
             foreach (var testMethod in Methods) {
                 testReport.TestsExecuted++;
@@ -73,7 +77,9 @@ public class TestRunner {
                 testRunner.OnResult?.Invoke(testReport, testMethod);
             }
 
-            if (OneTimeTearDown != null) foreach (var methodInfo in OneTimeTearDown) methodInfo.Invoke(testClassInstance, Array.Empty<object>());
+            if (OneTimeTearDown != null)
+                foreach (var methodInfo in OneTimeTearDown)
+                    methodInfo.Invoke(testClassInstance, EmptyParameters);
 
             if (GodotObject.IsInstanceValid(node)) {
                 node!.QueueFree();
@@ -97,19 +103,35 @@ public class TestRunner {
         public IEnumerable<MethodInfo>? TearDown { get; set; }
         public string Id { get; set; }
 
-        public TestMethod(MethodInfo method, TestClass type, string? description, bool only) {
+        public object[]? Parameters { get; }
+        public ParameterInfo[] MethodParameters => Method.GetParameters();
+
+        public TestMethod(MethodInfo method, TestClass type, string? description, bool only, object[]? parameters = null) {
             TestClass = type;
             Method = method;
-            Name = method.Name;
+            Parameters = parameters;
+            // El nombre ahora incluirá los parámetros si existen
+            Name = BuildTestName(method.Name, parameters);
             Description = description;
             Only = only;
+        }
+
+        private string BuildTestName(string methodName, object[]? parameters) {
+            if (parameters == null || parameters.Length == 0) return methodName;
+            var paramString = string.Join(", ", parameters.Select(p => p?.ToString() ?? "null"));
+            return $"{methodName}({paramString})";
         }
 
         public async Task Execute(TestReport testReport, object? testClassInstance) {
             try {
                 Stopwatch.Start();
-                if (Setup != null) foreach (var methodInfo in Setup) methodInfo.Invoke(testClassInstance, Array.Empty<object>());
-                var obj = Method.Invoke(testClassInstance, Array.Empty<object>());
+                if (Setup != null)
+                    foreach (var methodInfo in Setup)
+                        methodInfo.Invoke(testClassInstance, EmptyParameters);
+
+                // Modificado para usar los parámetros
+                var obj = Parameters == null ? Method.Invoke(testClassInstance, EmptyParameters) : Method.Invoke(testClassInstance, Parameters);
+
                 if (obj is Task task) {
                     await task;
                 } else if (obj is IEnumerator coroutine) {
@@ -123,7 +145,9 @@ public class TestRunner {
                     }
                 }
                 Result = Result.Passed;
-                if (TearDown != null) foreach (var methodInfo in TearDown) methodInfo.Invoke(testClassInstance, Array.Empty<object>());
+                if (TearDown != null)
+                    foreach (var methodInfo in TearDown)
+                        methodInfo.Invoke(testClassInstance, EmptyParameters);
             } catch (Exception e) {
                 Exception = e.InnerException ?? e;
                 Result = Result.Failed;
@@ -142,8 +166,8 @@ public class TestRunner {
             GD.Print($"Scanning assembly {assembly}...");
             foreach (Type type in assembly.GetTypes()) {
                 // if (GetAttribute<TestAttribute>(type) is { Ignore: false } && !HasAttribute<IgnoreAttribute>(type)) {
-                var testClassAttribute = GetAttribute(type, "Test") ?? GetAttribute(type, "TestFixture") ?? GetAttribute(type, "TestClass");
-                if (testClassAttribute != null && !HasAttribute(type, "Ignore") && !HasAttribute(type, "Skip")) {
+                var testClassAttribute = GetAttribute(type, "Test", "TestFixture", "TestClass");
+                if (testClassAttribute != null && !HasAttribute(type, "Ignore", "Skip")) {
                     // GD.Print($"+ Test class {type}");
                     var testClass = CreateTestClass(type, testClassAttribute);
                     testClasses.Add(testClass);
@@ -160,43 +184,54 @@ public class TestRunner {
         return testClasses;
     }
 
+    private record TestMethodDefinition(MethodInfo Method, string? Description, bool Skip, bool Only) {
+        public static TestMethodDefinition? GetTestMethodAttribute(MethodInfo method) {
+            var testAttribute = GetAttribute(method, "Test", "Fact", "TestMethod", "TestCase");
+            if (testAttribute == null) return null;
+            var skip = HasAttribute(method, "Ignore", "Skip") || HasAttributeField(testAttribute, "Ignore", "Skip");
+            var only = HasAttribute(method, "Only") || HasAttributeField(testAttribute, "Only");
+            return new TestMethodDefinition(method, GetFieldValue(testAttribute, "Description"), skip, only);
+        }
+    }
+
     private static TestClass CreateTestClass(Type type, Attribute testClassAttribute) {
-        List<TestMethod> testMethods = new();
+        List<TestMethod> testMethods = [];
         List<MethodInfo>? oneTimeSetUp = null;
         List<MethodInfo>? setup = null;
         List<MethodInfo>? oneTimeTearDown = null;
         List<MethodInfo>? tearDown = null;
         var isAnyMethodWithOnly = false;
-        var onlyThisType =  HasAttribute(type, "Only") || HasAttributeField(testClassAttribute, "Only");
+        var onlyThisType = HasAttribute(type, "Only") || HasAttributeField(testClassAttribute, "Only");
         var testClass = new TestClass(type);
         foreach (var method in type.GetMethods()) {
-            var testAttribute = GetAttribute(method, "Test") ?? GetAttribute(method, "Fact") ?? GetAttribute(method, "TestMethod");
+            var testAttribute = TestMethodDefinition.GetTestMethodAttribute(method);
             if (testAttribute != null) {
-                if (HasAttribute(method, "Ignore") ||
-                    HasAttribute(method, "Skip") || 
-                    HasAttributeField(testAttribute, "Skip") || 
-                    HasAttributeField(testAttribute, "Skip")) continue;
-                var onlyThisMethod = HasAttribute(method, "Only") || HasAttributeField(testAttribute, "Only");
+                if (testAttribute.Skip) {
+                    continue;
+                }
+
+                var onlyThisMethod = testAttribute.Only;
                 isAnyMethodWithOnly = isAnyMethodWithOnly || onlyThisMethod;
-                var testMethod = new TestMethod(method, testClass, GetFieldValue(testAttribute, "Description"), onlyThisMethod);
-                testMethods.Add(testMethod);
+
+                var testCases = GetTestCaseAttributes(method);
+                if (testCases.Any()) {
+                    // Crear un TestMethod por cada TestCase
+                    foreach (var testCase in testCases) {
+                        var parameters = GetTestCaseParameters(testCase, method);
+                        var description = GetFieldValue(testCase, "Description");
+                        var testMethod = new TestMethod(method, testClass, description, onlyThisMethod, parameters);
+                        testMethods.Add(testMethod);
+                    }
+                } else {
+                    // Caso normal sin parámetros
+                    var testMethod = new TestMethod(method, testClass, testAttribute.Description, onlyThisMethod);
+                    testMethods.Add(testMethod);
+                }
             } else {
-                if (HasAttribute(method, "OneTimeSetUp") || HasAttribute(method, "SetUpClass")) {
-                    oneTimeSetUp ??= new List<MethodInfo>();
-                    oneTimeSetUp.Add(method);
-                }
-                if (HasAttribute(method, "OneTimeTearDown") || HasAttribute(method, "TearDownClass")) {
-                    oneTimeTearDown ??= new List<MethodInfo>();
-                    oneTimeTearDown.Add(method);
-                }
-                if (HasAttribute(method, "SetUp") || HasAttribute(method, "TestInitialize")) {
-                    setup ??= new List<MethodInfo>();
-                    setup.Add(method);
-                }
-                if (HasAttribute(method, "TearDown") || HasAttribute(method, "TestCleanup")) {
-                    tearDown ??= new List<MethodInfo>();
-                    tearDown.Add(method);
-                }
+                if (HasAttribute(method, "OneTimeSetUp", "SetUpClass")) (oneTimeSetUp ??= []).Add(method);
+                if (HasAttribute(method, "OneTimeTearDown", "TearDownClass")) (oneTimeTearDown ??= []).Add(method);
+                if (HasAttribute(method, "SetUp", "TestInitialize")) (setup ??= []).Add(method);
+                if (HasAttribute(method, "TearDown", "TestCleanup")) (tearDown ??= []).Add(method);
             }
         }
         testMethods.ForEach(testMethod => {
@@ -217,31 +252,76 @@ public class TestRunner {
         return testClass;
     }
 
+    private static IEnumerable<Attribute> GetTestCaseAttributes(MethodInfo method) {
+        return Attribute.GetCustomAttributes(method, true)
+            .Where(attr => attr.GetType().Name == "TestCaseAttribute");
+    }
+
+    private static object[]? GetTestCaseParameters(Attribute testCaseAttr, MethodInfo method) {
+        // Obtener el array de argumentos del TestCase
+        var argsProperty = testCaseAttr.GetType().GetProperty("Arguments");
+        if (argsProperty == null) return null;
+
+        var args = argsProperty.GetValue(testCaseAttr) as object[];
+        if (args == null) return null;
+
+        // Convertir los argumentos al tipo correcto según los parámetros del método
+        var parameters = method.GetParameters();
+        var convertedArgs = new object[parameters.Length];
+
+        for (var i = 0; i < parameters.Length && i < args.Length; i++) {
+            convertedArgs[i] = Convert.ChangeType(args[i], parameters[i].ParameterType);
+        }
+
+        return convertedArgs;
+    }
+
     private static string? GetFieldValue(Attribute testAttribute, string field) {
         return testAttribute.GetType().GetField(field)?.GetValue(testAttribute) as string;
     }
 
     public static Attribute? GetAttribute(MemberInfo member, string name, bool inherit = false) {
-        return Attribute.GetCustomAttributes(member, inherit).FirstOrDefault(a => a.GetType().Name == name+"Attribute");
+        return Attribute.GetCustomAttributes(member, inherit).FirstOrDefault(a => a.GetType().Name == name + "Attribute");
     }
 
+    public static Attribute? GetAttribute(MemberInfo member, params string[] name) {
+        return Attribute.GetCustomAttributes(member, false).FirstOrDefault(a => name.Any(n => a.GetType().Name == n + "Attribute"));
+    }
     public static T? GetAttribute<T>(MemberInfo member, bool inherit = false) where T : Attribute {
         return Attribute.GetCustomAttribute(member, typeof(T), inherit) as T;
     }
 
     public static bool HasAttribute(MemberInfo member, string name, bool inherit = false) {
-        return Attribute.GetCustomAttributes(member, inherit).Any(a => a.GetType().Name == name+"Attribute");
+        return Attribute.GetCustomAttributes(member, inherit).Any(a => a.GetType().Name == name + "Attribute");
     }
-    
+
+    public static bool HasAttribute(MemberInfo member, params string[] name) {
+        return Attribute.GetCustomAttributes(member, false).Any(a => name.Any(n => a.GetType().Name == n + "Attribute"));
+    }
+
     public static bool HasAttributeField(Attribute member, string propertyName, bool inherit = false) {
-        var property = member.GetType().GetProperties().FirstOrDefault(f=> f.Name == propertyName);
+        var property = member.GetType().GetProperties(InheritFlags(inherit)).FirstOrDefault(f => f.Name == propertyName);
         if (property != null) {
-            return member.GetType().GetProperty(propertyName)?.GetValue(member) != null;
+            return member.GetType().GetProperty(propertyName, InheritFlags(inherit))?.GetValue(member) != null;
         }
         return false;
     }
-    
+
+    public static bool HasAttributeField(Attribute member, params string[] propertyNames) {
+        foreach (var propertyName in propertyNames) {
+            var property = member.GetType().GetProperties().FirstOrDefault(f => f.Name == propertyName);
+            if (property != null && member.GetType().GetProperty(propertyName)?.GetValue(member) != null) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static bool HasAttribute<T>(MemberInfo member, bool inherit = false) where T : Attribute {
         return Attribute.GetCustomAttribute(member, typeof(T), inherit) is T;
     }
+
+    private static BindingFlags InheritFlags(bool inherit) => inherit
+        ? BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy
+        : BindingFlags.Public | BindingFlags.Instance;
 }
