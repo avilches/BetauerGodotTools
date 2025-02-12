@@ -26,6 +26,14 @@ public class Array2DGraph<T> {
     public Func<Vector2I, float>? GetWeightFunc { get; set; }
     public Func<Vector2I, bool>? IsBlockedFunc { get; set; }
 
+    /// <summary>
+    /// Weight multiplier for diagonal movements.
+    /// - -1: diagonal movement disabled
+    /// - 1.0: diagonal movement costs the same as orthogonal
+    /// - 1.414 (√2): physically accurate diagonal movement
+    /// </summary>
+    public float DiagonalWeight { get; private set; } = -1;
+
     public int Width => Array2D.Width;
     public int Height => Array2D.Height;
 
@@ -42,6 +50,50 @@ public class Array2DGraph<T> {
     }
 
     /// <summary>
+    /// Enables diagonal movement with same cost as orthogonal movement (weight = 1.0)
+    /// This means moving diagonally will cost the same as moving horizontally or vertically
+    /// </summary>
+    public void EnableDiagonalMovement() {
+        DiagonalWeight = 1.0f;
+    }
+
+    /// <summary>
+    /// Enables diagonal movement with physically accurate cost (weight = √2 ≈ 1.414)
+    /// This provides more realistic pathfinding as diagonal distance is actually longer
+    /// than orthogonal distance
+    /// </summary>
+    public void EnablePhysicalDiagonalMovement() {
+        DiagonalWeight = 1.414f; // √2
+    }
+
+    /// <summary>
+    /// Enables diagonal movement with a custom weight
+    /// Higher weights make diagonal movement more expensive
+    /// </summary>
+    /// <param name="weight">The weight for diagonal movement. Must be >= 1.0</param>
+    /// <exception cref="ArgumentException">If weight is less than 1.0</exception>
+    public void SetDiagonalMovementWeight(float weight) {
+        if (weight < 1.0f) throw new ArgumentException("Diagonal weight must be >= 1.0", nameof(weight));
+        DiagonalWeight = weight;
+    }
+
+    /// <summary>
+    /// Disables diagonal movement completely
+    /// Pathfinding will only use orthogonal movements (up, down, left, right)
+    /// </summary>
+    public void DisableDiagonalMovement() {
+        DiagonalWeight = -1f;
+    }
+
+    /// <summary>
+    /// Returns whether diagonal movement is currently enabled
+    /// </summary>
+    /// <returns>true if diagonal movement is enabled, false otherwise</returns>
+    public bool IsDiagonalMovementEnabled() {
+        return DiagonalWeight > 0;
+    }
+
+    /// <summary>
     /// Returns an IEnumerable of the Array2DEdges incident from the specified vertex
     /// The edges are computed on-demand based on the walkable orthogonal neighbors
     /// </summary>
@@ -50,11 +102,22 @@ public class Array2DGraph<T> {
     public IEnumerable<Array2DEdge> Adjacent(Vector2I vertex) {
         if (IsBlocked(vertex)) yield break;
 
+        // Orthogonal movements
         foreach (var neighbor in Array2D.GetVonNeumannPositions(vertex)) {
             if (IsAccesible(neighbor)) {
-                // El peso de moverse a una celda es el peso de la celda destino
                 var weight = GetWeight(neighbor);
                 yield return new Array2DEdge(vertex, neighbor, weight);
+            }
+        }
+
+        // Diagonal movements
+        if (IsDiagonalMovementEnabled()) {
+            foreach (var neighbor in Array2D.GetDiagonalPositions(vertex)) {
+                if (IsAccesible(neighbor)) {
+                    var cellWeight = GetWeight(neighbor);
+                    var finalWeight = cellWeight * DiagonalWeight;
+                    yield return new Array2DEdge(vertex, neighbor, finalWeight);
+                }
             }
         }
     }

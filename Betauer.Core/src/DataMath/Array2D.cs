@@ -18,10 +18,21 @@ public abstract class Array2D {
     );
 
     public static readonly ImmutableArray<Vector2I> MooreDirections = ImmutableArray.Create(
-        Vector2I.Up, Vector2I.Up + Vector2I.Right,
-        Vector2I.Right, Vector2I.Down + Vector2I.Right,
-        Vector2I.Down, Vector2I.Down + Vector2I.Left,
-        Vector2I.Left, Vector2I.Up + Vector2I.Left
+        Vector2I.Up,
+        Vector2I.Up + Vector2I.Right,
+        Vector2I.Right,
+        Vector2I.Down + Vector2I.Right,
+        Vector2I.Down,
+        Vector2I.Down + Vector2I.Left,
+        Vector2I.Left,
+        Vector2I.Up + Vector2I.Left
+    );
+
+    public static readonly ImmutableArray<Vector2I> DiagonalDirections = ImmutableArray.Create(
+        Vector2I.Up + Vector2I.Right,
+        Vector2I.Down + Vector2I.Right,
+        Vector2I.Down + Vector2I.Left,
+        Vector2I.Up + Vector2I.Left
     );
 
     public static Array2D<T> Parse<T>(string template, Dictionary<char, T> transform) {
@@ -451,6 +462,28 @@ public class Array2D<T>(T[,] data) : Array2D, IEnumerable<T> {
         return GetMoorePositions(new Vector2I(x, y));
     }
 
+
+    /// <summary>
+    /// Returns the 4 diagonal positions around the center (up-right, up-left, down-right, down-left)
+    /// if they exist
+    /// </summary>
+    /// <param name="pos">The position to check</param>
+    /// <returns></returns>
+    public IEnumerable<Vector2I> GetDiagonalPositions(Vector2I pos) {
+        return DiagonalDirections
+            .Select(dir => pos + dir)
+            .Where(IsValidPosition);
+    }
+
+    /// <summary>
+    /// Returns the 4 diagonal positions around the center (up-right, up-left, down-right, down-left)
+    /// if they exist
+    /// </summary>
+    /// <returns></returns>
+    public IEnumerable<Vector2I> GetDiagonalPositions(int x, int y) {
+        return GetDiagonalPositions(new Vector2I(x, y));
+    }
+
     public override string ToString() {
         return GetString(value => value?.ToString());
     }
@@ -467,5 +500,4 @@ public class Array2D<T>(T[,] data) : Array2D, IEnumerable<T> {
     public string GetString(Func<T, string> transform, char lineSeparator = '\n') {
         return GetString(item => transform(item.Value), lineSeparator);
     }
-
 }

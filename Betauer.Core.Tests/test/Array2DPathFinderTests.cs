@@ -127,7 +127,7 @@ public class Array2DPathFinderTests {
         var graph = new Array2DGraph<bool>(
             grid,
             _ => 1f,
-            _ => false  // All cells walkable
+            _ => false // All cells walkable
         );
 
         // Test con diferentes heurísticas
@@ -461,5 +461,180 @@ public class Array2DPathFinderTests {
         // Test range larger than grid
         var rangeLarge = graph.GetReachableZoneInRange(new Vector2I(1, 1), 10);
         Assert.That(rangeLarge, Has.Count.EqualTo(9)); // Should include all walkable cells
+    }
+
+    [Test]
+    public void TestDiagonalMovementModes() {
+        var grid = new Array2D<bool>(5, 5, true);
+        var graph = new Array2DGraph<bool>(
+            grid,
+            _ => 1f, // Uniform cost
+            _ => false // All cells walkable
+        );
+
+        var start = new Vector2I(0, 0);
+        var end = new Vector2I(4, 4);
+
+        // Test with diagonals disabled (default)
+        Console.WriteLine($"DiagonalWeight: {graph.DiagonalWeight}");
+        Console.WriteLine($"IsDiagonalMovementEnabled: {graph.IsDiagonalMovementEnabled()}");
+
+        // Test with diagonals disabled (default)
+        var pathNodiagonal = graph.FindPath(start, end);
+        Console.WriteLine("Path with no diagonals:");
+        foreach (var pos in pathNodiagonal) {
+            Console.WriteLine($"Position: {pos}");
+        }
+
+
+        // Debug: Imprimir las diferencias entre posiciones consecutivas
+        Console.WriteLine("\nMoves:");
+        for (var i = 1; i < pathNodiagonal.Count; i++) {
+            var diff = pathNodiagonal[i] - pathNodiagonal[i - 1];
+            Console.WriteLine($"Move from {pathNodiagonal[i-1]} to {pathNodiagonal[i]}: diff=({diff.X},{diff.Y})");
+            // Si abs(X) + abs(Y) = 2, es un movimiento diagonal
+            if (Math.Abs(diff.X) + Math.Abs(diff.Y) > 1) {
+                Console.WriteLine("WARNING: This is a diagonal move!");
+            }
+        }
+
+        // Debug: Imprimir edges adyacentes
+        Console.WriteLine("\nAdjacent edges from start position:");
+        foreach (var edge in graph.Adjacent(start)) {
+            Console.WriteLine($"Edge to {edge.To} with weight {edge.Weight}");
+        }
+
+        // Verificar que el camino está conectado y solo usa movimientos ortogonales
+        Assert.That(pathNodiagonal[0], Is.EqualTo(start), "Path should start at start position");
+        Assert.That(pathNodiagonal[^1], Is.EqualTo(end), "Path should end at end position");
+
+        for (var i = 1; i < pathNodiagonal.Count; i++) {
+            var diff = pathNodiagonal[i] - pathNodiagonal[i - 1];
+            Assert.That(Math.Abs(diff.X) + Math.Abs(diff.Y), Is.EqualTo(1),
+                $"Each move should be orthogonal, but move from {pathNodiagonal[i-1]} to {pathNodiagonal[i]} isn't");
+        }
+
+        // Debug: Imprimir las diferencias entre posiciones consecutivas
+        Console.WriteLine("\nMoves:");
+        for (var i = 1; i < pathNodiagonal.Count; i++) {
+            var diff = pathNodiagonal[i] - pathNodiagonal[i - 1];
+            Console.WriteLine($"Move from {pathNodiagonal[i-1]} to {pathNodiagonal[i]}: diff=({diff.X},{diff.Y})");
+            // Si abs(X) + abs(Y) = 2, es un movimiento diagonal
+            if (Math.Abs(diff.X) + Math.Abs(diff.Y) > 1) {
+                Console.WriteLine("WARNING: This is a diagonal move!");
+            }
+        }
+
+        // Test adjacent edges for the first position
+        Console.WriteLine("\nAdjacent edges from start position:");
+        foreach (var edge in graph.Adjacent(start)) {
+            Console.WriteLine($"Edge to {edge.To} with weight {edge.Weight}");
+        }
+
+        // Verificar que no hay movimientos diagonales
+        for (var i = 1; i < pathNodiagonal.Count; i++) {
+            var diff = pathNodiagonal[i] - pathNodiagonal[i - 1];
+            Assert.That(Math.Abs(diff.X) + Math.Abs(diff.Y), Is.EqualTo(1),
+                "Each move should be to an adjacent cell");
+        }
+
+
+        Assert.That(pathNodiagonal.Count, Is.EqualTo(9),
+            $"Expected 9 positions but got {pathNodiagonal.Count}. Path: {string.Join(" -> ", pathNodiagonal)}");
+
+
+        // Test with equal cost diagonals
+        graph.EnableDiagonalMovement();
+        var pathDiagonal = graph.FindPath(start, end);
+        Console.WriteLine($"\nDiagonal path count: {pathDiagonal.Count}");
+        Console.WriteLine("Diagonal path positions:");
+        foreach (var pos in pathDiagonal) {
+            Console.WriteLine($"Position: {pos}");
+        }
+
+        Assert.That(pathDiagonal.Count, Is.EqualTo(5),
+            $"Expected 5 positions but got {pathDiagonal.Count}. Path: {string.Join(" -> ", pathDiagonal)}");
+
+        // Verify the exact diagonal path
+        CollectionAssert.AreEqual(new[] {
+            new Vector2I(0, 0),
+            new Vector2I(1, 1),
+            new Vector2I(2, 2),
+            new Vector2I(3, 3),
+            new Vector2I(4, 4)
+        }, pathDiagonal);
+
+        // Test with physical (√2) cost diagonals
+        graph.EnablePhysicalDiagonalMovement();
+        var pathPhysical = graph.FindPath(start, end);
+        Assert.That(pathPhysical, Has.Count.EqualTo(5)); // Still diagonal, as √2 < 2
+        CollectionAssert.AreEqual(pathDiagonal, pathPhysical); // Should be the same path
+
+        // Test with expensive diagonals
+        graph.SetDiagonalMovementWeight(15f);
+        var pathExpensive = graph.FindPath(start, end);
+        Assert.That(pathExpensive, Has.Count.EqualTo(9)); // Should prefer orthogonal movement
+
+        // Test disabling diagonals
+        graph.DisableDiagonalMovement();
+        var pathDisabled = graph.FindPath(start, end);
+        Assert.That(pathDisabled, Has.Count.EqualTo(9)); // Back to orthogonal only
+    }
+
+    [Test]
+    public void TestDiagonalMovementWithObstacles() {
+        // Create a grid with obstacles forming a diagonal wall
+        // [S][ ][ ][ ]
+        // [ ][#][ ][ ]
+        // [ ][ ][#][ ]
+        // [ ][ ][ ][E]
+        var grid = new Array2D<bool>(4, 4, true);
+        grid[1, 1] = false; // Obstacles
+        grid[2, 2] = false;
+
+        var graph = new Array2DGraph<bool>(
+            grid,
+            _ => 1f,
+            cell => !grid[cell]
+        );
+
+        var start = new Vector2I(0, 0);
+        var end = new Vector2I(3, 3);
+
+        // Test with diagonals enabled
+        graph.EnableDiagonalMovement();
+        var pathWithDiagonals = graph.FindPath(start, end);
+        Assert.That(pathWithDiagonals, Is.Not.Empty);
+        Console.WriteLine("Path with diagonals:");
+        Console.WriteLine(string.Join(" -> ", pathWithDiagonals));
+
+        // Should find path around obstacles using both diagonal and orthogonal moves
+        Assert.That(pathWithDiagonals, Has.None.EqualTo(new Vector2I(1, 1)));
+        Assert.That(pathWithDiagonals, Has.None.EqualTo(new Vector2I(2, 2)));
+
+        // Test with diagonals disabled
+        graph.DisableDiagonalMovement();
+        var pathWithoutDiagonals = graph.FindPath(start, end);
+        Assert.That(pathWithoutDiagonals, Is.Not.Empty);
+        Console.WriteLine("Path without diagonals:");
+        Console.WriteLine(string.Join(" -> ", pathWithoutDiagonals));
+
+        // Path should be different and only use orthogonal moves
+        Assert.That(pathWithoutDiagonals.Count, Is.GreaterThan(pathWithDiagonals.Count));
+    }
+
+    [Test]
+    public void TestInvalidDiagonalWeight() {
+        var grid = new Array2D<bool>(3, 3, true);
+        var graph = new Array2DGraph<bool>(grid);
+
+        // Should throw for weights less than 1.0
+        Assert.Throws<ArgumentException>(() => graph.SetDiagonalMovementWeight(0.5f));
+        Assert.Throws<ArgumentException>(() => graph.SetDiagonalMovementWeight(0f));
+        Assert.Throws<ArgumentException>(() => graph.SetDiagonalMovementWeight(-1f));
+
+        // Should not throw for weights >= 1.0
+        Assert.DoesNotThrow(() => graph.SetDiagonalMovementWeight(1.0f));
+        Assert.DoesNotThrow(() => graph.SetDiagonalMovementWeight(1.5f));
     }
 }
