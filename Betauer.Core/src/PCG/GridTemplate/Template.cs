@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using Betauer.Core.DataMath;
+using Betauer.Core.PCG.GridTools;
+using Godot;
 
 namespace Betauer.Core.PCG.GridTemplate;
 
@@ -27,6 +30,7 @@ public class Template {
     public object? GetAttribute(string key) => Attributes.GetValueOrDefault(key);
     public T? GetAttributeAs<T>(string key) => Attributes.TryGetValue(key, out var value) && value is T typedValue ? typedValue : default;
     public T GetAttributeOrDefault<T>(string key, T defaultValue) => Attributes.TryGetValue(key, out var value) && value is T typedValue ? typedValue : defaultValue;
+
     public T GetAttributeOrCreate<T>(string key, Func<T> factory) {
         if (Attributes.TryGetValue(key, out var value) && value is T typedValue) {
             return typedValue;
@@ -35,6 +39,7 @@ public class Template {
         Attributes[key] = result;
         return result;
     }
+
     public bool RemoveAttribute(string key) => Attributes.Remove(key);
     public bool HasAttribute(string key) => Attributes.ContainsKey(key);
     public bool HasAttributeWithValue<T>(string key, T value) => Attributes.TryGetValue(key, out var existingValue) && existingValue is T && Equals(existingValue, value);
@@ -91,6 +96,97 @@ public class Template {
             Id = $"{Id}-{type}"
         };
     }
+
+    private bool ValidateBorders(Func<Vector2I, bool> isBlocked) {
+        var center = Body.Width / 2;
+
+        bool ValidateSide(DirectionFlag flag, Vector2I startPos, bool horizontal) {
+            if (!HasDirectionFlag(flag)) {
+                // Si no hay salida, todo el lado debe estar bloqueado
+                var length = horizontal ? Body.Width : Body.Height;
+                for (var i = 0; i < length; i++) {
+                    var pos = horizontal ? new Vector2I(i, startPos.Y) : new Vector2I(startPos.X, i);
+                    if (!isBlocked(pos)) return false;
+                }
+            } else {
+                // Si hay salida, validar que el tamaño es correcto (1, 3 o 5)
+                var width = GetAttributeOrDefault(flag, 1);
+                if (width != 1 && width != 3 && width != 5) return false;
+
+                var halfWidth = width / 2;
+                var exitStart = center - halfWidth;
+                var exitEnd = center + halfWidth;
+                var length = horizontal ? Body.Width : Body.Height;
+
+                // Validar todo el lado
+                for (var i = 0; i < length; i++) {
+                    var pos = horizontal ? new Vector2I(i, startPos.Y) : new Vector2I(startPos.X, i);
+                    var isExit = i >= exitStart && i <= exitEnd;
+
+                    // Las celdas de salida deben ser transitables, el resto bloqueadas
+                    if (isExit == isBlocked(pos)) return false;
+                }
+            }
+            return true;
+        }
+
+        // Validar los cuatro lados
+        if (!ValidateSide(DirectionFlag.Up, new Vector2I(0, 0), true)) return false;
+        if (!ValidateSide(DirectionFlag.Down, new Vector2I(0, Body.Height - 1), true)) return false;
+        if (!ValidateSide(DirectionFlag.Left, new Vector2I(0, 0), false)) return false;
+        if (!ValidateSide(DirectionFlag.Right, new Vector2I(Body.Width - 1, 0), false)) return false;
+
+        return true;
+    }
+
+    public bool IsValid(Func<Vector2I, bool> isBlocked) {
+        // Primero validar que los bordes están correctamente formados
+        if (!ValidateBorders(isBlocked)) return false;
+
+        // Count direction flags (exits)
+        var count = BitOperations.PopCount(DirectionFlags);
+        if (count <= 1) return true; // 0 or 1 exit is always valid
+
+        // Create graph where only floor tiles are walkable
+        var graph = new Array2DGraph<char>(Body, null, isBlocked);
+
+        // Get all exit positions (central position for each border)
+        var center = Body.Width / 2; // Template is square and odd size
+
+        // Dictionary to store all possible exits and their flags
+        var exitPositions = new Dictionary<Vector2I, DirectionFlag> {
+            { new Vector2I(center, 0), DirectionFlag.Up },
+            { new Vector2I(Body.Width - 1, center), DirectionFlag.Right },
+            { new Vector2I(center, Body.Height - 1), DirectionFlag.Down },
+            { new Vector2I(0, center), DirectionFlag.Left }
+        };
+
+        // Get only the marked exits
+        var markedExits = exitPositions
+            .Where(kvp => HasDirectionFlag(kvp.Value))
+            .Select(kvp => kvp.Key)
+            .ToList();
+
+        // Get all reachable positions from the first exit
+        var reachableZone = graph.GetReachableZone(markedExits[0]);
+
+        // First check: verify all marked exits are connected
+        for (var i = 1; i < markedExits.Count; i++) {
+            if (!reachableZone.Contains(markedExits[i])) return false; // Can't reach this marked exit
+        }
+
+        // Second check: verify there are no paths to unmarked exits
+        var unmarkedExits = exitPositions
+            .Where(kvp => !HasDirectionFlag(kvp.Value))
+            .Select(kvp => kvp.Key);
+
+        foreach (var unmarkedExit in unmarkedExits) {
+            if (reachableZone.Contains(unmarkedExit)) return false; // Found a path to an unmarked exit!
+        }
+
+        return true;
+    }
+
 
     public static bool BodyIsEquals(Array2D<char> one, Array2D<char> other) {
         if (ReferenceEquals(one, other)) return true;
