@@ -99,7 +99,7 @@ public class Template {
         };
     }
 
-    private bool ValidateBorders(Func<Vector2I, bool> isBlocked) {
+    private bool ValidateBorders(Func<char, bool> isBlocked, bool throwException = false) {
         var center = Body.Width / 2;
 
         bool ValidateSide(DirectionFlag flag, Vector2I startPos, bool horizontal) {
@@ -108,12 +108,19 @@ public class Template {
                 var length = horizontal ? Body.Width : Body.Height;
                 for (var i = 0; i < length; i++) {
                     var pos = horizontal ? new Vector2I(i, startPos.Y) : new Vector2I(startPos.X, i);
-                    if (!isBlocked(pos)) return false;
+                    if (!isBlocked(Body[pos])) {
+                        if (throwException) throw new Exception($"Invalid template {Id} in side {DirectionFlagTools.DirectionFlagToString(flag)}: Position {pos} should be blocked");
+                        return false;
+                    }
                 }
             } else {
                 // Si hay salida, validar que el tamaño es correcto (1, 3 o 5)
                 var width = GetAttributeOrDefault(flag, "size", 1);
-                if (width != 1 && width != 3 && width != 5) return false;
+                if (width % 2 == 0) {
+                    if (throwException) throw new Exception($"Invalid template {Id}. Direction size {DirectionFlagTools.DirectionFlagToString(flag)} should be an odd number: {width}");
+                    ;
+                    return false;
+                }
 
                 var halfWidth = width / 2;
                 var exitStart = center - halfWidth;
@@ -126,7 +133,10 @@ public class Template {
                     var isExit = i >= exitStart && i <= exitEnd;
 
                     // Las celdas de salida deben ser transitables, el resto bloqueadas
-                    if (isExit == isBlocked(pos)) return false;
+                    if (isExit == isBlocked(Body[pos])) {
+                        if (throwException) throw new Exception($"Invalid template {Id} in side {DirectionFlagTools.DirectionFlagToString(flag)}: Position {pos} should be {(isExit ? "walkable" : "blocked")}");
+                        return false;
+                    }
                 }
             }
             return true;
@@ -141,16 +151,16 @@ public class Template {
         return true;
     }
 
-    public bool IsValid(Func<Vector2I, bool> isBlocked) {
+    public bool IsValid(Func<char, bool> isBlocked, bool throwException = false) {
         // Primero validar que los bordes están correctamente formados
-        if (!ValidateBorders(isBlocked)) return false;
+        if (!ValidateBorders(isBlocked, throwException)) return false;
 
         // Count direction flags (exits)
         var count = BitOperations.PopCount(DirectionFlags);
         if (count <= 1) return true; // 0 or 1 exit is always valid
 
         // Create graph where only floor tiles are walkable
-        var graph = new GridGraph(Body.Width, Body.Height, isBlocked);
+        var graph = new GridGraph(Body.Width, Body.Height, (pos) => isBlocked(Body[pos]));
 
         // Get all exit positions (central position for each border)
         var center = Body.Width / 2; // Template is square and odd size
@@ -166,29 +176,39 @@ public class Template {
         // Get only the marked exits
         var markedExits = exitPositions
             .Where(kvp => HasDirectionFlag(kvp.Value))
-            .Select(kvp => kvp.Key)
             .ToList();
 
         // Get all reachable positions from the first exit
-        var reachableZone = graph.GetReachableZone(markedExits[0]);
+        var reachableZone = graph.GetReachableZone(markedExits[0].Key);
 
         // First check: verify all marked exits are connected
-        for (var i = 1; i < markedExits.Count; i++) {
-            if (!reachableZone.Contains(markedExits[i])) return false; // Can't reach this marked exit
+        var unreachableMarkedExits = markedExits
+            .Skip(1)
+            .Where(kvp => !reachableZone.Contains(kvp.Key))
+            .ToList();
+
+        if (unreachableMarkedExits.Any()) {
+            if (throwException) {
+                var exitsList = string.Join(", ", unreachableMarkedExits.Select(kvp => DirectionFlagTools.DirectionFlagToString(kvp.Value)));
+                throw new Exception($"Invalid template {Id}: The following marked exits are not connected: {exitsList}. All marked exits must be connected to each other.");
+            }
+            return false;
         }
 
         // Second check: verify there are no paths to unmarked exits
-        var unmarkedExits = exitPositions
-            .Where(kvp => !HasDirectionFlag(kvp.Value))
-            .Select(kvp => kvp.Key);
+        var wronglyReachableExits = exitPositions
+            .Where(kvp => !HasDirectionFlag(kvp.Value) && reachableZone.Contains(kvp.Key))
+            .ToList();
 
-        foreach (var unmarkedExit in unmarkedExits) {
-            if (reachableZone.Contains(unmarkedExit)) return false; // Found a path to an unmarked exit!
+        if (wronglyReachableExits.Any()) {
+            if (throwException) {
+                var exitsList = string.Join(", ", wronglyReachableExits.Select(kvp => DirectionFlagTools.DirectionFlagToString(kvp.Value)));
+                throw new Exception($"Invalid template {Id}: Found paths to unmarked exits: {exitsList}. These exits should be blocked.");
+            }
+            return false;
         }
-
         return true;
     }
-
 
     public static bool BodyIsEquals(Array2D<char> one, Array2D<char> other) {
         if (ReferenceEquals(one, other)) return true;

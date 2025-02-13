@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Betauer.Core.DataMath;
 using Betauer.Core.PCG.Maze;
+using Godot;
 
 namespace Betauer.Core.PCG.GridTemplate;
 
@@ -187,7 +188,7 @@ public class TemplateSet(int cellSize) {
         }
     }
 
-    private bool IsTemplateDefinition(Core.AttributeParser.ParseResult lineParserResult, Dictionary<string, Core.AttributeParser.ParseResult> defines) {
+    private bool IsTemplateDefinition(AttributeParser.ParseResult lineParserResult, Dictionary<string, Core.AttributeParser.ParseResult> defines) {
         if (lineParserResult.Attributes.Remove(DefineId, out var defineName)) {
             if (defines.TryGetValue(defineName.ToString()!, out var previous)) {
                 foreach (var tag in lineParserResult.Tags) previous.Tags.Add(tag);
@@ -248,6 +249,10 @@ public class TemplateSet(int cellSize) {
         return template;
     }
 
+    public bool ValidateAll(Func<char, bool> isBlockingChar, bool throwException = false) {
+        return _templates.Select(template => template.IsValid(isBlockingChar, throwException)).All(valid => valid);
+    }
+
     public static readonly (string[], Transformations.Type Transform)[] Transformations = [
         (["rotate:90", "rotate:right", "rotate:clockwise"], DataMath.Transformations.Type.Rotate90),
         (["rotate:180", "rotate:twice"], DataMath.Transformations.Type.Rotate180),
@@ -283,12 +288,14 @@ public class TemplateSet(int cellSize) {
     };
 
     /// <summary>
-    /// Reads the tags of every template and try to apply the transformations. "Try" means if the transformations results in an identical body, it will not be added.
+    /// Reads the tags of every template and try to apply the transformations. "Try" means if a transformation
+    /// results in an identical body or an invalid template (mirror transformation could break the connection between exits),
+    /// it will not be added.
     /// </summary>
-    public void ApplyTransformations() {
+    public void ApplyTransformations(Func<char, bool> isBlocked) {
         foreach (var template in FindTemplates().ToArray() /* Clone to allow adding templates during the loop*/) {
             if (template.HasTag("transform:all")) {
-                ApplyTransformations(template, Enum.GetValues<DataMath.Transformations.Type>());
+                ApplyTransformations(template, Enum.GetValues<DataMath.Transformations.Type>(), isBlocked);
                 continue;
             }
 
@@ -322,7 +329,7 @@ public class TemplateSet(int cellSize) {
             }
 
             if (transformsToApply.Count > 0) {
-                ApplyTransformations(template, transformsToApply);
+                ApplyTransformations(template, transformsToApply, isBlocked);
             }
         }
     }
@@ -355,11 +362,13 @@ public class TemplateSet(int cellSize) {
         return oneId == otherId;
     }
 
-    private void ApplyTransformations(Template template, IEnumerable<Transformations.Type> transformsToApply) {
+    private void ApplyTransformations(Template template, IEnumerable<Transformations.Type> transformsToApply, Func<char, bool> isBlocked) {
         // Apply all collected transformations
         foreach (var transform in transformsToApply) {
             var transformed = template.TryTransform(transform);
-            if (transformed == null || _templates
+            if (transformed == null ||
+                !transformed.IsValid(isBlocked, false) ||
+                _templates
                     .Where(t => t != template)
                     .Any(other => Template.BodyIsEquals(other.Body, transformed.Body))) {
                 // TryTransform returns null if the transformation does not change the template body

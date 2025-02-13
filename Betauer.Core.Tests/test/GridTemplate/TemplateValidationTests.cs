@@ -9,12 +9,7 @@ namespace Betauer.Core.Tests.GridTemplate;
 
 [TestFixture]
 public class TemplateValidationTests {
-    private static Func<Vector2I, bool> IsBlocked(Array2D<char> templateBody) {
-        return pos => {
-            var c = templateBody[pos];
-            return c != '·' && c != 'd'; // Todo bloqueado EXCEPTO '·' y 'd'
-        };
-    }
+    private static readonly Func<char, bool> IsBlocked = (c) => c != '·' && c != 'd';
 
     [Test]
     public void SingleExit_IsValid_DefaultSize() {
@@ -27,7 +22,7 @@ public class TemplateValidationTests {
                 ##·##"),
             DirectionFlags = (byte)DirectionFlag.Down
         };
-        Assert.That(template.IsValid(IsBlocked(template.Body)), Is.True);
+        Assert.That(template.IsValid(IsBlocked), Is.True);
     }
 
     [Test]
@@ -41,7 +36,7 @@ public class TemplateValidationTests {
                 ##··#"),
             DirectionFlags = (byte)DirectionFlag.Down
         };
-        Assert.That(template.IsValid(IsBlocked(template.Body)), Is.False);
+        Assert.That(template.IsValid(IsBlocked), Is.False);
     }
 
     [TestCase(3, true)]
@@ -58,7 +53,7 @@ public class TemplateValidationTests {
         };
         template.SetAttribute(DirectionFlag.Down, "size", size);
 
-        Assert.That(template.IsValid(IsBlocked(template.Body)), Is.EqualTo(expected));
+        Assert.That(template.IsValid(IsBlocked), Is.EqualTo(expected));
     }
 
     [Test]
@@ -72,7 +67,7 @@ public class TemplateValidationTests {
                 #####"),
             DirectionFlags = (byte)(DirectionFlag.Up | DirectionFlag.Right)
         };
-        Assert.That(template.IsValid(IsBlocked(template.Body)), Is.True);
+        Assert.That(template.IsValid(IsBlocked), Is.True);
     }
 
     [Test]
@@ -86,7 +81,7 @@ public class TemplateValidationTests {
                 #####"),
             DirectionFlags = (byte)(DirectionFlag.Up | DirectionFlag.Right)
         };
-        Assert.That(template.IsValid(IsBlocked(template.Body)), Is.False);
+        Assert.That(template.IsValid(IsBlocked), Is.False);
     }
 
     [Test]
@@ -100,7 +95,7 @@ public class TemplateValidationTests {
                 #·###"),
             DirectionFlags = (byte)(DirectionFlag.Up | DirectionFlag.Down)
         };
-        Assert.That(template.IsValid(IsBlocked(template.Body)), Is.False);
+        Assert.That(template.IsValid(IsBlocked), Is.False);
     }
 
     [Test]
@@ -114,7 +109,7 @@ public class TemplateValidationTests {
                 ##·##"),
             DirectionFlags = (byte)(DirectionFlag.Up | DirectionFlag.Right | DirectionFlag.Down)
         };
-        Assert.That(template.IsValid(IsBlocked(template.Body)), Is.True);
+        Assert.That(template.IsValid(IsBlocked), Is.True);
     }
 
     [Test]
@@ -128,7 +123,7 @@ public class TemplateValidationTests {
                 #·###"),
             DirectionFlags = (byte)(DirectionFlag.Up | DirectionFlag.Right | DirectionFlag.Down)
         };
-        Assert.That(template.IsValid(IsBlocked(template.Body)), Is.False);
+        Assert.That(template.IsValid(IsBlocked), Is.False);
     }
 
     [Test]
@@ -142,7 +137,7 @@ public class TemplateValidationTests {
                 #####"),
             DirectionFlags = 0
         };
-        Assert.That(template.IsValid(IsBlocked(template.Body)), Is.True);
+        Assert.That(template.IsValid(IsBlocked), Is.True);
     }
 
     [Test]
@@ -156,7 +151,7 @@ public class TemplateValidationTests {
                 ##·##"),
             DirectionFlags = (byte)(DirectionFlag.Up | DirectionFlag.Right | DirectionFlag.Down | DirectionFlag.Left)
         };
-        Assert.That(template.IsValid(IsBlocked(template.Body)), Is.True);
+        Assert.That(template.IsValid(IsBlocked), Is.True);
     }
 
     [Test]
@@ -170,6 +165,6 @@ public class TemplateValidationTests {
                 ##d##"),
             DirectionFlags = (byte)(DirectionFlag.Up | DirectionFlag.Right | DirectionFlag.Down | DirectionFlag.Left)
         };
-        Assert.That(template.IsValid(IsBlocked(template.Body)), Is.True);
+1        Assert.That(template.IsValid(IsBlocked), Is.True);
     }
 }
