@@ -292,11 +292,11 @@ public class Array2D<T>(T[,] data) : Array2D, IEnumerable<T> {
         }
     }
 
-    public bool IsValidPosition(Vector2I position) {
-        return IsValidPosition(position.X, position.Y);
+    public bool IsInBounds(Vector2I position) {
+        return IsInBounds(position.X, position.Y);
     }
 
-    public bool IsValidPosition(int x, int y) {
+    public bool IsInBounds(int x, int y) {
         return Geometry.Geometry.IsPointInRectangle(x, y, 0, 0, Width, Height);
     }
 
@@ -429,7 +429,7 @@ public class Array2D<T>(T[,] data) : Array2D, IEnumerable<T> {
     public IEnumerable<Vector2I> GetVonNeumannPositions(Vector2I pos) {
         return VonNeumannDirections
             .Select(dir => pos + dir)
-            .Where(IsValidPosition);
+            .Where(IsInBounds);
     }
 
     /// <summary>
@@ -450,7 +450,7 @@ public class Array2D<T>(T[,] data) : Array2D, IEnumerable<T> {
     public IEnumerable<Vector2I> GetMoorePositions(Vector2I pos) {
         return MooreDirections
             .Select(dir => pos + dir)
-            .Where(IsValidPosition);
+            .Where(IsInBounds);
     }
 
     /// <summary>
@@ -472,7 +472,7 @@ public class Array2D<T>(T[,] data) : Array2D, IEnumerable<T> {
     public IEnumerable<Vector2I> GetDiagonalPositions(Vector2I pos) {
         return DiagonalDirections
             .Select(dir => pos + dir)
-            .Where(IsValidPosition);
+            .Where(IsInBounds);
     }
 
     /// <summary>

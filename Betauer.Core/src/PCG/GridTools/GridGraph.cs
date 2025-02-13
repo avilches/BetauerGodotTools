@@ -34,8 +34,7 @@ public class GridGraph {
     /// </summary>
     public float DiagonalWeight { get; private set; } = -1;
 
-    public int Width { get; init; }
-    public int Height { get; init; }
+    public Rect2I Bounds { get; }
 
     /// <summary>
     /// Constructs a grid graph of with x height with walkability and weight functions
@@ -44,9 +43,17 @@ public class GridGraph {
     /// <param name="height"></param>
     /// <param name="isBlockedFunc">A function that determines if a cell is not accesible based on its position. If null, all cells will be accesible</param>
     /// <param name="getWeightFunc">Optional function that determines the movement cost for a cell (must be >= 1). If null, all weights will be 1</param>
-    public GridGraph(int width, int height, Func<Vector2I, bool> isBlockedFunc, Func<Vector2I, float>? getWeightFunc = null) {
-        Width = width;
-        Height = height;
+    public GridGraph(int width, int height, Func<Vector2I, bool> isBlockedFunc, Func<Vector2I, float>? getWeightFunc = null) : this(new Rect2I(0, 0, width, height), isBlockedFunc, getWeightFunc) {
+    }
+
+    /// <summary>
+    /// Constructs a grid graph using the bounds Rect2I as limits with walkability and weight functions
+    /// </summary>
+    /// <param name="bounds"></param>
+    /// <param name="isBlockedFunc">A function that determines if a cell is not accesible based on its position. If null, all cells will be accesible</param>
+    /// <param name="getWeightFunc">Optional function that determines the movement cost for a cell (must be >= 1). If null, all weights will be 1</param>
+    public GridGraph(Rect2I bounds, Func<Vector2I, bool> isBlockedFunc, Func<Vector2I, float>? getWeightFunc = null) {
+        Bounds = bounds;
         GetWeightFunc = getWeightFunc;
         IsBlockedFunc = isBlockedFunc;
     }
@@ -108,27 +115,23 @@ public class GridGraph {
         if (IsBlocked(vertex)) yield break;
 
         // Orthogonal movements
-        foreach (var neighbor in Array2D.VonNeumannDirections.Select(pos => vertex + pos).Where(IsValidPosition)) {
-            if (IsAccesible(neighbor)) {
-                var weight = GetWeight(neighbor);
-                yield return new Array2DEdge(vertex, neighbor, weight);
-            }
+        foreach (var neighbor in Array2D.VonNeumannDirections.Select(pos => vertex + pos).Where(IsAccesible)) {
+            var weight = GetWeight(neighbor);
+            yield return new Array2DEdge(vertex, neighbor, weight);
         }
 
         // Diagonal movements
         if (IsDiagonalMovementEnabled()) {
-            foreach (var neighbor in Array2D.DiagonalDirections.Select(pos => vertex + pos).Where(IsValidPosition)) {
-                if (IsAccesible(neighbor)) {
-                    var cellWeight = GetWeight(neighbor);
-                    var finalWeight = cellWeight * DiagonalWeight;
-                    yield return new Array2DEdge(vertex, neighbor, finalWeight);
-                }
+            foreach (var neighbor in Array2D.DiagonalDirections.Select(pos => vertex + pos).Where(IsAccesible)) {
+                var cellWeight = GetWeight(neighbor);
+                var finalWeight = cellWeight * DiagonalWeight;
+                yield return new Array2DEdge(vertex, neighbor, finalWeight);
             }
         }
     }
 
-    private bool IsValidPosition(Vector2I arg) {
-        return Geometry.IsPointInRectangle(arg.X, arg.Y, 0, 0, Width, Height);
+    public bool IsInBounds(Vector2I pos) {
+        return Geometry.IsPointInRectangle(pos, Bounds);
     }
 
     public float GetWeight(Vector2I neighbor) {
@@ -150,7 +153,7 @@ public class GridGraph {
     /// <param name="pos">The position to check</param>
     /// <returns>True if the position is blocked or not value, false otherwise</returns>
     public bool IsBlocked(Vector2I pos) {
-        return !IsValidPosition(pos) || (IsBlockedFunc != null && IsBlockedFunc(pos));
+        return !IsInBounds(pos) || (IsBlockedFunc != null && IsBlockedFunc(pos));
     }
 
 
@@ -392,31 +395,5 @@ public class GridGraph {
         }
 
         return visited;
-    }
-
-
-    /// <summary>
-    /// Returns a string that represents the current edge-weighted grid graph
-    /// </summary>
-    /// <returns>
-    /// A string that represents the current edge-weighted grid graph
-    /// </returns>
-    public override string ToString() {
-        var formattedString = new StringBuilder();
-        formattedString.AppendLine($"Grid size: {Width}x{Height}");
-
-        for (var y = 0; y < Height; y++) {
-            for (var x = 0; x < Width; x++) {
-                var pos = new Vector2I(x, y);
-                if (IsAccesible(pos)) {
-                    formattedString.Append($"{pos}:");
-                    foreach (var edge in Adjacent(pos)) {
-                        formattedString.Append($" {edge.To}");
-                    }
-                    formattedString.AppendLine();
-                }
-            }
-        }
-        return formattedString.ToString();
     }
 }

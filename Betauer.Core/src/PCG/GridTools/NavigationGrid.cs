@@ -11,34 +11,75 @@ namespace Betauer.Core.PCG.GridTools;
 /// A grid-based pathfinding system that integrates with SpatialGrid for efficient collision detection and obstacle handling.
 /// The grid supports dynamic obstacles of different shapes (Point, Circle, Rectangle) which can be moved, added, or removed at runtime.
 ///
-/// The AiGrid handles:
+/// The NavigationGrid handles:
 /// - Pathfinding using A* algorithm with customizable heuristics
 /// - Multiple target pathfinding with optional weights
 /// - Dynamic collision detection through SpatialGrid system
 /// - Custom node weights for path calculations
 /// </summary>
-/// <typeparam name="T">The type of data stored in each grid cell</typeparam>
 public class NavigationGrid {
-    public GridGraph Graph { get; }
     private SpatialGrid BlockZones { get; }
 
     /// <summary>
-    /// Creates a new AiGrid with the specified grid and optional weight function
+    /// Creates a new NavigationGrid with the specified spatial cell size
+    /// </summary>
+    public NavigationGrid(int spatialCellSize = 5) {
+        BlockZones = new SpatialGrid(spatialCellSize);
+    }
+
+    /// <summary>
+    /// Creates a new GridGraph which has attached the obstacles from this NavigationGrid
+    /// </summary>
+    /// <param name="bounds"></param>
+    /// <param name="isBlockedFunc">A function to determine if a cell is walkable based on its position.</param>
+    /// <param name="getWeightFunc">Optional function to determine the weight/cost of moving through each cell.
+    ///     If null, all walkable cells have equal weight</param>
+    public GridGraph CreateGridGraph(Rect2I bounds, Func<Vector2I, bool> isBlockedFunc, Func<Vector2I, float>? getWeightFunc = null) {
+        return new GridGraph(
+            bounds,
+            pos => (isBlockedFunc?.Invoke(pos) ?? false) || IsBlocked(pos),
+            getWeightFunc
+        );
+    }
+
+    /// <summary>
+    /// Creates a new GridGraph which has attached the obstacles from this NavigationGrid
     /// </summary>
     /// <param name="width"></param>
     /// <param name="height"></param>
     /// <param name="isBlockedFunc">A function to determine if a cell is walkable based on its position.</param>
     /// <param name="getWeightFunc">Optional function to determine the weight/cost of moving through each cell.
     ///     If null, all walkable cells have equal weight</param>
-    /// <param name="spatialCellSize">The width/height size of the cell to determine the collision for the obstacles</param>
-    public NavigationGrid(int width, int height, Func<Vector2I, bool> isBlockedFunc, Func<Vector2I, float>? getWeightFunc = null, int spatialCellSize = 5) {
-        BlockZones = new SpatialGrid(spatialCellSize);
-        Graph = new GridGraph(
+    public GridGraph CreateGridGraph(int width, int height, Func<Vector2I, bool> isBlockedFunc, Func<Vector2I, float>? getWeightFunc = null) {
+        return new GridGraph(
             width,
             height,
-            pos => (isBlockedFunc?.Invoke(pos) ?? false) || BlockZones.IntersectPoint(pos.X, pos.Y),
+            pos => (isBlockedFunc?.Invoke(pos) ?? false) || IsBlocked(pos),
             getWeightFunc
         );
+    }
+
+    /// <summary>
+    /// Creates a new Array2DGraph which has attached the obstacles from this NavigationGrid
+    /// </summary>
+    /// <param name="array2D"></param>
+    /// <param name="isBlockedFunc">A function to determine if a cell is walkable based on its position.</param>
+    /// <param name="getWeightFunc">Optional function to determine the weight/cost of moving through each cell.
+    ///     If null, all walkable cells have equal weight</param>
+    public Array2DGraph<T> CreateArray2DGraph<T>(Array2D<T> array2D, Func<Vector2I, T, bool> isBlockedFunc, Func<Vector2I, T, float>? getWeightFunc = null) {
+        return new Array2DGraph<T>(
+            array2D,
+            (pos, value) => (isBlockedFunc?.Invoke(pos, value) ?? false) || IsBlocked(pos),
+            getWeightFunc
+        );
+    }
+
+    public bool IsBlocked(Vector2I position) {
+        return BlockZones.IntersectPoint(position.X, position.Y);
+    }
+
+    public bool IsAccesible(Vector2I pos) {
+        return !IsBlocked(pos);
     }
 
     /// <summary>

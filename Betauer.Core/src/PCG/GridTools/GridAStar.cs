@@ -10,7 +10,6 @@ public class GridAStar {
     private readonly Dictionary<Vector2I, Array2DEdge?> _edgeTo = new();
     private readonly IndexMinPriorityQueue<float> _pq;
     private readonly GridGraph _graph;
-    private readonly int _width;
 
     private Vector2I _goal;
     private Func<Vector2I, Vector2I, float> _heuristic = Heuristics.Euclidean;
@@ -18,8 +17,7 @@ public class GridAStar {
     public GridAStar(GridGraph graph) {
         ArgumentNullException.ThrowIfNull(graph);
         _graph = graph;
-        _width = graph.Width;
-        _pq = new IndexMinPriorityQueue<float>(graph.Width * graph.Height);
+        _pq = new IndexMinPriorityQueue<float>(_graph.Bounds.Area);
     }
 
     private void Reset() {
@@ -62,9 +60,9 @@ public class GridAStar {
         return GetPath();
     }
 
-    private int ToIndex(Vector2I pos) => pos.Y * _width + pos.X;
+    private int ToIndex(Vector2I pos) => pos.Y * _graph.Bounds.Size.X + pos.X;
 
-    private Vector2I ToVector2I(int index) => new(index % _width, index / _width);
+    private Vector2I ToVector2I(int index) => new(index % _graph.Bounds.Size.X, index / _graph.Bounds.Size.X);
 
     private float GetHScore(Vector2I pos) {
         return _heuristic(pos, _goal);

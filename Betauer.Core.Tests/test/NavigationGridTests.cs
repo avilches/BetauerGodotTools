@@ -12,8 +12,9 @@ using NUnit.Framework;
 namespace Betauer.Core.Tests;
 
 [TestFixture]
+[Only]
 public class NavigationGridTests {
-    private void PrintGrid(Array2D grid, NavigationGrid navigationGrid, IReadOnlyList<Vector2I> path = null, HashSet<Vector2I> targets = null) {
+    private void PrintGrid(Array2D grid, GridGraph navigationGrid, IReadOnlyList<Vector2I> path = null, HashSet<Vector2I> targets = null) {
         var sb = new StringBuilder();
         sb.AppendLine();
         Console.WriteLine("Targets: " + string.Join(",", targets ?? []));
@@ -28,7 +29,7 @@ public class NavigationGridTests {
                 }
                 if (targets != null && targets.Contains(pos)) {
                     sb.Append("G"); // Target
-                } else if (navigationGrid.Graph.IsBlocked(pos)) {
+                } else if (navigationGrid.IsBlocked(pos)) {
                     sb.Append("#"); // Obstáculo
                 } else {
                     sb.Append("·"); // Espacio libre
@@ -53,16 +54,16 @@ public class NavigationGridTests {
         var end = new Vector2I(8, 8);
 
         // 1. Manhattan (actual)
-        var aiGrid1 = new NavigationGrid(grid.Width, grid.Height, null);
-        var pathManhattan = aiGrid1.Graph.FindPath(start, end);
+        var aiGrid1 = new NavigationGrid().CreateGridGraph(grid.Width, grid.Height, null);
+        var pathManhattan = aiGrid1.FindPath(start, end);
 
         // 2. Euclidean (línea recta)
-        var aiGrid2 = new NavigationGrid(grid.Width, grid.Height, null);
-        var pathEuclidean = aiGrid2.Graph.FindPath(start, end, Heuristics.Euclidean);
+        var aiGrid2 = new NavigationGrid().CreateGridGraph(grid.Width, grid.Height, null);
+        var pathEuclidean = aiGrid2.FindPath(start, end, Heuristics.Euclidean);
 
         // 3. Diagonal (Chebyshev)
-        var aiGrid3 = new NavigationGrid(grid.Width, grid.Height, null);
-        var pathDiagonal = aiGrid3.Graph.FindPath(start, end, Heuristics.Chebyshev);
+        var aiGrid3 = new NavigationGrid().CreateGridGraph(grid.Width, grid.Height, null);
+        var pathDiagonal = aiGrid3.FindPath(start, end, Heuristics.Chebyshev);
 
         // Imprimir los tres caminos
         Console.WriteLine("Manhattan distance:");
@@ -78,11 +79,11 @@ public class NavigationGridTests {
     [Test]
     public void TestBasicPathFinding() {
         var grid = new Array2D<int>(10, 10);
-        var aiGrid = new NavigationGrid(grid.Width, grid.Height, null);
+        var aiGrid = new NavigationGrid().CreateGridGraph(grid.Width, grid.Height, null);
 
         var start = new Vector2I(1, 1);
         var end = new Vector2I(8, 8);
-        var path = aiGrid.Graph.FindPath(start, end);
+        var path = aiGrid.FindPath(start, end);
 
         // Imprimir el grid con la ruta
         PrintGrid(grid, aiGrid, path, new HashSet<Vector2I> { end });
@@ -96,7 +97,8 @@ public class NavigationGridTests {
     [Test]
     public void TestPathFindingWithObstacles() {
         var grid = new Array2D<int>(10, 10);
-        var aiGrid = new NavigationGrid(grid.Width, grid.Height, null);
+        var aiGrid = new NavigationGrid();
+        var graph = aiGrid.CreateGridGraph(grid.Width, grid.Height, null);
 
         var obstacles = new List<Shape>();
         // Crear una línea de obstáculos
@@ -110,10 +112,10 @@ public class NavigationGridTests {
         // Encontrar camino alrededor de los obstáculos
         var start = new Vector2I(1, 5);
         var end = new Vector2I(8, 5);
-        var path = aiGrid.Graph.FindPath(start, end);
+        var path = graph.FindPath(start, end);
 
         // Imprimir el grid con obstáculos y ruta
-        PrintGrid(grid, aiGrid, path, new HashSet<Vector2I> { end });
+        PrintGrid(grid, graph, path, new HashSet<Vector2I> { end });
 
         // Verificaciones
         Assert.That(path, Is.Not.Null);
@@ -129,7 +131,7 @@ public class NavigationGridTests {
     [Test]
     public void TestPathToClosestTarget() {
         var grid = new Array2D<int>(10, 10);
-        var aiGrid = new NavigationGrid(grid.Width, grid.Height, null);
+        var aiGrid = new NavigationGrid().CreateGridGraph(grid.Width, grid.Height, null);
 
         var start = new Vector2I(1, 1);
         var targets = new List<(Vector2I pos, float weight)> {
@@ -137,7 +139,7 @@ public class NavigationGridTests {
             (new Vector2I(3, 3), 2.0f)
         };
 
-        var path = aiGrid.Graph.FindNearestPath(start, targets);
+        var path = aiGrid.FindNearestPath(start, targets);
         PrintGrid(grid, aiGrid, path, targets.Select(t => t.pos).ToHashSet());
 
         // Verificaciones
@@ -159,12 +161,12 @@ public class NavigationGridTests {
             return 1.0f;
         };
 
-        var aiGrid = new NavigationGrid(grid.Width, grid.Height, null, getWeight);
+        var aiGrid = new NavigationGrid().CreateGridGraph(grid.Width, grid.Height, null, getWeight);
 
         // Encontrar camino
         var start = new Vector2I(1, 1);
         var end = new Vector2I(8, 8);
-        var path = aiGrid.Graph.FindPath(start, end);
+        var path = aiGrid.FindPath(start, end);
 
         // Imprimir el grid con la ruta
         PrintGrid(grid, aiGrid, path);
@@ -187,7 +189,8 @@ public class NavigationGridTests {
     [Test]
     public void TestDifferentBlockZones() {
         var grid = new Array2D<int>(15, 15);
-        var aiGrid = new NavigationGrid(grid.Width, grid.Height, null);
+        var aiGrid = new NavigationGrid();
+        var graph = aiGrid.CreateGridGraph(grid.Width, grid.Height, null);
 
         var blockZones = new List<Shape>();
         
@@ -197,10 +200,10 @@ public class NavigationGridTests {
         
         var start = new Vector2I(1, 1);
         var end = new Vector2I(13, 13);
-        var path = aiGrid.Graph.FindPath(start, end);
+        var path = graph.FindPath(start, end);
 
         // Imprimir el grid
-        PrintGrid(grid, aiGrid, path, new HashSet<Vector2I> { end });
+        PrintGrid(grid, graph, path, new HashSet<Vector2I> { end });
 
         // Verificaciones
         Assert.That(path, Is.Not.Null);
@@ -216,7 +219,8 @@ public class NavigationGridTests {
     [Test]
     public void TestShortestPathToTarget() {
         var grid = new Array2D<int>(15, 15);
-        var aiGrid = new NavigationGrid(grid.Width, grid.Height, null);
+        var aiGrid = new NavigationGrid();
+        var graph = aiGrid.CreateGridGraph(grid.Width, grid.Height, null);
 
         // Create a scenario where the euclidean-closest target requires a longer path
         var start = new Vector2I(7, 1);
@@ -238,14 +242,14 @@ public class NavigationGridTests {
         }
 
         // Get paths using both methods
-        var closestPath = aiGrid.Graph.FindNearestPath(start, targets);
-        var shortestPath = aiGrid.Graph.FindShortestPath(start, targets);
+        var closestPath = graph.FindNearestPath(start, targets);
+        var shortestPath = graph.FindShortestPath(start, targets);
 
         Console.WriteLine("\nPath to closest target (euclidean distance):");
-        PrintGrid(grid, aiGrid, closestPath, targets.Select(t => t.pos).ToHashSet());
+        PrintGrid(grid, graph, closestPath, targets.Select(t => t.pos).ToHashSet());
 
         Console.WriteLine("\nShortest actual path to a target:");
-        PrintGrid(grid, aiGrid, shortestPath, targets.Select(t => t.pos).ToHashSet());
+        PrintGrid(grid, graph, shortestPath, targets.Select(t => t.pos).ToHashSet());
 
         // Limpiar
         foreach (var obstacle in obstacles) {
