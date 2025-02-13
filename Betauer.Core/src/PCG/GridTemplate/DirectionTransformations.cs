@@ -401,118 +401,67 @@ public static class DirectionTransformations {
     }
 
     private static void MirrorLRAttributes(IReadOnlyDictionary<string, object> ro, Dictionary<string, object> attributes) {
+        var flagsToIgnore = new[] { DirectionFlag.Right, DirectionFlag.UpRight, DirectionFlag.DownRight };
+        var flagsToTransform = new[] { DirectionFlag.Left, DirectionFlag.UpLeft, DirectionFlag.DownLeft };
+        MirrorAttributes(ro, attributes, flagsToIgnore, flagsToTransform, MirrorLR);
+    }
+
+    private static void MirrorAttributes(
+        IReadOnlyDictionary<string, object> ro,
+        Dictionary<string, object> attributes,
+        DirectionFlag[] flagsToIgnore,
+        DirectionFlag[] flagsToTransform,
+        Func<DirectionFlag, DirectionFlag> transformFunction) {
         foreach (var (k, value) in ro) {
-            if (k.StartsWith("dir:")) {
-                var parts = k.Split(':');
-                if (parts.Length >= 2) {
-                    var flagStr = parts[1];
-                    var flag = DirectionFlagTools.StringToDirectionFlag(flagStr);
-                    if (flag is DirectionFlag.Right or DirectionFlag.UpRight or DirectionFlag.DownRight) {
-                        // Ignore the right side
-                    } else {
-                        attributes[k] = value;
-                        if (flag is DirectionFlag.Left or DirectionFlag.UpLeft or DirectionFlag.DownLeft) {
-                            var mirroredFlag = MirrorLR(flag);
-                            var newKey = "dir:" + DirectionFlagTools.DirectionFlagToString(mirroredFlag);
-                            if (parts.Length > 2) {
-                                newKey += ":" + string.Join(":", parts.Skip(2));
-                            }
-                            attributes[newKey] = value;
-                        }
-                    }
-                } else {
-                    attributes[k] = value; // Invalid format, keep as is
-                }
-            } else {
+            if (!k.StartsWith("dir:")) {
                 attributes[k] = value;
+                continue;
+            }
+
+            var parts = k.Split(':');
+            if (parts.Length < 2) {
+                attributes[k] = value; // Invalid format, keep as is
+                continue;
+            }
+
+            var flagStr = parts[1];
+            var flag = DirectionFlagTools.StringToDirectionFlag(flagStr);
+
+            if (flagsToIgnore.Contains(flag)) {
+                // Ignore this flag
+                continue;
+            }
+
+            // Keep the original flag
+            attributes[k] = value;
+
+            // Transform if needed
+            if (flagsToTransform.Contains(flag)) {
+                var transformedFlag = transformFunction(flag);
+                var newKey = "dir:" + DirectionFlagTools.DirectionFlagToString(transformedFlag);
+                if (parts.Length > 2) {
+                    newKey += ":" + string.Join(":", parts.Skip(2));
+                }
+                attributes[newKey] = value;
             }
         }
     }
 
     private static void MirrorRLAttributes(IReadOnlyDictionary<string, object> ro, Dictionary<string, object> attributes) {
-        foreach (var (k, value) in ro) {
-            if (k.StartsWith("dir:")) {
-                var parts = k.Split(':');
-                if (parts.Length >= 2) {
-                    var flagStr = parts[1];
-                    var flag = DirectionFlagTools.StringToDirectionFlag(flagStr);
-                    if (flag is DirectionFlag.Left or DirectionFlag.UpLeft or DirectionFlag.DownLeft) {
-                        // Ignore the left side
-                    } else {
-                        attributes[k] = value;
-                        if (flag is DirectionFlag.Right or DirectionFlag.UpRight or DirectionFlag.DownRight) {
-                            var mirroredFlag = MirrorRL(flag);
-                            var newKey = "dir:" + DirectionFlagTools.DirectionFlagToString(mirroredFlag);
-                            if (parts.Length > 2) {
-                                newKey += ":" + string.Join(":", parts.Skip(2));
-                            }
-                            attributes[newKey] = value;
-                        }
-                    }
-                } else {
-                    attributes[k] = value; // Invalid format, keep as is
-                }
-            } else {
-                attributes[k] = value;
-            }
-        }
+        var flagsToIgnore = new[] { DirectionFlag.Left, DirectionFlag.UpLeft, DirectionFlag.DownLeft };
+        var flagsToTransform = new[] { DirectionFlag.Right, DirectionFlag.UpRight, DirectionFlag.DownRight };
+        MirrorAttributes(ro, attributes, flagsToIgnore, flagsToTransform, MirrorRL);
     }
 
     private static void MirrorTBAttributes(IReadOnlyDictionary<string, object> ro, Dictionary<string, object> attributes) {
-        foreach (var (k, value) in ro) {
-            if (k.StartsWith("dir:")) {
-                var parts = k.Split(':');
-                if (parts.Length >= 2) {
-                    var flagStr = parts[1];
-                    var flag = DirectionFlagTools.StringToDirectionFlag(flagStr);
-                    if (flag is DirectionFlag.Down or DirectionFlag.DownLeft or DirectionFlag.DownRight) {
-                        // Ignore the bottom side
-                    } else {
-                        attributes[k] = value;
-                        if (flag is DirectionFlag.Up or DirectionFlag.UpLeft or DirectionFlag.UpRight) {
-                            var mirroredFlag = MirrorTB(flag);
-                            var newKey = "dir:" + DirectionFlagTools.DirectionFlagToString(mirroredFlag);
-                            if (parts.Length > 2) {
-                                newKey += ":" + string.Join(":", parts.Skip(2));
-                            }
-                            attributes[newKey] = value;
-                        }
-                    }
-                } else {
-                    attributes[k] = value; // Invalid format, keep as is
-                }
-            } else {
-                attributes[k] = value;
-            }
-        }
+        var flagsToIgnore = new[] { DirectionFlag.Down, DirectionFlag.DownLeft, DirectionFlag.DownRight };
+        var flagsToTransform = new[] { DirectionFlag.Up, DirectionFlag.UpLeft, DirectionFlag.UpRight };
+        MirrorAttributes(ro, attributes, flagsToIgnore, flagsToTransform, MirrorTB);
     }
 
     private static void MirrorBTAttributes(IReadOnlyDictionary<string, object> ro, Dictionary<string, object> attributes) {
-        foreach (var (k, value) in ro) {
-            if (k.StartsWith("dir:")) {
-                var parts = k.Split(':');
-                if (parts.Length >= 2) {
-                    var flagStr = parts[1];
-                    var flag = DirectionFlagTools.StringToDirectionFlag(flagStr);
-                    if (flag is DirectionFlag.Up or DirectionFlag.UpLeft or DirectionFlag.UpRight) {
-                        // Ignore the top side
-                    } else {
-                        attributes[k] = value;
-                        if (flag is DirectionFlag.Down or DirectionFlag.DownLeft or DirectionFlag.DownRight) {
-                            var mirroredFlag = MirrorBT(flag);
-                            var newKey = "dir:" + DirectionFlagTools.DirectionFlagToString(mirroredFlag);
-                            if (parts.Length > 2) {
-                                newKey += ":" + string.Join(":", parts.Skip(2));
-                            }
-                            attributes[newKey] = value;
-                        }
-                    }
-                } else {
-                    attributes[k] = value; // Invalid format, keep as is
-                }
-            } else {
-                attributes[k] = value;
-            }
-        }
+        var flagsToIgnore = new[] { DirectionFlag.Up, DirectionFlag.UpLeft, DirectionFlag.UpRight };
+        var flagsToTransform = new[] { DirectionFlag.Down, DirectionFlag.DownLeft, DirectionFlag.DownRight };
+        MirrorAttributes(ro, attributes, flagsToIgnore, flagsToTransform, MirrorBT);
     }
 }
