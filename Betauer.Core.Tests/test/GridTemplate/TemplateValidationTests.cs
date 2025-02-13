@@ -17,7 +17,7 @@ public class TemplateValidationTests {
     }
 
     [Test]
-    public void SingleExit_IsValid() {
+    public void SingleExit_IsValid_DefaultSize() {
         var template = new Template {
             Body = Array2D.Parse(@"
                 #####
@@ -28,6 +28,37 @@ public class TemplateValidationTests {
             DirectionFlags = (byte)DirectionFlag.Down
         };
         Assert.That(template.IsValid(IsBlocked(template.Body)), Is.True);
+    }
+
+    [Test]
+    public void SingleExit_IsValid_DefaultSize_NotValid() {
+        var template = new Template {
+            Body = Array2D.Parse(@"
+                #####
+                #####
+                #####
+                #####
+                ##··#"),
+            DirectionFlags = (byte)DirectionFlag.Down
+        };
+        Assert.That(template.IsValid(IsBlocked(template.Body)), Is.False);
+    }
+
+    [TestCase(3, true)]
+    [TestCase(1, false)]
+    public void SingleExit_IsValid_Size3(int size, bool expected) {
+        var template = new Template {
+            Body = Array2D.Parse(@"
+                #####
+                #####
+                #####
+                #####
+                #···#"),
+            DirectionFlags = (byte)DirectionFlag.Down
+        };
+        template.SetAttribute(DirectionFlag.Down, "size", size);
+
+        Assert.That(template.IsValid(IsBlocked(template.Body)), Is.EqualTo(expected));
     }
 
     [Test]
