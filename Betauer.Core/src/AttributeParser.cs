@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace Betauer.Core.PCG.GridTemplate;
+namespace Betauer.Core;
 
 /// <summary>
 /// Reads a line like this

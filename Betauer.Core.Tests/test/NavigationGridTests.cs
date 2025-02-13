@@ -12,7 +12,6 @@ using NUnit.Framework;
 namespace Betauer.Core.Tests;
 
 [TestFixture]
-[Only]
 public class NavigationGridTests {
     private void PrintGrid(Array2D grid, GridGraph navigationGrid, IReadOnlyList<Vector2I> path = null, HashSet<Vector2I> targets = null) {
         var sb = new StringBuilder();

@@ -14,18 +14,18 @@ public class TemplateTest {
         template.SetAttribute("normal", "value");
 
         // Left-Right flags
-        template.SetAttribute(DirectionFlag.Left, "left");
-        template.SetAttribute(DirectionFlag.Right, "right");
+        template.SetAttribute(DirectionFlag.Left, "value", "left");
+        template.SetAttribute(DirectionFlag.Right, "value", "right");
 
         // Up-Down flags
-        template.SetAttribute(DirectionFlag.Up, "up");
-        template.SetAttribute(DirectionFlag.Down, "down");
+        template.SetAttribute(DirectionFlag.Up, "value", "up");
+        template.SetAttribute(DirectionFlag.Down, "value", "down");
 
         // Diagonal flags
-        template.SetAttribute(DirectionFlag.UpLeft, "upleft");
-        template.SetAttribute(DirectionFlag.UpRight, "upright");
-        template.SetAttribute(DirectionFlag.DownLeft, "bottomleft");
-        template.SetAttribute(DirectionFlag.DownRight, "bottomright");
+        template.SetAttribute(DirectionFlag.UpLeft, "value", "upleft");
+        template.SetAttribute(DirectionFlag.UpRight, "value", "upright");
+        template.SetAttribute(DirectionFlag.DownLeft, "value", "bottomleft");
+        template.SetAttribute(DirectionFlag.DownRight, "value", "bottomright");
 
         return template;
     }
@@ -36,94 +36,11 @@ public class TemplateTest {
         var template = new Template();
 
         // Act
-        template.SetAttribute("dir:U", "up");
-        Assert.That(template.GetAttribute(DirectionFlag.Up), Is.EqualTo("up"));
+        template.SetAttribute(DirectionFlag.Up, "value", "up");
+        Assert.That(template.GetAttribute("dir:U:value"), Is.EqualTo("up"));
 
-        template.SetAttribute(DirectionFlag.Down, "down");
-        Assert.That(template.GetAttribute("dir:D"), Is.EqualTo("down"));
-    }
-
-    [Test]
-    public void DirectionFlags_BasicOperations() {
-        // Arrange
-        var template = new Template();
-
-        // Assert initial state
-        Assert.That(template.DirectionFlags, Is.EqualTo((byte)0));
-        Assert.That(template.HasDirectionFlag(DirectionFlag.Up), Is.False);
-
-        // Test AddDirectionFlag
-        template.AddDirectionFlag(DirectionFlag.Up);
-        Assert.That(template.HasDirectionFlag(DirectionFlag.Up), Is.True);
-        Assert.That(template.DirectionFlags, Is.EqualTo((byte)DirectionFlag.Up));
-
-        template.AddDirectionFlag(DirectionFlag.Right);
-        Assert.That(template.HasDirectionFlag(DirectionFlag.Right), Is.True);
-        Assert.That(template.DirectionFlags, Is.EqualTo((byte)(DirectionFlag.Up | DirectionFlag.Right)));
-
-        // Test RemoveDirectionFlag
-        template.RemoveDirectionFlag(DirectionFlag.Up);
-        Assert.That(template.HasDirectionFlag(DirectionFlag.Up), Is.False);
-        Assert.That(template.HasDirectionFlag(DirectionFlag.Right), Is.True);
-        Assert.That(template.DirectionFlags, Is.EqualTo((byte)DirectionFlag.Right));
-
-        // Test HasAllDirectionFlags
-        template.AddDirectionFlag(DirectionFlag.Down);
-        Assert.That(template.HasAllDirectionFlags(DirectionFlag.Right | DirectionFlag.Down), Is.True);
-        Assert.That(template.HasAllDirectionFlags(DirectionFlag.Right | DirectionFlag.Down | DirectionFlag.Up), Is.False);
-
-        // Test HasAnyDirectionFlag
-        Assert.That(template.HasAnyDirectionFlag(DirectionFlag.Up | DirectionFlag.Right), Is.True);
-        Assert.That(template.HasAnyDirectionFlag(DirectionFlag.Up | DirectionFlag.Left), Is.False);
-
-        // Test multiple flags at once
-        template.RemoveDirectionFlag(DirectionFlag.Right | DirectionFlag.Down);
-        Assert.That(template.DirectionFlags, Is.EqualTo((byte)0));
-
-        // Test removing non-existent flags (should not affect other flags)
-        template.AddDirectionFlag(DirectionFlag.Up);
-        template.RemoveDirectionFlag(DirectionFlag.Right);
-        Assert.That(template.HasDirectionFlag(DirectionFlag.Up), Is.True);
-        Assert.That(template.DirectionFlags, Is.EqualTo((byte)DirectionFlag.Up));
-    }
-
-    [Test]
-    public void DirectionFlags_ComplexCombinations() {
-        // Arrange
-        var template = new Template();
-
-        // Test diagonal combinations
-        template.AddDirectionFlag(DirectionFlag.UpRight | DirectionFlag.UpLeft);
-        Assert.That(template.HasDirectionFlag(DirectionFlag.UpRight), Is.True);
-        Assert.That(template.HasDirectionFlag(DirectionFlag.UpLeft), Is.True);
-        Assert.That(template.HasDirectionFlag(DirectionFlag.Up), Is.False);
-
-        // Test HasAllDirectionFlags with multiple combinations
-        Assert.That(template.HasAllDirectionFlags(DirectionFlag.UpRight | DirectionFlag.UpLeft), Is.True);
-        Assert.That(template.HasAllDirectionFlags(DirectionFlag.UpRight | DirectionFlag.Up), Is.False);
-
-        // Test HasAnyDirectionFlag with multiple combinations
-        Assert.That(template.HasAnyDirectionFlag(DirectionFlag.UpRight | DirectionFlag.Down), Is.True);
-        Assert.That(template.HasAnyDirectionFlag(DirectionFlag.Down | DirectionFlag.Left), Is.False);
-
-        // Test all directions
-        var allDirections = DirectionFlag.Up | DirectionFlag.UpRight | DirectionFlag.Right |
-                            DirectionFlag.DownRight | DirectionFlag.Down | DirectionFlag.DownLeft |
-                            DirectionFlag.Left | DirectionFlag.UpLeft;
-
-        template.AddDirectionFlag(allDirections);
-        Assert.That(template.DirectionFlags, Is.EqualTo((byte)allDirections));
-        Assert.That(template.HasAllDirectionFlags(allDirections), Is.True);
-
-        // Remove all diagonal directions
-        var diagonals = DirectionFlag.UpRight | DirectionFlag.DownRight |
-                        DirectionFlag.DownLeft | DirectionFlag.UpLeft;
-        template.RemoveDirectionFlag(diagonals);
-
-        // Should only have cardinal directions
-        var cardinals = DirectionFlag.Up | DirectionFlag.Right | DirectionFlag.Down | DirectionFlag.Left;
-        Assert.That(template.HasAllDirectionFlags(cardinals), Is.True);
-        Assert.That(template.HasAnyDirectionFlag(diagonals), Is.False);
+        template.SetAttribute(DirectionFlag.Down, "value", "down");
+        Assert.That(template.GetAttribute("dir:D:value"), Is.EqualTo("down"));
     }
 
     [Test]
@@ -140,16 +57,16 @@ public class TemplateTest {
             Assert.That(transformed.GetAttribute("normal"), Is.EqualTo("value"));
 
             // Flags are rotated 90 degrees clockwise
-            Assert.That(transformed.GetAttribute("dir:U"), Is.EqualTo("left")); // Up becomes Left
-            Assert.That(transformed.GetAttribute("dir:R"), Is.EqualTo("up")); // Right becomes Up
-            Assert.That(transformed.GetAttribute("dir:D"), Is.EqualTo("right")); // Down becomes Right
-            Assert.That(transformed.GetAttribute("dir:L"), Is.EqualTo("down")); // Left becomes Down
+            Assert.That(transformed.GetAttribute(DirectionFlag.Up, "value"), Is.EqualTo("left")); // Up becomes Left
+            Assert.That(transformed.GetAttribute(DirectionFlag.Right, "value"), Is.EqualTo("up")); // Right becomes Up
+            Assert.That(transformed.GetAttribute(DirectionFlag.Down, "value"), Is.EqualTo("right")); // Down becomes Right
+            Assert.That(transformed.GetAttribute(DirectionFlag.Left, "value"), Is.EqualTo("down")); // Left becomes Down
 
             // Diagonal flags are also rotated
-            Assert.That(transformed.GetAttribute("dir:UL"), Is.EqualTo("bottomleft")); // UpLeft becomes BottomLeft
-            Assert.That(transformed.GetAttribute("dir:UR"), Is.EqualTo("upleft")); // UpRight becomes UpLeft
-            Assert.That(transformed.GetAttribute("dir:DR"), Is.EqualTo("upright")); // BottomRight becomes UpRight
-            Assert.That(transformed.GetAttribute("dir:DL"), Is.EqualTo("bottomright")); // BottomLeft becomes BottomRight
+            Assert.That(transformed.GetAttribute(DirectionFlag.UpLeft, "value"), Is.EqualTo("bottomleft")); // UpLeft becomes BottomLeft
+            Assert.That(transformed.GetAttribute(DirectionFlag.UpRight, "value"), Is.EqualTo("upleft")); // UpRight becomes UpLeft
+            Assert.That(transformed.GetAttribute(DirectionFlag.DownRight, "value"), Is.EqualTo("upright")); // BottomRight becomes UpRight
+            Assert.That(transformed.GetAttribute(DirectionFlag.DownLeft, "value"), Is.EqualTo("bottomright")); // BottomLeft becomes BottomRight
         });
     }
 
@@ -167,16 +84,16 @@ public class TemplateTest {
             Assert.That(transformed.GetAttribute("normal"), Is.EqualTo("value"));
 
             // Flags are rotated 180 degrees
-            Assert.That(transformed.GetAttribute("dir:U"), Is.EqualTo("down")); // Up becomes Down
-            Assert.That(transformed.GetAttribute("dir:R"), Is.EqualTo("left")); // Right becomes Left
-            Assert.That(transformed.GetAttribute("dir:D"), Is.EqualTo("up")); // Down becomes Up
-            Assert.That(transformed.GetAttribute("dir:L"), Is.EqualTo("right")); // Left becomes Right
+            Assert.That(transformed.GetAttribute(DirectionFlag.Up, "value"), Is.EqualTo("down")); // Up becomes Down
+            Assert.That(transformed.GetAttribute(DirectionFlag.Right, "value"), Is.EqualTo("left")); // Right becomes Left
+            Assert.That(transformed.GetAttribute(DirectionFlag.Down, "value"), Is.EqualTo("up")); // Down becomes Up
+            Assert.That(transformed.GetAttribute(DirectionFlag.Left, "value"), Is.EqualTo("right")); // Left becomes Right
 
             // Diagonal flags are also rotated
-            Assert.That(transformed.GetAttribute("dir:UL"), Is.EqualTo("bottomright")); // UpLeft becomes BottomRight
-            Assert.That(transformed.GetAttribute("dir:UR"), Is.EqualTo("bottomleft")); // UpRight becomes BottomLeft
-            Assert.That(transformed.GetAttribute("dir:DR"), Is.EqualTo("upleft")); // BottomRight becomes UpLeft
-            Assert.That(transformed.GetAttribute("dir:DL"), Is.EqualTo("upright")); // BottomLeft becomes UpRight
+            Assert.That(transformed.GetAttribute(DirectionFlag.UpLeft, "value"), Is.EqualTo("bottomright")); // UpLeft becomes BottomRight
+            Assert.That(transformed.GetAttribute(DirectionFlag.UpRight, "value"), Is.EqualTo("bottomleft")); // UpRight becomes BottomLeft
+            Assert.That(transformed.GetAttribute(DirectionFlag.DownRight, "value"), Is.EqualTo("upleft")); // BottomRight becomes UpLeft
+            Assert.That(transformed.GetAttribute(DirectionFlag.DownLeft, "value"), Is.EqualTo("upright")); // BottomLeft becomes UpRight
         });
     }
 
@@ -194,16 +111,16 @@ public class TemplateTest {
             Assert.That(transformed.GetAttribute("normal"), Is.EqualTo("value"));
 
             // Flags are rotated 90 degrees counter-clockwise
-            Assert.That(transformed.GetAttribute("dir:U"), Is.EqualTo("right")); // Up becomes Right
-            Assert.That(transformed.GetAttribute("dir:R"), Is.EqualTo("down")); // Right becomes Down
-            Assert.That(transformed.GetAttribute("dir:D"), Is.EqualTo("left")); // Down becomes Left
-            Assert.That(transformed.GetAttribute("dir:L"), Is.EqualTo("up")); // Left becomes Up
+            Assert.That(transformed.GetAttribute(DirectionFlag.Up, "value"), Is.EqualTo("right")); // Up becomes Right
+            Assert.That(transformed.GetAttribute(DirectionFlag.Right, "value"), Is.EqualTo("down")); // Right becomes Down
+            Assert.That(transformed.GetAttribute(DirectionFlag.Down, "value"), Is.EqualTo("left")); // Down becomes Left
+            Assert.That(transformed.GetAttribute(DirectionFlag.Left, "value"), Is.EqualTo("up")); // Left becomes Up
 
             // Diagonal flags are also rotated
-            Assert.That(transformed.GetAttribute("dir:UL"), Is.EqualTo("upright")); // UpLeft becomes UpRight
-            Assert.That(transformed.GetAttribute("dir:UR"), Is.EqualTo("bottomright")); // UpRight becomes BottomRight
-            Assert.That(transformed.GetAttribute("dir:DR"), Is.EqualTo("bottomleft")); // BottomRight becomes BottomLeft
-            Assert.That(transformed.GetAttribute("dir:DL"), Is.EqualTo("upleft")); // BottomLeft becomes UpLeft
+            Assert.That(transformed.GetAttribute(DirectionFlag.UpLeft, "value"), Is.EqualTo("upright")); // UpLeft becomes UpRight
+            Assert.That(transformed.GetAttribute(DirectionFlag.UpRight, "value"), Is.EqualTo("bottomright")); // UpRight becomes BottomRight
+            Assert.That(transformed.GetAttribute(DirectionFlag.DownRight, "value"), Is.EqualTo("bottomleft")); // BottomRight becomes BottomLeft
+            Assert.That(transformed.GetAttribute(DirectionFlag.DownLeft, "value"), Is.EqualTo("upleft")); // BottomLeft becomes UpLeft
         });
     }
 
@@ -221,18 +138,18 @@ public class TemplateTest {
             Assert.That(transformed.GetAttribute("normal"), Is.EqualTo("value"));
 
             // Vertical flags remain unchanged
-            Assert.That(transformed.GetAttribute("dir:U"), Is.EqualTo("up"));
-            Assert.That(transformed.GetAttribute("dir:D"), Is.EqualTo("down"));
+            Assert.That(transformed.GetAttribute(DirectionFlag.Up, "value"), Is.EqualTo("up"));
+            Assert.That(transformed.GetAttribute(DirectionFlag.Down, "value"), Is.EqualTo("down"));
 
             // Horizontal flags are flipped
-            Assert.That(transformed.GetAttribute("dir:R"), Is.EqualTo("left")); // Right becomes Left
-            Assert.That(transformed.GetAttribute("dir:L"), Is.EqualTo("right")); // Left becomes Right
+            Assert.That(transformed.GetAttribute(DirectionFlag.Right, "value"), Is.EqualTo("left")); // Right becomes Left
+            Assert.That(transformed.GetAttribute(DirectionFlag.Left, "value"), Is.EqualTo("right")); // Left becomes Right
 
             // Diagonal flags are flipped horizontally
-            Assert.That(transformed.GetAttribute("dir:UL"), Is.EqualTo("upright")); // UpLeft becomes UpRight
-            Assert.That(transformed.GetAttribute("dir:UR"), Is.EqualTo("upleft")); // UpRight becomes UpLeft
-            Assert.That(transformed.GetAttribute("dir:DR"), Is.EqualTo("bottomleft")); // BottomRight becomes BottomLeft
-            Assert.That(transformed.GetAttribute("dir:DL"), Is.EqualTo("bottomright")); // BottomLeft becomes BottomRight
+            Assert.That(transformed.GetAttribute(DirectionFlag.UpLeft, "value"), Is.EqualTo("upright")); // UpLeft becomes UpRight
+            Assert.That(transformed.GetAttribute(DirectionFlag.UpRight, "value"), Is.EqualTo("upleft")); // UpRight becomes UpLeft
+            Assert.That(transformed.GetAttribute(DirectionFlag.DownRight, "value"), Is.EqualTo("bottomleft")); // BottomRight becomes BottomLeft
+            Assert.That(transformed.GetAttribute(DirectionFlag.DownLeft, "value"), Is.EqualTo("bottomright")); // BottomLeft becomes BottomRight
         });
     }
 
@@ -250,339 +167,18 @@ public class TemplateTest {
             Assert.That(transformed.GetAttribute("normal"), Is.EqualTo("value"));
 
             // Horizontal flags remain unchanged
-            Assert.That(transformed.GetAttribute("dir:L"), Is.EqualTo("left"));
-            Assert.That(transformed.GetAttribute("dir:R"), Is.EqualTo("right"));
+            Assert.That(transformed.GetAttribute(DirectionFlag.Left, "value"), Is.EqualTo("left"));
+            Assert.That(transformed.GetAttribute(DirectionFlag.Right, "value"), Is.EqualTo("right"));
 
             // Vertical flags are flipped
-            Assert.That(transformed.GetAttribute("dir:U"), Is.EqualTo("down")); // Up becomes Down
-            Assert.That(transformed.GetAttribute("dir:D"), Is.EqualTo("up")); // Down becomes Up
+            Assert.That(transformed.GetAttribute(DirectionFlag.Up, "value"), Is.EqualTo("down")); // Up becomes Down
+            Assert.That(transformed.GetAttribute(DirectionFlag.Down, "value"), Is.EqualTo("up")); // Down becomes Up
 
             // Diagonal flags are flipped vertically
-            Assert.That(transformed.GetAttribute("dir:UL"), Is.EqualTo("bottomleft")); // UpLeft becomes BottomLeft
-            Assert.That(transformed.GetAttribute("dir:UR"), Is.EqualTo("bottomright")); // UpRight becomes BottomRight
-            Assert.That(transformed.GetAttribute("dir:DR"), Is.EqualTo("upright")); // BottomRight becomes UpRight
-            Assert.That(transformed.GetAttribute("dir:DL"), Is.EqualTo("upleft")); // BottomLeft becomes UpLeft
-        });
-    }
-
-    [Test]
-    public void Transform_MirrorLR_ShouldCopyLeftToRight() {
-        // Arrange
-        var template = CreateTemplateWithAllFlags();
-
-        // Act
-        var transformed = template.Transform(Transformations.Type.MirrorLR);
-
-        // Assert
-        Assert.Multiple(() => {
-            // Non-directional attributes remain unchanged
-            Assert.That(transformed.GetAttribute("normal"), Is.EqualTo("value"));
-
-            // Vertical flags remain unchanged
-            Assert.That(transformed.GetAttribute("dir:U"), Is.EqualTo("up"));
-            Assert.That(transformed.GetAttribute("dir:D"), Is.EqualTo("down"));
-
-            // Left flags are kept and copied to right
-            Assert.That(transformed.GetAttribute("dir:L"), Is.EqualTo("left"));
-            Assert.That(transformed.GetAttribute("dir:R"), Is.EqualTo("left"));
-            Assert.That(transformed.GetAttribute("dir:UL"), Is.EqualTo("upleft"));
-            Assert.That(transformed.GetAttribute("dir:UR"), Is.EqualTo("upleft"));
-            Assert.That(transformed.GetAttribute("dir:DL"), Is.EqualTo("bottomleft"));
-            Assert.That(transformed.GetAttribute("dir:DR"), Is.EqualTo("bottomleft"));
-        });
-    }
-
-    [Test]
-    public void Transform_MirrorRL_ShouldCopyRightToLeft() {
-        // Arrange
-        var template = CreateTemplateWithAllFlags();
-
-        // Act
-        var transformed = template.Transform(Transformations.Type.MirrorRL);
-
-        // Assert
-        Assert.Multiple(() => {
-            // Non-directional attributes remain unchanged
-            Assert.That(transformed.GetAttribute("normal"), Is.EqualTo("value"));
-
-            // Vertical flags remain unchanged
-            Assert.That(transformed.GetAttribute("dir:U"), Is.EqualTo("up"));
-            Assert.That(transformed.GetAttribute("dir:D"), Is.EqualTo("down"));
-
-            // Right flags are kept and copied to left
-            Assert.That(transformed.GetAttribute("dir:R"), Is.EqualTo("right"));
-            Assert.That(transformed.GetAttribute("dir:L"), Is.EqualTo("right"));
-            Assert.That(transformed.GetAttribute("dir:UR"), Is.EqualTo("upright"));
-            Assert.That(transformed.GetAttribute("dir:UL"), Is.EqualTo("upright"));
-            Assert.That(transformed.GetAttribute("dir:DR"), Is.EqualTo("bottomright"));
-            Assert.That(transformed.GetAttribute("dir:DL"), Is.EqualTo("bottomright"));
-        });
-    }
-
-    [Test]
-    public void Transform_MirrorTB_ShouldCopyTopToBottom() {
-        // Arrange
-        var template = CreateTemplateWithAllFlags();
-
-        // Act
-        var transformed = template.Transform(Transformations.Type.MirrorTB);
-
-        // Assert
-        Assert.Multiple(() => {
-            // Non-directional attributes remain unchanged
-            Assert.That(transformed.GetAttribute("normal"), Is.EqualTo("value"));
-
-            // Horizontal flags remain unchanged
-            Assert.That(transformed.GetAttribute("dir:L"), Is.EqualTo("left"));
-            Assert.That(transformed.GetAttribute("dir:R"), Is.EqualTo("right"));
-
-            // Top flags are kept and copied to bottom
-            Assert.That(transformed.GetAttribute("dir:U"), Is.EqualTo("up"));
-            Assert.That(transformed.GetAttribute("dir:D"), Is.EqualTo("up"));
-            Assert.That(transformed.GetAttribute("dir:UL"), Is.EqualTo("upleft"));
-            Assert.That(transformed.GetAttribute("dir:DL"), Is.EqualTo("upleft"));
-            Assert.That(transformed.GetAttribute("dir:UR"), Is.EqualTo("upright"));
-            Assert.That(transformed.GetAttribute("dir:DR"), Is.EqualTo("upright"));
-        });
-    }
-
-    [Test]
-    public void Transform_MirrorBT_ShouldCopyBottomToTop() {
-        // Arrange
-        var template = CreateTemplateWithAllFlags();
-
-        // Act
-        var transformed = template.Transform(Transformations.Type.MirrorBT);
-
-        // Assert
-        Assert.Multiple(() => {
-            // Non-directional attributes remain unchanged
-            Assert.That(transformed.GetAttribute("normal"), Is.EqualTo("value"));
-
-            // Horizontal flags remain unchanged
-            Assert.That(transformed.GetAttribute("dir:L"), Is.EqualTo("left"));
-            Assert.That(transformed.GetAttribute("dir:R"), Is.EqualTo("right"));
-
-            // Bottom flags are kept and copied to top
-            Assert.That(transformed.GetAttribute("dir:D"), Is.EqualTo("down"));
-            Assert.That(transformed.GetAttribute("dir:DL"), Is.EqualTo("bottomleft"));
-            Assert.That(transformed.GetAttribute("dir:UL"), Is.EqualTo("bottomleft"));
-            Assert.That(transformed.GetAttribute("dir:DR"), Is.EqualTo("bottomright"));
-            Assert.That(transformed.GetAttribute("dir:UR"), Is.EqualTo("bottomright"));
-        });
-    }
-
-    [Test]
-    public void Transform_Rotate90_ShouldTransformDirectionFlagsAndBody() {
-        // Arrange
-        var template = new Template {
-            DirectionFlags = (byte)(DirectionFlag.Up | DirectionFlag.Right),
-            Body = new Array2D<char>(new[,] {
-                { '1', '2' },
-                { '3', '4' }
-            })
-        };
-
-        // Act
-        var transformed = template.Transform(Transformations.Type.Rotate90);
-
-        // Assert
-        Assert.Multiple(() => {
-            // DirectionFlags: Up|Right -> Right|Down
-            Assert.That(transformed.DirectionFlags, Is.EqualTo((byte)(DirectionFlag.Right | DirectionFlag.Down)));
-
-            // Body should be rotated 90 degrees clockwise:
-            // [1 2]    [3 1]
-            // [3 4] -> [4 2]
-            var expected = new[,] {
-                { '3', '1' },
-                { '4', '2' }
-            };
-
-            Assert.That(transformed.Body.Width, Is.EqualTo(2));
-            Assert.That(transformed.Body.Height, Is.EqualTo(2));
-            for (var y = 0; y < transformed.Body.Height; y++) {
-                for (var x = 0; x < transformed.Body.Width; x++) {
-                    Assert.That(transformed.Body[y, x], Is.EqualTo(expected[y, x]), $"Cell at [{y}, {x}] is incorrect");
-                }
-            }
-        });
-    }
-
-    [Test]
-    public void Transform_Rotate180_ShouldTransformDirectionFlagsAndBody() {
-        // Arrange
-        var template = new Template {
-            DirectionFlags = (byte)(DirectionFlag.Up | DirectionFlag.Right),
-            Body = new Array2D<char>(new[,] {
-                { '1', '2' },
-                { '3', '4' }
-            })
-        };
-
-        // Act
-        var transformed = template.Transform(Transformations.Type.Rotate180);
-
-        // Assert
-        Assert.Multiple(() => {
-            // DirectionFlags: Up|Right -> Down|Left
-            Assert.That(transformed.DirectionFlags, Is.EqualTo((byte)(DirectionFlag.Down | DirectionFlag.Left)));
-
-            // Body should be rotated 180 degrees:
-            // [1 2]    [4 3]
-            // [3 4] -> [2 1]
-            var expected = new[,] {
-                { '4', '3' },
-                { '2', '1' }
-            };
-
-            Assert.That(transformed.Body.Width, Is.EqualTo(2));
-            Assert.That(transformed.Body.Height, Is.EqualTo(2));
-            for (var y = 0; y < transformed.Body.Height; y++) {
-                for (var x = 0; x < transformed.Body.Width; x++) {
-                    Assert.That(transformed.Body[y, x], Is.EqualTo(expected[y, x]), $"Cell at [{y}, {x}] is incorrect");
-                }
-            }
-        });
-    }
-
-    [Test]
-    public void Transform_RotateMinus90_ShouldTransformDirectionFlagsAndBody() {
-        // Arrange
-        var template = new Template {
-            DirectionFlags = (byte)(DirectionFlag.Up | DirectionFlag.Right),
-            Body = new Array2D<char>(new[,] {
-                { '1', '2' },
-                { '3', '4' }
-            })
-        };
-
-        // Act
-        var transformed = template.Transform(Transformations.Type.RotateMinus90);
-
-        // Assert
-        Assert.Multiple(() => {
-            // DirectionFlags: Up|Right -> Left|Up
-            Assert.That(transformed.DirectionFlags, Is.EqualTo((byte)(DirectionFlag.Left | DirectionFlag.Up)));
-
-            // Body should be rotated 90 degrees counter-clockwise:
-            // [1 2]    [2 4]
-            // [3 4] -> [1 3]
-            var expected = new[,] {
-                { '2', '4' },
-                { '1', '3' }
-            };
-
-            Assert.That(transformed.Body.Width, Is.EqualTo(2));
-            Assert.That(transformed.Body.Height, Is.EqualTo(2));
-            for (var y = 0; y < transformed.Body.Height; y++) {
-                for (var x = 0; x < transformed.Body.Width; x++) {
-                    Assert.That(transformed.Body[y, x], Is.EqualTo(expected[y, x]), $"Cell at [{y}, {x}] is incorrect");
-                }
-            }
-        });
-    }
-
-    [Test]
-    public void Transform_FlipH_ShouldTransformDirectionFlagsAndBody() {
-        // Arrange
-        var template = new Template {
-            DirectionFlags = (byte)(DirectionFlag.Up | DirectionFlag.Right | DirectionFlag.UpRight),
-            Body = new Array2D<char>(new[,] {
-                { '1', '2' },
-                { '3', '4' }
-            })
-        };
-
-        // Act
-        var transformed = template.Transform(Transformations.Type.FlipH);
-
-        // Assert
-        Assert.Multiple(() => {
-            // DirectionFlags: Up|Right|UpRight -> Up|Left|UpLeft
-            Assert.That(transformed.DirectionFlags, Is.EqualTo((byte)(DirectionFlag.Up | DirectionFlag.Left | DirectionFlag.UpLeft)));
-
-            // Body should be flipped horizontally:
-            // [1 2]    [2 1]
-            // [3 4] -> [4 3]
-            var expected = new[,] {
-                { '2', '1' },
-                { '4', '3' }
-            };
-
-            Assert.That(transformed.Body.Width, Is.EqualTo(2));
-            Assert.That(transformed.Body.Height, Is.EqualTo(2));
-            for (var y = 0; y < transformed.Body.Height; y++) {
-                for (var x = 0; x < transformed.Body.Width; x++) {
-                    Assert.That(transformed.Body[y, x], Is.EqualTo(expected[y, x]), $"Cell at [{y}, {x}] is incorrect");
-                }
-            }
-        });
-    }
-
-    [Test]
-    public void Transform_FlipV_ShouldTransformDirectionFlagsAndBody() {
-        // Arrange
-        var template = new Template {
-            DirectionFlags = (byte)(DirectionFlag.Up | DirectionFlag.Right | DirectionFlag.UpRight),
-            Body = new Array2D<char>(new[,] {
-                { '1', '2' },
-                { '3', '4' }
-            })
-        };
-
-        // Act
-        var transformed = template.Transform(Transformations.Type.FlipV);
-
-        // Assert
-        Assert.Multiple(() => {
-            // DirectionFlags: Up|Right|UpRight -> Down|Right|DownRight
-            Assert.That(transformed.DirectionFlags, Is.EqualTo((byte)(DirectionFlag.Down | DirectionFlag.Right | DirectionFlag.DownRight)));
-
-            // Body should be flipped vertically:
-            // [1 2]    [3 4]
-            // [3 4] -> [1 2]
-            var expected = new[,] {
-                { '3', '4' },
-                { '1', '2' }
-            };
-
-            Assert.That(transformed.Body.Width, Is.EqualTo(2));
-            Assert.That(transformed.Body.Height, Is.EqualTo(2));
-            for (var y = 0; y < transformed.Body.Height; y++) {
-                for (var x = 0; x < transformed.Body.Width; x++) {
-                    Assert.That(transformed.Body[y, x], Is.EqualTo(expected[y, x]), $"Cell at [{y}, {x}] is incorrect");
-                }
-            }
-        });
-    }
-
-    [Test]
-    public void Transform_FlipDiagonalSecondary_ShouldFlipBySecondaryDiagonal() {
-        // Arrange
-        var template = CreateTemplateWithAllFlags();
-
-        // Act
-        var transformed = template.Transform(Transformations.Type.FlipDiagonalSecondary);
-
-        // Assert
-        Assert.Multiple(() => {
-            // Non-directional attributes remain unchanged
-            Assert.That(transformed.GetAttribute("normal"), Is.EqualTo("value"));
-
-            // Cardinal flags are rotated along the secondary diagonal (up-right to down-left)
-            Assert.That(transformed.GetAttribute("dir:U"), Is.EqualTo("right")); // Up becomes Right
-            Assert.That(transformed.GetAttribute("dir:R"), Is.EqualTo("up")); // Right becomes Up
-            Assert.That(transformed.GetAttribute("dir:D"), Is.EqualTo("left")); // Down becomes Left
-            Assert.That(transformed.GetAttribute("dir:L"), Is.EqualTo("down")); // Left becomes Down
-
-            // Diagonal flags: UpRight and DownLeft stay the same (they're on the diagonal)
-            Assert.That(transformed.GetAttribute("dir:UR"), Is.EqualTo("upright")); // UpRight stays
-            Assert.That(transformed.GetAttribute("dir:DL"), Is.EqualTo("bottomleft")); // DownLeft stays
-
-            // Other diagonal flags are swapped
-            Assert.That(transformed.GetAttribute("dir:UL"), Is.EqualTo("bottomright")); // UpLeft becomes DownRight
-            Assert.That(transformed.GetAttribute("dir:DR"), Is.EqualTo("upleft")); // DownRight becomes UpLeft
+            Assert.That(transformed.GetAttribute(DirectionFlag.UpLeft, "value"), Is.EqualTo("bottomleft")); // UpLeft becomes BottomLeft
+            Assert.That(transformed.GetAttribute(DirectionFlag.UpRight, "value"), Is.EqualTo("bottomright")); // UpRight becomes BottomRight
+            Assert.That(transformed.GetAttribute(DirectionFlag.DownRight, "value"), Is.EqualTo("upright")); // BottomRight becomes UpRight
+            Assert.That(transformed.GetAttribute(DirectionFlag.DownLeft, "value"), Is.EqualTo("upleft")); // BottomLeft becomes UpLeft
         });
     }
 
@@ -599,19 +195,48 @@ public class TemplateTest {
             // Non-directional attributes remain unchanged
             Assert.That(transformed.GetAttribute("normal"), Is.EqualTo("value"));
 
-            // Cardinal flags are rotated by primary diagonal (the line from the up,left corner -> down,right corner). That means the "up side" is moved to the "left side"
-            Assert.That(transformed.GetAttribute("dir:U"), Is.EqualTo("left")); // Up becomes Left
-            Assert.That(transformed.GetAttribute("dir:L"), Is.EqualTo("up")); // Left becomes Up
-            Assert.That(transformed.GetAttribute("dir:D"), Is.EqualTo("right")); // Down becomes Right
-            Assert.That(transformed.GetAttribute("dir:R"), Is.EqualTo("down")); // Right becomes Down
+            // Cardinal flags are rotated by primary diagonal
+            Assert.That(transformed.GetAttribute(DirectionFlag.Up, "value"), Is.EqualTo("left")); // Up becomes Left
+            Assert.That(transformed.GetAttribute(DirectionFlag.Left, "value"), Is.EqualTo("up")); // Left becomes Up
+            Assert.That(transformed.GetAttribute(DirectionFlag.Down, "value"), Is.EqualTo("right")); // Down becomes Right
+            Assert.That(transformed.GetAttribute(DirectionFlag.Right, "value"), Is.EqualTo("down")); // Right becomes Down
 
             // Diagonal flags: UpLeft and DownRight stay the same (they're on the diagonal)
-            Assert.That(transformed.GetAttribute("dir:UL"), Is.EqualTo("upleft")); // UpLeft stays
-            Assert.That(transformed.GetAttribute("dir:DR"), Is.EqualTo("bottomright")); // DownRight stays
+            Assert.That(transformed.GetAttribute(DirectionFlag.UpLeft, "value"), Is.EqualTo("upleft")); // UpLeft stays
+            Assert.That(transformed.GetAttribute(DirectionFlag.DownRight, "value"), Is.EqualTo("bottomright")); // DownRight stays
 
             // Other diagonal flags are swapped
-            Assert.That(transformed.GetAttribute("dir:UR"), Is.EqualTo("bottomleft")); // UpRight becomes DownLeft
-            Assert.That(transformed.GetAttribute("dir:DL"), Is.EqualTo("upright")); // DownLeft becomes UpRight
+            Assert.That(transformed.GetAttribute(DirectionFlag.UpRight, "value"), Is.EqualTo("bottomleft")); // UpRight becomes DownLeft
+            Assert.That(transformed.GetAttribute(DirectionFlag.DownLeft, "value"), Is.EqualTo("upright")); // DownLeft becomes UpRight
+        });
+    }
+
+    [Test]
+    public void Transform_FlipDiagonalSecondary_ShouldFlipBySecondaryDiagonal() {
+        // Arrange
+        var template = CreateTemplateWithAllFlags();
+
+        // Act
+        var transformed = template.Transform(Transformations.Type.FlipDiagonalSecondary);
+
+        // Assert
+        Assert.Multiple(() => {
+            // Non-directional attributes remain unchanged
+            Assert.That(transformed.GetAttribute("normal"), Is.EqualTo("value"));
+
+            // Cardinal flags are rotated along the secondary diagonal
+            Assert.That(transformed.GetAttribute(DirectionFlag.Up, "value"), Is.EqualTo("right")); // Up becomes Right
+            Assert.That(transformed.GetAttribute(DirectionFlag.Right, "value"), Is.EqualTo("up")); // Right becomes Up
+            Assert.That(transformed.GetAttribute(DirectionFlag.Down, "value"), Is.EqualTo("left")); // Down becomes Left
+            Assert.That(transformed.GetAttribute(DirectionFlag.Left, "value"), Is.EqualTo("down")); // Left becomes Down
+
+            // Diagonal flags: UpRight and DownLeft stay the same (they're on the diagonal)
+            Assert.That(transformed.GetAttribute(DirectionFlag.UpRight, "value"), Is.EqualTo("upright")); // UpRight stays
+            Assert.That(transformed.GetAttribute(DirectionFlag.DownLeft, "value"), Is.EqualTo("bottomleft")); // DownLeft stays
+
+            // Other diagonal flags are swapped
+            Assert.That(transformed.GetAttribute(DirectionFlag.UpLeft, "value"), Is.EqualTo("bottomright")); // UpLeft becomes DownRight
+            Assert.That(transformed.GetAttribute(DirectionFlag.DownRight, "value"), Is.EqualTo("upleft")); // DownRight becomes UpLeft
         });
     }
 

@@ -374,14 +374,23 @@ public static class DirectionTransformations {
             // It's a flip or a rotation, just transform the keys
             foreach (var (k, value) in ro) {
                 if (k.StartsWith("dir:")) {
-                    var key = k[4..];
-                    var flag = DirectionFlagTools.StringToDirectionFlag(key);
-                    if (flag == DirectionFlag.None) {
-                        attributes[k] = value; // No es una key de dirección correcta, la dejamos igual
+                    var parts = k.Split(':');
+                    if (parts.Length >= 2) {
+                        var flagStr = parts[1];
+                        var flag = DirectionFlagTools.StringToDirectionFlag(flagStr);
+                        if (flag == DirectionFlag.None) {
+                            attributes[k] = value; // No es una key de dirección correcta, la dejamos igual
+                        } else {
+                            var transformedFlags = TransformDirectionFlag(flag, type);
+                            var newKey = "dir:" + DirectionFlagTools.DirectionFlagToString(transformedFlags);
+                            // Add the original key part if it exists
+                            if (parts.Length > 2) {
+                                newKey += ":" + string.Join(":", parts.Skip(2));
+                            }
+                            attributes[newKey] = value;
+                        }
                     } else {
-                        var transformedFlags = TransformDirectionFlag(flag, type);
-                        var newKey = DirectionFlagTools.DirectionFlagToString(transformedFlags);
-                        attributes["dir:" + newKey] = value;
+                        attributes[k] = value; // Invalid format, keep as is
                     }
                 } else {
                     attributes[k] = value; // No es una key de dirección, la dejamos igual
@@ -391,87 +400,118 @@ public static class DirectionTransformations {
         return attributes;
     }
 
-
     private static void MirrorLRAttributes(IReadOnlyDictionary<string, object> ro, Dictionary<string, object> attributes) {
-        // Copiamos el lado izquierdo al derecho y los atributos que no son de dirección, ignorando el lado derecho
         foreach (var (k, value) in ro) {
             if (k.StartsWith("dir:")) {
-                var key = k[4..];
-                var flag = DirectionFlagTools.StringToDirectionFlag(key);
-                if (flag is DirectionFlag.Right or DirectionFlag.UpRight or DirectionFlag.DownRight) {
-                    // Ignore the right side
-                } else {
-                    attributes[k] = value;
-                    if (flag is DirectionFlag.Left or DirectionFlag.UpLeft or DirectionFlag.DownLeft) {
-                        var mirroredFlag = MirrorLR(flag);
-                        attributes["dir:"+DirectionFlagTools.DirectionFlagToString(mirroredFlag)] = value;
+                var parts = k.Split(':');
+                if (parts.Length >= 2) {
+                    var flagStr = parts[1];
+                    var flag = DirectionFlagTools.StringToDirectionFlag(flagStr);
+                    if (flag is DirectionFlag.Right or DirectionFlag.UpRight or DirectionFlag.DownRight) {
+                        // Ignore the right side
+                    } else {
+                        attributes[k] = value;
+                        if (flag is DirectionFlag.Left or DirectionFlag.UpLeft or DirectionFlag.DownLeft) {
+                            var mirroredFlag = MirrorLR(flag);
+                            var newKey = "dir:" + DirectionFlagTools.DirectionFlagToString(mirroredFlag);
+                            if (parts.Length > 2) {
+                                newKey += ":" + string.Join(":", parts.Skip(2));
+                            }
+                            attributes[newKey] = value;
+                        }
                     }
+                } else {
+                    attributes[k] = value; // Invalid format, keep as is
                 }
             } else {
-                attributes[k] = value; // No es una key de dirección, la dejamos igual
+                attributes[k] = value;
             }
         }
     }
 
     private static void MirrorRLAttributes(IReadOnlyDictionary<string, object> ro, Dictionary<string, object> attributes) {
-        // Copiamos el lado derecho al izquierdo y los atributos que no son de dirección, ignorando el lado izquierdo
         foreach (var (k, value) in ro) {
             if (k.StartsWith("dir:")) {
-                var key = k[4..];
-                var flag = DirectionFlagTools.StringToDirectionFlag(key);
-                if (flag is DirectionFlag.Left or DirectionFlag.UpLeft or DirectionFlag.DownLeft) {
-                    // Ignore the left side
-                } else {
-                    attributes[k] = value;
-                    if (flag is DirectionFlag.Right or DirectionFlag.UpRight or DirectionFlag.DownRight) {
-                        var mirroredFlag = MirrorRL(flag);
-                        attributes["dir:"+DirectionFlagTools.DirectionFlagToString(mirroredFlag)] = value;
+                var parts = k.Split(':');
+                if (parts.Length >= 2) {
+                    var flagStr = parts[1];
+                    var flag = DirectionFlagTools.StringToDirectionFlag(flagStr);
+                    if (flag is DirectionFlag.Left or DirectionFlag.UpLeft or DirectionFlag.DownLeft) {
+                        // Ignore the left side
+                    } else {
+                        attributes[k] = value;
+                        if (flag is DirectionFlag.Right or DirectionFlag.UpRight or DirectionFlag.DownRight) {
+                            var mirroredFlag = MirrorRL(flag);
+                            var newKey = "dir:" + DirectionFlagTools.DirectionFlagToString(mirroredFlag);
+                            if (parts.Length > 2) {
+                                newKey += ":" + string.Join(":", parts.Skip(2));
+                            }
+                            attributes[newKey] = value;
+                        }
                     }
+                } else {
+                    attributes[k] = value; // Invalid format, keep as is
                 }
             } else {
-                attributes[k] = value; // No es una key de dirección, la dejamos igual
+                attributes[k] = value;
             }
         }
     }
 
     private static void MirrorTBAttributes(IReadOnlyDictionary<string, object> ro, Dictionary<string, object> attributes) {
-        // Copiamos el lado superior al inferior y los atributos que no son de dirección, ignorando el lado inferior
         foreach (var (k, value) in ro) {
             if (k.StartsWith("dir:")) {
-                var key = k[4..];
-                var flag = DirectionFlagTools.StringToDirectionFlag(key);
-                if (flag is DirectionFlag.Down or DirectionFlag.DownLeft or DirectionFlag.DownRight) {
-                    // Ignore the bottom side
-                } else {
-                    attributes[k] = value;
-                    if (flag is DirectionFlag.Up or DirectionFlag.UpLeft or DirectionFlag.UpRight) {
-                        var mirroredFlag = MirrorTB(flag);
-                        attributes["dir:"+DirectionFlagTools.DirectionFlagToString(mirroredFlag)] = value;
+                var parts = k.Split(':');
+                if (parts.Length >= 2) {
+                    var flagStr = parts[1];
+                    var flag = DirectionFlagTools.StringToDirectionFlag(flagStr);
+                    if (flag is DirectionFlag.Down or DirectionFlag.DownLeft or DirectionFlag.DownRight) {
+                        // Ignore the bottom side
+                    } else {
+                        attributes[k] = value;
+                        if (flag is DirectionFlag.Up or DirectionFlag.UpLeft or DirectionFlag.UpRight) {
+                            var mirroredFlag = MirrorTB(flag);
+                            var newKey = "dir:" + DirectionFlagTools.DirectionFlagToString(mirroredFlag);
+                            if (parts.Length > 2) {
+                                newKey += ":" + string.Join(":", parts.Skip(2));
+                            }
+                            attributes[newKey] = value;
+                        }
                     }
+                } else {
+                    attributes[k] = value; // Invalid format, keep as is
                 }
             } else {
-                attributes[k] = value; // No es una key de dirección, la dejamos igual
+                attributes[k] = value;
             }
         }
     }
 
     private static void MirrorBTAttributes(IReadOnlyDictionary<string, object> ro, Dictionary<string, object> attributes) {
-        // Copiamos el lado inferior al superior y los atributos que no son de dirección, ignorando el lado superior
         foreach (var (k, value) in ro) {
             if (k.StartsWith("dir:")) {
-                var key = k[4..];
-                var flag = DirectionFlagTools.StringToDirectionFlag(key);
-                if (flag is DirectionFlag.Up or DirectionFlag.UpLeft or DirectionFlag.UpRight) {
-                    // Ignore the top side
-                } else {
-                    attributes[k] = value;
-                    if (flag is DirectionFlag.Down or DirectionFlag.DownLeft or DirectionFlag.DownRight) {
-                        var mirroredFlag = MirrorBT(flag);
-                        attributes["dir:"+DirectionFlagTools.DirectionFlagToString(mirroredFlag)] = value;
+                var parts = k.Split(':');
+                if (parts.Length >= 2) {
+                    var flagStr = parts[1];
+                    var flag = DirectionFlagTools.StringToDirectionFlag(flagStr);
+                    if (flag is DirectionFlag.Up or DirectionFlag.UpLeft or DirectionFlag.UpRight) {
+                        // Ignore the top side
+                    } else {
+                        attributes[k] = value;
+                        if (flag is DirectionFlag.Down or DirectionFlag.DownLeft or DirectionFlag.DownRight) {
+                            var mirroredFlag = MirrorBT(flag);
+                            var newKey = "dir:" + DirectionFlagTools.DirectionFlagToString(mirroredFlag);
+                            if (parts.Length > 2) {
+                                newKey += ":" + string.Join(":", parts.Skip(2));
+                            }
+                            attributes[newKey] = value;
+                        }
                     }
+                } else {
+                    attributes[k] = value; // Invalid format, keep as is
                 }
             } else {
-                attributes[k] = value; // No es una key de dirección, la dejamos igual
+                attributes[k] = value;
             }
         }
     }

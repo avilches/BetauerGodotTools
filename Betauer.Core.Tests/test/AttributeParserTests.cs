@@ -1,9 +1,7 @@
-using System.Linq;
-using Betauer.Core.PCG.GridTemplate;
 using Betauer.TestRunner;
 using NUnit.Framework;
 
-namespace Betauer.Core.Tests.GridTemplate;
+namespace Betauer.Core.Tests;
 
 [TestFixture]
 public class AttributeParserTests {

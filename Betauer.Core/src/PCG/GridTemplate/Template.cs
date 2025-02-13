@@ -45,17 +45,19 @@ public class Template {
     public bool HasAttributeWithValue<T>(string key, T value) => Attributes.TryGetValue(key, out var existingValue) && existingValue is T && Equals(existingValue, value);
     public bool HasAttributeOfType<T>(string key) => Attributes.TryGetValue(key, out var existingValue) && existingValue is T;
 
-    public void SetAttribute(DirectionFlag flag, object value) => SetAttribute(Key(flag), value);
-    public object? GetAttribute(DirectionFlag flag) => GetAttribute(Key(flag));
-    public T? GetAttributeAs<T>(DirectionFlag flag) => GetAttributeAs<T>(Key(flag));
-    public T GetAttributeOrDefault<T>(DirectionFlag flag, T defaultValue) => GetAttributeOrDefault(Key(flag), defaultValue);
-    public T GetAttributeOrCreate<T>(DirectionFlag flag, Func<T> factory) => GetAttributeOrCreate(Key(flag), factory);
-    public bool RemoveAttribute(DirectionFlag flag) => RemoveAttribute(Key(flag));
-    public bool HasAttribute(DirectionFlag flag) => HasAttribute(Key(flag));
-    public bool HasAttributeWithValue<T>(DirectionFlag flag, T value) => HasAttributeWithValue(Key(flag), value);
-    public bool HasAttributeOfType<T>(DirectionFlag flag) => HasAttributeOfType<T>(Key(flag));
+    public void SetAttribute(DirectionFlag flag, string key, object value) => SetAttribute(Key(flag, key), value);
+    public object? GetAttribute(DirectionFlag flag, string key) => GetAttribute(Key(flag, key));
+    public T? GetAttributeAs<T>(DirectionFlag flag, string key) => GetAttributeAs<T>(Key(flag, key));
+    public T GetAttributeOrDefault<T>(DirectionFlag flag, string key, T defaultValue) => GetAttributeOrDefault(Key(flag, key), defaultValue);
+    public T GetAttributeOrCreate<T>(DirectionFlag flag, string key, Func<T> factory) => GetAttributeOrCreate(Key(flag, key), factory);
+    public bool RemoveAttribute(DirectionFlag flag, string key) => RemoveAttribute(Key(flag, key));
+    public bool HasAttribute(DirectionFlag flag, string key) => HasAttribute(Key(flag, key));
+    public bool HasAttributeWithValue<T>(DirectionFlag flag, string key, T value) => HasAttributeWithValue(Key(flag, key), value);
+    public bool HasAttributeOfType<T>(DirectionFlag flag, string key) => HasAttributeOfType<T>(Key(flag, key));
 
-    private static string Key(DirectionFlag flag) => "dir:" + DirectionFlagTools.DirectionFlagToString(flag);
+    private static string Key(DirectionFlag flag, string key) {
+        return "dir:" + DirectionFlagTools.DirectionFlagToString(flag) + ":" + key;
+    }
 
     public void AddTag(string tag) => Tags.Add(tag);
     public bool AddTags(params string[] tags) => tags.All(tag => Tags.Add(tag));
@@ -68,7 +70,7 @@ public class Template {
     public IEnumerable<string> MatchingTags(string[] tags) => tags.Where(tag => Tags.Contains(tag));
 
     public override string ToString() {
-        return $"Id: {AttributeParser.ParseResult.Print(Id)} DirectionFlags: \"{DirectionFlagTools.FlagsToString(DirectionFlags)}\" ({DirectionFlags}) Tags: {string.Join(",", Tags.OrderBy(s => s))} {Attributes.Count} Attributes: {string.Join(" ", Attributes.Select(pair => pair.Key + "=" + AttributeParser.ParseResult.Print(pair.Value)).OrderBy(t => t))}".Trim();
+        return $"Id: {Core.AttributeParser.ParseResult.Print(Id)} DirectionFlags: \"{DirectionFlagTools.FlagsToString(DirectionFlags)}\" ({DirectionFlags}) Tags: {string.Join(",", Tags.OrderBy(s => s))} {Attributes.Count} Attributes: {string.Join(" ", Attributes.Select(pair => pair.Key + "=" + Core.AttributeParser.ParseResult.Print(pair.Value)).OrderBy(t => t))}".Trim();
     }
 
     public Template Transform(Transformations.Type type) {
@@ -110,7 +112,7 @@ public class Template {
                 }
             } else {
                 // Si hay salida, validar que el tamaño es correcto (1, 3 o 5)
-                var width = GetAttributeOrDefault(flag, 1);
+                var width = GetAttributeOrDefault(flag, "size", 1);
                 if (width != 1 && width != 3 && width != 5) return false;
 
                 var halfWidth = width / 2;

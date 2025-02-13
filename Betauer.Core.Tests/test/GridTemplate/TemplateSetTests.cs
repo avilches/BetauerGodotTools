@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Betauer.Core.DataMath;
 using Betauer.Core.PCG.GridTemplate;
 using Betauer.TestRunner;
 using NUnit.Framework;
@@ -133,7 +134,7 @@ public class TemplateSetTests {
     [Test]
     public void LoadFromString_Attributes() {
         var content = """
-            @ dir=15 tag1 tag2 tag3,tag4 pepe=1 juan="2" dir:N=tres
+            @ dir=15 tag1 tag2 tag3,tag4 pepe=1 juan="2" dir:N:name:l=dos dir:N:name=tres
             abc
             def
             ghi
@@ -147,9 +148,17 @@ public class TemplateSetTests {
         Assert.That(template.GetAttribute("juan"), Is.EqualTo("2"));
 
         // N (north) is normalized to U (up)
-        Assert.That(template.GetAttribute("dir:U"), Is.EqualTo("tres"));
-        Assert.That(template.GetAttribute(DirectionFlag.Up), Is.EqualTo("tres"));
-        Assert.That(template.GetAttribute("dir:"+DirectionFlagTools.NormalizeFlag("t")), Is.EqualTo("tres"));
+        Assert.That(template.GetAttribute("dir:U:name:l"), Is.EqualTo("dos"));
+        Assert.That(template.GetAttribute("dir:U:name"), Is.EqualTo("tres"));
+        Assert.That(template.GetAttribute(DirectionFlag.Up, "name:l"), Is.EqualTo("dos"));
+        Assert.That(template.GetAttribute(DirectionFlag.Up, "name"), Is.EqualTo("tres"));
+
+        var rotated = template.Transform(Transformations.Type.Rotate90);
+
+        Assert.That(rotated.GetAttribute("dir:R:name:l"), Is.EqualTo("dos"));
+        Assert.That(rotated.GetAttribute("dir:R:name"), Is.EqualTo("tres"));
+        Assert.That(rotated.GetAttribute(DirectionFlag.Right, "name:l"), Is.EqualTo("dos"));
+        Assert.That(rotated.GetAttribute(DirectionFlag.Right, "name"), Is.EqualTo("tres"));
 
     }
 

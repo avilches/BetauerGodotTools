@@ -87,8 +87,8 @@ public class TemplateSet(int cellSize) {
     public void LoadFromString(string content, Func<Template, bool> filter, char lineSeparator = '\n') {
         var buffer = new List<string>();
         Template? template = null;
-        AttributeParser.ParseResult? currentParseResult = null;
-        var defines = new Dictionary<string, AttributeParser.ParseResult>(StringComparer.OrdinalIgnoreCase) {
+        Core.AttributeParser.ParseResult? currentParseResult = null;
+        var defines = new Dictionary<string, Core.AttributeParser.ParseResult>(StringComparer.OrdinalIgnoreCase) {
             [DefaultToken] = new(StringComparer.OrdinalIgnoreCase)
         };
 
@@ -101,7 +101,7 @@ public class TemplateSet(int cellSize) {
 
             if (line.StartsWith("@ ", StringComparison.Ordinal) || line.StartsWith("@\t", StringComparison.Ordinal)) {
                 // Parseamos toda la línea como un conjunto de atributos y tags
-                var lineParserResult = AttributeParser.Parse(line[1..], true);
+                var lineParserResult = Core.AttributeParser.Parse(line[1..], true);
 
                 // Define template
                 if (IsTemplateDefinition(lineParserResult, defines)) {
@@ -110,7 +110,7 @@ public class TemplateSet(int cellSize) {
 
                 if (template == null || currentParseResult == null) {
                     template = new Template();
-                    currentParseResult = new AttributeParser.ParseResult(StringComparer.OrdinalIgnoreCase);
+                    currentParseResult = new Core.AttributeParser.ParseResult(StringComparer.OrdinalIgnoreCase);
                 }
 
                 // Use a template
@@ -123,7 +123,6 @@ public class TemplateSet(int cellSize) {
                 foreach (var (k, value) in lineParserResult.Attributes) {
                     currentParseResult.Attributes[k] = value;
                 }
-
             } else if (template != null) {
                 buffer.Add(line);
 
@@ -144,16 +143,23 @@ public class TemplateSet(int cellSize) {
             var body = ParseTemplateBody(buffer, currentParseResult);
             template.Body = body;
 
-            foreach (var tag in currentParseResult.Tags) template.AddTag(tag);
+            foreach (var tag in currentParseResult.Tags) {
+                template.AddTag(tag);
+            }
             foreach (var (k, value) in currentParseResult.Attributes) {
                 if (k.StartsWith("dir:", StringComparison.OrdinalIgnoreCase)) {
-                    var key = k[4..];
+                    var parts = k[4..].Split(':');
+                    if (parts.Length == 0) continue;
+
                     // If the user wrote "dir:N" (north) or "dir:t" (top) instead of "U", we normalize it and write it as "U" (up)
-                    var dir = DirectionFlagTools.StringToDirectionFlag(key);
+                    var dir = DirectionFlagTools.StringToDirectionFlag(parts[0]);
                     if (dir != DirectionFlag.None) {
-                        template.SetAttribute(dir, value);
+                        // If there's a key after the direction, use it
+                        var key = parts.Length > 1 ? string.Join(":", parts.Skip(1)) : "";
+                        template.SetAttribute(dir, key, value);
                     } else {
-                        template.SetAttribute(key, value);
+                        // If the direction is invalid, keep the original key
+                        template.SetAttribute(k[4..], value);
                     }
                 } else if (k.Equals("dir", StringComparison.OrdinalIgnoreCase)) {
                     var directionFlags = value switch {
@@ -181,7 +187,7 @@ public class TemplateSet(int cellSize) {
         }
     }
 
-    private bool IsTemplateDefinition(AttributeParser.ParseResult lineParserResult, Dictionary<string, AttributeParser.ParseResult> defines) {
+    private bool IsTemplateDefinition(Core.AttributeParser.ParseResult lineParserResult, Dictionary<string, Core.AttributeParser.ParseResult> defines) {
         if (lineParserResult.Attributes.Remove(DefineId, out var defineName)) {
             if (defines.TryGetValue(defineName.ToString()!, out var previous)) {
                 foreach (var tag in lineParserResult.Tags) previous.Tags.Add(tag);
@@ -194,7 +200,7 @@ public class TemplateSet(int cellSize) {
         return false;
     }
 
-    private void UseTemplateDefinition(AttributeParser.ParseResult lineParserResult, AttributeParser.ParseResult currentParseResult, int lineNumber, string line, Dictionary<string, AttributeParser.ParseResult> defines) {
+    private void UseTemplateDefinition(Core.AttributeParser.ParseResult lineParserResult, Core.AttributeParser.ParseResult currentParseResult, int lineNumber, string line, Dictionary<string, Core.AttributeParser.ParseResult> defines) {
         if (lineParserResult.Attributes.TryGetValue(TemplateId, out var templateName)) {
             if (currentParseResult.Attributes.TryGetValue(TemplateId, out var previousTemplateName)) {
                 throw new ArgumentException($"Error in line #{lineNumber}: {line}\nCan't use template definition \"{templateName}\", it already has a template \"{previousTemplateName}\": {currentParseResult}");
@@ -210,7 +216,7 @@ public class TemplateSet(int cellSize) {
         }
     }
 
-    private Array2D<char> ParseTemplateBody(List<string> lines, AttributeParser.ParseResult currentParseResult) {
+    private Array2D<char> ParseTemplateBody(List<string> lines, Core.AttributeParser.ParseResult currentParseResult) {
         if (lines.Count == 0) {
             throw new ArgumentException($"Empty template for: {currentParseResult}");
         }
