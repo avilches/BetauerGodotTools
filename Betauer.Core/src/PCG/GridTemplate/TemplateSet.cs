@@ -176,7 +176,7 @@ public class TemplateSet(int cellSize) {
                 }
             }
             if (template.DirectionFlags == 0) {
-                throw new ArgumentException($"No direction flags in template: {currentParseResult}");
+                throw new ArgumentException($"No direction flags (attribute like dir=\"U\") in template: {currentParseResult}");
             }
 
             if (filter.Invoke(template)) {

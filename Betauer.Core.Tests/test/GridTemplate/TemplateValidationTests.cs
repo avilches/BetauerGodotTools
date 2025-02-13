@@ -165,6 +165,6 @@ public class TemplateValidationTests {
                 ##d##"),
             DirectionFlags = (byte)(DirectionFlag.Up | DirectionFlag.Right | DirectionFlag.Down | DirectionFlag.Left)
         };
-1        Assert.That(template.IsValid(IsBlocked), Is.True);
+        Assert.That(template.IsValid(IsBlocked), Is.True);
     }
 }
