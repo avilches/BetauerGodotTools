@@ -165,9 +165,7 @@ public class GridGraph {
     /// <param name="heuristic">The heuristic function</param>
     /// <param name="onNodeVisited">Optional callback that is invoked for each node visited during pathfinding</param>
     /// <returns>A list of positions representing the path, or an empty list if no path is found</returns>
-    public IReadOnlyList<Vector2I> FindPath(
-        Vector2I start, Vector2I target,
-        Func<Vector2I, Vector2I, float>? heuristic = null, Action<Vector2I>? onNodeVisited = null) {
+    public IReadOnlyList<Vector2I> FindPath(Vector2I start, Vector2I target, Func<Vector2I, Vector2I, float>? heuristic = null, Action<Vector2I>? onNodeVisited = null) {
         return new GridAStar(this).FindPath(start, target, heuristic, onNodeVisited);
     }
 
@@ -186,8 +184,9 @@ public class GridGraph {
     /// </summary>
     /// <param name="start">Starting position</param>
     /// <param name="targets">List of potential target positions</param>
+    /// <param name="onNodeVisited">Optional callback that is invoked for each node visited during pathfinding</param>
     /// <returns>A path to the closest target by Euclidean distance, or an empty list if no path is found</returns>
-    public IReadOnlyList<Vector2I> FindNearestPath(Vector2I start, List<Vector2I> targets) {
+    public IReadOnlyList<Vector2I> FindNearestPath(Vector2I start, List<Vector2I> targets, Action<Vector2I>? onNodeVisited = null) {
         if (targets.Count == 0) return Array.Empty<Vector2I>();
 
         // Encontrar el mejor target basado en distancia solo
@@ -195,7 +194,7 @@ public class GridGraph {
             .OrderBy(t => Heuristics.Euclidean(start, t))
             .First();
 
-        return FindPath(start, bestTarget, Heuristics.Euclidean);
+        return FindPath(start, bestTarget, Heuristics.Euclidean, onNodeVisited);
     }
 
 
@@ -221,8 +220,9 @@ public class GridGraph {
     /// </summary>
     /// <param name="start">Starting position</param>
     /// <param name="targets">List of target positions and their weights. Higher weights make targets more attractive</param>
+    /// <param name="onNodeVisited">Optional callback that is invoked for each node visited during pathfinding</param>
     /// <returns>A path to the target with the lowest effective distance (distance/weight), or an empty list if no path is found</returns>
-    public IReadOnlyList<Vector2I> FindNearestPath(Vector2I start, List<(Vector2I pos, float weight)> targets) {
+    public IReadOnlyList<Vector2I> FindNearestPath(Vector2I start, List<(Vector2I pos, float weight)> targets, Action<Vector2I>? onNodeVisited = null) {
         if (targets.Count == 0) return Array.Empty<Vector2I>();
 
         // Encontrar el mejor target basado en distancia y peso
@@ -233,7 +233,7 @@ public class GridGraph {
             })
             .First();
 
-        return FindPath(start, bestTarget.pos, Heuristics.Euclidean);
+        return FindPath(start, bestTarget.pos, Heuristics.Euclidean, onNodeVisited);
     }
 
     /// <summary>
@@ -243,8 +243,9 @@ public class GridGraph {
     /// </summary>
     /// <param name="start">Starting position</param>
     /// <param name="targets">List of potential target positions and their weights</param>
+    /// <param name="onNodeVisited">Optional callback that is invoked for each node visited during pathfinding</param>
     /// <returns>The shortest possible path to any target, or an empty list if no path is found</returns>
-    public IReadOnlyList<Vector2I> FindShortestPath(Vector2I start, List<Vector2I> targets) {
+    public IReadOnlyList<Vector2I> FindShortestPath(Vector2I start, List<Vector2I> targets, Action<Vector2I>? onNodeVisited = null) {
         if (targets.Count == 0) return Array.Empty<Vector2I>();
 
         IReadOnlyList<Vector2I>? shortestPath = null;
@@ -254,7 +255,7 @@ public class GridGraph {
 
         // Find paths to all targets and keep the shortest one
         foreach (var targetPos in targets) {
-            var path = astar.FindPath(start, targetPos, Heuristics.Euclidean);
+            var path = astar.FindPath(start, targetPos, Heuristics.Euclidean, onNodeVisited);
             if (path.Count == 0) continue;
             var length = path.Count;
             // Update if this is the shortest path so far
@@ -285,8 +286,9 @@ public class GridGraph {
     /// </summary>
     /// <param name="start">Starting position</param>
     /// <param name="targets">List of target positions and their weights. Higher weights make targets more attractive</param>
+    /// <param name="onNodeVisited">Optional callback that is invoked for each node visited during pathfinding</param>
     /// <returns>The path with the shortest effective length (path_length/weight), or an empty list if no path is found</returns>
-    public IReadOnlyList<Vector2I> FindShortestPath(Vector2I start, List<(Vector2I pos, float weight)> targets) {
+    public IReadOnlyList<Vector2I> FindShortestPath(Vector2I start, List<(Vector2I pos, float weight)> targets, Action<Vector2I>? onNodeVisited = null) {
         if (targets.Count == 0) return Array.Empty<Vector2I>();
 
         IReadOnlyList<Vector2I>? shortestPath = null;
@@ -297,7 +299,7 @@ public class GridGraph {
 
         // Find paths to all targets and keep the shortest one
         foreach (var (targetPos, weight) in targets) {
-            var path = astar.FindPath(start, targetPos, Heuristics.Euclidean);
+            var path = astar.FindPath(start, targetPos, Heuristics.Euclidean, onNodeVisited);
             if (path.Count == 0) continue;
 
             // Calculate the effective path length considering the target's weight
@@ -330,14 +332,16 @@ public class GridGraph {
     /// </summary>
     /// <param name="start">The starting position for the search</param>
     /// <param name="maxNodes">Maximum number of nodes to return. Use -1 for unlimited</param>
+    /// <param name="onNodeVisited">Optional callback that is invoked for each node visited during pathfinding</param>
     /// <returns>A HashSet containing all reachable positions within the limit</returns>
-    public HashSet<Vector2I> GetReachableZone(Vector2I start, int maxNodes = -1) {
+    public HashSet<Vector2I> GetReachableZone(Vector2I start, int maxNodes = -1, Action<Vector2I>? onNodeVisited = null) {
         var visited = new HashSet<Vector2I>();
         if (IsBlocked(start)) return visited;
 
         var queue = new Queue<Vector2I>();
         queue.Enqueue(start);
         visited.Add(start);
+        onNodeVisited?.Invoke(start);
 
         while (queue.Count > 0 && (maxNodes == -1 || visited.Count < maxNodes)) {
             var current = queue.Dequeue();
@@ -346,6 +350,7 @@ public class GridGraph {
                 var neighbor = edge.To;
                 if (visited.Add(neighbor)) {
                     queue.Enqueue(neighbor);
+                    onNodeVisited?.Invoke(neighbor);
 
                     // Check limit after adding each node
                     if (maxNodes != -1 && visited.Count >= maxNodes) {
@@ -369,8 +374,9 @@ public class GridGraph {
     /// </summary>
     /// <param name="start">The starting position for the search</param>
     /// <param name="maxDistance">Maximum distance (in steps) from the starting position</param>
+    /// <param name="onNodeVisited">Optional callback that is invoked for each node visited during pathfinding</param>
     /// <returns>A HashSet containing all reachable positions within the distance limit</returns>
-    public HashSet<Vector2I> GetReachableZoneInRange(Vector2I start, int maxDistance) {
+    public HashSet<Vector2I> GetReachableZoneInRange(Vector2I start, int maxDistance, Action<Vector2I>? onNodeVisited = null) {
         if (maxDistance < 0) throw new ArgumentException("maxDistance must be non-negative", nameof(maxDistance));
 
         var visited = new HashSet<Vector2I>();
@@ -379,6 +385,7 @@ public class GridGraph {
         var queue = new Queue<(Vector2I pos, int distance)>();
         queue.Enqueue((start, 0));
         visited.Add(start);
+        onNodeVisited?.Invoke(start);
 
         while (queue.Count > 0) {
             var (current, distance) = queue.Dequeue();
@@ -390,6 +397,7 @@ public class GridGraph {
                 var neighbor = edge.To;
                 if (visited.Add(neighbor)) {
                     queue.Enqueue((neighbor, distance + 1));
+                    onNodeVisited?.Invoke(neighbor);
                 }
             }
         }
