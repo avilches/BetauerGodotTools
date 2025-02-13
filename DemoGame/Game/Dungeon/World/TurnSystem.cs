@@ -50,7 +50,7 @@ public class TurnWorld {
         _cells[position] != null && _cells[position]!.Entities.Contains(entity);
 
     public bool IsValidPosition(Vector2I position) {
-        return _cells.IsValidPosition(position);
+        return _cells.IsInBounds(position);
     }
 
     public void AddEntity(Entity entity) {
@@ -69,7 +69,7 @@ public class TurnWorld {
         if (Entities.Contains(entity)) {
             throw new InvalidOperationException($"Entity already added to world: {entity}");
         }
-        if (!_cells.IsValidPosition(position)) {
+        if (!_cells.IsInBounds(position)) {
             throw new InvalidOperationException($"Invalid position: {position}");
         }
 

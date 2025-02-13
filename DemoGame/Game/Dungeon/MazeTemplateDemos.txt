@@ -1,8 +1,8 @@
-@ Define=Deadend  dir=N       dir:N=1                         rotate:all flip:all
-@ Define=Corner   dir=N-E     dir:N=1 dir:E=1                 rotate:all flip:all
-@ Define=Corridor dir=N-S     dir:N=1 dir:S=1                 rotate:all flip:all
-@ Define=Fork     dir=N-E-S   dir:N=1 dir:E=1 dir:S=1         rotate:all flip:all
-@ Define=Cross    dir=N-S-E-W dir:N=1 dir:S=1 dir:E=1 dir:W=1 rotate:all flip:all
+@ Define=Deadend  dir=N       transform:all
+@ Define=Corner   dir=N-E     transform:all
+@ Define=Corridor dir=N-S     transform:all
+@ Define=Fork     dir=N-E-S   transform:all
+@ Define=Cross    dir=N-S-E-W transform:all
 
 // ------------------------------------------------------------
 // Dead ends
@@ -10,7 +10,7 @@
 
 @ Template=Deadend id=0 mirror:rl
 
-..#···#..
+..##·##..
 ..#···#..
 ..#···#..
 .##···##.
@@ -261,7 +261,7 @@
 ##·····##
 .###·###.
 
-@ Template=corridor id=26 mirror:lr mirror:bt
+@ Template=corridor id=26 mirror:lr mirror:rl mirror:bt
 ####·####
 #·······#
 #·······#
@@ -272,7 +272,7 @@
 ##······#
 .###·####
 
-@ Template=corridor id=27 mirror:lr mirror:bt
+@ Template=corridor id=27 mirror:lr mirror:rl mirror:bt
 ####·####
 #·······#
 #··###··#
@@ -283,7 +283,7 @@
 ##······#
 .###·####
 
-@ Template=corner id=28
+@ Template=corridor id=28
 ####·####
 #····d··#
 #··#·#·k#
@@ -437,7 +437,7 @@
 #$$#·#$k#
 ####·####
 
-@ Template=Cross id=44 mirror:all
+@ Template=Cross id=44 mirror:tb
 ####·####
 #$k#····#
 #··####·#

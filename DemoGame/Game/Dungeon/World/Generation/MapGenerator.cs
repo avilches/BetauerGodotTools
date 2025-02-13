@@ -28,19 +28,24 @@ public enum CellDefinitionType : byte {
 /// </summary>
 /// <param name="Type"></param>
 public record CellDefinitionConfig(CellDefinitionType Type) : EnumConfig<CellDefinitionType, CellDefinitionConfig>(Type) {
+    // Blocking means the cell is not traversable by the player or enemies.
+    public required bool Blocking { get; init; }
+
+
     public required char TemplateCharacter { get; init; }
     public required Func<Vector2I, WorldCell?> Factory { get; init; }
 
     public static HashSet<char> AllChars { get; private set; }
+    public static HashSet<char> BlockingChars { get; private set; }
 
     public static void InitializeDefaults() {
         RegisterAll(
-            new CellDefinitionConfig(CellDefinitionType.Empty) { TemplateCharacter = '.', Factory = (_) => null },
-            new CellDefinitionConfig(CellDefinitionType.Wall) { TemplateCharacter = '#', Factory = (pos) => new WorldCell(CellType.Wall, pos) },
-            new CellDefinitionConfig(CellDefinitionType.Floor) { TemplateCharacter = '·', Factory = (pos) => new WorldCell(CellType.Floor, pos) },
-            new CellDefinitionConfig(CellDefinitionType.Door) { TemplateCharacter = 'd', Factory = (pos) => new WorldCell(CellType.Door, pos) },
-            new CellDefinitionConfig(CellDefinitionType.Loot) { TemplateCharacter = '$', Factory = (pos) => new WorldCell(CellType.Floor, pos) },
-            new CellDefinitionConfig(CellDefinitionType.Key) { TemplateCharacter = 'k', Factory = (pos) => new WorldCell(CellType.Floor, pos) }
+            new CellDefinitionConfig(CellDefinitionType.Empty) { Blocking = true, TemplateCharacter = '.', Factory = (_) => null },
+            new CellDefinitionConfig(CellDefinitionType.Wall) { Blocking = true, TemplateCharacter = '#', Factory = (pos) => new WorldCell(CellType.Wall, pos) },
+            new CellDefinitionConfig(CellDefinitionType.Floor) { Blocking = false, TemplateCharacter = '·', Factory = (pos) => new WorldCell(CellType.Floor, pos) },
+            new CellDefinitionConfig(CellDefinitionType.Door) { Blocking = false, TemplateCharacter = 'd', Factory = (pos) => new WorldCell(CellType.Door, pos) },
+            new CellDefinitionConfig(CellDefinitionType.Loot) { Blocking = false, TemplateCharacter = '$', Factory = (pos) => new WorldCell(CellType.Floor, pos) },
+            new CellDefinitionConfig(CellDefinitionType.Key) { Blocking = false, TemplateCharacter = 'k', Factory = (pos) => new WorldCell(CellType.Floor, pos) }
         );
 
         // Avoid duplicated characters
@@ -52,6 +57,7 @@ public record CellDefinitionConfig(CellDefinitionType Type) : EnumConfig<CellDef
         }
 
         AllChars = All.Select(c => c.TemplateCharacter).ToHashSet();
+        BlockingChars = All.Where(c => c.Blocking).Select(c => c.TemplateCharacter).ToHashSet();
     }
 
     public static CellDefinitionType Find(char cell) {
@@ -59,6 +65,7 @@ public record CellDefinitionConfig(CellDefinitionType Type) : EnumConfig<CellDef
     }
 
     public static bool IsValid(char c) => AllChars.Contains(c);
+    public static bool IsBlockingChar(char c) => BlockingChars.Contains(c);
 
     public static WorldCell? CreateCell(char c, Vector2I pos) {
         var cellDef = All.First(config => config.TemplateCharacter == c);
@@ -120,13 +127,6 @@ public class MapGenerator {
         var loot = zones.SpreadLocationsByZone(0.3f, MazeGraphCatalog.LootFormula);
     }
 
-    private static void PrintTemplates(List<Template> templates) {
-        foreach (var template in templates.OrderBy(t => t.Attributes["Template"]).ThenBy(t => t.Attributes.GetValueOrDefault("shared.id"))) {
-            Console.WriteLine(template);
-            Console.WriteLine(template.Body);
-        }
-    }
-
     // Returns the template
     private static Template GetTemplate(Random rngMap, Array2D<Template?> templateArray, TemplateSet templateSet, Vector2I pos, MazeNode node) {
         var upNodeTemplate = templateArray.GetValueSafe(pos + Vector2I.Up);
@@ -141,8 +141,8 @@ public class MapGenerator {
         Console.WriteLine($"Candidates before: {x} - after: {candidates.Count} = {x - candidates.Count} delted");
         Template template = null!;
         if (candidates.Count == 0) {
-            Console.WriteLine($"Warning: no matching template for node {node} at position {pos}. Direction: {DirectionFlagTools.FlagsToString(node.GetDirectionFlags())} ");
-            template = rngMap.Next(allTemplates.ToArray());
+            throw new Exception($"Warning: no matching template for node {node} at position {pos}. Direction: {DirectionFlagTools.FlagsToString(node.GetDirectionFlags())} ");
+            // template = rngMap.Next(allTemplates.ToArray());
         } else {
             template = rngMap.Next(candidates);
         }
@@ -151,12 +151,12 @@ public class MapGenerator {
 
         static bool MatchesNodeUpDown(Template? upNodeTemplate, Template? downNodeTemplate) {
             return upNodeTemplate == null || downNodeTemplate == null ||
-                   Equals(upNodeTemplate.GetAttribute(DirectionFlag.Down), downNodeTemplate.GetAttribute(DirectionFlag.Up));
+                   Equals(upNodeTemplate.GetAttributeOrDefault(DirectionFlag.Down, "size", 1), downNodeTemplate.GetAttributeOrDefault(DirectionFlag.Up, "size", 1));
         }
 
         static bool MatchesNodeLeftRight(Template? leftNodeTemplate, Template? rightNodeTemplate) {
             return leftNodeTemplate == null || rightNodeTemplate == null ||
-                   Equals(leftNodeTemplate.GetAttribute(DirectionFlag.Right), rightNodeTemplate.GetAttribute(DirectionFlag.Left));
+                   Equals(leftNodeTemplate.GetAttributeOrDefault(DirectionFlag.Right, "size", 1), rightNodeTemplate.GetAttributeOrDefault(DirectionFlag.Left, "size", 1));
         }
 
         // Removes all templates from the templateArray array that are similar to the check template
@@ -172,7 +172,6 @@ public class MapGenerator {
         }
     }
 
-
     public static void Validate() {
         HashSet<char> lootOrKeys = [
             CellDefinitionConfig.Get(CellDefinitionType.Key).TemplateCharacter,
@@ -180,10 +179,10 @@ public class MapGenerator {
         ];
 
         TemplateSetTypeConfig.All.ForEach(mapConfig => {
-            mapConfig.TemplateSet.FindTemplates().ForEach(t => {
+            mapConfig.TemplateSet.FindTemplates().ForEach((Template t) => {
                 var hasLootOrKey = t.Body.GetValues().Any(c => lootOrKeys.Contains(c));
                 if (!hasLootOrKey) {
-                    throw new InvalidDataException($"Template: {t}\n does not have a loot definition: {string.Join(",", lootOrKeys.Select(l => $"'{l}'"))}\n{t.Body}");
+                    // throw new InvalidDataException($"Template: {t}\n does not have a loot definition: {string.Join(",", lootOrKeys.Select(l => $"'{l}'"))}\n{t.Body}");
                 }
                 var found = t.Body.GetValues().FirstOrDefault((c) => !CellDefinitionConfig.IsValid(c), '\0');
                 if (found != '\0') {

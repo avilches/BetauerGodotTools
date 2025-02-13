@@ -49,7 +49,8 @@ public class MazeTemplateDemo {
         try {
             var content = File.ReadAllText(TemplatePath);
             templateSet.LoadFromString(content);
-            templateSet.ApplyTransformations();
+            templateSet.ValidateAll(c => c is '#' or '.', true);
+            templateSet.ApplyTransformations(c => c is '#' or '.');
 
             var array2D = zones.MazeGraph.Render((pos, node) => {
                 var templates = templateSet.FindTemplates(node.GetDirectionFlags()).ToArray();

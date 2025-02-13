@@ -49,16 +49,15 @@ public class Simulator {
             new CellTypeConfig(CellType.Door)
         );
 
+        CellDefinitionConfig.InitializeDefaults();
+
         TemplateSetTypeConfig.RegisterAll(
-            new TemplateSetTypeConfig(TemplateSetType.Office).LoadFromString(9, LoadTemplateContent(TemplatePath))
+            new TemplateSetTypeConfig(TemplateSetType.Office).Create(9, LoadTemplateContent(TemplatePath))
         );
 
         MapTypeConfig.RegisterAll(
             new MapTypeConfig(MapType.OfficeEasy, TemplateSetType.Office,  (seed) => MazeGraphCatalog.CogmindLong(new Random(seed)))
         );
-
-        CellDefinitionConfig.InitializeDefaults();
-
         MapGenerator.Validate();
     }
 
